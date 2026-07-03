@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SOL — Milestone 3</title>
+<title>SOL — Milestone 4</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
@@ -35,6 +35,16 @@
         (+<span id="recycler-rate">0</span>%/s)
       </p>
       <button id="buy-recycler-button" class="secondary" disabled>Loading...</button>
+    </div>
+
+    <div id="research">
+      <p id="research-label">Research — Near Bodies Tier</p>
+      <p id="research-progress">0 / 1000</p>
+      <div class="meter">
+        <div id="research-bar" class="meter-fill research-fill"></div>
+      </div>
+      <p id="research-status"></p>
+      <button id="fund-research-button" class="secondary" disabled>Loading...</button>
     </div>
   </div>
 

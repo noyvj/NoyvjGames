@@ -7,6 +7,8 @@ resource_count = 0.0
 generator_count = 0
 recycler_count = 0
 ecology_health = 100.0
+research_progress = 0.0
+near_bodies_unlocked = False
 
 GENERATOR_BASE_COST = 10
 GENERATOR_COST_GROWTH = 1.15
@@ -21,6 +23,12 @@ LOW_ECOLOGY_PENALTY_MULTIPLIER = 0.75
 RECYCLER_BASE_COST = 15
 RECYCLER_COST_GROWTH = 1.15
 RECYCLER_RESTORE_PER_SEC = 2.0  # ecology health restored, per recycler
+
+# Research isn't strictly linear — reaching a distance tier can unlock
+# several bodies in parallel rather than one planet at a time.
+RESEARCH_FUND_COST = 50  # flat Iron per investment, not a scaling purchase
+RESEARCH_TARGET_NEAR_BODIES = 1000
+NEAR_BODIES_UNLOCKS = ["Moon", "Mars"]
 
 
 def generator_cost():
@@ -77,6 +85,27 @@ def update_ecology_display():
         status.innerText = ""
 
 
+def update_research_display():
+    progress_pct = (research_progress / RESEARCH_TARGET_NEAR_BODIES) * 100
+    document.getElementById("research-bar").style.width = f"{progress_pct}%"
+
+    button = document.getElementById("fund-research-button")
+    status = document.getElementById("research-status")
+
+    if near_bodies_unlocked:
+        document.getElementById("research-progress").innerText = "Unlocked"
+        status.innerText = "Near Bodies unlocked: " + ", ".join(NEAR_BODIES_UNLOCKS)
+        button.innerText = "Near Bodies Unlocked"
+        button.disabled = True
+    else:
+        document.getElementById("research-progress").innerText = (
+            f"{math.floor(research_progress)} / {RESEARCH_TARGET_NEAR_BODIES}"
+        )
+        status.innerText = ""
+        button.innerText = f"Fund Research ({RESEARCH_FUND_COST} Iron)"
+        button.disabled = False
+
+
 def press_feedback(button):
     button.classList.add("pressed")
 
@@ -121,6 +150,19 @@ def on_buy_recycler(event):
     press_feedback(button)
 
 
+def on_fund_research(event):
+    global resource_count, research_progress, near_bodies_unlocked
+    button = document.getElementById("fund-research-button")
+    if not near_bodies_unlocked and resource_count >= RESEARCH_FUND_COST:
+        resource_count -= RESEARCH_FUND_COST
+        research_progress = min(research_progress + RESEARCH_FUND_COST, RESEARCH_TARGET_NEAR_BODIES)
+        if research_progress >= RESEARCH_TARGET_NEAR_BODIES:
+            near_bodies_unlocked = True
+        update_display()
+        update_research_display()
+    press_feedback(button)
+
+
 def tick(*args):
     global resource_count, ecology_health
 
@@ -151,9 +193,14 @@ def setup():
     recycler_button.disabled = False
     recycler_button.addEventListener("click", create_proxy(on_buy_recycler))
 
+    research_button = document.getElementById("fund-research-button")
+    research_button.disabled = False
+    research_button.addEventListener("click", create_proxy(on_fund_research))
+
     update_display()
     update_generator_display()
     update_ecology_display()
+    update_research_display()
     setInterval(create_proxy(tick), TICK_INTERVAL_MS)
 
 

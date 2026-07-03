@@ -24,6 +24,10 @@ ELEMENT_IDS = [
     "buy-recycler-button",
     "recycler-count",
     "recycler-rate",
+    "research-progress",
+    "research-bar",
+    "research-status",
+    "fund-research-button",
 ]
 
 
@@ -43,6 +47,9 @@ class GameEnv:
 
     def buy_recycler(self):
         self.elements["buy-recycler-button"].dispatch("click", None)
+
+    def fund_research(self):
+        self.elements["fund-research-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements, timers):
