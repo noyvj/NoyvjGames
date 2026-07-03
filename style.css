@@ -62,3 +62,37 @@ h1 {
 #click-button.pressed {
   background: #1f2f52;
 }
+
+#automation {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #23273a;
+}
+
+#generator-info {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin: 0 0 0.75rem;
+}
+
+button.secondary {
+  font-size: 0.95rem;
+  padding: 1rem 1.5rem;
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  background: #2a3a4c;
+  color: white;
+  cursor: pointer;
+  transition: background 0.08s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button.secondary:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+button.secondary.pressed {
+  background: #17222e;
+}
