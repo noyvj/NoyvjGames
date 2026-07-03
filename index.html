@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SOL — Milestone 2</title>
+<title>SOL — Milestone 3</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
@@ -20,6 +20,21 @@
         (+<span id="generator-rate">0</span>/s)
       </p>
       <button id="buy-generator-button" class="secondary" disabled>Loading...</button>
+    </div>
+
+    <div id="ecology">
+      <p id="ecology-label">Ecological Health</p>
+      <p id="ecology-percent">100%</p>
+      <div class="meter">
+        <div id="ecology-bar" class="meter-fill"></div>
+      </div>
+      <p id="ecology-status"></p>
+
+      <p id="recycler-info">
+        Recyclers: <span id="recycler-count">0</span>
+        (+<span id="recycler-rate">0</span>%/s)
+      </p>
+      <button id="buy-recycler-button" class="secondary" disabled>Loading...</button>
     </div>
   </div>
 

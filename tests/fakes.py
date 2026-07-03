@@ -24,12 +24,17 @@ class FakeClassList:
         return cls in self._classes
 
 
+class FakeStyle:
+    """Arbitrary attribute bag standing in for element.style (e.g. .width)."""
+
+
 class FakeElement:
     def __init__(self, id_):
         self.id = id_
         self.innerText = ""
         self.disabled = False
         self.classList = FakeClassList()
+        self.style = FakeStyle()
         self._listeners = {}
 
     def addEventListener(self, event_name, handler):

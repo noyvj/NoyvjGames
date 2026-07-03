@@ -18,6 +18,12 @@ ELEMENT_IDS = [
     "buy-generator-button",
     "generator-count",
     "generator-rate",
+    "ecology-percent",
+    "ecology-bar",
+    "ecology-status",
+    "buy-recycler-button",
+    "recycler-count",
+    "recycler-rate",
 ]
 
 
@@ -34,6 +40,9 @@ class GameEnv:
 
     def buy_generator(self):
         self.elements["buy-generator-button"].dispatch("click", None)
+
+    def buy_recycler(self):
+        self.elements["buy-recycler-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements, timers):
