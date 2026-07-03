@@ -28,6 +28,23 @@ ELEMENT_IDS = [
     "research-bar",
     "research-status",
     "fund-research-button",
+    "earth-view",
+    "away-view",
+    "priority-growth-button",
+    "priority-balance-button",
+    "priority-ecology-button",
+    "governor-budget-value",
+    "budget-increase-button",
+    "budget-decrease-button",
+    "travel-status",
+    "travel-moon-button",
+    "travel-mars-button",
+    "away-planet-name",
+    "away-iron",
+    "away-generators",
+    "away-recyclers",
+    "away-ecology",
+    "return-to-earth-button",
 ]
 
 
@@ -50,6 +67,24 @@ class GameEnv:
 
     def fund_research(self):
         self.elements["fund-research-button"].dispatch("click", None)
+
+    def set_priority(self, priority):
+        self.elements[f"priority-{priority}-button"].dispatch("click", None)
+
+    def increase_budget(self):
+        self.elements["budget-increase-button"].dispatch("click", None)
+
+    def decrease_budget(self):
+        self.elements["budget-decrease-button"].dispatch("click", None)
+
+    def travel_to_moon(self):
+        self.elements["travel-moon-button"].dispatch("click", None)
+
+    def travel_to_mars(self):
+        self.elements["travel-mars-button"].dispatch("click", None)
+
+    def return_to_earth(self):
+        self.elements["return-to-earth-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements, timers):

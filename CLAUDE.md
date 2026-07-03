@@ -43,7 +43,7 @@ Universal-Paperclips-style incremental game, solar-system themed. Player starts 
 | 2 | First automation | Auto-generators, continuous passive rate, no timers — **DONE** |
 | 3 | Ecology system | Global sustainability meter, penalty curve, ecology-improving buildings — **DONE** |
 | 4 | Research system v1 | Tech-tree/distance framework, first unlock tier (Moon or Mars) — **DONE** |
-| 5 | Planet transition + governor | Travel to new planet, governor priority/budget system |
+| 5 | Planet transition + governor | Travel to new planet, governor priority/budget system — **DONE** |
 | 6 | Second planet resource loop | New resource, reuse week 2/3 systems |
 | 7 | Trade system v1 | Resource exchange between two planets, ties into ecology recovery |
 | 8 | Terraforming | Per-planet progress bar |

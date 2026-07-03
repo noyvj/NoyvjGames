@@ -179,3 +179,103 @@ button.secondary.pressed {
   min-height: 1.2em;
   margin: 0 0 1rem;
 }
+
+#governor {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #23273a;
+}
+
+#governor-label {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  opacity: 0.6;
+  margin-bottom: 0.75rem;
+}
+
+#governor-priority-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+button.priority-option {
+  flex: 1;
+  font-size: 0.85rem;
+  padding: 0.65rem 0.5rem;
+  border: 1px solid #2a3a4c;
+  border-radius: 10px;
+  background: transparent;
+  color: #eaeaf0;
+  cursor: pointer;
+  transition: background 0.08s ease, border-color 0.08s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button.priority-option.selected {
+  background: #3a5a9c;
+  border-color: #3a5a9c;
+}
+
+#governor-budget-label {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin: 0 0 0.75rem;
+}
+
+#governor-budget-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+#governor-budget-buttons button.secondary {
+  flex: 1;
+}
+
+#travel {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #23273a;
+}
+
+#travel-label {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  opacity: 0.6;
+  margin-bottom: 0.25rem;
+}
+
+#travel-status {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin: 0 0 1rem;
+}
+
+#travel button.secondary {
+  margin-bottom: 0.5rem;
+}
+
+#away-view {
+  text-align: center;
+}
+
+#away-planet-name {
+  font-size: 2rem;
+  letter-spacing: 0.2em;
+  font-weight: 300;
+  margin-bottom: 0.5rem;
+}
+
+#away-arrival-text {
+  opacity: 0.7;
+  margin-bottom: 2rem;
+}
+
+#away-summary {
+  font-size: 0.95rem;
+  opacity: 0.85;
+  line-height: 1.8;
+  margin-bottom: 2rem;
+}

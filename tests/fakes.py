@@ -33,6 +33,7 @@ class FakeElement:
         self.id = id_
         self.innerText = ""
         self.disabled = False
+        self.hidden = False
         self.classList = FakeClassList()
         self.style = FakeStyle()
         self._listeners = {}
