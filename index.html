@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOL — Milestone 1</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+</head>
+<body>
+  <div id="game">
+    <h1>SOL</h1>
+    <p id="resource-label">Iron — Earth</p>
+    <p id="resource-count">0</p>
+    <button id="click-button" disabled>Loading...</button>
+  </div>
+
+  <script>
+    async function main() {
+      const pyodide = await loadPyodide();
+      const response = await fetch("game.py");
+      const code = await response.text();
+      await pyodide.runPythonAsync(code);
+    }
+    main();
+  </script>
+</body>
+</html>
