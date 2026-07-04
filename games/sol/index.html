@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOL — Milestone 5</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+</head>
+<body>
+  <div id="game">
+    <h1>SOL</h1>
+
+    <div id="earth-view">
+      <p id="resource-label">Iron — Earth</p>
+      <p id="resource-count">0</p>
+      <button id="click-button" disabled>Loading...</button>
+
+      <div id="automation">
+        <p id="generator-info">
+          Auto-Miners: <span id="generator-count">0</span>
+          (+<span id="generator-rate">0</span>/s)
+        </p>
+        <button id="buy-generator-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="ecology">
+        <p id="ecology-label">Ecological Health</p>
+        <p id="ecology-percent">100%</p>
+        <div class="meter">
+          <div id="ecology-bar" class="meter-fill"></div>
+        </div>
+        <p id="ecology-status"></p>
+
+        <p id="recycler-info">
+          Recyclers: <span id="recycler-count">0</span>
+          (+<span id="recycler-rate">0</span>%/s)
+        </p>
+        <button id="buy-recycler-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="research">
+        <p id="research-label">Research — Near Bodies Tier</p>
+        <p id="research-progress">0 / 1000</p>
+        <div class="meter">
+          <div id="research-bar" class="meter-fill research-fill"></div>
+        </div>
+        <p id="research-status"></p>
+        <button id="fund-research-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="governor">
+        <p id="governor-label">Governor — Priority &amp; Budget</p>
+        <div id="governor-priority-buttons">
+          <button id="priority-growth-button" class="priority-option">Growth</button>
+          <button id="priority-balance-button" class="priority-option">Balance</button>
+          <button id="priority-ecology-button" class="priority-option">Ecology</button>
+        </div>
+        <p id="governor-budget-label">Budget: <span id="governor-budget-value">50</span>% of Iron</p>
+        <div id="governor-budget-buttons">
+          <button id="budget-decrease-button" class="secondary">&minus;10%</button>
+          <button id="budget-increase-button" class="secondary">+10%</button>
+        </div>
+      </div>
+
+      <div id="travel">
+        <p id="travel-label">Travel</p>
+        <p id="travel-status">Reach the Near Bodies tier to unlock travel.</p>
+        <button id="travel-moon-button" class="secondary" hidden disabled>Travel to Moon</button>
+        <button id="travel-mars-button" class="secondary" hidden disabled>Travel to Mars</button>
+      </div>
+    </div>
+
+    <div id="away-view" hidden>
+      <p id="away-planet-name">MARS</p>
+      <p id="away-arrival-text">You have arrived.</p>
+      <div id="away-summary">
+        <p>Earth (governed): <span id="away-iron">0</span> Iron</p>
+        <p><span id="away-generators">0</span> Auto-Miners, <span id="away-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="away-ecology">100</span>%</p>
+      </div>
+      <button id="return-to-earth-button" class="secondary">Return to Earth</button>
+    </div>
+  </div>
+
+  <script>
+    async function main() {
+      const pyodide = await loadPyodide();
+      const response = await fetch("game.py");
+      const code = await response.text();
+      await pyodide.runPythonAsync(code);
+    }
+    main();
+  </script>
+</body>
+</html>

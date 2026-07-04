@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "sol-dev-server",
+      "name": "hub-dev-server",
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8073"],
       "port": 8073
