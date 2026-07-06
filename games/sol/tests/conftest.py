@@ -9,9 +9,27 @@ from .fakes import FakeDocument, FakeElement, FakeTimers, create_proxy
 
 GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 
+# Buttons that carry the `disabled` attribute in index.html's initial markup
+# (they read "Loading..." until Pyodide finishes and setup() enables them).
+# The fixture mirrors this so a setup() that forgets to re-enable one of
+# them shows up as a real test failure, not a false negative from the fake
+# defaulting to enabled.
+INITIALLY_DISABLED_IDS = [
+    "click-button",
+    "buy-generator-button",
+    "buy-recycler-button",
+    "fund-research-button",
+    "travel-moon-button",
+    "travel-mars-button",
+    "mars-click-button",
+    "mars-buy-generator-button",
+    "mars-buy-recycler-button",
+]
+
 # Element IDs wired up in index.html — kept in one place so tests and the
 # fixture agree on what "the DOM" contains.
 ELEMENT_IDS = [
+    # Earth
     "click-button",
     "resource-count",
     "resource-label",
@@ -24,28 +42,71 @@ ELEMENT_IDS = [
     "buy-recycler-button",
     "recycler-count",
     "recycler-rate",
+    # Research (Earth/global)
     "research-progress",
     "research-bar",
     "research-status",
     "fund-research-button",
+    # Views
     "earth-view",
+    "mars-view",
     "away-view",
+    # Governor
     "priority-growth-button",
     "priority-balance-button",
     "priority-ecology-button",
     "governor-budget-value",
     "budget-increase-button",
     "budget-decrease-button",
+    # Travel
     "travel-status",
     "travel-moon-button",
     "travel-mars-button",
+    # Moon placeholder (away-view)
     "away-planet-name",
     "away-iron",
     "away-generators",
     "away-recyclers",
     "away-ecology",
     "return-to-earth-button",
+    # Mars's own economy
+    "mars-click-button",
+    "mars-resource-count",
+    "mars-resource-label",
+    "mars-buy-generator-button",
+    "mars-generator-count",
+    "mars-generator-rate",
+    "mars-ecology-percent",
+    "mars-ecology-bar",
+    "mars-ecology-status",
+    "mars-buy-recycler-button",
+    "mars-recycler-count",
+    "mars-recycler-rate",
+    "mars-return-to-earth-button",
+    # Cross-planet governed summaries
+    "mars-summary",
+    "mars-summary-resource",
+    "mars-summary-generators",
+    "mars-summary-recyclers",
+    "mars-summary-ecology",
+    "earth-summary-resource",
+    "earth-summary-generators",
+    "earth-summary-recyclers",
+    "earth-summary-ecology",
 ]
+
+_BUTTON_ID = {
+    "Earth": {
+        "click": "click-button",
+        "buy_generator": "buy-generator-button",
+        "buy_recycler": "buy-recycler-button",
+    },
+    "Mars": {
+        "click": "mars-click-button",
+        "buy_generator": "mars-buy-generator-button",
+        "buy_recycler": "mars-buy-recycler-button",
+    },
+}
 
 
 class GameEnv:
@@ -56,14 +117,25 @@ class GameEnv:
         self.elements = elements
         self.timers = timers
 
-    def click(self):
-        self.elements["click-button"].dispatch("click", None)
+    @property
+    def earth(self):
+        return self.module.planet_state["Earth"]
 
-    def buy_generator(self):
-        self.elements["buy-generator-button"].dispatch("click", None)
+    @property
+    def mars(self):
+        return self.module.planet_state["Mars"]
 
-    def buy_recycler(self):
-        self.elements["buy-recycler-button"].dispatch("click", None)
+    def state(self, planet):
+        return self.module.planet_state[planet]
+
+    def click(self, planet="Earth"):
+        self.elements[_BUTTON_ID[planet]["click"]].dispatch("click", None)
+
+    def buy_generator(self, planet="Earth"):
+        self.elements[_BUTTON_ID[planet]["buy_generator"]].dispatch("click", None)
+
+    def buy_recycler(self, planet="Earth"):
+        self.elements[_BUTTON_ID[planet]["buy_recycler"]].dispatch("click", None)
 
     def fund_research(self):
         self.elements["fund-research-button"].dispatch("click", None)
@@ -84,7 +156,12 @@ class GameEnv:
         self.elements["travel-mars-button"].dispatch("click", None)
 
     def return_to_earth(self):
-        self.elements["return-to-earth-button"].dispatch("click", None)
+        # Whichever "Return to Earth" button is relevant depends on where
+        # the player currently is (Moon's placeholder vs Mars's own view).
+        if self.module.current_planet == "Mars":
+            self.elements["mars-return-to-earth-button"].dispatch("click", None)
+        else:
+            self.elements["return-to-earth-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements, timers):
@@ -113,10 +190,12 @@ def game_env():
     """Loads a brand-new game.py module against a fresh fake DOM.
 
     game.py runs setup() as a module-level side effect on import, so every
-    test gets its own module object (and its own resource_count) rather than
+    test gets its own module object (and its own planet_state) rather than
     sharing state via Python's normal import cache.
     """
     elements = {id_: FakeElement(id_) for id_ in ELEMENT_IDS}
+    for id_ in INITIALLY_DISABLED_IDS:
+        elements[id_].disabled = True
     timers = FakeTimers()
     _install_pyodide_fakes(elements, timers)
 

@@ -26,7 +26,7 @@ h1 {
   margin-bottom: 2.5rem;
 }
 
-#resource-label {
+.resource-label {
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.1em;
@@ -34,14 +34,14 @@ h1 {
   margin-bottom: 0.25rem;
 }
 
-#resource-count {
+.resource-count {
   font-size: 3.5rem;
   font-weight: 600;
   margin: 0 0 2.5rem;
   font-variant-numeric: tabular-nums;
 }
 
-#click-button {
+.click-button {
   font-size: 1.1rem;
   padding: 1.25rem 2rem;
   width: 100%;
@@ -54,22 +54,23 @@ h1 {
   -webkit-tap-highlight-color: transparent;
 }
 
-#click-button:disabled {
+.click-button:disabled {
   opacity: 0.4;
   cursor: default;
 }
 
-#click-button.pressed {
+.click-button.pressed {
   background: #1f2f52;
 }
 
-#automation {
+/* Shared bordered-block spacing reused by every planet/system section */
+.section {
   margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid #23273a;
 }
 
-#generator-info {
+.generator-info {
   font-size: 0.9rem;
   opacity: 0.8;
   margin: 0 0 0.75rem;
@@ -97,13 +98,7 @@ button.secondary.pressed {
   background: #17222e;
 }
 
-#ecology {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #23273a;
-}
-
-#ecology-label {
+.ecology-label {
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.1em;
@@ -111,7 +106,7 @@ button.secondary.pressed {
   margin-bottom: 0.25rem;
 }
 
-#ecology-percent {
+.ecology-percent {
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0 0 0.5rem;
@@ -134,23 +129,17 @@ button.secondary.pressed {
   transition: width 0.2s ease, background 0.2s ease;
 }
 
-#ecology-status {
+.ecology-status {
   font-size: 0.8rem;
   color: #e0a24c;
   min-height: 1.2em;
   margin: 0 0 1rem;
 }
 
-#recycler-info {
+.recycler-info {
   font-size: 0.9rem;
   opacity: 0.8;
   margin: 0 0 0.75rem;
-}
-
-#research {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #23273a;
 }
 
 #research-label {
@@ -178,12 +167,6 @@ button.secondary.pressed {
   color: #7fd6a3;
   min-height: 1.2em;
   margin: 0 0 1rem;
-}
-
-#governor {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #23273a;
 }
 
 #governor-label {
@@ -233,10 +216,18 @@ button.priority-option.selected {
   flex: 1;
 }
 
-#travel {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #23273a;
+.cross-summary {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  line-height: 1.7;
+}
+
+.cross-summary-label {
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+  margin-bottom: 0.5rem;
 }
 
 #travel-label {
@@ -255,6 +246,14 @@ button.priority-option.selected {
 
 #travel button.secondary {
   margin-bottom: 0.5rem;
+}
+
+#mars-view {
+  text-align: center;
+}
+
+#mars-return-to-earth-button {
+  margin-top: 2rem;
 }
 
 #away-view {

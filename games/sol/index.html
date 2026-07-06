@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SOL — Milestone 5</title>
+<title>SOL — Milestone 6</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
@@ -12,34 +12,34 @@
     <h1>SOL</h1>
 
     <div id="earth-view">
-      <p id="resource-label">Iron — Earth</p>
-      <p id="resource-count">0</p>
-      <button id="click-button" disabled>Loading...</button>
+      <p id="resource-label" class="resource-label">Iron — Earth</p>
+      <p id="resource-count" class="resource-count">0</p>
+      <button id="click-button" class="click-button" disabled>Loading...</button>
 
-      <div id="automation">
-        <p id="generator-info">
+      <div id="automation" class="section">
+        <p id="generator-info" class="generator-info">
           Auto-Miners: <span id="generator-count">0</span>
           (+<span id="generator-rate">0</span>/s)
         </p>
         <button id="buy-generator-button" class="secondary" disabled>Loading...</button>
       </div>
 
-      <div id="ecology">
-        <p id="ecology-label">Ecological Health</p>
-        <p id="ecology-percent">100%</p>
+      <div id="ecology" class="section">
+        <p id="ecology-label" class="ecology-label">Ecological Health</p>
+        <p id="ecology-percent" class="ecology-percent">100%</p>
         <div class="meter">
           <div id="ecology-bar" class="meter-fill"></div>
         </div>
-        <p id="ecology-status"></p>
+        <p id="ecology-status" class="ecology-status"></p>
 
-        <p id="recycler-info">
+        <p id="recycler-info" class="recycler-info">
           Recyclers: <span id="recycler-count">0</span>
           (+<span id="recycler-rate">0</span>%/s)
         </p>
         <button id="buy-recycler-button" class="secondary" disabled>Loading...</button>
       </div>
 
-      <div id="research">
+      <div id="research" class="section">
         <p id="research-label">Research — Near Bodies Tier</p>
         <p id="research-progress">0 / 1000</p>
         <div class="meter">
@@ -49,7 +49,7 @@
         <button id="fund-research-button" class="secondary" disabled>Loading...</button>
       </div>
 
-      <div id="governor">
+      <div id="governor" class="section">
         <p id="governor-label">Governor — Priority &amp; Budget</p>
         <div id="governor-priority-buttons">
           <button id="priority-growth-button" class="priority-option">Growth</button>
@@ -63,7 +63,14 @@
         </div>
       </div>
 
-      <div id="travel">
+      <div id="mars-summary" class="section cross-summary" hidden>
+        <p class="cross-summary-label">Mars (governed)</p>
+        <p><span id="mars-summary-resource">0</span> Water Ice</p>
+        <p><span id="mars-summary-generators">0</span> Auto-Extractors, <span id="mars-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="mars-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="travel" class="section">
         <p id="travel-label">Travel</p>
         <p id="travel-status">Reach the Near Bodies tier to unlock travel.</p>
         <button id="travel-moon-button" class="secondary" hidden disabled>Travel to Moon</button>
@@ -71,8 +78,46 @@
       </div>
     </div>
 
+    <div id="mars-view" hidden>
+      <p id="mars-resource-label" class="resource-label">Water Ice — Mars</p>
+      <p id="mars-resource-count" class="resource-count">0</p>
+      <button id="mars-click-button" class="click-button" disabled>Loading...</button>
+
+      <div id="mars-automation" class="section">
+        <p id="mars-generator-info" class="generator-info">
+          Auto-Extractors: <span id="mars-generator-count">0</span>
+          (+<span id="mars-generator-rate">0</span>/s)
+        </p>
+        <button id="mars-buy-generator-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="mars-ecology" class="section">
+        <p id="mars-ecology-label" class="ecology-label">Ecological Health</p>
+        <p id="mars-ecology-percent" class="ecology-percent">100%</p>
+        <div class="meter">
+          <div id="mars-ecology-bar" class="meter-fill"></div>
+        </div>
+        <p id="mars-ecology-status" class="ecology-status"></p>
+
+        <p id="mars-recycler-info" class="recycler-info">
+          Recyclers: <span id="mars-recycler-count">0</span>
+          (+<span id="mars-recycler-rate">0</span>%/s)
+        </p>
+        <button id="mars-buy-recycler-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="earth-summary" class="section cross-summary">
+        <p class="cross-summary-label">Earth (governed)</p>
+        <p><span id="earth-summary-resource">0</span> Iron</p>
+        <p><span id="earth-summary-generators">0</span> Auto-Miners, <span id="earth-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="earth-summary-ecology">100</span>%</p>
+      </div>
+
+      <button id="mars-return-to-earth-button" class="secondary">Return to Earth</button>
+    </div>
+
     <div id="away-view" hidden>
-      <p id="away-planet-name">MARS</p>
+      <p id="away-planet-name">MOON</p>
       <p id="away-arrival-text">You have arrived.</p>
       <div id="away-summary">
         <p>Earth (governed): <span id="away-iron">0</span> Iron</p>

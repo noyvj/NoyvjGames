@@ -38,7 +38,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
 ## Current games
 | Slug | Name | Status |
 |------|------|--------|
-| sol | SOL | Milestone 5 done (planet transition + governor) |
+| sol | SOL | Milestone 6 done (second planet resource loop) |
 
 ## Site-level milestones (separate from per-game milestones)
 | # | Milestone | Status |
