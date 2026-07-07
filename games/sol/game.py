@@ -64,6 +64,20 @@ PLANETS = {
         "trade_route_base_cost": 30,
         "trade_route_cost_growth": 1.15,
     },
+    "AsteroidBelt": {
+        "resource_name": "Platinum",
+        "generator_singular": "Auto-Prospector",
+        "generator_plural": "Auto-Prospectors",
+        "generator_base_cost": 10,
+        "generator_cost_growth": 1.15,
+        "generator_rate": 1,
+        "ecology_decay_per_generator_per_sec": 1.0,
+        "recycler_base_cost": 15,
+        "recycler_cost_growth": 1.15,
+        "recycler_restore_per_sec": 2.0,
+        "trade_route_base_cost": 30,
+        "trade_route_cost_growth": 1.15,
+    },
 }
 
 # Ecology restored on the DESTINATION planet, per Trade Route, per second.
@@ -102,8 +116,9 @@ planet_state = {
 # researched in sequence (you can't fund tier 2 before tier 1 is done);
 # "unlocks" only grants travel access — most of these bodies get their own
 # economy in a later milestone (Moon: 9b, Venus: 9c, Asteroid Belt: 9d,
-# Pluto: 9e, Jupiter's Moons: 9f, Saturn's Moons: 9g). Until then, visiting
-# one shows the shared "undeveloped destination" placeholder.
+# Pluto: 9e, Jupiter's Moons: 9f, Saturn's Moons: 9g). Until a body gets its
+# own milestone, visiting it shows the shared "undeveloped destination"
+# placeholder.
 RESEARCH_TIERS = [
     {"name": "Near Bodies", "target": 1000, "unlocks": ["Moon", "Mars"]},
     {
@@ -116,12 +131,11 @@ RESEARCH_FUND_COST = 50  # flat Iron per investment, same across every tier, not
 
 # Bodies with no economy of their own yet — visiting any of these shows the
 # shared #away-view placeholder rather than a dedicated view.
-UNDEVELOPED_BODIES = ["AsteroidBelt", "Pluto", "JupiterMoons", "SaturnMoons"]
+UNDEVELOPED_BODIES = ["Pluto", "JupiterMoons", "SaturnMoons"]
 
 # Human-readable heading text for the away-view placeholder (internal
 # identifiers avoid spaces/apostrophes so they're safe to use in DOM ids).
 BODY_DISPLAY_NAMES = {
-    "AsteroidBelt": "ASTEROID BELT",
     "Pluto": "PLUTO",
     "JupiterMoons": "JUPITER'S MOONS",
     "SaturnMoons": "SATURN'S MOONS",
@@ -359,6 +373,9 @@ def update_travel_display():
     venus_summary = document.getElementById("venus-summary")
     venus_summary.hidden = "Venus" not in unlocked_bodies
 
+    asteroid_belt_summary = document.getElementById("asteroidbelt-summary")
+    asteroid_belt_summary.hidden = "AsteroidBelt" not in unlocked_bodies
+
     status = document.getElementById("travel-status")
     status.innerText = "Choose a destination:" if unlocked_bodies else "Reach the Near Bodies tier to unlock travel."
 
@@ -427,6 +444,7 @@ def _hide_all_views():
     document.getElementById("mars-view").hidden = True
     document.getElementById("moon-view").hidden = True
     document.getElementById("venus-view").hidden = True
+    document.getElementById("asteroidbelt-view").hidden = True
     document.getElementById("away-view").hidden = True
 
 
@@ -467,6 +485,10 @@ def on_venus_click(event):
     _mine("Venus")
 
 
+def on_asteroid_belt_click(event):
+    _mine("AsteroidBelt")
+
+
 def _buy_generator(planet):
     state = planet_state[planet]
     button = document.getElementById(_dom_id(planet, "buy-generator-button"))
@@ -494,6 +516,10 @@ def on_moon_buy_generator(event):
 
 def on_venus_buy_generator(event):
     _buy_generator("Venus")
+
+
+def on_asteroid_belt_buy_generator(event):
+    _buy_generator("AsteroidBelt")
 
 
 def _buy_recycler(planet):
@@ -525,6 +551,10 @@ def on_venus_buy_recycler(event):
     _buy_recycler("Venus")
 
 
+def on_asteroid_belt_buy_recycler(event):
+    _buy_recycler("AsteroidBelt")
+
+
 def _buy_trade_route(planet):
     state = planet_state[planet]
     button = document.getElementById(_dom_id(planet, "buy-trade-route-button"))
@@ -554,6 +584,10 @@ def on_moon_buy_trade_route(event):
 
 def on_venus_buy_trade_route(event):
     _buy_trade_route("Venus")
+
+
+def on_asteroid_belt_buy_trade_route(event):
+    _buy_trade_route("AsteroidBelt")
 
 
 def on_fund_research(event):
@@ -648,8 +682,17 @@ def on_travel_venus(event):
 
 
 def on_travel_asteroid_belt(event):
+    global current_planet
     if "AsteroidBelt" in unlocked_bodies:
-        _travel_to_undeveloped("AsteroidBelt")
+        current_planet = "AsteroidBelt"
+        _hide_all_views()
+        document.getElementById("asteroidbelt-view").hidden = False
+        update_resource_display("AsteroidBelt")
+        update_generator_display("AsteroidBelt")
+        update_ecology_display("AsteroidBelt")
+        update_trade_display("AsteroidBelt")
+        update_terraform_display("AsteroidBelt")
+        update_all_cross_summaries()
     press_feedback(document.getElementById("travel-asteroid-belt-button"))
 
 
@@ -717,6 +760,11 @@ def on_return_to_earth_from_moon(event):
 def on_return_to_earth_from_venus(event):
     _return_to_earth()
     press_feedback(document.getElementById("venus-return-to-earth-button"))
+
+
+def on_return_to_earth_from_asteroid_belt(event):
+    _return_to_earth()
+    press_feedback(document.getElementById("asteroidbelt-return-to-earth-button"))
 
 
 def governor_step():
@@ -895,6 +943,27 @@ def setup():
 
     document.getElementById("venus-return-to-earth-button").addEventListener(
         "click", create_proxy(on_return_to_earth_from_venus)
+    )
+
+    asteroid_belt_click = document.getElementById("asteroidbelt-click-button")
+    asteroid_belt_click.innerText = "Prospect Platinum"
+    asteroid_belt_click.disabled = False
+    asteroid_belt_click.addEventListener("click", create_proxy(on_asteroid_belt_click))
+
+    asteroid_belt_buy_generator = document.getElementById("asteroidbelt-buy-generator-button")
+    asteroid_belt_buy_generator.disabled = False
+    asteroid_belt_buy_generator.addEventListener("click", create_proxy(on_asteroid_belt_buy_generator))
+
+    asteroid_belt_buy_recycler = document.getElementById("asteroidbelt-buy-recycler-button")
+    asteroid_belt_buy_recycler.disabled = False
+    asteroid_belt_buy_recycler.addEventListener("click", create_proxy(on_asteroid_belt_buy_recycler))
+
+    asteroid_belt_buy_trade_route = document.getElementById("asteroidbelt-buy-trade-route-button")
+    asteroid_belt_buy_trade_route.disabled = False
+    asteroid_belt_buy_trade_route.addEventListener("click", create_proxy(on_asteroid_belt_buy_trade_route))
+
+    document.getElementById("asteroidbelt-return-to-earth-button").addEventListener(
+        "click", create_proxy(on_return_to_earth_from_asteroid_belt)
     )
 
     research_button = document.getElementById("fund-research-button")

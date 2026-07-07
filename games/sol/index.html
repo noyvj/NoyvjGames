@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SOL — Milestone 9c</title>
+<title>SOL — Milestone 9d</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
@@ -101,6 +101,13 @@
         <p>Ecology: <span id="venus-summary-ecology">100</span>%</p>
       </div>
 
+      <div id="asteroidbelt-summary" class="section cross-summary" hidden>
+        <p class="cross-summary-label">Asteroid Belt (governed)</p>
+        <p><span id="asteroidbelt-summary-resource">0</span> Platinum</p>
+        <p><span id="asteroidbelt-summary-generators">0</span> Auto-Prospectors, <span id="asteroidbelt-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="asteroidbelt-summary-ecology">100</span>%</p>
+      </div>
+
       <div id="travel" class="section">
         <p id="travel-label">Travel</p>
         <p id="travel-status">Reach the Near Bodies tier to unlock travel.</p>
@@ -180,6 +187,13 @@
         <p>Ecology: <span id="mars-venus-summary-ecology">100</span>%</p>
       </div>
 
+      <div id="mars-asteroidbelt-summary" class="section cross-summary">
+        <p class="cross-summary-label">Asteroid Belt (governed)</p>
+        <p><span id="mars-asteroidbelt-summary-resource">0</span> Platinum</p>
+        <p><span id="mars-asteroidbelt-summary-generators">0</span> Auto-Prospectors, <span id="mars-asteroidbelt-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="mars-asteroidbelt-summary-ecology">100</span>%</p>
+      </div>
+
       <button id="mars-return-to-earth-button" class="secondary">Return to Earth</button>
     </div>
 
@@ -247,6 +261,13 @@
         <p><span id="moon-venus-summary-resource">0</span> Sulfur</p>
         <p><span id="moon-venus-summary-generators">0</span> Auto-Scrubbers, <span id="moon-venus-summary-recyclers">0</span> Recyclers</p>
         <p>Ecology: <span id="moon-venus-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="moon-asteroidbelt-summary" class="section cross-summary">
+        <p class="cross-summary-label">Asteroid Belt (governed)</p>
+        <p><span id="moon-asteroidbelt-summary-resource">0</span> Platinum</p>
+        <p><span id="moon-asteroidbelt-summary-generators">0</span> Auto-Prospectors, <span id="moon-asteroidbelt-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="moon-asteroidbelt-summary-ecology">100</span>%</p>
       </div>
 
       <button id="moon-return-to-earth-button" class="secondary">Return to Earth</button>
@@ -318,7 +339,90 @@
         <p>Ecology: <span id="venus-moon-summary-ecology">100</span>%</p>
       </div>
 
+      <div id="venus-asteroidbelt-summary" class="section cross-summary">
+        <p class="cross-summary-label">Asteroid Belt (governed)</p>
+        <p><span id="venus-asteroidbelt-summary-resource">0</span> Platinum</p>
+        <p><span id="venus-asteroidbelt-summary-generators">0</span> Auto-Prospectors, <span id="venus-asteroidbelt-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="venus-asteroidbelt-summary-ecology">100</span>%</p>
+      </div>
+
       <button id="venus-return-to-earth-button" class="secondary">Return to Earth</button>
+    </div>
+
+    <div id="asteroidbelt-view" hidden>
+      <p id="asteroidbelt-resource-label" class="resource-label">Platinum — Asteroid Belt</p>
+      <p id="asteroidbelt-resource-count" class="resource-count">0</p>
+      <button id="asteroidbelt-click-button" class="click-button" disabled>Loading...</button>
+
+      <div id="asteroidbelt-automation" class="section">
+        <p id="asteroidbelt-generator-info" class="generator-info">
+          Auto-Prospectors: <span id="asteroidbelt-generator-count">0</span>
+          (+<span id="asteroidbelt-generator-rate">0</span>/s)
+        </p>
+        <button id="asteroidbelt-buy-generator-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="asteroidbelt-ecology" class="section">
+        <p id="asteroidbelt-ecology-label" class="ecology-label">Ecological Health</p>
+        <p id="asteroidbelt-ecology-percent" class="ecology-percent">100%</p>
+        <div class="meter">
+          <div id="asteroidbelt-ecology-bar" class="meter-fill"></div>
+        </div>
+        <p id="asteroidbelt-ecology-status" class="ecology-status"></p>
+
+        <p id="asteroidbelt-recycler-info" class="recycler-info">
+          Recyclers: <span id="asteroidbelt-recycler-count">0</span>
+          (+<span id="asteroidbelt-recycler-rate">0</span>%/s)
+        </p>
+        <button id="asteroidbelt-buy-recycler-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="asteroidbelt-terraform" class="section">
+        <p id="asteroidbelt-terraform-label" class="ecology-label">Terraforming</p>
+        <p id="asteroidbelt-terraform-percent" class="ecology-percent">0%</p>
+        <div class="meter">
+          <div id="asteroidbelt-terraform-bar" class="meter-fill terraform-fill"></div>
+        </div>
+        <p id="asteroidbelt-terraform-status" class="ecology-status"></p>
+      </div>
+
+      <div id="asteroidbelt-trade" class="section">
+        <p id="asteroidbelt-trade-route-label" class="generator-info">
+          Trade Routes: <span id="asteroidbelt-trade-route-count">0</span>
+          (+<span id="asteroidbelt-trade-route-rate">0</span>%/s ecology to <span id="asteroidbelt-trade-route-destination">Earth</span>)
+        </p>
+        <button id="asteroidbelt-buy-trade-route-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="asteroidbelt-earth-summary" class="section cross-summary">
+        <p class="cross-summary-label">Earth (governed)</p>
+        <p><span id="asteroidbelt-earth-summary-resource">0</span> Iron</p>
+        <p><span id="asteroidbelt-earth-summary-generators">0</span> Auto-Miners, <span id="asteroidbelt-earth-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="asteroidbelt-earth-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="asteroidbelt-mars-summary" class="section cross-summary">
+        <p class="cross-summary-label">Mars (governed)</p>
+        <p><span id="asteroidbelt-mars-summary-resource">0</span> Water Ice</p>
+        <p><span id="asteroidbelt-mars-summary-generators">0</span> Auto-Extractors, <span id="asteroidbelt-mars-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="asteroidbelt-mars-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="asteroidbelt-moon-summary" class="section cross-summary">
+        <p class="cross-summary-label">Moon (governed)</p>
+        <p><span id="asteroidbelt-moon-summary-resource">0</span> Regolith</p>
+        <p><span id="asteroidbelt-moon-summary-generators">0</span> Auto-Harvesters, <span id="asteroidbelt-moon-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="asteroidbelt-moon-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="asteroidbelt-venus-summary" class="section cross-summary">
+        <p class="cross-summary-label">Venus (governed)</p>
+        <p><span id="asteroidbelt-venus-summary-resource">0</span> Sulfur</p>
+        <p><span id="asteroidbelt-venus-summary-generators">0</span> Auto-Scrubbers, <span id="asteroidbelt-venus-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="asteroidbelt-venus-summary-ecology">100</span>%</p>
+      </div>
+
+      <button id="asteroidbelt-return-to-earth-button" class="secondary">Return to Earth</button>
     </div>
 
     <div id="away-view" hidden>
@@ -351,6 +455,13 @@
         <p><span id="away-venus-resource">0</span> Sulfur</p>
         <p><span id="away-venus-generators">0</span> Auto-Scrubbers, <span id="away-venus-recyclers">0</span> Recyclers</p>
         <p>Ecology: <span id="away-venus-ecology">100</span>%</p>
+      </div>
+
+      <div id="away-asteroidbelt-summary" class="section cross-summary">
+        <p class="cross-summary-label">Asteroid Belt (governed)</p>
+        <p><span id="away-asteroidbelt-resource">0</span> Platinum</p>
+        <p><span id="away-asteroidbelt-generators">0</span> Auto-Prospectors, <span id="away-asteroidbelt-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="away-asteroidbelt-ecology">100</span>%</p>
       </div>
 
       <button id="return-to-earth-button" class="secondary">Return to Earth</button>

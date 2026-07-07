@@ -38,7 +38,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
 ## Current games
 | Slug | Name | Status |
 |------|------|--------|
-| sol | SOL | Milestone 9c done (Venus resource loop) |
+| sol | SOL | Milestone 9d done (Asteroid Belt resource loop) |
 
 ## Site-level milestones (separate from per-game milestones)
 | # | Milestone | Status |

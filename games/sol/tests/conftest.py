@@ -39,6 +39,10 @@ INITIALLY_DISABLED_IDS = [
     "venus-buy-generator-button",
     "venus-buy-recycler-button",
     "venus-buy-trade-route-button",
+    "asteroidbelt-click-button",
+    "asteroidbelt-buy-generator-button",
+    "asteroidbelt-buy-recycler-button",
+    "asteroidbelt-buy-trade-route-button",
 ]
 
 # Maps the internal body identifier (used as current_planet / in
@@ -81,6 +85,7 @@ ELEMENT_IDS = [
     "mars-view",
     "moon-view",
     "venus-view",
+    "asteroidbelt-view",
     "away-view",
     # Governor
     "priority-growth-button",
@@ -98,7 +103,7 @@ ELEMENT_IDS = [
     "travel-pluto-button",
     "travel-jupiter-moons-button",
     "travel-saturn-moons-button",
-    # Undeveloped-body placeholder (away-view) — Earth, Mars, Moon, Venus summaries
+    # Undeveloped-body placeholder (away-view) — Earth, Mars, Moon, Venus, Asteroid Belt summaries
     "away-planet-name",
     "away-earth-resource",
     "away-earth-generators",
@@ -116,6 +121,10 @@ ELEMENT_IDS = [
     "away-venus-generators",
     "away-venus-recyclers",
     "away-venus-ecology",
+    "away-asteroidbelt-resource",
+    "away-asteroidbelt-generators",
+    "away-asteroidbelt-recyclers",
+    "away-asteroidbelt-ecology",
     "return-to-earth-button",
     # Mars's own economy
     "mars-click-button",
@@ -159,6 +168,20 @@ ELEMENT_IDS = [
     "venus-recycler-count",
     "venus-recycler-rate",
     "venus-return-to-earth-button",
+    # Asteroid Belt's own economy
+    "asteroidbelt-click-button",
+    "asteroidbelt-resource-count",
+    "asteroidbelt-resource-label",
+    "asteroidbelt-buy-generator-button",
+    "asteroidbelt-generator-count",
+    "asteroidbelt-generator-rate",
+    "asteroidbelt-ecology-percent",
+    "asteroidbelt-ecology-bar",
+    "asteroidbelt-ecology-status",
+    "asteroidbelt-buy-recycler-button",
+    "asteroidbelt-recycler-count",
+    "asteroidbelt-recycler-rate",
+    "asteroidbelt-return-to-earth-button",
     # Cross-planet governed summaries (viewer-prefixed: Earth's ids are
     # unprefixed via _dom_id, every other viewer gets "<viewer>-" first)
     "mars-summary",
@@ -176,6 +199,11 @@ ELEMENT_IDS = [
     "venus-summary-generators",
     "venus-summary-recyclers",
     "venus-summary-ecology",
+    "asteroidbelt-summary",
+    "asteroidbelt-summary-resource",
+    "asteroidbelt-summary-generators",
+    "asteroidbelt-summary-recyclers",
+    "asteroidbelt-summary-ecology",
     "mars-earth-summary-resource",
     "mars-earth-summary-generators",
     "mars-earth-summary-recyclers",
@@ -188,6 +216,10 @@ ELEMENT_IDS = [
     "mars-venus-summary-generators",
     "mars-venus-summary-recyclers",
     "mars-venus-summary-ecology",
+    "mars-asteroidbelt-summary-resource",
+    "mars-asteroidbelt-summary-generators",
+    "mars-asteroidbelt-summary-recyclers",
+    "mars-asteroidbelt-summary-ecology",
     "moon-earth-summary-resource",
     "moon-earth-summary-generators",
     "moon-earth-summary-recyclers",
@@ -200,6 +232,10 @@ ELEMENT_IDS = [
     "moon-venus-summary-generators",
     "moon-venus-summary-recyclers",
     "moon-venus-summary-ecology",
+    "moon-asteroidbelt-summary-resource",
+    "moon-asteroidbelt-summary-generators",
+    "moon-asteroidbelt-summary-recyclers",
+    "moon-asteroidbelt-summary-ecology",
     "venus-earth-summary-resource",
     "venus-earth-summary-generators",
     "venus-earth-summary-recyclers",
@@ -212,6 +248,26 @@ ELEMENT_IDS = [
     "venus-moon-summary-generators",
     "venus-moon-summary-recyclers",
     "venus-moon-summary-ecology",
+    "venus-asteroidbelt-summary-resource",
+    "venus-asteroidbelt-summary-generators",
+    "venus-asteroidbelt-summary-recyclers",
+    "venus-asteroidbelt-summary-ecology",
+    "asteroidbelt-earth-summary-resource",
+    "asteroidbelt-earth-summary-generators",
+    "asteroidbelt-earth-summary-recyclers",
+    "asteroidbelt-earth-summary-ecology",
+    "asteroidbelt-mars-summary-resource",
+    "asteroidbelt-mars-summary-generators",
+    "asteroidbelt-mars-summary-recyclers",
+    "asteroidbelt-mars-summary-ecology",
+    "asteroidbelt-moon-summary-resource",
+    "asteroidbelt-moon-summary-generators",
+    "asteroidbelt-moon-summary-recyclers",
+    "asteroidbelt-moon-summary-ecology",
+    "asteroidbelt-venus-summary-resource",
+    "asteroidbelt-venus-summary-generators",
+    "asteroidbelt-venus-summary-recyclers",
+    "asteroidbelt-venus-summary-ecology",
     # Trade routes
     "earth-trade",
     "trade-route-count",
@@ -230,6 +286,10 @@ ELEMENT_IDS = [
     "venus-trade-route-rate",
     "venus-trade-route-destination",
     "venus-buy-trade-route-button",
+    "asteroidbelt-trade-route-count",
+    "asteroidbelt-trade-route-rate",
+    "asteroidbelt-trade-route-destination",
+    "asteroidbelt-buy-trade-route-button",
     # Terraforming
     "terraform-percent",
     "terraform-bar",
@@ -243,6 +303,9 @@ ELEMENT_IDS = [
     "venus-terraform-percent",
     "venus-terraform-bar",
     "venus-terraform-status",
+    "asteroidbelt-terraform-percent",
+    "asteroidbelt-terraform-bar",
+    "asteroidbelt-terraform-status",
 ]
 
 _BUTTON_ID = {
@@ -270,12 +333,19 @@ _BUTTON_ID = {
         "buy_recycler": "venus-buy-recycler-button",
         "buy_trade_route": "venus-buy-trade-route-button",
     },
+    "AsteroidBelt": {
+        "click": "asteroidbelt-click-button",
+        "buy_generator": "asteroidbelt-buy-generator-button",
+        "buy_recycler": "asteroidbelt-buy-recycler-button",
+        "buy_trade_route": "asteroidbelt-buy-trade-route-button",
+    },
 }
 
 _RETURN_BUTTON_ID = {
     "Mars": "mars-return-to-earth-button",
     "Moon": "moon-return-to-earth-button",
     "Venus": "venus-return-to-earth-button",
+    "AsteroidBelt": "asteroidbelt-return-to-earth-button",
 }
 
 
@@ -302,6 +372,10 @@ class GameEnv:
     @property
     def venus(self):
         return self.module.planet_state["Venus"]
+
+    @property
+    def asteroid_belt(self):
+        return self.module.planet_state["AsteroidBelt"]
 
     def state(self, planet):
         return self.module.planet_state[planet]
