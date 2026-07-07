@@ -2,12 +2,14 @@
 between Earth and unlocked Near Bodies, and the priority/budget governor
 that keeps managing whichever real economy the player is currently not on.
 
-Since Milestone 6 gave Mars its own real economy, traveling there now shows
-its own #mars-view (with an "Earth (governed)" summary widget) rather than
-the generic #away-view placeholder — Moon still uses that placeholder, since
-it has no economy of its own yet. Mars's own click/building/ecology loop is
-covered in test_mars_economy.py; this file covers travel/view-switching and
-the governor's cross-planet behavior."""
+Mars (Milestone 6) and Moon (Milestone 9b) each have their own real economy
+and dedicated view (#mars-view, #moon-view), each with cross-summary
+widgets for every OTHER real economy — their own click/building/ecology
+loops are covered in test_mars_economy.py / test_moon_economy.py. Venus,
+the Asteroid Belt, Pluto, and Jupiter's/Saturn's Moons still have no
+economy of their own and share the generic #away-view placeholder (see
+test_research_tier2_framework.py). This file covers travel/view-switching
+and the governor's cross-planet behavior."""
 
 
 def _unlock_near_bodies(game_env):
@@ -107,31 +109,32 @@ def test_travel_to_moon_switches_planet(game_env):
     assert game_env.module.current_planet == "Moon"
 
 
+# Since Milestone 9b, Moon has its own real economy (like Mars since
+# Milestone 6) and no longer uses the shared away-view placeholder — see
+# test_moon_economy.py for its own click/building/ecology loop, and
+# test_research_tier2_framework.py for the away-view placeholder as used by
+# the five bodies that still don't have an economy.
+
 def test_travel_to_moon_swaps_visible_view(game_env):
     _unlock_near_bodies(game_env)
     game_env.travel_to_moon()
     assert game_env.elements["earth-view"].hidden is True
-    assert game_env.elements["away-view"].hidden is False
+    assert game_env.elements["moon-view"].hidden is False
+    assert game_env.elements["away-view"].hidden is True
     assert game_env.elements["mars-view"].hidden is True
 
 
-def test_travel_updates_away_planet_name(game_env):
-    _unlock_near_bodies(game_env)
-    game_env.travel_to_moon()
-    assert game_env.elements["away-planet-name"].innerText == "MOON"
-
-
-def test_travel_to_moon_populates_away_summary_immediately(game_env):
+def test_travel_to_moon_populates_earth_and_mars_summary_widgets_immediately(game_env):
     _unlock_near_bodies(game_env)
     game_env.earth["resource_count"] = 42
     game_env.earth["generator_count"] = 3
     game_env.earth["recycler_count"] = 1
     game_env.earth["ecology_health"] = 77.0
     game_env.travel_to_moon()
-    assert game_env.elements["away-earth-resource"].innerText == "42"
-    assert game_env.elements["away-earth-generators"].innerText == "3"
-    assert game_env.elements["away-earth-recyclers"].innerText == "1"
-    assert game_env.elements["away-earth-ecology"].innerText == "77"
+    assert game_env.elements["moon-earth-summary-resource"].innerText == "42"
+    assert game_env.elements["moon-earth-summary-generators"].innerText == "3"
+    assert game_env.elements["moon-earth-summary-recyclers"].innerText == "1"
+    assert game_env.elements["moon-earth-summary-ecology"].innerText == "77"
 
 
 def test_travel_button_gives_press_feedback(game_env):
@@ -172,10 +175,10 @@ def test_travel_to_mars_populates_earth_summary_widget_immediately(game_env):
     game_env.earth["recycler_count"] = 1
     game_env.earth["ecology_health"] = 77.0
     game_env.travel_to_mars()
-    assert game_env.elements["earth-summary-resource"].innerText == "42"
-    assert game_env.elements["earth-summary-generators"].innerText == "3"
-    assert game_env.elements["earth-summary-recyclers"].innerText == "1"
-    assert game_env.elements["earth-summary-ecology"].innerText == "77"
+    assert game_env.elements["mars-earth-summary-resource"].innerText == "42"
+    assert game_env.elements["mars-earth-summary-generators"].innerText == "3"
+    assert game_env.elements["mars-earth-summary-recyclers"].innerText == "1"
+    assert game_env.elements["mars-earth-summary-ecology"].innerText == "77"
 
 
 def test_travel_to_mars_does_not_touch_moon_placeholder(game_env):
@@ -261,7 +264,7 @@ def test_earth_summary_on_mars_refreshes_live_on_tick(game_env):
     game_env.earth["generator_count"] = 1
     game_env.travel_to_mars()
     game_env.timers.tick_intervals(10)  # +1 Iron from the generator
-    assert game_env.elements["earth-summary-resource"].innerText == "11"
+    assert game_env.elements["mars-earth-summary-resource"].innerText == "11"
 
 
 def test_mars_summary_on_earth_refreshes_live_on_tick(game_env):

@@ -36,6 +36,20 @@ PLANETS = {
         "trade_route_base_cost": 30,
         "trade_route_cost_growth": 1.15,
     },
+    "Moon": {
+        "resource_name": "Regolith",
+        "generator_singular": "Auto-Harvester",
+        "generator_plural": "Auto-Harvesters",
+        "generator_base_cost": 10,
+        "generator_cost_growth": 1.15,
+        "generator_rate": 1,
+        "ecology_decay_per_generator_per_sec": 1.0,
+        "recycler_base_cost": 15,
+        "recycler_cost_growth": 1.15,
+        "recycler_restore_per_sec": 2.0,
+        "trade_route_base_cost": 30,
+        "trade_route_cost_growth": 1.15,
+    },
 }
 
 # Ecology restored on the DESTINATION planet, per Trade Route, per second.
@@ -88,12 +102,11 @@ RESEARCH_FUND_COST = 50  # flat Iron per investment, same across every tier, not
 
 # Bodies with no economy of their own yet — visiting any of these shows the
 # shared #away-view placeholder rather than a dedicated view.
-UNDEVELOPED_BODIES = ["Moon", "Venus", "AsteroidBelt", "Pluto", "JupiterMoons", "SaturnMoons"]
+UNDEVELOPED_BODIES = ["Venus", "AsteroidBelt", "Pluto", "JupiterMoons", "SaturnMoons"]
 
 # Human-readable heading text for the away-view placeholder (internal
 # identifiers avoid spaces/apostrophes so they're safe to use in DOM ids).
 BODY_DISPLAY_NAMES = {
-    "Moon": "MOON",
     "Venus": "VENUS",
     "AsteroidBelt": "ASTEROID BELT",
     "Pluto": "PLUTO",
@@ -327,6 +340,9 @@ def update_travel_display():
     mars_summary.hidden = not mars_unlocked
     earth_trade.hidden = not mars_unlocked
 
+    moon_summary = document.getElementById("moon-summary")
+    moon_summary.hidden = "Moon" not in unlocked_bodies
+
     status = document.getElementById("travel-status")
     status.innerText = "Choose a destination:" if unlocked_bodies else "Reach the Near Bodies tier to unlock travel."
 
@@ -346,23 +362,29 @@ def update_governor_display():
     document.getElementById("governor-budget-value").innerText = str(round(governor_budget_pct))
 
 
-def update_mars_summary_on_earth():
-    # "Mars (governed)" widget shown on Earth's own view once travel is
-    # unlocked — visible proof the governor keeps managing Mars while the
-    # player is on Earth, symmetric to the Earth summary shown on Mars.
-    state = planet_state["Mars"]
-    document.getElementById("mars-summary-resource").innerText = str(math.floor(state["resource_count"] + 1e-9))
-    document.getElementById("mars-summary-generators").innerText = str(state["generator_count"])
-    document.getElementById("mars-summary-recyclers").innerText = str(state["recycler_count"])
-    document.getElementById("mars-summary-ecology").innerText = str(round(state["ecology_health"]))
+def update_cross_summary(viewer, target):
+    # Shows `target`'s governed stats on `viewer`'s own view — e.g. Earth's
+    # view shows a "Mars (governed)" widget, Mars's view shows an "Earth
+    # (governed)" widget, and so on for every pair of real economies, once
+    # there are more than two. Ids are viewer-prefixed (via _dom_id) so each
+    # view's widget for the same target doesn't collide with any other
+    # view's widget for that same target.
+    state = planet_state[target]
+
+    def widget_id(field):
+        return _dom_id(viewer, f"{target.lower()}-summary-{field}")
+
+    document.getElementById(widget_id("resource")).innerText = str(math.floor(state["resource_count"] + 1e-9))
+    document.getElementById(widget_id("generators")).innerText = str(state["generator_count"])
+    document.getElementById(widget_id("recyclers")).innerText = str(state["recycler_count"])
+    document.getElementById(widget_id("ecology")).innerText = str(round(state["ecology_health"]))
 
 
-def update_earth_summary_on_mars():
-    state = planet_state["Earth"]
-    document.getElementById("earth-summary-resource").innerText = str(math.floor(state["resource_count"] + 1e-9))
-    document.getElementById("earth-summary-generators").innerText = str(state["generator_count"])
-    document.getElementById("earth-summary-recyclers").innerText = str(state["recycler_count"])
-    document.getElementById("earth-summary-ecology").innerText = str(round(state["ecology_health"]))
+def update_all_cross_summaries():
+    for viewer in PLANETS:
+        for target in PLANETS:
+            if viewer != target:
+                update_cross_summary(viewer, target)
 
 
 def update_away_summary():
@@ -387,6 +409,7 @@ def update_away_summary():
 def _hide_all_views():
     document.getElementById("earth-view").hidden = True
     document.getElementById("mars-view").hidden = True
+    document.getElementById("moon-view").hidden = True
     document.getElementById("away-view").hidden = True
 
 
@@ -419,6 +442,10 @@ def on_mars_click(event):
     _mine("Mars")
 
 
+def on_moon_click(event):
+    _mine("Moon")
+
+
 def _buy_generator(planet):
     state = planet_state[planet]
     button = document.getElementById(_dom_id(planet, "buy-generator-button"))
@@ -438,6 +465,10 @@ def on_earth_buy_generator(event):
 
 def on_mars_buy_generator(event):
     _buy_generator("Mars")
+
+
+def on_moon_buy_generator(event):
+    _buy_generator("Moon")
 
 
 def _buy_recycler(planet):
@@ -461,6 +492,10 @@ def on_mars_buy_recycler(event):
     _buy_recycler("Mars")
 
 
+def on_moon_buy_recycler(event):
+    _buy_recycler("Moon")
+
+
 def _buy_trade_route(planet):
     state = planet_state[planet]
     button = document.getElementById(_dom_id(planet, "buy-trade-route-button"))
@@ -482,6 +517,10 @@ def on_earth_buy_trade_route(event):
 
 def on_mars_buy_trade_route(event):
     _buy_trade_route("Mars")
+
+
+def on_moon_buy_trade_route(event):
+    _buy_trade_route("Moon")
 
 
 def on_fund_research(event):
@@ -546,8 +585,17 @@ def _travel_to_undeveloped(body):
 
 
 def on_travel_moon(event):
+    global current_planet
     if "Moon" in unlocked_bodies:
-        _travel_to_undeveloped("Moon")
+        current_planet = "Moon"
+        _hide_all_views()
+        document.getElementById("moon-view").hidden = False
+        update_resource_display("Moon")
+        update_generator_display("Moon")
+        update_ecology_display("Moon")
+        update_trade_display("Moon")
+        update_terraform_display("Moon")
+        update_all_cross_summaries()
     press_feedback(document.getElementById("travel-moon-button"))
 
 
@@ -590,7 +638,9 @@ def on_travel_mars(event):
         update_resource_display("Mars")
         update_generator_display("Mars")
         update_ecology_display("Mars")
-        update_earth_summary_on_mars()
+        update_trade_display("Mars")
+        update_terraform_display("Mars")
+        update_all_cross_summaries()
     press_feedback(document.getElementById("travel-mars-button"))
 
 
@@ -602,10 +652,12 @@ def _return_to_earth():
     update_resource_display("Earth")
     update_generator_display("Earth")
     update_ecology_display("Earth")
-    update_mars_summary_on_earth()
+    update_trade_display("Earth")
+    update_terraform_display("Earth")
+    update_all_cross_summaries()
 
 
-def on_return_to_earth_from_moon(event):
+def on_return_to_earth_from_away_view(event):
     _return_to_earth()
     press_feedback(document.getElementById("return-to-earth-button"))
 
@@ -613,6 +665,11 @@ def on_return_to_earth_from_moon(event):
 def on_return_to_earth_from_mars(event):
     _return_to_earth()
     press_feedback(document.getElementById("mars-return-to-earth-button"))
+
+
+def on_return_to_earth_from_moon(event):
+    _return_to_earth()
+    press_feedback(document.getElementById("moon-return-to-earth-button"))
 
 
 def governor_step():
@@ -708,8 +765,7 @@ def tick(*args):
         update_trade_display(planet)
         update_terraform_display(planet)
 
-    update_mars_summary_on_earth()
-    update_earth_summary_on_mars()
+    update_all_cross_summaries()
     update_away_summary()
 
 
@@ -752,6 +808,27 @@ def setup():
         "click", create_proxy(on_return_to_earth_from_mars)
     )
 
+    moon_click = document.getElementById("moon-click-button")
+    moon_click.innerText = "Mine Regolith"
+    moon_click.disabled = False
+    moon_click.addEventListener("click", create_proxy(on_moon_click))
+
+    moon_buy_generator = document.getElementById("moon-buy-generator-button")
+    moon_buy_generator.disabled = False
+    moon_buy_generator.addEventListener("click", create_proxy(on_moon_buy_generator))
+
+    moon_buy_recycler = document.getElementById("moon-buy-recycler-button")
+    moon_buy_recycler.disabled = False
+    moon_buy_recycler.addEventListener("click", create_proxy(on_moon_buy_recycler))
+
+    moon_buy_trade_route = document.getElementById("moon-buy-trade-route-button")
+    moon_buy_trade_route.disabled = False
+    moon_buy_trade_route.addEventListener("click", create_proxy(on_moon_buy_trade_route))
+
+    document.getElementById("moon-return-to-earth-button").addEventListener(
+        "click", create_proxy(on_return_to_earth_from_moon)
+    )
+
     research_button = document.getElementById("fund-research-button")
     research_button.disabled = False
     research_button.addEventListener("click", create_proxy(on_fund_research))
@@ -786,7 +863,7 @@ def setup():
         "click", create_proxy(on_travel_saturn_moons)
     )
     document.getElementById("return-to-earth-button").addEventListener(
-        "click", create_proxy(on_return_to_earth_from_moon)
+        "click", create_proxy(on_return_to_earth_from_away_view)
     )
 
     _hide_all_views()
@@ -801,7 +878,7 @@ def setup():
     update_research_display()
     update_governor_display()
     update_travel_display()
-    update_earth_summary_on_mars()
+    update_all_cross_summaries()
 
     setInterval(create_proxy(tick), TICK_INTERVAL_MS)
 

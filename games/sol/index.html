@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SOL — Milestone 9a</title>
+<title>SOL — Milestone 9b</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
@@ -87,6 +87,13 @@
         <p>Ecology: <span id="mars-summary-ecology">100</span>%</p>
       </div>
 
+      <div id="moon-summary" class="section cross-summary" hidden>
+        <p class="cross-summary-label">Moon (governed)</p>
+        <p><span id="moon-summary-resource">0</span> Regolith</p>
+        <p><span id="moon-summary-generators">0</span> Auto-Harvesters, <span id="moon-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="moon-summary-ecology">100</span>%</p>
+      </div>
+
       <div id="travel" class="section">
         <p id="travel-label">Travel</p>
         <p id="travel-status">Reach the Near Bodies tier to unlock travel.</p>
@@ -145,18 +152,87 @@
         <button id="mars-buy-trade-route-button" class="secondary" disabled>Loading...</button>
       </div>
 
-      <div id="earth-summary" class="section cross-summary">
+      <div id="mars-earth-summary" class="section cross-summary">
         <p class="cross-summary-label">Earth (governed)</p>
-        <p><span id="earth-summary-resource">0</span> Iron</p>
-        <p><span id="earth-summary-generators">0</span> Auto-Miners, <span id="earth-summary-recyclers">0</span> Recyclers</p>
-        <p>Ecology: <span id="earth-summary-ecology">100</span>%</p>
+        <p><span id="mars-earth-summary-resource">0</span> Iron</p>
+        <p><span id="mars-earth-summary-generators">0</span> Auto-Miners, <span id="mars-earth-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="mars-earth-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="mars-moon-summary" class="section cross-summary">
+        <p class="cross-summary-label">Moon (governed)</p>
+        <p><span id="mars-moon-summary-resource">0</span> Regolith</p>
+        <p><span id="mars-moon-summary-generators">0</span> Auto-Harvesters, <span id="mars-moon-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="mars-moon-summary-ecology">100</span>%</p>
       </div>
 
       <button id="mars-return-to-earth-button" class="secondary">Return to Earth</button>
     </div>
 
+    <div id="moon-view" hidden>
+      <p id="moon-resource-label" class="resource-label">Regolith — Moon</p>
+      <p id="moon-resource-count" class="resource-count">0</p>
+      <button id="moon-click-button" class="click-button" disabled>Loading...</button>
+
+      <div id="moon-automation" class="section">
+        <p id="moon-generator-info" class="generator-info">
+          Auto-Harvesters: <span id="moon-generator-count">0</span>
+          (+<span id="moon-generator-rate">0</span>/s)
+        </p>
+        <button id="moon-buy-generator-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="moon-ecology" class="section">
+        <p id="moon-ecology-label" class="ecology-label">Ecological Health</p>
+        <p id="moon-ecology-percent" class="ecology-percent">100%</p>
+        <div class="meter">
+          <div id="moon-ecology-bar" class="meter-fill"></div>
+        </div>
+        <p id="moon-ecology-status" class="ecology-status"></p>
+
+        <p id="moon-recycler-info" class="recycler-info">
+          Recyclers: <span id="moon-recycler-count">0</span>
+          (+<span id="moon-recycler-rate">0</span>%/s)
+        </p>
+        <button id="moon-buy-recycler-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="moon-terraform" class="section">
+        <p id="moon-terraform-label" class="ecology-label">Terraforming</p>
+        <p id="moon-terraform-percent" class="ecology-percent">0%</p>
+        <div class="meter">
+          <div id="moon-terraform-bar" class="meter-fill terraform-fill"></div>
+        </div>
+        <p id="moon-terraform-status" class="ecology-status"></p>
+      </div>
+
+      <div id="moon-trade" class="section">
+        <p id="moon-trade-route-label" class="generator-info">
+          Trade Routes: <span id="moon-trade-route-count">0</span>
+          (+<span id="moon-trade-route-rate">0</span>%/s ecology to <span id="moon-trade-route-destination">Earth</span>)
+        </p>
+        <button id="moon-buy-trade-route-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="moon-earth-summary" class="section cross-summary">
+        <p class="cross-summary-label">Earth (governed)</p>
+        <p><span id="moon-earth-summary-resource">0</span> Iron</p>
+        <p><span id="moon-earth-summary-generators">0</span> Auto-Miners, <span id="moon-earth-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="moon-earth-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="moon-mars-summary" class="section cross-summary">
+        <p class="cross-summary-label">Mars (governed)</p>
+        <p><span id="moon-mars-summary-resource">0</span> Water Ice</p>
+        <p><span id="moon-mars-summary-generators">0</span> Auto-Extractors, <span id="moon-mars-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="moon-mars-summary-ecology">100</span>%</p>
+      </div>
+
+      <button id="moon-return-to-earth-button" class="secondary">Return to Earth</button>
+    </div>
+
     <div id="away-view" hidden>
-      <p id="away-planet-name">MOON</p>
+      <p id="away-planet-name">VENUS</p>
       <p id="away-arrival-text">You have arrived.</p>
 
       <div id="away-earth-summary" class="section cross-summary">
@@ -171,6 +247,13 @@
         <p><span id="away-mars-resource">0</span> Water Ice</p>
         <p><span id="away-mars-generators">0</span> Auto-Extractors, <span id="away-mars-recyclers">0</span> Recyclers</p>
         <p>Ecology: <span id="away-mars-ecology">100</span>%</p>
+      </div>
+
+      <div id="away-moon-summary" class="section cross-summary">
+        <p class="cross-summary-label">Moon (governed)</p>
+        <p><span id="away-moon-resource">0</span> Regolith</p>
+        <p><span id="away-moon-generators">0</span> Auto-Harvesters, <span id="away-moon-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="away-moon-ecology">100</span>%</p>
       </div>
 
       <button id="return-to-earth-button" class="secondary">Return to Earth</button>

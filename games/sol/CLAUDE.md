@@ -48,7 +48,7 @@ Universal-Paperclips-style incremental game, solar-system themed. Player starts 
 | 7 | Trade system v1 | Resource exchange between two planets, ties into ecology recovery — **DONE** |
 | 8 | Terraforming | Per-planet progress bar — **DONE** |
 | 9a | Research tier 2 framework | Second distance tier, parallel-unlocks Moon/Venus/Asteroid Belt/Pluto/Jupiter's moons/Saturn's moons; generalize governor + trade from a hardcoded 2-planet pair to N planets — **DONE** |
-| 9b | Moon resource loop | New resource, reuse the standard building system |
+| 9b | Moon resource loop | New resource, reuse the standard building system — **DONE** |
 | 9c | Venus resource loop | New resource, reuse the standard building system |
 | 9d | Asteroid Belt resource loop | New resource, reuse the standard building system |
 | 9e | Pluto resource loop | New resource, reuse the standard building system |

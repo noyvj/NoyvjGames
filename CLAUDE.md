@@ -38,7 +38,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
 ## Current games
 | Slug | Name | Status |
 |------|------|--------|
-| sol | SOL | Milestone 9a done (research tier 2 framework) |
+| sol | SOL | Milestone 9b done (Moon resource loop) |
 
 ## Site-level milestones (separate from per-game milestones)
 | # | Milestone | Status |

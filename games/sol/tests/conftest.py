@@ -31,6 +31,10 @@ INITIALLY_DISABLED_IDS = [
     "mars-buy-recycler-button",
     "buy-trade-route-button",
     "mars-buy-trade-route-button",
+    "moon-click-button",
+    "moon-buy-generator-button",
+    "moon-buy-recycler-button",
+    "moon-buy-trade-route-button",
 ]
 
 # Maps the internal body identifier (used as current_planet / in
@@ -71,6 +75,7 @@ ELEMENT_IDS = [
     # Views
     "earth-view",
     "mars-view",
+    "moon-view",
     "away-view",
     # Governor
     "priority-growth-button",
@@ -88,7 +93,7 @@ ELEMENT_IDS = [
     "travel-pluto-button",
     "travel-jupiter-moons-button",
     "travel-saturn-moons-button",
-    # Undeveloped-body placeholder (away-view)
+    # Undeveloped-body placeholder (away-view) — Earth, Mars, Moon summaries
     "away-planet-name",
     "away-earth-resource",
     "away-earth-generators",
@@ -98,6 +103,10 @@ ELEMENT_IDS = [
     "away-mars-generators",
     "away-mars-recyclers",
     "away-mars-ecology",
+    "away-moon-resource",
+    "away-moon-generators",
+    "away-moon-recyclers",
+    "away-moon-ecology",
     "return-to-earth-button",
     # Mars's own economy
     "mars-click-button",
@@ -113,16 +122,48 @@ ELEMENT_IDS = [
     "mars-recycler-count",
     "mars-recycler-rate",
     "mars-return-to-earth-button",
-    # Cross-planet governed summaries
+    # Moon's own economy
+    "moon-click-button",
+    "moon-resource-count",
+    "moon-resource-label",
+    "moon-buy-generator-button",
+    "moon-generator-count",
+    "moon-generator-rate",
+    "moon-ecology-percent",
+    "moon-ecology-bar",
+    "moon-ecology-status",
+    "moon-buy-recycler-button",
+    "moon-recycler-count",
+    "moon-recycler-rate",
+    "moon-return-to-earth-button",
+    # Cross-planet governed summaries (viewer-prefixed: Earth's ids are
+    # unprefixed via _dom_id, every other viewer gets "<viewer>-" first)
     "mars-summary",
     "mars-summary-resource",
     "mars-summary-generators",
     "mars-summary-recyclers",
     "mars-summary-ecology",
-    "earth-summary-resource",
-    "earth-summary-generators",
-    "earth-summary-recyclers",
-    "earth-summary-ecology",
+    "moon-summary",
+    "moon-summary-resource",
+    "moon-summary-generators",
+    "moon-summary-recyclers",
+    "moon-summary-ecology",
+    "mars-earth-summary-resource",
+    "mars-earth-summary-generators",
+    "mars-earth-summary-recyclers",
+    "mars-earth-summary-ecology",
+    "mars-moon-summary-resource",
+    "mars-moon-summary-generators",
+    "mars-moon-summary-recyclers",
+    "mars-moon-summary-ecology",
+    "moon-earth-summary-resource",
+    "moon-earth-summary-generators",
+    "moon-earth-summary-recyclers",
+    "moon-earth-summary-ecology",
+    "moon-mars-summary-resource",
+    "moon-mars-summary-generators",
+    "moon-mars-summary-recyclers",
+    "moon-mars-summary-ecology",
     # Trade routes
     "earth-trade",
     "trade-route-count",
@@ -133,6 +174,10 @@ ELEMENT_IDS = [
     "mars-trade-route-rate",
     "mars-trade-route-destination",
     "mars-buy-trade-route-button",
+    "moon-trade-route-count",
+    "moon-trade-route-rate",
+    "moon-trade-route-destination",
+    "moon-buy-trade-route-button",
     # Terraforming
     "terraform-percent",
     "terraform-bar",
@@ -140,6 +185,9 @@ ELEMENT_IDS = [
     "mars-terraform-percent",
     "mars-terraform-bar",
     "mars-terraform-status",
+    "moon-terraform-percent",
+    "moon-terraform-bar",
+    "moon-terraform-status",
 ]
 
 _BUTTON_ID = {
@@ -155,6 +203,17 @@ _BUTTON_ID = {
         "buy_recycler": "mars-buy-recycler-button",
         "buy_trade_route": "mars-buy-trade-route-button",
     },
+    "Moon": {
+        "click": "moon-click-button",
+        "buy_generator": "moon-buy-generator-button",
+        "buy_recycler": "moon-buy-recycler-button",
+        "buy_trade_route": "moon-buy-trade-route-button",
+    },
+}
+
+_RETURN_BUTTON_ID = {
+    "Mars": "mars-return-to-earth-button",
+    "Moon": "moon-return-to-earth-button",
 }
 
 
@@ -173,6 +232,10 @@ class GameEnv:
     @property
     def mars(self):
         return self.module.planet_state["Mars"]
+
+    @property
+    def moon(self):
+        return self.module.planet_state["Moon"]
 
     def state(self, planet):
         return self.module.planet_state[planet]
@@ -212,12 +275,10 @@ class GameEnv:
 
     def return_to_earth(self):
         # Whichever "Return to Earth" button is relevant depends on where
-        # the player currently is (an undeveloped-body placeholder vs
-        # Mars's own view).
-        if self.module.current_planet == "Mars":
-            self.elements["mars-return-to-earth-button"].dispatch("click", None)
-        else:
-            self.elements["return-to-earth-button"].dispatch("click", None)
+        # the player currently is (an undeveloped-body placeholder vs a
+        # real economy's own dedicated view).
+        button_id = _RETURN_BUTTON_ID.get(self.module.current_planet, "return-to-earth-button")
+        self.elements[button_id].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements, timers):
