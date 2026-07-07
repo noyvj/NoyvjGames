@@ -19,6 +19,8 @@ PLANETS = {
         "recycler_base_cost": 15,
         "recycler_cost_growth": 1.15,
         "recycler_restore_per_sec": 2.0,
+        "trade_route_base_cost": 30,
+        "trade_route_cost_growth": 1.15,
     },
     "Mars": {
         "resource_name": "Water Ice",
@@ -31,8 +33,20 @@ PLANETS = {
         "recycler_base_cost": 15,
         "recycler_cost_growth": 1.15,
         "recycler_restore_per_sec": 2.0,
+        "trade_route_base_cost": 30,
+        "trade_route_cost_growth": 1.15,
     },
 }
+
+# Trade is a 2-planet mechanic for now (per the milestone plan); each real
+# economy ships to exactly one destination — "the other one."
+OTHER_PLANET = {"Earth": "Mars", "Mars": "Earth"}
+
+# Ecology restored on the DESTINATION planet, per Trade Route, per second.
+# Deliberately weaker than a local Recycler (2.0/s) — shipping materials
+# across planets is a supplementary lever, not a replacement for local
+# investment. Subject to the Milestone 11 balance pass.
+TRADE_ROUTE_RESTORE_PER_SEC = 0.5
 
 # --- mutable per-planet state ---
 planet_state = {
@@ -41,6 +55,7 @@ planet_state = {
         "generator_count": 0,
         "recycler_count": 0,
         "ecology_health": 100.0,
+        "trade_route_count": 0,
     }
     for name in PLANETS
 }
@@ -87,6 +102,12 @@ def recycler_cost(planet):
     cfg = PLANETS[planet]
     count = planet_state[planet]["recycler_count"]
     return math.ceil(cfg["recycler_base_cost"] * (cfg["recycler_cost_growth"] ** count))
+
+
+def trade_route_cost(planet):
+    cfg = PLANETS[planet]
+    count = planet_state[planet]["trade_route_count"]
+    return math.ceil(cfg["trade_route_base_cost"] * (cfg["trade_route_cost_growth"] ** count))
 
 
 def production_multiplier(planet):
@@ -149,6 +170,19 @@ def update_ecology_display(planet):
         status.innerText = ""
 
 
+def update_trade_display(planet):
+    cfg = PLANETS[planet]
+    state = planet_state[planet]
+    document.getElementById(_dom_id(planet, "trade-route-count")).innerText = str(state["trade_route_count"])
+    document.getElementById(_dom_id(planet, "trade-route-rate")).innerText = str(
+        round(state["trade_route_count"] * TRADE_ROUTE_RESTORE_PER_SEC, 2)
+    )
+    document.getElementById(_dom_id(planet, "trade-route-destination")).innerText = OTHER_PLANET[planet]
+    document.getElementById(_dom_id(planet, "buy-trade-route-button")).innerText = (
+        f"Build Trade Route ({trade_route_cost(planet)} {cfg['resource_name']})"
+    )
+
+
 def update_research_display():
     progress_pct = (research_progress / RESEARCH_TARGET_NEAR_BODIES) * 100
     document.getElementById("research-bar").style.width = f"{progress_pct}%"
@@ -175,6 +209,7 @@ def update_travel_display():
     mars_button = document.getElementById("travel-mars-button")
     status = document.getElementById("travel-status")
     mars_summary = document.getElementById("mars-summary")
+    earth_trade = document.getElementById("earth-trade")
 
     if near_bodies_unlocked:
         status.innerText = "Choose a destination:"
@@ -182,12 +217,14 @@ def update_travel_display():
             button.hidden = False
             button.disabled = False
         mars_summary.hidden = False
+        earth_trade.hidden = False
     else:
         status.innerText = "Reach the Near Bodies tier to unlock travel."
         for button in (moon_button, mars_button):
             button.hidden = True
             button.disabled = True
         mars_summary.hidden = True
+        earth_trade.hidden = True
 
 
 def update_governor_display():
@@ -308,6 +345,26 @@ def on_earth_buy_recycler(event):
 
 def on_mars_buy_recycler(event):
     _buy_recycler("Mars")
+
+
+def _buy_trade_route(planet):
+    state = planet_state[planet]
+    button = document.getElementById(_dom_id(planet, "buy-trade-route-button"))
+    cost = trade_route_cost(planet)
+    if state["resource_count"] >= cost:
+        state["resource_count"] -= cost
+        state["trade_route_count"] += 1
+        update_resource_display(planet)
+        update_trade_display(planet)
+    press_feedback(button)
+
+
+def on_earth_buy_trade_route(event):
+    _buy_trade_route("Earth")
+
+
+def on_mars_buy_trade_route(event):
+    _buy_trade_route("Mars")
 
 
 def on_fund_research(event):
@@ -440,7 +497,7 @@ def governor_step():
                 update_ecology_display(planet)
 
 
-def _simulate_planet(planet):
+def _simulate_planet(planet, incoming_trade_restore):
     cfg = PLANETS[planet]
     state = planet_state[planet]
 
@@ -453,12 +510,26 @@ def _simulate_planet(planet):
 
     decay = state["generator_count"] * cfg["ecology_decay_per_generator_per_sec"] * (TICK_INTERVAL_MS / 1000)
     restore = state["recycler_count"] * cfg["recycler_restore_per_sec"] * (TICK_INTERVAL_MS / 1000)
-    state["ecology_health"] = clamp(state["ecology_health"] - decay + restore, 0.0, ECOLOGY_MAX)
+    state["ecology_health"] = clamp(
+        state["ecology_health"] - decay + restore + incoming_trade_restore, 0.0, ECOLOGY_MAX
+    )
 
 
 def tick(*args):
+    # Trade contributions are computed from each planet's trade_route_count
+    # before anything mutates this tick, so Earth's and Mars's routes are
+    # both based on pre-tick counts rather than an order-dependent mix.
+    incoming_trade_restore = {
+        planet: (
+            planet_state[OTHER_PLANET[planet]]["trade_route_count"]
+            * TRADE_ROUTE_RESTORE_PER_SEC
+            * (TICK_INTERVAL_MS / 1000)
+        )
+        for planet in PLANETS
+    }
+
     for planet in PLANETS:
-        _simulate_planet(planet)
+        _simulate_planet(planet, incoming_trade_restore[planet])
 
     governor_step()
 
@@ -466,6 +537,7 @@ def tick(*args):
         update_resource_display(planet)
         update_generator_display(planet)
         update_ecology_display(planet)
+        update_trade_display(planet)
 
     update_mars_summary_on_earth()
     update_earth_summary_on_mars()
@@ -486,6 +558,10 @@ def setup():
     earth_buy_recycler.disabled = False
     earth_buy_recycler.addEventListener("click", create_proxy(on_earth_buy_recycler))
 
+    earth_buy_trade_route = document.getElementById("buy-trade-route-button")
+    earth_buy_trade_route.disabled = False
+    earth_buy_trade_route.addEventListener("click", create_proxy(on_earth_buy_trade_route))
+
     mars_click = document.getElementById("mars-click-button")
     mars_click.innerText = "Extract Ice"
     mars_click.disabled = False
@@ -498,6 +574,11 @@ def setup():
     mars_buy_recycler = document.getElementById("mars-buy-recycler-button")
     mars_buy_recycler.disabled = False
     mars_buy_recycler.addEventListener("click", create_proxy(on_mars_buy_recycler))
+
+    mars_buy_trade_route = document.getElementById("mars-buy-trade-route-button")
+    mars_buy_trade_route.disabled = False
+    mars_buy_trade_route.addEventListener("click", create_proxy(on_mars_buy_trade_route))
+
     document.getElementById("mars-return-to-earth-button").addEventListener(
         "click", create_proxy(on_return_to_earth_from_mars)
     )
@@ -535,6 +616,7 @@ def setup():
         update_resource_display(planet)
         update_generator_display(planet)
         update_ecology_display(planet)
+        update_trade_display(planet)
     update_research_display()
     update_governor_display()
     update_travel_display()

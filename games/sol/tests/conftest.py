@@ -24,6 +24,8 @@ INITIALLY_DISABLED_IDS = [
     "mars-click-button",
     "mars-buy-generator-button",
     "mars-buy-recycler-button",
+    "buy-trade-route-button",
+    "mars-buy-trade-route-button",
 ]
 
 # Element IDs wired up in index.html — kept in one place so tests and the
@@ -93,6 +95,16 @@ ELEMENT_IDS = [
     "earth-summary-generators",
     "earth-summary-recyclers",
     "earth-summary-ecology",
+    # Trade routes
+    "earth-trade",
+    "trade-route-count",
+    "trade-route-rate",
+    "trade-route-destination",
+    "buy-trade-route-button",
+    "mars-trade-route-count",
+    "mars-trade-route-rate",
+    "mars-trade-route-destination",
+    "mars-buy-trade-route-button",
 ]
 
 _BUTTON_ID = {
@@ -100,11 +112,13 @@ _BUTTON_ID = {
         "click": "click-button",
         "buy_generator": "buy-generator-button",
         "buy_recycler": "buy-recycler-button",
+        "buy_trade_route": "buy-trade-route-button",
     },
     "Mars": {
         "click": "mars-click-button",
         "buy_generator": "mars-buy-generator-button",
         "buy_recycler": "mars-buy-recycler-button",
+        "buy_trade_route": "mars-buy-trade-route-button",
     },
 }
 
@@ -136,6 +150,9 @@ class GameEnv:
 
     def buy_recycler(self, planet="Earth"):
         self.elements[_BUTTON_ID[planet]["buy_recycler"]].dispatch("click", None)
+
+    def buy_trade_route(self, planet="Earth"):
+        self.elements[_BUTTON_ID[planet]["buy_trade_route"]].dispatch("click", None)
 
     def fund_research(self):
         self.elements["fund-research-button"].dispatch("click", None)

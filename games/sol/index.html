@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SOL — Milestone 6</title>
+<title>SOL — Milestone 7</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
@@ -63,6 +63,14 @@
         </div>
       </div>
 
+      <div id="earth-trade" class="section" hidden>
+        <p id="trade-route-label" class="generator-info">
+          Trade Routes: <span id="trade-route-count">0</span>
+          (+<span id="trade-route-rate">0</span>%/s ecology to <span id="trade-route-destination">Mars</span>)
+        </p>
+        <button id="buy-trade-route-button" class="secondary" disabled>Loading...</button>
+      </div>
+
       <div id="mars-summary" class="section cross-summary" hidden>
         <p class="cross-summary-label">Mars (governed)</p>
         <p><span id="mars-summary-resource">0</span> Water Ice</p>
@@ -104,6 +112,14 @@
           (+<span id="mars-recycler-rate">0</span>%/s)
         </p>
         <button id="mars-buy-recycler-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="mars-trade" class="section">
+        <p id="mars-trade-route-label" class="generator-info">
+          Trade Routes: <span id="mars-trade-route-count">0</span>
+          (+<span id="mars-trade-route-rate">0</span>%/s ecology to <span id="mars-trade-route-destination">Earth</span>)
+        </p>
+        <button id="mars-buy-trade-route-button" class="secondary" disabled>Loading...</button>
       </div>
 
       <div id="earth-summary" class="section cross-summary">
