@@ -35,7 +35,7 @@ Universal-Paperclips-style incremental game, solar-system themed. Player starts 
 9. **Win condition** — 100% completion across the solar system triggers a soft "win" state; game remains playable sandbox-style afterward.
 10. **Balance philosophy** — soft punishment for imbalance, always recoverable. No dead-end/unwinnable states.
 
-## Milestone plan (11 milestones, weeks 1–11 of 13; weeks 12–13 are buffer)
+## Milestone plan (17 milestones, weeks 1–13; milestone 9 is a multi-part batch and will likely run over its single nominal week)
 
 | Wk | Milestone | Content |
 |----|-----------|---------|
@@ -47,14 +47,20 @@ Universal-Paperclips-style incremental game, solar-system themed. Player starts 
 | 6 | Second planet resource loop | New resource, reuse week 2/3 systems — **DONE** |
 | 7 | Trade system v1 | Resource exchange between two planets, ties into ecology recovery — **DONE** |
 | 8 | Terraforming | Per-planet progress bar — **DONE** |
-| 9 | Research tier 2 | Parallel-unlock tier, extend trade + governor to more planets |
-| 10 | Gas giant buildings | Reskinned building system + Mars-material dependency |
+| 9a | Research tier 2 framework | Second distance tier, parallel-unlocks Moon/Venus/Asteroid Belt/Pluto/Jupiter's moons/Saturn's moons; generalize governor + trade from a hardcoded 2-planet pair to N planets |
+| 9b | Moon resource loop | New resource, reuse the standard building system |
+| 9c | Venus resource loop | New resource, reuse the standard building system |
+| 9d | Asteroid Belt resource loop | New resource, reuse the standard building system |
+| 9e | Pluto resource loop | New resource, reuse the standard building system |
+| 9f | Jupiter's moons resource loop | New resource, reuse the standard building system (one combined economy, not one per moon — matches the "parallel-unlock" framing) |
+| 9g | Saturn's moons resource loop | New resource, reuse the standard building system (one combined economy, not one per moon) |
+| 10 | Gas giant buildings | Reskinned building system + sky cities + Mars-material dependency |
 | 11 | Full system endgame | 100% completion win-state, final balance pass |
 
-**Important:** milestones can be built ahead of schedule, but should be *tagged* (`git tag milestone-0N`) at actual completion time and *not publicized* (Instagram/devlog) until their assigned week. Don't backdate anything — the tag date must be real. This is a deliberate anti-burnout pacing strategy, not a submission deadline system.
+**Important:** milestones can be built ahead of schedule, but should be *tagged* (`git tag milestone-0N` — sub-parts of 9 use `git tag milestone-09a` etc.) at actual completion time and *not publicized* (Instagram/devlog) until their assigned week. Don't backdate anything — the tag date must be real. This is a deliberate anti-burnout pacing strategy, not a submission deadline system.
 
 ## Working conventions
-- Commit + tag at the end of each milestone: `git commit -m "Milestone N: <name>"` then `git tag milestone-0N`.
+- Commit + tag at the end of each milestone: `git commit -m "Milestone N: <name>"` then `git tag milestone-0N` (e.g. `milestone-09a` for lettered sub-parts of milestone 9).
 - Keep `game.py` as the single source of game logic where reasonable; split into modules only once it gets unwieldy.
 - Public evidence: Instagram (BCM114, audience-facing) + WordPress devlog on ah752bcm.wordpress.com under a new tag/category (BCM206, process-facing) — not part of this codebase, but milestones should produce something screenshot/clip-worthy.
 - Prefer asking before large architecture changes — this project intentionally avoids scope creep beyond what's listed above.
