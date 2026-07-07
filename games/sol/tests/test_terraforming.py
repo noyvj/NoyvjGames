@@ -46,7 +46,7 @@ def test_recycler_counts_as_investment(game_env):
 
 
 def test_trade_route_counts_as_investment(game_env):
-    game_env.earth["trade_route_count"] = 1
+    game_env.earth["trade_routes"]["Mars"] = 1
     assert game_env.module.has_economic_investment("Earth") is True
 
 

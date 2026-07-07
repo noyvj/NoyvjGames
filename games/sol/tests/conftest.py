@@ -21,12 +21,30 @@ INITIALLY_DISABLED_IDS = [
     "fund-research-button",
     "travel-moon-button",
     "travel-mars-button",
+    "travel-venus-button",
+    "travel-asteroid-belt-button",
+    "travel-pluto-button",
+    "travel-jupiter-moons-button",
+    "travel-saturn-moons-button",
     "mars-click-button",
     "mars-buy-generator-button",
     "mars-buy-recycler-button",
     "buy-trade-route-button",
     "mars-buy-trade-route-button",
 ]
+
+# Maps the internal body identifier (used as current_planet / in
+# unlocked_bodies) to its travel button id — kept in one place so tests
+# don't have to hardcode the id-naming convention themselves.
+TRAVEL_BUTTON_ID = {
+    "Moon": "travel-moon-button",
+    "Mars": "travel-mars-button",
+    "Venus": "travel-venus-button",
+    "AsteroidBelt": "travel-asteroid-belt-button",
+    "Pluto": "travel-pluto-button",
+    "JupiterMoons": "travel-jupiter-moons-button",
+    "SaturnMoons": "travel-saturn-moons-button",
+}
 
 # Element IDs wired up in index.html — kept in one place so tests and the
 # fixture agree on what "the DOM" contains.
@@ -45,6 +63,7 @@ ELEMENT_IDS = [
     "recycler-count",
     "recycler-rate",
     # Research (Earth/global)
+    "research-label",
     "research-progress",
     "research-bar",
     "research-status",
@@ -64,12 +83,21 @@ ELEMENT_IDS = [
     "travel-status",
     "travel-moon-button",
     "travel-mars-button",
-    # Moon placeholder (away-view)
+    "travel-venus-button",
+    "travel-asteroid-belt-button",
+    "travel-pluto-button",
+    "travel-jupiter-moons-button",
+    "travel-saturn-moons-button",
+    # Undeveloped-body placeholder (away-view)
     "away-planet-name",
-    "away-iron",
-    "away-generators",
-    "away-recyclers",
-    "away-ecology",
+    "away-earth-resource",
+    "away-earth-generators",
+    "away-earth-recyclers",
+    "away-earth-ecology",
+    "away-mars-resource",
+    "away-mars-generators",
+    "away-mars-recyclers",
+    "away-mars-ecology",
     "return-to-earth-button",
     # Mars's own economy
     "mars-click-button",
@@ -173,15 +201,19 @@ class GameEnv:
     def decrease_budget(self):
         self.elements["budget-decrease-button"].dispatch("click", None)
 
+    def travel_to(self, body):
+        self.elements[TRAVEL_BUTTON_ID[body]].dispatch("click", None)
+
     def travel_to_moon(self):
-        self.elements["travel-moon-button"].dispatch("click", None)
+        self.travel_to("Moon")
 
     def travel_to_mars(self):
-        self.elements["travel-mars-button"].dispatch("click", None)
+        self.travel_to("Mars")
 
     def return_to_earth(self):
         # Whichever "Return to Earth" button is relevant depends on where
-        # the player currently is (Moon's placeholder vs Mars's own view).
+        # the player currently is (an undeveloped-body placeholder vs
+        # Mars's own view).
         if self.module.current_planet == "Mars":
             self.elements["mars-return-to-earth-button"].dispatch("click", None)
         else:

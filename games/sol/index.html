@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SOL — Milestone 8</title>
+<title>SOL — Milestone 9a</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
@@ -92,6 +92,11 @@
         <p id="travel-status">Reach the Near Bodies tier to unlock travel.</p>
         <button id="travel-moon-button" class="secondary" hidden disabled>Travel to Moon</button>
         <button id="travel-mars-button" class="secondary" hidden disabled>Travel to Mars</button>
+        <button id="travel-venus-button" class="secondary" hidden disabled>Travel to Venus</button>
+        <button id="travel-asteroid-belt-button" class="secondary" hidden disabled>Travel to the Asteroid Belt</button>
+        <button id="travel-pluto-button" class="secondary" hidden disabled>Travel to Pluto</button>
+        <button id="travel-jupiter-moons-button" class="secondary" hidden disabled>Travel to Jupiter's Moons</button>
+        <button id="travel-saturn-moons-button" class="secondary" hidden disabled>Travel to Saturn's Moons</button>
       </div>
     </div>
 
@@ -153,11 +158,21 @@
     <div id="away-view" hidden>
       <p id="away-planet-name">MOON</p>
       <p id="away-arrival-text">You have arrived.</p>
-      <div id="away-summary">
-        <p>Earth (governed): <span id="away-iron">0</span> Iron</p>
-        <p><span id="away-generators">0</span> Auto-Miners, <span id="away-recyclers">0</span> Recyclers</p>
-        <p>Ecology: <span id="away-ecology">100</span>%</p>
+
+      <div id="away-earth-summary" class="section cross-summary">
+        <p class="cross-summary-label">Earth (governed)</p>
+        <p><span id="away-earth-resource">0</span> Iron</p>
+        <p><span id="away-earth-generators">0</span> Auto-Miners, <span id="away-earth-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="away-earth-ecology">100</span>%</p>
       </div>
+
+      <div id="away-mars-summary" class="section cross-summary">
+        <p class="cross-summary-label">Mars (governed)</p>
+        <p><span id="away-mars-resource">0</span> Water Ice</p>
+        <p><span id="away-mars-generators">0</span> Auto-Extractors, <span id="away-mars-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="away-mars-ecology">100</span>%</p>
+      </div>
+
       <button id="return-to-earth-button" class="secondary">Return to Earth</button>
     </div>
   </div>

@@ -11,7 +11,7 @@ the governor's cross-planet behavior."""
 
 
 def _unlock_near_bodies(game_env):
-    game_env.module.near_bodies_unlocked = True
+    game_env.module.unlocked_bodies.update(["Moon", "Mars"])
     game_env.module.update_travel_display()
 
 
@@ -93,7 +93,8 @@ def test_funding_research_to_completion_unlocks_travel_for_real(game_env):
     game_env.earth["resource_count"] = 1000
     for _ in range(20):
         game_env.fund_research()
-    assert game_env.module.near_bodies_unlocked is True
+    assert "Moon" in game_env.module.unlocked_bodies
+    assert "Mars" in game_env.module.unlocked_bodies
     assert game_env.elements["travel-moon-button"].hidden is False
     assert game_env.elements["travel-status"].innerText == "Choose a destination:"
 
@@ -127,10 +128,10 @@ def test_travel_to_moon_populates_away_summary_immediately(game_env):
     game_env.earth["recycler_count"] = 1
     game_env.earth["ecology_health"] = 77.0
     game_env.travel_to_moon()
-    assert game_env.elements["away-iron"].innerText == "42"
-    assert game_env.elements["away-generators"].innerText == "3"
-    assert game_env.elements["away-recyclers"].innerText == "1"
-    assert game_env.elements["away-ecology"].innerText == "77"
+    assert game_env.elements["away-earth-resource"].innerText == "42"
+    assert game_env.elements["away-earth-generators"].innerText == "3"
+    assert game_env.elements["away-earth-recyclers"].innerText == "1"
+    assert game_env.elements["away-earth-ecology"].innerText == "77"
 
 
 def test_travel_button_gives_press_feedback(game_env):
@@ -251,7 +252,7 @@ def test_away_summary_refreshes_live_on_tick(game_env):
     game_env.earth["generator_count"] = 1
     game_env.travel_to_moon()
     game_env.timers.tick_intervals(10)  # +1 Iron from the generator
-    assert game_env.elements["away-iron"].innerText == "11"
+    assert game_env.elements["away-earth-resource"].innerText == "11"
 
 
 def test_earth_summary_on_mars_refreshes_live_on_tick(game_env):

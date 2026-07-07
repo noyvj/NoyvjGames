@@ -38,10 +38,6 @@ PLANETS = {
     },
 }
 
-# Trade is a 2-planet mechanic for now (per the milestone plan); each real
-# economy ships to exactly one destination — "the other one."
-OTHER_PLANET = {"Earth": "Mars", "Mars": "Earth"}
-
 # Ecology restored on the DESTINATION planet, per Trade Route, per second.
 # Deliberately weaker than a local Recycler (2.0/s) — shipping materials
 # across planets is a supplementary lever, not a replacement for local
@@ -66,15 +62,59 @@ planet_state = {
         "generator_count": 0,
         "recycler_count": 0,
         "ecology_health": 100.0,
-        "trade_route_count": 0,
+        "trade_routes": {},  # destination planet name -> route count
         "terraform_progress": 0.0,
     }
     for name in PLANETS
 }
 
+# --- research tiers ---
+# Research isn't strictly linear — reaching a distance tier can unlock
+# several bodies in parallel rather than one planet at a time. Tiers are
+# researched in sequence (you can't fund tier 2 before tier 1 is done);
+# "unlocks" only grants travel access — most of these bodies get their own
+# economy in a later milestone (Moon: 9b, Venus: 9c, Asteroid Belt: 9d,
+# Pluto: 9e, Jupiter's Moons: 9f, Saturn's Moons: 9g). Until then, visiting
+# one shows the shared "undeveloped destination" placeholder.
+RESEARCH_TIERS = [
+    {"name": "Near Bodies", "target": 1000, "unlocks": ["Moon", "Mars"]},
+    {
+        "name": "Far Bodies",
+        "target": 5000,
+        "unlocks": ["Venus", "AsteroidBelt", "Pluto", "JupiterMoons", "SaturnMoons"],
+    },
+]
+RESEARCH_FUND_COST = 50  # flat Iron per investment, same across every tier, not a scaling purchase
+
+# Bodies with no economy of their own yet — visiting any of these shows the
+# shared #away-view placeholder rather than a dedicated view.
+UNDEVELOPED_BODIES = ["Moon", "Venus", "AsteroidBelt", "Pluto", "JupiterMoons", "SaturnMoons"]
+
+# Human-readable heading text for the away-view placeholder (internal
+# identifiers avoid spaces/apostrophes so they're safe to use in DOM ids).
+BODY_DISPLAY_NAMES = {
+    "Moon": "MOON",
+    "Venus": "VENUS",
+    "AsteroidBelt": "ASTEROID BELT",
+    "Pluto": "PLUTO",
+    "JupiterMoons": "JUPITER'S MOONS",
+    "SaturnMoons": "SATURN'S MOONS",
+}
+
+TRAVEL_BUTTON_ID = {
+    "Moon": "travel-moon-button",
+    "Mars": "travel-mars-button",
+    "Venus": "travel-venus-button",
+    "AsteroidBelt": "travel-asteroid-belt-button",
+    "Pluto": "travel-pluto-button",
+    "JupiterMoons": "travel-jupiter-moons-button",
+    "SaturnMoons": "travel-saturn-moons-button",
+}
+
 # --- global (non-planet) state ---
-research_progress = 0.0
-near_bodies_unlocked = False
+research_progress = 0.0  # progress toward the current (next incomplete) tier
+completed_tiers = 0
+unlocked_bodies = set()
 current_planet = "Earth"
 governor_priority = "balance"  # "growth" | "balance" | "ecology"
 governor_budget_pct = 50.0
@@ -86,15 +126,29 @@ ECOLOGY_MAX = 100.0
 LOW_ECOLOGY_THRESHOLD = 10.0
 LOW_ECOLOGY_PENALTY_MULTIPLIER = 0.75
 
-# Research isn't strictly linear — reaching a distance tier can unlock
-# several bodies in parallel rather than one planet at a time.
-RESEARCH_FUND_COST = 50  # flat Iron per investment, not a scaling purchase
-RESEARCH_TARGET_NEAR_BODIES = 1000
-NEAR_BODIES_UNLOCKS = ["Moon", "Mars"]
-
 GOVERNOR_BUDGET_STEP = 10.0
 GOVERNOR_BUDGET_MIN = 0.0
 GOVERNOR_BUDGET_MAX = 100.0
+
+
+def current_tier():
+    if completed_tiers < len(RESEARCH_TIERS):
+        return RESEARCH_TIERS[completed_tiers]
+    return None
+
+
+def other_real_planets(planet):
+    return [p for p in PLANETS if p != planet]
+
+
+def primary_trade_destination(planet):
+    # Trade only has one possible destination per planet for now (Earth
+    # and Mars are the only two real economies) — this is computed rather
+    # than a hardcoded pair, so it keeps working once Milestones 9b+ add
+    # more real economies; picking among multiple destinations is a UI
+    # decision for whichever milestone first makes that ambiguous.
+    others = other_real_planets(planet)
+    return others[0] if others else None
 
 
 def _dom_id(planet, suffix):
@@ -116,9 +170,9 @@ def recycler_cost(planet):
     return math.ceil(cfg["recycler_base_cost"] * (cfg["recycler_cost_growth"] ** count))
 
 
-def trade_route_cost(planet):
+def trade_route_cost(planet, destination):
     cfg = PLANETS[planet]
-    count = planet_state[planet]["trade_route_count"]
+    count = planet_state[planet]["trade_routes"].get(destination, 0)
     return math.ceil(cfg["trade_route_base_cost"] * (cfg["trade_route_cost_growth"] ** count))
 
 
@@ -137,7 +191,7 @@ def clamp(value, low, high):
 
 def has_economic_investment(planet):
     state = planet_state[planet]
-    return state["generator_count"] > 0 or state["recycler_count"] > 0 or state["trade_route_count"] > 0
+    return state["generator_count"] > 0 or state["recycler_count"] > 0 or bool(state["trade_routes"])
 
 
 def terraform_rate(planet):
@@ -200,14 +254,20 @@ def update_ecology_display(planet):
 def update_trade_display(planet):
     cfg = PLANETS[planet]
     state = planet_state[planet]
-    document.getElementById(_dom_id(planet, "trade-route-count")).innerText = str(state["trade_route_count"])
+    destination = primary_trade_destination(planet)
+    count = state["trade_routes"].get(destination, 0) if destination else 0
+
+    document.getElementById(_dom_id(planet, "trade-route-count")).innerText = str(count)
     document.getElementById(_dom_id(planet, "trade-route-rate")).innerText = str(
-        round(state["trade_route_count"] * TRADE_ROUTE_RESTORE_PER_SEC, 2)
+        round(count * TRADE_ROUTE_RESTORE_PER_SEC, 2)
     )
-    document.getElementById(_dom_id(planet, "trade-route-destination")).innerText = OTHER_PLANET[planet]
-    document.getElementById(_dom_id(planet, "buy-trade-route-button")).innerText = (
-        f"Build Trade Route ({trade_route_cost(planet)} {cfg['resource_name']})"
-    )
+    document.getElementById(_dom_id(planet, "trade-route-destination")).innerText = destination or "—"
+
+    button = document.getElementById(_dom_id(planet, "buy-trade-route-button"))
+    if destination:
+        button.innerText = f"Build Trade Route ({trade_route_cost(planet, destination)} {cfg['resource_name']})"
+    else:
+        button.innerText = "No destination available"
 
 
 def update_terraform_display(planet):
@@ -230,47 +290,45 @@ def update_terraform_display(planet):
 
 
 def update_research_display():
-    progress_pct = (research_progress / RESEARCH_TARGET_NEAR_BODIES) * 100
-    document.getElementById("research-bar").style.width = f"{progress_pct}%"
-
+    tier = current_tier()
     button = document.getElementById("fund-research-button")
     status = document.getElementById("research-status")
+    label = document.getElementById("research-label")
+    progress_el = document.getElementById("research-progress")
 
-    if near_bodies_unlocked:
-        document.getElementById("research-progress").innerText = "Unlocked"
-        status.innerText = "Near Bodies unlocked: " + ", ".join(NEAR_BODIES_UNLOCKS)
-        button.innerText = "Near Bodies Unlocked"
+    if tier is None:
+        label.innerText = "Research"
+        document.getElementById("research-bar").style.width = "100%"
+        progress_el.innerText = "All Tiers Unlocked"
+        status.innerText = "Every distance tier has been researched."
+        button.innerText = "All Tiers Unlocked"
         button.disabled = True
-    else:
-        document.getElementById("research-progress").innerText = (
-            f"{math.floor(research_progress)} / {RESEARCH_TARGET_NEAR_BODIES}"
-        )
-        status.innerText = ""
-        button.innerText = f"Fund Research ({RESEARCH_FUND_COST} Iron)"
-        button.disabled = False
+        return
+
+    label.innerText = f"Research — {tier['name']} Tier"
+    progress_pct = (research_progress / tier["target"]) * 100
+    document.getElementById("research-bar").style.width = f"{progress_pct}%"
+    progress_el.innerText = f"{math.floor(research_progress)} / {tier['target']}"
+    status.innerText = ""
+    button.innerText = f"Fund Research ({RESEARCH_FUND_COST} Iron)"
+    button.disabled = False
 
 
 def update_travel_display():
-    moon_button = document.getElementById("travel-moon-button")
-    mars_button = document.getElementById("travel-mars-button")
-    status = document.getElementById("travel-status")
+    for body, button_id in TRAVEL_BUTTON_ID.items():
+        button = document.getElementById(button_id)
+        unlocked = body in unlocked_bodies
+        button.hidden = not unlocked
+        button.disabled = not unlocked
+
     mars_summary = document.getElementById("mars-summary")
     earth_trade = document.getElementById("earth-trade")
+    mars_unlocked = "Mars" in unlocked_bodies
+    mars_summary.hidden = not mars_unlocked
+    earth_trade.hidden = not mars_unlocked
 
-    if near_bodies_unlocked:
-        status.innerText = "Choose a destination:"
-        for button in (moon_button, mars_button):
-            button.hidden = False
-            button.disabled = False
-        mars_summary.hidden = False
-        earth_trade.hidden = False
-    else:
-        status.innerText = "Reach the Near Bodies tier to unlock travel."
-        for button in (moon_button, mars_button):
-            button.hidden = True
-            button.disabled = True
-        mars_summary.hidden = True
-        earth_trade.hidden = True
+    status = document.getElementById("travel-status")
+    status.innerText = "Choose a destination:" if unlocked_bodies else "Reach the Near Bodies tier to unlock travel."
 
 
 def update_governor_display():
@@ -308,14 +366,22 @@ def update_earth_summary_on_mars():
 
 
 def update_away_summary():
-    # Moon has no economy of its own yet — this placeholder screen just
-    # reports on Earth being governed while away, unchanged since Milestone 5.
-    state = planet_state["Earth"]
-    document.getElementById("away-planet-name").innerText = current_planet.upper()
-    document.getElementById("away-iron").innerText = str(math.floor(state["resource_count"] + 1e-9))
-    document.getElementById("away-generators").innerText = str(state["generator_count"])
-    document.getElementById("away-recyclers").innerText = str(state["recycler_count"])
-    document.getElementById("away-ecology").innerText = str(round(state["ecology_health"]))
+    # Every undeveloped body (Moon, Venus, Asteroid Belt, Pluto, Jupiter's
+    # Moons, Saturn's Moons) shares this one placeholder screen, showing
+    # ALL real economies as "governed" — not just Earth's, a gap flagged
+    # (and left as a known simplification) back in Milestone 6. Each future
+    # milestone that turns one of these bodies into a real economy needs to
+    # add its own summary block here too, same as Mars's was just added.
+    document.getElementById("away-planet-name").innerText = BODY_DISPLAY_NAMES.get(
+        current_planet, current_planet.upper()
+    )
+    for planet in PLANETS:
+        state = planet_state[planet]
+        prefix = f"away-{planet.lower()}"
+        document.getElementById(f"{prefix}-resource").innerText = str(math.floor(state["resource_count"] + 1e-9))
+        document.getElementById(f"{prefix}-generators").innerText = str(state["generator_count"])
+        document.getElementById(f"{prefix}-recyclers").innerText = str(state["recycler_count"])
+        document.getElementById(f"{prefix}-ecology").innerText = str(round(state["ecology_health"]))
 
 
 def _hide_all_views():
@@ -398,13 +464,15 @@ def on_mars_buy_recycler(event):
 def _buy_trade_route(planet):
     state = planet_state[planet]
     button = document.getElementById(_dom_id(planet, "buy-trade-route-button"))
-    cost = trade_route_cost(planet)
-    if state["resource_count"] >= cost:
-        state["resource_count"] -= cost
-        state["trade_route_count"] += 1
-        update_resource_display(planet)
-        update_trade_display(planet)
-        update_terraform_display(planet)
+    destination = primary_trade_destination(planet)
+    if destination is not None:
+        cost = trade_route_cost(planet, destination)
+        if state["resource_count"] >= cost:
+            state["resource_count"] -= cost
+            state["trade_routes"][destination] = state["trade_routes"].get(destination, 0) + 1
+            update_resource_display(planet)
+            update_trade_display(planet)
+            update_terraform_display(planet)
     press_feedback(button)
 
 
@@ -417,14 +485,17 @@ def on_mars_buy_trade_route(event):
 
 
 def on_fund_research(event):
-    global research_progress, near_bodies_unlocked
+    global research_progress, completed_tiers
     button = document.getElementById("fund-research-button")
     earth = planet_state["Earth"]
-    if not near_bodies_unlocked and earth["resource_count"] >= RESEARCH_FUND_COST:
+    tier = current_tier()
+    if tier is not None and earth["resource_count"] >= RESEARCH_FUND_COST:
         earth["resource_count"] -= RESEARCH_FUND_COST
-        research_progress = min(research_progress + RESEARCH_FUND_COST, RESEARCH_TARGET_NEAR_BODIES)
-        if research_progress >= RESEARCH_TARGET_NEAR_BODIES:
-            near_bodies_unlocked = True
+        research_progress = min(research_progress + RESEARCH_FUND_COST, tier["target"])
+        if research_progress >= tier["target"]:
+            unlocked_bodies.update(tier["unlocks"])
+            completed_tiers += 1
+            research_progress = 0.0
             update_travel_display()
         update_resource_display("Earth")
         update_research_display()
@@ -466,19 +537,53 @@ def on_budget_decrease(event):
     press_feedback(document.getElementById("budget-decrease-button"))
 
 
-def on_travel_moon(event):
+def _travel_to_undeveloped(body):
     global current_planet
-    if near_bodies_unlocked:
-        current_planet = "Moon"
-        _hide_all_views()
-        document.getElementById("away-view").hidden = False
-        update_away_summary()
+    current_planet = body
+    _hide_all_views()
+    document.getElementById("away-view").hidden = False
+    update_away_summary()
+
+
+def on_travel_moon(event):
+    if "Moon" in unlocked_bodies:
+        _travel_to_undeveloped("Moon")
     press_feedback(document.getElementById("travel-moon-button"))
+
+
+def on_travel_venus(event):
+    if "Venus" in unlocked_bodies:
+        _travel_to_undeveloped("Venus")
+    press_feedback(document.getElementById("travel-venus-button"))
+
+
+def on_travel_asteroid_belt(event):
+    if "AsteroidBelt" in unlocked_bodies:
+        _travel_to_undeveloped("AsteroidBelt")
+    press_feedback(document.getElementById("travel-asteroid-belt-button"))
+
+
+def on_travel_pluto(event):
+    if "Pluto" in unlocked_bodies:
+        _travel_to_undeveloped("Pluto")
+    press_feedback(document.getElementById("travel-pluto-button"))
+
+
+def on_travel_jupiter_moons(event):
+    if "JupiterMoons" in unlocked_bodies:
+        _travel_to_undeveloped("JupiterMoons")
+    press_feedback(document.getElementById("travel-jupiter-moons-button"))
+
+
+def on_travel_saturn_moons(event):
+    if "SaturnMoons" in unlocked_bodies:
+        _travel_to_undeveloped("SaturnMoons")
+    press_feedback(document.getElementById("travel-saturn-moons-button"))
 
 
 def on_travel_mars(event):
     global current_planet
-    if near_bodies_unlocked:
+    if "Mars" in unlocked_bodies:
         current_planet = "Mars"
         _hide_all_views()
         document.getElementById("mars-view").hidden = False
@@ -513,8 +618,10 @@ def on_return_to_earth_from_mars(event):
 def governor_step():
     # Autonomously manages every real economy the player is currently NOT
     # on, using the shared priority/budget config — e.g. while on Earth,
-    # Mars is governed; while on Mars or the still-undeveloped Moon, Earth
-    # (and Mars, if that's not where the player is either) keeps running.
+    # Mars is governed; while on Mars or any undeveloped body, Earth (and
+    # Mars, if that's not where the player is either) keeps running. This
+    # loop is already N-planet generic: it governs everything in PLANETS
+    # except current_planet, however many real economies that ends up being.
     global governor_tick_count
     governed_planets = [planet for planet in PLANETS if planet != current_planet]
     if not governed_planets:
@@ -546,6 +653,19 @@ def governor_step():
                 update_ecology_display(planet)
 
 
+def _incoming_trade_restore(planet):
+    # Sums contributions from every OTHER real economy that has routes
+    # targeting this planet — generic over however many senders exist,
+    # not just a single hardcoded partner.
+    total = 0.0
+    for sender in PLANETS:
+        if sender == planet:
+            continue
+        count = planet_state[sender]["trade_routes"].get(planet, 0)
+        total += count * TRADE_ROUTE_RESTORE_PER_SEC * (TICK_INTERVAL_MS / 1000)
+    return total
+
+
 def _simulate_planet(planet, incoming_trade_restore):
     cfg = PLANETS[planet]
     state = planet_state[planet]
@@ -571,17 +691,10 @@ def _simulate_planet(planet, incoming_trade_restore):
 
 
 def tick(*args):
-    # Trade contributions are computed from each planet's trade_route_count
-    # before anything mutates this tick, so Earth's and Mars's routes are
-    # both based on pre-tick counts rather than an order-dependent mix.
-    incoming_trade_restore = {
-        planet: (
-            planet_state[OTHER_PLANET[planet]]["trade_route_count"]
-            * TRADE_ROUTE_RESTORE_PER_SEC
-            * (TICK_INTERVAL_MS / 1000)
-        )
-        for planet in PLANETS
-    }
+    # Trade contributions are computed from pre-tick trade_routes before
+    # anything mutates this tick, so every planet's routes are based on
+    # pre-tick counts rather than an order-dependent mix.
+    incoming_trade_restore = {planet: _incoming_trade_restore(planet) for planet in PLANETS}
 
     for planet in PLANETS:
         _simulate_planet(planet, incoming_trade_restore[planet])
@@ -661,6 +774,17 @@ def setup():
 
     document.getElementById("travel-moon-button").addEventListener("click", create_proxy(on_travel_moon))
     document.getElementById("travel-mars-button").addEventListener("click", create_proxy(on_travel_mars))
+    document.getElementById("travel-venus-button").addEventListener("click", create_proxy(on_travel_venus))
+    document.getElementById("travel-asteroid-belt-button").addEventListener(
+        "click", create_proxy(on_travel_asteroid_belt)
+    )
+    document.getElementById("travel-pluto-button").addEventListener("click", create_proxy(on_travel_pluto))
+    document.getElementById("travel-jupiter-moons-button").addEventListener(
+        "click", create_proxy(on_travel_jupiter_moons)
+    )
+    document.getElementById("travel-saturn-moons-button").addEventListener(
+        "click", create_proxy(on_travel_saturn_moons)
+    )
     document.getElementById("return-to-earth-button").addEventListener(
         "click", create_proxy(on_return_to_earth_from_moon)
     )

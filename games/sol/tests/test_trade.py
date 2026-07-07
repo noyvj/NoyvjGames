@@ -9,7 +9,7 @@ import math
 
 
 def _unlock_near_bodies(game_env):
-    game_env.module.near_bodies_unlocked = True
+    game_env.module.unlocked_bodies.update(["Moon", "Mars"])
     game_env.module.update_travel_display()
 
 
@@ -31,8 +31,8 @@ def test_mars_trade_section_always_visible(game_env):
 
 
 def test_initial_trade_route_state(game_env):
-    assert game_env.earth["trade_route_count"] == 0
-    assert game_env.mars["trade_route_count"] == 0
+    assert game_env.earth["trade_routes"].get("Mars", 0) == 0
+    assert game_env.mars["trade_routes"].get("Earth", 0) == 0
     assert game_env.elements["trade-route-count"].innerText == "0"
     assert game_env.elements["trade-route-rate"].innerText == "0.0"
 
@@ -58,22 +58,22 @@ def test_trade_route_destination_labels(game_env):
 
 def test_cannot_afford_trade_route_does_nothing(game_env):
     game_env.buy_trade_route()
-    assert game_env.earth["trade_route_count"] == 0
+    assert game_env.earth["trade_routes"].get("Mars", 0) == 0
     assert game_env.earth["resource_count"] == 0
 
 
 def test_buying_trade_route_deducts_cost_and_increments(game_env):
     game_env.earth["resource_count"] = 30
     game_env.buy_trade_route()
-    assert game_env.earth["trade_route_count"] == 1
+    assert game_env.earth["trade_routes"].get("Mars", 0) == 1
     assert game_env.earth["resource_count"] == 0
 
 
 def test_trade_route_cost_increases_after_purchase(game_env):
-    first_cost = game_env.module.trade_route_cost("Earth")
+    first_cost = game_env.module.trade_route_cost("Earth", "Mars")
     game_env.earth["resource_count"] = first_cost
     game_env.buy_trade_route()
-    second_cost = game_env.module.trade_route_cost("Earth")
+    second_cost = game_env.module.trade_route_cost("Earth", "Mars")
     assert second_cost > first_cost
 
 
@@ -95,8 +95,8 @@ def test_trade_route_button_gives_press_feedback_even_when_unaffordable(game_env
 def test_mars_trade_route_purchase_independent_of_earth(game_env):
     game_env.mars["resource_count"] = 30
     game_env.buy_trade_route("Mars")
-    assert game_env.mars["trade_route_count"] == 1
-    assert game_env.earth["trade_route_count"] == 0
+    assert game_env.mars["trade_routes"].get("Earth", 0) == 1
+    assert game_env.earth["trade_routes"].get("Mars", 0) == 0
 
 
 # --- cross-planet ecology restoration -------------------------------------
@@ -132,7 +132,7 @@ def test_multiple_trade_routes_scale_restoration_linearly(game_env):
     game_env.buy_trade_route()
     game_env.buy_trade_route()
     game_env.buy_trade_route()
-    assert game_env.earth["trade_route_count"] == 3
+    assert game_env.earth["trade_routes"].get("Mars", 0) == 3
 
     game_env.mars["ecology_health"] = 50.0
     game_env.timers.tick_intervals(10)  # 1 second, 3 routes * 0.5%/s
