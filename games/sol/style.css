@@ -162,6 +162,11 @@ button.secondary.pressed {
   background: #5b6ee1;
 }
 
+.terraform-fill {
+  width: 0%;
+  background: #4cc9d8;
+}
+
 #research-status {
   font-size: 0.8rem;
   color: #7fd6a3;

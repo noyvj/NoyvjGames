@@ -48,6 +48,17 @@ OTHER_PLANET = {"Earth": "Mars", "Mars": "Earth"}
 # investment. Subject to the Milestone 11 balance pass.
 TRADE_ROUTE_RESTORE_PER_SEC = 0.5
 
+# Terraforming accrues only while a planet is under genuine sustained
+# balance — ecology health above a real "thriving" bar (not just clear of
+# the crisis threshold) AND actual economic investment present. Below that
+# bar, progress simply pauses; it never regresses, per the project's
+# "always recoverable, no dead-end states" rule. Rate scales with ecology
+# health above the bar. Numbers are an initial guess, subject to the
+# Milestone 11 balance pass.
+TERRAFORM_ECOLOGY_THRESHOLD = 50.0
+TERRAFORM_BASE_RATE_PER_SEC = 0.1
+TERRAFORM_MAX = 100.0
+
 # --- mutable per-planet state ---
 planet_state = {
     name: {
@@ -56,6 +67,7 @@ planet_state = {
         "recycler_count": 0,
         "ecology_health": 100.0,
         "trade_route_count": 0,
+        "terraform_progress": 0.0,
     }
     for name in PLANETS
 }
@@ -123,6 +135,21 @@ def clamp(value, low, high):
     return max(low, min(high, value))
 
 
+def has_economic_investment(planet):
+    state = planet_state[planet]
+    return state["generator_count"] > 0 or state["recycler_count"] > 0 or state["trade_route_count"] > 0
+
+
+def terraform_rate(planet):
+    state = planet_state[planet]
+    if not has_economic_investment(planet):
+        return 0.0
+    health = state["ecology_health"]
+    if health < TERRAFORM_ECOLOGY_THRESHOLD:
+        return 0.0
+    return TERRAFORM_BASE_RATE_PER_SEC * (health / 100)
+
+
 def update_resource_display(planet):
     # Repeated fractional += from tick() accumulates float error (e.g. ten
     # 0.1 additions land on 0.9999999999999999, not 1.0), which would make
@@ -181,6 +208,25 @@ def update_trade_display(planet):
     document.getElementById(_dom_id(planet, "buy-trade-route-button")).innerText = (
         f"Build Trade Route ({trade_route_cost(planet)} {cfg['resource_name']})"
     )
+
+
+def update_terraform_display(planet):
+    state = planet_state[planet]
+    progress = state["terraform_progress"]
+
+    document.getElementById(_dom_id(planet, "terraform-percent")).innerText = f"{round(progress)}%"
+    document.getElementById(_dom_id(planet, "terraform-bar")).style.width = f"{progress}%"
+
+    status = document.getElementById(_dom_id(planet, "terraform-status"))
+    if not has_economic_investment(planet):
+        status.innerText = "Paused — build at least one generator or Recycler"
+    elif state["ecology_health"] < TERRAFORM_ECOLOGY_THRESHOLD:
+        status.innerText = (
+            f"Paused — ecology {round(state['ecology_health'])}% "
+            f"(needs {int(TERRAFORM_ECOLOGY_THRESHOLD)}%+)"
+        )
+    else:
+        status.innerText = ""
 
 
 def update_research_display():
@@ -316,6 +362,7 @@ def _buy_generator(planet):
         state["generator_count"] += 1
         update_resource_display(planet)
         update_generator_display(planet)
+        update_terraform_display(planet)
     press_feedback(button)
 
 
@@ -336,6 +383,7 @@ def _buy_recycler(planet):
         state["recycler_count"] += 1
         update_resource_display(planet)
         update_ecology_display(planet)
+        update_terraform_display(planet)
     press_feedback(button)
 
 
@@ -356,6 +404,7 @@ def _buy_trade_route(planet):
         state["trade_route_count"] += 1
         update_resource_display(planet)
         update_trade_display(planet)
+        update_terraform_display(planet)
     press_feedback(button)
 
 
@@ -514,6 +563,12 @@ def _simulate_planet(planet, incoming_trade_restore):
         state["ecology_health"] - decay + restore + incoming_trade_restore, 0.0, ECOLOGY_MAX
     )
 
+    state["terraform_progress"] = clamp(
+        state["terraform_progress"] + terraform_rate(planet) * (TICK_INTERVAL_MS / 1000),
+        0.0,
+        TERRAFORM_MAX,
+    )
+
 
 def tick(*args):
     # Trade contributions are computed from each planet's trade_route_count
@@ -538,6 +593,7 @@ def tick(*args):
         update_generator_display(planet)
         update_ecology_display(planet)
         update_trade_display(planet)
+        update_terraform_display(planet)
 
     update_mars_summary_on_earth()
     update_earth_summary_on_mars()
@@ -617,6 +673,7 @@ def setup():
         update_generator_display(planet)
         update_ecology_display(planet)
         update_trade_display(planet)
+        update_terraform_display(planet)
     update_research_display()
     update_governor_display()
     update_travel_display()

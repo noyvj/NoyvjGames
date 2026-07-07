@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SOL — Milestone 7</title>
+<title>SOL — Milestone 8</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
@@ -37,6 +37,15 @@
           (+<span id="recycler-rate">0</span>%/s)
         </p>
         <button id="buy-recycler-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="terraform" class="section">
+        <p id="terraform-label" class="ecology-label">Terraforming</p>
+        <p id="terraform-percent" class="ecology-percent">0%</p>
+        <div class="meter">
+          <div id="terraform-bar" class="meter-fill terraform-fill"></div>
+        </div>
+        <p id="terraform-status" class="ecology-status"></p>
       </div>
 
       <div id="research" class="section">
@@ -112,6 +121,15 @@
           (+<span id="mars-recycler-rate">0</span>%/s)
         </p>
         <button id="mars-buy-recycler-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="mars-terraform" class="section">
+        <p id="mars-terraform-label" class="ecology-label">Terraforming</p>
+        <p id="mars-terraform-percent" class="ecology-percent">0%</p>
+        <div class="meter">
+          <div id="mars-terraform-bar" class="meter-fill terraform-fill"></div>
+        </div>
+        <p id="mars-terraform-status" class="ecology-status"></p>
       </div>
 
       <div id="mars-trade" class="section">

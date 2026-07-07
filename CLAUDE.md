@@ -38,7 +38,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
 ## Current games
 | Slug | Name | Status |
 |------|------|--------|
-| sol | SOL | Milestone 7 done (trade system v1) |
+| sol | SOL | Milestone 8 done (terraforming) |
 
 ## Site-level milestones (separate from per-game milestones)
 | # | Milestone | Status |

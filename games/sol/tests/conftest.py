@@ -105,6 +105,13 @@ ELEMENT_IDS = [
     "mars-trade-route-rate",
     "mars-trade-route-destination",
     "mars-buy-trade-route-button",
+    # Terraforming
+    "terraform-percent",
+    "terraform-bar",
+    "terraform-status",
+    "mars-terraform-percent",
+    "mars-terraform-bar",
+    "mars-terraform-status",
 ]
 
 _BUTTON_ID = {
