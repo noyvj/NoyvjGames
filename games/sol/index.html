@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SOL — Milestone 9b</title>
+<title>SOL — Milestone 9c</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
@@ -94,6 +94,13 @@
         <p>Ecology: <span id="moon-summary-ecology">100</span>%</p>
       </div>
 
+      <div id="venus-summary" class="section cross-summary" hidden>
+        <p class="cross-summary-label">Venus (governed)</p>
+        <p><span id="venus-summary-resource">0</span> Sulfur</p>
+        <p><span id="venus-summary-generators">0</span> Auto-Scrubbers, <span id="venus-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="venus-summary-ecology">100</span>%</p>
+      </div>
+
       <div id="travel" class="section">
         <p id="travel-label">Travel</p>
         <p id="travel-status">Reach the Near Bodies tier to unlock travel.</p>
@@ -166,6 +173,13 @@
         <p>Ecology: <span id="mars-moon-summary-ecology">100</span>%</p>
       </div>
 
+      <div id="mars-venus-summary" class="section cross-summary">
+        <p class="cross-summary-label">Venus (governed)</p>
+        <p><span id="mars-venus-summary-resource">0</span> Sulfur</p>
+        <p><span id="mars-venus-summary-generators">0</span> Auto-Scrubbers, <span id="mars-venus-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="mars-venus-summary-ecology">100</span>%</p>
+      </div>
+
       <button id="mars-return-to-earth-button" class="secondary">Return to Earth</button>
     </div>
 
@@ -228,11 +242,87 @@
         <p>Ecology: <span id="moon-mars-summary-ecology">100</span>%</p>
       </div>
 
+      <div id="moon-venus-summary" class="section cross-summary">
+        <p class="cross-summary-label">Venus (governed)</p>
+        <p><span id="moon-venus-summary-resource">0</span> Sulfur</p>
+        <p><span id="moon-venus-summary-generators">0</span> Auto-Scrubbers, <span id="moon-venus-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="moon-venus-summary-ecology">100</span>%</p>
+      </div>
+
       <button id="moon-return-to-earth-button" class="secondary">Return to Earth</button>
     </div>
 
+    <div id="venus-view" hidden>
+      <p id="venus-resource-label" class="resource-label">Sulfur — Venus</p>
+      <p id="venus-resource-count" class="resource-count">0</p>
+      <button id="venus-click-button" class="click-button" disabled>Loading...</button>
+
+      <div id="venus-automation" class="section">
+        <p id="venus-generator-info" class="generator-info">
+          Auto-Scrubbers: <span id="venus-generator-count">0</span>
+          (+<span id="venus-generator-rate">0</span>/s)
+        </p>
+        <button id="venus-buy-generator-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="venus-ecology" class="section">
+        <p id="venus-ecology-label" class="ecology-label">Ecological Health</p>
+        <p id="venus-ecology-percent" class="ecology-percent">100%</p>
+        <div class="meter">
+          <div id="venus-ecology-bar" class="meter-fill"></div>
+        </div>
+        <p id="venus-ecology-status" class="ecology-status"></p>
+
+        <p id="venus-recycler-info" class="recycler-info">
+          Recyclers: <span id="venus-recycler-count">0</span>
+          (+<span id="venus-recycler-rate">0</span>%/s)
+        </p>
+        <button id="venus-buy-recycler-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="venus-terraform" class="section">
+        <p id="venus-terraform-label" class="ecology-label">Terraforming</p>
+        <p id="venus-terraform-percent" class="ecology-percent">0%</p>
+        <div class="meter">
+          <div id="venus-terraform-bar" class="meter-fill terraform-fill"></div>
+        </div>
+        <p id="venus-terraform-status" class="ecology-status"></p>
+      </div>
+
+      <div id="venus-trade" class="section">
+        <p id="venus-trade-route-label" class="generator-info">
+          Trade Routes: <span id="venus-trade-route-count">0</span>
+          (+<span id="venus-trade-route-rate">0</span>%/s ecology to <span id="venus-trade-route-destination">Earth</span>)
+        </p>
+        <button id="venus-buy-trade-route-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="venus-earth-summary" class="section cross-summary">
+        <p class="cross-summary-label">Earth (governed)</p>
+        <p><span id="venus-earth-summary-resource">0</span> Iron</p>
+        <p><span id="venus-earth-summary-generators">0</span> Auto-Miners, <span id="venus-earth-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="venus-earth-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="venus-mars-summary" class="section cross-summary">
+        <p class="cross-summary-label">Mars (governed)</p>
+        <p><span id="venus-mars-summary-resource">0</span> Water Ice</p>
+        <p><span id="venus-mars-summary-generators">0</span> Auto-Extractors, <span id="venus-mars-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="venus-mars-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="venus-moon-summary" class="section cross-summary">
+        <p class="cross-summary-label">Moon (governed)</p>
+        <p><span id="venus-moon-summary-resource">0</span> Regolith</p>
+        <p><span id="venus-moon-summary-generators">0</span> Auto-Harvesters, <span id="venus-moon-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="venus-moon-summary-ecology">100</span>%</p>
+      </div>
+
+      <button id="venus-return-to-earth-button" class="secondary">Return to Earth</button>
+    </div>
+
     <div id="away-view" hidden>
-      <p id="away-planet-name">VENUS</p>
+      <p id="away-planet-name">ASTEROID BELT</p>
       <p id="away-arrival-text">You have arrived.</p>
 
       <div id="away-earth-summary" class="section cross-summary">
@@ -254,6 +344,13 @@
         <p><span id="away-moon-resource">0</span> Regolith</p>
         <p><span id="away-moon-generators">0</span> Auto-Harvesters, <span id="away-moon-recyclers">0</span> Recyclers</p>
         <p>Ecology: <span id="away-moon-ecology">100</span>%</p>
+      </div>
+
+      <div id="away-venus-summary" class="section cross-summary">
+        <p class="cross-summary-label">Venus (governed)</p>
+        <p><span id="away-venus-resource">0</span> Sulfur</p>
+        <p><span id="away-venus-generators">0</span> Auto-Scrubbers, <span id="away-venus-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="away-venus-ecology">100</span>%</p>
       </div>
 
       <button id="return-to-earth-button" class="secondary">Return to Earth</button>

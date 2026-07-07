@@ -35,6 +35,10 @@ INITIALLY_DISABLED_IDS = [
     "moon-buy-generator-button",
     "moon-buy-recycler-button",
     "moon-buy-trade-route-button",
+    "venus-click-button",
+    "venus-buy-generator-button",
+    "venus-buy-recycler-button",
+    "venus-buy-trade-route-button",
 ]
 
 # Maps the internal body identifier (used as current_planet / in
@@ -76,6 +80,7 @@ ELEMENT_IDS = [
     "earth-view",
     "mars-view",
     "moon-view",
+    "venus-view",
     "away-view",
     # Governor
     "priority-growth-button",
@@ -93,7 +98,7 @@ ELEMENT_IDS = [
     "travel-pluto-button",
     "travel-jupiter-moons-button",
     "travel-saturn-moons-button",
-    # Undeveloped-body placeholder (away-view) — Earth, Mars, Moon summaries
+    # Undeveloped-body placeholder (away-view) — Earth, Mars, Moon, Venus summaries
     "away-planet-name",
     "away-earth-resource",
     "away-earth-generators",
@@ -107,6 +112,10 @@ ELEMENT_IDS = [
     "away-moon-generators",
     "away-moon-recyclers",
     "away-moon-ecology",
+    "away-venus-resource",
+    "away-venus-generators",
+    "away-venus-recyclers",
+    "away-venus-ecology",
     "return-to-earth-button",
     # Mars's own economy
     "mars-click-button",
@@ -136,6 +145,20 @@ ELEMENT_IDS = [
     "moon-recycler-count",
     "moon-recycler-rate",
     "moon-return-to-earth-button",
+    # Venus's own economy
+    "venus-click-button",
+    "venus-resource-count",
+    "venus-resource-label",
+    "venus-buy-generator-button",
+    "venus-generator-count",
+    "venus-generator-rate",
+    "venus-ecology-percent",
+    "venus-ecology-bar",
+    "venus-ecology-status",
+    "venus-buy-recycler-button",
+    "venus-recycler-count",
+    "venus-recycler-rate",
+    "venus-return-to-earth-button",
     # Cross-planet governed summaries (viewer-prefixed: Earth's ids are
     # unprefixed via _dom_id, every other viewer gets "<viewer>-" first)
     "mars-summary",
@@ -148,6 +171,11 @@ ELEMENT_IDS = [
     "moon-summary-generators",
     "moon-summary-recyclers",
     "moon-summary-ecology",
+    "venus-summary",
+    "venus-summary-resource",
+    "venus-summary-generators",
+    "venus-summary-recyclers",
+    "venus-summary-ecology",
     "mars-earth-summary-resource",
     "mars-earth-summary-generators",
     "mars-earth-summary-recyclers",
@@ -156,6 +184,10 @@ ELEMENT_IDS = [
     "mars-moon-summary-generators",
     "mars-moon-summary-recyclers",
     "mars-moon-summary-ecology",
+    "mars-venus-summary-resource",
+    "mars-venus-summary-generators",
+    "mars-venus-summary-recyclers",
+    "mars-venus-summary-ecology",
     "moon-earth-summary-resource",
     "moon-earth-summary-generators",
     "moon-earth-summary-recyclers",
@@ -164,6 +196,22 @@ ELEMENT_IDS = [
     "moon-mars-summary-generators",
     "moon-mars-summary-recyclers",
     "moon-mars-summary-ecology",
+    "moon-venus-summary-resource",
+    "moon-venus-summary-generators",
+    "moon-venus-summary-recyclers",
+    "moon-venus-summary-ecology",
+    "venus-earth-summary-resource",
+    "venus-earth-summary-generators",
+    "venus-earth-summary-recyclers",
+    "venus-earth-summary-ecology",
+    "venus-mars-summary-resource",
+    "venus-mars-summary-generators",
+    "venus-mars-summary-recyclers",
+    "venus-mars-summary-ecology",
+    "venus-moon-summary-resource",
+    "venus-moon-summary-generators",
+    "venus-moon-summary-recyclers",
+    "venus-moon-summary-ecology",
     # Trade routes
     "earth-trade",
     "trade-route-count",
@@ -178,6 +226,10 @@ ELEMENT_IDS = [
     "moon-trade-route-rate",
     "moon-trade-route-destination",
     "moon-buy-trade-route-button",
+    "venus-trade-route-count",
+    "venus-trade-route-rate",
+    "venus-trade-route-destination",
+    "venus-buy-trade-route-button",
     # Terraforming
     "terraform-percent",
     "terraform-bar",
@@ -188,6 +240,9 @@ ELEMENT_IDS = [
     "moon-terraform-percent",
     "moon-terraform-bar",
     "moon-terraform-status",
+    "venus-terraform-percent",
+    "venus-terraform-bar",
+    "venus-terraform-status",
 ]
 
 _BUTTON_ID = {
@@ -209,11 +264,18 @@ _BUTTON_ID = {
         "buy_recycler": "moon-buy-recycler-button",
         "buy_trade_route": "moon-buy-trade-route-button",
     },
+    "Venus": {
+        "click": "venus-click-button",
+        "buy_generator": "venus-buy-generator-button",
+        "buy_recycler": "venus-buy-recycler-button",
+        "buy_trade_route": "venus-buy-trade-route-button",
+    },
 }
 
 _RETURN_BUTTON_ID = {
     "Mars": "mars-return-to-earth-button",
     "Moon": "moon-return-to-earth-button",
+    "Venus": "venus-return-to-earth-button",
 }
 
 
@@ -236,6 +298,10 @@ class GameEnv:
     @property
     def moon(self):
         return self.module.planet_state["Moon"]
+
+    @property
+    def venus(self):
+        return self.module.planet_state["Venus"]
 
     def state(self, planet):
         return self.module.planet_state[planet]
