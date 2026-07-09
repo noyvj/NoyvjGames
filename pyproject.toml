@@ -9,3 +9,6 @@ dependencies = [
     "psycopg2-binary==2.9.9",
     "pydantic==2.9.2",
 ]
+
+[tool.uv]
+package = false
