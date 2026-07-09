@@ -13,7 +13,7 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="CodingIsANoyvj ratings API")
 
-DEFAULT_ORIGINS = "https://icecreampuppy44.github.io,http://localhost:8073"
+DEFAULT_ORIGINS = "https://noyvj.github.io,http://localhost:8073"
 allowed_origins = os.environ.get("ALLOWED_ORIGINS", DEFAULT_ORIGINS).split(",")
 
 app.add_middleware(
