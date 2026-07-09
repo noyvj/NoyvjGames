@@ -1,0 +1,27 @@
+/* Reserve space so page content never butts up against the fixed ad bar. */
+body {
+  padding-bottom: 66px;
+}
+
+.ad-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: #14161f;
+  border-top: 1px solid #23273a;
+  z-index: 100;
+}
+.ad-bar--top { top: 0; }
+.ad-bar--bottom { bottom: 0; }
+
+.ad-bar-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.03em;
+  opacity: 0.5;
+  white-space: nowrap;
+}

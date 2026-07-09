@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Game Demo Hub</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="/ad-bar.css">
+<link rel="manifest" href="/manifest.json">
+<!-- AdSense: placeholder client ID until application is approved -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 </head>
 <body>
   <header id="hub-header">
@@ -20,8 +24,8 @@
         <p class="title-card-blurb">Solar-system incremental clicker — click, automate, and expand outward through the solar system.</p>
       </a>
 
-      <div class="review-widget">
-        <!-- TODO: persistence pending hosting setup -->
+      <div class="review-widget" data-game-slug="sol">
+        <p class="ratings-summary">Loading reviews&hellip;</p>
         <div class="star-rating" data-rating="0">
           <button type="button" class="star" data-value="1">&#9733;</button>
           <button type="button" class="star" data-value="2">&#9733;</button>
@@ -29,12 +33,27 @@
           <button type="button" class="star" data-value="4">&#9733;</button>
           <button type="button" class="star" data-value="5">&#9733;</button>
         </div>
-        <textarea class="comment-box" placeholder="Leave a comment... (not saved yet)"></textarea>
-        <button type="button" class="comment-submit" disabled>Submit (coming soon)</button>
+        <textarea class="comment-box" placeholder="Leave a comment..."></textarea>
+        <button type="button" class="comment-submit">Submit</button>
       </div>
     </article>
   </main>
 
+  <div class="ad-bar ad-bar--bottom">
+    <span class="ad-bar-label">Advertisement — not part of the game</span>
+    <!-- Google AdSense manual display ad unit -->
+    <ins class="adsbygoogle"
+         style="display:block; width:320px; height:50px;"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="XXXXXXXXXX"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
   <script src="script.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js");
+    }
+  </script>
 </body>
 </html>
