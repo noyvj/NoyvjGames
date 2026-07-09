@@ -12,3 +12,10 @@ dependencies = [
 
 [tool.uv]
 package = false
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["main", "database", "models"]
