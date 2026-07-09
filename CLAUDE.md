@@ -7,7 +7,16 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
 / (site root)
   index.html        <- hub/lobby page: title cards, links to each game
   style.css          <- shared minimal shell (nav, title-card grid, review widget)
-  script.js          <- hub-only interaction (star rating), no persistence yet
+  script.js          <- hub-only interaction (star rating + review widget, backed by /app)
+  manifest.json       <- PWA manifest
+  sw.js               <- service worker, cache-first, versioned via CACHE_NAME
+  ad-bar.css           <- shared ad bar partial (hub + every game page)
+  icons/               <- PWA icons (placeholder art)
+  /app
+    main.py            <- FastAPI ratings API (POST/GET /ratings), deployed to FastAPI Cloud
+    database.py
+    models.py
+    pyproject.toml     <- dependency manifest; scoped as FastAPI Cloud's Application Directory
   /games
     /sol
       index.html
@@ -20,6 +29,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
   /planning
     site-plan.md
     game-template.md
+    pwa-and-ads-setup.md  <- manifest/service worker/ad bar reference
     <game>-plan.md   <- pre-build groundwork notes per game, before folders exist
 ```
 
@@ -27,7 +37,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
 - **Shared shell, free internals.** The hub (nav, title cards, review widget) stays visually consistent. Individual game pages are free to look however they want — no imposed styling once you're inside a game.
 - **Cadence:** something new or updated must become visible on the site at least once every 2 weeks. Not every-game-every-week — just *something*.
 - **Scope philosophy:** let each game be as big or small as the idea wants. The bar is "visible and real," not "polished/finished." Don't let polish-chasing block shipping.
-- **Reviews/ratings:** star rating + comments per game is the public-feedback mechanism for both subjects. Needs shared persistent storage — currently unresolved, pending hosting details. Until then, treat any review UI as a front-end stub only.
+- **Reviews/ratings:** star rating + comments per game is the public-feedback mechanism for both subjects. Live and persistent: hub's review widget calls the `/app` FastAPI backend (deployed on FastAPI Cloud, Neon Postgres) — see `planning/pwa-and-ads-setup.md` and `app/main.py`.
 
 ## Per-game conventions (apply inside every `/games/<slug>/`)
 - Default stack: Python via Pyodide, plain HTML/CSS, no build step. Deviating (e.g. plain JS for something trivial) is a deliberate documented exception, not a default.
@@ -46,6 +56,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
 | 1 | Hub shell built (index.html, style.css, title-card layout) | Done |
 | 2 | SOL moved into /games/sol, linked from hub | Done |
 | 3 | Review/rating UI stub added (no persistence yet) | Done |
+| 4 | Site hosting: GitHub Pages + PWA shell + labeled ad bar + ratings backend live (FastAPI Cloud + Neon) | Done — tagged `site-hosting-v1` |
 
 ## Working notes
 - Pre-semester (now): pace can be aggressive, this is largely a boredom-driven creative project.
