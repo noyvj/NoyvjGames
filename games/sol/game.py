@@ -502,29 +502,13 @@ def update_travel_display():
         button.hidden = not unlocked
         button.disabled = not unlocked
 
-    mars_summary = document.getElementById("mars-summary")
+    # Every "<target> (governed)" cross-summary widget's own hidden state is
+    # handled generically in update_cross_summary() instead (so every view
+    # gets the same not-yet-unlocked gating Earth's view always had, not
+    # just Earth's) — earth-trade is a separate concern (the Trade Route
+    # section itself, not a cross-summary widget) so it's still handled here.
     earth_trade = document.getElementById("earth-trade")
-    mars_unlocked = "Mars" in unlocked_bodies
-    mars_summary.hidden = not mars_unlocked
-    earth_trade.hidden = not mars_unlocked
-
-    moon_summary = document.getElementById("moon-summary")
-    moon_summary.hidden = "Moon" not in unlocked_bodies
-
-    venus_summary = document.getElementById("venus-summary")
-    venus_summary.hidden = "Venus" not in unlocked_bodies
-
-    asteroid_belt_summary = document.getElementById("asteroidbelt-summary")
-    asteroid_belt_summary.hidden = "AsteroidBelt" not in unlocked_bodies
-
-    pluto_summary = document.getElementById("pluto-summary")
-    pluto_summary.hidden = "Pluto" not in unlocked_bodies
-
-    jupiter_moons_summary = document.getElementById("jupitermoons-summary")
-    jupiter_moons_summary.hidden = "JupiterMoons" not in unlocked_bodies
-
-    saturn_moons_summary = document.getElementById("saturnmoons-summary")
-    saturn_moons_summary.hidden = "SaturnMoons" not in unlocked_bodies
+    earth_trade.hidden = "Mars" not in unlocked_bodies
 
     status = document.getElementById("travel-status")
     status.innerText = "Choose a destination:" if unlocked_bodies else "Reach the Near Bodies tier to unlock travel."
@@ -565,11 +549,21 @@ def update_cross_summary(viewer, target):
     # there are more than two. Ids are viewer-prefixed (via _dom_id) so each
     # view's widget for the same target doesn't collide with any other
     # view's widget for that same target.
+    #
+    # The widget is hidden until `target` is unlocked (Earth is always
+    # treated as unlocked, since it's the home planet and never appears in
+    # unlocked_bodies) — enforced here so every view is consistent, not just
+    # Earth's own (which used to be the only one gated, via
+    # update_travel_display(), leaking every other view's not-yet-unlocked
+    # bodies' names/existence).
     state = planet_state[target]
 
     def widget_id(field):
         return _dom_id(viewer, f"{target.lower()}-summary-{field}")
 
+    document.getElementById(_dom_id(viewer, f"{target.lower()}-summary")).hidden = (
+        target != "Earth" and target not in unlocked_bodies
+    )
     document.getElementById(widget_id("resource")).innerText = str(math.floor(state["resource_count"] + 1e-9))
     document.getElementById(widget_id("generators")).innerText = str(state["generator_count"])
     document.getElementById(widget_id("recyclers")).innerText = str(state["recycler_count"])
@@ -878,6 +872,7 @@ def on_fund_research(event):
             completed_tiers += 1
             research_progress = 0.0
             update_travel_display()
+            update_all_cross_summaries()
         update_resource_display("Earth")
         update_research_display()
     press_feedback(button)

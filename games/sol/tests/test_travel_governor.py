@@ -21,6 +21,10 @@ behavior."""
 def _unlock_near_bodies(game_env):
     game_env.module.unlocked_bodies.update(["Moon", "Mars"])
     game_env.module.update_travel_display()
+    # Cross-summary widgets' hidden state is toggled by update_cross_summary()
+    # itself (not update_travel_display()), matching the real on_fund_research()
+    # code path which calls both when a tier completes.
+    game_env.module.update_all_cross_summaries()
 
 
 # --- initial state -----------------------------------------------------
@@ -88,6 +92,62 @@ def test_travel_status_updates_once_unlocked(game_env):
 def test_mars_summary_widget_appears_once_unlocked(game_env):
     _unlock_near_bodies(game_env)
     assert game_env.elements["mars-summary"].hidden is False
+
+
+# --- cross-summary gating applies on every view, not just Earth's --------
+# Regression coverage for a real bug: only Earth's own view ever gated its
+# cross-summary widgets by unlock status; every other view showed every
+# other real economy's "(governed)" widget unconditionally, leaking the
+# name/existence of not-yet-researched Far Bodies the moment you traveled
+# to any Near Body. update_cross_summary() now owns this gating generically
+# for every viewer, not just update_travel_display()'s Earth-specific logic.
+
+def test_non_earth_views_hide_not_yet_unlocked_targets(game_env):
+    _unlock_near_bodies(game_env)  # Mars/Moon unlocked, Far Bodies still locked
+    game_env.travel_to_mars()
+    assert game_env.elements["mars-venus-summary"].hidden is True
+    assert game_env.elements["mars-asteroidbelt-summary"].hidden is True
+    assert game_env.elements["mars-pluto-summary"].hidden is True
+    assert game_env.elements["mars-jupitermoons-summary"].hidden is True
+    assert game_env.elements["mars-saturnmoons-summary"].hidden is True
+    # Earth and Moon are both real and unlocked at this point, so Mars's
+    # view of each of them should NOT be hidden.
+    assert game_env.elements["mars-earth-summary"].hidden is False
+    assert game_env.elements["mars-moon-summary"].hidden is False
+
+
+def test_non_earth_views_reveal_targets_once_unlocked(game_env):
+    _unlock_near_bodies(game_env)
+    game_env.travel_to_mars()
+    assert game_env.elements["mars-venus-summary"].hidden is True
+
+    game_env.module.unlocked_bodies.update(game_env.module.RESEARCH_TIERS[1]["unlocks"])
+    game_env.module.update_all_cross_summaries()
+    assert game_env.elements["mars-venus-summary"].hidden is False
+    assert game_env.elements["mars-asteroidbelt-summary"].hidden is False
+    assert game_env.elements["mars-pluto-summary"].hidden is False
+    assert game_env.elements["mars-jupitermoons-summary"].hidden is False
+    assert game_env.elements["mars-saturnmoons-summary"].hidden is False
+
+
+def test_funding_research_refreshes_cross_summaries_on_every_view_immediately(game_env):
+    # Regression test for the fix accompanying this one: on_fund_research()
+    # must call update_all_cross_summaries() itself (not just rely on the
+    # next 100ms tick) so every view's gating is correct the instant a tier
+    # completes, mirroring test_funding_research_to_completion_unlocks_travel_for_real
+    # below but for cross-summary widgets specifically.
+    game_env.earth["resource_count"] = 1000
+    clicks = 1000 // game_env.module.RESEARCH_FUND_COST
+    for _ in range(clicks):
+        game_env.fund_research()
+    game_env.travel_to_mars()
+    assert game_env.elements["mars-venus-summary"].hidden is True  # Far Bodies still locked
+
+    game_env.earth["resource_count"] = 5000
+    clicks = 5000 // game_env.module.RESEARCH_FUND_COST
+    for _ in range(clicks):
+        game_env.fund_research()
+    assert game_env.elements["mars-venus-summary"].hidden is False  # no tick() call in between
 
 
 def test_funding_research_to_completion_unlocks_travel_for_real(game_env):

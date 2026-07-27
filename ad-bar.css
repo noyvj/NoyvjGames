@@ -25,3 +25,19 @@ body {
   opacity: 0.5;
   white-space: nowrap;
 }
+
+/* The full label ("Advertisement — not part of the game") plus the fixed
+   320px ad slot don't fit side-by-side on narrow screens — swap to the
+   short label below the breakpoint rather than letting it clip off-edge. */
+.ad-bar-label-short {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .ad-bar-label-full {
+    display: none;
+  }
+  .ad-bar-label-short {
+    display: inline;
+  }
+}

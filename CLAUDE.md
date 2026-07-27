@@ -9,7 +9,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
   style.css          <- shared minimal shell (nav, title-card grid, review widget)
   script.js          <- hub-only interaction (star rating + review widget, backed by /app)
   manifest.json       <- PWA manifest
-  sw.js               <- service worker, cache-first, versioned via CACHE_NAME
+  sw.js               <- service worker, stale-while-revalidate (serves cache instantly, refreshes it in the background every request)
   ad-bar.css           <- shared ad bar partial (hub + every game page)
   icons/               <- PWA icons (placeholder art)
   /app
