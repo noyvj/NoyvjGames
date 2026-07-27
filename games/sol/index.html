@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SOL — Milestone 9f</title>
+<title>SOL — Milestone 9g</title>
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="/ad-bar.css">
 <link rel="manifest" href="/manifest.json">
@@ -127,6 +127,13 @@
         <p>Ecology: <span id="jupitermoons-summary-ecology">100</span>%</p>
       </div>
 
+      <div id="saturnmoons-summary" class="section cross-summary" hidden>
+        <p class="cross-summary-label">Saturn's Moons (governed)</p>
+        <p><span id="saturnmoons-summary-resource">0</span> Methane</p>
+        <p><span id="saturnmoons-summary-generators">0</span> Auto-Condensers, <span id="saturnmoons-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="saturnmoons-summary-ecology">100</span>%</p>
+      </div>
+
       <div id="travel" class="section">
         <p id="travel-label">Travel</p>
         <p id="travel-status">Reach the Near Bodies tier to unlock travel.</p>
@@ -228,6 +235,13 @@
         <p>Ecology: <span id="mars-jupitermoons-summary-ecology">100</span>%</p>
       </div>
 
+      <div id="mars-saturnmoons-summary" class="section cross-summary">
+        <p class="cross-summary-label">Saturn's Moons (governed)</p>
+        <p><span id="mars-saturnmoons-summary-resource">0</span> Methane</p>
+        <p><span id="mars-saturnmoons-summary-generators">0</span> Auto-Condensers, <span id="mars-saturnmoons-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="mars-saturnmoons-summary-ecology">100</span>%</p>
+      </div>
+
       <button id="mars-return-to-earth-button" class="secondary">Return to Earth</button>
     </div>
 
@@ -317,6 +331,13 @@
         <p><span id="moon-jupitermoons-summary-resource">0</span> Helium-3</p>
         <p><span id="moon-jupitermoons-summary-generators">0</span> Auto-Skimmers, <span id="moon-jupitermoons-summary-recyclers">0</span> Recyclers</p>
         <p>Ecology: <span id="moon-jupitermoons-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="moon-saturnmoons-summary" class="section cross-summary">
+        <p class="cross-summary-label">Saturn's Moons (governed)</p>
+        <p><span id="moon-saturnmoons-summary-resource">0</span> Methane</p>
+        <p><span id="moon-saturnmoons-summary-generators">0</span> Auto-Condensers, <span id="moon-saturnmoons-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="moon-saturnmoons-summary-ecology">100</span>%</p>
       </div>
 
       <button id="moon-return-to-earth-button" class="secondary">Return to Earth</button>
@@ -410,6 +431,13 @@
         <p>Ecology: <span id="venus-jupitermoons-summary-ecology">100</span>%</p>
       </div>
 
+      <div id="venus-saturnmoons-summary" class="section cross-summary">
+        <p class="cross-summary-label">Saturn's Moons (governed)</p>
+        <p><span id="venus-saturnmoons-summary-resource">0</span> Methane</p>
+        <p><span id="venus-saturnmoons-summary-generators">0</span> Auto-Condensers, <span id="venus-saturnmoons-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="venus-saturnmoons-summary-ecology">100</span>%</p>
+      </div>
+
       <button id="venus-return-to-earth-button" class="secondary">Return to Earth</button>
     </div>
 
@@ -499,6 +527,13 @@
         <p><span id="asteroidbelt-jupitermoons-summary-resource">0</span> Helium-3</p>
         <p><span id="asteroidbelt-jupitermoons-summary-generators">0</span> Auto-Skimmers, <span id="asteroidbelt-jupitermoons-summary-recyclers">0</span> Recyclers</p>
         <p>Ecology: <span id="asteroidbelt-jupitermoons-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="asteroidbelt-saturnmoons-summary" class="section cross-summary">
+        <p class="cross-summary-label">Saturn's Moons (governed)</p>
+        <p><span id="asteroidbelt-saturnmoons-summary-resource">0</span> Methane</p>
+        <p><span id="asteroidbelt-saturnmoons-summary-generators">0</span> Auto-Condensers, <span id="asteroidbelt-saturnmoons-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="asteroidbelt-saturnmoons-summary-ecology">100</span>%</p>
       </div>
 
       <button id="asteroidbelt-return-to-earth-button" class="secondary">Return to Earth</button>
@@ -592,6 +627,13 @@
         <p>Ecology: <span id="pluto-jupitermoons-summary-ecology">100</span>%</p>
       </div>
 
+      <div id="pluto-saturnmoons-summary" class="section cross-summary">
+        <p class="cross-summary-label">Saturn's Moons (governed)</p>
+        <p><span id="pluto-saturnmoons-summary-resource">0</span> Methane</p>
+        <p><span id="pluto-saturnmoons-summary-generators">0</span> Auto-Condensers, <span id="pluto-saturnmoons-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="pluto-saturnmoons-summary-ecology">100</span>%</p>
+      </div>
+
       <button id="pluto-return-to-earth-button" class="secondary">Return to Earth</button>
     </div>
 
@@ -683,7 +725,112 @@
         <p>Ecology: <span id="jupitermoons-pluto-summary-ecology">100</span>%</p>
       </div>
 
+      <div id="jupitermoons-saturnmoons-summary" class="section cross-summary">
+        <p class="cross-summary-label">Saturn's Moons (governed)</p>
+        <p><span id="jupitermoons-saturnmoons-summary-resource">0</span> Methane</p>
+        <p><span id="jupitermoons-saturnmoons-summary-generators">0</span> Auto-Condensers, <span id="jupitermoons-saturnmoons-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="jupitermoons-saturnmoons-summary-ecology">100</span>%</p>
+      </div>
+
       <button id="jupitermoons-return-to-earth-button" class="secondary">Return to Earth</button>
+    </div>
+
+    <div id="saturnmoons-view" hidden>
+      <p id="saturnmoons-resource-label" class="resource-label">Methane — Saturn's Moons</p>
+      <p id="saturnmoons-resource-count" class="resource-count">0</p>
+      <button id="saturnmoons-click-button" class="click-button" disabled>Loading...</button>
+
+      <div id="saturnmoons-automation" class="section">
+        <p id="saturnmoons-generator-info" class="generator-info">
+          Auto-Condensers: <span id="saturnmoons-generator-count">0</span>
+          (+<span id="saturnmoons-generator-rate">0</span>/s)
+        </p>
+        <button id="saturnmoons-buy-generator-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="saturnmoons-ecology" class="section">
+        <p id="saturnmoons-ecology-label" class="ecology-label">Ecological Health</p>
+        <p id="saturnmoons-ecology-percent" class="ecology-percent">100%</p>
+        <div class="meter">
+          <div id="saturnmoons-ecology-bar" class="meter-fill"></div>
+        </div>
+        <p id="saturnmoons-ecology-status" class="ecology-status"></p>
+
+        <p id="saturnmoons-recycler-info" class="recycler-info">
+          Recyclers: <span id="saturnmoons-recycler-count">0</span>
+          (+<span id="saturnmoons-recycler-rate">0</span>%/s)
+        </p>
+        <button id="saturnmoons-buy-recycler-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="saturnmoons-terraform" class="section">
+        <p id="saturnmoons-terraform-label" class="ecology-label">Terraforming</p>
+        <p id="saturnmoons-terraform-percent" class="ecology-percent">0%</p>
+        <div class="meter">
+          <div id="saturnmoons-terraform-bar" class="meter-fill terraform-fill"></div>
+        </div>
+        <p id="saturnmoons-terraform-status" class="ecology-status"></p>
+      </div>
+
+      <div id="saturnmoons-trade" class="section">
+        <p id="saturnmoons-trade-route-label" class="generator-info">
+          Trade Routes: <span id="saturnmoons-trade-route-count">0</span>
+          (+<span id="saturnmoons-trade-route-rate">0</span>%/s ecology to <span id="saturnmoons-trade-route-destination">Earth</span>)
+        </p>
+        <button id="saturnmoons-buy-trade-route-button" class="secondary" disabled>Loading...</button>
+        <button id="saturnmoons-cycle-trade-destination-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="saturnmoons-earth-summary" class="section cross-summary">
+        <p class="cross-summary-label">Earth (governed)</p>
+        <p><span id="saturnmoons-earth-summary-resource">0</span> Iron</p>
+        <p><span id="saturnmoons-earth-summary-generators">0</span> Auto-Miners, <span id="saturnmoons-earth-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="saturnmoons-earth-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="saturnmoons-mars-summary" class="section cross-summary">
+        <p class="cross-summary-label">Mars (governed)</p>
+        <p><span id="saturnmoons-mars-summary-resource">0</span> Water Ice</p>
+        <p><span id="saturnmoons-mars-summary-generators">0</span> Auto-Extractors, <span id="saturnmoons-mars-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="saturnmoons-mars-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="saturnmoons-moon-summary" class="section cross-summary">
+        <p class="cross-summary-label">Moon (governed)</p>
+        <p><span id="saturnmoons-moon-summary-resource">0</span> Regolith</p>
+        <p><span id="saturnmoons-moon-summary-generators">0</span> Auto-Harvesters, <span id="saturnmoons-moon-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="saturnmoons-moon-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="saturnmoons-venus-summary" class="section cross-summary">
+        <p class="cross-summary-label">Venus (governed)</p>
+        <p><span id="saturnmoons-venus-summary-resource">0</span> Sulfur</p>
+        <p><span id="saturnmoons-venus-summary-generators">0</span> Auto-Scrubbers, <span id="saturnmoons-venus-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="saturnmoons-venus-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="saturnmoons-asteroidbelt-summary" class="section cross-summary">
+        <p class="cross-summary-label">Asteroid Belt (governed)</p>
+        <p><span id="saturnmoons-asteroidbelt-summary-resource">0</span> Platinum</p>
+        <p><span id="saturnmoons-asteroidbelt-summary-generators">0</span> Auto-Prospectors, <span id="saturnmoons-asteroidbelt-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="saturnmoons-asteroidbelt-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="saturnmoons-pluto-summary" class="section cross-summary">
+        <p class="cross-summary-label">Pluto (governed)</p>
+        <p><span id="saturnmoons-pluto-summary-resource">0</span> Tholins</p>
+        <p><span id="saturnmoons-pluto-summary-generators">0</span> Auto-Sublimators, <span id="saturnmoons-pluto-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="saturnmoons-pluto-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="saturnmoons-jupitermoons-summary" class="section cross-summary">
+        <p class="cross-summary-label">Jupiter's Moons (governed)</p>
+        <p><span id="saturnmoons-jupitermoons-summary-resource">0</span> Helium-3</p>
+        <p><span id="saturnmoons-jupitermoons-summary-generators">0</span> Auto-Skimmers, <span id="saturnmoons-jupitermoons-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="saturnmoons-jupitermoons-summary-ecology">100</span>%</p>
+      </div>
+
+      <button id="saturnmoons-return-to-earth-button" class="secondary">Return to Earth</button>
     </div>
 
     <div id="away-view" hidden>
@@ -737,6 +884,13 @@
         <p><span id="away-jupitermoons-resource">0</span> Helium-3</p>
         <p><span id="away-jupitermoons-generators">0</span> Auto-Skimmers, <span id="away-jupitermoons-recyclers">0</span> Recyclers</p>
         <p>Ecology: <span id="away-jupitermoons-ecology">100</span>%</p>
+      </div>
+
+      <div id="away-saturnmoons-summary" class="section cross-summary">
+        <p class="cross-summary-label">Saturn's Moons (governed)</p>
+        <p><span id="away-saturnmoons-resource">0</span> Methane</p>
+        <p><span id="away-saturnmoons-generators">0</span> Auto-Condensers, <span id="away-saturnmoons-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="away-saturnmoons-ecology">100</span>%</p>
       </div>
 
       <button id="return-to-earth-button" class="secondary">Return to Earth</button>

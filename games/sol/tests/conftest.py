@@ -58,6 +58,11 @@ INITIALLY_DISABLED_IDS = [
     "jupitermoons-buy-recycler-button",
     "jupitermoons-buy-trade-route-button",
     "jupitermoons-cycle-trade-destination-button",
+    "saturnmoons-click-button",
+    "saturnmoons-buy-generator-button",
+    "saturnmoons-buy-recycler-button",
+    "saturnmoons-buy-trade-route-button",
+    "saturnmoons-cycle-trade-destination-button",
 ]
 
 # Maps the internal body identifier (used as current_planet / in
@@ -103,6 +108,7 @@ ELEMENT_IDS = [
     "asteroidbelt-view",
     "pluto-view",
     "jupitermoons-view",
+    "saturnmoons-view",
     "away-view",
     # Governor
     "priority-growth-button",
@@ -120,7 +126,9 @@ ELEMENT_IDS = [
     "travel-pluto-button",
     "travel-jupiter-moons-button",
     "travel-saturn-moons-button",
-    # Undeveloped-body placeholder (away-view) — Earth, Mars, Moon, Venus, Asteroid Belt, Pluto, Jupiter's Moons summaries
+    # Undeveloped-body placeholder (away-view, unreachable now that every Far
+    # Body has an economy — kept because update_away_summary() unconditionally
+    # writes all of PLANETS every tick) — one summary block per real economy
     "away-planet-name",
     "away-earth-resource",
     "away-earth-generators",
@@ -150,6 +158,10 @@ ELEMENT_IDS = [
     "away-jupitermoons-generators",
     "away-jupitermoons-recyclers",
     "away-jupitermoons-ecology",
+    "away-saturnmoons-resource",
+    "away-saturnmoons-generators",
+    "away-saturnmoons-recyclers",
+    "away-saturnmoons-ecology",
     "return-to-earth-button",
     # Mars's own economy
     "mars-click-button",
@@ -235,6 +247,20 @@ ELEMENT_IDS = [
     "jupitermoons-recycler-count",
     "jupitermoons-recycler-rate",
     "jupitermoons-return-to-earth-button",
+    # Saturn's Moons's own economy
+    "saturnmoons-click-button",
+    "saturnmoons-resource-count",
+    "saturnmoons-resource-label",
+    "saturnmoons-buy-generator-button",
+    "saturnmoons-generator-count",
+    "saturnmoons-generator-rate",
+    "saturnmoons-ecology-percent",
+    "saturnmoons-ecology-bar",
+    "saturnmoons-ecology-status",
+    "saturnmoons-buy-recycler-button",
+    "saturnmoons-recycler-count",
+    "saturnmoons-recycler-rate",
+    "saturnmoons-return-to-earth-button",
     # Cross-planet governed summaries (viewer-prefixed: Earth's ids are
     # unprefixed via _dom_id, every other viewer gets "<viewer>-" first)
     "mars-summary",
@@ -267,6 +293,11 @@ ELEMENT_IDS = [
     "jupitermoons-summary-generators",
     "jupitermoons-summary-recyclers",
     "jupitermoons-summary-ecology",
+    "saturnmoons-summary",
+    "saturnmoons-summary-resource",
+    "saturnmoons-summary-generators",
+    "saturnmoons-summary-recyclers",
+    "saturnmoons-summary-ecology",
     "mars-earth-summary-resource",
     "mars-earth-summary-generators",
     "mars-earth-summary-recyclers",
@@ -291,6 +322,10 @@ ELEMENT_IDS = [
     "mars-jupitermoons-summary-generators",
     "mars-jupitermoons-summary-recyclers",
     "mars-jupitermoons-summary-ecology",
+    "mars-saturnmoons-summary-resource",
+    "mars-saturnmoons-summary-generators",
+    "mars-saturnmoons-summary-recyclers",
+    "mars-saturnmoons-summary-ecology",
     "moon-earth-summary-resource",
     "moon-earth-summary-generators",
     "moon-earth-summary-recyclers",
@@ -315,6 +350,10 @@ ELEMENT_IDS = [
     "moon-jupitermoons-summary-generators",
     "moon-jupitermoons-summary-recyclers",
     "moon-jupitermoons-summary-ecology",
+    "moon-saturnmoons-summary-resource",
+    "moon-saturnmoons-summary-generators",
+    "moon-saturnmoons-summary-recyclers",
+    "moon-saturnmoons-summary-ecology",
     "venus-earth-summary-resource",
     "venus-earth-summary-generators",
     "venus-earth-summary-recyclers",
@@ -339,6 +378,10 @@ ELEMENT_IDS = [
     "venus-jupitermoons-summary-generators",
     "venus-jupitermoons-summary-recyclers",
     "venus-jupitermoons-summary-ecology",
+    "venus-saturnmoons-summary-resource",
+    "venus-saturnmoons-summary-generators",
+    "venus-saturnmoons-summary-recyclers",
+    "venus-saturnmoons-summary-ecology",
     "asteroidbelt-earth-summary-resource",
     "asteroidbelt-earth-summary-generators",
     "asteroidbelt-earth-summary-recyclers",
@@ -363,6 +406,10 @@ ELEMENT_IDS = [
     "asteroidbelt-jupitermoons-summary-generators",
     "asteroidbelt-jupitermoons-summary-recyclers",
     "asteroidbelt-jupitermoons-summary-ecology",
+    "asteroidbelt-saturnmoons-summary-resource",
+    "asteroidbelt-saturnmoons-summary-generators",
+    "asteroidbelt-saturnmoons-summary-recyclers",
+    "asteroidbelt-saturnmoons-summary-ecology",
     "pluto-earth-summary-resource",
     "pluto-earth-summary-generators",
     "pluto-earth-summary-recyclers",
@@ -387,6 +434,10 @@ ELEMENT_IDS = [
     "pluto-jupitermoons-summary-generators",
     "pluto-jupitermoons-summary-recyclers",
     "pluto-jupitermoons-summary-ecology",
+    "pluto-saturnmoons-summary-resource",
+    "pluto-saturnmoons-summary-generators",
+    "pluto-saturnmoons-summary-recyclers",
+    "pluto-saturnmoons-summary-ecology",
     "jupitermoons-earth-summary-resource",
     "jupitermoons-earth-summary-generators",
     "jupitermoons-earth-summary-recyclers",
@@ -411,6 +462,38 @@ ELEMENT_IDS = [
     "jupitermoons-pluto-summary-generators",
     "jupitermoons-pluto-summary-recyclers",
     "jupitermoons-pluto-summary-ecology",
+    "jupitermoons-saturnmoons-summary-resource",
+    "jupitermoons-saturnmoons-summary-generators",
+    "jupitermoons-saturnmoons-summary-recyclers",
+    "jupitermoons-saturnmoons-summary-ecology",
+    "saturnmoons-earth-summary-resource",
+    "saturnmoons-earth-summary-generators",
+    "saturnmoons-earth-summary-recyclers",
+    "saturnmoons-earth-summary-ecology",
+    "saturnmoons-mars-summary-resource",
+    "saturnmoons-mars-summary-generators",
+    "saturnmoons-mars-summary-recyclers",
+    "saturnmoons-mars-summary-ecology",
+    "saturnmoons-moon-summary-resource",
+    "saturnmoons-moon-summary-generators",
+    "saturnmoons-moon-summary-recyclers",
+    "saturnmoons-moon-summary-ecology",
+    "saturnmoons-venus-summary-resource",
+    "saturnmoons-venus-summary-generators",
+    "saturnmoons-venus-summary-recyclers",
+    "saturnmoons-venus-summary-ecology",
+    "saturnmoons-asteroidbelt-summary-resource",
+    "saturnmoons-asteroidbelt-summary-generators",
+    "saturnmoons-asteroidbelt-summary-recyclers",
+    "saturnmoons-asteroidbelt-summary-ecology",
+    "saturnmoons-pluto-summary-resource",
+    "saturnmoons-pluto-summary-generators",
+    "saturnmoons-pluto-summary-recyclers",
+    "saturnmoons-pluto-summary-ecology",
+    "saturnmoons-jupitermoons-summary-resource",
+    "saturnmoons-jupitermoons-summary-generators",
+    "saturnmoons-jupitermoons-summary-recyclers",
+    "saturnmoons-jupitermoons-summary-ecology",
     # Trade routes
     "earth-trade",
     "trade-route-count",
@@ -448,6 +531,11 @@ ELEMENT_IDS = [
     "jupitermoons-trade-route-destination",
     "jupitermoons-buy-trade-route-button",
     "jupitermoons-cycle-trade-destination-button",
+    "saturnmoons-trade-route-count",
+    "saturnmoons-trade-route-rate",
+    "saturnmoons-trade-route-destination",
+    "saturnmoons-buy-trade-route-button",
+    "saturnmoons-cycle-trade-destination-button",
     # Terraforming
     "terraform-percent",
     "terraform-bar",
@@ -470,6 +558,9 @@ ELEMENT_IDS = [
     "jupitermoons-terraform-percent",
     "jupitermoons-terraform-bar",
     "jupitermoons-terraform-status",
+    "saturnmoons-terraform-percent",
+    "saturnmoons-terraform-bar",
+    "saturnmoons-terraform-status",
 ]
 
 _BUTTON_ID = {
@@ -522,6 +613,13 @@ _BUTTON_ID = {
         "buy_trade_route": "jupitermoons-buy-trade-route-button",
         "cycle_trade_destination": "jupitermoons-cycle-trade-destination-button",
     },
+    "SaturnMoons": {
+        "click": "saturnmoons-click-button",
+        "buy_generator": "saturnmoons-buy-generator-button",
+        "buy_recycler": "saturnmoons-buy-recycler-button",
+        "buy_trade_route": "saturnmoons-buy-trade-route-button",
+        "cycle_trade_destination": "saturnmoons-cycle-trade-destination-button",
+    },
 }
 
 _RETURN_BUTTON_ID = {
@@ -531,6 +629,7 @@ _RETURN_BUTTON_ID = {
     "AsteroidBelt": "asteroidbelt-return-to-earth-button",
     "Pluto": "pluto-return-to-earth-button",
     "JupiterMoons": "jupitermoons-return-to-earth-button",
+    "SaturnMoons": "saturnmoons-return-to-earth-button",
 }
 
 
@@ -569,6 +668,10 @@ class GameEnv:
     @property
     def jupiter_moons(self):
         return self.module.planet_state["JupiterMoons"]
+
+    @property
+    def saturn_moons(self):
+        return self.module.planet_state["SaturnMoons"]
 
     def state(self, planet):
         return self.module.planet_state[planet]

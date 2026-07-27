@@ -106,6 +106,20 @@ PLANETS = {
         "trade_route_base_cost": 30,
         "trade_route_cost_growth": 1.15,
     },
+    "SaturnMoons": {
+        "resource_name": "Methane",
+        "generator_singular": "Auto-Condenser",
+        "generator_plural": "Auto-Condensers",
+        "generator_base_cost": 10,
+        "generator_cost_growth": 1.15,
+        "generator_rate": 1,
+        "ecology_decay_per_generator_per_sec": 1.0,
+        "recycler_base_cost": 15,
+        "recycler_cost_growth": 1.15,
+        "recycler_restore_per_sec": 2.0,
+        "trade_route_base_cost": 30,
+        "trade_route_cost_growth": 1.15,
+    },
 }
 
 # Ecology restored on the DESTINATION planet, per Trade Route, per second.
@@ -159,14 +173,15 @@ RESEARCH_TIERS = [
 RESEARCH_FUND_COST = 50  # flat Iron per investment, same across every tier, not a scaling purchase
 
 # Bodies with no economy of their own yet — visiting any of these shows the
-# shared #away-view placeholder rather than a dedicated view.
-UNDEVELOPED_BODIES = ["SaturnMoons"]
+# shared #away-view placeholder rather than a dedicated view. Empty as of
+# Milestone 9g: every Far Body now has its own real economy. Left in place
+# (rather than deleted) since the #away-view machinery it drives is still
+# generic infrastructure other systems (e.g. update_away_summary) rely on.
+UNDEVELOPED_BODIES = []
 
 # Human-readable heading text for the away-view placeholder (internal
 # identifiers avoid spaces/apostrophes so they're safe to use in DOM ids).
-BODY_DISPLAY_NAMES = {
-    "SaturnMoons": "SATURN'S MOONS",
-}
+BODY_DISPLAY_NAMES = {}
 
 # Mixed-case display names for any planet whose internal PLANETS/PLANETS-
 # like key isn't already clean human-readable text (e.g. "AsteroidBelt" has
@@ -438,6 +453,9 @@ def update_travel_display():
     jupiter_moons_summary = document.getElementById("jupitermoons-summary")
     jupiter_moons_summary.hidden = "JupiterMoons" not in unlocked_bodies
 
+    saturn_moons_summary = document.getElementById("saturnmoons-summary")
+    saturn_moons_summary.hidden = "SaturnMoons" not in unlocked_bodies
+
     status = document.getElementById("travel-status")
     status.innerText = "Choose a destination:" if unlocked_bodies else "Reach the Near Bodies tier to unlock travel."
 
@@ -509,6 +527,7 @@ def _hide_all_views():
     document.getElementById("asteroidbelt-view").hidden = True
     document.getElementById("pluto-view").hidden = True
     document.getElementById("jupitermoons-view").hidden = True
+    document.getElementById("saturnmoons-view").hidden = True
     document.getElementById("away-view").hidden = True
 
 
@@ -561,6 +580,10 @@ def on_jupiter_moons_click(event):
     _mine("JupiterMoons")
 
 
+def on_saturn_moons_click(event):
+    _mine("SaturnMoons")
+
+
 def _buy_generator(planet):
     state = planet_state[planet]
     button = document.getElementById(_dom_id(planet, "buy-generator-button"))
@@ -602,6 +625,10 @@ def on_jupiter_moons_buy_generator(event):
     _buy_generator("JupiterMoons")
 
 
+def on_saturn_moons_buy_generator(event):
+    _buy_generator("SaturnMoons")
+
+
 def _buy_recycler(planet):
     state = planet_state[planet]
     button = document.getElementById(_dom_id(planet, "buy-recycler-button"))
@@ -641,6 +668,10 @@ def on_pluto_buy_recycler(event):
 
 def on_jupiter_moons_buy_recycler(event):
     _buy_recycler("JupiterMoons")
+
+
+def on_saturn_moons_buy_recycler(event):
+    _buy_recycler("SaturnMoons")
 
 
 def _buy_trade_route(planet):
@@ -686,6 +717,10 @@ def on_jupiter_moons_buy_trade_route(event):
     _buy_trade_route("JupiterMoons")
 
 
+def on_saturn_moons_buy_trade_route(event):
+    _buy_trade_route("SaturnMoons")
+
+
 def on_earth_cycle_trade_destination(event):
     _cycle_trade_destination("Earth")
 
@@ -712,6 +747,10 @@ def on_pluto_cycle_trade_destination(event):
 
 def on_jupiter_moons_cycle_trade_destination(event):
     _cycle_trade_destination("JupiterMoons")
+
+
+def on_saturn_moons_cycle_trade_destination(event):
+    _cycle_trade_destination("SaturnMoons")
 
 
 def on_fund_research(event):
@@ -765,14 +804,6 @@ def on_budget_decrease(event):
     governor_budget_pct = clamp(governor_budget_pct - GOVERNOR_BUDGET_STEP, GOVERNOR_BUDGET_MIN, GOVERNOR_BUDGET_MAX)
     update_governor_display()
     press_feedback(document.getElementById("budget-decrease-button"))
-
-
-def _travel_to_undeveloped(body):
-    global current_planet
-    current_planet = body
-    _hide_all_views()
-    document.getElementById("away-view").hidden = False
-    update_away_summary()
 
 
 def on_travel_moon(event):
@@ -851,8 +882,17 @@ def on_travel_jupiter_moons(event):
 
 
 def on_travel_saturn_moons(event):
+    global current_planet
     if "SaturnMoons" in unlocked_bodies:
-        _travel_to_undeveloped("SaturnMoons")
+        current_planet = "SaturnMoons"
+        _hide_all_views()
+        document.getElementById("saturnmoons-view").hidden = False
+        update_resource_display("SaturnMoons")
+        update_generator_display("SaturnMoons")
+        update_ecology_display("SaturnMoons")
+        update_trade_display("SaturnMoons")
+        update_terraform_display("SaturnMoons")
+        update_all_cross_summaries()
     press_feedback(document.getElementById("travel-saturn-moons-button"))
 
 
@@ -917,6 +957,11 @@ def on_return_to_earth_from_pluto(event):
 def on_return_to_earth_from_jupiter_moons(event):
     _return_to_earth()
     press_feedback(document.getElementById("jupitermoons-return-to-earth-button"))
+
+
+def on_return_to_earth_from_saturn_moons(event):
+    _return_to_earth()
+    press_feedback(document.getElementById("saturnmoons-return-to-earth-button"))
 
 
 def governor_step():
@@ -1197,6 +1242,34 @@ def setup():
 
     document.getElementById("jupitermoons-return-to-earth-button").addEventListener(
         "click", create_proxy(on_return_to_earth_from_jupiter_moons)
+    )
+
+    saturn_moons_click = document.getElementById("saturnmoons-click-button")
+    saturn_moons_click.innerText = "Condense Methane"
+    saturn_moons_click.disabled = False
+    saturn_moons_click.addEventListener("click", create_proxy(on_saturn_moons_click))
+
+    saturn_moons_buy_generator = document.getElementById("saturnmoons-buy-generator-button")
+    saturn_moons_buy_generator.disabled = False
+    saturn_moons_buy_generator.addEventListener("click", create_proxy(on_saturn_moons_buy_generator))
+
+    saturn_moons_buy_recycler = document.getElementById("saturnmoons-buy-recycler-button")
+    saturn_moons_buy_recycler.disabled = False
+    saturn_moons_buy_recycler.addEventListener("click", create_proxy(on_saturn_moons_buy_recycler))
+
+    saturn_moons_buy_trade_route = document.getElementById("saturnmoons-buy-trade-route-button")
+    saturn_moons_buy_trade_route.disabled = False
+    saturn_moons_buy_trade_route.addEventListener("click", create_proxy(on_saturn_moons_buy_trade_route))
+
+    saturn_moons_cycle_trade_destination = document.getElementById("saturnmoons-cycle-trade-destination-button")
+    saturn_moons_cycle_trade_destination.innerText = "Change Destination"
+    saturn_moons_cycle_trade_destination.disabled = False
+    saturn_moons_cycle_trade_destination.addEventListener(
+        "click", create_proxy(on_saturn_moons_cycle_trade_destination)
+    )
+
+    document.getElementById("saturnmoons-return-to-earth-button").addEventListener(
+        "click", create_proxy(on_return_to_earth_from_saturn_moons)
     )
 
     research_button = document.getElementById("fund-research-button")
