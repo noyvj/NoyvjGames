@@ -283,3 +283,18 @@ button.priority-option.selected {
   line-height: 1.8;
   margin-bottom: 2rem;
 }
+
+.win-banner-heading {
+  text-transform: uppercase;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: #7fd6a3;
+  margin: 0 0 0.5rem;
+}
+
+.win-banner-subtext {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  margin: 0;
+}

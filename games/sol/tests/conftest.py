@@ -83,6 +83,10 @@ TRAVEL_BUTTON_ID = {
 # Element IDs wired up in index.html — kept in one place so tests and the
 # fixture agree on what "the DOM" contains.
 ELEMENT_IDS = [
+    # Win state (Milestone 11)
+    "win-banner",
+    "win-banner-heading",
+    "win-banner-subtext",
     # Earth
     "click-button",
     "resource-count",

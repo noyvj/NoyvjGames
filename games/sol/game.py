@@ -149,7 +149,8 @@ GAS_GIANT_BODIES = ["JupiterMoons", "SaturnMoons"]
 # Ecology restored on the DESTINATION planet, per Trade Route, per second.
 # Deliberately weaker than a local Recycler (2.0/s) — shipping materials
 # across planets is a supplementary lever, not a replacement for local
-# investment. Subject to the Milestone 11 balance pass.
+# investment. Reviewed in the Milestone 11 balance pass against the full
+# 8-planet roster: that framing still holds, so the value is unchanged.
 TRADE_ROUTE_RESTORE_PER_SEC = 0.5
 
 # Terraforming accrues only while a planet is under genuine sustained
@@ -157,8 +158,14 @@ TRADE_ROUTE_RESTORE_PER_SEC = 0.5
 # the crisis threshold) AND actual economic investment present. Below that
 # bar, progress simply pauses; it never regresses, per the project's
 # "always recoverable, no dead-end states" rule. Rate scales with ecology
-# health above the bar. Numbers are an initial guess, subject to the
-# Milestone 11 balance pass.
+# health above the bar. Reviewed in the Milestone 11 balance pass: at
+# sustained full ecology health this is 100 seconds per 10% (~1000s / ~16.7
+# minutes to fully terraform a planet), and since _simulate_planet() runs
+# every planet every tick regardless of current_planet, all 8 real
+# economies progress in parallel once each is established — so a full
+# 100%-completion win is reachable in roughly that same ~17 minutes, not
+# 8x it. That's a reasonable idle-game endgame pace, so the values are
+# unchanged.
 TERRAFORM_ECOLOGY_THRESHOLD = 50.0
 TERRAFORM_BASE_RATE_PER_SEC = 0.1
 TERRAFORM_MAX = 100.0
@@ -536,6 +543,19 @@ def update_governor_display():
             button.classList.remove("selected")
 
     document.getElementById("governor-budget-value").innerText = str(round(governor_budget_pct))
+
+
+def update_win_display():
+    # Milestone 11: the win condition is recomputed fresh every call rather
+    # than tracked with a separate "achieved" flag — since terraform_progress
+    # never regresses (see TERRAFORM_ECOLOGY_THRESHOLD comment above),
+    # recomputing is always correct and simpler than keeping a flag in sync.
+    # The banner is a sibling of every per-planet view in the HTML (not
+    # inside any of them), so it stays visible regardless of current_planet
+    # and isn't touched by _hide_all_views().
+    document.getElementById("win-banner").hidden = not all(
+        planet_state[p]["terraform_progress"] >= TERRAFORM_MAX for p in PLANETS
+    )
 
 
 def update_cross_summary(viewer, target):
@@ -1164,6 +1184,7 @@ def tick(*args):
 
     update_all_cross_summaries()
     update_away_summary()
+    update_win_display()
 
 
 def setup():
@@ -1437,6 +1458,7 @@ def setup():
     update_governor_display()
     update_travel_display()
     update_all_cross_summaries()
+    update_win_display()
 
     setInterval(create_proxy(tick), TICK_INTERVAL_MS)
 

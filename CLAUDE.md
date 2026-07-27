@@ -48,7 +48,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
 ## Current games
 | Slug | Name | Status |
 |------|------|--------|
-| sol | SOL | Milestone 10 done (Gas giant buildings) |
+| sol | SOL | Milestone 11 done (Full system endgame) — all 17 milestones complete |
 
 ## Site-level milestones (separate from per-game milestones)
 | # | Milestone | Status |
