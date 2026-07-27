@@ -371,6 +371,13 @@
         <p>Ecology: <span id="venus-asteroidbelt-summary-ecology">100</span>%</p>
       </div>
 
+      <div id="venus-pluto-summary" class="section cross-summary">
+        <p class="cross-summary-label">Pluto (governed)</p>
+        <p><span id="venus-pluto-summary-resource">0</span> Tholins</p>
+        <p><span id="venus-pluto-summary-generators">0</span> Auto-Sublimators, <span id="venus-pluto-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="venus-pluto-summary-ecology">100</span>%</p>
+      </div>
+
       <button id="venus-return-to-earth-button" class="secondary">Return to Earth</button>
     </div>
 
@@ -447,7 +454,97 @@
         <p>Ecology: <span id="asteroidbelt-venus-summary-ecology">100</span>%</p>
       </div>
 
+      <div id="asteroidbelt-pluto-summary" class="section cross-summary">
+        <p class="cross-summary-label">Pluto (governed)</p>
+        <p><span id="asteroidbelt-pluto-summary-resource">0</span> Tholins</p>
+        <p><span id="asteroidbelt-pluto-summary-generators">0</span> Auto-Sublimators, <span id="asteroidbelt-pluto-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="asteroidbelt-pluto-summary-ecology">100</span>%</p>
+      </div>
+
       <button id="asteroidbelt-return-to-earth-button" class="secondary">Return to Earth</button>
+    </div>
+
+    <div id="pluto-view" hidden>
+      <p id="pluto-resource-label" class="resource-label">Tholins — Pluto</p>
+      <p id="pluto-resource-count" class="resource-count">0</p>
+      <button id="pluto-click-button" class="click-button" disabled>Loading...</button>
+
+      <div id="pluto-automation" class="section">
+        <p id="pluto-generator-info" class="generator-info">
+          Auto-Sublimators: <span id="pluto-generator-count">0</span>
+          (+<span id="pluto-generator-rate">0</span>/s)
+        </p>
+        <button id="pluto-buy-generator-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="pluto-ecology" class="section">
+        <p id="pluto-ecology-label" class="ecology-label">Ecological Health</p>
+        <p id="pluto-ecology-percent" class="ecology-percent">100%</p>
+        <div class="meter">
+          <div id="pluto-ecology-bar" class="meter-fill"></div>
+        </div>
+        <p id="pluto-ecology-status" class="ecology-status"></p>
+
+        <p id="pluto-recycler-info" class="recycler-info">
+          Recyclers: <span id="pluto-recycler-count">0</span>
+          (+<span id="pluto-recycler-rate">0</span>%/s)
+        </p>
+        <button id="pluto-buy-recycler-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="pluto-terraform" class="section">
+        <p id="pluto-terraform-label" class="ecology-label">Terraforming</p>
+        <p id="pluto-terraform-percent" class="ecology-percent">0%</p>
+        <div class="meter">
+          <div id="pluto-terraform-bar" class="meter-fill terraform-fill"></div>
+        </div>
+        <p id="pluto-terraform-status" class="ecology-status"></p>
+      </div>
+
+      <div id="pluto-trade" class="section">
+        <p id="pluto-trade-route-label" class="generator-info">
+          Trade Routes: <span id="pluto-trade-route-count">0</span>
+          (+<span id="pluto-trade-route-rate">0</span>%/s ecology to <span id="pluto-trade-route-destination">Earth</span>)
+        </p>
+        <button id="pluto-buy-trade-route-button" class="secondary" disabled>Loading...</button>
+      </div>
+
+      <div id="pluto-earth-summary" class="section cross-summary">
+        <p class="cross-summary-label">Earth (governed)</p>
+        <p><span id="pluto-earth-summary-resource">0</span> Iron</p>
+        <p><span id="pluto-earth-summary-generators">0</span> Auto-Miners, <span id="pluto-earth-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="pluto-earth-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="pluto-mars-summary" class="section cross-summary">
+        <p class="cross-summary-label">Mars (governed)</p>
+        <p><span id="pluto-mars-summary-resource">0</span> Water Ice</p>
+        <p><span id="pluto-mars-summary-generators">0</span> Auto-Extractors, <span id="pluto-mars-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="pluto-mars-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="pluto-moon-summary" class="section cross-summary">
+        <p class="cross-summary-label">Moon (governed)</p>
+        <p><span id="pluto-moon-summary-resource">0</span> Regolith</p>
+        <p><span id="pluto-moon-summary-generators">0</span> Auto-Harvesters, <span id="pluto-moon-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="pluto-moon-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="pluto-venus-summary" class="section cross-summary">
+        <p class="cross-summary-label">Venus (governed)</p>
+        <p><span id="pluto-venus-summary-resource">0</span> Sulfur</p>
+        <p><span id="pluto-venus-summary-generators">0</span> Auto-Scrubbers, <span id="pluto-venus-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="pluto-venus-summary-ecology">100</span>%</p>
+      </div>
+
+      <div id="pluto-asteroidbelt-summary" class="section cross-summary">
+        <p class="cross-summary-label">Asteroid Belt (governed)</p>
+        <p><span id="pluto-asteroidbelt-summary-resource">0</span> Platinum</p>
+        <p><span id="pluto-asteroidbelt-summary-generators">0</span> Auto-Prospectors, <span id="pluto-asteroidbelt-summary-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="pluto-asteroidbelt-summary-ecology">100</span>%</p>
+      </div>
+
+      <button id="pluto-return-to-earth-button" class="secondary">Return to Earth</button>
     </div>
 
     <div id="away-view" hidden>
@@ -487,6 +584,13 @@
         <p><span id="away-asteroidbelt-resource">0</span> Platinum</p>
         <p><span id="away-asteroidbelt-generators">0</span> Auto-Prospectors, <span id="away-asteroidbelt-recyclers">0</span> Recyclers</p>
         <p>Ecology: <span id="away-asteroidbelt-ecology">100</span>%</p>
+      </div>
+
+      <div id="away-pluto-summary" class="section cross-summary">
+        <p class="cross-summary-label">Pluto (governed)</p>
+        <p><span id="away-pluto-resource">0</span> Tholins</p>
+        <p><span id="away-pluto-generators">0</span> Auto-Sublimators, <span id="away-pluto-recyclers">0</span> Recyclers</p>
+        <p>Ecology: <span id="away-pluto-ecology">100</span>%</p>
       </div>
 
       <button id="return-to-earth-button" class="secondary">Return to Earth</button>

@@ -43,6 +43,10 @@ INITIALLY_DISABLED_IDS = [
     "asteroidbelt-buy-generator-button",
     "asteroidbelt-buy-recycler-button",
     "asteroidbelt-buy-trade-route-button",
+    "pluto-click-button",
+    "pluto-buy-generator-button",
+    "pluto-buy-recycler-button",
+    "pluto-buy-trade-route-button",
 ]
 
 # Maps the internal body identifier (used as current_planet / in
@@ -86,6 +90,7 @@ ELEMENT_IDS = [
     "moon-view",
     "venus-view",
     "asteroidbelt-view",
+    "pluto-view",
     "away-view",
     # Governor
     "priority-growth-button",
@@ -103,7 +108,7 @@ ELEMENT_IDS = [
     "travel-pluto-button",
     "travel-jupiter-moons-button",
     "travel-saturn-moons-button",
-    # Undeveloped-body placeholder (away-view) — Earth, Mars, Moon, Venus, Asteroid Belt summaries
+    # Undeveloped-body placeholder (away-view) — Earth, Mars, Moon, Venus, Asteroid Belt, Pluto summaries
     "away-planet-name",
     "away-earth-resource",
     "away-earth-generators",
@@ -125,6 +130,10 @@ ELEMENT_IDS = [
     "away-asteroidbelt-generators",
     "away-asteroidbelt-recyclers",
     "away-asteroidbelt-ecology",
+    "away-pluto-resource",
+    "away-pluto-generators",
+    "away-pluto-recyclers",
+    "away-pluto-ecology",
     "return-to-earth-button",
     # Mars's own economy
     "mars-click-button",
@@ -182,6 +191,20 @@ ELEMENT_IDS = [
     "asteroidbelt-recycler-count",
     "asteroidbelt-recycler-rate",
     "asteroidbelt-return-to-earth-button",
+    # Pluto's own economy
+    "pluto-click-button",
+    "pluto-resource-count",
+    "pluto-resource-label",
+    "pluto-buy-generator-button",
+    "pluto-generator-count",
+    "pluto-generator-rate",
+    "pluto-ecology-percent",
+    "pluto-ecology-bar",
+    "pluto-ecology-status",
+    "pluto-buy-recycler-button",
+    "pluto-recycler-count",
+    "pluto-recycler-rate",
+    "pluto-return-to-earth-button",
     # Cross-planet governed summaries (viewer-prefixed: Earth's ids are
     # unprefixed via _dom_id, every other viewer gets "<viewer>-" first)
     "mars-summary",
@@ -204,6 +227,11 @@ ELEMENT_IDS = [
     "asteroidbelt-summary-generators",
     "asteroidbelt-summary-recyclers",
     "asteroidbelt-summary-ecology",
+    "pluto-summary",
+    "pluto-summary-resource",
+    "pluto-summary-generators",
+    "pluto-summary-recyclers",
+    "pluto-summary-ecology",
     "mars-earth-summary-resource",
     "mars-earth-summary-generators",
     "mars-earth-summary-recyclers",
@@ -220,6 +248,10 @@ ELEMENT_IDS = [
     "mars-asteroidbelt-summary-generators",
     "mars-asteroidbelt-summary-recyclers",
     "mars-asteroidbelt-summary-ecology",
+    "mars-pluto-summary-resource",
+    "mars-pluto-summary-generators",
+    "mars-pluto-summary-recyclers",
+    "mars-pluto-summary-ecology",
     "moon-earth-summary-resource",
     "moon-earth-summary-generators",
     "moon-earth-summary-recyclers",
@@ -236,6 +268,10 @@ ELEMENT_IDS = [
     "moon-asteroidbelt-summary-generators",
     "moon-asteroidbelt-summary-recyclers",
     "moon-asteroidbelt-summary-ecology",
+    "moon-pluto-summary-resource",
+    "moon-pluto-summary-generators",
+    "moon-pluto-summary-recyclers",
+    "moon-pluto-summary-ecology",
     "venus-earth-summary-resource",
     "venus-earth-summary-generators",
     "venus-earth-summary-recyclers",
@@ -252,6 +288,10 @@ ELEMENT_IDS = [
     "venus-asteroidbelt-summary-generators",
     "venus-asteroidbelt-summary-recyclers",
     "venus-asteroidbelt-summary-ecology",
+    "venus-pluto-summary-resource",
+    "venus-pluto-summary-generators",
+    "venus-pluto-summary-recyclers",
+    "venus-pluto-summary-ecology",
     "asteroidbelt-earth-summary-resource",
     "asteroidbelt-earth-summary-generators",
     "asteroidbelt-earth-summary-recyclers",
@@ -268,6 +308,30 @@ ELEMENT_IDS = [
     "asteroidbelt-venus-summary-generators",
     "asteroidbelt-venus-summary-recyclers",
     "asteroidbelt-venus-summary-ecology",
+    "asteroidbelt-pluto-summary-resource",
+    "asteroidbelt-pluto-summary-generators",
+    "asteroidbelt-pluto-summary-recyclers",
+    "asteroidbelt-pluto-summary-ecology",
+    "pluto-earth-summary-resource",
+    "pluto-earth-summary-generators",
+    "pluto-earth-summary-recyclers",
+    "pluto-earth-summary-ecology",
+    "pluto-mars-summary-resource",
+    "pluto-mars-summary-generators",
+    "pluto-mars-summary-recyclers",
+    "pluto-mars-summary-ecology",
+    "pluto-moon-summary-resource",
+    "pluto-moon-summary-generators",
+    "pluto-moon-summary-recyclers",
+    "pluto-moon-summary-ecology",
+    "pluto-venus-summary-resource",
+    "pluto-venus-summary-generators",
+    "pluto-venus-summary-recyclers",
+    "pluto-venus-summary-ecology",
+    "pluto-asteroidbelt-summary-resource",
+    "pluto-asteroidbelt-summary-generators",
+    "pluto-asteroidbelt-summary-recyclers",
+    "pluto-asteroidbelt-summary-ecology",
     # Trade routes
     "earth-trade",
     "trade-route-count",
@@ -290,6 +354,10 @@ ELEMENT_IDS = [
     "asteroidbelt-trade-route-rate",
     "asteroidbelt-trade-route-destination",
     "asteroidbelt-buy-trade-route-button",
+    "pluto-trade-route-count",
+    "pluto-trade-route-rate",
+    "pluto-trade-route-destination",
+    "pluto-buy-trade-route-button",
     # Terraforming
     "terraform-percent",
     "terraform-bar",
@@ -306,6 +374,9 @@ ELEMENT_IDS = [
     "asteroidbelt-terraform-percent",
     "asteroidbelt-terraform-bar",
     "asteroidbelt-terraform-status",
+    "pluto-terraform-percent",
+    "pluto-terraform-bar",
+    "pluto-terraform-status",
 ]
 
 _BUTTON_ID = {
@@ -339,6 +410,12 @@ _BUTTON_ID = {
         "buy_recycler": "asteroidbelt-buy-recycler-button",
         "buy_trade_route": "asteroidbelt-buy-trade-route-button",
     },
+    "Pluto": {
+        "click": "pluto-click-button",
+        "buy_generator": "pluto-buy-generator-button",
+        "buy_recycler": "pluto-buy-recycler-button",
+        "buy_trade_route": "pluto-buy-trade-route-button",
+    },
 }
 
 _RETURN_BUTTON_ID = {
@@ -346,6 +423,7 @@ _RETURN_BUTTON_ID = {
     "Moon": "moon-return-to-earth-button",
     "Venus": "venus-return-to-earth-button",
     "AsteroidBelt": "asteroidbelt-return-to-earth-button",
+    "Pluto": "pluto-return-to-earth-button",
 }
 
 
@@ -376,6 +454,10 @@ class GameEnv:
     @property
     def asteroid_belt(self):
         return self.module.planet_state["AsteroidBelt"]
+
+    @property
+    def pluto(self):
+        return self.module.planet_state["Pluto"]
 
     def state(self, planet):
         return self.module.planet_state[planet]

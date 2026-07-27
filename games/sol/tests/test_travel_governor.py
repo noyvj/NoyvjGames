@@ -2,16 +2,16 @@
 between Earth and unlocked Near Bodies, and the priority/budget governor
 that keeps managing whichever real economy the player is currently not on.
 
-Mars (Milestone 6), Moon (Milestone 9b), Venus (Milestone 9c), and the
-Asteroid Belt (Milestone 9d) each have their own real economy and dedicated
-view (#mars-view, #moon-view, #venus-view, #asteroidbelt-view), each with
-cross-summary widgets for every OTHER real economy — their own
-click/building/ecology loops are covered in test_mars_economy.py /
-test_moon_economy.py / test_venus_economy.py / test_asteroid_belt_economy.py.
-Pluto and Jupiter's/Saturn's Moons still have no economy of their own and
-share the generic #away-view placeholder (see
-test_research_tier2_framework.py). This file covers travel/view-switching
-and the governor's cross-planet behavior."""
+Mars (Milestone 6), Moon (Milestone 9b), Venus (Milestone 9c), the
+Asteroid Belt (Milestone 9d), and Pluto (Milestone 9e) each have their own
+real economy and dedicated view (#mars-view, #moon-view, #venus-view,
+#asteroidbelt-view, #pluto-view), each with cross-summary widgets for every
+OTHER real economy — their own click/building/ecology loops are covered in
+test_mars_economy.py / test_moon_economy.py / test_venus_economy.py /
+test_asteroid_belt_economy.py / test_pluto_economy.py. Jupiter's/Saturn's
+Moons still have no economy of their own and share the generic #away-view
+placeholder (see test_research_tier2_framework.py). This file covers
+travel/view-switching and the governor's cross-planet behavior."""
 
 
 def _unlock_near_bodies(game_env):

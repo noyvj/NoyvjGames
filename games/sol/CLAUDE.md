@@ -51,7 +51,7 @@ Universal-Paperclips-style incremental game, solar-system themed. Player starts 
 | 9b | Moon resource loop | New resource, reuse the standard building system — **DONE** |
 | 9c | Venus resource loop | New resource, reuse the standard building system — **DONE** |
 | 9d | Asteroid Belt resource loop | New resource, reuse the standard building system — **DONE** |
-| 9e | Pluto resource loop | New resource, reuse the standard building system |
+| 9e | Pluto resource loop | New resource, reuse the standard building system — **DONE** |
 | 9f | Jupiter's moons resource loop | New resource, reuse the standard building system (one combined economy, not one per moon — matches the "parallel-unlock" framing) |
 | 9g | Saturn's moons resource loop | New resource, reuse the standard building system (one combined economy, not one per moon) |
 | 10 | Gas giant buildings | Reskinned building system + sky cities + Mars-material dependency |

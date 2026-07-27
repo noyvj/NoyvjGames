@@ -78,6 +78,20 @@ PLANETS = {
         "trade_route_base_cost": 30,
         "trade_route_cost_growth": 1.15,
     },
+    "Pluto": {
+        "resource_name": "Tholins",
+        "generator_singular": "Auto-Sublimator",
+        "generator_plural": "Auto-Sublimators",
+        "generator_base_cost": 10,
+        "generator_cost_growth": 1.15,
+        "generator_rate": 1,
+        "ecology_decay_per_generator_per_sec": 1.0,
+        "recycler_base_cost": 15,
+        "recycler_cost_growth": 1.15,
+        "recycler_restore_per_sec": 2.0,
+        "trade_route_base_cost": 30,
+        "trade_route_cost_growth": 1.15,
+    },
 }
 
 # Ecology restored on the DESTINATION planet, per Trade Route, per second.
@@ -131,12 +145,11 @@ RESEARCH_FUND_COST = 50  # flat Iron per investment, same across every tier, not
 
 # Bodies with no economy of their own yet — visiting any of these shows the
 # shared #away-view placeholder rather than a dedicated view.
-UNDEVELOPED_BODIES = ["Pluto", "JupiterMoons", "SaturnMoons"]
+UNDEVELOPED_BODIES = ["JupiterMoons", "SaturnMoons"]
 
 # Human-readable heading text for the away-view placeholder (internal
 # identifiers avoid spaces/apostrophes so they're safe to use in DOM ids).
 BODY_DISPLAY_NAMES = {
-    "Pluto": "PLUTO",
     "JupiterMoons": "JUPITER'S MOONS",
     "SaturnMoons": "SATURN'S MOONS",
 }
@@ -376,6 +389,9 @@ def update_travel_display():
     asteroid_belt_summary = document.getElementById("asteroidbelt-summary")
     asteroid_belt_summary.hidden = "AsteroidBelt" not in unlocked_bodies
 
+    pluto_summary = document.getElementById("pluto-summary")
+    pluto_summary.hidden = "Pluto" not in unlocked_bodies
+
     status = document.getElementById("travel-status")
     status.innerText = "Choose a destination:" if unlocked_bodies else "Reach the Near Bodies tier to unlock travel."
 
@@ -445,6 +461,7 @@ def _hide_all_views():
     document.getElementById("moon-view").hidden = True
     document.getElementById("venus-view").hidden = True
     document.getElementById("asteroidbelt-view").hidden = True
+    document.getElementById("pluto-view").hidden = True
     document.getElementById("away-view").hidden = True
 
 
@@ -489,6 +506,10 @@ def on_asteroid_belt_click(event):
     _mine("AsteroidBelt")
 
 
+def on_pluto_click(event):
+    _mine("Pluto")
+
+
 def _buy_generator(planet):
     state = planet_state[planet]
     button = document.getElementById(_dom_id(planet, "buy-generator-button"))
@@ -520,6 +541,10 @@ def on_venus_buy_generator(event):
 
 def on_asteroid_belt_buy_generator(event):
     _buy_generator("AsteroidBelt")
+
+
+def on_pluto_buy_generator(event):
+    _buy_generator("Pluto")
 
 
 def _buy_recycler(planet):
@@ -555,6 +580,10 @@ def on_asteroid_belt_buy_recycler(event):
     _buy_recycler("AsteroidBelt")
 
 
+def on_pluto_buy_recycler(event):
+    _buy_recycler("Pluto")
+
+
 def _buy_trade_route(planet):
     state = planet_state[planet]
     button = document.getElementById(_dom_id(planet, "buy-trade-route-button"))
@@ -588,6 +617,10 @@ def on_venus_buy_trade_route(event):
 
 def on_asteroid_belt_buy_trade_route(event):
     _buy_trade_route("AsteroidBelt")
+
+
+def on_pluto_buy_trade_route(event):
+    _buy_trade_route("Pluto")
 
 
 def on_fund_research(event):
@@ -697,8 +730,17 @@ def on_travel_asteroid_belt(event):
 
 
 def on_travel_pluto(event):
+    global current_planet
     if "Pluto" in unlocked_bodies:
-        _travel_to_undeveloped("Pluto")
+        current_planet = "Pluto"
+        _hide_all_views()
+        document.getElementById("pluto-view").hidden = False
+        update_resource_display("Pluto")
+        update_generator_display("Pluto")
+        update_ecology_display("Pluto")
+        update_trade_display("Pluto")
+        update_terraform_display("Pluto")
+        update_all_cross_summaries()
     press_feedback(document.getElementById("travel-pluto-button"))
 
 
@@ -765,6 +807,11 @@ def on_return_to_earth_from_venus(event):
 def on_return_to_earth_from_asteroid_belt(event):
     _return_to_earth()
     press_feedback(document.getElementById("asteroidbelt-return-to-earth-button"))
+
+
+def on_return_to_earth_from_pluto(event):
+    _return_to_earth()
+    press_feedback(document.getElementById("pluto-return-to-earth-button"))
 
 
 def governor_step():
@@ -964,6 +1011,27 @@ def setup():
 
     document.getElementById("asteroidbelt-return-to-earth-button").addEventListener(
         "click", create_proxy(on_return_to_earth_from_asteroid_belt)
+    )
+
+    pluto_click = document.getElementById("pluto-click-button")
+    pluto_click.innerText = "Collect Tholins"
+    pluto_click.disabled = False
+    pluto_click.addEventListener("click", create_proxy(on_pluto_click))
+
+    pluto_buy_generator = document.getElementById("pluto-buy-generator-button")
+    pluto_buy_generator.disabled = False
+    pluto_buy_generator.addEventListener("click", create_proxy(on_pluto_buy_generator))
+
+    pluto_buy_recycler = document.getElementById("pluto-buy-recycler-button")
+    pluto_buy_recycler.disabled = False
+    pluto_buy_recycler.addEventListener("click", create_proxy(on_pluto_buy_recycler))
+
+    pluto_buy_trade_route = document.getElementById("pluto-buy-trade-route-button")
+    pluto_buy_trade_route.disabled = False
+    pluto_buy_trade_route.addEventListener("click", create_proxy(on_pluto_buy_trade_route))
+
+    document.getElementById("pluto-return-to-earth-button").addEventListener(
+        "click", create_proxy(on_return_to_earth_from_pluto)
     )
 
     research_button = document.getElementById("fund-research-button")
