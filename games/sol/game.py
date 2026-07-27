@@ -105,6 +105,13 @@ PLANETS = {
         "recycler_restore_per_sec": 2.0,
         "trade_route_base_cost": 30,
         "trade_route_cost_growth": 1.15,
+        # Milestone 10: Sky City, a fourth building type unique to the gas
+        # giant moons — see GAS_GIANT_BODIES below.
+        "sky_city_local_base_cost": 50,
+        "sky_city_local_cost_growth": 1.15,
+        "sky_city_mars_base_cost": 20,
+        "sky_city_mars_cost_growth": 1.15,
+        "sky_city_production_bonus_per_city": 0.1,
     },
     "SaturnMoons": {
         "resource_name": "Methane",
@@ -119,8 +126,25 @@ PLANETS = {
         "recycler_restore_per_sec": 2.0,
         "trade_route_base_cost": 30,
         "trade_route_cost_growth": 1.15,
+        # Milestone 10: Sky City, a fourth building type unique to the gas
+        # giant moons — see GAS_GIANT_BODIES below.
+        "sky_city_local_base_cost": 50,
+        "sky_city_local_cost_growth": 1.15,
+        "sky_city_mars_base_cost": 20,
+        "sky_city_mars_cost_growth": 1.15,
+        "sky_city_production_bonus_per_city": 0.1,
     },
 }
+
+# Milestone 10: the two Far Bodies whose parent bodies are gas giants get a
+# fourth building type, "Sky City" — Jupiter and Saturn themselves are not
+# separate travel destinations, this is additive to the existing
+# JupiterMoons/SaturnMoons economies. A Sky City costs both the local
+# resource AND Mars's Water Ice, making it the payoff for the trade system
+# existing at all (per the game's design doc: "gas giant buildings need Mars
+# materials"). No other planet has this concept, structurally — not just
+# hidden in the UI.
+GAS_GIANT_BODIES = ["JupiterMoons", "SaturnMoons"]
 
 # Ecology restored on the DESTINATION planet, per Trade Route, per second.
 # Deliberately weaker than a local Recycler (2.0/s) — shipping materials
@@ -152,6 +176,12 @@ planet_state = {
     }
     for name in PLANETS
 }
+
+# Sky City count only exists on the gas giant moons (Milestone 10) — every
+# other planet's state dict simply has no such key, making it structurally
+# impossible to buy one there rather than merely hidden in the UI.
+for _gas_giant in GAS_GIANT_BODIES:
+    planet_state[_gas_giant]["sky_city_count"] = 0
 
 # --- research tiers ---
 # Research isn't strictly linear — reaching a distance tier can unlock
@@ -285,6 +315,18 @@ def trade_route_cost(planet, destination):
     return math.ceil(cfg["trade_route_base_cost"] * (cfg["trade_route_cost_growth"] ** count))
 
 
+def sky_city_local_cost(planet):
+    cfg = PLANETS[planet]
+    count = planet_state[planet]["sky_city_count"]
+    return math.ceil(cfg["sky_city_local_base_cost"] * (cfg["sky_city_local_cost_growth"] ** count))
+
+
+def sky_city_mars_cost(planet):
+    cfg = PLANETS[planet]
+    count = planet_state[planet]["sky_city_count"]
+    return math.ceil(cfg["sky_city_mars_base_cost"] * (cfg["sky_city_mars_cost_growth"] ** count))
+
+
 def production_multiplier(planet):
     health = planet_state[planet]["ecology_health"]
     if health <= 0:
@@ -300,7 +342,12 @@ def clamp(value, low, high):
 
 def has_economic_investment(planet):
     state = planet_state[planet]
-    return state["generator_count"] > 0 or state["recycler_count"] > 0 or bool(state["trade_routes"])
+    return (
+        state["generator_count"] > 0
+        or state["recycler_count"] > 0
+        or bool(state["trade_routes"])
+        or state.get("sky_city_count", 0) > 0
+    )
 
 
 def terraform_rate(planet):
@@ -379,6 +426,22 @@ def update_trade_display(planet):
         button.innerText = f"Build Trade Route ({trade_route_cost(planet, destination)} {cfg['resource_name']})"
     else:
         button.innerText = "No destination available"
+
+
+def update_sky_city_display(planet):
+    # Only ever called for JupiterMoons/SaturnMoons (Milestone 10) — the
+    # dual-cost button text is the visible reminder that gas giant buildings
+    # need Mars materials, not just the local resource.
+    cfg = PLANETS[planet]
+    state = planet_state[planet]
+    bonus_pct = round(state["sky_city_count"] * cfg["sky_city_production_bonus_per_city"] * 100)
+
+    document.getElementById(_dom_id(planet, "sky-city-count")).innerText = str(state["sky_city_count"])
+    document.getElementById(_dom_id(planet, "sky-city-bonus")).innerText = str(bonus_pct)
+    document.getElementById(_dom_id(planet, "buy-sky-city-button")).innerText = (
+        f"Build Sky City ({sky_city_local_cost(planet)} {cfg['resource_name']} "
+        f"+ {sky_city_mars_cost(planet)} {PLANETS['Mars']['resource_name']})"
+    )
 
 
 def update_terraform_display(planet):
@@ -721,6 +784,35 @@ def on_saturn_moons_buy_trade_route(event):
     _buy_trade_route("SaturnMoons")
 
 
+def _buy_sky_city(planet):
+    # Milestone 10: only ever called for JupiterMoons/SaturnMoons. Requires
+    # BOTH the local resource AND Mars's Water Ice — the trade system's
+    # payoff. Press feedback always fires; state only changes if both costs
+    # are affordable.
+    state = planet_state[planet]
+    mars_state = planet_state["Mars"]
+    button = document.getElementById(_dom_id(planet, "buy-sky-city-button"))
+    local_cost = sky_city_local_cost(planet)
+    mars_cost = sky_city_mars_cost(planet)
+    if state["resource_count"] >= local_cost and mars_state["resource_count"] >= mars_cost:
+        state["resource_count"] -= local_cost
+        mars_state["resource_count"] -= mars_cost
+        state["sky_city_count"] += 1
+        update_resource_display(planet)
+        update_resource_display("Mars")
+        update_sky_city_display(planet)
+        update_terraform_display(planet)
+    press_feedback(button)
+
+
+def on_jupiter_moons_buy_sky_city(event):
+    _buy_sky_city("JupiterMoons")
+
+
+def on_saturn_moons_buy_sky_city(event):
+    _buy_sky_city("SaturnMoons")
+
+
 def on_earth_cycle_trade_destination(event):
     _cycle_trade_destination("Earth")
 
@@ -876,6 +968,7 @@ def on_travel_jupiter_moons(event):
         update_generator_display("JupiterMoons")
         update_ecology_display("JupiterMoons")
         update_trade_display("JupiterMoons")
+        update_sky_city_display("JupiterMoons")
         update_terraform_display("JupiterMoons")
         update_all_cross_summaries()
     press_feedback(document.getElementById("travel-jupiter-moons-button"))
@@ -891,6 +984,7 @@ def on_travel_saturn_moons(event):
         update_generator_display("SaturnMoons")
         update_ecology_display("SaturnMoons")
         update_trade_display("SaturnMoons")
+        update_sky_city_display("SaturnMoons")
         update_terraform_display("SaturnMoons")
         update_all_cross_summaries()
     press_feedback(document.getElementById("travel-saturn-moons-button"))
@@ -1022,8 +1116,17 @@ def _simulate_planet(planet, incoming_trade_restore):
     if state["generator_count"] > 0:
         multiplier = production_multiplier(planet)
         if multiplier > 0:
+            # Sky City bonus (Milestone 10): a no-op multiplier of exactly 1
+            # on planets without the sky city keys (the other six planets).
+            sky_city_bonus = 1 + cfg.get("sky_city_production_bonus_per_city", 0) * state.get(
+                "sky_city_count", 0
+            )
             state["resource_count"] += (
-                state["generator_count"] * cfg["generator_rate"] * (TICK_INTERVAL_MS / 1000) * multiplier
+                state["generator_count"]
+                * cfg["generator_rate"]
+                * sky_city_bonus
+                * (TICK_INTERVAL_MS / 1000)
+                * multiplier
             )
 
     decay = state["generator_count"] * cfg["ecology_decay_per_generator_per_sec"] * (TICK_INTERVAL_MS / 1000)
@@ -1055,6 +1158,8 @@ def tick(*args):
         update_generator_display(planet)
         update_ecology_display(planet)
         update_trade_display(planet)
+        if planet in GAS_GIANT_BODIES:
+            update_sky_city_display(planet)
         update_terraform_display(planet)
 
     update_all_cross_summaries()
@@ -1240,6 +1345,10 @@ def setup():
         "click", create_proxy(on_jupiter_moons_cycle_trade_destination)
     )
 
+    jupiter_moons_buy_sky_city = document.getElementById("jupitermoons-buy-sky-city-button")
+    jupiter_moons_buy_sky_city.disabled = False
+    jupiter_moons_buy_sky_city.addEventListener("click", create_proxy(on_jupiter_moons_buy_sky_city))
+
     document.getElementById("jupitermoons-return-to-earth-button").addEventListener(
         "click", create_proxy(on_return_to_earth_from_jupiter_moons)
     )
@@ -1267,6 +1376,10 @@ def setup():
     saturn_moons_cycle_trade_destination.addEventListener(
         "click", create_proxy(on_saturn_moons_cycle_trade_destination)
     )
+
+    saturn_moons_buy_sky_city = document.getElementById("saturnmoons-buy-sky-city-button")
+    saturn_moons_buy_sky_city.disabled = False
+    saturn_moons_buy_sky_city.addEventListener("click", create_proxy(on_saturn_moons_buy_sky_city))
 
     document.getElementById("saturnmoons-return-to-earth-button").addEventListener(
         "click", create_proxy(on_return_to_earth_from_saturn_moons)
@@ -1317,6 +1430,8 @@ def setup():
         update_generator_display(planet)
         update_ecology_display(planet)
         update_trade_display(planet)
+        if planet in GAS_GIANT_BODIES:
+            update_sky_city_display(planet)
         update_terraform_display(planet)
     update_research_display()
     update_governor_display()

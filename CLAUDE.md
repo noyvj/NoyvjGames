@@ -48,7 +48,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
 ## Current games
 | Slug | Name | Status |
 |------|------|--------|
-| sol | SOL | Milestone 9g done (Saturn's Moons resource loop) — Milestone 9 fully complete |
+| sol | SOL | Milestone 10 done (Gas giant buildings) |
 
 ## Site-level milestones (separate from per-game milestones)
 | # | Milestone | Status |

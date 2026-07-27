@@ -58,11 +58,13 @@ INITIALLY_DISABLED_IDS = [
     "jupitermoons-buy-recycler-button",
     "jupitermoons-buy-trade-route-button",
     "jupitermoons-cycle-trade-destination-button",
+    "jupitermoons-buy-sky-city-button",
     "saturnmoons-click-button",
     "saturnmoons-buy-generator-button",
     "saturnmoons-buy-recycler-button",
     "saturnmoons-buy-trade-route-button",
     "saturnmoons-cycle-trade-destination-button",
+    "saturnmoons-buy-sky-city-button",
 ]
 
 # Maps the internal body identifier (used as current_planet / in
@@ -246,6 +248,9 @@ ELEMENT_IDS = [
     "jupitermoons-buy-recycler-button",
     "jupitermoons-recycler-count",
     "jupitermoons-recycler-rate",
+    "jupitermoons-sky-city-count",
+    "jupitermoons-sky-city-bonus",
+    "jupitermoons-buy-sky-city-button",
     "jupitermoons-return-to-earth-button",
     # Saturn's Moons's own economy
     "saturnmoons-click-button",
@@ -260,6 +265,9 @@ ELEMENT_IDS = [
     "saturnmoons-buy-recycler-button",
     "saturnmoons-recycler-count",
     "saturnmoons-recycler-rate",
+    "saturnmoons-sky-city-count",
+    "saturnmoons-sky-city-bonus",
+    "saturnmoons-buy-sky-city-button",
     "saturnmoons-return-to-earth-button",
     # Cross-planet governed summaries (viewer-prefixed: Earth's ids are
     # unprefixed via _dom_id, every other viewer gets "<viewer>-" first)
@@ -612,6 +620,7 @@ _BUTTON_ID = {
         "buy_recycler": "jupitermoons-buy-recycler-button",
         "buy_trade_route": "jupitermoons-buy-trade-route-button",
         "cycle_trade_destination": "jupitermoons-cycle-trade-destination-button",
+        "buy_sky_city": "jupitermoons-buy-sky-city-button",
     },
     "SaturnMoons": {
         "click": "saturnmoons-click-button",
@@ -619,6 +628,7 @@ _BUTTON_ID = {
         "buy_recycler": "saturnmoons-buy-recycler-button",
         "buy_trade_route": "saturnmoons-buy-trade-route-button",
         "cycle_trade_destination": "saturnmoons-cycle-trade-destination-button",
+        "buy_sky_city": "saturnmoons-buy-sky-city-button",
     },
 }
 
@@ -690,6 +700,9 @@ class GameEnv:
 
     def cycle_trade_destination(self, planet="Earth"):
         self.elements[_BUTTON_ID[planet]["cycle_trade_destination"]].dispatch("click", None)
+
+    def buy_sky_city(self, planet="JupiterMoons"):
+        self.elements[_BUTTON_ID[planet]["buy_sky_city"]].dispatch("click", None)
 
     def fund_research(self):
         self.elements["fund-research-button"].dispatch("click", None)

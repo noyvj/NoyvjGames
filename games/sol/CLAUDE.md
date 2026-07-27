@@ -54,7 +54,7 @@ Universal-Paperclips-style incremental game, solar-system themed. Player starts 
 | 9e | Pluto resource loop | New resource, reuse the standard building system — **DONE** |
 | 9f | Jupiter's moons resource loop | New resource, reuse the standard building system (one combined economy, not one per moon — matches the "parallel-unlock" framing) — **DONE** |
 | 9g | Saturn's moons resource loop | New resource, reuse the standard building system (one combined economy, not one per moon) — **DONE** — Milestone 9 fully complete |
-| 10 | Gas giant buildings | Reskinned building system + sky cities + Mars-material dependency |
+| 10 | Gas giant buildings | Reskinned building system + sky cities + Mars-material dependency — **DONE** |
 | 11 | Full system endgame | 100% completion win-state, final balance pass |
 
 **Important:** milestones can be built ahead of schedule, but should be *tagged* (`git tag milestone-0N` — sub-parts of 9 use `git tag milestone-09a` etc.) at actual completion time and *not publicized* (Instagram/devlog) until their assigned week. Don't backdate anything — the tag date must be real. This is a deliberate anti-burnout pacing strategy, not a submission deadline system.
