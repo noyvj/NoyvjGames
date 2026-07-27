@@ -197,16 +197,17 @@ def test_other_real_planets_is_computed_not_hardcoded(game_env):
     assert set(game_env.module.other_real_planets("Pluto")) == {"Earth", "Mars", "Moon", "Venus", "AsteroidBelt"}
 
 
-def test_primary_trade_destination_matches_other_real_planets(game_env):
-    # Simplest deterministic choice for now (first in PLANETS insertion
-    # order) — a real multi-destination selector is deferred until a
-    # milestone actually needs to make that UX decision.
-    assert game_env.module.primary_trade_destination("Earth") == "Mars"
-    assert game_env.module.primary_trade_destination("Mars") == "Earth"
-    assert game_env.module.primary_trade_destination("Moon") == "Earth"
-    assert game_env.module.primary_trade_destination("Venus") == "Earth"
-    assert game_env.module.primary_trade_destination("AsteroidBelt") == "Earth"
-    assert game_env.module.primary_trade_destination("Pluto") == "Earth"
+def test_current_trade_destination_defaults_to_first_other_real_planet(game_env):
+    # Milestone 9f made the destination player-selectable (see
+    # test_trade.py for the cycling behavior itself), but the default for
+    # anyone who hasn't cycled yet is still the first other real planet in
+    # PLANETS insertion order, matching pre-9f behavior exactly.
+    assert game_env.module.current_trade_destination("Earth") == "Mars"
+    assert game_env.module.current_trade_destination("Mars") == "Earth"
+    assert game_env.module.current_trade_destination("Moon") == "Earth"
+    assert game_env.module.current_trade_destination("Venus") == "Earth"
+    assert game_env.module.current_trade_destination("AsteroidBelt") == "Earth"
+    assert game_env.module.current_trade_destination("Pluto") == "Earth"
 
 
 def test_trade_routes_are_stored_per_destination(game_env):

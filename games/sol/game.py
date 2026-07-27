@@ -119,6 +119,7 @@ planet_state = {
         "recycler_count": 0,
         "ecology_health": 100.0,
         "trade_routes": {},  # destination planet name -> route count
+        "trade_destination": None,  # player-selected; lazily defaulted by current_trade_destination()
         "terraform_progress": 0.0,
     }
     for name in PLANETS
@@ -152,6 +153,18 @@ UNDEVELOPED_BODIES = ["JupiterMoons", "SaturnMoons"]
 BODY_DISPLAY_NAMES = {
     "JupiterMoons": "JUPITER'S MOONS",
     "SaturnMoons": "SATURN'S MOONS",
+}
+
+# Mixed-case display names for any planet whose internal PLANETS/PLANETS-
+# like key isn't already clean human-readable text (e.g. "AsteroidBelt" has
+# no space) — used wherever a planet name is shown inline rather than as a
+# standalone all-caps heading (currently: the trade destination display,
+# Milestone 9f). Planets not listed here (Earth, Mars, Moon, Venus, Pluto)
+# already have a clean single-word key, so they fall back to the key itself.
+PLANET_DISPLAY_NAMES = {
+    "AsteroidBelt": "Asteroid Belt",
+    "JupiterMoons": "Jupiter's Moons",
+    "SaturnMoons": "Saturn's Moons",
 }
 
 TRAVEL_BUTTON_ID = {
@@ -194,14 +207,29 @@ def other_real_planets(planet):
     return [p for p in PLANETS if p != planet]
 
 
-def primary_trade_destination(planet):
-    # Trade only has one possible destination per planet for now (Earth
-    # and Mars are the only two real economies) — this is computed rather
-    # than a hardcoded pair, so it keeps working once Milestones 9b+ add
-    # more real economies; picking among multiple destinations is a UI
-    # decision for whichever milestone first makes that ambiguous.
+def current_trade_destination(planet):
+    # Milestone 9f: the destination is now player-selectable (via the
+    # "Change Destination" button/_cycle_trade_destination) rather than
+    # always resolving to the first other real planet. It's lazily
+    # defaulted here — the first time it's asked for — to that same first
+    # other real planet, so pre-9f behavior (and pre-9f tests) still holds
+    # for anyone who's never cycled it, and it keeps working automatically
+    # as later milestones add more real economies.
+    state = planet_state[planet]
+    if state["trade_destination"] is None:
+        others = other_real_planets(planet)
+        state["trade_destination"] = others[0] if others else None
+    return state["trade_destination"]
+
+
+def _cycle_trade_destination(planet):
     others = other_real_planets(planet)
-    return others[0] if others else None
+    if others:
+        current = current_trade_destination(planet)
+        next_index = (others.index(current) + 1) % len(others) if current in others else 0
+        planet_state[planet]["trade_destination"] = others[next_index]
+        update_trade_display(planet)
+    press_feedback(document.getElementById(_dom_id(planet, "cycle-trade-destination-button")))
 
 
 def _dom_id(planet, suffix):
@@ -307,14 +335,16 @@ def update_ecology_display(planet):
 def update_trade_display(planet):
     cfg = PLANETS[planet]
     state = planet_state[planet]
-    destination = primary_trade_destination(planet)
+    destination = current_trade_destination(planet)
     count = state["trade_routes"].get(destination, 0) if destination else 0
 
     document.getElementById(_dom_id(planet, "trade-route-count")).innerText = str(count)
     document.getElementById(_dom_id(planet, "trade-route-rate")).innerText = str(
         round(count * TRADE_ROUTE_RESTORE_PER_SEC, 2)
     )
-    document.getElementById(_dom_id(planet, "trade-route-destination")).innerText = destination or "—"
+    document.getElementById(_dom_id(planet, "trade-route-destination")).innerText = (
+        PLANET_DISPLAY_NAMES.get(destination, destination) if destination else "—"
+    )
 
     button = document.getElementById(_dom_id(planet, "buy-trade-route-button"))
     if destination:
@@ -587,7 +617,7 @@ def on_pluto_buy_recycler(event):
 def _buy_trade_route(planet):
     state = planet_state[planet]
     button = document.getElementById(_dom_id(planet, "buy-trade-route-button"))
-    destination = primary_trade_destination(planet)
+    destination = current_trade_destination(planet)
     if destination is not None:
         cost = trade_route_cost(planet, destination)
         if state["resource_count"] >= cost:
@@ -621,6 +651,30 @@ def on_asteroid_belt_buy_trade_route(event):
 
 def on_pluto_buy_trade_route(event):
     _buy_trade_route("Pluto")
+
+
+def on_earth_cycle_trade_destination(event):
+    _cycle_trade_destination("Earth")
+
+
+def on_mars_cycle_trade_destination(event):
+    _cycle_trade_destination("Mars")
+
+
+def on_moon_cycle_trade_destination(event):
+    _cycle_trade_destination("Moon")
+
+
+def on_venus_cycle_trade_destination(event):
+    _cycle_trade_destination("Venus")
+
+
+def on_asteroid_belt_cycle_trade_destination(event):
+    _cycle_trade_destination("AsteroidBelt")
+
+
+def on_pluto_cycle_trade_destination(event):
+    _cycle_trade_destination("Pluto")
 
 
 def on_fund_research(event):
@@ -929,6 +983,11 @@ def setup():
     earth_buy_trade_route.disabled = False
     earth_buy_trade_route.addEventListener("click", create_proxy(on_earth_buy_trade_route))
 
+    earth_cycle_trade_destination = document.getElementById("cycle-trade-destination-button")
+    earth_cycle_trade_destination.innerText = "Change Destination"
+    earth_cycle_trade_destination.disabled = False
+    earth_cycle_trade_destination.addEventListener("click", create_proxy(on_earth_cycle_trade_destination))
+
     mars_click = document.getElementById("mars-click-button")
     mars_click.innerText = "Extract Ice"
     mars_click.disabled = False
@@ -945,6 +1004,11 @@ def setup():
     mars_buy_trade_route = document.getElementById("mars-buy-trade-route-button")
     mars_buy_trade_route.disabled = False
     mars_buy_trade_route.addEventListener("click", create_proxy(on_mars_buy_trade_route))
+
+    mars_cycle_trade_destination = document.getElementById("mars-cycle-trade-destination-button")
+    mars_cycle_trade_destination.innerText = "Change Destination"
+    mars_cycle_trade_destination.disabled = False
+    mars_cycle_trade_destination.addEventListener("click", create_proxy(on_mars_cycle_trade_destination))
 
     document.getElementById("mars-return-to-earth-button").addEventListener(
         "click", create_proxy(on_return_to_earth_from_mars)
@@ -967,6 +1031,11 @@ def setup():
     moon_buy_trade_route.disabled = False
     moon_buy_trade_route.addEventListener("click", create_proxy(on_moon_buy_trade_route))
 
+    moon_cycle_trade_destination = document.getElementById("moon-cycle-trade-destination-button")
+    moon_cycle_trade_destination.innerText = "Change Destination"
+    moon_cycle_trade_destination.disabled = False
+    moon_cycle_trade_destination.addEventListener("click", create_proxy(on_moon_cycle_trade_destination))
+
     document.getElementById("moon-return-to-earth-button").addEventListener(
         "click", create_proxy(on_return_to_earth_from_moon)
     )
@@ -987,6 +1056,11 @@ def setup():
     venus_buy_trade_route = document.getElementById("venus-buy-trade-route-button")
     venus_buy_trade_route.disabled = False
     venus_buy_trade_route.addEventListener("click", create_proxy(on_venus_buy_trade_route))
+
+    venus_cycle_trade_destination = document.getElementById("venus-cycle-trade-destination-button")
+    venus_cycle_trade_destination.innerText = "Change Destination"
+    venus_cycle_trade_destination.disabled = False
+    venus_cycle_trade_destination.addEventListener("click", create_proxy(on_venus_cycle_trade_destination))
 
     document.getElementById("venus-return-to-earth-button").addEventListener(
         "click", create_proxy(on_return_to_earth_from_venus)
@@ -1009,6 +1083,13 @@ def setup():
     asteroid_belt_buy_trade_route.disabled = False
     asteroid_belt_buy_trade_route.addEventListener("click", create_proxy(on_asteroid_belt_buy_trade_route))
 
+    asteroid_belt_cycle_trade_destination = document.getElementById("asteroidbelt-cycle-trade-destination-button")
+    asteroid_belt_cycle_trade_destination.innerText = "Change Destination"
+    asteroid_belt_cycle_trade_destination.disabled = False
+    asteroid_belt_cycle_trade_destination.addEventListener(
+        "click", create_proxy(on_asteroid_belt_cycle_trade_destination)
+    )
+
     document.getElementById("asteroidbelt-return-to-earth-button").addEventListener(
         "click", create_proxy(on_return_to_earth_from_asteroid_belt)
     )
@@ -1029,6 +1110,11 @@ def setup():
     pluto_buy_trade_route = document.getElementById("pluto-buy-trade-route-button")
     pluto_buy_trade_route.disabled = False
     pluto_buy_trade_route.addEventListener("click", create_proxy(on_pluto_buy_trade_route))
+
+    pluto_cycle_trade_destination = document.getElementById("pluto-cycle-trade-destination-button")
+    pluto_cycle_trade_destination.innerText = "Change Destination"
+    pluto_cycle_trade_destination.disabled = False
+    pluto_cycle_trade_destination.addEventListener("click", create_proxy(on_pluto_cycle_trade_destination))
 
     document.getElementById("pluto-return-to-earth-button").addEventListener(
         "click", create_proxy(on_return_to_earth_from_pluto)

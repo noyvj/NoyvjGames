@@ -30,23 +30,29 @@ INITIALLY_DISABLED_IDS = [
     "mars-buy-generator-button",
     "mars-buy-recycler-button",
     "buy-trade-route-button",
+    "cycle-trade-destination-button",
     "mars-buy-trade-route-button",
+    "mars-cycle-trade-destination-button",
     "moon-click-button",
     "moon-buy-generator-button",
     "moon-buy-recycler-button",
     "moon-buy-trade-route-button",
+    "moon-cycle-trade-destination-button",
     "venus-click-button",
     "venus-buy-generator-button",
     "venus-buy-recycler-button",
     "venus-buy-trade-route-button",
+    "venus-cycle-trade-destination-button",
     "asteroidbelt-click-button",
     "asteroidbelt-buy-generator-button",
     "asteroidbelt-buy-recycler-button",
     "asteroidbelt-buy-trade-route-button",
+    "asteroidbelt-cycle-trade-destination-button",
     "pluto-click-button",
     "pluto-buy-generator-button",
     "pluto-buy-recycler-button",
     "pluto-buy-trade-route-button",
+    "pluto-cycle-trade-destination-button",
 ]
 
 # Maps the internal body identifier (used as current_planet / in
@@ -338,26 +344,32 @@ ELEMENT_IDS = [
     "trade-route-rate",
     "trade-route-destination",
     "buy-trade-route-button",
+    "cycle-trade-destination-button",
     "mars-trade-route-count",
     "mars-trade-route-rate",
     "mars-trade-route-destination",
     "mars-buy-trade-route-button",
+    "mars-cycle-trade-destination-button",
     "moon-trade-route-count",
     "moon-trade-route-rate",
     "moon-trade-route-destination",
     "moon-buy-trade-route-button",
+    "moon-cycle-trade-destination-button",
     "venus-trade-route-count",
     "venus-trade-route-rate",
     "venus-trade-route-destination",
     "venus-buy-trade-route-button",
+    "venus-cycle-trade-destination-button",
     "asteroidbelt-trade-route-count",
     "asteroidbelt-trade-route-rate",
     "asteroidbelt-trade-route-destination",
     "asteroidbelt-buy-trade-route-button",
+    "asteroidbelt-cycle-trade-destination-button",
     "pluto-trade-route-count",
     "pluto-trade-route-rate",
     "pluto-trade-route-destination",
     "pluto-buy-trade-route-button",
+    "pluto-cycle-trade-destination-button",
     # Terraforming
     "terraform-percent",
     "terraform-bar",
@@ -385,36 +397,42 @@ _BUTTON_ID = {
         "buy_generator": "buy-generator-button",
         "buy_recycler": "buy-recycler-button",
         "buy_trade_route": "buy-trade-route-button",
+        "cycle_trade_destination": "cycle-trade-destination-button",
     },
     "Mars": {
         "click": "mars-click-button",
         "buy_generator": "mars-buy-generator-button",
         "buy_recycler": "mars-buy-recycler-button",
         "buy_trade_route": "mars-buy-trade-route-button",
+        "cycle_trade_destination": "mars-cycle-trade-destination-button",
     },
     "Moon": {
         "click": "moon-click-button",
         "buy_generator": "moon-buy-generator-button",
         "buy_recycler": "moon-buy-recycler-button",
         "buy_trade_route": "moon-buy-trade-route-button",
+        "cycle_trade_destination": "moon-cycle-trade-destination-button",
     },
     "Venus": {
         "click": "venus-click-button",
         "buy_generator": "venus-buy-generator-button",
         "buy_recycler": "venus-buy-recycler-button",
         "buy_trade_route": "venus-buy-trade-route-button",
+        "cycle_trade_destination": "venus-cycle-trade-destination-button",
     },
     "AsteroidBelt": {
         "click": "asteroidbelt-click-button",
         "buy_generator": "asteroidbelt-buy-generator-button",
         "buy_recycler": "asteroidbelt-buy-recycler-button",
         "buy_trade_route": "asteroidbelt-buy-trade-route-button",
+        "cycle_trade_destination": "asteroidbelt-cycle-trade-destination-button",
     },
     "Pluto": {
         "click": "pluto-click-button",
         "buy_generator": "pluto-buy-generator-button",
         "buy_recycler": "pluto-buy-recycler-button",
         "buy_trade_route": "pluto-buy-trade-route-button",
+        "cycle_trade_destination": "pluto-cycle-trade-destination-button",
     },
 }
 
@@ -473,6 +491,9 @@ class GameEnv:
 
     def buy_trade_route(self, planet="Earth"):
         self.elements[_BUTTON_ID[planet]["buy_trade_route"]].dispatch("click", None)
+
+    def cycle_trade_destination(self, planet="Earth"):
+        self.elements[_BUTTON_ID[planet]["cycle_trade_destination"]].dispatch("click", None)
 
     def fund_research(self):
         self.elements["fund-research-button"].dispatch("click", None)

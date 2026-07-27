@@ -3,7 +3,13 @@ building (reusing the Milestone 2 continuous-rate building pattern) that
 ships ecology restoration to the *other* planet — directly implementing the
 ecology system's own spec line, "recoverable by shipping in materials from
 an already-stabilized planet." Deliberately weaker than a local Recycler
-(0.5%/s vs 2.0%/s): a supplementary lever, not a replacement."""
+(0.5%/s vs 2.0%/s): a supplementary lever, not a replacement.
+
+Milestone 9f made the destination itself player-selectable (previously it
+always resolved to the first other real planet, e.g. always Earth for
+every non-Earth planet once the roster grew past two) via a "Change
+Destination" button that cycles through every other real economy. See the
+"player-selectable trade destination" section below."""
 
 import math
 
@@ -206,3 +212,98 @@ def test_trade_route_alone_can_recover_a_planet_with_no_local_recyclers(game_env
 
     game_env.timers.tick_intervals(10)  # 1 second at 0.5%/s
     assert game_env.mars["ecology_health"] > 0.0
+
+
+# --- Milestone 9f: player-selectable trade destination ---------------------
+
+def test_cycle_destination_button_configured(game_env):
+    button = game_env.elements["cycle-trade-destination-button"]
+    assert button.disabled is False
+    assert button.innerText == "Change Destination"
+
+
+def test_cycling_destination_changes_the_displayed_destination(game_env):
+    assert game_env.elements["trade-route-destination"].innerText == "Mars"
+    game_env.cycle_trade_destination()  # Earth
+    assert game_env.elements["trade-route-destination"].innerText != "Mars"
+
+
+def test_cycling_destination_shows_a_clean_display_name_for_asteroid_belt(game_env):
+    # "AsteroidBelt" is the internal PLANETS key (no space, for DOM-id
+    # safety) — the destination display must show the human-readable
+    # "Asteroid Belt" instead, not the raw internal key.
+    for _ in range(len(game_env.module.other_real_planets("Earth"))):
+        game_env.cycle_trade_destination()
+        if game_env.module.current_trade_destination("Earth") == "AsteroidBelt":
+            break
+    assert game_env.module.current_trade_destination("Earth") == "AsteroidBelt"
+    assert game_env.elements["trade-route-destination"].innerText == "Asteroid Belt"
+
+
+def test_cycling_destination_visits_every_other_real_planet_exactly_once(game_env):
+    # 6 real economies now means Earth has 5 "others" — cycling 5 times
+    # should visit each exactly once and the 6th cycle should wrap back to
+    # the start.
+    others = game_env.module.other_real_planets("Earth")
+    seen = [game_env.module.current_trade_destination("Earth")]
+    for _ in range(len(others)):
+        game_env.cycle_trade_destination()
+        seen.append(game_env.module.current_trade_destination("Earth"))
+    assert seen == [others[0]] + others[1:] + [others[0]]
+    assert set(seen[:-1]) == set(others)
+
+
+def test_cycling_destination_is_independent_per_planet(game_env):
+    game_env.cycle_trade_destination("Earth")
+    earth_destination = game_env.module.current_trade_destination("Earth")
+    mars_destination = game_env.module.current_trade_destination("Mars")
+    assert mars_destination == "Earth"  # Mars untouched by Earth's cycle
+    assert earth_destination != "Mars"  # Earth's cycle actually moved off the default
+
+
+def test_buying_trade_route_targets_the_currently_selected_destination(game_env):
+    game_env.cycle_trade_destination()  # Earth: Mars -> next real planet
+    destination = game_env.module.current_trade_destination("Earth")
+    game_env.earth["resource_count"] = 30
+    game_env.buy_trade_route()
+    assert game_env.earth["trade_routes"].get(destination, 0) == 1
+    assert game_env.earth["trade_routes"].get("Mars", 0) == 0
+
+
+def test_route_counts_are_kept_separately_per_destination(game_env):
+    # Building toward one destination, cycling away, and building toward a
+    # second destination must not merge or clobber the first destination's
+    # count — each is its own bucket in trade_routes.
+    game_env.earth["resource_count"] = 1000
+    game_env.buy_trade_route()  # 1 route to Mars (the default)
+    game_env.cycle_trade_destination()
+    second_destination = game_env.module.current_trade_destination("Earth")
+    game_env.buy_trade_route()  # 1 route to the new destination
+    assert game_env.earth["trade_routes"].get("Mars", 0) == 1
+    assert game_env.earth["trade_routes"].get(second_destination, 0) == 1
+
+
+def test_switching_back_to_a_destination_keeps_its_earlier_route_count(game_env):
+    game_env.earth["resource_count"] = 1000
+    game_env.buy_trade_route()  # 1 route to Mars
+    game_env.cycle_trade_destination()  # move off Mars
+    others = game_env.module.other_real_planets("Earth")
+    # Cycle all the way back around to Mars.
+    for _ in range(len(others) - 1):
+        game_env.cycle_trade_destination()
+    assert game_env.module.current_trade_destination("Earth") == "Mars"
+    assert game_env.elements["trade-route-count"].innerText == "1"
+
+
+def test_cycle_destination_button_gives_press_feedback(game_env):
+    button = game_env.elements["cycle-trade-destination-button"]
+    game_env.cycle_trade_destination()
+    assert button.classList.contains("pressed")
+    game_env.timers.flush()
+    assert not button.classList.contains("pressed")
+
+
+def test_mars_cycle_destination_button_wired(game_env):
+    button = game_env.elements["mars-cycle-trade-destination-button"]
+    assert "click" in button._listeners
+    assert len(button._listeners["click"]) == 1
