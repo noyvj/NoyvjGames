@@ -48,7 +48,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
 ## Current games
 | Slug | Name | Status |
 |------|------|--------|
-| sol | SOL | Milestone 9e done (Pluto resource loop) |
+| sol | SOL | Milestone 9f done (Jupiter's Moons resource loop) |
 
 ## Site-level milestones (separate from per-game milestones)
 | # | Milestone | Status |

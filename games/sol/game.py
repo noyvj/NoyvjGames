@@ -92,6 +92,20 @@ PLANETS = {
         "trade_route_base_cost": 30,
         "trade_route_cost_growth": 1.15,
     },
+    "JupiterMoons": {
+        "resource_name": "Helium-3",
+        "generator_singular": "Auto-Skimmer",
+        "generator_plural": "Auto-Skimmers",
+        "generator_base_cost": 10,
+        "generator_cost_growth": 1.15,
+        "generator_rate": 1,
+        "ecology_decay_per_generator_per_sec": 1.0,
+        "recycler_base_cost": 15,
+        "recycler_cost_growth": 1.15,
+        "recycler_restore_per_sec": 2.0,
+        "trade_route_base_cost": 30,
+        "trade_route_cost_growth": 1.15,
+    },
 }
 
 # Ecology restored on the DESTINATION planet, per Trade Route, per second.
@@ -146,12 +160,11 @@ RESEARCH_FUND_COST = 50  # flat Iron per investment, same across every tier, not
 
 # Bodies with no economy of their own yet — visiting any of these shows the
 # shared #away-view placeholder rather than a dedicated view.
-UNDEVELOPED_BODIES = ["JupiterMoons", "SaturnMoons"]
+UNDEVELOPED_BODIES = ["SaturnMoons"]
 
 # Human-readable heading text for the away-view placeholder (internal
 # identifiers avoid spaces/apostrophes so they're safe to use in DOM ids).
 BODY_DISPLAY_NAMES = {
-    "JupiterMoons": "JUPITER'S MOONS",
     "SaturnMoons": "SATURN'S MOONS",
 }
 
@@ -422,6 +435,9 @@ def update_travel_display():
     pluto_summary = document.getElementById("pluto-summary")
     pluto_summary.hidden = "Pluto" not in unlocked_bodies
 
+    jupiter_moons_summary = document.getElementById("jupitermoons-summary")
+    jupiter_moons_summary.hidden = "JupiterMoons" not in unlocked_bodies
+
     status = document.getElementById("travel-status")
     status.innerText = "Choose a destination:" if unlocked_bodies else "Reach the Near Bodies tier to unlock travel."
 
@@ -492,6 +508,7 @@ def _hide_all_views():
     document.getElementById("venus-view").hidden = True
     document.getElementById("asteroidbelt-view").hidden = True
     document.getElementById("pluto-view").hidden = True
+    document.getElementById("jupitermoons-view").hidden = True
     document.getElementById("away-view").hidden = True
 
 
@@ -540,6 +557,10 @@ def on_pluto_click(event):
     _mine("Pluto")
 
 
+def on_jupiter_moons_click(event):
+    _mine("JupiterMoons")
+
+
 def _buy_generator(planet):
     state = planet_state[planet]
     button = document.getElementById(_dom_id(planet, "buy-generator-button"))
@@ -577,6 +598,10 @@ def on_pluto_buy_generator(event):
     _buy_generator("Pluto")
 
 
+def on_jupiter_moons_buy_generator(event):
+    _buy_generator("JupiterMoons")
+
+
 def _buy_recycler(planet):
     state = planet_state[planet]
     button = document.getElementById(_dom_id(planet, "buy-recycler-button"))
@@ -612,6 +637,10 @@ def on_asteroid_belt_buy_recycler(event):
 
 def on_pluto_buy_recycler(event):
     _buy_recycler("Pluto")
+
+
+def on_jupiter_moons_buy_recycler(event):
+    _buy_recycler("JupiterMoons")
 
 
 def _buy_trade_route(planet):
@@ -653,6 +682,10 @@ def on_pluto_buy_trade_route(event):
     _buy_trade_route("Pluto")
 
 
+def on_jupiter_moons_buy_trade_route(event):
+    _buy_trade_route("JupiterMoons")
+
+
 def on_earth_cycle_trade_destination(event):
     _cycle_trade_destination("Earth")
 
@@ -675,6 +708,10 @@ def on_asteroid_belt_cycle_trade_destination(event):
 
 def on_pluto_cycle_trade_destination(event):
     _cycle_trade_destination("Pluto")
+
+
+def on_jupiter_moons_cycle_trade_destination(event):
+    _cycle_trade_destination("JupiterMoons")
 
 
 def on_fund_research(event):
@@ -799,8 +836,17 @@ def on_travel_pluto(event):
 
 
 def on_travel_jupiter_moons(event):
+    global current_planet
     if "JupiterMoons" in unlocked_bodies:
-        _travel_to_undeveloped("JupiterMoons")
+        current_planet = "JupiterMoons"
+        _hide_all_views()
+        document.getElementById("jupitermoons-view").hidden = False
+        update_resource_display("JupiterMoons")
+        update_generator_display("JupiterMoons")
+        update_ecology_display("JupiterMoons")
+        update_trade_display("JupiterMoons")
+        update_terraform_display("JupiterMoons")
+        update_all_cross_summaries()
     press_feedback(document.getElementById("travel-jupiter-moons-button"))
 
 
@@ -866,6 +912,11 @@ def on_return_to_earth_from_asteroid_belt(event):
 def on_return_to_earth_from_pluto(event):
     _return_to_earth()
     press_feedback(document.getElementById("pluto-return-to-earth-button"))
+
+
+def on_return_to_earth_from_jupiter_moons(event):
+    _return_to_earth()
+    press_feedback(document.getElementById("jupitermoons-return-to-earth-button"))
 
 
 def governor_step():
@@ -1118,6 +1169,34 @@ def setup():
 
     document.getElementById("pluto-return-to-earth-button").addEventListener(
         "click", create_proxy(on_return_to_earth_from_pluto)
+    )
+
+    jupiter_moons_click = document.getElementById("jupitermoons-click-button")
+    jupiter_moons_click.innerText = "Skim Helium-3"
+    jupiter_moons_click.disabled = False
+    jupiter_moons_click.addEventListener("click", create_proxy(on_jupiter_moons_click))
+
+    jupiter_moons_buy_generator = document.getElementById("jupitermoons-buy-generator-button")
+    jupiter_moons_buy_generator.disabled = False
+    jupiter_moons_buy_generator.addEventListener("click", create_proxy(on_jupiter_moons_buy_generator))
+
+    jupiter_moons_buy_recycler = document.getElementById("jupitermoons-buy-recycler-button")
+    jupiter_moons_buy_recycler.disabled = False
+    jupiter_moons_buy_recycler.addEventListener("click", create_proxy(on_jupiter_moons_buy_recycler))
+
+    jupiter_moons_buy_trade_route = document.getElementById("jupitermoons-buy-trade-route-button")
+    jupiter_moons_buy_trade_route.disabled = False
+    jupiter_moons_buy_trade_route.addEventListener("click", create_proxy(on_jupiter_moons_buy_trade_route))
+
+    jupiter_moons_cycle_trade_destination = document.getElementById("jupitermoons-cycle-trade-destination-button")
+    jupiter_moons_cycle_trade_destination.innerText = "Change Destination"
+    jupiter_moons_cycle_trade_destination.disabled = False
+    jupiter_moons_cycle_trade_destination.addEventListener(
+        "click", create_proxy(on_jupiter_moons_cycle_trade_destination)
+    )
+
+    document.getElementById("jupitermoons-return-to-earth-button").addEventListener(
+        "click", create_proxy(on_return_to_earth_from_jupiter_moons)
     )
 
     research_button = document.getElementById("fund-research-button")
