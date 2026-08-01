@@ -20,22 +20,23 @@ Unlike the other three (all mitigation-focused), Aftermath treats climate change
 
 ## Milestones
 
-1. **Single-run core loop** — scheduled event sequence, resource allocation between events, event damage resolution. Tests: event scheduling, allocation logic, damage resolution.
-2. **Run scoring + skill-tree currency generation** — end-of-run score, currency earned based on performance. Tests: scoring formula, currency calculation.
-3. **Skill tree structure** — persistent tree of unlockable resilience bonuses, spend currency between runs. Tests: unlock logic, currency spend/balance tracking, persistence across sessions (local storage substitute — no browser storage per artifact rules if this ends up in an HTML/React context; use in-memory/session state or your existing Neon backend for persistence instead).
-4. **Bonus application to new runs** — unlocked skill-tree bonuses actually modify the next run's starting conditions/event resolution. Tests: bonus application across a sample run.
-5. **Hope-angle payoff** — a clear "look how far you've come" comparison across runs (e.g. run 1 vs. run 5 outcome, same event sequence, visibly better handled).
-6. **In-game feedback prompt** — piped to Neon backend per root conventions.
-7. **Visual/UI pass + hub integration.**
+| # | Milestone | Content | Status |
+|---|-----------|---------|--------|
+| 1 | Single-run core loop | Scheduled event sequence, resource allocation between events, event damage resolution. Tests: event scheduling, allocation logic, damage resolution | Done |
+| 2 | Run scoring + skill-tree currency generation | End-of-run score, currency earned based on performance. Tests: scoring formula, currency calculation | Pending |
+| 3 | Skill tree structure | Persistent tree of unlockable resilience bonuses, spend currency between runs. Tests: unlock logic, currency spend/balance tracking | Pending |
+| 4 | Bonus application to new runs | Unlocked skill-tree bonuses actually modify the next run's starting conditions/event resolution. Tests: bonus application across a sample run | Pending |
+| 5 | Hope-angle payoff | A clear "look how far you've come" comparison across runs (e.g. run 1 vs. run 5 outcome, same event sequence, visibly better handled) | Pending |
+| 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Pending |
+| 7 | Visual/UI pass + hub integration | | Pending |
 
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
-- **Persistence matters more here than in the other three** — the skill tree needs to survive between runs within a session at minimum, and ideally between visits. Use the existing Neon/FastAPI backend for this rather than browser storage (browser storage APIs are unsupported in the artifact/hub environment).
+- **Persistence decision (revised from the original plan):** the plan originally called for Neon-backend persistence, written under the assumption this might run in a sandboxed Claude Artifact where browser storage is unavailable. It doesn't — this is a normal static site with no accounts/auth system anywhere in the project (SOL/Canopy/Grid/Tide are all anonymous, shared-per-browser). Persisting to Neon would mean inventing an anonymous-device-identity scheme just to key rows to a browser with no other identity, plus new backend surface on the shared ratings service. Confirmed with the user: **use `localStorage`** instead — same per-browser persistence, no new backend surface. Trade-off: doesn't sync across devices, and clearing browser data resets it.
 - Keep run-state and skill-tree-state as separate objects from the start — they're tested and persisted differently.
 
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag aftermath-milestone-0N`.
 - Update the milestone table Status as work happens.
-- Once ready, move this file into `games/aftermath/CLAUDE.md` and build there — same pattern as SOL and Trade Empire.
