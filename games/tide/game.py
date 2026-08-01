@@ -40,6 +40,14 @@ FISH_LAG_SEASONS = 3
 FISH_DAMAGE_SCALE = 50.0
 MIN_FISH_MULTIPLIER = 0.2
 
+# Sea level rises every season no matter what the player does — adaptation
+# infrastructure never stops or slows the rise itself, only how much
+# economic damage that rise translates into. Capped so it can never fully
+# neutralize the threat outright.
+SEA_LEVEL_RISE_PER_SEASON = 5.0
+DAMPENING_PER_ADAPTATION_UNIT = 0.08
+MAX_DAMPENING = 0.9
+
 
 class SettlementState:
     def __init__(self):
@@ -48,6 +56,8 @@ class SettlementState:
         self.capacity = {c: 0 for c in CATEGORIES}
         self.acidity = 0.0
         self.acidity_history = []
+        self.sea_level = 0.0
+        self.cumulative_damage = 0.0
 
     def invest(self, category):
         cost = INVEST_COST[category]
@@ -65,6 +75,9 @@ class SettlementState:
         lagged_acidity = self.acidity_history[-FISH_LAG_SEASONS]
         return max(MIN_FISH_MULTIPLIER, 1 - lagged_acidity / FISH_DAMAGE_SCALE)
 
+    def dampening_fraction(self):
+        return min(MAX_DAMPENING, self.capacity["adaptation"] * DAMPENING_PER_ADAPTATION_UNIT)
+
     def advance_season(self):
         income = self.capacity["output"] * OUTPUT_INCOME_PER_UNIT * self.fish_yield_multiplier()
         self.funds += income
@@ -75,6 +88,9 @@ class SettlementState:
         )
         self.acidity = max(0.0, self.acidity + acidity_change)
         self.acidity_history.append(self.acidity)
+
+        self.sea_level += SEA_LEVEL_RISE_PER_SEASON
+        self.cumulative_damage += SEA_LEVEL_RISE_PER_SEASON * (1 - self.dampening_fraction())
 
         self.season += 1
 
@@ -88,6 +104,10 @@ def render():
     document.getElementById("acidity-display").innerText = f"Ocean acidity: {state.acidity:.1f}"
     document.getElementById("fish-yield-display").innerText = (
         f"Fishing yield: {state.fish_yield_multiplier() * 100:.0f}%"
+    )
+    document.getElementById("sea-level-display").innerText = f"Sea level: {state.sea_level:.0f}"
+    document.getElementById("damage-display").innerText = (
+        f"Cumulative damage: {state.cumulative_damage:.0f}"
     )
 
     for category in CATEGORIES:

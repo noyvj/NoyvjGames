@@ -16,6 +16,8 @@ ELEMENT_IDS = [
     "funds-display",
     "acidity-display",
     "fish-yield-display",
+    "sea-level-display",
+    "damage-display",
     "advance-season-button",
 ]
 for _category in CATEGORIES:
