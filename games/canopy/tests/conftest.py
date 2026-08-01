@@ -22,6 +22,7 @@ ELEMENT_IDS = [
     "selected-plot-state",
     "clear-button",
     "replant-button",
+    "income-display",
 ]
 
 # Buttons that carry the `disabled` attribute in index.html's initial markup
@@ -43,6 +44,10 @@ class GameEnv:
 
     def plot(self, index):
         return self.module.plots[index]
+
+    @property
+    def total_income(self):
+        return self.module.total_income
 
     def select(self, index):
         self.module.select_plot(index)

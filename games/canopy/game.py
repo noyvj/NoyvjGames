@@ -20,6 +20,13 @@ TICK_INTERVAL_MS = 1000
 BASE_ACCRUAL = 1.0
 GROWTH_PER_TICK = 0.05
 
+# Soil degradation: each clear on a given plot permanently lowers that
+# plot's future productivity. Never fully to zero — a plot always keeps
+# some minimum ability to regrow, matching the site's "no dead-end states"
+# philosophy.
+DEGRADE_PER_CLEAR = 0.1
+MIN_PRODUCTIVITY_MULTIPLIER = 0.2
+
 PRESERVED = "preserved"
 BARE = "bare"
 REPLANTING = "replanting"
@@ -52,6 +59,16 @@ class Plot:
         self.state = PRESERVED
         self.value = 0.0
         self.ticks_intact = 0
+        self.clear_count = 0
+
+    def productivity_multiplier(self):
+        """Soil quality factor from past clearing — 1.0 for a never-cleared
+        plot, stepping down permanently with each clear, floored so a plot
+        never stops producing entirely."""
+        return max(
+            MIN_PRODUCTIVITY_MULTIPLIER,
+            1 - DEGRADE_PER_CLEAR * self.clear_count,
+        )
 
     def accrue_tick(self):
         """Advances one tick of passive value growth. No-op outside
@@ -60,16 +77,21 @@ class Plot:
         if self.state not in ACCRUING_STATES:
             return
         self.ticks_intact += 1
-        multiplier = 1 + self.ticks_intact * GROWTH_PER_TICK
-        self.value += BASE_ACCRUAL * multiplier
+        growth_multiplier = 1 + self.ticks_intact * GROWTH_PER_TICK
+        self.value += BASE_ACCRUAL * self.productivity_multiplier() * growth_multiplier
 
     def clear(self):
+        """Harvests this plot's standing value and returns it as a payout
+        (None if clearing isn't valid from the current state). Clearing
+        also permanently degrades the plot's future productivity."""
         if "clear" not in VALID_ACTIONS[self.state]:
-            return False
+            return None
+        payout = self.value
+        self.clear_count += 1
         self.state = BARE
         self.value = 0.0
         self.ticks_intact = 0
-        return True
+        return payout
 
     def replant(self):
         if "replant" not in VALID_ACTIONS[self.state]:
@@ -87,6 +109,7 @@ class Plot:
 
 plots = [Plot(i) for i in range(GRID_ROWS * GRID_COLS)]
 selected_index = None
+total_income = 0.0
 
 
 def _plot_tile_id(index):
@@ -127,9 +150,14 @@ def render_panel():
     replant_button.disabled = "replant" not in VALID_ACTIONS[plot.state]
 
 
+def render_stats():
+    document.getElementById("income-display").innerText = f"Harvested income: {total_income:.1f}"
+
+
 def render():
     render_grid()
     render_panel()
+    render_stats()
 
 
 def _make_select_handler(index):
@@ -145,9 +173,12 @@ def select_plot(index):
 
 
 def on_clear(event=None):
+    global total_income
     if selected_index is None:
         return
-    plots[selected_index].clear()
+    payout = plots[selected_index].clear()
+    if payout is not None:
+        total_income += payout
     render()
 
 
