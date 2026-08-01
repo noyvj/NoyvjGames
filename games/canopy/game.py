@@ -2,15 +2,23 @@
 
 Runs in-browser via Pyodide. Milestone 1: grid of forest plots with a
 state machine (PRESERVED/BARE/REPLANTING/RECOVERED) and click-driven
-Clear/Replant actions. Passive value, payout economics, and soil
+Clear/Replant actions. Milestone 2: passive standing value that compounds
+the longer a plot stays PRESERVED/RECOVERED. Payout economics and soil
 degradation land in later milestones.
 """
 
-from js import document
+from js import document, setInterval
 from pyodide.ffi import create_proxy
 
 GRID_ROWS = 6
 GRID_COLS = 6
+TICK_INTERVAL_MS = 1000
+
+# Standing value accrued per tick at ticks_intact == 0 is BASE_ACCRUAL *
+# (1 + GROWTH_PER_TICK); the multiplier itself grows every subsequent tick,
+# so patience is rewarded increasingly rather than at a flat rate.
+BASE_ACCRUAL = 1.0
+GROWTH_PER_TICK = 0.05
 
 PRESERVED = "preserved"
 BARE = "bare"
@@ -34,16 +42,33 @@ VALID_ACTIONS = {
     REPLANTING: set(),
 }
 
+# States in which a plot accrues standing value each tick.
+ACCRUING_STATES = {PRESERVED, RECOVERED}
+
 
 class Plot:
     def __init__(self, index):
         self.index = index
         self.state = PRESERVED
+        self.value = 0.0
+        self.ticks_intact = 0
+
+    def accrue_tick(self):
+        """Advances one tick of passive value growth. No-op outside
+        PRESERVED/RECOVERED — bare and replanting plots hold no standing
+        value to grow."""
+        if self.state not in ACCRUING_STATES:
+            return
+        self.ticks_intact += 1
+        multiplier = 1 + self.ticks_intact * GROWTH_PER_TICK
+        self.value += BASE_ACCRUAL * multiplier
 
     def clear(self):
         if "clear" not in VALID_ACTIONS[self.state]:
             return False
         self.state = BARE
+        self.value = 0.0
+        self.ticks_intact = 0
         return True
 
     def replant(self):
@@ -94,7 +119,10 @@ def render_panel():
         return
 
     plot = plots[selected_index]
-    panel_state_el.innerText = f"Plot {selected_index}: {STATE_LABEL[plot.state]}"
+    panel_state_el.innerText = (
+        f"Plot {selected_index}: {STATE_LABEL[plot.state]} "
+        f"(value {plot.value:.1f})"
+    )
     clear_button.disabled = "clear" not in VALID_ACTIONS[plot.state]
     replant_button.disabled = "replant" not in VALID_ACTIONS[plot.state]
 
@@ -130,6 +158,12 @@ def on_replant(event=None):
     render()
 
 
+def tick(event=None):
+    for plot in plots:
+        plot.accrue_tick()
+    render()
+
+
 def setup():
     clear_button = document.getElementById("clear-button")
     replant_button = document.getElementById("replant-button")
@@ -137,6 +171,7 @@ def setup():
     replant_button.innerText = "Replant"
     clear_button.addEventListener("click", create_proxy(on_clear))
     replant_button.addEventListener("click", create_proxy(on_replant))
+    setInterval(create_proxy(tick), TICK_INTERVAL_MS)
     render()
 
 
