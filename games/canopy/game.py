@@ -27,6 +27,11 @@ GROWTH_PER_TICK = 0.05
 DEGRADE_PER_CLEAR = 0.1
 MIN_PRODUCTIVITY_MULTIPLIER = 0.2
 
+# How many ticks a replanted plot spends in REPLANTING before it
+# automatically becomes RECOVERED. A never-cleared plot pays no such
+# delay — this is the "slower timeline" the plan calls for.
+RECOVERY_TICKS = 10
+
 PRESERVED = "preserved"
 BARE = "bare"
 REPLANTING = "replanting"
@@ -60,6 +65,7 @@ class Plot:
         self.value = 0.0
         self.ticks_intact = 0
         self.clear_count = 0
+        self.replant_ticks_remaining = 0
 
     def productivity_multiplier(self):
         """Soil quality factor from past clearing — 1.0 for a never-cleared
@@ -97,14 +103,25 @@ class Plot:
         if "replant" not in VALID_ACTIONS[self.state]:
             return False
         self.state = REPLANTING
+        self.replant_ticks_remaining = RECOVERY_TICKS
         return True
 
     def finish_recovery(self):
-        """Transitions a REPLANTING plot to RECOVERED (milestone 4 wires up the timer)."""
+        """Transitions a REPLANTING plot to RECOVERED."""
         if self.state != REPLANTING:
             return False
         self.state = RECOVERED
+        self.replant_ticks_remaining = 0
         return True
+
+    def advance_recovery(self):
+        """Counts down one tick of the replanting timer, auto-completing
+        recovery once it reaches zero. No-op outside REPLANTING."""
+        if self.state != REPLANTING:
+            return
+        self.replant_ticks_remaining -= 1
+        if self.replant_ticks_remaining <= 0:
+            self.finish_recovery()
 
 
 plots = [Plot(i) for i in range(GRID_ROWS * GRID_COLS)]
@@ -142,9 +159,11 @@ def render_panel():
         return
 
     plot = plots[selected_index]
+    detail = f"value {plot.value:.1f}"
+    if plot.state == REPLANTING:
+        detail = f"recovering in {plot.replant_ticks_remaining} ticks"
     panel_state_el.innerText = (
-        f"Plot {selected_index}: {STATE_LABEL[plot.state]} "
-        f"(value {plot.value:.1f})"
+        f"Plot {selected_index}: {STATE_LABEL[plot.state]} ({detail})"
     )
     clear_button.disabled = "clear" not in VALID_ACTIONS[plot.state]
     replant_button.disabled = "replant" not in VALID_ACTIONS[plot.state]
@@ -192,6 +211,7 @@ def on_replant(event=None):
 def tick(event=None):
     for plot in plots:
         plot.accrue_tick()
+        plot.advance_recovery()
     render()
 
 

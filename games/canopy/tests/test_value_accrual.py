@@ -21,8 +21,10 @@ def test_bare_plot_does_not_accrue_value(game_env):
 
 def test_replanting_plot_does_not_accrue_value(game_env):
     plot = game_env.plot(0)
-    plot.state = REPLANTING
+    plot.state = BARE
+    plot.replant()  # properly starts the recovery countdown (Milestone 4)
     game_env.timers.tick_intervals(times=3)
+    assert plot.state == REPLANTING
     assert plot.value == 0.0
 
 
