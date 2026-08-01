@@ -23,6 +23,7 @@ ELEMENT_IDS = [
     "growth-invest-button",
     "resolve-event-button",
     "new-run-button",
+    "progress-comparison-display",
 ]
 for _skill in SKILL_IDS:
     ELEMENT_IDS += [f"skill-{_skill}-status", f"skill-{_skill}-unlock-button"]
@@ -48,6 +49,10 @@ class GameEnv:
     @property
     def skill_tree(self):
         return self.module.skill_tree
+
+    @property
+    def run_history(self):
+        return self.module.run_history
 
     def invest_resilience(self):
         self.elements["resilience-invest-button"].dispatch("click", None)

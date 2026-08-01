@@ -60,6 +60,21 @@ SKILLS = {
 }
 
 SKILL_TREE_STORAGE_KEY = "aftermath_skill_tree_v1"
+RUN_HISTORY_STORAGE_KEY = "aftermath_run_history_v1"
+
+
+def load_run_history():
+    raw = localStorage.getItem(RUN_HISTORY_STORAGE_KEY)
+    if not raw:
+        return []
+    try:
+        return json.loads(raw)
+    except ValueError:
+        return []
+
+
+def save_run_history(history):
+    localStorage.setItem(RUN_HISTORY_STORAGE_KEY, json.dumps(history))
 
 
 def starting_resources_bonus():
@@ -130,6 +145,8 @@ class RunState:
         if self.is_complete():
             skill_tree.add_knowledge(self.knowledge_points_earned())
             skill_tree.save()
+            run_history.append(self.run_score())
+            save_run_history(run_history)
 
         return True
 
@@ -190,7 +207,30 @@ class SkillTreeState:
 
 
 skill_tree = SkillTreeState.load()
+run_history = load_run_history()
 run = RunState()
+
+
+def progress_comparison():
+    """The hope-angle payoff: run 1 vs. the most recent run, same event
+    schedule. None until at least two runs have been completed."""
+    if len(run_history) < 2:
+        return None
+    return run_history[0], run_history[-1]
+
+
+def progress_message(comparison):
+    if comparison is None:
+        return "Play more runs to see how far you've come."
+    first, latest = comparison
+    if latest > first:
+        return (
+            f"Look how far you've come — your first run scored {first:.0f}, "
+            f"your most recent scored {latest:.0f}. Same events, handled better."
+        )
+    if latest < first:
+        return f"Your most recent run ({latest:.0f}) scored lower than your first ({first:.0f})."
+    return f"Your run performance has held steady at {latest:.0f}."
 
 
 def render():
@@ -227,6 +267,9 @@ def render():
     resolve_button.disabled = run.is_complete()
 
     document.getElementById("new-run-button").hidden = not run.is_complete()
+    document.getElementById("progress-comparison-display").innerText = progress_message(
+        progress_comparison()
+    )
 
     document.getElementById("knowledge-points-display").innerText = (
         f"Resilience knowledge: {skill_tree.knowledge_points}"
