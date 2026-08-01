@@ -23,6 +23,8 @@ ELEMENT_IDS = [
     "clear-button",
     "replant-button",
     "income-display",
+    "standing-value-display",
+    "comparison-message",
 ]
 
 # Buttons that carry the `disabled` attribute in index.html's initial markup

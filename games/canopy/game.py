@@ -169,8 +169,35 @@ def render_panel():
     replant_button.disabled = "replant" not in VALID_ACTIONS[plot.state]
 
 
+def standing_forest_value():
+    """Live sum of standing value across every plot — only PRESERVED and
+    RECOVERED plots hold nonzero value at any given moment."""
+    return sum(plot.value for plot in plots)
+
+
+def comparison_message(income, standing_value):
+    """The hope-angle payoff: a plain-language read on how short-term
+    harvesting stacks up against the value of what's still standing."""
+    if income == 0 and standing_value == 0:
+        return "Nothing harvested or grown yet — clear a plot for quick income, or leave one standing to watch its value compound."
+    if standing_value > income:
+        return (
+            f"Your standing forest ({standing_value:.1f}) is worth more than everything "
+            f"you've harvested ({income:.1f}) — patience is compounding."
+        )
+    if income > standing_value:
+        return (
+            f"You've harvested more ({income:.1f}) than your forest currently holds "
+            f"({standing_value:.1f}) — quick income, but nothing left compounding."
+        )
+    return f"Harvested income and standing forest value are evenly matched, at {income:.1f}."
+
+
 def render_stats():
+    standing_value = standing_forest_value()
     document.getElementById("income-display").innerText = f"Harvested income: {total_income:.1f}"
+    document.getElementById("standing-value-display").innerText = f"Standing forest value: {standing_value:.1f}"
+    document.getElementById("comparison-message").innerText = comparison_message(total_income, standing_value)
 
 
 def render():

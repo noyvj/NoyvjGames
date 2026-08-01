@@ -72,6 +72,18 @@ h1 {
   font-size: 0.95rem;
 }
 
+.income-display {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+}
+
+.comparison-message {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  opacity: 0.85;
+}
+
 .action-buttons {
   display: flex;
   gap: 0.5rem;
