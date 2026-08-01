@@ -27,12 +27,27 @@ INVEST_COST = {
 
 OUTPUT_INCOME_PER_UNIT = 6
 
+# Acidity: rises with industry output, falls (more slowly) with dedicated
+# reduction spending. Never goes negative — there's no "banking" cleanup
+# credit for later.
+ACIDITY_RISE_PER_OUTPUT = 2.0
+ACIDITY_FALL_PER_REDUCTION = 1.5
+
+# Delayed consequence: this season's fishing yield depends on acidity
+# from FISH_LAG_SEASONS ago, not today's number — the whole point being
+# that damage from today's choices doesn't show up right away.
+FISH_LAG_SEASONS = 3
+FISH_DAMAGE_SCALE = 50.0
+MIN_FISH_MULTIPLIER = 0.2
+
 
 class SettlementState:
     def __init__(self):
         self.season = 1
         self.funds = STARTING_FUNDS
         self.capacity = {c: 0 for c in CATEGORIES}
+        self.acidity = 0.0
+        self.acidity_history = []
 
     def invest(self, category):
         cost = INVEST_COST[category]
@@ -42,8 +57,25 @@ class SettlementState:
         self.capacity[category] += 1
         return True
 
+    def fish_yield_multiplier(self):
+        """1.0 (full yield) until enough seasons have passed for the lag
+        to "arrive" — then reflects acidity from FISH_LAG_SEASONS ago."""
+        if len(self.acidity_history) < FISH_LAG_SEASONS:
+            return 1.0
+        lagged_acidity = self.acidity_history[-FISH_LAG_SEASONS]
+        return max(MIN_FISH_MULTIPLIER, 1 - lagged_acidity / FISH_DAMAGE_SCALE)
+
     def advance_season(self):
-        self.funds += self.capacity["output"] * OUTPUT_INCOME_PER_UNIT
+        income = self.capacity["output"] * OUTPUT_INCOME_PER_UNIT * self.fish_yield_multiplier()
+        self.funds += income
+
+        acidity_change = (
+            self.capacity["output"] * ACIDITY_RISE_PER_OUTPUT
+            - self.capacity["reduction"] * ACIDITY_FALL_PER_REDUCTION
+        )
+        self.acidity = max(0.0, self.acidity + acidity_change)
+        self.acidity_history.append(self.acidity)
+
         self.season += 1
 
 
@@ -53,6 +85,10 @@ state = SettlementState()
 def render():
     document.getElementById("season-display").innerText = f"Season {state.season}"
     document.getElementById("funds-display").innerText = f"Funds: {state.funds:.0f}"
+    document.getElementById("acidity-display").innerText = f"Ocean acidity: {state.acidity:.1f}"
+    document.getElementById("fish-yield-display").innerText = (
+        f"Fishing yield: {state.fish_yield_multiplier() * 100:.0f}%"
+    )
 
     for category in CATEGORIES:
         document.getElementById(f"{category}-count").innerText = str(state.capacity[category])

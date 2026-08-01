@@ -14,6 +14,8 @@ CATEGORIES = ["output", "reduction", "adaptation"]
 ELEMENT_IDS = [
     "season-display",
     "funds-display",
+    "acidity-display",
+    "fish-yield-display",
     "advance-season-button",
 ]
 for _category in CATEGORIES:
