@@ -48,6 +48,35 @@ SEA_LEVEL_RISE_PER_SEASON = 5.0
 DAMPENING_PER_ADAPTATION_UNIT = 0.08
 MAX_DAMPENING = 0.9
 
+# Coastline tile grid: row 0 is the top of the grid (highest ground, high
+# threshold, floods last); the bottom row is the lowest ground and floods
+# first — water rises visually from the bottom, matching a real coastline.
+COASTLINE_ROWS = 6
+COASTLINE_COLS = 8
+ROW_FLOOD_STEP = 15.0
+
+LAND = "land"
+FLOODED = "flooded"
+
+
+def row_flood_threshold(row):
+    elevation = COASTLINE_ROWS - row  # bottom row (index ROWS-1) = elevation 1
+    return elevation * ROW_FLOOD_STEP
+
+
+def tile_row_state(row, sea_level):
+    return FLOODED if sea_level >= row_flood_threshold(row) else LAND
+
+
+def coastline_grid(sea_level):
+    """COASTLINE_ROWS x COASTLINE_COLS grid of "land"/"flooded" strings —
+    pure state, no DOM — so the flood thresholds are testable without a
+    browser."""
+    return [
+        [tile_row_state(row, sea_level) for _ in range(COASTLINE_COLS)]
+        for row in range(COASTLINE_ROWS)
+    ]
+
 
 class SettlementState:
     def __init__(self):
@@ -98,6 +127,17 @@ class SettlementState:
 state = SettlementState()
 
 
+def render_coastline():
+    grid_el = document.getElementById("coastline-grid")
+    grid_el.innerHTML = ""
+    for row_index, row in enumerate(coastline_grid(state.sea_level)):
+        for col_index, tile_state in enumerate(row):
+            tile = document.createElement("div")
+            tile.id = f"coastline-tile-{row_index}-{col_index}"
+            tile.className = f"coastline-tile coastline-{tile_state}"
+            grid_el.appendChild(tile)
+
+
 def render():
     document.getElementById("season-display").innerText = f"Season {state.season}"
     document.getElementById("funds-display").innerText = f"Funds: {state.funds:.0f}"
@@ -109,6 +149,7 @@ def render():
     document.getElementById("damage-display").innerText = (
         f"Cumulative damage: {state.cumulative_damage:.0f}"
     )
+    render_coastline()
 
     for category in CATEGORIES:
         document.getElementById(f"{category}-count").innerText = str(state.capacity[category])

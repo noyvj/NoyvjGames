@@ -45,6 +45,27 @@ h1 {
   margin-bottom: 0;
 }
 
+.coastline-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+  margin-bottom: 1rem;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.coastline-tile {
+  aspect-ratio: 3 / 2;
+}
+
+.coastline-land {
+  background: #4c7c3a;
+}
+
+.coastline-flooded {
+  background: #2c5f8a;
+}
+
 .invest-row {
   display: grid;
   grid-template-columns: 1fr auto 1fr;

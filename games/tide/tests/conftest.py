@@ -18,6 +18,7 @@ ELEMENT_IDS = [
     "fish-yield-display",
     "sea-level-display",
     "damage-display",
+    "coastline-grid",
     "advance-season-button",
 ]
 for _category in CATEGORIES:
