@@ -62,11 +62,25 @@ SKILLS = {
 SKILL_TREE_STORAGE_KEY = "aftermath_skill_tree_v1"
 
 
+def starting_resources_bonus():
+    return 50 if "community_reserves" in skill_tree.unlocked else 0
+
+
+def starting_resilience_bonus():
+    return 2 if "reinforced_infrastructure" in skill_tree.unlocked else 0
+
+
+def early_warning_mitigation_bonus():
+    return 0.10 if "early_warning" in skill_tree.unlocked else 0.0
+
+
 class RunState:
     def __init__(self):
+        """Reads current skill-tree bonuses at creation time — a new run
+        starts a little more capable than the last, per unlocked skills."""
         self.event_index = 0
-        self.resources = STARTING_RESOURCES
-        self.resilience_capacity = 0
+        self.resources = STARTING_RESOURCES + starting_resources_bonus()
+        self.resilience_capacity = starting_resilience_bonus()
         self.growth_capacity = 0
         self.damage_taken = 0.0
         self.event_log = []
@@ -94,7 +108,8 @@ class RunState:
         return True
 
     def mitigation_fraction(self):
-        return min(MAX_MITIGATION, self.resilience_capacity * RESILIENCE_MITIGATION_PER_UNIT)
+        from_resilience = self.resilience_capacity * RESILIENCE_MITIGATION_PER_UNIT
+        return min(MAX_MITIGATION, from_resilience + early_warning_mitigation_bonus())
 
     def resolve_next_event(self):
         """Applies growth income, then resolves the next scheduled event's
@@ -211,6 +226,8 @@ def render():
     resolve_button = document.getElementById("resolve-event-button")
     resolve_button.disabled = run.is_complete()
 
+    document.getElementById("new-run-button").hidden = not run.is_complete()
+
     document.getElementById("knowledge-points-display").innerText = (
         f"Resilience knowledge: {skill_tree.knowledge_points}"
     )
@@ -242,6 +259,14 @@ def on_resolve_event(event=None):
     render()
 
 
+def start_new_run(event=None):
+    """Starts a fresh run, reading current skill-tree bonuses — each run
+    begins a little more capable than the last, per unlocked skills."""
+    global run
+    run = RunState()
+    render()
+
+
 def _make_unlock_handler(skill_id):
     def handler(event=None):
         skill_tree.unlock(skill_id)
@@ -258,6 +283,9 @@ def setup():
     )
     document.getElementById("resolve-event-button").addEventListener(
         "click", create_proxy(on_resolve_event)
+    )
+    document.getElementById("new-run-button").addEventListener(
+        "click", create_proxy(start_new_run)
     )
     for skill_id in SKILLS:
         document.getElementById(f"skill-{skill_id}-unlock-button").addEventListener(

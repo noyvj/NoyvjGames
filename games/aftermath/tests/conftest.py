@@ -22,6 +22,7 @@ ELEMENT_IDS = [
     "resilience-invest-button",
     "growth-invest-button",
     "resolve-event-button",
+    "new-run-button",
 ]
 for _skill in SKILL_IDS:
     ELEMENT_IDS += [f"skill-{_skill}-status", f"skill-{_skill}-unlock-button"]
@@ -59,6 +60,9 @@ class GameEnv:
 
     def unlock_skill(self, skill_id):
         self.elements[f"skill-{skill_id}-unlock-button"].dispatch("click", None)
+
+    def start_new_run(self):
+        self.elements["new-run-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements, local_storage):
