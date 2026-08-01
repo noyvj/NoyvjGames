@@ -25,6 +25,7 @@ ELEMENT_IDS = [
     "income-display",
     "standing-value-display",
     "comparison-message",
+    "state-breakdown-display",
 ]
 
 # Buttons that carry the `disabled` attribute in index.html's initial markup

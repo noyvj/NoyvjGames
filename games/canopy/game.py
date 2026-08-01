@@ -44,6 +44,15 @@ STATE_LABEL = {
     RECOVERED: "Recovered",
 }
 
+# Icons ride alongside color so plot state doesn't rely on color alone —
+# a small accessibility/legibility pass, not just decoration.
+STATE_ICON = {
+    PRESERVED: "\U0001F332",  # evergreen tree
+    BARE: "",
+    REPLANTING: "\U0001F331",  # seedling
+    RECOVERED: "\U0001F333",  # deciduous tree
+}
+
 # Which of the two actions are valid from each state. Preserve isn't a
 # click action — a PRESERVED/RECOVERED plot accrues passive value simply
 # by being left alone (see the plan's "preserve = do nothing" framing).
@@ -143,6 +152,7 @@ def render_grid():
         if plot.index == selected_index:
             tile.className += " plot-selected"
         tile.title = STATE_LABEL[plot.state]
+        tile.innerText = STATE_ICON[plot.state]
         tile.addEventListener("click", create_proxy(_make_select_handler(plot.index)))
         grid_el.appendChild(tile)
 
@@ -175,6 +185,22 @@ def standing_forest_value():
     return sum(plot.value for plot in plots)
 
 
+def state_breakdown():
+    """Count of plots in each state — the grid-level session summary."""
+    counts = {PRESERVED: 0, BARE: 0, REPLANTING: 0, RECOVERED: 0}
+    for plot in plots:
+        counts[plot.state] += 1
+    return counts
+
+
+def state_breakdown_text():
+    counts = state_breakdown()
+    return (
+        f"{counts[PRESERVED]} preserved · {counts[BARE]} bare · "
+        f"{counts[REPLANTING]} replanting · {counts[RECOVERED]} recovered"
+    )
+
+
 def comparison_message(income, standing_value):
     """The hope-angle payoff: a plain-language read on how short-term
     harvesting stacks up against the value of what's still standing."""
@@ -198,6 +224,7 @@ def render_stats():
     document.getElementById("income-display").innerText = f"Harvested income: {total_income:.1f}"
     document.getElementById("standing-value-display").innerText = f"Standing forest value: {standing_value:.1f}"
     document.getElementById("comparison-message").innerText = comparison_message(total_income, standing_value)
+    document.getElementById("state-breakdown-display").innerText = state_breakdown_text()
 
 
 def render():
