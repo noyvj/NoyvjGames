@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grid — Milestone 1</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="/ad-bar.css">
+<link rel="manifest" href="/manifest.json">
+<!-- AdSense: placeholder client ID until application is approved -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+</head>
+<body>
+  <div id="game">
+    <h1>Grid</h1>
+    <p class="tagline">Manage a regional power grid. Demand keeps rising — build the capacity to meet it, and decide what kind.</p>
+
+    <div id="status" class="section">
+      <p id="round-display" class="status-line">Round 1</p>
+      <p id="demand-display" class="status-line">Demand: 100</p>
+      <p id="funds-display" class="status-line">Funds: 500</p>
+      <p id="capacity-display" class="status-line">Capacity: 0</p>
+    </div>
+
+    <div id="plants" class="section">
+      <div class="plant-row" data-plant="coal">
+        <span class="plant-name">Coal</span>
+        <span class="plant-count" id="coal-count">0</span>
+        <button id="coal-build-button" class="secondary" disabled>Loading...</button>
+        <button id="coal-retire-button" class="secondary" disabled>Retire</button>
+      </div>
+      <div class="plant-row" data-plant="gas">
+        <span class="plant-name">Gas</span>
+        <span class="plant-count" id="gas-count">0</span>
+        <button id="gas-build-button" class="secondary" disabled>Loading...</button>
+        <button id="gas-retire-button" class="secondary" disabled>Retire</button>
+      </div>
+      <div class="plant-row" data-plant="nuclear">
+        <span class="plant-name">Nuclear</span>
+        <span class="plant-count" id="nuclear-count">0</span>
+        <button id="nuclear-build-button" class="secondary" disabled>Loading...</button>
+        <button id="nuclear-retire-button" class="secondary" disabled>Retire</button>
+      </div>
+      <div class="plant-row" data-plant="solar">
+        <span class="plant-name">Solar</span>
+        <span class="plant-count" id="solar-count">0</span>
+        <button id="solar-build-button" class="secondary" disabled>Loading...</button>
+        <button id="solar-retire-button" class="secondary" disabled>Retire</button>
+      </div>
+      <div class="plant-row" data-plant="wind">
+        <span class="plant-name">Wind</span>
+        <span class="plant-count" id="wind-count">0</span>
+        <button id="wind-build-button" class="secondary" disabled>Loading...</button>
+        <button id="wind-retire-button" class="secondary" disabled>Retire</button>
+      </div>
+      <div class="plant-row" data-plant="hydro">
+        <span class="plant-name">Hydro</span>
+        <span class="plant-count" id="hydro-count">0</span>
+        <button id="hydro-build-button" class="secondary" disabled>Loading...</button>
+        <button id="hydro-retire-button" class="secondary" disabled>Retire</button>
+      </div>
+    </div>
+
+    <button id="advance-round-button" class="primary">Advance Round</button>
+  </div>
+
+  <div class="ad-bar ad-bar--bottom">
+    <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>
+    <span class="ad-bar-label ad-bar-label-short">Ad</span>
+    <!-- Google AdSense manual display ad unit -->
+    <ins class="adsbygoogle"
+         style="display:block; width:320px; height:50px;"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="XXXXXXXXXX"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <script>
+    async function main() {
+      const pyodide = await loadPyodide();
+      const response = await fetch("game.py");
+      const code = await response.text();
+      await pyodide.runPythonAsync(code);
+    }
+    main();
+  </script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js");
+    }
+  </script>
+</body>
+</html>
