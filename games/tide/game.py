@@ -87,6 +87,8 @@ class SettlementState:
         self.acidity_history = []
         self.sea_level = 0.0
         self.cumulative_damage = 0.0
+        self.undampened_damage_total = 0.0
+        self.damage_log = []
 
     def invest(self, category):
         cost = INVEST_COST[category]
@@ -119,12 +121,59 @@ class SettlementState:
         self.acidity_history.append(self.acidity)
 
         self.sea_level += SEA_LEVEL_RISE_PER_SEASON
-        self.cumulative_damage += SEA_LEVEL_RISE_PER_SEASON * (1 - self.dampening_fraction())
+        damage_this_season = SEA_LEVEL_RISE_PER_SEASON * (1 - self.dampening_fraction())
+        self.cumulative_damage += damage_this_season
+        self.undampened_damage_total += SEA_LEVEL_RISE_PER_SEASON
+        self.damage_log.append(damage_this_season)
 
         self.season += 1
 
+    def damage_saved(self):
+        """The hope-angle payoff, as a direct number: how much less
+        cumulative damage the settlement has taken than it would have
+        with zero adaptation investment, ever."""
+        return self.undampened_damage_total - self.cumulative_damage
+
+    def damage_trend(self):
+        """Compares the first half of seasons played to the second half —
+        a visibly flattening damage curve is the direct, legible reward
+        for early adaptation investment, not just a good final number."""
+        n = len(self.damage_log)
+        if n < 4:
+            return None
+        half = n // 2
+        first_half_avg = sum(self.damage_log[:half]) / half
+        second_half_avg = sum(self.damage_log[half:]) / (n - half)
+        return first_half_avg, second_half_avg
+
 
 state = SettlementState()
+
+
+def damage_saved_message(saved):
+    if saved <= 0:
+        return "No adaptation investment yet — every season of sea-level rise is hitting at full force."
+    return (
+        f"Adaptation has saved you {saved:.0f} in cumulative damage compared to "
+        f"no investment at all — the sea kept rising, but you're weathering it better."
+    )
+
+
+def damage_trend_message(trend):
+    if trend is None:
+        return "Not enough seasons yet to show a trend."
+    first_half_avg, second_half_avg = trend
+    if second_half_avg < first_half_avg:
+        return (
+            f"Your damage curve is flattening ({first_half_avg:.1f}/season → "
+            f"{second_half_avg:.1f}/season) — early adaptation is paying off."
+        )
+    if second_half_avg > first_half_avg:
+        return (
+            f"Your damage curve is steepening ({first_half_avg:.1f}/season → "
+            f"{second_half_avg:.1f}/season)."
+        )
+    return f"Your damage rate has held steady at {second_half_avg:.1f}/season."
 
 
 def render_coastline():
@@ -149,6 +198,8 @@ def render():
     document.getElementById("damage-display").innerText = (
         f"Cumulative damage: {state.cumulative_damage:.0f}"
     )
+    document.getElementById("damage-saved-display").innerText = damage_saved_message(state.damage_saved())
+    document.getElementById("damage-trend-display").innerText = damage_trend_message(state.damage_trend())
     render_coastline()
 
     for category in CATEGORIES:

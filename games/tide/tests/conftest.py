@@ -18,6 +18,8 @@ ELEMENT_IDS = [
     "fish-yield-display",
     "sea-level-display",
     "damage-display",
+    "damage-saved-display",
+    "damage-trend-display",
     "coastline-grid",
     "advance-season-button",
 ]
