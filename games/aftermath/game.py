@@ -88,6 +88,18 @@ class RunState:
         self.event_index += 1
         return True
 
+    def run_score(self):
+        """How well the settlement weathered the run — just the resources
+        it has left. Reflects both good mitigation (less damage) and good
+        growth (more income to absorb it)."""
+        return self.resources
+
+    def knowledge_points_earned(self):
+        """Currency for the skill tree. Floored at 1 — per the hope angle,
+        even a rough run always contributes some permanent capability,
+        never zero."""
+        return max(1, round(self.run_score() / 20))
+
 
 run = RunState()
 
@@ -100,7 +112,13 @@ def render():
     if run.is_complete():
         document.getElementById("progress-display").innerText = "Run complete"
         document.getElementById("next-event-display").innerText = "No more events this run."
+        document.getElementById("run-summary-display").innerText = (
+            f"Score: {run.run_score():.0f} — "
+            f"earned {run.knowledge_points_earned()} resilience knowledge point"
+            f"{'s' if run.knowledge_points_earned() != 1 else ''}."
+        )
     else:
+        document.getElementById("run-summary-display").innerText = ""
         document.getElementById("progress-display").innerText = (
             f"Event {run.event_index + 1} of {len(EVENT_SCHEDULE)}"
         )

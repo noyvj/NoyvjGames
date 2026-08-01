@@ -15,6 +15,7 @@ ELEMENT_IDS = [
     "resources-display",
     "resilience-display",
     "growth-display",
+    "run-summary-display",
     "resilience-invest-button",
     "growth-invest-button",
     "resolve-event-button",

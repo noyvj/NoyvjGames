@@ -45,6 +45,13 @@ h1 {
   margin-bottom: 0;
 }
 
+.comparison-message {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  opacity: 0.85;
+}
+
 #actions {
   display: flex;
   gap: 0.5rem;
