@@ -31,6 +31,22 @@
     </div>
 
     <button id="resolve-event-button" class="primary">Face Next Event</button>
+
+    <div id="skill-tree" class="section">
+      <p id="knowledge-points-display" class="status-line">Resilience knowledge: 0</p>
+      <div class="skill-row" data-skill="reinforced_infrastructure">
+        <span class="skill-status" id="skill-reinforced_infrastructure-status">Reinforced Infrastructure — +2 starting resilience capacity</span>
+        <button id="skill-reinforced_infrastructure-unlock-button" class="secondary" disabled>Loading...</button>
+      </div>
+      <div class="skill-row" data-skill="community_reserves">
+        <span class="skill-status" id="skill-community_reserves-status">Community Reserves — +50 starting resources</span>
+        <button id="skill-community_reserves-unlock-button" class="secondary" disabled>Loading...</button>
+      </div>
+      <div class="skill-row" data-skill="early_warning">
+        <span class="skill-status" id="skill-early_warning-status">Early Warning Systems — +10% mitigation on all events</span>
+        <button id="skill-early_warning-unlock-button" class="secondary" disabled>Loading...</button>
+      </div>
+    </div>
   </div>
 
   <div class="ad-bar ad-bar--bottom">

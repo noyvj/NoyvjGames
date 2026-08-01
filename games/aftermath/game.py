@@ -7,7 +7,9 @@ Run scoring, the persistent skill tree, and cross-run comparisons land
 in later milestones.
 """
 
-from js import document
+import json
+
+from js import document, localStorage
 from pyodide.ffi import create_proxy
 
 STARTING_RESOURCES = 200.0
@@ -35,6 +37,29 @@ EVENT_BASE_DAMAGE = {
     "heatwave": 35.0,
     "storm": 50.0,
 }
+
+# Skill tree — lives outside the run loop entirely, persisting between
+# runs (and between visits, via localStorage). Bonus application to new
+# runs is Milestone 4's job; this milestone is just the structure.
+SKILLS = {
+    "reinforced_infrastructure": {
+        "cost": 3,
+        "label": "Reinforced Infrastructure",
+        "description": "+2 starting resilience capacity",
+    },
+    "community_reserves": {
+        "cost": 3,
+        "label": "Community Reserves",
+        "description": "+50 starting resources",
+    },
+    "early_warning": {
+        "cost": 5,
+        "label": "Early Warning Systems",
+        "description": "+10% mitigation on all events",
+    },
+}
+
+SKILL_TREE_STORAGE_KEY = "aftermath_skill_tree_v1"
 
 
 class RunState:
@@ -86,6 +111,11 @@ class RunState:
         self.damage_taken += damage
         self.event_log.append({"type": event_type, "damage": damage})
         self.event_index += 1
+
+        if self.is_complete():
+            skill_tree.add_knowledge(self.knowledge_points_earned())
+            skill_tree.save()
+
         return True
 
     def run_score(self):
@@ -101,6 +131,50 @@ class RunState:
         return max(1, round(self.run_score() / 20))
 
 
+class SkillTreeState:
+    """Persistent, separate from RunState — survives across runs and, via
+    localStorage, across visits (same browser)."""
+
+    def __init__(self):
+        self.knowledge_points = 0
+        self.unlocked = set()
+
+    def can_unlock(self, skill_id):
+        return skill_id not in self.unlocked and self.knowledge_points >= SKILLS[skill_id]["cost"]
+
+    def unlock(self, skill_id):
+        if not self.can_unlock(skill_id):
+            return False
+        self.knowledge_points -= SKILLS[skill_id]["cost"]
+        self.unlocked.add(skill_id)
+        self.save()
+        return True
+
+    def add_knowledge(self, amount):
+        self.knowledge_points += amount
+
+    def to_dict(self):
+        return {"knowledge_points": self.knowledge_points, "unlocked": sorted(self.unlocked)}
+
+    def save(self):
+        localStorage.setItem(SKILL_TREE_STORAGE_KEY, json.dumps(self.to_dict()))
+
+    @classmethod
+    def load(cls):
+        instance = cls()
+        raw = localStorage.getItem(SKILL_TREE_STORAGE_KEY)
+        if not raw:
+            return instance
+        try:
+            data = json.loads(raw)
+        except ValueError:
+            return instance
+        instance.knowledge_points = data.get("knowledge_points", 0)
+        instance.unlocked = set(data.get("unlocked", []))
+        return instance
+
+
+skill_tree = SkillTreeState.load()
 run = RunState()
 
 
@@ -137,6 +211,21 @@ def render():
     resolve_button = document.getElementById("resolve-event-button")
     resolve_button.disabled = run.is_complete()
 
+    document.getElementById("knowledge-points-display").innerText = (
+        f"Resilience knowledge: {skill_tree.knowledge_points}"
+    )
+    for skill_id, skill in SKILLS.items():
+        status_el = document.getElementById(f"skill-{skill_id}-status")
+        unlock_button = document.getElementById(f"skill-{skill_id}-unlock-button")
+        if skill_id in skill_tree.unlocked:
+            status_el.innerText = f"{skill['label']} — unlocked ({skill['description']})"
+            unlock_button.hidden = True
+        else:
+            status_el.innerText = f"{skill['label']} — {skill['description']}"
+            unlock_button.hidden = False
+            unlock_button.innerText = f"Unlock ({skill['cost']})"
+            unlock_button.disabled = not skill_tree.can_unlock(skill_id)
+
 
 def on_invest_resilience(event=None):
     run.invest_resilience()
@@ -153,6 +242,13 @@ def on_resolve_event(event=None):
     render()
 
 
+def _make_unlock_handler(skill_id):
+    def handler(event=None):
+        skill_tree.unlock(skill_id)
+        render()
+    return handler
+
+
 def setup():
     document.getElementById("resilience-invest-button").addEventListener(
         "click", create_proxy(on_invest_resilience)
@@ -163,6 +259,10 @@ def setup():
     document.getElementById("resolve-event-button").addEventListener(
         "click", create_proxy(on_resolve_event)
     )
+    for skill_id in SKILLS:
+        document.getElementById(f"skill-{skill_id}-unlock-button").addEventListener(
+            "click", create_proxy(_make_unlock_handler(skill_id))
+        )
     render()
 
 

@@ -9,6 +9,8 @@ from .fakes import FakeDocument, FakeElement, FakeLocalStorage, create_proxy
 
 GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 
+SKILL_IDS = ["reinforced_infrastructure", "community_reserves", "early_warning"]
+
 ELEMENT_IDS = [
     "progress-display",
     "next-event-display",
@@ -16,15 +18,18 @@ ELEMENT_IDS = [
     "resilience-display",
     "growth-display",
     "run-summary-display",
+    "knowledge-points-display",
     "resilience-invest-button",
     "growth-invest-button",
     "resolve-event-button",
 ]
+for _skill in SKILL_IDS:
+    ELEMENT_IDS += [f"skill-{_skill}-status", f"skill-{_skill}-unlock-button"]
 
 INITIALLY_DISABLED_IDS = [
     "resilience-invest-button",
     "growth-invest-button",
-]
+] + [f"skill-{s}-unlock-button" for s in SKILL_IDS]
 
 
 class GameEnv:
@@ -39,6 +44,10 @@ class GameEnv:
     def run(self):
         return self.module.run
 
+    @property
+    def skill_tree(self):
+        return self.module.skill_tree
+
     def invest_resilience(self):
         self.elements["resilience-invest-button"].dispatch("click", None)
 
@@ -47,6 +56,9 @@ class GameEnv:
 
     def resolve_event(self):
         self.elements["resolve-event-button"].dispatch("click", None)
+
+    def unlock_skill(self, skill_id):
+        self.elements[f"skill-{skill_id}-unlock-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements, local_storage):
