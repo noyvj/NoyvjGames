@@ -21,10 +21,17 @@ ELEMENT_IDS = [
     "event-display",
     "score-display",
     "trend-display",
+    "emissions-bar",
+    "score-bar",
     "advance-round-button",
 ]
 for _plant in PLANT_TYPES:
-    ELEMENT_IDS += [f"{_plant}-count", f"{_plant}-build-button", f"{_plant}-retire-button"]
+    ELEMENT_IDS += [
+        f"{_plant}-count",
+        f"{_plant}-build-button",
+        f"{_plant}-retire-button",
+        f"{_plant}-name",
+    ]
 
 INITIALLY_DISABLED_IDS = [f"{p}-build-button" for p in PLANT_TYPES] + [
     f"{p}-retire-button" for p in PLANT_TYPES

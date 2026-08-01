@@ -31,6 +31,15 @@ PLANT_LABEL = {
     "hydro": "Hydro",
 }
 
+PLANT_ICON = {
+    "coal": "⚫",  # black circle
+    "gas": "\U0001F525",  # fire
+    "nuclear": "☢️",  # radioactive
+    "solar": "☀️",  # sun
+    "wind": "\U0001F4A8",  # dash/wind
+    "hydro": "\U0001F4A7",  # droplet
+}
+
 # Flat, un-degraded costs and generation capacity per unit. Renewable
 # cost decay is Milestone 2's job.
 PLANT_BASE_COST = {
@@ -84,6 +93,10 @@ MAX_DISRUPTION_PROBABILITY = 0.9
 DISRUPTION_SEVERITY_SCALE = 3000.0
 MAX_REVENUE_LOSS_FRACTION = 0.8
 DAMAGE_SEVERITY_THRESHOLD = 0.5
+
+# Reference point for the emissions meter bar — matches the severity
+# scale, so a full bar means disruption severity has hit its own cap.
+EMISSIONS_METER_MAX = DISRUPTION_SEVERITY_SCALE
 
 
 class GridState:
@@ -226,6 +239,16 @@ def event_message(event):
     return f"Brownout! Lost {event['revenue_loss']:.0f} funds to grid instability."
 
 
+def event_severity_class(event):
+    """CSS class for the event notification — visually distinct so a real
+    disruption doesn't read the same as "nothing happened"."""
+    if event is None:
+        return "event-display"
+    if event["type"] == "damage":
+        return "event-display event-display--danger"
+    return "event-display event-display--warning"
+
+
 def clean_trend_message(trend):
     if trend is None:
         return "Not enough rounds yet to show a trend."
@@ -247,14 +270,24 @@ def render():
     document.getElementById("fossil-share-display").innerText = (
         f"Fossil share of grid: {state.fossil_share() * 100:.0f}%"
     )
-    document.getElementById("event-display").innerText = event_message(state.last_event)
+    event_el = document.getElementById("event-display")
+    event_el.innerText = event_message(state.last_event)
+    event_el.className = event_severity_class(state.last_event)
+
     document.getElementById("score-display").innerText = f"Sustained clean-grid score: {state.score():.0f}"
     document.getElementById("trend-display").innerText = clean_trend_message(state.clean_trend())
+
+    emissions_fraction = min(1.0, state.emissions / EMISSIONS_METER_MAX)
+    document.getElementById("emissions-bar").style.width = f"{emissions_fraction * 100:.0f}%"
+    document.getElementById("score-bar").style.width = f"{state.score():.0f}%"
 
     for plant_type in PLANT_TYPES:
         count = state.plant_counts[plant_type]
         cost = state.plant_cost(plant_type)
         document.getElementById(f"{plant_type}-count").innerText = str(count)
+        document.getElementById(f"{plant_type}-name").innerText = (
+            f"{PLANT_ICON[plant_type]} {PLANT_LABEL[plant_type]}"
+        )
 
         build_button = document.getElementById(f"{plant_type}-build-button")
         build_button.innerText = f"Build ({cost:.0f})"
