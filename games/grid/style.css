@@ -112,3 +112,39 @@ button.primary {
 button.primary:active {
   filter: brightness(0.85);
 }
+
+.feedback-question {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.feedback-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.feedback-buttons .secondary.selected {
+  border-color: #6fae70;
+  background: #1d2e1f;
+}
+
+.feedback-comment {
+  width: 100%;
+  min-height: 2.5rem;
+  margin-bottom: 0.6rem;
+  padding: 0.5rem;
+  border: 1px solid #3a3f5c;
+  border-radius: 8px;
+  background: #1d2033;
+  color: #e8e9f0;
+  font-family: inherit;
+  font-size: 0.85rem;
+  resize: vertical;
+}
+
+.feedback-status {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
