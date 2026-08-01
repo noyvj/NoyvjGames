@@ -6,6 +6,8 @@ revenue on round advance. Emissions, cost curves, and disruption events
 land in later milestones.
 """
 
+import random
+
 from js import document
 from pyodide.ffi import create_proxy
 
@@ -71,6 +73,18 @@ RENEWABLE_TYPES = {"solar", "wind", "hydro"}
 RENEWABLE_COST_DECAY = 0.95
 MIN_COST_MULTIPLIER = 0.4
 
+FOSSIL_TYPES = ("coal", "gas")
+
+# Disruption events: probability AND severity both scale with emissions,
+# so a dirty grid gets progressively harder to manage rather than
+# suddenly "losing" — there's no funds floor here, only a shrinking gain,
+# so this can never bankrupt the player outright (no hard fail-state).
+DISRUPTION_PROBABILITY_SCALE = 2000.0
+MAX_DISRUPTION_PROBABILITY = 0.9
+DISRUPTION_SEVERITY_SCALE = 3000.0
+MAX_REVENUE_LOSS_FRACTION = 0.8
+DAMAGE_SEVERITY_THRESHOLD = 0.5
+
 
 class GridState:
     def __init__(self):
@@ -80,6 +94,8 @@ class GridState:
         self.plant_counts = {t: 0 for t in PLANT_TYPES}
         self.cumulative_built = {t: 0 for t in PLANT_TYPES}
         self.emissions = 0.0
+        self.event_log = []
+        self.last_event = None
 
     def plant_cost(self, plant_type):
         base = PLANT_BASE_COST[plant_type]
@@ -109,6 +125,22 @@ class GridState:
             for t in PLANT_TYPES
         )
 
+    def disruption_probability(self):
+        return min(MAX_DISRUPTION_PROBABILITY, self.emissions / DISRUPTION_PROBABILITY_SCALE)
+
+    def disruption_severity(self):
+        """0..1 — how bad a disruption event is, if one occurs this round."""
+        return min(1.0, self.emissions / DISRUPTION_SEVERITY_SCALE)
+
+    def _fossil_plant_to_damage(self):
+        """Picks a standing fossil plant type to damage, biased toward
+        whichever fossil type has the most units standing. None if the
+        grid has no fossil plants left to damage."""
+        candidates = [t for t in FOSSIL_TYPES if self.plant_counts[t] > 0]
+        if not candidates:
+            return None
+        return max(candidates, key=lambda t: self.plant_counts[t])
+
     def build_plant(self, plant_type):
         cost = self.plant_cost(plant_type)
         if self.funds < cost:
@@ -125,15 +157,47 @@ class GridState:
         self.funds += PLANT_BASE_COST[plant_type] * REFUND_FRACTION
         return True
 
-    def advance_round(self):
+    def advance_round(self, rng=random.random):
         met_demand = min(self.total_capacity(), self.demand)
-        self.funds += met_demand * REVENUE_PER_UNIT_MET
+        revenue = met_demand * REVENUE_PER_UNIT_MET
+
+        event = None
+        if rng() < self.disruption_probability():
+            severity = self.disruption_severity()
+            revenue_loss = revenue * severity * MAX_REVENUE_LOSS_FRACTION
+            revenue -= revenue_loss
+            event = {"type": "brownout", "severity": severity, "revenue_loss": revenue_loss}
+
+            if severity >= DAMAGE_SEVERITY_THRESHOLD:
+                damaged_type = self._fossil_plant_to_damage()
+                if damaged_type:
+                    self.plant_counts[damaged_type] -= 1
+                    event["type"] = "damage"
+                    event["damaged_plant"] = damaged_type
+
+        self.funds += revenue
         self.emissions += self.emissions_this_round()
         self.round_number += 1
         self.demand += DEMAND_GROWTH_PER_ROUND
 
+        self.last_event = event
+        if event:
+            self.event_log.append(event)
+
 
 state = GridState()
+
+
+def event_message(event):
+    if event is None:
+        return "No disruptions last round."
+    if event["type"] == "damage":
+        plant_name = PLANT_LABEL[event["damaged_plant"]]
+        return (
+            f"Damage! A {plant_name} plant went offline "
+            f"(lost {event['revenue_loss']:.0f} funds in the disruption)."
+        )
+    return f"Brownout! Lost {event['revenue_loss']:.0f} funds to grid instability."
 
 
 def render():
@@ -145,6 +209,7 @@ def render():
     document.getElementById("fossil-share-display").innerText = (
         f"Fossil share of grid: {state.fossil_share() * 100:.0f}%"
     )
+    document.getElementById("event-display").innerText = event_message(state.last_event)
 
     for plant_type in PLANT_TYPES:
         count = state.plant_counts[plant_type]
