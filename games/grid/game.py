@@ -49,6 +49,28 @@ PLANT_CAPACITY = {
     "hydro": 40,
 }
 
+# Emissions produced per unit of capacity, per round, while that capacity
+# is part of the fleet. Nuclear counts as zero-emission but — realistically,
+# and per the plan's framing — isn't part of the renewable cost-curve
+# below; its cost stays flat.
+EMISSIONS_FACTOR = {
+    "coal": 3.0,
+    "gas": 1.5,
+    "nuclear": 0.0,
+    "solar": 0.0,
+    "wind": 0.0,
+    "hydro": 0.0,
+}
+
+RENEWABLE_TYPES = {"solar", "wind", "hydro"}
+
+# Wright's-law-style learning curve: each renewable unit ever built (not
+# just currently standing — retiring one doesn't erase the learning)
+# permanently makes the next one of that type a little cheaper, floored so
+# it never becomes free.
+RENEWABLE_COST_DECAY = 0.95
+MIN_COST_MULTIPLIER = 0.4
+
 
 class GridState:
     def __init__(self):
@@ -56,14 +78,36 @@ class GridState:
         self.demand = STARTING_DEMAND
         self.funds = STARTING_FUNDS
         self.plant_counts = {t: 0 for t in PLANT_TYPES}
+        self.cumulative_built = {t: 0 for t in PLANT_TYPES}
+        self.emissions = 0.0
 
     def plant_cost(self, plant_type):
-        """Flat cost for Milestone 1 — Milestone 2 adds the renewable
-        learning-curve decay on top of this base cost."""
-        return PLANT_BASE_COST[plant_type]
+        base = PLANT_BASE_COST[plant_type]
+        if plant_type not in RENEWABLE_TYPES:
+            return base
+        multiplier = max(
+            MIN_COST_MULTIPLIER,
+            RENEWABLE_COST_DECAY ** self.cumulative_built[plant_type],
+        )
+        return base * multiplier
 
     def total_capacity(self):
         return sum(self.plant_counts[t] * PLANT_CAPACITY[t] for t in PLANT_TYPES)
+
+    def fossil_capacity(self):
+        return sum(self.plant_counts[t] * PLANT_CAPACITY[t] for t in ("coal", "gas"))
+
+    def fossil_share(self):
+        total = self.total_capacity()
+        if total == 0:
+            return 0.0
+        return self.fossil_capacity() / total
+
+    def emissions_this_round(self):
+        return sum(
+            self.plant_counts[t] * PLANT_CAPACITY[t] * EMISSIONS_FACTOR[t]
+            for t in PLANT_TYPES
+        )
 
     def build_plant(self, plant_type):
         cost = self.plant_cost(plant_type)
@@ -71,6 +115,7 @@ class GridState:
             return False
         self.funds -= cost
         self.plant_counts[plant_type] += 1
+        self.cumulative_built[plant_type] += 1
         return True
 
     def retire_plant(self, plant_type):
@@ -83,6 +128,7 @@ class GridState:
     def advance_round(self):
         met_demand = min(self.total_capacity(), self.demand)
         self.funds += met_demand * REVENUE_PER_UNIT_MET
+        self.emissions += self.emissions_this_round()
         self.round_number += 1
         self.demand += DEMAND_GROWTH_PER_ROUND
 
@@ -95,6 +141,10 @@ def render():
     document.getElementById("demand-display").innerText = f"Demand: {state.demand}"
     document.getElementById("funds-display").innerText = f"Funds: {state.funds:.0f}"
     document.getElementById("capacity-display").innerText = f"Capacity: {state.total_capacity()}"
+    document.getElementById("emissions-display").innerText = f"Emissions: {state.emissions:.0f}"
+    document.getElementById("fossil-share-display").innerText = (
+        f"Fossil share of grid: {state.fossil_share() * 100:.0f}%"
+    )
 
     for plant_type in PLANT_TYPES:
         count = state.plant_counts[plant_type]

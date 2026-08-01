@@ -16,6 +16,8 @@ ELEMENT_IDS = [
     "demand-display",
     "funds-display",
     "capacity-display",
+    "emissions-display",
+    "fossil-share-display",
     "advance-round-button",
 ]
 for _plant in PLANT_TYPES:
