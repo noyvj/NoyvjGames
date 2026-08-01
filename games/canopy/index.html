@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canopy — Milestone 1</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="/ad-bar.css">
+<link rel="manifest" href="/manifest.json">
+<!-- AdSense: placeholder client ID until application is approved -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+</head>
+<body>
+  <div id="game">
+    <h1>Canopy</h1>
+    <p class="tagline">A forest region. Clear it for quick income, or leave it standing and let its value compound.</p>
+
+    <div id="plot-grid" class="plot-grid"></div>
+
+    <div id="action-panel" class="section">
+      <p id="selected-plot-state" class="selected-plot-state">No plot selected</p>
+      <div class="action-buttons">
+        <button id="clear-button" class="secondary" disabled>Loading...</button>
+        <button id="replant-button" class="secondary" disabled>Loading...</button>
+      </div>
+    </div>
+
+    <div class="legend section">
+      <span class="legend-item"><span class="legend-swatch plot-preserved"></span> Preserved</span>
+      <span class="legend-item"><span class="legend-swatch plot-bare"></span> Bare</span>
+      <span class="legend-item"><span class="legend-swatch plot-replanting"></span> Replanting</span>
+      <span class="legend-item"><span class="legend-swatch plot-recovered"></span> Recovered</span>
+    </div>
+  </div>
+
+  <div class="ad-bar ad-bar--bottom">
+    <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>
+    <span class="ad-bar-label ad-bar-label-short">Ad</span>
+    <!-- Google AdSense manual display ad unit -->
+    <ins class="adsbygoogle"
+         style="display:block; width:320px; height:50px;"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="XXXXXXXXXX"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <script>
+    async function main() {
+      const pyodide = await loadPyodide();
+      const response = await fetch("game.py");
+      const code = await response.text();
+      await pyodide.runPythonAsync(code);
+    }
+    main();
+  </script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js");
+    }
+  </script>
+</body>
+</html>
