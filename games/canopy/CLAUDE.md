@@ -28,7 +28,7 @@ A single forest region divided into a grid of plots. Each plot can be cleared (f
 | 3 | Clearing payout + soil degradation | Resource payout on clear, degrading future yield on repeated clearing of the same plot. Tests: payout calculation, degradation stacking | Done |
 | 4 | Replant recovery timer | Replanted plots recover on a slower timeline than never-cleared ones, reaching near-parity eventually. Tests: recovery timer logic, near-parity threshold | Done |
 | 5 | Comparison scoring + hope-angle payoff | Surfacing the short-term-income vs standing-forest-value comparison clearly at session end. Tests: comparison calculation across sample play logs | Done |
-| 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Pending |
+| 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Done |
 | 7 | Visual pass + hub integration | Grid rendering, plot state icons/colors, session summary screen | Pending |
 
 ## Tech notes
