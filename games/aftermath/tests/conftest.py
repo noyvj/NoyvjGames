@@ -14,6 +14,8 @@ SKILL_IDS = ["reinforced_infrastructure", "community_reserves", "early_warning"]
 ELEMENT_IDS = [
     "progress-display",
     "next-event-display",
+    "last-event-display",
+    "mitigation-bar",
     "resources-display",
     "resilience-display",
     "growth-display",

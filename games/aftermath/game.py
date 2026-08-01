@@ -32,6 +32,12 @@ EVENT_LABEL = {
     "storm": "Storm",
 }
 
+EVENT_ICON = {
+    "flood": "\U0001F30A",  # water wave
+    "heatwave": "\U0001F525",  # fire
+    "storm": "\U0001F32A️",  # tornado
+}
+
 EVENT_BASE_DAMAGE = {
     "flood": 40.0,
     "heatwave": 35.0,
@@ -251,9 +257,22 @@ def render():
         document.getElementById("progress-display").innerText = (
             f"Event {run.event_index + 1} of {len(EVENT_SCHEDULE)}"
         )
+        next_type = run.next_event_type()
         document.getElementById("next-event-display").innerText = (
-            f"Next: {EVENT_LABEL[run.next_event_type()]}"
+            f"Next: {EVENT_ICON[next_type]} {EVENT_LABEL[next_type]}"
         )
+
+    last_event_el = document.getElementById("last-event-display")
+    if run.event_log:
+        last = run.event_log[-1]
+        last_event_el.innerText = (
+            f"Last: {EVENT_ICON[last['type']]} {EVENT_LABEL[last['type']]} "
+            f"— {last['damage']:.0f} damage"
+        )
+    else:
+        last_event_el.innerText = ""
+
+    document.getElementById("mitigation-bar").style.width = f"{run.mitigation_fraction() * 100:.0f}%"
 
     resilience_button = document.getElementById("resilience-invest-button")
     resilience_button.innerText = f"Invest in Resilience ({RESILIENCE_COST})"

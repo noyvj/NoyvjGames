@@ -28,7 +28,7 @@ Unlike the other three (all mitigation-focused), Aftermath treats climate change
 | 4 | Bonus application to new runs | Unlocked skill-tree bonuses actually modify the next run's starting conditions/event resolution. Tests: bonus application across a sample run | Done |
 | 5 | Hope-angle payoff | A clear "look how far you've come" comparison across runs (e.g. run 1 vs. run 5 outcome, same event sequence, visibly better handled) | Done |
 | 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Done |
-| 7 | Visual/UI pass + hub integration | | Pending |
+| 7 | Visual/UI pass + hub integration | | Done — all 7 milestones complete |
 
 ## Tech notes
 
