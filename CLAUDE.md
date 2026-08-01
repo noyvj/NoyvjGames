@@ -51,7 +51,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
 | sol | SOL | Milestone 11 done (Full system endgame) — all 17 milestones complete |
 | canopy | Canopy | Milestone 7 done (Visual pass + hub integration) — all 7 milestones complete, first of the BCM114 climate quartet |
 | grid | Grid | Milestone 6 done (UI/visual pass + hub integration) — all 6 milestones complete, second of the BCM114 climate quartet |
-| tide | Tide | Milestone 1 done (Core settlement loop) — 1 of 7 milestones, third of the BCM114 climate quartet |
+| tide | Tide | Milestone 7 done (Visual/UI pass + hub integration) — all 7 milestones complete, third of the BCM114 climate quartet |
 
 ## Site-level milestones (separate from per-game milestones)
 | # | Milestone | Status |

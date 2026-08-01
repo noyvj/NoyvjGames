@@ -30,7 +30,7 @@ You run a coastal settlement, balancing fishing/industry output against ocean he
 | 4 | Tile-grid coastline rendering | Simplified grid where tiles flip state as sea-level crosses thresholds. Tests (state layer only, not rendering): tile-state-flip thresholds | Done — pure Pyodide, no JS/Canvas fallback needed |
 | 5 | Hope-angle payoff | Clear before/after comparison showing early adaptation investment flattening the damage curve. Tests: comparison calculation across sample play logs | Done |
 | 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Done |
-| 7 | Visual/UI pass + hub integration | | Pending |
+| 7 | Visual/UI pass + hub integration | | Done — all 7 milestones complete |
 
 ## Tech notes
 

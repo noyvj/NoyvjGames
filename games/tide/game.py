@@ -191,9 +191,12 @@ def render():
     document.getElementById("season-display").innerText = f"Season {state.season}"
     document.getElementById("funds-display").innerText = f"Funds: {state.funds:.0f}"
     document.getElementById("acidity-display").innerText = f"Ocean acidity: {state.acidity:.1f}"
-    document.getElementById("fish-yield-display").innerText = (
-        f"Fishing yield: {state.fish_yield_multiplier() * 100:.0f}%"
-    )
+    acidity_fraction = min(1.0, state.acidity / FISH_DAMAGE_SCALE)
+    document.getElementById("acidity-bar").style.width = f"{acidity_fraction * 100:.0f}%"
+
+    fish_yield = state.fish_yield_multiplier()
+    document.getElementById("fish-yield-display").innerText = f"Fishing yield: {fish_yield * 100:.0f}%"
+    document.getElementById("fish-yield-bar").style.width = f"{fish_yield * 100:.0f}%"
     document.getElementById("sea-level-display").innerText = f"Sea level: {state.sea_level:.0f}"
     document.getElementById("damage-display").innerText = (
         f"Cumulative damage: {state.cumulative_damage:.0f}"
