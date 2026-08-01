@@ -96,6 +96,7 @@ class GridState:
         self.emissions = 0.0
         self.event_log = []
         self.last_event = None
+        self.clean_fraction_log = []
 
     def plant_cost(self, plant_type):
         base = PLANT_BASE_COST[plant_type]
@@ -184,6 +185,31 @@ class GridState:
         if event:
             self.event_log.append(event)
 
+        self.clean_fraction_log.append(1 - self.fossil_share())
+
+    def average_clean_fraction(self):
+        """Sustained cleanliness across the whole run so far — every round
+        played counts equally, so a late clean sprint can't fully erase a
+        dirty start. This is the "not just final snapshot" scoring rule."""
+        if not self.clean_fraction_log:
+            return 0.0
+        return sum(self.clean_fraction_log) / len(self.clean_fraction_log)
+
+    def score(self):
+        return self.average_clean_fraction() * 100
+
+    def clean_trend(self):
+        """Compares the first half of rounds played to the second half —
+        the hope-angle payoff: a visibly improving trend is the direct
+        reward for early renewable investment, not just a good final number."""
+        n = len(self.clean_fraction_log)
+        if n < 4:
+            return None
+        half = n // 2
+        first_half_avg = sum(self.clean_fraction_log[:half]) / half
+        second_half_avg = sum(self.clean_fraction_log[half:]) / (n - half)
+        return first_half_avg, second_half_avg
+
 
 state = GridState()
 
@@ -200,6 +226,18 @@ def event_message(event):
     return f"Brownout! Lost {event['revenue_loss']:.0f} funds to grid instability."
 
 
+def clean_trend_message(trend):
+    if trend is None:
+        return "Not enough rounds yet to show a trend."
+    first_half_avg, second_half_avg = trend
+    first_pct, second_pct = first_half_avg * 100, second_half_avg * 100
+    if second_half_avg > first_half_avg:
+        return f"Your grid is getting cleaner over time ({first_pct:.0f}% → {second_pct:.0f}%) — the transition is paying off."
+    if second_half_avg < first_half_avg:
+        return f"Your grid has gotten dirtier over time ({first_pct:.0f}% → {second_pct:.0f}%)."
+    return f"Your grid's cleanliness has held steady at {second_pct:.0f}%."
+
+
 def render():
     document.getElementById("round-display").innerText = f"Round {state.round_number}"
     document.getElementById("demand-display").innerText = f"Demand: {state.demand}"
@@ -210,6 +248,8 @@ def render():
         f"Fossil share of grid: {state.fossil_share() * 100:.0f}%"
     )
     document.getElementById("event-display").innerText = event_message(state.last_event)
+    document.getElementById("score-display").innerText = f"Sustained clean-grid score: {state.score():.0f}"
+    document.getElementById("trend-display").innerText = clean_trend_message(state.clean_trend())
 
     for plant_type in PLANT_TYPES:
         count = state.plant_counts[plant_type]
