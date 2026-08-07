@@ -13,6 +13,8 @@ ELEMENT_IDS = [
     "round-display",
     "funds-display",
     "herd-display",
+    "methane-display",
+    "coupling-display",
     "grow-herd-button",
     "advance-round-button",
 ]
