@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drift</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="/ad-bar.css">
+<link rel="manifest" href="/manifest.json">
+<!-- AdSense: placeholder client ID until application is approved -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+</head>
+<body>
+  <div id="game">
+    <h1>Drift</h1>
+    <p class="tagline">Manage a receiving region as displacement pressure rises. Whether that pressure becomes a crisis or a manageable transition comes down to how well the region prepared.</p>
+
+    <div id="status" class="section">
+      <p id="round-display" class="status-line">Round 1</p>
+      <p id="funds-display" class="status-line">Funds: 300</p>
+      <p id="total-capacity-display" class="status-line">Total capacity: 0</p>
+    </div>
+
+    <div id="capacity" class="section">
+      <p class="meter-label">Capacity investments</p>
+      <div class="invest-row">
+        <span id="housing-name" class="invest-name">🏠 Housing</span>
+        <span id="housing-count" class="invest-count">0</span>
+        <button id="housing-invest-button" class="secondary">Housing (20)</button>
+      </div>
+      <div class="invest-row">
+        <span id="services-name" class="invest-name">📚 Integration Services</span>
+        <span id="services-count" class="invest-count">0</span>
+        <button id="services-invest-button" class="secondary">Integration Services (20)</button>
+      </div>
+      <div class="invest-row">
+        <span id="infrastructure-name" class="invest-name">🛠️ Infrastructure</span>
+        <span id="infrastructure-count" class="invest-count">0</span>
+        <button id="infrastructure-invest-button" class="secondary">Infrastructure (25)</button>
+      </div>
+    </div>
+
+    <button id="advance-round-button" class="primary">Advance Round</button>
+  </div>
+
+  <div class="ad-bar ad-bar--bottom">
+    <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>
+    <span class="ad-bar-label ad-bar-label-short">Ad</span>
+    <!-- Google AdSense manual display ad unit -->
+    <ins class="adsbygoogle"
+         style="display:block; width:320px; height:50px;"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="XXXXXXXXXX"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <script>
+    async function main() {
+      const pyodide = await loadPyodide();
+      const response = await fetch("game.py");
+      const code = await response.text();
+      await pyodide.runPythonAsync(code);
+    }
+    main();
+  </script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js");
+    }
+  </script>
+</body>
+</html>
