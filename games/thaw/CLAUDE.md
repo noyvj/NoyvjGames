@@ -33,7 +33,7 @@ This game exists to simulate what happens if things continue as they are. Unlike
 | 4 | Visible acceleration | Surfacing the loop's steepening slope to the player clearly (not just a bigger number, a visibly faster-rising one). Tests: slope-calculation and threshold-crossing detection | Done |
 | 5 | Hope-angle payoff | End-of-session comparison showing early intervention produced a meaningfully flatter trajectory than inaction. Tests: comparison calculation across sample playthroughs | Done |
 | 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Done |
-| 7 | Visual/UI pass + hub integration | | Pending |
+| 7 | Visual/UI pass + hub integration | | Done — all 7 milestones complete |
 
 ## Tech notes
 

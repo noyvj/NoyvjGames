@@ -15,6 +15,7 @@ ELEMENT_IDS = [
     "round-display",
     "funds-display",
     "temperature-display",
+    "temperature-bar",
     "rise-rate-display",
     "melt-status-display",
     "dampening-display",
@@ -24,7 +25,7 @@ ELEMENT_IDS = [
     "advance-round-button",
 ]
 for _category in CATEGORIES:
-    ELEMENT_IDS += [f"{_category}-count", f"{_category}-invest-button"]
+    ELEMENT_IDS += [f"{_category}-name", f"{_category}-count", f"{_category}-invest-button"]
 
 INITIALLY_DISABLED_IDS = [f"{c}-invest-button" for c in CATEGORIES]
 

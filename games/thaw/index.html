@@ -20,6 +20,7 @@
       <p id="round-display" class="status-line">Round 1</p>
       <p id="funds-display" class="status-line">Funds: 300</p>
       <p id="temperature-display" class="status-line">Global temperature: +0.0°</p>
+      <div class="meter"><div id="temperature-bar" class="meter-fill meter-fill--temperature"></div></div>
       <p id="rise-rate-display" class="status-line">Current warming rate: 1.00°/round</p>
       <p id="melt-status-display" class="comparison-message">Permafrost stable — no feedback yet.</p>
       <p id="dampening-display" class="status-line">Feedback dampening: 0%</p>
@@ -30,17 +31,17 @@
 
     <div id="investments" class="section">
       <div class="invest-row" data-category="output">
-        <span class="invest-name">Output</span>
+        <span class="invest-name" id="output-name">Output</span>
         <span class="invest-count" id="output-count">0</span>
         <button id="output-invest-button" class="secondary" disabled>Loading...</button>
       </div>
       <div class="invest-row" data-category="preserve">
-        <span class="invest-name">Permafrost Preservation</span>
+        <span class="invest-name" id="preserve-name">Permafrost Preservation</span>
         <span class="invest-count" id="preserve-count">0</span>
         <button id="preserve-invest-button" class="secondary" disabled>Loading...</button>
       </div>
       <div class="invest-row" data-category="monitor">
-        <span class="invest-name">Monitoring &amp; Response</span>
+        <span class="invest-name" id="monitor-name">Monitoring &amp; Response</span>
         <span class="invest-count" id="monitor-count">0</span>
         <button id="monitor-invest-button" class="secondary" disabled>Loading...</button>
       </div>

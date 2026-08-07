@@ -20,6 +20,14 @@ CATEGORY_LABEL = {
     "monitor": "Monitoring & Response",
 }
 
+CATEGORY_ICON = {
+    "output": "\U0001F3ED",  # factory
+    "preserve": "\U0001F332",  # evergreen tree
+    "monitor": "\U0001F4E1",  # satellite antenna
+}
+
+TEMPERATURE_METER_MAX = 30.0
+
 INVEST_COST = {
     "output": 20,
     "preserve": 25,
@@ -163,7 +171,14 @@ def render():
     )
     document.getElementById("trajectory-display").innerText = region.trajectory_message()
 
+    document.getElementById("temperature-bar").style.width = (
+        f"{min(1.0, region.temperature / TEMPERATURE_METER_MAX) * 100:.0f}%"
+    )
+
     for category in CATEGORIES:
+        document.getElementById(f"{category}-name").innerText = (
+            f"{CATEGORY_ICON[category]} {CATEGORY_LABEL[category]}"
+        )
         document.getElementById(f"{category}-count").innerText = str(region.capacity[category])
         invest_button = document.getElementById(f"{category}-invest-button")
         invest_button.innerText = f"Invest ({INVEST_COST[category]})"
