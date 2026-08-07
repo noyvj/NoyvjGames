@@ -19,6 +19,7 @@ ELEMENT_IDS = [
     "coupling-display",
     "pressure-display",
     "methane-bar",
+    "score-display",
     "grow-herd-button",
     "advance-round-button",
 ]

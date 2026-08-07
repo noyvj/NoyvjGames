@@ -11,7 +11,7 @@ def test_pressure_is_zero_with_no_methane(game_env):
 
 
 def test_pressure_scales_with_methane(game_env):
-    game_env.farm.methane = 150.0
+    game_env.farm.methane = 50.0
     assert game_env.farm.pressure_fraction() == pytest.approx(0.5)
 
 
@@ -23,7 +23,7 @@ def test_pressure_caps_at_maximum(game_env):
 def test_pressure_reduces_income_this_round(game_env):
     game_env.grow_herd()
     game_env.grow_herd()
-    game_env.farm.methane = 150.0  # 50% pressure
+    game_env.farm.methane = 50.0  # 50% pressure
     funds_before = game_env.farm.funds
     game_env.advance_round()
     full_income = 2 * 5  # herd_size * HERD_INCOME_PER_UNIT
@@ -65,7 +65,7 @@ def test_no_hard_fail_state_funds_never_forced_negative_by_pressure(game_env):
 
 
 def test_render_shows_pressure_and_methane_bar(game_env):
-    game_env.farm.methane = 150.0
+    game_env.farm.methane = 50.0
     game_env.module.render()
     assert "50%" in game_env.elements["pressure-display"].innerText
     assert game_env.elements["methane-bar"].style.width == "50%"

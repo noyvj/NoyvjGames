@@ -26,15 +26,23 @@ MIN_COUPLING_RATIO = 0.1
 DECOUPLING_MEASURES = {
     "feed": {"cost": 15, "ratio_reduction": 0.04, "label": "Feed Additives"},
     "caps": {"cost": 20, "ratio_reduction": 0.06, "label": "Herd Caps"},
-    "capture": {"cost": 30, "ratio_reduction": 0.10, "label": "Capture Systems"},
+    "capture": {"cost": 20, "ratio_reduction": 0.10, "label": "Capture Systems"},
 }
 
 # Soft consequences: sustained methane deterministically eats into income
 # via market/regulatory pressure and degraded yields — no hard fail-state,
 # no randomness, just an unchecked-growth strategy quietly undercutting
 # its own revenue over time.
-PRESSURE_SCALE = 300.0
+PRESSURE_SCALE = 100.0
 MAX_PRESSURE = 0.8
+
+# Scoring: profitability minus a methane penalty. Rewards decoupling
+# specifically — pure growth racks up methane (and the pressure drag that
+# comes with it), pure restraint never earns much profit either. Tuned
+# (see tests/test_scoring.py) so decoupled growth overtakes pure growth
+# within about 10 rounds — a real payoff within a normal play session,
+# not a decades-long theoretical one.
+METHANE_PENALTY_WEIGHT = 2.0
 
 
 class FarmState:
@@ -84,6 +92,11 @@ class FarmState:
         self.methane += self.methane_this_round()
         self.round_number += 1
 
+    def score(self):
+        """Profitability weighted against sustained emissions — rewards
+        decoupling specifically, not just growth or just restraint."""
+        return self.funds - self.methane * METHANE_PENALTY_WEIGHT
+
 
 farm = FarmState()
 
@@ -102,6 +115,7 @@ def render():
     document.getElementById("methane-bar").style.width = (
         f"{min(1.0, farm.methane / PRESSURE_SCALE) * 100:.0f}%"
     )
+    document.getElementById("score-display").innerText = f"Score: {farm.score():.0f}"
 
     grow_button = document.getElementById("grow-herd-button")
     grow_button.innerText = f"Grow Herd ({HERD_GROWTH_COST})"
