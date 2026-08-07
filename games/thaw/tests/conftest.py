@@ -20,6 +20,7 @@ ELEMENT_IDS = [
     "dampening-display",
     "acceleration-display",
     "acceleration-bar",
+    "trajectory-display",
     "advance-round-button",
 ]
 for _category in CATEGORIES:

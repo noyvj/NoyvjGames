@@ -58,6 +58,10 @@ class RegionState:
         self.capacity = {c: 0 for c in CATEGORIES}
         self.temperature = 0.0
         self.melt_started_round = None
+        # A parallel, fully undampened trajectory — same background rise,
+        # same feedback mechanics, but zero intervention ever. The gap
+        # between this and the real temperature is the hope-angle payoff.
+        self.counterfactual_temperature = 0.0
 
     def invest(self, category):
         cost = INVEST_COST[category]
@@ -95,7 +99,29 @@ class RegionState:
         self.temperature += self.current_rise_rate()
         if self.melt_started_round is None and self.is_melting():
             self.melt_started_round = current_round
+
+        counterfactual_excess = max(0.0, self.counterfactual_temperature - MELT_THRESHOLD)
+        counterfactual_rate = BASE_TEMP_RISE_PER_ROUND + (
+            counterfactual_excess * FEEDBACK_RATE_PER_DEGREE_OVER
+        )
+        self.counterfactual_temperature += counterfactual_rate
+
         self.round_number += 1
+
+    def temperature_saved(self):
+        """The hope-angle payoff, as a direct number: how much lower
+        temperature is right now than the fully-undampened counterfactual
+        trajectory would have reached by this round."""
+        return self.counterfactual_temperature - self.temperature
+
+    def trajectory_message(self):
+        saved = self.temperature_saved()
+        if saved <= 0.01:
+            return "No meaningful difference from intervention yet."
+        return (
+            f"Early intervention has kept warming {saved:.1f}° lower than an "
+            f"unmitigated trajectory would have reached by now."
+        )
 
     def acceleration_factor(self):
         """How many times faster than the background baseline warming is
@@ -135,6 +161,7 @@ def render():
     document.getElementById("acceleration-bar").style.width = (
         f"{min(1.0, (region.acceleration_factor() - 1) / 2) * 100:.0f}%"
     )
+    document.getElementById("trajectory-display").innerText = region.trajectory_message()
 
     for category in CATEGORIES:
         document.getElementById(f"{category}-count").innerText = str(region.capacity[category])
