@@ -16,6 +16,15 @@ ELEMENT_IDS = [
     "production-display",
     "total-extracted-display",
     "advance-cycle-button",
+    "repair-name",
+    "repair-count",
+    "repair-invest-button",
+    "reuse-name",
+    "reuse-count",
+    "reuse-invest-button",
+    "recycle-name",
+    "recycle-count",
+    "recycle-invest-button",
 ]
 
 
