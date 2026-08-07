@@ -18,6 +18,8 @@ ELEMENT_IDS = [
     "rise-rate-display",
     "melt-status-display",
     "dampening-display",
+    "acceleration-display",
+    "acceleration-bar",
     "advance-round-button",
 ]
 for _category in CATEGORIES:

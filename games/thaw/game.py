@@ -57,6 +57,7 @@ class RegionState:
         self.funds = STARTING_FUNDS
         self.capacity = {c: 0 for c in CATEGORIES}
         self.temperature = 0.0
+        self.melt_started_round = None
 
     def invest(self, category):
         cost = INVEST_COST[category]
@@ -90,8 +91,24 @@ class RegionState:
 
     def advance_round(self):
         self.funds += self.capacity["output"] * OUTPUT_INCOME_PER_UNIT
+        current_round = self.round_number
         self.temperature += self.current_rise_rate()
+        if self.melt_started_round is None and self.is_melting():
+            self.melt_started_round = current_round
         self.round_number += 1
+
+    def acceleration_factor(self):
+        """How many times faster than the background baseline warming is
+        rising right now — 1.0x when stable, growing once melt kicks in."""
+        return self.current_rise_rate() / BASE_TEMP_RISE_PER_ROUND
+
+    def acceleration_message(self):
+        if not self.is_melting():
+            return "Warming is rising at a steady, linear rate."
+        return (
+            f"Warming has accelerated to {self.acceleration_factor():.1f}x the background "
+            f"rate since permafrost began melting in round {self.melt_started_round}."
+        )
 
 
 region = RegionState()
@@ -113,6 +130,10 @@ def render():
     )
     document.getElementById("dampening-display").innerText = (
         f"Feedback dampening: {region.feedback_dampening_fraction() * 100:.0f}%"
+    )
+    document.getElementById("acceleration-display").innerText = region.acceleration_message()
+    document.getElementById("acceleration-bar").style.width = (
+        f"{min(1.0, (region.acceleration_factor() - 1) / 2) * 100:.0f}%"
     )
 
     for category in CATEGORIES:
