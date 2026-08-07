@@ -32,6 +32,15 @@ CIRCULARITY_INVESTMENTS = {
     "recycle": {"cost": 30, "supply_per_unit": 5.0, "label": "Recycling Loops", "icon": "♻️"},
 }
 
+# Environmental cost meter: cumulative new extraction leaves behind
+# lasting land/emissions damage, which in turn makes further extraction
+# progressively more expensive (degraded sites cost more to work) — a
+# soft, compounding consequence with no hard fail-state. Circularity
+# investment is the only way to avoid feeding this meter at all, since
+# it substitutes for new extraction rather than merely paying its cost.
+ENVIRONMENTAL_DAMAGE_SCALE = 500.0
+MAX_COST_MULTIPLIER = 2.5
+
 
 class ChainState:
     def __init__(self):
@@ -66,9 +75,18 @@ class ChainState:
         self.circularity_investment[measure] += 1
         return True
 
+    def damage_fraction(self):
+        """0..1 — cumulative land/emissions damage from lifetime new
+        extraction, capped so extraction never becomes literally
+        impossible, just steadily more expensive."""
+        return min(1.0, self.total_extracted / ENVIRONMENTAL_DAMAGE_SCALE)
+
+    def extraction_cost_multiplier(self):
+        return 1.0 + self.damage_fraction() * (MAX_COST_MULTIPLIER - 1.0)
+
     def advance_cycle(self):
         extraction = self.new_extraction_needed()
-        cost = extraction * EXTRACTION_COST_PER_UNIT
+        cost = extraction * EXTRACTION_COST_PER_UNIT * self.extraction_cost_multiplier()
         revenue = PRODUCTION_TARGET * SALE_PRICE_PER_UNIT
         self.funds += revenue - cost
         self.total_extracted += extraction
@@ -92,6 +110,11 @@ def render():
     document.getElementById("total-extracted-display").innerText = (
         f"Total extracted (lifetime): {chain.total_extracted:.0f} units"
     )
+    document.getElementById("damage-display").innerText = (
+        f"Environmental damage: {chain.damage_fraction() * 100:.0f}% "
+        f"(extraction cost x{chain.extraction_cost_multiplier():.2f})"
+    )
+    document.getElementById("damage-bar").style.width = f"{chain.damage_fraction() * 100:.0f}%"
 
     for measure, spec in CIRCULARITY_INVESTMENTS.items():
         document.getElementById(f"{measure}-name").innerText = f"{spec['icon']} {spec['label']}"

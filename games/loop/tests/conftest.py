@@ -15,6 +15,8 @@ ELEMENT_IDS = [
     "extraction-display",
     "production-display",
     "total-extracted-display",
+    "damage-display",
+    "damage-bar",
     "advance-cycle-button",
     "repair-name",
     "repair-count",
