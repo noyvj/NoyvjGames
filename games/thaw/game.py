@@ -41,6 +41,15 @@ BASE_TEMP_RISE_PER_ROUND = 1.0
 MELT_THRESHOLD = 10.0
 FEEDBACK_RATE_PER_DEGREE_OVER = 0.15
 
+# Intervention: preserve/monitor investment dampens the FEEDBACK
+# contribution only — never the background BASE_TEMP_RISE_PER_ROUND,
+# which stays outside player control by design. "A real lever that
+# measurably slows the loop, even if it can't fully stop the background
+# trajectory" — the plan's hope-angle requirement, made literal.
+DAMPENING_PER_PRESERVE_UNIT = 0.08
+DAMPENING_PER_MONITOR_UNIT = 0.04
+MAX_FEEDBACK_DAMPENING = 0.85
+
 
 class RegionState:
     def __init__(self):
@@ -60,12 +69,21 @@ class RegionState:
     def is_melting(self):
         return self.temperature >= MELT_THRESHOLD
 
+    def feedback_dampening_fraction(self):
+        total = (
+            self.capacity["preserve"] * DAMPENING_PER_PRESERVE_UNIT
+            + self.capacity["monitor"] * DAMPENING_PER_MONITOR_UNIT
+        )
+        return min(MAX_FEEDBACK_DAMPENING, total)
+
     def feedback_bonus(self):
         """Extra warming this round from methane released by permafrost
         melt — zero until the melt threshold is crossed, then grows with
-        how far past it the temperature has climbed."""
+        how far past it the temperature has climbed. Intervention
+        investment dampens this, never the background rise itself."""
         excess = max(0.0, self.temperature - MELT_THRESHOLD)
-        return excess * FEEDBACK_RATE_PER_DEGREE_OVER
+        raw_bonus = excess * FEEDBACK_RATE_PER_DEGREE_OVER
+        return raw_bonus * (1 - self.feedback_dampening_fraction())
 
     def current_rise_rate(self):
         return BASE_TEMP_RISE_PER_ROUND + self.feedback_bonus()
@@ -92,6 +110,9 @@ def render():
         "Permafrost is actively melting — methane feedback is accelerating warming."
         if region.is_melting()
         else "Permafrost stable — no feedback yet."
+    )
+    document.getElementById("dampening-display").innerText = (
+        f"Feedback dampening: {region.feedback_dampening_fraction() * 100:.0f}%"
     )
 
     for category in CATEGORIES:
