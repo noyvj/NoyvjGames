@@ -33,7 +33,7 @@ This game exists to let the player ideate and build a *system*, not just respond
 | 4 | Loop-closure visualization state | Tracking and surfacing what percentage of production is circular vs. new-extraction-sourced each round. Tests: percentage-calculation logic | Done |
 | 5 | Scoring + hope-angle payoff | End-of-session score rewarding high circularity, with a clear "you closed the loop" state achievable through good play. Tests: scoring formula across sample playthroughs | Done |
 | 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Done |
-| 7 | Visual/UI pass + hub integration | This game especially benefits from a clear before/after visual of the chain (straight line vs. closed loop), worth prioritizing in the polish pass | Pending |
+| 7 | Visual/UI pass + hub integration | This game especially benefits from a clear before/after visual of the chain (straight line vs. closed loop), worth prioritizing in the polish pass | Done — all 7 milestones complete |
 
 ## Tech notes
 

@@ -151,7 +151,22 @@ def circular_trend_message(trend):
     return f"Your chain's circular share has held steady at {second_pct:.0f}%."
 
 
+def chain_flow_message(fraction):
+    if fraction <= 0.0:
+        return "Straight line: 100% of production needs new extraction."
+    if fraction >= 1.0:
+        return "Loop closed: 100% of production comes from repair, reuse & recycling. No new extraction needed."
+    return f"{fraction * 100:.0f}% of the chain is looping back — {100 - fraction * 100:.0f}% still needs new extraction."
+
+
 def render():
+    fraction = chain.circular_fraction_this_cycle()
+    flow_el = document.getElementById("chain-flow")
+    flow_el.className = "chain-flow chain-flow--closed" if fraction >= 1.0 else "chain-flow"
+    extract_stage = document.getElementById("stage-extract")
+    extract_stage.className = "chain-stage chain-stage--inactive" if fraction >= 1.0 else "chain-stage"
+    document.getElementById("chain-flow-message").innerText = chain_flow_message(fraction)
+
     document.getElementById("cycle-display").innerText = f"Cycle {chain.cycle_number}"
     document.getElementById("funds-display").innerText = f"Funds: {chain.funds:.0f}"
     document.getElementById("extraction-display").innerText = (

@@ -199,4 +199,18 @@ button.primary:active {
 .chain-arrow {
   opacity: 0.5;
   font-size: 0.9rem;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.chain-flow--closed .chain-stage {
+  border-color: #4c9c6e;
+}
+
+.chain-flow--closed .chain-arrow {
+  color: #4c9c6e;
+  opacity: 1;
+}
+
+.chain-stage--inactive {
+  opacity: 0.35;
 }

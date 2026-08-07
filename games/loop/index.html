@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Loop — Milestone 1</title>
+<title>Loop</title>
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="/ad-bar.css">
 <link rel="manifest" href="/manifest.json">
@@ -15,6 +15,20 @@
   <div id="game">
     <h1>Loop</h1>
     <p class="tagline">Redesign a supply chain. By default it's a straight line: extract, make, use, discard. Waste is a design choice — not an inevitability.</p>
+
+    <div id="chain-flow-section" class="section">
+      <p class="meter-label">The chain</p>
+      <div id="chain-flow" class="chain-flow">
+        <div id="stage-extract" class="chain-stage">🪨<br>Extract</div>
+        <span class="chain-arrow">→</span>
+        <div class="chain-stage">🏭<br>Manufacture</div>
+        <span class="chain-arrow">→</span>
+        <div class="chain-stage">📦<br>Use</div>
+        <span class="chain-arrow">→</span>
+        <div id="stage-discard" class="chain-stage">🗑️<br>Discard</div>
+      </div>
+      <p id="chain-flow-message" class="comparison-message">Straight line: 100% of production needs new extraction.</p>
+    </div>
 
     <div id="status" class="section">
       <p id="cycle-display" class="status-line">Cycle 1</p>

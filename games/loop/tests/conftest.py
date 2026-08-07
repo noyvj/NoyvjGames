@@ -10,6 +10,10 @@ from .fakes import FakeDocument, FakeElement, create_proxy
 GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 
 ELEMENT_IDS = [
+    "chain-flow",
+    "stage-extract",
+    "stage-discard",
+    "chain-flow-message",
     "cycle-display",
     "funds-display",
     "extraction-display",
