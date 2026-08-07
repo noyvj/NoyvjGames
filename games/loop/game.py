@@ -41,6 +41,14 @@ CIRCULARITY_INVESTMENTS = {
 ENVIRONMENTAL_DAMAGE_SCALE = 500.0
 MAX_COST_MULTIPLIER = 2.5
 
+# Scoring: funds plus a direct bonus for lifetime circular share, so
+# closing the loop is rewarded on its own terms, not just as a side
+# effect of dodging rising extraction cost (though it dodges that too —
+# simulation shows a circularity-first strategy roughly triples the
+# funds of a pure-extraction strategy over 15 cycles, since escalating
+# damage cost never gets the chance to compound).
+CIRCULARITY_BONUS_WEIGHT = 300.0
+
 
 class ChainState:
     def __init__(self):
@@ -108,8 +116,39 @@ class ChainState:
         self.total_produced += PRODUCTION_TARGET
         self.cycle_number += 1
 
+    def score(self):
+        """Profitability plus a direct reward for lifetime circular
+        share — a fully closed, sustained loop earns the maximum bonus
+        on top of whatever funds it generated."""
+        return self.funds + self.lifetime_circular_fraction() * CIRCULARITY_BONUS_WEIGHT
+
+    def circular_trend(self):
+        """Compares the first half of cycles run to the second half —
+        the hope-angle payoff: a visibly rising circular share is the
+        direct reward for early circularity investment, not just a good
+        final number."""
+        n = len(self.circular_fraction_log)
+        if n < 4:
+            return None
+        half = n // 2
+        first_half_avg = sum(self.circular_fraction_log[:half]) / half
+        second_half_avg = sum(self.circular_fraction_log[half:]) / (n - half)
+        return first_half_avg, second_half_avg
+
 
 chain = ChainState()
+
+
+def circular_trend_message(trend):
+    if trend is None:
+        return "Not enough cycles yet to show a trend."
+    first_half_avg, second_half_avg = trend
+    first_pct, second_pct = first_half_avg * 100, second_half_avg * 100
+    if second_half_avg > first_half_avg:
+        return f"Your chain is closing the loop over time ({first_pct:.0f}% → {second_pct:.0f}% circular) — the redesign is paying off."
+    if second_half_avg < first_half_avg:
+        return f"Your chain has drifted back toward a straight line ({first_pct:.0f}% → {second_pct:.0f}% circular)."
+    return f"Your chain's circular share has held steady at {second_pct:.0f}%."
 
 
 def render():
@@ -140,6 +179,8 @@ def render():
     document.getElementById("circular-bar").style.width = (
         f"{chain.circular_fraction_this_cycle() * 100:.0f}%"
     )
+    document.getElementById("score-display").innerText = f"Score: {chain.score():.0f}"
+    document.getElementById("trend-display").innerText = circular_trend_message(chain.circular_trend())
 
     for measure, spec in CIRCULARITY_INVESTMENTS.items():
         document.getElementById(f"{measure}-name").innerText = f"{spec['icon']} {spec['label']}"

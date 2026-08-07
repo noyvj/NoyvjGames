@@ -20,6 +20,8 @@ ELEMENT_IDS = [
     "circular-fraction-display",
     "lifetime-circular-display",
     "circular-bar",
+    "score-display",
+    "trend-display",
     "advance-cycle-button",
     "repair-name",
     "repair-count",
