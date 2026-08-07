@@ -18,6 +18,17 @@ HERD_INCOME_PER_UNIT = 5
 # farm" and "keep emissions low" pull against each other by default.
 BASE_COUPLING_RATIO = 1.0
 
+# Decoupling measures reduce the coupling ratio without requiring herd
+# shrinkage — same herd size, lower emissions. Floored so it can never
+# hit zero (decoupling is never "free," just much better).
+MIN_COUPLING_RATIO = 0.1
+
+DECOUPLING_MEASURES = {
+    "feed": {"cost": 15, "ratio_reduction": 0.04, "label": "Feed Additives"},
+    "caps": {"cost": 20, "ratio_reduction": 0.06, "label": "Herd Caps"},
+    "capture": {"cost": 30, "ratio_reduction": 0.10, "label": "Capture Systems"},
+}
+
 
 class FarmState:
     def __init__(self):
@@ -25,11 +36,16 @@ class FarmState:
         self.funds = STARTING_FUNDS
         self.herd_size = 0
         self.methane = 0.0
+        self.decoupling_investment = {m: 0 for m in DECOUPLING_MEASURES}
 
     def coupling_ratio(self):
-        """Methane produced per herd unit, per round. Milestone 3 adds
-        decoupling investments that reduce this below its base value."""
-        return BASE_COUPLING_RATIO
+        """Methane produced per herd unit, per round. Each decoupling
+        measure permanently lowers this, floored so it never hits zero."""
+        reduction = sum(
+            self.decoupling_investment[m] * DECOUPLING_MEASURES[m]["ratio_reduction"]
+            for m in DECOUPLING_MEASURES
+        )
+        return max(MIN_COUPLING_RATIO, BASE_COUPLING_RATIO - reduction)
 
     def methane_this_round(self):
         return self.herd_size * self.coupling_ratio()
@@ -39,6 +55,14 @@ class FarmState:
             return False
         self.funds -= HERD_GROWTH_COST
         self.herd_size += 1
+        return True
+
+    def invest_decoupling(self, measure):
+        cost = DECOUPLING_MEASURES[measure]["cost"]
+        if self.funds < cost:
+            return False
+        self.funds -= cost
+        self.decoupling_investment[measure] += 1
         return True
 
     def advance_round(self):
@@ -63,10 +87,25 @@ def render():
     grow_button.innerText = f"Grow Herd ({HERD_GROWTH_COST})"
     grow_button.disabled = farm.funds < HERD_GROWTH_COST
 
+    for measure, spec in DECOUPLING_MEASURES.items():
+        document.getElementById(f"{measure}-count").innerText = str(
+            farm.decoupling_investment[measure]
+        )
+        button = document.getElementById(f"{measure}-invest-button")
+        button.innerText = f"{spec['label']} ({spec['cost']})"
+        button.disabled = farm.funds < spec["cost"]
+
 
 def on_grow_herd(event=None):
     farm.grow_herd()
     render()
+
+
+def _make_decoupling_handler(measure):
+    def handler(event=None):
+        farm.invest_decoupling(measure)
+        render()
+    return handler
 
 
 def on_advance_round(event=None):
@@ -81,6 +120,10 @@ def setup():
     document.getElementById("advance-round-button").addEventListener(
         "click", create_proxy(on_advance_round)
     )
+    for measure in DECOUPLING_MEASURES:
+        document.getElementById(f"{measure}-invest-button").addEventListener(
+            "click", create_proxy(_make_decoupling_handler(measure))
+        )
     render()
 
 

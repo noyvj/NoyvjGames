@@ -9,6 +9,8 @@ from .fakes import FakeDocument, FakeElement, create_proxy
 
 GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 
+MEASURE_IDS = ["feed", "caps", "capture"]
+
 ELEMENT_IDS = [
     "round-display",
     "funds-display",
@@ -18,10 +20,10 @@ ELEMENT_IDS = [
     "grow-herd-button",
     "advance-round-button",
 ]
+for _measure in MEASURE_IDS:
+    ELEMENT_IDS += [f"{_measure}-count", f"{_measure}-invest-button"]
 
-INITIALLY_DISABLED_IDS = [
-    "grow-herd-button",
-]
+INITIALLY_DISABLED_IDS = ["grow-herd-button"] + [f"{m}-invest-button" for m in MEASURE_IDS]
 
 
 class GameEnv:
@@ -40,6 +42,9 @@ class GameEnv:
 
     def advance_round(self):
         self.elements["advance-round-button"].dispatch("click", None)
+
+    def invest_decoupling(self, measure):
+        self.elements[f"{measure}-invest-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements):
