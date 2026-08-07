@@ -27,7 +27,7 @@ This game exists to let the player ideate and build a *system*, not just respond
 
 | # | Milestone | Content | Status |
 |---|-----------|---------|--------|
-| 1 | Core linear chain | Extraction → manufacturing → use → disposal, basic production-target loop. Tests: chain-flow calculation, production-target logic | Pending |
+| 1 | Core linear chain | Extraction → manufacturing → use → disposal, basic production-target loop. Tests: chain-flow calculation, production-target logic | Done |
 | 2 | Circularity investments | Repair/reuse/recycling infrastructure that reduces required new extraction per cycle. Tests: extraction-reduction formula per investment type | Pending |
 | 3 | Environmental cost meter | Cost scaling with new-extraction volume. Tests: cost-calculation formula | Pending |
 | 4 | Loop-closure visualization state | Tracking and surfacing what percentage of production is circular vs. new-extraction-sourced each round. Tests: percentage-calculation logic | Pending |

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loop — Milestone 1</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="/ad-bar.css">
+<link rel="manifest" href="/manifest.json">
+<!-- AdSense: placeholder client ID until application is approved -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+</head>
+<body>
+  <div id="game">
+    <h1>Loop</h1>
+    <p class="tagline">Redesign a supply chain. By default it's a straight line: extract, make, use, discard. Waste is a design choice — not an inevitability.</p>
+
+    <div id="status" class="section">
+      <p id="cycle-display" class="status-line">Cycle 1</p>
+      <p id="funds-display" class="status-line">Funds: 300</p>
+      <p id="production-display" class="status-line">Production target: 50 units/cycle</p>
+      <p id="extraction-display" class="status-line">New extraction this cycle: 50 units</p>
+      <p id="total-extracted-display" class="status-line">Total extracted (lifetime): 0 units</p>
+    </div>
+
+    <button id="advance-cycle-button" class="primary">Advance Cycle</button>
+  </div>
+
+  <div class="ad-bar ad-bar--bottom">
+    <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>
+    <span class="ad-bar-label ad-bar-label-short">Ad</span>
+    <!-- Google AdSense manual display ad unit -->
+    <ins class="adsbygoogle"
+         style="display:block; width:320px; height:50px;"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="XXXXXXXXXX"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <script>
+    async function main() {
+      const pyodide = await loadPyodide();
+      const response = await fetch("game.py");
+      const code = await response.text();
+      await pyodide.runPythonAsync(code);
+    }
+    main();
+  </script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js");
+    }
+  </script>
+</body>
+</html>
