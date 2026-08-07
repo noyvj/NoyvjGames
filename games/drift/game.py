@@ -57,6 +57,16 @@ BACKGROUND_SEVERITY_RISE_PER_ROUND = 0.5
 BASE_ARRIVALS_PER_ROUND = 5.0
 ARRIVALS_PER_SEVERITY_POINT = 3.0
 
+# Strain: how much cumulative arrivals outrun cumulative capacity. Soft
+# consequence only — strain eats into the region's own income (service
+# shortfalls and friction cost money) but never blocks play or zeroes
+# funds outright, since strain_fraction is naturally capped at 1.0.
+STRAIN_LEVEL_THRESHOLDS = [
+    (0.0, "stable"),
+    (0.25, "strained"),
+    (0.6, "critical"),
+]
+
 
 class RegionState:
     def __init__(self):
@@ -66,6 +76,7 @@ class RegionState:
         self.background_severity = 0.0
         self.total_arrivals = 0.0
         self.arrivals_log = []
+        self.strain_log = []
 
     def total_capacity(self):
         return sum(self.capacity[t] for t in CAPACITY_TYPES)
@@ -84,12 +95,33 @@ class RegionState:
         engineer to zero, but predictable enough to plan capacity around."""
         return BASE_ARRIVALS_PER_ROUND + self.background_severity * ARRIVALS_PER_SEVERITY_POINT
 
+    def strain_fraction(self):
+        """0..1 — the share of the region's arrived population that
+        current capacity fails to cover. Zero while capacity keeps pace
+        with arrivals; rises toward (but never reaches) 1 as arrivals
+        outrun capacity."""
+        if self.total_arrivals <= 0:
+            return 0.0
+        shortfall = max(0.0, self.total_arrivals - self.total_capacity())
+        return min(1.0, shortfall / self.total_arrivals)
+
+    def strain_level(self):
+        level = STRAIN_LEVEL_THRESHOLDS[0][1]
+        for threshold, label in STRAIN_LEVEL_THRESHOLDS:
+            if self.strain_fraction() >= threshold:
+                level = label
+        return level
+
     def advance_round(self):
+        strain = self.strain_fraction()
+        self.strain_log.append(strain)
+        income = BASE_REGIONAL_INCOME_PER_ROUND * (1 - strain)
+
         arrivals = self.arrivals_this_round()
         self.total_arrivals += arrivals
         self.arrivals_log.append(arrivals)
         self.background_severity += BACKGROUND_SEVERITY_RISE_PER_ROUND
-        self.funds += BASE_REGIONAL_INCOME_PER_ROUND
+        self.funds += income
         self.round_number += 1
 
 
@@ -109,6 +141,10 @@ def render():
     document.getElementById("total-arrivals-display").innerText = (
         f"Total arrivals (lifetime): {region.total_arrivals:.0f} people"
     )
+    document.getElementById("strain-display").innerText = (
+        f"Strain: {region.strain_fraction() * 100:.0f}% ({region.strain_level()})"
+    )
+    document.getElementById("strain-bar").style.width = f"{region.strain_fraction() * 100:.0f}%"
 
     for capacity_type in CAPACITY_TYPES:
         document.getElementById(f"{capacity_type}-name").innerText = (

@@ -65,10 +65,14 @@ def test_advance_round_adds_base_income(game_env):
 
 
 def test_multiple_rounds_compound_income(game_env):
+    # Milestone 3's strain system reduces income once arrivals outrun
+    # capacity — with zero capacity invested, round 1 is unstrained (no
+    # arrivals have landed yet) but rounds 2+ hit full strain, so income
+    # only compounds once here, not three times.
     game_env.advance_round()
     game_env.advance_round()
     game_env.advance_round()
-    assert game_env.region.funds == pytest.approx(300.0 + 3 * 50.0)
+    assert game_env.region.funds == pytest.approx(300.0 + 50.0)
 
 
 def test_render_updates_status_displays(game_env):
