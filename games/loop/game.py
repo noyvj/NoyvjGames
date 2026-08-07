@@ -49,6 +49,7 @@ class ChainState:
         self.total_extracted = 0.0
         self.total_produced = 0.0
         self.circularity_investment = {c: 0 for c in CIRCULARITY_INVESTMENTS}
+        self.circular_fraction_log = []
 
     def circular_supply(self):
         """Units of this cycle's production target met by repair/reuse/
@@ -66,6 +67,19 @@ class ChainState:
 
     def is_loop_closed(self):
         return self.new_extraction_needed() <= 0.0
+
+    def circular_fraction_this_cycle(self):
+        """0..1 — the share of *this* cycle's production target that
+        circularity investment covers, capped at 1 (fully closed)."""
+        return (PRODUCTION_TARGET - self.new_extraction_needed()) / PRODUCTION_TARGET
+
+    def lifetime_circular_fraction(self):
+        """0..1 — the share of all production ever run through the chain
+        that came from circular supply rather than new extraction."""
+        if self.total_produced == 0:
+            return 0.0
+        circular_total = self.total_produced - self.total_extracted
+        return circular_total / self.total_produced
 
     def invest_circularity(self, measure):
         cost = CIRCULARITY_INVESTMENTS[measure]["cost"]
@@ -89,6 +103,7 @@ class ChainState:
         cost = extraction * EXTRACTION_COST_PER_UNIT * self.extraction_cost_multiplier()
         revenue = PRODUCTION_TARGET * SALE_PRICE_PER_UNIT
         self.funds += revenue - cost
+        self.circular_fraction_log.append(self.circular_fraction_this_cycle())
         self.total_extracted += extraction
         self.total_produced += PRODUCTION_TARGET
         self.cycle_number += 1
@@ -115,6 +130,16 @@ def render():
         f"(extraction cost x{chain.extraction_cost_multiplier():.2f})"
     )
     document.getElementById("damage-bar").style.width = f"{chain.damage_fraction() * 100:.0f}%"
+
+    document.getElementById("circular-fraction-display").innerText = (
+        f"Circular this cycle: {chain.circular_fraction_this_cycle() * 100:.0f}%"
+    )
+    document.getElementById("lifetime-circular-display").innerText = (
+        f"Lifetime circular share: {chain.lifetime_circular_fraction() * 100:.0f}%"
+    )
+    document.getElementById("circular-bar").style.width = (
+        f"{chain.circular_fraction_this_cycle() * 100:.0f}%"
+    )
 
     for measure, spec in CIRCULARITY_INVESTMENTS.items():
         document.getElementById(f"{measure}-name").innerText = f"{spec['icon']} {spec['label']}"
