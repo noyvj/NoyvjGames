@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thaw — Milestone 1</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="/ad-bar.css">
+<link rel="manifest" href="/manifest.json">
+<!-- AdSense: placeholder client ID until application is approved -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+</head>
+<body>
+  <div id="game">
+    <h1>Thaw</h1>
+    <p class="tagline">Manage a northern region as global temperature rises on its own. Watch for the moment a slow problem tips into a runaway feedback loop.</p>
+
+    <div id="status" class="section">
+      <p id="round-display" class="status-line">Round 1</p>
+      <p id="funds-display" class="status-line">Funds: 300</p>
+      <p id="temperature-display" class="status-line">Global temperature: +0.0°</p>
+    </div>
+
+    <div id="investments" class="section">
+      <div class="invest-row" data-category="output">
+        <span class="invest-name">Output</span>
+        <span class="invest-count" id="output-count">0</span>
+        <button id="output-invest-button" class="secondary" disabled>Loading...</button>
+      </div>
+      <div class="invest-row" data-category="preserve">
+        <span class="invest-name">Permafrost Preservation</span>
+        <span class="invest-count" id="preserve-count">0</span>
+        <button id="preserve-invest-button" class="secondary" disabled>Loading...</button>
+      </div>
+      <div class="invest-row" data-category="monitor">
+        <span class="invest-name">Monitoring &amp; Response</span>
+        <span class="invest-count" id="monitor-count">0</span>
+        <button id="monitor-invest-button" class="secondary" disabled>Loading...</button>
+      </div>
+    </div>
+
+    <button id="advance-round-button" class="primary">Advance Round</button>
+  </div>
+
+  <div class="ad-bar ad-bar--bottom">
+    <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>
+    <span class="ad-bar-label ad-bar-label-short">Ad</span>
+    <!-- Google AdSense manual display ad unit -->
+    <ins class="adsbygoogle"
+         style="display:block; width:320px; height:50px;"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="XXXXXXXXXX"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <script>
+    async function main() {
+      const pyodide = await loadPyodide();
+      const response = await fetch("game.py");
+      const code = await response.text();
+      await pyodide.runPythonAsync(code);
+    }
+    main();
+  </script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js");
+    }
+  </script>
+</body>
+</html>
