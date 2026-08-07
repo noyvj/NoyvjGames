@@ -78,6 +78,13 @@ STRAIN_LEVEL_THRESHOLDS = [
 INTEGRATION_RATE_PER_SERVICES_UNIT = 0.3
 INTEGRATION_CONTRIBUTION_PER_PERSON = 1.5
 
+# Composite wellbeing: three separately-tracked sub-scores (0-100 each)
+# rather than one blended number, per the plan's explicit instruction —
+# keeps the end-state legible ("service quality is fine but cohesion is
+# lagging" reads very differently from one number). Wellbeing score is
+# their simple average.
+WELLBEING_FUNDS_SCALE = 1000.0
+
 
 class RegionState:
     def __init__(self):
@@ -144,6 +151,38 @@ class RegionState:
         that enabled it and keeps paying after that."""
         return self.integrated_population * INTEGRATION_CONTRIBUTION_PER_PERSON
 
+    def average_strain(self):
+        """Sustained strain across the whole run so far, not just the
+        current snapshot — a late recovery can't fully erase an early
+        crisis, mirroring Grid's average_clean_fraction."""
+        if not self.strain_log:
+            return 0.0
+        return sum(self.strain_log) / len(self.strain_log)
+
+    def integration_fraction(self):
+        if self.total_arrivals <= 0:
+            return 0.0
+        return self.integrated_population / self.total_arrivals
+
+    def service_quality(self):
+        """0-100 — how well services have kept pace with arrivals over
+        the whole run, not just right now."""
+        return (1 - self.average_strain()) * 100
+
+    def economic_health(self):
+        """0-100 — regional funds relative to a reference scale, capped
+        both ends so a very poor or very rich region reads as a clean
+        floor/ceiling rather than an unbounded number."""
+        return min(100.0, max(0.0, self.funds / WELLBEING_FUNDS_SCALE * 100))
+
+    def social_cohesion(self):
+        """0-100 — the share of everyone who's arrived that's actually
+        been integrated so far."""
+        return self.integration_fraction() * 100
+
+    def wellbeing_score(self):
+        return (self.service_quality() + self.economic_health() + self.social_cohesion()) / 3
+
     def advance_round(self):
         strain = self.strain_fraction()
         self.strain_log.append(strain)
@@ -161,6 +200,14 @@ class RegionState:
 
 
 region = RegionState()
+
+
+def wellbeing_message(score):
+    if score >= 70:
+        return "This region is turning displacement into a manageable — even thriving — transition."
+    if score >= 40:
+        return "This region is managing, but strain and slow integration are holding it back."
+    return "This region is struggling: capacity hasn't kept pace with arrivals."
 
 
 def render():
@@ -187,6 +234,22 @@ def render():
     )
     document.getElementById("pending-display").innerText = (
         f"Pending integration: {region.pending_population():.0f} people"
+    )
+
+    document.getElementById("service-quality-display").innerText = (
+        f"Service quality: {region.service_quality():.0f}"
+    )
+    document.getElementById("economic-health-display").innerText = (
+        f"Economic health: {region.economic_health():.0f}"
+    )
+    document.getElementById("social-cohesion-display").innerText = (
+        f"Social cohesion: {region.social_cohesion():.0f}"
+    )
+    document.getElementById("wellbeing-display").innerText = (
+        f"Wellbeing score: {region.wellbeing_score():.0f}"
+    )
+    document.getElementById("wellbeing-message-display").innerText = wellbeing_message(
+        region.wellbeing_score()
     )
 
     for capacity_type in CAPACITY_TYPES:
