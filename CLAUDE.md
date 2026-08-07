@@ -55,7 +55,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
 | aftermath | Aftermath | Milestone 7 done (Visual/UI pass + hub integration) — all 7 milestones complete, fourth of the BCM114 climate quartet |
 | herd | Herd | Milestone 7 done (Visual/UI pass + hub integration) — all 7 milestones complete, first of the second climate-quartet set |
 | thaw | Thaw | Milestone 7 done (Visual/UI pass + hub integration) — all 7 milestones complete, second of the second climate-quartet set |
-| loop | Loop | Milestone 5 done (Scoring + hope-angle payoff) — 5 of 7 milestones, third of the second climate-quartet set |
+| loop | Loop | Milestone 6 done (Feedback prompt -> Neon backend) — 6 of 7 milestones, third of the second climate-quartet set |
 
 ## Site-level milestones (separate from per-game milestones)
 | # | Milestone | Status |
