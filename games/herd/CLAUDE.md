@@ -33,7 +33,7 @@ This game exists to make an invisible cause of climate change (methane from indu
 | 4 | Soft consequence system | Market/regulatory/yield pressure scaling with sustained high emissions, no hard fail-state. Tests: pressure-trigger thresholds | Done |
 | 5 | Scoring + hope-angle payoff | Profitability-vs-emissions scoring that rewards decoupling as the best strategy, provably better than either pure-growth or pure-restraint. Tests: scoring formula across sample playthroughs | Done |
 | 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Done |
-| 7 | Visual/UI pass + hub integration | | Pending |
+| 7 | Visual/UI pass + hub integration | | Done — all 7 milestones complete |
 
 ## Tech notes
 

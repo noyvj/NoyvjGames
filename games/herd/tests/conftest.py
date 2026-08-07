@@ -20,11 +20,12 @@ ELEMENT_IDS = [
     "pressure-display",
     "methane-bar",
     "score-display",
+    "decoupling-summary-display",
     "grow-herd-button",
     "advance-round-button",
 ]
 for _measure in MEASURE_IDS:
-    ELEMENT_IDS += [f"{_measure}-count", f"{_measure}-invest-button"]
+    ELEMENT_IDS += [f"{_measure}-name", f"{_measure}-count", f"{_measure}-invest-button"]
 
 INITIALLY_DISABLED_IDS = ["grow-herd-button"] + [f"{m}-invest-button" for m in MEASURE_IDS]
 

@@ -24,9 +24,9 @@ BASE_COUPLING_RATIO = 1.0
 MIN_COUPLING_RATIO = 0.1
 
 DECOUPLING_MEASURES = {
-    "feed": {"cost": 15, "ratio_reduction": 0.04, "label": "Feed Additives"},
-    "caps": {"cost": 20, "ratio_reduction": 0.06, "label": "Herd Caps"},
-    "capture": {"cost": 20, "ratio_reduction": 0.10, "label": "Capture Systems"},
+    "feed": {"cost": 15, "ratio_reduction": 0.04, "label": "Feed Additives", "icon": "\U0001F33E"},
+    "caps": {"cost": 20, "ratio_reduction": 0.06, "label": "Herd Caps", "icon": "\U0001F404"},
+    "capture": {"cost": 20, "ratio_reduction": 0.10, "label": "Capture Systems", "icon": "♻️"},
 }
 
 # Soft consequences: sustained methane deterministically eats into income
@@ -122,12 +122,18 @@ def render():
     grow_button.disabled = farm.funds < HERD_GROWTH_COST
 
     for measure, spec in DECOUPLING_MEASURES.items():
+        document.getElementById(f"{measure}-name").innerText = f"{spec['icon']} {spec['label']}"
         document.getElementById(f"{measure}-count").innerText = str(
             farm.decoupling_investment[measure]
         )
         button = document.getElementById(f"{measure}-invest-button")
         button.innerText = f"{spec['label']} ({spec['cost']})"
         button.disabled = farm.funds < spec["cost"]
+
+    decoupled_fraction = 1 - (farm.coupling_ratio() / BASE_COUPLING_RATIO)
+    document.getElementById("decoupling-summary-display").innerText = (
+        f"Decoupled: {decoupled_fraction * 100:.0f}% below baseline emissions per herd unit"
+    )
 
 
 def on_grow_herd(event=None):
