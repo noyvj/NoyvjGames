@@ -47,12 +47,25 @@ CAPACITY_PER_INVESTMENT = {
     "infrastructure": 6.0,
 }
 
+# Displacement pressure: background climate severity rises steadily and
+# largely outside the player's control (mirrors Thaw's background
+# trajectory), and arrivals each round scale with it. This is the
+# pressure the region's capacity gets measured against starting in
+# Milestone 3 — not something the player causes or can dial down, only
+# something they can prepare for.
+BACKGROUND_SEVERITY_RISE_PER_ROUND = 0.5
+BASE_ARRIVALS_PER_ROUND = 5.0
+ARRIVALS_PER_SEVERITY_POINT = 3.0
+
 
 class RegionState:
     def __init__(self):
         self.round_number = 1
         self.funds = STARTING_FUNDS
         self.capacity = {t: 0.0 for t in CAPACITY_TYPES}
+        self.background_severity = 0.0
+        self.total_arrivals = 0.0
+        self.arrivals_log = []
 
     def total_capacity(self):
         return sum(self.capacity[t] for t in CAPACITY_TYPES)
@@ -65,7 +78,17 @@ class RegionState:
         self.capacity[capacity_type] += CAPACITY_PER_INVESTMENT[capacity_type]
         return True
 
+    def arrivals_this_round(self):
+        """People arriving this round, rising with background severity —
+        loosely tied to it, not a hard function the player can reverse-
+        engineer to zero, but predictable enough to plan capacity around."""
+        return BASE_ARRIVALS_PER_ROUND + self.background_severity * ARRIVALS_PER_SEVERITY_POINT
+
     def advance_round(self):
+        arrivals = self.arrivals_this_round()
+        self.total_arrivals += arrivals
+        self.arrivals_log.append(arrivals)
+        self.background_severity += BACKGROUND_SEVERITY_RISE_PER_ROUND
         self.funds += BASE_REGIONAL_INCOME_PER_ROUND
         self.round_number += 1
 
@@ -78,6 +101,13 @@ def render():
     document.getElementById("funds-display").innerText = f"Funds: {region.funds:.0f}"
     document.getElementById("total-capacity-display").innerText = (
         f"Total capacity: {region.total_capacity():.0f}"
+    )
+    document.getElementById("arrivals-display").innerText = (
+        f"Arrivals this round: {region.arrivals_this_round():.0f} people "
+        f"(background severity: {region.background_severity:.1f})"
+    )
+    document.getElementById("total-arrivals-display").innerText = (
+        f"Total arrivals (lifetime): {region.total_arrivals:.0f} people"
     )
 
     for capacity_type in CAPACITY_TYPES:

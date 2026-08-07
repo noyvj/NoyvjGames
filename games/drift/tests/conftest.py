@@ -13,6 +13,8 @@ ELEMENT_IDS = [
     "round-display",
     "funds-display",
     "total-capacity-display",
+    "arrivals-display",
+    "total-arrivals-display",
     "housing-name",
     "housing-count",
     "housing-invest-button",
