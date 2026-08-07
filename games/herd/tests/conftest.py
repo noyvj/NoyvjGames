@@ -17,6 +17,8 @@ ELEMENT_IDS = [
     "herd-display",
     "methane-display",
     "coupling-display",
+    "pressure-display",
+    "methane-bar",
     "grow-herd-button",
     "advance-round-button",
 ]

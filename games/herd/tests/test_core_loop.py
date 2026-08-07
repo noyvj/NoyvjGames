@@ -2,6 +2,8 @@
 No methane meter or decoupling yet.
 """
 
+import pytest
+
 
 def test_initial_state(game_env):
     assert game_env.farm.round_number == 1
@@ -52,11 +54,15 @@ def test_advance_round_with_no_herd_grants_no_income(game_env):
 
 
 def test_multiple_rounds_compound_income(game_env):
+    # Milestone 4 adds a (tiny, at this methane level) pressure drag on
+    # income, so this checks funds grew roughly in line with income
+    # rather than asserting an exact pre-pressure total.
     game_env.grow_herd()
     funds_before = game_env.farm.funds
     game_env.advance_round()
     game_env.advance_round()
-    assert game_env.farm.funds == funds_before + 2 * 5
+    assert game_env.farm.funds > funds_before
+    assert game_env.farm.funds == pytest.approx(funds_before + 2 * 5, abs=1.0)
 
 
 def test_render_updates_status_displays(game_env):

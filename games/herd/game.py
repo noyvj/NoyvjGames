@@ -29,6 +29,13 @@ DECOUPLING_MEASURES = {
     "capture": {"cost": 30, "ratio_reduction": 0.10, "label": "Capture Systems"},
 }
 
+# Soft consequences: sustained methane deterministically eats into income
+# via market/regulatory pressure and degraded yields — no hard fail-state,
+# no randomness, just an unchecked-growth strategy quietly undercutting
+# its own revenue over time.
+PRESSURE_SCALE = 300.0
+MAX_PRESSURE = 0.8
+
 
 class FarmState:
     def __init__(self):
@@ -65,8 +72,15 @@ class FarmState:
         self.decoupling_investment[measure] += 1
         return True
 
+    def pressure_fraction(self):
+        """Fraction of income lost to market/regulatory pressure and
+        degraded yields, scaling with sustained methane. Capped so income
+        never fully vanishes — a bad strategy gets worse, not impossible."""
+        return min(MAX_PRESSURE, self.methane / PRESSURE_SCALE)
+
     def advance_round(self):
-        self.funds += self.herd_size * HERD_INCOME_PER_UNIT
+        raw_income = self.herd_size * HERD_INCOME_PER_UNIT
+        self.funds += raw_income * (1 - self.pressure_fraction())
         self.methane += self.methane_this_round()
         self.round_number += 1
 
@@ -81,6 +95,12 @@ def render():
     document.getElementById("methane-display").innerText = f"Methane: {farm.methane:.0f}"
     document.getElementById("coupling-display").innerText = (
         f"Coupling ratio: {farm.coupling_ratio():.2f} methane/herd/round"
+    )
+    document.getElementById("pressure-display").innerText = (
+        f"Market/regulatory pressure: {farm.pressure_fraction() * 100:.0f}% income loss"
+    )
+    document.getElementById("methane-bar").style.width = (
+        f"{min(1.0, farm.methane / PRESSURE_SCALE) * 100:.0f}%"
     )
 
     grow_button = document.getElementById("grow-herd-button")
