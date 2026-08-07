@@ -53,6 +53,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
 | grid | Grid | Milestone 6 done (UI/visual pass + hub integration) — all 6 milestones complete, second of the BCM114 climate quartet |
 | tide | Tide | Milestone 7 done (Visual/UI pass + hub integration) — all 7 milestones complete, third of the BCM114 climate quartet |
 | aftermath | Aftermath | Milestone 7 done (Visual/UI pass + hub integration) — all 7 milestones complete, fourth of the BCM114 climate quartet |
+| herd | Herd | Milestone 1 done (Core farm loop) — 1 of 7 milestones, first of the second climate-quartet set |
 
 ## Site-level milestones (separate from per-game milestones)
 | # | Milestone | Status |
