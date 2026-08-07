@@ -17,6 +17,8 @@ ELEMENT_IDS = [
     "total-arrivals-display",
     "strain-display",
     "strain-bar",
+    "integrated-display",
+    "pending-display",
     "housing-name",
     "housing-count",
     "housing-invest-button",

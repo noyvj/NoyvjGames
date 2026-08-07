@@ -56,7 +56,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
 | herd | Herd | Milestone 7 done (Visual/UI pass + hub integration) — all 7 milestones complete, first of the second climate-quartet set |
 | thaw | Thaw | Milestone 7 done (Visual/UI pass + hub integration) — all 7 milestones complete, second of the second climate-quartet set |
 | loop | Loop | Milestone 7 done (Visual/UI pass + hub integration) — all 7 milestones complete, third of the second climate-quartet set |
-| drift | Drift | Milestone 3 done (Strain vs. capacity system) — 3 of 7 milestones, fourth of the second climate-quartet set |
+| drift | Drift | Milestone 4 done (Integration payoff loop) — 4 of 7 milestones, fourth of the second climate-quartet set |
 
 ## Site-level milestones (separate from per-game milestones)
 | # | Milestone | Status |

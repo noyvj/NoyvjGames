@@ -67,6 +67,17 @@ STRAIN_LEVEL_THRESHOLDS = [
     (0.6, "critical"),
 ]
 
+# Integration payoff: services capacity is the region's throughput for
+# moving arrived people from "pending" to "integrated" — language,
+# employment, education access. Integrated people contribute back to
+# the regional economy every round after that, which is what makes
+# integration net-positive rather than a permanent drain: a services
+# investment (cost 20, +8 capacity) pays for itself in about 6 rounds
+# once integration ramps up (8 * 0.3 = 2.4 people/round * 1.5/person =
+# 3.6 funds/round), and keeps paying indefinitely after that.
+INTEGRATION_RATE_PER_SERVICES_UNIT = 0.3
+INTEGRATION_CONTRIBUTION_PER_PERSON = 1.5
+
 
 class RegionState:
     def __init__(self):
@@ -77,6 +88,7 @@ class RegionState:
         self.total_arrivals = 0.0
         self.arrivals_log = []
         self.strain_log = []
+        self.integrated_population = 0.0
 
     def total_capacity(self):
         return sum(self.capacity[t] for t in CAPACITY_TYPES)
@@ -112,10 +124,33 @@ class RegionState:
                 level = label
         return level
 
+    def pending_population(self):
+        """Arrived people not yet integrated — still waiting on services
+        throughput to reach them."""
+        return max(0.0, self.total_arrivals - self.integrated_population)
+
+    def integration_this_round(self):
+        """People who move from pending to integrated this round, capped
+        by services throughput and by how many people are actually
+        waiting — this cap is the lag: a region can only integrate as
+        fast as its services capacity allows, regardless of funds."""
+        throughput = self.capacity["services"] * INTEGRATION_RATE_PER_SERVICES_UNIT
+        return min(self.pending_population(), throughput)
+
+    def integration_contribution(self):
+        """Funds integrated people contribute back each round — the
+        net-positive core of the hope angle: integration isn't a
+        permanent drain, it eventually pays for the services investment
+        that enabled it and keeps paying after that."""
+        return self.integrated_population * INTEGRATION_CONTRIBUTION_PER_PERSON
+
     def advance_round(self):
         strain = self.strain_fraction()
         self.strain_log.append(strain)
         income = BASE_REGIONAL_INCOME_PER_ROUND * (1 - strain)
+        income += self.integration_contribution()
+
+        self.integrated_population += self.integration_this_round()
 
         arrivals = self.arrivals_this_round()
         self.total_arrivals += arrivals
@@ -145,6 +180,14 @@ def render():
         f"Strain: {region.strain_fraction() * 100:.0f}% ({region.strain_level()})"
     )
     document.getElementById("strain-bar").style.width = f"{region.strain_fraction() * 100:.0f}%"
+
+    document.getElementById("integrated-display").innerText = (
+        f"Integrated: {region.integrated_population:.0f} people "
+        f"(contributing {region.integration_contribution():.0f} funds/round)"
+    )
+    document.getElementById("pending-display").innerText = (
+        f"Pending integration: {region.pending_population():.0f} people"
+    )
 
     for capacity_type in CAPACITY_TYPES:
         document.getElementById(f"{capacity_type}-name").innerText = (
