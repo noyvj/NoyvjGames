@@ -74,6 +74,15 @@ h1 {
 }
 
 .meter-fill--strain {
+  background: #4a8fa5;
+  transition: background 0.2s ease;
+}
+
+.meter-fill--strain.strain--strained {
+  background: #c9a13c;
+}
+
+.meter-fill--strain.strain--critical {
   background: #c9603c;
 }
 

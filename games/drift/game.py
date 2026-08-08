@@ -226,7 +226,9 @@ def render():
     document.getElementById("strain-display").innerText = (
         f"Strain: {region.strain_fraction() * 100:.0f}% ({region.strain_level()})"
     )
-    document.getElementById("strain-bar").style.width = f"{region.strain_fraction() * 100:.0f}%"
+    strain_bar = document.getElementById("strain-bar")
+    strain_bar.style.width = f"{region.strain_fraction() * 100:.0f}%"
+    strain_bar.className = f"meter-fill meter-fill--strain strain--{region.strain_level()}"
 
     document.getElementById("integrated-display").innerText = (
         f"Integrated: {region.integrated_population:.0f} people "
