@@ -66,6 +66,10 @@ class RegionState:
         self.capacity = {c: 0 for c in CATEGORIES}
         self.temperature = 0.0
         self.melt_started_round = None
+        # One-tick flag: true only for the single render right after the
+        # feedback loop crosses its tipping threshold — the visual cue
+        # for that moment, consumed (and cleared) by the next render.
+        self.just_started_melting = False
         # A parallel, fully undampened trajectory — same background rise,
         # same feedback mechanics, but zero intervention ever. The gap
         # between this and the real temperature is the hope-angle payoff.
@@ -107,6 +111,7 @@ class RegionState:
         self.temperature += self.current_rise_rate()
         if self.melt_started_round is None and self.is_melting():
             self.melt_started_round = current_round
+            self.just_started_melting = True
 
         counterfactual_excess = max(0.0, self.counterfactual_temperature - MELT_THRESHOLD)
         counterfactual_rate = BASE_TEMP_RISE_PER_ROUND + (
@@ -157,11 +162,22 @@ def render():
     document.getElementById("rise-rate-display").innerText = (
         f"Current warming rate: {region.current_rise_rate():.2f}°/round"
     )
-    document.getElementById("melt-status-display").innerText = (
+    melt_status_el = document.getElementById("melt-status-display")
+    melt_status_el.innerText = (
         "Permafrost is actively melting — methane feedback is accelerating warming."
         if region.is_melting()
         else "Permafrost stable — no feedback yet."
     )
+    melt_status_el.className = "comparison-message" + (
+        " melt-status--active" if region.is_melting() else ""
+    )
+
+    game_el = document.getElementById("game")
+    if region.just_started_melting:
+        game_el.className = "tipping-flash"
+        region.just_started_melting = False
+    else:
+        game_el.className = ""
     document.getElementById("dampening-display").innerText = (
         f"Feedback dampening: {region.feedback_dampening_fraction() * 100:.0f}%"
     )

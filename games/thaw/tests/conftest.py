@@ -12,6 +12,7 @@ GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 CATEGORIES = ["output", "preserve", "monitor"]
 
 ELEMENT_IDS = [
+    "game",
     "round-display",
     "funds-display",
     "temperature-display",
