@@ -67,6 +67,13 @@ VALID_ACTIONS = {
 ACCRUING_STATES = {PRESERVED, RECOVERED}
 
 
+# Iteration-pass additions: a continuous color gradient per plot (not
+# just one flat color per discrete state) so maturity/recovery progress
+# is legible at a glance, plus a one-tick "just recovered" flash so the
+# REPLANTING -> RECOVERED transition registers as a felt moment.
+MATURITY_TICKS = 60
+
+
 class Plot:
     def __init__(self, index):
         self.index = index
@@ -75,6 +82,7 @@ class Plot:
         self.ticks_intact = 0
         self.clear_count = 0
         self.replant_ticks_remaining = 0
+        self.just_recovered = False
 
     def productivity_multiplier(self):
         """Soil quality factor from past clearing — 1.0 for a never-cleared
@@ -121,7 +129,18 @@ class Plot:
             return False
         self.state = RECOVERED
         self.replant_ticks_remaining = 0
+        self.just_recovered = True
         return True
+
+    def maturity_fraction(self):
+        """0..1 — how far this plot is toward "mature" for gradient
+        purposes: ticks-intact progress for standing plots, recovery
+        countdown progress for replanting ones, zero for bare."""
+        if self.state in ACCRUING_STATES:
+            return min(1.0, self.ticks_intact / MATURITY_TICKS)
+        if self.state == REPLANTING:
+            return 1 - (self.replant_ticks_remaining / RECOVERY_TICKS)
+        return 0.0
 
     def advance_recovery(self):
         """Counts down one tick of the replanting timer, auto-completing
@@ -142,6 +161,35 @@ def _plot_tile_id(index):
     return f"plot-{index}"
 
 
+def _lerp_color(start_hex, end_hex, t):
+    """Linear-interpolates between two #rrggbb colors at t in [0, 1]."""
+    t = max(0.0, min(1.0, t))
+    r1, g1, b1 = int(start_hex[1:3], 16), int(start_hex[3:5], 16), int(start_hex[5:7], 16)
+    r2, g2, b2 = int(end_hex[1:3], 16), int(end_hex[3:5], 16), int(end_hex[5:7], 16)
+    r = round(r1 + (r2 - r1) * t)
+    g = round(g1 + (g2 - g1) * t)
+    b = round(b1 + (b2 - b1) * t)
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+
+# Gradient endpoints per state — bare stays flat (soil, not growth), the
+# other two states gradient from a light/young color toward a deep,
+# mature one as maturity_fraction() rises.
+BARE_COLOR = "#6d4c31"
+REPLANTING_START_COLOR = "#9c7a3c"
+REPLANTING_END_COLOR = "#8bc34a"
+GROWING_START_COLOR = "#8bc34a"
+GROWING_END_COLOR = "#1b5e20"
+
+
+def plot_display_color(plot):
+    if plot.state == BARE:
+        return BARE_COLOR
+    if plot.state == REPLANTING:
+        return _lerp_color(REPLANTING_START_COLOR, REPLANTING_END_COLOR, plot.maturity_fraction())
+    return _lerp_color(GROWING_START_COLOR, GROWING_END_COLOR, plot.maturity_fraction())
+
+
 def render_grid():
     grid_el = document.getElementById("plot-grid")
     grid_el.innerHTML = ""
@@ -151,8 +199,12 @@ def render_grid():
         tile.className = f"plot-tile plot-{plot.state}"
         if plot.index == selected_index:
             tile.className += " plot-selected"
+        if plot.just_recovered:
+            tile.className += " plot-just-recovered"
+            plot.just_recovered = False
         tile.title = STATE_LABEL[plot.state]
         tile.innerText = STATE_ICON[plot.state]
+        tile.style.backgroundColor = plot_display_color(plot)
         tile.addEventListener("click", create_proxy(_make_select_handler(plot.index)))
         grid_el.appendChild(tile)
 

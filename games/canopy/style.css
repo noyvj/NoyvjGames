@@ -69,6 +69,26 @@ h1 {
 .plot-replanting { background: #9c7a3c; }
 .plot-recovered { background: #4caf50; }
 
+.plot-just-recovered {
+  animation: plot-sparkle 700ms ease;
+}
+
+@keyframes plot-sparkle {
+  0% { box-shadow: 0 0 0 0 rgba(139, 195, 74, 0.9); filter: brightness(1); }
+  40% { box-shadow: 0 0 8px 3px rgba(139, 195, 74, 0.9); filter: brightness(1.5); }
+  100% { box-shadow: 0 0 0 0 rgba(139, 195, 74, 0); filter: brightness(1); }
+}
+
+.context-blurb {
+  margin: 0 0 1.25rem;
+  padding: 0.6rem 0.75rem;
+  border-left: 2px solid #2e7d32;
+  background: #14161f;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
 .selected-plot-state {
   margin: 0 0 0.75rem;
   font-size: 0.95rem;
