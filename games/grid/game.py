@@ -110,6 +110,9 @@ class GridState:
         self.event_log = []
         self.last_event = None
         self.clean_fraction_log = []
+        self.emissions_history = []
+        self.avg_renewable_cost_history = []
+        self.renewable_unlocked = False
 
     def plant_cost(self, plant_type):
         base = PLANT_BASE_COST[plant_type]
@@ -155,6 +158,14 @@ class GridState:
             return None
         return max(candidates, key=lambda t: self.plant_counts[t])
 
+    def average_renewable_cost(self):
+        """Average current cost across the three renewable types — falls
+        as cumulative renewable investment grows, thanks to the cost
+        curve. Tracked over time as one half of the iteration-pass trend
+        graph, so the "investing early makes things cheaper" lesson is
+        visible as a line, not just felt in individual build costs."""
+        return sum(self.plant_cost(t) for t in RENEWABLE_TYPES) / len(RENEWABLE_TYPES)
+
     def build_plant(self, plant_type):
         cost = self.plant_cost(plant_type)
         if self.funds < cost:
@@ -162,6 +173,8 @@ class GridState:
         self.funds -= cost
         self.plant_counts[plant_type] += 1
         self.cumulative_built[plant_type] += 1
+        if plant_type in RENEWABLE_TYPES:
+            self.renewable_unlocked = True
         return True
 
     def retire_plant(self, plant_type):
@@ -199,6 +212,8 @@ class GridState:
             self.event_log.append(event)
 
         self.clean_fraction_log.append(1 - self.fossil_share())
+        self.emissions_history.append(self.emissions)
+        self.avg_renewable_cost_history.append(self.average_renewable_cost())
 
     def average_clean_fraction(self):
         """Sustained cleanliness across the whole run so far — every round
@@ -249,6 +264,57 @@ def event_severity_class(event):
     return "event-display event-display--warning"
 
 
+TREND_GRAPH_WIDTH = 280
+TREND_GRAPH_HEIGHT = 80
+
+# Shown once, the first time a player builds any renewable plant —
+# grounds the cost-curve mechanic (Milestone 2) in the real trend it's
+# modeling. Iteration-pass addition: a light factual anchor, not a
+# lecture, per the cross-cutting note in CLAUDE.md.
+RENEWABLE_UNLOCK_BLURB = (
+    "In the real world, each doubling of solar deployment has "
+    "historically cut its cost by roughly 20% — economists call this a "
+    "learning curve, and it's exactly what's driving your renewable "
+    "prices down here."
+)
+
+
+def _normalize_series(series, height):
+    """Maps a series to SVG y-coordinates within [0, height], scaled to
+    its own min/max so two differently-scaled series (emissions counts,
+    renewable costs) can share one chart and still show a meaningful
+    relative shape rather than one line flatlining against the other's
+    scale."""
+    lo, hi = min(series), max(series)
+    if hi - lo < 1e-9:
+        return [height / 2 for _ in series]
+    return [height - ((v - lo) / (hi - lo)) * height for v in series]
+
+
+def trend_graph_svg(emissions_history, cost_history):
+    """Two-line trend graph: emissions (rising, red) vs. average
+    renewable cost (falling as investment compounds, green) — the
+    iteration-pass addition making the cost-curve payoff visible as a
+    shape, not just felt in individual build-cost numbers."""
+    if len(emissions_history) < 2:
+        return ""
+
+    n = len(emissions_history)
+    xs = [i * (TREND_GRAPH_WIDTH / (n - 1)) for i in range(n)]
+    emissions_ys = _normalize_series(emissions_history, TREND_GRAPH_HEIGHT)
+    cost_ys = _normalize_series(cost_history, TREND_GRAPH_HEIGHT)
+
+    emissions_points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, emissions_ys))
+    cost_points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, cost_ys))
+
+    return (
+        f'<svg viewBox="0 0 {TREND_GRAPH_WIDTH} {TREND_GRAPH_HEIGHT}" class="trend-graph-svg">'
+        f'<polyline points="{emissions_points}" class="trend-line trend-line--emissions" />'
+        f'<polyline points="{cost_points}" class="trend-line trend-line--cost" />'
+        f"</svg>"
+    )
+
+
 def clean_trend_message(trend):
     if trend is None:
         return "Not enough rounds yet to show a trend."
@@ -280,6 +346,17 @@ def render():
     emissions_fraction = min(1.0, state.emissions / EMISSIONS_METER_MAX)
     document.getElementById("emissions-bar").style.width = f"{emissions_fraction * 100:.0f}%"
     document.getElementById("score-bar").style.width = f"{state.score():.0f}%"
+
+    svg = trend_graph_svg(state.emissions_history, state.avg_renewable_cost_history)
+    document.getElementById("trend-graph").innerHTML = svg
+    document.getElementById("trend-graph-message").innerText = (
+        "Emissions (red) vs. average renewable cost (green) over time."
+        if svg else "Not enough rounds yet to show an emissions/cost trend."
+    )
+
+    blurb_el = document.getElementById("renewable-blurb")
+    blurb_el.innerText = RENEWABLE_UNLOCK_BLURB
+    blurb_el.hidden = not state.renewable_unlocked
 
     for plant_type in PLANT_TYPES:
         count = state.plant_counts[plant_type]

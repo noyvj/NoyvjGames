@@ -23,9 +23,19 @@ h1 {
 }
 
 .tagline {
-  margin: 0 0 1.25rem;
+  margin: 0 0 0.5rem;
   opacity: 0.75;
   font-size: 0.95rem;
+}
+
+.context-blurb {
+  margin: 0 0 1.25rem;
+  padding: 0.6rem 0.75rem;
+  border-left: 2px solid #3a5a9c;
+  background: #14161f;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
 }
 
 .section {
@@ -83,6 +93,38 @@ h1 {
 
 .meter-fill--score {
   background: #4c9c6e;
+}
+
+.meter-label {
+  margin: 0.4rem 0 0.3rem;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.comparison-message {
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.trend-graph-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.trend-line {
+  fill: none;
+  stroke-width: 2;
+}
+
+.trend-line--emissions {
+  stroke: #e0674c;
+}
+
+.trend-line--cost {
+  stroke: #4c9c6e;
 }
 
 .plant-row {

@@ -15,6 +15,7 @@
   <div id="game">
     <h1>Grid</h1>
     <p class="tagline">Manage a regional power grid. Demand keeps rising — build the capacity to meet it, and decide what kind.</p>
+    <p class="context-blurb">Energy-sector emissions are the single largest lever in real-world climate mitigation — how a grid gets built out matters as much as how much power it produces.</p>
 
     <div id="status" class="section">
       <p id="round-display" class="status-line">Round 1</p>
@@ -28,6 +29,10 @@
       <p id="score-display" class="status-line">Sustained clean-grid score: 0</p>
       <div class="meter"><div id="score-bar" class="meter-fill meter-fill--score"></div></div>
       <p id="trend-display" class="event-display">Not enough rounds yet to show a trend.</p>
+      <p class="meter-label">Emissions vs. renewable cost</p>
+      <div id="trend-graph"></div>
+      <p id="trend-graph-message" class="comparison-message">Not enough rounds yet to show an emissions/cost trend.</p>
+      <p id="renewable-blurb" class="comparison-message" hidden></p>
     </div>
 
     <div id="plants" class="section">

@@ -23,6 +23,9 @@ ELEMENT_IDS = [
     "trend-display",
     "emissions-bar",
     "score-bar",
+    "trend-graph",
+    "trend-graph-message",
+    "renewable-blurb",
     "advance-round-button",
 ]
 for _plant in PLANT_TYPES:
