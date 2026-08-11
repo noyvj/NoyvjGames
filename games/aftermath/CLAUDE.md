@@ -30,6 +30,21 @@ Unlike the other three (all mitigation-focused), Aftermath treats climate change
 | 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Done |
 | 7 | Visual/UI pass + hub integration | | Done — all 7 milestones complete |
 
+## Iteration Notes
+
+Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`) — anticipated issues named honestly as anticipated, not observed. Once real playtesting happens, replace/supplement with an actual observation and log what changed in response.
+
+**Anticipated issue:** the skill tree may feel like abstract stat-boosting disconnected from the climate-adaptation lesson, and repeated runs risk feeling grindy rather than purposeful.
+
+**Additions:**
+- Ground each skill-tree unlock in a one-line real adaptation practice it represents (e.g., "early warning systems," "elevated infrastructure") — makes the meta-progression teach actual strategies, not just numbers going up.
+- Vary event type/severity per run so repetition doesn't feel identical each time.
+- A persistent visual for the settlement itself (looks more resilient/established as the tree unlocks) so progress is seen, not just read as a score.
+
+**Testing focus:** does the "look how far you've come" run-1-vs-run-5 comparison actually land? Do unlock costs feel earned rather than grindy?
+
+**Cross-cutting:** every game gets one short, factual, non-lecturing context blurb naming the real-world issue — a light anchor, not narration replacing the mechanic.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

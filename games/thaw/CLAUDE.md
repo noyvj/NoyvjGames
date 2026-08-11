@@ -35,6 +35,21 @@ This game exists to simulate what happens if things continue as they are. Unlike
 | 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Done |
 | 7 | Visual/UI pass + hub integration | | Done — all 7 milestones complete |
 
+## Iteration Notes
+
+Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`) — anticipated issues named honestly as anticipated, not observed. Once real playtesting happens, replace/supplement with an actual observation and log what changed in response.
+
+**Anticipated issue:** this is the most doom-prone game in the hub by design (a runaway feedback loop), and the exact moment the loop "kicks in" risks being lost in a gradually rising number rather than landing as a distinct moment.
+
+**Additions:**
+- A clear visual cue at the specific moment the feedback loop crosses its tipping threshold — a screen shift/flash — so it registers as a narrative beat, not just a graph continuing to rise. (Audio sting skipped — no audio system in the stack.)
+- An end-of-session comparison against a "no-intervention" ghost line, so the hope-angle lever (regional intervention slowing the loop) is provably visible, not just asserted. (Already substantially covered by Milestone 5's `counterfactual_temperature`/`temperature_saved` — verify it's surfaced clearly enough and extend if not.)
+- Extra care on the hope-angle requirement here specifically — this game needs it more than any other in the hub.
+
+**Testing focus:** can players correctly identify, after a session, what caused the tipping point? Is the intervention lever discoverable without being told about it directly?
+
+**Cross-cutting:** every game gets one short, factual, non-lecturing context blurb naming the real-world issue — a light anchor, not narration replacing the mechanic.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

@@ -31,6 +31,21 @@ A single forest region divided into a grid of plots. Each plot can be cleared (f
 | 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Done |
 | 7 | Visual pass + hub integration | Grid rendering, plot state icons/colors, session summary screen | Done — all 7 milestones complete |
 
+## Iteration Notes
+
+Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`) — anticipated issues named honestly as anticipated, not observed. Once real playtesting happens, replace/supplement with an actual observation and log what changed in response.
+
+**Anticipated issue:** the plot-grid mechanic risks feeling passive/idle without clear stakes, and soil degradation from repeated clearing may not read clearly without a tooltip.
+
+**Additions:**
+- Color gradient per plot state (bare → light green recovering → deep green mature) so state is legible at a glance without reading numbers.
+- Light visual cue on recovery milestones (a small sparkle/glow flash) to make the hope angle felt, not just tracked. (Audio cue skipped — no audio system in the stack; visual-only version implemented.)
+- Short grounding context blurb referencing a real reforestation approach the mechanic loosely echoes.
+
+**Testing focus:** do players notice degradation stacking on repeatedly-cleared plots without being told? Is plot state readable at a glance across the session?
+
+**Cross-cutting:** every game gets one short, factual, non-lecturing context blurb naming the real-world issue — a light anchor, not narration replacing the mechanic.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

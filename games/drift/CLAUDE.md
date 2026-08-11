@@ -35,6 +35,21 @@ Drift does double duty: it simulates a downstream future consequence of unaddres
 | 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Done |
 | 7 | Visual/UI pass + hub integration | | Done — all 7 milestones complete |
 
+## Iteration Notes
+
+Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`) — anticipated issues named honestly as anticipated, not observed. Once real playtesting happens, replace/supplement with an actual observation and log what changed in response.
+
+**Anticipated issue:** given how sensitive the subject matter is (real displacement, real people), this game risks feeling either too dry (an allocation spreadsheet) or, if over-corrected, too narrativized in a way that dramatizes individuals rather than institutions — the sensitivity note above still applies here.
+
+**Additions:**
+- Short case-study-style context blurbs about real regions that handled climate migration well institutionally — framed at the policy/systems level, not as individual personal stories.
+- A simple three-bar composite dashboard (services / economy / cohesion) alongside the raw numbers, so multidimensional wellbeing is legible at a glance.
+- A mid-run plain-language checkpoint summary ("Services are lagging arrival pressure this round") so players always understand what's currently going wrong and why, given this is the most systems-dense game in the hub.
+
+**Testing focus:** can players identify which of the three sub-scores is lagging and explain why? Is the "integration is eventually net-positive" mechanic actually felt, or does it stay invisible in the background math?
+
+**Cross-cutting:** every game gets one short, factual, non-lecturing context blurb naming the real-world issue — a light anchor, not narration replacing the mechanic.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

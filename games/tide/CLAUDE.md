@@ -32,6 +32,21 @@ You run a coastal settlement, balancing fishing/industry output against ocean he
 | 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Done |
 | 7 | Visual/UI pass + hub integration | | Done — all 7 milestones complete |
 
+## Iteration Notes
+
+Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`) — anticipated issues named honestly as anticipated, not observed. Once real playtesting happens, replace/supplement with an actual observation and log what changed in response.
+
+**Anticipated issue:** delayed consequence (the whole point of the game) risks reading as random or confusing rather than caused, if the fish-stock crash arrives with no visible link back to earlier acidity choices. Two meters (acidity, sea level) may also blur together visually.
+
+**Additions:**
+- A short running log/ticker ("Fish stocks quietly declining — rising acidity") that narrates delayed effects as they build, without fully spelling out the mechanic — enough to make cause traceable in hindsight, not enough to remove the lag as a felt experience.
+- Clear visual separation between the acidity meter and sea-level indicator (different colors/positions, not adjacent bars that read as one system).
+- A short end-of-session before/after comparison of the coastline, for the hope-angle payoff.
+
+**Testing focus:** ask directly in the feedback prompt whether players understood *why* their fish stock declined — this is the clearest test of whether delayed consequence taught anything or just felt arbitrary.
+
+**Cross-cutting:** every game gets one short, factual, non-lecturing context blurb naming the real-world issue — a light anchor, not narration replacing the mechanic.
+
 ## Tech notes
 
 - Default Python/Pyodide; JS/Canvas is an explicitly pre-approved fallback for the tile-grid rendering step only (milestone 4) if needed — keep all state logic in Python either way, since that's what gets tested.

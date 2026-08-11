@@ -35,6 +35,21 @@ This game exists to let the player ideate and build a *system*, not just respond
 | 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Done |
 | 7 | Visual/UI pass + hub integration | This game especially benefits from a clear before/after visual of the chain (straight line vs. closed loop), worth prioritizing in the polish pass | Done — all 7 milestones complete |
 
+## Iteration Notes
+
+Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`) — anticipated issues named honestly as anticipated, not observed. Once real playtesting happens, replace/supplement with an actual observation and log what changed in response.
+
+**Anticipated issue:** the supply-chain-as-graph structure risks feeling like a spreadsheet rather than a game if the flow isn't visually intuitive, and "closing the loop" may not read clearly without a visual legend.
+
+**Additions:**
+- Literal animated flow of goods along the chain (motion along the chain-flow arrows), color-coded circular vs. linear paths so the structural difference is seen, not inferred from numbers.
+- Light flavor naming per goods category so the abstract chain feels grounded in relatable objects rather than generic "units."
+- A short comparison at session end against an illustrative "average real-world supply chain" circularity rate, for context.
+
+**Testing focus:** do players understand what "closing the loop" visually means without a legend or explanation? Is the environmental cost meter's link to extraction volume clear?
+
+**Cross-cutting:** every game gets one short, factual, non-lecturing context blurb naming the real-world issue — a light anchor, not narration replacing the mechanic.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

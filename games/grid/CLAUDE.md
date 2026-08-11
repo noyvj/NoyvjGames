@@ -32,6 +32,21 @@ You manage a regional power grid across a series of rounds. Demand grows every r
 | 5 | In-game feedback prompt | End-of-run 1–2 question prompt, piped to Neon backend per root conventions | Done |
 | 6 | UI/visual pass + hub integration | Tier icons, meter displays, event notifications. Polish only after 1–5 are solid | Done — all 6 milestones complete |
 
+## Iteration Notes
+
+Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`) — anticipated issues named honestly as anticipated, not observed. Once real playtesting happens, replace/supplement with an actual observation and log what changed in response.
+
+**Anticipated issue:** the renewable cost-curve mechanic (the actual lesson) may be invisible as pure numbers — a player can succeed without ever consciously registering "investing early made things cheaper."
+
+**Additions:**
+- A simple two-line graph (emissions trend + average energy cost trend) updating live across rounds, so the compounding effect is seen, not just felt in the numbers.
+- A short context blurb on first unlocking a renewable tier, grounding it in the real cost-curve trend it's modeling (one sentence, factual, no lecture).
+- Optional depth-add if time allows: weather variability affecting renewable output reliability, adding a small realism layer without expanding scope much. (Skipped for now — scope discretion, revisit if time allows.)
+
+**Testing focus:** does a first-time player, unprompted, notice that early renewable investment made later rounds easier? Use the in-game feedback prompt to ask directly: "Did investing early feel like it paid off?"
+
+**Cross-cutting:** every game gets one short, factual, non-lecturing context blurb naming the real-world issue — a light anchor, not narration replacing the mechanic.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

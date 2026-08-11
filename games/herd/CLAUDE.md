@@ -35,6 +35,21 @@ This game exists to make an invisible cause of climate change (methane from indu
 | 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Done |
 | 7 | Visual/UI pass + hub integration | | Done — all 7 milestones complete |
 
+## Iteration Notes
+
+Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`) — anticipated issues named honestly as anticipated, not observed. Once real playtesting happens, replace/supplement with an actual observation and log what changed in response.
+
+**Anticipated issue:** the core coupling ratio (growth scales emissions) is the whole lesson, but as pure math it risks being invisible — the tension needs to be felt, not just calculated.
+
+**Additions:**
+- A visible gauge/dial for "emissions per unit output," updating live as decoupling investments are made — this should be the single most prominent UI element.
+- A short context blurb on methane's outsized short-term warming impact relative to CO2, since this is the one game in the hub built specifically around that distinction.
+- Visual "haze" overlay whose intensity tracks the methane meter, so pressure is ambient, not just numeric.
+
+**Testing focus:** do players discover the decoupling strategy organically, or do they need a nudge? Do the soft consequences (market/yield pressure) feel like a meaningful signal without being punishing?
+
+**Cross-cutting:** every game gets one short, factual, non-lecturing context blurb naming the real-world issue — a light anchor, not narration replacing the mechanic.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
