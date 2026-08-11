@@ -15,19 +15,24 @@
   <div id="game">
     <h1>Loop</h1>
     <p class="tagline">Redesign a supply chain. By default it's a straight line: extract, make, use, discard. Waste is a design choice — not an inevitability.</p>
+    <p class="context-blurb">Overconsumption and the take-make-waste model carry a real extraction and emissions cost — the raw materials behind everyday electronics (metals, minerals, rare earths) are finite and increasingly costly to keep extracting at current rates.</p>
 
     <div id="chain-flow-section" class="section">
       <p class="meter-label">The chain</p>
       <div id="chain-flow" class="chain-flow">
         <div id="stage-extract" class="chain-stage">🪨<br>Extract</div>
-        <span class="chain-arrow">→</span>
+        <span class="chain-arrow"><span class="arrow-glyph">→</span><span class="flow-particle"></span></span>
         <div class="chain-stage">🏭<br>Manufacture</div>
-        <span class="chain-arrow">→</span>
+        <span class="chain-arrow"><span class="arrow-glyph">→</span><span class="flow-particle"></span></span>
         <div class="chain-stage">📦<br>Use</div>
-        <span class="chain-arrow">→</span>
+        <span class="chain-arrow"><span class="arrow-glyph">→</span><span class="flow-particle"></span></span>
         <div id="stage-discard" class="chain-stage">🗑️<br>Discard</div>
       </div>
       <p id="chain-flow-message" class="comparison-message">Straight line: 100% of production needs new extraction.</p>
+      <div id="return-flow-row" class="return-flow-row">
+        <span class="return-flow-track"><span class="return-flow-particle"></span></span>
+        <span id="return-flow-label" class="return-flow-label">↩ recovered electronics flowing back into Manufacturing</span>
+      </div>
     </div>
 
     <div id="status" class="section">
@@ -49,6 +54,7 @@
       <p id="lifetime-circular-display" class="status-line">Lifetime circular share: 0%</p>
       <p id="score-display" class="status-line">Score: 300</p>
       <p id="trend-display" class="comparison-message">Not enough cycles yet to show a trend.</p>
+      <p id="real-world-comparison-display" class="comparison-message">Your chain is running at 0% circular, versus a roughly 7% estimated real-world average today (a ballpark figure, not a precise benchmark).</p>
     </div>
 
     <div id="circularity" class="section">

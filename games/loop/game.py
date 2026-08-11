@@ -49,6 +49,15 @@ MAX_COST_MULTIPLIER = 2.5
 # damage cost never gets the chance to compound).
 CIRCULARITY_BONUS_WEIGHT = 300.0
 
+# Iteration-pass additions: flavor naming so the abstract chain reads as
+# a concrete product category, and a rough real-world circularity
+# benchmark for context. The benchmark is an illustrative ballpark
+# (global circular-economy reporting has put overall material
+# circularity in the high single digits in recent years), not a
+# precise or authoritative figure — framed that way in the UI.
+GOODS_LABEL = "electronics"
+REAL_WORLD_CIRCULARITY_BENCHMARK = 0.07
+
 
 class ChainState:
     def __init__(self):
@@ -151,6 +160,24 @@ def circular_trend_message(trend):
     return f"Your chain's circular share has held steady at {second_pct:.0f}%."
 
 
+def real_world_comparison_message(lifetime_fraction):
+    """Iteration-pass addition: a rough, honestly-hedged real-world
+    comparison point for the player's lifetime circular share."""
+    pct = lifetime_fraction * 100
+    benchmark_pct = REAL_WORLD_CIRCULARITY_BENCHMARK * 100
+    if lifetime_fraction > REAL_WORLD_CIRCULARITY_BENCHMARK:
+        return (
+            f"Your chain is running at {pct:.0f}% circular — well above the "
+            f"roughly {benchmark_pct:.0f}% average estimated for real-world material "
+            f"circularity today (a ballpark figure, not a precise benchmark)."
+        )
+    return (
+        f"Your chain is running at {pct:.0f}% circular, versus a roughly "
+        f"{benchmark_pct:.0f}% estimated real-world average today (a ballpark figure, "
+        f"not a precise benchmark)."
+    )
+
+
 def chain_flow_message(fraction):
     if fraction <= 0.0:
         return "Straight line: 100% of production needs new extraction."
@@ -167,17 +194,20 @@ def render():
     extract_stage.className = "chain-stage chain-stage--inactive" if fraction >= 1.0 else "chain-stage"
     document.getElementById("chain-flow-message").innerText = chain_flow_message(fraction)
 
+    return_flow_row = document.getElementById("return-flow-row")
+    return_flow_row.style.opacity = f"{fraction:.2f}"
+
     document.getElementById("cycle-display").innerText = f"Cycle {chain.cycle_number}"
     document.getElementById("funds-display").innerText = f"Funds: {chain.funds:.0f}"
     document.getElementById("extraction-display").innerText = (
         "Loop closed — no new extraction needed" if chain.is_loop_closed()
-        else f"New extraction this cycle: {chain.new_extraction_needed():.0f} units"
+        else f"New extraction this cycle: {chain.new_extraction_needed():.0f} units of raw material for {GOODS_LABEL}"
     )
     document.getElementById("production-display").innerText = (
-        f"Production target: {PRODUCTION_TARGET:.0f} units/cycle"
+        f"Production target: {PRODUCTION_TARGET:.0f} units of {GOODS_LABEL} per cycle"
     )
     document.getElementById("total-extracted-display").innerText = (
-        f"Total extracted (lifetime): {chain.total_extracted:.0f} units"
+        f"Total raw material extracted (lifetime): {chain.total_extracted:.0f} units"
     )
     document.getElementById("damage-display").innerText = (
         f"Environmental damage: {chain.damage_fraction() * 100:.0f}% "
@@ -196,6 +226,9 @@ def render():
     )
     document.getElementById("score-display").innerText = f"Score: {chain.score():.0f}"
     document.getElementById("trend-display").innerText = circular_trend_message(chain.circular_trend())
+    document.getElementById("real-world-comparison-display").innerText = (
+        real_world_comparison_message(chain.lifetime_circular_fraction())
+    )
 
     for measure, spec in CIRCULARITY_INVESTMENTS.items():
         document.getElementById(f"{measure}-name").innerText = f"{spec['icon']} {spec['label']}"

@@ -23,9 +23,19 @@ h1 {
 }
 
 .tagline {
-  margin: 0 0 1.25rem;
+  margin: 0 0 0.5rem;
   opacity: 0.75;
   font-size: 0.95rem;
+}
+
+.context-blurb {
+  margin: 0 0 1.25rem;
+  padding: 0.6rem 0.75rem;
+  border-left: 2px solid #4c9c6e;
+  background: #14161f;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
 }
 
 .section {
@@ -197,8 +207,10 @@ button.primary:active {
 }
 
 .chain-arrow {
+  position: relative;
   opacity: 0.5;
   font-size: 0.9rem;
+  min-width: 1.4rem;
   transition: color 0.2s ease, opacity 0.2s ease;
 }
 
@@ -213,4 +225,72 @@ button.primary:active {
 
 .chain-stage--inactive {
   opacity: 0.35;
+}
+
+.flow-particle {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #9c7a3c;
+  transform: translateY(-50%);
+  animation: flow-particle-move 1.6s linear infinite;
+}
+
+.chain-flow--closed .flow-particle {
+  background: #4c9c6e;
+}
+
+@keyframes flow-particle-move {
+  0% { left: 0; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+
+.return-flow-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #3a3f5c;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.return-flow-track {
+  position: relative;
+  width: 2.5rem;
+  height: 4px;
+  border-radius: 2px;
+  background: #1a1d2b;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.return-flow-particle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 4px;
+  border-radius: 2px;
+  background: #4c9c6e;
+  animation: return-flow-move 1.2s linear infinite;
+}
+
+@keyframes return-flow-move {
+  0% { right: 0; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { right: 100%; opacity: 0; }
+}
+
+.return-flow-label {
+  font-size: 0.72rem;
+  opacity: 0.75;
+  color: #4c9c6e;
 }

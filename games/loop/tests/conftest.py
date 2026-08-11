@@ -26,6 +26,8 @@ ELEMENT_IDS = [
     "circular-bar",
     "score-display",
     "trend-display",
+    "real-world-comparison-display",
+    "return-flow-row",
     "advance-cycle-button",
     "repair-name",
     "repair-count",
