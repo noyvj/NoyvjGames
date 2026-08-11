@@ -28,7 +28,11 @@ ELEMENT_IDS = [
     "progress-comparison-display",
 ]
 for _skill in SKILL_IDS:
-    ELEMENT_IDS += [f"skill-{_skill}-status", f"skill-{_skill}-unlock-button"]
+    ELEMENT_IDS += [
+        f"skill-{_skill}-status",
+        f"skill-{_skill}-unlock-button",
+        f"skill-{_skill}-practice",
+    ]
 
 INITIALLY_DISABLED_IDS = [
     "resilience-invest-button",

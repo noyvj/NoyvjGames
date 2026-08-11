@@ -23,9 +23,19 @@ h1 {
 }
 
 .tagline {
-  margin: 0 0 1.25rem;
+  margin: 0 0 0.5rem;
   opacity: 0.75;
   font-size: 0.95rem;
+}
+
+.context-blurb {
+  margin: 0 0 1.25rem;
+  padding: 0.6rem 0.75rem;
+  border-left: 2px solid #9c5a3a;
+  background: #14161f;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
 }
 
 .section {
@@ -79,6 +89,7 @@ h1 {
 
 .skill-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
@@ -93,6 +104,14 @@ h1 {
 .skill-status {
   font-size: 0.85rem;
   flex: 1;
+}
+
+.skill-practice {
+  width: 100%;
+  margin: 0.3rem 0 0;
+  font-size: 0.75rem;
+  font-style: italic;
+  opacity: 0.6;
 }
 
 .feedback-question {

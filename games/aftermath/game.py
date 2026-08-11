@@ -44,6 +44,31 @@ EVENT_BASE_DAMAGE = {
     "storm": 50.0,
 }
 
+# Iteration-pass addition: severity varies per event so repeated runs
+# don't feel identical. Deterministic (a hash-based formula, not
+# wall-clock random) rather than truly random, and off entirely for
+# run 1 — this keeps the run-1-vs-latest-run comparison
+# (progress_comparison) meaningful (same run number always faces the
+# same challenge level) and keeps every single-run test's exact damage
+# numbers unchanged.
+SEVERITY_VARIATION_MIN = 0.85
+SEVERITY_VARIATION_MAX = 1.15
+
+
+def event_severity(run_number, event_index):
+    if run_number <= 1:
+        return 1.0
+    seed = (run_number * 97 + event_index * 31) % 100
+    return SEVERITY_VARIATION_MIN + (seed / 100) * (SEVERITY_VARIATION_MAX - SEVERITY_VARIATION_MIN)
+
+
+def severity_label(severity):
+    if severity < 0.95:
+        return "mild"
+    if severity > 1.05:
+        return "severe"
+    return "typical"
+
 # Skill tree — lives outside the run loop entirely, persisting between
 # runs (and between visits, via localStorage). Bonus application to new
 # runs is Milestone 4's job; this milestone is just the structure.
@@ -52,16 +77,19 @@ SKILLS = {
         "cost": 3,
         "label": "Reinforced Infrastructure",
         "description": "+2 starting resilience capacity",
+        "real_practice": "Mirrors real building codes requiring flood-resistant foundations and reinforced structures in vulnerable regions.",
     },
     "community_reserves": {
         "cost": 3,
         "label": "Community Reserves",
         "description": "+50 starting resources",
+        "real_practice": "Mirrors community emergency funds and mutual-aid reserves, letting a region self-fund early recovery instead of waiting on outside aid.",
     },
     "early_warning": {
         "cost": 5,
         "label": "Early Warning Systems",
         "description": "+10% mitigation on all events",
+        "real_practice": "Mirrors real early-warning networks — alert systems for floods and storms have been shown to cut disaster damage and casualties dramatically for relatively low cost.",
     },
 }
 
@@ -96,9 +124,10 @@ def early_warning_mitigation_bonus():
 
 
 class RunState:
-    def __init__(self):
+    def __init__(self, run_number=1):
         """Reads current skill-tree bonuses at creation time — a new run
         starts a little more capable than the last, per unlocked skills."""
+        self.run_number = run_number
         self.event_index = 0
         self.resources = STARTING_RESOURCES + starting_resources_bonus()
         self.resilience_capacity = starting_resilience_bonus()
@@ -142,10 +171,11 @@ class RunState:
         self.resources += self.growth_capacity * GROWTH_INCOME_PER_UNIT
 
         event_type = EVENT_SCHEDULE[self.event_index]
-        damage = EVENT_BASE_DAMAGE[event_type] * (1 - self.mitigation_fraction())
+        severity = event_severity(self.run_number, self.event_index)
+        damage = EVENT_BASE_DAMAGE[event_type] * severity * (1 - self.mitigation_fraction())
         self.resources = max(0.0, self.resources - damage)
         self.damage_taken += damage
-        self.event_log.append({"type": event_type, "damage": damage})
+        self.event_log.append({"type": event_type, "damage": damage, "severity": severity})
         self.event_index += 1
 
         if self.is_complete():
@@ -267,7 +297,7 @@ def render():
         last = run.event_log[-1]
         last_event_el.innerText = (
             f"Last: {EVENT_ICON[last['type']]} {EVENT_LABEL[last['type']]} "
-            f"— {last['damage']:.0f} damage"
+            f"— {last['damage']:.0f} damage ({severity_label(last['severity'])} intensity)"
         )
     else:
         last_event_el.innerText = ""
@@ -295,7 +325,9 @@ def render():
     )
     for skill_id, skill in SKILLS.items():
         status_el = document.getElementById(f"skill-{skill_id}-status")
+        practice_el = document.getElementById(f"skill-{skill_id}-practice")
         unlock_button = document.getElementById(f"skill-{skill_id}-unlock-button")
+        practice_el.innerText = skill["real_practice"]
         if skill_id in skill_tree.unlocked:
             status_el.innerText = f"{skill['label']} — unlocked ({skill['description']})"
             unlock_button.hidden = True
@@ -325,7 +357,7 @@ def start_new_run(event=None):
     """Starts a fresh run, reading current skill-tree bonuses — each run
     begins a little more capable than the last, per unlocked skills."""
     global run
-    run = RunState()
+    run = RunState(run_number=run.run_number + 1)
     render()
 
 
