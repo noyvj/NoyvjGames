@@ -58,6 +58,15 @@ ROW_FLOOD_STEP = 15.0
 LAND = "land"
 FLOODED = "flooded"
 
+# Iteration-pass addition: a normalization ceiling for the sea-level
+# meter — the level at which the entire coastline grid (even the
+# highest row) would be flooded.
+SEA_LEVEL_METER_MAX = ROW_FLOOD_STEP * COASTLINE_ROWS
+
+# Iteration-pass addition: how many recent delayed-effect messages the
+# ticker keeps visible at once.
+TICKER_LOG_LIMIT = 5
+
 
 def row_flood_threshold(row):
     elevation = COASTLINE_ROWS - row  # bottom row (index ROWS-1) = elevation 1
@@ -89,6 +98,7 @@ class SettlementState:
         self.cumulative_damage = 0.0
         self.undampened_damage_total = 0.0
         self.damage_log = []
+        self.ticker_log = []
 
     def invest(self, category):
         cost = INVEST_COST[category]
@@ -109,8 +119,34 @@ class SettlementState:
     def dampening_fraction(self):
         return min(MAX_DAMPENING, self.capacity["adaptation"] * DAMPENING_PER_ADAPTATION_UNIT)
 
+    def sea_level_fraction(self):
+        """0..1 — sea level relative to the point where even the highest
+        coastline row would flood. Iteration-pass addition, giving the
+        sea-level indicator its own meter distinct from acidity/fish."""
+        return min(1.0, self.sea_level / SEA_LEVEL_METER_MAX)
+
+    def _record_ticker_message(self, acidity_change, old_fish_yield, new_fish_yield):
+        """Delayed-effect ticker: narrates the lag as it builds and
+        lands, so cause stays traceable in hindsight without spelling
+        out the mechanic outright. Iteration-pass addition."""
+        message = None
+        if new_fish_yield < old_fish_yield - 1e-6:
+            message = (
+                f"Fish stocks quietly declining — acidity from {FISH_LAG_SEASONS} "
+                f"seasons ago is catching up."
+            )
+        elif new_fish_yield > old_fish_yield + 1e-6:
+            message = "Fish stocks recovering as past acidity spikes fade from the lag window."
+        elif acidity_change > 0 and len(self.acidity_history) <= FISH_LAG_SEASONS:
+            message = "Acidity is rising — the effect on fish stocks won't show for a few more seasons."
+
+        if message:
+            self.ticker_log.append(message)
+            self.ticker_log = self.ticker_log[-TICKER_LOG_LIMIT:]
+
     def advance_season(self):
-        income = self.capacity["output"] * OUTPUT_INCOME_PER_UNIT * self.fish_yield_multiplier()
+        old_fish_yield = self.fish_yield_multiplier()
+        income = self.capacity["output"] * OUTPUT_INCOME_PER_UNIT * old_fish_yield
         self.funds += income
 
         acidity_change = (
@@ -127,6 +163,9 @@ class SettlementState:
         self.damage_log.append(damage_this_season)
 
         self.season += 1
+
+        new_fish_yield = self.fish_yield_multiplier()
+        self._record_ticker_message(acidity_change, old_fish_yield, new_fish_yield)
 
     def damage_saved(self):
         """The hope-angle payoff, as a direct number: how much less
@@ -187,6 +226,25 @@ def render_coastline():
             grid_el.appendChild(tile)
 
 
+def _render_mini_coastline(container_id, sea_level):
+    grid_el = document.getElementById(container_id)
+    grid_el.innerHTML = ""
+    for row in coastline_grid(sea_level):
+        for tile_state in row:
+            tile = document.createElement("div")
+            tile.className = f"coastline-tile coastline-{tile_state}"
+            grid_el.appendChild(tile)
+
+
+def render_coastline_comparison():
+    """Iteration-pass addition: a small before/now side-by-side, so the
+    hope-angle payoff (adaptation buys visibly less coastline loss) has
+    a direct visual, not just the damage_saved() number."""
+    _render_mini_coastline("coastline-before-grid", 0.0)
+    _render_mini_coastline("coastline-now-grid", state.sea_level)
+    document.getElementById("coastline-now-label").innerText = f"Season {state.season}"
+
+
 def render():
     document.getElementById("season-display").innerText = f"Season {state.season}"
     document.getElementById("funds-display").innerText = f"Funds: {state.funds:.0f}"
@@ -204,6 +262,16 @@ def render():
     document.getElementById("damage-saved-display").innerText = damage_saved_message(state.damage_saved())
     document.getElementById("damage-trend-display").innerText = damage_trend_message(state.damage_trend())
     render_coastline()
+    render_coastline_comparison()
+
+    sea_level_bar = document.getElementById("sea-level-bar")
+    sea_level_bar.style.width = f"{state.sea_level_fraction() * 100:.0f}%"
+
+    ticker_el = document.getElementById("ticker-log")
+    if state.ticker_log:
+        ticker_el.innerHTML = "<br>".join(state.ticker_log)
+    else:
+        ticker_el.innerHTML = "No notable changes yet."
 
     for category in CATEGORIES:
         document.getElementById(f"{category}-count").innerText = str(state.capacity[category])

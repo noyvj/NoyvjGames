@@ -15,6 +15,7 @@
   <div id="game">
     <h1>Tide</h1>
     <p class="tagline">Run a coastal settlement. Balance fishing income against ocean health and a slowly rising sea.</p>
+    <p class="context-blurb">Ocean acidification and sea-level rise share a real-world trait this game leans on: the delay between cause and effect. Today's emissions and choices don't show their full damage for years — which is exactly why they're easy to underestimate.</p>
 
     <div id="status" class="section">
       <p id="season-display" class="status-line">Season 1</p>
@@ -23,13 +24,33 @@
       <div class="meter"><div id="acidity-bar" class="meter-fill meter-fill--acidity"></div></div>
       <p id="fish-yield-display" class="status-line">Fishing yield: 100%</p>
       <div class="meter"><div id="fish-yield-bar" class="meter-fill meter-fill--fish"></div></div>
+      <p class="meter-label">Delayed effects</p>
+      <p id="ticker-log" class="comparison-message">No notable changes yet.</p>
+    </div>
+
+    <div id="sea-level-section" class="section sea-level-section">
       <p id="sea-level-display" class="status-line">Sea level: 0</p>
+      <div class="meter"><div id="sea-level-bar" class="meter-fill meter-fill--sea-level"></div></div>
       <p id="damage-display" class="status-line">Cumulative damage: 0</p>
       <p id="damage-saved-display" class="comparison-message">No adaptation investment yet — every season of sea-level rise is hitting at full force.</p>
       <p id="damage-trend-display" class="comparison-message">Not enough seasons yet to show a trend.</p>
     </div>
 
     <div id="coastline-grid" class="coastline-grid"></div>
+
+    <div id="coastline-comparison" class="section">
+      <p class="meter-label">Coastline: then vs. now</p>
+      <div class="coastline-compare-row">
+        <div class="coastline-compare-col">
+          <p class="coastline-compare-label">Season 1</p>
+          <div id="coastline-before-grid" class="coastline-grid coastline-grid--mini"></div>
+        </div>
+        <div class="coastline-compare-col">
+          <p class="coastline-compare-label" id="coastline-now-label">Now</p>
+          <div id="coastline-now-grid" class="coastline-grid coastline-grid--mini"></div>
+        </div>
+      </div>
+    </div>
 
     <div id="investments" class="section">
       <div class="invest-row" data-category="output">

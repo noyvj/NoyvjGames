@@ -23,6 +23,11 @@ ELEMENT_IDS = [
     "damage-saved-display",
     "damage-trend-display",
     "coastline-grid",
+    "sea-level-bar",
+    "ticker-log",
+    "coastline-before-grid",
+    "coastline-now-grid",
+    "coastline-now-label",
     "advance-season-button",
 ]
 for _category in CATEGORIES:
