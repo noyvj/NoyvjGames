@@ -44,6 +44,14 @@ MAX_PRESSURE = 0.8
 # not a decades-long theoretical one.
 METHANE_PENALTY_WEIGHT = 2.0
 
+# Iteration-pass additions: a prominent dial gauge for coupling ratio
+# (the mechanic the whole lesson depends on) and an ambient haze overlay
+# tracking methane pressure, so the tension is felt, not just read as
+# numbers.
+GAUGE_LOW_COLOR = "#4c9c6e"  # fully decoupled
+GAUGE_HIGH_COLOR = "#e0674c"  # fully coupled (baseline)
+MAX_HAZE_OPACITY = 0.4
+
 
 class FarmState:
     def __init__(self):
@@ -101,7 +109,45 @@ class FarmState:
 farm = FarmState()
 
 
+def _lerp_color(start_hex, end_hex, t):
+    """Linear-interpolates between two #rrggbb colors at t in [0, 1]."""
+    t = max(0.0, min(1.0, t))
+    r1, g1, b1 = int(start_hex[1:3], 16), int(start_hex[3:5], 16), int(start_hex[5:7], 16)
+    r2, g2, b2 = int(end_hex[1:3], 16), int(end_hex[3:5], 16), int(end_hex[5:7], 16)
+    r = round(r1 + (r2 - r1) * t)
+    g = round(g1 + (g2 - g1) * t)
+    b = round(b1 + (b2 - b1) * t)
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+
+def coupling_gauge_svg(fraction):
+    """Semi-circle dial gauge: 0 = fully decoupled (green), 1 = fully
+    coupled at baseline (red). Iteration-pass addition — the single
+    most prominent UI element, replacing a plain ratio number with an
+    at-a-glance dial for the mechanic the whole lesson depends on."""
+    fraction = max(0.0, min(1.0, fraction))
+    color = _lerp_color(GAUGE_LOW_COLOR, GAUGE_HIGH_COLOR, fraction)
+    dash = fraction * 100
+    return (
+        '<svg viewBox="0 0 120 66" class="coupling-gauge-svg">'
+        '<path d="M 10 60 A 50 50 0 0 1 110 60" class="gauge-track" pathLength="100" />'
+        f'<path d="M 10 60 A 50 50 0 0 1 110 60" class="gauge-fill" pathLength="100" '
+        f'stroke="{color}" stroke-dasharray="{dash:.1f} 100" />'
+        "</svg>"
+    )
+
+
 def render():
+    coupling_fraction = farm.coupling_ratio() / BASE_COUPLING_RATIO
+    document.getElementById("coupling-gauge").innerHTML = coupling_gauge_svg(coupling_fraction)
+    document.getElementById("coupling-gauge-label").innerText = (
+        f"Emissions per herd unit: {farm.coupling_ratio():.2f} methane/round"
+    )
+
+    document.getElementById("haze-overlay").style.opacity = (
+        f"{(farm.pressure_fraction() / MAX_PRESSURE) * MAX_HAZE_OPACITY:.3f}"
+    )
+
     document.getElementById("round-display").innerText = f"Round {farm.round_number}"
     document.getElementById("funds-display").innerText = f"Funds: {farm.funds:.0f}"
     document.getElementById("herd-display").innerText = f"Herd size: {farm.herd_size}"

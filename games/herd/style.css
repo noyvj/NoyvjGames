@@ -12,9 +12,50 @@ body {
 }
 
 #game {
+  position: relative;
   width: 100%;
   max-width: 480px;
   padding: 1.5rem 1rem 2rem;
+}
+
+.haze-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, #8a6a3c 0%, #6d4c31 100%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 5;
+  transition: opacity 0.3s ease;
+}
+
+.context-blurb {
+  margin: 0 0 1.25rem;
+  padding: 0.6rem 0.75rem;
+  border-left: 2px solid #4c7c3a;
+  background: #14161f;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.coupling-gauge-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.gauge-track {
+  fill: none;
+  stroke: #1a1d2b;
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+
+.gauge-fill {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.3s ease, stroke 0.3s ease;
 }
 
 h1 {

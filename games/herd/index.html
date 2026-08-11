@@ -13,8 +13,15 @@
 </head>
 <body>
   <div id="game">
+    <div id="haze-overlay" class="haze-overlay"></div>
     <h1>Herd</h1>
     <p class="tagline">Grow a farm. Herd size and methane emissions are coupled by default — decoupling them takes deliberate investment.</p>
+    <p class="context-blurb">Methane is a far more potent greenhouse gas than CO2 over the short term — roughly 80x stronger over 20 years — which makes industrial agriculture's methane output an outsized lever for near-term warming, even though it fades from the atmosphere faster than CO2 does.</p>
+
+    <div id="gauge-section" class="section">
+      <div id="coupling-gauge"></div>
+      <p id="coupling-gauge-label" class="comparison-message">Emissions per herd unit: 1.00 methane/round</p>
+    </div>
 
     <div id="status" class="section">
       <p id="round-display" class="status-line">Round 1</p>

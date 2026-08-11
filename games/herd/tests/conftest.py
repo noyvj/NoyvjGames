@@ -21,6 +21,9 @@ ELEMENT_IDS = [
     "methane-bar",
     "score-display",
     "decoupling-summary-display",
+    "coupling-gauge",
+    "coupling-gauge-label",
+    "haze-overlay",
     "grow-herd-button",
     "advance-round-button",
 ]
