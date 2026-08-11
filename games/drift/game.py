@@ -210,6 +210,28 @@ def wellbeing_message(score):
     return "This region is struggling: capacity hasn't kept pace with arrivals."
 
 
+def checkpoint_message(region_state):
+    """Iteration-pass addition: a plain-language read on which of the
+    three wellbeing dimensions is currently lagging most, given how
+    systems-dense this game is compared to the rest of the hub."""
+    scores = {
+        "services": (
+            region_state.service_quality(),
+            "Services are lagging arrival pressure this round — capacity hasn't kept up.",
+        ),
+        "economy": (
+            region_state.economic_health(),
+            "Economic health is the region's weakest point right now — funds are stretched thin.",
+        ),
+        "cohesion": (
+            region_state.social_cohesion(),
+            "Social cohesion is lagging — most arrivals still haven't been integrated yet.",
+        ),
+    }
+    lowest_key = min(scores, key=lambda k: scores[k][0])
+    return scores[lowest_key][1]
+
+
 def render():
     document.getElementById("round-display").innerText = f"Round {region.round_number}"
     document.getElementById("funds-display").innerText = f"Funds: {region.funds:.0f}"
@@ -241,18 +263,22 @@ def render():
     document.getElementById("service-quality-display").innerText = (
         f"Service quality: {region.service_quality():.0f}"
     )
+    document.getElementById("service-quality-bar").style.width = f"{region.service_quality():.0f}%"
     document.getElementById("economic-health-display").innerText = (
         f"Economic health: {region.economic_health():.0f}"
     )
+    document.getElementById("economic-health-bar").style.width = f"{region.economic_health():.0f}%"
     document.getElementById("social-cohesion-display").innerText = (
         f"Social cohesion: {region.social_cohesion():.0f}"
     )
+    document.getElementById("social-cohesion-bar").style.width = f"{region.social_cohesion():.0f}%"
     document.getElementById("wellbeing-display").innerText = (
         f"Wellbeing score: {region.wellbeing_score():.0f}"
     )
     document.getElementById("wellbeing-message-display").innerText = wellbeing_message(
         region.wellbeing_score()
     )
+    document.getElementById("checkpoint-display").innerText = checkpoint_message(region)
 
     for capacity_type in CAPACITY_TYPES:
         document.getElementById(f"{capacity_type}-name").innerText = (

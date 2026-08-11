@@ -23,9 +23,19 @@ h1 {
 }
 
 .tagline {
-  margin: 0 0 1.25rem;
+  margin: 0 0 0.5rem;
   opacity: 0.75;
   font-size: 0.95rem;
+}
+
+.context-blurb {
+  margin: 0 0 1.25rem;
+  padding: 0.6rem 0.75rem;
+  border-left: 2px solid #4a8fa5;
+  background: #14161f;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
 }
 
 .section {
