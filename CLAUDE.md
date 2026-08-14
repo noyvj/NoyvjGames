@@ -12,6 +12,8 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
   sw.js               <- service worker, stale-while-revalidate (serves cache instantly, refreshes it in the background every request)
   ad-bar.css           <- shared ad bar partial (hub + every game page)
   icons/               <- PWA icons (placeholder art)
+  BCM114-DEV-LOG.md    <- running log: individual game content/mechanics/style (see Session logging below)
+  BCM206-DEV-LOG.md    <- running log: site infrastructure (hosting, save system, accounts, backend)
   /app
     main.py            <- FastAPI ratings API (POST/GET /ratings), deployed to FastAPI Cloud
     database.py
@@ -30,6 +32,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
     site-plan.md
     game-template.md
     pwa-and-ads-setup.md  <- manifest/service worker/ad bar reference
+    SAVE-SYSTEM-DESIGN.md  <- draft spec for save codes + accounts (not yet built)
     <game>-plan.md   <- pre-build groundwork notes per game, before folders exist
 ```
 
@@ -38,6 +41,11 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
 - **Cadence:** something new or updated must become visible on the site at least once every 2 weeks. Not every-game-every-week — just *something*.
 - **Scope philosophy:** let each game be as big or small as the idea wants. The bar is "visible and real," not "polished/finished." Don't let polish-chasing block shipping.
 - **Reviews/ratings:** star rating + comments per game is the public-feedback mechanism for both subjects. Live and persistent: hub's review widget calls the `/app` FastAPI backend (deployed on FastAPI Cloud, Neon Postgres) — see `planning/pwa-and-ads-setup.md` and `app/main.py`.
+
+## Session logging (do this every session, before ending)
+Two running logs live at the repo root: `BCM206-DEV-LOG.md` (site infrastructure — hosting, save system, accounts, deployment, backend) and `BCM114-DEV-LOG.md` (individual game content — mechanics, style, narrative, GenAI prompt iteration).
+
+Before ending any session where code or content changed, append one dated entry to whichever log(s) apply — split across both if the session touched both. Follow the entry format already defined inside each log file. Append only — never edit or remove a past entry. If nothing meaningfully changed, skip logging rather than writing a filler entry.
 
 ## Per-game conventions (apply inside every `/games/<slug>/`)
 - Default stack: Python via Pyodide, plain HTML/CSS, no build step. Deviating (e.g. plain JS for something trivial) is a deliberate documented exception, not a default.
