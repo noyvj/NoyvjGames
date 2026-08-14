@@ -2,7 +2,7 @@
 
 Design doc for save functionality + accounts across the game hub. Written against the existing stack: Neon (Postgres 17, currently Auth off), FastAPI Cloud, static GitHub Pages front end, Pyodide-run Python games.
 
-Status: **draft — not yet built.** Use this as the spec Claude Code implements against, and update it in place as decisions change (this file evolves; `BCM206-DEV-LOG.md` records *when* and *why* it changed).
+Status: **Phase 1 built and live — 2026-08-15.** SOL is the reference integration (proves the flow end to end); other games can adopt the same bridge pattern later. Phase 2 (accounts) not started. See `BCM206-DEV-LOG.md` for the build session and what changed from this spec along the way.
 
 ---
 
@@ -18,14 +18,14 @@ This split also gives you a natural two-part Operation chain for the Skill Journ
 ## 2. Database schema (Neon / Postgres)
 
 ```sql
--- Phase 1
+-- Phase 1 — as built (app/models.py Save, via SQLAlchemy create_all, no Alembic)
 create table saves (
-  id            uuid primary key default gen_random_uuid(),
-  save_code     text unique not null,        -- short human-entered code
-  game_id       text not null,               -- e.g. 'sol', 'grid', 'canopy'
-  save_data     jsonb not null,               -- serialized game state
-  created_at    timestamptz not null default now(),
-  updated_at    timestamptz not null default now()
+  id            varchar primary key,          -- Python uuid.uuid4() string, not gen_random_uuid()
+  save_code     varchar unique not null,       -- short human-entered code
+  game_id       varchar not null,              -- e.g. 'sol', 'grid', 'canopy'
+  save_data     json not null,                 -- serialized game state
+  created_at    timestamptz default now(),
+  updated_at    timestamptz default now()
 );
 
 create index on saves (save_code);
@@ -40,6 +40,10 @@ create table users (
 
 alter table saves add column user_id uuid references users(id);
 ```
+
+**Two deliberate deviations from the original spec, both for portability with the existing sqlite-backed test suite (see `app/tests/conftest.py`) rather than any functional reason:**
+- `id` is a Python-generated `uuid.uuid4()` string (`default=lambda: str(uuid.uuid4())` in SQLAlchemy), not Postgres' `gen_random_uuid()` — sqlite has no such function, and the app has no migration tooling to special-case it per-dialect.
+- `save_data` uses SQLAlchemy's generic `JSON` type (stored as `json`, not `jsonb`) — the access pattern is always a full fetch/overwrite by `save_code`, never a query into the JSON itself, so JSONB's indexing benefit doesn't apply here anyway.
 
 ## 3. API (FastAPI)
 

@@ -1,3 +1,5 @@
+import copy
+import json
 import math
 from js import document, setInterval, setTimeout
 from pyodide.ffi import create_proxy
@@ -1182,6 +1184,88 @@ def tick(*args):
     update_win_display()
 
 
+def _full_render():
+    """Switches the visible view to match `current_planet` and refreshes
+    every display once. Used both by setup() on first load and by
+    load_save_state() after restoring a save — tick() (already running
+    on its own interval by the time a save loads mid-session) handles
+    ongoing per-planet numeric updates from here on, but the one-off
+    view-switch and the displays tick() doesn't touch (research,
+    governor, travel-button unlock gating) need an explicit pass."""
+    _hide_all_views()
+    view_id = "away-view" if current_planet not in PLANETS else f"{current_planet.lower()}-view"
+    document.getElementById(view_id).hidden = False
+
+    for planet in PLANETS:
+        update_resource_display(planet)
+        update_generator_display(planet)
+        update_ecology_display(planet)
+        update_trade_display(planet)
+        if planet in GAS_GIANT_BODIES:
+            update_sky_city_display(planet)
+        update_terraform_display(planet)
+    update_research_display()
+    update_governor_display()
+    update_travel_display()
+    update_all_cross_summaries()
+    update_win_display()
+
+
+# --- Save system (SAVE-SYSTEM-DESIGN.md Phase 1) ---
+# Bridges to the plain-JS block in index.html: Python only ever crosses
+# the Pyodide/JS boundary as a plain string (json.dumps/json.loads),
+# never a raw dict/set — Pyodide auto-converts a returned `str` to a
+# native JS string with no proxy involved, and the reverse on the way
+# in, which sidesteps PyProxy lifetime/conversion entirely. The JS side
+# owns the actual fetch() calls to the /saves API (documented plain-JS
+# exception, same pattern as every other game's feedback prompt).
+
+
+def serialize_state():
+    """Every module-level mutable global, packaged as one JSON-safe
+    dict. `planet_state` is deep-copied — it's a dict of dicts (each
+    with its own nested `trade_routes` dict), and a shallow copy would
+    still alias those inner dicts, so continued play after taking a
+    "snapshot" would silently mutate it. `unlocked_bodies` is the only
+    non-JSON-native type in the state (a set) — converted to a list
+    here and back to a set on load."""
+    return {
+        "planet_state": copy.deepcopy(planet_state),
+        "research_progress": research_progress,
+        "completed_tiers": completed_tiers,
+        "unlocked_bodies": sorted(unlocked_bodies),
+        "current_planet": current_planet,
+        "governor_priority": governor_priority,
+        "governor_budget_pct": governor_budget_pct,
+        "governor_tick_count": governor_tick_count,
+    }
+
+
+def deserialize_state(data):
+    global research_progress, completed_tiers, unlocked_bodies, current_planet
+    global governor_priority, governor_budget_pct, governor_tick_count
+
+    planet_state.clear()
+    planet_state.update(data["planet_state"])
+    research_progress = data["research_progress"]
+    completed_tiers = data["completed_tiers"]
+    unlocked_bodies = set(data["unlocked_bodies"])
+    current_planet = data["current_planet"]
+    governor_priority = data["governor_priority"]
+    governor_budget_pct = data["governor_budget_pct"]
+    governor_tick_count = data["governor_tick_count"]
+
+
+def get_save_state_json():
+    return json.dumps(serialize_state())
+
+
+def load_save_state_json(json_str):
+    deserialize_state(json.loads(json_str))
+    _full_render()
+    return True
+
+
 def setup():
     earth_click = document.getElementById("click-button")
     earth_click.innerText = "Mine Iron"
@@ -1438,22 +1522,7 @@ def setup():
         "click", create_proxy(on_return_to_earth_from_away_view)
     )
 
-    _hide_all_views()
-    document.getElementById("earth-view").hidden = False
-
-    for planet in PLANETS:
-        update_resource_display(planet)
-        update_generator_display(planet)
-        update_ecology_display(planet)
-        update_trade_display(planet)
-        if planet in GAS_GIANT_BODIES:
-            update_sky_city_display(planet)
-        update_terraform_display(planet)
-    update_research_display()
-    update_governor_display()
-    update_travel_display()
-    update_all_cross_summaries()
-    update_win_display()
+    _full_render()
 
     setInterval(create_proxy(tick), TICK_INTERVAL_MS)
 

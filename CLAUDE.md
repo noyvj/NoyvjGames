@@ -32,7 +32,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
     site-plan.md
     game-template.md
     pwa-and-ads-setup.md  <- manifest/service worker/ad bar reference
-    SAVE-SYSTEM-DESIGN.md  <- draft spec for save codes + accounts (not yet built)
+    SAVE-SYSTEM-DESIGN.md  <- save codes + accounts spec — Phase 1 (save codes) built and live, SOL is the reference integration
     <game>-plan.md   <- pre-build groundwork notes per game, before folders exist
 ```
 
@@ -73,6 +73,7 @@ Before ending any session where code or content changed, append one dated entry 
 | 2 | SOL moved into /games/sol, linked from hub | Done |
 | 3 | Review/rating UI stub added (no persistence yet) | Done |
 | 4 | Site hosting: GitHub Pages + PWA shell + labeled ad bar + ratings backend live (FastAPI Cloud + Neon) | Done — tagged `site-hosting-v1` |
+| 5 | Save system Phase 1: save codes (no accounts) live via FastAPI + Neon, SOL reference integration | Done — tagged `save-system-v1` |
 
 ## Working notes
 - Pre-semester (now): pace can be aggressive, this is largely a boredom-driven creative project.
