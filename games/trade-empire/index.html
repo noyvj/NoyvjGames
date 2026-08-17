@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade Empire — Milestone 1</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+</head>
+<body>
+  <div id="game">
+    <h1>Trade Empire</h1>
+    <p class="tagline">Working title. Your corporation's founding contract: one ship, one route, two colonies that can't survive without each other.</p>
+    <p class="context-blurb">Aurum Station mines Ore but has no farmland. Verdant Reach grows Grain but has no metal. Neither can go it alone — that gap is your entire business.</p>
+
+    <div id="ship-panel" class="section">
+      <p id="ship-status" class="ship-status">Loading...</p>
+      <div class="action-buttons">
+        <button id="load-button" class="secondary" disabled>Loading...</button>
+        <button id="depart-button" class="secondary" disabled>Loading...</button>
+      </div>
+    </div>
+
+    <div id="ledger" class="section">
+      <p id="profit-display" class="profit-display">Total profit: 0 credits</p>
+      <p id="sale-log" class="sale-log">No sales yet.</p>
+    </div>
+  </div>
+
+  <script>
+    async function main() {
+      const pyodide = await loadPyodide();
+      const response = await fetch("game.py");
+      const code = await response.text();
+      await pyodide.runPythonAsync(code);
+    }
+    main();
+  </script>
+</body>
+</html>
