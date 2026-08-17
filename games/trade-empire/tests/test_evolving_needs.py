@@ -5,6 +5,8 @@ final state, just an ongoing relationship between development and
 demand.
 """
 
+import pytest
+
 
 def test_colonies_start_at_development_level_one(game_env):
     for colony_id in game_env.module.COLONIES:
@@ -69,10 +71,13 @@ def test_output_multiplier_averages_both_needs_once_developed(game_env):
     state.deliver(game_env.module.DEVELOPMENT_THRESHOLD)  # develops it, satisfaction now high
     state.secondary_need_satisfaction = 0.0  # unmet secondary need
     avg = (state.need_satisfaction + 0.0) / 2
-    expected = game_env.module.MIN_OUTPUT_MULTIPLIER + avg * (
+    base = game_env.module.MIN_OUTPUT_MULTIPLIER + avg * (
         game_env.module.MAX_OUTPUT_MULTIPLIER - game_env.module.MIN_OUTPUT_MULTIPLIER
     )
-    assert state.output_multiplier() == expected
+    # Milestone 10: developed colonies also carry their specialization's
+    # output bonus on top of the needs-based base multiplier.
+    expected = base * (1 + game_env.module.SPECIALIZATION["aurum"]["output_bonus"])
+    assert state.output_multiplier() == pytest.approx(expected)
 
 
 def test_decay_only_affects_secondary_need_once_developed(game_env):

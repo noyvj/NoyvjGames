@@ -39,11 +39,16 @@ Same granularity as SOL's milestones — one clearly separable, demonstrable sta
 | 7 | 2D map v1 | Colonies as nodes, routes as lines — first visual leap, still no moving ships | Done |
 | 8 | Research tree v1 | Framework + early nodes; gates automation tiers and new ship types | Done |
 | 9 | Evolving needs v2 | Needs meaningfully change/expand as colonies develop further | Done |
-| 10 | Colony specialization | Worlds develop distinct strengths/weaknesses based on environment/history | Pending |
+| 10 | Colony specialization | Worlds develop distinct strengths/weaknesses based on environment/history | Done |
 | 11 | Ships on the map | Automated routes render as moving dots along the map's lines | Pending |
 | 12 | Fleet-level automation | Prioritization rules across many routes at once, not just per-route toggles | Pending |
 | 13 | Galaxy scaling | Research-gated expansion to more systems/regions | Pending |
 | 14 | Endgame | Fully automated economy visible at scale (hundreds of worlds, many ships); soft win-state, sandbox continues | Pending |
+
+## Milestone 10 implementation notes
+- `SPECIALIZATION` is a fixed, per-colony dict (output bonus + decay-rate multiplier) reflecting each colony's own flavor text — environmental, not a player choice. Activates automatically once `is_developed()` (Milestone 9's level-2 flag), reusing that gate rather than inventing a separate unlock/currency for it.
+- Numbers deliberately vary per colony (Aurum's harsh mining outpost gets the strongest bonus and steepest decay penalty; Verdant's easy, fertile terraces get the mildest of each) rather than one bonus copy-pasted five times.
+- `output_multiplier()` and `decay()` both stay byte-for-byte unchanged for undeveloped colonies — specialization layers on top of Milestone 9's averaged-needs formula rather than replacing it.
 
 ## Milestone 9 implementation notes
 - Sustained delivery of a colony's primary need (`cumulative_delivered` crossing `DEVELOPMENT_THRESHOLD`, 100 units) develops it to level 2. `need_satisfaction` and its formula are completely untouched for undeveloped (level 1) colonies, so every Milestone 3/4/5 test keeps passing unchanged — development is purely additive.

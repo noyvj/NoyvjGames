@@ -17,7 +17,10 @@ research-points currency, gating an automation-slot expansion, a
 fleet-wide speed boost, and a fleet-wide cargo boost. Milestone 9:
 evolving needs v2 — sustained delivery develops a colony further, and
 development expands what it needs (a second, cross-cycle need) rather
-than ever "solving" it.
+than ever "solving" it. Milestone 10: colony specialization — an
+environmental, non-player-chosen strength/weakness pair per colony
+(reflecting each one's flavor text) that activates automatically once
+it develops.
 """
 
 import math
@@ -95,6 +98,37 @@ SECONDARY_NEED = {
     "helion": GRAIN,
 }
 
+# Milestone 10 — colony specialization: distinct strengths/weaknesses
+# per colony, reflecting the environment/history each one's flavor text
+# already establishes (Aurum's harsh mining outpost earns the strongest
+# output bonus and pays for it with the steepest decay; Verdant's easy,
+# fertile terraces earn the mildest of each). Environmental, not a
+# player choice — it activates automatically once a colony develops
+# (Milestone 9's development_level >= 2), rather than being a separate
+# unlock system of its own.
+SPECIALIZATION = {
+    "aurum": {
+        "name": "Mining Powerhouse", "output_bonus": 0.25, "decay_multiplier": 1.6,
+        "description": "+25% ore output; needs decay 60% faster (harsh, remote environment)",
+    },
+    "verdant": {
+        "name": "Fertile Terraces", "output_bonus": 0.15, "decay_multiplier": 1.2,
+        "description": "+15% grain output; needs decay 20% faster (easy growing conditions)",
+    },
+    "ferrum": {
+        "name": "Forge World", "output_bonus": 0.20, "decay_multiplier": 1.4,
+        "description": "+20% machinery output; needs decay 40% faster (single-purpose economy)",
+    },
+    "cryo": {
+        "name": "Ice Miner", "output_bonus": 0.20, "decay_multiplier": 1.5,
+        "description": "+20% water output; needs decay 50% faster (isolated, power-starved)",
+    },
+    "helion": {
+        "name": "Solar Titan", "output_bonus": 0.15, "decay_multiplier": 1.3,
+        "description": "+15% energy output; needs decay 30% faster (nothing grows there)",
+    },
+}
+
 
 class ColonyState:
     def __init__(self, colony_id):
@@ -115,17 +149,21 @@ class ColonyState:
             satisfaction = self.need_satisfaction
         else:
             satisfaction = (self.need_satisfaction + self.secondary_need_satisfaction) / 2
-        return MIN_OUTPUT_MULTIPLIER + satisfaction * (MAX_OUTPUT_MULTIPLIER - MIN_OUTPUT_MULTIPLIER)
+        base = MIN_OUTPUT_MULTIPLIER + satisfaction * (MAX_OUTPUT_MULTIPLIER - MIN_OUTPUT_MULTIPLIER)
+        if self.is_developed():
+            base *= 1 + SPECIALIZATION[self.id]["output_bonus"]
+        return base
 
     def cargo_capacity(self):
         return round(CARGO_CAPACITY * self.output_multiplier())
 
     def decay(self):
-        self.need_satisfaction = max(0.0, self.need_satisfaction - NEED_DECAY_PER_TICK)
+        decay_rate = NEED_DECAY_PER_TICK
         if self.is_developed():
-            self.secondary_need_satisfaction = max(
-                0.0, self.secondary_need_satisfaction - NEED_DECAY_PER_TICK
-            )
+            decay_rate *= SPECIALIZATION[self.id]["decay_multiplier"]
+        self.need_satisfaction = max(0.0, self.need_satisfaction - decay_rate)
+        if self.is_developed():
+            self.secondary_need_satisfaction = max(0.0, self.secondary_need_satisfaction - decay_rate)
 
     def deliver(self, qty):
         gain = qty * NEED_SATISFACTION_PER_UNIT_DELIVERED
@@ -477,7 +515,8 @@ def render_colony(colony_id):
 
     dev_el = document.getElementById(f"colony-{colony_id}-development-display")
     if state.is_developed():
-        dev_el.innerText = "Development: Level 2 (fully developed)"
+        spec = SPECIALIZATION[colony_id]
+        dev_el.innerText = f"Development: Level 2 — {spec['name']} ({spec['description']})"
     else:
         dev_el.innerText = (
             f"Development: Level 1 ({state.cumulative_delivered:.0f}/{DEVELOPMENT_THRESHOLD:.0f} "
