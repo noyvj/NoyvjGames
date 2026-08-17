@@ -85,6 +85,19 @@ INTEGRATION_CONTRIBUTION_PER_PERSON = 1.5
 # their simple average.
 WELLBEING_FUNDS_SCALE = 1000.0
 
+# Iteration Pass 2 — long-horizon outcomes coda: a player-triggered
+# epilogue projecting the current integrated population's descendants
+# forward a few generations. Framed institutionally (workforce,
+# community roles, regional contribution) per the sensitivity note
+# elsewhere in this file — this is about the region's long-run outcome,
+# not any one family's story. Deliberately a rough, modest projection
+# (not "everything reaches 100"), so it reads as hopeful rather than
+# implausible.
+GENERATIONS_PROJECTED = 3
+GENERATION_GROWTH_MULTIPLIER = 1.4
+GENERATIONAL_GAP_CLOSURE = 0.75
+GENERATIONAL_FUNDS_ROUNDS_EQUIVALENT = 20
+
 
 class RegionState:
     def __init__(self):
@@ -183,6 +196,40 @@ class RegionState:
     def wellbeing_score(self):
         return (self.service_quality() + self.economic_health() + self.social_cohesion()) / 3
 
+    def has_long_horizon_story(self):
+        return self.integrated_population > 0
+
+    def projected_generational_contribution(self):
+        """Extrapolates today's integration_contribution() forward a few
+        generations of compounding workforce/community participation —
+        the institutional version of "this pays off," on a longer
+        timeline than the session itself covers."""
+        contribution = self.integration_contribution()
+        for _ in range(GENERATIONS_PROJECTED):
+            contribution *= GENERATION_GROWTH_MULTIPLIER
+        return contribution
+
+    def projected_service_quality(self):
+        current = self.service_quality()
+        return current + (100 - current) * GENERATIONAL_GAP_CLOSURE
+
+    def projected_social_cohesion(self):
+        current = self.social_cohesion()
+        return current + (100 - current) * GENERATIONAL_GAP_CLOSURE
+
+    def projected_economic_health(self):
+        projected_funds = self.funds + (
+            self.projected_generational_contribution() * GENERATIONAL_FUNDS_ROUNDS_EQUIVALENT
+        )
+        return min(100.0, max(0.0, projected_funds / WELLBEING_FUNDS_SCALE * 100))
+
+    def projected_wellbeing_score(self):
+        return (
+            self.projected_service_quality()
+            + self.projected_economic_health()
+            + self.projected_social_cohesion()
+        ) / 3
+
     def advance_round(self):
         strain = self.strain_fraction()
         self.strain_log.append(strain)
@@ -200,6 +247,7 @@ class RegionState:
 
 
 region = RegionState()
+coda_visible = False
 
 
 def wellbeing_message(score):
@@ -230,6 +278,17 @@ def checkpoint_message(region_state):
     }
     lowest_key = min(scores, key=lambda k: scores[k][0])
     return scores[lowest_key][1]
+
+
+def long_horizon_coda_message(region_state):
+    return (
+        f"Generations from now, the descendants of the {region_state.integrated_population:.0f} "
+        "people this region integrated are woven into its workforce, institutions, and community "
+        "leadership — not a footnote to the region's history, but a working part of it. What "
+        f"started as {region_state.integration_contribution():.0f} funds/round of contribution "
+        f"has grown into roughly {region_state.projected_generational_contribution():.0f} "
+        "funds/round of ongoing regional participation."
+    )
 
 
 def render():
@@ -280,6 +339,28 @@ def render():
     )
     document.getElementById("checkpoint-display").innerText = checkpoint_message(region)
 
+    coda_button = document.getElementById("coda-button")
+    coda_button.hidden = not region.has_long_horizon_story()
+    coda_button.innerText = "Hide Long-Horizon Outcomes" if coda_visible else "View Long-Horizon Outcomes"
+
+    coda_section = document.getElementById("coda-section")
+    coda_section.hidden = not (coda_visible and region.has_long_horizon_story())
+    if coda_visible and region.has_long_horizon_story():
+        document.getElementById("coda-message-display").innerText = long_horizon_coda_message(region)
+        document.getElementById("coda-service-quality-bar").style.width = (
+            f"{region.projected_service_quality():.0f}%"
+        )
+        document.getElementById("coda-economic-health-bar").style.width = (
+            f"{region.projected_economic_health():.0f}%"
+        )
+        document.getElementById("coda-social-cohesion-bar").style.width = (
+            f"{region.projected_social_cohesion():.0f}%"
+        )
+        document.getElementById("coda-wellbeing-display").innerText = (
+            f"Projected long-horizon wellbeing: {region.projected_wellbeing_score():.0f} "
+            f"(from {region.wellbeing_score():.0f} today)"
+        )
+
     for capacity_type in CAPACITY_TYPES:
         document.getElementById(f"{capacity_type}-name").innerText = (
             f"{CAPACITY_ICON[capacity_type]} {CAPACITY_LABEL[capacity_type]}"
@@ -304,6 +385,12 @@ def _make_invest_handler(capacity_type):
     return handler
 
 
+def on_toggle_coda(event=None):
+    global coda_visible
+    coda_visible = not coda_visible
+    render()
+
+
 def setup():
     document.getElementById("advance-round-button").addEventListener(
         "click", create_proxy(on_advance_round)
@@ -312,6 +399,9 @@ def setup():
         document.getElementById(f"{capacity_type}-invest-button").addEventListener(
             "click", create_proxy(_make_invest_handler(capacity_type))
         )
+    document.getElementById("coda-button").addEventListener(
+        "click", create_proxy(on_toggle_coda)
+    )
     render()
 
 

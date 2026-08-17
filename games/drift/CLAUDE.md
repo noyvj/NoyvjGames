@@ -43,7 +43,7 @@ Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`). Antic
 
 **Open testing question:** can players identify which of the three sub-scores is lagging and explain why? Is the "integration is eventually net-positive" mechanic actually felt, or does it stay invisible in the background math?
 
-## Iteration Notes — Pass 2 (not yet implemented)
+## Iteration Notes — Pass 2 (implemented)
 
 Second design-review pass, from `climate-games-iteration-pass-2.md`, building on Pass 1. **Selected addition: C (long-horizon outcomes).**
 

@@ -38,6 +38,13 @@ ELEMENT_IDS = [
     "infrastructure-count",
     "infrastructure-invest-button",
     "advance-round-button",
+    "coda-button",
+    "coda-section",
+    "coda-message-display",
+    "coda-service-quality-bar",
+    "coda-economic-health-bar",
+    "coda-social-cohesion-bar",
+    "coda-wellbeing-display",
 ]
 
 
@@ -54,6 +61,9 @@ class GameEnv:
 
     def advance_round(self):
         self.elements["advance-round-button"].dispatch("click", None)
+
+    def toggle_coda(self):
+        self.elements["coda-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements):
