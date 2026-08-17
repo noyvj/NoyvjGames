@@ -16,6 +16,7 @@ COLONY_IDS = ["aurum", "verdant", "ferrum", "cryo", "helion"]
 ELEMENT_IDS = [
     "profit-display",
     "sale-log",
+    "automation-slots-display",
 ]
 for _colony_id in COLONY_IDS:
     ELEMENT_IDS += [
@@ -29,6 +30,7 @@ for _good in ("ore", "grain", "machinery", "water", "energy"):
 for _ship_id in SHIP_IDS:
     ELEMENT_IDS.append(f"ship-{_ship_id}-status")
     ELEMENT_IDS.append(f"ship-{_ship_id}-load-button")
+    ELEMENT_IDS.append(f"ship-{_ship_id}-automate-button")
     for _colony_id in COLONY_IDS:
         ELEMENT_IDS.append(f"ship-{_ship_id}-depart-{_colony_id}-button")
 
@@ -55,6 +57,9 @@ class GameEnv:
 
     def depart(self, destination, ship_id="1"):
         self.elements[f"ship-{ship_id}-depart-{destination}-button"].dispatch("click", None)
+
+    def automate(self, ship_id="1"):
+        self.elements[f"ship-{ship_id}-automate-button"].dispatch("click", None)
 
     def tick(self, times=1):
         self.timers.tick_intervals(times)

@@ -122,6 +122,27 @@ def recover_market():
         )
 
 
+def colony_needing(good):
+    """The one colony whose need this good satisfies — every good in this
+    world is needed by exactly one colony, so there's always a single
+    unambiguous "correct" destination for a load of it. Milestone 6's
+    autopilot uses this to decide where to send itself."""
+    for colony_id, colony in COLONIES.items():
+        if colony["needs"] == good:
+            return colony_id
+    return None
+
+
+# Milestone 6 — automation v1: a limited number of ships can be bought
+# into fully autonomous operation. An automated ship loads whatever its
+# current colony produces and departs for whichever colony needs it,
+# every tick, with no further input — "a route can run itself." Slots
+# are capped and each one costs real profit, so automating the whole
+# fleet at once isn't free or immediate.
+AUTOMATION_COST = 150
+MAX_AUTOMATED_SHIPS = 2
+
+
 class Ship:
     def __init__(self, ship_id, start_colony):
         self.id = ship_id
@@ -130,6 +151,7 @@ class Ship:
         self.cargo_good = None
         self.cargo_qty = 0
         self.transit_ticks_remaining = 0
+        self.automated = False
 
     @property
     def in_transit(self):
@@ -197,6 +219,40 @@ total_profit = 0
 sale_log = []  # most recent sale message, for the status line
 
 
+def automated_ship_count():
+    return sum(1 for s in ships.values() if s.automated)
+
+
+def automation_slots_available():
+    return automated_ship_count() < MAX_AUTOMATED_SHIPS
+
+
+def automate_ship(ship_id):
+    global total_profit
+    ship = ships[ship_id]
+    if ship.automated or not automation_slots_available() or total_profit < AUTOMATION_COST:
+        return False
+    total_profit -= AUTOMATION_COST
+    ship.automated = True
+    return True
+
+
+def run_automation():
+    """Gives every automated, docked ship one autopilot action this
+    tick: load if empty, depart for whichever colony needs its cargo if
+    loaded. Runs after transit resolution, so a ship that just arrived
+    this tick doesn't sit idle for a full extra tick before restarting."""
+    for ship in ships.values():
+        if not ship.automated or not ship.docked:
+            continue
+        if not ship.loaded:
+            ship.load()
+        else:
+            destination = colony_needing(ship.cargo_good)
+            if destination and destination != ship.location:
+                ship.depart(destination)
+
+
 def sell_summary(good, qty, profit, colony_id):
     colony_name = COLONIES[colony_id]["name"]
     return f"Sold {qty} {GOOD_LABEL[good]} at {colony_name} for {profit} credits."
@@ -205,8 +261,11 @@ def sell_summary(good, qty, profit, colony_id):
 def ship_status_text(ship):
     if ship.in_transit:
         dest_name = COLONIES[ship.destination]["name"]
-        return f"In transit to {dest_name} — {ship.transit_ticks_remaining} tick(s) remaining."
+        prefix = "Automated — in transit" if ship.automated else "In transit"
+        return f"{prefix} to {dest_name} — {ship.transit_ticks_remaining} tick(s) remaining."
     colony = COLONIES[ship.location]
+    if ship.automated:
+        return f"Automated — docked at {colony['name']}, running its route on its own."
     if ship.loaded:
         return f"Docked at {colony['name']}, loaded with {ship.cargo_qty} {GOOD_LABEL[ship.cargo_good]}. Choose a destination."
     return f"Docked at {colony['name']}. Load {GOOD_LABEL[colony['produces']]} to prepare a run."
@@ -216,12 +275,22 @@ def render_ship(ship):
     document.getElementById(f"ship-{ship.id}-status").innerText = ship_status_text(ship)
 
     load_button = document.getElementById(f"ship-{ship.id}-load-button")
-    load_button.disabled = not (ship.docked and not ship.loaded)
+    load_button.hidden = ship.automated
+    load_button.disabled = ship.automated or not (ship.docked and not ship.loaded)
 
     for colony_id in COLONIES:
         depart_button = document.getElementById(f"ship-{ship.id}-depart-{colony_id}-button")
-        depart_button.hidden = not (ship.docked and ship.loaded and colony_id != ship.location)
-        depart_button.disabled = not (ship.docked and ship.loaded and colony_id != ship.location)
+        applicable = ship.docked and ship.loaded and colony_id != ship.location
+        depart_button.hidden = ship.automated or not applicable
+        depart_button.disabled = ship.automated or not applicable
+
+    automate_button = document.getElementById(f"ship-{ship.id}-automate-button")
+    if ship.automated:
+        automate_button.innerText = "Automated"
+        automate_button.disabled = True
+    else:
+        automate_button.innerText = f"Automate ({AUTOMATION_COST})"
+        automate_button.disabled = not automation_slots_available() or total_profit < AUTOMATION_COST
 
 
 def render_colony(colony_id):
@@ -252,6 +321,9 @@ def render_market():
 def render():
     document.getElementById("profit-display").innerText = f"Total profit: {total_profit} credits"
     document.getElementById("sale-log").innerText = sale_log[-1] if sale_log else "No sales yet."
+    document.getElementById("automation-slots-display").innerText = (
+        f"Automation slots: {automated_ship_count()}/{MAX_AUTOMATED_SHIPS} used"
+    )
     for ship in ships.values():
         render_ship(ship)
     for colony_id in COLONIES:
@@ -273,6 +345,13 @@ def _make_depart_handler(ship_id, destination):
     return handler
 
 
+def _make_automate_handler(ship_id):
+    def handler(event=None):
+        automate_ship(ship_id)
+        render()
+    return handler
+
+
 def tick(event=None):
     global total_profit
     for ship in ships.values():
@@ -282,6 +361,7 @@ def tick(event=None):
             total_profit += profit
             sale_log.append(sell_summary(good, qty, profit, ship.location))
             apply_market_sale(good, qty)
+    run_automation()
     for colony_state in colony_states.values():
         colony_state.decay()
     recover_market()
@@ -301,6 +381,9 @@ def setup():
             button = document.getElementById(f"ship-{ship.id}-depart-{colony_id}-button")
             button.innerText = f"Depart to {colony['name']}"
             button.addEventListener("click", create_proxy(_make_depart_handler(ship.id, colony_id)))
+        document.getElementById(f"ship-{ship.id}-automate-button").addEventListener(
+            "click", create_proxy(_make_automate_handler(ship.id))
+        )
     setInterval(create_proxy(tick), TICK_INTERVAL_MS)
     render()
 

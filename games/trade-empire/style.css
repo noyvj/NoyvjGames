@@ -171,3 +171,17 @@ button.secondary:active:not(:disabled) {
   font-size: 0.85rem;
   opacity: 0.75;
 }
+
+.automation-slots {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.automate-button {
+  background: #4c3a6f;
+}
+
+.automate-button:active:not(:disabled) {
+  background: #2e2246;
+}

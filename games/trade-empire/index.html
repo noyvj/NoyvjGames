@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trade Empire — Milestone 5</title>
+<title>Trade Empire — Milestone 6</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
@@ -66,6 +66,7 @@
       <p id="ship-1-status" class="ship-status">Loading...</p>
       <div class="action-buttons">
         <button id="ship-1-load-button" class="secondary" disabled>Loading...</button>
+        <button id="ship-1-automate-button" class="secondary automate-button" disabled>Loading...</button>
       </div>
       <div class="depart-buttons">
         <button id="ship-1-depart-aurum-button" class="secondary" disabled hidden>Loading...</button>
@@ -81,6 +82,7 @@
       <p id="ship-2-status" class="ship-status">Loading...</p>
       <div class="action-buttons">
         <button id="ship-2-load-button" class="secondary" disabled>Loading...</button>
+        <button id="ship-2-automate-button" class="secondary automate-button" disabled>Loading...</button>
       </div>
       <div class="depart-buttons">
         <button id="ship-2-depart-aurum-button" class="secondary" disabled hidden>Loading...</button>
@@ -96,6 +98,7 @@
       <p id="ship-3-status" class="ship-status">Loading...</p>
       <div class="action-buttons">
         <button id="ship-3-load-button" class="secondary" disabled>Loading...</button>
+        <button id="ship-3-automate-button" class="secondary automate-button" disabled>Loading...</button>
       </div>
       <div class="depart-buttons">
         <button id="ship-3-depart-aurum-button" class="secondary" disabled hidden>Loading...</button>
@@ -111,6 +114,7 @@
       <p id="ship-4-status" class="ship-status">Loading...</p>
       <div class="action-buttons">
         <button id="ship-4-load-button" class="secondary" disabled>Loading...</button>
+        <button id="ship-4-automate-button" class="secondary automate-button" disabled>Loading...</button>
       </div>
       <div class="depart-buttons">
         <button id="ship-4-depart-aurum-button" class="secondary" disabled hidden>Loading...</button>
@@ -123,6 +127,7 @@
 
     <div id="ledger" class="section">
       <p id="profit-display" class="profit-display">Total profit: 0 credits</p>
+      <p id="automation-slots-display" class="automation-slots">Automation slots: 0/2 used</p>
       <p id="sale-log" class="sale-log">No sales yet.</p>
     </div>
   </div>

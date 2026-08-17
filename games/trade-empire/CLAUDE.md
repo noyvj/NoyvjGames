@@ -35,7 +35,7 @@ Same granularity as SOL's milestones — one clearly separable, demonstrable sta
 | 3 | Colony need system v1 | Colonies have need-sets; output scales with needs met; minor flavor text per colony | Done |
 | 4 | Market economics | Prices fluctuate with supply; overproducing a good crashes its price | Done |
 | 5 | Manual scaling friction | More routes/colonies added — manual management gets genuinely busy, foreshadowing automation | Done |
-| 6 | Automation v1 | First automation unlock — a route can run itself, limited slots/cost | Pending |
+| 6 | Automation v1 | First automation unlock — a route can run itself, limited slots/cost | Done |
 | 7 | 2D map v1 | Colonies as nodes, routes as lines — first visual leap, still no moving ships | Pending |
 | 8 | Research tree v1 | Framework + early nodes; gates automation tiers and new ship types | Pending |
 | 9 | Evolving needs v2 | Needs meaningfully change/expand as colonies develop further | Pending |
@@ -44,6 +44,13 @@ Same granularity as SOL's milestones — one clearly separable, demonstrable sta
 | 12 | Fleet-level automation | Prioritization rules across many routes at once, not just per-route toggles | Pending |
 | 13 | Galaxy scaling | Research-gated expansion to more systems/regions | Pending |
 | 14 | Endgame | Fully automated economy visible at scale (hundreds of worlds, many ships); soft win-state, sandbox continues | Pending |
+
+## Milestone 6 implementation notes
+- Up to `MAX_AUTOMATED_SHIPS` (2 of 4) can be automated for a flat one-time `AUTOMATION_COST` (150), deducted from `total_profit` — the only wallet in this game.
+- `colony_needing(good)` returns the one colony whose need matches a good — every good in this world's fixed cycles is needed by exactly one colony, so autopilot always has an unambiguous destination once loaded.
+- `run_automation()` runs once per tick, after transit resolution: any automated, docked ship loads if empty or departs if loaded. Because it runs after that tick's `advance_transit()` calls, a ship that arrives this tick can reload the same tick — automation is snappier than the manual click-by-click loop.
+- Manual Load/Depart controls hide once a ship is automated; there's no de-automate toggle in v1 (a deliberate scope cut — the unlock is a one-time purchase, not a pausable mode).
+- Added an "Automate" button per ship and an "Automation slots: N/2 used" line in the ledger.
 
 ## Milestone 5 implementation notes
 - No new mechanic — added a second colony pair (Cryo Vault produces Water/needs Energy, Helion Array produces Energy/needs Water — each needing exactly the other) and two more ships (3 at Ferrum, 4 at Cryo), purely for scale.
