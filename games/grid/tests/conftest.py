@@ -21,10 +21,12 @@ ELEMENT_IDS = [
     "event-display",
     "score-display",
     "trend-display",
+    "aging-event-display",
     "emissions-bar",
     "score-bar",
     "trend-graph",
     "trend-graph-message",
+    "global-comparison-message",
     "renewable-blurb",
     "advance-round-button",
 ]
@@ -33,12 +35,15 @@ for _plant in PLANT_TYPES:
         f"{_plant}-count",
         f"{_plant}-build-button",
         f"{_plant}-retire-button",
+        f"{_plant}-maintain-button",
         f"{_plant}-name",
     ]
 
-INITIALLY_DISABLED_IDS = [f"{p}-build-button" for p in PLANT_TYPES] + [
-    f"{p}-retire-button" for p in PLANT_TYPES
-]
+INITIALLY_DISABLED_IDS = (
+    [f"{p}-build-button" for p in PLANT_TYPES]
+    + [f"{p}-retire-button" for p in PLANT_TYPES]
+    + [f"{p}-maintain-button" for p in PLANT_TYPES]
+)
 
 
 class GameEnv:
@@ -57,6 +62,9 @@ class GameEnv:
 
     def retire(self, plant_type):
         self.elements[f"{plant_type}-retire-button"].dispatch("click", None)
+
+    def maintain(self, plant_type):
+        self.elements[f"{plant_type}-maintain-button"].dispatch("click", None)
 
     def advance_round(self):
         self.elements["advance-round-button"].dispatch("click", None)

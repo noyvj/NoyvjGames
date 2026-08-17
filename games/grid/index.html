@@ -29,48 +29,80 @@
       <p id="score-display" class="status-line">Sustained clean-grid score: 0</p>
       <div class="meter"><div id="score-bar" class="meter-fill meter-fill--score"></div></div>
       <p id="trend-display" class="event-display">Not enough rounds yet to show a trend.</p>
-      <p class="meter-label">Emissions vs. renewable cost</p>
+      <p id="aging-event-display" class="event-display">No aging breakdowns last round.</p>
+      <p class="meter-label">Emissions vs. global-average benchmark vs. renewable cost</p>
       <div id="trend-graph"></div>
       <p id="trend-graph-message" class="comparison-message">Not enough rounds yet to show an emissions/cost trend.</p>
+      <p id="global-comparison-message" class="comparison-message">Not enough rounds yet to compare against the global average.</p>
       <p id="renewable-blurb" class="comparison-message" hidden></p>
     </div>
 
     <div id="plants" class="section">
       <div class="plant-row" data-plant="coal">
-        <span class="plant-name" id="coal-name">Coal</span>
-        <span class="plant-count" id="coal-count">0</span>
-        <button id="coal-build-button" class="secondary" disabled>Loading...</button>
-        <button id="coal-retire-button" class="secondary" disabled>Retire</button>
+        <div class="plant-row-top">
+          <span class="plant-name" id="coal-name">Coal</span>
+          <span class="plant-count" id="coal-count">0</span>
+        </div>
+        <div class="plant-row-actions">
+          <button id="coal-build-button" class="secondary" disabled>Loading...</button>
+          <button id="coal-retire-button" class="secondary" disabled>Retire</button>
+          <button id="coal-maintain-button" class="secondary" disabled>Loading...</button>
+        </div>
       </div>
       <div class="plant-row" data-plant="gas">
-        <span class="plant-name" id="gas-name">Gas</span>
-        <span class="plant-count" id="gas-count">0</span>
-        <button id="gas-build-button" class="secondary" disabled>Loading...</button>
-        <button id="gas-retire-button" class="secondary" disabled>Retire</button>
+        <div class="plant-row-top">
+          <span class="plant-name" id="gas-name">Gas</span>
+          <span class="plant-count" id="gas-count">0</span>
+        </div>
+        <div class="plant-row-actions">
+          <button id="gas-build-button" class="secondary" disabled>Loading...</button>
+          <button id="gas-retire-button" class="secondary" disabled>Retire</button>
+          <button id="gas-maintain-button" class="secondary" disabled>Loading...</button>
+        </div>
       </div>
       <div class="plant-row" data-plant="nuclear">
-        <span class="plant-name" id="nuclear-name">Nuclear</span>
-        <span class="plant-count" id="nuclear-count">0</span>
-        <button id="nuclear-build-button" class="secondary" disabled>Loading...</button>
-        <button id="nuclear-retire-button" class="secondary" disabled>Retire</button>
+        <div class="plant-row-top">
+          <span class="plant-name" id="nuclear-name">Nuclear</span>
+          <span class="plant-count" id="nuclear-count">0</span>
+        </div>
+        <div class="plant-row-actions">
+          <button id="nuclear-build-button" class="secondary" disabled>Loading...</button>
+          <button id="nuclear-retire-button" class="secondary" disabled>Retire</button>
+          <button id="nuclear-maintain-button" class="secondary" disabled>Loading...</button>
+        </div>
       </div>
       <div class="plant-row" data-plant="solar">
-        <span class="plant-name" id="solar-name">Solar</span>
-        <span class="plant-count" id="solar-count">0</span>
-        <button id="solar-build-button" class="secondary" disabled>Loading...</button>
-        <button id="solar-retire-button" class="secondary" disabled>Retire</button>
+        <div class="plant-row-top">
+          <span class="plant-name" id="solar-name">Solar</span>
+          <span class="plant-count" id="solar-count">0</span>
+        </div>
+        <div class="plant-row-actions">
+          <button id="solar-build-button" class="secondary" disabled>Loading...</button>
+          <button id="solar-retire-button" class="secondary" disabled>Retire</button>
+          <button id="solar-maintain-button" class="secondary" disabled>Loading...</button>
+        </div>
       </div>
       <div class="plant-row" data-plant="wind">
-        <span class="plant-name" id="wind-name">Wind</span>
-        <span class="plant-count" id="wind-count">0</span>
-        <button id="wind-build-button" class="secondary" disabled>Loading...</button>
-        <button id="wind-retire-button" class="secondary" disabled>Retire</button>
+        <div class="plant-row-top">
+          <span class="plant-name" id="wind-name">Wind</span>
+          <span class="plant-count" id="wind-count">0</span>
+        </div>
+        <div class="plant-row-actions">
+          <button id="wind-build-button" class="secondary" disabled>Loading...</button>
+          <button id="wind-retire-button" class="secondary" disabled>Retire</button>
+          <button id="wind-maintain-button" class="secondary" disabled>Loading...</button>
+        </div>
       </div>
       <div class="plant-row" data-plant="hydro">
-        <span class="plant-name" id="hydro-name">Hydro</span>
-        <span class="plant-count" id="hydro-count">0</span>
-        <button id="hydro-build-button" class="secondary" disabled>Loading...</button>
-        <button id="hydro-retire-button" class="secondary" disabled>Retire</button>
+        <div class="plant-row-top">
+          <span class="plant-name" id="hydro-name">Hydro</span>
+          <span class="plant-count" id="hydro-count">0</span>
+        </div>
+        <div class="plant-row-actions">
+          <button id="hydro-build-button" class="secondary" disabled>Loading...</button>
+          <button id="hydro-retire-button" class="secondary" disabled>Retire</button>
+          <button id="hydro-maintain-button" class="secondary" disabled>Loading...</button>
+        </div>
       </div>
     </div>
 

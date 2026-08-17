@@ -127,11 +127,15 @@ h1 {
   stroke: #4c9c6e;
 }
 
+.trend-line--global {
+  stroke: #8a8fa3;
+  stroke-dasharray: 4 3;
+}
+
 .plant-row {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr auto;
-  align-items: center;
-  gap: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
   padding: 0.5rem 0;
   border-bottom: 1px solid #23273a;
 }
@@ -140,8 +144,42 @@ h1 {
   border-bottom: none;
 }
 
+.plant-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.plant-row-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.plant-row-actions button.secondary {
+  flex: 1;
+}
+
 .plant-name {
   font-size: 0.9rem;
+  transition: filter 200ms ease, opacity 200ms ease;
+}
+
+/* Iteration Pass 2: aging wear state — icon dims/desaturates as a plant
+   type's average fleet age climbs, so vulnerability is seen before it's
+   felt as a breakdown event. */
+.plant-name.wear-1 {
+  filter: saturate(0.8);
+  opacity: 0.9;
+}
+
+.plant-name.wear-2 {
+  filter: saturate(0.5) brightness(0.9);
+  opacity: 0.8;
+}
+
+.plant-name.wear-3 {
+  filter: grayscale(0.6) brightness(0.75);
+  opacity: 0.7;
 }
 
 .plant-count {

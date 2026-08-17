@@ -40,7 +40,7 @@ Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`). Antic
 
 **Open testing question:** does a first-time player, unprompted, notice that early renewable investment made later rounds easier? The in-game feedback prompt asks directly: "Did investing early feel like it paid off?"
 
-## Iteration Notes — Pass 2 (not yet implemented)
+## Iteration Notes — Pass 2 (implemented)
 
 Second design-review pass, from `climate-games-iteration-pass-2.md`, building on Pass 1. **Selected additions: A (global comparison) + B (infrastructure age/vulnerability).**
 
