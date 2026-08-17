@@ -40,10 +40,16 @@ Same granularity as SOL's milestones — one clearly separable, demonstrable sta
 | 8 | Research tree v1 | Framework + early nodes; gates automation tiers and new ship types | Done |
 | 9 | Evolving needs v2 | Needs meaningfully change/expand as colonies develop further | Done |
 | 10 | Colony specialization | Worlds develop distinct strengths/weaknesses based on environment/history | Done |
-| 11 | Ships on the map | Automated routes render as moving dots along the map's lines | Pending |
+| 11 | Ships on the map | Automated routes render as moving dots along the map's lines | Done |
 | 12 | Fleet-level automation | Prioritization rules across many routes at once, not just per-route toggles | Pending |
 | 13 | Galaxy scaling | Research-gated expansion to more systems/regions | Pending |
 | 14 | Endgame | Fully automated economy visible at scale (hundreds of worlds, many ships); soft win-state, sandbox continues | Pending |
+
+## Milestone 11 implementation notes
+- Every ship (not just automated ones — manual play stays useful on the map too) renders as a dot each render pass, interpolated between `NODE_POSITIONS[ship.origin]` and `NODE_POSITIONS[ship.destination]` using `ship.transit_total_ticks` — a value fixed at departure time, so Fast Ships research researched mid-flight can't retroactively distort a ship that already departed under the old travel time.
+- `render_map()` moved from a one-time `setup()` call into `render()` itself, so the map redraws every tick along with everything else — ship dots actually move.
+- Automated and manual ships get distinct dot colors (gold vs. white).
+- Extended the M7 test harness pattern rather than replacing it: `ctx.calls` already logged every draw call, so ship-dot assertions just filter by radius (`SHIP_DOT_RADIUS` vs `NODE_RADIUS`) to tell colony circles and ship dots apart in the same log.
 
 ## Milestone 10 implementation notes
 - `SPECIALIZATION` is a fixed, per-colony dict (output bonus + decay-rate multiplier) reflecting each colony's own flavor text — environmental, not a player choice. Activates automatically once `is_developed()` (Milestone 9's level-2 flag), reusing that gate rather than inventing a separate unlock/currency for it.

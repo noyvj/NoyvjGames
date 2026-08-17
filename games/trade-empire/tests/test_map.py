@@ -40,9 +40,14 @@ def test_render_map_draws_a_line_per_route_edge(game_env):
 
 
 def test_render_map_draws_a_circle_per_colony(game_env):
+    # Milestone 11 also draws one arc per ship (its position dot), so
+    # distinguish colony-node arcs by their radius rather than counting
+    # every arc call on the canvas.
     ctx = game_env.elements["map-canvas"].getContext("2d")
-    arc_count = sum(1 for name, _args in ctx.calls if name == "arc")
-    assert arc_count == len(game_env.module.COLONIES)
+    node_arc_count = sum(
+        1 for name, args in ctx.calls if name == "arc" and args[2] == game_env.module.NODE_RADIUS
+    )
+    assert node_arc_count == len(game_env.module.COLONIES)
 
 
 def test_render_map_labels_every_colony(game_env):

@@ -20,7 +20,10 @@ development expands what it needs (a second, cross-cycle need) rather
 than ever "solving" it. Milestone 10: colony specialization — an
 environmental, non-player-chosen strength/weakness pair per colony
 (reflecting each one's flavor text) that activates automatically once
-it develops.
+it develops. Milestone 11: ships render as moving dots on the map,
+interpolated between origin and destination using each trip's own
+fixed tick count so Fast Ships research can't retroactively distort a
+ship already mid-flight.
 """
 
 import math
@@ -208,6 +211,34 @@ def route_edges():
     return edges
 
 
+# Milestone 11 — ships on the map: automated routes (and manual ones,
+# so the map stays useful during manual play too) render as moving
+# dots along the map's lines, interpolated between origin and
+# destination using the trip's own fixed tick count at departure time
+# (transit_total_ticks) rather than the current travel_ticks(), so a
+# mid-flight ship's position stays consistent even if Fast Ships
+# research changes the travel time for future departures.
+SHIP_DOT_RADIUS = 5
+AUTOMATED_SHIP_COLOR = "#e0c34c"
+MANUAL_SHIP_COLOR = "#e8e9f0"
+
+
+def ship_map_position(ship):
+    if ship.docked:
+        return NODE_POSITIONS[ship.location]
+    origin_x, origin_y = NODE_POSITIONS[ship.origin]
+    dest_x, dest_y = NODE_POSITIONS[ship.destination]
+    if ship.transit_total_ticks <= 0:
+        progress = 1.0
+    else:
+        elapsed = ship.transit_total_ticks - ship.transit_ticks_remaining
+        progress = max(0.0, min(1.0, elapsed / ship.transit_total_ticks))
+    return (
+        origin_x + (dest_x - origin_x) * progress,
+        origin_y + (dest_y - origin_y) * progress,
+    )
+
+
 def render_map():
     canvas = document.getElementById("map-canvas")
     ctx = canvas.getContext("2d")
@@ -234,6 +265,13 @@ def render_map():
         ctx.textAlign = "center"
         ctx.textBaseline = "middle"
         ctx.fillText(COLONIES[colony_id]["name"].split()[0], x, y)
+
+    for ship in ships.values():
+        x, y = ship_map_position(ship)
+        ctx.fillStyle = AUTOMATED_SHIP_COLOR if ship.automated else MANUAL_SHIP_COLOR
+        ctx.beginPath()
+        ctx.arc(x, y, SHIP_DOT_RADIUS, 0, 2 * math.pi)
+        ctx.fill()
 
 
 colony_states = {colony_id: ColonyState(colony_id) for colony_id in COLONIES}
@@ -346,10 +384,12 @@ class Ship:
     def __init__(self, ship_id, start_colony):
         self.id = ship_id
         self.location = start_colony  # colony id, or None while in transit
+        self.origin = None  # colony id departed from, while in transit
         self.destination = None  # colony id being traveled to, while in transit
         self.cargo_good = None
         self.cargo_qty = 0
         self.transit_ticks_remaining = 0
+        self.transit_total_ticks = 0  # ticks this specific trip started with, for map interpolation
         self.automated = False
 
     @property
@@ -383,9 +423,11 @@ class Ship:
             return False
         if destination == self.location or destination not in COLONIES:
             return False
+        self.origin = self.location
         self.destination = destination
         self.location = None
-        self.transit_ticks_remaining = travel_ticks()
+        self.transit_total_ticks = travel_ticks()
+        self.transit_ticks_remaining = self.transit_total_ticks
         return True
 
     def advance_transit(self):
@@ -405,6 +447,7 @@ class Ship:
         elif dest_state.is_developed() and dest_state.secondary_need() == good:
             dest_state.deliver_secondary(qty)
         self.location = destination
+        self.origin = None
         self.destination = None
         self.cargo_good = None
         self.cargo_qty = 0
@@ -560,6 +603,7 @@ def render():
         f"Automation slots: {automated_ship_count()}/{max_automated_ships()} used"
     )
     render_research()
+    render_map()
     for ship in ships.values():
         render_ship(ship)
     for colony_id in COLONIES:
@@ -632,7 +676,6 @@ def setup():
         document.getElementById(f"research-{node_id}-unlock-button").addEventListener(
             "click", create_proxy(_make_research_handler(node_id))
         )
-    render_map()
     setInterval(create_proxy(tick), TICK_INTERVAL_MS)
     render()
 
