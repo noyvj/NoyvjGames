@@ -52,6 +52,25 @@ GAUGE_LOW_COLOR = "#4c9c6e"  # fully decoupled
 GAUGE_HIGH_COLOR = "#e0674c"  # fully coupled (baseline)
 MAX_HAZE_OPACITY = 0.4
 
+# Iteration Pass 2 — alternative protein pivot (the fallback path,
+# chosen over market dynamics per CLAUDE.md's own conditional: market
+# dynamics is an income-side mechanic that can't naturally feed into the
+# coupling-ratio gauge, which the design notes require stay the
+# centerpiece; the pivot is structurally another decoupling lever, so
+# it blends directly into the same gauge feed/caps/capture already use).
+# Unlike those three, this changes *what* is produced, not how
+# efficiently the same thing is produced.
+PLANT_PIVOT_COST = 25
+PLANT_PIVOT_FRACTION_PER_UNIT = 0.05
+MAX_PLANT_BASED_FRACTION = 0.6
+# Plant-based output still carries a small footprint (land use etc.) —
+# not literally zero, just far below animal output.
+PLANT_BASED_EMISSIONS_MULTIPLIER = 0.05
+# Real-world margin difference — a genuine cost, not a strict downgrade,
+# since the methane cut this buys also reduces pressure-driven income
+# loss elsewhere.
+PLANT_BASED_INCOME_MULTIPLIER = 0.85
+
 
 class FarmState:
     def __init__(self):
@@ -60,15 +79,37 @@ class FarmState:
         self.herd_size = 0
         self.methane = 0.0
         self.decoupling_investment = {m: 0 for m in DECOUPLING_MEASURES}
+        self.plant_pivot_investment = 0
 
-    def coupling_ratio(self):
-        """Methane produced per herd unit, per round. Each decoupling
-        measure permanently lowers this, floored so it never hits zero."""
+    def _efficiency_coupling_ratio(self):
+        """Methane produced per herd unit, per round, from the feed/caps/
+        capture efficiency measures alone — floored so it never hits zero."""
         reduction = sum(
             self.decoupling_investment[m] * DECOUPLING_MEASURES[m]["ratio_reduction"]
             for m in DECOUPLING_MEASURES
         )
         return max(MIN_COUPLING_RATIO, BASE_COUPLING_RATIO - reduction)
+
+    def plant_based_fraction(self):
+        return min(MAX_PLANT_BASED_FRACTION, self.plant_pivot_investment * PLANT_PIVOT_FRACTION_PER_UNIT)
+
+    def coupling_ratio(self):
+        """The efficiency-measure ratio, further blended down by however
+        much of the herd's output has pivoted to (near-zero-methane)
+        plant-based production. Same public method every other Pass 1
+        mechanic already reads from, so the gauge shows one unified
+        number regardless of which lever moved it."""
+        base = self._efficiency_coupling_ratio()
+        fraction = self.plant_based_fraction()
+        blended_multiplier = (1 - fraction) + fraction * PLANT_BASED_EMISSIONS_MULTIPLIER
+        return max(MIN_COUPLING_RATIO, base * blended_multiplier)
+
+    def invest_plant_pivot(self):
+        if self.funds < PLANT_PIVOT_COST:
+            return False
+        self.funds -= PLANT_PIVOT_COST
+        self.plant_pivot_investment += 1
+        return True
 
     def methane_this_round(self):
         return self.herd_size * self.coupling_ratio()
@@ -95,7 +136,9 @@ class FarmState:
         return min(MAX_PRESSURE, self.methane / PRESSURE_SCALE)
 
     def advance_round(self):
-        raw_income = self.herd_size * HERD_INCOME_PER_UNIT
+        fraction = self.plant_based_fraction()
+        income_multiplier = (1 - fraction) + fraction * PLANT_BASED_INCOME_MULTIPLIER
+        raw_income = self.herd_size * HERD_INCOME_PER_UNIT * income_multiplier
         self.funds += raw_income * (1 - self.pressure_fraction())
         self.methane += self.methane_this_round()
         self.round_number += 1
@@ -181,6 +224,15 @@ def render():
         f"Decoupled: {decoupled_fraction * 100:.0f}% below baseline emissions per herd unit"
     )
 
+    plant_fraction = farm.plant_based_fraction()
+    document.getElementById("plant-pivot-count").innerText = str(farm.plant_pivot_investment)
+    document.getElementById("plant-pivot-display").innerText = (
+        f"{plant_fraction * 100:.0f}% of output shifted to plant-based production"
+    )
+    plant_pivot_button = document.getElementById("plant-pivot-invest-button")
+    plant_pivot_button.innerText = f"Plant-Based Pivot ({PLANT_PIVOT_COST})"
+    plant_pivot_button.disabled = farm.funds < PLANT_PIVOT_COST or plant_fraction >= MAX_PLANT_BASED_FRACTION
+
 
 def on_grow_herd(event=None):
     farm.grow_herd()
@@ -192,6 +244,11 @@ def _make_decoupling_handler(measure):
         farm.invest_decoupling(measure)
         render()
     return handler
+
+
+def on_invest_plant_pivot(event=None):
+    farm.invest_plant_pivot()
+    render()
 
 
 def on_advance_round(event=None):
@@ -210,6 +267,9 @@ def setup():
         document.getElementById(f"{measure}-invest-button").addEventListener(
             "click", create_proxy(_make_decoupling_handler(measure))
         )
+    document.getElementById("plant-pivot-invest-button").addEventListener(
+        "click", create_proxy(on_invest_plant_pivot)
+    )
     render()
 
 

@@ -26,11 +26,16 @@ ELEMENT_IDS = [
     "haze-overlay",
     "grow-herd-button",
     "advance-round-button",
+    "plant-pivot-display",
+    "plant-pivot-count",
+    "plant-pivot-invest-button",
 ]
 for _measure in MEASURE_IDS:
     ELEMENT_IDS += [f"{_measure}-name", f"{_measure}-count", f"{_measure}-invest-button"]
 
-INITIALLY_DISABLED_IDS = ["grow-herd-button"] + [f"{m}-invest-button" for m in MEASURE_IDS]
+INITIALLY_DISABLED_IDS = (
+    ["grow-herd-button", "plant-pivot-invest-button"] + [f"{m}-invest-button" for m in MEASURE_IDS]
+)
 
 
 class GameEnv:
@@ -52,6 +57,9 @@ class GameEnv:
 
     def invest_decoupling(self, measure):
         self.elements[f"{measure}-invest-button"].dispatch("click", None)
+
+    def invest_plant_pivot(self):
+        self.elements["plant-pivot-invest-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements):
