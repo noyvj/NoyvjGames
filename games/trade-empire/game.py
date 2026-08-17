@@ -14,7 +14,10 @@ canvas directly from Python via Pyodide's `js` module. Still no moving
 ships on it (Milestone 11). Milestone 8: a small, flat research tree
 (no prerequisites yet) spent from a separate, passively-accruing
 research-points currency, gating an automation-slot expansion, a
-fleet-wide speed boost, and a fleet-wide cargo boost.
+fleet-wide speed boost, and a fleet-wide cargo boost. Milestone 9:
+evolving needs v2 — sustained delivery develops a colony further, and
+development expands what it needs (a second, cross-cycle need) rather
+than ever "solving" it.
 """
 
 import math
@@ -75,26 +78,65 @@ NEED_SATISFACTION_PER_UNIT_DELIVERED = 0.05
 MIN_OUTPUT_MULTIPLIER = 0.5
 MAX_OUTPUT_MULTIPLIER = 1.5
 
+# Milestone 9 — evolving needs v2: sustained delivery of a colony's
+# primary need develops it further, and development expands what it
+# needs rather than ever "finishing" it — a second, cross-cycle need on
+# top of the first, per the plan's "no final solved state per colony"
+# framing. A colony's own secondary need deliberately reaches into the
+# *other* need-cycle (the original triangle vs. the Cryo/Helion pair),
+# so growth creates new dependencies linking the two clusters together
+# rather than just deepening the one a colony already belongs to.
+DEVELOPMENT_THRESHOLD = 100.0
+SECONDARY_NEED = {
+    "aurum": ENERGY,
+    "verdant": WATER,
+    "ferrum": ENERGY,
+    "cryo": ORE,
+    "helion": GRAIN,
+}
+
 
 class ColonyState:
     def __init__(self, colony_id):
         self.id = colony_id
         self.need_satisfaction = STARTING_NEED_SATISFACTION
+        self.development_level = 1
+        self.cumulative_delivered = 0.0
+        self.secondary_need_satisfaction = STARTING_NEED_SATISFACTION
+
+    def secondary_need(self):
+        return SECONDARY_NEED[self.id]
+
+    def is_developed(self):
+        return self.development_level >= 2
 
     def output_multiplier(self):
-        return MIN_OUTPUT_MULTIPLIER + self.need_satisfaction * (
-            MAX_OUTPUT_MULTIPLIER - MIN_OUTPUT_MULTIPLIER
-        )
+        if not self.is_developed():
+            satisfaction = self.need_satisfaction
+        else:
+            satisfaction = (self.need_satisfaction + self.secondary_need_satisfaction) / 2
+        return MIN_OUTPUT_MULTIPLIER + satisfaction * (MAX_OUTPUT_MULTIPLIER - MIN_OUTPUT_MULTIPLIER)
 
     def cargo_capacity(self):
         return round(CARGO_CAPACITY * self.output_multiplier())
 
     def decay(self):
         self.need_satisfaction = max(0.0, self.need_satisfaction - NEED_DECAY_PER_TICK)
+        if self.is_developed():
+            self.secondary_need_satisfaction = max(
+                0.0, self.secondary_need_satisfaction - NEED_DECAY_PER_TICK
+            )
 
     def deliver(self, qty):
         gain = qty * NEED_SATISFACTION_PER_UNIT_DELIVERED
         self.need_satisfaction = min(1.0, self.need_satisfaction + gain)
+        self.cumulative_delivered += qty
+        if self.cumulative_delivered >= DEVELOPMENT_THRESHOLD and self.development_level < 2:
+            self.development_level = 2
+
+    def deliver_secondary(self, qty):
+        gain = qty * NEED_SATISFACTION_PER_UNIT_DELIVERED
+        self.secondary_need_satisfaction = min(1.0, self.secondary_need_satisfaction + gain)
 
 
 # Milestone 7 — 2D map v1: colonies as nodes, routes as lines. Drawn
@@ -319,8 +361,11 @@ class Ship:
         good, qty = self.cargo_good, self.cargo_qty
         profit = qty * current_sell_price(good)
         destination = self.destination
+        dest_state = colony_states[destination]
         if COLONIES[destination]["needs"] == good:
-            colony_states[destination].deliver(qty)
+            dest_state.deliver(qty)
+        elif dest_state.is_developed() and dest_state.secondary_need() == good:
+            dest_state.deliver_secondary(qty)
         self.location = destination
         self.destination = None
         self.cargo_good = None
@@ -415,14 +460,29 @@ def render_ship(ship):
 def render_colony(colony_id):
     colony = COLONIES[colony_id]
     state = colony_states[colony_id]
-    document.getElementById(f"colony-{colony_id}-need-display").innerText = (
+    need_text = (
         f"{colony['name']}: needs {GOOD_LABEL[colony['needs']]} — "
-        f"{state.need_satisfaction * 100:.0f}% satisfied "
-        f"(output x{state.output_multiplier():.2f})"
+        f"{state.need_satisfaction * 100:.0f}% satisfied"
     )
+    if state.is_developed():
+        need_text += (
+            f"; also needs {GOOD_LABEL[state.secondary_need()]} — "
+            f"{state.secondary_need_satisfaction * 100:.0f}% satisfied"
+        )
+    need_text += f" (output x{state.output_multiplier():.2f})"
+    document.getElementById(f"colony-{colony_id}-need-display").innerText = need_text
     document.getElementById(f"colony-{colony_id}-need-bar").style.width = (
         f"{state.need_satisfaction * 100:.0f}%"
     )
+
+    dev_el = document.getElementById(f"colony-{colony_id}-development-display")
+    if state.is_developed():
+        dev_el.innerText = "Development: Level 2 (fully developed)"
+    else:
+        dev_el.innerText = (
+            f"Development: Level 1 ({state.cumulative_delivered:.0f}/{DEVELOPMENT_THRESHOLD:.0f} "
+            f"{GOOD_LABEL[colony['needs']]} delivered to develop further)"
+        )
 
 
 def render_market():

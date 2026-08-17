@@ -136,6 +136,12 @@ h1 {
   line-height: 1.4;
 }
 
+.colony-development {
+  margin: 0;
+  font-size: 0.7rem;
+  opacity: 0.5;
+}
+
 .colony-need {
   margin: 0 0 0.3rem;
   font-size: 0.8rem;

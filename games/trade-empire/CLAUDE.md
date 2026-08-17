@@ -38,12 +38,18 @@ Same granularity as SOL's milestones — one clearly separable, demonstrable sta
 | 6 | Automation v1 | First automation unlock — a route can run itself, limited slots/cost | Done |
 | 7 | 2D map v1 | Colonies as nodes, routes as lines — first visual leap, still no moving ships | Done |
 | 8 | Research tree v1 | Framework + early nodes; gates automation tiers and new ship types | Done |
-| 9 | Evolving needs v2 | Needs meaningfully change/expand as colonies develop further | Pending |
+| 9 | Evolving needs v2 | Needs meaningfully change/expand as colonies develop further | Done |
 | 10 | Colony specialization | Worlds develop distinct strengths/weaknesses based on environment/history | Pending |
 | 11 | Ships on the map | Automated routes render as moving dots along the map's lines | Pending |
 | 12 | Fleet-level automation | Prioritization rules across many routes at once, not just per-route toggles | Pending |
 | 13 | Galaxy scaling | Research-gated expansion to more systems/regions | Pending |
 | 14 | Endgame | Fully automated economy visible at scale (hundreds of worlds, many ships); soft win-state, sandbox continues | Pending |
+
+## Milestone 9 implementation notes
+- Sustained delivery of a colony's primary need (`cumulative_delivered` crossing `DEVELOPMENT_THRESHOLD`, 100 units) develops it to level 2. `need_satisfaction` and its formula are completely untouched for undeveloped (level 1) colonies, so every Milestone 3/4/5 test keeps passing unchanged — development is purely additive.
+- Once developed, a colony also wants `SECONDARY_NEED[colony_id]` — deliberately a good from the *other* need-cycle (a triangle colony's secondary reaches into the Cryo/Helion pair and vice versa), so growth creates new cross-cluster dependencies rather than just deepening the cycle a colony already belongs to.
+- `output_multiplier()` averages both needs' satisfaction once developed — juggling two needs is genuinely harder than one, not a free unlock.
+- Scope cut, documented rather than silently missing: `colony_needing()` (Milestone 6's automation) and `route_edges()` (Milestone 7's map) still only know about primary needs — an automated ship or the map won't route/show secondary-need deliveries. Manual play is the only way to develop a colony or feed its secondary need in this version.
 
 ## Milestone 8 implementation notes
 - `research_points` is a separate currency from `total_profit`, accruing passively at `RESEARCH_PER_TICK` (0.5/tick) — research and trade are two distinct things to manage, not one pool spent two ways.
