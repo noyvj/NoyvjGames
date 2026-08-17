@@ -58,6 +58,23 @@ CIRCULARITY_BONUS_WEIGHT = 300.0
 GOODS_LABEL = "electronics"
 REAL_WORLD_CIRCULARITY_BENCHMARK = 0.07
 
+# Iteration Pass 2 — trade network: a basic bidirectional link with one
+# neighboring system, not a full second economy. Import: investing in
+# the link brings in reuse capacity from outside, counted toward
+# closing the loop alongside repair/reuse/recycle. Export: whenever
+# internal circularity investment produces more supply than this
+# cycle's own production target needs, that surplus is sold outward to
+# the neighbor rather than wasted — a natural thing to do with "too
+# much" circularity once the loop's already closed internally.
+TRADE_LINK_COST = 25
+IMPORT_SUPPLY_PER_UNIT = 4.0
+EXPORT_PRICE_PER_UNIT = 3.0
+
+# Iteration Pass 2 — single-item vignette: a concrete side-story
+# following one representative product, alongside the abstract chain
+# view, for a player who doesn't naturally read a flow diagram.
+VIGNETTE_ITEM = "a phone"
+
 
 class ChainState:
     def __init__(self):
@@ -67,20 +84,45 @@ class ChainState:
         self.total_produced = 0.0
         self.circularity_investment = {c: 0 for c in CIRCULARITY_INVESTMENTS}
         self.circular_fraction_log = []
+        self.trade_link_investment = 0
 
-    def circular_supply(self):
+    def internal_circular_supply(self):
         """Units of this cycle's production target met by repair/reuse/
-        recycling instead of new extraction."""
+        recycling instead of new extraction — the chain's own capacity,
+        before anything crossing in from the trade network."""
         return sum(
             self.circularity_investment[c] * CIRCULARITY_INVESTMENTS[c]["supply_per_unit"]
             for c in CIRCULARITY_INVESTMENTS
         )
+
+    def imported_supply(self):
+        return self.trade_link_investment * IMPORT_SUPPLY_PER_UNIT
+
+    def circular_supply(self):
+        """Total supply toward closing the loop: internal circularity
+        plus whatever the trade link imports from the neighboring
+        system."""
+        return self.internal_circular_supply() + self.imported_supply()
+
+    def exportable_surplus(self):
+        """Internal circular supply beyond what this cycle's own
+        production target needs — sold outward to the neighboring
+        system for extra revenue rather than going to waste. Only
+        internal supply counts; imported supply isn't re-exported."""
+        return max(0.0, self.internal_circular_supply() - PRODUCTION_TARGET)
 
     def new_extraction_needed(self):
         """The straight-line default: whatever circular supply doesn't
         cover has to come from newly extracted raw material. Floored at
         zero — enough circularity investment closes the loop entirely."""
         return max(0.0, PRODUCTION_TARGET - self.circular_supply())
+
+    def invest_trade_link(self):
+        if self.funds < TRADE_LINK_COST:
+            return False
+        self.funds -= TRADE_LINK_COST
+        self.trade_link_investment += 1
+        return True
 
     def is_loop_closed(self):
         return self.new_extraction_needed() <= 0.0
@@ -119,7 +161,8 @@ class ChainState:
         extraction = self.new_extraction_needed()
         cost = extraction * EXTRACTION_COST_PER_UNIT * self.extraction_cost_multiplier()
         revenue = PRODUCTION_TARGET * SALE_PRICE_PER_UNIT
-        self.funds += revenue - cost
+        export_revenue = self.exportable_surplus() * EXPORT_PRICE_PER_UNIT
+        self.funds += revenue - cost + export_revenue
         self.circular_fraction_log.append(self.circular_fraction_this_cycle())
         self.total_extracted += extraction
         self.total_produced += PRODUCTION_TARGET
@@ -178,6 +221,32 @@ def real_world_comparison_message(lifetime_fraction):
     )
 
 
+def vignette_message(fraction):
+    """A concrete, one-item side-story tracking the same underlying
+    circular_fraction_this_cycle() the abstract chain view already
+    shows — makes the abstraction tangible for a player who doesn't
+    naturally read a flow diagram."""
+    if fraction >= 1.0:
+        return (
+            f"Follow {VIGNETTE_ITEM}: it was repaired once, then eventually recycled — "
+            "its materials became part of the casing for the next one off the line."
+        )
+    if fraction >= 0.5:
+        return (
+            f"Follow {VIGNETTE_ITEM}: it gets used, and there's a good chance it comes "
+            "back through repair or recycling when its owner is done with it."
+        )
+    if fraction > 0.0:
+        return (
+            f"Follow {VIGNETTE_ITEM}: it gets used, then thrown away — though a little of "
+            "what's inside it might still come back as recycled material someday."
+        )
+    return (
+        f"Follow {VIGNETTE_ITEM}: mined, made, used once, thrown away. Nothing about it "
+        "comes back."
+    )
+
+
 def chain_flow_message(fraction):
     if fraction <= 0.0:
         return "Straight line: 100% of production needs new extraction."
@@ -196,6 +265,12 @@ def render():
 
     return_flow_row = document.getElementById("return-flow-row")
     return_flow_row.style.opacity = f"{fraction:.2f}"
+
+    import_fraction = min(1.0, chain.imported_supply() / PRODUCTION_TARGET)
+    import_flow_row = document.getElementById("import-flow-row")
+    import_flow_row.style.opacity = f"{import_fraction:.2f}"
+
+    document.getElementById("vignette-display").innerText = vignette_message(fraction)
 
     document.getElementById("cycle-display").innerText = f"Cycle {chain.cycle_number}"
     document.getElementById("funds-display").innerText = f"Funds: {chain.funds:.0f}"
@@ -239,6 +314,15 @@ def render():
         button.innerText = f"{spec['label']} ({spec['cost']})"
         button.disabled = chain.funds < spec["cost"]
 
+    document.getElementById("trade-link-count").innerText = str(chain.trade_link_investment)
+    trade_link_button = document.getElementById("trade-link-invest-button")
+    trade_link_button.innerText = f"Trade Link ({TRADE_LINK_COST})"
+    trade_link_button.disabled = chain.funds < TRADE_LINK_COST
+    document.getElementById("trade-network-display").innerText = (
+        f"Importing {chain.imported_supply():.0f} units/cycle from the trade network; "
+        f"exporting {chain.exportable_surplus():.0f} units/cycle of surplus this cycle."
+    )
+
 
 def on_advance_cycle(event=None):
     chain.advance_cycle()
@@ -252,6 +336,11 @@ def _make_circularity_handler(measure):
     return handler
 
 
+def on_invest_trade_link(event=None):
+    chain.invest_trade_link()
+    render()
+
+
 def setup():
     document.getElementById("advance-cycle-button").addEventListener(
         "click", create_proxy(on_advance_cycle)
@@ -260,6 +349,9 @@ def setup():
         document.getElementById(f"{measure}-invest-button").addEventListener(
             "click", create_proxy(_make_circularity_handler(measure))
         )
+    document.getElementById("trade-link-invest-button").addEventListener(
+        "click", create_proxy(on_invest_trade_link)
+    )
     render()
 
 

@@ -294,3 +294,69 @@ button.primary:active {
   opacity: 0.75;
   color: #4c9c6e;
 }
+
+/* Iteration Pass 2: trade network — visually distinct (blue, entering
+   from the left) from the internal return-flow loop (green, above),
+   so capacity crossing in from outside reads as a different kind of
+   flow than the chain's own internal loop. */
+.import-flow-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #3a3f5c;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.import-flow-track {
+  position: relative;
+  width: 2.5rem;
+  height: 4px;
+  border-radius: 2px;
+  background: #1a1d2b;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.import-flow-particle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 4px;
+  border-radius: 2px;
+  background: #4c8ed8;
+  animation: import-flow-move 1.2s linear infinite;
+}
+
+@keyframes import-flow-move {
+  0% { left: 0; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+
+.import-flow-label {
+  font-size: 0.72rem;
+  opacity: 0.75;
+  color: #4c8ed8;
+}
+
+/* Iteration Pass 2: single-item vignette — a small, lightweight inset,
+   not a separate mode. */
+.vignette {
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-left: 2px solid #6f6ab0;
+  background: #14161f;
+  border-radius: 0 6px 6px 0;
+}
+
+.vignette-message {
+  margin: 0;
+  font-size: 0.8rem;
+  font-style: italic;
+  opacity: 0.85;
+}
