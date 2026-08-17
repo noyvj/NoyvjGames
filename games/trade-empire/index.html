@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trade Empire — Milestone 2</title>
+<title>Trade Empire — Milestone 3</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
@@ -12,6 +12,28 @@
     <h1>Trade Empire</h1>
     <p class="tagline">Working title. Two ships, three colonies, and a triangle of trade — you decide who goes where.</p>
     <p class="context-blurb">Aurum Station mines Ore. Verdant Reach grows Grain. Ferrum Forge casts Machinery. Each needs what only one of the others makes — the triangle is your route map.</p>
+
+    <div id="colonies-panel" class="section">
+      <p class="panel-label">Colonies</p>
+      <div class="colony-row">
+        <p id="colony-aurum-name" class="colony-name">Aurum Station</p>
+        <p id="colony-aurum-flavor" class="colony-flavor"></p>
+        <p id="colony-aurum-need-display" class="colony-need">Loading...</p>
+        <div class="meter"><div id="colony-aurum-need-bar" class="meter-fill"></div></div>
+      </div>
+      <div class="colony-row">
+        <p id="colony-verdant-name" class="colony-name">Verdant Reach</p>
+        <p id="colony-verdant-flavor" class="colony-flavor"></p>
+        <p id="colony-verdant-need-display" class="colony-need">Loading...</p>
+        <div class="meter"><div id="colony-verdant-need-bar" class="meter-fill"></div></div>
+      </div>
+      <div class="colony-row">
+        <p id="colony-ferrum-name" class="colony-name">Ferrum Forge</p>
+        <p id="colony-ferrum-flavor" class="colony-flavor"></p>
+        <p id="colony-ferrum-need-display" class="colony-need">Loading...</p>
+        <div class="meter"><div id="colony-ferrum-need-bar" class="meter-fill"></div></div>
+      </div>
+    </div>
 
     <div id="ship-1-panel" class="section">
       <p class="ship-label">Ship 1</p>

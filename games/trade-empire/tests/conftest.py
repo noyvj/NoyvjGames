@@ -17,6 +17,13 @@ ELEMENT_IDS = [
     "profit-display",
     "sale-log",
 ]
+for _colony_id in COLONY_IDS:
+    ELEMENT_IDS += [
+        f"colony-{_colony_id}-name",
+        f"colony-{_colony_id}-flavor",
+        f"colony-{_colony_id}-need-display",
+        f"colony-{_colony_id}-need-bar",
+    ]
 for _ship_id in SHIP_IDS:
     ELEMENT_IDS.append(f"ship-{_ship_id}-status")
     ELEMENT_IDS.append(f"ship-{_ship_id}-load-button")

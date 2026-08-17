@@ -37,6 +37,51 @@ COLONIES = {
     "ferrum": {"name": "Ferrum Forge", "produces": MACHINERY, "needs": ORE},
 }
 
+# Milestone 3 — minor flavor text per colony, shown in the colony panel.
+COLONY_FLAVOR = {
+    "aurum": "A wind-scoured mining outpost — good ore, poor soil. Every grain shipment matters.",
+    "verdant": "Lush terraces feed the sector, but its factories run on imported machinery.",
+    "ferrum": "The forges never stop, but they run on ore that has to come from somewhere else.",
+}
+
+# Milestone 3 — colony need system v1: each colony's need_satisfaction
+# (0..1) decays steadily and is topped up when a ship delivers the
+# colony's needed good. Output scales with it — a well-supplied colony
+# produces meaningfully more per load than a neglected one, so "keep
+# the loop fed" becomes a real incentive, not just flavor text.
+STARTING_NEED_SATISFACTION = 0.5
+NEED_DECAY_PER_TICK = 0.01
+NEED_SATISFACTION_PER_UNIT_DELIVERED = 0.05
+# At satisfaction 0.0 a colony produces at half capacity; at 1.0, one
+# and a half times — the starting 0.5 satisfaction matches today's flat
+# CARGO_CAPACITY exactly, so Milestone 1/2 balance is the neutral point.
+MIN_OUTPUT_MULTIPLIER = 0.5
+MAX_OUTPUT_MULTIPLIER = 1.5
+
+
+class ColonyState:
+    def __init__(self, colony_id):
+        self.id = colony_id
+        self.need_satisfaction = STARTING_NEED_SATISFACTION
+
+    def output_multiplier(self):
+        return MIN_OUTPUT_MULTIPLIER + self.need_satisfaction * (
+            MAX_OUTPUT_MULTIPLIER - MIN_OUTPUT_MULTIPLIER
+        )
+
+    def cargo_capacity(self):
+        return round(CARGO_CAPACITY * self.output_multiplier())
+
+    def decay(self):
+        self.need_satisfaction = max(0.0, self.need_satisfaction - NEED_DECAY_PER_TICK)
+
+    def deliver(self, qty):
+        gain = qty * NEED_SATISFACTION_PER_UNIT_DELIVERED
+        self.need_satisfaction = min(1.0, self.need_satisfaction + gain)
+
+
+colony_states = {colony_id: ColonyState(colony_id) for colony_id in COLONIES}
+
 
 class Ship:
     def __init__(self, ship_id, start_colony):
@@ -63,7 +108,7 @@ class Ship:
         if not self.docked or self.loaded:
             return False
         self.cargo_good = COLONIES[self.location]["produces"]
-        self.cargo_qty = CARGO_CAPACITY
+        self.cargo_qty = colony_states[self.location].cargo_capacity()
         return True
 
     def other_colonies(self):
@@ -93,7 +138,10 @@ class Ship:
             return None
         good, qty = self.cargo_good, self.cargo_qty
         profit = qty * SELL_PRICE[good]
-        self.location = self.destination
+        destination = self.destination
+        if COLONIES[destination]["needs"] == good:
+            colony_states[destination].deliver(qty)
+        self.location = destination
         self.destination = None
         self.cargo_good = None
         self.cargo_qty = 0
@@ -135,11 +183,26 @@ def render_ship(ship):
         depart_button.disabled = not (ship.docked and ship.loaded and colony_id != ship.location)
 
 
+def render_colony(colony_id):
+    colony = COLONIES[colony_id]
+    state = colony_states[colony_id]
+    document.getElementById(f"colony-{colony_id}-need-display").innerText = (
+        f"{colony['name']}: needs {GOOD_LABEL[colony['needs']]} — "
+        f"{state.need_satisfaction * 100:.0f}% satisfied "
+        f"(output x{state.output_multiplier():.2f})"
+    )
+    document.getElementById(f"colony-{colony_id}-need-bar").style.width = (
+        f"{state.need_satisfaction * 100:.0f}%"
+    )
+
+
 def render():
     document.getElementById("profit-display").innerText = f"Total profit: {total_profit} credits"
     document.getElementById("sale-log").innerText = sale_log[-1] if sale_log else "No sales yet."
     for ship in ships.values():
         render_ship(ship)
+    for colony_id in COLONIES:
+        render_colony(colony_id)
 
 
 def _make_load_handler(ship_id):
@@ -164,10 +227,15 @@ def tick(event=None):
             good, qty, profit = result
             total_profit += profit
             sale_log.append(sell_summary(good, qty, profit, ship.location))
+    for colony_state in colony_states.values():
+        colony_state.decay()
     render()
 
 
 def setup():
+    for colony_id, colony in COLONIES.items():
+        document.getElementById(f"colony-{colony_id}-name").innerText = colony["name"]
+        document.getElementById(f"colony-{colony_id}-flavor").innerText = COLONY_FLAVOR[colony_id]
     for ship in ships.values():
         document.getElementById(f"ship-{ship.id}-load-button").innerText = "Load Cargo"
         document.getElementById(f"ship-{ship.id}-load-button").addEventListener(

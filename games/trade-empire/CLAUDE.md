@@ -32,7 +32,7 @@ Same granularity as SOL's milestones — one clearly separable, demonstrable sta
 |---|-----------|---------|--------|
 | 1 | Core loop | Founding-contract intro, one ship, one manual route between two fixed colonies (Aurum Station ↔ Verdant Reach), profit ticks in on arrival | Done |
 | 2 | Second route | Basic route-management UI, manual assignment across 2+ routes | Done |
-| 3 | Colony need system v1 | Colonies have need-sets; output scales with needs met; minor flavor text per colony | Pending |
+| 3 | Colony need system v1 | Colonies have need-sets; output scales with needs met; minor flavor text per colony | Done |
 | 4 | Market economics | Prices fluctuate with supply; overproducing a good crashes its price | Pending |
 | 5 | Manual scaling friction | More routes/colonies added — manual management gets genuinely busy, foreshadowing automation | Pending |
 | 6 | Automation v1 | First automation unlock — a route can run itself, limited slots/cost | Pending |
@@ -44,6 +44,13 @@ Same granularity as SOL's milestones — one clearly separable, demonstrable sta
 | 12 | Fleet-level automation | Prioritization rules across many routes at once, not just per-route toggles | Pending |
 | 13 | Galaxy scaling | Research-gated expansion to more systems/regions | Pending |
 | 14 | Endgame | Fully automated economy visible at scale (hundreds of worlds, many ships); soft win-state, sandbox continues | Pending |
+
+## Milestone 3 implementation notes
+- Each colony now has a `ColonyState` (need_satisfaction 0..1, starts at 0.5) tracked separately from the static `COLONIES` metadata dict. Decays 0.01/tick; delivering N units of a colony's needed good raises it by N*0.05, capped at 1.0.
+- Output scales with it: `cargo_capacity() = round(CARGO_CAPACITY * (0.5 + need_satisfaction))`, ranging 0.5x-1.5x. The starting 0.5 satisfaction maps to exactly 1.0x, so Milestone 1/2 balance is unchanged at the neutral point.
+- `Ship.load()` reads cargo qty from the docked colony's current output; `Ship.advance_transit()` delivers to the destination's need only if the cargo good matches what that colony needs (wrong-good deliveries don't help).
+- Added a Colonies panel (name, flavor text, need%, output multiplier, meter bar) above the ship panels.
+- "Needs" still doesn't affect sell price (that's Milestone 4's market economics) — this milestone is purely about the need/output feedback loop.
 
 ## Milestone 2 implementation notes
 - Added a third colony, Ferrum Forge (produces Machinery, needs Ore), turning the fixed Aurum<->Verdant pair into a genuine triangle: Ore feeds Ferrum, Machinery feeds Verdant, Grain feeds Aurum.
