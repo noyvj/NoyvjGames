@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trade Empire — Milestone 4</title>
+<title>Trade Empire — Milestone 5</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
 <body>
   <div id="game">
     <h1>Trade Empire</h1>
-    <p class="tagline">Working title. Two ships, three colonies, and a triangle of trade — you decide who goes where.</p>
-    <p class="context-blurb">Aurum Station mines Ore. Verdant Reach grows Grain. Ferrum Forge casts Machinery. Each needs what only one of the others makes — the triangle is your route map.</p>
+    <p class="tagline">Working title. Four ships, five colonies, two need-cycles — a lot more to keep an eye on by hand.</p>
+    <p class="context-blurb">Aurum mines Ore, Verdant grows Grain, Ferrum casts Machinery — the original triangle. Cryo pumps Water and Helion generates Energy, and each needs exactly what the other makes. Ten possible routes, four ships, all decided by you.</p>
 
     <div id="market-panel" class="section">
       <p class="panel-label">Market prices</p>
@@ -21,6 +21,10 @@
       <div class="meter"><div id="market-grain-bar" class="meter-fill"></div></div>
       <p id="market-machinery-display" class="market-price">Loading...</p>
       <div class="meter"><div id="market-machinery-bar" class="meter-fill"></div></div>
+      <p id="market-water-display" class="market-price">Loading...</p>
+      <div class="meter"><div id="market-water-bar" class="meter-fill"></div></div>
+      <p id="market-energy-display" class="market-price">Loading...</p>
+      <div class="meter"><div id="market-energy-bar" class="meter-fill"></div></div>
     </div>
 
     <div id="colonies-panel" class="section">
@@ -43,6 +47,18 @@
         <p id="colony-ferrum-need-display" class="colony-need">Loading...</p>
         <div class="meter"><div id="colony-ferrum-need-bar" class="meter-fill"></div></div>
       </div>
+      <div class="colony-row">
+        <p id="colony-cryo-name" class="colony-name">Cryo Vault</p>
+        <p id="colony-cryo-flavor" class="colony-flavor"></p>
+        <p id="colony-cryo-need-display" class="colony-need">Loading...</p>
+        <div class="meter"><div id="colony-cryo-need-bar" class="meter-fill"></div></div>
+      </div>
+      <div class="colony-row">
+        <p id="colony-helion-name" class="colony-name">Helion Array</p>
+        <p id="colony-helion-flavor" class="colony-flavor"></p>
+        <p id="colony-helion-need-display" class="colony-need">Loading...</p>
+        <div class="meter"><div id="colony-helion-need-bar" class="meter-fill"></div></div>
+      </div>
     </div>
 
     <div id="ship-1-panel" class="section">
@@ -55,6 +71,8 @@
         <button id="ship-1-depart-aurum-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-1-depart-verdant-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-1-depart-ferrum-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-1-depart-cryo-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-1-depart-helion-button" class="secondary" disabled hidden>Loading...</button>
       </div>
     </div>
 
@@ -68,6 +86,38 @@
         <button id="ship-2-depart-aurum-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-2-depart-verdant-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-2-depart-ferrum-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-2-depart-cryo-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-2-depart-helion-button" class="secondary" disabled hidden>Loading...</button>
+      </div>
+    </div>
+
+    <div id="ship-3-panel" class="section">
+      <p class="ship-label">Ship 3</p>
+      <p id="ship-3-status" class="ship-status">Loading...</p>
+      <div class="action-buttons">
+        <button id="ship-3-load-button" class="secondary" disabled>Loading...</button>
+      </div>
+      <div class="depart-buttons">
+        <button id="ship-3-depart-aurum-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-3-depart-verdant-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-3-depart-ferrum-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-3-depart-cryo-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-3-depart-helion-button" class="secondary" disabled hidden>Loading...</button>
+      </div>
+    </div>
+
+    <div id="ship-4-panel" class="section">
+      <p class="ship-label">Ship 4</p>
+      <p id="ship-4-status" class="ship-status">Loading...</p>
+      <div class="action-buttons">
+        <button id="ship-4-load-button" class="secondary" disabled>Loading...</button>
+      </div>
+      <div class="depart-buttons">
+        <button id="ship-4-depart-aurum-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-4-depart-verdant-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-4-depart-ferrum-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-4-depart-cryo-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-4-depart-helion-button" class="secondary" disabled hidden>Loading...</button>
       </div>
     </div>
 

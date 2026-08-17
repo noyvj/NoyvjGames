@@ -9,8 +9,8 @@ from .fakes import FakeDocument, FakeElement, FakeTimers, create_proxy
 
 GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 
-SHIP_IDS = ["1", "2"]
-COLONY_IDS = ["aurum", "verdant", "ferrum"]
+SHIP_IDS = ["1", "2", "3", "4"]
+COLONY_IDS = ["aurum", "verdant", "ferrum", "cryo", "helion"]
 
 # Statically-declared element IDs, wired up in index.html's initial markup.
 ELEMENT_IDS = [
@@ -24,7 +24,7 @@ for _colony_id in COLONY_IDS:
         f"colony-{_colony_id}-need-display",
         f"colony-{_colony_id}-need-bar",
     ]
-for _good in ("ore", "grain", "machinery"):
+for _good in ("ore", "grain", "machinery", "water", "energy"):
     ELEMENT_IDS += [f"market-{_good}-display", f"market-{_good}-bar"]
 for _ship_id in SHIP_IDS:
     ELEMENT_IDS.append(f"ship-{_ship_id}-status")

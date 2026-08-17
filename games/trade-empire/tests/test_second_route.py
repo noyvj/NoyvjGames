@@ -5,11 +5,14 @@ independent, manually-assigned routes to run rather than one.
 
 
 def test_three_colonies_exist(game_env):
-    assert set(game_env.module.COLONIES) == {"aurum", "verdant", "ferrum"}
+    # Renamed in spirit by Milestone 5 (which adds two more), but kept
+    # as "at least the original triangle" so this file still documents
+    # Milestone 2's own guarantee.
+    assert {"aurum", "verdant", "ferrum"}.issubset(game_env.module.COLONIES)
 
 
 def test_two_ships_exist(game_env):
-    assert set(game_env.module.ships) == {"1", "2"}
+    assert {"1", "2"}.issubset(game_env.module.ships)
 
 
 def test_ships_start_at_different_colonies(game_env):
@@ -26,7 +29,8 @@ def test_each_colony_produces_a_different_good_needed_elsewhere(game_env):
 
 def test_ship_can_depart_to_either_other_colony(game_env):
     ship = game_env.ship("1")  # docked at aurum
-    assert set(ship.other_colonies()) == {"verdant", "ferrum"}
+    assert {"verdant", "ferrum"}.issubset(ship.other_colonies())
+    assert "aurum" not in ship.other_colonies()
 
 
 def test_ships_operate_independently(game_env):

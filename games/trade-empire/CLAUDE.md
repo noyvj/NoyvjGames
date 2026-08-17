@@ -34,7 +34,7 @@ Same granularity as SOL's milestones — one clearly separable, demonstrable sta
 | 2 | Second route | Basic route-management UI, manual assignment across 2+ routes | Done |
 | 3 | Colony need system v1 | Colonies have need-sets; output scales with needs met; minor flavor text per colony | Done |
 | 4 | Market economics | Prices fluctuate with supply; overproducing a good crashes its price | Done |
-| 5 | Manual scaling friction | More routes/colonies added — manual management gets genuinely busy, foreshadowing automation | Pending |
+| 5 | Manual scaling friction | More routes/colonies added — manual management gets genuinely busy, foreshadowing automation | Done |
 | 6 | Automation v1 | First automation unlock — a route can run itself, limited slots/cost | Pending |
 | 7 | 2D map v1 | Colonies as nodes, routes as lines — first visual leap, still no moving ships | Pending |
 | 8 | Research tree v1 | Framework + early nodes; gates automation tiers and new ship types | Pending |
@@ -44,6 +44,11 @@ Same granularity as SOL's milestones — one clearly separable, demonstrable sta
 | 12 | Fleet-level automation | Prioritization rules across many routes at once, not just per-route toggles | Pending |
 | 13 | Galaxy scaling | Research-gated expansion to more systems/regions | Pending |
 | 14 | Endgame | Fully automated economy visible at scale (hundreds of worlds, many ships); soft win-state, sandbox continues | Pending |
+
+## Milestone 5 implementation notes
+- No new mechanic — added a second colony pair (Cryo Vault produces Water/needs Energy, Helion Array produces Energy/needs Water — each needing exactly the other) and two more ships (3 at Ferrum, 4 at Cryo), purely for scale.
+- Every existing system (need satisfaction, market prices, `other_colonies()`) already generalized to the larger roster with zero logic changes — only data (COLONIES, COLONY_FLAVOR, SELL_PRICE, market_multiplier, ships) grew.
+- Any ship can reach any of the 5 colonies, not just its "own" pair — 4 ships x 5 colonies is a genuinely bigger manual-management surface than Milestone 2's 2x3, which is the entire point: this is what makes Milestone 6's automation worth having.
 
 ## Milestone 4 implementation notes
 - Each good has a `market_multiplier` (starts 1.0) that drops 0.01 per unit sold and recovers 0.01/tick toward baseline, floored at 0.3. Sale profit reads `current_sell_price(good) = SELL_PRICE[good] * market_multiplier[good]`, replacing the flat price used since Milestone 1.

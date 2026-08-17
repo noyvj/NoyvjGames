@@ -3,8 +3,12 @@
 Runs in-browser via Pyodide. Milestone 1: a founding-contract intro, one
 ship, one manual route between two colonies. Milestone 2: a third colony
 and a second ship — routes are no longer a fixed pair, each ship can be
-manually sent to whichever colony the player chooses, so the player is
-now actively deciding "which route" as well as "when to depart."
+manually sent to whichever colony the player chooses. Milestone 3: colony
+need satisfaction scales output. Milestone 4: market prices fluctuate
+with supply. Milestone 5: two more colonies and two more ships — no new
+mechanic, just enough scale that manually running every ship/route by
+hand gets genuinely busy, which is exactly the case Milestone 6's
+automation exists to answer.
 """
 
 from js import document, setInterval
@@ -17,24 +21,27 @@ CARGO_CAPACITY = 10
 ORE = "ore"
 GRAIN = "grain"
 MACHINERY = "machinery"
+WATER = "water"
+ENERGY = "energy"
 
-GOOD_LABEL = {ORE: "Ore", GRAIN: "Grain", MACHINERY: "Machinery"}
+GOOD_LABEL = {ORE: "Ore", GRAIN: "Grain", MACHINERY: "Machinery", WATER: "Water", ENERGY: "Energy"}
 
-# Flat per-unit sell price, paid by whichever colony a ship arrives at.
-# No market saturation yet (Milestone 4) and "needs" isn't mechanically
-# enforced yet either (Milestone 3) — a flat price keeps this
-# milestone's scope to route/ship assignment, not economics.
-SELL_PRICE = {ORE: 8, GRAIN: 6, MACHINERY: 10}
+# Flat per-unit base sell price, before Milestone 4's market multiplier.
+SELL_PRICE = {ORE: 8, GRAIN: 6, MACHINERY: 10, WATER: 5, ENERGY: 9}
 
-# Milestone 2: a third colony turns the fixed A<->B pair into a real
-# triangle. Each colony's "needs" field is flavor for now (Milestone 3
-# makes it matter mechanically) but already forms a genuine cycle:
-# Aurum's ore feeds Ferrum, Ferrum's machinery feeds Verdant, Verdant's
-# grain feeds Aurum.
+# Milestone 2: a third colony turned the fixed A<->B pair into a real
+# triangle (Aurum's ore feeds Ferrum, Ferrum's machinery feeds Verdant,
+# Verdant's grain feeds Aurum). Milestone 5 adds a second pair (Cryo and
+# Helion each need exactly what the other produces) purely to add scale
+# — more colonies and routes for the existing ships to manage, not a
+# new mechanic. Every ship can already reach every colony, so this
+# alone measurably increases how busy manual play gets.
 COLONIES = {
     "aurum": {"name": "Aurum Station", "produces": ORE, "needs": GRAIN},
     "verdant": {"name": "Verdant Reach", "produces": GRAIN, "needs": MACHINERY},
     "ferrum": {"name": "Ferrum Forge", "produces": MACHINERY, "needs": ORE},
+    "cryo": {"name": "Cryo Vault", "produces": WATER, "needs": ENERGY},
+    "helion": {"name": "Helion Array", "produces": ENERGY, "needs": WATER},
 }
 
 # Milestone 3 — minor flavor text per colony, shown in the colony panel.
@@ -42,6 +49,8 @@ COLONY_FLAVOR = {
     "aurum": "A wind-scoured mining outpost — good ore, poor soil. Every grain shipment matters.",
     "verdant": "Lush terraces feed the sector, but its factories run on imported machinery.",
     "ferrum": "The forges never stop, but they run on ore that has to come from somewhere else.",
+    "cryo": "A frozen moon's ice reserves, tapped for water — but the pumps need power to run at all.",
+    "helion": "A solar array with power to spare, and nothing to cool it but water shipped in from Cryo.",
 }
 
 # Milestone 3 — colony need system v1: each colony's need_satisfaction
@@ -93,7 +102,7 @@ MARKET_PRICE_RECOVERY_PER_TICK = 0.01
 MIN_PRICE_MULTIPLIER = 0.3
 MAX_PRICE_MULTIPLIER = 1.0
 
-market_multiplier = {ORE: 1.0, GRAIN: 1.0, MACHINERY: 1.0}
+market_multiplier = {ORE: 1.0, GRAIN: 1.0, MACHINERY: 1.0, WATER: 1.0, ENERGY: 1.0}
 
 
 def current_sell_price(good):
@@ -181,6 +190,8 @@ class Ship:
 ships = {
     "1": Ship("1", "aurum"),
     "2": Ship("2", "verdant"),
+    "3": Ship("3", "ferrum"),
+    "4": Ship("4", "cryo"),
 }
 total_profit = 0
 sale_log = []  # most recent sale message, for the status line
