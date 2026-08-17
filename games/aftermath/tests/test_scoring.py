@@ -13,12 +13,12 @@ def test_higher_resilience_leads_to_higher_final_score(game_env):
     # Set resilience directly (rather than paying its resource cost) so
     # this isolates the mitigation effect on score from the investment cost.
     game_env.run.resilience_capacity = 10
-    for _ in range(5):
+    for _ in range(len(game_env.module.EVENT_SCHEDULE)):
         game_env.run.resolve_next_event()
     good_score = game_env.run.run_score()
 
     bad_run = game_env.module.RunState()
-    for _ in range(5):
+    for _ in range(len(game_env.module.EVENT_SCHEDULE)):
         bad_run.resolve_next_event()
     bad_score = bad_run.run_score()
 
@@ -45,7 +45,7 @@ def test_render_shows_no_summary_mid_run(game_env):
 
 
 def test_render_shows_summary_after_run_completes(game_env):
-    for _ in range(5):
+    for _ in range(len(game_env.module.EVENT_SCHEDULE)):
         game_env.resolve_event()
     text = game_env.elements["run-summary-display"].innerText
     assert "Score" in text

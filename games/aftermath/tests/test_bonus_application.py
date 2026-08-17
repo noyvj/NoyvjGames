@@ -60,7 +60,7 @@ def test_bonuses_still_cap_at_max_mitigation(game_env):
 
 
 def test_start_new_run_replaces_global_run_with_bonuses_applied(game_env):
-    for _ in range(5):
+    for _ in range(len(game_env.module.EVENT_SCHEDULE)):
         game_env.resolve_event()  # complete the first run, earn a knowledge point
     game_env.skill_tree.add_knowledge(3)  # ensure enough for the cheapest skill
     game_env.unlock_skill("community_reserves")
@@ -74,6 +74,6 @@ def test_new_run_button_hidden_mid_run(game_env):
 
 
 def test_new_run_button_visible_after_completion(game_env):
-    for _ in range(5):
+    for _ in range(len(game_env.module.EVENT_SCHEDULE)):
         game_env.resolve_event()
     assert game_env.elements["new-run-button"].hidden is False

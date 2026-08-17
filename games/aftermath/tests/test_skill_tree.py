@@ -43,13 +43,13 @@ def test_unlock_fails_if_insufficient_points(game_env):
 
 
 def test_completing_a_run_awards_knowledge_to_skill_tree(game_env):
-    for _ in range(5):
+    for _ in range(len(game_env.module.EVENT_SCHEDULE)):
         game_env.resolve_event()
     assert game_env.skill_tree.knowledge_points == game_env.run.knowledge_points_earned()
 
 
 def test_completing_a_run_does_not_double_award(game_env):
-    for _ in range(5):
+    for _ in range(len(game_env.module.EVENT_SCHEDULE)):
         game_env.resolve_event()
     points_after_run = game_env.skill_tree.knowledge_points
     game_env.resolve_event()  # run already complete, no-op

@@ -23,25 +23,48 @@ MAX_MITIGATION = 0.85
 
 # Fixed schedule — every run faces the same sequence of event types, so
 # runs are comparable to each other (needed for Milestone 5's "how far
-# you've come" comparison).
-EVENT_SCHEDULE = ["flood", "heatwave", "storm", "flood", "storm"]
+# you've come" comparison). Iteration Pass 2 extended this with two
+# non-weather resilience shocks (supply-chain, infrastructure) so
+# "resilience" reads as a broader societal capacity than storm-proofing
+# alone — same scheduled-event structure, just more event variety.
+EVENT_SCHEDULE = [
+    "flood", "heatwave", "supply_chain", "storm", "infrastructure_failure", "flood", "storm",
+]
 
 EVENT_LABEL = {
     "flood": "Flood",
     "heatwave": "Heatwave",
     "storm": "Storm",
+    "supply_chain": "Supply-Chain Disruption",
+    "infrastructure_failure": "Infrastructure Failure",
 }
 
 EVENT_ICON = {
     "flood": "\U0001F30A",  # water wave
     "heatwave": "\U0001F525",  # fire
     "storm": "\U0001F32A️",  # tornado
+    "supply_chain": "\U0001F4E6",  # package
+    "infrastructure_failure": "⚡",  # high voltage
 }
 
 EVENT_BASE_DAMAGE = {
     "flood": 40.0,
     "heatwave": 35.0,
     "storm": 50.0,
+    "supply_chain": 30.0,
+    "infrastructure_failure": 38.0,
+}
+
+# Iteration Pass 2 — event-type category, so weather and non-weather
+# shocks get a distinct visual/audio signature (a CSS class here, since
+# there's no audio system in the stack) rather than just a different
+# label on the same event UI.
+EVENT_CATEGORY = {
+    "flood": "weather",
+    "heatwave": "weather",
+    "storm": "weather",
+    "supply_chain": "non-weather",
+    "infrastructure_failure": "non-weather",
 }
 
 # Iteration-pass addition: severity varies per event so repeated runs
@@ -95,6 +118,27 @@ SKILLS = {
 
 SKILL_TREE_STORAGE_KEY = "aftermath_skill_tree_v1"
 RUN_HISTORY_STORAGE_KEY = "aftermath_run_history_v1"
+
+# Iteration Pass 2 — legacy system (stretch goal, built after the
+# diversified events were solid): each completed run leaves behind a
+# small trace beyond the skill-tree currency — a persistent record of
+# which event types this settlement has weathered before, referenced as
+# flavor text in the next run rather than a mechanical bonus.
+LEGACY_STORAGE_KEY = "aftermath_legacy_events_v1"
+
+
+def load_legacy_events():
+    raw = localStorage.getItem(LEGACY_STORAGE_KEY)
+    if not raw:
+        return set()
+    try:
+        return set(json.loads(raw))
+    except ValueError:
+        return set()
+
+
+def save_legacy_events(events):
+    localStorage.setItem(LEGACY_STORAGE_KEY, json.dumps(sorted(events)))
 
 
 def load_run_history():
@@ -183,6 +227,8 @@ class RunState:
             skill_tree.save()
             run_history.append(self.run_score())
             save_run_history(run_history)
+            legacy_events.update(entry["type"] for entry in self.event_log)
+            save_legacy_events(legacy_events)
 
         return True
 
@@ -244,7 +290,18 @@ class SkillTreeState:
 
 skill_tree = SkillTreeState.load()
 run_history = load_run_history()
+legacy_events = load_legacy_events()
 run = RunState()
+
+
+def legacy_message():
+    if not legacy_events:
+        return "No history yet — this is the settlement's first trial."
+    labels = sorted(EVENT_LABEL[event_type] for event_type in legacy_events)
+    return (
+        f"This settlement has weathered {', '.join(labels)} before — every run's "
+        f"damage becomes part of what the next one is built to withstand."
+    )
 
 
 def progress_comparison():
@@ -270,6 +327,7 @@ def progress_message(comparison):
 
 
 def render():
+    document.getElementById("legacy-display").innerText = legacy_message()
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
     document.getElementById("resilience-display").innerText = f"Resilience: {run.resilience_capacity}"
     document.getElementById("growth-display").innerText = f"Growth: {run.growth_capacity}"
@@ -288,9 +346,9 @@ def render():
             f"Event {run.event_index + 1} of {len(EVENT_SCHEDULE)}"
         )
         next_type = run.next_event_type()
-        document.getElementById("next-event-display").innerText = (
-            f"Next: {EVENT_ICON[next_type]} {EVENT_LABEL[next_type]}"
-        )
+        next_event_el = document.getElementById("next-event-display")
+        next_event_el.innerText = f"Next: {EVENT_ICON[next_type]} {EVENT_LABEL[next_type]}"
+        next_event_el.className = f"status-line event-category--{EVENT_CATEGORY[next_type]}"
 
     last_event_el = document.getElementById("last-event-display")
     if run.event_log:
@@ -299,8 +357,10 @@ def render():
             f"Last: {EVENT_ICON[last['type']]} {EVENT_LABEL[last['type']]} "
             f"— {last['damage']:.0f} damage ({severity_label(last['severity'])} intensity)"
         )
+        last_event_el.className = f"status-line event-category--{EVENT_CATEGORY[last['type']]}"
     else:
         last_event_el.innerText = ""
+        last_event_el.className = "status-line"
 
     document.getElementById("mitigation-bar").style.width = f"{run.mitigation_fraction() * 100:.0f}%"
 

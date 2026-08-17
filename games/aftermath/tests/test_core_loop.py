@@ -81,23 +81,24 @@ def test_run_is_not_complete_initially(game_env):
 
 
 def test_run_completes_after_all_scheduled_events(game_env):
-    for _ in range(5):
+    for _ in range(len(game_env.module.EVENT_SCHEDULE)):
         game_env.resolve_event()
     assert game_env.run.is_complete() is True
     assert game_env.run.next_event_type() is None
 
 
 def test_resolve_event_is_a_noop_after_run_completes(game_env):
-    for _ in range(5):
+    schedule_length = len(game_env.module.EVENT_SCHEDULE)
+    for _ in range(schedule_length):
         game_env.resolve_event()
     resources_before = game_env.run.resources
     game_env.resolve_event()
-    assert game_env.run.event_index == 5
+    assert game_env.run.event_index == schedule_length
     assert game_env.run.resources == resources_before
 
 
 def test_invest_disabled_after_run_completes(game_env):
-    for _ in range(5):
+    for _ in range(len(game_env.module.EVENT_SCHEDULE)):
         game_env.resolve_event()
     assert game_env.elements["resilience-invest-button"].disabled is True
     assert game_env.elements["growth-invest-button"].disabled is True
@@ -105,11 +106,11 @@ def test_invest_disabled_after_run_completes(game_env):
 
 
 def test_render_shows_progress_and_next_event(game_env):
-    assert game_env.elements["progress-display"].innerText == "Event 1 of 5"
+    assert game_env.elements["progress-display"].innerText == f"Event 1 of {len(game_env.module.EVENT_SCHEDULE)}"
     assert "Flood" in game_env.elements["next-event-display"].innerText
 
 
 def test_render_shows_run_complete_message(game_env):
-    for _ in range(5):
+    for _ in range(len(game_env.module.EVENT_SCHEDULE)):
         game_env.resolve_event()
     assert game_env.elements["progress-display"].innerText == "Run complete"

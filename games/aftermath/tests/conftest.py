@@ -12,6 +12,7 @@ GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 SKILL_IDS = ["reinforced_infrastructure", "community_reserves", "early_warning"]
 
 ELEMENT_IDS = [
+    "legacy-display",
     "progress-display",
     "next-event-display",
     "last-event-display",

@@ -46,6 +46,24 @@ h1 {
   margin-bottom: 1rem;
 }
 
+.legacy-display {
+  margin: 0 0 1.25rem;
+  font-size: 0.8rem;
+  font-style: italic;
+  opacity: 0.75;
+}
+
+/* Iteration Pass 2: diversified event types get a distinct visual
+   signature by category, so a non-weather shock reads as a different
+   kind of event at a glance, not just a different label. */
+.event-category--weather {
+  color: #6fa8d8;
+}
+
+.event-category--non-weather {
+  color: #d8a24c;
+}
+
 .status-line {
   margin: 0 0 0.4rem;
   font-size: 0.95rem;

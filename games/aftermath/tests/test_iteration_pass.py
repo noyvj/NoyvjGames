@@ -32,7 +32,7 @@ def test_event_severity_is_reproducible_for_same_run_number(game_env):
 
 
 def test_new_run_increments_run_number(game_env):
-    for _ in range(5):
+    for _ in range(len(game_env.module.EVENT_SCHEDULE)):
         game_env.resolve_event()
     game_env.start_new_run()
     assert game_env.run.run_number == 2
