@@ -29,6 +29,45 @@ class FakeStyle:
     """Arbitrary attribute bag standing in for element.style (e.g. .width)."""
 
 
+class FakeCanvasContext:
+    """Records every draw call instead of actually rendering anything —
+    enough for Milestone 7's map tests to assert on what would have
+    been drawn (which nodes, which edges) without a real canvas."""
+
+    def __init__(self):
+        self.calls = []
+        self.fillStyle = None
+        self.strokeStyle = None
+        self.lineWidth = None
+        self.font = None
+        self.textAlign = None
+        self.textBaseline = None
+
+    def clearRect(self, *args):
+        self.calls.append(("clearRect", args))
+
+    def beginPath(self):
+        self.calls.append(("beginPath", ()))
+
+    def moveTo(self, x, y):
+        self.calls.append(("moveTo", (x, y)))
+
+    def lineTo(self, x, y):
+        self.calls.append(("lineTo", (x, y)))
+
+    def stroke(self):
+        self.calls.append(("stroke", ()))
+
+    def arc(self, *args):
+        self.calls.append(("arc", args))
+
+    def fill(self):
+        self.calls.append(("fill", ()))
+
+    def fillText(self, text, x, y):
+        self.calls.append(("fillText", (text, x, y)))
+
+
 class FakeElement:
     def __init__(self, id_=None, registry=None):
         self._id = id_
@@ -67,6 +106,11 @@ class FakeElement:
 
     def createElement(self, tag):
         return FakeElement(registry=self._registry)
+
+    def getContext(self, kind):
+        if not hasattr(self, "_context"):
+            self._context = FakeCanvasContext()
+        return self._context
 
     def appendChild(self, child):
         self.children.append(child)

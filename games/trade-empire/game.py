@@ -8,8 +8,13 @@ need satisfaction scales output. Milestone 4: market prices fluctuate
 with supply. Milestone 5: two more colonies and two more ships — no new
 mechanic, just enough scale that manually running every ship/route by
 hand gets genuinely busy, which is exactly the case Milestone 6's
-automation exists to answer.
+automation exists to answer. Milestone 6: ships can be automated.
+Milestone 7: a 2D map — colonies as nodes, routes as lines, drawn on a
+canvas directly from Python via Pyodide's `js` module. Still no moving
+ships on it (Milestone 11).
 """
+
+import math
 
 from js import document, setInterval
 from pyodide.ffi import create_proxy
@@ -87,6 +92,65 @@ class ColonyState:
     def deliver(self, qty):
         gain = qty * NEED_SATISFACTION_PER_UNIT_DELIVERED
         self.need_satisfaction = min(1.0, self.need_satisfaction + gain)
+
+
+# Milestone 7 — 2D map v1: colonies as nodes, routes as lines. Drawn
+# directly from Python via Pyodide's `js` module (canvas 2D context
+# methods are just JS method calls, so no separate JS glue file is
+# needed here despite the canvas requirement). Static layout and static
+# routes for now — no moving ships until Milestone 11.
+CANVAS_SIZE = 300
+NODE_RADIUS = 22
+NODE_POSITIONS = {
+    "aurum": (150, 36),
+    "verdant": (262, 118),
+    "ferrum": (218, 252),
+    "cryo": (82, 252),
+    "helion": (38, 118),
+}
+NODE_COLOR = "#3a5a9c"
+EDGE_COLOR = "#3a3f5c"
+LABEL_COLOR = "#e8e9f0"
+
+
+def route_edges():
+    """One directed edge per colony, to whichever colony needs its
+    produced good — the same relationship colony_needing() already
+    encodes, just read as a full list for drawing."""
+    edges = []
+    for colony_id, colony in COLONIES.items():
+        destination = colony_needing(colony["produces"])
+        if destination:
+            edges.append((colony_id, destination))
+    return edges
+
+
+def render_map():
+    canvas = document.getElementById("map-canvas")
+    ctx = canvas.getContext("2d")
+    ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
+
+    ctx.strokeStyle = EDGE_COLOR
+    ctx.lineWidth = 2
+    for from_id, to_id in route_edges():
+        x1, y1 = NODE_POSITIONS[from_id]
+        x2, y2 = NODE_POSITIONS[to_id]
+        ctx.beginPath()
+        ctx.moveTo(x1, y1)
+        ctx.lineTo(x2, y2)
+        ctx.stroke()
+
+    for colony_id, (x, y) in NODE_POSITIONS.items():
+        ctx.fillStyle = NODE_COLOR
+        ctx.beginPath()
+        ctx.arc(x, y, NODE_RADIUS, 0, 2 * math.pi)
+        ctx.fill()
+
+        ctx.fillStyle = LABEL_COLOR
+        ctx.font = "11px sans-serif"
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillText(COLONIES[colony_id]["name"].split()[0], x, y)
 
 
 colony_states = {colony_id: ColonyState(colony_id) for colony_id in COLONIES}
@@ -384,6 +448,7 @@ def setup():
         document.getElementById(f"ship-{ship.id}-automate-button").addEventListener(
             "click", create_proxy(_make_automate_handler(ship.id))
         )
+    render_map()
     setInterval(create_proxy(tick), TICK_INTERVAL_MS)
     render()
 

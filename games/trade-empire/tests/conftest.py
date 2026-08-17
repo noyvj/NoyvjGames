@@ -17,6 +17,7 @@ ELEMENT_IDS = [
     "profit-display",
     "sale-log",
     "automation-slots-display",
+    "map-canvas",
 ]
 for _colony_id in COLONY_IDS:
     ELEMENT_IDS += [

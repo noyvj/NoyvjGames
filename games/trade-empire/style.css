@@ -43,6 +43,23 @@ h1 {
   margin-bottom: 1rem;
 }
 
+.map-canvas {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  margin: 0 auto;
+  background: #0f111a;
+  border-radius: 8px;
+}
+
+.map-caption {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  opacity: 0.6;
+  text-align: center;
+}
+
 .market-price {
   margin: 0 0 0.3rem;
   font-size: 0.85rem;

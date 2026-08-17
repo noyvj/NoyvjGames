@@ -36,7 +36,7 @@ Same granularity as SOL's milestones — one clearly separable, demonstrable sta
 | 4 | Market economics | Prices fluctuate with supply; overproducing a good crashes its price | Done |
 | 5 | Manual scaling friction | More routes/colonies added — manual management gets genuinely busy, foreshadowing automation | Done |
 | 6 | Automation v1 | First automation unlock — a route can run itself, limited slots/cost | Done |
-| 7 | 2D map v1 | Colonies as nodes, routes as lines — first visual leap, still no moving ships | Pending |
+| 7 | 2D map v1 | Colonies as nodes, routes as lines — first visual leap, still no moving ships | Done |
 | 8 | Research tree v1 | Framework + early nodes; gates automation tiers and new ship types | Pending |
 | 9 | Evolving needs v2 | Needs meaningfully change/expand as colonies develop further | Pending |
 | 10 | Colony specialization | Worlds develop distinct strengths/weaknesses based on environment/history | Pending |
@@ -44,6 +44,12 @@ Same granularity as SOL's milestones — one clearly separable, demonstrable sta
 | 12 | Fleet-level automation | Prioritization rules across many routes at once, not just per-route toggles | Pending |
 | 13 | Galaxy scaling | Research-gated expansion to more systems/regions | Pending |
 | 14 | Endgame | Fully automated economy visible at scale (hundreds of worlds, many ships); soft win-state, sandbox continues | Pending |
+
+## Milestone 7 implementation notes
+- Drawn entirely from Python via Pyodide's `js` module — `document.getElementById("map-canvas").getContext("2d")` returns a real JS canvas context, and its methods (arc, moveTo, lineTo, stroke, fillText, ...) are just ordinary method calls from Python. No separate JS glue file needed, despite the CLAUDE.md's original anticipation that canvas would require one.
+- `route_edges()` reuses `colony_needing()` from Milestone 6's automation to produce one directed edge per colony — the visual is literally "what colony_needing() already knows," not new routing data.
+- Static layout (`NODE_POSITIONS`, a hand-placed pentagon) and static edges — nothing moves yet; that's Milestone 11. Drawn once in `setup()`, not per-tick.
+- Test harness gained a `FakeCanvasContext` (records draw calls instead of rendering) and `FakeElement.getContext()`, extending the existing fake-DOM pattern rather than adding a separate canvas-testing approach.
 
 ## Milestone 6 implementation notes
 - Up to `MAX_AUTOMATED_SHIPS` (2 of 4) can be automated for a flat one-time `AUTOMATION_COST` (150), deducted from `total_profit` — the only wallet in this game.
