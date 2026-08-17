@@ -74,6 +74,9 @@ class RegionState:
         # same feedback mechanics, but zero intervention ever. The gap
         # between this and the real temperature is the hope-angle payoff.
         self.counterfactual_temperature = 0.0
+        # Iteration Pass 2 — per-round temperature log, feeding this
+        # region's mini-graph in the multi-region comparison.
+        self.temperature_history = []
 
     def invest(self, category):
         cost = INVEST_COST[category]
@@ -120,6 +123,7 @@ class RegionState:
         self.counterfactual_temperature += counterfactual_rate
 
         self.round_number += 1
+        self.temperature_history.append(self.temperature)
 
     def temperature_saved(self):
         """The hope-angle payoff, as a direct number: how much lower
@@ -151,6 +155,73 @@ class RegionState:
 
 
 region = RegionState()
+
+# Iteration Pass 2 — multi-region comparison: two more player-managed
+# regions run alongside the original ("Region A", left entirely as-is
+# above — same object, same element IDs, same behavior, so every Pass 1
+# test keeps passing unchanged). Each can be given a different strategy,
+# so the feedback-loop consequences of intervention vs. neglect are
+# visible side-by-side within one session rather than only across
+# separate playthroughs.
+region_b = RegionState()
+region_c = RegionState()
+SECONDARY_REGIONS = {"b": region_b, "c": region_c}
+SECONDARY_REGION_LABEL = {"b": "Region B", "c": "Region C"}
+
+MINI_GRAPH_WIDTH = 120
+MINI_GRAPH_HEIGHT = 40
+
+
+def mini_temp_graph_svg(history):
+    """A compact single-line temperature trend for one region's card —
+    deliberately tiny and unlabeled beyond its axis-free shape, since the
+    point is the divergence *between* regions' graphs, not reading any
+    one of them precisely."""
+    if len(history) < 2:
+        return ""
+    n = len(history)
+    lo, hi = min(history), max(history)
+    if hi - lo < 1e-9:
+        ys = [MINI_GRAPH_HEIGHT / 2 for _ in history]
+    else:
+        ys = [MINI_GRAPH_HEIGHT - ((v - lo) / (hi - lo)) * MINI_GRAPH_HEIGHT for v in history]
+    xs = [i * (MINI_GRAPH_WIDTH / (n - 1)) for i in range(n)]
+    points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, ys))
+    return (
+        f'<svg viewBox="0 0 {MINI_GRAPH_WIDTH} {MINI_GRAPH_HEIGHT}" class="mini-temp-graph-svg">'
+        f'<polyline points="{points}" class="mini-temp-line" />'
+        f"</svg>"
+    )
+
+
+def render_secondary_region(prefix, r):
+    """Renders one of the two added regions into its `{prefix}-*`
+    elements. Deliberately separate from the primary region's inline
+    render code below (rather than a shared helper for all three) so
+    the original Pass 1 behavior for "Region A" — including its
+    whole-page tipping-flash — stays byte-for-byte unchanged."""
+    document.getElementById(f"{prefix}-temperature-display").innerText = f"+{r.temperature:.1f}°"
+    document.getElementById(f"{prefix}-funds-display").innerText = f"Funds: {r.funds:.0f}"
+    document.getElementById(f"{prefix}-graph").innerHTML = mini_temp_graph_svg(r.temperature_history)
+
+    melt_status_el = document.getElementById(f"{prefix}-melt-status-display")
+    melt_status_el.innerText = "Melting" if r.is_melting() else "Stable"
+    melt_status_el.className = "region-melt-status" + (
+        " melt-status--active" if r.is_melting() else ""
+    )
+
+    card_el = document.getElementById(f"{prefix}-region-card")
+    if r.just_started_melting:
+        card_el.className = "region-card tipping-flash"
+        r.just_started_melting = False
+    else:
+        card_el.className = "region-card"
+
+    for category in CATEGORIES:
+        document.getElementById(f"{prefix}-{category}-count").innerText = str(r.capacity[category])
+        invest_button = document.getElementById(f"{prefix}-{category}-invest-button")
+        invest_button.innerText = f"{CATEGORY_ICON[category]} ({INVEST_COST[category]})"
+        invest_button.disabled = r.funds < INVEST_COST[category]
 
 
 def render():
@@ -190,6 +261,7 @@ def render():
     document.getElementById("temperature-bar").style.width = (
         f"{min(1.0, region.temperature / TEMPERATURE_METER_MAX) * 100:.0f}%"
     )
+    document.getElementById("graph").innerHTML = mini_temp_graph_svg(region.temperature_history)
 
     for category in CATEGORIES:
         document.getElementById(f"{category}-name").innerText = (
@@ -200,6 +272,9 @@ def render():
         invest_button.innerText = f"Invest ({INVEST_COST[category]})"
         invest_button.disabled = region.funds < INVEST_COST[category]
 
+    for prefix, r in SECONDARY_REGIONS.items():
+        render_secondary_region(prefix, r)
+
 
 def _make_invest_handler(category):
     def handler(event=None):
@@ -208,8 +283,17 @@ def _make_invest_handler(category):
     return handler
 
 
+def _make_secondary_invest_handler(prefix, category):
+    def handler(event=None):
+        SECONDARY_REGIONS[prefix].invest(category)
+        render()
+    return handler
+
+
 def on_advance_round(event=None):
     region.advance_round()
+    for r in SECONDARY_REGIONS.values():
+        r.advance_round()
     render()
 
 
@@ -218,6 +302,11 @@ def setup():
         document.getElementById(f"{category}-invest-button").addEventListener(
             "click", create_proxy(_make_invest_handler(category))
         )
+    for prefix in SECONDARY_REGIONS:
+        for category in CATEGORIES:
+            document.getElementById(f"{prefix}-{category}-invest-button").addEventListener(
+                "click", create_proxy(_make_secondary_invest_handler(prefix, category))
+            )
     document.getElementById("advance-round-button").addEventListener(
         "click", create_proxy(on_advance_round)
     )

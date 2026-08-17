@@ -28,6 +28,7 @@
       <p id="acceleration-display" class="comparison-message">Warming is rising at a steady, linear rate.</p>
       <div class="meter"><div id="acceleration-bar" class="meter-fill meter-fill--temperature"></div></div>
       <p id="trajectory-display" class="comparison-message">No meaningful difference from intervention yet.</p>
+      <div id="graph" class="mini-temp-graph"></div>
     </div>
 
     <div id="investments" class="section">
@@ -45,6 +46,42 @@
         <span class="invest-name" id="monitor-name">Monitoring &amp; Response</span>
         <span class="invest-count" id="monitor-count">0</span>
         <button id="monitor-invest-button" class="secondary" disabled>Loading...</button>
+      </div>
+    </div>
+
+    <div id="region-comparison" class="section region-comparison">
+      <p class="meter-label">Region B and Region C — a different strategy each, same background trajectory</p>
+      <div class="region-comparison-row">
+        <div id="b-region-card" class="region-card">
+          <p class="region-card-label">Region B</p>
+          <div id="b-graph" class="mini-temp-graph"></div>
+          <p id="b-temperature-display" class="region-stat">+0.0°</p>
+          <p id="b-funds-display" class="region-stat">Funds: 300</p>
+          <p id="b-melt-status-display" class="region-melt-status">Stable</p>
+          <div class="region-invest-buttons">
+            <button id="b-output-invest-button" class="secondary" disabled>Loading...</button>
+            <span class="invest-count" id="b-output-count">0</span>
+            <button id="b-preserve-invest-button" class="secondary" disabled>Loading...</button>
+            <span class="invest-count" id="b-preserve-count">0</span>
+            <button id="b-monitor-invest-button" class="secondary" disabled>Loading...</button>
+            <span class="invest-count" id="b-monitor-count">0</span>
+          </div>
+        </div>
+        <div id="c-region-card" class="region-card">
+          <p class="region-card-label">Region C</p>
+          <div id="c-graph" class="mini-temp-graph"></div>
+          <p id="c-temperature-display" class="region-stat">+0.0°</p>
+          <p id="c-funds-display" class="region-stat">Funds: 300</p>
+          <p id="c-melt-status-display" class="region-melt-status">Stable</p>
+          <div class="region-invest-buttons">
+            <button id="c-output-invest-button" class="secondary" disabled>Loading...</button>
+            <span class="invest-count" id="c-output-count">0</span>
+            <button id="c-preserve-invest-button" class="secondary" disabled>Loading...</button>
+            <span class="invest-count" id="c-preserve-count">0</span>
+            <button id="c-monitor-invest-button" class="secondary" disabled>Loading...</button>
+            <span class="invest-count" id="c-monitor-count">0</span>
+          </div>
+        </div>
       </div>
     </div>
 

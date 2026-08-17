@@ -33,6 +33,80 @@ body {
   opacity: 1;
 }
 
+/* Iteration Pass 2: multi-region comparison. Two extra regions run
+   alongside the original, each with its own compact card so the
+   divergence between strategies is the dominant visual read. */
+.mini-temp-graph {
+  margin: 0.5rem 0;
+}
+
+.mini-temp-graph-svg {
+  width: 100%;
+  height: 32px;
+  display: block;
+}
+
+.mini-temp-line {
+  fill: none;
+  stroke: #e0674c;
+  stroke-width: 2;
+}
+
+.region-comparison-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.region-card {
+  flex: 1;
+  min-width: 0;
+  background: #0f111a;
+  border: 1px solid #23273a;
+  border-radius: 8px;
+  padding: 0.6rem;
+  transition: background 200ms ease;
+}
+
+.region-card.tipping-flash {
+  animation: tipping-point-flash 900ms ease;
+}
+
+.region-card-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.region-stat {
+  margin: 0 0 0.25rem;
+  font-size: 0.85rem;
+}
+
+.region-melt-status {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.region-invest-buttons {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.25rem 0.4rem;
+}
+
+.region-invest-buttons button.secondary {
+  font-size: 0.75rem;
+  padding: 0.35rem 0.4rem;
+}
+
+.region-invest-buttons .invest-count {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  text-align: right;
+}
+
 .context-blurb {
   margin: 0 0 1.25rem;
   padding: 0.6rem 0.75rem;

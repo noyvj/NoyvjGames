@@ -23,12 +23,26 @@ ELEMENT_IDS = [
     "acceleration-display",
     "acceleration-bar",
     "trajectory-display",
+    "graph",
     "advance-round-button",
 ]
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-name", f"{_category}-count", f"{_category}-invest-button"]
 
-INITIALLY_DISABLED_IDS = [f"{c}-invest-button" for c in CATEGORIES]
+for _prefix in ("b", "c"):
+    ELEMENT_IDS += [
+        f"{_prefix}-region-card",
+        f"{_prefix}-graph",
+        f"{_prefix}-temperature-display",
+        f"{_prefix}-funds-display",
+        f"{_prefix}-melt-status-display",
+    ]
+    for _category in CATEGORIES:
+        ELEMENT_IDS += [f"{_prefix}-{_category}-count", f"{_prefix}-{_category}-invest-button"]
+
+INITIALLY_DISABLED_IDS = [f"{c}-invest-button" for c in CATEGORIES] + [
+    f"{p}-{c}-invest-button" for p in ("b", "c") for c in CATEGORIES
+]
 
 
 class GameEnv:
@@ -44,6 +58,9 @@ class GameEnv:
 
     def invest(self, category):
         self.elements[f"{category}-invest-button"].dispatch("click", None)
+
+    def invest_secondary(self, prefix, category):
+        self.elements[f"{prefix}-{category}-invest-button"].dispatch("click", None)
 
     def advance_round(self):
         self.elements["advance-round-button"].dispatch("click", None)

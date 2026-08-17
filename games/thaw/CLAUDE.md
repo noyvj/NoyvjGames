@@ -43,7 +43,7 @@ Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`). Antic
 
 **Open testing question:** can players correctly identify, after a session, what caused the tipping point? Is the intervention lever discoverable without being told about it directly?
 
-## Iteration Notes — Pass 2 (not yet implemented)
+## Iteration Notes — Pass 2 (implemented)
 
 Second design-review pass, from `climate-games-iteration-pass-2.md`, building on Pass 1. **Selected addition: A (multi-region comparison).**
 
