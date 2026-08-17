@@ -9,18 +9,21 @@ from .fakes import FakeDocument, FakeElement, FakeTimers, create_proxy
 
 GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 
+SHIP_IDS = ["1", "2"]
+COLONY_IDS = ["aurum", "verdant", "ferrum"]
+
 # Statically-declared element IDs, wired up in index.html's initial markup.
 ELEMENT_IDS = [
-    "ship-status",
     "profit-display",
     "sale-log",
-    "load-button",
-    "depart-button",
 ]
+for _ship_id in SHIP_IDS:
+    ELEMENT_IDS.append(f"ship-{_ship_id}-status")
+    ELEMENT_IDS.append(f"ship-{_ship_id}-load-button")
+    for _colony_id in COLONY_IDS:
+        ELEMENT_IDS.append(f"ship-{_ship_id}-depart-{_colony_id}-button")
 
-INITIALLY_DISABLED_IDS = [
-    "depart-button",
-]
+INITIALLY_DISABLED_IDS = [f"ship-{s}-depart-{c}-button" for s in SHIP_IDS for c in COLONY_IDS]
 
 
 class GameEnv:
@@ -31,19 +34,18 @@ class GameEnv:
         self.elements = elements
         self.timers = timers
 
-    @property
-    def ship(self):
-        return self.module.ship
+    def ship(self, ship_id="1"):
+        return self.module.ships[ship_id]
 
     @property
     def total_profit(self):
         return self.module.total_profit
 
-    def load(self):
-        self.elements["load-button"].dispatch("click", None)
+    def load(self, ship_id="1"):
+        self.elements[f"ship-{ship_id}-load-button"].dispatch("click", None)
 
-    def depart(self):
-        self.elements["depart-button"].dispatch("click", None)
+    def depart(self, destination, ship_id="1"):
+        self.elements[f"ship-{ship_id}-depart-{destination}-button"].dispatch("click", None)
 
     def tick(self, times=1):
         self.timers.tick_intervals(times)
@@ -75,7 +77,7 @@ def game_env():
     """Loads a brand-new game.py module against a fresh fake DOM.
 
     game.py runs setup() as a module-level side effect on import, so every
-    test gets its own module object (and its own ship/colony state) rather
+    test gets its own module object (and its own ships/colony state) rather
     than sharing state via Python's normal import cache.
     """
     elements = {}

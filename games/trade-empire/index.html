@@ -3,21 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trade Empire — Milestone 1</title>
+<title>Trade Empire — Milestone 2</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
 <body>
   <div id="game">
     <h1>Trade Empire</h1>
-    <p class="tagline">Working title. Your corporation's founding contract: one ship, one route, two colonies that can't survive without each other.</p>
-    <p class="context-blurb">Aurum Station mines Ore but has no farmland. Verdant Reach grows Grain but has no metal. Neither can go it alone — that gap is your entire business.</p>
+    <p class="tagline">Working title. Two ships, three colonies, and a triangle of trade — you decide who goes where.</p>
+    <p class="context-blurb">Aurum Station mines Ore. Verdant Reach grows Grain. Ferrum Forge casts Machinery. Each needs what only one of the others makes — the triangle is your route map.</p>
 
-    <div id="ship-panel" class="section">
-      <p id="ship-status" class="ship-status">Loading...</p>
+    <div id="ship-1-panel" class="section">
+      <p class="ship-label">Ship 1</p>
+      <p id="ship-1-status" class="ship-status">Loading...</p>
       <div class="action-buttons">
-        <button id="load-button" class="secondary" disabled>Loading...</button>
-        <button id="depart-button" class="secondary" disabled>Loading...</button>
+        <button id="ship-1-load-button" class="secondary" disabled>Loading...</button>
+      </div>
+      <div class="depart-buttons">
+        <button id="ship-1-depart-aurum-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-1-depart-verdant-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-1-depart-ferrum-button" class="secondary" disabled hidden>Loading...</button>
+      </div>
+    </div>
+
+    <div id="ship-2-panel" class="section">
+      <p class="ship-label">Ship 2</p>
+      <p id="ship-2-status" class="ship-status">Loading...</p>
+      <div class="action-buttons">
+        <button id="ship-2-load-button" class="secondary" disabled>Loading...</button>
+      </div>
+      <div class="depart-buttons">
+        <button id="ship-2-depart-aurum-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-2-depart-verdant-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-2-depart-ferrum-button" class="secondary" disabled hidden>Loading...</button>
       </div>
     </div>
 

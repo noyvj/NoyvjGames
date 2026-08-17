@@ -43,6 +43,14 @@ h1 {
   margin-bottom: 1rem;
 }
 
+.ship-label {
+  margin: 0 0 0.4rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+}
+
 .ship-status {
   margin: 0 0 1rem;
   font-size: 1rem;
@@ -52,6 +60,21 @@ h1 {
 .action-buttons {
   display: flex;
   gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.depart-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.depart-buttons button.secondary {
+  background: #2a4c3a;
+}
+
+.depart-buttons button.secondary:active:not(:disabled) {
+  background: #172e1f;
 }
 
 button.secondary {

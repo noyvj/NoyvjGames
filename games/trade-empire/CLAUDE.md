@@ -31,7 +31,7 @@ Same granularity as SOL's milestones — one clearly separable, demonstrable sta
 | # | Milestone | Content | Status |
 |---|-----------|---------|--------|
 | 1 | Core loop | Founding-contract intro, one ship, one manual route between two fixed colonies (Aurum Station ↔ Verdant Reach), profit ticks in on arrival | Done |
-| 2 | Second route | Basic route-management UI, manual assignment across 2+ routes | Pending |
+| 2 | Second route | Basic route-management UI, manual assignment across 2+ routes | Done |
 | 3 | Colony need system v1 | Colonies have need-sets; output scales with needs met; minor flavor text per colony | Pending |
 | 4 | Market economics | Prices fluctuate with supply; overproducing a good crashes its price | Pending |
 | 5 | Manual scaling friction | More routes/colonies added — manual management gets genuinely busy, foreshadowing automation | Pending |
@@ -44,6 +44,12 @@ Same granularity as SOL's milestones — one clearly separable, demonstrable sta
 | 12 | Fleet-level automation | Prioritization rules across many routes at once, not just per-route toggles | Pending |
 | 13 | Galaxy scaling | Research-gated expansion to more systems/regions | Pending |
 | 14 | Endgame | Fully automated economy visible at scale (hundreds of worlds, many ships); soft win-state, sandbox continues | Pending |
+
+## Milestone 2 implementation notes
+- Added a third colony, Ferrum Forge (produces Machinery, needs Ore), turning the fixed Aurum<->Verdant pair into a genuine triangle: Ore feeds Ferrum, Machinery feeds Verdant, Grain feeds Aurum.
+- Added a second ship. `Ship.depart()` now takes an explicit destination argument instead of auto-toggling to "the other colony" — the player picks from whichever colonies a ship isn't currently docked at, via one Depart-to-X button per option.
+- Both ships tick, load, and depart fully independently; `total_profit`/`sale_log` stay shared/fleet-wide.
+- "Needs" is still flavor only — Milestone 3 is what makes it mechanically matter (output scaling with needs met).
 
 ## Milestone 1 implementation notes
 - Two fixed colonies: Aurum Station (produces Ore, needs Grain) and Verdant Reach (produces Grain, needs Ore). Ship starts docked at Aurum Station, empty.
