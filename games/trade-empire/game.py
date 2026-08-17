@@ -11,7 +11,10 @@ hand gets genuinely busy, which is exactly the case Milestone 6's
 automation exists to answer. Milestone 6: ships can be automated.
 Milestone 7: a 2D map — colonies as nodes, routes as lines, drawn on a
 canvas directly from Python via Pyodide's `js` module. Still no moving
-ships on it (Milestone 11).
+ships on it (Milestone 11). Milestone 8: a small, flat research tree
+(no prerequisites yet) spent from a separate, passively-accruing
+research-points currency, gating an automation-slot expansion, a
+fleet-wide speed boost, and a fleet-wide cargo boost.
 """
 
 import math
@@ -206,6 +209,58 @@ def colony_needing(good):
 AUTOMATION_COST = 150
 MAX_AUTOMATED_SHIPS = 2
 
+# Milestone 8 — research tree v1: a small, flat framework (no
+# prerequisites yet) gating an automation-slot expansion, a fleet-wide
+# speed boost, and a new ship class — spent from a separate currency
+# (research points) that accrues passively, independent of trade
+# profit, so research and trade are two distinct things to manage
+# rather than one pool spent two ways.
+RESEARCH_PER_TICK = 0.5
+RESEARCH_NODES = {
+    "automation_slot": {
+        "cost": 20, "label": "Automation Expansion", "description": "+1 automation slot",
+    },
+    "fast_ships": {
+        "cost": 15, "label": "Fast Ships I", "description": "-1 tick travel time, fleet-wide",
+    },
+    "hauler": {
+        "cost": 30, "label": "Hauler-Class Refit", "description": "+50% cargo capacity, fleet-wide",
+    },
+}
+AUTOMATION_SLOT_RESEARCH_BONUS = 1
+FAST_SHIPS_TICK_REDUCTION = 1
+HAULER_CARGO_MULTIPLIER = 1.5
+
+research_points = 0.0
+unlocked_research = set()
+
+
+def can_unlock_research(node_id):
+    return node_id not in unlocked_research and research_points >= RESEARCH_NODES[node_id]["cost"]
+
+
+def unlock_research(node_id):
+    global research_points
+    if not can_unlock_research(node_id):
+        return False
+    research_points -= RESEARCH_NODES[node_id]["cost"]
+    unlocked_research.add(node_id)
+    return True
+
+
+def max_automated_ships():
+    bonus = AUTOMATION_SLOT_RESEARCH_BONUS if "automation_slot" in unlocked_research else 0
+    return MAX_AUTOMATED_SHIPS + bonus
+
+
+def travel_ticks():
+    reduction = FAST_SHIPS_TICK_REDUCTION if "fast_ships" in unlocked_research else 0
+    return max(1, TRAVEL_TICKS - reduction)
+
+
+def fleet_cargo_multiplier():
+    return HAULER_CARGO_MULTIPLIER if "hauler" in unlocked_research else 1.0
+
 
 class Ship:
     def __init__(self, ship_id, start_colony):
@@ -233,7 +288,7 @@ class Ship:
         if not self.docked or self.loaded:
             return False
         self.cargo_good = COLONIES[self.location]["produces"]
-        self.cargo_qty = colony_states[self.location].cargo_capacity()
+        self.cargo_qty = round(colony_states[self.location].cargo_capacity() * fleet_cargo_multiplier())
         return True
 
     def other_colonies(self):
@@ -250,7 +305,7 @@ class Ship:
             return False
         self.destination = destination
         self.location = None
-        self.transit_ticks_remaining = TRAVEL_TICKS
+        self.transit_ticks_remaining = travel_ticks()
         return True
 
     def advance_transit(self):
@@ -288,7 +343,7 @@ def automated_ship_count():
 
 
 def automation_slots_available():
-    return automated_ship_count() < MAX_AUTOMATED_SHIPS
+    return automated_ship_count() < max_automated_ships()
 
 
 def automate_ship(ship_id):
@@ -382,12 +437,30 @@ def render_market():
         document.getElementById(f"market-{good}-bar").style.width = f"{pct:.0f}%"
 
 
+def render_research():
+    document.getElementById("research-points-display").innerText = (
+        f"Research points: {research_points:.0f}"
+    )
+    for node_id, node in RESEARCH_NODES.items():
+        status_el = document.getElementById(f"research-{node_id}-status")
+        unlock_button = document.getElementById(f"research-{node_id}-unlock-button")
+        if node_id in unlocked_research:
+            status_el.innerText = f"{node['label']} — unlocked ({node['description']})"
+            unlock_button.hidden = True
+        else:
+            status_el.innerText = f"{node['label']} — {node['description']}"
+            unlock_button.hidden = False
+            unlock_button.innerText = f"Research ({node['cost']})"
+            unlock_button.disabled = not can_unlock_research(node_id)
+
+
 def render():
     document.getElementById("profit-display").innerText = f"Total profit: {total_profit} credits"
     document.getElementById("sale-log").innerText = sale_log[-1] if sale_log else "No sales yet."
     document.getElementById("automation-slots-display").innerText = (
-        f"Automation slots: {automated_ship_count()}/{MAX_AUTOMATED_SHIPS} used"
+        f"Automation slots: {automated_ship_count()}/{max_automated_ships()} used"
     )
+    render_research()
     for ship in ships.values():
         render_ship(ship)
     for colony_id in COLONIES:
@@ -416,8 +489,16 @@ def _make_automate_handler(ship_id):
     return handler
 
 
+def _make_research_handler(node_id):
+    def handler(event=None):
+        unlock_research(node_id)
+        render()
+    return handler
+
+
 def tick(event=None):
-    global total_profit
+    global total_profit, research_points
+    research_points += RESEARCH_PER_TICK
     for ship in ships.values():
         result = ship.advance_transit()
         if result is not None:
@@ -447,6 +528,10 @@ def setup():
             button.addEventListener("click", create_proxy(_make_depart_handler(ship.id, colony_id)))
         document.getElementById(f"ship-{ship.id}-automate-button").addEventListener(
             "click", create_proxy(_make_automate_handler(ship.id))
+        )
+    for node_id in RESEARCH_NODES:
+        document.getElementById(f"research-{node_id}-unlock-button").addEventListener(
+            "click", create_proxy(_make_research_handler(node_id))
         )
     render_map()
     setInterval(create_proxy(tick), TICK_INTERVAL_MS)

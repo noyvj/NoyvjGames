@@ -43,6 +43,43 @@ h1 {
   margin-bottom: 1rem;
 }
 
+.research-points {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #7fc4d6;
+}
+
+.research-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.research-row:last-child {
+  margin-bottom: 0;
+}
+
+.research-status {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  flex: 1;
+}
+
+.research-row button.secondary {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  background: #2a5a6f;
+}
+
+.research-row button.secondary:active:not(:disabled) {
+  background: #173842;
+}
+
 .map-canvas {
   display: block;
   width: 100%;

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trade Empire — Milestone 7</title>
+<title>Trade Empire — Milestone 8</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
@@ -12,6 +12,23 @@
     <h1>Trade Empire</h1>
     <p class="tagline">Working title. Four ships, five colonies, two need-cycles — a lot more to keep an eye on by hand.</p>
     <p class="context-blurb">Aurum mines Ore, Verdant grows Grain, Ferrum casts Machinery — the original triangle. Cryo pumps Water and Helion generates Energy, and each needs exactly what the other makes. Ten possible routes, four ships, all decided by you.</p>
+
+    <div id="research-panel" class="section">
+      <p class="panel-label">Research</p>
+      <p id="research-points-display" class="research-points">Research points: 0</p>
+      <div class="research-row">
+        <span id="research-automation_slot-status" class="research-status">Automation Expansion — +1 automation slot</span>
+        <button id="research-automation_slot-unlock-button" class="secondary" disabled>Loading...</button>
+      </div>
+      <div class="research-row">
+        <span id="research-fast_ships-status" class="research-status">Fast Ships I — -1 tick travel time, fleet-wide</span>
+        <button id="research-fast_ships-unlock-button" class="secondary" disabled>Loading...</button>
+      </div>
+      <div class="research-row">
+        <span id="research-hauler-status" class="research-status">Hauler-Class Refit — +50% cargo capacity, fleet-wide</span>
+        <button id="research-hauler-unlock-button" class="secondary" disabled>Loading...</button>
+      </div>
+    </div>
 
     <div id="map-panel" class="section">
       <p class="panel-label">Trade routes</p>

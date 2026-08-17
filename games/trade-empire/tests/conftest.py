@@ -18,7 +18,10 @@ ELEMENT_IDS = [
     "sale-log",
     "automation-slots-display",
     "map-canvas",
+    "research-points-display",
 ]
+for _node_id in ("automation_slot", "fast_ships", "hauler"):
+    ELEMENT_IDS += [f"research-{_node_id}-status", f"research-{_node_id}-unlock-button"]
 for _colony_id in COLONY_IDS:
     ELEMENT_IDS += [
         f"colony-{_colony_id}-name",
@@ -61,6 +64,9 @@ class GameEnv:
 
     def automate(self, ship_id="1"):
         self.elements[f"ship-{ship_id}-automate-button"].dispatch("click", None)
+
+    def unlock_research(self, node_id):
+        self.elements[f"research-{node_id}-unlock-button"].dispatch("click", None)
 
     def tick(self, times=1):
         self.timers.tick_intervals(times)

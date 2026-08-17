@@ -37,13 +37,18 @@ Same granularity as SOL's milestones — one clearly separable, demonstrable sta
 | 5 | Manual scaling friction | More routes/colonies added — manual management gets genuinely busy, foreshadowing automation | Done |
 | 6 | Automation v1 | First automation unlock — a route can run itself, limited slots/cost | Done |
 | 7 | 2D map v1 | Colonies as nodes, routes as lines — first visual leap, still no moving ships | Done |
-| 8 | Research tree v1 | Framework + early nodes; gates automation tiers and new ship types | Pending |
+| 8 | Research tree v1 | Framework + early nodes; gates automation tiers and new ship types | Done |
 | 9 | Evolving needs v2 | Needs meaningfully change/expand as colonies develop further | Pending |
 | 10 | Colony specialization | Worlds develop distinct strengths/weaknesses based on environment/history | Pending |
 | 11 | Ships on the map | Automated routes render as moving dots along the map's lines | Pending |
 | 12 | Fleet-level automation | Prioritization rules across many routes at once, not just per-route toggles | Pending |
 | 13 | Galaxy scaling | Research-gated expansion to more systems/regions | Pending |
 | 14 | Endgame | Fully automated economy visible at scale (hundreds of worlds, many ships); soft win-state, sandbox continues | Pending |
+
+## Milestone 8 implementation notes
+- `research_points` is a separate currency from `total_profit`, accruing passively at `RESEARCH_PER_TICK` (0.5/tick) — research and trade are two distinct things to manage, not one pool spent two ways.
+- Flat tree, no prerequisites — `RESEARCH_NODES` is a dict of 3 independent nodes: automation-slot expansion (`max_automated_ships()` now reads a bonus), fast ships (`travel_ticks()` replaces the raw `TRAVEL_TICKS` constant in `Ship.depart()`), and a hauler-class refit (`fleet_cargo_multiplier()` scales `Ship.load()`'s cargo qty). "New ship types" is interpreted as a fleet-wide cargo boost rather than spawning a literal new ship object, since there's no ship-purchasing system yet — a deliberate scope cut, not a gap.
+- Reused Aftermath's established skill-tree UI pattern (status text + hide-on-unlock button + cost) for the research rows, rather than inventing a new one.
 
 ## Milestone 7 implementation notes
 - Drawn entirely from Python via Pyodide's `js` module — `document.getElementById("map-canvas").getContext("2d")` returns a real JS canvas context, and its methods (arc, moveTo, lineTo, stroke, fillText, ...) are just ordinary method calls from Python. No separate JS glue file needed, despite the CLAUDE.md's original anticipation that canvas would require one.
