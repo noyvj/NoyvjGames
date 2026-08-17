@@ -26,6 +26,11 @@ ELEMENT_IDS = [
     "standing-value-display",
     "comparison-message",
     "state-breakdown-display",
+    "community-relations-display",
+    "stakeholder-panel",
+    "stakeholder-message",
+    "stakeholder-grant-button",
+    "stakeholder-decline-button",
 ]
 
 # Buttons that carry the `disabled` attribute in index.html's initial markup
@@ -34,6 +39,8 @@ ELEMENT_IDS = [
 INITIALLY_DISABLED_IDS = [
     "clear-button",
     "replant-button",
+    "stakeholder-grant-button",
+    "stakeholder-decline-button",
 ]
 
 
@@ -65,6 +72,15 @@ class GameEnv:
 
     def replant(self):
         self.elements["replant-button"].dispatch("click", None)
+
+    def grant_stakeholder(self):
+        self.elements["stakeholder-grant-button"].dispatch("click", None)
+
+    def decline_stakeholder(self):
+        self.elements["stakeholder-decline-button"].dispatch("click", None)
+
+    def tick(self, times=1):
+        self.timers.tick_intervals(times)
 
 
 def _install_pyodide_fakes(elements, timers):

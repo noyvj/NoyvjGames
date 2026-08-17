@@ -64,6 +64,26 @@ h1 {
   outline-offset: 1px;
 }
 
+/* Iteration Pass 2: biodiversity sub-meter — a small wildlife icon with
+   subtle motion on well-established plots, instead of another number. */
+.plot-tile.plot-has-wildlife {
+  position: relative;
+}
+
+.plot-tile.plot-has-wildlife::after {
+  content: "\1F98B";
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 0.7rem;
+  animation: wildlife-flutter 2.4s ease-in-out infinite;
+}
+
+@keyframes wildlife-flutter {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-2px) rotate(8deg); }
+}
+
 .plot-preserved { background: #2e7d32; }
 .plot-bare { background: #6d4c31; }
 .plot-replanting { background: #9c7a3c; }
@@ -110,6 +130,26 @@ h1 {
   margin: 0.6rem 0 0;
   font-size: 0.78rem;
   opacity: 0.65;
+}
+
+.community-relations {
+  margin: 0.4rem 0 0;
+  font-size: 0.78rem;
+  opacity: 0.65;
+}
+
+/* Iteration Pass 2: stakeholder-tension requests get a visually distinct
+   panel (amber accent border) so they read as a different kind of
+   decision than routine plot management. */
+.stakeholder-panel {
+  border-color: #c99a3c;
+  background: #241d10;
+}
+
+.stakeholder-message {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .action-buttons {

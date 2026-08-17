@@ -39,7 +39,7 @@ Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`). Antic
 
 **Open testing question:** do players notice degradation stacking on repeatedly-cleared plots without being told? Is plot state readable at a glance across the session?
 
-## Iteration Notes — Pass 2 (not yet implemented)
+## Iteration Notes — Pass 2 (implemented)
 
 Second design-review pass, from `climate-games-iteration-pass-2.md`, building on Pass 1. **Selected additions: A (biodiversity sub-meter) + B (stakeholder tension).**
 

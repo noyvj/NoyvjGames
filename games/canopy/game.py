@@ -73,6 +73,34 @@ ACCRUING_STATES = {PRESERVED, RECOVERED}
 # REPLANTING -> RECOVERED transition registers as a felt moment.
 MATURITY_TICKS = 60
 
+# Iteration Pass 2 — biodiversity sub-meter: a slower, flat (non-
+# compounding) accrual separate from economic value, so a long-standing
+# plot visibly "has life in it" beyond just being worth more. Represented
+# via a wildlife icon once a plot crosses the threshold, not a number to
+# read.
+BIODIVERSITY_ACCRUAL_PER_TICK = 0.02
+BIODIVERSITY_WILDLIFE_THRESHOLD = 1.0
+WILDLIFE_ICON = "\U0001F98B"  # butterfly
+
+# Iteration Pass 2 — stakeholder tension: periodically, the community
+# asks to clear the single most-established standing plot for a stated
+# real need. Deliberately not a trap: granting clears the plot (same
+# payout as a normal Clear) and nudges community relations up; declining
+# keeps the plot standing and nudges relations down a smaller amount —
+# neither choice is free, neither is catastrophic, matching the site's
+# no-dead-end-states philosophy. Reason cycles deterministically rather
+# than by RNG, since nothing else in this game uses randomness.
+STAKEHOLDER_EVENT_INTERVAL_TICKS = 20
+STAKEHOLDER_REASONS = ["housing", "farming", "resources"]
+STAKEHOLDER_REASON_TEXT = {
+    "housing": "the community is asking to clear it for new housing — people need somewhere to live too",
+    "farming": "a local family wants to farm it for food security this season",
+    "resources": "the community needs timber from it for winter building repairs",
+}
+STAKEHOLDER_GRANT_RELATIONS_DELTA = 10
+STAKEHOLDER_DECLINE_RELATIONS_DELTA = -5
+STARTING_COMMUNITY_RELATIONS = 50
+
 
 class Plot:
     def __init__(self, index):
@@ -83,6 +111,7 @@ class Plot:
         self.clear_count = 0
         self.replant_ticks_remaining = 0
         self.just_recovered = False
+        self.biodiversity = 0.0
 
     def productivity_multiplier(self):
         """Soil quality factor from past clearing — 1.0 for a never-cleared
@@ -102,6 +131,10 @@ class Plot:
         self.ticks_intact += 1
         growth_multiplier = 1 + self.ticks_intact * GROWTH_PER_TICK
         self.value += BASE_ACCRUAL * self.productivity_multiplier() * growth_multiplier
+        self.biodiversity += BIODIVERSITY_ACCRUAL_PER_TICK
+
+    def has_wildlife(self):
+        return self.biodiversity >= BIODIVERSITY_WILDLIFE_THRESHOLD
 
     def clear(self):
         """Harvests this plot's standing value and returns it as a payout
@@ -114,6 +147,7 @@ class Plot:
         self.state = BARE
         self.value = 0.0
         self.ticks_intact = 0
+        self.biodiversity = 0.0
         return payout
 
     def replant(self):
@@ -155,6 +189,69 @@ class Plot:
 plots = [Plot(i) for i in range(GRID_ROWS * GRID_COLS)]
 selected_index = None
 total_income = 0.0
+
+community_relations = STARTING_COMMUNITY_RELATIONS
+pending_stakeholder_request = None  # {"plot_index": int, "reason": str} or None
+_ticks_since_last_request = 0
+_stakeholder_request_count = 0
+
+
+def _most_established_plot_index():
+    """The standing plot with the highest accrued value — the one a
+    stakeholder request targets, since it's the one with the most at
+    stake for both sides of the decision."""
+    candidates = [p for p in plots if p.state in ACCRUING_STATES and p.value > 0]
+    if not candidates:
+        return None
+    return max(candidates, key=lambda p: p.value).index
+
+
+def maybe_trigger_stakeholder_request():
+    global pending_stakeholder_request, _ticks_since_last_request, _stakeholder_request_count
+    if pending_stakeholder_request is not None:
+        return
+    _ticks_since_last_request += 1
+    if _ticks_since_last_request < STAKEHOLDER_EVENT_INTERVAL_TICKS:
+        return
+    target = _most_established_plot_index()
+    if target is None:
+        return  # try again next tick once something's actually established
+    reason = STAKEHOLDER_REASONS[_stakeholder_request_count % len(STAKEHOLDER_REASONS)]
+    pending_stakeholder_request = {"plot_index": target, "reason": reason}
+    _stakeholder_request_count += 1
+    _ticks_since_last_request = 0
+
+
+def stakeholder_request_message():
+    if pending_stakeholder_request is None:
+        return ""
+    idx = pending_stakeholder_request["plot_index"]
+    reason = pending_stakeholder_request["reason"]
+    return f"Plot {idx} is thriving, but {STAKEHOLDER_REASON_TEXT[reason]}. Grant the request, or decline and keep it standing?"
+
+
+def grant_stakeholder_request(event=None):
+    global pending_stakeholder_request, community_relations, total_income
+    if pending_stakeholder_request is None:
+        return False
+    plot = plots[pending_stakeholder_request["plot_index"]]
+    payout = plot.clear()
+    if payout is not None:
+        total_income += payout
+    community_relations = min(100, community_relations + STAKEHOLDER_GRANT_RELATIONS_DELTA)
+    pending_stakeholder_request = None
+    render()
+    return True
+
+
+def decline_stakeholder_request(event=None):
+    global pending_stakeholder_request, community_relations
+    if pending_stakeholder_request is None:
+        return False
+    community_relations = max(0, community_relations + STAKEHOLDER_DECLINE_RELATIONS_DELTA)
+    pending_stakeholder_request = None
+    render()
+    return True
 
 
 def _plot_tile_id(index):
@@ -204,6 +301,8 @@ def render_grid():
             plot.just_recovered = False
         tile.title = STATE_LABEL[plot.state]
         tile.innerText = STATE_ICON[plot.state]
+        if plot.has_wildlife():
+            tile.className += " plot-has-wildlife"
         tile.style.backgroundColor = plot_display_color(plot)
         tile.addEventListener("click", create_proxy(_make_select_handler(plot.index)))
         grid_el.appendChild(tile)
@@ -277,12 +376,31 @@ def render_stats():
     document.getElementById("standing-value-display").innerText = f"Standing forest value: {standing_value:.1f}"
     document.getElementById("comparison-message").innerText = comparison_message(total_income, standing_value)
     document.getElementById("state-breakdown-display").innerText = state_breakdown_text()
+    document.getElementById("community-relations-display").innerText = (
+        f"Community relations: {community_relations}/100"
+    )
+
+
+def render_stakeholder_panel():
+    panel_el = document.getElementById("stakeholder-panel")
+    message_el = document.getElementById("stakeholder-message")
+    grant_button = document.getElementById("stakeholder-grant-button")
+    decline_button = document.getElementById("stakeholder-decline-button")
+
+    if pending_stakeholder_request is None:
+        panel_el.hidden = True
+        return
+    panel_el.hidden = False
+    message_el.innerText = stakeholder_request_message()
+    grant_button.disabled = False
+    decline_button.disabled = False
 
 
 def render():
     render_grid()
     render_panel()
     render_stats()
+    render_stakeholder_panel()
 
 
 def _make_select_handler(index):
@@ -318,6 +436,7 @@ def tick(event=None):
     for plot in plots:
         plot.accrue_tick()
         plot.advance_recovery()
+    maybe_trigger_stakeholder_request()
     render()
 
 
@@ -328,6 +447,12 @@ def setup():
     replant_button.innerText = "Replant"
     clear_button.addEventListener("click", create_proxy(on_clear))
     replant_button.addEventListener("click", create_proxy(on_replant))
+    document.getElementById("stakeholder-grant-button").addEventListener(
+        "click", create_proxy(grant_stakeholder_request)
+    )
+    document.getElementById("stakeholder-decline-button").addEventListener(
+        "click", create_proxy(decline_stakeholder_request)
+    )
     setInterval(create_proxy(tick), TICK_INTERVAL_MS)
     render()
 
