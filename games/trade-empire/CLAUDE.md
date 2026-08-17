@@ -33,7 +33,7 @@ Same granularity as SOL's milestones — one clearly separable, demonstrable sta
 | 1 | Core loop | Founding-contract intro, one ship, one manual route between two fixed colonies (Aurum Station ↔ Verdant Reach), profit ticks in on arrival | Done |
 | 2 | Second route | Basic route-management UI, manual assignment across 2+ routes | Done |
 | 3 | Colony need system v1 | Colonies have need-sets; output scales with needs met; minor flavor text per colony | Done |
-| 4 | Market economics | Prices fluctuate with supply; overproducing a good crashes its price | Pending |
+| 4 | Market economics | Prices fluctuate with supply; overproducing a good crashes its price | Done |
 | 5 | Manual scaling friction | More routes/colonies added — manual management gets genuinely busy, foreshadowing automation | Pending |
 | 6 | Automation v1 | First automation unlock — a route can run itself, limited slots/cost | Pending |
 | 7 | 2D map v1 | Colonies as nodes, routes as lines — first visual leap, still no moving ships | Pending |
@@ -44,6 +44,11 @@ Same granularity as SOL's milestones — one clearly separable, demonstrable sta
 | 12 | Fleet-level automation | Prioritization rules across many routes at once, not just per-route toggles | Pending |
 | 13 | Galaxy scaling | Research-gated expansion to more systems/regions | Pending |
 | 14 | Endgame | Fully automated economy visible at scale (hundreds of worlds, many ships); soft win-state, sandbox continues | Pending |
+
+## Milestone 4 implementation notes
+- Each good has a `market_multiplier` (starts 1.0) that drops 0.01 per unit sold and recovers 0.01/tick toward baseline, floored at 0.3. Sale profit reads `current_sell_price(good) = SELL_PRICE[good] * market_multiplier[good]`, replacing the flat price used since Milestone 1.
+- Recovery runs continuously (once per real-time tick, ~1s), so prices bounce back reasonably fast if left alone — repeated back-to-back sales of the same good are what actually crashes it, not a single sale.
+- Added a Market Prices panel (price/unit, % of baseline, meter bar per good) above the Colonies panel; prices below 70% of baseline get a red "crashed" style.
 
 ## Milestone 3 implementation notes
 - Each colony now has a `ColonyState` (need_satisfaction 0..1, starts at 0.5) tracked separately from the static `COLONIES` metadata dict. Decays 0.01/tick; delivering N units of a colony's needed good raises it by N*0.05, capped at 1.0.

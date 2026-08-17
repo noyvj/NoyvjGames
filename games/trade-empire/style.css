@@ -43,6 +43,16 @@ h1 {
   margin-bottom: 1rem;
 }
 
+.market-price {
+  margin: 0 0 0.3rem;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.market-price--crashed {
+  color: #e0674c;
+}
+
 .panel-label {
   margin: 0 0 0.6rem;
   font-size: 0.75rem;

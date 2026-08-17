@@ -82,6 +82,36 @@ class ColonyState:
 
 colony_states = {colony_id: ColonyState(colony_id) for colony_id in COLONIES}
 
+# Milestone 4 — market economics: each good has a price multiplier that
+# drops when it's sold and recovers gradually over time. Overproducing
+# a single good (running the same route on repeat) craters its price;
+# diversifying across the triangle keeps prices near baseline. Floored
+# so a good never becomes worthless, and capped at baseline — no
+# scarcity premium in v1.
+MARKET_PRICE_DECAY_PER_UNIT_SOLD = 0.01
+MARKET_PRICE_RECOVERY_PER_TICK = 0.01
+MIN_PRICE_MULTIPLIER = 0.3
+MAX_PRICE_MULTIPLIER = 1.0
+
+market_multiplier = {ORE: 1.0, GRAIN: 1.0, MACHINERY: 1.0}
+
+
+def current_sell_price(good):
+    return max(1, round(SELL_PRICE[good] * market_multiplier[good]))
+
+
+def apply_market_sale(good, qty):
+    market_multiplier[good] = max(
+        MIN_PRICE_MULTIPLIER, market_multiplier[good] - qty * MARKET_PRICE_DECAY_PER_UNIT_SOLD
+    )
+
+
+def recover_market():
+    for good in market_multiplier:
+        market_multiplier[good] = min(
+            MAX_PRICE_MULTIPLIER, market_multiplier[good] + MARKET_PRICE_RECOVERY_PER_TICK
+        )
+
 
 class Ship:
     def __init__(self, ship_id, start_colony):
@@ -137,7 +167,7 @@ class Ship:
         if self.transit_ticks_remaining > 0:
             return None
         good, qty = self.cargo_good, self.cargo_qty
-        profit = qty * SELL_PRICE[good]
+        profit = qty * current_sell_price(good)
         destination = self.destination
         if COLONIES[destination]["needs"] == good:
             colony_states[destination].deliver(qty)
@@ -196,6 +226,18 @@ def render_colony(colony_id):
     )
 
 
+def render_market():
+    for good in market_multiplier:
+        price = current_sell_price(good)
+        pct = market_multiplier[good] * 100
+        display = document.getElementById(f"market-{good}-display")
+        display.innerText = f"{GOOD_LABEL[good]}: {price} credits/unit ({pct:.0f}% of baseline)"
+        display.className = "market-price"
+        if market_multiplier[good] < 0.7:
+            display.className += " market-price--crashed"
+        document.getElementById(f"market-{good}-bar").style.width = f"{pct:.0f}%"
+
+
 def render():
     document.getElementById("profit-display").innerText = f"Total profit: {total_profit} credits"
     document.getElementById("sale-log").innerText = sale_log[-1] if sale_log else "No sales yet."
@@ -203,6 +245,7 @@ def render():
         render_ship(ship)
     for colony_id in COLONIES:
         render_colony(colony_id)
+    render_market()
 
 
 def _make_load_handler(ship_id):
@@ -227,8 +270,10 @@ def tick(event=None):
             good, qty, profit = result
             total_profit += profit
             sale_log.append(sell_summary(good, qty, profit, ship.location))
+            apply_market_sale(good, qty)
     for colony_state in colony_states.values():
         colony_state.decay()
+    recover_market()
     render()
 
 

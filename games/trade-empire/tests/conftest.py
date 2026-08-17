@@ -24,6 +24,8 @@ for _colony_id in COLONY_IDS:
         f"colony-{_colony_id}-need-display",
         f"colony-{_colony_id}-need-bar",
     ]
+for _good in ("ore", "grain", "machinery"):
+    ELEMENT_IDS += [f"market-{_good}-display", f"market-{_good}-bar"]
 for _ship_id in SHIP_IDS:
     ELEMENT_IDS.append(f"ship-{_ship_id}-status")
     ELEMENT_IDS.append(f"ship-{_ship_id}-load-button")

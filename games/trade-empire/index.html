@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trade Empire — Milestone 3</title>
+<title>Trade Empire — Milestone 4</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
@@ -12,6 +12,16 @@
     <h1>Trade Empire</h1>
     <p class="tagline">Working title. Two ships, three colonies, and a triangle of trade — you decide who goes where.</p>
     <p class="context-blurb">Aurum Station mines Ore. Verdant Reach grows Grain. Ferrum Forge casts Machinery. Each needs what only one of the others makes — the triangle is your route map.</p>
+
+    <div id="market-panel" class="section">
+      <p class="panel-label">Market prices</p>
+      <p id="market-ore-display" class="market-price">Loading...</p>
+      <div class="meter"><div id="market-ore-bar" class="meter-fill"></div></div>
+      <p id="market-grain-display" class="market-price">Loading...</p>
+      <div class="meter"><div id="market-grain-bar" class="meter-fill"></div></div>
+      <p id="market-machinery-display" class="market-price">Loading...</p>
+      <div class="meter"><div id="market-machinery-bar" class="meter-fill"></div></div>
+    </div>
 
     <div id="colonies-panel" class="section">
       <p class="panel-label">Colonies</p>
