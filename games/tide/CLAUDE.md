@@ -32,20 +32,20 @@ You run a coastal settlement, balancing fishing/industry output against ocean he
 | 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Done |
 | 7 | Visual/UI pass + hub integration | | Done — all 7 milestones complete |
 
-## Iteration Notes
+## Iteration Notes — Pass 1 (implemented)
 
-Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`) — anticipated issues named honestly as anticipated, not observed. Once real playtesting happens, replace/supplement with an actual observation and log what changed in response.
+Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`). Anticipated issue: delayed consequence (the whole point of the game) risked reading as random or confusing rather than caused, if the fish-stock crash arrived with no visible link back to earlier acidity choices; the two meters (acidity, sea level) also risked blurring together visually.
 
-**Anticipated issue:** delayed consequence (the whole point of the game) risks reading as random or confusing rather than caused, if the fish-stock crash arrives with no visible link back to earlier acidity choices. Two meters (acidity, sea level) may also blur together visually.
+**Built in response (see `BCM114-DEV-LOG.md` 2026-08-11):** a delayed-effect ticker log narrating consequences as they build, and a visually separate sea-level meter (distinct color/position from the acidity meter).
 
-**Additions:**
-- A short running log/ticker ("Fish stocks quietly declining — rising acidity") that narrates delayed effects as they build, without fully spelling out the mechanic — enough to make cause traceable in hindsight, not enough to remove the lag as a felt experience.
-- Clear visual separation between the acidity meter and sea-level indicator (different colors/positions, not adjacent bars that read as one system).
-- A short end-of-session before/after comparison of the coastline, for the hope-angle payoff.
+**Open testing question:** the feedback prompt asks directly whether players understood *why* their fish stock declined — the clearest test of whether delayed consequence taught anything or just felt arbitrary.
 
-**Testing focus:** ask directly in the feedback prompt whether players understood *why* their fish stock declined — this is the clearest test of whether delayed consequence taught anything or just felt arbitrary.
+## Iteration Notes — Pass 2 (not yet implemented)
 
-**Cross-cutting:** every game gets one short, factual, non-lecturing context blurb naming the real-world issue — a light anchor, not narration replacing the mechanic.
+Second design-review pass, from `climate-games-iteration-pass-2.md`, building on Pass 1. **Selected addition: A (adaptation tech tree).**
+
+- **Adaptation tech tree:** seawalls and other adaptation infrastructure upgrade through tiers over the course of a session (within-run, not between sessions like Aftermath's meta-progression), with each tier requiring sustained investment and unlocking a visibly stronger dampening effect on sea-level damage. Gives adaptation spending a clearer sense of escalating payoff rather than a flat, same-effect-every-time investment.
+- **Visual polish for this pass:** each tech tier should have a distinct visual signature on the coastline tiles (e.g. a visible seawall line appearing/thickening on the tile-grid as tiers unlock), so upgrading isn't just a stat change — it's something the player can see standing between their settlement and the rising water.
 
 ## Tech notes
 

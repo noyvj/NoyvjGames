@@ -35,20 +35,21 @@ This game exists to let the player ideate and build a *system*, not just respond
 | 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Done |
 | 7 | Visual/UI pass + hub integration | This game especially benefits from a clear before/after visual of the chain (straight line vs. closed loop), worth prioritizing in the polish pass | Done — all 7 milestones complete |
 
-## Iteration Notes
+## Iteration Notes — Pass 1 (implemented)
 
-Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`) — anticipated issues named honestly as anticipated, not observed. Once real playtesting happens, replace/supplement with an actual observation and log what changed in response.
+Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`). Anticipated issue: the supply-chain-as-graph structure risked feeling like a spreadsheet rather than a game if the flow wasn't visually intuitive, and "closing the loop" risked not reading clearly without a visual legend.
 
-**Anticipated issue:** the supply-chain-as-graph structure risks feeling like a spreadsheet rather than a game if the flow isn't visually intuitive, and "closing the loop" may not read clearly without a visual legend.
+**Built in response (see `BCM114-DEV-LOG.md` 2026-08-11):** animated chain-flow particles (color-coded circular vs. linear paths), goods-flavor naming per category, and an end-of-session comparison against an illustrative real-world supply-chain circularity rate.
 
-**Additions:**
-- Literal animated flow of goods along the chain (motion along the chain-flow arrows), color-coded circular vs. linear paths so the structural difference is seen, not inferred from numbers.
-- Light flavor naming per goods category so the abstract chain feels grounded in relatable objects rather than generic "units."
-- A short comparison at session end against an illustrative "average real-world supply chain" circularity rate, for context.
+**Open testing question:** do players understand what "closing the loop" visually means without a legend or explanation? Is the environmental cost meter's link to extraction volume clear?
 
-**Testing focus:** do players understand what "closing the loop" visually means without a legend or explanation? Is the environmental cost meter's link to extraction volume clear?
+## Iteration Notes — Pass 2 (not yet implemented)
 
-**Cross-cutting:** every game gets one short, factual, non-lecturing context blurb naming the real-world issue — a light anchor, not narration replacing the mechanic.
+Second design-review pass, from `climate-games-iteration-pass-2.md`, building on Pass 1. **Selected additions: B (trade network) + C (single-item vignette).**
+
+- **Trade network:** allow the player's system to share or trade circularity capacity with a neighboring system (e.g. sending recovered materials outward, receiving reuse capacity inward), adding a light systemic/social layer to what's otherwise a self-contained chain. Keep this simple — a basic import/export of circularity capacity, not a full second economy to manage.
+- **Single-item vignette:** alongside the abstract flow-chain view, add a short, concrete side-view following one representative product (a phone, a shirt) as it moves through either a closed loop or a straight line, making the abstraction tangible for a player who might not naturally read a flow diagram.
+- **Visual polish for this pass:** the single-item vignette is itself a visual addition — treat it as a small, optional inset or a between-round cutaway, not a separate full mode, so it stays lightweight to build. The trade-network link should be visually distinct from the internal loop (a different color/line style for capacity crossing in from outside).
 
 ## Tech notes
 

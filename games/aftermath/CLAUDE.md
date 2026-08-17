@@ -30,20 +30,21 @@ Unlike the other three (all mitigation-focused), Aftermath treats climate change
 | 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Done |
 | 7 | Visual/UI pass + hub integration | | Done — all 7 milestones complete |
 
-## Iteration Notes
+## Iteration Notes — Pass 1 (implemented)
 
-Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`) — anticipated issues named honestly as anticipated, not observed. Once real playtesting happens, replace/supplement with an actual observation and log what changed in response.
+Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`). Anticipated issue: the skill tree risked feeling like abstract stat-boosting disconnected from the climate-adaptation lesson, and repeated runs risked feeling grindy rather than purposeful.
 
-**Anticipated issue:** the skill tree may feel like abstract stat-boosting disconnected from the climate-adaptation lesson, and repeated runs risk feeling grindy rather than purposeful.
+**Built in response (see `BCM114-DEV-LOG.md` 2026-08-11):** real-practice grounding text on each skill-tree unlock, and deterministic per-event severity variation (deliberately locked off on a player's first run so it doesn't undermine the existing run-comparison hope angle).
 
-**Additions:**
-- Ground each skill-tree unlock in a one-line real adaptation practice it represents (e.g., "early warning systems," "elevated infrastructure") — makes the meta-progression teach actual strategies, not just numbers going up.
-- Vary event type/severity per run so repetition doesn't feel identical each time.
-- A persistent visual for the settlement itself (looks more resilient/established as the tree unlocks) so progress is seen, not just read as a score.
+**Open testing question:** does the "look how far you've come" run-1-vs-run-5 comparison actually land? Do unlock costs feel earned rather than grindy?
 
-**Testing focus:** does the "look how far you've come" run-1-vs-run-5 comparison actually land? Do unlock costs feel earned rather than grindy?
+## Iteration Notes — Pass 2 (not yet implemented)
 
-**Cross-cutting:** every game gets one short, factual, non-lecturing context blurb naming the real-world issue — a light anchor, not narration replacing the mechanic.
+Second design-review pass, from `climate-games-iteration-pass-2.md`, building on Pass 1. **Selected additions: B (diversified event types) + C, tentative/stretch (legacy system).**
+
+- **Diversified event types:** broaden beyond weather events to include other resilience-relevant shocks (e.g. supply-chain disruption, infrastructure failure unrelated to weather) so "resilience" reads as a broader societal capacity, not just storm-proofing. Same scheduled-event structure as the core loop — additional event variety, not a new system.
+- **Legacy system (stretch — build only if time allows, after the diversified events are solid):** each completed run leaves behind a small narrative or visual trace that carries into the next run beyond the skill-tree currency — e.g. a short line of flavor text referencing what the previous run overcame, or a visual marker in the settlement referencing its history.
+- **Visual polish for this pass:** new event types should each get a distinct visual/audio signature so they're immediately distinguishable from weather events at a glance, not just a different label on the same event UI.
 
 ## Tech notes
 

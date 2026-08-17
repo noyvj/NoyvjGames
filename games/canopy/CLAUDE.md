@@ -31,20 +31,21 @@ A single forest region divided into a grid of plots. Each plot can be cleared (f
 | 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Done |
 | 7 | Visual pass + hub integration | Grid rendering, plot state icons/colors, session summary screen | Done — all 7 milestones complete |
 
-## Iteration Notes
+## Iteration Notes — Pass 1 (implemented)
 
-Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`) — anticipated issues named honestly as anticipated, not observed. Once real playtesting happens, replace/supplement with an actual observation and log what changed in response.
+Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`). Anticipated issue: the plot-grid mechanic risked feeling passive/idle without clear stakes, and soil degradation from repeated clearing risked not reading clearly without a tooltip.
 
-**Anticipated issue:** the plot-grid mechanic risks feeling passive/idle without clear stakes, and soil degradation from repeated clearing may not read clearly without a tooltip.
+**Built in response (see `BCM114-DEV-LOG.md` 2026-08-11):** a continuous plot-maturity color gradient (bare → light green recovering → deep green mature) plus a recovery-milestone flash, and a short factual context blurb referencing a real reforestation approach. Audio cue on recovery was considered and skipped — no audio system in the stack; the visual-only version shipped instead.
 
-**Additions:**
-- Color gradient per plot state (bare → light green recovering → deep green mature) so state is legible at a glance without reading numbers.
-- Light visual cue on recovery milestones (a small sparkle/glow flash) to make the hope angle felt, not just tracked. (Audio cue skipped — no audio system in the stack; visual-only version implemented.)
-- Short grounding context blurb referencing a real reforestation approach the mechanic loosely echoes.
+**Open testing question:** do players notice degradation stacking on repeatedly-cleared plots without being told? Is plot state readable at a glance across the session?
 
-**Testing focus:** do players notice degradation stacking on repeatedly-cleared plots without being told? Is plot state readable at a glance across the session?
+## Iteration Notes — Pass 2 (not yet implemented)
 
-**Cross-cutting:** every game gets one short, factual, non-lecturing context blurb naming the real-world issue — a light anchor, not narration replacing the mechanic.
+Second design-review pass, from `climate-games-iteration-pass-2.md`, building on Pass 1. **Selected additions: A (biodiversity sub-meter) + B (stakeholder tension).**
+
+- **Biodiversity sub-meter:** preserved and recovered plots accumulate a biodiversity value over time, separate from the passive economic value already tracked — represented simply (e.g. small wildlife icons appearing on well-established plots) rather than another number to read. Deepens the hope payoff: a thriving late-game forest isn't just economically valuable, it visibly has life in it.
+- **Stakeholder tension:** periodically, the player faces a plot-specific decision where local community needs (a request to clear a specific plot for housing, farming, or resources) conflict with preservation. Not a trap or a "wrong answer" mechanic — meant to introduce real ethical weighing (whose need matters, short-term vs. long-term) rather than making preservation an obviously correct default choice every time.
+- **Visual polish for this pass:** biodiversity should be legible at a glance (small animated wildlife sprites/icons on mature plots, subtle motion) without cluttering the plot grid. Stakeholder-tension moments should get a distinct visual treatment (a different UI panel or framing) so they read as a different kind of decision than routine plot management.
 
 ## Tech notes
 

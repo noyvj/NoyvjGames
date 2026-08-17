@@ -40,6 +40,13 @@ Build in this order so that if time runs out, you still have the simplest-to-mos
 - **Hub integration:** each game gets its own page/route in the existing GitHub Pages hub, linked from the main hub nav alongside SOL and Trade Empire.
 - **Milestone structure:** mirrors SOL's format — numbered milestones, each a complete checkpoint (playable state + tests passing), not time-boxed. Session length per game is not fixed; let each game be as long as its content naturally supports.
 
+## Iteration Pass 2 (2026-08-18)
+
+A second design-review pass (`climate-games-iteration-pass-2.md`) added game-specific notes to each game's own `CLAUDE.md` — see each game's "Iteration Notes — Pass 2" section for what's selected there. Two things apply across all eight games in both sets rather than to any one game:
+
+- **Explicitly out of scope this pass:** cross-game connections (a shared world-state linking Tide/Thaw/Drift, or any other hub-wide system) were considered and deliberately deferred — flagged for a later conversation about making the hub feel like one connected world rather than eight separate demos. Don't build toward that yet; keep every game self-contained for now.
+- **Visual polish, standing requirement:** every game gets a visual-polish pass as a standing requirement, not just the games with a specific visual addition called out in their own notes. At minimum: a cohesive color/style language shared across all eight so the hub reads as one project (not eight prototypes in different visual dialects), clean state transitions (fades/eases rather than instant snaps when meters move or plots change state), and a clear, legible end-of-session summary screen. Treat this as its own late-stage milestone in every game's file, after core logic is tested and working — visual polish should never come before the mechanic it's dressing up.
+
 ## Per-game files
 
 - `games/grid/grid-plan.md`

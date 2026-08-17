@@ -35,20 +35,20 @@ This game exists to simulate what happens if things continue as they are. Unlike
 | 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Done |
 | 7 | Visual/UI pass + hub integration | | Done — all 7 milestones complete |
 
-## Iteration Notes
+## Iteration Notes — Pass 1 (implemented)
 
-Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`) — anticipated issues named honestly as anticipated, not observed. Once real playtesting happens, replace/supplement with an actual observation and log what changed in response.
+Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`). Anticipated issue: this is the most doom-prone game in the hub by design (a runaway feedback loop), and the exact moment the loop "kicks in" risked being lost in a gradually rising number rather than landing as a distinct moment.
 
-**Anticipated issue:** this is the most doom-prone game in the hub by design (a runaway feedback loop), and the exact moment the loop "kicks in" risks being lost in a gradually rising number rather than landing as a distinct moment.
+**Built in response (see `BCM114-DEV-LOG.md` 2026-08-11):** a one-tick screen-flash cue at the moment the feedback loop crosses its tipping threshold. The end-of-session "no-intervention" ghost-line comparison was already substantially covered by Milestone 5's `counterfactual_temperature`/`temperature_saved` and was verified as sufficiently clear rather than rebuilt. Audio sting was considered and skipped — no audio system in the stack.
 
-**Additions:**
-- A clear visual cue at the specific moment the feedback loop crosses its tipping threshold — a screen shift/flash — so it registers as a narrative beat, not just a graph continuing to rise. (Audio sting skipped — no audio system in the stack.)
-- An end-of-session comparison against a "no-intervention" ghost line, so the hope-angle lever (regional intervention slowing the loop) is provably visible, not just asserted. (Already substantially covered by Milestone 5's `counterfactual_temperature`/`temperature_saved` — verify it's surfaced clearly enough and extend if not.)
-- Extra care on the hope-angle requirement here specifically — this game needs it more than any other in the hub.
+**Open testing question:** can players correctly identify, after a session, what caused the tipping point? Is the intervention lever discoverable without being told about it directly?
 
-**Testing focus:** can players correctly identify, after a session, what caused the tipping point? Is the intervention lever discoverable without being told about it directly?
+## Iteration Notes — Pass 2 (not yet implemented)
 
-**Cross-cutting:** every game gets one short, factual, non-lecturing context blurb naming the real-world issue — a light anchor, not narration replacing the mechanic.
+Second design-review pass, from `climate-games-iteration-pass-2.md`, building on Pass 1. **Selected addition: A (multi-region comparison).**
+
+- **Multi-region comparison:** the player manages a small handful of regions (2–3) simultaneously, each allowed a different strategy, so the feedback-loop consequences of intervention vs. neglect are visible side-by-side within a single session rather than only across separate playthroughs. Directly strengthens the hope-angle requirement flagged in Pass 1 — seeing an unmanaged region's steep curve next to a managed region's flatter one in real time is a stronger proof than an end-of-session ghost-line comparison alone.
+- **Visual polish for this pass:** each region needs its own compact, clearly labeled mini-graph, laid out so the divergence between regions is the dominant visual read of the screen — this feature only works if the comparison is immediately obvious, not something the player has to hunt for across tabs or panels.
 
 ## Tech notes
 

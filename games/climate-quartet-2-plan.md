@@ -34,6 +34,10 @@ The **hope angle still applies to all four** — see the original root doc's req
 3. **Loop** — supply-chain redesign, more systemic than a single meter
 4. **Drift** — institutional response to a long-timeline crisis; most complex, most systems-heavy
 
+## Iteration Pass 2 (2026-08-18)
+
+Same second design-review pass as the first quartet — see `climate-quartet-plan.md`'s "Iteration Pass 2" section for the two notes that apply across all eight games (deferred cross-game connections, standing visual-polish requirement). Each of this set's games has its own game-specific Pass 2 additions in its own `CLAUDE.md`.
+
 ## Per-game files
 
 - `games/herd/herd-plan.md`
