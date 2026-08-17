@@ -45,8 +45,21 @@ MIN_FISH_MULTIPLIER = 0.2
 # economic damage that rise translates into. Capped so it can never fully
 # neutralize the threat outright.
 SEA_LEVEL_RISE_PER_SEASON = 5.0
-DAMPENING_PER_ADAPTATION_UNIT = 0.08
 MAX_DAMPENING = 0.9
+
+# Iteration Pass 2 — adaptation tech tree: dampening no longer scales
+# continuously with adaptation capacity. Instead, sustained investment
+# (cumulative capacity — it never decays, so "sustained" just means
+# "keep investing") crosses thresholds that unlock discrete, stronger
+# tiers, each with its own visible coastline signature. Ordered
+# ascending by threshold; the top tier's dampening matches the old
+# MAX_DAMPENING cap so the ceiling behavior is unchanged.
+ADAPTATION_TIERS = [
+    {"threshold": 0, "name": "No adaptation", "dampening": 0.0},
+    {"threshold": 3, "name": "Sandbag berms", "dampening": 0.3},
+    {"threshold": 6, "name": "Seawalls", "dampening": 0.6},
+    {"threshold": 10, "name": "Reinforced seawalls", "dampening": MAX_DAMPENING},
+]
 
 # Coastline tile grid: row 0 is the top of the grid (highest ground, high
 # threshold, floods last); the bottom row is the lowest ground and floods
@@ -116,8 +129,30 @@ class SettlementState:
         lagged_acidity = self.acidity_history[-FISH_LAG_SEASONS]
         return max(MIN_FISH_MULTIPLIER, 1 - lagged_acidity / FISH_DAMAGE_SCALE)
 
+    def current_tier_index(self):
+        """Index into ADAPTATION_TIERS of the highest tier this
+        settlement's cumulative adaptation investment has reached."""
+        index = 0
+        for i, tier in enumerate(ADAPTATION_TIERS):
+            if self.capacity["adaptation"] >= tier["threshold"]:
+                index = i
+        return index
+
+    def current_tier(self):
+        return ADAPTATION_TIERS[self.current_tier_index()]
+
     def dampening_fraction(self):
-        return min(MAX_DAMPENING, self.capacity["adaptation"] * DAMPENING_PER_ADAPTATION_UNIT)
+        return self.current_tier()["dampening"]
+
+    def next_tier_progress_text(self):
+        tier_index = self.current_tier_index()
+        if tier_index == len(ADAPTATION_TIERS) - 1:
+            return "Reinforced seawalls — maximum adaptation tier reached."
+        next_tier = ADAPTATION_TIERS[tier_index + 1]
+        return (
+            f"{self.capacity['adaptation']}/{next_tier['threshold']} invested toward "
+            f"{next_tier['name']} (next tier)."
+        )
 
     def sea_level_fraction(self):
         """0..1 — sea level relative to the point where even the highest
@@ -215,24 +250,36 @@ def damage_trend_message(trend):
     return f"Your damage rate has held steady at {second_half_avg:.1f}/season."
 
 
+def _is_seawall_row(row_index, tier_index):
+    """The bottom `tier_index` rows carry the seawall visual — thicker
+    coverage as tiers unlock, since higher tiers mean more reinforced
+    ground closest to the water."""
+    return row_index >= COASTLINE_ROWS - tier_index
+
+
 def render_coastline():
     grid_el = document.getElementById("coastline-grid")
     grid_el.innerHTML = ""
+    tier_index = state.current_tier_index()
     for row_index, row in enumerate(coastline_grid(state.sea_level)):
         for col_index, tile_state in enumerate(row):
             tile = document.createElement("div")
             tile.id = f"coastline-tile-{row_index}-{col_index}"
             tile.className = f"coastline-tile coastline-{tile_state}"
+            if _is_seawall_row(row_index, tier_index):
+                tile.className += " coastline-seawall"
             grid_el.appendChild(tile)
 
 
-def _render_mini_coastline(container_id, sea_level):
+def _render_mini_coastline(container_id, sea_level, tier_index=0):
     grid_el = document.getElementById(container_id)
     grid_el.innerHTML = ""
-    for row in coastline_grid(sea_level):
+    for row_index, row in enumerate(coastline_grid(sea_level)):
         for tile_state in row:
             tile = document.createElement("div")
             tile.className = f"coastline-tile coastline-{tile_state}"
+            if _is_seawall_row(row_index, tier_index):
+                tile.className += " coastline-seawall"
             grid_el.appendChild(tile)
 
 
@@ -240,8 +287,8 @@ def render_coastline_comparison():
     """Iteration-pass addition: a small before/now side-by-side, so the
     hope-angle payoff (adaptation buys visibly less coastline loss) has
     a direct visual, not just the damage_saved() number."""
-    _render_mini_coastline("coastline-before-grid", 0.0)
-    _render_mini_coastline("coastline-now-grid", state.sea_level)
+    _render_mini_coastline("coastline-before-grid", 0.0, tier_index=0)
+    _render_mini_coastline("coastline-now-grid", state.sea_level, tier_index=state.current_tier_index())
     document.getElementById("coastline-now-label").innerText = f"Season {state.season}"
 
 
@@ -261,6 +308,11 @@ def render():
     )
     document.getElementById("damage-saved-display").innerText = damage_saved_message(state.damage_saved())
     document.getElementById("damage-trend-display").innerText = damage_trend_message(state.damage_trend())
+    tier = state.current_tier()
+    document.getElementById("adaptation-tier-display").innerText = (
+        f"Adaptation tier: {tier['name']} ({tier['dampening'] * 100:.0f}% damage dampening)"
+    )
+    document.getElementById("adaptation-tier-progress").innerText = state.next_tier_progress_text()
     render_coastline()
     render_coastline_comparison()
 

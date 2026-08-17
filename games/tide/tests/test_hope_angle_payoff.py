@@ -12,25 +12,25 @@ def test_damage_saved_is_zero_with_no_adaptation(game_env):
 
 
 def test_damage_saved_is_positive_with_adaptation(game_env):
-    game_env.invest("adaptation")
-    game_env.invest("adaptation")
+    for _ in range(3):  # crosses the first tier threshold
+        game_env.invest("adaptation")
     game_env.advance_season()
     assert game_env.state.damage_saved() > 0.0
 
 
 def test_damage_saved_matches_the_dampened_amount(game_env):
-    game_env.invest("adaptation")
-    game_env.invest("adaptation")  # dampening = 0.16
+    for _ in range(3):
+        game_env.invest("adaptation")  # dampening = 0.3
     game_env.advance_season()
-    assert game_env.state.damage_saved() == pytest.approx(5.0 * 0.16)
+    assert game_env.state.damage_saved() == pytest.approx(5.0 * 0.3)
 
 
 def test_damage_saved_accumulates_across_seasons(game_env):
-    game_env.invest("adaptation")
-    game_env.invest("adaptation")
+    for _ in range(3):
+        game_env.invest("adaptation")
     game_env.advance_season()
     game_env.advance_season()
-    assert game_env.state.damage_saved() == pytest.approx(2 * 5.0 * 0.16)
+    assert game_env.state.damage_saved() == pytest.approx(2 * 5.0 * 0.3)
 
 
 def test_more_adaptation_saves_more_damage(game_env):

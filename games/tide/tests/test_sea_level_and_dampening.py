@@ -33,9 +33,9 @@ def test_dampening_fraction_is_zero_with_no_adaptation(game_env):
 
 
 def test_dampening_fraction_increases_with_adaptation(game_env):
-    game_env.invest("adaptation")
-    game_env.invest("adaptation")
-    assert game_env.state.dampening_fraction() == pytest.approx(0.16)
+    for _ in range(3):  # crosses the first tier threshold (Sandbag berms)
+        game_env.invest("adaptation")
+    assert game_env.state.dampening_fraction() == pytest.approx(0.3)
 
 
 def test_dampening_fraction_caps_at_maximum(game_env):
@@ -49,10 +49,10 @@ def test_cumulative_damage_matches_full_rise_without_adaptation(game_env):
 
 
 def test_cumulative_damage_is_reduced_by_adaptation(game_env):
-    game_env.invest("adaptation")
-    game_env.invest("adaptation")  # dampening = 0.16
+    for _ in range(3):  # dampening = 0.3 (Sandbag berms tier)
+        game_env.invest("adaptation")
     game_env.advance_season()
-    assert game_env.state.cumulative_damage == pytest.approx(5.0 * (1 - 0.16))
+    assert game_env.state.cumulative_damage == pytest.approx(5.0 * (1 - 0.3))
 
 
 def test_cumulative_damage_grows_slower_with_more_adaptation(game_env):

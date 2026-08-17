@@ -22,6 +22,8 @@ ELEMENT_IDS = [
     "damage-display",
     "damage-saved-display",
     "damage-trend-display",
+    "adaptation-tier-display",
+    "adaptation-tier-progress",
     "coastline-grid",
     "sea-level-bar",
     "ticker-log",

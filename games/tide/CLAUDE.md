@@ -40,7 +40,7 @@ Design-review pass (pre-playtest, from `climate-games-iteration-pass.md`). Antic
 
 **Open testing question:** the feedback prompt asks directly whether players understood *why* their fish stock declined — the clearest test of whether delayed consequence taught anything or just felt arbitrary.
 
-## Iteration Notes — Pass 2 (not yet implemented)
+## Iteration Notes — Pass 2 (implemented)
 
 Second design-review pass, from `climate-games-iteration-pass-2.md`, building on Pass 1. **Selected addition: A (adaptation tech tree).**
 
