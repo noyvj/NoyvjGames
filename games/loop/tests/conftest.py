@@ -43,6 +43,11 @@ ELEMENT_IDS = [
     "recycle-name",
     "recycle-count",
     "recycle-invest-button",
+    "info-page-toggle-button",
+    "info-page-panel",
+    "info-page-framing",
+    "info-page-tie-in",
+    "info-page-sources",
 ]
 
 
@@ -59,6 +64,9 @@ class GameEnv:
 
     def advance_cycle(self):
         self.elements["advance-cycle-button"].dispatch("click", None)
+
+    def toggle_info_page(self):
+        self.elements["info-page-toggle-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements):

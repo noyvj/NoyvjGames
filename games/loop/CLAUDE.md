@@ -51,6 +51,22 @@ Second design-review pass, from `climate-games-iteration-pass-2.md`, building on
 - **Single-item vignette:** alongside the abstract flow-chain view, add a short, concrete side-view following one representative product (a phone, a shirt) as it moves through either a closed loop or a straight line, making the abstraction tangible for a player who might not naturally read a flow diagram.
 - **Visual polish for this pass:** the single-item vignette is itself a visual addition — treat it as a small, optional inset or a between-round cutaway, not a separate full mode, so it stays lightweight to build. The trade-network link should be visually distinct from the internal loop (a different color/line style for capacity crossing in from outside).
 
+## Info Page — real-world sources (implemented)
+
+An optional, player-triggered "The Real Story" panel — never forced mid-session, since the mechanic teaches first and this is a supplement for players who want to go deeper. Toggled via a button near the top of the page; shows a short framing paragraph (written fresh, not copied from any source), a one-line note tying the mechanic to real data, and a sources list with clickable links.
+
+**Framing:** Most of the modern economy still runs in a straight line — extract, make, use, discard — even though a genuinely circular alternative (eliminate waste, circulate materials, regenerate nature) is well-documented and already improving outcomes where it's tried. Loop's chain-visualization mechanic is a direct simplification of that real framework.
+
+**Mechanic tie-in:** Loop's three circularity investments (repair, reuse, recycling) map onto the three real circular-economy design principles this whole field is built around.
+
+**Sources:**
+1. [Ellen MacArthur Foundation — The Circular Economy: Definition & Model Explained](https://www.ellenmacarthurfoundation.org/topics/circular-economy-introduction/overview) — the standard-setting definition Loop's core mechanic directly translates.
+2. [Ellen MacArthur Foundation — Circular Economy Principles](https://www.ellenmacarthurfoundation.org/circular-economy-principles) — the three design principles that structure Loop's three circularity investments.
+3. [Mongabay — The circular economy: Sustainable solutions to solve planetary overshoot?](https://news.mongabay.com/2023/07/the-circular-economy-sustainable-solutions-to-solve-planetary-overshoot/) — accessible journalism with a concrete example for the framing paragraph.
+4. [PMC/NCBI — Waste metrics in the framework of circular economy](https://pmc.ncbi.nlm.nih.gov/articles/PMC10693739/) — a more academic treatment connecting overconsumption to circular economy metrics.
+
+All four links verified live before merging.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

@@ -255,7 +255,84 @@ def chain_flow_message(fraction):
     return f"{fraction * 100:.0f}% of the chain is looping back — {100 - fraction * 100:.0f}% still needs new extraction."
 
 
+# Info Page — optional, player-triggered supplement (never forced
+# mid-session). Framing is written fresh, not copied from any source;
+# sources are the curated real-world backing for the game's mechanics.
+INFO_PAGE = {
+    "framing": (
+        "Most of the modern economy still runs in a straight line — "
+        "extract, make, use, discard — even though a genuinely circular "
+        "alternative (eliminate waste, circulate materials, regenerate "
+        "nature) is well-documented and already improving outcomes where "
+        "it's tried. Loop's chain-visualization mechanic is a direct "
+        "simplification of that real framework."
+    ),
+    "mechanic_tie_in": (
+        "Loop's three circularity investments (repair, reuse, recycling) "
+        "map onto the three real circular-economy design principles this "
+        "whole field is built around."
+    ),
+    "sources": [
+        {
+            "label": "Ellen MacArthur Foundation — The Circular Economy: Definition & Model Explained",
+            "url": "https://www.ellenmacarthurfoundation.org/topics/circular-economy-introduction/overview",
+            "note": "The standard-setting definition of circular economy — Loop's core mechanic is a direct translation of this framework.",
+        },
+        {
+            "label": "Ellen MacArthur Foundation — Circular Economy Principles",
+            "url": "https://www.ellenmacarthurfoundation.org/circular-economy-principles",
+            "note": "Breaks circularity into three concrete design principles, structuring Loop's three types of circularity investment.",
+        },
+        {
+            "label": "Mongabay — The circular economy: Sustainable solutions to solve planetary overshoot?",
+            "url": "https://news.mongabay.com/2023/07/the-circular-economy-sustainable-solutions-to-solve-planetary-overshoot/",
+            "note": "Accessible journalism with a concrete example (recycled steel's emissions/water savings) for the framing paragraph.",
+        },
+        {
+            "label": "PMC/NCBI — Waste metrics in the framework of circular economy",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10693739/",
+            "note": "A more academic treatment connecting overconsumption directly to circular economy metrics.",
+        },
+    ],
+}
+info_page_open = False
+
+
+def render_info_page():
+    panel = document.getElementById("info-page-panel")
+    panel.hidden = not info_page_open
+    toggle_button = document.getElementById("info-page-toggle-button")
+    toggle_button.innerText = "Hide The Real Story" if info_page_open else "The Real Story"
+    if not info_page_open:
+        return
+    document.getElementById("info-page-framing").innerText = INFO_PAGE["framing"]
+    document.getElementById("info-page-tie-in").innerText = INFO_PAGE["mechanic_tie_in"]
+    list_el = document.getElementById("info-page-sources")
+    list_el.innerHTML = ""
+    for source in INFO_PAGE["sources"]:
+        item = document.createElement("li")
+        item.className = "info-page-source"
+        link = document.createElement("a")
+        link.href = source["url"]
+        link.target = "_blank"
+        link.rel = "noopener noreferrer"
+        link.innerText = source["label"]
+        item.appendChild(link)
+        note = document.createElement("p")
+        note.className = "info-page-source-note"
+        note.innerText = source["note"]
+        item.appendChild(note)
+        list_el.appendChild(item)
+
+
+def on_toggle_info_page(event=None):
+    global info_page_open
+    info_page_open = not info_page_open
+    render()
+
+
 def render():
+    render_info_page()
     fraction = chain.circular_fraction_this_cycle()
     flow_el = document.getElementById("chain-flow")
     flow_el.className = "chain-flow chain-flow--closed" if fraction >= 1.0 else "chain-flow"
@@ -351,6 +428,9 @@ def setup():
         )
     document.getElementById("trade-link-invest-button").addEventListener(
         "click", create_proxy(on_invest_trade_link)
+    )
+    document.getElementById("info-page-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_info_page)
     )
     render()
 
