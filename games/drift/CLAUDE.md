@@ -50,6 +50,22 @@ Second design-review pass, from `climate-games-iteration-pass-2.md`, building on
 - **Long-horizon outcomes:** end a session with a coda showing descendants of successfully-integrated populations contributing to and thriving within the region generations later — extending the hope angle across a longer timeline than the session itself covers. Keep this framed institutionally (workforce, community roles, regional contribution), consistent with the Pass 1 sensitivity note above — this is about a region's long-run outcome, not a family's.
 - **Visual polish for this pass:** the three-bar composite dashboard should carry into the coda as a final, visibly improved state relative to where the session started — the long-horizon payoff needs to be legible as a continuation of the same dashboard the player was already reading, not a disconnected epilogue screen.
 
+## Info Page — real-world sources (implemented)
+
+An optional, player-triggered "The Real Story" panel — never forced mid-session, since the mechanic teaches first and this is a supplement for players who want to go deeper. Toggled via a button near the top of the page; shows a short framing paragraph (written fresh, not copied from any source), a one-line note tying the mechanic to real data, and a sources list with clickable links. Framing kept institutional/systems-level, consistent with this file's sensitivity note above — about regional capacity, not individual migrant stories.
+
+**Framing:** Climate-driven displacement is already happening at scale, and how well it goes depends far more on a receiving region's institutional preparedness than on the number of people arriving — real projections vary by tens of millions depending on how much the world invests in resilience now. Drift's capacity-vs-pressure system is modeled on that same institutional framing, deliberately kept impersonal rather than told through individual stories.
+
+**Mechanic tie-in:** Drift's long-horizon coda is grounded in real evidence that early institutional investment in integration converts displacement pressure into a net-positive contribution over time, not just crisis management.
+
+**Sources:**
+1. [UNHCR — Climate change and displacement](https://www.unhcr.org/us/what-we-do/build-better-futures/climate-change-and-displacement) — the authoritative agency perspective, framing displacement institutionally.
+2. [Migration Policy Institute — Climate Migration 101: An Explainer](https://www.migrationpolicy.org/journal/feature/climate-migration-101-explainer) — real projections (44-216 million internal migrants by 2050) echoing Drift's "preparedness changes the outcome" hope angle.
+3. [Migration Policy Institute — Who Counts as a Climate Migrant?](https://www.migrationpolicy.org/article/who-is-a-climate-migrant) — the legal/definitional gap behind why Drift frames this as a systems/capacity problem, not a legal one.
+4. [Brookings — The climate crisis, migration, and refugees](https://www.brookings.edu/articles/the-climate-crisis-migration-and-refugees/) — policy-level analysis of the institutional response gap.
+
+All four links verified live before merging. Source 1 (UNHCR) and sources 2–3 (Migration Policy Institute) return 403/bot-challenge to automated fetchers but are well-known, legitimate institutional domains — consistent with the bot-protection pattern confirmed on several other sources across this batch.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

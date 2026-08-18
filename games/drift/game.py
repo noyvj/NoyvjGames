@@ -291,7 +291,89 @@ def long_horizon_coda_message(region_state):
     )
 
 
+# Info Page — optional, player-triggered supplement (never forced
+# mid-session). Framing is written fresh, not copied from any source;
+# sources are the curated real-world backing for the game's mechanics.
+# Kept institutional/systems-level per this file's sensitivity note above
+# — about regional capacity, not individual migrant stories.
+INFO_PAGE = {
+    "framing": (
+        "Climate-driven displacement is already happening at scale, and "
+        "how well it goes depends far more on a receiving region's "
+        "institutional preparedness than on the number of people "
+        "arriving — real projections vary by tens of millions depending "
+        "on how much the world invests in resilience now. Drift's "
+        "capacity-vs-pressure system is modeled on that same "
+        "institutional framing, deliberately kept impersonal rather than "
+        "told through individual stories."
+    ),
+    "mechanic_tie_in": (
+        "Drift's long-horizon coda is grounded in real evidence that "
+        "early institutional investment in integration converts "
+        "displacement pressure into a net-positive contribution over "
+        "time, not just crisis management."
+    ),
+    "sources": [
+        {
+            "label": "UNHCR — Climate change and displacement",
+            "url": "https://www.unhcr.org/us/what-we-do/build-better-futures/climate-change-and-displacement",
+            "note": "The authoritative agency perspective, framing displacement institutionally — consistent with Drift's own framing.",
+        },
+        {
+            "label": "Migration Policy Institute — Climate Migration 101: An Explainer",
+            "url": "https://www.migrationpolicy.org/journal/feature/climate-migration-101-explainer",
+            "note": "Real projections (44-216 million internal migrants by 2050) that echo Drift's \"preparedness changes the outcome\" hope angle.",
+        },
+        {
+            "label": "Migration Policy Institute — Who Counts as a Climate Migrant?",
+            "url": "https://www.migrationpolicy.org/article/who-is-a-climate-migrant",
+            "note": "Explains the legal/definitional gap behind why Drift frames this as a systems/capacity problem, not a legal one.",
+        },
+        {
+            "label": "Brookings — The climate crisis, migration, and refugees",
+            "url": "https://www.brookings.edu/articles/the-climate-crisis-migration-and-refugees/",
+            "note": "Policy-level analysis of the institutional response gap, grounding Drift's receiving-region capacity mechanic.",
+        },
+    ],
+}
+info_page_open = False
+
+
+def render_info_page():
+    panel = document.getElementById("info-page-panel")
+    panel.hidden = not info_page_open
+    toggle_button = document.getElementById("info-page-toggle-button")
+    toggle_button.innerText = "Hide The Real Story" if info_page_open else "The Real Story"
+    if not info_page_open:
+        return
+    document.getElementById("info-page-framing").innerText = INFO_PAGE["framing"]
+    document.getElementById("info-page-tie-in").innerText = INFO_PAGE["mechanic_tie_in"]
+    list_el = document.getElementById("info-page-sources")
+    list_el.innerHTML = ""
+    for source in INFO_PAGE["sources"]:
+        item = document.createElement("li")
+        item.className = "info-page-source"
+        link = document.createElement("a")
+        link.href = source["url"]
+        link.target = "_blank"
+        link.rel = "noopener noreferrer"
+        link.innerText = source["label"]
+        item.appendChild(link)
+        note = document.createElement("p")
+        note.className = "info-page-source-note"
+        note.innerText = source["note"]
+        item.appendChild(note)
+        list_el.appendChild(item)
+
+
+def on_toggle_info_page(event=None):
+    global info_page_open
+    info_page_open = not info_page_open
+    render()
+
+
 def render():
+    render_info_page()
     document.getElementById("round-display").innerText = f"Round {region.round_number}"
     document.getElementById("funds-display").innerText = f"Funds: {region.funds:.0f}"
     document.getElementById("total-capacity-display").innerText = (
@@ -401,6 +483,9 @@ def setup():
         )
     document.getElementById("coda-button").addEventListener(
         "click", create_proxy(on_toggle_coda)
+    )
+    document.getElementById("info-page-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_info_page)
     )
     render()
 

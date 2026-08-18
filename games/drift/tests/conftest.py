@@ -45,6 +45,11 @@ ELEMENT_IDS = [
     "coda-economic-health-bar",
     "coda-social-cohesion-bar",
     "coda-wellbeing-display",
+    "info-page-toggle-button",
+    "info-page-panel",
+    "info-page-framing",
+    "info-page-tie-in",
+    "info-page-sources",
 ]
 
 
@@ -64,6 +69,9 @@ class GameEnv:
 
     def toggle_coda(self):
         self.elements["coda-button"].dispatch("click", None)
+
+    def toggle_info_page(self):
+        self.elements["info-page-toggle-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements):
