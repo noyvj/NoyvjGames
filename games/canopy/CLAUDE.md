@@ -47,6 +47,22 @@ Second design-review pass, from `climate-games-iteration-pass-2.md`, building on
 - **Stakeholder tension:** periodically, the player faces a plot-specific decision where local community needs (a request to clear a specific plot for housing, farming, or resources) conflict with preservation. Not a trap or a "wrong answer" mechanic — meant to introduce real ethical weighing (whose need matters, short-term vs. long-term) rather than making preservation an obviously correct default choice every time.
 - **Visual polish for this pass:** biodiversity should be legible at a glance (small animated wildlife sprites/icons on mature plots, subtle motion) without cluttering the plot grid. Stakeholder-tension moments should get a distinct visual treatment (a different UI panel or framing) so they read as a different kind of decision than routine plot management.
 
+## Info Page — real-world sources (implemented)
+
+An optional, player-triggered "The Real Story" panel — never forced mid-session, since the mechanic teaches first and this is a supplement for players who want to go deeper. Toggled via a button near the top of the page; shows a short framing paragraph (written fresh, not copied from any source), a one-line note tying the mechanic to real data, and a sources list with clickable links.
+
+**Framing:** Standing forests are one of the world's largest active carbon sinks, and clearing them for quick income is one of the largest reversible sources of emissions — reversible because forests left alone, or given light assistance, can recover. Canopy's core tension, clear it now or let it compound, is a simplified stand-in for that real land-use tradeoff.
+
+**Mechanic tie-in:** Canopy's replant-and-recover path loosely echoes real "assisted natural regeneration" — a genuinely cost-effective restoration approach, rather than costly full replanting from scratch.
+
+**Sources:**
+1. [World Resources Institute — Forests in the IPCC Special Report on Land Use: 7 Things to Know](https://www.wri.org/insights/forests-ipcc-special-report-land-use-7-things-know) — explains why deforestation and forest carbon sinks are two sides of the same coin, mapping directly to Canopy's clear/preserve tension.
+2. [World Resources Institute — How Effective Is Land At Removing Carbon Pollution? The IPCC Weighs In](https://www.wri.org/insights/how-effective-land-removing-carbon-pollution-ipcc-weighs) — real reforestation carbon-removal potential, grounding the "replanting works, just slower" hope angle in actual IPCC figures.
+3. [UNFCCC — Land Use, Land-Use Change and Forestry (LULUCF)](https://unfccc.int/topics/land-use/workstreams/land-use--land-use-change-and-forestry-lulucf) — the formal policy framework for tracking forest carbon sinks internationally.
+4. [Climate Change Resources — Deforestation & Reforestation](https://climatechangeresources.org/learn-more/science/reforestation-deforestation/) — accessible overview with links to real reforestation organizations, for players who want to go from facts to action.
+
+All four links verified live before merging.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

@@ -31,6 +31,11 @@ ELEMENT_IDS = [
     "stakeholder-message",
     "stakeholder-grant-button",
     "stakeholder-decline-button",
+    "info-page-toggle-button",
+    "info-page-panel",
+    "info-page-framing",
+    "info-page-tie-in",
+    "info-page-sources",
 ]
 
 # Buttons that carry the `disabled` attribute in index.html's initial markup
@@ -81,6 +86,9 @@ class GameEnv:
 
     def tick(self, times=1):
         self.timers.tick_intervals(times)
+
+    def toggle_info_page(self):
+        self.elements["info-page-toggle-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements, timers):

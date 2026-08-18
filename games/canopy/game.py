@@ -396,7 +396,84 @@ def render_stakeholder_panel():
     decline_button.disabled = False
 
 
+# Info Page — optional, player-triggered supplement (never forced
+# mid-session). Framing is written fresh, not copied from any source;
+# sources are the curated real-world backing for the game's mechanics.
+INFO_PAGE = {
+    "framing": (
+        "Standing forests are one of the world's largest active carbon "
+        "sinks, and clearing them for quick income is one of the largest "
+        "reversible sources of emissions — reversible because forests "
+        "left alone, or given light assistance, can recover. Canopy's "
+        "core tension, clear it now or let it compound, is a simplified "
+        "stand-in for that real land-use tradeoff."
+    ),
+    "mechanic_tie_in": (
+        "Canopy's replant-and-recover path loosely echoes real \"assisted "
+        "natural regeneration\" — a genuinely cost-effective restoration "
+        "approach, rather than costly full replanting from scratch."
+    ),
+    "sources": [
+        {
+            "label": "World Resources Institute — Forests in the IPCC Special Report on Land Use: 7 Things to Know",
+            "url": "https://www.wri.org/insights/forests-ipcc-special-report-land-use-7-things-know",
+            "note": "Explains why deforestation and forest carbon sinks are two sides of the same coin — maps directly to Canopy's clear/preserve tension.",
+        },
+        {
+            "label": "World Resources Institute — How Effective Is Land At Removing Carbon Pollution? The IPCC Weighs In",
+            "url": "https://www.wri.org/insights/how-effective-land-removing-carbon-pollution-ipcc-weighs",
+            "note": "Real reforestation carbon-removal potential — grounds the \"replanting works, just slower\" hope angle in actual IPCC figures.",
+        },
+        {
+            "label": "UNFCCC — Land Use, Land-Use Change and Forestry (LULUCF)",
+            "url": "https://unfccc.int/topics/land-use/workstreams/land-use--land-use-change-and-forestry-lulucf",
+            "note": "The formal policy framework for tracking forest carbon sinks internationally — why Canopy treats plots as carbon-relevant assets, not scenery.",
+        },
+        {
+            "label": "Climate Change Resources — Deforestation & Reforestation",
+            "url": "https://climatechangeresources.org/learn-more/science/reforestation-deforestation/",
+            "note": "Accessible overview with links to real reforestation organizations, for players who want to go from facts to action.",
+        },
+    ],
+}
+info_page_open = False
+
+
+def render_info_page():
+    panel = document.getElementById("info-page-panel")
+    panel.hidden = not info_page_open
+    toggle_button = document.getElementById("info-page-toggle-button")
+    toggle_button.innerText = "Hide The Real Story" if info_page_open else "The Real Story"
+    if not info_page_open:
+        return
+    document.getElementById("info-page-framing").innerText = INFO_PAGE["framing"]
+    document.getElementById("info-page-tie-in").innerText = INFO_PAGE["mechanic_tie_in"]
+    list_el = document.getElementById("info-page-sources")
+    list_el.innerHTML = ""
+    for source in INFO_PAGE["sources"]:
+        item = document.createElement("li")
+        item.className = "info-page-source"
+        link = document.createElement("a")
+        link.href = source["url"]
+        link.target = "_blank"
+        link.rel = "noopener noreferrer"
+        link.innerText = source["label"]
+        item.appendChild(link)
+        note = document.createElement("p")
+        note.className = "info-page-source-note"
+        note.innerText = source["note"]
+        item.appendChild(note)
+        list_el.appendChild(item)
+
+
+def on_toggle_info_page(event=None):
+    global info_page_open
+    info_page_open = not info_page_open
+    render()
+
+
 def render():
+    render_info_page()
     render_grid()
     render_panel()
     render_stats()
@@ -452,6 +529,9 @@ def setup():
     )
     document.getElementById("stakeholder-decline-button").addEventListener(
         "click", create_proxy(decline_stakeholder_request)
+    )
+    document.getElementById("info-page-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_info_page)
     )
     setInterval(create_proxy(tick), TICK_INTERVAL_MS)
     render()
