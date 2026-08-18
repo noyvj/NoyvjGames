@@ -326,7 +326,86 @@ def progress_message(comparison):
     return f"Your run performance has held steady at {latest:.0f}."
 
 
+# Info Page — optional, player-triggered supplement (never forced
+# mid-session). Framing is written fresh, not copied from any source;
+# sources are the curated real-world backing for the game's mechanics.
+INFO_PAGE = {
+    "framing": (
+        "Adaptation — building resilience to climate impacts already "
+        "locked in — is treated by climate science and policy as its own "
+        "necessary response, not a fallback for failed mitigation. Real "
+        "communities that invested early in resilient infrastructure have "
+        "documented, measurable payoffs. Aftermath's resource-allocation "
+        "choices and its \"how far you've come\" comparison are modeled "
+        "on that same idea."
+    ),
+    "mechanic_tie_in": (
+        "The skill tree's resilience/growth split mirrors a real, "
+        "documented tradeoff facing infrastructure investment: pay up "
+        "front for resilience, or grow capacity and risk being caught "
+        "underprepared."
+    ),
+    "sources": [
+        {
+            "label": "IPCC AR6 Working Group II — Climate Change 2022: Impacts, Adaptation and Vulnerability",
+            "url": "https://www.ipcc.ch/report/ar6/wg2/",
+            "note": "The authoritative global reference on adaptation as a distinct climate response, backing Aftermath's core framing.",
+        },
+        {
+            "label": "World Resources Institute — Accelerating Climate-resilient Infrastructure Investment in China",
+            "url": "https://www.wri.org/research/accelerating-climate-resilient-infrastructure-investment-china",
+            "note": "A real resilience-infrastructure investment case study, grounding Aftermath's resource-allocation mechanic.",
+        },
+        {
+            "label": "World Resources Institute — Driving System Shifts for Climate Resilience (Bhutan, Ethiopia, Costa Rica)",
+            "url": "https://www.wri.org/research/driving-system-shifts-climate-resilience-case-studies-transformative-adaptation-bhutan",
+            "note": "Real communities' documented adaptation journeys — strong backing for the \"look how far you've come\" hope angle.",
+        },
+        {
+            "label": "EU Mission on Adaptation to Climate Change — Success Stories",
+            "url": "https://mission-adaptation-portal.ec.europa.eu/stories-0_en",
+            "note": "A running collection of real municipal adaptation wins — concrete \"this actually worked\" examples.",
+        },
+    ],
+}
+info_page_open = False
+
+
+def render_info_page():
+    panel = document.getElementById("info-page-panel")
+    panel.hidden = not info_page_open
+    toggle_button = document.getElementById("info-page-toggle-button")
+    toggle_button.innerText = "Hide The Real Story" if info_page_open else "The Real Story"
+    if not info_page_open:
+        return
+    document.getElementById("info-page-framing").innerText = INFO_PAGE["framing"]
+    document.getElementById("info-page-tie-in").innerText = INFO_PAGE["mechanic_tie_in"]
+    list_el = document.getElementById("info-page-sources")
+    list_el.innerHTML = ""
+    for source in INFO_PAGE["sources"]:
+        item = document.createElement("li")
+        item.className = "info-page-source"
+        link = document.createElement("a")
+        link.href = source["url"]
+        link.target = "_blank"
+        link.rel = "noopener noreferrer"
+        link.innerText = source["label"]
+        item.appendChild(link)
+        note = document.createElement("p")
+        note.className = "info-page-source-note"
+        note.innerText = source["note"]
+        item.appendChild(note)
+        list_el.appendChild(item)
+
+
+def on_toggle_info_page(event=None):
+    global info_page_open
+    info_page_open = not info_page_open
+    render()
+
+
 def render():
+    render_info_page()
     document.getElementById("legacy-display").innerText = legacy_message()
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
     document.getElementById("resilience-display").innerText = f"Resilience: {run.resilience_capacity}"
@@ -445,6 +524,9 @@ def setup():
         document.getElementById(f"skill-{skill_id}-unlock-button").addEventListener(
             "click", create_proxy(_make_unlock_handler(skill_id))
         )
+    document.getElementById("info-page-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_info_page)
+    )
     render()
 
 

@@ -27,6 +27,11 @@ ELEMENT_IDS = [
     "resolve-event-button",
     "new-run-button",
     "progress-comparison-display",
+    "info-page-toggle-button",
+    "info-page-panel",
+    "info-page-framing",
+    "info-page-tie-in",
+    "info-page-sources",
 ]
 for _skill in SKILL_IDS:
     ELEMENT_IDS += [
@@ -75,6 +80,9 @@ class GameEnv:
 
     def start_new_run(self):
         self.elements["new-run-button"].dispatch("click", None)
+
+    def toggle_info_page(self):
+        self.elements["info-page-toggle-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements, local_storage):

@@ -46,6 +46,22 @@ Second design-review pass, from `climate-games-iteration-pass-2.md`, building on
 - **Legacy system (stretch — build only if time allows, after the diversified events are solid):** each completed run leaves behind a small narrative or visual trace that carries into the next run beyond the skill-tree currency — e.g. a short line of flavor text referencing what the previous run overcame, or a visual marker in the settlement referencing its history.
 - **Visual polish for this pass:** new event types should each get a distinct visual/audio signature so they're immediately distinguishable from weather events at a glance, not just a different label on the same event UI.
 
+## Info Page — real-world sources (implemented)
+
+An optional, player-triggered "The Real Story" panel — never forced mid-session, since the mechanic teaches first and this is a supplement for players who want to go deeper. Toggled via a button near the top of the page; shows a short framing paragraph (written fresh, not copied from any source), a one-line note tying the mechanic to real data, and a sources list with clickable links.
+
+**Framing:** Adaptation — building resilience to climate impacts already locked in — is treated by climate science and policy as its own necessary response, not a fallback for failed mitigation. Real communities that invested early in resilient infrastructure have documented, measurable payoffs. Aftermath's resource-allocation choices and its "how far you've come" comparison are modeled on that same idea.
+
+**Mechanic tie-in:** The skill tree's resilience/growth split mirrors a real, documented tradeoff facing infrastructure investment: pay up front for resilience, or grow capacity and risk being caught underprepared.
+
+**Sources:**
+1. [IPCC AR6 Working Group II — Climate Change 2022: Impacts, Adaptation and Vulnerability](https://www.ipcc.ch/report/ar6/wg2/) — the authoritative global reference on adaptation as a distinct climate response.
+2. [World Resources Institute — Accelerating Climate-resilient Infrastructure Investment in China](https://www.wri.org/research/accelerating-climate-resilient-infrastructure-investment-china) — a real resilience-infrastructure investment case study.
+3. [World Resources Institute — Driving System Shifts for Climate Resilience (Bhutan, Ethiopia, Costa Rica)](https://www.wri.org/research/driving-system-shifts-climate-resilience-case-studies-transformative-adaptation-bhutan) — real communities' documented adaptation journeys, backing the "look how far you've come" hope angle.
+4. [EU Mission on Adaptation to Climate Change — Success Stories](https://mission-adaptation-portal.ec.europa.eu/stories-0_en) — a running collection of real municipal adaptation wins.
+
+All four links verified live before merging. Source 4's original URL (`climate-adapt.eea.europa.eu`) permanently redirected to the EU's newer Mission Adaptation Portal during verification — updated to the canonical destination above. Source 1 (IPCC) returns 403 to automated fetchers (bot-protection) but was confirmed loading correctly in a real browser.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
