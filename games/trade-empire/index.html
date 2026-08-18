@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trade Empire — Milestone 12</title>
+<title>Trade Empire — Milestone 13</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
@@ -28,11 +28,15 @@
         <span id="research-hauler-status" class="research-status">Hauler-Class Refit — +50% cargo capacity, fleet-wide</span>
         <button id="research-hauler-unlock-button" class="secondary" disabled>Loading...</button>
       </div>
+      <div class="research-row">
+        <span id="research-galaxy_expansion-status" class="research-status">Galaxy Expansion — Unlocks the Kepler Cluster</span>
+        <button id="research-galaxy_expansion-unlock-button" class="secondary" disabled>Loading...</button>
+      </div>
     </div>
 
     <div id="map-panel" class="section">
       <p class="panel-label">Trade routes</p>
-      <canvas id="map-canvas" width="300" height="300" class="map-canvas"></canvas>
+      <canvas id="map-canvas" width="460" height="300" class="map-canvas"></canvas>
       <p class="map-caption">Each colony ships to whichever other colony needs what it makes.</p>
     </div>
 
@@ -48,6 +52,14 @@
       <div class="meter"><div id="market-water-bar" class="meter-fill"></div></div>
       <p id="market-energy-display" class="market-price">Loading...</p>
       <div class="meter"><div id="market-energy-bar" class="meter-fill"></div></div>
+      <div id="expansion-market-panel" hidden>
+        <p id="market-rare_metals-display" class="market-price">Loading...</p>
+        <div class="meter"><div id="market-rare_metals-bar" class="meter-fill"></div></div>
+        <p id="market-biomass-display" class="market-price">Loading...</p>
+        <div class="meter"><div id="market-biomass-bar" class="meter-fill"></div></div>
+        <p id="market-isotopes-display" class="market-price">Loading...</p>
+        <div class="meter"><div id="market-isotopes-bar" class="meter-fill"></div></div>
+      </div>
     </div>
 
     <div id="colonies-panel" class="section">
@@ -87,6 +99,31 @@
         <div class="meter"><div id="colony-helion-need-bar" class="meter-fill"></div></div>
         <p id="colony-helion-development-display" class="colony-development">Loading...</p>
       </div>
+
+      <div id="expansion-colonies-panel" hidden>
+        <p class="panel-label">Kepler Cluster</p>
+        <div class="colony-row">
+          <p id="colony-kepler_a-name" class="colony-name">Kepler Alpha</p>
+          <p id="colony-kepler_a-flavor" class="colony-flavor"></p>
+          <p id="colony-kepler_a-need-display" class="colony-need">Loading...</p>
+          <div class="meter"><div id="colony-kepler_a-need-bar" class="meter-fill"></div></div>
+          <p id="colony-kepler_a-development-display" class="colony-development">Loading...</p>
+        </div>
+        <div class="colony-row">
+          <p id="colony-kepler_b-name" class="colony-name">Kepler Beta</p>
+          <p id="colony-kepler_b-flavor" class="colony-flavor"></p>
+          <p id="colony-kepler_b-need-display" class="colony-need">Loading...</p>
+          <div class="meter"><div id="colony-kepler_b-need-bar" class="meter-fill"></div></div>
+          <p id="colony-kepler_b-development-display" class="colony-development">Loading...</p>
+        </div>
+        <div class="colony-row">
+          <p id="colony-kepler_c-name" class="colony-name">Kepler Gamma</p>
+          <p id="colony-kepler_c-flavor" class="colony-flavor"></p>
+          <p id="colony-kepler_c-need-display" class="colony-need">Loading...</p>
+          <div class="meter"><div id="colony-kepler_c-need-bar" class="meter-fill"></div></div>
+          <p id="colony-kepler_c-development-display" class="colony-development">Loading...</p>
+        </div>
+      </div>
     </div>
 
     <div id="ship-1-panel" class="section">
@@ -102,6 +139,9 @@
         <button id="ship-1-depart-ferrum-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-1-depart-cryo-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-1-depart-helion-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-1-depart-kepler_a-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-1-depart-kepler_b-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-1-depart-kepler_c-button" class="secondary" disabled hidden>Loading...</button>
       </div>
     </div>
 
@@ -118,6 +158,9 @@
         <button id="ship-2-depart-ferrum-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-2-depart-cryo-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-2-depart-helion-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-2-depart-kepler_a-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-2-depart-kepler_b-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-2-depart-kepler_c-button" class="secondary" disabled hidden>Loading...</button>
       </div>
     </div>
 
@@ -134,6 +177,9 @@
         <button id="ship-3-depart-ferrum-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-3-depart-cryo-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-3-depart-helion-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-3-depart-kepler_a-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-3-depart-kepler_b-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-3-depart-kepler_c-button" class="secondary" disabled hidden>Loading...</button>
       </div>
     </div>
 
@@ -150,6 +196,9 @@
         <button id="ship-4-depart-ferrum-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-4-depart-cryo-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-4-depart-helion-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-4-depart-kepler_a-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-4-depart-kepler_b-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-4-depart-kepler_c-button" class="secondary" disabled hidden>Loading...</button>
       </div>
     </div>
 

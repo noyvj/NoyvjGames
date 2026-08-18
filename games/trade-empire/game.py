@@ -28,7 +28,14 @@ every good needed by exactly one colony, a single automated ship's
 route is already fixed, so "prioritization across routes" means
 letting an idle automated ship abandon its home shuttle and reposition
 empty to whichever producer feeds the fleet's most under-served
-colony, when Fleet Priority mode is switched on.
+colony, when Fleet Priority mode is switched on. Milestone 13: galaxy
+scaling — a research-gated second system, the Kepler Cluster, with its
+own self-contained three-good need-triangle (so colony_needing() and
+colony_producing() stay single-valued fleetwide) that links back to
+the home system through each Kepler colony's secondary need, once
+developed. Colony state for the cluster isn't created until the
+research unlocks it, so it never contends with the home system's
+colonies for Fleet Priority's attention beforehand.
 """
 
 import math
@@ -46,10 +53,24 @@ MACHINERY = "machinery"
 WATER = "water"
 ENERGY = "energy"
 
-GOOD_LABEL = {ORE: "Ore", GRAIN: "Grain", MACHINERY: "Machinery", WATER: "Water", ENERGY: "Energy"}
+# Milestone 13 — the Kepler Cluster's own goods, distinct from the home
+# system's five so colony_needing()/colony_producing() stay single-
+# valued across the whole galaxy without any good ever being wanted or
+# made by two colonies at once.
+RARE_METALS = "rare_metals"
+BIOMASS = "biomass"
+ISOTOPES = "isotopes"
+
+GOOD_LABEL = {
+    ORE: "Ore", GRAIN: "Grain", MACHINERY: "Machinery", WATER: "Water", ENERGY: "Energy",
+    RARE_METALS: "Rare Metals", BIOMASS: "Biomass", ISOTOPES: "Isotopes",
+}
 
 # Flat per-unit base sell price, before Milestone 4's market multiplier.
-SELL_PRICE = {ORE: 8, GRAIN: 6, MACHINERY: 10, WATER: 5, ENERGY: 9}
+SELL_PRICE = {
+    ORE: 8, GRAIN: 6, MACHINERY: 10, WATER: 5, ENERGY: 9,
+    RARE_METALS: 14, BIOMASS: 8, ISOTOPES: 18,
+}
 
 # Milestone 2: a third colony turned the fixed A<->B pair into a real
 # triangle (Aurum's ore feeds Ferrum, Ferrum's machinery feeds Verdant,
@@ -66,6 +87,23 @@ COLONIES = {
     "helion": {"name": "Helion Array", "produces": ENERGY, "needs": WATER},
 }
 
+# Milestone 13 — the Kepler Cluster: a second system, reachable only
+# once "galaxy_expansion" is researched. Its own closed three-good
+# triangle, exactly like the home system's original one, so it's fully
+# self-sufficient in isolation -- the cross-system link only appears
+# once a Kepler colony develops (see SECONDARY_NEED below).
+EXPANSION_COLONIES = {
+    "kepler_a": {"name": "Kepler Alpha", "produces": RARE_METALS, "needs": BIOMASS},
+    "kepler_b": {"name": "Kepler Beta", "produces": BIOMASS, "needs": ISOTOPES},
+    "kepler_c": {"name": "Kepler Gamma", "produces": ISOTOPES, "needs": RARE_METALS},
+}
+
+# All colony metadata, both systems -- used for lookups that must stay
+# correct regardless of what's unlocked (colony_needing(),
+# colony_producing(), labels). Which of these are actually *reachable*
+# right now is a separate question, answered by active_colony_ids().
+ALL_COLONIES = {**COLONIES, **EXPANSION_COLONIES}
+
 # Milestone 3 — minor flavor text per colony, shown in the colony panel.
 COLONY_FLAVOR = {
     "aurum": "A wind-scoured mining outpost — good ore, poor soil. Every grain shipment matters.",
@@ -73,6 +111,9 @@ COLONY_FLAVOR = {
     "ferrum": "The forges never stop, but they run on ore that has to come from somewhere else.",
     "cryo": "A frozen moon's ice reserves, tapped for water — but the pumps need power to run at all.",
     "helion": "A solar array with power to spare, and nothing to cool it but water shipped in from Cryo.",
+    "kepler_a": "A newly-charted asteroid belt rich in rare metals — reaching it took the galaxy expansion, and running it still does.",
+    "kepler_b": "Vast hydroponic vaults growing biomass for the whole cluster — an engineered ecology this far out, not a natural one.",
+    "kepler_c": "Fusion research yards refining isotopes — infrastructure that only exists this far from the core because the expansion made it worth building.",
 }
 
 # Milestone 3 — colony need system v1: each colony's need_satisfaction
@@ -104,6 +145,13 @@ SECONDARY_NEED = {
     "ferrum": ENERGY,
     "cryo": ORE,
     "helion": GRAIN,
+    # Milestone 13 — a developed Kepler colony's secondary need reaches
+    # all the way back into the home system, the same "links what was
+    # previously separate" move Milestone 9 made within one system,
+    # applied across the newly-opened distance between two.
+    "kepler_a": ENERGY,
+    "kepler_b": ORE,
+    "kepler_c": WATER,
 }
 
 # Milestone 10 — colony specialization: distinct strengths/weaknesses
@@ -134,6 +182,18 @@ SPECIALIZATION = {
     "helion": {
         "name": "Solar Titan", "output_bonus": 0.15, "decay_multiplier": 1.3,
         "description": "+15% energy output; needs decay 30% faster (nothing grows there)",
+    },
+    "kepler_a": {
+        "name": "Deep-Core Extractor", "output_bonus": 0.20, "decay_multiplier": 1.5,
+        "description": "+20% rare metals output; needs decay 50% faster (unforgiving frontier belt)",
+    },
+    "kepler_b": {
+        "name": "Hydroponic Vaults", "output_bonus": 0.15, "decay_multiplier": 1.2,
+        "description": "+15% biomass output; needs decay 20% faster (engineered, well-tended ecology)",
+    },
+    "kepler_c": {
+        "name": "Fusion Yards", "output_bonus": 0.20, "decay_multiplier": 1.4,
+        "description": "+20% isotopes output; needs decay 40% faster (high-maintenance research infrastructure)",
     },
 }
 
@@ -190,7 +250,8 @@ class ColonyState:
 # methods are just JS method calls, so no separate JS glue file is
 # needed here despite the canvas requirement). Static layout and static
 # routes for now — no moving ships until Milestone 11.
-CANVAS_SIZE = 300
+CANVAS_WIDTH = 460
+CANVAS_HEIGHT = 300
 NODE_RADIUS = 22
 NODE_POSITIONS = {
     "aurum": (150, 36),
@@ -198,6 +259,12 @@ NODE_POSITIONS = {
     "ferrum": (218, 252),
     "cryo": (82, 252),
     "helion": (38, 118),
+    # Milestone 13 — the Kepler Cluster sits in its own space on the
+    # right half of the (now wider) canvas, visually distinct from the
+    # home system's pentagon rather than crowded into it.
+    "kepler_a": (390, 50),
+    "kepler_b": (430, 190),
+    "kepler_c": (350, 230),
 }
 NODE_COLOR = "#3a5a9c"
 EDGE_COLOR = "#3a3f5c"
@@ -205,12 +272,14 @@ LABEL_COLOR = "#e8e9f0"
 
 
 def route_edges():
-    """One directed edge per colony, to whichever colony needs its
-    produced good — the same relationship colony_needing() already
-    encodes, just read as a full list for drawing."""
+    """One directed edge per *reachable* colony, to whichever colony
+    needs its produced good -- the same relationship colony_needing()
+    already encodes, just read as a full list for drawing. Scoped to
+    active_colony_ids() so a locked Kepler Cluster never contributes
+    edges pointing at nodes the map isn't drawing yet."""
     edges = []
-    for colony_id, colony in COLONIES.items():
-        destination = colony_needing(colony["produces"])
+    for colony_id in active_colony_ids():
+        destination = colony_needing(ALL_COLONIES[colony_id]["produces"])
         if destination:
             edges.append((colony_id, destination))
     return edges
@@ -247,7 +316,7 @@ def ship_map_position(ship):
 def render_map():
     canvas = document.getElementById("map-canvas")
     ctx = canvas.getContext("2d")
-    ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
 
     ctx.strokeStyle = EDGE_COLOR
     ctx.lineWidth = 2
@@ -259,7 +328,10 @@ def render_map():
         ctx.lineTo(x2, y2)
         ctx.stroke()
 
-    for colony_id, (x, y) in NODE_POSITIONS.items():
+    # Milestone 13: only draw nodes the player can actually reach right
+    # now -- a locked Kepler Cluster stays entirely off the map.
+    for colony_id in active_colony_ids():
+        x, y = NODE_POSITIONS[colony_id]
         ctx.fillStyle = NODE_COLOR
         ctx.beginPath()
         ctx.arc(x, y, NODE_RADIUS, 0, 2 * math.pi)
@@ -269,7 +341,7 @@ def render_map():
         ctx.font = "11px sans-serif"
         ctx.textAlign = "center"
         ctx.textBaseline = "middle"
-        ctx.fillText(COLONIES[colony_id]["name"].split()[0], x, y)
+        ctx.fillText(ALL_COLONIES[colony_id]["name"].split()[0], x, y)
 
     for ship in ships.values():
         x, y = ship_map_position(ship)
@@ -292,7 +364,10 @@ MARKET_PRICE_RECOVERY_PER_TICK = 0.01
 MIN_PRICE_MULTIPLIER = 0.3
 MAX_PRICE_MULTIPLIER = 1.0
 
-market_multiplier = {ORE: 1.0, GRAIN: 1.0, MACHINERY: 1.0, WATER: 1.0, ENERGY: 1.0}
+market_multiplier = {
+    ORE: 1.0, GRAIN: 1.0, MACHINERY: 1.0, WATER: 1.0, ENERGY: 1.0,
+    RARE_METALS: 1.0, BIOMASS: 1.0, ISOTOPES: 1.0,
+}
 
 
 def current_sell_price(good):
@@ -313,11 +388,16 @@ def recover_market():
 
 
 def colony_needing(good):
-    """The one colony whose need this good satisfies — every good in this
-    world is needed by exactly one colony, so there's always a single
-    unambiguous "correct" destination for a load of it. Milestone 6's
-    autopilot uses this to decide where to send itself."""
-    for colony_id, colony in COLONIES.items():
+    """The one colony whose need this good satisfies — every good in the
+    galaxy (both systems combined) is needed by exactly one colony, so
+    there's always a single unambiguous "correct" destination for a
+    load of it. Milestone 6's autopilot uses this to decide where to
+    send itself. Searches ALL_COLONIES rather than just the reachable
+    ones -- a ship can only ever be carrying a Kepler good if it's
+    already reached the Kepler Cluster, which itself requires the
+    system to be unlocked, so this never resolves to an unreachable
+    destination in practice."""
+    for colony_id, colony in ALL_COLONIES.items():
         if colony["needs"] == good:
             return colony_id
     return None
@@ -328,7 +408,7 @@ def colony_producing(good):
     Milestone 12 uses this to find where an idle automated ship should
     reposition to when repointing itself at the fleet's most urgent
     need."""
-    for colony_id, colony in COLONIES.items():
+    for colony_id, colony in ALL_COLONIES.items():
         if colony["produces"] == good:
             return colony_id
     return None
@@ -378,6 +458,12 @@ RESEARCH_NODES = {
     "hauler": {
         "cost": 30, "label": "Hauler-Class Refit", "description": "+50% cargo capacity, fleet-wide",
     },
+    # Milestone 13 — galaxy scaling: the priciest node yet, gating an
+    # entire second system rather than a fleet-wide modifier.
+    "galaxy_expansion": {
+        "cost": 80, "label": "Galaxy Expansion",
+        "description": "Unlocks the Kepler Cluster — 3 new colonies, a new need-triangle",
+    },
 }
 AUTOMATION_SLOT_RESEARCH_BONUS = 1
 FAST_SHIPS_TICK_REDUCTION = 1
@@ -385,6 +471,22 @@ HAULER_CARGO_MULTIPLIER = 1.5
 
 research_points = 0.0
 unlocked_research = set()
+
+
+def galaxy_expansion_unlocked():
+    return "galaxy_expansion" in unlocked_research
+
+
+def active_colony_ids():
+    """Every colony ID the player can currently interact with — the
+    home system always, plus the Kepler Cluster once its research node
+    is unlocked. Everything reachability-sensitive (route drawing,
+    depart-button validity, a ship's list of possible destinations)
+    is scoped to this rather than to ALL_COLONIES directly."""
+    ids = list(COLONIES)
+    if galaxy_expansion_unlocked():
+        ids += list(EXPANSION_COLONIES)
+    return ids
 
 
 def can_unlock_research(node_id):
@@ -397,6 +499,15 @@ def unlock_research(node_id):
         return False
     research_points -= RESEARCH_NODES[node_id]["cost"]
     unlocked_research.add(node_id)
+    if node_id == "galaxy_expansion":
+        # Colony state for the cluster is created only now, on unlock —
+        # not eagerly at module load like the home system's. Otherwise
+        # it would sit there decaying, unreachable, from tick one, and
+        # Milestone 12's most_urgent_colony() (which reads colony_states
+        # directly) would fixate on it forever since nothing could ever
+        # actually reach it to help.
+        for colony_id in EXPANSION_COLONIES:
+            colony_states[colony_id] = ColonyState(colony_id)
     return True
 
 
@@ -441,16 +552,16 @@ class Ship:
     def load(self):
         if not self.docked or self.loaded:
             return False
-        self.cargo_good = COLONIES[self.location]["produces"]
+        self.cargo_good = ALL_COLONIES[self.location]["produces"]
         self.cargo_qty = round(colony_states[self.location].cargo_capacity() * fleet_cargo_multiplier())
         return True
 
     def other_colonies(self):
         """Every colony this ship could plausibly be sent to right now —
-        anywhere except wherever it's currently docked."""
+        anywhere reachable except wherever it's currently docked."""
         if not self.docked:
             return []
-        return [c for c in COLONIES if c != self.location]
+        return [c for c in active_colony_ids() if c != self.location]
 
     def _begin_transit(self, destination):
         self.origin = self.location
@@ -462,7 +573,7 @@ class Ship:
     def depart(self, destination):
         if not self.docked or not self.loaded:
             return False
-        if destination == self.location or destination not in COLONIES:
+        if destination == self.location or destination not in active_colony_ids():
             return False
         self._begin_transit(destination)
         return True
@@ -477,7 +588,7 @@ class Ship:
         player."""
         if not self.docked or self.loaded:
             return False
-        if destination == self.location or destination not in COLONIES:
+        if destination == self.location or destination not in active_colony_ids():
             return False
         self._begin_transit(destination)
         return True
@@ -498,7 +609,7 @@ class Ship:
             # there's nothing to sell or deliver on arrival -- just dock.
             profit = qty * current_sell_price(good)
             dest_state = colony_states[destination]
-            if COLONIES[destination]["needs"] == good:
+            if ALL_COLONIES[destination]["needs"] == good:
                 dest_state.deliver(qty)
             elif dest_state.is_developed() and dest_state.secondary_need() == good:
                 dest_state.deliver_secondary(qty)
@@ -549,7 +660,7 @@ def run_automation():
             continue
         if not ship.loaded:
             if fleet_priority_enabled:
-                urgent_good = COLONIES[most_urgent_colony()]["needs"]
+                urgent_good = ALL_COLONIES[most_urgent_colony()]["needs"]
                 producer = colony_producing(urgent_good)
                 if producer and producer != ship.location and ship.reposition(producer):
                     continue
@@ -561,16 +672,16 @@ def run_automation():
 
 
 def sell_summary(good, qty, profit, colony_id):
-    colony_name = COLONIES[colony_id]["name"]
+    colony_name = ALL_COLONIES[colony_id]["name"]
     return f"Sold {qty} {GOOD_LABEL[good]} at {colony_name} for {profit} credits."
 
 
 def ship_status_text(ship):
     if ship.in_transit:
-        dest_name = COLONIES[ship.destination]["name"]
+        dest_name = ALL_COLONIES[ship.destination]["name"]
         prefix = "Automated — in transit" if ship.automated else "In transit"
         return f"{prefix} to {dest_name} — {ship.transit_ticks_remaining} tick(s) remaining."
-    colony = COLONIES[ship.location]
+    colony = ALL_COLONIES[ship.location]
     if ship.automated:
         return f"Automated — docked at {colony['name']}, running its route on its own."
     if ship.loaded:
@@ -585,9 +696,12 @@ def render_ship(ship):
     load_button.hidden = ship.automated
     load_button.disabled = ship.automated or not (ship.docked and not ship.loaded)
 
-    for colony_id in COLONIES:
+    reachable = active_colony_ids()
+    for colony_id in ALL_COLONIES:
         depart_button = document.getElementById(f"ship-{ship.id}-depart-{colony_id}-button")
-        applicable = ship.docked and ship.loaded and colony_id != ship.location
+        applicable = (
+            ship.docked and ship.loaded and colony_id != ship.location and colony_id in reachable
+        )
         depart_button.hidden = ship.automated or not applicable
         depart_button.disabled = ship.automated or not applicable
 
@@ -601,7 +715,7 @@ def render_ship(ship):
 
 
 def render_colony(colony_id):
-    colony = COLONIES[colony_id]
+    colony = ALL_COLONIES[colony_id]
     state = colony_states[colony_id]
     need_text = (
         f"{colony['name']}: needs {GOOD_LABEL[colony['needs']]} — "
@@ -683,9 +797,17 @@ def render():
     render_map()
     for ship in ships.values():
         render_ship(ship)
-    for colony_id in COLONIES:
+    for colony_id in colony_states:
         render_colony(colony_id)
     render_market()
+
+    # Milestone 13: the Kepler Cluster's colony rows and its goods'
+    # market rows stay hidden entirely until the expansion is unlocked
+    # -- colony_states not having an entry for them yet is what keeps
+    # render_colony() from ever being asked to render one prematurely.
+    expansion_unlocked = galaxy_expansion_unlocked()
+    document.getElementById("expansion-colonies-panel").hidden = not expansion_unlocked
+    document.getElementById("expansion-market-panel").hidden = not expansion_unlocked
 
 
 def _make_load_handler(ship_id):
@@ -739,7 +861,7 @@ def tick(event=None):
 
 
 def setup():
-    for colony_id, colony in COLONIES.items():
+    for colony_id, colony in ALL_COLONIES.items():
         document.getElementById(f"colony-{colony_id}-name").innerText = colony["name"]
         document.getElementById(f"colony-{colony_id}-flavor").innerText = COLONY_FLAVOR[colony_id]
     for ship in ships.values():
@@ -747,7 +869,7 @@ def setup():
         document.getElementById(f"ship-{ship.id}-load-button").addEventListener(
             "click", create_proxy(_make_load_handler(ship.id))
         )
-        for colony_id, colony in COLONIES.items():
+        for colony_id, colony in ALL_COLONIES.items():
             button = document.getElementById(f"ship-{ship.id}-depart-{colony_id}-button")
             button.innerText = f"Depart to {colony['name']}"
             button.addEventListener("click", create_proxy(_make_depart_handler(ship.id, colony_id)))

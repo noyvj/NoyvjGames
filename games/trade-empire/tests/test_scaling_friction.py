@@ -57,7 +57,10 @@ def test_need_system_generalizes_to_new_colonies(game_env):
 
 
 def test_market_system_generalizes_to_new_goods(game_env):
-    assert set(game_env.module.market_multiplier) == {"ore", "grain", "machinery", "water", "energy"}
+    # Milestone 13 adds the Kepler Cluster's own goods on top of these
+    # five, so check the original five are present rather than asserting
+    # an exhaustive set -- that's what this test actually cares about.
+    assert {"ore", "grain", "machinery", "water", "energy"}.issubset(game_env.module.market_multiplier)
     game_env.load(ship_id="4")
     game_env.depart("helion", ship_id="4")
     game_env.tick(game_env.module.TRAVEL_TICKS)

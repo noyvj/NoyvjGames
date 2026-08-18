@@ -11,6 +11,8 @@ GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 
 SHIP_IDS = ["1", "2", "3", "4"]
 COLONY_IDS = ["aurum", "verdant", "ferrum", "cryo", "helion"]
+EXPANSION_COLONY_IDS = ["kepler_a", "kepler_b", "kepler_c"]
+ALL_COLONY_IDS = COLONY_IDS + EXPANSION_COLONY_IDS
 
 # Statically-declared element IDs, wired up in index.html's initial markup.
 ELEMENT_IDS = [
@@ -21,10 +23,12 @@ ELEMENT_IDS = [
     "research-points-display",
     "fleet-priority-status",
     "fleet-priority-button",
+    "expansion-colonies-panel",
+    "expansion-market-panel",
 ]
-for _node_id in ("automation_slot", "fast_ships", "hauler"):
+for _node_id in ("automation_slot", "fast_ships", "hauler", "galaxy_expansion"):
     ELEMENT_IDS += [f"research-{_node_id}-status", f"research-{_node_id}-unlock-button"]
-for _colony_id in COLONY_IDS:
+for _colony_id in ALL_COLONY_IDS:
     ELEMENT_IDS += [
         f"colony-{_colony_id}-name",
         f"colony-{_colony_id}-flavor",
@@ -32,16 +36,16 @@ for _colony_id in COLONY_IDS:
         f"colony-{_colony_id}-need-bar",
         f"colony-{_colony_id}-development-display",
     ]
-for _good in ("ore", "grain", "machinery", "water", "energy"):
+for _good in ("ore", "grain", "machinery", "water", "energy", "rare_metals", "biomass", "isotopes"):
     ELEMENT_IDS += [f"market-{_good}-display", f"market-{_good}-bar"]
 for _ship_id in SHIP_IDS:
     ELEMENT_IDS.append(f"ship-{_ship_id}-status")
     ELEMENT_IDS.append(f"ship-{_ship_id}-load-button")
     ELEMENT_IDS.append(f"ship-{_ship_id}-automate-button")
-    for _colony_id in COLONY_IDS:
+    for _colony_id in ALL_COLONY_IDS:
         ELEMENT_IDS.append(f"ship-{_ship_id}-depart-{_colony_id}-button")
 
-INITIALLY_DISABLED_IDS = [f"ship-{s}-depart-{c}-button" for s in SHIP_IDS for c in COLONY_IDS]
+INITIALLY_DISABLED_IDS = [f"ship-{s}-depart-{c}-button" for s in SHIP_IDS for c in ALL_COLONY_IDS]
 
 
 class GameEnv:
