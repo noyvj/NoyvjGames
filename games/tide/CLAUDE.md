@@ -47,6 +47,22 @@ Second design-review pass, from `climate-games-iteration-pass-2.md`, building on
 - **Adaptation tech tree:** seawalls and other adaptation infrastructure upgrade through tiers over the course of a session (within-run, not between sessions like Aftermath's meta-progression), with each tier requiring sustained investment and unlocking a visibly stronger dampening effect on sea-level damage. Gives adaptation spending a clearer sense of escalating payoff rather than a flat, same-effect-every-time investment.
 - **Visual polish for this pass:** each tech tier should have a distinct visual signature on the coastline tiles (e.g. a visible seawall line appearing/thickening on the tile-grid as tiers unlock), so upgrading isn't just a stat change — it's something the player can see standing between their settlement and the rising water.
 
+## Info Page — real-world sources (implemented)
+
+An optional, player-triggered "The Real Story" panel — never forced mid-session, since the mechanic teaches first and this is a supplement for players who want to go deeper. Toggled via a button near the top of the page; shows a short framing paragraph (written fresh, not copied from any source), a one-line note tying the mechanic to real data, and a sources list with clickable links.
+
+**Framing:** Ocean acidification and sea-level rise are two separate consequences of the same underlying cause — the ocean absorbing extra CO2 and extra heat — and both show up on a delay: today's emissions determine damage that doesn't fully land for years. Tide's delayed-effect ticker and background sea-level timeline are built around that real lag.
+
+**Mechanic tie-in:** The fish-stock crash mechanic mirrors the real acidification pathway — more absorbed CO2 makes water more acidic, which is measurably harmful to shellfish and reef-building organisms first.
+
+**Sources:**
+1. [NOAA Fisheries — Understanding Ocean Acidification](https://www.fisheries.noaa.gov/insight/understanding-ocean-acidification) — the real process behind Tide's fish-stock crash.
+2. [NASA Sea Level Change Portal — Global Mean Sea Level](https://sealevel.nasa.gov/understanding-sea-level/key-indicators/global-mean-sea-level/) — real satellite-measured sea-level data, informing the pacing of Tide's background timeline.
+3. [NOAA Climate.gov — Climate Change: Global Sea Level](https://www.climate.gov/news-features/understanding-climate/climate-change-global-sea-level) — explains both causes of sea-level rise (thermal expansion + ice melt) in plain language.
+4. [Smithsonian Ocean Portal — Ocean Acidification](https://ocean.si.edu/ocean-life/invertebrates/ocean-acidification) — the most accessible explanation of the acidification chemistry.
+
+All four links verified live before merging. Source 4 (Smithsonian) returns 403 to automated fetchers (bot-protection) but is a legitimate, well-known institutional domain.
+
 ## Tech notes
 
 - Default Python/Pyodide; JS/Canvas is an explicitly pre-approved fallback for the tile-grid rendering step only (milestone 4) if needed — keep all state logic in Python either way, since that's what gets tested.

@@ -292,7 +292,84 @@ def render_coastline_comparison():
     document.getElementById("coastline-now-label").innerText = f"Season {state.season}"
 
 
+# Info Page — optional, player-triggered supplement (never forced
+# mid-session). Framing is written fresh, not copied from any source;
+# sources are the curated real-world backing for the game's mechanics.
+INFO_PAGE = {
+    "framing": (
+        "Ocean acidification and sea-level rise are two separate "
+        "consequences of the same underlying cause — the ocean absorbing "
+        "extra CO2 and extra heat — and both show up on a delay: today's "
+        "emissions determine damage that doesn't fully land for years. "
+        "Tide's delayed-effect ticker and background sea-level timeline "
+        "are built around that real lag."
+    ),
+    "mechanic_tie_in": (
+        "The fish-stock crash mechanic mirrors the real acidification "
+        "pathway — more absorbed CO2 makes water more acidic, which is "
+        "measurably harmful to shellfish and reef-building organisms first."
+    ),
+    "sources": [
+        {
+            "label": "NOAA Fisheries — Understanding Ocean Acidification",
+            "url": "https://www.fisheries.noaa.gov/insight/understanding-ocean-acidification",
+            "note": "Explains the shellfish/reef impact mechanism directly — the real process behind Tide's fish-stock crash.",
+        },
+        {
+            "label": "NASA Sea Level Change Portal — Global Mean Sea Level",
+            "url": "https://sealevel.nasa.gov/understanding-sea-level/key-indicators/global-mean-sea-level/",
+            "note": "Real satellite-measured sea-level data and rate-of-rise figures, informing the pacing of Tide's background timeline.",
+        },
+        {
+            "label": "NOAA Climate.gov — Climate Change: Global Sea Level",
+            "url": "https://www.climate.gov/news-features/understanding-climate/climate-change-global-sea-level",
+            "note": "Explains both causes of sea-level rise (thermal expansion + ice melt) in plain language.",
+        },
+        {
+            "label": "Smithsonian Ocean Portal — Ocean Acidification",
+            "url": "https://ocean.si.edu/ocean-life/invertebrates/ocean-acidification",
+            "note": "A clear, visual explanation of the acidification chemistry, most accessible of the four sources.",
+        },
+    ],
+}
+info_page_open = False
+
+
+def render_info_page():
+    panel = document.getElementById("info-page-panel")
+    panel.hidden = not info_page_open
+    toggle_button = document.getElementById("info-page-toggle-button")
+    toggle_button.innerText = "Hide The Real Story" if info_page_open else "The Real Story"
+    if not info_page_open:
+        return
+    document.getElementById("info-page-framing").innerText = INFO_PAGE["framing"]
+    document.getElementById("info-page-tie-in").innerText = INFO_PAGE["mechanic_tie_in"]
+    list_el = document.getElementById("info-page-sources")
+    list_el.innerHTML = ""
+    for source in INFO_PAGE["sources"]:
+        item = document.createElement("li")
+        item.className = "info-page-source"
+        link = document.createElement("a")
+        link.href = source["url"]
+        link.target = "_blank"
+        link.rel = "noopener noreferrer"
+        link.innerText = source["label"]
+        item.appendChild(link)
+        note = document.createElement("p")
+        note.className = "info-page-source-note"
+        note.innerText = source["note"]
+        item.appendChild(note)
+        list_el.appendChild(item)
+
+
+def on_toggle_info_page(event=None):
+    global info_page_open
+    info_page_open = not info_page_open
+    render()
+
+
 def render():
+    render_info_page()
     document.getElementById("season-display").innerText = f"Season {state.season}"
     document.getElementById("funds-display").innerText = f"Funds: {state.funds:.0f}"
     document.getElementById("acidity-display").innerText = f"Ocean acidity: {state.acidity:.1f}"
@@ -351,6 +428,9 @@ def setup():
         )
     document.getElementById("advance-season-button").addEventListener(
         "click", create_proxy(on_advance_season)
+    )
+    document.getElementById("info-page-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_info_page)
     )
     render()
 

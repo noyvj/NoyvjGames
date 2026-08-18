@@ -31,6 +31,11 @@ ELEMENT_IDS = [
     "coastline-now-grid",
     "coastline-now-label",
     "advance-season-button",
+    "info-page-toggle-button",
+    "info-page-panel",
+    "info-page-framing",
+    "info-page-tie-in",
+    "info-page-sources",
 ]
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-count", f"{_category}-invest-button"]
@@ -54,6 +59,9 @@ class GameEnv:
 
     def advance_season(self):
         self.elements["advance-season-button"].dispatch("click", None)
+
+    def toggle_info_page(self):
+        self.elements["info-page-toggle-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements):
