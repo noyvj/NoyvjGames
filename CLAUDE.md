@@ -57,14 +57,14 @@ Before ending any session where code or content changed, append one dated entry 
 | Slug | Name | Status |
 |------|------|--------|
 | sol | SOL | Milestone 11 done (Full system endgame) — all 17 milestones complete |
-| canopy | Canopy | Milestone 7 done (Visual pass + hub integration) — all 7 milestones complete, first of the BCM114 climate quartet |
-| grid | Grid | Milestone 6 done (UI/visual pass + hub integration) — all 6 milestones complete, second of the BCM114 climate quartet |
-| tide | Tide | Milestone 7 done (Visual/UI pass + hub integration) — all 7 milestones complete, third of the BCM114 climate quartet |
-| aftermath | Aftermath | Milestone 7 done (Visual/UI pass + hub integration) — all 7 milestones complete, fourth of the BCM114 climate quartet |
-| herd | Herd | Milestone 7 done (Visual/UI pass + hub integration) — all 7 milestones complete, first of the second climate-quartet set |
-| thaw | Thaw | Milestone 7 done (Visual/UI pass + hub integration) — all 7 milestones complete, second of the second climate-quartet set |
-| loop | Loop | Milestone 7 done (Visual/UI pass + hub integration) — all 7 milestones complete, third of the second climate-quartet set |
-| drift | Drift | Milestone 7 done (Visual/UI pass + hub integration) — all 7 milestones complete, fourth of the second climate-quartet set |
+| canopy | Canopy | All 7 milestones + Iteration Pass 2 + Info Page complete, first of the BCM114 climate quartet |
+| grid | Grid | All 6 milestones + Iteration Pass 2 + Info Page complete, second of the BCM114 climate quartet |
+| tide | Tide | All 7 milestones + Iteration Pass 2 + Info Page complete, third of the BCM114 climate quartet |
+| aftermath | Aftermath | All 7 milestones + Iteration Pass 2 + Info Page complete, fourth of the BCM114 climate quartet |
+| herd | Herd | All 7 milestones + Iteration Pass 2 + Info Page complete, first of the second climate-quartet set |
+| thaw | Thaw | All 7 milestones + Iteration Pass 2 + Info Page complete, second of the second climate-quartet set |
+| loop | Loop | All 7 milestones + Iteration Pass 2 + Info Page complete, third of the second climate-quartet set |
+| drift | Drift | All 7 milestones + Iteration Pass 2 + Info Page complete, fourth of the second climate-quartet set |
 | trade-empire | Trade Empire (working title) | Milestone 14 done (Endgame) — all 14 milestones complete, not yet hub-linked |
 
 ## Site-level milestones (separate from per-game milestones)

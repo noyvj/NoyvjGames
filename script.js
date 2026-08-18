@@ -2,12 +2,17 @@ const RATINGS_API_BASE = "https://noyvjgames.fastapicloud.dev";
 
 function renderSummary(widget, ratings) {
   const summary = widget.querySelector(".ratings-summary");
-  if (!ratings.length) {
+  // /ratings/{slug} also returns per-game text-feedback-prompt rows
+  // (stars: null, response: "...") alongside this widget's own star
+  // submissions — both share the same table, filtered only by game_slug.
+  // Only star rows belong in a star average.
+  const starRatings = ratings.filter((r) => typeof r.stars === "number");
+  if (!starRatings.length) {
     summary.textContent = "No reviews yet — be the first.";
     return;
   }
-  const average = ratings.reduce((sum, r) => sum + r.stars, 0) / ratings.length;
-  const count = ratings.length;
+  const average = starRatings.reduce((sum, r) => sum + r.stars, 0) / starRatings.length;
+  const count = starRatings.length;
   summary.textContent = `${average.toFixed(1)} ★ average (${count} review${count === 1 ? "" : "s"})`;
 }
 

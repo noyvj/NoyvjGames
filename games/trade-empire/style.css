@@ -267,3 +267,17 @@ button.secondary:active:not(:disabled) {
 .automate-button:active:not(:disabled) {
   background: #2e2246;
 }
+
+.hub-back-link {
+  display: inline-block;
+  margin-bottom: 0.6rem;
+  font-size: 0.85rem;
+  color: inherit;
+  opacity: 0.65;
+  text-decoration: none;
+}
+
+.hub-back-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}

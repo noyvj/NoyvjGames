@@ -1,4 +1,4 @@
-const CACHE_NAME = "site-cache-v4";
+const CACHE_NAME = "site-cache-v5";
 const PRECACHE_URLS = [
   "/",
   "/manifest.json",
@@ -8,6 +8,34 @@ const PRECACHE_URLS = [
   "/games/sol/index.html",
   "/games/sol/style.css",
   "/games/sol/game.py",
+  // Climate quartet + Info Page games (added when the precache list was
+  // discovered to have never been extended past SOL) -- Trade Empire is
+  // excluded since it isn't hub-linked yet, so no ordinary player traffic
+  // reaches it.
+  "/games/canopy/index.html",
+  "/games/canopy/style.css",
+  "/games/canopy/game.py",
+  "/games/grid/index.html",
+  "/games/grid/style.css",
+  "/games/grid/game.py",
+  "/games/tide/index.html",
+  "/games/tide/style.css",
+  "/games/tide/game.py",
+  "/games/aftermath/index.html",
+  "/games/aftermath/style.css",
+  "/games/aftermath/game.py",
+  "/games/herd/index.html",
+  "/games/herd/style.css",
+  "/games/herd/game.py",
+  "/games/thaw/index.html",
+  "/games/thaw/style.css",
+  "/games/thaw/game.py",
+  "/games/loop/index.html",
+  "/games/loop/style.css",
+  "/games/loop/game.py",
+  "/games/drift/index.html",
+  "/games/drift/style.css",
+  "/games/drift/game.py",
 ];
 
 self.addEventListener("install", (event) => {

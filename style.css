@@ -73,6 +73,14 @@ body {
   line-height: 1.4;
 }
 
+.title-card-tag {
+  font-size: 0.72rem;
+  opacity: 0.45;
+  margin: 0.5rem 0 0;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
 .review-widget {
   padding: 0 1.25rem 1.25rem;
   border-top: 1px solid #23273a;
