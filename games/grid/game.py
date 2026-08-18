@@ -371,6 +371,49 @@ RENEWABLE_UNLOCK_BLURB = (
     "prices down here."
 )
 
+# Info Page — optional, player-triggered supplement (never forced
+# mid-session). Framing is written fresh, not copied from any source;
+# sources are the curated real-world backing for the game's mechanics.
+INFO_PAGE = {
+    "framing": (
+        "Electricity generation is one of the largest single sources of "
+        "global emissions, and the fastest way to cut it is building out "
+        "cleaner capacity — not rationing power. Renewables have gotten "
+        "dramatically cheaper the more of them get built, a real economic "
+        "trend called a learning curve. That's the same tension Grid asks "
+        "you to manage: lean into that cheaper long-run path, or lean on "
+        "familiar fossil capacity."
+    ),
+    "mechanic_tie_in": (
+        "Grid's cost curve and its global-comparison line are grounded in "
+        "published wind/solar learning-rate data (roughly 15%/24% cost "
+        "decline per capacity doubling), not an invented number."
+    ),
+    "sources": [
+        {
+            "label": "IEA — Rapid rollout of clean technologies makes energy cheaper, not more costly",
+            "url": "https://www.iea.org/news/rapid-rollout-of-clean-technologies-makes-energy-cheaper-not-more-costly",
+            "note": "Real-world backing for Grid's central claim: leaning renewable is the cheaper long-run path, not a sacrifice.",
+        },
+        {
+            "label": "Oxford Institute for Energy Studies — A critical assessment of learning curves for solar and wind",
+            "url": "https://www.oxfordenergy.org/publications/a-critical-assessment-of-learning-curves-for-solar-and-wind-power-technologies/",
+            "note": "A balanced, critical look at the same cost-decline concept Grid's core mechanic is built on.",
+        },
+        {
+            "label": "US DOE / Lawrence Berkeley National Lab — Learning a Better Way To Forecast Wind and Solar Energy Costs",
+            "url": "https://www.energy.gov/cmei/solar/articles/learning-better-way-forecast-wind-and-solar-energy-costs",
+            "note": "The actual learning-rate figures (wind ~15%, solar ~24% per capacity doubling) behind Grid's cost curve.",
+        },
+        {
+            "label": "IEA — Breakthrough Agenda Report 2025: Power",
+            "url": "https://www.iea.org/reports/breakthrough-agenda-report-2025/power",
+            "note": "Current real-world electricity cost figures, grounding the global-comparison line.",
+        },
+    ],
+}
+info_page_open = False
+
 
 def _normalize_series(series, height, lo=None, hi=None):
     """Maps a series to SVG y-coordinates within [0, height]. Defaults to
@@ -447,7 +490,42 @@ def clean_trend_message(trend):
     return f"Your grid's cleanliness has held steady at {second_pct:.0f}%."
 
 
+def render_info_page():
+    panel = document.getElementById("info-page-panel")
+    panel.hidden = not info_page_open
+    toggle_button = document.getElementById("info-page-toggle-button")
+    toggle_button.innerText = "Hide The Real Story" if info_page_open else "The Real Story"
+    if not info_page_open:
+        return
+    document.getElementById("info-page-framing").innerText = INFO_PAGE["framing"]
+    tie_in_el = document.getElementById("info-page-tie-in")
+    tie_in_el.innerText = INFO_PAGE["mechanic_tie_in"]
+    list_el = document.getElementById("info-page-sources")
+    list_el.innerHTML = ""
+    for source in INFO_PAGE["sources"]:
+        item = document.createElement("li")
+        item.className = "info-page-source"
+        link = document.createElement("a")
+        link.href = source["url"]
+        link.target = "_blank"
+        link.rel = "noopener noreferrer"
+        link.innerText = source["label"]
+        item.appendChild(link)
+        note = document.createElement("p")
+        note.className = "info-page-source-note"
+        note.innerText = source["note"]
+        item.appendChild(note)
+        list_el.appendChild(item)
+
+
+def on_toggle_info_page(event=None):
+    global info_page_open
+    info_page_open = not info_page_open
+    render()
+
+
 def render():
+    render_info_page()
     document.getElementById("round-display").innerText = f"Round {state.round_number}"
     document.getElementById("demand-display").innerText = f"Demand: {state.demand}"
     document.getElementById("funds-display").innerText = f"Funds: {state.funds:.0f}"
@@ -557,6 +635,9 @@ def setup():
         )
     document.getElementById("advance-round-button").addEventListener(
         "click", create_proxy(on_advance_round)
+    )
+    document.getElementById("info-page-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_info_page)
     )
     render()
 

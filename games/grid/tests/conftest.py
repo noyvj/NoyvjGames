@@ -29,6 +29,11 @@ ELEMENT_IDS = [
     "global-comparison-message",
     "renewable-blurb",
     "advance-round-button",
+    "info-page-toggle-button",
+    "info-page-panel",
+    "info-page-framing",
+    "info-page-tie-in",
+    "info-page-sources",
 ]
 for _plant in PLANT_TYPES:
     ELEMENT_IDS += [
@@ -68,6 +73,9 @@ class GameEnv:
 
     def advance_round(self):
         self.elements["advance-round-button"].dispatch("click", None)
+
+    def toggle_info_page(self):
+        self.elements["info-page-toggle-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements):
