@@ -41,9 +41,17 @@ Same granularity as SOL's milestones — one clearly separable, demonstrable sta
 | 9 | Evolving needs v2 | Needs meaningfully change/expand as colonies develop further | Done |
 | 10 | Colony specialization | Worlds develop distinct strengths/weaknesses based on environment/history | Done |
 | 11 | Ships on the map | Automated routes render as moving dots along the map's lines | Done |
-| 12 | Fleet-level automation | Prioritization rules across many routes at once, not just per-route toggles | Pending |
+| 12 | Fleet-level automation | Prioritization rules across many routes at once, not just per-route toggles | Done |
 | 13 | Galaxy scaling | Research-gated expansion to more systems/regions | Pending |
 | 14 | Endgame | Fully automated economy visible at scale (hundreds of worlds, many ships); soft win-state, sandbox continues | Pending |
+
+## Milestone 12 implementation notes
+- Scope interpretation: with the current fixed 5-colony/5-good world, every good is needed by exactly one colony (`colony_needing()` is single-valued), so a single automated ship on its own route has no destination choice to prioritize — "prioritization across routes" only becomes meaningful at the *fleet* level. Read it as: letting an idle automated ship abandon its home shuttle and reposition empty toward whichever producer feeds the fleet's most under-served colony, rather than blindly reloading its local produce every tick.
+- `fleet_priority_enabled` is a module-level toggle, off by default, flipped by a new "Fleet Priority: OFF/ON" button. Off means Milestone 6's original automation behavior runs byte-for-byte unchanged — zero regression risk for every prior automation test.
+- New `most_urgent_colony()` (`min` by `need_satisfaction`) and `colony_producing()` (reverse of the existing `colony_needing()`) are the only new lookups needed; `run_automation()` just checks, when an automated ship is docked and empty, whether fleet priority is on and the most urgent colony's producer differs from the ship's own location — if so it repositions there instead of loading locally.
+- `Ship.depart()` was refactored to share a `_begin_transit()` helper with a new `Ship.reposition()` — reposition travels empty (no cargo required) but is only ever called from `run_automation()`'s fleet-priority branch, never from a player-facing button, so manual play still can't depart without cargo.
+- `advance_transit()` needed a real fix here, not just new code: it assumed every arrival had cargo to sell/deliver, which crashed (`KeyError` on `cargo_good=None`) the moment an empty reposition trip completed. Fixed to skip the sale/delivery branch entirely when `cargo_good` is `None`, returning no sale result — caught by a test before it ever reached the browser.
+- Verified live: enabled Fleet Priority, automated a ship sitting at a fully-fed colony, and watched it reposition empty to Aurum (the producer of Ferrum's ore, Ferrum having decayed to the fleet's most urgent need) then complete a full load → deliver → dock cycle on its own, confirmed via Ferrum's `cumulative_delivered` ticking up and the sale log.
 
 ## Milestone 11 implementation notes
 - Every ship (not just automated ones — manual play stays useful on the map too) renders as a dot each render pass, interpolated between `NODE_POSITIONS[ship.origin]` and `NODE_POSITIONS[ship.destination]` using `ship.transit_total_ticks` — a value fixed at departure time, so Fast Ships research researched mid-flight can't retroactively distort a ship that already departed under the old travel time.

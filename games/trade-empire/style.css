@@ -115,6 +115,12 @@ h1 {
   opacity: 0.6;
 }
 
+.fleet-priority-status {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  margin: 0 0 0.6rem;
+}
+
 .colony-row {
   margin-bottom: 0.75rem;
 }

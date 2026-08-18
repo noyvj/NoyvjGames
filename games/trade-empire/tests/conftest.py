@@ -19,6 +19,8 @@ ELEMENT_IDS = [
     "automation-slots-display",
     "map-canvas",
     "research-points-display",
+    "fleet-priority-status",
+    "fleet-priority-button",
 ]
 for _node_id in ("automation_slot", "fast_ships", "hauler"):
     ELEMENT_IDS += [f"research-{_node_id}-status", f"research-{_node_id}-unlock-button"]
@@ -68,6 +70,9 @@ class GameEnv:
 
     def unlock_research(self, node_id):
         self.elements[f"research-{node_id}-unlock-button"].dispatch("click", None)
+
+    def toggle_fleet_priority(self):
+        self.elements["fleet-priority-button"].dispatch("click", None)
 
     def tick(self, times=1):
         self.timers.tick_intervals(times)

@@ -23,7 +23,12 @@ environmental, non-player-chosen strength/weakness pair per colony
 it develops. Milestone 11: ships render as moving dots on the map,
 interpolated between origin and destination using each trip's own
 fixed tick count so Fast Ships research can't retroactively distort a
-ship already mid-flight.
+ship already mid-flight. Milestone 12: fleet-level automation — with
+every good needed by exactly one colony, a single automated ship's
+route is already fixed, so "prioritization across routes" means
+letting an idle automated ship abandon its home shuttle and reposition
+empty to whichever producer feeds the fleet's most under-served
+colony, when Fleet Priority mode is switched on.
 """
 
 import math
@@ -318,6 +323,17 @@ def colony_needing(good):
     return None
 
 
+def colony_producing(good):
+    """Reverse of colony_needing() — the one colony that makes this good.
+    Milestone 12 uses this to find where an idle automated ship should
+    reposition to when repointing itself at the fleet's most urgent
+    need."""
+    for colony_id, colony in COLONIES.items():
+        if colony["produces"] == good:
+            return colony_id
+    return None
+
+
 # Milestone 6 — automation v1: a limited number of ships can be bought
 # into fully autonomous operation. An automated ship loads whatever its
 # current colony produces and departs for whichever colony needs it,
@@ -326,6 +342,24 @@ def colony_needing(good):
 # fleet at once isn't free or immediate.
 AUTOMATION_COST = 150
 MAX_AUTOMATED_SHIPS = 2
+
+# Milestone 12 — fleet-level automation: off by default, so Milestone 6's
+# per-route autopilot behavior (and every test written against it) is
+# preserved exactly when the mode isn't switched on. When it is, an idle
+# automated ship stops blindly reloading its local produce and instead
+# checks whether the fleet's most under-served colony is fed by a
+# *different* producer — if so, it repositions there empty to help,
+# rather than staying tethered to its original A<->B shuttle forever.
+fleet_priority_enabled = False
+
+
+def most_urgent_colony():
+    return min(colony_states, key=lambda cid: colony_states[cid].need_satisfaction)
+
+
+def set_fleet_priority(enabled):
+    global fleet_priority_enabled
+    fleet_priority_enabled = enabled
 
 # Milestone 8 — research tree v1: a small, flat framework (no
 # prerequisites yet) gating an automation-slot expansion, a fleet-wide
@@ -418,16 +452,34 @@ class Ship:
             return []
         return [c for c in COLONIES if c != self.location]
 
-    def depart(self, destination):
-        if not self.docked or not self.loaded:
-            return False
-        if destination == self.location or destination not in COLONIES:
-            return False
+    def _begin_transit(self, destination):
         self.origin = self.location
         self.destination = destination
         self.location = None
         self.transit_total_ticks = travel_ticks()
         self.transit_ticks_remaining = self.transit_total_ticks
+
+    def depart(self, destination):
+        if not self.docked or not self.loaded:
+            return False
+        if destination == self.location or destination not in COLONIES:
+            return False
+        self._begin_transit(destination)
+        return True
+
+    def reposition(self, destination):
+        """Milestone 12: fleet-priority repositioning — an automated ship
+        travels empty to a different producer colony, abandoning its
+        current home shuttle. Unlike depart(), this doesn't require
+        cargo, but it's only ever called by run_automation() under
+        fleet-priority mode; manual play has no button that reaches it,
+        so the "must be loaded to leave" rule still holds for the
+        player."""
+        if not self.docked or self.loaded:
+            return False
+        if destination == self.location or destination not in COLONIES:
+            return False
+        self._begin_transit(destination)
         return True
 
     def advance_transit(self):
@@ -439,19 +491,24 @@ class Ship:
         if self.transit_ticks_remaining > 0:
             return None
         good, qty = self.cargo_good, self.cargo_qty
-        profit = qty * current_sell_price(good)
         destination = self.destination
-        dest_state = colony_states[destination]
-        if COLONIES[destination]["needs"] == good:
-            dest_state.deliver(qty)
-        elif dest_state.is_developed() and dest_state.secondary_need() == good:
-            dest_state.deliver_secondary(qty)
+        result = None
+        if good is not None:
+            # Milestone 12's empty reposition() trips have no cargo, so
+            # there's nothing to sell or deliver on arrival -- just dock.
+            profit = qty * current_sell_price(good)
+            dest_state = colony_states[destination]
+            if COLONIES[destination]["needs"] == good:
+                dest_state.deliver(qty)
+            elif dest_state.is_developed() and dest_state.secondary_need() == good:
+                dest_state.deliver_secondary(qty)
+            result = (good, qty, profit)
         self.location = destination
         self.origin = None
         self.destination = None
         self.cargo_good = None
         self.cargo_qty = 0
-        return (good, qty, profit)
+        return result
 
 
 ships = {
@@ -491,6 +548,11 @@ def run_automation():
         if not ship.automated or not ship.docked:
             continue
         if not ship.loaded:
+            if fleet_priority_enabled:
+                urgent_good = COLONIES[most_urgent_colony()]["needs"]
+                producer = colony_producing(urgent_good)
+                if producer and producer != ship.location and ship.reposition(producer):
+                    continue
             ship.load()
         else:
             destination = colony_needing(ship.cargo_good)
@@ -596,12 +658,27 @@ def render_research():
             unlock_button.disabled = not can_unlock_research(node_id)
 
 
+def render_fleet_priority():
+    button = document.getElementById("fleet-priority-button")
+    button.innerText = f"Fleet Priority: {'ON' if fleet_priority_enabled else 'OFF'}"
+    button.disabled = False
+    status = document.getElementById("fleet-priority-status")
+    if fleet_priority_enabled:
+        status.innerText = (
+            "Idle automated ships abandon their home shuttle and reposition empty "
+            "toward whichever producer feeds the fleet's most under-served colony."
+        )
+    else:
+        status.innerText = "Automated ships stick to their fixed shuttle route."
+
+
 def render():
     document.getElementById("profit-display").innerText = f"Total profit: {total_profit} credits"
     document.getElementById("sale-log").innerText = sale_log[-1] if sale_log else "No sales yet."
     document.getElementById("automation-slots-display").innerText = (
         f"Automation slots: {automated_ship_count()}/{max_automated_ships()} used"
     )
+    render_fleet_priority()
     render_research()
     render_map()
     for ship in ships.values():
@@ -637,6 +714,11 @@ def _make_research_handler(node_id):
         unlock_research(node_id)
         render()
     return handler
+
+
+def _fleet_priority_toggle_handler(event=None):
+    set_fleet_priority(not fleet_priority_enabled)
+    render()
 
 
 def tick(event=None):
@@ -676,6 +758,9 @@ def setup():
         document.getElementById(f"research-{node_id}-unlock-button").addEventListener(
             "click", create_proxy(_make_research_handler(node_id))
         )
+    document.getElementById("fleet-priority-button").addEventListener(
+        "click", create_proxy(_fleet_priority_toggle_handler)
+    )
     setInterval(create_proxy(tick), TICK_INTERVAL_MS)
     render()
 
