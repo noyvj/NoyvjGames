@@ -180,7 +180,80 @@ def coupling_gauge_svg(fraction):
     )
 
 
+# Info Page — optional, player-triggered supplement (never forced
+# mid-session). Framing is written fresh, not copied from any source;
+# sources are the curated real-world backing for the game's mechanics.
+INFO_PAGE = {
+    "framing": (
+        "Livestock digestion is a major, distinct source of methane — a "
+        "gas that traps far more heat than CO2 in the short term, but "
+        "also breaks down faster, which makes reducing it one of the "
+        "fastest-acting climate levers available. Herd's coupling gauge "
+        "and its plant-based pivot are built around that real reduction "
+        "pathway."
+    ),
+    "mechanic_tie_in": (
+        "Herd's plant-based pivot mechanic is grounded in a real "
+        "documented case — a roughly 42% methane-intensity reduction "
+        "achieved through better farm practices — showing decoupling "
+        "herd size from methane is achievable, not hypothetical."
+    ),
+    "sources": [
+        {
+            "label": "FAO — Livestock and enteric methane",
+            "url": "https://www.fao.org/in-action/enteric-methane/en",
+            "note": "The definitive real-world figures behind Herd's core mechanic — agriculture's share of methane emissions and where it comes from.",
+        },
+        {
+            "label": "Clean Air Task Force — Accelerating climate solutions in agriculture",
+            "url": "https://www.catf.us/2024/10/accelerating-climate-solutions-agriculture-why-reducing-methane-livestock-urgent-opportunity/",
+            "note": "Documents a real ~42% methane-intensity reduction from better farm practices — directly supports Herd's decoupling hope angle.",
+        },
+        {
+            "label": "US EPA — Agriculture and Aquaculture: Food for Thought",
+            "url": "https://www.epa.gov/snep/agriculture-and-aquaculture-food-thought",
+            "note": "Explains why methane's short-lived-but-potent warming profile makes it a distinct lever from CO2.",
+        },
+    ],
+}
+info_page_open = False
+
+
+def render_info_page():
+    panel = document.getElementById("info-page-panel")
+    panel.hidden = not info_page_open
+    toggle_button = document.getElementById("info-page-toggle-button")
+    toggle_button.innerText = "Hide The Real Story" if info_page_open else "The Real Story"
+    if not info_page_open:
+        return
+    document.getElementById("info-page-framing").innerText = INFO_PAGE["framing"]
+    document.getElementById("info-page-tie-in").innerText = INFO_PAGE["mechanic_tie_in"]
+    list_el = document.getElementById("info-page-sources")
+    list_el.innerHTML = ""
+    for source in INFO_PAGE["sources"]:
+        item = document.createElement("li")
+        item.className = "info-page-source"
+        link = document.createElement("a")
+        link.href = source["url"]
+        link.target = "_blank"
+        link.rel = "noopener noreferrer"
+        link.innerText = source["label"]
+        item.appendChild(link)
+        note = document.createElement("p")
+        note.className = "info-page-source-note"
+        note.innerText = source["note"]
+        item.appendChild(note)
+        list_el.appendChild(item)
+
+
+def on_toggle_info_page(event=None):
+    global info_page_open
+    info_page_open = not info_page_open
+    render()
+
+
 def render():
+    render_info_page()
     coupling_fraction = farm.coupling_ratio() / BASE_COUPLING_RATIO
     document.getElementById("coupling-gauge").innerHTML = coupling_gauge_svg(coupling_fraction)
     document.getElementById("coupling-gauge-label").innerText = (
@@ -269,6 +342,9 @@ def setup():
         )
     document.getElementById("plant-pivot-invest-button").addEventListener(
         "click", create_proxy(on_invest_plant_pivot)
+    )
+    document.getElementById("info-page-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_info_page)
     )
     render()
 

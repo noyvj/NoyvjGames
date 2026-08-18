@@ -29,6 +29,11 @@ ELEMENT_IDS = [
     "plant-pivot-display",
     "plant-pivot-count",
     "plant-pivot-invest-button",
+    "info-page-toggle-button",
+    "info-page-panel",
+    "info-page-framing",
+    "info-page-tie-in",
+    "info-page-sources",
 ]
 for _measure in MEASURE_IDS:
     ELEMENT_IDS += [f"{_measure}-name", f"{_measure}-count", f"{_measure}-invest-button"]
@@ -54,6 +59,9 @@ class GameEnv:
 
     def advance_round(self):
         self.elements["advance-round-button"].dispatch("click", None)
+
+    def toggle_info_page(self):
+        self.elements["info-page-toggle-button"].dispatch("click", None)
 
     def invest_decoupling(self, measure):
         self.elements[f"{measure}-invest-button"].dispatch("click", None)
