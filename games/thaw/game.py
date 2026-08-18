@@ -224,7 +224,85 @@ def render_secondary_region(prefix, r):
         invest_button.disabled = r.funds < INVEST_COST[category]
 
 
+# Info Page — optional, player-triggered supplement (never forced
+# mid-session). Framing is written fresh, not copied from any source;
+# sources are the curated real-world backing for the game's mechanics.
+INFO_PAGE = {
+    "framing": (
+        "Arctic permafrost holds thousands of years of stored carbon and "
+        "methane, and as it thaws that store starts releasing — a "
+        "feedback loop where warming causes more warming. But real "
+        "climate scientists describe it as a dimmer switch, not an "
+        "on/off switch: every bit of avoided warming keeps more "
+        "permafrost frozen. That framing is the backbone of Thaw's whole "
+        "design."
+    ),
+    "mechanic_tie_in": (
+        "Thaw's tipping-point moment is grounded in real observed "
+        "evidence of accelerating Arctic methane emissions, not a purely "
+        "speculative mechanic."
+    ),
+    "sources": [
+        {
+            "label": "MIT Climate Portal — Is methane release from the Arctic unstoppable?",
+            "url": "https://climate.mit.edu/ask-mit/methane-release-arctic-unstoppable",
+            "note": "The clearest source for Thaw's hope angle — frames the feedback loop as a dimmer switch, not an on/off switch.",
+        },
+        {
+            "label": "Nature Climate Change — Seasonal increase of methane emissions linked to warming in Siberian tundra",
+            "url": "https://www.nature.com/articles/s41558-022-01512-4",
+            "note": "Real observational evidence (not just modeling) of the feedback loop already measurably happening.",
+        },
+        {
+            "label": "WWF Arctic — Thawing permafrost",
+            "url": "https://www.arcticwwf.org/the-circle/stories/thawing-permafrost/",
+            "note": "An accessible explainer connecting permafrost thaw to real Arctic communities' lived experience.",
+        },
+        {
+            "label": "PMC/NCBI — 21st-century modeled permafrost carbon emissions accelerated by abrupt thaw beneath lakes",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6093858/",
+            "note": "A more technical source on abrupt (not just gradual) thaw mechanisms, tying to Thaw's tipping-point moment.",
+        },
+    ],
+}
+info_page_open = False
+
+
+def render_info_page():
+    panel = document.getElementById("info-page-panel")
+    panel.hidden = not info_page_open
+    toggle_button = document.getElementById("info-page-toggle-button")
+    toggle_button.innerText = "Hide The Real Story" if info_page_open else "The Real Story"
+    if not info_page_open:
+        return
+    document.getElementById("info-page-framing").innerText = INFO_PAGE["framing"]
+    document.getElementById("info-page-tie-in").innerText = INFO_PAGE["mechanic_tie_in"]
+    list_el = document.getElementById("info-page-sources")
+    list_el.innerHTML = ""
+    for source in INFO_PAGE["sources"]:
+        item = document.createElement("li")
+        item.className = "info-page-source"
+        link = document.createElement("a")
+        link.href = source["url"]
+        link.target = "_blank"
+        link.rel = "noopener noreferrer"
+        link.innerText = source["label"]
+        item.appendChild(link)
+        note = document.createElement("p")
+        note.className = "info-page-source-note"
+        note.innerText = source["note"]
+        item.appendChild(note)
+        list_el.appendChild(item)
+
+
+def on_toggle_info_page(event=None):
+    global info_page_open
+    info_page_open = not info_page_open
+    render()
+
+
 def render():
+    render_info_page()
     document.getElementById("round-display").innerText = f"Round {region.round_number}"
     document.getElementById("funds-display").innerText = f"Funds: {region.funds:.0f}"
     document.getElementById("temperature-display").innerText = (
@@ -309,6 +387,9 @@ def setup():
             )
     document.getElementById("advance-round-button").addEventListener(
         "click", create_proxy(on_advance_round)
+    )
+    document.getElementById("info-page-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_info_page)
     )
     render()
 

@@ -50,6 +50,22 @@ Second design-review pass, from `climate-games-iteration-pass-2.md`, building on
 - **Multi-region comparison:** the player manages a small handful of regions (2–3) simultaneously, each allowed a different strategy, so the feedback-loop consequences of intervention vs. neglect are visible side-by-side within a single session rather than only across separate playthroughs. Directly strengthens the hope-angle requirement flagged in Pass 1 — seeing an unmanaged region's steep curve next to a managed region's flatter one in real time is a stronger proof than an end-of-session ghost-line comparison alone.
 - **Visual polish for this pass:** each region needs its own compact, clearly labeled mini-graph, laid out so the divergence between regions is the dominant visual read of the screen — this feature only works if the comparison is immediately obvious, not something the player has to hunt for across tabs or panels.
 
+## Info Page — real-world sources (implemented)
+
+An optional, player-triggered "The Real Story" panel — never forced mid-session, since the mechanic teaches first and this is a supplement for players who want to go deeper. Toggled via a button near the top of the page; shows a short framing paragraph (written fresh, not copied from any source), a one-line note tying the mechanic to real data, and a sources list with clickable links.
+
+**Framing:** Arctic permafrost holds thousands of years of stored carbon and methane, and as it thaws that store starts releasing — a feedback loop where warming causes more warming. But real climate scientists describe it as a dimmer switch, not an on/off switch: every bit of avoided warming keeps more permafrost frozen. That framing is the backbone of Thaw's whole design.
+
+**Mechanic tie-in:** Thaw's tipping-point moment is grounded in real observed evidence of accelerating Arctic methane emissions, not a purely speculative mechanic.
+
+**Sources:**
+1. [MIT Climate Portal — Is methane release from the Arctic unstoppable?](https://climate.mit.edu/ask-mit/methane-release-arctic-unstoppable) — the clearest source for Thaw's hope angle: the feedback loop as a dimmer switch, not an on/off switch.
+2. [Nature Climate Change — Seasonal increase of methane emissions linked to warming in Siberian tundra](https://www.nature.com/articles/s41558-022-01512-4) — real observational evidence of the feedback loop already measurably happening.
+3. [WWF Arctic — Thawing permafrost](https://www.arcticwwf.org/the-circle/stories/thawing-permafrost/) — accessible explainer connecting permafrost thaw to real Arctic communities' lived experience.
+4. [PMC/NCBI — 21st-century modeled permafrost carbon emissions accelerated by abrupt thaw beneath lakes](https://pmc.ncbi.nlm.nih.gov/articles/PMC6093858/) — a more technical source on abrupt thaw mechanisms, tying to Thaw's tipping-point moment.
+
+All four links verified live before merging. Source 1 (MIT) returns 403 to automated fetchers (bot-protection) but was confirmed loading correctly, with a matching page title, in a real browser. Source 4's URL was updated to NCBI's current canonical domain (`pmc.ncbi.nlm.nih.gov`) after the original `ncbi.nlm.nih.gov/pmc` address redirected there.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
