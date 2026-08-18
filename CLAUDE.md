@@ -65,7 +65,7 @@ Before ending any session where code or content changed, append one dated entry 
 | thaw | Thaw | Milestone 7 done (Visual/UI pass + hub integration) — all 7 milestones complete, second of the second climate-quartet set |
 | loop | Loop | Milestone 7 done (Visual/UI pass + hub integration) — all 7 milestones complete, third of the second climate-quartet set |
 | drift | Drift | Milestone 7 done (Visual/UI pass + hub integration) — all 7 milestones complete, fourth of the second climate-quartet set |
-| trade-empire | Trade Empire (working title) | Milestone 1 done (Core loop) — 1 of 14 milestones complete, not yet hub-linked |
+| trade-empire | Trade Empire (working title) | Milestone 14 done (Endgame) — all 14 milestones complete, not yet hub-linked |
 
 ## Site-level milestones (separate from per-game milestones)
 | # | Milestone | Status |

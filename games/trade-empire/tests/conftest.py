@@ -25,6 +25,9 @@ ELEMENT_IDS = [
     "fleet-priority-button",
     "expansion-colonies-panel",
     "expansion-market-panel",
+    "endgame-panel",
+    "endgame-message-display",
+    "endgame-worlds-display",
 ]
 for _node_id in ("automation_slot", "fast_ships", "hauler", "galaxy_expansion"):
     ELEMENT_IDS += [f"research-{_node_id}-status", f"research-{_node_id}-unlock-button"]

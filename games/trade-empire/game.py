@@ -35,7 +35,13 @@ colony_producing() stay single-valued fleetwide) that links back to
 the home system through each Kepler colony's secondary need, once
 developed. Colony state for the cluster isn't created until the
 research unlocks it, so it never contends with the home system's
-colonies for Fleet Priority's attention beforehand.
+colonies for Fleet Priority's attention beforehand. Milestone 14:
+endgame — reaching a fully automated fleet, Fleet Priority, and the
+Kepler Cluster all at once is treated as a soft win-state: the pattern
+the player built is narrated as spreading to a growing, abstracted
+background galaxy (hundreds of worlds by design, not hundreds of
+individually simulated colonies -- a deliberate scope cut) that
+trickles in passive revenue. The sandbox itself never ends or locks.
 """
 
 import math
@@ -671,6 +677,46 @@ def run_automation():
                 ship.depart(destination)
 
 
+# Milestone 14 — endgame: a soft win-state, not a stopping point. Once
+# the fleet is fully automated, Fleet Priority is switched on, and the
+# Kepler Cluster is unlocked, the player has built exactly what the
+# game's whole arc was pointing at -- a self-running, multi-system
+# economy. Rather than literally simulating "hundreds of worlds" as
+# real per-colony DOM/state (impractical, and not actually more
+# meaningful to look at than a handful of well-simulated ones), that
+# scale is narrated as an abstracted, ever-growing background galaxy
+# that the player's own pattern has visibly spread to -- a deliberate,
+# documented scope cut in favor of a satisfying number over a hollow
+# multiplication of unreachable colonies.
+ENDGAME_BACKGROUND_WORLD_CAP = 500
+ENDGAME_BACKGROUND_WORLDS_PER_TICK = 2
+ENDGAME_BACKGROUND_REVENUE_PER_WORLD = 0.4
+
+endgame_reached = False
+ticks_since_endgame = 0
+
+
+def endgame_criteria_met():
+    """"Fully automated fleet" means every automation slot the player
+    has unlocked is filled, not literally every ship -- the automation
+    slot cap (currently 2, or 3 with its own research node) is well
+    below the 4-ship roster, so requiring all 4 would make this
+    unreachable."""
+    return (
+        automated_ship_count() >= max_automated_ships()
+        and fleet_priority_enabled
+        and galaxy_expansion_unlocked()
+    )
+
+
+def background_world_count():
+    return min(ENDGAME_BACKGROUND_WORLD_CAP, ENDGAME_BACKGROUND_WORLDS_PER_TICK * ticks_since_endgame)
+
+
+def background_revenue_this_tick():
+    return round(background_world_count() * ENDGAME_BACKGROUND_REVENUE_PER_WORLD)
+
+
 def sell_summary(good, qty, profit, colony_id):
     colony_name = ALL_COLONIES[colony_id]["name"]
     return f"Sold {qty} {GOOD_LABEL[good]} at {colony_name} for {profit} credits."
@@ -786,6 +832,24 @@ def render_fleet_priority():
         status.innerText = "Automated ships stick to their fixed shuttle route."
 
 
+def render_endgame():
+    panel = document.getElementById("endgame-panel")
+    panel.hidden = not endgame_reached
+    if not endgame_reached:
+        return
+    worlds = background_world_count()
+    document.getElementById("endgame-message-display").innerText = (
+        "A fully automated fleet, running on Fleet Priority, spanning two systems — "
+        "the pattern you built is spreading. This is a soft finish line, not a stop: "
+        "the sandbox keeps running for as long as you want to keep watching it."
+    )
+    document.getElementById("endgame-worlds-display").innerText = (
+        f"{worlds:,} worlds beyond your own fleet have adopted the pattern, trading "
+        f"quietly among themselves — {background_revenue_this_tick()} credits/tick "
+        f"in background revenue."
+    )
+
+
 def render():
     document.getElementById("profit-display").innerText = f"Total profit: {total_profit} credits"
     document.getElementById("sale-log").innerText = sale_log[-1] if sale_log else "No sales yet."
@@ -793,6 +857,7 @@ def render():
         f"Automation slots: {automated_ship_count()}/{max_automated_ships()} used"
     )
     render_fleet_priority()
+    render_endgame()
     render_research()
     render_map()
     for ship in ships.values():
@@ -857,6 +922,14 @@ def tick(event=None):
     for colony_state in colony_states.values():
         colony_state.decay()
     recover_market()
+
+    global endgame_reached, ticks_since_endgame
+    if not endgame_reached and endgame_criteria_met():
+        endgame_reached = True
+    if endgame_reached:
+        ticks_since_endgame += 1
+        total_profit += background_revenue_this_tick()
+
     render()
 
 
