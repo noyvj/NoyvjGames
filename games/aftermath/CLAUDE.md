@@ -46,6 +46,14 @@ Second design-review pass, from `climate-games-iteration-pass-2.md`, building on
 - **Legacy system (stretch — build only if time allows, after the diversified events are solid):** each completed run leaves behind a small narrative or visual trace that carries into the next run beyond the skill-tree currency — e.g. a short line of flavor text referencing what the previous run overcame, or a visual marker in the settlement referencing its history.
 - **Visual polish for this pass:** new event types should each get a distinct visual/audio signature so they're immediately distinguishable from weather events at a glance, not just a different label on the same event UI.
 
+## Iteration Notes — Pass 3 (Fun/Teaching Balance)
+
+Third design-review pass, from `climate-games-fun-teaching-balance.md`. **Risk:** repeated runs risk sliding into boredom if the skill tree makes the player meaningfully stronger while event difficulty stays flat — skill outpacing challenge is the textbook flow-boredom failure mode. Aftermath's skill tree only ever made runs easier (starting resources, starting resilience, flat mitigation) while the Pass-2 event schedule's severity variation had no relationship to how much the player had invested.
+
+**Built in response:** event-severity variation now widens with the player's accumulated skill-tree strength (`skill_tree_strength()`, the count of unlocked resilience skills). The variation band stays centered on 1.0 — a stronger skill tree isn't punished, and the run-1-vs-latest-run hope-angle comparison stays meaningful — but the spread grows per unlocked skill (`SEVERITY_VARIATION_RANGE_PER_SKILL`), so a fully-invested run can hit both milder lows and notably harsher highs than a skill-strength-zero run ever sees. This is difficulty-curve tuning on the existing severity-selection function from Pass 1/2, not a new mechanic: same event schedule, same event types, wider unpredictability at the high end of investment so a maxed-out skill tree still has to react to something, not just execute an already-solved run.
+
+Deliberately scoped narrow: only the severity-variation function changed. Event *type* selection and the fixed `EVENT_SCHEDULE` order/length were left untouched, since extending or reordering the schedule per skill level risked breaking run-length assumptions baked into the existing Milestone 4/5 tests (and, per Pass 1's existing rule, run 1 still gets flat severity regardless of skill strength — the very first run is unaffected by this change).
+
 ## Info Page — real-world sources (implemented)
 
 An optional, player-triggered "The Real Story" panel — never forced mid-session, since the mechanic teaches first and this is a supplement for players who want to go deeper. Toggled via a button near the top of the page; shows a short framing paragraph (written fresh, not copied from any source), a one-line note tying the mechanic to real data, and a sources list with clickable links.

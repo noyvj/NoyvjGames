@@ -77,12 +77,36 @@ EVENT_CATEGORY = {
 SEVERITY_VARIATION_MIN = 0.85
 SEVERITY_VARIATION_MAX = 1.15
 
+# Iteration Pass 3 (fun/teaching-balance) — a skill tree that only makes
+# the player stronger while events stay flat is the textbook
+# flow-boredom failure mode, so the severity spread widens symmetrically
+# around the same 1.0 center for each resilience skill the player has
+# unlocked overall. Center stays fixed (this isn't "the game punishes
+# you for upgrading" — the hope-angle comparison must stay meaningful),
+# but the ceiling a stronger skill tree can face rises right along with
+# the floor it can catch, so a fully-invested run still gets asked
+# something a first run never sees, instead of becoming a rote replay
+# of an already-solved strategy.
+SEVERITY_VARIATION_RANGE_PER_SKILL = 0.05
 
-def event_severity(run_number, event_index):
+
+def skill_tree_strength():
+    """How many resilience skills are unlocked overall — the signal Pass
+    3 uses to widen event-severity variation so a stronger skill tree
+    keeps facing a wider spread of challenge, not a flat one."""
+    return len(skill_tree.unlocked)
+
+
+def event_severity(run_number, event_index, skill_strength=0):
     if run_number <= 1:
         return 1.0
     seed = (run_number * 97 + event_index * 31) % 100
-    return SEVERITY_VARIATION_MIN + (seed / 100) * (SEVERITY_VARIATION_MAX - SEVERITY_VARIATION_MIN)
+    center = (SEVERITY_VARIATION_MIN + SEVERITY_VARIATION_MAX) / 2
+    half_width = (SEVERITY_VARIATION_MAX - SEVERITY_VARIATION_MIN) / 2
+    half_width += SEVERITY_VARIATION_RANGE_PER_SKILL * skill_strength
+    variation_min = center - half_width
+    variation_max = center + half_width
+    return variation_min + (seed / 100) * (variation_max - variation_min)
 
 
 def severity_label(severity):
@@ -215,7 +239,7 @@ class RunState:
         self.resources += self.growth_capacity * GROWTH_INCOME_PER_UNIT
 
         event_type = EVENT_SCHEDULE[self.event_index]
-        severity = event_severity(self.run_number, self.event_index)
+        severity = event_severity(self.run_number, self.event_index, skill_tree_strength())
         damage = EVENT_BASE_DAMAGE[event_type] * severity * (1 - self.mitigation_fraction())
         self.resources = max(0.0, self.resources - damage)
         self.damage_taken += damage
