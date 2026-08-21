@@ -109,6 +109,14 @@ class RegionState:
         self.arrivals_log = []
         self.strain_log = []
         self.integrated_population = 0.0
+        # Iteration Pass 3 — turning-point tracking: cumulative funds
+        # integrated arrivals have contributed back, vs. cumulative funds
+        # spent on the services investment that enabled that integration.
+        # Once the former catches up to the latter, the region has
+        # durably crossed from net strain to net contribution.
+        self.cumulative_services_investment = 0.0
+        self.cumulative_integration_contribution = 0.0
+        self.net_positive_round = None
 
     def total_capacity(self):
         return sum(self.capacity[t] for t in CAPACITY_TYPES)
@@ -119,6 +127,8 @@ class RegionState:
             return False
         self.funds -= cost
         self.capacity[capacity_type] += CAPACITY_PER_INVESTMENT[capacity_type]
+        if capacity_type == "services":
+            self.cumulative_services_investment += cost
         return True
 
     def arrivals_this_round(self):
@@ -163,6 +173,16 @@ class RegionState:
         permanent drain, it eventually pays for the services investment
         that enabled it and keeps paying after that."""
         return self.integrated_population * INTEGRATION_CONTRIBUTION_PER_PERSON
+
+    def has_crossed_to_net_positive(self):
+        """Iteration Pass 3: once integrated arrivals' contributions have
+        paid back the services investment that enabled their
+        integration, the region has durably turned from net strain to
+        net contribution. Stays True for the rest of the run once
+        reached (see advance_round) -- a milestone the player crosses,
+        not a live ratio that could flicker if a later services
+        investment temporarily raises the payback bar again."""
+        return self.net_positive_round is not None
 
     def average_strain(self):
         """Sustained strain across the whole run so far, not just the
@@ -231,10 +251,13 @@ class RegionState:
         ) / 3
 
     def advance_round(self):
+        completed_round = self.round_number
         strain = self.strain_fraction()
         self.strain_log.append(strain)
+        contribution = self.integration_contribution()
         income = BASE_REGIONAL_INCOME_PER_ROUND * (1 - strain)
-        income += self.integration_contribution()
+        income += contribution
+        self.cumulative_integration_contribution += contribution
 
         self.integrated_population += self.integration_this_round()
 
@@ -244,6 +267,17 @@ class RegionState:
         self.background_severity += BACKGROUND_SEVERITY_RISE_PER_ROUND
         self.funds += income
         self.round_number += 1
+
+        # Iteration Pass 3 — turning-point detection: the first round
+        # cumulative integration contribution catches up to what was
+        # spent on services is the legible moment the region flips from
+        # net strain to net contribution. Recorded once and kept.
+        if (
+            self.net_positive_round is None
+            and self.cumulative_services_investment > 0
+            and self.cumulative_integration_contribution >= self.cumulative_services_investment
+        ):
+            self.net_positive_round = completed_round
 
 
 region = RegionState()
@@ -278,6 +312,24 @@ def checkpoint_message(region_state):
     }
     lowest_key = min(scores, key=lambda k: scores[k][0])
     return scores[lowest_key][1]
+
+
+def integration_turning_point_message(region_state):
+    """Iteration Pass 3 fix: shares Loop's "dry abstraction" risk and
+    Thaw's "fear without efficacy" risk -- the net-positive integration
+    mechanic needs a clear, legible moment where the player notices the
+    shift from strain to contribution, not just a background formula.
+    Same "make the payoff felt" fix as Thaw's, applied to Drift's
+    institutional-capacity frame instead of a feedback-loop frame.
+    Returns None until the region has actually crossed the threshold."""
+    if not region_state.has_crossed_to_net_positive():
+        return None
+    return (
+        f"Turning point, round {region_state.net_positive_round}: this region's "
+        "integrated arrivals have paid back the services investment that got "
+        "them there. From here, integration is a net gain for regional "
+        "capacity, not a cost."
+    )
 
 
 def long_horizon_coda_message(region_state):
@@ -400,6 +452,10 @@ def render():
     document.getElementById("pending-display").innerText = (
         f"Pending integration: {region.pending_population():.0f} people"
     )
+    turning_point_display = document.getElementById("integration-turning-point-display")
+    turning_point_message = integration_turning_point_message(region)
+    turning_point_display.hidden = turning_point_message is None
+    turning_point_display.innerText = turning_point_message or ""
 
     document.getElementById("service-quality-display").innerText = (
         f"Service quality: {region.service_quality():.0f}"

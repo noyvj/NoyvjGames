@@ -138,6 +138,20 @@ h1 {
   background: #4a8fa5;
 }
 
+/* Iteration Pass 3: the net-positive integration turning-point callout
+   -- reuses the coda's warm/hopeful accent so this legible "moment"
+   reads consistently with the rest of the game's hope-angle visual
+   language, instead of blending into the neutral status lines above it. */
+.turning-point-message {
+  margin: 0.6rem 0 0;
+  padding: 0.5rem 0.6rem;
+  border-left: 2px solid #7a9c5a;
+  background: #171f14;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
 /* Iteration Pass 2: long-horizon outcomes coda — a warm accent so it
    reads as a hopeful epilogue continuing the same dashboard, not a
    disconnected screen. */

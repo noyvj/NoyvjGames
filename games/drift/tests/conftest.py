@@ -19,6 +19,7 @@ ELEMENT_IDS = [
     "strain-bar",
     "integrated-display",
     "pending-display",
+    "integration-turning-point-display",
     "service-quality-display",
     "service-quality-bar",
     "economic-health-display",
