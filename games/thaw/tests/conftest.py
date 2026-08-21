@@ -20,6 +20,7 @@ ELEMENT_IDS = [
     "rise-rate-display",
     "melt-status-display",
     "dampening-display",
+    "intervention-feedback-display",
     "acceleration-display",
     "acceleration-bar",
     "trajectory-display",

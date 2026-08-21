@@ -77,6 +77,13 @@ class RegionState:
         # Iteration Pass 2 — per-round temperature log, feeding this
         # region's mini-graph in the multi-region comparison.
         self.temperature_history = []
+        # Iteration Pass 3 — one-tick flag: true only for the single
+        # render right after preserve/monitor is invested, so the
+        # dampening readout can flash instead of silently ticking up.
+        # See feedback_dampening_fraction() below for why this matters:
+        # pre-melt, that number has zero effect on anything else visible,
+        # so without a cue of its own the lever reads as doing nothing.
+        self.just_invested_intervention = False
 
     def invest(self, category):
         cost = INVEST_COST[category]
@@ -84,6 +91,8 @@ class RegionState:
             return False
         self.funds -= cost
         self.capacity[category] += 1
+        if category in ("preserve", "monitor"):
+            self.just_invested_intervention = True
         return True
 
     def is_melting(self):
@@ -95,6 +104,24 @@ class RegionState:
             + self.capacity["monitor"] * DAMPENING_PER_MONITOR_UNIT
         )
         return min(MAX_FEEDBACK_DAMPENING, total)
+
+    def intervention_feedback_message(self):
+        """Iteration Pass 3 fix: an immediate, legible efficacy readout
+        for the intervention lever, true from the very first preserve/
+        monitor investment — unlike trajectory_message()/
+        acceleration_message(), it doesn't need melt to have started yet
+        to say something real. Flow principle #2 (immediate feedback):
+        without this, a player who invests early gets no visible sign
+        their action did anything until a feedback loop they may never
+        trigger this session finally kicks in."""
+        dampening = self.feedback_dampening_fraction()
+        if dampening <= 0.0:
+            return "No preservation or monitoring investment yet — a future melt would hit at full force."
+        return (
+            f"Preservation & monitoring investment is already dampening the feedback loop by "
+            f"{dampening * 100:.0f}% — that protection is in place now, whether or not melt has "
+            f"started yet."
+        )
 
     def feedback_bonus(self):
         """Extra warming this round from methane released by permafrost
@@ -327,8 +354,15 @@ def render():
         region.just_started_melting = False
     else:
         game_el.className = ""
-    document.getElementById("dampening-display").innerText = (
-        f"Feedback dampening: {region.feedback_dampening_fraction() * 100:.0f}%"
+    dampening_el = document.getElementById("dampening-display")
+    dampening_el.innerText = f"Feedback dampening: {region.feedback_dampening_fraction() * 100:.0f}%"
+    if region.just_invested_intervention:
+        dampening_el.className = "status-line dampening-flash"
+        region.just_invested_intervention = False
+    else:
+        dampening_el.className = "status-line"
+    document.getElementById("intervention-feedback-display").innerText = (
+        region.intervention_feedback_message()
     )
     document.getElementById("acceleration-display").innerText = region.acceleration_message()
     document.getElementById("acceleration-bar").style.width = (

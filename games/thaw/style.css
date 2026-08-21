@@ -33,6 +33,22 @@ body {
   opacity: 1;
 }
 
+/* Iteration Pass 3: immediate, positive cue the moment preserve/monitor
+   is invested — deliberately green (vs. the tipping-flash's red), so a
+   good action visibly reads as good news, distinct from the danger cue
+   above. Without this, the dampening percentage silently ticked up with
+   no perceptible payoff until melt actually started. */
+.dampening-flash {
+  animation: intervention-flash 900ms ease;
+  border-radius: 4px;
+}
+
+@keyframes intervention-flash {
+  0% { background: transparent; }
+  15% { background: #1d2e1f; }
+  100% { background: transparent; }
+}
+
 /* Iteration Pass 2: multi-region comparison. Two extra regions run
    alongside the original, each with its own compact card so the
    divergence between strategies is the dominant visual read. */
