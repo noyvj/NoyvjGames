@@ -47,6 +47,18 @@ Second design-review pass, from `climate-games-iteration-pass-2.md`, building on
 - **Adaptation tech tree:** seawalls and other adaptation infrastructure upgrade through tiers over the course of a session (within-run, not between sessions like Aftermath's meta-progression), with each tier requiring sustained investment and unlocking a visibly stronger dampening effect on sea-level damage. Gives adaptation spending a clearer sense of escalating payoff rather than a flat, same-effect-every-time investment.
 - **Visual polish for this pass:** each tech tier should have a distinct visual signature on the coastline tiles (e.g. a visible seawall line appearing/thickening on the tile-grid as tiers unlock), so upgrading isn't just a stat change — it's something the player can see standing between their settlement and the rising water.
 
+## Iteration Notes — Pass 3 (Fun/Teaching Balance, implemented)
+
+Fun/teaching-balance pass, from `climate-games-fun-teaching-balance.md`. **Risk:** Tide is the game most exposed to the "fuelling fear rather than building trust" failure mode identified in the Klim:S21 study — the delayed fish-stock crash can read as arbitrary or unfair if the player can't trace it back to their own choices, risking anxiety without efficacy.
+
+Audited the existing ticker (Pass 1) and adaptation tech tree (Pass 2) against that risk: the ticker already narrated fish-stock recovery as well as decline, but the sea-level/damage side of the game — the part adaptation spending actually acts on — had no recovery narration at all, only a silently-updating static comparison. Tier unlocks changed the on-screen tier label immediately, but with no flagged moment calling out that anything had just improved.
+
+**Built in response:**
+- A ticker message fires the moment an adaptation tier unlocks (at the point of investment, not on the next season), naming the new tier and its dampening percentage — the concrete "trust" test from the study: the player sees, immediately and in the log they're already reading, that their spending just did something.
+- A one-time ticker message fires the first season the damage curve visibly flattens (comparing first-half vs. second-half average damage-per-season, the same comparison already driving the static damage-trend display), giving the adaptation payoff its own recovery narration alongside the existing fish-stock one — feedback in both directions, not just decline.
+
+No new mechanics were added; both hook into ticker infrastructure and comparisons that already existed from Pass 1/2.
+
 ## Info Page — real-world sources (implemented)
 
 An optional, player-triggered "The Real Story" panel — never forced mid-session, since the mechanic teaches first and this is a supplement for players who want to go deeper. Toggled via a button near the top of the page; shows a short framing paragraph (written fresh, not copied from any source), a one-line note tying the mechanic to real data, and a sources list with clickable links.

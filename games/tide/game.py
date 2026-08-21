@@ -112,13 +112,22 @@ class SettlementState:
         self.undampened_damage_total = 0.0
         self.damage_log = []
         self.ticker_log = []
+        # Iteration Pass 3 — fires once, the first season the damage curve
+        # visibly flattens, so the ticker confirms recovery instead of
+        # only the static damage-trend text passively updating.
+        self.trend_flattening_announced = False
 
     def invest(self, category):
         cost = INVEST_COST[category]
         if self.funds < cost:
             return False
+        old_tier_index = self.current_tier_index() if category == "adaptation" else None
         self.funds -= cost
         self.capacity[category] += 1
+        if category == "adaptation":
+            new_tier_index = self.current_tier_index()
+            if new_tier_index > old_tier_index:
+                self._record_tier_unlock_message(new_tier_index)
         return True
 
     def fish_yield_multiplier(self):
@@ -179,6 +188,43 @@ class SettlementState:
             self.ticker_log.append(message)
             self.ticker_log = self.ticker_log[-TICKER_LOG_LIMIT:]
 
+    def _record_tier_unlock_message(self, tier_index):
+        """Iteration Pass 3 — immediate, visible payoff at the moment an
+        adaptation tier unlocks, logged into the same ticker the player
+        is already reading for decline/recovery. Without this, a tier
+        upgrade was only a passive label change the player might not
+        notice; this makes "you just made things better" as legible as
+        the ticker already makes decline."""
+        tier = ADAPTATION_TIERS[tier_index]
+        message = (
+            f"Adaptation upgraded to {tier['name']} — sea-level damage is now "
+            f"dampened {tier['dampening'] * 100:.0f}%, effective immediately."
+        )
+        self.ticker_log.append(message)
+        self.ticker_log = self.ticker_log[-TICKER_LOG_LIMIT:]
+
+    def _record_trend_message(self):
+        """Iteration Pass 3 — recovery narration for the delayed damage
+        trend: fires once, the first season the damage curve visibly
+        flattens (mirrors the existing damage_trend() comparison used
+        for the static display), so the player gets the same kind of
+        clear, in-the-moment feedback for "adaptation is working" that
+        the ticker already gives for fish-stock decline."""
+        if self.trend_flattening_announced:
+            return
+        trend = self.damage_trend()
+        if trend is None:
+            return
+        first_half_avg, second_half_avg = trend
+        if second_half_avg < first_half_avg - 1e-6:
+            self.trend_flattening_announced = True
+            message = (
+                f"Damage curve flattening ({first_half_avg:.1f}/season -> "
+                f"{second_half_avg:.1f}/season) — your adaptation spending is visibly working."
+            )
+            self.ticker_log.append(message)
+            self.ticker_log = self.ticker_log[-TICKER_LOG_LIMIT:]
+
     def advance_season(self):
         old_fish_yield = self.fish_yield_multiplier()
         income = self.capacity["output"] * OUTPUT_INCOME_PER_UNIT * old_fish_yield
@@ -201,6 +247,7 @@ class SettlementState:
 
         new_fish_yield = self.fish_yield_multiplier()
         self._record_ticker_message(acidity_change, old_fish_yield, new_fish_yield)
+        self._record_trend_message()
 
     def damage_saved(self):
         """The hope-angle payoff, as a direct number: how much less

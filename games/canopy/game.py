@@ -78,8 +78,16 @@ MATURITY_TICKS = 60
 # plot visibly "has life in it" beyond just being worth more. Represented
 # via a wildlife icon once a plot crosses the threshold, not a number to
 # read.
+#
+# Iteration Pass 3 (fun/teaching balance) — threshold lowered from the
+# original 1.0 (a 50-tick wait for the first icon) to 0.2 (~10 ticks).
+# The old pacing meant the first felt "something is alive here" payoff
+# landed well after two stakeholder-tension cycles had already fired,
+# leaving the early game's only real beat as a repeat of the same
+# decision. Pulling this forward gives players a distinct payoff moment
+# inside the first idle stretch instead of after it.
 BIODIVERSITY_ACCRUAL_PER_TICK = 0.02
-BIODIVERSITY_WILDLIFE_THRESHOLD = 1.0
+BIODIVERSITY_WILDLIFE_THRESHOLD = 0.2
 WILDLIFE_ICON = "\U0001F98B"  # butterfly
 
 # Iteration Pass 2 — stakeholder tension: periodically, the community
@@ -90,7 +98,14 @@ WILDLIFE_ICON = "\U0001F98B"  # butterfly
 # neither choice is free, neither is catastrophic, matching the site's
 # no-dead-end-states philosophy. Reason cycles deterministically rather
 # than by RNG, since nothing else in this game uses randomness.
-STAKEHOLDER_EVENT_INTERVAL_TICKS = 20
+#
+# Iteration Pass 3 (fun/teaching balance) — interval tightened from 20
+# ticks to 15. Grant/decline was already the game's clearest skill-bearing
+# beat (it forces weighing relations against banking value before the
+# community claims your best plot), so making it recur a bit sooner keeps
+# the challenge curve paced against a session's growing plot count instead
+# of leaving long unbroken waits between it.
+STAKEHOLDER_EVENT_INTERVAL_TICKS = 15
 STAKEHOLDER_REASONS = ["housing", "farming", "resources"]
 STAKEHOLDER_REASON_TEXT = {
     "housing": "the community is asking to clear it for new housing — people need somewhere to live too",
