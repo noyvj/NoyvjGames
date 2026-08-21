@@ -51,6 +51,18 @@ Second design-review pass, from `climate-games-iteration-pass-2.md`, building on
 - **Single-item vignette:** alongside the abstract flow-chain view, add a short, concrete side-view following one representative product (a phone, a shirt) as it moves through either a closed loop or a straight line, making the abstraction tangible for a player who might not naturally read a flow diagram.
 - **Visual polish for this pass:** the single-item vignette is itself a visual addition — treat it as a small, optional inset or a between-round cutaway, not a separate full mode, so it stays lightweight to build. The trade-network link should be visually distinct from the internal loop (a different color/line style for capacity crossing in from outside).
 
+## Iteration Notes — Pass 3 (Fun/Teaching Balance)
+
+Fun/teaching-balance review pass, from `climate-games-fun-teaching-balance.md`. **Risk:** the supply-chain-as-graph structure risks a different flavor of boredom than idle waiting — dry abstraction, where "closing the loop" is legible as a number improving but not *felt* as a meaningful change.
+
+**Fix (per the design doc, framed as already satisfied by Pass 2):** the single-item vignette added in Pass 2 is the direct answer — the abstract flow-chain graph is where the strategy lives, and the vignette is where the player *feels* what that strategy means. Checked this concretely rather than taking it on faith:
+
+- `vignette_message()` is driven by `chain.circular_fraction_this_cycle()` — the same live figure the abstract chain view uses — not a separate or static value, so the vignette text can't drift out of sync with what the player actually did.
+- `render()` calls `vignette_message(fraction)` and writes it to `vignette-display` on every render pass, and every state-changing handler (`_make_circularity_handler`, `on_invest_trade_link`, `on_advance_cycle`) calls `render()` synchronously right after mutating `chain` state — no delay, no batching, no wait for cycle-advance. Clicking a circularity or trade-link button updates the vignette in the same tick as the click.
+- Imported trade-link supply counts toward the fraction too (`circular_supply()` = internal + imported), so the vignette reacts to both investment paths the player has, not just the internal one.
+
+**Conclusion: satisfied, no code change made.** Added `tests/test_iteration_pass_3.py` (5 tests) as a permanent regression check locking in that the vignette updates immediately on investment (no `advance_cycle()` needed) and always matches the chain's current fraction — so this stays true if the render/handler wiring is ever touched later.
+
 ## Info Page — real-world sources (implemented)
 
 An optional, player-triggered "The Real Story" panel — never forced mid-session, since the mechanic teaches first and this is a supplement for players who want to go deeper. Toggled via a button near the top of the page; shows a short framing paragraph (written fresh, not copied from any source), a one-line note tying the mechanic to real data, and a sources list with clickable links.
