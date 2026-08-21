@@ -478,6 +478,24 @@ def global_comparison_message(emissions, global_reference_emissions):
     return "Your grid is tracking almost exactly the global-average fossil mix so far."
 
 
+def disruption_risk_message(probability, severity):
+    """Iteration Pass 3: makes the emissions-meter -> disruption-risk
+    coupling explicit in words. The probability/severity math already
+    scales directly off the emissions meter (Milestone 3) — this just
+    makes sure the player can *read* that connection instead of only
+    inferring it after the fact from event timing, so the meter reads as
+    the actual mechanism gating success, not a side-score next to it."""
+    if probability <= 0.0:
+        return "No disruption risk yet — emissions are still at zero."
+    pct = probability * 100
+    if severity >= DAMAGE_SEVERITY_THRESHOLD:
+        return (
+            f"Rising emissions mean a {pct:.0f}% chance of a disruption next round — "
+            "severe enough to damage a fossil plant if it hits."
+        )
+    return f"Rising emissions mean a {pct:.0f}% chance of a disruption next round."
+
+
 def clean_trend_message(trend):
     if trend is None:
         return "Not enough rounds yet to show a trend."
@@ -544,6 +562,9 @@ def render():
     emissions_fraction = min(1.0, state.emissions / EMISSIONS_METER_MAX)
     document.getElementById("emissions-bar").style.width = f"{emissions_fraction * 100:.0f}%"
     document.getElementById("score-bar").style.width = f"{state.score():.0f}%"
+    document.getElementById("disruption-risk-display").innerText = disruption_risk_message(
+        state.disruption_probability(), state.disruption_severity()
+    )
 
     svg = trend_graph_svg(
         state.emissions_history, state.avg_renewable_cost_history, state.global_reference_emissions_history

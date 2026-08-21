@@ -64,6 +64,14 @@ An optional, player-triggered "The Real Story" panel — never forced mid-sessio
 
 All four links verified live before merging. Source 2 (Oxford) returns 403 to automated fetchers (bot-protection) but loads fine in a real browser — confirmed the pattern is consistent with several other major institutional domains checked the same way.
 
+## Iteration Notes — Pass 3 (Fun/Teaching Balance)
+
+Third design-review pass, from `climate-games-fun-teaching-balance.md`. **Risk:** the tiered plant system could drift toward a pure optimization spreadsheet where a player wins by number-crunching without ever registering *why* the renewable path pays off — the emissions meter reading as a side-score rather than the actual mechanism gating disruption risk.
+
+**Found already satisfied:** the fix's core ask — disruption probability/severity scaling directly off the same emissions meter, with no separate difficulty setting, on a soft escalating curve rather than a sudden spike — was already built in Milestone 3 (`disruption_probability()` / `disruption_severity()` are both a direct linear function of `state.emissions`, capped rather than cliffed, and covered by `tests/test_disruption_events.py`). The Pass 2 aging/vulnerability system is a deliberately separate axis (plant neglect, not emissions) and was left untouched here — it's a different lesson, not a rival difficulty curve standing in for the emissions one.
+
+**Actual gap — legibility:** nothing on-screen ever stated in words that rising emissions were the thing driving disruption risk. A player could watch the emissions bar fill and brownouts get worse without the causal link ever being spelled out, which is exactly the "invisible math" failure mode the risk describes. **Built in response:** a live `disruption-risk-display` line under the emissions meter (`game.py`'s new `disruption_risk_message()`, wired into `render()`) that states the current next-round disruption probability in plain language, and calls out when severity has crossed into damage-risk territory — e.g. "Rising emissions mean a 50% chance of a disruption next round." Scoped to this one addition; no changes to the underlying probability/severity math, which didn't need any.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

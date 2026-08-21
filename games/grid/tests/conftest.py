@@ -23,6 +23,7 @@ ELEMENT_IDS = [
     "trend-display",
     "aging-event-display",
     "emissions-bar",
+    "disruption-risk-display",
     "score-bar",
     "trend-graph",
     "trend-graph-message",
