@@ -75,6 +75,7 @@ Before ending any session where code or content changed, append one dated entry 
 | 3 | Review/rating UI stub added (no persistence yet) | Done |
 | 4 | Site hosting: GitHub Pages + PWA shell + labeled ad bar + ratings backend live (FastAPI Cloud + Neon) | Done — tagged `site-hosting-v1` |
 | 5 | Save system Phase 1: save codes (no accounts) live via FastAPI + Neon, SOL reference integration | Done — tagged `save-system-v1` |
+| 6 | Accounts (Phase 2, magic-link) + save-claim + site-wide feedback: backend live via FastAPI + Neon | Backend done, no frontend UI yet — see `planning/ACCOUNTS-AND-FEEDBACK-DESIGN.md` |
 
 ## Working notes
 - Pre-semester (now): pace can be aggressive, this is largely a boredom-driven creative project.

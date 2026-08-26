@@ -2,7 +2,7 @@
 
 Design doc for save functionality + accounts across the game hub. Written against the existing stack: Neon (Postgres 17, currently Auth off), FastAPI Cloud, static GitHub Pages front end, Pyodide-run Python games.
 
-Status: **Phase 1 built and live — 2026-08-15.** SOL is the reference integration (proves the flow end to end); other games can adopt the same bridge pattern later. Phase 2 (accounts) not started. See `BCM206-DEV-LOG.md` for the build session and what changed from this spec along the way.
+Status: **Phase 1 built and live — 2026-08-15.** SOL is the reference integration (proves the flow end to end); other games can adopt the same bridge pattern later. Phase 2 (accounts) is now built too, realized via `planning/ACCOUNTS-AND-FEEDBACK-DESIGN.md` rather than this file — see that doc and `BCM206-DEV-LOG.md` for the build session and what changed from spec along the way.
 
 ---
 

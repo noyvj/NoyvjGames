@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import JSON, Column, DateTime, Integer, String, func
+from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, Integer, String, func
 
 from database import Base
 
@@ -37,5 +37,61 @@ class Save(Base):
     save_code = Column(String, unique=True, nullable=False, index=True)
     game_id = Column(String, nullable=False, index=True)
     save_data = Column(JSON, nullable=False)
+    # Nullable: a save starts anonymous and only gets a user_id if/when its
+    # code is claimed via POST /saves/{save_code}/claim after sign-in.
+    user_id = Column(String, ForeignKey("users.id"), nullable=True, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class User(Base):
+    """ACCOUNTS-AND-FEEDBACK-DESIGN.md Phase 2, revised: username +
+    password, not the original magic-link/email design — no email
+    provider has been set up, and email accounts are deliberately
+    deferred (see planning/ACCOUNTS-AND-FEEDBACK-DESIGN.md). `id` is a
+    Python-generated UUID string for the same sqlite-portability reason
+    as Save.id above. `username` is stored lowercased (main.py normalizes
+    it before every read/write) so two logins that only differ by case
+    can't create lookalike duplicate accounts. `password_hash` is never
+    the plaintext password — see main.py's `_hash_password`.
+    """
+
+    __tablename__ = "users"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    username = Column(String, unique=True, nullable=False, index=True)
+    password_hash = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class AuthSession(Base):
+    """The bearer token returned by POST /auth/signup or /auth/login. A
+    token has to be checkable against something on every later request,
+    so this table is that something. Deliberately simple for MVP: no
+    expiry, no rotation, no way to sign out other devices remotely —
+    nothing currently invalidates an old bearer token early."""
+
+    __tablename__ = "auth_sessions"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    token = Column(String, unique=True, nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class Feedback(Base):
+    """ACCOUNTS-AND-FEEDBACK-DESIGN.md's site-wide feedback: usable either
+    attached to a game (game_id set) or as general site feedback
+    (game_id null). Distinct from the pre-existing Rating table above,
+    which is the hub's star-rating widget + the climate games' in-game
+    feedback prompt — this is the newer, account-aware, site-wide system."""
+
+    __tablename__ = "feedback"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    game_id = Column(String, nullable=True, index=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=True)
+    rating = Column(Integer, nullable=True)
+    comment = Column(String, nullable=True)
+    is_hidden = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

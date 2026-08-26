@@ -17,6 +17,27 @@
     <p id="hub-tagline">Small AI-assisted game demos, built one milestone at a time.</p>
   </header>
 
+  <section id="account-section" class="account-section">
+    <div id="account-signed-out">
+      <p class="account-label">Have an account? Save codes can be claimed to it from any game.</p>
+      <div class="account-row">
+        <input id="account-username-input" type="text" placeholder="username" autocomplete="username">
+        <input id="account-password-input" type="password" placeholder="password" autocomplete="current-password">
+      </div>
+      <p class="account-password-hint">No password rules enforced — but there's no password reset yet, so pick something you won't forget and don't reuse somewhere that matters.</p>
+      <div class="account-row">
+        <button type="button" id="account-login-button" class="secondary">Sign In</button>
+        <button type="button" id="account-signup-button" class="secondary">Create Account</button>
+      </div>
+      <p id="account-status" class="account-status"></p>
+    </div>
+    <div id="account-signed-in" hidden>
+      <p id="account-username-display" class="account-username-display"></p>
+      <button type="button" id="account-signout-button" class="account-link-button">Sign out</button>
+      <div id="account-my-saves"></div>
+    </div>
+  </section>
+
   <main id="game-grid">
     <article class="title-card">
       <a class="title-card-link" href="games/sol/index.html">
@@ -215,6 +236,22 @@
       </div>
     </article>
   </main>
+
+  <section id="site-feedback-section" class="site-feedback-section">
+    <h2 class="site-feedback-heading">Site Feedback</h2>
+    <p class="site-feedback-subtext">General feedback about the hub itself — not tied to any one game.</p>
+    <div class="star-rating" id="site-feedback-stars" data-rating="0">
+      <button type="button" class="star" data-value="1">&#9733;</button>
+      <button type="button" class="star" data-value="2">&#9733;</button>
+      <button type="button" class="star" data-value="3">&#9733;</button>
+      <button type="button" class="star" data-value="4">&#9733;</button>
+      <button type="button" class="star" data-value="5">&#9733;</button>
+    </div>
+    <textarea id="site-feedback-comment" class="comment-box" placeholder="Leave feedback..."></textarea>
+    <button type="button" id="site-feedback-submit" class="comment-submit">Submit</button>
+    <p id="site-feedback-status" class="account-status"></p>
+    <ul id="site-feedback-list" class="site-feedback-list"></ul>
+  </section>
 
   <div class="ad-bar ad-bar--bottom">
     <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>

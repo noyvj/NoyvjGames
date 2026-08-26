@@ -145,3 +145,123 @@ body {
   cursor: not-allowed;
   opacity: 0.5;
 }
+
+.account-section,
+.site-feedback-section {
+  max-width: 900px;
+  margin: 0 auto 2rem;
+  padding: 1.5rem;
+  background: #12141f;
+  border: 1px solid #23273a;
+  border-radius: 14px;
+}
+
+.account-label {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin: 0 0 0.75rem;
+}
+
+.account-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.account-row input[type="text"],
+.account-row input[type="password"] {
+  flex: 1;
+  min-width: 150px;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #23273a;
+  border-radius: 8px;
+  background: #0b0d17;
+  color: #eaeaf0;
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+button.secondary {
+  font-size: 0.85rem;
+  padding: 0.6rem 1.1rem;
+  border: none;
+  border-radius: 8px;
+  background: #2a3a4c;
+  color: white;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+button.secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.account-link-button {
+  background: none;
+  border: none;
+  color: #6fa0d8;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.account-password-hint {
+  font-size: 0.72rem;
+  opacity: 0.55;
+  margin: 0.5rem 0 0;
+  line-height: 1.4;
+}
+
+.account-status {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin: 0.5rem 0 0;
+  min-height: 1em;
+}
+
+.account-username-display {
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem;
+}
+
+.account-saves-list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  font-size: 0.8rem;
+}
+
+.account-saves-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid #23273a;
+}
+
+.site-feedback-heading {
+  font-size: 1.1rem;
+  margin: 0 0 0.35rem;
+}
+
+.site-feedback-subtext {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  margin: 0 0 1rem;
+}
+
+.site-feedback-list {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.site-feedback-list li {
+  padding: 0.5rem 0;
+  border-top: 1px solid #23273a;
+}

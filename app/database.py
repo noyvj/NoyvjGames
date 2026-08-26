@@ -44,3 +44,6 @@ def patch_schema():
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE ratings ADD COLUMN IF NOT EXISTS response VARCHAR"))
         conn.execute(text("ALTER TABLE ratings ALTER COLUMN stars DROP NOT NULL"))
+        # ACCOUNTS-AND-FEEDBACK-DESIGN.md: saves predates users, so the
+        # link between them is a patched-in column, not a fresh table.
+        conn.execute(text("ALTER TABLE saves ADD COLUMN IF NOT EXISTS user_id VARCHAR REFERENCES users(id)"))
