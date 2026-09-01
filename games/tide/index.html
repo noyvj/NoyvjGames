@@ -4,17 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tide — Milestone 1</title>
-<link rel="icon" href="/icons/icon-192.png">
+<link rel="icon" href="../../icons/icon-192.png">
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="/ad-bar.css">
-<link rel="manifest" href="/manifest.json">
+<link rel="stylesheet" href="../../ad-bar.css">
+<link rel="manifest" href="../../manifest.json">
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
 <body>
   <div id="game">
-    <a href="/" class="hub-back-link">&larr; All games</a>
+    <a href="../../index.html" class="hub-back-link">&larr; All games</a>
     <h1>Tide</h1>
     <p class="tagline">Run a coastal settlement. Balance fishing income against ocean health and a slowly rising sea.</p>
     <p class="context-blurb">Ocean acidification and sea-level rise share a real-world trait this game leans on: the delay between cause and effect. Today's emissions and choices don't show their full damage for years — which is exactly why they're easy to underestimate.</p>
@@ -109,15 +109,21 @@
   <script>
     async function main() {
       const pyodide = await loadPyodide();
+      window.pyodide = pyodide; // exposed for the save/load bridge below
       const response = await fetch("game.py");
       const code = await response.text();
       await pyodide.runPythonAsync(code);
     }
     main();
   </script>
+  <!--
+    SAVE-BUTTON-INTEGRATION.md: game.py exposes get_state()/load_state()
+    for the shared save widget (see SOL for the reference integration).
+  -->
+  <script src="../../shared/save-widget.js" data-game-id="tide"></script>
   <script>
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js");
+      navigator.serviceWorker.register("../../sw.js");
     }
   </script>
   <!--

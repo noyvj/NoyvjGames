@@ -6,6 +6,8 @@ reduction/adaptation), mirroring Grid's build-capacity pattern. Acidity,
 sea-level rise, and the tile-grid coastline land in later milestones.
 """
 
+import copy
+
 from js import document
 from pyodide.ffi import create_proxy
 
@@ -466,6 +468,51 @@ def _make_invest_handler(category):
 def on_advance_season(event=None):
     state.advance_season()
     render()
+
+
+# SAVE-BUTTON-INTEGRATION.md contract for the shared shared/save-widget.js:
+# get_state() packages every module-level mutable global — here, all of
+# it lives on the single `state` object — into a plain JSON-safe dict
+# (numbers/strings/lists/dicts/bools only, no SettlementState instance
+# itself crossing the boundary). The three log lists and the capacity
+# dict are deep-copied so a live reference into `state` is never leaked
+# into the saved snapshot; a shallow reference would let continued play
+# after "saving" silently mutate what was supposed to be a frozen copy
+# (same reasoning as SOL's serialize_state() docstring). Tide tracks no
+# non-JSON-native types (no sets, unlike SOL's unlocked_bodies), so no
+# extra conversion is needed. load_state() is the exact inverse, then
+# calls render() (Tide's full-render function) so the UI reflects the
+# loaded state immediately.
+def get_state():
+    return {
+        "season": state.season,
+        "funds": state.funds,
+        "capacity": copy.deepcopy(state.capacity),
+        "acidity": state.acidity,
+        "acidity_history": copy.deepcopy(state.acidity_history),
+        "sea_level": state.sea_level,
+        "cumulative_damage": state.cumulative_damage,
+        "undampened_damage_total": state.undampened_damage_total,
+        "damage_log": copy.deepcopy(state.damage_log),
+        "ticker_log": copy.deepcopy(state.ticker_log),
+        "trend_flattening_announced": state.trend_flattening_announced,
+    }
+
+
+def load_state(data):
+    state.season = data["season"]
+    state.funds = data["funds"]
+    state.capacity = copy.deepcopy(data["capacity"])
+    state.acidity = data["acidity"]
+    state.acidity_history = copy.deepcopy(data["acidity_history"])
+    state.sea_level = data["sea_level"]
+    state.cumulative_damage = data["cumulative_damage"]
+    state.undampened_damage_total = data["undampened_damage_total"]
+    state.damage_log = copy.deepcopy(data["damage_log"])
+    state.ticker_log = copy.deepcopy(data["ticker_log"])
+    state.trend_flattening_announced = data["trend_flattening_announced"]
+    render()
+    return True
 
 
 def setup():
