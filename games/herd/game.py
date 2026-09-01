@@ -329,6 +329,36 @@ def on_advance_round(event=None):
     render()
 
 
+# SAVE-BUTTON-INTEGRATION.md contract for the shared shared/save-widget.js:
+# get_state() returns every module-level mutable game-state field as one
+# plain, JSON-safe dict, and load_state() is its exact inverse. SOL is the
+# reference integration for this contract. decoupling_investment is copied
+# (not handed back by reference) so continued play after taking a
+# "snapshot" can't silently mutate it, same reasoning as SOL's
+# serialize_state() docstring. info_page_open is deliberately excluded —
+# it's a cosmetic panel toggle, not tracked game progress.
+def get_state():
+    return {
+        "round_number": farm.round_number,
+        "funds": farm.funds,
+        "herd_size": farm.herd_size,
+        "methane": farm.methane,
+        "decoupling_investment": dict(farm.decoupling_investment),
+        "plant_pivot_investment": farm.plant_pivot_investment,
+    }
+
+
+def load_state(data):
+    farm.round_number = data["round_number"]
+    farm.funds = data["funds"]
+    farm.herd_size = data["herd_size"]
+    farm.methane = data["methane"]
+    farm.decoupling_investment = dict(data["decoupling_investment"])
+    farm.plant_pivot_investment = data["plant_pivot_investment"]
+    render()
+    return True
+
+
 def setup():
     document.getElementById("grow-herd-button").addEventListener(
         "click", create_proxy(on_grow_herd)
