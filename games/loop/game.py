@@ -7,6 +7,7 @@ enough in any combination can push new extraction to zero: a fully
 closed loop, the clearest win-state in the whole hub.
 """
 
+import copy
 from js import document
 from pyodide.ffi import create_proxy
 
@@ -416,6 +417,47 @@ def _make_circularity_handler(measure):
 def on_invest_trade_link(event=None):
     chain.invest_trade_link()
     render()
+
+
+# SAVE-BUTTON-INTEGRATION.md contract for the shared shared/save-widget.js:
+# get_state()/load_state() are the per-game contract the widget calls
+# (get_state()/load_state() on save/load respectively). SOL is the
+# reference integration for this contract; Loop follows the same
+# thin/direct pattern rather than reinventing it.
+
+
+def get_state():
+    """Return every piece of Loop's tracked state as a plain, JSON-safe
+    dict. `chain` is the one stateful object in the game — its dict/list
+    attributes (`circularity_investment`, `circular_fraction_log`) are
+    deep-copied so the saved snapshot doesn't alias a live reference;
+    continued play after saving would otherwise silently mutate it, same
+    reasoning as SOL's serialize_state()."""
+    return {
+        "cycle_number": chain.cycle_number,
+        "funds": chain.funds,
+        "total_extracted": chain.total_extracted,
+        "total_produced": chain.total_produced,
+        "circularity_investment": copy.deepcopy(chain.circularity_investment),
+        "circular_fraction_log": copy.deepcopy(chain.circular_fraction_log),
+        "trade_link_investment": chain.trade_link_investment,
+    }
+
+
+def load_state(data):
+    """Take the dict from get_state() (possibly from a previous session)
+    and restore `chain` to that point — the exact inverse of
+    get_state() — then re-render so the UI reflects the loaded state
+    immediately."""
+    chain.cycle_number = data["cycle_number"]
+    chain.funds = data["funds"]
+    chain.total_extracted = data["total_extracted"]
+    chain.total_produced = data["total_produced"]
+    chain.circularity_investment = dict(data["circularity_investment"])
+    chain.circular_fraction_log = list(data["circular_fraction_log"])
+    chain.trade_link_investment = data["trade_link_investment"]
+    render()
+    return True
 
 
 def setup():
