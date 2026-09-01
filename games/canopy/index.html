@@ -4,17 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Canopy — Milestone 1</title>
-<link rel="icon" href="/icons/icon-192.png">
+<link rel="icon" href="../../icons/icon-192.png">
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="/ad-bar.css">
-<link rel="manifest" href="/manifest.json">
+<link rel="stylesheet" href="../../ad-bar.css">
+<link rel="manifest" href="../../manifest.json">
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
 <body>
   <div id="game">
-    <a href="/" class="hub-back-link">&larr; All games</a>
+    <a href="../../index.html" class="hub-back-link">&larr; All games</a>
     <h1>Canopy</h1>
     <p class="tagline">A forest region. Clear it for quick income, or leave it standing and let its value compound.</p>
     <p class="context-blurb">Land-use change and the loss of carbon sinks is one of the largest drivers of emissions worldwide — and "assisted natural regeneration" (letting cleared land recover with light human help, rather than replanting from scratch) is a real, cost-effective restoration approach this mechanic loosely echoes.</p>
@@ -85,15 +85,22 @@
   <script>
     async function main() {
       const pyodide = await loadPyodide();
+      window.pyodide = pyodide; // exposed for the save/load bridge below
       const response = await fetch("game.py");
       const code = await response.text();
       await pyodide.runPythonAsync(code);
     }
     main();
   </script>
+  <!--
+    SAVE-BUTTON-INTEGRATION.md: game.py exposes get_state()/load_state()
+    per the shared contract; the widget itself is untouched per-game, same
+    reference integration pattern as SOL.
+  -->
+  <script src="../../shared/save-widget.js" data-game-id="canopy"></script>
   <script>
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js");
+      navigator.serviceWorker.register("../../sw.js");
     }
   </script>
   <!--

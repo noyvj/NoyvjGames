@@ -7,6 +7,8 @@ the longer a plot stays PRESERVED/RECOVERED. Payout economics and soil
 degradation land in later milestones.
 """
 
+import copy
+
 from js import document, setInterval
 from pyodide.ffi import create_proxy
 
@@ -530,6 +532,67 @@ def tick(event=None):
         plot.advance_recovery()
     maybe_trigger_stakeholder_request()
     render()
+
+
+# SAVE-BUTTON-INTEGRATION.md contract for the shared shared/save-widget.js:
+# get_state() returns every module-level mutable global as one plain,
+# JSON-safe dict, and load_state() is its exact inverse. `plots` is a list
+# of Plot objects (not JSON-native) — each is expanded into its own plain
+# dict here and restored back onto the existing Plot instances in place
+# (rather than rebuilding the list) so nothing else holding a reference
+# into `plots` is left stale. `pending_stakeholder_request` is deep-copied
+# on the way out so continued play after taking a snapshot can't mutate
+# the dict already handed back to the caller. Canopy tracks no sets or
+# other non-JSON-native scalar types, unlike SOL's `unlocked_bodies`.
+def get_state():
+    return {
+        "plots": [
+            {
+                "index": plot.index,
+                "state": plot.state,
+                "value": plot.value,
+                "ticks_intact": plot.ticks_intact,
+                "clear_count": plot.clear_count,
+                "replant_ticks_remaining": plot.replant_ticks_remaining,
+                "just_recovered": plot.just_recovered,
+                "biodiversity": plot.biodiversity,
+            }
+            for plot in plots
+        ],
+        "selected_index": selected_index,
+        "total_income": total_income,
+        "community_relations": community_relations,
+        "pending_stakeholder_request": copy.deepcopy(pending_stakeholder_request),
+        "_ticks_since_last_request": _ticks_since_last_request,
+        "_stakeholder_request_count": _stakeholder_request_count,
+        "info_page_open": info_page_open,
+    }
+
+
+def load_state(data):
+    global selected_index, total_income, community_relations
+    global pending_stakeholder_request, _ticks_since_last_request
+    global _stakeholder_request_count, info_page_open
+
+    for plot, plot_data in zip(plots, data["plots"]):
+        plot.index = plot_data["index"]
+        plot.state = plot_data["state"]
+        plot.value = plot_data["value"]
+        plot.ticks_intact = plot_data["ticks_intact"]
+        plot.clear_count = plot_data["clear_count"]
+        plot.replant_ticks_remaining = plot_data["replant_ticks_remaining"]
+        plot.just_recovered = plot_data["just_recovered"]
+        plot.biodiversity = plot_data["biodiversity"]
+
+    selected_index = data["selected_index"]
+    total_income = data["total_income"]
+    community_relations = data["community_relations"]
+    pending_stakeholder_request = copy.deepcopy(data["pending_stakeholder_request"])
+    _ticks_since_last_request = data["_ticks_since_last_request"]
+    _stakeholder_request_count = data["_stakeholder_request_count"]
+    info_page_open = data["info_page_open"]
+    render()
+    return True
 
 
 def setup():
