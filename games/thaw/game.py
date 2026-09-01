@@ -409,6 +409,75 @@ def on_advance_round(event=None):
     render()
 
 
+# --- Save system (SAVE-BUTTON-INTEGRATION.md contract) ---
+# Bridges to the shared shared/save-widget.js: get_state() returns a
+# plain JSON-safe dict (the widget does its own JS<->Pyodide dict
+# conversion), and load_state() is its exact inverse. SOL is the
+# reference integration for this contract. Thaw tracks THREE independent
+# regions (the original primary region, plus Pass 2's Region B and
+# Region C) — all three must round-trip, not just the primary one.
+
+
+def _region_state_dict(r):
+    """One RegionState's fields as a plain, JSON-safe dict. `capacity`
+    and `temperature_history` are copied here (dict()/list()), not just
+    referenced, so continued play after taking a snapshot can't silently
+    mutate a saved copy — same reasoning as SOL's serialize_state()
+    docstring."""
+    return {
+        "round_number": r.round_number,
+        "funds": r.funds,
+        "capacity": dict(r.capacity),
+        "temperature": r.temperature,
+        "melt_started_round": r.melt_started_round,
+        "just_started_melting": r.just_started_melting,
+        "counterfactual_temperature": r.counterfactual_temperature,
+        "temperature_history": list(r.temperature_history),
+        "just_invested_intervention": r.just_invested_intervention,
+    }
+
+
+def _apply_region_state(r, data):
+    """The exact inverse of _region_state_dict() — restores one
+    RegionState's fields in place from a previously-saved dict."""
+    r.round_number = data["round_number"]
+    r.funds = data["funds"]
+    r.capacity = dict(data["capacity"])
+    r.temperature = data["temperature"]
+    r.melt_started_round = data["melt_started_round"]
+    r.just_started_melting = data["just_started_melting"]
+    r.counterfactual_temperature = data["counterfactual_temperature"]
+    r.temperature_history = list(data["temperature_history"])
+    r.just_invested_intervention = data["just_invested_intervention"]
+
+
+def get_state():
+    """Return every module-level mutable global needed to fully
+    reconstruct the game — all three regions (primary + Region B/C) plus
+    the info-page toggle — as a plain, JSON-serialisable dict. No custom
+    objects, no functions: just numbers, strings, lists, dicts, booleans."""
+    return {
+        "region": _region_state_dict(region),
+        "region_b": _region_state_dict(region_b),
+        "region_c": _region_state_dict(region_c),
+        "info_page_open": info_page_open,
+    }
+
+
+def load_state(data):
+    """Take the dict from get_state() (possibly from a previous session)
+    and restore the game to that point, across all three regions, then
+    re-render so the UI reflects the loaded state immediately. The exact
+    inverse of get_state()."""
+    global info_page_open
+    _apply_region_state(region, data["region"])
+    _apply_region_state(region_b, data["region_b"])
+    _apply_region_state(region_c, data["region_c"])
+    info_page_open = data["info_page_open"]
+    render()
+    return True
+
+
 def setup():
     for category in CATEGORIES:
         document.getElementById(f"{category}-invest-button").addEventListener(
