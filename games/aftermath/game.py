@@ -7,6 +7,7 @@ Run scoring, the persistent skill tree, and cross-run comparisons land
 in later milestones.
 """
 
+import copy
 import json
 
 from js import document, localStorage
@@ -522,6 +523,59 @@ def start_new_run(event=None):
     global run
     run = RunState(run_number=run.run_number + 1)
     render()
+
+
+# SAVE-BUTTON-INTEGRATION.md contract for the shared shared/save-widget.js:
+# get_state()/load_state() cover Aftermath's in-memory *per-run* state
+# only — the current RunState (run_number, event_index, resources,
+# resilience_capacity, growth_capacity, damage_taken, event_log) — which
+# is what needs to round-trip so a saved-and-reloaded run resumes at the
+# exact point it was saved. The persistent skill tree (SkillTreeState),
+# run_history, and legacy_events are deliberately NOT part of this
+# round trip: per CLAUDE.md's Tech notes, those are a distinct,
+# already-working persistence mechanism keyed to localStorage (not to a
+# save code) that survives across runs and browser visits on its own.
+# Folding them into this save system would mean a loaded save code could
+# silently overwrite a browser's separately-accumulated skill tree with
+# whatever it looked like at save time — the wrong behavior for state
+# that's supposed to be permanent. A save code loaded on a different
+# browser/device therefore resumes the exact in-progress run, but keeps
+# whatever skill tree/legacy history (or lack of it) already exists
+# locally — consistent with how that persistence already behaves
+# independent of any one run.
+def get_state():
+    """Return the current run's in-memory state as a plain JSON-safe dict.
+    `event_log` is deep-copied — it's a list of dicts, and a shallow copy
+    would still alias it, so continued play after taking a "snapshot"
+    would silently mutate the saved copy."""
+    return {
+        "run_number": run.run_number,
+        "event_index": run.event_index,
+        "resources": run.resources,
+        "resilience_capacity": run.resilience_capacity,
+        "growth_capacity": run.growth_capacity,
+        "damage_taken": run.damage_taken,
+        "event_log": copy.deepcopy(run.event_log),
+    }
+
+
+def load_state(data):
+    """The exact inverse of get_state() — rebuilds the current run from a
+    saved dict and re-renders so the UI reflects the loaded run
+    immediately. Constructs a fresh RunState (which reads current
+    skill-tree bonuses, same as starting any new run) and then overwrites
+    every field with the saved values, so the restored run matches
+    exactly what was saved regardless of the skill tree's state now."""
+    global run
+    run = RunState(run_number=data["run_number"])
+    run.event_index = data["event_index"]
+    run.resources = data["resources"]
+    run.resilience_capacity = data["resilience_capacity"]
+    run.growth_capacity = data["growth_capacity"]
+    run.damage_taken = data["damage_taken"]
+    run.event_log = copy.deepcopy(data["event_log"])
+    render()
+    return True
 
 
 def _make_unlock_handler(skill_id):

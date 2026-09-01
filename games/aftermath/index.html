@@ -4,17 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aftermath — Milestone 1</title>
-<link rel="icon" href="/icons/icon-192.png">
+<link rel="icon" href="../../icons/icon-192.png">
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="/ad-bar.css">
-<link rel="manifest" href="/manifest.json">
+<link rel="stylesheet" href="../../ad-bar.css">
+<link rel="manifest" href="../../manifest.json">
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
 <body>
   <div id="game">
-    <a href="/" class="hub-back-link">&larr; All games</a>
+    <a href="../../index.html" class="hub-back-link">&larr; All games</a>
     <h1>Aftermath</h1>
     <p class="tagline">A settlement facing a scheduled run of extreme weather. Build resilience to weather it, or growth to afford more later.</p>
     <p class="context-blurb">Climate adaptation and disaster resilience are their own necessary response category — distinct from mitigation, and not a failure state. Real-world investment in early warning and resilient infrastructure has repeatedly been shown to pay for itself many times over in damage avoided.</p>
@@ -93,15 +93,23 @@
   <script>
     async function main() {
       const pyodide = await loadPyodide();
+      window.pyodide = pyodide; // exposed for the save/load bridge below
       const response = await fetch("game.py");
       const code = await response.text();
       await pyodide.runPythonAsync(code);
     }
     main();
   </script>
+  <!--
+    SAVE-BUTTON-INTEGRATION.md: shared save widget, per the SOL reference
+    integration. game.py exposes get_state()/load_state() covering the
+    current run's in-memory state (the persistent skill tree and legacy
+    history live separately in localStorage and are out of scope here).
+  -->
+  <script src="../../shared/save-widget.js" data-game-id="aftermath"></script>
   <script>
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js");
+      navigator.serviceWorker.register("../../sw.js");
     }
   </script>
   <!--
