@@ -8,6 +8,8 @@ later milestones; this milestone is just "can the region build
 capacity at all."
 """
 
+import copy
+
 from js import document
 from pyodide.ffi import create_proxy
 
@@ -527,6 +529,56 @@ def on_toggle_coda(event=None):
     global coda_visible
     coda_visible = not coda_visible
     render()
+
+
+# --- Save system (SAVE-BUTTON-INTEGRATION.md contract for the shared
+# shared/save-widget.js) ---
+# get_state() packages every module-level mutable global into one plain,
+# JSON-safe dict; load_state() is its exact inverse. `region` is a
+# RegionState instance rather than a plain dict, so its attributes are
+# unpacked/restored by hand. `capacity`, `arrivals_log`, and `strain_log`
+# are deep-copied on the way out (and back in) so a live reference isn't
+# leaked into the saved snapshot -- continued play after taking a
+# "snapshot" would otherwise silently mutate it, same reasoning as SOL's
+# serialize_state() docstring. `net_positive_round` (Iteration Pass 3's
+# turning-point milestone) is either `None` or an int, already JSON-safe.
+def get_state():
+    return {
+        "round_number": region.round_number,
+        "funds": region.funds,
+        "capacity": copy.deepcopy(region.capacity),
+        "background_severity": region.background_severity,
+        "total_arrivals": region.total_arrivals,
+        "arrivals_log": copy.deepcopy(region.arrivals_log),
+        "strain_log": copy.deepcopy(region.strain_log),
+        "integrated_population": region.integrated_population,
+        "cumulative_services_investment": region.cumulative_services_investment,
+        "cumulative_integration_contribution": region.cumulative_integration_contribution,
+        "net_positive_round": region.net_positive_round,
+        "coda_visible": coda_visible,
+        "info_page_open": info_page_open,
+    }
+
+
+def load_state(data):
+    global coda_visible, info_page_open
+
+    region.round_number = data["round_number"]
+    region.funds = data["funds"]
+    region.capacity = copy.deepcopy(data["capacity"])
+    region.background_severity = data["background_severity"]
+    region.total_arrivals = data["total_arrivals"]
+    region.arrivals_log = copy.deepcopy(data["arrivals_log"])
+    region.strain_log = copy.deepcopy(data["strain_log"])
+    region.integrated_population = data["integrated_population"]
+    region.cumulative_services_investment = data["cumulative_services_investment"]
+    region.cumulative_integration_contribution = data["cumulative_integration_contribution"]
+    region.net_positive_round = data["net_positive_round"]
+    coda_visible = data["coda_visible"]
+    info_page_open = data["info_page_open"]
+
+    render()
+    return True
 
 
 def setup():

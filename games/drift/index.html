@@ -4,17 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Drift</title>
-<link rel="icon" href="/icons/icon-192.png">
+<link rel="icon" href="../../icons/icon-192.png">
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="/ad-bar.css">
-<link rel="manifest" href="/manifest.json">
+<link rel="stylesheet" href="../../ad-bar.css">
+<link rel="manifest" href="../../manifest.json">
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
 <body>
   <div id="game">
-    <a href="/" class="hub-back-link">&larr; All games</a>
+    <a href="../../index.html" class="hub-back-link">&larr; All games</a>
     <h1>Drift</h1>
     <p class="tagline">Manage a receiving region as displacement pressure rises. Whether that pressure becomes a crisis or a manageable transition comes down to how well the region prepared.</p>
     <p class="context-blurb">Institutional preparedness, not the scale of arrivals alone, is what determines outcomes. Uganda's refugee policy — granting land access and the right to work and move freely, integrated alongside host communities — is widely cited by policy researchers as a model of how institutional capacity can turn large-scale displacement into manageable, even mutually beneficial, coexistence.</p>
@@ -119,15 +119,22 @@
   <script>
     async function main() {
       const pyodide = await loadPyodide();
+      window.pyodide = pyodide; // exposed for the save/load bridge below
       const response = await fetch("game.py");
       const code = await response.text();
       await pyodide.runPythonAsync(code);
     }
     main();
   </script>
+  <!--
+    SAVE-BUTTON-INTEGRATION.md: shared save widget, same as every other
+    game. game.py exposes get_state()/load_state(); the widget itself is
+    untouched per-game.
+  -->
+  <script src="../../shared/save-widget.js" data-game-id="drift"></script>
   <script>
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js");
+      navigator.serviceWorker.register("../../sw.js");
     }
   </script>
   <!--
