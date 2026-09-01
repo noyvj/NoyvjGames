@@ -6,6 +6,7 @@ revenue on round advance. Emissions, cost curves, and disruption events
 land in later milestones.
 """
 
+import copy
 import random
 
 from js import document
@@ -641,6 +642,63 @@ def _make_maintain_handler(plant_type):
 def on_advance_round(event=None):
     state.advance_round()
     render()
+
+
+# SAVE-BUTTON-INTEGRATION.md contract for the shared shared/save-widget.js:
+# get_state() returns every module-level mutable global (the GridState
+# instance's attributes, plus the info-page toggle) as one plain,
+# JSON-safe dict, and load_state() is its exact inverse. Nested mutable
+# containers (plant_counts, cumulative_built, plant_age, event_log,
+# last_event, the history lists, last_aging_event) are deep-copied on the
+# way out and back in, so a live reference is never shared between the
+# saved snapshot and continued play — same reasoning as SOL's
+# serialize_state() docstring. Grid has no non-JSON-native types (no sets)
+# in its state, unlike SOL's unlocked_bodies.
+def get_state():
+    return {
+        "round_number": state.round_number,
+        "demand": state.demand,
+        "funds": state.funds,
+        "plant_counts": copy.deepcopy(state.plant_counts),
+        "cumulative_built": copy.deepcopy(state.cumulative_built),
+        "emissions": state.emissions,
+        "event_log": copy.deepcopy(state.event_log),
+        "last_event": copy.deepcopy(state.last_event),
+        "clean_fraction_log": list(state.clean_fraction_log),
+        "emissions_history": list(state.emissions_history),
+        "avg_renewable_cost_history": list(state.avg_renewable_cost_history),
+        "renewable_unlocked": state.renewable_unlocked,
+        "plant_age": copy.deepcopy(state.plant_age),
+        "global_reference_emissions": state.global_reference_emissions,
+        "global_reference_emissions_history": list(state.global_reference_emissions_history),
+        "last_aging_event": copy.deepcopy(state.last_aging_event),
+        "info_page_open": info_page_open,
+    }
+
+
+def load_state(data):
+    global info_page_open
+
+    state.round_number = data["round_number"]
+    state.demand = data["demand"]
+    state.funds = data["funds"]
+    state.plant_counts = copy.deepcopy(data["plant_counts"])
+    state.cumulative_built = copy.deepcopy(data["cumulative_built"])
+    state.emissions = data["emissions"]
+    state.event_log = copy.deepcopy(data["event_log"])
+    state.last_event = copy.deepcopy(data["last_event"])
+    state.clean_fraction_log = list(data["clean_fraction_log"])
+    state.emissions_history = list(data["emissions_history"])
+    state.avg_renewable_cost_history = list(data["avg_renewable_cost_history"])
+    state.renewable_unlocked = data["renewable_unlocked"]
+    state.plant_age = copy.deepcopy(data["plant_age"])
+    state.global_reference_emissions = data["global_reference_emissions"]
+    state.global_reference_emissions_history = list(data["global_reference_emissions_history"])
+    state.last_aging_event = copy.deepcopy(data["last_aging_event"])
+    info_page_open = data["info_page_open"]
+
+    render()
+    return True
 
 
 def setup():
