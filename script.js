@@ -1,8 +1,11 @@
 const RATINGS_API_BASE = "https://noyvjgames.fastapicloud.dev";
-// Shared across every page on the site (localStorage is keyed by origin,
-// not path) — this is how a game page like SOL's save bridge knows
-// whether the player is signed in without its own account UI.
-const AUTH_STORAGE_KEY = "hub_bearer_token";
+// HUB_AUTH_TOKEN_KEY/hubGetBearerToken()/hubAuthHeaders() come from
+// shared/hub-auth.js (loaded before this file — see index.html), the same
+// bearer-token helpers shared/save-widget.js uses, so both files can't
+// drift out of sync on the localStorage key or header shape. Shared across
+// every page on the site (localStorage is keyed by origin, not path) —
+// this is how a game page's save widget knows whether the player is
+// signed in without its own account UI.
 const AUTH_USERNAME_KEY = "hub_account_username";
 
 function bindStarRating(ratingWidget) {
@@ -89,19 +92,7 @@ document.querySelectorAll(".review-widget").forEach((widget) => {
 
 // --- Accounts (ACCOUNTS-AND-FEEDBACK-DESIGN.md Phase 2, revised: username
 // + password, no email — see main.py for why) ---
-
-// REVIEW(reuse): getBearerToken/authHeaders duplicate shared/save-widget.js's
-// own authHeaders() — both independently hardcode the bearer-token
-// localStorage key ("hub_bearer_token" here as AUTH_STORAGE_KEY, same string
-// as save-widget.js's AUTH_TOKEN_KEY) and build the same header object.
-function getBearerToken() {
-  return localStorage.getItem(AUTH_STORAGE_KEY);
-}
-
-function authHeaders() {
-  const token = getBearerToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
+// hubGetBearerToken()/hubAuthHeaders() come from shared/hub-auth.js.
 
 const accountSignedOut = document.getElementById("account-signed-out");
 const accountSignedIn = document.getElementById("account-signed-in");
@@ -129,7 +120,7 @@ function showSignedIn(username) {
 async function loadMySaves() {
   accountMySaves.textContent = "Loading your saves…";
   try {
-    const res = await fetch(`${RATINGS_API_BASE}/users/me/saves`, { headers: authHeaders() });
+    const res = await fetch(`${RATINGS_API_BASE}/users/me/saves`, { headers: hubAuthHeaders() });
     if (!res.ok) throw new Error(`status ${res.status}`);
     const saves = await res.json();
     accountMySaves.innerHTML = "";
@@ -189,7 +180,7 @@ async function submitAuth(endpoint, triggerButton, busyText, idleText) {
       accountStatus.textContent = body.detail || "Something went wrong — try again.";
       return;
     }
-    localStorage.setItem(AUTH_STORAGE_KEY, body.bearer_token);
+    localStorage.setItem(HUB_AUTH_TOKEN_KEY, body.bearer_token);
     localStorage.setItem(AUTH_USERNAME_KEY, body.username);
     accountUsernameInput.value = "";
     accountPasswordInput.value = "";
@@ -212,13 +203,13 @@ accountSignupButton.addEventListener("click", () =>
 );
 
 accountSignoutButton.addEventListener("click", () => {
-  localStorage.removeItem(AUTH_STORAGE_KEY);
+  localStorage.removeItem(HUB_AUTH_TOKEN_KEY);
   localStorage.removeItem(AUTH_USERNAME_KEY);
   showSignedOut();
 });
 
 const savedUsername = localStorage.getItem(AUTH_USERNAME_KEY);
-if (getBearerToken() && savedUsername) {
+if (hubGetBearerToken() && savedUsername) {
   showSignedIn(savedUsername);
 } else {
   showSignedOut();
@@ -274,7 +265,7 @@ siteFeedbackSubmit.addEventListener("click", async () => {
   try {
     const res = await fetch(`${RATINGS_API_BASE}/feedback`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...authHeaders() },
+      headers: { "Content-Type": "application/json", ...hubAuthHeaders() },
       body: JSON.stringify({ rating, comment }),
     });
     if (!res.ok) throw new Error(`status ${res.status}`);

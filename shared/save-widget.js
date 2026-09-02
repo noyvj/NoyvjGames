@@ -44,16 +44,10 @@
 
   const API_BASE = "https://noyvjgames.fastapicloud.dev";
   const STORAGE_KEY = `savecode:${GAME_ID}`;
-  const AUTH_TOKEN_KEY = "hub_bearer_token";
-
-  // REVIEW(reuse): duplicated in script.js (getBearerToken/authHeaders) —
-  // both independently hardcode the "hub_bearer_token" localStorage key and
-  // build the same Authorization header object. A future key rename in one
-  // file without the other would silently break auth-gated save loading.
-  function authHeaders() {
-    const token = localStorage.getItem(AUTH_TOKEN_KEY);
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  }
+  // HUB_AUTH_TOKEN_KEY/hubAuthHeaders() come from shared/hub-auth.js,
+  // loaded before this file — the same bearer-token helpers script.js uses
+  // for the hub's own sign-in UI, so the two can't drift out of sync on
+  // the localStorage key or header shape.
 
   if (!document.getElementById("save-widget-styles")) {
     const style = document.createElement("style");
@@ -185,7 +179,7 @@
     codeDisplay.textContent = `Code: ${code}`;
     codeDisplay.hidden = false;
     newButton.hidden = false;
-    claimButton.hidden = !localStorage.getItem(AUTH_TOKEN_KEY);
+    claimButton.hidden = !localStorage.getItem(HUB_AUTH_TOKEN_KEY);
   }
 
   // Pyodide loads asynchronously and each game's own boot script sets
@@ -207,11 +201,11 @@
 
   // Returns true if an account save for this game was found and loaded.
   async function tryAutoLoadFromAccount() {
-    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    const token = localStorage.getItem(HUB_AUTH_TOKEN_KEY);
     if (!token) return false;
     let saves;
     try {
-      const res = await fetch(`${API_BASE}/users/me/saves`, { headers: authHeaders() });
+      const res = await fetch(`${API_BASE}/users/me/saves`, { headers: hubAuthHeaders() });
       if (!res.ok) return false;
       saves = await res.json();
     // REVIEW(observability): `err` is discarded here and in every other catch
@@ -373,7 +367,7 @@
     try {
       const res = await fetch(`${API_BASE}/saves/${code}/claim`, {
         method: "POST",
-        headers: authHeaders(),
+        headers: hubAuthHeaders(),
       });
       if (!res.ok) throw new Error(`status ${res.status}`);
       statusEl.textContent = "Save claimed to your account!";
