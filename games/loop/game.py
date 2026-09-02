@@ -448,12 +448,24 @@ def load_state(data):
     """Take the dict from get_state() (possibly from a previous session)
     and restore `chain` to that point — the exact inverse of
     get_state() — then re-render so the UI reflects the loaded state
-    immediately."""
+    immediately.
+
+    `circularity_investment` is merged key-by-key against the current
+    CIRCULARITY_INVESTMENTS schema rather than wholesale-replaced: every
+    render() reads chain.circularity_investment[measure] for every measure
+    currently in CIRCULARITY_INVESTMENTS, so a snapshot missing a key (an
+    older/hand-edited save) would otherwise leave that key absent entirely
+    and crash the very next render with a KeyError. Merging also drops any
+    stale key no longer in CIRCULARITY_INVESTMENTS (e.g. a retired
+    measure) instead of letting it linger in the live dict forever."""
     chain.cycle_number = data["cycle_number"]
     chain.funds = data["funds"]
     chain.total_extracted = data["total_extracted"]
     chain.total_produced = data["total_produced"]
-    chain.circularity_investment = dict(data["circularity_investment"])
+    saved_investment = data["circularity_investment"]
+    chain.circularity_investment = {
+        measure: saved_investment.get(measure, 0) for measure in CIRCULARITY_INVESTMENTS
+    }
     chain.circular_fraction_log = list(data["circular_fraction_log"])
     chain.trade_link_investment = data["trade_link_investment"]
     render()

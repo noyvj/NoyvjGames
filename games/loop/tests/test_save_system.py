@@ -171,6 +171,55 @@ def test_load_state_re_renders_vignette_and_trade_network_display(game_env):
     assert game_env.elements["trade-network-display"].innerText == expected_trade_display
 
 
+def test_load_state_tolerates_a_circularity_investment_dict_missing_a_key(game_env):
+    """load_state() currently does `dict(data["circularity_investment"])`,
+    a wholesale replace rather than a key-by-key merge against the current
+    CIRCULARITY_INVESTMENTS schema. A save snapshot that is missing one of
+    the three keys (e.g. one saved by an earlier build, before a measure
+    existed, or simply hand-edited/corrupted) leaves `chain.circularity_investment`
+    without that key entirely — and every render() call unconditionally
+    reads `chain.circularity_investment[measure]` for every measure in
+    CIRCULARITY_INVESTMENTS, so the very next render crashes with a
+    KeyError instead of just treating the missing measure as zero."""
+    game_env.chain.invest_circularity("repair")
+    snapshot = game_env.module.get_state()
+    snapshot["circularity_investment"] = {"repair": 2}  # "reuse"/"recycle" missing
+
+    result = game_env.module.load_state(snapshot)
+    assert result is True
+    assert game_env.chain.circularity_investment == {
+        "repair": 2,
+        "reuse": 0,
+        "recycle": 0,
+    }
+    # render() (called by load_state itself) must not have raised, and must
+    # reflect the restored/defaulted counts.
+    assert game_env.elements["repair-count"].innerText == "2"
+    assert game_env.elements["reuse-count"].innerText == "0"
+    assert game_env.elements["recycle-count"].innerText == "0"
+
+
+def test_load_state_drops_a_stale_circularity_investment_key(game_env):
+    """The flip side of the merge: a key in the save data that no longer
+    exists in CIRCULARITY_INVESTMENTS (e.g. a retired measure from an old
+    build) shouldn't linger in `chain.circularity_investment` forever —
+    a key-by-key merge against the current schema drops it."""
+    snapshot = game_env.module.get_state()
+    snapshot["circularity_investment"] = {
+        "repair": 1,
+        "reuse": 1,
+        "recycle": 1,
+        "retired_measure": 5,
+    }
+
+    game_env.module.load_state(snapshot)
+    assert game_env.chain.circularity_investment == {
+        "repair": 1,
+        "reuse": 1,
+        "recycle": 1,
+    }
+
+
 def test_get_state_matches_shape_after_load_state_round_trip(game_env):
     game_env.chain.invest_circularity("reuse")
     game_env.chain.advance_cycle()

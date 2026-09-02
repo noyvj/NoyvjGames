@@ -79,6 +79,28 @@ An optional, player-triggered "The Real Story" panel — never forced mid-sessio
 
 All four links verified live before merging.
 
+## Audit fix — save-load robustness for circularity investment
+
+Second-pass code-quality audit found `load_state()` doing a wholesale
+`dict(data["circularity_investment"])` replace instead of merging
+key-by-key against the current `CIRCULARITY_INVESTMENTS` schema — the
+same shape of bug found and fixed in a few other games' save systems this
+session. `render()` unconditionally reads
+`chain.circularity_investment[measure]` for every measure currently in
+`CIRCULARITY_INVESTMENTS`, so loading a snapshot missing one of those keys
+(an older/hand-edited save, or one from a build with a different
+measure set) would leave that key absent entirely and crash the very
+next render with a `KeyError`. A stale key no longer in
+`CIRCULARITY_INVESTMENTS` would also linger in the live dict forever.
+
+**Fix:** `load_state()` now rebuilds `circularity_investment` as
+`{measure: saved.get(measure, 0) for measure in CIRCULARITY_INVESTMENTS}`
+— missing keys default to 0, unknown/retired keys are dropped. Covered by
+two new tests in `tests/test_save_system.py`. No other issue (memory
+leak, dead code, stale comment) turned up on this pass — `setup()` is the
+only place `create_proxy()` is called, once at load, so there's no
+per-render proxy leak here.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
