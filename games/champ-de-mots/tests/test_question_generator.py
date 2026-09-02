@@ -291,6 +291,62 @@ def test_typed_answers_forgive_a_leading_article(game_env):
     assert module.check_answer(question, "chair") is True
 
 
+def test_typed_answers_forgive_a_dropped_plus_placeholder(game_env):
+    """Template items like "I am + [nationality]" (fren151-w4-phrase002)
+    are answers to a translate-the-pattern question -- the placeholder
+    itself was never something to type."""
+    module = game_env.module
+    question = {"mode": "typed", "answer": "I am + [nationality]", "choices": []}
+    assert module.check_answer(question, "I am") is True
+    assert module.check_answer(question, "i am") is True
+    # Typing the whole thing verbatim, placeholder included, still works too.
+    assert module.check_answer(question, "I am + [nationality]") is True
+
+    question_fr = {"mode": "typed", "answer": "Je suis + [occupation]", "choices": []}
+    assert module.check_answer(question_fr, "je suis") is True
+
+
+def test_typed_answers_accept_either_direction_of_a_contraction(game_env):
+    module = game_env.module
+    question = {"mode": "typed", "answer": "it's + [adjective]", "choices": []}
+    assert module.check_answer(question, "it's") is True
+    assert module.check_answer(question, "it is") is True
+
+    question2 = {"mode": "typed", "answer": "I am not hungry", "choices": []}
+    # No contraction present in the catalog answer at all -- unaffected.
+    assert module.check_answer(question2, "I am not hungry") is True
+
+    question3 = {"mode": "typed", "answer": "we are happy", "choices": []}
+    assert module.check_answer(question3, "we're happy") is True
+
+    question4 = {"mode": "typed", "answer": "he does not know", "choices": []}
+    assert module.check_answer(question4, "he doesn't know") is True
+
+
+def test_typed_answers_accept_belgian_swiss_number_words(game_env):
+    """70/80/90 also have Belgian/Swiss French words (septante/huitante/
+    nonante) instead of the France-standard compounds -- both are correct
+    French, so both are accepted."""
+    module = game_env.module
+
+    seventy = {"mode": "typed", "answer": "soixante-dix", "choices": []}
+    assert module.check_answer(seventy, "soixante-dix") is True
+    assert module.check_answer(seventy, "septante") is True
+
+    eighty = {"mode": "typed", "answer": "quatre-vingts", "choices": []}
+    assert module.check_answer(eighty, "quatre-vingts") is True
+    assert module.check_answer(eighty, "huitante") is True
+
+    ninety = {"mode": "typed", "answer": "quatre-vingt-dix", "choices": []}
+    assert module.check_answer(ninety, "quatre-vingt-dix") is True
+    assert module.check_answer(ninety, "nonante") is True
+    assert module.check_answer(ninety, "neufante") is True
+
+    # Doesn't leak into unrelated numbers.
+    sixty = {"mode": "typed", "answer": "soixante", "choices": []}
+    assert module.check_answer(sixty, "septante") is False
+
+
 def test_multiple_choice_answers_must_match_exactly(game_env):
     module = game_env.module
     question = {"mode": "choice", "answer": "bonjour", "choices": ["bonjour", "salut"]}

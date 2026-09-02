@@ -824,12 +824,68 @@ def generate_question(plot, rng=None, variant=None, exclude=None, farm=None):
     )
 
 
+def _strip_plus_annotation(text):
+    """Drop a trailing "+ [template placeholder]" marker, e.g.
+    "I am + [nationality]" -> "I am", "Je suis + [occupation]" -> "Je suis".
+    These mark where a specific word would go in a live sentence -- the
+    catalog's own template items (see e.g. fren151-w4-phrase002) -- not
+    something a typed answer should have to reproduce."""
+    return re.sub(r"\s*\+.*$", "", text).strip()
+
+
+# Common English contractions, both directions -- "it's"/"it is" and the
+# like should never cost a plant either way. Matched as whole words/phrases
+# (word-boundaried) against an already-normalized (casefolded, apostrophe-
+# folded) string, so case and curly-vs-straight apostrophes are moot.
+CONTRACTION_PAIRS = [
+    ("i'm", "i am"), ("you're", "you are"), ("we're", "we are"), ("they're", "they are"),
+    ("he's", "he is"), ("she's", "she is"), ("it's", "it is"), ("that's", "that is"),
+    ("what's", "what is"), ("who's", "who is"), ("there's", "there is"), ("here's", "here is"),
+    ("let's", "let us"),
+    ("i've", "i have"), ("you've", "you have"), ("we've", "we have"), ("they've", "they have"),
+    ("i'll", "i will"), ("you'll", "you will"), ("he'll", "he will"), ("she'll", "she will"),
+    ("we'll", "we will"), ("they'll", "they will"), ("it'll", "it will"),
+    ("don't", "do not"), ("doesn't", "does not"), ("didn't", "did not"),
+    ("can't", "cannot"), ("won't", "will not"), ("wouldn't", "would not"),
+    ("shouldn't", "should not"), ("couldn't", "could not"),
+    ("isn't", "is not"), ("aren't", "are not"), ("wasn't", "was not"), ("weren't", "were not"),
+    ("haven't", "have not"), ("hasn't", "has not"), ("hadn't", "had not"),
+]
+
+
+def _contraction_variants(text):
+    """Both directions of every contraction pair found in `text`."""
+    variants = set()
+    for short, long in CONTRACTION_PAIRS:
+        if re.search(rf"\b{re.escape(short)}\b", text):
+            variants.add(re.sub(rf"\b{re.escape(short)}\b", long, text))
+        if re.search(rf"\b{re.escape(long)}\b", text):
+            variants.add(re.sub(rf"\b{re.escape(long)}\b", short, text))
+    return variants
+
+
+# Belgian/Swiss French use their own words for 70/80/90 instead of the
+# France-standard compounds -- both are correct French, so both are
+# accepted. ("nonante" is the actual attested regional word for 90;
+# "neufante" isn't real French, but accepted too in case that's genuinely
+# what you were taught as its counterpart to septante/huitante.)
+NUMBER_REGIONALISMS = {
+    "soixante-dix": ("septante",),
+    "quatre-vingts": ("huitante",),
+    "quatre-vingt-dix": ("nonante", "neufante"),
+}
+
+
 def answer_alternatives(answer):
     """Everything a typed answer may reasonably be spelled as."""
     alternatives = set()
     raw = str(answer).strip()
     base = strip_parentheticals(raw)
-    for chunk in re.split(r"\s*/\s*|\s*;\s*", raw) + re.split(r"\s*/\s*|\s*;\s*", base) + [raw, base]:
+    candidates = {raw, base, _strip_plus_annotation(raw), _strip_plus_annotation(base)}
+    pieces = list(candidates)
+    for candidate in candidates:
+        pieces.extend(re.split(r"\s*/\s*|\s*;\s*", candidate))
+    for chunk in pieces:
         chunk = chunk.strip()
         if not chunk:
             continue
@@ -840,6 +896,9 @@ def answer_alternatives(answer):
         for prefix in ARTICLE_PREFIXES:
             if normalized.startswith(prefix):
                 alternatives.add(normalized[len(prefix):])
+    for alt in list(alternatives):
+        alternatives.update(_contraction_variants(alt))
+        alternatives.update(NUMBER_REGIONALISMS.get(alt, ()))
     return {alt for alt in alternatives if alt}
 
 
