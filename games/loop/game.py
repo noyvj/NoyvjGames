@@ -299,6 +299,7 @@ INFO_PAGE = {
 info_page_open = False
 
 
+# REVIEW(reuse): render_info_page()/on_toggle_info_page() (~25+4 lines) are\n# logically identical across all 8 climate games (canopy, grid, tide,\n# aftermath, herd, thaw, loop, drift) -- only the per-game INFO_PAGE data\n# dict differs. Matching HTML/CSS (.info-page-* rules, #info-page-panel\n# markup) is duplicated the same way. A shared JS-driven widget or small\n# shared Python helper, driven by each game's own INFO_PAGE dict -- the same\n# pattern already used for shared/save-widget.js -- would remove ~250 lines\n# of duplication.
 def render_info_page():
     panel = document.getElementById("info-page-panel")
     panel.hidden = not info_page_open
@@ -467,6 +468,11 @@ def load_state(data):
         measure: saved_investment.get(measure, 0) for measure in CIRCULARITY_INVESTMENTS
     }
     chain.circular_fraction_log = list(data["circular_fraction_log"])
+    # REVIEW(correctness): direct dict subscript instead of a defaulted
+    # .get() — unlike circularity_investment right above, which was already
+    # fixed for exactly this reason. A save from before the trade-network
+    # field existed won't have this key, so load_state() raises KeyError and
+    # the load fails, same bug shape already patched one field over.
     chain.trade_link_investment = data["trade_link_investment"]
     render()
     return True

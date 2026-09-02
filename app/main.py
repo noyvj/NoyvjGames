@@ -125,6 +125,10 @@ def create_save(payload: SaveIn, db: Session = Depends(get_db)):
         db.add(row)
         try:
             db.commit()
+        # REVIEW(observability): swallows the actual IntegrityError with no logging —
+        # a genuine DB/connectivity problem here is indistinguishable from a code
+        # collision retry, and if all attempts are exhausted the caller only sees
+        # a generic 500 with no server-side trail of why.
         except IntegrityError:
             db.rollback()
             continue
@@ -185,6 +189,9 @@ def _verify_password(password: str, stored_hash: str) -> bool:
         salt_hex, digest_hex = stored_hash.split("$", 1)
         salt = bytes.fromhex(salt_hex)
         expected = bytes.fromhex(digest_hex)
+    # REVIEW(observability): a malformed stored_hash (bad migration, hand-edited
+    # row) is indistinguishable from a normal wrong-password failure here — both
+    # just produce a 401 with no log signal to tell them apart.
     except ValueError:
         return False
     actual = hashlib.pbkdf2_hmac(PBKDF2_ALGORITHM, password.encode("utf-8"), salt, PBKDF2_ITERATIONS)
@@ -213,6 +220,11 @@ class AuthOut(BaseModel):
     username: str
 
 
+# REVIEW(security): AuthSession rows never expire and there is no
+# /auth/logout endpoint to revoke a token server-side (models.py's own
+# AuthSession docstring flags this). A leaked bearer token — e.g. left in
+# localStorage on a shared machine — stays valid forever with no way for the
+# user to kill it.
 def _start_session(db: Session, user: User) -> str:
     session_token = secrets.token_urlsafe(SESSION_TOKEN_BYTES)
     db.add(AuthSession(user_id=user.id, token=session_token))
@@ -220,6 +232,11 @@ def _start_session(db: Session, user: User) -> str:
     return session_token
 
 
+# REVIEW(correctness): race condition — two concurrent signups for the same
+# username both pass the existence check above before either commits, so the
+# second db.commit() raises an unhandled IntegrityError (500) instead of the
+# intended 409 "Username already taken". create_save (above) already handles
+# this same class of race for save codes; signup doesn't.
 @app.post("/auth/signup", response_model=AuthOut)
 def signup(payload: AuthIn, db: Session = Depends(get_db)):
     username = _normalize_username(payload.username)
@@ -269,10 +286,22 @@ def get_current_user_optional(
         return None
     try:
         return get_current_user(authorization, db)
+    # REVIEW(observability): swallows every auth failure (expired/garbage token,
+    # bad frontend bug) with no logging — a signed-in user whose token is broken
+    # gets silently treated as anonymous with no server-side trail.
     except HTTPException:
         return None
 
 
+# REVIEW(security,correctness): no ownership check before reassigning
+# row.user_id — any authenticated user who obtains a save code that's already
+# claimed by someone else (shared accidentally, guessed, or the code path
+# below stays open post-claim, see next REVIEW) can silently re-claim it to
+# their own account. User A claims a save, User B later POSTs the same code
+# to /claim, and the save is reassigned from A to B with no error and no
+# trace. Contradicts SAVE-SYSTEM-DESIGN.md's stated invariant that "nobody
+# loses a save by signing up." Needs a guard like
+# `if row.user_id not in (None, current_user.id): raise HTTPException(409, ...)`.
 @app.post("/saves/{save_code}/claim", response_model=SaveOut)
 def claim_save(save_code: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     row = db.query(Save).filter(Save.save_code == save_code).first()
@@ -284,6 +313,14 @@ def claim_save(save_code: str, current_user: User = Depends(get_current_user), d
     return row
 
 
+# REVIEW(security): claiming a save doesn't restrict or rotate save_code —
+# GET/PUT /saves/{save_code} above stay open to anyone who still has the code,
+# even after it's been claimed to an account. Whoever had the code before
+# claiming keeps full read/write access indefinitely.
+# REVIEW(patterns): unlike list_ratings/get_save/list_feedback, this endpoint
+# doesn't take a `response: Response` param or set Cache-Control: no-store, so
+# a signed-in user's save list can be stale-cached where the sibling
+# "list latest rows" endpoints can't be.
 @app.get("/users/me/saves", response_model=List[SaveOut])
 def list_my_saves(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     return db.query(Save).filter(Save.user_id == current_user.id).order_by(Save.updated_at.desc()).all()
@@ -300,9 +337,19 @@ FEEDBACK_RATE_LIMIT_PER_HOUR = 5
 # stance — resets on every deploy/restart and isn't shared across
 # multiple server instances. Good enough to blunt casual spam; build a
 # real (e.g. Redis-backed) limiter only if abuse actually shows up.
+# REVIEW(performance): every distinct IP that has ever POSTed to /feedback
+# stays as a key in this dict for the life of the process — stale IPs are
+# never purged, only their timestamp lists are filtered. Unbounded growth in
+# theory; negligible at this site's actual traffic, and capped in practice by
+# the fact it already resets on every deploy/restart.
 _feedback_submission_log: dict[str, list[float]] = {}
 
 
+# REVIEW(correctness): TOCTOU race — this is a sync def, so FastAPI runs
+# concurrent requests from the same IP on separate threadpool threads. The
+# read-check-append here isn't atomic: multiple threads can each read `recent`
+# before any of them writes back the appended list, letting more than
+# FEEDBACK_RATE_LIMIT_PER_HOUR requests through under concurrent bursts.
 def _check_feedback_rate_limit(client_ip: str) -> None:
     now = time.time()
     window_start = now - 3600
