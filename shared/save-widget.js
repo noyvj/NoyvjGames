@@ -264,15 +264,21 @@
   }
 
   // Returns the game's current state as a plain JS object, `undefined` if
-  // the game hasn't implemented the get_state() half of the contract, or
-  // `null` if Pyodide itself isn't ready yet.
+  // the game hasn't implemented the get_state() half of the contract (or
+  // get_state() itself raised — a buggy implementation is just as unusable
+  // as a missing one, and should fail the same friendly way rather than as
+  // an uncaught exception with no message at all), or `null` if Pyodide
+  // itself isn't ready yet.
   function readGameState() {
     if (!window.pyodide) return null;
     const getState = window.pyodide.globals.get("get_state");
     if (!getState) return undefined;
-    const proxy = getState();
+    let proxy;
     try {
+      proxy = getState();
       return proxy && proxy.toJs ? proxy.toJs({ dict_converter: Object.fromEntries }) : proxy;
+    } catch (err) {
+      return undefined;
     } finally {
       if (proxy && typeof proxy.destroy === "function") proxy.destroy();
     }

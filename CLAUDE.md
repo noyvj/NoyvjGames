@@ -5,20 +5,23 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
 ## Structure
 ```
 / (site root)
-  index.html        <- hub/lobby page: title cards, links to each game
-  style.css          <- shared minimal shell (nav, title-card grid, review widget)
-  script.js          <- hub-only interaction (star rating + review widget, backed by /app)
+  index.html        <- hub/lobby page: title cards, links to each game, sign-in + site feedback
+  style.css          <- shared minimal shell (nav, title-card grid, review widget, account/feedback UI)
+  script.js          <- hub-only interaction (star rating + review widget + accounts + site feedback, backed by /app)
   manifest.json       <- PWA manifest
   sw.js               <- service worker, stale-while-revalidate (serves cache instantly, refreshes it in the background every request)
   ad-bar.css           <- shared ad bar partial (hub + every game page)
   icons/               <- PWA icons (placeholder art)
   BCM114-DEV-LOG.md    <- running log: individual game content/mechanics/style (see Session logging below)
   BCM206-DEV-LOG.md    <- running log: site infrastructure (hosting, save system, accounts, backend)
+  /shared
+    save-widget.js     <- one shared save/load UI + autoload, dropped unchanged into every game — see planning/SAVE-BUTTON-INTEGRATION.md
   /app
-    main.py            <- FastAPI ratings API (POST/GET /ratings), deployed to FastAPI Cloud
+    main.py            <- FastAPI backend (ratings/feedback, save codes, accounts), deployed to FastAPI Cloud
     database.py
     models.py
     pyproject.toml     <- dependency manifest; scoped as FastAPI Cloud's Application Directory
+    tests/             <- backend pytest suite (sqlite, never touches the real Neon database)
   /games
     /sol
       index.html
@@ -32,7 +35,10 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
     site-plan.md
     game-template.md
     pwa-and-ads-setup.md  <- manifest/service worker/ad bar reference
-    SAVE-SYSTEM-DESIGN.md  <- save codes + accounts spec — Phase 1 (save codes) built and live, SOL is the reference integration
+    SAVE-SYSTEM-DESIGN.md  <- save codes spec — Phase 1 built and live, SOL is the reference integration
+    ACCOUNTS-AND-FEEDBACK-DESIGN.md  <- accounts (username+password) + site-wide feedback spec — backend + frontend built
+    SAVE-BUTTON-INTEGRATION.md  <- shared/save-widget.js spec — built and rolled out to every game
+    climate-games-fun-teaching-balance.md  <- Iteration Pass 3 source doc for the 8 climate games
     <game>-plan.md   <- pre-build groundwork notes per game, before folders exist
 ```
 
