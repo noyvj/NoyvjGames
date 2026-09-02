@@ -61,6 +61,8 @@ No new mechanics were added; both hook into ticker infrastructure and comparison
 
 ## Info Page — real-world sources (implemented)
 
+*Implementation is now shared across all 8 climate-quartet games — see `shared/info_page.py` and `shared/info-page.css`. Only the content below (framing/tie-in/sources) is game-specific; the rendering/toggle code moved out of this game's `game.py`.*
+
 An optional, player-triggered "The Real Story" panel — never forced mid-session, since the mechanic teaches first and this is a supplement for players who want to go deeper. Toggled via a button near the top of the page; shows a short framing paragraph (written fresh, not copied from any source), a one-line note tying the mechanic to real data, and a sources list with clickable links.
 
 **Framing:** Ocean acidification and sea-level rise are two separate consequences of the same underlying cause — the ocean absorbing extra CO2 and extra heat — and both show up on a delay: today's emissions determine damage that doesn't fully land for years. Tide's delayed-effect ticker and background sea-level timeline are built around that real lag.
