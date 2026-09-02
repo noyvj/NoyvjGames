@@ -108,5 +108,27 @@ class FakeDocument:
         return element
 
 
+class FakeProxy:
+    """Stands in for a Pyodide `JsProxy` returned by `create_proxy`.
+
+    Real proxies leak (they pin the wrapped Python callable in memory) until
+    `.destroy()` is called, and calling a destroyed one raises. Both of those
+    are the behaviours the game's own leak-prevention code needs to be able
+    to exercise from a plain-CPython test.
+    """
+
+    def __init__(self, func):
+        self._func = func
+        self.destroyed = False
+
+    def __call__(self, *args, **kwargs):
+        if self.destroyed:
+            raise RuntimeError("Object has already been destroyed")
+        return self._func(*args, **kwargs)
+
+    def destroy(self):
+        self.destroyed = True
+
+
 def create_proxy(func):
-    return func
+    return FakeProxy(func)

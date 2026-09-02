@@ -858,7 +858,17 @@ def _strip_plus_annotation(text):
     "I am + [nationality]" -> "I am", "Je suis + [occupation]" -> "Je suis".
     These mark where a specific word would go in a live sentence -- the
     catalog's own template items (see e.g. fren151-w4-phrase002) -- not
-    something a typed answer should have to reproduce."""
+    something a typed answer should have to reproduce.
+
+    Deliberately naive: it strips from the *first* "+" onward, which is
+    right for a trailing slot label but over-accepts on the 7 items where
+    "+" is mid-string rule notation whose tail is the actual lesson, not a
+    placeholder (fren151-w8-grammar005's "à + le -> au" and friends,
+    fren152-w4-grammar002's "plus + adjective + que" and friends) -- typing
+    just "à" or "plus" there is wrongly accepted as a full answer. Known and
+    deliberately left as-is rather than tightened: see the audit-pass note
+    in CLAUDE.md's Milestone 3 build notes for why (the brief here is *more*
+    lenient typed-answer checking, never less)."""
     return re.sub(r"\s*\+.*$", "", text).strip()
 
 
@@ -991,6 +1001,19 @@ current_result = None
 practice_open = False
 plot_cells = {}
 QUESTION_RNG = random.Random()
+
+# Choice-button click handlers created by the last render_practice() call.
+# Unlike the grid's cell handlers and the panel's other fixed buttons (each
+# wired once in build_farm()/setup()), these are rebuilt on every repaint —
+# so, unlike those, they have to be explicitly destroyed each time or the
+# proxies pile up unboundedly over a play session.
+practice_choice_proxies = []
+
+
+def _destroy_practice_choice_proxies():
+    for proxy in practice_choice_proxies:
+        proxy.destroy()
+    practice_choice_proxies.clear()
 
 
 def _element(element_id):
@@ -1146,6 +1169,26 @@ def render_status():
         f"{STAGE_ICON[stage]} {counts[stage]}" for stage in STAGE_ORDER
     )
 
+    # Audit note: the numerator here is scoped to available_plots() (rows
+    # unlocked so far) while the denominator is len(state.plots) (all 722,
+    # locked or not) -- an inconsistent scope on its face. It reads correctly
+    # today only because a locked plot can never be anything but STAGE_SEED
+    # during live play: open_practice() refuses to open a plot outside
+    # is_row_unlocked(), which is the only path that ever advances a stage
+    # (schedule_after_review()), so filtering the numerator down to
+    # available_plots() can never actually exclude a non-seed plot -- the
+    # count would come out identical scoped over state.plots directly.
+    # That said, load_state() sets plot.stage straight from a save record
+    # per plot_id, independent of that plot's row's current unlock status;
+    # a save that is missing or resets an earlier row's records (an old/
+    # edited/incompatible save code) while still recording a later row's
+    # plot as grown could in principle reload into exactly the locked-but-
+    # growing state this scope mismatch assumes can't happen -- the same
+    # general class of stale-save-reload skew audited and fixed elsewhere
+    # in this repo (see Aftermath's highest-awarded-run guard). Left as-is
+    # rather than silently changed, since which scope is "correct" for the
+    # player-facing number here isn't a confident call either way; flagging
+    # for whoever next touches save compatibility for this game.
     available = state.available_plots()
     growing = sum(1 for p in available if p.stage != STAGE_SEED)
     automated = sum(1 for p in available if p.stage == STAGE_AUTOMATED)
@@ -1166,6 +1209,12 @@ def render_practice():
     choices_box = _element("practice-choices")
     answer_input = _element("practice-answer-input")
     submit = _element("practice-submit-button")
+
+    # The previous batch of choice-button proxies belongs to whatever was on
+    # screen before this repaint, closed panel or otherwise — destroy it here
+    # so every path through this function (including the early return below)
+    # retires its predecessors before anything new can replace it.
+    _destroy_practice_choice_proxies()
 
     if not practice_open or current_question is None:
         panel.hidden = True
@@ -1194,7 +1243,9 @@ def render_practice():
             button.className = "choice"
             if answered and choice == current_question["answer"]:
                 button.className = "choice choice--answer"
-            button.addEventListener("click", create_proxy(_make_choice_handler(choice)))
+            proxy = create_proxy(_make_choice_handler(choice))
+            button.addEventListener("click", proxy)
+            practice_choice_proxies.append(proxy)
             choices_box.appendChild(button)
     else:
         answer_input.hidden = False

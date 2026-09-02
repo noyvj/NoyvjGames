@@ -213,6 +213,37 @@ def test_multiple_choice_questions_render_one_button_per_choice(game_env):
     assert game_env.elements["practice-submit-button"].hidden is True
 
 
+def test_choice_button_proxies_are_destroyed_on_the_next_render(game_env):
+    """Each repaint of the practice panel mints one `create_proxy` per choice
+    button. Left undestroyed, those pile up unboundedly over a play session
+    (a real memory leak — Pyodide proxies pin their wrapped Python callable
+    until `.destroy()` is called). The previous batch must be destroyed
+    before — or as part of — building the next one."""
+    module = game_env.module
+    plot = next(
+        p for p in game_env.state.plots
+        if module.variants_for(p) and module.V_FR_EN_CHOICE in module.variants_for(p)
+    )
+
+    module.open_practice(plot.plot_id, variant=module.V_FR_EN_CHOICE)
+    first_batch = list(module.practice_choice_proxies)
+    assert len(first_batch) == 4
+    assert all(not proxy.destroyed for proxy in first_batch)
+
+    # Re-rendering the panel (a fresh question, same or different plot) must
+    # not leave the previous batch of proxies alive.
+    module.open_practice(plot.plot_id, variant=module.V_FR_EN_CHOICE)
+    second_batch = list(module.practice_choice_proxies)
+    assert all(proxy.destroyed for proxy in first_batch)
+    assert all(not proxy.destroyed for proxy in second_batch)
+    assert set(map(id, second_batch)).isdisjoint(map(id, first_batch))
+
+    # Closing the panel repaints it too (to hidden/empty) and must not leave
+    # the last-shown batch dangling either.
+    module.close_practice()
+    assert all(proxy.destroyed for proxy in second_batch)
+
+
 def test_typed_questions_render_an_input_instead_of_choices(game_env):
     module = game_env.module
     plot = next(p for p in game_env.state.plots if module.V_FR_EN_TYPED in module.variants_for(p))
