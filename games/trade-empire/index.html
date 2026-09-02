@@ -9,6 +9,12 @@
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
 <body>
+  <!-- REVIEW(patterns): no shared/save-widget.js integration, no
+       window.pyodide exposure, no module-level get_state()/load_state() in
+       game.py — diverges from every other hub-linked game (including
+       Continuum, which is also "not yet hub-linked" but still fully
+       implements the widget contract). Not documented in CLAUDE.md as a
+       deliberate exception, just absent. -->
   <div id="game">
     <a href="../../index.html" class="hub-back-link">&larr; All games</a>
     <h1>Trade Empire</h1>

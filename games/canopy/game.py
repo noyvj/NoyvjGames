@@ -297,6 +297,9 @@ def _plot_tile_id(index):
     return f"plot-{index}"
 
 
+# REVIEW(reuse): byte-identical implementation in games/herd/game.py.
+# Low urgency at only 2 occurrences, but worth a shared color-utility module
+# if a third game ever needs a hex-color lerp.
 def _lerp_color(start_hex, end_hex, t):
     """Linear-interpolates between two #rrggbb colors at t in [0, 1]."""
     t = max(0.0, min(1.0, t))
@@ -496,6 +499,7 @@ INFO_PAGE = {
 info_page_open = False
 
 
+# REVIEW(reuse): render_info_page()/on_toggle_info_page() (~25+4 lines) are\n# logically identical across all 8 climate games (canopy, grid, tide,\n# aftermath, herd, thaw, loop, drift) -- only the per-game INFO_PAGE data\n# dict differs. Matching HTML/CSS (.info-page-* rules, #info-page-panel\n# markup) is duplicated the same way. A shared JS-driven widget or small\n# shared Python helper, driven by each game's own INFO_PAGE dict -- the same\n# pattern already used for shared/save-widget.js -- would remove ~250 lines\n# of duplication.
 def render_info_page():
     panel = document.getElementById("info-page-panel")
     panel.hidden = not info_page_open
@@ -617,6 +621,11 @@ def get_state():
     }
 
 
+# REVIEW(testing): no test exercises a corrupted/partial/empty save dict --
+# every load_state test round-trips a real get_state() snapshot. Direct key
+# access here (data["plots"], data["selected_index"], etc.) has no error
+# handling, so the failure mode on a malformed/older-schema payload from the
+# shared save widget is completely unverified.
 def load_state(data):
     global selected_index, total_income, community_relations
     global pending_stakeholder_request, _ticks_since_last_request

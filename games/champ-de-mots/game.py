@@ -2753,6 +2753,12 @@ def get_state():
     }
 
 
+# REVIEW(testing): existing tests always pass explicit version/current_day/
+# plots keys (even if plots is {}) -- no test calls load_state({}) exercising
+# the data.get("plots") or {} and data.get("current_day", 0) defaults
+# together end-to-end, the "truly empty save" case CLAUDE.md's Milestone 5
+# notes call out as in-scope. Also no test loads a save with an unrecognized
+# stage string to exercise the STAGE_RANK fallback a few lines below.
 def load_state(data):
     saved_plots = data.get("plots") or {}
     state.current_day = data.get("current_day", 0)

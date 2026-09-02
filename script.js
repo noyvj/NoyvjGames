@@ -46,6 +46,10 @@ async function loadRatings(widget) {
     const response = await fetch(`${RATINGS_API_BASE}/ratings/${slug}`);
     if (!response.ok) throw new Error(`status ${response.status}`);
     renderSummary(widget, await response.json());
+  // REVIEW(observability): err/status discarded, no console.error — a user
+  // reporting "reviews unavailable" gives no way to tell network failure
+  // from a backend 5xx from a JSON parse error, and this is the only place
+  // such context would ever be visible for a personal-site-scale project.
   } catch (err) {
     summary.textContent = "Reviews unavailable right now.";
   }
@@ -86,6 +90,10 @@ document.querySelectorAll(".review-widget").forEach((widget) => {
 // --- Accounts (ACCOUNTS-AND-FEEDBACK-DESIGN.md Phase 2, revised: username
 // + password, no email — see main.py for why) ---
 
+// REVIEW(reuse): getBearerToken/authHeaders duplicate shared/save-widget.js's
+// own authHeaders() — both independently hardcode the bearer-token
+// localStorage key ("hub_bearer_token" here as AUTH_STORAGE_KEY, same string
+// as save-widget.js's AUTH_TOKEN_KEY) and build the same header object.
 function getBearerToken() {
   return localStorage.getItem(AUTH_STORAGE_KEY);
 }
@@ -150,6 +158,11 @@ async function loadMySaves() {
       list.appendChild(item);
     });
     accountMySaves.appendChild(list);
+  // REVIEW(patterns): discards the response body and shows a generic
+  // hardcoded string, unlike submitAuth() below which reads body.detail from
+  // the backend's HTTPException — the only call site in this file that
+  // surfaces the real reason a request failed. Every other catch here and in
+  // save-widget.js follows this same generic-message pattern instead.
   } catch (err) {
     accountMySaves.textContent = "Couldn't load your saves right now.";
   }

@@ -31,6 +31,10 @@ def get_db():
         db.close()
 
 
+# REVIEW(documentation): docstring is stale — it only describes the
+# `ratings` table patch, but the function body also patches `saves`
+# (user_id column, added for the accounts/save-claim feature). A reader
+# relying on the docstring alone would miss that.
 def patch_schema():
     """One-off, idempotent schema patch for the pre-existing `ratings` table
     (there's no Alembic/migration tooling in this project). Safe to call on
@@ -41,6 +45,10 @@ def patch_schema():
     """
     if engine.dialect.name != "postgresql":
         return
+    # REVIEW(observability): if one of these three ALTER statements fails
+    # partway through (e.g. a permissions issue), the raw exception propagates
+    # and crashes startup with no structured log line identifying which
+    # statement failed — just a bare stack trace to work from during triage.
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE ratings ADD COLUMN IF NOT EXISTS response VARCHAR"))
         conn.execute(text("ALTER TABLE ratings ALTER COLUMN stars DROP NOT NULL"))
