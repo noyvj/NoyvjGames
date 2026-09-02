@@ -73,7 +73,7 @@ Before ending any session where code or content changed, append one dated entry 
 | drift | Drift | All 7 milestones + Pass 2 + Pass 3 + Info Page + shared save widget complete, fourth of the second climate-quartet set |
 | trade-empire | Trade Empire (working title) | Milestone 14 done (Endgame) — all 14 milestones complete, not yet hub-linked |
 | continuum | Continuum (working title) | Phase 1 (Foundation) complete — core sim, sustainability score, research tree, save schema. Flagship BCM114 Round 2 DA (SDG 11). Not yet hub-linked |
-| champ-de-mots | Le Champ de Mots (working title) | All 7 milestones complete — SRS engine, runtime question generator, farm grid UI, shared save widget, row-unlock pacing. Personal project (FREN151/152 study tool), not tied to any BCM assessment. Hub-linked, no BCM tag |
+| champ-de-mots | Le Champ de Mots (working title) | All 13 milestones complete — SRS engine, runtime question generator, farm grid UI, shared save widget, row-unlock pacing, STRICT/LENIENT grading v2, report-button + `answer_reports` backend table, failure feedback blurb, Review tab, weekly proficiency tests, bonus sentence-building sections (23/23 weeks). Personal project (FREN151/152 study tool), not tied to any BCM assessment. Hub-linked, no BCM tag |
 
 ## Site-level milestones (separate from per-game milestones)
 | # | Milestone | Status |
