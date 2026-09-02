@@ -10,6 +10,7 @@ table for how each system landed.
 import copy
 import random
 
+import info_page
 from js import document
 from pyodide.ffi import create_proxy
 
@@ -516,39 +517,18 @@ def clean_trend_message(trend):
     return f"Your grid's cleanliness has held steady at {second_pct:.0f}%."
 
 
-# REVIEW(reuse): render_info_page()/on_toggle_info_page() (~25+4 lines) are\n# logically identical across all 8 climate games (canopy, grid, tide,\n# aftermath, herd, thaw, loop, drift) -- only the per-game INFO_PAGE data\n# dict differs. Matching HTML/CSS (.info-page-* rules, #info-page-panel\n# markup) is duplicated the same way. A shared JS-driven widget or small\n# shared Python helper, driven by each game's own INFO_PAGE dict -- the same\n# pattern already used for shared/save-widget.js -- would remove ~250 lines\n# of duplication.
+# Rendering/toggle logic lives in shared/info_page.py now (see that
+# module's docstring) -- this used to be a ~25+4 line implementation
+# byte-identical across all 8 climate games. info_page_open stays local
+# here since it's part of this game's save contract.
 def render_info_page():
-    panel = document.getElementById("info-page-panel")
-    panel.hidden = not info_page_open
-    toggle_button = document.getElementById("info-page-toggle-button")
-    toggle_button.innerText = "Hide The Real Story" if info_page_open else "The Real Story"
-    if not info_page_open:
-        return
-    document.getElementById("info-page-framing").innerText = INFO_PAGE["framing"]
-    tie_in_el = document.getElementById("info-page-tie-in")
-    tie_in_el.innerText = INFO_PAGE["mechanic_tie_in"]
-    list_el = document.getElementById("info-page-sources")
-    list_el.innerHTML = ""
-    for source in INFO_PAGE["sources"]:
-        item = document.createElement("li")
-        item.className = "info-page-source"
-        link = document.createElement("a")
-        link.href = source["url"]
-        link.target = "_blank"
-        link.rel = "noopener noreferrer"
-        link.innerText = source["label"]
-        item.appendChild(link)
-        note = document.createElement("p")
-        note.className = "info-page-source-note"
-        note.innerText = source["note"]
-        item.appendChild(note)
-        list_el.appendChild(item)
+    info_page.render(INFO_PAGE, info_page_open)
 
 
 def on_toggle_info_page(event=None):
     global info_page_open
-    info_page_open = not info_page_open
-    render()
+    info_page_open = info_page.toggle(info_page_open)
+    render_info_page()
 
 
 def render():
