@@ -13,6 +13,9 @@ plant, never removes it, and never produces a failure state.
 """
 
 import json
+import random
+import re
+import unicodedata
 
 CATALOG_FILENAME = "fren_combined_catalog.json"
 
@@ -195,12 +198,20 @@ class FarmState:
         self.plots = []
         self.plots_by_id = {}
         self.rows = []
+        # Flat, syllabus-ordered index of every topic, used by the question
+        # generator to reach "the same or a nearby topic" for distractors (§5).
+        self.topic_records = []
+        self.topic_pos = {}
         self._build_farm()
 
     def _build_farm(self):
         for week in self.catalog["weeks"]:
             plot_ids = []
             for topic in week["topics"]:
+                self.topic_pos[topic["id"]] = len(self.topic_records)
+                self.topic_records.append(
+                    {"sequence": week["sequence"], "topic": topic, "items": topic["items"]}
+                )
                 if topic["topic_type"] == "grammar":
                     plot = Plot(
                         plot_id=topic["id"],
@@ -273,3 +284,539 @@ class FarmState:
 
 
 state = FarmState(CATALOG)
+
+
+# ===========================================================================
+# Milestone 3 — runtime question generator (design doc §5)
+# ===========================================================================
+#
+# Every prompt a player ever sees is assembled here, at runtime, out of the
+# catalog's raw fr/en facts plus this file's own fixed instruction strings.
+# Nothing is ever read back out of the workbook: the catalog deliberately
+# holds only vocabulary pairs and grammar facts, and the generator only ever
+# recombines those (translate either direction, blank a word out of a fact,
+# swap the pronoun on a conjugation table, match a letter to its spoken
+# name). That is the whole reason this approach is safe, so no other kind of
+# content may be introduced here — see §4.
+
+QUESTION_CHOICE_COUNT = 4
+DISTRACTOR_COUNT = QUESTION_CHOICE_COUNT - 1
+DISTRACTOR_POOL_SIZE = 14
+NEARBY_TOPIC_SPAN = 4  # topics either side ≈ the same and adjacent weeks
+BLANK_MARKER = "_____"
+MAX_TYPED_ANSWER_LENGTH = 32
+
+# Variant ids. The design floor is 3-4 plausible variants per plot so that
+# watering the same plot twice rarely produces an identical question.
+V_FR_EN_CHOICE = "fr_to_en_choice"
+V_EN_FR_CHOICE = "en_to_fr_choice"
+V_FR_EN_TYPED = "fr_to_en_typed"
+V_EN_FR_TYPED = "en_to_fr_typed"
+V_SYMBOL_NAME_CHOICE = "symbol_to_name_choice"
+V_NAME_SYMBOL_CHOICE = "name_to_symbol_choice"
+V_SYMBOL_NAME_TYPED = "symbol_to_name_typed"
+V_NAME_SYMBOL_TYPED = "name_to_symbol_typed"
+V_EXAMPLE_FR_EN = "example_fr_to_en"
+V_EXAMPLE_EN_FR = "example_en_to_fr"
+V_BLANK_WORD = "blank_word"
+V_BLANK_ENDING = "blank_ending"
+V_CONJUGATION_SWAP = "conjugation_swap"
+
+INSTRUCTIONS = {
+    V_FR_EN_CHOICE: "Which English matches this?",
+    V_EN_FR_CHOICE: "Which French matches this?",
+    V_FR_EN_TYPED: "Type the English for this.",
+    V_EN_FR_TYPED: "Type the French for this.",
+    V_SYMBOL_NAME_CHOICE: "How is this said aloud?",
+    V_NAME_SYMBOL_CHOICE: "Which letter or symbol is this?",
+    V_SYMBOL_NAME_TYPED: "Type how this is said aloud.",
+    V_NAME_SYMBOL_TYPED: "Type the letter or symbol this names.",
+    V_EXAMPLE_FR_EN: "Which English matches this example?",
+    V_EXAMPLE_EN_FR: "Which French matches this example?",
+    V_BLANK_WORD: "Fill the gap.",
+    V_BLANK_ENDING: "Finish the ending.",
+    V_CONJUGATION_SWAP: "Which form goes with this pronoun?",
+}
+
+# The six-person set, plus the shared forms and reflexive/elided spellings the
+# catalog actually uses. Longest first so "il/elle/on" wins over "il".
+PRONOUN_FORMS = [
+    "il/elle/on",
+    "ils/elles",
+    "il/elle",
+    "je",
+    "j'",
+    "tu",
+    "il",
+    "elle",
+    "on",
+    "nous",
+    "vous",
+    "ils",
+    "elles",
+]
+
+# Determiners and other function words worth blanking out in their own right —
+# for a gender/article or possessive rule, the little word *is* the point.
+FUNCTION_WORDS = {
+    "un", "une", "des", "le", "la", "les", "l'", "du", "de", "d'", "des",
+    "au", "aux", "à", "ce", "cet", "cette", "ces", "mon", "ma", "mes",
+    "ton", "ta", "tes", "son", "sa", "ses", "notre", "nos", "votre", "vos",
+    "leur", "leurs", "c'est", "il", "elle", "on", "y", "en", "ne", "pas",
+    "plus", "moins", "aussi", "très", "quel", "quelle", "quels", "quelles",
+}
+
+ARTICLE_PREFIXES = ("a ", "an ", "the ", "to ", "some ")
+
+
+def strip_parentheticals(text):
+    """Drop the catalog's parenthetical asides, e.g. "j'imite (je + imite)"."""
+    return re.sub(r"\s*\([^)]*\)", "", str(text)).strip()
+
+
+def normalize_answer(text):
+    """Case-, accent- and punctuation-insensitive form used for comparisons.
+
+    Accents are folded away deliberately: mistyping é as e should never cost
+    you a plant. The one place that leniency would defeat the point — the
+    phonetic accents topic — is handled by not offering typed variants there.
+    """
+    text = unicodedata.normalize("NFKD", str(text))
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    text = text.replace("’", "'").replace("‘", "'")
+    text = re.sub(r"\s+", " ", text.casefold()).strip()
+    return text.strip(" .!?¡¿\"«»")
+
+
+MAX_VERB_FORM_TOKENS = 3
+
+
+def split_pronoun(text):
+    """("nous", "parlons") for a single-person conjugated item, else None.
+
+    The rest has to look like one person's form: a couple of words at most
+    (room for reflexives and compound tenses) and no "/" separator. Some
+    catalog items pack a whole table into one string ("je bois / tu bois / il
+    boit"); those are facts to translate, not one person to swap a pronoun on.
+    """
+    cleaned = strip_parentheticals(text)
+    lowered = cleaned.casefold()
+    for pronoun in PRONOUN_FORMS:
+        if pronoun.endswith("'"):
+            matched = lowered.startswith(pronoun)
+            rest = cleaned[len(pronoun):].strip() if matched else ""
+        else:
+            matched = lowered.startswith(pronoun + " ")
+            rest = cleaned[len(pronoun) + 1:].strip() if matched else ""
+        if not matched or not rest:
+            continue
+        if "/" in rest or len(rest.split()) > MAX_VERB_FORM_TOKENS:
+            return None
+        return cleaned[: len(pronoun)], rest
+    return None
+
+
+def is_conjugation_plot(plot):
+    """A grammar plot whose examples are a person-by-person verb table."""
+    if plot.topic_type != "grammar":
+        return False
+    splits = [split_pronoun(item["fr"]) for item in plot.items]
+    splits = [s for s in splits if s]
+    if len(splits) < 3:
+        return False
+    return len({p.casefold() for p, _ in splits}) >= 2
+
+
+UNBLANKABLE_CHARS = set("[]{}+<>")
+TRAILING_PUNCTUATION = ".,;:!?"
+
+
+def _split_trailing_punctuation(token):
+    stripped = token.rstrip(TRAILING_PUNCTUATION)
+    return stripped, token[len(stripped):]
+
+
+def _is_blankable(token):
+    core, _ = _split_trailing_punctuation(token)
+    if len(core) < 2 or UNBLANKABLE_CHARS & set(core):
+        return False
+    return sum(1 for ch in core if ch.isalpha()) >= 2
+
+
+def blank_target(text):
+    """Pick the word worth hiding in a fact, and return (blanked, answer).
+
+    Function words go first — an article or possessive rule is *about* the
+    little word — and otherwise the rightmost real word is hidden, since that
+    is the content word in practice. Bracketed placeholders the catalog uses
+    for open slots are never chosen, and trailing punctuation stays visible
+    so the gap reads as a gap rather than as a typing puzzle.
+    """
+    tokens = strip_parentheticals(text).split()
+    if len(tokens) < 2:
+        return None
+
+    index = None
+    if tokens[0].casefold() in FUNCTION_WORDS and _is_blankable(tokens[0]):
+        index = 0
+    else:
+        blankable = [i for i, token in enumerate(tokens) if _is_blankable(token)]
+        if not blankable:
+            return None
+        cores = [_split_trailing_punctuation(t)[0].casefold() for t in tokens]
+        # Content words make better gaps than the pronouns and particles
+        # around them — several catalog items pack a whole verb table into one
+        # string, and blanking a form there is a real question where blanking
+        # "il" is barely one.
+        content = [i for i in blankable if cores[i] not in FUNCTION_WORDS]
+        candidates = content or blankable
+        # Prefer a word that appears only once, so hiding it really hides it.
+        unique = [i for i in candidates if cores.count(cores[i]) == 1]
+        index = (unique or candidates)[-1]
+
+    answer, _trail = _split_trailing_punctuation(tokens[index])
+    target = answer.casefold()
+    blanked = []
+    for token in tokens:
+        core, trail = _split_trailing_punctuation(token)
+        # If the same word recurs, every occurrence becomes the gap — the
+        # answer must never be readable off the prompt.
+        blanked.append(BLANK_MARKER + trail if core.casefold() == target else token)
+    return " ".join(blanked), answer
+
+
+def _common_stem(forms):
+    if len(forms) < 2:
+        return ""
+    stem = forms[0]
+    for form in forms[1:]:
+        while stem and not form.casefold().startswith(stem.casefold()):
+            stem = stem[:-1]
+        if not stem:
+            return ""
+    # Every form must actually extend the stem, or there is no ending to blank.
+    if any(len(form) <= len(stem) for form in forms):
+        return ""
+    return stem
+
+
+def conjugation_forms(plot):
+    """[(pronoun, form)] for a conjugation table, in catalog order."""
+    out = []
+    for item in plot.items:
+        split = split_pronoun(item["fr"])
+        if split:
+            out.append((split[0], split[1], item))
+    return out
+
+
+def _ending_split(plot):
+    """(stem, [(pronoun, ending, form)]) when a table's forms share a stem."""
+    entries = conjugation_forms(plot)
+    stem = _common_stem([form for _, form, _ in entries])
+    if len(stem) < 2:
+        return None, []
+    return stem, [(pronoun, form[len(stem):], form) for pronoun, form, _ in entries]
+
+
+# --- distractor pools ------------------------------------------------------
+
+
+def nearby_items(farm, plot):
+    """Items from the plot's own topic first, then outward through the
+    syllabus — the "same or a nearby topic" rule from §5."""
+    pos = farm.topic_pos.get(plot.topic_id)
+    if pos is None:
+        return []
+    records = farm.topic_records
+    out = list(records[pos]["items"])
+    for delta in range(1, NEARBY_TOPIC_SPAN + 1):
+        for neighbour in (pos - delta, pos + delta):
+            if 0 <= neighbour < len(records):
+                out.extend(records[neighbour]["items"])
+    return out
+
+
+def _ordered_pool(values, exclude):
+    """Closest-first, de-duplicated, capped — the generator then samples from
+    this small plausible pool so the distractor set re-rolls every watering."""
+    seen = {normalize_answer(value) for value in exclude}
+    seen.discard("")
+    pool = []
+    for value in values:
+        value = str(value).strip()
+        key = normalize_answer(value)
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        pool.append(value)
+        if len(pool) >= DISTRACTOR_POOL_SIZE:
+            break
+    return pool
+
+
+def _raw_pool(farm, plot, field, answer):
+    return _ordered_pool((item.get(field, "") for item in nearby_items(farm, plot)), [answer])
+
+
+def _target_pool(farm, plot, answer):
+    values = []
+    for item in nearby_items(farm, plot):
+        blanked = blank_target(item["fr"])
+        if blanked:
+            values.append(blanked[1])
+    return _ordered_pool(values, [answer])
+
+
+def _form_pool(farm, plot, answer):
+    """The other people of the same verb are the most plausible distractors
+    there are, so a full table never reaches outside itself."""
+    own = [s[1] for s in (split_pronoun(i["fr"]) for i in plot.items) if s]
+    pool = _ordered_pool(own, [answer])
+    if _enough(pool):
+        return pool
+    nearby = [s[1] for s in (split_pronoun(i["fr"]) for i in nearby_items(farm, plot)) if s]
+    return _ordered_pool(own + nearby, [answer])
+
+
+def _ending_pool(plot, answer):
+    _, entries = _ending_split(plot)
+    return _ordered_pool([ending for _, ending, _ in entries], [answer])
+
+
+def nearby_strings(farm, plot):
+    """Every string the generator is allowed to use as a distractor for this
+    plot: nearby raw facts plus the fragments derived from them."""
+    pool = set()
+    for item in nearby_items(farm, plot):
+        pool.add(str(item.get("fr", "")).strip())
+        pool.add(str(item.get("en", "")).strip())
+        blanked = blank_target(item["fr"])
+        if blanked:
+            pool.add(blanked[1])
+        split = split_pronoun(item["fr"])
+        if split:
+            pool.add(split[1])
+    _, entries = _ending_split(plot)
+    pool.update(ending for _, ending, _ in entries)
+    pool.discard("")
+    return pool
+
+
+# --- variant availability --------------------------------------------------
+
+
+def _is_typable(text):
+    answer = strip_parentheticals(text)
+    return bool(answer) and len(answer) <= MAX_TYPED_ANSWER_LENGTH
+
+
+def _typable_items(plot, field, ascii_only=False):
+    items = [i for i in plot.items if _is_typable(i[field])]
+    if ascii_only:
+        items = [i for i in items if str(i[field]).isascii()]
+    return items
+
+
+def _enough(pool):
+    return len(pool) >= DISTRACTOR_COUNT
+
+
+def variants_for(plot, farm=None):
+    """The pool of question variants this plot can actually produce."""
+    if getattr(plot, "_variants", None) is not None:
+        return plot._variants
+
+    farm = state if farm is None else farm
+    phonetic = plot.topic_type == "phonetic"
+    grammar = plot.topic_type == "grammar"
+    item = plot.items[0]
+    variants = []
+
+    if grammar:
+        if _enough(_raw_pool(farm, plot, "en", item["en"])):
+            variants.append(V_EXAMPLE_FR_EN)
+        if _enough(_raw_pool(farm, plot, "fr", item["fr"])):
+            variants.append(V_EXAMPLE_EN_FR)
+    else:
+        if _enough(_raw_pool(farm, plot, "en", item["en"])):
+            variants.append(V_SYMBOL_NAME_CHOICE if phonetic else V_FR_EN_CHOICE)
+        if _enough(_raw_pool(farm, plot, "fr", item["fr"])):
+            variants.append(V_NAME_SYMBOL_CHOICE if phonetic else V_EN_FR_CHOICE)
+
+    # Fill-in-the-blank: §5 assigns it to grammar rules, and it extends
+    # naturally to multi-word expressions, where blanking one word is a far
+    # better prompt than asking someone to type a whole sentence back.
+    blankable = [i for i in plot.items if blank_target(i["fr"])]
+    if grammar or (blankable and len(strip_parentheticals(item["fr"]).split()) >= 3):
+        if blankable and _enough(_target_pool(farm, plot, "")):
+            variants.append(V_BLANK_WORD)
+
+    if grammar and is_conjugation_plot(plot):
+        if _enough(_form_pool(farm, plot, "")):
+            variants.append(V_CONJUGATION_SWAP)
+        if _enough(_ending_pool(plot, "")):
+            variants.append(V_BLANK_ENDING)
+
+    if _typable_items(plot, "en"):
+        variants.append(V_SYMBOL_NAME_TYPED if phonetic else V_FR_EN_TYPED)
+    # Typing an accented character back is only a real test when accents aren't
+    # the thing being taught, so the phonetic accents topic opts out of it.
+    if _typable_items(plot, "fr", ascii_only=phonetic):
+        variants.append(V_NAME_SYMBOL_TYPED if phonetic else V_EN_FR_TYPED)
+
+    plot._variants = variants
+    return variants
+
+
+# --- generation ------------------------------------------------------------
+
+
+def _context_line(plot):
+    return f"{plot.course} wk {plot.week} · {plot.topic_title}"
+
+
+def _choice_question(plot, variant, prompt, answer, pool, rng, note=None):
+    distractors = rng.sample(pool, DISTRACTOR_COUNT)
+    choices = distractors + [answer]
+    rng.shuffle(choices)
+    return {
+        "plot_id": plot.plot_id,
+        "variant": variant,
+        "topic_type": plot.topic_type,
+        "context": _context_line(plot),
+        "instruction": INSTRUCTIONS[variant],
+        "prompt": prompt,
+        "note": note,
+        "mode": "choice",
+        "choices": choices,
+        "answer": answer,
+    }
+
+
+def _typed_question(plot, variant, prompt, answer, note=None):
+    return {
+        "plot_id": plot.plot_id,
+        "variant": variant,
+        "topic_type": plot.topic_type,
+        "context": _context_line(plot),
+        "instruction": INSTRUCTIONS[variant],
+        "prompt": prompt,
+        "note": note,
+        "mode": "typed",
+        # Deliberately the raw catalog string, not a rewritten one: what the
+        # player is shown on reveal stays verbatim catalog text, and the
+        # leniency (parentheticals, accents, articles) lives in check_answer.
+        "choices": [],
+        "answer": str(answer).strip(),
+    }
+
+
+def generate_question(plot, rng=None, variant=None, exclude=None, farm=None):
+    """Build one practice prompt for a plot, fresh, from catalog facts."""
+    rng = random.Random() if rng is None else rng
+    farm = state if farm is None else farm
+    available = variants_for(plot, farm)
+
+    if variant is None:
+        excluded = set()
+        if isinstance(exclude, str):
+            excluded = {exclude}
+        elif exclude:
+            excluded = set(exclude)
+        pool = [v for v in available if v not in excluded] or available
+        variant = rng.choice(pool)
+
+    note = plot.rule if plot.topic_type == "grammar" else None
+
+    if variant in (V_EXAMPLE_FR_EN, V_EXAMPLE_EN_FR):
+        item = rng.choice(plot.items)
+        if variant == V_EXAMPLE_FR_EN:
+            return _choice_question(
+                plot, variant, item["fr"], item["en"],
+                _raw_pool(farm, plot, "en", item["en"]), rng, note,
+            )
+        return _choice_question(
+            plot, variant, item["en"], item["fr"],
+            _raw_pool(farm, plot, "fr", item["fr"]), rng, note,
+        )
+
+    if variant == V_BLANK_WORD:
+        candidates = [i for i in plot.items if blank_target(i["fr"])]
+        item = rng.choice(candidates)
+        blanked, answer = blank_target(item["fr"])
+        # If the gap landed on a verb form, the rest of that verb's table is a
+        # far better distractor set than unrelated nearby vocabulary.
+        split = split_pronoun(item["fr"])
+        pool = []
+        if split and split[1] == answer:
+            pool = _form_pool(farm, plot, answer)
+        if not _enough(pool):
+            pool = _target_pool(farm, plot, answer)
+        return _choice_question(plot, variant, blanked, answer, pool, rng, note)
+
+    if variant == V_CONJUGATION_SWAP:
+        # The pronoun is re-rolled from the table's own six-person set each
+        # visit, so the blank moves around instead of drilling one form (§5).
+        pronoun, answer, _item = rng.choice(conjugation_forms(plot))
+        return _choice_question(
+            plot, variant, f"{pronoun} {BLANK_MARKER}", answer,
+            _form_pool(farm, plot, answer), rng, note,
+        )
+
+    if variant == V_BLANK_ENDING:
+        stem, entries = _ending_split(plot)
+        pronoun, ending, _form = rng.choice(entries)
+        return _choice_question(
+            plot, variant, f"{pronoun} {stem}{BLANK_MARKER}", ending,
+            _ending_pool(plot, ending), rng, note,
+        )
+
+    if variant in (V_FR_EN_TYPED, V_SYMBOL_NAME_TYPED):
+        item = rng.choice(_typable_items(plot, "en"))
+        return _typed_question(plot, variant, item["fr"], item["en"], note)
+    if variant in (V_EN_FR_TYPED, V_NAME_SYMBOL_TYPED):
+        item = rng.choice(
+            _typable_items(plot, "fr", ascii_only=plot.topic_type == "phonetic")
+        )
+        return _typed_question(plot, variant, item["en"], item["fr"], note)
+
+    item = plot.items[0]
+    if variant in (V_FR_EN_CHOICE, V_SYMBOL_NAME_CHOICE):
+        return _choice_question(
+            plot, variant, item["fr"], item["en"],
+            _raw_pool(farm, plot, "en", item["en"]), rng, note,
+        )
+    return _choice_question(
+        plot, variant, item["en"], item["fr"],
+        _raw_pool(farm, plot, "fr", item["fr"]), rng, note,
+    )
+
+
+def answer_alternatives(answer):
+    """Everything a typed answer may reasonably be spelled as."""
+    alternatives = set()
+    raw = str(answer).strip()
+    base = strip_parentheticals(raw)
+    for chunk in re.split(r"\s*/\s*|\s*;\s*", raw) + re.split(r"\s*/\s*|\s*;\s*", base) + [raw, base]:
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        normalized = normalize_answer(chunk)
+        if not normalized:
+            continue
+        alternatives.add(normalized)
+        for prefix in ARTICLE_PREFIXES:
+            if normalized.startswith(prefix):
+                alternatives.add(normalized[len(prefix):])
+    return {alt for alt in alternatives if alt}
+
+
+def check_answer(question, given):
+    """Multiple choice is exact; typed answers are checked leniently."""
+    if question["mode"] == "choice":
+        return given == question["answer"]
+    typed = normalize_answer(given)
+    if not typed:
+        return False
+    return typed in answer_alternatives(question["answer"])
