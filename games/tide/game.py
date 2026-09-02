@@ -15,12 +15,6 @@ STARTING_FUNDS = 300
 
 CATEGORIES = ["output", "reduction", "adaptation"]
 
-CATEGORY_LABEL = {
-    "output": "Output",
-    "reduction": "Acidity Reduction",
-    "adaptation": "Adaptation",
-}
-
 INVEST_COST = {
     "output": 20,
     "reduction": 25,
@@ -499,18 +493,49 @@ def get_state():
     }
 
 
+# Read with .get(), and merge `capacity` key-by-key into the live dict
+# rather than replacing it wholesale: `data` may be a hand-edited/
+# truncated save code, or simply a payload from a different build of this
+# game with a different field set (a save made before some future field
+# existed, or capacity category added/removed). Every field used to be
+# read with a bare data["..."], so a single missing key raised partway
+# through the assignments — leaving some fields already overwritten with
+# the save's values and others still at whatever they were before the
+# call, a worse outcome than either a clean load or a clean failure. The
+# capacity dict specifically wants a key-by-key merge (not just a
+# missing-field default) because render() and every invest-cost lookup
+# index state.capacity[category] unconditionally for every category in
+# CATEGORIES — a wholesale-replaced dict missing a category would crash
+# the very next render, not just look wrong (same reasoning as
+# Continuum's CITY_KEYED_DICTS).
 def load_state(data):
-    state.season = data["season"]
-    state.funds = data["funds"]
-    state.capacity = copy.deepcopy(data["capacity"])
-    state.acidity = data["acidity"]
-    state.acidity_history = copy.deepcopy(data["acidity_history"])
-    state.sea_level = data["sea_level"]
-    state.cumulative_damage = data["cumulative_damage"]
-    state.undampened_damage_total = data["undampened_damage_total"]
-    state.damage_log = copy.deepcopy(data["damage_log"])
-    state.ticker_log = copy.deepcopy(data["ticker_log"])
-    state.trend_flattening_announced = data["trend_flattening_announced"]
+    if not isinstance(data, dict):
+        return False
+    state.season = data.get("season", state.season)
+    state.funds = data.get("funds", state.funds)
+    saved_capacity = data.get("capacity")
+    if isinstance(saved_capacity, dict):
+        for category in CATEGORIES:
+            if category in saved_capacity:
+                state.capacity[category] = saved_capacity[category]
+    state.acidity = data.get("acidity", state.acidity)
+    saved_acidity_history = data.get("acidity_history")
+    if isinstance(saved_acidity_history, list):
+        state.acidity_history = copy.deepcopy(saved_acidity_history)
+    state.sea_level = data.get("sea_level", state.sea_level)
+    state.cumulative_damage = data.get("cumulative_damage", state.cumulative_damage)
+    state.undampened_damage_total = data.get(
+        "undampened_damage_total", state.undampened_damage_total
+    )
+    saved_damage_log = data.get("damage_log")
+    if isinstance(saved_damage_log, list):
+        state.damage_log = copy.deepcopy(saved_damage_log)
+    saved_ticker_log = data.get("ticker_log")
+    if isinstance(saved_ticker_log, list):
+        state.ticker_log = copy.deepcopy(saved_ticker_log)
+    state.trend_flattening_announced = data.get(
+        "trend_flattening_announced", state.trend_flattening_announced
+    )
     render()
     return True
 
