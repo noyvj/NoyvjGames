@@ -83,6 +83,28 @@ def test_deserialize_state_tolerates_a_save_missing_a_planet(game_env):
     game_env.module.tick()  # must not raise KeyError
 
 
+def test_deserialize_state_tolerates_a_save_missing_a_newer_planet_field(game_env):
+    """Same bug class one level down: deserialize_state() used to
+    `.update()` a present planet's saved sub-dict straight onto
+    planet_state[planet], swapping in the whole dict rather than merging
+    key-by-key. A save made before a later milestone added a new
+    per-planet field (e.g. "terraform_progress", added in Milestone 8)
+    would then wipe that field's freshly-initialized default for any
+    planet the save DOES include, and the very next tick() (which reads
+    "terraform_progress" for every planet unconditionally) would KeyError
+    and crash the whole game."""
+    game_env.click("Moon")
+    game_env.click("Moon")
+    snapshot = game_env.module.serialize_state()
+    del snapshot["planet_state"]["Moon"]["terraform_progress"]
+
+    game_env.module.deserialize_state(snapshot)
+
+    assert "terraform_progress" in game_env.module.planet_state["Moon"]
+    assert game_env.module.planet_state["Moon"]["resource_count"] == 2
+    game_env.module.tick()  # must not raise KeyError
+
+
 def test_deserialize_state_restores_scalar_globals(game_env):
     game_env.module.unlocked_bodies.add("Mars")
     game_env.travel_to_mars()

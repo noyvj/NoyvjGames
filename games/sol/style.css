@@ -292,13 +292,6 @@ button.priority-option.selected {
   margin-bottom: 2rem;
 }
 
-#away-summary {
-  font-size: 0.95rem;
-  opacity: 0.85;
-  line-height: 1.8;
-  margin-bottom: 2rem;
-}
-
 .win-banner-heading {
   text-transform: uppercase;
   font-size: 1.1rem;

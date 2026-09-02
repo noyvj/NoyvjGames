@@ -82,6 +82,18 @@ def test_rapid_clicks_each_schedule_their_own_clear(game_env):
     assert game_env.earth["resource_count"] == 3
 
 
+def test_clear_pressed_proxy_is_destroyed_once_it_fires(game_env):
+    """press_feedback() runs on essentially every button press in the
+    game, each time creating a fresh one-shot setTimeout proxy — if it's
+    never destroyed after firing, that's a PyProxy leaked every single
+    click for the whole play session."""
+    game_env.click()
+    proxy, _delay = game_env.timers.pending[0]
+    assert proxy.destroyed is False
+    game_env.timers.flush()
+    assert proxy.destroyed is True
+
+
 def test_resource_label_untouched_by_clicks(game_env):
     # Milestone 1 doesn't rewrite the label — only the count — on click.
     label = game_env.elements["resource-label"]

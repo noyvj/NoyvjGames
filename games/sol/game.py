@@ -7,8 +7,9 @@ from pyodide.ffi import create_proxy
 # --- static per-planet config ---
 # Every entry here is a full economy: click resource, auto-generator building,
 # and a Recycler that restores ecological health — a direct reuse of the
-# Milestone 2/3 systems, just reskinned per planet (same pattern the project
-# plans to reuse again for gas giants later).
+# Milestone 2/3 systems, just reskinned per planet (the same pattern was
+# reused again for the gas giant moons' Sky City building in Milestone 10;
+# see GAS_GIANT_BODIES below).
 PLANETS = {
     "Earth": {
         "resource_name": "Iron",
@@ -196,11 +197,12 @@ for _gas_giant in GAS_GIANT_BODIES:
 # Research isn't strictly linear — reaching a distance tier can unlock
 # several bodies in parallel rather than one planet at a time. Tiers are
 # researched in sequence (you can't fund tier 2 before tier 1 is done);
-# "unlocks" only grants travel access — most of these bodies get their own
-# economy in a later milestone (Moon: 9b, Venus: 9c, Asteroid Belt: 9d,
-# Pluto: 9e, Jupiter's Moons: 9f, Saturn's Moons: 9g). Until a body gets its
-# own milestone, visiting it shows the shared "undeveloped destination"
-# placeholder.
+# "unlocks" only grants travel access — each of these bodies got its own
+# economy in its own later milestone (Moon: 9b, Venus: 9c, Asteroid Belt:
+# 9d, Pluto: 9e, Jupiter's Moons: 9f, Saturn's Moons: 9g), and as of 9g
+# every one of them is built, so unlocking a body and it having a real
+# economy happen together now. See UNDEVELOPED_BODIES below for the
+# (now-empty) placeholder path that covered the gap while that was true.
 RESEARCH_TIERS = [
     {"name": "Near Bodies", "target": 1000, "unlocks": ["Moon", "Mars"]},
     {
@@ -611,11 +613,20 @@ def _hide_all_views():
 
 
 def press_feedback(button):
+    # Called on essentially every player interaction (every click, buy,
+    # travel, governor, and destination-cycle button), so the one-shot
+    # setTimeout proxy created here must be destroyed once it fires —
+    # otherwise each press leaks a PyProxy for the rest of the session,
+    # a slow memory leak that never gets cleaned up on its own since
+    # Pyodide can't garbage-collect a JsProxy-wrapped Python callable
+    # until .destroy() is called explicitly.
     button.classList.add("pressed")
 
     def _clear(*args):
         button.classList.remove("pressed")
-    setTimeout(create_proxy(_clear), 120)
+        proxy.destroy()
+    proxy = create_proxy(_clear)
+    setTimeout(proxy, 120)
 
 
 def _mine(planet):
@@ -1252,7 +1263,20 @@ def deserialize_state(data):
     # every other function (tick() in particular) does `planet_state[p]`
     # for every `p in PLANETS` unconditionally, so a missing key would
     # crash the whole game on the very next tick.
-    planet_state.update(data["planet_state"])
+    #
+    # The same reasoning applies one level down: a body's own saved dict
+    # must be merged key-by-key too, not swapped in wholesale. A save
+    # made before a later milestone added a new per-planet field (e.g.
+    # "trade_destination" pre-9f, "terraform_progress" pre-8,
+    # "sky_city_count" pre-10) would otherwise wipe that planet's
+    # freshly-initialized default for the missing field, and the very
+    # next access (tick()'s terraform step, current_trade_destination(),
+    # _buy_sky_city()) would KeyError and crash the game.
+    for planet, saved_planet_state in data["planet_state"].items():
+        if planet in planet_state:
+            planet_state[planet].update(saved_planet_state)
+        else:
+            planet_state[planet] = saved_planet_state
     research_progress = data["research_progress"]
     completed_tiers = data["completed_tiers"]
     unlocked_bodies = set(data["unlocked_bodies"])
