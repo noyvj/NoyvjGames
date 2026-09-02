@@ -90,9 +90,10 @@ WELLBEING_FUNDS_SCALE = 1000.0
 # Iteration Pass 2 — long-horizon outcomes coda: a player-triggered
 # epilogue projecting the current integrated population's descendants
 # forward a few generations. Framed institutionally (workforce,
-# community roles, regional contribution) per the sensitivity note
-# elsewhere in this file — this is about the region's long-run outcome,
-# not any one family's story. Deliberately a rough, modest projection
+# community roles, regional contribution) per this game's sensitivity
+# note in CLAUDE.md's Tech notes section — this is about the region's
+# long-run outcome, not any one family's story. Deliberately a rough,
+# modest projection
 # (not "everything reaches 100"), so it reads as hopeful rather than
 # implausible.
 GENERATIONS_PROJECTED = 3
@@ -348,7 +349,8 @@ def long_horizon_coda_message(region_state):
 # Info Page — optional, player-triggered supplement (never forced
 # mid-session). Framing is written fresh, not copied from any source;
 # sources are the curated real-world backing for the game's mechanics.
-# Kept institutional/systems-level per this file's sensitivity note above
+# Kept institutional/systems-level per this game's sensitivity note in
+# CLAUDE.md's Tech notes section
 # — about regional capacity, not individual migrant stories.
 INFO_PAGE = {
     "framing": (
