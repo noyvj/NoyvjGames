@@ -6,7 +6,10 @@ real Neon database.
 
 from fastapi.testclient import TestClient
 
+import main
+from database import SessionLocal
 from main import app
+from models import User
 
 client = TestClient(app)
 
@@ -116,3 +119,63 @@ def test_list_my_saves_excludes_other_users_saves():
 def test_endpoints_reject_bad_bearer_token():
     resp = client.get("/users/me/saves", headers={"Authorization": "Bearer not-a-real-session"})
     assert resp.status_code == 401
+
+
+def test_claiming_a_save_already_claimed_by_another_user_is_rejected():
+    # PR #1 (sean-hart) review finding: claim_save had no ownership check,
+    # so a second user posting the same code could silently steal a save
+    # already claimed by the first — contradicts SAVE-SYSTEM-DESIGN.md's
+    # "nobody loses a save by signing up" invariant.
+    bearer_a = _signup("owner-a", "pw")["bearer_token"]
+    bearer_b = _signup("thief-b", "pw")["bearer_token"]
+    save = client.post("/saves", json={"game_id": "sol", "save_data": {"iron": 1}}).json()
+
+    first_claim = client.post(
+        f"/saves/{save['save_code']}/claim", headers={"Authorization": f"Bearer {bearer_a}"}
+    )
+    assert first_claim.status_code == 200
+
+    second_claim = client.post(
+        f"/saves/{save['save_code']}/claim", headers={"Authorization": f"Bearer {bearer_b}"}
+    )
+    assert second_claim.status_code == 409
+
+    # Still owned by A, not reassigned to B.
+    my_saves_a = client.get("/users/me/saves", headers={"Authorization": f"Bearer {bearer_a}"})
+    assert save["save_code"] in [s["save_code"] for s in my_saves_a.json()]
+    my_saves_b = client.get("/users/me/saves", headers={"Authorization": f"Bearer {bearer_b}"})
+    assert save["save_code"] not in [s["save_code"] for s in my_saves_b.json()]
+
+
+def test_reclaiming_own_already_claimed_save_is_a_harmless_noop():
+    # The ownership guard must only reject a *different* account — the same
+    # account re-posting /claim (e.g. a retried request) should still succeed.
+    bearer = _signup("reclaimer", "pw")["bearer_token"]
+    save = client.post("/saves", json={"game_id": "sol", "save_data": {}}).json()
+
+    first = client.post(f"/saves/{save['save_code']}/claim", headers={"Authorization": f"Bearer {bearer}"})
+    assert first.status_code == 200
+    second = client.post(f"/saves/{save['save_code']}/claim", headers={"Authorization": f"Bearer {bearer}"})
+    assert second.status_code == 200
+
+
+def test_signup_commit_time_username_collision_returns_409_not_500(monkeypatch):
+    # PR #1 review finding: the existence check and the commit aren't
+    # atomic, so a genuine concurrent signup can pass the check before
+    # either commits, then hit an unhandled IntegrityError (bare 500) on
+    # the second commit instead of the intended 409. Forcing the "no
+    # existing user" branch via monkeypatch while a real competing row is
+    # already in the database reproduces the commit-time collision without
+    # needing actual concurrent requests.
+    monkeypatch.setattr(main, "_username_exists", lambda db, username: False)
+
+    db = SessionLocal()
+    try:
+        db.add(User(username="raceduser", password_hash=main._hash_password("whatever")))
+        db.commit()
+    finally:
+        db.close()
+
+    resp = client.post("/auth/signup", json={"username": "raceduser", "password": "pw2"})
+    assert resp.status_code == 409
+    assert resp.json()["detail"] == "Username already taken"

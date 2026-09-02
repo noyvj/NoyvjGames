@@ -4,6 +4,8 @@ in-memory sqlite DB substituted in conftest.py, never the real Neon
 database.
 """
 
+import threading
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -117,3 +119,38 @@ def test_feedback_rate_limit_blocks_after_five_per_hour():
 
     resp = client.post("/feedback", json={"comment": "one too many"})
     assert resp.status_code == 429
+
+
+def test_feedback_rate_limit_is_atomic_under_concurrent_requests():
+    # PR #1 review finding: the read-check-append in
+    # _check_feedback_rate_limit wasn't atomic, so concurrent requests from
+    # the same IP on separate threadpool threads could each read the same
+    # `recent` list before any of them wrote it back, letting more than
+    # FEEDBACK_RATE_LIMIT_PER_HOUR through under a burst. Fires this many
+    # times more than the limit, all at once via a barrier so they actually
+    # overlap, directly against the checker (not the HTTP client, so this
+    # isolates the race from any DB-layer serialization) and asserts exactly
+    # the limit gets through — not "at most", which a flaky race could pass
+    # by accident even when broken.
+    attempts = main.FEEDBACK_RATE_LIMIT_PER_HOUR * 4
+    client_ip = "203.0.113.1"  # TEST-NET-3 (RFC 5737), never a real caller
+    barrier = threading.Barrier(attempts)
+    allowed = []
+    lock = threading.Lock()
+
+    def attempt():
+        barrier.wait()
+        try:
+            main._check_feedback_rate_limit(client_ip)
+        except Exception:
+            return
+        with lock:
+            allowed.append(1)
+
+    threads = [threading.Thread(target=attempt) for _ in range(attempts)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert len(allowed) == main.FEEDBACK_RATE_LIMIT_PER_HOUR
