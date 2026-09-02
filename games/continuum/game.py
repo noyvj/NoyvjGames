@@ -26,6 +26,7 @@ _HERE = os.getcwd()
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
+import research  # noqa: E402
 import sim  # noqa: E402
 import sustainability  # noqa: E402
 
@@ -34,15 +35,16 @@ from pyodide.ffi import create_proxy  # noqa: E402
 
 
 state = sim.CityState()
+tree = research.build_tree(current_era=state.era)
 
 
 def current_effects():
     """The aggregate modifiers applied to the simulation this season.
 
-    Neutral until Milestone 3 wires the research tree in here — this is the
-    single seam through which research reaches the simulation.
+    The single seam through which research reaches both the simulation and
+    the sustainability score — nothing else in the game reads the tree.
     """
-    return sim.NEUTRAL_EFFECTS
+    return tree.effects()
 
 
 # --- narration ---------------------------------------------------------
@@ -130,6 +132,7 @@ def render():
     )
 
     render_sustainability(effects)
+    render_research()
 
 
 def render_sustainability(effects):
@@ -160,6 +163,80 @@ def render_sustainability(effects):
     )
 
 
+def render_research():
+    """The research panel, rebuilt from the tree each render.
+
+    Node rows are built in code rather than written into index.html: the
+    tree runs to fourteen tiers across seven eras, so static markup for it
+    would be unmaintainable long before the Space Age. Locked nodes are
+    listed too, with the reason they're locked — a tree the player can't
+    see the shape of isn't a tree.
+    """
+    document.getElementById("research-status-display").innerText = (
+        f"Knowledge: {state.resources['knowledge']:.1f} — "
+        f"{len(tree.researched)} discoveries made"
+    )
+
+    container = document.getElementById("research-list")
+    container.innerHTML = ""
+
+    for node in tree.visible_nodes():
+        researched = tree.is_researched(node.node_id)
+        available = tree.is_available(node.node_id)
+
+        row = document.createElement("div")
+        row.className = "row research-row"
+        if researched:
+            row.className = "row research-row research-row--done"
+        elif not available:
+            row.className = "row research-row research-row--locked"
+
+        top = document.createElement("div")
+        top.className = "row-top"
+        name = document.createElement("span")
+        name.className = "row-name"
+        name.innerText = ("✓ " if researched else "") + node.name
+        cost = document.createElement("span")
+        cost.className = "row-count"
+        cost.innerText = "—" if researched else f"{node.cost:.0f}"
+        top.appendChild(name)
+        top.appendChild(cost)
+        row.appendChild(top)
+
+        meta = document.createElement("p")
+        meta.className = "research-meta"
+        meta.innerText = f"{research.BRANCH_LABEL[node.branch]} · Tier {node.tier}"
+        row.appendChild(meta)
+
+        blurb = document.createElement("p")
+        blurb.className = "row-blurb"
+        blurb.innerText = node.blurb
+        row.appendChild(blurb)
+
+        if not researched and not available:
+            reasons = document.createElement("p")
+            reasons.className = "research-locked-reason"
+            reasons.innerText = " ".join(tree.missing_requirements(node.node_id))
+            row.appendChild(reasons)
+
+        actions = document.createElement("div")
+        actions.className = "row-actions"
+        button = document.createElement("button")
+        button.id = f"research-{node.node_id}"
+        button.className = "secondary"
+        if researched:
+            button.innerText = "Known"
+            button.disabled = True
+        else:
+            button.innerText = f"Study ({node.cost:.0f})"
+            button.disabled = not (available and tree.can_afford(node.node_id, state.resources))
+            button.addEventListener("click", create_proxy(_make_research_handler(node.node_id)))
+        actions.appendChild(button)
+        row.appendChild(actions)
+
+        container.appendChild(row)
+
+
 # --- handlers ----------------------------------------------------------
 def _make_assign_handler(role):
     def handler(event=None):
@@ -178,6 +255,13 @@ def _make_unassign_handler(role):
 def _make_build_handler(building):
     def handler(event=None):
         state.build(building)
+        render()
+    return handler
+
+
+def _make_research_handler(node_id):
+    def handler(event=None):
+        tree.research(node_id, state.resources)
         render()
     return handler
 

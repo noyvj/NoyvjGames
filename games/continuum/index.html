@@ -147,6 +147,14 @@
       </div>
     </div>
 
+    <div id="research" class="section">
+      <h2 class="section-heading">Research</h2>
+      <p id="research-status-display" class="status-line">Knowledge: 0.0</p>
+      <p class="row-blurb">One tree, fourteen tiers, seven eras. What you lean into now changes what opens later.</p>
+      <!-- Node rows are built by game.py — see render_research(). -->
+      <div id="research-list"></div>
+    </div>
+
     <button id="advance-season-button" class="primary">Advance Season</button>
   </div>
 
@@ -167,7 +175,7 @@
     // Each engine module is written into Pyodide's virtual filesystem (the
     // working directory, which is on sys.path) before game.py runs and
     // imports them. Still no build step — just more than one fetch.
-    const ENGINE_MODULES = ["sim.py", "sustainability.py"];
+    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py"];
 
     async function main() {
       const pyodide = await loadPyodide();

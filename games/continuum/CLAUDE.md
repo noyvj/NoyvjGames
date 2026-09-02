@@ -51,7 +51,7 @@ Given the multi-week scope, milestones are grouped into phases rather than a sin
 |---|-----------|--------|
 | 1 | Core city simulation loop, Tribal era only (population, basic resources, simple production). Tests: resource/population update logic. | **DONE** |
 | 2 | Sustainability/livability score system, integrated from the start, responding to Tribal-era decisions. Tests: score calculation across sample decision sequences. | **DONE** |
-| 3 | Research tree engine — generic, extensible tier/layer structure first, then just enough Tribal-era nodes to prove it. Tests: unlock logic, prerequisite checking. | Pending |
+| 3 | Research tree engine — generic, extensible tier/layer structure first, then just enough Tribal-era nodes to prove it. Tests: unlock logic, prerequisite checking. | **DONE** |
 | 4 | Save system schema — continuous-save-with-revisit structure, even though only one era exists yet. Tests: save/load round-trip, era-snapshot logic. | Pending |
 
 **Phase 2 — Story & era transition framework**
@@ -101,6 +101,12 @@ Concrete calls made while building Phase 1 that the doc left open. Revisit freel
 - **Four equally-weighted components** — livability, equity, resource balance, resilience — matching the doc's SDG 11 framing. Equal weighting is a judgement call, not a finding; `sustainability.COMPONENT_WEIGHTS` is the one place to revisit it.
 - **Equity is bounded by the least-met need, not the average.** A settlement with grand shelters and empty stomachs scores badly on equity even where its average provision looks fine. This is what keeps equity from being a restatement of livability.
 - **The score is a pure function of state.** Nothing in `sustainability.py` mutates anything or accumulates hidden history, so any era snapshot can be re-scored at any time — which is what makes Milestone 4's revisit feature cheap. The score *history* is state and lives on `CityState`.
+- **Research tier structure: two tiers per era, 14 global tiers.** This is the tier proposal the doc asks for at Milestone 3. Tier numbers are global and ascending (`research.era_tiers(era)` / `research.tier_era(tier)`), so a node never gets renumbered when a later era is written. A tier opens once `TIER_UNLOCK_REQUIREMENT` (currently 2) nodes in the tier below are researched — a soft gate, so a player can specialise and still progress. Era gating sits on top: nodes from an era the settlement hasn't reached are never available.
+- **Three branches spanning all seven eras** — provision / community / craft — rather than per-era categories, which is what makes "early choices echo later" mechanically real. Two mechanisms carry an emphasis forward: ordinary `prerequisites`, and `min_affinity`, which gates a node on how many nodes in a branch have been researched at all. `elders_council` is the shipped proof of the second one.
+- **Node effects are always deltas.** `{"food_yield_mult": 0.2}` means +20%; the tree sums deltas onto `sim.NEUTRAL_EFFECTS` (multiplicative keys based at 1.0, additive at 0.0). Uniform aggregation, no per-key special cases as the tree grows to 14 tiers.
+- **Knowledge is one currency for the whole tree**, produced by the Keeper role in the Tribal era and by whatever the equivalent is later. Research is never bought with era-specific resources.
+- **The shipped tree is asserted structurally valid in tests.** `ResearchTree.validate()` catches unknown prerequisites, prerequisites from later tiers, prerequisite cycles, unknown effect keys, and tiers that don't belong to their era. Content bugs in a 14-tier tree are cheap to make and expensive to find by playing.
+- **The research panel is rendered in code, not written into `index.html`.** Locked nodes are listed too, with the reason they're locked, so the tree reads as a tree rather than a queue.
 - **Land health is the sustainability engine, not a decoration.** The land has a finite sustainable yield per season; harvesting past it degrades land health, which cuts every future yield, and staying under it lets the land recover. This is the mechanism that makes a small well-run settlement able to out-score a large badly-run one.
 
 ## Tech notes

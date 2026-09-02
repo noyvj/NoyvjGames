@@ -181,6 +181,32 @@ h1 {
   flex: 1;
 }
 
+/* Research rows are built by render_research(), not written into the HTML —
+   fourteen tiers of static markup would be unmaintainable. */
+.research-row--done {
+  opacity: 0.55;
+}
+
+.research-row--locked {
+  opacity: 0.75;
+}
+
+.research-meta {
+  margin: 0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.5;
+}
+
+.research-locked-reason {
+  margin: 0.15rem 0 0;
+  font-size: 0.75rem;
+  font-style: italic;
+  color: #d08c5c;
+  opacity: 0.9;
+}
+
 button.secondary {
   padding: 0.5rem 0.6rem;
   border: 1px solid #443b31;

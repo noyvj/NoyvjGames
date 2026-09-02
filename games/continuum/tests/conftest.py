@@ -41,6 +41,9 @@ ELEMENT_IDS = [
     "equity-display",
     "balance-display",
     "resilience-display",
+    # Milestone 3 — research panel (node rows are created at runtime)
+    "research-status-display",
+    "research-list",
 ]
 for _role in ROLES:
     ELEMENT_IDS += [f"{_role}-count", f"{_role}-add-button", f"{_role}-remove-button"]
