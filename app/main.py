@@ -1,6 +1,8 @@
 import hashlib
+import logging
 import os
 import secrets
+import threading
 import time
 from datetime import datetime
 from typing import List, Optional
@@ -13,6 +15,8 @@ from sqlalchemy.orm import Session
 
 from database import Base, engine, get_db, patch_schema
 from models import AnswerReport, AuthSession, Feedback, Rating, Save, User
+
+logger = logging.getLogger(__name__)
 
 Base.metadata.create_all(bind=engine)
 patch_schema()
@@ -125,11 +129,13 @@ def create_save(payload: SaveIn, db: Session = Depends(get_db)):
         db.add(row)
         try:
             db.commit()
-        # REVIEW(observability): swallows the actual IntegrityError with no logging —
-        # a genuine DB/connectivity problem here is indistinguishable from a code
-        # collision retry, and if all attempts are exhausted the caller only sees
-        # a generic 500 with no server-side trail of why.
         except IntegrityError:
+            # Logged at warning (not exception/error) because this is the
+            # expected, designed-for outcome of a code collision — only worth
+            # a closer look if it happens often enough in the logs to suggest
+            # something other than bad luck at this keyspace size (e.g. a
+            # real DB/connectivity problem masquerading as a collision).
+            logger.warning("create_save: IntegrityError on save_code, retrying", exc_info=True)
             db.rollback()
             continue
         db.refresh(row)
@@ -263,10 +269,12 @@ def _verify_password(password: str, stored_hash: str) -> bool:
         salt_hex, digest_hex = stored_hash.split("$", 1)
         salt = bytes.fromhex(salt_hex)
         expected = bytes.fromhex(digest_hex)
-    # REVIEW(observability): a malformed stored_hash (bad migration, hand-edited
-    # row) is indistinguishable from a normal wrong-password failure here — both
-    # just produce a 401 with no log signal to tell them apart.
     except ValueError:
+        # A malformed stored_hash (bad migration, hand-edited row) is a
+        # server-side data problem, not a user typing the wrong password —
+        # worth its own log line so the two failure modes don't get
+        # conflated when someone's login reports keep failing.
+        logger.warning("_verify_password: stored_hash is malformed, treating as a failed login", exc_info=True)
         return False
     actual = hashlib.pbkdf2_hmac(PBKDF2_ALGORITHM, password.encode("utf-8"), salt, PBKDF2_ITERATIONS)
     return secrets.compare_digest(actual, expected)
@@ -306,20 +314,33 @@ def _start_session(db: Session, user: User) -> str:
     return session_token
 
 
-# REVIEW(correctness): race condition — two concurrent signups for the same
-# username both pass the existence check above before either commits, so the
-# second db.commit() raises an unhandled IntegrityError (500) instead of the
-# intended 409 "Username already taken". create_save (above) already handles
-# this same class of race for save codes; signup doesn't.
+def _username_exists(db: Session, username: str) -> bool:
+    """Split out from signup() so a test can force the "no existing user"
+    branch while a real competing row is already in the database — the only
+    practical way to exercise signup's commit-time IntegrityError handling
+    below without standing up genuine concurrent requests."""
+    return db.query(User).filter(User.username == username).first() is not None
+
+
 @app.post("/auth/signup", response_model=AuthOut)
 def signup(payload: AuthIn, db: Session = Depends(get_db)):
     username = _normalize_username(payload.username)
-    if db.query(User).filter(User.username == username).first() is not None:
+    if _username_exists(db, username):
         raise HTTPException(status_code=409, detail="Username already taken")
 
     user = User(username=username, password_hash=_hash_password(payload.password))
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # The existence check above isn't atomic with this commit — two
+        # concurrent signups for the same username can both pass it before
+        # either commits. Without this, the second commit would raise an
+        # unhandled IntegrityError (bare 500) instead of the same 409 the
+        # pre-check above is trying to give; create_save has the equivalent
+        # guard for the same class of race on save codes.
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Username already taken")
     db.refresh(user)
 
     session_token = _start_session(db, user)
@@ -360,43 +381,51 @@ def get_current_user_optional(
         return None
     try:
         return get_current_user(authorization, db)
-    # REVIEW(observability): swallows every auth failure (expired/garbage token,
-    # bad frontend bug) with no logging — a signed-in user whose token is broken
-    # gets silently treated as anonymous with no server-side trail.
     except HTTPException:
+        # Logged at debug (not warning) because a garbage/expired token here
+        # is routine, not exceptional — this dependency exists specifically
+        # so an optional-auth endpoint degrades to anonymous rather than
+        # erroring. Kept as a log line rather than nothing, though, so a
+        # signed-in user whose requests keep silently landing as anonymous
+        # has a server-side trail to check.
+        logger.debug("get_current_user_optional: treating request as anonymous, auth failed", exc_info=True)
         return None
 
 
-# REVIEW(security,correctness): no ownership check before reassigning
-# row.user_id — any authenticated user who obtains a save code that's already
-# claimed by someone else (shared accidentally, guessed, or the code path
-# below stays open post-claim, see next REVIEW) can silently re-claim it to
-# their own account. User A claims a save, User B later POSTs the same code
-# to /claim, and the save is reassigned from A to B with no error and no
-# trace. Contradicts SAVE-SYSTEM-DESIGN.md's stated invariant that "nobody
-# loses a save by signing up." Needs a guard like
-# `if row.user_id not in (None, current_user.id): raise HTTPException(409, ...)`.
 @app.post("/saves/{save_code}/claim", response_model=SaveOut)
 def claim_save(save_code: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     row = db.query(Save).filter(Save.save_code == save_code).first()
     if row is None:
         raise HTTPException(status_code=404, detail="Save code not found")
+    # An unclaimed save (user_id is None) can be claimed by anyone with the
+    # code — that's the intended "claim your anonymous save" flow. But once
+    # it's claimed, only the same account may claim it again (a harmless
+    # no-op re-claim, e.g. a retried request); a save code that's already
+    # someone else's must not be silently reassignable to a different
+    # account, which is exactly what SAVE-SYSTEM-DESIGN.md's "nobody loses a
+    # save by signing up" invariant is promising *not* to allow.
+    if row.user_id is not None and row.user_id != current_user.id:
+        raise HTTPException(status_code=409, detail="This save is already claimed by another account")
     row.user_id = current_user.id
     db.commit()
     db.refresh(row)
     return row
 
 
-# REVIEW(security): claiming a save doesn't restrict or rotate save_code —
-# GET/PUT /saves/{save_code} above stay open to anyone who still has the code,
-# even after it's been claimed to an account. Whoever had the code before
-# claiming keeps full read/write access indefinitely.
-# REVIEW(patterns): unlike list_ratings/get_save/list_feedback, this endpoint
-# doesn't take a `response: Response` param or set Cache-Control: no-store, so
-# a signed-in user's save list can be stale-cached where the sibling
-# "list latest rows" endpoints can't be.
+# REVIEW(security), not yet resolved — flagged for a real decision rather
+# than a unilateral fix, since it changes user-facing behavior: claiming a
+# save doesn't restrict or rotate save_code — GET/PUT /saves/{save_code}
+# above stay open to anyone who still has the code, even after it's been
+# claimed to an account. Whoever had the code before claiming keeps full
+# read/write access indefinitely. Fixing this for real means deciding
+# whether claiming should rotate the code (breaking anyone else who has it,
+# including a legitimate "show a friend your save" use) or add a separate
+# ownership check to GET/PUT themselves (which would end anonymous sharing
+# of a claimed save's code entirely) — worth deciding deliberately, not
+# guessing.
 @app.get("/users/me/saves", response_model=List[SaveOut])
-def list_my_saves(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def list_my_saves(response: Response, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    response.headers["Cache-Control"] = "no-store"
     return db.query(Save).filter(Save.user_id == current_user.id).order_by(Save.updated_at.desc()).all()
 
 
@@ -418,20 +447,26 @@ FEEDBACK_RATE_LIMIT_PER_HOUR = 5
 # the fact it already resets on every deploy/restart.
 _feedback_submission_log: dict[str, list[float]] = {}
 
+# This is a sync def, so FastAPI runs concurrent requests from the same IP
+# on separate threadpool threads — without a lock, the read-check-append
+# below isn't atomic: multiple threads could each read `recent` before any
+# of them writes the appended list back, letting more than
+# FEEDBACK_RATE_LIMIT_PER_HOUR requests through under a concurrent burst
+# from one IP. A plain in-process lock is enough here, matching the dict's
+# own "in-process only, resets on restart, good enough to blunt casual spam"
+# stance right below — this isn't trying to be a distributed rate limiter.
+_feedback_submission_lock = threading.Lock()
 
-# REVIEW(correctness): TOCTOU race — this is a sync def, so FastAPI runs
-# concurrent requests from the same IP on separate threadpool threads. The
-# read-check-append here isn't atomic: multiple threads can each read `recent`
-# before any of them writes back the appended list, letting more than
-# FEEDBACK_RATE_LIMIT_PER_HOUR requests through under concurrent bursts.
+
 def _check_feedback_rate_limit(client_ip: str) -> None:
     now = time.time()
     window_start = now - 3600
-    recent = [t for t in _feedback_submission_log.get(client_ip, []) if t > window_start]
-    if len(recent) >= FEEDBACK_RATE_LIMIT_PER_HOUR:
-        raise HTTPException(status_code=429, detail="Too many submissions — try again later")
-    recent.append(now)
-    _feedback_submission_log[client_ip] = recent
+    with _feedback_submission_lock:
+        recent = [t for t in _feedback_submission_log.get(client_ip, []) if t > window_start]
+        if len(recent) >= FEEDBACK_RATE_LIMIT_PER_HOUR:
+            raise HTTPException(status_code=429, detail="Too many submissions — try again later")
+        recent.append(now)
+        _feedback_submission_log[client_ip] = recent
 
 
 class FeedbackIn(BaseModel):

@@ -1,8 +1,11 @@
+import logging
 import os
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.pool import StaticPool
+
+logger = logging.getLogger(__name__)
 
 DATABASE_URL = os.environ["DATABASE_URL"]
 if DATABASE_URL.startswith("postgres://"):
@@ -31,27 +34,37 @@ def get_db():
         db.close()
 
 
-# REVIEW(documentation): docstring is stale — it only describes the
-# `ratings` table patch, but the function body also patches `saves`
-# (user_id column, added for the accounts/save-claim feature). A reader
-# relying on the docstring alone would miss that.
 def patch_schema():
-    """One-off, idempotent schema patch for the pre-existing `ratings` table
-    (there's no Alembic/migration tooling in this project). Safe to call on
-    every startup: `ADD COLUMN IF NOT EXISTS` and `DROP NOT NULL` are both
-    no-ops once already applied. Postgres-only — Base.metadata.create_all
-    already builds a fresh sqlite table (used by tests) with the current,
-    correct column definitions, so no patching is needed there.
+    """One-off, idempotent schema patch for two pre-existing tables that
+    predate columns added by later features (there's no Alembic/migration
+    tooling in this project): `ratings` (the `response`/nullable-`stars`
+    columns added for per-game feedback prompts) and `saves` (the `user_id`
+    column added for the accounts/save-claim feature). Safe to call on every
+    startup: `ADD COLUMN IF NOT EXISTS` and `DROP NOT NULL` are both no-ops
+    once already applied. Postgres-only — Base.metadata.create_all already
+    builds fresh sqlite tables (used by tests) with the current, correct
+    column definitions, so no patching is needed there.
     """
     if engine.dialect.name != "postgresql":
         return
-    # REVIEW(observability): if one of these three ALTER statements fails
-    # partway through (e.g. a permissions issue), the raw exception propagates
-    # and crashes startup with no structured log line identifying which
-    # statement failed — just a bare stack trace to work from during triage.
-    with engine.begin() as conn:
-        conn.execute(text("ALTER TABLE ratings ADD COLUMN IF NOT EXISTS response VARCHAR"))
-        conn.execute(text("ALTER TABLE ratings ALTER COLUMN stars DROP NOT NULL"))
+    # Each statement is logged individually (not just wrapped in one
+    # try/except around the whole block) so that if one fails partway
+    # through — e.g. a permissions issue — the startup crash's log carries
+    # which specific statement failed rather than leaving that to be
+    # reconstructed from a bare stack trace during triage. The exception
+    # still propagates after logging: a failed schema patch should still
+    # crash startup loudly, not be swallowed.
+    statements = [
+        "ALTER TABLE ratings ADD COLUMN IF NOT EXISTS response VARCHAR",
+        "ALTER TABLE ratings ALTER COLUMN stars DROP NOT NULL",
         # ACCOUNTS-AND-FEEDBACK-DESIGN.md: saves predates users, so the
         # link between them is a patched-in column, not a fresh table.
-        conn.execute(text("ALTER TABLE saves ADD COLUMN IF NOT EXISTS user_id VARCHAR REFERENCES users(id)"))
+        "ALTER TABLE saves ADD COLUMN IF NOT EXISTS user_id VARCHAR REFERENCES users(id)",
+    ]
+    with engine.begin() as conn:
+        for statement in statements:
+            try:
+                conn.execute(text(statement))
+            except Exception:
+                logger.exception("patch_schema() failed on statement: %s", statement)
+                raise
