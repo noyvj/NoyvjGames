@@ -153,3 +153,22 @@ def test_load_state_re_renders_the_ui(game_env):
 def test_load_state_returns_true(game_env):
     snapshot = game_env.module.get_state()
     assert game_env.module.load_state(snapshot) is True
+
+
+def test_load_state_with_capacity_missing_a_key_does_not_crash_next_render(game_env):
+    """capacity's key set (housing/services/infrastructure) belongs to
+    CAPACITY_TYPES in game.py, not to the save -- a save missing one of
+    those keys (an older save format from before a capacity type existed,
+    or a hand-edited/corrupted payload) must not wipe that type out of
+    the live dict entirely. total_capacity() and render() both do
+    `region.capacity[t]` for every `t in CAPACITY_TYPES` unconditionally,
+    so a wholesale dict replace would crash on the very next render."""
+    game_env.region.invest("infrastructure")
+    snapshot = game_env.module.get_state()
+    del snapshot["capacity"]["infrastructure"]
+
+    result = game_env.module.load_state(snapshot)
+
+    assert result is True
+    assert game_env.region.capacity["infrastructure"] == 6.0
+    assert game_env.region.total_capacity() == 6.0

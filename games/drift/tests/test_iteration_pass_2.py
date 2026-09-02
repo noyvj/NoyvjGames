@@ -1,10 +1,10 @@
 """Iteration Pass 2: long-horizon outcomes coda — a player-triggered
 epilogue projecting the currently-integrated population's descendants
 forward a few generations, framed institutionally (workforce,
-community roles, regional contribution) per the sensitivity note
-elsewhere in this file. The three-bar wellbeing dashboard carries into
-the coda as a projected, visibly improved continuation of the same
-numbers, not a disconnected screen.
+community roles, regional contribution) per this game's sensitivity
+note in CLAUDE.md's Tech notes section. The three-bar wellbeing
+dashboard carries into the coda as a projected, visibly improved
+continuation of the same numbers, not a disconnected screen.
 """
 
 

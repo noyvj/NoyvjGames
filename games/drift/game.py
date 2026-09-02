@@ -544,6 +544,16 @@ def on_toggle_coda(event=None):
 # "snapshot" would otherwise silently mutate it, same reasoning as SOL's
 # serialize_state() docstring. `net_positive_round` (Iteration Pass 3's
 # turning-point milestone) is either `None` or an int, already JSON-safe.
+#
+# `capacity`'s key set (housing/services/infrastructure) belongs to
+# CAPACITY_TYPES in this file, not to the save -- it's restored key-by-key
+# into the live dict rather than wholesale-replaced, so a save missing one
+# of those keys (an older save format from before a capacity type existed,
+# or a hand-edited/corrupted payload) can't wipe that type out of the live
+# dict entirely. total_capacity() and render() both do
+# `region.capacity[t]` for every `t in CAPACITY_TYPES` unconditionally, so
+# a missing key there would crash the very next render -- same bug shape
+# as SOL's planet_state and Continuum's resources/allocation/buildings.
 def get_state():
     return {
         "round_number": region.round_number,
@@ -567,7 +577,10 @@ def load_state(data):
 
     region.round_number = data["round_number"]
     region.funds = data["funds"]
-    region.capacity = copy.deepcopy(data["capacity"])
+    saved_capacity = data["capacity"]
+    for capacity_type in CAPACITY_TYPES:
+        if capacity_type in saved_capacity:
+            region.capacity[capacity_type] = copy.deepcopy(saved_capacity[capacity_type])
     region.background_severity = data["background_severity"]
     region.total_arrivals = data["total_arrivals"]
     region.arrivals_log = copy.deepcopy(data["arrivals_log"])
