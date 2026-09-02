@@ -1121,3 +1121,83 @@ def setup():
 
 
 setup()
+
+
+# ===========================================================================
+# Milestone 5 — the shared save widget contract (SAVE-BUTTON-INTEGRATION.md §2)
+# ===========================================================================
+#
+# The whole per-game contract is these two functions: get_state() hands back
+# one plain JSON-safe dict, load_state() is its exact inverse. The widget in
+# shared/save-widget.js is dropped in unchanged and does the rest.
+#
+# What is saved is only the SRS state — the catalog is static and versioned in
+# the repo, so a save that also carried 722 plots' worth of French would be
+# storing the same file twice. Better still, only plots that have actually
+# been reviewed are written out: an untouched plot's record is exactly the
+# defaults the catalog rebuilds it with, so storing 722 of them would turn
+# every save into a ~100KB round trip to say almost nothing.
+
+SAVE_VERSION = 1
+
+
+def _plot_record(plot):
+    return {
+        "ease_factor": plot.ease_factor,
+        "interval_days": plot.interval_days,
+        "last_reviewed": plot.last_reviewed,
+        "next_due": plot.next_due,
+        "correct_streak": plot.correct_streak,
+        "stage": plot.stage,
+    }
+
+
+def _reset_plot(plot):
+    plot.ease_factor = DEFAULT_EASE
+    plot.interval_days = 0
+    plot.last_reviewed = None
+    plot.next_due = None
+    plot.correct_streak = 0
+    plot.stage = STAGE_SEED
+
+
+def get_state():
+    # A plot counts as touched once it has been reviewed at all — including a
+    # review that went wrong, which leaves streak 0 and stage Seed but a real
+    # last_reviewed and a reduced ease that would otherwise be lost.
+    return {
+        "version": SAVE_VERSION,
+        "current_day": state.current_day,
+        "plots": {
+            plot.plot_id: _plot_record(plot)
+            for plot in state.plots
+            if plot.last_reviewed is not None or plot.stage != STAGE_SEED
+        },
+    }
+
+
+def load_state(data):
+    saved_plots = data.get("plots") or {}
+    state.current_day = data.get("current_day", 0)
+
+    for plot in state.plots:
+        # Plots missing from the save are reset rather than left as they are:
+        # loading someone else's farm must not leave this session's plants
+        # standing in it.
+        _reset_plot(plot)
+        record = saved_plots.get(plot.plot_id)
+        if not record:
+            continue
+        plot.ease_factor = record.get("ease_factor", DEFAULT_EASE)
+        plot.interval_days = record.get("interval_days", 0)
+        plot.last_reviewed = record.get("last_reviewed")
+        plot.next_due = record.get("next_due")
+        plot.correct_streak = record.get("correct_streak", 0)
+        plot.stage = record.get("stage", STAGE_SEED)
+        if plot.stage not in STAGE_RANK:
+            plot.stage = STAGE_SEED
+
+    # Any question on screen was generated against the farm that just got
+    # replaced, so it is closed rather than answered into the new one.
+    close_practice()
+    return True

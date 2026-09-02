@@ -134,7 +134,7 @@ This state is per-plot, per-user — fits your existing save-code system (Neon/P
 | 2 | Plant-state model + SRS scheduling | Per-plot `ease_factor`, `interval_days`, `last_reviewed`, `next_due`, `correct_streak`; growth stages; wilting. Tests: scheduling transitions across sample review sequences | Done |
 | 3 | Runtime question generator | Section 5 — varied prompts per `topic_type`, distractors from nearby items, 3-4+ variants per plot. Tests: variant coverage, distractor plausibility, no textbook exercise reproduction | Done |
 | 4 | Static farm grid UI | Section 3 stages + wilting, rows = sequence 1-23, chapter labels, no animation required | Done |
-| 5 | Save-code backend hook | Shared `shared/save-widget.js` drop-in + `get_state()`/`load_state()` contract | Not started |
+| 5 | Save-code backend hook | Shared `shared/save-widget.js` drop-in + `get_state()`/`load_state()` contract | Done |
 | 6 | Row-unlock pacing | Section 7 — previous row all at Sprout+ before the next unlocks; FREN151's 11 rows open immediately as a catch-up zone | Not started |
 | 7 | Polish pass | Section 8 — screenshots-ready visuals, calm "plots needing water" counter, no streak-guilt UI | Not started |
 
@@ -168,6 +168,14 @@ Decisions taken during the build that the design doc above left open. Appended t
 - **The course boundary is invisible by construction.** Row 12 (FREN152 wk 2) is built by exactly the same code path as row 11, with the same classes; only its chapter label reads differently. A test asserts the two rows' classNames are identical so the join can't drift into becoming a visible season break.
 - **Every practice question re-rolls, and never twice the same variant in a row.** The plot remembers the last variant it served and passes it to the generator as `exclude`, which is why `open_practice()` keeps a transient `plot.last_variant` — a display concern, so it stays out of the save payload.
 - **Warm palette, deliberately unlike the hub's climate games.** Paper and soil rather than dark slate. The hub's rule is that a game's internals are free once you are inside it.
+
+**Milestone 5 — save-code backend hook**
+
+- **The shared widget, unchanged.** One `<script src="../../shared/save-widget.js" data-game-id="champ-de-mots">` line and `window.pyodide = pyodide;` in the boot script; no bespoke bridge, and `shared/save-widget.js` itself is not touched. A test asserts both lines are present in `index.html` so the integration can't silently rot.
+- **Only touched plots are saved.** Writing all 722 plots × 6 SRS fields would make every save a ~100KB POST that mostly says "unchanged". `get_state()` writes out only plots that have been reviewed at all, and `load_state()` rebuilds the rest from the catalog — which is where they came from and is versioned in the repo anyway. An untouched farm serialises to under 200 bytes.
+- **"Touched" includes plots that only ever went wrong.** Those sit at streak 0 and stage Seed, but they carry a real `last_reviewed` and a reduced ease factor; dropping them would quietly undo the scheduling.
+- **Loading resets what the save doesn't mention.** A plot absent from the incoming save is returned to its defaults rather than left standing, so loading a save code never leaves the previous session's plants growing in someone else's farm.
+- **Saves are forgiving of drift.** Unknown plot ids (an older catalog revision) are skipped rather than raising, partial plot records fall back to defaults field by field, and an unrecognised stage name falls back to Seed. Any open practice question is closed on load, since it was generated against the farm that just got replaced.
 
 ## 13. Working conventions
 

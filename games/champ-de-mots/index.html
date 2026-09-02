@@ -74,6 +74,12 @@
     }
     main();
   </script>
+  <!--
+    SAVE-BUTTON-INTEGRATION.md: shared save widget, the same drop-in every
+    game uses. game.py exposes get_state()/load_state(); the widget itself is
+    untouched per-game, and the boot script above exposes window.pyodide for it.
+  -->
+  <script src="../../shared/save-widget.js" data-game-id="champ-de-mots"></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../../sw.js");
