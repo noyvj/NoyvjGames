@@ -161,6 +161,20 @@ button:disabled {
   color: #6b5c46;
 }
 
+.practice-blurb {
+  margin: 0.75rem 0 0;
+  padding: 0.6rem 0.7rem;
+  background: #fbf7ee;
+  border: 1px solid #e6dcc4;
+  border-radius: 6px;
+}
+
+.practice-blurb-line {
+  margin: 0.25rem 0;
+  font-size: 0.8rem;
+  color: #6b5c46;
+}
+
 .practice-choices {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

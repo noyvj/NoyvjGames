@@ -139,7 +139,7 @@ This state is per-plot, per-user — fits your existing save-code system (Neon/P
 | 7 | Polish pass | Section 8 — screenshots-ready visuals, calm "plots needing water" counter, no streak-guilt UI | Done |
 | 8 | Grading engine v2 | §14.2 — formalize STRICT/LENIENT tiers, per-item `accepted` array, normalization pass | Done |
 | 9 | Report button + `answer_reports` table | §14.2.4 — flag-as-correct queue in the backend, no in-game review UI (see §14.4 decision) | Done |
-| 10 | Failure feedback blurb | §14.3 — Phase 1 template version only | Not started |
+| 10 | Failure feedback blurb | §14.3 — Phase 1 template version only | Done |
 | 11 | Review tab | §14.4 — Random Word Review + Grammar Review | Not started |
 | 12 | Weekly proficiency tests | §14.5 — one per `sequence` entry, informational only (see §14.4 decision) | Not started |
 | 13 | Bonus sentence-building sections | §14.6 — 1-2 original sentences per week, tile-drag + translate | Not started |
@@ -220,6 +220,12 @@ Decisions taken during the build that the design doc above left open. Appended t
 - **`marked_correct_answer` is the canonical answer plus whatever the item's `accepted` array already holds**, via the same `_lookup_accepted()` Milestone 8 built — so a report already carries the full context a human would want when triaging it, not just the one string that happened to be on screen.
 - **`game_id` on the backend table isn't hardcoded to `"champ-de-mots"`** even though every report from this game sends that value — `AnswerReport` and its endpoints are written so a future game could reuse the same reporting mechanism without a schema change, matching how `Rating`/`Feedback` already key by a `game_slug`/`game_id` string rather than assuming a single game.
 - **No in-game admin/review page**, per §14.4's decision — `GET /answer-reports` supports `game_id`/`topic_type`/`item_id` filters for triaging the queue directly (e.g. by pasting a curl/httpie call into a Claude Code session), and that's the whole workflow.
+
+**Milestone 10 — failure feedback blurb (Phase 1)**
+
+- **All three fields are mechanical, none are per-item authored.** §14.3 only explicitly calls "why it matters" a generic per-`topic_type` template, but the same read is applied to all three: "what it is" pulls `plot.rule` verbatim for grammar (exactly as §14.3 names it) and otherwise templates the item's own fr/en pair plus its topic title; "memory tip" is a fixed per-`topic_type` sentence, filled with the item's fr/en where the template calls for it. Nothing here is item-specific insight — that's precisely what Phase 2's (out of scope) Claude API call would add. `test_no_network_or_api_call_anywhere_in_the_blurb_path` pins that Phase 2 hasn't crept in early.
+- **Shown on any wrong answer, not just typed ones** — unlike Milestone 9's report button, which §14.2.4 scopes to "every *written-answer* prompt". §14.3 has no such qualifier ("when an answer is marked wrong", full stop), and a wrong multiple-choice pick benefits just as much from "why it matters" context as a wrong typed one, even though it doesn't need the report button's ambiguity-resolution.
+- **Lives in its own panel (`#practice-blurb`), separate from the pre-existing `#practice-note`.** `practice-note` already surfaces `plot.rule` unconditionally for grammar plots (shown whether the answer is right or wrong, Milestone 3); the blurb's "what it is" line duplicates that content for a grammar item specifically, but only appears alongside the memory tip and why-it-matters lines on a miss, which is a deliberately different job (post-mistake context, not a standing hint) even where the text overlaps.
 
 ## 13. Working conventions
 

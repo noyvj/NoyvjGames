@@ -1129,6 +1129,63 @@ REPORT_GAME_ID = "champ-de-mots"
 REPORT_BUTTON_LABEL = "I think this should count"
 REPORT_SENT_LABEL = "Reported — thanks"
 
+
+# ===========================================================================
+# Milestone 10 — the failure feedback blurb (design doc §14.3), Phase 1 only
+# ===========================================================================
+#
+# Phase 1 (this milestone): every field is mechanically template-filled from
+# fields the catalog already has -- topic title, grammar rule, the item's own
+# fr/en pair, topic_type -- plus this file's own fixed wording. Phase 2 (a
+# one-off Claude API call per item, cached in the database) is an explicit
+# stretch goal, out of scope here; there is no network call anywhere in this
+# section.
+
+FAILURE_BLURB_MEMORY_TIP = {
+    "vocab": 'Link "{fr}" to "{en}" with a quick mental image or a similar-sounding English word.',
+    "phrase": "Say the whole phrase aloud a few times — phrases stick better as one chunk than word-by-word.",
+    "grammar": "Focus on the pattern behind the rule, not just this one example.",
+    "phonetic": "Say the letter or symbol and its spoken name aloud together a few times in a row.",
+}
+
+# §14.3: explicitly a *generic* per-topic_type template, not per-item content.
+FAILURE_BLURB_WHY_IT_MATTERS = {
+    "vocab": "This word keeps reappearing in later vocabulary and in sentences built from it.",
+    "phrase": "Phrases like this get reused as building blocks in later conversation practice.",
+    "grammar": "This rule underlies many sentences later in the syllabus, so it pays off to get it solid now.",
+    "phonetic": "Recognising this quickly is foundational for spelling and pronunciation all through the course.",
+}
+
+
+def _blurb_what_it_is(plot):
+    """One-line restatement: the `rule` field already covers this for
+    grammar items (§14.3, literally); everything else is templated from the
+    item's own fr/en pair and its topic title."""
+    if plot.topic_type == "grammar":
+        return plot.rule or plot.topic_title
+    item = plot.items[0]
+    return f'"{item["fr"]}" = "{item["en"]}" — from "{plot.topic_title}".'
+
+
+def _blurb_memory_tip(plot):
+    template = FAILURE_BLURB_MEMORY_TIP[plot.topic_type]
+    item = plot.items[0]
+    return template.format(fr=item.get("fr", ""), en=item.get("en", ""))
+
+
+def build_failure_blurb(question):
+    """The §14.3 card for a question that was just marked wrong: what it is,
+    a memory tip, and why it matters. None if the question doesn't map back
+    to a real plot (e.g. a hand-built dict in a test)."""
+    plot = state.plots_by_id.get(question.get("plot_id"))
+    if plot is None:
+        return None
+    return {
+        "what_it_is": _blurb_what_it_is(plot),
+        "memory_tip": _blurb_memory_tip(plot),
+        "why_it_matters": FAILURE_BLURB_WHY_IT_MATTERS[plot.topic_type],
+    }
+
 # Module-level UI state.
 current_question = None
 current_result = None
@@ -1362,6 +1419,7 @@ def render_practice():
         panel.hidden = True
         choices_box.innerHTML = ""
         _element("practice-report-button").hidden = True
+        _element("practice-blurb").hidden = True
         return
 
     panel.hidden = False
@@ -1412,6 +1470,17 @@ def render_practice():
     if show_report:
         report_button.disabled = report_sent
         report_button.innerText = REPORT_SENT_LABEL if report_sent else REPORT_BUTTON_LABEL
+
+    # §14.3: the failure blurb shows on *any* wrong answer, choice or typed
+    # (unlike the report button above, which is written-answer-only).
+    blurb_panel = _element("practice-blurb")
+    show_blurb = answered and current_result is False
+    blurb = build_failure_blurb(current_question) if show_blurb else None
+    blurb_panel.hidden = blurb is None
+    if blurb is not None:
+        _element("practice-blurb-what").innerText = blurb["what_it_is"]
+        _element("practice-blurb-tip").innerText = blurb["memory_tip"]
+        _element("practice-blurb-why").innerText = blurb["why_it_matters"]
 
 
 def render():
