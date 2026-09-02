@@ -56,10 +56,13 @@ That's the whole contract. If a game can honestly implement both functions, the 
 Every game's HTML page includes, near the end of `<body>`:
 
 ```html
-<script src="../shared/save-widget.js" data-game-id="sol"></script>
+<script src="../../shared/hub-auth.js"></script>
+<script src="../../shared/save-widget.js" data-game-id="sol"></script>
 ```
 
-`data-game-id` is the only thing that changes per game — it's what tags the save row with the right `game_id` in the backend. Everything else about the include is identical.
+(Two levels up from `games/<slug>/index.html` to the repo root, then into `shared/` — this snippet previously showed one `../`, which assumed a shallower `games/` layout than this repo actually has; corrected here to match what every game's real HTML does.)
+
+`shared/hub-auth.js` must load first — it defines `HUB_AUTH_TOKEN_KEY`/`hubAuthHeaders()`/`hubGetBearerToken()`, the bearer-token helpers `save-widget.js` (and the hub's own `script.js`) call rather than each independently hardcoding the same localStorage key. `data-game-id` is the only thing that changes per game — it's what tags the save row with the right `game_id` in the backend. Everything else about the include is identical.
 
 ## 5. What this deliberately doesn't do
 
