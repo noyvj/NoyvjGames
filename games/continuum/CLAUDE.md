@@ -52,7 +52,7 @@ Given the multi-week scope, milestones are grouped into phases rather than a sin
 | 1 | Core city simulation loop, Tribal era only (population, basic resources, simple production). Tests: resource/population update logic. | **DONE** |
 | 2 | Sustainability/livability score system, integrated from the start, responding to Tribal-era decisions. Tests: score calculation across sample decision sequences. | **DONE** |
 | 3 | Research tree engine — generic, extensible tier/layer structure first, then just enough Tribal-era nodes to prove it. Tests: unlock logic, prerequisite checking. | **DONE** |
-| 4 | Save system schema — continuous-save-with-revisit structure, even though only one era exists yet. Tests: save/load round-trip, era-snapshot logic. | Pending |
+| 4 | Save system schema — continuous-save-with-revisit structure, even though only one era exists yet. Tests: save/load round-trip, era-snapshot logic. | **DONE** |
 
 **Phase 2 — Story & era transition framework**
 
@@ -108,6 +108,16 @@ Concrete calls made while building Phase 1 that the doc left open. Revisit freel
 - **The shipped tree is asserted structurally valid in tests.** `ResearchTree.validate()` catches unknown prerequisites, prerequisites from later tiers, prerequisite cycles, unknown effect keys, and tiers that don't belong to their era. Content bugs in a 14-tier tree are cheap to make and expensive to find by playing.
 - **The research panel is rendered in code, not written into `index.html`.** Locked nodes are listed too, with the reason they're locked, so the tree reads as a tree rather than a queue.
 - **Land health is the sustainability engine, not a decoration.** The land has a finite sustainable yield per season; harvesting past it degrades land health, which cuts every future yield, and staying under it lets the land recover. This is the mechanism that makes a small well-run settlement able to out-score a large badly-run one.
+- **Saving goes through the shared hub widget, not a bespoke bridge.** This supersedes the doc's Milestone 4 wording above: the backend is still the existing FastAPI/Neon save system, but it's reached via `shared/save-widget.js` (see `planning/SAVE-BUTTON-INTEGRATION.md`), which every hub game includes unchanged. Continuum's whole per-game obligation is `get_state()` / `load_state(data)` in `game.py`; the widget never looks inside the dict, so the entire era-snapshot/revisit structure lives *inside* that one dict and needs no widget changes.
+- **Save schema.** `{save_version, game, era_order, current_era, furthest_era, revisiting, current_state: {city, research}, parked_state, era_snapshots: {era: {...}}, ui}`. `current_state` is always whatever is being played; entering a revisit parks live forward progress in `parked_state` and loads the requested era's snapshot; leaving puts the parked state back. `furthest_era` never moves backwards.
+- **A revisit is a look back, not a rewrite.** Leaving a revisit discards what happened during it, and a completed era's snapshot is never overwritten by a replay — the record of how an era actually went the first time is what the game's "what kind of city did you build" framing rests on. Worth reconsidering in Phase 2 if replaying an era should be able to *change* the arc.
+- **The save system restores in place.** `Campaign` mutates the `CityState` and `ResearchTree` it holds rather than replacing them, so `game.py`'s module-level `state`/`tree` aliases survive a load.
+- **`Campaign.advance_to_era()` exists but nothing calls it yet.** Phase 2's era-transition beat system is what will drive it; only the save-side bookkeeping (snapshot the era being left, move `furthest_era`, retarget the research tree) is built and tested now, since that's the part that would have been painful to retrofit.
+- **`CITY_FIELDS` in `save.py` is an explicit list, not a `__dict__` sweep.** Adding a field to `CityState` is therefore a deliberate save-schema decision. If a future field doesn't persist, that list is the first place to look.
+
+## Verified in a real browser
+
+Phase 1 was checked running under Pyodide (not only under the pytest fake-DOM harness): the page boots, the four engine modules load from the virtual filesystem, seasons advance, the research panel renders, and `get_state()` converts through `toJs` into a plain JSON-serialisable object with the documented schema. Worth repeating after any change to the module-loading block in `index.html`, since no test covers that seam.
 
 ## Tech notes
 

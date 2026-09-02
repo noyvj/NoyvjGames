@@ -158,8 +158,7 @@ class ResearchTree:
             have = self.affinity(branch)
             if have < needed:
                 reasons.append(
-                    f"Requires {needed} discoveries in {BRANCH_LABEL[branch]} "
-                    f"({branch}) — you have {have}."
+                    f"Requires {needed} discoveries in {BRANCH_LABEL[branch]} — you have {have}."
                 )
 
         return reasons

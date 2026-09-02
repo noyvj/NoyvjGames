@@ -27,6 +27,7 @@ if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
 import research  # noqa: E402
+import save  # noqa: E402
 import sim  # noqa: E402
 import sustainability  # noqa: E402
 
@@ -34,8 +35,12 @@ from js import document  # noqa: E402
 from pyodide.ffi import create_proxy  # noqa: E402
 
 
-state = sim.CityState()
-tree = research.build_tree(current_era=state.era)
+campaign = save.Campaign(sim.CityState(), research.build_tree())
+# Module-level aliases for the two live engine objects. The save system
+# always restores *into* these objects rather than replacing them, so these
+# names stay valid across a load.
+state = campaign.state
+tree = campaign.tree
 
 
 def current_effects():
@@ -271,6 +276,22 @@ def on_advance_season(event=None):
     state.advance_season(effects)
     state.score_history.append(sustainability.score(state, effects))
     render()
+
+
+# --- the shared save widget's contract ---------------------------------
+# SAVE-BUTTON-INTEGRATION.md: shared/save-widget.js drives every game in the
+# hub through exactly these two functions and never looks inside the dict,
+# so Continuum's era-snapshot/revisit structure needs no widget changes —
+# see save.py for the schema itself.
+def get_state():
+    return campaign.to_dict()
+
+
+def load_state(data):
+    if not campaign.load_dict(data):
+        return False
+    render()
+    return True
 
 
 def setup():

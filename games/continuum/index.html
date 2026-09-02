@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Continuum — Milestone 1</title>
+<title>Continuum</title>
 <link rel="icon" href="../../icons/icon-192.png">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="../../ad-bar.css">
@@ -175,7 +175,7 @@
     // Each engine module is written into Pyodide's virtual filesystem (the
     // working directory, which is on sys.path) before game.py runs and
     // imports them. Still no build step — just more than one fetch.
-    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py"];
+    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "save.py"];
 
     async function main() {
       const pyodide = await loadPyodide();
@@ -190,6 +190,13 @@
     }
     main();
   </script>
+  <!--
+    SAVE-BUTTON-INTEGRATION.md: shared save widget, the same drop-in used by
+    every game in the hub. game.py exposes get_state()/load_state(); the
+    widget itself is untouched per-game. Continuum's era-snapshot/revisit
+    structure lives inside the single dict get_state() returns — see save.py.
+  -->
+  <script src="../../shared/save-widget.js" data-game-id="continuum"></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../../sw.js");
