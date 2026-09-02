@@ -378,6 +378,7 @@ INFO_PAGE = {
 info_page_open = False
 
 
+# REVIEW(reuse): render_info_page()/on_toggle_info_page() (~25+4 lines) are\n# logically identical across all 8 climate games (canopy, grid, tide,\n# aftermath, herd, thaw, loop, drift) -- only the per-game INFO_PAGE data\n# dict differs. Matching HTML/CSS (.info-page-* rules, #info-page-panel\n# markup) is duplicated the same way. A shared JS-driven widget or small\n# shared Python helper, driven by each game's own INFO_PAGE dict -- the same\n# pattern already used for shared/save-widget.js -- would remove ~250 lines\n# of duplication.
 def render_info_page():
     panel = document.getElementById("info-page-panel")
     panel.hidden = not info_page_open
@@ -508,6 +509,12 @@ def get_state():
 # CATEGORIES — a wholesale-replaced dict missing a category would crash
 # the very next render, not just look wrong (same reasoning as
 # Continuum's CITY_KEYED_DICTS).
+# REVIEW(patterns): uses defensive data.get(key, default)/isinstance checks
+# throughout, returning False on malformed input — diverges from the direct
+# data["key"] indexing convention every other game's load_state uses
+# (aftermath, canopy, drift, grid, herd, loop, thaw all raise KeyError on a
+# malformed/missing field instead). Not documented as an intentional
+# deviation in this file's CLAUDE.md.
 def load_state(data):
     if not isinstance(data, dict):
         return False
