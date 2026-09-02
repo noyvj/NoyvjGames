@@ -207,6 +207,71 @@ def test_blank_variants_hide_the_answer_in_the_prompt(game_env):
             assert question["answer"] not in question["prompt"].split()
 
 
+def test_blank_target_accepts_either_form_of_a_masc_fem_pair(game_env):
+    """A single-word "/" pair (e.g. "australien / australienne") is blanked
+    as one unit, and the answer stays "/"-joined so either gendered form is
+    accepted -- typing the masculine form when the feminine was "the"
+    target (or vice versa) shouldn't be marked wrong."""
+    module = game_env.module
+    blanked, answer = module.blank_target("australien / australienne")
+    assert blanked == module.BLANK_MARKER
+    assert answer == "australien / australienne"
+
+    question = {"mode": "typed", "answer": answer, "choices": []}
+    assert module.check_answer(question, "australien") is True
+    assert module.check_answer(question, "australienne") is True
+    assert module.check_answer(question, "canadien") is False
+
+
+def test_blank_target_refuses_to_blank_across_full_alternate_phrases(game_env):
+    """"Comment vas-tu? / Ça va?" packs two genuinely different phrasings,
+    not a one-word variant -- blanking a word inside one of them while the
+    other sits fully visible ("Comment vas-tu? / Ça _____?") is a garbled
+    question, so word-blanking is refused entirely here. The item still
+    gets asked via direct translate/choice, which already accept either
+    side of a "/"."""
+    module = game_env.module
+    assert module.blank_target("Comment vas-tu? / Ça va?") is None
+    assert module.blank_target("un professeur / une professeure") is None
+    assert module.blank_target("un / une élève") is None
+
+
+def test_blank_target_ignores_a_slash_embedded_in_one_word(game_env):
+    """A "/" with no surrounding whitespace, like the catalog's own
+    "[places/attractions]" placeholder, is part of that single token, not
+    an alternation separator -- it must fall through to the normal
+    single-word blanking algorithm rather than being treated as a pair."""
+    module = game_env.module
+    result = module.blank_target("... parce qu'il y a + [places/attractions]")
+    assert result is not None
+    blanked, answer = result
+    assert "/" not in answer
+
+
+def test_blank_target_handles_a_slash_pair_with_inflection_parentheses(game_env):
+    """"meilleur(e)(s) / pire(s)" (fren152-w4-grammar003) combines both
+    things this function has to see through: parenthetical inflection
+    markers, and a masc/fem-style "/" pair."""
+    module = game_env.module
+    blanked, answer = module.blank_target("meilleur(e)(s) / pire(s)")
+    assert answer == "meilleur / pire"
+    question = {"mode": "typed", "answer": answer, "choices": []}
+    assert module.check_answer(question, "meilleur") is True
+    assert module.check_answer(question, "pire") is True
+
+
+def test_plot_that_lost_its_blank_variant_still_meets_the_variant_floor(game_env):
+    """Regression guard: fren151-w6-phrase002-i02's fr text contains a
+    bracketed "/" placeholder ("[places/attractions]"), which must NOT be
+    mistaken for a whitespace-bounded alternation -- confirms the specific
+    plot that surfaced this during development still has enough variants."""
+    module = game_env.module
+    plot = next(
+        p for p in _all_plots(game_env) if p.plot_id == "fren151-w6-phrase002-i02"
+    )
+    assert len(module.variants_for(plot)) >= 3
+
+
 def test_blank_ending_shows_the_stem_and_hides_the_whole_form(game_env):
     """The ending blank is only offered where a topic's forms genuinely share
     a stem (regular conjugation tables), and it must show that stem while
@@ -363,14 +428,26 @@ def test_every_generated_string_is_recombined_catalog_text(game_env):
     than catalog text plus this file's own fixed UI scaffolding."""
     module, state = game_env.module, game_env.state
     catalog_text = set()
+
+    def _add(raw):
+        # Both the raw text and its parenthetical-stripped form count as
+        # catalog-derived -- strip_parentheticals() is an established part
+        # of the game's own answer-construction pipeline (blank_target(),
+        # answer_alternatives()), not a new way to slip in invented text.
+        # This matters for items like "meilleur(e)(s) / pire(s)", where the
+        # blanked-word-pair answer ("meilleur / pire") only lines up with
+        # the catalog once the inflection parentheses are gone too.
+        catalog_text.add(module.normalize_answer(raw))
+        catalog_text.add(module.normalize_answer(module.strip_parentheticals(raw)))
+
     for week in module.CATALOG["weeks"]:
         for topic in week["topics"]:
-            catalog_text.add(module.normalize_answer(topic["title"]))
+            _add(topic["title"])
             if topic.get("rule"):
-                catalog_text.add(module.normalize_answer(topic["rule"]))
+                _add(topic["rule"])
             for item in topic["items"]:
-                catalog_text.add(module.normalize_answer(item["fr"]))
-                catalog_text.add(module.normalize_answer(item["en"]))
+                _add(item["fr"])
+                _add(item["en"])
 
     def is_catalog_derived(text):
         needle = module.normalize_answer(text)

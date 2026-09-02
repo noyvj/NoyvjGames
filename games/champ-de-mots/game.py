@@ -482,8 +482,34 @@ def blank_target(text):
     is the content word in practice. Bracketed placeholders the catalog uses
     for open slots are never chosen, and trailing punctuation stays visible
     so the gap reads as a gap rather than as a typing puzzle.
+
+    A "/" needs special handling, since the catalog uses it for two very
+    different things (fem/masc and other single-word variants, e.g.
+    "australien / australienne"; or genuinely separate alternate phrasings,
+    e.g. "Comment vas-tu? / Ça va?"). Blanking one word out of a multi-word
+    alternate while a whole *other* alternate sits fully visible right next
+    to it produces a nonsensical prompt ("Comment vas-tu? / Ça _____?"), so
+    when any side of the "/" is more than one word, the whole item is
+    refused for word-blanking — it still gets asked via direct translate/
+    choice, which already accept either side of a "/" (`answer_alternatives`).
+    When every side is exactly one word, that's the fem/masc case: the whole
+    compound is blanked as a single unit and the answer stays "/"-joined, so
+    the same leniency accepts whichever form is typed.
     """
-    tokens = strip_parentheticals(text).split()
+    stripped = strip_parentheticals(text)
+    # A "/" only counts as an alternation separator when it's whitespace-
+    # bounded ("australien / australienne") -- one embedded in a single
+    # token, e.g. the catalog's own "[places/attractions]" placeholder, is
+    # just part of that word and must fall through to the normal algorithm.
+    if re.search(r"\s/\s", stripped):
+        sides = [s.strip() for s in re.split(r"\s*/\s*", stripped)]
+        one_word_each = all(len(s.split()) == 1 for s in sides)
+        if not all(sides) or not one_word_each or any(not _is_blankable(s) for s in sides):
+            return None
+        blanked = re.sub(r"\s*/\s*".join(re.escape(s) for s in sides), BLANK_MARKER, stripped)
+        return blanked, " / ".join(sides)
+
+    tokens = stripped.split()
     if len(tokens) < 2:
         return None
 
