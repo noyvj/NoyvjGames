@@ -72,6 +72,10 @@ Third design-review pass, from `climate-games-fun-teaching-balance.md`. **Risk:*
 
 **Actual gap — legibility:** nothing on-screen ever stated in words that rising emissions were the thing driving disruption risk. A player could watch the emissions bar fill and brownouts get worse without the causal link ever being spelled out, which is exactly the "invisible math" failure mode the risk describes. **Built in response:** a live `disruption-risk-display` line under the emissions meter (`game.py`'s new `disruption_risk_message()`, wired into `render()`) that states the current next-round disruption probability in plain language, and calls out when severity has crossed into damage-risk territory — e.g. "Rising emissions mean a 50% chance of a disruption next round." Scoped to this one addition; no changes to the underlying probability/severity math, which didn't need any.
 
+## Audit fix — retire refund exploit
+
+Code-quality audit pass. **Bug found:** `retire_plant()` refunded a flat `PLANT_BASE_COST * REFUND_FRACTION` regardless of a renewable's current (learning-curve-discounted) cost. Once a renewable's cumulative-built discount passed 50% off base cost — solar around 14 units in, well within a normal playthrough — its build cost dropped below the flat refund, turning build-then-immediately-retire into a risk-free, repeatable money exploit (and each cycle nudged the discount further, making later cycles more profitable). **Fixed** by refunding off `plant_cost()` (the plant's current cost) instead of the flat base cost; for fossil/nuclear plant_cost() already equals base cost, so their refund behavior is unchanged. Covered by a new regression test in `tests/test_emissions_and_cost_curve.py`.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

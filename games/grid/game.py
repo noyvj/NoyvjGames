@@ -218,7 +218,13 @@ class GridState:
         if self.plant_counts[plant_type] <= 0:
             return False
         self.plant_counts[plant_type] -= 1
-        self.funds += PLANT_BASE_COST[plant_type] * REFUND_FRACTION
+        # Refund off the plant's *current* (possibly learning-curve-discounted)
+        # cost, not its flat base cost — once a renewable's discount passes
+        # 50% off base, a flat base-cost refund would pay out more than the
+        # plant just cost to build, turning build+retire into a risk-free
+        # money exploit. plant_cost() already equals the base cost for
+        # non-renewables, so this changes nothing for fossil/nuclear.
+        self.funds += self.plant_cost(plant_type) * REFUND_FRACTION
         return True
 
     def maintenance_cost(self, plant_type):

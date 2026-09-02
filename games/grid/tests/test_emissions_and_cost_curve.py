@@ -104,6 +104,19 @@ def test_cumulative_built_survives_retiring(game_env):
     assert game_env.state.plant_counts["wind"] == 0  # but the fleet is smaller
 
 
+def test_retiring_a_deeply_discounted_renewable_never_profits(game_env):
+    # Once the learning-curve discount passes 50% off base cost, a flat
+    # "50% of base cost" refund would pay out more than the plant just
+    # cost to build -- a risk-free build+retire money exploit. The refund
+    # must track the plant's current (discounted) cost instead, so
+    # retiring never earns more than it just cost to build.
+    game_env.state.cumulative_built["solar"] = 20  # deep into the discount
+    funds_before = game_env.state.funds
+    game_env.build("solar")
+    game_env.retire("solar")
+    assert game_env.state.funds <= funds_before
+
+
 def test_render_shows_discounted_build_cost(game_env):
     game_env.build("solar")
     expected_cost = 80 * 0.95
