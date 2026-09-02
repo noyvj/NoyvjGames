@@ -60,10 +60,20 @@ def test_rows_are_labelled_by_sequence_course_and_week(game_env):
 
 def test_the_only_marker_at_the_course_boundary_is_the_chapter_label(game_env):
     """§4: FREN151 flows straight into FREN152 with no season break — row 12
-    must look like every other row apart from what chapter it names."""
+    must look like every other row apart from what chapter it names.
+
+    Compared in the same lock state on both sides, since Milestone 6's pacing
+    gate legitimately styles a locked row differently — that is pacing, and it
+    applies to rows 13-23 exactly as it does to 12, so it is not a boundary.
+    """
+    for plot in game_env.state.row_plots(11):
+        game_env.state.review(plot.plot_id, True)
+    game_env.module.render()
+
     eleven = game_env.elements["row-11"]
     twelve = game_env.elements["row-12"]
     assert eleven.className == twelve.className
+    assert game_env.elements["row-13"].className == game_env.elements["row-14"].className
     assert "Bridge" in game_env.elements["row-chapter-12"].innerText
     assert "Ch. 4" in game_env.elements["row-chapter-11"].innerText
 

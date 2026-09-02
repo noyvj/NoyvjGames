@@ -246,6 +246,18 @@ button:disabled {
   font-variant-numeric: tabular-nums;
 }
 
+/* A locked row is quiet, not scolding — it just isn't planted yet. */
+.row--locked {
+  background: #f4efe4;
+  border-style: dashed;
+}
+
+.row-lock {
+  font-size: 0.68rem;
+  color: #9a8a70;
+  font-style: italic;
+}
+
 .row-plots {
   display: flex;
   flex-wrap: wrap;

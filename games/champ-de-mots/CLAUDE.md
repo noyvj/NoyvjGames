@@ -135,7 +135,7 @@ This state is per-plot, per-user — fits your existing save-code system (Neon/P
 | 3 | Runtime question generator | Section 5 — varied prompts per `topic_type`, distractors from nearby items, 3-4+ variants per plot. Tests: variant coverage, distractor plausibility, no textbook exercise reproduction | Done |
 | 4 | Static farm grid UI | Section 3 stages + wilting, rows = sequence 1-23, chapter labels, no animation required | Done |
 | 5 | Save-code backend hook | Shared `shared/save-widget.js` drop-in + `get_state()`/`load_state()` contract | Done |
-| 6 | Row-unlock pacing | Section 7 — previous row all at Sprout+ before the next unlocks; FREN151's 11 rows open immediately as a catch-up zone | Not started |
+| 6 | Row-unlock pacing | Section 7 — previous row all at Sprout+ before the next unlocks; FREN151's 11 rows open immediately as a catch-up zone | Done |
 | 7 | Polish pass | Section 8 — screenshots-ready visuals, calm "plots needing water" counter, no streak-guilt UI | Not started |
 
 ## 12. Build Notes & Decisions
@@ -176,6 +176,14 @@ Decisions taken during the build that the design doc above left open. Appended t
 - **"Touched" includes plots that only ever went wrong.** Those sit at streak 0 and stage Seed, but they carry a real `last_reviewed` and a reduced ease factor; dropping them would quietly undo the scheduling.
 - **Loading resets what the save doesn't mention.** A plot absent from the incoming save is returned to its defaults rather than left standing, so loading a save code never leaves the previous session's plants growing in someone else's farm.
 - **Saves are forgiving of drift.** Unknown plot ids (an older catalog revision) are skipped rather than raising, partial plot records fall back to defaults field by field, and an unrecognised stage name falls back to Seed. Any open practice question is closed on load, since it was generated against the farm that just got replaced.
+
+**Milestone 6 — row-unlock pacing**
+
+- **The gate is a growth condition, not a date.** §7 describes FREN152's rows opening "week by week as the semester progresses", but this game has no live "today" (see Milestone 2's day-counter decision), so the rule is implemented purely as *every plot in row N-1 has reached at least Sprout*. A date-driven release would sit on top of that rule rather than replace it, so the gate is ready for one without pretending to have one now.
+- **Rows 1-11 are permanently open.** FREN151 is finished in real life, so its 472 plots are a catch-up zone with no gate at all — `CATCH_UP_MAX_SEQUENCE = 11`, which is exactly where FREN152 begins.
+- **Sprout, not "visited".** A plot answered only incorrectly is still a Seed, so it still holds the gate shut. The flip side, from §3: because stages never regress, a later wrong answer can never re-lock a row you have already opened.
+- **Unlocking is cached.** `render()` asks about lock state once per plot — 722 times a repaint — so the unlocked set is computed once and invalidated on review and on load rather than walked per cell.
+- **Locked rows are quiet, not scolding.** Dashed border, faded cells, disabled buttons, and an italic "opens when row N has all sprouted". Locked plots are excluded from the due count and from "water the next plot", so the calm counter never asks for something the farm won't let you do.
 
 ## 13. Working conventions
 

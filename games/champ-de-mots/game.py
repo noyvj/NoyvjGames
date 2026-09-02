@@ -202,6 +202,9 @@ class FarmState:
         # generator to reach "the same or a nearby topic" for distractors (§5).
         self.topic_records = []
         self.topic_pos = {}
+        # Recomputed lazily — render() asks about the lock state once per plot,
+        # 722 times a repaint, so it cannot be an O(rows) walk each time.
+        self._unlocked_cache = None
         self._build_farm()
 
     def _build_farm(self):
@@ -252,8 +255,35 @@ class FarmState:
         return [self.plots_by_id[pid] for pid in row.plot_ids]
 
     def is_row_unlocked(self, sequence):
-        """Row-unlock pacing lands in Milestone 6; every row is open until then."""
-        return True
+        """§7's pacing gate: a row opens only once every plot in the row before
+        it has reached at least Sprout.
+
+        FREN151 (sequence 1-11) is already finished in real life, so those rows
+        are a catch-up zone that is open from the start. The gate is expressed
+        purely as a growth condition — there is no live "today" in this game,
+        and a date-driven release would sit on top of this rule rather than
+        replace it.
+        """
+        if self._unlocked_cache is None:
+            self._unlocked_cache = self._compute_unlocked()
+        return sequence in self._unlocked_cache
+
+    def _compute_unlocked(self):
+        unlocked = set()
+        for row in self.rows:
+            if row.sequence <= CATCH_UP_MAX_SEQUENCE:
+                unlocked.add(row.sequence)
+                continue
+            previous = self.row_plots(row.sequence - 1)
+            if previous and all(
+                STAGE_RANK[p.stage] >= STAGE_RANK[STAGE_SPROUT] for p in previous
+            ):
+                unlocked.add(row.sequence)
+        return unlocked
+
+    def invalidate_unlocks(self):
+        """Anything that can change a plot's stage has to drop the cache."""
+        self._unlocked_cache = None
 
     def available_plots(self):
         return [p for p in self.plots if self.is_row_unlocked(p.sequence)]
@@ -274,6 +304,7 @@ class FarmState:
         plot = self.plots_by_id.get(plot_id)
         if plot is None:
             return None
+        self.invalidate_unlocks()
         return schedule_after_review(
             plot, correct, self.current_day if day is None else day
         )
@@ -855,6 +886,7 @@ WILTING_LEGEND = "Drooping — overdue, one watering brings it back"
 AUTOMATED_TOOLTIP_NOTE = "auto-watered"
 DUE_NOTE = "ready for water"
 NOTHING_DUE_MESSAGE = "Nothing needs water today. The farm is ticking over on its own."
+LOCK_NOTE = "opens when row {previous} has all sprouted"
 
 FEEDBACK = {
     "correct": "Yes — {answer}. This plot is growing.",
@@ -917,6 +949,13 @@ def build_farm():
         progress.className = "row-progress"
         head.appendChild(progress)
 
+        lock = document.createElement("span")
+        lock.id = f"row-lock-{row.sequence}"
+        lock.className = "row-lock"
+        lock.innerText = LOCK_NOTE.format(previous=row.sequence - 1)
+        lock.hidden = True
+        head.appendChild(lock)
+
         plots = document.createElement("div")
         plots.id = f"row-plots-{row.sequence}"
         plots.className = "row-plots"
@@ -974,6 +1013,9 @@ def render_farm():
         plots = state.row_plots(row.sequence)
         grown = sum(1 for p in plots if p.stage != STAGE_SEED)
         _element(f"row-progress-{row.sequence}").innerText = f"{grown}/{len(plots)}"
+        unlocked = state.is_row_unlocked(row.sequence)
+        _element(f"row-lock-{row.sequence}").hidden = unlocked
+        _element(f"row-{row.sequence}").className = "row" if unlocked else "row row--locked"
 
 
 def render_status():
@@ -1179,6 +1221,7 @@ def get_state():
 def load_state(data):
     saved_plots = data.get("plots") or {}
     state.current_day = data.get("current_day", 0)
+    state.invalidate_unlocks()
 
     for plot in state.plots:
         # Plots missing from the save are reset rather than left as they are:
