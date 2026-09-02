@@ -9,6 +9,14 @@ from .fakes import FakeDocument, FakeElement, create_proxy
 
 GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 
+# game.py imports the shared info-page widget (shared/info_page.py) the
+# same way the real Pyodide boot script does -- see any game's index.html
+# -- so the repo-root shared/ directory has to be importable before
+# game.py can be exec'd.
+SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent / "shared"
+if str(SHARED_DIR) not in sys.path:
+    sys.path.insert(0, str(SHARED_DIR))
+
 MEASURE_IDS = ["feed", "caps", "capture"]
 
 ELEMENT_IDS = [
@@ -85,7 +93,12 @@ def _install_pyodide_fakes(elements):
 
 
 def _remove_pyodide_fakes():
-    for name in ("js", "pyodide", "pyodide.ffi", "game"):
+    # "info_page" is popped too, alongside "game" -- it's a plain `import
+    # info_page` (not spec_from_file_location like game.py), so without
+    # this it would stay cached in sys.modules across tests with its
+    # `from js import document` binding pinned to whichever test's fake
+    # document happened to be active on its first import.
+    for name in ("js", "pyodide", "pyodide.ffi", "game", "info_page"):
         sys.modules.pop(name, None)
 
 

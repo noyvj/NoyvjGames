@@ -7,6 +7,7 @@
 <link rel="icon" href="../../icons/icon-192.png">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="../../ad-bar.css">
+<link rel="stylesheet" href="../../shared/info-page.css">
 <link rel="manifest" href="../../manifest.json">
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
@@ -120,6 +121,12 @@
     async function main() {
       const pyodide = await loadPyodide();
       window.pyodide = pyodide; // exposed for the save/load bridge below
+      // Shared info-page widget (see shared/info_page.py) -- written into
+      // Pyodide's virtual filesystem before game.py runs so `import
+      // info_page` resolves normally, same pattern as Continuum's
+      // ENGINE_MODULES loop.
+      const infoPageSource = await (await fetch("../../shared/info_page.py")).text();
+      pyodide.FS.writeFile("info_page.py", infoPageSource, { encoding: "utf8" });
       const response = await fetch("game.py");
       const code = await response.text();
       await pyodide.runPythonAsync(code);

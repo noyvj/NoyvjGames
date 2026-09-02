@@ -52,43 +52,8 @@ h1 {
   opacity: 0.85;
 }
 
-.info-page-toggle {
-  width: auto;
-  margin: 0 0 0.75rem;
-}
-
-.info-page-framing {
-  margin: 0 0 0.6rem;
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-.info-page-tie-in {
-  margin: 0 0 0.8rem;
-  font-size: 0.85rem;
-  font-style: italic;
-  opacity: 0.85;
-}
-
-.info-page-sources {
-  margin: 0;
-  padding-left: 1.2rem;
-}
-
-.info-page-source {
-  margin-bottom: 0.7rem;
-}
-
-.info-page-source a {
-  color: inherit;
-  font-size: 0.9rem;
-}
-
-.info-page-source-note {
-  margin: 0.15rem 0 0;
-  font-size: 0.8rem;
-  opacity: 0.7;
-}
+/* .info-page-* rules moved to shared/info-page.css (see index.html's
+   <link> in <head>) as part of consolidating the info-page feature. */
 
 .meter {
   width: 100%;
