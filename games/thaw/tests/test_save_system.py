@@ -172,6 +172,31 @@ def test_load_state_restores_intervention_state_and_fires_the_dampening_flash(ga
     assert module.region.just_invested_intervention is False
 
 
+def test_load_state_merges_capacity_key_by_key_instead_of_replacing_it(game_env):
+    """A save whose `capacity` dict is missing a category (an older save
+    format from before a category existed, or a hand-edited/corrupted
+    payload) must not wipe that category's key out of the live dict
+    entirely — invest(), feedback_dampening_fraction() and render() all do
+    unconditional capacity["monitor"]-style key access, so a missing key
+    would crash the game the moment any of them run next. This mirrors the
+    identical wholesale-replace-vs-merge bug already fixed in SOL's
+    planet_state and Continuum's resources/allocation/buildings dicts."""
+    module = game_env.module
+    module.region.invest("preserve")
+    module.region.invest("monitor")
+    snapshot = module.get_state()
+    del snapshot["region"]["capacity"]["monitor"]
+
+    result = module.load_state(snapshot)
+
+    assert result is True
+    assert "monitor" in module.region.capacity
+    assert module.region.capacity["preserve"] == 1
+    # These would raise KeyError before the fix if "monitor" vanished.
+    module.region.feedback_dampening_fraction()
+    module.region.invest("monitor")
+
+
 def test_load_state_restores_info_page_open(game_env):
     module = game_env.module
     game_env.toggle_info_page()

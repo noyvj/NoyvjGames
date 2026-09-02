@@ -438,10 +438,23 @@ def _region_state_dict(r):
 
 def _apply_region_state(r, data):
     """The exact inverse of _region_state_dict() — restores one
-    RegionState's fields in place from a previously-saved dict."""
+    RegionState's fields in place from a previously-saved dict.
+
+    `capacity` is merged into the live dict key-by-key rather than
+    replaced wholesale: a save whose capacity is missing a category (an
+    older save format from before that category existed, or a hand-edited/
+    corrupted payload) must not wipe that category's key out of the live
+    dict entirely — invest(), feedback_dampening_fraction() and render()
+    all do unconditional capacity["monitor"]-style key access, so a
+    missing key would crash the game on the very next call, including the
+    re-render load_state() itself triggers. Same fix shape as SOL's
+    planet_state and Continuum's resources/allocation/buildings dicts."""
     r.round_number = data["round_number"]
     r.funds = data["funds"]
-    r.capacity = dict(data["capacity"])
+    saved_capacity = data.get("capacity") or {}
+    for category in CATEGORIES:
+        if category in saved_capacity:
+            r.capacity[category] = saved_capacity[category]
     r.temperature = data["temperature"]
     r.melt_started_round = data["melt_started_round"]
     r.just_started_melting = data["just_started_melting"]
