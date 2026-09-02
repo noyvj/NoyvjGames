@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le Champ de Mots</title>
+<link rel="icon" href="../../icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../../ad-bar.css">
+<link rel="manifest" href="../../manifest.json">
+<!-- AdSense: placeholder client ID until application is approved -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+</head>
+<body>
+  <div id="game">
+    <a href="../../index.html" class="hub-back-link">&larr; All games</a>
+    <h1>Le Champ de Mots</h1>
+    <p class="tagline">The field of words. Every plot is one French fact — water it when it needs water, and watch it slowly stop needing you.</p>
+    <p class="context-blurb">One continuous farm across FREN151 and FREN152, planted in syllabus order. Correct recall grows a plant and stretches the gap before it asks again; a plot that has gone quiet for long enough gets its own sprinkler. Nothing here dies, and nothing here keeps score against you.</p>
+
+    <div id="status" class="section">
+      <p id="day-display" class="status-line">Day 1</p>
+      <p id="due-display" class="status-line status-line--due">Loading...</p>
+      <p id="progress-display" class="status-line status-line--muted">Loading...</p>
+      <p id="row-summary-display" class="status-line status-line--muted">Loading...</p>
+      <div class="controls">
+        <button id="water-next-button" class="primary">Loading...</button>
+        <button id="next-day-button" class="secondary">Next day</button>
+      </div>
+    </div>
+
+    <div id="practice-panel" class="section practice" hidden>
+      <p id="practice-context" class="practice-context"></p>
+      <p id="practice-instruction" class="practice-instruction"></p>
+      <p id="practice-prompt" class="practice-prompt"></p>
+      <p id="practice-note" class="practice-note" hidden></p>
+      <div id="practice-choices" class="practice-choices"></div>
+      <input id="practice-answer-input" class="practice-input" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Type your answer" hidden>
+      <button id="practice-submit-button" class="secondary" hidden>Check</button>
+      <p id="practice-feedback" class="practice-feedback"></p>
+      <button id="practice-close-button" class="secondary practice-close">Close</button>
+    </div>
+
+    <p id="legend" class="legend">Loading...</p>
+
+    <div id="farm" class="farm"></div>
+  </div>
+
+  <div class="ad-bar ad-bar--bottom">
+    <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>
+    <span class="ad-bar-label ad-bar-label-short">Ad</span>
+    <!-- Google AdSense manual display ad unit -->
+    <ins class="adsbygoogle"
+         style="display:block; width:320px; height:50px;"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="XXXXXXXXXX"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <script>
+    async function main() {
+      const pyodide = await loadPyodide();
+      window.pyodide = pyodide; // exposed for the shared save widget
+      // The catalog is handed to Python as a window global rather than read
+      // from the Pyodide filesystem — no build step, one fetch, and the
+      // pytest harness can stand in for it with the same attribute.
+      const [catalogJson, code] = await Promise.all([
+        fetch("fren_combined_catalog.json").then((response) => response.text()),
+        fetch("game.py").then((response) => response.text()),
+      ]);
+      window.CATALOG_JSON = catalogJson;
+      await pyodide.runPythonAsync(code);
+    }
+    main();
+  </script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../../sw.js");
+    }
+  </script>
+</body>
+</html>

@@ -820,3 +820,304 @@ def check_answer(question, given):
     if not typed:
         return False
     return typed in answer_alternatives(question["answer"])
+
+
+# ===========================================================================
+# Milestone 4 — the static farm grid UI (design doc §3 and §8)
+# ===========================================================================
+#
+# Deliberately static: the farm is a plain grid of cells, one per plot, and a
+# growth stage is just a different sprite and class on the cell. No animation,
+# nothing that has to be caught mid-motion for a screenshot. The grid is built
+# once at boot and only its cells' text/classes are rewritten afterwards —
+# 722 cells is too many to recreate on every answer.
+
+from js import document
+from pyodide.ffi import create_proxy
+
+STAGE_ICON = {
+    STAGE_SEED: "🟤",
+    STAGE_SPROUT: "🌱",
+    STAGE_BUDDING: "🌿",
+    STAGE_BLOOMING: "🌷",
+    STAGE_AUTOMATED: "🌻",
+}
+
+STAGE_LABEL = {
+    STAGE_SEED: "Seed — planted, not yet watered",
+    STAGE_SPROUT: "Sprout — recalled once",
+    STAGE_BUDDING: "Budding — recalled across spaced visits",
+    STAGE_BLOOMING: "Blooming — holding over long gaps",
+    STAGE_AUTOMATED: "Automated — on the sprinkler, back rarely",
+}
+
+WILTING_LEGEND = "Drooping — overdue, one watering brings it back"
+AUTOMATED_TOOLTIP_NOTE = "auto-watered"
+DUE_NOTE = "ready for water"
+NOTHING_DUE_MESSAGE = "Nothing needs water today. The farm is ticking over on its own."
+
+FEEDBACK = {
+    "correct": "Yes — {answer}. This plot is growing.",
+    "incorrect": "Not quite — it was {answer}. This plot just needs another water.",
+}
+
+# Module-level UI state.
+current_question = None
+current_result = None
+practice_open = False
+plot_cells = {}
+QUESTION_RNG = random.Random()
+
+
+def _element(element_id):
+    return document.getElementById(element_id)
+
+
+def _make_plot_handler(plot_id):
+    def handler(event=None):
+        open_practice(plot_id)
+    return handler
+
+
+def _make_choice_handler(choice):
+    def handler(event=None):
+        submit_answer(choice)
+    return handler
+
+
+def build_farm():
+    """Build the grid once. Rows are sequence numbers, running straight from
+    FREN151 into FREN152 with only the chapter label marking the join (§4)."""
+    farm = _element("farm")
+    farm.innerHTML = ""
+    plot_cells.clear()
+
+    for row in state.rows:
+        row_element = document.createElement("div")
+        row_element.id = f"row-{row.sequence}"
+        row_element.className = "row"
+
+        head = document.createElement("div")
+        head.className = "row-head"
+
+        label = document.createElement("span")
+        label.id = f"row-label-{row.sequence}"
+        label.className = "row-label"
+        label.innerText = row.label
+        head.appendChild(label)
+
+        chapter = document.createElement("span")
+        chapter.id = f"row-chapter-{row.sequence}"
+        chapter.className = "row-chapter"
+        chapter.innerText = row.chapter_label
+        head.appendChild(chapter)
+
+        progress = document.createElement("span")
+        progress.id = f"row-progress-{row.sequence}"
+        progress.className = "row-progress"
+        head.appendChild(progress)
+
+        plots = document.createElement("div")
+        plots.id = f"row-plots-{row.sequence}"
+        plots.className = "row-plots"
+
+        for plot_id in row.plot_ids:
+            cell = document.createElement("button")
+            cell.id = f"plot-{plot_id}"
+            cell.className = "plot"
+            cell.addEventListener("click", create_proxy(_make_plot_handler(plot_id)))
+            plots.appendChild(cell)
+            plot_cells[plot_id] = cell
+
+        row_element.appendChild(head)
+        row_element.appendChild(plots)
+        farm.appendChild(row_element)
+
+
+def render_legend():
+    lines = [f"{STAGE_ICON[stage]} {STAGE_LABEL[stage]}" for stage in STAGE_ORDER]
+    lines.append(f"💧 {WILTING_LEGEND}")
+    _element("legend").innerText = "  ·  ".join(lines)
+
+
+def _plot_classes(plot):
+    classes = ["plot", f"plot--{plot.stage}"]
+    if is_wilting(plot, state.current_day):
+        classes.append("plot--wilting")
+    if is_due(plot, state.current_day):
+        classes.append("plot--due")
+    if not state.is_row_unlocked(plot.sequence):
+        classes.append("plot--locked")
+    return " ".join(classes)
+
+
+def _plot_title(plot):
+    parts = [f"{plot.label} — {plot.topic_title}", STAGE_LABEL[plot.stage].split(" — ")[0]]
+    if plot.stage == STAGE_AUTOMATED:
+        parts.append(AUTOMATED_TOOLTIP_NOTE)
+    if is_due(plot, state.current_day):
+        parts.append(DUE_NOTE)
+    return " · ".join(parts)
+
+
+def render_farm():
+    for plot in state.plots:
+        cell = plot_cells.get(plot.plot_id)
+        if cell is None:
+            continue
+        cell.className = _plot_classes(plot)
+        cell.innerText = STAGE_ICON[plot.stage]
+        cell.title = _plot_title(plot)
+        cell.disabled = not state.is_row_unlocked(plot.sequence)
+
+    for row in state.rows:
+        plots = state.row_plots(row.sequence)
+        grown = sum(1 for p in plots if p.stage != STAGE_SEED)
+        _element(f"row-progress-{row.sequence}").innerText = f"{grown}/{len(plots)}"
+
+
+def render_status():
+    due = state.due_plots()
+    _element("day-display").innerText = f"Day {state.current_day + 1}"
+    _element("due-display").innerText = (
+        NOTHING_DUE_MESSAGE if not due else f"{len(due)} plots need water today"
+    )
+
+    available = state.available_plots()
+    growing = sum(1 for p in available if p.stage != STAGE_SEED)
+    automated = sum(1 for p in available if p.stage == STAGE_AUTOMATED)
+    _element("progress-display").innerText = (
+        f"{growing} of {len(state.plots)} plots growing · {automated} automated"
+    )
+
+    unlocked = sum(1 for r in state.rows if state.is_row_unlocked(r.sequence))
+    _element("row-summary-display").innerText = f"{unlocked} of {len(state.rows)} rows open"
+
+    water_next = _element("water-next-button")
+    water_next.disabled = not due
+    water_next.innerText = "Water the next plot" if due else "All watered"
+
+
+def render_practice():
+    panel = _element("practice-panel")
+    choices_box = _element("practice-choices")
+    answer_input = _element("practice-answer-input")
+    submit = _element("practice-submit-button")
+
+    if not practice_open or current_question is None:
+        panel.hidden = True
+        choices_box.innerHTML = ""
+        return
+
+    panel.hidden = False
+    _element("practice-context").innerText = current_question["context"]
+    _element("practice-instruction").innerText = current_question["instruction"]
+    _element("practice-prompt").innerText = current_question["prompt"]
+
+    note = _element("practice-note")
+    note.innerText = current_question["note"] or ""
+    note.hidden = not current_question["note"]
+
+    answered = current_result is not None
+    choices_box.innerHTML = ""
+    if current_question["mode"] == "choice":
+        answer_input.hidden = True
+        submit.hidden = True
+        for index, choice in enumerate(current_question["choices"]):
+            button = document.createElement("button")
+            button.id = f"practice-choice-{index}"
+            button.innerText = choice
+            button.disabled = answered
+            button.className = "choice"
+            if answered and choice == current_question["answer"]:
+                button.className = "choice choice--answer"
+            button.addEventListener("click", create_proxy(_make_choice_handler(choice)))
+            choices_box.appendChild(button)
+    else:
+        answer_input.hidden = False
+        submit.hidden = False
+        submit.disabled = answered
+
+    if answered:
+        template = FEEDBACK["correct" if current_result else "incorrect"]
+        _element("practice-feedback").innerText = template.format(
+            answer=current_question["answer"]
+        )
+    else:
+        _element("practice-feedback").innerText = ""
+
+
+def render():
+    render_farm()
+    render_status()
+    render_practice()
+
+
+# --- interactions ----------------------------------------------------------
+
+
+def open_practice(plot_id, variant=None):
+    """Water a plot: roll a fresh question for it (§5) and show the panel."""
+    global current_question, current_result, practice_open
+
+    plot = state.plots_by_id.get(plot_id)
+    if plot is None or not state.is_row_unlocked(plot.sequence):
+        return None
+
+    current_question = generate_question(
+        plot, QUESTION_RNG, variant=variant, exclude=getattr(plot, "last_variant", None)
+    )
+    plot.last_variant = current_question["variant"]
+    current_result = None
+    practice_open = True
+    _element("practice-answer-input").value = ""
+    render()
+    return current_question
+
+
+def submit_answer(given):
+    global current_result
+
+    if current_question is None or current_result is not None:
+        return None
+    current_result = check_answer(current_question, given)
+    state.review(current_question["plot_id"], current_result)
+    render()
+    return current_result
+
+
+def close_practice(event=None):
+    global current_question, current_result, practice_open
+
+    current_question = None
+    current_result = None
+    practice_open = False
+    render()
+
+
+def on_submit_typed(event=None):
+    submit_answer(_element("practice-answer-input").value)
+
+
+def on_water_next(event=None):
+    plot = state.next_due_plot()
+    if plot is not None:
+        open_practice(plot.plot_id)
+
+
+def on_next_day(event=None):
+    state.advance_day()
+    render()
+
+
+def setup():
+    build_farm()
+    render_legend()
+    _element("practice-submit-button").addEventListener("click", create_proxy(on_submit_typed))
+    _element("practice-close-button").addEventListener("click", create_proxy(close_practice))
+    _element("water-next-button").addEventListener("click", create_proxy(on_water_next))
+    _element("next-day-button").addEventListener("click", create_proxy(on_next_day))
+    render()
+
+
+setup()

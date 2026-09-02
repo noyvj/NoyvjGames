@@ -1,0 +1,332 @@
+/*
+ * Le Champ de Mots — a warm, paper-and-soil palette rather than the dark
+ * slate the hub's climate games use. Per the hub's rules the shell stays
+ * consistent but a game's internals are free, and a farm full of small
+ * growing things wants light behind it.
+ *
+ * Everything here is static by design (§8): stages are sprites and classes,
+ * never transitions, so any moment of the farm is a usable screenshot.
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f4efe4;
+  color: #33291f;
+  display: flex;
+  justify-content: center;
+}
+
+#game {
+  width: 100%;
+  max-width: 900px;
+  padding: 1.5rem 1rem 4.5rem;
+}
+
+.hub-back-link {
+  color: #7a6a53;
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+
+.hub-back-link:hover {
+  text-decoration: underline;
+}
+
+h1 {
+  margin: 0.4rem 0 0.25rem;
+  font-size: 1.9rem;
+  letter-spacing: -0.01em;
+}
+
+.tagline {
+  margin: 0 0 0.5rem;
+  color: #6b5c46;
+  font-size: 0.95rem;
+}
+
+.context-blurb {
+  margin: 0 0 1.25rem;
+  padding: 0.6rem 0.75rem;
+  border-left: 3px solid #a3b57a;
+  background: #fbf8f1;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.82rem;
+  color: #6b5c46;
+}
+
+.section {
+  background: #fbf8f1;
+  border: 1px solid #e2d8c4;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.status-line {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+}
+
+.status-line--due {
+  font-weight: 600;
+  color: #4f6b2f;
+}
+
+.status-line--muted {
+  font-size: 0.82rem;
+  color: #7a6a53;
+}
+
+.controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+  flex-wrap: wrap;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.88rem;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.primary {
+  background: #5c7a35;
+  color: #fbf8f1;
+  border-color: #4c682c;
+}
+
+.secondary {
+  background: #efe7d7;
+  color: #4a3f30;
+  border-color: #ded2ba;
+}
+
+/* --- practice panel ------------------------------------------------------ */
+
+.practice {
+  border-color: #c9d6ac;
+  background: #fdfbf5;
+}
+
+.practice-context {
+  margin: 0 0 0.5rem;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8a7a60;
+}
+
+.practice-instruction {
+  margin: 0 0 0.4rem;
+  font-size: 0.85rem;
+  color: #6b5c46;
+}
+
+.practice-prompt {
+  margin: 0 0 0.6rem;
+  font-size: 1.5rem;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.practice-note {
+  margin: 0 0 0.7rem;
+  padding: 0.5rem 0.6rem;
+  background: #f2eddf;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  color: #6b5c46;
+}
+
+.practice-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.5rem;
+}
+
+.choice {
+  background: #efe7d7;
+  border-color: #ded2ba;
+  color: #33291f;
+  text-align: left;
+}
+
+.choice--answer {
+  background: #dbe7c4;
+  border-color: #a3b57a;
+  font-weight: 600;
+}
+
+.practice-input {
+  width: 100%;
+  margin-top: 0.2rem;
+  padding: 0.6rem;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1px solid #ded2ba;
+  border-radius: 7px;
+  background: #fff;
+  color: #33291f;
+}
+
+.practice-input + .secondary {
+  margin-top: 0.5rem;
+}
+
+.practice-feedback {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  color: #4f6b2f;
+  min-height: 1.2em;
+}
+
+.practice-close {
+  margin-top: 0.75rem;
+}
+
+/* --- legend and farm ----------------------------------------------------- */
+
+.legend {
+  margin: 0 0 0.9rem;
+  font-size: 0.72rem;
+  line-height: 1.7;
+  color: #7a6a53;
+}
+
+.farm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.row {
+  background: #fbf8f1;
+  border: 1px solid #e2d8c4;
+  border-radius: 9px;
+  padding: 0.55rem 0.7rem 0.65rem;
+}
+
+.row-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.row-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #4a3f30;
+}
+
+.row-chapter {
+  font-size: 0.72rem;
+  color: #8a7a60;
+  flex: 1;
+}
+
+.row-progress {
+  font-size: 0.7rem;
+  color: #8a7a60;
+  font-variant-numeric: tabular-nums;
+}
+
+.row-plots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+/* One plot = one fact. Small enough that a whole 23-week syllabus fits on
+   screen at once, which is the point of the farm view. */
+.plot {
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1;
+  border-radius: 5px;
+  border: 1px solid #e0d6c2;
+  background: #efe7d7;
+}
+
+.plot--seed {
+  background: #e8dcc6;
+}
+
+.plot--sprout {
+  background: #e2ecd2;
+  border-color: #c3d6a6;
+}
+
+.plot--budding {
+  background: #d3e5bc;
+  border-color: #aac98a;
+}
+
+.plot--blooming {
+  background: #c4dea8;
+  border-color: #94bd6e;
+}
+
+.plot--automated {
+  background: #b6d792;
+  border-color: #7ba756;
+  position: relative;
+}
+
+/* The sprinkler on an automated plot. A cell this small can't carry a second
+   emoji next to the plant, so the auto-waterer is a drop of water in the
+   corner instead — and the tooltip says so in words. */
+.plot--automated::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #4a86c4;
+}
+
+/* Overdue, not failing: a droop and some colour drained out, nothing more. */
+.plot--wilting {
+  filter: grayscale(0.55);
+  transform: rotate(6deg);
+}
+
+.plot--due {
+  box-shadow: inset 0 0 0 1px #b9a77f;
+}
+
+.plot--locked {
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+
+@media (max-width: 600px) {
+  .plot {
+    width: 21px;
+    height: 21px;
+    font-size: 11px;
+  }
+
+  .practice-prompt {
+    font-size: 1.25rem;
+  }
+}

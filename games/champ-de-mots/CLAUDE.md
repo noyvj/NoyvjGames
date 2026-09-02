@@ -133,7 +133,7 @@ This state is per-plot, per-user — fits your existing save-code system (Neon/P
 | 1 | Syllabus content → JSON catalog | FREN151 + FREN152, one continuous sequence (`fren_combined_catalog.json`, 23 weeks / 129 topics / 966 items) | Done |
 | 2 | Plant-state model + SRS scheduling | Per-plot `ease_factor`, `interval_days`, `last_reviewed`, `next_due`, `correct_streak`; growth stages; wilting. Tests: scheduling transitions across sample review sequences | Done |
 | 3 | Runtime question generator | Section 5 — varied prompts per `topic_type`, distractors from nearby items, 3-4+ variants per plot. Tests: variant coverage, distractor plausibility, no textbook exercise reproduction | Done |
-| 4 | Static farm grid UI | Section 3 stages + wilting, rows = sequence 1-23, chapter labels, no animation required | Not started |
+| 4 | Static farm grid UI | Section 3 stages + wilting, rows = sequence 1-23, chapter labels, no animation required | Done |
 | 5 | Save-code backend hook | Shared `shared/save-widget.js` drop-in + `get_state()`/`load_state()` contract | Not started |
 | 6 | Row-unlock pacing | Section 7 — previous row all at Sprout+ before the next unlocks; FREN151's 11 rows open immediately as a catch-up zone | Not started |
 | 7 | Polish pass | Section 8 — screenshots-ready visuals, calm "plots needing water" counter, no streak-guilt UI | Not started |
@@ -158,6 +158,16 @@ Decisions taken during the build that the design doc above left open. Appended t
 - **What gets blanked.** Function words win when they lead (an article rule *is* about the article), otherwise the rightmost content word is hidden, skipping the catalog's bracketed placeholders (`+ [masc. country]`) and preferring words that occur only once. Where a word does recur, every occurrence becomes a gap, so the answer is never readable off the prompt.
 - **Typed answers are lenient on purpose,** and the leniency is a checker concern, not a content one: the displayed answer stays verbatim catalog text, while `check_answer()` folds case and accents, ignores parentheticals, accepts either side of a `/`, and forgives a leading `a/an/the/to`. Mistyping `é` should never cost a plant. The single place that leniency would defeat the point — the phonetic *accents* topic, where the accent is the whole lesson — opts out of French typed variants instead.
 - **The copyright constraint is a test, not a convention.** `test_every_generated_string_is_recombined_catalog_text` walks all 722 plots × every variant and asserts each answer, choice and note is a substring of some catalog `fr`/`en`/`rule`/`title` string, and a companion test asserts every instruction line comes from this game's own enumerable `INSTRUCTIONS` dict. Nothing a player sees can drift into being workbook material without a test going red.
+
+**Milestone 4 — static farm grid UI**
+
+- **The grid is built once, then only repainted.** 722 cells is far too many to recreate on every answer, so `build_farm()` runs at boot and `render_farm()` afterwards only rewrites each cell's class, sprite and tooltip. Each cell keeps its own click handler (one `create_proxy` per plot) rather than using event delegation — a plot cell *is* the button, and that keeps the fake-DOM tests dispatching straight at the thing a player clicks.
+- **Stage sprites, no animation.** 🟤 seed, 🌱 sprout, 🌿 budding, 🌷 blooming, 🌻 automated, with the state carried in a `plot--<stage>` class so CSS does the rest. §8 asked for screenshot-friendly and static, so there are no transitions anywhere: every frame of the farm is a usable screenshot.
+- **The sprinkler is a dot, not a second emoji.** A 25px cell cannot carry 🌻 and a sprinkler side by side, so an automated plot gets a small blue drop in its corner via `::after`, and its tooltip says "auto-watered" in words.
+- **Wilting is a 6° rotation and some drained colour** — a droop, nothing more. Seeds are excluded, locked rows are excluded, and one watering clears it.
+- **The course boundary is invisible by construction.** Row 12 (FREN152 wk 2) is built by exactly the same code path as row 11, with the same classes; only its chapter label reads differently. A test asserts the two rows' classNames are identical so the join can't drift into becoming a visible season break.
+- **Every practice question re-rolls, and never twice the same variant in a row.** The plot remembers the last variant it served and passes it to the generator as `exclude`, which is why `open_practice()` keeps a transient `plot.last_variant` — a display concern, so it stays out of the save payload.
+- **Warm palette, deliberately unlike the hub's climate games.** Paper and soil rather than dark slate. The hub's rule is that a game's internals are free once you are inside it.
 
 ## 13. Working conventions
 
