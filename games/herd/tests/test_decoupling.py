@@ -51,7 +51,7 @@ def test_decoupling_investment_deducts_cost(game_env):
 
 def test_decoupling_investment_fails_when_unaffordable(game_env):
     game_env.farm.funds = 5
-    game_env.invest_decoupling("capture")  # costs 30
+    game_env.invest_decoupling("capture")  # costs 20
     assert game_env.farm.decoupling_investment["capture"] == 0
     assert game_env.farm.funds == 5
 

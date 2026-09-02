@@ -156,10 +156,6 @@ h1 {
   background: #b06fd6;
 }
 
-.meter-fill--pressure {
-  background: #e0674c;
-}
-
 #actions {
   display: flex;
   gap: 0.5rem;
