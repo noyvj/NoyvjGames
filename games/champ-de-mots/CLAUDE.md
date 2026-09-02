@@ -137,6 +137,12 @@ This state is per-plot, per-user — fits your existing save-code system (Neon/P
 | 5 | Save-code backend hook | Shared `shared/save-widget.js` drop-in + `get_state()`/`load_state()` contract | Done |
 | 6 | Row-unlock pacing | Section 7 — previous row all at Sprout+ before the next unlocks; FREN151's 11 rows open immediately as a catch-up zone | Done |
 | 7 | Polish pass | Section 8 — screenshots-ready visuals, calm "plots needing water" counter, no streak-guilt UI | Done |
+| 8 | Grading engine v2 | §14.2 — formalize STRICT/LENIENT tiers, per-item `accepted` array, normalization pass | Not started |
+| 9 | Report button + `answer_reports` table | §14.2.4 — flag-as-correct queue in the backend, no in-game review UI (see §14.4 decision) | Not started |
+| 10 | Failure feedback blurb | §14.3 — Phase 1 template version only | Not started |
+| 11 | Review tab | §14.4 — Random Word Review + Grammar Review | Not started |
+| 12 | Weekly proficiency tests | §14.5 — one per `sequence` entry, informational only (see §14.4 decision) | Not started |
+| 13 | Bonus sentence-building sections | §14.6 — 1-2 original sentences per week, tile-drag + translate | Not started |
 
 ## 12. Build Notes & Decisions
 
@@ -202,3 +208,66 @@ Decisions taken during the build that the design doc above left open. Appended t
 - Python via Pyodide, plain HTML/CSS, no build step — the hub's default stack.
 - Tests use the hub's standard fake-DOM harness (`tests/fakes.py`, `tests/conftest.py`), same shape as the other games.
 - Personal project: not part of any dev-log trail. Hub-linked from the main page (no BCM tag on its title card, since it isn't coursework).
+
+---
+
+## 14. Addendum: Grading Leniency, Review Modes & Bonus Sections (v2)
+
+*(Source: `GRADING-AND-REVIEW-UPDATE.md`, dropped 2026-09-02. Folded in here rather than kept as a separate file, same as the original design doc. Doesn't touch the core farming loop — it changes what happens inside a single watering interaction, plus adds two new screens alongside the farm.)*
+
+### 14.1 Relationship to what's already built
+
+Milestones 1-7 already shipped a first pass at lenient typed-answer checking (`answer_alternatives()`, `CONTRACTION_PAIRS`/`_contraction_variants()`, `NUMBER_REGIONALISMS`, `_strip_plus_annotation()` — see §12's build notes for each). This addendum's §14.2 formalizes and extends that into an explicit STRICT/LENIENT two-tier system with a catalog-level `accepted` array per item, rather than replacing it — Milestone 8 should read the existing grading code first and evolve it, not build a parallel system.
+
+### 14.2 Grading system
+
+**Two strictness tiers**, decided automatically from an item's shape (word count, `topic_type`) rather than hand-flagged per item:
+
+| Tier | Applies to | Behaviour |
+|---|---|---|
+| STRICT | Single-word vocab, numbers, isolated conjugated forms | Exact match after normalization only. No synonym list. |
+| LENIENT | Phrases, full-sentence translations, fill-in-the-blank grammar answers | Matches against a curated list of 3-5 accepted phrasings per item. |
+
+**Normalization** (both tiers, before any comparison): trim/collapse whitespace, case-insensitive, strip trailing punctuation, contraction equivalence (both directions, via the existing lookup table), curly/straight apostrophe equivalence. French-input accent-sensitivity is a **toggle, default ON** (spelling accents correctly is an assessed skill) — see §14.4's decision on scope.
+
+**Accepted-answer variants (LENIENT tier):** each LENIENT item's catalog record gains an `accepted` array (canonical answer + contraction variants +, where relevant, a reordered equivalent), auto-generated at content-build time rather than hand-authored for all 966 items. The array grows over time from real usage via the report button (§14.2.4), not by trying to anticipate every phrasing up front.
+
+```json
+{
+  "id": "fren151-w7-grammar001",
+  "prompt": "There is a theatre.",
+  "accepted": ["Il y a un théâtre.", "Il y a un théâtre", "il y a un theatre"]
+}
+```
+
+**14.2.4 — The "Report" button:** every written-answer prompt shows an "I think this should count" button once marked wrong. Tapping it stores `{item_id, submitted_answer, marked_correct_answer(s), topic_type, timestamp}` to a new `answer_reports` table in the existing Neon/Postgres backend (`app/`) — not the static JSON catalog, which stays a build artifact. No auto-accept; every report needs a human (the user's) judgment call before it's added to an item's `accepted` array and redeployed.
+
+### 14.3 Failure feedback blurb
+
+When an answer is marked wrong (after normalization/leniency checks fail), show a short card: **what it is** (one-line restatement — the `rule` field already covers this for grammar items), **memory tip** (short mnemonic/pattern hint), **why it matters** (how it recurs later). Phase 1 (build now): template-filled from existing catalog fields plus a generic per-`topic_type` template for "why it matters." Phase 2 (explicitly a stretch, not part of this build): a one-off Claude API call per item, cached in the database — worth doing once the catalog structure has stabilised, not before.
+
+### 14.4 Cross-section review modes, weekly tests, and decisions on the open questions
+
+Two new modes accessible from a "Review" tab, opt-in, don't affect plot unlock pacing:
+
+- **Random Word Review** — pulls a configurable number of `vocab`/`phrase` items from any unlocked week, filtered to a minimum growth stage. Correct answers nudge the SRS interval slightly forward on the source plot rather than being untracked.
+- **Grammar Review** — same mechanic, filtered to `topic_type: grammar`, biased toward fill-in-the-blank/conjugation prompts.
+
+The source doc left four questions open (its §7). Decided here so Milestone 11/12 can build against a settled spec rather than stalling on them:
+
+- **Proficiency-test gating:** informational only, no unlock-gating — matches the doc's own stated lean, and avoids the front-loading/burnout risk already flagged for this game (§3's wilting design already commits to no punitive mechanics).
+- **Accent-toggle scope:** one global toggle (default ON), not a separate default for Random Review — it's already user-togglable per session per §14.2, no need for a second mode-specific default to maintain.
+- **Report review workflow:** build the `answer_reports` table + a couple of backend query endpoints (list/filter reports) — no dedicated in-game admin UI page. Matches the doc's own lighter-weight suggested option: reports get triaged periodically by pasting the queue into a Claude Code session, not through a page in the game itself.
+- **Minimum stage threshold for Review modes:** configurable per session (a simple in-page control), not fixed — low cost to build, and matches the doc's own phrasing ("a minimum growth stage (e.g. 'Sprout or higher' or 'only Automated ones')").
+
+### 14.5 Weekly proficiency tests
+
+One test per `sequence` entry (per taught week), covering every topic in that week regardless of what's currently planted/watered — a single fixed-length session (~15-20 questions) sampling vocab/grammar/phrases from that week. Purely informational (score + per-topic breakdown), per the gating decision above.
+
+### 14.6 Bonus sections: sentence building
+
+Each week keeps its existing plot count unchanged; a bonus section is added per week using only that week's own vocab + grammar. Three tasks per bonus sentence: (1) drag word tiles into correct order, (2) translate each tile individually (STRICT), (3) translate the assembled sentence as a whole (LENIENT). Sentences must be **original**, combining that week's own catalog items — never lifted from the workbook, same copyright-safety rule as the runtime question generator (§5). Aim for 1-2 bonus sentences per week, authored fresh (not reused from any other source) and stored in a new `bonus_sentences` field per week entry in the catalog.
+
+### 14.7 Milestone build order
+
+Continues the existing numbering (see §11's table) rather than restarting — the source doc's own numbered list maps its already-built steps (content catalog, plant-state model, question generator, farm UI, save-code hook, row-unlock pacing, polish) onto this game's existing Milestones 1-3 and 7-9 respectively. New work is Milestones 8-13: grading engine v2 → report button + backend table → failure blurb → review tab → weekly proficiency tests → bonus sentence sections. Each gets its own commit + tag per §13's convention.
