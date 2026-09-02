@@ -1122,11 +1122,19 @@ FEEDBACK = {
     "incorrect": "Not quite — it was {answer}. This plot just needs another water.",
 }
 
+# §14.2.4: the report queue this feeds is a new `answer_reports` table in the
+# existing Neon/Postgres backend (app/), not the static catalog.
+ANSWER_REPORTS_ENDPOINT = "https://noyvjgames.fastapicloud.dev/answer-reports"
+REPORT_GAME_ID = "champ-de-mots"
+REPORT_BUTTON_LABEL = "I think this should count"
+REPORT_SENT_LABEL = "Reported — thanks"
+
 # Module-level UI state.
 current_question = None
 current_result = None
 current_submitted_answer = None
 practice_open = False
+report_sent = False
 plot_cells = {}
 QUESTION_RNG = random.Random()
 
@@ -1353,6 +1361,7 @@ def render_practice():
     if not practice_open or current_question is None:
         panel.hidden = True
         choices_box.innerHTML = ""
+        _element("practice-report-button").hidden = True
         return
 
     panel.hidden = False
@@ -1394,6 +1403,16 @@ def render_practice():
     else:
         _element("practice-feedback").innerText = ""
 
+    # §14.2.4: the report button only ever appears once a *written* answer
+    # (typed, never multiple choice) has been marked wrong -- a wrong choice
+    # isn't ambiguous the way a wrong typed answer can be.
+    report_button = _element("practice-report-button")
+    show_report = answered and current_result is False and current_question["mode"] == "typed"
+    report_button.hidden = not show_report
+    if show_report:
+        report_button.disabled = report_sent
+        report_button.innerText = REPORT_SENT_LABEL if report_sent else REPORT_BUTTON_LABEL
+
 
 def render():
     render_farm()
@@ -1406,7 +1425,7 @@ def render():
 
 def open_practice(plot_id, variant=None):
     """Water a plot: roll a fresh question for it (§5) and show the panel."""
-    global current_question, current_result, practice_open
+    global current_question, current_result, current_submitted_answer, practice_open, report_sent
 
     plot = state.plots_by_id.get(plot_id)
     if plot is None or not state.is_row_unlocked(plot.sequence):
@@ -1417,6 +1436,8 @@ def open_practice(plot_id, variant=None):
     )
     plot.last_variant = current_question["variant"]
     current_result = None
+    current_submitted_answer = None
+    report_sent = False
     practice_open = True
     _element("practice-answer-input").value = ""
     render()
@@ -1442,13 +1463,71 @@ def submit_answer(given):
 
 
 def close_practice(event=None):
-    global current_question, current_result, current_submitted_answer, practice_open
+    global current_question, current_result, current_submitted_answer, practice_open, report_sent
 
     current_question = None
     current_result = None
     current_submitted_answer = None
+    report_sent = False
     practice_open = False
     render()
+
+
+def _report_payload():
+    """The §14.2.4 payload for the currently-open question, or None if
+    there's nothing to report (no question, not yet answered, or answered
+    correctly). The timestamp is deliberately not built here — the backend's
+    own `created_at` covers it, keeping this file free of the wall-clock
+    dependency the Milestone 7 audit forbids (see CLAUDE.md's Milestone 9
+    build note)."""
+    if current_question is None or current_result is not False:
+        return None
+    if current_question["mode"] != "typed":
+        return None
+    accepted = _lookup_accepted(current_question) or []
+    marked_correct_answer = [current_question["answer"]]
+    for alt in accepted:
+        if alt not in marked_correct_answer:
+            marked_correct_answer.append(alt)
+    return {
+        "game_id": REPORT_GAME_ID,
+        "item_id": current_question["plot_id"],
+        "submitted_answer": current_submitted_answer or "",
+        "marked_correct_answer": marked_correct_answer,
+        "topic_type": current_question["topic_type"],
+    }
+
+
+def _dispatch_report(payload):
+    """Hands the payload to a JS-side sender, same split as the shared save
+    widget: Python computes state, JS owns the actual fetch() call (see
+    index.html). Safe to call from plain CPython (this file's own test
+    harness, or any future non-browser context) since a missing `js.window`
+    or sender function is simply a no-op rather than a crash — the same
+    defensive-import pattern `_read_catalog_json()` already uses."""
+    try:
+        from js import window  # noqa: PLC0415 — Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    sender = getattr(window, "submitAnswerReport", None)
+    if sender is not None:
+        sender(json.dumps(payload))
+
+
+def submit_report(event=None):
+    """Send the currently-open question's report, once. A second click (or
+    a call with nothing to report) is a no-op — there is nothing new to say."""
+    global report_sent
+
+    if report_sent:
+        return None
+    payload = _report_payload()
+    if payload is None:
+        return None
+    report_sent = True
+    _dispatch_report(payload)
+    render()
+    return payload
 
 
 def on_submit_typed(event=None):
@@ -1488,6 +1567,7 @@ def setup():
     _element("practice-submit-button").addEventListener("click", create_proxy(on_submit_typed))
     _element("practice-answer-input").addEventListener("keydown", create_proxy(on_answer_keydown))
     _element("practice-close-button").addEventListener("click", create_proxy(close_practice))
+    _element("practice-report-button").addEventListener("click", create_proxy(submit_report))
     _element("water-next-button").addEventListener("click", create_proxy(on_water_next))
     _element("next-day-button").addEventListener("click", create_proxy(on_next_day))
     _element("accent-toggle-checkbox").addEventListener(

@@ -34,6 +34,7 @@ ELEMENT_IDS = [
     "practice-answer-input",
     "practice-submit-button",
     "practice-feedback",
+    "practice-report-button",
     "practice-close-button",
     "water-next-button",
     "next-day-button",

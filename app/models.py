@@ -79,6 +79,32 @@ class AuthSession(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class AnswerReport(Base):
+    """Champ de Mots GRADING-AND-REVIEW-UPDATE.md §14.2.4: the "I think this
+    should count" queue. Every written-answer prompt marked wrong can flag
+    itself here, storing what was typed against what was marked correct. No
+    auto-accept, ever, and no in-game admin UI (champ-de-mots/CLAUDE.md §14.4)
+    — a human lists/filters this table directly (GET /answer-reports) and,
+    for a genuine miss, hand-adds the phrasing to that catalog item's
+    `accepted_fr`/`accepted_en` array themselves (see champ-de-mots/CLAUDE.md's
+    Milestone 8 build note) before redeploying. `id` is a Python-generated
+    UUID string for the same sqlite-portability reason as Save.id/User.id
+    above. `game_id` defaults to this game but isn't hardcoded to it, in case
+    another game ever wants the same reporting mechanism. `marked_correct_answer`
+    is a JSON list (there can be more than one accepted phrasing already).
+    """
+
+    __tablename__ = "answer_reports"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    game_id = Column(String, nullable=False, index=True)
+    item_id = Column(String, nullable=False, index=True)
+    submitted_answer = Column(String, nullable=False)
+    marked_correct_answer = Column(JSON, nullable=False)
+    topic_type = Column(String, nullable=True, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 class Feedback(Base):
     """ACCOUNTS-AND-FEEDBACK-DESIGN.md's site-wide feedback: usable either
     attached to a game (game_id set) or as general site feedback

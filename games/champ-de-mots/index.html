@@ -45,6 +45,7 @@
       <input id="practice-answer-input" class="practice-input" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Type your answer" hidden>
       <button id="practice-submit-button" class="secondary" hidden>Check</button>
       <p id="practice-feedback" class="practice-feedback"></p>
+      <button id="practice-report-button" class="secondary practice-report" hidden>I think this should count</button>
       <button id="practice-close-button" class="secondary practice-close">Close</button>
     </div>
 
@@ -64,6 +65,23 @@
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
   </div>
 
+  <!--
+    GRADING-AND-REVIEW-UPDATE.md §14.2.4: the report button's actual network
+    call, same split as shared/save-widget.js — Python (game.py) decides
+    *what* to send and hands it to this function; this owns the fetch().
+    Fire-and-forget: a report that doesn't reach the server is quietly
+    dropped rather than shown as an error, since it's a "let a human know"
+    nicety, not core gameplay.
+  -->
+  <script>
+    window.submitAnswerReport = function (jsonPayload) {
+      fetch("https://noyvjgames.fastapicloud.dev/answer-reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: jsonPayload,
+      }).catch(function () {});
+    };
+  </script>
   <script>
     async function main() {
       const pyodide = await loadPyodide();

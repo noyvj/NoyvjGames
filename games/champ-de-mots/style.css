@@ -203,6 +203,11 @@ button:disabled {
   min-height: 1.2em;
 }
 
+.practice-report {
+  margin-top: 0.5rem;
+  display: block;
+}
+
 .practice-close {
   margin-top: 0.75rem;
 }

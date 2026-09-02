@@ -12,7 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from database import Base, engine, get_db, patch_schema
-from models import AuthSession, Feedback, Rating, Save, User
+from models import AnswerReport, AuthSession, Feedback, Rating, Save, User
 
 Base.metadata.create_all(bind=engine)
 patch_schema()
@@ -151,6 +151,80 @@ def update_save(save_code: str, payload: SaveUpdate, db: Session = Depends(get_d
     db.commit()
     db.refresh(row)
     return row
+
+
+# --- Champ de Mots answer reports (GRADING-AND-REVIEW-UPDATE.md §14.2.4) ---
+# The "I think this should count" queue: a written answer marked wrong can
+# flag itself here. No auto-accept and no in-game admin UI (§14.4's decision)
+# — reports are triaged by listing/filtering this table directly, and a
+# genuine miss gets hand-added to that catalog item's `accepted_fr`/
+# `accepted_en` array (champ-de-mots/CLAUDE.md's Milestone 8 build note).
+
+DEFAULT_ANSWER_REPORT_GAME_ID = "champ-de-mots"
+
+
+class AnswerReportIn(BaseModel):
+    game_id: str = DEFAULT_ANSWER_REPORT_GAME_ID
+    item_id: str
+    submitted_answer: str
+    marked_correct_answer: List[str]
+    topic_type: Optional[str] = None
+
+    @model_validator(mode="after")
+    def require_the_essentials(self):
+        if not self.item_id.strip():
+            raise ValueError("item_id is required")
+        if not self.submitted_answer.strip():
+            raise ValueError("submitted_answer is required")
+        if not self.marked_correct_answer:
+            raise ValueError("marked_correct_answer must contain at least one answer")
+        return self
+
+
+class AnswerReportOut(BaseModel):
+    id: str
+    game_id: str
+    item_id: str
+    submitted_answer: str
+    marked_correct_answer: List[str]
+    topic_type: Optional[str]
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+@app.post("/answer-reports", response_model=AnswerReportOut)
+def create_answer_report(payload: AnswerReportIn, db: Session = Depends(get_db)):
+    row = AnswerReport(
+        game_id=payload.game_id,
+        item_id=payload.item_id,
+        submitted_answer=payload.submitted_answer,
+        marked_correct_answer=payload.marked_correct_answer,
+        topic_type=payload.topic_type,
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+@app.get("/answer-reports", response_model=List[AnswerReportOut])
+def list_answer_reports(
+    response: Response,
+    game_id: Optional[str] = None,
+    topic_type: Optional[str] = None,
+    item_id: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    response.headers["Cache-Control"] = "no-store"
+    query = db.query(AnswerReport)
+    if game_id is not None:
+        query = query.filter(AnswerReport.game_id == game_id)
+    if topic_type is not None:
+        query = query.filter(AnswerReport.topic_type == topic_type)
+    if item_id is not None:
+        query = query.filter(AnswerReport.item_id == item_id)
+    return query.order_by(AnswerReport.created_at.desc()).all()
 
 
 # --- Accounts (ACCOUNTS-AND-FEEDBACK-DESIGN.md Phase 2, revised: username +
