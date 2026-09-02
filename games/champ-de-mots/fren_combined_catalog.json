@@ -514,7 +514,32 @@
         }
       ],
       "course": "FREN151",
-      "sequence": 1
+      "sequence": 1,
+      "bonus_sentences": [
+        {
+          "id": "fren151-w1-bonus001",
+          "fr": "Bonjour, je m'appelle Léa.",
+          "en": "Hello, my name is Léa.",
+          "tiles": [
+            {
+              "fr": "Bonjour,",
+              "en": "Hello"
+            },
+            {
+              "fr": "je",
+              "en": "I"
+            },
+            {
+              "fr": "m'appelle",
+              "en": "am called"
+            },
+            {
+              "fr": "Léa.",
+              "en": "Léa"
+            }
+          ]
+        }
+      ]
     },
     {
       "week": 2,
@@ -869,7 +894,44 @@
         }
       ],
       "course": "FREN151",
-      "sequence": 2
+      "sequence": 2,
+      "bonus_sentences": [
+        {
+          "id": "fren151-w2-bonus001",
+          "fr": "Je parle français et j'habite à Lyon.",
+          "en": "I speak French and I live in Lyon.",
+          "tiles": [
+            {
+              "fr": "Je",
+              "en": "I"
+            },
+            {
+              "fr": "parle",
+              "en": "speak"
+            },
+            {
+              "fr": "français",
+              "en": "French"
+            },
+            {
+              "fr": "et",
+              "en": "and"
+            },
+            {
+              "fr": "j'habite",
+              "en": "I live"
+            },
+            {
+              "fr": "à",
+              "en": "in"
+            },
+            {
+              "fr": "Lyon.",
+              "en": "Lyon"
+            }
+          ]
+        }
+      ]
     },
     {
       "week": 3,
@@ -1112,7 +1174,44 @@
         }
       ],
       "course": "FREN151",
-      "sequence": 3
+      "sequence": 3,
+      "bonus_sentences": [
+        {
+          "id": "fren151-w3-bonus001",
+          "fr": "J'ai besoin d'un livre et d'un smartphone.",
+          "en": "I need a book and a smartphone.",
+          "tiles": [
+            {
+              "fr": "J'ai",
+              "en": "I have"
+            },
+            {
+              "fr": "besoin",
+              "en": "need"
+            },
+            {
+              "fr": "d'un",
+              "en": "a"
+            },
+            {
+              "fr": "livre",
+              "en": "book"
+            },
+            {
+              "fr": "et",
+              "en": "and"
+            },
+            {
+              "fr": "d'un",
+              "en": "a"
+            },
+            {
+              "fr": "smartphone.",
+              "en": "smartphone"
+            }
+          ]
+        }
+      ]
     },
     {
       "week": 4,
@@ -1400,7 +1499,40 @@
         }
       ],
       "course": "FREN151",
-      "sequence": 4
+      "sequence": 4,
+      "bonus_sentences": [
+        {
+          "id": "fren151-w4-bonus001",
+          "fr": "Je travaille comme cuisinier pour voyager.",
+          "en": "I work as a cook to travel.",
+          "tiles": [
+            {
+              "fr": "Je",
+              "en": "I"
+            },
+            {
+              "fr": "travaille",
+              "en": "work"
+            },
+            {
+              "fr": "comme",
+              "en": "as"
+            },
+            {
+              "fr": "cuisinier",
+              "en": "a cook"
+            },
+            {
+              "fr": "pour",
+              "en": "to"
+            },
+            {
+              "fr": "voyager.",
+              "en": "travel"
+            }
+          ]
+        }
+      ]
     },
     {
       "week": 5,
@@ -1668,7 +1800,48 @@
         }
       ],
       "course": "FREN151",
-      "sequence": 5
+      "sequence": 5,
+      "bonus_sentences": [
+        {
+          "id": "fren151-w5-bonus001",
+          "fr": "Je viens d'Australie et je vais en France.",
+          "en": "I come from Australia and I am going to France.",
+          "tiles": [
+            {
+              "fr": "Je",
+              "en": "I"
+            },
+            {
+              "fr": "viens",
+              "en": "come"
+            },
+            {
+              "fr": "d'Australie",
+              "en": "from Australia"
+            },
+            {
+              "fr": "et",
+              "en": "and"
+            },
+            {
+              "fr": "je",
+              "en": "I"
+            },
+            {
+              "fr": "vais",
+              "en": "am going"
+            },
+            {
+              "fr": "en",
+              "en": "to"
+            },
+            {
+              "fr": "France.",
+              "en": "France"
+            }
+          ]
+        }
+      ]
     },
     {
       "week": 6,
@@ -1896,7 +2069,44 @@
         }
       ],
       "course": "FREN151",
-      "sequence": 6
+      "sequence": 6,
+      "bonus_sentences": [
+        {
+          "id": "fren151-w6-bonus001",
+          "fr": "Tournez à droite, puis continuez tout droit.",
+          "en": "Turn right, then carry on straight ahead.",
+          "tiles": [
+            {
+              "fr": "Tournez",
+              "en": "Turn"
+            },
+            {
+              "fr": "à",
+              "en": "to the"
+            },
+            {
+              "fr": "droite,",
+              "en": "right"
+            },
+            {
+              "fr": "puis",
+              "en": "then"
+            },
+            {
+              "fr": "continuez",
+              "en": "carry on"
+            },
+            {
+              "fr": "tout",
+              "en": "straight"
+            },
+            {
+              "fr": "droit.",
+              "en": "ahead"
+            }
+          ]
+        }
+      ]
     },
     {
       "week": 7,
@@ -2150,7 +2360,36 @@
         }
       ],
       "course": "FREN151",
-      "sequence": 7
+      "sequence": 7,
+      "bonus_sentences": [
+        {
+          "id": "fren151-w7-bonus001",
+          "fr": "Il y a beaucoup de restaurants en face du parc.",
+          "en": "There are many restaurants opposite the park.",
+          "tiles": [
+            {
+              "fr": "Il y a",
+              "en": "There are"
+            },
+            {
+              "fr": "beaucoup de",
+              "en": "many"
+            },
+            {
+              "fr": "restaurants",
+              "en": "restaurants"
+            },
+            {
+              "fr": "en face du",
+              "en": "opposite the"
+            },
+            {
+              "fr": "parc.",
+              "en": "park"
+            }
+          ]
+        }
+      ]
     },
     {
       "week": 8,
@@ -2435,7 +2674,40 @@
         }
       ],
       "course": "FREN151",
-      "sequence": 8
+      "sequence": 8,
+      "bonus_sentences": [
+        {
+          "id": "fren151-w8-bonus001",
+          "fr": "C'est un très vieux quartier, animé et multiculturel.",
+          "en": "It's a very old neighbourhood, lively and multicultural.",
+          "tiles": [
+            {
+              "fr": "C'est",
+              "en": "It's"
+            },
+            {
+              "fr": "un très vieux",
+              "en": "a very old"
+            },
+            {
+              "fr": "quartier,",
+              "en": "neighbourhood"
+            },
+            {
+              "fr": "animé",
+              "en": "lively"
+            },
+            {
+              "fr": "et",
+              "en": "and"
+            },
+            {
+              "fr": "multiculturel.",
+              "en": "multicultural"
+            }
+          ]
+        }
+      ]
     },
     {
       "week": 9,
@@ -2797,7 +3069,36 @@
         }
       ],
       "course": "FREN151",
-      "sequence": 9
+      "sequence": 9,
+      "bonus_sentences": [
+        {
+          "id": "fren151-w9-bonus001",
+          "fr": "Mon frère aime faire du vélo avec ses amis.",
+          "en": "My brother likes to go biking with his friends.",
+          "tiles": [
+            {
+              "fr": "Mon frère",
+              "en": "My brother"
+            },
+            {
+              "fr": "aime",
+              "en": "likes"
+            },
+            {
+              "fr": "faire du vélo",
+              "en": "to go biking"
+            },
+            {
+              "fr": "avec",
+              "en": "with"
+            },
+            {
+              "fr": "ses amis.",
+              "en": "his friends"
+            }
+          ]
+        }
+      ]
     },
     {
       "week": 10,
@@ -3023,7 +3324,36 @@
         }
       ],
       "course": "FREN151",
-      "sequence": 10
+      "sequence": 10,
+      "bonus_sentences": [
+        {
+          "id": "fren151-w10-bonus001",
+          "fr": "J'aime beaucoup le tennis, mais je n'aime pas trop le ski.",
+          "en": "I like tennis a lot, but I don't like skiing too much.",
+          "tiles": [
+            {
+              "fr": "J'aime beaucoup",
+              "en": "I like a lot"
+            },
+            {
+              "fr": "le tennis,",
+              "en": "tennis"
+            },
+            {
+              "fr": "mais",
+              "en": "but"
+            },
+            {
+              "fr": "je n'aime pas trop",
+              "en": "I don't like too much"
+            },
+            {
+              "fr": "le ski.",
+              "en": "skiing"
+            }
+          ]
+        }
+      ]
     },
     {
       "week": 11,
@@ -3174,7 +3504,32 @@
         }
       ],
       "course": "FREN151",
-      "sequence": 11
+      "sequence": 11,
+      "bonus_sentences": [
+        {
+          "id": "fren151-w11-bonus001",
+          "fr": "Elle est sportive et elle a les cheveux longs.",
+          "en": "She is sporty and she has long hair.",
+          "tiles": [
+            {
+              "fr": "Elle est",
+              "en": "She is"
+            },
+            {
+              "fr": "sportive",
+              "en": "sporty"
+            },
+            {
+              "fr": "et elle a",
+              "en": "and she has"
+            },
+            {
+              "fr": "les cheveux longs.",
+              "en": "long hair"
+            }
+          ]
+        }
+      ]
     },
     {
       "course": "FREN152",
@@ -3283,6 +3638,35 @@
             }
           ],
           "rule": "-ir verbs (like finir): stem + is, is, it, issons, issez, issent. -re verbs (like vendre): stem + s, s, [nothing], ons, ez, ent."
+        }
+      ],
+      "bonus_sentences": [
+        {
+          "id": "fren152-w2-bonus001",
+          "fr": "Je finis à midi et je vends des livres.",
+          "en": "I finish at noon and I sell books.",
+          "tiles": [
+            {
+              "fr": "Je finis",
+              "en": "I finish"
+            },
+            {
+              "fr": "à midi",
+              "en": "at noon"
+            },
+            {
+              "fr": "et",
+              "en": "and"
+            },
+            {
+              "fr": "je vends",
+              "en": "I sell"
+            },
+            {
+              "fr": "des livres.",
+              "en": "books"
+            }
+          ]
         }
       ]
     },
@@ -3474,6 +3858,31 @@
           ],
           "rule": "One-word adverbs (jamais, souvent, toujours, etc.) go after the verb (Je vais toujours en cours); in the negative, after 'pas' (Je ne vais pas toujours...). Multi-word adverbial phrases (une fois par semaine, etc.) can go at the start or end of the sentence."
         }
+      ],
+      "bonus_sentences": [
+        {
+          "id": "fren152-w3-bonus001",
+          "fr": "Le lundi, je me réveille et je joue au tennis.",
+          "en": "On Mondays, I wake up and I play tennis.",
+          "tiles": [
+            {
+              "fr": "Le lundi,",
+              "en": "On Mondays"
+            },
+            {
+              "fr": "je me réveille",
+              "en": "I wake up"
+            },
+            {
+              "fr": "et",
+              "en": "and"
+            },
+            {
+              "fr": "je joue au tennis.",
+              "en": "I play tennis"
+            }
+          ]
+        }
       ]
     },
     {
@@ -3652,6 +4061,39 @@
           ],
           "rule": "Superlative uses definite article + plus/moins + adjective; 'de' after the superlative translates 'in' (la plus grande ville du monde). meilleur/pire and BAGS-type adjectives (beau, nouveau, vieux, bon, gentil, mauvais, grand, petit, gros, haut, large, bref) go BEFORE the noun even in the superlative."
         }
+      ],
+      "bonus_sentences": [
+        {
+          "id": "fren152-w4-bonus001",
+          "fr": "Léa est plus travailleuse que Marc, et Marc est aussi gourmand que Léa.",
+          "en": "Léa is more hard-working than Marc, and Marc is as greedy as Léa.",
+          "tiles": [
+            {
+              "fr": "Léa est",
+              "en": "Léa is"
+            },
+            {
+              "fr": "plus travailleuse que",
+              "en": "more hard-working than"
+            },
+            {
+              "fr": "Marc,",
+              "en": "Marc"
+            },
+            {
+              "fr": "et Marc est",
+              "en": "and Marc is"
+            },
+            {
+              "fr": "aussi gourmand que",
+              "en": "as greedy as"
+            },
+            {
+              "fr": "Léa.",
+              "en": "Léa"
+            }
+          ]
+        }
       ]
     },
     {
@@ -3785,6 +4227,31 @@
             }
           ],
           "rule": "Two main ways to form a question: (1) question word + est-ce que + normal word order, or (2) inversion of the verb and subject pronoun (more formal/written)."
+        }
+      ],
+      "bonus_sentences": [
+        {
+          "id": "fren152-w5-bonus001",
+          "fr": "Mon anniversaire, c'est le douze mars, au printemps.",
+          "en": "My birthday is the twelfth of March, in spring.",
+          "tiles": [
+            {
+              "fr": "Mon anniversaire,",
+              "en": "My birthday"
+            },
+            {
+              "fr": "c'est le douze",
+              "en": "is the twelfth"
+            },
+            {
+              "fr": "mars,",
+              "en": "of March"
+            },
+            {
+              "fr": "au printemps.",
+              "en": "in spring"
+            }
+          ]
         }
       ]
     },
@@ -4039,6 +4506,31 @@
           ],
           "rule": "Ce (masc.), cet (masc. before vowel/silent h), cette (fem.), ces (plural). Add -ci/-là to the noun to distinguish 'this/these' from 'that/those'."
         }
+      ],
+      "bonus_sentences": [
+        {
+          "id": "fren152-w6-bonus001",
+          "fr": "Aujourd'hui, je porte cette chemise bleue.",
+          "en": "Today, I'm wearing this blue shirt.",
+          "tiles": [
+            {
+              "fr": "Aujourd'hui,",
+              "en": "Today"
+            },
+            {
+              "fr": "je porte",
+              "en": "I'm wearing"
+            },
+            {
+              "fr": "cette chemise",
+              "en": "this shirt"
+            },
+            {
+              "fr": "bleue.",
+              "en": "blue"
+            }
+          ]
+        }
       ]
     },
     {
@@ -4204,6 +4696,31 @@
             {
               "fr": "... il/elle te plaît? / ils/elles te plaisent?",
               "en": "do you like it/them? (lit. does it/do they please you)"
+            }
+          ]
+        }
+      ],
+      "bonus_sentences": [
+        {
+          "id": "fren152-w7-bonus001",
+          "fr": "Je préfère celui-ci: il est en cuir et à rayures.",
+          "en": "I prefer this one: it's made of leather and striped.",
+          "tiles": [
+            {
+              "fr": "Je préfère",
+              "en": "I prefer"
+            },
+            {
+              "fr": "celui-ci:",
+              "en": "this one"
+            },
+            {
+              "fr": "il est en cuir",
+              "en": "it's made of leather"
+            },
+            {
+              "fr": "et à rayures.",
+              "en": "and striped"
             }
           ]
         }
@@ -4376,6 +4893,31 @@
             }
           ],
           "rule": "Unlike English, French direct object pronouns go BEFORE the verb (Je le prends = I take it). ne...pas wraps both the pronoun and the verb (Nicolas ne m'appelle pas)."
+        }
+      ],
+      "bonus_sentences": [
+        {
+          "id": "fren152-w8-bonus001",
+          "fr": "Il fait chaud, alors je veux des lunettes de soleil.",
+          "en": "It's hot, so I want sunglasses.",
+          "tiles": [
+            {
+              "fr": "Il fait chaud,",
+              "en": "It's hot"
+            },
+            {
+              "fr": "alors",
+              "en": "so"
+            },
+            {
+              "fr": "je veux",
+              "en": "I want"
+            },
+            {
+              "fr": "des lunettes de soleil.",
+              "en": "sunglasses"
+            }
+          ]
         }
       ]
     },
@@ -4589,6 +5131,35 @@
             }
           ]
         }
+      ],
+      "bonus_sentences": [
+        {
+          "id": "fren152-w9-bonus001",
+          "fr": "Au petit-déjeuner, je prends du pain et de la confiture.",
+          "en": "For breakfast, I have bread and jam.",
+          "tiles": [
+            {
+              "fr": "Au petit-déjeuner,",
+              "en": "For breakfast"
+            },
+            {
+              "fr": "je prends",
+              "en": "I have"
+            },
+            {
+              "fr": "du pain",
+              "en": "bread"
+            },
+            {
+              "fr": "et",
+              "en": "and"
+            },
+            {
+              "fr": "de la confiture.",
+              "en": "jam"
+            }
+          ]
+        }
       ]
     },
     {
@@ -4755,6 +5326,31 @@
           ],
           "rule": "'En' replaces a partitive or quantity expression + noun, and goes before the verb. It has no direct English equivalent (often 'of it/them', frequently dropped in English)."
         }
+      ],
+      "bonus_sentences": [
+        {
+          "id": "fren152-w10-bonus001",
+          "fr": "Demain, je vais prendre une bouteille de vin à la fromagerie.",
+          "en": "Tomorrow, I'm going to get a bottle of wine at the cheese shop.",
+          "tiles": [
+            {
+              "fr": "Demain,",
+              "en": "Tomorrow"
+            },
+            {
+              "fr": "je vais prendre",
+              "en": "I'm going to get"
+            },
+            {
+              "fr": "une bouteille de vin",
+              "en": "a bottle of wine"
+            },
+            {
+              "fr": "à la fromagerie.",
+              "en": "at the cheese shop"
+            }
+          ]
+        }
       ]
     },
     {
@@ -4849,6 +5445,31 @@
             }
           ],
           "rule": "Short common adverbs (déjà, bien, souvent, trop, vraiment...) go between avoir and the past participle. Longer adverbs of manner tend to follow the past participle. Time expressions often go at the start or end of the sentence."
+        }
+      ],
+      "bonus_sentences": [
+        {
+          "id": "fren152-w11-bonus001",
+          "fr": "Hier soir, j'ai déjà choisi un steak à point.",
+          "en": "Last night, I had already chosen a medium steak.",
+          "tiles": [
+            {
+              "fr": "Hier soir,",
+              "en": "Last night"
+            },
+            {
+              "fr": "j'ai déjà choisi",
+              "en": "I had already chosen"
+            },
+            {
+              "fr": "un steak",
+              "en": "a steak"
+            },
+            {
+              "fr": "à point.",
+              "en": "medium"
+            }
+          ]
         }
       ]
     },
@@ -4961,6 +5582,31 @@
             }
           ],
           "rule": "Savoir = knowledge of facts, or 'know how to' + infinitive. Connaître = familiarity with people, places, or creative works."
+        }
+      ],
+      "bonus_sentences": [
+        {
+          "id": "fren152-w12-bonus001",
+          "fr": "J'ai bu du café, mais je ne connais pas Paris.",
+          "en": "I drank coffee, but I don't know Paris.",
+          "tiles": [
+            {
+              "fr": "J'ai bu",
+              "en": "I drank"
+            },
+            {
+              "fr": "du café,",
+              "en": "coffee"
+            },
+            {
+              "fr": "mais je ne connais pas",
+              "en": "but I don't know"
+            },
+            {
+              "fr": "Paris.",
+              "en": "Paris"
+            }
+          ]
         }
       ]
     },
@@ -5082,6 +5728,31 @@
             {
               "fr": "Je parle des langues étrangères.",
               "en": "I speak foreign languages."
+            }
+          ]
+        }
+      ],
+      "bonus_sentences": [
+        {
+          "id": "fren152-w13-bonus001",
+          "fr": "Elle est arrivée, et moi, je suis resté à la maison.",
+          "en": "She arrived, and as for me, I stayed home.",
+          "tiles": [
+            {
+              "fr": "Elle est arrivée,",
+              "en": "She arrived"
+            },
+            {
+              "fr": "et moi,",
+              "en": "and as for me"
+            },
+            {
+              "fr": "je suis resté",
+              "en": "I stayed"
+            },
+            {
+              "fr": "à la maison.",
+              "en": "home"
             }
           ]
         }

@@ -82,9 +82,33 @@ h1 {
   color: #7a6a53;
 }
 
-.row-proficiency-button {
+.row-proficiency-button,
+.row-bonus-button {
   font-size: 0.7rem;
   padding: 0.3rem 0.5rem;
+}
+
+.bonus-tile-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-height: 2.2rem;
+  margin: 0.4rem 0;
+}
+
+.bonus-tile {
+  font-family: inherit;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #e2d8c4;
+  background: #fff;
+  cursor: pointer;
+}
+
+.bonus-tile--placed {
+  background: #f2eddf;
+  cursor: default;
 }
 
 .proficiency-topic-breakdown {

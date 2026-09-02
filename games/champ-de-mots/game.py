@@ -1266,6 +1266,35 @@ def _destroy_proficiency_choice_proxies():
     proficiency_choice_proxies.clear()
 
 
+# --- Milestone 13: bonus sentence-building section state (design doc §14.6) -
+#
+# Purely informational like Review and the proficiency test — nothing here
+# ever touches a plot's SRS state or row-unlock state. Three tasks per
+# sentence: order the tiles, translate each tile (STRICT), translate the
+# whole sentence (LENIENT) — see CLAUDE.md's Milestone 13 build note for why
+# those two tiers are fixed by task rather than decided by grading_tier().
+
+BONUS_RNG = random.Random()
+
+bonus_mode = False
+bonus_sequence = None
+bonus_queue = []  # this week's bonus_sentences, fixed for the session
+bonus_index = 0  # which sentence in the queue
+bonus_task = None  # None | "order" | "translate_tiles" | "translate_sentence"
+bonus_tile_pool = []  # tiles not yet placed (task 1), shuffled
+bonus_placed = []  # tiles placed so far, in the player's chosen order
+bonus_order_correct = None  # None | True | False, set once the pool empties
+bonus_tile_index = 0  # which tile (in correct order) is being translated (task 2)
+bonus_tile_result = None  # None | True | False for the tile currently shown
+bonus_tile_score = {"correct": 0, "total": 0}  # this sentence's task-2 tally
+bonus_sentence_result = None  # None | True | False (task 3)
+bonus_score = {"correct": 0, "total": 0}  # every checkable step, this session
+
+BONUS_ORDER_CORRECT = "That's the right order."
+BONUS_ORDER_INCORRECT = "Not quite — the sentence is: {sentence}"
+BONUS_SUMMARY_MESSAGE = "Bonus section complete — {correct}/{total} correct."
+
+
 def _element(element_id):
     return document.getElementById(element_id)
 
@@ -1285,6 +1314,12 @@ def _make_choice_handler(choice):
 def _make_proficiency_handler(sequence):
     def handler(event=None):
         start_proficiency_test(sequence)
+    return handler
+
+
+def _make_bonus_handler(sequence):
+    def handler(event=None):
+        start_bonus_section(sequence)
     return handler
 
 
@@ -1343,6 +1378,15 @@ def build_farm():
             "click", create_proxy(_make_proficiency_handler(row.sequence))
         )
         head.appendChild(proficiency_button)
+
+        # §14.6: a bonus sentence-building section per week, same row-header
+        # placement as the proficiency test button above.
+        bonus_button = document.createElement("button")
+        bonus_button.id = f"row-bonus-{row.sequence}"
+        bonus_button.className = "row-bonus-button secondary"
+        bonus_button.innerText = "Bonus sentence"
+        bonus_button.addEventListener("click", create_proxy(_make_bonus_handler(row.sequence)))
+        head.appendChild(bonus_button)
 
         plots = document.createElement("div")
         plots.id = f"row-plots-{row.sequence}"
@@ -1415,6 +1459,7 @@ def render_farm():
         due_element.innerText = ROW_DUE_NOTE.format(count=row_due) if row_due else ""
 
         _element(f"row-proficiency-{row.sequence}").disabled = not unlocked
+        _element(f"row-bonus-{row.sequence}").disabled = not unlocked
 
 
 def render_status():
@@ -1559,6 +1604,7 @@ def render():
     render_practice()
     render_review()
     render_proficiency()
+    render_bonus()
 
 
 # --- interactions ----------------------------------------------------------
@@ -2225,6 +2271,371 @@ def render_proficiency():
         _element("proficiency-feedback").innerText = ""
 
 
+# ===========================================================================
+# Milestone 13 — bonus sentence-building sections (design doc §14.6)
+# ===========================================================================
+#
+# One original sentence per week (built only from that week's own vocab and
+# grammar — see CLAUDE.md's Milestone 13 build note for the exact sourcing
+# policy), three tasks each: order the word tiles, translate each tile on
+# its own (STRICT — an explicit per-task tier assignment from §14.6, not the
+# auto-decided grading_tier() the main farm/Review/proficiency paths use),
+# then translate the whole assembled sentence (LENIENT). Purely informational
+# like Milestones 11-12: nothing here ever touches a plot's SRS state.
+
+bonus_pool_proxies = []
+
+
+def _destroy_bonus_pool_proxies():
+    for proxy in bonus_pool_proxies:
+        proxy.destroy()
+    bonus_pool_proxies.clear()
+
+
+def bonus_sentences_for(sequence):
+    for week in CATALOG["weeks"]:
+        if week["sequence"] == sequence:
+            return week.get("bonus_sentences", [])
+    return []
+
+
+def is_bonus_section_available(sequence):
+    """Same posture as the proficiency test (§14.5's build note): only
+    offered for an already-unlocked week, so it can't preview a week's
+    content ahead of §7's pacing gate."""
+    return state.is_row_unlocked(sequence) and bool(bonus_sentences_for(sequence))
+
+
+def _current_bonus_sentence():
+    if bonus_index >= len(bonus_queue):
+        return None
+    return bonus_queue[bonus_index]
+
+
+def _begin_bonus_sentence():
+    """Reset every per-sentence tracking field and roll a fresh shuffled tile
+    pool for whichever sentence `bonus_index` now points at (or close the
+    session out if the queue is exhausted)."""
+    global bonus_task, bonus_tile_pool, bonus_placed, bonus_order_correct
+    global bonus_tile_index, bonus_tile_result, bonus_tile_score, bonus_sentence_result
+
+    sentence = _current_bonus_sentence()
+    bonus_placed = []
+    bonus_order_correct = None
+    bonus_tile_index = 0
+    bonus_tile_result = None
+    bonus_tile_score = {"correct": 0, "total": 0}
+    bonus_sentence_result = None
+
+    if sentence is None:
+        bonus_task = None
+        bonus_tile_pool = []
+        return
+
+    pool = list(sentence["tiles"])
+    BONUS_RNG.shuffle(pool)
+    # A shuffle landing back on the original order would make the ordering
+    # task trivially already-solved; nudge it once if that happens.
+    if len(pool) > 1 and [t["fr"] for t in pool] == [t["fr"] for t in sentence["tiles"]]:
+        pool.reverse()
+    bonus_tile_pool = pool
+    bonus_task = "order"
+
+
+def start_bonus_section(sequence, event=None):
+    global bonus_mode, bonus_sequence, bonus_queue, bonus_index, bonus_score
+
+    if not is_bonus_section_available(sequence):
+        return None
+
+    bonus_sequence = sequence
+    bonus_queue = bonus_sentences_for(sequence)
+    bonus_index = 0
+    bonus_score = {"correct": 0, "total": 0}
+    bonus_mode = True
+    _begin_bonus_sentence()
+    render()
+    return bonus_queue
+
+
+def place_bonus_tile(pool_index):
+    """Task 1: move one tile from the pool to the end of the placed list.
+    Once the pool empties, the placed order is checked against the
+    sentence's real order — a whole-sentence pass/fail, not per-tile."""
+    global bonus_order_correct
+
+    if bonus_task != "order" or not (0 <= pool_index < len(bonus_tile_pool)):
+        return None
+    tile = bonus_tile_pool.pop(pool_index)
+    bonus_placed.append(tile)
+    if not bonus_tile_pool:
+        sentence = _current_bonus_sentence()
+        bonus_order_correct = [t["fr"] for t in bonus_placed] == [
+            t["fr"] for t in sentence["tiles"]
+        ]
+        bonus_score["total"] += 1
+        if bonus_order_correct:
+            bonus_score["correct"] += 1
+    render()
+    return bonus_order_correct
+
+
+def advance_from_order(event=None):
+    """Move on to task 2 once task 1 has a result — right or wrong, §3's
+    no-punishment stance means an incorrect order still lets you continue
+    (and the correct order becomes obvious once task 2 shows each tile in
+    its real place)."""
+    global bonus_task
+
+    if bonus_task != "order" or bonus_order_correct is None:
+        return None
+    bonus_task = "translate_tiles"
+    render()
+
+
+def submit_bonus_tile_translation(given):
+    """Task 2, one tile at a time, in the sentence's real order. STRICT by
+    explicit task assignment (§14.6) — not decided by grading_tier()."""
+    global bonus_tile_result, bonus_tile_score, bonus_score
+
+    if bonus_task != "translate_tiles" or bonus_tile_result is not None:
+        return None
+    sentence = _current_bonus_sentence()
+    if sentence is None or bonus_tile_index >= len(sentence["tiles"]):
+        return None
+    tile = sentence["tiles"][bonus_tile_index]
+    question = {"mode": "typed", "answer": tile["en"], "choices": []}
+    bonus_tile_result = check_answer(
+        question, given, tier=TIER_STRICT, accent_sensitive=ACCENT_SENSITIVE
+    )
+    bonus_tile_score["total"] += 1
+    bonus_score["total"] += 1
+    if bonus_tile_result:
+        bonus_tile_score["correct"] += 1
+        bonus_score["correct"] += 1
+    render()
+    return bonus_tile_result
+
+
+def next_bonus_tile(event=None):
+    """Advance to the next tile, or into task 3 once every tile has been
+    translated."""
+    global bonus_tile_index, bonus_tile_result, bonus_task
+
+    if bonus_task != "translate_tiles":
+        return None
+    sentence = _current_bonus_sentence()
+    bonus_tile_index += 1
+    bonus_tile_result = None
+    if sentence is None or bonus_tile_index >= len(sentence["tiles"]):
+        bonus_task = "translate_sentence"
+    render()
+
+
+def submit_bonus_sentence_translation(given):
+    """Task 3: the whole sentence, LENIENT — explicit task assignment (§14.6),
+    same reasoning as task 2's STRICT."""
+    global bonus_sentence_result, bonus_score
+
+    if bonus_task != "translate_sentence" or bonus_sentence_result is not None:
+        return None
+    sentence = _current_bonus_sentence()
+    if sentence is None:
+        return None
+    question = {"mode": "typed", "answer": sentence["en"], "choices": []}
+    bonus_sentence_result = check_answer(
+        question, given, tier=TIER_LENIENT, accent_sensitive=ACCENT_SENSITIVE
+    )
+    bonus_score["total"] += 1
+    if bonus_sentence_result:
+        bonus_score["correct"] += 1
+    render()
+    return bonus_sentence_result
+
+
+def next_bonus_sentence(event=None):
+    """Move to the next sentence in this week's queue, or end the session
+    (bonus_task becomes None) once the queue is exhausted."""
+    global bonus_index
+
+    if bonus_task != "translate_sentence" or bonus_sentence_result is None:
+        return None
+    bonus_index += 1
+    _begin_bonus_sentence()
+    render()
+
+
+def close_bonus_section(event=None):
+    global bonus_mode, bonus_sequence, bonus_queue, bonus_index, bonus_task
+    global bonus_tile_pool, bonus_placed, bonus_order_correct
+    global bonus_tile_index, bonus_tile_result, bonus_tile_score
+    global bonus_sentence_result, bonus_score
+
+    bonus_mode = False
+    bonus_sequence = None
+    bonus_queue = []
+    bonus_index = 0
+    bonus_task = None
+    bonus_tile_pool = []
+    bonus_placed = []
+    bonus_order_correct = None
+    bonus_tile_index = 0
+    bonus_tile_result = None
+    bonus_tile_score = {"correct": 0, "total": 0}
+    bonus_sentence_result = None
+    bonus_score = {"correct": 0, "total": 0}
+    render()
+
+
+def _make_bonus_pool_handler(index):
+    def handler(event=None):
+        place_bonus_tile(index)
+    return handler
+
+
+def on_bonus_tile_submit_typed(event=None):
+    submit_bonus_tile_translation(_element("bonus-tile-answer-input").value)
+
+
+def on_bonus_tile_answer_keydown(event=None):
+    if event is not None and getattr(event, "key", None) == "Enter":
+        event.preventDefault()
+        on_bonus_tile_submit_typed()
+
+
+def on_bonus_sentence_submit_typed(event=None):
+    submit_bonus_sentence_translation(_element("bonus-sentence-answer-input").value)
+
+
+def on_bonus_sentence_answer_keydown(event=None):
+    if event is not None and getattr(event, "key", None) == "Enter":
+        event.preventDefault()
+        on_bonus_sentence_submit_typed()
+
+
+def render_bonus():
+    panel = _element("bonus-panel")
+    pool_box = _element("bonus-tile-pool")
+    placed_box = _element("bonus-tile-placed")
+
+    _destroy_bonus_pool_proxies()
+
+    if not bonus_mode:
+        panel.hidden = True
+        pool_box.innerHTML = ""
+        placed_box.innerHTML = ""
+        return
+
+    panel.hidden = False
+    sentence = _current_bonus_sentence()
+
+    order_section = _element("bonus-order-section")
+    tiles_section = _element("bonus-tiles-section")
+    sentence_section = _element("bonus-sentence-section")
+    summary = _element("bonus-summary")
+
+    if sentence is None:
+        # Every sentence in the week's queue is done.
+        order_section.hidden = True
+        tiles_section.hidden = True
+        sentence_section.hidden = True
+        summary.hidden = False
+        summary.innerText = BONUS_SUMMARY_MESSAGE.format(**bonus_score)
+        pool_box.innerHTML = ""
+        placed_box.innerHTML = ""
+        return
+
+    summary.hidden = True
+    _element("bonus-progress").innerText = f"Sentence {bonus_index + 1} of {len(bonus_queue)}"
+
+    if bonus_task == "order":
+        order_section.hidden = False
+        tiles_section.hidden = True
+        sentence_section.hidden = True
+
+        pool_box.innerHTML = ""
+        for index, tile in enumerate(bonus_tile_pool):
+            button = document.createElement("button")
+            button.id = f"bonus-pool-tile-{index}"
+            button.innerText = tile["fr"]
+            button.className = "bonus-tile"
+            proxy = create_proxy(_make_bonus_pool_handler(index))
+            button.addEventListener("click", proxy)
+            bonus_pool_proxies.append(proxy)
+            pool_box.appendChild(button)
+
+        placed_box.innerHTML = ""
+        for tile in bonus_placed:
+            span = document.createElement("span")
+            span.className = "bonus-tile bonus-tile--placed"
+            span.innerText = tile["fr"]
+            placed_box.appendChild(span)
+
+        continue_button = _element("bonus-order-continue-button")
+        continue_button.hidden = bonus_order_correct is None
+        feedback = _element("bonus-order-feedback")
+        if bonus_order_correct is None:
+            feedback.innerText = ""
+        else:
+            feedback.innerText = BONUS_ORDER_CORRECT if bonus_order_correct else (
+                BONUS_ORDER_INCORRECT.format(sentence=sentence["fr"])
+            )
+        return
+
+    pool_box.innerHTML = ""
+    placed_box.innerHTML = ""
+
+    if bonus_task == "translate_tiles":
+        order_section.hidden = True
+        tiles_section.hidden = False
+        sentence_section.hidden = True
+
+        tile = sentence["tiles"][bonus_tile_index]
+        _element("bonus-tile-progress").innerText = (
+            f"Tile {bonus_tile_index + 1} of {len(sentence['tiles'])}"
+        )
+        _element("bonus-tile-prompt").innerText = tile["fr"]
+
+        answered = bonus_tile_result is not None
+        answer_input = _element("bonus-tile-answer-input")
+        submit = _element("bonus-tile-submit-button")
+        next_button = _element("bonus-tile-next-button")
+        answer_input.hidden = False
+        submit.hidden = False
+        submit.disabled = answered
+        next_button.hidden = not answered
+
+        feedback = _element("bonus-tile-feedback")
+        if answered:
+            template = FEEDBACK["correct" if bonus_tile_result else "incorrect"]
+            feedback.innerText = template.format(answer=tile["en"])
+        else:
+            feedback.innerText = ""
+        return
+
+    if bonus_task == "translate_sentence":
+        order_section.hidden = True
+        tiles_section.hidden = True
+        sentence_section.hidden = False
+
+        _element("bonus-sentence-prompt").innerText = sentence["fr"]
+        answered = bonus_sentence_result is not None
+        answer_input = _element("bonus-sentence-answer-input")
+        submit = _element("bonus-sentence-submit-button")
+        next_button = _element("bonus-sentence-next-button")
+        answer_input.hidden = False
+        submit.hidden = False
+        submit.disabled = answered
+        next_button.hidden = not answered
+
+        feedback = _element("bonus-sentence-feedback")
+        if answered:
+            template = FEEDBACK["correct" if bonus_sentence_result else "incorrect"]
+            feedback.innerText = template.format(answer=sentence["en"])
+        else:
+            feedback.innerText = ""
+
+
 def setup():
     build_farm()
     render_legend()
@@ -2263,6 +2674,26 @@ def setup():
     _element("proficiency-close-button").addEventListener(
         "click", create_proxy(close_proficiency_test)
     )
+    _element("bonus-order-continue-button").addEventListener(
+        "click", create_proxy(advance_from_order)
+    )
+    _element("bonus-tile-submit-button").addEventListener(
+        "click", create_proxy(on_bonus_tile_submit_typed)
+    )
+    _element("bonus-tile-answer-input").addEventListener(
+        "keydown", create_proxy(on_bonus_tile_answer_keydown)
+    )
+    _element("bonus-tile-next-button").addEventListener("click", create_proxy(next_bonus_tile))
+    _element("bonus-sentence-submit-button").addEventListener(
+        "click", create_proxy(on_bonus_sentence_submit_typed)
+    )
+    _element("bonus-sentence-answer-input").addEventListener(
+        "keydown", create_proxy(on_bonus_sentence_answer_keydown)
+    )
+    _element("bonus-sentence-next-button").addEventListener(
+        "click", create_proxy(next_bonus_sentence)
+    )
+    _element("bonus-close-button").addEventListener("click", create_proxy(close_bonus_section))
     render()
 
 

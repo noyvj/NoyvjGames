@@ -112,6 +112,40 @@
       <button id="proficiency-close-button" class="secondary practice-close">Close test</button>
     </div>
 
+    <div id="bonus-panel" class="section practice" hidden>
+      <p id="bonus-progress" class="practice-context"></p>
+
+      <div id="bonus-order-section">
+        <p class="practice-instruction">Put the tiles in order.</p>
+        <div id="bonus-tile-placed" class="bonus-tile-row"></div>
+        <div id="bonus-tile-pool" class="bonus-tile-row"></div>
+        <p id="bonus-order-feedback" class="practice-feedback"></p>
+        <button id="bonus-order-continue-button" class="secondary" hidden>Continue</button>
+      </div>
+
+      <div id="bonus-tiles-section" hidden>
+        <p id="bonus-tile-progress" class="practice-context"></p>
+        <p class="practice-instruction">Translate this tile.</p>
+        <p id="bonus-tile-prompt" class="practice-prompt"></p>
+        <input id="bonus-tile-answer-input" class="practice-input" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Type your answer" hidden>
+        <button id="bonus-tile-submit-button" class="secondary" hidden>Check</button>
+        <p id="bonus-tile-feedback" class="practice-feedback"></p>
+        <button id="bonus-tile-next-button" class="secondary" hidden>Next</button>
+      </div>
+
+      <div id="bonus-sentence-section" hidden>
+        <p class="practice-instruction">Now translate the whole sentence.</p>
+        <p id="bonus-sentence-prompt" class="practice-prompt"></p>
+        <input id="bonus-sentence-answer-input" class="practice-input" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Type your answer" hidden>
+        <button id="bonus-sentence-submit-button" class="secondary" hidden>Check</button>
+        <p id="bonus-sentence-feedback" class="practice-feedback"></p>
+        <button id="bonus-sentence-next-button" class="secondary" hidden>Next</button>
+      </div>
+
+      <p id="bonus-summary" class="status-line" hidden></p>
+      <button id="bonus-close-button" class="secondary practice-close">Close bonus section</button>
+    </div>
+
     <p id="legend" class="legend">Loading...</p>
 
     <div id="farm" class="farm"></div>
