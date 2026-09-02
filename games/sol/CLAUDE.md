@@ -75,6 +75,25 @@ All 17 milestones complete.
   Moons/Saturn's Moons never got the equivalent rule when their views were
   built in later milestones, so their return buttons sat flush against the
   last summary block. No gameplay/balance changes.
+- Second, more aggressive audit pass (same day): `press_feedback()` — which
+  runs on essentially every button press — created a fresh
+  `create_proxy()` for its one-shot `setTimeout` callback but never
+  `.destroy()`-ed it after firing, leaking a PyProxy every press for the
+  whole session; fixed by destroying the proxy from inside its own
+  callback. Also found the planet-level merge fix above only went one
+  level deep: `deserialize_state()` still replaced each present planet's
+  own saved sub-dict wholesale, so a save missing a newer per-planet field
+  (`trade_destination` pre-9f, `terraform_progress` pre-8, `sky_city_count`
+  pre-10) would wipe that field's default and crash the next `tick()`;
+  fixed to merge each planet's dict key-by-key too. Removed one orphaned
+  CSS rule (`#away-summary`, no matching element) and corrected two
+  comments left over from before every Far Body/gas giant had shipped.
+  Regression tests in `tests/test_core_loop.py` and
+  `tests/test_save_system.py`. Deliberately left alone: `#away-view` is
+  confirmed genuinely unreachable now, but it's already documented and
+  tested as an intentional retention rather than an oversight — removing
+  it spans `index.html` + `conftest.py` + several test files, out of scope
+  for this pass. No gameplay/balance changes.
 
 ## Working conventions
 - Commit + tag at the end of each milestone: `git commit -m "Milestone N: <name>"` then `git tag milestone-0N` (e.g. `milestone-09a` for lettered sub-parts of milestone 9).
