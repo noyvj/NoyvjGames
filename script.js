@@ -49,11 +49,11 @@ async function loadRatings(widget) {
     const response = await fetch(`${RATINGS_API_BASE}/ratings/${slug}`);
     if (!response.ok) throw new Error(`status ${response.status}`);
     renderSummary(widget, await response.json());
-  // REVIEW(observability): err/status discarded, no console.error — a user
-  // reporting "reviews unavailable" gives no way to tell network failure
-  // from a backend 5xx from a JSON parse error, and this is the only place
-  // such context would ever be visible for a personal-site-scale project.
   } catch (err) {
+    // Logged so "reviews unavailable" is debuggable from the browser
+    // console at all — the only place this context is ever visible for a
+    // personal-site-scale project with no server-side error tracking.
+    console.error(`loadRatings(${slug}) failed:`, err);
     summary.textContent = "Reviews unavailable right now.";
   }
 }
@@ -149,12 +149,13 @@ async function loadMySaves() {
       list.appendChild(item);
     });
     accountMySaves.appendChild(list);
-  // REVIEW(patterns): discards the response body and shows a generic
-  // hardcoded string, unlike submitAuth() below which reads body.detail from
-  // the backend's HTTPException — the only call site in this file that
-  // surfaces the real reason a request failed. Every other catch here and in
-  // save-widget.js follows this same generic-message pattern instead.
+  // Keeps the generic user-facing message (matching every other catch in
+  // this file and in save-widget.js — submitAuth() below is the one
+  // deliberate exception, since it's the one place a specific backend
+  // reason like "wrong password" vs. "username taken" is worth showing).
+  // Still logged to the console so a real failure here is debuggable.
   } catch (err) {
+    console.error("loadMySaves failed:", err);
     accountMySaves.textContent = "Couldn't load your saves right now.";
   }
 }

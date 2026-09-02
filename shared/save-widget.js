@@ -208,11 +208,13 @@
       const res = await fetch(`${API_BASE}/users/me/saves`, { headers: hubAuthHeaders() });
       if (!res.ok) return false;
       saves = await res.json();
-    // REVIEW(observability): `err` is discarded here and in every other catch
-    // in this file — nothing is logged to the console, so a user-reported
-    // "my save isn't loading" is undebuggable from the browser side: no way
-    // to tell network failure vs. bad response vs. JSON parse error apart.
     } catch (err) {
+      // Logged (not just returned false) so a user-reported "my save isn't
+      // loading" is debuggable from the browser console — otherwise there's
+      // no way to tell a network failure from a bad response from a JSON
+      // parse error apart, and this whole autoload runs silently on every
+      // page load with no other visible sign it even attempted anything.
+      console.error(`${GAME_ID} save-widget: autoload failed fetching /users/me/saves`, err);
       return false;
     }
     const forThisGame = saves.filter((s) => s.game_id === GAME_ID);
@@ -227,11 +229,13 @@
     try {
       loadState = await waitForLoadState();
     } catch (err) {
+      console.error(`${GAME_ID} save-widget: autoload gave up waiting for load_state()`, err);
       return false;
     }
     try {
       loadState(window.pyodide.toPy(mostRecent.save_data));
     } catch (err) {
+      console.error(`${GAME_ID} save-widget: autoload's load_state() call threw`, err);
       return false;
     }
     localStorage.setItem(STORAGE_KEY, mostRecent.save_code);
@@ -284,6 +288,10 @@
       proxy = getState();
       return proxy && proxy.toJs ? proxy.toJs({ dict_converter: Object.fromEntries }) : proxy;
     } catch (err) {
+      // A game's own get_state() raising is a bug in that game, not in this
+      // shared widget — worth a console line pointing at GAME_ID rather than
+      // just silently treating it the same as "not implemented yet".
+      console.error(`${GAME_ID} save-widget: get_state() raised`, err);
       return undefined;
     } finally {
       if (proxy && typeof proxy.destroy === "function") proxy.destroy();
@@ -318,6 +326,7 @@
       showActiveCode(body.save_code);
       statusEl.textContent = "Saved!";
     } catch (err) {
+      console.error(`${GAME_ID} save-widget: save failed`, err);
       statusEl.textContent = "Save failed — try again.";
     } finally {
       saveButton.disabled = false;
@@ -352,6 +361,7 @@
       loadInput.value = "";
       statusEl.textContent = "Loaded!";
     } catch (err) {
+      console.error(`${GAME_ID} save-widget: load failed for code ${code}`, err);
       statusEl.textContent = "Load failed — check the code and try again.";
     } finally {
       loadButton.disabled = false;
@@ -373,6 +383,7 @@
       statusEl.textContent = "Save claimed to your account!";
       claimButton.hidden = true;
     } catch (err) {
+      console.error(`${GAME_ID} save-widget: claim failed for code ${code}`, err);
       statusEl.textContent = "Claim failed — try again.";
       claimButton.disabled = false;
       claimButton.textContent = "Claim this save to your account";
