@@ -405,15 +405,18 @@ def strip_parentheticals(text):
     return re.sub(r"\s*\([^)]*\)", "", str(text)).strip()
 
 
-def normalize_answer(text):
-    """Case-, accent- and punctuation-insensitive form used for comparisons.
-
-    Accents are folded away deliberately: mistyping é as e should never cost
-    you a plant. The one place that leniency would defeat the point — the
-    phonetic accents topic — is handled by not offering typed variants there.
+def normalize_answer(text, fold_accents=True):
+    """Case-, punctuation-insensitive form used for comparisons, with accent
+    folding as an opt-out rather than a given (§14.2's accent-sensitivity
+    toggle: default ON in the live game, via `check_answer`'s
+    `accent_sensitive` parameter — this function's own default stays "fold",
+    unchanged from Milestone 3, so every existing caller that doesn't pass
+    the new argument keeps behaving exactly as it always has).
     """
-    text = unicodedata.normalize("NFKD", str(text))
-    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    text = str(text)
+    if fold_accents:
+        text = unicodedata.normalize("NFKD", text)
+        text = "".join(ch for ch in text if not unicodedata.combining(ch))
     text = text.replace("’", "'").replace("‘", "'")
     text = re.sub(r"\s+", " ", text.casefold()).strip()
     return text.strip(" .!?¡¿\"«»")
@@ -915,8 +918,13 @@ NUMBER_REGIONALISMS = {
 }
 
 
-def answer_alternatives(answer):
-    """Everything a typed answer may reasonably be spelled as."""
+def answer_alternatives(answer, accepted=None, fold_accents=True):
+    """Everything a typed answer may reasonably be spelled as -- the LENIENT
+    side of §14.2's two tiers. `accepted` is an optional iterable of extra
+    catalog-supplied phrasings (the item's `accepted` array, §14.2.4) folded
+    in alongside the mechanically-derived ones; omitted, this is byte-for-byte
+    Milestone 3's original function, so every pre-existing caller (including
+    every test that predates this milestone) sees identical behaviour."""
     alternatives = set()
     raw = str(answer).strip()
     base = strip_parentheticals(raw)
@@ -924,11 +932,13 @@ def answer_alternatives(answer):
     pieces = list(candidates)
     for candidate in candidates:
         pieces.extend(re.split(r"\s*/\s*|\s*;\s*", candidate))
+    for extra in accepted or ():
+        pieces.append(str(extra))
     for chunk in pieces:
         chunk = chunk.strip()
         if not chunk:
             continue
-        normalized = normalize_answer(chunk)
+        normalized = normalize_answer(chunk, fold_accents=fold_accents)
         if not normalized:
             continue
         alternatives.add(normalized)
@@ -941,14 +951,131 @@ def answer_alternatives(answer):
     return {alt for alt in alternatives if alt}
 
 
-def check_answer(question, given):
-    """Multiple choice is exact; typed answers are checked leniently."""
+# --- Milestone 8: STRICT/LENIENT grading tiers (design doc §14.2) ----------
+#
+# The addendum formalizes what Milestone 3 already did into two named tiers,
+# decided automatically from an item's own shape rather than hand-flagged:
+# a short (single-word-or-compound) answer is STRICT -- exact match after
+# shared normalization only, no synonym list -- while a longer phrase or
+# sentence is LENIENT and gets the full alternatives treatment above, plus
+# whatever a human has since added to that item's catalog `accepted` array
+# after triaging a report (§14.2.4).
+
+TIER_STRICT = "strict"
+TIER_LENIENT = "lenient"
+
+
+def grading_tier(answer_text):
+    """STRICT for a single word/compound (a vocab word, a number, one
+    isolated conjugated form); LENIENT for two or more words (a phrase, a
+    full-sentence translation, a fill-in-the-blank answer). The plus-slot and
+    parenthetical stripping happen first so a template item like "I am +
+    [nationality]" is judged on "I am" (LENIENT), not the annotated original."""
+    text = strip_parentheticals(_strip_plus_annotation(str(answer_text)))
+    return TIER_STRICT if len(text.split()) <= 1 else TIER_LENIENT
+
+
+def strict_alternatives(answer, fold_accents=True):
+    """STRICT-tier comparison set: normalization only (shared whitespace/
+    case/punctuation folding, contraction equivalence, the number-
+    regionalism table) -- no "/" splitting, no leading-article drop, no
+    catalog `accepted` list. Contractions and regional number words are kept
+    even here because they are genuine alternate spellings of the exact same
+    fact, not a synonym list of the kind STRICT is meant to exclude."""
+    normalized = normalize_answer(str(answer).strip(), fold_accents=fold_accents)
+    alternatives = {normalized} if normalized else set()
+    for alt in list(alternatives):
+        alternatives.update(_contraction_variants(alt))
+        alternatives.update(NUMBER_REGIONALISMS.get(alt, ()))
+    return {alt for alt in alternatives if alt}
+
+
+def generate_accepted_variants(text):
+    """The auto-generated seed for a LENIENT item's catalog `accepted` array
+    (§14.2): the canonical phrasing, the same with trailing punctuation
+    dropped, both directions of any contraction it contains, and -- only
+    when the raw text is an explicit "/" alternation -- each side on its own
+    plus the pair reordered. Deliberately mechanical: this only ever
+    recombines the item's own text, so it stays inside the same
+    copyright-safety rule as the runtime question generator (§5). Meant as a
+    starting point, not the final word -- the array is meant to keep growing
+    afterwards from real usage via the report button (§14.2.4)."""
+    raw = str(text).strip()
+    variants = []
+
+    def _add(value):
+        value = value.strip()
+        if value and value not in variants:
+            variants.append(value)
+
+    _add(raw)
+    stripped = raw.rstrip(TRAILING_PUNCTUATION + "…").strip()
+    _add(stripped)
+    for candidate in (raw, stripped):
+        for short, long in CONTRACTION_PAIRS:
+            if re.search(rf"\b{re.escape(short)}\b", candidate, re.IGNORECASE):
+                _add(re.sub(rf"\b{re.escape(short)}\b", long, candidate, flags=re.IGNORECASE))
+            if re.search(rf"\b{re.escape(long)}\b", candidate, re.IGNORECASE):
+                _add(re.sub(rf"\b{re.escape(long)}\b", short, candidate, flags=re.IGNORECASE))
+    sides = re.split(r"\s*/\s*", stripped)
+    if len(sides) == 2 and all(sides):
+        _add(f"{sides[0]} / {sides[1]}")
+        _add(f"{sides[1]} / {sides[0]}")
+    return variants
+
+
+def _catalog_item_accepted(item, field):
+    """The accepted-answer array for one catalog item/field. A human-curated
+    array literally present on the record (added by hand after triaging a
+    report, §14.2.4) wins; otherwise it's generated on the fly from the
+    item's own text. Generating it lazily rather than writing it out to the
+    966-item catalog file up front is what satisfies "auto-generated ...
+    not hand-authored for all 966 items" without bloating a file that is
+    otherwise just facts -- see CLAUDE.md's Milestone 8 build note."""
+    manual = item.get(f"accepted_{field}")
+    if manual:
+        return list(manual)
+    return generate_accepted_variants(item.get(field, ""))
+
+
+def _lookup_accepted(question, farm=None):
+    """Find the catalog item behind a generated question's answer, so
+    `check_answer` can consult its accepted-variant array. Safe against the
+    hand-built question dicts this file's own pre-Milestone-8 tests use
+    (which carry no "plot_id"), since a missing/unknown plot simply yields
+    no extra variants rather than raising."""
+    farm = state if farm is None else farm
+    plot = farm.plots_by_id.get(question.get("plot_id"))
+    if plot is None:
+        return None
+    answer = question.get("answer")
+    for item in plot.items:
+        if item.get("fr") == answer:
+            return _catalog_item_accepted(item, "fr")
+        if item.get("en") == answer:
+            return _catalog_item_accepted(item, "en")
+    return None
+
+
+def check_answer(question, given, tier=None, accent_sensitive=None):
+    """Multiple choice is always exact. Typed answers: with no `tier`
+    (the original Milestone 3 signature), this is byte-for-byte the old
+    fully-lenient check, so every pre-Milestone-8 caller is unaffected.
+    Passing a tier switches on §14.2's formal STRICT/LENIENT behaviour,
+    and `accent_sensitive` (default: folded, i.e. accent-insensitive, same
+    as always) lets a caller opt into the accent-sensitivity toggle."""
     if question["mode"] == "choice":
         return given == question["answer"]
-    typed = normalize_answer(given)
+    fold_accents = True if accent_sensitive is None else not accent_sensitive
+    typed = normalize_answer(given, fold_accents=fold_accents)
     if not typed:
         return False
-    return typed in answer_alternatives(question["answer"])
+    if tier is None:
+        return typed in answer_alternatives(question["answer"])
+    if tier == TIER_STRICT:
+        return typed in strict_alternatives(question["answer"], fold_accents=fold_accents)
+    accepted = _lookup_accepted(question)
+    return typed in answer_alternatives(question["answer"], accepted=accepted, fold_accents=fold_accents)
 
 
 # ===========================================================================
@@ -998,9 +1125,16 @@ FEEDBACK = {
 # Module-level UI state.
 current_question = None
 current_result = None
+current_submitted_answer = None
 practice_open = False
 plot_cells = {}
 QUESTION_RNG = random.Random()
+
+# §14.2's accent-sensitivity toggle: default ON (accents must be typed
+# correctly) since spelling them right is an assessed skill. A session
+# preference, not SRS state, so it deliberately stays out of get_state()/
+# load_state() -- same call as `plot.last_variant` in Milestone 4.
+ACCENT_SENSITIVE = True
 
 # Choice-button click handlers created by the last render_practice() call.
 # Unlike the grid's cell handlers and the panel's other fixed buttons (each
@@ -1290,21 +1424,29 @@ def open_practice(plot_id, variant=None):
 
 
 def submit_answer(given):
-    global current_result
+    global current_result, current_submitted_answer
 
     if current_question is None or current_result is not None:
         return None
-    current_result = check_answer(current_question, given)
+    typed_mode = current_question["mode"] == "typed"
+    current_submitted_answer = str(given).strip() if typed_mode else given
+    # §14.2: the tier is decided from the answer's own shape, only for typed
+    # answers -- multiple choice is always an exact match regardless.
+    tier = grading_tier(current_question["answer"]) if typed_mode else None
+    current_result = check_answer(
+        current_question, given, tier=tier, accent_sensitive=ACCENT_SENSITIVE
+    )
     state.review(current_question["plot_id"], current_result)
     render()
     return current_result
 
 
 def close_practice(event=None):
-    global current_question, current_result, practice_open
+    global current_question, current_result, current_submitted_answer, practice_open
 
     current_question = None
     current_result = None
+    current_submitted_answer = None
     practice_open = False
     render()
 
@@ -1330,6 +1472,16 @@ def on_next_day(event=None):
     render()
 
 
+def on_toggle_accent_sensitivity(event=None):
+    """§14.2: one global toggle, default ON. Flips on every click rather than
+    reading a `checked` property, so the fake-DOM harness (which has no real
+    checkbox semantics) can drive it the same way a real click would."""
+    global ACCENT_SENSITIVE
+    ACCENT_SENSITIVE = not ACCENT_SENSITIVE
+    _element("accent-toggle-checkbox").checked = ACCENT_SENSITIVE
+    render()
+
+
 def setup():
     build_farm()
     render_legend()
@@ -1338,6 +1490,10 @@ def setup():
     _element("practice-close-button").addEventListener("click", create_proxy(close_practice))
     _element("water-next-button").addEventListener("click", create_proxy(on_water_next))
     _element("next-day-button").addEventListener("click", create_proxy(on_next_day))
+    _element("accent-toggle-checkbox").addEventListener(
+        "click", create_proxy(on_toggle_accent_sensitivity)
+    )
+    _element("accent-toggle-checkbox").checked = ACCENT_SENSITIVE
     render()
 
 

@@ -89,6 +89,15 @@ h1 {
   flex-wrap: wrap;
 }
 
+.accent-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.7rem;
+  font-size: 0.8rem;
+  color: #7a6a53;
+}
+
 button {
   font-family: inherit;
   cursor: pointer;

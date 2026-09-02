@@ -9,6 +9,10 @@ Two small additions over Grid's copy, both driven by what this game's UI actuall
 needs: `value` (the typed-answer input box) and `setAttribute`/`getAttribute`
 (plot cells carry an `aria-label` mirroring their tooltip, so the sprite's
 meaning reaches a screen reader as well as the eye).
+
+A third, from Milestone 8: `checked` (the accent-sensitivity toggle
+checkbox, §14.2) -- game.py flips it directly rather than reading it back
+from a real checkbox's click semantics, which this fake DOM has no model of.
 """
 
 
@@ -40,6 +44,7 @@ class FakeElement:
         self.innerText = ""
         self._innerHTML = ""
         self.value = ""
+        self.checked = False
         self.disabled = False
         self.hidden = False
         self.title = ""

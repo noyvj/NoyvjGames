@@ -38,6 +38,7 @@ ELEMENT_IDS = [
     "water-next-button",
     "next-day-button",
     "legend",
+    "accent-toggle-checkbox",
 ]
 
 
