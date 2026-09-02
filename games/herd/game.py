@@ -353,7 +353,15 @@ def load_state(data):
     farm.funds = data["funds"]
     farm.herd_size = data["herd_size"]
     farm.methane = data["methane"]
-    farm.decoupling_investment = dict(data["decoupling_investment"])
+    # Merge key-by-key rather than replacing the dict outright: a save
+    # missing a measure (an older save format from before that measure
+    # existed, or a hand-edited/corrupted payload) must not wipe that
+    # measure's key out of the live dict entirely -- render() and
+    # _efficiency_coupling_ratio() both do decoupling_investment[measure]
+    # for every measure in DECOUPLING_MEASURES unconditionally, so a
+    # missing key would crash the game on the very next render/round.
+    farm.decoupling_investment = {m: 0 for m in DECOUPLING_MEASURES}
+    farm.decoupling_investment.update(data["decoupling_investment"])
     farm.plant_pivot_investment = data["plant_pivot_investment"]
     render()
     return True

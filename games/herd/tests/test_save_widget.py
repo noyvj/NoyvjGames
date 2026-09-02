@@ -126,3 +126,29 @@ def test_load_state_restores_a_json_round_tripped_snapshot(game_env):
     assert game_env.farm.herd_size == 1
     assert game_env.farm.decoupling_investment == {"feed": 0, "caps": 1, "capture": 0}
     assert game_env.farm.plant_pivot_investment == 1
+
+
+def test_load_state_backfills_a_decoupling_measure_missing_from_an_older_save(game_env):
+    """load_state() must merge decoupling_investment key-by-key against the
+    live DECOUPLING_MEASURES set rather than wholesale-replacing the dict
+    with whatever the save happened to contain. A save missing a measure
+    (an older save format from before that measure existed, or a
+    hand-edited/corrupted payload) must not wipe that measure's key out of
+    the live dict entirely -- render() and _efficiency_coupling_ratio()
+    both do `decoupling_investment[measure]` for every measure in
+    DECOUPLING_MEASURES unconditionally, so a missing key would crash the
+    game on the very next render/round rather than just resuming with 0
+    invested in that measure."""
+    game_env.grow_herd()
+    game_env.invest_decoupling("caps")
+    snapshot = game_env.module.get_state()
+    del snapshot["decoupling_investment"]["capture"]  # simulate an older/short save
+
+    result = game_env.module.load_state(snapshot)
+
+    assert result is True
+    assert game_env.farm.decoupling_investment == {"feed": 0, "caps": 1, "capture": 0}
+    # A subsequent render (as happens every real interaction) must not
+    # raise KeyError for the backfilled measure.
+    game_env.invest_decoupling("capture")
+    assert game_env.farm.decoupling_investment["capture"] == 1
