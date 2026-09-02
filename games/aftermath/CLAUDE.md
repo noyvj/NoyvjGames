@@ -99,6 +99,30 @@ documented below, this is derived, persistent-by-run-number bookkeeping, not
 per-run state that should travel with a save code. Covered by two new tests
 in `tests/test_save_system.py`.
 
+**Follow-up (second audit pass):** the high-water-mark guard above created
+its own sibling bug in `start_new_run()`, which derived the new run's
+`run_number` from the *current* RunState's own `run_number + 1` — but that
+current RunState can itself be a stale, reloaded snapshot sitting behind
+runs that have since completed and been awarded elsewhere in the session.
+Loading an old, still-incomplete save (nothing exploitative — just resuming
+an earlier snapshot) and then starting a new run from it could hand out a
+`run_number` that a later run had already completed and been awarded for,
+silently blocking the guard from ever awarding that genuinely new,
+never-before-played run. Fixed by deriving the new run's number from
+`max(run.run_number, highest_awarded_run) + 1` instead, so it can never
+collide with an already-awarded run regardless of what stale snapshot
+happens to be loaded when `start_new_run()` is called. Covered by a new
+test in `tests/test_save_system.py`.
+
+Also fixed this pass (both purely cosmetic, no functional/balance change):
+the module docstring still described the game as only having Milestone 1's
+single-run loop built, with scoring/skill tree/comparisons "landing in
+later milestones" — stale now that all 7 milestones are complete, updated
+to describe the finished game. `EVENT_ICON`'s `storm` entry carried an
+explicit U+FE0F variation selector to force emoji rendering while the other
+four entries didn't; added it consistently across all five so rendering
+doesn't vary by platform/font depending on which event icon is shown.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

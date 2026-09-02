@@ -1,10 +1,11 @@
 """Aftermath — Climate Adaptation & Resilience Game.
 
-Runs in-browser via Pyodide. Milestone 1: the single-run core loop — a
-fixed schedule of extreme weather events, resource allocation between
-events (resilience vs. growth investment), and damage resolution.
-Run scoring, the persistent skill tree, and cross-run comparisons land
-in later milestones.
+Runs in-browser via Pyodide. A repeated-short-run core loop: a fixed
+schedule of extreme weather (and other resilience-relevant) events,
+resource allocation between events (resilience vs. growth investment),
+and damage resolution, feeding a persistent cross-run skill tree and
+"how far you've come" run comparison. See CLAUDE.md for the full
+milestone history.
 """
 
 import copy
@@ -41,11 +42,16 @@ EVENT_LABEL = {
 }
 
 EVENT_ICON = {
-    "flood": "\U0001F30A",  # water wave
-    "heatwave": "\U0001F525",  # fire
+    # Each icon carries an explicit U+FE0F variation selector so every
+    # entry renders as a colorful emoji glyph consistently across
+    # platforms/fonts, rather than some (e.g. the high-voltage sign) risking
+    # a plain monochrome text-style glyph without it. Purely cosmetic —
+    # rendering-only, no functional effect.
+    "flood": "\U0001F30A️",  # water wave
+    "heatwave": "\U0001F525️",  # fire
     "storm": "\U0001F32A️",  # tornado
-    "supply_chain": "\U0001F4E6",  # package
-    "infrastructure_failure": "⚡",  # high voltage
+    "supply_chain": "\U0001F4E6️",  # package
+    "infrastructure_failure": "⚡️",  # high voltage
 }
 
 EVENT_BASE_DAMAGE = {
@@ -554,9 +560,21 @@ def on_resolve_event(event=None):
 
 def start_new_run(event=None):
     """Starts a fresh run, reading current skill-tree bonuses — each run
-    begins a little more capable than the last, per unlocked skills."""
+    begins a little more capable than the last, per unlocked skills.
+
+    Derives the new run_number from whichever is higher, the current run's
+    own number or the persisted highest-awarded-run mark, not just the
+    current run's number + 1. The current `run` can itself be a stale,
+    reloaded snapshot (e.g. the player loaded an old still-in-progress save
+    before starting anew) whose run_number sits behind runs that have
+    since completed and been awarded elsewhere in the session -- basing
+    the new number on it alone could hand out a run_number that's already
+    in highest_awarded_run's past, silently blocking this genuinely new
+    run's own completion payout later (see the double-award guard on
+    resolve_next_event() above, and its dedicated test coverage in
+    tests/test_save_system.py)."""
     global run
-    run = RunState(run_number=run.run_number + 1)
+    run = RunState(run_number=max(run.run_number, highest_awarded_run) + 1)
     render()
 
 

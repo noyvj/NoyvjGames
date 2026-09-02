@@ -188,3 +188,43 @@ def test_completing_further_runs_after_a_stale_reload_still_awards_normally(game
 
     assert game_env.skill_tree.knowledge_points > knowledge_before_run_two
     assert len(game_env.run_history) == history_len_before_run_two + 1
+
+
+def test_starting_a_new_run_after_a_stale_reload_never_reuses_an_awarded_run_number(game_env):
+    """A second, subtler consequence of the same two-persistence-layer setup:
+    start_new_run() used to derive the new run_number purely from the
+    *current* (possibly reloaded-and-stale) RunState's own run_number + 1.
+    Loading an old, still-incomplete save (nothing exploitative -- just
+    resuming an earlier snapshot) and then starting a new run from it could
+    therefore hand out a run_number that a *later* run had already completed
+    and been awarded for in the meantime. That collision silently blocks the
+    high-water-mark guard from ever awarding the genuinely new run -- a
+    legitimate playthrough that had never been rewarded before completes
+    with no payout and no error. start_new_run() must pick a run_number
+    that has never been awarded, regardless of what stale snapshot happens
+    to be loaded when it's called."""
+    schedule_length = len(game_env.module.EVENT_SCHEDULE)
+
+    for _ in range(schedule_length):
+        game_env.resolve_event()  # completes run 1
+
+    game_env.start_new_run()  # run 2
+    early_run2_snapshot = game_env.module.get_state()  # before any events
+    for _ in range(schedule_length):
+        game_env.resolve_event()  # completes run 2
+
+    game_env.start_new_run()  # run 3
+    for _ in range(schedule_length):
+        game_env.resolve_event()  # completes run 3
+
+    knowledge_before = game_env.skill_tree.knowledge_points
+    history_len_before = len(game_env.run_history)
+
+    game_env.module.load_state(early_run2_snapshot)  # stale, incomplete run 2
+    game_env.start_new_run()  # must not reuse run_number 3 (already awarded)
+
+    for _ in range(schedule_length):
+        game_env.resolve_event()  # completes this genuinely new run
+
+    assert game_env.skill_tree.knowledge_points > knowledge_before
+    assert len(game_env.run_history) == history_len_before + 1
