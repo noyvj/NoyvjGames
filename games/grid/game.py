@@ -1,9 +1,10 @@
 """Grid — Energy Transition Game.
 
-Runs in-browser via Pyodide. Milestone 1: the core turn-based loop —
-demand growth, funds, six plant types to build/retire, and capacity-based
-revenue on round advance. Emissions, cost curves, and disruption events
-land in later milestones.
+Runs in-browser via Pyodide. Turn-based loop across demand growth, funds,
+six plant types to build/retire/maintain, capacity-based revenue on round
+advance, an emissions meter and renewable cost curve, and emissions-driven
+disruption events plus infrastructure aging — see CLAUDE.md's milestone
+table for how each system landed.
 """
 
 import copy
@@ -42,7 +43,7 @@ PLANT_ICON = {
 }
 
 # Flat, un-degraded costs and generation capacity per unit. Renewable
-# cost decay is Milestone 2's job.
+# cost decay off these base costs is applied by plant_cost() below.
 PLANT_BASE_COST = {
     "coal": 50,
     "gas": 40,
@@ -653,13 +654,16 @@ def on_advance_round(event=None):
 # SAVE-BUTTON-INTEGRATION.md contract for the shared shared/save-widget.js:
 # get_state() returns every module-level mutable global (the GridState
 # instance's attributes, plus the info-page toggle) as one plain,
-# JSON-safe dict, and load_state() is its exact inverse. Nested mutable
-# containers (plant_counts, cumulative_built, plant_age, event_log,
-# last_event, the history lists, last_aging_event) are deep-copied on the
-# way out and back in, so a live reference is never shared between the
-# saved snapshot and continued play — same reasoning as SOL's
-# serialize_state() docstring. Grid has no non-JSON-native types (no sets)
-# in its state, unlike SOL's unlocked_bodies.
+# JSON-safe dict. get_state() deep-copies every nested mutable container
+# (plant_counts, cumulative_built, plant_age, event_log, last_event, the
+# history lists, last_aging_event) on the way out, so a live reference is
+# never shared between the saved snapshot and continued play — same
+# reasoning as SOL's serialize_state() docstring. Grid has no non-JSON-
+# native types (no sets) in its state, unlike SOL's unlocked_bodies.
+# load_state() is its inverse, but not a blind mirror: plant_counts,
+# cumulative_built and plant_age are merged into the live dicts key-by-key
+# (_merge_plant_dict) rather than replacing them wholesale, so a save
+# missing a plant-type key can't drop that key from live state entirely.
 def get_state():
     return {
         "round_number": state.round_number,
@@ -682,14 +686,30 @@ def get_state():
     }
 
 
+def _merge_plant_dict(live, saved):
+    """Writes a saved per-plant-type dict into the live one key-by-key,
+    rather than replacing it wholesale. The key set (PLANT_TYPES) belongs
+    to game.py, not to the save: a save written before a plant type
+    existed (or a hand-edited/truncated payload) can be missing one of
+    those keys, and every consumer (render(), total_capacity(),
+    plant_cost(), ...) does live[plant_type] unconditionally for every
+    type in PLANT_TYPES — a wholesale replace would drop the missing key
+    from the dict entirely and crash on the very next access, after the
+    save widget already reported a successful load. Keys the save doesn't
+    know about simply keep their current live value."""
+    for plant_type in live:
+        if plant_type in saved:
+            live[plant_type] = saved[plant_type]
+
+
 def load_state(data):
     global info_page_open
 
     state.round_number = data["round_number"]
     state.demand = data["demand"]
     state.funds = data["funds"]
-    state.plant_counts = copy.deepcopy(data["plant_counts"])
-    state.cumulative_built = copy.deepcopy(data["cumulative_built"])
+    _merge_plant_dict(state.plant_counts, data["plant_counts"])
+    _merge_plant_dict(state.cumulative_built, data["cumulative_built"])
     state.emissions = data["emissions"]
     state.event_log = copy.deepcopy(data["event_log"])
     state.last_event = copy.deepcopy(data["last_event"])
@@ -697,7 +717,7 @@ def load_state(data):
     state.emissions_history = list(data["emissions_history"])
     state.avg_renewable_cost_history = list(data["avg_renewable_cost_history"])
     state.renewable_unlocked = data["renewable_unlocked"]
-    state.plant_age = copy.deepcopy(data["plant_age"])
+    _merge_plant_dict(state.plant_age, data["plant_age"])
     state.global_reference_emissions = data["global_reference_emissions"]
     state.global_reference_emissions_history = list(data["global_reference_emissions_history"])
     state.last_aging_event = copy.deepcopy(data["last_aging_event"])

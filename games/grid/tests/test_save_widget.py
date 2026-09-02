@@ -116,6 +116,36 @@ def test_full_round_trip_restores_every_tracked_field(game_env):
     assert game_env.module.info_page_open == snapshot["info_page_open"]
 
 
+def test_load_state_preserves_plant_keys_missing_from_an_older_save(game_env):
+    """load_state() must merge plant_counts/cumulative_built/plant_age
+    key-by-key rather than replacing the live dict wholesale. A save
+    written before a plant type existed (or a hand-edited/truncated
+    payload) can be missing one of those keys entirely -- every consumer
+    (render(), total_capacity(), plant_cost(), ...) does
+    state.plant_counts[plant_type] unconditionally for every type in
+    PLANT_TYPES, so dropping a key from the live dict crashes on the very
+    next access, after the widget already reported a successful load."""
+    game_env.build("hydro")
+    snapshot = game_env.module.get_state()
+    del snapshot["plant_counts"]["hydro"]
+    del snapshot["cumulative_built"]["hydro"]
+    del snapshot["plant_age"]["hydro"]
+
+    game_env.build("hydro")  # diverge further before loading the older-shaped save
+
+    result = game_env.module.load_state(snapshot)
+
+    assert result is True
+    assert "hydro" in game_env.state.plant_counts
+    assert "hydro" in game_env.state.cumulative_built
+    assert "hydro" in game_env.state.plant_age
+    # Untouched types still round-trip normally.
+    assert game_env.state.plant_counts["coal"] == snapshot["plant_counts"]["coal"]
+
+    # Must not crash accessing the now-missing key.
+    game_env.module.render()
+
+
 def test_load_state_re_renders_the_ui(game_env):
     game_env.build("coal")
     game_env.build("coal")
