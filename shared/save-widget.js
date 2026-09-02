@@ -20,6 +20,15 @@
  * a "Claim this save to your account" option appears after a successful
  * save. No auto-save, no conflict resolution — one explicit button, one
  * explicit save point, last write wins. See §5 of the design doc for why.
+ *
+ * Signed-in autoload: on page load, if signed in, the widget fetches the
+ * account's saves for this game and, if any exist, loads the most recently
+ * updated one automatically — the account is the source of truth once
+ * signed in, ahead of whatever anonymous code happens to be remembered in
+ * this browser's localStorage for this game. Without this, a returning
+ * signed-in player who forgot to paste in their code by hand would see a
+ * blank farm/city/settlement every time and reasonably read that as "my
+ * save keeps resetting" — it wasn't resetting, it just was never loading.
  */
 (function () {
   const SCRIPT = document.currentScript;
@@ -171,8 +180,69 @@
     claimButton.hidden = !localStorage.getItem(AUTH_TOKEN_KEY);
   }
 
-  const existingCode = localStorage.getItem(STORAGE_KEY);
-  if (existingCode) showActiveCode(existingCode);
+  // Pyodide loads asynchronously and each game's own boot script sets
+  // window.pyodide only once loadPyodide() resolves — this widget mounts
+  // immediately, well before that's guaranteed to have happened, so an
+  // autoload attempt has to be able to wait for load_state() to actually
+  // exist rather than assuming it's there yet.
+  function waitForLoadState(timeoutMs = 15000, intervalMs = 150) {
+    return new Promise((resolve, reject) => {
+      const start = Date.now();
+      (function check() {
+        const loadState = window.pyodide && window.pyodide.globals.get("load_state");
+        if (loadState) return resolve(loadState);
+        if (Date.now() - start > timeoutMs) return reject(new Error("timed out waiting for Pyodide"));
+        setTimeout(check, intervalMs);
+      })();
+    });
+  }
+
+  // Returns true if an account save for this game was found and loaded.
+  async function tryAutoLoadFromAccount() {
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    if (!token) return false;
+    let saves;
+    try {
+      const res = await fetch(`${API_BASE}/users/me/saves`, { headers: authHeaders() });
+      if (!res.ok) return false;
+      saves = await res.json();
+    } catch (err) {
+      return false;
+    }
+    const forThisGame = saves.filter((s) => s.game_id === GAME_ID);
+    if (!forThisGame.length) return false;
+    forThisGame.sort((a, b) => {
+      const aTime = new Date(a.updated_at || a.created_at).getTime();
+      const bTime = new Date(b.updated_at || b.created_at).getTime();
+      return bTime - aTime;
+    });
+    const mostRecent = forThisGame[0];
+    let loadState;
+    try {
+      loadState = await waitForLoadState();
+    } catch (err) {
+      return false;
+    }
+    try {
+      loadState(window.pyodide.toPy(mostRecent.save_data));
+    } catch (err) {
+      return false;
+    }
+    localStorage.setItem(STORAGE_KEY, mostRecent.save_code);
+    showActiveCode(mostRecent.save_code);
+    // This came from GET /users/me/saves -- the account's own saves list --
+    // so it's already claimed to this account. Offering to claim it again
+    // would be redundant (and confusing) even though it's a harmless no-op.
+    claimButton.hidden = true;
+    statusEl.textContent = "Continued your most recent save.";
+    return true;
+  }
+
+  (async () => {
+    if (await tryAutoLoadFromAccount()) return;
+    const existingCode = localStorage.getItem(STORAGE_KEY);
+    if (existingCode) showActiveCode(existingCode);
+  })();
 
   newButton.addEventListener("click", () => {
     localStorage.removeItem(STORAGE_KEY);

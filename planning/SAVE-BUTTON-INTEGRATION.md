@@ -2,7 +2,7 @@
 
 Companion to `SAVE-SYSTEM-DESIGN.md` (backend/schema) and `ACCOUNTS-AND-FEEDBACK-DESIGN.md` (accounts). This doc covers the piece that goes *inside* each game: one shared save button and one shared script, dropped into every game unchanged, so saving doesn't need custom work per game.
 
-Status: **draft — not yet built.**
+Status: **Built and rolled out — 2026-08-20.** `shared/save-widget.js` is live in SOL (the reference integration), all 8 climate games, Le Champ de Mots, and Continuum (Phase 1, Milestone 4, built on this same contract from the start). Extended same day with signed-in autoload (§3) once real use showed that without it, a returning signed-in player who forgot to paste in their code by hand would see a blank save every time and reasonably read that as "my save keeps resetting."
 
 ---
 
@@ -47,6 +47,7 @@ That's the whole contract. If a game can honestly implement both functions, the 
 - **Remembers the code locally:** stores the last save code for *this game* in `localStorage` (keyed per game, e.g. `savecode:sol`), so returning to the same browser can offer "Continue" without retyping a code.
 - **On Load:** takes a code (typed in, or auto-filled from `localStorage`), `GET`s `/saves/{code}`, and calls `window.pyodide.globals.get('load_state')(data)`.
 - **If a user is logged in** (bearer token present — see `ACCOUNTS-AND-FEEDBACK-DESIGN.md`): after a successful save, also offers a one-click "Claim this save to my account" button, which calls `POST /saves/{code}/claim`. Anonymous play always still works; this is additive, not required.
+- **On page load, if logged in: autoload the account's most recent save for this game.** Calls `GET /users/me/saves`, filters to this game's `game_id`, and — if any are found — loads the one with the latest `updated_at` (falling back to `created_at`), before falling back to whatever anonymous code is remembered in this browser's `localStorage`. The account is the source of truth once signed in; a signed-in player should never have to remember and paste in a code by hand just to pick up where they left off. Because `window.pyodide`/`load_state()` aren't guaranteed to exist yet when the widget mounts, this waits (polling, 15s timeout) for the game's boot script to finish before attempting the load. A save reached this way is already claimed (it came from the account's own list), so the "Claim this save" link is skipped for it.
 
 ## 4. Drop-in HTML
 
