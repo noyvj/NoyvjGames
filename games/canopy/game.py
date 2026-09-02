@@ -247,9 +247,25 @@ def stakeholder_request_message():
     return f"Plot {idx} is thriving, but {STAKEHOLDER_REASON_TEXT[reason]}. Grant the request, or decline and keep it standing?"
 
 
+def _stakeholder_target_is_still_standing():
+    """A pending request names its target plot by index, but nothing stops
+    the player from selecting that same plot and clicking Clear directly,
+    bypassing Grant/Decline entirely. Guards both handlers below against a
+    stale request: without this, Grant would hand out its relations bonus
+    for free (clear() on an already-BARE plot is a no-op, no real payout),
+    and Decline would penalize relations for a plot that isn't standing
+    anymore."""
+    plot = plots[pending_stakeholder_request["plot_index"]]
+    return plot.state in ACCRUING_STATES
+
+
 def grant_stakeholder_request(event=None):
     global pending_stakeholder_request, community_relations, total_income
     if pending_stakeholder_request is None:
+        return False
+    if not _stakeholder_target_is_still_standing():
+        pending_stakeholder_request = None
+        render()
         return False
     plot = plots[pending_stakeholder_request["plot_index"]]
     payout = plot.clear()
@@ -264,6 +280,10 @@ def grant_stakeholder_request(event=None):
 def decline_stakeholder_request(event=None):
     global pending_stakeholder_request, community_relations
     if pending_stakeholder_request is None:
+        return False
+    if not _stakeholder_target_is_still_standing():
+        pending_stakeholder_request = None
+        render()
         return False
     community_relations = max(0, community_relations + STAKEHOLDER_DECLINE_RELATIONS_DELTA)
     pending_stakeholder_request = None
@@ -527,9 +547,17 @@ def on_replant(event=None):
 
 
 def tick(event=None):
+    global pending_stakeholder_request
     for plot in plots:
         plot.accrue_tick()
         plot.advance_recovery()
+    if pending_stakeholder_request is not None and not _stakeholder_target_is_still_standing():
+        # The requested plot was cleared/replanted directly (see the
+        # grant/decline guard above) — drop the now-stale request so a new
+        # one can still fire later, instead of maybe_trigger_stakeholder_
+        # request() refusing to raise one forever because it sees a
+        # (meaningless) request still pending.
+        pending_stakeholder_request = None
     maybe_trigger_stakeholder_request()
     render()
 

@@ -153,3 +153,66 @@ def test_stakeholder_reason_cycles_deterministically(game_env):
 def test_community_relations_display_updates(game_env):
     game_env.module.render()
     assert "50" in game_env.elements["community-relations-display"].innerText
+
+
+# Staleness guard: a pending stakeholder request names a specific plot by
+# index, but nothing stops the player from selecting that same plot and
+# clicking Clear directly (bypassing Grant/Decline entirely). Without a
+# guard, Grant would then find the plot already BARE (clear() a no-op,
+# payout None) yet still hand out the relations bonus for free, Decline
+# would penalize relations against a plot that isn't standing anymore, and
+# — because maybe_trigger_stakeholder_request() refuses to raise a new
+# request while one is already pending — the stakeholder-tension system
+# would stay permanently stuck until the player happened to click
+# Grant/Decline on the now-meaningless request.
+def test_grant_after_target_cleared_directly_gives_no_bonus_or_double_payout(game_env):
+    game_env.timers.tick_intervals(game_env.module.STAKEHOLDER_EVENT_INTERVAL_TICKS + 1)
+    target = game_env.module.pending_stakeholder_request["plot_index"]
+    game_env.select(target)
+    game_env.clear()  # bypasses Grant/Decline — request is now stale
+    income_after_direct_clear = game_env.total_income
+    relations_before = game_env.module.community_relations
+
+    result = game_env.module.grant_stakeholder_request()
+
+    assert result is False
+    assert game_env.total_income == income_after_direct_clear
+    assert game_env.module.community_relations == relations_before
+    assert game_env.module.pending_stakeholder_request is None
+
+
+def test_decline_after_target_cleared_directly_gives_no_penalty(game_env):
+    game_env.timers.tick_intervals(game_env.module.STAKEHOLDER_EVENT_INTERVAL_TICKS + 1)
+    target = game_env.module.pending_stakeholder_request["plot_index"]
+    game_env.select(target)
+    game_env.clear()  # bypasses Grant/Decline — request is now stale
+    relations_before = game_env.module.community_relations
+
+    result = game_env.module.decline_stakeholder_request()
+
+    assert result is False
+    assert game_env.module.community_relations == relations_before
+    assert game_env.module.pending_stakeholder_request is None
+
+
+def test_stale_stakeholder_request_is_dropped_on_the_next_tick(game_env):
+    game_env.timers.tick_intervals(game_env.module.STAKEHOLDER_EVENT_INTERVAL_TICKS + 1)
+    target = game_env.module.pending_stakeholder_request["plot_index"]
+    game_env.select(target)
+    game_env.clear()  # bypasses Grant/Decline — request is now stale
+    game_env.tick()
+    assert game_env.module.pending_stakeholder_request is None
+
+
+def test_stakeholder_requests_resume_after_a_stale_one_is_dropped(game_env):
+    game_env.timers.tick_intervals(game_env.module.STAKEHOLDER_EVENT_INTERVAL_TICKS + 1)
+    target = game_env.module.pending_stakeholder_request["plot_index"]
+    game_env.select(target)
+    game_env.clear()
+    game_env.tick()  # drops the stale request
+    assert game_env.module.pending_stakeholder_request is None
+
+    # A fresh interval's worth of ticks should raise a new request against
+    # a still-standing plot, proving the system isn't stuck.
+    game_env.timers.tick_intervals(game_env.module.STAKEHOLDER_EVENT_INTERVAL_TICKS)
+    assert game_env.module.pending_stakeholder_request is not None

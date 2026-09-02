@@ -71,6 +71,26 @@ An optional, player-triggered "The Real Story" panel — never forced mid-sessio
 
 All four links verified live before merging.
 
+## Audit Notes — Code-quality pass (implemented)
+
+Site-wide bug/cleanup audit. Found one real bug: a pending stakeholder
+request names its target plot by index, but nothing stopped the player
+from selecting that same plot and clicking Clear directly instead of
+using Grant/Decline. That left the request stale — Grant would hand out
+its relations bonus for free (the plot was already BARE, so `clear()`
+paid out nothing), Decline would penalize relations against a plot that
+wasn't standing anymore, and since `maybe_trigger_stakeholder_request()`
+refuses to raise a new request while one is already pending, the whole
+stakeholder-tension system could get stuck indefinitely if the player
+never happened to click Grant/Decline on the now-meaningless request.
+
+**Fixed:** `grant_stakeholder_request()`/`decline_stakeholder_request()`
+now check the target plot is still in an accruing state before applying
+their relations delta, and `tick()` drops a request whose target is no
+longer standing so a fresh one can still fire later. Everything else
+audited clean — no other bugs, no convention violations (relative paths,
+save-widget contract, test structure all check out).
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
