@@ -50,7 +50,7 @@ Given the multi-week scope, milestones are grouped into phases rather than a sin
 | # | Milestone | Status |
 |---|-----------|--------|
 | 1 | Core city simulation loop, Tribal era only (population, basic resources, simple production). Tests: resource/population update logic. | **DONE** |
-| 2 | Sustainability/livability score system, integrated from the start, responding to Tribal-era decisions. Tests: score calculation across sample decision sequences. | Pending |
+| 2 | Sustainability/livability score system, integrated from the start, responding to Tribal-era decisions. Tests: score calculation across sample decision sequences. | **DONE** |
 | 3 | Research tree engine — generic, extensible tier/layer structure first, then just enough Tribal-era nodes to prove it. Tests: unlock logic, prerequisite checking. | Pending |
 | 4 | Save system schema — continuous-save-with-revisit structure, even though only one era exists yet. Tests: save/load round-trip, era-snapshot logic. | Pending |
 
@@ -97,6 +97,10 @@ Concrete calls made while building Phase 1 that the doc left open. Revisit freel
 - **Research reaches the simulation through exactly one seam.** `sim.NEUTRAL_EFFECTS` defines every modifier key the tree is allowed to touch, and `advance_season(effects)` applies them. Milestone 1 always passes the neutral dict, so the tree could be added in Milestone 3 without editing the season loop.
 - **Era list confirmed as proposed** (Tribal → Agrarian → Classical → Medieval → Industrial → Digital → Space Age), and lives in `sim.ERA_ORDER`. The research tree's tier map and the save file's era-snapshot dict both key off that one list, so changing an era later means editing one constant.
 - **Tribal-era shape.** Four worker roles (foragers / gatherers / crafters / keepers) and four buildings (shelter / storage pit / fire circle / knapping site). Keepers produce `knowledge`, which is the research currency for all seven eras — one currency across the whole tree rather than an era-specific one.
+- **The score is built from ratios only, never counts.** Every input to `sustainability.py` is a per-capita or per-limit ratio, which is what mechanically guarantees the doc's requirement that a small well-run settlement can beat a large badly-run one. Scaling a settlement up while scaling what it needs up with it is score-neutral by construction; there is a test that asserts exactly that.
+- **Four equally-weighted components** — livability, equity, resource balance, resilience — matching the doc's SDG 11 framing. Equal weighting is a judgement call, not a finding; `sustainability.COMPONENT_WEIGHTS` is the one place to revisit it.
+- **Equity is bounded by the least-met need, not the average.** A settlement with grand shelters and empty stomachs scores badly on equity even where its average provision looks fine. This is what keeps equity from being a restatement of livability.
+- **The score is a pure function of state.** Nothing in `sustainability.py` mutates anything or accumulates hidden history, so any era snapshot can be re-scored at any time — which is what makes Milestone 4's revisit feature cheap. The score *history* is state and lives on `CityState`.
 - **Land health is the sustainability engine, not a decoration.** The land has a finite sustainable yield per season; harvesting past it degrades land health, which cuts every future yield, and staying under it lets the land recover. This is the mechanism that makes a small well-run settlement able to out-score a large badly-run one.
 
 ## Tech notes

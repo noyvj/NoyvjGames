@@ -111,6 +111,30 @@ h1 {
   background: #6f9c5a;
 }
 
+.meter-fill--score {
+  background: #d6a45c;
+}
+
+.component-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem 0.75rem;
+  margin: 0.5rem 0 0;
+}
+
+.component-line {
+  margin: 0;
+  font-size: 0.82rem;
+  opacity: 0.8;
+}
+
+/* The single weakest component is called out, so the score reads as a
+   diagnosis rather than a grade. */
+.component-line--weakest {
+  opacity: 1;
+  color: #e0a04c;
+}
+
 .row {
   display: flex;
   flex-direction: column;

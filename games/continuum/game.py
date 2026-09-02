@@ -27,6 +27,7 @@ if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
 import sim  # noqa: E402
+import sustainability  # noqa: E402
 
 from js import document  # noqa: E402
 from pyodide.ffi import create_proxy  # noqa: E402
@@ -128,6 +129,36 @@ def render():
         state.last_report
     )
 
+    render_sustainability(effects)
+
+
+def render_sustainability(effects):
+    """The score panel — visible from season 1 of the first era, by design."""
+    reading = sustainability.evaluate(state, effects)
+    value = reading["score"]
+
+    document.getElementById("score-display").innerText = (
+        f"Sustainability: {value:.0f} / 100 — {sustainability.score_label(value)}"
+    )
+    document.getElementById("score-bar").style.width = f"{value:.0f}%"
+
+    weakest = sustainability.weakest_component(state, effects)
+    for component in sustainability.COMPONENTS:
+        element = document.getElementById(f"{component}-display")
+        element.innerText = (
+            f"{sustainability.COMPONENT_LABEL[component]}: "
+            f"{reading['components'][component]:.0f}"
+        )
+        element.className = (
+            "component-line component-line--weakest"
+            if component == weakest
+            else "component-line"
+        )
+
+    document.getElementById("score-note-display").innerText = sustainability.score_note(
+        state, effects
+    )
+
 
 # --- handlers ----------------------------------------------------------
 def _make_assign_handler(role):
@@ -152,7 +183,9 @@ def _make_build_handler(building):
 
 
 def on_advance_season(event=None):
-    state.advance_season(current_effects())
+    effects = current_effects()
+    state.advance_season(effects)
+    state.score_history.append(sustainability.score(state, effects))
     render()
 
 

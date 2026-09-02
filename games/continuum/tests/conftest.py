@@ -33,6 +33,14 @@ ELEMENT_IDS = [
     "land-health-bar",
     "season-report-display",
     "advance-season-button",
+    # Milestone 2 — sustainability score panel
+    "score-display",
+    "score-bar",
+    "score-note-display",
+    "livability-display",
+    "equity-display",
+    "balance-display",
+    "resilience-display",
 ]
 for _role in ROLES:
     ELEMENT_IDS += [f"{_role}-count", f"{_role}-add-button", f"{_role}-remove-button"]

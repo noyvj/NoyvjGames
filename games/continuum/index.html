@@ -33,6 +33,19 @@
       <p id="season-report-display" class="event-display">The settlement is waiting on your word.</p>
     </div>
 
+    <div id="sustainability" class="section">
+      <h2 class="section-heading">Sustainability</h2>
+      <p id="score-display" class="status-line">Sustainability: 0 / 100</p>
+      <div class="meter"><div id="score-bar" class="meter-fill meter-fill--score"></div></div>
+      <div class="component-grid">
+        <p id="livability-display" class="component-line">Livability: 0</p>
+        <p id="equity-display" class="component-line">Equity: 0</p>
+        <p id="balance-display" class="component-line">Resource balance: 0</p>
+        <p id="resilience-display" class="component-line">Resilience: 0</p>
+      </div>
+      <p id="score-note-display" class="event-display">A settlement that grows isn't automatically a settlement worth living in.</p>
+    </div>
+
     <div id="work" class="section">
       <h2 class="section-heading">Work</h2>
       <p id="idle-display" class="status-line">Unassigned: 1</p>
@@ -154,7 +167,7 @@
     // Each engine module is written into Pyodide's virtual filesystem (the
     // working directory, which is on sys.path) before game.py runs and
     // imports them. Still no build step — just more than one fetch.
-    const ENGINE_MODULES = ["sim.py"];
+    const ENGINE_MODULES = ["sim.py", "sustainability.py"];
 
     async function main() {
       const pyodide = await loadPyodide();

@@ -206,6 +206,11 @@ class CityState:
         self.last_extraction = 0.0
         self.last_sustainable_yield = LAND_SUSTAINABLE_YIELD
         self.last_report = None
+        # The sustainability score is computed by sustainability.py as a
+        # pure function of this state, but its history is state — it gets
+        # saved, snapshotted, and eventually graphed — so it lives here.
+        # game.py appends one entry per completed season.
+        self.score_history = []
 
     # --- allocation -----------------------------------------------------
     def assigned_workers(self):
