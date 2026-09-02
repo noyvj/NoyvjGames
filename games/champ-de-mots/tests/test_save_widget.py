@@ -211,6 +211,42 @@ def test_load_state_tolerates_a_partial_plot_record(game_env):
     assert plot.ease_factor == module.DEFAULT_EASE
 
 
+def test_load_state_on_a_truly_empty_dict_starts_a_fresh_farm(game_env):
+    """PR #1 (sean-hart) review finding: every existing test always passes
+    explicit version/current_day/plots keys (even if plots is {}) — none
+    exercises data.get("plots") or {} and data.get("current_day", 0)
+    together against a dict missing both entirely, the "truly empty save"
+    case CLAUDE.md's Milestone 5 notes call out as in-scope. Unlike
+    aftermath/canopy's load_state (which intentionally raise KeyError on a
+    malformed dict — see their own save-system tests), this game's
+    load_state is written to tolerate exactly this: every field already
+    defaults via .get(), so a genuinely empty dict should succeed cleanly
+    rather than raise, restoring day 0 with every plot reset to its
+    just-planted state."""
+    module, state = game_env.module, game_env.state
+    state.current_day = 5
+    state.plots[0].stage = module.STAGE_BLOOMING
+
+    assert module.load_state({}) is True
+    assert state.current_day == 0
+    assert state.plots[0].stage == module.STAGE_SEED
+
+
+def test_load_state_falls_back_to_seed_stage_for_an_unrecognized_stage_string(game_env):
+    """The other half of the same finding: no test exercised the
+    `if plot.stage not in STAGE_RANK: plot.stage = STAGE_SEED` fallback a
+    few lines below the .get() defaults — e.g. a save written by a future
+    build with a stage name this build doesn't know, or a hand-edited
+    payload."""
+    module, state = game_env.module, game_env.state
+    plot = state.plots[0]
+
+    assert module.load_state(
+        {"current_day": 1, "plots": {plot.plot_id: {"stage": "not-a-real-stage"}}}
+    ) is True
+    assert plot.stage == module.STAGE_SEED
+
+
 def test_the_page_includes_the_shared_save_widget_unchanged(game_env):
     """SAVE-BUTTON-INTEGRATION.md §4: the one drop-in line, with this game's
     id, and window.pyodide exposed for it by the boot script."""
