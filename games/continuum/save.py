@@ -278,6 +278,21 @@ class Campaign:
 
         snapshots = data.get("era_snapshots")
         self.era_snapshots = copy.deepcopy(snapshots) if isinstance(snapshots, dict) else {}
+        if self.revisiting is not None and self.revisiting not in self.era_snapshots:
+            # Belt-and-suspenders, purely defensive: `enter_revisit()` never
+            # sets `revisiting` to an era without first confirming it has a
+            # snapshot, so a well-formed save can't actually hit this. The
+            # `parked_state`-is-missing guard above already catches a
+            # hand-edited save that drops `parked_state` too, but not one
+            # that keeps a (fabricated) `parked_state` while pointing
+            # `revisiting` at an era `era_snapshots` never recorded — cross-
+            # check against the schema's own source of truth rather than
+            # trusting the save file's word for it. Clear `parked_state` too,
+            # the same as the guard above does, so `revisiting is None`
+            # keeps meaning "no forward progress parked" rather than leaving
+            # it stranded with no `revisiting` era left to exit back from.
+            self.revisiting = None
+            self.parked_state = None
 
         ui = data.get("ui")
         self.ui = copy.deepcopy(ui) if isinstance(ui, dict) else {}

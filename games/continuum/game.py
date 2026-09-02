@@ -132,11 +132,15 @@ def render():
 
     idle = state.idle_workers()
     for role in sim.ROLES:
+        document.getElementById(f"{role}-name").innerText = sim.ROLE_LABEL[role]
+        document.getElementById(f"{role}-blurb").innerText = sim.ROLE_BLURB[role]
         document.getElementById(f"{role}-count").innerText = str(state.allocation[role])
         document.getElementById(f"{role}-add-button").disabled = idle <= 0
         document.getElementById(f"{role}-remove-button").disabled = state.allocation[role] <= 0
 
     for building in sim.BUILDINGS:
+        document.getElementById(f"{building}-name").innerText = sim.BUILDING_LABEL[building]
+        document.getElementById(f"{building}-blurb").innerText = sim.BUILDING_BLURB[building]
         document.getElementById(f"{building}-count").innerText = str(state.buildings[building])
         button = document.getElementById(f"{building}-build-button")
         button.innerText = f"Build ({sim.BUILDING_COST[building]:.0f})"
@@ -178,6 +182,15 @@ def render_sustainability(effects):
     )
 
 
+# Study-button click handlers, keyed by node_id. render_research() rebuilds
+# every row (and mints a fresh create_proxy() for every unresearched node)
+# on every render; a Pyodide proxy isn't garbage-collected on its own, so
+# without tracking the previous render's proxy here and destroying it before
+# its replacement is created, they'd accumulate unboundedly for the life of
+# the page — a real, slow memory leak over a play session.
+_research_button_proxies = {}
+
+
 def render_research():
     """The research panel, rebuilt from the tree each render.
 
@@ -195,6 +208,7 @@ def render_research():
     container = document.getElementById("research-list")
     container.innerHTML = ""
 
+    live_node_ids = set()
     for node in tree.visible_nodes():
         researched = tree.is_researched(node.node_id)
         available = tree.is_available(node.node_id)
@@ -245,11 +259,24 @@ def render_research():
         else:
             button.innerText = f"Study ({node.cost:.0f})"
             button.disabled = not (available and tree.can_afford(node.node_id, state.resources))
-            button.addEventListener("click", create_proxy(_make_research_handler(node.node_id)))
+            live_node_ids.add(node.node_id)
+            proxy = create_proxy(_make_research_handler(node.node_id))
+            stale = _research_button_proxies.get(node.node_id)
+            if stale is not None:
+                stale.destroy()
+            _research_button_proxies[node.node_id] = proxy
+            button.addEventListener("click", proxy)
         actions.appendChild(button)
         row.appendChild(actions)
 
         container.appendChild(row)
+
+    # Nodes that no longer need a Study button this render (just researched,
+    # or no longer visible) still have their old proxy sitting in the
+    # tracking dict — destroy and drop it rather than leaking it forever.
+    for node_id in list(_research_button_proxies):
+        if node_id not in live_node_ids:
+            _research_button_proxies.pop(node_id).destroy()
 
 
 # --- handlers ----------------------------------------------------------

@@ -69,12 +69,13 @@ def era_index(era):
 # extend the list rather than replacing the mechanic.
 ROLES = ["foragers", "gatherers", "crafters", "keepers"]
 
-# The label/blurb tables below are currently mirrored as static markup in
-# index.html, which is why nothing reads them yet: with one era there are
-# eight strings and static rows are simpler. They are kept as the intended
-# source of truth because roles and buildings change per era — the moment a
-# second era ships, the Work and Build panels have to be rendered from these
-# the way the research panel already is, and the copies in index.html go.
+# The label/blurb tables below are the source of truth for the Work and
+# Build panels' text: game.py's render() writes them into index.html's
+# name/blurb elements every render, the same way the research panel already
+# reads research.BRANCH_LABEL. (The emoji prefix on each row stays static
+# markup — it's decoration, not data.) Roles and buildings change per era,
+# which is why this lives here rather than as permanently-static HTML: a
+# second era's roster is a matter of editing these dicts.
 ROLE_LABEL = {
     "foragers": "Foragers",
     "gatherers": "Gatherers",

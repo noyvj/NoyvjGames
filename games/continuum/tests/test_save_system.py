@@ -378,6 +378,36 @@ def test_leaving_a_revisit_that_never_started_is_refused(game_env):
     assert game_env.module.campaign.exit_revisit() is False
 
 
+def test_load_state_refuses_revisiting_an_era_with_no_snapshot(game_env):
+    """`revisiting` only ever gets set by `enter_revisit()`, which already
+    checked the era has a snapshot to load. A hand-edited or corrupted save
+    could claim `revisiting` for an era `era_snapshots` has no entry for at
+    all — non-exploitable today because the `parked_state`-is-missing guard
+    already catches the one way that reaches the live game, but that guard
+    doesn't fire when `parked_state` *is* present (as here) alongside a
+    `revisiting` era with no matching snapshot. Belt-and-suspenders: the
+    schema shouldn't trust the save file's word for something it can check
+    against its own `era_snapshots` dict."""
+    campaign = game_env.module.campaign
+    played(game_env)
+
+    bogus = {
+        "game": save.GAME_ID,
+        "save_version": save.SAVE_VERSION,
+        "current_era": "tribal",
+        "revisiting": "agrarian",  # a valid era, but never completed/snapshotted
+        "current_state": {"city": {"population": 6}, "research": []},
+        "parked_state": {"city": {"population": 6}, "research": []},
+        "era_snapshots": {},  # no "agrarian" entry
+    }
+
+    assert game_env.module.load_state(bogus) is True
+    assert campaign.revisiting is None
+    # Consistent with the existing "no parked_state" guard: revisiting is
+    # None should keep meaning there's no forward progress parked either.
+    assert campaign.parked_state is None
+
+
 def test_a_revisit_does_not_overwrite_the_era_snapshot(game_env):
     """Replaying the Tribal era shouldn't silently rewrite the record of how
     the Tribal era actually went the first time."""

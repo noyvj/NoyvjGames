@@ -46,9 +46,20 @@ ELEMENT_IDS = [
     "research-list",
 ]
 for _role in ROLES:
-    ELEMENT_IDS += [f"{_role}-count", f"{_role}-add-button", f"{_role}-remove-button"]
+    ELEMENT_IDS += [
+        f"{_role}-name",
+        f"{_role}-blurb",
+        f"{_role}-count",
+        f"{_role}-add-button",
+        f"{_role}-remove-button",
+    ]
 for _building in BUILDINGS:
-    ELEMENT_IDS += [f"{_building}-count", f"{_building}-build-button"]
+    ELEMENT_IDS += [
+        f"{_building}-name",
+        f"{_building}-blurb",
+        f"{_building}-count",
+        f"{_building}-build-button",
+    ]
 
 INITIALLY_DISABLED_IDS = (
     [f"{r}-add-button" for r in ROLES]

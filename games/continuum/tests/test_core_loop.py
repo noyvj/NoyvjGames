@@ -315,6 +315,22 @@ def test_ui_renders_the_current_settlement(game_env):
     assert game_env.elements["season-report-display"].innerText != ""
 
 
+def test_role_and_building_names_and_blurbs_render_from_sims_tables(game_env):
+    """sim.ROLE_LABEL/ROLE_BLURB/BUILDING_LABEL/BUILDING_BLURB are the
+    intended source of truth for this text (see sim.py); index.html used to
+    hard-code the identical strings as static markup instead of reading
+    them. render() should be the single place this text comes from, the
+    same way the research panel already reads research.BRANCH_LABEL."""
+    import sim
+
+    for role in sim.ROLES:
+        assert game_env.elements[f"{role}-name"].innerText == sim.ROLE_LABEL[role]
+        assert game_env.elements[f"{role}-blurb"].innerText == sim.ROLE_BLURB[role]
+    for building in sim.BUILDINGS:
+        assert game_env.elements[f"{building}-name"].innerText == sim.BUILDING_LABEL[building]
+        assert game_env.elements[f"{building}-blurb"].innerText == sim.BUILDING_BLURB[building]
+
+
 def test_build_buttons_disable_when_materials_run_out(game_env):
     game_env.state.resources["materials"] = 0.0
     game_env.module.render()

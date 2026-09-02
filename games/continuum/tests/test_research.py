@@ -367,3 +367,46 @@ def test_researched_nodes_feed_back_into_the_settlement(game_env):
     game_env.advance_season()
 
     assert state.last_report["food_gathered"] > baseline
+
+
+def test_rendering_the_research_panel_destroys_the_proxy_it_replaces(game_env):
+    """render_research() rebuilds every row from scratch each render (see its
+    own docstring) — including a fresh create_proxy()-wrapped click handler
+    for every unresearched node's Study button. A real Pyodide proxy isn't
+    garbage-collected on its own; leaving the previous render's proxy
+    unreferenced without destroying it is a real, slow memory leak over a
+    play session. render_research() must destroy the proxy for a given node
+    before replacing it with the next render's."""
+    module = game_env.module
+    first = module.tree.available_nodes()[0]
+
+    module.render()
+    proxies = module._research_button_proxies
+    assert first.node_id in proxies
+    first_proxy = proxies[first.node_id]
+    assert first_proxy.destroyed is False
+
+    module.render()
+    second_proxy = proxies[first.node_id]
+
+    assert first_proxy.destroyed is True
+    assert second_proxy is not first_proxy
+    assert second_proxy.destroyed is False
+
+
+def test_a_researched_nodes_proxy_is_destroyed_once_it_no_longer_needs_one(game_env):
+    """Once a node is researched its button no longer gets a click handler
+    at all (it's disabled and reads "Known") — the proxy that used to back
+    it has to be destroyed and dropped rather than left dangling forever."""
+    module = game_env.module
+    state = game_env.state
+    state.resources["knowledge"] = 500.0
+    module.render()
+
+    first = module.tree.available_nodes()[0]
+    proxy = module._research_button_proxies[first.node_id]
+
+    game_env.elements[f"research-{first.node_id}"].dispatch("click", None)
+
+    assert proxy.destroyed is True
+    assert first.node_id not in module._research_button_proxies

@@ -48,13 +48,6 @@ COMPONENT_LABEL = {
     "resilience": "Resilience",
 }
 
-COMPONENT_BLURB = {
-    "livability": "Fed, housed, and part of something.",
-    "equity": "How the worst-off are doing, not the average.",
-    "balance": "Whether the settlement lives inside what the land gives.",
-    "resilience": "What's left to fall back on when a season goes wrong.",
-}
-
 COMPONENT_WEIGHTS = {
     "livability": 0.25,
     "equity": 0.25,

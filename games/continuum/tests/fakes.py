@@ -95,4 +95,20 @@ class FakeDocument:
 
 
 def create_proxy(func):
+    """Stands in for `pyodide.ffi.create_proxy`.
+
+    The real one wraps a Python callable in a JsProxy that JS can hold and
+    call, and which must be explicitly `.destroy()`-ed once it's no longer
+    needed — Pyodide doesn't garbage-collect it on its own. This fake keeps
+    the exact same "returns something callable" contract every other test
+    already relies on, but attaches `.destroy()`/`.destroyed` directly onto
+    the function object so a test can assert that game.py actually destroys
+    a proxy it's replacing, rather than leaking it.
+    """
+    func.destroyed = False
+
+    def _destroy():
+        func.destroyed = True
+
+    func.destroy = _destroy
     return func
