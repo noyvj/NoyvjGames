@@ -56,16 +56,17 @@ Before ending any session where code or content changed, append one dated entry 
 ## Current games
 | Slug | Name | Status |
 |------|------|--------|
-| sol | SOL | Milestone 11 done (Full system endgame) — all 17 milestones complete |
-| canopy | Canopy | All 7 milestones + Iteration Pass 2 + Info Page complete, first of the BCM114 climate quartet |
-| grid | Grid | All 6 milestones + Iteration Pass 2 + Info Page complete, second of the BCM114 climate quartet |
-| tide | Tide | All 7 milestones + Iteration Pass 2 + Info Page complete, third of the BCM114 climate quartet |
-| aftermath | Aftermath | All 7 milestones + Iteration Pass 2 + Info Page complete, fourth of the BCM114 climate quartet |
-| herd | Herd | All 7 milestones + Iteration Pass 2 + Info Page complete, first of the second climate-quartet set |
-| thaw | Thaw | All 7 milestones + Iteration Pass 2 + Info Page complete, second of the second climate-quartet set |
-| loop | Loop | All 7 milestones + Iteration Pass 2 + Info Page complete, third of the second climate-quartet set |
-| drift | Drift | All 7 milestones + Iteration Pass 2 + Info Page complete, fourth of the second climate-quartet set |
+| sol | SOL | Milestone 11 done (Full system endgame) — all 17 milestones complete, shared save-widget reference integration |
+| canopy | Canopy | All 7 milestones + Pass 2 + Pass 3 + Info Page + shared save widget complete, first of the BCM114 climate quartet |
+| grid | Grid | All 6 milestones + Pass 2 + Pass 3 + Info Page + shared save widget complete, second of the BCM114 climate quartet |
+| tide | Tide | All 7 milestones + Pass 2 + Pass 3 + Info Page + shared save widget complete, third of the BCM114 climate quartet |
+| aftermath | Aftermath | All 7 milestones + Pass 2 + Pass 3 + Info Page + shared save widget complete, fourth of the BCM114 climate quartet |
+| herd | Herd | All 7 milestones + Pass 2 + Pass 3 + Info Page + shared save widget complete, first of the second climate-quartet set |
+| thaw | Thaw | All 7 milestones + Pass 2 + Pass 3 + Info Page + shared save widget complete, second of the second climate-quartet set |
+| loop | Loop | All 7 milestones + Pass 2 + Pass 3 + Info Page + shared save widget complete, third of the second climate-quartet set |
+| drift | Drift | All 7 milestones + Pass 2 + Pass 3 + Info Page + shared save widget complete, fourth of the second climate-quartet set |
 | trade-empire | Trade Empire (working title) | Milestone 14 done (Endgame) — all 14 milestones complete, not yet hub-linked |
+| continuum | Continuum (working title) | Phase 1 (Foundation) complete — core sim, sustainability score, research tree, save schema. Flagship BCM114 Round 2 DA (SDG 11). Not yet hub-linked |
 
 ## Site-level milestones (separate from per-game milestones)
 | # | Milestone | Status |
@@ -75,7 +76,8 @@ Before ending any session where code or content changed, append one dated entry 
 | 3 | Review/rating UI stub added (no persistence yet) | Done |
 | 4 | Site hosting: GitHub Pages + PWA shell + labeled ad bar + ratings backend live (FastAPI Cloud + Neon) | Done — tagged `site-hosting-v1` |
 | 5 | Save system Phase 1: save codes (no accounts) live via FastAPI + Neon, SOL reference integration | Done — tagged `save-system-v1` |
-| 6 | Accounts (Phase 2, magic-link) + save-claim + site-wide feedback: backend live via FastAPI + Neon | Backend done, no frontend UI yet — see `planning/ACCOUNTS-AND-FEEDBACK-DESIGN.md` |
+| 6 | Accounts (Phase 2, username + password, revised from the original magic-link plan) + save-claim + site-wide feedback: backend + frontend built | Built and committed, not yet deployed/pushed to production — see `planning/ACCOUNTS-AND-FEEDBACK-DESIGN.md` |
+| 7 | Shared save widget (`shared/save-widget.js`) rolled out to SOL + all 8 climate games; fixed a site-wide bug where every absolute root-relative path 404'd on GitHub Pages' `/NoyvjGames/` subpath | Done — see `planning/SAVE-BUTTON-INTEGRATION.md` |
 
 ## Working notes
 - Pre-semester (now): pace can be aggressive, this is largely a boredom-driven creative project.
