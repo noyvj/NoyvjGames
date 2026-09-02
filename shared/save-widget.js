@@ -18,6 +18,10 @@
  * Anonymous play always works. If a bearer token is already present in
  * localStorage (the hub's sign-in — see ACCOUNTS-AND-FEEDBACK-DESIGN.md),
  * a "Claim this save to your account" option appears after a successful
+ * REVIEW(documentation): "appears after a successful save" undersells it —
+ * showActiveCode() (which surfaces the claim button) also runs on plain page
+ * load if a signed-in user already has a stored code, and after a successful
+ * Load, not just after a Save.
  * save. No auto-save, no conflict resolution — one explicit button, one
  * explicit save point, last write wins. See §5 of the design doc for why.
  *
@@ -42,6 +46,10 @@
   const STORAGE_KEY = `savecode:${GAME_ID}`;
   const AUTH_TOKEN_KEY = "hub_bearer_token";
 
+  // REVIEW(reuse): duplicated in script.js (getBearerToken/authHeaders) —
+  // both independently hardcode the "hub_bearer_token" localStorage key and
+  // build the same Authorization header object. A future key rename in one
+  // file without the other would silently break auth-gated save loading.
   function authHeaders() {
     const token = localStorage.getItem(AUTH_TOKEN_KEY);
     return token ? { Authorization: `Bearer ${token}` } : {};
@@ -206,6 +214,10 @@
       const res = await fetch(`${API_BASE}/users/me/saves`, { headers: authHeaders() });
       if (!res.ok) return false;
       saves = await res.json();
+    // REVIEW(observability): `err` is discarded here and in every other catch
+    // in this file — nothing is logged to the console, so a user-reported
+    // "my save isn't loading" is undebuggable from the browser side: no way
+    // to tell network failure vs. bad response vs. JSON parse error apart.
     } catch (err) {
       return false;
     }
