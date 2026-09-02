@@ -107,3 +107,47 @@ def test_load_save_state_json_switches_the_visible_view(game_env):
     game_env.module.load_save_state_json(saved_json)
     assert game_env.elements["mars-view"].hidden is False
     assert game_env.elements["earth-view"].hidden is True
+
+
+def test_get_state_matches_serialize_state(game_env):
+    """SAVE-BUTTON-INTEGRATION.md contract: get_state() is the shared
+    widget's entry point, distinct from get_save_state_json() (which the
+    old bespoke bridge used) only in that it returns the dict directly
+    rather than a JSON string — the widget does its own JS<->Pyodide
+    conversion instead of a string handoff."""
+    game_env.click("Earth")
+    assert game_env.module.get_state() == game_env.module.serialize_state()
+
+
+def test_load_state_full_round_trip(game_env):
+    game_env.click("Earth")
+    game_env.click("Earth")
+    game_env.click("Earth")
+    snapshot = game_env.module.get_state()
+
+    game_env.click("Earth")  # diverge
+    assert game_env.earth["resource_count"] == 4
+
+    result = game_env.module.load_state(snapshot)
+    assert result is True
+    assert game_env.earth["resource_count"] == 3
+
+
+def test_load_state_is_the_exact_inverse_of_get_state(game_env):
+    """A save taken via the new contract must restore correctly even
+    though it never crosses a JSON string boundary — get_state()/
+    load_state() hand the dict straight across, same as the shared
+    widget's own JS<->Pyodide dict conversion would."""
+    game_env.module.unlocked_bodies.add("Mars")
+    game_env.travel_to_mars()
+    game_env.module.governor_priority = "ecology"
+    snapshot = game_env.module.get_state()
+
+    game_env.module.governor_priority = "growth"
+    game_env.module.deserialize_state(
+        {**game_env.module.serialize_state(), "current_planet": "Earth"}
+    )
+
+    game_env.module.load_state(snapshot)
+    assert game_env.module.current_planet == "Mars"
+    assert game_env.module.governor_priority == "ecology"

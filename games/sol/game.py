@@ -1266,6 +1266,22 @@ def load_save_state_json(json_str):
     return True
 
 
+# SAVE-BUTTON-INTEGRATION.md contract for the shared shared/save-widget.js:
+# get_state() returns the same JSON-safe dict as serialize_state() (not a
+# string this time — the shared widget does its own JS<->Pyodide dict
+# conversion), and load_state() is deserialize_state()'s exact inverse.
+# SOL is the reference integration for this contract; save codes created
+# under the old bespoke UI keep working, since the dict shape is unchanged.
+def get_state():
+    return serialize_state()
+
+
+def load_state(data):
+    deserialize_state(data)
+    _full_render()
+    return True
+
+
 def setup():
     earth_click = document.getElementById("click-button")
     earth_click.innerText = "Mine Iron"

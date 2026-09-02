@@ -4,33 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SOL — Milestone 11</title>
-<link rel="icon" href="/icons/icon-192.png">
+<link rel="icon" href="../../icons/icon-192.png">
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="/ad-bar.css">
-<link rel="manifest" href="/manifest.json">
+<link rel="stylesheet" href="../../ad-bar.css">
+<link rel="manifest" href="../../manifest.json">
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
 <body>
   <div id="game">
-    <a href="/" class="hub-back-link">&larr; All games</a>
+    <a href="../../index.html" class="hub-back-link">&larr; All games</a>
     <h1>SOL</h1>
-
-    <div id="save-load" class="section">
-      <p class="save-load-label">Save &amp; Load</p>
-      <div class="save-load-row">
-        <button id="save-button" class="secondary">Save Progress</button>
-      </div>
-      <p id="save-code-display" class="save-code-display" hidden></p>
-      <button id="new-save-button" class="save-load-link" hidden>Start a new save (forget this code)</button>
-      <button id="claim-save-button" class="save-load-link" hidden>Claim this save to your account</button>
-      <div class="save-load-row">
-        <input id="load-code-input" class="load-code-input" type="text" placeholder="XXXX-XXXX" maxlength="9" autocomplete="off" autocapitalize="characters">
-        <button id="load-button" class="secondary load-button">Load</button>
-      </div>
-      <p id="save-load-status" class="save-load-status"></p>
-    </div>
 
     <div id="win-banner" class="section" hidden>
       <p id="win-banner-heading" class="win-banner-heading">100% COMPLETE</p>
@@ -957,141 +942,16 @@
     main();
   </script>
   <!--
-    Save/load bridge: plain JS, not Pyodide/game.py — same documented
-    exception used across the hub for the feedback prompt (trivial
-    fetch() calls to a shared API, not game state, so no Python/pytest
-    coverage needed here; the Python-side serialize/deserialize logic
-    itself IS covered, in tests/test_save_system.py).
-
-    Python only ever crosses the boundary as a plain JSON string
-    (game.py's get_save_state_json/load_save_state_json), so this stays
-    a simple string handoff on both sides — no PyProxy/dict conversion.
+    SAVE-BUTTON-INTEGRATION.md: SOL is the reference integration for the
+    shared save widget, replacing the bespoke save/load bridge that used
+    to live here. game.py exposes get_state()/load_state() (thin wrappers
+    around the pre-existing serialize_state()/deserialize_state(), so old
+    save codes keep loading); the widget itself is untouched per-game.
   -->
-  <script>
-    (function () {
-      const RATINGS_API_BASE = "https://noyvjgames.fastapicloud.dev";
-      const GAME_ID = "sol";
-      const STORAGE_KEY = "sol_save_code";
-      // Same origin as the hub, so these read whatever script.js on the
-      // hub page wrote — SOL has no sign-in UI of its own, it just checks
-      // whether the player is already signed in site-wide.
-      const AUTH_STORAGE_KEY = "hub_bearer_token";
-
-      const saveButton = document.getElementById("save-button");
-      const newSaveButton = document.getElementById("new-save-button");
-      const claimSaveButton = document.getElementById("claim-save-button");
-      const saveCodeDisplay = document.getElementById("save-code-display");
-      const loadCodeInput = document.getElementById("load-code-input");
-      const loadButton = document.getElementById("load-button");
-      const statusEl = document.getElementById("save-load-status");
-
-      function showActiveCode(code) {
-        saveCodeDisplay.textContent = `Your save code: ${code}`;
-        saveCodeDisplay.hidden = false;
-        newSaveButton.hidden = false;
-        claimSaveButton.hidden = !localStorage.getItem(AUTH_STORAGE_KEY);
-      }
-
-      const existingCode = localStorage.getItem(STORAGE_KEY);
-      if (existingCode) showActiveCode(existingCode);
-
-      newSaveButton.addEventListener("click", () => {
-        localStorage.removeItem(STORAGE_KEY);
-        saveCodeDisplay.hidden = true;
-        newSaveButton.hidden = true;
-        claimSaveButton.hidden = true;
-        statusEl.textContent = "Next save will start a fresh code.";
-      });
-
-      claimSaveButton.addEventListener("click", async () => {
-        const code = localStorage.getItem(STORAGE_KEY);
-        const token = localStorage.getItem(AUTH_STORAGE_KEY);
-        if (!code || !token) return;
-        claimSaveButton.disabled = true;
-        claimSaveButton.textContent = "Claiming...";
-        try {
-          const res = await fetch(`${RATINGS_API_BASE}/saves/${code}/claim`, {
-            method: "POST",
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (!res.ok) throw new Error(`status ${res.status}`);
-          statusEl.textContent = "Save claimed to your account!";
-          claimSaveButton.hidden = true;
-        } catch (err) {
-          statusEl.textContent = "Claim failed — try again.";
-          claimSaveButton.disabled = false;
-          claimSaveButton.textContent = "Claim this save to your account";
-        }
-      });
-
-      saveButton.addEventListener("click", async () => {
-        if (!window.pyodide) {
-          statusEl.textContent = "Still loading — try again in a moment.";
-          return;
-        }
-        saveButton.disabled = true;
-        saveButton.textContent = "Saving...";
-        try {
-          const stateJson = window.pyodide.globals.get("get_save_state_json")();
-          const saveData = JSON.parse(stateJson);
-          const code = localStorage.getItem(STORAGE_KEY);
-
-          const res = await fetch(
-            code ? `${RATINGS_API_BASE}/saves/${code}` : `${RATINGS_API_BASE}/saves`,
-            {
-              method: code ? "PUT" : "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(
-                code ? { save_data: saveData } : { game_id: GAME_ID, save_data: saveData }
-              ),
-            }
-          );
-          if (!res.ok) throw new Error(`status ${res.status}`);
-          const body = await res.json();
-          localStorage.setItem(STORAGE_KEY, body.save_code);
-          showActiveCode(body.save_code);
-          statusEl.textContent = "Saved!";
-        } catch (err) {
-          statusEl.textContent = "Save failed — try again.";
-        } finally {
-          saveButton.disabled = false;
-          saveButton.textContent = "Save Progress";
-        }
-      });
-
-      loadButton.addEventListener("click", async () => {
-        if (!window.pyodide) {
-          statusEl.textContent = "Still loading — try again in a moment.";
-          return;
-        }
-        const code = loadCodeInput.value.trim().toUpperCase();
-        if (!code) {
-          statusEl.textContent = "Enter a save code first.";
-          return;
-        }
-        loadButton.disabled = true;
-        loadButton.textContent = "Loading...";
-        try {
-          const res = await fetch(`${RATINGS_API_BASE}/saves/${code}`);
-          if (!res.ok) throw new Error(`status ${res.status}`);
-          const body = await res.json();
-          window.pyodide.globals.get("load_save_state_json")(JSON.stringify(body.save_data));
-          localStorage.setItem(STORAGE_KEY, body.save_code);
-          showActiveCode(body.save_code);
-          loadCodeInput.value = "";
-          statusEl.textContent = "Loaded!";
-        } catch (err) {
-          statusEl.textContent = "Load failed — check the code and try again.";
-        } finally {
-          loadButton.disabled = false;
-          loadButton.textContent = "Load";
-        }
-      });
-    })();
-  </script>
+  <script src="../../shared/save-widget.js" data-game-id="sol"></script>
   <script>
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js");
+      navigator.serviceWorker.register("../../sw.js");
     }
   </script>
 </body>
