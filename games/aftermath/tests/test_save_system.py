@@ -6,6 +6,8 @@ are a separate, already-working localStorage-backed persistence mechanism
 round trip.
 """
 
+import pytest
+
 
 def test_get_state_includes_every_expected_key(game_env):
     data = game_env.module.get_state()
@@ -115,6 +117,24 @@ def test_load_state_on_a_completed_run_round_trips_correctly(game_env):
     assert game_env.run.is_complete()
     assert game_env.run.run_number == snapshot["run_number"]
     assert game_env.run.event_log == snapshot["event_log"]
+
+
+def test_load_state_on_a_malformed_dict_raises_rather_than_corrupting_the_run(game_env):
+    """PR #1 (sean-hart) review finding: load_state() does direct key access
+    (data["run_number"], etc.) with no defensive handling, and no test
+    exercised that against a malformed/partial/empty dict — leaving open
+    whether raising is the intended contract or an oversight. It's
+    intentional: a real save handed to load_state() always came from this
+    same site's own get_state() (via the save widget's fetch/PUT round
+    trip), which always produces the complete shape asserted in
+    test_get_state_includes_every_expected_key above — a genuinely
+    malformed payload here means something upstream (a hand-edited save, a
+    payload from an incompatible future/past schema) already went wrong,
+    and a loud KeyError is preferable to silently starting a run in some
+    half-restored, partially-default state. Pinned here so this stays a
+    deliberate choice, not something a future change silently reverses."""
+    with pytest.raises(KeyError):
+        game_env.module.load_state({})
 
 
 def test_load_state_does_not_touch_the_persistent_skill_tree_or_history(game_env):

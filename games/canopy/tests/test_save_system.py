@@ -5,6 +5,8 @@ integration (SOL is) — this just adopts the same contract."""
 
 import json
 
+import pytest
+
 
 def test_get_state_includes_every_expected_key(game_env):
     data = game_env.module.get_state()
@@ -167,3 +169,20 @@ def test_load_state_re_renders_the_ui(game_env):
     # income-display is only updated inside render() — a stale value here
     # would mean load_state() forgot to re-render.
     assert game_env.elements["income-display"].innerText == income_text_after_snapshot
+
+
+def test_load_state_on_a_malformed_dict_raises_rather_than_corrupting_state(game_env):
+    """PR #1 (sean-hart) review finding: load_state() does direct key
+    access (data["plots"], data["selected_index"], etc.) with no defensive
+    handling, and no test exercised that against a malformed/partial/empty
+    dict — leaving open whether raising is the intended contract or an
+    oversight. It's intentional: a real save handed to load_state() always
+    came from this same site's own get_state() (via the save widget's
+    fetch/PUT round trip), which always produces the complete shape
+    asserted in test_get_state_includes_every_expected_key above — a
+    genuinely malformed payload here means something upstream (a
+    hand-edited save, an incompatible schema) already went wrong, and a
+    loud KeyError is preferable to silently starting the farm in some
+    half-restored state. Pinned here so this stays a deliberate choice."""
+    with pytest.raises(KeyError):
+        game_env.module.load_state({})
