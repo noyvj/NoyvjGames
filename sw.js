@@ -1,4 +1,4 @@
-const CACHE_NAME = "site-cache-v8";
+const CACHE_NAME = "site-cache-v9";
 // Every entry here is relative to sw.js's own location (this file, at the
 // repo root), never a "/"-rooted absolute path -- GitHub Pages serves this
 // repo under /NoyvjGames/, not the domain root, so an absolute path like
@@ -13,6 +13,8 @@ const PRECACHE_URLS = [
   "./script.js",
   "shared/hub-auth.js",
   "shared/save-widget.js",
+  "shared/info_page.py",
+  "shared/info-page.css",
   "games/sol/index.html",
   "games/sol/style.css",
   "games/sol/game.py",
