@@ -64,6 +64,20 @@ ELEMENT_IDS = [
     "review-next-button",
     "review-summary",
     "review-close-button",
+    "proficiency-panel",
+    "proficiency-progress",
+    "proficiency-context",
+    "proficiency-instruction",
+    "proficiency-prompt",
+    "proficiency-note",
+    "proficiency-choices",
+    "proficiency-answer-input",
+    "proficiency-submit-button",
+    "proficiency-feedback",
+    "proficiency-next-button",
+    "proficiency-summary",
+    "proficiency-topic-breakdown",
+    "proficiency-close-button",
 ]
 
 

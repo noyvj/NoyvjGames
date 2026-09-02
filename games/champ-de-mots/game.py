@@ -1239,6 +1239,33 @@ def _destroy_review_choice_proxies():
     review_choice_proxies.clear()
 
 
+# --- Milestone 12: weekly proficiency test state (design doc §14.5) --------
+#
+# Purely informational, like Review — but unlike Review, it never touches SRS
+# state at all (no nudge, nothing), since §14.5 explicitly frames this as
+# "regardless of what's currently planted/watered", not a practice mode.
+
+PROFICIENCY_TEST_LENGTH = 18
+PROFICIENCY_RNG = random.Random()
+PROFICIENCY_SUMMARY_MESSAGE = "Score: {correct}/{total}."
+PROFICIENCY_TOPIC_LINE = "{title}: {correct}/{total}"
+
+proficiency_mode = False
+proficiency_sequence = None
+proficiency_questions = []  # [{"topic_id","topic_title","topic_type","question"}, ...]
+proficiency_index = 0
+proficiency_result = None
+proficiency_score = {"correct": 0, "total": 0}
+proficiency_topic_scores = {}  # topic_id -> {"title", "correct", "total"}
+proficiency_choice_proxies = []
+
+
+def _destroy_proficiency_choice_proxies():
+    for proxy in proficiency_choice_proxies:
+        proxy.destroy()
+    proficiency_choice_proxies.clear()
+
+
 def _element(element_id):
     return document.getElementById(element_id)
 
@@ -1252,6 +1279,12 @@ def _make_plot_handler(plot_id):
 def _make_choice_handler(choice):
     def handler(event=None):
         submit_answer(choice)
+    return handler
+
+
+def _make_proficiency_handler(sequence):
+    def handler(event=None):
+        start_proficiency_test(sequence)
     return handler
 
 
@@ -1299,6 +1332,17 @@ def build_farm():
         lock.innerText = LOCK_NOTE.format(previous=row.sequence - 1)
         lock.hidden = True
         head.appendChild(lock)
+
+        # §14.5: one proficiency test per sequence entry, started right from
+        # that week's own row rather than a separate flat list of 23 buttons.
+        proficiency_button = document.createElement("button")
+        proficiency_button.id = f"row-proficiency-{row.sequence}"
+        proficiency_button.className = "row-proficiency-button secondary"
+        proficiency_button.innerText = "Proficiency test"
+        proficiency_button.addEventListener(
+            "click", create_proxy(_make_proficiency_handler(row.sequence))
+        )
+        head.appendChild(proficiency_button)
 
         plots = document.createElement("div")
         plots.id = f"row-plots-{row.sequence}"
@@ -1369,6 +1413,8 @@ def render_farm():
         due_element = _element(f"row-due-{row.sequence}")
         due_element.hidden = not row_due
         due_element.innerText = ROW_DUE_NOTE.format(count=row_due) if row_due else ""
+
+        _element(f"row-proficiency-{row.sequence}").disabled = not unlocked
 
 
 def render_status():
@@ -1512,6 +1558,7 @@ def render():
     render_status()
     render_practice()
     render_review()
+    render_proficiency()
 
 
 # --- interactions ----------------------------------------------------------
@@ -1928,6 +1975,256 @@ def on_toggle_accent_sensitivity(event=None):
     render()
 
 
+# ===========================================================================
+# Milestone 12 — weekly proficiency tests (design doc §14.5)
+# ===========================================================================
+#
+# One test per `sequence` entry (per taught week), covering every topic in
+# that week regardless of any plot's current SRS state, purely informational
+# — score plus a per-topic breakdown, no gating of anything. Unlike Review
+# (Milestone 11), a proficiency test never touches a plot's schedule at all;
+# it only reads the catalog and reuses generate_question().
+
+
+def proficiency_test_topics(sequence):
+    """Every topic in one week entry, catalog order, regardless of any
+    plot's current SRS state (§14.5, literally)."""
+    for week in CATALOG["weeks"]:
+        if week["sequence"] == sequence:
+            return week["topics"]
+    return []
+
+
+def _topic_plots(topic):
+    """Every plot that belongs to one catalog topic. A grammar topic is a
+    single plot (Milestone 2's granularity call); everything else is one
+    plot per item, so this is every item's plot in catalog order."""
+    if topic["topic_type"] == "grammar":
+        plot = state.plots_by_id.get(topic["id"])
+        return [plot] if plot is not None else []
+    plots = []
+    for index in range(len(topic["items"])):
+        plot = state.plots_by_id.get(f"{topic['id']}-i{index:02d}")
+        if plot is not None:
+            plots.append(plot)
+    return plots
+
+
+def is_proficiency_test_available(sequence):
+    """A proficiency test is only offered for an unlocked week — §14.5 says
+    nothing about bypassing §7's row-unlock gate, and letting a test preview
+    a locked week's content would do exactly that even though the test
+    itself doesn't gate anything (see CLAUDE.md's Milestone 12 build note)."""
+    return state.is_row_unlocked(sequence)
+
+
+def build_proficiency_test(sequence, rng=None, length=PROFICIENCY_TEST_LENGTH):
+    """A fixed-length (~15-20 question) session covering every topic in the
+    week at least once, then filling the rest of the target length by
+    cycling back through the topics. If a week has more topics than the
+    target length (none currently do), full topic coverage wins over the
+    soft length target."""
+    rng = PROFICIENCY_RNG if rng is None else rng
+    topic_plots = [
+        (topic, plots)
+        for topic in proficiency_test_topics(sequence)
+        for plots in [_topic_plots(topic)]
+        if plots
+    ]
+    if not topic_plots:
+        return []
+
+    target_length = max(length, len(topic_plots))
+    entries = [(topic, rng.choice(plots)) for topic, plots in topic_plots]
+    cursor = 0
+    while len(entries) < target_length:
+        topic, plots = topic_plots[cursor % len(topic_plots)]
+        entries.append((topic, rng.choice(plots)))
+        cursor += 1
+
+    return [
+        {
+            "topic_id": topic["id"],
+            "topic_title": topic["title"],
+            "topic_type": topic["topic_type"],
+            "question": generate_question(plot, rng),
+        }
+        for topic, plot in entries[:target_length]
+    ]
+
+
+def start_proficiency_test(sequence, event=None):
+    global proficiency_mode, proficiency_sequence, proficiency_questions
+    global proficiency_index, proficiency_result, proficiency_score, proficiency_topic_scores
+
+    if not is_proficiency_test_available(sequence):
+        return None
+
+    proficiency_sequence = sequence
+    proficiency_questions = build_proficiency_test(sequence, PROFICIENCY_RNG)
+    proficiency_index = 0
+    proficiency_result = None
+    proficiency_score = {"correct": 0, "total": 0}
+    proficiency_topic_scores = {
+        topic["id"]: {"title": topic["title"], "correct": 0, "total": 0}
+        for topic in proficiency_test_topics(sequence)
+    }
+    proficiency_mode = True
+    render()
+    return proficiency_questions
+
+
+def submit_proficiency_answer(given):
+    global proficiency_result, proficiency_score
+
+    if proficiency_index >= len(proficiency_questions) or proficiency_result is not None:
+        return None
+    entry = proficiency_questions[proficiency_index]
+    question = entry["question"]
+    typed_mode = question["mode"] == "typed"
+    tier = grading_tier(question["answer"]) if typed_mode else None
+    proficiency_result = check_answer(
+        question, given, tier=tier, accent_sensitive=ACCENT_SENSITIVE
+    )
+    proficiency_score["total"] += 1
+    topic_score = proficiency_topic_scores[entry["topic_id"]]
+    topic_score["total"] += 1
+    if proficiency_result:
+        proficiency_score["correct"] += 1
+        topic_score["correct"] += 1
+    render()
+    return proficiency_result
+
+
+def next_proficiency_question(event=None):
+    global proficiency_index, proficiency_result
+
+    if not proficiency_mode:
+        return None
+    proficiency_index += 1
+    proficiency_result = None
+    render()
+    return proficiency_index
+
+
+def close_proficiency_test(event=None):
+    global proficiency_mode, proficiency_sequence, proficiency_questions
+    global proficiency_index, proficiency_result, proficiency_score, proficiency_topic_scores
+
+    proficiency_mode = False
+    proficiency_sequence = None
+    proficiency_questions = []
+    proficiency_index = 0
+    proficiency_result = None
+    proficiency_score = {"correct": 0, "total": 0}
+    proficiency_topic_scores = {}
+    render()
+
+
+def _make_proficiency_choice_handler(choice):
+    def handler(event=None):
+        submit_proficiency_answer(choice)
+    return handler
+
+
+def on_proficiency_submit_typed(event=None):
+    submit_proficiency_answer(_element("proficiency-answer-input").value)
+
+
+def on_proficiency_answer_keydown(event=None):
+    if event is not None and getattr(event, "key", None) == "Enter":
+        event.preventDefault()
+        on_proficiency_submit_typed()
+
+
+def render_proficiency():
+    panel = _element("proficiency-panel")
+    choices_box = _element("proficiency-choices")
+
+    _destroy_proficiency_choice_proxies()
+
+    if not proficiency_mode:
+        panel.hidden = True
+        choices_box.innerHTML = ""
+        return
+
+    panel.hidden = False
+    complete = proficiency_index >= len(proficiency_questions)
+    summary = _element("proficiency-summary")
+    breakdown = _element("proficiency-topic-breakdown")
+
+    if complete:
+        choices_box.innerHTML = ""
+        summary.hidden = False
+        summary.innerText = PROFICIENCY_SUMMARY_MESSAGE.format(**proficiency_score)
+        breakdown.innerHTML = ""
+        for topic_score in proficiency_topic_scores.values():
+            line = document.createElement("p")
+            line.className = "proficiency-topic-line"
+            line.innerText = PROFICIENCY_TOPIC_LINE.format(**topic_score)
+            breakdown.appendChild(line)
+        _element("proficiency-progress").innerText = ""
+        _element("proficiency-context").innerText = ""
+        _element("proficiency-instruction").innerText = ""
+        _element("proficiency-prompt").innerText = ""
+        _element("proficiency-note").hidden = True
+        _element("proficiency-answer-input").hidden = True
+        _element("proficiency-submit-button").hidden = True
+        _element("proficiency-next-button").hidden = True
+        _element("proficiency-feedback").innerText = ""
+        return
+
+    summary.hidden = True
+    breakdown.innerHTML = ""
+    entry = proficiency_questions[proficiency_index]
+    question = entry["question"]
+
+    _element("proficiency-progress").innerText = (
+        f"{proficiency_index + 1} of {len(proficiency_questions)}"
+    )
+    _element("proficiency-context").innerText = question["context"]
+    _element("proficiency-instruction").innerText = question["instruction"]
+    _element("proficiency-prompt").innerText = question["prompt"]
+
+    note = _element("proficiency-note")
+    note.innerText = question["note"] or ""
+    note.hidden = not question["note"]
+
+    answered = proficiency_result is not None
+    answer_input = _element("proficiency-answer-input")
+    submit = _element("proficiency-submit-button")
+    next_button = _element("proficiency-next-button")
+
+    choices_box.innerHTML = ""
+    if question["mode"] == "choice":
+        answer_input.hidden = True
+        submit.hidden = True
+        for index, choice in enumerate(question["choices"]):
+            button = document.createElement("button")
+            button.id = f"proficiency-choice-{index}"
+            button.innerText = choice
+            button.disabled = answered
+            button.className = "choice"
+            if answered and choice == question["answer"]:
+                button.className = "choice choice--answer"
+            proxy = create_proxy(_make_proficiency_choice_handler(choice))
+            button.addEventListener("click", proxy)
+            proficiency_choice_proxies.append(proxy)
+            choices_box.appendChild(button)
+    else:
+        answer_input.hidden = False
+        submit.hidden = False
+        submit.disabled = answered
+
+    next_button.hidden = not answered
+
+    if answered:
+        template = FEEDBACK["correct" if proficiency_result else "incorrect"]
+        _element("proficiency-feedback").innerText = template.format(answer=question["answer"])
+    else:
+        _element("proficiency-feedback").innerText = ""
+
+
 def setup():
     build_farm()
     render_legend()
@@ -1954,6 +2251,18 @@ def setup():
     )
     _element("review-next-button").addEventListener("click", create_proxy(next_review_question))
     _element("review-close-button").addEventListener("click", create_proxy(close_review))
+    _element("proficiency-submit-button").addEventListener(
+        "click", create_proxy(on_proficiency_submit_typed)
+    )
+    _element("proficiency-answer-input").addEventListener(
+        "keydown", create_proxy(on_proficiency_answer_keydown)
+    )
+    _element("proficiency-next-button").addEventListener(
+        "click", create_proxy(next_proficiency_question)
+    )
+    _element("proficiency-close-button").addEventListener(
+        "click", create_proxy(close_proficiency_test)
+    )
     render()
 
 

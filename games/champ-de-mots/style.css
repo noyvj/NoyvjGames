@@ -82,6 +82,21 @@ h1 {
   color: #7a6a53;
 }
 
+.row-proficiency-button {
+  font-size: 0.7rem;
+  padding: 0.3rem 0.5rem;
+}
+
+.proficiency-topic-breakdown {
+  margin-top: 0.4rem;
+}
+
+.proficiency-topic-line {
+  margin: 0.2rem 0;
+  font-size: 0.8rem;
+  color: #6b5c46;
+}
+
 .review-section .status-line--muted {
   margin-bottom: 0.6rem;
 }
