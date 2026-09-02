@@ -257,7 +257,22 @@ button.priority-option.selected {
   text-align: center;
 }
 
-#mars-return-to-earth-button {
+/* Every non-Earth view's final element is its "Return to Earth" button,
+   right after the last .section (cross-summary) block -- which already
+   carries its own margin-top via .section, but nothing separates the
+   button itself from that block's content without this. Mars (the first
+   second-planet view) had this rule from Milestone 6; Moon/Venus/Asteroid
+   Belt/Pluto/Jupiter's Moons/Saturn's Moons never got the same rule added
+   when their views were built in later milestones, so their return
+   buttons sat flush against the last summary with no visual breathing
+   room. */
+#mars-return-to-earth-button,
+#moon-return-to-earth-button,
+#venus-return-to-earth-button,
+#asteroidbelt-return-to-earth-button,
+#pluto-return-to-earth-button,
+#jupitermoons-return-to-earth-button,
+#saturnmoons-return-to-earth-button {
   margin-top: 2rem;
 }
 

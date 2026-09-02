@@ -1245,7 +1245,13 @@ def deserialize_state(data):
     global research_progress, completed_tiers, unlocked_bodies, current_planet
     global governor_priority, governor_budget_pct, governor_tick_count
 
-    planet_state.clear()
+    # Merge in place rather than clear()+update(): a save whose
+    # planet_state is missing a body (an older save format from before
+    # that body's economy existed, or a corrupted payload) must not wipe
+    # that body's freshly-initialized state out of the dict entirely --
+    # every other function (tick() in particular) does `planet_state[p]`
+    # for every `p in PLANETS` unconditionally, so a missing key would
+    # crash the whole game on the very next tick.
     planet_state.update(data["planet_state"])
     research_progress = data["research_progress"]
     completed_tiers = data["completed_tiers"]

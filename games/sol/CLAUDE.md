@@ -61,6 +61,21 @@ All 17 milestones complete.
 
 **Important:** milestones can be built ahead of schedule, but should be *tagged* (`git tag milestone-0N` — sub-parts of 9 use `git tag milestone-09a` etc.) at actual completion time and *not publicized* (Instagram/devlog) until their assigned week. Don't backdate anything — the tag date must be real. This is a deliberate anti-burnout pacing strategy, not a submission deadline system.
 
+## Post-milestone audit notes
+- Code-quality audit (Sep 2026): `deserialize_state()` used to `.clear()`
+  `planet_state` before `.update()`-ing it from the loaded save dict, so a
+  save whose `planet_state` was missing a body (an older save format, or a
+  corrupted payload) would silently delete that body from `planet_state`
+  entirely instead of leaving its freshly-initialized default state in
+  place — the next `tick()` would then `KeyError` on that planet and crash
+  the whole game. Fixed to merge into `planet_state` instead of replacing
+  it wholesale; regression test in `tests/test_save_system.py`. Also fixed
+  a CSS oversight where only Mars's "Return to Earth" button had a
+  `margin-top` spacing rule — Moon/Venus/Asteroid Belt/Pluto/Jupiter's
+  Moons/Saturn's Moons never got the equivalent rule when their views were
+  built in later milestones, so their return buttons sat flush against the
+  last summary block. No gameplay/balance changes.
+
 ## Working conventions
 - Commit + tag at the end of each milestone: `git commit -m "Milestone N: <name>"` then `git tag milestone-0N` (e.g. `milestone-09a` for lettered sub-parts of milestone 9).
 - Keep `game.py` as the single source of game logic where reasonable; split into modules only once it gets unwieldy.

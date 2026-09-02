@@ -62,6 +62,27 @@ def test_deserialize_state_restores_unlocked_bodies_as_a_set(game_env):
     assert isinstance(game_env.module.unlocked_bodies, set)
 
 
+def test_deserialize_state_tolerates_a_save_missing_a_planet(game_env):
+    """Defensive backward-compat: deserialize_state() used to `.clear()`
+    planet_state before `.update()`-ing it with the loaded dict, so any
+    planet absent from that dict (an older save format predating some
+    body's economy, or a corrupted payload) vanished from planet_state
+    entirely rather than just keeping its pre-load state -- and the next
+    tick()'s `for planet in PLANETS: ... planet_state[planet]` loop would
+    KeyError and crash the whole game. Loading must never be able to do
+    that, per the project's "no dead-end/unwinnable states" rule."""
+    game_env.click("Moon")
+    game_env.click("Moon")
+    snapshot = game_env.module.serialize_state()
+    del snapshot["planet_state"]["Moon"]
+
+    game_env.module.deserialize_state(snapshot)
+
+    assert "Moon" in game_env.module.planet_state
+    assert game_env.module.planet_state["Moon"]["resource_count"] == 2
+    game_env.module.tick()  # must not raise KeyError
+
+
 def test_deserialize_state_restores_scalar_globals(game_env):
     game_env.module.unlocked_bodies.add("Mars")
     game_env.travel_to_mars()
