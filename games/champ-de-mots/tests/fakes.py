@@ -7,8 +7,8 @@ surface to exercise the game logic headlessly.
 
 Two small additions over Grid's copy, both driven by what this game's UI actually
 needs: `value` (the typed-answer input box) and `setAttribute`/`getAttribute`
-(plot cells carry their plot id as a data attribute so one delegated handler can
-serve the whole 722-cell farm).
+(plot cells carry an `aria-label` mirroring their tooltip, so the sprite's
+meaning reaches a screen reader as well as the eye).
 """
 
 

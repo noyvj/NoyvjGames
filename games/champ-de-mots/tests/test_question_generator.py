@@ -207,20 +207,52 @@ def test_blank_variants_hide_the_answer_in_the_prompt(game_env):
             assert question["answer"] not in question["prompt"].split()
 
 
-def test_blank_target_accepts_either_form_of_a_masc_fem_pair(game_env):
-    """A single-word "/" pair (e.g. "australien / australienne") is blanked
-    as one unit, and the answer stays "/"-joined so either gendered form is
-    accepted -- typing the masculine form when the feminine was "the"
-    target (or vice versa) shouldn't be marked wrong."""
+def test_blank_target_refuses_a_bare_single_word_alternation(game_env):
+    """A single-word "/" pair (e.g. "australien / australienne") *is* the whole
+    item, so there is nothing left to show once it is hidden -- blanking it as
+    one unit left a prompt that was nothing but the gap. It is refused instead,
+    and the item's translate/typed variants carry it, where either gendered
+    form is already accepted."""
     module = game_env.module
-    blanked, answer = module.blank_target("australien / australienne")
-    assert blanked == module.BLANK_MARKER
-    assert answer == "australien / australienne"
+    assert module.blank_target("australien / australienne") is None
 
-    question = {"mode": "typed", "answer": answer, "choices": []}
+    question = {"mode": "typed", "answer": "australien / australienne", "choices": []}
     assert module.check_answer(question, "australien") is True
     assert module.check_answer(question, "australienne") is True
     assert module.check_answer(question, "canadien") is False
+
+
+def test_no_blank_question_is_a_prompt_of_nothing_but_the_gap(game_env):
+    """Farm-wide guard for the bug above: a fill-the-gap prompt with every
+    word hidden is unanswerable by construction, so no catalog item may
+    produce one."""
+    module = game_env.module
+    for plot in _all_plots(game_env):
+        for item in plot.items:
+            blanked = module.blank_target(item["fr"])
+            if blanked is None:
+                continue
+            visible = blanked[0].replace(module.BLANK_MARKER, " ")
+            assert visible.strip(" .,;:!?…"), f"{plot.plot_id}: {item['fr']!r}"
+
+
+def test_blank_target_never_hides_a_trailing_template_slot(game_env):
+    """"assez + adjective" and "je n'aime pas + infinitive" end in a slot
+    marker naming what kind of word goes there -- metalanguage, not French to
+    recall -- so it is never the answer, bracketed or not. The same "+" used
+    mid-string as real rule notation ("a + le -> au") still blanks normally,
+    which is why the rule is anchored to the end of the item."""
+    module = game_env.module
+    # Nothing left to blank once the slot is set aside.
+    assert module.blank_target("assez + adjective") is None
+
+    blanked, answer = module.blank_target("je n'aime pas + infinitive")
+    assert answer != "infinitive"
+    assert blanked.endswith("+ infinitive")  # the slot stays visible
+
+    # Mid-string "+" is part of the fact being taught, not a slot.
+    blanked, answer = module.blank_target("à + le → au")
+    assert answer == "au"
 
 
 def test_blank_target_refuses_to_blank_across_full_alternate_phrases(game_env):
@@ -248,14 +280,14 @@ def test_blank_target_ignores_a_slash_embedded_in_one_word(game_env):
     assert "/" not in answer
 
 
-def test_blank_target_handles_a_slash_pair_with_inflection_parentheses(game_env):
-    """"meilleur(e)(s) / pire(s)" (fren152-w4-grammar003) combines both
-    things this function has to see through: parenthetical inflection
-    markers, and a masc/fem-style "/" pair."""
+def test_blank_target_sees_a_slash_pair_through_inflection_parentheses(game_env):
+    """"meilleur(e)(s) / pire(s)" (fren152-w4-grammar003) hides its "/" behind
+    parenthetical inflection markers -- it still has to be recognised as an
+    alternation and refused, not blanked word-by-word. Either side is accepted
+    when the item is asked as a typed question."""
     module = game_env.module
-    blanked, answer = module.blank_target("meilleur(e)(s) / pire(s)")
-    assert answer == "meilleur / pire"
-    question = {"mode": "typed", "answer": answer, "choices": []}
+    assert module.blank_target("meilleur(e)(s) / pire(s)") is None
+    question = {"mode": "typed", "answer": "meilleur(e)(s) / pire(s)", "choices": []}
     assert module.check_answer(question, "meilleur") is True
     assert module.check_answer(question, "pire") is True
 

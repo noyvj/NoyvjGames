@@ -390,7 +390,7 @@ PRONOUN_FORMS = [
 # Determiners and other function words worth blanking out in their own right —
 # for a gender/article or possessive rule, the little word *is* the point.
 FUNCTION_WORDS = {
-    "un", "une", "des", "le", "la", "les", "l'", "du", "de", "d'", "des",
+    "un", "une", "des", "le", "la", "les", "l'", "du", "de", "d'",
     "au", "aux", "à", "ce", "cet", "cette", "ces", "mon", "ma", "mes",
     "ton", "ta", "tes", "son", "sa", "ses", "notre", "nos", "votre", "vos",
     "leur", "leurs", "c'est", "il", "elle", "on", "y", "en", "ne", "pas",
@@ -474,6 +474,15 @@ def _is_blankable(token):
     return sum(1 for ch in core if ch.isalpha()) >= 2
 
 
+# A trailing "+ <slot>" marks where a word of a given kind would go in a live
+# sentence ("Je suis + [occupation]", "assez + adjective") rather than being
+# part of the fact itself, so it is never the word to hide — asking someone to
+# recall "adjective" is asking for metalanguage, not French. Anchored to the
+# end of the string on purpose: the catalog also uses "+" mid-string as real
+# rule notation ("à + le → au"), where the word after it *is* the lesson.
+TEMPLATE_SLOT = re.compile(r"\s\+\s(?:\[[^\]]*\]|\S+)\s*$")
+
+
 def blank_target(text):
     """Pick the word worth hiding in a fact, and return (blanked, answer).
 
@@ -483,31 +492,30 @@ def blank_target(text):
     for open slots are never chosen, and trailing punctuation stays visible
     so the gap reads as a gap rather than as a typing puzzle.
 
-    A "/" needs special handling, since the catalog uses it for two very
-    different things (fem/masc and other single-word variants, e.g.
-    "australien / australienne"; or genuinely separate alternate phrasings,
-    e.g. "Comment vas-tu? / Ça va?"). Blanking one word out of a multi-word
-    alternate while a whole *other* alternate sits fully visible right next
-    to it produces a nonsensical prompt ("Comment vas-tu? / Ça _____?"), so
-    when any side of the "/" is more than one word, the whole item is
-    refused for word-blanking — it still gets asked via direct translate/
-    choice, which already accept either side of a "/" (`answer_alternatives`).
-    When every side is exactly one word, that's the fem/masc case: the whole
-    compound is blanked as a single unit and the answer stays "/"-joined, so
-    the same leniency accepts whichever form is typed.
+    An item built around a whitespace-bounded "/" is refused outright, because
+    neither shape the catalog uses it in can produce a sensible gap. Where "/"
+    joins whole alternate phrasings ("Comment vas-tu? / Ça va?"), blanking a
+    word inside one while the other sits fully visible next to it is a garbled
+    prompt ("Comment vas-tu? / Ça _____?"). Where it joins single-word variants
+    ("australien / australienne"), the alternation *is* the entire item, so
+    hiding it — as one unit or as one of its halves — leaves a prompt that is
+    nothing but the gap, with four gendered pairs to choose between and no clue
+    which. Either way the item is better carried by its direct translate/typed
+    variants, which already accept both sides of a "/" (`answer_alternatives`).
+    A "/" inside a single token, like the catalog's own "[places/attractions]"
+    placeholder, is part of that word and falls through to the normal path.
     """
     stripped = strip_parentheticals(text)
-    # A "/" only counts as an alternation separator when it's whitespace-
-    # bounded ("australien / australienne") -- one embedded in a single
-    # token, e.g. the catalog's own "[places/attractions]" placeholder, is
-    # just part of that word and must fall through to the normal algorithm.
     if re.search(r"\s/\s", stripped):
-        sides = [s.strip() for s in re.split(r"\s*/\s*", stripped)]
-        one_word_each = all(len(s.split()) == 1 for s in sides)
-        if not all(sides) or not one_word_each or any(not _is_blankable(s) for s in sides):
-            return None
-        blanked = re.sub(r"\s*/\s*".join(re.escape(s) for s in sides), BLANK_MARKER, stripped)
-        return blanked, " / ".join(sides)
+        return None
+
+    # A trailing template slot stays visible in the prompt but is set aside so
+    # it can never be chosen as the answer.
+    slot = TEMPLATE_SLOT.search(stripped)
+    tail = ""
+    if slot:
+        tail = stripped[slot.start():]
+        stripped = stripped[: slot.start()].strip()
 
     tokens = stripped.split()
     if len(tokens) < 2:
@@ -539,7 +547,7 @@ def blank_target(text):
         # If the same word recurs, every occurrence becomes the gap — the
         # answer must never be readable off the prompt.
         blanked.append(BLANK_MARKER + trail if core.casefold() == target else token)
-    return " ".join(blanked), answer
+    return " ".join(blanked) + tail, answer
 
 
 def _common_stem(forms):
@@ -559,21 +567,16 @@ def _common_stem(forms):
 
 def conjugation_forms(plot):
     """[(pronoun, form)] for a conjugation table, in catalog order."""
-    out = []
-    for item in plot.items:
-        split = split_pronoun(item["fr"])
-        if split:
-            out.append((split[0], split[1], item))
-    return out
+    return [split for split in (split_pronoun(i["fr"]) for i in plot.items) if split]
 
 
 def _ending_split(plot):
-    """(stem, [(pronoun, ending, form)]) when a table's forms share a stem."""
+    """(stem, [(pronoun, ending)]) when a table's forms share a stem."""
     entries = conjugation_forms(plot)
-    stem = _common_stem([form for _, form, _ in entries])
+    stem = _common_stem([form for _, form in entries])
     if len(stem) < 2:
         return None, []
-    return stem, [(pronoun, form[len(stem):], form) for pronoun, form, _ in entries]
+    return stem, [(pronoun, form[len(stem):]) for pronoun, form in entries]
 
 
 # --- distractor pools ------------------------------------------------------
@@ -638,7 +641,7 @@ def _form_pool(farm, plot, answer):
 
 def _ending_pool(plot, answer):
     _, entries = _ending_split(plot)
-    return _ordered_pool([ending for _, ending, _ in entries], [answer])
+    return _ordered_pool([ending for _, ending in entries], [answer])
 
 
 def nearby_strings(farm, plot):
@@ -655,7 +658,7 @@ def nearby_strings(farm, plot):
         if split:
             pool.add(split[1])
     _, entries = _ending_split(plot)
-    pool.update(ending for _, ending, _ in entries)
+    pool.update(ending for _, ending in entries)
     pool.discard("")
     return pool
 
@@ -815,7 +818,7 @@ def generate_question(plot, rng=None, variant=None, exclude=None, farm=None):
     if variant == V_CONJUGATION_SWAP:
         # The pronoun is re-rolled from the table's own six-person set each
         # visit, so the blank moves around instead of drilling one form (§5).
-        pronoun, answer, _item = rng.choice(conjugation_forms(plot))
+        pronoun, answer = rng.choice(conjugation_forms(plot))
         return _choice_question(
             plot, variant, f"{pronoun} {BLANK_MARKER}", answer,
             _form_pool(farm, plot, answer), rng, note,
@@ -823,7 +826,7 @@ def generate_question(plot, rng=None, variant=None, exclude=None, farm=None):
 
     if variant == V_BLANK_ENDING:
         stem, entries = _ending_split(plot)
-        pronoun, ending, _form = rng.choice(entries)
+        pronoun, ending = rng.choice(entries)
         return _choice_question(
             plot, variant, f"{pronoun} {stem}{BLANK_MARKER}", ending,
             _ending_pool(plot, ending), rng, note,

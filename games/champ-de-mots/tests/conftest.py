@@ -55,10 +55,6 @@ class GameEnv:
     def plot(self, plot_id):
         return self.state.plots_by_id[plot_id]
 
-    def first_plot_of_row(self, sequence):
-        row = self.state.row_by_sequence(sequence)
-        return self.state.plots_by_id[row.plot_ids[0]]
-
     def water_next(self):
         self.elements["water-next-button"].dispatch("click", None)
 
@@ -67,10 +63,6 @@ class GameEnv:
 
     def close_practice(self):
         self.elements["practice-close-button"].dispatch("click", None)
-
-    def answer_correctly(self, plot_id, day=None):
-        """Shortcut past the question UI for tests about scheduling, not prompts."""
-        self.state.review(plot_id, True, day=day)
 
 
 def _install_pyodide_fakes(elements):
