@@ -12,7 +12,10 @@ lives in the engine modules that sit beside it —
 — which is the separation the design doc's tech notes ask for, so that six
 more eras of content land in the engines rather than in one tangled file.
 
-Milestone 1: the Tribal-era season loop.
+Phase 1 complete: the Tribal-era season loop, the sustainability panel, the
+research panel, and the shared save widget's get_state()/load_state()
+contract. Phase 2's log and era-transition systems land here too, since
+both are things the player reads.
 """
 
 import os
@@ -54,25 +57,32 @@ def current_effects():
 
 # --- narration ---------------------------------------------------------
 def season_report_message(report):
-    """One plain-language line summarising the season that just passed."""
-    if report is None:
+    """One plain-language line summarising the season that just passed.
+
+    Read with `.get()` rather than `[]` because `last_report` is a saved
+    field: a loaded save can carry a report written by an earlier build of
+    the season loop, and narrating one line of flavour text is not worth
+    taking the whole render down over a key that didn't exist yet.
+    """
+    if not isinstance(report, dict):
         return "The settlement is waiting on your word."
 
+    fed = report.get("fed_fraction", 1.0)
     parts = []
-    if report["fed_fraction"] >= 1.0:
+    if fed >= 1.0:
         parts.append("Everyone ate.")
-    elif report["fed_fraction"] <= 0.0:
+    elif fed <= 0.0:
         parts.append("Nobody ate.")
     else:
-        parts.append(f"Only {report['fed_fraction'] * 100:.0f}% of the settlement ate.")
+        parts.append(f"Only {fed * 100:.0f}% of the settlement ate.")
 
-    if report["deaths"]:
+    if report.get("deaths"):
         parts.append(f"{report['deaths']} lost to hunger.")
-    if report["births"]:
+    if report.get("births"):
         parts.append(f"{report['births']} born.")
-    if report["spoiled"] > 0.5:
+    if report.get("spoiled", 0.0) > 0.5:
         parts.append(f"{report['spoiled']:.0f} food spoiled for want of storage.")
-    if report["extraction"] > report["sustainable_yield"]:
+    if report.get("extraction", 0.0) > report.get("sustainable_yield", float("inf")):
         parts.append("The land is being taken from faster than it recovers.")
 
     return " ".join(parts)

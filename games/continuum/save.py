@@ -75,6 +75,17 @@ CITY_FIELDS = [
     "score_history",
 ]
 
+# Fields that are dicts whose *key set* belongs to sim.py, not to the save:
+# the resource list, the role list and the building list. A save carries
+# their values only, so each is written key-by-key into the live dict and
+# keys sim.py doesn't know about are dropped. Replacing them wholesale meant
+# a save written before a later era added (say) a fifth role left the
+# settlement with no entry for it, and the next season or render died on a
+# KeyError — after the widget had already reported a successful load. It
+# also keeps clamp_allocation()/role_diversity(), which both iterate
+# sim.ROLES, safe against an allocation dict of some other shape.
+CITY_KEYED_DICTS = ["resources", "allocation", "buildings"]
+
 
 def city_snapshot(state):
     """A deep-copied, JSON-safe record of one CityState."""
@@ -85,11 +96,23 @@ def restore_city(state, data):
     """Writes a city snapshot back into an existing CityState, in place.
 
     Missing fields keep their current value, so a save written before a
-    field existed still loads.
+    field existed still loads — and, per CITY_KEYED_DICTS, that holds one
+    level down as well.
     """
+    if not isinstance(data, dict):
+        data = {}
     for field in CITY_FIELDS:
-        if field in data:
-            setattr(state, field, copy.deepcopy(data[field]))
+        if field not in data:
+            continue
+        value = data[field]
+        if field in CITY_KEYED_DICTS:
+            if isinstance(value, dict):
+                live = getattr(state, field)
+                for key in live:
+                    if key in value:
+                        live[key] = copy.deepcopy(value[key])
+        else:
+            setattr(state, field, copy.deepcopy(value))
     state.clamp_allocation()
 
 
@@ -107,8 +130,10 @@ def snapshot_of(state, tree, score=None):
 
 
 def _restore_snapshot(snapshot, state, tree):
-    restore_city(state, snapshot.get("city", {}))
-    tree.restore(snapshot.get("research", []))
+    if not isinstance(snapshot, dict):
+        snapshot = {}
+    restore_city(state, snapshot.get("city"))
+    tree.restore(snapshot.get("research"))
     tree.current_era = state.era
 
 
@@ -223,9 +248,15 @@ class Campaign:
             # doesn't.
             return False
 
-        current = data.get("current_state", {})
-        restore_city(self.state, current.get("city", {}))
-        self.tree.restore(current.get("research", []))
+        # The live half of the save gets the same type-guarding the parked
+        # half and the snapshots already had: a truncated or hand-edited save
+        # should load whatever it can, not take the page down on a TypeError
+        # halfway through restoring.
+        current = data.get("current_state")
+        if not isinstance(current, dict):
+            current = {}
+        restore_city(self.state, current.get("city"))
+        self.tree.restore(current.get("research"))
 
         era = data.get("current_era")
         if era in sim.ERA_ORDER:

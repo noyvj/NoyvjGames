@@ -124,11 +124,19 @@ class ResearchTree:
         """How many researched nodes belong to a branch."""
         return sum(1 for node_id in self.researched if self.nodes[node_id].branch == branch)
 
+    def researched_in_tier(self, tier):
+        """How many researched nodes sit in one tier.
+
+        Both the gate (`tier_unlocked`) and the explanation the UI shows for
+        a closed gate (`missing_requirements`) are counted from here, so the
+        two can't drift apart into saying different things.
+        """
+        return sum(1 for node_id in self.researched if self.nodes[node_id].tier == tier)
+
     def tier_unlocked(self, tier):
         if tier <= 1:
             return True
-        below = sum(1 for node_id in self.researched if self.nodes[node_id].tier == tier - 1)
-        return below >= TIER_UNLOCK_REQUIREMENT
+        return self.researched_in_tier(tier - 1) >= TIER_UNLOCK_REQUIREMENT
 
     def era_reached(self, era):
         return sim.era_index(era) <= sim.era_index(self.current_era)
@@ -146,8 +154,7 @@ class ResearchTree:
             reasons.append(f"The settlement hasn't reached the {sim.ERA_LABEL[node.era]} era.")
 
         if not self.tier_unlocked(node.tier):
-            below = sum(1 for other in self.researched if self.nodes[other].tier == node.tier - 1)
-            short = TIER_UNLOCK_REQUIREMENT - below
+            short = TIER_UNLOCK_REQUIREMENT - self.researched_in_tier(node.tier - 1)
             reasons.append(f"Needs {short} more discoveries from the tier below.")
 
         for prereq in node.prerequisites:
@@ -220,6 +227,15 @@ class ResearchTree:
         return list(self.researched)
 
     def restore(self, researched):
+        """Takes only ids this build actually has a node for.
+
+        Tolerating a non-list here rather than at each call site: both
+        callers in save.py feed this straight out of a save dict, which can
+        be truncated or hand-edited, and a half-restored tree is worse than
+        an empty one.
+        """
+        if not isinstance(researched, list):
+            researched = []
         self.researched = [node_id for node_id in researched if node_id in self.nodes]
 
     # --- structural validation -------------------------------------------

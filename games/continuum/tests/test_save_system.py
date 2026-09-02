@@ -176,6 +176,72 @@ def test_load_state_tolerates_a_minimal_save(game_env):
     assert game_env.module.get_state()["era_snapshots"] == {}
 
 
+def test_load_state_tolerates_a_save_whose_keyed_dicts_are_short(game_env):
+    """The Phase 3 scenario: a save written today, loaded by a build that has
+    since added a role, a building or a resource.
+
+    Its `resources`/`allocation`/`buildings` dicts are missing the new keys.
+    Replacing the live dicts wholesale left the settlement without them, and
+    the next season (or the next render) died on a KeyError *after* the widget
+    had already reported a successful load. The shape of those dicts belongs
+    to sim.py; a save only carries their values.
+    """
+    stale = {
+        "game": save.GAME_ID,
+        "save_version": save.SAVE_VERSION,
+        "current_state": {
+            "city": {
+                "population": 6,
+                "resources": {"food": 10.0, "materials": 5.0},  # no tools/knowledge
+                "buildings": {"shelter": 2, "hearth": 1},  # no granary/toolworks
+                "allocation": {"foragers": 3, "gatherers": 2},  # no crafters/keepers
+            },
+            "research": [],
+        },
+    }
+
+    assert game_env.module.load_state(stale) is True
+
+    state = game_env.state
+    assert set(state.resources) == {"food", "materials", "tools", "knowledge"}
+    assert set(state.buildings) == set(sim.BUILDINGS)
+    assert set(state.allocation) == set(sim.ROLES)
+    assert state.resources["food"] == 10.0
+    assert state.buildings["shelter"] == 2
+    assert state.allocation["foragers"] == 3
+    # The values the save didn't carry keep whatever the fresh state had.
+    assert state.allocation["keepers"] == 0
+
+    game_env.advance_season()  # would have raised KeyError
+    assert state.season == 2
+
+
+def test_load_state_survives_a_malformed_current_state(game_env):
+    """`parked_state`/`era_snapshots`/`ui` were already type-guarded; the
+    live half of the save wasn't, so a truncated or hand-edited code took the
+    page down with a TypeError instead of loading what it could."""
+    for broken in (
+        {"game": save.GAME_ID, "current_state": None},
+        {"game": save.GAME_ID, "current_state": {"city": None, "research": None}},
+        {"game": save.GAME_ID, "current_state": {"research": "fire_keeping"}},
+    ):
+        assert game_env.module.load_state(broken) is True
+        assert game_env.module.tree.researched == []
+        game_env.advance_season()
+
+
+def test_the_season_narration_survives_a_report_from_an_older_build(game_env):
+    """`last_report` is saved, so a loaded report can predate whatever keys
+    the current season loop writes. Narrating it must not take the render
+    down — the same forward-compatibility rule the rest of the schema has."""
+    played(game_env)
+    data = game_env.module.get_state()
+    data["current_state"]["city"]["last_report"] = {"season": 2, "fed_fraction": 1.0}
+
+    assert game_env.module.load_state(data) is True
+    assert game_env.elements["season-report-display"].innerText != ""
+
+
 # --- era snapshots ------------------------------------------------------
 def test_completing_an_era_records_a_snapshot(game_env):
     campaign = game_env.module.campaign

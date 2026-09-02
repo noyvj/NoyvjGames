@@ -51,6 +51,9 @@ ERA_LABEL = {
 }
 
 # Eras with real content behind them. Phase 2/3 append as each is built.
+# Nothing reads this yet — it exists so that the moment a second era ships,
+# "which eras are playable" has one answer rather than being inferred from
+# whichever table happens to have an entry.
 IMPLEMENTED_ERAS = ["tribal"]
 
 FIRST_ERA = ERA_ORDER[0]
@@ -66,6 +69,12 @@ def era_index(era):
 # extend the list rather than replacing the mechanic.
 ROLES = ["foragers", "gatherers", "crafters", "keepers"]
 
+# The label/blurb tables below are currently mirrored as static markup in
+# index.html, which is why nothing reads them yet: with one era there are
+# eight strings and static rows are simpler. They are kept as the intended
+# source of truth because roles and buildings change per era — the moment a
+# second era ships, the Work and Build panels have to be rendered from these
+# the way the research panel already is, and the copies in index.html go.
 ROLE_LABEL = {
     "foragers": "Foragers",
     "gatherers": "Gatherers",

@@ -104,6 +104,11 @@ def provisions(state, effects=None):
 
 # --- the four components (each 0..1) -----------------------------------
 def livability(state, effects=None):
+    """The average of the three basic provisions.
+
+    Takes `effects` because shelter and social provision are read through
+    capacities that research can raise; it has no bonus key of its own.
+    """
     values = provisions(state, effects)
     return _clamp(sum(values) / len(values))
 
@@ -124,9 +129,17 @@ def equity(state, effects=None):
 
 
 def balance(state, effects=None):
-    """Land health, and whether the last harvest stayed within its limit."""
+    """Land health, and whether the last harvest stayed within its limit.
+
+    Takes `effects` only to match the shared component signature — the land
+    modifiers reach this through `last_sustainable_yield`, which the season
+    loop has already computed with them applied.
+    """
     extraction = state.last_extraction
     limit = state.last_sustainable_yield
+    # `extraction <= 0` is redundant for any sane limit, and deliberately
+    # kept: it is what stops a corrupt save with a negative limit from
+    # dividing by a zero extraction below.
     if extraction <= limit or extraction <= 0:
         harvest = 1.0
     else:
@@ -157,19 +170,28 @@ def components(state, effects=None):
     return {name: COMPONENT_FUNCTIONS[name](state, effects) for name in COMPONENTS}
 
 
-def score(state, effects=None):
-    """The headline sustainability/livability score, 0..100."""
-    values = components(state, effects)
+def _weighted(values):
+    """The 0..100 headline number for an already-computed component dict."""
     total = sum(values[name] * COMPONENT_WEIGHTS[name] for name in COMPONENTS)
     weight = sum(COMPONENT_WEIGHTS[name] for name in COMPONENTS)
     return _clamp(total / weight, 0.0, 1.0) * 100.0
 
 
+def score(state, effects=None):
+    """The headline sustainability/livability score, 0..100."""
+    return _weighted(components(state, effects))
+
+
 def evaluate(state, effects=None):
-    """Score plus components, all on the 0..100 scale the UI displays."""
+    """Score plus components, all on the 0..100 scale the UI displays.
+
+    Both halves come out of one `components()` call: the render path asks
+    for the score and the breakdown together every frame, so recomputing
+    the four components for the score would be doing the same work twice.
+    """
     values = components(state, effects)
     return {
-        "score": score(state, effects),
+        "score": _weighted(values),
         "components": {name: values[name] * 100.0 for name in COMPONENTS},
     }
 
@@ -187,15 +209,20 @@ def score_label(value):
     return "Collapsing"
 
 
-def weakest_component(state, effects=None):
-    values = components(state, effects)
+def _weakest(values):
     return min(COMPONENTS, key=lambda name: values[name])
+
+
+def weakest_component(state, effects=None):
+    """The component the UI highlights — one definition of "worst", shared
+    with `score_note()` so the highlighted line and the note can't disagree."""
+    return _weakest(components(state, effects))
 
 
 def score_note(state, effects=None):
     """One line naming what is dragging the settlement down."""
     values = components(state, effects)
-    weakest = min(COMPONENTS, key=lambda name: values[name])
+    weakest = _weakest(values)
     if values[weakest] >= 0.85:
         return "Nothing here is going badly. This is a good place to live."
     return {
