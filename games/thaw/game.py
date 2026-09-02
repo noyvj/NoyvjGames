@@ -193,7 +193,6 @@ region = RegionState()
 region_b = RegionState()
 region_c = RegionState()
 SECONDARY_REGIONS = {"b": region_b, "c": region_c}
-SECONDARY_REGION_LABEL = {"b": "Region B", "c": "Region C"}
 
 MINI_GRAPH_WIDTH = 120
 MINI_GRAPH_HEIGHT = 40
