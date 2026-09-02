@@ -1,0 +1,209 @@
+/* Continuum — one settlement across seven eras.
+   Deliberately close to the hub's other games structurally (dark card
+   shell, meters, secondary/primary buttons) but on its own warmer palette,
+   since this one is meant to read as the flagship rather than one of the
+   climate quartet. Era-specific styling is a Phase 4 question; a single
+   consistent visual language across all seven eras is the current plan. */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #12100e;
+  color: #eee7dd;
+  display: flex;
+  justify-content: center;
+}
+
+#game {
+  width: 100%;
+  max-width: 480px;
+  padding: 1.5rem 1rem 2rem;
+}
+
+h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.75rem;
+  letter-spacing: 0.02em;
+}
+
+.tagline {
+  margin: 0 0 0.5rem;
+  opacity: 0.75;
+  font-size: 0.95rem;
+}
+
+.context-blurb {
+  margin: 0 0 1.25rem;
+  padding: 0.6rem 0.75rem;
+  border-left: 2px solid #a8763e;
+  background: #1b1815;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.section {
+  background: #1b1815;
+  border: 1px solid #2e2822;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.section-heading {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  opacity: 0.6;
+  font-weight: 600;
+}
+
+.era-line {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #d6a45c;
+}
+
+.status-line {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+}
+
+.status-line:last-child {
+  margin-bottom: 0;
+}
+
+.event-display {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.event-display--warning {
+  color: #e0b84c;
+  opacity: 1;
+}
+
+.meter {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: #241f1a;
+  overflow: hidden;
+  margin: 0.2rem 0 0.6rem;
+}
+
+.meter-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 0.2s ease;
+}
+
+.meter-fill--land {
+  background: #6f9c5a;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #2e2822;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.row-name {
+  font-size: 0.95rem;
+}
+
+.row-count {
+  font-size: 0.95rem;
+  opacity: 0.75;
+  min-width: 1.5rem;
+  text-align: right;
+}
+
+.row-blurb {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.6;
+  line-height: 1.4;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+}
+
+.row-actions button.secondary {
+  flex: 1;
+}
+
+button.secondary {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #443b31;
+  border-radius: 8px;
+  background: #262019;
+  color: #eee7dd;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: filter 120ms ease;
+}
+
+button.secondary:active:not(:disabled) {
+  filter: brightness(0.8);
+}
+
+button.secondary:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+button.primary {
+  width: 100%;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 8px;
+  background: #a8763e;
+  color: #16130f;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 120ms ease;
+}
+
+button.primary:active {
+  filter: brightness(0.85);
+}
+
+.hub-back-link {
+  display: inline-block;
+  margin-bottom: 0.6rem;
+  font-size: 0.85rem;
+  color: inherit;
+  opacity: 0.65;
+  text-decoration: none;
+}
+
+.hub-back-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}

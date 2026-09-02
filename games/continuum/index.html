@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Continuum — Milestone 1</title>
+<link rel="icon" href="../../icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../../ad-bar.css">
+<link rel="manifest" href="../../manifest.json">
+<!-- AdSense: placeholder client ID until application is approved -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+</head>
+<body>
+  <div id="game">
+    <a href="../../index.html" class="hub-back-link">&larr; All games</a>
+    <h1>Continuum</h1>
+    <p class="tagline">One settlement, carried across the ages. Grow it — but grow something worth living in.</p>
+    <p class="context-blurb">A city that gets bigger isn't automatically a city that gets better. Continuum tracks both.</p>
+
+    <div id="status" class="section">
+      <p id="era-display" class="era-line">Tribal era</p>
+      <p id="season-display" class="status-line">Season 1</p>
+      <p id="population-display" class="status-line">People: 6</p>
+      <p id="housing-display" class="status-line">Shelter for 8</p>
+      <p id="food-display" class="status-line">Food: 20 / 30</p>
+      <p id="materials-display" class="status-line">Materials: 20</p>
+      <p id="tools-display" class="status-line">Tools: 2.0</p>
+      <p id="knowledge-display" class="status-line">Knowledge: 0.0</p>
+      <p id="land-health-display" class="status-line">Land health: 100%</p>
+      <div class="meter"><div id="land-health-bar" class="meter-fill meter-fill--land"></div></div>
+      <p id="season-report-display" class="event-display">The settlement is waiting on your word.</p>
+    </div>
+
+    <div id="work" class="section">
+      <h2 class="section-heading">Work</h2>
+      <p id="idle-display" class="status-line">Unassigned: 1</p>
+
+      <div class="row" data-role="foragers">
+        <div class="row-top">
+          <span class="row-name">🌾 Foragers</span>
+          <span class="row-count" id="foragers-count">3</span>
+        </div>
+        <p class="row-blurb">Bring in food from the land.</p>
+        <div class="row-actions">
+          <button id="foragers-remove-button" class="secondary" disabled>&minus;</button>
+          <button id="foragers-add-button" class="secondary" disabled>+</button>
+        </div>
+      </div>
+
+      <div class="row" data-role="gatherers">
+        <div class="row-top">
+          <span class="row-name">🪵 Gatherers</span>
+          <span class="row-count" id="gatherers-count">2</span>
+        </div>
+        <p class="row-blurb">Bring in wood, fibre and stone.</p>
+        <div class="row-actions">
+          <button id="gatherers-remove-button" class="secondary" disabled>&minus;</button>
+          <button id="gatherers-add-button" class="secondary" disabled>+</button>
+        </div>
+      </div>
+
+      <div class="row" data-role="crafters">
+        <div class="row-top">
+          <span class="row-name">🪓 Crafters</span>
+          <span class="row-count" id="crafters-count">0</span>
+        </div>
+        <p class="row-blurb">Turn materials into tools.</p>
+        <div class="row-actions">
+          <button id="crafters-remove-button" class="secondary" disabled>&minus;</button>
+          <button id="crafters-add-button" class="secondary" disabled>+</button>
+        </div>
+      </div>
+
+      <div class="row" data-role="keepers">
+        <div class="row-top">
+          <span class="row-name">🔥 Keepers</span>
+          <span class="row-count" id="keepers-count">0</span>
+        </div>
+        <p class="row-blurb">Hold and pass on what the settlement knows.</p>
+        <div class="row-actions">
+          <button id="keepers-remove-button" class="secondary" disabled>&minus;</button>
+          <button id="keepers-add-button" class="secondary" disabled>+</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="buildings" class="section">
+      <h2 class="section-heading">Build</h2>
+
+      <div class="row" data-building="shelter">
+        <div class="row-top">
+          <span class="row-name">⛺ Shelter</span>
+          <span class="row-count" id="shelter-count">2</span>
+        </div>
+        <p class="row-blurb">Houses people. Nobody grows a settlement they can't sleep in.</p>
+        <div class="row-actions">
+          <button id="shelter-build-button" class="secondary" disabled>Loading...</button>
+        </div>
+      </div>
+
+      <div class="row" data-building="granary">
+        <div class="row-top">
+          <span class="row-name">🫙 Storage Pit</span>
+          <span class="row-count" id="granary-count">0</span>
+        </div>
+        <p class="row-blurb">Holds food that would otherwise spoil.</p>
+        <div class="row-actions">
+          <button id="granary-build-button" class="secondary" disabled>Loading...</button>
+        </div>
+      </div>
+
+      <div class="row" data-building="hearth">
+        <div class="row-top">
+          <span class="row-name">🔥 Fire Circle</span>
+          <span class="row-count" id="hearth-count">1</span>
+        </div>
+        <p class="row-blurb">Where the settlement gathers. Warmth, cooking, and a shared story.</p>
+        <div class="row-actions">
+          <button id="hearth-build-button" class="secondary" disabled>Loading...</button>
+        </div>
+      </div>
+
+      <div class="row" data-building="toolworks">
+        <div class="row-top">
+          <span class="row-name">🪨 Knapping Site</span>
+          <span class="row-count" id="toolworks-count">0</span>
+        </div>
+        <p class="row-blurb">A dedicated place to work stone — crafters produce more.</p>
+        <div class="row-actions">
+          <button id="toolworks-build-button" class="secondary" disabled>Loading...</button>
+        </div>
+      </div>
+    </div>
+
+    <button id="advance-season-button" class="primary">Advance Season</button>
+  </div>
+
+  <div class="ad-bar ad-bar--bottom">
+    <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>
+    <span class="ad-bar-label ad-bar-label-short">Ad</span>
+    <!-- Google AdSense manual display ad unit -->
+    <ins class="adsbygoogle"
+         style="display:block; width:320px; height:50px;"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="XXXXXXXXXX"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <script>
+    // Continuum is split into engine modules (see game.py's docstring), so
+    // unlike the smaller hub games it fetches more than one Python file.
+    // Each engine module is written into Pyodide's virtual filesystem (the
+    // working directory, which is on sys.path) before game.py runs and
+    // imports them. Still no build step — just more than one fetch.
+    const ENGINE_MODULES = ["sim.py"];
+
+    async function main() {
+      const pyodide = await loadPyodide();
+      window.pyodide = pyodide; // exposed for the shared save widget
+      for (const name of ENGINE_MODULES) {
+        const moduleSource = await (await fetch(name)).text();
+        pyodide.FS.writeFile(name, moduleSource, { encoding: "utf8" });
+      }
+      const response = await fetch("game.py");
+      const code = await response.text();
+      await pyodide.runPythonAsync(code);
+    }
+    main();
+  </script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../../sw.js");
+    }
+  </script>
+</body>
+</html>
