@@ -115,6 +115,25 @@ def test_route_edges_include_kepler_after_unlock(game_env):
     assert edges["kepler_c"] == "kepler_b"
 
 
+def test_kepler_map_labels_are_distinct_once_unlocked(game_env):
+    # Bug: render_map() labels each node with name.split()[0]. That's
+    # unique for the home system (Aurum/Verdant/Ferrum/Cryo/Helion) but
+    # all three Kepler colonies share the literal first word "Kepler" --
+    # naively reusing the same rule would render all three map nodes
+    # with the identical label, making them visually indistinguishable.
+    module = game_env.module
+    module.research_points = 100
+    game_env.unlock_research("galaxy_expansion")
+    module.render()
+    ctx = game_env.elements["map-canvas"].getContext("2d")
+    kepler_labels = {
+        text for name, (text, x, y) in
+        ((n, a) for n, a in ctx.calls if n == "fillText")
+        if (x, y) in (module.NODE_POSITIONS["kepler_a"], module.NODE_POSITIONS["kepler_b"], module.NODE_POSITIONS["kepler_c"])
+    }
+    assert len(kepler_labels) == 3
+
+
 def test_kepler_depart_buttons_hidden_before_unlock(game_env):
     game_env.load(ship_id="1")
     button = game_env.elements["ship-1-depart-kepler_a-button"]

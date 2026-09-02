@@ -276,6 +276,25 @@ NODE_COLOR = "#3a5a9c"
 EDGE_COLOR = "#3a3f5c"
 LABEL_COLOR = "#e8e9f0"
 
+# Bug fix, found during the code-quality audit: render_map() used to
+# label every node with name.split()[0]. That's unique for the home
+# system (Aurum/Verdant/Ferrum/Cryo/Helion all have distinct first
+# words), but all three Kepler Cluster colonies share the literal
+# prefix "Kepler" -- naively reusing the same rule rendered all three
+# map nodes with the identical "Kepler" label, making them visually
+# indistinguishable despite sitting at three different positions.
+# Kepler colonies get an explicit short label instead; everything else
+# keeps the original first-word behavior unchanged.
+MAP_LABEL_OVERRIDE = {
+    "kepler_a": "Kep. Alpha",
+    "kepler_b": "Kep. Beta",
+    "kepler_c": "Kep. Gamma",
+}
+
+
+def colony_map_label(colony_id):
+    return MAP_LABEL_OVERRIDE.get(colony_id, ALL_COLONIES[colony_id]["name"].split()[0])
+
 
 def route_edges():
     """One directed edge per *reachable* colony, to whichever colony
@@ -347,7 +366,7 @@ def render_map():
         ctx.font = "11px sans-serif"
         ctx.textAlign = "center"
         ctx.textBaseline = "middle"
-        ctx.fillText(ALL_COLONIES[colony_id]["name"].split()[0], x, y)
+        ctx.fillText(colony_map_label(colony_id), x, y)
 
     for ship in ships.values():
         x, y = ship_map_position(ship)
