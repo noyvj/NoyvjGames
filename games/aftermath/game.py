@@ -151,6 +151,36 @@ RUN_HISTORY_STORAGE_KEY = "aftermath_run_history_v1"
 # flavor text in the next run rather than a mechanical bonus.
 LEGACY_STORAGE_KEY = "aftermath_legacy_events_v1"
 
+# The shared save widget can restore an *older* in-memory RunState over a
+# newer one (that's the whole point of "load a save from earlier") --
+# including one whose event_index has already advanced past a point that
+# was, in a different RunState object, resolved all the way to completion
+# and already awarded knowledge/history/legacy. Without a persistent
+# record of which run_number has already paid out, re-resolving that
+# reloaded run's remaining events to completion would trigger the
+# completion payout a second time for the same run: free knowledge
+# points and a duplicate run_history entry, just by reloading a save
+# taken before the run's last event. This tracks the highest run_number
+# that has already been awarded (independent of any one RunState
+# instance) so a completion only pays out the first time a given
+# run_number crosses the finish line, no matter how many stale snapshots
+# of it get loaded and re-resolved afterward.
+AWARDED_RUN_STORAGE_KEY = "aftermath_highest_awarded_run_v1"
+
+
+def load_highest_awarded_run():
+    raw = localStorage.getItem(AWARDED_RUN_STORAGE_KEY)
+    if not raw:
+        return 0
+    try:
+        return int(json.loads(raw))
+    except (ValueError, TypeError):
+        return 0
+
+
+def save_highest_awarded_run(run_number):
+    localStorage.setItem(AWARDED_RUN_STORAGE_KEY, json.dumps(run_number))
+
 
 def load_legacy_events():
     raw = localStorage.getItem(LEGACY_STORAGE_KEY)
@@ -248,12 +278,16 @@ class RunState:
         self.event_index += 1
 
         if self.is_complete():
-            skill_tree.add_knowledge(self.knowledge_points_earned())
-            skill_tree.save()
-            run_history.append(self.run_score())
-            save_run_history(run_history)
-            legacy_events.update(entry["type"] for entry in self.event_log)
-            save_legacy_events(legacy_events)
+            global highest_awarded_run
+            if self.run_number > highest_awarded_run:
+                skill_tree.add_knowledge(self.knowledge_points_earned())
+                skill_tree.save()
+                run_history.append(self.run_score())
+                save_run_history(run_history)
+                legacy_events.update(entry["type"] for entry in self.event_log)
+                save_legacy_events(legacy_events)
+                highest_awarded_run = self.run_number
+                save_highest_awarded_run(highest_awarded_run)
 
         return True
 
@@ -316,6 +350,7 @@ class SkillTreeState:
 skill_tree = SkillTreeState.load()
 run_history = load_run_history()
 legacy_events = load_legacy_events()
+highest_awarded_run = load_highest_awarded_run()
 run = RunState()
 
 

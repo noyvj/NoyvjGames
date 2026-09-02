@@ -132,3 +132,59 @@ def test_load_state_does_not_touch_the_persistent_skill_tree_or_history(game_env
     assert game_env.module.skill_tree.knowledge_points == 42
     assert "community_reserves" in game_env.module.skill_tree.unlocked
     assert game_env.run_history == history_before
+
+
+def test_reloading_a_stale_pre_completion_save_does_not_double_award(game_env):
+    """Real exploit this two-persistence-layer setup makes possible: the
+    save widget lets a player save mid-run (one event before completion),
+    keep playing to a normal completion (awarding knowledge points/history
+    once, as usual), and then reload that same still-visible save code
+    afterward -- since the save widget only overwrites a remembered code
+    when the player saves *again*, an old code stays loadable long after
+    the run it snapshotted has since completed for real. Resolving the
+    final event a second time off that reloaded snapshot must not award a
+    second time -- run completion is a one-time event per run_number, not
+    per resolve_next_event() call that happens to cross the finish line."""
+    schedule_length = len(game_env.module.EVENT_SCHEDULE)
+    for _ in range(schedule_length - 1):
+        game_env.resolve_event()
+    stale_snapshot = game_env.module.get_state()  # one event left, not complete
+
+    game_env.resolve_event()  # completes the run normally
+    assert game_env.run.is_complete()
+    knowledge_after_first_completion = game_env.skill_tree.knowledge_points
+    history_after_first_completion = list(game_env.run_history)
+    legacy_after_first_completion = set(game_env.module.legacy_events)
+
+    game_env.module.load_state(stale_snapshot)
+    assert not game_env.run.is_complete()
+    game_env.resolve_event()  # "completes" it again from the stale save
+    assert game_env.run.is_complete()
+
+    assert game_env.skill_tree.knowledge_points == knowledge_after_first_completion
+    assert game_env.run_history == history_after_first_completion
+    assert game_env.module.legacy_events == legacy_after_first_completion
+
+
+def test_completing_further_runs_after_a_stale_reload_still_awards_normally(game_env):
+    """The double-award guard must be scoped to "this exact run_number has
+    already been awarded," not "no further runs can ever be awarded" --
+    starting and completing a genuinely new run afterward must still work."""
+    schedule_length = len(game_env.module.EVENT_SCHEDULE)
+    for _ in range(schedule_length - 1):
+        game_env.resolve_event()
+    stale_snapshot = game_env.module.get_state()
+
+    game_env.resolve_event()  # completes run 1 normally
+    game_env.module.load_state(stale_snapshot)
+    game_env.resolve_event()  # stale re-completion of run 1, must be ignored
+    knowledge_before_run_two = game_env.skill_tree.knowledge_points
+    history_len_before_run_two = len(game_env.run_history)
+
+    game_env.start_new_run()
+    assert game_env.run.run_number == 2
+    for _ in range(schedule_length):
+        game_env.resolve_event()
+
+    assert game_env.skill_tree.knowledge_points > knowledge_before_run_two
+    assert len(game_env.run_history) == history_len_before_run_two + 1

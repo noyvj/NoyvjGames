@@ -70,6 +70,35 @@ An optional, player-triggered "The Real Story" panel — never forced mid-sessio
 
 All four links verified live before merging. Source 4's original URL (`climate-adapt.eea.europa.eu`) permanently redirected to the EU's newer Mission Adaptation Portal during verification — updated to the canonical destination above. Source 1 (IPCC) returns 403 to automated fetchers (bot-protection) but was confirmed loading correctly in a real browser.
 
+## Audit fix — stale-save double-award guard
+
+Code-quality audit pass found a real exploit at the seam between this game's
+two persistence layers (localStorage skill tree/run history vs. the shared
+save widget's per-run `get_state()`/`load_state()`): saving mid-run (before
+the last scheduled event), playing on to a normal completion (which awards
+knowledge points/history/legacy as usual), and then reloading that same
+still-valid save code afterward would restore the run to its pre-completion
+`event_index`. Resolving the final event again from that reloaded snapshot
+re-triggered the completion payout a second time for the same run — free
+knowledge points and a duplicate `run_history` entry, just from reloading an
+old save. `load_state()`'s existing scope boundary (skill tree/history/legacy
+are untouched by a load) was correct; the bug was that `resolve_next_event()`
+had no persistent memory of *which run_number had already paid out*, only
+the in-memory `RunState` instance's own `event_index`, which a reload can
+freely rewind.
+
+**Fix:** a new localStorage key (`aftermath_highest_awarded_run_v1`) tracks
+the highest `run_number` that has ever been awarded, independent of any one
+`RunState` object. A run's completion only pays out if its `run_number`
+exceeds that persisted high-water mark, and updates it when it does — so
+reloading and re-resolving an already-awarded run's old snapshot is now a
+no-op payout-wise, while a genuinely new run (higher `run_number`) still
+awards normally. Deliberately not folded into `get_state()`/`load_state()`'s
+round trip — same reasoning as the skill tree/history/legacy split already
+documented below, this is derived, persistent-by-run-number bookkeeping, not
+per-run state that should travel with a save code. Covered by two new tests
+in `tests/test_save_system.py`.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
