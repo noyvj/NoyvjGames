@@ -252,6 +252,19 @@ button:disabled {
   border-style: dashed;
 }
 
+.stage-summary {
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  color: #4a3f30;
+}
+
+.row-due {
+  font-size: 0.68rem;
+  color: #7f8f5c;
+  font-variant-numeric: tabular-nums;
+}
+
 .row-lock {
   font-size: 0.68rem;
   color: #9a8a70;

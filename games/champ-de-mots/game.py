@@ -887,6 +887,10 @@ AUTOMATED_TOOLTIP_NOTE = "auto-watered"
 DUE_NOTE = "ready for water"
 NOTHING_DUE_MESSAGE = "Nothing needs water today. The farm is ticking over on its own."
 LOCK_NOTE = "opens when row {previous} has all sprouted"
+PACE_NOTE = "Water as many or as few as you like. Nothing here expires, and stopping costs nothing."
+DUE_MESSAGE_ONE = "1 plot is ready for water today."
+DUE_MESSAGE_MANY = "{count} plots are ready for water today."
+ROW_DUE_NOTE = "{count} ready"
 
 FEEDBACK = {
     "correct": "Yes — {answer}. This plot is growing.",
@@ -949,6 +953,12 @@ def build_farm():
         progress.className = "row-progress"
         head.appendChild(progress)
 
+        due = document.createElement("span")
+        due.id = f"row-due-{row.sequence}"
+        due.className = "row-due"
+        due.hidden = True
+        head.appendChild(due)
+
         lock = document.createElement("span")
         lock.id = f"row-lock-{row.sequence}"
         lock.className = "row-lock"
@@ -1006,7 +1016,11 @@ def render_farm():
             continue
         cell.className = _plot_classes(plot)
         cell.innerText = STAGE_ICON[plot.stage]
-        cell.title = _plot_title(plot)
+        title = _plot_title(plot)
+        cell.title = title
+        # The sprite carries the meaning visually; screen readers get the same
+        # sentence the tooltip does.
+        cell.setAttribute("aria-label", title)
         cell.disabled = not state.is_row_unlocked(plot.sequence)
 
     for row in state.rows:
@@ -1017,12 +1031,31 @@ def render_farm():
         _element(f"row-lock-{row.sequence}").hidden = unlocked
         _element(f"row-{row.sequence}").className = "row" if unlocked else "row row--locked"
 
+        row_due = sum(1 for p in plots if is_due(p, state.current_day)) if unlocked else 0
+        due_element = _element(f"row-due-{row.sequence}")
+        due_element.hidden = not row_due
+        due_element.innerText = ROW_DUE_NOTE.format(count=row_due) if row_due else ""
+
 
 def render_status():
     due = state.due_plots()
     _element("day-display").innerText = f"Day {state.current_day + 1}"
-    _element("due-display").innerText = (
-        NOTHING_DUE_MESSAGE if not due else f"{len(due)} plots need water today"
+    if not due:
+        message = NOTHING_DUE_MESSAGE
+    elif len(due) == 1:
+        message = DUE_MESSAGE_ONE
+    else:
+        message = DUE_MESSAGE_MANY.format(count=len(due))
+    _element("due-display").innerText = message
+    _element("pace-display").innerText = PACE_NOTE
+
+    # A tally rather than a score: how much of the farm is at each stage, with
+    # no notion of how much of it "should" be further along by now.
+    counts = {stage: 0 for stage in STAGE_ORDER}
+    for plot in state.plots:
+        counts[plot.stage] += 1
+    _element("stage-summary-display").innerText = " · ".join(
+        f"{STAGE_ICON[stage]} {counts[stage]}" for stage in STAGE_ORDER
     )
 
     available = state.available_plots()
@@ -1141,6 +1174,12 @@ def on_submit_typed(event=None):
     submit_answer(_element("practice-answer-input").value)
 
 
+def on_answer_keydown(event=None):
+    if event is not None and getattr(event, "key", None) == "Enter":
+        event.preventDefault()
+        on_submit_typed()
+
+
 def on_water_next(event=None):
     plot = state.next_due_plot()
     if plot is not None:
@@ -1156,6 +1195,7 @@ def setup():
     build_farm()
     render_legend()
     _element("practice-submit-button").addEventListener("click", create_proxy(on_submit_typed))
+    _element("practice-answer-input").addEventListener("keydown", create_proxy(on_answer_keydown))
     _element("practice-close-button").addEventListener("click", create_proxy(close_practice))
     _element("water-next-button").addEventListener("click", create_proxy(on_water_next))
     _element("next-day-button").addEventListener("click", create_proxy(on_next_day))

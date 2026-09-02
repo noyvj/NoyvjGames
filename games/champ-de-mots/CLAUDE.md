@@ -136,7 +136,7 @@ This state is per-plot, per-user — fits your existing save-code system (Neon/P
 | 4 | Static farm grid UI | Section 3 stages + wilting, rows = sequence 1-23, chapter labels, no animation required | Done |
 | 5 | Save-code backend hook | Shared `shared/save-widget.js` drop-in + `get_state()`/`load_state()` contract | Done |
 | 6 | Row-unlock pacing | Section 7 — previous row all at Sprout+ before the next unlocks; FREN151's 11 rows open immediately as a catch-up zone | Done |
-| 7 | Polish pass | Section 8 — screenshots-ready visuals, calm "plots needing water" counter, no streak-guilt UI | Not started |
+| 7 | Polish pass | Section 8 — screenshots-ready visuals, calm "plots needing water" counter, no streak-guilt UI | Done |
 
 ## 12. Build Notes & Decisions
 
@@ -184,6 +184,13 @@ Decisions taken during the build that the design doc above left open. Appended t
 - **Sprout, not "visited".** A plot answered only incorrectly is still a Seed, so it still holds the gate shut. The flip side, from §3: because stages never regress, a later wrong answer can never re-lock a row you have already opened.
 - **Unlocking is cached.** `render()` asks about lock state once per plot — 722 times a repaint — so the unlocked set is computed once and invalidated on review and on load rather than walked per cell.
 - **Locked rows are quiet, not scolding.** Dashed border, faded cells, disabled buttons, and an italic "opens when row N has all sprouted". Locked plots are excluded from the due count and from "water the next plot", so the calm counter never asks for something the farm won't let you do.
+
+**Milestone 7 — polish pass**
+
+- **The counter is a sentence, not a scoreboard.** "472 plots are ready for water today." — with the singular handled — and underneath it a pace note: "Water as many or as few as you like. Nothing here expires, and stopping costs nothing." The empty state neither congratulates nor nags: "Nothing needs water today. The farm is ticking over on its own."
+- **A stage tally, not a score.** 🟤 721 · 🌱 0 · 🌿 0 · 🌷 0 · 🌻 1 — how much of the farm is at each stage, with no notion of how far along it "should" be by now. Each open row also carries a quiet "N ready" in its header.
+- **The wellbeing constraints are enforced by tests over the shipped files,** not just by care while writing them: no fire emoji in any of `index.html` / `style.css` / `game.py`; the word "streak" never reaches the markup (`correct_streak` stays an internal SRS field); no `setInterval` / `setTimeout` / `datetime` anywhere in `game.py`, because no clock may drive the interface; and no `@keyframes` / `animation:` / `transition:` in the CSS, because §8 asked for static and screenshot-friendly.
+- **Enter submits a typed answer,** and plot cells carry an `aria-label` matching their tooltip, so the sprite's meaning is available to a screen reader rather than only to the eye.
 
 ## 13. Working conventions
 
