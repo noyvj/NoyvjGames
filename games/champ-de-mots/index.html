@@ -54,6 +54,48 @@
       <button id="practice-close-button" class="secondary practice-close">Close</button>
     </div>
 
+    <div id="review-section" class="section review-section">
+      <button id="review-toggle-button" class="secondary">Review</button>
+      <p class="status-line status-line--muted">
+        Optional cross-section practice — pulls from any unlocked week, doesn't affect row unlocking, and a correct answer only nudges that plot's schedule a little further out.
+      </p>
+      <div id="review-controls" hidden>
+        <label class="review-setting">
+          Items per session
+          <input type="number" id="review-count-input" min="1" max="25" value="10">
+        </label>
+        <label class="review-setting">
+          Minimum growth stage
+          <select id="review-min-stage-select">
+            <option value="seed">Any (Seed or higher)</option>
+            <option value="sprout">Sprout or higher</option>
+            <option value="budding">Budding or higher</option>
+            <option value="blooming">Blooming or higher</option>
+            <option value="automated">Automated only</option>
+          </select>
+        </label>
+        <div class="controls">
+          <button id="review-word-button" class="secondary">Random Word Review</button>
+          <button id="review-grammar-button" class="secondary">Grammar Review</button>
+        </div>
+        <p id="review-empty-message" class="status-line status-line--muted" hidden></p>
+      </div>
+      <div id="review-panel" class="section practice" hidden>
+        <p id="review-progress" class="practice-context"></p>
+        <p id="review-context" class="practice-context"></p>
+        <p id="review-instruction" class="practice-instruction"></p>
+        <p id="review-prompt" class="practice-prompt"></p>
+        <p id="review-note" class="practice-note" hidden></p>
+        <div id="review-choices" class="practice-choices"></div>
+        <input id="review-answer-input" class="practice-input" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Type your answer" hidden>
+        <button id="review-submit-button" class="secondary" hidden>Check</button>
+        <p id="review-feedback" class="practice-feedback"></p>
+        <p id="review-summary" class="status-line" hidden></p>
+        <button id="review-next-button" class="secondary" hidden>Next</button>
+        <button id="review-close-button" class="secondary practice-close">Close review</button>
+      </div>
+    </div>
+
     <p id="legend" class="legend">Loading...</p>
 
     <div id="farm" class="farm"></div>

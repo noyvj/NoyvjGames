@@ -1215,6 +1215,30 @@ def _destroy_practice_choice_proxies():
     practice_choice_proxies.clear()
 
 
+# --- Milestone 11: Review tab state (design doc §14.4) ---------------------
+#
+# Opt-in, entirely separate from the daily watering loop: it never grows a
+# plot's stage and never changes row-unlock state (only stage does that), so
+# it can't be used to skip the pacing gate. All of it is session state, like
+# `ACCENT_SENSITIVE` above — none of it belongs in get_state()/load_state().
+
+review_controls_open = False
+review_mode = None  # None | "word" | "grammar"
+review_queue = []  # plot_ids, fixed for the session once start_review() rolls it
+review_index = 0
+review_question = None
+review_result = None
+review_score = {"correct": 0, "total": 0}
+review_choice_proxies = []
+REVIEW_RNG = random.Random()
+
+
+def _destroy_review_choice_proxies():
+    for proxy in review_choice_proxies:
+        proxy.destroy()
+    review_choice_proxies.clear()
+
+
 def _element(element_id):
     return document.getElementById(element_id)
 
@@ -1487,6 +1511,7 @@ def render():
     render_farm()
     render_status()
     render_practice()
+    render_review()
 
 
 # --- interactions ----------------------------------------------------------
@@ -1620,6 +1645,279 @@ def on_next_day(event=None):
     render()
 
 
+# ===========================================================================
+# Milestone 11 — the Review tab (design doc §14.4)
+# ===========================================================================
+#
+# Two opt-in cross-section modes, reusing Milestone 3's own generator rather
+# than inventing a second one: Random Word Review samples vocab/phrase plots
+# from any unlocked week, Grammar Review the same but grammar-only and
+# biased toward fill-in-the-blank/conjugation prompts. Neither ever grows a
+# plot's stage or touches row-unlock state — only the daily watering loop
+# does that — so Review can't be used to route around §7's pacing gate. A
+# correct answer still nudges that plot's interval a little further out
+# rather than being untracked entirely (§14.4's own wording).
+
+DEFAULT_REVIEW_COUNT = 10
+MIN_REVIEW_COUNT = 1
+MAX_REVIEW_COUNT = 25
+REVIEW_NUDGE_DAYS = 1
+
+GRAMMAR_REVIEW_PREFERRED_VARIANTS = (V_BLANK_WORD, V_CONJUGATION_SWAP, V_BLANK_ENDING)
+
+REVIEW_SUMMARY_MESSAGE = "Review complete — {correct}/{total} correct."
+REVIEW_EMPTY_MESSAGE = (
+    "Nothing matches those filters yet — try a lower minimum stage, "
+    "or check back once more plots have grown."
+)
+
+
+def review_candidates(topic_types, min_stage=STAGE_SEED, farm=None):
+    """Every plot eligible for a Review session: the right `topic_type`, in
+    an unlocked row (locked rows are off-limits to Review exactly as they
+    are to the farm itself), at or above the minimum growth stage."""
+    farm = state if farm is None else farm
+    threshold = STAGE_RANK[min_stage]
+    return [
+        p
+        for p in farm.plots
+        if p.topic_type in topic_types
+        and farm.is_row_unlocked(p.sequence)
+        and STAGE_RANK[p.stage] >= threshold
+    ]
+
+
+def nudge_review_correct(plot, day):
+    """A correct Review answer isn't a full watering event: it nudges the
+    interval a little further out and records that the plot was seen today
+    (so a save doesn't silently drop the nudge — see get_state()'s "touched"
+    rule), but deliberately never touches `correct_streak`, `ease_factor` or
+    `stage`. Only the daily loop's `schedule_after_review()` grows a plant."""
+    plot.interval_days = max(1, plot.interval_days) + REVIEW_NUDGE_DAYS
+    plot.next_due = day + plot.interval_days
+    plot.last_reviewed = day
+
+
+def _review_count_setting():
+    raw = _element("review-count-input").value
+    try:
+        count = int(str(raw).strip())
+    except (TypeError, ValueError):
+        count = DEFAULT_REVIEW_COUNT
+    return max(MIN_REVIEW_COUNT, min(MAX_REVIEW_COUNT, count))
+
+
+def _review_min_stage_setting():
+    raw = _element("review-min-stage-select").value
+    return raw if raw in STAGE_RANK else STAGE_SEED
+
+
+def _review_variant_for(plot, mode):
+    """Grammar Review's bias (§14.4: "biased toward fill-in-the-blank/
+    conjugation prompts"): if the plot can produce one of those variants,
+    roll among just those; otherwise (word review, or a grammar plot that
+    can't offer one) let generate_question() pick from its full pool."""
+    if mode != "grammar":
+        return None
+    preferred = [v for v in variants_for(plot) if v in GRAMMAR_REVIEW_PREFERRED_VARIANTS]
+    return QUESTION_RNG.choice(preferred) if preferred else None
+
+
+def _advance_review_question():
+    global review_question, review_result
+
+    if review_index >= len(review_queue):
+        review_question = None
+        review_result = None
+        return
+    plot = state.plots_by_id[review_queue[review_index]]
+    review_question = generate_question(
+        plot, QUESTION_RNG, variant=_review_variant_for(plot, review_mode)
+    )
+    review_result = None
+
+
+def start_review(mode, event=None):
+    """Roll a fresh Review session: mode is "word" (vocab/phrase) or
+    "grammar", the count and minimum-stage filter come from the session's
+    own in-page controls (§14.4: both configurable, not fixed)."""
+    global review_mode, review_queue, review_index, review_score
+
+    topic_types = {"vocab", "phrase"} if mode == "word" else {"grammar"}
+    candidates = review_candidates(topic_types, _review_min_stage_setting())
+    REVIEW_RNG.shuffle(candidates)
+
+    review_mode = mode
+    review_queue = [p.plot_id for p in candidates[: _review_count_setting()]]
+    review_index = 0
+    review_score = {"correct": 0, "total": 0}
+    _advance_review_question()
+    render()
+
+
+def submit_review_answer(given):
+    global review_result, review_score
+
+    if review_question is None or review_result is not None:
+        return None
+    typed_mode = review_question["mode"] == "typed"
+    tier = grading_tier(review_question["answer"]) if typed_mode else None
+    review_result = check_answer(
+        review_question, given, tier=tier, accent_sensitive=ACCENT_SENSITIVE
+    )
+    review_score["total"] += 1
+    if review_result:
+        review_score["correct"] += 1
+        plot = state.plots_by_id.get(review_question["plot_id"])
+        if plot is not None:
+            nudge_review_correct(plot, state.current_day)
+    render()
+    return review_result
+
+
+def next_review_question(event=None):
+    global review_index
+
+    if review_mode is None:
+        return None
+    review_index += 1
+    _advance_review_question()
+    render()
+    return review_question
+
+
+def close_review(event=None):
+    global review_mode, review_queue, review_index, review_question, review_result, review_score
+
+    review_mode = None
+    review_queue = []
+    review_index = 0
+    review_question = None
+    review_result = None
+    review_score = {"correct": 0, "total": 0}
+    render()
+
+
+def on_toggle_review(event=None):
+    global review_controls_open
+    review_controls_open = not review_controls_open
+    render()
+
+
+def on_start_word_review(event=None):
+    start_review("word")
+
+
+def on_start_grammar_review(event=None):
+    start_review("grammar")
+
+
+def _make_review_choice_handler(choice):
+    def handler(event=None):
+        submit_review_answer(choice)
+    return handler
+
+
+def on_review_submit_typed(event=None):
+    submit_review_answer(_element("review-answer-input").value)
+
+
+def on_review_answer_keydown(event=None):
+    if event is not None and getattr(event, "key", None) == "Enter":
+        event.preventDefault()
+        on_review_submit_typed()
+
+
+def render_review():
+    controls = _element("review-controls")
+    controls.hidden = not review_controls_open
+
+    panel = _element("review-panel")
+    empty_message = _element("review-empty-message")
+    summary = _element("review-summary")
+    choices_box = _element("review-choices")
+
+    _destroy_review_choice_proxies()
+
+    if review_mode is None:
+        panel.hidden = True
+        empty_message.hidden = True
+        summary.hidden = True
+        choices_box.innerHTML = ""
+        return
+
+    if review_question is None:
+        choices_box.innerHTML = ""
+        if not review_queue and review_score["total"] == 0:
+            # Session started, but nothing matched the filters.
+            panel.hidden = True
+            empty_message.hidden = False
+            empty_message.innerText = REVIEW_EMPTY_MESSAGE
+            summary.hidden = True
+            return
+        # Queue exhausted -- show the score, nothing else.
+        panel.hidden = False
+        empty_message.hidden = True
+        summary.hidden = False
+        summary.innerText = REVIEW_SUMMARY_MESSAGE.format(**review_score)
+        _element("review-progress").innerText = ""
+        _element("review-context").innerText = ""
+        _element("review-instruction").innerText = ""
+        _element("review-prompt").innerText = ""
+        _element("review-note").hidden = True
+        _element("review-answer-input").hidden = True
+        _element("review-submit-button").hidden = True
+        _element("review-next-button").hidden = True
+        _element("review-feedback").innerText = ""
+        return
+
+    panel.hidden = False
+    empty_message.hidden = True
+    summary.hidden = True
+    _element("review-progress").innerText = f"{review_index + 1} of {len(review_queue)}"
+    _element("review-context").innerText = review_question["context"]
+    _element("review-instruction").innerText = review_question["instruction"]
+    _element("review-prompt").innerText = review_question["prompt"]
+
+    note = _element("review-note")
+    note.innerText = review_question["note"] or ""
+    note.hidden = not review_question["note"]
+
+    answered = review_result is not None
+    answer_input = _element("review-answer-input")
+    submit = _element("review-submit-button")
+    next_button = _element("review-next-button")
+
+    choices_box.innerHTML = ""
+    if review_question["mode"] == "choice":
+        answer_input.hidden = True
+        submit.hidden = True
+        for index, choice in enumerate(review_question["choices"]):
+            button = document.createElement("button")
+            button.id = f"review-choice-{index}"
+            button.innerText = choice
+            button.disabled = answered
+            button.className = "choice"
+            if answered and choice == review_question["answer"]:
+                button.className = "choice choice--answer"
+            proxy = create_proxy(_make_review_choice_handler(choice))
+            button.addEventListener("click", proxy)
+            review_choice_proxies.append(proxy)
+            choices_box.appendChild(button)
+    else:
+        answer_input.hidden = False
+        submit.hidden = False
+        submit.disabled = answered
+
+    next_button.hidden = not answered
+
+    if answered:
+        template = FEEDBACK["correct" if review_result else "incorrect"]
+        _element("review-feedback").innerText = template.format(answer=review_question["answer"])
+    else:
+        _element("review-feedback").innerText = ""
+
+
 def on_toggle_accent_sensitivity(event=None):
     """§14.2: one global toggle, default ON. Flips on every click rather than
     reading a `checked` property, so the fake-DOM harness (which has no real
@@ -1643,6 +1941,19 @@ def setup():
         "click", create_proxy(on_toggle_accent_sensitivity)
     )
     _element("accent-toggle-checkbox").checked = ACCENT_SENSITIVE
+    _element("review-toggle-button").addEventListener("click", create_proxy(on_toggle_review))
+    _element("review-word-button").addEventListener("click", create_proxy(on_start_word_review))
+    _element("review-grammar-button").addEventListener(
+        "click", create_proxy(on_start_grammar_review)
+    )
+    _element("review-submit-button").addEventListener(
+        "click", create_proxy(on_review_submit_typed)
+    )
+    _element("review-answer-input").addEventListener(
+        "keydown", create_proxy(on_review_answer_keydown)
+    )
+    _element("review-next-button").addEventListener("click", create_proxy(next_review_question))
+    _element("review-close-button").addEventListener("click", create_proxy(close_review))
     render()
 
 

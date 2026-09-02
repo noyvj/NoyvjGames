@@ -82,6 +82,28 @@ h1 {
   color: #7a6a53;
 }
 
+.review-section .status-line--muted {
+  margin-bottom: 0.6rem;
+}
+
+.review-setting {
+  display: block;
+  font-size: 0.8rem;
+  color: #6b5c46;
+  margin-top: 0.6rem;
+}
+
+.review-setting input,
+.review-setting select {
+  display: block;
+  margin-top: 0.25rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.4rem;
+  border-radius: 6px;
+  border: 1px solid #e2d8c4;
+}
+
 .controls {
   display: flex;
   gap: 0.5rem;
