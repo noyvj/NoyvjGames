@@ -1,0 +1,5091 @@
+{
+  "courses": [
+    "FREN151",
+    "FREN152"
+  ],
+  "note": "Continuous timeline: sequence numbers run 1-11 for FREN151 (weeks 1-11) then 11-23 for FREN152 (weeks 2-13, since FREN152's own week 1 has no separate tutorial content).",
+  "chapters": [
+    {
+      "number": 1,
+      "title": "Je me présente",
+      "weeks": [
+        1,
+        2
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Donner des renseignements personnels",
+      "weeks": [
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Ma ville",
+      "weeks": [
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Mon entourage et moi",
+      "weeks": [
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "number": "Bridge",
+      "title": "FREN151-152 Bridge",
+      "weeks": [
+        2
+      ]
+    },
+    {
+      "number": 5,
+      "title": "La routine quotidienne",
+      "weeks": [
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Acheter des vêtements",
+      "weeks": [
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "number": 9,
+      "title": "Les aliments et les boissons",
+      "weeks": [
+        9,
+        10,
+        11,
+        12,
+        13
+      ]
+    }
+  ],
+  "weeks": [
+    {
+      "week": 1,
+      "chapter": 1,
+      "topics": [
+        {
+          "id": "fren151-w1-phon001",
+          "topic_type": "phonetic",
+          "title": "L'alphabet",
+          "items": [
+            {
+              "fr": "A",
+              "en": "ah"
+            },
+            {
+              "fr": "B",
+              "en": "bay"
+            },
+            {
+              "fr": "C",
+              "en": "say"
+            },
+            {
+              "fr": "D",
+              "en": "day"
+            },
+            {
+              "fr": "E",
+              "en": "uh"
+            },
+            {
+              "fr": "F",
+              "en": "eff"
+            },
+            {
+              "fr": "G",
+              "en": "jay"
+            },
+            {
+              "fr": "H",
+              "en": "ash"
+            },
+            {
+              "fr": "I",
+              "en": "ee"
+            },
+            {
+              "fr": "J",
+              "en": "gee"
+            },
+            {
+              "fr": "K",
+              "en": "kah"
+            },
+            {
+              "fr": "L",
+              "en": "ell"
+            },
+            {
+              "fr": "M",
+              "en": "em"
+            },
+            {
+              "fr": "N",
+              "en": "en"
+            },
+            {
+              "fr": "O",
+              "en": "oh"
+            },
+            {
+              "fr": "P",
+              "en": "pay"
+            },
+            {
+              "fr": "Q",
+              "en": "koo"
+            },
+            {
+              "fr": "R",
+              "en": "air"
+            },
+            {
+              "fr": "S",
+              "en": "ess"
+            },
+            {
+              "fr": "T",
+              "en": "tay"
+            },
+            {
+              "fr": "U",
+              "en": "ooh"
+            },
+            {
+              "fr": "V",
+              "en": "vay"
+            },
+            {
+              "fr": "W",
+              "en": "doo-blah-vay"
+            },
+            {
+              "fr": "X",
+              "en": "eeks"
+            },
+            {
+              "fr": "Y",
+              "en": "ee-grek"
+            },
+            {
+              "fr": "Z",
+              "en": "zed"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w1-phon002",
+          "topic_type": "phonetic",
+          "title": "Accents / diacritics",
+          "items": [
+            {
+              "fr": "é",
+              "en": "accent aigu (e.g. téléphone)"
+            },
+            {
+              "fr": "è / à / ù",
+              "en": "accent grave (e.g. mère)"
+            },
+            {
+              "fr": "ê / â / ô / û / î",
+              "en": "accent circonflexe (e.g. fête)"
+            },
+            {
+              "fr": "ë / ü / ï",
+              "en": "tréma (e.g. Saïd)"
+            },
+            {
+              "fr": "ç",
+              "en": "cédille (e.g. français)"
+            },
+            {
+              "fr": "'",
+              "en": "apostrophe (e.g. aujourd'hui)"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w1-vocab001",
+          "topic_type": "vocab",
+          "title": "Greetings",
+          "items": [
+            {
+              "fr": "bonjour",
+              "en": "hello"
+            },
+            {
+              "fr": "bonsoir",
+              "en": "good evening"
+            },
+            {
+              "fr": "salut",
+              "en": "hi and bye"
+            },
+            {
+              "fr": "au revoir",
+              "en": "goodbye"
+            },
+            {
+              "fr": "enchanté",
+              "en": "pleased to meet you"
+            },
+            {
+              "fr": "tu",
+              "en": "you (informal/singular)"
+            },
+            {
+              "fr": "vous",
+              "en": "you (formal/plural)"
+            },
+            {
+              "fr": "monsieur",
+              "en": "sir"
+            },
+            {
+              "fr": "madame",
+              "en": "madam"
+            },
+            {
+              "fr": "mademoiselle",
+              "en": "miss"
+            },
+            {
+              "fr": "à plus tard / à plus",
+              "en": "see you later"
+            },
+            {
+              "fr": "à bientôt",
+              "en": "see you soon"
+            },
+            {
+              "fr": "bonne nuit",
+              "en": "good night (before bed)"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w1-phrase001",
+          "topic_type": "phrase",
+          "title": "Asking someone's name",
+          "items": [
+            {
+              "fr": "Comment t'appelles-tu?",
+              "en": "What's your name? (informal)"
+            },
+            {
+              "fr": "Comment vous appelez-vous?",
+              "en": "What's your name? (formal)"
+            },
+            {
+              "fr": "Je m'appelle...",
+              "en": "My name is..."
+            },
+            {
+              "fr": "Comment ça s'écrit?",
+              "en": "How is that spelt?"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w1-grammar001",
+          "topic_type": "grammar",
+          "title": "Gender & articles (un/une/des, le/la/les/l')",
+          "items": [
+            {
+              "fr": "une chaise",
+              "en": "a chair"
+            },
+            {
+              "fr": "une table",
+              "en": "a table"
+            },
+            {
+              "fr": "un crayon",
+              "en": "a pencil"
+            },
+            {
+              "fr": "un stylo",
+              "en": "a pen"
+            },
+            {
+              "fr": "un cahier",
+              "en": "a notebook"
+            },
+            {
+              "fr": "une gomme",
+              "en": "a rubber/eraser"
+            },
+            {
+              "fr": "un tableau",
+              "en": "a whiteboard/blackboard"
+            },
+            {
+              "fr": "un sac à dos",
+              "en": "a backpack"
+            },
+            {
+              "fr": "un ordinateur",
+              "en": "a computer"
+            },
+            {
+              "fr": "un ordinateur portable",
+              "en": "a laptop"
+            },
+            {
+              "fr": "des livres",
+              "en": "some books"
+            },
+            {
+              "fr": "un professeur / une professeure",
+              "en": "a teacher/lecturer (m/f)"
+            },
+            {
+              "fr": "un / une élève",
+              "en": "a student/pupil (m/f)"
+            }
+          ],
+          "rule": "Nouns are masculine or feminine. A: un (m) / une (f) / des (pl). THE: le (m) / la (f) / les (pl); both le and la become l' before a vowel or silent h."
+        },
+        {
+          "id": "fren151-w1-vocab002",
+          "topic_type": "vocab",
+          "title": "Numbers 0-20",
+          "items": [
+            {
+              "fr": "zéro",
+              "en": "0"
+            },
+            {
+              "fr": "un",
+              "en": "1"
+            },
+            {
+              "fr": "deux",
+              "en": "2"
+            },
+            {
+              "fr": "trois",
+              "en": "3"
+            },
+            {
+              "fr": "quatre",
+              "en": "4"
+            },
+            {
+              "fr": "cinq",
+              "en": "5"
+            },
+            {
+              "fr": "six",
+              "en": "6"
+            },
+            {
+              "fr": "sept",
+              "en": "7"
+            },
+            {
+              "fr": "huit",
+              "en": "8"
+            },
+            {
+              "fr": "neuf",
+              "en": "9"
+            },
+            {
+              "fr": "dix",
+              "en": "10"
+            },
+            {
+              "fr": "onze",
+              "en": "11"
+            },
+            {
+              "fr": "douze",
+              "en": "12"
+            },
+            {
+              "fr": "treize",
+              "en": "13"
+            },
+            {
+              "fr": "quatorze",
+              "en": "14"
+            },
+            {
+              "fr": "quinze",
+              "en": "15"
+            },
+            {
+              "fr": "seize",
+              "en": "16"
+            },
+            {
+              "fr": "dix-sept",
+              "en": "17"
+            },
+            {
+              "fr": "dix-huit",
+              "en": "18"
+            },
+            {
+              "fr": "dix-neuf",
+              "en": "19"
+            },
+            {
+              "fr": "vingt",
+              "en": "20"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w1-vocab003",
+          "topic_type": "vocab",
+          "title": "Classroom instructions",
+          "items": [
+            {
+              "fr": "répétez!",
+              "en": "repeat!"
+            },
+            {
+              "fr": "encore une fois!",
+              "en": "again!"
+            },
+            {
+              "fr": "avez-vous fini?",
+              "en": "have you finished?"
+            },
+            {
+              "fr": "arrêtez!",
+              "en": "stop!"
+            },
+            {
+              "fr": "tous ensemble",
+              "en": "everybody together"
+            },
+            {
+              "fr": "en français!",
+              "en": "in French!"
+            },
+            {
+              "fr": "écoutez bien!",
+              "en": "listen carefully!"
+            },
+            {
+              "fr": "Quelle est la bonne réponse?",
+              "en": "What's the correct answer?"
+            },
+            {
+              "fr": "c'est à vous!",
+              "en": "it's your turn"
+            },
+            {
+              "fr": "je ne sais pas",
+              "en": "I don't know"
+            },
+            {
+              "fr": "Comment dit-on ... en français?",
+              "en": "How do you say ... in French?"
+            },
+            {
+              "fr": "Vous pouvez réexpliquer, s'il vous plaît?",
+              "en": "Can you explain that again please?"
+            }
+          ]
+        }
+      ],
+      "course": "FREN151",
+      "sequence": 1
+    },
+    {
+      "week": 2,
+      "chapter": 1,
+      "topics": [
+        {
+          "id": "fren151-w2-vocab001",
+          "topic_type": "vocab",
+          "title": "Numbers 20-100",
+          "items": [
+            {
+              "fr": "vingt",
+              "en": "20"
+            },
+            {
+              "fr": "vingt et un",
+              "en": "21"
+            },
+            {
+              "fr": "trente",
+              "en": "30"
+            },
+            {
+              "fr": "quarante",
+              "en": "40"
+            },
+            {
+              "fr": "cinquante",
+              "en": "50"
+            },
+            {
+              "fr": "soixante",
+              "en": "60"
+            },
+            {
+              "fr": "soixante-dix",
+              "en": "70"
+            },
+            {
+              "fr": "quatre-vingts",
+              "en": "80"
+            },
+            {
+              "fr": "quatre-vingt-dix",
+              "en": "90"
+            },
+            {
+              "fr": "cent",
+              "en": "100"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w2-phrase001",
+          "topic_type": "phrase",
+          "title": "Asking how someone is",
+          "items": [
+            {
+              "fr": "Comment vas-tu? / Ça va?",
+              "en": "How are you? (informal)"
+            },
+            {
+              "fr": "Comment allez-vous?",
+              "en": "How are you? (formal)"
+            },
+            {
+              "fr": "Ça va bien.",
+              "en": "It's going well."
+            },
+            {
+              "fr": "Bien, merci.",
+              "en": "Well, thank you."
+            },
+            {
+              "fr": "comme ci, comme ça",
+              "en": "so-so"
+            },
+            {
+              "fr": "Et toi / Et vous?",
+              "en": "And you? (inf./form.)"
+            },
+            {
+              "fr": "à plus / à la prochaine",
+              "en": "see you / see you next time"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w2-grammar001",
+          "topic_type": "grammar",
+          "title": "Regular verb conjugation groups",
+          "items": [
+            {
+              "fr": "regarder (-er)",
+              "en": "to watch"
+            },
+            {
+              "fr": "perdre (-re)",
+              "en": "to lose"
+            },
+            {
+              "fr": "choisir (-ir)",
+              "en": "to choose"
+            }
+          ],
+          "rule": "French has three groups of regular verbs, named after their infinitive endings: -er, -ir, -re."
+        },
+        {
+          "id": "fren151-w2-grammar002",
+          "topic_type": "grammar",
+          "title": "Subject pronouns",
+          "items": [
+            {
+              "fr": "je",
+              "en": "I"
+            },
+            {
+              "fr": "tu",
+              "en": "you (informal/sg)"
+            },
+            {
+              "fr": "il",
+              "en": "he"
+            },
+            {
+              "fr": "elle",
+              "en": "she"
+            },
+            {
+              "fr": "on",
+              "en": "one / impersonal we"
+            },
+            {
+              "fr": "nous",
+              "en": "we"
+            },
+            {
+              "fr": "vous",
+              "en": "you (formal/plural)"
+            },
+            {
+              "fr": "ils",
+              "en": "they (masc./mixed)"
+            },
+            {
+              "fr": "elles",
+              "en": "they (fem.)"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w2-grammar003",
+          "topic_type": "grammar",
+          "title": "-er verb conjugation (parler)",
+          "items": [
+            {
+              "fr": "je parle",
+              "en": "I speak"
+            },
+            {
+              "fr": "tu parles",
+              "en": "you speak"
+            },
+            {
+              "fr": "il/elle/on parle",
+              "en": "he/she/one speaks"
+            },
+            {
+              "fr": "nous parlons",
+              "en": "we speak"
+            },
+            {
+              "fr": "vous parlez",
+              "en": "you speak (formal/pl)"
+            },
+            {
+              "fr": "ils/elles parlent",
+              "en": "they speak"
+            }
+          ],
+          "rule": "Remove -ER from the infinitive to get the stem, then add: -e, -es, -e, -ons, -ez, -ent."
+        },
+        {
+          "id": "fren151-w2-vocab002",
+          "topic_type": "vocab",
+          "title": "Common -er verbs",
+          "items": [
+            {
+              "fr": "parler",
+              "en": "to speak"
+            },
+            {
+              "fr": "visiter",
+              "en": "to visit (a place)"
+            },
+            {
+              "fr": "aimer",
+              "en": "to like/love"
+            },
+            {
+              "fr": "étudier",
+              "en": "to study"
+            },
+            {
+              "fr": "habiter",
+              "en": "to live"
+            },
+            {
+              "fr": "inviter",
+              "en": "to invite"
+            },
+            {
+              "fr": "regarder",
+              "en": "to watch"
+            },
+            {
+              "fr": "écouter",
+              "en": "to listen to"
+            },
+            {
+              "fr": "jouer",
+              "en": "to play"
+            },
+            {
+              "fr": "travailler",
+              "en": "to work"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w2-vocab003",
+          "topic_type": "vocab",
+          "title": "Nationalities (masc./fem.)",
+          "items": [
+            {
+              "fr": "australien / australienne",
+              "en": "Australian"
+            },
+            {
+              "fr": "néo-zélandais / néo-zélandaise",
+              "en": "New Zealander"
+            },
+            {
+              "fr": "anglais / anglaise",
+              "en": "English"
+            },
+            {
+              "fr": "écossais / écossaise",
+              "en": "Scottish"
+            },
+            {
+              "fr": "gallois / galloise",
+              "en": "Welsh"
+            },
+            {
+              "fr": "irlandais / irlandaise",
+              "en": "Irish"
+            },
+            {
+              "fr": "français / française",
+              "en": "French"
+            },
+            {
+              "fr": "suisse / suisse",
+              "en": "Swiss"
+            },
+            {
+              "fr": "belge / belge",
+              "en": "Belgian"
+            },
+            {
+              "fr": "canadien / canadienne",
+              "en": "Canadian"
+            },
+            {
+              "fr": "québécois / québécoise",
+              "en": "Québécois"
+            },
+            {
+              "fr": "allemand / allemande",
+              "en": "German"
+            },
+            {
+              "fr": "espagnol / espagnole",
+              "en": "Spanish"
+            },
+            {
+              "fr": "italien / italienne",
+              "en": "Italian"
+            },
+            {
+              "fr": "russe / russe",
+              "en": "Russian"
+            },
+            {
+              "fr": "américain / américaine",
+              "en": "American"
+            },
+            {
+              "fr": "mexicain / mexicaine",
+              "en": "Mexican"
+            },
+            {
+              "fr": "chinois / chinoise",
+              "en": "Chinese"
+            },
+            {
+              "fr": "hongkongais / hongkongaise",
+              "en": "Hongkongese"
+            },
+            {
+              "fr": "taïwanais / taïwanaise",
+              "en": "Taiwanese"
+            },
+            {
+              "fr": "japonais / japonaise",
+              "en": "Japanese"
+            },
+            {
+              "fr": "vietnamien / vietnamienne",
+              "en": "Vietnamese"
+            },
+            {
+              "fr": "malaisien / malaisienne",
+              "en": "Malaysian"
+            },
+            {
+              "fr": "indonésien / indonésienne",
+              "en": "Indonesian"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w2-phrase002",
+          "topic_type": "phrase",
+          "title": "Asking someone's nationality",
+          "items": [
+            {
+              "fr": "Quelle est ta/votre nationalité?",
+              "en": "What is your nationality?"
+            },
+            {
+              "fr": "Je suis + [nationality]",
+              "en": "I am + [nationality]"
+            },
+            {
+              "fr": "Je suis australien(ne) d'origine libanaise.",
+              "en": "I am an Australian of Lebanese extraction."
+            }
+          ],
+          "rule": "Feminine nationality usually adds -e (unless already ending in e); nationalities ending in -ien add -enne. Plural: add -s (masc./mixed) or -es (fem.); already-s endings don't double."
+        }
+      ],
+      "course": "FREN151",
+      "sequence": 2
+    },
+    {
+      "week": 3,
+      "chapter": 2,
+      "topics": [
+        {
+          "id": "fren151-w3-grammar001",
+          "topic_type": "grammar",
+          "title": "The verb avoir (to have)",
+          "items": [
+            {
+              "fr": "j'ai",
+              "en": "I have"
+            },
+            {
+              "fr": "tu as",
+              "en": "you have"
+            },
+            {
+              "fr": "il/elle/on a",
+              "en": "he/she/one has"
+            },
+            {
+              "fr": "nous avons",
+              "en": "we have"
+            },
+            {
+              "fr": "vous avez",
+              "en": "you have (formal/pl)"
+            },
+            {
+              "fr": "ils/elles ont",
+              "en": "they have"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w3-phrase001",
+          "topic_type": "phrase",
+          "title": "Asking someone's age",
+          "items": [
+            {
+              "fr": "Quel âge as-tu?",
+              "en": "How old are you? (informal)"
+            },
+            {
+              "fr": "Quel âge avez-vous?",
+              "en": "How old are you? (formal)"
+            },
+            {
+              "fr": "J'ai ... ans.",
+              "en": "I'm ... years old."
+            }
+          ]
+        },
+        {
+          "id": "fren151-w3-vocab001",
+          "topic_type": "vocab",
+          "title": "Idioms with avoir",
+          "items": [
+            {
+              "fr": "avoir X ans",
+              "en": "to be X years old"
+            },
+            {
+              "fr": "avoir faim",
+              "en": "to be hungry"
+            },
+            {
+              "fr": "avoir soif",
+              "en": "to be thirsty"
+            },
+            {
+              "fr": "avoir sommeil",
+              "en": "to be sleepy"
+            },
+            {
+              "fr": "avoir chaud",
+              "en": "to be hot"
+            },
+            {
+              "fr": "avoir froid",
+              "en": "to be cold"
+            },
+            {
+              "fr": "avoir raison",
+              "en": "to be right"
+            },
+            {
+              "fr": "avoir tort",
+              "en": "to be wrong"
+            },
+            {
+              "fr": "avoir peur",
+              "en": "to be scared"
+            },
+            {
+              "fr": "avoir de la chance",
+              "en": "to be lucky"
+            },
+            {
+              "fr": "avoir besoin de",
+              "en": "to need"
+            },
+            {
+              "fr": "avoir envie de",
+              "en": "to want"
+            },
+            {
+              "fr": "il y a",
+              "en": "there is / there are"
+            },
+            {
+              "fr": "il n'y a pas (de)",
+              "en": "there isn't / aren't"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w3-vocab002",
+          "topic_type": "vocab",
+          "title": "Personal objects",
+          "items": [
+            {
+              "fr": "une affiche",
+              "en": "a poster"
+            },
+            {
+              "fr": "une photo",
+              "en": "a photo"
+            },
+            {
+              "fr": "un livre",
+              "en": "a book"
+            },
+            {
+              "fr": "des livres",
+              "en": "books"
+            },
+            {
+              "fr": "un smartphone",
+              "en": "a smartphone"
+            },
+            {
+              "fr": "une radio numérique",
+              "en": "a digital radio"
+            },
+            {
+              "fr": "une enceinte portable / sans fil",
+              "en": "a wireless speaker"
+            },
+            {
+              "fr": "un casque sans fil",
+              "en": "a wireless headset"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w3-phrase002",
+          "topic_type": "phrase",
+          "title": "Expressing wants and needs",
+          "items": [
+            {
+              "fr": "J'ai envie d'un/une + [object]",
+              "en": "I want + [object]"
+            },
+            {
+              "fr": "J'ai besoin d'un/une + [object]",
+              "en": "I need + [object]"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w3-grammar002",
+          "topic_type": "grammar",
+          "title": "Elision and liaison",
+          "items": [
+            {
+              "fr": "j'imite (je + imite)",
+              "en": "I imitate"
+            },
+            {
+              "fr": "j'habite à Paris",
+              "en": "I live in Paris"
+            },
+            {
+              "fr": "l'hôtel",
+              "en": "the hotel"
+            },
+            {
+              "fr": "trois amis",
+              "en": "three friends (liaison: z sound)"
+            },
+            {
+              "fr": "les enfants",
+              "en": "the children (liaison: z sound)"
+            },
+            {
+              "fr": "nous avons",
+              "en": "we have (liaison: z sound)"
+            }
+          ],
+          "rule": "Elision: a final vowel is dropped and replaced with an apostrophe before a word starting with a vowel or silent h (je, le, la, de, que, ne, se, ce, si). Liaison: a normally-silent final consonant is pronounced when the next word starts with a vowel."
+        },
+        {
+          "id": "fren151-w3-grammar003",
+          "topic_type": "grammar",
+          "title": "Reflexive (pronominal) verbs",
+          "items": [
+            {
+              "fr": "me",
+              "en": "myself"
+            },
+            {
+              "fr": "te",
+              "en": "yourself (informal)"
+            },
+            {
+              "fr": "se",
+              "en": "himself/herself/themselves"
+            },
+            {
+              "fr": "nous",
+              "en": "ourselves"
+            },
+            {
+              "fr": "vous",
+              "en": "yourself/-ves (formal)"
+            },
+            {
+              "fr": "se présenter",
+              "en": "to introduce oneself"
+            },
+            {
+              "fr": "s'appeler",
+              "en": "to be called"
+            }
+          ],
+          "rule": "Reflexive verbs take a reflexive pronoun immediately before the verb, matching the subject."
+        }
+      ],
+      "course": "FREN151",
+      "sequence": 3
+    },
+    {
+      "week": 4,
+      "chapter": 2,
+      "topics": [
+        {
+          "id": "fren151-w4-vocab001",
+          "topic_type": "vocab",
+          "title": "Reasons for studying French",
+          "items": [
+            {
+              "fr": "pour voyager",
+              "en": "to travel"
+            },
+            {
+              "fr": "pour lire en français",
+              "en": "to read in French"
+            },
+            {
+              "fr": "pour le travail",
+              "en": "for work"
+            },
+            {
+              "fr": "pour vivre en France",
+              "en": "to live in France"
+            },
+            {
+              "fr": "pour étudier en France",
+              "en": "to study in France"
+            },
+            {
+              "fr": "pour parler avec des ami(e)s",
+              "en": "to speak to friends"
+            },
+            {
+              "fr": "pour le C.V.",
+              "en": "for my CV"
+            },
+            {
+              "fr": "pour le plaisir",
+              "en": "for pleasure"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w4-grammar001",
+          "topic_type": "grammar",
+          "title": "Uses of 'pour'",
+          "items": [
+            {
+              "fr": "un cadeau pour Henri",
+              "en": "a present for Henry"
+            },
+            {
+              "fr": "j'étudie le français pour voyager",
+              "en": "I am studying French to travel"
+            }
+          ],
+          "rule": "'Pour' translates 'for', or 'in order to' when followed by an infinitive."
+        },
+        {
+          "id": "fren151-w4-vocab002",
+          "topic_type": "vocab",
+          "title": "Occupations (masc./fem.)",
+          "items": [
+            {
+              "fr": "cuisinier / cuisinière",
+              "en": "cook"
+            },
+            {
+              "fr": "médecin",
+              "en": "doctor (m/f)"
+            },
+            {
+              "fr": "infirmier / infirmière",
+              "en": "nurse"
+            },
+            {
+              "fr": "dentiste",
+              "en": "dentist (m/f)"
+            },
+            {
+              "fr": "mécanicien / mécanicienne",
+              "en": "mechanic"
+            },
+            {
+              "fr": "agriculteur / agricultrice",
+              "en": "farmer"
+            },
+            {
+              "fr": "serveur / serveuse",
+              "en": "waiter/waitress"
+            },
+            {
+              "fr": "agent de police / agente de police",
+              "en": "police officer"
+            },
+            {
+              "fr": "pompier / femme pompier",
+              "en": "firefighter"
+            },
+            {
+              "fr": "professeur / professeure",
+              "en": "teacher/lecturer"
+            },
+            {
+              "fr": "étudiant / étudiante",
+              "en": "student"
+            },
+            {
+              "fr": "coiffeur / coiffeuse",
+              "en": "hairdresser"
+            },
+            {
+              "fr": "boulanger / boulangère",
+              "en": "baker"
+            },
+            {
+              "fr": "boucher / bouchère",
+              "en": "butcher"
+            },
+            {
+              "fr": "pilote",
+              "en": "pilot (m/f)"
+            },
+            {
+              "fr": "chanteur / chanteuse",
+              "en": "singer"
+            },
+            {
+              "fr": "acteur / actrice",
+              "en": "actor"
+            },
+            {
+              "fr": "écrivain / femme écrivain",
+              "en": "writer"
+            },
+            {
+              "fr": "banquier / banquière",
+              "en": "banker"
+            },
+            {
+              "fr": "comptable",
+              "en": "accountant (m/f)"
+            },
+            {
+              "fr": "avocat / avocate",
+              "en": "lawyer"
+            },
+            {
+              "fr": "secrétaire",
+              "en": "secretary (m/f)"
+            },
+            {
+              "fr": "informaticien / informaticienne",
+              "en": "computer engineer"
+            },
+            {
+              "fr": "guide touristique",
+              "en": "tourist guide (m/f)"
+            },
+            {
+              "fr": "architecte",
+              "en": "architect (m/f)"
+            },
+            {
+              "fr": "vendeur / vendeuse",
+              "en": "salesperson"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w4-phrase001",
+          "topic_type": "phrase",
+          "title": "Asking someone's occupation",
+          "items": [
+            {
+              "fr": "Qu'est-ce que tu fais dans la vie?",
+              "en": "What do you do for a living? (informal)"
+            },
+            {
+              "fr": "Qu'est-ce que vous faites dans la vie?",
+              "en": "What do you do for a living? (formal)"
+            },
+            {
+              "fr": "Quel est ton/votre métier?",
+              "en": "What is your occupation?"
+            },
+            {
+              "fr": "Je suis + [occupation]",
+              "en": "I'm a + [occupation]"
+            },
+            {
+              "fr": "Je travaille comme + [occupation]",
+              "en": "I work as + [occupation]"
+            }
+          ],
+          "rule": "No article (un/une) before an occupation after 'être' or 'travailler comme' — e.g. 'Je suis professeur', not 'Je suis un professeur'. But an article IS used after 'c'est': 'C'est une actrice'."
+        },
+        {
+          "id": "fren151-w4-vocab003",
+          "topic_type": "vocab",
+          "title": "Sectors of work",
+          "items": [
+            {
+              "fr": "le tourisme",
+              "en": "tourism"
+            },
+            {
+              "fr": "la restauration",
+              "en": "hospitality"
+            },
+            {
+              "fr": "l'enseignement",
+              "en": "education"
+            },
+            {
+              "fr": "la vente",
+              "en": "retail"
+            },
+            {
+              "fr": "la mode",
+              "en": "fashion"
+            },
+            {
+              "fr": "le secteur médical",
+              "en": "medical sector"
+            },
+            {
+              "fr": "les affaires",
+              "en": "business"
+            },
+            {
+              "fr": "les urgences",
+              "en": "emergency services"
+            },
+            {
+              "fr": "le bâtiment",
+              "en": "construction"
+            },
+            {
+              "fr": "l'informatique",
+              "en": "IT"
+            },
+            {
+              "fr": "l'audiovisuel",
+              "en": "radio & television"
+            },
+            {
+              "fr": "le secteur (agro-)alimentaire",
+              "en": "food-processing industry"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w4-phrase002",
+          "topic_type": "phrase",
+          "title": "Work status & email",
+          "items": [
+            {
+              "fr": "Je travaille à temps partiel.",
+              "en": "I work part-time."
+            },
+            {
+              "fr": "Je travaille à temps plein / complet.",
+              "en": "I work full-time."
+            },
+            {
+              "fr": "Je suis au chômage.",
+              "en": "I am unemployed."
+            },
+            {
+              "fr": "Je suis à la retraite.",
+              "en": "I am retired."
+            },
+            {
+              "fr": "Quelle est ton/votre adresse e-mail?",
+              "en": "What is your email address?"
+            },
+            {
+              "fr": "arobase / point / tiret bas",
+              "en": "@ / . / _ (for spelling an email)"
+            }
+          ]
+        }
+      ],
+      "course": "FREN151",
+      "sequence": 4
+    },
+    {
+      "week": 5,
+      "chapter": 2,
+      "topics": [
+        {
+          "id": "fren151-w5-phrase001",
+          "topic_type": "phrase",
+          "title": "Asking where someone lives",
+          "items": [
+            {
+              "fr": "Où habites-tu? / Où habitez-vous?",
+              "en": "Where do you live?"
+            },
+            {
+              "fr": "J'habite à + [town/city]",
+              "en": "I live in..."
+            }
+          ]
+        },
+        {
+          "id": "fren151-w5-vocab001",
+          "topic_type": "vocab",
+          "title": "Countries",
+          "items": [
+            {
+              "fr": "l'Australie",
+              "en": "Australia"
+            },
+            {
+              "fr": "la Nouvelle-Zélande",
+              "en": "New Zealand"
+            },
+            {
+              "fr": "l'Angleterre",
+              "en": "England"
+            },
+            {
+              "fr": "le Pays de Galles",
+              "en": "Wales"
+            },
+            {
+              "fr": "l'Écosse",
+              "en": "Scotland"
+            },
+            {
+              "fr": "le Royaume-Uni",
+              "en": "United Kingdom"
+            },
+            {
+              "fr": "l'Irlande",
+              "en": "Ireland"
+            },
+            {
+              "fr": "la France",
+              "en": "France"
+            },
+            {
+              "fr": "la Suisse",
+              "en": "Switzerland"
+            },
+            {
+              "fr": "la Belgique",
+              "en": "Belgium"
+            },
+            {
+              "fr": "le Canada",
+              "en": "Canada"
+            },
+            {
+              "fr": "les États-Unis",
+              "en": "the United States"
+            },
+            {
+              "fr": "le Mexique",
+              "en": "Mexico"
+            },
+            {
+              "fr": "l'Allemagne",
+              "en": "Germany"
+            },
+            {
+              "fr": "l'Espagne",
+              "en": "Spain"
+            },
+            {
+              "fr": "l'Italie",
+              "en": "Italy"
+            },
+            {
+              "fr": "la Russie",
+              "en": "Russia"
+            },
+            {
+              "fr": "l'Inde",
+              "en": "India"
+            },
+            {
+              "fr": "la Chine",
+              "en": "China"
+            },
+            {
+              "fr": "le Japon",
+              "en": "Japan"
+            },
+            {
+              "fr": "le Vietnam",
+              "en": "Vietnam"
+            },
+            {
+              "fr": "l'Indonésie",
+              "en": "Indonesia"
+            },
+            {
+              "fr": "la Malaisie",
+              "en": "Malaysia"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w5-grammar001",
+          "topic_type": "grammar",
+          "title": "'From' and 'to' with countries",
+          "items": [
+            {
+              "fr": "Je suis de/d' + [fem. country]",
+              "en": "I'm from... (fem.)"
+            },
+            {
+              "fr": "Je suis du + [masc. country]",
+              "en": "I'm from... (masc.)"
+            },
+            {
+              "fr": "Je suis des + [plural country]",
+              "en": "I'm from... (plural)"
+            },
+            {
+              "fr": "Je vais en + [fem. country]",
+              "en": "I'm going to... (fem.)"
+            },
+            {
+              "fr": "Je vais au + [masc. country]",
+              "en": "I'm going to... (masc.)"
+            },
+            {
+              "fr": "Je vais aux + [plural country]",
+              "en": "I'm going to... (plural)"
+            }
+          ],
+          "rule": "Countries ending in -e are almost always feminine; others are masculine. de/d' (fem.), du (masc.), des (plural) = 'from'. en (fem.), au (masc.), aux (plural) = 'to/in'. Towns/cities use de and à regardless of gender."
+        },
+        {
+          "id": "fren151-w5-grammar002",
+          "topic_type": "grammar",
+          "title": "Aller (to go) and Venir (to come)",
+          "items": [
+            {
+              "fr": "je vais / je viens",
+              "en": "I go / I come"
+            },
+            {
+              "fr": "tu vas / tu viens",
+              "en": "you go / you come"
+            },
+            {
+              "fr": "il/elle/on va / vient",
+              "en": "he/she/one goes / comes"
+            },
+            {
+              "fr": "nous allons / venons",
+              "en": "we go / come"
+            },
+            {
+              "fr": "vous allez / venez",
+              "en": "you go / come (formal/pl)"
+            },
+            {
+              "fr": "ils/elles vont / viennent",
+              "en": "they go / come"
+            }
+          ],
+          "rule": "Aller and venir are irregular and must be memorised."
+        },
+        {
+          "id": "fren151-w5-vocab002",
+          "topic_type": "vocab",
+          "title": "Numbers 60-100",
+          "items": [
+            {
+              "fr": "soixante",
+              "en": "60"
+            },
+            {
+              "fr": "soixante-dix",
+              "en": "70"
+            },
+            {
+              "fr": "quatre-vingts",
+              "en": "80"
+            },
+            {
+              "fr": "quatre-vingt-dix",
+              "en": "90"
+            },
+            {
+              "fr": "cent",
+              "en": "100"
+            }
+          ],
+          "rule": "French counts 70-99 in base-20 style: soixante-dix (60+10), quatre-vingts (4x20), quatre-vingt-dix (4x20+10)."
+        },
+        {
+          "id": "fren151-w5-phrase002",
+          "topic_type": "phrase",
+          "title": "Phone number",
+          "items": [
+            {
+              "fr": "Quel est ton/votre numéro de téléphone?",
+              "en": "What's your phone number?"
+            },
+            {
+              "fr": "C'est le 06.34.62.35.41",
+              "en": "It's ... (given as double-digit pairs)"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w5-grammar003",
+          "topic_type": "grammar",
+          "title": "The negative (ne...pas)",
+          "items": [
+            {
+              "fr": "Je ne suis pas marié.",
+              "en": "I am not married."
+            },
+            {
+              "fr": "Je n'aime pas les maths.",
+              "en": "I do not like maths."
+            },
+            {
+              "fr": "Je n'ai pas de tablette.",
+              "en": "I don't have a tablet. (un/une/des → de after negative)"
+            },
+            {
+              "fr": "Ce n'est pas un smartphone.",
+              "en": "It isn't a smartphone. (être keeps un/une)"
+            }
+          ],
+          "rule": "'ne' and 'pas' surround the conjugated verb. After ne...pas, un/une/des become just 'de' — except with the verb être."
+        },
+        {
+          "id": "fren151-w5-phrase003",
+          "topic_type": "phrase",
+          "title": "Yes/no questions with est-ce que",
+          "items": [
+            {
+              "fr": "Tu as un ordinateur.",
+              "en": "You have a computer."
+            },
+            {
+              "fr": "Est-ce que tu as un ordinateur?",
+              "en": "Do you have a computer?"
+            }
+          ]
+        }
+      ],
+      "course": "FREN151",
+      "sequence": 5
+    },
+    {
+      "week": 6,
+      "chapter": 3,
+      "topics": [
+        {
+          "id": "fren151-w6-phrase001",
+          "topic_type": "phrase",
+          "title": "Asking for directions",
+          "items": [
+            {
+              "fr": "Pour aller à (au/à la/aux/à l')..., s'il vous plaît?",
+              "en": "How do I get to..., please?"
+            },
+            {
+              "fr": "Où est...? / Où se trouve...?",
+              "en": "Where is...?"
+            },
+            {
+              "fr": "Je cherche...",
+              "en": "I'm looking for..."
+            },
+            {
+              "fr": "C'est loin/près (d'ici)?",
+              "en": "Is it far/close (from here)?"
+            },
+            {
+              "fr": "Est-ce qu'il y a... (près d'ici)?",
+              "en": "Is there a... (near here)?"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w6-vocab001",
+          "topic_type": "vocab",
+          "title": "Direction words",
+          "items": [
+            {
+              "fr": "à gauche",
+              "en": "(to the) left"
+            },
+            {
+              "fr": "à droite",
+              "en": "(to the) right"
+            },
+            {
+              "fr": "tout droit",
+              "en": "straight on"
+            },
+            {
+              "fr": "tournez",
+              "en": "turn"
+            },
+            {
+              "fr": "continuez",
+              "en": "carry on"
+            },
+            {
+              "fr": "traversez",
+              "en": "go across"
+            },
+            {
+              "fr": "suivez",
+              "en": "follow"
+            },
+            {
+              "fr": "à côté de",
+              "en": "next to"
+            },
+            {
+              "fr": "juste à droite",
+              "en": "just on the right"
+            },
+            {
+              "fr": "indiqué",
+              "en": "signposted"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w6-grammar001",
+          "topic_type": "grammar",
+          "title": "Vivre (to live)",
+          "items": [
+            {
+              "fr": "je vis",
+              "en": "I live"
+            },
+            {
+              "fr": "tu vis",
+              "en": "you live"
+            },
+            {
+              "fr": "il/elle vit",
+              "en": "he/she lives"
+            },
+            {
+              "fr": "nous vivons",
+              "en": "we live"
+            },
+            {
+              "fr": "vous vivez",
+              "en": "you live (formal/pl)"
+            },
+            {
+              "fr": "ils/elles vivent",
+              "en": "they live"
+            }
+          ],
+          "rule": "Habiter is used only for the place/building you live in. Vivre is broader: place, 'to be alive', 'to live through', manner of living."
+        },
+        {
+          "id": "fren151-w6-vocab002",
+          "topic_type": "vocab",
+          "title": "Places in a town II (water, worship, streets)",
+          "items": [
+            {
+              "fr": "la rivière",
+              "en": "(small) river"
+            },
+            {
+              "fr": "le fleuve",
+              "en": "(big) river to the sea"
+            },
+            {
+              "fr": "la mer",
+              "en": "the sea"
+            },
+            {
+              "fr": "l'océan",
+              "en": "the ocean"
+            },
+            {
+              "fr": "le lac",
+              "en": "the lake"
+            },
+            {
+              "fr": "la fontaine",
+              "en": "the fountain"
+            },
+            {
+              "fr": "le pont",
+              "en": "the bridge"
+            },
+            {
+              "fr": "la plage",
+              "en": "the beach"
+            },
+            {
+              "fr": "le port",
+              "en": "the port"
+            },
+            {
+              "fr": "le quai",
+              "en": "the wharf/quay"
+            },
+            {
+              "fr": "la basilique",
+              "en": "the basilica"
+            },
+            {
+              "fr": "la cathédrale",
+              "en": "the cathedral"
+            },
+            {
+              "fr": "l'église",
+              "en": "the church"
+            },
+            {
+              "fr": "la mosquée",
+              "en": "the mosque"
+            },
+            {
+              "fr": "le temple",
+              "en": "the temple"
+            },
+            {
+              "fr": "le supermarché",
+              "en": "the supermarket"
+            },
+            {
+              "fr": "le marché",
+              "en": "the market"
+            },
+            {
+              "fr": "la place",
+              "en": "the square"
+            },
+            {
+              "fr": "la rue",
+              "en": "the street"
+            },
+            {
+              "fr": "le boulevard",
+              "en": "the boulevard"
+            },
+            {
+              "fr": "l'avenue",
+              "en": "the avenue"
+            },
+            {
+              "fr": "l'allée",
+              "en": "the path/walk"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w6-phrase002",
+          "topic_type": "phrase",
+          "title": "Giving an opinion on a city",
+          "items": [
+            {
+              "fr": "Je préfère + [city]",
+              "en": "I prefer + [city]"
+            },
+            {
+              "fr": "... parce que c'est + [adjective]",
+              "en": "...because it's + [adjective]"
+            },
+            {
+              "fr": "... parce qu'il y a + [places/attractions]",
+              "en": "...because there is/are + [places]"
+            }
+          ]
+        }
+      ],
+      "course": "FREN151",
+      "sequence": 6
+    },
+    {
+      "week": 7,
+      "chapter": 3,
+      "topics": [
+        {
+          "id": "fren151-w7-vocab001",
+          "topic_type": "vocab",
+          "title": "Places in a town",
+          "items": [
+            {
+              "fr": "une poste",
+              "en": "a post office"
+            },
+            {
+              "fr": "une banque",
+              "en": "a bank"
+            },
+            {
+              "fr": "une gare",
+              "en": "a station"
+            },
+            {
+              "fr": "une bibliothèque",
+              "en": "a library"
+            },
+            {
+              "fr": "une station de métro",
+              "en": "a metro stop"
+            },
+            {
+              "fr": "une école",
+              "en": "a school"
+            },
+            {
+              "fr": "une université",
+              "en": "a university"
+            },
+            {
+              "fr": "une piscine",
+              "en": "a swimming pool"
+            },
+            {
+              "fr": "une plage",
+              "en": "a beach"
+            },
+            {
+              "fr": "une rue piétonne",
+              "en": "a pedestrianised street"
+            },
+            {
+              "fr": "une pharmacie",
+              "en": "a pharmacy"
+            },
+            {
+              "fr": "une boulangerie",
+              "en": "a bakery"
+            },
+            {
+              "fr": "une église",
+              "en": "a church"
+            },
+            {
+              "fr": "un parc",
+              "en": "a park"
+            },
+            {
+              "fr": "un stade",
+              "en": "a stadium"
+            },
+            {
+              "fr": "un théâtre",
+              "en": "a theatre"
+            },
+            {
+              "fr": "un cinéma",
+              "en": "a cinema"
+            },
+            {
+              "fr": "un café",
+              "en": "a café"
+            },
+            {
+              "fr": "un restaurant",
+              "en": "a restaurant"
+            },
+            {
+              "fr": "un supermarché",
+              "en": "a supermarket"
+            },
+            {
+              "fr": "un centre commercial",
+              "en": "a shopping centre/mall"
+            },
+            {
+              "fr": "un magasin",
+              "en": "a shop"
+            },
+            {
+              "fr": "un musée",
+              "en": "a museum"
+            },
+            {
+              "fr": "un hôpital",
+              "en": "a hospital"
+            },
+            {
+              "fr": "un parking",
+              "en": "a carpark"
+            },
+            {
+              "fr": "un hôtel",
+              "en": "a hotel"
+            },
+            {
+              "fr": "un tabac",
+              "en": "a tobacconist's"
+            },
+            {
+              "fr": "un arrêt de bus",
+              "en": "a bus stop"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w7-grammar001",
+          "topic_type": "grammar",
+          "title": "il y a / il n'y a pas de",
+          "items": [
+            {
+              "fr": "Il y a un théâtre.",
+              "en": "There is a theatre."
+            },
+            {
+              "fr": "Il n'y a pas de théâtre.",
+              "en": "There isn't a theatre."
+            },
+            {
+              "fr": "Il y a une église.",
+              "en": "There is a church."
+            },
+            {
+              "fr": "Il n'y a pas d'église.",
+              "en": "There isn't a church."
+            }
+          ],
+          "rule": "Il y a + un/une/des for affirmative; il n'y a pas de/d' for negative (article dropped)."
+        },
+        {
+          "id": "fren151-w7-grammar002",
+          "topic_type": "grammar",
+          "title": "Prepositions of place",
+          "items": [
+            {
+              "fr": "sur",
+              "en": "on"
+            },
+            {
+              "fr": "sous",
+              "en": "under"
+            },
+            {
+              "fr": "devant",
+              "en": "in front of"
+            },
+            {
+              "fr": "derrière",
+              "en": "behind"
+            },
+            {
+              "fr": "entre",
+              "en": "between"
+            },
+            {
+              "fr": "dans",
+              "en": "in"
+            },
+            {
+              "fr": "à côté du / de la / de l' / des",
+              "en": "next to"
+            },
+            {
+              "fr": "loin du / de la",
+              "en": "far from"
+            },
+            {
+              "fr": "près du / de la",
+              "en": "near to"
+            },
+            {
+              "fr": "en face de",
+              "en": "opposite"
+            },
+            {
+              "fr": "au bord de",
+              "en": "at the edge of"
+            }
+          ],
+          "rule": "Longer prepositions ending in 'de' combine with the definite article: de+le→du, de+les→des, de+la/l' stay the same."
+        },
+        {
+          "id": "fren151-w7-grammar003",
+          "topic_type": "grammar",
+          "title": "Expressions of quantity",
+          "items": [
+            {
+              "fr": "quelques",
+              "en": "a couple, some"
+            },
+            {
+              "fr": "plusieurs",
+              "en": "several"
+            },
+            {
+              "fr": "beaucoup de",
+              "en": "many, lots of"
+            },
+            {
+              "fr": "assez de",
+              "en": "enough"
+            },
+            {
+              "fr": "trop de",
+              "en": "too many"
+            }
+          ],
+          "rule": "After an expression of quantity, no article is used — just the plural noun (quelques églises, beaucoup de magasins). Exceptions: un hôpital→des hôpitaux, un centre commercial→des centres commerciaux keep irregular plurals."
+        },
+        {
+          "id": "fren151-w7-grammar004",
+          "topic_type": "grammar",
+          "title": "aller à + le/la/les/l'",
+          "items": [
+            {
+              "fr": "aller au",
+              "en": "to go to (masc.) — à + le"
+            },
+            {
+              "fr": "aller à la",
+              "en": "to go to (fem.)"
+            },
+            {
+              "fr": "aller aux",
+              "en": "to go to (plural) — à + les"
+            },
+            {
+              "fr": "aller à l'",
+              "en": "to go to (vowel-starting)"
+            }
+          ]
+        }
+      ],
+      "course": "FREN151",
+      "sequence": 7
+    },
+    {
+      "week": 8,
+      "chapter": 3,
+      "topics": [
+        {
+          "id": "fren151-w8-vocab001",
+          "topic_type": "vocab",
+          "title": "Describing a neighbourhood",
+          "items": [
+            {
+              "fr": "ancien(ne)",
+              "en": "old"
+            },
+            {
+              "fr": "moderne",
+              "en": "modern"
+            },
+            {
+              "fr": "riche",
+              "en": "rich"
+            },
+            {
+              "fr": "multiculturel(le)",
+              "en": "multicultural"
+            },
+            {
+              "fr": "élégant(e)",
+              "en": "elegant"
+            },
+            {
+              "fr": "bien desservi(e)",
+              "en": "well-served by public transport"
+            },
+            {
+              "fr": "animé(e)",
+              "en": "lively, busy"
+            },
+            {
+              "fr": "agréable",
+              "en": "pleasant"
+            },
+            {
+              "fr": "pollué(e)",
+              "en": "polluted"
+            },
+            {
+              "fr": "tranquille",
+              "en": "quiet"
+            },
+            {
+              "fr": "bruyant(e)",
+              "en": "noisy"
+            },
+            {
+              "fr": "culturel(le)",
+              "en": "cultural"
+            },
+            {
+              "fr": "dynamique",
+              "en": "dynamic"
+            },
+            {
+              "fr": "historique",
+              "en": "historical"
+            },
+            {
+              "fr": "chic",
+              "en": "chic"
+            },
+            {
+              "fr": "vivant(e)",
+              "en": "lively"
+            },
+            {
+              "fr": "sympa",
+              "en": "nice"
+            },
+            {
+              "fr": "cher(-ère)",
+              "en": "dear, expensive"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w8-grammar001",
+          "topic_type": "grammar",
+          "title": "Position of adjectives (BAGS)",
+          "items": [
+            {
+              "fr": "beau / belle",
+              "en": "handsome/beautiful"
+            },
+            {
+              "fr": "joli(e)",
+              "en": "pretty"
+            },
+            {
+              "fr": "vieux / vieille",
+              "en": "old"
+            },
+            {
+              "fr": "jeune",
+              "en": "young"
+            },
+            {
+              "fr": "bon / bonne",
+              "en": "good"
+            },
+            {
+              "fr": "mauvais(e)",
+              "en": "bad"
+            },
+            {
+              "fr": "vrai(e)",
+              "en": "true"
+            },
+            {
+              "fr": "grand(e)",
+              "en": "large, big"
+            },
+            {
+              "fr": "petit(e)",
+              "en": "small, little"
+            }
+          ],
+          "rule": "Most adjectives come AFTER the noun (un quartier dynamique). BAGS adjectives (Beauty, Age, Goodness, Size) come BEFORE the noun instead (une belle ville, un petit parc)."
+        },
+        {
+          "id": "fren151-w8-grammar002",
+          "topic_type": "grammar",
+          "title": "Adverbs modifying adjectives",
+          "items": [
+            {
+              "fr": "assez",
+              "en": "fairly, quite"
+            },
+            {
+              "fr": "très",
+              "en": "very"
+            }
+          ],
+          "rule": "Adverbs like assez/très are placed before the adjective they modify: c'est un quartier assez agréable."
+        },
+        {
+          "id": "fren151-w8-grammar003",
+          "topic_type": "grammar",
+          "title": "Elision rule (recap)",
+          "items": [
+            {
+              "fr": "je → j'étudie",
+              "en": "I study"
+            },
+            {
+              "fr": "me → je m'appelle",
+              "en": "I am called"
+            },
+            {
+              "fr": "se → ils s'invitent",
+              "en": "they invite each other"
+            },
+            {
+              "fr": "la → l'étudiante",
+              "en": "the student"
+            },
+            {
+              "fr": "le → l'anglais",
+              "en": "English"
+            }
+          ],
+          "rule": "Elision (je, me, te, se, le, la, ce, ne, de, que, si) drops the final vowel before a word starting with a vowel or silent h."
+        },
+        {
+          "id": "fren151-w8-grammar004",
+          "topic_type": "grammar",
+          "title": "Nationalities & capitalisation",
+          "items": [
+            {
+              "fr": "Je suis australienne.",
+              "en": "I am Australian. (lowercase adjective)"
+            },
+            {
+              "fr": "Je parle français et allemand.",
+              "en": "I speak French and German. (lowercase language)"
+            },
+            {
+              "fr": "Les Allemands sont travailleurs.",
+              "en": "The Germans are hard-working. (capitalised noun for people)"
+            }
+          ],
+          "rule": "Nationality adjectives and language names are lowercase in French; nouns referring to the people of a nation are capitalised."
+        },
+        {
+          "id": "fren151-w8-grammar005",
+          "topic_type": "grammar",
+          "title": "à/de + definite article contractions",
+          "items": [
+            {
+              "fr": "à + le → au",
+              "en": "to/at the (masc.)"
+            },
+            {
+              "fr": "à + les → aux",
+              "en": "to/at the (plural)"
+            },
+            {
+              "fr": "de + le → du",
+              "en": "of/from the (masc.)"
+            },
+            {
+              "fr": "de + les → des",
+              "en": "of/from the (plural)"
+            }
+          ],
+          "rule": "à+la and à+l', de+la and de+l' do NOT contract — only le and les contract."
+        },
+        {
+          "id": "fren151-w8-grammar006",
+          "topic_type": "grammar",
+          "title": "Articles: occupations, likes/dislikes, negation",
+          "items": [
+            {
+              "fr": "Je suis étudiant.",
+              "en": "I am a student. (no article before occupation)"
+            },
+            {
+              "fr": "J'aime le tennis.",
+              "en": "I like tennis. (definite article after like/dislike verbs)"
+            },
+            {
+              "fr": "Je n'ai pas de voiture.",
+              "en": "I don't have a car. (un/une/des → de after negation)"
+            },
+            {
+              "fr": "Ce n'est pas une Hyundai.",
+              "en": "It isn't a Hyundai. (être keeps un/une in the negative)"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w8-grammar007",
+          "topic_type": "grammar",
+          "title": "Verb placement rules",
+          "items": [
+            {
+              "fr": "J'aime nager.",
+              "en": "I like to swim. (2nd verb stays infinitive)"
+            },
+            {
+              "fr": "Je n'aime pas faire de l'équitation.",
+              "en": "I don't like horse-riding. (ne...pas surrounds the FIRST verb)"
+            }
+          ],
+          "rule": "With two verbs in a row, only the first is conjugated; the second stays in the infinitive. Negation wraps the first (conjugated) verb only."
+        },
+        {
+          "id": "fren151-w8-grammar008",
+          "topic_type": "grammar",
+          "title": "aussi (also/too) placement",
+          "items": [
+            {
+              "fr": "J'adore nager, j'aime aussi faire du surf.",
+              "en": "I love swimming, I also like surfing."
+            }
+          ],
+          "rule": "'Aussi' meaning 'also/too' goes AFTER the verb, never at the start of a sentence (starting with aussi changes its meaning to 'therefore')."
+        },
+        {
+          "id": "fren151-w8-grammar009",
+          "topic_type": "grammar",
+          "title": "bon vs bien",
+          "items": [
+            {
+              "fr": "Le livre est bon.",
+              "en": "The book is good. (bon/bonne describes a noun)"
+            },
+            {
+              "fr": "C'est bien, ça!",
+              "en": "That's good! (bien for general situations)"
+            }
+          ]
+        }
+      ],
+      "course": "FREN151",
+      "sequence": 8
+    },
+    {
+      "week": 9,
+      "chapter": 4,
+      "topics": [
+        {
+          "id": "fren151-w9-vocab001",
+          "topic_type": "vocab",
+          "title": "Family members",
+          "items": [
+            {
+              "fr": "les parents",
+              "en": "parents"
+            },
+            {
+              "fr": "le père / la mère",
+              "en": "father / mother"
+            },
+            {
+              "fr": "le frère / la sœur",
+              "en": "brother / sister"
+            },
+            {
+              "fr": "l'oncle / la tante",
+              "en": "uncle / aunt"
+            },
+            {
+              "fr": "le mari / la femme",
+              "en": "husband / wife"
+            },
+            {
+              "fr": "les enfants",
+              "en": "children"
+            },
+            {
+              "fr": "le fils / la fille",
+              "en": "son / daughter"
+            },
+            {
+              "fr": "les grands-parents",
+              "en": "grandparents"
+            },
+            {
+              "fr": "le grand-père / la grand-mère",
+              "en": "grandfather / grandmother"
+            },
+            {
+              "fr": "les petits-enfants",
+              "en": "grandchildren"
+            },
+            {
+              "fr": "le petit-fils / la petite-fille",
+              "en": "grandson / granddaughter"
+            },
+            {
+              "fr": "le chien / le chat",
+              "en": "dog / cat"
+            },
+            {
+              "fr": "le cousin / la cousine",
+              "en": "cousin (m/f)"
+            },
+            {
+              "fr": "le neveu / la nièce",
+              "en": "nephew / niece"
+            },
+            {
+              "fr": "le beau-père / la belle-mère",
+              "en": "stepfather/father-in-law / stepmother/mother-in-law"
+            },
+            {
+              "fr": "le beau-frère / la belle-sœur",
+              "en": "brother-in-law / sister-in-law"
+            },
+            {
+              "fr": "le demi-frère / la demi-sœur",
+              "en": "half brother / half sister"
+            },
+            {
+              "fr": "le frère cadet / la sœur cadette",
+              "en": "younger brother / sister"
+            },
+            {
+              "fr": "le frère aîné / la sœur aînée",
+              "en": "older brother / sister"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w9-grammar001",
+          "topic_type": "grammar",
+          "title": "Possessive adjectives",
+          "items": [
+            {
+              "fr": "mon / ma / mes",
+              "en": "my (masc./fem./plural)"
+            },
+            {
+              "fr": "ton / ta / tes",
+              "en": "your (informal, m/f/pl)"
+            },
+            {
+              "fr": "son / sa / ses",
+              "en": "his/her (m/f/pl)"
+            },
+            {
+              "fr": "notre / notre / nos",
+              "en": "our (m/f/pl)"
+            },
+            {
+              "fr": "votre / votre / vos",
+              "en": "your (formal, m/f/pl)"
+            },
+            {
+              "fr": "leur / leur / leurs",
+              "en": "their (m/f/pl)"
+            }
+          ],
+          "rule": "Possessive adjectives agree with the noun they precede, not the owner's gender. Mon/ton/son are also used before feminine words starting with a vowel sound (mon amie)."
+        },
+        {
+          "id": "fren151-w9-phrase001",
+          "topic_type": "phrase",
+          "title": "Talking about family",
+          "items": [
+            {
+              "fr": "Combien de personnes y a-t-il dans ta famille?",
+              "en": "How many people are in your family?"
+            },
+            {
+              "fr": "As-tu des frères ou des sœurs?",
+              "en": "Do you have brothers or sisters?"
+            },
+            {
+              "fr": "Je suis fils/fille unique.",
+              "en": "I'm an only child."
+            },
+            {
+              "fr": "Comment s'appellent tes parents?",
+              "en": "What are your parents called?"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w9-vocab002",
+          "topic_type": "vocab",
+          "title": "People you know",
+          "items": [
+            {
+              "fr": "un ami / une amie",
+              "en": "a friend"
+            },
+            {
+              "fr": "petit ami / petite amie",
+              "en": "boyfriend/girlfriend"
+            },
+            {
+              "fr": "copain / copine",
+              "en": "mate"
+            },
+            {
+              "fr": "collègue",
+              "en": "colleague (m/f)"
+            },
+            {
+              "fr": "chef",
+              "en": "boss (m/f)"
+            },
+            {
+              "fr": "voisin / voisine",
+              "en": "neighbour"
+            },
+            {
+              "fr": "colocataire",
+              "en": "housemate/flatmate (m/f)"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w9-grammar002",
+          "topic_type": "grammar",
+          "title": "Possessive with 'de' (Elizabeth's boyfriend)",
+          "items": [
+            {
+              "fr": "le chat du pharmacien",
+              "en": "the pharmacist's cat"
+            },
+            {
+              "fr": "les enfants de la fonctionnaire",
+              "en": "the civil servant's children"
+            },
+            {
+              "fr": "le restaurant des cuisiniers",
+              "en": "the cooks' restaurant"
+            }
+          ],
+          "rule": "French has no 's; use [thing] + de + [owner]. 'De' contracts with le/les into du/des."
+        },
+        {
+          "id": "fren151-w9-grammar003",
+          "topic_type": "grammar",
+          "title": "Faire (to do/make)",
+          "items": [
+            {
+              "fr": "je fais",
+              "en": "I do/make"
+            },
+            {
+              "fr": "tu fais",
+              "en": "you do/make"
+            },
+            {
+              "fr": "il/elle/on fait",
+              "en": "he/she/one does/makes"
+            },
+            {
+              "fr": "nous faisons",
+              "en": "we do/make"
+            },
+            {
+              "fr": "vous faites",
+              "en": "you do/make (formal/pl)"
+            },
+            {
+              "fr": "ils/elles font",
+              "en": "they do/make"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w9-vocab003",
+          "topic_type": "vocab",
+          "title": "Hobbies with faire",
+          "items": [
+            {
+              "fr": "je fais de la musculation",
+              "en": "I do body-building"
+            },
+            {
+              "fr": "je fais de la natation",
+              "en": "I do swimming"
+            },
+            {
+              "fr": "je fais du vélo",
+              "en": "I do biking"
+            },
+            {
+              "fr": "je fais du rugby",
+              "en": "I do/play rugby"
+            },
+            {
+              "fr": "je fais de la guitare",
+              "en": "I play guitar"
+            },
+            {
+              "fr": "je fais du piano",
+              "en": "I play piano"
+            },
+            {
+              "fr": "je fais de la danse",
+              "en": "I do dancing"
+            },
+            {
+              "fr": "je fais du jardinage",
+              "en": "I do gardening"
+            },
+            {
+              "fr": "je fais du bricolage",
+              "en": "I do DIY"
+            },
+            {
+              "fr": "je fais de la lecture",
+              "en": "I do reading"
+            },
+            {
+              "fr": "je fais des promenades",
+              "en": "I go on walks"
+            },
+            {
+              "fr": "je fais du surf",
+              "en": "I do surfing"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w9-grammar004",
+          "topic_type": "grammar",
+          "title": "Verbs of like/dislike + infinitive",
+          "items": [
+            {
+              "fr": "j'adore",
+              "en": "I adore"
+            },
+            {
+              "fr": "j'aime",
+              "en": "I like/love"
+            },
+            {
+              "fr": "je préfère",
+              "en": "I prefer"
+            },
+            {
+              "fr": "je déteste",
+              "en": "I hate"
+            },
+            {
+              "fr": "je n'aime pas + infinitive",
+              "en": "I don't like to..."
+            }
+          ],
+          "rule": "Verbs of like/dislike are followed by an infinitive (j'aime nager) or, if a noun, the definite article (j'aime le tennis). préférer has an accent change (è vs é) but regular endings."
+        },
+        {
+          "id": "fren151-w9-vocab004",
+          "topic_type": "vocab",
+          "title": "Leisure verbs",
+          "items": [
+            {
+              "fr": "chanter",
+              "en": "to sing"
+            },
+            {
+              "fr": "écouter de la musique",
+              "en": "to listen to music"
+            },
+            {
+              "fr": "danser",
+              "en": "to dance"
+            },
+            {
+              "fr": "regarder un film",
+              "en": "to watch a film"
+            },
+            {
+              "fr": "voyager",
+              "en": "to travel"
+            },
+            {
+              "fr": "sortir avec des amis",
+              "en": "to go out with friends"
+            },
+            {
+              "fr": "faire de la photographie",
+              "en": "to do photography"
+            },
+            {
+              "fr": "lire",
+              "en": "to read"
+            },
+            {
+              "fr": "cuisiner",
+              "en": "to cook"
+            },
+            {
+              "fr": "nager",
+              "en": "to swim"
+            }
+          ]
+        }
+      ],
+      "course": "FREN151",
+      "sequence": 9
+    },
+    {
+      "week": 10,
+      "chapter": 4,
+      "topics": [
+        {
+          "id": "fren151-w10-vocab001",
+          "topic_type": "vocab",
+          "title": "Leisure nouns (after like/dislike)",
+          "items": [
+            {
+              "fr": "la lecture",
+              "en": "reading"
+            },
+            {
+              "fr": "le sport",
+              "en": "sport"
+            },
+            {
+              "fr": "la musique",
+              "en": "music"
+            },
+            {
+              "fr": "le ski",
+              "en": "skiing"
+            },
+            {
+              "fr": "la cuisine",
+              "en": "cooking"
+            },
+            {
+              "fr": "l'équitation",
+              "en": "horse-riding"
+            },
+            {
+              "fr": "le foot",
+              "en": "soccer"
+            },
+            {
+              "fr": "les promenades",
+              "en": "walks"
+            },
+            {
+              "fr": "le rugby",
+              "en": "rugby"
+            },
+            {
+              "fr": "le cinéma",
+              "en": "cinema"
+            },
+            {
+              "fr": "la natation",
+              "en": "swimming"
+            },
+            {
+              "fr": "le théâtre",
+              "en": "theatre"
+            },
+            {
+              "fr": "le vélo",
+              "en": "cycling"
+            },
+            {
+              "fr": "le tennis",
+              "en": "tennis"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w10-vocab002",
+          "topic_type": "vocab",
+          "title": "Degrees of liking",
+          "items": [
+            {
+              "fr": "j'adore",
+              "en": "I adore"
+            },
+            {
+              "fr": "j'aime beaucoup",
+              "en": "I like a lot"
+            },
+            {
+              "fr": "j'aime / j'aime bien",
+              "en": "I like"
+            },
+            {
+              "fr": "j'aime assez",
+              "en": "I quite like"
+            },
+            {
+              "fr": "je n'aime pas trop",
+              "en": "I don't too much like"
+            },
+            {
+              "fr": "je n'aime pas",
+              "en": "I don't like"
+            },
+            {
+              "fr": "je n'aime pas du tout",
+              "en": "I don't like at all"
+            },
+            {
+              "fr": "je déteste",
+              "en": "I hate"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w10-phrase001",
+          "topic_type": "phrase",
+          "title": "Languages spoken",
+          "items": [
+            {
+              "fr": "Parlez-vous français?",
+              "en": "Do you speak French?"
+            },
+            {
+              "fr": "Je parle un peu de + [language]",
+              "en": "I speak a little..."
+            },
+            {
+              "fr": "Je ne parle pas + [language]",
+              "en": "I don't speak..."
+            }
+          ]
+        },
+        {
+          "id": "fren151-w10-vocab003",
+          "topic_type": "vocab",
+          "title": "Character traits",
+          "items": [
+            {
+              "fr": "gentil(le)",
+              "en": "kind"
+            },
+            {
+              "fr": "intelligent(e)",
+              "en": "intelligent"
+            },
+            {
+              "fr": "drôle",
+              "en": "funny"
+            },
+            {
+              "fr": "impoli(e)",
+              "en": "impolite"
+            },
+            {
+              "fr": "triste",
+              "en": "sad"
+            },
+            {
+              "fr": "riche",
+              "en": "rich"
+            },
+            {
+              "fr": "égoïste",
+              "en": "selfish"
+            },
+            {
+              "fr": "méchant(e)",
+              "en": "mean"
+            },
+            {
+              "fr": "généreux / généreuse",
+              "en": "generous"
+            },
+            {
+              "fr": "content(e)",
+              "en": "happy"
+            },
+            {
+              "fr": "stupide",
+              "en": "stupid"
+            },
+            {
+              "fr": "antipathique",
+              "en": "unlikeable"
+            },
+            {
+              "fr": "timide",
+              "en": "shy"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w10-grammar001",
+          "topic_type": "grammar",
+          "title": "Adverbs modifying adjectives (degree)",
+          "items": [
+            {
+              "fr": "très + adjective",
+              "en": "very"
+            },
+            {
+              "fr": "un peu + adjective",
+              "en": "a bit"
+            },
+            {
+              "fr": "assez + adjective",
+              "en": "quite"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w10-grammar002",
+          "topic_type": "grammar",
+          "title": "avoir l'air (to seem)",
+          "items": [
+            {
+              "fr": "Il est gentil.",
+              "en": "He is kind."
+            },
+            {
+              "fr": "Il a l'air gentil.",
+              "en": "He looks/seems kind."
+            },
+            {
+              "fr": "Elle a l'air gentille.",
+              "en": "She looks/seems kind."
+            }
+          ]
+        }
+      ],
+      "course": "FREN151",
+      "sequence": 10
+    },
+    {
+      "week": 11,
+      "chapter": 4,
+      "topics": [
+        {
+          "id": "fren151-w11-vocab001",
+          "topic_type": "vocab",
+          "title": "Physical attributes",
+          "items": [
+            {
+              "fr": "les yeux bleus",
+              "en": "blue eyes"
+            },
+            {
+              "fr": "les yeux verts",
+              "en": "green eyes"
+            },
+            {
+              "fr": "les yeux bruns",
+              "en": "brown eyes"
+            },
+            {
+              "fr": "les cheveux longs",
+              "en": "long hair"
+            },
+            {
+              "fr": "les cheveux courts",
+              "en": "short hair"
+            },
+            {
+              "fr": "les cheveux bruns",
+              "en": "brown hair"
+            },
+            {
+              "fr": "les cheveux roux",
+              "en": "red hair"
+            },
+            {
+              "fr": "châtain",
+              "en": "chestnut brown (hair)"
+            }
+          ],
+          "rule": "The definite article (les) is required before 'hair' and 'eyes' in French, unlike in English."
+        },
+        {
+          "id": "fren151-w11-grammar001",
+          "topic_type": "grammar",
+          "title": "Regular adjective agreement",
+          "items": [
+            {
+              "fr": "grand (masc. sg)",
+              "en": "big"
+            },
+            {
+              "fr": "grande (fem. sg)",
+              "en": "big"
+            },
+            {
+              "fr": "grands (masc. pl)",
+              "en": "big"
+            },
+            {
+              "fr": "grandes (fem. pl)",
+              "en": "big"
+            },
+            {
+              "fr": "drôle (masc./fem. sg, ends in silent e)",
+              "en": "funny"
+            },
+            {
+              "fr": "drôles (masc./fem. pl)",
+              "en": "funny"
+            }
+          ],
+          "rule": "Regular adjectives: masc. sg = base form; fem. sg = base+e; masc. pl = base+s; fem. pl = base+es. Adjectives already ending in silent -e don't add another e in the feminine."
+        },
+        {
+          "id": "fren151-w11-grammar002",
+          "topic_type": "grammar",
+          "title": "Irregular adjectives (BAGS + others)",
+          "items": [
+            {
+              "fr": "beau / belle",
+              "en": "handsome/beautiful"
+            },
+            {
+              "fr": "vieux / vieille",
+              "en": "old"
+            },
+            {
+              "fr": "bon / bonne",
+              "en": "good"
+            },
+            {
+              "fr": "gentil / gentille",
+              "en": "kind"
+            },
+            {
+              "fr": "heureux / heureuse",
+              "en": "happy"
+            },
+            {
+              "fr": "sportif / sportive",
+              "en": "sporty"
+            },
+            {
+              "fr": "actif / active",
+              "en": "active"
+            },
+            {
+              "fr": "généreux / généreuse",
+              "en": "generous"
+            },
+            {
+              "fr": "ennuyeux / ennuyeuse",
+              "en": "boring"
+            },
+            {
+              "fr": "conservateur / conservatrice",
+              "en": "conservative"
+            }
+          ]
+        },
+        {
+          "id": "fren151-w11-grammar003",
+          "topic_type": "grammar",
+          "title": "Il est / Elle est vs C'est",
+          "items": [
+            {
+              "fr": "Il est professeur.",
+              "en": "He's a teacher. (il est + occupation, no article)"
+            },
+            {
+              "fr": "C'est un professeur.",
+              "en": "He's a teacher. (c'est + article + occupation)"
+            },
+            {
+              "fr": "Il est gentil.",
+              "en": "He is kind. (il/elle est + adjective)"
+            },
+            {
+              "fr": "Mon frère, il est à Paris.",
+              "en": "My brother is in Paris. (il/elle est + preposition for place)"
+            }
+          ],
+          "rule": "C'est + noun; Il/Elle est + adjective, occupation (no article), or place preposition. Il/elle can also mean 'it' when referring back to an object."
+        }
+      ],
+      "course": "FREN151",
+      "sequence": 11
+    },
+    {
+      "course": "FREN152",
+      "week": 2,
+      "sequence": 12,
+      "chapter": "Bridge",
+      "topics": [
+        {
+          "id": "fren152-w2-vocab001",
+          "topic_type": "vocab",
+          "title": "Numbers 0-60 (revision)",
+          "items": [
+            {
+              "fr": "zéro à soixante",
+              "en": "0 to 60 — revision from FREN151"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w2-phrase001",
+          "topic_type": "phrase",
+          "title": "Telling the time",
+          "items": [
+            {
+              "fr": "Quelle heure est-il?",
+              "en": "What time is it?"
+            },
+            {
+              "fr": "Il est cinq heures moins vingt de l'après-midi.",
+              "en": "It's 4:40pm (12hr: 5 minus 20)."
+            },
+            {
+              "fr": "Il est seize heures quarante.",
+              "en": "It's 16:40 (24hr clock)."
+            },
+            {
+              "fr": "midi / minuit",
+              "en": "noon / midnight"
+            }
+          ],
+          "rule": "French can express time two ways: 12hr clock with du matin/de l'après-midi/du soir, or the 24hr clock (more common in writing/timetables)."
+        },
+        {
+          "id": "fren152-w2-vocab002",
+          "topic_type": "vocab",
+          "title": "Numbers 60 to a billion",
+          "items": [
+            {
+              "fr": "cent",
+              "en": "100"
+            },
+            {
+              "fr": "mille",
+              "en": "1,000"
+            },
+            {
+              "fr": "un million",
+              "en": "1,000,000"
+            },
+            {
+              "fr": "un milliard",
+              "en": "1,000,000,000 (a billion)"
+            }
+          ],
+          "rule": "'Et' is only used in double-digit numbers ending in 1 (21, 31, 41, 51, 61, 71) — never in larger numbers like 301 (trois cent un) or 5023 (cinq mille vingt-trois)."
+        },
+        {
+          "id": "fren152-w2-grammar001",
+          "topic_type": "grammar",
+          "title": "Giving the year in French",
+          "items": [
+            {
+              "fr": "mille neuf cent quatre-vingt-douze",
+              "en": "1992 (lit. one thousand nine hundred ninety-two)"
+            },
+            {
+              "fr": "dix-neuf cent quatre-vingt-douze",
+              "en": "1992 (alt. nineteen-hundred ninety-two)"
+            },
+            {
+              "fr": "deux mille deux",
+              "en": "2002"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w2-grammar002",
+          "topic_type": "grammar",
+          "title": "The present tense: -ir and -re verbs",
+          "items": [
+            {
+              "fr": "je finis / tu finis / il finit",
+              "en": "I/you/he finish(es) (-ir pattern, e.g. finir, choisir, réussir, grossir, maigrir, réfléchir)"
+            },
+            {
+              "fr": "nous finissons / vous finissez / ils finissent",
+              "en": "we/you/they finish (-ir pattern)"
+            },
+            {
+              "fr": "je vends / tu vends / il vend",
+              "en": "I/you/he sell(s) (-re pattern, e.g. vendre, attendre, répondre, rendre, perdre)"
+            },
+            {
+              "fr": "nous vendons / vous vendez / ils vendent",
+              "en": "we/you/they sell (-re pattern)"
+            }
+          ],
+          "rule": "-ir verbs (like finir): stem + is, is, it, issons, issez, issent. -re verbs (like vendre): stem + s, s, [nothing], ons, ez, ent."
+        }
+      ]
+    },
+    {
+      "course": "FREN152",
+      "week": 3,
+      "sequence": 13,
+      "chapter": 5,
+      "topics": [
+        {
+          "id": "fren152-w3-vocab001",
+          "topic_type": "vocab",
+          "title": "Reflexive verbs: daily routine",
+          "items": [
+            {
+              "fr": "se doucher",
+              "en": "to take a shower"
+            },
+            {
+              "fr": "se réveiller",
+              "en": "to wake up"
+            },
+            {
+              "fr": "se coiffer",
+              "en": "to comb one's hair"
+            },
+            {
+              "fr": "se maquiller",
+              "en": "to put on makeup"
+            },
+            {
+              "fr": "se brosser les dents",
+              "en": "to brush one's teeth"
+            },
+            {
+              "fr": "s'/se habiller / déshabiller",
+              "en": "to get dressed / undressed"
+            },
+            {
+              "fr": "se raser",
+              "en": "to shave"
+            },
+            {
+              "fr": "se coucher",
+              "en": "to go to bed"
+            },
+            {
+              "fr": "se laver",
+              "en": "to wash"
+            },
+            {
+              "fr": "s'endormir",
+              "en": "to fall asleep (irregular)"
+            },
+            {
+              "fr": "se lever",
+              "en": "to get up"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w3-vocab002",
+          "topic_type": "vocab",
+          "title": "Days of the week",
+          "items": [
+            {
+              "fr": "lundi",
+              "en": "Monday"
+            },
+            {
+              "fr": "mardi",
+              "en": "Tuesday"
+            },
+            {
+              "fr": "mercredi",
+              "en": "Wednesday"
+            },
+            {
+              "fr": "jeudi",
+              "en": "Thursday"
+            },
+            {
+              "fr": "vendredi",
+              "en": "Friday"
+            },
+            {
+              "fr": "samedi",
+              "en": "Saturday"
+            },
+            {
+              "fr": "dimanche",
+              "en": "Sunday"
+            }
+          ],
+          "rule": "Days of the week are NOT capitalised in French, unlike English."
+        },
+        {
+          "id": "fren152-w3-grammar001",
+          "topic_type": "grammar",
+          "title": "'le' + day/time-of-day for habitual actions",
+          "items": [
+            {
+              "fr": "le lundi",
+              "en": "on Mondays (habitually) vs. lundi = on [one particular] Monday"
+            },
+            {
+              "fr": "le matin / le midi / l'après-midi / le soir",
+              "en": "in the mornings/at noon/in the afternoons/in the evenings (habitually)"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w3-grammar002",
+          "topic_type": "grammar",
+          "title": "jouer à / jouer de / faire de",
+          "items": [
+            {
+              "fr": "jouer au rugby / au tennis / aux échecs",
+              "en": "to play rugby/tennis/chess (sports & games take 'à')"
+            },
+            {
+              "fr": "jouer du piano / de la guitare",
+              "en": "to play piano/guitar (instruments take 'de')"
+            },
+            {
+              "fr": "faire du vélo / de la natation",
+              "en": "to do cycling/swimming (general activities take 'faire de')"
+            }
+          ],
+          "rule": "jouer à + le/la/les/l' → au/à la/aux/à l' for sports and games. jouer de + le/la/les/l' → du/de la/des/de l' for musical instruments."
+        },
+        {
+          "id": "fren152-w3-vocab003",
+          "topic_type": "vocab",
+          "title": "Adverbs and phrases of frequency",
+          "items": [
+            {
+              "fr": "jamais",
+              "en": "never"
+            },
+            {
+              "fr": "rarement",
+              "en": "rarely"
+            },
+            {
+              "fr": "de temps en temps",
+              "en": "from time to time"
+            },
+            {
+              "fr": "quelquefois / parfois",
+              "en": "sometimes"
+            },
+            {
+              "fr": "souvent",
+              "en": "often"
+            },
+            {
+              "fr": "toujours",
+              "en": "always"
+            },
+            {
+              "fr": "une fois par jour",
+              "en": "once a day"
+            },
+            {
+              "fr": "deux fois par semaine",
+              "en": "twice a week"
+            },
+            {
+              "fr": "trois fois par mois",
+              "en": "three times a month"
+            },
+            {
+              "fr": "tous les jours",
+              "en": "every day"
+            },
+            {
+              "fr": "toutes les semaines",
+              "en": "every week"
+            },
+            {
+              "fr": "tous les mois",
+              "en": "every month"
+            },
+            {
+              "fr": "tous les ans",
+              "en": "every year"
+            }
+          ],
+          "rule": "One-word adverbs (jamais, souvent, toujours, etc.) go after the verb (Je vais toujours en cours); in the negative, after 'pas' (Je ne vais pas toujours...). Multi-word adverbial phrases (une fois par semaine, etc.) can go at the start or end of the sentence."
+        }
+      ]
+    },
+    {
+      "course": "FREN152",
+      "week": 4,
+      "sequence": 14,
+      "chapter": 5,
+      "topics": [
+        {
+          "id": "fren152-w4-grammar001",
+          "topic_type": "grammar",
+          "title": "Prendre (to take) and Sortir (to go out)",
+          "items": [
+            {
+              "fr": "je prends / tu prends / il prend",
+              "en": "I/you/he take(s)"
+            },
+            {
+              "fr": "nous prenons / vous prenez / ils prennent",
+              "en": "we/you/they take"
+            },
+            {
+              "fr": "je sors / tu sors / il sort",
+              "en": "I/you/he go(es) out"
+            },
+            {
+              "fr": "nous sortons / vous sortez / ils sortent",
+              "en": "we/you/they go out"
+            }
+          ],
+          "rule": "Sortir-type verbs (dormir, s'endormir, partir, servir) have two stems: singular forms drop the last 3 letters of the infinitive, plural forms drop only the last 2."
+        },
+        {
+          "id": "fren152-w4-vocab001",
+          "topic_type": "vocab",
+          "title": "Daily habits",
+          "items": [
+            {
+              "fr": "je travaille",
+              "en": "I work"
+            },
+            {
+              "fr": "je sors avec mes amis",
+              "en": "I go out with friends"
+            },
+            {
+              "fr": "je prends le petit déjeuner",
+              "en": "I have breakfast"
+            },
+            {
+              "fr": "je dîne",
+              "en": "I have dinner"
+            },
+            {
+              "fr": "je me promène sur la plage",
+              "en": "I go for a walk on the beach"
+            },
+            {
+              "fr": "je regarde ma série préférée",
+              "en": "I watch my favourite series"
+            },
+            {
+              "fr": "je me repose",
+              "en": "I relax"
+            },
+            {
+              "fr": "je fais du sport",
+              "en": "I do sports"
+            },
+            {
+              "fr": "je prends un bain",
+              "en": "I take a bath"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w4-vocab002",
+          "topic_type": "vocab",
+          "title": "Character traits (extended)",
+          "items": [
+            {
+              "fr": "paresseux / paresseuse",
+              "en": "lazy"
+            },
+            {
+              "fr": "travailleur / travailleuse",
+              "en": "hard-working"
+            },
+            {
+              "fr": "intellectuel(le)",
+              "en": "intellectual"
+            },
+            {
+              "fr": "sportif / sportive",
+              "en": "sporty"
+            },
+            {
+              "fr": "fêtard(e)",
+              "en": "party animal"
+            },
+            {
+              "fr": "écolo",
+              "en": "ecologically aware"
+            },
+            {
+              "fr": "gourmand(e)",
+              "en": "greedy"
+            },
+            {
+              "fr": "coquet(te)",
+              "en": "stylish"
+            },
+            {
+              "fr": "casanier / casanière",
+              "en": "stay-at-home"
+            },
+            {
+              "fr": "désordonné(e)",
+              "en": "disorderly"
+            },
+            {
+              "fr": "prétentieux / prétentieuse",
+              "en": "pretentious"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w4-grammar002",
+          "topic_type": "grammar",
+          "title": "The comparative",
+          "items": [
+            {
+              "fr": "plus + adjective + que",
+              "en": "more ... than"
+            },
+            {
+              "fr": "moins + adjective + que",
+              "en": "less ... than"
+            },
+            {
+              "fr": "aussi + adjective + que",
+              "en": "as ... as"
+            },
+            {
+              "fr": "Jacques est plus grand que Julie.",
+              "en": "Jacques is taller than Julie."
+            },
+            {
+              "fr": "meilleur(e)(s)",
+              "en": "better (irregular comparative of bon — 'plus bon' doesn't exist)"
+            }
+          ],
+          "rule": "que becomes qu' before a vowel. The adjective agrees with the sentence's subject, not the comparison target."
+        },
+        {
+          "id": "fren152-w4-grammar003",
+          "topic_type": "grammar",
+          "title": "The superlative",
+          "items": [
+            {
+              "fr": "le/la/les plus + adjective",
+              "en": "the most..."
+            },
+            {
+              "fr": "le/la/les moins + adjective",
+              "en": "the least..."
+            },
+            {
+              "fr": "Le sport le plus intéressant, c'est le rugby.",
+              "en": "The most interesting sport is rugby."
+            },
+            {
+              "fr": "meilleur(e)(s) / pire(s)",
+              "en": "best / worst (irregular, come before the noun like BAGS adjectives)"
+            }
+          ],
+          "rule": "Superlative uses definite article + plus/moins + adjective; 'de' after the superlative translates 'in' (la plus grande ville du monde). meilleur/pire and BAGS-type adjectives (beau, nouveau, vieux, bon, gentil, mauvais, grand, petit, gros, haut, large, bref) go BEFORE the noun even in the superlative."
+        }
+      ]
+    },
+    {
+      "course": "FREN152",
+      "week": 5,
+      "sequence": 15,
+      "chapter": 5,
+      "topics": [
+        {
+          "id": "fren152-w5-vocab001",
+          "topic_type": "vocab",
+          "title": "Months and seasons",
+          "items": [
+            {
+              "fr": "janvier",
+              "en": "January"
+            },
+            {
+              "fr": "février",
+              "en": "February"
+            },
+            {
+              "fr": "mars",
+              "en": "March"
+            },
+            {
+              "fr": "avril",
+              "en": "April"
+            },
+            {
+              "fr": "mai",
+              "en": "May"
+            },
+            {
+              "fr": "juin",
+              "en": "June"
+            },
+            {
+              "fr": "juillet",
+              "en": "July"
+            },
+            {
+              "fr": "août",
+              "en": "August"
+            },
+            {
+              "fr": "septembre",
+              "en": "September"
+            },
+            {
+              "fr": "octobre",
+              "en": "October"
+            },
+            {
+              "fr": "novembre",
+              "en": "November"
+            },
+            {
+              "fr": "décembre",
+              "en": "December"
+            },
+            {
+              "fr": "l'été",
+              "en": "summer"
+            },
+            {
+              "fr": "l'automne",
+              "en": "autumn"
+            },
+            {
+              "fr": "l'hiver",
+              "en": "winter"
+            },
+            {
+              "fr": "le printemps",
+              "en": "spring"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w5-phrase001",
+          "topic_type": "phrase",
+          "title": "Dates and birthdays",
+          "items": [
+            {
+              "fr": "C'est [day] le [number] [month]",
+              "en": "It's [day] the [number] of [month]"
+            },
+            {
+              "fr": "Quelle est la date de ton anniversaire?",
+              "en": "When is your birthday?"
+            },
+            {
+              "fr": "C'est le [no.] + [mois]",
+              "en": "It's the [number] of [month]"
+            }
+          ],
+          "rule": "French uses cardinal numbers for dates (le 3 octobre), not ordinal numbers like English's 'the third'."
+        },
+        {
+          "id": "fren152-w5-phrase002",
+          "topic_type": "phrase",
+          "title": "Combien de? questions",
+          "items": [
+            {
+              "fr": "Combien de fois par jour/semaine/mois...?",
+              "en": "How many times per day/week/month...?"
+            },
+            {
+              "fr": "Combien d'heures par semaine...?",
+              "en": "How many hours per week...?"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w5-grammar001",
+          "topic_type": "grammar",
+          "title": "Asking questions: est-ce que and inversion",
+          "items": [
+            {
+              "fr": "Où est-ce que vous habitez?",
+              "en": "Where do you live? (est-ce que form)"
+            },
+            {
+              "fr": "Où habitez-vous?",
+              "en": "Where do you live? (inversion form)"
+            },
+            {
+              "fr": "où / quand / comment / pourquoi / qui / combien / quel(le)",
+              "en": "where / when / how / why / who / how much-many / which-what"
+            }
+          ],
+          "rule": "Two main ways to form a question: (1) question word + est-ce que + normal word order, or (2) inversion of the verb and subject pronoun (more formal/written)."
+        }
+      ]
+    },
+    {
+      "course": "FREN152",
+      "week": 6,
+      "sequence": 16,
+      "chapter": 6,
+      "topics": [
+        {
+          "id": "fren152-w6-vocab001",
+          "topic_type": "vocab",
+          "title": "Clothing",
+          "items": [
+            {
+              "fr": "une chemise",
+              "en": "a shirt"
+            },
+            {
+              "fr": "un jean",
+              "en": "jeans"
+            },
+            {
+              "fr": "un pantalon",
+              "en": "trousers"
+            },
+            {
+              "fr": "des chaussettes",
+              "en": "socks"
+            },
+            {
+              "fr": "des chaussures",
+              "en": "shoes"
+            },
+            {
+              "fr": "une cravate",
+              "en": "a tie"
+            },
+            {
+              "fr": "des baskets",
+              "en": "runners"
+            },
+            {
+              "fr": "un pull",
+              "en": "a pullover"
+            },
+            {
+              "fr": "une écharpe",
+              "en": "a scarf"
+            },
+            {
+              "fr": "un manteau",
+              "en": "a coat"
+            },
+            {
+              "fr": "une casquette",
+              "en": "a cap"
+            },
+            {
+              "fr": "un tee-shirt",
+              "en": "a t-shirt"
+            },
+            {
+              "fr": "un short",
+              "en": "shorts"
+            },
+            {
+              "fr": "un costume",
+              "en": "a suit"
+            },
+            {
+              "fr": "un chemisier",
+              "en": "a blouse"
+            },
+            {
+              "fr": "des collants",
+              "en": "tights"
+            },
+            {
+              "fr": "une jupe",
+              "en": "a skirt"
+            },
+            {
+              "fr": "une ceinture",
+              "en": "a belt"
+            },
+            {
+              "fr": "un bonnet",
+              "en": "a beanie"
+            },
+            {
+              "fr": "une robe",
+              "en": "a dress"
+            },
+            {
+              "fr": "un maillot de bain",
+              "en": "swimmers"
+            },
+            {
+              "fr": "un pyjama",
+              "en": "pyjamas"
+            },
+            {
+              "fr": "des bottes",
+              "en": "boots"
+            },
+            {
+              "fr": "des lunettes de soleil",
+              "en": "sunglasses"
+            },
+            {
+              "fr": "un blouson",
+              "en": "a jacket"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w6-phrase001",
+          "topic_type": "phrase",
+          "title": "Talking about what you wear",
+          "items": [
+            {
+              "fr": "Qu'est-ce que vous portez aujourd'hui?",
+              "en": "What are you wearing today?"
+            },
+            {
+              "fr": "Aujourd'hui, je porte...",
+              "en": "Today I'm wearing..."
+            }
+          ]
+        },
+        {
+          "id": "fren152-w6-vocab002",
+          "topic_type": "vocab",
+          "title": "Colours",
+          "items": [
+            {
+              "fr": "noir / noire",
+              "en": "black"
+            },
+            {
+              "fr": "vert / verte",
+              "en": "green"
+            },
+            {
+              "fr": "bleu / bleue",
+              "en": "blue"
+            },
+            {
+              "fr": "rose / rose",
+              "en": "pink"
+            },
+            {
+              "fr": "argenté / argentée",
+              "en": "silver"
+            },
+            {
+              "fr": "violet / violette",
+              "en": "purple"
+            },
+            {
+              "fr": "orange / orange",
+              "en": "orange (invariable)"
+            },
+            {
+              "fr": "blanc / blanche",
+              "en": "white"
+            },
+            {
+              "fr": "jaune / jaune",
+              "en": "yellow"
+            },
+            {
+              "fr": "rouge / rouge",
+              "en": "red"
+            },
+            {
+              "fr": "gris / grise",
+              "en": "grey"
+            },
+            {
+              "fr": "marron / marron",
+              "en": "brown (invariable)"
+            }
+          ],
+          "rule": "Colours come after the noun and agree in number/gender. Colours already ending in -e (rose, orange, rouge) don't double the e in feminine; those ending in -s (gris) don't double s in masc. plural. Orange and marron are invariable (never agree). Add 'clair' (light) or 'foncé' (dark) after a colour and it becomes invariable too (bleu foncé)."
+        },
+        {
+          "id": "fren152-w6-grammar001",
+          "topic_type": "grammar",
+          "title": "Mettre (to put on)",
+          "items": [
+            {
+              "fr": "je mets / tu mets / il met",
+              "en": "I/you/he put(s) on"
+            },
+            {
+              "fr": "nous mettons / vous mettez / ils mettent",
+              "en": "we/you/they put on"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w6-grammar002",
+          "topic_type": "grammar",
+          "title": "Interrogative adjectives (quel)",
+          "items": [
+            {
+              "fr": "quel chemisier?",
+              "en": "which blouse? (masc. sg)"
+            },
+            {
+              "fr": "quelle jupe?",
+              "en": "which skirt? (fem. sg)"
+            },
+            {
+              "fr": "quels chemisiers?",
+              "en": "which blouses? (masc. pl)"
+            },
+            {
+              "fr": "quelles jupes?",
+              "en": "which skirts? (fem. pl)"
+            }
+          ],
+          "rule": "Quel(le)(s) agrees with the noun that follows it, or with the noun referred to by est/sont (Quelle est ta cravate préférée?)."
+        },
+        {
+          "id": "fren152-w6-grammar003",
+          "topic_type": "grammar",
+          "title": "Demonstrative adjectives (ce, cet, cette, ces)",
+          "items": [
+            {
+              "fr": "ce pull",
+              "en": "this pullover (masc. sg)"
+            },
+            {
+              "fr": "cet anorak",
+              "en": "this raincoat (masc. sg, before vowel)"
+            },
+            {
+              "fr": "cette chemise",
+              "en": "this shirt (fem. sg)"
+            },
+            {
+              "fr": "ces pulls / ces chemises",
+              "en": "these pullovers/shirts (plural)"
+            },
+            {
+              "fr": "ce pull-ci / ce pull-là",
+              "en": "this pullover (here) / that pullover (there)"
+            }
+          ],
+          "rule": "Ce (masc.), cet (masc. before vowel/silent h), cette (fem.), ces (plural). Add -ci/-là to the noun to distinguish 'this/these' from 'that/those'."
+        }
+      ]
+    },
+    {
+      "course": "FREN152",
+      "week": 7,
+      "sequence": 17,
+      "chapter": 6,
+      "topics": [
+        {
+          "id": "fren152-w7-vocab001",
+          "topic_type": "vocab",
+          "title": "Materials and accessories",
+          "items": [
+            {
+              "fr": "en laine",
+              "en": "woollen"
+            },
+            {
+              "fr": "en coton",
+              "en": "cotton"
+            },
+            {
+              "fr": "en cuir",
+              "en": "leather"
+            },
+            {
+              "fr": "en soie",
+              "en": "silk"
+            },
+            {
+              "fr": "en jean",
+              "en": "denim"
+            },
+            {
+              "fr": "un sac",
+              "en": "a bag"
+            },
+            {
+              "fr": "un chapeau",
+              "en": "a hat"
+            },
+            {
+              "fr": "des gants",
+              "en": "gloves"
+            },
+            {
+              "fr": "des bottes",
+              "en": "boots"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w7-phrase001",
+          "topic_type": "phrase",
+          "title": "Asking about colour and material",
+          "items": [
+            {
+              "fr": "De quelle couleur est/sont ton/ta/tes...?",
+              "en": "What colour is/are your...?"
+            },
+            {
+              "fr": "En quelle matière est/sont ton/ta/tes...?",
+              "en": "What material is/are your... made of?"
+            },
+            {
+              "fr": "Mon/Ma/Mes... est/sont en + [material]",
+              "en": "My... is/are made of..."
+            }
+          ]
+        },
+        {
+          "id": "fren152-w7-vocab002",
+          "topic_type": "vocab",
+          "title": "Clothing styles and shoe shopping",
+          "items": [
+            {
+              "fr": "à manches longues / courtes",
+              "en": "long-sleeved / short-sleeved"
+            },
+            {
+              "fr": "à talon",
+              "en": "high-heeled"
+            },
+            {
+              "fr": "à capuche",
+              "en": "hooded"
+            },
+            {
+              "fr": "des sandales",
+              "en": "sandals"
+            },
+            {
+              "fr": "la pointure",
+              "en": "shoe size"
+            },
+            {
+              "fr": "étroit(e)",
+              "en": "narrow, tight"
+            },
+            {
+              "fr": "assorti(e)",
+              "en": "matching"
+            },
+            {
+              "fr": "à carreaux",
+              "en": "checked"
+            },
+            {
+              "fr": "à rayures",
+              "en": "striped"
+            },
+            {
+              "fr": "à pois",
+              "en": "spotted"
+            },
+            {
+              "fr": "à fleurs",
+              "en": "flowery"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w7-grammar001",
+          "topic_type": "grammar",
+          "title": "Demonstrative pronouns (celui, ceux, celle, celles)",
+          "items": [
+            {
+              "fr": "celui (masc. sg)",
+              "en": "the one / this one"
+            },
+            {
+              "fr": "celle (fem. sg)",
+              "en": "the one / this one"
+            },
+            {
+              "fr": "ceux (masc. pl)",
+              "en": "the ones / these ones"
+            },
+            {
+              "fr": "celles (fem. pl)",
+              "en": "the ones / these ones"
+            },
+            {
+              "fr": "celui-ci / celui-là",
+              "en": "this one (here) / that one (there)"
+            }
+          ],
+          "rule": "Demonstrative pronouns agree in gender/number with the noun they replace, and are often followed by 'de' (celui de Gérard), 'qui' (ceux qui sont en noir), or -ci/-là."
+        },
+        {
+          "id": "fren152-w7-phrase002",
+          "topic_type": "phrase",
+          "title": "Asking for opinions on clothes",
+          "items": [
+            {
+              "fr": "Tu aimes...? / Est-ce que tu aimes...?",
+              "en": "Do you like...?"
+            },
+            {
+              "fr": "Comment trouves-tu...?",
+              "en": "What do you think of...?"
+            },
+            {
+              "fr": "... il/elle te plaît? / ils/elles te plaisent?",
+              "en": "do you like it/them? (lit. does it/do they please you)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "course": "FREN152",
+      "week": 8,
+      "sequence": 18,
+      "chapter": 6,
+      "topics": [
+        {
+          "id": "fren152-w8-vocab001",
+          "topic_type": "vocab",
+          "title": "Accessories & toiletries",
+          "items": [
+            {
+              "fr": "un maillot de bain",
+              "en": "swimmers"
+            },
+            {
+              "fr": "des lunettes de soleil",
+              "en": "sunglasses"
+            },
+            {
+              "fr": "un sac à main / un sac à dos",
+              "en": "a handbag / a backpack"
+            },
+            {
+              "fr": "des tongs",
+              "en": "thongs/flip-flops"
+            },
+            {
+              "fr": "une serviette (de bain)",
+              "en": "a (bath) towel"
+            },
+            {
+              "fr": "une crème solaire",
+              "en": "sunscreen"
+            },
+            {
+              "fr": "du shampooing",
+              "en": "shampoo"
+            },
+            {
+              "fr": "un sèche-cheveux",
+              "en": "a hair-dryer"
+            },
+            {
+              "fr": "une brosse à dents",
+              "en": "a toothbrush"
+            },
+            {
+              "fr": "du dentifrice",
+              "en": "toothpaste"
+            },
+            {
+              "fr": "une montre",
+              "en": "a watch"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w8-vocab002",
+          "topic_type": "vocab",
+          "title": "Weather",
+          "items": [
+            {
+              "fr": "Quel temps fait-il?",
+              "en": "What's the weather like?"
+            },
+            {
+              "fr": "il fait beau / mauvais",
+              "en": "it's fine / bad weather"
+            },
+            {
+              "fr": "il fait froid / chaud",
+              "en": "it's cold / hot"
+            },
+            {
+              "fr": "il pleut",
+              "en": "it's raining"
+            },
+            {
+              "fr": "il neige",
+              "en": "it's snowing"
+            },
+            {
+              "fr": "il y a du soleil",
+              "en": "it's sunny"
+            },
+            {
+              "fr": "il y a du vent",
+              "en": "it's windy"
+            },
+            {
+              "fr": "il y a du brouillard",
+              "en": "it's foggy"
+            },
+            {
+              "fr": "il y a des nuages",
+              "en": "it's cloudy"
+            },
+            {
+              "fr": "il y a de l'orage",
+              "en": "it's stormy"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w8-grammar001",
+          "topic_type": "grammar",
+          "title": "Vouloir and Pouvoir",
+          "items": [
+            {
+              "fr": "je veux / tu veux / il veut",
+              "en": "I/you/he want(s) to"
+            },
+            {
+              "fr": "nous voulons / vous voulez / ils veulent",
+              "en": "we/you/they want to"
+            },
+            {
+              "fr": "je peux / tu peux / il peut",
+              "en": "I/you/he can / am/is able to"
+            },
+            {
+              "fr": "nous pouvons / vous pouvez / ils peuvent",
+              "en": "we/you/they can / are able to"
+            },
+            {
+              "fr": "je voudrais",
+              "en": "I would like (conditional, more polite)"
+            }
+          ],
+          "rule": "Both take an infinitive directly after them (je veux sortir). In the negative, ne...pas wraps the conjugated verb only: Je ne veux pas sortir."
+        },
+        {
+          "id": "fren152-w8-grammar002",
+          "topic_type": "grammar",
+          "title": "Direct object pronouns",
+          "items": [
+            {
+              "fr": "me / m'",
+              "en": "me"
+            },
+            {
+              "fr": "te / t'",
+              "en": "you (informal)"
+            },
+            {
+              "fr": "le / l'",
+              "en": "him / it (masc.)"
+            },
+            {
+              "fr": "la / l'",
+              "en": "her / it (fem.)"
+            },
+            {
+              "fr": "nous",
+              "en": "us"
+            },
+            {
+              "fr": "vous",
+              "en": "you (formal/pl)"
+            },
+            {
+              "fr": "les",
+              "en": "them"
+            }
+          ],
+          "rule": "Unlike English, French direct object pronouns go BEFORE the verb (Je le prends = I take it). ne...pas wraps both the pronoun and the verb (Nicolas ne m'appelle pas)."
+        }
+      ]
+    },
+    {
+      "course": "FREN152",
+      "week": 9,
+      "sequence": 19,
+      "chapter": 9,
+      "topics": [
+        {
+          "id": "fren152-w9-grammar001",
+          "topic_type": "grammar",
+          "title": "The partitive (du, de la, de l', des)",
+          "items": [
+            {
+              "fr": "du pain",
+              "en": "some bread (masc.)"
+            },
+            {
+              "fr": "de la confiture",
+              "en": "some jam (fem.)"
+            },
+            {
+              "fr": "de l'eau",
+              "en": "some water (before vowel)"
+            },
+            {
+              "fr": "des céréales",
+              "en": "some cereal (plural)"
+            }
+          ],
+          "rule": "The partitive translates 'some' or unspecified quantity, used mainly with uncountable/abstract nouns. It becomes just 'de' after ne...pas (except with être), after quantity expressions (une bouteille de), and before an adjective+plural noun (de bonnes notes). Verbs like adorer/aimer/préférer/détester take the definite article instead (j'aime le café, not du café)."
+        },
+        {
+          "id": "fren152-w9-vocab001",
+          "topic_type": "vocab",
+          "title": "Breakfast foods",
+          "items": [
+            {
+              "fr": "du pain / du pain grillé",
+              "en": "bread / toast"
+            },
+            {
+              "fr": "des céréales",
+              "en": "cereal"
+            },
+            {
+              "fr": "de la confiture",
+              "en": "jam"
+            },
+            {
+              "fr": "un œuf / des œufs",
+              "en": "an egg / eggs"
+            },
+            {
+              "fr": "du yaourt",
+              "en": "yoghurt"
+            },
+            {
+              "fr": "du beurre",
+              "en": "butter"
+            },
+            {
+              "fr": "du sucre",
+              "en": "sugar"
+            },
+            {
+              "fr": "de la crème",
+              "en": "cream"
+            },
+            {
+              "fr": "du fromage",
+              "en": "cheese"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w9-vocab002",
+          "topic_type": "vocab",
+          "title": "Drinks",
+          "items": [
+            {
+              "fr": "du thé / du café",
+              "en": "tea / coffee"
+            },
+            {
+              "fr": "du lait",
+              "en": "milk"
+            },
+            {
+              "fr": "du jus d'orange",
+              "en": "orange juice"
+            },
+            {
+              "fr": "de l'eau (minérale)",
+              "en": "(mineral) water"
+            },
+            {
+              "fr": "de la limonade",
+              "en": "lemonade"
+            },
+            {
+              "fr": "du champagne / du vin",
+              "en": "champagne / wine"
+            },
+            {
+              "fr": "de la bière",
+              "en": "beer"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w9-vocab003",
+          "topic_type": "vocab",
+          "title": "Lunch, dinner & mains",
+          "items": [
+            {
+              "fr": "une entrée",
+              "en": "a starter"
+            },
+            {
+              "fr": "du jambon",
+              "en": "ham"
+            },
+            {
+              "fr": "de la salade",
+              "en": "salad"
+            },
+            {
+              "fr": "de la soupe / du potage",
+              "en": "soup"
+            },
+            {
+              "fr": "du pâté",
+              "en": "pâté"
+            },
+            {
+              "fr": "des olives",
+              "en": "olives"
+            },
+            {
+              "fr": "de la viande",
+              "en": "meat"
+            },
+            {
+              "fr": "du poulet",
+              "en": "chicken"
+            },
+            {
+              "fr": "du porc",
+              "en": "pork"
+            },
+            {
+              "fr": "du bœuf",
+              "en": "beef"
+            },
+            {
+              "fr": "un légume",
+              "en": "a vegetable"
+            },
+            {
+              "fr": "une tomate",
+              "en": "a tomato"
+            },
+            {
+              "fr": "un oignon",
+              "en": "an onion"
+            },
+            {
+              "fr": "une pomme de terre",
+              "en": "a potato"
+            },
+            {
+              "fr": "un poisson / du thon / du saumon",
+              "en": "fish / tuna / salmon"
+            },
+            {
+              "fr": "des pâtes",
+              "en": "pasta"
+            },
+            {
+              "fr": "des frites",
+              "en": "fries"
+            },
+            {
+              "fr": "du riz",
+              "en": "rice"
+            },
+            {
+              "fr": "un dessert / du gâteau / de la glace",
+              "en": "dessert / cake / ice cream"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w9-phrase001",
+          "topic_type": "phrase",
+          "title": "Ordering / expressing what you have",
+          "items": [
+            {
+              "fr": "Qu'est-ce que vous prenez au petit-déjeuner?",
+              "en": "What do you have for breakfast?"
+            },
+            {
+              "fr": "Au petit-déjeuner, je prends...",
+              "en": "For breakfast, I have..."
+            },
+            {
+              "fr": "Comme entrée/plat principal/dessert, je voudrais...",
+              "en": "As a starter/main/dessert, I'd like..."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "course": "FREN152",
+      "week": 10,
+      "sequence": 20,
+      "chapter": 9,
+      "topics": [
+        {
+          "id": "fren152-w10-vocab001",
+          "topic_type": "vocab",
+          "title": "Shops for food",
+          "items": [
+            {
+              "fr": "la boulangerie",
+              "en": "the bakery"
+            },
+            {
+              "fr": "la pâtisserie",
+              "en": "the cake shop"
+            },
+            {
+              "fr": "l'épicerie",
+              "en": "the grocer's"
+            },
+            {
+              "fr": "la boucherie",
+              "en": "the butcher's"
+            },
+            {
+              "fr": "la poissonnerie",
+              "en": "the fish market"
+            },
+            {
+              "fr": "la charcuterie",
+              "en": "cooked meats/deli"
+            },
+            {
+              "fr": "la fromagerie",
+              "en": "cheese shop"
+            },
+            {
+              "fr": "le marchand de fruits et légumes",
+              "en": "the greengrocer"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w10-grammar001",
+          "topic_type": "grammar",
+          "title": "The pronoun 'y' (there)",
+          "items": [
+            {
+              "fr": "Tu vas à la boulangerie? Non, j'y vais demain.",
+              "en": "Are you going to the bakery? No, I'm going (there) tomorrow."
+            }
+          ],
+          "rule": "'Y' replaces à + [place] and goes before the verb. Unlike English (where 'there' can be dropped), 'y' must be included in French."
+        },
+        {
+          "id": "fren152-w10-grammar002",
+          "topic_type": "grammar",
+          "title": "Manger and Boire",
+          "items": [
+            {
+              "fr": "je mange / tu manges / il mange",
+              "en": "I/you/he eat(s)"
+            },
+            {
+              "fr": "nous mangeons / vous mangez / ils mangent",
+              "en": "we/you/they eat"
+            },
+            {
+              "fr": "je bois / tu bois / il boit",
+              "en": "I/you/he drink(s)"
+            },
+            {
+              "fr": "nous buvons / vous buvez / ils boivent",
+              "en": "we/you/they drink (irregular)"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w10-grammar003",
+          "topic_type": "grammar",
+          "title": "The futur proche (aller + infinitive)",
+          "items": [
+            {
+              "fr": "je vais jouer",
+              "en": "I'm going to play"
+            },
+            {
+              "fr": "tu vas jouer",
+              "en": "you're going to play"
+            },
+            {
+              "fr": "nous allons jouer",
+              "en": "we're going to play"
+            },
+            {
+              "fr": "ils vont jouer",
+              "en": "they're going to play"
+            }
+          ],
+          "rule": "aller (conjugated) + infinitive describes near-future, inevitable, or pre-planned events. Only the first verb (aller) is conjugated."
+        },
+        {
+          "id": "fren152-w10-grammar004",
+          "topic_type": "grammar",
+          "title": "Expressions of quantity + de",
+          "items": [
+            {
+              "fr": "une boîte de",
+              "en": "a tin/box of"
+            },
+            {
+              "fr": "un paquet de",
+              "en": "a packet of"
+            },
+            {
+              "fr": "une bouteille de",
+              "en": "a bottle of"
+            },
+            {
+              "fr": "un pot de",
+              "en": "a pot/jar of"
+            },
+            {
+              "fr": "une tranche de",
+              "en": "a slice of"
+            },
+            {
+              "fr": "un kilo de / un demi-kilo de",
+              "en": "a kilo of / half a kilo of"
+            },
+            {
+              "fr": "un litre de / un demi-litre de",
+              "en": "a litre of / half a litre of"
+            },
+            {
+              "fr": "une tasse de / un verre de / un bol de",
+              "en": "a cup of / a glass of / a bowl of"
+            }
+          ],
+          "rule": "After quantity expressions ending in 'de', use just 'de' — never the full partitive (du/de la/des)."
+        },
+        {
+          "id": "fren152-w10-grammar005",
+          "topic_type": "grammar",
+          "title": "The pronoun 'en'",
+          "items": [
+            {
+              "fr": "Tu veux du café? Oui, j'en veux.",
+              "en": "Do you want coffee? Yes, I want some (of it)."
+            },
+            {
+              "fr": "Ils en ont trois.",
+              "en": "They have three (of them)."
+            },
+            {
+              "fr": "Non, je n'en ai pas.",
+              "en": "No, I don't have any (of them)."
+            }
+          ],
+          "rule": "'En' replaces a partitive or quantity expression + noun, and goes before the verb. It has no direct English equivalent (often 'of it/them', frequently dropped in English)."
+        }
+      ]
+    },
+    {
+      "course": "FREN152",
+      "week": 11,
+      "sequence": 21,
+      "chapter": 9,
+      "topics": [
+        {
+          "id": "fren152-w11-phrase001",
+          "topic_type": "phrase",
+          "title": "At a restaurant",
+          "items": [
+            {
+              "fr": "Pouvez-vous me donner la carte?",
+              "en": "Can you give me the menu?"
+            },
+            {
+              "fr": "Avez-vous choisi?",
+              "en": "Have you chosen?"
+            },
+            {
+              "fr": "Quel est le plat du jour?",
+              "en": "What is today's special?"
+            },
+            {
+              "fr": "Je voudrais un steak saignant/à point/bien cuit.",
+              "en": "I'd like a rare/medium/well-done steak."
+            },
+            {
+              "fr": "l'eau plate / gazeuse",
+              "en": "still / sparkling water"
+            },
+            {
+              "fr": "L'addition, s'il vous plaît?",
+              "en": "The bill, please?"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w11-grammar001",
+          "topic_type": "grammar",
+          "title": "The passé composé — regular verbs with avoir",
+          "items": [
+            {
+              "fr": "j'ai parlé",
+              "en": "I spoke/have spoken (-er verb)"
+            },
+            {
+              "fr": "tu as choisi",
+              "en": "you chose/have chosen (-ir verb)"
+            },
+            {
+              "fr": "elle a vendu",
+              "en": "she sold/has sold (-re verb)"
+            }
+          ],
+          "rule": "Regular passé composé = present tense of avoir + past participle. -er verbs: -é; -ir verbs: -i; -re verbs: -u. Used for completed past actions or a change of state."
+        },
+        {
+          "id": "fren152-w11-grammar002",
+          "topic_type": "grammar",
+          "title": "The passé composé — adverbs as time markers",
+          "items": [
+            {
+              "fr": "hier (matin/soir)",
+              "en": "yesterday (morning/evening)"
+            },
+            {
+              "fr": "la semaine dernière",
+              "en": "last week"
+            },
+            {
+              "fr": "le mois dernier",
+              "en": "last month"
+            },
+            {
+              "fr": "l'année dernière",
+              "en": "last year"
+            },
+            {
+              "fr": "récemment",
+              "en": "recently"
+            },
+            {
+              "fr": "pendant une heure",
+              "en": "for an hour"
+            },
+            {
+              "fr": "soudain / tout à coup",
+              "en": "suddenly / all of a sudden"
+            }
+          ],
+          "rule": "Short common adverbs (déjà, bien, souvent, trop, vraiment...) go between avoir and the past participle. Longer adverbs of manner tend to follow the past participle. Time expressions often go at the start or end of the sentence."
+        }
+      ]
+    },
+    {
+      "course": "FREN152",
+      "week": 12,
+      "sequence": 22,
+      "chapter": 9,
+      "topics": [
+        {
+          "id": "fren152-w12-grammar001",
+          "topic_type": "grammar",
+          "title": "The passé composé — irregular past participles",
+          "items": [
+            {
+              "fr": "avoir → eu",
+              "en": "had"
+            },
+            {
+              "fr": "boire → bu",
+              "en": "drank"
+            },
+            {
+              "fr": "connaître → connu",
+              "en": "knew"
+            },
+            {
+              "fr": "croire → cru",
+              "en": "believed"
+            },
+            {
+              "fr": "devoir → dû",
+              "en": "had to"
+            },
+            {
+              "fr": "dire → dit",
+              "en": "said"
+            },
+            {
+              "fr": "écrire → écrit",
+              "en": "wrote"
+            },
+            {
+              "fr": "être → été",
+              "en": "was/were"
+            },
+            {
+              "fr": "faire → fait",
+              "en": "did/made"
+            },
+            {
+              "fr": "lire → lu",
+              "en": "read"
+            },
+            {
+              "fr": "mettre → mis",
+              "en": "put"
+            },
+            {
+              "fr": "pouvoir → pu",
+              "en": "was able to"
+            },
+            {
+              "fr": "prendre → pris",
+              "en": "took"
+            },
+            {
+              "fr": "recevoir → reçu",
+              "en": "received"
+            },
+            {
+              "fr": "savoir → su",
+              "en": "knew"
+            },
+            {
+              "fr": "vivre → vécu",
+              "en": "lived"
+            },
+            {
+              "fr": "voir → vu",
+              "en": "saw"
+            },
+            {
+              "fr": "vouloir → voulu",
+              "en": "wanted"
+            }
+          ],
+          "rule": "These past participles are irregular and must be memorised individually; they still combine with a conjugated avoir."
+        },
+        {
+          "id": "fren152-w12-grammar002",
+          "topic_type": "grammar",
+          "title": "Savoir vs Connaître",
+          "items": [
+            {
+              "fr": "je sais / tu sais / il sait",
+              "en": "I/you/he know(s) (a fact, how to do something)"
+            },
+            {
+              "fr": "nous savons / vous savez / ils savent",
+              "en": "we/you/they know (facts)"
+            },
+            {
+              "fr": "je connais / tu connais / il connaît",
+              "en": "I/you/he know(s) / am/is familiar with (a person, place, work)"
+            },
+            {
+              "fr": "nous connaissons / vous connaissez / ils connaissent",
+              "en": "we/you/they know / are familiar with"
+            }
+          ],
+          "rule": "Savoir = knowledge of facts, or 'know how to' + infinitive. Connaître = familiarity with people, places, or creative works."
+        }
+      ]
+    },
+    {
+      "course": "FREN152",
+      "week": 13,
+      "sequence": 23,
+      "chapter": 9,
+      "topics": [
+        {
+          "id": "fren152-w13-grammar001",
+          "topic_type": "grammar",
+          "title": "The passé composé — être-governed verbs",
+          "items": [
+            {
+              "fr": "aller / venir",
+              "en": "to go / to come"
+            },
+            {
+              "fr": "arriver / partir",
+              "en": "to arrive / to leave"
+            },
+            {
+              "fr": "entrer / sortir",
+              "en": "to enter / to go out"
+            },
+            {
+              "fr": "monter / descendre",
+              "en": "to go up / to go down"
+            },
+            {
+              "fr": "naître / mourir",
+              "en": "to be born / to die (irregular participles: né, mort)"
+            },
+            {
+              "fr": "rester / retourner",
+              "en": "to stay / to return"
+            },
+            {
+              "fr": "revenir / devenir",
+              "en": "to come back / to become (modelled on venir)"
+            }
+          ],
+          "rule": "Around 14 verbs of movement/state (mnemonic: MRS VAN DER TRAMP) take être instead of avoir in the passé composé, and the past participle agrees in gender/number with the subject (elle est allée, ils sont partis)."
+        },
+        {
+          "id": "fren152-w13-grammar002",
+          "topic_type": "grammar",
+          "title": "Reflexive verbs in the passé composé",
+          "items": [
+            {
+              "fr": "je me suis lavé(e)",
+              "en": "I washed (myself)"
+            },
+            {
+              "fr": "tu t'es levé(e)",
+              "en": "you got up"
+            },
+            {
+              "fr": "elle s'est couchée",
+              "en": "she went to bed"
+            },
+            {
+              "fr": "ils se sont habillés",
+              "en": "they got dressed"
+            }
+          ],
+          "rule": "Reflexive verbs always take être in the passé composé, with the past participle agreeing with the subject — UNLESS a direct object noun follows the verb (elle s'est lavé les mains — no agreement, because 'les mains' is the direct object, not the reflexive pronoun)."
+        },
+        {
+          "id": "fren152-w13-grammar003",
+          "topic_type": "grammar",
+          "title": "Disjunctive (emphatic) pronouns",
+          "items": [
+            {
+              "fr": "moi",
+              "en": "me"
+            },
+            {
+              "fr": "toi",
+              "en": "you (informal)"
+            },
+            {
+              "fr": "lui / elle",
+              "en": "him / her"
+            },
+            {
+              "fr": "nous",
+              "en": "us"
+            },
+            {
+              "fr": "vous",
+              "en": "you (formal/plural)"
+            },
+            {
+              "fr": "eux / elles",
+              "en": "them (m/f)"
+            }
+          ],
+          "rule": "Used to emphasise a subject (Moi, je parle français), before/after et or ou joining people, in short answers with no verb (Qui parle français? — Moi!), after c'est/ce n'est pas, and after most prepositions (avec elle, pour lui)."
+        },
+        {
+          "id": "fren152-w13-vocab001",
+          "topic_type": "vocab",
+          "title": "Skills (work-integrated learning)",
+          "items": [
+            {
+              "fr": "Je sais bricoler.",
+              "en": "I know how to do DIY."
+            },
+            {
+              "fr": "Je sais travailler en équipe.",
+              "en": "I know how to work in a team."
+            },
+            {
+              "fr": "J'ai déjà voyagé à l'étranger.",
+              "en": "I have already travelled overseas."
+            },
+            {
+              "fr": "Je parle des langues étrangères.",
+              "en": "I speak foreign languages."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
