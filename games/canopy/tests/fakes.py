@@ -134,5 +134,22 @@ class FakeTimers:
                 callback()
 
 
+class FakeJsProxy:
+    """Stands in for the real pyodide.ffi.create_proxy() return value: a
+    callable wrapper with a `.destroy()` a caller can invoke once the proxy
+    is no longer needed. Tracks `destroyed` so tests can assert cleanup
+    actually happened rather than just not crashing."""
+
+    def __init__(self, func):
+        self._func = func
+        self.destroyed = False
+
+    def __call__(self, *args, **kwargs):
+        return self._func(*args, **kwargs)
+
+    def destroy(self):
+        self.destroyed = True
+
+
 def create_proxy(func):
-    return func
+    return FakeJsProxy(func)

@@ -90,7 +90,9 @@ MATURITY_TICKS = 60
 # inside the first idle stretch instead of after it.
 BIODIVERSITY_ACCRUAL_PER_TICK = 0.02
 BIODIVERSITY_WILDLIFE_THRESHOLD = 0.2
-WILDLIFE_ICON = "\U0001F98B"  # butterfly
+# The wildlife icon itself is rendered purely via CSS (`.plot-has-wildlife
+# ::after`'s content, style.css) once has_wildlife() adds that class — not
+# read from a Python-side constant, so none is declared here.
 
 # Iteration Pass 2 — stakeholder tension: periodically, the community
 # asks to clear the single most-established standing plot for a stated
@@ -324,6 +326,19 @@ def plot_display_color(plot):
     return _lerp_color(GROWING_START_COLOR, GROWING_END_COLOR, plot.maturity_fraction())
 
 
+# Per-plot click-handler proxies from the most recent render_grid() call.
+# render_grid() rebuilds every tile element from scratch on every render
+# (at minimum once per tick, i.e. once a second for the life of a
+# session), and each create_proxy() call allocates a persistent
+# Python<->JS bridge object that Pyodide never garbage-collects on its
+# own. Without tracking and `.destroy()`ing the previous render's proxies,
+# the old ones leak indefinitely even though the DOM nodes they were
+# attached to are long gone — a slow memory leak over a long play
+# session. Keyed by plot index so at most one live proxy per plot exists
+# at any time.
+_plot_click_proxies = {}
+
+
 def render_grid():
     grid_el = document.getElementById("plot-grid")
     grid_el.innerHTML = ""
@@ -341,7 +356,12 @@ def render_grid():
         if plot.has_wildlife():
             tile.className += " plot-has-wildlife"
         tile.style.backgroundColor = plot_display_color(plot)
-        tile.addEventListener("click", create_proxy(_make_select_handler(plot.index)))
+        old_proxy = _plot_click_proxies.pop(plot.index, None)
+        if old_proxy is not None:
+            old_proxy.destroy()
+        proxy = create_proxy(_make_select_handler(plot.index))
+        _plot_click_proxies[plot.index] = proxy
+        tile.addEventListener("click", proxy)
         grid_el.appendChild(tile)
 
 

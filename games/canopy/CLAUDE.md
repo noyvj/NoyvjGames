@@ -91,6 +91,35 @@ longer standing so a fresh one can still fire later. Everything else
 audited clean — no other bugs, no convention violations (relative paths,
 save-widget contract, test structure all check out).
 
+## Audit Notes — Code-quality pass 2 (implemented)
+
+Second, more aggressive audit pass covering minor/cosmetic issues as well
+as bugs, per a hub-wide follow-up. Re-checked the stakeholder-request
+guard from pass 1's fix for remaining edge cases (tick ordering around
+recovery/accrual, save/load field handling) — found nothing further
+there; `load_state()` already restores `plots` field-by-field onto the
+existing `Plot` instances rather than replacing the list wholesale, so no
+stale-reference risk exists for save/load.
+
+**Found and fixed a real bug:** `render_grid()` rebuilds every plot tile
+element from scratch on every `render()` call (at minimum once per tick,
+i.e. once a second for the life of a session) and wired a fresh
+`create_proxy(...)` click handler onto each one, but never `.destroy()`d
+the previous render's proxies. Each `create_proxy()` call allocates a
+persistent Python↔JS bridge object that Pyodide does not garbage-collect
+on its own, so the old proxies leaked indefinitely even though the DOM
+nodes they were attached to were long gone — a slow memory leak over a
+long play session. Fixed by tracking each plot's current click proxy in
+`_plot_click_proxies` and destroying the previous one before creating its
+replacement each render. Covered by `tests/test_proxy_cleanup.py`.
+
+**Also removed:** a dead `WILDLIFE_ICON` constant — the wildlife icon is
+actually rendered via CSS (`.plot-has-wildlife::after`'s `content` in
+style.css), so the Python constant was leftover and unused.
+
+No other issues found worth changing; economy/scoring numbers were left
+untouched per this pass's scope.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
