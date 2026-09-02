@@ -220,6 +220,24 @@ def test_load_state_drops_a_stale_circularity_investment_key(game_env):
     }
 
 
+def test_load_state_tolerates_a_save_missing_trade_link_investment(game_env):
+    """PR #1 (sean-hart) review finding: unlike circularity_investment
+    above, trade_link_investment was restored via a direct
+    data["trade_link_investment"] subscript with no default. A save
+    written before the Pass 2 trade-network field existed (or a
+    hand-edited/corrupted payload) is missing this key entirely, so
+    load_state() raised KeyError and the whole load failed — not just a
+    later render, the load itself. Defaulting to 0 (a fresh chain's own
+    starting value) makes an old save loadable instead of rejected."""
+    snapshot = game_env.module.get_state()
+    del snapshot["trade_link_investment"]
+
+    result = game_env.module.load_state(snapshot)
+    assert result is True
+    assert game_env.chain.trade_link_investment == 0
+    assert game_env.elements["trade-link-count"].innerText == "0"
+
+
 def test_get_state_matches_shape_after_load_state_round_trip(game_env):
     game_env.chain.invest_circularity("reuse")
     game_env.chain.advance_cycle()

@@ -468,12 +468,10 @@ def load_state(data):
         measure: saved_investment.get(measure, 0) for measure in CIRCULARITY_INVESTMENTS
     }
     chain.circular_fraction_log = list(data["circular_fraction_log"])
-    # REVIEW(correctness): direct dict subscript instead of a defaulted
-    # .get() — unlike circularity_investment right above, which was already
-    # fixed for exactly this reason. A save from before the trade-network
-    # field existed won't have this key, so load_state() raises KeyError and
-    # the load fails, same bug shape already patched one field over.
-    chain.trade_link_investment = data["trade_link_investment"]
+    # A save from before the trade-network field existed (Pass 2) won't
+    # have this key — default to 0 (a fresh chain's own starting value)
+    # rather than raising KeyError and failing the whole load.
+    chain.trade_link_investment = data.get("trade_link_investment", 0)
     render()
     return True
 
