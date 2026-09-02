@@ -56,6 +56,8 @@ Deliberately scoped narrow: only the severity-variation function changed. Event 
 
 ## Info Page — real-world sources (implemented)
 
+*Implementation is now shared across all 8 climate-quartet games — see `shared/info_page.py` and `shared/info-page.css`. Only the content below (framing/tie-in/sources) is game-specific; the rendering/toggle code moved out of this game's `game.py`.*
+
 An optional, player-triggered "The Real Story" panel — never forced mid-session, since the mechanic teaches first and this is a supplement for players who want to go deeper. Toggled via a button near the top of the page; shows a short framing paragraph (written fresh, not copied from any source), a one-line note tying the mechanic to real data, and a sources list with clickable links.
 
 **Framing:** Adaptation — building resilience to climate impacts already locked in — is treated by climate science and policy as its own necessary response, not a fallback for failed mitigation. Real communities that invested early in resilient infrastructure have documented, measurable payoffs. Aftermath's resource-allocation choices and its "how far you've come" comparison are modeled on that same idea.
