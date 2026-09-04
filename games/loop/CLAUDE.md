@@ -103,6 +103,42 @@ leak, dead code, stale comment) turned up on this pass — `setup()` is the
 only place `create_proxy()` is called, once at load, so there's no
 per-render proxy leak here.
 
+## Visual pass — space theme (site-wide design system rollout)
+
+Adopted the shared space-themed visual language already shipped to the hub
+and SOL: `shared/space-bg.css`'s starfield+nebula background
+(`<div class="space-bg">` markup right after `<body>`), a glass-panel
+treatment (translucent gradient + `backdrop-filter: blur()` + soft violet
+border + drop shadow) on `#game` and every `.section`/`.context-blurb`/
+`.vignette`, gradient buttons with a glossy top highlight and a
+`brightness(1.1)` hover state, glowing gradient meter fills, and a
+gradient-glow `<h1>` title matching the hub/SOL treatment. Purely a
+CSS/HTML property-value change — no selector was renamed and no `game.py`
+DOM code touched.
+
+**Deliberately left alone:** the extraction meter's red/orange (`#e0674c`),
+the circularity meter and closed-loop chain's green (`#4c9c6e`), the
+default straight-line flow-particle's brown (`#9c7a3c`), the trade-network
+import-flow's blue (`#4c8ed8`), and the single-item vignette's purple
+accent (`#6f6ab0`) are exactly the hues a player relies on to read the
+chain-flow visualization, the trade-network link, and the vignette at a
+glance — every one of those hex values is untouched; only gradients built
+from the same color (plus a matching `box-shadow` glow) were added around
+them. The animated chain-flow/return-flow/import-flow particles
+(`@keyframes flow-particle-move`, `return-flow-move`, `import-flow-move`)
+are pre-existing from Iteration Pass 1/2 (see notes above) and were left
+running exactly as before — checked `tests/` for any "no motion" assertion
+(none exists for this game; that constraint is specific to champ-de-mots)
+and confirmed no CLAUDE.md design decision here forbids animation, so this
+game's own restyle additions used only static gradients/shadows, same as
+before. Full pytest suite (108 tests) stayed green throughout; verified
+live via a local server on a fresh port — starfield/glass panels render,
+investing in Recycling Loops and Advance Cycle still update funds,
+investment counts, the chain-flow message/vignette, and cycle/damage/score
+figures correctly, and the only console errors present are the
+pre-existing site-wide ServiceWorker registration quirk also reproducible
+on the unmodified hub page.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
