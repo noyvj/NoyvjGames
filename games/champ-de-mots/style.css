@@ -1,11 +1,22 @@
 /*
- * Le Champ de Mots — a warm, paper-and-soil palette rather than the dark
- * slate the hub's climate games use. Per the hub's rules the shell stays
- * consistent but a game's internals are free, and a farm full of small
- * growing things wants light behind it.
+ * Le Champ de Mots — the farm's own plant/plot iconography and growth-stage
+ * colours (Seed/Sprout/Budding/Blooming/Automated/Wilting, plus locked-row
+ * styling) are deliberately untouched below: those hues *mean* something
+ * (see this game's own CLAUDE.md, Milestone 2/4/6 build notes) and stay
+ * exactly as shipped. Everything else — panels, buttons, borders, the
+ * title — has been brought in line with the site-wide space theme (see
+ * `shared/space-bg.css`): a starfield/nebula sits behind the page, and the
+ * surrounding chrome now reads as translucent glass over it rather than
+ * solid paper-and-soil panels. The farm's own warm plant colours sitting
+ * inside cool violet-glass chrome is an intentional, slightly odd
+ * combination — the ask was a site-wide space pass, and the farm keeps its
+ * own identity underneath it.
  *
- * Everything here is static by design (§8): stages are sprites and classes,
- * never transitions, so any moment of the farm is a usable screenshot.
+ * Everything here is still static by design (§8 / Milestone 7's tested
+ * constraint): stages are sprites and classes, never animated state changes,
+ * so any moment of the farm is a usable screenshot. Nothing motion-related
+ * was added anywhere in this file — hover states below change colour/filter
+ * outright, with no eased property changes.
  */
 
 * {
@@ -15,8 +26,8 @@
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #f4efe4;
-  color: #33291f;
+  background: transparent;
+  color: #eaeaf0;
   display: flex;
   justify-content: center;
 }
@@ -28,12 +39,14 @@ body {
 }
 
 .hub-back-link {
-  color: #7a6a53;
+  color: #b9c3e8;
   font-size: 0.8rem;
   text-decoration: none;
+  opacity: 0.75;
 }
 
 .hub-back-link:hover {
+  opacity: 1;
   text-decoration: underline;
 }
 
@@ -41,30 +54,43 @@ h1 {
   margin: 0.4rem 0 0.25rem;
   font-size: 1.9rem;
   letter-spacing: -0.01em;
+  font-weight: 600;
+  background: linear-gradient(120deg, #eaeaf0 20%, #a9c3ff 55%, #eaeaf0 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 40px rgba(120, 150, 255, 0.25);
+  display: inline-block;
 }
 
 .tagline {
   margin: 0 0 0.5rem;
-  color: #6b5c46;
+  color: #cfd2e6;
+  opacity: 0.75;
   font-size: 0.95rem;
 }
 
 .context-blurb {
   margin: 0 0 1.25rem;
   padding: 0.6rem 0.75rem;
-  border-left: 3px solid #a3b57a;
-  background: #fbf8f1;
-  border-radius: 0 6px 6px 0;
+  border-left: 3px solid #9bd67f;
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.7), rgba(14, 16, 28, 0.78));
+  border-radius: 0 10px 10px 0;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   font-size: 0.82rem;
-  color: #6b5c46;
+  color: #cfd2e6;
 }
 
 .section {
-  background: #fbf8f1;
-  border: 1px solid #e2d8c4;
-  border-radius: 10px;
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.78), rgba(14, 16, 28, 0.85));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 16px;
   padding: 1rem;
   margin-bottom: 1rem;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .status-line {
@@ -74,12 +100,14 @@ h1 {
 
 .status-line--due {
   font-weight: 600;
-  color: #4f6b2f;
+  color: #9bd67f;
+  text-shadow: 0 0 16px rgba(155, 214, 127, 0.3);
 }
 
 .status-line--muted {
   font-size: 0.82rem;
-  color: #7a6a53;
+  color: #cfd2e6;
+  opacity: 0.7;
 }
 
 .row-proficiency-button,
@@ -100,15 +128,25 @@ h1 {
   font-family: inherit;
   font-size: 0.85rem;
   padding: 0.4rem 0.6rem;
-  border-radius: 6px;
-  border: 1px solid #e2d8c4;
-  background: #fff;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  background: linear-gradient(135deg, #3a4d68, #232f42);
+  color: #eaeaf0;
   cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.bonus-tile:hover {
+  filter: brightness(1.12);
 }
 
 .bonus-tile--placed {
-  background: #f2eddf;
+  background: linear-gradient(135deg, #232f42, #171e2c);
   cursor: default;
+}
+
+.bonus-tile--placed:hover {
+  filter: none;
 }
 
 .proficiency-topic-breakdown {
@@ -118,7 +156,8 @@ h1 {
 .proficiency-topic-line {
   margin: 0.2rem 0;
   font-size: 0.8rem;
-  color: #6b5c46;
+  color: #cfd2e6;
+  opacity: 0.75;
 }
 
 .review-section .status-line--muted {
@@ -128,7 +167,8 @@ h1 {
 .review-setting {
   display: block;
   font-size: 0.8rem;
-  color: #6b5c46;
+  color: #cfd2e6;
+  opacity: 0.75;
   margin-top: 0.6rem;
 }
 
@@ -139,8 +179,10 @@ h1 {
   font-family: inherit;
   font-size: 0.85rem;
   padding: 0.3rem 0.4rem;
-  border-radius: 6px;
-  border: 1px solid #e2d8c4;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  background: rgba(5, 6, 13, 0.4);
+  color: #eaeaf0;
 }
 
 .controls {
@@ -156,16 +198,18 @@ h1 {
   gap: 0.4rem;
   margin-top: 0.7rem;
   font-size: 0.8rem;
-  color: #7a6a53;
+  color: #cfd2e6;
+  opacity: 0.75;
 }
 
 button {
   font-family: inherit;
   cursor: pointer;
-  border-radius: 7px;
+  border-radius: 9px;
   border: 1px solid transparent;
   padding: 0.55rem 0.9rem;
   font-size: 0.88rem;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button:disabled {
@@ -174,22 +218,32 @@ button:disabled {
 }
 
 .primary {
-  background: #5c7a35;
+  background: linear-gradient(135deg, #6f9945, #47612b);
   color: #fbf8f1;
-  border-color: #4c682c;
+  border-color: rgba(140, 160, 255, 0.14);
+  box-shadow: 0 4px 16px rgba(71, 97, 43, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.primary:hover:not(:disabled) {
+  filter: brightness(1.1);
 }
 
 .secondary {
-  background: #efe7d7;
-  color: #4a3f30;
-  border-color: #ded2ba;
+  background: linear-gradient(135deg, #3a4d68, #232f42);
+  color: #eaeaf0;
+  border-color: rgba(140, 160, 255, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.secondary:hover:not(:disabled) {
+  filter: brightness(1.12);
 }
 
 /* --- practice panel ------------------------------------------------------ */
 
 .practice {
-  border-color: #c9d6ac;
-  background: #fdfbf5;
+  border-color: rgba(163, 181, 122, 0.35);
+  background: linear-gradient(165deg, rgba(26, 31, 27, 0.8), rgba(14, 17, 14, 0.85));
 }
 
 .practice-context {
@@ -197,13 +251,15 @@ button:disabled {
   font-size: 0.74rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #8a7a60;
+  color: #cfd2e6;
+  opacity: 0.7;
 }
 
 .practice-instruction {
   margin: 0 0 0.4rem;
   font-size: 0.85rem;
-  color: #6b5c46;
+  color: #cfd2e6;
+  opacity: 0.8;
 }
 
 .practice-prompt {
@@ -211,29 +267,33 @@ button:disabled {
   font-size: 1.5rem;
   line-height: 1.3;
   font-weight: 600;
+  color: #eaeaf0;
 }
 
 .practice-note {
   margin: 0 0 0.7rem;
   padding: 0.5rem 0.6rem;
-  background: #f2eddf;
-  border-radius: 6px;
+  background: rgba(5, 6, 13, 0.4);
+  border: 1px solid rgba(140, 160, 255, 0.12);
+  border-radius: 8px;
   font-size: 0.78rem;
-  color: #6b5c46;
+  color: #cfd2e6;
+  opacity: 0.85;
 }
 
 .practice-blurb {
   margin: 0.75rem 0 0;
   padding: 0.6rem 0.7rem;
-  background: #fbf7ee;
-  border: 1px solid #e6dcc4;
-  border-radius: 6px;
+  background: rgba(5, 6, 13, 0.4);
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  border-radius: 8px;
 }
 
 .practice-blurb-line {
   margin: 0.25rem 0;
   font-size: 0.8rem;
-  color: #6b5c46;
+  color: #cfd2e6;
+  opacity: 0.85;
 }
 
 .practice-choices {
@@ -243,16 +303,23 @@ button:disabled {
 }
 
 .choice {
-  background: #efe7d7;
-  border-color: #ded2ba;
-  color: #33291f;
+  background: linear-gradient(135deg, #3a4d68, #232f42);
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  color: #eaeaf0;
   text-align: left;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.choice:hover:not(:disabled) {
+  filter: brightness(1.12);
 }
 
 .choice--answer {
-  background: #dbe7c4;
+  background: linear-gradient(135deg, rgba(163, 181, 122, 0.4), rgba(79, 107, 47, 0.4));
   border-color: #a3b57a;
+  color: #eaeaf0;
   font-weight: 600;
+  box-shadow: 0 0 12px rgba(163, 181, 122, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .practice-input {
@@ -261,10 +328,10 @@ button:disabled {
   padding: 0.6rem;
   font-size: 1rem;
   font-family: inherit;
-  border: 1px solid #ded2ba;
-  border-radius: 7px;
-  background: #fff;
-  color: #33291f;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(5, 6, 13, 0.4);
+  color: #eaeaf0;
 }
 
 .practice-input + .secondary {
@@ -274,7 +341,7 @@ button:disabled {
 .practice-feedback {
   margin: 0.75rem 0 0;
   font-size: 0.9rem;
-  color: #4f6b2f;
+  color: #9bd67f;
   min-height: 1.2em;
 }
 
@@ -293,7 +360,8 @@ button:disabled {
   margin: 0 0 0.9rem;
   font-size: 0.72rem;
   line-height: 1.7;
-  color: #7a6a53;
+  color: #cfd2e6;
+  opacity: 0.7;
 }
 
 .farm {
@@ -303,10 +371,13 @@ button:disabled {
 }
 
 .row {
-  background: #fbf8f1;
-  border: 1px solid #e2d8c4;
-  border-radius: 9px;
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.72), rgba(14, 16, 28, 0.8));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
   padding: 0.55rem 0.7rem 0.65rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .row-head {
@@ -320,43 +391,50 @@ button:disabled {
 .row-label {
   font-size: 0.78rem;
   font-weight: 700;
-  color: #4a3f30;
+  color: #eaeaf0;
 }
 
 .row-chapter {
   font-size: 0.72rem;
-  color: #8a7a60;
+  color: #cfd2e6;
+  opacity: 0.7;
   flex: 1;
 }
 
 .row-progress {
   font-size: 0.7rem;
-  color: #8a7a60;
+  color: #cfd2e6;
+  opacity: 0.7;
   font-variant-numeric: tabular-nums;
 }
 
-/* A locked row is quiet, not scolding — it just isn't planted yet. */
+/* A locked row is quiet, not scolding — it just isn't planted yet. Same
+   dashed/faded language as before, re-skinned into the violet-glass chrome
+   rather than the old warm palette; the distinctness itself is unchanged. */
 .row--locked {
-  background: #f4efe4;
+  background: linear-gradient(165deg, rgba(14, 16, 24, 0.6), rgba(9, 10, 17, 0.68));
   border-style: dashed;
+  border-color: rgba(140, 160, 255, 0.22);
+  box-shadow: none;
 }
 
 .stage-summary {
   font-size: 0.95rem;
   letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
-  color: #4a3f30;
+  color: #eaeaf0;
 }
 
 .row-due {
   font-size: 0.68rem;
-  color: #7f8f5c;
+  color: #9bd67f;
   font-variant-numeric: tabular-nums;
 }
 
 .row-lock {
   font-size: 0.68rem;
-  color: #9a8a70;
+  color: #cfd2e6;
+  opacity: 0.6;
   font-style: italic;
 }
 
@@ -365,6 +443,14 @@ button:disabled {
   flex-wrap: wrap;
   gap: 3px;
 }
+
+/*
+ * Plot stage colours below are the farm's own state-encoding and are left
+ * completely unchanged — see this game's CLAUDE.md (Milestone 2, 4, 6):
+ * Seed/Sprout/Budding/Blooming/Automated/Wilting are each visually distinct
+ * on purpose, and locked-plot styling is equally deliberate. Only the
+ * chrome around the farm changed in this pass, never these.
+ */
 
 /* One plot = one fact. Small enough that a whole 23-week syllabus fits on
    screen at once, which is the point of the farm view. */
