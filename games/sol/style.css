@@ -352,3 +352,78 @@ button.priority-option.selected {
   opacity: 1;
   text-decoration: underline;
 }
+
+/* Icon labels — pure CSS, no markup/game.py change. Every section label
+   across every planet follows a consistent id-suffix naming convention
+   (e.g. "resource-label", "mars-resource-label", "moon-resource-label"),
+   so one `[id$="..."]` attribute-selector per section type reaches every
+   planet's copy at once, without needing per-planet rules or touching
+   the shared `.resource-label`/`.ecology-label`/`.generator-info`
+   classes those labels also carry (which some other, differently-themed
+   labels reuse — id-suffix targeting keeps this precise). Breaks up the
+   numbers-only readout with a small icon per concept, so at a glance
+   "what kind of thing is this row" doesn't require reading the label
+   text first. */
+[id$="resource-label"]::before {
+  content: "⛏️ ";
+}
+
+[id$="ecology-label"]::before {
+  content: "🌍 ";
+}
+
+[id$="terraform-label"]::before {
+  content: "🪐 ";
+}
+
+[id$="generator-info"]::before {
+  content: "⚙️ ";
+}
+
+[id$="recycler-info"]::before {
+  content: "♻️ ";
+}
+
+[id$="trade-route-label"]::before {
+  content: "🔄 ";
+}
+
+#research-label::before {
+  content: "🔬 ";
+}
+
+#governor-label::before {
+  content: "🎛️ ";
+}
+
+#travel-label::before {
+  content: "🚀 ";
+}
+
+.cross-summary-label::before {
+  content: "🛰️ ";
+}
+
+[id$="priority-growth-button"]::before {
+  content: "🌱 ";
+}
+
+[id$="priority-balance-button"]::before {
+  content: "⚖️ ";
+}
+
+[id$="priority-ecology-button"]::before {
+  content: "🌍 ";
+}
+
+.click-button::before {
+  content: "⛏️ ";
+}
+
+.win-banner-heading::before {
+  content: "🏆 ";
+}
+
+#away-planet-name::before {
+  content: "🛰️ ";
+}
