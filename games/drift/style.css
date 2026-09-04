@@ -5,7 +5,7 @@
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #0b0d17;
+  background: transparent;
   color: #e8e9f0;
   display: flex;
   justify-content: center;
@@ -14,12 +14,25 @@ body {
 #game {
   width: 100%;
   max-width: 480px;
+  margin: 1.5rem 1rem 2rem;
   padding: 1.5rem 1rem 2rem;
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.78), rgba(14, 16, 28, 0.85));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 18px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 h1 {
   margin: 0 0 0.25rem;
   font-size: 1.75rem;
+  font-weight: 600;
+  background: linear-gradient(120deg, #eaeaf0 20%, #a9c3ff 55%, #eaeaf0 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 30px rgba(120, 150, 255, 0.25);
 }
 
 .tagline {
@@ -32,18 +45,21 @@ h1 {
   margin: 0 0 1.25rem;
   padding: 0.6rem 0.75rem;
   border-left: 2px solid #4a8fa5;
-  background: #14161f;
+  background: rgba(20, 22, 31, 0.55);
   border-radius: 0 6px 6px 0;
   font-size: 0.8rem;
   opacity: 0.8;
 }
 
 .section {
-  background: #14161f;
-  border: 1px solid #23273a;
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.7), rgba(14, 16, 28, 0.78));
+  border: 1px solid rgba(140, 160, 255, 0.14);
   border-radius: 10px;
   padding: 1rem;
   margin-bottom: 1rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .status-line {
@@ -75,9 +91,10 @@ h1 {
   width: 100%;
   height: 8px;
   border-radius: 4px;
-  background: #1a1d2b;
+  background: rgba(5, 6, 13, 0.55);
   overflow: hidden;
   margin-bottom: 0.4rem;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .meter-fill {
@@ -86,21 +103,29 @@ h1 {
   transition: width 0.2s ease;
 }
 
+/* Strain-level colour coding is meaningful game-state (stable/strained/
+   critical) -- the fill colours themselves are untouched by this visual
+   pass. Only a matching-hue glow (same colour, as a box-shadow) is added
+   for depth, same treatment as every other meter in the space theme. */
 .meter-fill--strain {
   background: #4a8fa5;
+  box-shadow: 0 0 10px rgba(74, 143, 165, 0.5);
   transition: background 0.2s ease;
 }
 
 .meter-fill--strain.strain--strained {
   background: #c9a13c;
+  box-shadow: 0 0 10px rgba(201, 161, 60, 0.5);
 }
 
 .meter-fill--strain.strain--critical {
   background: #c9603c;
+  box-shadow: 0 0 10px rgba(201, 96, 60, 0.5);
 }
 
 .meter-fill--wellbeing {
   background: #4a8fa5;
+  box-shadow: 0 0 10px rgba(74, 143, 165, 0.4);
 }
 
 /* Iteration Pass 3: the net-positive integration turning-point callout
@@ -119,7 +144,10 @@ h1 {
 
 /* Iteration Pass 2: long-horizon outcomes coda — a warm accent so it
    reads as a hopeful epilogue continuing the same dashboard, not a
-   disconnected screen. */
+   disconnected screen. Colour identity (border-color/background) is left
+   untouched by the space-theme pass since it deliberately reuses the same
+   accent as the turning-point callout below; it still inherits .section's
+   new glass/blur/shadow chrome via the cascade. */
 .coda-section {
   border-color: #7a9c5a;
   background: #171f14;
@@ -133,6 +161,7 @@ h1 {
 
 .coda-section .meter-fill {
   background: #7a9c5a;
+  box-shadow: 0 0 10px rgba(122, 156, 90, 0.4);
 }
 
 .invest-row {
@@ -141,7 +170,7 @@ h1 {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0;
-  border-bottom: 1px solid #23273a;
+  border-bottom: 1px solid rgba(140, 160, 255, 0.12);
 }
 
 .invest-row:last-child {
@@ -161,13 +190,18 @@ h1 {
 
 button.secondary {
   padding: 0.5rem 0.6rem;
-  border: 1px solid #3a3f5c;
+  border: 1px solid rgba(140, 160, 255, 0.16);
   border-radius: 8px;
-  background: #1d2033;
+  background: linear-gradient(135deg, #262b47, #1a1d30);
   color: #e8e9f0;
   font-size: 0.8rem;
   cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
   transition: filter 120ms ease;
+}
+
+button.secondary:hover:not(:disabled) {
+  filter: brightness(1.1);
 }
 
 button.secondary:active:not(:disabled) {
@@ -184,12 +218,17 @@ button.primary {
   padding: 0.8rem;
   border: none;
   border-radius: 8px;
-  background: #4a8fa5;
+  background: linear-gradient(135deg, #5aa1b8, #3a7385);
   color: #0b0d17;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
   transition: filter 120ms ease;
+}
+
+button.primary:hover:not(:disabled) {
+  filter: brightness(1.1);
 }
 
 button.primary:active {
@@ -209,7 +248,8 @@ button.primary:active {
 
 .feedback-buttons .secondary.selected {
   border-color: #6fa0ae;
-  background: #1d2933;
+  background: linear-gradient(135deg, #24384a, #182a38);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 10px rgba(111, 160, 174, 0.35);
 }
 
 .feedback-comment {
@@ -217,9 +257,9 @@ button.primary:active {
   min-height: 2.5rem;
   margin-bottom: 0.6rem;
   padding: 0.5rem;
-  border: 1px solid #3a3f5c;
+  border: 1px solid rgba(140, 160, 255, 0.16);
   border-radius: 8px;
-  background: #1d2033;
+  background: rgba(20, 22, 31, 0.6);
   color: #e8e9f0;
   font-family: inherit;
   font-size: 0.85rem;
