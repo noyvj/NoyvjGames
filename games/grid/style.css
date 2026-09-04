@@ -5,7 +5,7 @@
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #0b0d17;
+  background: transparent;
   color: #e8e9f0;
   display: flex;
   justify-content: center;
@@ -14,12 +14,24 @@ body {
 #game {
   width: 100%;
   max-width: 480px;
+  margin: 1.5rem 1rem 2rem;
   padding: 1.5rem 1rem 2rem;
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.78), rgba(14, 16, 28, 0.85));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 18px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 h1 {
   margin: 0 0 0.25rem;
   font-size: 1.75rem;
+  background: linear-gradient(120deg, #eaeaf0 20%, #a9c3ff 55%, #eaeaf0 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 30px rgba(120, 150, 255, 0.25);
 }
 
 .tagline {
@@ -31,19 +43,20 @@ h1 {
 .context-blurb {
   margin: 0 0 1.25rem;
   padding: 0.6rem 0.75rem;
-  border-left: 2px solid #3a5a9c;
-  background: #14161f;
+  border-left: 2px solid rgba(140, 160, 255, 0.55);
+  background: rgba(20, 22, 31, 0.55);
   border-radius: 0 6px 6px 0;
   font-size: 0.8rem;
   opacity: 0.8;
 }
 
 .section {
-  background: #14161f;
-  border: 1px solid #23273a;
-  border-radius: 10px;
+  background: linear-gradient(165deg, rgba(30, 33, 52, 0.55), rgba(18, 20, 32, 0.6));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
   padding: 1rem;
   margin-bottom: 1rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .status-line {
@@ -65,20 +78,23 @@ h1 {
 .event-display--warning {
   color: #e0b84c;
   opacity: 1;
+  text-shadow: 0 0 10px rgba(224, 184, 76, 0.35);
 }
 
 .event-display--danger {
   color: #e0674c;
   opacity: 1;
+  text-shadow: 0 0 10px rgba(224, 103, 76, 0.35);
 }
 
 .meter {
   width: 100%;
   height: 8px;
   border-radius: 4px;
-  background: #1a1d2b;
+  background: rgba(5, 6, 13, 0.6);
   overflow: hidden;
   margin-bottom: 0.6rem;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .meter-fill {
@@ -89,10 +105,12 @@ h1 {
 
 .meter-fill--emissions {
   background: #e0674c;
+  box-shadow: 0 0 10px rgba(224, 103, 76, 0.5);
 }
 
 .meter-fill--score {
   background: #4c9c6e;
+  box-shadow: 0 0 10px rgba(76, 156, 110, 0.5);
 }
 
 .meter-label {
@@ -140,7 +158,7 @@ h1 {
   flex-direction: column;
   gap: 0.4rem;
   padding: 0.5rem 0;
-  border-bottom: 1px solid #23273a;
+  border-bottom: 1px solid rgba(140, 160, 255, 0.14);
 }
 
 .plant-row:last-child {
@@ -194,13 +212,18 @@ h1 {
 
 button.secondary {
   padding: 0.5rem 0.6rem;
-  border: 1px solid #3a3f5c;
+  border: 1px solid rgba(140, 160, 255, 0.18);
   border-radius: 8px;
-  background: #1d2033;
+  background: linear-gradient(135deg, #262a45, #171a2b);
   color: #e8e9f0;
   font-size: 0.8rem;
   cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
   transition: filter 120ms ease;
+}
+
+button.secondary:hover:not(:disabled) {
+  filter: brightness(1.1);
 }
 
 button.secondary:active:not(:disabled) {
@@ -217,12 +240,17 @@ button.primary {
   padding: 0.8rem;
   border: none;
   border-radius: 8px;
-  background: #3a5a9c;
+  background: linear-gradient(135deg, #4a6cb5, #2c4370);
   color: #e8e9f0;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 4px 16px rgba(58, 90, 156, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
   transition: filter 120ms ease;
+}
+
+button.primary:hover {
+  filter: brightness(1.1);
 }
 
 button.primary:active {
@@ -242,7 +270,8 @@ button.primary:active {
 
 .feedback-buttons .secondary.selected {
   border-color: #6fae70;
-  background: #1d2e1f;
+  background: linear-gradient(135deg, #26402a, #16241a);
+  box-shadow: 0 0 10px rgba(111, 174, 112, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .feedback-comment {
@@ -250,9 +279,9 @@ button.primary:active {
   min-height: 2.5rem;
   margin-bottom: 0.6rem;
   padding: 0.5rem;
-  border: 1px solid #3a3f5c;
+  border: 1px solid rgba(140, 160, 255, 0.18);
   border-radius: 8px;
-  background: #1d2033;
+  background: rgba(20, 22, 33, 0.6);
   color: #e8e9f0;
   font-family: inherit;
   font-size: 0.85rem;
