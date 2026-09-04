@@ -5,7 +5,7 @@
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #0b0d17;
+  background: transparent;
   color: #e8e9f0;
   display: flex;
   justify-content: center;
@@ -20,6 +20,11 @@ body {
 h1 {
   margin: 0 0 0.25rem;
   font-size: 1.75rem;
+  background: linear-gradient(120deg, #eaeaf0 20%, #a9c3ff 55%, #eaeaf0 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 40px rgba(120, 150, 255, 0.25);
 }
 
 .tagline {
@@ -29,11 +34,14 @@ h1 {
 }
 
 .section {
-  background: #14161f;
-  border: 1px solid #23273a;
-  border-radius: 10px;
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.78), rgba(14, 16, 28, 0.85));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 14px;
   padding: 1rem;
   margin-bottom: 1rem;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .status-line {
@@ -59,9 +67,10 @@ h1 {
   width: 100%;
   height: 8px;
   border-radius: 4px;
-  background: #1a1d2b;
+  background: rgba(5, 6, 13, 0.6);
   overflow: hidden;
   margin-bottom: 0.6rem;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .meter-fill {
@@ -71,15 +80,18 @@ h1 {
 }
 
 .meter-fill--acidity {
-  background: #b06fd6;
+  background: linear-gradient(90deg, #8a56ab, #b06fd6);
+  box-shadow: 0 0 10px rgba(176, 111, 214, 0.5);
 }
 
 .meter-fill--fish {
-  background: #4c9c6e;
+  background: linear-gradient(90deg, #3a7d54, #4c9c6e);
+  box-shadow: 0 0 10px rgba(76, 156, 110, 0.5);
 }
 
 .meter-fill--sea-level {
-  background: #4c9cd6;
+  background: linear-gradient(90deg, #3a7dab, #4c9cd6);
+  box-shadow: 0 0 10px rgba(76, 156, 214, 0.5);
 }
 
 .meter-label {
@@ -91,15 +103,15 @@ h1 {
 .context-blurb {
   margin: 0 0 1.25rem;
   padding: 0.6rem 0.75rem;
-  border-left: 2px solid #3a7a9c;
-  background: #14161f;
+  border-left: 2px solid #4c9cd6;
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.78), rgba(14, 16, 28, 0.85));
   border-radius: 0 6px 6px 0;
   font-size: 0.8rem;
   opacity: 0.8;
 }
 
 .sea-level-section {
-  border-color: #2c5f8a;
+  border-color: rgba(76, 156, 214, 0.35);
 }
 
 .coastline-grid {
@@ -109,6 +121,8 @@ h1 {
   margin-bottom: 1rem;
   border-radius: 10px;
   overflow: hidden;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
 .coastline-grid--mini {
@@ -131,7 +145,7 @@ h1 {
    the bottom rows, thickening as higher tiers unlock, so upgrading
    reads as something standing between the settlement and the water. */
 .coastline-seawall {
-  box-shadow: inset 0 3px 0 0 #d8c088;
+  box-shadow: inset 0 3px 0 0 #d8c088, 0 0 6px rgba(216, 192, 136, 0.45);
 }
 
 .coastline-compare-row {
@@ -157,7 +171,7 @@ h1 {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0;
-  border-bottom: 1px solid #23273a;
+  border-bottom: 1px solid rgba(140, 160, 255, 0.14);
 }
 
 .invest-row:last-child {
@@ -177,13 +191,18 @@ h1 {
 
 button.secondary {
   padding: 0.5rem 0.6rem;
-  border: 1px solid #3a3f5c;
+  border: none;
   border-radius: 8px;
-  background: #1d2033;
+  background: linear-gradient(135deg, #3a3f5c, #232538);
   color: #e8e9f0;
   font-size: 0.8rem;
   cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
   transition: filter 120ms ease;
+}
+
+button.secondary:hover:not(:disabled) {
+  filter: brightness(1.1);
 }
 
 button.secondary:active:not(:disabled) {
@@ -200,12 +219,17 @@ button.primary {
   padding: 0.8rem;
   border: none;
   border-radius: 8px;
-  background: #3a7a9c;
+  background: linear-gradient(135deg, #4a95bd, #2c5f7a);
   color: #e8e9f0;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 4px 16px rgba(58, 122, 156, 0.3);
   transition: filter 120ms ease;
+}
+
+button.primary:hover:not(:disabled) {
+  filter: brightness(1.1);
 }
 
 button.primary:active {
@@ -224,8 +248,8 @@ button.primary:active {
 }
 
 .feedback-buttons .secondary.selected {
-  border-color: #6fae70;
-  background: #1d2e1f;
+  background: linear-gradient(135deg, #3a6b3d, #234a26);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 0 12px rgba(111, 174, 112, 0.4);
 }
 
 .feedback-comment {
@@ -233,9 +257,9 @@ button.primary:active {
   min-height: 2.5rem;
   margin-bottom: 0.6rem;
   padding: 0.5rem;
-  border: 1px solid #3a3f5c;
+  border: 1px solid rgba(140, 160, 255, 0.18);
   border-radius: 8px;
-  background: #1d2033;
+  background: rgba(5, 6, 13, 0.4);
   color: #e8e9f0;
   font-family: inherit;
   font-size: 0.85rem;
