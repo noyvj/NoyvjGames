@@ -49,6 +49,40 @@
   // for the hub's own sign-in UI, so the two can't drift out of sync on
   // the localStorage key or header shape.
 
+  const RETRY_DELAYS_MS = [700, 1500];
+
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  // The backend's database (Neon, serverless Postgres) suspends its
+  // compute after a few minutes idle. The first request after that wakes
+  // it back up, but used to fail outright with a bare 500 rather than
+  // just being slow (a stale pooled DB connection failing before the fix
+  // in app/database.py's pool_pre_ping). A transient failure here is
+  // exactly the kind of thing a user "fixes" by clicking Save four times
+  // in a row — so retry it for them instead of making that the expected
+  // workflow. Doesn't retry a 4xx (a wrong save code, a bad request body)
+  // since retrying an error that isn't going to change the outcome just
+  // delays telling the user the real problem.
+  async function fetchWithRetry(url, options, onRetrying) {
+    let lastErr;
+    for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+      try {
+        const res = await fetch(url, options);
+        if (res.ok || (res.status >= 400 && res.status < 500)) return res;
+        lastErr = new Error(`status ${res.status}`);
+      } catch (err) {
+        lastErr = err;
+      }
+      if (attempt < RETRY_DELAYS_MS.length) {
+        if (onRetrying) onRetrying(attempt + 1);
+        await sleep(RETRY_DELAYS_MS[attempt]);
+      }
+    }
+    throw lastErr;
+  }
+
   if (!document.getElementById("save-widget-styles")) {
     const style = document.createElement("style");
     style.id = "save-widget-styles";
@@ -205,7 +239,7 @@
     if (!token) return false;
     let saves;
     try {
-      const res = await fetch(`${API_BASE}/users/me/saves`, { headers: hubAuthHeaders() });
+      const res = await fetchWithRetry(`${API_BASE}/users/me/saves`, { headers: hubAuthHeaders() });
       if (!res.ok) return false;
       saves = await res.json();
     } catch (err) {
@@ -312,14 +346,18 @@
     saveButton.textContent = "Saving...";
     try {
       const code = localStorage.getItem(STORAGE_KEY);
-      const res = await fetch(code ? `${API_BASE}/saves/${code}` : `${API_BASE}/saves`, {
-        method: code ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          code ? { save_data: state } : { game_id: GAME_ID, save_data: state },
-          undefinedToNull
-        ),
-      });
+      const res = await fetchWithRetry(
+        code ? `${API_BASE}/saves/${code}` : `${API_BASE}/saves`,
+        {
+          method: code ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            code ? { save_data: state } : { game_id: GAME_ID, save_data: state },
+            undefinedToNull
+          ),
+        },
+        () => (statusEl.textContent = "Saving... (retrying)")
+      );
       if (!res.ok) throw new Error(`status ${res.status}`);
       const body = await res.json();
       localStorage.setItem(STORAGE_KEY, body.save_code);
@@ -352,7 +390,9 @@
     loadButton.disabled = true;
     loadButton.textContent = "Loading...";
     try {
-      const res = await fetch(`${API_BASE}/saves/${code}`);
+      const res = await fetchWithRetry(`${API_BASE}/saves/${code}`, undefined, () => (
+        statusEl.textContent = "Loading... (retrying)"
+      ));
       if (!res.ok) throw new Error(`status ${res.status}`);
       const body = await res.json();
       loadState(window.pyodide.toPy(body.save_data));
@@ -375,10 +415,11 @@
     claimButton.disabled = true;
     claimButton.textContent = "Claiming...";
     try {
-      const res = await fetch(`${API_BASE}/saves/${code}/claim`, {
-        method: "POST",
-        headers: hubAuthHeaders(),
-      });
+      const res = await fetchWithRetry(
+        `${API_BASE}/saves/${code}/claim`,
+        { method: "POST", headers: hubAuthHeaders() },
+        () => (statusEl.textContent = "Claiming... (retrying)")
+      );
       if (!res.ok) throw new Error(`status ${res.status}`);
       statusEl.textContent = "Save claimed to your account!";
       claimButton.hidden = true;

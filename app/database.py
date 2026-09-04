@@ -21,7 +21,24 @@ if DATABASE_URL.startswith("sqlite"):
         DATABASE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool
     )
 else:
-    engine = create_engine(DATABASE_URL)
+    # pool_pre_ping is the actual fix for "save errors, then works a few
+    # clicks later": Neon's serverless Postgres suspends its compute after
+    # a few minutes of inactivity, which silently kills any connection
+    # SQLAlchemy's pool was holding onto. Without pre_ping, the *first*
+    # request after that idle window hands out the now-dead connection,
+    # the query on it raises immediately (psycopg2.OperationalError —
+    # "server closed the connection unexpectedly"), and that surfaces to
+    # the caller as a bare 500 with no retry anywhere. pool_pre_ping=True
+    # makes SQLAlchemy issue a cheap `SELECT 1` before handing out a pooled
+    # connection on every checkout, so a dead one gets silently replaced
+    # instead of used — the request that would have failed instead pays a
+    # small one-time reconnect cost and just succeeds. Confirmed this
+    # failure shape live against production: the first request after idle
+    # returned a 500 in under a second, then every next request succeeded
+    # (each slower than steady-state, consistent with Neon's own compute
+    # waking back up) — exactly what a user clicking Save repeatedly and
+    # having it "eventually work" would experience.
+    engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
