@@ -1,0 +1,431 @@
+/*
+ * Shared ambient background system — a genuinely themed scene per game,
+ * not one recolored pattern reused everywhere. Every game gets a
+ * different visual motif matching its own subject (ocean waves for Tide,
+ * a forest treeline for Canopy, rolling farmland for Herd, an aurora for
+ * Thaw, and so on) rather than the same starfield/dots with different
+ * colors — a literal starfield only makes sense where the subject is
+ * actually about space (SOL, Trade Empire — see shared/space-bg.css,
+ * untouched and unrelated to this file).
+ *
+ * Markup is identical across every theme, so no game's HTML needs to
+ * change to get a different look — only which `--<theme>` modifier class
+ * it uses:
+ *   <div class="ambient-bg ambient-bg--<theme>" aria-hidden="true">
+ *     <div class="ambient-bg-blobs"></div>
+ *     <div class="ambient-bg-accent"></div>
+ *   </div>
+ * Each theme gives completely different meaning to the same four
+ * layers — the base element's own background (the "sky"), its ::before/
+ * ::after pseudo-elements, and the two child divs — rather than sharing
+ * one generic look with swapped colors.
+ *
+ * Fixed and behind all content (z-index: -1) — nothing about a page's
+ * own layout/z-index needs to change to sit on top of it.
+ *
+ * Respects prefers-reduced-motion: every animation here is decorative,
+ * not informational, so motion fully stops rather than just slowing.
+ */
+
+.ambient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: var(--sky-gradient, #05060d);
+  pointer-events: none;
+}
+
+.ambient-bg::before,
+.ambient-bg::after {
+  content: "";
+  position: absolute;
+  inset: -10%;
+}
+
+.ambient-bg-blobs,
+.ambient-bg-accent {
+  position: absolute;
+  inset: 0;
+}
+
+@keyframes ambient-bg-drift-1 {
+  from { background-position: 0 0; }
+  to { background-position: -300px 300px; }
+}
+
+@keyframes ambient-bg-drift-2 {
+  from { background-position: 0 0; }
+  to { background-position: 420px -420px; }
+}
+
+@keyframes ambient-bg-blob-drift {
+  from { transform: translate3d(-3%, -2%, 0) scale(1); }
+  to { transform: translate3d(3%, 2%, 0) scale(1.08); }
+}
+
+@keyframes ambient-bg-wave-sway {
+  0%, 100% { transform: translateX(-4%) rotate(-1deg); }
+  50% { transform: translateX(4%) rotate(1deg); }
+}
+
+@keyframes ambient-bg-aurora-drift {
+  from { transform: translateX(-6%) scaleY(1); }
+  to { transform: translateX(6%) scaleY(1.15); }
+}
+
+@keyframes ambient-bg-snow-fall {
+  from { background-position: 0 0; }
+  to { background-position: 40px 400px; }
+}
+
+@keyframes ambient-bg-embers-rise {
+  from { background-position: 0 0; }
+  to { background-position: 0 -500px; }
+}
+
+@keyframes ambient-bg-orbit-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ambient-bg-node-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-bg::before,
+  .ambient-bg::after,
+  .ambient-bg-blobs,
+  .ambient-bg-accent {
+    animation: none !important;
+  }
+}
+
+/* ---------------------------------------------------------------------
+ * Theme variants
+ * --------------------------------------------------------------------- */
+
+/* Canopy — a forest: dappled light over a treeline silhouette. */
+.ambient-bg--forest {
+  --sky-gradient: linear-gradient(180deg, #0a1f14 0%, #123b22 55%, #0d2a18 100%);
+}
+.ambient-bg--forest::before,
+.ambient-bg--forest::after {
+  content: none;
+}
+.ambient-bg--forest .ambient-bg-blobs {
+  top: auto;
+  bottom: -2%;
+  left: -5%;
+  right: -5%;
+  height: 34%;
+  background: #0a1a10;
+  clip-path: polygon(
+    0% 100%, 0% 55%, 4% 70%, 9% 40%, 14% 65%, 19% 30%, 24% 60%, 29% 25%,
+    34% 55%, 39% 35%, 44% 65%, 49% 28%, 54% 58%, 59% 22%, 64% 52%, 69% 32%,
+    74% 62%, 79% 28%, 84% 58%, 89% 33%, 94% 55%, 100% 38%, 100% 100%
+  );
+}
+.ambient-bg--forest .ambient-bg-accent {
+  background-image:
+    radial-gradient(60px 60px at 15% 20%, rgba(255, 230, 150, 0.16), transparent 70%),
+    radial-gradient(50px 50px at 60% 35%, rgba(200, 255, 180, 0.14), transparent 70%),
+    radial-gradient(70px 70px at 80% 15%, rgba(255, 230, 150, 0.13), transparent 70%),
+    radial-gradient(40px 40px at 35% 55%, rgba(200, 255, 180, 0.11), transparent 70%),
+    radial-gradient(55px 55px at 90% 50%, rgba(255, 230, 150, 0.12), transparent 70%);
+  filter: blur(6px);
+  animation: ambient-bg-blob-drift 150s ease-in-out infinite alternate;
+}
+
+/* Grid — an electrical grid at night: circuit lines and pulsing nodes. */
+.ambient-bg--grid {
+  --sky-gradient: linear-gradient(180deg, #030910 0%, #06141c 100%);
+}
+.ambient-bg--grid::before {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(80, 200, 255, 0.08) 0 1px, transparent 1px 90px),
+    repeating-linear-gradient(90deg, rgba(80, 200, 255, 0.08) 0 1px, transparent 1px 90px);
+  animation: ambient-bg-drift-2 150s linear infinite;
+}
+.ambient-bg--grid::after {
+  background-image:
+    radial-gradient(3px 3px at 90px 90px, #7fe0ff, transparent 100%),
+    radial-gradient(3px 3px at 180px 270px, #a0ffe0, transparent 100%),
+    radial-gradient(3px 3px at 360px 180px, #7fe0ff, transparent 100%),
+    radial-gradient(3px 3px at 450px 450px, #a0ffe0, transparent 100%),
+    radial-gradient(3px 3px at 630px 90px, #7fe0ff, transparent 100%);
+  background-repeat: repeat;
+  background-size: 720px 720px;
+  animation: ambient-bg-node-pulse 4s ease-in-out infinite;
+}
+.ambient-bg--grid .ambient-bg-blobs {
+  background:
+    radial-gradient(40% 30% at 20% 25%, rgba(20, 120, 150, 0.65), transparent 70%),
+    radial-gradient(35% 28% at 80% 70%, rgba(30, 160, 140, 0.55), transparent 70%);
+  filter: blur(70px);
+  animation: ambient-bg-blob-drift 90s ease-in-out infinite alternate;
+}
+.ambient-bg--grid .ambient-bg-accent {
+  content: none;
+  display: none;
+}
+
+/* Tide — the coast: waves lapping in from the bottom of the screen. */
+.ambient-bg--ocean {
+  --sky-gradient: linear-gradient(180deg, #06222c 0%, #0a3a49 55%, #0e4a5c 100%);
+}
+.ambient-bg--ocean::before,
+.ambient-bg--ocean::after {
+  content: none;
+}
+.ambient-bg--ocean .ambient-bg-blobs {
+  left: -20%;
+  right: -20%;
+  bottom: -15%;
+  top: auto;
+  height: 220px;
+  background: linear-gradient(180deg, rgba(20, 110, 130, 0.85), rgba(8, 60, 75, 0.95));
+  border-radius: 45%;
+  animation: ambient-bg-wave-sway 9s ease-in-out infinite;
+}
+.ambient-bg--ocean .ambient-bg-accent {
+  left: -25%;
+  right: -25%;
+  bottom: -22%;
+  top: auto;
+  height: 260px;
+  background: linear-gradient(180deg, rgba(180, 225, 235, 0.35), rgba(15, 90, 110, 0.8));
+  border-radius: 42%;
+  animation: ambient-bg-wave-sway 7s ease-in-out infinite reverse;
+}
+
+/* Aftermath — weathering a storm: drifting cloud cover and rising embers. */
+.ambient-bg--ember {
+  --sky-gradient: linear-gradient(180deg, #14090a 0%, #2a1512 60%, #170a08 100%);
+}
+.ambient-bg--ember::before {
+  background:
+    radial-gradient(30% 18% at 20% 20%, rgba(60, 50, 55, 0.6), transparent 70%),
+    radial-gradient(35% 20% at 70% 15%, rgba(70, 55, 50, 0.55), transparent 70%),
+    radial-gradient(28% 16% at 45% 30%, rgba(50, 45, 50, 0.5), transparent 70%);
+  filter: blur(40px);
+  animation: ambient-bg-blob-drift 100s ease-in-out infinite alternate;
+}
+.ambient-bg--ember::after {
+  content: none;
+}
+.ambient-bg--ember .ambient-bg-blobs {
+  background:
+    radial-gradient(38% 30% at 75% 80%, rgba(140, 60, 20, 0.5), transparent 70%),
+    radial-gradient(30% 25% at 15% 85%, rgba(160, 80, 20, 0.4), transparent 70%);
+  filter: blur(70px);
+  animation: ambient-bg-blob-drift 70s ease-in-out infinite alternate-reverse;
+}
+.ambient-bg--ember .ambient-bg-accent {
+  background-image:
+    radial-gradient(2px 2px at 10% 90%, #ffb366, transparent 100%),
+    radial-gradient(2px 2px at 30% 95%, #ff8c42, transparent 100%),
+    radial-gradient(1.5px 1.5px at 55% 85%, #ffb366, transparent 100%),
+    radial-gradient(2px 2px at 75% 92%, #ff8c42, transparent 100%),
+    radial-gradient(1.5px 1.5px at 90% 88%, #ffb366, transparent 100%);
+  background-repeat: repeat;
+  background-size: 300px 500px;
+  animation: ambient-bg-embers-rise 14s linear infinite;
+}
+
+/* Herd — farmland: rolling hills under a low sun, drifting pollen. */
+.ambient-bg--pastoral {
+  --sky-gradient: linear-gradient(180deg, #2a3a5c 0%, #7a5a3a 45%, #c99a4a 70%, #8a6a2a 100%);
+}
+.ambient-bg--pastoral::before,
+.ambient-bg--pastoral::after {
+  content: none;
+}
+.ambient-bg--pastoral .ambient-bg-blobs {
+  left: -20%;
+  right: -20%;
+  bottom: -20%;
+  top: auto;
+  height: 260px;
+  background: linear-gradient(180deg, #4a6b2a, #2f4a1c);
+  border-radius: 48%;
+}
+.ambient-bg--pastoral .ambient-bg-accent {
+  background-image:
+    radial-gradient(120px 120px at 75% 20%, rgba(255, 220, 150, 0.35), transparent 70%),
+    radial-gradient(2px 2px at 20% 40%, #fff3c4, transparent 100%),
+    radial-gradient(2px 2px at 50% 60%, #fff3c4, transparent 100%),
+    radial-gradient(1.5px 1.5px at 70% 35%, #ffe9b0, transparent 100%),
+    radial-gradient(2px 2px at 85% 55%, #fff3c4, transparent 100%),
+    radial-gradient(1.5px 1.5px at 35% 70%, #ffe9b0, transparent 100%);
+  background-repeat: repeat;
+  background-size: 400px 400px;
+  animation: ambient-bg-drift-1 170s linear infinite;
+}
+
+/* Thaw — melting ice: an aurora over a pale icy horizon, falling snow. */
+.ambient-bg--arctic {
+  --sky-gradient: linear-gradient(180deg, #030a12 0%, #08161f 100%);
+}
+.ambient-bg--arctic::before {
+  inset: -10% -30%;
+  background:
+    radial-gradient(60% 20% at 30% 20%, rgba(80, 220, 180, 0.32), transparent 70%),
+    radial-gradient(55% 18% at 65% 12%, rgba(120, 160, 255, 0.28), transparent 70%),
+    radial-gradient(50% 16% at 45% 25%, rgba(160, 100, 220, 0.22), transparent 70%);
+  filter: blur(30px);
+  animation: ambient-bg-aurora-drift 50s ease-in-out infinite alternate;
+}
+.ambient-bg--arctic::after {
+  content: none;
+}
+.ambient-bg--arctic .ambient-bg-blobs {
+  left: -20%;
+  right: -20%;
+  bottom: -25%;
+  top: auto;
+  height: 220px;
+  background: linear-gradient(180deg, #cfeeff, #7fb8cc);
+  border-radius: 46%;
+  opacity: 0.85;
+}
+.ambient-bg--arctic .ambient-bg-accent {
+  background-image:
+    radial-gradient(2px 2px at 10% 10%, #fff, transparent 100%),
+    radial-gradient(1.5px 1.5px at 30% 40%, #fff, transparent 100%),
+    radial-gradient(2px 2px at 55% 20%, #fff, transparent 100%),
+    radial-gradient(1.5px 1.5px at 75% 55%, #fff, transparent 100%),
+    radial-gradient(2px 2px at 90% 30%, #fff, transparent 100%),
+    radial-gradient(1.5px 1.5px at 20% 70%, #fff, transparent 100%);
+  background-repeat: repeat;
+  background-size: 300px 400px;
+  animation: ambient-bg-snow-fall 18s linear infinite;
+}
+
+/* Loop — a closed loop: a slow-turning orbit ring instead of a straight line. */
+.ambient-bg--circuit {
+  --sky-gradient: linear-gradient(180deg, #041210 0%, #082018 100%);
+}
+.ambient-bg--circuit::before,
+.ambient-bg--circuit::after {
+  content: none;
+}
+.ambient-bg--circuit .ambient-bg-blobs {
+  inset: auto;
+  width: 140vmax;
+  height: 140vmax;
+  left: 50%;
+  top: 50%;
+  margin-left: -70vmax;
+  margin-top: -70vmax;
+  border-radius: 50%;
+  border: 2px dashed rgba(90, 220, 160, 0.16);
+  background:
+    radial-gradient(35% 25% at 25% 30%, rgba(30, 140, 100, 0.35), transparent 70%),
+    radial-gradient(30% 22% at 75% 65%, rgba(50, 180, 120, 0.3), transparent 70%);
+  animation: ambient-bg-orbit-spin 200s linear infinite;
+}
+.ambient-bg--circuit .ambient-bg-accent {
+  background-image:
+    radial-gradient(2px 2px at 20% 30%, #bfffe0, transparent 100%),
+    radial-gradient(2px 2px at 60% 60%, #bfffe0, transparent 100%),
+    radial-gradient(1.5px 1.5px at 80% 20%, #eafff5, transparent 100%),
+    radial-gradient(2px 2px at 40% 80%, #bfffe0, transparent 100%);
+  background-repeat: repeat;
+  background-size: 340px 340px;
+  animation: ambient-bg-drift-1 150s linear infinite reverse;
+}
+
+/* Drift — a horizon at dusk, small silhouettes moving across it. */
+.ambient-bg--dusk {
+  --sky-gradient: linear-gradient(180deg, #2a1c3a 0%, #6e3a4a 45%, #b5623a 70%, #3a2a4a 100%);
+}
+.ambient-bg--dusk::before,
+.ambient-bg--dusk::after {
+  content: none;
+}
+.ambient-bg--dusk .ambient-bg-blobs {
+  left: -20%;
+  right: -20%;
+  bottom: -30%;
+  top: auto;
+  height: 240px;
+  background: linear-gradient(180deg, #241a2c, #140d18);
+  border-radius: 46%;
+}
+.ambient-bg--dusk .ambient-bg-accent {
+  background-image:
+    radial-gradient(3px 1.5px at 20% 30%, rgba(20, 15, 25, 0.8), transparent 100%),
+    radial-gradient(3px 1.5px at 25% 32%, rgba(20, 15, 25, 0.8), transparent 100%),
+    radial-gradient(3px 1.5px at 55% 20%, rgba(20, 15, 25, 0.7), transparent 100%),
+    radial-gradient(3px 1.5px at 60% 22%, rgba(20, 15, 25, 0.7), transparent 100%),
+    radial-gradient(3px 1.5px at 80% 35%, rgba(20, 15, 25, 0.75), transparent 100%);
+  background-repeat: repeat;
+  background-size: 500px 300px;
+  animation: ambient-bg-drift-2 160s linear infinite;
+}
+
+/* Continuum — a city's skyline at dawn. */
+.ambient-bg--dawn {
+  --sky-gradient: linear-gradient(180deg, #2a3a6e 0%, #8c5a2a 55%, #ffe0a0 75%, #6e3a2a 100%);
+}
+.ambient-bg--dawn::before,
+.ambient-bg--dawn::after {
+  content: none;
+}
+.ambient-bg--dawn .ambient-bg-blobs {
+  top: auto;
+  bottom: 0;
+  height: 34%;
+  background:
+    linear-gradient(#0d0a10, #0d0a10) 2% 40% / 6% 60% no-repeat,
+    linear-gradient(#0d0a10, #0d0a10) 10% 20% / 8% 80% no-repeat,
+    linear-gradient(#0d0a10, #0d0a10) 20% 55% / 5% 45% no-repeat,
+    linear-gradient(#0d0a10, #0d0a10) 28% 10% / 9% 90% no-repeat,
+    linear-gradient(#0d0a10, #0d0a10) 40% 35% / 7% 65% no-repeat,
+    linear-gradient(#0d0a10, #0d0a10) 50% 5% / 10% 95% no-repeat,
+    linear-gradient(#0d0a10, #0d0a10) 62% 45% / 6% 55% no-repeat,
+    linear-gradient(#0d0a10, #0d0a10) 72% 15% / 8% 85% no-repeat,
+    linear-gradient(#0d0a10, #0d0a10) 84% 30% / 7% 70% no-repeat,
+    linear-gradient(#0d0a10, #0d0a10) 94% 50% / 5% 50% no-repeat;
+}
+.ambient-bg--dawn .ambient-bg-accent {
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 78%, #ffe9b0, transparent 100%),
+    radial-gradient(1.5px 1.5px at 30% 85%, #ffe9b0, transparent 100%),
+    radial-gradient(1.5px 1.5px at 52% 82%, #ffe9b0, transparent 100%),
+    radial-gradient(1.5px 1.5px at 74% 80%, #ffe9b0, transparent 100%),
+    radial-gradient(1.5px 1.5px at 88% 84%, #ffe9b0, transparent 100%);
+  animation: ambient-bg-node-pulse 6s ease-in-out infinite;
+}
+
+/* Le Champ de Mots — a French countryside field. */
+.ambient-bg--champetre {
+  --sky-gradient: linear-gradient(180deg, #bcd8f0 0%, #f0d8b0 55%, #f5c8a0 100%);
+}
+.ambient-bg--champetre::before,
+.ambient-bg--champetre::after {
+  content: none;
+}
+.ambient-bg--champetre .ambient-bg-blobs {
+  left: -20%;
+  right: -20%;
+  bottom: -22%;
+  top: auto;
+  height: 240px;
+  background: linear-gradient(180deg, #6b8f3a, #3d5c26);
+  border-radius: 48%;
+}
+.ambient-bg--champetre .ambient-bg-accent {
+  background-image:
+    radial-gradient(2px 2px at 15% 25%, #fff3c4, transparent 100%),
+    radial-gradient(2px 2px at 45% 45%, #ffe0e8, transparent 100%),
+    radial-gradient(1.5px 1.5px at 65% 20%, #fff3c4, transparent 100%),
+    radial-gradient(2px 2px at 80% 50%, #ffe0e8, transparent 100%),
+    radial-gradient(1.5px 1.5px at 30% 65%, #fff3c4, transparent 100%);
+  background-repeat: repeat;
+  background-size: 380px 380px;
+  animation: ambient-bg-drift-1 170s linear infinite;
+}
