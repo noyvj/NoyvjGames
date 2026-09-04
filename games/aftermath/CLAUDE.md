@@ -125,6 +125,35 @@ explicit U+FE0F variation selector to force emoji rendering while the other
 four entries didn't; added it consistently across all five so rendering
 doesn't vary by platform/font depending on which event icon is shown.
 
+## Visual pass — space theme (site-wide design system rollout)
+
+Adopted the shared space-themed visual language already shipped to the hub
+and SOL: `shared/space-bg.css`'s starfield+nebula background
+(`<div class="space-bg">` markup right after `<body>`), a glass-panel
+treatment (translucent gradient + `backdrop-filter: blur()` + soft violet
+border + drop shadow) on `#game` and every `.section`/`.context-blurb`,
+gradient buttons with a glossy top highlight and a `brightness(1.1)` hover
+state, a glowing gradient meter fill, and a gradient-glow `<h1>` title
+matching the hub/SOL treatment. Purely a CSS/HTML property-value change —
+no selector was renamed and no `game.py` DOM code touched.
+
+**Deliberately left alone:** the `event-category--weather` (blue) and
+`event-category--non-weather` (amber) hues, and the mitigation meter's
+green, are exactly the colors a player already relies on to tell things
+apart at a glance — only a matching `text-shadow`/`box-shadow` glow was
+added around each, the hue itself is untouched. No "no animation" test or
+CLAUDE.md constraint exists for this game (checked `tests/` and the shared
+`games/climate-quartet-plan.md` — the quartet's standing visual-polish
+requirement actually asks for eased state transitions, not against them),
+so the existing `transition: filter`/`width` rules were kept and a couple
+more added for button hover states; nothing in `shared/space-bg.css`'s own
+drift animation was touched either way. Full pytest suite (116 tests)
+stayed green throughout; verified live via a local server — starfield/glass
+panels render, Invest in Resilience / Face Next Event still update
+resources/resilience/event progress/mitigation bar correctly, and the only
+console errors present are the pre-existing site-wide ServiceWorker
+registration quirk also reproducible on the unmodified hub page.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
