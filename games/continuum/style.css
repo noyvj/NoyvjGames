@@ -3,7 +3,20 @@
    shell, meters, secondary/primary buttons) but on its own warmer palette,
    since this one is meant to read as the flagship rather than one of the
    climate quartet. Era-specific styling is a Phase 4 question; a single
-   consistent visual language across all seven eras is the current plan. */
+   consistent visual language across all seven eras is the current plan.
+
+   Visual pass (space theme, see root/SOL): the shared starfield/nebula
+   (shared/space-bg.css) now sits behind the page, so body/container
+   backgrounds went transparent and each .section became its own glass
+   panel (translucent + blurred + violet-tinted border) rather than one
+   solid card, since this game already reads as several distinct panels
+   (status, sustainability, work, buildings, research). The warm
+   amber/bronze accent is kept throughout — that hue is this game's own
+   identity, not something the space theme should flatten into SOL's
+   blue. Every color that encodes state (land health, sustainability
+   components, the weakest-component call-out, warnings, locked-node
+   reasons) is untouched; only chrome (panels, borders, buttons, meter
+   glow) changed. */
 
 * {
   box-sizing: border-box;
@@ -12,7 +25,7 @@
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #12100e;
+  background: transparent;
   color: #eee7dd;
   display: flex;
   justify-content: center;
@@ -28,6 +41,12 @@ h1 {
   margin: 0 0 0.25rem;
   font-size: 1.75rem;
   letter-spacing: 0.02em;
+  display: inline-block;
+  background: linear-gradient(120deg, #eee7dd 20%, #e8b876 55%, #eee7dd 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 32px rgba(216, 164, 92, 0.3);
 }
 
 .tagline {
@@ -40,18 +59,21 @@ h1 {
   margin: 0 0 1.25rem;
   padding: 0.6rem 0.75rem;
   border-left: 2px solid #a8763e;
-  background: #1b1815;
+  background: linear-gradient(165deg, rgba(27, 24, 21, 0.7), rgba(16, 14, 12, 0.75));
   border-radius: 0 6px 6px 0;
   font-size: 0.8rem;
   opacity: 0.8;
 }
 
 .section {
-  background: #1b1815;
-  border: 1px solid #2e2822;
-  border-radius: 10px;
+  background: linear-gradient(165deg, rgba(30, 26, 22, 0.78), rgba(17, 15, 13, 0.85));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 18px;
   padding: 1rem;
   margin-bottom: 1rem;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .section-heading {
@@ -96,9 +118,10 @@ h1 {
   width: 100%;
   height: 8px;
   border-radius: 4px;
-  background: #241f1a;
+  background: rgba(5, 6, 13, 0.55);
   overflow: hidden;
   margin: 0.2rem 0 0.6rem;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .meter-fill {
@@ -109,10 +132,12 @@ h1 {
 
 .meter-fill--land {
   background: #6f9c5a;
+  box-shadow: 0 0 10px rgba(111, 156, 90, 0.6);
 }
 
 .meter-fill--score {
   background: #d6a45c;
+  box-shadow: 0 0 10px rgba(214, 164, 92, 0.6);
 }
 
 .component-grid {
@@ -140,7 +165,7 @@ h1 {
   flex-direction: column;
   gap: 0.3rem;
   padding: 0.6rem 0;
-  border-bottom: 1px solid #2e2822;
+  border-bottom: 1px solid rgba(140, 160, 255, 0.14);
 }
 
 .row:last-child {
@@ -209,13 +234,18 @@ h1 {
 
 button.secondary {
   padding: 0.5rem 0.6rem;
-  border: 1px solid #443b31;
-  border-radius: 8px;
-  background: #262019;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #3c3226, #211b15);
   color: #eee7dd;
   font-size: 0.8rem;
   cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
   transition: filter 120ms ease;
+}
+
+button.secondary:hover:not(:disabled) {
+  filter: brightness(1.1);
 }
 
 button.secondary:active:not(:disabled) {
@@ -231,13 +261,18 @@ button.primary {
   width: 100%;
   padding: 0.8rem;
   border: none;
-  border-radius: 8px;
-  background: #a8763e;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #c99354, #8a5f2e);
   color: #16130f;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 4px 16px rgba(168, 118, 62, 0.3);
   transition: filter 120ms ease;
+}
+
+button.primary:hover:not(:disabled) {
+  filter: brightness(1.1);
 }
 
 button.primary:active {
