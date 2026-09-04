@@ -122,6 +122,36 @@ style.css), so the Python constant was leftover and unused.
 No other issues found worth changing; economy/scoring numbers were left
 untouched per this pass's scope.
 
+## Visual Pass — Space Theme (implemented)
+
+Site-wide visual overhaul pass (flat/blocky panels → depth + space theme),
+applied here per the shared design system already shipped for the hub and
+SOL (`shared/space-bg.css`, SOL's `index.html`/`style.css` as reference).
+Adopted the shared starfield/nebula background, gave `#game` and every
+`.section` panel (info page, stats, action panel, legend, feedback prompt)
+the translucent glass-panel treatment (gradient background, backdrop
+blur, violet-tinted border, soft shadow), restyled `button.secondary`
+with a two-stop gradient + glossy top highlight + a new brighten-on-hover
+state, gave the `<h1>` a gradient-glow text treatment (green-tinted to
+match Canopy's forest theme rather than reusing SOL's blue), and switched
+flat gray borders/dividers (`.plot-tile`, `.legend-swatch`) to the
+violet-tinted `rgba(140,160,255,...)` convention. `.stakeholder-panel`
+kept its amber-accent identity but reskinned to the same glass treatment.
+
+**Deliberately left untouched:** `.plot-preserved`/`.plot-bare`/
+`.plot-replanting`/`.plot-recovered`'s exact hex values (state-identity
+colors, also reused as the legend-key swatches), the wildlife icon and
+`plot-sparkle`/`wildlife-flutter` keyframes (existing decorative motion —
+no no-motion test or design-decision constraint exists for Canopy, unlike
+some other quartet games), the `context-blurb`'s green border-left
+accent, and every color literal inside `game.py` (`BARE_COLOR`,
+`REPLANTING_START/END_COLOR`, `GROWING_START/END_COLOR`) — those drive
+the actual per-plot inline `backgroundColor`, which is exactly the
+state-meaning color this pass was told not to touch. No CSS class/id
+selector was renamed. Canopy has no meter/progress-bar element, so that
+part of the shared pass didn't apply here. Full `tests/` suite (131
+tests) stayed green throughout.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
