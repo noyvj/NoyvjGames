@@ -5,8 +5,6 @@ integration (SOL is) — this just adopts the same contract."""
 
 import json
 
-import pytest
-
 
 def test_get_state_includes_every_expected_key(game_env):
     data = game_env.module.get_state()
@@ -171,18 +169,77 @@ def test_load_state_re_renders_the_ui(game_env):
     assert game_env.elements["income-display"].innerText == income_text_after_snapshot
 
 
-def test_load_state_on_a_malformed_dict_raises_rather_than_corrupting_state(game_env):
-    """PR #1 (sean-hart) review finding: load_state() does direct key
-    access (data["plots"], data["selected_index"], etc.) with no defensive
-    handling, and no test exercised that against a malformed/partial/empty
-    dict — leaving open whether raising is the intended contract or an
-    oversight. It's intentional: a real save handed to load_state() always
-    came from this same site's own get_state() (via the save widget's
-    fetch/PUT round trip), which always produces the complete shape
-    asserted in test_get_state_includes_every_expected_key above — a
-    genuinely malformed payload here means something upstream (a
-    hand-edited save, an incompatible schema) already went wrong, and a
-    loud KeyError is preferable to silently starting the farm in some
-    half-restored state. Pinned here so this stays a deliberate choice."""
-    with pytest.raises(KeyError):
-        game_env.module.load_state({})
+def test_load_state_on_an_empty_dict_does_not_raise_and_leaves_state_untouched(game_env):
+    """Bug sweep (2026-09-06): a previous version of this test pinned
+    load_state({}) as *intended* to raise KeyError, on the theory that a
+    real save always comes from this same site's own get_state() so a
+    malformed payload can only mean hand-edited garbage. That reasoning
+    ignores forward-compatibility across this game's own version history —
+    every field below (`biodiversity`, `pending_stakeholder_request`,
+    `info_page_open`, ...) was added in a later milestone/pass than the one
+    before it, so a save written before that pass is a *legitimate*, no-
+    editing-involved dict missing that key, not a corrupted one. This exact
+    bug class (bare `data["key"]` / wholesale dict-replace on load, so an
+    older-format save crashes the next render/tick with a KeyError) has
+    recurred across nearly every game in this hub — see BCM114-DEV-LOG.md's
+    2026-09-02 entries. Fixed to merge key-by-key with a fallback to the
+    current live value, so a missing key just means "don't touch this
+    field" instead of crashing."""
+    before = game_env.module.get_state()
+    result = game_env.module.load_state({})
+    assert result is True
+    assert game_env.module.get_state() == before
+
+
+def test_load_state_survives_a_plot_dict_missing_a_field_added_in_a_later_pass(game_env):
+    """Simulates loading a save written before `biodiversity` existed on a
+    plot (added in Iteration Pass 2) -- the other fields should still
+    restore normally, and the missing field should fall back to the plot's
+    current live value instead of raising."""
+    game_env.select(0)
+    game_env.clear()  # PRESERVED -> BARE
+    game_env.replant()  # BARE -> REPLANTING
+    game_env.tick(3)
+    snapshot = game_env.module.get_state()
+    old_format_plots = [dict(p) for p in snapshot["plots"]]
+    del old_format_plots[0]["biodiversity"]
+    old_format_snapshot = {**snapshot, "plots": old_format_plots}
+
+    # Diverge every plot's live biodiversity before loading the old save.
+    for plot in game_env.module.plots:
+        plot.biodiversity = 999.0
+
+    result = game_env.module.load_state(old_format_snapshot)
+    assert result is True
+    # Plot 0's biodiversity wasn't in the old-format save, so it's left at
+    # whatever it was live (not crashed, not silently reset to 0).
+    assert game_env.plot(0).biodiversity == 999.0
+    # Every other tracked field on plot 0, and every field on the other
+    # plots (whose dicts *did* carry biodiversity), still restores.
+    assert game_env.plot(0).state == game_env.module.REPLANTING
+    assert game_env.plot(0).replant_ticks_remaining == old_format_plots[0]["replant_ticks_remaining"]
+    assert game_env.plot(1).biodiversity == old_format_plots[1]["biodiversity"]
+
+
+def test_load_state_survives_a_top_level_key_missing_from_an_older_save(game_env):
+    """Simulates a save written before `info_page_open` / stakeholder-
+    tension state existed at the top level at all -- missing top-level keys
+    must fall back to the current live value rather than raising."""
+    game_env.module.info_page_open = True
+    game_env.module.community_relations = 77
+    snapshot = game_env.module.get_state()
+    old_format_snapshot = dict(snapshot)
+    del old_format_snapshot["info_page_open"]
+    del old_format_snapshot["pending_stakeholder_request"]
+
+    game_env.module.info_page_open = False  # diverge before loading
+    game_env.module.community_relations = 12
+
+    result = game_env.module.load_state(old_format_snapshot)
+    assert result is True
+    # community_relations *was* in the save, so it restores normally.
+    assert game_env.module.community_relations == 77
+    # info_page_open and pending_stakeholder_request were missing from the
+    # save -- left at their current live value instead of crashing.
+    assert game_env.module.info_page_open is False
+    assert game_env.module.pending_stakeholder_request is None
