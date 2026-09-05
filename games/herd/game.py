@@ -1,9 +1,10 @@
 """Herd — Industrial Agriculture & Methane Game.
 
-Runs in-browser via Pyodide. Milestone 1: the core farm loop — herd
-growth, income, and round progression. The methane meter (coupled to
-herd size), decoupling investments, and soft consequences land in
-later milestones.
+Runs in-browser via Pyodide. The core farm loop (herd growth, income,
+and round progression), the methane meter (coupled to herd size by
+default), the decoupling investments that reduce that coupling, and the
+soft market/regulatory consequence system are all implemented below --
+all 7 milestones are complete (see CLAUDE.md's milestone table).
 """
 
 import info_page
@@ -334,10 +335,20 @@ def get_state():
 
 
 def load_state(data):
-    farm.round_number = data["round_number"]
-    farm.funds = data["funds"]
-    farm.herd_size = data["herd_size"]
-    farm.methane = data["methane"]
+    if not isinstance(data, dict):
+        return False
+    # Every top-level field uses a .get() fallback (to the farm's current
+    # live value) rather than bare data["key"] indexing -- a save missing
+    # any single field (an older save predating that field, e.g. one from
+    # before the Pass 2 plant-based pivot added plant_pivot_investment to
+    # the state dict, or a hand-edited/corrupted payload) must not crash
+    # load_state() outright and abort every field after the missing one,
+    # the same bare-indexing bug already fixed in Tide's load_state() --
+    # see BCM114-DEV-LOG.md 2026-09-02.
+    farm.round_number = data.get("round_number", farm.round_number)
+    farm.funds = data.get("funds", farm.funds)
+    farm.herd_size = data.get("herd_size", farm.herd_size)
+    farm.methane = data.get("methane", farm.methane)
     # Merge key-by-key rather than replacing the dict outright: a save
     # missing a measure (an older save format from before that measure
     # existed, or a hand-edited/corrupted payload) must not wipe that
@@ -346,8 +357,10 @@ def load_state(data):
     # for every measure in DECOUPLING_MEASURES unconditionally, so a
     # missing key would crash the game on the very next render/round.
     farm.decoupling_investment = {m: 0 for m in DECOUPLING_MEASURES}
-    farm.decoupling_investment.update(data["decoupling_investment"])
-    farm.plant_pivot_investment = data["plant_pivot_investment"]
+    saved_decoupling_investment = data.get("decoupling_investment")
+    if isinstance(saved_decoupling_investment, dict):
+        farm.decoupling_investment.update(saved_decoupling_investment)
+    farm.plant_pivot_investment = data.get("plant_pivot_investment", farm.plant_pivot_investment)
     render()
     return True
 
