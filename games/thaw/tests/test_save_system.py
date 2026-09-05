@@ -221,6 +221,70 @@ def test_load_state_re_renders_the_ui(game_env):
     assert game_env.elements["output-count"].innerText == "1"
 
 
+def test_load_state_with_a_missing_scalar_field_does_not_crash(game_env):
+    """Every field in a region's save dict except `capacity` was read with
+    a bare data["..."] lookup — a save missing any one of them (an older
+    build's format, a hand-edited/truncated payload, or a future field not
+    yet known to this build) raised a KeyError instead of loading what it
+    could. This mirrors the identical bug already fixed in Tide's
+    load_state() (see that file's REVIEW(patterns) comment, which flags
+    Thaw as one of the games still doing bare data["key"] indexing)."""
+    module = game_env.module
+    module.region.invest("preserve")
+    module.region.invest("monitor")
+    snapshot = module.get_state()
+    del snapshot["region"]["just_invested_intervention"]
+
+    result = module.load_state(snapshot)
+
+    assert result is True
+    # Must not crash on the very next call that touches the field.
+    module.region.invest("preserve")
+    assert module.region.capacity["preserve"] == 2
+
+
+def test_load_state_with_a_missing_secondary_region_key_does_not_crash(game_env):
+    """A save made before Iteration Pass 2 added Region B/C would have no
+    "region_b"/"region_c" keys at all -- loading it into a current build
+    must not crash, it should just leave those regions at their current
+    live state."""
+    module = game_env.module
+    module.region_b.invest("output")
+    snapshot = module.get_state()
+    del snapshot["region_b"]
+    del snapshot["region_c"]
+
+    result = module.load_state(snapshot)
+
+    assert result is True
+    # Region B/C were left alone rather than crashing partway through.
+    assert module.region_b.capacity["output"] == 1
+
+
+def test_load_state_with_a_missing_temperature_history_does_not_crash(game_env):
+    module = game_env.module
+    game_env.advance_round()
+    game_env.advance_round()
+    snapshot = module.get_state()
+    del snapshot["region"]["temperature_history"]
+
+    result = module.load_state(snapshot)
+
+    assert result is True
+    assert isinstance(module.region.temperature_history, list)
+
+
+def test_load_state_rejects_non_dict_payload_without_raising(game_env):
+    module = game_env.module
+    game_env.invest("output")
+    live_funds_before = module.region.funds
+
+    result = module.load_state("not a dict")
+
+    assert result is False
+    assert module.region.funds == live_funds_before
+
+
 def test_load_state_is_the_exact_inverse_of_get_state(game_env):
     module = game_env.module
     game_env.invest("output")

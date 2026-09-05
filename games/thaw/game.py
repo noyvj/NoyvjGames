@@ -422,27 +422,49 @@ def _apply_region_state(r, data):
     """The exact inverse of _region_state_dict() — restores one
     RegionState's fields in place from a previously-saved dict.
 
+    Every field is read with `.get(key, <current live value>)` rather than
+    a bare `data["key"]` — a save may be a hand-edited/truncated payload,
+    or simply come from a different build of this game with a different
+    field set (an older save from before some field existed, or a newer
+    one this build doesn't know about yet). A bare index raised a
+    KeyError partway through these assignments, leaving some fields
+    already overwritten from the save and others still at their pre-load
+    values — worse than either a clean load or leaving the field alone.
+    Falling back to the field's current value keeps a partial/malformed
+    save loading everything it safely can instead of crashing outright.
+
     `capacity` is merged into the live dict key-by-key rather than
-    replaced wholesale: a save whose capacity is missing a category (an
-    older save format from before that category existed, or a hand-edited/
-    corrupted payload) must not wipe that category's key out of the live
-    dict entirely — invest(), feedback_dampening_fraction() and render()
-    all do unconditional capacity["monitor"]-style key access, so a
-    missing key would crash the game on the very next call, including the
-    re-render load_state() itself triggers. Same fix shape as SOL's
-    planet_state and Continuum's resources/allocation/buildings dicts."""
-    r.round_number = data["round_number"]
-    r.funds = data["funds"]
-    saved_capacity = data.get("capacity") or {}
-    for category in CATEGORIES:
-        if category in saved_capacity:
-            r.capacity[category] = saved_capacity[category]
-    r.temperature = data["temperature"]
-    r.melt_started_round = data["melt_started_round"]
-    r.just_started_melting = data["just_started_melting"]
-    r.counterfactual_temperature = data["counterfactual_temperature"]
-    r.temperature_history = list(data["temperature_history"])
-    r.just_invested_intervention = data["just_invested_intervention"]
+    replaced wholesale, same reasoning as above but at the nested-dict
+    level: a save whose capacity is missing a category (an older save
+    format from before that category existed, or a hand-edited/corrupted
+    payload) must not wipe that category's key out of the live dict
+    entirely — invest(), feedback_dampening_fraction() and render() all do
+    unconditional capacity["monitor"]-style key access, so a missing key
+    would crash the game on the very next call, including the re-render
+    load_state() itself triggers. Same fix shape as SOL's planet_state and
+    Continuum's resources/allocation/buildings dicts. Also mirrors Tide's
+    load_state(), which already used this exact `.get()` pattern
+    throughout (see that file's REVIEW(patterns) comment flagging Thaw,
+    among others, as still doing bare data["key"] indexing)."""
+    r.round_number = data.get("round_number", r.round_number)
+    r.funds = data.get("funds", r.funds)
+    saved_capacity = data.get("capacity")
+    if isinstance(saved_capacity, dict):
+        for category in CATEGORIES:
+            if category in saved_capacity:
+                r.capacity[category] = saved_capacity[category]
+    r.temperature = data.get("temperature", r.temperature)
+    r.melt_started_round = data.get("melt_started_round", r.melt_started_round)
+    r.just_started_melting = data.get("just_started_melting", r.just_started_melting)
+    r.counterfactual_temperature = data.get(
+        "counterfactual_temperature", r.counterfactual_temperature
+    )
+    saved_history = data.get("temperature_history")
+    if isinstance(saved_history, list):
+        r.temperature_history = list(saved_history)
+    r.just_invested_intervention = data.get(
+        "just_invested_intervention", r.just_invested_intervention
+    )
 
 
 def get_state():
@@ -462,12 +484,26 @@ def load_state(data):
     """Take the dict from get_state() (possibly from a previous session)
     and restore the game to that point, across all three regions, then
     re-render so the UI reflects the loaded state immediately. The exact
-    inverse of get_state()."""
+    inverse of get_state().
+
+    A non-dict payload is rejected outright rather than raising. A dict
+    missing "region_b"/"region_c" entirely — e.g. a save made before
+    Iteration Pass 2 added those regions — leaves that region's live
+    state untouched instead of crashing, same reasoning as every other
+    per-field fallback in _apply_region_state()."""
     global info_page_open
-    _apply_region_state(region, data["region"])
-    _apply_region_state(region_b, data["region_b"])
-    _apply_region_state(region_c, data["region_c"])
-    info_page_open = data["info_page_open"]
+    if not isinstance(data, dict):
+        return False
+    region_data = data.get("region")
+    if isinstance(region_data, dict):
+        _apply_region_state(region, region_data)
+    region_b_data = data.get("region_b")
+    if isinstance(region_b_data, dict):
+        _apply_region_state(region_b, region_b_data)
+    region_c_data = data.get("region_c")
+    if isinstance(region_c_data, dict):
+        _apply_region_state(region_c, region_c_data)
+    info_page_open = data.get("info_page_open", info_page_open)
     render()
     return True
 
