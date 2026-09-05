@@ -269,3 +269,65 @@ button.primary:disabled {
   opacity: 1;
   text-decoration: underline;
 }
+
+/* Icon labels — pure CSS, no markup/game.py change, same technique as
+   SOL's reference pass (see games/sol/style.css, "Icon labels — pure
+   CSS"). EVENT_ICON already makes the event-type rows (next-event/
+   last-event-display) visual, so those are deliberately left untouched
+   here — this only covers the plain numeric/status text that had no
+   icon at all: the core run stats, the skill-tree currency readout, the
+   end-of-run score line, the cross-run comparison line, and the
+   legacy/history flavor text (which is also where "damage taken" shows
+   up in prose, via legacy_message()'s "damage becomes part of what the
+   next one is built to withstand" line). */
+#resources-display::before {
+  content: "📦 ";
+}
+
+#resilience-display::before {
+  content: "🛡️ ";
+}
+
+#growth-display::before {
+  content: "📈 ";
+}
+
+#legacy-display::before {
+  content: "📜 ";
+}
+
+#knowledge-points-display::before {
+  content: "🧠 ";
+}
+
+#progress-comparison-display::before {
+  content: "📊 ";
+}
+
+/* :not(:empty) guard: run-summary-display is set to innerText = "" by
+   game.py mid-run (only populated once a run completes), so an
+   unconditional ::before would render a floating icon with no text
+   next to it while a run is still in progress. */
+#run-summary-display:not(:empty)::before {
+  content: "🏆 ";
+}
+
+/* Light chip treatment for the three core run stats so they read as
+   distinct at-a-glance values rather than a wall of "Label: number"
+   lines. Inline-flex lets them wrap into a small chip row instead of
+   three stacked full-width lines; no HTML structure changed, and the
+   event-category status lines (progress/next-event/last-event) are
+   left as plain lines since those already carry their own color
+   identity. */
+#resources-display,
+#resilience-display,
+#growth-display {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  margin: 0 0.4rem 0.4rem 0;
+  border-radius: 999px;
+  background: rgba(140, 160, 255, 0.08);
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  font-size: 0.85rem;
+}
