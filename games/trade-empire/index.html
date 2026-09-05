@@ -30,7 +30,9 @@
     </div>
 
     <div id="research-panel" class="section">
-      <p class="panel-label">Research</p>
+      <p class="panel-label">Research
+        <details class="info-toggle"><summary>i</summary><p>Research points build up on their own over time, separately from your trading profit — they're a second currency spent only on these permanent, fleet-wide upgrades, not on ships or routes.</p></details>
+      </p>
       <p id="research-points-display" class="research-points">Research points: 0</p>
       <div class="research-row">
         <span id="research-automation_slot-status" class="research-status">Automation Expansion — +1 automation slot</span>
@@ -57,7 +59,9 @@
     </div>
 
     <div id="market-panel" class="section">
-      <p class="panel-label">Market prices</p>
+      <p class="panel-label">Market prices
+        <details class="info-toggle"><summary>i</summary><p>Selling a good repeatedly crashes its price — each unit sold nudges that good's price down, and it only recovers gradually on its own if you leave it alone for a while. Spreading sales across goods keeps prices higher than dumping everything on one.</p></details>
+      </p>
       <p id="market-ore-display" class="market-price">Loading...</p>
       <div class="meter"><div id="market-ore-bar" class="meter-fill"></div></div>
       <p id="market-grain-display" class="market-price">Loading...</p>
@@ -79,7 +83,9 @@
     </div>
 
     <div id="colonies-panel" class="section">
-      <p class="panel-label">Colonies</p>
+      <p class="panel-label">Colonies
+        <details class="info-toggle"><summary>i</summary><p>A colony's output scales with how well its need is being met, from 0.5x up to 1.5x — an under-supplied colony produces less to trade. Keep delivering enough of what it needs and it develops to Level 2, gaining a second need that reaches into the other supply cycle.</p></details>
+      </p>
       <div class="colony-row">
         <p id="colony-aurum-name" class="colony-name">Aurum Station</p>
         <p id="colony-aurum-flavor" class="colony-flavor"></p>
@@ -219,7 +225,9 @@
     </div>
 
     <div id="fleet-priority-panel" class="section">
-      <p class="panel-label">Fleet priority</p>
+      <p class="panel-label">Fleet priority
+        <details class="info-toggle"><summary>i</summary><p>Only affects automated ships that are idle and empty. When on, they'll abandon their fixed shuttle route and reposition themselves toward whichever producer feeds the fleet's most under-served colony, instead of always reloading the same local good.</p></details>
+      </p>
       <p id="fleet-priority-status" class="fleet-priority-status">Loading...</p>
       <button id="fleet-priority-button" class="secondary" disabled>Loading...</button>
     </div>
@@ -227,6 +235,7 @@
     <div id="ledger" class="section">
       <p id="profit-display" class="profit-display">Total profit: 0 credits</p>
       <p id="automation-slots-display" class="automation-slots">Automation slots: 0/2 used</p>
+      <details class="info-toggle"><summary>i</summary><p>Automating a ship makes it load and depart on its own, on a fixed route, without you clicking anything — but only a limited number of ships can be automated at once, and unlocking more slots is a research upgrade.</p></details>
       <p id="sale-log" class="sale-log">No sales yet.</p>
     </div>
   </div>
