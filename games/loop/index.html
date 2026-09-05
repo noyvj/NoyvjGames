@@ -60,24 +60,31 @@
       <p id="production-display" class="status-line">Production target: 50 units/cycle</p>
       <p id="extraction-display" class="status-line">New extraction this cycle: 50 units</p>
       <p id="total-extracted-display" class="status-line">Total extracted (lifetime): 0 units</p>
-      <p class="meter-label">Environmental damage</p>
+      <p class="meter-label">Environmental damage
+        <details class="info-toggle"><summary>i</summary><p>Every unit of new extraction leaves lasting damage that never resets — once cumulative extraction is high enough, further extraction costs up to 2.5x more per unit. There's no hard fail-state, but the only way to avoid feeding this meter at all is circularity investment, since it substitutes for new extraction instead of just paying its cost.</p></details>
+      </p>
       <div class="meter">
         <div id="damage-bar" class="meter-fill meter-fill--extraction"></div>
       </div>
       <p id="damage-display" class="status-line">Environmental damage: 0% (extraction cost x1.00)</p>
-      <p class="meter-label">Loop closure</p>
+      <p class="meter-label">Loop closure
+        <details class="info-toggle"><summary>i</summary><p>These two numbers can diverge: "Circular this cycle" reflects only your current investment mix right now, while "Lifetime circular share" is the average across every cycle you've run, including any earlier straight-line cycles before you invested.</p></details>
+      </p>
       <div class="meter">
         <div id="circular-bar" class="meter-fill meter-fill--circular"></div>
       </div>
       <p id="circular-fraction-display" class="status-line">Circular this cycle: 0%</p>
       <p id="lifetime-circular-display" class="status-line">Lifetime circular share: 0%</p>
       <p id="score-display" class="status-line">Score: 300</p>
+      <details class="info-toggle"><summary>i</summary><p>Score isn't just your funds — it also adds a direct bonus (up to 300) for your lifetime circular share, so closing the loop is rewarded on its own terms even beyond the extraction costs it helps you dodge.</p></details>
       <p id="trend-display" class="comparison-message">Not enough cycles yet to show a trend.</p>
       <p id="real-world-comparison-display" class="comparison-message">Your chain is running at 0% circular, versus a roughly 7% estimated real-world average today (a ballpark figure, not a precise benchmark).</p>
     </div>
 
     <div id="circularity" class="section">
-      <p class="meter-label">Circularity investments</p>
+      <p class="meter-label">Circularity investments
+        <details class="info-toggle"><summary>i</summary><p>The three investments aren't interchangeable — each supplies a different amount toward the production target per unit bought: Repair Networks give 3 units (cost 20), Reuse Systems give 4 units (cost 25), and Recycling Loops give 5 units (cost 30), roughly reflecting how close each stage sits to recovering material that would otherwise be pure waste.</p></details>
+      </p>
       <div class="invest-row">
         <span id="repair-name" class="invest-name">🔧 Repair Networks</span>
         <span id="repair-count" class="invest-count">0</span>
@@ -96,7 +103,9 @@
     </div>
 
     <div id="trade-network" class="section">
-      <p class="meter-label">Trade network</p>
+      <p class="meter-label">Trade network
+        <details class="info-toggle"><summary>i</summary><p>The Trade Link works both ways: it imports reuse capacity from a neighboring system that counts toward closing your loop, and separately, whenever your own circularity investments produce more supply than this cycle's production target needs, that surplus is automatically sold outward for extra revenue instead of going to waste.</p></details>
+      </p>
       <p id="trade-network-display" class="comparison-message">Importing 0 units/cycle from the trade network; exporting 0 units/cycle of surplus this cycle.</p>
       <div class="invest-row">
         <span class="invest-name">🌐 Trade Link</span>
