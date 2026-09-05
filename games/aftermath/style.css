@@ -382,3 +382,418 @@ button.primary:disabled {
   border: 1px solid rgba(140, 160, 255, 0.14);
   border-radius: 8px;
 }
+
+/* ============================================================
+   Full visual pass — content-window redesign (2026-09-05)
+   Same treatment SOL got: this game was a stack of plain text
+   lines over a flat progress bar. This section adds two
+   illustrated CSS elements themed to Aftermath specifically (a
+   small settlement skyline that visibly cracks once the run has
+   taken its first hit, and a storm-cloud/signal-tower badge for
+   the next scheduled event), turns every .section into a
+   distinct HUD card with a colored accent bar, redraws the
+   mitigation bar as a segmented glowing gauge, gives the
+   resilience/growth investment buttons stacked icon-tile faces,
+   and turns the skill tree into a connected node chain that
+   lights up as skills unlock. Pure CSS plus small aria-hidden
+   decorative divs/spans — no id/class renamed, no game.py
+   touched, nothing here that the innerText-driven render loop or
+   the pytest suite depends on.
+   ============================================================ */
+
+/* --- Section cards: give every .section a real HUD-card left
+   accent instead of a uniform border, colored per section's role
+   so the page reads as distinct modules rather than one long
+   scroll of identical boxes. */
+.section {
+  border-left: 3px solid rgba(140, 160, 255, 0.3);
+}
+
+#status { border-left-color: #6f9fe0; position: relative; display: flex; flex-direction: column; }
+#actions { border-left-color: #c17a4f; }
+#skill-tree { border-left-color: #9b7fd4; }
+#feedback-prompt { border-left-color: #5fae7c; }
+#info-page-panel { border-left-color: #7a8aa8; }
+
+/* --- Settlement visual (hero illustration): a small skyline that
+   sits at the top of the status card. Appended as the LAST child
+   of #status (see index.html) so its damage overlay can react to
+   #last-event-display's category class via a sibling combinator
+   -- CSS can only select siblings that come *after* the element
+   whose state it's reading, and #last-event-display only carries
+   an event-category class once at least one event has resolved
+   this run. #status is a flex column with this element pulled
+   back to the visual top via `order`, so the DOM-order requirement
+   and the "hero at the top" layout aren't in tension. */
+.settlement-visual {
+  order: -1;
+  position: relative;
+  width: 100%;
+  max-width: 240px;
+  height: 108px;
+  margin: 0.15rem auto 1.15rem;
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.settlement-visual-sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #2a1512 0%, #170a08 70%, #0e0605 100%);
+}
+
+.settlement-visual-glow {
+  position: absolute;
+  left: 50%;
+  top: 6%;
+  width: 65%;
+  height: 55%;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(255, 140, 66, 0.5), transparent 70%);
+  filter: blur(12px);
+  animation: settlement-glow-pulse 4s ease-in-out infinite;
+}
+
+@keyframes settlement-glow-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+.settlement-visual-ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 20px;
+  background: linear-gradient(180deg, #2c1712, #120907);
+  border-top: 1px solid rgba(255, 179, 102, 0.15);
+}
+
+.settlement-building {
+  position: absolute;
+  bottom: 20px;
+  background: linear-gradient(180deg, #4a3226, #23140f);
+  border-top: 2px solid rgba(255, 179, 102, 0.4);
+}
+
+.settlement-building::before {
+  content: "";
+  position: absolute;
+  inset: 6px 4px auto 4px;
+  height: 62%;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(255, 200, 120, 0.6) 0 3px, transparent 3px 9px),
+    repeating-linear-gradient(0deg, rgba(255, 200, 120, 0.5) 0 3px, transparent 3px 10px);
+  opacity: 0.55;
+}
+
+.settlement-building--a { left: 6%; width: 17%; height: 42px; }
+.settlement-building--b { left: 27%; width: 15%; height: 62px; }
+.settlement-building--c { left: 48%; width: 19%; height: 36px; }
+.settlement-building--d { left: 72%; width: 16%; height: 52px; }
+
+/* A faint dome of the settlement's established resilience green,
+   evoking the same protective identity as the mitigation meter
+   below without duplicating its exact numeric value in CSS (the
+   percentage only exists as a JS-set inline style width, which
+   plain CSS elsewhere on the page has no way to read). */
+.settlement-visual-shield {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  width: 94%;
+  height: 74px;
+  transform: translateX(-50%);
+  border: 2px solid rgba(76, 156, 110, 0.4);
+  border-bottom: none;
+  border-radius: 90px 90px 0 0 / 55px 55px 0 0;
+  box-shadow: 0 0 16px rgba(76, 156, 110, 0.25), inset 0 0 18px rgba(76, 156, 110, 0.12);
+  animation: shield-shimmer 5s ease-in-out infinite;
+}
+
+@keyframes shield-shimmer {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.85; }
+}
+
+.settlement-damage {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  background: repeating-linear-gradient(115deg, rgba(15, 8, 6, 0.95) 0 2px, transparent 2px 6px);
+}
+
+.settlement-damage--a { left: 32%; bottom: 26px; width: 24px; height: 38px; transform: rotate(9deg); }
+.settlement-damage--b { left: 66%; bottom: 22px; width: 18px; height: 30px; transform: rotate(-13deg); }
+
+#last-event-display.event-category--weather ~ .settlement-visual .settlement-damage,
+#last-event-display.event-category--non-weather ~ .settlement-visual .settlement-damage {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settlement-visual-glow,
+  .settlement-visual-shield {
+    animation: none;
+  }
+}
+
+/* --- Event visual badge: a small storm-cloud or signal-tower
+   illustration for the *next* scheduled event, driven entirely by
+   the event-category class game.py already sets on
+   #next-event-display (weather vs. non-weather) -- no game.py
+   change, just a sibling-combinator read of an existing class. */
+.event-visual {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.9rem;
+  width: 46px;
+  height: 34px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.event-visual-storm,
+.event-visual-signal {
+  display: none;
+  position: absolute;
+  inset: 0;
+}
+
+#next-event-display.event-category--weather ~ .event-visual .event-visual-storm {
+  display: block;
+}
+
+#next-event-display.event-category--non-weather ~ .event-visual .event-visual-signal {
+  display: block;
+}
+
+.event-visual-cloud {
+  position: absolute;
+  left: 4px;
+  top: 2px;
+  width: 34px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #cfe0f2, #6fa8d8 70%, #3f6f9c);
+  box-shadow: 12px -3px 0 -2px #cfe0f2, 22px 2px 0 -4px #6fa8d8;
+}
+
+.event-visual-rain {
+  position: absolute;
+  left: 6px;
+  top: 18px;
+  width: 30px;
+  height: 14px;
+  background-image: repeating-linear-gradient(70deg, #6fa8d8 0 2px, transparent 2px 8px);
+  opacity: 0.8;
+  animation: event-rain-fall 0.8s linear infinite;
+}
+
+@keyframes event-rain-fall {
+  from { background-position: 0 0; }
+  to { background-position: 0 12px; }
+}
+
+.event-visual-tower {
+  position: absolute;
+  left: 21px;
+  bottom: 0;
+  width: 3px;
+  height: 22px;
+  background: #d8a24c;
+}
+
+.event-visual-tower::before,
+.event-visual-tower::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 2px;
+  height: 15px;
+  background: #d8a24c;
+  transform-origin: bottom;
+}
+
+.event-visual-tower::before { left: -7px; transform: rotate(18deg); }
+.event-visual-tower::after { left: 6px; transform: rotate(-18deg); }
+
+.event-visual-pulse {
+  position: absolute;
+  left: 11px;
+  top: -2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid rgba(216, 162, 76, 0.6);
+  animation: event-pulse-ring 1.8s ease-out infinite;
+}
+
+@keyframes event-pulse-ring {
+  0% { transform: scale(0.3); opacity: 1; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .event-visual-rain,
+  .event-visual-pulse {
+    animation: none;
+  }
+}
+
+/* --- Gauge: replace the flat 8px mitigation bar with a chunkier,
+   ticked, glowing HUD gauge, same technique as SOL's reference
+   pass. game.py only ever writes inline .style.width on
+   #mitigation-bar, so the visual language around that width is
+   entirely ours to redraw. */
+.meter-label::before {
+  content: "🛡️ ";
+}
+
+.meter {
+  height: 16px;
+  border-radius: 8px;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.meter-fill {
+  border-radius: 7px;
+  position: relative;
+  overflow: hidden;
+}
+
+.meter-fill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent calc(10% - 1px),
+    rgba(0, 0, 0, 0.3) calc(10% - 1px),
+    rgba(0, 0, 0, 0.3) 10%
+  );
+}
+
+.meter-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  animation: meter-shimmer 2.6s ease-in-out infinite;
+}
+
+@keyframes meter-shimmer {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(340%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meter-fill::after { animation: none; display: none; }
+}
+
+/* --- Action tiles: stack the resilience/growth investment buttons
+   into icon-over-label tiles instead of plain text buttons, same
+   technique as SOL's priority-option treatment. */
+#actions button.secondary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.85rem 0.5rem 0.7rem;
+}
+
+#actions button.secondary::before {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+#resilience-invest-button::before {
+  content: "🛡️";
+}
+
+#growth-invest-button::before {
+  content: "📈";
+}
+
+#resolve-event-button::before {
+  content: "⚔️ ";
+}
+
+#new-run-button::before {
+  content: "🔄 ";
+}
+
+/* --- Skill tree: turn the flat list into a connected node chain.
+   Each row gets a small circular node fed purely by CSS content
+   (locked padlock vs. unlocked check); :has() reads the existing
+   unlock-button's hidden attribute (game.py already hides it once
+   a skill is unlocked) to decide which state to show, and a
+   connector line runs down the node column linking each row to
+   the next -- a lightweight "tech tree" feel without inventing any
+   new DOM hooks game.py would need to drive. */
+#skill-tree .skill-row {
+  position: relative;
+  padding-left: 2.5rem;
+}
+
+.skill-node {
+  position: absolute;
+  left: 0;
+  top: 0.5rem;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(140, 160, 255, 0.08);
+  border: 2px solid rgba(140, 160, 255, 0.28);
+  z-index: 1;
+}
+
+.skill-node::before {
+  content: "🔒";
+  font-size: 0.7rem;
+  filter: grayscale(1);
+  opacity: 0.7;
+}
+
+.skill-row:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 0.85rem;
+  top: 2.2rem;
+  bottom: -0.6rem;
+  width: 2px;
+  background: rgba(140, 160, 255, 0.2);
+}
+
+.skill-row:has(button[hidden]) .skill-node {
+  background: radial-gradient(circle, #b89bf0, #6f4fc9);
+  border-color: #cbb8f5;
+  box-shadow: 0 0 12px rgba(155, 127, 212, 0.65);
+}
+
+.skill-row:has(button[hidden]) .skill-node::before {
+  content: "✓";
+  font-size: 0.85rem;
+  filter: none;
+  opacity: 1;
+  color: #fff;
+}
+
+.skill-row:has(button[hidden]):not(:last-child)::before {
+  background: linear-gradient(180deg, rgba(155, 127, 212, 0.6), rgba(140, 160, 255, 0.2));
+}
+
+.skill-row button.secondary:not([hidden])::before {
+  content: "🔓 ";
+}
+
+#info-page-toggle-button::before {
+  content: "📖 ";
+}
