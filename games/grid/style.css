@@ -890,3 +890,95 @@ button.secondary[id$="-retire-button"] {
 button.secondary[id$="-maintain-button"] {
   border-color: rgba(224, 162, 76, 0.35);
 }
+
+/* ============================================================
+   Design pass 2 — embed controls & readouts into the console
+   (2026-09-06). The transmission-line hero and HUD card treatment
+   above gave Grid its own illustrated identity, but the labels,
+   plant counts and action buttons inside those cards still read
+   as flat web UI sitting on the panel rather than something
+   physically part of the console. Same three ideas as SOL's
+   reference pass, adapted to Grid's own cyan/amber/purple/blue
+   accent palette rather than SOL's colors: labels become mounted
+   nameplates, the plant-count numbers become recessed screen
+   readouts, and every button becomes a beveled physical switch
+   with a status LED wired to its own :disabled state. Pure CSS on
+   existing selectors — no new elements/ids, nothing game.py
+   touches. */
+
+/* --- Nameplates: plant labels and section sub-headings read as
+   engraved plates mounted on the console rather than plain text
+   sitting on the card background. */
+.plant-name,
+.meter-label {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.22));
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -1px 2px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* --- Recessed digital-screen readout: each plant's unit count sits
+   in a dark glass-fronted display cut into the console face instead
+   of floating as a plain rounded chip. Scanline texture + inner glow
+   reinforce "screen," not "text." Keeps its existing pill shape --
+   only the background/shadow read changes. */
+.plant-count {
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0, rgba(255, 255, 255, 0.03) 1px, transparent 1px, transparent 3px),
+    radial-gradient(ellipse at 50% 20%, rgba(224, 162, 76, 0.12), transparent 70%),
+    rgba(3, 4, 9, 0.7);
+  border-color: rgba(224, 162, 76, 0.3);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6), inset 0 0 14px rgba(224, 162, 76, 0.1);
+}
+
+/* --- Physical console switches: every button gets an outer bezel
+   ring and an inset face, plus a small status LED that glows green
+   while the action is available and dims grey when :disabled -- a
+   genuinely functional indicator driven by the existing disabled
+   state, not decoration. */
+button.secondary,
+button.primary {
+  position: relative;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.25),
+    0 0 0 3px rgba(0, 0, 0, 0.22);
+}
+
+button.secondary:active:not(:disabled),
+button.primary:active {
+  box-shadow:
+    inset 0 3px 9px rgba(0, 0, 0, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05),
+    0 0 0 3px rgba(0, 0, 0, 0.22);
+}
+
+button.secondary::after,
+button.primary::after {
+  content: "";
+  position: absolute;
+  top: 0.5rem;
+  right: 0.6rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4c9c6e;
+  box-shadow: 0 0 6px 1px rgba(76, 156, 110, 0.85);
+}
+
+button.secondary:disabled::after,
+button.primary:disabled::after {
+  background: #565b73;
+  box-shadow: none;
+}
+
+/* The plant-action tiles already carry a flex-column icon-over-label
+   layout with their own tinted border per action -- give their LED a
+   little more room so it doesn't crowd the wrench/hammer/bin glyph. */
+.plant-row-actions button.secondary::after {
+  top: 0.4rem;
+  right: 0.4rem;
+}
