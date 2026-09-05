@@ -22,6 +22,14 @@
     <p class="context-blurb">A city that gets bigger isn't automatically a city that gets better. Continuum tracks both.</p>
 
     <div id="status" class="section">
+      <div class="settlement-visual" aria-hidden="true">
+        <div class="settlement-sky"></div>
+        <div class="settlement-ground"></div>
+        <div class="settlement-hut settlement-hut--a"></div>
+        <div class="settlement-hut settlement-hut--b"></div>
+        <div class="settlement-hut settlement-hut--c"></div>
+        <div class="settlement-fire"></div>
+      </div>
       <p id="era-display" class="era-line">Tribal era</p>
       <p id="season-display" class="status-line">Season 1</p>
       <p id="population-display" class="status-line">People: 6</p>
@@ -34,6 +42,7 @@
       <p id="knowledge-display" class="status-line">Knowledge: 0.0</p>
       <p id="land-health-display" class="status-line">Land health: 100%</p>
       <details class="info-toggle"><summary>i</summary><p>The land can only give so much per season. Harvesting more than that sustainable amount degrades land health, which cuts every future harvest — staying under the line lets it recover instead. This is what lets a small, careful settlement out-score a big, careless one.</p></details>
+      <div class="land-plot-visual" aria-hidden="true"></div>
       <div class="meter"><div id="land-health-bar" class="meter-fill meter-fill--land"></div></div>
       <p id="season-report-display" class="event-display">The settlement is waiting on your word.</p>
     </div>
@@ -156,6 +165,12 @@
 
     <div id="research" class="section">
       <h2 class="section-heading">Research</h2>
+      <div class="research-tree-visual" aria-hidden="true">
+        <div class="research-tree-trunk"></div>
+        <div class="research-tree-branch research-tree-branch--provision"><span class="research-tree-node"></span></div>
+        <div class="research-tree-branch research-tree-branch--community"><span class="research-tree-node"></span></div>
+        <div class="research-tree-branch research-tree-branch--craft"><span class="research-tree-node"></span></div>
+      </div>
       <p id="research-status-display" class="status-line">Knowledge: 0.0</p>
       <p class="row-blurb">One tree, fourteen tiers, seven eras. What you lean into now changes what opens later.
         <details class="info-toggle"><summary>i</summary><p>A tier only opens once two nodes in the tier below it are researched — you don't need everything in a tier, just enough to prove the ground beneath it. Some nodes also require a minimum number of discoveries already made in one branch, so leaning into a branch early can open or close doors many tiers later.</p></details>

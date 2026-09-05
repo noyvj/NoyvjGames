@@ -430,3 +430,273 @@ button.primary:active {
   border: 1px solid rgba(216, 164, 92, 0.16);
   border-radius: 8px;
 }
+
+/* ============================================================
+   Full visual pass — content-window redesign (2026-09-05)
+   Every panel used to be a stack of plain text lines with a flat-
+   color bar underneath — same problem as the rest of the hub before
+   its own passes. This section turns Continuum's content window into
+   an actual settlement game screen, themed to its own subject rather
+   than reusing SOL's planet spheres: a CSS-drawn tribal village scene
+   up top, an illustrated plot-of-land strip standing in for the old
+   flat land-health bar, a small branching "research tree" diagram
+   over the research panel, every .section given a colored left-accent
+   per panel type, meters redrawn as segmented glowing HUD gauges, and
+   the single-button Build/Study rows turned into icon-over-label
+   tiles. Pure CSS plus the small decorative wrapper <div>s each visual
+   needs — no id/class renamed, nothing game.py or the test suite
+   touches was changed, no game.py changes at all. Colors stay inside
+   the amber/bronze/green palette this game already uses; the section
+   accents below just make that palette do double duty as navigation.
+   ============================================================ */
+
+/* --- Settlement scene (hero illustration, #status) --------------------
+   A small tribal village at dawn: gradient sky + sun, a rolling green
+   hillside, three huts of varying size, and a flickering hearth fire —
+   grounding "Tribal era" in an actual picture instead of only the text
+   line below it. Static per the SOL reference (its planet visuals don't
+   react to resource counts either); this reads as "which era" rather
+   than a live gauge. */
+.settlement-visual {
+  position: relative;
+  width: 100%;
+  height: 96px;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(216, 164, 92, 0.2), 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.settlement-sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #493a68 0%, #a8663e 45%, #e8a85c 72%, #f3c98a 100%);
+}
+
+.settlement-sky::after {
+  content: "";
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff6de, #f0c264 60%, transparent 100%);
+  box-shadow: 0 0 22px 7px rgba(240, 194, 100, 0.55);
+}
+
+.settlement-ground {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  bottom: -20%;
+  height: 60%;
+  background: linear-gradient(180deg, #6f9c5a 0%, #4a6f3a 55%, #32501e 100%);
+  border-radius: 50%;
+}
+
+.settlement-hut {
+  position: absolute;
+  bottom: 20%;
+  background: linear-gradient(160deg, #d3ab74, #8a6238);
+  border-radius: 50% 50% 3px 3px / 65% 65% 3px 3px;
+  box-shadow: inset -4px -5px 7px rgba(0, 0, 0, 0.38);
+}
+
+.settlement-hut::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.16), transparent 55%);
+}
+
+.settlement-hut--a { left: 12%; width: 28px; height: 24px; }
+.settlement-hut--b { left: 30%; width: 40px; height: 34px; }
+.settlement-hut--c { left: 56%; width: 24px; height: 20px; }
+
+.settlement-fire {
+  position: absolute;
+  bottom: 21%;
+  left: 46%;
+  width: 7px;
+  height: 11px;
+  border-radius: 50% 50% 50% 50% / 65% 65% 40% 40%;
+  background: radial-gradient(circle, #ffe19a, #e8843c 65%, transparent 100%);
+  box-shadow: 0 0 12px 4px rgba(232, 132, 60, 0.65);
+  animation: settlement-fire-flicker 1.6s ease-in-out infinite;
+}
+
+@keyframes settlement-fire-flicker {
+  0%, 100% { transform: scaleY(1) translateY(0); opacity: 0.9; }
+  50% { transform: scaleY(1.2) translateY(-2px); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settlement-fire { animation: none; }
+}
+
+/* --- Land plot visual (#land-health-display) ---------------------------
+   A small illustrated strip of ground — soil-and-grass texture over a
+   green-to-brown gradient — sitting above the actual (dynamic) land
+   health gauge below it, so the concept the number describes ("a plot
+   of land that can be lush or stripped bare") gets its own picture
+   rather than only a percentage and a bar. */
+.land-plot-visual {
+  height: 14px;
+  margin: 0.3rem 0 0.5rem;
+  border-radius: 4px;
+  background:
+    radial-gradient(circle at 20% 55%, rgba(255, 255, 255, 0.2) 0 2px, transparent 3px) 0 0/12px 12px,
+    radial-gradient(circle at 68% 30%, rgba(255, 255, 255, 0.14) 0 1.5px, transparent 2.5px) 4px 0/16px 16px,
+    linear-gradient(90deg, #3f7d3a 0%, #6f9c5a 38%, #9c8347 72%, #6b4a2a 100%);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* --- Research tree visual (#research) -----------------------------------
+   A tiny branching diagram — trunk + three glowing nodes — standing in
+   for the "one tree, fourteen tiers, seven eras" line just below it.
+   Colors match the tree's three real branches (provision / community /
+   craft) rather than being decorative-only. */
+.research-tree-visual {
+  position: relative;
+  height: 56px;
+  margin: 0 0 0.85rem;
+}
+
+.research-tree-trunk {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 3px;
+  height: 22px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, transparent, #a8763e);
+}
+
+.research-tree-branch {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  width: 2px;
+  height: 28px;
+  transform-origin: bottom center;
+}
+
+.research-tree-branch--provision {
+  color: #6f9c5a;
+  transform: translateX(-50%) rotate(-26deg);
+  background: linear-gradient(180deg, currentColor, transparent);
+}
+
+.research-tree-branch--community {
+  color: #d6a45c;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, currentColor, transparent);
+}
+
+.research-tree-branch--craft {
+  color: #c97a3e;
+  transform: translateX(-50%) rotate(26deg);
+  background: linear-gradient(180deg, currentColor, transparent);
+}
+
+.research-tree-node {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, currentColor, transparent 75%);
+  box-shadow: 0 0 9px currentColor;
+}
+
+/* --- Section cards: give each panel a colored left-accent bar, same
+   technique as the rest of the hub — one selector per panel id, no
+   change to the shared glass-panel look every .section already has. */
+#status { border-left: 4px solid #a8763e; }
+#sustainability { border-left: 4px solid #d6a45c; }
+#work { border-left: 4px solid #6f9c5a; }
+#buildings { border-left: 4px solid #c97a3e; }
+#research { border-left: 4px solid #d08c5c; }
+
+/* --- Gauges: replace the flat bar with a segmented, glowing HUD gauge.
+   game.py only ever writes inline .style.width on #land-health-bar /
+   #score-bar, so the visual language around that width is ours to
+   redraw; the fill colors themselves (.meter-fill--land/--score) are
+   untouched, since those already carry state-meaning. */
+.meter {
+  height: 14px;
+  border-radius: 7px;
+  background: rgba(5, 6, 13, 0.6);
+  border: 1px solid rgba(216, 164, 92, 0.14);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.meter-fill {
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.meter-fill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent calc(10% - 1px),
+    rgba(0, 0, 0, 0.3) calc(10% - 1px),
+    rgba(0, 0, 0, 0.3) 10%
+  );
+}
+
+.meter-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.32), transparent);
+  animation: meter-shimmer 2.6s ease-in-out infinite;
+}
+
+@keyframes meter-shimmer {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(340%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meter-fill::after { animation: none; display: none; }
+}
+
+/* --- Icon-tile Build/Study buttons: each of these rows carries exactly
+   one action button, so stacking a bigger icon above the label reads
+   as a game action tile rather than a plain text button — same move as
+   the hub's stacked priority-option tiles. Reached via id-suffix and a
+   button-scoped id-prefix so every building's Build button and every
+   research node's Study button (ids vary per node, e.g.
+   "research-shared_granaries") get it without a per-instance rule. */
+[id$="-build-button"],
+button[id^="research-"] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.55rem 0.6rem 0.45rem;
+}
+
+[id$="-build-button"]::before {
+  content: "🛠️";
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+button[id^="research-"]::before {
+  content: "🔬";
+  font-size: 1.05rem;
+  line-height: 1;
+}
