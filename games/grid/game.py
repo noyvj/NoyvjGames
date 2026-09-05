@@ -686,23 +686,38 @@ def _merge_plant_dict(live, saved):
 def load_state(data):
     global info_page_open
 
-    state.round_number = data["round_number"]
-    state.demand = data["demand"]
-    state.funds = data["funds"]
-    _merge_plant_dict(state.plant_counts, data["plant_counts"])
-    _merge_plant_dict(state.cumulative_built, data["cumulative_built"])
-    state.emissions = data["emissions"]
-    state.event_log = copy.deepcopy(data["event_log"])
-    state.last_event = copy.deepcopy(data["last_event"])
-    state.clean_fraction_log = list(data["clean_fraction_log"])
-    state.emissions_history = list(data["emissions_history"])
-    state.avg_renewable_cost_history = list(data["avg_renewable_cost_history"])
-    state.renewable_unlocked = data["renewable_unlocked"]
-    _merge_plant_dict(state.plant_age, data["plant_age"])
-    state.global_reference_emissions = data["global_reference_emissions"]
-    state.global_reference_emissions_history = list(data["global_reference_emissions_history"])
-    state.last_aging_event = copy.deepcopy(data["last_aging_event"])
-    info_page_open = data["info_page_open"]
+    # Every field is pulled with .get(..., <current live value>) rather
+    # than bare data["key"] indexing, so a save written before a later
+    # milestone/pass added a field (global_reference_emissions and
+    # global_reference_emissions_history, last_aging_event and plant_age
+    # all landed in Pass 2, after Milestone 1/2 saves already existed)
+    # can't crash load_state() with a KeyError -- a missing key just
+    # leaves that field at whatever the live state already had, the same
+    # "don't drop what the save doesn't know about" philosophy
+    # _merge_plant_dict already applies one level deeper.
+    state.round_number = data.get("round_number", state.round_number)
+    state.demand = data.get("demand", state.demand)
+    state.funds = data.get("funds", state.funds)
+    _merge_plant_dict(state.plant_counts, data.get("plant_counts", {}))
+    _merge_plant_dict(state.cumulative_built, data.get("cumulative_built", {}))
+    state.emissions = data.get("emissions", state.emissions)
+    state.event_log = copy.deepcopy(data.get("event_log", state.event_log))
+    state.last_event = copy.deepcopy(data.get("last_event", state.last_event))
+    state.clean_fraction_log = list(data.get("clean_fraction_log", state.clean_fraction_log))
+    state.emissions_history = list(data.get("emissions_history", state.emissions_history))
+    state.avg_renewable_cost_history = list(
+        data.get("avg_renewable_cost_history", state.avg_renewable_cost_history)
+    )
+    state.renewable_unlocked = data.get("renewable_unlocked", state.renewable_unlocked)
+    _merge_plant_dict(state.plant_age, data.get("plant_age", {}))
+    state.global_reference_emissions = data.get(
+        "global_reference_emissions", state.global_reference_emissions
+    )
+    state.global_reference_emissions_history = list(
+        data.get("global_reference_emissions_history", state.global_reference_emissions_history)
+    )
+    state.last_aging_event = copy.deepcopy(data.get("last_aging_event", state.last_aging_event))
+    info_page_open = data.get("info_page_open", info_page_open)
 
     render()
     return True
