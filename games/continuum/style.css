@@ -377,3 +377,56 @@ button.primary:active {
 .research-meta::before {
   content: "🔬 ";
 }
+
+/* Info-toggle — zero-JS "i" disclosure badge, same pattern as SOL
+   (games/sol/style.css). Recolored from SOL's blue-violet to this game's
+   own warm amber/bronze accent (matches .era-line, button.primary, the
+   score meter) rather than the space-theme's violet chrome, since this is
+   an interactive affordance, not panel structure. */
+.info-toggle {
+  display: inline-block;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.info-toggle summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: rgba(216, 164, 92, 0.18);
+  border: 1px solid rgba(216, 164, 92, 0.4);
+  color: #f0d9b8;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.info-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.info-toggle summary:hover {
+  background: rgba(216, 164, 92, 0.3);
+}
+
+.info-toggle[open] summary {
+  background: rgba(216, 164, 92, 0.34);
+}
+
+.info-toggle p {
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 400;
+  opacity: 0.85;
+  line-height: 1.5;
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.75rem;
+  background: rgba(5, 6, 13, 0.5);
+  border: 1px solid rgba(216, 164, 92, 0.16);
+  border-radius: 8px;
+}
