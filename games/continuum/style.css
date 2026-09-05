@@ -700,3 +700,96 @@ button[id^="research-"]::before {
   font-size: 1.05rem;
   line-height: 1;
 }
+
+/* ============================================================
+   Design pass 2 — embed controls & readouts into the console
+   (2026-09-06). Same idea as games/sol/style.css's own pass 2:
+   the previous visual pass gave every panel an illustrated scene
+   and card-style sections, but the labels, counters and buttons
+   inside those cards still read as generic flat web UI dropped on
+   top. This pass gives labels a mounted "nameplate" look, the
+   work/building/research counters and the sustainability tiles a
+   recessed digital-screen look, and every button a physical
+   beveled-switch look with a status LED wired to its own :disabled
+   state — so the panel reads as a settlement console the player
+   operates, not a webpage with numbers on it. Pure CSS on existing
+   selectors, in Continuum's own warm amber/bronze/green palette
+   (not SOL's blue-violet) — no new elements, no id/class changes,
+   nothing game.py touches.
+   ============================================================ */
+
+/* --- Nameplates: labels read as an engraved plate mounted on the
+   console rather than plain floating text. Covers the work/
+   building/research row labels, the era line, and each panel's own
+   heading. */
+.row-name,
+.era-line,
+.section-heading {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.28));
+  border: 1px solid rgba(216, 164, 92, 0.2);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -1px 2px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* --- Recessed digital-screen readouts: the settlement's numeric
+   tallies sit in a glass-fronted display cut into the console face
+   instead of floating on the card background. Scanline texture +
+   inner amber glow reinforce "screen," not "text." Covers the work/
+   building/research row counters and the four sustainability stat
+   tiles, which were already isolated boxes and now read as small
+   HUD gauges rather than plain shaded rectangles — the direct
+   analog of SOL's resource-count/ecology-percent pairing. */
+.row-count,
+.component-line {
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0, rgba(255, 255, 255, 0.025) 1px, transparent 1px, transparent 3px),
+    radial-gradient(ellipse at 50% 20%, rgba(216, 164, 92, 0.14), transparent 70%),
+    rgba(4, 3, 2, 0.68);
+  border: 1px solid rgba(216, 164, 92, 0.2);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6), inset 0 0 18px rgba(180, 120, 50, 0.16);
+}
+
+.row-count {
+  display: inline-block;
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+}
+
+/* --- Physical console switches: every button gets an outer bevel
+   ring and an inset "face," plus a small status LED that lights up
+   green while its action is available and dims grey when disabled —
+   a genuinely functional indicator wired to the button's own
+   :disabled state, not decoration. Covers the +/- workforce
+   buttons, the Build buttons, the Study buttons and the Advance
+   Season button — every clickable control on the page shares this
+   one selector list. */
+button.secondary,
+button.primary {
+  position: relative;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.3),
+    0 0 0 3px rgba(0, 0, 0, 0.22);
+}
+
+button.secondary::after,
+button.primary::after {
+  content: "";
+  position: absolute;
+  top: 0.5rem;
+  right: 0.6rem;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #7fc25a;
+  box-shadow: 0 0 6px 1px rgba(127, 194, 90, 0.85);
+}
+
+button.secondary:disabled::after,
+button.primary:disabled::after {
+  background: #4a4038;
+  box-shadow: none;
+}
