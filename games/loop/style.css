@@ -420,3 +420,53 @@ button.primary:active {
   opacity: 1;
   text-decoration: underline;
 }
+
+/* Icon labels — pure CSS, no markup/game.py change (same technique as
+   SOL's "Icon labels — pure CSS" section: small glyphs via `::before`
+   on existing selectors). Loop's repair/reuse/recycle invest-name spans
+   already carry their icon inline (game.py's CIRCULARITY_INVESTMENTS
+   writes `f"{spec['icon']} {spec['label']}"` into innerText) and the
+   static "🌐 Trade Link" label lives directly in index.html — both are
+   deliberately left alone here so an icon never doubles up. Everything
+   below targets the plain-text stat/message lines that render() writes
+   with no icon of their own. */
+#funds-display::before {
+  content: "💰 ";
+}
+
+#total-extracted-display::before,
+#extraction-display::before {
+  content: "⛏️ ";
+}
+
+#production-display::before {
+  content: "🏭 ";
+}
+
+#trade-network-display::before {
+  content: "🔄 ";
+}
+
+#damage-display::before {
+  content: "🌍 ";
+}
+
+#vignette-display::before {
+  content: "📱 ";
+}
+
+#real-world-comparison-display::before {
+  content: "📊 ";
+}
+
+/* Circularity/trade-link counts as small chips — the bare numbers (0,
+   1, 2...) had no visual weight of their own next to their already-
+   iconed labels and buttons. Rounded pill, subtle border/background,
+   no DOM change: `.invest-count` is the existing class shared by
+   repair-count/reuse-count/recycle-count and trade-link-count. */
+.invest-count {
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(140, 160, 255, 0.1);
+  border: 1px solid rgba(140, 160, 255, 0.18);
+}
