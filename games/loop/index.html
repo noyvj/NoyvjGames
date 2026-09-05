@@ -32,13 +32,13 @@
     <div id="chain-flow-section" class="section">
       <p class="meter-label">The chain</p>
       <div id="chain-flow" class="chain-flow">
-        <div id="stage-extract" class="chain-stage">🪨<br>Extract</div>
+        <div id="stage-extract" class="chain-stage"><span class="chain-icon">🪨</span><span class="chain-label">Extract</span></div>
         <span class="chain-arrow"><span class="arrow-glyph">→</span><span class="flow-particle"></span></span>
-        <div class="chain-stage">🏭<br>Manufacture</div>
+        <div class="chain-stage"><span class="chain-icon">🏭</span><span class="chain-label">Manufacture</span></div>
         <span class="chain-arrow"><span class="arrow-glyph">→</span><span class="flow-particle"></span></span>
-        <div class="chain-stage">📦<br>Use</div>
+        <div class="chain-stage"><span class="chain-icon">📦</span><span class="chain-label">Use</span></div>
         <span class="chain-arrow"><span class="arrow-glyph">→</span><span class="flow-particle"></span></span>
-        <div id="stage-discard" class="chain-stage">🗑️<br>Discard</div>
+        <div id="stage-discard" class="chain-stage"><span class="chain-icon">🗑️</span><span class="chain-label">Discard</span></div>
       </div>
       <p id="chain-flow-message" class="comparison-message">Straight line: 100% of production needs new extraction.</p>
       <div id="return-flow-row" class="return-flow-row">
@@ -55,6 +55,16 @@
     </div>
 
     <div id="status" class="section">
+      <div class="extraction-site" aria-hidden="true">
+        <div class="extraction-site-glow"></div>
+        <div class="extraction-site-mound"></div>
+        <div class="extraction-site-rig"></div>
+        <div class="extraction-site-stack">
+          <span class="extraction-smoke extraction-smoke--a"></span>
+          <span class="extraction-smoke extraction-smoke--b"></span>
+          <span class="extraction-smoke extraction-smoke--c"></span>
+        </div>
+      </div>
       <p id="cycle-display" class="status-line">Cycle 1</p>
       <p id="funds-display" class="status-line">Funds: 300</p>
       <p id="production-display" class="status-line">Production target: 50 units/cycle</p>
@@ -85,17 +95,29 @@
       <p class="meter-label">Circularity investments
         <details class="info-toggle"><summary>i</summary><p>The three investments aren't interchangeable — each supplies a different amount toward the production target per unit bought: Repair Networks give 3 units (cost 20), Reuse Systems give 4 units (cost 25), and Recycling Loops give 5 units (cost 30), roughly reflecting how close each stage sits to recovering material that would otherwise be pure waste.</p></details>
       </p>
-      <div class="invest-row">
+      <div class="loop-ring" aria-hidden="true">
+        <div class="loop-ring-track"></div>
+        <div class="loop-ring-arrow loop-ring-arrow--1">➤</div>
+        <div class="loop-ring-arrow loop-ring-arrow--2">➤</div>
+        <div class="loop-ring-arrow loop-ring-arrow--3">➤</div>
+        <div class="loop-ring-node loop-ring-node--repair">🔧</div>
+        <div class="loop-ring-node loop-ring-node--reuse">🔄</div>
+        <div class="loop-ring-node loop-ring-node--recycle">♻️</div>
+        <div class="loop-ring-core">
+          <span class="loop-ring-core-glyph">♻</span>
+        </div>
+      </div>
+      <div class="invest-row invest-row--repair">
         <span id="repair-name" class="invest-name">🔧 Repair Networks</span>
         <span id="repair-count" class="invest-count">0</span>
         <button id="repair-invest-button" class="secondary">Repair Networks (20)</button>
       </div>
-      <div class="invest-row">
+      <div class="invest-row invest-row--reuse">
         <span id="reuse-name" class="invest-name">🔄 Reuse Systems</span>
         <span id="reuse-count" class="invest-count">0</span>
         <button id="reuse-invest-button" class="secondary">Reuse Systems (25)</button>
       </div>
-      <div class="invest-row">
+      <div class="invest-row invest-row--recycle">
         <span id="recycle-name" class="invest-name">♻️ Recycling Loops</span>
         <span id="recycle-count" class="invest-count">0</span>
         <button id="recycle-invest-button" class="secondary">Recycling Loops (30)</button>
@@ -106,8 +128,16 @@
       <p class="meter-label">Trade network
         <details class="info-toggle"><summary>i</summary><p>The Trade Link works both ways: it imports reuse capacity from a neighboring system that counts toward closing your loop, and separately, whenever your own circularity investments produce more supply than this cycle's production target needs, that surplus is automatically sold outward for extra revenue instead of going to waste.</p></details>
       </p>
+      <div class="trade-route-visual" aria-hidden="true">
+        <div class="trade-route-hub trade-route-hub--home">🏭</div>
+        <div class="trade-route-path">
+          <span class="trade-route-arrow trade-route-arrow--out">▸</span>
+          <span class="trade-route-arrow trade-route-arrow--in">◂</span>
+        </div>
+        <div class="trade-route-hub trade-route-hub--partner">🌐</div>
+      </div>
       <p id="trade-network-display" class="comparison-message">Importing 0 units/cycle from the trade network; exporting 0 units/cycle of surplus this cycle.</p>
-      <div class="invest-row">
+      <div class="invest-row invest-row--trade">
         <span class="invest-name">🌐 Trade Link</span>
         <span id="trade-link-count" class="invest-count">0</span>
         <button id="trade-link-invest-button" class="secondary">Trade Link (25)</button>

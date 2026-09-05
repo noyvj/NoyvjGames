@@ -529,3 +529,413 @@ button.primary:active {
   border: 1px solid rgba(140, 160, 255, 0.14);
   border-radius: 8px;
 }
+
+/* ============================================================
+   Full visual pass — content-window redesign (2026-09-05)
+   Every section here was a stack of plain-text lines with a flat-color
+   meter underneath — functional, but reading as a spreadsheet rather
+   than a game screen. This section adds three CSS-drawn illustrations
+   themed to Loop's own systems (a closed-loop ring for circularity
+   investment, an extraction site with reactive smoke for environmental
+   damage, a two-way trade route for the import/export link), gives
+   every .section a colored left accent bar matching the hue its own
+   meter/particles already use, redraws the flat meter bars as chunkier
+   ticked/glowing HUD gauges, and turns the investment rows into small
+   accent-bordered tiles with an icon on each button. Pure CSS plus the
+   small decorative wrapper divs each illustration needs — no id/class
+   was renamed, no game.py touched, nothing here is read by game.py or
+   tests/ (checked: game.py only ever sets .innerText/.className/
+   .style.width/.style.opacity on the ids it already had). */
+
+/* --- Section cards: colored left accent bar per section, echoing the
+   hue each section's own meter/particle color already established
+   (extraction red-orange, circular green, trade blue, linear-flow
+   brown) — .section keeps the glass-panel treatment from the earlier
+   space-theme pass; this only thickens and tints its left edge. */
+.section {
+  border-left-width: 3px;
+  border-left-style: solid;
+  border-left-color: rgba(140, 160, 255, 0.35);
+}
+
+#chain-flow-section { border-left-color: #9c7a3c; }
+#status { border-left-color: #e0674c; }
+#circularity { border-left-color: #4c9c6e; }
+#trade-network { border-left-color: #4c8ed8; }
+#feedback-prompt { border-left-color: #6f6ab0; }
+
+/* --- Gauges: chunkier ticked, glowing HUD bar instead of the flat 8px
+   strip. game.py only ever writes inline `.style.width` on #damage-bar
+   / #circular-bar, so the visual language around that width is ours to
+   redraw; the established red/orange and green identities
+   (.meter-fill--extraction / .meter-fill--circular) are untouched. */
+.meter {
+  height: 14px;
+  border-radius: 7px;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.meter-fill {
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.meter-fill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent calc(10% - 1px),
+    rgba(0, 0, 0, 0.28) calc(10% - 1px),
+    rgba(0, 0, 0, 0.28) 10%
+  );
+}
+
+.meter-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  animation: meter-shimmer 2.6s ease-in-out infinite;
+}
+
+@keyframes meter-shimmer {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(340%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meter-fill::after { animation: none; display: none; }
+}
+
+/* --- Chain stages: stack the emoji above its label (previously an
+   inline "emoji<br>label") so each stage reads as a small icon tile
+   instead of two lines of plain text. Wrapping the existing static
+   text in spans doesn't touch anything game.py sets — it only ever
+   rewrites #stage-extract/#stage-discard's className, never their
+   contents. */
+.chain-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.chain-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.chain-label {
+  font-size: 0.7rem;
+}
+
+/* --- Illustration 1: the closed-loop ring. A literal ring of arrows
+   connecting the three circularity investments, sitting above the
+   invest rows in #circularity — the "redesign the machine, not survive
+   a meter" framing from CLAUDE.md made into a picture instead of a
+   sentence. Static/always-on rather than reactive to the actual
+   investment counts (game.py's render loop isn't touched), but themed
+   entirely to this game rather than reused from any other game. */
+.loop-ring {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  margin: 0.75rem auto 1.35rem;
+}
+
+.loop-ring-track {
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  border: 2px dashed rgba(76, 156, 110, 0.4);
+  animation: loop-ring-spin 18s linear infinite;
+}
+
+@keyframes loop-ring-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loop-ring-node {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.95), rgba(14, 16, 28, 0.95));
+  border: 1px solid rgba(76, 156, 110, 0.5);
+  box-shadow: 0 0 10px rgba(76, 156, 110, 0.35);
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.loop-ring-node--repair { top: 4%; left: 50%; }
+.loop-ring-node--reuse { top: 74%; left: 88%; }
+.loop-ring-node--recycle { top: 74%; left: 12%; }
+
+.loop-ring-arrow {
+  position: absolute;
+  font-size: 0.9rem;
+  color: #4c9c6e;
+  opacity: 0.75;
+  text-shadow: 0 0 6px rgba(76, 156, 110, 0.6);
+  z-index: 1;
+}
+
+.loop-ring-arrow--1 { top: 24%; left: 78%; transform: rotate(60deg); }
+.loop-ring-arrow--2 { top: 90%; left: 47%; transform: rotate(180deg); }
+.loop-ring-arrow--3 { top: 24%; left: 16%; transform: rotate(-60deg); }
+
+.loop-ring-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, rgba(76, 156, 110, 0.25), transparent 75%);
+  z-index: 1;
+  animation: loop-core-pulse 3s ease-in-out infinite;
+}
+
+.loop-ring-core-glyph {
+  font-size: 1.3rem;
+  color: #4c9c6e;
+  text-shadow: 0 0 10px rgba(76, 156, 110, 0.6);
+}
+
+@keyframes loop-core-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loop-ring-track { animation: none; }
+  .loop-ring-core { animation: none; }
+}
+
+/* --- Illustration 2: the extraction site. A small illustrated
+   quarry/derrick with a smokestack, sitting at the top of #status —
+   the visual counterpart to "Environmental damage" and the extraction-
+   cost multiplier the section already states in words. The smoke
+   thickens and reddens once damage climbs past roughly half via
+   `:has()` reading #damage-bar's own inline width string — progressive
+   enhancement only: browsers without `:has()` just keep the calm
+   default, nothing else changes, no game.py hook needed. */
+.extraction-site {
+  position: relative;
+  width: 110px;
+  height: 84px;
+  margin: 0.25rem auto 1.1rem;
+}
+
+.extraction-site-glow {
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(224, 103, 76, 0.35), transparent 70%);
+  filter: blur(10px);
+  z-index: 0;
+  transition: background 0.4s ease;
+}
+
+.extraction-site-mound {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 34px;
+  border-radius: 50% 50% 8px 8px / 60% 60% 8px 8px;
+  background: linear-gradient(180deg, #6b5138, #3c2c1c);
+  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.4);
+  z-index: 1;
+}
+
+.extraction-site-rig {
+  position: absolute;
+  bottom: 26px;
+  left: 14px;
+  width: 30px;
+  height: 40px;
+  z-index: 2;
+  background:
+    linear-gradient(90deg, transparent 45%, rgba(70, 74, 90, 0.9) 45%, rgba(70, 74, 90, 0.9) 55%, transparent 55%),
+    linear-gradient(35deg, transparent 48%, rgba(70, 74, 90, 0.9) 48%, rgba(70, 74, 90, 0.9) 52%, transparent 52%),
+    linear-gradient(-35deg, transparent 48%, rgba(70, 74, 90, 0.9) 48%, rgba(70, 74, 90, 0.9) 52%, transparent 52%);
+}
+
+.extraction-site-stack {
+  position: absolute;
+  bottom: 30px;
+  right: 16px;
+  width: 12px;
+  height: 34px;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(180deg, #8a5c4c, #55362c);
+  z-index: 2;
+  box-shadow: inset -2px 0 4px rgba(0, 0, 0, 0.4);
+}
+
+.extraction-smoke {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(180, 180, 190, 0.55), transparent 70%);
+  opacity: 0;
+  animation: smoke-rise 4s ease-in infinite;
+}
+
+.extraction-smoke--a { animation-delay: 0s; }
+.extraction-smoke--b { animation-delay: 1.3s; left: 40%; }
+.extraction-smoke--c { animation-delay: 2.6s; left: 60%; }
+
+@keyframes smoke-rise {
+  0% { transform: translateY(0) scale(0.6); opacity: 0; }
+  15% { opacity: 0.6; }
+  100% { transform: translateY(-46px) scale(1.6); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .extraction-smoke { animation: none; opacity: 0.3; }
+}
+
+#status:has(#damage-bar[style*="width: 5"]) .extraction-smoke,
+#status:has(#damage-bar[style*="width: 6"]) .extraction-smoke,
+#status:has(#damage-bar[style*="width: 7"]) .extraction-smoke,
+#status:has(#damage-bar[style*="width: 8"]) .extraction-smoke,
+#status:has(#damage-bar[style*="width: 9"]) .extraction-smoke,
+#status:has(#damage-bar[style*="width: 100%"]) .extraction-smoke {
+  background: radial-gradient(circle, rgba(224, 103, 76, 0.75), transparent 70%);
+  box-shadow: 0 0 8px rgba(224, 103, 76, 0.4);
+}
+
+#status:has(#damage-bar[style*="width: 5"]) .extraction-site-glow,
+#status:has(#damage-bar[style*="width: 6"]) .extraction-site-glow,
+#status:has(#damage-bar[style*="width: 7"]) .extraction-site-glow,
+#status:has(#damage-bar[style*="width: 8"]) .extraction-site-glow,
+#status:has(#damage-bar[style*="width: 9"]) .extraction-site-glow,
+#status:has(#damage-bar[style*="width: 100%"]) .extraction-site-glow {
+  background: radial-gradient(circle, rgba(224, 103, 76, 0.55), transparent 70%);
+}
+
+/* --- Illustration 3: the trade route. Two hubs (this system, the
+   neighboring one) linked by a dashed path with an outbound and an
+   inbound arrow animating in opposite directions — the two-way import/
+   export link #trade-network already describes in one sentence, drawn
+   out as a picture. Sits above that sentence. */
+.trade-route-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.trade-route-hub {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.9), rgba(14, 16, 28, 0.9));
+  border: 1px solid rgba(76, 142, 216, 0.5);
+  box-shadow: 0 0 10px rgba(76, 142, 216, 0.3);
+}
+
+.trade-route-path {
+  position: relative;
+  flex: 1;
+  max-width: 110px;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, rgba(76, 142, 216, 0.5) 0 6px, transparent 6px 12px);
+}
+
+.trade-route-arrow {
+  position: absolute;
+  font-size: 0.85rem;
+  color: #4c8ed8;
+  text-shadow: 0 0 6px rgba(76, 142, 216, 0.7);
+}
+
+.trade-route-arrow--out {
+  top: -11px;
+  animation: trade-route-out 2.4s ease-in-out infinite;
+}
+
+.trade-route-arrow--in {
+  top: 6px;
+  animation: trade-route-in 2.4s ease-in-out infinite;
+}
+
+@keyframes trade-route-out {
+  0% { left: 0%; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { left: 92%; opacity: 0; }
+}
+
+@keyframes trade-route-in {
+  0% { left: 92%; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { left: 0%; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trade-route-arrow { animation: none; opacity: 0.7; left: 45%; }
+}
+
+/* --- Investment tiles: each repair/reuse/recycle/trade-link row gets a
+   full border + a colored left edge matching its icon (steel-blue for
+   Repair, trade-blue for Reuse, circular-green for Recycle, trade-blue
+   again for the Trade Link, since it's the same trade-network hue),
+   turning what was a plain divider-separated list into a small grid of
+   cards. Buttons get their own icon so the action tile reads at a
+   glance without leaning on the name span above it. */
+.invest-row {
+  border: 1px solid rgba(140, 160, 255, 0.12);
+  border-left-width: 3px;
+  border-left-style: solid;
+  border-radius: 10px;
+  padding: 0.5rem 0.6rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.025), transparent);
+}
+
+.invest-row:last-child {
+  margin-bottom: 0;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+}
+
+.invest-row--repair { border-left-color: #6f9fe0; }
+.invest-row--reuse { border-left-color: #4c8ed8; }
+.invest-row--recycle { border-left-color: #4c9c6e; }
+.invest-row--trade { border-left-color: #4c8ed8; }
+
+#repair-invest-button::before { content: "\1F527 "; }
+#reuse-invest-button::before { content: "\1F504 "; }
+#recycle-invest-button::before { content: "\267B\FE0F "; }
+#trade-link-invest-button::before { content: "\1F310 "; }
