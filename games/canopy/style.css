@@ -748,3 +748,102 @@ button.secondary:disabled {
   font-size: 1.3rem;
   line-height: 1;
 }
+
+/* ============================================================
+   Design pass 2 — embed controls & readouts into the console
+   (2026-09-06). The full visual pass above gave Canopy an
+   illustrated forest scene and HUD-card sections, but the
+   buttons and numbers inside those cards still read as generic
+   flat web UI dropped on top, not something physically part of
+   the console the player is operating. This pass gives labels a
+   mounted "nameplate" look, numeric readouts a recessed digital-
+   screen look, and buttons a physical beveled-switch look with a
+   status LED — in Canopy's own forest palette (a green console
+   glow, the same leaf green already used for feedback's selected
+   state, not SOL's blue) rather than SOL's exact colors. Pure CSS
+   on existing selectors — no new elements, no id/class changes,
+   nothing game.py touches.
+   ============================================================ */
+
+/* --- Nameplates: labels read as a small plate mounted on the
+   console rather than plain floating text. Each legend entry
+   (swatch + name + info toggle) becomes one mounted plate, and
+   the feedback prompt's question becomes the plate label sitting
+   above its own Yes/No switches — the same "label plate
+   introduces a bank of buttons" relationship SOL uses for its
+   governor/travel labels. */
+.legend-item,
+.feedback-question {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.6rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.22));
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 -1px 2px rgba(0, 0, 0, 0.28), 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+/* --- Recessed digital-screen readouts: the numbers this game is
+   actually about — harvested income vs. standing forest value,
+   the selected plot's live detail, the state tally, community
+   relations — sit inside a glass-fronted display cut into the
+   console face instead of floating on the card background.
+   Scanline texture + a faint green glow (Canopy's own forest
+   accent) reinforce "screen," not "text." state-breakdown/
+   community-relations keep their existing pill shape; the others
+   get the squarer console-readout corners. */
+.income-display,
+.selected-plot-state,
+.state-breakdown,
+.community-relations {
+  display: inline-block;
+  padding: 0.35rem 0.85rem;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 3px),
+    radial-gradient(ellipse at 50% 20%, rgba(120, 200, 140, 0.12), transparent 70%),
+    rgba(4, 8, 5, 0.6);
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.55), inset 0 0 18px rgba(90, 160, 110, 0.12);
+}
+
+.state-breakdown,
+.community-relations {
+  border-radius: 999px;
+}
+
+/* --- Physical console switches: every button in this game
+   shares `button.secondary` (Clear/Replant, Grant/Decline,
+   Yes/No, Submit feedback, the info-page toggle) — give them all
+   a stronger bevel (outer drop shadow, inset highlight, inset
+   dark edge, plus a subtle outer ring) and a small status LED
+   that's genuinely wired to the button's own :disabled state —
+   green and glowing when actionable, dim grey when not. A real
+   functional indicator, not decoration. Plot tiles are left
+   alone: they're terrain with their own state-color/icon
+   language, not switches. */
+button.secondary {
+  position: relative;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.22),
+    0 0 0 3px rgba(0, 0, 0, 0.22);
+}
+
+button.secondary::after {
+  content: "";
+  position: absolute;
+  top: 0.5rem;
+  right: 0.55rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6fd88a;
+  box-shadow: 0 0 6px 1px rgba(111, 216, 138, 0.85);
+}
+
+button.secondary:disabled::after {
+  background: #4a5450;
+  box-shadow: none;
+}
