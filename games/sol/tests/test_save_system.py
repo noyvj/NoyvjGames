@@ -105,6 +105,58 @@ def test_deserialize_state_tolerates_a_save_missing_a_newer_planet_field(game_en
     game_env.module.tick()  # must not raise KeyError
 
 
+def test_deserialize_state_tolerates_a_save_missing_a_top_level_scalar(game_env):
+    """Same bug class one level further OUT: the planet_state merge fix
+    (and its per-planet-field follow-up) only protects the nested
+    dictionaries. deserialize_state() still read every top-level scalar
+    (research_progress, completed_tiers, unlocked_bodies, current_planet,
+    governor_priority, governor_budget_pct, governor_tick_count) via bare
+    `data["key"]` indexing, so a save missing any single one of these --
+    a corrupted payload, or a hand-edited/truncated save code -- would
+    KeyError immediately inside deserialize_state() itself, before the
+    game even got as far as the next tick(). Missing a top-level scalar
+    must fall back to whatever is already live instead of crashing, same
+    "never let a partial save nuke the game" principle as the nested
+    fixes."""
+    game_env.click("Earth")
+    game_env.module.unlocked_bodies.add("Mars")
+    game_env.travel_to_mars()
+    game_env.module.governor_priority = "ecology"
+    game_env.module.governor_budget_pct = 75.0
+    game_env.module.governor_tick_count = 3
+    game_env.module.on_fund_research(None)  # nudge research_progress off zero
+    full_snapshot = game_env.module.serialize_state()
+
+    top_level_scalar_keys = [
+        "research_progress",
+        "completed_tiers",
+        "unlocked_bodies",
+        "current_planet",
+        "governor_priority",
+        "governor_budget_pct",
+        "governor_tick_count",
+    ]
+    for key in top_level_scalar_keys:
+        partial_save = dict(full_snapshot)
+        del partial_save[key]
+
+        game_env.module.deserialize_state(partial_save)  # must not raise KeyError
+        game_env.module.tick()  # must not raise KeyError either
+        game_env.module._full_render()
+
+
+def test_deserialize_state_tolerates_a_save_missing_planet_state_entirely(game_env):
+    """Defense-in-depth companion to the scalar test above: even the
+    top-level "planet_state" key itself must not be assumed present."""
+    game_env.click("Earth")
+    full_snapshot = game_env.module.serialize_state()
+    partial_save = dict(full_snapshot)
+    del partial_save["planet_state"]
+
+    game_env.module.deserialize_state(partial_save)  # must not raise KeyError
+    game_env.module.tick()  # must not raise KeyError
+
+
 def test_deserialize_state_restores_scalar_globals(game_env):
     game_env.module.unlocked_bodies.add("Mars")
     game_env.travel_to_mars()

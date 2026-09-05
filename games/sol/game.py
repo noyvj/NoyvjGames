@@ -1272,18 +1272,27 @@ def deserialize_state(data):
     # freshly-initialized default for the missing field, and the very
     # next access (tick()'s terraform step, current_trade_destination(),
     # _buy_sky_city()) would KeyError and crash the game.
-    for planet, saved_planet_state in data["planet_state"].items():
+    #
+    # And the same reasoning applies one level further OUT: every
+    # top-level scalar (plus "planet_state" itself) is read with a
+    # `.get(..., <current live value>)` fallback rather than bare `[...]`
+    # indexing, so a save missing any single top-level field -- a
+    # corrupted payload, or a hand-edited/truncated save code -- falls
+    # back to whatever is already running instead of KeyError-ing inside
+    # deserialize_state() itself, before the game even gets as far as the
+    # next tick().
+    for planet, saved_planet_state in data.get("planet_state", {}).items():
         if planet in planet_state:
             planet_state[planet].update(saved_planet_state)
         else:
             planet_state[planet] = saved_planet_state
-    research_progress = data["research_progress"]
-    completed_tiers = data["completed_tiers"]
-    unlocked_bodies = set(data["unlocked_bodies"])
-    current_planet = data["current_planet"]
-    governor_priority = data["governor_priority"]
-    governor_budget_pct = data["governor_budget_pct"]
-    governor_tick_count = data["governor_tick_count"]
+    research_progress = data.get("research_progress", research_progress)
+    completed_tiers = data.get("completed_tiers", completed_tiers)
+    unlocked_bodies = set(data.get("unlocked_bodies", unlocked_bodies))
+    current_planet = data.get("current_planet", current_planet)
+    governor_priority = data.get("governor_priority", governor_priority)
+    governor_budget_pct = data.get("governor_budget_pct", governor_budget_pct)
+    governor_tick_count = data.get("governor_tick_count", governor_tick_count)
 
 
 def get_save_state_json():
