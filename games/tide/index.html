@@ -33,8 +33,10 @@
       <p id="season-display" class="status-line">Season 1</p>
       <p id="funds-display" class="status-line">Funds: 300</p>
       <p id="acidity-display" class="status-line">Ocean acidity: 0.0</p>
+      <details class="info-toggle"><summary>i</summary><p>Ocean acidity doesn't hurt you right away — it only affects fishing yield after a delay of several seasons, so acidity you raise now shows up as a fish-stock problem later, not immediately.</p></details>
       <div class="meter"><div id="acidity-bar" class="meter-fill meter-fill--acidity"></div></div>
       <p id="fish-yield-display" class="status-line">Fishing yield: 100%</p>
+      <details class="info-toggle"><summary>i</summary><p>This reflects ocean acidity from 3 seasons ago, not today's acidity — the delay is deliberate. Fish stocks won't crash the moment acidity rises, but they also won't recover the moment you fix it.</p></details>
       <div class="meter"><div id="fish-yield-bar" class="meter-fill meter-fill--fish"></div></div>
       <p class="meter-label">Delayed effects</p>
       <p id="ticker-log" class="comparison-message">No notable changes yet.</p>
@@ -42,11 +44,13 @@
 
     <div id="sea-level-section" class="section sea-level-section">
       <p id="sea-level-display" class="status-line">Sea level: 0</p>
+      <details class="info-toggle"><summary>i</summary><p>Sea level keeps rising every season no matter what you do — nothing stops or slows the rise itself. Adaptation investment only reduces how much economic damage that rise causes, not the rise itself.</p></details>
       <div class="meter"><div id="sea-level-bar" class="meter-fill meter-fill--sea-level"></div></div>
       <p id="damage-display" class="status-line">Cumulative damage: 0</p>
       <p id="damage-saved-display" class="comparison-message">No adaptation investment yet — every season of sea-level rise is hitting at full force.</p>
       <p id="damage-trend-display" class="comparison-message">Not enough seasons yet to show a trend.</p>
       <p id="adaptation-tier-display" class="status-line">Adaptation tier: No adaptation (0% damage dampening)</p>
+      <details class="info-toggle"><summary>i</summary><p>Adaptation tiers unlock at fixed total-investment thresholds (3, 6, then 10 units) — it's cumulative and never decays, so spreading investment out over many seasons works just as well as investing it all at once.</p></details>
       <p id="adaptation-tier-progress" class="comparison-message">0/3 invested toward Sandbag berms (next tier).</p>
     </div>
 
