@@ -33,6 +33,16 @@
     <div id="status" class="section">
       <p id="progress-display" class="status-line">Event 1 of 7</p>
       <p id="next-event-display" class="status-line">Next: Flood</p>
+      <div class="event-visual" aria-hidden="true">
+        <div class="event-visual-storm">
+          <div class="event-visual-cloud"></div>
+          <div class="event-visual-rain"></div>
+        </div>
+        <div class="event-visual-signal">
+          <div class="event-visual-tower"></div>
+          <div class="event-visual-pulse"></div>
+        </div>
+      </div>
       <p id="last-event-display" class="status-line"></p>
       <details class="info-toggle"><summary>i</summary><p>Event severity (mild/typical/severe) isn't random — it's a fixed pattern per run number, so replaying the same run always faces the same challenge. Your first run is always "typical." From run 2 onward, the spread widens the more resilience skills you've unlocked overall — a stronger skill tree can hit lower lows and higher highs, not just an easier flat curve.</p></details>
       <p id="resources-display" class="status-line">Resources: 200</p>
@@ -44,6 +54,19 @@
       <div class="meter"><div id="mitigation-bar" class="meter-fill meter-fill--mitigation"></div></div>
       <p id="run-summary-display" class="comparison-message"></p>
       <p id="progress-comparison-display" class="comparison-message">Play more runs to see how far you've come.</p>
+
+      <div class="settlement-visual" aria-hidden="true">
+        <div class="settlement-visual-sky"></div>
+        <div class="settlement-visual-glow"></div>
+        <div class="settlement-building settlement-building--a"></div>
+        <div class="settlement-building settlement-building--b"></div>
+        <div class="settlement-building settlement-building--c"></div>
+        <div class="settlement-building settlement-building--d"></div>
+        <div class="settlement-visual-shield"></div>
+        <div class="settlement-visual-ground"></div>
+        <div class="settlement-damage settlement-damage--a"></div>
+        <div class="settlement-damage settlement-damage--b"></div>
+      </div>
     </div>
 
     <div id="actions" class="section">
@@ -59,16 +82,19 @@
       <p id="knowledge-points-display" class="status-line">Resilience knowledge: 0</p>
       <details class="info-toggle"><summary>i</summary><p>Knowledge earned per run is your leftover resources divided by 20, rounded — but never zero, even after a terrible run. Unlocked skills below are permanent: they carry into every future run, unlike Resilience/Growth investment, which resets to a fresh start each run.</p></details>
       <div class="skill-row" data-skill="reinforced_infrastructure">
+        <span class="skill-node" aria-hidden="true"></span>
         <span class="skill-status" id="skill-reinforced_infrastructure-status">Reinforced Infrastructure — +2 starting resilience capacity</span>
         <button id="skill-reinforced_infrastructure-unlock-button" class="secondary" disabled>Loading...</button>
         <p class="skill-practice" id="skill-reinforced_infrastructure-practice"></p>
       </div>
       <div class="skill-row" data-skill="community_reserves">
+        <span class="skill-node" aria-hidden="true"></span>
         <span class="skill-status" id="skill-community_reserves-status">Community Reserves — +50 starting resources</span>
         <button id="skill-community_reserves-unlock-button" class="secondary" disabled>Loading...</button>
         <p class="skill-practice" id="skill-community_reserves-practice"></p>
       </div>
       <div class="skill-row" data-skill="early_warning">
+        <span class="skill-node" aria-hidden="true"></span>
         <span class="skill-status" id="skill-early_warning-status">Early Warning Systems — +10% mitigation on all events</span>
         <button id="skill-early_warning-unlock-button" class="secondary" disabled>Loading...</button>
         <p class="skill-practice" id="skill-early_warning-practice"></p>
