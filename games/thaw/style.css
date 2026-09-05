@@ -333,3 +333,71 @@ button.primary:active {
   opacity: 1;
   text-decoration: underline;
 }
+
+/* Icon labels — pure CSS, no markup/game.py change. Funds, global
+   temperature and the melt-status line each follow a consistent
+   id-suffix naming convention shared by the main region and both
+   comparison regions ("funds-display"/"b-funds-display"/
+   "c-funds-display", "temperature-display"/"b-temperature-display"/
+   "c-temperature-display", "melt-status-display"/
+   "b-melt-status-display"/"c-melt-status-display"), so one
+   `[id$="..."]` attribute-selector per concept reaches the main
+   dashboard and both region cards at once. The warming-rate/dampening
+   readouts and the three investment-row names only exist on the main
+   dashboard (regions B/C don't render them), so those use their exact
+   ids. Breaks up the numbers-only/plain-label readout with a small
+   icon per concept, without touching `.melt-status--active`'s color,
+   `.dampening-flash`/`.mini-temp-line`'s colors, or the
+   tipping-point-flash/intervention-flash keyframes — those stay
+   exactly as they were. */
+[id$="funds-display"]::before {
+  content: "💰 ";
+}
+
+[id$="temperature-display"]::before {
+  content: "🌡️ ";
+}
+
+[id$="melt-status-display"]::before {
+  content: "🧊 ";
+}
+
+#rise-rate-display::before {
+  content: "📈 ";
+}
+
+#dampening-display::before {
+  content: "🛡️ ";
+}
+
+#preserve-name::before {
+  content: "🛡️ ";
+}
+
+#monitor-name::before {
+  content: "📡 ";
+}
+
+#output-name::before {
+  content: "⚙️ ";
+}
+
+.region-card-label::before {
+  content: "📊 ";
+}
+
+.meter-label::before {
+  content: "📊 ";
+}
+
+/* Small chip treatment for the investment-count numbers — a bare
+   number reads better as a small rounded badge next to its row's
+   name/button, both on the main dashboard and inside the region
+   cards. Layout-only change on an existing element, no new markup. */
+.invest-count {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(140, 160, 255, 0.12);
+  border: 1px solid rgba(140, 160, 255, 0.18);
+}
