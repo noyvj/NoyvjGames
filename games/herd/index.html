@@ -23,6 +23,22 @@
     <p class="tagline">Grow a farm. Herd size and methane emissions are coupled by default — decoupling them takes deliberate investment.</p>
     <p class="context-blurb">Methane is a far more potent greenhouse gas than CO2 over the short term — roughly 80x stronger over 20 years — which makes industrial agriculture's methane output an outsized lever for near-term warming, even though it fades from the atmosphere faster than CO2 does.</p>
 
+    <div class="pasture-visual" aria-hidden="true">
+      <div class="pasture-visual-sky"></div>
+      <div class="pasture-visual-sun"></div>
+      <div class="pasture-visual-cloud pasture-visual-cloud--a"></div>
+      <div class="pasture-visual-cloud pasture-visual-cloud--b"></div>
+      <div class="pasture-visual-hill pasture-visual-hill--back"></div>
+      <div class="pasture-visual-hill pasture-visual-hill--front"></div>
+      <div class="pasture-visual-herd">
+        <div class="pasture-visual-cow pasture-visual-cow--a"><span class="pasture-visual-wisp"></span></div>
+        <div class="pasture-visual-cow pasture-visual-cow--b"></div>
+        <div class="pasture-visual-cow pasture-visual-cow--c"><span class="pasture-visual-wisp"></span></div>
+        <div class="pasture-visual-cow pasture-visual-cow--d"></div>
+        <div class="pasture-visual-cow pasture-visual-cow--e"></div>
+      </div>
+    </div>
+
     <button id="info-page-toggle-button" class="secondary info-page-toggle">Loading...</button>
     <div id="info-page-panel" class="section" hidden>
       <p id="info-page-framing" class="info-page-framing"></p>
@@ -31,7 +47,13 @@
     </div>
 
     <div id="gauge-section" class="section">
-      <div id="coupling-gauge"></div>
+      <div class="gauge-dial-frame">
+        <div id="coupling-gauge"></div>
+        <div class="gauge-tick-row">
+          <span class="gauge-tick-label gauge-tick-label--low">CLEAN</span>
+          <span class="gauge-tick-label gauge-tick-label--high">HIGH</span>
+        </div>
+      </div>
       <p id="coupling-gauge-label" class="comparison-message">Emissions per herd unit: 1.00 methane/round</p>
       <details class="info-toggle"><summary>i</summary><p>This tracks methane produced per herd unit, not your total emissions — it only falls when you invest in the decoupling measures below, not by shrinking your herd. Total accumulated methane keeps rising every round as long as you have any herd at all, even at the lowest possible ratio.</p></details>
     </div>
@@ -83,13 +105,13 @@
       </div>
     </div>
 
-    <button id="advance-round-button" class="primary">Advance Round</button>
+    <button id="advance-round-button" class="primary">⏭️ Advance Round</button>
 
     <div id="feedback-prompt" class="section">
       <p class="feedback-question">Did this change how you think about industrial agriculture &amp; methane emissions?</p>
       <div class="feedback-buttons">
-        <button id="feedback-yes-button" class="secondary">Yes</button>
-        <button id="feedback-no-button" class="secondary">No</button>
+        <button id="feedback-yes-button" class="secondary">👍 Yes</button>
+        <button id="feedback-no-button" class="secondary">👎 No</button>
       </div>
       <textarea id="feedback-comment" class="feedback-comment" placeholder="One more thought? (optional)"></textarea>
       <button id="feedback-submit-button" class="secondary" disabled>Select Yes or No first</button>

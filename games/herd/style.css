@@ -314,17 +314,12 @@ button.primary:active {
   content: "🌱 ";
 }
 
-#feed-name::before {
-  content: "🌾 ";
-}
-
-#caps-name::before {
-  content: "🚧 ";
-}
-
-#capture-name::before {
-  content: "🏭 ";
-}
+/* feed-name/caps-name/capture-name no longer get a duplicate ::before
+   icon here — game.py's own innerText already prepends each measure's
+   icon (f"{spec['icon']} {spec['label']}"), so a CSS-added icon on top
+   of that rendered as two copies of the same glyph. The Full visual
+   pass below gives each .invest-row its own larger icon medallion
+   instead (via [data-measure] ::before on the row, not the name span). */
 
 /* Investment counts read better as small chips than bare numbers —
    rounded/padded/subtly bordered, using the same violet-tinted glass
@@ -388,4 +383,357 @@ button.primary:active {
   background: rgba(5, 6, 13, 0.5);
   border: 1px solid rgba(140, 160, 255, 0.14);
   border-radius: 8px;
+}
+
+/* ============================================================
+   Full visual pass — content-window redesign (2026-09-05)
+   Herd was a stack of plain text lines with a flat-color meter
+   and one existing SVG dial. This section adds a CSS-drawn
+   illustrated pasture scene (sky, sun, grazing herd, rising
+   methane wisps) as the hero visual, a dial-housing frame around
+   the existing coupling gauge, restyles every .section into a
+   distinct HUD card with a colored accent bar, redraws the meter
+   as a segmented glowing gauge, and turns the decoupling/pivot
+   rows into icon-medallion tiles. Pure CSS plus small decorative
+   wrapper divs (same technique as games/sol/style.css) — no
+   id/class renames, no game.py changes, nothing touched that any
+   test or the innerText-driven render loop depends on. Palette
+   stays inside Herd's existing violet-glass + pastoral-gold/green
+   theme (see CLAUDE.md's Sep 2026 tech note) rather than importing
+   SOL's space palette.
+   ============================================================ */
+
+/* --- Pasture visual (hero illustration) --- */
+.pasture-visual {
+  position: relative;
+  width: 100%;
+  height: 150px;
+  margin: 0 0 1.25rem;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.25), 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+.pasture-visual-sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #bfe3f2 0%, #eaf2c2 60%, #dcecac 100%);
+}
+
+.pasture-visual-sun {
+  position: absolute;
+  top: 14px;
+  right: 20px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff6cf 0%, #ffe28a 55%, rgba(255, 226, 138, 0) 75%);
+  box-shadow: 0 0 22px rgba(255, 226, 138, 0.7);
+}
+
+.pasture-visual-cloud {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.75);
+  filter: blur(1px);
+  animation: cloud-drift 40s linear infinite;
+}
+
+.pasture-visual-cloud--a {
+  width: 46px;
+  height: 16px;
+  top: 18px;
+  left: -20%;
+  box-shadow: 16px 6px 0 -2px rgba(255, 255, 255, 0.75), -14px 4px 0 -3px rgba(255, 255, 255, 0.6);
+}
+
+.pasture-visual-cloud--b {
+  width: 34px;
+  height: 12px;
+  top: 42px;
+  left: -40%;
+  opacity: 0.7;
+  animation-duration: 55s;
+  animation-delay: -20s;
+  box-shadow: 12px 4px 0 -2px rgba(255, 255, 255, 0.65);
+}
+
+@keyframes cloud-drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(420px); }
+}
+
+.pasture-visual-hill {
+  position: absolute;
+  left: -10%;
+  width: 120%;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+}
+
+.pasture-visual-hill--back {
+  bottom: -14px;
+  height: 60px;
+  background:
+    radial-gradient(circle at 20% 100%, rgba(255, 255, 255, 0.12) 0 3px, transparent 4px) 0 0/24px 24px,
+    linear-gradient(180deg, #a9c97e 0%, #8bb768 100%);
+  opacity: 0.85;
+}
+
+.pasture-visual-hill--front {
+  bottom: -20px;
+  height: 46px;
+  background:
+    repeating-linear-gradient(100deg, rgba(255, 255, 255, 0.08) 0 2px, transparent 2px 10px),
+    linear-gradient(180deg, #74a54e 0%, #4f7e35 100%);
+}
+
+.pasture-visual-herd {
+  position: absolute;
+  inset: 0;
+}
+
+.pasture-visual-cow {
+  position: absolute;
+  bottom: 14px;
+  width: 26px;
+  height: 17px;
+  border-radius: 48% 52% 45% 55% / 62% 58% 42% 38%;
+  background:
+    radial-gradient(circle at 28% 30%, rgba(45, 38, 30, 0.85) 0 24%, transparent 25%),
+    radial-gradient(circle at 68% 62%, rgba(45, 38, 30, 0.85) 0 20%, transparent 21%),
+    linear-gradient(160deg, #fdfaf1, #e7dfc9);
+  box-shadow: inset -3px -3px 4px rgba(0, 0, 0, 0.18);
+  animation: cow-graze 4.5s ease-in-out infinite;
+}
+
+.pasture-visual-cow::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  width: 10px;
+  height: 9px;
+  border-radius: 50%;
+  background: linear-gradient(160deg, #6b5a45, #47392b);
+}
+
+.pasture-visual-cow--a { left: 8%; bottom: 16px; animation-delay: 0s; }
+.pasture-visual-cow--a::before { left: -4px; }
+.pasture-visual-cow--b { left: 24%; bottom: 10px; transform: scale(0.85); animation-delay: -1.2s; }
+.pasture-visual-cow--b::before { right: -4px; }
+.pasture-visual-cow--c { left: 45%; bottom: 18px; animation-delay: -2.4s; }
+.pasture-visual-cow--c::before { left: -4px; }
+.pasture-visual-cow--d { left: 63%; bottom: 9px; transform: scale(0.8); animation-delay: -3.1s; }
+.pasture-visual-cow--d::before { right: -4px; }
+.pasture-visual-cow--e { left: 80%; bottom: 15px; transform: scale(0.92); animation-delay: -0.6s; }
+.pasture-visual-cow--e::before { left: -4px; }
+
+@keyframes cow-graze {
+  0%, 100% { transform: translateY(0) scale(var(--cow-scale, 1)); }
+  50% { transform: translateY(-1.5px) scale(var(--cow-scale, 1)); }
+}
+
+.pasture-visual-wisp {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(176, 111, 214, 0.55), rgba(176, 111, 214, 0));
+  filter: blur(1px);
+  animation: wisp-rise 3.6s ease-out infinite;
+}
+
+.pasture-visual-cow--c .pasture-visual-wisp {
+  animation-delay: -1.8s;
+}
+
+@keyframes wisp-rise {
+  0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
+  25% { opacity: 0.8; }
+  100% { transform: translate(-50%, -34px) scale(1.4); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pasture-visual-cloud,
+  .pasture-visual-cow,
+  .pasture-visual-wisp {
+    animation: none;
+  }
+}
+
+/* --- Section cards: give every .section a genuine HUD-card
+   treatment (fuller border, deeper shadow, rounded corners) with a
+   colored left accent bar per section identity, instead of the flat
+   single-tone panel every block previously shared. */
+.section {
+  border-left: 3px solid rgba(140, 160, 255, 0.4);
+  border-radius: 12px;
+  padding: 1.1rem 1.1rem 1.3rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+#gauge-section { border-left-color: #e0674c; }
+#status { border-left-color: #6f9fe0; }
+#actions { border-left-color: #8a6a3c; }
+#decoupling { border-left-color: #4c9c6e; }
+#plant-pivot { border-left-color: #7fd6a3; }
+#feedback-prompt { border-left-color: #b57de0; }
+#info-page-panel { border-left-color: #5b6ee1; }
+
+/* --- Gauge dial housing: frame the existing SVG dial (game.py owns
+   #coupling-gauge's innerHTML entirely — it's redrawn every render, so
+   nothing is added inside it) with a bezel and CLEAN/HIGH tick labels
+   as siblings around it instead. */
+.gauge-dial-frame {
+  max-width: 260px;
+  margin: 0 auto;
+  padding: 0.75rem 0.9rem 0.6rem;
+  background: radial-gradient(ellipse at 50% 100%, rgba(224, 103, 76, 0.1), transparent 70%);
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  border-bottom: none;
+  border-radius: 130px 130px 0 0;
+}
+
+.gauge-tick-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: -0.35rem;
+}
+
+.gauge-tick-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  opacity: 0.65;
+}
+
+.gauge-tick-label--low {
+  color: #4c9c6e;
+}
+
+.gauge-tick-label--high {
+  color: #e0674c;
+}
+
+/* --- Meter: replace the flat fill with a segmented, ticked, glowing
+   HUD gauge. game.py only ever writes inline .style.width on
+   #methane-bar, so the visual language around that width is ours to
+   redraw; .meter-fill--methane's own gradient/glow stays untouched. */
+.meter {
+  height: 14px;
+  border-radius: 7px;
+  position: relative;
+}
+
+.meter-fill {
+  position: relative;
+  overflow: hidden;
+}
+
+.meter-fill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent calc(10% - 1px),
+    rgba(0, 0, 0, 0.25) calc(10% - 1px),
+    rgba(0, 0, 0, 0.25) 10%
+  );
+}
+
+.meter-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: meter-shimmer 2.6s ease-in-out infinite;
+}
+
+@keyframes meter-shimmer {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(340%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meter-fill::after { animation: none; display: none; }
+}
+
+/* --- Investment rows as icon-medallion tiles: name/count on the top
+   row next to a themed icon badge, button spanning full width below
+   for a bigger tap target. Uses the existing data-measure attribute
+   already on each .invest-row — no HTML change needed beyond that. */
+.invest-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas:
+    "icon name count"
+    "button button button";
+  gap: 0.3rem 0.7rem;
+  padding: 0.7rem 0.75rem;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+  border: 1px solid rgba(140, 160, 255, 0.12);
+  border-radius: 10px;
+  margin-bottom: 0.6rem;
+}
+
+.invest-row:last-child {
+  margin-bottom: 0;
+  /* Each row is now a self-contained bordered tile, not a divided list
+     item, so the old "no divider after the last row" rule (which
+     zeroed out border-bottom specifically) would leave the last tile's
+     box open on one side — restore its bottom border to match. */
+  border-bottom: 1px solid rgba(140, 160, 255, 0.12);
+}
+
+.invest-row::before {
+  grid-area: icon;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  font-size: 1.05rem;
+  background: rgba(140, 160, 255, 0.1);
+  border: 1px solid rgba(140, 160, 255, 0.18);
+}
+
+.invest-row[data-measure="feed"]::before { content: "🌾"; background: rgba(76, 156, 110, 0.14); border-color: rgba(76, 156, 110, 0.3); }
+.invest-row[data-measure="caps"]::before { content: "🚧"; background: rgba(224, 162, 76, 0.14); border-color: rgba(224, 162, 76, 0.3); }
+.invest-row[data-measure="capture"]::before { content: "♻️"; background: rgba(76, 156, 110, 0.14); border-color: rgba(76, 156, 110, 0.3); }
+.invest-row[data-measure="plant-pivot"]::before { content: "🌿"; background: rgba(127, 214, 163, 0.16); border-color: rgba(127, 214, 163, 0.32); }
+
+.invest-name {
+  grid-area: name;
+}
+
+.invest-count {
+  grid-area: count;
+}
+
+.invest-row button {
+  grid-area: button;
+  margin-top: 0.2rem;
+}
+
+/* --- Grow-herd action tile: stack the icon above the label like an
+   arcade action button instead of running it inline. */
+#grow-herd-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.9rem 0.5rem;
+}
+
+#grow-herd-button::before {
+  content: "🐮";
+  font-size: 1.6rem;
+  line-height: 1;
 }
