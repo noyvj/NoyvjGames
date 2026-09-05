@@ -602,33 +602,42 @@ def get_state():
     }
 
 
-# REVIEW(testing): no test exercises a corrupted/partial/empty save dict --
-# every load_state test round-trips a real get_state() snapshot. Direct key
-# access here (data["plots"], data["selected_index"], etc.) has no error
-# handling, so the failure mode on a malformed/older-schema payload from the
-# shared save widget is completely unverified.
+# Merges a loaded save onto the live state key-by-key, falling back to the
+# current live value for any key the save doesn't carry, rather than bare
+# `data["key"]` indexing or a wholesale replace. A save missing a field is
+# not necessarily corrupt -- every field here (`biodiversity`,
+# `pending_stakeholder_request`, `info_page_open`, ...) was added in a later
+# milestone/pass than the one before it, so a save written before that pass
+# legitimately lacks the key. Bare indexing would crash the next render/tick
+# with a KeyError on exactly that (very real) forward-compatibility case --
+# the same bug class found and fixed across nearly every other game in this
+# hub (see BCM114-DEV-LOG.md's 2026-09-02 entries).
 def load_state(data):
     global selected_index, total_income, community_relations
     global pending_stakeholder_request, _ticks_since_last_request
     global _stakeholder_request_count, info_page_open
 
-    for plot, plot_data in zip(plots, data["plots"]):
-        plot.index = plot_data["index"]
-        plot.state = plot_data["state"]
-        plot.value = plot_data["value"]
-        plot.ticks_intact = plot_data["ticks_intact"]
-        plot.clear_count = plot_data["clear_count"]
-        plot.replant_ticks_remaining = plot_data["replant_ticks_remaining"]
-        plot.just_recovered = plot_data["just_recovered"]
-        plot.biodiversity = plot_data["biodiversity"]
+    for plot, plot_data in zip(plots, data.get("plots", [])):
+        plot.index = plot_data.get("index", plot.index)
+        plot.state = plot_data.get("state", plot.state)
+        plot.value = plot_data.get("value", plot.value)
+        plot.ticks_intact = plot_data.get("ticks_intact", plot.ticks_intact)
+        plot.clear_count = plot_data.get("clear_count", plot.clear_count)
+        plot.replant_ticks_remaining = plot_data.get(
+            "replant_ticks_remaining", plot.replant_ticks_remaining
+        )
+        plot.just_recovered = plot_data.get("just_recovered", plot.just_recovered)
+        plot.biodiversity = plot_data.get("biodiversity", plot.biodiversity)
 
-    selected_index = data["selected_index"]
-    total_income = data["total_income"]
-    community_relations = data["community_relations"]
-    pending_stakeholder_request = copy.deepcopy(data["pending_stakeholder_request"])
-    _ticks_since_last_request = data["_ticks_since_last_request"]
-    _stakeholder_request_count = data["_stakeholder_request_count"]
-    info_page_open = data["info_page_open"]
+    selected_index = data.get("selected_index", selected_index)
+    total_income = data.get("total_income", total_income)
+    community_relations = data.get("community_relations", community_relations)
+    pending_stakeholder_request = copy.deepcopy(
+        data.get("pending_stakeholder_request", pending_stakeholder_request)
+    )
+    _ticks_since_last_request = data.get("_ticks_since_last_request", _ticks_since_last_request)
+    _stakeholder_request_count = data.get("_stakeholder_request_count", _stakeholder_request_count)
+    info_page_open = data.get("info_page_open", info_page_open)
     render()
     return True
 
