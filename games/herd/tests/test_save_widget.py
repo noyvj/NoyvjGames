@@ -128,6 +128,43 @@ def test_load_state_restores_a_json_round_tripped_snapshot(game_env):
     assert game_env.farm.plant_pivot_investment == 1
 
 
+def test_load_state_survives_a_save_missing_a_top_level_field(game_env):
+    """load_state() must not crash outright when a save is missing an
+    entire top-level field -- e.g. an older save predating the Pass 2
+    plant-based pivot (which added plant_pivot_investment to the state
+    dict after the core save contract already existed) or a
+    hand-edited/corrupted payload missing decoupling_investment entirely.
+    Bare `data["key"]` indexing throughout load_state() would KeyError on
+    the very first missing field and abort before any of the later
+    fields (or the final render()) ever run, exactly the bare-indexing
+    bug already fixed in Tide's load_state() (see BCM114-DEV-LOG.md
+    2026-09-02)."""
+    game_env.grow_herd()
+    game_env.invest_decoupling("caps")
+    game_env.invest_plant_pivot()
+    game_env.advance_round()
+    snapshot = game_env.module.get_state()
+    del snapshot["plant_pivot_investment"]  # simulate a pre-Pass-2 save
+    del snapshot["decoupling_investment"]  # simulate a pre-decoupling save too
+
+    result = game_env.module.load_state(snapshot)
+
+    assert result is True
+    # Fields present in the save still load correctly...
+    assert game_env.farm.round_number == snapshot["round_number"]
+    assert game_env.farm.funds == snapshot["funds"]
+    assert game_env.farm.herd_size == snapshot["herd_size"]
+    # ...fields missing from the save fall back instead of crashing, and
+    # decoupling_investment still has every measure key so the very next
+    # render/round doesn't KeyError.
+    assert game_env.farm.decoupling_investment == {"feed": 0, "caps": 0, "capture": 0}
+    # A subsequent render (as happens every real interaction) must not
+    # raise for the backfilled fields.
+    game_env.module.render()
+    game_env.invest_decoupling("capture")
+    assert game_env.farm.decoupling_investment["capture"] == 1
+
+
 def test_load_state_backfills_a_decoupling_measure_missing_from_an_older_save(game_env):
     """load_state() must merge decoupling_investment key-by-key against the
     live DECOUPLING_MEASURES set rather than wholesale-replacing the dict
