@@ -38,7 +38,9 @@
       </div>
 
       <div id="ecology" class="section">
-        <p id="ecology-label" class="ecology-label">Ecological Health</p>
+        <p id="ecology-label" class="ecology-label">Ecological Health
+          <details class="info-toggle"><summary>i</summary><p>Extraction pollutes the planet over time. Below 10% health, output drops 25%; at 0%, production stops entirely until it recovers. Recyclers slow the decline, and a trade route from a stable planet can ship in relief.</p></details>
+        </p>
         <p id="ecology-percent" class="ecology-percent">100%</p>
         <div class="meter">
           <div id="ecology-bar" class="meter-fill"></div>
@@ -53,7 +55,9 @@
       </div>
 
       <div id="terraform" class="section">
-        <p id="terraform-label" class="ecology-label">Terraforming</p>
+        <p id="terraform-label" class="ecology-label">Terraforming
+          <details class="info-toggle"><summary>i</summary><p>Terraforming fills on its own from sustained economic and ecological balance — it isn't a separate resource you spend, so keeping ecology healthy over time is what drives this bar up.</p></details>
+        </p>
         <p id="terraform-percent" class="ecology-percent">0%</p>
         <div class="meter">
           <div id="terraform-bar" class="meter-fill terraform-fill"></div>
@@ -63,6 +67,7 @@
 
       <div id="research" class="section">
         <p id="research-label">Research — Near Bodies Tier</p>
+        <details class="info-toggle"><summary>i</summary><p>Research unlocks new destinations in tiers, not one planet at a time — reaching the Near Bodies tier opens the Moon and Mars together, and later tiers open several more bodies at once.</p></details>
         <p id="research-progress">0 / 1000</p>
         <div class="meter">
           <div id="research-bar" class="meter-fill research-fill"></div>
@@ -72,7 +77,9 @@
       </div>
 
       <div id="governor" class="section">
-        <p id="governor-label">Governor — Priority &amp; Budget</p>
+        <p id="governor-label">Governor — Priority &amp; Budget
+          <details class="info-toggle"><summary>i</summary><p>The Governor controls how a planet manages itself while you're away — Priority decides what it optimizes for (Growth, Balance, or Ecology), and Budget sets what share of its resources it spends on that goal.</p></details>
+        </p>
         <div id="governor-priority-buttons">
           <button id="priority-growth-button" class="priority-option">Growth</button>
           <button id="priority-balance-button" class="priority-option">Balance</button>
@@ -89,6 +96,7 @@
         <p id="trade-route-label" class="generator-info">
           Trade Routes: <span id="trade-route-count">0</span>
           (+<span id="trade-route-rate">0</span>%/s ecology to <span id="trade-route-destination">Mars</span>)
+          <details class="info-toggle"><summary>i</summary><p>Trade routes ship resources from Earth to another planet, raising that planet's ecology over time — the main way to recover a planet whose ecological health has dropped too low.</p></details>
         </p>
         <button id="buy-trade-route-button" class="secondary" disabled>Loading...</button>
         <button id="cycle-trade-destination-button" class="secondary" disabled>Loading...</button>
@@ -144,7 +152,9 @@
       </div>
 
       <div id="travel" class="section">
-        <p id="travel-label">Travel</p>
+        <p id="travel-label">Travel
+          <details class="info-toggle"><summary>i</summary><p>Travel unlocks once you've reached the research tier that targets a body — you don't need to fully develop your current planet first, just meet the research requirement.</p></details>
+        </p>
         <p id="travel-status">Reach the Near Bodies tier to unlock travel.</p>
         <button id="travel-moon-button" class="secondary" hidden disabled>Travel to Moon</button>
         <button id="travel-mars-button" class="secondary" hidden disabled>Travel to Mars</button>
