@@ -734,3 +734,108 @@ button.primary:active {
   border-top: 3px solid rgba(150, 210, 255, 0.4);
   background: linear-gradient(165deg, rgba(20, 38, 48, 0.6), rgba(10, 20, 28, 0.72));
 }
+
+/* ============================================================
+   Design pass 2 — embed controls & readouts into the console
+   (2026-09-06). The visual pass above gave Thaw an illustrated
+   permafrost scene and card-style sections, but the labels,
+   numbers and buttons inside those cards still read as generic
+   flat web UI dropped on top, not part of a physical instrument
+   panel monitoring the thaw. This section gives short labels a
+   frosted "engraved plate" look, the numeric status readouts a
+   recessed glass-screen look (icy tint, tying to the permafrost
+   scene rather than a generic sci-fi blue), and buttons a
+   physical beveled-switch look with a status LED genuinely wired
+   to the button's own :disabled state — lit green while an
+   investment is affordable, dim when it isn't. Pure CSS on
+   existing selectors — no new elements, no id/class changes,
+   nothing game.py touches.
+   ============================================================ */
+
+/* --- Nameplates: short labels read as a frosted plate mounted on
+   the console face rather than plain floating text. */
+.invest-name,
+.region-card-label {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(4, 10, 16, 0.35));
+  border: 1px solid rgba(150, 210, 255, 0.22);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), inset 0 -1px 2px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* region-card-label already carries its own "📊 " icon and bottom
+   margin from the visual pass above -- keep that spacing, the
+   plate treatment above just adds the mounted background/border. */
+.region-card-label {
+  margin: 0 0 0.4rem;
+}
+
+/* --- Recessed digital-screen readouts: the dashboard's numeric
+   status lines, investment counts and region-card stats sit behind
+   dark glass cut into the panel face, with a faint scanline texture
+   and an icy inner glow, instead of floating as plain text on the
+   card background. .status-line covers Round/Funds/Temperature/
+   warming-rate/dampening on the primary dashboard; .invest-count
+   and .region-stat cover the same kind of number inside the
+   investment rows and the Region B/C cards. */
+.status-line,
+.invest-count,
+.region-stat {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 3px),
+    radial-gradient(ellipse at 50% 15%, rgba(150, 210, 255, 0.1), transparent 70%),
+    rgba(2, 8, 14, 0.6);
+  border-radius: 8px;
+  border: 1px solid rgba(150, 210, 255, 0.18);
+  box-shadow: inset 0 2px 7px rgba(0, 0, 0, 0.55), inset 0 0 16px rgba(90, 170, 200, 0.12);
+}
+
+/* --- Physical console switches: buttons get a stronger bevel --
+   an outer drop shadow, an inset highlight, an inset dark edge and
+   a thin outer ring -- so they read as switches set into the panel
+   rather than flat rectangles floating on top of it. */
+button.secondary {
+  position: relative;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.28),
+    0 0 0 3px rgba(0, 0, 0, 0.22);
+}
+
+/* A small status LED, genuinely wired to the button's own
+   :disabled state (not a separate flag) -- lit and glowing while
+   the action is actually available (funds cover the cost, or a
+   feedback answer can be submitted), dim grey when it isn't. Real
+   functional indicator, not decoration. */
+button.secondary::after {
+  content: "";
+  position: absolute;
+  top: 0.4rem;
+  right: 0.5rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #5cd9a0;
+  box-shadow: 0 0 6px 1px rgba(92, 217, 160, 0.85);
+}
+
+button.secondary:disabled::after {
+  background: #3d4a52;
+  box-shadow: none;
+}
+
+/* button.primary (Advance Round) keeps its own themed blue glow --
+   layer the same bevel depth on top of it rather than replacing it,
+   since that colored shadow is meaningful brand styling, not chrome. */
+button.primary {
+  position: relative;
+  box-shadow:
+    0 4px 16px rgba(58, 122, 156, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.25),
+    0 0 0 3px rgba(0, 0, 0, 0.2);
+}
