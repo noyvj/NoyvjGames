@@ -519,6 +519,73 @@ button:disabled {
   filter: grayscale(1);
 }
 
+/*
+ * Icon labels — pure CSS, no markup/game.py change (same technique as
+ * games/sol/style.css's "Icon labels" section). This game's plant-growth
+ * sprites (🟤🌱🌿🌷🌻) and locked-row dashed-border/faded treatment are
+ * completely untouched — everything below targets the *other* plain-text
+ * UI (the water counter, the practice/review/proficiency/bonus panels, the
+ * report button, row-header entry points) so it reads as less of a plain
+ * text form and more like a farm. Nothing below moves or eases in any way
+ * — this game's own test suite forbids any motion CSS (Milestone 7's
+ * static-screenshot constraint) and a bare `content:` string is not motion.
+ */
+.status-line--due::before {
+  content: "💧 ";
+}
+
+.row-due::before {
+  content: "💧 ";
+}
+
+#water-next-button::before {
+  content: "💧 ";
+}
+
+#practice-prompt::before {
+  content: "📖 ";
+}
+
+#practice-report-button::before {
+  content: "🚩 ";
+}
+
+#review-toggle-button::before,
+#review-word-button::before,
+#review-grammar-button::before {
+  content: "🔁 ";
+}
+
+.row-proficiency-button::before {
+  content: "📝 ";
+}
+
+.row-bonus-button::before {
+  content: "🧩 ";
+}
+
+.row-lock::before {
+  content: "🔒 ";
+}
+
+/* The water counters read better as small chips than bare coloured text —
+   same rounded/padded/bordered treatment, no layout change, no new
+   elements. Colours reuse the existing due-green already used above. */
+.status-line--due {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(155, 214, 127, 0.12);
+  border: 1px solid rgba(155, 214, 127, 0.35);
+}
+
+.row-due {
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(155, 214, 127, 0.14);
+  border: 1px solid rgba(155, 214, 127, 0.35);
+}
+
 @media (max-width: 600px) {
   .plot {
     width: 21px;
