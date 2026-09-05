@@ -779,3 +779,121 @@ button.priority-option::before {
 .cross-summary p:nth-of-type(4)::before {
   content: "🌍 ";
 }
+
+/* ============================================================
+   Design pass 2 — embed controls & readouts into the console
+   (2026-09-06). The first pass gave every view an illustrated
+   scene and card-style sections, but the buttons and numbers
+   inside those cards still read as generic flat web UI dropped
+   on top. This pass gives labels a mounted "nameplate" look,
+   numeric readouts a recessed digital-screen look, and buttons a
+   physical beveled-switch look with a status LED — so the whole
+   panel reads as one console the player is operating, not a
+   webpage with numbers on it. Pure CSS on existing selectors —
+   no new elements, no id/class changes, nothing game.py touches.
+   ============================================================ */
+
+/* --- Nameplates: labels read as an engraved plate mounted on
+   the console rather than plain floating uppercase text. */
+.resource-label,
+.ecology-label,
+#research-label,
+#governor-label,
+#travel-label,
+.cross-summary-label {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.25));
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -1px 2px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* --- Recessed digital-screen readouts: the big numbers sit in a
+   glass-fronted display cut into the console face instead of
+   floating on the card background. Scanline texture + inner glow
+   reinforce the "screen," not "text" reading. */
+.resource-count,
+.ecology-percent,
+#research-progress {
+  display: inline-block;
+  padding: 0.35rem 1.1rem;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0, rgba(255, 255, 255, 0.025) 1px, transparent 1px, transparent 3px),
+    radial-gradient(ellipse at 50% 20%, rgba(140, 170, 255, 0.1), transparent 70%),
+    rgba(3, 4, 9, 0.65);
+  border-radius: 10px;
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(80, 110, 200, 0.12);
+}
+
+.resource-count {
+  min-width: 3.5ch;
+}
+
+/* --- Physical console switches: buttons get an outer bezel ring
+   and an inset "face," plus a small status LED that lights up
+   green while the action is available and dims when disabled --
+   a genuinely functional indicator, not just decoration, driven
+   purely by the existing :disabled state. */
+.click-button,
+button.secondary {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.25),
+    0 0 0 3px rgba(0, 0, 0, 0.25);
+}
+
+.click-button::after,
+button.secondary::after {
+  content: "";
+  position: absolute;
+  top: 0.55rem;
+  right: 0.65rem;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #56e07a;
+  box-shadow: 0 0 6px 1px rgba(86, 224, 122, 0.85);
+}
+
+.click-button:disabled::after,
+button.secondary:disabled::after {
+  background: #4a5266;
+  box-shadow: none;
+}
+
+.click-button.pressed,
+button.secondary.pressed {
+  box-shadow:
+    inset 0 3px 10px rgba(0, 0, 0, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05),
+    0 0 0 3px rgba(0, 0, 0, 0.25);
+}
+
+/* Priority/travel tiles already carry their own bordered look --
+   just add the matching status LED so the whole button family
+   reads as one console. */
+button.priority-option,
+#travel button.secondary {
+  position: relative;
+}
+
+button.priority-option::after {
+  content: "";
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+button.priority-option.selected::after {
+  background: #56e07a;
+  box-shadow: 0 0 6px 1px rgba(86, 224, 122, 0.85);
+}
