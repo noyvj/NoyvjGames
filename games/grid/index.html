@@ -40,6 +40,7 @@
       <p id="fossil-share-display" class="status-line">Fossil share of grid: 0%</p>
       <p id="event-display" class="event-display">No disruptions last round.</p>
       <p id="score-display" class="status-line">Sustained clean-grid score: 0</p>
+      <details class="info-toggle"><summary>i</summary><p>This score averages how clean your grid's mix has been across every round you've played, not just where it stands right now — a late clean sprint can't fully erase a dirty start, and a dirty finish can't erase an early clean run either.</p></details>
       <div class="meter"><div id="score-bar" class="meter-fill meter-fill--score"></div></div>
       <p id="trend-display" class="event-display">Not enough rounds yet to show a trend.</p>
       <p id="aging-event-display" class="event-display">No aging breakdowns last round.</p>
@@ -51,6 +52,12 @@
     </div>
 
     <div id="plants" class="section">
+      <p class="meter-label">Power Plants
+        <details class="info-toggle"><summary>i</summary><p>Solar, Wind, and Hydro get cheaper each time you build another one of that type — a real-world "learning curve" effect — floored at 40% of their starting price. Coal, Gas, and Nuclear costs never change.</p></details>
+      </p>
+      <p class="meter-label">Maintenance &amp; Aging
+        <details class="info-toggle"><summary>i</summary><p>Every standing plant quietly gets older each round. Past 8 rounds old, your oldest fleet risks a costly breakdown that takes a unit offline — Maintain spends funds to lower that plant type's average age instead of resetting it to zero, buying time rather than making it new again.</p></details>
+      </p>
       <div class="plant-row" data-plant="coal">
         <div class="plant-row-top">
           <span class="plant-name" id="coal-name">Coal</span>
