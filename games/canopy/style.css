@@ -149,6 +149,18 @@ h1 {
 /* .info-page-* rules moved to shared/info-page.css (see index.html's
    <link> in <head>) as part of consolidating the info-page feature. */
 
+.state-breakdown,
+.community-relations {
+  /* Small pill "chip" instead of bare text — echoes the glass-panel
+     chrome used elsewhere on this page (button/section/legend-swatch
+     borders) rather than restructuring these into new elements. */
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
 .state-breakdown {
   margin: 0.6rem 0 0;
   font-size: 0.78rem;
@@ -280,4 +292,100 @@ button.secondary:disabled {
 .hub-back-link:hover {
   opacity: 1;
   text-decoration: underline;
+}
+
+/* Icon labels — pure CSS, no markup/game.py change. Canopy has no
+   repeated-per-instance label pattern the way SOL repeats labels across
+   parallel planet panels (this game has one shared #plot-grid and one
+   set of stat/panel elements, not N copies), so these are plain per-id
+   or per-class rules rather than SOL's [id$="..."] attribute-suffix
+   selectors. Breaks up the plain-text stat/panel rows — income figures,
+   the stakeholder request, the action buttons, the feedback prompt —
+   with a small icon per concept, so "what kind of thing is this row" no
+   longer requires reading the label text first. Deliberately does not
+   touch the plot-tile emoji/colors (STATE_ICON in game.py, and the
+   .plot-preserved/.plot-bare/.plot-replanting/.plot-recovered/
+   .plot-has-wildlife rules above) — those are already this game's core
+   iconographic layer. */
+#income-display::before {
+  content: "💰 ";
+}
+
+#standing-value-display::before {
+  content: "🌲 ";
+}
+
+#comparison-message::before {
+  content: "📊 ";
+}
+
+#state-breakdown-display::before {
+  content: "📋 ";
+}
+
+#community-relations-display::before {
+  content: "🤝 ";
+}
+
+.selected-plot-state::before {
+  content: "📍 ";
+}
+
+#stakeholder-message::before {
+  content: "🏘️ ";
+}
+
+#stakeholder-grant-button::before {
+  content: "✅ ";
+}
+
+#stakeholder-decline-button::before {
+  content: "❌ ";
+}
+
+#clear-button::before {
+  content: "🪓 ";
+}
+
+#replant-button::before {
+  content: "🌱 ";
+}
+
+.feedback-question::before {
+  content: "💬 ";
+}
+
+#feedback-yes-button::before {
+  content: "👍 ";
+}
+
+#feedback-no-button::before {
+  content: "👎 ";
+}
+
+#feedback-submit-button::before {
+  content: "📨 ";
+}
+
+/* Legend entries mirror the plot-tile state icons (STATE_ICON in
+   game.py: preserved/replanting/recovered already carry an emoji, bare
+   carries none) in their fixed render order — preserved, bare,
+   replanting, recovered — so the legend key itself becomes iconographic
+   instead of just a color swatch plus a word. Bare gets its own icon
+   here (an axe, echoing #clear-button) since the plot tile itself
+   intentionally shows no icon for that state. */
+.legend-item:nth-of-type(1)::before {
+  content: "🌲 ";
+}
+
+.legend-item:nth-of-type(2)::before {
+  content: "🪓 ";
+}
+
+.legend-item:nth-of-type(3)::before {
+  content: "🌱 ";
+}
+
+.legend-item:nth-of-type(4)::before {
+  content: "🌳 ";
 }
