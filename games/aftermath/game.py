@@ -594,11 +594,14 @@ def get_state():
     }
 
 
-# REVIEW(testing): no test exercises this with a malformed/partial/empty
-# dict -- every existing test round-trips a real get_state() snapshot. This
-# does direct key access (data["run_number"], etc.) with no defensive
-# handling, unlike SkillTreeState.load()'s try/except; whether that's the
-# intended contract has no regression test pinning it either way.
+# Direct key access (data["run_number"], etc.), no defensive handling --
+# unlike SkillTreeState.load()'s try/except. This is intentional, not an
+# oversight: a real save handed here always came from this same site's own
+# get_state() via the save widget's fetch/PUT round trip, so a malformed
+# payload means something upstream already went wrong, and a loud KeyError
+# is preferable to silently starting a run in a half-restored state. Pinned
+# by tests/test_save_system.py::test_load_state_on_a_malformed_dict_raises_rather_than_corrupting_the_run
+# so this stays a deliberate choice, not something a future change reverts.
 def load_state(data):
     """The exact inverse of get_state() — rebuilds the current run from a
     saved dict and re-renders so the UI reflects the loaded run
