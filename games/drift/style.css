@@ -391,3 +391,341 @@ button.primary:active {
   border: 1px solid rgba(74, 143, 165, 0.14);
   border-radius: 8px;
 }
+
+/* ============================================================
+   Full visual pass — content-window redesign (2026-09-05)
+   Every section here was a stack of plain status lines sitting
+   over a flat 8px color bar. This pass adds two bespoke
+   illustrated elements themed to Drift's own subject (a receiving
+   region's skyline that visibly reacts to strain and to the
+   integration turning point, and a linked three-gauge wellbeing
+   dashboard instead of three bare numbers), restyles every
+   .section into a HUD card with a colored accent bar, redraws the
+   flat meters as segmented glowing gauges, and turns the capacity
+   investment rows into icon tiles. Pure CSS plus small decorative
+   wrapper divs only, same approach as SOL's reference pass — no
+   id/class renamed or removed, no game.py change. A couple of
+   game.py-driven elements (the three wellbeing displays/bars, the
+   invest-row spans/buttons) are now reparented one level deeper
+   inside a new wrapper div; that's safe because game.py finds them
+   by getElementById, which doesn't care about ancestry, and none
+   of the new wrappers carry an id or class those lookups touch.
+   The region-visual hero reacts to game state via the :has()
+   selector, reading the exact strain-level class and turning-point
+   hidden attribute game.py already sets/toggles on #strain-bar and
+   #integration-turning-point-display — no JS, no game.py change.
+   ============================================================ */
+
+/* --- Region visual (hero illustration): a dusk skyline for the
+   receiving region, recolored from the same dusk palette as
+   shared/ambient-bg.css's --dusk variant rather than importing
+   SOL's space colors. */
+.region-visual {
+  position: relative;
+  height: 132px;
+  margin: 0 0 1.25rem;
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #2a1c3a 0%, #6e3a4a 45%, #b5623a 78%, #3a2a4a 100%);
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  box-shadow: inset 0 2px 20px rgba(0, 0, 0, 0.35), 0 6px 20px rgba(0, 0, 0, 0.3);
+  transition: filter 0.6s ease;
+}
+
+.region-visual-glow {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 62%;
+  background: radial-gradient(60% 100% at 50% 100%, rgba(255, 190, 120, 0.35), transparent 75%);
+  transition: background 0.6s ease;
+}
+
+.region-visual-horizon {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6px;
+  background: linear-gradient(90deg, rgba(255, 200, 140, 0.5), rgba(255, 150, 120, 0.75), rgba(255, 200, 140, 0.5));
+  filter: blur(2px);
+  transition: background 0.6s ease;
+}
+
+.region-visual-skyline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 78px;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 0 10px;
+}
+
+.region-visual-building {
+  flex: 1 1 auto;
+  border-radius: 2px 2px 0 0;
+  background-color: #1c1424;
+  background-image: radial-gradient(circle, rgba(255, 214, 150, 0.9) 1px, transparent 1.6px);
+  background-size: 9px 11px;
+  background-position: 4px 6px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4);
+  transition: filter 0.6s ease;
+}
+
+.region-visual-building--a { height: 40px; }
+.region-visual-building--b { height: 58px; }
+.region-visual-building--c { height: 46px; }
+.region-visual-building--d { height: 72px; }
+.region-visual-building--e { height: 50px; }
+.region-visual-building--f { height: 62px; }
+
+/* Strain rising: windows dim, glow shifts toward the strained/critical
+   accent colours already used on #strain-bar — same hues, not new ones. */
+#game:has(#strain-bar.strain--strained) .region-visual-building {
+  filter: saturate(0.75) brightness(0.85);
+}
+#game:has(#strain-bar.strain--strained) .region-visual-glow {
+  background: radial-gradient(60% 100% at 50% 100%, rgba(201, 161, 60, 0.4), transparent 75%);
+}
+#game:has(#strain-bar.strain--strained) .region-visual-horizon {
+  background: linear-gradient(90deg, rgba(201, 161, 60, 0.5), rgba(230, 170, 90, 0.8), rgba(201, 161, 60, 0.5));
+}
+
+#game:has(#strain-bar.strain--critical) .region-visual-building {
+  filter: saturate(0.4) brightness(0.6);
+  animation: region-visual-flicker 3.6s ease-in-out infinite;
+}
+#game:has(#strain-bar.strain--critical) .region-visual-glow {
+  background: radial-gradient(60% 100% at 50% 100%, rgba(201, 96, 60, 0.45), transparent 75%);
+}
+#game:has(#strain-bar.strain--critical) .region-visual-horizon {
+  background: linear-gradient(90deg, rgba(201, 96, 60, 0.55), rgba(255, 120, 80, 0.85), rgba(201, 96, 60, 0.55));
+}
+
+@keyframes region-visual-flicker {
+  0%, 100% { opacity: 1; }
+  48% { opacity: 1; }
+  50% { opacity: 0.72; }
+  52% { opacity: 1; }
+}
+
+/* Turning point reached: the region's hopeful payoff moment, reusing the
+   same warm accent as .turning-point-message/.coda-section rather than a
+   new color. */
+#game:has(#integration-turning-point-display:not([hidden])) .region-visual {
+  filter: saturate(1.15) brightness(1.08);
+}
+#game:has(#integration-turning-point-display:not([hidden])) .region-visual-glow {
+  background: radial-gradient(65% 110% at 50% 100%, rgba(255, 214, 150, 0.55), transparent 78%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .region-visual-building { animation: none !important; }
+}
+
+/* --- Arrival stream: a small ongoing drift of dots ahead of the
+   arrivals readout, purely atmospheric (like SOL's rotating planet, not
+   literally count-bound) but still colour-reactive to strain via the
+   same :has() hook as the region visual above. */
+.arrival-stream {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  height: 18px;
+  margin: 0.5rem 0 0.7rem;
+}
+
+.arrival-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4a8fa5;
+  box-shadow: 0 0 6px rgba(74, 143, 165, 0.7);
+  animation: arrival-dot-drift 3.2s ease-in-out infinite;
+}
+
+.arrival-dot:nth-child(2) { animation-delay: 0.25s; }
+.arrival-dot:nth-child(3) { animation-delay: 0.5s; }
+.arrival-dot:nth-child(4) { animation-delay: 0.75s; }
+.arrival-dot:nth-child(5) { animation-delay: 1s; }
+.arrival-dot:nth-child(6) { animation-delay: 1.25s; }
+.arrival-dot:nth-child(7) { animation-delay: 1.5s; }
+
+@keyframes arrival-dot-drift {
+  0%, 100% { transform: translateX(0); opacity: 0.5; }
+  50% { transform: translateX(9px); opacity: 1; }
+}
+
+#game:has(#strain-bar.strain--strained) .arrival-dot {
+  background: #c9a13c;
+  box-shadow: 0 0 6px rgba(201, 161, 60, 0.7);
+}
+#game:has(#strain-bar.strain--critical) .arrival-dot {
+  background: #c9603c;
+  box-shadow: 0 0 6px rgba(201, 96, 60, 0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrival-dot { animation: none; }
+}
+
+/* --- Section cards: give every .section a colored left-accent bar
+   instead of a uniform border, so each reads as its own HUD module. */
+.section {
+  border-left: 3px solid rgba(74, 143, 165, 0.4);
+  border-radius: 4px 10px 10px 4px;
+}
+
+#status { border-left-color: #6f8fae; }
+#pressure { border-left-color: #c9a13c; }
+#integration { border-left-color: #4a8fa5; }
+#wellbeing { border-left-color: #8a7be0; }
+#capacity { border-left-color: #5a9c6e; }
+#feedback-prompt { border-left-color: rgba(140, 160, 255, 0.4); }
+#info-page-panel { border-left-color: rgba(74, 143, 165, 0.4); }
+.coda-section { border-left: 3px solid #7a9c5a; }
+
+/* --- Gauges: replace the flat bar with a chunkier, ticked, glowing HUD
+   gauge. game.py only ever writes inline .style.width and swaps the
+   strain-level class on #strain-bar's className — the visual language
+   layered on top of that is ours to redraw; no colour on any meter-fill
+   variant is changed here, only shape/texture. */
+.meter {
+  height: 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.meter-fill {
+  border-radius: 5px;
+  position: relative;
+  overflow: hidden;
+}
+
+.meter-fill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent calc(12.5% - 1px),
+    rgba(0, 0, 0, 0.3) calc(12.5% - 1px),
+    rgba(0, 0, 0, 0.3) 12.5%
+  );
+}
+
+.meter-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 35%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: drift-meter-shimmer 2.8s ease-in-out infinite;
+}
+
+@keyframes drift-meter-shimmer {
+  0% { transform: translateX(-130%); }
+  100% { transform: translateX(330%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meter-fill::after { animation: none; display: none; }
+}
+
+/* --- Wellbeing trio: three linked gauges instead of one flat number,
+   directly reflecting this game's three-part composite score rather
+   than reusing a generic layout. A dashed connector line sits behind
+   the icon medallions to read as one linked instrument, not three
+   unrelated stats. */
+.wellbeing-trio {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.wellbeing-trio::before {
+  content: "";
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  top: 14px;
+  height: 1px;
+  background-image: repeating-linear-gradient(90deg, rgba(140, 160, 255, 0.4) 0 5px, transparent 5px 9px);
+  z-index: 0;
+}
+
+.wellbeing-gauge {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  text-align: center;
+}
+
+.wellbeing-gauge-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(74, 143, 165, 0.18);
+  border: 1px solid rgba(74, 143, 165, 0.4);
+  font-size: 0.9rem;
+}
+
+.wellbeing-gauge .status-line {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
+.wellbeing-gauge .meter {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+/* --- Capacity investment tiles: an icon medallion beside each row
+   instead of a bare emoji-in-text label, so the investment list reads
+   as game tiles rather than a converted list. No DOM removed — the
+   existing name/count/button spans just moved one level deeper into a
+   new .invest-fields wrapper. */
+.invest-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.invest-icon {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  background: rgba(74, 143, 165, 0.16);
+  border: 1px solid rgba(74, 143, 165, 0.35);
+}
+
+.invest-icon--housing { background: rgba(90, 156, 110, 0.16); border-color: rgba(90, 156, 110, 0.4); }
+.invest-icon--services { background: rgba(74, 143, 165, 0.16); border-color: rgba(74, 143, 165, 0.4); }
+.invest-icon--infrastructure { background: rgba(201, 161, 60, 0.16); border-color: rgba(201, 161, 60, 0.4); }
+
+.invest-fields {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+}
