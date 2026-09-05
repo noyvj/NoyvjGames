@@ -36,17 +36,22 @@
       <div class="meter"><div id="temperature-bar" class="meter-fill meter-fill--temperature"></div></div>
       <p id="rise-rate-display" class="status-line">Current warming rate: 1.00°/round</p>
       <p id="melt-status-display" class="comparison-message">Permafrost stable — no feedback yet.</p>
+      <details class="info-toggle"><summary>i</summary><p>Permafrost starts melting once global temperature crosses +10.0° — below that threshold it's dormant, but above it every extra degree releases methane that adds to next round's warming, on top of the fixed background rise.</p></details>
       <p id="dampening-display" class="status-line">Feedback dampening: 0%</p>
+      <details class="info-toggle"><summary>i</summary><p>Dampening only reduces the methane feedback bonus caused by melt — it never touches the fixed background warming rate, which always rises no matter what you invest in. That's also why this percentage can sit above 0% with no visible effect yet: it does nothing until melt actually starts.</p></details>
       <p id="intervention-feedback-display" class="comparison-message">No preservation or monitoring investment yet — a future melt would hit at full force.</p>
       <p id="acceleration-display" class="comparison-message">Warming is rising at a steady, linear rate.</p>
+      <details class="info-toggle"><summary>i</summary><p>This shows warming's current speed as a multiple of the steady background rate — 1x means no feedback yet, and it climbs higher the longer melt continues unchecked, which is what "runaway" looks like in this game.</p></details>
       <div class="meter"><div id="acceleration-bar" class="meter-fill meter-fill--temperature"></div></div>
       <p id="trajectory-display" class="comparison-message">No meaningful difference from intervention yet.</p>
+      <details class="info-toggle"><summary>i</summary><p>This compares your real temperature to a hidden shadow region that faces the exact same background trajectory but never receives any preserve/monitor investment — the gap between the two is how many degrees your interventions have actually saved.</p></details>
       <div id="graph" class="mini-temp-graph"></div>
     </div>
 
     <div id="investments" class="section">
       <div class="invest-row" data-category="output">
         <span class="invest-name" id="output-name">Output</span>
+        <details class="info-toggle"><summary>i</summary><p>Output generates funds each round and nothing else — it has no effect on temperature in either direction. Preservation and Monitoring below do the opposite: they never generate funds, but they're the only investments that dampen the feedback loop.</p></details>
         <span class="invest-count" id="output-count">0</span>
         <button id="output-invest-button" class="secondary" disabled>Loading...</button>
       </div>
