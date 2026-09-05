@@ -146,6 +146,59 @@ def test_load_state_preserves_plant_keys_missing_from_an_older_save(game_env):
     game_env.module.render()
 
 
+def test_load_state_tolerates_an_older_save_missing_top_level_keys(game_env):
+    """load_state() must merge/backfill at the top level too, not just
+    within the per-plant-type dicts. _merge_plant_dict already protects
+    against a *sub*-key being missing from plant_counts/cumulative_built/
+    plant_age, but every field before this fix was pulled out of the
+    saved dict with bare `data["key"]` indexing -- an older save written
+    before a later milestone/pass added a field (global_reference_emissions
+    and global_reference_emissions_history landed in Pass 2, last_aging_event
+    in Pass 2, plant_age in Pass 2) would be missing that key entirely, and
+    `data["plant_age"]` itself (not just a sub-key inside it) would raise a
+    bare KeyError before _merge_plant_dict ever got a chance to run --
+    crashing load_state() outright, after the save widget already reported
+    a successful load."""
+    game_env.build("coal")
+    game_env.build("solar")
+    game_env.advance_round()
+
+    # Shape of a save written before Pass 2's fields existed at all --
+    # only the Milestone 1/2 keys are present.
+    old_format_save = {
+        "round_number": 3,
+        "demand": 120,
+        "funds": 250.0,
+        "plant_counts": {"coal": 2, "gas": 0, "nuclear": 0, "solar": 1, "wind": 0, "hydro": 0},
+        "cumulative_built": {"coal": 2, "gas": 0, "nuclear": 0, "solar": 1, "wind": 0, "hydro": 0},
+        "emissions": 42.0,
+        "event_log": [],
+        "last_event": None,
+        "clean_fraction_log": [0.5, 0.6],
+        "emissions_history": [10.0, 42.0],
+        "avg_renewable_cost_history": [80.0, 80.0],
+        "renewable_unlocked": True,
+        # plant_age, global_reference_emissions,
+        # global_reference_emissions_history, last_aging_event and
+        # info_page_open are all absent, as an older save format would be.
+    }
+
+    result = game_env.module.load_state(old_format_save)
+
+    assert result is True
+    assert game_env.state.round_number == 3
+    assert game_env.state.funds == 250.0
+    assert game_env.state.plant_counts["coal"] == 2
+    # Fields missing from the save fall back to whatever the live state
+    # already had, rather than crashing.
+    assert isinstance(game_env.state.plant_age, dict)
+    assert set(game_env.state.plant_age.keys()) == set(game_env.module.PLANT_TYPES)
+    assert isinstance(game_env.state.global_reference_emissions_history, list)
+
+    # Must not crash accessing any of the backfilled fields.
+    game_env.module.render()
+
+
 def test_load_state_re_renders_the_ui(game_env):
     game_env.build("coal")
     game_env.build("coal")
