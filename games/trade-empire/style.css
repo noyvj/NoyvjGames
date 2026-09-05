@@ -882,3 +882,106 @@ button.secondary:active:not(:disabled) {
   font-size: 1.3rem;
   line-height: 1;
 }
+
+/* ============================================================
+   Design pass 2 — embed controls & readouts into the console
+   (2026-09-06). Same idea as the equivalent pass in
+   games/sol/style.css (search that file for this same heading),
+   applied here in Trade Empire's own space/glass palette — the
+   violet panel-border tint and near-black glass tone this file
+   already uses everywhere (.section, .meter, the research-points/
+   automation-slots chips), not SOL's colors. Labels get a mounted
+   "nameplate" look, the standalone numeric readouts get a
+   recessed digital-screen look (keeping each stat's own existing
+   color), and every button gets a physical beveled-switch look
+   plus a status LED wired to its own :disabled state — so the
+   panel reads as a console being operated, not a webpage with
+   numbers on it. Pure CSS on existing selectors — no new
+   elements, no id/class changes, nothing game.py touches.
+   ============================================================ */
+
+/* --- Nameplates: the page's two uppercase/letter-spaced labels
+   (section headers, ship numbers) read as engraved plates mounted
+   on the console rather than plain floating caps text. */
+.panel-label,
+.ship-label {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.25));
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -1px 2px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* --- Recessed digital-screen readouts: the three genuinely
+   standalone numeric stats — total profit, research points,
+   automation slots, already set apart from body text as
+   colored call-outs — sit in a glass-fronted display cut into
+   the console face instead of floating on the card. Each keeps
+   its own established color (green profit, cyan research, plain
+   automation count); only the frame behind it changes. This
+   supersedes the plain pill background the two chips had from
+   the earlier icon pass — a recessed screen reads better for a
+   numeric readout than a pill badge. */
+.profit-display,
+.research-points,
+.automation-slots {
+  display: inline-block;
+  padding: 0.35rem 1.1rem;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 3px),
+    radial-gradient(ellipse at 50% 20%, rgba(140, 170, 255, 0.1), transparent 70%),
+    rgba(5, 6, 13, 0.7);
+  border-radius: 10px;
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(80, 110, 200, 0.12);
+}
+
+/* --- Physical console switches: every clickable control on this
+   page is a button.secondary (research unlocks, ship load/
+   automate/depart, fleet priority), so one rule reaches all of
+   them. Adds an outer bezel ring + inset face, and a small status
+   LED that lights up while the action is available and dims on
+   the button's own :disabled state — a genuinely functional
+   indicator, not decoration. Two nested selectors already set a
+   narrower box-shadow for research-row and depart buttons
+   specifically, so they're repeated here (same specificity,
+   later in the file) to make sure the bevel reaches every button
+   family instead of being silently overridden for those two. */
+button.secondary,
+.research-row button.secondary,
+.depart-buttons button.secondary {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.28),
+    0 0 0 3px rgba(0, 0, 0, 0.22);
+}
+
+button.secondary:active:not(:disabled),
+.research-row button.secondary:active:not(:disabled),
+.depart-buttons button.secondary:active:not(:disabled) {
+  box-shadow:
+    inset 0 3px 10px rgba(0, 0, 0, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05),
+    0 0 0 3px rgba(0, 0, 0, 0.22);
+}
+
+button.secondary::after {
+  content: "";
+  position: absolute;
+  top: 0.5rem;
+  right: 0.6rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #66e0a0;
+  box-shadow: 0 0 6px 1px rgba(102, 224, 160, 0.85);
+}
+
+button.secondary:disabled::after {
+  background: #4a5268;
+  box-shadow: none;
+}
