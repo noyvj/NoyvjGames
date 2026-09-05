@@ -483,3 +483,299 @@ button.priority-option.selected {
   border: 1px solid rgba(140, 160, 255, 0.14);
   border-radius: 8px;
 }
+
+/* ============================================================
+   Full visual pass — content-window redesign (2026-09-05)
+   Every view was a stack of plain text lines with a flat-color
+   meter underneath. This section turns that into an actual game
+   screen: a CSS-drawn planet illustration per world up top, each
+   .section restyled into a distinct HUD "card" with a colored
+   accent bar, meters redrawn as segmented glowing gauges instead
+   of flat bars, priority/travel buttons given stacked icon+label
+   faces, and the away-planet summary rows turned into a small
+   card grid instead of plain paragraphs. Pure CSS — no HTML
+   structural changes beyond the small decorative wrapper divs
+   each planet-visual needs, no id/class renames, no game.py
+   changes, nothing touched that any test or the innerText-driven
+   render loop depends on.
+   ============================================================ */
+
+/* --- Planet visual (hero illustration) --- */
+.planet-visual {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  margin: 0 auto 1.5rem;
+}
+
+.planet-visual-glow {
+  position: absolute;
+  inset: -18px;
+  border-radius: 50%;
+  filter: blur(18px);
+  opacity: 0.55;
+  z-index: 0;
+}
+
+.planet-visual-body {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  z-index: 1;
+  box-shadow: inset -18px -14px 32px rgba(0, 0, 0, 0.55), inset 6px 6px 18px rgba(255, 255, 255, 0.08);
+  animation: planet-spin 60s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .planet-visual-body {
+    animation: none;
+  }
+}
+
+@keyframes planet-spin {
+  from { background-position: 0% 50%; }
+  to { background-position: 100% 50%; }
+}
+
+/* Earth — ore-flecked blue/green marble */
+.planet-visual--earth .planet-visual-glow { background: radial-gradient(circle, #6fb3ff, transparent 70%); }
+.planet-visual--earth .planet-visual-body {
+  background:
+    radial-gradient(circle at 30% 65%, rgba(120, 90, 60, 0.9) 0 10%, transparent 11%) 0 0/50px 50px,
+    radial-gradient(circle at 70% 30%, rgba(120, 90, 60, 0.85) 0 8%, transparent 9%) 0 0/60px 60px,
+    radial-gradient(circle at 40% 25%, #cfe8c8 0%, #4f9e6e 22%, #2f6ea8 55%, #163a63 100%);
+  background-size: 50px 50px, 60px 60px, 100% 100%;
+}
+
+/* Mars — rust-red, cratered */
+.planet-visual--mars .planet-visual-glow { background: radial-gradient(circle, #ff7a4c, transparent 70%); }
+.planet-visual--mars .planet-visual-body {
+  background:
+    radial-gradient(circle at 65% 60%, rgba(90, 30, 15, 0.6) 0 6%, transparent 7%) 0 0/40px 40px,
+    radial-gradient(circle at 35% 55%, #f2b48a 0%, #d9713d 30%, #a83f22 65%, #5c1f12 100%);
+  background-size: 40px 40px, 100% 100%;
+}
+
+/* Moon — pale grey, speckled craters */
+.planet-visual--moon .planet-visual-glow { background: radial-gradient(circle, #c9d3e8, transparent 70%); opacity: 0.35; }
+.planet-visual--moon .planet-visual-body {
+  background:
+    radial-gradient(circle at 60% 40%, rgba(70, 75, 90, 0.7) 0 7%, transparent 8%) 0 0/34px 34px,
+    radial-gradient(circle at 75% 70%, rgba(70, 75, 90, 0.6) 0 5%, transparent 6%) 0 0/46px 46px,
+    radial-gradient(circle at 38% 30%, #eef0f6 0%, #b8bdcc 35%, #7c8296 70%, #43485a 100%);
+  background-size: 34px 34px, 46px 46px, 100% 100%;
+}
+
+/* Venus — golden hazy cloud bands */
+.planet-visual--venus .planet-visual-glow { background: radial-gradient(circle, #ffe08a, transparent 70%); }
+.planet-visual--venus .planet-visual-body {
+  background:
+    repeating-radial-gradient(ellipse at 50% 30%, rgba(255, 244, 214, 0.25) 0, rgba(255, 244, 214, 0.25) 4px, transparent 4px, transparent 12px),
+    radial-gradient(circle at 35% 30%, #fff3d0 0%, #f0c264 30%, #d99a3a 60%, #8a5c1e 100%);
+}
+
+/* Asteroid Belt — cluster of irregular rocks, no single sphere */
+.planet-visual--asteroidbelt { height: 100px; }
+.planet-visual-rock {
+  position: absolute;
+  background: radial-gradient(circle at 35% 30%, #b9b3a6 0%, #8a8377 45%, #514c42 100%);
+  box-shadow: inset -6px -6px 10px rgba(0, 0, 0, 0.5);
+}
+.planet-visual-rock--a { width: 60px; height: 52px; top: 10px; left: 10px; border-radius: 48% 52% 60% 40% / 55% 45% 55% 45%; animation: rock-drift-a 14s ease-in-out infinite; }
+.planet-visual-rock--b { width: 40px; height: 38px; top: 45px; left: 78px; border-radius: 60% 40% 45% 55% / 45% 55% 45% 55%; animation: rock-drift-b 11s ease-in-out infinite; }
+.planet-visual-rock--c { width: 30px; height: 28px; top: 5px; left: 84px; border-radius: 45% 55% 50% 50% / 60% 40% 60% 40%; animation: rock-drift-a 17s ease-in-out infinite reverse; }
+
+@keyframes rock-drift-a {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(6deg); }
+}
+@keyframes rock-drift-b {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(5px) rotate(-8deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .planet-visual-rock { animation: none; }
+}
+
+/* Pluto — pale icy world with a heart-shaped tholin patch */
+.planet-visual--pluto .planet-visual-glow { background: radial-gradient(circle, #cfe0ff, transparent 70%); opacity: 0.4; }
+.planet-visual--pluto .planet-visual-body {
+  background:
+    radial-gradient(ellipse 30px 24px at 60% 62%, #e8c9a0 0%, #c99f6e 70%, transparent 100%),
+    radial-gradient(circle at 35% 30%, #f3ece2 0%, #cfd6e4 35%, #9aa4bb 70%, #4d5468 100%);
+}
+
+/* Jupiter's Moons — small tan moon over a hint of banded gas giant */
+.planet-visual--jupitermoons .planet-visual-backdrop {
+  position: absolute;
+  inset: 20px -30px auto -30px;
+  height: 60px;
+  border-radius: 50%;
+  background: repeating-linear-gradient(0deg, #d9a86c 0 6px, #b97f45 6px 12px, #e8c090 12px 18px);
+  opacity: 0.5;
+  z-index: 0;
+  filter: blur(1px);
+}
+.planet-visual--jupitermoons .planet-visual-glow { background: radial-gradient(circle, #ffcf8f, transparent 70%); }
+.planet-visual--jupitermoons .planet-visual-body {
+  width: 78%;
+  height: 78%;
+  top: 11%;
+  left: 11%;
+  background: radial-gradient(circle at 35% 30%, #fff0c8 0%, #e8b45c 35%, #b97a2e 70%, #6b4114 100%);
+}
+
+/* Saturn's Moons — pale moon with a tilted ring arc behind it */
+.planet-visual--saturnmoons .planet-visual-ring {
+  position: absolute;
+  inset: 28px -26px auto -26px;
+  height: 46px;
+  border: 7px solid rgba(230, 210, 160, 0.55);
+  border-radius: 50%;
+  transform: rotate(-8deg) scaleY(0.42);
+  z-index: 0;
+  box-shadow: 0 0 12px rgba(230, 210, 160, 0.3);
+}
+.planet-visual--saturnmoons .planet-visual-glow { background: radial-gradient(circle, #f2e3b8, transparent 70%); }
+.planet-visual--saturnmoons .planet-visual-body {
+  width: 76%;
+  height: 76%;
+  top: 12%;
+  left: 12%;
+  background: radial-gradient(circle at 35% 30%, #fbf3da 0%, #e3d19c 40%, #b39a63 75%, #63512c 100%);
+}
+
+/* Away-view arrival graphic — generic starship/beacon rather than a
+   specific world, since #away-view is a shared landing screen. */
+.planet-visual--away .planet-visual-glow { background: radial-gradient(circle, #9fb4ff, transparent 70%); }
+.planet-visual--away .planet-visual-body {
+  background: radial-gradient(circle at 35% 30%, #e4ecff 0%, #a9bdf2 35%, #5c6fb0 70%, #2a3260 100%);
+  animation: planet-spin 60s linear infinite, planet-pulse 3s ease-in-out infinite;
+}
+@keyframes planet-pulse {
+  0%, 100% { box-shadow: inset -18px -14px 32px rgba(0, 0, 0, 0.55), inset 6px 6px 18px rgba(255, 255, 255, 0.08), 0 0 0 rgba(159, 180, 255, 0); }
+  50% { box-shadow: inset -18px -14px 32px rgba(0, 0, 0, 0.55), inset 6px 6px 18px rgba(255, 255, 255, 0.08), 0 0 24px rgba(159, 180, 255, 0.5); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .planet-visual--away .planet-visual-body { animation: none; }
+}
+
+/* --- Section cards: turn each stacked block into a distinct HUD
+   module with its own tinted accent bar, instead of a plain
+   top-border-only divider. Id-suffix selectors reach every planet's
+   copy of each section (automation/ecology/terraform/trade/sky-city)
+   at once without needing a per-planet rule or touching the shared
+   .section class other layout rules still rely on. */
+.section {
+  margin-top: 1.25rem;
+  padding: 1.1rem 1.1rem 1.3rem;
+  border-top: none;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.01));
+  border: 1px solid rgba(140, 160, 255, 0.12);
+  border-left: 3px solid rgba(140, 160, 255, 0.4);
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+[id$="automation"] { border-left-color: #6f9fe0; }
+[id$="ecology"] { border-left-color: #4c9c6e; }
+[id$="terraform"] { border-left-color: #4cc9d8; }
+#research { border-left-color: #5b6ee1; }
+#governor { border-left-color: #b57de0; }
+[id$="trade"] { border-left-color: #e0a24c; }
+[id$="sky-city"] { border-left-color: #e0704c; }
+#travel { border-left-color: #7fd6a3; }
+.cross-summary { border-left-color: rgba(140, 160, 255, 0.25); }
+
+/* --- Gauges: replace the flat 8px bar with a chunkier, ticked,
+   glowing HUD gauge. game.py only ever writes inline .style.width
+   on #\*-bar elements, so the visual language around that width is
+   entirely ours to redraw. */
+.meter {
+  height: 16px;
+  border-radius: 8px;
+  background: rgba(5, 6, 13, 0.7);
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.meter-fill {
+  border-radius: 7px;
+  position: relative;
+  overflow: hidden;
+}
+
+.meter-fill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent calc(10% - 1px),
+    rgba(0, 0, 0, 0.28) calc(10% - 1px),
+    rgba(0, 0, 0, 0.28) 10%
+  );
+}
+
+.meter-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  animation: meter-shimmer 2.6s ease-in-out infinite;
+}
+
+@keyframes meter-shimmer {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(340%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meter-fill::after { animation: none; display: none; }
+}
+
+/* --- Priority/travel buttons: stack the existing icon above the
+   label instead of running it inline, so these read as game action
+   tiles rather than plain text buttons. Uses the same ::before
+   icons already declared above -- no new content, just new layout. */
+button.priority-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.85rem 0.5rem 0.7rem;
+}
+
+button.priority-option::before {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+/* --- Cross-summary rows: small stat-chip card instead of plain
+   stacked paragraphs. Targeted by paragraph position since the
+   resource/generator/ecology lines carry no id or class of their
+   own (only the <span> counters inside them do). */
+.cross-summary {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.cross-summary p {
+  margin: 0;
+}
+
+.cross-summary p:nth-of-type(2)::before {
+  content: "📦 ";
+}
+
+.cross-summary p:nth-of-type(3)::before {
+  content: "🏭 ";
+}
+
+.cross-summary p:nth-of-type(4)::before {
+  content: "🌍 ";
+}
