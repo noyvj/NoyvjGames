@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Site Admin</title>
+<!-- Deliberately not linked from the hub nav or listed anywhere -- reachable
+     only by knowing this URL. Every endpoint it calls (GET /ratings/{slug},
+     GET /feedback, GET /answer-reports) is already a public, unauthenticated
+     read on the backend (see app/main.py) -- this page adds no new data
+     exposure, it just aggregates what anyone could already curl individually
+     into one readable view. -->
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="shared/space-bg.css">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: transparent;
+    color: #eaeaf0;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+  main {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+  h1 {
+    letter-spacing: 0.1em;
+    font-weight: 300;
+    margin: 0 0 0.25rem;
+  }
+  #subtitle {
+    opacity: 0.6;
+    font-size: 0.9rem;
+    margin: 0 0 2rem;
+  }
+  .panel {
+    background: linear-gradient(165deg, rgba(24, 27, 43, 0.82), rgba(14, 16, 28, 0.88));
+    border: 1px solid rgba(140, 160, 255, 0.14);
+    border-radius: 16px;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.75rem;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  }
+  .panel h2 {
+    margin: 0 0 1rem;
+    font-size: 1.1rem;
+    letter-spacing: 0.03em;
+  }
+  .stat-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .stat-chip {
+    background: rgba(5, 6, 13, 0.5);
+    border: 1px solid rgba(140, 160, 255, 0.14);
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    min-width: 130px;
+  }
+  .stat-chip strong {
+    display: block;
+    font-size: 1.4rem;
+    font-variant-numeric: tabular-nums;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid rgba(140, 160, 255, 0.12);
+    vertical-align: top;
+  }
+  th {
+    opacity: 0.6;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+  }
+  tr:last-child td { border-bottom: none; }
+  .empty-row td {
+    opacity: 0.5;
+    font-style: italic;
+  }
+  .game-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin: 1.25rem 0 0.5rem;
+    font-size: 0.95rem;
+  }
+  .game-heading:first-child { margin-top: 0; }
+  .game-heading .avg { opacity: 0.7; font-size: 0.82rem; }
+  .filter-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .filter-row select, .filter-row input {
+    background: rgba(5, 6, 13, 0.55);
+    border: 1px solid rgba(140, 160, 255, 0.14);
+    border-radius: 8px;
+    color: #eaeaf0;
+    padding: 0.4rem 0.6rem;
+    font-family: inherit;
+    font-size: 0.8rem;
+  }
+  .refresh-button {
+    background: linear-gradient(135deg, #3a4d78, #26314f);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    padding: 0.5rem 1rem;
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+  .refresh-button:hover { filter: brightness(1.15); }
+  .status-line { opacity: 0.6; font-size: 0.8rem; margin: 0 0 1rem; }
+  .answer-list { margin: 0; padding-left: 1.1rem; }
+  code { font-size: 0.82rem; background: rgba(5, 6, 13, 0.5); padding: 0.1rem 0.35rem; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div class="space-bg" aria-hidden="true"><div class="space-bg-nebula"></div><div class="space-bg-stars-bright"></div></div>
+
+<main>
+  <h1>SITE ADMIN</h1>
+  <p id="subtitle">Ratings, feedback, and French answer reports — pulled live from the existing public read endpoints, nothing new exposed.</p>
+
+  <section class="panel">
+    <h2>Overview</h2>
+    <p class="status-line" id="overview-status">Loading…</p>
+    <div class="stat-row" id="overview-stats"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Ratings &amp; Reviews</h2>
+    <p class="status-line" id="ratings-status">Loading…</p>
+    <div id="ratings-body"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Site Feedback</h2>
+    <p class="status-line" id="feedback-status">Loading…</p>
+    <table id="feedback-table">
+      <thead><tr><th>Game</th><th>Rating</th><th>Comment</th><th>When</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>French Answer Reports <span style="opacity:0.5; font-weight:400;">(Le Champ de Mots)</span></h2>
+    <p class="status-line">Every "I think this should count" report ever submitted. There's no resolved/unresolved flag in the backend (§14.4's deliberate no-admin-UI decision) — once you've triaged one (accepted into the catalog's <code>accepted_fr</code>/<code>accepted_en</code>, or rejected), it stays in this list as a historical record; it doesn't disappear.</p>
+    <div class="filter-row">
+      <input type="text" id="reports-filter" placeholder="Filter by item id or text…">
+      <button type="button" class="refresh-button" id="reports-refresh">Refresh</button>
+    </div>
+    <p class="status-line" id="reports-status">Loading…</p>
+    <table id="reports-table">
+      <thead><tr><th>Item</th><th>Submitted</th><th>Marked correct</th><th>Topic</th><th>When</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+</main>
+
+<script>
+const API_BASE = "https://noyvjgames.fastapicloud.dev";
+const GAME_SLUGS = [
+  "sol", "canopy", "grid", "tide", "aftermath", "herd", "thaw", "loop",
+  "drift", "trade-empire", "continuum", "champ-de-mots",
+];
+const GAME_LABELS = {
+  sol: "SOL", canopy: "Canopy", grid: "Grid", tide: "Tide",
+  aftermath: "Aftermath", herd: "Herd", thaw: "Thaw", loop: "Loop",
+  drift: "Drift", "trade-empire": "Trade Empire", continuum: "Continuum",
+  "champ-de-mots": "Le Champ de Mots",
+};
+
+function escapeHtml(value) {
+  const div = document.createElement("div");
+  div.textContent = value == null ? "" : String(value);
+  return div.innerHTML;
+}
+
+function formatWhen(iso) {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleString();
+  } catch (err) {
+    return iso;
+  }
+}
+
+async function fetchJson(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${url} -> status ${res.status}`);
+  return res.json();
+}
+
+async function loadRatings() {
+  const body = document.getElementById("ratings-body");
+  const status = document.getElementById("ratings-status");
+  let totalCount = 0;
+  let starSum = 0;
+  let starCount = 0;
+  let html = "";
+
+  for (const slug of GAME_SLUGS) {
+    let rows;
+    try {
+      rows = await fetchJson(`${API_BASE}/ratings/${slug}`);
+    } catch (err) {
+      console.error(`loadRatings(${slug}) failed:`, err);
+      continue;
+    }
+    totalCount += rows.length;
+    const starred = rows.filter((r) => r.stars != null);
+    starred.forEach((r) => { starSum += r.stars; starCount += 1; });
+    const avg = starred.length ? (starred.reduce((s, r) => s + r.stars, 0) / starred.length).toFixed(1) : "—";
+
+    html += `<div class="game-heading"><strong>${escapeHtml(GAME_LABELS[slug] || slug)}</strong><span class="avg">${rows.length} row${rows.length === 1 ? "" : "s"}${starred.length ? ` · avg ${avg}★` : ""}</span></div>`;
+    if (!rows.length) {
+      html += `<table><tbody><tr class="empty-row"><td>No ratings or feedback prompts yet.</td></tr></tbody></table>`;
+      continue;
+    }
+    html += `<table><thead><tr><th>Stars</th><th>Comment</th><th>Feedback response</th></tr></thead><tbody>`;
+    for (const row of rows) {
+      html += `<tr><td>${row.stars != null ? "★".repeat(row.stars) : "—"}</td><td>${escapeHtml(row.comment) || "—"}</td><td>${escapeHtml(row.response) || "—"}</td></tr>`;
+    }
+    html += `</tbody></table>`;
+  }
+
+  body.innerHTML = html;
+  status.textContent = `${totalCount} rating/feedback rows across ${GAME_SLUGS.length} games.`;
+  return { totalCount, starSum, starCount };
+}
+
+async function loadFeedback() {
+  const tbody = document.querySelector("#feedback-table tbody");
+  const status = document.getElementById("feedback-status");
+  let all = [];
+  try {
+    const general = await fetchJson(`${API_BASE}/feedback`);
+    all = all.concat(general.map((f) => ({ ...f, _label: "General" })));
+  } catch (err) {
+    console.error("loadFeedback(general) failed:", err);
+  }
+  for (const slug of GAME_SLUGS) {
+    try {
+      const rows = await fetchJson(`${API_BASE}/feedback?game_id=${encodeURIComponent(slug)}`);
+      all = all.concat(rows.map((f) => ({ ...f, _label: GAME_LABELS[slug] || slug })));
+    } catch (err) {
+      console.error(`loadFeedback(${slug}) failed:`, err);
+    }
+  }
+  all.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+  if (!all.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="4">No site feedback submitted yet.</td></tr>`;
+  } else {
+    tbody.innerHTML = all.map((f) => `
+      <tr>
+        <td>${escapeHtml(f._label)}</td>
+        <td>${f.rating != null ? "★".repeat(f.rating) : "—"}</td>
+        <td>${escapeHtml(f.comment) || "—"}</td>
+        <td>${formatWhen(f.created_at)}</td>
+      </tr>
+    `).join("");
+  }
+  status.textContent = `${all.length} feedback entries.`;
+  return all.length;
+}
+
+let allReports = [];
+
+function renderReports() {
+  const tbody = document.querySelector("#reports-table tbody");
+  const filter = document.getElementById("reports-filter").value.trim().toLowerCase();
+  const filtered = filter
+    ? allReports.filter((r) =>
+        r.item_id.toLowerCase().includes(filter) ||
+        r.submitted_answer.toLowerCase().includes(filter) ||
+        r.marked_correct_answer.join(" ").toLowerCase().includes(filter)
+      )
+    : allReports;
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="5">${allReports.length ? "No reports match that filter." : "No answer reports submitted yet."}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = filtered.map((r) => `
+    <tr>
+      <td><code>${escapeHtml(r.item_id)}</code></td>
+      <td>${escapeHtml(r.submitted_answer)}</td>
+      <td><ul class="answer-list">${r.marked_correct_answer.map((a) => `<li>${escapeHtml(a)}</li>`).join("")}</ul></td>
+      <td>${escapeHtml(r.topic_type) || "—"}</td>
+      <td>${formatWhen(r.created_at)}</td>
+    </tr>
+  `).join("");
+}
+
+async function loadReports() {
+  const status = document.getElementById("reports-status");
+  try {
+    allReports = await fetchJson(`${API_BASE}/answer-reports?game_id=champ-de-mots`);
+  } catch (err) {
+    console.error("loadReports failed:", err);
+    status.textContent = "Failed to load reports — check the console.";
+    return 0;
+  }
+  allReports.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  status.textContent = `${allReports.length} reports total.`;
+  renderReports();
+  return allReports.length;
+}
+
+async function loadAll() {
+  document.getElementById("overview-status").textContent = "Loading…";
+  const [ratingsSummary, feedbackCount, reportsCount] = await Promise.all([
+    loadRatings(),
+    loadFeedback(),
+    loadReports(),
+  ]);
+
+  const overviewStats = document.getElementById("overview-stats");
+  const avgStars = ratingsSummary.starCount
+    ? (ratingsSummary.starSum / ratingsSummary.starCount).toFixed(2)
+    : "—";
+  overviewStats.innerHTML = `
+    <div class="stat-chip">Rating/feedback rows<strong>${ratingsSummary.totalCount}</strong></div>
+    <div class="stat-chip">Site-wide average★<strong>${avgStars}</strong></div>
+    <div class="stat-chip">Site feedback entries<strong>${feedbackCount}</strong></div>
+    <div class="stat-chip">French answer reports<strong>${reportsCount}</strong></div>
+  `;
+  document.getElementById("overview-status").textContent = `Last refreshed ${new Date().toLocaleString()}.`;
+}
+
+document.getElementById("reports-filter").addEventListener("input", renderReports);
+document.getElementById("reports-refresh").addEventListener("click", loadAll);
+
+loadAll();
+</script>
+</body>
+</html>
