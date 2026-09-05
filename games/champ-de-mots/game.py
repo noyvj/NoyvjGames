@@ -978,12 +978,30 @@ def grading_tier(answer_text):
 def strict_alternatives(answer, fold_accents=True):
     """STRICT-tier comparison set: normalization only (shared whitespace/
     case/punctuation folding, contraction equivalence, the number-
-    regionalism table) -- no "/" splitting, no leading-article drop, no
-    catalog `accepted` list. Contractions and regional number words are kept
-    even here because they are genuine alternate spellings of the exact same
-    fact, not a synonym list of the kind STRICT is meant to exclude."""
-    normalized = normalize_answer(str(answer).strip(), fold_accents=fold_accents)
-    alternatives = {normalized} if normalized else set()
+    regionalism table, and parenthetical-suffix stripping) -- no "/"
+    splitting, no leading-article drop, no catalog `accepted` list.
+    Contractions and regional number words are kept even here because they
+    are genuine alternate spellings of the exact same fact, not a synonym
+    list of the kind STRICT is meant to exclude.
+
+    Parenthetical stripping was added after a report-queue review (25
+    reports triaged 2026-09-05) found several STRICT items --
+    "gentil(le)", "culturel(le)", "intelligent(e)", "regarder (-er)" -- all
+    rejecting the correct bare masculine/base form, because this function
+    never stripped the "(...)" the catalog uses to note an alternate
+    ending exists (unlike answer_alternatives()'s LENIENT path, which
+    already did this from Milestone 3 onward). grading_tier() already
+    strips parentheticals *before counting words* to decide STRICT vs
+    LENIENT, so a bare "gentil(le)" item was always routed to STRICT --
+    it just never got the same stripping applied to the actual comparison
+    once it got there. 40 catalog items carry this "(...)" suffix shape."""
+    raw = str(answer).strip()
+    base = strip_parentheticals(raw)
+    alternatives = set()
+    for candidate in (raw, base):
+        normalized = normalize_answer(candidate, fold_accents=fold_accents)
+        if normalized:
+            alternatives.add(normalized)
     for alt in list(alternatives):
         alternatives.update(_contraction_variants(alt))
         alternatives.update(NUMBER_REGIONALISMS.get(alt, ()))

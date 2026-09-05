@@ -87,6 +87,29 @@ def test_strict_tier_is_exact_after_normalization(game_env):
     assert module.check_answer(question, "salut", tier=module.TIER_STRICT) is False
 
 
+def test_strict_tier_strips_parenthetical_suffix_like_lenient_already_did(game_env):
+    """Report-queue review (2026-09-05) found several STRICT items --
+    "gentil(le)", "culturel(le)", "intelligent(e)", "regarder (-er)",
+    "cousin (m/f)" -- all rejecting the correct bare/base form, because
+    strict_alternatives() never stripped the catalog's "(...)" suffix
+    notation, unlike answer_alternatives()'s LENIENT path (which has done
+    this since Milestone 3). grading_tier() already strips parentheticals
+    *before counting words*, so these items were always routed to STRICT
+    -- they just never got the same stripping applied once they got there."""
+    module = game_env.module
+    question = {"mode": "typed", "answer": "gentil(le)", "choices": []}
+    assert module.grading_tier("gentil(le)") == module.TIER_STRICT
+    assert module.check_answer(question, "gentil", tier=module.TIER_STRICT) is True
+    assert module.check_answer(question, "gentil(le)", tier=module.TIER_STRICT) is True
+    assert module.check_answer(question, "gentille", tier=module.TIER_STRICT) is False
+
+    infinitive = {"mode": "typed", "answer": "regarder (-er)", "choices": []}
+    assert module.check_answer(infinitive, "regarder", tier=module.TIER_STRICT) is True
+
+    dual_gender = {"mode": "typed", "answer": "cousin (m/f)", "choices": []}
+    assert module.check_answer(dual_gender, "cousin", tier=module.TIER_STRICT) is True
+
+
 def test_strict_tier_has_no_synonym_list_lenient_tier_does(game_env):
     """The same item, judged both ways: LENIENT drops a leading article from
     the catalog answer as one of its curated phrasings; STRICT is exact
