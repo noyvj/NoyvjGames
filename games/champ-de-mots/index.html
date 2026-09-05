@@ -22,12 +22,22 @@
     <p class="context-blurb">One continuous farm across FREN151 and FREN152, planted in syllabus order. Correct recall grows a plant and stretches the gap before it asks again; a plot that has gone quiet for long enough gets its own sprinkler. Nothing here dies, and nothing here keeps score against you.</p>
 
     <div id="status" class="section">
-      <p id="day-display" class="status-line">Day 1</p>
-      <p id="due-display" class="status-line status-line--due">Loading...</p>
+      <div class="farm-dashboard">
+        <div class="stat-tile stat-tile--day">
+          <p id="day-display" class="status-line">Day 1</p>
+        </div>
+        <div class="stat-tile stat-tile--due">
+          <p id="due-display" class="status-line status-line--due">Loading...</p>
+        </div>
+        <div class="stat-tile stat-tile--progress">
+          <p id="progress-display" class="status-line status-line--muted">Loading...</p>
+        </div>
+        <div class="stat-tile stat-tile--rows">
+          <p id="row-summary-display" class="status-line status-line--muted">Loading...</p>
+        </div>
+      </div>
       <p id="pace-display" class="status-line status-line--muted">Loading...</p>
       <p id="stage-summary-display" class="status-line stage-summary">Loading...</p>
-      <p id="progress-display" class="status-line status-line--muted">Loading...</p>
-      <p id="row-summary-display" class="status-line status-line--muted">Loading...</p>
       <div class="controls">
         <button id="water-next-button" class="primary">Loading...</button>
         <button id="next-day-button" class="secondary">Next day</button>
@@ -40,10 +50,13 @@
     </div>
 
     <div id="practice-panel" class="section practice" hidden>
-      <p id="practice-context" class="practice-context"></p>
-      <p id="practice-instruction" class="practice-instruction"></p>
-      <p id="practice-prompt" class="practice-prompt"></p>
-      <p id="practice-note" class="practice-note" hidden></p>
+      <div class="panel-hero panel-hero--practice" aria-hidden="true">📖</div>
+      <div class="question-card">
+        <p id="practice-context" class="practice-context"></p>
+        <p id="practice-instruction" class="practice-instruction"></p>
+        <p id="practice-prompt" class="practice-prompt"></p>
+        <p id="practice-note" class="practice-note" hidden></p>
+      </div>
       <div id="practice-choices" class="practice-choices"></div>
       <input id="practice-answer-input" class="practice-input" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Type your answer" hidden>
       <button id="practice-submit-button" class="secondary" hidden>Check</button>
@@ -87,11 +100,14 @@
         <p id="review-empty-message" class="status-line status-line--muted" hidden></p>
       </div>
       <div id="review-panel" class="section practice" hidden>
-        <p id="review-progress" class="practice-context"></p>
-        <p id="review-context" class="practice-context"></p>
-        <p id="review-instruction" class="practice-instruction"></p>
-        <p id="review-prompt" class="practice-prompt"></p>
-        <p id="review-note" class="practice-note" hidden></p>
+        <div class="panel-hero panel-hero--review" aria-hidden="true">🔁</div>
+        <div class="question-card">
+          <p id="review-progress" class="practice-context"></p>
+          <p id="review-context" class="practice-context"></p>
+          <p id="review-instruction" class="practice-instruction"></p>
+          <p id="review-prompt" class="practice-prompt"></p>
+          <p id="review-note" class="practice-note" hidden></p>
+        </div>
         <div id="review-choices" class="practice-choices"></div>
         <input id="review-answer-input" class="practice-input" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Type your answer" hidden>
         <button id="review-submit-button" class="secondary" hidden>Check</button>
@@ -103,11 +119,14 @@
     </div>
 
     <div id="proficiency-panel" class="section practice" hidden>
-      <p id="proficiency-progress" class="practice-context"></p>
-      <p id="proficiency-context" class="practice-context"></p>
-      <p id="proficiency-instruction" class="practice-instruction"></p>
-      <p id="proficiency-prompt" class="practice-prompt"></p>
-      <p id="proficiency-note" class="practice-note" hidden></p>
+      <div class="panel-hero panel-hero--proficiency" aria-hidden="true">📝</div>
+      <div class="question-card">
+        <p id="proficiency-progress" class="practice-context"></p>
+        <p id="proficiency-context" class="practice-context"></p>
+        <p id="proficiency-instruction" class="practice-instruction"></p>
+        <p id="proficiency-prompt" class="practice-prompt"></p>
+        <p id="proficiency-note" class="practice-note" hidden></p>
+      </div>
       <div id="proficiency-choices" class="practice-choices"></div>
       <input id="proficiency-answer-input" class="practice-input" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Type your answer" hidden>
       <button id="proficiency-submit-button" class="secondary" hidden>Check</button>
@@ -119,9 +138,10 @@
     </div>
 
     <div id="bonus-panel" class="section practice" hidden>
+      <div class="panel-hero panel-hero--bonus" aria-hidden="true">🧩</div>
       <p id="bonus-progress" class="practice-context"></p>
 
-      <div id="bonus-order-section">
+      <div id="bonus-order-section" class="question-card">
         <p class="practice-instruction">Put the tiles in order.</p>
         <div id="bonus-tile-placed" class="bonus-tile-row"></div>
         <div id="bonus-tile-pool" class="bonus-tile-row"></div>
@@ -129,7 +149,7 @@
         <button id="bonus-order-continue-button" class="secondary" hidden>Continue</button>
       </div>
 
-      <div id="bonus-tiles-section" hidden>
+      <div id="bonus-tiles-section" class="question-card" hidden>
         <p id="bonus-tile-progress" class="practice-context"></p>
         <p class="practice-instruction">Translate this tile.</p>
         <p id="bonus-tile-prompt" class="practice-prompt"></p>
@@ -139,7 +159,7 @@
         <button id="bonus-tile-next-button" class="secondary" hidden>Next</button>
       </div>
 
-      <div id="bonus-sentence-section" hidden>
+      <div id="bonus-sentence-section" class="question-card" hidden>
         <p class="practice-instruction">Now translate the whole sentence.</p>
         <p id="bonus-sentence-prompt" class="practice-prompt"></p>
         <input id="bonus-sentence-answer-input" class="practice-input" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Type your answer" hidden>

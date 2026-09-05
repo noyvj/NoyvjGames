@@ -656,3 +656,368 @@ button:disabled {
   border: 1px solid rgba(140, 160, 255, 0.14);
   border-radius: 8px;
 }
+
+/* ============================================================
+   Practice-panel visual upgrade (2026-09-05, later pass)
+   The farm grid itself already got a real visual treatment back in
+   Milestone 4/7 (722 sprite cells) and is left completely alone
+   here, .plot/.plot--* included. What was still a plain stack of
+   paragraphs was everything *around* a plot once you click it: the
+   practice/review/proficiency/bonus panels, and the handful of bare
+   stat readouts up top. This section turns those into card-based
+   HUD pieces -- a small illustrated badge per panel, the question
+   text grouped into one bordered card, choice/typed-answer surfaces
+   redrawn as tiles, and the plain day/due/progress/rows lines into
+   a small stat-tile dashboard.
+
+   Deliberately warm, not the site-wide glass look: these panels are
+   the farm's own state (the watering interaction itself), not outer
+   site chrome, so they get Milestone 4's original paper-and-soil
+   language back -- cream cards, soil-tan borders, sage-green accents
+   -- rather than the cool tone the general .section/.secondary rules
+   carry elsewhere on this page. Every override below is scoped to
+   ".practice" (or to a class/id that is only ever used inside a
+   .practice-tagged panel) precisely so the outer #status card, the
+   Review tab's own toggle/mode buttons, and every other bit of
+   shared chrome keep the look they already have.
+
+   Static only, same rule as the rest of this file: nothing below
+   eases, pulses or cycles -- colours and box-shadows are fixed
+   values, hover states swap a flat filter with no eased change.
+   ============================================================ */
+
+/* --- stat-tile dashboard (day / due / progress / rows) --- */
+.farm-dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.55rem;
+  margin: 0 0 0.85rem;
+}
+
+.stat-tile {
+  position: relative;
+  padding: 0.55rem 0.7rem 0.55rem 2.3rem;
+  border-radius: 10px;
+  background: linear-gradient(155deg, rgba(163, 181, 122, 0.12), rgba(163, 181, 122, 0.03));
+  border: 1px solid rgba(163, 181, 122, 0.25);
+}
+
+.stat-tile .status-line {
+  margin: 0;
+}
+
+.stat-tile::before {
+  position: absolute;
+  left: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.stat-tile--day::before {
+  content: "📅";
+}
+
+.stat-tile--due {
+  border-color: rgba(155, 214, 127, 0.4);
+  background: linear-gradient(155deg, rgba(155, 214, 127, 0.14), rgba(155, 214, 127, 0.03));
+}
+
+.stat-tile--due::before {
+  content: "💧";
+}
+
+/* The due count already carries its own pill/icon treatment (the
+   "chips" rules further up this file) -- inside a stat tile that
+   would double up as a pill-in-a-tile with two water drops, so it's
+   flattened back to plain inline text here and lets the tile itself
+   be the one card. */
+.stat-tile .status-line--due {
+  display: inline;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+}
+
+.stat-tile .status-line--due::before {
+  content: "";
+}
+
+.stat-tile--progress::before {
+  content: "🌱";
+}
+
+.stat-tile--rows::before {
+  content: "🔓";
+}
+
+/* The stage tally reads as a small dial strip rather than one plain
+   line of text -- a repeating tick pattern behind the same string
+   game.py already writes ("🟤 721 · 🌱 0 · ..."), nothing added to
+   the text itself. */
+.stage-summary {
+  display: inline-block;
+  margin-top: 0.3rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(163, 181, 122, 0.14) 0,
+      rgba(163, 181, 122, 0.14) 1px,
+      transparent 1px,
+      transparent 20%
+    ),
+    linear-gradient(155deg, rgba(163, 181, 122, 0.1), rgba(163, 181, 122, 0.02));
+  border: 1px solid rgba(163, 181, 122, 0.3);
+  box-shadow: 0 0 10px rgba(163, 181, 122, 0.14);
+}
+
+/* --- panel hero badges: one illustrated circle per question surface,
+   echoing the icon already used on that surface's own toggle/entry
+   button (📖 practice, 🔁 review, 📝 proficiency, 🧩 bonus). Pure
+   decoration -- aria-hidden, no id, nothing game.py or a test reads. */
+.panel-hero {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 0.8rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  line-height: 1;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.25), 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+.panel-hero--practice {
+  background: radial-gradient(circle at 34% 30%, #eef7df 0%, #bfe3a0 38%, #7fae54 72%, #4c7530 100%);
+}
+
+.panel-hero--review {
+  background: radial-gradient(circle at 34% 30%, #fdf6df 0%, #f0d78a 38%, #d1a94a 72%, #8a6a1e 100%);
+}
+
+.panel-hero--proficiency {
+  background: radial-gradient(circle at 34% 30%, #fbe8df 0%, #e8b79a 38%, #c47a52 72%, #7a4326 100%);
+}
+
+.panel-hero--bonus {
+  background: radial-gradient(circle at 34% 30%, #f7e3ea 0%, #dba0b8 38%, #a35c7a 72%, #5c2f42 100%);
+}
+
+/* --- the practice/review/proficiency/bonus panels themselves, back
+   to warm paper rather than the cool glass every other .section
+   uses -- see this block's own header note above for why. */
+.practice {
+  border-color: #c9d6ac;
+  background: linear-gradient(165deg, #fdfbf5, #f6f1e4);
+  box-shadow: 0 10px 30px rgba(51, 41, 31, 0.28);
+}
+
+/* --- question card: context + instruction + prompt + note grouped
+   into one bordered card with a sage accent bar, instead of four
+   loose paragraphs stacked in a row. Also used directly on the
+   bonus panel's three existing sub-section divs (order/tiles/
+   sentence), which already wrapped exactly this content. */
+.question-card,
+#bonus-order-section,
+#bonus-tiles-section,
+#bonus-sentence-section {
+  margin: 0 0 0.7rem;
+  padding: 0.7rem 0.85rem 0.75rem 0.95rem;
+  border-left: 3px solid #7ba756;
+  background: linear-gradient(155deg, rgba(163, 181, 122, 0.08), rgba(163, 181, 122, 0.02));
+  border-radius: 0 10px 10px 0;
+}
+
+.question-card > *:last-child,
+#bonus-order-section > *:last-child,
+#bonus-tiles-section > *:last-child,
+#bonus-sentence-section > *:last-child {
+  margin-bottom: 0;
+}
+
+.practice-context {
+  color: #8a7a60;
+}
+
+.practice-instruction {
+  color: #6b5c46;
+}
+
+.practice-prompt {
+  color: #33291f;
+}
+
+.practice-note {
+  background: #f2eddf;
+  border: 1px solid #e6dcc4;
+  color: #6b5c46;
+}
+
+.practice-blurb {
+  background: #fbf7ee;
+  border: 1px solid #e6dcc4;
+}
+
+.practice-blurb-line {
+  color: #6b5c46;
+}
+
+/* --- choice tiles: warm paper cards instead of the cool glass
+   buttons the rest of the page uses for buttons. */
+.choice {
+  background: linear-gradient(155deg, #fbf7ee, #efe7d7);
+  border: 1px solid #ded2ba;
+  color: #33291f;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 2px 6px rgba(51, 41, 31, 0.14);
+}
+
+.choice:hover:not(:disabled) {
+  filter: brightness(0.97);
+}
+
+.choice--answer {
+  background: linear-gradient(155deg, #dbe7c4, #c3d6a0);
+  border-color: #7ba756;
+  color: #2c3a1c;
+  box-shadow: 0 0 0 1px rgba(123, 167, 86, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.practice-input {
+  border: 1px solid #ded2ba;
+  background: #fdfbf5;
+  color: #33291f;
+}
+
+.practice-feedback {
+  color: #3f6b2a;
+}
+
+.practice-feedback:not(:empty) {
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  background: rgba(123, 167, 86, 0.14);
+}
+
+/* --- buttons that live inside a practice panel (Check/Close/Next/
+   Continue/report), scoped so the Review tab's own toggle and mode
+   buttons -- which sit outside any .practice panel -- keep the
+   site-wide look untouched. */
+.practice .secondary {
+  background: linear-gradient(155deg, #fbf7ee, #efe7d7);
+  color: #4a3f30;
+  border-color: #ded2ba;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.practice .secondary:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+
+/* --- bonus tiles: same warm-card treatment as the choice buttons. */
+.bonus-tile {
+  background: linear-gradient(155deg, #fdfbf5, #efe7d7);
+  border: 1px solid #ded2ba;
+  color: #33291f;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.bonus-tile:hover {
+  filter: brightness(0.97);
+}
+
+.bonus-tile--placed {
+  background: linear-gradient(155deg, #f2eddf, #e6dabf);
+}
+
+.bonus-tile--placed:hover {
+  filter: none;
+}
+
+/* --- proficiency topic breakdown: a short list of chips instead of
+   plain stacked lines. */
+.proficiency-topic-breakdown {
+  margin-top: 0.5rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.proficiency-topic-line {
+  margin: 0;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  background: rgba(163, 181, 122, 0.14);
+  color: #6b5c46;
+}
+
+/* --- results badges: review/proficiency/bonus completion summaries,
+   which otherwise inherit the page's light-on-dark body text and
+   would be nearly invisible on the now-cream panel background. */
+#review-summary,
+#proficiency-summary,
+#bonus-summary {
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  background: rgba(123, 167, 86, 0.16);
+  border: 1px solid rgba(123, 167, 86, 0.35);
+  color: #33291f;
+  font-weight: 600;
+}
+
+/* --- info-toggle disclosures inside a practice panel, recoloured to
+   match rather than sitting as a dark chip on a light card. */
+.practice .info-toggle summary {
+  background: rgba(123, 167, 86, 0.18);
+  border-color: rgba(123, 167, 86, 0.4);
+  color: #3f6b2a;
+}
+
+.practice .info-toggle summary:hover {
+  background: rgba(123, 167, 86, 0.3);
+}
+
+.practice .info-toggle[open] summary {
+  background: rgba(123, 167, 86, 0.34);
+}
+
+.practice .info-toggle p {
+  background: #f2eddf;
+  border: 1px solid #e6dcc4;
+  color: #6b5c46;
+}
+
+/* --- controls: the two button rows (status's water/next-day pair,
+   Review's word/grammar pair) get the icon stacked over the label
+   instead of running inline, so they read as game action tiles. The
+   icons themselves are the same ::before content already declared
+   above -- this only changes layout, not content. */
+.controls button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  flex: 1 1 120px;
+  padding: 0.75rem 0.5rem 0.65rem;
+}
+
+.controls button::before {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+#next-day-button::before {
+  content: "🌅 ";
+}
+
+@media (max-width: 600px) {
+  .panel-hero {
+    width: 46px;
+    height: 46px;
+    font-size: 1.4rem;
+  }
+}
