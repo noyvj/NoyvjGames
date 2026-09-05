@@ -285,3 +285,55 @@ button.primary:active {
   opacity: 1;
   text-decoration: underline;
 }
+
+/* Icon labels — pure CSS, no markup/game.py change. Each stat line here
+   has its own unique id (unlike SOL's repeated per-planet suffixes), so
+   these target exact ids rather than an attribute-suffix pattern. Icons
+   are systems-level/institutional symbols only (funds, capacity, a
+   trend arrow, a balance scale, a dusk horizon) — deliberately no
+   people/face icons anywhere, consistent with this game's institutional
+   framing (see CLAUDE.md sensitivity note). Strain-level colours on
+   .meter-fill--strain/.strain--stable/strained/critical and the
+   turning-point/coda accent colours are untouched; only a small glyph is
+   added in front of the surrounding plain-text labels. */
+#funds-display::before {
+  content: "💰 ";
+}
+
+#total-capacity-display::before {
+  content: "🏘️ ";
+}
+
+#arrivals-display::before,
+#total-arrivals-display::before,
+#strain-display::before {
+  content: "📈 ";
+}
+
+#service-quality-display::before,
+#economic-health-display::before,
+#social-cohesion-display::before,
+#wellbeing-display::before {
+  content: "⚖️ ";
+}
+
+#integration-turning-point-display::before {
+  content: "🌅 ";
+}
+
+#coda-message-display::before,
+#coda-wellbeing-display::before {
+  content: "🌅 ";
+}
+
+/* Investment counts (housing/services/infrastructure) are bare numbers
+   sitting in a grid row — turned into a small rounded chip so the row
+   reads as a mini dashboard rather than a plain text triple. No DOM
+   change: .invest-count is the existing span, just re-styled. */
+.invest-count {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(74, 143, 165, 0.16);
+  border: 1px solid rgba(74, 143, 165, 0.35);
+}
