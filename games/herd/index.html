@@ -33,6 +33,7 @@
     <div id="gauge-section" class="section">
       <div id="coupling-gauge"></div>
       <p id="coupling-gauge-label" class="comparison-message">Emissions per herd unit: 1.00 methane/round</p>
+      <details class="info-toggle"><summary>i</summary><p>This tracks methane produced per herd unit, not your total emissions — it only falls when you invest in the decoupling measures below, not by shrinking your herd. Total accumulated methane keeps rising every round as long as you have any herd at all, even at the lowest possible ratio.</p></details>
     </div>
 
     <div id="status" class="section">
@@ -43,7 +44,9 @@
       <p id="coupling-display" class="status-line">Coupling ratio: 1.00 methane/herd/round</p>
       <div class="meter"><div id="methane-bar" class="meter-fill meter-fill--methane"></div></div>
       <p id="pressure-display" class="status-line">Market/regulatory pressure: 0% income loss</p>
+      <details class="info-toggle"><summary>i</summary><p>Pressure scales with your total accumulated methane (not your current herd size or ratio), so it never resets — even emissions from many rounds ago keep dragging down income permanently. It caps at 80% income loss, so a runaway strategy gets much worse but never fully bankrupts you.</p></details>
       <p id="score-display" class="status-line">Score: 300</p>
+      <details class="info-toggle"><summary>i</summary><p>Score is not just your funds — it's funds minus your total accumulated methane multiplied by a fixed penalty weight. A big bank balance built on high, unchecked emissions can score lower than a smaller, cleaner farm.</p></details>
     </div>
 
     <div id="actions" class="section">
@@ -52,6 +55,7 @@
 
     <div id="decoupling" class="section">
       <p id="decoupling-summary-display" class="comparison-message">Decoupled: 0% below baseline emissions per herd unit</p>
+      <details class="info-toggle"><summary>i</summary><p>Feed Additives, Herd Caps, and Capture Systems all reduce the same underlying emissions ratio, and their effects stack additively — investing in several compounds rather than duplicating effort. The ratio has a floor, though: past a certain point, further investment stops helping.</p></details>
       <div class="invest-row" data-measure="feed">
         <span class="invest-name" id="feed-name">Feed Additives</span>
         <span class="invest-count" id="feed-count">0</span>
@@ -70,7 +74,7 @@
     </div>
 
     <div id="plant-pivot" class="section">
-      <p class="meter-label">Alternative protein pivot</p>
+      <p class="meter-label">Alternative protein pivot<details class="info-toggle"><summary>i</summary><p>This is a separate lever from Feed/Caps/Capture — it changes what fraction of output is plant-based instead of making animal production more efficient, and cuts methane per unit much further. The tradeoff: plant-based output earns slightly less income per unit, and it can only replace up to 60% of production.</p></details></p>
       <p id="plant-pivot-display" class="comparison-message">0% of output shifted to plant-based production</p>
       <div class="invest-row" data-measure="plant-pivot">
         <span class="invest-name">🌿 Plant-Based Pivot</span>
