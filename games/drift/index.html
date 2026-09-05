@@ -22,6 +22,19 @@
     <p class="tagline">Manage a receiving region as displacement pressure rises. Whether that pressure becomes a crisis or a manageable transition comes down to how well the region prepared.</p>
     <p class="context-blurb">Institutional preparedness, not the scale of arrivals alone, is what determines outcomes. Uganda's refugee policy — granting land access and the right to work and move freely, integrated alongside host communities — is widely cited by policy researchers as a model of how institutional capacity can turn large-scale displacement into manageable, even mutually beneficial, coexistence.</p>
 
+    <div class="region-visual" aria-hidden="true">
+      <div class="region-visual-glow"></div>
+      <div class="region-visual-skyline">
+        <div class="region-visual-building region-visual-building--a"></div>
+        <div class="region-visual-building region-visual-building--b"></div>
+        <div class="region-visual-building region-visual-building--c"></div>
+        <div class="region-visual-building region-visual-building--d"></div>
+        <div class="region-visual-building region-visual-building--e"></div>
+        <div class="region-visual-building region-visual-building--f"></div>
+      </div>
+      <div class="region-visual-horizon"></div>
+    </div>
+
     <button id="info-page-toggle-button" class="secondary info-page-toggle">Loading...</button>
     <div id="info-page-panel" class="section" hidden>
       <p id="info-page-framing" class="info-page-framing"></p>
@@ -39,6 +52,15 @@
       <p class="meter-label">Displacement pressure
         <details class="info-toggle"><summary>i</summary><p>Strain isn't just a snapshot — it's how far cumulative arrivals have outrun cumulative capacity over the whole run. Higher strain directly cuts into the region's income each round (service shortfalls and friction cost money), and stays elevated even if you catch up later.</p></details>
       </p>
+      <div class="arrival-stream" aria-hidden="true">
+        <span class="arrival-dot"></span>
+        <span class="arrival-dot"></span>
+        <span class="arrival-dot"></span>
+        <span class="arrival-dot"></span>
+        <span class="arrival-dot"></span>
+        <span class="arrival-dot"></span>
+        <span class="arrival-dot"></span>
+      </div>
       <p id="arrivals-display" class="status-line">Arrivals this round: 5 people (background severity: 0.0)</p>
       <p id="total-arrivals-display" class="status-line">Total arrivals (lifetime): 0 people</p>
       <div class="meter">
@@ -60,12 +82,23 @@
       <p class="meter-label">Regional wellbeing
         <details class="info-toggle"><summary>i</summary><p>Wellbeing is the simple average of three separately-tracked scores, not one blended number: service quality reflects strain across the whole run so far, economic health is your funds measured against a fixed reference scale, and social cohesion is the share of everyone who's arrived that's actually been integrated.</p></details>
       </p>
-      <p id="service-quality-display" class="status-line">Service quality: 100</p>
-      <div class="meter"><div id="service-quality-bar" class="meter-fill meter-fill--wellbeing"></div></div>
-      <p id="economic-health-display" class="status-line">Economic health: 30</p>
-      <div class="meter"><div id="economic-health-bar" class="meter-fill meter-fill--wellbeing"></div></div>
-      <p id="social-cohesion-display" class="status-line">Social cohesion: 0</p>
-      <div class="meter"><div id="social-cohesion-bar" class="meter-fill meter-fill--wellbeing"></div></div>
+      <div class="wellbeing-trio">
+        <div class="wellbeing-gauge wellbeing-gauge--service">
+          <span class="wellbeing-gauge-icon" aria-hidden="true">📋</span>
+          <p id="service-quality-display" class="status-line">Service quality: 100</p>
+          <div class="meter"><div id="service-quality-bar" class="meter-fill meter-fill--wellbeing"></div></div>
+        </div>
+        <div class="wellbeing-gauge wellbeing-gauge--economy">
+          <span class="wellbeing-gauge-icon" aria-hidden="true">📊</span>
+          <p id="economic-health-display" class="status-line">Economic health: 30</p>
+          <div class="meter"><div id="economic-health-bar" class="meter-fill meter-fill--wellbeing"></div></div>
+        </div>
+        <div class="wellbeing-gauge wellbeing-gauge--cohesion">
+          <span class="wellbeing-gauge-icon" aria-hidden="true">🔗</span>
+          <p id="social-cohesion-display" class="status-line">Social cohesion: 0</p>
+          <div class="meter"><div id="social-cohesion-bar" class="meter-fill meter-fill--wellbeing"></div></div>
+        </div>
+      </div>
       <p id="wellbeing-display" class="status-line">Wellbeing score: 43</p>
       <p id="wellbeing-message-display" class="comparison-message">This region is managing, but strain and slow integration are holding it back.</p>
       <p id="checkpoint-display" class="comparison-message">Social cohesion is lagging — most arrivals still haven't been integrated yet.</p>
@@ -86,19 +119,28 @@
     <div id="capacity" class="section">
       <p class="meter-label">Capacity investments</p>
       <div class="invest-row">
-        <span id="housing-name" class="invest-name">🏠 Housing</span>
-        <span id="housing-count" class="invest-count">0</span>
-        <button id="housing-invest-button" class="secondary">Housing (20)</button>
+        <div class="invest-icon invest-icon--housing" aria-hidden="true">🏠</div>
+        <div class="invest-fields">
+          <span id="housing-name" class="invest-name">🏠 Housing</span>
+          <span id="housing-count" class="invest-count">0</span>
+          <button id="housing-invest-button" class="secondary">Housing (20)</button>
+        </div>
       </div>
       <div class="invest-row">
-        <span id="services-name" class="invest-name">📚 Integration Services</span>
-        <span id="services-count" class="invest-count">0</span>
-        <button id="services-invest-button" class="secondary">Integration Services (20)</button>
+        <div class="invest-icon invest-icon--services" aria-hidden="true">📚</div>
+        <div class="invest-fields">
+          <span id="services-name" class="invest-name">📚 Integration Services</span>
+          <span id="services-count" class="invest-count">0</span>
+          <button id="services-invest-button" class="secondary">Integration Services (20)</button>
+        </div>
       </div>
       <div class="invest-row">
-        <span id="infrastructure-name" class="invest-name">🛠️ Infrastructure</span>
-        <span id="infrastructure-count" class="invest-count">0</span>
-        <button id="infrastructure-invest-button" class="secondary">Infrastructure (25)</button>
+        <div class="invest-icon invest-icon--infrastructure" aria-hidden="true">🛠️</div>
+        <div class="invest-fields">
+          <span id="infrastructure-name" class="invest-name">🛠️ Infrastructure</span>
+          <span id="infrastructure-count" class="invest-count">0</span>
+          <button id="infrastructure-invest-button" class="secondary">Infrastructure (25)</button>
+        </div>
       </div>
     </div>
 
