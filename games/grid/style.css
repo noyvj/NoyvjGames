@@ -167,8 +167,12 @@ h1 {
 
 .plant-row-top {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 0.6rem;
+}
+
+.plant-row-top .plant-name {
+  flex: 1;
 }
 
 .plant-row-actions {
@@ -459,4 +463,430 @@ button.primary:active {
   background: rgba(5, 6, 13, 0.5);
   border: 1px solid rgba(140, 160, 255, 0.14);
   border-radius: 8px;
+}
+
+/* ============================================================
+   Full visual pass — content-window redesign (2026-09-05)
+   Grid was a stack of plain text status lines plus a row of
+   bare-emoji plant names. This pass gives the page its own
+   illustrated identity rather than reusing SOL's planets: a
+   CSS-drawn transmission line (lattice pylons + sagging wires +
+   a traveling current pulse) as the page's hero visual, six
+   hand-built CSS icons — one per plant type — replacing the
+   flat emoji-only impression in the plant list, HUD "card"
+   treatment for every .section with a per-section accent color,
+   segmented glowing gauges in place of the flat meter bars, and
+   lightly tinted action-tile buttons per plant action. Pure CSS
+   plus small decorative wrapper divs only (same pattern as
+   SOL's .planet-visual) — no id/class renames, no game.py
+   changes, nothing touched that any test or the innerText-driven
+   render loop depends on. PLANT_ICON emoji and the wear-1/2/3
+   filters stay exactly as they were; the new .plant-icon blocks
+   sit beside them as an addition, not a replacement. */
+
+/* --- Grid visual (hero illustration): a stretch of transmission
+   line. Three lattice pylons drawn with clip-path + a diagonal
+   repeating-gradient truss pattern, connected by sagging wires
+   (the classic border-top-arc trick: a wide/short box with
+   border-radius: 50% shows only its top curve), plus a small
+   glowing dot animating along the line to suggest current flow. */
+.grid-visual {
+  position: relative;
+  height: 72px;
+  margin: 0 0 1.25rem;
+  overflow: hidden;
+}
+
+.grid-visual-pylon {
+  position: absolute;
+  bottom: 0;
+  width: 22px;
+  height: 56px;
+  clip-path: polygon(42% 0%, 58% 0%, 78% 100%, 22% 100%);
+  background:
+    repeating-linear-gradient(55deg, rgba(207, 216, 255, 0.75) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(-55deg, rgba(207, 216, 255, 0.75) 0 2px, transparent 2px 9px),
+    linear-gradient(rgba(140, 160, 255, 0.15), rgba(140, 160, 255, 0.15));
+  filter: drop-shadow(0 0 6px rgba(140, 160, 255, 0.25));
+}
+
+.grid-visual-pylon::before {
+  content: "";
+  position: absolute;
+  left: -9px;
+  right: -9px;
+  bottom: 26px;
+  height: 3px;
+  background: rgba(207, 216, 255, 0.6);
+  box-shadow: 0 0 6px rgba(140, 160, 255, 0.3);
+}
+
+.grid-visual-pylon--a { left: 4%; height: 46px; }
+.grid-visual-pylon--b { left: 48%; height: 60px; }
+.grid-visual-pylon--c { left: 90%; height: 50px; }
+
+/* Each wire span is drawn as a shallow two-segment droop (a wide,
+   flat chevron) between two crossbars rather than a single straight
+   line, so it reads as a slack cable rather than a ruler-edge. */
+.grid-visual-wire {
+  position: absolute;
+  bottom: 26px;
+  width: 22%;
+  height: 1px;
+  border-top: 2px solid rgba(207, 216, 255, 0.45);
+  transform-origin: left center;
+}
+
+.grid-visual-wire--1 { left: 8%; transform: rotate(4.5deg); }
+.grid-visual-wire--2 { left: 30%; transform: rotate(-4.5deg); }
+.grid-visual-wire--mid.grid-visual-wire--1 { left: 52%; transform: rotate(3.5deg); }
+.grid-visual-wire--mid.grid-visual-wire--2 { left: 72%; transform: rotate(-3.5deg); }
+.grid-visual-wire--top.grid-visual-wire--1 { bottom: 30px; }
+.grid-visual-wire--top.grid-visual-wire--2 { bottom: 30px; }
+
+.grid-visual-current {
+  position: absolute;
+  bottom: 24px;
+  left: 4%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #cfe0ff;
+  box-shadow: 0 0 8px 2px rgba(140, 190, 255, 0.9);
+  animation: grid-current-flow 4.5s linear infinite;
+}
+
+@keyframes grid-current-flow {
+  0% { left: 4%; bottom: 24px; opacity: 0; }
+  8% { opacity: 1; }
+  25% { bottom: 20px; }
+  50% { left: 48%; bottom: 24px; }
+  75% { bottom: 20px; }
+  92% { opacity: 1; }
+  100% { left: 90%; bottom: 24px; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grid-visual-current { animation: none; opacity: 0; }
+}
+
+/* --- Section cards: give every top-level .section a per-purpose
+   accent instead of an identical flat border. Plain id selectors
+   are enough here since, unlike SOL's per-planet views, Grid has
+   exactly one copy of each section. */
+.section {
+  border-left-width: 3px;
+}
+
+#status { border-left-color: #4cc9d8; }
+#plants { border-left-color: #e0a24c; }
+#feedback-prompt { border-left-color: #b57de0; }
+#info-page-panel { border-left-color: #6f9fe0; }
+
+/* --- Gauges: replace the flat bar with a chunkier, ticked,
+   glowing HUD gauge. game.py only ever writes inline .style.width
+   on #emissions-bar/#score-bar, so the visual language around
+   that width is entirely ours to redraw; existing fill colors
+   (--emissions red / --score green) are untouched. */
+.meter {
+  height: 14px;
+  border-radius: 7px;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.meter-fill {
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.meter-fill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent calc(10% - 1px),
+    rgba(0, 0, 0, 0.28) calc(10% - 1px),
+    rgba(0, 0, 0, 0.28) 10%
+  );
+}
+
+.meter-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  animation: grid-meter-shimmer 2.6s ease-in-out infinite;
+}
+
+@keyframes grid-meter-shimmer {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(340%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meter-fill::after { animation: none; display: none; }
+}
+
+/* --- Plant icons: one small illustrated tile per type, added as a
+   sibling of #<type>-name (never nested inside it — game.py
+   overwrites that span's innerText, including PLANT_ICON's emoji,
+   on every render()). Each is built from plain CSS shapes/gradients
+   rather than a bare emoji or flat swatch. */
+.plant-icon {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+}
+
+/* Coal — dark mound + smokestack, rising smoke puffs */
+.plant-icon--coal .plant-icon-stack {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  width: 26px;
+  height: 16px;
+  border-radius: 40% 40% 6px 6px / 60% 60% 6px 6px;
+  background: linear-gradient(160deg, #4a4d5c, #23242e);
+}
+
+.plant-icon--coal .plant-icon-stack::before {
+  content: "";
+  position: absolute;
+  right: 2px;
+  bottom: 10px;
+  width: 6px;
+  height: 16px;
+  background: linear-gradient(#5a5d6c, #33343e);
+  border-radius: 1px;
+}
+
+.plant-icon-smoke {
+  position: absolute;
+  right: 1px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(180, 184, 196, 0.55);
+  animation: grid-smoke-rise 3.2s ease-in infinite;
+}
+
+.plant-icon-smoke--a { bottom: 20px; animation-delay: 0s; }
+.plant-icon-smoke--b { bottom: 20px; animation-delay: 1.6s; }
+
+@keyframes grid-smoke-rise {
+  0% { transform: translate(0, 0) scale(0.6); opacity: 0; }
+  20% { opacity: 0.7; }
+  100% { transform: translate(6px, -20px) scale(1.4); opacity: 0; }
+}
+
+/* Gas — squat tank + flickering flame */
+.plant-icon--gas .plant-icon-tank {
+  position: absolute;
+  left: 6px;
+  bottom: 3px;
+  width: 20px;
+  height: 14px;
+  border-radius: 5px;
+  background: linear-gradient(160deg, #5a5d6c, #2c2d38);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.plant-icon-flame {
+  position: absolute;
+  left: 13px;
+  bottom: 15px;
+  width: 8px;
+  height: 12px;
+  background: radial-gradient(circle at 50% 30%, #ffe08a, #e0a24c 55%, #c1622f 100%);
+  clip-path: polygon(50% 0%, 85% 55%, 65% 55%, 90% 100%, 10% 100%, 35% 60%, 15% 60%);
+  animation: grid-flame-flicker 1.4s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+@keyframes grid-flame-flicker {
+  0%, 100% { transform: scaleY(1) scaleX(1); }
+  50% { transform: scaleY(1.12) scaleX(0.92); }
+}
+
+/* Nuclear — reactor dome + pulsing radioactive glow */
+.plant-icon--nuclear .plant-icon-dome {
+  position: absolute;
+  left: 4px;
+  bottom: 3px;
+  width: 26px;
+  height: 18px;
+  border-radius: 50% 50% 3px 3px / 100% 100% 3px 3px;
+  background: linear-gradient(160deg, #dfe4f2, #9aa4bb 55%, #5c6478);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.plant-icon-glow {
+  position: absolute;
+  left: 10px;
+  bottom: 9px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(214, 224, 78, 0.9), transparent 70%);
+  animation: grid-radiate-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes grid-radiate-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50% { opacity: 0.9; transform: scale(1.15); }
+}
+
+/* Solar — tilted grid of panel cells with a diagonal shine sweep */
+.plant-icon--solar .plant-icon-panel {
+  position: absolute;
+  inset: 5px;
+  border-radius: 3px;
+  transform: rotate(-10deg);
+  background:
+    repeating-linear-gradient(90deg, rgba(10, 16, 30, 0.9) 0 1.5px, transparent 1.5px 9px),
+    repeating-linear-gradient(0deg, rgba(10, 16, 30, 0.9) 0 1.5px, transparent 1.5px 9px),
+    linear-gradient(135deg, #6fb3ff, #2c5fa8 60%, #163a63);
+  overflow: hidden;
+}
+
+.plant-icon--solar .plant-icon-panel::after {
+  content: "";
+  position: absolute;
+  inset: -60% -10%;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.55) 50%, transparent 60%);
+  animation: grid-panel-shine 3.6s ease-in-out infinite;
+}
+
+@keyframes grid-panel-shine {
+  0%, 30% { transform: translateX(-60%); }
+  70%, 100% { transform: translateX(60%); }
+}
+
+.plant-icon-sun {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffe08a;
+  box-shadow: 0 0 6px 2px rgba(255, 224, 138, 0.7);
+}
+
+/* Wind — pole + three rotating blades */
+.plant-icon--wind .plant-icon-pole {
+  position: absolute;
+  left: 15px;
+  bottom: 2px;
+  width: 4px;
+  height: 26px;
+  border-radius: 2px;
+  background: linear-gradient(#dfe4f2, #8a90a3);
+}
+
+.plant-icon-blades {
+  position: absolute;
+  left: 8px;
+  top: 3px;
+  width: 18px;
+  height: 18px;
+  animation: grid-turbine-spin 5s linear infinite;
+}
+
+.plant-icon-blade {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: 9px;
+  margin-left: -1.5px;
+  margin-top: -9px;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(#f2f4fa, #b7bdd0);
+  transform-origin: 50% 100%;
+}
+
+.plant-icon-blade:nth-child(1) { transform: rotate(0deg); }
+.plant-icon-blade:nth-child(2) { transform: rotate(120deg); }
+.plant-icon-blade:nth-child(3) { transform: rotate(240deg); }
+
+@keyframes grid-turbine-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plant-icon-blades { animation: none; }
+}
+
+/* Hydro — dam wall + flowing wave lines */
+.plant-icon--hydro .plant-icon-dam {
+  position: absolute;
+  left: 3px;
+  bottom: 10px;
+  width: 28px;
+  height: 14px;
+  clip-path: polygon(0% 100%, 12% 0%, 100% 0%, 100% 100%);
+  background: linear-gradient(160deg, #b7bdd0, #6c7286);
+}
+
+.plant-icon-wave {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  height: 8px;
+  background-image: repeating-radial-gradient(circle at 0 100%, transparent 0, transparent 3px, rgba(111, 179, 255, 0.75) 3px, rgba(111, 179, 255, 0.75) 4px, transparent 4px, transparent 8px);
+  background-size: 12px 12px;
+  animation: grid-wave-flow 2.4s linear infinite;
+}
+
+@keyframes grid-wave-flow {
+  from { background-position: 0 0; }
+  to { background-position: -24px 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plant-icon-smoke,
+  .plant-icon-flame,
+  .plant-icon-glow,
+  .plant-icon--solar .plant-icon-panel::after,
+  .plant-icon-wave { animation: none; }
+}
+
+/* --- Plant action buttons: tint per action so the row reads as a
+   set of distinct tile-actions (build/grow, retire/remove,
+   maintain/repair) rather than three identical gray buttons, and
+   lift the existing ::before emoji into a small icon-over-label
+   face like a proper HUD action tile. */
+.plant-row-actions button.secondary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.55rem 0.4rem 0.5rem;
+  line-height: 1.2;
+}
+
+.plant-row-actions button.secondary::before {
+  font-size: 1.05rem;
+}
+
+button.secondary[id$="-build-button"] {
+  border-color: rgba(76, 156, 110, 0.35);
+}
+
+button.secondary[id$="-retire-button"] {
+  border-color: rgba(224, 103, 76, 0.35);
+}
+
+button.secondary[id$="-maintain-button"] {
+  border-color: rgba(224, 162, 76, 0.35);
 }

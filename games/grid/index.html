@@ -22,6 +22,17 @@
     <p class="tagline">Manage a regional power grid. Demand keeps rising — build the capacity to meet it, and decide what kind.</p>
     <p class="context-blurb">Energy-sector emissions are the single largest lever in real-world climate mitigation — how a grid gets built out matters as much as how much power it produces.</p>
 
+    <div class="grid-visual" aria-hidden="true">
+      <div class="grid-visual-pylon grid-visual-pylon--a"></div>
+      <div class="grid-visual-pylon grid-visual-pylon--b"></div>
+      <div class="grid-visual-pylon grid-visual-pylon--c"></div>
+      <div class="grid-visual-wire grid-visual-wire--top grid-visual-wire--1"></div>
+      <div class="grid-visual-wire grid-visual-wire--top grid-visual-wire--2"></div>
+      <div class="grid-visual-wire grid-visual-wire--mid grid-visual-wire--1"></div>
+      <div class="grid-visual-wire grid-visual-wire--mid grid-visual-wire--2"></div>
+      <div class="grid-visual-current"></div>
+    </div>
+
     <button id="info-page-toggle-button" class="secondary info-page-toggle">Loading...</button>
     <div id="info-page-panel" class="section" hidden>
       <p id="info-page-framing" class="info-page-framing"></p>
@@ -60,6 +71,11 @@
       </p>
       <div class="plant-row" data-plant="coal">
         <div class="plant-row-top">
+          <div class="plant-icon plant-icon--coal" aria-hidden="true">
+            <div class="plant-icon-stack"></div>
+            <div class="plant-icon-smoke plant-icon-smoke--a"></div>
+            <div class="plant-icon-smoke plant-icon-smoke--b"></div>
+          </div>
           <span class="plant-name" id="coal-name">Coal</span>
           <span class="plant-count" id="coal-count">0</span>
         </div>
@@ -71,6 +87,10 @@
       </div>
       <div class="plant-row" data-plant="gas">
         <div class="plant-row-top">
+          <div class="plant-icon plant-icon--gas" aria-hidden="true">
+            <div class="plant-icon-tank"></div>
+            <div class="plant-icon-flame"></div>
+          </div>
           <span class="plant-name" id="gas-name">Gas</span>
           <span class="plant-count" id="gas-count">0</span>
         </div>
@@ -82,6 +102,10 @@
       </div>
       <div class="plant-row" data-plant="nuclear">
         <div class="plant-row-top">
+          <div class="plant-icon plant-icon--nuclear" aria-hidden="true">
+            <div class="plant-icon-dome"></div>
+            <div class="plant-icon-glow"></div>
+          </div>
           <span class="plant-name" id="nuclear-name">Nuclear</span>
           <span class="plant-count" id="nuclear-count">0</span>
         </div>
@@ -93,6 +117,10 @@
       </div>
       <div class="plant-row" data-plant="solar">
         <div class="plant-row-top">
+          <div class="plant-icon plant-icon--solar" aria-hidden="true">
+            <div class="plant-icon-panel"></div>
+            <div class="plant-icon-sun"></div>
+          </div>
           <span class="plant-name" id="solar-name">Solar</span>
           <span class="plant-count" id="solar-count">0</span>
         </div>
@@ -104,6 +132,14 @@
       </div>
       <div class="plant-row" data-plant="wind">
         <div class="plant-row-top">
+          <div class="plant-icon plant-icon--wind" aria-hidden="true">
+            <div class="plant-icon-pole"></div>
+            <div class="plant-icon-blades">
+              <div class="plant-icon-blade"></div>
+              <div class="plant-icon-blade"></div>
+              <div class="plant-icon-blade"></div>
+            </div>
+          </div>
           <span class="plant-name" id="wind-name">Wind</span>
           <span class="plant-count" id="wind-count">0</span>
         </div>
@@ -115,6 +151,10 @@
       </div>
       <div class="plant-row" data-plant="hydro">
         <div class="plant-row-top">
+          <div class="plant-icon plant-icon--hydro" aria-hidden="true">
+            <div class="plant-icon-dam"></div>
+            <div class="plant-icon-wave"></div>
+          </div>
           <span class="plant-name" id="hydro-name">Hydro</span>
           <span class="plant-count" id="hydro-count">0</span>
         </div>
