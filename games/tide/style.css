@@ -359,3 +359,55 @@ button.primary:active {
   background: rgba(140, 160, 255, 0.1);
   border: 1px solid rgba(140, 160, 255, 0.18);
 }
+
+/* Info buttons -- zero-JS native <details> disclosure widget, copied
+   verbatim from games/sol/style.css (site-wide "info button" pattern
+   for non-obvious mechanics). Tide already uses the same rgba(140, 160,
+   255, ...) violet-blue accent palette, so no color adaptation needed. */
+.info-toggle {
+  display: inline-block;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.info-toggle summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: rgba(140, 160, 255, 0.16);
+  border: 1px solid rgba(140, 160, 255, 0.3);
+  color: #cdd8ff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.info-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.info-toggle summary:hover {
+  background: rgba(140, 160, 255, 0.28);
+}
+
+.info-toggle[open] summary {
+  background: rgba(140, 160, 255, 0.32);
+}
+
+.info-toggle p {
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 400;
+  opacity: 0.85;
+  line-height: 1.5;
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.75rem;
+  background: rgba(5, 6, 13, 0.5);
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 8px;
+}
