@@ -36,6 +36,7 @@
         <input type="checkbox" id="accent-toggle-checkbox" checked>
         Check my accents (é, è, ç...) — turn off for accent-insensitive typing
       </label>
+      <details class="info-toggle"><summary>i</summary><p>This only affects typed answers. On, your spelling of accents has to match exactly (é is not the same as e). Off, accents are ignored when your answer is checked, so é and e count as equal. Multiple-choice questions aren't affected either way.</p></details>
     </div>
 
     <div id="practice-panel" class="section practice" hidden>
@@ -46,6 +47,7 @@
       <div id="practice-choices" class="practice-choices"></div>
       <input id="practice-answer-input" class="practice-input" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Type your answer" hidden>
       <button id="practice-submit-button" class="secondary" hidden>Check</button>
+      <details class="info-toggle"><summary>i</summary><p>Typed answers are graded differently by length: a single word (a vocab word, a number, one conjugated form) needs an exact match after minor cleanup, while a full phrase or sentence accepts several valid phrasings — so don't worry about matching a longer answer word-for-word.</p></details>
       <p id="practice-feedback" class="practice-feedback"></p>
       <div id="practice-blurb" class="practice-blurb" hidden>
         <p id="practice-blurb-what" class="practice-blurb-line"></p>
@@ -53,6 +55,7 @@
         <p id="practice-blurb-why" class="practice-blurb-line"></p>
       </div>
       <button id="practice-report-button" class="secondary practice-report" hidden>I think this should count</button>
+      <details class="info-toggle"><summary>i</summary><p>Reporting doesn't mark your answer correct automatically — it adds it to a queue that gets checked by hand. If it's a genuinely valid phrasing, it gets added so the game accepts it for everyone from then on.</p></details>
       <button id="practice-close-button" class="secondary practice-close">Close</button>
     </div>
 
@@ -61,6 +64,7 @@
       <p class="status-line status-line--muted">
         Optional cross-section practice — pulls from any unlocked week, doesn't affect row unlocking, and a correct answer only nudges that plot's schedule a little further out.
       </p>
+      <details class="info-toggle"><summary>i</summary><p>A correct Review answer only pushes that plot's next review date a little further out — it never grows the plant a stage. Only the daily farm loop (watering plots that are due) actually grows a plant; Review is just extra, optional practice on the side.</p></details>
       <div id="review-controls" hidden>
         <label class="review-setting">
           Items per session
@@ -149,6 +153,8 @@
     </div>
 
     <p id="legend" class="legend">Loading...</p>
+    <details class="info-toggle"><summary>i</summary><p>Wilting just means a plot is overdue for a re-water — it's a visual nudge, not a penalty. Nothing is lost and no progress resets; one correct answer clears it right away.</p></details>
+    <details class="info-toggle"><summary>i</summary><p>A new row only unlocks once every plot in the previous row has grown to at least Sprout. That keeps the pace of new material roughly matched to real syllabus progress instead of letting you plant every week at once. FREN151's rows are all open from the start as a catch-up zone.</p></details>
 
     <div id="farm" class="farm"></div>
   </div>
