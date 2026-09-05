@@ -536,6 +536,17 @@ def on_toggle_coda(event=None):
 # `region.capacity[t]` for every `t in CAPACITY_TYPES` unconditionally, so
 # a missing key there would crash the very next render -- same bug shape
 # as SOL's planet_state and Continuum's resources/allocation/buildings.
+#
+# Every other field below is restored via `.get(key, <current live
+# value>)` rather than bare `data[key]` indexing, for the same reason:
+# a save written before a field existed (e.g. one from before Iteration
+# Pass 3 added cumulative_services_investment/
+# cumulative_integration_contribution/net_positive_round, or before the
+# info-page feature added info_page_open) must not KeyError outright --
+# it should fall back to whatever the live region already has, same
+# graceful-degradation contract as capacity's per-key merge above. This
+# mirrors the exact fix Tide's load_state() needed for the identical bug
+# shape (see BCM114-DEV-LOG.md 2026-09-02).
 def get_state():
     return {
         "round_number": region.round_number,
@@ -557,22 +568,34 @@ def get_state():
 def load_state(data):
     global coda_visible, info_page_open
 
-    region.round_number = data["round_number"]
-    region.funds = data["funds"]
-    saved_capacity = data["capacity"]
-    for capacity_type in CAPACITY_TYPES:
-        if capacity_type in saved_capacity:
-            region.capacity[capacity_type] = copy.deepcopy(saved_capacity[capacity_type])
-    region.background_severity = data["background_severity"]
-    region.total_arrivals = data["total_arrivals"]
-    region.arrivals_log = copy.deepcopy(data["arrivals_log"])
-    region.strain_log = copy.deepcopy(data["strain_log"])
-    region.integrated_population = data["integrated_population"]
-    region.cumulative_services_investment = data["cumulative_services_investment"]
-    region.cumulative_integration_contribution = data["cumulative_integration_contribution"]
-    region.net_positive_round = data["net_positive_round"]
-    coda_visible = data["coda_visible"]
-    info_page_open = data["info_page_open"]
+    if not isinstance(data, dict):
+        return False
+
+    region.round_number = data.get("round_number", region.round_number)
+    region.funds = data.get("funds", region.funds)
+    saved_capacity = data.get("capacity")
+    if isinstance(saved_capacity, dict):
+        for capacity_type in CAPACITY_TYPES:
+            if capacity_type in saved_capacity:
+                region.capacity[capacity_type] = copy.deepcopy(saved_capacity[capacity_type])
+    region.background_severity = data.get("background_severity", region.background_severity)
+    region.total_arrivals = data.get("total_arrivals", region.total_arrivals)
+    saved_arrivals_log = data.get("arrivals_log")
+    if isinstance(saved_arrivals_log, list):
+        region.arrivals_log = copy.deepcopy(saved_arrivals_log)
+    saved_strain_log = data.get("strain_log")
+    if isinstance(saved_strain_log, list):
+        region.strain_log = copy.deepcopy(saved_strain_log)
+    region.integrated_population = data.get("integrated_population", region.integrated_population)
+    region.cumulative_services_investment = data.get(
+        "cumulative_services_investment", region.cumulative_services_investment
+    )
+    region.cumulative_integration_contribution = data.get(
+        "cumulative_integration_contribution", region.cumulative_integration_contribution
+    )
+    region.net_positive_round = data.get("net_positive_round", region.net_positive_round)
+    coda_visible = data.get("coda_visible", coda_visible)
+    info_page_open = data.get("info_page_open", info_page_open)
 
     render()
     return True

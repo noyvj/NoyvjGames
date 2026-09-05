@@ -172,3 +172,56 @@ def test_load_state_with_capacity_missing_a_key_does_not_crash_next_render(game_
     assert result is True
     assert game_env.region.capacity["infrastructure"] == 6.0
     assert game_env.region.total_capacity() == 6.0
+
+
+def test_load_state_missing_top_level_key_does_not_crash(game_env):
+    """Every non-capacity field in load_state() used bare `data["key"]`
+    indexing -- a save from an older version of the game missing any one
+    of those fields entirely (e.g. a save written before Iteration Pass
+    3 added cumulative_services_investment/
+    cumulative_integration_contribution/net_positive_round, or before
+    the info-page feature added info_page_open) would KeyError
+    immediately instead of loading gracefully, the same bug shape the
+    capacity dict already had to be protected from above."""
+    game_env.region.invest("housing")
+    snapshot = game_env.module.get_state()
+    del snapshot["cumulative_services_investment"]
+    del snapshot["net_positive_round"]
+    del snapshot["info_page_open"]
+
+    result = game_env.module.load_state(snapshot)
+
+    assert result is True
+    # Every other field from the still-mostly-intact snapshot still
+    # restores normally.
+    assert game_env.region.round_number == snapshot["round_number"]
+    assert game_env.region.funds == snapshot["funds"]
+    assert game_env.region.capacity == snapshot["capacity"]
+
+
+def test_load_state_missing_net_positive_round_falls_back_to_live_value(game_env):
+    """A missing top-level key should fall back to whatever the live
+    region already has, not silently reset to some hardcoded default --
+    the same graceful-degradation contract capacity's per-key merge
+    already provides."""
+    game_env.region.invest("services")
+    game_env.region.total_arrivals = 50.0
+    for _ in range(4):
+        game_env.advance_round()
+    assert game_env.region.has_crossed_to_net_positive() is True
+    live_net_positive_round = game_env.region.net_positive_round
+
+    snapshot = game_env.module.get_state()
+    del snapshot["net_positive_round"]
+
+    result = game_env.module.load_state(snapshot)
+
+    assert result is True
+    assert game_env.region.net_positive_round == live_net_positive_round
+
+
+def test_load_state_rejects_non_dict_payload(game_env):
+    """A corrupted/malformed save payload (not even a dict) must not
+    crash load_state() -- it should fail gracefully instead."""
+    assert game_env.module.load_state("not a dict") is False
+    assert game_env.module.load_state(None) is False
