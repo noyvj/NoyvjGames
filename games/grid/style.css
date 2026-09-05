@@ -307,3 +307,98 @@ button.primary:active {
   opacity: 1;
   text-decoration: underline;
 }
+
+/* Icon labels — pure CSS, no markup/game.py change, same technique as
+   SOL's reference pass (see games/sol/style.css "Icon labels" section):
+   `::before { content: "emoji "; }` on the existing id/class selectors,
+   with `[id$="..."]` attribute-suffix selectors for the button ids that
+   repeat once per plant type. PLANT_ICON (rendered server-side into each
+   #<type>-name element by game.py) and the wear-1/2/3 desaturation
+   filters are the plant-identity/vulnerability encoding and are left
+   completely untouched — everything below only reaches the plain-text
+   stat/status lines and action buttons that had no icon at all. */
+#round-display::before {
+  content: "🔁 ";
+}
+
+#demand-display::before {
+  content: "⚡ ";
+}
+
+#funds-display::before {
+  content: "💰 ";
+}
+
+#capacity-display::before {
+  content: "🔌 ";
+}
+
+#emissions-display::before {
+  content: "🏭 ";
+}
+
+#disruption-risk-display::before {
+  content: "⚠️ ";
+}
+
+#fossil-share-display::before {
+  content: "🛢️ ";
+}
+
+#event-display::before {
+  content: "🚨 ";
+}
+
+#score-display::before {
+  content: "🌱 ";
+}
+
+#trend-display::before {
+  content: "📈 ";
+}
+
+#aging-event-display::before {
+  content: "🛠️ ";
+}
+
+.meter-label::before {
+  content: "📊 ";
+}
+
+#trend-graph-message::before {
+  content: "📈 ";
+}
+
+#global-comparison-message::before {
+  content: "🌍 ";
+}
+
+#renewable-blurb::before {
+  content: "♻️ ";
+}
+
+#advance-round-button::before {
+  content: "⏭️ ";
+}
+
+[id$="-build-button"]::before {
+  content: "🔨 ";
+}
+
+[id$="-retire-button"]::before {
+  content: "🗑️ ";
+}
+
+[id$="-maintain-button"]::before {
+  content: "🔧 ";
+}
+
+/* Plant count as a small rounded chip instead of a bare number, matching
+   the glass-panel chrome used elsewhere on this page. No DOM change —
+   same #<type>-count element, just styled. */
+.plant-count {
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(140, 160, 255, 0.12);
+  border: 1px solid rgba(140, 160, 255, 0.2);
+}
