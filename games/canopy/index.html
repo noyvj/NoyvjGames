@@ -41,6 +41,7 @@
 
     <div id="stakeholder-panel" class="section stakeholder-panel" hidden>
       <p id="stakeholder-message" class="stakeholder-message"></p>
+      <details class="info-toggle"><summary>i</summary><p>Granting clears the plot (banking its value) and raises community relations by 10; declining keeps the plot standing but only costs 5 relations — the two choices aren't symmetric, so weigh what you'd protect against what you'd give up.</p></details>
       <div class="action-buttons">
         <button id="stakeholder-grant-button" class="secondary" disabled>Grant</button>
         <button id="stakeholder-decline-button" class="secondary" disabled>Decline</button>
@@ -56,10 +57,10 @@
     </div>
 
     <div class="legend section">
-      <span class="legend-item"><span class="legend-swatch plot-preserved"></span> Preserved</span>
-      <span class="legend-item"><span class="legend-swatch plot-bare"></span> Bare</span>
-      <span class="legend-item"><span class="legend-swatch plot-replanting"></span> Replanting</span>
-      <span class="legend-item"><span class="legend-swatch plot-recovered"></span> Recovered</span>
+      <span class="legend-item"><span class="legend-swatch plot-preserved"></span> Preserved<details class="info-toggle"><summary>i</summary><p>Standing value doesn't grow at a flat rate — it compounds, so a plot you've left alone longer earns faster than a newly preserved one. The same growth applies once a plot reaches Recovered.</p></details></span>
+      <span class="legend-item"><span class="legend-swatch plot-bare"></span> Bare<details class="info-toggle"><summary>i</summary><p>Every time a plot gets cleared, its future value growth is permanently reduced a little — clearing the same plot over and over makes it worse, though it never stops producing entirely.</p></details></span>
+      <span class="legend-item"><span class="legend-swatch plot-replanting"></span> Replanting<details class="info-toggle"><summary>i</summary><p>A replanted plot takes a fixed number of ticks to finish recovering, then grows in value just like a never-cleared plot — restoration works, it's just slower.</p></details></span>
+      <span class="legend-item"><span class="legend-swatch plot-recovered"></span> Recovered<details class="info-toggle"><summary>i</summary><p>Preserved and Recovered plots quietly build up biodiversity the longer they stand undisturbed; once it crosses a threshold, a small wildlife icon appears on the tile — a sign the plot has been thriving a while.</p></details></span>
     </div>
 
     <div id="feedback-prompt" class="section">
