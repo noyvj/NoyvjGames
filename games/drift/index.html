@@ -36,7 +36,9 @@
     </div>
 
     <div id="pressure" class="section">
-      <p class="meter-label">Displacement pressure</p>
+      <p class="meter-label">Displacement pressure
+        <details class="info-toggle"><summary>i</summary><p>Strain isn't just a snapshot — it's how far cumulative arrivals have outrun cumulative capacity over the whole run. Higher strain directly cuts into the region's income each round (service shortfalls and friction cost money), and stays elevated even if you catch up later.</p></details>
+      </p>
       <p id="arrivals-display" class="status-line">Arrivals this round: 5 people (background severity: 0.0)</p>
       <p id="total-arrivals-display" class="status-line">Total arrivals (lifetime): 0 people</p>
       <div class="meter">
@@ -46,14 +48,18 @@
     </div>
 
     <div id="integration" class="section">
-      <p class="meter-label">Integration</p>
+      <p class="meter-label">Integration
+        <details class="info-toggle"><summary>i</summary><p>Only Integration Services capacity moves people from pending to integrated — housing and infrastructure don't speed this up. Services throughput caps how many people can be integrated per round regardless of how much funding you have, so a backlog of pending arrivals can only clear as fast as services capacity allows.</p></details>
+      </p>
       <p id="integrated-display" class="status-line">Integrated: 0 people (contributing 0 funds/round)</p>
       <p id="pending-display" class="status-line">Pending integration: 0 people</p>
       <p id="integration-turning-point-display" class="turning-point-message" hidden></p>
     </div>
 
     <div id="wellbeing" class="section">
-      <p class="meter-label">Regional wellbeing</p>
+      <p class="meter-label">Regional wellbeing
+        <details class="info-toggle"><summary>i</summary><p>Wellbeing is the simple average of three separately-tracked scores, not one blended number: service quality reflects strain across the whole run so far, economic health is your funds measured against a fixed reference scale, and social cohesion is the share of everyone who's arrived that's actually been integrated.</p></details>
+      </p>
       <p id="service-quality-display" class="status-line">Service quality: 100</p>
       <div class="meter"><div id="service-quality-bar" class="meter-fill meter-fill--wellbeing"></div></div>
       <p id="economic-health-display" class="status-line">Economic health: 30</p>
@@ -67,7 +73,9 @@
 
     <button id="coda-button" class="secondary" hidden>View Long-Horizon Outcomes</button>
     <div id="coda-section" class="section coda-section" hidden>
-      <p class="meter-label">Generations from now</p>
+      <p class="meter-label">Generations from now
+        <details class="info-toggle"><summary>i</summary><p>This is a rough extrapolation of today's integration contribution compounding forward a few generations — not a guaranteed outcome. It only appears once at least one person has been integrated, and it projects your current trajectory rather than predicting the future exactly.</p></details>
+      </p>
       <p id="coda-message-display" class="coda-message"></p>
       <div class="meter"><div id="coda-service-quality-bar" class="meter-fill meter-fill--wellbeing"></div></div>
       <div class="meter"><div id="coda-economic-health-bar" class="meter-fill meter-fill--wellbeing"></div></div>

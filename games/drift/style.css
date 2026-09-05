@@ -337,3 +337,57 @@ button.primary:active {
   background: rgba(74, 143, 165, 0.16);
   border: 1px solid rgba(74, 143, 165, 0.35);
 }
+
+/* Info buttons — small circular "i" disclosure next to a label,
+   explaining a mechanic that isn't obvious from the UI alone. Same
+   zero-JS <details class="info-toggle"> pattern as SOL's
+   games/sol/style.css, recoloured to Drift's teal/blue accent
+   (#4a8fa5/#5aa1b8) instead of SOL's violet-blue so it matches this
+   game's own palette. */
+.info-toggle {
+  display: inline-block;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.info-toggle summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: rgba(74, 143, 165, 0.16);
+  border: 1px solid rgba(74, 143, 165, 0.35);
+  color: #bfe0ea;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.info-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.info-toggle summary:hover {
+  background: rgba(74, 143, 165, 0.3);
+}
+
+.info-toggle[open] summary {
+  background: rgba(74, 143, 165, 0.34);
+}
+
+.info-toggle p {
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 400;
+  opacity: 0.85;
+  line-height: 1.5;
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.75rem;
+  background: rgba(5, 6, 13, 0.5);
+  border: 1px solid rgba(74, 143, 165, 0.14);
+  border-radius: 8px;
+}
