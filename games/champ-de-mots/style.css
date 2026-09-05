@@ -1021,3 +1021,144 @@ button:disabled {
     font-size: 1.4rem;
   }
 }
+
+/* ============================================================
+   Design pass 2 — embed it in the console, farm edition
+   (2026-09-06). games/sol/style.css did this first for SOL's
+   console (search that file for "Design pass 2 — embed controls
+   & readouts into the console"): labels got a mounted nameplate
+   look, big numbers got a recessed digital-screen look, and
+   buttons got a beveled-switch look with a status LED wired to
+   :disabled. Same idea here, translated into this game's own
+   warm paper/soil materials instead of SOL's sci-fi metal-and-
+   glass ones — a label reads as a small wooden tag nailed to the
+   board, a number reads as a hand-ruled count behind a little
+   glass-fronted window, and a button reads as a pressed wooden
+   tile rather than a flat rectangle, with a small painted peg
+   (not an LED) standing in for the same functional idea. Pure
+   CSS on selectors that already exist across every panel; no
+   id/class added, no markup or game.py touched, .plot/.plot--*
+   left completely untouched. Static only, same rule as the rest
+   of this file — nothing here eases, pulses or cycles.
+   ============================================================ */
+
+/* --- Signpost tags: short label-shaped text (a row's own number,
+   and the small context/progress breadcrumb line shared by the
+   practice/review/proficiency/bonus panels) reads as a little
+   wood-grain tag nailed on rather than plain floating text. Kept
+   block-level with a fit-content width so two stacked breadcrumb
+   lines (e.g. review's progress + context) still read as two
+   separate tags, one above the other, instead of sitting flush
+   with the card behind them. */
+.row-label,
+.practice-context {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.2rem 0.55rem;
+  background:
+    repeating-linear-gradient(100deg, rgba(94, 74, 42, 0.12) 0, rgba(94, 74, 42, 0.12) 2px, transparent 2px, transparent 7px),
+    linear-gradient(160deg, #e7d9b8, #d3c096);
+  border: 1px solid #b39c6e;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 -2px 3px rgba(94, 74, 42, 0.22), 0 1px 2px rgba(51, 41, 31, 0.25);
+  color: #4a3b23;
+  opacity: 1;
+}
+
+/* --- Recessed readouts: the two places a bare number is the
+   whole point (which day it is, how many plots in a row have
+   grown) sit behind a little ruled-paper window let into the
+   board, instead of floating as plain text on the card. */
+#day-display,
+.row-progress {
+  display: inline-block;
+  border-radius: 5px;
+  background:
+    repeating-linear-gradient(0deg, rgba(94, 74, 42, 0.06) 0, rgba(94, 74, 42, 0.06) 1px, transparent 1px, transparent 4px),
+    linear-gradient(180deg, #f7f2e4, #e6dabf);
+  border: 1px solid #b39c6e;
+  box-shadow: inset 0 2px 5px rgba(51, 41, 31, 0.3);
+  color: #3a2f1e;
+  opacity: 1;
+}
+
+#day-display {
+  padding: 0.15rem 0.65rem;
+  font-weight: 700;
+}
+
+.row-progress {
+  padding: 0.05rem 0.42rem;
+  font-weight: 600;
+}
+
+/* --- Pressed wooden tiles: every actionable button/choice/tile
+   gets real bevel depth (a soft top highlight, a lift shadow, a
+   pressed inner shadow) instead of a flat rounded rectangle — the
+   same idea as SOL's beveled switches, built from a wood-tile
+   palette instead of a metal one. Nothing eases: :disabled and
+   :hover both swap flat values, same as the rest of this file. */
+.primary,
+.secondary,
+.choice,
+.bonus-tile {
+  box-shadow:
+    0 3px 0 rgba(51, 41, 31, 0.28),
+    0 4px 8px rgba(51, 41, 31, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -3px 5px rgba(51, 41, 31, 0.12);
+}
+
+.primary:disabled,
+.secondary:disabled,
+.choice:disabled,
+.bonus-tile:disabled {
+  box-shadow: inset 0 2px 5px rgba(51, 41, 31, 0.25);
+}
+
+/* --- Status peg: a small painted marker on the two general-
+   purpose action-button faces (Water/Next day/Check/Close/Next/
+   Continue/Review/proficiency/bonus buttons all carry one of
+   these two classes), lit sage-green while the button is usable
+   and dulled to a flat tan the moment :disabled is true — a real
+   indicator wired to the same attribute that already disables the
+   button, not just decoration. Reuses the sprinkler-dot technique
+   already established on an automated plot (.plot--automated
+   ::after, Milestone 4) rather than inventing a second visual
+   language for "a small dot in the corner means something." */
+.primary,
+.secondary {
+  position: relative;
+}
+
+.primary::after,
+.secondary::after {
+  content: "";
+  position: absolute;
+  top: 0.42rem;
+  right: 0.55rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  box-shadow: inset 0 1px 1px rgba(51, 41, 31, 0.3);
+}
+
+.primary::after {
+  background: #f6ecc9;
+}
+
+.secondary::after {
+  background: #7ba756;
+}
+
+.primary:disabled::after,
+.secondary:disabled::after {
+  background: #a89878;
+  box-shadow: inset 0 1px 1px rgba(51, 41, 31, 0.25);
+}
+
+.controls button::after {
+  top: 0.5rem;
+  right: 0.6rem;
+}
