@@ -34,10 +34,13 @@
       <p id="progress-display" class="status-line">Event 1 of 7</p>
       <p id="next-event-display" class="status-line">Next: Flood</p>
       <p id="last-event-display" class="status-line"></p>
+      <details class="info-toggle"><summary>i</summary><p>Event severity (mild/typical/severe) isn't random — it's a fixed pattern per run number, so replaying the same run always faces the same challenge. Your first run is always "typical." From run 2 onward, the spread widens the more resilience skills you've unlocked overall — a stronger skill tree can hit lower lows and higher highs, not just an easier flat curve.</p></details>
       <p id="resources-display" class="status-line">Resources: 200</p>
       <p id="resilience-display" class="status-line">Resilience: 0</p>
       <p id="growth-display" class="status-line">Growth: 0</p>
-      <p class="meter-label">Mitigation</p>
+      <p class="meter-label">Mitigation
+        <details class="info-toggle"><summary>i</summary><p>How much event damage you avoid. Each Resilience investment adds a flat 5%, capped at 85% total even if you max it out — Early Warning Systems adds another flat 10% on top once unlocked. It never reaches 100%; some damage always gets through.</p></details>
+      </p>
       <div class="meter"><div id="mitigation-bar" class="meter-fill meter-fill--mitigation"></div></div>
       <p id="run-summary-display" class="comparison-message"></p>
       <p id="progress-comparison-display" class="comparison-message">Play more runs to see how far you've come.</p>
@@ -46,6 +49,7 @@
     <div id="actions" class="section">
       <button id="resilience-invest-button" class="secondary" disabled>Loading...</button>
       <button id="growth-invest-button" class="secondary" disabled>Loading...</button>
+      <details class="info-toggle"><summary>i</summary><p>Growth doesn't protect you from event damage at all — each unit just adds 8 resources of passive income every time you face an event. It's a bet that the extra income outweighs skipping a point of damage mitigation.</p></details>
     </div>
 
     <button id="resolve-event-button" class="primary">Face Next Event</button>
@@ -53,6 +57,7 @@
 
     <div id="skill-tree" class="section">
       <p id="knowledge-points-display" class="status-line">Resilience knowledge: 0</p>
+      <details class="info-toggle"><summary>i</summary><p>Knowledge earned per run is your leftover resources divided by 20, rounded — but never zero, even after a terrible run. Unlocked skills below are permanent: they carry into every future run, unlike Resilience/Growth investment, which resets to a fresh start each run.</p></details>
       <div class="skill-row" data-skill="reinforced_infrastructure">
         <span class="skill-status" id="skill-reinforced_infrastructure-status">Reinforced Infrastructure — +2 starting resilience capacity</span>
         <button id="skill-reinforced_infrastructure-unlock-button" class="secondary" disabled>Loading...</button>
