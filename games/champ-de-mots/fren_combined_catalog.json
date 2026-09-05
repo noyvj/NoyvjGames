@@ -480,7 +480,11 @@
             },
             {
               "fr": "tous ensemble",
-              "en": "everybody together"
+              "en": "everybody together",
+              "accepted_en": [
+                "everybody together",
+                "all together"
+              ]
             },
             {
               "fr": "en français!",
@@ -488,7 +492,12 @@
             },
             {
               "fr": "écoutez bien!",
-              "en": "listen carefully!"
+              "en": "listen carefully!",
+              "accepted_en": [
+                "listen carefully!",
+                "listen carefully",
+                "listen closely"
+              ]
             },
             {
               "fr": "Quelle est la bonne réponse?",
@@ -615,7 +624,11 @@
             },
             {
               "fr": "comme ci, comme ça",
-              "en": "so-so"
+              "en": "so-so",
+              "accepted_en": [
+                "so-so",
+                "so so"
+              ]
             },
             {
               "fr": "Et toi / Et vous?",
@@ -979,7 +992,12 @@
             },
             {
               "fr": "Quel âge avez-vous?",
-              "en": "How old are you? (formal)"
+              "en": "How old are you? (formal)",
+              "accepted_fr": [
+                "Quel âge avez-vous?",
+                "Quel âge avez-vous",
+                "Quel âge avez vous"
+              ]
             },
             {
               "fr": "J'ai ... ans.",
@@ -1303,7 +1321,13 @@
             },
             {
               "fr": "serveur / serveuse",
-              "en": "waiter/waitress"
+              "en": "waiter/waitress",
+              "accepted_en": [
+                "waiter/waitress",
+                "waiter / waitress",
+                "waitress / waiter",
+                "server"
+              ]
             },
             {
               "fr": "agent de police / agente de police",
@@ -1473,7 +1497,12 @@
           "items": [
             {
               "fr": "Je travaille à temps partiel.",
-              "en": "I work part-time."
+              "en": "I work part-time.",
+              "accepted_en": [
+                "I work part-time.",
+                "I work part-time",
+                "I work part time"
+              ]
             },
             {
               "fr": "Je travaille à temps plein / complet.",
@@ -2199,11 +2228,21 @@
             },
             {
               "fr": "un centre commercial",
-              "en": "a shopping centre/mall"
+              "en": "a shopping centre/mall",
+              "accepted_en": [
+                "a shopping centre/mall",
+                "a shopping centre / mall",
+                "mall / a shopping centre",
+                "a shopping center"
+              ]
             },
             {
               "fr": "un magasin",
-              "en": "a shop"
+              "en": "a shop",
+              "accepted_en": [
+                "a shop",
+                "a store"
+              ]
             },
             {
               "fr": "un musée",
@@ -2748,7 +2787,11 @@
             },
             {
               "fr": "les grands-parents",
-              "en": "grandparents"
+              "en": "grandparents",
+              "accepted_en": [
+                "grandparents",
+                "grand parents"
+              ]
             },
             {
               "fr": "le grand-père / la grand-mère",
@@ -2893,7 +2936,11 @@
           "items": [
             {
               "fr": "le chat du pharmacien",
-              "en": "the pharmacist's cat"
+              "en": "the pharmacist's cat",
+              "accepted_en": [
+                "the pharmacist's cat",
+                "the cat of the pharmacist"
+              ]
             },
             {
               "fr": "les enfants de la fonctionnaire",
@@ -3155,7 +3202,11 @@
             },
             {
               "fr": "le théâtre",
-              "en": "theatre"
+              "en": "theatre",
+              "accepted_en": [
+                "theatre",
+                "theater"
+              ]
             },
             {
               "fr": "le vélo",
@@ -3232,7 +3283,11 @@
           "items": [
             {
               "fr": "gentil(le)",
-              "en": "kind"
+              "en": "kind",
+              "accepted_en": [
+                "kind",
+                "nice"
+              ]
             },
             {
               "fr": "intelligent(e)",
