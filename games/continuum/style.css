@@ -151,6 +151,10 @@ h1 {
   margin: 0;
   font-size: 0.82rem;
   opacity: 0.8;
+  padding: 0.35rem 0.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(140, 160, 255, 0.12);
+  border-radius: 8px;
 }
 
 /* The single weakest component is called out, so the score reads as a
@@ -218,10 +222,15 @@ h1 {
 
 .research-meta {
   margin: 0;
+  display: inline-block;
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   opacity: 0.5;
+  padding: 0.15rem 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 999px;
 }
 
 .research-locked-reason {
@@ -291,4 +300,80 @@ button.primary:active {
 .hub-back-link:hover {
   opacity: 1;
   text-decoration: underline;
+}
+
+/* Icon labels — pure CSS, no markup/game.py change (see root/SOL for the
+   reference technique). The work/building rows already carry their own
+   icons as literal HTML text (added in an earlier audit-fix commit), so
+   this pass targets everything else in the status/sustainability/research
+   panels that was still a bare numeric readout: population, land health,
+   the four sustainability components, the era/season counters, the
+   remaining resource stats, and the research panel's own headline stat
+   plus its per-node tier/branch chip. Every selector below is an existing
+   id or class already in index.html/game.py — nothing renamed, nothing
+   new. Colors are untouched: an ::before icon inherits whatever color its
+   parent already has, so .component-line--weakest's amber call-out and
+   the research locked/available states are unaffected. */
+#era-display::before {
+  content: "📜 ";
+}
+
+#season-display::before {
+  content: "🗓️ ";
+}
+
+#population-display::before {
+  content: "👥 ";
+}
+
+#housing-display::before {
+  content: "🏠 ";
+}
+
+#food-display::before {
+  content: "🍞 ";
+}
+
+#materials-display::before {
+  content: "🪵 ";
+}
+
+#tools-display::before {
+  content: "🔨 ";
+}
+
+#knowledge-display::before {
+  content: "📚 ";
+}
+
+#land-health-display::before {
+  content: "🌾 ";
+}
+
+#score-display::before {
+  content: "🌱 ";
+}
+
+#livability-display::before {
+  content: "🏛️ ";
+}
+
+#equity-display::before {
+  content: "⚖️ ";
+}
+
+#balance-display::before {
+  content: "🌾 ";
+}
+
+#resilience-display::before {
+  content: "🛡️ ";
+}
+
+#research-status-display::before {
+  content: "🔬 ";
+}
+
+.research-meta::before {
+  content: "🔬 ";
 }
