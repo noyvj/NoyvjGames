@@ -285,3 +285,77 @@ button.primary:active {
   opacity: 1;
   text-decoration: underline;
 }
+
+/* Icon labels — pure CSS, no markup/game.py change (visual pass, same
+   `::before { content: "emoji "; }` technique as SOL's reference —
+   see games/sol/style.css's "Icon labels" section). Every stat line
+   below already carries a stable id (or sits under one), so plain
+   id/attribute selectors reach each one without adding or renaming
+   anything. Deliberately does not touch `.coastline-land` /
+   `.coastline-flooded` / `.coastline-seawall` — those stay exactly as
+   the functional tier/flood-state colors they already are. */
+#funds-display::before {
+  content: "💰 ";
+}
+
+#acidity-display::before {
+  content: "🧪 ";
+}
+
+#fish-yield-display::before {
+  content: "🐟 ";
+}
+
+#sea-level-display::before {
+  content: "🌊 ";
+}
+
+#adaptation-tier-display::before {
+  content: "🛡️ ";
+}
+
+/* "Delayed effects" and "Coastline: then vs. now" both use the shared
+   `.meter-label` class with no id of their own to hook -- scope by the
+   stable parent section id instead of touching the shared class (same
+   id-suffix-style precision as SOL's approach, adapted since these are
+   plain classes rather than id-suffixes). */
+#status .meter-label::before {
+  content: "⏳ ";
+}
+
+#coastline-comparison .meter-label::before {
+  content: "🏖️ ";
+}
+
+/* Investment rows already carry a data-category attribute per row --
+   target that instead of adding new classes. */
+.invest-row[data-category="output"] .invest-name::before {
+  content: "🎣 ";
+}
+
+.invest-row[data-category="reduction"] .invest-name::before {
+  content: "🌿 ";
+}
+
+.invest-row[data-category="adaptation"] .invest-name::before {
+  content: "🧱 ";
+}
+
+/* Small chip treatment for two plain-text readouts that were otherwise
+   just numbers/labels floating in a row -- rounded/padded/bordered like
+   the rest of the glass-panel chrome, no DOM change. */
+.invest-count {
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(76, 156, 214, 0.14);
+  border: 1px solid rgba(76, 156, 214, 0.3);
+}
+
+.coastline-compare-label {
+  display: table;
+  margin: 0 auto 0.3rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(140, 160, 255, 0.1);
+  border: 1px solid rgba(140, 160, 255, 0.18);
+}
