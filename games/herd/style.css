@@ -265,3 +265,75 @@ button.primary:active {
   opacity: 1;
   text-decoration: underline;
 }
+
+/* Icon labels — pure CSS, no markup/game.py change, same technique as
+   SOL's "Icon labels — pure CSS" pass (see games/sol/style.css). Herd's
+   ids don't share a repeating suffix the way SOL's planets do, so most
+   rules target exact ids; the three decoupling-measure name spans do
+   share a "-name" pattern id-by-id since each needs its own icon.
+   Leaves the coupling-ratio gauge's own color logic and the haze-overlay
+   color untouched — only adds a small glyph in front of otherwise plain
+   label text. */
+#funds-display::before {
+  content: "💰 ";
+}
+
+#herd-display::before {
+  content: "🐄 ";
+}
+
+#methane-display::before {
+  content: "💨 ";
+}
+
+#coupling-display::before {
+  content: "⚖️ ";
+}
+
+#pressure-display::before {
+  content: "⚠️ ";
+}
+
+#score-display::before {
+  content: "🏆 ";
+}
+
+#coupling-gauge-label::before {
+  content: "🌡️ ";
+}
+
+#decoupling-summary-display::before {
+  content: "♻️ ";
+}
+
+.meter-label::before {
+  content: "🥦 ";
+}
+
+#plant-pivot-display::before {
+  content: "🌱 ";
+}
+
+#feed-name::before {
+  content: "🌾 ";
+}
+
+#caps-name::before {
+  content: "🚧 ";
+}
+
+#capture-name::before {
+  content: "🏭 ";
+}
+
+/* Investment counts read better as small chips than bare numbers —
+   rounded/padded/subtly bordered, using the same violet-tinted glass
+   accent already used site-wide for borders/dividers (see CLAUDE.md
+   tech notes). No DOM change: same .invest-count class, all four rows
+   (feed/caps/capture/plant-pivot) pick it up automatically. */
+.invest-count {
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(140, 160, 255, 0.1);
+  border: 1px solid rgba(140, 160, 255, 0.16);
+}
