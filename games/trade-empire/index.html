@@ -62,23 +62,63 @@
       <p class="panel-label">Market prices
         <details class="info-toggle"><summary>i</summary><p>Selling a good repeatedly crashes its price — each unit sold nudges that good's price down, and it only recovers gradually on its own if you leave it alone for a while. Spreading sales across goods keeps prices higher than dumping everything on one.</p></details>
       </p>
-      <p id="market-ore-display" class="market-price">Loading...</p>
-      <div class="meter"><div id="market-ore-bar" class="meter-fill"></div></div>
-      <p id="market-grain-display" class="market-price">Loading...</p>
-      <div class="meter"><div id="market-grain-bar" class="meter-fill"></div></div>
-      <p id="market-machinery-display" class="market-price">Loading...</p>
-      <div class="meter"><div id="market-machinery-bar" class="meter-fill"></div></div>
-      <p id="market-water-display" class="market-price">Loading...</p>
-      <div class="meter"><div id="market-water-bar" class="meter-fill"></div></div>
-      <p id="market-energy-display" class="market-price">Loading...</p>
-      <div class="meter"><div id="market-energy-bar" class="meter-fill"></div></div>
+      <div class="market-row">
+        <div class="good-icon good-icon--ore" aria-hidden="true"></div>
+        <div class="market-row-body">
+          <p id="market-ore-display" class="market-price">Loading...</p>
+          <div class="meter"><div id="market-ore-bar" class="meter-fill"></div></div>
+        </div>
+      </div>
+      <div class="market-row">
+        <div class="good-icon good-icon--grain" aria-hidden="true"></div>
+        <div class="market-row-body">
+          <p id="market-grain-display" class="market-price">Loading...</p>
+          <div class="meter"><div id="market-grain-bar" class="meter-fill"></div></div>
+        </div>
+      </div>
+      <div class="market-row">
+        <div class="good-icon good-icon--machinery" aria-hidden="true"></div>
+        <div class="market-row-body">
+          <p id="market-machinery-display" class="market-price">Loading...</p>
+          <div class="meter"><div id="market-machinery-bar" class="meter-fill"></div></div>
+        </div>
+      </div>
+      <div class="market-row">
+        <div class="good-icon good-icon--water" aria-hidden="true"></div>
+        <div class="market-row-body">
+          <p id="market-water-display" class="market-price">Loading...</p>
+          <div class="meter"><div id="market-water-bar" class="meter-fill"></div></div>
+        </div>
+      </div>
+      <div class="market-row">
+        <div class="good-icon good-icon--energy" aria-hidden="true"></div>
+        <div class="market-row-body">
+          <p id="market-energy-display" class="market-price">Loading...</p>
+          <div class="meter"><div id="market-energy-bar" class="meter-fill"></div></div>
+        </div>
+      </div>
       <div id="expansion-market-panel" hidden>
-        <p id="market-rare_metals-display" class="market-price">Loading...</p>
-        <div class="meter"><div id="market-rare_metals-bar" class="meter-fill"></div></div>
-        <p id="market-biomass-display" class="market-price">Loading...</p>
-        <div class="meter"><div id="market-biomass-bar" class="meter-fill"></div></div>
-        <p id="market-isotopes-display" class="market-price">Loading...</p>
-        <div class="meter"><div id="market-isotopes-bar" class="meter-fill"></div></div>
+        <div class="market-row">
+          <div class="good-icon good-icon--rare_metals" aria-hidden="true"></div>
+          <div class="market-row-body">
+            <p id="market-rare_metals-display" class="market-price">Loading...</p>
+            <div class="meter"><div id="market-rare_metals-bar" class="meter-fill"></div></div>
+          </div>
+        </div>
+        <div class="market-row">
+          <div class="good-icon good-icon--biomass" aria-hidden="true"></div>
+          <div class="market-row-body">
+            <p id="market-biomass-display" class="market-price">Loading...</p>
+            <div class="meter"><div id="market-biomass-bar" class="meter-fill"></div></div>
+          </div>
+        </div>
+        <div class="market-row">
+          <div class="good-icon good-icon--isotopes" aria-hidden="true"></div>
+          <div class="market-row-body">
+            <p id="market-isotopes-display" class="market-price">Loading...</p>
+            <div class="meter"><div id="market-isotopes-bar" class="meter-fill"></div></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -87,6 +127,7 @@
         <details class="info-toggle"><summary>i</summary><p>A colony's output scales with how well its need is being met, from 0.5x up to 1.5x — an under-supplied colony produces less to trade. Keep delivering enough of what it needs and it develops to Level 2, gaining a second need that reaches into the other supply cycle.</p></details>
       </p>
       <div class="colony-row">
+        <div class="colony-visual colony-visual--aurum" aria-hidden="true"><div class="colony-visual-glow"></div><div class="colony-visual-dome"></div></div>
         <p id="colony-aurum-name" class="colony-name">Aurum Station</p>
         <p id="colony-aurum-flavor" class="colony-flavor"></p>
         <p id="colony-aurum-need-display" class="colony-need">Loading...</p>
@@ -94,6 +135,7 @@
         <p id="colony-aurum-development-display" class="colony-development">Loading...</p>
       </div>
       <div class="colony-row">
+        <div class="colony-visual colony-visual--verdant" aria-hidden="true"><div class="colony-visual-glow"></div><div class="colony-visual-dome"></div></div>
         <p id="colony-verdant-name" class="colony-name">Verdant Reach</p>
         <p id="colony-verdant-flavor" class="colony-flavor"></p>
         <p id="colony-verdant-need-display" class="colony-need">Loading...</p>
@@ -101,6 +143,7 @@
         <p id="colony-verdant-development-display" class="colony-development">Loading...</p>
       </div>
       <div class="colony-row">
+        <div class="colony-visual colony-visual--ferrum" aria-hidden="true"><div class="colony-visual-glow"></div><div class="colony-visual-dome"></div></div>
         <p id="colony-ferrum-name" class="colony-name">Ferrum Forge</p>
         <p id="colony-ferrum-flavor" class="colony-flavor"></p>
         <p id="colony-ferrum-need-display" class="colony-need">Loading...</p>
@@ -108,6 +151,7 @@
         <p id="colony-ferrum-development-display" class="colony-development">Loading...</p>
       </div>
       <div class="colony-row">
+        <div class="colony-visual colony-visual--cryo" aria-hidden="true"><div class="colony-visual-glow"></div><div class="colony-visual-dome"></div></div>
         <p id="colony-cryo-name" class="colony-name">Cryo Vault</p>
         <p id="colony-cryo-flavor" class="colony-flavor"></p>
         <p id="colony-cryo-need-display" class="colony-need">Loading...</p>
@@ -115,6 +159,7 @@
         <p id="colony-cryo-development-display" class="colony-development">Loading...</p>
       </div>
       <div class="colony-row">
+        <div class="colony-visual colony-visual--helion" aria-hidden="true"><div class="colony-visual-glow"></div><div class="colony-visual-dome"></div></div>
         <p id="colony-helion-name" class="colony-name">Helion Array</p>
         <p id="colony-helion-flavor" class="colony-flavor"></p>
         <p id="colony-helion-need-display" class="colony-need">Loading...</p>
@@ -125,6 +170,7 @@
       <div id="expansion-colonies-panel" hidden>
         <p class="panel-label">Kepler Cluster</p>
         <div class="colony-row">
+          <div class="colony-visual colony-visual--kepler_a" aria-hidden="true"><div class="colony-visual-glow"></div><div class="colony-visual-dome"></div></div>
           <p id="colony-kepler_a-name" class="colony-name">Kepler Alpha</p>
           <p id="colony-kepler_a-flavor" class="colony-flavor"></p>
           <p id="colony-kepler_a-need-display" class="colony-need">Loading...</p>
@@ -132,6 +178,7 @@
           <p id="colony-kepler_a-development-display" class="colony-development">Loading...</p>
         </div>
         <div class="colony-row">
+          <div class="colony-visual colony-visual--kepler_b" aria-hidden="true"><div class="colony-visual-glow"></div><div class="colony-visual-dome"></div></div>
           <p id="colony-kepler_b-name" class="colony-name">Kepler Beta</p>
           <p id="colony-kepler_b-flavor" class="colony-flavor"></p>
           <p id="colony-kepler_b-need-display" class="colony-need">Loading...</p>
@@ -139,6 +186,7 @@
           <p id="colony-kepler_b-development-display" class="colony-development">Loading...</p>
         </div>
         <div class="colony-row">
+          <div class="colony-visual colony-visual--kepler_c" aria-hidden="true"><div class="colony-visual-glow"></div><div class="colony-visual-dome"></div></div>
           <p id="colony-kepler_c-name" class="colony-name">Kepler Gamma</p>
           <p id="colony-kepler_c-flavor" class="colony-flavor"></p>
           <p id="colony-kepler_c-need-display" class="colony-need">Loading...</p>
@@ -149,7 +197,10 @@
     </div>
 
     <div id="ship-1-panel" class="section">
-      <p class="ship-label">Ship 1</p>
+      <div class="ship-header">
+        <div class="ship-visual" aria-hidden="true"><div class="ship-visual-glow"></div><div class="ship-visual-hull"></div></div>
+        <p class="ship-label">Ship 1</p>
+      </div>
       <p id="ship-1-status" class="ship-status">Loading...</p>
       <div class="action-buttons">
         <button id="ship-1-load-button" class="secondary" disabled>Loading...</button>
@@ -168,7 +219,10 @@
     </div>
 
     <div id="ship-2-panel" class="section">
-      <p class="ship-label">Ship 2</p>
+      <div class="ship-header">
+        <div class="ship-visual" aria-hidden="true"><div class="ship-visual-glow"></div><div class="ship-visual-hull"></div></div>
+        <p class="ship-label">Ship 2</p>
+      </div>
       <p id="ship-2-status" class="ship-status">Loading...</p>
       <div class="action-buttons">
         <button id="ship-2-load-button" class="secondary" disabled>Loading...</button>
@@ -187,7 +241,10 @@
     </div>
 
     <div id="ship-3-panel" class="section">
-      <p class="ship-label">Ship 3</p>
+      <div class="ship-header">
+        <div class="ship-visual" aria-hidden="true"><div class="ship-visual-glow"></div><div class="ship-visual-hull"></div></div>
+        <p class="ship-label">Ship 3</p>
+      </div>
       <p id="ship-3-status" class="ship-status">Loading...</p>
       <div class="action-buttons">
         <button id="ship-3-load-button" class="secondary" disabled>Loading...</button>
@@ -206,7 +263,10 @@
     </div>
 
     <div id="ship-4-panel" class="section">
-      <p class="ship-label">Ship 4</p>
+      <div class="ship-header">
+        <div class="ship-visual" aria-hidden="true"><div class="ship-visual-glow"></div><div class="ship-visual-hull"></div></div>
+        <p class="ship-label">Ship 4</p>
+      </div>
       <p id="ship-4-status" class="ship-status">Loading...</p>
       <div class="action-buttons">
         <button id="ship-4-load-button" class="secondary" disabled>Loading...</button>
