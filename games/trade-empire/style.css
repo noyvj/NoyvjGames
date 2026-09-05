@@ -301,3 +301,125 @@ button.secondary:active:not(:disabled) {
   opacity: 1;
   text-decoration: underline;
 }
+
+/* Icon labels — pure CSS, no markup/game.py change. `.panel-label` is one
+   shared class across every section (Research/Trade routes/Market/Colonies/
+   Fleet priority/Kepler Cluster/Galaxy at scale), so each section's copy is
+   reached by scoping through its own panel id (`#research-panel >
+   .panel-label`, etc.) rather than touching the shared class itself — other
+   text on the page may reuse `.panel-label` later without inheriting an
+   unrelated icon. Per-row items (research nodes, ship depart/load/automate
+   buttons) share a naming convention across every ship/node, so one
+   `[id^=...]`/`[id$=...]`/`[id*=...]` attribute-selector per row type reaches
+   every instance at once. Breaks up the numbers-and-sentences readout with a
+   small icon per concept, so this reads less like a text adventure and more
+   like a dashboard at a glance. Canvas-drawn map colors, ship dot colors, and
+   `.market-price--crashed`'s red are untouched — not selectors this section
+   affects anyway (canvas isn't plain HTML text, and the crashed modifier is
+   a color-only rule left exactly as it was). */
+#research-panel > .panel-label::before {
+  content: "🔬 ";
+}
+
+#map-panel > .panel-label::before {
+  content: "🗺️ ";
+}
+
+#market-panel > .panel-label::before {
+  content: "💰 ";
+}
+
+#colonies-panel > .panel-label::before,
+#expansion-colonies-panel > .panel-label::before {
+  content: "🪐 ";
+}
+
+#fleet-priority-panel > .panel-label::before {
+  content: "🛰️ ";
+}
+
+#endgame-panel > .panel-label::before {
+  content: "🏆 ";
+}
+
+.research-points::before {
+  content: "🔬 ";
+}
+
+[id^="research-"][id$="-status"]::before {
+  content: "🔬 ";
+}
+
+[id$="-unlock-button"]::before {
+  content: "🔬 ";
+}
+
+.market-price::before {
+  content: "💰 ";
+}
+
+.colony-name::before {
+  content: "🪐 ";
+}
+
+.colony-need::before {
+  content: "🎯 ";
+}
+
+.colony-development::before {
+  content: "🏗️ ";
+}
+
+.ship-label::before {
+  content: "🚀 ";
+}
+
+.ship-status::before {
+  content: "🚀 ";
+}
+
+[id$="-load-button"]::before {
+  content: "📦 ";
+}
+
+[id*="-depart-"][id$="-button"]::before {
+  content: "🚀 ";
+}
+
+.automate-button::before {
+  content: "🤖 ";
+}
+
+.fleet-priority-status::before {
+  content: "🛰️ ";
+}
+
+#fleet-priority-button::before {
+  content: "🛰️ ";
+}
+
+.profit-display::before {
+  content: "💰 ";
+}
+
+.automation-slots::before {
+  content: "⚙️ ";
+}
+
+.sale-log::before {
+  content: "🧾 ";
+}
+
+/* Small chip treatment for two short, prominent stat readouts — a pill
+   badge reads better here than a plain line of text among longer sentences
+   in the same panels. Only display/padding/background/border are added;
+   the original color/margin rules for these two selectors, defined above,
+   are untouched. */
+.research-points,
+.automation-slots {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(140, 160, 255, 0.08);
+  border: 1px solid rgba(140, 160, 255, 0.16);
+}
