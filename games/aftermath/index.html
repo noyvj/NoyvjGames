@@ -10,6 +10,8 @@
 <link rel="stylesheet" href="../../ad-bar.css">
 <link rel="stylesheet" href="../../shared/info-page.css">
 <link rel="manifest" href="../../manifest.json">
+<script src="../../shared/tutorial.js"></script>
+<script src="../../shared/mobile-hud.js"></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -19,6 +21,13 @@
   <div id="game">
     <a href="../../index.html" class="hub-back-link">&larr; All games</a>
     <h1>Aftermath</h1>
+
+    <div class="game-toolbar">
+      <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
+      <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
+    </div>
+    <div id="howto-panel" class="section" hidden></div>
+
     <p class="tagline">A settlement facing a scheduled run of extreme weather. Build resilience to weather it, or growth to afford more later.</p>
     <p class="context-blurb">Climate adaptation and disaster resilience are their own necessary response category — distinct from mitigation, and not a failure state. Real-world investment in early warning and resilient infrastructure has repeatedly been shown to pay for itself many times over in damage avoided.</p>
     <p id="legacy-display" class="legacy-display">No history yet — this is the settlement's first trial.</p>
@@ -125,6 +134,57 @@
   </div>
 
   <script>
+    const AFTERMATH_TUTORIAL_STEPS = [
+      {
+        title: "Welcome to Aftermath",
+        text: "This settlement faces a fixed sequence of extreme-weather and other resilience shocks every run. Between events you choose whether to spend resources on resilience (survive the next hit better) or growth (earn more to spend). Runs are short and repeat — a permanent skill tree carries lessons forward, so every run leaves the next one a little more capable, even a bad one.",
+      },
+      {
+        selector: "#status",
+        title: "Facing a Run",
+        text: "Each run works through a fixed sequence of 7 events — floods, heatwaves, storms, and non-weather shocks like supply-chain disruption and infrastructure failure. Severity (mild/typical/severe) isn't random: it's a fixed pattern tied to the run number, so replaying the same run always poses the same challenge. Your very first run is always typical difficulty.",
+      },
+      {
+        selector: "#resilience-invest-button",
+        title: "Invest in Resilience",
+        text: "Spend resources to raise this run's resilience capacity. Each point adds a flat 5% mitigation, cutting the damage the next event deals — capped at 85% total, so some damage always gets through. This investment resets to zero at the start of every new run.",
+      },
+      {
+        selector: "#growth-invest-button",
+        title: "Invest in Growth",
+        text: "Spend resources to raise this run's growth capacity instead. Each point adds a flat 8 resources of passive income every time you face an event — it does nothing to reduce damage, so it's a bet that the extra income outweighs skipping a point of mitigation.",
+      },
+      {
+        selector: "#mitigation-bar",
+        title: "Mitigation",
+        text: "This meter shows the share of event damage you're currently avoiding, built from your Resilience investment (plus a flat +10% once you unlock Early Warning Systems in the skill tree). It's capped at 85% — no matter how invested you are, an event can always do at least some damage.",
+      },
+      {
+        selector: "#resolve-event-button",
+        title: "Face Next Event",
+        text: "Resolves the next scheduled event: growth income is added first, then the event's damage — reduced by your current mitigation — is subtracted from your resources. There's no way to skip or delay an event once you've committed to a run.",
+      },
+      {
+        selector: "#skill-tree",
+        title: "Resilience Knowledge & Skill Tree",
+        text: "Knowledge points are earned at the end of every run (your leftover resources divided by 20, rounded — but never zero, even after a terrible run). Spend them here on permanent skills that pre-equip every future run with a head start. Unlike Resilience/Growth investment, these carry forward forever.",
+      },
+      {
+        selector: "#progress-comparison-display",
+        title: "How Far You've Come",
+        text: "Once you've completed at least two runs, this line compares your very first run's score to your most recent — same fixed event sequence, so a higher score really does mean you handled it better. This settlement also remembers, in its own words up top, which kinds of events it has weathered before.",
+      },
+      {
+        selector: "#new-run-button",
+        title: "Starting a New Run",
+        text: "Once all 7 scheduled events are resolved, this button appears. Starting a new run resets your resources, resilience, and growth back to a fresh baseline — but reads your current skill tree, so any skills you've unlocked since the last run apply automatically from the very first event.",
+      },
+      {
+        title: "You're ready",
+        text: "That's the loop: allocate resources between resilience and growth, face each scheduled event, and let a permanent skill tree carry what you learn into the next run. No single run has to go perfectly — resilience is cumulative, and nothing is ever wasted. Good luck out there.",
+      },
+    ];
+
     async function main() {
       const pyodide = await loadPyodide();
       window.pyodide = pyodide; // exposed for the save/load bridge below
@@ -137,6 +197,17 @@
       const response = await fetch("game.py");
       const code = await response.text();
       await pyodide.runPythonAsync(code);
+
+      if (window.GameTutorial) {
+        GameTutorial.init(AFTERMATH_TUTORIAL_STEPS, { gameId: "aftermath" });
+      }
+      if (window.MobileHud) {
+        MobileHud.init([
+          { selector: "#resources-display", label: "" },
+          { selector: "#resilience-display", label: "" },
+          { selector: "#growth-display", label: "" },
+        ]);
+      }
     }
     main();
   </script>
