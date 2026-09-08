@@ -985,3 +985,60 @@ button.secondary:disabled::after {
   background: #4a5268;
   box-shadow: none;
 }
+
+/* ============================================================
+   Condensed "needs at a glance" strip + mobile dock (2026-09-09).
+   Deciding which colony to depart a loaded ship toward means reading
+   #colonies-panel's need%/good text -- but that panel sits well above
+   the four ship panels in normal document flow (over a full screen's
+   worth of scroll at a phone width), so picking the right depart
+   button meant scrolling up to check colonies, then back down to the
+   ship panel to click. #mobile-needs-strip mirrors just the essential
+   need/good/% per colony into one compact horizontally-scrollable row,
+   and shared/mobile-dock.js pins it to the bottom of the viewport on
+   narrow screens so it stays visible next to whichever ship panel is
+   on screen. On desktop it's just an ordinary section in its normal
+   place above the ship panels -- MobileDock only repositions it below
+   the breakpoint. game.py drives each chip's text via the same ids
+   regardless of where the strip currently lives in the DOM. */
+.mobile-needs-strip-track {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+}
+
+.mobile-needs-strip-chip {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(140, 160, 255, 0.1);
+  border: 1px solid rgba(140, 160, 255, 0.22);
+  font-size: 0.72rem;
+  white-space: nowrap;
+  color: #e8e9f0;
+}
+
+@media (max-width: 640px) {
+  #mobile-needs-strip.mobile-docked {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    bottom: 50px; /* sits directly above the ad-bar, once this game is hub-linked */
+    z-index: 150; /* above the ad-bar (100), below the save widget (9999) */
+    max-width: 480px;
+    margin: 0 auto;
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  #mobile-needs-strip.mobile-docked .panel-label {
+    margin-bottom: 0.35rem;
+  }
+
+  /* Reserve room at the bottom of the scrollable page so the last real
+     content (the ledger) never ends up hidden behind the now-floating
+     strip. */
+  body {
+    padding-bottom: 150px;
+  }
+}

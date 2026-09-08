@@ -808,6 +808,26 @@ def render_colony(colony_id):
         )
 
 
+def render_needs_strip():
+    """Mobile-dock companion to #colonies-panel (see style.css) -- one
+    compact chip per colony with just enough to pick a depart
+    destination without scrolling back up to the full colonies panel:
+    which good it needs and how satisfied that need currently is. A
+    colony's chip stays hidden until its ColonyState exists, the same
+    gate render()'s main loop already uses for colony_states."""
+    for colony_id in ALL_COLONIES:
+        chip = document.getElementById(f"mobile-needs-strip-{colony_id}")
+        state = colony_states.get(colony_id)
+        chip.hidden = state is None
+        if state is None:
+            continue
+        colony = ALL_COLONIES[colony_id]
+        chip.innerText = (
+            f"{colony_map_label(colony_id)}: needs {GOOD_LABEL[colony['needs']]} "
+            f"{state.need_satisfaction * 100:.0f}%"
+        )
+
+
 def render_market():
     for good in market_multiplier:
         price = current_sell_price(good)
@@ -884,6 +904,7 @@ def render():
     for colony_id in colony_states:
         render_colony(colony_id)
     render_market()
+    render_needs_strip()
 
     # Milestone 13: the Kepler Cluster's colony rows and its goods'
     # market rows stay hidden entirely until the expansion is unlocked
