@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="../../ad-bar.css">
 <link rel="manifest" href="../../manifest.json">
+<script src="../../shared/tutorial.js"></script>
+<script src="../../shared/mobile-hud.js"></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -18,6 +20,13 @@
   <div id="game">
     <a href="../../index.html" class="hub-back-link">&larr; All games</a>
     <h1>Le Champ de Mots</h1>
+
+    <div class="game-toolbar">
+      <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
+      <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
+    </div>
+    <div id="howto-panel" class="section" hidden></div>
+
     <p class="tagline">The field of words. Every plot is one French fact — water it when it needs water, and watch it slowly stop needing you.</p>
     <p class="context-blurb">One continuous farm across FREN151 and FREN152, planted in syllabus order. Correct recall grows a plant and stretches the gap before it asks again; a plot that has gone quiet for long enough gets its own sprinkler. Nothing here dies, and nothing here keeps score against you.</p>
 
@@ -208,6 +217,57 @@
     };
   </script>
   <script>
+    const CHAMP_DE_MOTS_TUTORIAL_STEPS = [
+      {
+        title: "Welcome to Le Champ de Mots",
+        text: "This farm is your FREN151/152 syllabus, laid out one continuous field — every plot is a vocabulary word, phrase, or grammar rule, planted in the order your course teaches it. This quick walkthrough covers how it works — skip it any time, and reopen it later from the Tutorial button up top.",
+      },
+      {
+        selector: "#farm",
+        title: "The Farm",
+        text: "Each row is one taught week, running straight from FREN151 into FREN152. A new row only unlocks once every plot in the previous row has grown to at least Sprout, so the farm's pace stays roughly matched to real syllabus progress instead of letting you plant everything at once.",
+      },
+      {
+        selector: "#water-next-button",
+        title: "Watering a Plot",
+        text: "Click this to water whichever plot is due next — a quick recall prompt (translate, fill-in-the-blank, or multiple choice, depending on the plot). You can also click any individual plot in the grid directly to water that one instead.",
+      },
+      {
+        selector: ".accent-toggle",
+        title: "Accent Sensitivity",
+        text: "This toggle decides whether your typed answers need exact accents (é, è, ç) to count, or whether accents are ignored. It only affects typed answers — multiple-choice questions are unaffected either way.",
+      },
+      {
+        selector: "#legend",
+        title: "Growth Stages",
+        text: "A plot climbs from Seed to Sprout to Budding to Blooming to Automated as it's recalled correctly over spaced-out visits — Automated plots need only rare maintenance checks. A plot that's gone overdue for review just droops a little; that's a gentle nudge, not a penalty, and one correct answer clears it.",
+      },
+      {
+        selector: "#next-day-button",
+        title: "Advancing the Day",
+        text: "Time here only moves when you click this — there's no real clock running in the background. Advancing the day is what makes spaced-out reviews come due, so move the farm forward at whatever pace suits you.",
+      },
+      {
+        selector: ".row-proficiency-button",
+        title: "Weekly Proficiency Tests",
+        text: "Every unlocked week has its own proficiency test button on its row header — a longer, one-off quiz covering everything taught that week. It's purely informational: taking it never changes any plot's growth or schedule.",
+      },
+      {
+        selector: ".row-bonus-button",
+        title: "Bonus Sentence Sections",
+        text: "Each week also offers a bonus sentence-building section: order the word tiles, translate each tile, then translate the whole sentence. It's optional extra practice, built only from that week's own vocabulary and grammar.",
+      },
+      {
+        selector: "#review-section",
+        title: "Review Tab",
+        text: "Opt-in cross-section practice — Random Word Review and Grammar Review pull questions from any unlocked week, filtered to a minimum growth stage you choose. A correct answer here only nudges that plot's schedule a little further out; only the daily watering loop actually grows a plant.",
+      },
+      {
+        title: "You're ready",
+        text: "That's the whole field: water what's due, let accurate recall grow each plant and stretch out its interval, and advance the day at your own pace. Nothing here is punishing — a plot can droop, but it never dies, and there's no score being kept against you. Good luck out there.",
+      },
+    ];
+
     async function main() {
       const pyodide = await loadPyodide();
       window.pyodide = pyodide; // exposed for the shared save widget
@@ -220,6 +280,16 @@
       ]);
       window.CATALOG_JSON = catalogJson;
       await pyodide.runPythonAsync(code);
+
+      if (window.GameTutorial) {
+        GameTutorial.init(CHAMP_DE_MOTS_TUTORIAL_STEPS, { gameId: "champ-de-mots" });
+      }
+      if (window.MobileHud) {
+        MobileHud.init([
+          { selector: "#day-display", label: "Day" },
+          { selector: "#due-display", label: "Ready" },
+        ]);
+      }
     }
     main();
   </script>
