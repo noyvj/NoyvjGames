@@ -10,6 +10,8 @@
 <link rel="stylesheet" href="../../ad-bar.css">
 <link rel="stylesheet" href="../../shared/info-page.css">
 <link rel="manifest" href="../../manifest.json">
+<script src="../../shared/tutorial.js"></script>
+<script src="../../shared/mobile-hud.js"></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -20,6 +22,13 @@
     <div id="haze-overlay" class="haze-overlay"></div>
     <a href="../../index.html" class="hub-back-link">&larr; All games</a>
     <h1>Herd</h1>
+
+    <div class="game-toolbar">
+      <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
+      <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
+    </div>
+    <div id="howto-panel" class="section" hidden></div>
+
     <p class="tagline">Grow a farm. Herd size and methane emissions are coupled by default — decoupling them takes deliberate investment.</p>
     <p class="context-blurb">Methane is a far more potent greenhouse gas than CO2 over the short term — roughly 80x stronger over 20 years — which makes industrial agriculture's methane output an outsized lever for near-term warming, even though it fades from the atmosphere faster than CO2 does.</p>
 
@@ -131,6 +140,47 @@
   </div>
 
   <script>
+    const HERD_TUTORIAL_STEPS = [
+      {
+        title: "Welcome to Herd",
+        text: "You're running a farm. Growing your herd earns income — but it also raises methane emissions automatically, in direct proportion to herd size, from turn one. This walkthrough covers the whole loop, including how to break that coupling. Skip any time, and reopen it later from the Tutorial button up top.",
+      },
+      {
+        selector: "#actions",
+        title: "Grow Your Herd",
+        text: "Spend funds to add one unit to your herd. A bigger herd earns more income each round — but every unit also emits methane per round, automatically, for as long as it's alive. That coupling is the default; nothing else has to happen for it to kick in.",
+      },
+      {
+        selector: "#gauge-section",
+        title: "The Coupling Gauge",
+        text: "This dial tracks methane produced per herd unit, not your total emissions — CLEAN (green) means low emissions per unit, HIGH (red) means baseline, fully-coupled agriculture. It only falls when you invest in the decoupling measures below; it never falls just from having a bigger herd.",
+      },
+      {
+        selector: "#status",
+        title: "Funds, Herd, Methane & Pressure",
+        text: "Your core numbers live here: Funds to spend, Herd size, and total accumulated Methane, which never resets and keeps climbing every round you have any herd at all. Built-up methane also triggers market/regulatory pressure that permanently eats into income (capped at 80% loss) — and Score is funds minus a penalty on total methane, so a big bank balance built on unchecked emissions can still score low.",
+      },
+      {
+        selector: "#decoupling",
+        title: "Decoupling Investments",
+        text: "Feed Additives, Herd Caps, and Capture Systems all reduce your coupling ratio — same herd size, lower emissions per unit — and their effects stack. There's a floor, though: past a certain point, further investment stops helping.",
+      },
+      {
+        selector: "#plant-pivot",
+        title: "Alternative Protein Pivot",
+        text: "A different kind of decoupling: shift part of your output to plant-based production instead of making animal production more efficient. It cuts methane per unit much further, but plant-based output earns slightly less income, and it can only replace up to 60% of production.",
+      },
+      {
+        selector: "#advance-round-button",
+        title: "Advance Round",
+        text: "Nothing happens until you click this — growing your herd or investing doesn't generate income or emit methane by itself. Advancing the round is what applies your herd's income (minus pressure) and adds this round's methane to your running total.",
+      },
+      {
+        title: "You're ready",
+        text: "That's the loop: grow, watch methane rise automatically, invest to decouple growth from emissions, and advance the round to see it play out. A farm that grows larger and stays more profitable while cutting emissions per unit beats one that just grows unchecked — that's the whole point. Good luck out there.",
+      },
+    ];
+
     async function main() {
       const pyodide = await loadPyodide();
       window.pyodide = pyodide; // exposed for the save/load bridge below
@@ -143,6 +193,17 @@
       const response = await fetch("game.py");
       const code = await response.text();
       await pyodide.runPythonAsync(code);
+
+      if (window.GameTutorial) {
+        GameTutorial.init(HERD_TUTORIAL_STEPS, { gameId: "herd" });
+      }
+      if (window.MobileHud) {
+        MobileHud.init([
+          { selector: "#funds-display" },
+          { selector: "#herd-display" },
+          { selector: "#methane-display" },
+        ]);
+      }
     }
     main();
   </script>
