@@ -38,6 +38,7 @@ for _colony_id in ALL_COLONY_IDS:
         f"colony-{_colony_id}-need-display",
         f"colony-{_colony_id}-need-bar",
         f"colony-{_colony_id}-development-display",
+        f"mobile-needs-strip-{_colony_id}",
     ]
 for _good in ("ore", "grain", "machinery", "water", "energy", "rare_metals", "biomass", "isotopes"):
     ELEMENT_IDS += [f"market-{_good}-display", f"market-{_good}-bar"]

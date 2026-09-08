@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="style.css">
 <script src="../../shared/tutorial.js"></script>
 <script src="../../shared/mobile-hud.js"></script>
+<script src="../../shared/mobile-dock.js"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
 <body>
@@ -205,6 +206,31 @@
       </div>
     </div>
 
+    <!-- Condensed "needs at a glance" summary. Deciding where to send a
+         loaded ship (the depart buttons below, per ship) depends on
+         which colony currently needs the cargo good most -- that data
+         lives up in #colonies-panel, which on a phone can be well over
+         a screen away from these ship panels. This strip mirrors just
+         the need/good/% part of each colony row into one compact line
+         per colony; shared/mobile-dock.js docks it to the bottom of the
+         viewport on narrow screens (see the mobile media query in
+         style.css) so it's visible no matter which ship panel you're
+         looking at. Normal in-flow section on desktop, same as any
+         other panel here. -->
+    <div id="mobile-needs-strip" class="section mobile-needs-strip">
+      <p class="panel-label">Needs at a glance</p>
+      <div class="mobile-needs-strip-track">
+        <span id="mobile-needs-strip-aurum" class="mobile-needs-strip-chip">Loading...</span>
+        <span id="mobile-needs-strip-verdant" class="mobile-needs-strip-chip">Loading...</span>
+        <span id="mobile-needs-strip-ferrum" class="mobile-needs-strip-chip">Loading...</span>
+        <span id="mobile-needs-strip-cryo" class="mobile-needs-strip-chip">Loading...</span>
+        <span id="mobile-needs-strip-helion" class="mobile-needs-strip-chip">Loading...</span>
+        <span id="mobile-needs-strip-kepler_a" class="mobile-needs-strip-chip" hidden>Loading...</span>
+        <span id="mobile-needs-strip-kepler_b" class="mobile-needs-strip-chip" hidden>Loading...</span>
+        <span id="mobile-needs-strip-kepler_c" class="mobile-needs-strip-chip" hidden>Loading...</span>
+      </div>
+    </div>
+
     <div id="ship-1-panel" class="section">
       <div class="ship-header">
         <div class="ship-visual" aria-hidden="true"><div class="ship-visual-glow"></div><div class="ship-visual-hull"></div></div>
@@ -385,6 +411,9 @@
           { selector: "#profit-display", label: "" },
           { selector: "#automation-slots-display", label: "" },
         ]);
+      }
+      if (window.MobileDock) {
+        MobileDock.init("#mobile-needs-strip");
       }
     }
     main();
