@@ -11,6 +11,7 @@
 <link rel="manifest" href="../../manifest.json">
 <script src="../../shared/tutorial.js"></script>
 <script src="../../shared/mobile-hud.js"></script>
+<script src="../../shared/mobile-dock.js"></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -289,6 +290,21 @@
           { selector: "#day-display", label: "Day" },
           { selector: "#due-display", label: "Ready" },
         ]);
+      }
+      // shared/mobile-dock.js: the farm grid (#farm, 722 cells) sits far
+      // below every panel that reacts to a plot/row click -- practice
+      // questions, proficiency tests and bonus sections are all opened
+      // from something inside #farm but rendered near the top of the
+      // page. Docking all three to a fixed bottom bar on narrow screens
+      // keeps water/answer/close reachable without scrolling between the
+      // farm and the panel, same pattern Canopy already established for
+      // its #action-panel. #review-panel is deliberately left out: its
+      // own trigger buttons already live inside #review-section right
+      // next to it, so there's no far-apart pair to fix there.
+      if (window.MobileDock) {
+        MobileDock.init("#practice-panel");
+        MobileDock.init("#proficiency-panel");
+        MobileDock.init("#bonus-panel");
       }
     }
     main();

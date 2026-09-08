@@ -1162,3 +1162,35 @@ button:disabled {
   top: 0.5rem;
   right: 0.6rem;
 }
+
+/* ============================================================
+   Mobile dock (2026-09-09) -- shared/mobile-dock.js reparents
+   #practice-panel, #proficiency-panel and #bonus-panel to be
+   fixed children of <body> on narrow screens, since #farm (the
+   722-cell grid all three are opened from) sits at the very
+   bottom of the page while these panels normally render near the
+   top: without this, watering a plot or starting a weekly test
+   meant scroll up to reach the question, answer it, then scroll
+   back down to see the plot's sprite change. Pinning the open
+   panel to a bar above the ad bar keeps question and answer on
+   screen together no matter where in the farm you tapped from.
+   Only one of the three is ever un-hidden at a time, so docking
+   all three to the same spot never stacks them visibly. Pure
+   positioning, same static rule as the rest of this file -- no
+   easing, nothing timed, nothing that moves on its own. */
+@media (max-width: 640px) {
+  #practice-panel,
+  #proficiency-panel,
+  #bonus-panel {
+    position: fixed;
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 50px; /* sits directly above the fixed ad-bar */
+    z-index: 150; /* above the ad-bar (100), below the save widget (9999) */
+    max-width: 480px;
+    margin: 0 auto;
+    max-height: 62vh;
+    overflow-y: auto;
+    box-shadow: 0 -8px 28px rgba(20, 16, 8, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+}
