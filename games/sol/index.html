@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="../../ad-bar.css">
 <link rel="manifest" href="../../manifest.json">
+<script src="../../shared/tutorial.js"></script>
+<script src="../../shared/mobile-hud.js"></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -18,6 +20,12 @@
   <div id="game">
     <a href="../../index.html" class="hub-back-link">&larr; All games</a>
     <h1>SOL</h1>
+
+    <div class="game-toolbar">
+      <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
+      <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
+    </div>
+    <div id="howto-panel" class="section" hidden></div>
 
     <div id="win-banner" class="section" hidden>
       <p id="win-banner-heading" class="win-banner-heading">100% COMPLETE</p>
@@ -983,12 +991,68 @@
   </div>
 
   <script>
+    const SOL_TUTORIAL_STEPS = [
+      {
+        title: "Welcome to SOL",
+        text: "You're starting a solar-system mining operation on Earth. This quick walkthrough covers the core loop and every system you'll unlock along the way — skip it any time, and reopen it later from the Tutorial button up top.",
+      },
+      {
+        selector: "#click-button",
+        title: "Mine Iron",
+        text: "Click this to manually mine Iron. Manual clicking matters most early on — once automation kicks in here, it fades in relevance, but you'll click again on each new planet you reach.",
+      },
+      {
+        selector: "#automation",
+        title: "Auto-Miners",
+        text: "Spend Iron to buy an Auto-Miner — it mines a steady amount per second on its own, no clicking required. This is how every resource loop scales past what manual clicking alone can do.",
+      },
+      {
+        selector: "#ecology",
+        title: "Ecological Health",
+        text: "Extraction pollutes the planet over time. Below 10% health you lose 25% of your output; at 0% production stops entirely. Recyclers slow the decline — build one to keep this sustainable.",
+      },
+      {
+        selector: "#terraform",
+        title: "Terraforming",
+        text: "This bar fills on its own from sustained economic and ecological balance — it isn't a separate resource you spend. Keep ecology healthy over time and this rises automatically.",
+      },
+      {
+        selector: "#research",
+        title: "Research",
+        text: "Fund research to unlock new destinations. Research isn't planet-by-planet — reaching a tier opens several bodies at once (the Near Bodies tier opens the Moon and Mars together).",
+      },
+      {
+        selector: "#governor",
+        title: "Governor — Priority & Budget",
+        text: "Once you're managing multiple planets, you can't watch them all at once. The Governor keeps a planet running while you're away — Priority sets what it optimizes for, Budget sets how much of its resources it spends doing that.",
+      },
+      {
+        selector: "#travel",
+        title: "Travel",
+        text: "Once you've funded enough research, travel buttons appear here for every newly-unlocked body. You don't need to fully develop your current planet first — just meet the research requirement.",
+      },
+      {
+        title: "You're ready",
+        text: "That's the whole loop: mine, automate, balance ecology, research, expand, and let the Governor mind what you leave behind. Reach 100% terraforming everywhere for the win state — the simulation keeps going afterward as a sandbox. Good luck out there.",
+      },
+    ];
+
     async function main() {
       const pyodide = await loadPyodide();
       window.pyodide = pyodide; // exposed for the save/load bridge below
       const response = await fetch("game.py");
       const code = await response.text();
       await pyodide.runPythonAsync(code);
+
+      if (window.GameTutorial) {
+        GameTutorial.init(SOL_TUTORIAL_STEPS, { gameId: "sol" });
+      }
+      if (window.MobileHud) {
+        MobileHud.init([
+          { selector: "#resource-count", label: "Iron" },
+          { selector: "#ecology-percent", label: "Ecology" },
+        ]);
+      }
     }
     main();
   </script>
