@@ -847,3 +847,38 @@ button.secondary:disabled::after {
   background: #4a5450;
   box-shadow: none;
 }
+
+/* ============================================================
+   Mobile condensed action panel (2026-09-09).
+   The core loop is select-a-plot-then-act-on-it, but #action-panel
+   sits well below #plot-grid in normal document flow -- on a phone
+   that meant scroll down to the grid, tap a plot, scroll further
+   down to reach Clear/Replant, act, then scroll back up to see the
+   grid update. Docking #action-panel to the bottom of the viewport
+   on narrow screens keeps it visible no matter where in the grid
+   you're scrolled, so selecting and acting on a plot never needs a
+   scroll in between. Pure CSS positioning change on the existing
+   element -- game.py already drives #selected-plot-state's text
+   and the two buttons' disabled state on every render, completely
+   unaware of where the panel sits on screen, so no Python or id
+   change is needed for this to work correctly. Desktop is
+   unaffected; this only applies below the mobile breakpoint. */
+@media (max-width: 640px) {
+  #action-panel {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    bottom: 50px; /* sits directly above the fixed ad-bar */
+    z-index: 150; /* above the ad-bar (100), below the save widget (9999) */
+    max-width: 480px;
+    margin: 0 auto;
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  /* Reserve room at the bottom of the scrollable page so the last
+     real content (feedback prompt) never ends up hidden behind the
+     now-floating action panel + ad bar. */
+  body {
+    padding-bottom: 216px;
+  }
+}
