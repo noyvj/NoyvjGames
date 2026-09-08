@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="../../ad-bar.css">
 <link rel="manifest" href="../../manifest.json">
+<script src="../../shared/tutorial.js"></script>
+<script src="../../shared/mobile-hud.js"></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -18,6 +20,13 @@
   <div id="game">
     <a href="../../index.html" class="hub-back-link">&larr; All games</a>
     <h1>Continuum</h1>
+
+    <div class="game-toolbar">
+      <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
+      <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
+    </div>
+    <div id="howto-panel" class="section" hidden></div>
+
     <p class="tagline">One settlement, carried across the ages. Grow it — but grow something worth living in.</p>
     <p class="context-blurb">A city that gets bigger isn't automatically a city that gets better. Continuum tracks both.</p>
 
@@ -201,6 +210,52 @@
     // imports them. Still no build step — just more than one fetch.
     const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "save.py"];
 
+    const CONTINUUM_TUTORIAL_STEPS = [
+      {
+        title: "Welcome to Continuum",
+        text: "You're growing a single settlement across seven eras, from a tribal community toward a space-age civilization. This walkthrough covers the systems you have right now — skip it any time, and reopen it later from the Tutorial button up top.",
+      },
+      {
+        selector: "#status",
+        title: "The Settlement",
+        text: "Your season, population versus available shelter, and four resources: food, materials, tools, and knowledge. Food has a hard storage ceiling — anything gathered past it spoils at the end of the season, so storage matters as much as gathering.",
+      },
+      {
+        selector: "#land-health-display",
+        title: "Land Health",
+        text: "The land can only sustainably yield so much food per season. Harvest past that line and land health drops, cutting every future harvest — stay under it and the land recovers instead. This is what lets a small, careful settlement out-score a big, careless one.",
+      },
+      {
+        selector: "#work",
+        title: "Assign Work",
+        text: "Move people between roles with the +/- buttons. Foragers bring in food, Gatherers bring in materials, Crafters turn materials into tools, and Keepers produce knowledge — the one currency that funds research across all seven eras.",
+      },
+      {
+        selector: "#buildings",
+        title: "Build",
+        text: "Spend materials to build. Shelter raises how many people you can house, the Storage Pit raises how much food you can bank before it spoils, the Fire Circle holds the settlement together, and the Knapping Site boosts what your Crafters produce.",
+      },
+      {
+        selector: "#sustainability",
+        title: "Sustainability Score",
+        text: "This score is the whole point: livability, equity, resource balance, and resilience, averaged together. Every input is a ratio, never a raw count, so growing bigger doesn't raise it on its own — equity in particular is capped by whichever basic need is worst-met, not the average.",
+      },
+      {
+        selector: "#research",
+        title: "Research Tree",
+        text: "One tree spans all seven eras, fourteen tiers deep across three branches — provision, community, and craft. Spend knowledge to study a node; a tier opens once enough of the tier below it is researched. Early choices echo later: leaning into a branch can open or close doors many tiers on.",
+      },
+      {
+        selector: "#advance-season-button",
+        title: "Advance Season",
+        text: "This runs the whole loop at once — your workers produce, your people eat, the land responds to how hard you pushed it, and population grows if there's food and shelter to spare. Watch the panels above after each press to see how it landed.",
+      },
+      {
+        title: "You're ready",
+        text: "Assign work, build, research, and keep an eye on the sustainability score — then advance the season and see how it all played out. Carry this settlement all the way to the Space Age, but grow something worth living in. Good luck.",
+      },
+    ];
+
     async function main() {
       const pyodide = await loadPyodide();
       window.pyodide = pyodide; // exposed for the shared save widget
@@ -211,6 +266,17 @@
       const response = await fetch("game.py");
       const code = await response.text();
       await pyodide.runPythonAsync(code);
+
+      if (window.GameTutorial) {
+        GameTutorial.init(CONTINUUM_TUTORIAL_STEPS, { gameId: "continuum" });
+      }
+      if (window.MobileHud) {
+        MobileHud.init([
+          { selector: "#population-display", label: "Pop" },
+          { selector: "#food-display", label: "Food" },
+          { selector: "#score-display", label: "Score" },
+        ]);
+      }
     }
     main();
   </script>
