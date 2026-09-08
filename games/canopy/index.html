@@ -12,6 +12,7 @@
 <link rel="manifest" href="../../manifest.json">
 <script src="../../shared/tutorial.js"></script>
 <script src="../../shared/mobile-hud.js"></script>
+<script src="../../shared/mobile-dock.js"></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -177,6 +178,9 @@
           { selector: "#income-display", label: "" },
           { selector: "#standing-value-display", label: "" },
         ]);
+      }
+      if (window.MobileDock) {
+        MobileDock.init("#action-panel");
       }
     }
     main();
