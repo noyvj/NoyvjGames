@@ -1889,6 +1889,39 @@ def review_candidates(topic_types, min_stage=STAGE_SEED, farm=None):
     ]
 
 
+def _interleave_by_stage(candidates, rng):
+    """Improvement Ideas §3: deliberate interleaving, not a default newest-
+    first (or, here, a plain shuffle that could still cluster by chance) --
+    review sessions should mix old (well-established) and new (recently
+    planted) material throughout, since interleaved practice beats blocked
+    practice for retention. Groups candidates by growth stage, shuffles
+    within each stage bucket, then round-robins across buckets so the
+    resulting order alternates stage-to-stage rather than leaving the mix
+    to chance. Once the game has many more mature plots than fresh ones (the
+    common case later in a session), a plain random sample would still be
+    dominated by whichever stage has the most candidates; round-robining
+    guarantees every present stage gets an early turn instead."""
+    buckets = {stage: [] for stage in STAGE_ORDER}
+    for plot in candidates:
+        buckets[plot.stage].append(plot)
+    for bucket in buckets.values():
+        rng.shuffle(bucket)
+    present = [stage for stage in STAGE_ORDER if buckets[stage]]
+    interleaved = []
+    cursors = {stage: 0 for stage in present}
+    while True:
+        progressed = False
+        for stage in present:
+            i = cursors[stage]
+            if i < len(buckets[stage]):
+                interleaved.append(buckets[stage][i])
+                cursors[stage] = i + 1
+                progressed = True
+        if not progressed:
+            break
+    return interleaved
+
+
 def nudge_review_correct(plot, day):
     """A correct Review answer isn't a full watering event: it nudges the
     interval a little further out and records that the plot was seen today
@@ -1947,7 +1980,7 @@ def start_review(mode, event=None):
 
     topic_types = {"vocab", "phrase"} if mode == "word" else {"grammar"}
     candidates = review_candidates(topic_types, _review_min_stage_setting())
-    REVIEW_RNG.shuffle(candidates)
+    candidates = _interleave_by_stage(candidates, REVIEW_RNG)
 
     review_mode = mode
     review_queue = [p.plot_id for p in candidates[: _review_count_setting()]]
