@@ -26,6 +26,8 @@ ELEMENT_IDS = [
     "stage-summary-display",
     "row-summary-display",
     "combo-display",
+    "cultural-notes-toggle-button",
+    "cultural-notes-panel",
     "practice-panel",
     "practice-confidence",
     "practice-confidence-sure-button",

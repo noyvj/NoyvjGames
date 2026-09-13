@@ -19,6 +19,7 @@ import re
 import unicodedata
 
 CATALOG_FILENAME = "fren_combined_catalog.json"
+SUPPLEMENTARY_NOTES_FILENAME = "fren_supplementary_notes.json"
 
 # --- Spaced repetition constants (design doc §6) ---------------------------
 # Lightweight SM-2-flavoured scheduling: simplicity over academic rigour.
@@ -75,30 +76,58 @@ STAGE_RANK = {stage: index for index, stage in enumerate(STAGE_ORDER)}
 CATCH_UP_MAX_SEQUENCE = 11
 
 
-def _read_catalog_json():
-    """The page's boot script fetches the catalog and hands it to Python as a
-    window global (`CATALOG_JSON`) before running this file; the pytest
-    harness sets the same attribute on its fake `js` module. A filesystem
-    fallback keeps the module importable outside both."""
+def _read_json_asset(filename, window_attr):
+    """The page's boot script fetches each JSON asset and hands it to Python
+    as a window global before running this file; the pytest harness sets
+    the same attribute on its fake `js` module. A filesystem fallback keeps
+    the module importable outside both. Shared by the catalog and the
+    supplementary-notes file below -- same loading contract, different
+    filename/global name."""
     try:
         import js  # noqa: PLC0415 — Pyodide-only import, deliberately lazy
     except ImportError:
         js = None
 
-    raw = getattr(js, "CATALOG_JSON", None) if js is not None else None
+    raw = getattr(js, window_attr, None) if js is not None else None
     if raw is not None:
         return str(raw)
 
     import os
 
     here = os.path.dirname(os.path.abspath(__file__))
-    with open(os.path.join(here, CATALOG_FILENAME), encoding="utf-8") as handle:
+    with open(os.path.join(here, filename), encoding="utf-8") as handle:
         return handle.read()
+
+
+def _read_catalog_json():
+    return _read_json_asset(CATALOG_FILENAME, "CATALOG_JSON")
+
+
+def _read_supplementary_notes_json():
+    return _read_json_asset(SUPPLEMENTARY_NOTES_FILENAME, "SUPPLEMENTARY_NOTES_JSON")
 
 
 CATALOG = json.loads(_read_catalog_json())
 
 CHAPTER_TITLES = {str(c["number"]): c["title"] for c in CATALOG.get("chapters", [])}
+
+# Improvement Ideas §4: optional cultural/usage notes, sourced from the
+# slideshow cross-check's supplementary file (2026-09-13 merge). Keyed by
+# `sequence` (a week can have at most one note in the source data today;
+# a list-of-notes-per-sequence would be the natural extension if that ever
+# changes). A missing/unparseable file degrades to "no cultural notes"
+# rather than crashing the whole game -- this is optional flavor, not core
+# gameplay, the same posture _dispatch_report() already takes for a failed
+# report send.
+try:
+    SUPPLEMENTARY_NOTES = json.loads(_read_supplementary_notes_json())
+except (ValueError, OSError):
+    SUPPLEMENTARY_NOTES = {}
+
+CULTURAL_NOTES_BY_SEQUENCE = {
+    entry["sequence"]: entry["note"]
+    for entry in SUPPLEMENTARY_NOTES.get("cultural_notes", [])
+}
 
 
 class Plot:
@@ -1506,6 +1535,58 @@ def render_legend():
     _element("legend").innerText = "  ·  ".join(lines)
 
 
+# Improvement Ideas §4: optional, toggleable cultural/usage notes -- off the
+# main screen by default so it adds depth without cluttering the core drill
+# for anyone who just wants to water plots. Session-only, like the review
+# controls above: no note ever grows a plant or affects unlocking.
+cultural_notes_open = False
+
+
+def on_toggle_cultural_notes(event=None):
+    global cultural_notes_open
+    cultural_notes_open = not cultural_notes_open
+    render()
+
+
+def render_cultural_notes():
+    panel = _element("cultural-notes-panel")
+    toggle = _element("cultural-notes-toggle-button")
+    toggle.innerText = "Hide cultural notes" if cultural_notes_open else "Cultural notes"
+    panel.hidden = not cultural_notes_open
+    if not cultural_notes_open:
+        return
+
+    panel.innerHTML = ""
+    # Only rows already unlocked -- same spoiler-avoidance posture as
+    # proficiency tests and bonus sections, which are also gated to
+    # unlocked weeks rather than previewing content the syllabus hasn't
+    # reached yet.
+    visible = [
+        (row, CULTURAL_NOTES_BY_SEQUENCE[row.sequence])
+        for row in state.rows
+        if row.sequence in CULTURAL_NOTES_BY_SEQUENCE and state.is_row_unlocked(row.sequence)
+    ]
+    if not visible:
+        empty = document.createElement("p")
+        empty.className = "cultural-note-empty"
+        empty.innerText = "No cultural notes for the weeks you've unlocked yet."
+        panel.appendChild(empty)
+        return
+
+    for row, note in visible:
+        entry = document.createElement("div")
+        entry.className = "cultural-note"
+        heading = document.createElement("p")
+        heading.className = "cultural-note-week"
+        heading.innerText = row.label
+        body = document.createElement("p")
+        body.className = "cultural-note-text"
+        body.innerText = note
+        entry.appendChild(heading)
+        entry.appendChild(body)
+        panel.appendChild(entry)
+
+
 def _plot_classes(plot):
     classes = ["plot", f"plot--{plot.stage}"]
     if is_wilting(plot, state.current_day):
@@ -1722,6 +1803,7 @@ def render():
     render_review()
     render_proficiency()
     render_bonus()
+    render_cultural_notes()
 
 
 # --- interactions ----------------------------------------------------------
@@ -2826,6 +2908,9 @@ def setup():
     )
     _element("accent-toggle-checkbox").checked = ACCENT_SENSITIVE
     _element("review-toggle-button").addEventListener("click", create_proxy(on_toggle_review))
+    _element("cultural-notes-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_cultural_notes)
+    )
     _element("review-word-button").addEventListener("click", create_proxy(on_start_word_review))
     _element("review-grammar-button").addEventListener(
         "click", create_proxy(on_start_grammar_review)
