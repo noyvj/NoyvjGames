@@ -903,6 +903,49 @@ button:disabled {
   line-height: 1.5;
 }
 
+/* Improvement Ideas §5: the progress dashboard -- a distinct screen (per
+   the addendum's own wording), so it gets a slightly more prominent card
+   than the smaller optional-notes panels above rather than blending in. */
+.dashboard-panel {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  background: #fbf7ee;
+  border: 1px solid #e6dcc4;
+  border-radius: 10px;
+  text-align: left;
+}
+
+.dashboard-since {
+  margin: 0 0 0.75rem;
+  font-size: 0.82rem;
+  color: #33291f;
+  font-weight: 600;
+}
+
+.dashboard-heading {
+  margin: 0.75rem 0 0.35rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b5c46;
+  opacity: 0.85;
+}
+
+.dashboard-mastery-list,
+.dashboard-weakest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.dashboard-mastery-row,
+.dashboard-weakest-topic,
+.dashboard-empty {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #33291f;
+}
+
 /* --- choice tiles: warm paper cards instead of the cool glass
    buttons the rest of the page uses for buttons. */
 .choice {
