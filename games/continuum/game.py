@@ -10,6 +10,7 @@ lives in the engine modules that sit beside it —
     save.py            the continuous-save / era-snapshot schema (Milestone 4)
     info_content.py    real-world info-panel content, keyed by era (Milestone 5)
     log.py             the ongoing log / diegetic feedback system (Milestone 6)
+    visual.py          state -> visual data contract for the Three.js layer (Phase 5)
 
 — which is the separation the design doc's tech notes ask for, so that six
 more eras of content land in the engines rather than in one tangled file.
@@ -41,6 +42,7 @@ import save  # noqa: E402
 import sim  # noqa: E402
 import sustainability  # noqa: E402
 import transition  # noqa: E402
+import visual  # noqa: E402
 
 from js import document  # noqa: E402
 from pyodide.ffi import create_proxy  # noqa: E402
@@ -220,6 +222,44 @@ def render():
     render_info_page()
     render_log()
     render_era_progress(effects)
+    _notify_visual_layer()
+
+
+def get_visual_state():
+    """Phase 5's data contract for the Three.js render layer — see
+    visual.py. Exposed as a plain module-level function (same shape as
+    get_state()/load_state() below) so render3d.js can call it through
+    Pyodide's globals the same way the shared save widget calls those two.
+    Returns a plain dict; pyodide's toJs() (called from JS) turns it into
+    a plain JS object, mirroring the save widget's own contract.
+    """
+    return visual.visual_state(state, current_effects())
+
+
+def _notify_visual_layer():
+    """Tells render3d.js the 2D state just moved, so it can redraw the 3D
+    scene to match — called at the end of every render(), i.e. after any
+    assignment, build, research, season-advance, era-transition, or
+    save/load.
+
+    Deliberately lazy and defensive, the same `getattr(window, name, None)`
+    pattern champ-de-mots' own `_dispatch_report()` uses for its network
+    call: `js.window` doesn't exist under the pytest fake-DOM harness (only
+    `js.document` is faked — see tests/conftest.py), so this is a silent
+    no-op there, and it's equally a silent no-op in a real browser whenever
+    render3d.js hasn't installed the hook — Three.js failed to load, WebGL
+    isn't available, or the player has switched to the 2D fallback view.
+    The 2D UI's own render() must never depend on this call succeeding,
+    which is exactly why this function swallows both failure modes instead
+    of asserting either dependency exists.
+    """
+    try:
+        from js import window
+    except ImportError:
+        return
+    hook = getattr(window, "continuumOnRender", None)
+    if hook is not None:
+        hook()
 
 
 # Work/Build row buttons, keyed by (role-or-building, "add"/"remove"/
