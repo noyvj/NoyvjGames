@@ -7,10 +7,10 @@ in this same directory — reference material to draw from, not text to dump
 wholesale into the game, same rule the climate quartet's research docs
 followed.
 
-"tribal", "agrarian" and "classical" have real entries so far, matching
-`sim.IMPLEMENTED_ERAS`. Phase 3 adds one entry per remaining era as that
-era's content ships; nothing else in this file needs to change when it
-does; `era_info_page()` already handles an era with no entry yet.
+"tribal", "agrarian", "classical" and "medieval" have real entries so far,
+matching `sim.IMPLEMENTED_ERAS`. Phase 3 adds one entry per remaining era
+as that era's content ships; nothing else in this file needs to change
+when it does; `era_info_page()` already handles an era with no entry yet.
 
 Kept as its own module rather than folded into game.py for two reasons:
 it is data, not DOM logic (matching the "dedicated engine modules, game.py
@@ -237,6 +237,98 @@ ERA_INFO_PAGE = {
                     "trade network stretching from Turkey to Iran — the "
                     "real-world basis for calibrating this era's city "
                     "scale and for the Trade Networks research node."
+                ),
+            },
+        ],
+    },
+    "medieval": {
+        "framing": (
+            "Medieval cities were not just bigger versions of the Classical "
+            "ones before them — they were governed differently, and they "
+            "regulated everyday life more directly. Real medieval "
+            "authorities fined people for dumping waste and zoned toxic "
+            "trades like tanning and dyeing away from the water everyone "
+            "drank, and academic study of cities like late-medieval Ghent "
+            "shows public-works spending being used specifically to guard "
+            "against flood, disease and military vulnerability rather than "
+            "simply to grow. One recent academic study of medieval England "
+            "is literally titled around sustainability and resilience in "
+            "urban infrastructure — about as direct a bridge to this "
+            "game's own framing as any source in this file gets. "
+            "Alongside that came a real shift in who got to decide any of "
+            "it: guilds specialised by trade, and municipal charters "
+            "granted whole towns a real, legal measure of self-government."
+        ),
+        "mechanic_tie_in": (
+            "Guildmasters and Public Works exist as a pair, but not the "
+            "same kind of pair Administrators and Canals were — a canal "
+            "needed staffing to work at all, but public-works spending in "
+            "the sources is a hedge paid for ahead of a season that might "
+            "go badly, not a building that needs a crew to run. That's why "
+            "Public Works has no worker requirement here: build it, and it "
+            "covers more of the settlement against a shock the more of it "
+            "exists, which is exactly the kind of investment the "
+            "sustainability score's resilience component now rewards — "
+            "the first bonus in this game's whole scoring system, rather "
+            "than another way to be penalised. Guildmasters carry the "
+            "other half of the era: specialists who make more of a tool "
+            "economy the settlement already had, the same way Farmers "
+            "once did more with the same land Foragers worked."
+        ),
+        "sources": [
+            {
+                "label": (
+                    "Popular Archaeology — \"Inside a Medieval City: Public "
+                    "Health, Housing, and Everyday Regulations\""
+                ),
+                "url": "https://popular-archaeology.com/article/inside-a-medieval-city-public-health-housing-and-everyday-regulations/",
+                "note": (
+                    "Real medieval sanitation regulation — waste fines, "
+                    "zoning toxic trades away from drinking water — the "
+                    "direct real-world basis for the Zoned Trades and "
+                    "Public Sanitation research nodes."
+                ),
+            },
+            {
+                "label": (
+                    "SAGE Journals — Coomans & Hermenault, \"Public Works, "
+                    "Spatial Strategies, and Mobility in Late Medieval "
+                    "Ghent\""
+                ),
+                "url": "https://journals.sagepub.com/doi/10.1177/00961442221124892",
+                "note": (
+                    "Academic analysis of medieval public-works investment "
+                    "used specifically to mitigate risk — floods, disease, "
+                    "military vulnerability — rather than to grow output. "
+                    "The direct real-world basis for Public Works being a "
+                    "resilience bonus rather than a production building."
+                ),
+            },
+            {
+                "label": (
+                    "Johns Hopkins University Press — Magnusson, \"Urban "
+                    "Infrastructure in Medieval England: Sustainability "
+                    "and Resilience\""
+                ),
+                "url": "https://press.jhu.edu/books/title/12618/urban-infrastructure-medieval-england",
+                "note": (
+                    "A recent academic study literally framed around "
+                    "sustainability and resilience in medieval public "
+                    "works — this era's clearest direct bridge to the "
+                    "game's own SDG 11 framing."
+                ),
+            },
+            {
+                "label": (
+                    "Fiveable — \"Urban Revival and the Growth of Cities\" "
+                    "(European History 1000-1500)"
+                ),
+                "url": "https://fiveable.me/europe-1000-1500/unit-7/urban-revival-growth-cities/study-guide/91Ey4PdQIbJK9yOx",
+                "note": (
+                    "Guild specialisation and municipal charters granting "
+                    "real self-governance — the real-world basis for the "
+                    "Guildmasters role and for the community branch's "
+                    "Municipal Charter / Free City Charter research nodes."
                 ),
             },
         ],
