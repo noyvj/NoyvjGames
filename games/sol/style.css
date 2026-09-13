@@ -897,3 +897,53 @@ button.priority-option.selected::after {
   background: #56e07a;
   box-shadow: 0 0 6px 1px rgba(86, 224, 122, 0.85);
 }
+
+/* Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md) — SOL's own reading of the
+   hub's shared achievements pattern. Same glass-panel/card language as the
+   rest of this game (the .section border-top, the win-banner's green glow
+   for something earned) rather than a reskin of any other game's own
+   achievements UI — the hub's rule is that internals are free once you're
+   inside a game. */
+.achievements-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.achievement-card {
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.achievement-card--earned {
+  border-color: rgba(127, 214, 163, 0.4);
+  background: rgba(127, 214, 163, 0.08);
+  box-shadow: 0 0 18px rgba(127, 214, 163, 0.12);
+}
+
+.achievement-card-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.achievement-card--earned .achievement-card-label {
+  color: #7fd6a3;
+  text-shadow: 0 0 12px rgba(127, 214, 163, 0.35);
+}
+
+.achievement-card-description {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.7;
+  line-height: 1.4;
+}
+
+.achievement-card-progress {
+  margin: 0.4rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
