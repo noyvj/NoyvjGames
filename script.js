@@ -115,6 +115,7 @@ function showSignedIn(username) {
   accountSignedIn.hidden = false;
   accountUsernameDisplay.textContent = `Signed in as ${username}`;
   loadMySaves();
+  loadAchievementsDashboard();
 }
 
 async function loadMySaves() {
@@ -157,6 +158,136 @@ async function loadMySaves() {
   } catch (err) {
     console.error("loadMySaves failed:", err);
     accountMySaves.textContent = "Couldn't load your saves right now.";
+  }
+}
+
+// --- Achievements dashboard (ACHIEVEMENTS-SYSTEM-DESIGN.md) ---
+//
+// A small, hand-updated manifest of every game that currently ships an
+// achievements catalog. Deliberately NOT auto-discovered by probing every
+// game folder — that would mean a 404 fetch per not-yet-rolled-out game on
+// every hub page load, for a hub-wide rollout that's explicitly staged
+// across many separate future tasks. Add one line here (and nowhere else
+// on the hub side) once a game's own achievements.json + get_state()
+// "achievements_earned" field ship — see the design doc's "add a new game"
+// checklist.
+const GAMES_WITH_ACHIEVEMENTS = {
+  sol: "games/sol/achievements.json",
+};
+
+// Display label only — falls back to the raw game_id for a game added here
+// without an entry (still readable, just not title-cased).
+const GAME_DISPLAY_NAMES = {
+  sol: "SOL",
+};
+
+const accountAchievementsDashboard = document.getElementById("account-achievements-dashboard");
+
+function renderProgressBar(container, label, earned, total) {
+  const row = document.createElement("div");
+  row.className = "achievements-bar-row";
+  const labelEl = document.createElement("p");
+  labelEl.className = "achievements-bar-label";
+  labelEl.textContent = `${label}: ${earned}/${total}`;
+  const track = document.createElement("div");
+  track.className = "achievements-bar-track";
+  const fill = document.createElement("div");
+  fill.className = "achievements-bar-fill";
+  fill.style.width = `${total > 0 ? Math.min(100, (earned / total) * 100) : 0}%`;
+  track.appendChild(fill);
+  row.appendChild(labelEl);
+  row.appendChild(track);
+  container.appendChild(row);
+}
+
+// The most recently updated save for `gameId` out of one account's full
+// save list — same "account is the source of truth, most recent wins"
+// selection shared/save-widget.js's own autoload already uses for a single
+// game; this just repeats it per game for the dashboard.
+function mostRecentSaveForGame(saves, gameId) {
+  const forGame = saves.filter((s) => s.game_id === gameId);
+  if (!forGame.length) return null;
+  forGame.sort((a, b) => {
+    const aTime = new Date(a.updated_at || a.created_at).getTime();
+    const bTime = new Date(b.updated_at || b.created_at).getTime();
+    return bTime - aTime;
+  });
+  return forGame[0];
+}
+
+async function loadAchievementsDashboard() {
+  const gameIds = Object.keys(GAMES_WITH_ACHIEVEMENTS);
+  if (!gameIds.length) {
+    accountAchievementsDashboard.innerHTML = "";
+    return;
+  }
+  accountAchievementsDashboard.textContent = "Loading achievement progress…";
+  try {
+    const [savesRes, ...catalogResults] = await Promise.all([
+      fetch(`${RATINGS_API_BASE}/users/me/saves`, { headers: hubAuthHeaders() }),
+      ...gameIds.map((gameId) =>
+        fetch(GAMES_WITH_ACHIEVEMENTS[gameId])
+          .then((res) => (res.ok ? res.json() : null))
+          .catch(() => null)
+      ),
+    ]);
+    if (!savesRes.ok) throw new Error(`status ${savesRes.status}`);
+    const saves = await savesRes.json();
+
+    accountAchievementsDashboard.innerHTML = "";
+    const heading = document.createElement("p");
+    heading.className = "achievements-dashboard-heading";
+    heading.textContent = "Achievements";
+    accountAchievementsDashboard.appendChild(heading);
+
+    let totalEarned = 0;
+    let totalPossible = 0;
+    let anyGameRendered = false;
+
+    gameIds.forEach((gameId, i) => {
+      const catalog = catalogResults[i];
+      // A game listed in the manifest whose achievements.json failed to
+      // fetch (offline, a typo'd path) is skipped rather than shown as a
+      // false "0/0" — the manifest promises a real catalog exists, and if
+      // it couldn't be read this pass, silence is more honest than a
+      // fabricated total.
+      const total = catalog && Array.isArray(catalog.achievements) ? catalog.achievements.length : 0;
+      if (!total) return;
+
+      const save = mostRecentSaveForGame(saves, gameId);
+      const earnedList =
+        save && save.save_data && Array.isArray(save.save_data.achievements_earned)
+          ? save.save_data.achievements_earned
+          : [];
+      const earned = Math.min(earnedList.length, total);
+
+      renderProgressBar(
+        accountAchievementsDashboard,
+        GAME_DISPLAY_NAMES[gameId] || gameId,
+        earned,
+        total
+      );
+      totalEarned += earned;
+      totalPossible += total;
+      anyGameRendered = true;
+    });
+
+    if (!anyGameRendered) {
+      const note = document.createElement("p");
+      note.className = "achievements-dashboard-empty";
+      note.textContent = "No games with achievements yet — check back as more games get them.";
+      accountAchievementsDashboard.appendChild(note);
+      return;
+    }
+
+    const divider = document.createElement("p");
+    divider.className = "achievements-dashboard-overall-label";
+    divider.textContent = "Overall";
+    accountAchievementsDashboard.appendChild(divider);
+    renderProgressBar(accountAchievementsDashboard, "All games", totalEarned, totalPossible);
+  } catch (err) {
+    console.error("loadAchievementsDashboard failed:", err);
+    accountAchievementsDashboard.textContent = "Couldn't load achievement progress right now.";
   }
 }
 
