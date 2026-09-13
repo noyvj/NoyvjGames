@@ -218,7 +218,7 @@ class ResearchTree:
         # negative, whatever a future era's trade-off nodes look like.
         for key in ("food_yield_mult", "materials_yield_mult", "tool_yield_mult",
                     "knowledge_mult", "regen_mult", "extraction_efficiency",
-                    "pollution_output_mult"):
+                    "pollution_output_mult", "sprawl_output_mult"):
             totals[key] = max(0.0, totals[key])
         return totals
 
@@ -309,27 +309,29 @@ class ResearchTree:
 
 # --- the shipped tree --------------------------------------------------
 # Tribal (Phase 1), Agrarian (Milestone 8), Classical (Milestone 9),
-# Medieval (Milestone 10) and Industrial (Milestone 11) so far. Tribal's
-# nine nodes, per Phase 1's "populate just enough nodes to prove the system
-# works", exercise every mechanism the engine has: plain prerequisites,
-# tier gating, branch affinity, and every category of effect (yield
-# multipliers, land regeneration, storage, housing, and the equity/
-# resilience bonuses that only the sustainability score reads). Agrarian's
-# six nodes prove the tree extends cleanly across an era boundary: every
-# one of them chains a prerequisite back into a specific Tribal tier-2
-# node, so an early emphasis keeps echoing into a second era exactly the
-# way "Council of Elders" already proved it could within one. Classical's
-# six nodes repeat the same proof a second time, this time chaining back
-# into Agrarian's own late tier. Medieval's six nodes repeat it a third
-# time, chaining back into Classical's own late tier. Industrial's six
-# nodes repeat it a fourth time, chaining back into Medieval's own late
-# tier — each branch now has an unbroken chain five eras deep (Tribal →
-# Agrarian → Classical → Medieval → Industrial), and the community branch's
-# min_affinity keeps compounding by exactly one at each step:
-# `elders_council` (2), `market_custom` (3), `civic_assembly` (4),
-# `municipal_charter` (5), `free_city_charter` (6), `factory_acts` (7),
-# `public_health_acts` (8) — an emphasis that keeps compounding, not just
-# echoing once.
+# Medieval (Milestone 10), Industrial (Milestone 11) and Digital
+# (Milestone 12) so far. Tribal's nine nodes, per Phase 1's "populate just
+# enough nodes to prove the system works", exercise every mechanism the
+# engine has: plain prerequisites, tier gating, branch affinity, and every
+# category of effect (yield multipliers, land regeneration, storage,
+# housing, and the equity/resilience bonuses that only the sustainability
+# score reads). Agrarian's six nodes prove the tree extends cleanly across
+# an era boundary: every one of them chains a prerequisite back into a
+# specific Tribal tier-2 node, so an early emphasis keeps echoing into a
+# second era exactly the way "Council of Elders" already proved it could
+# within one. Classical's six nodes repeat the same proof a second time,
+# this time chaining back into Agrarian's own late tier. Medieval's six
+# nodes repeat it a third time, chaining back into Classical's own late
+# tier. Industrial's six nodes repeat it a fourth time, chaining back into
+# Medieval's own late tier. Digital's six nodes repeat it a fifth time,
+# chaining back into Industrial's own late tier — each branch now has an
+# unbroken chain six eras deep (Tribal → Agrarian → Classical → Medieval →
+# Industrial → Digital), and the community branch's min_affinity keeps
+# compounding by exactly one at each step: `elders_council` (2),
+# `market_custom` (3), `civic_assembly` (4), `municipal_charter` (5),
+# `free_city_charter` (6), `factory_acts` (7), `public_health_acts` (8),
+# `participatory_planning` (9), `digital_commons_charter` (10) — an
+# emphasis that keeps compounding, not just echoing once.
 _TRIBAL_TIERS = era_tiers("tribal")
 
 NODE_LIST = [
@@ -803,6 +805,107 @@ NODE_LIST = [
             "than each household's alone — the real historical hinge that modern urban planning as "
             "a discipline grew out of. Factory Acts protected the worker; this is what protects "
             "the neighborhood they go home to."
+        ),
+    ),
+    # --- Digital, early (Milestone 12) --- Three nodes, one per branch,
+    # each chaining a prerequisite back into the LATE Industrial tier
+    # (tier 10) of the same branch — the same "early tier of a new era
+    # chains to the late tier of the one before it" pattern Milestones 8-11
+    # all used, now proven across a fifth era boundary rather than being a
+    # one-off, a two-off, a three-off, or a four-off.
+    ResearchNode(
+        "data_driven_zoning",
+        "Data-Driven Zoning",
+        era="digital",
+        tier=era_tiers("digital")[0],
+        branch="craft",
+        cost=95.0,
+        prerequisites=("sanitation_engineering",),
+        effects={"transit_bonus": 0.2, "extraction_efficiency": -0.1},
+        blurb=(
+            "Land use mapped and modelled instead of guessed at — the same discipline "
+            "Sanitation Engineering brought to drains and filters, turned toward where the next "
+            "resident actually goes."
+        ),
+    ),
+    ResearchNode(
+        "smart_utilities",
+        "Smart Utilities",
+        era="digital",
+        tier=era_tiers("digital")[0],
+        branch="provision",
+        cost=95.0,
+        prerequisites=("assembly_lines",),
+        effects={"materials_yield_mult": 0.15, "extraction_efficiency": -0.1},
+        blurb=(
+            "Water, power and waste routed by what's actually being used, not by fixed guesswork. "
+            "Assembly Lines multiplied what a factory floor could make; this is the same "
+            "efficiency turned toward what the whole settlement runs on."
+        ),
+    ),
+    ResearchNode(
+        "participatory_planning",
+        "Participatory Planning",
+        era="digital",
+        tier=era_tiers("digital")[0],
+        branch="community",
+        cost=100.0,
+        prerequisites=("public_health_acts",),
+        min_affinity={"community": 9},
+        effects={"equity_bonus": 0.1, "sprawl_output_mult": -0.1},
+        blurb=(
+            "Zoning decided with the people who'll live with them, not just for them — the direct "
+            "descendant of Public Health Acts making the neighborhood everyone's problem to solve. "
+            "Only reachable by a settlement that kept investing in community across six eras "
+            "running now."
+        ),
+    ),
+    # --- Digital, late ---
+    ResearchNode(
+        "transit_oriented_design",
+        "Transit-Oriented Design",
+        era="digital",
+        tier=era_tiers("digital")[1],
+        branch="craft",
+        cost=115.0,
+        prerequisites=("data_driven_zoning",),
+        effects={"transit_bonus": 0.3, "sprawl_output_mult": -0.15},
+        blurb=(
+            "Dense, walkable neighborhoods built around a transit stop instead of a road out of "
+            "town. Data-Driven Zoning mapped where growth was heading; this is what actually "
+            "redirects it inward instead of outward."
+        ),
+    ),
+    ResearchNode(
+        "circular_resource_systems",
+        "Circular Resource Systems",
+        era="digital",
+        tier=era_tiers("digital")[1],
+        branch="provision",
+        cost=115.0,
+        prerequisites=("smart_utilities",),
+        effects={"materials_yield_mult": 0.2, "extraction_efficiency": -0.15},
+        blurb=(
+            "What used to be waste becomes the next batch of material instead. Smart Utilities "
+            "routed what the settlement already had more carefully; this is the settlement "
+            "needing less of it in the first place."
+        ),
+    ),
+    ResearchNode(
+        "digital_commons_charter",
+        "Digital Commons Charter",
+        era="digital",
+        tier=era_tiers("digital")[1],
+        branch="community",
+        cost=130.0,
+        prerequisites=("participatory_planning",),
+        min_affinity={"community": 10},
+        effects={"equity_bonus": 0.1, "resilience_bonus": 0.1},
+        blurb=(
+            "Open data and open decisions made a standing right rather than a one-time "
+            "consultation — Participatory Planning proved the settlement would listen once; this "
+            "is the settlement committing to keep doing it. Only reachable by a settlement that "
+            "kept investing in community across six eras running now."
         ),
     ),
 ]

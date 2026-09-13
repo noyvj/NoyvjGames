@@ -7,11 +7,11 @@ in this same directory — reference material to draw from, not text to dump
 wholesale into the game, same rule the climate quartet's research docs
 followed.
 
-"tribal", "agrarian", "classical", "medieval" and "industrial" have real
-entries so far, matching `sim.IMPLEMENTED_ERAS`. Phase 3 adds one entry per
-remaining era as that era's content ships; nothing else in this file needs
-to change when it does; `era_info_page()` already handles an era with no
-entry yet.
+"tribal", "agrarian", "classical", "medieval", "industrial" and "digital"
+have real entries so far, matching `sim.IMPLEMENTED_ERAS`. Phase 3 adds one
+entry per remaining era as that era's content ships; nothing else in this
+file needs to change when it does; `era_info_page()` already handles an
+era with no entry yet.
 
 Kept as its own module rather than folded into game.py for two reasons:
 it is data, not DOM logic (matching the "dedicated engine modules, game.py
@@ -410,6 +410,108 @@ ERA_INFO_PAGE = {
                     "crises — the real bridge from this era's Public "
                     "Health Acts node into the Digital era's more "
                     "formalized SDG 11 framing."
+                ),
+            },
+        ],
+    },
+    "digital": {
+        "framing": (
+            "This is the era the whole game's framing is built around: SDG "
+            "11, the UN's own Sustainable Development Goal for making "
+            "cities inclusive, safe, resilient and sustainable. That goal "
+            "isn't one number either — Our World in Data breaks it into 10 "
+            "concrete targets and 16 measurable indicators, spanning "
+            "housing, transport, green space, disaster risk, air quality "
+            "and more, which is worth knowing even though Continuum keeps "
+            "the sustainability score as one headline figure throughout — "
+            "the real UN framing this game is named after was never meant "
+            "to be one abstract feeling in the first place. The real, "
+            "present-day scale is stark: ECLAC's figures put 70% of people "
+            "projected to live in cities by 2050, and 1.1 billion already "
+            "living in slum or slum-like conditions right now. And the UN's "
+            "own 2025 stocktaking report — the most current assessment "
+            "that exists as of this writing — is direct about where things "
+            "actually stand: real gains have been made, but the current "
+            "pace isn't enough to meet the 2030 targets."
+        ),
+        "mechanic_tie_in": (
+            "Urban Planners and Transit Hubs exist because of one specific, "
+            "well-documented tension: National Geographic's own SDG 11 "
+            "resource notes that urban areas grew 1.28 times faster than "
+            "their populations between 2000 and 2014 — cities spreading "
+            "outward faster than they're actually filling up. Continuum "
+            "makes that mechanical rather than decorative: unmanaged "
+            "population growth produces sprawl on its own, the same way "
+            "Industrial's pollution built up on its own from Factory "
+            "Workers, and sprawl in turn makes the settlement's existing "
+            "extraction harder on the land — the same land_health system "
+            "that has gated growth since the Tribal era, not a second, "
+            "separate growth penalty invented just for this one. Planners "
+            "are the first role in the whole game that produces nothing at "
+            "all — their entire job, like Public Works and Sanitation "
+            "Works before them, is managing a cost before it compounds; "
+            "Transit Hubs are the retrofit for sprawl that has already "
+            "happened, the same way Sanitation Works retrofits pollution "
+            "that already has."
+        ),
+        "sources": [
+            {
+                "label": "UN DESA — \"SDG 11: Sustainable Cities and Communities\"",
+                "url": "https://desapublications.un.org/publications/sdgs/SDG%2011%20Sustainable%20Cities%20and%20Communities",
+                "note": (
+                    "The official UN publication on this goal — the most "
+                    "direct, authoritative source for the era the whole "
+                    "game's SDG framing is built around."
+                ),
+            },
+            {
+                "label": "Our World in Data — \"Make Cities Inclusive, Safe, Resilient and Sustainable\"",
+                "url": "https://ourworldindata.org/sdgs/sustainable-cities",
+                "note": (
+                    "Breaks SDG 11 into its actual 10 targets and 16 "
+                    "measurable indicators — the real-world reason this "
+                    "panel talks about housing, transport and green space "
+                    "specifically, even though the game's own score stays "
+                    "one headline number."
+                ),
+            },
+            {
+                "label": (
+                    "National Geographic Education — \"Sustainable "
+                    "Development Goal 11: Sustainable Cities and "
+                    "Communities\""
+                ),
+                "url": "https://education.nationalgeographic.org/resource/sustainable-development-goal-11-sustainable-cities-and-communities/",
+                "note": (
+                    "Urban areas grew 1.28 times faster than their "
+                    "populations between 2000 and 2014 — the direct "
+                    "real-world basis for the sprawl mechanic Urban "
+                    "Planners and Transit Hubs both exist to manage."
+                ),
+            },
+            {
+                "label": (
+                    "Agenda 2030 in Latin America and the Caribbean (ECLAC) "
+                    "— \"Sustainable Cities and Communities\""
+                ),
+                "url": "https://agenda2030lac.org/en/sdg/11-sustainable-cities-and-communities",
+                "note": (
+                    "Concrete present-day figures — 70% of people "
+                    "projected to live in cities by 2050, 1.1 billion "
+                    "currently in slum or slum-like conditions — the "
+                    "direct real-world basis for sprawl's equity-side cost "
+                    "in the sustainability score."
+                ),
+            },
+            {
+                "label": "UN — The Sustainable Development Goals Report 2025 (Current Day)",
+                "url": "https://desapublications.un.org/publications/sdgs/SDG%2011%20Sustainable%20Cities%20and%20Communities",
+                "note": (
+                    "A dedicated 'right now' source, distinct from the "
+                    "four above: the tenth annual global stocktaking of "
+                    "SDG progress, delivering an explicitly present-moment "
+                    "verdict — real gains made, but the current pace isn't "
+                    "enough to meet the 2030 targets."
                 ),
             },
         ],

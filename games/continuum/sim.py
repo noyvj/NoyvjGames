@@ -21,18 +21,18 @@ Two properties are load-bearing for everything that comes later:
    stops the research tree from having to reach into the simulation later.
 
 Tribal (Phase 1), Agrarian (Milestone 8), Classical (Milestone 9),
-Medieval (Milestone 10) and Industrial (Milestone 11) are modelled so far.
-Era-specific constants live in per-era tables keyed by era id (see
-ERA_ROLES/ERA_BUILDINGS) so each remaining era adds a table entry rather
-than a second copy of this file — Agrarian's own Farmers role and Farmland
-building were the first proof that pattern actually extends cleanly rather
-than requiring a rewrite; Classical's Administrators/Canals extend it a
-second time, this time with a building whose bonus depends on the role
-rather than merely being multiplied by it (see CANAL_YIELD_BONUS);
-Medieval's Guildmasters/Public Works extend it a third time, this time with
-a building that isn't staffed at all — Public Works is read only by
-sustainability.py, not by the production math below (see
-PUBLIC_WORKS_COVERAGE_PER_BUILDING). Industrial's Factory Workers/
+Medieval (Milestone 10), Industrial (Milestone 11) and Digital (Milestone
+12) are modelled so far. Era-specific constants live in per-era tables
+keyed by era id (see ERA_ROLES/ERA_BUILDINGS) so each remaining era adds a
+table entry rather than a second copy of this file — Agrarian's own
+Farmers role and Farmland building were the first proof that pattern
+actually extends cleanly rather than requiring a rewrite; Classical's
+Administrators/Canals extend it a second time, this time with a building
+whose bonus depends on the role rather than merely being multiplied by it
+(see CANAL_YIELD_BONUS); Medieval's Guildmasters/Public Works extend it a
+third time, this time with a building that isn't staffed at all — Public
+Works is read only by sustainability.py, not by the production math below
+(see PUBLIC_WORKS_COVERAGE_PER_BUILDING). Industrial's Factory Workers/
 Sanitation Works extend it a fourth time, and this is the first era where
 the new content has a GROWTH-side mechanical consequence, not only a
 sustainability-score one: Factory Workers produce `pollution`, a lagged
@@ -41,6 +41,16 @@ stock read directly by the population-growth step below (see the
 continuum-real-world-sources.md's Economic Journal source showing
 industrial pollution measurably reducing long-run city growth historically
 — see CLAUDE.md's Milestone 11 build notes for the full reasoning.
+Digital's Urban Planners/Transit Hubs extend it a fifth time, and this era's
+own growth-side consequence deliberately takes a DIFFERENT shape from
+Industrial's: instead of a second direct multiplier on GROWTH_RATE,
+`state.sprawl` (also a lagged 0..1 stock, produced by unmanaged population
+growth per the National Geographic source on urban areas outgrowing their
+populations) amplifies how much land pressure the settlement's existing
+extraction already creates — reusing the land_health/GROWTH_MIN_LAND_HEALTH
+machinery Phase 1 already built rather than stacking a second bespoke
+growth-rate lever alongside pollution's. See CLAUDE.md's Milestone 12 build
+notes for the full reasoning.
 """
 
 # --- eras -------------------------------------------------------------
@@ -72,7 +82,7 @@ ERA_LABEL = {
 # Nothing reads this yet — it exists so that the moment a second era ships,
 # "which eras are playable" has one answer rather than being inferred from
 # whichever table happens to have an entry.
-IMPLEMENTED_ERAS = ["tribal", "agrarian", "classical", "medieval", "industrial"]
+IMPLEMENTED_ERAS = ["tribal", "agrarian", "classical", "medieval", "industrial", "digital"]
 
 FIRST_ERA = ERA_ORDER[0]
 
@@ -103,6 +113,7 @@ ERA_ROLES = {
     "classical": ["administrators"],
     "medieval": ["guildmasters"],
     "industrial": ["factory_workers"],
+    "digital": ["planners"],
 }
 
 ERA_BUILDINGS = {
@@ -111,6 +122,7 @@ ERA_BUILDINGS = {
     "classical": ["canals"],
     "medieval": ["public_works"],
     "industrial": ["sanitation_works"],
+    "digital": ["transit_hubs"],
 }
 
 ROLES = [role for era in ERA_ORDER for role in ERA_ROLES.get(era, [])]
@@ -143,6 +155,7 @@ ROLE_LABEL = {
     "administrators": "Administrators",
     "guildmasters": "Guildmasters",
     "factory_workers": "Factory Workers",
+    "planners": "Urban Planners",
 }
 
 ROLE_BLURB = {
@@ -167,6 +180,12 @@ ROLE_BLURB = {
         "doesn't go anywhere on its own. Sanitation Works is what actually "
         "deals with that."
     ),
+    "planners": (
+        "Produce nothing themselves — their whole job is deciding where the "
+        "next resident actually goes. Left unmanaged, growth spreads "
+        "outward faster than the settlement itself grows; planners are what "
+        "keeps that from being the default."
+    ),
 }
 
 ROLE_EMOJI = {
@@ -178,6 +197,7 @@ ROLE_EMOJI = {
     "administrators": "📜",
     "guildmasters": "⚒️",
     "factory_workers": "🏭",
+    "planners": "🗺️",
 }
 
 BUILDING_LABEL = {
@@ -189,6 +209,7 @@ BUILDING_LABEL = {
     "canals": "Canals",
     "public_works": "Public Works",
     "sanitation_works": "Sanitation Works",
+    "transit_hubs": "Transit Hubs",
 }
 
 BUILDING_BLURB = {
@@ -214,6 +235,13 @@ BUILDING_BLURB = {
         "off the more of it gets built, before it can pile up and start "
         "dragging on the settlement's growth."
     ),
+    "transit_hubs": (
+        "Dense, mixed-use nodes built around transit rather than roads out "
+        "— the same number of people housed in less land, not more of it. "
+        "Nobody works here; it just absorbs sprawl that has already built "
+        "up, the more of it gets built, the same way Sanitation Works "
+        "absorbs pollution."
+    ),
 }
 
 BUILDING_EMOJI = {
@@ -225,6 +253,7 @@ BUILDING_EMOJI = {
     "canals": "🏛️",
     "public_works": "🚰",
     "sanitation_works": "🏗️",
+    "transit_hubs": "🚉",
 }
 
 BUILDING_COST = {  # in materials
@@ -236,6 +265,7 @@ BUILDING_COST = {  # in materials
     "canals": 35.0,
     "public_works": 40.0,
     "sanitation_works": 45.0,
+    "transit_hubs": 55.0,
 }
 
 SHELTER_CAPACITY = 4  # people housed per shelter
@@ -261,6 +291,7 @@ START_BUILDINGS = {
     "canals": 0,
     "public_works": 0,
     "sanitation_works": 0,
+    "transit_hubs": 0,
 }
 START_ALLOCATION = {
     "foragers": 3,
@@ -271,6 +302,7 @@ START_ALLOCATION = {
     "administrators": 0,
     "guildmasters": 0,
     "factory_workers": 0,
+    "planners": 0,
 }
 
 # --- production and consumption ---------------------------------------
@@ -384,6 +416,47 @@ SANITATION_ABSORPTION_PER_BUILDING = 0.05  # pollution absorbed per Sanitation W
 # not stopping it dead the way a truly exhausted plot of land would.
 POLLUTION_GROWTH_PENALTY_WEIGHT = 0.6
 
+# --- sprawl and the growth-side cost of unmanaged density (Digital+) ----
+# Per continuum-real-world-sources.md's Current/Digital sources -- most
+# directly National Geographic Education's finding that urban areas grew
+# 1.28 times faster than their populations between 2000 and 2014, i.e.
+# cities spreading outward faster than they're actually filling up -- this
+# is Digital's own growth-vs-livability tension, and the task that spec'd
+# this milestone was explicit it should have a real mechanical consequence,
+# not just another additive score bonus/penalty the way Agrarian/Classical/
+# Medieval's adjustments were. `CityState.sprawl` is a second lagged 0..1
+# stock, the same shape POLLUTION_PER_FACTORY_WORKER's model already
+# established, but DELIBERATELY WIRED INTO A DIFFERENT LEVER than
+# pollution's direct GROWTH_RATE multiplier: sprawl amplifies how much land
+# pressure the settlement's existing extraction creates (see the season
+# loop's step 8 below), reusing Phase 1's own land_health/
+# GROWTH_MIN_LAND_HEALTH machinery instead of stacking a second bespoke
+# growth-rate penalty next to Industrial's. Population growth that outpaces
+# density investment produces it (unmanaged growth spreads outward, per the
+# source); Urban Planners (a role, working proactively every season) and
+# Transit Hubs (a building, absorbing what has already accumulated -- the
+# same "built, not staffed" shape Public Works/Sanitation Works already
+# established) both bring it back down, and a small natural decay (infill,
+# slow densification even with no dedicated investment) always pulls it
+# down a little on its own, the same "nothing is stuck forever" discipline
+# pollution's own decay already uses.
+SPRAWL_PER_NEW_RESIDENT = 0.05  # sprawl added per person of season growth, left unmanaged
+PLANNER_SPRAWL_MITIGATION = 0.03  # sprawl reduced per assigned planner per season
+TRANSIT_HUB_ABSORPTION_PER_BUILDING = 0.05  # sprawl absorbed per Transit Hub per season
+SPRAWL_NATURAL_DECAY = 0.01  # baseline sprawl lost per season regardless of investment
+# How much extra land pressure the same extraction creates at full (1.0)
+# sprawl -- a sprawled-out settlement needs more roads, pipes and cleared
+# land to support the same production, so the SAME extraction total leaves
+# a bigger real footprint. This is genuinely different in shape from
+# POLLUTION_GROWTH_PENALTY_WEIGHT: pollution scales GROWTH_RATE directly
+# (a new lever), sprawl instead scales `extraction` itself (an existing
+# lever, present since Phase 1) before it's compared against the land's
+# sustainable yield -- so a heavily-sprawled Digital settlement can trip
+# land_health's existing hard GROWTH_MIN_LAND_HEALTH gate for the exact
+# same reason an over-harvesting Tribal one always could, not through a
+# second, parallel growth formula.
+SPRAWL_EXTRACTION_PENALTY_WEIGHT = 0.5
+
 # Tools multiply every gathering yield, capped at one tool per person —
 # a settlement can't get more out of the land by hoarding axes nobody holds.
 TOOL_EFFECT = 0.5
@@ -446,6 +519,15 @@ NEUTRAL_EFFECTS = {
     # Additive multiplier on Sanitation Works' per-building absorption --
     # same capacity-multiplier shape as public_works_bonus above.
     "sanitation_bonus": 0.0,
+    # Digital (Milestone 12) -- a multiplicative key at a 1.0 base, same
+    # shape as pollution_output_mult above: reduces how much sprawl a
+    # season of unmanaged population growth produces (data-driven zoning
+    # research, not Transit Hubs' own building-side lever -- see
+    # transit_bonus below for that).
+    "sprawl_output_mult": 1.0,
+    # Additive multiplier on Transit Hubs' per-building absorption -- same
+    # capacity-multiplier shape as public_works_bonus/sanitation_bonus.
+    "transit_bonus": 0.0,
 }
 
 
@@ -482,6 +564,12 @@ class CityState:
         # because nothing produces it yet and because the season loop's
         # own era guard forces it there defensively.
         self.pollution = 0.0
+        # Digital+ (Milestone 12): a second lagged 0..1 stock, same shape as
+        # pollution -- see the "sprawl and the growth-side cost of
+        # unmanaged density" constants above. Always 0.0 before Digital,
+        # both because nothing produces it yet and because the season
+        # loop's own era guard forces it there defensively.
+        self.sprawl = 0.0
         # Last-season signals the sustainability score reads. Seeded so the
         # score is meaningful on season 1, before any season has run.
         self.fed_fraction = 1.0
@@ -762,6 +850,16 @@ class CityState:
 
         # 8. What the land gave up, and whether it can take it.
         extraction = (food_gathered + materials_gathered) * effects["extraction_efficiency"]
+        # Digital+ (Milestone 12): sprawl amplifies how much land pressure
+        # this same extraction total creates -- reads self.sprawl as it
+        # stood at the END of the previous season (this season's own sprawl
+        # output is computed in step 8c below, the same lagged-stock
+        # ordering pollution's own step 8b already uses relative to this
+        # same land-pressure calculation). See SPRAWL_EXTRACTION_PENALTY_
+        # WEIGHT's own comment for why this is a different lever from
+        # pollution's direct GROWTH_RATE multiplier.
+        if era_index(self.era) >= era_index("digital"):
+            extraction *= 1.0 + self.sprawl * SPRAWL_EXTRACTION_PENALTY_WEIGHT
         sustainable = self.sustainable_yield(effects)
         if extraction > sustainable:
             self.land_health -= (extraction - sustainable) * LAND_DEGRADE_PER_UNIT
@@ -804,6 +902,42 @@ class CityState:
         else:
             self.pollution = 0.0
 
+        # 8c. Digital sprawl (Digital+) -- updated last, same lagged-stock
+        # position as pollution's step 8b above, and for the same reason:
+        # this season's land-pressure calculation in step 8 already read
+        # whatever `self.sprawl` was at the END of the PREVIOUS season, not
+        # anything computed here. Produced by unmanaged population growth
+        # (`births`, from step 7 above) per the National Geographic source's
+        # "urban areas grew 1.28x faster than their populations" finding;
+        # Urban Planners work every season regardless of growth (their whole
+        # job is managing it before it happens), Transit Hubs (built, never
+        # staffed) absorb what has already accumulated, and a small natural
+        # decay always pulls it down a little on its own. Forced to exactly
+        # 0.0 before Digital rather than merely trusting it stayed there by
+        # construction -- the same defensive era-gate discipline pollution/
+        # surplus_banked/canal_bonus/public_works_coverage were all held to.
+        if era_index(self.era) >= era_index("digital"):
+            sprawl_produced = births * SPRAWL_PER_NEW_RESIDENT * effects["sprawl_output_mult"]
+            sprawl_mitigated = self.allocation["planners"] * PLANNER_SPRAWL_MITIGATION
+            sprawl_absorbed = (
+                self.buildings["transit_hubs"]
+                * TRANSIT_HUB_ABSORPTION_PER_BUILDING
+                * (1.0 + effects["transit_bonus"])
+            )
+            self.sprawl = max(
+                0.0,
+                min(
+                    1.0,
+                    self.sprawl
+                    + sprawl_produced
+                    - sprawl_mitigated
+                    - sprawl_absorbed
+                    - SPRAWL_NATURAL_DECAY,
+                ),
+            )
+        else:
+            self.sprawl = 0.0
+
         self.season += 1
 
         # Public Works coverage (Medieval+) -- purely for narration, the
@@ -838,6 +972,7 @@ class CityState:
             "public_works": self.buildings["public_works"],
             "public_works_coverage_ratio": public_works_coverage_ratio,
             "pollution": self.pollution,
+            "sprawl": self.sprawl,
         }
         self.last_report = report
         return report

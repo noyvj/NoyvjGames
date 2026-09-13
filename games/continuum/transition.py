@@ -121,6 +121,22 @@ TRANSITION_REQUIREMENTS = {
         "min_tier": research.era_tiers("medieval")[-1],
         "min_score_label": "Strained",
     },
+    # Milestone 12 -- the same three-part shape a fifth time. See
+    # CLAUDE.md's Milestone 12 build notes for why "Strained" was kept
+    # rather than raised, the same judgement every prior era has made.
+    "industrial": {
+        "to_era": "digital",
+        # The last of log.POPULATION_MILESTONES -- 100, the point log.py's
+        # own text calls "however this got built, it wasn't an accident."
+        # Fitting for the era whose own sources describe cities crossing
+        # into being the dominant, present-day human settlement pattern
+        # (per the ECLAC source's own 70%-by-2050 figure).
+        "min_population": 100,
+        # The late Industrial research tier has to be UNLOCKED (two tier-9
+        # nodes researched) -- same soft-bar spirit as every prior era.
+        "min_tier": research.era_tiers("industrial")[-1],
+        "min_score_label": "Strained",
+    },
 }
 
 
@@ -225,6 +241,19 @@ TRANSITION_BEATS = {
         "also, for the first time, growing sicker while it does. Barely a "
         "thirtieth of the world lives anywhere like this yet. That will "
         "not stay true for long."
+    ),
+    ("industrial", "digital"): (
+        "The smoke has mostly cleared, or at least moved somewhere it's "
+        "measured instead of just breathed. What's changed more is how the "
+        "city decides where it goes next — less by whoever gets there "
+        "first and clears the ground, more by maps, counts, and people "
+        "arguing in rooms about which block gets which kind of building. "
+        "It hasn't stopped growing, and growing has its own quiet way of "
+        "spreading a city thinner than it means to — new edges reaching "
+        "further out than the people actually living in them would "
+        "explain, if nobody was steering it. Whether this city ends up "
+        "dense or sprawling from here isn't going to be an accident either "
+        "way. Most of the world, by now, lives somewhere like this."
     ),
 }
 

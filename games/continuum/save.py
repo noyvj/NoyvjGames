@@ -71,6 +71,7 @@ CITY_FIELDS = [
     "buildings",
     "land_health",
     "pollution",
+    "sprawl",
     "fed_fraction",
     "last_extraction",
     "last_sustainable_yield",
