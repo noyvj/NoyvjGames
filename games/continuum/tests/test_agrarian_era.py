@@ -269,14 +269,22 @@ def test_after_transitioning_the_log_shows_the_transition_beat(game_env):
     assert transition_rows[0].text == transition.TRANSITION_BEATS[("tribal", "agrarian")]
 
 
-def test_after_transitioning_the_advance_era_button_reports_nothing_further_yet(game_env):
+def test_after_transitioning_the_advance_era_button_points_at_the_next_era(game_env):
+    """Since Milestone 9, Agrarian isn't the end of the line either — the
+    button should immediately start reporting progress toward Classical
+    rather than "nothing more to reach," since transition.py now has an
+    entry for Agrarian too. (Before Milestone 9 this asserted the opposite;
+    see that milestone's CLAUDE.md build notes.) The freshly-arrived
+    settlement isn't ready yet -- push_to_agrarian_ready() only satisfies
+    the OLD Tribal->Agrarian bar (population 15), not Agrarian->Classical's
+    higher one (population 25) -- so the button should still be disabled."""
     push_to_agrarian_ready(game_env)
     game_env.module.render()
     game_env.elements["advance-era-button"].dispatch("click", None)
     game_env.module.render()
 
     assert game_env.elements["advance-era-button"].disabled is True
-    assert "Nothing more" in game_env.elements["era-progress-status-display"].innerText
+    assert "Classical" in game_env.elements["era-progress-status-display"].innerText
 
 
 def test_a_second_click_after_transitioning_does_nothing(game_env):

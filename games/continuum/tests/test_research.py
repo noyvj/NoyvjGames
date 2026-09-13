@@ -307,11 +307,12 @@ def test_the_agrarian_era_has_nodes_in_both_of_its_tiers(game_env):
 
 def test_every_shipped_node_is_reachable_from_an_empty_tree(game_env):
     """No orphan content: playing well enough must be able to reach every
-    node this build ships (Tribal and Agrarian, as of Milestone 8), or it
-    may as well not be in the file. Built with current_era="agrarian" so
-    era-gating itself doesn't hide the Agrarian nodes from this check —
-    era-gating is exercised separately (see test_era_gates_nodes_...)."""
-    tree = research.build_tree(current_era="agrarian")
+    node this build ships (Tribal, Agrarian and Classical, as of Milestone
+    9), or it may as well not be in the file. Built with
+    current_era="classical" so era-gating itself doesn't hide any node from
+    this check — era-gating is exercised separately (see
+    test_era_gates_nodes_...)."""
+    tree = research.build_tree(current_era="classical")
     resources = {"knowledge": 10_000.0}
 
     for _ in range(len(tree.nodes)):
@@ -325,14 +326,18 @@ def test_every_shipped_node_is_reachable_from_an_empty_tree(game_env):
 
 
 def test_the_shipped_tree_exercises_every_gating_mechanism(game_env):
-    """Tribal and Agrarian combined, as of Milestone 8 -- small, but has to
-    prove the engine end to end across an era boundary too."""
+    """Tribal, Agrarian and Classical combined, as of Milestone 9 -- small,
+    but has to prove the engine end to end across two era boundaries now."""
     tree = research.build_tree()
     assert any(n.prerequisites for n in tree.nodes.values())
     assert any(n.min_affinity for n in tree.nodes.values())
     assert len({n.branch for n in tree.nodes.values()}) == len(research.BRANCHES)
-    tribal_and_agrarian_tiers = len(research.era_tiers("tribal")) + len(research.era_tiers("agrarian"))
-    assert len({n.tier for n in tree.nodes.values()}) == tribal_and_agrarian_tiers
+    shipped_tiers = (
+        len(research.era_tiers("tribal"))
+        + len(research.era_tiers("agrarian"))
+        + len(research.era_tiers("classical"))
+    )
+    assert len({n.tier for n in tree.nodes.values()}) == shipped_tiers
 
 
 # --- UI ----------------------------------------------------------------

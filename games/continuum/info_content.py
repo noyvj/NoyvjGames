@@ -7,7 +7,7 @@ in this same directory — reference material to draw from, not text to dump
 wholesale into the game, same rule the climate quartet's research docs
 followed.
 
-"tribal" and "agrarian" have real entries so far, matching
+"tribal", "agrarian" and "classical" have real entries so far, matching
 `sim.IMPLEMENTED_ERAS`. Phase 3 adds one entry per remaining era as that
 era's content ships; nothing else in this file needs to change when it
 does; `era_info_page()` already handles an era with no entry yet.
@@ -159,6 +159,84 @@ ERA_INFO_PAGE = {
                     "hierarchies and property accumulation — the direct "
                     "real-world basis for the sustainability score's "
                     "surplus-hoarding equity penalty this era."
+                ),
+            },
+        ],
+    },
+    "classical": {
+        "framing": (
+            "Uruk, in Sumer, is Continuum's real anchor for the Classical "
+            "era: intensive irrigation agriculture directed by temple "
+            "estates let it grow into a walled city of tens of thousands "
+            "— concrete estimates range from roughly 45,000 to as many as "
+            "100,000 people — with trade networks reaching hundreds of "
+            "miles, from what is now Turkey to what is now Iran. None of "
+            "that scale was self-organizing: canal management specifically "
+            "required centralized planning and coordinated labor, which is "
+            "the real-world hinge this era's mechanics are built around. "
+            "Recent research is a useful check on how much credit belongs "
+            "to that planning versus the land itself — one recent study "
+            "argues natural tidal irrigation helped jumpstart Sumerian "
+            "urbanization before human coordination scaled it further."
+        ),
+        "mechanic_tie_in": (
+            "Canals and Administrators exist as a pair on purpose: a canal "
+            "you build but leave unstaffed delivers none of its bonus, "
+            "mechanically insisting on the sources' own point that "
+            "irrigation infrastructure was only ever as good as the "
+            "coordinated labor running it. The reverse has a real cost "
+            "too — a settlement that keeps assigning people to "
+            "Administrators well past what its canals actually need "
+            "staffed is pouring its workforce into coordination with "
+            "nothing left to coordinate, which is why the sustainability "
+            "score's resilience component starts marking that down once "
+            "administrators make up too large a share of the workforce."
+        ),
+        "sources": [
+            {
+                "label": "The Getty — \"Mesopotamia: Civilization Begins\"",
+                "url": "https://www.getty.edu/art/exhibitions/mesopotamia/explore.html",
+                "note": (
+                    "Uruk's growth into a walled city of roughly 100,000 "
+                    "via intensive irrigation agriculture directed by "
+                    "temple estates — the real model for this era's shift "
+                    "from Agrarian surplus to coordinated civic "
+                    "infrastructure, and the direct basis for Temple "
+                    "Administration in the research tree."
+                ),
+            },
+            {
+                "label": (
+                    "TheCollector — \"What Can Uruk and Ur Teach Us About "
+                    "the Birth of Civilization?\""
+                ),
+                "url": "https://www.thecollector.com/uruk-and-ur-birth-of-civilization/",
+                "note": (
+                    "Canal management required centralized planning and "
+                    "coordinated labor — the direct real-world basis for "
+                    "why Canals need Administrators staffing them to "
+                    "deliver their yield bonus at all."
+                ),
+            },
+            {
+                "label": "PLOS One — \"Morphodynamic Foundations of Sumer\"",
+                "url": "https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0329084",
+                "note": (
+                    "Recent research proposing that natural tidal "
+                    "irrigation, not just human planning, jumpstarted "
+                    "Sumerian urbanization — a useful check on how much of "
+                    "this era's scale to credit to coordinated labor "
+                    "versus the land itself."
+                ),
+            },
+            {
+                "label": "GlobalSecurity.org — \"Uruk Period\"",
+                "url": "https://www.globalsecurity.org/military/world/iraq/history-uruk.htm",
+                "note": (
+                    "Concrete scale figures — population around 45,000, a "
+                    "trade network stretching from Turkey to Iran — the "
+                    "real-world basis for calibrating this era's city "
+                    "scale and for the Trade Networks research node."
                 ),
             },
         ],

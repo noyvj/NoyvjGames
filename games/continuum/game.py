@@ -100,6 +100,12 @@ def season_report_message(report):
         parts.append(f"{report['surplus_banked']:.0f} preserved as trade surplus.")
     if report.get("extraction", 0.0) > report.get("sustainable_yield", float("inf")):
         parts.append("The land is being taken from faster than it recovers.")
+    # Classical+ (Milestone 9): a canal only delivers what it's built for if
+    # Administrators actually staff it -- narrate the gap so an under-staffed
+    # canal reads as a real, visible cost rather than a silent one.
+    if report.get("canals", 0) > 0 and report.get("canal_staffing_ratio", 1.0) < 1.0:
+        staffing_pct = report["canal_staffing_ratio"] * 100
+        parts.append(f"Canals running at {staffing_pct:.0f}% coordination — more administrators needed.")
 
     return " ".join(parts)
 
