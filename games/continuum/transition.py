@@ -87,6 +87,22 @@ TRANSITION_REQUIREMENTS = {
         "min_tier": research.era_tiers("agrarian")[-1],
         "min_score_label": "Strained",
     },
+    # Milestone 10 -- the same three-part shape a third time. See
+    # CLAUDE.md's Milestone 10 build notes for why "Strained" was kept
+    # rather than raised, the same judgement Milestone 9 already made once.
+    "classical": {
+        "to_era": "medieval",
+        # The next population milestone up from Agrarian->Classical's 25 --
+        # log.POPULATION_MILESTONES[3], the point log.py's own text calls
+        # "no longer a matter of luck." A fitting hinge into an era whose
+        # own sources are specifically about planning AHEAD of a shock
+        # (flood, disease, fire) rather than absorbing one by luck.
+        "min_population": 40,
+        # The late Classical research tier has to be UNLOCKED (two tier-5
+        # nodes researched) -- same soft-bar spirit as every prior era.
+        "min_tier": research.era_tiers("classical")[-1],
+        "min_score_label": "Strained",
+    },
 }
 
 
@@ -164,6 +180,21 @@ TRANSITION_BEATS = {
         "responsible for is just a ditch that floods when it shouldn't and "
         "runs dry when it matters. What is rising past the fields now "
         "looks less like a large village and more like a city."
+    ),
+    ("classical", "medieval"): (
+        "The canals still run and the temple still keeps its records, but "
+        "the city has started building things nobody asked for on behalf "
+        "of any single harvest — drains that carry away what nobody wants "
+        "to look at, banks raised as much against a flood that hasn't come "
+        "yet as against anything that has. It costs the same stone and "
+        "labor whether or not the season that would have needed it ever "
+        "arrives, which is exactly why administrators alone were never "
+        "going to be the ones to order it built. Meanwhile the toolworks "
+        "no longer belongs to whoever happens to be free that day — a "
+        "guild has claimed it, trains its own, and answers for the quality "
+        "of what leaves under its own mark. Nobody put a single person in "
+        "charge of any of this. Somewhere in the last stretch of seasons, "
+        "the city started answering to itself."
     ),
 }
 

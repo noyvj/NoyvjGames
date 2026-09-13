@@ -106,6 +106,16 @@ def season_report_message(report):
     if report.get("canals", 0) > 0 and report.get("canal_staffing_ratio", 1.0) < 1.0:
         staffing_pct = report["canal_staffing_ratio"] * 100
         parts.append(f"Canals running at {staffing_pct:.0f}% coordination — more administrators needed.")
+    # Medieval+ (Milestone 10): Public Works isn't staffed the way a canal
+    # is, but it still has a visible gap worth narrating -- unlike the
+    # canal line above (a production shortfall), this is a resilience
+    # warning: the settlement hasn't paid ahead of a shock for everyone.
+    if report.get("public_works", 0) > 0 and report.get("public_works_coverage_ratio", 1.0) < 1.0:
+        coverage_pct = report["public_works_coverage_ratio"] * 100
+        parts.append(
+            f"Public works cover {coverage_pct:.0f}% of the settlement — "
+            "the rest would be exposed if a bad season hit."
+        )
 
     return " ".join(parts)
 

@@ -31,9 +31,12 @@ resource balance, resilience — not just raw growth"):
   give? Land health, plus whether this season's harvest stayed under the
   land's sustainable yield.
 - **Resilience** — could it survive a bad season? Food buffer, tool stock,
-  and how diversified the workforce is (and, from Classical on, whether the
-  workforce has been hollowed out by overextending into administration —
-  see the Classical build notes in CLAUDE.md).
+  and how diversified the workforce is; from Classical on, whether the
+  workforce has been hollowed out by overextending into administration;
+  and from Medieval on, whether the settlement has actually paid ahead of
+  time to blunt a shock (flood, disease, fire) rather than just being
+  lucky enough not to have hit one yet — see the Classical and Medieval
+  build notes in CLAUDE.md.
 
 The four are weighted equally. That is a judgement call, not a finding;
 `COMPONENT_WEIGHTS` is the single place to revisit it.
@@ -204,6 +207,44 @@ def _administrative_overextension_penalty(state):
     return pressure * ADMIN_OVEREXTENSION_PENALTY_WEIGHT
 
 
+# --- Medieval+ : public-works shock resilience (Milestone 10) -----------
+# continuum-real-world-sources.md's Medieval sources (SAGE's Coomans &
+# Hermenault on Ghent, and JHU Press's Magnusson on medieval England,
+# literally titled "Urban Infrastructure in Medieval England: Sustainability
+# and Resilience") are explicit that medieval public-works spending was
+# specifically *risk mitigation* -- floods, disease, military vulnerability
+# -- not output growth. That is a genuinely different shape from both prior
+# eras' adjustments: Agrarian's surplus-hoarding penalty punished a
+# hoarding *imbalance*, and Classical's administrative-overextension
+# penalty punished a labor-allocation *imbalance*; Medieval's sources
+# describe no equivalent imbalance to punish -- investing in flood/disease/
+# fire mitigation ahead of a bad season is simply, unconditionally a good
+# hedge, so this is deliberately the tree's first BONUS rather than another
+# penalty (see CLAUDE.md's Milestone 10 build notes for the fuller
+# reasoning, including why this doesn't force Classical's staffing-
+# dependency shape onto a source that isn't about coordinated labor).
+# Ratio-based like every other input in this file: per-capita COVERAGE
+# (state.public_works_coverage()), not a raw building count, so a bigger
+# settlement isn't credited just for building more in absolute terms.
+PUBLIC_WORKS_RESILIENCE_BONUS_WEIGHT = 0.2  # max resilience GAINED at full per-capita coverage
+
+
+def _public_works_resilience_bonus(state, effects=None):
+    """0..PUBLIC_WORKS_RESILIENCE_BONUS_WEIGHT — zero for any era before
+    Medieval, so every pre-Milestone-10 resilience() result is unchanged by
+    this function's mere existence. Building-based, not allocation-based,
+    so — unlike the Classical overextension penalty — it has no interaction
+    with role_diversity() to isolate against: it doesn't touch `allocation`
+    at all."""
+    if sim.era_index(state.era) < sim.era_index("medieval"):
+        return 0.0
+    if state.population <= 0:
+        return 0.0
+    effects = sim.effects_or_neutral(effects)
+    coverage_ratio = _ratio(state.public_works_coverage(effects), state.population)
+    return coverage_ratio * PUBLIC_WORKS_RESILIENCE_BONUS_WEIGHT
+
+
 def resilience(state, effects=None):
     effects = sim.effects_or_neutral(effects)
     seasons_of_food = state.population * sim.FOOD_PER_PERSON * sim.BUFFER_SEASONS
@@ -212,6 +253,7 @@ def resilience(state, effects=None):
     diversity = _clamp(state.role_diversity())
     base = (food_buffer + tool_readiness + diversity) / 3.0
     base -= _administrative_overextension_penalty(state)
+    base += _public_works_resilience_bonus(state, effects)
     return _clamp(base + effects["resilience_bonus"])
 
 

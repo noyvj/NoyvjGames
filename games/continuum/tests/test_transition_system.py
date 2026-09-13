@@ -165,8 +165,12 @@ def test_attempt_transition_refuses_mid_revisit():
 
 
 def test_beat_text_falls_back_to_a_generic_line_for_an_undefined_pair():
-    text = transition.beat_text("classical", "medieval")
-    assert text == "The settlement has crossed into the Medieval era."
+    """Medieval -> Industrial has no bespoke beat yet (that's a later
+    milestone's job) -- updated from Classical -> Medieval now that
+    Milestone 10 gave that pair real prose, the same "next undefined pair"
+    update Milestone 9 already made once to this same test."""
+    text = transition.beat_text("medieval", "industrial")
+    assert text == "The settlement has crossed into the Industrial era."
 
 
 # --- Chronicle.log_transition (log.py's half of this seam) ---------------

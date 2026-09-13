@@ -403,19 +403,20 @@ def test_after_transitioning_the_log_shows_both_transition_beats(game_env):
     assert transition_rows[1].text == transition.TRANSITION_BEATS[("agrarian", "classical")]
 
 
-def test_after_transitioning_the_advance_era_button_reports_nothing_further_yet(game_env):
-    """Classical -> Medieval has no requirements table entry yet (that's
-    Milestone 10's job), so this really is the current end of the line,
-    the same "nothing more to reach" state Agrarian briefly was in before
-    this milestone gave it a real transition."""
+def test_after_transitioning_the_advance_era_button_now_targets_medieval(game_env):
+    """Milestone 10 gave Classical -> Medieval a real requirements-table
+    entry, so reaching Classical is no longer the end of the line -- the
+    same update this milestone's own build notes made to Milestone 8's
+    analogous "nothing further yet" assumption once Classical got a real
+    transition. See test_medieval_era.py for the "nothing further yet"
+    check now that Medieval is genuinely the current end of the line."""
     push_to_agrarian(game_env)
     push_to_classical_ready(game_env)
     game_env.module.render()
     game_env.elements["advance-era-button"].dispatch("click", None)
     game_env.module.render()
 
-    assert game_env.elements["advance-era-button"].disabled is True
-    assert "Nothing more" in game_env.elements["era-progress-status-display"].innerText
+    assert "Medieval" in game_env.elements["era-progress-status-display"].innerText
 
 
 def test_a_second_click_after_transitioning_to_classical_does_nothing(game_env):

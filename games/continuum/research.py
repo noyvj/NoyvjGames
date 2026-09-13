@@ -307,23 +307,25 @@ class ResearchTree:
 
 
 # --- the shipped tree --------------------------------------------------
-# Tribal (Phase 1), Agrarian (Milestone 8) and Classical (Milestone 9) so
-# far. Tribal's nine nodes, per Phase 1's "populate just enough nodes to
-# prove the system works", exercise every mechanism the engine has: plain
-# prerequisites, tier gating, branch affinity, and every category of effect
-# (yield multipliers, land regeneration, storage, housing, and the equity/
-# resilience bonuses that only the sustainability score reads). Agrarian's
-# six nodes prove the tree extends cleanly across an era boundary: every
-# one of them chains a prerequisite back into a specific Tribal tier-2
-# node, so an early emphasis keeps echoing into a second era exactly the
-# way "Council of Elders" already proved it could within one. Classical's
-# six nodes repeat the same proof a second time, this time chaining back
-# into Agrarian's own late tier — each branch now has an unbroken chain
-# three eras deep (Tribal → Agrarian → Classical), and the community
-# branch's `civic_assembly` needs one more min_affinity discovery than
-# `market_custom` needed, which itself needed one more than
-# `elders_council` did — an emphasis that keeps compounding, not just
-# echoing once.
+# Tribal (Phase 1), Agrarian (Milestone 8), Classical (Milestone 9) and
+# Medieval (Milestone 10) so far. Tribal's nine nodes, per Phase 1's
+# "populate just enough nodes to prove the system works", exercise every
+# mechanism the engine has: plain prerequisites, tier gating, branch
+# affinity, and every category of effect (yield multipliers, land
+# regeneration, storage, housing, and the equity/resilience bonuses that
+# only the sustainability score reads). Agrarian's six nodes prove the tree
+# extends cleanly across an era boundary: every one of them chains a
+# prerequisite back into a specific Tribal tier-2 node, so an early
+# emphasis keeps echoing into a second era exactly the way "Council of
+# Elders" already proved it could within one. Classical's six nodes repeat
+# the same proof a second time, this time chaining back into Agrarian's own
+# late tier. Medieval's six nodes repeat it a third time, chaining back
+# into Classical's own late tier — each branch now has an unbroken chain
+# four eras deep (Tribal → Agrarian → Classical → Medieval), and the
+# community branch's min_affinity keeps compounding by exactly one at each
+# step: `elders_council` (2), `market_custom` (3), `civic_assembly` (4),
+# `municipal_charter` (5), `free_city_charter` (6) — an emphasis that keeps
+# compounding, not just echoing once.
 _TRIBAL_TIERS = era_tiers("tribal")
 
 NODE_LIST = [
@@ -599,6 +601,105 @@ NODE_LIST = [
             "Decisions made in the open again, at city scale this time — Council of Elders and Market "
             "Custom both feeding into something bigger. Only reachable by a settlement that kept "
             "investing in community across three eras running, not just one."
+        ),
+    ),
+    # --- Medieval, early (Milestone 10) --- Three nodes, one per branch,
+    # each chaining a prerequisite back into the LATE Classical tier
+    # (tier 6) of the same branch — the same "early tier of a new era
+    # chains to the late tier of the one before it" pattern Milestones 8-9
+    # both used, now proven across a third era boundary rather than being
+    # a one-off or a two-off.
+    ResearchNode(
+        "guild_workshops",
+        "Guild Workshops",
+        era="medieval",
+        tier=era_tiers("medieval")[0],
+        branch="craft",
+        cost=42.0,
+        prerequisites=("monumental_masonry",),
+        effects={"tool_yield_mult": 0.2},
+        blurb=(
+            "A trade taught the same way twice, by people who do nothing else. Monumental Masonry "
+            "raised the walls this city stands behind; this is who keeps everything inside them running."
+        ),
+    ),
+    ResearchNode(
+        "trade_zoning",
+        "Zoned Trades",
+        era="medieval",
+        tier=era_tiers("medieval")[0],
+        branch="provision",
+        cost=42.0,
+        prerequisites=("trade_networks",),
+        effects={"extraction_efficiency": -0.1},
+        blurb=(
+            "Tanning, dyeing, slaughtering — kept downstream and downwind of the water everyone "
+            "drinks, by rule rather than by luck. Trade Networks still reaches just as far; it simply "
+            "doesn't run through the well anymore."
+        ),
+    ),
+    ResearchNode(
+        "municipal_charter",
+        "Municipal Charter",
+        era="medieval",
+        tier=era_tiers("medieval")[0],
+        branch="community",
+        cost=45.0,
+        prerequisites=("civic_assembly",),
+        min_affinity={"community": 5},
+        effects={"public_works_bonus": 0.25},
+        blurb=(
+            "A right to govern its own affairs, granted rather than assumed — Civic Assembly's open "
+            "decisions become the settlement's own to make, including what it chooses to build against "
+            "a bad season before one arrives. Only reachable by a settlement that kept investing in "
+            "community across four eras running now."
+        ),
+    ),
+    # --- Medieval, late ---
+    ResearchNode(
+        "master_guilds",
+        "Master Guilds",
+        era="medieval",
+        tier=era_tiers("medieval")[1],
+        branch="craft",
+        cost=50.0,
+        prerequisites=("guild_workshops",),
+        effects={"tool_yield_mult": 0.2, "housing_bonus": 4.0},
+        blurb=(
+            "A guild hall is a workshop and a meeting place both — Guild Workshops taught the trade; "
+            "this is where the trade governs itself, sets its own standards, and houses whoever it "
+            "trains."
+        ),
+    ),
+    ResearchNode(
+        "public_sanitation",
+        "Public Sanitation",
+        era="medieval",
+        tier=era_tiers("medieval")[1],
+        branch="provision",
+        cost=50.0,
+        prerequisites=("trade_zoning",),
+        effects={"regen_mult": 0.15, "extraction_efficiency": -0.1},
+        blurb=(
+            "Waste fines and a clean well are the same policy seen from two different ends. Zoned "
+            "Trades kept the worst of it away from the water; this is what actually keeps the water "
+            "clean."
+        ),
+    ),
+    ResearchNode(
+        "free_city_charter",
+        "Free City Charter",
+        era="medieval",
+        tier=era_tiers("medieval")[1],
+        branch="community",
+        cost=55.0,
+        prerequisites=("municipal_charter",),
+        min_affinity={"community": 6},
+        effects={"equity_bonus": 0.1, "public_works_bonus": 0.15},
+        blurb=(
+            "Self-governance made permanent rather than granted anew each generation. Municipal "
+            "Charter proved the settlement could run itself for a while; this is the settlement "
+            "deciding it always will."
         ),
     ),
 ]

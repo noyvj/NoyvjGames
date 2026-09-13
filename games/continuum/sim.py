@@ -20,14 +20,18 @@ Two properties are load-bearing for everything that comes later:
    player's researched nodes. Building that seam in from the start is what
    stops the research tree from having to reach into the simulation later.
 
-Tribal (Phase 1), Agrarian (Milestone 8) and Classical (Milestone 9) are
-modelled so far. Era-specific constants live in per-era tables keyed by
-era id (see ERA_ROLES/ERA_BUILDINGS) so each remaining era adds a table
-entry rather than a second copy of this file — Agrarian's own Farmers role
-and Farmland building were the first proof that pattern actually extends
-cleanly rather than requiring a rewrite; Classical's Administrators/Canals
-extend it a second time, this time with a building whose bonus depends on
-the role rather than merely being multiplied by it (see CANAL_YIELD_BONUS).
+Tribal (Phase 1), Agrarian (Milestone 8), Classical (Milestone 9) and
+Medieval (Milestone 10) are modelled so far. Era-specific constants live in
+per-era tables keyed by era id (see ERA_ROLES/ERA_BUILDINGS) so each
+remaining era adds a table entry rather than a second copy of this file —
+Agrarian's own Farmers role and Farmland building were the first proof that
+pattern actually extends cleanly rather than requiring a rewrite;
+Classical's Administrators/Canals extend it a second time, this time with
+a building whose bonus depends on the role rather than merely being
+multiplied by it (see CANAL_YIELD_BONUS); Medieval's Guildmasters/Public
+Works extend it a third time, this time with a building that isn't staffed
+at all — Public Works is read only by sustainability.py, not by the
+production math below (see PUBLIC_WORKS_COVERAGE_PER_BUILDING).
 """
 
 # --- eras -------------------------------------------------------------
@@ -59,7 +63,7 @@ ERA_LABEL = {
 # Nothing reads this yet — it exists so that the moment a second era ships,
 # "which eras are playable" has one answer rather than being inferred from
 # whichever table happens to have an entry.
-IMPLEMENTED_ERAS = ["tribal", "agrarian", "classical"]
+IMPLEMENTED_ERAS = ["tribal", "agrarian", "classical", "medieval"]
 
 FIRST_ERA = ERA_ORDER[0]
 
@@ -88,12 +92,14 @@ ERA_ROLES = {
     "tribal": ["foragers", "gatherers", "crafters", "keepers"],
     "agrarian": ["farmers"],
     "classical": ["administrators"],
+    "medieval": ["guildmasters"],
 }
 
 ERA_BUILDINGS = {
     "tribal": ["shelter", "granary", "hearth", "toolworks"],
     "agrarian": ["farmland"],
     "classical": ["canals"],
+    "medieval": ["public_works"],
 }
 
 ROLES = [role for era in ERA_ORDER for role in ERA_ROLES.get(era, [])]
@@ -124,6 +130,7 @@ ROLE_LABEL = {
     "keepers": "Keepers",
     "farmers": "Farmers",
     "administrators": "Administrators",
+    "guildmasters": "Guildmasters",
 }
 
 ROLE_BLURB = {
@@ -137,6 +144,11 @@ ROLE_BLURB = {
         "themselves, but a canal without administrators to run it delivers "
         "little of what it was built for."
     ),
+    "guildmasters": (
+        "Trained through a guild rather than picking up the craft on the "
+        "job — turn materials into tools faster than an ordinary crafter, "
+        "especially with a Knapping Site to work from."
+    ),
 }
 
 ROLE_EMOJI = {
@@ -146,6 +158,7 @@ ROLE_EMOJI = {
     "keepers": "🔥",
     "farmers": "🌱",
     "administrators": "📜",
+    "guildmasters": "⚒️",
 }
 
 BUILDING_LABEL = {
@@ -155,6 +168,7 @@ BUILDING_LABEL = {
     "toolworks": "Knapping Site",
     "farmland": "Farmland",
     "canals": "Canals",
+    "public_works": "Public Works",
 }
 
 BUILDING_BLURB = {
@@ -167,6 +181,12 @@ BUILDING_BLURB = {
         "Directed irrigation, at city scale — but only as good as the "
         "administrators coordinating it. An unstaffed canal is just a ditch."
     ),
+    "public_works": (
+        "Drains, waste removal, flood and fire works — paid for before "
+        "disaster forces the issue, not after. Nobody works here; it just "
+        "covers more of the settlement against a bad season the more of "
+        "it gets built."
+    ),
 }
 
 BUILDING_EMOJI = {
@@ -176,6 +196,7 @@ BUILDING_EMOJI = {
     "toolworks": "🪨",
     "farmland": "🌿",
     "canals": "🏛️",
+    "public_works": "🚰",
 }
 
 BUILDING_COST = {  # in materials
@@ -185,6 +206,7 @@ BUILDING_COST = {  # in materials
     "toolworks": 25.0,
     "farmland": 20.0,
     "canals": 35.0,
+    "public_works": 40.0,
 }
 
 SHELTER_CAPACITY = 4  # people housed per shelter
@@ -208,6 +230,7 @@ START_BUILDINGS = {
     "toolworks": 0,
     "farmland": 0,
     "canals": 0,
+    "public_works": 0,
 }
 START_ALLOCATION = {
     "foragers": 3,
@@ -216,6 +239,7 @@ START_ALLOCATION = {
     "keepers": 0,
     "farmers": 0,
     "administrators": 0,
+    "guildmasters": 0,
 }
 
 # --- production and consumption ---------------------------------------
@@ -230,6 +254,14 @@ FOOD_PER_FORAGER = 3.0
 FOOD_PER_FARMER = 5.0
 MATERIALS_PER_GATHERER = 2.0
 TOOLS_PER_CRAFTER = 0.8
+# Guild specialisation (Medieval+, see continuum-real-world-sources.md's
+# Fiveable source on guild specialisation): a Guildmaster produces tools
+# faster than an ordinary Crafter, the same "same job, more productive
+# specialist" bump FOOD_PER_FARMER already gave Farmers over Foragers
+# (roughly the same ~1.6x ratio). Guildmasters still route through the
+# same craft_bonus/tool_yield_mult chain Crafters do -- one tool economy,
+# not two, the same discipline Farmers/Farmland were held to.
+TOOLS_PER_GUILDMASTER = 1.3
 MATERIALS_PER_TOOL = 1.0
 KNOWLEDGE_PER_KEEPER = 0.6
 
@@ -258,6 +290,21 @@ SURPLUS_CONVERSION_RATE = 0.4
 # the coordinated labor is. See CityState.advance_season()'s harvest step.
 CANAL_YIELD_BONUS = 0.5  # additive multiplier on farmer food output per fully-staffed canal
 ADMINISTRATORS_PER_CANAL = 2  # administrators needed to fully staff one canal
+
+# --- public works and shock resilience (Medieval+) ----------------------
+# Per continuum-real-world-sources.md's Medieval sources (SAGE's Coomans &
+# Hermenault on Ghent, and JHU Press's Magnusson on medieval England), the
+# Medieval era's public-works spending is documented as being specifically
+# about mitigating risk -- floods, disease, military vulnerability -- not
+# about raising output the way Farmland/Canals do. That's why Public Works
+# is modelled entirely differently from every other building so far: it
+# has NO production formula in this file at all, and is read only by
+# sustainability.py's resilience() (see CLAUDE.md's Milestone 10 build
+# notes for why a labor-staffing dependency like Canals/Administrators
+# would have forced the wrong lesson onto a different source). What this
+# file provides is the one number sustainability.py and game.py both need:
+# how many people one Public Works building can meaningfully protect.
+PUBLIC_WORKS_COVERAGE_PER_BUILDING = 15.0
 
 # Tools multiply every gathering yield, capped at one tool per person —
 # a settlement can't get more out of the land by hoarding axes nobody holds.
@@ -307,6 +354,11 @@ NEUTRAL_EFFECTS = {
     "surplus_conversion_bonus": 0.0,
     # Additive on top of CANAL_YIELD_BONUS (Milestone 9) -- same seam again.
     "canal_yield_bonus": 0.0,
+    # Additive multiplier on Public Works' per-building coverage (Milestone
+    # 10) -- same shape as housing_bonus/culture_bonus above (a capacity
+    # multiplier), not a yield key, since Public Works has no production
+    # formula for a yield key to modify in the first place.
+    "public_works_bonus": 0.0,
 }
 
 
@@ -439,6 +491,19 @@ class CityState:
         effects = effects_or_neutral(effects)
         return LAND_SUSTAINABLE_YIELD * effects["regen_mult"]
 
+    def public_works_coverage(self, effects=None):
+        """How many people Public Works can meaningfully protect against a
+        bad season (flood, disease, fire) -- read by the resilience half of
+        the sustainability score (Milestone 10), not by anything in the
+        season loop below. Same shape as culture_capacity()'s
+        `buildings * PER_BUILDING * (1 + bonus)` pattern."""
+        effects = effects_or_neutral(effects)
+        return (
+            self.buildings["public_works"]
+            * PUBLIC_WORKS_COVERAGE_PER_BUILDING
+            * (1.0 + effects["public_works_bonus"])
+        )
+
     # --- building -------------------------------------------------------
     def can_build(self, building):
         return self.resources["materials"] >= BUILDING_COST[building]
@@ -505,9 +570,19 @@ class CityState:
         self.resources["materials"] += materials_gathered
 
         # 2. Craft. Tools cost materials, so crafting competes with building.
+        #    Guildmasters (Medieval+) are a second way to make tools, not a
+        #    separate economy: the same Knapping Site bonus and the same
+        #    tool_yield_mult apply to them, and their output feeds the same
+        #    shared tool stock -- specialised training is more productive
+        #    here, not exempt from what materials/effects allow.
         craft_bonus = 1.0 + self.buildings["toolworks"] * TOOLWORKS_CRAFT_BONUS
         wanted_tools = (
-            self.allocation["crafters"] * TOOLS_PER_CRAFTER * craft_bonus * effects["tool_yield_mult"]
+            (
+                self.allocation["crafters"] * TOOLS_PER_CRAFTER
+                + self.allocation["guildmasters"] * TOOLS_PER_GUILDMASTER
+            )
+            * craft_bonus
+            * effects["tool_yield_mult"]
         )
         affordable_tools = self.resources["materials"] / MATERIALS_PER_TOOL
         tools_made = max(0.0, min(wanted_tools, affordable_tools))
@@ -584,6 +659,18 @@ class CityState:
 
         self.season += 1
 
+        # Public Works coverage (Medieval+) -- purely for narration, the
+        # same "convenience fields on the report" precedent Milestone 9 set
+        # for canals/canal_staffing_ratio. Not read by any production
+        # formula above; sustainability.py computes the same ratio
+        # independently via public_works_coverage() for the score itself.
+        if self.population > 0:
+            public_works_coverage_ratio = min(
+                1.0, self.public_works_coverage(effects) / self.population
+            )
+        else:
+            public_works_coverage_ratio = 0.0
+
         report = {
             "season": self.season - 1,
             "food_gathered": food_gathered,
@@ -601,6 +688,8 @@ class CityState:
             "tool_factor": tool_factor,
             "canals": self.buildings["canals"],
             "canal_staffing_ratio": canal_staffing,
+            "public_works": self.buildings["public_works"],
+            "public_works_coverage_ratio": public_works_coverage_ratio,
         }
         self.last_report = report
         return report
