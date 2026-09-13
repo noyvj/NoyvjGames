@@ -1542,6 +1542,125 @@ def render_legend():
 cultural_notes_open = False
 
 
+# Improvement Ideas §5: a progress dashboard, deliberately its own separate
+# screen rather than more numbers crammed into the calm main status line --
+# per-row mastery, the weakest touched topics, and how long it's been since
+# anything was watered at all. Purely a read-out: nothing here mutates SRS
+# state, same posture as the Review tab's own informational pieces.
+DASHBOARD_WEAKEST_TOPIC_COUNT = 5
+dashboard_open = False
+
+
+def dashboard_row_mastery(sequence):
+    """0-100: how far a row's plots have grown on average, scaled by the
+    highest reachable stage rank -- not just "% Automated," so partial
+    progress (a row full of Sprouts) still reads as real progress."""
+    plots = state.row_plots(sequence)
+    if not plots:
+        return 0.0
+    max_rank = len(STAGE_ORDER) - 1
+    return sum(STAGE_RANK[p.stage] for p in plots) / (len(plots) * max_rank) * 100
+
+
+def dashboard_weakest_topics(limit=DASHBOARD_WEAKEST_TOPIC_COUNT):
+    """The lowest-average-stage topics among ones you've actually touched at
+    least once -- an untouched topic isn't "weak," it's just not started
+    yet, so it's excluded rather than tying every fresh row for last place."""
+    scored = []
+    for record in state.topic_records:
+        if not state.is_row_unlocked(record["sequence"]):
+            continue
+        plots = _topic_plots(record["topic"])
+        touched = [p for p in plots if p.last_reviewed is not None]
+        if not touched:
+            continue
+        avg_rank = sum(STAGE_RANK[p.stage] for p in touched) / len(touched)
+        scored.append(
+            {
+                "topic_id": record["topic"]["id"],
+                "title": record["topic"]["title"],
+                "sequence": record["sequence"],
+                "avg_rank": avg_rank,
+            }
+        )
+    scored.sort(key=lambda entry: entry["avg_rank"])
+    return scored[:limit]
+
+
+def dashboard_days_since_last_touch():
+    """None if nothing has ever been watered; otherwise how many in-game
+    days have passed since the most recently touched plot."""
+    touched_days = [p.last_reviewed for p in state.plots if p.last_reviewed is not None]
+    if not touched_days:
+        return None
+    return state.current_day - max(touched_days)
+
+
+def on_toggle_dashboard(event=None):
+    global dashboard_open
+    dashboard_open = not dashboard_open
+    render()
+
+
+def render_dashboard():
+    panel = _element("dashboard-panel")
+    toggle = _element("dashboard-toggle-button")
+    toggle.innerText = "Hide progress dashboard" if dashboard_open else "Progress dashboard"
+    panel.hidden = not dashboard_open
+    if not dashboard_open:
+        return
+
+    panel.innerHTML = ""
+
+    since = dashboard_days_since_last_touch()
+    since_line = document.createElement("p")
+    since_line.className = "dashboard-since"
+    if since is None:
+        since_line.innerText = "Nothing watered yet."
+    elif since == 0:
+        since_line.innerText = "Last watered something today."
+    elif since == 1:
+        since_line.innerText = "Last watered something 1 day ago."
+    else:
+        since_line.innerText = f"Last watered something {since} days ago."
+    panel.appendChild(since_line)
+
+    mastery_heading = document.createElement("p")
+    mastery_heading.className = "dashboard-heading"
+    mastery_heading.innerText = "Mastery by week"
+    panel.appendChild(mastery_heading)
+    mastery_list = document.createElement("div")
+    mastery_list.className = "dashboard-mastery-list"
+    for row in state.rows:
+        if not state.is_row_unlocked(row.sequence):
+            continue
+        line = document.createElement("p")
+        line.className = "dashboard-mastery-row"
+        line.innerText = f"{row.label} — {dashboard_row_mastery(row.sequence):.0f}%"
+        mastery_list.appendChild(line)
+    panel.appendChild(mastery_list)
+
+    weakest_heading = document.createElement("p")
+    weakest_heading.className = "dashboard-heading"
+    weakest_heading.innerText = "Could use more water"
+    panel.appendChild(weakest_heading)
+    weakest = dashboard_weakest_topics()
+    if not weakest:
+        empty = document.createElement("p")
+        empty.className = "dashboard-empty"
+        empty.innerText = "Nothing stands out yet — water a few plots first."
+        panel.appendChild(empty)
+    else:
+        weakest_list = document.createElement("div")
+        weakest_list.className = "dashboard-weakest-list"
+        for entry in weakest:
+            line = document.createElement("p")
+            line.className = "dashboard-weakest-topic"
+            line.innerText = f"{entry['title']} (wk {entry['sequence']})"
+            weakest_list.appendChild(line)
+        panel.appendChild(weakest_list)
+
+
 def on_toggle_cultural_notes(event=None):
     global cultural_notes_open
     cultural_notes_open = not cultural_notes_open
@@ -1804,6 +1923,7 @@ def render():
     render_proficiency()
     render_bonus()
     render_cultural_notes()
+    render_dashboard()
 
 
 # --- interactions ----------------------------------------------------------
@@ -2910,6 +3030,9 @@ def setup():
     _element("review-toggle-button").addEventListener("click", create_proxy(on_toggle_review))
     _element("cultural-notes-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_cultural_notes)
+    )
+    _element("dashboard-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_dashboard)
     )
     _element("review-word-button").addEventListener("click", create_proxy(on_start_word_review))
     _element("review-grammar-button").addEventListener(

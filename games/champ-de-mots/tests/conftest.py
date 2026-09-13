@@ -28,6 +28,8 @@ ELEMENT_IDS = [
     "combo-display",
     "cultural-notes-toggle-button",
     "cultural-notes-panel",
+    "dashboard-toggle-button",
+    "dashboard-panel",
     "practice-panel",
     "practice-confidence",
     "practice-confidence-sure-button",
