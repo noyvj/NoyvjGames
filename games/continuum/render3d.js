@@ -1,0 +1,665 @@
+/*
+ * Continuum — Phase 5 Three.js low-poly rendering layer.
+ *
+ * ARCHITECTURE (see CLAUDE.md's "Core system 7" and Phase 5 build notes
+ * for the full reasoning): Pyodide can't render 3D on its own, so this is
+ * a hybrid setup. All game state and logic stay in Python, fully tested
+ * by the pytest suite (sim.py / sustainability.py / visual.py); this file
+ * is the ONE thing on the JS side that knows Three.js exists, and it only
+ * ever READS a plain JSON snapshot — it never calls back into Python to
+ * change anything. The seam is exactly two functions:
+ *
+ *   Python: game.py's get_visual_state() -> visual.py's visual_state()
+ *   JS:     ContinuumVisual.init(pyodide) reads it after every render()
+ *
+ * game.py's render() calls a small JS hook, window.continuumOnRender(),
+ * after it finishes its own 2D DOM update (see game.py's
+ * _notify_visual_layer()). That hook is only ever installed by this file,
+ * and only once a real WebGL renderer exists — so the Python side never
+ * has to know or care whether the 3D layer is present.
+ *
+ * GRACEFUL DEGRADATION (CLAUDE.md Phase 5 scope note #3): the whole point
+ * of this file's structure is that every failure mode — the CDN script
+ * tag failing to load, `THREE` being undefined, WebGL context creation
+ * throwing, or a per-scene build throwing — is caught here and result in
+ * ContinuumVisual.init() simply returning `false` having touched nothing.
+ * index.html's pre-existing `.settlement-visual` CSS diorama (the Phase 1
+ * space-theme stopgap) is never hidden unless a real WebGL scene is ready
+ * to replace it, so the 2D game is ALWAYS fully playable regardless of
+ * what happens in this file.
+ *
+ * TESTING REALITY (per CLAUDE.md's own honesty standard): nothing in this
+ * file is covered by the pytest suite — it cannot be, the same way no
+ * prior milestone has unit-tested actual pixels. This is verified live,
+ * under a real browser with Pyodide and WebGL both running — see
+ * CLAUDE.md's Phase 5 build notes for exactly what was checked and how.
+ */
+
+(function () {
+  "use strict";
+
+  const CONTAINER_ID = "visual3d-container";
+  const TOGGLE_BUTTON_ID = "visual-mode-toggle-button";
+  const SETTLEMENT_2D_SELECTOR = ".settlement-visual";
+  const VIEW_MODE_STORAGE_KEY = "continuum-visual-mode"; // "3d" | "2d"
+
+  let renderer = null;
+  let scene = null;
+  let camera = null;
+  let pyodideRef = null;
+  let toonGradientMap = null;
+  let sceneGroup = null; // everything era-specific; replaced wholesale on era change
+  let builtEra = null;
+  let ready = false;
+
+  // Orbit state for the built-in drag-to-look control (no OrbitControls
+  // import needed — this hub's whole convention is no build step and no
+  // dependency beyond what a single pinned <script> tag brings in, and a
+  // few lines of pointer-event math is much less risk than a second
+  // Three.js module).
+  let yaw = 0.7;
+  let pitch = 0.55;
+  const MIN_PITCH = 0.15;
+  const MAX_PITCH = 1.3;
+  let dragging = false;
+  let lastPointer = null;
+  const CAMERA_DISTANCE = 9.5;
+
+  // --- feature detection ---------------------------------------------
+
+  function threeAvailable() {
+    return typeof window.THREE !== "undefined";
+  }
+
+  function webglAvailable() {
+    try {
+      const canvas = document.createElement("canvas");
+      return !!(
+        window.WebGLRenderingContext &&
+        (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
+      );
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // --- shared low-poly building blocks ---------------------------------
+  // Every shape below is a small, flat-shaded/toon-shaded primitive group.
+  // Per CLAUDE.md's Core system 7 brief ("flat-shaded geometry, simple
+  // toon-style shading, and simplified geometric forms... without needing
+  // realistic textures or complex asset pipelines"), MeshToonMaterial with
+  // a tiny programmatically-generated gradient map gives real cel/toon
+  // shading with zero external texture assets.
+
+  function makeToonGradientMap() {
+    const canvas = document.createElement("canvas");
+    canvas.width = 4;
+    canvas.height = 1;
+    const ctx = canvas.getContext("2d");
+    const shades = [70, 140, 200, 255];
+    for (let i = 0; i < shades.length; i++) {
+      ctx.fillStyle = "rgb(" + shades[i] + "," + shades[i] + "," + shades[i] + ")";
+      ctx.fillRect(i, 0, 1, 1);
+    }
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.magFilter = THREE.NearestFilter;
+    texture.minFilter = THREE.NearestFilter;
+    return texture;
+  }
+
+  function toonMaterial(hex) {
+    return new THREE.MeshToonMaterial({ color: hex, gradientMap: toonGradientMap });
+  }
+
+  function box(width, height, depth, hex) {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), toonMaterial(hex));
+    mesh.position.y = height / 2;
+    return mesh;
+  }
+
+  function coneRoof(radius, height, hex, sides) {
+    const mesh = new THREE.Mesh(
+      new THREE.ConeGeometry(radius, height, sides || 6),
+      toonMaterial(hex)
+    );
+    return mesh;
+  }
+
+  function cylinder(radiusTop, radiusBottom, height, hex, sides) {
+    const mesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(radiusTop, radiusBottom, height, sides || 8),
+      toonMaterial(hex)
+    );
+    mesh.position.y = height / 2;
+    return mesh;
+  }
+
+  function ring(radius, tube, hex) {
+    const mesh = new THREE.Mesh(new THREE.TorusGeometry(radius, tube, 8, 16), toonMaterial(hex));
+    mesh.rotation.x = Math.PI / 2;
+    return mesh;
+  }
+
+  function flatPlot(width, depth, hex, y) {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, 0.05, depth), toonMaterial(hex));
+    mesh.position.y = y || 0.03;
+    return mesh;
+  }
+
+  /** A round hut: cylinder base + cone roof — Tribal's own flagship shape,
+   * and reused (recoloured) as the generic "housing cluster" shape a
+   * scene falls back to when it has nothing more specific to show. */
+  function buildHut(wallHex, roofHex) {
+    const group = new THREE.Group();
+    const base = cylinder(0.5, 0.56, 0.55, wallHex, 8);
+    const roof = coneRoof(0.62, 0.55, roofHex, 8);
+    roof.position.y = 0.85;
+    group.add(base, roof);
+    return group;
+  }
+
+  /** A boxy house with a pitched (prism) roof — used from Agrarian on,
+   * where "settlement" starts meaning built structures, not round huts. */
+  function buildHouse(wallHex, roofHex, w, h, d) {
+    const group = new THREE.Group();
+    const wallW = w || 0.7;
+    const wallH = h || 0.6;
+    const wallD = d || 0.6;
+    const walls = box(wallW, wallH, wallD, wallHex);
+    // A roof built from a single flattened box, rotated 45 degrees, reads
+    // as a simple pitched roof without needing a bespoke prism geometry —
+    // in keeping with "simplified geometric forms", not a literal asset.
+    const roof = new THREE.Mesh(
+      new THREE.BoxGeometry(wallW * 0.95, wallH * 0.5, wallD * 1.05),
+      toonMaterial(roofHex)
+    );
+    roof.rotation.z = Math.PI / 4;
+    roof.position.y = wallH + wallH * 0.2;
+    group.add(walls, roof);
+    return group;
+  }
+
+  function buildCampfire() {
+    const group = new THREE.Group();
+    const logHex = 0x5a3d24;
+    for (let i = 0; i < 4; i++) {
+      const log = cylinder(0.045, 0.045, 0.5, logHex, 5);
+      log.rotation.z = Math.PI / 2;
+      log.rotation.y = (Math.PI / 4) * i;
+      log.position.y = 0.08;
+      group.add(log);
+    }
+    const flame = coneRoof(0.13, 0.32, 0xff8a3d, 5);
+    flame.position.y = 0.32;
+    group.add(flame);
+    return group;
+  }
+
+  function buildMound(hex) {
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.32, 8, 6), toonMaterial(hex));
+    mesh.scale.y = 0.55;
+    mesh.position.y = 0.16;
+    return mesh;
+  }
+
+  function buildChimneyFactory(wallHex) {
+    const group = new THREE.Group();
+    const body = box(0.9, 0.55, 0.7, wallHex);
+    const chimney = cylinder(0.09, 0.11, 0.75, 0x4a4a4a, 8);
+    chimney.position.set(0.28, 0.55, 0);
+    group.add(body, chimney);
+    return { group, smokeOrigin: new THREE.Vector3(0.28, 1.0, 0) };
+  }
+
+  function buildSmokePuff(hex, scale) {
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.14, 6, 5), toonMaterial(hex));
+    mesh.scale.setScalar(scale);
+    return mesh;
+  }
+
+  function buildGlassTower(hex, height) {
+    const group = new THREE.Group();
+    const body = box(0.55, height, 0.55, hex);
+    const cap = box(0.6, 0.06, 0.6, 0x2a3a4a);
+    cap.position.y = height + 0.03;
+    group.add(body, cap);
+    return group;
+  }
+
+  function buildSpire(hex, height) {
+    const group = new THREE.Group();
+    const body = cylinder(0.18, 0.3, height, hex, 6);
+    const tip = coneRoof(0.18, 0.4, 0xd8e4ff, 6);
+    tip.position.y = height + 0.2;
+    group.add(body, tip);
+    return group;
+  }
+
+  // --- ground plane, sky/lighting -------------------------------------
+
+  function buildGround(hex, radius) {
+    const mesh = new THREE.Mesh(new THREE.CircleGeometry(radius || 4.4, 28), toonMaterial(hex));
+    mesh.rotation.x = -Math.PI / 2;
+    return mesh;
+  }
+
+  function setupLighting(target, skyHex, groundHex) {
+    const hemi = new THREE.HemisphereLight(skyHex, groundHex, 0.9);
+    const sun = new THREE.DirectionalLight(0xffffff, 0.75);
+    sun.position.set(4, 6, 3);
+    target.add(hemi, sun);
+  }
+
+  // --- era scene recipes -------------------------------------------------
+  // One builder per era. Every builder reads ONLY the plain visual_state()
+  // dict (never a live Python object) and returns a THREE.Group. Deriving
+  // prop counts from population/buildings is deliberately simple and
+  // capped (never more than a handful of extra props per state field) —
+  // per CLAUDE.md's own scope-reality-check instruction not to over-build
+  // any single era's art at the expense of the others.
+
+  function settlementScale(vs, minCount, populationDivisor, maxCount) {
+    const byBuildings = (vs.buildings && vs.buildings.shelter) || 0;
+    const byPopulation = Math.ceil(vs.population / populationDivisor);
+    return Math.max(minCount, Math.min(maxCount, Math.max(byBuildings, byPopulation)));
+  }
+
+  function ringLayout(count, radiusBase, radiusStep) {
+    const positions = [];
+    for (let i = 0; i < count; i++) {
+      const angle = (i / count) * Math.PI * 2;
+      const radius = radiusBase + (i % 3) * radiusStep;
+      positions.push([Math.cos(angle) * radius, Math.sin(angle) * radius]);
+    }
+    return positions;
+  }
+
+  function buildTribalScene(vs) {
+    const group = new THREE.Group();
+    group.add(buildGround(0x5c8a3e));
+
+    const hutCount = settlementScale(vs, 2, 4, 10);
+    ringLayout(hutCount, 1.5, 0.5).forEach(function (pos) {
+      const hut = buildHut(0xc9a066, 0x8a5a34);
+      hut.position.set(pos[0], 0, pos[1]);
+      group.add(hut);
+    });
+
+    if ((vs.buildings.hearth || 0) > 0) {
+      group.add(buildCampfire());
+    }
+    const granaryCount = Math.min(4, vs.buildings.granary || 0);
+    for (let i = 0; i < granaryCount; i++) {
+      const mound = buildMound(0x8a6d3b);
+      mound.position.set(0.6 + i * 0.4, 0, -1.2);
+      group.add(mound);
+    }
+    if ((vs.buildings.toolworks || 0) > 0) {
+      const bench = box(0.5, 0.22, 0.3, 0x777777);
+      bench.position.set(-0.9, 0, -1.1);
+      group.add(bench);
+    }
+    setupLighting(group, 0xfff2d0, 0x3a2c1a);
+    return group;
+  }
+
+  function buildAgrarianScene(vs) {
+    const group = new THREE.Group();
+    group.add(buildGround(0x8a7a3e));
+
+    const houseCount = settlementScale(vs, 2, 5, 10);
+    ringLayout(houseCount, 1.4, 0.45).forEach(function (pos) {
+      const house = buildHouse(0xcdb27a, 0x8a5a34);
+      house.position.set(pos[0], 0, pos[1]);
+      group.add(house);
+    });
+
+    const fieldCount = Math.min(6, vs.buildings.farmland || 0);
+    for (let i = 0; i < fieldCount; i++) {
+      const plot = flatPlot(0.8, 0.55, i % 2 === 0 ? 0xd4b95a : 0xb89a3f);
+      plot.position.set(-2.6 + (i % 3) * 0.95, 0, 2.4 + Math.floor(i / 3) * 0.7);
+      group.add(plot);
+    }
+    setupLighting(group, 0xfff2d0, 0x4a3a1a);
+    return group;
+  }
+
+  function buildClassicalScene(vs) {
+    const group = new THREE.Group();
+    group.add(buildGround(0xc2b280));
+
+    const houseCount = settlementScale(vs, 2, 6, 9);
+    ringLayout(houseCount, 1.6, 0.4).forEach(function (pos) {
+      const house = buildHouse(0xe4d9b8, 0xb08850, 0.6, 0.5, 0.6);
+      house.position.set(pos[0], 0, pos[1]);
+      group.add(house);
+    });
+
+    // A small civic marker (columns) always present once Classical is
+    // reached — Administrators produce no resource of their own (see
+    // sim.py), so there is no per-administrator prop to scale; the
+    // building it stands for (Canals) is drawn as a flat blue channel
+    // instead, scaled by the real canal count.
+    for (let i = 0; i < 4; i++) {
+      const column = cylinder(0.07, 0.07, 0.7, 0xe8ddb8, 8);
+      column.position.set(-1.0 + i * 0.35, 0, -2.0);
+      group.add(column);
+    }
+    const canalCount = Math.min(4, vs.buildings.canals || 0);
+    for (let i = 0; i < canalCount; i++) {
+      const canal = flatPlot(1.6, 0.22, 0x3d7fae, 0.03);
+      canal.position.set(0, 0, 1.4 + i * 0.35);
+      group.add(canal);
+    }
+    setupLighting(group, 0xfff6e0, 0x5a4a2a);
+    return group;
+  }
+
+  function buildMedievalScene(vs) {
+    const group = new THREE.Group();
+    group.add(buildGround(0x6f8a52));
+
+    const houseCount = settlementScale(vs, 3, 6, 10);
+    ringLayout(houseCount, 1.6, 0.4).forEach(function (pos) {
+      const house = buildHouse(0xd8c39a, 0x5a3d24, 0.55, 0.55, 0.55);
+      house.position.set(pos[0], 0, pos[1]);
+      group.add(house);
+    });
+
+    const worksCount = Math.min(4, vs.buildings.public_works || 0);
+    for (let i = 0; i < worksCount; i++) {
+      const tower = cylinder(0.22, 0.26, 0.9, 0x8a8272, 8);
+      const roof = coneRoof(0.28, 0.3, 0x5a4a3a, 8);
+      roof.position.y = 1.05;
+      const well = new THREE.Group();
+      well.add(tower, roof);
+      well.position.set(-1.6 + i * 0.9, 0, -1.8);
+      group.add(well);
+    }
+    setupLighting(group, 0xf0ead0, 0x3a4a2a);
+    return group;
+  }
+
+  function buildIndustrialScene(vs) {
+    const group = new THREE.Group();
+    const pollution = vs.pollution || 0.0;
+    // Pollution tints the ground and sky rather than only the smoke
+    // puffs, so a heavily-polluted settlement reads as visibly worse off
+    // at a glance, not just "has more smoke" — a direct visual echo of
+    // sustainability._industrial_pollution_penalty() (sustainability.py).
+    const groundHex = lerpColor(0x6f8a52, 0x4a4238, pollution);
+    group.add(buildGround(groundHex));
+
+    const houseCount = settlementScale(vs, 3, 7, 10);
+    ringLayout(houseCount, 1.7, 0.4).forEach(function (pos) {
+      const house = buildHouse(0xa89880, 0x3a3028, 0.5, 0.5, 0.5);
+      house.position.set(pos[0], 0, pos[1]);
+      group.add(house);
+    });
+
+    const worksCount = Math.min(4, vs.buildings.sanitation_works || 0);
+    const factoryCount = Math.max(1, Math.min(4, Math.ceil(vs.population / 12)));
+    for (let i = 0; i < factoryCount; i++) {
+      const built = buildChimneyFactory(0x5a5248);
+      built.group.position.set(-1.6 + i * 1.1, 0, 2.0);
+      group.add(built.group);
+      const smokeIntensity = Math.max(0, pollution - worksCount * 0.15);
+      const puffs = Math.round(smokeIntensity * 4);
+      for (let p = 0; p < puffs; p++) {
+        const puff = buildSmokePuff(0x777777, 0.5 + p * 0.15);
+        puff.position.copy(built.smokeOrigin).add(built.group.position);
+        puff.position.y += p * 0.22;
+        group.add(puff);
+      }
+    }
+    setupLighting(group, lerpColor(0xdfe6ee, 0x8a8a86, pollution), 0x3a3a3a);
+    return group;
+  }
+
+  function buildDigitalScene(vs) {
+    const group = new THREE.Group();
+    group.add(buildGround(0x808a94));
+
+    const towerCount = settlementScale(vs, 3, 8, 10);
+    ringLayout(towerCount, 1.6, 0.5).forEach(function (pos, i) {
+      const height = 0.7 + (i % 4) * 0.3;
+      const tower = buildGlassTower(0x5f7f9f, height);
+      tower.position.set(pos[0], 0, pos[1]);
+      group.add(tower);
+    });
+
+    const hubCount = Math.min(4, vs.buildings.transit_hubs || 0);
+    for (let i = 0; i < hubCount; i++) {
+      const line = flatPlot(1.8, 0.14, 0xe0c23c, 0.03);
+      line.position.set(0, 0, -1.2 - i * 0.3);
+      group.add(line);
+    }
+    setupLighting(group, 0xdbe8f5, 0x40484f);
+    return group;
+  }
+
+  function buildSpaceScene(vs) {
+    const group = new THREE.Group();
+    group.add(buildGround(0x746a7c));
+
+    const spireCount = settlementScale(vs, 3, 8, 10);
+    ringLayout(spireCount, 1.7, 0.5).forEach(function (pos, i) {
+      const height = 0.9 + (i % 3) * 0.35;
+      const spire = buildSpire(0x8890c8, height);
+      spire.position.set(pos[0], 0, pos[1]);
+      group.add(spire);
+    });
+
+    const ringCount = Math.min(3, vs.buildings.habitat_rings || 0);
+    for (let i = 0; i < ringCount; i++) {
+      const habitatRing = ring(1.1 + i * 0.5, 0.06, 0x6fd7d0);
+      habitatRing.position.y = 0.9 + i * 0.35;
+      group.add(habitatRing);
+    }
+    setupLighting(group, 0x9fa8e8, 0x2a2440);
+    return group;
+  }
+
+  const ERA_BUILDERS = {
+    tribal: buildTribalScene,
+    agrarian: buildAgrarianScene,
+    classical: buildClassicalScene,
+    medieval: buildMedievalScene,
+    industrial: buildIndustrialScene,
+    digital: buildDigitalScene,
+    space: buildSpaceScene,
+  };
+
+  function lerpColor(fromHex, toHex, t) {
+    const from = new THREE.Color(fromHex);
+    const to = new THREE.Color(toHex);
+    return from.lerp(to, Math.max(0, Math.min(1, t))).getHex();
+  }
+
+  // --- renderer / camera setup ------------------------------------------
+
+  function updateCameraPosition() {
+    const clampedPitch = Math.max(MIN_PITCH, Math.min(MAX_PITCH, pitch));
+    camera.position.set(
+      CAMERA_DISTANCE * Math.cos(clampedPitch) * Math.sin(yaw),
+      CAMERA_DISTANCE * Math.sin(clampedPitch),
+      CAMERA_DISTANCE * Math.cos(clampedPitch) * Math.cos(yaw)
+    );
+    camera.lookAt(0, 0.4, 0);
+  }
+
+  function attachDragControls(container) {
+    container.style.touchAction = "none";
+    container.addEventListener("pointerdown", function (event) {
+      dragging = true;
+      lastPointer = { x: event.clientX, y: event.clientY };
+    });
+    window.addEventListener("pointerup", function () {
+      dragging = false;
+      lastPointer = null;
+    });
+    window.addEventListener("pointermove", function (event) {
+      if (!dragging || !lastPointer) return;
+      const dx = event.clientX - lastPointer.x;
+      const dy = event.clientY - lastPointer.y;
+      lastPointer = { x: event.clientX, y: event.clientY };
+      yaw -= dx * 0.008;
+      pitch += dy * 0.006;
+      updateCameraPosition();
+      renderer.render(scene, camera);
+    });
+  }
+
+  function renderScene(vs) {
+    const builder = ERA_BUILDERS[vs.era];
+    if (!builder) return; // an era this build's JS layer doesn't know yet — degrade quietly
+
+    if (vs.era !== builtEra || sceneGroup === null) {
+      if (sceneGroup) {
+        scene.remove(sceneGroup);
+      }
+      sceneGroup = builder(vs);
+      scene.add(sceneGroup);
+      builtEra = vs.era;
+    } else {
+      // Same era, state moved (population grew, a building went up, a
+      // season advanced) — cheapest correct option is rebuilding the
+      // group each time rather than diffing individual meshes; scenes are
+      // small (well under 100 meshes even at the largest settlement caps
+      // above), so this stays comfortably fast.
+      scene.remove(sceneGroup);
+      sceneGroup = builder(vs);
+      scene.add(sceneGroup);
+    }
+    renderer.render(scene, camera);
+  }
+
+  function pullStateAndRender() {
+    if (!ready || !pyodideRef) return;
+    // Same try/finally-destroy idiom shared/save-widget.js's own
+    // readGameState() uses for the equivalent get_state() call — a PyProxy
+    // returned across the Python/JS boundary has to be destroyed
+    // explicitly or it leaks, the same real-not-hypothetical class of bug
+    // CLAUDE.md's Milestone 4 audit already found and fixed for
+    // create_proxy()-wrapped click handlers.
+    const getVisualState = pyodideRef.globals.get("get_visual_state");
+    if (!getVisualState) return; // game.py hasn't finished booting yet
+    let raw;
+    try {
+      raw = getVisualState();
+      const vs = raw && raw.toJs ? raw.toJs({ dict_converter: Object.fromEntries }) : raw;
+      renderScene(vs);
+    } catch (err) {
+      // A render-layer failure must never surface as a broken game — log
+      // for diagnosis and leave the last good frame on screen.
+      console.warn("Continuum 3D: render failed, leaving last frame.", err);
+    } finally {
+      if (raw && typeof raw.destroy === "function") raw.destroy();
+    }
+  }
+
+  // --- view-mode toggle (3D <-> 2D) ---------------------------------------
+
+  function applyViewMode(mode) {
+    const container = document.getElementById(CONTAINER_ID);
+    const fallback = document.querySelector(SETTLEMENT_2D_SELECTOR);
+    const button = document.getElementById(TOGGLE_BUTTON_ID);
+    if (!container || !fallback) return;
+    if (mode === "3d") {
+      container.hidden = false;
+      fallback.hidden = true;
+      if (button) button.innerText = "🖼 2D view";
+    } else {
+      container.hidden = true;
+      fallback.hidden = false;
+      if (button) button.innerText = "🧊 3D view";
+    }
+    try {
+      window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode);
+    } catch (e) {
+      // Storage can throw in a locked-down/private-browsing context —
+      // the toggle still works for this page load, it just won't be
+      // remembered next time. Not worth failing the toggle over.
+    }
+  }
+
+  function currentViewMode() {
+    try {
+      const stored = window.localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+      if (stored === "2d" || stored === "3d") return stored;
+    } catch (e) {
+      // ignore — default below
+    }
+    return "3d";
+  }
+
+  function setupToggleButton() {
+    const button = document.getElementById(TOGGLE_BUTTON_ID);
+    if (!button) return;
+    button.hidden = false;
+    button.addEventListener("click", function () {
+      const container = document.getElementById(CONTAINER_ID);
+      const showing3d = container && !container.hidden;
+      applyViewMode(showing3d ? "2d" : "3d");
+    });
+    applyViewMode(currentViewMode());
+  }
+
+  // --- public entry point -------------------------------------------------
+
+  function init(pyodide) {
+    if (!threeAvailable()) {
+      console.warn("Continuum 3D: THREE failed to load (CDN unreachable/blocked) — staying on the 2D view.");
+      return false;
+    }
+    if (!webglAvailable()) {
+      console.warn("Continuum 3D: WebGL is not available in this browser — staying on the 2D view.");
+      return false;
+    }
+
+    const container = document.getElementById(CONTAINER_ID);
+    if (!container) return false;
+
+    try {
+      const width = container.clientWidth || 320;
+      const height = 220;
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      container.innerHTML = "";
+      container.appendChild(renderer.domElement);
+
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
+      updateCameraPosition();
+
+      toonGradientMap = makeToonGradientMap();
+
+      attachDragControls(container);
+      window.addEventListener("resize", function () {
+        const w = container.clientWidth || width;
+        renderer.setSize(w, height);
+        camera.aspect = w / height;
+        camera.updateProjectionMatrix();
+        if (scene) renderer.render(scene, camera);
+      });
+
+      pyodideRef = pyodide;
+      ready = true;
+
+      // First paint, then wire the hook game.py calls after every render().
+      pullStateAndRender();
+      window.continuumOnRender = pullStateAndRender;
+
+      setupToggleButton();
+      return true;
+    } catch (err) {
+      console.warn("Continuum 3D: failed to initialise, staying on the 2D view.", err);
+      ready = false;
+      return false;
+    }
+  }
+
+  window.ContinuumVisual = { init: init };
+})();

@@ -473,6 +473,19 @@ def on_toggle_info_page(event=None):
 # doesn't grow the DOM without bound.
 LOG_VISIBLE_ENTRIES = 20
 
+# Phase 5 colorblind-safety audit: log.py's "livability-up"/"livability-
+# down" kinds used to be told apart only by their .log-row--* border color
+# (see style.css) — a plain green/red pair, which is exactly the hue
+# distinction deuteranopia/protanopia can't reliably make. This icon
+# prefix is a second, color-independent signal for the same distinction,
+# the same "decoration, not data" role sim.ROLE_EMOJI already plays for
+# the Work panel. Every other kind is left unprefixed (research/population/
+# transition already read unambiguously from their own text).
+LOG_KIND_ICON = {
+    "livability-up": "▲ ",
+    "livability-down": "▼ ",
+}
+
 
 def render_log():
     """The ongoing log (Milestone 6) — lightweight, skippable flavor text
@@ -505,7 +518,8 @@ def render_log():
         top.className = "row-top"
         tag = document.createElement("span")
         tag.className = "row-name"
-        tag.innerText = f"{sim.ERA_LABEL.get(entry.era, entry.era)} · Season {entry.season}"
+        icon = LOG_KIND_ICON.get(entry.kind, "")
+        tag.innerText = f"{icon}{sim.ERA_LABEL.get(entry.era, entry.era)} · Season {entry.season}"
         top.appendChild(tag)
         row.appendChild(top)
 
