@@ -1,14 +1,16 @@
 # Continuum — A Sustainable City Across the Ages
 
-**Working title — rename freely.** This is the single flagship Digital Artefact for BCM114 Round 2, built around SDG 11 (Sustainable Cities and Communities), framed as speculative/fictional media (a city's story across eras) without being story-first — the mechanics carry the weight, the narrative is seasoning. Unlike the Round 1 climate quartet (many small games), this is one deep game built iteratively over several weeks. Read this whole file before starting any milestone — it's long because the system is genuinely one interconnected thing, not eight independent prototypes.
+**Working title — kept as-is (no better name landed, see naming note at the bottom).** This is the single flagship Digital Artefact for BCM114 Round 2, built around SDG 11 (Sustainable Cities and Communities). Unlike Round 1's speculative-media framing (Theme 9), **this round's framing is fictional media with a real story running through it** — not a warning about a possible future, a narrative about a specific city and its people across time. Unlike the Round 1 climate quartet (many small games, teaching-forward), **this is one deep game, and it should read as a game first** — the SDG 11 elements should live in what makes a good city good to live in, not in explicit lessons. Read this whole file before starting any milestone.
 
-**Explicitly standalone:** no narrative or systemic connection to SOL or any other hub game. Shares only the hub's general conventions (testing, tech stack, hosting), not lore or world-state.
+**Explicitly standalone:** no narrative or systemic connection to SOL or any other hub game. Shares only the hub's general conventions (testing, tech stack, hosting), not lore or world-state. (A generational "descendants" narrative thread was considered and deferred — see Deferred Items.)
+
+**Design philosophy this round (important shift from the climate quartet):** less overt teaching, more game. No end-of-session survey prompts, no separate "did this feel effective" questions bolted onto the UI. Real-world grounding lives behind a collapsed, optional info panel — never on the main screen. The sustainability/livability balance should be something the player discovers through play, the way a good city-builder makes you feel the cost of bad zoning without a tooltip explaining it.
 
 ## Concept
 
-The player grows a single settlement from a small tribal community into a space-age civilization, across seven eras, developing infrastructure, technology, and culture along the way — all while a visible sustainability/livability score tracks whether that growth is actually good to live inside, not just big. The throughline across every era is the same question SDG 11 asks: what makes a city sustainable and livable, not just large?
+The player grows a single settlement from a small tribal community into a space-age civilization, across seven eras, developing infrastructure, technology, and culture along the way — all while a visible sustainability/livability score tracks whether that growth is actually good to live inside, not just big. A real story follows the city and (loosely) its people across the eras, told through the log and transition-beat systems below.
 
-## Eras (proposed list — edit as needed)
+## Eras (confirmed)
 
 1. **Tribal** — small settlement, subsistence, earliest social organization
 2. **Agrarian** — settled agriculture, early surplus and trade
@@ -16,9 +18,9 @@ The player grows a single settlement from a small tribal community into a space-
 4. **Medieval** — denser urban centers, guilds/specialization, early public works
 5. **Industrial** — mechanization, rapid growth, the era where sustainability tension becomes most visible historically
 6. **Current/Digital** — modern city systems, information infrastructure, present-day sustainability challenges
-7. **Space Age** — speculative future era, off-world or post-scarcity infrastructure questions
+7. **Space Age** — future era, off-world or post-scarcity infrastructure questions
 
-**Build order (dev milestones) runs Tribal → Space Age**, matching play order, per your call to build the simplest era first. This is different from the earlier plan to "build current era first" — going in chronological build order instead, since it's simpler to build the foundational systems on the least complex era.
+**Build order (dev milestones) runs Tribal → Space Age**, matching play order — simplest era first, foundational systems proven before later eras build on top of them.
 
 ## Core systems (apply across all eras)
 
@@ -26,49 +28,65 @@ The player grows a single settlement from a small tribal community into a space-
 Population, resources, infrastructure, and production, scaled appropriately per era (a tribal settlement's "resources" are food/shelter/tools; a space-age city's are wildly different) but built on the same underlying simulation engine so eras share code rather than being seven separate games stitched together.
 
 ### 2. Research tree (one continuous tree spanning all eras)
-A single tree that grows across the whole game — later eras unlock deeper branches rather than replacing the tree each era. Early-era research choices should have visible echoes in what's available later (e.g., an early emphasis on communal infrastructure vs. individual property might open different mid-tree branches). This is the "big research tree" you asked for — treat it as the game's backbone, not a side system.
+A single tree that grows across the whole game — later eras unlock deeper branches rather than replacing the tree each era. Early-era research choices should have visible echoes in what's available later. Design it in tiers/layers from the start (Milestone 3) before populating individual nodes, so later eras don't require retrofitting the whole tree's shape.
 
-**Design implication:** since this tree needs to span seven eras of wildly different technology (fire-keeping to space infrastructure), design it in tiers/layers from the start rather than a flat list — Claude Code should propose a tier structure at Milestone 3 (see below) before populating individual nodes, so later eras don't require retrofitting the whole tree's shape.
+### 3. Sustainability/Livability score — THE core teaching mechanism, not a side meter
+This is the single most important design principle for the whole game: **the growth-vs-sustainability tension has to be what actually teaches, by being built into the win condition itself — not displayed to the player as a lesson.** This mirrors how Herd's coupling ratio worked in the climate quartet: the score has to directly gate real things the player wants (how large a city can grow before instability caps it, whether population migrates in or out, whether unrest or decay events start firing) rather than sitting next to the "real" score as a decorative sustainability rating. If a player can ignore livability and still win by raw growth alone, this system has failed its one job.
 
-### 3. Sustainability/Livability score (explicit, continuous, from era 1 onward)
-A visible score tracked from the very first era, not introduced later — this was your explicit choice, echoing the hope-angle metric pattern from the climate games but reframed for SDG 11 specifically (livability, equity, resource balance, resilience — not just raw growth). This score should meaningfully respond to research-tree choices and infrastructure decisions, not just tick up passively with population growth. A tribal settlement can be more "sustainable" than a poorly-planned industrial one — the score needs to reflect that kind of nuance, not just scale with city size.
+Concretely: an unsustainable city should hit a real ceiling — migration outflow, unrest events, infrastructure decay compounding — not a scolding message. A well-balanced city should be able to grow larger and more stable than an unsustainable one of the same era, provably, the same way Herd's decoupled farm outscored the pure-growth farm 412 to 52.
 
 ### 4. Story system (mix: light ongoing logs + bigger era-transition beats)
 - **Ongoing logs:** short flavor text tied to milestones within an era (a research unlock, a population threshold, a livability shift) — lightweight, non-blocking, skippable.
-- **Era-transition beats:** a slightly larger narrative moment when the city crosses into a new era — this is where the "fictional media" framing gets its clearest expression, since it's the natural point to reflect on what kind of city has been built so far.
-- Keep the fictional framing generic enough to be edited for tone later — better to build the system first and refine prose during a dedicated pass than to write final narrative text this early.
+- **Era-transition beats:** a bigger narrative moment when the city crosses into a new era.
+- **This is also where feedback lives now** (replacing the climate quartet's separate end-of-session survey prompts): player reactions to livability shifts should surface through the story itself — a log entry reacting to a housing shortage, a transition beat referencing how the city handled its last era's growing pains — rather than a standalone "did this feel effective?" question. Feedback is diegetic, woven into what the city's story is already telling the player, not a separate system bolted on top.
+- Keep the fictional framing generic enough to be edited for tone later — build the system first, refine prose during a dedicated pass.
 
 ### 5. Save system (continuous save, revisit completed eras)
-One continuous save spanning the whole arc, with the ability to revisit/replay completed eras without losing forward progress — this is more involved than a simple linear save, since it needs to preserve both "current state" and a snapshot of each completed era. Use the existing Neon/FastAPI backend for this rather than browser storage. Plan the save schema early (Milestone 2 or 3) since retrofitting a revisit-capable save system after building several eras linearly would be painful.
+One continuous save spanning the whole arc, with the ability to revisit/replay completed eras without losing forward progress. Use the existing Neon/FastAPI backend for this rather than browser storage. Plan the save schema early (Milestone 2 or 3).
+
+**Given how failure-prone save-merge logic was across the entire climate quartet** (a systemic wholesale-dict-replace bug that hid in "clean" audits until a second, harder pass caught it in every single game), Continuum's save-revisit system needs its own dedicated security/bug audit pass once built — not just folded into general testing. See Milestone list below.
+
+### 6. Real-world info panel (collapsed by default)
+A single "Info" button, always available but never intrusive — tapping it expands a panel with real-world sources for the current era (see the companion research doc, `continuum-real-world-sources.md`). Collapsed by default specifically to avoid overloading the screen or forcing scroll on mobile — the main screen should show gameplay only. This replaces the climate quartet's per-game "Learn More" page pattern with something more compact, since Continuum is one continuous game rather than eight separate short ones.
+
+**Not yet built** — no info panel exists in the shipped Phase 1 code. `continuum-real-world-sources.md` is landed as reference content only; wiring it up (era-aware, collapsed-by-default) is Phase 2/3 scope, built alongside each era's own content per the Phase 3 pattern below.
+
+### 7. Visual style: low-poly, cartoonish 3D
+Achievable, but it's an architecture decision worth being explicit about: **Pyodide alone can't render 3D** — this requires a hybrid setup, with game state and logic staying in Python (testable, consistent with the rest of the hub) while a Three.js layer handles rendering. Low-poly/cartoonish is a good style match for this constraint — flat-shaded geometry, simple toon-style shading, and simplified geometric forms per era (a cluster of huts for Tribal, blocky spires for Space Age) are all very achievable in Three.js without needing realistic textures or complex asset pipelines. This is a genuine scope increase over the climate quartet's plain HTML/Pyodide games — budget for it as its own milestone track (Phase 5), not a drop-in visual pass at the end. Supersedes the space-theme glass-panel visual pass Phase 1 shipped with (see the build note below) — that pass was a stopgap consistent with the rest of the hub, not the intended final visual direction.
+
+### 8. Accessibility
+Colorblind-safe palette and text scaling, built in from the visual pass rather than retrofitted. Worth doing well here specifically since it's being flagged as a pattern to eventually apply site-wide (see Deferred Items) — Continuum can be the first implementation to get right.
 
 ## Milestones
 
-Given the multi-week scope, milestones are grouped into phases rather than a single flat list. Treat each phase as several sessions' worth of work, not one sitting.
+Given the multi-week scope, milestones are grouped into phases. Treat each phase as several sessions' worth of work.
 
 **Phase 1 — Foundation (Tribal era + core systems)**
 
 | # | Milestone | Status |
 |---|-----------|--------|
-| 1 | Core city simulation loop, Tribal era only (population, basic resources, simple production). Tests: resource/population update logic. | **DONE** |
-| 2 | Sustainability/livability score system, integrated from the start, responding to Tribal-era decisions. Tests: score calculation across sample decision sequences. | **DONE** |
-| 3 | Research tree engine — generic, extensible tier/layer structure first, then just enough Tribal-era nodes to prove it. Tests: unlock logic, prerequisite checking. | **DONE** |
-| 4 | Save system schema — continuous-save-with-revisit structure, even though only one era exists yet. Tests: save/load round-trip, era-snapshot logic. | **DONE** |
+| 1 | Core city simulation loop for the Tribal era only (population, basic resources, simple production). Tests: resource/population update logic. | **DONE** |
+| 2 | Sustainability/livability score system, integrated from the start as a growth-gating mechanic (not a side score), responding to Tribal-era decisions. Tests: score calculation AND its effect on growth/migration/stability across sample decision sequences — confirm an unsustainable strategy actually underperforms a balanced one, the way Herd's audit did. | **DONE** |
+| 3 | Research tree engine — build the generic, extensible tier/layer structure before populating many nodes. Populate just enough Tribal-era nodes to prove the system works. Tests: tree unlock logic, prerequisite checking. | **DONE** |
+| 4 | Save system schema — design the continuous-save-with-revisit structure now. Tests: save/load round-trip, era-snapshot logic. | **DONE** |
+| 5 | Collapsed info-panel UI shell (empty/placeholder content is fine at this stage — the point is proving the UI pattern doesn't clutter the main screen). | Pending |
 
 **Phase 2 — Story & era transition framework**
 
 | # | Milestone | Status |
 |---|-----------|--------|
-| 5 | Ongoing log system — lightweight, milestone-triggered flavor text, skippable. Tests: trigger conditions for log entries. | Pending |
-| 6 | Era-transition beat system — generic framework reusable for all six transitions rather than rebuilt each time. Tests: transition-trigger logic. | Pending |
-| 7 | First full era transition: Tribal → Agrarian, exercising the full save/revisit and transition-beat systems end to end. | Pending |
+| 6 | Ongoing log system — lightweight, milestone-triggered flavor text, skippable, including diegetic feedback moments reacting to livability shifts. Tests: trigger conditions for log entries. | Pending |
+| 7 | Era-transition beat system — generic framework reusable across all six transitions. Tests: transition-trigger logic. | Pending |
+| 8 | First full era transition: Tribal → Agrarian, exercising the full save/revisit and transition-beat systems end to end. | Pending |
 
 **Phase 3 — Content expansion (repeat per era)**
 
 For each remaining era (Agrarian through Space Age), repeat this pattern:
-- Era-specific city simulation additions (new resource/production types appropriate to the era)
+- Era-specific city simulation additions
 - Research tree expansion for that era's tier
-- Sustainability score adjustments (what "livable" means shifts somewhat per era — a space-age city's sustainability concerns aren't identical to a tribal settlement's, even though the same score system tracks both)
-- Ongoing logs + transition beat for entering the next era
+- Sustainability score adjustments (what "livable" means shifts somewhat per era)
+- Ongoing logs + transition beat, including diegetic feedback moments
+- Real-world info-panel content for that era (from `continuum-real-world-sources.md`)
 - Tests for all of the above, same standard as Phase 1
 
 | Era | Status |
@@ -80,13 +98,20 @@ For each remaining era (Agrarian through Space Age), repeat this pattern:
 | Digital | Pending |
 | Space Age | Pending |
 
-**Phase 4 — Polish & hub integration**
+**Phase 4 — Save/security audit**
 
-| # | Milestone | Status |
-|---|-----------|--------|
-| — | Visual pass across all eras (large scope — consider whether one consistent visual language across all seven eras is more achievable than era-specific art) | Pending |
-| — | Full playthrough testing (tribal through space age) for save/revisit integrity | Pending |
-| — | Hub integration (GitHub Pages route, linked from main hub nav, added to root CLAUDE.md's Current games table) | Pending |
+- Dedicated audit pass on the save-revisit system specifically, given how systemic the equivalent bug was across the climate quartet. Don't fold this into general testing — treat it as its own pass, the way the climate quartet eventually needed a second, harder bug-audit round to catch what the first one missed. (Phase 1 already had two audit passes of its own — see the build notes below — but the doc's ask here is for a dedicated pass once the *revisit* system has real era-transition traffic through it, which it doesn't yet.)
+
+**Phase 5 — Visual & accessibility**
+
+- Three.js low-poly/cartoonish rendering layer, built against the already-tested Python state (state and rendering stay cleanly separated).
+- Colorblind-safe palette and text scaling.
+
+**Phase 6 — Polish & hub integration**
+
+- Full playthrough testing (tribal through space age) for save/revisit integrity.
+- Maximize test coverage across the whole game before considering it feature-complete — this is also worth flagging as a practice to apply hub-wide once the hub reaches this level of maturity generally (see Deferred Items).
+- Hub integration: link Continuum into the main hub nav. While doing this, check for and link anything else currently sitting unlinked (Trade Empire was flagged as having the same unlinked status).
 
 ## Phase 1 build decisions
 
@@ -129,13 +154,22 @@ Re-verified after the audit pass above, including loading a deliberately short s
 
 ## Tech notes
 
-- Python/Pyodide, per hub conventions.
-- This game is significantly larger in scope than any single climate-quartet game — plan for the city simulation core, research tree engine, and save system to be built as clearly separated modules from the start, since seven eras' worth of content will get unwieldy fast if simulation/story/save logic are tangled together.
-- Testing is mandatory per hub conventions — given the scope, prioritize testing the shared engines (simulation core, research tree, save system) most heavily, since bugs there compound across all seven eras.
-- **Space-theme visual pass (matching hub/SOL).** `index.html` now includes `shared/space-bg.css` and the standard `<div class="space-bg">` markup right after `<body>`; `style.css` turned `body`/`#game` transparent so the starfield/nebula shows through, and every `.section` (status, sustainability, work, buildings, research) became its own glass panel — translucent gradient background, `backdrop-filter: blur(14px)`, violet-tinted `rgba(140,160,255,0.14)` border, soft drop shadow — rather than one giant card, matching this game's already-panelled layout. `.row` dividers and the h1 title's gradient-glow treatment followed the same pattern as SOL/the hub, but the warm amber/bronze accent (buttons, era-line, primary CTA) was kept rather than switched to SOL's blue, since that hue is Continuum's own identity. `button.secondary`/`button.primary` moved from flat fills to two-stop gradients of the same hue with a glossy top highlight and a `brightness(1.1)` hover; every existing `:disabled`/`.research-row--done`/`.research-row--locked` state and the locked-node reason text were re-skinned in place, not restructured — no CSS class/id was renamed, and no state-encoding color (land health, the four sustainability components, the weakest-component call-out, the warning/locked-reason amber) was touched, only chrome around them. `.meter-fill--land`/`.meter-fill--score` kept their exact hues and gained a matching-color glow. Verified against the pytest suite (99 passed, unchanged before/after) and live under Pyodide: starfield/nebula render, all four hub panels read as glass, season data and the research tree (including locked-reason text) render correctly, only console output is the pre-existing service-worker-registration error common to every hub game in the preview sandbox.
+- Python/Pyodide for all game state and logic, per hub conventions — testable, consistent. This game is significantly larger in scope than any single climate-quartet game, which is why the simulation core, research tree, and save system are already split into clearly separated modules (see Phase 1 build decisions) rather than one `game.py`.
+- Three.js for the low-poly 3D rendering layer (Phase 5) — state and rendering kept cleanly separated so the Python side remains fully testable independent of the visual layer.
+- Testing is mandatory per hub conventions — prioritize the shared engines (simulation core, research tree, save system) most heavily, since bugs there compound across all seven eras. Maximize coverage, not just adequate coverage — see Phase 6.
+- **Space-theme visual pass (matching hub/SOL) — a stopgap, not the final visual direction (see Core system 7 above).** `index.html` now includes `shared/space-bg.css` and the standard `<div class="space-bg">` markup right after `<body>`; `style.css` turned `body`/`#game` transparent so the starfield/nebula shows through, and every `.section` (status, sustainability, work, buildings, research) became its own glass panel — translucent gradient background, `backdrop-filter: blur(14px)`, violet-tinted `rgba(140,160,255,0.14)` border, soft drop shadow — rather than one giant card, matching this game's already-panelled layout. `.row` dividers and the h1 title's gradient-glow treatment followed the same pattern as SOL/the hub, but the warm amber/bronze accent (buttons, era-line, primary CTA) was kept rather than switched to SOL's blue, since that hue is Continuum's own identity. `button.secondary`/`button.primary` moved from flat fills to two-stop gradients of the same hue with a glossy top highlight and a `brightness(1.1)` hover; every existing `:disabled`/`.research-row--done`/`.research-row--locked` state and the locked-node reason text were re-skinned in place, not restructured — no CSS class/id was renamed, and no state-encoding color (land health, the four sustainability components, the weakest-component call-out, the warning/locked-reason amber) was touched, only chrome around them. `.meter-fill--land`/`.meter-fill--score` kept their exact hues and gained a matching-color glow. Verified against the pytest suite (99 passed, unchanged before/after) and live under Pyodide: starfield/nebula render, all four hub panels read as glass, season data and the research tree (including locked-reason text) render correctly, only console output is the pre-existing service-worker-registration error common to every hub game in the preview sandbox. Superseded whenever Phase 5's Three.js layer lands — nothing here should be treated as a long-term visual commitment.
 
-## Open items to revisit
+## Real-world sources
 
-- Exact era list (proposed above) — confirm or edit before Phase 1 wraps up.
-- Visual style across eras — likely worth a dedicated decision once Phase 1's Tribal era is playable and you have a feel for the system's shape.
-- How the Contextual Report Blog will discuss this single large DA vs. the Round 1 quartet's eight-small-games framing — worth thinking about once there's enough built to write about.
+`continuum-real-world-sources.md`, in this same directory, holds four verified sources per era (28 total) for the Core system 6 info panel — landed as reference content now, wired up era-by-era as Phase 3 content ships. Same rule as the climate quartet's research docs: reference material to draw from, not text to dump wholesale into the game.
+
+## Deferred items (not now, flagged for later)
+
+- **Site-wide leaderboard/achievements system** — deferred as its own project, likely alongside a broader site-wide feature pass; too much to take on inside Continuum's own scope right now.
+- **Generational "descendants" narrative thread** — considered for tying eras together more tightly through character continuity; may be good story fodder later, not committed to yet.
+- **Site-wide accessibility pass** and **site-wide "maximize test coverage" practice** — both flagged as patterns worth applying across the whole hub once it reaches that point of maturity, not just within Continuum.
+- **How the Contextual Report Blog will discuss this single large DA vs. the Round 1 quartet's eight-small-games framing** — worth thinking about once there's enough built to write about.
+
+## Naming
+
+No better name landed this round — sticking with **Continuum**, which already fits well thematically (continuity of one settlement across eras). Revisit if inspiration strikes later; not worth blocking on.
