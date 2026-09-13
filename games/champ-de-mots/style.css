@@ -868,6 +868,41 @@ button:disabled {
   color: #6b5c46;
 }
 
+/* Improvement Ideas §4: optional cultural/usage notes panel -- same warm
+   card language as .practice-blurb above, since it's the same kind of
+   "extra depth on demand" content. */
+.cultural-notes-panel {
+  margin: 0 0 1rem;
+  padding: 0.7rem 0.85rem;
+  background: #fbf7ee;
+  border: 1px solid #e6dcc4;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.cultural-note {
+  margin: 0 0 0.75rem;
+}
+
+.cultural-note:last-child {
+  margin-bottom: 0;
+}
+
+.cultural-note-week {
+  margin: 0 0 0.15rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #33291f;
+}
+
+.cultural-note-text,
+.cultural-note-empty {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #6b5c46;
+  line-height: 1.5;
+}
+
 /* --- choice tiles: warm paper cards instead of the cool glass
    buttons the rest of the page uses for buttons. */
 .choice {
