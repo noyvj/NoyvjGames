@@ -29,7 +29,11 @@ resource balance, resilience — not just raw growth"):
   stomachs scores badly here even when its average looks fine.
 - **Resource balance** — is the settlement living inside what the land can
   give? Land health, plus whether this season's harvest stayed under the
-  land's sustainable yield.
+  land's sustainable yield; and, from Industrial on, how much industrial
+  pollution the settlement has let build up — see the Milestone 11 build
+  notes in CLAUDE.md. Pollution is also the tree's first adjustment with a
+  real GROWTH-side consequence, not only a score-side one (see
+  sim.CityState.advance_season()'s population step).
 - **Resilience** — could it survive a bad season? Food buffer, tool stock,
   and how diversified the workforce is; from Classical on, whether the
   workforce has been hollowed out by overextending into administration;
@@ -155,7 +159,8 @@ def equity(state, effects=None):
 
 
 def balance(state, effects=None):
-    """Land health, and whether the last harvest stayed within its limit.
+    """Land health, and whether the last harvest stayed within its limit
+    (and, from the Industrial era on, how much pollution has built up).
 
     Takes `effects` only to match the shared component signature — the land
     modifiers reach this through `last_sustainable_yield`, which the season
@@ -170,7 +175,43 @@ def balance(state, effects=None):
         harvest = 1.0
     else:
         harvest = _clamp(limit / extraction)
-    return _clamp((_clamp(state.land_health) + harvest) / 2.0)
+    base = _clamp((_clamp(state.land_health) + harvest) / 2.0)
+    base -= _industrial_pollution_penalty(state)
+    return _clamp(base)
+
+
+# --- Industrial+ : pollution's environmental cost (Milestone 11) --------
+# continuum-real-world-sources.md's Industrial sources describe a genuinely
+# different shape from every prior era-specific adjustment above: Agrarian's
+# hoarding penalty, Classical's overextension penalty and Medieval's
+# public-works bonus all worked purely through the sustainability score.
+# The Economic Journal (Oxford Academic) source is explicit that industrial
+# pollution had a real, PROVABLE GROWTH cost, not just a moral one -- so
+# pollution also gets a real growth-side consequence (see
+# sim.CityState.advance_season()'s population step, and
+# sim.POLLUTION_GROWTH_PENALTY_WEIGHT's own comment for why that's a soft
+# proportional slowdown rather than land_health's hard gate). This function
+# is only the SCORE-side half of the same mechanic: pollution also drags
+# down resource balance, the same way land overuse already does, since both
+# are forms of "the settlement taking more from its surroundings than it
+# puts back" -- Britannica's framing of industrial growth outpacing
+# planning and producing slums and disease is the real-world anchor for
+# treating this as an environmental-balance question rather than, say,
+# folding it into equity or resilience the way earlier eras' adjustments
+# were.
+INDUSTRIAL_POLLUTION_PENALTY_WEIGHT = 0.3  # max balance knocked off at full (1.0) pollution
+
+
+def _industrial_pollution_penalty(state):
+    """0..INDUSTRIAL_POLLUTION_PENALTY_WEIGHT — zero for any era before
+    Industrial, so every pre-Milestone-11 balance() result is unchanged by
+    this function's mere existence. `state.pollution` is already a 0..1
+    ratio-like stock (see sim.py's own build-up/decay model), not a raw
+    count, so — unlike every prior era-specific adjustment in this file —
+    no extra per-capita ratio work is needed here to keep it scale-neutral."""
+    if sim.era_index(state.era) < sim.era_index("industrial"):
+        return 0.0
+    return _clamp(state.pollution) * INDUSTRIAL_POLLUTION_PENALTY_WEIGHT
 
 
 # --- Classical+ : administrative overextension (Milestone 9) ------------

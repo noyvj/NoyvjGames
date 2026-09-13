@@ -103,6 +103,24 @@ TRANSITION_REQUIREMENTS = {
         "min_tier": research.era_tiers("classical")[-1],
         "min_score_label": "Strained",
     },
+    # Milestone 11 -- the same three-part shape a fourth time. See
+    # CLAUDE.md's Milestone 11 build notes for why "Strained" was kept
+    # rather than raised, the same judgement every prior era has made.
+    "medieval": {
+        "to_era": "industrial",
+        # The next population milestone up from Classical->Medieval's 40 --
+        # log.POPULATION_MILESTONES[4], the point log.py's own text calls
+        # "something closer to a town." A fitting hinge into an era whose
+        # own sources describe global urban population rising from roughly
+        # 3% (1800) to nearly 50% (2000) -- a settlement genuinely becoming
+        # town-scale is exactly the real-world shift Industrial is meant to
+        # dramatize.
+        "min_population": 60,
+        # The late Medieval research tier has to be UNLOCKED (two tier-7
+        # nodes researched) -- same soft-bar spirit as every prior era.
+        "min_tier": research.era_tiers("medieval")[-1],
+        "min_score_label": "Strained",
+    },
 }
 
 
@@ -195,6 +213,18 @@ TRANSITION_BEATS = {
         "of what leaves under its own mark. Nobody put a single person in "
         "charge of any of this. Somewhere in the last stretch of seasons, "
         "the city started answering to itself."
+    ),
+    ("medieval", "industrial"): (
+        "A chimney went up before anyone had really decided the skyline "
+        "should change, and then there were more of them than anyone "
+        "bothered to count. Whatever the guildhalls used to make by hand, "
+        "somewhere is now making faster, louder, and in numbers the old "
+        "workshops never could — and whatever those chimneys are putting "
+        "into the air over the rooftops isn't going anywhere on its own. "
+        "The city is growing quicker than it has ever grown before; it is "
+        "also, for the first time, growing sicker while it does. Barely a "
+        "thirtieth of the world lives anywhere like this yet. That will "
+        "not stay true for long."
     ),
 }
 

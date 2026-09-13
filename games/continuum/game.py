@@ -116,6 +116,18 @@ def season_report_message(report):
             f"Public works cover {coverage_pct:.0f}% of the settlement — "
             "the rest would be exposed if a bad season hit."
         )
+    # Industrial+ (Milestone 11): unlike every earlier narration line above,
+    # this one calls out a real GROWTH consequence, not only a resource or
+    # resilience one -- pollution is directly slowing next season's growth,
+    # per the Economic Journal source's "measurably reduced long-run city
+    # growth" finding (see sim.py's pollution constants and
+    # sustainability._industrial_pollution_penalty()).
+    if report.get("pollution", 0.0) > 0.3:
+        parts.append(
+            f"Industrial smoke hangs over the settlement ({report['pollution'] * 100:.0f}% "
+            "pollution) — growth is slower for it, and it isn't doing the sustainability "
+            "score any favors either."
+        )
 
     return " ".join(parts)
 

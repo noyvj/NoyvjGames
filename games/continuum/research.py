@@ -217,7 +217,8 @@ class ResearchTree:
         # Multiplier floors — no accumulation of penalties can make a yield
         # negative, whatever a future era's trade-off nodes look like.
         for key in ("food_yield_mult", "materials_yield_mult", "tool_yield_mult",
-                    "knowledge_mult", "regen_mult", "extraction_efficiency"):
+                    "knowledge_mult", "regen_mult", "extraction_efficiency",
+                    "pollution_output_mult"):
             totals[key] = max(0.0, totals[key])
         return totals
 
@@ -307,25 +308,28 @@ class ResearchTree:
 
 
 # --- the shipped tree --------------------------------------------------
-# Tribal (Phase 1), Agrarian (Milestone 8), Classical (Milestone 9) and
-# Medieval (Milestone 10) so far. Tribal's nine nodes, per Phase 1's
-# "populate just enough nodes to prove the system works", exercise every
-# mechanism the engine has: plain prerequisites, tier gating, branch
-# affinity, and every category of effect (yield multipliers, land
-# regeneration, storage, housing, and the equity/resilience bonuses that
-# only the sustainability score reads). Agrarian's six nodes prove the tree
-# extends cleanly across an era boundary: every one of them chains a
-# prerequisite back into a specific Tribal tier-2 node, so an early
-# emphasis keeps echoing into a second era exactly the way "Council of
-# Elders" already proved it could within one. Classical's six nodes repeat
-# the same proof a second time, this time chaining back into Agrarian's own
-# late tier. Medieval's six nodes repeat it a third time, chaining back
-# into Classical's own late tier — each branch now has an unbroken chain
-# four eras deep (Tribal → Agrarian → Classical → Medieval), and the
-# community branch's min_affinity keeps compounding by exactly one at each
-# step: `elders_council` (2), `market_custom` (3), `civic_assembly` (4),
-# `municipal_charter` (5), `free_city_charter` (6) — an emphasis that keeps
-# compounding, not just echoing once.
+# Tribal (Phase 1), Agrarian (Milestone 8), Classical (Milestone 9),
+# Medieval (Milestone 10) and Industrial (Milestone 11) so far. Tribal's
+# nine nodes, per Phase 1's "populate just enough nodes to prove the system
+# works", exercise every mechanism the engine has: plain prerequisites,
+# tier gating, branch affinity, and every category of effect (yield
+# multipliers, land regeneration, storage, housing, and the equity/
+# resilience bonuses that only the sustainability score reads). Agrarian's
+# six nodes prove the tree extends cleanly across an era boundary: every
+# one of them chains a prerequisite back into a specific Tribal tier-2
+# node, so an early emphasis keeps echoing into a second era exactly the
+# way "Council of Elders" already proved it could within one. Classical's
+# six nodes repeat the same proof a second time, this time chaining back
+# into Agrarian's own late tier. Medieval's six nodes repeat it a third
+# time, chaining back into Classical's own late tier. Industrial's six
+# nodes repeat it a fourth time, chaining back into Medieval's own late
+# tier — each branch now has an unbroken chain five eras deep (Tribal →
+# Agrarian → Classical → Medieval → Industrial), and the community branch's
+# min_affinity keeps compounding by exactly one at each step:
+# `elders_council` (2), `market_custom` (3), `civic_assembly` (4),
+# `municipal_charter` (5), `free_city_charter` (6), `factory_acts` (7),
+# `public_health_acts` (8) — an emphasis that keeps compounding, not just
+# echoing once.
 _TRIBAL_TIERS = era_tiers("tribal")
 
 NODE_LIST = [
@@ -700,6 +704,105 @@ NODE_LIST = [
             "Self-governance made permanent rather than granted anew each generation. Municipal "
             "Charter proved the settlement could run itself for a while; this is the settlement "
             "deciding it always will."
+        ),
+    ),
+    # --- Industrial, early (Milestone 11) --- Three nodes, one per branch,
+    # each chaining a prerequisite back into the LATE Medieval tier (tier 8)
+    # of the same branch — the same "early tier of a new era chains to the
+    # late tier of the one before it" pattern Milestones 8-10 all used, now
+    # proven across a fourth era boundary rather than being a one-off, a
+    # two-off, or a three-off.
+    ResearchNode(
+        "smoke_abatement",
+        "Smoke Abatement",
+        era="industrial",
+        tier=era_tiers("industrial")[0],
+        branch="craft",
+        cost=60.0,
+        prerequisites=("master_guilds",),
+        effects={"pollution_output_mult": -0.15, "tool_yield_mult": 0.1},
+        blurb=(
+            "The same guild discipline Master Guilds trained into every workshop, turned toward "
+            "what a factory throws off rather than only what it makes. Less smoke per worker, not "
+            "fewer workers."
+        ),
+    ),
+    ResearchNode(
+        "steam_power",
+        "Steam Power",
+        era="industrial",
+        tier=era_tiers("industrial")[0],
+        branch="provision",
+        cost=60.0,
+        prerequisites=("public_sanitation",),
+        effects={"materials_yield_mult": 0.2},
+        blurb=(
+            "A furnace turning water into force instead of just heat. Public Sanitation kept the "
+            "water clean; this is what the settlement does with the water once it's boiling."
+        ),
+    ),
+    ResearchNode(
+        "factory_acts",
+        "Factory Acts",
+        era="industrial",
+        tier=era_tiers("industrial")[0],
+        branch="community",
+        cost=65.0,
+        prerequisites=("free_city_charter",),
+        min_affinity={"community": 7},
+        effects={"equity_bonus": 0.1, "resilience_bonus": 0.05},
+        blurb=(
+            "Rules on hours, age, and conditions, won rather than granted — the self-governance "
+            "Free City Charter made permanent is what makes rules like this enforceable at all. "
+            "Only reachable by a settlement that kept investing in community across five eras "
+            "running now."
+        ),
+    ),
+    # --- Industrial, late ---
+    ResearchNode(
+        "sanitation_engineering",
+        "Sanitation Engineering",
+        era="industrial",
+        tier=era_tiers("industrial")[1],
+        branch="craft",
+        cost=75.0,
+        prerequisites=("smoke_abatement",),
+        effects={"pollution_output_mult": -0.15, "sanitation_bonus": 0.25},
+        blurb=(
+            "Smoke Abatement cut what a workshop throws off at the source; this is the drains, "
+            "filters and waste systems built to actually absorb what's left, at the scale a "
+            "factory floor produces it."
+        ),
+    ),
+    ResearchNode(
+        "assembly_lines",
+        "Assembly Lines",
+        era="industrial",
+        tier=era_tiers("industrial")[1],
+        branch="provision",
+        cost=75.0,
+        prerequisites=("steam_power",),
+        effects={"materials_yield_mult": 0.3},
+        blurb=(
+            "Work broken into repeatable steps instead of one worker doing all of it. Steam Power "
+            "gave the settlement the force; this is what actually multiplies it."
+        ),
+    ),
+    ResearchNode(
+        "public_health_acts",
+        "Public Health Acts",
+        era="industrial",
+        tier=era_tiers("industrial")[1],
+        branch="community",
+        cost=85.0,
+        prerequisites=("factory_acts",),
+        min_affinity={"community": 8},
+        effects={"equity_bonus": 0.1, "sanitation_bonus": 0.15},
+        blurb=(
+            "Slums and disease made public, and made the settlement's own problem to solve rather "
+            "than each household's alone — the real historical hinge that modern urban planning as "
+            "a discipline grew out of. Factory Acts protected the worker; this is what protects "
+            "the neighborhood they go home to."
         ),
     ),
 ]

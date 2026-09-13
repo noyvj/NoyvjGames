@@ -70,6 +70,7 @@ CITY_FIELDS = [
     "allocation",
     "buildings",
     "land_health",
+    "pollution",
     "fed_fraction",
     "last_extraction",
     "last_sustainable_yield",
