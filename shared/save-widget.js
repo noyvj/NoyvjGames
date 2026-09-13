@@ -111,8 +111,22 @@
         cursor: pointer;
         padding: 0;
         width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.4rem;
         text-align: left;
       }
+      /* The arrow is the actual "this collapses/expands" affordance --
+         the label alone ("Save / Load") reads the same whether the panel
+         is open or shut, which is exactly what made the old toggle unclear. */
+      #save-widget .save-widget-toggle-arrow {
+        display: inline-block;
+        transition: none;
+        font-size: 0.7rem;
+        opacity: 0.85;
+      }
+      #save-widget.collapsed .save-widget-toggle-arrow { transform: rotate(-90deg); }
       #save-widget.collapsed .save-widget-body { display: none; }
       #save-widget button {
         width: 100%;
@@ -180,7 +194,7 @@
   const root = document.createElement("div");
   root.id = "save-widget";
   root.innerHTML = `
-    <button type="button" class="save-widget-toggle">&#128190; Save / Load</button>
+    <button type="button" class="save-widget-toggle"><span class="save-widget-toggle-label">&#128190; Save / Load</span><span class="save-widget-toggle-arrow" aria-hidden="true">&#9662;</span></button>
     <div class="save-widget-body">
       <button type="button" class="save-widget-save-button">Save Progress</button>
       <p class="save-widget-code" hidden></p>
@@ -207,7 +221,20 @@
   const statusEl = root.querySelector(".save-widget-status");
   const toggleButton = root.querySelector(".save-widget-toggle");
 
-  toggleButton.addEventListener("click", () => root.classList.toggle("collapsed"));
+  // Starts expanded (unchanged default), but now with an explicit
+  // aria-expanded + title so the toggle's own accessible name says what
+  // clicking it will do, not just a static "Save / Load" label that read
+  // the same whether the panel was already open or shut.
+  function syncToggleState() {
+    const collapsed = root.classList.contains("collapsed");
+    toggleButton.setAttribute("aria-expanded", String(!collapsed));
+    toggleButton.title = collapsed ? "Show save/load options" : "Hide save/load options";
+  }
+  toggleButton.addEventListener("click", () => {
+    root.classList.toggle("collapsed");
+    syncToggleState();
+  });
+  syncToggleState();
 
   function showActiveCode(code) {
     codeDisplay.textContent = `Code: ${code}`;
