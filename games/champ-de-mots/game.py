@@ -50,6 +50,7 @@ except ImportError:  # pragma: no cover -- exercised by every test run
 # banned timer APIs, so it doesn't trip test_nothing_in_the_game_runs_on_a_timer's
 # substring scan over this file.
 blitz_tick = minigames.blitz_tick
+racer_tick = minigames.racer_tick
 
 CATALOG_FILENAME = "fren_combined_catalog.json"
 SUPPLEMENTARY_NOTES_FILENAME = "fren_supplementary_notes.json"
