@@ -2075,6 +2075,127 @@ def render_liaison_drill():
         explanation.hidden = True
 
 
+# ===========================================================================
+# Improvement Ideas addendum -- achievements (a game-local slice only)
+# ===========================================================================
+#
+# The source doc frames achievements as an eventual *cross-game* system this
+# game "would be the first contributor to" -- that architecture (a shared
+# schema/UI other games would also plug into) is a real design project of its
+# own and out of scope here. What's genuinely well-defined without it is a
+# game-local reading of the doc's own example milestones ("25/50/100
+# Automated, full week Automated, etc."). Since §3/Milestone 2 already made
+# plot stages monotonic (a stage never regresses), "currently Automated" and
+# "ever reached Automated" are the same count -- achievements need no new
+# save state at all, just a read of the farm that already exists.
+
+ACHIEVEMENT_AUTOMATED_THRESHOLDS = [25, 50, 100, 250, 500, 750]
+ACHIEVEMENT_ROW_THRESHOLDS = [1, 5, 11, 23]
+ACHIEVEMENT_ROW_LABELS = {
+    1: "A full week, automated",
+    5: "5 full weeks, automated",
+    11: "All of FREN151, automated",
+    23: "The whole farm, automated",
+}
+
+
+def automated_plot_count():
+    return sum(1 for plot in state.plots if plot.stage == STAGE_AUTOMATED)
+
+
+def fully_automated_row_count():
+    count = 0
+    for row in state.rows:
+        plots = state.row_plots(row.sequence)
+        if plots and all(plot.stage == STAGE_AUTOMATED for plot in plots):
+            count += 1
+    return count
+
+
+def _tier_progress(current, thresholds, label_for):
+    """Every crossed threshold (earned, most recent first) plus the next
+    one still ahead (with a plain "x of y" progress read-out), or None for
+    "next" once every threshold is already cleared."""
+    earned = [t for t in thresholds if current >= t]
+    remaining = [t for t in thresholds if current < t]
+    return {
+        "earned": [
+            {"id": t, "label": label_for(t)} for t in reversed(earned)
+        ],
+        "next": (
+            {"id": remaining[0], "label": label_for(remaining[0]), "current": current}
+            if remaining
+            else None
+        ),
+    }
+
+
+def achievements_summary():
+    return {
+        "automated": _tier_progress(
+            automated_plot_count(),
+            ACHIEVEMENT_AUTOMATED_THRESHOLDS,
+            lambda t: f"{t} plots automated",
+        ),
+        "rows": _tier_progress(
+            fully_automated_row_count(),
+            ACHIEVEMENT_ROW_THRESHOLDS,
+            lambda t: ACHIEVEMENT_ROW_LABELS[t],
+        ),
+    }
+
+
+achievements_open = False
+
+
+def on_toggle_achievements(event=None):
+    global achievements_open
+    achievements_open = not achievements_open
+    render()
+
+
+def _render_achievement_group(container, group):
+    for entry in group["earned"]:
+        line = document.createElement("p")
+        line.className = "achievement-earned"
+        line.innerText = f"🏆 {entry['label']}"
+        container.appendChild(line)
+    if group["next"] is not None:
+        line = document.createElement("p")
+        line.className = "achievement-next"
+        line.innerText = f"Next: {group['next']['label']} ({group['next']['current']} of {group['next']['id']})"
+        container.appendChild(line)
+    if not group["earned"] and group["next"] is None:
+        line = document.createElement("p")
+        line.className = "achievement-empty"
+        line.innerText = "Nothing here yet."
+        container.appendChild(line)
+
+
+def render_achievements():
+    panel = _element("achievements-panel")
+    toggle = _element("achievements-toggle-button")
+    toggle.innerText = "Hide achievements" if achievements_open else "🏆 Achievements"
+    panel.hidden = not achievements_open
+    if not achievements_open:
+        return
+
+    panel.innerHTML = ""
+    summary = achievements_summary()
+
+    automated_heading = document.createElement("p")
+    automated_heading.className = "achievement-heading"
+    automated_heading.innerText = "Plots automated"
+    panel.appendChild(automated_heading)
+    _render_achievement_group(panel, summary["automated"])
+
+    rows_heading = document.createElement("p")
+    rows_heading.className = "achievement-heading"
+    rows_heading.innerText = "Full weeks automated"
+    panel.appendChild(rows_heading)
+    _render_achievement_group(panel, summary["rows"])
+
+
 def _plot_classes(plot):
     classes = ["plot", f"plot--{plot.stage}"]
     # Weeds takes the place ordinary wilting would otherwise show for this
@@ -2302,6 +2423,7 @@ def render():
     render_cultural_notes()
     render_dashboard()
     render_liaison_drill()
+    render_achievements()
 
 
 # --- interactions ----------------------------------------------------------
@@ -3453,6 +3575,9 @@ def setup():
     )
     _element("liaison-close-button").addEventListener(
         "click", create_proxy(close_liaison_drill)
+    )
+    _element("achievements-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_achievements)
     )
     _element("bonus-order-continue-button").addEventListener(
         "click", create_proxy(advance_from_order)
