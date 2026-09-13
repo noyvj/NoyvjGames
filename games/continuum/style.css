@@ -623,6 +623,7 @@ button.primary:active {
 #research { border-left: 4px solid #d08c5c; }
 #info-page-panel { border-left: 4px solid #8a6a45; }
 #log { border-left: 4px solid #b58a52; }
+#era-progress { border-left: 4px solid #8a56b0; }
 
 /* Log rows are built by render_log(), same reason as research rows -- a
    session's worth of entries can't be static markup. Kind-specific accent

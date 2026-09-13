@@ -7,10 +7,10 @@ in this same directory — reference material to draw from, not text to dump
 wholesale into the game, same rule the climate quartet's research docs
 followed.
 
-Only "tribal" has a real entry so far, matching `sim.IMPLEMENTED_ERAS`.
-Phase 3 adds one entry per era as that era's content ships; nothing else
-in this file needs to change when it does; `era_info_page()` already
-handles an era with no entry yet.
+"tribal" and "agrarian" have real entries so far, matching
+`sim.IMPLEMENTED_ERAS`. Phase 3 adds one entry per remaining era as that
+era's content ships; nothing else in this file needs to change when it
+does; `era_info_page()` already handles an era with no entry yet.
 
 Kept as its own module rather than folded into game.py for two reasons:
 it is data, not DOM logic (matching the "dedicated engine modules, game.py
@@ -94,6 +94,71 @@ ERA_INFO_PAGE = {
                     "(~150, in a layered structure of 5/15/50/150/500/1500) "
                     "— the basis for calibrating this era's population "
                     "thresholds."
+                ),
+            },
+        ],
+    },
+    "agrarian": {
+        "framing": (
+            "The Neolithic Revolution is the real turning point Continuum's "
+            "Agrarian era is built around: once farming could reliably "
+            "produce more food than a settlement needed to survive the "
+            "season, that storable surplus stopped being just insurance "
+            "against a bad year and started being wealth — something to "
+            "store, specialise around, and eventually fight or trade over. "
+            "Pottery, dedicated tools, and the first urban clusters all "
+            "followed directly from having a surplus to manage in the "
+            "first place."
+        ),
+        "mechanic_tie_in": (
+            "Farmland and Farmers exist because settled agriculture was "
+            "genuinely more productive per person than foraging ever was — "
+            "but the real history behind that surplus has a harder edge "
+            "too: it's also the first documented point where property "
+            "accumulation created social hierarchy. Continuum's `surplus` "
+            "resource echoes both halves — banked value the settlement can "
+            "draw on, but banking too much of it per person, unshared, "
+            "costs the settlement's equity score rather than being a free "
+            "win."
+        ),
+        "sources": [
+            {
+                "label": "National Geographic — \"What was the Neolithic Revolution?\"",
+                "url": "https://www.nationalgeographic.com/culture/article/neolithic-agricultural-revolution",
+                "note": (
+                    "How early farmers produced storable surplus in the "
+                    "first place — the direct real-world basis for this "
+                    "era's surplus/storage mechanics."
+                ),
+            },
+            {
+                "label": "HISTORY — \"Neolithic Revolution\"",
+                "url": "https://www.history.com/articles/neolithic-revolution",
+                "note": (
+                    "The shift from nomadic to settled farming life, with "
+                    "Çatalhöyük (the Tribal era's own anchor) as the bridge "
+                    "example — good grounding for the Tribal-to-Agrarian "
+                    "transition specifically."
+                ),
+            },
+            {
+                "label": "EBSCO Research Starters — \"Neolithic Revolution\"",
+                "url": "https://www.ebsco.com/research-starters/agriculture-and-agribusiness/neolithic-revolution",
+                "note": (
+                    "Specialized tools, pottery, and early urbanization as "
+                    "direct consequences of food surplus — the real basis "
+                    "for this era's research-tree nodes (Plow and Furrow, "
+                    "Market Custom, and the rest)."
+                ),
+            },
+            {
+                "label": "TxWes Pressbooks — \"The Neolithic Revolution\" (World History)",
+                "url": "https://txwes.pressbooks.pub/internationalstudies/chapter/2-3-the-neolithic-revolution-world-history-volume-1-to-1500-openstax/",
+                "note": (
+                    "Surplus specifically creating the first social "
+                    "hierarchies and property accumulation — the direct "
+                    "real-world basis for the sustainability score's "
+                    "surplus-hoarding equity penalty this era."
                 ),
             },
         ],

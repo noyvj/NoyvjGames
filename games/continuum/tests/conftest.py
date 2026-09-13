@@ -11,8 +11,9 @@ GAME_DIR = Path(__file__).resolve().parent.parent
 GAME_PY = GAME_DIR / "game.py"
 
 # Continuum is split into separate engine modules (sim / research /
-# sustainability / save / info_content) per its own CLAUDE.md tech notes,
-# so the game directory has to be importable before game.py can be exec'd.
+# sustainability / save / info_content / log / transition) per its own
+# CLAUDE.md tech notes, so the game directory has to be importable before
+# game.py can be exec'd.
 if str(GAME_DIR) not in sys.path:
     sys.path.insert(0, str(GAME_DIR))
 
@@ -24,9 +25,6 @@ SHARED_DIR = GAME_DIR.parent.parent / "shared"
 if str(SHARED_DIR) not in sys.path:
     sys.path.insert(0, str(SHARED_DIR))
 
-ROLES = ["foragers", "gatherers", "crafters", "keepers"]
-BUILDINGS = ["shelter", "granary", "hearth", "toolworks"]
-
 ELEMENT_IDS = [
     "era-display",
     "season-display",
@@ -37,6 +35,7 @@ ELEMENT_IDS = [
     "materials-display",
     "tools-display",
     "knowledge-display",
+    "surplus-display",  # Milestone 8 — Agrarian+
     "land-health-display",
     "land-health-bar",
     "season-report-display",
@@ -61,28 +60,15 @@ ELEMENT_IDS = [
     # Milestone 6 — the ongoing log (rows are created at runtime)
     "log-status-display",
     "log-list",
+    # Milestone 8 — Work/Build panels became dynamic (role/building rows
+    # are created at runtime now, the same as research rows always were),
+    # and the era-progress control that finally wires up transition.py.
+    "work-list",
+    "buildings-list",
+    "era-progress-status-display",
+    "era-progress-reasons-display",
+    "advance-era-button",
 ]
-for _role in ROLES:
-    ELEMENT_IDS += [
-        f"{_role}-name",
-        f"{_role}-blurb",
-        f"{_role}-count",
-        f"{_role}-add-button",
-        f"{_role}-remove-button",
-    ]
-for _building in BUILDINGS:
-    ELEMENT_IDS += [
-        f"{_building}-name",
-        f"{_building}-blurb",
-        f"{_building}-count",
-        f"{_building}-build-button",
-    ]
-
-INITIALLY_DISABLED_IDS = (
-    [f"{r}-add-button" for r in ROLES]
-    + [f"{r}-remove-button" for r in ROLES]
-    + [f"{b}-build-button" for b in BUILDINGS]
-)
 
 
 class GameEnv:
@@ -144,12 +130,11 @@ def game_env():
     game.py runs setup() as a module-level side effect on import, so every
     test gets its own module object (and its own CityState) rather than
     sharing state via Python's normal import cache. The engine modules
-    (sim/research/sustainability/save) are deliberately left cached — they
-    hold only constants, classes and pure functions, no mutable state.
+    (sim/research/sustainability/save/log/transition/info_content) are
+    deliberately left cached — they hold only constants, classes and pure
+    functions, no mutable state.
     """
     elements = {id_: FakeElement(id_) for id_ in ELEMENT_IDS}
-    for id_ in INITIALLY_DISABLED_IDS:
-        elements[id_].disabled = True
     _install_pyodide_fakes(elements)
 
     spec = importlib.util.spec_from_file_location("game", GAME_PY)

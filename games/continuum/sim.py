@@ -20,9 +20,12 @@ Two properties are load-bearing for everything that comes later:
    player's researched nodes. Building that seam in from the start is what
    stops the research tree from having to reach into the simulation later.
 
-Only the Tribal era is modelled so far. Era-specific constants live in
-per-era tables keyed by era id so the Agrarian era (Phase 2/3) adds a
-table entry rather than a second copy of this file.
+Tribal (Phase 1) and Agrarian (Milestone 8) are modelled so far.
+Era-specific constants live in per-era tables keyed by era id (see
+ERA_ROLES/ERA_BUILDINGS) so each remaining era adds a table entry rather
+than a second copy of this file — Agrarian's own Farmers role and
+Farmland building are the first proof that pattern actually extends
+cleanly rather than requiring a rewrite.
 """
 
 # --- eras -------------------------------------------------------------
@@ -54,7 +57,7 @@ ERA_LABEL = {
 # Nothing reads this yet — it exists so that the moment a second era ships,
 # "which eras are playable" has one answer rather than being inferred from
 # whichever table happens to have an entry.
-IMPLEMENTED_ERAS = ["tribal"]
+IMPLEMENTED_ERAS = ["tribal", "agrarian"]
 
 FIRST_ERA = ERA_ORDER[0]
 
@@ -63,24 +66,59 @@ def era_index(era):
     return ERA_ORDER.index(era)
 
 
-# --- roles and buildings (Tribal era) ---------------------------------
+# --- roles and buildings ------------------------------------------------
 # Population is allocated across roles; unassigned people are idle. Roles
-# are era-scoped conceptually but share one allocation dict, so later eras
-# extend the list rather than replacing the mechanic.
-ROLES = ["foragers", "gatherers", "crafters", "keepers"]
+# are era-scoped (see ERA_ROLES below) but share one allocation dict, so a
+# later era's roster EXTENDS what's available rather than replacing it —
+# a role or building unlocked in an earlier era never goes away just
+# because the settlement has moved on. This is what Milestone 8's own
+# CLAUDE.md build notes call "one continuous, growing city" rather than
+# seven separate rosters swapped in and out.
+#
+# ERA_ROLES/ERA_BUILDINGS are the source of truth for WHICH roles/buildings
+# a settlement that has reached a given era can use (see roles_for_era()/
+# buildings_for_era() below); ROLES/BUILDINGS stay flat lists of every role
+# and building this build knows about at all, since the allocation/
+# buildings dicts, save.py's key-by-key restore, and clamp_allocation() all
+# need to reason about every key that could exist, not just the ones the
+# current era has unlocked.
+ERA_ROLES = {
+    "tribal": ["foragers", "gatherers", "crafters", "keepers"],
+    "agrarian": ["farmers"],
+}
 
-# The label/blurb tables below are the source of truth for the Work and
-# Build panels' text: game.py's render() writes them into index.html's
-# name/blurb elements every render, the same way the research panel already
-# reads research.BRANCH_LABEL. (The emoji prefix on each row stays static
-# markup — it's decoration, not data.) Roles and buildings change per era,
-# which is why this lives here rather than as permanently-static HTML: a
-# second era's roster is a matter of editing these dicts.
+ERA_BUILDINGS = {
+    "tribal": ["shelter", "granary", "hearth", "toolworks"],
+    "agrarian": ["farmland"],
+}
+
+ROLES = [role for era in ERA_ORDER for role in ERA_ROLES.get(era, [])]
+BUILDINGS = [building for era in ERA_ORDER for building in ERA_BUILDINGS.get(era, [])]
+
+
+def roles_for_era(era):
+    """Every role unlocked by `era` or an earlier one, in stable order."""
+    return [role for e in ERA_ORDER[: era_index(era) + 1] for role in ERA_ROLES.get(e, [])]
+
+
+def buildings_for_era(era):
+    """Every building unlocked by `era` or an earlier one, in stable order."""
+    return [b for e in ERA_ORDER[: era_index(era) + 1] for b in ERA_BUILDINGS.get(e, [])]
+
+
+# The label/blurb/emoji tables below are the source of truth for the Work
+# and Build panels' text: game.py's render_work()/render_buildings() build
+# each row from these every render (Milestone 8 made these panels dynamic,
+# the same way the research panel already was, now that a second era's
+# roster exists — see this file's own "only Tribal is modelled so far"
+# note above, now out of date, and the Milestone 8 build notes for why the
+# emoji moved here from static markup once rows stopped being static).
 ROLE_LABEL = {
     "foragers": "Foragers",
     "gatherers": "Gatherers",
     "crafters": "Crafters",
     "keepers": "Keepers",
+    "farmers": "Farmers",
 }
 
 ROLE_BLURB = {
@@ -88,15 +126,23 @@ ROLE_BLURB = {
     "gatherers": "Bring in wood, fibre and stone.",
     "crafters": "Turn materials into tools.",
     "keepers": "Hold and pass on what the settlement knows.",
+    "farmers": "Work cultivated fields — more food per person than foraging, especially with farmland built.",
 }
 
-BUILDINGS = ["shelter", "granary", "hearth", "toolworks"]
+ROLE_EMOJI = {
+    "foragers": "🌾",
+    "gatherers": "🪵",
+    "crafters": "🪓",
+    "keepers": "🔥",
+    "farmers": "🌱",
+}
 
 BUILDING_LABEL = {
     "shelter": "Shelter",
     "granary": "Storage Pit",
     "hearth": "Fire Circle",
     "toolworks": "Knapping Site",
+    "farmland": "Farmland",
 }
 
 BUILDING_BLURB = {
@@ -104,6 +150,15 @@ BUILDING_BLURB = {
     "granary": "Holds food that would otherwise spoil.",
     "hearth": "Where the settlement gathers. Warmth, cooking, and a shared story.",
     "toolworks": "A dedicated place to work stone — crafters produce more.",
+    "farmland": "Cultivated fields — farmers produce more food per plot worked.",
+}
+
+BUILDING_EMOJI = {
+    "shelter": "⛺",
+    "granary": "🫙",
+    "hearth": "🔥",
+    "toolworks": "🪨",
+    "farmland": "🌿",
 }
 
 BUILDING_COST = {  # in materials
@@ -111,12 +166,14 @@ BUILDING_COST = {  # in materials
     "granary": 18.0,
     "hearth": 15.0,
     "toolworks": 25.0,
+    "farmland": 20.0,
 }
 
 SHELTER_CAPACITY = 4  # people housed per shelter
 GRANARY_STORAGE = 25.0  # extra food storage per storage pit
 HEARTH_SERVES = 8.0  # people whose social/cultural needs one fire circle meets
 TOOLWORKS_CRAFT_BONUS = 0.3  # additive multiplier on tool output per knapping site
+FARMLAND_YIELD_BONUS = 0.4  # additive multiplier on farmer food output per field
 
 # --- starting conditions ----------------------------------------------
 START_POPULATION = 6
@@ -125,11 +182,20 @@ START_FOOD = 20.0
 START_MATERIALS = 20.0
 START_TOOLS = 2.0
 START_KNOWLEDGE = 0.0
-START_BUILDINGS = {"shelter": 2, "granary": 0, "hearth": 1, "toolworks": 0}
-START_ALLOCATION = {"foragers": 3, "gatherers": 2, "crafters": 0, "keepers": 0}
+START_SURPLUS = 0.0
+START_BUILDINGS = {"shelter": 2, "granary": 0, "hearth": 1, "toolworks": 0, "farmland": 0}
+START_ALLOCATION = {"foragers": 3, "gatherers": 2, "crafters": 0, "keepers": 0, "farmers": 0}
 
 # --- production and consumption ---------------------------------------
 FOOD_PER_FORAGER = 3.0
+# Notably higher than foraging -- the real productivity jump settled
+# agriculture gave over foraging/gathering (see
+# continuum-real-world-sources.md's Agrarian sources, e.g. the National
+# Geographic and HISTORY pieces on the Neolithic Revolution's storable
+# surplus). Farmers still scale with the same tool_factor/land_health/
+# food_yield_mult as foragers -- agriculture is better, not exempt from
+# the land's own limits.
+FOOD_PER_FARMER = 5.0
 MATERIALS_PER_GATHERER = 2.0
 TOOLS_PER_CRAFTER = 0.8
 MATERIALS_PER_TOOL = 1.0
@@ -137,6 +203,16 @@ KNOWLEDGE_PER_KEEPER = 0.6
 
 FOOD_PER_PERSON = 2.0
 BASE_FOOD_STORAGE = 30.0
+
+# --- surplus and trade (Agrarian+) --------------------------------------
+# Per continuum-real-world-sources.md's Agrarian sources (National
+# Geographic/HISTORY on storable surplus; EBSCO on surplus enabling
+# specialization), once a settlement has reached the Agrarian era, food
+# that would otherwise spoil past storage capacity is partly preserved as
+# `surplus` instead of pure waste -- an abstraction of early trade/barter
+# networks absorbing what a purely subsistence settlement would have lost.
+# The rest still spoils; see CityState.advance_season()'s spoilage step.
+SURPLUS_CONVERSION_RATE = 0.4
 
 # Tools multiply every gathering yield, capped at one tool per person —
 # a settlement can't get more out of the land by hoarding axes nobody holds.
@@ -181,6 +257,9 @@ NEUTRAL_EFFECTS = {
     "culture_bonus": 0.0,
     "equity_bonus": 0.0,  # consumed by sustainability.py, not by the sim
     "resilience_bonus": 0.0,  # ditto
+    # Additive on top of SURPLUS_CONVERSION_RATE (Milestone 8) -- still the
+    # one research seam, just one more key in the same dict.
+    "surplus_conversion_bonus": 0.0,
 }
 
 
@@ -206,6 +285,7 @@ class CityState:
             "materials": START_MATERIALS,
             "tools": START_TOOLS,
             "knowledge": START_KNOWLEDGE,
+            "surplus": START_SURPLUS,
         }
         self.allocation = dict(START_ALLOCATION)
         self.buildings = dict(START_BUILDINGS)
@@ -265,13 +345,21 @@ class CityState:
         1.0 means every role is staffed equally; 0.0 means everyone does the
         same job. Read by the resilience half of the sustainability score:
         a settlement that does exactly one thing has nothing to fall back on.
+
+        Measured against `roles_for_era(self.era)`, not the flat global
+        `ROLES` list — a settlement still in the Tribal era shouldn't have
+        its "how evenly spread" denominator diluted by a Farmers slot it
+        can't even assign to yet. This is what keeps every Tribal-era
+        sustainability number byte-identical to before Milestone 8 added a
+        second era's roles onto the same allocation dict.
         """
         assigned = self.assigned_workers()
         if assigned <= 0:
             return 0.0
-        shares = [self.allocation[r] / assigned for r in ROLES]
+        unlocked = roles_for_era(self.era)
+        shares = [self.allocation[r] / assigned for r in unlocked]
         concentration = sum(s * s for s in shares)
-        even = 1.0 / len(ROLES)
+        even = 1.0 / len(unlocked)
         if concentration <= even:
             return 1.0
         return (1.0 - concentration) / (1.0 - even)
@@ -330,13 +418,18 @@ class CityState:
 
         # 1. Harvest. Both gathering yields scale with tools and with how
         #    healthy the land still is — the loop that punishes over-use.
+        #    Farmers (Agrarian+) are a second way to get food, not a
+        #    separate economy: farmland raises their base yield the same
+        #    way a knapping site raises a crafter's, but they still scale
+        #    with the same tool_factor/land_health/food_yield_mult as
+        #    foraging, and both feed the same extraction total below —
+        #    settled agriculture is more productive here, not exempt from
+        #    what the land can sustain.
+        farm_bonus = 1.0 + self.buildings["farmland"] * FARMLAND_YIELD_BONUS
         food_gathered = (
-            self.allocation["foragers"]
-            * FOOD_PER_FORAGER
-            * tool_factor
-            * self.land_health
-            * effects["food_yield_mult"]
-        )
+            self.allocation["foragers"] * FOOD_PER_FORAGER
+            + self.allocation["farmers"] * FOOD_PER_FARMER * farm_bonus
+        ) * tool_factor * self.land_health * effects["food_yield_mult"]
         materials_gathered = (
             self.allocation["gatherers"]
             * MATERIALS_PER_GATHERER
@@ -375,9 +468,21 @@ class CityState:
         self.fed_fraction = fed_fraction
 
         # 6. Spoilage — food beyond what the settlement can store is lost.
+        #    Agrarian+ (Milestone 8): some of what would spoil is preserved
+        #    as trade-ready `surplus` instead, rather than pure waste — see
+        #    the SURPLUS_CONVERSION_RATE note above. Either way, everything
+        #    beyond storage_capacity leaves `food`; only where it goes
+        #    (lost vs. banked) differs by era.
         storage_capacity = self.food_storage_capacity(effects)
-        spoiled = max(0.0, self.resources["food"] - storage_capacity)
-        self.resources["food"] -= spoiled
+        would_spoil = max(0.0, self.resources["food"] - storage_capacity)
+        if era_index(self.era) >= era_index("agrarian"):
+            conversion_rate = min(1.0, SURPLUS_CONVERSION_RATE + effects["surplus_conversion_bonus"])
+            surplus_banked = would_spoil * conversion_rate
+        else:
+            surplus_banked = 0.0
+        spoiled = would_spoil - surplus_banked
+        self.resources["food"] -= would_spoil
+        self.resources["surplus"] += surplus_banked
 
         # 7. Population. Starvation kills; surplus plus housing headroom grows.
         births = 0
@@ -423,6 +528,7 @@ class CityState:
             "food_consumed": consumed,
             "fed_fraction": fed_fraction,
             "spoiled": spoiled,
+            "surplus_banked": surplus_banked,
             "births": births,
             "deaths": deaths,
             "extraction": extraction,

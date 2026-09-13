@@ -106,8 +106,35 @@ def livability(state, effects=None):
     return _clamp(sum(values) / len(values))
 
 
+# --- Agrarian+ : surplus hoarding (Milestone 8) --------------------------
+# continuum-real-world-sources.md's Agrarian sources are explicit that
+# surplus is what created the first social hierarchies and property
+# accumulation (the TxWes Pressbooks source), so once a settlement can
+# actually accumulate `surplus` at all, banking a lot of it per person
+# costs equity here too — the same real-world link the era's own info
+# panel cites. Ratio-based like everything else in this file: surplus PER
+# CAPITA against a fixed "fair share" line, capped at 1, so a bigger
+# settlement isn't penalised just for having a bigger raw number of it.
+SURPLUS_FAIR_SHARE = 20.0  # surplus-per-capita above this reads as "hoarded"
+SURPLUS_HOARDING_PENALTY_WEIGHT = 0.3  # max equity knocked off at full pressure
+
+
+def _surplus_hoarding_penalty(state):
+    """0..SURPLUS_HOARDING_PENALTY_WEIGHT — zero for any era before
+    Agrarian, so every pre-Milestone-8 Tribal-era equity() result is
+    unchanged by this function's mere existence."""
+    if sim.era_index(state.era) < sim.era_index("agrarian"):
+        return 0.0
+    if state.population <= 0:
+        return 0.0
+    per_capita = state.resources.get("surplus", 0.0) / state.population
+    pressure = _clamp(per_capita / SURPLUS_FAIR_SHARE)
+    return pressure * SURPLUS_HOARDING_PENALTY_WEIGHT
+
+
 def equity(state, effects=None):
-    """Bounded by the least-met need, then penalised for lopsidedness.
+    """Bounded by the least-met need, then penalised for lopsidedness (and,
+    from the Agrarian era on, for hoarding surplus per capita).
 
     Using the minimum rather than the mean is the whole point: a need met
     for 40% of people means 60% of people go without, and no amount of
@@ -118,6 +145,7 @@ def equity(state, effects=None):
     worst = min(values)
     spread = max(values) - worst
     base = worst * (1.0 - EQUITY_SPREAD_PENALTY * spread)
+    base -= _surplus_hoarding_penalty(state)
     return _clamp(base + effects["equity_bonus"])
 
 

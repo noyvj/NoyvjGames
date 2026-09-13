@@ -320,13 +320,19 @@ def test_role_and_building_names_and_blurbs_render_from_sims_tables(game_env):
     intended source of truth for this text (see sim.py); index.html used to
     hard-code the identical strings as static markup instead of reading
     them. render() should be the single place this text comes from, the
-    same way the research panel already reads research.BRANCH_LABEL."""
+    same way the research panel already reads research.BRANCH_LABEL.
+
+    Only roles/buildings the settlement has actually reached are rendered
+    at all (Milestone 8 made the Work/Build panels era-aware) — a fresh
+    game is still Tribal, so this only covers sim.roles_for_era("tribal"),
+    not the full sim.ROLES list a later era would add to."""
     import sim
 
-    for role in sim.ROLES:
+    state = game_env.state
+    for role in sim.roles_for_era(state.era):
         assert game_env.elements[f"{role}-name"].innerText == sim.ROLE_LABEL[role]
         assert game_env.elements[f"{role}-blurb"].innerText == sim.ROLE_BLURB[role]
-    for building in sim.BUILDINGS:
+    for building in sim.buildings_for_era(state.era):
         assert game_env.elements[f"{building}-name"].innerText == sim.BUILDING_LABEL[building]
         assert game_env.elements[f"{building}-blurb"].innerText == sim.BUILDING_BLURB[building]
 
