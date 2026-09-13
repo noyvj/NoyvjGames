@@ -1558,6 +1558,14 @@ review_score = {"correct": 0, "total": 0}
 review_choice_proxies = []
 REVIEW_RNG = random.Random()
 
+# Milestone 26: the report buttons, extended here from the main practice
+# panel only (see that milestone's build note -- requested directly after
+# Milestone 11 had explicitly scoped them out). Same session-only posture as
+# everything else in this block.
+review_submitted_answer = None
+review_report_sent = False
+review_pronunciation_report_sent = False
+
 
 def _destroy_review_choice_proxies():
     for proxy in review_choice_proxies:
@@ -1584,6 +1592,12 @@ proficiency_result = None
 proficiency_score = {"correct": 0, "total": 0}
 proficiency_topic_scores = {}  # topic_id -> {"title", "correct", "total"}
 proficiency_choice_proxies = []
+
+# Milestone 26: same report-button extension as Review, see that milestone's
+# build note.
+proficiency_submitted_answer = None
+proficiency_report_sent = False
+proficiency_pronunciation_report_sent = False
 
 
 def _destroy_proficiency_choice_proxies():
@@ -1619,6 +1633,23 @@ bonus_score = {"correct": 0, "total": 0}  # every checkable step, this session
 BONUS_ORDER_CORRECT = "That's the right order."
 BONUS_ORDER_INCORRECT = "Not quite — the sentence is: {sentence}"
 BONUS_SUMMARY_MESSAGE = "Bonus section complete — {correct}/{total} correct."
+
+# Milestone 26: report buttons for tasks 2 and 3 (both always typed). Task 1
+# (tile ordering) has no typed answer, so it gets neither -- same rule that
+# already keeps a wrong multiple-choice pick in the main panel report-free.
+# Bonus sentences aren't plot-backed (they're hand-authored, §14.6), so their
+# reports use their own item-id/topic-type scheme rather than the
+# plot-lookup one the farm/Review/Proficiency questions share -- see
+# BONUS_TILE_REPORT_TOPIC_TYPE / BONUS_SENTENCE_REPORT_TOPIC_TYPE below.
+BONUS_TILE_REPORT_TOPIC_TYPE = "bonus_tile"
+BONUS_SENTENCE_REPORT_TOPIC_TYPE = "bonus_sentence"
+
+bonus_tile_submitted_answer = None
+bonus_tile_report_sent = False
+bonus_tile_pronunciation_report_sent = False
+bonus_sentence_submitted_answer = None
+bonus_sentence_report_sent = False
+bonus_sentence_pronunciation_report_sent = False
 
 
 def _element(element_id):
@@ -2571,6 +2602,53 @@ def close_practice(event=None):
     render()
 
 
+def _typed_wrong_report_payload(question, submitted_answer):
+    """Shared §14.2.4 payload shape behind every mode's own "I think this
+    should count" report button. Originally just `_report_payload()`'s own
+    body; factored out at Milestone 26 once Review, Proficiency, and Bonus's
+    tile/sentence tasks all needed the identical shape for a plot-backed
+    `question` dict (one produced by `generate_question()`, carrying its own
+    "plot_id"/"topic_type"/"answer"). Bonus's hand-authored sentences aren't
+    plot-backed, so Bonus builds its payload directly instead of calling
+    this — see `_bonus_tile_report_payload()`/`_bonus_sentence_report_payload()`.
+    The caller is responsible for the "answered, wrong, typed" gate; that
+    part differs in variable name per mode, not in meaning."""
+    accepted = _lookup_accepted(question) or []
+    marked_correct_answer = [question["answer"]]
+    for alt in accepted:
+        if alt not in marked_correct_answer:
+            marked_correct_answer.append(alt)
+    return {
+        "game_id": REPORT_GAME_ID,
+        "item_id": question["plot_id"],
+        "submitted_answer": submitted_answer or "",
+        "marked_correct_answer": marked_correct_answer,
+        "topic_type": question["topic_type"],
+    }
+
+
+def _plot_pronunciation_report_payload(question):
+    """Shared Milestone 24 payload shape for a plot-backed question — the
+    main practice panel, Review, and Proficiency all generate their
+    questions from a real plot via `generate_question()`. Bonus's
+    hand-authored sentences aren't plot-backed, so Bonus builds its own
+    version instead of calling this one (see
+    `_bonus_tile_pronunciation_report_payload()`/
+    `_bonus_sentence_pronunciation_report_payload()`)."""
+    if question is None:
+        return None
+    plot = state.plots_by_id.get(question.get("plot_id"))
+    if plot is None:
+        return None
+    return {
+        "game_id": REPORT_GAME_ID,
+        "item_id": question["plot_id"],
+        "submitted_answer": PRONUNCIATION_REPORT_MARKER,
+        "marked_correct_answer": [plot.items[0]["fr"]],
+        "topic_type": PRONUNCIATION_REPORT_TOPIC_TYPE,
+    }
+
+
 def _report_payload():
     """The §14.2.4 payload for the currently-open question, or None if
     there's nothing to report (no question, not yet answered, or answered
@@ -2582,18 +2660,7 @@ def _report_payload():
         return None
     if current_question["mode"] != "typed":
         return None
-    accepted = _lookup_accepted(current_question) or []
-    marked_correct_answer = [current_question["answer"]]
-    for alt in accepted:
-        if alt not in marked_correct_answer:
-            marked_correct_answer.append(alt)
-    return {
-        "game_id": REPORT_GAME_ID,
-        "item_id": current_question["plot_id"],
-        "submitted_answer": current_submitted_answer or "",
-        "marked_correct_answer": marked_correct_answer,
-        "topic_type": current_question["topic_type"],
-    }
+    return _typed_wrong_report_payload(current_question, current_submitted_answer)
 
 
 def _dispatch_report(payload):
@@ -2634,18 +2701,7 @@ def _pronunciation_report_payload():
     doesn't care whether the answer was right or wrong, typed or chosen --
     a pronunciation concern is about the catalog text itself, not about how
     this particular attempt went."""
-    if current_question is None:
-        return None
-    plot = state.plots_by_id.get(current_question["plot_id"])
-    if plot is None:
-        return None
-    return {
-        "game_id": REPORT_GAME_ID,
-        "item_id": current_question["plot_id"],
-        "submitted_answer": PRONUNCIATION_REPORT_MARKER,
-        "marked_correct_answer": [plot.items[0]["fr"]],
-        "topic_type": PRONUNCIATION_REPORT_TOPIC_TYPE,
-    }
+    return _plot_pronunciation_report_payload(current_question)
 
 
 def submit_pronunciation_report(event=None):
@@ -2800,6 +2856,14 @@ def _review_variant_for(plot, mode):
 
 def _advance_review_question():
     global review_question, review_result
+    global review_submitted_answer, review_report_sent, review_pronunciation_report_sent
+
+    # Both report flags and the submitted-answer text are per-question, so
+    # every path onto a new question (a fresh session via start_review(), or
+    # next_review_question() mid-session) resets them here in one place.
+    review_submitted_answer = None
+    review_report_sent = False
+    review_pronunciation_report_sent = False
 
     if review_index >= len(review_queue):
         review_question = None
@@ -2832,11 +2896,12 @@ def start_review(mode, event=None):
 
 
 def submit_review_answer(given):
-    global review_result, review_score
+    global review_result, review_score, review_submitted_answer
 
     if review_question is None or review_result is not None:
         return None
     typed_mode = review_question["mode"] == "typed"
+    review_submitted_answer = str(given).strip() if typed_mode else given
     tier = grading_tier(review_question["answer"]) if typed_mode else None
     review_result = check_answer(
         review_question, given, tier=tier, accent_sensitive=ACCENT_SENSITIVE
@@ -2865,6 +2930,7 @@ def next_review_question(event=None):
 
 def close_review(event=None):
     global review_mode, review_queue, review_index, review_question, review_result, review_score
+    global review_submitted_answer, review_report_sent, review_pronunciation_report_sent
 
     review_mode = None
     review_queue = []
@@ -2872,7 +2938,61 @@ def close_review(event=None):
     review_question = None
     review_result = None
     review_score = {"correct": 0, "total": 0}
+    review_submitted_answer = None
+    review_report_sent = False
+    review_pronunciation_report_sent = False
     render()
+
+
+# --- Milestone 26: report buttons, extended into Review --------------------
+#
+# Same two mechanisms as the main practice panel (Milestone 9's correctness
+# report, Milestone 24's pronunciation-concern report), reusing the exact
+# same backend contract and `_dispatch_report()` sender — just reading from
+# Review's own `review_question`/`review_result`/`review_submitted_answer`
+# instead of the main panel's `current_*` globals. See CLAUDE.md's
+# Milestone 26 build note for why this was originally scoped out (Milestone
+# 11) and why that scope call was revisited.
+
+
+def _review_report_payload():
+    if review_question is None or review_result is not False:
+        return None
+    if review_question["mode"] != "typed":
+        return None
+    return _typed_wrong_report_payload(review_question, review_submitted_answer)
+
+
+def submit_review_report(event=None):
+    global review_report_sent
+
+    if review_report_sent:
+        return None
+    payload = _review_report_payload()
+    if payload is None:
+        return None
+    review_report_sent = True
+    _dispatch_report(payload)
+    render()
+    return payload
+
+
+def _review_pronunciation_report_payload():
+    return _plot_pronunciation_report_payload(review_question)
+
+
+def submit_review_pronunciation_report(event=None):
+    global review_pronunciation_report_sent
+
+    if review_pronunciation_report_sent:
+        return None
+    payload = _review_pronunciation_report_payload()
+    if payload is None:
+        return None
+    review_pronunciation_report_sent = True
+    _dispatch_report(payload)
+    render()
+    return payload
 
 
 def on_toggle_review(event=None):
@@ -2921,10 +3041,14 @@ def render_review():
         empty_message.hidden = True
         summary.hidden = True
         choices_box.innerHTML = ""
+        _element("review-report-button").hidden = True
+        _element("review-pronunciation-report-button").hidden = True
         return
 
     if review_question is None:
         choices_box.innerHTML = ""
+        _element("review-report-button").hidden = True
+        _element("review-pronunciation-report-button").hidden = True
         if not review_queue and review_score["total"] == 0:
             # Session started, but nothing matched the filters.
             panel.hidden = True
@@ -2993,6 +3117,26 @@ def render_review():
         _element("review-feedback").innerText = template.format(answer=review_question["answer"])
     else:
         _element("review-feedback").innerText = ""
+
+    # Milestone 26: same gating as the main practice panel's own two report
+    # buttons -- correctness report only for a wrong typed answer,
+    # pronunciation-concern report available the whole time a question is
+    # open, regardless of right/wrong or typed/choice.
+    report_button = _element("review-report-button")
+    show_report = answered and review_result is False and review_question["mode"] == "typed"
+    report_button.hidden = not show_report
+    if show_report:
+        report_button.disabled = review_report_sent
+        report_button.innerText = REPORT_SENT_LABEL if review_report_sent else REPORT_BUTTON_LABEL
+
+    pronunciation_button = _element("review-pronunciation-report-button")
+    pronunciation_button.hidden = False
+    pronunciation_button.disabled = review_pronunciation_report_sent
+    pronunciation_button.innerText = (
+        PRONUNCIATION_REPORT_SENT_LABEL
+        if review_pronunciation_report_sent
+        else PRONUNCIATION_REPORT_BUTTON_LABEL
+    )
 
 
 def on_toggle_accent_sensitivity(event=None):
@@ -3086,6 +3230,7 @@ def build_proficiency_test(sequence, rng=None, length=PROFICIENCY_TEST_LENGTH):
 def start_proficiency_test(sequence, event=None):
     global proficiency_mode, proficiency_sequence, proficiency_questions
     global proficiency_index, proficiency_result, proficiency_score, proficiency_topic_scores
+    global proficiency_submitted_answer, proficiency_report_sent, proficiency_pronunciation_report_sent
 
     if not is_proficiency_test_available(sequence):
         return None
@@ -3100,19 +3245,23 @@ def start_proficiency_test(sequence, event=None):
         for topic in proficiency_test_topics(sequence)
     }
     proficiency_mode = True
+    proficiency_submitted_answer = None
+    proficiency_report_sent = False
+    proficiency_pronunciation_report_sent = False
     _element("proficiency-answer-input").value = ""
     render()
     return proficiency_questions
 
 
 def submit_proficiency_answer(given):
-    global proficiency_result, proficiency_score
+    global proficiency_result, proficiency_score, proficiency_submitted_answer
 
     if proficiency_index >= len(proficiency_questions) or proficiency_result is not None:
         return None
     entry = proficiency_questions[proficiency_index]
     question = entry["question"]
     typed_mode = question["mode"] == "typed"
+    proficiency_submitted_answer = str(given).strip() if typed_mode else given
     tier = grading_tier(question["answer"]) if typed_mode else None
     proficiency_result = check_answer(
         question, given, tier=tier, accent_sensitive=ACCENT_SENSITIVE
@@ -3129,11 +3278,15 @@ def submit_proficiency_answer(given):
 
 def next_proficiency_question(event=None):
     global proficiency_index, proficiency_result
+    global proficiency_submitted_answer, proficiency_report_sent, proficiency_pronunciation_report_sent
 
     if not proficiency_mode:
         return None
     proficiency_index += 1
     proficiency_result = None
+    proficiency_submitted_answer = None
+    proficiency_report_sent = False
+    proficiency_pronunciation_report_sent = False
     _element("proficiency-answer-input").value = ""
     render()
     return proficiency_index
@@ -3142,6 +3295,7 @@ def next_proficiency_question(event=None):
 def close_proficiency_test(event=None):
     global proficiency_mode, proficiency_sequence, proficiency_questions
     global proficiency_index, proficiency_result, proficiency_score, proficiency_topic_scores
+    global proficiency_submitted_answer, proficiency_report_sent, proficiency_pronunciation_report_sent
 
     proficiency_mode = False
     proficiency_sequence = None
@@ -3150,7 +3304,65 @@ def close_proficiency_test(event=None):
     proficiency_result = None
     proficiency_score = {"correct": 0, "total": 0}
     proficiency_topic_scores = {}
+    proficiency_submitted_answer = None
+    proficiency_report_sent = False
+    proficiency_pronunciation_report_sent = False
     render()
+
+
+def _current_proficiency_question():
+    if proficiency_index >= len(proficiency_questions):
+        return None
+    return proficiency_questions[proficiency_index]["question"]
+
+
+# --- Milestone 26: report buttons, extended into Proficiency ---------------
+#
+# Same reasoning and mechanism as Review's own copy above -- Proficiency's
+# questions come from generate_question() the same way Review's do, so they
+# carry the same "plot_id"/"topic_type" shape _typed_wrong_report_payload()/
+# _plot_pronunciation_report_payload() already expect.
+
+
+def _proficiency_report_payload():
+    question = _current_proficiency_question()
+    if question is None or proficiency_result is not False:
+        return None
+    if question["mode"] != "typed":
+        return None
+    return _typed_wrong_report_payload(question, proficiency_submitted_answer)
+
+
+def submit_proficiency_report(event=None):
+    global proficiency_report_sent
+
+    if proficiency_report_sent:
+        return None
+    payload = _proficiency_report_payload()
+    if payload is None:
+        return None
+    proficiency_report_sent = True
+    _dispatch_report(payload)
+    render()
+    return payload
+
+
+def _proficiency_pronunciation_report_payload():
+    return _plot_pronunciation_report_payload(_current_proficiency_question())
+
+
+def submit_proficiency_pronunciation_report(event=None):
+    global proficiency_pronunciation_report_sent
+
+    if proficiency_pronunciation_report_sent:
+        return None
+    payload = _proficiency_pronunciation_report_payload()
+    if payload is None:
+        return None
+    proficiency_pronunciation_report_sent = True
+    _dispatch_report(payload)
+    render()
+    return payload
 
 
 def _make_proficiency_choice_handler(choice):
@@ -3178,6 +3390,8 @@ def render_proficiency():
     if not proficiency_mode:
         panel.hidden = True
         choices_box.innerHTML = ""
+        _element("proficiency-report-button").hidden = True
+        _element("proficiency-pronunciation-report-button").hidden = True
         return
 
     panel.hidden = False
@@ -3204,6 +3418,8 @@ def render_proficiency():
         _element("proficiency-submit-button").hidden = True
         _element("proficiency-next-button").hidden = True
         _element("proficiency-feedback").innerText = ""
+        _element("proficiency-report-button").hidden = True
+        _element("proficiency-pronunciation-report-button").hidden = True
         return
 
     summary.hidden = True
@@ -3256,6 +3472,26 @@ def render_proficiency():
     else:
         _element("proficiency-feedback").innerText = ""
 
+    # Milestone 26: same two-button pattern as the main practice panel and
+    # Review, above.
+    report_button = _element("proficiency-report-button")
+    show_report = answered and proficiency_result is False and question["mode"] == "typed"
+    report_button.hidden = not show_report
+    if show_report:
+        report_button.disabled = proficiency_report_sent
+        report_button.innerText = (
+            REPORT_SENT_LABEL if proficiency_report_sent else REPORT_BUTTON_LABEL
+        )
+
+    pronunciation_button = _element("proficiency-pronunciation-report-button")
+    pronunciation_button.hidden = False
+    pronunciation_button.disabled = proficiency_pronunciation_report_sent
+    pronunciation_button.innerText = (
+        PRONUNCIATION_REPORT_SENT_LABEL
+        if proficiency_pronunciation_report_sent
+        else PRONUNCIATION_REPORT_BUTTON_LABEL
+    )
+
 
 # ===========================================================================
 # Milestone 13 — bonus sentence-building sections (design doc §14.6)
@@ -3304,6 +3540,9 @@ def _begin_bonus_sentence():
     session out if the queue is exhausted)."""
     global bonus_task, bonus_tile_pool, bonus_placed, bonus_order_correct
     global bonus_tile_index, bonus_tile_result, bonus_tile_score, bonus_sentence_result
+    global bonus_tile_submitted_answer, bonus_tile_report_sent, bonus_tile_pronunciation_report_sent
+    global bonus_sentence_submitted_answer, bonus_sentence_report_sent
+    global bonus_sentence_pronunciation_report_sent
 
     sentence = _current_bonus_sentence()
     bonus_placed = []
@@ -3312,6 +3551,16 @@ def _begin_bonus_sentence():
     bonus_tile_result = None
     bonus_tile_score = {"correct": 0, "total": 0}
     bonus_sentence_result = None
+    # Both tasks' report state (correctness report + pronunciation report,
+    # Milestone 26) is per-sentence just like the typed-answer inputs below,
+    # so it's reset here in the same shared spot rather than separately at
+    # each task's own entry point.
+    bonus_tile_submitted_answer = None
+    bonus_tile_report_sent = False
+    bonus_tile_pronunciation_report_sent = False
+    bonus_sentence_submitted_answer = None
+    bonus_sentence_report_sent = False
+    bonus_sentence_pronunciation_report_sent = False
     # A fresh sentence starts at the "order" task, but both typed-answer
     # inputs further along (task 2's tile box, task 3's sentence box) can
     # still be holding text from a *previous* sentence's session — cleared
@@ -3388,7 +3637,7 @@ def advance_from_order(event=None):
 def submit_bonus_tile_translation(given):
     """Task 2, one tile at a time, in the sentence's real order. STRICT by
     explicit task assignment (§14.6) — not decided by grading_tier()."""
-    global bonus_tile_result, bonus_tile_score, bonus_score
+    global bonus_tile_result, bonus_tile_score, bonus_score, bonus_tile_submitted_answer
 
     if bonus_task != "translate_tiles" or bonus_tile_result is not None:
         return None
@@ -3396,6 +3645,7 @@ def submit_bonus_tile_translation(given):
     if sentence is None or bonus_tile_index >= len(sentence["tiles"]):
         return None
     tile = sentence["tiles"][bonus_tile_index]
+    bonus_tile_submitted_answer = str(given).strip()
     question = {"mode": "typed", "answer": tile["en"], "choices": []}
     bonus_tile_result = check_answer(
         question, given, tier=TIER_STRICT, accent_sensitive=ACCENT_SENSITIVE
@@ -3413,12 +3663,16 @@ def next_bonus_tile(event=None):
     """Advance to the next tile, or into task 3 once every tile has been
     translated."""
     global bonus_tile_index, bonus_tile_result, bonus_task
+    global bonus_tile_submitted_answer, bonus_tile_report_sent, bonus_tile_pronunciation_report_sent
 
     if bonus_task != "translate_tiles":
         return None
     sentence = _current_bonus_sentence()
     bonus_tile_index += 1
     bonus_tile_result = None
+    bonus_tile_submitted_answer = None
+    bonus_tile_report_sent = False
+    bonus_tile_pronunciation_report_sent = False
     _element("bonus-tile-answer-input").value = ""
     if sentence is None or bonus_tile_index >= len(sentence["tiles"]):
         bonus_task = "translate_sentence"
@@ -3428,13 +3682,14 @@ def next_bonus_tile(event=None):
 def submit_bonus_sentence_translation(given):
     """Task 3: the whole sentence, LENIENT — explicit task assignment (§14.6),
     same reasoning as task 2's STRICT."""
-    global bonus_sentence_result, bonus_score
+    global bonus_sentence_result, bonus_score, bonus_sentence_submitted_answer
 
     if bonus_task != "translate_sentence" or bonus_sentence_result is not None:
         return None
     sentence = _current_bonus_sentence()
     if sentence is None:
         return None
+    bonus_sentence_submitted_answer = str(given).strip()
     question = {"mode": "typed", "answer": sentence["en"], "choices": []}
     bonus_sentence_result = check_answer(
         question, given, tier=TIER_LENIENT, accent_sensitive=ACCENT_SENSITIVE
@@ -3463,6 +3718,9 @@ def close_bonus_section(event=None):
     global bonus_tile_pool, bonus_placed, bonus_order_correct
     global bonus_tile_index, bonus_tile_result, bonus_tile_score
     global bonus_sentence_result, bonus_score
+    global bonus_tile_submitted_answer, bonus_tile_report_sent, bonus_tile_pronunciation_report_sent
+    global bonus_sentence_submitted_answer, bonus_sentence_report_sent
+    global bonus_sentence_pronunciation_report_sent
 
     bonus_mode = False
     bonus_sequence = None
@@ -3477,7 +3735,145 @@ def close_bonus_section(event=None):
     bonus_tile_score = {"correct": 0, "total": 0}
     bonus_sentence_result = None
     bonus_score = {"correct": 0, "total": 0}
+    bonus_tile_submitted_answer = None
+    bonus_tile_report_sent = False
+    bonus_tile_pronunciation_report_sent = False
+    bonus_sentence_submitted_answer = None
+    bonus_sentence_report_sent = False
+    bonus_sentence_pronunciation_report_sent = False
     render()
+
+
+# --- Milestone 26: report buttons, extended into Bonus's tasks 2 and 3 -----
+#
+# Task 1 (tile ordering) has no typed answer and gets neither button, same
+# rule that already keeps a wrong multiple-choice pick report-free elsewhere.
+# Bonus sentences are hand-authored (§14.6), not plot-backed, so these build
+# their own payload shape rather than calling `_typed_wrong_report_payload()`/
+# `_plot_pronunciation_report_payload()` — there is no plot or catalog item
+# behind a bonus sentence for those to look up. `item_id` instead names the
+# sentence (and, for a tile, which tile within it); `topic_type` is a fixed
+# marker (`BONUS_TILE_REPORT_TOPIC_TYPE`/`BONUS_SENTENCE_REPORT_TOPIC_TYPE`)
+# so a human triaging the queue can tell these apart from plot-backed reports,
+# same idea as Milestone 24's "pronunciation" topic_type marker.
+
+
+def _bonus_tile_report_payload():
+    if bonus_task != "translate_tiles" or bonus_tile_result is not False:
+        return None
+    sentence = _current_bonus_sentence()
+    if sentence is None or bonus_tile_index >= len(sentence["tiles"]):
+        return None
+    tile = sentence["tiles"][bonus_tile_index]
+    return {
+        "game_id": REPORT_GAME_ID,
+        "item_id": f"{sentence['id']}-tile-{bonus_tile_index}",
+        "submitted_answer": bonus_tile_submitted_answer or "",
+        "marked_correct_answer": generate_accepted_variants(tile["en"]),
+        "topic_type": BONUS_TILE_REPORT_TOPIC_TYPE,
+    }
+
+
+def submit_bonus_tile_report(event=None):
+    global bonus_tile_report_sent
+
+    if bonus_tile_report_sent:
+        return None
+    payload = _bonus_tile_report_payload()
+    if payload is None:
+        return None
+    bonus_tile_report_sent = True
+    _dispatch_report(payload)
+    render()
+    return payload
+
+
+def _bonus_tile_pronunciation_report_payload():
+    if bonus_task != "translate_tiles":
+        return None
+    sentence = _current_bonus_sentence()
+    if sentence is None or bonus_tile_index >= len(sentence["tiles"]):
+        return None
+    tile = sentence["tiles"][bonus_tile_index]
+    return {
+        "game_id": REPORT_GAME_ID,
+        "item_id": f"{sentence['id']}-tile-{bonus_tile_index}",
+        "submitted_answer": PRONUNCIATION_REPORT_MARKER,
+        "marked_correct_answer": [tile["fr"]],
+        "topic_type": PRONUNCIATION_REPORT_TOPIC_TYPE,
+    }
+
+
+def submit_bonus_tile_pronunciation_report(event=None):
+    global bonus_tile_pronunciation_report_sent
+
+    if bonus_tile_pronunciation_report_sent:
+        return None
+    payload = _bonus_tile_pronunciation_report_payload()
+    if payload is None:
+        return None
+    bonus_tile_pronunciation_report_sent = True
+    _dispatch_report(payload)
+    render()
+    return payload
+
+
+def _bonus_sentence_report_payload():
+    if bonus_task != "translate_sentence" or bonus_sentence_result is not False:
+        return None
+    sentence = _current_bonus_sentence()
+    if sentence is None:
+        return None
+    return {
+        "game_id": REPORT_GAME_ID,
+        "item_id": sentence["id"],
+        "submitted_answer": bonus_sentence_submitted_answer or "",
+        "marked_correct_answer": generate_accepted_variants(sentence["en"]),
+        "topic_type": BONUS_SENTENCE_REPORT_TOPIC_TYPE,
+    }
+
+
+def submit_bonus_sentence_report(event=None):
+    global bonus_sentence_report_sent
+
+    if bonus_sentence_report_sent:
+        return None
+    payload = _bonus_sentence_report_payload()
+    if payload is None:
+        return None
+    bonus_sentence_report_sent = True
+    _dispatch_report(payload)
+    render()
+    return payload
+
+
+def _bonus_sentence_pronunciation_report_payload():
+    if bonus_task != "translate_sentence":
+        return None
+    sentence = _current_bonus_sentence()
+    if sentence is None:
+        return None
+    return {
+        "game_id": REPORT_GAME_ID,
+        "item_id": sentence["id"],
+        "submitted_answer": PRONUNCIATION_REPORT_MARKER,
+        "marked_correct_answer": [sentence["fr"]],
+        "topic_type": PRONUNCIATION_REPORT_TOPIC_TYPE,
+    }
+
+
+def submit_bonus_sentence_pronunciation_report(event=None):
+    global bonus_sentence_pronunciation_report_sent
+
+    if bonus_sentence_pronunciation_report_sent:
+        return None
+    payload = _bonus_sentence_pronunciation_report_payload()
+    if payload is None:
+        return None
+    bonus_sentence_pronunciation_report_sent = True
+    _dispatch_report(payload)
+    render()
+    return payload
 
 
 def _make_bonus_pool_handler(index):
@@ -3517,6 +3913,10 @@ def render_bonus():
         panel.hidden = True
         pool_box.innerHTML = ""
         placed_box.innerHTML = ""
+        _element("bonus-tile-report-button").hidden = True
+        _element("bonus-tile-pronunciation-report-button").hidden = True
+        _element("bonus-sentence-report-button").hidden = True
+        _element("bonus-sentence-pronunciation-report-button").hidden = True
         return
 
     panel.hidden = False
@@ -3536,6 +3936,10 @@ def render_bonus():
         summary.innerText = BONUS_SUMMARY_MESSAGE.format(**bonus_score)
         pool_box.innerHTML = ""
         placed_box.innerHTML = ""
+        _element("bonus-tile-report-button").hidden = True
+        _element("bonus-tile-pronunciation-report-button").hidden = True
+        _element("bonus-sentence-report-button").hidden = True
+        _element("bonus-sentence-pronunciation-report-button").hidden = True
         return
 
     summary.hidden = True
@@ -3573,6 +3977,13 @@ def render_bonus():
             feedback.innerText = BONUS_ORDER_CORRECT if bonus_order_correct else (
                 BONUS_ORDER_INCORRECT.format(sentence=sentence["fr"])
             )
+        # Task 1 has no typed answer, so neither report button ever applies
+        # to it -- same rule that keeps a wrong multiple-choice pick
+        # report-free everywhere else.
+        _element("bonus-tile-report-button").hidden = True
+        _element("bonus-tile-pronunciation-report-button").hidden = True
+        _element("bonus-sentence-report-button").hidden = True
+        _element("bonus-sentence-pronunciation-report-button").hidden = True
         return
 
     pool_box.innerHTML = ""
@@ -3604,6 +4015,26 @@ def render_bonus():
             feedback.innerText = template.format(answer=tile["en"])
         else:
             feedback.innerText = ""
+
+        # Milestone 26: same two-button pattern as the main practice panel.
+        report_button = _element("bonus-tile-report-button")
+        show_report = answered and bonus_tile_result is False
+        report_button.hidden = not show_report
+        if show_report:
+            report_button.disabled = bonus_tile_report_sent
+            report_button.innerText = (
+                REPORT_SENT_LABEL if bonus_tile_report_sent else REPORT_BUTTON_LABEL
+            )
+        pronunciation_button = _element("bonus-tile-pronunciation-report-button")
+        pronunciation_button.hidden = False
+        pronunciation_button.disabled = bonus_tile_pronunciation_report_sent
+        pronunciation_button.innerText = (
+            PRONUNCIATION_REPORT_SENT_LABEL
+            if bonus_tile_pronunciation_report_sent
+            else PRONUNCIATION_REPORT_BUTTON_LABEL
+        )
+        _element("bonus-sentence-report-button").hidden = True
+        _element("bonus-sentence-pronunciation-report-button").hidden = True
         return
 
     if bonus_task == "translate_sentence":
@@ -3627,6 +4058,26 @@ def render_bonus():
             feedback.innerText = template.format(answer=sentence["en"])
         else:
             feedback.innerText = ""
+
+        # Milestone 26: same two-button pattern as the main practice panel.
+        _element("bonus-tile-report-button").hidden = True
+        _element("bonus-tile-pronunciation-report-button").hidden = True
+        report_button = _element("bonus-sentence-report-button")
+        show_report = answered and bonus_sentence_result is False
+        report_button.hidden = not show_report
+        if show_report:
+            report_button.disabled = bonus_sentence_report_sent
+            report_button.innerText = (
+                REPORT_SENT_LABEL if bonus_sentence_report_sent else REPORT_BUTTON_LABEL
+            )
+        pronunciation_button = _element("bonus-sentence-pronunciation-report-button")
+        pronunciation_button.hidden = False
+        pronunciation_button.disabled = bonus_sentence_pronunciation_report_sent
+        pronunciation_button.innerText = (
+            PRONUNCIATION_REPORT_SENT_LABEL
+            if bonus_sentence_pronunciation_report_sent
+            else PRONUNCIATION_REPORT_BUTTON_LABEL
+        )
 
 
 def setup():
@@ -3714,6 +4165,31 @@ def setup():
         "click", create_proxy(next_bonus_sentence)
     )
     _element("bonus-close-button").addEventListener("click", create_proxy(close_bonus_section))
+
+    # Milestone 26: report buttons, extended from the main practice panel
+    # into Review, Proficiency, and Bonus's tile/sentence tasks.
+    _element("review-report-button").addEventListener("click", create_proxy(submit_review_report))
+    _element("review-pronunciation-report-button").addEventListener(
+        "click", create_proxy(submit_review_pronunciation_report)
+    )
+    _element("proficiency-report-button").addEventListener(
+        "click", create_proxy(submit_proficiency_report)
+    )
+    _element("proficiency-pronunciation-report-button").addEventListener(
+        "click", create_proxy(submit_proficiency_pronunciation_report)
+    )
+    _element("bonus-tile-report-button").addEventListener(
+        "click", create_proxy(submit_bonus_tile_report)
+    )
+    _element("bonus-tile-pronunciation-report-button").addEventListener(
+        "click", create_proxy(submit_bonus_tile_pronunciation_report)
+    )
+    _element("bonus-sentence-report-button").addEventListener(
+        "click", create_proxy(submit_bonus_sentence_report)
+    )
+    _element("bonus-sentence-pronunciation-report-button").addEventListener(
+        "click", create_proxy(submit_bonus_sentence_pronunciation_report)
+    )
     render()
 
 
