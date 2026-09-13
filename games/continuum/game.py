@@ -128,6 +128,18 @@ def season_report_message(report):
             "pollution) — growth is slower for it, and it isn't doing the sustainability "
             "score any favors either."
         )
+    # Digital+ (Milestone 12): a second growth-adjacent narration line,
+    # deliberately worded differently from pollution's above -- sprawl
+    # doesn't slow growth directly, it makes the SAME extraction land
+    # harder on the land (see sim.py's SPRAWL_EXTRACTION_PENALTY_WEIGHT),
+    # which is what actually threatens growth if it pushes land health down
+    # far enough.
+    if report.get("sprawl", 0.0) > 0.3:
+        parts.append(
+            f"The settlement is spreading out faster than it's filling in ({report['sprawl'] * 100:.0f}% "
+            "sprawl) — the same production is leaning harder on the land for it, and it isn't "
+            "doing the sustainability score any favors either."
+        )
 
     return " ".join(parts)
 

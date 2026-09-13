@@ -307,12 +307,12 @@ def test_the_agrarian_era_has_nodes_in_both_of_its_tiers(game_env):
 
 def test_every_shipped_node_is_reachable_from_an_empty_tree(game_env):
     """No orphan content: playing well enough must be able to reach every
-    node this build ships (Tribal, Agrarian, Classical, Medieval and
-    Industrial, as of Milestone 11), or it may as well not be in the file.
-    Built with current_era="industrial" so era-gating itself doesn't hide
-    any node from this check — era-gating is exercised separately (see
-    test_era_gates_nodes_...)."""
-    tree = research.build_tree(current_era="industrial")
+    node this build ships (Tribal, Agrarian, Classical, Medieval,
+    Industrial and Digital, as of Milestone 12), or it may as well not be
+    in the file. Built with current_era="digital" so era-gating itself
+    doesn't hide any node from this check — era-gating is exercised
+    separately (see test_era_gates_nodes_...)."""
+    tree = research.build_tree(current_era="digital")
     resources = {"knowledge": 10_000.0}
 
     for _ in range(len(tree.nodes)):
@@ -326,9 +326,9 @@ def test_every_shipped_node_is_reachable_from_an_empty_tree(game_env):
 
 
 def test_the_shipped_tree_exercises_every_gating_mechanism(game_env):
-    """Tribal, Agrarian, Classical, Medieval and Industrial combined, as of
-    Milestone 11 -- small, but has to prove the engine end to end across
-    four era boundaries now."""
+    """Tribal, Agrarian, Classical, Medieval, Industrial and Digital
+    combined, as of Milestone 12 -- small, but has to prove the engine end
+    to end across five era boundaries now."""
     tree = research.build_tree()
     assert any(n.prerequisites for n in tree.nodes.values())
     assert any(n.min_affinity for n in tree.nodes.values())
@@ -339,6 +339,7 @@ def test_the_shipped_tree_exercises_every_gating_mechanism(game_env):
         + len(research.era_tiers("classical"))
         + len(research.era_tiers("medieval"))
         + len(research.era_tiers("industrial"))
+        + len(research.era_tiers("digital"))
     )
     assert len({n.tier for n in tree.nodes.values()}) == shipped_tiers
 

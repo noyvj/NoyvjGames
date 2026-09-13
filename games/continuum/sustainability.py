@@ -33,7 +33,10 @@ resource balance, resilience — not just raw growth"):
   pollution the settlement has let build up — see the Milestone 11 build
   notes in CLAUDE.md. Pollution is also the tree's first adjustment with a
   real GROWTH-side consequence, not only a score-side one (see
-  sim.CityState.advance_season()'s population step).
+  sim.CityState.advance_season()'s population step). Digital's own sprawl
+  mechanic also reaches growth through this same land-pressure pathway
+  (see sim.py's `SPRAWL_EXTRACTION_PENALTY_WEIGHT`), rather than adding a
+  second growth-rate lever next to pollution's.
 - **Resilience** — could it survive a bad season? Food buffer, tool stock,
   and how diversified the workforce is; from Classical on, whether the
   workforce has been hollowed out by overextending into administration;
@@ -41,6 +44,15 @@ resource balance, resilience — not just raw growth"):
   time to blunt a shock (flood, disease, fire) rather than just being
   lucky enough not to have hit one yet — see the Classical and Medieval
   build notes in CLAUDE.md.
+
+Digital (Milestone 12) also adds a score-side equity adjustment: sprawling,
+unmanaged growth is what continuum-real-world-sources.md's ECLAC source
+frames as leaving a portion of a growing city's population behind in
+slum-like conditions even as the city as a whole grows — an equity story
+(some people worse-served, not everyone equally) rather than a resource-
+balance one, so it sits in `equity()` alongside Agrarian's surplus-hoarding
+penalty rather than doubling up on `balance()`'s existing pollution/land
+adjustments. See the Milestone 12 build notes in CLAUDE.md.
 
 The four are weighted equally. That is a judgement call, not a finding;
 `COMPONENT_WEIGHTS` is the single place to revisit it.
@@ -141,9 +153,36 @@ def _surplus_hoarding_penalty(state):
     return pressure * SURPLUS_HOARDING_PENALTY_WEIGHT
 
 
+
+# --- Digital+ : urban sprawl's equity cost (Milestone 12) ----------------
+# continuum-real-world-sources.md's ECLAC source gives a concrete present-
+# day figure for exactly this: 1.1 billion people currently live in slum or
+# slum-like conditions even as cities overall keep growing -- growth that
+# outpaces planning doesn't land on everyone equally, it leaves a portion
+# of the population under-served while the city as a whole looks fine on
+# average. That's an equity question in this file's own terms (bounded by
+# the worst-off, not the mean), the same shape Agrarian's surplus-hoarding
+# penalty already uses, so this reuses `equity()` rather than opening a
+# fourth kind of adjustment. `state.sprawl` is already a 0..1 ratio-like
+# stock by construction (see sim.py's own build-up/decay model), the same
+# reason Industrial's pollution penalty didn't need extra ratio work either
+# -- doubling population changes nothing about this penalty on its own.
+URBAN_SPRAWL_PENALTY_WEIGHT = 0.25  # max equity knocked off at full (1.0) sprawl
+
+
+def _urban_sprawl_penalty(state):
+    """0..URBAN_SPRAWL_PENALTY_WEIGHT — zero for any era before Digital, so
+    every pre-Milestone-12 equity() result is unchanged by this function's
+    mere existence."""
+    if sim.era_index(state.era) < sim.era_index("digital"):
+        return 0.0
+    return _clamp(state.sprawl) * URBAN_SPRAWL_PENALTY_WEIGHT
+
+
 def equity(state, effects=None):
     """Bounded by the least-met need, then penalised for lopsidedness (and,
-    from the Agrarian era on, for hoarding surplus per capita).
+    from the Agrarian era on, for hoarding surplus per capita; from the
+    Digital era on, for letting unmanaged growth outpace planning).
 
     Using the minimum rather than the mean is the whole point: a need met
     for 40% of people means 60% of people go without, and no amount of
@@ -155,6 +194,7 @@ def equity(state, effects=None):
     spread = max(values) - worst
     base = worst * (1.0 - EQUITY_SPREAD_PENALTY * spread)
     base -= _surplus_hoarding_penalty(state)
+    base -= _urban_sprawl_penalty(state)
     return _clamp(base + effects["equity_bonus"])
 
 
