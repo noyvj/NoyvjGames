@@ -7,10 +7,11 @@ in this same directory — reference material to draw from, not text to dump
 wholesale into the game, same rule the climate quartet's research docs
 followed.
 
-"tribal", "agrarian", "classical" and "medieval" have real entries so far,
-matching `sim.IMPLEMENTED_ERAS`. Phase 3 adds one entry per remaining era
-as that era's content ships; nothing else in this file needs to change
-when it does; `era_info_page()` already handles an era with no entry yet.
+"tribal", "agrarian", "classical", "medieval" and "industrial" have real
+entries so far, matching `sim.IMPLEMENTED_ERAS`. Phase 3 adds one entry per
+remaining era as that era's content ships; nothing else in this file needs
+to change when it does; `era_info_page()` already handles an era with no
+entry yet.
 
 Kept as its own module rather than folded into game.py for two reasons:
 it is data, not DOM logic (matching the "dedicated engine modules, game.py
@@ -329,6 +330,86 @@ ERA_INFO_PAGE = {
                     "real self-governance — the real-world basis for the "
                     "Guildmasters role and for the community branch's "
                     "Municipal Charter / Free City Charter research nodes."
+                ),
+            },
+        ],
+    },
+    "industrial": {
+        "framing": (
+            "Industrial cities grew faster than anyone planned for them to "
+            "— 19th-century industrial growth reliably outpaced the "
+            "planning that was supposed to keep up with it, producing "
+            "slums and disease that only sanitation reform eventually "
+            "caught up with. The scale of that shift is hard to overstate: "
+            "global urban population rose from roughly 3% of the world in "
+            "1800 to nearly 50% by 2000. And the cost wasn't only a moral "
+            "one — rigorous economic research on coal-smoke pollution "
+            "during this era found it measurably reduced long-run city "
+            "growth, a real, provable brake on the very growth industry "
+            "was supposed to deliver."
+        ),
+        "mechanic_tie_in": (
+            "This is the first era where that tension is mechanical, not "
+            "just a number on the sustainability panel: Factory Workers "
+            "produce far more than a Gatherer ever could, but every one of "
+            "them adds to the settlement's pollution — and pollution "
+            "doesn't just cost sustainability score, it measurably slows "
+            "how fast the settlement can grow next season, the same "
+            "real-world link the Economic Journal source describes. "
+            "Sanitation Works doesn't touch production at all — like "
+            "Medieval's Public Works, it's built rather than staffed — but "
+            "it's the only thing that absorbs pollution once it exists, "
+            "the direct mechanical echo of sanitation reform arriving only "
+            "after industrial growth had already outpaced it."
+        ),
+        "sources": [
+            {
+                "label": "Britannica — \"Urban Planning: Industrialization, Infrastructure, Cities\"",
+                "url": "https://www.britannica.com/topic/urban-planning/The-era-of-industrialization",
+                "note": (
+                    "19th-century industrial growth outpacing planning, "
+                    "producing slums and disease before sanitation reform "
+                    "caught up — the real-world basis for Factory Workers "
+                    "outpacing Sanitation Works unless the settlement "
+                    "deliberately builds it."
+                ),
+            },
+            {
+                "label": (
+                    "The Economic Journal (Oxford Academic) — \"Coal Smoke, "
+                    "City Growth, and the Costs of the Industrial "
+                    "Revolution\""
+                ),
+                "url": "https://academic.oup.com/ej/article-abstract/130/626/462/5602598",
+                "note": (
+                    "Rigorous economic research showing industrial "
+                    "pollution measurably reduced long-run city growth — "
+                    "the direct real-world basis for pollution's growth-"
+                    "side penalty, not only its sustainability-score one."
+                ),
+            },
+            {
+                "label": "Sociology.Institute — \"The Evolution of Industrial Cities\"",
+                "url": "https://sociology.institute/urban-sociology/evolution-industrial-cities-work-urban-environment/",
+                "note": (
+                    "Global urban population rising from 3% (1800) to "
+                    "nearly 50% (2000) — the real scale this era's "
+                    "population thresholds and transition beat are meant "
+                    "to gesture at."
+                ),
+            },
+            {
+                "label": (
+                    "PMC — \"Bibliometric Analysis and Research Trend "
+                    "Forecast of Healthy Urban Planning for 40 Years\""
+                ),
+                "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8464861/",
+                "note": (
+                    "How modern urban planning as a discipline emerged "
+                    "directly in response to industrial-era public health "
+                    "crises — the real bridge from this era's Public "
+                    "Health Acts node into the Digital era's more "
+                    "formalized SDG 11 framing."
                 ),
             },
         ],
