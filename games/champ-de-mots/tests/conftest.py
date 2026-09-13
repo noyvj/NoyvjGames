@@ -42,6 +42,8 @@ ELEMENT_IDS = [
     "liaison-summary",
     "liaison-next-button",
     "liaison-close-button",
+    "achievements-toggle-button",
+    "achievements-panel",
     "practice-panel",
     "practice-confidence",
     "practice-confidence-sure-button",

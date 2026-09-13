@@ -971,6 +971,33 @@ button:disabled {
   color: #33291f;
 }
 
+/* --- achievements panel: reuses .dashboard-panel's card, own line
+   styles since "earned" and "next" read very differently from a plain
+   status line. */
+.achievement-heading {
+  margin: 0.75rem 0 0.35rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b5c46;
+  opacity: 0.85;
+}
+
+.achievement-earned {
+  margin: 0 0 0.2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #33291f;
+}
+
+.achievement-next,
+.achievement-empty {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #6b5c46;
+  font-style: italic;
+}
+
 /* --- choice tiles: warm paper cards instead of the cool glass
    buttons the rest of the page uses for buttons. */
 .choice {
