@@ -450,6 +450,7 @@ V_EXAMPLE_EN_FR = "example_en_to_fr"
 V_BLANK_WORD = "blank_word"
 V_BLANK_ENDING = "blank_ending"
 V_CONJUGATION_SWAP = "conjugation_swap"
+V_GENDER_TAG = "gender_tag"
 
 INSTRUCTIONS = {
     V_FR_EN_CHOICE: "Which English matches this?",
@@ -465,7 +466,21 @@ INSTRUCTIONS = {
     V_BLANK_WORD: "Fill the gap.",
     V_BLANK_ENDING: "Finish the ending.",
     V_CONJUGATION_SWAP: "Which form goes with this pronoun?",
+    V_GENDER_TAG: "Is it le or la?",
 }
+
+# Improvement Ideas addendum: gender-tagging drill -- masc/fem tested
+# separately from meaning. Only a noun whose own catalog text leads with an
+# unambiguous "le "/"la " article can be drilled this way -- an elided "l'"
+# doesn't reveal its gender at all, so those items are left out rather than
+# guessed at.
+GENDER_TAG_PATTERN = re.compile(r"^(le|la)\s+(\S.*)$")
+
+
+def gender_tag_parts(fr_text):
+    """(article, bare_noun) for an unambiguously gendered noun, else None."""
+    match = GENDER_TAG_PATTERN.match(fr_text)
+    return (match.group(1), match.group(2)) if match else None
 
 # The six-person set, plus the shared forms and reflexive/elided spellings the
 # catalog actually uses. Longest first so "il/elle/on" wins over "il".
@@ -804,6 +819,8 @@ def variants_for(plot, farm=None):
             variants.append(V_SYMBOL_NAME_CHOICE if phonetic else V_FR_EN_CHOICE)
         if _enough(_raw_pool(farm, plot, "fr", item["fr"])):
             variants.append(V_NAME_SYMBOL_CHOICE if phonetic else V_EN_FR_CHOICE)
+        if not phonetic and gender_tag_parts(item["fr"]):
+            variants.append(V_GENDER_TAG)
 
     # Fill-in-the-blank: §5 assigns it to grammar rules, and it extends
     # naturally to multi-word expressions, where blanking one word is a far
@@ -941,6 +958,34 @@ def generate_question(plot, rng=None, variant=None, exclude=None, farm=None):
             plot, variant, f"{pronoun} {stem}{BLANK_MARKER}", ending,
             _ending_pool(plot, ending), rng, note,
         )
+
+    if variant == V_GENDER_TAG:
+        # Always exactly two choices -- bare "le"/"la", not a fabricated
+        # "la <noun>" distractor, since gluing the wrong article onto a real
+        # noun would be an invented string no catalog item actually contains
+        # (§5's copyright rule), where a plain article is just a real French
+        # function word already present all over the catalog. The noun
+        # stays visible in the prompt throughout: this drill isolates the
+        # article, it doesn't also re-test recall of the word itself. Built
+        # directly rather than through _choice_question(), whose distractor
+        # sampling assumes a pool of plausible-but-wrong *answers* to draw
+        # several from -- there is exactly one other article, ever.
+        article, noun = gender_tag_parts(plot.items[0]["fr"])
+        other = "la" if article == "le" else "le"
+        choices = [article, other]
+        rng.shuffle(choices)
+        return {
+            "plot_id": plot.plot_id,
+            "variant": variant,
+            "topic_type": plot.topic_type,
+            "context": _context_line(plot),
+            "instruction": INSTRUCTIONS[variant],
+            "prompt": noun,
+            "note": None,
+            "mode": "choice",
+            "choices": choices,
+            "answer": article,
+        }
 
     if variant in (V_FR_EN_TYPED, V_SYMBOL_NAME_TYPED):
         item = rng.choice(_typable_items(plot, "en"))
