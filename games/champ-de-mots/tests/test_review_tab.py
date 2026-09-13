@@ -280,7 +280,7 @@ def test_review_session_state_is_not_part_of_the_save_payload(game_env):
     module = game_env.module
     module.start_review("word")
     state_dict = module.get_state()
-    assert set(state_dict) == {"version", "current_day", "plots"}
+    assert set(state_dict) == {"version", "current_day", "plots", "error_patterns"}
 
 
 # --- Improvement Ideas addendum (2026-09-13): deliberate interleaving ------
