@@ -33,6 +33,32 @@ RESET_INTERVAL_DAYS = 1
 BLOOMING_INTERVAL_DAYS = 7
 AUTOMATION_INTERVAL_DAYS = 14
 
+# --- Improvement Ideas §2/§3 (2026-09-13 addendum): combo bonus + confidence
+# rating. Both are purely additive to the SM-2-flavoured scheduler above --
+# every existing caller of schedule_after_review()/FarmState.review() that
+# doesn't pass the new keyword arguments gets byte-identical behaviour.
+#
+# Combo bonus: consecutive correct answers *in the session* (any plot, not a
+# single plot's own correct_streak) shave the growth curve's edges off a
+# little for whichever plot you just got right -- "genuinely easy items grow
+# faster and stop demanding attention sooner" was the explicit ask. Purely
+# positive: a wrong answer resets the session combo to zero with no
+# additional penalty beyond the normal one below, matching this game's
+# no-punishment stance (design doc §3).
+COMBO_BONUS_PER_STEP = 0.03
+MAX_COMBO_BONUS = 0.4
+
+# Confidence rating: an optional "Sure" / "Not sure" tag the player can put
+# on a question before answering. It only ever changes anything on a *wrong*
+# answer -- a confident miss represents a more concerning gap than an unsure
+# one, so it costs a bit more ease; an unsure miss costs a bit less, since
+# the player already flagged the guess as shaky rather than committed to it.
+# A correct answer is unaffected either way -- the doc's own wording scopes
+# this to "weights the SRS harder against a confident-wrong answer," not to
+# rewarding confident-and-correct.
+CONFIDENT_WRONG_PENALTY_MULTIPLIER = 1.5
+UNSURE_WRONG_PENALTY_MULTIPLIER = 0.5
+
 # --- Growth stages (design doc §3) -----------------------------------------
 STAGE_SEED = "seed"
 STAGE_SPROUT = "sprout"
@@ -161,8 +187,13 @@ def is_wilting(plot, day):
     return day > plot.next_due
 
 
-def schedule_after_review(plot, correct, day):
-    """Apply one review outcome to a plot's SRS state (design doc §6)."""
+def schedule_after_review(plot, correct, day, combo=0, confidence=None):
+    """Apply one review outcome to a plot's SRS state (design doc §6).
+
+    `combo` (a session-wide consecutive-correct count, not this plot's own
+    correct_streak) and `confidence` ("sure" | "unsure" | None) are both
+    optional and default to no-ops, so every pre-existing call site keeps
+    its exact prior behaviour."""
     if correct:
         plot.correct_streak += 1
         if plot.correct_streak == 1:
@@ -170,14 +201,21 @@ def schedule_after_review(plot, correct, day):
         elif plot.correct_streak == 2:
             plot.interval_days = SECOND_INTERVAL_DAYS
         else:
-            plot.interval_days = max(
+            grown = max(
                 plot.interval_days + 1, int(round(plot.interval_days * plot.ease_factor))
             )
+            combo_bonus = 1 + min(MAX_COMBO_BONUS, max(0, combo) * COMBO_BONUS_PER_STEP)
+            plot.interval_days = max(plot.interval_days + 1, int(round(grown * combo_bonus)))
         plot.ease_factor = min(MAX_EASE, plot.ease_factor + EASE_CORRECT_BONUS)
     else:
         plot.correct_streak = 0
         plot.interval_days = RESET_INTERVAL_DAYS
-        plot.ease_factor = max(MIN_EASE, plot.ease_factor - EASE_INCORRECT_PENALTY)
+        penalty = EASE_INCORRECT_PENALTY
+        if confidence == "sure":
+            penalty *= CONFIDENT_WRONG_PENALTY_MULTIPLIER
+        elif confidence == "unsure":
+            penalty *= UNSURE_WRONG_PENALTY_MULTIPLIER
+        plot.ease_factor = max(MIN_EASE, plot.ease_factor - penalty)
 
     plot.last_reviewed = day
     plot.next_due = day + plot.interval_days
@@ -300,13 +338,17 @@ class FarmState:
         return min(due, key=lambda p: (p.next_due if p.next_due is not None else -1))
 
     # --- mutations ---------------------------------------------------------
-    def review(self, plot_id, correct, day=None):
+    def review(self, plot_id, correct, day=None, combo=0, confidence=None):
         plot = self.plots_by_id.get(plot_id)
         if plot is None:
             return None
         self.invalidate_unlocks()
         return schedule_after_review(
-            plot, correct, self.current_day if day is None else day
+            plot,
+            correct,
+            self.current_day if day is None else day,
+            combo=combo,
+            confidence=confidence,
         )
 
     def advance_day(self, days=1):
@@ -1213,6 +1255,13 @@ report_sent = False
 plot_cells = {}
 QUESTION_RNG = random.Random()
 
+# Session combo count (consecutive correct answers, any plot) and the
+# confidence tag on the currently-open question. Both are pure session
+# state -- like ACCENT_SENSITIVE below -- and deliberately never reach
+# get_state()/load_state(): a fresh page load always starts at zero/unset.
+combo_count = 0
+current_confidence = None  # None | "sure" | "unsure"
+
 # §14.2's accent-sensitivity toggle: default ON (accents must be typed
 # correctly) since spelling them right is an assessed skill. A session
 # preference, not SRS state, so it deliberately stays out of get_state()/
@@ -1531,6 +1580,18 @@ def render_status():
     unlocked = sum(1 for r in state.rows if state.is_row_unlocked(r.sequence))
     _element("row-summary-display").innerText = f"{unlocked} of {len(state.rows)} rows open"
 
+    # Combo bonus (Improvement Ideas §2): only worth a line once it's an
+    # actual moment, not a running scoreboard -- a fresh session or one that
+    # just broke its combo shows nothing here, matching the farm's existing
+    # "calm, not a scoreboard" stance rather than a 0-in-a-row counter.
+    combo_display = _element("combo-display")
+    if combo_count >= 2:
+        combo_display.innerText = f"{combo_count} correct in a row — nice pace."
+        combo_display.hidden = False
+    else:
+        combo_display.innerText = ""
+        combo_display.hidden = True
+
     water_next = _element("water-next-button")
     water_next.disabled = not due
     water_next.innerText = "Water the next plot" if due else "All watered"
@@ -1565,6 +1626,16 @@ def render_practice():
     note.hidden = not current_question["note"]
 
     answered = current_result is not None
+
+    # Optional pre-answer confidence tag. Hidden once answered -- it has
+    # nothing left to weigh at that point (submit_answer() already read it).
+    confidence_box = _element("practice-confidence")
+    confidence_box.hidden = answered
+    sure_button = _element("practice-confidence-sure-button")
+    unsure_button = _element("practice-confidence-unsure-button")
+    sure_button.className = "secondary" + (" selected" if current_confidence == "sure" else "")
+    unsure_button.className = "secondary" + (" selected" if current_confidence == "unsure" else "")
+
     choices_box.innerHTML = ""
     if current_question["mode"] == "choice":
         answer_input.hidden = True
@@ -1630,7 +1701,7 @@ def render():
 
 def open_practice(plot_id, variant=None):
     """Water a plot: roll a fresh question for it (§5) and show the panel."""
-    global current_question, current_result, current_submitted_answer, practice_open, report_sent
+    global current_question, current_result, current_submitted_answer, practice_open, report_sent, current_confidence
 
     plot = state.plots_by_id.get(plot_id)
     if plot is None or not state.is_row_unlocked(plot.sequence):
@@ -1642,6 +1713,7 @@ def open_practice(plot_id, variant=None):
     plot.last_variant = current_question["variant"]
     current_result = None
     current_submitted_answer = None
+    current_confidence = None
     report_sent = False
     practice_open = True
     _element("practice-answer-input").value = ""
@@ -1649,8 +1721,20 @@ def open_practice(plot_id, variant=None):
     return current_question
 
 
+def set_confidence(value):
+    """Optional pre-answer confidence tag ("sure"/"unsure"), toggleable --
+    clicking the already-selected one clears it back to unset rather than
+    forcing a choice. Never blocks answering either way."""
+    global current_confidence
+    if current_question is None or current_result is not None:
+        return current_confidence
+    current_confidence = None if current_confidence == value else value
+    render()
+    return current_confidence
+
+
 def submit_answer(given):
-    global current_result, current_submitted_answer
+    global current_result, current_submitted_answer, combo_count
 
     if current_question is None or current_result is not None:
         return None
@@ -1662,17 +1746,24 @@ def submit_answer(given):
     current_result = check_answer(
         current_question, given, tier=tier, accent_sensitive=ACCENT_SENSITIVE
     )
-    state.review(current_question["plot_id"], current_result)
+    combo_count = combo_count + 1 if current_result else 0
+    state.review(
+        current_question["plot_id"],
+        current_result,
+        combo=combo_count,
+        confidence=current_confidence,
+    )
     render()
     return current_result
 
 
 def close_practice(event=None):
-    global current_question, current_result, current_submitted_answer, practice_open, report_sent
+    global current_question, current_result, current_submitted_answer, practice_open, report_sent, current_confidence
 
     current_question = None
     current_result = None
     current_submitted_answer = None
+    current_confidence = None
     report_sent = False
     practice_open = False
     render()
@@ -2661,6 +2752,12 @@ def setup():
     _element("practice-answer-input").addEventListener("keydown", create_proxy(on_answer_keydown))
     _element("practice-close-button").addEventListener("click", create_proxy(close_practice))
     _element("practice-report-button").addEventListener("click", create_proxy(submit_report))
+    _element("practice-confidence-sure-button").addEventListener(
+        "click", create_proxy(lambda event=None: set_confidence("sure"))
+    )
+    _element("practice-confidence-unsure-button").addEventListener(
+        "click", create_proxy(lambda event=None: set_confidence("unsure"))
+    )
     _element("water-next-button").addEventListener("click", create_proxy(on_water_next))
     _element("next-day-button").addEventListener("click", create_proxy(on_next_day))
     _element("accent-toggle-checkbox").addEventListener(

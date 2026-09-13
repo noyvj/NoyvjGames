@@ -888,6 +888,37 @@ button:disabled {
   box-shadow: 0 0 0 1px rgba(123, 167, 86, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
+/* Improvement Ideas addendum (2026-09-13): confidence-rating buttons reuse
+   the same affirmative green language as .choice--answer's reveal state,
+   rather than a new color, so a "selected" tag reads consistently with the
+   rest of the panel. */
+.practice-confidence {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.practice-confidence-label {
+  font-size: 0.8rem;
+  color: #6b5c46;
+  opacity: 0.85;
+  margin-right: 0.25rem;
+}
+
+.practice-confidence button.secondary {
+  width: auto;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.82rem;
+}
+
+.practice-confidence button.secondary.selected {
+  background: linear-gradient(155deg, #dbe7c4, #c3d6a0);
+  border-color: #7ba756;
+  color: #2c3a1c;
+}
+
 .practice-input {
   border: 1px solid #ded2ba;
   background: #fdfbf5;

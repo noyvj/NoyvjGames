@@ -268,3 +268,126 @@ def test_advance_day_moves_the_calendar_forward_only(game_env):
     assert state.current_day == 7
     state.advance_day(0)
     assert state.current_day == 7
+
+
+# --- Improvement Ideas addendum (2026-09-13): combo bonus + confidence -----
+
+
+def test_a_default_review_call_is_unaffected_by_the_new_optional_arguments(game_env):
+    """Every pre-existing call site in this suite calls review()/
+    schedule_after_review() without combo/confidence -- that must keep
+    behaving exactly as it always has."""
+    module, state = game_env.module, game_env.state
+    plot_a = state.plots[0]
+    plot_b = state.plots[1]
+    state.review(plot_a.plot_id, True)
+    module.schedule_after_review(plot_b, True, state.current_day)
+    assert plot_a.interval_days == plot_b.interval_days == module.FIRST_INTERVAL_DAYS
+    assert plot_a.ease_factor == plot_b.ease_factor
+
+
+def test_a_higher_combo_grows_the_interval_further_once_past_onboarding(game_env):
+    module = game_env.module
+    plot_low = module.Plot(
+        plot_id="combo-low", topic={"id": "t", "topic_type": "vocab", "title": "t"},
+        week={"sequence": 1, "course": "FREN151", "week": 1, "chapter": 1},
+        items=[{"fr": "a", "en": "b"}], label="a",
+    )
+    plot_high = module.Plot(
+        plot_id="combo-high", topic={"id": "t", "topic_type": "vocab", "title": "t"},
+        week={"sequence": 1, "course": "FREN151", "week": 1, "chapter": 1},
+        items=[{"fr": "a", "en": "b"}], label="a",
+    )
+    # Get both to correct_streak == 2 identically (no combo involved yet),
+    # then diverge on the third correct answer -- one with no combo, one
+    # with a large one.
+    for plot in (plot_low, plot_high):
+        module.schedule_after_review(plot, True, 0)
+        module.schedule_after_review(plot, True, plot.interval_days)
+    module.schedule_after_review(plot_low, True, plot_low.next_due, combo=0)
+    module.schedule_after_review(plot_high, True, plot_high.next_due, combo=20)
+    assert plot_high.interval_days > plot_low.interval_days
+
+
+def test_the_combo_bonus_is_capped(game_env):
+    module = game_env.module
+    plot_a = module.Plot(
+        plot_id="combo-cap-a", topic={"id": "t", "topic_type": "vocab", "title": "t"},
+        week={"sequence": 1, "course": "FREN151", "week": 1, "chapter": 1},
+        items=[{"fr": "a", "en": "b"}], label="a",
+    )
+    plot_b = module.Plot(
+        plot_id="combo-cap-b", topic={"id": "t", "topic_type": "vocab", "title": "t"},
+        week={"sequence": 1, "course": "FREN151", "week": 1, "chapter": 1},
+        items=[{"fr": "a", "en": "b"}], label="a",
+    )
+    for plot in (plot_a, plot_b):
+        module.schedule_after_review(plot, True, 0)
+        module.schedule_after_review(plot, True, plot.interval_days)
+    combo_at_cap = int(module.MAX_COMBO_BONUS / module.COMBO_BONUS_PER_STEP)
+    module.schedule_after_review(plot_a, True, plot_a.next_due, combo=combo_at_cap)
+    module.schedule_after_review(plot_b, True, plot_b.next_due, combo=combo_at_cap * 100)
+    assert plot_a.interval_days == plot_b.interval_days
+
+
+def test_combo_never_helps_a_wrong_answer(game_env):
+    module = game_env.module
+    plot = module.Plot(
+        plot_id="combo-wrong", topic={"id": "t", "topic_type": "vocab", "title": "t"},
+        week={"sequence": 1, "course": "FREN151", "week": 1, "chapter": 1},
+        items=[{"fr": "a", "en": "b"}], label="a",
+    )
+    module.schedule_after_review(plot, False, 0, combo=50)
+    assert plot.interval_days == module.RESET_INTERVAL_DAYS
+
+
+def test_a_confident_wrong_answer_costs_more_ease_than_default(game_env):
+    module = game_env.module
+    plot_default = module.Plot(
+        plot_id="conf-default", topic={"id": "t", "topic_type": "vocab", "title": "t"},
+        week={"sequence": 1, "course": "FREN151", "week": 1, "chapter": 1},
+        items=[{"fr": "a", "en": "b"}], label="a",
+    )
+    plot_sure = module.Plot(
+        plot_id="conf-sure", topic={"id": "t", "topic_type": "vocab", "title": "t"},
+        week={"sequence": 1, "course": "FREN151", "week": 1, "chapter": 1},
+        items=[{"fr": "a", "en": "b"}], label="a",
+    )
+    module.schedule_after_review(plot_default, False, 0)
+    module.schedule_after_review(plot_sure, False, 0, confidence="sure")
+    assert plot_sure.ease_factor < plot_default.ease_factor
+
+
+def test_an_unsure_wrong_answer_costs_less_ease_than_default(game_env):
+    module = game_env.module
+    plot_default = module.Plot(
+        plot_id="conf-default2", topic={"id": "t", "topic_type": "vocab", "title": "t"},
+        week={"sequence": 1, "course": "FREN151", "week": 1, "chapter": 1},
+        items=[{"fr": "a", "en": "b"}], label="a",
+    )
+    plot_unsure = module.Plot(
+        plot_id="conf-unsure", topic={"id": "t", "topic_type": "vocab", "title": "t"},
+        week={"sequence": 1, "course": "FREN151", "week": 1, "chapter": 1},
+        items=[{"fr": "a", "en": "b"}], label="a",
+    )
+    module.schedule_after_review(plot_default, False, 0)
+    module.schedule_after_review(plot_unsure, False, 0, confidence="unsure")
+    assert plot_unsure.ease_factor > plot_default.ease_factor
+
+
+def test_confidence_never_changes_a_correct_answers_outcome(game_env):
+    module = game_env.module
+    plot_default = module.Plot(
+        plot_id="conf-correct-default", topic={"id": "t", "topic_type": "vocab", "title": "t"},
+        week={"sequence": 1, "course": "FREN151", "week": 1, "chapter": 1},
+        items=[{"fr": "a", "en": "b"}], label="a",
+    )
+    plot_sure = module.Plot(
+        plot_id="conf-correct-sure", topic={"id": "t", "topic_type": "vocab", "title": "t"},
+        week={"sequence": 1, "course": "FREN151", "week": 1, "chapter": 1},
+        items=[{"fr": "a", "en": "b"}], label="a",
+    )
+    module.schedule_after_review(plot_default, True, 0)
+    module.schedule_after_review(plot_sure, True, 0, confidence="sure")
+    assert plot_sure.interval_days == plot_default.interval_days
+    assert plot_sure.ease_factor == plot_default.ease_factor
