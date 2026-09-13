@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="../../shared/ambient-bg.css">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="../../ad-bar.css">
+<link rel="stylesheet" href="../../shared/info-page.css">
 <link rel="manifest" href="../../manifest.json">
 <script src="../../shared/tutorial.js"></script>
 <script src="../../shared/mobile-hud.js"></script>
@@ -29,6 +30,13 @@
 
     <p class="tagline">One settlement, carried across the ages. Grow it — but grow something worth living in.</p>
     <p class="context-blurb">A city that gets bigger isn't automatically a city that gets better. Continuum tracks both.</p>
+
+    <button id="info-page-toggle-button" class="secondary info-page-toggle" type="button">Loading...</button>
+    <div id="info-page-panel" class="section" hidden>
+      <p id="info-page-framing" class="info-page-framing"></p>
+      <p id="info-page-tie-in" class="info-page-tie-in"></p>
+      <ul id="info-page-sources" class="info-page-sources"></ul>
+    </div>
 
     <div id="status" class="section">
       <div class="settlement-visual" aria-hidden="true">
@@ -208,7 +216,7 @@
     // Each engine module is written into Pyodide's virtual filesystem (the
     // working directory, which is on sys.path) before game.py runs and
     // imports them. Still no build step — just more than one fetch.
-    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "save.py"];
+    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "save.py", "info_content.py"];
 
     const CONTINUUM_TUTORIAL_STEPS = [
       {
@@ -251,6 +259,11 @@
         text: "This runs the whole loop at once — your workers produce, your people eat, the land responds to how hard you pushed it, and population grows if there's food and shelter to spare. Watch the panels above after each press to see how it landed.",
       },
       {
+        selector: "#info-page-toggle-button",
+        title: "The Real Story",
+        text: "Open this any time to read the real anthropology and archaeology behind whatever era the settlement is currently in — it updates automatically as the settlement moves through the ages.",
+      },
+      {
         title: "You're ready",
         text: "Assign work, build, research, and keep an eye on the sustainability score — then advance the season and see how it all played out. Carry this settlement all the way to the Space Age, but grow something worth living in. Good luck.",
       },
@@ -263,6 +276,12 @@
         const moduleSource = await (await fetch(name)).text();
         pyodide.FS.writeFile(name, moduleSource, { encoding: "utf8" });
       }
+      // Shared info-page widget (see shared/info_page.py) -- written into
+      // Pyodide's virtual filesystem before game.py runs so `import
+      // info_page` resolves normally, same pattern used by all 8 climate
+      // quartet games (e.g. canopy's boot script).
+      const infoPageSource = await (await fetch("../../shared/info_page.py")).text();
+      pyodide.FS.writeFile("info_page.py", infoPageSource, { encoding: "utf8" });
       const response = await fetch("game.py");
       const code = await response.text();
       await pyodide.runPythonAsync(code);

@@ -8,14 +8,18 @@ lives in the engine modules that sit beside it —
     sustainability.py  the livability score (Milestone 2)
     research.py        the research tree engine (Milestone 3)
     save.py            the continuous-save / era-snapshot schema (Milestone 4)
+    info_content.py    real-world info-panel content, keyed by era (Milestone 5)
 
 — which is the separation the design doc's tech notes ask for, so that six
 more eras of content land in the engines rather than in one tangled file.
+`info_page.py` (the render/toggle logic itself) is `shared/info_page.py`,
+the same module the 8 climate-quartet games use — fetched into Pyodide's
+virtual filesystem by index.html the same way canopy's boot script does.
 
 Phase 1 complete: the Tribal-era season loop, the sustainability panel, the
-research panel, and the shared save widget's get_state()/load_state()
-contract. Phase 2's log and era-transition systems land here too, since
-both are things the player reads.
+research panel, the collapsed real-world info panel, and the shared save
+widget's get_state()/load_state() contract. Phase 2's log and era-transition
+systems land here too, since both are things the player reads.
 """
 
 import os
@@ -29,6 +33,8 @@ _HERE = os.getcwd()
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
+import info_content  # noqa: E402
+import info_page  # noqa: E402
 import research  # noqa: E402
 import save  # noqa: E402
 import sim  # noqa: E402
@@ -44,6 +50,11 @@ campaign = save.Campaign(sim.CityState(), research.build_tree())
 # names stay valid across a load.
 state = campaign.state
 tree = campaign.tree
+
+# Milestone 5 — collapsed by default, per the design doc's Core system 6.
+# Not one of CITY_FIELDS/tree state, so it rides in campaign.ui instead
+# (get_state()/load_state() below), exactly what that save field is for.
+info_page_open = False
 
 
 def current_effects():
@@ -152,6 +163,26 @@ def render():
 
     render_sustainability(effects)
     render_research()
+    render_info_page()
+
+
+def render_info_page():
+    """The collapsed-by-default real-world-sources panel (Milestone 5).
+
+    Rendering itself is the same shared/info_page.py used by all 8 climate
+    quartet games — Continuum's only addition is picking which era's
+    content dict to hand it, via info_content.era_info_page(), so the
+    panel always shows sources for whatever era the settlement is
+    currently in (including while revisiting a completed one) without
+    this function needing to change as later eras ship.
+    """
+    info_page.render(info_content.era_info_page(state.era), info_page_open)
+
+
+def on_toggle_info_page(event=None):
+    global info_page_open
+    info_page_open = info_page.toggle(info_page_open)
+    render_info_page()
 
 
 def render_sustainability(effects):
@@ -321,12 +352,15 @@ def on_advance_season(event=None):
 # so Continuum's era-snapshot/revisit structure needs no widget changes —
 # see save.py for the schema itself.
 def get_state():
+    campaign.ui["info_page_open"] = info_page_open
     return campaign.to_dict()
 
 
 def load_state(data):
+    global info_page_open
     if not campaign.load_dict(data):
         return False
+    info_page_open = bool(campaign.ui.get("info_page_open", False))
     render()
     return True
 
@@ -345,6 +379,9 @@ def setup():
         )
     document.getElementById("advance-season-button").addEventListener(
         "click", create_proxy(on_advance_season)
+    )
+    document.getElementById("info-page-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_info_page)
     )
     render()
 

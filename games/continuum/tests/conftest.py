@@ -11,10 +11,18 @@ GAME_DIR = Path(__file__).resolve().parent.parent
 GAME_PY = GAME_DIR / "game.py"
 
 # Continuum is split into separate engine modules (sim / research /
-# sustainability / save) per its own CLAUDE.md tech notes, so the game
-# directory has to be importable before game.py can be exec'd.
+# sustainability / save / info_content) per its own CLAUDE.md tech notes,
+# so the game directory has to be importable before game.py can be exec'd.
 if str(GAME_DIR) not in sys.path:
     sys.path.insert(0, str(GAME_DIR))
+
+# game.py also imports the shared info-page widget (shared/info_page.py)
+# the same way the real Pyodide boot script does (see index.html) and the
+# same way every climate-quartet game's tests already do -- so the
+# repo-root shared/ directory has to be importable too.
+SHARED_DIR = GAME_DIR.parent.parent / "shared"
+if str(SHARED_DIR) not in sys.path:
+    sys.path.insert(0, str(SHARED_DIR))
 
 ROLES = ["foragers", "gatherers", "crafters", "keepers"]
 BUILDINGS = ["shelter", "granary", "hearth", "toolworks"]
@@ -44,6 +52,12 @@ ELEMENT_IDS = [
     # Milestone 3 — research panel (node rows are created at runtime)
     "research-status-display",
     "research-list",
+    # Milestone 5 — collapsed real-world info panel
+    "info-page-toggle-button",
+    "info-page-panel",
+    "info-page-framing",
+    "info-page-tie-in",
+    "info-page-sources",
 ]
 for _role in ROLES:
     ELEMENT_IDS += [
@@ -110,7 +124,13 @@ def _install_pyodide_fakes(elements):
 
 
 def _remove_pyodide_fakes():
-    for name in ("js", "pyodide", "pyodide.ffi", "game"):
+    # "info_page" is popped too, alongside "game" -- it's a plain `import
+    # info_page` (not spec_from_file_location like game.py), so without
+    # this it would stay cached in sys.modules across tests with its
+    # `from js import document` binding pinned to whichever test's fake
+    # document happened to be active on its first import. Same reasoning
+    # as the climate quartet's own conftest.py (e.g. canopy's).
+    for name in ("js", "pyodide", "pyodide.ffi", "game", "info_page"):
         sys.modules.pop(name, None)
 
 

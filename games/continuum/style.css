@@ -621,6 +621,7 @@ button.primary:active {
 #work { border-left: 4px solid #6f9c5a; }
 #buildings { border-left: 4px solid #c97a3e; }
 #research { border-left: 4px solid #d08c5c; }
+#info-page-panel { border-left: 4px solid #8a6a45; }
 
 /* --- Gauges: replace the flat bar with a segmented, glowing HUD gauge.
    game.py only ever writes inline .style.width on #land-health-bar /
