@@ -50,6 +50,7 @@ module-level `state` and `tree`) stay valid across a load.
 """
 
 import copy
+import math
 
 import log
 import sim
@@ -90,6 +91,68 @@ CITY_FIELDS = [
 # sim.ROLES, safe against an allocation dict of some other shape.
 CITY_KEYED_DICTS = ["resources", "allocation", "buildings"]
 
+# Phase 4 audit: `resources`/`allocation`/`buildings` are counts/quantities
+# that must never go negative, NaN or non-numeric — see the module-level
+# audit note below for why. Buildings and allocation are always whole
+# counts; resources are left as floats (surplus/food/etc. are fractional
+# in normal play).
+CITY_KEYED_DICTS_ARE_COUNTS = {"resources": False, "allocation": True, "buildings": True}
+
+# A generous ceiling on `growth_progress`, purely defensive (Phase 4 audit).
+# In legitimate play this value never strays far above 1.0 -- the season
+# loop's own while-loop (see sim.CityState.advance_season()'s step 7)
+# converts any excess into population the moment there's housing room, so
+# it only ever sits above 1.0 at all while housing is fully capped, and
+# even then accrues at most GROWTH_RATE (0.35) per season. A hand-edited
+# save that sets this to something enormous would otherwise turn that same
+# while-loop into an effectively unbounded iteration the instant the save
+# loads and a season is advanced -- a real, reproducible page-freeze this
+# audit pass found and is closing off here, not a hypothetical one.
+GROWTH_PROGRESS_MAX = 10.0
+
+# Every other CITY_FIELDS scalar that must be a real, finite number to mean
+# anything at all: (low bound, high bound or None, cast-to-int). Discovered
+# by this Phase 4 audit pass hand-loading adversarial saves -- see CLAUDE.md
+# for the specific failure modes each one closes (a bad `era`/`population`/
+# resource value used to load "successfully" and then crash, hang, or
+# silently corrupt state on the very next season or render).
+NUMERIC_FIELD_BOUNDS = {
+    "population": (sim.MIN_POPULATION, None, True),
+    "season": (1, None, True),
+    "growth_progress": (0.0, GROWTH_PROGRESS_MAX, False),
+    "land_health": (sim.MIN_LAND_HEALTH, 1.0, False),
+    "pollution": (0.0, 1.0, False),
+    "sprawl": (0.0, 1.0, False),
+    "fed_fraction": (0.0, 1.0, False),
+    "last_extraction": (0.0, None, False),
+    "last_sustainable_yield": (0.0, None, False),
+}
+
+
+def _is_finite_number(value):
+    """True for a real int/float — excludes bool, None, str, NaN, ±inf.
+
+    A malicious or hand-edited save can put any JSON value in a numeric
+    field's place; Python's own `json.loads` even accepts the non-standard
+    `NaN`/`Infinity` tokens some other JSON implementations reject outright.
+    Every numeric field this module restores is filtered through this
+    before it's trusted.
+    """
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+
+
+def _sanitize_numeric_field(value, bounds):
+    """Clamps `value` into `bounds` (low, high, is_int); None if unusable."""
+    if not _is_finite_number(value):
+        return None
+    low, high, is_int = bounds
+    sanitized = float(value)
+    if low is not None:
+        sanitized = max(low, sanitized)
+    if high is not None:
+        sanitized = min(high, sanitized)
+    return int(round(sanitized)) if is_int else sanitized
+
 
 def city_snapshot(state):
     """A deep-copied, JSON-safe record of one CityState."""
@@ -102,6 +165,18 @@ def restore_city(state, data):
     Missing fields keep their current value, so a save written before a
     field existed still loads — and, per CITY_KEYED_DICTS, that holds one
     level down as well.
+
+    Phase 4 audit: every field that isn't a real, sane value for what it
+    represents is now treated exactly like a *missing* field (kept at its
+    current value) rather than trusted verbatim. Before this pass, a save
+    with `population: "not-a-number"`, a resource/allocation/building value
+    of `null`, a `land_health`/`pollution` outside its valid range, or an
+    `era` string this build doesn't recognise all loaded "successfully" and
+    then crashed or corrupted state on the very next season or render --
+    the exact "widget already reported success" failure shape the
+    Milestone 4 audit's own CITY_KEYED_DICTS fix was written to close for a
+    different field. See CLAUDE.md's Phase 4 build notes for the specific
+    cases this closes.
     """
     if not isinstance(data, dict):
         data = {}
@@ -112,9 +187,33 @@ def restore_city(state, data):
         if field in CITY_KEYED_DICTS:
             if isinstance(value, dict):
                 live = getattr(state, field)
+                is_count = CITY_KEYED_DICTS_ARE_COUNTS[field]
                 for key in live:
-                    if key in value:
-                        live[key] = copy.deepcopy(value[key])
+                    if key not in value:
+                        continue
+                    sanitized = _sanitize_numeric_field(value[key], (0.0, None, is_count))
+                    if sanitized is not None:
+                        live[key] = sanitized
+        elif field == "era":
+            # Validated against the schema's own source of truth rather than
+            # trusted verbatim -- an unrecognised era string used to be
+            # written straight into `state.era` (and, from there, into
+            # `tree.current_era`), and the next call to `sim.era_index()`
+            # anywhere -- the very next season, or a revisit's own
+            # `_restore_snapshot()` -- raised ValueError. Reachable two ways:
+            # a save's own `current_state.city.era`, and (since this same
+            # function restores era snapshots too) a hand-edited
+            # `era_snapshots` entry loaded back via a revisit.
+            if value in sim.ERA_ORDER:
+                state.era = value
+        elif field == "score_history":
+            if isinstance(value, list):
+                cleaned = [float(v) for v in value if _is_finite_number(v)]
+                setattr(state, field, cleaned)
+        elif field in NUMERIC_FIELD_BOUNDS:
+            sanitized = _sanitize_numeric_field(value, NUMERIC_FIELD_BOUNDS[field])
+            if sanitized is not None:
+                setattr(state, field, sanitized)
         else:
             setattr(state, field, copy.deepcopy(value))
     state.clamp_allocation()
@@ -202,6 +301,15 @@ class Campaign:
 
     def enter_revisit(self, era):
         """Loads a completed era's snapshot, parking forward progress."""
+        # Phase 4 audit: validate against ERA_ORDER itself, not only against
+        # era_snapshots' own keys. In ordinary play the two always agree
+        # (record_era_snapshot() only ever keys by a real era), but
+        # `era_snapshots` is also part of the save payload -- a hand-edited
+        # save could hand this a bogus key that happens to collide with
+        # something. Cheap, and it's the same source-of-truth cross-check
+        # `load_dict()` already applies to `revisiting` itself below.
+        if era not in sim.ERA_ORDER:
+            return False
         if era not in self.era_snapshots:
             return False
         if self.revisiting is not None:
@@ -209,6 +317,20 @@ class Campaign:
 
         self.parked_state = snapshot_of(self.state, self.tree)
         _restore_snapshot(self.era_snapshots[era], self.state, self.tree)
+        # Phase 4 audit: force the era explicitly rather than trusting
+        # whatever the snapshot's own "era" field says. In ordinary play
+        # they always agree (city_snapshot() always records the state's own
+        # current era), but era_snapshots rides in the save payload too --
+        # a hand-edited snapshot with a mismatched or invalid nested `era`
+        # used to leave `state.era` reading whatever that field said (or,
+        # since restore_city() now refuses an invalid one, whatever era the
+        # state happened to be in before this call) instead of the era the
+        # player actually asked to revisit. The era passed in here is the
+        # one thing this method has already validated twice over (against
+        # ERA_ORDER and against era_snapshots), so it's the one thing worth
+        # trusting over the snapshot's own copy of it.
+        self.state.era = era
+        self.tree.current_era = era
         self.revisiting = era
         return True
 
@@ -222,6 +344,16 @@ class Campaign:
             return False
 
         _restore_snapshot(self.parked_state, self.state, self.tree)
+        # Phase 4 audit: same defensive force as enter_revisit() above, this
+        # time against `furthest_era` -- the schema's own source of truth
+        # for which era forward progress belongs to (state.era and
+        # furthest_era always agree whenever the campaign isn't mid-revisit,
+        # since advance_to_era() is the only thing that ever moves either
+        # one forward). A tampered parked_state with a mismatched or
+        # invalid `era` field can no longer strand the player somewhere
+        # other than the era they were actually playing before the revisit.
+        self.state.era = self.furthest_era
+        self.tree.current_era = self.furthest_era
         self.parked_state = None
         self.revisiting = None
         return True

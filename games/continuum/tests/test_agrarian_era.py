@@ -334,6 +334,56 @@ def test_save_round_trip_preserves_agrarian_state_including_farmers(game_env):
     assert fresh.resources["surplus"] == 42.0
 
 
+def test_an_old_save_missing_agrarian_keys_loads_cleanly_with_defaults():
+    """Every era from Classical on has its own version of this test (see
+    e.g. `test_classical_era.py`'s `test_an_old_save_missing_classical_keys_
+    loads_cleanly_with_defaults`); Agrarian itself never got one of its own
+    (Phase 4 audit finding -- a coverage gap, not a bug: the underlying
+    mechanism is `save.py`'s CITY_KEYED_DICTS key-by-key restore, already
+    exercised generically by `test_save_system.py`'s
+    `test_load_state_tolerates_a_save_whose_keyed_dicts_are_short`, and
+    confirmed here to hold for Agrarian's own `farmers`/`farmland`/`surplus`
+    keys specifically). A save written by a build before Milestone 8 has no
+    `farmers` allocation entry, no `farmland` building entry, and no
+    `surplus` resource entry at all."""
+    import research as research_mod
+    import save as save_mod
+    import sim as sim_mod
+
+    old_style_allocation = {"foragers": 3, "gatherers": 2, "crafters": 0, "keepers": 0}
+    old_style_buildings = {"shelter": 2, "granary": 0, "hearth": 1, "toolworks": 0}
+    old_style_resources = {"food": 10.0, "materials": 5.0, "tools": 1.0, "knowledge": 0.0}
+    data = {
+        "save_version": 1,
+        "game": "continuum",
+        "era_order": list(sim_mod.ERA_ORDER),
+        "current_era": "agrarian",
+        "furthest_era": "agrarian",
+        "revisiting": None,
+        "current_state": {
+            "city": {
+                "era": "agrarian",
+                "season": 3,
+                "population": 12,
+                "allocation": old_style_allocation,
+                "buildings": old_style_buildings,
+                "resources": old_style_resources,
+            },
+            "research": [],
+        },
+        "parked_state": None,
+        "era_snapshots": {},
+        "ui": {},
+    }
+
+    campaign = save_mod.Campaign(sim_mod.CityState(), research_mod.build_tree())
+    assert campaign.load_dict(data) is True
+    assert campaign.state.allocation["farmers"] == 0
+    assert campaign.state.buildings["farmland"] == 0
+    assert campaign.state.resources["surplus"] == 0.0
+    campaign.state.advance_season()  # would have raised KeyError before Milestone 4's audit
+
+
 # --- proxy-destruction discipline (constraint from CLAUDE.md) ------------
 def test_rendering_the_work_panel_destroys_the_proxy_it_replaces(game_env):
     """render_work() rebuilds every row (and mints fresh create_proxy()
