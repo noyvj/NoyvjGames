@@ -62,7 +62,7 @@ Before ending any session where code or content changed, append one dated entry 
 ## Current games
 | Slug | Name | Status |
 |------|------|--------|
-| sol | SOL | Milestone 11 done (Full system endgame) — all 17 milestones complete, shared save-widget reference integration |
+| sol | SOL | Milestone 11 done (Full system endgame) — all 17 milestones complete, shared save-widget reference integration; also the reference integration for the hub-wide achievements framework (18 achievements, in-game panel, `achievements_earned` in its save state) |
 | canopy | Canopy | All 7 milestones + Pass 2 + Pass 3 + Info Page + shared save widget complete, first of the BCM114 climate quartet |
 | grid | Grid | All 6 milestones + Pass 2 + Pass 3 + Info Page + shared save widget complete, second of the BCM114 climate quartet |
 | tide | Tide | All 7 milestones + Pass 2 + Pass 3 + Info Page + shared save widget complete, third of the BCM114 climate quartet |
@@ -85,6 +85,7 @@ Before ending any session where code or content changed, append one dated entry 
 | 5 | Save system Phase 1: save codes (no accounts) live via FastAPI + Neon, SOL reference integration | Done — tagged `save-system-v1` |
 | 6 | Accounts (Phase 2, username + password, revised from the original magic-link plan) + save-claim + site-wide feedback: backend + frontend built | Built and committed, not yet deployed/pushed to production — see `planning/ACCOUNTS-AND-FEEDBACK-DESIGN.md` |
 | 7 | Shared save widget (`shared/save-widget.js`) rolled out to SOL + all 8 climate games; fixed a site-wide bug where every absolute root-relative path 404'd on GitHub Pages' `/NoyvjGames/` subpath | Done — see `planning/SAVE-BUTTON-INTEGRATION.md` |
+| 8 | Achievements framework designed (per-game `achievements.json` manifest + `achievements_earned` field riding the existing save/account system, zero backend changes) and built end to end for SOL as the reference integration, plus the hub-level aggregate dashboard (signed-in `index.html` section, per-game + overall progress bars) | Done for SOL — see `planning/ACHIEVEMENTS-SYSTEM-DESIGN.md`; other 11 games still pending, checklist in that doc's §7 |
 
 ## Working notes
 - Pre-semester (now): pace can be aggressive, this is largely a boredom-driven creative project.

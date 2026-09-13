@@ -512,3 +512,57 @@ button.secondary:disabled {
   padding: 0.5rem 0;
   border-top: 1px solid rgba(140, 160, 255, 0.12);
 }
+
+/* Achievements dashboard (ACHIEVEMENTS-SYSTEM-DESIGN.md) — lives inside
+   #account-signed-in, so it only ever renders for a signed-in visitor. */
+.achievements-dashboard {
+  margin-top: 1rem;
+}
+
+.achievements-dashboard-heading {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0.75rem 0 0.5rem;
+  letter-spacing: 0.02em;
+}
+
+.achievements-dashboard-overall-label {
+  font-size: 0.78rem;
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 1rem 0 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(140, 160, 255, 0.14);
+}
+
+.achievements-dashboard-empty {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  margin: 0.5rem 0 0;
+}
+
+.achievements-bar-row {
+  margin: 0 0 0.6rem;
+}
+
+.achievements-bar-label {
+  font-size: 0.78rem;
+  opacity: 0.8;
+  margin: 0 0 0.3rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.achievements-bar-track {
+  height: 8px;
+  border-radius: 5px;
+  background: rgba(140, 160, 255, 0.12);
+  overflow: hidden;
+}
+
+.achievements-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #6f8fe0, #a9c3ff);
+  box-shadow: 0 0 10px rgba(140, 160, 255, 0.4);
+}
