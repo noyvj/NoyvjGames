@@ -61,6 +61,8 @@ ELEMENT_IDS = [
     "practice-blurb-tip",
     "practice-blurb-why",
     "practice-report-button",
+    "practice-pronunciation-note",
+    "practice-pronunciation-report-button",
     "practice-close-button",
     "water-next-button",
     "next-day-button",

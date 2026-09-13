@@ -141,6 +141,28 @@ CULTURAL_NOTES_BY_SEQUENCE = {
 # forced into a quiz.
 LIAISON_DRILL_QUESTIONS = SUPPLEMENTARY_NOTES.get("liaison_drill", [])
 
+# Milestone 24: a mispronunciation-risk report button. Most of the TTS
+# watchlist's 11 entries describe a *rule* (liaison, an ending pattern) with
+# no single catalog item to attach a note to -- those are already covered
+# abstractly by the liaison drill above. A handful, though, name one exact
+# catalog item by its own fr text ("travailler", flagged by the tutor as
+# commonly mispronounced by learners) -- computed by membership rather than
+# hardcoded, so a future catalog/watchlist edit that makes another entry
+# resolve cleanly picks it up automatically instead of needing a second,
+# parallel list kept in sync by hand.
+_CATALOG_FR_TEXTS = {
+    item["fr"]
+    for week in CATALOG["weeks"]
+    for topic in week["topics"]
+    for item in topic.get("items", [])
+    if item.get("fr")
+}
+PRONUNCIATION_RISK_NOTES = {
+    entry["item"]: entry["note"]
+    for entry in SUPPLEMENTARY_NOTES.get("tts_watchlist", [])
+    if entry["item"] in _CATALOG_FR_TEXTS
+}
+
 
 class Plot:
     """One plot of the farm: a single fact you are trying to grow.
@@ -1410,6 +1432,21 @@ REPORT_GAME_ID = "champ-de-mots"
 REPORT_BUTTON_LABEL = "I think this should count"
 REPORT_SENT_LABEL = "Reported — thanks"
 
+# Milestone 24: a second, independent report type on the same backend table
+# and endpoint -- a pronunciation concern isn't "my answer should have
+# counted" (AnswerReport's own shape already covers that), it's "this
+# catalog text itself might be a mispronunciation trap." Reusing the table
+# rather than adding a new one: every required field already fits (a fixed
+# marker string stands in for `submitted_answer`, the item's own fr text
+# satisfies `marked_correct_answer`'s "at least one" rule), and
+# `topic_type="pronunciation"` is enough for a human triaging the queue
+# (`GET /answer-reports?topic_type=pronunciation`) to tell the two kinds
+# apart without a schema change to the shared backend.
+PRONUNCIATION_REPORT_TOPIC_TYPE = "pronunciation"
+PRONUNCIATION_REPORT_MARKER = "[pronunciation concern]"
+PRONUNCIATION_REPORT_BUTTON_LABEL = "🔊 Report a pronunciation concern"
+PRONUNCIATION_REPORT_SENT_LABEL = "Reported — thanks"
+
 
 # ===========================================================================
 # Milestone 10 — the failure feedback blurb (design doc §14.3), Phase 1 only
@@ -1473,6 +1510,7 @@ current_result = None
 current_submitted_answer = None
 practice_open = False
 report_sent = False
+pronunciation_report_sent = False
 plot_cells = {}
 QUESTION_RNG = random.Random()
 
@@ -2340,6 +2378,8 @@ def render_practice():
         choices_box.innerHTML = ""
         _element("practice-report-button").hidden = True
         _element("practice-blurb").hidden = True
+        _element("practice-pronunciation-note").hidden = True
+        _element("practice-pronunciation-report-button").hidden = True
         return
 
     panel.hidden = False
@@ -2401,6 +2441,27 @@ def render_practice():
         report_button.disabled = report_sent
         report_button.innerText = REPORT_SENT_LABEL if report_sent else REPORT_BUTTON_LABEL
 
+    # Milestone 24: independent of the above -- available for the whole
+    # time a question is open, not gated by right/wrong or typed/choice,
+    # since a pronunciation concern is about the catalog text itself, not
+    # about how this attempt went. The note only shows for the handful of
+    # items the TTS watchlist actually flags by name (see
+    # PRONUNCIATION_RISK_NOTES); the report button is always available.
+    pronunciation_note = _element("practice-pronunciation-note")
+    pronunciation_button = _element("practice-pronunciation-report-button")
+    plot = state.plots_by_id.get(current_question["plot_id"])
+    risk_note = PRONUNCIATION_RISK_NOTES.get(plot.items[0]["fr"]) if plot else None
+    pronunciation_note.hidden = risk_note is None
+    if risk_note is not None:
+        pronunciation_note.innerText = f"⚠ Known pronunciation risk: {risk_note}"
+    pronunciation_button.hidden = False
+    pronunciation_button.disabled = pronunciation_report_sent
+    pronunciation_button.innerText = (
+        PRONUNCIATION_REPORT_SENT_LABEL
+        if pronunciation_report_sent
+        else PRONUNCIATION_REPORT_BUTTON_LABEL
+    )
+
     # §14.3: the failure blurb shows on *any* wrong answer, choice or typed
     # (unlike the report button above, which is written-answer-only).
     blurb_panel = _element("practice-blurb")
@@ -2431,7 +2492,7 @@ def render():
 
 def open_practice(plot_id, variant=None):
     """Water a plot: roll a fresh question for it (§5) and show the panel."""
-    global current_question, current_result, current_submitted_answer, practice_open, report_sent, current_confidence
+    global current_question, current_result, current_submitted_answer, practice_open, report_sent, pronunciation_report_sent, current_confidence
 
     plot = state.plots_by_id.get(plot_id)
     if plot is None or not state.is_row_unlocked(plot.sequence):
@@ -2445,6 +2506,7 @@ def open_practice(plot_id, variant=None):
     current_submitted_answer = None
     current_confidence = None
     report_sent = False
+    pronunciation_report_sent = False
     practice_open = True
     _element("practice-answer-input").value = ""
     render()
@@ -2497,13 +2559,14 @@ def submit_answer(given):
 
 
 def close_practice(event=None):
-    global current_question, current_result, current_submitted_answer, practice_open, report_sent, current_confidence
+    global current_question, current_result, current_submitted_answer, practice_open, report_sent, pronunciation_report_sent, current_confidence
 
     current_question = None
     current_result = None
     current_submitted_answer = None
     current_confidence = None
     report_sent = False
+    pronunciation_report_sent = False
     practice_open = False
     render()
 
@@ -2560,6 +2623,44 @@ def submit_report(event=None):
     if payload is None:
         return None
     report_sent = True
+    _dispatch_report(payload)
+    render()
+    return payload
+
+
+def _pronunciation_report_payload():
+    """The Milestone 24 payload for the currently-open question's own item,
+    or None if there's no question open. Unlike `_report_payload()`, this
+    doesn't care whether the answer was right or wrong, typed or chosen --
+    a pronunciation concern is about the catalog text itself, not about how
+    this particular attempt went."""
+    if current_question is None:
+        return None
+    plot = state.plots_by_id.get(current_question["plot_id"])
+    if plot is None:
+        return None
+    return {
+        "game_id": REPORT_GAME_ID,
+        "item_id": current_question["plot_id"],
+        "submitted_answer": PRONUNCIATION_REPORT_MARKER,
+        "marked_correct_answer": [plot.items[0]["fr"]],
+        "topic_type": PRONUNCIATION_REPORT_TOPIC_TYPE,
+    }
+
+
+def submit_pronunciation_report(event=None):
+    """Send a pronunciation-concern report for the currently-open question's
+    item, once. Reuses `_dispatch_report()` unchanged -- same endpoint, same
+    payload shape, just a different `topic_type` for a human triaging the
+    queue to filter on."""
+    global pronunciation_report_sent
+
+    if pronunciation_report_sent:
+        return None
+    payload = _pronunciation_report_payload()
+    if payload is None:
+        return None
+    pronunciation_report_sent = True
     _dispatch_report(payload)
     render()
     return payload
@@ -3524,6 +3625,9 @@ def setup():
     _element("practice-answer-input").addEventListener("keydown", create_proxy(on_answer_keydown))
     _element("practice-close-button").addEventListener("click", create_proxy(close_practice))
     _element("practice-report-button").addEventListener("click", create_proxy(submit_report))
+    _element("practice-pronunciation-report-button").addEventListener(
+        "click", create_proxy(submit_pronunciation_report)
+    )
     _element("practice-confidence-sure-button").addEventListener(
         "click", create_proxy(lambda event=None: set_confidence("sure"))
     )
