@@ -30,6 +30,7 @@
       <button id="liaison-toggle-button" class="secondary" type="button">🗣️ Liaison practice</button>
       <button id="achievements-toggle-button" class="secondary" type="button">🏆 Achievements</button>
       <button id="blitz-toggle-button" class="secondary" type="button">⚡ Greetings & Basics Blitz</button>
+      <button id="racer-toggle-button" class="secondary" type="button">🏁 Verb Racer</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
     <div id="dashboard-panel" class="dashboard-panel" hidden></div>
@@ -54,6 +55,31 @@
       <div id="blitz-choices" class="practice-choices"></div>
       <p id="blitz-feedback" class="practice-feedback"></p>
       <button id="blitz-close-button" class="secondary practice-close">Close</button>
+    </div>
+
+    <div id="racer-panel" class="minigame-panel" hidden>
+      <h2>Verb Racer</h2>
+      <p class="status-line status-line--muted">Pick the correctly conjugated verb form to advance one step — from your daily-routine/reflexives/comparative weeks (rows 12-15). A steady rival advances on its own every few seconds. First to the finish line wins.</p>
+      <p id="racer-lock-message" class="minigame-lock-message" hidden></p>
+      <div class="racer-track">
+        <div class="racer-lane">
+          <span id="racer-player-marker" class="racer-marker" style="left: 0%">🚗</span>
+        </div>
+        <div class="racer-lane">
+          <span id="racer-rival-marker" class="racer-marker racer-marker--rival" style="left: 0%">🚙</span>
+        </div>
+        <div class="racer-finish-line"></div>
+      </div>
+      <p id="racer-progress-display" class="status-line"></p>
+      <button id="racer-start-button" class="secondary">Start the race</button>
+      <p id="racer-summary" class="minigame-summary" hidden></p>
+      <div class="minigame-prompt-card">
+        <p id="racer-context" class="practice-context"></p>
+        <p id="racer-prompt" class="practice-prompt"></p>
+      </div>
+      <div id="racer-choices" class="practice-choices"></div>
+      <p id="racer-feedback" class="practice-feedback"></p>
+      <button id="racer-close-button" class="secondary practice-close">Close</button>
     </div>
 
     <p class="tagline">The field of words. Every plot is one French fact — water it when it needs water, and watch it slowly stop needing you.</p>
@@ -369,6 +395,8 @@
       setInterval(() => {
         const blitzTick = pyodide.globals.get("blitz_tick");
         if (blitzTick) blitzTick();
+        const racerTick = pyodide.globals.get("racer_tick");
+        if (racerTick) racerTick();
       }, 1000);
 
       if (window.GameTutorial) {
