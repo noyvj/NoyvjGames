@@ -121,7 +121,11 @@ def test_every_plot_and_every_variant_generates_a_valid_question(game_env):
             assert question["answer"].strip()
             assert question["prompt"].strip()
             if question["mode"] == "choice":
-                assert len(question["choices"]) == module.QUESTION_CHOICE_COUNT
+                # Gender-tag is the one deliberate exception: there are only
+                # ever two possible articles, not a nearby-topic distractor
+                # pool to draw QUESTION_CHOICE_COUNT-1 wrong answers from.
+                expected_count = 2 if variant == module.V_GENDER_TAG else module.QUESTION_CHOICE_COUNT
+                assert len(question["choices"]) == expected_count
                 assert question["answer"] in question["choices"]
                 assert len(set(question["choices"])) == len(question["choices"])
             else:
