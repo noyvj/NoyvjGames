@@ -196,6 +196,13 @@
       <div id="research-list"></div>
     </div>
 
+    <div id="log" class="section">
+      <h2 class="section-heading">Log</h2>
+      <p id="log-status-display" class="status-line">0 entries</p>
+      <p class="row-blurb">Notes on the settlement as it goes — a discovery, a milestone, a shift in how things are going. Nothing here needs a response; skip it any time.</p>
+      <div id="log-list"></div>
+    </div>
+
     <button id="advance-season-button" class="primary">Advance Season</button>
   </div>
 
@@ -216,7 +223,7 @@
     // Each engine module is written into Pyodide's virtual filesystem (the
     // working directory, which is on sys.path) before game.py runs and
     // imports them. Still no build step — just more than one fetch.
-    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "save.py", "info_content.py"];
+    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "save.py", "info_content.py"];
 
     const CONTINUUM_TUTORIAL_STEPS = [
       {
@@ -262,6 +269,11 @@
         selector: "#info-page-toggle-button",
         title: "The Real Story",
         text: "Open this any time to read the real anthropology and archaeology behind whatever era the settlement is currently in — it updates automatically as the settlement moves through the ages.",
+      },
+      {
+        selector: "#log",
+        title: "The Log",
+        text: "A running record of what's happened — a discovery, a population milestone, a shift in how the settlement is doing. It reacts to good and bad news alike, in the settlement's own voice. Read it or don't; nothing here is blocking or required.",
       },
       {
         title: "You're ready",

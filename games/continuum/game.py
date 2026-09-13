@@ -9,6 +9,7 @@ lives in the engine modules that sit beside it —
     research.py        the research tree engine (Milestone 3)
     save.py            the continuous-save / era-snapshot schema (Milestone 4)
     info_content.py    real-world info-panel content, keyed by era (Milestone 5)
+    log.py             the ongoing log / diegetic feedback system (Milestone 6)
 
 — which is the separation the design doc's tech notes ask for, so that six
 more eras of content land in the engines rather than in one tangled file.
@@ -50,6 +51,7 @@ campaign = save.Campaign(sim.CityState(), research.build_tree())
 # names stay valid across a load.
 state = campaign.state
 tree = campaign.tree
+chronicle = campaign.log
 
 # Milestone 5 — collapsed by default, per the design doc's Core system 6.
 # Not one of CITY_FIELDS/tree state, so it rides in campaign.ui instead
@@ -164,6 +166,7 @@ def render():
     render_sustainability(effects)
     render_research()
     render_info_page()
+    render_log()
 
 
 def render_info_page():
@@ -183,6 +186,55 @@ def on_toggle_info_page(event=None):
     global info_page_open
     info_page_open = info_page.toggle(info_page_open)
     render_info_page()
+
+
+# Rendered entries, newest first, capped independently of how many
+# Chronicle keeps for the save file (`log.MAX_ENTRIES`) so a long session
+# doesn't grow the DOM without bound.
+LOG_VISIBLE_ENTRIES = 20
+
+
+def render_log():
+    """The ongoing log (Milestone 6) — lightweight, skippable flavor text
+    triggered by research unlocks, population thresholds, and livability
+    shifts (which double as this game's diegetic feedback, per the design
+    doc's Core system 4 — see log.py). Always visible, never a popup;
+    rebuilt from `chronicle.entries` the same way render_research() rebuilds
+    the research panel from the tree, for the same reason: a session's
+    worth of rows can't be static markup.
+    """
+    document.getElementById("log-status-display").innerText = (
+        f"{len(chronicle.entries)} entries"
+    )
+
+    container = document.getElementById("log-list")
+    container.innerHTML = ""
+
+    if not chronicle.entries:
+        empty = document.createElement("p")
+        empty.className = "row-blurb"
+        empty.innerText = "Nothing to report yet."
+        container.appendChild(empty)
+        return
+
+    for entry in reversed(chronicle.entries[-LOG_VISIBLE_ENTRIES:]):
+        row = document.createElement("div")
+        row.className = f"row log-row log-row--{entry.kind}"
+
+        top = document.createElement("div")
+        top.className = "row-top"
+        tag = document.createElement("span")
+        tag.className = "row-name"
+        tag.innerText = f"{sim.ERA_LABEL.get(entry.era, entry.era)} · Season {entry.season}"
+        top.appendChild(tag)
+        row.appendChild(top)
+
+        text = document.createElement("p")
+        text.className = "row-blurb"
+        text.innerText = entry.text
+        row.appendChild(text)
+
+        container.appendChild(row)
 
 
 def render_sustainability(effects):
@@ -335,6 +387,7 @@ def _make_build_handler(building):
 def _make_research_handler(node_id):
     def handler(event=None):
         tree.research(node_id, state.resources)
+        chronicle.check_research(state, tree)
         render()
     return handler
 
@@ -343,6 +396,8 @@ def on_advance_season(event=None):
     effects = current_effects()
     state.advance_season(effects)
     state.score_history.append(sustainability.score(state, effects))
+    chronicle.check_population(state)
+    chronicle.check_livability(state, effects)
     render()
 
 
