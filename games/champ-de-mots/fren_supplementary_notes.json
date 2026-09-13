@@ -78,5 +78,133 @@
       "sequence": 17,
       "note": "Camille's song 'Money note' suggested as a listening aid for correct pronunciation of 'euro'. Tutor also flags that students frequently confuse demonstrative adjectives (ce/cette) with demonstrative pronouns (celui/celle) — a real, recurring error worth targeting directly in review."
     }
+  ],
+  "liaison_drill": [
+    {
+      "sequence": 3,
+      "item": "liaison consonant sounds",
+      "prompt": "Which pair actually has liaison between the two words?",
+      "choices": [
+        "trois dollars",
+        "trois ans"
+      ],
+      "answer": "trois ans",
+      "explanation": "The final 's' in 'trois' links to the vowel that starts 'ans', making an 's' → [z] sound (trois ans). 'Dollars' starts with a consonant, so there's nothing to link to."
+    },
+    {
+      "sequence": 3,
+      "item": "nationality masc/fem pronunciation",
+      "prompt": "The final 's' in 'anglais' (masculine) is silent. What happens to it in the feminine form, 'anglaise'?",
+      "choices": [
+        "It stays silent",
+        "It becomes pronounced, once the feminine -e is added",
+        "It becomes a 'z' sound in both forms",
+        "It disappears from the spelling entirely"
+      ],
+      "answer": "It becomes pronounced, once the feminine -e is added",
+      "explanation": "'anglais' ends in a silent 's'; adding the feminine '-e' (anglaise) makes that same 's' audible."
+    },
+    {
+      "sequence": 4,
+      "item": "silent letters set",
+      "prompt": "Most French words drop their final consonant sound. Which of these is the exception -- it keeps its final consonant sound?",
+      "choices": [
+        "beaucoup",
+        "chaud",
+        "hôpital",
+        "prix"
+      ],
+      "answer": "prix",
+      "explanation": "'beaucoup', 'chaud', and 'hôpital' all drop their final consonant sound as expected. 'prix' (like 'avril', 'flic', and 'coq') keeps it — a real exception to the rule."
+    },
+    {
+      "sequence": 5,
+      "item": "septante / huitante / nonante",
+      "prompt": "'Septante' (70) and 'nonante' (90) aren't standard-French numbers — where are they actually used?",
+      "choices": [
+        "Paris and mainland France generally",
+        "Belgium and Switzerland",
+        "Quebec",
+        "French-speaking Africa"
+      ],
+      "answer": "Belgium and Switzerland",
+      "explanation": "Standard French uses 'soixante-dix'/'quatre-vingt-dix'; Belgian and Swiss French use the simpler compound-free 'septante'/'nonante' instead. A standard-French text-to-speech voice may not read these region-specific forms correctly."
+    },
+    {
+      "sequence": 8,
+      "item": "liaison in BAGS adjective + noun",
+      "prompt": "Which of these has liaison — the adjective's final consonant links into the next word?",
+      "choices": [
+        "un bon copain",
+        "un bon ami"
+      ],
+      "answer": "un bon ami",
+      "explanation": "Liaison only happens before a word starting with a vowel sound. 'ami' starts with a vowel, so 'bon' links into it (bon ami); 'copain' starts with a consonant, so there's nothing to link."
+    },
+    {
+      "sequence": 11,
+      "item": "feminine forms of gros/blond/brun/lent",
+      "prompt": "What is the feminine form of 'gros'?",
+      "choices": [
+        "grose",
+        "grosse",
+        "grosee",
+        "groze"
+      ],
+      "answer": "grosse",
+      "explanation": "Doubling the consonant before the feminine '-e' (gros → grosse) is what makes it pronounced — the masculine form's final 's' is silent, but 'grosse' isn't."
+    },
+    {
+      "sequence": 12,
+      "item": "est-ce que",
+      "prompt": "How is 'est-ce que' actually pronounced?",
+      "choices": [
+        "Letter by letter: 'e-s-t-c-e-q-u-e'",
+        "As a contracted 'ess-ke'",
+        "As 'eh-say-kuh'",
+        "The 'que' is silent"
+      ],
+      "answer": "As a contracted 'ess-ke'",
+      "explanation": "'est-ce que' contracts down to two quick syllables, 'ess-ke', not a spelled-out reading of each part."
+    },
+    {
+      "sequence": 13,
+      "item": "se lever / se promener stem-change",
+      "prompt": "'se lever' gains a grave accent (è) in most conjugated forms — je me lève, tu te lèves, il se lève. Which form is the exception, keeping the plain 'e'?",
+      "choices": [
+        "je me lève",
+        "nous nous levons",
+        "il se lève",
+        "elle se lève"
+      ],
+      "answer": "nous nous levons",
+      "explanation": "The accent shows up everywhere except nous/vous — nous nous levons and vous vous levez keep the unaccented stem. Same pattern for 'se promener' and 'acheter' (j'achète, but nous achetons)."
+    },
+    {
+      "sequence": 15,
+      "item": "-t- insertion in inversion",
+      "prompt": "Which of these is correctly written?",
+      "choices": [
+        "mange-il",
+        "mange-t-il",
+        "manget-il",
+        "mange-ti-il"
+      ],
+      "answer": "mange-t-il",
+      "explanation": "When an inverted verb form ends in a vowel sound (like 'mange'), an extra '-t-' is inserted so it doesn't run straight into 'il'/'elle'. Verbs that already end in a 't' or 'd' sound (prend-il, finit-il) don't need it."
+    },
+    {
+      "sequence": 17,
+      "item": "du shampooing",
+      "prompt": "In 'du shampooing', what happens to the final 'g'?",
+      "choices": [
+        "It's pronounced clearly, like the 'g' in 'go'",
+        "It's silent, and the 'oin' before it is nasalised",
+        "It's silent, but 'oin' is pronounced like plain 'wa'",
+        "It's pronounced like an English 'j'"
+      ],
+      "answer": "It's silent, and the 'oin' before it is nasalised",
+      "explanation": "'-oin-' is a nasal vowel sound (like in 'point' or 'moins'), and the trailing 'g' in '-ing' loanwords like 'shampooing', 'parking', and 'camping' is silent in French."
+    }
   ]
 }

@@ -828,6 +828,10 @@ button:disabled {
   background: radial-gradient(circle at 34% 30%, #f7e3ea 0%, #dba0b8 38%, #a35c7a 72%, #5c2f42 100%);
 }
 
+.panel-hero--liaison {
+  background: radial-gradient(circle at 34% 30%, #dff3f5 0%, #9ecdd3 38%, #4f95a0 72%, #2a5960 100%);
+}
+
 /* --- the practice/review/proficiency/bonus panels themselves, back
    to warm paper rather than the cool glass every other .section
    uses -- see this block's own header note above for why. */
