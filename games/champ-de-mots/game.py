@@ -161,6 +161,14 @@ class Plot:
         self.correct_streak = 0
         self.stage = STAGE_SEED
 
+        # Improvement Ideas §2: "weeds" -- a specific-error overlay, not a
+        # growth stage. Set the moment a wrong answer matches a known
+        # commonly-confused counterpart (WEED_CONFUSIONS below), cleared on
+        # the next correct answer, same "one watering brings it back" rule
+        # wilting already follows. Independent of `stage`, which never
+        # regresses.
+        self.in_weeds = False
+
     @property
     def is_grammar_rule(self):
         return self.topic_type == "grammar"
@@ -1174,6 +1182,43 @@ def _lookup_accepted(question, farm=None):
     return None
 
 
+# Improvement Ideas §2: "weeds" as a distinct plot state for commonly-
+# confused pairs -- false friends and French-internal look-alikes, kept
+# separate from ordinary wilting. A starter list, not exhaustive: this
+# catalog is A1/A2-level, so most "textbook" French/English false-friend
+# lists (actuellement, librairie, assister...) don't actually appear in it
+# -- travailler/travel is the one confirmed real false friend here. The
+# rest are the classic beginner homophone mixups, checkable purely from the
+# submitted vs. correct answer text with no new catalog content required.
+# Grows the same way accepted_en/accepted_fr overrides do: add a pair here
+# when real play surfaces one, rather than trying to anticipate every
+# possible confusion up front.
+WEED_CONFUSIONS = {
+    "to work": {"travel"},  # travailler looks like "travel," means "to work"
+    "à": {"a"}, "a": {"à"},
+    "ou": {"où"}, "où": {"ou"},
+    "ce": {"se"}, "se": {"ce"},
+    "son": {"sont"}, "sont": {"son"},
+    "ces": {"ses"}, "ses": {"ces"},
+    "on": {"ont"}, "ont": {"on"},
+    "c'est": {"s'est", "sait"},
+    "leur": {"leurs"}, "leurs": {"leur"},
+}
+
+
+def is_weed_confusion(correct_answer, submitted_answer):
+    """True if a wrong typed answer matches a *specific*, known mix-up for
+    the real answer, rather than being an arbitrary miss. Deliberately
+    accent-preserving (fold_accents=False) even though normal grading can
+    fold accents -- half of these pairs (à/a, où/ou) are *only* different
+    by their accent, so folding it here would make them indistinguishable
+    from each other, defeating the whole check."""
+    confusable = WEED_CONFUSIONS.get(normalize_answer(str(correct_answer), fold_accents=False))
+    if not confusable:
+        return False
+    return normalize_answer(str(submitted_answer), fold_accents=False) in confusable
+
+
 def check_answer(question, given, tier=None, accent_sensitive=None):
     """Multiple choice is always exact. Typed answers: with no `tier`
     (the original Milestone 3 signature), this is byte-for-byte the old
@@ -1225,7 +1270,10 @@ STAGE_LABEL = {
 }
 
 WILTING_LEGEND = "Drooping — overdue, one watering brings it back"
+WEEDS_ICON = "🌾"
+WEEDS_LEGEND = "Weeds — a known French mix-up, one correct answer clears it"
 AUTOMATED_TOOLTIP_NOTE = "auto-watered"
+WEEDS_TOOLTIP_NOTE = "a common mix-up — worth another look"
 DUE_NOTE = "ready for water"
 NOTHING_DUE_MESSAGE = "Nothing needs water today. The farm is ticking over on its own."
 LOCK_NOTE = "opens when row {previous} has all sprouted"
@@ -1532,6 +1580,7 @@ def build_farm():
 def render_legend():
     lines = [f"{STAGE_ICON[stage]} {STAGE_LABEL[stage]}" for stage in STAGE_ORDER]
     lines.append(f"💧 {WILTING_LEGEND}")
+    lines.append(f"{WEEDS_ICON} {WEEDS_LEGEND}")
     _element("legend").innerText = "  ·  ".join(lines)
 
 
@@ -1708,7 +1757,13 @@ def render_cultural_notes():
 
 def _plot_classes(plot):
     classes = ["plot", f"plot--{plot.stage}"]
-    if is_wilting(plot, state.current_day):
+    # Weeds takes the place ordinary wilting would otherwise show for this
+    # specific plot -- a known mix-up is more informative than a generic
+    # "overdue" droop, so it's checked first and wilting is skipped when
+    # weeds already applies.
+    if plot.in_weeds:
+        classes.append("plot--weeds")
+    elif is_wilting(plot, state.current_day):
         classes.append("plot--wilting")
     if is_due(plot, state.current_day):
         classes.append("plot--due")
@@ -1721,6 +1776,8 @@ def _plot_title(plot):
     parts = [f"{plot.label} — {plot.topic_title}", STAGE_LABEL[plot.stage].split(" — ")[0]]
     if plot.stage == STAGE_AUTOMATED:
         parts.append(AUTOMATED_TOOLTIP_NOTE)
+    if plot.in_weeds:
+        parts.append(WEEDS_TOOLTIP_NOTE)
     if is_due(plot, state.current_day):
         parts.append(DUE_NOTE)
     return " · ".join(parts)
@@ -1977,6 +2034,12 @@ def submit_answer(given):
         current_question, given, tier=tier, accent_sensitive=ACCENT_SENSITIVE
     )
     combo_count = combo_count + 1 if current_result else 0
+    plot = state.plots_by_id.get(current_question["plot_id"])
+    if plot is not None:
+        if current_result:
+            plot.in_weeds = False
+        elif typed_mode and is_weed_confusion(current_question["answer"], given):
+            plot.in_weeds = True
     state.review(
         current_question["plot_id"],
         current_result,
@@ -3110,6 +3173,7 @@ def _plot_record(plot):
         "next_due": plot.next_due,
         "correct_streak": plot.correct_streak,
         "stage": plot.stage,
+        "in_weeds": plot.in_weeds,
     }
 
 
@@ -3120,6 +3184,7 @@ def _reset_plot(plot):
     plot.next_due = None
     plot.correct_streak = 0
     plot.stage = STAGE_SEED
+    plot.in_weeds = False
 
 
 def get_state():
@@ -3164,6 +3229,7 @@ def load_state(data):
         plot.stage = record.get("stage", STAGE_SEED)
         if plot.stage not in STAGE_RANK:
             plot.stage = STAGE_SEED
+        plot.in_weeds = bool(record.get("in_weeds", False))
 
     # Any question on screen was generated against the farm that just got
     # replaced, so it is closed rather than answered into the new one.

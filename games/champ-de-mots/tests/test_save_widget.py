@@ -10,7 +10,10 @@ import json
 
 
 EXPECTED_KEYS = {"version", "current_day", "plots"}
-PLOT_KEYS = {"ease_factor", "interval_days", "last_reviewed", "next_due", "correct_streak", "stage"}
+PLOT_KEYS = {
+    "ease_factor", "interval_days", "last_reviewed", "next_due", "correct_streak",
+    "stage", "in_weeds",
+}
 
 
 def _water(game_env, plot_id, times=1, correct=True):

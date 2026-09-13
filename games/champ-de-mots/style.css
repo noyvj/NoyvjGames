@@ -510,6 +510,25 @@ button:disabled {
   transform: rotate(6deg);
 }
 
+/* Improvement Ideas §2: a known French mix-up (weeds), flagged instead of
+   ordinary wilting for this specific plot -- same corner-dot technique as
+   the automated sprinkler, opposite corner so the two can coexist, in an
+   olive/amber "weeds" tone rather than automated's blue. */
+.plot--weeds {
+  position: relative;
+}
+
+.plot--weeds::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #8a7a2e;
+}
+
 .plot--due {
   box-shadow: inset 0 0 0 1px #b9a77f;
 }
