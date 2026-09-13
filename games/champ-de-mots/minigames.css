@@ -1,0 +1,174 @@
+/*
+ * Le Champ de Mots — arcade minigame family (Milestones 27-30).
+ *
+ * Loaded alongside style.css, never instead of it -- shared chrome (panels,
+ * buttons, choice tiles) still comes from style.css's own classes
+ * (.section, .secondary, .choice, .choice--answer). This file only adds
+ * what the farm's own CSS deliberately never needed: real motion and
+ * timer-driven visual energy.
+ *
+ * This is the file-boundary half of the wellbeing-constraint exception
+ * documented in minigames.py's own module docstring and in CLAUDE.md's
+ * Milestone 27 build note: the farm's `style.css` is banned from
+ * `@keyframes`/`animation:`/`transition:` by `test_the_farm_has_no_animation`
+ * (a literal substring scan over that one named file), because the *farm's*
+ * daily loop is deliberately built with zero clock-driven visual pressure.
+ * An opt-in arcade minigame is a different thing on purpose, so this file
+ * uses all three freely -- it was never in scope for that test, and the
+ * test itself is untouched.
+ *
+ * Same "no fire emoji, no shaming" wellbeing conventions as the rest of
+ * this game still apply here even though animation doesn't need to: a
+ * timeout or a lost life gets a neutral color and a plain-language message,
+ * never a harsh red "FAILED" treatment.
+ */
+
+.minigame-panel {
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.78), rgba(14, 16, 28, 0.85));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 16px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.minigame-lock-message {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: #9aa0c0;
+  margin: 0 0 0.75rem;
+}
+
+.minigame-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+
+.minigame-stat {
+  background: rgba(140, 160, 255, 0.1);
+  border: 1px solid rgba(140, 160, 255, 0.2);
+  border-radius: 10px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #eaeaf0;
+}
+
+.minigame-stat--timer {
+  color: #ffd479;
+  animation: minigame-timer-pulse 1s ease-in-out infinite;
+}
+
+.minigame-stat--timer.minigame-stat--urgent {
+  color: #ff9d7a;
+  animation-duration: 0.5s;
+}
+
+@keyframes minigame-timer-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.65; }
+}
+
+.minigame-stat--combo {
+  color: #a9ffcf;
+}
+
+.minigame-prompt-card {
+  background: rgba(140, 160, 255, 0.06);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.minigame-summary {
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: rgba(140, 160, 255, 0.1);
+  border: 1px solid rgba(140, 160, 255, 0.2);
+  margin-bottom: 0.75rem;
+}
+
+/* --- Milestone 28: Verb Racer -------------------------------------------- */
+
+.racer-track {
+  position: relative;
+  height: 3.2rem;
+  background: rgba(140, 160, 255, 0.08);
+  border-radius: 999px;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+}
+
+.racer-lane {
+  position: relative;
+  height: 1.4rem;
+  margin: 0.15rem 0.5rem;
+}
+
+.racer-finish-line {
+  position: absolute;
+  right: 0.5rem;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: repeating-linear-gradient(
+    to bottom, #eaeaf0 0 6px, transparent 6px 12px
+  );
+}
+
+.racer-marker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.3rem;
+  transition: left 0.4s ease-out;
+}
+
+.racer-marker--rival {
+  filter: grayscale(0.3);
+}
+
+/* --- Milestones 29/30: Boutique Dash + Café Rush shop-rush ---------------- */
+
+.shop-rush-order {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #eaeaf0;
+}
+
+.shop-rush-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.6rem;
+  margin: 0.75rem 0;
+}
+
+.shop-rush-patience-bar {
+  height: 0.5rem;
+  border-radius: 999px;
+  background: rgba(140, 160, 255, 0.12);
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.shop-rush-patience-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #9bd67f, #ffd479);
+  transition: width 0.3s linear, background-color 0.3s linear;
+}
+
+.shop-rush-patience-fill.shop-rush-patience-fill--low {
+  background: linear-gradient(90deg, #ffd479, #ff9d7a);
+}
+
+.cafe-twist-panel {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed rgba(140, 160, 255, 0.25);
+}

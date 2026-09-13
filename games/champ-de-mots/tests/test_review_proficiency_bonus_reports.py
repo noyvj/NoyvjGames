@@ -101,7 +101,11 @@ def test_review_report_payload_matches_the_documented_shape(game_env):
     }
     assert payload["item_id"] == question["plot_id"]
     assert payload["submitted_answer"] == "wrong answer"
-    assert payload["marked_correct_answer"] == [question["answer"]]
+    # The canonical answer always leads the list; a LENIENT item may also
+    # contribute its own generated accepted-variant phrasings after it
+    # (see _typed_wrong_report_payload()), which this question is picked at
+    # random from Review's own queue and so isn't guaranteed to avoid.
+    assert payload["marked_correct_answer"][0] == question["answer"]
     assert payload["topic_type"] == question["topic_type"]
 
 

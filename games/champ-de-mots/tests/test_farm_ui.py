@@ -355,6 +355,56 @@ def test_water_next_button_opens_the_next_due_plot(game_env):
     assert module.current_question["plot_id"] == expected.plot_id
 
 
+# --- "Next plot" button inside the practice panel itself --------------------
+#
+# Direct user request: continuing to the next due plot used to mean Close,
+# then scroll back up to the farm-level water-next-plot button -- friction
+# doing several plots in a row. Same visibility gating as the report
+# buttons (answered = current_result is not None), and reuses
+# state.next_due_plot() rather than re-deriving "what's next" logic.
+
+
+def test_next_plot_button_is_hidden_until_answered(game_env):
+    module = game_env.module
+    game_env.water_next()
+    assert game_env.elements["practice-next-button"].hidden is True
+    module.submit_answer(module.current_question["answer"])
+    assert game_env.elements["practice-next-button"].hidden is False
+
+
+def test_next_plot_button_advances_to_the_next_due_plot(game_env):
+    module, state = game_env.module, game_env.state
+    game_env.water_next()
+    module.submit_answer(module.current_question["answer"])
+    expected = state.next_due_plot()
+    assert expected is not None
+
+    game_env.elements["practice-next-button"].dispatch("click", None)
+    assert module.practice_open is True
+    assert module.current_question["plot_id"] == expected.plot_id
+    assert module.current_result is None  # a genuinely fresh, unanswered question
+
+
+def test_next_plot_button_closes_the_panel_once_nothing_else_is_due(game_env):
+    """Answering the actual "last" due plot in this farm is not a reliable
+    way to reach an empty queue -- it can itself unlock a fresh row full of
+    newly-due seeds (§7), so there's always more content until the entire
+    23-row farm is finished. Faking next_due_plot() isolates the fallback
+    branch itself instead."""
+    module, state = game_env.module, game_env.state
+    game_env.water_next()
+    module.submit_answer(module.current_question["answer"])
+
+    real_next_due_plot = state.next_due_plot
+    state.next_due_plot = lambda: None
+    try:
+        game_env.elements["practice-next-button"].dispatch("click", None)
+        assert module.practice_open is False
+        assert game_env.elements["practice-panel"].hidden is True
+    finally:
+        state.next_due_plot = real_next_due_plot
+
+
 def test_next_day_button_moves_the_calendar_and_rerenders(game_env):
     module, state = game_env.module, game_env.state
     plot = state.plots[0]

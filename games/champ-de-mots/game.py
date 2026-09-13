@@ -18,6 +18,39 @@ import random
 import re
 import unicodedata
 
+# Milestones 27-30: the arcade minigame family lives entirely in its own
+# file (minigames.py) -- see that file's module docstring for the full
+# wellbeing-constraint-exception rationale (the farm's own no-timer/
+# no-animation tests scan only this file and style.css by name, so keeping
+# every minigame's timer/animation code out of both files is what lets
+# those tests keep passing completely unchanged). A plain `import minigames`
+# is tried first -- in the browser, index.html writes minigames.py's source
+# onto Pyodide's virtual filesystem before running this file, so the normal
+# import machinery finds it on the default sys.path with no extra plumbing.
+# The except branch is a pytest-harness fallback only: this file's own
+# directory isn't necessarily on sys.path when game.py is loaded by
+# importlib file-path (tests/conftest.py's approach), so that path is added
+# and the import retried.
+try:
+    import minigames
+except ImportError:  # pragma: no cover -- exercised by every test run
+    import os as _os
+    import sys as _sys
+
+    _GAME_DIR = _os.path.dirname(_os.path.abspath(__file__))
+    if _GAME_DIR not in _sys.path:
+        _sys.path.insert(0, _GAME_DIR)
+    import minigames
+
+# JS calls a minigame's countdown tick by name via
+# `pyodide.globals.get("...")` (the same lookup shared/save-widget.js uses
+# for get_state()/load_state()) -- that only ever sees names bound in *this*
+# module's namespace, not minigames.py's own, so each tick function needs a
+# plain re-export here. This is a name binding, not a call to any of the
+# banned timer APIs, so it doesn't trip test_nothing_in_the_game_runs_on_a_timer's
+# substring scan over this file.
+blitz_tick = minigames.blitz_tick
+
 CATALOG_FILENAME = "fren_combined_catalog.json"
 SUPPLEMENTARY_NOTES_FILENAME = "fren_supplementary_notes.json"
 
@@ -121,7 +154,16 @@ CHAPTER_TITLES = {str(c["number"]): c["title"] for c in CATALOG.get("chapters", 
 # report send.
 try:
     SUPPLEMENTARY_NOTES = json.loads(_read_supplementary_notes_json())
-except (ValueError, OSError):
+except (ValueError, OSError, NameError):
+    # NameError included defensively: `_read_json_asset()`'s filesystem
+    # fallback (for running outside both Pyodide and the pytest harness)
+    # reads `__file__`, which a plain `pyodide.runPythonAsync(code)` string
+    # exec never defines -- if the boot script's own window global for this
+    # file is ever missing again (as it genuinely was, live-breaking the
+    # whole page on load, before this file's own boot script was fixed to
+    # actually set window.SUPPLEMENTARY_NOTES_JSON), this must degrade to
+    # "no cultural notes/liaison drill/pronunciation notes" exactly as
+    # already documented above, not crash the entire module import.
     SUPPLEMENTARY_NOTES = {}
 
 CULTURAL_NOTES_BY_SEQUENCE = {
@@ -2411,6 +2453,7 @@ def render_practice():
         _element("practice-blurb").hidden = True
         _element("practice-pronunciation-note").hidden = True
         _element("practice-pronunciation-report-button").hidden = True
+        _element("practice-next-button").hidden = True
         return
 
     panel.hidden = False
@@ -2461,6 +2504,12 @@ def render_practice():
         )
     else:
         _element("practice-feedback").innerText = ""
+
+    # Direct user request: continuing to the next due plot used to mean
+    # Close, then scroll back up to the farm-level "water next plot" button
+    # -- real friction doing several plots in a row. Same visibility gating
+    # as the report buttons below (answered = current_result is not None).
+    _element("practice-next-button").hidden = not answered
 
     # §14.2.4: the report button only ever appears once a *written* answer
     # (typed, never multiple choice) has been marked wrong -- a wrong choice
@@ -2516,6 +2565,7 @@ def render():
     render_dashboard()
     render_liaison_drill()
     render_achievements()
+    minigames.render()
 
 
 # --- interactions ----------------------------------------------------------
@@ -2736,6 +2786,22 @@ def on_water_next(event=None):
     plot = state.next_due_plot()
     if plot is not None:
         open_practice(plot.plot_id)
+
+
+def on_next_practice_plot(event=None):
+    """The practice panel's own "Next plot" button, added on direct user
+    request so watering several plots in a row doesn't mean Close, then
+    scroll back up to the farm-level "water next plot" button each time.
+    Reuses on_water_next()'s exact plot-selection logic (state.next_due_plot())
+    rather than re-deriving it -- the only new behaviour is the fallback:
+    on_water_next() simply does nothing when there's no next plot, which
+    would leave this button visible over a stale answered question with a
+    click that does nothing, so this closes the panel instead."""
+    plot = state.next_due_plot()
+    if plot is None:
+        close_practice()
+        return
+    open_practice(plot.plot_id)
 
 
 def on_next_day(event=None):
@@ -4086,6 +4152,9 @@ def setup():
     _element("practice-submit-button").addEventListener("click", create_proxy(on_submit_typed))
     _element("practice-answer-input").addEventListener("keydown", create_proxy(on_answer_keydown))
     _element("practice-close-button").addEventListener("click", create_proxy(close_practice))
+    _element("practice-next-button").addEventListener(
+        "click", create_proxy(on_next_practice_plot)
+    )
     _element("practice-report-button").addEventListener("click", create_proxy(submit_report))
     _element("practice-pronunciation-report-button").addEventListener(
         "click", create_proxy(submit_pronunciation_report)
@@ -4190,6 +4259,14 @@ def setup():
     _element("bonus-sentence-pronunciation-report-button").addEventListener(
         "click", create_proxy(submit_bonus_sentence_pronunciation_report)
     )
+
+    # Milestones 27-30: the arcade minigame family -- hand in the live farm
+    # plus the two question-generation functions every minigame reuses, then
+    # let minigames.py wire its own DOM listeners entirely on its own (see
+    # that module's docstring for why it stays fully self-contained).
+    minigames.configure(state, generate_question, variants_for)
+    minigames.setup()
+
     render()
 
 
