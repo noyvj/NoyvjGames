@@ -614,7 +614,22 @@ def _read_achievements_json():
         return handle.read()
 
 
-ACHIEVEMENTS = json.loads(_read_achievements_json())["achievements"]
+# Defensive per Le Champ de Mots' own live-incident writeup: the real
+# Pyodide runtime executes this file's fetched text via
+# `pyodide.runPythonAsync(code)`, which never defines `__file__` the way a
+# normal file-based import does -- if `_read_achievements_json()`'s
+# window-global read ever comes back empty (a boot-script regression, a
+# renamed global, a fetch failure), its filesystem fallback crashes with a
+# bare, uncaught `NameError` that takes down this ENTIRE module import,
+# not just achievements -- exactly the bug that silently broke Le Champ de
+# Mots' whole page for every player until it was diagnosed live. Achievements
+# are additive, not core to SOL's own gameplay, so this degrades to "no
+# achievements catalog" instead, the same posture that game's own
+# supplementary-notes loading now takes.
+try:
+    ACHIEVEMENTS = json.loads(_read_achievements_json())["achievements"]
+except (ValueError, OSError, NameError, KeyError):
+    ACHIEVEMENTS = []
 
 # New tracked state (see the module docstring above): every body the player
 # has ever actually traveled to, Earth included from the start since that's
