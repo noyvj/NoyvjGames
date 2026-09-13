@@ -137,6 +137,33 @@ TRANSITION_REQUIREMENTS = {
         "min_tier": research.era_tiers("industrial")[-1],
         "min_score_label": "Strained",
     },
+    # Milestone 13 -- the sixth and FINAL transition this arc needs. Same
+    # three-part shape a sixth time, per every prior era's own notes that
+    # the shape had already proven itself and didn't need re-litigating.
+    # See CLAUDE.md's Milestone 13 build notes for why Space Age's own
+    # content doesn't touch this shape at all, despite reusing it here.
+    "digital": {
+        "to_era": "space",
+        # log.POPULATION_MILESTONES' new, final entry -- literally Dunbar's
+        # own number (150), the point past which no one person can hold
+        # everyone else in mind at once. A fitting hinge into the one era
+        # whose sources describe leaving the planet that number was ever
+        # measured on.
+        "min_population": 150,
+        # The late Digital research tier has to be UNLOCKED (two tier-11
+        # nodes researched) -- same soft-bar spirit as every prior era.
+        "min_tier": research.era_tiers("digital")[-1],
+        "min_score_label": "Strained",
+    },
+    # Space Age intentionally has NO entry here -- it is the true, permanent
+    # end of sim.ERA_ORDER, not merely "the next era hasn't shipped yet" the
+    # way every earlier era's absence from this table was. next_era_for()
+    # and missing_requirements() below already treat a missing entry as
+    # "nothing more to reach" regardless of which of those two reasons is
+    # why it's missing, so no new code was needed to make that distinction
+    # real -- see CLAUDE.md's Milestone 13 build notes and
+    # tests/test_space_age_era.py's own end-to-end test for the first time
+    # this fallback path is exercised for a genuinely true ending.
 }
 
 
@@ -254,6 +281,26 @@ TRANSITION_BEATS = {
         "explain, if nobody was steering it. Whether this city ends up "
         "dense or sprawling from here isn't going to be an accident either "
         "way. Most of the world, by now, lives somewhere like this."
+    ),
+    ("digital", "space"): (
+        "Nobody alive remembers deciding to leave — only the seasons it "
+        "took to actually go. What launched first wasn't people, but the "
+        "parts of a home: modules built to fold, seal, and hold against a "
+        "vacuum this city has never once had to plan around before. By the "
+        "time it arrives, it already carries the one lesson its six "
+        "previous ages spent this long teaching it, plainly enough now to "
+        "look almost obvious: that a place is only as good as what it can "
+        "recover, not what it can produce. That lesson used to be about "
+        "land, and land forgave slowly if you let it. Out here there is no "
+        "slow forgiveness left to lean on — no wind to carry anything away, "
+        "no ground to rest fallow, no elsewhere for a mistake to become "
+        "someone else's problem. Whatever this settlement is now, sealed "
+        "inside its rings, it is going to have to be its own weather, "
+        "start to finish. A hundred and fifty of them made the crossing — "
+        "past the point, fittingly, where any one of them could still hold "
+        "everyone else in mind without help. Nobody has had to design a "
+        "home for that many people with no outside left to escape a bad "
+        "design into. Somebody is going to have to now."
     ),
 }
 

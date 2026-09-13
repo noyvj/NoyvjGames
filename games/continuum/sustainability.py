@@ -22,7 +22,9 @@ Four components, per the doc's framing of SDG 11 ("livability, equity,
 resource balance, resilience — not just raw growth"):
 
 - **Livability** — are people fed, housed, and part of something? The
-  average of the settlement's three basic provisions.
+  average of the settlement's basic provisions — three of them (food,
+  shelter, culture) through Digital, and a fourth (off-world habitat
+  usability) from Space Age on. See the Space Age note below.
 - **Equity** — is everyone provided for, or only some? Bounded by the
   *least*-met need rather than the average, and penalised further when
   provision is lopsided. A settlement with grand shelters and empty
@@ -53,6 +55,22 @@ slum-like conditions even as the city as a whole grows — an equity story
 balance one, so it sits in `equity()` alongside Agrarian's surplus-hoarding
 penalty rather than doubling up on `balance()`'s existing pollution/land
 adjustments. See the Milestone 12 build notes in CLAUDE.md.
+
+Space Age (Milestone 13) is genuinely different in shape from every era
+before it, deliberately so: "post-scarcity off-world infrastructure"
+changes the KIND of tension this era asks about, not just its numbers, so
+it does not add another bolt-on penalty/bonus function the way Agrarian
+through Digital all did. Instead `habitat_usability()` becomes a brand-new
+FOURTH basic provision (alongside food/shelter/culture) once the settlement
+reaches Space Age — read straight into `provisions()`, the shared plumbing
+`livability()` averages and `equity()` bounds by the worst-off value. This
+is also the first time `livability` itself (as opposed to equity/balance/
+resilience) carries an era-specific mechanic at all — a deliberate choice
+for the game's final era, since the Dagstuhl/SpaceCHI source's whole point
+is about lived usability, not scarcity, resource balance, or shock
+resilience. See the Milestone 13 build notes in CLAUDE.md for the full
+reasoning, including why this is genuinely not a seventh copy of Industrial/
+Digital's growth-side stock mechanic.
 
 The four are weighted equally. That is a judgement call, not a finding;
 `COMPONENT_WEIGHTS` is the single place to revisit it.
@@ -108,20 +126,58 @@ def social_provision(state, effects=None):
     return _ratio(state.culture_capacity(effects), state.population)
 
 
+# --- Space Age+ : off-world habitat usability (Milestone 13) ------------
+# continuum-real-world-sources.md's Space Age sources -- most directly the
+# Dagstuhl/SpaceCHI 2025 source on how modular space habitat layouts affect
+# real usability "at scale" -- describe a genuinely different KIND of
+# problem from every prior era's adjustment: not scarcity, not an
+# imbalance to punish or a hedge to reward, just whether the settlement's
+# own layout actually works for the people living in it. That is a
+# LIVABILITY question in this file's own terms (are people housed somewhere
+# that functions?), not a resource-balance or resilience one, so this
+# becomes a fourth basic PROVISION -- see provisions() below -- rather than
+# another _xxx_penalty()/_xxx_bonus() function bolted onto an existing
+# component the way every prior era's mechanic was. `state.habitat_capacity()`
+# is already a 0..1-ratio-able quantity once divided by population (like
+# shelter_adequacy()/social_provision() above), so this needs no separate
+# per-capita adjustment either.
+def habitat_usability(state, effects=None):
+    """0..1 -- how much of the population is well-served by the layout of
+    its off-world Habitat Rings, not merely housed by them. 1.0 (a neutral
+    "not a problem here") for any era before Space Age, so every
+    pre-Milestone-13 provisions()/livability()/equity() result is
+    byte-identical to before this function existed."""
+    if sim.era_index(state.era) < sim.era_index("space"):
+        return 1.0
+    effects = sim.effects_or_neutral(effects)
+    return _ratio(state.habitat_capacity(effects), state.population)
+
+
 def provisions(state, effects=None):
-    return [
+    """The settlement's basic needs, each 0..1 — three through Digital,
+    a fourth (habitat_usability) from Space Age on. The fourth is only
+    ever appended once the era is actually reached, not merely computed
+    and left at its neutral 1.0: including a constant 1.0 unconditionally
+    would still change livability()'s average denominator for every era
+    before Space Age, the same trap Milestone 8's role_diversity() fix
+    (CLAUDE.md's Phase 1 build notes) already had to correct for once."""
+    values = [
         food_security(state),
         shelter_adequacy(state, effects),
         social_provision(state, effects),
     ]
+    if sim.era_index(state.era) >= sim.era_index("space"):
+        values.append(habitat_usability(state, effects))
+    return values
 
 
 # --- the four components (each 0..1) -----------------------------------
 def livability(state, effects=None):
-    """The average of the three basic provisions.
+    """The average of the settlement's basic provisions.
 
-    Takes `effects` because shelter and social provision are read through
-    capacities that research can raise; it has no bonus key of its own.
+    Takes `effects` because shelter, social provision and (from Space Age
+    on) habitat usability are all read through capacities that research
+    can raise; it has no bonus key of its own.
     """
     values = provisions(state, effects)
     return _clamp(sum(values) / len(values))
@@ -182,7 +238,11 @@ def _urban_sprawl_penalty(state):
 def equity(state, effects=None):
     """Bounded by the least-met need, then penalised for lopsidedness (and,
     from the Agrarian era on, for hoarding surplus per capita; from the
-    Digital era on, for letting unmanaged growth outpace planning).
+    Digital era on, for letting unmanaged growth outpace planning; from
+    Space Age on, `provisions()` itself grows a fourth need — habitat
+    usability — so a badly-laid-out ring habitat can become the new
+    worst-off need this function bounds against, through the exact same
+    plumbing, with no extra code here).
 
     Using the minimum rather than the mean is the whole point: a need met
     for 40% of people means 60% of people go without, and no amount of

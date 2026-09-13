@@ -908,6 +908,115 @@ NODE_LIST = [
             "kept investing in community across six eras running now."
         ),
     ),
+    # --- Space Age, early (Milestone 13) --- Three nodes, one per branch,
+    # each chaining a prerequisite back into the LATE Digital tier (tier 12)
+    # of the same branch — the same "early tier of a new era chains to the
+    # late tier of the one before it" pattern Milestones 8-12 all used, now
+    # proven across a sixth (and final) era boundary. Unlike every prior
+    # era's early trio, none of these three touch a growth/extraction/
+    # pollution-style effect key at all -- per CLAUDE.md's Milestone 13
+    # build notes, Space Age's mechanic is deliberately NOT a seventh copy
+    # of that shape, so its research content follows suit.
+    ResearchNode(
+        "modular_habitat_design",
+        "Modular Habitat Design",
+        era="space",
+        tier=era_tiers("space")[0],
+        branch="craft",
+        cost=145.0,
+        prerequisites=("transit_oriented_design",),
+        effects={"habitat_layout_bonus": 0.2},
+        blurb=(
+            "Transit-Oriented Design was the last lesson learned about arranging a city around how "
+            "people actually move through it while there was still a city around it to arrange. Out "
+            "here there's no surrounding city to lean on — only whatever the module's own layout "
+            "provides, from the first ring built."
+        ),
+    ),
+    ResearchNode(
+        "closed_loop_life_support",
+        "Closed-Loop Life Support",
+        era="space",
+        tier=era_tiers("space")[0],
+        branch="provision",
+        cost=145.0,
+        prerequisites=("circular_resource_systems",),
+        effects={"extraction_efficiency": -0.15, "regen_mult": 0.1},
+        blurb=(
+            "Circular Resource Systems taught the settlement to need less in the first place; this "
+            "closes the loop the rest of the way, because out here there is no 'away' left for "
+            "anything to spoil into, and no untouched land waiting somewhere else to make up the "
+            "difference."
+        ),
+    ),
+    ResearchNode(
+        "settlers_compact",
+        "Settlers' Compact",
+        era="space",
+        tier=era_tiers("space")[0],
+        branch="community",
+        cost=155.0,
+        prerequisites=("digital_commons_charter",),
+        min_affinity={"community": 11},
+        effects={"equity_bonus": 0.1, "habitat_layout_bonus": 0.1},
+        blurb=(
+            "Every charter before this one assumed a city that already existed to be governed. This "
+            "is the first one written for people who have to agree on how a place should work before "
+            "the place has finished being built at all. Only reachable by a settlement that kept "
+            "investing in community across seven eras running now."
+        ),
+    ),
+    # --- Space Age, late ---
+    ResearchNode(
+        "space_syntax_planning",
+        "Space Syntax Planning",
+        era="space",
+        tier=era_tiers("space")[1],
+        branch="craft",
+        cost=170.0,
+        prerequisites=("modular_habitat_design",),
+        effects={"habitat_layout_bonus": 0.25},
+        blurb=(
+            "A formal discipline for reading how a layout's own geometry shapes whether people can "
+            "actually find, use, and gather in the spaces built for them — Modular Habitat Design "
+            "gave the settlement rings to build; this is what tells it whether any given ring will "
+            "actually work before the mistake is load-bearing."
+        ),
+    ),
+    ResearchNode(
+        "full_cycle_reclamation",
+        "Full-Cycle Reclamation",
+        era="space",
+        tier=era_tiers("space")[1],
+        branch="provision",
+        cost=170.0,
+        prerequisites=("closed_loop_life_support",),
+        effects={"extraction_efficiency": -0.2, "materials_yield_mult": 0.15},
+        blurb=(
+            "The end of a line that started with Seasonal Rounds noticing the land needed rest "
+            "between harvests. Closed-Loop Life Support kept almost everything moving through the "
+            "loop instead of out of it; this is the settlement finally needing almost nothing from "
+            "outside itself at all."
+        ),
+    ),
+    ResearchNode(
+        "off_world_founding_charter",
+        "Off-World Founding Charter",
+        era="space",
+        tier=era_tiers("space")[1],
+        branch="community",
+        cost=190.0,
+        prerequisites=("settlers_compact",),
+        min_affinity={"community": 12},
+        effects={"equity_bonus": 0.1, "resilience_bonus": 0.1},
+        blurb=(
+            "Settlers' Compact was the first draft, written under pressure, before anyone knew "
+            "whether it would hold. This is the settlement deciding it did, and writing down why — "
+            "the same instinct Elders' Council had, seven eras and one entire world ago. Only "
+            "reachable by a settlement that kept investing in community across all seven eras of its "
+            "whole history."
+        ),
+    ),
 ]
 
 NODES = {node.node_id: node for node in NODE_LIST}

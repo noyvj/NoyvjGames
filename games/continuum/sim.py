@@ -51,6 +51,21 @@ extraction already creates — reusing the land_health/GROWTH_MIN_LAND_HEALTH
 machinery Phase 1 already built rather than stacking a second bespoke
 growth-rate lever alongside pollution's. See CLAUDE.md's Milestone 12 build
 notes for the full reasoning.
+
+Space Age (Milestone 13) extends it a sixth and FINAL time, and is
+deliberately NOT a seventh copy of the growth-vs-extraction shape every
+prior era used. Per CLAUDE.md's Milestone 13 build notes, "post-scarcity
+off-world infrastructure" changes the KIND of question this era asks, not
+just its numbers: Habitat Architects and Habitat Rings never touch
+production, growth, or extraction at all. Instead they determine
+`habitat_capacity()` — how much of the population is actually served WELL
+by the settlement's off-world ring-habitat layout, per the Dagstuhl/
+SpaceCHI source's "usability... at scale" framing — which sustainability.py
+reads as a brand-new fourth PROVISION (alongside food/shelter/culture) from
+Space Age on, not as a bolt-on penalty/bonus function the way every prior
+era's adjustment was. This is the game's first era-specific mechanic to
+live in `livability()`/`equity()`'s own shared plumbing rather than beside
+it.
 """
 
 # --- eras -------------------------------------------------------------
@@ -82,7 +97,7 @@ ERA_LABEL = {
 # Nothing reads this yet — it exists so that the moment a second era ships,
 # "which eras are playable" has one answer rather than being inferred from
 # whichever table happens to have an entry.
-IMPLEMENTED_ERAS = ["tribal", "agrarian", "classical", "medieval", "industrial", "digital"]
+IMPLEMENTED_ERAS = ["tribal", "agrarian", "classical", "medieval", "industrial", "digital", "space"]
 
 FIRST_ERA = ERA_ORDER[0]
 
@@ -114,6 +129,7 @@ ERA_ROLES = {
     "medieval": ["guildmasters"],
     "industrial": ["factory_workers"],
     "digital": ["planners"],
+    "space": ["architects"],
 }
 
 ERA_BUILDINGS = {
@@ -123,6 +139,7 @@ ERA_BUILDINGS = {
     "medieval": ["public_works"],
     "industrial": ["sanitation_works"],
     "digital": ["transit_hubs"],
+    "space": ["habitat_rings"],
 }
 
 ROLES = [role for era in ERA_ORDER for role in ERA_ROLES.get(era, [])]
@@ -156,6 +173,7 @@ ROLE_LABEL = {
     "guildmasters": "Guildmasters",
     "factory_workers": "Factory Workers",
     "planners": "Urban Planners",
+    "architects": "Habitat Architects",
 }
 
 ROLE_BLURB = {
@@ -186,6 +204,14 @@ ROLE_BLURB = {
         "outward faster than the settlement itself grows; planners are what "
         "keeps that from being the default."
     ),
+    "architects": (
+        "Produce nothing either — like Administrators once did for canals, "
+        "their whole job is making a Habitat Ring actually work for the "
+        "people living in it. A ring with nobody designing its layout still "
+        "holds bodies; it just doesn't serve them well, and out here there "
+        "is no unmanaged sprawl to fall back into instead — only however "
+        "well or badly this ring was laid out."
+    ),
 }
 
 ROLE_EMOJI = {
@@ -198,6 +224,7 @@ ROLE_EMOJI = {
     "guildmasters": "⚒️",
     "factory_workers": "🏭",
     "planners": "🗺️",
+    "architects": "🛰️",
 }
 
 BUILDING_LABEL = {
@@ -210,6 +237,7 @@ BUILDING_LABEL = {
     "public_works": "Public Works",
     "sanitation_works": "Sanitation Works",
     "transit_hubs": "Transit Hubs",
+    "habitat_rings": "Habitat Rings",
 }
 
 BUILDING_BLURB = {
@@ -242,6 +270,12 @@ BUILDING_BLURB = {
         "up, the more of it gets built, the same way Sanitation Works "
         "absorbs pollution."
     ),
+    "habitat_rings": (
+        "A sealed, rotating ring of living space — no more land outside it "
+        "to spread into, no weather to wait out, no elsewhere for a bad "
+        "layout to matter less. Holds people the moment it's built; only "
+        "Habitat Architects determine whether it actually serves them."
+    ),
 }
 
 BUILDING_EMOJI = {
@@ -254,6 +288,7 @@ BUILDING_EMOJI = {
     "public_works": "🚰",
     "sanitation_works": "🏗️",
     "transit_hubs": "🚉",
+    "habitat_rings": "🛞",
 }
 
 BUILDING_COST = {  # in materials
@@ -266,6 +301,7 @@ BUILDING_COST = {  # in materials
     "public_works": 40.0,
     "sanitation_works": 45.0,
     "transit_hubs": 55.0,
+    "habitat_rings": 70.0,
 }
 
 SHELTER_CAPACITY = 4  # people housed per shelter
@@ -292,6 +328,7 @@ START_BUILDINGS = {
     "public_works": 0,
     "sanitation_works": 0,
     "transit_hubs": 0,
+    "habitat_rings": 0,
 }
 START_ALLOCATION = {
     "foragers": 3,
@@ -303,6 +340,7 @@ START_ALLOCATION = {
     "guildmasters": 0,
     "factory_workers": 0,
     "planners": 0,
+    "architects": 0,
 }
 
 # --- production and consumption ---------------------------------------
@@ -457,6 +495,35 @@ SPRAWL_NATURAL_DECAY = 0.01  # baseline sprawl lost per season regardless of inv
 # second, parallel growth formula.
 SPRAWL_EXTRACTION_PENALTY_WEIGHT = 0.5
 
+# --- off-world habitat layout and usability (Space Age+) ----------------
+# Per continuum-real-world-sources.md's Space Age sources -- most directly
+# the Dagstuhl/SpaceCHI 2025 source on how modular space habitat layouts
+# affect real usability "at scale," and Planetizen's framing of NASA's 1977
+# "Space Settlements: A Design Study" as literally an urban-planning policy
+# document (residential space, schools, transit) rather than something
+# categorically different from ordinary city planning. This is deliberately
+# NOT a seventh copy of Industrial/Digital's growth-side stock-and-penalty
+# shape: "post-scarcity" genuinely changes what the settlement's central
+# tension is about, and the task that spec'd this milestone was explicit
+# that defaulting to another growth lever just because the last two eras
+# used one would be the wrong call here. Habitat Architects and Habitat
+# Rings never touch production, extraction, or growth anywhere in this
+# file -- `habitat_capacity()` below is read only by sustainability.py's
+# provisions(), as a brand-new fourth basic need alongside food/shelter/
+# culture, from Space Age on. See CLAUDE.md's Milestone 13 build notes for
+# the full reasoning, including why livability/equity (not a bolt-on
+# penalty/bonus function) is genuinely the right home for this one.
+#
+# The shape reused here is deliberately Classical's canal/administrator
+# pairing, not Medieval/Industrial/Digital's "unstaffed building" one: a
+# Habitat Ring's usefulness is scaled by how many Architects actually
+# designed its layout (capped at 1.0), because the Dagstuhl source's whole
+# point is that a modular structure's raw capacity and its real usability
+# are different things -- the same lesson Classical's canals taught about
+# coordinated labor, now applied to coordinated design instead.
+RING_CAPACITY_PER_BUILDING = 30.0  # people one FULLY-architected ring can serve well
+ARCHITECTS_PER_RING = 3  # architects needed to fully realise one ring's layout
+
 # Tools multiply every gathering yield, capped at one tool per person —
 # a settlement can't get more out of the land by hoarding axes nobody holds.
 TOOL_EFFECT = 0.5
@@ -528,6 +595,11 @@ NEUTRAL_EFFECTS = {
     # Additive multiplier on Transit Hubs' per-building absorption -- same
     # capacity-multiplier shape as public_works_bonus/sanitation_bonus.
     "transit_bonus": 0.0,
+    # Space Age (Milestone 13) -- additive on top of how far Architects'
+    # staffing already stretches a Habitat Ring's layout quality (see
+    # habitat_capacity() below), the same capacity-multiplier shape as
+    # public_works_bonus/sanitation_bonus/transit_bonus above.
+    "habitat_layout_bonus": 0.0,
 }
 
 
@@ -683,6 +755,35 @@ class CityState:
             self.buildings["public_works"]
             * PUBLIC_WORKS_COVERAGE_PER_BUILDING
             * (1.0 + effects["public_works_bonus"])
+        )
+
+    def habitat_capacity(self, effects=None):
+        """How many people the settlement's off-world Habitat Rings can
+        actually serve WELL -- not merely hold, but serve at the layout
+        quality Architects have actually designed into them (Space Age+,
+        see the "off-world habitat layout" comment block above). Read only
+        by sustainability.py's provisions() from Space Age on; never by
+        anything in the season loop below, and deliberately not a growth
+        lever the way pollution/sprawl were -- see CLAUDE.md's Milestone 13
+        build notes. Forced to 0.0 before Space Age rather than merely
+        trusting it stays there by construction -- the same defensive
+        era-gate discipline every prior era-specific mechanic in this file
+        has been held to."""
+        if era_index(self.era) < era_index("space"):
+            return 0.0
+        effects = effects_or_neutral(effects)
+        if self.buildings["habitat_rings"] <= 0:
+            return 0.0
+        layout_quality = min(
+            1.0,
+            self.allocation["architects"]
+            / (self.buildings["habitat_rings"] * ARCHITECTS_PER_RING),
+        )
+        return (
+            self.buildings["habitat_rings"]
+            * RING_CAPACITY_PER_BUILDING
+            * layout_quality
+            * (1.0 + effects["habitat_layout_bonus"])
         )
 
     # --- building -------------------------------------------------------
@@ -952,6 +1053,16 @@ class CityState:
         else:
             public_works_coverage_ratio = 0.0
 
+        # Habitat layout coverage (Space Age+) -- purely for narration, the
+        # same "convenience fields on the report" precedent Milestones 9-10
+        # set for canals/public_works. Not read by any production formula
+        # above; sustainability.py computes the same ratio independently
+        # via habitat_capacity() for the score itself.
+        if self.population > 0:
+            habitat_layout_ratio = min(1.0, self.habitat_capacity(effects) / self.population)
+        else:
+            habitat_layout_ratio = 0.0
+
         report = {
             "season": self.season - 1,
             "food_gathered": food_gathered,
@@ -973,6 +1084,8 @@ class CityState:
             "public_works_coverage_ratio": public_works_coverage_ratio,
             "pollution": self.pollution,
             "sprawl": self.sprawl,
+            "habitat_rings": self.buildings["habitat_rings"],
+            "habitat_layout_ratio": habitat_layout_ratio,
         }
         self.last_report = report
         return report

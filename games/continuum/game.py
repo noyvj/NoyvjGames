@@ -140,6 +140,19 @@ def season_report_message(report):
             "sprawl) — the same production is leaning harder on the land for it, and it isn't "
             "doing the sustainability score any favors either."
         )
+    # Space Age+ (Milestone 13): unlike every narration line above,
+    # habitat_layout_ratio isn't a lagged stock that builds up over time --
+    # it's a coverage ratio recomputed fresh each season from current rings/
+    # architects, the same shape Classical's canal-staffing line and
+    # Medieval's public-works-coverage line already narrate. Only narrated
+    # once there's at least one ring built to have an opinion about, the
+    # same "only narrate a real gap" discipline those two lines follow.
+    if report.get("habitat_rings", 0) > 0 and report.get("habitat_layout_ratio", 1.0) < 1.0:
+        layout_pct = report["habitat_layout_ratio"] * 100
+        parts.append(
+            f"Off-world habitat layout is only serving {layout_pct:.0f}% of the settlement well — "
+            "the rest live somewhere the design doesn't really work for them."
+        )
 
     return " ".join(parts)
 
