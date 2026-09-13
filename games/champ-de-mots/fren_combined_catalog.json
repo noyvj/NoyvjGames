@@ -1525,6 +1525,86 @@
               "en": "@ / . / _ (for spelling an email)"
             }
           ]
+        },
+        {
+          "id": "fren151-w4-vocab-slide001",
+          "topic_type": "vocab",
+          "title": "University subjects (les matières)",
+          "items": [
+            {
+              "fr": "les sciences",
+              "en": "science"
+            },
+            {
+              "fr": "l'ingénierie",
+              "en": "engineering"
+            },
+            {
+              "fr": "l'informatique",
+              "en": "IT/computer science"
+            },
+            {
+              "fr": "la médecine",
+              "en": "medicine"
+            },
+            {
+              "fr": "les études internationales",
+              "en": "international studies"
+            },
+            {
+              "fr": "les sciences politiques",
+              "en": "political science"
+            },
+            {
+              "fr": "les langues",
+              "en": "languages"
+            },
+            {
+              "fr": "le droit",
+              "en": "law"
+            },
+            {
+              "fr": "la finance",
+              "en": "finance"
+            },
+            {
+              "fr": "les maths",
+              "en": "maths"
+            },
+            {
+              "fr": "l'économie",
+              "en": "economics"
+            },
+            {
+              "fr": "la psycho(logie)",
+              "en": "psychology"
+            },
+            {
+              "fr": "la philo(sophie)",
+              "en": "philosophy"
+            },
+            {
+              "fr": "la sociologie",
+              "en": "sociology"
+            },
+            {
+              "fr": "le marketing",
+              "en": "marketing"
+            },
+            {
+              "fr": "le commerce",
+              "en": "business/commerce"
+            },
+            {
+              "fr": "l'histoire",
+              "en": "history"
+            },
+            {
+              "fr": "la géographie",
+              "en": "geography"
+            }
+          ],
+          "rule": "J'ai un cours de/un examen de + [subject] = I have a class/exam in... 'Devoir + infinitive' expresses what subject someone must study (Il doit étudier la médecine)."
         }
       ],
       "course": "FREN151",
@@ -1826,6 +1906,34 @@
               "en": "Do you have a computer?"
             }
           ]
+        },
+        {
+          "id": "fren151-w5-vocab-slide001",
+          "topic_type": "vocab",
+          "title": "Belgian/Swiss number variants",
+          "items": [
+            {
+              "fr": "septante",
+              "en": "70 (Belgium & Switzerland, vs. standard soixante-dix)"
+            },
+            {
+              "fr": "huitante",
+              "en": "80 (Switzerland only, vs. standard quatre-vingts)"
+            },
+            {
+              "fr": "nonante",
+              "en": "90 (Belgium & Switzerland, vs. standard quatre-vingt-dix)"
+            },
+            {
+              "fr": "la Hollande",
+              "en": "Holland/the Netherlands"
+            },
+            {
+              "fr": "le Pays de Galles",
+              "en": "Wales"
+            }
+          ],
+          "rule": "These regional number words replace the standard French 70/80/90 forms entirely in Belgian and Swiss French — not additional options, but different words for the same number."
         }
       ],
       "course": "FREN151",
@@ -3376,6 +3484,70 @@
               "en": "She looks/seems kind."
             }
           ]
+        },
+        {
+          "id": "fren151-w10-grammar-slide001",
+          "topic_type": "grammar",
+          "title": "C'est vs Il est/Elle est",
+          "items": [
+            {
+              "fr": "C'est Nathalie. / C'est une Peugeot.",
+              "en": "That's Nathalie. / That's a Peugeot. (c'est + proper noun)"
+            },
+            {
+              "fr": "C'est une amie. / C'est une bonne étudiante.",
+              "en": "She's a friend. / She's a good student. (c'est + article + noun)"
+            },
+            {
+              "fr": "Elle est sympathique. / Elle est rapide.",
+              "en": "She's nice. / It's fast. (il/elle est + adjective ONLY, no article)"
+            },
+            {
+              "fr": "Mon frère, il est à Paris.",
+              "en": "My brother is in Paris. (il/elle est + preposition, for location)"
+            },
+            {
+              "fr": "Ce n'est pas Élodie. / Ce sont des crayons. / Ce ne sont pas des stylos.",
+              "en": "That's not Élodie. / Those are pencils. / Those aren't pens. (negative & plural forms)"
+            }
+          ],
+          "rule": "Elle/il can mean 'she/he' (person) OR 'it' (referring to a feminine/masculine noun already mentioned, e.g. la voiture → elle). For occupations, either form works: Il est professeur (no article) or C'est un professeur (with article) — but never 'Il est un professeur.'"
+        },
+        {
+          "id": "fren151-w10-grammar-slide002",
+          "topic_type": "grammar",
+          "title": "Irregular adjective patterns",
+          "items": [
+            {
+              "fr": "ponctuel / ponctuelle",
+              "en": "punctual (-el → -elle)"
+            },
+            {
+              "fr": "mignon / mignonne",
+              "en": "cute (-on → -onne)"
+            },
+            {
+              "fr": "canadien / canadienne",
+              "en": "Canadian (-en → -enne)"
+            },
+            {
+              "fr": "actif / active",
+              "en": "active (-if → -ive)"
+            },
+            {
+              "fr": "travailleur / travailleuse",
+              "en": "hard-working (-eur → -euse)"
+            },
+            {
+              "fr": "conservateur / conservatrice",
+              "en": "conservative (-teur → -trice)"
+            },
+            {
+              "fr": "loyal / loyale (sg.), loyaux / loyales (pl.)",
+              "en": "loyal — masculine plural is irregular: -al → -aux"
+            }
+          ],
+          "rule": "Related noun pattern follows the same logic: un champion→une championne, un acteur→une actrice, un journal→des journaux, un animal→des animaux. The -al→-aux irregularity affects masculine plural only."
         }
       ],
       "course": "FREN151",
@@ -3556,6 +3728,41 @@
             }
           ],
           "rule": "C'est + noun; Il/Elle est + adjective, occupation (no article), or place preposition. Il/elle can also mean 'it' when referring back to an object."
+        },
+        {
+          "id": "fren151-w11-vocab-slide001",
+          "topic_type": "vocab",
+          "title": "Physical build",
+          "items": [
+            {
+              "fr": "gros / grosse",
+              "en": "fat"
+            },
+            {
+              "fr": "mince",
+              "en": "slim"
+            },
+            {
+              "fr": "maigre",
+              "en": "skinny/thin"
+            },
+            {
+              "fr": "fort / forte",
+              "en": "strong"
+            },
+            {
+              "fr": "faible",
+              "en": "weak"
+            },
+            {
+              "fr": "rapide",
+              "en": "fast"
+            },
+            {
+              "fr": "lent / lente",
+              "en": "slow"
+            }
+          ]
         }
       ],
       "course": "FREN151",
@@ -3912,6 +4119,61 @@
             }
           ],
           "rule": "One-word adverbs (jamais, souvent, toujours, etc.) go after the verb (Je vais toujours en cours); in the negative, after 'pas' (Je ne vais pas toujours...). Multi-word adverbial phrases (une fois par semaine, etc.) can go at the start or end of the sentence."
+        },
+        {
+          "id": "fren152-w3-vocab-slide001",
+          "topic_type": "vocab",
+          "title": "Games & instruments (for jouer à/de)",
+          "items": [
+            {
+              "fr": "les échecs",
+              "en": "chess"
+            },
+            {
+              "fr": "les cartes",
+              "en": "cards"
+            },
+            {
+              "fr": "les jeux vidéo",
+              "en": "video games"
+            },
+            {
+              "fr": "les jeux sur ordinateur",
+              "en": "computer games"
+            },
+            {
+              "fr": "le violon",
+              "en": "violin"
+            },
+            {
+              "fr": "la clarinette",
+              "en": "clarinet"
+            },
+            {
+              "fr": "la batterie",
+              "en": "drums"
+            },
+            {
+              "fr": "le clavier",
+              "en": "keyboard"
+            },
+            {
+              "fr": "l'accordéon",
+              "en": "accordion"
+            },
+            {
+              "fr": "les cymbales",
+              "en": "cymbals"
+            },
+            {
+              "fr": "la flûte",
+              "en": "flute"
+            },
+            {
+              "fr": "la pétanque",
+              "en": "pétanque (French lawn bowls)"
+            }
+          ]
         }
       ],
       "bonus_sentences": [
@@ -4282,6 +4544,30 @@
             }
           ],
           "rule": "Two main ways to form a question: (1) question word + est-ce que + normal word order, or (2) inversion of the verb and subject pronoun (more formal/written)."
+        },
+        {
+          "id": "fren152-w5-grammar-slide001",
+          "topic_type": "grammar",
+          "title": "'-t-' insertion in inverted questions",
+          "items": [
+            {
+              "fr": "Travaille-t-il?",
+              "en": "Does he work? (verb ends in vowel sound — needs inserted -t-)"
+            },
+            {
+              "fr": "Mange-t-elle?",
+              "en": "Does she eat? (needs inserted -t-)"
+            },
+            {
+              "fr": "Prend-il?",
+              "en": "Does he take? (verb already ends in -d, pronounced 't' — no insertion needed)"
+            },
+            {
+              "fr": "Finit-il?",
+              "en": "Does he finish? (verb already ends in -t — no insertion needed)"
+            }
+          ],
+          "rule": "When inverting a verb and il/elle/on, insert '-t-' between them UNLESS the verb already ends in -d or -t (both pronounced as a 't' sound) — this avoids an awkward vowel clash between two vowel sounds."
         }
       ],
       "bonus_sentences": [
@@ -4751,6 +5037,112 @@
             {
               "fr": "... il/elle te plaît? / ils/elles te plaisent?",
               "en": "do you like it/them? (lit. does it/do they please you)"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w7-vocab-slide001",
+          "topic_type": "vocab",
+          "title": "Extra materials & sizes",
+          "items": [
+            {
+              "fr": "en daim",
+              "en": "suede"
+            },
+            {
+              "fr": "en cuir verni",
+              "en": "patent leather"
+            },
+            {
+              "fr": "en cuir véritable",
+              "en": "genuine leather"
+            },
+            {
+              "fr": "bordeaux",
+              "en": "maroon (invariable colour)"
+            },
+            {
+              "fr": "beige",
+              "en": "beige (invariable colour)"
+            },
+            {
+              "fr": "en imitation fourrure",
+              "en": "fake fur"
+            },
+            {
+              "fr": "écossais(e)",
+              "en": "tartan/Scottish pattern"
+            },
+            {
+              "fr": "la taille",
+              "en": "clothing size"
+            },
+            {
+              "fr": "la pointure",
+              "en": "shoe size (distinct word from clothing size)"
+            }
+          ]
+        },
+        {
+          "id": "fren152-w7-phrase-slide001",
+          "topic_type": "phrase",
+          "title": "Shopping for clothes (full functional set)",
+          "items": [
+            {
+              "fr": "Je cherche...",
+              "en": "I'm looking for..."
+            },
+            {
+              "fr": "Je voudrais...",
+              "en": "I'd like..."
+            },
+            {
+              "fr": "Vous avez...?",
+              "en": "Do you have...?"
+            },
+            {
+              "fr": "Vous désirez?",
+              "en": "What would you like?"
+            },
+            {
+              "fr": "Je peux vous aider?",
+              "en": "Can I help you? (shop assistant)"
+            },
+            {
+              "fr": "C'est pour qui? — pour moi/mon frère/ma sœur...",
+              "en": "Who is it for? — for me/my brother/my sister..."
+            },
+            {
+              "fr": "Vous faites quelle taille?",
+              "en": "What size are you?"
+            },
+            {
+              "fr": "Je fais du + [number]",
+              "en": "I'm a size..."
+            },
+            {
+              "fr": "Je peux l'essayer?",
+              "en": "Can I try it on?"
+            },
+            {
+              "fr": "C'est combien? / Ça coûte combien?",
+              "en": "How much is it?"
+            },
+            {
+              "fr": "Vous payez comment?",
+              "en": "How are you paying?"
+            },
+            {
+              "fr": "par carte",
+              "en": "by card"
+            },
+            {
+              "fr": "en espèces",
+              "en": "in cash"
+            },
+            {
+              "fr": "C'est un peu/trop cher. Je prends...",
+              "en": "It's a bit/too expensive. I'll take..."
             }
           ]
         }
