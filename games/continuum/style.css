@@ -18,6 +18,21 @@
    reasons) is untouched; only chrome (panels, borders, buttons, meter
    glow) changed. */
 
+/* Phase 5 accessibility: text scaling. accessibility.js sets --text-scale
+   on the root element and persists it to localStorage; every font-size in
+   this file is already in `rem` (see the grep this was checked against),
+   so scaling the root font-size scales the whole game uniformly with zero
+   other changes. Default 1 here means a page that never runs
+   accessibility.js (or loads before it finishes) still renders at exactly
+   the same size the game always has. */
+:root {
+  --text-scale: 1;
+}
+
+html {
+  font-size: calc(16px * var(--text-scale, 1));
+}
+
 * {
   box-sizing: border-box;
 }
@@ -29,6 +44,26 @@ body {
   color: #eee7dd;
   display: flex;
   justify-content: center;
+}
+
+.game-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.text-size-control {
+  display: inline-flex;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+.text-size-control button {
+  min-width: 2.1rem;
+  padding: 0.5rem 0.4rem;
+  font-weight: 600;
 }
 
 #game {
@@ -536,6 +571,37 @@ button.primary:active {
   .settlement-fire { animation: none; }
 }
 
+/* --- Phase 5: Three.js low-poly settlement view -------------------------
+   #visual3d-container replaces .settlement-visual's decorative role with a
+   real, reactive scene when render3d.js successfully boots (see that
+   file's own doc comment for the full fallback story). Sized close to the
+   old diorama's footprint but taller, since a real 3D scene needs more
+   room to read as recognisable geometry than a flat CSS gradient did. */
+.visual3d-container {
+  width: 100%;
+  height: 220px;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(216, 164, 92, 0.2), 0 6px 18px rgba(0, 0, 0, 0.35);
+  cursor: grab;
+  background: #14101c;
+}
+
+.visual3d-container:active {
+  cursor: grabbing;
+}
+
+.visual3d-container canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.visual-mode-toggle {
+  margin-bottom: 0.5rem;
+}
+
 /* --- Land plot visual (#land-health-display) ---------------------------
    A small illustrated strip of ground — soil-and-grass texture over a
    green-to-brown gradient — sitting above the actual (dynamic) land
@@ -634,8 +700,21 @@ button.primary:active {
 }
 .log-row--research { border-left-color: #d08c5c; }
 .log-row--population { border-left-color: #6f9c5a; }
-.log-row--livability-up { border-left-color: #6f9c5a; }
-.log-row--livability-down { border-left-color: #b23a3a; }
+/* Phase 5 colorblind-safety audit: this up/down pair used to be plain
+   green (#6f9c5a, shared with .log-row--population above) vs. red
+   (#b23a3a) — a hue-only good/bad pair, which is exactly the deuteranopia
+   /protanopia failure case (red and green are the two hues the two most
+   common forms of color blindness confuse most directly). Re-picked from
+   the Okabe & Ito colorblind-safe palette instead: blue (#56B4E9-family)
+   vs. vermillion (#D55E00-family), which stays distinguishable under
+   deuteranopia, protanopia AND tritanopia simulation, unlike the original
+   red/green choice. render_log() (game.py) also now prefixes each entry's
+   season/era tag with a plain ▲/▼ glyph, so the distinction never depends
+   on color perception at all — the color is now backup, not the only
+   signal. See CLAUDE.md's Phase 5 build notes for the audit this came
+   from. */
+.log-row--livability-up { border-left-color: #4fa8dd; }
+.log-row--livability-down { border-left-color: #d2691e; }
 /* Not wired into any render path yet -- transition.py (Milestone 7)
    defines the "transition" kind but nothing calls it from game.py until
    Milestone 8 gives Agrarian real content. Styled now so it's ready. */

@@ -241,3 +241,22 @@ def test_render_log_shows_placeholder_when_empty(game_env):
     rows = game_env.elements["log-list"].children
     assert len(rows) == 1
     assert "Nothing to report yet" in rows[0].innerText
+
+
+def test_livability_log_rows_carry_a_colorblind_safe_icon_prefix(game_env):
+    """Phase 5 accessibility audit: the up/down distinction used to be
+    color-only (green vs red border, see style.css's Phase 5 build note).
+    render_log() now also prefixes the row's tag text with a plain glyph,
+    so the distinction survives even with color perception removed
+    entirely."""
+    chronicle = game_env.module.chronicle
+    chronicle._add(log.LogEntry(1, "tribal", "livability-up", "things improved"))
+    chronicle._add(log.LogEntry(2, "tribal", "livability-down", "things worsened"))
+    chronicle._add(log.LogEntry(3, "tribal", "population", "a milestone"))
+
+    game_env.module.render_log()
+    rows = game_env.elements["log-list"].children
+    # Newest first: population (3), livability-down (2), livability-up (1).
+    assert rows[0].children[0].children[0].innerText.startswith("Tribal")  # unprefixed kind
+    assert rows[1].children[0].children[0].innerText.startswith("▼ ")
+    assert rows[2].children[0].children[0].innerText.startswith("▲ ")

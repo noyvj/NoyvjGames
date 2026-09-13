@@ -15,6 +15,19 @@
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<!--
+  Phase 5 (see CLAUDE.md's "Core system 7"): the low-poly/cartoonish 3D
+  rendering layer. This is the hub's first third-party JS library beyond
+  Pyodide itself -- pinned to an exact version, same discipline pyodide.js
+  above already follows, loaded from jsdelivr the same CDN pyodide already
+  uses. r128 is the last well-known release line to still ship a classic
+  global UMD build (window.THREE) rather than requiring an ES-module
+  import map, which keeps this consistent with the rest of the hub's
+  "plain <script> tags, no build step, no bundler" convention. See
+  render3d.js for what happens if this fails to load or WebGL isn't
+  available -- the 2D UI never depends on it.
+-->
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 </head>
 <body>
   <div class="ambient-bg ambient-bg--dawn" aria-hidden="true"><div class="ambient-bg-blobs"></div><div class="ambient-bg-accent"></div></div>
@@ -25,6 +38,15 @@
     <div class="game-toolbar">
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
+      <!-- Phase 5 accessibility: real, working text-size control (see
+           accessibility.js). A browser preference, not game state -- same
+           category as champ-de-mots' accent-sensitivity toggle -- so it's
+           persisted to localStorage rather than the save file. -->
+      <div class="text-size-control" role="group" aria-label="Text size">
+        <button id="text-size-decrease-button" class="secondary" type="button" aria-label="Decrease text size">A−</button>
+        <button id="text-size-reset-button" class="secondary" type="button" aria-label="Reset text size">A</button>
+        <button id="text-size-increase-button" class="secondary" type="button" aria-label="Increase text size">A+</button>
+      </div>
     </div>
     <div id="howto-panel" class="section" hidden></div>
 
@@ -39,6 +61,22 @@
     </div>
 
     <div id="status" class="section">
+      <!--
+        Phase 5 (see CLAUDE.md's "Core system 7" and Phase 5 build notes):
+        Three.js replaces this slot's decorative, non-reactive Phase 1
+        diorama with a real low-poly scene that reflects live state (era,
+        population, building counts). render3d.js unhides
+        #visual3d-container and hides .settlement-visual the moment it
+        successfully boots; if Three.js fails to load or WebGL isn't
+        available, render3d.js never touches either element, so
+        .settlement-visual (untouched below) stays exactly what a player
+        sees -- the game is never blocked on 3D. #visual-mode-toggle-button
+        also lets a player switch back to the 2D view by choice at any
+        time (e.g. a performance or motion-sensitivity preference), not
+        only as an automatic fallback.
+      -->
+      <button id="visual-mode-toggle-button" class="secondary visual-mode-toggle" type="button" hidden>🖼 2D view</button>
+      <div id="visual3d-container" class="visual3d-container" role="img" aria-label="A low-poly 3D view of the settlement" hidden></div>
       <div class="settlement-visual" aria-hidden="true">
         <div class="settlement-sky"></div>
         <div class="settlement-ground"></div>
@@ -139,6 +177,17 @@
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
   </div>
 
+  <!-- Phase 5: the Three.js render layer (render3d.js) and the text-size
+       accessibility control (accessibility.js). Both are plain, dependency
+       -free JS files local to this game, loaded before the Pyodide boot
+       script below so window.ContinuumVisual/window.ContinuumAccessibility
+       exist by the time it wants them. Neither one requires Pyodide to
+       have finished loading to install itself -- accessibility.js has no
+       Python dependency at all, and render3d.js only reaches into Pyodide
+       once main() explicitly calls ContinuumVisual.init(pyodide) after
+       game.py has booted. -->
+  <script src="render3d.js"></script>
+  <script src="accessibility.js"></script>
   <script>
     // Continuum is split into engine modules (see game.py's docstring), so
     // unlike the smaller hub games it fetches more than one Python file.
@@ -234,6 +283,14 @@
           { selector: "#food-display", label: "Food" },
           { selector: "#score-display", label: "Score" },
         ]);
+      }
+      // Phase 5: attempt the 3D layer last, after the real 2D game is
+      // fully up and playable. ContinuumVisual.init() is fully
+      // self-contained about failing gracefully (see render3d.js) --
+      // Three.js not loading, or WebGL not being available, must never
+      // stop the game from reaching this point already playable.
+      if (window.ContinuumVisual) {
+        window.ContinuumVisual.init(pyodide);
       }
     }
     main();
