@@ -12,6 +12,7 @@ reschedules the plot sooner (it "needs water again") but never demotes the
 plant, never removes it, and never produces a failure state.
 """
 
+import difflib
 import json
 import random
 import re
@@ -375,6 +376,24 @@ state = FarmState(CATALOG)
 QUESTION_CHOICE_COUNT = 4
 DISTRACTOR_COUNT = QUESTION_CHOICE_COUNT - 1
 DISTRACTOR_POOL_SIZE = 14
+
+# Improvement Ideas §3: adaptive distractor difficulty. Once a plot has
+# survived a couple of spaced recalls (Budding or further), its multiple-
+# choice distractors get biased toward near-spelling/near-synonym matches
+# to the real answer instead of the plain uniform sample newer plots get --
+# a Seed plot still draws evenly across the whole nearby-topic pool, so
+# early practice stays approachable rather than confusing from the start.
+ADAPTIVE_DISTRACTOR_MIN_STAGE = STAGE_BUDDING
+ADAPTIVE_DISTRACTOR_POOL_MULTIPLIER = 3
+
+
+def _answer_similarity(value, answer):
+    """0-1 spelling/word similarity between a candidate distractor and the
+    real answer, used only to rank which distractors are "tricky" -- never
+    to decide correctness (check_answer's own leniency is unrelated)."""
+    return difflib.SequenceMatcher(
+        None, normalize_answer(str(value)), normalize_answer(str(answer))
+    ).ratio()
 NEARBY_TOPIC_SPAN = 4  # topics either side ≈ the same and adjacent weeks
 BLANK_MARKER = "_____"
 MAX_TYPED_ANSWER_LENGTH = 32
@@ -782,7 +801,16 @@ def _context_line(plot):
 
 
 def _choice_question(plot, variant, prompt, answer, pool, rng, note=None):
-    distractors = rng.sample(pool, DISTRACTOR_COUNT)
+    candidate_pool = pool
+    if len(pool) > DISTRACTOR_COUNT and (
+        STAGE_RANK[plot.stage] >= STAGE_RANK[ADAPTIVE_DISTRACTOR_MIN_STAGE]
+    ):
+        ranked = sorted(pool, key=lambda value: _answer_similarity(value, answer), reverse=True)
+        hard_pool_size = max(
+            DISTRACTOR_COUNT, DISTRACTOR_COUNT * ADAPTIVE_DISTRACTOR_POOL_MULTIPLIER
+        )
+        candidate_pool = ranked[:hard_pool_size]
+    distractors = rng.sample(candidate_pool, DISTRACTOR_COUNT)
     choices = distractors + [answer]
     rng.shuffle(choices)
     return {

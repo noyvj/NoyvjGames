@@ -511,3 +511,91 @@ def test_instructions_are_this_games_own_wording_not_the_workbooks(game_env):
 @pytest.mark.parametrize("topic_type", ["vocab", "phrase", "grammar", "phonetic"])
 def test_each_topic_type_is_actually_represented_in_the_farm(game_env, topic_type):
     assert any(p.topic_type == topic_type for p in game_env.state.plots)
+
+
+# --- Improvement Ideas addendum (2026-09-13): adaptive distractor difficulty
+
+
+def _first_choice_plot_with_a_big_pool(game_env, min_pool_size):
+    """A vocab/phrase plot whose fr_to_en_choice pool is comfortably bigger
+    than the hard sub-pool, so the adaptive-vs-uniform difference is
+    actually observable rather than lost to a tiny pool."""
+    module, state = game_env.module, game_env.state
+    for plot in state.plots:
+        if module.V_FR_EN_CHOICE not in module.variants_for(plot):
+            continue
+        item = plot.items[0]
+        pool = module._raw_pool(state, plot, "en", item["en"])
+        if len(pool) >= min_pool_size:
+            return plot, item
+    pytest.skip("no plot in this catalog has a pool that large")
+
+
+def test_a_seed_plot_draws_distractors_uniformly_from_the_whole_pool(game_env):
+    module, state = game_env.module, game_env.state
+    hard_pool_size = module.DISTRACTOR_COUNT * module.ADAPTIVE_DISTRACTOR_POOL_MULTIPLIER
+    plot, item = _first_choice_plot_with_a_big_pool(
+        game_env, min(module.DISTRACTOR_POOL_SIZE, hard_pool_size + 2)
+    )
+    plot.stage = module.STAGE_SEED
+    pool = module._raw_pool(state, plot, "en", item["en"])
+
+    seen = set()
+    for seed in range(60):
+        question = module._choice_question(
+            plot, module.V_FR_EN_CHOICE, item["fr"], item["en"], pool, _rng(seed)
+        )
+        seen.update(c for c in question["choices"] if c != item["en"])
+    # A uniform sample across many rerolls should reach well beyond the
+    # "hard" near-similarity sub-pool a mature plot would be confined to.
+    hard_pool_size = module.DISTRACTOR_COUNT * module.ADAPTIVE_DISTRACTOR_POOL_MULTIPLIER
+    assert len(seen) > hard_pool_size
+
+
+def test_a_mature_plot_biases_toward_the_most_similar_distractors(game_env):
+    module, state = game_env.module, game_env.state
+    hard_pool_size = module.DISTRACTOR_COUNT * module.ADAPTIVE_DISTRACTOR_POOL_MULTIPLIER
+    plot, item = _first_choice_plot_with_a_big_pool(
+        game_env, min(module.DISTRACTOR_POOL_SIZE, hard_pool_size + 2)
+    )
+    pool = module._raw_pool(state, plot, "en", item["en"])
+    ranked = sorted(pool, key=lambda v: module._answer_similarity(v, item["en"]), reverse=True)
+    hard_pool = set(ranked[:hard_pool_size])
+
+    plot.stage = module.STAGE_BLOOMING
+    seen = set()
+    for seed in range(60):
+        question = module._choice_question(
+            plot, module.V_FR_EN_CHOICE, item["fr"], item["en"], pool, _rng(seed)
+        )
+        seen.update(c for c in question["choices"] if c != item["en"])
+    # Every distractor ever drawn for a mature plot must come from the
+    # precomputed hard sub-pool -- confirms the bias is real, not just
+    # "sometimes picks similar ones."
+    assert seen <= hard_pool
+
+
+def test_adaptive_difficulty_never_shrinks_the_choice_count(game_env):
+    """Whatever the stage, a choice question always offers exactly
+    QUESTION_CHOICE_COUNT options -- the hard sub-pool must never leave too
+    few candidates to sample DISTRACTOR_COUNT from."""
+    module = game_env.module
+    for plot in game_env.state.plots:
+        for stage in module.STAGE_ORDER:
+            plot.stage = stage
+            for variant in module.variants_for(plot):
+                if variant not in (
+                    module.V_FR_EN_CHOICE,
+                    module.V_EN_FR_CHOICE,
+                    module.V_SYMBOL_NAME_CHOICE,
+                    module.V_NAME_SYMBOL_CHOICE,
+                    module.V_EXAMPLE_FR_EN,
+                    module.V_EXAMPLE_EN_FR,
+                    module.V_BLANK_WORD,
+                    module.V_CONJUGATION_SWAP,
+                    module.V_BLANK_ENDING,
+                ):
+                    continue
+                question = module.generate_question(plot, _rng(3), variant=variant)
+                if question["mode"] == "choice":
+                    assert len(question["choices"]) == module.QUESTION_CHOICE_COUNT
