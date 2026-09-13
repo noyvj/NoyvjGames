@@ -87,6 +87,9 @@ ELEMENT_IDS = [
     "win-banner",
     "win-banner-heading",
     "win-banner-subtext",
+    # Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md)
+    "achievements-toggle-button",
+    "achievements-panel",
     # Earth
     "click-button",
     "resource-count",

@@ -4,6 +4,13 @@ game.py is written for Pyodide (imports `js` and `pyodide.ffi`), which only
 exist inside a browser WASM runtime. These fakes stand in for just enough of
 that surface (document/getElementById/classList/addEventListener/setTimeout,
 create_proxy) to exercise the game logic headlessly.
+
+`className`/`children`/`innerHTML`/`appendChild`/`document.createElement`
+were added for the achievements panel (ACHIEVEMENTS-SYSTEM-DESIGN.md), the
+first thing in this game to build DOM nodes dynamically from Python rather
+than only writing text/attributes onto elements index.html already declares.
+Same shape as Le Champ de Mots' own `tests/fakes.py`, which needed the same
+capability first for its farm grid and achievements panel.
 """
 
 
@@ -29,14 +36,34 @@ class FakeStyle:
 
 
 class FakeElement:
-    def __init__(self, id_):
+    def __init__(self, id_=None):
         self.id = id_
         self.innerText = ""
+        self._innerHTML = ""
         self.disabled = False
         self.hidden = False
+        self.className = ""
         self.classList = FakeClassList()
         self.style = FakeStyle()
+        self.children = []
         self._listeners = {}
+
+    @property
+    def innerHTML(self):
+        return self._innerHTML
+
+    @innerHTML.setter
+    def innerHTML(self, value):
+        # Only ever set to "" by game.py (clear-before-rebuild, same as a
+        # real panel.innerHTML = "" before repainting) — dropping the
+        # previously-appended children is the only behaviour that matters
+        # here, not actually parsing markup.
+        self._innerHTML = value
+        self.children = []
+
+    def appendChild(self, child):
+        self.children.append(child)
+        return child
 
     def addEventListener(self, event_name, handler):
         self._listeners.setdefault(event_name, []).append(handler)
@@ -45,6 +72,12 @@ class FakeElement:
         for handler in list(self._listeners.get(event_name, [])):
             handler(event)
 
+    def descendants(self):
+        """Depth-first walk of everything appended under this element."""
+        for child in self.children:
+            yield child
+            yield from child.descendants()
+
 
 class FakeDocument:
     def __init__(self, elements):
@@ -52,6 +85,11 @@ class FakeDocument:
 
     def getElementById(self, id_):
         return self._elements[id_]
+
+    def createElement(self, tag):
+        element = FakeElement()
+        element.tagName = tag.upper()
+        return element
 
 
 class FakeTimers:

@@ -24,8 +24,10 @@
     <div class="game-toolbar">
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
+      <button id="achievements-toggle-button" class="secondary" type="button">🏆 Achievements</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
+    <div id="achievements-panel" class="section achievements-panel" hidden></div>
 
     <div id="win-banner" class="section" hidden>
       <p id="win-banner-heading" class="win-banner-heading">100% COMPLETE</p>
@@ -1040,8 +1042,15 @@
     async function main() {
       const pyodide = await loadPyodide();
       window.pyodide = pyodide; // exposed for the save/load bridge below
-      const response = await fetch("game.py");
-      const code = await response.text();
+      // ACHIEVEMENTS-SYSTEM-DESIGN.md's loading contract: fetch the static
+      // catalog and hand it to Python as a window global *before* game.py
+      // runs, same pattern Le Champ de Mots established for its own JSON
+      // assets (see that game's index.html + game.py's _read_json_asset()).
+      const [achievementsJson, code] = await Promise.all([
+        fetch("achievements.json").then((response) => response.text()),
+        fetch("game.py").then((response) => response.text()),
+      ]);
+      window.ACHIEVEMENTS_JSON = achievementsJson;
       await pyodide.runPythonAsync(code);
 
       if (window.GameTutorial) {

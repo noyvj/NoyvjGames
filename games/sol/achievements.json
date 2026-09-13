@@ -1,0 +1,94 @@
+{
+  "achievements": [
+    {
+      "id": "first_ore",
+      "label": "First Ore",
+      "description": "Mine Iron on Earth for the first time."
+    },
+    {
+      "id": "automated",
+      "label": "Automated",
+      "description": "Build Earth's first Auto-Miner — mining without clicking."
+    },
+    {
+      "id": "recycler_online",
+      "label": "Recycler Online",
+      "description": "Build your first Recycler, on any world."
+    },
+    {
+      "id": "off_world",
+      "label": "Off-World",
+      "description": "Travel beyond Earth for the first time."
+    },
+    {
+      "id": "trade_route_established",
+      "label": "Trade Route Established",
+      "description": "Open your first trade route between two worlds."
+    },
+    {
+      "id": "tier_one_cleared",
+      "label": "Near Bodies Charted",
+      "description": "Fund the Near Bodies research tier to completion."
+    },
+    {
+      "id": "solar_system_unlocked",
+      "label": "Solar System Unlocked",
+      "description": "Unlock travel access to every body in the solar system."
+    },
+    {
+      "id": "tier_two_cleared",
+      "label": "Far Bodies Charted",
+      "description": "Fund every research tier to completion."
+    },
+    {
+      "id": "grand_tour",
+      "label": "Grand Tour",
+      "description": "Physically visit every world in the solar system, not just unlock them."
+    },
+    {
+      "id": "governor_appointed",
+      "label": "Governor Appointed",
+      "description": "Let the Governor manage a world while you were away."
+    },
+    {
+      "id": "sky_city_founder",
+      "label": "Sky City Founder",
+      "description": "Build a Sky City above one of the gas giants' moons."
+    },
+    {
+      "id": "trade_network",
+      "label": "Trade Network",
+      "description": "Maintain 5 or more trade routes across the solar system at once."
+    },
+    {
+      "id": "ecological_balance",
+      "label": "Ecological Balance",
+      "description": "Run a full mining economy on a world while keeping its ecological health at 95% or higher."
+    },
+    {
+      "id": "resource_baron",
+      "label": "Resource Baron",
+      "description": "Bank one million of a single resource on one world at once."
+    },
+    {
+      "id": "terraformer",
+      "label": "Terraformer",
+      "description": "Fully terraform your first world."
+    },
+    {
+      "id": "eight_economies",
+      "label": "Eight Economies",
+      "description": "Run an active Auto-Miner economy on every world at the same time."
+    },
+    {
+      "id": "planetary_renaissance",
+      "label": "Planetary Renaissance",
+      "description": "Fully terraform four worlds at once."
+    },
+    {
+      "id": "full_system_terraformed",
+      "label": "New Solar System",
+      "description": "Terraform every world to 100% — the same milestone that triggers the game's win banner."
+    }
+  ]
+}

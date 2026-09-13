@@ -254,6 +254,16 @@ current_planet = "Earth"
 governor_priority = "balance"  # "growth" | "balance" | "ecology"
 governor_budget_pct = 50.0
 governor_tick_count = 0
+# New tracked state (ACHIEVEMENTS-SYSTEM-DESIGN.md §4's "add new state only
+# where genuinely necessary" case): governor_tick_count increments on every
+# tick the moment ANY other planet exists to govern, which is true from the
+# very first tick of a brand-new game -- it's a measure of time elapsed, not
+# of the governor having actually done anything. governor_purchase_count
+# only increments inside governor_step()'s own buy branches below, i.e. the
+# governor genuinely spent resources managing a world while the player was
+# elsewhere -- the real thing the "Governor Appointed" achievement means to
+# reward.
+governor_purchase_count = 0
 
 TICK_INTERVAL_MS = 100
 
@@ -544,6 +554,218 @@ def update_win_display():
     document.getElementById("win-banner").hidden = not all(
         planet_state[p]["terraform_progress"] >= TERRAFORM_MAX for p in PLANETS
     )
+
+
+# ===========================================================================
+# Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md) — SOL is the reference
+# integration for the hub-wide achievements framework.
+# ===========================================================================
+#
+# Every achievement's earned status is a pure function of state that already
+# exists elsewhere in this module (planet_state, unlocked_bodies,
+# completed_tiers, ...), recomputed fresh on every call — never a separately
+# hand-maintained "earned" flag that could drift out of sync with the state
+# that actually justifies it (same discipline Le Champ de Mots' own
+# achievements established: "derive, don't track"). Two small exceptions
+# needed one new piece of genuinely new tracked state each, both added
+# defensively (safe default, merged in on load, never crashes an older save
+# missing the field):
+#
+# - `visited_bodies` just below: SOL has no existing record of which worlds
+#   a player has ever physically traveled to (current_planet only remembers
+#   *where you are now*, and unlocked_bodies means research access, not an
+#   actual visit — a player can unlock every Far Body and still never have
+#   flown to one), so two achievements here ("Off-World", "Grand Tour")
+#   genuinely need it.
+# - `governor_purchase_count`, defined next to `governor_tick_count` at the
+#   top of this module and incremented inside governor_step()'s own buy
+#   branches: `governor_tick_count` increments the instant ANY other planet
+#   exists to govern, which is true from the very first tick of a brand-new
+#   game — it measures ticks elapsed, not the governor having actually
+#   bought anything. "Governor Appointed" needs the latter, so it checks
+#   `governor_purchase_count` instead — caught during this feature's own
+#   live verification pass, where a fresh, untouched game showed the
+#   achievement already earned after under a second of real time.
+#
+ACHIEVEMENTS_FILENAME = "achievements.json"
+
+
+def _read_achievements_json():
+    """Same loading contract Le Champ de Mots' game.py established for its
+    own static JSON assets (see that game's `_read_json_asset()`): the
+    page's boot script fetches achievements.json and hands it to Python as
+    a window global before this file runs; the pytest harness's fake `js`
+    module simply has no such attribute, so this falls through to reading
+    the file straight off disk, which keeps the module importable outside
+    a real browser."""
+    try:
+        import js  # noqa: PLC0415 — Pyodide-only import, deliberately lazy
+    except ImportError:
+        js = None
+
+    raw = getattr(js, "ACHIEVEMENTS_JSON", None) if js is not None else None
+    if raw is not None:
+        return str(raw)
+
+    import os  # noqa: PLC0415 — only needed on this filesystem-fallback path
+
+    here = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(here, ACHIEVEMENTS_FILENAME), encoding="utf-8") as handle:
+        return handle.read()
+
+
+ACHIEVEMENTS = json.loads(_read_achievements_json())["achievements"]
+
+# New tracked state (see the module docstring above): every body the player
+# has ever actually traveled to, Earth included from the start since that's
+# where every game begins. Mutated in place (never reassigned) from each
+# on_travel_* handler below via `_mark_visited()`, so no `global` declaration
+# is needed at those call sites — only deserialize_state() below, which does
+# reassign it wholesale from a loaded save, needs one.
+visited_bodies = {"Earth"}
+
+RESOURCE_BARON_THRESHOLD = 1_000_000
+ECOLOGICAL_BALANCE_MIN_HEALTH = 95.0
+TRADE_NETWORK_MIN_ROUTES = 5
+PLANETARY_RENAISSANCE_MIN_TERRAFORMED = 4
+
+
+def _total_trade_routes():
+    return sum(sum(state["trade_routes"].values()) for state in planet_state.values())
+
+
+def _terraformed_planet_count():
+    return sum(1 for state in planet_state.values() if state["terraform_progress"] >= TERRAFORM_MAX)
+
+
+def _max_single_resource():
+    return max((state["resource_count"] for state in planet_state.values()), default=0.0)
+
+
+# Each checker is a zero-argument predicate read fresh off live state —
+# nothing here is ever cached or hand-flagged. "Earth" counts as always
+# unlocked and always visited from the start (see PLANETS/visited_bodies
+# above), so every len(PLANETS)-based target below is expressed relative to
+# that the same way update_cross_summary() already treats Earth as a given.
+ACHIEVEMENT_CHECKS = {
+    "first_ore": lambda: planet_state["Earth"]["resource_count"] >= 1,
+    "automated": lambda: planet_state["Earth"]["generator_count"] >= 1,
+    "recycler_online": lambda: any(state["recycler_count"] >= 1 for state in planet_state.values()),
+    "off_world": lambda: len(visited_bodies) >= 2,
+    "trade_route_established": lambda: any(state["trade_routes"] for state in planet_state.values()),
+    "tier_one_cleared": lambda: completed_tiers >= 1,
+    "solar_system_unlocked": lambda: len(unlocked_bodies) >= len(PLANETS) - 1,
+    "tier_two_cleared": lambda: completed_tiers >= len(RESEARCH_TIERS),
+    "grand_tour": lambda: len(visited_bodies) >= len(PLANETS),
+    "governor_appointed": lambda: governor_purchase_count >= 1,
+    "sky_city_founder": lambda: any(
+        planet_state[p].get("sky_city_count", 0) >= 1 for p in GAS_GIANT_BODIES
+    ),
+    "trade_network": lambda: _total_trade_routes() >= TRADE_NETWORK_MIN_ROUTES,
+    "ecological_balance": lambda: any(
+        state["generator_count"] >= 1 and state["ecology_health"] >= ECOLOGICAL_BALANCE_MIN_HEALTH
+        for state in planet_state.values()
+    ),
+    "resource_baron": lambda: _max_single_resource() >= RESOURCE_BARON_THRESHOLD,
+    "terraformer": lambda: _terraformed_planet_count() >= 1,
+    "eight_economies": lambda: all(state["generator_count"] >= 1 for state in planet_state.values()),
+    "planetary_renaissance": lambda: _terraformed_planet_count() >= PLANETARY_RENAISSANCE_MIN_TERRAFORMED,
+    "full_system_terraformed": lambda: _terraformed_planet_count() >= len(PLANETS),
+}
+
+# Progress readouts, only for achievements with a natural numeric scale-up —
+# a plain earned/not-yet is the honest shape for the rest, rather than
+# inventing fractional progress for a one-shot milestone like "build your
+# first Recycler somewhere".
+ACHIEVEMENT_PROGRESS = {
+    "solar_system_unlocked": lambda: (len(unlocked_bodies), len(PLANETS) - 1),
+    "grand_tour": lambda: (len(visited_bodies), len(PLANETS)),
+    "tier_two_cleared": lambda: (completed_tiers, len(RESEARCH_TIERS)),
+    "trade_network": lambda: (_total_trade_routes(), TRADE_NETWORK_MIN_ROUTES),
+    "resource_baron": lambda: (math.floor(_max_single_resource()), RESOURCE_BARON_THRESHOLD),
+    "planetary_renaissance": lambda: (_terraformed_planet_count(), PLANETARY_RENAISSANCE_MIN_TERRAFORMED),
+    "full_system_terraformed": lambda: (_terraformed_planet_count(), len(PLANETS)),
+}
+
+
+def achievement_ids_earned():
+    """Every achievement id currently satisfied, in catalog order — the
+    value that rides the existing save/sync mechanism via get_state()'s
+    "achievements_earned" field (ACHIEVEMENTS-SYSTEM-DESIGN.md). Always
+    recomputed, never itself a save input."""
+    return [entry["id"] for entry in ACHIEVEMENTS if ACHIEVEMENT_CHECKS[entry["id"]]()]
+
+
+def achievements_summary():
+    """The full catalog, in order, each entry annotated with whether it's
+    currently earned and (where one exists) a live progress readout — the
+    shape the in-game panel wants without re-deriving it from ACHIEVEMENTS +
+    ACHIEVEMENT_CHECKS + ACHIEVEMENT_PROGRESS itself."""
+    earned_ids = set(achievement_ids_earned())
+    summary = []
+    for entry in ACHIEVEMENTS:
+        progress_fn = ACHIEVEMENT_PROGRESS.get(entry["id"])
+        summary.append(
+            {
+                "id": entry["id"],
+                "label": entry["label"],
+                "description": entry["description"],
+                "earned": entry["id"] in earned_ids,
+                "progress": progress_fn() if progress_fn else None,
+            }
+        )
+    return summary
+
+
+achievements_open = False
+
+
+def _mark_visited(planet):
+    visited_bodies.add(planet)
+
+
+def on_toggle_achievements(event=None):
+    global achievements_open
+    achievements_open = not achievements_open
+    update_achievements_display()
+
+
+def update_achievements_display():
+    toggle = document.getElementById("achievements-toggle-button")
+    panel = document.getElementById("achievements-panel")
+    earned_count = len(achievement_ids_earned())
+    toggle.innerText = (
+        f"Hide Achievements ({earned_count}/{len(ACHIEVEMENTS)})"
+        if achievements_open
+        else f"🏆 Achievements ({earned_count}/{len(ACHIEVEMENTS)})"
+    )
+    panel.hidden = not achievements_open
+    if not achievements_open:
+        return
+
+    panel.innerHTML = ""
+    for entry in achievements_summary():
+        card = document.createElement("div")
+        card.className = "achievement-card achievement-card--earned" if entry["earned"] else "achievement-card"
+
+        label = document.createElement("p")
+        label.className = "achievement-card-label"
+        label.innerText = f"🏆 {entry['label']}" if entry["earned"] else entry["label"]
+        card.appendChild(label)
+
+        description = document.createElement("p")
+        description.className = "achievement-card-description"
+        description.innerText = entry["description"]
+        card.appendChild(description)
+
+        if not entry["earned"] and entry["progress"] is not None:
+            current, target = entry["progress"]
+            progress = document.createElement("p")
+            progress.className = "achievement-card-progress"
+            progress.innerText = f"{current} of {target}"
+            card.appendChild(progress)
+
+        panel.appendChild(card)
 
 
 def update_cross_summary(viewer, target):
@@ -930,6 +1152,7 @@ def on_travel_moon(event):
     global current_planet
     if "Moon" in unlocked_bodies:
         current_planet = "Moon"
+        _mark_visited("Moon")
         _hide_all_views()
         document.getElementById("moon-view").hidden = False
         update_resource_display("Moon")
@@ -945,6 +1168,7 @@ def on_travel_venus(event):
     global current_planet
     if "Venus" in unlocked_bodies:
         current_planet = "Venus"
+        _mark_visited("Venus")
         _hide_all_views()
         document.getElementById("venus-view").hidden = False
         update_resource_display("Venus")
@@ -960,6 +1184,7 @@ def on_travel_asteroid_belt(event):
     global current_planet
     if "AsteroidBelt" in unlocked_bodies:
         current_planet = "AsteroidBelt"
+        _mark_visited("AsteroidBelt")
         _hide_all_views()
         document.getElementById("asteroidbelt-view").hidden = False
         update_resource_display("AsteroidBelt")
@@ -975,6 +1200,7 @@ def on_travel_pluto(event):
     global current_planet
     if "Pluto" in unlocked_bodies:
         current_planet = "Pluto"
+        _mark_visited("Pluto")
         _hide_all_views()
         document.getElementById("pluto-view").hidden = False
         update_resource_display("Pluto")
@@ -990,6 +1216,7 @@ def on_travel_jupiter_moons(event):
     global current_planet
     if "JupiterMoons" in unlocked_bodies:
         current_planet = "JupiterMoons"
+        _mark_visited("JupiterMoons")
         _hide_all_views()
         document.getElementById("jupitermoons-view").hidden = False
         update_resource_display("JupiterMoons")
@@ -1006,6 +1233,7 @@ def on_travel_saturn_moons(event):
     global current_planet
     if "SaturnMoons" in unlocked_bodies:
         current_planet = "SaturnMoons"
+        _mark_visited("SaturnMoons")
         _hide_all_views()
         document.getElementById("saturnmoons-view").hidden = False
         update_resource_display("SaturnMoons")
@@ -1022,6 +1250,7 @@ def on_travel_mars(event):
     global current_planet
     if "Mars" in unlocked_bodies:
         current_planet = "Mars"
+        _mark_visited("Mars")
         _hide_all_views()
         document.getElementById("mars-view").hidden = False
         update_resource_display("Mars")
@@ -1093,7 +1322,7 @@ def governor_step():
     # Mars, if that's not where the player is either) keeps running. This
     # loop is already N-planet generic: it governs everything in PLANETS
     # except current_planet, however many real economies that ends up being.
-    global governor_tick_count
+    global governor_tick_count, governor_purchase_count
     governed_planets = [planet for planet in PLANETS if planet != current_planet]
     if not governed_planets:
         return
@@ -1115,12 +1344,14 @@ def governor_step():
             if cost <= budget:
                 state["resource_count"] -= cost
                 state["generator_count"] += 1
+                governor_purchase_count += 1
                 update_generator_display(planet)
         else:
             cost = recycler_cost(planet)
             if cost <= budget:
                 state["resource_count"] -= cost
                 state["recycler_count"] += 1
+                governor_purchase_count += 1
                 update_ecology_display(planet)
 
 
@@ -1193,6 +1424,7 @@ def tick(*args):
     update_all_cross_summaries()
     update_away_summary()
     update_win_display()
+    update_achievements_display()
 
 
 def _full_render():
@@ -1220,6 +1452,7 @@ def _full_render():
     update_travel_display()
     update_all_cross_summaries()
     update_win_display()
+    update_achievements_display()
 
 
 # --- Save system (SAVE-SYSTEM-DESIGN.md Phase 1) ---
@@ -1237,24 +1470,34 @@ def serialize_state():
     dict. `planet_state` is deep-copied — it's a dict of dicts (each
     with its own nested `trade_routes` dict), and a shallow copy would
     still alias those inner dicts, so continued play after taking a
-    "snapshot" would silently mutate it. `unlocked_bodies` is the only
-    non-JSON-native type in the state (a set) — converted to a list
-    here and back to a set on load."""
+    "snapshot" would silently mutate it. `unlocked_bodies`/`visited_bodies`
+    are the only non-JSON-native types in the state (sets) — converted to a
+    list here and back to a set on load.
+
+    `achievements_earned` (ACHIEVEMENTS-SYSTEM-DESIGN.md) is a write-only
+    projection, not part of this game's own state: it rides the existing
+    save/sync mechanism purely so the hub's aggregate dashboard can read a
+    signed-in player's progress without a new backend endpoint, and it is
+    always recomputed fresh here rather than read back on load — see
+    deserialize_state() below, which doesn't reference this key at all."""
     return {
         "planet_state": copy.deepcopy(planet_state),
         "research_progress": research_progress,
         "completed_tiers": completed_tiers,
         "unlocked_bodies": sorted(unlocked_bodies),
+        "visited_bodies": sorted(visited_bodies),
         "current_planet": current_planet,
         "governor_priority": governor_priority,
         "governor_budget_pct": governor_budget_pct,
         "governor_tick_count": governor_tick_count,
+        "governor_purchase_count": governor_purchase_count,
+        "achievements_earned": achievement_ids_earned(),
     }
 
 
 def deserialize_state(data):
-    global research_progress, completed_tiers, unlocked_bodies, current_planet
-    global governor_priority, governor_budget_pct, governor_tick_count
+    global research_progress, completed_tiers, unlocked_bodies, visited_bodies, current_planet
+    global governor_priority, governor_budget_pct, governor_tick_count, governor_purchase_count
 
     # Merge in place rather than clear()+update(): a save whose
     # planet_state is missing a body (an older save format from before
@@ -1289,10 +1532,22 @@ def deserialize_state(data):
     research_progress = data.get("research_progress", research_progress)
     completed_tiers = data.get("completed_tiers", completed_tiers)
     unlocked_bodies = set(data.get("unlocked_bodies", unlocked_bodies))
+    # A save made before this field existed simply has no key here, so this
+    # falls back to whatever's already running (the module default,
+    # {"Earth"}, on a fresh load) — same defensive fallback as every other
+    # top-level field in this function, per the reasoning above.
+    visited_bodies = set(data.get("visited_bodies", visited_bodies))
     current_planet = data.get("current_planet", current_planet)
+    # Wherever the save says the player currently is, they have — by
+    # definition — actually been there, even if this is an old save from
+    # before "visited_bodies" existed at all. Without this, such a save
+    # loaded mid-Mars-trip would forget Mars was ever visited until the
+    # player traveled again.
+    visited_bodies.add(current_planet)
     governor_priority = data.get("governor_priority", governor_priority)
     governor_budget_pct = data.get("governor_budget_pct", governor_budget_pct)
     governor_tick_count = data.get("governor_tick_count", governor_tick_count)
+    governor_purchase_count = data.get("governor_purchase_count", governor_purchase_count)
 
 
 def get_save_state_json():
@@ -1575,6 +1830,10 @@ def setup():
     )
     document.getElementById("return-to-earth-button").addEventListener(
         "click", create_proxy(on_return_to_earth_from_away_view)
+    )
+
+    document.getElementById("achievements-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_achievements)
     )
 
     _full_render()
