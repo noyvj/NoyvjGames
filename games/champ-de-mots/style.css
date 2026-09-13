@@ -951,7 +951,8 @@ button:disabled {
 }
 
 .dashboard-mastery-list,
-.dashboard-weakest-list {
+.dashboard-weakest-list,
+.dashboard-patterns-list {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
@@ -959,6 +960,7 @@ button:disabled {
 
 .dashboard-mastery-row,
 .dashboard-weakest-topic,
+.dashboard-pattern-row,
 .dashboard-empty {
   margin: 0;
   font-size: 0.8rem;

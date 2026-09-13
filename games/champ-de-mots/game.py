@@ -1219,6 +1219,65 @@ def is_weed_confusion(correct_answer, submitted_answer):
     return normalize_answer(str(submitted_answer), fold_accents=False) in confusable
 
 
+# ===========================================================================
+# Milestone 20 -- personal error-pattern digest (Improvement Ideas addendum §?)
+# ===========================================================================
+#
+# A wrong typed answer is more useful to a learner as a *reason* than as a
+# tally: "you keep dropping accents" is actionable, "3 wrong" isn't. This is
+# purely diagnostic -- classify_wrong_typed_answer() never feeds back into
+# grading or SRS scheduling, only into a persistent count surfaced on the
+# Progress Dashboard.
+
+ERROR_PATTERN_ACCENT = "accent"
+ERROR_PATTERN_KNOWN_MIXUP = "known_mixup"
+ERROR_PATTERN_CLOSE_TYPO = "close_typo"
+ERROR_PATTERN_OTHER = "other"
+
+ERROR_PATTERN_LABELS = {
+    ERROR_PATTERN_ACCENT: "Dropped or mistyped an accent",
+    ERROR_PATTERN_KNOWN_MIXUP: "Mixed up a known look-alike pair",
+    ERROR_PATTERN_CLOSE_TYPO: "Close, but not an exact match",
+    ERROR_PATTERN_OTHER: "Didn't recall the answer",
+}
+
+# Order matters here (also the order the dashboard lists them in): a mixup
+# that happens to also be spelled with a wrong accent is a mixup first, and
+# an accent slip that also happens to be textually close to the real answer
+# is still specifically an accent slip, not a generic "close" typo.
+ERROR_PATTERN_ORDER = [
+    ERROR_PATTERN_KNOWN_MIXUP,
+    ERROR_PATTERN_ACCENT,
+    ERROR_PATTERN_CLOSE_TYPO,
+    ERROR_PATTERN_OTHER,
+]
+
+CLOSE_TYPO_SIMILARITY_THRESHOLD = 0.8
+
+error_pattern_counts = {}
+
+
+def classify_wrong_typed_answer(question, given, tier):
+    """Best-effort diagnosis of *why* a typed answer missed. Only meaningful
+    for typed answers -- a wrong multiple-choice pick carries none of this
+    nuance, it's just "picked the wrong one" (see submit_answer's caller)."""
+    answer = question["answer"]
+    if is_weed_confusion(answer, given):
+        return ERROR_PATTERN_KNOWN_MIXUP
+    # Would this have passed if accents didn't matter? A genuine accent slip,
+    # regardless of whether the live session is currently accent-sensitive
+    # (see check_answer's fold_accents mapping just below).
+    if check_answer(question, given, tier=tier, accent_sensitive=False):
+        return ERROR_PATTERN_ACCENT
+    if _answer_similarity(given, answer) >= CLOSE_TYPO_SIMILARITY_THRESHOLD:
+        return ERROR_PATTERN_CLOSE_TYPO
+    return ERROR_PATTERN_OTHER
+
+
+def record_error_pattern(pattern):
+    error_pattern_counts[pattern] = error_pattern_counts.get(pattern, 0) + 1
+
+
 def check_answer(question, given, tier=None, accent_sensitive=None):
     """Multiple choice is always exact. Typed answers: with no `tier`
     (the original Milestone 3 signature), this is byte-for-byte the old
@@ -1709,6 +1768,28 @@ def render_dashboard():
             weakest_list.appendChild(line)
         panel.appendChild(weakest_list)
 
+    patterns_heading = document.createElement("p")
+    patterns_heading.className = "dashboard-heading"
+    patterns_heading.innerText = "Common patterns"
+    panel.appendChild(patterns_heading)
+    present_patterns = [p for p in ERROR_PATTERN_ORDER if error_pattern_counts.get(p)]
+    if not present_patterns:
+        empty = document.createElement("p")
+        empty.className = "dashboard-empty"
+        empty.innerText = "No wrong typed answers yet — nothing to spot a pattern in."
+        panel.appendChild(empty)
+    else:
+        patterns_list = document.createElement("div")
+        patterns_list.className = "dashboard-patterns-list"
+        for pattern in present_patterns:
+            line = document.createElement("p")
+            line.className = "dashboard-pattern-row"
+            count = error_pattern_counts[pattern]
+            times = "time" if count == 1 else "times"
+            line.innerText = f"{ERROR_PATTERN_LABELS[pattern]} — {count} {times}"
+            patterns_list.appendChild(line)
+        panel.appendChild(patterns_list)
+
 
 def on_toggle_cultural_notes(event=None):
     global cultural_notes_open
@@ -2040,6 +2121,9 @@ def submit_answer(given):
             plot.in_weeds = False
         elif typed_mode and is_weed_confusion(current_question["answer"], given):
             plot.in_weeds = True
+    if not current_result and typed_mode:
+        pattern = classify_wrong_typed_answer(current_question, given, tier)
+        record_error_pattern(pattern)
     state.review(
         current_question["plot_id"],
         current_result,
@@ -3199,6 +3283,7 @@ def get_state():
             for plot in state.plots
             if plot.last_reviewed is not None or plot.stage != STAGE_SEED
         },
+        "error_patterns": dict(error_pattern_counts),
     }
 
 
@@ -3209,9 +3294,12 @@ def get_state():
 # notes call out as in-scope. Also no test loads a save with an unrecognized
 # stage string to exercise the STAGE_RANK fallback a few lines below.
 def load_state(data):
+    global error_pattern_counts
+
     saved_plots = data.get("plots") or {}
     state.current_day = data.get("current_day", 0)
     state.invalidate_unlocks()
+    error_pattern_counts = dict(data.get("error_patterns") or {})
 
     for plot in state.plots:
         # Plots missing from the save are reset rather than left as they are:

@@ -9,7 +9,7 @@ that pair — including through a real `json.dumps`, since the widget POSTs it.
 import json
 
 
-EXPECTED_KEYS = {"version", "current_day", "plots"}
+EXPECTED_KEYS = {"version", "current_day", "plots", "error_patterns"}
 PLOT_KEYS = {
     "ease_factor", "interval_days", "last_reviewed", "next_due", "correct_streak",
     "stage", "in_weeds",
@@ -27,6 +27,7 @@ def test_get_state_returns_the_documented_top_level_shape(game_env):
     assert set(data) == EXPECTED_KEYS
     assert data["current_day"] == 0
     assert data["plots"] == {}
+    assert data["error_patterns"] == {}
 
 
 def test_an_untouched_farm_saves_almost_nothing(game_env):
