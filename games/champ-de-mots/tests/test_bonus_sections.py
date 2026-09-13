@@ -342,3 +342,49 @@ def test_bonus_panel_hides_on_close(game_env):
     module.start_bonus_section(1)
     module.close_bonus_section()
     assert game_env.elements["bonus-panel"].hidden is True
+
+
+# --- typed-answer input clearing --------------------------------------------
+#
+# Bug: only open_practice() (the main farm panel) ever cleared its typed-
+# answer input -- every other "move to the next question" path left stale
+# text sitting in the box. Fixed in _begin_bonus_sentence() (covers both
+# start_bonus_section() and next_bonus_sentence(), which both call it) and
+# next_bonus_tile(); pinned here.
+
+
+def test_starting_a_bonus_section_clears_both_typed_inputs(game_env):
+    module = game_env.module
+    game_env.elements["bonus-tile-answer-input"].value = "leftover tile text"
+    game_env.elements["bonus-sentence-answer-input"].value = "leftover sentence text"
+    module.start_bonus_section(1)
+    assert game_env.elements["bonus-tile-answer-input"].value == ""
+    assert game_env.elements["bonus-sentence-answer-input"].value == ""
+
+
+def test_advancing_to_the_next_bonus_tile_clears_the_tile_input(game_env):
+    module = game_env.module
+    module.start_bonus_section(1)
+    _complete_order_task(module)
+    sentence = module.bonus_queue[module.bonus_index]
+    module.submit_bonus_tile_translation(sentence["tiles"][0]["en"])
+    game_env.elements["bonus-tile-answer-input"].value = "whatever was typed for that tile"
+    module.next_bonus_tile()
+    assert game_env.elements["bonus-tile-answer-input"].value == ""
+
+
+def test_advancing_to_the_next_bonus_sentence_clears_both_typed_inputs(game_env):
+    module = game_env.module
+    # Sequence 1 needs more than one bonus sentence for there to be a "next"
+    # one to advance into; fall back to asserting the queue-exhausted case
+    # still clears the inputs if this week only has one.
+    module.start_bonus_section(1)
+    _complete_order_task(module)
+    _complete_tile_task(module)
+    sentence = module.bonus_queue[module.bonus_index]
+    module.submit_bonus_sentence_translation(sentence["en"])
+    game_env.elements["bonus-tile-answer-input"].value = "stale tile text"
+    game_env.elements["bonus-sentence-answer-input"].value = "stale sentence text"
+    module.next_bonus_sentence()
+    assert game_env.elements["bonus-tile-answer-input"].value == ""
+    assert game_env.elements["bonus-sentence-answer-input"].value == ""

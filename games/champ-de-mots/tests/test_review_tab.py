@@ -324,3 +324,28 @@ def test_a_review_session_mixes_stages_when_both_are_available(game_env):
     stages_in_queue = {state.plots_by_id[pid].stage for pid in module.review_queue}
     assert module.STAGE_AUTOMATED in stages_in_queue
     assert module.STAGE_SEED in stages_in_queue
+
+
+# --- typed-answer input clearing --------------------------------------------
+#
+# Bug: only open_practice() (the main farm panel) ever cleared its typed-
+# answer input -- every other "move to the next question" path left stale
+# text sitting in the box, forcing a manual delete before typing the next
+# answer. Fixed in start_review()/next_review_question(); pinned here.
+
+
+def test_starting_a_review_session_clears_any_stale_typed_text(game_env):
+    module = game_env.module
+    game_env.elements["review-answer-input"].value = "leftover text"
+    module.start_review("word")
+    assert game_env.elements["review-answer-input"].value == ""
+
+
+def test_advancing_to_the_next_review_question_clears_the_typed_input(game_env):
+    module = game_env.module
+    game_env.elements["review-count-input"].value = "3"
+    module.start_review("word")
+    module.submit_review_answer(module.review_question["answer"])
+    game_env.elements["review-answer-input"].value = "whatever was typed for that question"
+    module.next_review_question()
+    assert game_env.elements["review-answer-input"].value == ""

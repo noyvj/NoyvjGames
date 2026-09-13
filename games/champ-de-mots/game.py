@@ -2827,6 +2827,7 @@ def start_review(mode, event=None):
     review_index = 0
     review_score = {"correct": 0, "total": 0}
     _advance_review_question()
+    _element("review-answer-input").value = ""
     render()
 
 
@@ -2857,6 +2858,7 @@ def next_review_question(event=None):
         return None
     review_index += 1
     _advance_review_question()
+    _element("review-answer-input").value = ""
     render()
     return review_question
 
@@ -3098,6 +3100,7 @@ def start_proficiency_test(sequence, event=None):
         for topic in proficiency_test_topics(sequence)
     }
     proficiency_mode = True
+    _element("proficiency-answer-input").value = ""
     render()
     return proficiency_questions
 
@@ -3131,6 +3134,7 @@ def next_proficiency_question(event=None):
         return None
     proficiency_index += 1
     proficiency_result = None
+    _element("proficiency-answer-input").value = ""
     render()
     return proficiency_index
 
@@ -3308,6 +3312,12 @@ def _begin_bonus_sentence():
     bonus_tile_result = None
     bonus_tile_score = {"correct": 0, "total": 0}
     bonus_sentence_result = None
+    # A fresh sentence starts at the "order" task, but both typed-answer
+    # inputs further along (task 2's tile box, task 3's sentence box) can
+    # still be holding text from a *previous* sentence's session — cleared
+    # here, once, rather than only when each task is separately entered.
+    _element("bonus-tile-answer-input").value = ""
+    _element("bonus-sentence-answer-input").value = ""
 
     if sentence is None:
         bonus_task = None
@@ -3409,6 +3419,7 @@ def next_bonus_tile(event=None):
     sentence = _current_bonus_sentence()
     bonus_tile_index += 1
     bonus_tile_result = None
+    _element("bonus-tile-answer-input").value = ""
     if sentence is None or bonus_tile_index >= len(sentence["tiles"]):
         bonus_task = "translate_sentence"
     render()
