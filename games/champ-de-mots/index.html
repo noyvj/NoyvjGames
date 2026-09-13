@@ -7,6 +7,7 @@
 <link rel="icon" href="../../icons/icon-192.png">
 <link rel="stylesheet" href="../../shared/ambient-bg.css">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="minigames.css">
 <link rel="stylesheet" href="../../ad-bar.css">
 <link rel="manifest" href="../../manifest.json">
 <script src="../../shared/tutorial.js"></script>
@@ -28,10 +29,32 @@
       <button id="dashboard-toggle-button" class="secondary" type="button">📊 Progress dashboard</button>
       <button id="liaison-toggle-button" class="secondary" type="button">🗣️ Liaison practice</button>
       <button id="achievements-toggle-button" class="secondary" type="button">🏆 Achievements</button>
+      <button id="blitz-toggle-button" class="secondary" type="button">⚡ Greetings & Basics Blitz</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
     <div id="dashboard-panel" class="dashboard-panel" hidden></div>
     <div id="achievements-panel" class="dashboard-panel" hidden></div>
+
+    <div id="blitz-panel" class="minigame-panel" hidden>
+      <h2>Greetings &amp; Basics Blitz</h2>
+      <p class="status-line status-line--muted">60 seconds, 3 lives. A steady stream of translation questions from your greetings/family/description weeks (rows 1-11) — answer fast, build a combo, and see your score before the clock runs out.</p>
+      <p id="blitz-lock-message" class="minigame-lock-message" hidden></p>
+      <div class="minigame-stats">
+        <span id="blitz-time-display" class="minigame-stat minigame-stat--timer"></span>
+        <span id="blitz-lives-display" class="minigame-stat"></span>
+        <span id="blitz-score-display" class="minigame-stat"></span>
+        <span id="blitz-combo-display" class="minigame-stat minigame-stat--combo"></span>
+      </div>
+      <button id="blitz-start-button" class="secondary">Start (60s)</button>
+      <p id="blitz-summary" class="minigame-summary" hidden></p>
+      <div class="minigame-prompt-card">
+        <p id="blitz-context" class="practice-context"></p>
+        <p id="blitz-prompt" class="practice-prompt"></p>
+      </div>
+      <div id="blitz-choices" class="practice-choices"></div>
+      <p id="blitz-feedback" class="practice-feedback"></p>
+      <button id="blitz-close-button" class="secondary practice-close">Close</button>
+    </div>
 
     <p class="tagline">The field of words. Every plot is one French fact — water it when it needs water, and watch it slowly stop needing you.</p>
     <p class="context-blurb">One continuous farm across FREN151 and FREN152, planted in syllabus order. Correct recall grows a plant and stretches the gap before it asks again; a plot that has gone quiet for long enough gets its own sprinkler. Nothing here dies, and nothing here keeps score against you.</p>
@@ -84,6 +107,7 @@
       <button id="practice-submit-button" class="secondary" hidden>Check</button>
       <details class="info-toggle"><summary>i</summary><p>Typed answers are graded differently by length: a single word (a vocab word, a number, one conjugated form) needs an exact match after minor cleanup, while a full phrase or sentence accepts several valid phrasings — so don't worry about matching a longer answer word-for-word.</p></details>
       <p id="practice-feedback" class="practice-feedback"></p>
+      <button id="practice-next-button" class="primary" hidden>Next plot</button>
       <div id="practice-blurb" class="practice-blurb" hidden>
         <p id="practice-blurb-what" class="practice-blurb-line"></p>
         <p id="practice-blurb-tip" class="practice-blurb-line"></p>
@@ -318,12 +342,34 @@
       // The catalog is handed to Python as a window global rather than read
       // from the Pyodide filesystem — no build step, one fetch, and the
       // pytest harness can stand in for it with the same attribute.
-      const [catalogJson, code] = await Promise.all([
+      const [catalogJson, supplementaryNotesJson, minigamesCode, code] = await Promise.all([
         fetch("fren_combined_catalog.json").then((response) => response.text()),
+        fetch("fren_supplementary_notes.json").then((response) => response.text()),
+        fetch("minigames.py").then((response) => response.text()),
         fetch("game.py").then((response) => response.text()),
       ]);
       window.CATALOG_JSON = catalogJson;
+      window.SUPPLEMENTARY_NOTES_JSON = supplementaryNotesJson;
+      // Milestones 27-30: the arcade minigame family is its own importable
+      // module (see minigames.py's own docstring), not JSON data -- writing
+      // its source onto Pyodide's virtual filesystem before running game.py
+      // is what makes game.py's own `import minigames` resolve normally in
+      // the browser, the same way it already resolves under pytest via a
+      // real file on disk.
+      pyodide.FS.writeFile("minigames.py", minigamesCode);
       await pyodide.runPythonAsync(code);
+
+      // Milestones 27-30: each minigame's on-screen countdown is Python
+      // state (a plain counter), never a Python clock -- see minigames.py's
+      // own docstring. This is the one JS-owned setInterval that actually
+      // drives real-world timing for all of them; every tick function is a
+      // documented no-op whenever that particular minigame isn't an active
+      // running session, so ticking all of them once a second here (rather
+      // than starting/stopping a separate interval per game) is harmless.
+      setInterval(() => {
+        const blitzTick = pyodide.globals.get("blitz_tick");
+        if (blitzTick) blitzTick();
+      }, 1000);
 
       if (window.GameTutorial) {
         GameTutorial.init(CHAMP_DE_MOTS_TUTORIAL_STEPS, { gameId: "champ-de-mots" });

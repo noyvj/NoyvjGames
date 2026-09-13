@@ -44,6 +44,20 @@ ELEMENT_IDS = [
     "liaison-close-button",
     "achievements-toggle-button",
     "achievements-panel",
+    "blitz-toggle-button",
+    "blitz-panel",
+    "blitz-lock-message",
+    "blitz-time-display",
+    "blitz-lives-display",
+    "blitz-score-display",
+    "blitz-combo-display",
+    "blitz-start-button",
+    "blitz-summary",
+    "blitz-context",
+    "blitz-prompt",
+    "blitz-choices",
+    "blitz-feedback",
+    "blitz-close-button",
     "practice-panel",
     "practice-confidence",
     "practice-confidence-sure-button",
@@ -56,6 +70,7 @@ ELEMENT_IDS = [
     "practice-answer-input",
     "practice-submit-button",
     "practice-feedback",
+    "practice-next-button",
     "practice-blurb",
     "practice-blurb-what",
     "practice-blurb-tip",
@@ -175,7 +190,15 @@ def _install_pyodide_fakes(elements):
 
 
 def _remove_pyodide_fakes():
-    for name in ("js", "pyodide", "pyodide.ffi", "game"):
+    # "minigames" is a real file-based import (game.py's own `import
+    # minigames` statement, see Milestone 27's build note), not the
+    # exec_module-loaded "game" module below -- left cached in sys.modules,
+    # it would keep the *same* minigames module object (and all its
+    # module-level session state: blitz_open, cached candidate pools, etc.)
+    # alive across every test in this file, silently leaking state from one
+    # test's farm into the next. Popping it here gives every test a
+    # genuinely fresh minigames module, exactly like "game" already gets.
+    for name in ("js", "pyodide", "pyodide.ffi", "game", "minigames"):
         sys.modules.pop(name, None)
 
 
