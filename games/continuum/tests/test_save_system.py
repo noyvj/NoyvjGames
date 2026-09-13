@@ -440,3 +440,393 @@ def test_a_campaign_round_trips_without_any_dom(game_env):
     assert fresh.to_dict() == data
     assert fresh.tree.researched == ["fire_keeping"]
     assert fresh.state.season == campaign.state.season
+
+
+def _push_full_arc_to_space(game_env):
+    """Drives a real settlement through all six real era transitions via the
+    actual shipped UI (the `advance-era-button`), the same sequence
+    `tests/test_space_age_era.py`'s own `push_to_space()` helper exercises,
+    condensed here so this file's revisit-staleness test below doesn't
+    depend on another test module -- the same "each era test file keeps its
+    own copy" convention every push-to-X helper from Milestone 8 on has
+    already followed rather than cross-importing between test files."""
+    state = game_env.state
+    tree = game_env.module.tree
+
+    def _advance():
+        game_env.module.render()
+        game_env.elements["advance-era-button"].dispatch("click", None)
+
+    state.resources["knowledge"] = 100.0
+    tree.research("fire_keeping", state.resources)
+    tree.research("foraging_lore", state.resources)
+    state.population = 15
+    _advance()  # -> agrarian
+
+    state.resources["knowledge"] = 1000.0
+    tree.research("stone_knapping", state.resources)
+    tree.research("seasonal_rounds", state.resources)
+    tree.research("plow_and_furrow", state.resources)
+    tree.research("seed_selection", state.resources)
+    state.population = 25
+    _advance()  # -> classical
+
+    state.resources["knowledge"] = 10_000.0
+    tree.research("irrigation_channels", state.resources)
+    tree.research("crop_rotation", state.resources)
+    tree.research("canal_engineering", state.resources)
+    tree.research("managed_irrigation", state.resources)
+    state.buildings["shelter"] = 10
+    state.buildings["hearth"] = 5
+    state.population = 40
+    _advance()  # -> medieval
+
+    state.resources["knowledge"] = 100_000.0
+    tree.research("monumental_masonry", state.resources)
+    tree.research("trade_networks", state.resources)
+    tree.research("guild_workshops", state.resources)
+    tree.research("trade_zoning", state.resources)
+    state.buildings["shelter"] = 16
+    state.buildings["hearth"] = 8
+    state.population = 60
+    _advance()  # -> industrial
+
+    state.resources["knowledge"] = 1_000_000.0
+    tree.research("master_guilds", state.resources)
+    tree.research("public_sanitation", state.resources)
+    tree.research("smoke_abatement", state.resources)
+    tree.research("steam_power", state.resources)
+    state.buildings["shelter"] = 27
+    state.buildings["hearth"] = 14
+    state.population = 100
+    _advance()  # -> digital
+
+    state.resources["knowledge"] = 10_000_000.0
+    tree.research("sanitation_engineering", state.resources)
+    tree.research("assembly_lines", state.resources)
+    tree.research("data_driven_zoning", state.resources)
+    tree.research("smart_utilities", state.resources)
+    state.buildings["shelter"] = 40
+    state.buildings["hearth"] = 20
+    state.population = 150
+    _advance()  # -> space
+
+
+def test_an_early_snapshot_restores_correctly_after_all_six_real_transitions(game_env):
+    """The concrete scenario CLAUDE.md's Phase 4 task asks this pass to
+    confirm: does a snapshot taken at Tribal's own transition (the very
+    first of six) still read correctly after Classical/Medieval/Industrial/
+    Digital/Space Age have all since added their own roles, buildings and
+    global constants? Verified against a real settlement that actually
+    played through all six transitions via the shipped UI, not a
+    hand-constructed snapshot -- the staleness this pass is checking for
+    would only show up against snapshots this old and this real."""
+    campaign = game_env.module.campaign
+    _push_full_arc_to_space(game_env)
+    assert set(campaign.era_snapshots) == {
+        "tribal", "agrarian", "classical", "medieval", "industrial", "digital",
+    }
+    tribal_snapshot = campaign.era_snapshots["tribal"]
+    assert tribal_snapshot["city"]["population"] == 15
+    # The Tribal snapshot's own keyed dicts already carry every role/
+    # building this build knows about (cumulative allocation/buildings
+    # dicts, per Milestone 8's design) -- including Space Age's, at 0.
+    assert tribal_snapshot["city"]["allocation"]["architects"] == 0
+    assert tribal_snapshot["city"]["buildings"]["habitat_rings"] == 0
+
+    # Build up real Space Age state that must NOT leak into the Tribal
+    # revisit, and must survive the revisit round trip untouched.
+    game_env.build("habitat_rings")
+    game_env.assign("architects", 3)
+    space_population = game_env.state.population
+    space_habitat_rings = game_env.state.buildings["habitat_rings"]
+    space_architects = game_env.state.allocation["architects"]
+
+    assert campaign.enter_revisit("tribal") is True
+    state = game_env.state
+    assert state.era == "tribal"
+    assert state.population == 15
+    assert state.allocation["architects"] == 0  # not the parked Space Age value
+    assert state.buildings["habitat_rings"] == 0
+    assert game_env.module.tree.current_era == "tribal"
+    game_env.advance_season()  # exercises sim.era_index() etc against every global table
+    # Sanity: the sustainability score is well-formed (not NaN, not out of
+    # its documented 0..100 range) even revisiting the earliest era after
+    # every later era's global constants/effects keys have been defined.
+    score = sustainability.score(state, game_env.module.tree.effects())
+    assert score == score  # not NaN
+    assert 0.0 <= score <= 100.0
+
+    assert campaign.exit_revisit() is True
+    assert state.era == "space"
+    assert state.population == space_population  # forward progress untouched
+    assert state.buildings["habitat_rings"] == space_habitat_rings
+    assert state.allocation["architects"] == space_architects
+    # The Tribal snapshot itself is still exactly what it was — a revisit
+    # is a look back, never a rewrite, per Phase 1's own build note.
+    assert campaign.era_snapshots["tribal"] == tribal_snapshot
+
+
+# --- Phase 4 audit: adversarial / hand-edited saves ----------------------
+# Everything below pins a specific failure mode this audit pass actually
+# found by hand-loading adversarial payloads into a real Campaign, per
+# CLAUDE.md's Phase 4 build notes -- not hypothetical "load_state doesn't
+# crash" smoke tests, but assertions on the *specific* restored value each
+# bad input used to corrupt or crash on. This game has no auth/PII at stake,
+# but the shared FastAPI backend stores whatever JSON blob a client POSTs,
+# so a save loaded back in a different browser session is exactly as
+# untrusted as an old or a from-a-newer-build one.
+def test_load_state_refuses_an_unrecognised_era_in_the_city_snapshot(game_env):
+    """Before this pass, `restore_city()` wrote `current_state.city.era`
+    straight into `state.era` with no validation at all -- `load_dict()`
+    only re-validated `era` against `current_era` at the top level, and did
+    nothing if that key was simply absent. A save (or an attacker) that set
+    only the nested `city.era` to a string this build doesn't recognise
+    loaded "successfully" and then raised ValueError the moment anything
+    (the very next season, or a revisit) called `sim.era_index()` on it."""
+    bad = {
+        "game": save.GAME_ID,
+        "save_version": save.SAVE_VERSION,
+        "current_state": {"city": {"era": "made_up_era", "population": 10}, "research": []},
+    }
+
+    assert game_env.module.load_state(bad) is True
+    assert game_env.state.era == "tribal"  # kept its prior, valid value
+    game_env.advance_season()  # would have raised ValueError
+    assert game_env.state.population >= 1
+
+
+def test_load_state_ignores_non_numeric_values_in_keyed_dicts(game_env):
+    """`null`/a string in place of a resources/allocation/buildings value
+    used to be copied verbatim (CITY_KEYED_DICTS only guarded the *key set*,
+    never each value's type) and crash on the very next season with a
+    TypeError -- again, after the widget had already reported success."""
+    played_food = game_env.state.resources["food"]
+    bad = {
+        "game": save.GAME_ID,
+        "save_version": save.SAVE_VERSION,
+        "current_state": {
+            "city": {
+                "resources": {"food": None, "materials": "lots"},
+                "allocation": {"foragers": None},
+                "buildings": {"shelter": "two"},
+            },
+            "research": [],
+        },
+    }
+
+    assert game_env.module.load_state(bad) is True
+    assert game_env.state.resources["food"] == played_food  # unaffected key kept
+    assert isinstance(game_env.state.resources["materials"], float)
+    assert isinstance(game_env.state.allocation["foragers"], int)
+    assert isinstance(game_env.state.buildings["shelter"], int)
+    game_env.advance_season()  # would have raised TypeError on any of the three
+
+
+def test_load_state_clamps_negative_and_out_of_range_scalars(game_env):
+    """Negative population, land_health/pollution/sprawl/fed_fraction
+    outside their valid 0..1 (or era-specific) ranges all loaded verbatim
+    before this pass -- not a crash, but a settlement that silently reads
+    as -50 people or 3.0 fed_fraction, corrupting the sustainability score
+    and the season narration without ever raising anything."""
+    bad = {
+        "game": save.GAME_ID,
+        "save_version": save.SAVE_VERSION,
+        "current_state": {
+            "city": {
+                "population": -50,
+                "land_health": -12.0,
+                "pollution": 99.0,
+                "sprawl": -4.0,
+                "fed_fraction": 7.5,
+            },
+            "research": [],
+        },
+    }
+
+    assert game_env.module.load_state(bad) is True
+    state = game_env.state
+    assert state.population == sim.MIN_POPULATION
+    assert state.land_health == sim.MIN_LAND_HEALTH
+    assert state.pollution == 1.0
+    assert state.sprawl == 0.0
+    assert state.fed_fraction == 1.0
+
+
+def test_load_state_rejects_nan_and_infinite_numbers(game_env):
+    """Python's own `json.loads` accepts the non-standard `NaN`/`Infinity`
+    tokens some other JSON implementations reject outright, and a bare
+    `max(low, min(high, value))` clamp silently returns 1.0 or 0.0 for a
+    NaN input depending on argument order rather than rejecting it -- easy
+    to trust by accident. A NaN resource used to propagate forever (`x +
+    nan` is always `nan`), permanently corrupting the settlement and, once
+    saved again, writing back a non-standard token a stricter JSON parser
+    elsewhere in the hub's stack would refuse to read at all."""
+    raw = (
+        '{"game": "continuum", "save_version": 1, "current_state": '
+        '{"city": {"resources": {"food": NaN}, "growth_progress": Infinity}, '
+        '"research": []}}'
+    )
+    data = json.loads(raw)
+    assert data["current_state"]["city"]["resources"]["food"] != data["current_state"]["city"]["resources"]["food"]
+
+    original_food = game_env.state.resources["food"]
+    assert game_env.module.load_state(data) is True
+    assert game_env.state.resources["food"] == original_food  # untouched, not NaN
+    assert game_env.state.growth_progress == 0.0  # untouched, not inf
+    game_env.advance_season()
+    assert game_env.state.resources["food"] == game_env.state.resources["food"]  # not NaN
+
+
+def test_load_state_caps_growth_progress_against_a_runaway_season_loop(game_env):
+    """`advance_season()`'s own population-growth step is a `while
+    growth_progress >= 1.0: ...` loop that consumes exactly 1.0 per
+    iteration. A hand-edited save that sets `growth_progress` to something
+    enormous used to turn that loop into an effectively unbounded iteration
+    the moment a season was advanced -- a real, reproducible page-freeze,
+    not merely a bad number. `GROWTH_PROGRESS_MAX` caps it to something
+    legitimate play can never approach (the loop always drains it below 1.0
+    before a season report is generated) while still being a no-op for
+    every real save."""
+    bad = {
+        "game": save.GAME_ID,
+        "save_version": save.SAVE_VERSION,
+        "current_state": {
+            "city": {"growth_progress": 10 ** 9, "buildings": {"shelter": 10 ** 6}},
+            "research": [],
+        },
+    }
+
+    assert game_env.module.load_state(bad) is True
+    assert game_env.state.growth_progress == save.GROWTH_PROGRESS_MAX
+    game_env.advance_season()  # would have hung for a very long time otherwise
+    # At most GROWTH_PROGRESS_MAX whole people can have been produced by the
+    # capped progress in a single season, so this stays small regardless of
+    # the (also huge, but otherwise harmless) housing capacity available.
+    assert game_env.state.population <= 6 + int(save.GROWTH_PROGRESS_MAX) + 1
+
+
+def test_enter_revisit_refuses_an_era_snapshot_key_that_is_not_a_real_era(game_env):
+    """`era_snapshots` rides in the save payload -- `load_dict()` only
+    checks it's a dict, not that its keys are real eras. `enter_revisit()`
+    used to trust its argument was a real era purely because it matched an
+    `era_snapshots` key; a save with a bogus key let a caller "revisit" an
+    era that doesn't exist at all."""
+    campaign = game_env.module.campaign
+    bad = {
+        "game": save.GAME_ID,
+        "save_version": save.SAVE_VERSION,
+        "current_state": {"city": {}, "research": []},
+        "era_snapshots": {"not_a_real_era": {"city": {}, "research": []}},
+    }
+    game_env.module.load_state(bad)
+
+    assert campaign.enter_revisit("not_a_real_era") is False
+    assert campaign.revisiting is None
+
+
+def test_enter_revisit_forces_the_correct_era_despite_a_tampered_snapshot(game_env):
+    """A completed era's snapshot carries its own `city.era` field, written
+    by `city_snapshot()` in ordinary play. `enter_revisit()` used to trust
+    that field via `restore_city()` rather than the era it was actually
+    asked to load -- so a hand-edited `era_snapshots["tribal"]` snapshot
+    whose own `city.era` field read something else (or something invalid,
+    which `restore_city()` now refuses and leaves untouched) left
+    `state.era` and `campaign.revisiting` disagreeing about what era the
+    player was actually looking at."""
+    campaign = game_env.module.campaign
+    bad = {
+        "game": save.GAME_ID,
+        "save_version": save.SAVE_VERSION,
+        "current_era": "agrarian",
+        "furthest_era": "agrarian",
+        "current_state": {"city": {"era": "agrarian", "population": 10}, "research": []},
+        "era_snapshots": {"tribal": {"city": {"era": "not_a_real_era"}, "research": []}},
+    }
+    game_env.module.load_state(bad)
+
+    assert campaign.enter_revisit("tribal") is True
+    assert campaign.revisiting == "tribal"
+    assert game_env.state.era == "tribal"
+    assert game_env.module.tree.current_era == "tribal"
+    game_env.advance_season()  # would have raised ValueError on the bogus era
+
+
+def test_load_state_drops_keys_from_a_hypothetical_later_build(game_env):
+    """The other forward-compatibility direction the task asks this audit to
+    confirm: a save written by a LATER build than the one loading it, e.g.
+    containing a role/building/resource/research-node key this build
+    doesn't know about yet. Already correctly handled by construction --
+    CITY_KEYED_DICTS' restore only ever iterates the *live* dict's own keys
+    (never the save's), and ResearchTree.restore() already filters to
+    `self.nodes` -- but there was no test pinning it, and it's exactly the
+    scenario CLAUDE.md's own Phase 4 task description calls out by name."""
+    bad = {
+        "game": save.GAME_ID,
+        "save_version": save.SAVE_VERSION,
+        "current_state": {
+            "city": {
+                "allocation": {"foragers": 2, "space_marines": 999},
+                "buildings": {"shelter": 1, "quantum_forge": 42},
+                "resources": {"food": 5.0, "antimatter": 100.0},
+            },
+            "research": ["not_a_real_node_from_a_future_build"],
+        },
+    }
+
+    assert game_env.module.load_state(bad) is True
+    state = game_env.state
+    assert "space_marines" not in state.allocation
+    assert "quantum_forge" not in state.buildings
+    assert "antimatter" not in state.resources
+    assert state.allocation["foragers"] == 2
+    assert state.buildings["shelter"] == 1
+    assert state.resources["food"] == 5.0
+    assert game_env.module.tree.researched == []
+    game_env.advance_season()  # would have raised KeyError on any dropped key
+
+
+def test_load_state_survives_unhashable_entries_in_the_logs_researched_seen(game_env):
+    """`log.Chronicle.restore()` used to hand `researched_seen` straight to
+    `set(...)` -- a hand-edited save putting a dict or a list in that list
+    (instead of the plain node-id strings it always holds in real play)
+    crashed with an unhashable-type TypeError before the entry was ever
+    inspected, taking the whole `load_state()` call down with it even
+    though every other part of the save was perfectly fine."""
+    bad = {
+        "game": save.GAME_ID,
+        "save_version": save.SAVE_VERSION,
+        "current_state": {"city": {}, "research": []},
+        "log": {"researched_seen": [{"nested": "dict"}, "fire_keeping", ["also", "bad"]], "entries": []},
+    }
+
+    assert game_env.module.load_state(bad) is True
+    assert game_env.module.campaign.log._researched_seen == {"fire_keeping"}
+
+
+def test_exit_revisit_forces_furthest_era_despite_a_tampered_parked_state(game_env):
+    """The same tampering risk as the snapshot case above, but for
+    `parked_state` on the way back out: a hand-edited `parked_state.city.era`
+    used to leave `state.era` reading whatever that field said instead of
+    the era the player was actually playing before the revisit.
+    `furthest_era` is the schema's own source of truth for that and can't
+    be redirected by tampering with `parked_state`'s own copy of `era`."""
+    campaign = game_env.module.campaign
+    bad = {
+        "game": save.GAME_ID,
+        "save_version": save.SAVE_VERSION,
+        "current_era": "tribal",
+        "furthest_era": "agrarian",
+        "revisiting": "tribal",
+        "current_state": {"city": {"era": "tribal", "population": 6}, "research": []},
+        "parked_state": {"city": {"era": "not_a_real_era", "population": 12}, "research": []},
+        "era_snapshots": {"tribal": {"city": {"era": "tribal"}, "research": []}},
+    }
+    game_env.module.load_state(bad)
+    assert campaign.revisiting == "tribal"
+
+    assert campaign.exit_revisit() is True
+    assert campaign.revisiting is None
+    assert game_env.state.era == "agrarian"
+    assert game_env.module.tree.current_era == "agrarian"
+    game_env.advance_season()  # would have raised ValueError on the bogus era

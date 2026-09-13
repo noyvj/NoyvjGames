@@ -230,7 +230,17 @@ class Chronicle:
 
     def restore(self, data):
         """Tolerates a missing/malformed dict the same way save.py's other
-        restore paths do — a truncated save should load whatever it can."""
+        restore paths do — a truncated save should load whatever it can.
+
+        Phase 4 audit: `researched_seen` used to be handed straight to
+        `set(...)` — a real node id is always a string (hashable), but a
+        hand-edited save putting a dict or a list in that list instead blew
+        up with an unhashable-type TypeError before this entry was ever
+        inspected. Filtered to strings first (same "only trust the shape
+        this field can legitimately have" discipline `research.py`'s own
+        `restore()` already applies to its `researched` list) so a bad
+        entry is dropped instead of crashing the whole restore.
+        """
         if not isinstance(data, dict):
             data = {}
 
@@ -252,4 +262,8 @@ class Chronicle:
         self._last_score_label = label if label in _LABEL_ORDER else None
 
         researched = data.get("researched_seen")
-        self._researched_seen = set(researched) if isinstance(researched, list) else set()
+        self._researched_seen = (
+            {nid for nid in researched if isinstance(nid, str)}
+            if isinstance(researched, list)
+            else set()
+        )
