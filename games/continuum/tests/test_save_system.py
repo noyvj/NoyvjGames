@@ -204,7 +204,7 @@ def test_load_state_tolerates_a_save_whose_keyed_dicts_are_short(game_env):
     assert game_env.module.load_state(stale) is True
 
     state = game_env.state
-    assert set(state.resources) == {"food", "materials", "tools", "knowledge"}
+    assert set(state.resources) == {"food", "materials", "tools", "knowledge", "surplus"}
     assert set(state.buildings) == set(sim.BUILDINGS)
     assert set(state.allocation) == set(sim.ROLES)
     assert state.resources["food"] == 10.0

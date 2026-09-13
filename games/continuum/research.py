@@ -307,12 +307,16 @@ class ResearchTree:
 
 
 # --- the shipped tree --------------------------------------------------
-# Tribal era only, per Phase 1's "populate just enough nodes to prove the
-# system works". Nine nodes across both Tribal tiers and all three branches,
-# chosen so that between them they exercise every mechanism the engine has:
-# plain prerequisites, tier gating, branch affinity, and every category of
-# effect (yield multipliers, land regeneration, storage, housing, and the
-# equity/resilience bonuses that only the sustainability score reads).
+# Tribal (Phase 1) plus Agrarian (Milestone 8) so far. Tribal's nine nodes,
+# per Phase 1's "populate just enough nodes to prove the system works",
+# exercise every mechanism the engine has: plain prerequisites, tier
+# gating, branch affinity, and every category of effect (yield
+# multipliers, land regeneration, storage, housing, and the equity/
+# resilience bonuses that only the sustainability score reads). Agrarian's
+# six nodes prove the tree extends cleanly across an era boundary: every
+# one of them chains a prerequisite back into a specific Tribal tier-2
+# node, so an early emphasis keeps echoing into a second era exactly the
+# way "Council of Elders" already proved it could within one.
 _TRIBAL_TIERS = era_tiers("tribal")
 
 NODE_LIST = [
@@ -417,6 +421,83 @@ NODE_LIST = [
             "Decisions made in the open, by people who remember. Only reachable by a settlement "
             "that has invested in community all along — the first place an early emphasis "
             "visibly changes what is on offer later."
+        ),
+    ),
+    # --- Agrarian, early (Milestone 8) --- Six nodes proving the tree
+    # extends cleanly across an era boundary: every prerequisite below
+    # chains back into a specific Tribal-tier-2 node, so a settlement's
+    # early emphasis keeps echoing exactly the way Phase 1's "Council of
+    # Elders" already proved it could within one era.
+    ResearchNode(
+        "plow_and_furrow",
+        "Plow and Furrow",
+        era="agrarian",
+        tier=era_tiers("agrarian")[0],
+        branch="craft",
+        cost=14.0,
+        prerequisites=("stone_knapping",),
+        effects={"food_yield_mult": 0.25},
+        blurb="Turned soil holds water and nutrients a scraped surface never could. Farmers feel it first.",
+    ),
+    ResearchNode(
+        "seed_selection",
+        "Seed Selection",
+        era="agrarian",
+        tier=era_tiers("agrarian")[0],
+        branch="provision",
+        cost=14.0,
+        prerequisites=("seasonal_rounds",),
+        effects={"food_yield_mult": 0.15, "regen_mult": 0.1},
+        blurb="Keeping back the best of this year's harvest to plant next year's. The land answers back, too.",
+    ),
+    ResearchNode(
+        "communal_granaries",
+        "Communal Granaries",
+        era="agrarian",
+        tier=era_tiers("agrarian")[0],
+        branch="community",
+        cost=16.0,
+        prerequisites=("kinship_custom",),
+        effects={"food_storage_bonus": 30.0, "equity_bonus": 0.06},
+        blurb="A surplus kept in the open, not behind one family's wall. Storage and fairness, in one building.",
+    ),
+    # --- Agrarian, late ---
+    ResearchNode(
+        "irrigation_channels",
+        "Irrigation Channels",
+        era="agrarian",
+        tier=era_tiers("agrarian")[1],
+        branch="craft",
+        cost=20.0,
+        prerequisites=("plow_and_furrow",),
+        effects={"food_yield_mult": 0.2, "extraction_efficiency": -0.1},
+        blurb="Water carried to the field instead of the field carried to water. More reaches more, for less.",
+    ),
+    ResearchNode(
+        "crop_rotation",
+        "Crop Rotation",
+        era="agrarian",
+        tier=era_tiers("agrarian")[1],
+        branch="provision",
+        cost=20.0,
+        prerequisites=("seed_selection",),
+        effects={"regen_mult": 0.3, "extraction_efficiency": -0.15},
+        blurb="Different fields rest in turn instead of one field never resting at all. Seasonal Rounds, grown up.",
+    ),
+    ResearchNode(
+        "market_custom",
+        "Market Custom",
+        era="agrarian",
+        tier=era_tiers("agrarian")[1],
+        branch="community",
+        cost=22.0,
+        prerequisites=("communal_granaries",),
+        min_affinity={"community": 3},
+        effects={"surplus_conversion_bonus": 0.2, "equity_bonus": 0.08},
+        blurb=(
+            "Fair trade becomes custom, not just courtesy — more of what would spoil finds its way to "
+            "someone who needs it. Only reachable by a settlement that has invested in community all "
+            "along, the same way Council of Elders was."
         ),
     ),
 ]

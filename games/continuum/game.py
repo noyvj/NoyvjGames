@@ -40,6 +40,7 @@ import research  # noqa: E402
 import save  # noqa: E402
 import sim  # noqa: E402
 import sustainability  # noqa: E402
+import transition  # noqa: E402
 
 from js import document  # noqa: E402
 from pyodide.ffi import create_proxy  # noqa: E402
@@ -95,6 +96,8 @@ def season_report_message(report):
         parts.append(f"{report['births']} born.")
     if report.get("spoiled", 0.0) > 0.5:
         parts.append(f"{report['spoiled']:.0f} food spoiled for want of storage.")
+    if report.get("surplus_banked", 0.0) > 0.5:
+        parts.append(f"{report['surplus_banked']:.0f} preserved as trade surplus.")
     if report.get("extraction", 0.0) > report.get("sustainable_yield", float("inf")):
         parts.append("The land is being taken from faster than it recovers.")
 
@@ -137,36 +140,220 @@ def render():
     document.getElementById("knowledge-display").innerText = (
         f"Knowledge: {state.resources['knowledge']:.1f}"
     )
+    # Surplus (Milestone 8, Agrarian+): shown once there's a nonzero amount
+    # or the settlement has actually reached an era that can bank it, so a
+    # Tribal-only playthrough never sees a "Surplus: 0.0" line that means
+    # nothing yet.
+    surplus_line = document.getElementById("surplus-display")
+    if sim.era_index(state.era) >= sim.era_index("agrarian") or state.resources["surplus"] > 0:
+        surplus_line.hidden = False
+        surplus_line.innerText = f"Surplus: {state.resources['surplus']:.1f}"
+    else:
+        surplus_line.hidden = True
 
     document.getElementById("land-health-display").innerText = (
         f"Land health: {state.land_health * 100:.0f}% — {land_health_message(state.land_health)}"
     )
     document.getElementById("land-health-bar").style.width = f"{state.land_health * 100:.0f}%"
 
-    idle = state.idle_workers()
-    for role in sim.ROLES:
-        document.getElementById(f"{role}-name").innerText = sim.ROLE_LABEL[role]
-        document.getElementById(f"{role}-blurb").innerText = sim.ROLE_BLURB[role]
-        document.getElementById(f"{role}-count").innerText = str(state.allocation[role])
-        document.getElementById(f"{role}-add-button").disabled = idle <= 0
-        document.getElementById(f"{role}-remove-button").disabled = state.allocation[role] <= 0
-
-    for building in sim.BUILDINGS:
-        document.getElementById(f"{building}-name").innerText = sim.BUILDING_LABEL[building]
-        document.getElementById(f"{building}-blurb").innerText = sim.BUILDING_BLURB[building]
-        document.getElementById(f"{building}-count").innerText = str(state.buildings[building])
-        button = document.getElementById(f"{building}-build-button")
-        button.innerText = f"Build ({sim.BUILDING_COST[building]:.0f})"
-        button.disabled = not state.can_build(building)
-
     document.getElementById("season-report-display").innerText = season_report_message(
         state.last_report
     )
 
+    render_work()
+    render_buildings()
     render_sustainability(effects)
     render_research()
     render_info_page()
     render_log()
+    render_era_progress(effects)
+
+
+# Work/Build row buttons, keyed by (role-or-building, "add"/"remove"/
+# "build"). Milestone 8 made these panels dynamic (built from
+# sim.roles_for_era()/buildings_for_era() every render, same reason
+# render_research() already is: a second era's roster can't be static
+# markup) — which means they need the exact same "destroy the proxy this
+# render is replacing" discipline render_research() already established,
+# or Farmers/Farmland's buttons would leak a Pyodide proxy every render
+# the same way an un-destroyed research proxy would.
+_work_button_proxies = {}
+_building_button_proxies = {}
+
+
+def render_work():
+    """The Work panel, rebuilt from `sim.roles_for_era(state.era)` every
+    render — Tribal's four roles never disappear, a later era's roles are
+    simply appended once reached (see sim.py's ERA_ROLES)."""
+    idle = state.idle_workers()
+    document.getElementById("idle-display").innerText = f"Unassigned: {idle}"
+
+    container = document.getElementById("work-list")
+    container.innerHTML = ""
+
+    roles = sim.roles_for_era(state.era)
+    live_roles = set(roles)
+    for role in roles:
+        row = document.createElement("div")
+        row.className = "row"
+
+        top = document.createElement("div")
+        top.className = "row-top"
+        # Emoji stays decoration, not data (matches the original static
+        # markup's structure): a plain-text prefix on the outer span, with
+        # the `{role}-name` id on an inner span holding just the label, so
+        # anything reading that id's innerText (rendering, tests) still
+        # gets the label alone.
+        name = document.createElement("span")
+        name.className = "row-name"
+        name.innerText = f"{sim.ROLE_EMOJI[role]} "
+        name_label = document.createElement("span")
+        name_label.id = f"{role}-name"
+        name_label.innerText = sim.ROLE_LABEL[role]
+        name.appendChild(name_label)
+        count = document.createElement("span")
+        count.className = "row-count"
+        count.id = f"{role}-count"
+        count.innerText = str(state.allocation[role])
+        top.appendChild(name)
+        top.appendChild(count)
+        row.appendChild(top)
+
+        blurb = document.createElement("p")
+        blurb.className = "row-blurb"
+        blurb.id = f"{role}-blurb"
+        blurb.innerText = sim.ROLE_BLURB[role]
+        row.appendChild(blurb)
+
+        actions = document.createElement("div")
+        actions.className = "row-actions"
+
+        remove_button = document.createElement("button")
+        remove_button.id = f"{role}-remove-button"
+        remove_button.className = "secondary"
+        remove_button.innerText = "−"
+        remove_button.disabled = state.allocation[role] <= 0
+        remove_proxy = create_proxy(_make_unassign_handler(role))
+        stale = _work_button_proxies.get((role, "remove"))
+        if stale is not None:
+            stale.destroy()
+        _work_button_proxies[(role, "remove")] = remove_proxy
+        remove_button.addEventListener("click", remove_proxy)
+        actions.appendChild(remove_button)
+
+        add_button = document.createElement("button")
+        add_button.id = f"{role}-add-button"
+        add_button.className = "secondary"
+        add_button.innerText = "+"
+        add_button.disabled = idle <= 0
+        add_proxy = create_proxy(_make_assign_handler(role))
+        stale = _work_button_proxies.get((role, "add"))
+        if stale is not None:
+            stale.destroy()
+        _work_button_proxies[(role, "add")] = add_proxy
+        add_button.addEventListener("click", add_proxy)
+        actions.appendChild(add_button)
+
+        row.appendChild(actions)
+        container.appendChild(row)
+
+    for key in list(_work_button_proxies):
+        if key[0] not in live_roles:
+            _work_button_proxies.pop(key).destroy()
+
+
+def render_buildings():
+    """The Build panel, rebuilt from `sim.buildings_for_era(state.era)`
+    every render — same reasoning as render_work() above."""
+    container = document.getElementById("buildings-list")
+    container.innerHTML = ""
+
+    buildings = sim.buildings_for_era(state.era)
+    live_buildings = set(buildings)
+    for building in buildings:
+        row = document.createElement("div")
+        row.className = "row"
+
+        top = document.createElement("div")
+        top.className = "row-top"
+        name = document.createElement("span")
+        name.className = "row-name"
+        name.innerText = f"{sim.BUILDING_EMOJI[building]} "
+        name_label = document.createElement("span")
+        name_label.id = f"{building}-name"
+        name_label.innerText = sim.BUILDING_LABEL[building]
+        name.appendChild(name_label)
+        count = document.createElement("span")
+        count.className = "row-count"
+        count.id = f"{building}-count"
+        count.innerText = str(state.buildings[building])
+        top.appendChild(name)
+        top.appendChild(count)
+        row.appendChild(top)
+
+        blurb = document.createElement("p")
+        blurb.className = "row-blurb"
+        blurb.id = f"{building}-blurb"
+        blurb.innerText = sim.BUILDING_BLURB[building]
+        row.appendChild(blurb)
+
+        actions = document.createElement("div")
+        actions.className = "row-actions"
+        button = document.createElement("button")
+        button.id = f"{building}-build-button"
+        button.className = "secondary"
+        button.innerText = f"Build ({sim.BUILDING_COST[building]:.0f})"
+        button.disabled = not state.can_build(building)
+        proxy = create_proxy(_make_build_handler(building))
+        stale = _building_button_proxies.get(building)
+        if stale is not None:
+            stale.destroy()
+        _building_button_proxies[building] = proxy
+        button.addEventListener("click", proxy)
+        actions.appendChild(button)
+        row.appendChild(actions)
+
+        container.appendChild(row)
+
+    for building in list(_building_button_proxies):
+        if building not in live_buildings:
+            _building_button_proxies.pop(building).destroy()
+
+
+def render_era_progress(effects):
+    """Milestone 7/8: shows whether the settlement is ready to leave its
+    current era, and why not if it isn't — the same "doubles as the UI
+    explanation and what tests assert against" pattern research.py's own
+    locked-node reasons already use. The button only ever calls
+    transition.attempt_transition(), which itself refuses cleanly if
+    anything has changed between render and click (e.g. a revisit started
+    in another tab of the same session)."""
+    next_era = transition.next_era_for(state.era)
+    button = document.getElementById("advance-era-button")
+    status = document.getElementById("era-progress-status-display")
+    reasons_el = document.getElementById("era-progress-reasons-display")
+
+    if next_era is None:
+        status.innerText = "Nothing more to reach from here yet."
+        reasons_el.innerText = ""
+        button.innerText = "—"
+        button.disabled = True
+        return
+
+    ready = transition.transition_ready(state, tree, effects)
+    status.innerText = (
+        f"Ready to move into the {sim.ERA_LABEL[next_era]} era."
+        if ready
+        else f"Working toward the {sim.ERA_LABEL[next_era]} era."
+    )
+    reasons_el.innerText = " ".join(transition.missing_requirements(state, tree, effects))
+    button.innerText = f"Advance to {sim.ERA_LABEL[next_era]}"
+    button.disabled = not ready
+
+
+def on_advance_era(event=None):
+    if transition.attempt_transition(campaign):
+        render()
 
 
 def render_info_page():
@@ -421,22 +608,18 @@ def load_state(data):
 
 
 def setup():
-    for role in sim.ROLES:
-        document.getElementById(f"{role}-add-button").addEventListener(
-            "click", create_proxy(_make_assign_handler(role))
-        )
-        document.getElementById(f"{role}-remove-button").addEventListener(
-            "click", create_proxy(_make_unassign_handler(role))
-        )
-    for building in sim.BUILDINGS:
-        document.getElementById(f"{building}-build-button").addEventListener(
-            "click", create_proxy(_make_build_handler(building))
-        )
+    # Work/Build row buttons are wired inside render_work()/render_buildings()
+    # themselves now (Milestone 8) — those rows are rebuilt every render, the
+    # same as the research panel's Study buttons already were, so wiring them
+    # here would just be wiring buttons that don't exist yet.
     document.getElementById("advance-season-button").addEventListener(
         "click", create_proxy(on_advance_season)
     )
     document.getElementById("info-page-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_info_page)
+    )
+    document.getElementById("advance-era-button").addEventListener(
+        "click", create_proxy(on_advance_era)
     )
     render()
 

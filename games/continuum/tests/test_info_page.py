@@ -55,11 +55,13 @@ def test_tribal_sources_are_real_not_placeholder(game_env):
 
 
 def test_an_era_with_no_content_yet_falls_back_to_the_pending_placeholder():
-    """Phase 3 ships one era's content at a time; every era beyond Tribal
+    """Phase 3 ships one era's content at a time; every era with no content
+    of its own yet (Tribal and, since Milestone 8, Agrarian are done)
     should degrade gracefully rather than raising a KeyError the moment a
     save (or, later, real play) reaches it."""
+    done_eras = {"tribal", "agrarian"}
     for era in sim.ERA_ORDER:
-        if era == "tribal":
+        if era in done_eras:
             continue
         pending = info_content.era_info_page(era)
         assert pending["sources"] == []

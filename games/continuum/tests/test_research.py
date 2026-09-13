@@ -296,10 +296,22 @@ def test_the_tribal_era_has_nodes_in_both_of_its_tiers(game_env):
         assert [n for n in tree.nodes.values() if n.tier == tier]
 
 
+def test_the_agrarian_era_has_nodes_in_both_of_its_tiers(game_env):
+    """Milestone 8: the same shape check as Tribal's, one era later."""
+    tree = research.build_tree()
+    agrarian_tiers = research.era_tiers("agrarian")
+
+    for tier in agrarian_tiers:
+        assert [n for n in tree.nodes.values() if n.tier == tier]
+
+
 def test_every_shipped_node_is_reachable_from_an_empty_tree(game_env):
     """No orphan content: playing well enough must be able to reach every
-    Tribal node, or it may as well not be in the file."""
-    tree = research.build_tree()
+    node this build ships (Tribal and Agrarian, as of Milestone 8), or it
+    may as well not be in the file. Built with current_era="agrarian" so
+    era-gating itself doesn't hide the Agrarian nodes from this check —
+    era-gating is exercised separately (see test_era_gates_nodes_...)."""
+    tree = research.build_tree(current_era="agrarian")
     resources = {"knowledge": 10_000.0}
 
     for _ in range(len(tree.nodes)):
@@ -313,12 +325,14 @@ def test_every_shipped_node_is_reachable_from_an_empty_tree(game_env):
 
 
 def test_the_shipped_tree_exercises_every_gating_mechanism(game_env):
-    """The Tribal set is small, but it has to prove the engine end to end."""
+    """Tribal and Agrarian combined, as of Milestone 8 -- small, but has to
+    prove the engine end to end across an era boundary too."""
     tree = research.build_tree()
     assert any(n.prerequisites for n in tree.nodes.values())
     assert any(n.min_affinity for n in tree.nodes.values())
     assert len({n.branch for n in tree.nodes.values()}) == len(research.BRANCHES)
-    assert len({n.tier for n in tree.nodes.values()}) == research.TIERS_PER_ERA
+    tribal_and_agrarian_tiers = len(research.era_tiers("tribal")) + len(research.era_tiers("agrarian"))
+    assert len({n.tier for n in tree.nodes.values()}) == tribal_and_agrarian_tiers
 
 
 # --- UI ----------------------------------------------------------------
