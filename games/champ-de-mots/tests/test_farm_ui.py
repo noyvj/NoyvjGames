@@ -438,3 +438,114 @@ def test_wrong_answer_feedback_is_gentle_and_reopenable(game_env):
     for banned in BANNED:
         assert banned not in feedback
     assert "water" in feedback
+
+
+# --- Improvement Ideas addendum (2026-09-13): combo bonus + confidence -----
+
+
+def test_combo_display_is_hidden_until_the_second_correct_answer_in_a_row(game_env):
+    module, state = game_env.module, game_env.state
+    combo_el = game_env.elements["combo-display"]
+    assert combo_el.hidden is True
+
+    open_plot(game_env, state.plots[0].plot_id)
+    answer_current_correctly(game_env)
+    assert combo_el.hidden is True  # combo == 1, not yet worth a line
+
+    open_plot(game_env, state.plots[1].plot_id)
+    answer_current_correctly(game_env)
+    assert combo_el.hidden is False
+    assert "2" in combo_el.innerText
+    for banned in BANNED:
+        assert banned not in combo_el.innerText.lower()
+
+
+def test_a_wrong_answer_resets_the_combo_display(game_env):
+    module, state = game_env.module, game_env.state
+    open_plot(game_env, state.plots[0].plot_id)
+    answer_current_correctly(game_env)
+    open_plot(game_env, state.plots[1].plot_id)
+    answer_current_correctly(game_env)
+    assert game_env.elements["combo-display"].hidden is False
+
+    open_plot(game_env, state.plots[2].plot_id)
+    answer_current_incorrectly(game_env)
+    assert game_env.elements["combo-display"].hidden is True
+    assert module.combo_count == 0
+
+
+def test_a_longer_combo_gives_a_bigger_growth_bonus_end_to_end(game_env):
+    """Same check as the scheduler-level test, but through the real UI path
+    (submit_answer -> state.review), confirming combo_count actually reaches
+    the scheduler rather than just being tracked for display."""
+    module, state = game_env.module, game_env.state
+    plot = state.plots[0]
+    # Get to correct_streak == 2 with no combo bonus in play yet.
+    open_plot(game_env, plot.plot_id)
+    answer_current_correctly(game_env)
+    state.advance_day(plot.interval_days)
+    open_plot(game_env, plot.plot_id)
+    answer_current_correctly(game_env)
+    state.advance_day(plot.interval_days)
+    interval_before_combo = plot.interval_days
+
+    # Rack up an unrelated combo on other plots first.
+    for other in state.plots[1:12]:
+        open_plot(game_env, other.plot_id)
+        answer_current_correctly(game_env)
+
+    open_plot(game_env, plot.plot_id)
+    answer_current_correctly(game_env)
+    grown_with_combo = plot.interval_days
+
+    assert module.combo_count >= 12
+    assert grown_with_combo > int(round(interval_before_combo * plot.ease_factor)) - 1
+
+
+def test_confidence_buttons_toggle_on_and_off(game_env):
+    module, state = game_env.module, game_env.state
+    open_plot(game_env, state.plots[0].plot_id)
+    assert module.current_confidence is None
+
+    module.set_confidence("sure")
+    assert module.current_confidence == "sure"
+    assert "selected" in game_env.elements["practice-confidence-sure-button"].className
+
+    module.set_confidence("sure")  # clicking the same one again clears it
+    assert module.current_confidence is None
+
+    module.set_confidence("unsure")
+    assert module.current_confidence == "unsure"
+    assert "selected" in game_env.elements["practice-confidence-unsure-button"].className
+
+
+def test_confidence_is_reset_by_opening_a_new_question(game_env):
+    module, state = game_env.module, game_env.state
+    open_plot(game_env, state.plots[0].plot_id)
+    module.set_confidence("sure")
+    open_plot(game_env, state.plots[1].plot_id)
+    assert module.current_confidence is None
+
+
+def test_a_confident_wrong_answer_costs_more_than_an_unsure_one_end_to_end(game_env):
+    module, state = game_env.module, game_env.state
+    plot_sure = state.plots[0]
+    plot_unsure = state.plots[1]
+
+    open_plot(game_env, plot_sure.plot_id)
+    module.set_confidence("sure")
+    answer_current_incorrectly(game_env)
+
+    open_plot(game_env, plot_unsure.plot_id)
+    module.set_confidence("unsure")
+    answer_current_incorrectly(game_env)
+
+    assert plot_sure.ease_factor < plot_unsure.ease_factor
+
+
+def test_confidence_controls_hide_once_the_question_is_answered(game_env):
+    module, state = game_env.module, game_env.state
+    open_plot(game_env, state.plots[0].plot_id)
+    assert game_env.elements["practice-confidence"].hidden is False
+    answer_current_correctly(game_env)
+    assert game_env.elements["practice-confidence"].hidden is True
