@@ -279,3 +279,28 @@ def test_proficiency_session_is_not_part_of_the_save_payload(game_env):
     module.start_proficiency_test(1)
     state_dict = module.get_state()
     assert set(state_dict) == {"version", "current_day", "plots", "error_patterns"}
+
+
+# --- typed-answer input clearing --------------------------------------------
+#
+# Bug: only open_practice() (the main farm panel) ever cleared its typed-
+# answer input -- every other "move to the next question" path left stale
+# text sitting in the box. Fixed in start_proficiency_test()/
+# next_proficiency_question(); pinned here.
+
+
+def test_starting_a_proficiency_test_clears_any_stale_typed_text(game_env):
+    module = game_env.module
+    game_env.elements["proficiency-answer-input"].value = "leftover text"
+    module.start_proficiency_test(1)
+    assert game_env.elements["proficiency-answer-input"].value == ""
+
+
+def test_advancing_to_the_next_proficiency_question_clears_the_typed_input(game_env):
+    module = game_env.module
+    module.start_proficiency_test(1)
+    question = module.proficiency_questions[module.proficiency_index]["question"]
+    module.submit_proficiency_answer(question["answer"])
+    game_env.elements["proficiency-answer-input"].value = "whatever was typed for that question"
+    module.next_proficiency_question()
+    assert game_env.elements["proficiency-answer-input"].value == ""
