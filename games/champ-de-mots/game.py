@@ -129,6 +129,18 @@ CULTURAL_NOTES_BY_SEQUENCE = {
     for entry in SUPPLEMENTARY_NOTES.get("cultural_notes", [])
 }
 
+# Improvement Ideas addendum: liaison/elision as a real practice type. Unlike
+# every other practice question, these aren't generated from a plot -- they're
+# hand-authored (same posture as Milestone 13's bonus sentences: some content
+# genuinely needs a human, not a mechanical recombination of catalog facts),
+# grounded one-for-one in the TTS pronunciation watchlist half of the same
+# supplementary-notes file (the other half of that file, cultural_notes, is
+# already wired up above). Not every watchlist entry became a question --
+# "travailler is commonly mispronounced" (sequence 4) is a tutor's listen-check
+# flag, not a testable mechanical fact, so it stayed a note rather than being
+# forced into a quiz.
+LIAISON_DRILL_QUESTIONS = SUPPLEMENTARY_NOTES.get("liaison_drill", [])
+
 
 class Plot:
     """One plot of the farm: a single fact you are trying to grow.
@@ -1881,6 +1893,188 @@ def render_cultural_notes():
         panel.appendChild(entry)
 
 
+# ===========================================================================
+# Improvement Ideas addendum -- liaison/elision practice ("Liaison practice")
+# ===========================================================================
+#
+# A short, fixed-length multiple-choice quiz over the hand-authored questions
+# in LIAISON_DRILL_QUESTIONS above. Entirely stateless with respect to SRS
+# and row-unlock caching -- same posture as the proficiency test and bonus
+# sections (see their own build notes): no state.review(), no nudge, nothing
+# written back to a plot. Gated to unlocked weeks only, same spoiler-avoidance
+# rule cultural notes and the dashboard already use.
+
+LIAISON_INSTRUCTION = "Pick the correct answer."
+LIAISON_SUMMARY_MESSAGE = "{correct} of {total} correct."
+# Its own feedback wording, not the farm's FEEDBACK dict -- "this plot is
+# growing" makes no sense for a quiz that never touches a plot.
+LIAISON_FEEDBACK = {
+    "correct": "Yes — {answer}.",
+    "incorrect": "Not quite — it was {answer}.",
+}
+
+liaison_mode = False
+liaison_questions = []
+liaison_index = 0
+liaison_result = None
+liaison_score = {"correct": 0, "total": 0}
+liaison_choice_proxies = []
+LIAISON_RNG = random.Random()
+
+
+def _destroy_liaison_choice_proxies():
+    global liaison_choice_proxies
+    for proxy in liaison_choice_proxies:
+        proxy.destroy()
+    liaison_choice_proxies = []
+
+
+def liaison_drill_available():
+    return any(state.is_row_unlocked(entry["sequence"]) for entry in LIAISON_DRILL_QUESTIONS)
+
+
+def build_liaison_drill(rng=None):
+    rng = LIAISON_RNG if rng is None else rng
+    eligible = [
+        entry for entry in LIAISON_DRILL_QUESTIONS if state.is_row_unlocked(entry["sequence"])
+    ]
+    rng.shuffle(eligible)
+    return eligible
+
+
+def start_liaison_drill(event=None):
+    global liaison_mode, liaison_questions, liaison_index, liaison_result, liaison_score
+
+    liaison_questions = build_liaison_drill()
+    if not liaison_questions:
+        return None
+    liaison_index = 0
+    liaison_result = None
+    liaison_score = {"correct": 0, "total": 0}
+    liaison_mode = True
+    render()
+    return liaison_questions
+
+
+def submit_liaison_answer(given):
+    global liaison_result, liaison_score
+
+    if liaison_index >= len(liaison_questions) or liaison_result is not None:
+        return None
+    entry = liaison_questions[liaison_index]
+    liaison_result = given == entry["answer"]
+    liaison_score["total"] += 1
+    if liaison_result:
+        liaison_score["correct"] += 1
+    render()
+    return liaison_result
+
+
+def next_liaison_question(event=None):
+    global liaison_index, liaison_result
+
+    if not liaison_mode:
+        return None
+    liaison_index += 1
+    liaison_result = None
+    render()
+    return liaison_index
+
+
+def close_liaison_drill(event=None):
+    global liaison_mode, liaison_questions, liaison_index, liaison_result, liaison_score
+
+    liaison_mode = False
+    liaison_questions = []
+    liaison_index = 0
+    liaison_result = None
+    liaison_score = {"correct": 0, "total": 0}
+    render()
+
+
+def on_toggle_liaison_drill(event=None):
+    if liaison_mode:
+        close_liaison_drill()
+    else:
+        start_liaison_drill()
+
+
+def _make_liaison_choice_handler(choice):
+    def handler(event=None):
+        submit_liaison_answer(choice)
+    return handler
+
+
+def render_liaison_drill():
+    panel = _element("liaison-panel")
+    toggle = _element("liaison-toggle-button")
+    choices_box = _element("liaison-choices")
+
+    _destroy_liaison_choice_proxies()
+
+    toggle.disabled = not liaison_mode and not liaison_drill_available()
+    toggle.innerText = "Close liaison practice" if liaison_mode else "🗣️ Liaison practice"
+
+    if not liaison_mode:
+        panel.hidden = True
+        choices_box.innerHTML = ""
+        return
+
+    panel.hidden = False
+    complete = liaison_index >= len(liaison_questions)
+    summary = _element("liaison-summary")
+    explanation = _element("liaison-explanation")
+
+    if complete:
+        choices_box.innerHTML = ""
+        summary.hidden = False
+        summary.innerText = LIAISON_SUMMARY_MESSAGE.format(**liaison_score)
+        _element("liaison-progress").innerText = ""
+        _element("liaison-context").innerText = ""
+        _element("liaison-instruction").innerText = ""
+        _element("liaison-prompt").innerText = ""
+        explanation.hidden = True
+        _element("liaison-next-button").hidden = True
+        _element("liaison-feedback").innerText = ""
+        return
+
+    summary.hidden = True
+    entry = liaison_questions[liaison_index]
+
+    _element("liaison-progress").innerText = f"{liaison_index + 1} of {len(liaison_questions)}"
+    _element("liaison-context").innerText = entry["item"]
+    _element("liaison-instruction").innerText = LIAISON_INSTRUCTION
+    _element("liaison-prompt").innerText = entry["prompt"]
+
+    answered = liaison_result is not None
+    next_button = _element("liaison-next-button")
+
+    choices_box.innerHTML = ""
+    for index, choice in enumerate(entry["choices"]):
+        button = document.createElement("button")
+        button.id = f"liaison-choice-{index}"
+        button.innerText = choice
+        button.disabled = answered
+        button.className = "choice"
+        if answered and choice == entry["answer"]:
+            button.className = "choice choice--answer"
+        proxy = create_proxy(_make_liaison_choice_handler(choice))
+        button.addEventListener("click", proxy)
+        liaison_choice_proxies.append(proxy)
+        choices_box.appendChild(button)
+
+    next_button.hidden = not answered
+
+    if answered:
+        template = LIAISON_FEEDBACK["correct" if liaison_result else "incorrect"]
+        _element("liaison-feedback").innerText = template.format(answer=entry["answer"])
+        explanation.innerText = entry.get("explanation", "")
+        explanation.hidden = not entry.get("explanation")
+    else:
+        _element("liaison-feedback").innerText = ""
+        explanation.hidden = True
+
+
 def _plot_classes(plot):
     classes = ["plot", f"plot--{plot.stage}"]
     # Weeds takes the place ordinary wilting would otherwise show for this
@@ -2107,6 +2301,7 @@ def render():
     render_bonus()
     render_cultural_notes()
     render_dashboard()
+    render_liaison_drill()
 
 
 # --- interactions ----------------------------------------------------------
@@ -3249,6 +3444,15 @@ def setup():
     )
     _element("proficiency-close-button").addEventListener(
         "click", create_proxy(close_proficiency_test)
+    )
+    _element("liaison-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_liaison_drill)
+    )
+    _element("liaison-next-button").addEventListener(
+        "click", create_proxy(next_liaison_question)
+    )
+    _element("liaison-close-button").addEventListener(
+        "click", create_proxy(close_liaison_drill)
     )
     _element("bonus-order-continue-button").addEventListener(
         "click", create_proxy(advance_from_order)

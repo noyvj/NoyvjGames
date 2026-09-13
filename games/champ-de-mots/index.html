@@ -26,6 +26,7 @@
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
       <button id="dashboard-toggle-button" class="secondary" type="button">📊 Progress dashboard</button>
+      <button id="liaison-toggle-button" class="secondary" type="button">🗣️ Liaison practice</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
     <div id="dashboard-panel" class="dashboard-panel" hidden></div>
@@ -154,6 +155,22 @@
       <div id="proficiency-topic-breakdown" class="proficiency-topic-breakdown"></div>
       <button id="proficiency-next-button" class="secondary" hidden>Next</button>
       <button id="proficiency-close-button" class="secondary practice-close">Close test</button>
+    </div>
+
+    <div id="liaison-panel" class="section practice" hidden>
+      <div class="panel-hero panel-hero--liaison" aria-hidden="true">🗣️</div>
+      <div class="question-card">
+        <p id="liaison-progress" class="practice-context"></p>
+        <p id="liaison-context" class="practice-context"></p>
+        <p id="liaison-instruction" class="practice-instruction"></p>
+        <p id="liaison-prompt" class="practice-prompt"></p>
+      </div>
+      <div id="liaison-choices" class="practice-choices"></div>
+      <p id="liaison-feedback" class="practice-feedback"></p>
+      <p id="liaison-explanation" class="practice-note" hidden></p>
+      <p id="liaison-summary" class="status-line" hidden></p>
+      <button id="liaison-next-button" class="secondary" hidden>Next</button>
+      <button id="liaison-close-button" class="secondary practice-close">Close</button>
     </div>
 
     <div id="bonus-panel" class="section practice" hidden>
