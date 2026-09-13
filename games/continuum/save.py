@@ -28,7 +28,8 @@ more involved needs are met simply by making that one dict structured:
       "current_state":  {"city": {...}, "research": [...]},
       "parked_state":   null | {...},   # forward progress, held during a revisit
       "era_snapshots":  {era: {...}},   # how each completed era ended
-      "ui":             {...}           # view toggles worth preserving
+      "ui":             {...},          # view toggles worth preserving
+      "log":            {...}           # the ongoing log (Milestone 6, see log.py)
     }
 
 No bespoke save UI, no second bridge, no widget changes.
@@ -50,6 +51,7 @@ module-level `state` and `tree`) stay valid across a load.
 
 import copy
 
+import log
 import sim
 import sustainability
 
@@ -154,6 +156,14 @@ class Campaign:
         self.parked_state = None
         self.era_snapshots = {}
         self.ui = {}
+        # Milestone 6 — the ongoing log. Bootstrapped against whatever state
+        # this Campaign starts with (population 6 and nothing researched,
+        # for a brand-new game) so it only reports things that happen from
+        # here on; `load_dict()` below re-bootstraps against the loaded
+        # state instead when a save predates the log system, so an old save
+        # doesn't retroactively dump the settlement's whole history into it.
+        self.log = log.Chronicle()
+        self.log.bootstrap(self.state, self.tree, self.tree.effects())
 
     # --- era progression ------------------------------------------------
     def record_era_snapshot(self, era=None, score=None):
@@ -230,6 +240,7 @@ class Campaign:
             "parked_state": copy.deepcopy(self.parked_state),
             "era_snapshots": copy.deepcopy(self.era_snapshots),
             "ui": copy.deepcopy(self.ui),
+            "log": self.log.snapshot(),
         }
 
     def load_dict(self, data):
@@ -296,4 +307,17 @@ class Campaign:
 
         ui = data.get("ui")
         self.ui = copy.deepcopy(ui) if isinstance(ui, dict) else {}
+
+        # A save written before Milestone 6 has no "log" key at all -- rather
+        # than restoring an empty Chronicle (which would then treat every
+        # already-past population threshold and every already-researched
+        # node as brand new the moment the player's next action re-checks
+        # them), re-bootstrap against the state that was just restored above,
+        # the same "old save, newer build" tolerance the rest of load_dict()
+        # already gives every other field.
+        log_data = data.get("log")
+        if isinstance(log_data, dict):
+            self.log.restore(log_data)
+        else:
+            self.log.bootstrap(self.state, self.tree, self.tree.effects())
         return True

@@ -39,6 +39,7 @@ EXPECTED_KEYS = {
     "parked_state",
     "era_snapshots",
     "ui",
+    "log",
 }
 
 

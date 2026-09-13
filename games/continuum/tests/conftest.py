@@ -58,6 +58,9 @@ ELEMENT_IDS = [
     "info-page-framing",
     "info-page-tie-in",
     "info-page-sources",
+    # Milestone 6 — the ongoing log (rows are created at runtime)
+    "log-status-display",
+    "log-list",
 ]
 for _role in ROLES:
     ELEMENT_IDS += [

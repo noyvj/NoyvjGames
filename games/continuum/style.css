@@ -622,6 +622,19 @@ button.primary:active {
 #buildings { border-left: 4px solid #c97a3e; }
 #research { border-left: 4px solid #d08c5c; }
 #info-page-panel { border-left: 4px solid #8a6a45; }
+#log { border-left: 4px solid #b58a52; }
+
+/* Log rows are built by render_log(), same reason as research rows -- a
+   session's worth of entries can't be static markup. Kind-specific accent
+   only; row layout itself matches every other .row in the game. */
+.log-row {
+  border-left: 3px solid transparent;
+  padding-left: 0.5rem;
+}
+.log-row--research { border-left-color: #d08c5c; }
+.log-row--population { border-left-color: #6f9c5a; }
+.log-row--livability-up { border-left-color: #6f9c5a; }
+.log-row--livability-down { border-left-color: #b23a3a; }
 
 /* --- Gauges: replace the flat bar with a segmented, glowing HUD gauge.
    game.py only ever writes inline .style.width on #land-health-bar /
