@@ -66,6 +66,27 @@ TRANSITION_REQUIREMENTS = {
         # population or research says.
         "min_score_label": "Strained",
     },
+    # Milestone 9 — the same three-part shape as Tribal->Agrarian above,
+    # reused verbatim rather than re-litigated: Milestone 7's own build
+    # notes flagged this as worth revisiting "once more than one era
+    # transition exists and a pattern... becomes clearer." With a second
+    # data point in hand, the pattern held — the only real judgement call
+    # left was which numbers, not which shape (see CLAUDE.md's Milestone 9
+    # build notes for why "Strained" and not a higher bar).
+    "agrarian": {
+        "to_era": "classical",
+        # The next Dunbar-ish layer up from Tribal->Agrarian's 15 --
+        # log.POPULATION_MILESTONES[2], "outgrown a size a handful of
+        # people can hold together by memory alone," which is exactly the
+        # real-world shift this era's own sources describe (temple-directed
+        # administration replacing kinship-scale coordination).
+        "min_population": 25,
+        # The late Agrarian research tier has to be UNLOCKED (two
+        # early-Agrarian nodes researched) -- same soft-bar spirit as the
+        # Tribal requirement above.
+        "min_tier": research.era_tiers("agrarian")[-1],
+        "min_score_label": "Strained",
+    },
 }
 
 
@@ -131,6 +152,18 @@ TRANSITION_BEATS = {
         "elders still tell stories about has quietly stopped. What began "
         "as a scatter of shelters around a fire now looks like it might "
         "stay exactly where it is."
+    ),
+    ("agrarian", "classical"): (
+        "Nobody can name the day it happened, but the settlement stopped "
+        "being a place where everyone's face is known and became a place "
+        "that needs people whose job is simply to keep track — who tends "
+        "which field, whose grain sits in which store, whose turn it is to "
+        "walk the canal banks. The canals themselves came first, dug to "
+        "carry water further than any one family could carry it by hand; "
+        "the administrators came after, because a canal nobody is "
+        "responsible for is just a ditch that floods when it shouldn't and "
+        "runs dry when it matters. What is rising past the fields now "
+        "looks less like a large village and more like a city."
     ),
 }
 

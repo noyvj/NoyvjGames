@@ -258,7 +258,8 @@ def test_a_careless_playthrough_scores_worse_than_a_careful_one(game_env):
 
     # Careful: a spread of work, shelter and hearths built, land left alone.
     careful = sim.CityState()
-    careful.allocation = {"foragers": 2, "gatherers": 2, "crafters": 1, "keepers": 1, "farmers": 0}
+    careful.allocation = dict.fromkeys(sim.ROLES, 0)
+    careful.allocation.update({"foragers": 2, "gatherers": 2, "crafters": 1, "keepers": 1})
     for season in range(12):
         careful.resources["materials"] += 20.0  # stand in for a gatherer-heavy run
         if season % 3 == 0:

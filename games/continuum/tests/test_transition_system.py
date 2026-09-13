@@ -34,8 +34,9 @@ def test_next_era_for_tribal_is_agrarian():
 
 
 def test_next_era_for_an_era_with_no_requirements_yet_is_none():
+    eras_with_requirements = set(transition.TRANSITION_REQUIREMENTS.keys())
     for era in sim.ERA_ORDER:
-        if era == "tribal":
+        if era in eras_with_requirements:
             continue
         assert transition.next_era_for(era) is None
 
@@ -164,8 +165,8 @@ def test_attempt_transition_refuses_mid_revisit():
 
 
 def test_beat_text_falls_back_to_a_generic_line_for_an_undefined_pair():
-    text = transition.beat_text("agrarian", "classical")
-    assert text == "The settlement has crossed into the Classical era."
+    text = transition.beat_text("classical", "medieval")
+    assert text == "The settlement has crossed into the Medieval era."
 
 
 # --- Chronicle.log_transition (log.py's half of this seam) ---------------

@@ -31,7 +31,9 @@ resource balance, resilience — not just raw growth"):
   give? Land health, plus whether this season's harvest stayed under the
   land's sustainable yield.
 - **Resilience** — could it survive a bad season? Food buffer, tool stock,
-  and how diversified the workforce is.
+  and how diversified the workforce is (and, from Classical on, whether the
+  workforce has been hollowed out by overextending into administration —
+  see the Classical build notes in CLAUDE.md).
 
 The four are weighted equally. That is a judgement call, not a finding;
 `COMPONENT_WEIGHTS` is the single place to revisit it.
@@ -168,6 +170,40 @@ def balance(state, effects=None):
     return _clamp((_clamp(state.land_health) + harvest) / 2.0)
 
 
+# --- Classical+ : administrative overextension (Milestone 9) ------------
+# continuum-real-world-sources.md's Classical sources (The Getty,
+# TheCollector) are explicit that canal-fed irrigation only worked because
+# it was *centrally planned and coordinated* -- administration was real
+# labor, not a free multiplier. That cuts both ways: a settlement that
+# pours a large share of its workforce into Administrators, beyond what its
+# canals actually need staffed, isn't investing in coordination so much as
+# hollowing out its own productive capacity — coordinating labor that has
+# nothing left to coordinate is exactly the kind of top-heavy arrangement
+# that has nothing to fall back on if a season goes badly. That is a
+# resilience question ("could it survive a bad season?"), not an equity one
+# the way Agrarian's surplus-hoarding penalty was — nobody is being denied
+# anything here, the settlement is just structurally top-heavy. Ratio-based
+# like every other input in this file: the *share* of the assigned
+# workforce in Administrators, not the raw headcount, so a bigger
+# settlement isn't penalised just for having a bigger raw number of them.
+ADMIN_SHARE_FAIR_LIMIT = 0.2  # administrator share of the workforce below this is unpenalised
+ADMIN_OVEREXTENSION_PENALTY_WEIGHT = 0.25  # max resilience knocked off at full pressure
+
+
+def _administrative_overextension_penalty(state):
+    """0..ADMIN_OVEREXTENSION_PENALTY_WEIGHT — zero for any era before
+    Classical, so every pre-Milestone-9 resilience() result is unchanged by
+    this function's mere existence."""
+    if sim.era_index(state.era) < sim.era_index("classical"):
+        return 0.0
+    assigned = state.assigned_workers()
+    if assigned <= 0:
+        return 0.0
+    share = state.allocation.get("administrators", 0) / assigned
+    pressure = _clamp((share - ADMIN_SHARE_FAIR_LIMIT) / (1.0 - ADMIN_SHARE_FAIR_LIMIT))
+    return pressure * ADMIN_OVEREXTENSION_PENALTY_WEIGHT
+
+
 def resilience(state, effects=None):
     effects = sim.effects_or_neutral(effects)
     seasons_of_food = state.population * sim.FOOD_PER_PERSON * sim.BUFFER_SEASONS
@@ -175,6 +211,7 @@ def resilience(state, effects=None):
     tool_readiness = _ratio(state.resources["tools"], state.population)
     diversity = _clamp(state.role_diversity())
     base = (food_buffer + tool_readiness + diversity) / 3.0
+    base -= _administrative_overextension_penalty(state)
     return _clamp(base + effects["resilience_bonus"])
 
 

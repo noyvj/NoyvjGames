@@ -20,12 +20,14 @@ Two properties are load-bearing for everything that comes later:
    player's researched nodes. Building that seam in from the start is what
    stops the research tree from having to reach into the simulation later.
 
-Tribal (Phase 1) and Agrarian (Milestone 8) are modelled so far.
-Era-specific constants live in per-era tables keyed by era id (see
-ERA_ROLES/ERA_BUILDINGS) so each remaining era adds a table entry rather
-than a second copy of this file — Agrarian's own Farmers role and
-Farmland building are the first proof that pattern actually extends
-cleanly rather than requiring a rewrite.
+Tribal (Phase 1), Agrarian (Milestone 8) and Classical (Milestone 9) are
+modelled so far. Era-specific constants live in per-era tables keyed by
+era id (see ERA_ROLES/ERA_BUILDINGS) so each remaining era adds a table
+entry rather than a second copy of this file — Agrarian's own Farmers role
+and Farmland building were the first proof that pattern actually extends
+cleanly rather than requiring a rewrite; Classical's Administrators/Canals
+extend it a second time, this time with a building whose bonus depends on
+the role rather than merely being multiplied by it (see CANAL_YIELD_BONUS).
 """
 
 # --- eras -------------------------------------------------------------
@@ -57,7 +59,7 @@ ERA_LABEL = {
 # Nothing reads this yet — it exists so that the moment a second era ships,
 # "which eras are playable" has one answer rather than being inferred from
 # whichever table happens to have an entry.
-IMPLEMENTED_ERAS = ["tribal", "agrarian"]
+IMPLEMENTED_ERAS = ["tribal", "agrarian", "classical"]
 
 FIRST_ERA = ERA_ORDER[0]
 
@@ -85,11 +87,13 @@ def era_index(era):
 ERA_ROLES = {
     "tribal": ["foragers", "gatherers", "crafters", "keepers"],
     "agrarian": ["farmers"],
+    "classical": ["administrators"],
 }
 
 ERA_BUILDINGS = {
     "tribal": ["shelter", "granary", "hearth", "toolworks"],
     "agrarian": ["farmland"],
+    "classical": ["canals"],
 }
 
 ROLES = [role for era in ERA_ORDER for role in ERA_ROLES.get(era, [])]
@@ -119,6 +123,7 @@ ROLE_LABEL = {
     "crafters": "Crafters",
     "keepers": "Keepers",
     "farmers": "Farmers",
+    "administrators": "Administrators",
 }
 
 ROLE_BLURB = {
@@ -127,6 +132,11 @@ ROLE_BLURB = {
     "crafters": "Turn materials into tools.",
     "keepers": "Hold and pass on what the settlement knows.",
     "farmers": "Work cultivated fields — more food per person than foraging, especially with farmland built.",
+    "administrators": (
+        "Coordinate canal labor and civic record-keeping. Produce nothing "
+        "themselves, but a canal without administrators to run it delivers "
+        "little of what it was built for."
+    ),
 }
 
 ROLE_EMOJI = {
@@ -135,6 +145,7 @@ ROLE_EMOJI = {
     "crafters": "🪓",
     "keepers": "🔥",
     "farmers": "🌱",
+    "administrators": "📜",
 }
 
 BUILDING_LABEL = {
@@ -143,6 +154,7 @@ BUILDING_LABEL = {
     "hearth": "Fire Circle",
     "toolworks": "Knapping Site",
     "farmland": "Farmland",
+    "canals": "Canals",
 }
 
 BUILDING_BLURB = {
@@ -151,6 +163,10 @@ BUILDING_BLURB = {
     "hearth": "Where the settlement gathers. Warmth, cooking, and a shared story.",
     "toolworks": "A dedicated place to work stone — crafters produce more.",
     "farmland": "Cultivated fields — farmers produce more food per plot worked.",
+    "canals": (
+        "Directed irrigation, at city scale — but only as good as the "
+        "administrators coordinating it. An unstaffed canal is just a ditch."
+    ),
 }
 
 BUILDING_EMOJI = {
@@ -159,6 +175,7 @@ BUILDING_EMOJI = {
     "hearth": "🔥",
     "toolworks": "🪨",
     "farmland": "🌿",
+    "canals": "🏛️",
 }
 
 BUILDING_COST = {  # in materials
@@ -167,6 +184,7 @@ BUILDING_COST = {  # in materials
     "hearth": 15.0,
     "toolworks": 25.0,
     "farmland": 20.0,
+    "canals": 35.0,
 }
 
 SHELTER_CAPACITY = 4  # people housed per shelter
@@ -183,8 +201,22 @@ START_MATERIALS = 20.0
 START_TOOLS = 2.0
 START_KNOWLEDGE = 0.0
 START_SURPLUS = 0.0
-START_BUILDINGS = {"shelter": 2, "granary": 0, "hearth": 1, "toolworks": 0, "farmland": 0}
-START_ALLOCATION = {"foragers": 3, "gatherers": 2, "crafters": 0, "keepers": 0, "farmers": 0}
+START_BUILDINGS = {
+    "shelter": 2,
+    "granary": 0,
+    "hearth": 1,
+    "toolworks": 0,
+    "farmland": 0,
+    "canals": 0,
+}
+START_ALLOCATION = {
+    "foragers": 3,
+    "gatherers": 2,
+    "crafters": 0,
+    "keepers": 0,
+    "farmers": 0,
+    "administrators": 0,
+}
 
 # --- production and consumption ---------------------------------------
 FOOD_PER_FORAGER = 3.0
@@ -213,6 +245,19 @@ BASE_FOOD_STORAGE = 30.0
 # networks absorbing what a purely subsistence settlement would have lost.
 # The rest still spoils; see CityState.advance_season()'s spoilage step.
 SURPLUS_CONVERSION_RATE = 0.4
+
+# --- canals and coordinated labor (Classical+) --------------------------
+# Per continuum-real-world-sources.md's Classical sources (The Getty and
+# TheCollector on Uruk/Sumer): canal-fed irrigation is what let a city scale
+# past what unaided farmland could feed, but the same sources are explicit
+# that canal management required *centralized planning and coordinated
+# labor* -- it wasn't self-running infrastructure. That's modelled directly:
+# a canal's yield bonus is scaled by how fully it is staffed by
+# Administrators (capped at 1.0), so a canal built with nobody assigned to
+# run it contributes nothing yet -- the building alone isn't the lesson,
+# the coordinated labor is. See CityState.advance_season()'s harvest step.
+CANAL_YIELD_BONUS = 0.5  # additive multiplier on farmer food output per fully-staffed canal
+ADMINISTRATORS_PER_CANAL = 2  # administrators needed to fully staff one canal
 
 # Tools multiply every gathering yield, capped at one tool per person —
 # a settlement can't get more out of the land by hoarding axes nobody holds.
@@ -260,6 +305,8 @@ NEUTRAL_EFFECTS = {
     # Additive on top of SURPLUS_CONVERSION_RATE (Milestone 8) -- still the
     # one research seam, just one more key in the same dict.
     "surplus_conversion_bonus": 0.0,
+    # Additive on top of CANAL_YIELD_BONUS (Milestone 9) -- same seam again.
+    "canal_yield_bonus": 0.0,
 }
 
 
@@ -426,6 +473,24 @@ class CityState:
         #    settled agriculture is more productive here, not exempt from
         #    what the land can sustain.
         farm_bonus = 1.0 + self.buildings["farmland"] * FARMLAND_YIELD_BONUS
+        # Canals (Classical+): a per-canal bonus on top of farmland, but only
+        # in proportion to how fully Administrators staff it (see the
+        # CANAL_YIELD_BONUS note above) -- a built-but-unstaffed canal adds
+        # nothing, which is the point, not an edge case to special-case away.
+        if self.buildings["canals"] > 0:
+            canal_staffing = min(
+                1.0,
+                self.allocation["administrators"]
+                / (self.buildings["canals"] * ADMINISTRATORS_PER_CANAL),
+            )
+        else:
+            canal_staffing = 0.0
+        canal_bonus = (
+            self.buildings["canals"]
+            * (CANAL_YIELD_BONUS + effects["canal_yield_bonus"])
+            * canal_staffing
+        )
+        farm_bonus += canal_bonus
         food_gathered = (
             self.allocation["foragers"] * FOOD_PER_FORAGER
             + self.allocation["farmers"] * FOOD_PER_FARMER * farm_bonus
@@ -534,6 +599,8 @@ class CityState:
             "extraction": extraction,
             "sustainable_yield": sustainable,
             "tool_factor": tool_factor,
+            "canals": self.buildings["canals"],
+            "canal_staffing_ratio": canal_staffing,
         }
         self.last_report = report
         return report
