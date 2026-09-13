@@ -90,7 +90,7 @@ def test_seeds_in_the_previous_row_hold_the_gate_shut(game_env):
 def test_locked_plots_are_not_counted_as_needing_water(game_env):
     state = game_env.state
     unlocked_plots = sum(len(r.plot_ids) for r in state.rows if r.sequence <= 11)
-    assert len(state.available_plots()) == unlocked_plots == 472
+    assert len(state.available_plots()) == unlocked_plots == 504
     assert len(state.due_plots()) == unlocked_plots
     assert all(p.sequence <= 11 for p in state.due_plots())
 

@@ -13,8 +13,8 @@ def test_catalog_loads_the_real_continuous_timeline(game_env):
     assert catalog["courses"] == ["FREN151", "FREN152"]
     assert len(catalog["weeks"]) == 23
     assert [w["sequence"] for w in catalog["weeks"]] == list(range(1, 24))
-    assert sum(len(t["items"]) for w in catalog["weeks"] for t in w["topics"]) == 966
-    assert sum(len(w["topics"]) for w in catalog["weeks"]) == 129
+    assert sum(len(t["items"]) for w in catalog["weeks"] for t in w["topics"]) == 1047
+    assert sum(len(w["topics"]) for w in catalog["weeks"]) == 138
 
 
 def test_rows_run_continuously_across_both_courses(game_env):
@@ -34,7 +34,7 @@ def test_plot_granularity_is_per_item_except_grammar_rules(game_env):
     for week in game_env.module.CATALOG["weeks"]:
         for topic in week["topics"]:
             expected += 1 if topic["topic_type"] == "grammar" else len(topic["items"])
-    assert len(state.plots) == expected == 722
+    assert len(state.plots) == expected == 790
     assert len(state.plots_by_id) == len(state.plots)
 
 

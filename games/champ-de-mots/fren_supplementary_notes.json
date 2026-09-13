@@ -1,0 +1,82 @@
+{
+  "note": "Derived from slideshow cross-check (FREN151 complete; FREN152 weeks 1-7 + week 13 lecture). FREN152 weeks 8-13 have no teacher slides — workbook-only, extra care warranted there.",
+  "tts_watchlist": [
+    {
+      "sequence": 3,
+      "item": "liaison consonant sounds",
+      "note": "final s/x/z → [z] sound (mes_élèves, deux_ans); final t/d → [t] sound (petit_ami); final f → [v] sound (neuf_enfants). Contrast pair: 'trois dollars' (no liaison) vs 'trois ans' (liaison)."
+    },
+    {
+      "sequence": 3,
+      "item": "nationality masc/fem pronunciation",
+      "note": "masc. forms ending in silent -s (il est anglais → 'ong-lay') become pronounced once feminine -e is added (elle est anglaise → 'ong-layz')."
+    },
+    {
+      "sequence": 4,
+      "item": "silent letters set",
+      "note": "le froid, le chaud, actif, hôpital, beaucoup, abricot, prix, avril, flic, coq — tests the 'final consonant usually silent' rule against real exceptions (prix, avril, flic, coq keep their final consonant sound)."
+    },
+    {
+      "sequence": 4,
+      "item": "travailler",
+      "note": "flagged by the tutor as commonly mispronounced by learners — worth a manual listen-check."
+    },
+    {
+      "sequence": 5,
+      "item": "septante / huitante / nonante",
+      "note": "Belgian/Swiss number words; a standard-French-trained TTS engine may mispronounce or 'autocorrect' these toward standard forms."
+    },
+    {
+      "sequence": 8,
+      "item": "liaison in BAGS adjective + noun",
+      "note": "un bon_ami, un petit_ordinateur, un grand_appartement, C'est_Antoine, C'est_un ami — liaison consonant carries across the boundary before a vowel."
+    },
+    {
+      "sequence": 11,
+      "item": "feminine forms of gros/blond/brun/lent",
+      "note": "explicit tutor flag: pay particular attention to pronunciation of these feminine forms (grosse, blonde, brune, lente) — newly-encountered difficulty at this point in the course."
+    },
+    {
+      "sequence": 12,
+      "item": "est-ce que",
+      "note": "pronounced as a contracted 'ess-ke', not spelled out letter by letter."
+    },
+    {
+      "sequence": 13,
+      "item": "se lever / se promener stem-change",
+      "note": "grave accent (è) appears in all conjugated forms EXCEPT nous/vous — je me lève, but nous nous levons. Same pattern for se promener and acheter (j'achète)."
+    },
+    {
+      "sequence": 15,
+      "item": "-t- insertion in inversion",
+      "note": "travaille-t-il / mange-t-elle need an inserted -t- for pronunciation; prend-il / finit-il don't (verb already ends in a 't' sound)."
+    },
+    {
+      "sequence": 17,
+      "item": "du shampooing",
+      "note": "the '-oin-' is nasalised, and the final '-g' is silent."
+    }
+  ],
+  "cultural_notes": [
+    {
+      "sequence": 1,
+      "note": "Handshakes are used among friends and business associates in both informal and formal contexts. 'Faire la bise' (cheek-kissing, up to 4 times depending on region) is used among friends and friends-of-friends — not a fixed number."
+    },
+    {
+      "sequence": 5,
+      "note": "Édith Piaf (1915-1963) — her song 'Non, je ne regrette rien' (1960) suggested as a listening/cultural extension."
+    },
+    {
+      "sequence": 8,
+      "note": "Never capitalise 'je' mid-sentence. Never switch between tu and vous within the same letter/email to the same person. 'Enchanté(e)' is only for first in-person meetings — never use it to open/close an informal letter or email (use bien amicalement, cordialement, amitiés, à bientôt instead)."
+    },
+    {
+      "sequence": 12,
+      "note": "'Moins le quart' uses 'quart' as a noun (short for 'un quart d'heure'), while times like 'moins dix' use a numeral adjective (short for 'dix minutes') — this is why one takes 'le' and the other doesn't. Some speakers also say 'moins un quart.'"
+    },
+    {
+      "sequence": 17,
+      "note": "Camille's song 'Money note' suggested as a listening aid for correct pronunciation of 'euro'. Tutor also flags that students frequently confuse demonstrative adjectives (ce/cette) with demonstrative pronouns (celui/celle) — a real, recurring error worth targeting directly in review."
+    }
+  ]
+}

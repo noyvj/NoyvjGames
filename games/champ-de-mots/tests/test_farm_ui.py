@@ -91,7 +91,7 @@ def test_each_row_holds_a_cell_for_every_one_of_its_plots(game_env):
         cells = game_env.elements[f"row-plots-{row.sequence}"].children
         assert len(cells) == len(row.plot_ids)
         total += len(cells)
-    assert total == 722
+    assert total == 790
 
 
 def test_plot_cells_start_as_seeds(game_env):
@@ -155,7 +155,7 @@ def test_an_overdue_plot_wilts_and_recovers_with_one_watering(game_env):
     assert "plot--wilting" not in cell(game_env, plot.plot_id).className
     # Nothing was lost — §3's "no plant death".
     assert plot.stage != module.STAGE_SEED
-    assert len(state.plots) == 722
+    assert len(state.plots) == 790
 
 
 def test_seeds_never_render_as_wilting(game_env):
@@ -373,7 +373,7 @@ def test_progress_display_counts_growing_and_automated_plots(game_env):
         state.review(state.plots[0].plot_id, True)
     module.render()
     text = game_env.elements["progress-display"].innerText
-    assert "722" in text
+    assert "790" in text
     assert "1" in text
 
 
