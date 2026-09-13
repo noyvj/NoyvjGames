@@ -190,16 +190,25 @@ def evaluate(state, effects=None):
 
 
 # --- narration ----------------------------------------------------------
+# The five score bands, ascending. Exposed as a constant (rather than only
+# implicit in score_label()'s if/elif chain below) so other modules that
+# need to compare "did this get better or worse" -- log.py's
+# livability-shift trigger, transition.py's transition-readiness check
+# (Milestone 6/7) -- share one source of truth for the ordering instead of
+# each keeping its own copy in sync by hand.
+SCORE_LABELS = ["Collapsing", "Failing", "Strained", "Steady", "Thriving"]
+
+
 def score_label(value):
     if value >= 85:
-        return "Thriving"
+        return SCORE_LABELS[4]
     if value >= 70:
-        return "Steady"
+        return SCORE_LABELS[3]
     if value >= 50:
-        return "Strained"
+        return SCORE_LABELS[2]
     if value >= 30:
-        return "Failing"
-    return "Collapsing"
+        return SCORE_LABELS[1]
+    return SCORE_LABELS[0]
 
 
 def _weakest(values):

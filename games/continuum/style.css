@@ -635,6 +635,10 @@ button.primary:active {
 .log-row--population { border-left-color: #6f9c5a; }
 .log-row--livability-up { border-left-color: #6f9c5a; }
 .log-row--livability-down { border-left-color: #b23a3a; }
+/* Not wired into any render path yet -- transition.py (Milestone 7)
+   defines the "transition" kind but nothing calls it from game.py until
+   Milestone 8 gives Agrarian real content. Styled now so it's ready. */
+.log-row--transition { border-left-color: #8a56b0; }
 
 /* --- Gauges: replace the flat bar with a segmented, glowing HUD gauge.
    game.py only ever writes inline .style.width on #land-health-bar /

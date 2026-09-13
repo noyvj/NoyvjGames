@@ -83,8 +83,12 @@ LIVABILITY_DOWN_TEXT = {
 _GENERIC_UP = "Things are, on the whole, a little better than they were."
 _GENERIC_DOWN = "Something here has gotten harder. It hasn't gone unnoticed."
 
-# Matches sustainability.score_label()'s own return values exactly.
-_LABEL_ORDER = ["Collapsing", "Failing", "Strained", "Steady", "Thriving"]
+# The same shared band ordering sustainability.score_label() returns —
+# kept as one alias here rather than a second hand-copied list, after an
+# earlier hand-copied (and mistakenly lower-cased) version of this list
+# caused a save/restore bug caught in testing (see CLAUDE.md's Milestone 6
+# build notes).
+_LABEL_ORDER = sustainability.SCORE_LABELS
 
 
 def _label_rank(label):
@@ -199,6 +203,14 @@ class Chronicle:
                 _livability_shift_entry(state.season, state.era, self._last_score_label, label, weakest)
             )
         self._last_score_label = label
+
+    def log_transition(self, season, era, text):
+        """Appends a transition-beat entry (Milestone 7's `transition.py`
+        is the one caller outside this module — check_research()/
+        check_population()/check_livability() above stay this module's own
+        triggers, but a transition beat is decided by transition.py's own
+        readiness rules, not by anything Chronicle tracks itself)."""
+        self._add(LogEntry(season, era, "transition", text))
 
     # --- save support -------------------------------------------------------
     def snapshot(self):
