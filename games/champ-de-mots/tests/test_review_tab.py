@@ -281,3 +281,46 @@ def test_review_session_state_is_not_part_of_the_save_payload(game_env):
     module.start_review("word")
     state_dict = module.get_state()
     assert set(state_dict) == {"version", "current_day", "plots"}
+
+
+# --- Improvement Ideas addendum (2026-09-13): deliberate interleaving ------
+
+
+def test_interleave_by_stage_keeps_every_candidate(game_env):
+    module = game_env.module
+    candidates = module.review_candidates({"vocab", "phrase"})
+    interleaved = module._interleave_by_stage(list(candidates), module.REVIEW_RNG)
+    assert sorted(p.plot_id for p in interleaved) == sorted(p.plot_id for p in candidates)
+
+
+def test_interleave_by_stage_alternates_stages_rather_than_blocking(game_env):
+    module = game_env.module
+    old_plots = module.state.plots[:5]
+    new_plots = module.state.plots[5:10]
+    for plot in old_plots:
+        plot.stage = module.STAGE_AUTOMATED
+    for plot in new_plots:
+        plot.stage = module.STAGE_SEED
+
+    interleaved = module._interleave_by_stage(old_plots + new_plots, module.REVIEW_RNG)
+    stages_in_order = [p.stage for p in interleaved]
+    # A blocked (non-interleaved) ordering would put all five of one stage
+    # before the other; interleaving guarantees the two stages alternate at
+    # least once within the first two picks of each.
+    assert stages_in_order[0] != stages_in_order[1]
+
+
+def test_a_review_session_mixes_stages_when_both_are_available(game_env):
+    module, state = game_env.module, game_env.state
+    # Make the first 20 candidate plots Automated ("old"), leave the rest at
+    # Seed ("new") -- both stages are eligible for Word Review by default
+    # (min stage defaults to Seed).
+    candidates = module.review_candidates({"vocab", "phrase"})
+    for plot in candidates[:20]:
+        plot.stage = module.STAGE_AUTOMATED
+
+    game_env.elements["review-count-input"].value = "10"
+    module.start_review("word")
+    stages_in_queue = {state.plots_by_id[pid].stage for pid in module.review_queue}
+    assert module.STAGE_AUTOMATED in stages_in_queue
+    assert module.STAGE_SEED in stages_in_queue
