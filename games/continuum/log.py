@@ -47,7 +47,7 @@ by calling into `Chronicle` from `Campaign.advance_to_era()`.
 import sustainability
 
 # --- population thresholds ----------------------------------------------
-POPULATION_MILESTONES = [10, 15, 25, 40, 60, 100]
+POPULATION_MILESTONES = [10, 15, 25, 40, 60, 100, 150]
 
 POPULATION_MILESTONE_TEXT = {
     10: "The settlement has grown past ten. Faces that used to be familiar to everyone now need introducing.",
@@ -56,6 +56,13 @@ POPULATION_MILESTONE_TEXT = {
     40: "Forty. Whatever keeps everyone fed and sheltered this long is no longer a matter of luck.",
     60: "Sixty. This is no longer a handful of families — it is something closer to a town.",
     100: "A hundred people live here now. However this got built, it wasn't an accident.",
+    # Milestone 13 — literally Dunbar's own number, the same layer the
+    # Tribal info panel's sources have cited since the very first era: the
+    # point past which no single mind can hold everyone else in memory at
+    # all, stable-relationship or otherwise. Fitting as the last threshold
+    # this table needs: the settlement that crosses it is, by the time it
+    # does, already off-world.
+    150: "One hundred fifty. Long before any of this left the ground, that was already the number past which no one person could hold everyone else in mind at once.",
 }
 
 # --- livability shifts (the diegetic feedback seam) ----------------------

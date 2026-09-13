@@ -695,17 +695,15 @@ def test_after_transitioning_the_log_shows_all_five_transition_beats(game_env):
     assert transition_rows[4].text == transition.TRANSITION_BEATS[("industrial", "digital")]
 
 
-def test_after_transitioning_the_advance_era_button_reports_nothing_further_yet(game_env):
-    """Digital -> Space Age has no requirements table entry yet (Space Age
-    is explicitly out of this milestone's scope), so this really is the
-    current end of the line -- the same "nothing more to reach" state
-    Industrial was briefly in before this milestone gave it a real
-    transition."""
+def test_after_transitioning_the_advance_era_button_now_targets_space(game_env):
+    """Milestone 13 gave Digital -> Space Age a real transition, the same
+    "stale end of the line" update every prior era's own test file already
+    needed once (Milestones 8-12 each hit this)."""
     push_to_digital(game_env)
     game_env.module.render()
 
     assert game_env.elements["advance-era-button"].disabled is True
-    assert "Nothing more" in game_env.elements["era-progress-status-display"].innerText
+    assert "Space Age" in game_env.elements["era-progress-status-display"].innerText
 
 
 def test_a_second_click_after_transitioning_to_digital_does_nothing(game_env):

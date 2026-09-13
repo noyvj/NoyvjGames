@@ -7,11 +7,11 @@ in this same directory — reference material to draw from, not text to dump
 wholesale into the game, same rule the climate quartet's research docs
 followed.
 
-"tribal", "agrarian", "classical", "medieval", "industrial" and "digital"
-have real entries so far, matching `sim.IMPLEMENTED_ERAS`. Phase 3 adds one
-entry per remaining era as that era's content ships; nothing else in this
-file needs to change when it does; `era_info_page()` already handles an
-era with no entry yet.
+All seven eras now have real entries, matching `sim.IMPLEMENTED_ERAS` —
+"space" (Milestone 13) is the last one Phase 3 needed to add. Nothing else
+in this file needed to change to add it; `era_info_page()` already handled
+an era with no entry yet, the same forward-compatible fallback every prior
+era's addition relied on too.
 
 Kept as its own module rather than folded into game.py for two reasons:
 it is data, not DOM logic (matching the "dedicated engine modules, game.py
@@ -512,6 +512,109 @@ ERA_INFO_PAGE = {
                     "SDG progress, delivering an explicitly present-moment "
                     "verdict — real gains made, but the current pace isn't "
                     "enough to meet the 2030 targets."
+                ),
+            },
+        ],
+    },
+    "space": {
+        "framing": (
+            "This is the one genuinely speculative era in the whole game, "
+            "but it is grounded the same way every other era was: real "
+            "design work, not invention. Big Think's own survey names "
+            "three real off-world settlement concepts — NASA's 1977 "
+            "rotating-habitat study, MIT's Mars City 'Redwood Forest' "
+            "competition winner, and ring habitats generally — and "
+            "Planetizen is explicit that NASA's 1977 study, 'Space "
+            "Settlements: A Design Study,' was written and read as an "
+            "urban-planning policy document: residential space, schools, "
+            "transportation infrastructure, the same categories any city "
+            "plan uses. Columbia University Press's own academic history "
+            "(Scharmen, 'Space Settlements') treats those 1975 Summer "
+            "Study designs as serious architecture worth studying as real "
+            "design problems, not science fiction. And unlike the "
+            "1970s-era material above, Dagstuhl/SpaceCHI's 2025 research "
+            "on modular space habitat layouts is current, technical, and "
+            "about something more specific than any of the others: "
+            "whether a habitat's own layout actually works for the people "
+            "using it, at scale — 'space syntax,' the same discipline "
+            "urban planners already use to study ordinary buildings and "
+            "streets, applied somewhere no one has built anything yet."
+        ),
+        "mechanic_tie_in": (
+            "Habitat Architects and Habitat Rings exist because of "
+            "exactly that Dagstuhl finding: a ring's raw capacity and its "
+            "real usability are two different numbers, the same way a "
+            "canal's existence back in the Classical era was never the "
+            "same thing as a canal someone was actually coordinating. "
+            "That's a deliberate callback — Habitat Rings reuse the "
+            "Canals/Administrators shape (a building only as good as who "
+            "designs or staffs it) rather than Public Works/Sanitation "
+            "Works/Transit Hubs' 'built, not staffed' one, because the "
+            "Dagstuhl source's whole point is that coordinated DESIGN, not "
+            "raw square footage, is what makes a layout work. This also "
+            "means Space Age's central tension is genuinely NOT another "
+            "copy of Industrial's pollution or Digital's sprawl: nothing "
+            "here touches growth, extraction, or production at all. "
+            "Instead, how well the settlement's rings are laid out becomes "
+            "a brand-new basic need in the sustainability score itself — "
+            "alongside food, shelter and culture — the first time this "
+            "game's livability measure has ever grown a new dimension "
+            "rather than the equity, balance or resilience ones every "
+            "earlier era's mechanic touched. And it is the natural end of "
+            "a much older thread: the land_health system that has gated "
+            "growth since the Tribal era assumed there was always more "
+            "land to give the settlement room to recover in. Off-world, "
+            "there isn't — no wind, no fallow season, no elsewhere for "
+            "anything to go — which is exactly what the era's own "
+            "research content (Closed-Loop Life Support, Full-Cycle "
+            "Reclamation) is written to reflect."
+        ),
+        "sources": [
+            {
+                "label": "Big Think — \"Urban planning in space: 3 off-world designs for future cities\"",
+                "url": "https://bigthink.com/hard-science/urban-planning-in-space/",
+                "note": (
+                    "Covers three real design concepts — NASA's 1977 "
+                    "rotating habitat study, MIT's Mars City 'Redwood "
+                    "Forest' competition winner, and ring habitats — the "
+                    "direct real-world basis for calling this era's "
+                    "signature building a Habitat Ring rather than "
+                    "inventing a shape with no precedent."
+                ),
+            },
+            {
+                "label": "Planetizen — \"NASA's Urban Plan for Space Settlements\"",
+                "url": "https://www.planetizen.com/news/2018/12/101790-nasas-urban-plan-space-settlements",
+                "note": (
+                    "Frames NASA's 1977 'Space Settlements: A Design "
+                    "Study' as literally a city-planning policy document — "
+                    "the clearest source for why this era's mechanics stay "
+                    "continuous with ordinary urban planning rather than "
+                    "treating 'off-world' as a total departure from it."
+                ),
+            },
+            {
+                "label": "Columbia University Press — Scharmen, \"Space Settlements\"",
+                "url": "https://cup.columbia.edu/book/space-settlements/9781941332498/",
+                "note": (
+                    "An academic architectural history taking NASA's 1975 "
+                    "Summer Study designs seriously as real design "
+                    "problems — the basis for treating this era's content "
+                    "as grounded speculation, not science fiction."
+                ),
+            },
+            {
+                "label": (
+                    "Dagstuhl / SpaceCHI 2025 — \"Designing for Usability "
+                    "in Modular Space Habitats: A Space Syntax Perspective\""
+                ),
+                "url": "https://drops.dagstuhl.de/storage/01oasics/oasics-vol130-spacechi2025/OASIcs.SpaceCHI.2025.4/OASIcs.SpaceCHI.2025.4.pdf",
+                "note": (
+                    "Current (2025) research on how modular space habitat "
+                    "layouts affect real usability at scale — the direct "
+                    "basis for Habitat Architects and the habitat-layout "
+                    "provision they determine, and the one source here "
+                    "that isn't 1970s-era material."
                 ),
             },
         ],

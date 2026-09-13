@@ -165,13 +165,14 @@ def test_attempt_transition_refuses_mid_revisit():
 
 
 def test_beat_text_falls_back_to_a_generic_line_for_an_undefined_pair():
-    """Digital -> Space Age has no bespoke beat yet (that's a later
-    milestone's job, and explicitly out of this one's scope) -- updated
-    from Industrial -> Digital now that Milestone 12 gave that pair real
-    prose, the same "next undefined pair" update Milestones 9-11 already
-    made once each to this same test."""
-    text = transition.beat_text("digital", "space")
-    assert text == "The settlement has crossed into the Space Age era."
+    """Every real transition through Space Age now has bespoke prose --
+    Milestone 13 was the last one this table needed, since Space Age is
+    the true end of sim.ERA_ORDER. This test moves to a genuinely
+    undefined pair (there is no real "next" era beyond the true end of the
+    arc) rather than "the next era's transition hasn't been written yet,"
+    which stopped being true the moment every era shipped real content."""
+    text = transition.beat_text("space", "beyond")
+    assert text == "The settlement has crossed into the beyond era."
 
 
 # --- Chronicle.log_transition (log.py's half of this seam) ---------------
