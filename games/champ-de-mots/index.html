@@ -31,6 +31,8 @@
       <button id="achievements-toggle-button" class="secondary" type="button">🏆 Achievements</button>
       <button id="blitz-toggle-button" class="secondary" type="button">⚡ Greetings & Basics Blitz</button>
       <button id="racer-toggle-button" class="secondary" type="button">🏁 Verb Racer</button>
+      <button id="boutique-toggle-button" class="secondary" type="button">👗 Boutique Dash</button>
+      <button id="cafe-toggle-button" class="secondary" type="button">☕ Café Rush</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
     <div id="dashboard-panel" class="dashboard-panel" hidden></div>
@@ -80,6 +82,52 @@
       <div id="racer-choices" class="practice-choices"></div>
       <p id="racer-feedback" class="practice-feedback"></p>
       <button id="racer-close-button" class="secondary practice-close">Close</button>
+    </div>
+
+    <div id="boutique-panel" class="minigame-panel" hidden>
+      <h2>Boutique Dash</h2>
+      <p class="status-line status-line--muted">A customer wants a colour + garment combination from your shopping-for-clothes weeks (rows 16-18) — pick the matching item from the rack before their patience runs out. 15 customers a shift; correct sales speed the pace up slightly.</p>
+      <p id="boutique-lock-message" class="minigame-lock-message" hidden></p>
+      <div class="minigame-stats">
+        <span id="boutique-served-display" class="minigame-stat"></span>
+        <span id="boutique-missed-display" class="minigame-stat"></span>
+        <span id="boutique-score-display" class="minigame-stat"></span>
+      </div>
+      <div class="shop-rush-patience-bar"><div id="boutique-patience-fill" class="shop-rush-patience-fill"></div></div>
+      <button id="boutique-start-button" class="secondary">Open the shop</button>
+      <p id="boutique-summary" class="minigame-summary" hidden></p>
+      <div class="minigame-prompt-card">
+        <p id="boutique-order" class="shop-rush-order"></p>
+      </div>
+      <div id="boutique-options" class="shop-rush-options"></div>
+      <p id="boutique-feedback" class="practice-feedback"></p>
+      <button id="boutique-close-button" class="secondary practice-close">Close</button>
+    </div>
+
+    <div id="cafe-panel" class="minigame-panel" hidden>
+      <h2>Café Rush</h2>
+      <p class="status-line status-line--muted">A customer orders food or drink from your café weeks (rows 19-23) — pick the matching item before their patience runs out. Every third customer also asks you to confirm the order in the passé composé. 15 customers a shift.</p>
+      <p id="cafe-lock-message" class="minigame-lock-message" hidden></p>
+      <div class="minigame-stats">
+        <span id="cafe-served-display" class="minigame-stat"></span>
+        <span id="cafe-missed-display" class="minigame-stat"></span>
+        <span id="cafe-score-display" class="minigame-stat"></span>
+      </div>
+      <div class="shop-rush-patience-bar"><div id="cafe-patience-fill" class="shop-rush-patience-fill"></div></div>
+      <button id="cafe-start-button" class="secondary">Open the café</button>
+      <p id="cafe-summary" class="minigame-summary" hidden></p>
+      <div class="minigame-prompt-card">
+        <p id="cafe-order" class="shop-rush-order"></p>
+      </div>
+      <div id="cafe-options" class="shop-rush-options"></div>
+      <div id="cafe-twist-panel" class="cafe-twist-panel" hidden>
+        <p class="status-line status-line--muted">Now confirm the order in the past tense:</p>
+        <p id="cafe-twist-context" class="practice-context"></p>
+        <p id="cafe-twist-prompt" class="practice-prompt"></p>
+        <div id="cafe-twist-choices" class="practice-choices"></div>
+      </div>
+      <p id="cafe-feedback" class="practice-feedback"></p>
+      <button id="cafe-close-button" class="secondary practice-close">Close</button>
     </div>
 
     <p class="tagline">The field of words. Every plot is one French fact — water it when it needs water, and watch it slowly stop needing you.</p>
@@ -397,6 +445,10 @@
         if (blitzTick) blitzTick();
         const racerTick = pyodide.globals.get("racer_tick");
         if (racerTick) racerTick();
+        const boutiqueTick = pyodide.globals.get("boutique_tick");
+        if (boutiqueTick) boutiqueTick();
+        const cafeTick = pyodide.globals.get("cafe_tick");
+        if (cafeTick) cafeTick();
       }, 1000);
 
       if (window.GameTutorial) {
