@@ -282,6 +282,19 @@ class GridState:
                 return css_class
         return ""
 
+    def primary_emissions_source(self):
+        """C3: which standing fossil type is most responsible for this
+        round's emissions -- the type a generic brownout message should
+        actually name, rather than reading as an unattributed "the grid"
+        event. None when there's no fossil plant standing at all (a
+        brownout can still occur from *historical* accumulated emissions
+        even after the player has fully retired fossil capacity -- see
+        event_message()'s fallback for that case)."""
+        candidates = [t for t in FOSSIL_TYPES if self.plant_counts[t] > 0]
+        if not candidates:
+            return None
+        return max(candidates, key=lambda t: self.plant_counts[t] * PLANT_CAPACITY[t] * EMISSIONS_FACTOR[t])
+
     def advance_round(self, rng=random.random, age_rng=random.random):
         met_demand = min(self.total_capacity(), self.demand)
         revenue = met_demand * REVENUE_PER_UNIT_MET
@@ -291,7 +304,16 @@ class GridState:
             severity = self.disruption_severity()
             revenue_loss = revenue * severity * MAX_REVENUE_LOSS_FRACTION
             revenue -= revenue_loss
-            event = {"type": "brownout", "severity": severity, "revenue_loss": revenue_loss}
+            event = {
+                "type": "brownout",
+                "severity": severity,
+                "revenue_loss": revenue_loss,
+                # C3: attach a specific cause even for a generic brownout,
+                # rather than leaving it as an unattributed message --
+                # None only when no fossil plant is currently standing to
+                # blame (see event_message()'s "lingering" fallback text).
+                "cause_plant": self.primary_emissions_source(),
+            }
 
             if severity >= DAMAGE_SEVERITY_THRESHOLD:
                 damaged_type = self._fossil_plant_to_damage()
@@ -370,7 +392,19 @@ def event_message(event):
             f"Damage! A {plant_name} plant went offline "
             f"(lost {event['revenue_loss']:.0f} funds in the disruption)."
         )
-    return f"Brownout! Lost {event['revenue_loss']:.0f} funds to grid instability."
+    # C3: name the specific plant type most responsible, rather than a
+    # generic "the grid" message -- falls back to a lingering-emissions
+    # framing for the (rarer) case of a brownout with no fossil plant
+    # currently standing to attribute it to (historical emissions from
+    # fossil capacity retired earlier this run can still be driving risk).
+    cause_plant = event.get("cause_plant")
+    if cause_plant:
+        plant_name = PLANT_LABEL[cause_plant]
+        return (
+            f"Brownout! {plant_name} generation strained the grid "
+            f"(lost {event['revenue_loss']:.0f} funds to instability)."
+        )
+    return f"Brownout! Lost {event['revenue_loss']:.0f} funds to lingering historical emissions."
 
 
 def event_severity_class(event):
