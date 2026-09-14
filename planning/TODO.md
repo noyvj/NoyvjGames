@@ -256,24 +256,24 @@ Two things every game needs once achievements land there, on top of the base rol
 *(E5 marked "later" — moved to `LATER.md`.)*
 
 - [x] E1 — folded into the mobile-dock rollout goal above.
-- [ ] E2: A fourth and fifth skill-tree node.
-- [ ] E3: Branching/prerequisite structure for the skill tree.
-- [ ] E4: Build out the "legacy system" beyond its current flavor-text line.
-- [ ] E6: Another event category beyond weather/non-weather.
-- [ ] E7: Let players review a specific past run's full event-by-event breakdown.
-- [ ] E8: An "expected damage this event" preview before Face Next Event.
-- [ ] E9: A visible "X/3 skills unlocked" progress summary.
-- [ ] E10: A confirmation animation/state change when investment is spent.
-- [ ] E11: A proper end-of-run summary.
-- [ ] E12: Export/import code for the localStorage-based skill tree and run history.
-- [ ] E13: A "reset skill tree" option with confirmation.
-- [ ] E14: Surface each skill's real-world grounding text more prominently on first unlock.
-- [ ] E15: A visual badge on the settlement art per unlocked skill.
-- [ ] E16: Show the current run's severity band numerically.
-- [ ] E17: A "toughest run yet" comparison.
-- [ ] E18: An optional extended-run mode.
-- [ ] E19: Distinct visual intensity per event severity.
-- [ ] E20: A live preview of the knowledge points a run will award.
+- [x] E2: A fourth and fifth skill-tree node — Adaptive Growth Practices (+1 starting growth) and Mutual Aid Network (+5% mitigation).
+- [x] E3: Branching/prerequisite structure for the skill tree — Mutual Aid Network requires both Reinforced Infrastructure and Community Reserves; locked skills show which prereqs are missing.
+- [x] E4: Build out the "legacy system" beyond its current flavor-text line — a per-event-type weathered-count chip row, additive to the original single line.
+- [x] E6: Another event category beyond weather/non-weather — a "social" category (Civil Unrest), replacing the schedule's second Storm slot to preserve the existing 7-event balance.
+- [x] E7: Let players review a specific past run's full event-by-event breakdown — a new persisted run-log history + "Review Past Runs" panel.
+- [x] E8: An "expected damage this event" preview before Face Next Event.
+- [x] E9: A visible "X/5 skills unlocked" progress summary.
+- [x] E10: A confirmation animation/state change when investment is spent — a brief flash on the resources readout.
+- [x] E11: A proper end-of-run summary — final stats + full event-by-event breakdown, beyond the original one-line score.
+- [x] E12: Export/import code for the localStorage-based skill tree and run history — a base64 progress code, separate from the per-run save widget.
+- [x] E13: A "reset skill tree" option with confirmation — an in-UI two-click confirm (no browser dialog), fully refunding spent knowledge.
+- [x] E14: Surface each skill's real-world grounding text more prominently on first unlock — a dedicated unlock toast.
+- [x] E15: A visual badge on the settlement art per unlocked skill.
+- [x] E16: Show the current run's severity band numerically — folded into the E8 expected-damage preview line.
+- [x] E17: A "toughest run yet" comparison.
+- [x] E18: An optional extended-run mode — a checkbox doubling the event schedule length for the next run.
+- [x] E19: Distinct visual intensity per event severity.
+- [x] E20: A live preview of the knowledge points a run will award.
 
 ---
 

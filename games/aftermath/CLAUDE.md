@@ -186,6 +186,97 @@ Hub-side `script.js` registration (`GAMES_WITH_ACHIEVEMENTS`) is out of
 scope for this `games/aftermath/`-only dispatch — same caveat every prior
 per-game achievements rollout in this hub has noted.
 
+## Per-game backlog pass (E2-E4, E6-E20, planning/TODO.md)
+
+A large batch of small-to-medium features from Aftermath's own TODO.md
+checklist (E5 stays parked in `LATER.md`; E1 is the achievements/
+mobile-dock entry above):
+
+- **E2/E3 — a fourth and fifth skill node, with prerequisites:**
+  Adaptive Growth Practices (+1 starting growth capacity, no prereqs) and
+  Mutual Aid Network (+5% flat mitigation, stacking with Resilience
+  investment) — the latter requiring both Reinforced Infrastructure *and*
+  Community Reserves already unlocked, the tree's first branching node.
+  Every `SKILLS` entry now carries a `prereqs` list (empty for the
+  original three); a locked skill missing prereqs shows exactly which
+  ones in its status line instead of just a disabled button.
+- **E4 — legacy system expansion:** a new per-event-type weathered
+  *count* (`legacy_event_counts`, its own localStorage key), rendered as
+  a chip row under the original single flavor-text line, which is
+  untouched.
+- **E6 — a third event category:** "social" shocks, represented by one
+  new event type, Civil Unrest. Deliberately *replaces* the schedule's
+  second Storm slot rather than extending the schedule to 8 events —
+  appending a new event first, then discovering it silently broke the
+  existing hope-angle/skill-tree "do-nothing baseline eventually scores
+  positive" tests (adding ~30 more base damage to an already-tight
+  200-resources-vs-total-damage budget), so the fix was to keep the
+  schedule at 7 events and swap one slot instead, which if anything
+  *reduces* total base damage slightly (32 vs. storm's 50).
+- **E7 — reviewing a past run's breakdown:** a new `run_log_history`
+  (parallel to, not a replacement for, the existing score-only
+  `run_history`) persists every completed run's full event-by-event log;
+  a "Review Past Runs" toggle lists them newest-first.
+- **E8/E16 — expected-damage preview with numeric severity:** one new
+  `expected_next_event_damage()` reuses the exact same deterministic
+  formula `resolve_next_event()` will apply, so the preview is exact, not
+  an estimate; severity shows as a multiplier (e.g. "1.13× severity,
+  severe") instead of only the word.
+- **E9 — "X/5 skills unlocked."**
+- **E10 — investment confirmation flash:** a brief self-clearing CSS
+  animation on the resources readout, only on a successful (funded)
+  investment.
+- **E11 — proper end-of-run summary:** final resilience/growth/damage
+  stats plus the full event-by-event breakdown (reusing E7's rendering
+  helper), alongside the original one-line score text.
+- **E12 — export/import progress code:** a base64-wrapped JSON blob
+  covering everything this game persists *outside* the per-run save
+  widget (skill tree, run history, legacy system, achievement progress).
+  Deliberately fails soft (returns `False`) on a malformed paste rather
+  than raising, unlike `load_state()`'s deliberate strictness — a
+  progress code is hand-pasted by a player, not a same-site round trip.
+- **E13 — reset skill tree:** an in-UI two-click confirm (click once to
+  arm, click again to reset) rather than a browser `confirm()` dialog, so
+  it needed no new fake-DOM global. Fully refunds every spent-and-unspent
+  knowledge point; `lifetime_knowledge` (the achievement-tracking total)
+  is untouched, since a respec shouldn't roll back a lifetime-earned
+  counter. Any other action clears the pending confirmation.
+- **E14 — skill-unlock toast:** a dedicated toast (visually distinct
+  violet identity vs. the gold achievement toast) surfacing the skill's
+  `real_practice` text at the exact moment it's unlocked.
+- **E15 — settlement-art badges:** five fixed small badge dots along the
+  settlement's rooftop line, one per skill, toggled via a
+  `settlement-badge--earned` class.
+- **E17 — "toughest run yet":** the lowest-scoring completed run.
+  `run_history` only ever stored a flat list of scores (no run_number
+  alongside each), so the displayed "Run #N" is that run's *position* in
+  the list — exact for the overwhelmingly common case, and only an
+  approximation in the same rare stale-reload edge case the save-system
+  double-award guard already documents elsewhere in this file.
+- **E18 — extended-run mode:** an opt-in checkbox that doubles the event
+  schedule for the *next* run (`RunState(extended=True)` sets
+  `self.schedule = EVENT_SCHEDULE * 2`). Required refactoring every
+  schedule-length-dependent RunState method to read `self.schedule`
+  instead of the module-level `EVENT_SCHEDULE` directly — a normal run's
+  behavior is unchanged since its `self.schedule` is the same list.
+  `get_state()`/`load_state()` gained one new `"extended"` field, read
+  back with `.get(..., False)` rather than direct key access — the one
+  deliberate exception to this save contract's "KeyError on a malformed
+  payload" rule, since an old save code genuinely predates the field.
+- **E19 — severity visual intensity:** a `severity--mild/typical/severe`
+  class layered alongside the existing event-category class everywhere
+  an event's severity is shown (last-event, expected-damage, and every
+  past-run/end-of-run breakdown line); severe pulses, mild fades.
+- **E20 — live knowledge-points preview:** "If the run ended now: N
+  knowledge points," reusing the existing scoring formula mid-run.
+
+Full pytest suite went from 154 to 201 tests, all passing; the whole
+feature set was also verified live via a local server (Pyodide, not just
+the fake-DOM harness) — skill unlock + prereqs + toast + badges, run
+completion + past-runs review + end-of-run summary, extended-run mode,
+reset-skill-tree's two-click confirm, and a full export/import round
+trip all behaved correctly with no console errors.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

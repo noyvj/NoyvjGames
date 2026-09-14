@@ -17,7 +17,13 @@ SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent / "shared"
 if str(SHARED_DIR) not in sys.path:
     sys.path.insert(0, str(SHARED_DIR))
 
-SKILL_IDS = ["reinforced_infrastructure", "community_reserves", "early_warning"]
+SKILL_IDS = [
+    "reinforced_infrastructure",
+    "community_reserves",
+    "early_warning",
+    "adaptive_growth",
+    "mutual_aid_network",
+]
 
 ELEMENT_IDS = [
     "legacy-display",
@@ -44,12 +50,46 @@ ELEMENT_IDS = [
     "achievements-panel",
     "achievement-toast",
     "achievement-toast-text",
+    # E4: expanded legacy system.
+    "legacy-history-panel",
+    # E7: reviewing a specific past run's event-by-event breakdown.
+    "past-runs-toggle-button",
+    "past-runs-panel",
+    # E8/E16: expected-damage-this-event preview, with numeric severity.
+    "expected-damage-display",
+    # E9: "X/Y skills unlocked" progress summary.
+    "skills-unlocked-display",
+    # E11: a proper end-of-run summary panel (beyond the one-line
+    # run-summary-display, kept as-is for the tests already pinned to it).
+    "run-summary-panel",
+    # E12: export/import code for the localStorage-based skill
+    # tree/run/legacy history.
+    "progress-export-button",
+    "progress-export-output",
+    "progress-import-input",
+    "progress-import-button",
+    "progress-code-status",
+    # E13: reset skill tree, with an in-UI two-click confirmation.
+    "reset-skill-tree-button",
+    # E14: a dedicated toast for a skill's real-world grounding text,
+    # separate from the achievement-unlock toast above.
+    "skill-unlock-toast",
+    "skill-unlock-toast-text",
+    # E17: "toughest run yet" comparison.
+    "toughest-run-display",
+    # E18: optional extended-run mode toggle.
+    "extended-run-toggle",
+    "extended-run-toggle-wrapper",
+    # E20: live knowledge-points-if-the-run-ended-now preview.
+    "knowledge-preview-display",
 ]
 for _skill in SKILL_IDS:
     ELEMENT_IDS += [
         f"skill-{_skill}-status",
         f"skill-{_skill}-unlock-button",
         f"skill-{_skill}-practice",
+        # E15: a settlement-art badge per unlocked skill.
+        f"settlement-badge-{_skill}",
     ]
 
 INITIALLY_DISABLED_IDS = [
@@ -99,6 +139,21 @@ class GameEnv:
 
     def toggle_achievements(self):
         self.elements["achievements-toggle-button"].dispatch("click", None)
+
+    def toggle_past_runs(self):
+        self.elements["past-runs-toggle-button"].dispatch("click", None)
+
+    def reset_skill_tree_click(self):
+        self.elements["reset-skill-tree-button"].dispatch("click", None)
+
+    def export_progress(self):
+        self.elements["progress-export-button"].dispatch("click", None)
+        return self.elements["progress-export-output"].value
+
+    def import_progress(self, code):
+        self.elements["progress-import-input"].innerText = code
+        self.elements["progress-import-input"].value = code
+        self.elements["progress-import-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements, local_storage, timers):

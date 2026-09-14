@@ -39,6 +39,10 @@ class FakeElement:
         self.hidden = False
         self.title = ""
         self.className = ""
+        # Stand-ins for <input>/<textarea> DOM properties (used by E12's
+        # progress-code import textarea and E18's extended-run checkbox).
+        self.value = ""
+        self.checked = False
         self.classList = FakeClassList()
         self.style = FakeStyle()
         self.children = []

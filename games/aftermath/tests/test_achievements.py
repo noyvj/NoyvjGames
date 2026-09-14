@@ -120,7 +120,9 @@ def test_skill_unlock_achievements(game_env):
 
 def test_full_skill_tree_requires_every_skill(game_env):
     module = game_env.module
-    game_env.skill_tree.add_knowledge(20)
+    # E2 added a fourth and fifth skill node, raising the total cost to
+    # unlock every skill above the pre-E2 20-point allowance.
+    game_env.skill_tree.add_knowledge(sum(skill["cost"] for skill in module.SKILLS.values()))
     for skill_id in module.SKILLS:
         game_env.unlock_skill(skill_id)
     assert "full_skill_tree" in module.achievement_ids_earned()

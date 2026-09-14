@@ -1015,3 +1015,220 @@ button.primary:disabled::after {
     padding-bottom: 230px;
   }
 }
+
+/* ============================================================
+   E6: a third event category — social shocks (civil_unrest) — gets its
+   own hue, same "identity color + soft glow" treatment as the pre-existing
+   weather/non-weather categories above. */
+.event-category--social {
+  color: #c07fd8;
+  text-shadow: 0 0 10px rgba(192, 127, 216, 0.35);
+}
+
+#last-event-display.event-category--social ~ .settlement-visual .settlement-damage {
+  opacity: 1;
+}
+
+/* ============================================================
+   E19: distinct visual intensity per event severity, layered on top of
+   whichever event-category color is already set (last-event-display,
+   expected-damage-display, and each per-run breakdown line in
+   .past-run-event all carry both classes together). Mild fades out
+   slightly; severe pulses harder without changing the category's hue. */
+.severity--mild {
+  opacity: 0.7;
+}
+
+.severity--severe {
+  animation: severity-severe-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes severity-severe-pulse {
+  0%, 100% { text-shadow: 0 0 6px rgba(255, 120, 90, 0.35); }
+  50% { text-shadow: 0 0 16px rgba(255, 120, 90, 0.85); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .severity--severe {
+    animation: none;
+    text-shadow: 0 0 14px rgba(255, 120, 90, 0.7);
+  }
+}
+
+/* ============================================================
+   E4: legacy-history chips — one per event type this settlement has ever
+   weathered, additive to the existing .legacy-display flavor line. */
+.legacy-history-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: -0.75rem 0 1rem;
+}
+
+.legacy-history-chip {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(140, 160, 255, 0.1);
+  border: 1px solid rgba(140, 160, 255, 0.2);
+  opacity: 0.75;
+}
+
+/* ============================================================
+   E7/E11: past-run review cards and the live end-of-run summary panel
+   share the same event-breakdown-line styling. */
+.past-run-card {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  border-radius: 10px;
+  background: rgba(5, 6, 13, 0.4);
+  margin-bottom: 0.6rem;
+}
+
+.past-run-card:last-child {
+  margin-bottom: 0;
+}
+
+.past-run-title {
+  margin: 0 0 0.4rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.past-run-event {
+  margin: 0 0 0.2rem;
+  font-size: 0.78rem;
+  opacity: 0.85;
+}
+
+.past-run-event:last-child {
+  margin-bottom: 0;
+}
+
+.run-summary-panel {
+  margin: 0.4rem 0 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(76, 156, 110, 0.3);
+  border-radius: 10px;
+  background: linear-gradient(165deg, rgba(76, 156, 110, 0.1), rgba(5, 6, 13, 0.4));
+}
+
+.run-summary-stats {
+  margin: 0 0 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+/* ============================================================
+   E10: a brief confirmation flash on the resources readout when an
+   investment is actually spent. */
+.invest-flash {
+  animation: invest-flash-pulse 400ms ease-out;
+}
+
+@keyframes invest-flash-pulse {
+  0% { color: #8ee6ac; text-shadow: 0 0 12px rgba(142, 230, 172, 0.9); }
+  100% { color: inherit; text-shadow: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .invest-flash {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   E14: skill-unlock toast — same fixed-pill shape/timing as the
+   achievement-unlock toast, but a distinct violet identity so the two are
+   never confused for each other at a glance. */
+.skill-unlock-toast {
+  top: 64px; /* stacks below the achievement toast if both ever fire close together */
+  background: linear-gradient(135deg, rgba(94, 74, 178, 0.95), rgba(60, 46, 122, 0.95));
+  border-color: rgba(180, 160, 245, 0.5);
+  color: #f1ecff;
+}
+
+/* ============================================================
+   E18: extended-run-mode toggle, styled to sit comfortably alongside the
+   primary action buttons in #actions-dock. */
+.extended-run-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  justify-content: center;
+  font-size: 0.8rem;
+  opacity: 0.85;
+  padding: 0.3rem 0;
+}
+
+/* ============================================================
+   E15: a small settlement-art badge per unlocked skill. Positioned along
+   the settlement's rooftop line; invisible until game.py adds
+   settlement-badge--earned for that skill. Five fixed slots avoid any
+   two badges overlapping regardless of which subset is unlocked. */
+.settlement-badge {
+  position: absolute;
+  bottom: 24px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffe9a8, #d4af37 70%);
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.9);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.settlement-badge--earned {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.settlement-badge--reinforced_infrastructure { left: 12%; }
+.settlement-badge--community_reserves { left: 32%; }
+.settlement-badge--early_warning { left: 50%; }
+.settlement-badge--adaptive_growth { left: 68%; }
+.settlement-badge--mutual_aid_network { left: 86%; }
+
+@media (prefers-reduced-motion: reduce) {
+  .settlement-badge {
+    transition: none;
+  }
+}
+
+/* ============================================================
+   E12: export/import progress-code panel. */
+.progress-code-label {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.progress-code-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.progress-code-textarea {
+  flex: 1;
+  min-width: 180px;
+  min-height: 2.4rem;
+  resize: vertical;
+  font-family: monospace;
+  font-size: 0.72rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.2);
+  background: rgba(5, 6, 13, 0.5);
+  color: inherit;
+}
+
+.progress-code-status {
+  margin: 0.3rem 0 0;
+  font-size: 0.78rem;
+  opacity: 0.8;
+}

@@ -8,6 +8,7 @@ and damage resolution, feeding a persistent cross-run skill tree and
 milestone history.
 """
 
+import base64
 import copy
 import json
 
@@ -30,8 +31,17 @@ MAX_MITIGATION = 0.85
 # non-weather resilience shocks (supply-chain, infrastructure) so
 # "resilience" reads as a broader societal capacity than storm-proofing
 # alone — same scheduled-event structure, just more event variety.
+# E6 (planning/TODO.md per-game backlog) added a third event category —
+# "social" — represented by a single new event type, civil_unrest, which
+# replaces the schedule's second "storm" slot rather than extending the
+# schedule's length: test_iteration_pass_2.py's "schedule index 2 is
+# supply_chain" and first-two-events-unchanged assertions both depend on
+# the front of this list staying exactly as it was, and keeping the
+# length at 7 (instead of appending an 8th event) avoids re-litigating
+# the fixed total-damage-vs-starting-resources balance the existing
+# hope-angle/skill-tree tests are tuned against.
 EVENT_SCHEDULE = [
-    "flood", "heatwave", "supply_chain", "storm", "infrastructure_failure", "flood", "storm",
+    "flood", "heatwave", "supply_chain", "storm", "infrastructure_failure", "flood", "civil_unrest",
 ]
 
 EVENT_LABEL = {
@@ -40,6 +50,7 @@ EVENT_LABEL = {
     "storm": "Storm",
     "supply_chain": "Supply-Chain Disruption",
     "infrastructure_failure": "Infrastructure Failure",
+    "civil_unrest": "Civil Unrest",
 }
 
 EVENT_ICON = {
@@ -53,6 +64,7 @@ EVENT_ICON = {
     "storm": "\U0001F32A️",  # tornado
     "supply_chain": "\U0001F4E6️",  # package
     "infrastructure_failure": "⚡️",  # high voltage
+    "civil_unrest": "\U0001F4E2️",  # loudspeaker
 }
 
 EVENT_BASE_DAMAGE = {
@@ -61,6 +73,7 @@ EVENT_BASE_DAMAGE = {
     "storm": 50.0,
     "supply_chain": 30.0,
     "infrastructure_failure": 38.0,
+    "civil_unrest": 32.0,
 }
 
 # Iteration Pass 2 — event-type category, so weather and non-weather
@@ -73,6 +86,12 @@ EVENT_CATEGORY = {
     "storm": "weather",
     "supply_chain": "non-weather",
     "infrastructure_failure": "non-weather",
+    # E6: a third category — social shocks — distinct from both physical
+    # weather and physical/economic infrastructure disruption. Civil
+    # unrest (protest, strikes, breakdowns in community cooperation) is a
+    # real, documented consequence of repeated disaster strain, and
+    # belongs in "resilience-relevant shocks" alongside the other two.
+    "civil_unrest": "social",
 }
 
 # Iteration-pass addition: severity varies per event so repeated runs
@@ -127,24 +146,49 @@ def severity_label(severity):
 # Skill tree — lives outside the run loop entirely, persisting between
 # runs (and between visits, via localStorage). Bonus application to new
 # runs is Milestone 4's job; this milestone is just the structure.
+#
+# E2/E3 (planning/TODO.md's per-game backlog) added a fourth and fifth
+# node plus a "prereqs" list on every entry (empty for the original
+# three, which stay unlockable from the start). mutual_aid_network is
+# the first skill that actually requires prereqs -- deliberately built
+# on top of both foundational skills, since a mutual-aid network only
+# functions once a settlement already has both physical infrastructure
+# and pooled resources to organize around.
 SKILLS = {
     "reinforced_infrastructure": {
         "cost": 3,
+        "prereqs": [],
         "label": "Reinforced Infrastructure",
         "description": "+2 starting resilience capacity",
         "real_practice": "Mirrors real building codes requiring flood-resistant foundations and reinforced structures in vulnerable regions.",
     },
     "community_reserves": {
         "cost": 3,
+        "prereqs": [],
         "label": "Community Reserves",
         "description": "+50 starting resources",
         "real_practice": "Mirrors community emergency funds and mutual-aid reserves, letting a region self-fund early recovery instead of waiting on outside aid.",
     },
     "early_warning": {
         "cost": 5,
+        "prereqs": [],
         "label": "Early Warning Systems",
         "description": "+10% mitigation on all events",
         "real_practice": "Mirrors real early-warning networks — alert systems for floods and storms have been shown to cut disaster damage and casualties dramatically for relatively low cost.",
+    },
+    "adaptive_growth": {
+        "cost": 4,
+        "prereqs": [],
+        "label": "Adaptive Growth Practices",
+        "description": "+1 starting growth capacity",
+        "real_practice": "Mirrors diversified local economies that keep some productive capacity running even while a region's resilience investment is still catching up.",
+    },
+    "mutual_aid_network": {
+        "cost": 6,
+        "prereqs": ["reinforced_infrastructure", "community_reserves"],
+        "label": "Mutual Aid Network",
+        "description": "+5% mitigation on all events (stacks with Resilience investment)",
+        "real_practice": "Mirrors real mutual-aid networks, which only function once a settlement already has both physical infrastructure and pooled resources to organize around — neighbors sharing tools, shelter, and labor during recovery.",
     },
 }
 
@@ -157,6 +201,10 @@ RUN_HISTORY_STORAGE_KEY = "aftermath_run_history_v1"
 # which event types this settlement has weathered before, referenced as
 # flavor text in the next run rather than a mechanical bonus.
 LEGACY_STORAGE_KEY = "aftermath_legacy_events_v1"
+# E4/E7 (planning/TODO.md per-game backlog): additive persistence
+# alongside the two keys above, not a replacement for either.
+LEGACY_COUNTS_STORAGE_KEY = "aftermath_legacy_event_counts_v1"
+RUN_LOG_HISTORY_STORAGE_KEY = "aftermath_run_log_history_v1"
 
 # The shared save widget can restore an *older* in-memory RunState over a
 # newer one (that's the whole point of "load a save from earlier") --
@@ -217,6 +265,46 @@ def save_run_history(history):
     localStorage.setItem(RUN_HISTORY_STORAGE_KEY, json.dumps(history))
 
 
+def load_legacy_event_counts():
+    """E4: how many times this settlement has weathered each event type,
+    additive to (not a replacement for) the pre-existing ever-weathered
+    `legacy_events` set above."""
+    raw = localStorage.getItem(LEGACY_COUNTS_STORAGE_KEY)
+    if not raw:
+        return {}
+    try:
+        data = json.loads(raw)
+    except ValueError:
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    return {str(key): int(value) for key, value in data.items() if isinstance(value, (int, float))}
+
+
+def save_legacy_event_counts(counts):
+    localStorage.setItem(LEGACY_COUNTS_STORAGE_KEY, json.dumps(counts))
+
+
+def load_run_log_history():
+    """E7: the persisted event-by-event breakdown for every completed run
+    (a superset of run_history, which only ever stored the final score).
+    Starts empty even for a returning player with existing run_history --
+    runs completed before this feature shipped simply have no detailed
+    breakdown to show, which the review UI handles gracefully."""
+    raw = localStorage.getItem(RUN_LOG_HISTORY_STORAGE_KEY)
+    if not raw:
+        return []
+    try:
+        data = json.loads(raw)
+    except ValueError:
+        return []
+    return data if isinstance(data, list) else []
+
+
+def save_run_log_history(history):
+    localStorage.setItem(RUN_LOG_HISTORY_STORAGE_KEY, json.dumps(history))
+
+
 def starting_resources_bonus():
     return 50 if "community_reserves" in skill_tree.unlocked else 0
 
@@ -229,15 +317,39 @@ def early_warning_mitigation_bonus():
     return 0.10 if "early_warning" in skill_tree.unlocked else 0.0
 
 
+def adaptive_growth_bonus():
+    """E2: the fourth skill node -- a starting-growth-capacity bonus,
+    mirroring reinforced_infrastructure/community_reserves' starting-stat
+    shape but on the growth side instead of resilience/resources."""
+    return 1 if "adaptive_growth" in skill_tree.unlocked else 0
+
+
+def mutual_aid_mitigation_bonus():
+    """E2: the fifth skill node -- flat mitigation like early_warning's,
+    but gated behind E3's prereq structure (both foundational skills)."""
+    return 0.05 if "mutual_aid_network" in skill_tree.unlocked else 0.0
+
+
 class RunState:
-    def __init__(self, run_number=1):
+    def __init__(self, run_number=1, extended=False):
         """Reads current skill-tree bonuses at creation time — a new run
-        starts a little more capable than the last, per unlocked skills."""
+        starts a little more capable than the last, per unlocked skills.
+
+        `extended` (E18: optional extended-run mode) picks a per-instance
+        `schedule` — the same fixed EVENT_SCHEDULE repeated twice for a
+        longer, harder-fought run, or the plain schedule otherwise. Every
+        schedule-length-dependent method below reads self.schedule rather
+        than the module-level EVENT_SCHEDULE directly, so a normal run's
+        behavior (and every test pinned to it) is completely unchanged —
+        only a run explicitly started as `extended` ever sees the longer
+        list."""
         self.run_number = run_number
+        self.extended = extended
+        self.schedule = EVENT_SCHEDULE * 2 if extended else EVENT_SCHEDULE
         self.event_index = 0
         self.resources = STARTING_RESOURCES + starting_resources_bonus()
         self.resilience_capacity = starting_resilience_bonus()
-        self.growth_capacity = 0
+        self.growth_capacity = adaptive_growth_bonus()
         self.damage_taken = 0.0
         self.event_log = []
         # Achievements ("profitable_run") need to compare a run's *final*
@@ -250,12 +362,12 @@ class RunState:
         self.starting_resources = self.resources
 
     def is_complete(self):
-        return self.event_index >= len(EVENT_SCHEDULE)
+        return self.event_index >= len(self.schedule)
 
     def next_event_type(self):
         if self.is_complete():
             return None
-        return EVENT_SCHEDULE[self.event_index]
+        return self.schedule[self.event_index]
 
     def invest_resilience(self):
         if self.resources < RESILIENCE_COST:
@@ -277,7 +389,10 @@ class RunState:
 
     def mitigation_fraction(self):
         from_resilience = self.resilience_capacity * RESILIENCE_MITIGATION_PER_UNIT
-        return min(MAX_MITIGATION, from_resilience + early_warning_mitigation_bonus())
+        return min(
+            MAX_MITIGATION,
+            from_resilience + early_warning_mitigation_bonus() + mutual_aid_mitigation_bonus(),
+        )
 
     def resolve_next_event(self):
         """Applies growth income, then resolves the next scheduled event's
@@ -288,7 +403,7 @@ class RunState:
 
         self.resources += self.growth_capacity * GROWTH_INCOME_PER_UNIT
 
-        event_type = EVENT_SCHEDULE[self.event_index]
+        event_type = self.schedule[self.event_index]
         severity = event_severity(self.run_number, self.event_index, skill_tree_strength())
         damage = EVENT_BASE_DAMAGE[event_type] * severity * (1 - self.mitigation_fraction())
         self.resources = max(0.0, self.resources - damage)
@@ -309,6 +424,30 @@ class RunState:
                 save_run_history(run_history)
                 legacy_events.update(entry["type"] for entry in self.event_log)
                 save_legacy_events(legacy_events)
+                # E4: build out the legacy system beyond its original
+                # single-flavor-text-line shape -- a per-event-type
+                # *count* of how many times this settlement has weathered
+                # each kind of event, alongside the pre-existing
+                # ever-weathered set above (which legacy_message() still
+                # uses unchanged).
+                for entry in self.event_log:
+                    legacy_event_counts[entry["type"]] = legacy_event_counts.get(entry["type"], 0) + 1
+                save_legacy_event_counts(legacy_event_counts)
+                # E7: persist this run's full event-by-event breakdown
+                # (not just its final score, which run_history already
+                # tracks) so players can review a specific past run later.
+                run_log_history.append(
+                    {
+                        "run_number": self.run_number,
+                        "score": self.run_score(),
+                        "resilience_capacity": self.resilience_capacity,
+                        "growth_capacity": self.growth_capacity,
+                        "damage_taken": self.damage_taken,
+                        "knowledge_earned": self.knowledge_points_earned(),
+                        "event_log": copy.deepcopy(self.event_log),
+                    }
+                )
+                save_run_log_history(run_log_history)
                 highest_awarded_run = self.run_number
                 save_highest_awarded_run(highest_awarded_run)
 
@@ -355,7 +494,19 @@ class SkillTreeState:
         self.lifetime_knowledge = 0
 
     def can_unlock(self, skill_id):
-        return skill_id not in self.unlocked and self.knowledge_points >= SKILLS[skill_id]["cost"]
+        """E3: branching/prerequisite structure — a skill is unlockable
+        only once every id in its own "prereqs" list is itself already
+        unlocked (empty for the three original skills, so they're
+        unaffected)."""
+        skill = SKILLS[skill_id]
+        if skill_id in self.unlocked or self.knowledge_points < skill["cost"]:
+            return False
+        return all(prereq in self.unlocked for prereq in skill.get("prereqs", []))
+
+    def missing_prereqs(self, skill_id):
+        """The subset of skill_id's prereqs not yet unlocked, in catalog
+        order — used to tell the player *why* a skill is locked (E3)."""
+        return [prereq for prereq in SKILLS[skill_id].get("prereqs", []) if prereq not in self.unlocked]
 
     def unlock(self, skill_id):
         if not self.can_unlock(skill_id):
@@ -405,6 +556,8 @@ class SkillTreeState:
 skill_tree = SkillTreeState.load()
 run_history = load_run_history()
 legacy_events = load_legacy_events()
+legacy_event_counts = load_legacy_event_counts()
+run_log_history = load_run_log_history()
 highest_awarded_run = load_highest_awarded_run()
 run = RunState()
 
@@ -787,31 +940,374 @@ def on_toggle_info_page(event=None):
     render_info_page()
 
 
+# ===========================================================================
+# E4: legacy-system expansion (beyond the original single flavor-text line
+# above). legacy_message() and the ever-weathered `legacy_events` set are
+# untouched -- this is an additive, more detailed view built from the new
+# per-event-type `legacy_event_counts`.
+# ===========================================================================
+def legacy_history_summary():
+    """Every event type this settlement has ever weathered, with how many
+    times, sorted by label for a stable display order. Empty entries
+    (count 0, which shouldn't occur but would if a saved dict somehow had
+    a zero) are skipped."""
+    return [
+        {
+            "type": event_type,
+            "label": EVENT_LABEL[event_type],
+            "icon": EVENT_ICON[event_type],
+            "count": count,
+        }
+        for event_type, count in sorted(legacy_event_counts.items(), key=lambda pair: EVENT_LABEL[pair[0]])
+        if count > 0
+    ]
+
+
+# ===========================================================================
+# E7: reviewing a specific past run's full event-by-event breakdown, from
+# the new run_log_history persisted alongside (not instead of) the
+# existing run_history score-only list.
+# ===========================================================================
+past_runs_open = False
+
+
+def on_toggle_past_runs(event=None):
+    global past_runs_open
+    past_runs_open = not past_runs_open
+    render_past_runs_panel()
+
+
+def _render_event_breakdown_lines(container, event_log):
+    for entry in event_log:
+        line = document.createElement("p")
+        line.className = (
+            f"past-run-event event-category--{EVENT_CATEGORY[entry['type']]} "
+            f"severity--{severity_label(entry['severity'])}"
+        )
+        line.innerText = (
+            f"{EVENT_ICON[entry['type']]} {EVENT_LABEL[entry['type']]} — "
+            f"{entry['damage']:.0f} damage ({severity_label(entry['severity'])} intensity)"
+        )
+        container.appendChild(line)
+
+
+def render_past_runs_panel():
+    toggle = document.getElementById("past-runs-toggle-button")
+    panel = document.getElementById("past-runs-panel")
+    toggle.innerText = "Hide Past Runs" if past_runs_open else f"📜 Review Past Runs ({len(run_log_history)})"
+    panel.hidden = not past_runs_open
+    if not past_runs_open:
+        return
+
+    panel.innerHTML = ""
+    if not run_log_history:
+        empty = document.createElement("p")
+        empty.innerText = "No detailed run history yet — complete a run to start building one."
+        panel.appendChild(empty)
+        return
+
+    for entry in reversed(run_log_history):
+        card = document.createElement("div")
+        card.className = "past-run-card"
+        title = document.createElement("p")
+        title.className = "past-run-title"
+        title.innerText = (
+            f"Run #{entry['run_number']} — score {entry['score']:.0f} "
+            f"(resilience {entry['resilience_capacity']}, growth {entry['growth_capacity']}, "
+            f"+{entry['knowledge_earned']} knowledge)"
+        )
+        card.appendChild(title)
+        _render_event_breakdown_lines(card, entry["event_log"])
+        panel.appendChild(card)
+
+
+# ===========================================================================
+# E8/E16: an "expected damage this event" preview, with the underlying
+# severity multiplier shown numerically rather than just mild/typical/
+# severe -- both derived from the exact same deterministic formula
+# resolve_next_event() itself will use, so the preview is exact, not a
+# rough estimate.
+# ===========================================================================
+def expected_next_event_damage(run_state):
+    """Returns (damage, severity) for run_state's next scheduled event, or
+    None once the run is already complete."""
+    if run_state.is_complete():
+        return None
+    event_type = run_state.next_event_type()
+    severity = event_severity(run_state.run_number, run_state.event_index, skill_tree_strength())
+    damage = EVENT_BASE_DAMAGE[event_type] * severity * (1 - run_state.mitigation_fraction())
+    return damage, severity
+
+
+# ===========================================================================
+# E17: "toughest run yet" -- the lowest-scoring completed run. run_history
+# is a flat list of scores in completion order (no run_number stored
+# alongside each), so the displayed "Run #N" is that run's *position* in
+# the list, not necessarily its literal run_number -- these coincide for
+# the overwhelmingly common case (runs completed in strict numeric order)
+# and only diverge in the rare stale-reload edge case the save-system
+# double-award guard already documents elsewhere in this file. Good enough
+# for a flavor comparison; run_log_history (E7) has the exact run_number
+# for any run a player wants to inspect precisely.
+# ===========================================================================
+def toughest_run_yet():
+    if not run_history:
+        return None
+    worst_score = min(run_history)
+    return run_history.index(worst_score) + 1, worst_score
+
+
+# ===========================================================================
+# E12: export/import code for the localStorage-based skill tree, run
+# history, legacy system, and achievement progress -- everything this
+# game persists *outside* the per-run save-widget round trip (see
+# get_state()/load_state()'s own big comment below for why those two
+# mechanisms are kept separate). A base64-wrapped JSON blob, the same
+# shape as the shared save widget's own codes, but carrying this game's
+# cross-run progress instead of one run's live state.
+# ===========================================================================
+PROGRESS_EXPORT_VERSION = 1
+
+
+def export_progress_code():
+    bundle = {
+        "version": PROGRESS_EXPORT_VERSION,
+        "skill_tree": skill_tree.to_dict(),
+        "run_history": list(run_history),
+        "legacy_events": sorted(legacy_events),
+        "legacy_event_counts": dict(legacy_event_counts),
+        "achievement_progress": dict(achievement_progress),
+        "highest_awarded_run": highest_awarded_run,
+    }
+    raw = json.dumps(bundle).encode("utf-8")
+    return base64.b64encode(raw).decode("ascii")
+
+
+def import_progress_code(code):
+    """Parses and applies a code from export_progress_code(). Returns True
+    on success, False on any malformed input -- unlike load_state() below
+    (which deliberately raises on a bad payload, since that one only ever
+    receives this same site's own save codes), a progress code is
+    hand-typed/pasted by a player and a bad paste is an expected, common
+    failure mode that should fail soft with a status message, not crash
+    the page."""
+    global skill_tree, run_history, legacy_events, legacy_event_counts, achievement_progress, highest_awarded_run
+
+    try:
+        raw = base64.b64decode(code.strip()).decode("utf-8")
+        bundle = json.loads(raw)
+    except Exception:  # noqa: BLE001 -- deliberately broad, see docstring
+        return False
+    if not isinstance(bundle, dict) or "skill_tree" not in bundle:
+        return False
+
+    try:
+        st_data = bundle["skill_tree"]
+        new_skill_tree = SkillTreeState()
+        new_skill_tree.knowledge_points = st_data.get("knowledge_points", 0)
+        new_skill_tree.unlocked = set(st_data.get("unlocked", []))
+        new_skill_tree.lifetime_knowledge = st_data.get("lifetime_knowledge", new_skill_tree.knowledge_points)
+
+        new_run_history = list(bundle.get("run_history", []))
+        new_legacy_events = set(bundle.get("legacy_events", []))
+        new_legacy_event_counts = {
+            str(k): int(v) for k, v in dict(bundle.get("legacy_event_counts", {})).items()
+        }
+        new_achievement_progress = _default_achievement_progress()
+        for key, value in dict(bundle.get("achievement_progress", {})).items():
+            if key in new_achievement_progress:
+                new_achievement_progress[key] = bool(value)
+        new_highest_awarded_run = int(bundle.get("highest_awarded_run", 0))
+    except (ValueError, TypeError, AttributeError):
+        return False
+
+    skill_tree = new_skill_tree
+    run_history = new_run_history
+    legacy_events = new_legacy_events
+    legacy_event_counts = new_legacy_event_counts
+    achievement_progress = new_achievement_progress
+    highest_awarded_run = new_highest_awarded_run
+
+    skill_tree.save()
+    save_run_history(run_history)
+    save_legacy_events(legacy_events)
+    save_legacy_event_counts(legacy_event_counts)
+    save_achievement_progress()
+    save_highest_awarded_run(highest_awarded_run)
+    _seed_achievement_toast_baseline()
+    return True
+
+
+def on_export_progress(event=None):
+    document.getElementById("progress-export-output").value = export_progress_code()
+    document.getElementById("progress-code-status").innerText = "Progress code generated below — copy it somewhere safe."
+
+
+def on_import_progress(event=None):
+    code = document.getElementById("progress-import-input").value
+    status = document.getElementById("progress-code-status")
+    if not code or not code.strip():
+        status.innerText = "Paste a progress code first."
+        return
+    if import_progress_code(code):
+        status.innerText = "Progress imported successfully."
+        render()
+    else:
+        status.innerText = "That code couldn't be read — check you copied the whole thing."
+
+
+# ===========================================================================
+# E13: reset skill tree, gated behind a lightweight in-UI two-click
+# confirmation (click once to arm, click again to actually reset) rather
+# than a browser confirm() dialog -- keeps this self-contained in the same
+# fake-DOM test harness every other handler here already uses, no new
+# `window` global needed. Any other skill-tree/run action clears the
+# pending confirmation, so a reset can't accidentally fire from a stray
+# click much later.
+# ===========================================================================
+skill_tree_reset_pending = False
+
+
+def _clear_skill_tree_reset_pending():
+    global skill_tree_reset_pending
+    skill_tree_reset_pending = False
+
+
+def reset_skill_tree():
+    """Refunds every spent-and-unspent knowledge point (so respeccing
+    doesn't punish a player for having unlocked anything) and clears which
+    skills are unlocked. lifetime_knowledge (the achievement-tracking
+    total) is deliberately untouched -- it's a lifetime-earned counter,
+    not a spendable balance, so a respec shouldn't roll it back."""
+    total_refund = skill_tree.knowledge_points + sum(
+        SKILLS[skill_id]["cost"] for skill_id in skill_tree.unlocked
+    )
+    skill_tree.knowledge_points = total_refund
+    skill_tree.unlocked = set()
+    skill_tree.save()
+
+
+def on_reset_skill_tree(event=None):
+    global skill_tree_reset_pending
+    if not skill_tree_reset_pending:
+        skill_tree_reset_pending = True
+    else:
+        reset_skill_tree()
+        skill_tree_reset_pending = False
+    render()
+
+
+# ===========================================================================
+# E14: a dedicated toast surfacing a skill's real-world grounding text
+# prominently at the moment it's unlocked -- the always-visible
+# `skill-practice` paragraph in the skill tree already shows this text,
+# but this makes it impossible to miss on the exact unlock that made it
+# relevant.
+# ===========================================================================
+def _display_skill_unlock_toast(skill_id):
+    skill = SKILLS[skill_id]
+    toast = document.getElementById("skill-unlock-toast")
+    text = document.getElementById("skill-unlock-toast-text")
+    text.innerText = f"🔓 {skill['label']} unlocked — {skill['real_practice']}"
+    toast.hidden = False
+    toast.classList.add("visible")
+
+    def _hide(*args):
+        toast.hidden = True
+        toast.classList.remove("visible")
+        proxy.destroy()
+
+    proxy = create_proxy(_hide)
+    setTimeout(proxy, 6000)
+
+
+# ===========================================================================
+# E10: a brief, self-clearing visual flash on the resources readout when
+# an investment is actually spent -- confirmation feedback beyond the
+# number itself changing. Reuses the same create_proxy/setTimeout
+# one-shot-timer pattern as the achievement/skill-unlock toasts above.
+# ===========================================================================
+def _flash_element(element_id, duration_ms=400):
+    element = document.getElementById(element_id)
+    element.classList.add("invest-flash")
+
+    def _remove(*args):
+        element.classList.remove("invest-flash")
+        proxy.destroy()
+
+    proxy = create_proxy(_remove)
+    setTimeout(proxy, duration_ms)
+
+
 def render():
     render_info_page()
     update_achievements_display()
+    render_past_runs_panel()
     document.getElementById("legacy-display").innerText = legacy_message()
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
     document.getElementById("resilience-display").innerText = f"Resilience: {run.resilience_capacity}"
     document.getElementById("growth-display").innerText = f"Growth: {run.growth_capacity}"
 
+    # E4: legacy-history chips (additive to the legacy-display flavor line
+    # above).
+    history_panel = document.getElementById("legacy-history-panel")
+    history_panel.innerHTML = ""
+    for entry in legacy_history_summary():
+        chip = document.createElement("span")
+        chip.className = "legacy-history-chip"
+        chip.innerText = f"{entry['icon']} {entry['label']} ×{entry['count']}"
+        history_panel.appendChild(chip)
+
+    run_summary_panel = document.getElementById("run-summary-panel")
+
     if run.is_complete():
         document.getElementById("progress-display").innerText = "Run complete"
         document.getElementById("next-event-display").innerText = "No more events this run."
+        document.getElementById("expected-damage-display").innerText = ""
+        document.getElementById("knowledge-preview-display").innerText = ""
         document.getElementById("run-summary-display").innerText = (
             f"Score: {run.run_score():.0f} — "
             f"earned {run.knowledge_points_earned()} resilience knowledge point"
             f"{'s' if run.knowledge_points_earned() != 1 else ''}."
         )
+        # E11: a proper end-of-run summary -- final stats plus the exact
+        # event-by-event breakdown, not just the one-line score above.
+        run_summary_panel.hidden = False
+        run_summary_panel.innerHTML = ""
+        stats = document.createElement("p")
+        stats.className = "run-summary-stats"
+        stats.innerText = (
+            f"Final resilience: {run.resilience_capacity} · Final growth: {run.growth_capacity} · "
+            f"Total damage taken: {run.damage_taken:.0f}"
+        )
+        run_summary_panel.appendChild(stats)
+        _render_event_breakdown_lines(run_summary_panel, run.event_log)
     else:
         document.getElementById("run-summary-display").innerText = ""
+        run_summary_panel.hidden = True
+        run_summary_panel.innerHTML = ""
         document.getElementById("progress-display").innerText = (
-            f"Event {run.event_index + 1} of {len(EVENT_SCHEDULE)}"
+            f"Event {run.event_index + 1} of {len(run.schedule)}"
         )
         next_type = run.next_event_type()
         next_event_el = document.getElementById("next-event-display")
         next_event_el.innerText = f"Next: {EVENT_ICON[next_type]} {EVENT_LABEL[next_type]}"
         next_event_el.className = f"status-line event-category--{EVENT_CATEGORY[next_type]}"
+
+        # E8/E16: expected-damage-this-event preview, numeric severity band.
+        damage, severity = expected_next_event_damage(run)
+        expected_el = document.getElementById("expected-damage-display")
+        expected_el.innerText = (
+            f"Expected damage: ~{damage:.0f} ({severity:.2f}× severity, {severity_label(severity)})"
+        )
+        expected_el.className = f"status-line severity--{severity_label(severity)}"
+
+        # E20: a live preview of the knowledge points a run would award
+        # if it ended right now.
+        knowledge_now = run.knowledge_points_earned()
+        document.getElementById("knowledge-preview-display").innerText = (
+            f"If the run ended now: {knowledge_now} knowledge point{'s' if knowledge_now != 1 else ''}"
+        )
 
     last_event_el = document.getElementById("last-event-display")
     if run.event_log:
@@ -820,7 +1316,12 @@ def render():
             f"Last: {EVENT_ICON[last['type']]} {EVENT_LABEL[last['type']]} "
             f"— {last['damage']:.0f} damage ({severity_label(last['severity'])} intensity)"
         )
-        last_event_el.className = f"status-line event-category--{EVENT_CATEGORY[last['type']]}"
+        # E19: distinct visual intensity per event severity, alongside the
+        # pre-existing weather/non-weather/social category class.
+        last_event_el.className = (
+            f"status-line event-category--{EVENT_CATEGORY[last['type']]} "
+            f"severity--{severity_label(last['severity'])}"
+        )
     else:
         last_event_el.innerText = ""
         last_event_el.className = "status-line"
@@ -839,41 +1340,87 @@ def render():
     resolve_button.disabled = run.is_complete()
 
     document.getElementById("new-run-button").hidden = not run.is_complete()
+    document.getElementById("extended-run-toggle-wrapper").hidden = not run.is_complete()
     document.getElementById("progress-comparison-display").innerText = progress_message(
         progress_comparison()
+    )
+
+    # E17: toughest run yet.
+    toughest = toughest_run_yet()
+    toughest_el = document.getElementById("toughest-run-display")
+    toughest_el.innerText = (
+        f"Toughest run yet: Run #{toughest[0]} scored {toughest[1]:.0f}" if toughest else ""
     )
 
     document.getElementById("knowledge-points-display").innerText = (
         f"Resilience knowledge: {skill_tree.knowledge_points}"
     )
+
+    # E9: visible "X/Y skills unlocked" progress summary.
+    document.getElementById("skills-unlocked-display").innerText = (
+        f"{len(skill_tree.unlocked)}/{len(SKILLS)} skills unlocked"
+    )
+
+    # E13: reset-skill-tree button, gated behind the in-UI two-click
+    # confirmation (skill_tree_reset_pending).
+    reset_button = document.getElementById("reset-skill-tree-button")
+    reset_button.innerText = "Click again to confirm reset" if skill_tree_reset_pending else "Reset Skill Tree"
+    reset_button.disabled = not skill_tree.unlocked
+
     for skill_id, skill in SKILLS.items():
         status_el = document.getElementById(f"skill-{skill_id}-status")
         practice_el = document.getElementById(f"skill-{skill_id}-practice")
         unlock_button = document.getElementById(f"skill-{skill_id}-unlock-button")
         practice_el.innerText = skill["real_practice"]
+
+        # E15: a settlement-art badge per unlocked skill.
+        badge = document.getElementById(f"settlement-badge-{skill_id}")
+        if skill_id in skill_tree.unlocked:
+            badge.classList.add("settlement-badge--earned")
+        else:
+            badge.classList.remove("settlement-badge--earned")
+
         if skill_id in skill_tree.unlocked:
             status_el.innerText = f"{skill['label']} — unlocked ({skill['description']})"
             unlock_button.hidden = True
         else:
-            status_el.innerText = f"{skill['label']} — {skill['description']}"
-            unlock_button.hidden = False
-            unlock_button.innerText = f"Unlock ({skill['cost']})"
-            unlock_button.disabled = not skill_tree.can_unlock(skill_id)
+            missing = skill_tree.missing_prereqs(skill_id)
+            if missing:
+                # E3: branching/prerequisite structure -- tell the player
+                # what's still locking this skill rather than just
+                # disabling the button with no explanation.
+                required = ", ".join(SKILLS[prereq]["label"] for prereq in missing)
+                status_el.innerText = f"{skill['label']} — {skill['description']} (requires {required})"
+                unlock_button.hidden = False
+                unlock_button.innerText = f"Unlock ({skill['cost']})"
+                unlock_button.disabled = True
+            else:
+                status_el.innerText = f"{skill['label']} — {skill['description']}"
+                unlock_button.hidden = False
+                unlock_button.innerText = f"Unlock ({skill['cost']})"
+                unlock_button.disabled = not skill_tree.can_unlock(skill_id)
 
 
 def on_invest_resilience(event=None):
-    run.invest_resilience()
+    _clear_skill_tree_reset_pending()
+    invested = run.invest_resilience()
     render()
+    if invested:
+        _flash_element("resources-display")
     _check_new_achievements_for_toast()
 
 
 def on_invest_growth(event=None):
-    run.invest_growth()
+    _clear_skill_tree_reset_pending()
+    invested = run.invest_growth()
     render()
+    if invested:
+        _flash_element("resources-display")
     _check_new_achievements_for_toast()
 
 
 def on_resolve_event(event=None):
+    _clear_skill_tree_reset_pending()
     run.resolve_next_event()
     render()
     _check_new_achievements_for_toast()
@@ -893,9 +1440,16 @@ def start_new_run(event=None):
     in highest_awarded_run's past, silently blocking this genuinely new
     run's own completion payout later (see the double-award guard on
     resolve_next_event() above, and its dedicated test coverage in
-    tests/test_save_system.py)."""
+    tests/test_save_system.py).
+
+    E18: reads the extended-run-mode checkbox to decide whether the new
+    run uses the doubled-length schedule (RunState's own `extended` flag)
+    -- opt-in, and only ever read at the moment a new run starts, so it
+    has no effect on a run already in progress."""
     global run
-    run = RunState(run_number=max(run.run_number, highest_awarded_run) + 1)
+    _clear_skill_tree_reset_pending()
+    extended = document.getElementById("extended-run-toggle").checked
+    run = RunState(run_number=max(run.run_number, highest_awarded_run) + 1, extended=extended)
     render()
     _check_new_achievements_for_toast()
 
@@ -931,6 +1485,12 @@ def get_state():
         "growth_capacity": run.growth_capacity,
         "damage_taken": run.damage_taken,
         "event_log": copy.deepcopy(run.event_log),
+        # E18: whether this run is using the doubled-length schedule.
+        # Added after this save contract first shipped -- load_state()
+        # below defaults it to False for any older save code that
+        # predates the field, rather than the KeyError every other key
+        # here deliberately gets.
+        "extended": run.extended,
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back by load_state() below.
         "achievements_earned": achievement_ids_earned(),
@@ -953,7 +1513,10 @@ def load_state(data):
     every field with the saved values, so the restored run matches
     exactly what was saved regardless of the skill tree's state now."""
     global run
-    run = RunState(run_number=data["run_number"])
+    # data.get(...) rather than data["extended"] -- see get_state()'s
+    # comment on this one field: it postdates this save contract, and an
+    # older save code simply never was an extended run.
+    run = RunState(run_number=data["run_number"], extended=data.get("extended", False))
     run.event_index = data["event_index"]
     run.resources = data["resources"]
     run.resilience_capacity = data["resilience_capacity"]
@@ -972,8 +1535,11 @@ def load_state(data):
 
 def _make_unlock_handler(skill_id):
     def handler(event=None):
-        skill_tree.unlock(skill_id)
+        _clear_skill_tree_reset_pending()
+        unlocked = skill_tree.unlock(skill_id)
         render()
+        if unlocked:
+            _display_skill_unlock_toast(skill_id)
         _check_new_achievements_for_toast()
     return handler
 
@@ -1001,7 +1567,20 @@ def setup():
     document.getElementById("achievements-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_achievements)
     )
+    document.getElementById("past-runs-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_past_runs)
+    )
+    document.getElementById("reset-skill-tree-button").addEventListener(
+        "click", create_proxy(on_reset_skill_tree)
+    )
+    document.getElementById("progress-export-button").addEventListener(
+        "click", create_proxy(on_export_progress)
+    )
+    document.getElementById("progress-import-button").addEventListener(
+        "click", create_proxy(on_import_progress)
+    )
     document.getElementById("achievement-toast").hidden = True
+    document.getElementById("skill-unlock-toast").hidden = True
     render()
     _seed_achievement_toast_baseline()
 
