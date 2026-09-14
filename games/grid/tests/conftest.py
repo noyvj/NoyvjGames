@@ -51,6 +51,8 @@ ELEMENT_IDS = [
     "retire-callout-dismiss-button",
     "maintain-callout",
     "maintain-callout-dismiss-button",
+    "renewable-milestone-callout",
+    "renewable-milestone-dismiss-button",
 ]
 for _plant in PLANT_TYPES:
     ELEMENT_IDS += [
