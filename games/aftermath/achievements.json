@@ -1,0 +1,99 @@
+{
+  "achievements": [
+    {
+      "id": "first_event_faced",
+      "label": "Facing It Head-On",
+      "description": "Resolve your very first scheduled event."
+    },
+    {
+      "id": "first_resilience_investment",
+      "label": "First Line of Defense",
+      "description": "Invest in Resilience for the first time."
+    },
+    {
+      "id": "first_growth_investment",
+      "label": "Growing Anyway",
+      "description": "Invest in Growth for the first time."
+    },
+    {
+      "id": "run_complete_1",
+      "label": "First Trial Weathered",
+      "description": "Complete your first run."
+    },
+    {
+      "id": "run_complete_5",
+      "label": "Five Trials Weathered",
+      "description": "Complete 5 runs."
+    },
+    {
+      "id": "run_complete_10",
+      "label": "A Decade of Trials",
+      "description": "Complete 10 runs."
+    },
+    {
+      "id": "unlock_reinforced_infrastructure",
+      "label": "Reinforced Infrastructure",
+      "description": "Unlock the Reinforced Infrastructure skill."
+    },
+    {
+      "id": "unlock_community_reserves",
+      "label": "Community Reserves",
+      "description": "Unlock the Community Reserves skill."
+    },
+    {
+      "id": "unlock_early_warning",
+      "label": "Early Warning Systems",
+      "description": "Unlock the Early Warning Systems skill."
+    },
+    {
+      "id": "full_skill_tree",
+      "label": "Fully Adapted",
+      "description": "Unlock every skill in the resilience skill tree."
+    },
+    {
+      "id": "knowledge_25",
+      "label": "Knowledge Keeper",
+      "description": "Earn 25 resilience knowledge points over your settlement's lifetime."
+    },
+    {
+      "id": "knowledge_100",
+      "label": "Repository of Resilience",
+      "description": "Earn 100 resilience knowledge points over your settlement's lifetime."
+    },
+    {
+      "id": "iron_defenses",
+      "label": "Iron Defenses",
+      "description": "Reach maximum mitigation (85%) in a single run."
+    },
+    {
+      "id": "severe_survivor",
+      "label": "Weathered the Worst",
+      "description": "Survive a severe-intensity event with resources left afterward."
+    },
+    {
+      "id": "profitable_run",
+      "label": "Net Positive",
+      "description": "Finish a run with more resources than you started it with."
+    },
+    {
+      "id": "growth_focused",
+      "label": "Growth-Minded",
+      "description": "Finish a run having invested more in Growth than Resilience."
+    },
+    {
+      "id": "resilience_focused",
+      "label": "Resilience-Minded",
+      "description": "Finish a run having invested more in Resilience than Growth."
+    },
+    {
+      "id": "balanced_strategy",
+      "label": "Balanced Strategy",
+      "description": "Finish a run having invested equally, and meaningfully, in both Resilience and Growth."
+    },
+    {
+      "id": "come_back_stronger",
+      "label": "Look How Far You've Come",
+      "description": "Score higher on your most recent run than your very first run."
+    }
+  ]
+}

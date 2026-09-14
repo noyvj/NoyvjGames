@@ -12,7 +12,7 @@ import copy
 import json
 
 import info_page
-from js import document, localStorage
+from js import document, localStorage, setTimeout
 from pyodide.ffi import create_proxy
 
 STARTING_RESOURCES = 200.0
@@ -240,6 +240,14 @@ class RunState:
         self.growth_capacity = 0
         self.damage_taken = 0.0
         self.event_log = []
+        # Achievements ("profitable_run") need to compare a run's *final*
+        # resources against what it actually started with -- which varies
+        # run to run once skill-tree bonuses affect starting resources, so
+        # this is captured once here rather than re-deriving it later from
+        # STARTING_RESOURCES + starting_resources_bonus() (the latter would
+        # silently drift if more skills unlock mid-run... they can't, but
+        # capturing it explicitly avoids relying on that being true).
+        self.starting_resources = self.resources
 
     def is_complete(self):
         return self.event_index >= len(EVENT_SCHEDULE)
@@ -254,6 +262,9 @@ class RunState:
             return False
         self.resources -= RESILIENCE_COST
         self.resilience_capacity += 1
+        _note_achievement_progress(ever_invested_resilience=True)
+        if self.mitigation_fraction() >= MAX_MITIGATION:
+            _note_achievement_progress(ever_maxed_mitigation=True)
         return True
 
     def invest_growth(self):
@@ -261,6 +272,7 @@ class RunState:
             return False
         self.resources -= GROWTH_COST
         self.growth_capacity += 1
+        _note_achievement_progress(ever_invested_growth=True)
         return True
 
     def mitigation_fraction(self):
@@ -284,6 +296,10 @@ class RunState:
         self.event_log.append({"type": event_type, "damage": damage, "severity": severity})
         self.event_index += 1
 
+        _note_achievement_progress(ever_faced_event=True)
+        if severity_label(severity) == "severe" and self.resources > 0:
+            _note_achievement_progress(ever_survived_severe_event=True)
+
         if self.is_complete():
             global highest_awarded_run
             if self.run_number > highest_awarded_run:
@@ -295,6 +311,20 @@ class RunState:
                 save_legacy_events(legacy_events)
                 highest_awarded_run = self.run_number
                 save_highest_awarded_run(highest_awarded_run)
+
+                # Playstyle achievements -- only recorded the first time a
+                # given run_number genuinely completes (same guard as the
+                # knowledge/history/legacy payout above), so reloading a
+                # stale pre-completion save and re-resolving it can't
+                # re-trigger these either.
+                if self.resources > self.starting_resources:
+                    _note_achievement_progress(ever_profitable_run=True)
+                if self.growth_capacity >= 3 and self.growth_capacity > self.resilience_capacity:
+                    _note_achievement_progress(ever_growth_heavy_run=True)
+                if self.resilience_capacity >= 3 and self.resilience_capacity > self.growth_capacity:
+                    _note_achievement_progress(ever_resilience_heavy_run=True)
+                if self.growth_capacity >= 2 and self.growth_capacity == self.resilience_capacity:
+                    _note_achievement_progress(ever_balanced_run=True)
 
         return True
 
@@ -318,6 +348,11 @@ class SkillTreeState:
     def __init__(self):
         self.knowledge_points = 0
         self.unlocked = set()
+        # Lifetime total ever earned -- unlike knowledge_points (a spendable
+        # balance that drops on unlock), this only ever grows, so it's the
+        # correct signal for a "earn N knowledge points over your
+        # settlement's lifetime" achievement (knowledge_25/knowledge_100).
+        self.lifetime_knowledge = 0
 
     def can_unlock(self, skill_id):
         return skill_id not in self.unlocked and self.knowledge_points >= SKILLS[skill_id]["cost"]
@@ -332,9 +367,14 @@ class SkillTreeState:
 
     def add_knowledge(self, amount):
         self.knowledge_points += amount
+        self.lifetime_knowledge += amount
 
     def to_dict(self):
-        return {"knowledge_points": self.knowledge_points, "unlocked": sorted(self.unlocked)}
+        return {
+            "knowledge_points": self.knowledge_points,
+            "unlocked": sorted(self.unlocked),
+            "lifetime_knowledge": self.lifetime_knowledge,
+        }
 
     def save(self):
         localStorage.setItem(SKILL_TREE_STORAGE_KEY, json.dumps(self.to_dict()))
@@ -351,6 +391,14 @@ class SkillTreeState:
             return instance
         instance.knowledge_points = data.get("knowledge_points", 0)
         instance.unlocked = set(data.get("unlocked", []))
+        # Defensive fallback for a save made before this field existed
+        # (ACHIEVEMENTS-SYSTEM-DESIGN.md §4's pattern): default to whatever
+        # the current spendable balance is rather than 0, so an existing
+        # player's lifetime total isn't understated the moment this field
+        # ships -- an underestimate (missing already-spent knowledge) is
+        # far less surprising than a stale save silently reporting fewer
+        # lifetime points than the player can literally see they're holding.
+        instance.lifetime_knowledge = data.get("lifetime_knowledge", instance.knowledge_points)
         return instance
 
 
@@ -359,6 +407,293 @@ run_history = load_run_history()
 legacy_events = load_legacy_events()
 highest_awarded_run = load_highest_awarded_run()
 run = RunState()
+
+
+# ===========================================================================
+# Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md) — following SOL/Canopy/Grid's
+# reference integrations. Every achievement's earned status is a pure
+# function of state that already exists elsewhere in this module, recomputed
+# fresh every call — never a separately hand-maintained "earned" flag.
+#
+# Several achievements here genuinely can't be derived from run_history/
+# skill_tree/legacy_events alone: things like "ever invested in Resilience"
+# or "ever finished a run in profit" are facts about a *specific run's*
+# transient RunState, which resets every new run (§4's five-step pattern
+# from the design doc — a persistent fact needs its own persistent tracked
+# state, or it would flicker unearned the instant a new run starts). Those
+# live in `achievement_progress`, a small persistent dict alongside the
+# skill tree/run history/legacy events already in localStorage, mutated
+# only where the real event happens (inside RunState's own methods, since
+# that's where each of these facts actually becomes true) and otherwise
+# read-only from every achievement checker below.
+# ===========================================================================
+ACHIEVEMENTS_FILENAME = "achievements.json"
+ACHIEVEMENT_PROGRESS_STORAGE_KEY = "aftermath_achievement_progress_v1"
+
+
+def _read_achievements_json():
+    """Same loading contract as SOL/Canopy/Grid's `_read_achievements_json()`:
+    the boot script fetches achievements.json and hands it to Python as a
+    window global before this file runs; the pytest harness's fake `js`
+    module has no such attribute, so this falls through to reading the file
+    straight off disk, keeping the module importable outside a real
+    browser."""
+    try:
+        import js as _js  # noqa: PLC0415 -- Pyodide-only import, deliberately lazy
+    except ImportError:
+        _js = None
+
+    raw = getattr(_js, "ACHIEVEMENTS_JSON", None) if _js is not None else None
+    if raw is not None:
+        return str(raw)
+
+    import os  # noqa: PLC0415 -- only needed on this filesystem-fallback path
+
+    here = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(here, ACHIEVEMENTS_FILENAME), encoding="utf-8") as handle:
+        return handle.read()
+
+
+# Degrades to "no achievements catalog" rather than crashing this module's
+# whole import — achievements are additive, not core to Aftermath's gameplay.
+try:
+    ACHIEVEMENTS = json.loads(_read_achievements_json())["achievements"]
+except (ValueError, OSError, NameError, KeyError):
+    ACHIEVEMENTS = []
+
+RUN_COMPLETE_TARGETS = {"run_complete_1": 1, "run_complete_5": 5, "run_complete_10": 10}
+KNOWLEDGE_TARGETS = {"knowledge_25": 25, "knowledge_100": 100}
+SKILL_ACHIEVEMENT_IDS = {
+    "reinforced_infrastructure": "unlock_reinforced_infrastructure",
+    "community_reserves": "unlock_community_reserves",
+    "early_warning": "unlock_early_warning",
+}
+
+
+def _default_achievement_progress():
+    return {
+        "ever_faced_event": False,
+        "ever_invested_resilience": False,
+        "ever_invested_growth": False,
+        "ever_maxed_mitigation": False,
+        "ever_survived_severe_event": False,
+        "ever_profitable_run": False,
+        "ever_growth_heavy_run": False,
+        "ever_resilience_heavy_run": False,
+        "ever_balanced_run": False,
+    }
+
+
+def load_achievement_progress():
+    progress = _default_achievement_progress()
+    raw = localStorage.getItem(ACHIEVEMENT_PROGRESS_STORAGE_KEY)
+    if not raw:
+        return progress
+    try:
+        data = json.loads(raw)
+    except ValueError:
+        return progress
+    if isinstance(data, dict):
+        for key in progress:
+            if key in data:
+                progress[key] = bool(data[key])
+    return progress
+
+
+def save_achievement_progress():
+    localStorage.setItem(ACHIEVEMENT_PROGRESS_STORAGE_KEY, json.dumps(achievement_progress))
+
+
+achievement_progress = load_achievement_progress()
+
+
+def _note_achievement_progress(**updates):
+    """Sets one or more achievement_progress flags to True (only ever True
+    — these are one-way "has this ever happened" facts, never unset) and
+    persists if anything actually changed."""
+    changed = False
+    for key, value in updates.items():
+        if value and not achievement_progress.get(key):
+            achievement_progress[key] = True
+            changed = True
+    if changed:
+        save_achievement_progress()
+
+
+def _full_skill_tree_earned():
+    return all(skill_id in skill_tree.unlocked for skill_id in SKILLS)
+
+
+ACHIEVEMENT_CHECKS = {
+    "first_event_faced": lambda: achievement_progress["ever_faced_event"],
+    "first_resilience_investment": lambda: achievement_progress["ever_invested_resilience"],
+    "first_growth_investment": lambda: achievement_progress["ever_invested_growth"],
+    "run_complete_1": lambda: len(run_history) >= RUN_COMPLETE_TARGETS["run_complete_1"],
+    "run_complete_5": lambda: len(run_history) >= RUN_COMPLETE_TARGETS["run_complete_5"],
+    "run_complete_10": lambda: len(run_history) >= RUN_COMPLETE_TARGETS["run_complete_10"],
+    "unlock_reinforced_infrastructure": lambda: "reinforced_infrastructure" in skill_tree.unlocked,
+    "unlock_community_reserves": lambda: "community_reserves" in skill_tree.unlocked,
+    "unlock_early_warning": lambda: "early_warning" in skill_tree.unlocked,
+    "full_skill_tree": _full_skill_tree_earned,
+    "knowledge_25": lambda: skill_tree.lifetime_knowledge >= KNOWLEDGE_TARGETS["knowledge_25"],
+    "knowledge_100": lambda: skill_tree.lifetime_knowledge >= KNOWLEDGE_TARGETS["knowledge_100"],
+    "iron_defenses": lambda: achievement_progress["ever_maxed_mitigation"],
+    "severe_survivor": lambda: achievement_progress["ever_survived_severe_event"],
+    "profitable_run": lambda: achievement_progress["ever_profitable_run"],
+    "growth_focused": lambda: achievement_progress["ever_growth_heavy_run"],
+    "resilience_focused": lambda: achievement_progress["ever_resilience_heavy_run"],
+    "balanced_strategy": lambda: achievement_progress["ever_balanced_run"],
+    "come_back_stronger": lambda: len(run_history) >= 2 and run_history[-1] > run_history[0],
+}
+
+# Progress readouts, only for achievements with a natural numeric scale-up
+# — a plain earned/not-yet is the honest shape for a one-shot milestone.
+ACHIEVEMENT_PROGRESS = {
+    "run_complete_5": lambda: (min(len(run_history), 5), 5),
+    "run_complete_10": lambda: (min(len(run_history), 10), 10),
+    "full_skill_tree": lambda: (len(skill_tree.unlocked & set(SKILLS)), len(SKILLS)),
+    "knowledge_25": lambda: (min(skill_tree.lifetime_knowledge, 25), 25),
+    "knowledge_100": lambda: (min(skill_tree.lifetime_knowledge, 100), 100),
+}
+
+
+def achievement_ids_earned():
+    """Every achievement id currently satisfied, in catalog order — the
+    value that rides the existing save/sync mechanism via get_state()'s
+    "achievements_earned" field (ACHIEVEMENTS-SYSTEM-DESIGN.md). Always
+    recomputed, never itself a save input."""
+    return [entry["id"] for entry in ACHIEVEMENTS if ACHIEVEMENT_CHECKS[entry["id"]]()]
+
+
+def achievements_summary():
+    """The full catalog, in order, each entry annotated with whether it's
+    currently earned and (where one exists) a live progress readout."""
+    earned_ids = set(achievement_ids_earned())
+    summary = []
+    for entry in ACHIEVEMENTS:
+        progress_fn = ACHIEVEMENT_PROGRESS.get(entry["id"])
+        summary.append(
+            {
+                "id": entry["id"],
+                "label": entry["label"],
+                "description": entry["description"],
+                "earned": entry["id"] in earned_ids,
+                "progress": progress_fn() if progress_fn else None,
+            }
+        )
+    return summary
+
+
+achievements_open = False
+
+
+# Unlock toast + hub-dashboard link (TODO.md "roll achievements out
+# everywhere" — required on top of the base per-game rollout, per
+# ACHIEVEMENTS-SYSTEM-DESIGN.md's site-wide goal). Same pattern as SOL's
+# reference retrofit: a snapshot of which ids were already earned as of
+# the last seed point, so a fresh load or a loaded save doesn't flood the
+# player with toasts for achievements it already satisfies.
+_achievements_seen_ids = set()
+
+
+def _seed_achievement_toast_baseline():
+    global _achievements_seen_ids
+    _achievements_seen_ids = set(achievement_ids_earned())
+
+
+def _display_achievement_toast(message):
+    toast = document.getElementById("achievement-toast")
+    text = document.getElementById("achievement-toast-text")
+    text.innerText = message
+    toast.hidden = False
+    toast.classList.add("visible")
+
+    def _hide(*args):
+        toast.hidden = True
+        toast.classList.remove("visible")
+        proxy.destroy()
+
+    proxy = create_proxy(_hide)
+    setTimeout(proxy, 4000)
+
+
+def _check_new_achievements_for_toast():
+    """Called after every player action that could change earned status
+    (invest resilience/growth, resolve an event, unlock a skill, start a
+    new run) — never from render() itself, since load_state() also calls
+    render() and a loaded save with several achievements already earned
+    must not flood the player with toasts for all of them at once (see
+    _seed_achievement_toast_baseline)."""
+    global _achievements_seen_ids
+    earned_now = set(achievement_ids_earned())
+    newly = earned_now - _achievements_seen_ids
+    if newly:
+        by_id = {entry["id"]: entry for entry in ACHIEVEMENTS}
+        labels = [by_id[aid]["label"] for aid in newly if aid in by_id]
+        if labels:
+            if len(labels) == 1:
+                _display_achievement_toast(f"🏆 Achievement unlocked: {labels[0]}")
+            else:
+                _display_achievement_toast(f"🏆 {len(labels)} achievements unlocked: " + ", ".join(labels))
+    _achievements_seen_ids = earned_now
+
+
+def on_toggle_achievements(event=None):
+    global achievements_open
+    achievements_open = not achievements_open
+    update_achievements_display()
+
+
+def update_achievements_display():
+    toggle = document.getElementById("achievements-toggle-button")
+    panel = document.getElementById("achievements-panel")
+    earned_count = len(achievement_ids_earned())
+    toggle.innerText = (
+        f"Hide Achievements ({earned_count}/{len(ACHIEVEMENTS)})"
+        if achievements_open
+        else f"🏆 Achievements ({earned_count}/{len(ACHIEVEMENTS)})"
+    )
+    panel.hidden = not achievements_open
+    if not achievements_open:
+        return
+
+    panel.innerHTML = ""
+    for entry in achievements_summary():
+        card = document.createElement("div")
+        card.className = "achievement-card achievement-card--earned" if entry["earned"] else "achievement-card"
+
+        label = document.createElement("p")
+        label.className = "achievement-card-label"
+        label.innerText = f"🏆 {entry['label']}" if entry["earned"] else entry["label"]
+        card.appendChild(label)
+
+        description = document.createElement("p")
+        description.className = "achievement-card-description"
+        description.innerText = entry["description"]
+        card.appendChild(description)
+
+        if not entry["earned"] and entry["progress"] is not None:
+            current, target = entry["progress"]
+            progress = document.createElement("p")
+            progress.className = "achievement-card-progress"
+            progress.innerText = f"{current} of {target}"
+            card.appendChild(progress)
+
+        panel.appendChild(card)
+
+    # A link out to the hub-wide achievements dashboard (root index.html's
+    # #account-achievements-dashboard, ACHIEVEMENTS-SYSTEM-DESIGN.md §5).
+    # Relative path, no leading "/" (site-level milestone 7's GitHub Pages
+    # subpath fix). Rebuilt each open alongside the cards since the panel
+    # is cleared first. Note: the hub-side script.js registration that
+    # makes Aftermath's save data actually show up on that dashboard is a
+    # root-file change, out of scope for this games/aftermath/-only
+    # dispatch.
+    hub_link = document.createElement("a")
+    hub_link.innerText = "View the hub-wide achievements dashboard →"
+    hub_link.href = "../../index.html#account-achievements-dashboard"
+    hub_link.className = "achievements-hub-link"
+    panel.appendChild(hub_link)
 
 
 def legacy_message():
@@ -454,6 +789,7 @@ def on_toggle_info_page(event=None):
 
 def render():
     render_info_page()
+    update_achievements_display()
     document.getElementById("legacy-display").innerText = legacy_message()
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
     document.getElementById("resilience-display").innerText = f"Resilience: {run.resilience_capacity}"
@@ -528,16 +864,19 @@ def render():
 def on_invest_resilience(event=None):
     run.invest_resilience()
     render()
+    _check_new_achievements_for_toast()
 
 
 def on_invest_growth(event=None):
     run.invest_growth()
     render()
+    _check_new_achievements_for_toast()
 
 
 def on_resolve_event(event=None):
     run.resolve_next_event()
     render()
+    _check_new_achievements_for_toast()
 
 
 def start_new_run(event=None):
@@ -558,6 +897,7 @@ def start_new_run(event=None):
     global run
     run = RunState(run_number=max(run.run_number, highest_awarded_run) + 1)
     render()
+    _check_new_achievements_for_toast()
 
 
 # SAVE-BUTTON-INTEGRATION.md contract for the shared shared/save-widget.js:
@@ -591,6 +931,9 @@ def get_state():
         "growth_capacity": run.growth_capacity,
         "damage_taken": run.damage_taken,
         "event_log": copy.deepcopy(run.event_log),
+        # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
+        # freshly recomputed, never read back by load_state() below.
+        "achievements_earned": achievement_ids_earned(),
     }
 
 
@@ -618,6 +961,12 @@ def load_state(data):
     run.damage_taken = data["damage_taken"]
     run.event_log = copy.deepcopy(data["event_log"])
     render()
+    # "achievements_earned" is intentionally never read back here — see
+    # get_state()'s comment and ACHIEVEMENTS-SYSTEM-DESIGN.md §1. Re-seed
+    # the toast baseline instead of leaving it as-is, so a loaded save with
+    # several achievements already earned doesn't flood the player with
+    # toasts for all of them at once (same reasoning as setup()'s seed).
+    _seed_achievement_toast_baseline()
     return True
 
 
@@ -625,6 +974,7 @@ def _make_unlock_handler(skill_id):
     def handler(event=None):
         skill_tree.unlock(skill_id)
         render()
+        _check_new_achievements_for_toast()
     return handler
 
 
@@ -648,7 +998,12 @@ def setup():
     document.getElementById("info-page-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_info_page)
     )
+    document.getElementById("achievements-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_achievements)
+    )
+    document.getElementById("achievement-toast").hidden = True
     render()
+    _seed_achievement_toast_baseline()
 
 
 setup()

@@ -12,6 +12,7 @@
 <link rel="manifest" href="../../manifest.json">
 <script src="../../shared/tutorial.js"></script>
 <script src="../../shared/mobile-hud.js"></script>
+<script src="../../shared/mobile-dock.js"></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -32,11 +33,25 @@
     <p class="context-blurb">Climate adaptation and disaster resilience are their own necessary response category — distinct from mitigation, and not a failure state. Real-world investment in early warning and resilient infrastructure has repeatedly been shown to pay for itself many times over in damage avoided.</p>
     <p id="legacy-display" class="legacy-display">No history yet — this is the settlement's first trial.</p>
 
-    <button id="info-page-toggle-button" class="secondary info-page-toggle">Loading...</button>
+    <div class="game-toolbar">
+      <button id="info-page-toggle-button" class="secondary info-page-toggle">Loading...</button>
+      <button id="achievements-toggle-button" class="secondary" type="button">Loading...</button>
+    </div>
     <div id="info-page-panel" class="section" hidden>
       <p id="info-page-framing" class="info-page-framing"></p>
       <p id="info-page-tie-in" class="info-page-tie-in"></p>
       <ul id="info-page-sources" class="info-page-sources"></ul>
+    </div>
+    <div id="achievements-panel" class="section achievements-panel" hidden></div>
+
+    <!-- Achievement-unlock toast (ACHIEVEMENTS-SYSTEM-DESIGN.md's
+         site-wide "on top of the base rollout" requirement) -- fixed near
+         the top of the viewport so it's visible regardless of scroll
+         position, including while #actions-dock is mobile-docked at the
+         bottom. Hidden by default via the `hidden` attribute; game.py
+         also explicitly sets `.hidden = True` in setup(). -->
+    <div id="achievement-toast" class="achievement-toast" hidden>
+      <p id="achievement-toast-text"></p>
     </div>
 
     <div id="status" class="section">
@@ -78,14 +93,24 @@
       </div>
     </div>
 
-    <div id="actions" class="section">
-      <button id="resilience-invest-button" class="secondary" disabled>Loading...</button>
-      <button id="growth-invest-button" class="secondary" disabled>Loading...</button>
-      <details class="info-toggle"><summary>i</summary><p>Growth doesn't protect you from event damage at all — each unit just adds 8 resources of passive income every time you face an event. It's a bet that the extra income outweighs skipping a point of damage mitigation.</p></details>
-    </div>
+    <!-- E1 (planning/TODO.md's mobile-dock rollout): wraps the whole
+         act-on-your-run cluster (Resilience/Growth investment + Face Next
+         Event + Start New Run) so shared/mobile-dock.js can pin all of it
+         to the bottom of the viewport on mobile as one unit, same pattern
+         as Canopy's #action-panel / Grid's #advance-round-button. #actions
+         itself is untouched internally -- this only adds an outer wrapper
+         and moves the two buttons that used to sit directly under #game
+         inside it. -->
+    <div id="actions-dock">
+      <div id="actions" class="section">
+        <button id="resilience-invest-button" class="secondary" disabled>Loading...</button>
+        <button id="growth-invest-button" class="secondary" disabled>Loading...</button>
+        <details class="info-toggle"><summary>i</summary><p>Growth doesn't protect you from event damage at all — each unit just adds 8 resources of passive income every time you face an event. It's a bet that the extra income outweighs skipping a point of damage mitigation.</p></details>
+      </div>
 
-    <button id="resolve-event-button" class="primary">Face Next Event</button>
-    <button id="new-run-button" class="primary" hidden>Start New Run</button>
+      <button id="resolve-event-button" class="primary">Face Next Event</button>
+      <button id="new-run-button" class="primary" hidden>Start New Run</button>
+    </div>
 
     <div id="skill-tree" class="section">
       <p id="knowledge-points-display" class="status-line">Resilience knowledge: 0</p>
@@ -194,8 +219,14 @@
       // ENGINE_MODULES loop.
       const infoPageSource = await (await fetch("../../shared/info_page.py")).text();
       pyodide.FS.writeFile("info_page.py", infoPageSource, { encoding: "utf8" });
-      const response = await fetch("game.py");
-      const code = await response.text();
+      // Achievements catalog (ACHIEVEMENTS-SYSTEM-DESIGN.md §2) -- fetched
+      // and handed to Python as a window global before game.py runs, same
+      // three-line convention every other achievements-rollout game uses.
+      const [achievementsJson, code] = await Promise.all([
+        fetch("achievements.json").then((response) => response.text()),
+        fetch("game.py").then((response) => response.text()),
+      ]);
+      window.ACHIEVEMENTS_JSON = achievementsJson;
       await pyodide.runPythonAsync(code);
 
       if (window.GameTutorial) {
@@ -207,6 +238,13 @@
           { selector: "#resilience-display", label: "" },
           { selector: "#growth-display", label: "" },
         ]);
+      }
+      if (window.MobileDock) {
+        // E1 (planning/TODO.md's mobile-dock rollout): docks the whole
+        // Resilience/Growth/Face-Next-Event/Start-New-Run cluster as one
+        // unit on mobile, same shared/mobile-dock.js mechanism Canopy's
+        // #action-panel and Grid's #advance-round-button already use.
+        MobileDock.init("#actions-dock");
       }
     }
     main();
