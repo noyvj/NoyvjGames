@@ -1177,12 +1177,59 @@ button.primary:active {
   to { background-position: -24px 0; }
 }
 
+/* Battery -- a simple cell outline + pulsing bolt, deliberately less
+   elaborate than the six generation-type icons above: it's a support
+   tier, not a generation source, and doesn't need the same illustrated
+   weight. */
+.plant-icon--battery .plant-icon-battery-body {
+  position: absolute;
+  left: 5px;
+  bottom: 6px;
+  width: 24px;
+  height: 20px;
+  border-radius: 3px;
+  border: 2px solid #7fd6a3;
+  background: rgba(127, 214, 163, 0.12);
+}
+
+.plant-icon--battery .plant-icon-battery-body::before {
+  content: "";
+  position: absolute;
+  right: -5px;
+  top: 6px;
+  width: 3px;
+  height: 8px;
+  border-radius: 0 2px 2px 0;
+  background: #7fd6a3;
+}
+
+.plant-icon-battery-bolt {
+  position: absolute;
+  left: 13px;
+  bottom: 9px;
+  width: 8px;
+  height: 14px;
+  background: #d6e04e;
+  clip-path: polygon(60% 0%, 100% 40%, 60% 40%, 100% 100%, 0% 55%, 40% 55%, 0% 0%);
+  animation: grid-battery-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes grid-battery-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+.battery-context-blurb {
+  margin: 0.75rem 0 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .plant-icon-smoke,
   .plant-icon-flame,
   .plant-icon-glow,
   .plant-icon--solar .plant-icon-panel::after,
-  .plant-icon-wave { animation: none; }
+  .plant-icon-wave,
+  .plant-icon-battery-bolt { animation: none; }
 }
 
 /* --- Plant action buttons: tint per action so the row reads as a

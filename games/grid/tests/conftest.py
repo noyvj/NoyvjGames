@@ -17,7 +17,10 @@ SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent / "shared"
 if str(SHARED_DIR) not in sys.path:
     sys.path.insert(0, str(SHARED_DIR))
 
-PLANT_TYPES = ["coal", "gas", "nuclear", "solar", "wind", "hydro"]
+PLANT_TYPES = ["coal", "gas", "nuclear", "solar", "wind", "hydro", "battery"]
+# C2: battery is storage, not generation -- it has no plant-mix chart row
+# (see game.py's GENERATION_TYPES comment).
+GENERATION_PLANT_TYPES = [t for t in PLANT_TYPES if t != "battery"]
 
 ELEMENT_IDS = [
     "round-display",
@@ -71,6 +74,9 @@ for _plant in PLANT_TYPES:
         f"{_plant}-name",
         f"{_plant}-wear-pct",
         f"{_plant}-risk-badge",
+    ]
+for _plant in GENERATION_PLANT_TYPES:
+    ELEMENT_IDS += [
         f"{_plant}-mix-bar",
         f"{_plant}-mix-pct",
     ]

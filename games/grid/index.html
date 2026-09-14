@@ -220,7 +220,25 @@
           <button id="hydro-maintain-button" class="secondary" disabled>Loading...</button>
         </div>
       </div>
+      <div class="plant-row" data-plant="battery">
+        <div class="plant-row-top">
+          <div class="plant-icon plant-icon--battery" aria-hidden="true">
+            <div class="plant-icon-battery-body"></div>
+            <div class="plant-icon-battery-bolt"></div>
+          </div>
+          <span class="plant-name" id="battery-name">Battery Storage</span>
+          <span class="plant-count" id="battery-count">0</span>
+          <span class="wear-pct" id="battery-wear-pct"></span>
+          <span class="risk-badge" id="battery-risk-badge" hidden>&#9888; Aging risk</span>
+        </div>
+        <div class="plant-row-actions">
+          <button id="battery-build-button" class="secondary" disabled>Loading...</button>
+          <button id="battery-retire-button" class="secondary" disabled>Retire</button>
+          <button id="battery-maintain-button" class="secondary" disabled>Loading...</button>
+        </div>
+      </div>
     </div>
+    <p class="context-blurb battery-context-blurb">Battery storage doesn't generate power — it buffers renewable output when the weather isn't cooperating. It only matters with Weather Variability turned on above; without real intermittency to buffer, there's nothing for it to do.</p>
 
     <div id="plant-mix" class="section">
       <p class="meter-label">Plant Mix
@@ -297,7 +315,7 @@
       {
         selector: "#plants",
         title: "Build, Retire, Maintain",
-        text: "Six plant types are available: Coal, Gas, Nuclear, Solar, Wind, and Hydro. Build spends Funds for capacity; Retire removes a unit and refunds half its current cost; Maintain spends Funds to reduce a plant type's average age instead of resetting it to zero.",
+        text: "Seven plant types are available: Coal, Gas, Nuclear, Solar, Wind, Hydro, and Battery Storage. Build spends Funds for capacity; Retire removes a unit and refunds half its current cost; Maintain spends Funds to reduce a plant type's average age instead of resetting it to zero. Battery doesn't generate power -- it only helps buffer renewable output when Weather Variability is turned on.",
       },
       {
         selector: "[data-plant=\"solar\"]",
