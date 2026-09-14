@@ -343,3 +343,87 @@ def test_tick_keeps_the_open_panel_and_toggle_label_live(game_env):
     assert earned_count >= 1
     button = game_env.elements["achievements-toggle-button"]
     assert f"{earned_count}/{len(module.ACHIEVEMENTS)}" in button.innerText
+
+
+# --- retrofit: unlock toast + hub dashboard link ------------------------
+# TODO.md "roll achievements out everywhere" — SOL already shipped the base
+# 18-achievement catalog + panel; this retrofit adds an unlock-moment toast
+# (not just visible inside the panel) and a link from the panel out to the
+# hub-wide dashboard (ACHIEVEMENTS-SYSTEM-DESIGN.md §5).
+
+
+def test_toast_is_hidden_on_a_fresh_game(game_env):
+    assert game_env.elements["achievement-toast"].hidden is True
+
+
+def test_toast_appears_the_tick_an_achievement_is_newly_earned(game_env):
+    game_env.click("Earth")
+    game_env.timers.tick_intervals(1)
+    toast = game_env.elements["achievement-toast"]
+    assert toast.hidden is False
+    assert "First Ore" in game_env.elements["achievement-toast-text"].innerText
+
+
+def test_toast_is_not_shown_before_the_earning_tick_runs(game_env):
+    # Earning the achievement doesn't retroactively show the toast until
+    # tick() actually runs the check -- clicking alone calls
+    # update_resource_display(), not the achievement-toast check.
+    game_env.click("Earth")
+    assert game_env.elements["achievement-toast"].hidden is True
+
+
+def test_toast_auto_hides_after_its_timeout(game_env):
+    game_env.click("Earth")
+    game_env.timers.tick_intervals(1)
+    game_env.timers.flush()
+    assert game_env.elements["achievement-toast"].hidden is True
+
+
+def test_toast_does_not_repeat_for_an_already_earned_achievement(game_env):
+    game_env.click("Earth")
+    game_env.timers.tick_intervals(1)
+    game_env.timers.flush()
+    game_env.timers.tick_intervals(1)  # nothing new earned this tick
+    assert game_env.elements["achievement-toast"].hidden is True
+
+
+def test_toast_reports_multiple_simultaneous_unlocks_together(game_env):
+    module = game_env.module
+    # Completing tier 2 in one on_fund_research() call earns both
+    # "tier_two_cleared" and "solar_system_unlocked" (every Far Body
+    # unlocks at once) in the same tick -- both should be named in one
+    # toast rather than only the last one winning.
+    module.unlocked_bodies.update(["Moon", "Mars"])
+    module.completed_tiers = 1
+    module.research_progress = _tier(game_env, 1)["target"] - module.RESEARCH_FUND_COST
+    game_env.earth["resource_count"] = module.RESEARCH_FUND_COST
+    game_env.fund_research()
+    game_env.timers.tick_intervals(1)
+    text = game_env.elements["achievement-toast-text"].innerText
+    assert "achievements unlocked" in text
+
+
+def test_loading_a_save_with_already_earned_achievements_does_not_toast(game_env):
+    """A save made after playing for a while already has several
+    achievements earned -- load_state() must seed the toast baseline to
+    that save's own earned set, not diff against an empty one, or every
+    reload/autoload would replay every past unlock as a fresh toast."""
+    module = game_env.module
+    game_env.click("Earth")
+    saved = module.get_state()
+    assert saved["achievements_earned"]  # sanity: this save really has one
+
+    module.load_state(saved)
+    assert game_env.elements["achievement-toast"].hidden is True
+
+    game_env.timers.tick_intervals(1)
+    assert game_env.elements["achievement-toast"].hidden is True
+
+
+def test_hub_dashboard_link_is_present_when_the_panel_is_open(game_env):
+    module = game_env.module
+    module.on_toggle_achievements()
+    panel = game_env.elements["achievements-panel"]
+    link = next(c for c in panel.children if getattr(c, "tagName", None) == "A")
+    assert link.href == "../../index.html#account-achievements-dashboard"
+    assert "hub" in link.innerText.lower()

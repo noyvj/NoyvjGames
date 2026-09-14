@@ -1,7 +1,7 @@
 import copy
 import json
 import math
-from js import document, setInterval, setTimeout
+from js import confirm, document, setInterval, setTimeout
 from pyodide.ffi import create_proxy
 
 # --- static per-planet config ---
@@ -734,6 +734,65 @@ def achievements_summary():
 
 achievements_open = False
 
+# Achievements retrofit (TODO.md "roll achievements out everywhere" — SOL's
+# own toast/hub-link retrofit, built after the base 18-achievement rollout
+# shipped): a snapshot of which achievement ids were already earned as of
+# the last full render, so tick()'s live check can tell "newly earned this
+# tick" apart from "already earned before this page load/save load" and
+# only toast for the former. Seeded (never diffed-against-empty) inside
+# _full_render() -- both the fresh-game path (setup()) and the loaded-save
+# path (load_state()/load_save_state_json()) call _full_render(), so a save
+# that already has 12 achievements earned never floods the player with 12
+# toasts the instant it loads.
+_achievements_seen_ids = set()
+
+
+def _seed_achievement_toast_baseline():
+    global _achievements_seen_ids
+    _achievements_seen_ids = set(achievement_ids_earned())
+
+
+def _display_toast(message):
+    # Shared by both the achievement-unlock toast and the welcome-back toast
+    # (A3) -- same fixed-position element, same show-then-auto-hide timing,
+    # just different message text. A second toast firing before the first's
+    # timeout clears simply replaces the visible text and restarts the
+    # timer's effect (the old timeout still fires and finds the toast
+    # already hidden-by-the-new-one's-own-timeout is harmless: both timeouts
+    # just set hidden = True).
+    toast = document.getElementById("achievement-toast")
+    text = document.getElementById("achievement-toast-text")
+    text.innerText = message
+    toast.hidden = False
+    toast.classList.add("visible")
+
+    def _hide(*args):
+        toast.hidden = True
+        toast.classList.remove("visible")
+        proxy.destroy()
+
+    proxy = create_proxy(_hide)
+    setTimeout(proxy, 4000)
+
+
+def _check_new_achievements_for_toast():
+    """Called every tick(): compares the live earned set against the last
+    snapshot, and pops a toast for anything newly earned since then. Never
+    called from _full_render() itself -- see _seed_achievement_toast_baseline
+    above for why a load must never diff against a stale/empty baseline."""
+    global _achievements_seen_ids
+    earned_now = set(achievement_ids_earned())
+    newly = earned_now - _achievements_seen_ids
+    if newly:
+        by_id = {entry["id"]: entry for entry in ACHIEVEMENTS}
+        labels = [by_id[aid]["label"] for aid in newly if aid in by_id]
+        if labels:
+            if len(labels) == 1:
+                _display_toast(f"🏆 Achievement unlocked: {labels[0]}")
+            else:
+                _display_toast(f"🏆 {len(labels)} achievements unlocked: " + ", ".join(labels))
+    _achievements_seen_ids = earned_now
+
 
 def _mark_visited(planet):
     visited_bodies.add(planet)
@@ -781,6 +840,18 @@ def update_achievements_display():
             card.appendChild(progress)
 
         panel.appendChild(card)
+
+    # Retrofit: a link out to the hub-wide achievements dashboard
+    # (root index.html's #account-achievements-dashboard, ACHIEVEMENTS-
+    # SYSTEM-DESIGN.md §5) — signed-in players can see SOL's progress
+    # alongside every other game's there. Relative path, no leading "/"
+    # (site-level milestone 7's GitHub Pages subpath fix), rebuilt each
+    # open alongside the cards since the whole panel is cleared first.
+    hub_link = document.createElement("a")
+    hub_link.innerText = "View the hub-wide achievements dashboard →"
+    hub_link.href = "../../index.html#account-achievements-dashboard"
+    hub_link.className = "achievements-hub-link"
+    panel.appendChild(hub_link)
 
 
 def update_cross_summary(viewer, target):
@@ -1440,6 +1511,7 @@ def tick(*args):
     update_away_summary()
     update_win_display()
     update_achievements_display()
+    _check_new_achievements_for_toast()
 
 
 def _full_render():
@@ -1468,6 +1540,13 @@ def _full_render():
     update_all_cross_summaries()
     update_win_display()
     update_achievements_display()
+    # A full render (fresh setup, or a save/load round-trip) always starts
+    # with no toast showing and re-seeds the "already earned" baseline to
+    # whatever's true right now -- see _seed_achievement_toast_baseline's
+    # own docstring for why loading a save must never replay its whole
+    # earned history as a burst of toasts.
+    document.getElementById("achievement-toast").hidden = True
+    _seed_achievement_toast_baseline()
 
 
 # --- Save system (SAVE-SYSTEM-DESIGN.md Phase 1) ---

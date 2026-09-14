@@ -25,17 +25,27 @@
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
       <button id="achievements-toggle-button" class="secondary" type="button">🏆 Achievements</button>
+      <button id="stats-toggle-button" class="secondary" type="button">📊 Stats &amp; Share</button>
+      <button id="governor-report-toggle-button" class="secondary" type="button">🎛️ Governor Report</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
+    <div id="stats-panel" class="section stats-panel" hidden></div>
+    <div id="governor-report-panel" class="section governor-report-panel" hidden></div>
+
+    <div id="achievement-toast" class="achievement-toast" hidden>
+      <p id="achievement-toast-text"></p>
+    </div>
 
     <div id="win-banner" class="section" hidden>
       <p id="win-banner-heading" class="win-banner-heading">100% COMPLETE</p>
       <p id="win-banner-subtext" class="win-banner-subtext">Every world in the solar system has been fully terraformed. The simulation continues in sandbox mode.</p>
+      <p id="prestige-level-readout" class="prestige-level-readout"></p>
+      <button id="prestige-button" class="secondary" type="button">🌟 Prestige (New Game+)</button>
     </div>
 
     <div id="earth-view">
-      <div class="planet-visual planet-visual--earth" aria-hidden="true">
+      <div id="planet-visual" class="planet-visual planet-visual--earth" aria-hidden="true">
         <div class="planet-visual-glow"></div>
         <div class="planet-visual-body"></div>
       </div>
@@ -79,6 +89,8 @@
         <p id="terraform-status" class="ecology-status"></p>
       </div>
 
+      <button id="reset-world-button" class="secondary reset-world-button" type="button">Reset This World</button>
+
       <div id="research" class="section">
         <p id="research-label">Research — Near Bodies Tier</p>
         <details class="info-toggle"><summary>i</summary><p>Research unlocks new destinations in tiers, not one planet at a time — reaching the Near Bodies tier opens the Moon and Mars together, and later tiers open several more bodies at once.</p></details>
@@ -88,6 +100,7 @@
         </div>
         <p id="research-status"></p>
         <button id="fund-research-button" class="secondary" disabled>Loading...</button>
+        <div id="research-tree" class="research-tree"></div>
       </div>
 
       <div id="governor" class="section">
@@ -170,18 +183,18 @@
           <details class="info-toggle"><summary>i</summary><p>Travel unlocks once you've reached the research tier that targets a body — you don't need to fully develop your current planet first, just meet the research requirement.</p></details>
         </p>
         <p id="travel-status">Reach the Near Bodies tier to unlock travel.</p>
-        <button id="travel-moon-button" class="secondary" hidden disabled>Travel to Moon</button>
-        <button id="travel-mars-button" class="secondary" hidden disabled>Travel to Mars</button>
-        <button id="travel-venus-button" class="secondary" hidden disabled>Travel to Venus</button>
-        <button id="travel-asteroid-belt-button" class="secondary" hidden disabled>Travel to the Asteroid Belt</button>
-        <button id="travel-pluto-button" class="secondary" hidden disabled>Travel to Pluto</button>
-        <button id="travel-jupiter-moons-button" class="secondary" hidden disabled>Travel to Jupiter's Moons</button>
-        <button id="travel-saturn-moons-button" class="secondary" hidden disabled>Travel to Saturn's Moons</button>
+        <button id="travel-moon-button" class="secondary" hidden disabled>🌕 Travel to Moon</button>
+        <button id="travel-mars-button" class="secondary" hidden disabled>🔴 Travel to Mars</button>
+        <button id="travel-venus-button" class="secondary" hidden disabled>🟠 Travel to Venus</button>
+        <button id="travel-asteroid-belt-button" class="secondary" hidden disabled>🪨 Travel to the Asteroid Belt</button>
+        <button id="travel-pluto-button" class="secondary" hidden disabled>⚪ Travel to Pluto</button>
+        <button id="travel-jupiter-moons-button" class="secondary" hidden disabled>🟤 Travel to Jupiter's Moons</button>
+        <button id="travel-saturn-moons-button" class="secondary" hidden disabled>🪐 Travel to Saturn's Moons</button>
       </div>
     </div>
 
     <div id="mars-view" hidden>
-      <div class="planet-visual planet-visual--mars" aria-hidden="true">
+      <div id="mars-planet-visual" class="planet-visual planet-visual--mars" aria-hidden="true">
         <div class="planet-visual-glow"></div>
         <div class="planet-visual-body"></div>
       </div>
@@ -220,6 +233,8 @@
         </div>
         <p id="mars-terraform-status" class="ecology-status"></p>
       </div>
+
+      <button id="mars-reset-world-button" class="secondary reset-world-button" type="button">Reset This World</button>
 
       <div id="mars-trade" class="section">
         <p id="mars-trade-route-label" class="generator-info">
@@ -283,7 +298,7 @@
     </div>
 
     <div id="moon-view" hidden>
-      <div class="planet-visual planet-visual--moon" aria-hidden="true">
+      <div id="moon-planet-visual" class="planet-visual planet-visual--moon" aria-hidden="true">
         <div class="planet-visual-glow"></div>
         <div class="planet-visual-body"></div>
       </div>
@@ -322,6 +337,8 @@
         </div>
         <p id="moon-terraform-status" class="ecology-status"></p>
       </div>
+
+      <button id="moon-reset-world-button" class="secondary reset-world-button" type="button">Reset This World</button>
 
       <div id="moon-trade" class="section">
         <p id="moon-trade-route-label" class="generator-info">
@@ -385,7 +402,7 @@
     </div>
 
     <div id="venus-view" hidden>
-      <div class="planet-visual planet-visual--venus" aria-hidden="true">
+      <div id="venus-planet-visual" class="planet-visual planet-visual--venus" aria-hidden="true">
         <div class="planet-visual-glow"></div>
         <div class="planet-visual-body"></div>
       </div>
@@ -424,6 +441,8 @@
         </div>
         <p id="venus-terraform-status" class="ecology-status"></p>
       </div>
+
+      <button id="venus-reset-world-button" class="secondary reset-world-button" type="button">Reset This World</button>
 
       <div id="venus-trade" class="section">
         <p id="venus-trade-route-label" class="generator-info">
@@ -487,7 +506,7 @@
     </div>
 
     <div id="asteroidbelt-view" hidden>
-      <div class="planet-visual planet-visual--asteroidbelt" aria-hidden="true">
+      <div id="asteroidbelt-planet-visual" class="planet-visual planet-visual--asteroidbelt" aria-hidden="true">
         <div class="planet-visual-rock planet-visual-rock--a"></div>
         <div class="planet-visual-rock planet-visual-rock--b"></div>
         <div class="planet-visual-rock planet-visual-rock--c"></div>
@@ -527,6 +546,8 @@
         </div>
         <p id="asteroidbelt-terraform-status" class="ecology-status"></p>
       </div>
+
+      <button id="asteroidbelt-reset-world-button" class="secondary reset-world-button" type="button">Reset This World</button>
 
       <div id="asteroidbelt-trade" class="section">
         <p id="asteroidbelt-trade-route-label" class="generator-info">
@@ -590,7 +611,7 @@
     </div>
 
     <div id="pluto-view" hidden>
-      <div class="planet-visual planet-visual--pluto" aria-hidden="true">
+      <div id="pluto-planet-visual" class="planet-visual planet-visual--pluto" aria-hidden="true">
         <div class="planet-visual-glow"></div>
         <div class="planet-visual-body"></div>
       </div>
@@ -629,6 +650,8 @@
         </div>
         <p id="pluto-terraform-status" class="ecology-status"></p>
       </div>
+
+      <button id="pluto-reset-world-button" class="secondary reset-world-button" type="button">Reset This World</button>
 
       <div id="pluto-trade" class="section">
         <p id="pluto-trade-route-label" class="generator-info">
@@ -692,7 +715,7 @@
     </div>
 
     <div id="jupitermoons-view" hidden>
-      <div class="planet-visual planet-visual--jupitermoons" aria-hidden="true">
+      <div id="jupitermoons-planet-visual" class="planet-visual planet-visual--jupitermoons" aria-hidden="true">
         <div class="planet-visual-backdrop"></div>
         <div class="planet-visual-glow"></div>
         <div class="planet-visual-body"></div>
@@ -732,6 +755,8 @@
         </div>
         <p id="jupitermoons-terraform-status" class="ecology-status"></p>
       </div>
+
+      <button id="jupitermoons-reset-world-button" class="secondary reset-world-button" type="button">Reset This World</button>
 
       <div id="jupitermoons-trade" class="section">
         <p id="jupitermoons-trade-route-label" class="generator-info">
@@ -803,7 +828,7 @@
     </div>
 
     <div id="saturnmoons-view" hidden>
-      <div class="planet-visual planet-visual--saturnmoons" aria-hidden="true">
+      <div id="saturnmoons-planet-visual" class="planet-visual planet-visual--saturnmoons" aria-hidden="true">
         <div class="planet-visual-ring"></div>
         <div class="planet-visual-glow"></div>
         <div class="planet-visual-body"></div>
@@ -843,6 +868,8 @@
         </div>
         <p id="saturnmoons-terraform-status" class="ecology-status"></p>
       </div>
+
+      <button id="saturnmoons-reset-world-button" class="secondary reset-world-button" type="button">Reset This World</button>
 
       <div id="saturnmoons-trade" class="section">
         <p id="saturnmoons-trade-route-label" class="generator-info">
