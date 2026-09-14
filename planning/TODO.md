@@ -359,8 +359,8 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] I2: Scale the region skyline's building count/height with real capacity.
 - [x] I3: An explicit in-play comparison to the Uganda policy model.
 - [x] I5: A one-time callout at the "thriving" wellbeing band (≥70).
-- [ ] I6: A one-line consequence description per strain level.
-- [ ] I7: A one-line effect summary on each capacity investment row.
+- [x] I6: A one-line consequence description per strain level.
+- [x] I7: A one-line effect summary on each capacity investment row.
 - [ ] I8: Replace the coda's three meter bars with a clearer before/after comparison.
 - [ ] I9: A real-world resettlement-outcome benchmark comparison (institutional/statistical only, per this game's own sensitivity note).
 - [ ] I10: A locally-stored "best run" stat.
@@ -373,7 +373,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [ ] I17: A passive "unmanaged control region" for contrast.
 - [ ] I18: A free-text field inviting tone/framing concerns in the feedback prompt.
 - [ ] I19: Turn the net-positive turning-point message into a small persistent badge.
-- [ ] I20: Surface the funds-to-economic-health scale reference point in the UI.
+- [x] I20: Surface the funds-to-economic-health scale reference point in the UI.
 
 ---
 

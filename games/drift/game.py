@@ -36,6 +36,16 @@ CAPACITY_ICON = {
     "infrastructure": "\U0001F6E0️",
 }
 
+# I7: a one-line effect summary per capacity investment row, since
+# previously this was only explained inside the pressure section's info
+# toggle -- easy to miss from the investment row itself, where the
+# decision actually gets made.
+CAPACITY_EFFECT_SUMMARY = {
+    "housing": "Reduces strain. Doesn't speed up integration.",
+    "services": "Reduces strain, and is the only capacity that moves pending arrivals to integrated.",
+    "infrastructure": "Reduces strain. Doesn't speed up integration.",
+}
+
 INVEST_COST = {
     "housing": 20.0,
     "services": 20.0,
@@ -436,6 +446,21 @@ def region_visual_height_scale(total_capacity):
     return max(REGION_VISUAL_MIN_HEIGHT_SCALE, min(1.0, fraction))
 
 
+# I6: a one-line plain-language consequence description per strain level,
+# not just the existing colour/label change on the strain bar -- so a
+# player who hasn't opened the pressure section's info-toggle still knows
+# what "critical" actually costs them.
+STRAIN_LEVEL_CONSEQUENCE = {
+    "stable": "Services are keeping pace with arrivals — no meaningful drag on income.",
+    "strained": "Shortfalls are starting to bite: strain is cutting into this region's income each round.",
+    "critical": "Services are badly outpaced: strain is cutting deep into income, and it will stay elevated even after you catch up.",
+}
+
+
+def strain_consequence_message(region_state):
+    return STRAIN_LEVEL_CONSEQUENCE[region_state.strain_level()]
+
+
 def wellbeing_message(score):
     if score >= THRIVING_WELLBEING_SCORE:
         return "This region is turning displacement into a manageable — even thriving — transition."
@@ -459,6 +484,14 @@ UGANDA_MODEL_COVERAGE_DESCRIPTION = (
 )
 UGANDA_COMPARISON_HIGH_COVERAGE = 80.0
 UGANDA_COMPARISON_MID_COVERAGE = 40.0
+
+
+# I20: surfaces the funds-to-economic-health scale reference point
+# (economic_health()'s WELLBEING_FUNDS_SCALE denominator) directly in the
+# UI, so that 0-100 scale isn't a black box the player can only infer
+# from watching the number move.
+def economic_health_reference_note():
+    return f"Reaches 100 at {WELLBEING_FUNDS_SCALE:.0f}+ funds."
 
 
 def uganda_comparison_message(region_state):
@@ -920,6 +953,8 @@ def render():
     strain_bar = document.getElementById("strain-bar")
     strain_bar.style.width = f"{region.strain_fraction() * 100:.0f}%"
     strain_bar.className = f"meter-fill meter-fill--strain strain--{region.strain_level()}"
+    # I6: one-line consequence description per strain level.
+    document.getElementById("strain-consequence-display").innerText = strain_consequence_message(region)
 
     document.getElementById("integrated-display").innerText = (
         f"Integrated: {region.integrated_population:.0f} people "
@@ -944,6 +979,8 @@ def render():
         f"Economic health: {region.economic_health():.0f}"
     )
     document.getElementById("economic-health-bar").style.width = f"{region.economic_health():.0f}%"
+    # I20: economic health's funds-to-score scale reference point.
+    document.getElementById("economic-health-reference-display").innerText = economic_health_reference_note()
     document.getElementById("social-cohesion-display").innerText = (
         f"Social cohesion: {region.social_cohesion():.0f}"
     )
@@ -1010,6 +1047,10 @@ def render():
         button = document.getElementById(f"{capacity_type}-invest-button")
         button.innerText = f"{CAPACITY_LABEL[capacity_type]} ({INVEST_COST[capacity_type]:.0f})"
         button.disabled = region.funds < INVEST_COST[capacity_type]
+        # I7: one-line effect summary directly on each investment row.
+        document.getElementById(f"{capacity_type}-effect-display").innerText = (
+            CAPACITY_EFFECT_SUMMARY[capacity_type]
+        )
 
 
 def on_advance_round(event=None):

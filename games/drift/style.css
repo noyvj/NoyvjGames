@@ -715,6 +715,16 @@ button.primary:active {
   pointer-events: none;
 }
 
+/* I20: a small reference note under the economic health gauge only
+   (the one wellbeing sub-score whose 0-100 scale isn't otherwise
+   self-explanatory -- service quality/social cohesion are already
+   plain percentages of something visible elsewhere on screen). */
+.gauge-reference-note {
+  margin: 0;
+  font-size: 0.65rem;
+  opacity: 0.6;
+}
+
 /* --- Capacity investment tiles: an icon medallion beside each row
    instead of a bare emoji-in-text label, so the investment list reads
    as game tiles rather than a converted list. No DOM removed — the
@@ -749,6 +759,18 @@ button.primary:active {
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 0.5rem;
+}
+
+/* I7: a one-line effect summary directly on each investment row (e.g.
+   "only Services integrates people"), previously only explained inside
+   the pressure section's details toggle. Spans the full row underneath
+   the name/count/button grid rather than fighting for one of those three
+   columns. */
+.invest-effect {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.7rem;
+  opacity: 0.65;
 }
 
 /* ============================================================
