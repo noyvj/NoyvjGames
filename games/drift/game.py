@@ -71,6 +71,14 @@ BACKGROUND_SEVERITY_RISE_PER_ROUND = 0.5
 BASE_ARRIVALS_PER_ROUND = 5.0
 ARRIVALS_PER_SEVERITY_POINT = 3.0
 
+# I13 -- opt-in "accelerated background severity" difficulty variant, same
+# pattern as Grid's C16/C4 opt-in toggles: off by default, persisted
+# across save/load, and it only ever changes how fast background_severity
+# itself rises -- never touches arrivals_this_round()/strain math directly
+# (those already scale off background_severity, so this one knob is
+# enough to make the whole run harder without a second parallel system).
+ACCELERATED_SEVERITY_MULTIPLIER = 2.0
+
 # Strain: how much cumulative arrivals outrun cumulative capacity. Soft
 # consequence only — strain eats into the region's own income (service
 # shortfalls and friction cost money) but never blocks play or zeroes
@@ -164,6 +172,10 @@ class RegionState:
         # coda -- coda_visible itself toggles on/off, so it can't answer
         # "has this ever been viewed" on its own.
         self.coda_ever_viewed = False
+        # I13 -- opt-in "accelerated background severity" difficulty
+        # variant, off by default. Persisted so it stays set across a
+        # save/load, same as Grid's steeper_demand_growth_enabled.
+        self.accelerated_severity_enabled = False
 
     def total_capacity(self):
         return sum(self.capacity[t] for t in CAPACITY_TYPES)
@@ -321,7 +333,10 @@ class RegionState:
         arrivals = self.arrivals_this_round()
         self.total_arrivals += arrivals
         self.arrivals_log.append(arrivals)
-        self.background_severity += BACKGROUND_SEVERITY_RISE_PER_ROUND
+        severity_rise = BACKGROUND_SEVERITY_RISE_PER_ROUND
+        if self.accelerated_severity_enabled:
+            severity_rise *= ACCELERATED_SEVERITY_MULTIPLIER
+        self.background_severity += severity_rise
         self.funds += income
         self.round_number += 1
 
@@ -1169,6 +1184,20 @@ def render():
             CAPACITY_EFFECT_SUMMARY[capacity_type]
         )
 
+    # I13: opt-in difficulty toggle -- purely reflects the current
+    # setting, never touches strain/arrivals math directly (see
+    # ACCELERATED_SEVERITY_MULTIPLIER's comment above).
+    accelerated_button = document.getElementById("accelerated-severity-toggle-button")
+    accelerated_button.innerText = (
+        "🔥 Accelerated Severity: ON"
+        if region.accelerated_severity_enabled
+        else "Accelerated Severity: OFF"
+    )
+    if region.accelerated_severity_enabled:
+        accelerated_button.classList.add("active")
+    else:
+        accelerated_button.classList.remove("active")
+
 
 def on_advance_round(event=None):
     region.advance_round()
@@ -1191,6 +1220,14 @@ def on_toggle_coda(event=None):
         region.coda_ever_viewed = True
     render()
     _check_new_achievements_for_toast()
+
+
+# I13: opt-in accelerated-severity difficulty toggle -- a settings-style
+# flip, same as on_toggle_info_page/on_toggle_achievements, not a player
+# action achievements can key off of, so no toast check here.
+def on_toggle_accelerated_severity(event=None):
+    region.accelerated_severity_enabled = not region.accelerated_severity_enabled
+    render()
 
 
 # --- Save system (SAVE-BUTTON-INTEGRATION.md contract for the shared
@@ -1243,6 +1280,7 @@ def get_state():
         "best_stable_streak": region.best_stable_streak,
         "thriving_round": region.thriving_round,
         "coda_ever_viewed": region.coda_ever_viewed,
+        "accelerated_severity_enabled": region.accelerated_severity_enabled,
         "coda_visible": coda_visible,
         "info_page_open": info_page_open,
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
@@ -1287,6 +1325,9 @@ def load_state(data):
     region.best_stable_streak = data.get("best_stable_streak", region.best_stable_streak)
     region.thriving_round = data.get("thriving_round", region.thriving_round)
     region.coda_ever_viewed = data.get("coda_ever_viewed", region.coda_ever_viewed)
+    region.accelerated_severity_enabled = data.get(
+        "accelerated_severity_enabled", region.accelerated_severity_enabled
+    )
     coda_visible = data.get("coda_visible", coda_visible)
     info_page_open = data.get("info_page_open", info_page_open)
     # "achievements_earned" is intentionally never read back here — see
@@ -1319,6 +1360,9 @@ def setup():
     )
     document.getElementById("achievements-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_achievements)
+    )
+    document.getElementById("accelerated-severity-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_accelerated_severity)
     )
     render()
     _seed_achievement_toast_baseline()

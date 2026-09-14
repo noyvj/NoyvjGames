@@ -26,6 +26,7 @@ ALL_STATE_KEYS = {
     "best_stable_streak",
     "thriving_round",
     "coda_ever_viewed",
+    "accelerated_severity_enabled",
     "coda_visible",
     "info_page_open",
     "achievements_earned",

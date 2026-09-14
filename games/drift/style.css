@@ -267,6 +267,16 @@ button.primary:active {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 10px rgba(111, 160, 174, 0.35);
 }
 
+/* I13: opt-in difficulty toggle -- same "armed/active switch" treatment
+   as Grid's .difficulty-toggle.active, reusing the strain-critical hue
+   (#c9603c) rather than inventing a new accent, since this is the same
+   "things just got harder" signal. */
+.difficulty-toggle.active {
+  border-color: rgba(201, 96, 60, 0.6);
+  background: linear-gradient(135deg, #402a26, #241614);
+  box-shadow: 0 0 10px rgba(201, 96, 60, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
 .feedback-comment {
   width: 100%;
   min-height: 2.5rem;

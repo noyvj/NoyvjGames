@@ -77,6 +77,7 @@ ELEMENT_IDS = [
     "info-page-tie-in",
     "info-page-sources",
     "achievements-toggle-button",
+    "accelerated-severity-toggle-button",
     "achievements-panel",
     "achievement-toast",
     "achievement-toast-text",
