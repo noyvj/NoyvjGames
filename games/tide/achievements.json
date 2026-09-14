@@ -1,0 +1,104 @@
+{
+  "achievements": [
+    {
+      "id": "underway",
+      "label": "Underway",
+      "description": "Advance to Season 2 for the first time."
+    },
+    {
+      "id": "first_output",
+      "label": "Open For Business",
+      "description": "Invest in Output for the first time."
+    },
+    {
+      "id": "first_reduction",
+      "label": "Cleanup Crew",
+      "description": "Invest in Acidity Reduction for the first time."
+    },
+    {
+      "id": "first_adaptation",
+      "label": "Breaking Ground",
+      "description": "Invest in Adaptation for the first time."
+    },
+    {
+      "id": "tier_sandbags",
+      "label": "Sandbag Berms",
+      "description": "Unlock the first adaptation tier."
+    },
+    {
+      "id": "tier_seawalls",
+      "label": "Seawalls",
+      "description": "Unlock the second adaptation tier."
+    },
+    {
+      "id": "tier_reinforced",
+      "label": "Reinforced Seawalls",
+      "description": "Unlock the third adaptation tier."
+    },
+    {
+      "id": "tier_storm_surge",
+      "label": "Storm-Surge Barriers",
+      "description": "Unlock the fourth and final adaptation tier."
+    },
+    {
+      "id": "first_flood",
+      "label": "First Flood",
+      "description": "Watch the first coastline tile flood."
+    },
+    {
+      "id": "losing_ground",
+      "label": "Losing Ground",
+      "description": "Have at least half the coastline rows flooded at once."
+    },
+    {
+      "id": "fully_submerged",
+      "label": "Underwater",
+      "description": "Have the entire coastline grid flooded at once."
+    },
+    {
+      "id": "the_lag_arrives",
+      "label": "The Lag Arrives",
+      "description": "See fishing yield fall to half or below — the delayed acidity damage finally catching up."
+    },
+    {
+      "id": "stocks_rebound",
+      "label": "Stocks Rebound",
+      "description": "See fishing yield recover above 90% after it once crashed below 70%."
+    },
+    {
+      "id": "turning_the_tide",
+      "label": "Turning The Tide",
+      "description": "Bring ocean acidity down at least 20 points from its highest-ever peak."
+    },
+    {
+      "id": "flush_coffers",
+      "label": "Flush Coffers",
+      "description": "Reach 1,000 funds banked at once (peak, not current)."
+    },
+    {
+      "id": "time_bought",
+      "label": "Time Bought",
+      "description": "Save at least 100 in cumulative damage thanks to adaptation investment."
+    },
+    {
+      "id": "the_long_haul",
+      "label": "The Long Haul",
+      "description": "Reach Season 20."
+    },
+    {
+      "id": "bending_the_curve",
+      "label": "Bending The Curve",
+      "description": "Watch your own damage curve visibly flatten, season over season."
+    },
+    {
+      "id": "well_rounded",
+      "label": "Well-Rounded Settlement",
+      "description": "Invest at least 5 units into each of Output, Acidity Reduction, and Adaptation."
+    },
+    {
+      "id": "fortified_in_time",
+      "label": "Fortified In Time",
+      "description": "Reach the maximum adaptation tier before a single coastline tile floods."
+    }
+  ]
+}

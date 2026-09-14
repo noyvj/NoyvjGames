@@ -37,6 +37,7 @@ class FakeElement:
         self.disabled = False
         self.hidden = False
         self.title = ""
+        self.value = ""
         self.className = ""
         self.classList = FakeClassList()
         self.style = FakeStyle()
@@ -81,11 +82,50 @@ class FakeDocument:
         self._elements = elements
 
     def getElementById(self, id_):
-        return self._elements[id_]
+        return self._elements.get(id_)
 
     def createElement(self, tag):
         return FakeElement(registry=self._elements)
 
 
+class FakeTimers:
+    """Collects setTimeout callbacks instead of running them on a real
+    clock, so tests can assert on pre/post-flush state (e.g. the
+    achievement toast hiding itself after ACHIEVEMENT_TOAST_DURATION_MS)
+    without an actual wall-clock delay."""
+
+    def __init__(self):
+        self.pending = []  # one-shot setTimeout calls
+
+    def setTimeout(self, callback, delay):
+        self.pending.append((callback, delay))
+        return len(self.pending)
+
+    def flush(self):
+        """Runs and clears all pending one-shot setTimeout callbacks."""
+        pending, self.pending = self.pending, []
+        for callback, _delay in pending:
+            callback()
+
+
+class FakeJsProxy:
+    """Stands in for the real pyodide.ffi.create_proxy() return value: a
+    callable wrapper with a `.destroy()` a caller can invoke once the
+    proxy is no longer needed (show_achievement_toast() destroys its own
+    previous setTimeout proxy before creating a new one). Tracks
+    `destroyed` so tests can assert cleanup actually happened rather than
+    just not crashing."""
+
+    def __init__(self, func):
+        self._func = func
+        self.destroyed = False
+
+    def __call__(self, *args, **kwargs):
+        return self._func(*args, **kwargs)
+
+    def destroy(self):
+        self.destroyed = True
+
+
 def create_proxy(func):
-    return func
+    return FakeJsProxy(func)

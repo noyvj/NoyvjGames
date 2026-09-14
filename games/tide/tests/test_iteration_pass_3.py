@@ -75,4 +75,10 @@ def test_trend_flattening_message_fires_only_once(game_env):
 def test_no_trend_message_with_no_investment(game_env):
     for _ in range(4):
         game_env.advance_season()
-    assert game_env.state.ticker_log == []
+    # D17 added its own one-time "first flood" ticker message, which
+    # legitimately fires here (sea level rises regardless of
+    # investment) -- this test's actual concern is that no *trend*
+    # message fires without adaptation investment, not that the ticker
+    # is silent about everything.
+    assert game_env.state.trend_flattening_announced is False
+    assert not any("flattening" in message for message in game_env.state.ticker_log)

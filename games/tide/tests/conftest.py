@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from .fakes import FakeDocument, FakeElement, create_proxy
+from .fakes import FakeDocument, FakeElement, FakeTimers, create_proxy
 
 GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 
@@ -44,6 +44,30 @@ ELEMENT_IDS = [
     "info-page-framing",
     "info-page-tie-in",
     "info-page-sources",
+    # Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md).
+    "achievements-toggle-button",
+    "achievements-panel",
+    "achievement-toast",
+    # D7: end-of-session summary.
+    "session-summary-toggle-button",
+    "session-summary-panel",
+    "session-summary-text",
+    # D16: output-mix sub-choice.
+    "output-mix-select",
+    # D9: harder-lag difficulty toggle.
+    "hard-lag-toggle-button",
+    # D18: player-chosen comparison baseline.
+    "set-baseline-button",
+    "coastline-before-label",
+    # D3/D4/D6/D12/D13/D14/D15/D5 misc readouts.
+    "next-flood-display",
+    "worst-season-display",
+    "then-vs-now-display",
+    "counterfactual-display",
+    "best-coastline-display",
+    "acidity-fish-graph",
+    "ticker-history-list",
+    "fish-warning-banner",
 ]
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-count", f"{_category}-invest-button"]
@@ -54,9 +78,10 @@ INITIALLY_DISABLED_IDS = [f"{c}-invest-button" for c in CATEGORIES]
 class GameEnv:
     """Bundles a freshly-loaded game module with its fake DOM."""
 
-    def __init__(self, module, elements):
+    def __init__(self, module, elements, timers):
         self.module = module
         self.elements = elements
+        self.timers = timers
 
     @property
     def state(self):
@@ -71,10 +96,37 @@ class GameEnv:
     def toggle_info_page(self):
         self.elements["info-page-toggle-button"].dispatch("click", None)
 
+    def toggle_achievements(self):
+        self.elements["achievements-toggle-button"].dispatch("click", None)
 
-def _install_pyodide_fakes(elements):
+    def toggle_session_summary(self):
+        self.elements["session-summary-toggle-button"].dispatch("click", None)
+
+    def toggle_hard_lag(self):
+        self.elements["hard-lag-toggle-button"].dispatch("click", None)
+
+    def set_baseline(self):
+        self.elements["set-baseline-button"].dispatch("click", None)
+
+    def set_output_mix(self, value):
+        """Sets the <select>'s value then fires a change event whose
+        `.target` is the select itself, same pattern Canopy's own
+        on_grid_size_change() integration test helper uses."""
+        select = self.elements["output-mix-select"]
+        select.value = value
+
+        class _FakeChangeEvent:
+            pass
+
+        event = _FakeChangeEvent()
+        event.target = select
+        select.dispatch("change", event)
+
+
+def _install_pyodide_fakes(elements, timers):
     fake_js = types.ModuleType("js")
     fake_js.document = FakeDocument(elements)
+    fake_js.setTimeout = timers.setTimeout
 
     fake_pyodide = types.ModuleType("pyodide")
     fake_pyodide_ffi = types.ModuleType("pyodide.ffi")
@@ -109,13 +161,14 @@ def game_env():
         FakeElement(id_, registry=elements)
     for id_ in INITIALLY_DISABLED_IDS:
         elements[id_].disabled = True
-    _install_pyodide_fakes(elements)
+    timers = FakeTimers()
+    _install_pyodide_fakes(elements, timers)
 
     spec = importlib.util.spec_from_file_location("game", GAME_PY)
     module = importlib.util.module_from_spec(spec)
     sys.modules["game"] = module
     spec.loader.exec_module(module)  # runs setup() at the bottom of game.py
 
-    yield GameEnv(module, elements)
+    yield GameEnv(module, elements, timers)
 
     _remove_pyodide_fakes()

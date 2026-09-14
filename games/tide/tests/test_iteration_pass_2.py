@@ -54,7 +54,12 @@ def test_next_tier_progress_text_before_any_investment(game_env):
 
 
 def test_next_tier_progress_text_at_max_tier(game_env):
-    for _ in range(10):
+    # D2 added a fourth tier (Storm-surge barriers, threshold 15) above
+    # the old ceiling (Reinforced seawalls, threshold 10) -- 15 invests
+    # are needed to actually reach the new top now, which costs more than
+    # the starting 300 funds (15 * 30 = 450), so top up funds first.
+    game_env.state.funds = 10000
+    for _ in range(15):
         game_env.invest("adaptation")
     text = game_env.state.next_tier_progress_text()
     assert "maximum" in text.lower()

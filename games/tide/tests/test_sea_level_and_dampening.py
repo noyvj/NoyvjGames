@@ -39,8 +39,10 @@ def test_dampening_fraction_increases_with_adaptation(game_env):
 
 
 def test_dampening_fraction_caps_at_maximum(game_env):
+    # D2's fourth tier (Storm-surge barriers) raised the real ceiling to
+    # 0.95 -- 0.9 (MAX_DAMPENING) now describes the third tier only.
     game_env.state.capacity["adaptation"] = 1000
-    assert game_env.state.dampening_fraction() == 0.9
+    assert game_env.state.dampening_fraction() == 0.95
 
 
 def test_cumulative_damage_matches_full_rise_without_adaptation(game_env):

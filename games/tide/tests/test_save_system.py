@@ -24,6 +24,19 @@ def test_get_state_includes_every_expected_key(game_env):
         "damage_log",
         "ticker_log",
         "trend_flattening_announced",
+        "ticker_full_history",
+        "hard_lag_mode",
+        "output_mix",
+        "fish_yield_history",
+        "first_flood_announced",
+        "baseline_season",
+        "baseline_sea_level",
+        "baseline_damage",
+        "min_fish_yield_ever",
+        "max_acidity_ever",
+        "max_funds_ever",
+        "fortified_in_time_earned",
+        "achievements_earned",
     }
 
 
