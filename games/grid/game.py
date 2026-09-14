@@ -106,6 +106,15 @@ DAMAGE_SEVERITY_THRESHOLD = 0.5
 # disruption_probability()/disruption_severity() or their inputs.
 STEEP_DEMAND_GROWTH_MULTIPLIER = 2.0
 
+# C4 -- opt-in "weather variability on renewable output" hard mode.
+# Explicitly scoped out of Pass 1 as a deliberate deferral (see CLAUDE.md);
+# picked back up here as an opt-in extra, never default-on, and -- same
+# reasoning as C16 above -- a separate knob from the emissions-driven
+# disruption curve. This only ever affects this round's *actual* output
+# for revenue purposes; it never touches total_capacity() (the "installed"
+# figure used for cost/display elsewhere), emissions, or disruption math.
+WEATHER_VARIANCE_FRACTION = 0.2
+
 # Reference point for the emissions meter bar — matches the severity
 # scale, so a full bar means disruption severity has hit its own cap.
 EMISSIONS_METER_MAX = DISRUPTION_SEVERITY_SCALE
@@ -211,6 +220,8 @@ class GridState:
         # C16 -- opt-in "steeper demand growth" difficulty variant, off by
         # default. Persisted so it stays set across a save/load.
         self.steeper_demand_growth_enabled = False
+        # C4 -- opt-in weather-variability hard mode, off by default.
+        self.weather_variability_enabled = False
 
     def plant_cost(self, plant_type):
         base = PLANT_BASE_COST[plant_type]
@@ -360,6 +371,26 @@ class GridState:
         reading, it's still just wear-3."""
         return min(100, round(self.plant_age[plant_type] / WEAR_PERCENT_REFERENCE_AGE * 100))
 
+    def effective_capacity_for_revenue(self, weather_rng=random.random):
+        """C4: this round's actual output for revenue purposes -- equal to
+        total_capacity() unless weather_variability_enabled, in which case
+        each renewable type's contribution is scaled by an independent
+        random factor in [1 - WEATHER_VARIANCE_FRACTION, 1 +
+        WEATHER_VARIANCE_FRACTION] (fossil/nuclear/battery are dispatchable
+        and unaffected). Never mutates total_capacity()'s own inputs --
+        this is purely how much of the installed fleet actually generated
+        this round, not a change to what's installed."""
+        if not self.weather_variability_enabled:
+            return self.total_capacity()
+        total = 0.0
+        for plant_type in PLANT_TYPES:
+            capacity = self.plant_counts[plant_type] * PLANT_CAPACITY[plant_type]
+            if plant_type in RENEWABLE_TYPES:
+                factor = 1 + (weather_rng() * 2 - 1) * WEATHER_VARIANCE_FRACTION
+                capacity *= max(0.0, factor)
+            total += capacity
+        return total
+
     def primary_emissions_source(self):
         """C3: which standing fossil type is most responsible for this
         round's emissions -- the type a generic brownout message should
@@ -373,8 +404,8 @@ class GridState:
             return None
         return max(candidates, key=lambda t: self.plant_counts[t] * PLANT_CAPACITY[t] * EMISSIONS_FACTOR[t])
 
-    def advance_round(self, rng=random.random, age_rng=random.random):
-        met_demand = min(self.total_capacity(), self.demand)
+    def advance_round(self, rng=random.random, age_rng=random.random, weather_rng=random.random):
+        met_demand = min(self.effective_capacity_for_revenue(weather_rng), self.demand)
         revenue = met_demand * REVENUE_PER_UNIT_MET
 
         event = None
@@ -967,6 +998,15 @@ def render():
     else:
         steep_button.classList.remove("active")
 
+    weather_button = document.getElementById("weather-variability-toggle-button")
+    weather_button.innerText = (
+        "🌩️ Weather Variability: ON" if state.weather_variability_enabled else "Weather Variability: OFF"
+    )
+    if state.weather_variability_enabled:
+        weather_button.classList.add("active")
+    else:
+        weather_button.classList.remove("active")
+
     svg = trend_graph_svg(
         state.emissions_history, state.avg_renewable_cost_history, state.global_reference_emissions_history
     )
@@ -1181,6 +1221,11 @@ def on_toggle_steeper_demand(event=None):
     render()
 
 
+def on_toggle_weather_variability(event=None):
+    state.weather_variability_enabled = not state.weather_variability_enabled
+    render()
+
+
 def on_advance_round(event=None):
     state.advance_round()
     _check_renewable_milestone()
@@ -1232,6 +1277,7 @@ def get_state():
         "lifetime_maintenance_spend": state.lifetime_maintenance_spend,
         "lifetime_disruption_spend": state.lifetime_disruption_spend,
         "steeper_demand_growth_enabled": state.steeper_demand_growth_enabled,
+        "weather_variability_enabled": state.weather_variability_enabled,
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),
@@ -1302,6 +1348,9 @@ def load_state(data):
     state.steeper_demand_growth_enabled = data.get(
         "steeper_demand_growth_enabled", state.steeper_demand_growth_enabled
     )
+    state.weather_variability_enabled = data.get(
+        "weather_variability_enabled", state.weather_variability_enabled
+    )
     # "achievements_earned" is intentionally never read back here — see
     # get_state()'s comment and ACHIEVEMENTS-SYSTEM-DESIGN.md §1.
 
@@ -1348,6 +1397,9 @@ def setup():
     )
     document.getElementById("steeper-demand-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_steeper_demand)
+    )
+    document.getElementById("weather-variability-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_weather_variability)
     )
     render()
     _seed_achievement_toast_baseline()

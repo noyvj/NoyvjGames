@@ -60,6 +60,7 @@ ELEMENT_IDS = [
     "funds-breakdown-maintenance",
     "funds-breakdown-disruption",
     "steeper-demand-toggle-button",
+    "weather-variability-toggle-button",
 ]
 for _plant in PLANT_TYPES:
     ELEMENT_IDS += [
@@ -113,6 +114,9 @@ class GameEnv:
 
     def toggle_steeper_demand(self):
         self.elements["steeper-demand-toggle-button"].dispatch("click", None)
+
+    def toggle_weather_variability(self):
+        self.elements["weather-variability-toggle-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements, timers):
