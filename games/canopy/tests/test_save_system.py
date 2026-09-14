@@ -24,6 +24,10 @@ def test_get_state_includes_every_expected_key(game_env):
         "stakeholder_declines_count",
         "community_relations_min_ever",
         "current_grid_size",
+        "highland_unlocked",
+        "highland_selected_index",
+        "highland_income",
+        "highland_plots",
         "achievements_earned",
     }
 
