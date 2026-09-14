@@ -12,7 +12,7 @@ Le Champ de Mots is included here now that its own answers would apply — its 4
 
 - [x] Le Champ de Mots Milestones 27-28 (Greetings & Basics Blitz, Verb Racer arcade minigames) — done, committed.
 - [x] Le Champ de Mots Milestones 29-30 (Boutique Dash, Café Rush arcade minigames) — done, all 4 minigames complete, 517/517 tests green.
-- [ ] Continuum Phase 6 (hub nav integration) — see "Big standalone features" below, gated behind nothing else.
+- [x] Continuum Phase 6 (hub nav integration) — done, see "Big standalone features" below.
 
 ---
 
@@ -25,7 +25,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - A link from the in-game achievements panel to the hub-wide dashboard.
 
 - [x] SOL — 18 achievements + panel + hub dashboard (reference implementation).
-  - [ ] Retrofit: add the unlock-toast and hub-dashboard-link (built after SOL shipped, per A19/A20).
+  - [x] Retrofit: add the unlock-toast and hub-dashboard-link (built after SOL shipped, per A19/A20).
 - [x] Canopy — 20 achievements + panel + unlock toast + hub-dashboard link (hub-side `script.js` registration still needed — out of scope for a `games/canopy/`-only dispatch).
 - [x] Grid — 16 achievements + panel + unlock toast + hub-dashboard link (hub-side `script.js` registration still needed — out of scope for a `games/grid/`-only dispatch).
 - [ ] Tide
@@ -35,7 +35,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [ ] Loop
 - [ ] Drift
 - [ ] Trade Empire
-- [ ] Continuum
+- [x] Continuum — 19 achievements + panel + unlock toast + hub-dashboard link (hub-side `script.js` registration still needed — out of scope for a `games/continuum/`-only dispatch).
 - [ ] Le Champ de Mots — **retrofit, not fresh-build**: it already has a game-local achievements slice (its own Milestone 23), but with no `achievements.json` manifest and no hub-dashboard wiring. Reshape it into the cross-game pattern rather than building a second, parallel system.
 
 ---
@@ -161,17 +161,18 @@ Two things every game needs once achievements land there, on top of the base rol
 
 - [ ] K5: A "civilization summary" end-of-playthrough report.
 - [ ] K6: Named camera presets in the 3D scene.
-- [ ] K7: A way to actually view a revisited era's snapshot in the 3D layer.
-- [ ] K8: Confirm every info-panel source is a clickable outbound link — fix any that aren't.
-- [ ] K10: A tutorial walkthrough via `shared/tutorial.js`, if it doesn't have one.
+- [x] K7: A way to actually view a revisited era's snapshot in the 3D layer — closed a real pre-existing gap (there was no revisit UI at all yet, despite `save.py` fully supporting it since Milestone 4): built a new "Look Back" section (enter/exit buttons per completed era), and confirmed live that the 3D layer's `get_visual_state()` correctly reflects the revisited era's own snapshot automatically once the UI exists to trigger it.
+- [x] K8: Confirm every info-panel source is a clickable outbound link — confirmed via `shared/info_page.py`'s renderer and live-checked across all seven eras; nothing needed fixing.
+- [x] K10: A tutorial walkthrough via `shared/tutorial.js`, if it doesn't have one — already built (`CONTINUUM_TUTORIAL_STEPS` in `index.html`); confirmed present, no new work needed.
 - [ ] K12: A scenario/difficulty select at new-game start.
 - [ ] K13: A shareable "my settlement" snapshot image, exported from the 3D scene.
-- [ ] K14: A search/filter on the research tree (14 tiers across 3 branches now).
-- [ ] K15: Confirm accessibility settings (text-scale, colorblind fixes) persist through a real save/load, not just `localStorage`.
+- [x] K14: A search/filter on the research tree (14 tiers across 3 branches now) — a text input filtering by name/blurb/branch, live-verified.
+- [x] K15: Confirm accessibility settings (text-scale, colorblind fixes) persist through a real save/load, not just `localStorage` — confirmed this is deliberate, not a bug: both are browser-level preferences, not portable save state (baking a local text-size/view-mode choice into a cross-device save would be backwards). No fix applied, per the task's own "only fix if actually broken" instruction.
 - [ ] K17: A subtle day/night or seasonal lighting cycle in the 3D scene.
 - [ ] K18: An optional stricter "hard mode" sustainability variant.
 - [ ] K19: Confirm/extend distinct meshes per building type in the 3D scene.
-- [ ] K20: A proper hub title-card art pass — do this once Phase 6 (below) links it in.
+- [x] K20: A proper hub title-card art pass — done as part of Phase 6 (below): a CSS-only thumb matching every other game's hand-drawn-gradient convention (no photographic-screenshot pattern exists anywhere on this hub to break from).
+- [x] Achievements: 19 achievements + in-game panel + unlock toast + `achievements_earned` in `get_state()` (hub-side `script.js` registration still needed — out of scope for a `games/continuum/`-only dispatch, same caveat Canopy/Grid's own rollouts already noted above).
 
 ---
 
@@ -402,7 +403,7 @@ Two things every game needs once achievements land there, on top of the base rol
 
 ## Big standalone features
 
-- [ ] **Continuum Phase 6**: link Continuum into the main hub nav (K1/L1), plus a dedicated full-playthrough integration test (K3 — actually marked "later", see `LATER.md`; the hub-link half is the actionable part now).
+- [x] **Continuum Phase 6**: link Continuum into the main hub nav (K1/L1) — done (title card + review widget). The dedicated full-playthrough integration test (K3 — marked "later", see `LATER.md`) remains open.
 - [ ] **Trade Empire hub-link** (J2, L1) — same nav-integration work, can be done alongside Continuum's.
 - [ ] **Le Champ de Mots: a visual-style switcher** — low-poly / text-based / cartoon / high-def, chosen on first load and changeable in settings. Desktop-only is fine (no need to solve mobile scaling for this). Your stated reasons: helps you see what's actually possible visually, and doubles as a BCM206 testing-different-options angle. **Blocked until Champ de Mots' current in-progress work (the minigames) finishes** — same gating as the rest of its section.
 - [ ] Deploy the accounts system to production (L3) — it's built and tested locally but never pushed live.

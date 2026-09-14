@@ -24,6 +24,7 @@ widget's get_state()/load_state() contract. Phase 2's log and era-transition
 systems land here too, since both are things the player reads.
 """
 
+import json
 import os
 import sys
 
@@ -44,7 +45,7 @@ import sustainability  # noqa: E402
 import transition  # noqa: E402
 import visual  # noqa: E402
 
-from js import document  # noqa: E402
+from js import document, setTimeout  # noqa: E402
 from pyodide.ffi import create_proxy  # noqa: E402
 
 
@@ -60,6 +61,14 @@ chronicle = campaign.log
 # Not one of CITY_FIELDS/tree state, so it rides in campaign.ui instead
 # (get_state()/load_state() below), exactly what that save field is for.
 info_page_open = False
+
+# Milestone 17 (K14) — the research tree search/filter query. Transient UI
+# state, not saved: unlike info_page_open (which rides campaign.ui because
+# a toggle's open/closed state is worth restoring on load), a text query
+# has no reason to survive a reload, so it's a plain module-level string,
+# always "" on a fresh module load. achievements_open (below) is the same
+# category — also never saved.
+research_search_query = ""
 
 
 def current_effects():
@@ -222,6 +231,8 @@ def render():
     render_info_page()
     render_log()
     render_era_progress(effects)
+    render_revisit()
+    update_achievements_display()
     _notify_visual_layer()
 
 
@@ -447,6 +458,383 @@ def render_era_progress(effects):
 def on_advance_era(event=None):
     if transition.attempt_transition(campaign):
         render()
+        _check_new_achievements_for_toast()
+
+
+# --- "look back" at a completed era (Milestone 15 / K7) -----------------
+# The save schema (save.py's Campaign.enter_revisit()/exit_revisit()) has
+# supported this since Milestone 4, and it has been fully tested since —
+# but no button anywhere ever called it: there was no revisit UI at all
+# before this milestone. This section is that missing UI. It needs no new
+# state-to-visual plumbing: get_visual_state() already reads directly off
+# `state`, and enter_revisit()/exit_revisit() mutate `state` in place (the
+# same object game.py's module-level `state` name points at), so the
+# moment a revisit is entered here, the existing Three.js render layer
+# (render3d.js, via _notify_visual_layer() at the end of render()) redraws
+# the revisited era's own scene automatically — the K7 ask was really "the
+# UI to reach this", not a rendering gap.
+_revisit_button_proxies = {}
+
+
+def render_revisit():
+    """The Look Back panel — rebuilt every render(), the same reason every
+    other dynamic panel in this file is: the list of revisitable eras grows
+    over a playthrough and can't be static markup."""
+    status = document.getElementById("revisit-status-display")
+    container = document.getElementById("revisit-era-list")
+    exit_button = document.getElementById("exit-revisit-button")
+    banner = document.getElementById("revisit-active-banner")
+
+    if campaign.revisiting is not None:
+        era_label = sim.ERA_LABEL[campaign.revisiting]
+        status.innerText = f"Looking back at the {era_label} era, exactly as it stood when you left it."
+        banner.innerText = (
+            f"You're looking back at the {era_label} era — nothing you do here "
+            "affects your forward progress."
+        )
+        banner.hidden = False
+        exit_button.hidden = False
+    else:
+        banner.hidden = True
+        exit_button.hidden = True
+        revisitable = campaign.revisitable_eras()
+        status.innerText = (
+            "No completed eras to look back on yet — finish your first era transition."
+            if not revisitable
+            else "Completed eras you can look back on:"
+        )
+
+    container.innerHTML = ""
+    live_eras = set()
+    if campaign.revisiting is None:
+        for era in campaign.revisitable_eras():
+            live_eras.add(era)
+            row = document.createElement("div")
+            row.className = "row"
+
+            top = document.createElement("div")
+            top.className = "row-top"
+            name = document.createElement("span")
+            name.className = "row-name"
+            name.innerText = sim.ERA_LABEL[era]
+            top.appendChild(name)
+            row.appendChild(top)
+
+            actions = document.createElement("div")
+            actions.className = "row-actions"
+            button = document.createElement("button")
+            button.id = f"revisit-{era}-button"
+            button.className = "secondary"
+            button.innerText = "View"
+            proxy = create_proxy(_make_enter_revisit_handler(era))
+            stale = _revisit_button_proxies.get(era)
+            if stale is not None:
+                stale.destroy()
+            _revisit_button_proxies[era] = proxy
+            button.addEventListener("click", proxy)
+            actions.appendChild(button)
+            row.appendChild(actions)
+
+            container.appendChild(row)
+
+    for era in list(_revisit_button_proxies):
+        if era not in live_eras:
+            _revisit_button_proxies.pop(era).destroy()
+
+
+def _make_enter_revisit_handler(era):
+    def handler(event=None):
+        if campaign.enter_revisit(era):
+            render()
+            _check_new_achievements_for_toast()
+    return handler
+
+
+def on_exit_revisit(event=None):
+    if campaign.exit_revisit():
+        render()
+
+
+# ===========================================================================
+# Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md) — following SOL's reference
+# integration exactly. See CLAUDE.md's Milestone 15 build notes for the
+# full catalog-design reasoning.
+# ===========================================================================
+#
+# "Derive, don't track" holds for every entry here: every achievement is a
+# pure function of state this game already persists (era progress via
+# campaign.furthest_era, the full score_history, the research tree's own
+# researched list, and the season loop's own last_report ratios) — no new
+# tracked state was needed except `campaign.has_revisited` (save.py), added
+# via the same five-step defensive pattern SOL's own visited_bodies used
+# (safe default, mutated only at the real event, saved, defensive fallback
+# on load, no backfill needed here since no pre-existing save could already
+# be "mid-revisit but the flag says no").
+ACHIEVEMENTS_FILENAME = "achievements.json"
+
+
+def _read_achievements_json():
+    """Same loading contract as SOL's `_read_achievements_json()`/Le Champ
+    de Mots' `_read_json_asset()`: the boot script fetches achievements.json
+    and hands it to Python as a window global before this file runs; the
+    pytest harness's fake `js` module has no such attribute, so this falls
+    through to reading the file straight off disk."""
+    try:
+        import js  # noqa: PLC0415 — Pyodide-only import, deliberately lazy
+    except ImportError:
+        js = None
+
+    raw = getattr(js, "ACHIEVEMENTS_JSON", None) if js is not None else None
+    if raw is not None:
+        return str(raw)
+
+    here = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(here, ACHIEVEMENTS_FILENAME), encoding="utf-8") as handle:
+        return handle.read()
+
+
+# Defensive per SOL's own note: achievements are additive, not core
+# gameplay, so a boot-script regression here degrades to "no achievements
+# catalog" rather than taking down the whole module import.
+try:
+    ACHIEVEMENTS = json.loads(_read_achievements_json())["achievements"]
+except (ValueError, OSError, NameError, KeyError):
+    ACHIEVEMENTS = []
+
+# Branch-depth threshold for the three "Tradition" achievements — roughly
+# half of any one branch's ~14-16 nodes (see CLAUDE.md), deep enough to
+# mean real, sustained investment in one branch rather than a few early
+# freebies.
+BRANCH_SPECIALIST_THRESHOLD = 8
+EQUITY_CHAMPION_MIN_POPULATION = 25
+A_REAL_CITY_POPULATION = 100
+# sustainability.components() returns each component on a 0..1 scale, NOT
+# the 0..100 scale evaluate()/the UI display (evaluate() multiplies by 100
+# for the headline readout) -- a real bug caught by this milestone's own
+# test suite before it shipped (both thresholds below were first written as
+# 90/85, which no settlement could ever satisfy). Named here, once, so a
+# future edit can't reintroduce the same off-by-100 mistake by hand.
+EQUITY_CHAMPION_MIN_EQUITY = 0.90
+BUILT_TO_LAST_MIN_RESILIENCE = 0.85
+
+
+def _ever_thriving():
+    if state.score_history and max(state.score_history) >= 85:
+        return True
+    return sustainability.score(state, current_effects()) >= 85
+
+
+def _ever_recovered_from_collapse():
+    """True if the score ever fell into Collapsing (<30) and later, at some
+    later point in the same history, recovered to Steady or better (>=70).
+    Reads state.score_history — one entry per completed season, in order,
+    never truncated — so this is a real historical check, not a live one,
+    unlike several of the checks below that only have a live signal to
+    read."""
+    lowest_seen = None
+    for value in state.score_history:
+        if lowest_seen is not None and lowest_seen < 30 and value >= 70:
+            return True
+        if lowest_seen is None or value < lowest_seen:
+            lowest_seen = value
+    return False
+
+
+def _era_reached(era):
+    return sim.era_index(campaign.furthest_era) >= sim.era_index(era)
+
+
+def _full_coordination():
+    report = state.last_report or {}
+    return report.get("canals", 0) > 0 and report.get("canal_staffing_ratio", 0.0) >= 1.0
+
+
+def _nobody_exposed():
+    report = state.last_report or {}
+    return report.get("public_works", 0) > 0 and report.get("public_works_coverage_ratio", 0.0) >= 1.0
+
+
+def _well_designed_rings():
+    report = state.last_report or {}
+    return report.get("habitat_rings", 0) > 0 and report.get("habitat_layout_ratio", 0.0) >= 1.0
+
+
+# Each checker is a zero-argument predicate read fresh off live state —
+# nothing here is cached or hand-flagged, matching SOL's own discipline.
+ACHIEVEMENT_CHECKS = {
+    "reached_agrarian": lambda: _era_reached("agrarian"),
+    "reached_classical": lambda: _era_reached("classical"),
+    "reached_medieval": lambda: _era_reached("medieval"),
+    "reached_industrial": lambda: _era_reached("industrial"),
+    "reached_digital": lambda: _era_reached("digital"),
+    "reached_space": lambda: _era_reached("space"),
+    "thriving_once": _ever_thriving,
+    "phoenix_settlement": _ever_recovered_from_collapse,
+    "provision_specialist": lambda: tree.affinity("provision") >= BRANCH_SPECIALIST_THRESHOLD,
+    "community_specialist": lambda: tree.affinity("community") >= BRANCH_SPECIALIST_THRESHOLD,
+    "craft_specialist": lambda: tree.affinity("craft") >= BRANCH_SPECIALIST_THRESHOLD,
+    "root_and_branch": lambda: len(tree.researched) >= len(tree.nodes),
+    "equity_champion": lambda: (
+        state.population >= EQUITY_CHAMPION_MIN_POPULATION
+        and sustainability.components(state, current_effects())["equity"] >= EQUITY_CHAMPION_MIN_EQUITY
+    ),
+    "built_to_last": lambda: (
+        sustainability.components(state, current_effects())["resilience"] >= BUILT_TO_LAST_MIN_RESILIENCE
+    ),
+    "full_coordination": _full_coordination,
+    "nobody_exposed": _nobody_exposed,
+    "well_designed_rings": _well_designed_rings,
+    "a_real_city": lambda: state.population >= A_REAL_CITY_POPULATION,
+    "looking_back": lambda: campaign.has_revisited,
+}
+
+# Progress readouts, only for achievements with a natural numeric scale-up —
+# a plain earned/not-yet is the honest shape for the rest (era-reached,
+# phoenix, the coordination/coverage achievements are all one-shot).
+ACHIEVEMENT_PROGRESS = {
+    "provision_specialist": lambda: (tree.affinity("provision"), BRANCH_SPECIALIST_THRESHOLD),
+    "community_specialist": lambda: (tree.affinity("community"), BRANCH_SPECIALIST_THRESHOLD),
+    "craft_specialist": lambda: (tree.affinity("craft"), BRANCH_SPECIALIST_THRESHOLD),
+    "root_and_branch": lambda: (len(tree.researched), len(tree.nodes)),
+    "a_real_city": lambda: (state.population, A_REAL_CITY_POPULATION),
+}
+
+
+def achievement_ids_earned():
+    """Every achievement id currently satisfied, in catalog order — the
+    value that rides the existing save/sync mechanism via get_state()'s
+    "achievements_earned" field. Always recomputed, never itself a save
+    input (see get_state() below)."""
+    return [entry["id"] for entry in ACHIEVEMENTS if ACHIEVEMENT_CHECKS[entry["id"]]()]
+
+
+def achievements_summary():
+    """The full catalog, in order, each annotated with earned status and
+    (where one exists) a live progress readout."""
+    earned_ids = set(achievement_ids_earned())
+    summary = []
+    for entry in ACHIEVEMENTS:
+        progress_fn = ACHIEVEMENT_PROGRESS.get(entry["id"])
+        summary.append(
+            {
+                "id": entry["id"],
+                "label": entry["label"],
+                "description": entry["description"],
+                "earned": entry["id"] in earned_ids,
+                "progress": progress_fn() if progress_fn else None,
+            }
+        )
+    return summary
+
+
+achievements_open = False
+
+
+def on_toggle_achievements(event=None):
+    global achievements_open
+    achievements_open = not achievements_open
+    update_achievements_display()
+
+
+def update_achievements_display():
+    toggle = document.getElementById("achievements-toggle-button")
+    panel = document.getElementById("achievements-panel")
+    earned_count = len(achievement_ids_earned())
+    toggle.innerText = (
+        f"Hide Achievements ({earned_count}/{len(ACHIEVEMENTS)})"
+        if achievements_open
+        else f"🏆 Achievements ({earned_count}/{len(ACHIEVEMENTS)})"
+    )
+    panel.hidden = not achievements_open
+    if not achievements_open:
+        return
+
+    panel.innerHTML = ""
+    for entry in achievements_summary():
+        card = document.createElement("div")
+        card.className = "achievement-card achievement-card--earned" if entry["earned"] else "achievement-card"
+
+        label = document.createElement("p")
+        label.className = "achievement-card-label"
+        label.innerText = f"🏆 {entry['label']}" if entry["earned"] else entry["label"]
+        card.appendChild(label)
+
+        description = document.createElement("p")
+        description.className = "achievement-card-description"
+        description.innerText = entry["description"]
+        card.appendChild(description)
+
+        if not entry["earned"] and entry["progress"] is not None:
+            current, target = entry["progress"]
+            progress = document.createElement("p")
+            progress.className = "achievement-card-progress"
+            progress.innerText = f"{current} of {target}"
+            card.appendChild(progress)
+
+        panel.appendChild(card)
+
+    # Hub-dashboard link (ACHIEVEMENTS-SYSTEM-DESIGN.md §5) — signed-in
+    # players can see Continuum's progress alongside every other game's
+    # there. Relative path, no leading "/" (site-level milestone 7's
+    # GitHub Pages subpath fix), rebuilt each open since the panel is
+    # cleared first.
+    hub_link = document.createElement("a")
+    hub_link.innerText = "View the hub-wide achievements dashboard →"
+    hub_link.href = "../../index.html#account-achievements-dashboard"
+    hub_link.className = "achievements-hub-link"
+    panel.appendChild(hub_link)
+
+
+# --- unlock toast ---------------------------------------------------------
+# A snapshot of which achievement ids were already earned as of the last
+# seed point, so an action handler's post-render check can tell "newly
+# earned by that action" apart from "already earned before this page/save
+# load" and only toast for the former. Seeded (never diffed against empty)
+# by setup() and load_state() — never by render() itself, since render() is
+# also what setup()/load_state() call before seeding — so a save that
+# already has several achievements earned never floods the player with a
+# toast per achievement the instant it loads.
+_achievements_seen_ids = set()
+
+
+def _seed_achievement_toast_baseline():
+    global _achievements_seen_ids
+    _achievements_seen_ids = set(achievement_ids_earned())
+
+
+def _display_toast(message):
+    toast = document.getElementById("achievement-toast")
+    text = document.getElementById("achievement-toast-text")
+    text.innerText = message
+    toast.hidden = False
+    toast.classList.add("visible")
+
+    def _hide(*args):
+        toast.hidden = True
+        toast.classList.remove("visible")
+        proxy.destroy()
+
+    proxy = create_proxy(_hide)
+    setTimeout(proxy, 4000)
+
+
+def _check_new_achievements_for_toast():
+    """Called after render() from every action handler that could plausibly
+    newly earn an achievement (assign/unassign/build/research/season
+    advance/era transition/enter revisit) — never from render() itself, for
+    the same reason _seed_achievement_toast_baseline() above exists."""
+    global _achievements_seen_ids
+    earned_now = set(achievement_ids_earned())
+    newly = earned_now - _achievements_seen_ids
+    if newly:
+        by_id = {entry["id"]: entry for entry in ACHIEVEMENTS}
+        labels = [by_id[aid]["label"] for aid in newly if aid in by_id]
+        if labels:
+            if len(labels) == 1:
+                _display_toast(f"🏆 Achievement unlocked: {labels[0]}")
+            else:
+                _display_toast(f"🏆 {len(labels)} achievements unlocked: " + ", ".join(labels))
+    _achievements_seen_ids = earned_now
 
 
 def render_info_page():
@@ -585,8 +973,13 @@ def render_research():
     container = document.getElementById("research-list")
     container.innerHTML = ""
 
+    query = research_search_query.strip().lower()
     live_node_ids = set()
+    any_rendered = False
     for node in tree.visible_nodes():
+        if query and not _research_node_matches(node, query):
+            continue
+        any_rendered = True
         researched = tree.is_researched(node.node_id)
         available = tree.is_available(node.node_id)
 
@@ -648,12 +1041,29 @@ def render_research():
 
         container.appendChild(row)
 
+    if query and not any_rendered:
+        empty = document.createElement("p")
+        empty.className = "row-blurb"
+        empty.innerText = f'No research nodes match "{research_search_query.strip()}".'
+        container.appendChild(empty)
+
     # Nodes that no longer need a Study button this render (just researched,
-    # or no longer visible) still have their old proxy sitting in the
-    # tracking dict — destroy and drop it rather than leaking it forever.
+    # no longer visible, or filtered out by the search box) still have
+    # their old proxy sitting in the tracking dict — destroy and drop it
+    # rather than leaking it forever. A filtered-out node is deliberately
+    # never given a fresh proxy in the loop above, so it can't leak a live
+    # listener behind an invisible row either.
     for node_id in list(_research_button_proxies):
         if node_id not in live_node_ids:
             _research_button_proxies.pop(node_id).destroy()
+
+
+def _research_node_matches(node, query):
+    """K14 — the research tree search/filter. Matches against the node's
+    name, blurb, and branch label, case-insensitively; `query` is already
+    lower-cased and stripped by the caller."""
+    haystack = f"{node.name} {node.blurb} {research.BRANCH_LABEL[node.branch]}".lower()
+    return query in haystack
 
 
 # --- handlers ----------------------------------------------------------
@@ -661,6 +1071,7 @@ def _make_assign_handler(role):
     def handler(event=None):
         state.assign_worker(role)
         render()
+        _check_new_achievements_for_toast()
     return handler
 
 
@@ -668,6 +1079,7 @@ def _make_unassign_handler(role):
     def handler(event=None):
         state.unassign_worker(role)
         render()
+        _check_new_achievements_for_toast()
     return handler
 
 
@@ -675,6 +1087,7 @@ def _make_build_handler(building):
     def handler(event=None):
         state.build(building)
         render()
+        _check_new_achievements_for_toast()
     return handler
 
 
@@ -683,6 +1096,7 @@ def _make_research_handler(node_id):
         tree.research(node_id, state.resources)
         chronicle.check_research(state, tree)
         render()
+        _check_new_achievements_for_toast()
     return handler
 
 
@@ -693,6 +1107,7 @@ def on_advance_season(event=None):
     chronicle.check_population(state)
     chronicle.check_livability(state, effects)
     render()
+    _check_new_achievements_for_toast()
 
 
 # --- the shared save widget's contract ---------------------------------
@@ -702,7 +1117,12 @@ def on_advance_season(event=None):
 # see save.py for the schema itself.
 def get_state():
     campaign.ui["info_page_open"] = info_page_open
-    return campaign.to_dict()
+    data = campaign.to_dict()
+    # Milestone 15 (ACHIEVEMENTS-SYSTEM-DESIGN.md): a write-only projection,
+    # not part of Campaign's own save schema — always recomputed fresh here,
+    # never read back in load_state() below.
+    data["achievements_earned"] = achievement_ids_earned()
+    return data
 
 
 def load_state(data):
@@ -711,7 +1131,14 @@ def load_state(data):
         return False
     info_page_open = bool(campaign.ui.get("info_page_open", False))
     render()
+    _seed_achievement_toast_baseline()
     return True
+
+
+def on_research_search_input(event=None):
+    global research_search_query
+    research_search_query = document.getElementById("research-search-input").value
+    render_research()
 
 
 def setup():
@@ -728,7 +1155,24 @@ def setup():
     document.getElementById("advance-era-button").addEventListener(
         "click", create_proxy(on_advance_era)
     )
+    document.getElementById("achievements-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_achievements)
+    )
+    document.getElementById("exit-revisit-button").addEventListener(
+        "click", create_proxy(on_exit_revisit)
+    )
+    document.getElementById("research-search-input").addEventListener(
+        "input", create_proxy(on_research_search_input)
+    )
+    # Belt-and-suspenders: the toast starts hidden via the static `hidden`
+    # attribute in index.html, but every other stateful element in this
+    # file (panels, buttons) has its shown/hidden state actively driven by
+    # code rather than left to rely on markup alone — setting it here too
+    # means the toast's default state doesn't depend on the static HTML
+    # attribute ever being present or correct.
+    document.getElementById("achievement-toast").hidden = True
     render()
+    _seed_achievement_toast_baseline()
 
 
 setup()

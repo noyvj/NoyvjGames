@@ -1,0 +1,23 @@
+{
+  "achievements": [
+    { "id": "reached_agrarian", "label": "Beyond the Tribe", "description": "Guide the settlement into the Agrarian era." },
+    { "id": "reached_classical", "label": "City and Canal", "description": "Reach the Classical era." },
+    { "id": "reached_medieval", "label": "Guild and Wall", "description": "Reach the Medieval era." },
+    { "id": "reached_industrial", "label": "Smoke on the Horizon", "description": "Reach the Industrial era." },
+    { "id": "reached_digital", "label": "Wired City", "description": "Reach the Digital era." },
+    { "id": "reached_space", "label": "Among the Stars", "description": "Reach the Space Age — the far end of the arc." },
+    { "id": "thriving_once", "label": "Thriving", "description": "Reach a Thriving sustainability score (85 or higher) at least once." },
+    { "id": "phoenix_settlement", "label": "Phoenix Settlement", "description": "Recover from a Collapsing sustainability score all the way back to Steady or better." },
+    { "id": "provision_specialist", "label": "Provision Tradition", "description": "Research at least 8 nodes in the Provision branch of the research tree." },
+    { "id": "community_specialist", "label": "Community Tradition", "description": "Research at least 8 nodes in the Community branch of the research tree." },
+    { "id": "craft_specialist", "label": "Craft Tradition", "description": "Research at least 8 nodes in the Craft branch of the research tree." },
+    { "id": "root_and_branch", "label": "Root and Branch", "description": "Research every node in the tree, across all seven eras." },
+    { "id": "equity_champion", "label": "Equity's Champion", "description": "Reach an Equity score of 90 or higher with a population of at least 25." },
+    { "id": "built_to_last", "label": "Built to Last", "description": "Reach a Resilience score of 85 or higher." },
+    { "id": "full_coordination", "label": "Full Coordination", "description": "Fully staff every Canal with Administrators (Classical era or later)." },
+    { "id": "nobody_exposed", "label": "Nobody Exposed", "description": "Build enough Public Works to cover the whole settlement against a bad season (Medieval era or later)." },
+    { "id": "well_designed_rings", "label": "Well-Designed Rings", "description": "Fully staff your Habitat Rings with Architects (Space Age)." },
+    { "id": "a_real_city", "label": "A Real City", "description": "Grow the settlement's population to 100 or more." },
+    { "id": "looking_back", "label": "Looking Back", "description": "Revisit a completed era to see how it's held up." }
+  ]
+}

@@ -40,7 +40,15 @@ EXPECTED_KEYS = {
     "era_snapshots",
     "ui",
     "log",
+    "has_revisited",
 }
+
+# get_state() (game.py) adds one more key on top of Campaign.to_dict()'s own
+# schema above: the write-only achievements projection (Milestone 15,
+# ACHIEVEMENTS-SYSTEM-DESIGN.md). Kept as a separate constant rather than
+# folded into EXPECTED_KEYS since several tests below assert against
+# save.Campaign.to_dict() directly, which never adds this key itself.
+GET_STATE_EXPECTED_KEYS = EXPECTED_KEYS | {"achievements_earned"}
 
 
 def played(game_env, seasons=3):
@@ -61,7 +69,7 @@ def played(game_env, seasons=3):
 def test_get_state_returns_the_documented_schema(game_env):
     data = game_env.module.get_state()
 
-    assert set(data.keys()) == EXPECTED_KEYS
+    assert set(data.keys()) == GET_STATE_EXPECTED_KEYS
     assert data["game"] == save.GAME_ID
     assert data["save_version"] == save.SAVE_VERSION
     assert data["era_order"] == sim.ERA_ORDER

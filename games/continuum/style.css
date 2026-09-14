@@ -891,3 +891,117 @@ button.primary:disabled::after {
   background: #4a4038;
   box-shadow: none;
 }
+
+/* Milestone 15 — Achievements. Same glass-panel/row language as the rest
+   of this game (see the .section/.row rules above) rather than a reskin of
+   SOL's own achievements panel — internals are free once you're inside a
+   game. Earned styling uses Continuum's own warm amber/bronze accent
+   (matches .era-line/button.primary) instead of SOL's green, so it reads
+   as this game's own achievement, not a copy-pasted one. */
+.achievements-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.achievement-card {
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(201, 147, 84, 0.16);
+  border-radius: 12px;
+  background: rgba(20, 16, 10, 0.4);
+}
+
+.achievement-card--earned {
+  border-color: rgba(224, 179, 116, 0.5);
+  background: rgba(224, 179, 116, 0.1);
+  box-shadow: 0 0 18px rgba(224, 179, 116, 0.14);
+}
+
+.achievement-card-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.achievement-card--earned .achievement-card-label {
+  color: #e0b374;
+  text-shadow: 0 0 12px rgba(224, 179, 116, 0.35);
+}
+
+.achievement-card-description {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.7;
+  line-height: 1.4;
+}
+
+.achievement-card-progress {
+  margin: 0.4rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+.achievements-hub-link {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 0.78rem;
+  color: #e0b374;
+}
+
+/* Unlock toast — fixed-position, auto-dismissing, no continuous animation
+   loop (matches this hub's "no gratuitous animation" posture already
+   established by Phase 5's render3d.js: it renders once and again only on
+   a real change, never on a timer). */
+.achievement-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.2rem;
+  transform: translate(-50%, 12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease, transform 200ms ease;
+  background: linear-gradient(135deg, #3c3226, #211b15);
+  border: 1px solid rgba(224, 179, 116, 0.5);
+  border-radius: 12px;
+  padding: 0.7rem 1.1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 18px rgba(224, 179, 116, 0.2);
+  z-index: 50;
+  max-width: 90vw;
+}
+
+.achievement-toast.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.achievement-toast-text {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #f2e6d4;
+}
+
+/* Milestone 15 — the "look back at a completed era" UI (also the K7 3D-
+   snapshot groundwork: the 3D layer already redraws from whatever `state`
+   holds, so wiring this UI up is what actually makes a revisited era's
+   scene reachable at all, not merely a stats readout). */
+.revisit-banner {
+  font-weight: 600;
+}
+
+/* Milestone 17 — research tree search/filter. */
+.research-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 147, 84, 0.25);
+  background: rgba(20, 16, 10, 0.4);
+  color: #eee7dd;
+  font-size: 0.85rem;
+}
+
+.research-search-input::placeholder {
+  color: #a0917f;
+}

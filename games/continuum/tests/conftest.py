@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from .fakes import FakeDocument, FakeElement, create_proxy
+from .fakes import FakeDocument, FakeElement, FakeTimers, create_proxy
 
 GAME_DIR = Path(__file__).resolve().parent.parent
 GAME_PY = GAME_DIR / "game.py"
@@ -68,15 +68,29 @@ ELEMENT_IDS = [
     "era-progress-status-display",
     "era-progress-reasons-display",
     "advance-era-button",
+    # Milestone 15 — achievements panel + unlock toast (rows/cards are
+    # created at runtime), and the "look back at a completed era" UI
+    # (Milestone 15/K7) whose era rows are also created at runtime.
+    "achievements-toggle-button",
+    "achievements-panel",
+    "achievement-toast",
+    "achievement-toast-text",
+    "revisit-active-banner",
+    "revisit-status-display",
+    "revisit-era-list",
+    "exit-revisit-button",
+    # Milestone 17 — research tree search/filter.
+    "research-search-input",
 ]
 
 
 class GameEnv:
     """Bundles a freshly-loaded game module with its fake DOM."""
 
-    def __init__(self, module, elements):
+    def __init__(self, module, elements, timers):
         self.module = module
         self.elements = elements
+        self.timers = timers
 
     @property
     def state(self):
@@ -98,9 +112,13 @@ class GameEnv:
             self.elements["advance-season-button"].dispatch("click", None)
 
 
-def _install_pyodide_fakes(elements):
+def _install_pyodide_fakes(elements, timers):
     fake_js = types.ModuleType("js")
     fake_js.document = FakeDocument(elements)
+    # Milestone 15: game.py does `from js import document, setTimeout` at
+    # module level for the achievement-unlock toast's auto-dismiss — see
+    # FakeTimers in fakes.py, same pattern SOL's own tests/conftest.py uses.
+    fake_js.setTimeout = timers.setTimeout
 
     fake_pyodide = types.ModuleType("pyodide")
     fake_pyodide_ffi = types.ModuleType("pyodide.ffi")
@@ -135,13 +153,14 @@ def game_env():
     functions, no mutable state.
     """
     elements = {id_: FakeElement(id_) for id_ in ELEMENT_IDS}
-    _install_pyodide_fakes(elements)
+    timers = FakeTimers()
+    _install_pyodide_fakes(elements, timers)
 
     spec = importlib.util.spec_from_file_location("game", GAME_PY)
     module = importlib.util.module_from_spec(spec)
     sys.modules["game"] = module
     spec.loader.exec_module(module)  # runs setup() at the bottom of game.py
 
-    yield GameEnv(module, elements)
+    yield GameEnv(module, elements, timers)
 
     _remove_pyodide_fakes()
