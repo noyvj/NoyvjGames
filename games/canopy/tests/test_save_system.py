@@ -17,6 +17,13 @@ def test_get_state_includes_every_expected_key(game_env):
         "_ticks_since_last_request",
         "_stakeholder_request_count",
         "info_page_open",
+        "total_replants",
+        "total_recoveries",
+        "plots_with_wildlife_ever",
+        "stakeholder_grants_count",
+        "stakeholder_declines_count",
+        "community_relations_min_ever",
+        "achievements_earned",
     }
 
 

@@ -1,0 +1,104 @@
+{
+  "achievements": [
+    {
+      "id": "first_clear",
+      "label": "First Harvest",
+      "description": "Clear a plot for the first time."
+    },
+    {
+      "id": "first_replant",
+      "label": "Second Chances",
+      "description": "Replant a bare plot for the first time."
+    },
+    {
+      "id": "first_recovery",
+      "label": "Full Recovery",
+      "description": "A replanted plot fully recovers for the first time."
+    },
+    {
+      "id": "standing_tall",
+      "label": "Standing Tall",
+      "description": "Grow a single plot to full maturity without ever clearing it."
+    },
+    {
+      "id": "old_growth_grove",
+      "label": "Old-Growth Grove",
+      "description": "Have 5 plots reach full maturity at the same time."
+    },
+    {
+      "id": "wildlife_returns",
+      "label": "Wildlife Returns",
+      "description": "See a wildlife icon appear on a plot for the first time."
+    },
+    {
+      "id": "biodiversity_haven",
+      "label": "Biodiversity Haven",
+      "description": "Have wildlife active on 10 plots at once."
+    },
+    {
+      "id": "thriving_forest",
+      "label": "Thriving Forest",
+      "description": "Reach a combined biodiversity score of 25 across the forest."
+    },
+    {
+      "id": "standing_fortune",
+      "label": "Standing Fortune",
+      "description": "Reach a standing forest value of 1,000."
+    },
+    {
+      "id": "quick_money",
+      "label": "Quick Money",
+      "description": "Bank 1,000 in harvested income."
+    },
+    {
+      "id": "balanced_ledger",
+      "label": "Balanced Ledger",
+      "description": "Have at least 500 in both harvested income and standing forest value at the same time."
+    },
+    {
+      "id": "true_conservationist",
+      "label": "True Conservationist",
+      "description": "Reach a standing forest value of 300 without ever clearing a single plot."
+    },
+    {
+      "id": "resourceful_extractor",
+      "label": "Resourceful Extractor",
+      "description": "Clear plots 15 times total, across the whole forest."
+    },
+    {
+      "id": "soil_scarred",
+      "label": "Soil Scarred",
+      "description": "Clear the same plot 5 times."
+    },
+    {
+      "id": "community_ally",
+      "label": "Community Ally",
+      "description": "Reach maximum community relations (100)."
+    },
+    {
+      "id": "rebuilt_trust",
+      "label": "Rebuilt Trust",
+      "description": "Recover community relations back to 50 or higher after they dropped to 10 or lower."
+    },
+    {
+      "id": "generous_host",
+      "label": "Generous Host",
+      "description": "Grant 10 stakeholder requests."
+    },
+    {
+      "id": "principled_refusal",
+      "label": "Principled Refusal",
+      "description": "Decline 10 stakeholder requests."
+    },
+    {
+      "id": "flourishing_canopy",
+      "label": "Flourishing Canopy",
+      "description": "Reach a standing forest value of 500 with every plot preserved or recovered — none bare or replanting."
+    },
+    {
+      "id": "every_stage_at_once",
+      "label": "Every Stage at Once",
+      "description": "Have at least one plot in each of the four states — bare, replanting, preserved, and recovered — at the same time."
+    }
+  ]
+}

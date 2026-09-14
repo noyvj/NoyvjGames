@@ -8,9 +8,10 @@ degradation land in later milestones.
 """
 
 import copy
+import json
 
 import info_page
-from js import document, setInterval
+from js import document, setInterval, setTimeout
 from pyodide.ffi import create_proxy
 
 GRID_ROWS = 6
@@ -198,12 +199,16 @@ class Plot:
 
     def advance_recovery(self):
         """Counts down one tick of the replanting timer, auto-completing
-        recovery once it reaches zero. No-op outside REPLANTING."""
+        recovery once it reaches zero. No-op outside REPLANTING. Returns
+        True exactly when this call caused a REPLANTING -> RECOVERED
+        transition, so callers (achievements' `total_recoveries` counter)
+        can react to the real event without polling state every tick."""
         if self.state != REPLANTING:
-            return
+            return False
         self.replant_ticks_remaining -= 1
         if self.replant_ticks_remaining <= 0:
-            self.finish_recovery()
+            return self.finish_recovery()
+        return False
 
 
 plots = [Plot(i) for i in range(GRID_ROWS * GRID_COLS)]
@@ -214,6 +219,24 @@ community_relations = STARTING_COMMUNITY_RELATIONS
 pending_stakeholder_request = None  # {"plot_index": int, "reason": str} or None
 _ticks_since_last_request = 0
 _stakeholder_request_count = 0
+
+# New tracked state for achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md §4):
+# most of Canopy's catalog is a pure function of state that already exists
+# (plots, total_income, community_relations, ...), but a handful of
+# achievements are genuinely about something *having happened*, which
+# monotonic-but-resettable fields like `plot.clear_count` (never decreases,
+# so it already covers "ever cleared") don't all cover on their own. Each
+# of these follows the same five-step defensive pattern as SOL's
+# `visited_bodies`: a safe default here, mutated only at the real event
+# below, added to get_state(), and given a `.get(key, <current>)` fallback
+# in load_state() so an older save missing the field just keeps its
+# fresh-module default instead of crashing the next render.
+total_replants = 0  # incremented in on_replant() on a real replant() call
+total_recoveries = 0  # incremented in tick() when advance_recovery() finishes one
+plots_with_wildlife_ever = set()  # plot indices that have ever crossed the wildlife threshold
+stakeholder_grants_count = 0  # incremented in grant_stakeholder_request()'s real-grant path
+stakeholder_declines_count = 0  # incremented in decline_stakeholder_request()'s real-decline path
+community_relations_min_ever = STARTING_COMMUNITY_RELATIONS  # lowest community_relations has ever been
 
 
 def _most_established_plot_index():
@@ -263,8 +286,17 @@ def _stakeholder_target_is_still_standing():
     return plot.state in ACCRUING_STATES
 
 
+def _note_community_relations_change():
+    """Tracks the running minimum community_relations has ever reached —
+    achievements' `rebuilt_trust` needs to know relations genuinely dropped
+    low at some point, not just where they sit right now."""
+    global community_relations_min_ever
+    community_relations_min_ever = min(community_relations_min_ever, community_relations)
+
+
 def grant_stakeholder_request(event=None):
     global pending_stakeholder_request, community_relations, total_income
+    global stakeholder_grants_count
     if pending_stakeholder_request is None:
         return False
     if not _stakeholder_target_is_still_standing():
@@ -276,6 +308,8 @@ def grant_stakeholder_request(event=None):
     if payout is not None:
         total_income += payout
     community_relations = min(100, community_relations + STAKEHOLDER_GRANT_RELATIONS_DELTA)
+    _note_community_relations_change()
+    stakeholder_grants_count += 1
     pending_stakeholder_request = None
     render()
     return True
@@ -283,6 +317,7 @@ def grant_stakeholder_request(event=None):
 
 def decline_stakeholder_request(event=None):
     global pending_stakeholder_request, community_relations
+    global stakeholder_declines_count
     if pending_stakeholder_request is None:
         return False
     if not _stakeholder_target_is_still_standing():
@@ -290,6 +325,8 @@ def decline_stakeholder_request(event=None):
         render()
         return False
     community_relations = max(0, community_relations + STAKEHOLDER_DECLINE_RELATIONS_DELTA)
+    _note_community_relations_change()
+    stakeholder_declines_count += 1
     pending_stakeholder_request = None
     render()
     return True
@@ -480,6 +517,327 @@ def render_stakeholder_panel():
     decline_button.disabled = False
 
 
+# ===========================================================================
+# Achievements (planning/ACHIEVEMENTS-SYSTEM-DESIGN.md) — SOL is the
+# reference integration for the hub-wide achievements framework; this is
+# Canopy's own catalog, grounded in its actual mechanics (plot management,
+# soil degradation, biodiversity, stakeholder relations, income vs.
+# standing-value playstyle) rather than generic filler.
+# ===========================================================================
+#
+# Every achievement's earned status is a pure function of state that
+# already exists elsewhere in this module, recomputed fresh on every call
+# — never a separately hand-maintained "earned" flag ("derive, don't
+# track", same discipline SOL's own achievements follow). Five checks
+# genuinely needed new tracked state (see the module-level declarations
+# above, `total_replants` through `community_relations_min_ever`) because
+# the thing they measure ("this ever happened") isn't recoverable from
+# state that only reflects the *current* moment — e.g. a plot's
+# biodiversity resets to 0 the instant it's cleared, so "has any plot ever
+# shown wildlife" has no live signal to read without `plots_with_wildlife_
+# ever`. Every other check below reads plots/total_income/community_
+# relations directly.
+ACHIEVEMENTS_FILENAME = "achievements.json"
+
+
+def _read_achievements_json():
+    """Same loading contract SOL's game.py established (itself following
+    Le Champ de Mots' `_read_json_asset()`): the page's boot script
+    fetches achievements.json and hands it to Python as a window global
+    before this file runs; the pytest harness's fake `js` module simply
+    has no such attribute, so this falls through to reading the file
+    straight off disk, which keeps the module importable outside a real
+    browser."""
+    try:
+        import js  # noqa: PLC0415 — Pyodide-only import, deliberately lazy
+    except ImportError:
+        js = None
+
+    raw = getattr(js, "ACHIEVEMENTS_JSON", None) if js is not None else None
+    if raw is not None:
+        return str(raw)
+
+    import os  # noqa: PLC0415 — only needed on this filesystem-fallback path
+
+    here = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(here, ACHIEVEMENTS_FILENAME), encoding="utf-8") as handle:
+        return handle.read()
+
+
+# Defensive per SOL's own note on this pattern: the real Pyodide runtime
+# executes this file's fetched text via `pyodide.runPythonAsync(code)`,
+# which never defines `__file__` the way a normal file-based import does —
+# if `_read_achievements_json()`'s window-global read ever comes back
+# empty, its filesystem fallback would crash with a bare NameError that
+# takes down this entire module import, not just achievements. Achievements
+# are additive, not core to Canopy's own gameplay, so this degrades to "no
+# achievements catalog" instead.
+try:
+    ACHIEVEMENTS = json.loads(_read_achievements_json())["achievements"]
+except (ValueError, OSError, NameError, KeyError):
+    ACHIEVEMENTS = []
+
+THRIVING_FOREST_BIODIVERSITY_THRESHOLD = 25.0
+STANDING_FORTUNE_THRESHOLD = 1000.0
+QUICK_MONEY_THRESHOLD = 1000.0
+BALANCED_LEDGER_THRESHOLD = 500.0
+TRUE_CONSERVATIONIST_STANDING_THRESHOLD = 300.0
+RESOURCEFUL_EXTRACTOR_CLEAR_COUNT = 15
+SOIL_SCARRED_CLEAR_COUNT = 5
+OLD_GROWTH_GROVE_MATURE_COUNT = 5
+BIODIVERSITY_HAVEN_WILDLIFE_COUNT = 10
+REBUILT_TRUST_LOW_WATERMARK = 10
+REBUILT_TRUST_HIGH_WATERMARK = 50
+GENEROUS_HOST_GRANT_COUNT = 10
+PRINCIPLED_REFUSAL_DECLINE_COUNT = 10
+FLOURISHING_CANOPY_STANDING_THRESHOLD = 500.0
+
+
+def _total_clear_count():
+    return sum(plot.clear_count for plot in plots)
+
+
+def _max_clear_count():
+    return max((plot.clear_count for plot in plots), default=0)
+
+
+def _mature_plot_count():
+    """How many standing (PRESERVED/RECOVERED) plots have reached full
+    maturity_fraction() -- i.e. ticks_intact has caught up to
+    MATURITY_TICKS, the same threshold the color-gradient rendering caps
+    out at."""
+    return sum(
+        1
+        for plot in plots
+        if plot.state in ACCRUING_STATES and plot.maturity_fraction() >= 1.0
+    )
+
+
+def _wildlife_active_count():
+    return sum(1 for plot in plots if plot.has_wildlife())
+
+
+def _all_four_states_present():
+    counts = state_breakdown()
+    return all(counts[state] >= 1 for state in (PRESERVED, BARE, REPLANTING, RECOVERED))
+
+
+# Each checker is a zero-argument predicate read fresh off live state —
+# nothing here is ever cached or hand-flagged.
+ACHIEVEMENT_CHECKS = {
+    "first_clear": lambda: _total_clear_count() >= 1,
+    "first_replant": lambda: total_replants >= 1,
+    "first_recovery": lambda: total_recoveries >= 1,
+    "standing_tall": lambda: _mature_plot_count() >= 1,
+    "old_growth_grove": lambda: _mature_plot_count() >= OLD_GROWTH_GROVE_MATURE_COUNT,
+    "wildlife_returns": lambda: len(plots_with_wildlife_ever) >= 1,
+    "biodiversity_haven": lambda: _wildlife_active_count() >= BIODIVERSITY_HAVEN_WILDLIFE_COUNT,
+    "thriving_forest": lambda: total_biodiversity() >= THRIVING_FOREST_BIODIVERSITY_THRESHOLD,
+    "standing_fortune": lambda: standing_forest_value() >= STANDING_FORTUNE_THRESHOLD,
+    "quick_money": lambda: total_income >= QUICK_MONEY_THRESHOLD,
+    "balanced_ledger": lambda: (
+        total_income >= BALANCED_LEDGER_THRESHOLD
+        and standing_forest_value() >= BALANCED_LEDGER_THRESHOLD
+    ),
+    "true_conservationist": lambda: (
+        _total_clear_count() == 0
+        and standing_forest_value() >= TRUE_CONSERVATIONIST_STANDING_THRESHOLD
+    ),
+    "resourceful_extractor": lambda: _total_clear_count() >= RESOURCEFUL_EXTRACTOR_CLEAR_COUNT,
+    "soil_scarred": lambda: _max_clear_count() >= SOIL_SCARRED_CLEAR_COUNT,
+    "community_ally": lambda: community_relations >= 100,
+    "rebuilt_trust": lambda: (
+        community_relations_min_ever <= REBUILT_TRUST_LOW_WATERMARK
+        and community_relations >= REBUILT_TRUST_HIGH_WATERMARK
+    ),
+    "generous_host": lambda: stakeholder_grants_count >= GENEROUS_HOST_GRANT_COUNT,
+    "principled_refusal": lambda: stakeholder_declines_count >= PRINCIPLED_REFUSAL_DECLINE_COUNT,
+    "flourishing_canopy": lambda: (
+        state_breakdown()[BARE] == 0
+        and state_breakdown()[REPLANTING] == 0
+        and standing_forest_value() >= FLOURISHING_CANOPY_STANDING_THRESHOLD
+    ),
+    "every_stage_at_once": lambda: _all_four_states_present(),
+}
+
+# Progress readouts, only for achievements with a natural numeric scale-up
+# — a plain earned/not-yet is the honest shape for the rest (one-shot
+# milestones like "clear your first plot" don't get a fake "0 of 1").
+ACHIEVEMENT_PROGRESS = {
+    "old_growth_grove": lambda: (_mature_plot_count(), OLD_GROWTH_GROVE_MATURE_COUNT),
+    "biodiversity_haven": lambda: (_wildlife_active_count(), BIODIVERSITY_HAVEN_WILDLIFE_COUNT),
+    "thriving_forest": lambda: (
+        round(min(total_biodiversity(), THRIVING_FOREST_BIODIVERSITY_THRESHOLD), 1),
+        THRIVING_FOREST_BIODIVERSITY_THRESHOLD,
+    ),
+    "standing_fortune": lambda: (int(standing_forest_value()), int(STANDING_FORTUNE_THRESHOLD)),
+    "quick_money": lambda: (int(total_income), int(QUICK_MONEY_THRESHOLD)),
+    "resourceful_extractor": lambda: (_total_clear_count(), RESOURCEFUL_EXTRACTOR_CLEAR_COUNT),
+    "soil_scarred": lambda: (_max_clear_count(), SOIL_SCARRED_CLEAR_COUNT),
+    "generous_host": lambda: (stakeholder_grants_count, GENEROUS_HOST_GRANT_COUNT),
+    "principled_refusal": lambda: (stakeholder_declines_count, PRINCIPLED_REFUSAL_DECLINE_COUNT),
+}
+
+
+def achievement_ids_earned():
+    """Every achievement id currently satisfied, in catalog order — the
+    value that rides the existing save/sync mechanism via get_state()'s
+    "achievements_earned" field. Always recomputed, never itself a save
+    input."""
+    return [entry["id"] for entry in ACHIEVEMENTS if ACHIEVEMENT_CHECKS[entry["id"]]()]
+
+
+def achievements_summary():
+    """The full catalog, in order, each entry annotated with whether it's
+    currently earned and (where one exists) a live progress readout."""
+    earned_ids = set(achievement_ids_earned())
+    summary = []
+    for entry in ACHIEVEMENTS:
+        progress_fn = ACHIEVEMENT_PROGRESS.get(entry["id"])
+        summary.append(
+            {
+                "id": entry["id"],
+                "label": entry["label"],
+                "description": entry["description"],
+                "earned": entry["id"] in earned_ids,
+                "progress": progress_fn() if progress_fn else None,
+            }
+        )
+    return summary
+
+
+achievements_open = False
+
+# Tracks the earned-id set as of the last time it was checked, so a fresh
+# unlock (one that wasn't in this set last time) can trigger a toast
+# without re-toasting every already-earned achievement on every render.
+# Reset (without toasting) right after setup()'s initial render and right
+# after load_state() applies a save, so neither a fresh game nor a loaded
+# one spams toasts for achievements that were already satisfied before
+# this render cycle started.
+_previously_earned_ids = set()
+_toast_hide_proxy = None
+
+ACHIEVEMENT_TOAST_DURATION_MS = 4000
+
+
+def _earned_snapshot():
+    return set(achievement_ids_earned())
+
+
+def show_achievement_toast(message):
+    global _toast_hide_proxy
+    toast = document.getElementById("achievement-toast")
+    if toast is None:
+        return
+    toast.innerText = message
+    toast.hidden = False
+    toast.classList.add("achievement-toast--visible")
+
+    if _toast_hide_proxy is not None:
+        _toast_hide_proxy.destroy()
+        _toast_hide_proxy = None
+
+    def _hide():
+        global _toast_hide_proxy
+        toast.classList.remove("achievement-toast--visible")
+        toast.hidden = True
+        if _toast_hide_proxy is not None:
+            _toast_hide_proxy.destroy()
+            _toast_hide_proxy = None
+
+    _toast_hide_proxy = create_proxy(_hide)
+    setTimeout(_toast_hide_proxy, ACHIEVEMENT_TOAST_DURATION_MS)
+
+
+def _sync_earned_and_toast():
+    """Diffs the live earned set against the last-seen snapshot; anything
+    newly present gets a toast (batched into one message if several land
+    in the same render pass, e.g. several achievements clearing at once on
+    a big tick)."""
+    global _previously_earned_ids
+    current = _earned_snapshot()
+    newly_earned_ids = current - _previously_earned_ids
+    _previously_earned_ids = current
+    if not newly_earned_ids:
+        return
+    newly_earned = [entry for entry in ACHIEVEMENTS if entry["id"] in newly_earned_ids]
+    if not newly_earned:
+        return
+    if len(newly_earned) == 1:
+        message = f"\U0001F3C6 Achievement unlocked: {newly_earned[0]['label']}"
+    else:
+        labels = ", ".join(entry["label"] for entry in newly_earned)
+        message = f"\U0001F3C6 {len(newly_earned)} achievements unlocked: {labels}"
+    show_achievement_toast(message)
+
+
+def on_toggle_achievements(event=None):
+    global achievements_open
+    achievements_open = not achievements_open
+    update_achievements_display()
+
+
+def update_achievements_display():
+    toggle = document.getElementById("achievements-toggle-button")
+    panel = document.getElementById("achievements-panel")
+    if toggle is None or panel is None:
+        return
+    earned_count = len(achievement_ids_earned())
+    toggle.innerText = (
+        f"Hide Achievements ({earned_count}/{len(ACHIEVEMENTS)})"
+        if achievements_open
+        else f"\U0001F3C6 Achievements ({earned_count}/{len(ACHIEVEMENTS)})"
+    )
+    panel.hidden = not achievements_open
+    if not achievements_open:
+        return
+
+    panel.innerHTML = ""
+    for entry in achievements_summary():
+        card = document.createElement("div")
+        card.className = (
+            "achievement-card achievement-card--earned" if entry["earned"] else "achievement-card"
+        )
+
+        label = document.createElement("p")
+        label.className = "achievement-card-label"
+        label.innerText = f"\U0001F3C6 {entry['label']}" if entry["earned"] else entry["label"]
+        card.appendChild(label)
+
+        description = document.createElement("p")
+        description.className = "achievement-card-description"
+        description.innerText = entry["description"]
+        card.appendChild(description)
+
+        if not entry["earned"] and entry["progress"] is not None:
+            current, target = entry["progress"]
+            progress = document.createElement("p")
+            progress.className = "achievement-card-progress"
+            progress.innerText = f"{current} of {target}"
+            card.appendChild(progress)
+
+        panel.appendChild(card)
+
+    # A link out to the hub-wide achievements dashboard (planning/
+    # ACHIEVEMENTS-SYSTEM-DESIGN.md §5, and the "roll achievements out
+    # everywhere" TODO's toast+hub-link requirement). Canopy's own
+    # achievements.json/panel/get_state() wiring is entirely self-contained
+    # here, but registering this game in the *hub's* script.js
+    # (GAMES_WITH_ACHIEVEMENTS) is a root-level file outside games/canopy/
+    # -- deliberately left as a follow-up so this game's rollout doesn't
+    # need to touch shared hub files while other games are being worked on
+    # in parallel. The link still works today (it just takes a signed-in
+    # visitor to the hub, where Canopy won't appear in the dashboard list
+    # until that follow-up lands) and needs no change on this end once it
+    # does.
+    hub_link = document.createElement("a")
+    hub_link.className = "achievements-hub-link"
+    hub_link.href = "../../index.html"
+    hub_link.innerText = "View achievements across every game →"
+    panel.appendChild(hub_link)
+
+
 # Info Page — optional, player-triggered supplement (never forced
 # mid-session). Framing is written fresh, not copied from any source;
 # sources are the curated real-world backing for the game's mechanics.
@@ -543,6 +901,8 @@ def render():
     render_panel()
     render_stats()
     render_stakeholder_panel()
+    update_achievements_display()
+    _sync_earned_and_toast()
 
 
 def _make_select_handler(index):
@@ -568,17 +928,22 @@ def on_clear(event=None):
 
 
 def on_replant(event=None):
+    global total_replants
     if selected_index is None:
         return
-    plots[selected_index].replant()
+    if plots[selected_index].replant():
+        total_replants += 1
     render()
 
 
 def tick(event=None):
-    global pending_stakeholder_request
+    global pending_stakeholder_request, total_recoveries
     for plot in plots:
         plot.accrue_tick()
-        plot.advance_recovery()
+        if plot.advance_recovery():
+            total_recoveries += 1
+        if plot.has_wildlife():
+            plots_with_wildlife_ever.add(plot.index)
     if pending_stakeholder_request is not None and not _stakeholder_target_is_still_standing():
         # The requested plot was cleared/replanted directly (see the
         # grant/decline guard above) — drop the now-stale request so a new
@@ -622,6 +987,15 @@ def get_state():
         "_ticks_since_last_request": _ticks_since_last_request,
         "_stakeholder_request_count": _stakeholder_request_count,
         "info_page_open": info_page_open,
+        "total_replants": total_replants,
+        "total_recoveries": total_recoveries,
+        "plots_with_wildlife_ever": sorted(plots_with_wildlife_ever),
+        "stakeholder_grants_count": stakeholder_grants_count,
+        "stakeholder_declines_count": stakeholder_declines_count,
+        "community_relations_min_ever": community_relations_min_ever,
+        # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
+        # freshly recomputed here, never read back in load_state() below.
+        "achievements_earned": achievement_ids_earned(),
     }
 
 
@@ -639,6 +1013,9 @@ def load_state(data):
     global selected_index, total_income, community_relations
     global pending_stakeholder_request, _ticks_since_last_request
     global _stakeholder_request_count, info_page_open
+    global total_replants, total_recoveries, plots_with_wildlife_ever
+    global stakeholder_grants_count, stakeholder_declines_count
+    global community_relations_min_ever, _previously_earned_ids
 
     for plot, plot_data in zip(plots, data.get("plots", [])):
         plot.index = plot_data.get("index", plot.index)
@@ -661,6 +1038,35 @@ def load_state(data):
     _ticks_since_last_request = data.get("_ticks_since_last_request", _ticks_since_last_request)
     _stakeholder_request_count = data.get("_stakeholder_request_count", _stakeholder_request_count)
     info_page_open = data.get("info_page_open", info_page_open)
+
+    # Achievements' new tracked state (see the module-level declarations
+    # above) — a save predating this feature simply lacks these keys, so
+    # each falls back to whatever's already live (the fresh-module
+    # default) rather than crashing on a missing key.
+    total_replants = data.get("total_replants", total_replants)
+    total_recoveries = data.get("total_recoveries", total_recoveries)
+    plots_with_wildlife_ever = set(
+        data.get("plots_with_wildlife_ever", plots_with_wildlife_ever)
+    )
+    stakeholder_grants_count = data.get("stakeholder_grants_count", stakeholder_grants_count)
+    stakeholder_declines_count = data.get(
+        "stakeholder_declines_count", stakeholder_declines_count
+    )
+    community_relations_min_ever = data.get(
+        "community_relations_min_ever", community_relations_min_ever
+    )
+    # Belt-and-suspenders backfill (same idea as SOL's visited_bodies): an
+    # old save predating this field can't have recorded a low watermark,
+    # but its restored community_relations value is itself a valid lower
+    # bound on what the min-ever must have been.
+    community_relations_min_ever = min(community_relations_min_ever, community_relations)
+
+    # achievements_earned itself is never read back (write-only, §1) — but
+    # the toast-diffing baseline must be reset here, before render() below
+    # calls _sync_earned_and_toast(), so a loaded save's already-earned
+    # achievements don't all fire toasts on load.
+    _previously_earned_ids = _earned_snapshot()
+
     render()
     return True
 
@@ -681,6 +1087,17 @@ def setup():
     document.getElementById("info-page-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_info_page)
     )
+    document.getElementById("achievements-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_achievements)
+    )
+    # Explicit, not just relying on index.html's `hidden` attribute -- the
+    # toast element is only otherwise touched by show_achievement_toast()/
+    # its own hide callback (unlike every *panel*, which gets its `hidden`
+    # state re-set on every render()), so it needs its own starting state
+    # set here rather than trusting markup alone.
+    toast = document.getElementById("achievement-toast")
+    if toast is not None:
+        toast.hidden = True
     setInterval(create_proxy(tick), TICK_INTERVAL_MS)
     render()
 
