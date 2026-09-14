@@ -272,6 +272,34 @@ body {
     radial-gradient(2px 2px at 80% 35%, #fff3c4, transparent 100%);
 }
 
+/* Continuum: a skyline arc across the eras — small warm huts on the left
+   giving way to a tall violet space-age spire with a floating habitat ring
+   on the right, on a dusk-to-dawn gradient matching the game's own warm
+   amber/bronze + space-age-violet visual identity (see that game's
+   CLAUDE.md "space-theme visual pass" note). */
+.title-card-thumb--continuum {
+  --thumb-glow: #c9922f;
+  background: linear-gradient(115deg, #241a3a 0%, #4a3a5c 45%, #7a5230 75%, #c9922f 100%);
+}
+.title-card-thumb--continuum::before {
+  inset: auto 0 0 0;
+  height: 46%;
+  background: #1a1220;
+  clip-path: polygon(
+    0% 100%, 0% 78%, 6% 78%, 6% 62%, 13% 62%, 13% 78%, 20% 78%, 20% 70%, 26% 70%,
+    26% 78%, 40% 78%, 40% 45%, 44% 45%, 44% 78%, 58% 78%, 58% 30%, 60% 22%, 62% 30%,
+    62% 78%, 76% 78%, 76% 15%, 80% 15%, 80% 78%, 100% 78%, 100% 100%
+  );
+}
+.title-card-thumb--continuum::after {
+  inset: 12% 10% auto auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid rgba(140, 220, 220, 0.55);
+  background: radial-gradient(60% 60% at 40% 35%, rgba(190, 255, 245, 0.35), transparent 70%);
+}
+
 .title-card-name {
   font-size: 1.25rem;
   font-weight: 600;
