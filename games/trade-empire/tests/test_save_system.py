@@ -21,6 +21,12 @@ def test_get_state_includes_every_expected_key(game_env):
         "fleet_priority_enabled",
         "endgame_reached",
         "ticks_since_endgame",
+        "total_sales_count",
+        "max_profit_ever",
+        "goods_sold_ever",
+        "ever_repositioned",
+        "market_crash_ever",
+        "achievements_earned",
     }
 
 

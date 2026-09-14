@@ -1,0 +1,99 @@
+{
+  "achievements": [
+    {
+      "id": "first_sale",
+      "label": "First Contract",
+      "description": "Complete your first sale."
+    },
+    {
+      "id": "first_automation",
+      "label": "Hands Off",
+      "description": "Automate a ship for the first time."
+    },
+    {
+      "id": "automation_slots_maxed",
+      "label": "Full Fleet Autopilot",
+      "description": "Fill every automation slot you've unlocked."
+    },
+    {
+      "id": "fleet_priority_enabled",
+      "label": "Whatever's Most Urgent",
+      "description": "Switch Fleet Priority on for the first time."
+    },
+    {
+      "id": "fleet_priority_reposition",
+      "label": "Reassigned",
+      "description": "Have an idle automated ship reposition itself under Fleet Priority for the first time."
+    },
+    {
+      "id": "fast_ships_researched",
+      "label": "Fast Ships I",
+      "description": "Research the Fast Ships I upgrade."
+    },
+    {
+      "id": "hauler_researched",
+      "label": "Bigger Holds",
+      "description": "Research the Hauler-Class Refit."
+    },
+    {
+      "id": "automation_slot_researched",
+      "label": "More Hands",
+      "description": "Research the Automation Expansion."
+    },
+    {
+      "id": "all_research_unlocked",
+      "label": "Fully Studied",
+      "description": "Unlock every research node in the home system's tree."
+    },
+    {
+      "id": "galaxy_expansion_unlocked",
+      "label": "New Frontier",
+      "description": "Unlock the Galaxy Expansion and reach the Kepler Cluster."
+    },
+    {
+      "id": "colony_developed",
+      "label": "Growing Pains",
+      "description": "Develop any colony to Level 2 for the first time."
+    },
+    {
+      "id": "home_system_fully_developed",
+      "label": "Established Economy",
+      "description": "Develop all five home-system colonies to Level 2."
+    },
+    {
+      "id": "kepler_colony_developed",
+      "label": "Frontier Boomtown",
+      "description": "Develop a Kepler Cluster colony to Level 2."
+    },
+    {
+      "id": "profit_10k",
+      "label": "Modest Fortune",
+      "description": "Accumulate 10,000 total profit."
+    },
+    {
+      "id": "profit_100k",
+      "label": "Trading Dynasty",
+      "description": "Accumulate 100,000 total profit."
+    },
+    {
+      "id": "diversified_trader",
+      "label": "Diversified Trader",
+      "description": "Sell every good in the home system's economy at least once in a single session."
+    },
+    {
+      "id": "market_recovery",
+      "label": "Market Correction",
+      "description": "Crash a good's price below 40% of baseline, then let it recover back above 90%."
+    },
+    {
+      "id": "endgame_reached",
+      "label": "Galaxy at Scale",
+      "description": "Reach the fully-automated, multi-system endgame state."
+    },
+    {
+      "id": "background_galaxy_maxed",
+      "label": "A Thousand Quiet Ledgers",
+      "description": "Grow the endgame's background galaxy to its full size."
+    }
+  ]
+}

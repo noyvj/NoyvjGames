@@ -162,5 +162,24 @@ class FakeTimers:
                 callback()
 
 
+class FakeProxy:
+    """Stands in for pyodide.ffi.create_proxy()'s JsProxy: callable just like
+    the wrapped function, but also exposes `.destroy()` so game code that
+    manages a one-shot proxy's lifetime (e.g. the achievement toast's
+    setTimeout hide callback) can be exercised under test the same way it
+    behaves against real Pyodide. Copied from SOL's own fakes.py, which
+    established this pattern first."""
+
+    def __init__(self, func):
+        self._func = func
+        self.destroyed = False
+
+    def __call__(self, *args, **kwargs):
+        return self._func(*args, **kwargs)
+
+    def destroy(self):
+        self.destroyed = True
+
+
 def create_proxy(func):
-    return func
+    return FakeProxy(func)

@@ -1042,3 +1042,101 @@ button.secondary:disabled::after {
     padding-bottom: 150px;
   }
 }
+
+/* Achievements (planning/ACHIEVEMENTS-SYSTEM-DESIGN.md) — Trade Empire's own
+   reading of the hub-wide framework, matching this game's existing glass-
+   panel language (the .section gradient/border/blur already used above)
+   and its own established "earned/positive" green (#7fd6a3, already the
+   ledger/endgame-panel accent and the meter-fill color) rather than
+   reskinning any other game's achievements UI. Internals are free once
+   you're inside a game, per the site's shared-shell rule. */
+.achievements-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.65rem;
+}
+
+/* Same gotcha SOL's own achievements CSS documents: `display: grid` above
+   otherwise wins the cascade over the browser's default `[hidden] {
+   display: none }` UA rule, so the panel would stay visible after being
+   toggled closed without this explicit override. */
+.achievements-panel[hidden] {
+  display: none;
+}
+
+.achievement-card {
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.achievement-card--earned {
+  border-color: rgba(127, 214, 163, 0.4);
+  background: rgba(127, 214, 163, 0.08);
+  box-shadow: 0 0 18px rgba(127, 214, 163, 0.12);
+}
+
+.achievement-card-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.achievement-card--earned .achievement-card-label {
+  color: #7fd6a3;
+  text-shadow: 0 0 12px rgba(127, 214, 163, 0.35);
+}
+
+.achievement-card-description {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.7;
+  line-height: 1.4;
+}
+
+.achievement-card-progress {
+  margin: 0.4rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+.achievements-hub-link {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #8ab4ff;
+  text-decoration: none;
+  text-align: center;
+}
+
+.achievements-hub-link:hover {
+  text-decoration: underline;
+}
+
+/* Fixed to the viewport (not inside #game's centered column) so it stays
+   visible regardless of scroll position, same reasoning as SOL's toast.
+   game.py sets innerText directly on this element (no separate child
+   paragraph, unlike SOL) so the text styling lives on the id itself. */
+.achievement-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.25rem;
+  transform: translateX(-50%);
+  z-index: 200; /* above the ad-bar (100) and mobile-docked panels (150) */
+  max-width: min(92vw, 420px);
+  padding: 0.75rem 1.1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(127, 214, 163, 0.4);
+  background: rgba(10, 12, 22, 0.92);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #7fd6a3;
+}
+
+.achievement-toast--visible {
+  box-shadow: 0 0 22px rgba(127, 214, 163, 0.45), 0 4px 24px rgba(0, 0, 0, 0.45);
+}

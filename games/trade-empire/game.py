@@ -44,9 +44,10 @@ individually simulated colonies -- a deliberate scope cut) that
 trickles in passive revenue. The sandbox itself never ends or locks.
 """
 
+import json
 import math
 
-from js import document, setInterval
+from js import document, setInterval, setTimeout
 from pyodide.ffi import create_proxy
 
 TICK_INTERVAL_MS = 1000
@@ -403,6 +404,8 @@ def apply_market_sale(good, qty):
     market_multiplier[good] = max(
         MIN_PRICE_MULTIPLIER, market_multiplier[good] - qty * MARKET_PRICE_DECAY_PER_UNIT_SOLD
     )
+    if market_multiplier[good] < MARKET_CRASH_THRESHOLD:
+        market_crash_ever[good] = True
 
 
 def recover_market():
@@ -656,6 +659,23 @@ ships = {
 total_profit = 0
 sale_log = []  # most recent sale message, for the status line
 
+# New tracked state for achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md §4):
+# each of these tracks something that genuinely *happened*, which isn't
+# recoverable from state that only reflects the current moment (e.g.
+# total_profit can go back down after an automation purchase, so it can't
+# tell you the highest it's ever been).
+total_sales_count = 0
+max_profit_ever = 0
+goods_sold_ever = set()
+ever_repositioned = False
+# Per-good watermark: True once that good's price has crashed below
+# MARKET_CRASH_THRESHOLD at least once this session -- market_recovery
+# checks for a good that's both crashed at some point and currently back
+# above MARKET_RECOVERY_THRESHOLD.
+market_crash_ever = {good: False for good in market_multiplier}
+MARKET_CRASH_THRESHOLD = 0.4
+MARKET_RECOVERY_THRESHOLD = 0.9
+
 
 def automated_ship_count():
     return sum(1 for s in ships.values() if s.automated)
@@ -680,6 +700,7 @@ def run_automation():
     tick: load if empty, depart for whichever colony needs its cargo if
     loaded. Runs after transit resolution, so a ship that just arrived
     this tick doesn't sit idle for a full extra tick before restarting."""
+    global ever_repositioned
     for ship in ships.values():
         if not ship.automated or not ship.docked:
             continue
@@ -688,6 +709,7 @@ def run_automation():
                 urgent_good = ALL_COLONIES[most_urgent_colony()]["needs"]
                 producer = colony_producing(urgent_good)
                 if producer and producer != ship.location and ship.reposition(producer):
+                    ever_repositioned = True
                     continue
             ship.load()
         else:
@@ -889,6 +911,273 @@ def render_endgame():
     )
 
 
+# ===========================================================================
+# Achievements (planning/ACHIEVEMENTS-SYSTEM-DESIGN.md) — SOL is the
+# reference integration for the hub-wide achievements framework; this is
+# Trade Empire's own catalog, grounded in its actual mechanics (sales,
+# automation, fleet priority, research, colony development, market crashes,
+# the multi-system endgame) rather than generic filler.
+# ===========================================================================
+#
+# Every achievement's earned status is a pure function of state that
+# already exists elsewhere in this module, recomputed fresh on every call
+# — never a separately hand-maintained "earned" flag. A handful of checks
+# genuinely needed new tracked state (see the module-level declarations
+# above `total_sales_count` through `market_crash_ever`) because the thing
+# they measure ("this ever happened") isn't recoverable from state that
+# only reflects the *current* moment — e.g. total_profit can go back down
+# after an automation purchase, so it alone can't answer "has this session
+# ever reached 100,000 profit."
+ACHIEVEMENTS_FILENAME = "achievements.json"
+
+HOME_SYSTEM_GOODS = frozenset({ORE, GRAIN, MACHINERY, WATER, ENERGY})
+
+
+def _read_achievements_json():
+    """Same loading contract SOL's game.py established: the page's boot
+    script fetches achievements.json and hands it to Python as a window
+    global before this file runs; the pytest harness's fake `js` module
+    simply has no such attribute, so this falls through to reading the
+    file straight off disk, which keeps the module importable outside a
+    real browser."""
+    try:
+        import js  # noqa: PLC0415 — Pyodide-only import, deliberately lazy
+    except ImportError:
+        js = None
+
+    raw = getattr(js, "ACHIEVEMENTS_JSON", None) if js is not None else None
+    if raw is not None:
+        return str(raw)
+
+    import os  # noqa: PLC0415 — only needed on this filesystem-fallback path
+
+    here = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(here, ACHIEVEMENTS_FILENAME), encoding="utf-8") as handle:
+        return handle.read()
+
+
+# Defensive per SOL's own note on this pattern: the real Pyodide runtime
+# executes this file's fetched text via `pyodide.runPythonAsync(code)`,
+# which never defines `__file__` the way a normal file-based import does —
+# if `_read_achievements_json()`'s window-global read ever comes back
+# empty, its filesystem fallback would crash with a bare NameError that
+# takes down this entire module import, not just achievements. Achievements
+# are additive, not core to Trade Empire's own gameplay, so this degrades
+# to "no achievements catalog" instead.
+try:
+    ACHIEVEMENTS = json.loads(_read_achievements_json())["achievements"]
+except (ValueError, OSError, NameError, KeyError):
+    ACHIEVEMENTS = []
+
+PROFIT_10K_THRESHOLD = 10000
+PROFIT_100K_THRESHOLD = 100000
+
+
+def _all_research_unlocked():
+    return set(RESEARCH_NODES) <= unlocked_research
+
+
+def _any_colony_developed():
+    return any(state.is_developed() for state in colony_states.values())
+
+
+def _home_system_fully_developed():
+    return all(colony_states[cid].is_developed() for cid in COLONIES)
+
+
+def _any_kepler_colony_developed():
+    return any(
+        colony_states[cid].is_developed() for cid in EXPANSION_COLONIES if cid in colony_states
+    )
+
+
+def _market_recovered_from_a_crash():
+    return any(
+        crashed and market_multiplier[good] >= MARKET_RECOVERY_THRESHOLD
+        for good, crashed in market_crash_ever.items()
+    )
+
+
+# Each checker is a zero-argument predicate read fresh off live state —
+# nothing here is ever cached or hand-flagged.
+ACHIEVEMENT_CHECKS = {
+    "first_sale": lambda: total_sales_count >= 1,
+    "first_automation": lambda: automated_ship_count() >= 1,
+    "automation_slots_maxed": lambda: automated_ship_count() >= max_automated_ships(),
+    "fleet_priority_enabled": lambda: fleet_priority_enabled,
+    "fleet_priority_reposition": lambda: ever_repositioned,
+    "fast_ships_researched": lambda: "fast_ships" in unlocked_research,
+    "hauler_researched": lambda: "hauler" in unlocked_research,
+    "automation_slot_researched": lambda: "automation_slot" in unlocked_research,
+    "all_research_unlocked": _all_research_unlocked,
+    "galaxy_expansion_unlocked": galaxy_expansion_unlocked,
+    "colony_developed": _any_colony_developed,
+    "home_system_fully_developed": _home_system_fully_developed,
+    "kepler_colony_developed": _any_kepler_colony_developed,
+    "profit_10k": lambda: max_profit_ever >= PROFIT_10K_THRESHOLD,
+    "profit_100k": lambda: max_profit_ever >= PROFIT_100K_THRESHOLD,
+    "diversified_trader": lambda: HOME_SYSTEM_GOODS <= goods_sold_ever,
+    "market_recovery": _market_recovered_from_a_crash,
+    "endgame_reached": lambda: endgame_reached,
+    "background_galaxy_maxed": lambda: background_world_count() >= ENDGAME_BACKGROUND_WORLD_CAP,
+}
+
+# Progress readouts, only for achievements with a natural numeric scale-up
+# — a plain earned/not-yet is the honest shape for the rest.
+ACHIEVEMENT_PROGRESS = {
+    "profit_10k": lambda: (int(max_profit_ever), PROFIT_10K_THRESHOLD),
+    "profit_100k": lambda: (int(max_profit_ever), PROFIT_100K_THRESHOLD),
+    "diversified_trader": lambda: (len(HOME_SYSTEM_GOODS & goods_sold_ever), len(HOME_SYSTEM_GOODS)),
+    "background_galaxy_maxed": lambda: (background_world_count(), ENDGAME_BACKGROUND_WORLD_CAP),
+}
+
+
+def achievement_ids_earned():
+    """Every achievement id currently satisfied, in catalog order — the
+    value that rides the existing save/sync mechanism via get_state()'s
+    "achievements_earned" field. Always recomputed, never itself a save
+    input."""
+    return [entry["id"] for entry in ACHIEVEMENTS if ACHIEVEMENT_CHECKS[entry["id"]]()]
+
+
+def achievements_summary():
+    """The full catalog, in order, each entry annotated with whether it's
+    currently earned and (where one exists) a live progress readout."""
+    earned_ids = set(achievement_ids_earned())
+    summary = []
+    for entry in ACHIEVEMENTS:
+        progress_fn = ACHIEVEMENT_PROGRESS.get(entry["id"])
+        summary.append(
+            {
+                "id": entry["id"],
+                "label": entry["label"],
+                "description": entry["description"],
+                "earned": entry["id"] in earned_ids,
+                "progress": progress_fn() if progress_fn else None,
+            }
+        )
+    return summary
+
+
+achievements_open = False
+
+# Tracks the earned-id set as of the last time it was checked, so a fresh
+# unlock (one that wasn't in this set last time) can trigger a toast
+# without re-toasting every already-earned achievement on every render.
+# Reset (without toasting) right after setup()'s initial render and right
+# after load_state() applies a save, so neither a fresh game nor a loaded
+# one spams toasts for achievements that were already satisfied before
+# this render cycle started.
+_previously_earned_ids = set()
+_toast_hide_proxy = None
+
+ACHIEVEMENT_TOAST_DURATION_MS = 4000
+
+
+def _earned_snapshot():
+    return set(achievement_ids_earned())
+
+
+def show_achievement_toast(message):
+    global _toast_hide_proxy
+    toast = document.getElementById("achievement-toast")
+    if toast is None:
+        return
+    toast.innerText = message
+    toast.hidden = False
+    toast.classList.add("achievement-toast--visible")
+
+    if _toast_hide_proxy is not None:
+        _toast_hide_proxy.destroy()
+        _toast_hide_proxy = None
+
+    def _hide():
+        global _toast_hide_proxy
+        toast.classList.remove("achievement-toast--visible")
+        toast.hidden = True
+        if _toast_hide_proxy is not None:
+            _toast_hide_proxy.destroy()
+            _toast_hide_proxy = None
+
+    _toast_hide_proxy = create_proxy(_hide)
+    setTimeout(_toast_hide_proxy, ACHIEVEMENT_TOAST_DURATION_MS)
+
+
+def _sync_earned_and_toast():
+    """Diffs the live earned set against the last-seen snapshot; anything
+    newly present gets a toast (batched into one message if several land
+    in the same render pass)."""
+    global _previously_earned_ids
+    current = _earned_snapshot()
+    newly_earned_ids = current - _previously_earned_ids
+    _previously_earned_ids = current
+    if not newly_earned_ids:
+        return
+    newly_earned = [entry for entry in ACHIEVEMENTS if entry["id"] in newly_earned_ids]
+    if not newly_earned:
+        return
+    if len(newly_earned) == 1:
+        message = f"\U0001F3C6 Achievement unlocked: {newly_earned[0]['label']}"
+    else:
+        labels = ", ".join(entry["label"] for entry in newly_earned)
+        message = f"\U0001F3C6 {len(newly_earned)} achievements unlocked: {labels}"
+    show_achievement_toast(message)
+
+
+def on_toggle_achievements(event=None):
+    global achievements_open
+    achievements_open = not achievements_open
+    update_achievements_display()
+
+
+def update_achievements_display():
+    toggle = document.getElementById("achievements-toggle-button")
+    panel = document.getElementById("achievements-panel")
+    if toggle is None or panel is None:
+        return
+    earned_count = len(achievement_ids_earned())
+    toggle.innerText = (
+        f"Hide Achievements ({earned_count}/{len(ACHIEVEMENTS)})"
+        if achievements_open
+        else f"\U0001F3C6 Achievements ({earned_count}/{len(ACHIEVEMENTS)})"
+    )
+    panel.hidden = not achievements_open
+    if not achievements_open:
+        return
+
+    panel.innerHTML = ""
+    for entry in achievements_summary():
+        card = document.createElement("div")
+        card.className = (
+            "achievement-card achievement-card--earned" if entry["earned"] else "achievement-card"
+        )
+
+        label = document.createElement("p")
+        label.className = "achievement-card-label"
+        label.innerText = f"\U0001F3C6 {entry['label']}" if entry["earned"] else entry["label"]
+        card.appendChild(label)
+
+        description = document.createElement("p")
+        description.className = "achievement-card-description"
+        description.innerText = entry["description"]
+        card.appendChild(description)
+
+        if not entry["earned"] and entry["progress"] is not None:
+            current, target = entry["progress"]
+            progress = document.createElement("p")
+            progress.className = "achievement-card-progress"
+            progress.innerText = f"{current} of {target}"
+            card.appendChild(progress)
+
+        panel.appendChild(card)
+
+    hub_link = document.createElement("a")
+    hub_link.className = "achievements-hub-link"
+    hub_link.href = "../../index.html"
+    hub_link.innerText = "View achievements across every game →"
+    panel.appendChild(hub_link)
+
+
 def render():
     document.getElementById("profit-display").innerText = f"Total profit: {total_profit} credits"
     document.getElementById("sale-log").innerText = sale_log[-1] if sale_log else "No sales yet."
@@ -913,6 +1202,9 @@ def render():
     expansion_unlocked = galaxy_expansion_unlocked()
     document.getElementById("expansion-colonies-panel").hidden = not expansion_unlocked
     document.getElementById("expansion-market-panel").hidden = not expansion_unlocked
+
+    update_achievements_display()
+    _sync_earned_and_toast()
 
 
 def _make_load_handler(ship_id):
@@ -949,13 +1241,15 @@ def _fleet_priority_toggle_handler(event=None):
 
 
 def tick(event=None):
-    global total_profit, research_points
+    global total_profit, research_points, total_sales_count, max_profit_ever
     research_points += RESEARCH_PER_TICK
     for ship in ships.values():
         result = ship.advance_transit()
         if result is not None:
             good, qty, profit = result
             total_profit += profit
+            total_sales_count += 1
+            goods_sold_ever.add(good)
             sale_log.append(sell_summary(good, qty, profit, ship.location))
             apply_market_sale(good, qty)
     run_automation()
@@ -969,6 +1263,8 @@ def tick(event=None):
     if endgame_reached:
         ticks_since_endgame += 1
         total_profit += background_revenue_this_tick()
+
+    max_profit_ever = max(max_profit_ever, total_profit)
 
     render()
 
@@ -1020,6 +1316,14 @@ def get_state():
         "fleet_priority_enabled": fleet_priority_enabled,
         "endgame_reached": endgame_reached,
         "ticks_since_endgame": ticks_since_endgame,
+        "total_sales_count": total_sales_count,
+        "max_profit_ever": max_profit_ever,
+        "goods_sold_ever": sorted(goods_sold_ever),
+        "ever_repositioned": ever_repositioned,
+        "market_crash_ever": dict(market_crash_ever),
+        # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
+        # freshly recomputed here, never read back in load_state() below.
+        "achievements_earned": achievement_ids_earned(),
     }
 
 
@@ -1032,6 +1336,8 @@ def load_state(data):
     save says should exist."""
     global total_profit, sale_log, research_points, unlocked_research
     global fleet_priority_enabled, endgame_reached, ticks_since_endgame
+    global total_sales_count, max_profit_ever, goods_sold_ever, ever_repositioned
+    global _previously_earned_ids
 
     unlocked_research = set(data.get("unlocked_research", unlocked_research))
 
@@ -1076,6 +1382,23 @@ def load_state(data):
     endgame_reached = data.get("endgame_reached", endgame_reached)
     ticks_since_endgame = data.get("ticks_since_endgame", ticks_since_endgame)
 
+    total_sales_count = data.get("total_sales_count", total_sales_count)
+    max_profit_ever = data.get("max_profit_ever", max_profit_ever)
+    goods_sold_ever = set(data.get("goods_sold_ever", goods_sold_ever))
+    ever_repositioned = data.get("ever_repositioned", ever_repositioned)
+    market_crash_ever.update(data.get("market_crash_ever", {}))
+    # Belt-and-suspenders backfill, same idea as Canopy's community_
+    # relations_min_ever: an old save predating this field can't have
+    # recorded it, but the restored total_profit is itself a valid lower
+    # bound on the highest profit this session must have reached.
+    max_profit_ever = max(max_profit_ever, total_profit)
+
+    # achievements_earned itself is never read back (write-only) -- but
+    # the toast-diffing baseline must be reset here, before render() below
+    # calls _sync_earned_and_toast(), so a loaded save's already-earned
+    # achievements don't all fire toasts on load.
+    _previously_earned_ids = _earned_snapshot()
+
     render()
     return True
 
@@ -1103,8 +1426,24 @@ def setup():
     document.getElementById("fleet-priority-button").addEventListener(
         "click", create_proxy(_fleet_priority_toggle_handler)
     )
+    document.getElementById("achievements-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_achievements)
+    )
+    # Explicit, not just relying on index.html's `hidden` attribute -- the
+    # toast element is only otherwise touched by show_achievement_toast()/
+    # its own hide callback (unlike every *panel*, which gets its `hidden`
+    # state re-set on every render()), so it needs its own starting state
+    # set here rather than trusting markup alone.
+    toast = document.getElementById("achievement-toast")
+    if toast is not None:
+        toast.hidden = True
     setInterval(create_proxy(tick), TICK_INTERVAL_MS)
     render()
+    # A fresh session's already-earned achievements (there shouldn't be
+    # any at this point, but a defensive baseline is cheap) shouldn't
+    # toast on the very first render.
+    global _previously_earned_ids
+    _previously_earned_ids = _earned_snapshot()
 
 
 setup()

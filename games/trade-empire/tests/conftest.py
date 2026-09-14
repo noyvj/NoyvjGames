@@ -28,6 +28,9 @@ ELEMENT_IDS = [
     "endgame-panel",
     "endgame-message-display",
     "endgame-worlds-display",
+    "achievements-toggle-button",
+    "achievements-panel",
+    "achievement-toast",
 ]
 for _node_id in ("automation_slot", "fast_ships", "hauler", "galaxy_expansion"):
     ELEMENT_IDS += [f"research-{_node_id}-status", f"research-{_node_id}-unlock-button"]
@@ -81,6 +84,9 @@ class GameEnv:
 
     def toggle_fleet_priority(self):
         self.elements["fleet-priority-button"].dispatch("click", None)
+
+    def toggle_achievements(self):
+        self.elements["achievements-toggle-button"].dispatch("click", None)
 
     def tick(self, times=1):
         self.timers.tick_intervals(times)
