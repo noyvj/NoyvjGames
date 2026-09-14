@@ -198,6 +198,7 @@
     <div class="save-widget-body">
       <button type="button" class="save-widget-save-button">Save Progress</button>
       <p class="save-widget-code" hidden></p>
+      <button type="button" class="save-widget-copy-button save-widget-link" hidden>Copy code</button>
       <button type="button" class="save-widget-claim-button save-widget-link" hidden>Claim this save to your account</button>
       <button type="button" class="save-widget-new-button save-widget-link" hidden>Start a new save (forget this code)</button>
       <input type="text" class="save-widget-load-input" placeholder="XXXX-XXXX" maxlength="9" autocomplete="off">
@@ -214,6 +215,7 @@
 
   const saveButton = root.querySelector(".save-widget-save-button");
   const codeDisplay = root.querySelector(".save-widget-code");
+  const copyButton = root.querySelector(".save-widget-copy-button");
   const claimButton = root.querySelector(".save-widget-claim-button");
   const newButton = root.querySelector(".save-widget-new-button");
   const loadInput = root.querySelector(".save-widget-load-input");
@@ -239,8 +241,16 @@
   function showActiveCode(code) {
     codeDisplay.textContent = `Code: ${code}`;
     codeDisplay.hidden = false;
+    copyButton.hidden = false;
     newButton.hidden = false;
     claimButton.hidden = !localStorage.getItem(HUB_AUTH_TOKEN_KEY);
+    // Pre-fill the load field with the remembered code too, not just the
+    // separate "Code: X" display -- lets a player re-load (e.g. after
+    // accidentally clicking around) without having to retype or re-copy
+    // their own code. Only when the field is empty so this never clobbers
+    // a code the player is actively typing in (e.g. someone else's code,
+    // on a different device).
+    if (!loadInput.value) loadInput.value = code;
   }
 
   // Pyodide loads asynchronously and each game's own boot script sets
@@ -318,9 +328,45 @@
   newButton.addEventListener("click", () => {
     localStorage.removeItem(STORAGE_KEY);
     codeDisplay.hidden = true;
+    copyButton.hidden = true;
     newButton.hidden = true;
     claimButton.hidden = true;
+    loadInput.value = "";
     statusEl.textContent = "Next save starts a fresh code.";
+  });
+
+  function legacyCopy(text) {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    if (!ok) throw new Error("execCommand('copy') returned false");
+  }
+
+  copyButton.addEventListener("click", async () => {
+    const code = localStorage.getItem(STORAGE_KEY);
+    if (!code) return;
+    // Try the modern Clipboard API first, but don't just take "it exists"
+    // as proof it'll work -- some browsers expose navigator.clipboard yet
+    // still throw (no permission, not a secure context, document not
+    // focused), so fall back to the old execCommand trick on ANY failure,
+    // not only when the API is missing outright.
+    try {
+      await navigator.clipboard.writeText(code);
+    } catch (err) {
+      try {
+        legacyCopy(code);
+      } catch (fallbackErr) {
+        console.error(`${GAME_ID} save-widget: clipboard copy failed`, err, fallbackErr);
+        statusEl.textContent = "Couldn't copy — code is shown above.";
+        return;
+      }
+    }
+    statusEl.textContent = "Code copied!";
   });
 
   // Pyodide's PyProxy.toJs() converts a Python `None` to JS `undefined`,
