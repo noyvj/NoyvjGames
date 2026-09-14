@@ -466,6 +466,40 @@ button.primary:active {
 }
 
 /* ============================================================
+   Mobile dock — Advance Round (site-wide mobile-dock rollout,
+   planning/TODO.md). Same shared/mobile-dock.js + fixed-bottom-bar
+   pattern as Canopy's #action-panel and Trade Empire's
+   #mobile-needs-strip. Grid's plant rows keep their own Build/Retire/
+   Maintain buttons inline (no far-apart selection-vs-action split like
+   Canopy's grid/panel), so the real friction this closes is different:
+   Advance Round -- the single action every round's building funnels
+   toward -- sits at the bottom of a long page (status panel + trend
+   graph + six plant rows). Docking it means a player who just built
+   something mid-page doesn't have to scroll all the way down to commit
+   the round. Pure CSS positioning on the existing button; game.py
+   already drives its text/disabled state without knowing where in the
+   DOM it currently lives. */
+@media (max-width: 640px) {
+  #advance-round-button.mobile-docked {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    bottom: 50px; /* sits directly above the fixed ad-bar */
+    z-index: 150; /* above the ad-bar (100), below the save widget (9999) */
+    max-width: 480px;
+    margin: 0 auto;
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  /* Reserve room at the bottom of the scrollable page so the last real
+     content (feedback prompt) never ends up hidden behind the
+     now-floating button + ad bar. */
+  body {
+    padding-bottom: 130px;
+  }
+}
+
+/* ============================================================
    Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md) — same card language
    used across the hub's shared achievements pattern (SOL's reference
    implementation), on Grid's existing glass-panel/rgba(140,160,255,...)
