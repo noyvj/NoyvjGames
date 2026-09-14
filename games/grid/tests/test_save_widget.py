@@ -40,6 +40,7 @@ EXPECTED_KEYS = {
     "lifetime_maintenance_spend",
     "lifetime_disruption_spend",
     "steeper_demand_growth_enabled",
+    "weather_variability_enabled",
 }
 
 
