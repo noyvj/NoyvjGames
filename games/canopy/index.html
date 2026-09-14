@@ -90,6 +90,13 @@
       </div>
     </div>
 
+    <!-- B12: a floating badge that appears only while a stakeholder
+         request is pending AND the panel itself has scrolled out of
+         view -- so a player deep in the plot grid or the action panel
+         doesn't miss a live request. See the IntersectionObserver/
+         MutationObserver wiring near the bottom of this file. -->
+    <button id="stakeholder-badge" class="stakeholder-badge" type="button" hidden>🏘️ Pending request</button>
+
     <div id="stakeholder-panel" class="section stakeholder-panel" hidden>
       <div class="settlement-visual" aria-hidden="true">
         <div class="settlement-visual-roof settlement-visual-roof--a"></div>
@@ -276,6 +283,40 @@
           showPlotTooltip(e.target);
           setTimeout(hidePlotTooltip, 2200);
         }
+      });
+
+      // B12: a floating badge when a stakeholder request is pending and
+      // the player has scrolled the panel itself out of view. Plain JS
+      // (IntersectionObserver + a MutationObserver on the panel's own
+      // `hidden` attribute, which game.py's render_stakeholder_panel()
+      // already flips every render) -- no game-state logic, so nothing
+      // for the fake-DOM pytest harness to meaningfully exercise; this
+      // one is verified live in a real browser instead (see this game's
+      // CLAUDE.md build notes).
+      const stakeholderPanel = document.getElementById("stakeholder-panel");
+      const stakeholderBadge = document.getElementById("stakeholder-badge");
+      let stakeholderPanelIntersecting = true;
+      function updateStakeholderBadge() {
+        const pending = !stakeholderPanel.hidden;
+        stakeholderBadge.hidden = !(pending && !stakeholderPanelIntersecting);
+      }
+      if (window.IntersectionObserver) {
+        new IntersectionObserver(
+          (entries) => {
+            stakeholderPanelIntersecting = entries[0].isIntersecting;
+            updateStakeholderBadge();
+          },
+          { threshold: 0 }
+        ).observe(stakeholderPanel);
+      }
+      if (window.MutationObserver) {
+        new MutationObserver(updateStakeholderBadge).observe(stakeholderPanel, {
+          attributes: true,
+          attributeFilter: ["hidden"],
+        });
+      }
+      stakeholderBadge.addEventListener("click", () => {
+        stakeholderPanel.scrollIntoView({ behavior: "smooth", block: "center" });
       });
 
       // B16: arrow-key navigation across the plot grid (Enter/Space to
