@@ -444,6 +444,37 @@ def wellbeing_message(score):
     return "This region is struggling: capacity hasn't kept pace with arrivals."
 
 
+# I3: an explicit in-play comparison tying the player's own integration
+# coverage back to the Uganda policy model already referenced in the
+# static context blurb (index.html's .context-blurb) -- previously that
+# reference was flavor text only, never actually compared against the
+# player's live numbers. This deliberately doesn't invent a precise
+# Ugandan numeric coverage figure this game has no real source for (see
+# CLAUDE.md's sensitivity note) -- it compares social_cohesion() (the
+# share of arrivals actually integrated so far) against the *structural*
+# standard Uganda's model is cited for: broad, near-universal access
+# rather than a narrow, capacity-rationed one.
+UGANDA_MODEL_COVERAGE_DESCRIPTION = (
+    "near-universal access to land, work rights, and freedom of movement for arrivals"
+)
+UGANDA_COMPARISON_HIGH_COVERAGE = 80.0
+UGANDA_COMPARISON_MID_COVERAGE = 40.0
+
+
+def uganda_comparison_message(region_state):
+    coverage = region_state.social_cohesion()
+    if coverage >= UGANDA_COMPARISON_HIGH_COVERAGE:
+        standing = "matching the broad-access standard Uganda's model is cited for"
+    elif coverage >= UGANDA_COMPARISON_MID_COVERAGE:
+        standing = "partway toward the broad-access standard Uganda's model is cited for"
+    else:
+        standing = "still well short of the broad-access standard Uganda's model is cited for"
+    return (
+        f"Your region has integrated {coverage:.0f}% of arrivals so far — {standing}, "
+        f"which extends {UGANDA_MODEL_COVERAGE_DESCRIPTION}."
+    )
+
+
 def checkpoint_message(region_state):
     """Iteration-pass addition: a plain-language read on which of the
     three wellbeing dimensions is currently lagging most, given how
@@ -885,6 +916,9 @@ def render():
     turning_point_message = integration_turning_point_message(region)
     turning_point_display.hidden = turning_point_message is None
     turning_point_display.innerText = turning_point_message or ""
+
+    # I3: explicit in-play comparison to the Uganda policy model.
+    document.getElementById("uganda-comparison-display").innerText = uganda_comparison_message(region)
 
     document.getElementById("service-quality-display").innerText = (
         f"Service quality: {region.service_quality():.0f}"
