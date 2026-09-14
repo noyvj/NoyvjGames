@@ -1167,6 +1167,52 @@ button.secondary:disabled::after {
   gap: 0.6rem;
 }
 
+/* B1/B6/B18/B20: session-summary panel (counterfactual line, income-vs-
+   standing sparkline, shareable text snippet). */
+.session-summary-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.session-summary-counterfactual {
+  font-style: italic;
+  opacity: 0.9;
+}
+
+.session-summary-sparkline {
+  display: flex;
+  justify-content: center;
+  padding: 0.4rem 0;
+}
+
+.session-sparkline {
+  width: 100%;
+  max-width: 320px;
+  height: 60px;
+}
+
+.session-summary-share-label {
+  margin: 0.3rem 0 0;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.session-summary-share-text {
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  background: rgba(140, 160, 255, 0.08);
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  font-size: 0.85rem;
+}
+
+.session-summary-copy-status {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.75;
+  min-height: 1em;
+}
+
 .achievement-card {
   padding: 0.6rem 0.75rem;
   border: 1px solid rgba(140, 160, 255, 0.14);
