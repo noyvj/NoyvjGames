@@ -34,6 +34,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
   /planning
     TODO.md          <- THE living cross-game/site task list — check here first for what's next
     LATER.md          <- deferred items (parked pending your input, or needing a decision) — not scheduled, revisit on request
+    FOR-YOU.md        <- action items only the user can do (external signups, deploys) + open questions for the user to answer — check every session, remove an entry once it's resolved
     site-plan.md
     game-template.md
     pwa-and-ads-setup.md  <- manifest/service worker/ad bar reference
@@ -56,6 +57,8 @@ Two running logs live at the repo root: `BCM206-DEV-LOG.md` (site infrastructure
 Before ending any session where code or content changed, append one dated entry to whichever log(s) apply — split across both if the session touched both. Follow the entry format already defined inside each log file. Append only — never edit or remove a past entry. If nothing meaningfully changed, skip logging rather than writing a filler entry.
 
 **Also check off any completed items in `planning/TODO.md`** as they land — it's the standing cross-game/site task list, meant to replace tracking work purely through scattered planning docs. Don't create a new planning `.md` for a cross-cutting idea or gap; add it to `TODO.md` (or `LATER.md` if it's genuinely parked) instead.
+
+**Check `planning/FOR-YOU.md` at the start of every session.** It holds action items only the user can do (an external account signup, a production deploy needing their own login) and open questions only they can answer. If they've filled in an answer or told you an action item is done, act on it, fold the result into the relevant doc/commit, then remove that entry from the file. Add a new entry there — rather than asking the user directly and losing the question when the session ends — whenever you hit a decision that's genuinely theirs to make, or a step that genuinely needs their own credentials/account.
 
 ## Per-game conventions (apply inside every `/games/<slug>/`)
 - Default stack: Python via Pyodide, plain HTML/CSS, no build step. Deviating (e.g. plain JS for something trivial) is a deliberate documented exception, not a default.
