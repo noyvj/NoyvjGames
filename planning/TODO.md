@@ -29,7 +29,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] Canopy — 20 achievements + panel + unlock toast + hub-dashboard link.
 - [x] Grid — 16 achievements + panel + unlock toast + hub-dashboard link.
 - [ ] Tide
-- [ ] Aftermath
+- [x] Aftermath — 19 achievements + panel + unlock toast + hub-dashboard link.
 - [x] Herd — 18 achievements + panel + unlock toast + hub-dashboard link.
 - [x] Thaw — 18 achievements + panel + unlock toast + hub-dashboard link.
 - [ ] Loop
@@ -106,7 +106,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] Canopy — also extend to the stats/legend panels (B15).
 - [x] Grid — plant-build action row (C1) — docked Advance Round instead (see games/grid/CLAUDE.md for the judgment call: Grid's plant rows already keep build/retire/maintain inline, no far-apart split to close).
 - [ ] Tide — investments panel + Advance Season button (D1).
-- [ ] Aftermath — actions panel: Resilience/Growth/Face Next Event (E1).
+- [x] Aftermath — actions panel: Resilience/Growth/Face Next Event (E1).
 - [ ] Continuum — doesn't have this pattern at all yet (K9).
 
 ---
@@ -255,7 +255,7 @@ Two things every game needs once achievements land there, on top of the base rol
 
 *(E5 marked "later" — moved to `LATER.md`.)*
 
-- [ ] E1 — folded into the mobile-dock rollout goal above.
+- [x] E1 — folded into the mobile-dock rollout goal above.
 - [ ] E2: A fourth and fifth skill-tree node.
 - [ ] E3: Branching/prerequisite structure for the skill tree.
 - [ ] E4: Build out the "legacy system" beyond its current flavor-text line.
