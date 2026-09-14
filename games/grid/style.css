@@ -847,8 +847,57 @@ button.primary:active {
 
 #status { border-left-color: #4cc9d8; }
 #plants { border-left-color: #e0a24c; }
+#plant-mix { border-left-color: #7fd6a3; }
 #feedback-prompt { border-left-color: #b57de0; }
 #info-page-panel { border-left-color: #6f9fe0; }
+
+/* C7: plant-mix bar chart -- composition of total capacity by type.
+   Each type keeps a fixed, distinct hue (loosely matching its icon's
+   dominant color above) so the bars stay identifiable by more than
+   position alone; the label text is the primary, always-present
+   identifier regardless of color. */
+.mix-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.3rem 0;
+  font-size: 0.8rem;
+}
+
+.mix-label {
+  flex: 0 0 4.2rem;
+  opacity: 0.8;
+}
+
+.mix-bar-track {
+  flex: 1;
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(5, 6, 13, 0.6);
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.mix-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: 5px;
+  transition: width 0.2s ease;
+}
+
+.mix-pct {
+  flex: 0 0 2.6rem;
+  text-align: right;
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+}
+
+.mix-bar--coal { background: #8a8fa3; }
+.mix-bar--gas { background: #e0a24c; }
+.mix-bar--nuclear { background: #d6e04e; }
+.mix-bar--solar { background: #6fb3ff; }
+.mix-bar--wind { background: #cfe0ff; }
+.mix-bar--hydro { background: #4fa8dd; }
 
 /* --- Gauges: replace the flat bar with a chunkier, ticked,
    glowing HUD gauge. game.py only ever writes inline .style.width

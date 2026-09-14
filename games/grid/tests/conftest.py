@@ -69,6 +69,8 @@ for _plant in PLANT_TYPES:
         f"{_plant}-name",
         f"{_plant}-wear-pct",
         f"{_plant}-risk-badge",
+        f"{_plant}-mix-bar",
+        f"{_plant}-mix-pct",
     ]
 
 INITIALLY_DISABLED_IDS = (
