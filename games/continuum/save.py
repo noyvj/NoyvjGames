@@ -257,6 +257,13 @@ class Campaign:
         self.parked_state = None
         self.era_snapshots = {}
         self.ui = {}
+        # Milestone 15 (achievements) — whether the player has EVER entered
+        # a revisit, for the "Looking Back" achievement. `self.revisiting`
+        # only remembers whether one is in progress *right now*; once
+        # exit_revisit() runs there is no other record it ever happened.
+        # Monotonic by construction: only enter_revisit() ever sets this,
+        # and it never sets it back to False.
+        self.has_revisited = False
         # Milestone 6 — the ongoing log. Bootstrapped against whatever state
         # this Campaign starts with (population 6 and nothing researched,
         # for a brand-new game) so it only reports things that happen from
@@ -316,6 +323,7 @@ class Campaign:
             return False
 
         self.parked_state = snapshot_of(self.state, self.tree)
+        self.has_revisited = True
         _restore_snapshot(self.era_snapshots[era], self.state, self.tree)
         # Phase 4 audit: force the era explicitly rather than trusting
         # whatever the snapshot's own "era" field says. In ordinary play
@@ -375,6 +383,7 @@ class Campaign:
             "era_snapshots": copy.deepcopy(self.era_snapshots),
             "ui": copy.deepcopy(self.ui),
             "log": self.log.snapshot(),
+            "has_revisited": self.has_revisited,
         }
 
     def load_dict(self, data):
@@ -454,4 +463,12 @@ class Campaign:
             self.log.restore(log_data)
         else:
             self.log.bootstrap(self.state, self.tree, self.tree.effects())
+
+        # Milestone 15 — a save written before this field existed simply
+        # reads as "hasn't revisited yet", not an error; no backfill is
+        # needed the way SOL's visited_bodies needed one; there is no
+        # "mid-revisit but the flag says no" state any save this build
+        # could have produced can be in, since `revisiting`/`has_revisited`
+        # are set by the same code path from here on.
+        self.has_revisited = bool(data.get("has_revisited", False))
         return True

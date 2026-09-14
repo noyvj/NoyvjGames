@@ -44,6 +44,7 @@ class FakeElement:
         self.disabled = False
         self.hidden = False
         self.title = ""
+        self.value = ""  # Milestone 17 — the research-search text input
         self.className = ""
         self.classList = FakeClassList()
         self.style = FakeStyle()
@@ -92,6 +93,28 @@ class FakeDocument:
 
     def createElement(self, tag):
         return FakeElement(registry=self._elements)
+
+
+class FakeTimers:
+    """Collects setTimeout callbacks instead of running them on a real
+    clock (Milestone 15's achievement-unlock toast is this game's first use
+    of setTimeout — see game.py's `_display_toast()`), so tests can assert
+    on pre/post-flush state without a real timer. Same shape as SOL's own
+    `FakeTimers` (this hub's first game to need this); Continuum has no
+    setInterval usage, so only the one-shot half is needed."""
+
+    def __init__(self):
+        self.pending = []
+
+    def setTimeout(self, callback, delay):
+        self.pending.append((callback, delay))
+        return len(self.pending)
+
+    def flush(self):
+        """Runs and clears every pending one-shot setTimeout callback."""
+        pending, self.pending = self.pending, []
+        for callback, _delay in pending:
+            callback()
 
 
 def create_proxy(func):

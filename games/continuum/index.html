@@ -38,6 +38,8 @@
     <div class="game-toolbar">
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
+      <!-- Milestone 15: achievements toggle, same toolbar placement SOL uses. -->
+      <button id="achievements-toggle-button" class="secondary" type="button">🏆 Achievements</button>
       <!-- Phase 5 accessibility: real, working text-size control (see
            accessibility.js). A browser preference, not game state -- same
            category as champ-de-mots' accent-sensitivity toggle -- so it's
@@ -49,6 +51,12 @@
       </div>
     </div>
     <div id="howto-panel" class="section" hidden></div>
+    <!-- Milestone 15: rows are built by game.py — see update_achievements_display(). -->
+    <div id="achievements-panel" class="section achievements-panel" hidden></div>
+
+    <div id="achievement-toast" class="achievement-toast" hidden>
+      <p id="achievement-toast-text"></p>
+    </div>
 
     <p class="tagline">One settlement, carried across the ages. Grow it — but grow something worth living in.</p>
     <p class="context-blurb">A city that gets bigger isn't automatically a city that gets better. Continuum tracks both.</p>
@@ -85,6 +93,7 @@
         <div class="settlement-hut settlement-hut--c"></div>
         <div class="settlement-fire"></div>
       </div>
+      <p id="revisit-active-banner" class="event-display event-display--warning revisit-banner" hidden></p>
       <p id="era-display" class="era-line">Tribal era</p>
       <p id="season-display" class="status-line">Season 1</p>
       <p id="population-display" class="status-line">People: 6</p>
@@ -145,6 +154,8 @@
       <p class="row-blurb">One tree, fourteen tiers, seven eras. What you lean into now changes what opens later.
         <details class="info-toggle"><summary>i</summary><p>A tier only opens once two nodes in the tier below it are researched — you don't need everything in a tier, just enough to prove the ground beneath it. Some nodes also require a minimum number of discoveries already made in one branch, so leaning into a branch early can open or close doors many tiers later.</p></details>
       </p>
+      <!-- Milestone 17 (K14): filters the rows below by name/blurb/branch. -->
+      <input id="research-search-input" class="research-search-input" type="text" placeholder="Search the research tree by name, branch, or description...">
       <!-- Node rows are built by game.py — see render_research(). -->
       <div id="research-list"></div>
     </div>
@@ -161,6 +172,15 @@
       <p id="era-progress-status-display" class="status-line">Loading...</p>
       <p id="era-progress-reasons-display" class="row-blurb"></p>
       <button id="advance-era-button" class="secondary" disabled>Loading...</button>
+    </div>
+
+    <div id="revisit" class="section">
+      <h2 class="section-heading">Look Back</h2>
+      <p class="row-blurb">Revisit a completed era exactly as it stood when you left it — the settlement, the tree, the 3D scene, all frozen at that moment. Forward progress is set aside while you look, and returned untouched when you come back.</p>
+      <p id="revisit-status-display" class="status-line">No completed eras to look back on yet.</p>
+      <!-- Rows are built by game.py — see render_revisit(). -->
+      <div id="revisit-era-list"></div>
+      <button id="exit-revisit-button" class="secondary" hidden>Return to the present</button>
     </div>
 
     <button id="advance-season-button" class="primary">Advance Season</button>
@@ -252,6 +272,16 @@
         text: "This shows what it takes to move the settlement into its next era, and why it isn't ready yet if it isn't. Leaving an era is permanent — you can look back at how it went later, but you can't undo the move forward.",
       },
       {
+        selector: "#revisit",
+        title: "Looking Back",
+        text: "Once you've completed at least one era, you can look back at it exactly as it stood when you left — the settlement, the tree, the 3D scene, all frozen at that moment. Nothing you do during a look-back affects your forward progress.",
+      },
+      {
+        selector: "#achievements-toggle-button",
+        title: "Achievements",
+        text: "Reaching an era, mastering a research branch, and running a genuinely well-balanced settlement all earn achievements — check here any time to see what's left.",
+      },
+      {
         title: "You're ready",
         text: "Assign work, build, research, and keep an eye on the sustainability score — then advance the season and see how it all played out. Carry this settlement all the way to the Space Age, but grow something worth living in. Good luck.",
       },
@@ -270,8 +300,16 @@
       // quartet games (e.g. canopy's boot script).
       const infoPageSource = await (await fetch("../../shared/info_page.py")).text();
       pyodide.FS.writeFile("info_page.py", infoPageSource, { encoding: "utf8" });
-      const response = await fetch("game.py");
-      const code = await response.text();
+      // ACHIEVEMENTS-SYSTEM-DESIGN.md's loading contract: fetch the static
+      // catalog and hand it to Python as a window global *before* game.py
+      // runs, same pattern SOL/Le Champ de Mots use for their own JSON
+      // assets (see those games' game.py `_read_achievements_json()`/
+      // `_read_json_asset()`).
+      const [achievementsJson, code] = await Promise.all([
+        fetch("achievements.json").then((response) => response.text()),
+        fetch("game.py").then((response) => response.text()),
+      ]);
+      window.ACHIEVEMENTS_JSON = achievementsJson;
       await pyodide.runPythonAsync(code);
 
       if (window.GameTutorial) {
