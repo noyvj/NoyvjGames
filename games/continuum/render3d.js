@@ -40,6 +40,7 @@
 
   const CONTAINER_ID = "visual3d-container";
   const TOGGLE_BUTTON_ID = "visual-mode-toggle-button";
+  const CAMERA_PRESET_ROW_ID = "camera-preset-buttons";
   const SETTLEMENT_2D_SELECTOR = ".settlement-visual";
   const VIEW_MODE_STORAGE_KEY = "continuum-visual-mode"; // "3d" | "2d"
 
@@ -63,7 +64,20 @@
   const MAX_PITCH = 1.3;
   let dragging = false;
   let lastPointer = null;
-  const CAMERA_DISTANCE = 9.5;
+  let cameraDistance = 9.5;
+
+  // K6 (planning/TODO.md): named camera presets, so a player who has never
+  // touched the drag-to-look control still has a reliable way to see the
+  // settlement from a useful angle, rather than orbit being the only route
+  // to any view but the default one. Each preset is just a fixed
+  // yaw/pitch/distance triple -- reusing the exact same
+  // updateCameraPosition() math the drag control already drives, so a
+  // preset and a manual drag are indistinguishable to the camera itself.
+  const CAMERA_PRESETS = {
+    overview: { yaw: 0.7, pitch: 0.55, distance: 9.5 },
+    closeup: { yaw: 0.7, pitch: 0.4, distance: 5.5 },
+    aerial: { yaw: 0.7, pitch: 1.2, distance: 9.5 },
+  };
 
   // --- feature detection ---------------------------------------------
 
@@ -504,11 +518,33 @@
   function updateCameraPosition() {
     const clampedPitch = Math.max(MIN_PITCH, Math.min(MAX_PITCH, pitch));
     camera.position.set(
-      CAMERA_DISTANCE * Math.cos(clampedPitch) * Math.sin(yaw),
-      CAMERA_DISTANCE * Math.sin(clampedPitch),
-      CAMERA_DISTANCE * Math.cos(clampedPitch) * Math.cos(yaw)
+      cameraDistance * Math.cos(clampedPitch) * Math.sin(yaw),
+      cameraDistance * Math.sin(clampedPitch),
+      cameraDistance * Math.cos(clampedPitch) * Math.cos(yaw)
     );
     camera.lookAt(0, 0.4, 0);
+  }
+
+  function applyCameraPreset(name) {
+    const preset = CAMERA_PRESETS[name];
+    if (!preset || !camera) return;
+    yaw = preset.yaw;
+    pitch = preset.pitch;
+    cameraDistance = preset.distance;
+    updateCameraPosition();
+    if (renderer && scene) renderer.render(scene, camera);
+  }
+
+  function setupCameraPresetButtons() {
+    const row = document.getElementById(CAMERA_PRESET_ROW_ID);
+    if (!row) return;
+    Object.keys(CAMERA_PRESETS).forEach(function (name) {
+      const button = document.getElementById("camera-preset-" + name + "-button");
+      if (!button) return;
+      button.addEventListener("click", function () {
+        applyCameraPreset(name);
+      });
+    });
   }
 
   function attachDragControls(container) {
@@ -587,15 +623,19 @@
     const container = document.getElementById(CONTAINER_ID);
     const fallback = document.querySelector(SETTLEMENT_2D_SELECTOR);
     const button = document.getElementById(TOGGLE_BUTTON_ID);
+    const presetRow = document.getElementById(CAMERA_PRESET_ROW_ID);
     if (!container || !fallback) return;
     if (mode === "3d") {
       container.hidden = false;
       fallback.hidden = true;
       if (button) button.innerText = "🖼 2D view";
+      if (presetRow) presetRow.hidden = false;
     } else {
       container.hidden = true;
       fallback.hidden = false;
       if (button) button.innerText = "🧊 3D view";
+      // Camera presets only mean anything with a live 3D scene on screen.
+      if (presetRow) presetRow.hidden = true;
     }
     try {
       window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode);
@@ -676,6 +716,7 @@
       window.continuumOnRender = pullStateAndRender;
 
       setupToggleButton();
+      setupCameraPresetButtons();
       return true;
     } catch (err) {
       console.warn("Continuum 3D: failed to initialise, staying on the 2D view.", err);

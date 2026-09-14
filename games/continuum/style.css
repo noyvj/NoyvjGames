@@ -602,6 +602,21 @@ button.primary:active {
   margin-bottom: 0.5rem;
 }
 
+/* K6: named camera presets, shown only alongside the live 3D view (see
+   render3d.js's applyViewMode()/setupCameraPresetButtons()) -- a plain
+   flex row of small secondary buttons, matching the toggle button above
+   it rather than introducing a new button style for three more options. */
+.camera-preset-buttons {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.camera-preset-button {
+  flex: 1 1 auto;
+}
+
 /* --- Land plot visual (#land-health-display) ---------------------------
    A small illustrated strip of ground — soil-and-grass texture over a
    green-to-brown gradient — sitting above the actual (dynamic) land
