@@ -187,7 +187,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] B9: A colorblind-safe pattern/icon overlay for plot states — fold into the site-wide colorblind audit above if that's more efficient than a one-off.
 - [x] B10: Surface biodiversity as an explicit number.
 - [ ] B11: Diversify stakeholder requests to sometimes offer a positive trade-off.
-- [ ] B12: A visible badge for a pending stakeholder request when scrolled away.
+- [x] B12: A visible badge for a pending stakeholder request when scrolled away.
 - [ ] B13: A larger-grid option as a difficulty/length variant.
 - [ ] B14: A persisted "personal best" stat across sessions.
 - [x] B16: Keyboard navigation for plot selection/action.

@@ -239,6 +239,38 @@ h1 {
 /* B8: hover/tap tooltip on plot tiles (positioning logic lives in
    index.html's inline script; this is just its look). Fixed positioning
    so it can float above any tile regardless of scroll/dock state. */
+/* B12: floating pending-stakeholder-request badge (shown/hidden by
+   index.html's IntersectionObserver/MutationObserver wiring, not
+   game.py -- see that file's comment). Fixed near the top so it's
+   visible regardless of scroll position or mobile-dock state. */
+.stakeholder-badge {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 390; /* just below the achievement toast (400) */
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 154, 60, 0.55);
+  background: linear-gradient(135deg, rgba(90, 62, 18, 0.95), rgba(56, 38, 10, 0.95));
+  color: #ffe3ad;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  animation: stakeholder-badge-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes stakeholder-badge-pulse {
+  0%, 100% { box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4), 0 0 0 0 rgba(201, 154, 60, 0.5); }
+  50% { box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4), 0 0 0 6px rgba(201, 154, 60, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stakeholder-badge {
+    animation: none;
+  }
+}
+
 .plot-tooltip {
   position: fixed;
   z-index: 300; /* above panels, below the achievement toast (400) */
