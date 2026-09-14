@@ -25,11 +25,29 @@
     <div class="game-toolbar">
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
+      <button id="achievements-toggle-button" class="secondary" type="button">Loading...</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
+    <div id="achievements-panel" class="section achievements-panel" hidden></div>
+
+    <div id="achievement-toast" class="achievement-toast" hidden>
+      <p id="achievement-toast-text"></p>
+    </div>
+    <div id="loop-closed-banner" class="loop-closed-banner" hidden>
+      <p>🔁 Loop closed — 100% of this cycle's production came from repair, reuse &amp; recycling. No new extraction needed.</p>
+    </div>
 
     <p class="tagline">Redesign a supply chain. By default it's a straight line: extract, make, use, discard. Waste is a design choice — not an inevitability.</p>
-    <p class="context-blurb">Overconsumption and the take-make-waste model carry a real extraction and emissions cost — the raw materials behind everyday electronics (metals, minerals, rare earths) are finite and increasingly costly to keep extracting at current rates.</p>
+    <p class="context-blurb">Overconsumption and the take-make-waste model carry a real extraction and emissions cost — the raw materials behind everyday goods (metals, minerals, rare earths, textiles) are finite and increasingly costly to keep extracting at current rates.</p>
+
+    <div id="goods-category-picker" class="section goods-category-picker">
+      <p class="meter-label">What is this chain producing?</p>
+      <div class="goods-category-buttons">
+        <button id="goods-category-electronics-button" class="secondary goods-category-button">📱 Electronics</button>
+        <button id="goods-category-clothing-button" class="secondary goods-category-button">👕 Clothing</button>
+        <button id="goods-category-furniture-button" class="secondary goods-category-button">🪑 Furniture</button>
+      </div>
+    </div>
 
     <button id="info-page-toggle-button" class="secondary info-page-toggle">Loading...</button>
     <div id="info-page-panel" class="section" hidden>
@@ -95,9 +113,13 @@
       <p id="circular-fraction-display" class="status-line">Circular this cycle: 0%</p>
       <p id="lifetime-circular-display" class="status-line">Lifetime circular share: 0%</p>
       <p id="score-display" class="status-line">Score: 300</p>
+      <p id="score-breakdown-display" class="comparison-message">Score = funds (300) + circular bonus (0) = 300</p>
       <details class="info-toggle"><summary>i</summary><p>Score isn't just your funds — it also adds a direct bonus (up to 300) for your lifetime circular share, so closing the loop is rewarded on its own terms even beyond the extraction costs it helps you dodge.</p></details>
+      <p id="streak-display" class="status-line">Closed-loop streak: 0 cycle(s) (best: 0)</p>
       <p id="trend-display" class="comparison-message">Not enough cycles yet to show a trend.</p>
+      <p id="loop-projection-display" class="comparison-message">Not enough cycles yet to project when the loop might close.</p>
       <p id="real-world-comparison-display" class="comparison-message">Your chain is running at 0% circular, versus a roughly 7% estimated real-world average today (a ballpark figure, not a precise benchmark).</p>
+      <p id="sector-comparison-display" class="comparison-message">For context, your circular share is also below several real-world sector estimates (ballpark figures, not precise benchmarks).</p>
     </div>
 
     <div id="circularity" class="section">
@@ -109,9 +131,9 @@
         <div class="loop-ring-arrow loop-ring-arrow--1">➤</div>
         <div class="loop-ring-arrow loop-ring-arrow--2">➤</div>
         <div class="loop-ring-arrow loop-ring-arrow--3">➤</div>
-        <div class="loop-ring-node loop-ring-node--repair">🔧</div>
-        <div class="loop-ring-node loop-ring-node--reuse">🔄</div>
-        <div class="loop-ring-node loop-ring-node--recycle">♻️</div>
+        <div id="loop-ring-node-repair" class="loop-ring-node loop-ring-node--repair">🔧</div>
+        <div id="loop-ring-node-reuse" class="loop-ring-node loop-ring-node--reuse">🔄</div>
+        <div id="loop-ring-node-recycle" class="loop-ring-node loop-ring-node--recycle">♻️</div>
         <div class="loop-ring-core">
           <span class="loop-ring-core-glyph">♻</span>
         </div>
@@ -120,17 +142,21 @@
         <span id="repair-name" class="invest-name">🔧 Repair Networks</span>
         <span id="repair-count" class="invest-count">0</span>
         <button id="repair-invest-button" class="secondary">Repair Networks (20)</button>
+        <p id="repair-stats" class="invest-stats">6.7 funds/unit · supplying 0/cycle</p>
       </div>
       <div class="invest-row invest-row--reuse">
         <span id="reuse-name" class="invest-name">🔄 Reuse Systems</span>
         <span id="reuse-count" class="invest-count">0</span>
         <button id="reuse-invest-button" class="secondary">Reuse Systems (25)</button>
+        <p id="reuse-stats" class="invest-stats">6.3 funds/unit · supplying 0/cycle</p>
       </div>
       <div class="invest-row invest-row--recycle">
         <span id="recycle-name" class="invest-name">♻️ Recycling Loops</span>
         <span id="recycle-count" class="invest-count">0</span>
         <button id="recycle-invest-button" class="secondary">Recycling Loops (30)</button>
+        <p id="recycle-stats" class="invest-stats">6.0 funds/unit · supplying 0/cycle</p>
       </div>
+      <button id="reset-chain-button" class="secondary reset-chain-button" type="button">🔁 Start New Chain</button>
     </div>
 
     <div id="trade-network" class="section">
@@ -150,6 +176,11 @@
         <span class="invest-name">🌐 Trade Link</span>
         <span id="trade-link-count" class="invest-count">0</span>
         <button id="trade-link-invest-button" class="secondary">Trade Link (25)</button>
+      </div>
+      <div class="invest-row invest-row--regional">
+        <span class="invest-name">🚚 Regional Distributor</span>
+        <span id="regional-trade-count" class="invest-count">0</span>
+        <button id="regional-trade-invest-button" class="secondary">Regional Partner (40)</button>
       </div>
     </div>
 
@@ -229,8 +260,11 @@
       // ENGINE_MODULES loop.
       const infoPageSource = await (await fetch("../../shared/info_page.py")).text();
       pyodide.FS.writeFile("info_page.py", infoPageSource, { encoding: "utf8" });
-      const response = await fetch("game.py");
-      const code = await response.text();
+      const [achievementsJson, code] = await Promise.all([
+        fetch("achievements.json").then((response) => response.text()),
+        fetch("game.py").then((response) => response.text()),
+      ]);
+      window.ACHIEVEMENTS_JSON = achievementsJson;
       await pyodide.runPythonAsync(code);
 
       if (window.GameTutorial) {

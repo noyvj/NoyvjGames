@@ -1040,3 +1040,228 @@ button.primary:disabled::after {
   background: #454b5c;
   box-shadow: none;
 }
+
+/* ============================================================
+   Post-milestone backlog pass (planning/TODO.md "Per-game: Loop"
+   H1-H20) + achievements framework (ACHIEVEMENTS-SYSTEM-DESIGN.md).
+   Same card/toast language used across the hub's shared achievements
+   pattern (SOL's reference implementation), rebuilt on Loop's own
+   existing bluish rgba(140, 160, 255, ...) accent + established green
+   (circularity) identity rather than inventing a new palette. */
+.achievements-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.achievement-card {
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.achievement-card--earned {
+  border-color: rgba(76, 156, 110, 0.4);
+  background: rgba(76, 156, 110, 0.08);
+  box-shadow: 0 0 18px rgba(76, 156, 110, 0.12);
+}
+
+.achievement-card-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.achievement-card--earned .achievement-card-label {
+  color: #7fd6a3;
+  text-shadow: 0 0 12px rgba(127, 214, 163, 0.35);
+}
+
+.achievement-card-description {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.7;
+  line-height: 1.4;
+}
+
+.achievement-card-progress {
+  margin: 0.4rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+.achievements-hub-link {
+  display: inline-block;
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  color: #a9c3ff;
+}
+
+/* Unlock toast: fixed to the top of the viewport so it's visible
+   regardless of scroll position. `.visible` is toggled from game.py;
+   `hidden` (native attribute) keeps it out of the layout entirely
+   between toasts. */
+.achievement-toast {
+  position: fixed;
+  top: 0.75rem;
+  left: 1rem;
+  right: 1rem;
+  max-width: 480px;
+  margin: 0 auto;
+  z-index: 500;
+  padding: 0.7rem 1rem;
+  background: linear-gradient(165deg, rgba(76, 156, 110, 0.92), rgba(38, 64, 42, 0.95));
+  border: 1px solid rgba(127, 214, 163, 0.5);
+  border-radius: 10px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transform: translateY(-12px);
+  transition: opacity 200ms ease, transform 200ms ease;
+  pointer-events: none;
+}
+
+.achievement-toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.achievement-toast p {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f2fff6;
+  text-align: center;
+}
+
+/* H3: first-time-closed-loop celebratory banner — distinct from (and
+   slightly larger/longer-lived than) the achievement-unlock toast
+   above, sitting just below it so the rare case of both firing at once
+   doesn't fully overlap. */
+.loop-closed-banner {
+  position: fixed;
+  top: 3.6rem;
+  left: 1rem;
+  right: 1rem;
+  max-width: 480px;
+  margin: 0 auto;
+  z-index: 499;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(165deg, rgba(76, 156, 110, 0.95), rgba(20, 40, 26, 0.97));
+  border: 1px solid rgba(127, 214, 163, 0.6);
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 24px rgba(76, 156, 110, 0.3);
+  opacity: 0;
+  transform: translateY(-12px);
+  transition: opacity 220ms ease, transform 220ms ease;
+  pointer-events: none;
+}
+
+.loop-closed-banner.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.loop-closed-banner p {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f2fff6;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .achievement-toast,
+  .loop-closed-banner {
+    transition: opacity 120ms ease;
+    transform: none;
+  }
+}
+
+/* H2/H20: goods-category picker — shown only at game start (game.py
+   hides #goods-category-picker once chain.total_produced > 0). Reuses
+   the existing .section glass-panel treatment; buttons get a
+   `.selected` state matching the feedback-prompt's Yes/No pattern. */
+.goods-category-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.goods-category-button.selected {
+  border-color: rgba(76, 156, 110, 0.6);
+  background: linear-gradient(135deg, #2a4a30, #1d2e1f);
+  box-shadow: 0 0 12px rgba(76, 156, 110, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* H7: in-game reset control — visually a secondary action, sitting
+   below the three investment tiles it resets rather than competing
+   with the primary Advance Cycle button at the bottom of the page. */
+.reset-chain-button {
+  display: block;
+  width: 100%;
+  margin-top: 0.6rem;
+}
+
+/* H4/H15: per-measure cost-per-unit + running-contribution readout.
+   Spans the full investment-tile width (the tile's own grid is
+   `1fr auto 1fr` for name/count/button) rather than being squeezed
+   into the first column. */
+.invest-stats {
+  grid-column: 1 / -1;
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
+/* H8: the Regional Distributor trade-partner row — same trade-blue
+   identity as the existing Trade Link row, since both are trade-network
+   partners. */
+.invest-row--regional { border-left-color: #4c8ed8; }
+
+#regional-trade-invest-button::before { content: "\1F69A "; }
+
+/* H5: loop-ring nodes light up proportional to real investment (see
+   render()'s `loop-ring-node--active`/`--charged` classing in game.py)
+   instead of sitting static regardless of how much has been invested. */
+.loop-ring-node--active {
+  border-color: rgba(76, 156, 110, 0.85);
+  box-shadow: 0 0 16px rgba(76, 156, 110, 0.6);
+}
+
+.loop-ring-node--charged {
+  border-color: #7fd6a3;
+  box-shadow: 0 0 22px rgba(127, 214, 163, 0.85), 0 0 8px rgba(127, 214, 163, 0.9) inset;
+}
+
+/* H12/H18: brief reactive pulses on the funds display (export revenue
+   earned) and the trade-network readout (its numbers changed) — added
+   and removed by game.py's `_trigger_funds_burst()`/
+   `_trigger_trade_network_pulse()` via a short-lived class + setTimeout,
+   so the number visibly changing isn't the only feedback. */
+.funds-display--burst {
+  animation: funds-burst 700ms ease-out;
+}
+
+@keyframes funds-burst {
+  0% { color: #7fd6a3; text-shadow: 0 0 14px rgba(127, 214, 163, 0.9); transform: scale(1.08); }
+  100% { color: inherit; text-shadow: none; transform: scale(1); }
+}
+
+.trade-network-display--pulse {
+  animation: trade-network-pulse 700ms ease-out;
+}
+
+@keyframes trade-network-pulse {
+  0% { color: #9fc4f2; text-shadow: 0 0 10px rgba(76, 142, 216, 0.8); }
+  100% { color: inherit; text-shadow: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .funds-display--burst,
+  .trade-network-display--pulse {
+    animation: none;
+  }
+}
