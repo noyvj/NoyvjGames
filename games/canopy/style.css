@@ -315,6 +315,12 @@ button.secondary:disabled {
   content: "🌲 ";
 }
 
+/* B10: biodiversity surfaced as its own explicit stat line, next to
+   standing value rather than only implied by the wildlife icon. */
+#biodiversity-display::before {
+  content: "🦋 ";
+}
+
 #comparison-message::before {
   content: "📊 ";
 }

@@ -180,12 +180,12 @@ Two things every game needs once achievements land there, on top of the base rol
 - [ ] B1: End-of-session summary screen.
 - [ ] B2: "Reset session" button.
 - [ ] B3: A second, unlockable forest region/biome.
-- [ ] B4: Coordinate-style plot labels.
+- [x] B4: Coordinate-style plot labels.
 - [ ] B6: A history sparkline (income vs. standing value).
 - [ ] B7: Save/compare two named playstyle runs.
 - [ ] B8: Hover/tap tooltips on plot tiles.
 - [ ] B9: A colorblind-safe pattern/icon overlay for plot states — fold into the site-wide colorblind audit above if that's more efficient than a one-off.
-- [ ] B10: Surface biodiversity as an explicit number.
+- [x] B10: Surface biodiversity as an explicit number.
 - [ ] B11: Diversify stakeholder requests to sometimes offer a positive trade-off.
 - [ ] B12: A visible badge for a pending stakeholder request when scrolled away.
 - [ ] B13: A larger-grid option as a difficulty/length variant.

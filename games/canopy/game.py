@@ -247,7 +247,8 @@ def stakeholder_request_message():
         return ""
     idx = pending_stakeholder_request["plot_index"]
     reason = pending_stakeholder_request["reason"]
-    return f"Plot {idx} is thriving, but {STAKEHOLDER_REASON_TEXT[reason]}. Grant the request, or decline and keep it standing?"
+    label = plot_coordinate_label(idx)
+    return f"Plot {label} is thriving, but {STAKEHOLDER_REASON_TEXT[reason]}. Grant the request, or decline and keep it standing?"
 
 
 def _stakeholder_target_is_still_standing():
@@ -296,6 +297,19 @@ def decline_stakeholder_request(event=None):
 
 def _plot_tile_id(index):
     return f"plot-{index}"
+
+
+# B4 (planning/TODO.md "Per-game: Canopy"): coordinate-style plot labels
+# ("A1".."F6") so stakeholder-request messages and plot detail text read as
+# a real place on the grid instead of an opaque array index. Columns are
+# letters (A..F for GRID_COLS==6), rows are 1-based numbers — the same
+# spreadsheet-style convention the TODO's own "C3" example uses. Pure
+# presentation over the existing `index = row * GRID_COLS + col` layout;
+# no stored state, so it's safe to compute anywhere without touching
+# get_state()/load_state().
+def plot_coordinate_label(index):
+    row, col = divmod(index, GRID_COLS)
+    return f"{chr(ord('A') + col)}{row + 1}"
 
 
 # REVIEW(reuse): byte-identical implementation in games/herd/game.py.
@@ -385,7 +399,7 @@ def render_panel():
     if plot.state == REPLANTING:
         detail = f"recovering in {plot.replant_ticks_remaining} ticks"
     panel_state_el.innerText = (
-        f"Plot {selected_index}: {STATE_LABEL[plot.state]} ({detail})"
+        f"Plot {plot_coordinate_label(selected_index)}: {STATE_LABEL[plot.state]} ({detail})"
     )
     clear_button.disabled = "clear" not in VALID_ACTIONS[plot.state]
     replant_button.disabled = "replant" not in VALID_ACTIONS[plot.state]
@@ -395,6 +409,14 @@ def standing_forest_value():
     """Live sum of standing value across every plot — only PRESERVED and
     RECOVERED plots hold nonzero value at any given moment."""
     return sum(plot.value for plot in plots)
+
+
+# B10 (planning/TODO.md "Per-game: Canopy"): biodiversity was previously
+# only legible indirectly (the wildlife icon threshold on individual
+# tiles) — this surfaces it as one explicit number next to standing value,
+# same "comparison, not just a meter" spirit as income vs. standing value.
+def total_biodiversity():
+    return sum(plot.biodiversity for plot in plots)
 
 
 def state_breakdown():
@@ -435,6 +457,7 @@ def render_stats():
     standing_value = standing_forest_value()
     document.getElementById("income-display").innerText = f"Harvested income: {total_income:.1f}"
     document.getElementById("standing-value-display").innerText = f"Standing forest value: {standing_value:.1f}"
+    document.getElementById("biodiversity-display").innerText = f"Biodiversity: {total_biodiversity():.1f}"
     document.getElementById("comparison-message").innerText = comparison_message(total_income, standing_value)
     document.getElementById("state-breakdown-display").innerText = state_breakdown_text()
     document.getElementById("community-relations-display").innerText = (

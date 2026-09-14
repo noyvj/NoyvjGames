@@ -116,7 +116,9 @@ def test_selecting_replanting_plot_disables_both_actions(game_env):
 
 def test_click_on_rendered_tile_selects_plot(game_env):
     game_env.select_tile_click(3)
-    assert "Plot 3: Preserved" in game_env.elements["selected-plot-state"].innerText
+    # Plot 3 is row 0, col 3 -> coordinate label "D1" (B4: coordinate-style
+    # plot labels, see game.py's plot_coordinate_label()).
+    assert "Plot D1: Preserved" in game_env.elements["selected-plot-state"].innerText
 
 
 def test_clear_with_no_selection_does_nothing(game_env):
