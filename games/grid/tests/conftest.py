@@ -55,6 +55,8 @@ for _plant in PLANT_TYPES:
         f"{_plant}-retire-button",
         f"{_plant}-maintain-button",
         f"{_plant}-name",
+        f"{_plant}-wear-pct",
+        f"{_plant}-risk-badge",
     ]
 
 INITIALLY_DISABLED_IDS = (
