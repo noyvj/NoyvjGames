@@ -90,6 +90,36 @@ ELEMENT_IDS = [
     # Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md)
     "achievements-toggle-button",
     "achievements-panel",
+    "achievement-toast",
+    "achievement-toast-text",
+    # Stats & Share (A4/A8), Governor Report (A11)
+    "stats-toggle-button",
+    "stats-panel",
+    "governor-report-toggle-button",
+    "governor-report-panel",
+    # Research tree diagram (A16)
+    "research-tree",
+    # Prestige / New Game+ (A1)
+    "prestige-level-readout",
+    "prestige-button",
+    # Planet-visual containers (A15 terraform color shift)
+    "planet-visual",
+    "mars-planet-visual",
+    "moon-planet-visual",
+    "venus-planet-visual",
+    "asteroidbelt-planet-visual",
+    "pluto-planet-visual",
+    "jupitermoons-planet-visual",
+    "saturnmoons-planet-visual",
+    # Reset-this-world (A18)
+    "reset-world-button",
+    "mars-reset-world-button",
+    "moon-reset-world-button",
+    "venus-reset-world-button",
+    "asteroidbelt-reset-world-button",
+    "pluto-reset-world-button",
+    "jupitermoons-reset-world-button",
+    "saturnmoons-reset-world-button",
     # Earth
     "click-button",
     "resource-count",
@@ -702,6 +732,17 @@ _RETURN_BUTTON_ID = {
     "SaturnMoons": "saturnmoons-return-to-earth-button",
 }
 
+_RESET_WORLD_BUTTON_ID = {
+    "Earth": "reset-world-button",
+    "Mars": "mars-reset-world-button",
+    "Moon": "moon-reset-world-button",
+    "Venus": "venus-reset-world-button",
+    "AsteroidBelt": "asteroidbelt-reset-world-button",
+    "Pluto": "pluto-reset-world-button",
+    "JupiterMoons": "jupitermoons-reset-world-button",
+    "SaturnMoons": "saturnmoons-reset-world-button",
+}
+
 
 class GameEnv:
     """Bundles a freshly-loaded game module with its fake DOM/timers."""
@@ -792,12 +833,39 @@ class GameEnv:
         button_id = _RETURN_BUTTON_ID.get(self.module.current_planet, "return-to-earth-button")
         self.elements[button_id].dispatch("click", None)
 
+    def reset_world(self, planet="Earth"):
+        self.elements[_RESET_WORLD_BUTTON_ID[planet]].dispatch("click", None)
+
+    def toggle_achievements(self):
+        self.elements["achievements-toggle-button"].dispatch("click", None)
+
+    def toggle_stats(self):
+        self.elements["stats-toggle-button"].dispatch("click", None)
+
+    def toggle_governor_report(self):
+        self.elements["governor-report-toggle-button"].dispatch("click", None)
+
+    def prestige(self):
+        self.elements["prestige-button"].dispatch("click", None)
+
+    def set_confirm_response(self, value):
+        """Controls what a subsequent js.confirm(...) call inside game.py
+        returns (used by A18's reset-this-world and A1's prestige, both of
+        which gate an irreversible action behind one)."""
+        sys.modules["js"].confirm = lambda message=None: value
+
 
 def _install_pyodide_fakes(elements, timers):
     fake_js = types.ModuleType("js")
     fake_js.document = FakeDocument(elements)
     fake_js.setTimeout = timers.setTimeout
     fake_js.setInterval = timers.setInterval
+    # A18 ("reset this world") and the A1 prestige reset both gate an
+    # irreversible action behind a real browser confirm() dialog. Defaults
+    # to "confirmed" so every existing test (written before either feature
+    # existed) doesn't have to know about this to keep passing; tests for
+    # the cancel path flip it via game_env.set_confirm_response(False).
+    fake_js.confirm = lambda message=None: True
 
     fake_pyodide = types.ModuleType("pyodide")
     fake_pyodide_ffi = types.ModuleType("pyodide.ffi")

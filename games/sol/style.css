@@ -947,3 +947,46 @@ button.priority-option.selected::after {
   opacity: 0.55;
   font-variant-numeric: tabular-nums;
 }
+
+/* Retrofit: unlock toast + hub-dashboard link (TODO.md's "roll achievements
+   out everywhere" — the two things every game needs on top of the base
+   panel). Same glass-panel language as .achievement-card, just fixed to
+   the viewport so it's visible regardless of which planet's view is open. */
+.achievement-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.25rem;
+  transform: translateX(-50%);
+  z-index: 40;
+  max-width: min(92vw, 420px);
+  padding: 0.75rem 1.1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(127, 214, 163, 0.4);
+  background: rgba(10, 12, 22, 0.92);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+  text-align: center;
+}
+
+.achievement-toast.visible {
+  box-shadow: 0 0 22px rgba(127, 214, 163, 0.45), 0 4px 24px rgba(0, 0, 0, 0.45);
+}
+
+#achievement-toast-text {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #7fd6a3;
+}
+
+.achievements-hub-link {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #8ab4ff;
+  text-decoration: none;
+  text-align: center;
+}
+
+.achievements-hub-link:hover {
+  text-decoration: underline;
+}
