@@ -883,9 +883,71 @@ button.secondary:disabled::after {
 
   /* Reserve room at the bottom of the scrollable page so the last
      real content (feedback prompt) never ends up hidden behind the
-     now-floating action panel + ad bar. */
+     now-floating action panel + ad bar. Widened to 268px (from an
+     original 216px) once #mobile-info-dock (below) started stacking a
+     second docked sheet above this one -- see that rule's own comment. */
   body {
-    padding-bottom: 216px;
+    padding-bottom: 268px;
+  }
+}
+
+/* ============================================================
+   Mobile docked stats + legend (B15, planning/TODO.md). Same
+   shared/mobile-dock.js mechanism #action-panel already uses, applied to
+   #mobile-info-dock (the wrapper around #stats + .legend in index.html)
+   so both panels move together as one unit. Unlike #action-panel --
+   which a player needs open at all times to act on a selected plot --
+   stats/legend are reference info the player *checks*, not something
+   they act through every click, so this collapses behind one toggle
+   button by default rather than permanently occupying screen space on
+   top of the already-docked action panel. Desktop (`.mobile-info-dock`
+   with no `.mobile-docked` class) is untouched: the toggle is hidden and
+   #stats/.legend render exactly as any other `.section` in normal flow. */
+.mobile-info-dock-toggle {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  #mobile-info-dock.mobile-docked {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    /* Stacked directly above the action-panel dock (bottom: 50px there).
+       138px clears its own dock's typical height (roughly one text line
+       + two buttons + padding) with a small gap; both are measured
+       against the same ad-bar-relative baseline as #action-panel's own
+       comment documents. */
+    bottom: 138px;
+    z-index: 149; /* just below #action-panel's dock (150) */
+    max-width: 480px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  #mobile-info-dock.mobile-docked .mobile-info-dock-toggle {
+    display: block;
+    text-align: center;
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  /* Collapsed by default: both panels stay in the DOM (game.py's ids
+     resolve exactly the same whether or not they're visible) but are
+     visually hidden until the toggle is tapped. */
+  #mobile-info-dock.mobile-docked #stats,
+  #mobile-info-dock.mobile-docked .legend {
+    display: none;
+  }
+
+  #mobile-info-dock.mobile-docked.mobile-info-dock--expanded {
+    max-height: 46vh;
+    overflow-y: auto;
+  }
+
+  #mobile-info-dock.mobile-docked.mobile-info-dock--expanded #stats,
+  #mobile-info-dock.mobile-docked.mobile-info-dock--expanded .legend {
+    display: block;
   }
 }
 

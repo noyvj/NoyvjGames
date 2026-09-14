@@ -102,7 +102,7 @@ Two things every game needs once achievements land there, on top of the base rol
 
 - [x] Canopy — action panel (already done).
 - [x] Trade Empire — needs strip (already done).
-- [ ] Canopy — also extend to the stats/legend panels (B15).
+- [x] Canopy — also extend to the stats/legend panels (B15).
 - [x] Grid — plant-build action row (C1) — docked Advance Round instead (see games/grid/CLAUDE.md for the judgment call: Grid's plant rows already keep build/retire/maintain inline, no far-apart split to close).
 - [ ] Tide — investments panel + Advance Season button (D1).
 - [ ] Aftermath — actions panel: Resilience/Growth/Face Next Event (E1).
