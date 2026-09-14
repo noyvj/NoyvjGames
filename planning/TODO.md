@@ -143,17 +143,17 @@ Two things every game needs once achievements land there, on top of the base rol
 
 ## Per-game: SOL
 
-- [ ] A1: Prestige / "New Game+" layer after the soft win-state. **Needs a decision from you before building**: a simple stat-boost restart, or something closer to a skill-tree-based system? (You asked which I'm thinking — my default lean is to start simple: a permanent flat bonus on restart, since a full skill-tree prestige layer is really its own milestone-sized feature. Say the word if you want the bigger version instead.)
-- [ ] A2/A13: A second achievement wave — speedrun-style and "pure clicker/never automated" challenge runs. **Constraint from you: keep 100% achievable without extreme grinding or huge time investment.**
-- [ ] A3: A "welcome back" return-visit summary toast.
-- [ ] A4: A lifetime-stats screen.
-- [ ] A6: Layer in the icon/visual layer the design doc always left room for — **only if straightforward**; if it turns into a real asset-pipeline project, downgrade to `LATER.md` instead of forcing it.
-- [ ] A8: A shareable "my solar system" end-state summary card.
-- [ ] A11: A visible "governor efficiency" readout.
-- [ ] A15: Visual terraforming feedback (color shift as `terraform_progress` climbs).
-- [ ] A16: A simple research-tree diagram instead of a flat list.
-- [ ] A17: An ecology warning banner at the 25%-output-penalty threshold.
-- [ ] A18: A "reset this world only" option.
+- [x] A1: Prestige / "New Game+" layer after the soft win-state. Went with the simple version — a permanent flat resource-yield bonus per prestige level, not a skill tree (see `games/sol/CLAUDE.md`'s own build note for the full reasoning and what does/doesn't reset).
+- [x] A2/A13: A second achievement wave — speedrun-style and "pure clicker/never automated" challenge runs. **Constraint from you: keep 100% achievable without extreme grinding or huge time investment.** (4 new achievements, generous timers/thresholds — see `games/sol/CLAUDE.md`.)
+- [x] A3: A "welcome back" return-visit summary toast.
+- [x] A4: A lifetime-stats screen.
+- [x] A6: Layer in the icon/visual layer the design doc always left room for — **only if straightforward**; if it turns into a real asset-pipeline project, downgrade to `LATER.md` instead of forcing it. Found this was already solved via a pure-CSS icon system with zero markup changes needed — no `LATER.md` downgrade needed.
+- [x] A8: A shareable "my solar system" end-state summary card.
+- [x] A11: A visible "governor efficiency" readout.
+- [x] A15: Visual terraforming feedback (color shift as `terraform_progress` climbs).
+- [x] A16: A simple research-tree diagram instead of a flat list.
+- [x] A17: An ecology warning banner at the 25%-output-penalty threshold.
+- [x] A18: A "reset this world only" option.
 
 ---
 
