@@ -508,6 +508,18 @@ def uganda_comparison_message(region_state):
     )
 
 
+# I12: once the lagging dimension is named, also note whenever a *different*
+# dimension is comfortably ahead rather than always naming only the
+# weak point -- so a player who's actually doing well on two of the three
+# fronts hears that too, not just what still needs work.
+CHECKPOINT_AHEAD_SCORE_THRESHOLD = 80.0
+CHECKPOINT_AHEAD_NOTE = {
+    "services": "Service quality is comfortably ahead, though — strain has stayed low across the run.",
+    "economy": "Economic health is comfortably ahead, though — funds are in good shape.",
+    "cohesion": "Social cohesion is comfortably ahead, though — most arrivals are already integrated.",
+}
+
+
 def checkpoint_message(region_state):
     """Iteration-pass addition: a plain-language read on which of the
     three wellbeing dimensions is currently lagging most, given how
@@ -527,7 +539,13 @@ def checkpoint_message(region_state):
         ),
     }
     lowest_key = min(scores, key=lambda k: scores[k][0])
-    return scores[lowest_key][1]
+    message = scores[lowest_key][1]
+
+    highest_key = max(scores, key=lambda k: scores[k][0])
+    if highest_key != lowest_key and scores[highest_key][0] >= CHECKPOINT_AHEAD_SCORE_THRESHOLD:
+        message += " " + CHECKPOINT_AHEAD_NOTE[highest_key]
+
+    return message
 
 
 def integration_turning_point_message(region_state):
