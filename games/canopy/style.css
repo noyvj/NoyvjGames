@@ -1222,6 +1222,34 @@ button.secondary:disabled::after {
   min-height: 1em;
 }
 
+/* B7: save/compare two named playstyle runs. */
+.session-summary-playstyle-label {
+  margin: 0.6rem 0 0;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.session-summary-playstyle-comparison {
+  font-size: 0.85rem;
+}
+
+.playstyle-comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.playstyle-comparison-table th,
+.playstyle-comparison-table td {
+  text-align: left;
+  padding: 0.3rem 0.5rem;
+  border-bottom: 1px solid rgba(140, 160, 255, 0.14);
+}
+
+.playstyle-comparison-table th:not(:first-child),
+.playstyle-comparison-table td:not(:first-child) {
+  text-align: right;
+}
+
 .achievement-card {
   padding: 0.6rem 0.75rem;
   border: 1px solid rgba(140, 160, 255, 0.14);

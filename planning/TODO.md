@@ -183,7 +183,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [ ] B3: A second, unlockable forest region/biome.
 - [x] B4: Coordinate-style plot labels.
 - [x] B6: A history sparkline (income vs. standing value). Inline SVG in the Session Summary panel (B1), sampled once per tick, capped at 120 points.
-- [ ] B7: Save/compare two named playstyle runs.
+- [x] B7: Save/compare two named playstyle runs. "Save as Run A"/"Save as Run B" snapshot the current stats to per-browser `localStorage` (survives a Reset Session, unlike everything else in the Session Summary panel); a comparison table renders once at least one slot is saved — see `save_playstyle_run()`/`playstyle_comparison_html()`.
 - [x] B8: Hover/tap tooltips on plot tiles.
 - [x] B9: A colorblind-safe pattern/icon overlay for plot states — fold into the site-wide colorblind audit above if that's more efficient than a one-off.
 - [x] B10: Surface biodiversity as an explicit number.
