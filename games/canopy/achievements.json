@@ -99,6 +99,11 @@
       "id": "every_stage_at_once",
       "label": "Every Stage at Once",
       "description": "Have at least one plot in each of the four states — bare, replanting, preserved, and recovered — at the same time."
+    },
+    {
+      "id": "second_growth",
+      "label": "Second Growth",
+      "description": "Unlock the Highland Grove, a second forest region."
     }
   ]
 }

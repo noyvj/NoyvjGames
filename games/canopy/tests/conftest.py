@@ -59,6 +59,14 @@ ELEMENT_IDS = [
     "session-summary-playstyle-comparison",
     "save-playstyle-run-a-button",
     "save-playstyle-run-b-button",
+    "highland-lock-banner",
+    "highland-section",
+    "highland-plot-grid",
+    "highland-income-display",
+    "highland-standing-value-display",
+    "highland-selected-plot-state",
+    "highland-clear-button",
+    "highland-replant-button",
 ]
 
 # Buttons that carry the `disabled` attribute in index.html's initial markup
@@ -69,6 +77,8 @@ INITIALLY_DISABLED_IDS = [
     "replant-button",
     "stakeholder-grant-button",
     "stakeholder-decline-button",
+    "highland-clear-button",
+    "highland-replant-button",
 ]
 
 
@@ -125,6 +135,21 @@ class GameEnv:
 
     def save_playstyle_run_b(self):
         self.elements["save-playstyle-run-b-button"].dispatch("click", None)
+
+    def highland_plot(self, index):
+        return self.module.highland_plots[index]
+
+    def highland_select(self, index):
+        self.module.highland_select_plot(index)
+
+    def highland_select_tile_click(self, index):
+        self.elements[f"highland-plot-{index}"].dispatch("click", None)
+
+    def highland_clear(self):
+        self.elements["highland-clear-button"].dispatch("click", None)
+
+    def highland_replant(self):
+        self.elements["highland-replant-button"].dispatch("click", None)
 
     def reset_session(self):
         self.elements["reset-session-button"].dispatch("click", None)

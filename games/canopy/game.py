@@ -305,6 +305,28 @@ stakeholder_grants_count = 0  # incremented in grant_stakeholder_request()'s rea
 stakeholder_declines_count = 0  # incremented in decline_stakeholder_request()'s real-decline path
 community_relations_min_ever = STARTING_COMMUNITY_RELATIONS  # lowest community_relations has ever been
 
+# B3 (planning/TODO.md "Per-game: Canopy"): a second, unlockable forest
+# region. Deliberately a smaller, simpler, self-contained sibling grid --
+# same Plot class and clear/replant/accrue mechanics as the main forest
+# (no reason to invent a second economy), but no stakeholder tension and
+# no biodiversity tracking of its own; it's a bonus area for a player
+# who's already deep into a session, not a second full copy of every
+# system. Fixed at HIGHLAND_ROWS x HIGHLAND_COLS regardless of the B13
+# grid-size preset chosen for the main forest -- the two are independent
+# axes (main-forest size vs. whether the bonus region exists at all).
+HIGHLAND_ROWS = 3
+HIGHLAND_COLS = 4
+HIGHLAND_UNLOCK_STANDING_VALUE_THRESHOLD = 2000.0
+
+highland_unlocked = False
+highland_plots = [Plot(i) for i in range(HIGHLAND_ROWS * HIGHLAND_COLS)]
+highland_selected_index = None
+highland_income = 0.0
+# Same leak-prevention pattern as the main grid's `_plot_click_proxies`
+# (see render_grid()'s own comment) -- a second, independent dict since
+# these track a disjoint set of DOM elements.
+_highland_plot_click_proxies = {}
+
 
 # B2 (planning/TODO.md "Per-game: Canopy"): a "reset session" option, folded
 # together with B13's grid-size variant since both mean "rebuild the whole
@@ -330,6 +352,8 @@ def reset_session(grid_size=None, _render_after=True):
     global total_replants, total_recoveries, plots_with_wildlife_ever
     global stakeholder_grants_count, stakeholder_declines_count, community_relations_min_ever
     global _previously_earned_ids, _session_ticks
+    global highland_unlocked, highland_plots, highland_selected_index, highland_income
+    global _highland_plot_click_proxies
 
     if grid_size is not None:
         if grid_size not in GRID_SIZE_PRESETS:
@@ -359,6 +383,15 @@ def reset_session(grid_size=None, _render_after=True):
     _previously_earned_ids = set()
     _session_ticks = 0
     _value_history.clear()
+
+    for proxy in _highland_plot_click_proxies.values():
+        proxy.destroy()
+    _highland_plot_click_proxies = {}
+    highland_unlocked = False
+    highland_plots = [Plot(i) for i in range(HIGHLAND_ROWS * HIGHLAND_COLS)]
+    highland_selected_index = None
+    highland_income = 0.0
+
     if _render_after:
         render()
     return True
@@ -657,6 +690,170 @@ def render_panel():
     )
     clear_button.disabled = "clear" not in VALID_ACTIONS[plot.state]
     replant_button.disabled = "replant" not in VALID_ACTIONS[plot.state]
+
+
+# ===========================================================================
+# Highland Grove -- B3's second, unlockable forest region (planning/
+# TODO.md "Per-game: Canopy"). Reuses the Plot class and its clear/
+# replant/accrue_tick() mechanics directly (same rules, same math); this
+# section is the region-specific plumbing (its own grid, selection,
+# income, and rendering) layered on top.
+# ===========================================================================
+
+
+def _maybe_unlock_highland():
+    """Checked once per tick(). A sticky, one-way unlock -- once the main
+    forest's standing value has ever crossed the threshold, Highland Grove
+    stays unlocked even if that value later drops (e.g. the player clears
+    plots afterward), matching this game's no-dead-end-states philosophy:
+    unlocking a region is a permanent milestone, not a live gate that
+    could lock back up mid-session."""
+    global highland_unlocked
+    if not highland_unlocked and standing_forest_value() >= HIGHLAND_UNLOCK_STANDING_VALUE_THRESHOLD:
+        highland_unlocked = True
+
+
+def highland_plot_coordinate_label(index):
+    """B4's coordinate-label convention, applied to Highland Grove's own
+    (smaller) grid -- uses HIGHLAND_COLS, not GRID_COLS, so a Highland
+    tile's letter wraps at the right width for its own 4-wide grid rather
+    than the main forest's."""
+    row, col = divmod(index, HIGHLAND_COLS)
+    return f"{chr(ord('A') + col)}{row + 1}"
+
+
+def highland_standing_value():
+    return sum(plot.value for plot in highland_plots)
+
+
+def _highland_tooltip_text(plot):
+    """Highland Grove's own version of _plot_tooltip_text() -- same shape,
+    but using highland_plot_coordinate_label() so the label matches this
+    grid's own width."""
+    soil_pct = round(plot.productivity_multiplier() * 100)
+    label = f"{highland_plot_coordinate_label(plot.index)} · {STATE_LABEL[plot.state]} · value {plot.value:.1f} · soil {soil_pct}%"
+    if plot.state == REPLANTING:
+        label += f" · recovering in {plot.replant_ticks_remaining} ticks"
+    return label
+
+
+def _make_highland_select_handler(index):
+    def handler(event):
+        highland_select_plot(index)
+    return handler
+
+
+def highland_select_plot(index):
+    global highland_selected_index
+    highland_selected_index = index
+    render()
+
+
+def on_highland_clear(event=None):
+    global highland_income
+    if highland_selected_index is None:
+        return
+    payout = highland_plots[highland_selected_index].clear()
+    if payout is not None:
+        highland_income += payout
+    render()
+
+
+def on_highland_replant(event=None):
+    if highland_selected_index is None:
+        return
+    highland_plots[highland_selected_index].replant()
+    render()
+
+
+def render_highland_grid():
+    grid_el = document.getElementById("highland-plot-grid")
+    grid_el.innerHTML = ""
+    grid_el.setAttribute("data-cols", str(HIGHLAND_COLS))
+    # See render_grid()'s identical line for why this inline override is
+    # needed on top of style.css's shared `.plot-grid` rule (B13's real-
+    # browser-only bug, fixed for the main grid and applied here from the
+    # start rather than repeating the same discovery).
+    grid_el.style.gridTemplateColumns = f"repeat({HIGHLAND_COLS}, 1fr)"
+    for plot in highland_plots:
+        tile = document.createElement("button")
+        tile.id = f"highland-plot-{plot.index}"
+        tile.className = f"plot-tile plot-{plot.state}"
+        if plot.index == highland_selected_index:
+            tile.className += " plot-selected"
+        if plot.just_recovered:
+            tile.className += " plot-just-recovered"
+            plot.just_recovered = False
+        if plot.state == RECOVERED and plot.maturity_fraction() >= 1.0:
+            tile.className += " plot-fully-mature"
+        tile.title = STATE_LABEL[plot.state]
+        tile.innerText = STATE_ICON[plot.state]
+        tile.style.backgroundColor = plot_display_color(plot)
+        tile.setAttribute("data-tooltip", _highland_tooltip_text(plot))
+        tile.setAttribute("aria-label", _highland_tooltip_text(plot))
+        old_proxy = _highland_plot_click_proxies.pop(plot.index, None)
+        if old_proxy is not None:
+            old_proxy.destroy()
+        proxy = create_proxy(_make_highland_select_handler(plot.index))
+        _highland_plot_click_proxies[plot.index] = proxy
+        tile.addEventListener("click", proxy)
+        grid_el.appendChild(tile)
+
+
+def render_highland_panel():
+    state_el = document.getElementById("highland-selected-plot-state")
+    clear_button = document.getElementById("highland-clear-button")
+    replant_button = document.getElementById("highland-replant-button")
+
+    if highland_selected_index is None:
+        state_el.innerText = "No plot selected"
+        clear_button.disabled = True
+        replant_button.disabled = True
+        return
+
+    plot = highland_plots[highland_selected_index]
+    detail = f"value {plot.value:.1f}"
+    if plot.state == REPLANTING:
+        detail = f"recovering in {plot.replant_ticks_remaining} ticks"
+    state_el.innerText = (
+        f"Plot {highland_plot_coordinate_label(highland_selected_index)}: {STATE_LABEL[plot.state]} ({detail})"
+    )
+    clear_button.disabled = "clear" not in VALID_ACTIONS[plot.state]
+    replant_button.disabled = "replant" not in VALID_ACTIONS[plot.state]
+
+
+def render_highland_stats():
+    document.getElementById("highland-income-display").innerText = f"Harvested income: {highland_income:.1f}"
+    document.getElementById("highland-standing-value-display").innerText = (
+        f"Standing grove value: {highland_standing_value():.1f}"
+    )
+
+
+def render_highland_section():
+    """Shows a locked-progress banner until HIGHLAND_UNLOCK_STANDING_VALUE_
+    THRESHOLD is crossed, then swaps to the actual playable section --
+    same optional-reveal spirit as every other panel in this game, except
+    this one *starts* inaccessible rather than merely collapsed."""
+    banner = document.getElementById("highland-lock-banner")
+    section = document.getElementById("highland-section")
+    if banner is None or section is None:
+        return
+    if not highland_unlocked:
+        section.hidden = True
+        banner.hidden = False
+        progress = min(standing_forest_value(), HIGHLAND_UNLOCK_STANDING_VALUE_THRESHOLD)
+        banner.innerText = (
+            "⛰️ Highland Grove is locked — reach "
+            f"{HIGHLAND_UNLOCK_STANDING_VALUE_THRESHOLD:.0f} standing forest value in your "
+            f"main forest to unlock a second region ({progress:.0f}/"
+            f"{HIGHLAND_UNLOCK_STANDING_VALUE_THRESHOLD:.0f})."
+        )
+        return
+    banner.hidden = True
+    section.hidden = False
+    render_highland_grid()
+    render_highland_panel()
+    render_highland_stats()
 
 
 # B14 (planning/TODO.md "Per-game: Canopy"): a per-browser "personal
@@ -1247,6 +1444,10 @@ ACHIEVEMENT_CHECKS = {
         and standing_forest_value() >= FLOURISHING_CANOPY_STANDING_THRESHOLD
     ),
     "every_stage_at_once": lambda: _all_four_states_present(),
+    # B3: Highland Grove's own unlock IS the achievement condition -- no
+    # extra threshold needed, `highland_unlocked` already is the pure,
+    # already-derived boolean this pattern wants.
+    "second_growth": lambda: highland_unlocked,
 }
 
 # Progress readouts, only for achievements with a natural numeric scale-up
@@ -1503,6 +1704,7 @@ def render():
     render_stakeholder_panel()
     render_grid_size_select()
     render_session_summary()
+    render_highland_section()
     update_achievements_display()
     _sync_earned_and_toast()
 
@@ -1563,6 +1765,15 @@ def tick(event=None):
     # not the stale pre-tick value.
     _value_history.append((total_income, standing_forest_value()))
     del _value_history[:-VALUE_HISTORY_MAX_POINTS]  # no-op once under the cap
+    # B3: checked every tick regardless of whether it's already unlocked
+    # (a no-op once True) -- accrual only starts once unlocked, so a
+    # freshly-revealed Highland Grove begins at zero rather than having
+    # secretly been growing, invisible, the whole session.
+    _maybe_unlock_highland()
+    if highland_unlocked:
+        for plot in highland_plots:
+            plot.accrue_tick()
+            plot.advance_recovery()
     render()
 
 
@@ -1609,6 +1820,25 @@ def get_state():
         # onto the live one, since a "large" save loaded into a fresh
         # "normal"-sized module would otherwise silently truncate to 36.
         "current_grid_size": current_grid_size,
+        # B3: Highland Grove's own state -- a save predating this feature
+        # simply lacks these keys and load_state() treats that as "not
+        # unlocked yet, empty grove", the correct pre-B3 truth.
+        "highland_unlocked": highland_unlocked,
+        "highland_selected_index": highland_selected_index,
+        "highland_income": highland_income,
+        "highland_plots": [
+            {
+                "index": plot.index,
+                "state": plot.state,
+                "value": plot.value,
+                "ticks_intact": plot.ticks_intact,
+                "clear_count": plot.clear_count,
+                "replant_ticks_remaining": plot.replant_ticks_remaining,
+                "just_recovered": plot.just_recovered,
+                "biodiversity": plot.biodiversity,
+            }
+            for plot in highland_plots
+        ],
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed here, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),
@@ -1632,6 +1862,7 @@ def load_state(data):
     global total_replants, total_recoveries, plots_with_wildlife_ever
     global stakeholder_grants_count, stakeholder_declines_count
     global community_relations_min_ever, _previously_earned_ids
+    global highland_unlocked, highland_selected_index, highland_income
 
     # B13: a save written at a different grid size (or a save predating
     # B13 entirely, which simply lacks the key and so implies "normal", the
@@ -1690,6 +1921,27 @@ def load_state(data):
     # bound on what the min-ever must have been.
     community_relations_min_ever = min(community_relations_min_ever, community_relations)
 
+    # B3: Highland Grove's own fields. A save predating this feature
+    # simply lacks all four keys -- reset_session() (called above if the
+    # grid size differed) already left highland_plots at a fresh 12-plot
+    # grid and highland_unlocked False, exactly the correct pre-B3 state,
+    # so the .get() fallbacks below are true no-ops for such a save
+    # rather than needing special-casing.
+    highland_unlocked = data.get("highland_unlocked", highland_unlocked)
+    highland_selected_index = data.get("highland_selected_index", highland_selected_index)
+    highland_income = data.get("highland_income", highland_income)
+    for plot, plot_data in zip(highland_plots, data.get("highland_plots", [])):
+        plot.index = plot_data.get("index", plot.index)
+        plot.state = plot_data.get("state", plot.state)
+        plot.value = plot_data.get("value", plot.value)
+        plot.ticks_intact = plot_data.get("ticks_intact", plot.ticks_intact)
+        plot.clear_count = plot_data.get("clear_count", plot.clear_count)
+        plot.replant_ticks_remaining = plot_data.get(
+            "replant_ticks_remaining", plot.replant_ticks_remaining
+        )
+        plot.just_recovered = plot_data.get("just_recovered", plot.just_recovered)
+        plot.biodiversity = plot_data.get("biodiversity", plot.biodiversity)
+
     # achievements_earned itself is never read back (write-only, §1) — but
     # the toast-diffing baseline must be reset here, before render() below
     # calls _sync_earned_and_toast(), so a loaded save's already-earned
@@ -1733,6 +1985,12 @@ def setup():
     )
     document.getElementById("grid-size-select").addEventListener(
         "change", create_proxy(on_grid_size_change)
+    )
+    document.getElementById("highland-clear-button").addEventListener(
+        "click", create_proxy(on_highland_clear)
+    )
+    document.getElementById("highland-replant-button").addEventListener(
+        "click", create_proxy(on_highland_replant)
     )
     # Explicit, not just relying on index.html's `hidden` attribute -- the
     # toast element is only otherwise touched by show_achievement_toast()/
