@@ -26,8 +26,8 @@ Two things every game needs once achievements land there, on top of the base rol
 
 - [x] SOL — 18 achievements + panel + hub dashboard (reference implementation).
   - [x] Retrofit: add the unlock-toast and hub-dashboard-link (built after SOL shipped, per A19/A20).
-- [x] Canopy — 20 achievements + panel + unlock toast + hub-dashboard link (hub-side `script.js` registration still needed — out of scope for a `games/canopy/`-only dispatch).
-- [x] Grid — 16 achievements + panel + unlock toast + hub-dashboard link (hub-side `script.js` registration still needed — out of scope for a `games/grid/`-only dispatch).
+- [x] Canopy — 20 achievements + panel + unlock toast + hub-dashboard link.
+- [x] Grid — 16 achievements + panel + unlock toast + hub-dashboard link.
 - [ ] Tide
 - [ ] Aftermath
 - [ ] Herd
@@ -35,7 +35,8 @@ Two things every game needs once achievements land there, on top of the base rol
 - [ ] Loop
 - [ ] Drift
 - [ ] Trade Empire
-- [x] Continuum — 19 achievements + panel + unlock toast + hub-dashboard link (hub-side `script.js` registration still needed — out of scope for a `games/continuum/`-only dispatch).
+- [x] Continuum — 19 achievements + panel + unlock toast + hub-dashboard link.
+- [x] Hub-side `script.js` registration for SOL/Canopy/Grid/Continuum — each per-game dispatch above correctly left this out as out-of-scope for a single-game session (it's a shared file). Done as one pass touching only `script.js`, verified live by claiming fresh Canopy/Grid saves on a throwaway test account and confirming the hub dashboard shows all four games. Do this same registration step for every game below as its own achievements rollout lands.
 - [ ] Le Champ de Mots — **retrofit, not fresh-build**: it already has a game-local achievements slice (its own Milestone 23), but with no `achievements.json` manifest and no hub-dashboard wiring. Reshape it into the cross-game pattern rather than building a second, parallel system.
 
 ---
@@ -125,9 +126,9 @@ Two things every game needs once achievements land there, on top of the base rol
 
 *(Origin: two stale `REVIEW(documentation)` comments in `planning/SAVE-BUTTON-INTEGRATION.md` describing behavior the widget never actually had — copy-to-clipboard and load-field autofill. Worth actually building now rather than just correcting the docs, since both are small, genuinely useful, and touch exactly one shared file affecting every game at once.)*
 
-- [ ] Add a copy-to-clipboard button next to the displayed save code.
-- [ ] Auto-fill the "load by code" input with the last remembered code for this game (currently it's only shown separately, never pre-filled).
-- [ ] Fix the two stale doc comments in `planning/SAVE-BUTTON-INTEGRATION.md` once the above lands (or remove the claims if you'd rather not build them).
+- [x] Add a copy-to-clipboard button next to the displayed save code. Tries the Clipboard API first, falls back to a legacy `execCommand` copy on any failure, shows a plain "couldn't copy" message rather than failing silently if both are blocked (verified: this browser pane's own sandbox denies clipboard-write entirely, and the fallback chain degrades gracefully exactly as designed).
+- [x] Auto-fill the "load by code" input with the last remembered code for this game. Only fills when the field is empty, so it never overwrites a code the player is actively typing in.
+- [x] Fix the two stale doc comments in `planning/SAVE-BUTTON-INTEGRATION.md` — rewritten to describe the actual behavior now that it's built.
 
 ---
 
