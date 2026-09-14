@@ -51,6 +51,8 @@ except ImportError:  # pragma: no cover -- exercised by every test run
 # substring scan over this file.
 blitz_tick = minigames.blitz_tick
 racer_tick = minigames.racer_tick
+boutique_tick = minigames.boutique_tick
+cafe_tick = minigames.cafe_tick
 
 CATALOG_FILENAME = "fren_combined_catalog.json"
 SUPPLEMENTARY_NOTES_FILENAME = "fren_supplementary_notes.json"
