@@ -223,6 +223,15 @@ class GridState:
             return 0.0
         return self.fossil_capacity() / total
 
+    def capacity_share(self, plant_type):
+        """C7: this type's share of total standing capacity, 0..1 -- the
+        per-type generalization of fossil_share()/renewable_capacity_share(),
+        for the plant-mix bar chart."""
+        total = self.total_capacity()
+        if total == 0:
+            return 0.0
+        return (self.plant_counts[plant_type] * PLANT_CAPACITY[plant_type]) / total
+
     def emissions_this_round(self):
         return sum(
             self.plant_counts[t] * PLANT_CAPACITY[t] * EMISSIONS_FACTOR[t]
@@ -1008,6 +1017,11 @@ def render():
         maintain_button = document.getElementById(f"{plant_type}-maintain-button")
         maintain_button.innerText = f"Maintain ({maintenance_cost:.0f})"
         maintain_button.disabled = count <= 0 or state.funds < maintenance_cost
+
+        # C7: plant-mix bar chart -- composition of total capacity by type.
+        mix_pct = state.capacity_share(plant_type) * 100
+        document.getElementById(f"{plant_type}-mix-bar").style.width = f"{mix_pct:.0f}%"
+        document.getElementById(f"{plant_type}-mix-pct").innerText = f"{mix_pct:.0f}%"
 
 
 def _make_build_handler(plant_type):

@@ -218,6 +218,42 @@
       </div>
     </div>
 
+    <div id="plant-mix" class="section">
+      <p class="meter-label">Plant Mix
+        <details class="info-toggle"><summary>i</summary><p>Share of your grid's total generation capacity coming from each plant type, right now.</p></details>
+      </p>
+      <div class="mix-row" data-plant="coal">
+        <span class="mix-label">Coal</span>
+        <div class="mix-bar-track"><div id="coal-mix-bar" class="mix-bar mix-bar--coal"></div></div>
+        <span class="mix-pct" id="coal-mix-pct">0%</span>
+      </div>
+      <div class="mix-row" data-plant="gas">
+        <span class="mix-label">Gas</span>
+        <div class="mix-bar-track"><div id="gas-mix-bar" class="mix-bar mix-bar--gas"></div></div>
+        <span class="mix-pct" id="gas-mix-pct">0%</span>
+      </div>
+      <div class="mix-row" data-plant="nuclear">
+        <span class="mix-label">Nuclear</span>
+        <div class="mix-bar-track"><div id="nuclear-mix-bar" class="mix-bar mix-bar--nuclear"></div></div>
+        <span class="mix-pct" id="nuclear-mix-pct">0%</span>
+      </div>
+      <div class="mix-row" data-plant="solar">
+        <span class="mix-label">Solar</span>
+        <div class="mix-bar-track"><div id="solar-mix-bar" class="mix-bar mix-bar--solar"></div></div>
+        <span class="mix-pct" id="solar-mix-pct">0%</span>
+      </div>
+      <div class="mix-row" data-plant="wind">
+        <span class="mix-label">Wind</span>
+        <div class="mix-bar-track"><div id="wind-mix-bar" class="mix-bar mix-bar--wind"></div></div>
+        <span class="mix-pct" id="wind-mix-pct">0%</span>
+      </div>
+      <div class="mix-row" data-plant="hydro">
+        <span class="mix-label">Hydro</span>
+        <div class="mix-bar-track"><div id="hydro-mix-bar" class="mix-bar mix-bar--hydro"></div></div>
+        <span class="mix-pct" id="hydro-mix-pct">0%</span>
+      </div>
+    </div>
+
     <button id="advance-round-button" class="primary">Advance Round</button>
 
     <div id="feedback-prompt" class="section">
