@@ -1,0 +1,84 @@
+{
+  "achievements": [
+    {
+      "id": "first_watt",
+      "label": "First Watt",
+      "description": "Build your first power plant, of any type."
+    },
+    {
+      "id": "renewable_pioneer",
+      "label": "Renewable Pioneer",
+      "description": "Build your first Solar, Wind, or Hydro plant."
+    },
+    {
+      "id": "clean_quarter",
+      "label": "Quarter Clean",
+      "description": "Get renewables to at least 25% of your grid's total capacity."
+    },
+    {
+      "id": "clean_half",
+      "label": "Halfway There",
+      "description": "Get renewables to at least 50% of your grid's total capacity."
+    },
+    {
+      "id": "clean_three_quarters",
+      "label": "Mostly Clean",
+      "description": "Get renewables to at least 75% of your grid's total capacity."
+    },
+    {
+      "id": "fully_renewable",
+      "label": "Zero Fossil",
+      "description": "Run a standing grid with no coal or gas capacity at all."
+    },
+    {
+      "id": "learning_curve_floored",
+      "label": "Learning Curve Paid Off",
+      "description": "Build enough of one renewable type to drive its cost down to the 40% floor."
+    },
+    {
+      "id": "diverse_grid",
+      "label": "Full Portfolio",
+      "description": "Have every plant type standing on your grid at the same time."
+    },
+    {
+      "id": "fossil_phase_out",
+      "label": "Phase-Out Complete",
+      "description": "Build up real fossil capacity, then retire every last coal and gas plant."
+    },
+    {
+      "id": "clean_streak_15",
+      "label": "Steady Hand",
+      "description": "Go 15 rounds in a row without a single disruption event."
+    },
+    {
+      "id": "no_damage_20",
+      "label": "Untouched",
+      "description": "Reach round 21 without ever having a plant damaged by a disruption."
+    },
+    {
+      "id": "score_50",
+      "label": "Sustained Effort",
+      "description": "Reach a sustained clean-grid score of 50 or higher, at least 10 rounds in."
+    },
+    {
+      "id": "score_80",
+      "label": "The Transition Pays Off",
+      "description": "Reach a sustained clean-grid score of 80 or higher, at least 20 rounds in."
+    },
+    {
+      "id": "well_maintained",
+      "label": "Well Maintained",
+      "description": "Use Maintain 5 times to keep your fleet's average age down."
+    },
+    {
+      "id": "ahead_of_the_curve",
+      "label": "Ahead of the Curve",
+      "description": "Beat the global-average-fossil-mix emissions benchmark, 10+ rounds in."
+    },
+    {
+      "id": "grid_at_scale",
+      "label": "Grid at Scale",
+      "description": "Reach 300 total capacity."
+    }
+  ]
+}

@@ -8,10 +8,11 @@ table for how each system landed.
 """
 
 import copy
+import json
 import random
 
 import info_page
-from js import document
+from js import document, setTimeout
 from pyodide.ffi import create_proxy
 
 STARTING_FUNDS = 500
@@ -148,6 +149,17 @@ class GridState:
         self.global_reference_emissions = 0.0
         self.global_reference_emissions_history = []
         self.last_aging_event = None
+        # New tracked state for the achievements framework (see the
+        # "Achievements" section below) -- nothing else in this module
+        # records how many times Maintain has actually been used, or how
+        # long a streak of disruption-free rounds has run, so these three
+        # need genuine new tracked fields rather than being derivable from
+        # what's already here. Each is mutated only at the real event it
+        # measures (a successful maintain_plant() call; a round advancing
+        # with or without a disruption event), never hand-set elsewhere.
+        self.maintenance_actions_count = 0
+        self.current_clean_streak = 0
+        self.best_clean_streak = 0
 
     def plant_cost(self, plant_type):
         base = PLANT_BASE_COST[plant_type]
@@ -243,6 +255,7 @@ class GridState:
             return False
         self.funds -= cost
         self.plant_age[plant_type] = max(0.0, self.plant_age[plant_type] - MAINTENANCE_AGE_REDUCTION)
+        self.maintenance_actions_count += 1
         return True
 
     def oldest_vulnerable_plant(self):
@@ -310,6 +323,10 @@ class GridState:
         self.last_event = event
         if event:
             self.event_log.append(event)
+            self.current_clean_streak = 0
+        else:
+            self.current_clean_streak += 1
+            self.best_clean_streak = max(self.best_clean_streak, self.current_clean_streak)
         self.last_aging_event = aging_event
 
         self.clean_fraction_log.append(1 - self.fossil_share())
@@ -517,6 +534,269 @@ def clean_trend_message(trend):
     return f"Your grid's cleanliness has held steady at {second_pct:.0f}%."
 
 
+# ===========================================================================
+# Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md) — following SOL's reference
+# integration (games/sol/game.py). Every achievement's earned status is a
+# pure function of state that already exists elsewhere in this module,
+# recomputed fresh every call — never a separately hand-maintained "earned"
+# flag. Three exceptions needed genuinely new tracked state (declared on
+# GridState above, mutated only where the real event happens: a successful
+# maintain_plant() call, or a round advancing with/without a disruption
+# event) — nothing else in this module records how many times Maintain has
+# been used, or how long a streak of disruption-free rounds has run.
+# ===========================================================================
+ACHIEVEMENTS_FILENAME = "achievements.json"
+
+
+def _read_achievements_json():
+    """Same loading contract as SOL's `_read_achievements_json()` / Le
+    Champ de Mots' `_read_json_asset()`: the boot script fetches
+    achievements.json and hands it to Python as a window global before this
+    file runs; the pytest harness's fake `js` module has no such attribute,
+    so this falls through to reading the file straight off disk, keeping
+    the module importable outside a real browser."""
+    try:
+        import js as _js  # noqa: PLC0415 -- Pyodide-only import, deliberately lazy
+    except ImportError:
+        _js = None
+
+    raw = getattr(_js, "ACHIEVEMENTS_JSON", None) if _js is not None else None
+    if raw is not None:
+        return str(raw)
+
+    import os  # noqa: PLC0415 -- only needed on this filesystem-fallback path
+
+    here = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(here, ACHIEVEMENTS_FILENAME), encoding="utf-8") as handle:
+        return handle.read()
+
+
+# Degrades to "no achievements catalog" rather than crashing this module's
+# whole import — achievements are additive, not core to Grid's gameplay
+# (same posture SOL/Le Champ de Mots take for their own optional assets).
+try:
+    ACHIEVEMENTS = json.loads(_read_achievements_json())["achievements"]
+except (ValueError, OSError, NameError, KeyError):
+    ACHIEVEMENTS = []
+
+MAINTENANCE_ACHIEVEMENT_TARGET = 5
+CLEAN_STREAK_TARGET = 15
+NO_DAMAGE_ROUND_TARGET = 21
+SCORE_50_MIN_ROUNDS = 10
+SCORE_80_MIN_ROUNDS = 20
+AHEAD_OF_CURVE_MIN_ROUND = 11
+GRID_AT_SCALE_TARGET = 300
+
+
+def renewable_capacity_share():
+    """Renewables' share of total standing capacity, 0..1. Shared by the
+    achievements below and (later) the one-time 50%-crossing callout."""
+    total = state.total_capacity()
+    if total == 0:
+        return 0.0
+    renewable_capacity = sum(state.plant_counts[t] * PLANT_CAPACITY[t] for t in RENEWABLE_TYPES)
+    return renewable_capacity / total
+
+
+def _standing_plant_type_count():
+    return sum(1 for t in PLANT_TYPES if state.plant_counts[t] >= 1)
+
+
+def _any_renewable_at_cost_floor():
+    return any(
+        state.plant_cost(t) <= PLANT_BASE_COST[t] * MIN_COST_MULTIPLIER * 1.0001
+        for t in RENEWABLE_TYPES
+    )
+
+
+# Each checker is a zero-argument predicate read fresh off live state —
+# nothing here is ever cached or hand-flagged.
+ACHIEVEMENT_CHECKS = {
+    "first_watt": lambda: sum(state.plant_counts.values()) >= 1,
+    "renewable_pioneer": lambda: any(state.plant_counts[t] >= 1 for t in RENEWABLE_TYPES),
+    "clean_quarter": lambda: renewable_capacity_share() >= 0.25,
+    "clean_half": lambda: renewable_capacity_share() >= 0.5,
+    "clean_three_quarters": lambda: renewable_capacity_share() >= 0.75,
+    "fully_renewable": lambda: state.total_capacity() > 0 and state.fossil_share() == 0.0,
+    "learning_curve_floored": _any_renewable_at_cost_floor,
+    "diverse_grid": lambda: _standing_plant_type_count() >= len(PLANT_TYPES),
+    "fossil_phase_out": lambda: (
+        state.cumulative_built["coal"] + state.cumulative_built["gas"] >= 3
+        and state.plant_counts["coal"] == 0
+        and state.plant_counts["gas"] == 0
+        and state.total_capacity() > 0
+    ),
+    "clean_streak_15": lambda: state.best_clean_streak >= CLEAN_STREAK_TARGET,
+    "no_damage_20": lambda: (
+        state.round_number >= NO_DAMAGE_ROUND_TARGET
+        and not any(e.get("type") == "damage" for e in state.event_log)
+    ),
+    "score_50": lambda: state.score() >= 50 and len(state.clean_fraction_log) >= SCORE_50_MIN_ROUNDS,
+    "score_80": lambda: state.score() >= 80 and len(state.clean_fraction_log) >= SCORE_80_MIN_ROUNDS,
+    "well_maintained": lambda: state.maintenance_actions_count >= MAINTENANCE_ACHIEVEMENT_TARGET,
+    "ahead_of_the_curve": lambda: (
+        state.round_number >= AHEAD_OF_CURVE_MIN_ROUND
+        and state.emissions < state.global_reference_emissions
+    ),
+    "grid_at_scale": lambda: state.total_capacity() >= GRID_AT_SCALE_TARGET,
+}
+
+# Progress readouts, only for achievements with a natural numeric scale-up
+# — a plain earned/not-yet is the honest shape for a one-shot milestone
+# like "retire every fossil plant you built".
+ACHIEVEMENT_PROGRESS = {
+    "clean_quarter": lambda: (min(100, round(renewable_capacity_share() * 100)), 25),
+    "clean_half": lambda: (min(100, round(renewable_capacity_share() * 100)), 50),
+    "clean_three_quarters": lambda: (min(100, round(renewable_capacity_share() * 100)), 75),
+    "diverse_grid": lambda: (_standing_plant_type_count(), len(PLANT_TYPES)),
+    "clean_streak_15": lambda: (min(state.best_clean_streak, CLEAN_STREAK_TARGET), CLEAN_STREAK_TARGET),
+    "score_50": lambda: (min(100, round(state.score())), 50),
+    "score_80": lambda: (min(100, round(state.score())), 80),
+    "well_maintained": lambda: (
+        min(state.maintenance_actions_count, MAINTENANCE_ACHIEVEMENT_TARGET),
+        MAINTENANCE_ACHIEVEMENT_TARGET,
+    ),
+    "grid_at_scale": lambda: (min(state.total_capacity(), GRID_AT_SCALE_TARGET), GRID_AT_SCALE_TARGET),
+}
+
+
+def achievement_ids_earned():
+    """Every achievement id currently satisfied, in catalog order — the
+    value that rides the existing save/sync mechanism via get_state()'s
+    "achievements_earned" field (ACHIEVEMENTS-SYSTEM-DESIGN.md). Always
+    recomputed, never itself a save input."""
+    return [entry["id"] for entry in ACHIEVEMENTS if ACHIEVEMENT_CHECKS[entry["id"]]()]
+
+
+def achievements_summary():
+    """The full catalog, in order, each entry annotated with whether it's
+    currently earned and (where one exists) a live progress readout."""
+    earned_ids = set(achievement_ids_earned())
+    summary = []
+    for entry in ACHIEVEMENTS:
+        progress_fn = ACHIEVEMENT_PROGRESS.get(entry["id"])
+        summary.append(
+            {
+                "id": entry["id"],
+                "label": entry["label"],
+                "description": entry["description"],
+                "earned": entry["id"] in earned_ids,
+                "progress": progress_fn() if progress_fn else None,
+            }
+        )
+    return summary
+
+
+achievements_open = False
+
+# Unlock toast + hub-dashboard link (TODO.md "roll achievements out
+# everywhere" — required on top of the base per-game rollout, per
+# ACHIEVEMENTS-SYSTEM-DESIGN.md's site-wide goal). Same pattern as SOL's
+# reference retrofit: a snapshot of which ids were already earned as of
+# the last seed point, so a fresh load or a loaded save doesn't flood the
+# player with toasts for achievements it already satisfies.
+_achievements_seen_ids = set()
+
+
+def _seed_achievement_toast_baseline():
+    global _achievements_seen_ids
+    _achievements_seen_ids = set(achievement_ids_earned())
+
+
+def _display_achievement_toast(message):
+    toast = document.getElementById("achievement-toast")
+    text = document.getElementById("achievement-toast-text")
+    text.innerText = message
+    toast.hidden = False
+    toast.classList.add("visible")
+
+    def _hide(*args):
+        toast.hidden = True
+        toast.classList.remove("visible")
+        proxy.destroy()
+
+    proxy = create_proxy(_hide)
+    setTimeout(proxy, 4000)
+
+
+def _check_new_achievements_for_toast():
+    """Called after every player action that could change earned status
+    (build/retire/maintain/advance round) — never from render() itself,
+    since load_state() also calls render() and a loaded save with several
+    achievements already earned must not flood the player with toasts for
+    all of them at once (see _seed_achievement_toast_baseline)."""
+    global _achievements_seen_ids
+    earned_now = set(achievement_ids_earned())
+    newly = earned_now - _achievements_seen_ids
+    if newly:
+        by_id = {entry["id"]: entry for entry in ACHIEVEMENTS}
+        labels = [by_id[aid]["label"] for aid in newly if aid in by_id]
+        if labels:
+            if len(labels) == 1:
+                _display_achievement_toast(f"🏆 Achievement unlocked: {labels[0]}")
+            else:
+                _display_achievement_toast(f"🏆 {len(labels)} achievements unlocked: " + ", ".join(labels))
+    _achievements_seen_ids = earned_now
+
+
+def on_toggle_achievements(event=None):
+    global achievements_open
+    achievements_open = not achievements_open
+    update_achievements_display()
+
+
+def update_achievements_display():
+    toggle = document.getElementById("achievements-toggle-button")
+    panel = document.getElementById("achievements-panel")
+    earned_count = len(achievement_ids_earned())
+    toggle.innerText = (
+        f"Hide Achievements ({earned_count}/{len(ACHIEVEMENTS)})"
+        if achievements_open
+        else f"🏆 Achievements ({earned_count}/{len(ACHIEVEMENTS)})"
+    )
+    panel.hidden = not achievements_open
+    if not achievements_open:
+        return
+
+    panel.innerHTML = ""
+    for entry in achievements_summary():
+        card = document.createElement("div")
+        card.className = "achievement-card achievement-card--earned" if entry["earned"] else "achievement-card"
+
+        label = document.createElement("p")
+        label.className = "achievement-card-label"
+        label.innerText = f"🏆 {entry['label']}" if entry["earned"] else entry["label"]
+        card.appendChild(label)
+
+        description = document.createElement("p")
+        description.className = "achievement-card-description"
+        description.innerText = entry["description"]
+        card.appendChild(description)
+
+        if not entry["earned"] and entry["progress"] is not None:
+            current, target = entry["progress"]
+            progress = document.createElement("p")
+            progress.className = "achievement-card-progress"
+            progress.innerText = f"{current} of {target}"
+            card.appendChild(progress)
+
+        panel.appendChild(card)
+
+    # A link out to the hub-wide achievements dashboard (root index.html's
+    # #account-achievements-dashboard, ACHIEVEMENTS-SYSTEM-DESIGN.md §5),
+    # same convention as SOL's reference retrofit. Relative path, no
+    # leading "/" (site-level milestone 7's GitHub Pages subpath fix).
+    # Rebuilt each open alongside the cards since the panel is cleared
+    # first. Note: the hub-side script.js registration that makes Grid's
+    # save data actually show up on that dashboard is a root-file change,
+    # out of scope for this games/grid/-only dispatch — see CLAUDE.md.
+    hub_link = document.createElement("a")
+    hub_link.innerText = "View the hub-wide achievements dashboard →"
+    hub_link.href = "../../index.html#account-achievements-dashboard"
+    hub_link.className = "achievements-hub-link"
+    panel.appendChild(hub_link)
+
+
 # Rendering/toggle logic lives in shared/info_page.py now (see that
 # module's docstring) -- this used to be a ~25+4 line implementation
 # byte-identical across all 8 climate games. info_page_open stays local
@@ -533,6 +813,7 @@ def on_toggle_info_page(event=None):
 
 def render():
     render_info_page()
+    update_achievements_display()
     document.getElementById("round-display").innerText = f"Round {state.round_number}"
     document.getElementById("demand-display").innerText = f"Demand: {state.demand}"
     document.getElementById("funds-display").innerText = f"Funds: {state.funds:.0f}"
@@ -610,6 +891,7 @@ def _make_build_handler(plant_type):
     def handler(event=None):
         state.build_plant(plant_type)
         render()
+        _check_new_achievements_for_toast()
     return handler
 
 
@@ -617,6 +899,7 @@ def _make_retire_handler(plant_type):
     def handler(event=None):
         state.retire_plant(plant_type)
         render()
+        _check_new_achievements_for_toast()
     return handler
 
 
@@ -624,12 +907,14 @@ def _make_maintain_handler(plant_type):
     def handler(event=None):
         state.maintain_plant(plant_type)
         render()
+        _check_new_achievements_for_toast()
     return handler
 
 
 def on_advance_round(event=None):
     state.advance_round()
     render()
+    _check_new_achievements_for_toast()
 
 
 # SAVE-BUTTON-INTEGRATION.md contract for the shared shared/save-widget.js:
@@ -664,6 +949,12 @@ def get_state():
         "global_reference_emissions_history": list(state.global_reference_emissions_history),
         "last_aging_event": copy.deepcopy(state.last_aging_event),
         "info_page_open": info_page_open,
+        "maintenance_actions_count": state.maintenance_actions_count,
+        "current_clean_streak": state.current_clean_streak,
+        "best_clean_streak": state.best_clean_streak,
+        # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
+        # freshly recomputed, never read back in load_state() below.
+        "achievements_earned": achievement_ids_earned(),
     }
 
 
@@ -718,12 +1009,24 @@ def load_state(data):
     )
     state.last_aging_event = copy.deepcopy(data.get("last_aging_event", state.last_aging_event))
     info_page_open = data.get("info_page_open", info_page_open)
+    state.maintenance_actions_count = data.get("maintenance_actions_count", state.maintenance_actions_count)
+    state.current_clean_streak = data.get("current_clean_streak", state.current_clean_streak)
+    state.best_clean_streak = data.get("best_clean_streak", state.best_clean_streak)
+    # "achievements_earned" is intentionally never read back here — see
+    # get_state()'s comment and ACHIEVEMENTS-SYSTEM-DESIGN.md §1.
 
     render()
+    _seed_achievement_toast_baseline()
     return True
 
 
 def setup():
+    # index.html already marks this hidden via the `hidden` attribute, but
+    # that markup default doesn't exist for the pytest fake-DOM harness (a
+    # FakeElement starts with hidden=False) -- setting it explicitly here
+    # keeps both environments consistent and costs nothing in a real
+    # browser, where it's already true.
+    document.getElementById("achievement-toast").hidden = True
     for plant_type in PLANT_TYPES:
         document.getElementById(f"{plant_type}-build-button").addEventListener(
             "click", create_proxy(_make_build_handler(plant_type))
@@ -740,7 +1043,11 @@ def setup():
     document.getElementById("info-page-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_info_page)
     )
+    document.getElementById("achievements-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_achievements)
+    )
     render()
+    _seed_achievement_toast_baseline()
 
 
 setup()
