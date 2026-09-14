@@ -154,6 +154,19 @@ EMISSIONS_METER_MAX = DISRUPTION_SEVERITY_SCALE
 GLOBAL_AVG_FOSSIL_SHARE = 0.61
 GLOBAL_AVG_FOSSIL_EMISSIONS_FACTOR = (EMISSIONS_FACTOR["coal"] + EMISSIONS_FACTOR["gas"]) / 2
 
+# C17 -- the closing "grid vs. business-as-usual" counterfactual: a
+# self-comparison against a hypothetical grid that built the exact same
+# total capacity this playthrough did, but entirely as coal, tracked
+# round by round in GridState.bau_emissions (see advance_round()).
+# Deliberately isolates the fuel-mix decision by holding how much got
+# built constant -- a demand-based version would instead reward
+# under-building relative to rising demand as if it were "clean," which
+# isn't the lesson this is meant to teach. Also distinct from the Pass 2
+# global-average-fossil-mix benchmark above: that one answers "how do I
+# compare to the real world," this one answers "how much did *my own*
+# fuel-mix choices this run actually save."
+BAU_EMISSIONS_FACTOR = EMISSIONS_FACTOR["coal"]
+
 # Iteration Pass 2 — infrastructure age/vulnerability: plants accumulate
 # age each round; past a grace period, older fleets become progressively
 # more failure-prone unless maintained. A separate lever from build/retire,
@@ -210,6 +223,14 @@ class GridState:
         self.plant_age = {t: 0.0 for t in PLANT_TYPES}
         self.global_reference_emissions = 0.0
         self.global_reference_emissions_history = []
+        # C17 -- cumulative emissions for the business-as-usual
+        # counterfactual: what this exact same installed capacity would
+        # have emitted had it all been built as coal. Evolves
+        # independently each round in advance_round(), the same "shadow
+        # trajectory" pattern as global_reference_emissions above -- never
+        # recomputed from history, so it survives save/load exactly like
+        # every other running total.
+        self.bau_emissions = 0.0
         self.last_aging_event = None
         # New tracked state for the achievements framework (see the
         # "Achievements" section below) -- nothing else in this module
@@ -492,6 +513,16 @@ class GridState:
         self.global_reference_emissions += (
             self.total_capacity() * GLOBAL_AVG_FOSSIL_SHARE * GLOBAL_AVG_FOSSIL_EMISSIONS_FACTOR
         )
+        # C17 -- same installed capacity this round, same basis
+        # emissions_this_round() itself uses, priced against "what if
+        # this had all just been coal" instead of whatever mix the player
+        # actually built. Deliberately total_capacity()-based rather than
+        # demand-based: the counterfactual isolates the *fuel-mix*
+        # decision specifically, holding how much got built constant, so
+        # a grid that's genuinely all-coal correctly nets to zero avoided
+        # emissions instead of showing a misleading "savings" purely from
+        # under-building relative to rising demand.
+        self.bau_emissions += self.total_capacity() * BAU_EMISSIONS_FACTOR
 
         aging_event = None
         oldest = self.oldest_vulnerable_plant()
@@ -535,6 +566,14 @@ class GridState:
 
     def score(self):
         return self.average_clean_fraction() * 100
+
+    def emissions_avoided(self):
+        """C17: cumulative emissions saved vs. the business-as-usual
+        coal-only counterfactual in bau_emissions -- the closing summary's
+        headline "hope angle" number. Floored at zero so a player who did
+        worse than the counterfactual (e.g. never invested at all, so the
+        two trajectories are ~equal) never sees a misleading negative."""
+        return max(0.0, self.bau_emissions - self.emissions)
 
     def clean_trend(self):
         """Compares the first half of rounds played to the second half —
@@ -665,7 +704,12 @@ def trend_graph_svg(emissions_history, cost_history, global_reference_history):
     hardcoded global-average emissions benchmark (dashed grey) — the
     Pass 2 addition that gives the player's own emissions line something
     concrete to be measured against, not just a shape in isolation.
-    Capped at three lines so it stays legible."""
+    Capped at three lines so it stays legible.
+
+    C15: every point on every line also gets a small hoverable marker
+    carrying the exact round/value in a native <title> tooltip, so a
+    player who wants a precise number isn't limited to reading it off
+    the shape of the line."""
     if len(emissions_history) < 2:
         return ""
 
@@ -684,11 +728,31 @@ def trend_graph_svg(emissions_history, cost_history, global_reference_history):
     cost_points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, cost_ys))
     global_points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, global_ys))
 
+    # C15: a small hoverable marker at every data point, each carrying a
+    # native SVG <title> tooltip with that round's exact value. No JS
+    # event wiring needed -- the browser's own hover-title behavior does
+    # the work, consistent with this module keeping real logic in Python
+    # rather than adding a parallel JS layer for something this simple.
+    def _markers(ys, values, css_class, label):
+        return "".join(
+            f'<circle cx="{x:.1f}" cy="{y:.1f}" r="3" class="trend-point {css_class}">'
+            f"<title>Round {i + 1} -- {label}: {v:.0f}</title>"
+            f"</circle>"
+            for i, (x, y, v) in enumerate(zip(xs, ys, values))
+        )
+
+    markers = (
+        _markers(global_ys, global_reference_history, "trend-point--global", "Global-average benchmark")
+        + _markers(emissions_ys, emissions_history, "trend-point--emissions", "Your emissions")
+        + _markers(cost_ys, cost_history, "trend-point--cost", "Avg renewable cost")
+    )
+
     return (
         f'<svg viewBox="0 0 {TREND_GRAPH_WIDTH} {TREND_GRAPH_HEIGHT}" class="trend-graph-svg">'
         f'<polyline points="{global_points}" class="trend-line trend-line--global" />'
         f'<polyline points="{emissions_points}" class="trend-line trend-line--emissions" />'
         f'<polyline points="{cost_points}" class="trend-line trend-line--cost" />'
+        f"{markers}"
         f"</svg>"
     )
 
@@ -705,6 +769,30 @@ def global_comparison_message(emissions, global_reference_emissions):
             "for a grid built to the global-average fossil mix — you're behind the curve."
         )
     return "Your grid is tracking almost exactly the global-average fossil mix so far."
+
+
+def business_as_usual_message(emissions, bau_emissions):
+    """C17: the closing counterfactual -- what this exact same installed
+    capacity would have emitted had it all been built as coal, compared
+    to what this grid actually emitted with its real fuel mix. Distinct
+    from global_comparison_message() above: that one benchmarks against a
+    real-world-ish average mix, this one isolates this player's own
+    fuel-mix decisions specifically, holding how much got built constant."""
+    if bau_emissions <= 0:
+        return "Not enough rounds yet to compare against a business-as-usual grid."
+    avoided = max(0.0, bau_emissions - emissions)
+    if avoided <= 0:
+        return (
+            f"A business-as-usual grid built entirely from coal would have emitted "
+            f"{bau_emissions:.0f} by now -- yours has emitted {emissions:.0f}, "
+            "no better than staying all-coal so far."
+        )
+    pct_avoided = (avoided / bau_emissions) * 100
+    return (
+        f"A business-as-usual grid built entirely from coal would have emitted "
+        f"{bau_emissions:.0f} by now. Yours has emitted {emissions:.0f} -- "
+        f"{avoided:.0f} avoided ({pct_avoided:.0f}% less)."
+    )
 
 
 def disruption_risk_message(probability, severity):
@@ -892,6 +980,56 @@ def achievements_summary():
 
 achievements_open = False
 
+# C5 -- a dedicated, player-triggered "Run Summary" panel: a score
+# breakdown (score, average clean share, the clean-trend comparison) plus
+# the existing funds-breakdown numbers restated in one place, closing
+# with the C17 business-as-usual counterfactual. Not tied to any hard
+# "game over" state (Grid has none, by design -- see CLAUDE.md's "No hard
+# fail-state" note) -- it's a summary of the run *so far*, available at
+# any point, the same "on-demand panel" shape as the achievements panel
+# above rather than a one-time end screen. Deliberately not persisted
+# across save/load, same as achievements_open -- purely a this-session
+# display preference, not game state.
+summary_panel_open = False
+
+
+def on_toggle_summary_panel(event=None):
+    global summary_panel_open
+    summary_panel_open = not summary_panel_open
+    update_summary_panel()
+
+
+def summary_panel_html():
+    """C5: the Run Summary panel's content -- pure read of existing
+    state/score/funds-breakdown/C17-counterfactual math, no new
+    calculations invented here beyond formatting."""
+    avg_clean_pct = state.average_clean_fraction() * 100
+    lines = [
+        f"Round {state.round_number} — sustained clean-grid score: {state.score():.0f}/100",
+        f"Average clean share across every round played: {avg_clean_pct:.0f}%",
+        clean_trend_message(state.clean_trend()),
+        (
+            f"Funds so far — revenue: {state.lifetime_revenue:.0f}, spent building: "
+            f"{state.lifetime_build_spend:.0f}, spent maintaining: "
+            f"{state.lifetime_maintenance_spend:.0f}, lost to disruptions: "
+            f"{state.lifetime_disruption_spend:.0f}."
+        ),
+        f"Best disruption-free streak so far: {state.best_clean_streak} round(s).",
+        business_as_usual_message(state.emissions, state.bau_emissions),
+    ]
+    return "".join(f'<p class="status-line summary-line">{line}</p>' for line in lines)
+
+
+def update_summary_panel():
+    toggle = document.getElementById("summary-toggle-button")
+    panel = document.getElementById("summary-panel")
+    toggle.innerText = "Hide Run Summary" if summary_panel_open else "📊 Run Summary"
+    panel.hidden = not summary_panel_open
+    if not summary_panel_open:
+        return
+    panel.innerHTML = summary_panel_html()
+
+
 # Unlock toast + hub-dashboard link (TODO.md "roll achievements out
 # everywhere" — required on top of the base per-game rollout, per
 # ACHIEVEMENTS-SYSTEM-DESIGN.md's site-wide goal). Same pattern as SOL's
@@ -1017,6 +1155,7 @@ def on_toggle_info_page(event=None):
 def render():
     render_info_page()
     update_achievements_display()
+    update_summary_panel()
     document.getElementById("round-display").innerText = f"Round {state.round_number}"
     document.getElementById("demand-display").innerText = f"Demand: {state.demand}"
     document.getElementById("funds-display").innerText = f"Funds: {state.funds:.0f}"
@@ -1321,6 +1460,7 @@ def get_state():
         "plant_age": copy.deepcopy(state.plant_age),
         "global_reference_emissions": state.global_reference_emissions,
         "global_reference_emissions_history": list(state.global_reference_emissions_history),
+        "bau_emissions": state.bau_emissions,
         "last_aging_event": copy.deepcopy(state.last_aging_event),
         "info_page_open": info_page_open,
         "maintenance_actions_count": state.maintenance_actions_count,
@@ -1390,6 +1530,7 @@ def load_state(data):
     state.global_reference_emissions_history = list(
         data.get("global_reference_emissions_history", state.global_reference_emissions_history)
     )
+    state.bau_emissions = data.get("bau_emissions", state.bau_emissions)
     state.last_aging_event = copy.deepcopy(data.get("last_aging_event", state.last_aging_event))
     info_page_open = data.get("info_page_open", info_page_open)
     state.maintenance_actions_count = data.get("maintenance_actions_count", state.maintenance_actions_count)
@@ -1442,6 +1583,9 @@ def setup():
     )
     document.getElementById("achievements-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_achievements)
+    )
+    document.getElementById("summary-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_summary_panel)
     )
     document.getElementById("renewable-milestone-dismiss-button").addEventListener(
         "click", create_proxy(on_dismiss_renewable_milestone)

@@ -48,6 +48,8 @@ ELEMENT_IDS = [
     "info-page-sources",
     "achievements-toggle-button",
     "achievements-panel",
+    "summary-toggle-button",
+    "summary-panel",
     "achievement-toast",
     "achievement-toast-text",
     "retire-callout",
@@ -117,6 +119,9 @@ class GameEnv:
 
     def toggle_achievements(self):
         self.elements["achievements-toggle-button"].dispatch("click", None)
+
+    def toggle_summary_panel(self):
+        self.elements["summary-toggle-button"].dispatch("click", None)
 
     def toggle_steeper_demand(self):
         self.elements["steeper-demand-toggle-button"].dispatch("click", None)

@@ -26,6 +26,7 @@ EXPECTED_KEYS = {
     "plant_age",
     "global_reference_emissions",
     "global_reference_emissions_history",
+    "bau_emissions",
     "last_aging_event",
     "info_page_open",
     "maintenance_actions_count",
@@ -125,6 +126,7 @@ def test_full_round_trip_restores_every_tracked_field(game_env):
     assert state.plant_age == snapshot["plant_age"]
     assert state.global_reference_emissions == snapshot["global_reference_emissions"]
     assert state.global_reference_emissions_history == snapshot["global_reference_emissions_history"]
+    assert state.bau_emissions == snapshot["bau_emissions"]
     assert state.last_aging_event == snapshot["last_aging_event"]
     assert game_env.module.info_page_open == snapshot["info_page_open"]
 
