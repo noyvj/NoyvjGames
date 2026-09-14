@@ -292,6 +292,14 @@ button.primary:active {
   margin-bottom: 0.6rem;
 }
 
+/* C4/C16: opt-in difficulty toggles -- reads as an armed/active switch
+   once turned on, distinct from the ordinary secondary-button look. */
+.difficulty-toggle.active {
+  border-color: rgba(224, 103, 76, 0.6);
+  background: linear-gradient(135deg, #402a26, #241614);
+  box-shadow: 0 0 10px rgba(224, 103, 76, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
 .feedback-buttons .secondary.selected {
   border-color: #6fae70;
   background: linear-gradient(135deg, #26402a, #16241a);

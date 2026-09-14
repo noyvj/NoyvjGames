@@ -39,6 +39,7 @@ EXPECTED_KEYS = {
     "lifetime_build_spend",
     "lifetime_maintenance_spend",
     "lifetime_disruption_spend",
+    "steeper_demand_growth_enabled",
 }
 
 
