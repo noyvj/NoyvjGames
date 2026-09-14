@@ -11,7 +11,7 @@ Le Champ de Mots is included here now that its own answers would apply — its 4
 ## In flight
 
 - [x] Le Champ de Mots Milestones 27-28 (Greetings & Basics Blitz, Verb Racer arcade minigames) — done, committed.
-- [ ] Le Champ de Mots Milestones 29-30 (Boutique Dash, Café Rush arcade minigames) — running now.
+- [x] Le Champ de Mots Milestones 29-30 (Boutique Dash, Café Rush arcade minigames) — done, all 4 minigames complete, 517/517 tests green.
 - [ ] Continuum Phase 6 (hub nav integration) — see "Big standalone features" below, gated behind nothing else.
 
 ---
