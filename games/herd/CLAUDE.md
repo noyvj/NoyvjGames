@@ -82,6 +82,25 @@ Third design-review pass, from `climate-games-fun-teaching-balance.md`. **Risk:*
 
 **Conclusion: already satisfied, no code changes needed.** `coupling_ratio()` was never tracked as cosmetic — it was built in Milestone 5 (`METHANE_PENALTY_WEIGHT`, see Tech notes below) to feed the score directly, and Pass 1/2 additions (gauge, plant-based pivot) both route through the same function rather than adding a side metric. Added `tests/test_iteration_pass_3.py` to turn this audit into a permanent regression suite: isolates each of the two paths above (penalty term, income-pressure) independently of herd-growth cost, plus a same-herd-size playthrough comparison, so a future change that quietly severs coupling ratio from score would fail loudly instead of just being missed in review.
 
+## Achievements + improvement pass (Sep 2026)
+
+Built the hub-wide achievements framework here as part of the site-wide rollout (`planning/ACHIEVEMENTS-SYSTEM-DESIGN.md`, SOL is the reference integration) plus `planning/TODO.md`'s Herd checklist (F1-F3, F5-F9, F11-F15, F17-F19 — F4/F10/F16/F20 stay parked in `LATER.md`), in one session:
+
+- **Achievements**: 18 achievements (`achievements.json`) spanning herd growth, all three decoupling paths, the plant-based pivot, beating the pure-growth baseline, and round-count/score milestones. In-game panel (🏆 toggle) with live progress readouts, a separate unlock toast (distinct from the F5/F11/F17 milestone-nudge toast below so an achievement is never confused with a gameplay nudge), `achievements_earned` riding `get_state()`, and a link out to the hub-wide dashboard.
+- **F1/F13 — pure-growth counterfactual**: `FarmState` tracks a parallel `counterfactual_funds`/`counterfactual_methane` path — same herd size every round, zero decoupling/plant-pivot investment ever applied — accumulated in `advance_round()` alongside the real numbers, so it survives save/load. Doubles as both the live comparison line (F1) and a persistent baseline-farm card (F13).
+- **F3 — report card**: on-demand panel restating the counterfactual numbers with a fuller breakdown (funds/methane/score deltas, methane avoided, the F15 real-world line).
+- **F2 — pasture visual**: the 5 fixed cow elements in the hero illustration reveal progressively at herd-size thresholds (1/3/6/10/15) rather than generating unbounded DOM nodes.
+- **F5/F11/F17 — milestone-toast nudges**: a second toast type (not achievements) for three one-time callouts — 50% decoupled-below-baseline, pressure crossing 25% income loss, and methane's score-penalty crossing a fixed magnitude — each gated by a `seen_*` flag on `FarmState` that persists through save/load, same shape as Thaw's tipping-flash pattern.
+- **F6 — rising growth cost**: `grow_herd_cost()` keeps the very first unit at the original flat price (so existing tests for a fresh farm are unaffected) and adds a fixed per-unit slope after that.
+- **F7 — trend graph**: `methane_trend_graph_svg()`, an unlabeled inline-SVG polyline over `methane_history` (Thaw's mini-graph technique) — the point is the curve's shape, not any one round's exact value.
+- **F8/F9/F14 — decoupling readouts**: a combined efficiency+plant-pivot message, a no-mutation preview of the next Grow Herd unit's cost/income/methane, and session-best/baseline range labels behind the coupling gauge.
+- **F12 — worked example**: a concrete 10-herd/Capture-Systems numeric walkthrough added to the tutorial's Decoupling Investments step.
+- **F15 — real-world comparison**: `real_world_comparison_message()` surfaces the same ~42% methane-intensity-reduction figure cited in the Info Page as a live in-session comparison.
+- **F18 — community stat**: fetched client-side from the ratings backend in `index.html`, fails silently if the backend is unreachable (matches other games' aggregate-stat patterns).
+- **F19 — investment feedback**: `_pulse()` toggles a short CSS animation class on a clicked control for a fixed duration.
+
+All of the above are pure functions of state that already exists or state that follows the same save/load contract as everything else in `FarmState` — no separate hand-maintained "earned"/"seen" bookkeeping outside what's listed. Full suite: 125/125 (31 new achievement tests), no regressions.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
