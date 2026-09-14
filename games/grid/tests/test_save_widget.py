@@ -28,6 +28,10 @@ EXPECTED_KEYS = {
     "global_reference_emissions_history",
     "last_aging_event",
     "info_page_open",
+    "maintenance_actions_count",
+    "current_clean_streak",
+    "best_clean_streak",
+    "achievements_earned",
 }
 
 
