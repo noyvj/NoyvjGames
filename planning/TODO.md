@@ -358,7 +358,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] I1: A mini strain/wellbeing trend graph.
 - [x] I2: Scale the region skyline's building count/height with real capacity.
 - [x] I3: An explicit in-play comparison to the Uganda policy model.
-- [ ] I5: A one-time callout at the "thriving" wellbeing band (≥70).
+- [x] I5: A one-time callout at the "thriving" wellbeing band (≥70).
 - [ ] I6: A one-line consequence description per strain level.
 - [ ] I7: A one-line effect summary on each capacity investment row.
 - [ ] I8: Replace the coda's three meter bars with a clearer before/after comparison.

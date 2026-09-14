@@ -37,6 +37,7 @@ ELEMENT_IDS = [
     "social-cohesion-bar",
     "wellbeing-display",
     "wellbeing-message-display",
+    "thriving-callout-display",
     "checkpoint-display",
     "trend-graph",
     "trend-graph-message",

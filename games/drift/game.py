@@ -515,6 +515,22 @@ def integration_turning_point_message(region_state):
     )
 
 
+def thriving_callout_message(region_state):
+    """I5: a one-time callout for the second explicit milestone this game
+    tracks (thriving_round, set in advance_round the round wellbeing_score()
+    first crosses THRIVING_WELLBEING_SCORE) -- same "recorded once, stays
+    true, surfaced the moment it happens" shape as
+    integration_turning_point_message's net-positive milestone above.
+    Returns None until the region has actually reached that band."""
+    if region_state.thriving_round is None:
+        return None
+    return (
+        f"Milestone, round {region_state.thriving_round}: this region's wellbeing crossed into "
+        "the thriving band. Preparedness turned displacement pressure into a genuinely good "
+        "outcome here, not just a survived one."
+    )
+
+
 def long_horizon_coda_message(region_state):
     return (
         f"Generations from now, the descendants of the {region_state.integrated_population:.0f} "
@@ -938,6 +954,13 @@ def render():
     document.getElementById("wellbeing-message-display").innerText = wellbeing_message(
         region.wellbeing_score()
     )
+
+    # I5: one-time thriving-band callout.
+    thriving_display = document.getElementById("thriving-callout-display")
+    thriving_message = thriving_callout_message(region)
+    thriving_display.hidden = thriving_message is None
+    thriving_display.innerText = thriving_message or ""
+
     document.getElementById("checkpoint-display").innerText = checkpoint_message(region)
 
     # I2: skyline building count/height tracking real capacity.
