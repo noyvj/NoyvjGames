@@ -131,6 +131,26 @@ def test_trend_graph_includes_global_reference_line(game_env):
     assert "trend-line--global" in svg
 
 
+def test_trend_graph_includes_hover_markers_with_exact_values(game_env):
+    """C15: every data point gets a native-tooltip marker carrying its
+    exact round/value, so a player isn't limited to reading the shape of
+    the line."""
+    game_env.build("coal")
+    game_env.state.advance_round(rng=NEVER_TRIGGER, age_rng=NEVER_TRIGGER)
+    game_env.state.advance_round(rng=NEVER_TRIGGER, age_rng=NEVER_TRIGGER)
+    game_env.module.render()
+    svg = game_env.elements["trend-graph"].innerHTML
+    assert "trend-point--emissions" in svg
+    assert "trend-point--cost" in svg
+    assert "trend-point--global" in svg
+    assert "<title>Round 1 -- Your emissions:" in svg
+    assert "<title>Round 2 -- Your emissions:" in svg
+
+
+def test_trend_graph_svg_omits_markers_with_too_few_rounds(game_env):
+    assert game_env.module.trend_graph_svg([1.0], [1.0], [1.0]) == ""
+
+
 def test_global_comparison_message_reflects_ahead_of_curve(game_env):
     msg = game_env.module.global_comparison_message(10, 100)
     assert "ahead" in msg

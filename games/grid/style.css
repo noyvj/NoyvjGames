@@ -153,6 +153,34 @@ h1 {
   stroke-dasharray: 4 3;
 }
 
+/* C15 -- one hoverable marker per data point, matching each line's own
+   color. Semi-transparent by default so they read as a subtle texture on
+   the line rather than competing with it, and grow/opaque on hover so
+   there's a clear target to land on for the native <title> tooltip. */
+.trend-point {
+  fill-opacity: 0.55;
+  stroke: none;
+  cursor: pointer;
+  transition: r 0.1s ease, fill-opacity 0.1s ease;
+}
+
+.trend-point:hover {
+  r: 5;
+  fill-opacity: 1;
+}
+
+.trend-point--emissions {
+  fill: #e0674c;
+}
+
+.trend-point--cost {
+  fill: #4c9c6e;
+}
+
+.trend-point--global {
+  fill: #8a8fa3;
+}
+
 .plant-row {
   display: flex;
   flex-direction: column;
@@ -589,6 +617,18 @@ button.primary:active {
   text-align: left;
   display: grid;
   gap: 0.65rem;
+}
+
+/* C5 -- the on-demand Run Summary panel. Reuses .status-line for its
+   individual rows rather than inventing a new text style, same "no new
+   visual language without a reason" approach as the achievements panel
+   above. */
+.summary-panel {
+  text-align: left;
+}
+
+.summary-line {
+  line-height: 1.4;
 }
 
 .achievement-card {
