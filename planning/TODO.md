@@ -32,7 +32,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] Aftermath — 19 achievements + panel + unlock toast + hub-dashboard link.
 - [x] Herd — 18 achievements + panel + unlock toast + hub-dashboard link.
 - [x] Thaw — 18 achievements + panel + unlock toast + hub-dashboard link.
-- [ ] Loop
+- [x] Loop — 20 achievements + panel + unlock toast + hub-dashboard link.
 - [x] Drift — 18 achievements + panel + unlock toast + hub-dashboard link.
 - [ ] Trade Empire
 - [x] Continuum — 19 achievements + panel + unlock toast + hub-dashboard link.
@@ -329,25 +329,25 @@ Two things every game needs once achievements land there, on top of the base rol
 
 *(H16 marked "later" — moved to `LATER.md`.)*
 
-- [ ] H1: Fix the import/export asymmetry (excess imported supply currently evaporates).
-- [ ] H2: Let the player choose a different goods category at game start.
-- [ ] H3: A celebratory animation/banner the first time the loop closes.
-- [ ] H4: A "cost per unit of supply" readout next to Repair/Reuse/Recycle.
-- [ ] H5: Animate/highlight the decorative loop-ring nodes proportional to real investment.
-- [ ] H6: A "time to close the loop" projection.
-- [ ] H7: An in-game "Start New Chain" reset control.
-- [ ] H8: A second, differently-priced trading partner.
-- [ ] H9: A few alternate real-world sector comparisons, not just the static 7% one.
-- [ ] H10: A note clarifying the 2.5x cost multiplier is a hard ceiling.
-- [ ] H11: A lighter interim message for the first few cycles.
-- [ ] H12: A visible funds count-up/particle burst on export revenue.
-- [ ] H13: Toast callouts at circular-fraction milestones (25/50/75/100%).
-- [ ] H14: A few alternate vignette phrasings per fraction bucket.
-- [ ] H15: Show each measure's running contribution to supply next to its owned count.
-- [ ] H17: A live score breakdown instead of an info-toggle-only explanation.
-- [ ] H18: A visual pulse on the trade-network display when its numbers change.
-- [ ] H19: A "closed-loop streak" tracker.
-- [ ] H20: 2-3 alternate goods-flavor sets to pick from at game start.
+- [x] H1: Fix the import/export asymmetry (excess imported supply currently evaporates).
+- [x] H2: Let the player choose a different goods category at game start.
+- [x] H3: A celebratory animation/banner the first time the loop closes.
+- [x] H4: A "cost per unit of supply" readout next to Repair/Reuse/Recycle.
+- [x] H5: Animate/highlight the decorative loop-ring nodes proportional to real investment.
+- [x] H6: A "time to close the loop" projection.
+- [x] H7: An in-game "Start New Chain" reset control.
+- [x] H8: A second, differently-priced trading partner.
+- [x] H9: A few alternate real-world sector comparisons, not just the static 7% one.
+- [x] H10: A note clarifying the 2.5x cost multiplier is a hard ceiling.
+- [x] H11: A lighter interim message for the first few cycles.
+- [x] H12: A visible funds count-up/particle burst on export revenue.
+- [x] H13: Toast callouts at circular-fraction milestones (25/50/75/100%).
+- [x] H14: A few alternate vignette phrasings per fraction bucket.
+- [x] H15: Show each measure's running contribution to supply next to its owned count.
+- [x] H17: A live score breakdown instead of an info-toggle-only explanation.
+- [x] H18: A visual pulse on the trade-network display when its numbers change.
+- [x] H19: A "closed-loop streak" tracker.
+- [x] H20: 2-3 alternate goods-flavor sets to pick from at game start.
 
 ---
 
