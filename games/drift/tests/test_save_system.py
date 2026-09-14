@@ -21,8 +21,13 @@ ALL_STATE_KEYS = {
     "cumulative_services_investment",
     "cumulative_integration_contribution",
     "net_positive_round",
+    "current_stable_streak",
+    "best_stable_streak",
+    "thriving_round",
+    "coda_ever_viewed",
     "coda_visible",
     "info_page_open",
+    "achievements_earned",
 }
 
 

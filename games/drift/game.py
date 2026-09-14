@@ -9,9 +9,10 @@ capacity at all."
 """
 
 import copy
+import json
 
 import info_page
-from js import document
+from js import document, setTimeout
 from pyodide.ffi import create_proxy
 
 STARTING_FUNDS = 300.0
@@ -88,6 +89,12 @@ INTEGRATION_CONTRIBUTION_PER_PERSON = 1.5
 # their simple average.
 WELLBEING_FUNDS_SCALE = 1000.0
 
+# The "thriving" wellbeing band -- shared by wellbeing_message(), the I5
+# one-time thriving callout, and the "thriving_region" achievement, so all
+# three agree on exactly the same threshold rather than three separately
+# hand-copied literals.
+THRIVING_WELLBEING_SCORE = 70.0
+
 # Iteration Pass 2 — long-horizon outcomes coda: a player-triggered
 # epilogue projecting the current integrated population's descendants
 # forward a few generations. Framed institutionally (workforce,
@@ -121,6 +128,26 @@ class RegionState:
         self.cumulative_services_investment = 0.0
         self.cumulative_integration_contribution = 0.0
         self.net_positive_round = None
+        # Achievements-framework tracked state (see the Achievements
+        # section below) -- genuinely new, not derivable from anything
+        # else already tracked here (ACHIEVEMENTS-SYSTEM-DESIGN.md §4's
+        # "some achievements will genuinely need new tracked state" case).
+        # A round's strain classifies as "stable" the same way
+        # strain_level() does (below STRAIN_LEVEL_THRESHOLDS[1][0]);
+        # best_stable_streak is a sticky maximum, mirroring Grid's own
+        # best_clean_streak -- it only ever grows, so an achievement
+        # gated on it stays earned even if a later round breaks the
+        # streak.
+        self.current_stable_streak = 0
+        self.best_stable_streak = 0
+        # I5/I19: the round the region first crossed into the "thriving"
+        # wellbeing band, mirroring net_positive_round's shape exactly --
+        # recorded once, stays true for the rest of the run.
+        self.thriving_round = None
+        # Set the moment the player ever opens the Long-Horizon Outcomes
+        # coda -- coda_visible itself toggles on/off, so it can't answer
+        # "has this ever been viewed" on its own.
+        self.coda_ever_viewed = False
 
     def total_capacity(self):
         return sum(self.capacity[t] for t in CAPACITY_TYPES)
@@ -258,6 +285,16 @@ class RegionState:
         completed_round = self.round_number
         strain = self.strain_fraction()
         self.strain_log.append(strain)
+
+        # Achievements: "stable" streak tracking, same band strain_level()
+        # itself uses (below STRAIN_LEVEL_THRESHOLDS[1][0]) so this always
+        # agrees with what the strain display already calls "stable".
+        if strain < STRAIN_LEVEL_THRESHOLDS[1][0]:
+            self.current_stable_streak += 1
+        else:
+            self.current_stable_streak = 0
+        self.best_stable_streak = max(self.best_stable_streak, self.current_stable_streak)
+
         contribution = self.integration_contribution()
         income = BASE_REGIONAL_INCOME_PER_ROUND * (1 - strain)
         income += contribution
@@ -283,13 +320,19 @@ class RegionState:
         ):
             self.net_positive_round = completed_round
 
+        # I5/I19 — same "recorded once, stays true" shape as the
+        # net-positive turning point above, just gated on the composite
+        # wellbeing score crossing into the "thriving" band instead.
+        if self.thriving_round is None and self.wellbeing_score() >= THRIVING_WELLBEING_SCORE:
+            self.thriving_round = completed_round
+
 
 region = RegionState()
 coda_visible = False
 
 
 def wellbeing_message(score):
-    if score >= 70:
+    if score >= THRIVING_WELLBEING_SCORE:
         return "This region is turning displacement into a manageable — even thriving — transition."
     if score >= 40:
         return "This region is managing, but strain and slow integration are holding it back."
@@ -345,6 +388,300 @@ def long_horizon_coda_message(region_state):
         f"has grown into roughly {region_state.projected_generational_contribution():.0f} "
         "funds/round of ongoing regional participation."
     )
+
+
+# ===========================================================================
+# Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md) — following SOL's reference
+# integration and Grid/Canopy's rollouts. Every achievement's earned
+# status is a pure function of state that already exists elsewhere in
+# this module, recomputed fresh every call — never a separately
+# hand-maintained "earned" flag. Two achievements (steady_ground,
+# long_horizon_reached) needed genuinely new tracked state
+# (current_stable_streak/best_stable_streak and coda_ever_viewed,
+# declared on RegionState above) — nothing else in this module records
+# a stable-strain streak or whether the coda has ever been opened.
+# Kept institutional/systems-level throughout, consistent with this
+# game's sensitivity note in CLAUDE.md's Tech notes section: labels and
+# descriptions are about regional capacity and process counts, not
+# individual migrant stories.
+# ===========================================================================
+ACHIEVEMENTS_FILENAME = "achievements.json"
+
+
+def _read_achievements_json():
+    """Same loading contract as SOL's `_read_achievements_json()` / Le
+    Champ de Mots' `_read_json_asset()`: the boot script fetches
+    achievements.json and hands it to Python as a window global before
+    this file runs; the pytest harness's fake `js` module has no such
+    attribute, so this falls through to reading the file straight off
+    disk, keeping the module importable outside a real browser."""
+    try:
+        import js as _js  # noqa: PLC0415 -- Pyodide-only import, deliberately lazy
+    except ImportError:
+        _js = None
+
+    raw = getattr(_js, "ACHIEVEMENTS_JSON", None) if _js is not None else None
+    if raw is not None:
+        return str(raw)
+
+    import os  # noqa: PLC0415 -- only needed on this filesystem-fallback path
+
+    here = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(here, ACHIEVEMENTS_FILENAME), encoding="utf-8") as handle:
+        return handle.read()
+
+
+# Degrades to "no achievements catalog" rather than crashing this module's
+# whole import — achievements are additive, not core to Drift's gameplay.
+try:
+    ACHIEVEMENTS = json.loads(_read_achievements_json())["achievements"]
+except (ValueError, OSError, NameError, KeyError):
+    ACHIEVEMENTS = []
+
+SERVICES_BACKBONE_TARGET = 5
+BUILT_TO_SCALE_TARGET = 200.0
+CENTURY_ARRIVALS_TARGET = 100.0
+CRISIS_AVERTED_MIN_ROUND = 21
+CENTURY_INTEGRATED_TARGET = 100.0
+BACKLOG_CLEARED_MIN_ARRIVALS = 50.0
+MODEL_REGION_WELLBEING_SCORE = 90.0
+AHEAD_OF_SCHEDULE_MAX_ROUND = 15
+STEADY_GROUND_STREAK_TARGET = 15
+SUSTAINED_TRANSITION_MIN_ROUND = 40
+SUSTAINED_TRANSITION_MIN_SCORE = 60.0
+BALANCED_REGION_MIN_SCORE = 50.0
+
+
+def _services_investment_count():
+    """Integration Services is invested in for a fixed cost every time
+    (INVEST_COST["services"] never changes), so the number of times it's
+    been bought is exactly recoverable from the cumulative funds spent on
+    it -- no separate counter needed."""
+    return round(region.cumulative_services_investment / INVEST_COST["services"])
+
+
+def _standing_capacity_type_count():
+    return sum(1 for t in CAPACITY_TYPES if region.capacity[t] > 0)
+
+
+def _ever_reached_critical_strain():
+    critical_threshold = STRAIN_LEVEL_THRESHOLDS[2][0]
+    return any(s >= critical_threshold for s in region.strain_log)
+
+
+# Each checker is a zero-argument predicate read fresh off live state —
+# nothing here is ever cached or hand-flagged.
+ACHIEVEMENT_CHECKS = {
+    "first_investment": lambda: sum(region.capacity.values()) > 0,
+    "full_capacity_portfolio": lambda: all(region.capacity[t] > 0 for t in CAPACITY_TYPES),
+    "services_backbone": lambda: _services_investment_count() >= SERVICES_BACKBONE_TARGET,
+    "built_to_scale": lambda: region.total_capacity() >= BUILT_TO_SCALE_TARGET,
+    "century_arrivals": lambda: region.total_arrivals >= CENTURY_ARRIVALS_TARGET,
+    "crisis_averted": lambda: (
+        region.round_number >= CRISIS_AVERTED_MIN_ROUND and not _ever_reached_critical_strain()
+    ),
+    "full_recovery": lambda: _ever_reached_critical_strain() and region.strain_level() == "stable",
+    "turning_point_reached": lambda: region.has_crossed_to_net_positive(),
+    "ahead_of_schedule": lambda: (
+        region.net_positive_round is not None and region.net_positive_round <= AHEAD_OF_SCHEDULE_MAX_ROUND
+    ),
+    "century_integrated": lambda: region.integrated_population >= CENTURY_INTEGRATED_TARGET,
+    "backlog_cleared": lambda: (
+        region.total_arrivals >= BACKLOG_CLEARED_MIN_ARRIVALS and region.pending_population() <= 0.01
+    ),
+    "balanced_region": lambda: (
+        region.service_quality() >= BALANCED_REGION_MIN_SCORE
+        and region.economic_health() >= BALANCED_REGION_MIN_SCORE
+        and region.social_cohesion() >= BALANCED_REGION_MIN_SCORE
+    ),
+    "thriving_region": lambda: region.wellbeing_score() >= THRIVING_WELLBEING_SCORE,
+    "model_region": lambda: region.wellbeing_score() >= MODEL_REGION_WELLBEING_SCORE,
+    "economic_engine": lambda: (
+        region.cumulative_services_investment > 0
+        and region.cumulative_integration_contribution >= region.cumulative_services_investment * 2
+    ),
+    "steady_ground": lambda: region.best_stable_streak >= STEADY_GROUND_STREAK_TARGET,
+    "long_horizon_reached": lambda: region.coda_ever_viewed,
+    "sustained_transition": lambda: (
+        region.round_number >= SUSTAINED_TRANSITION_MIN_ROUND
+        and region.wellbeing_score() >= SUSTAINED_TRANSITION_MIN_SCORE
+    ),
+}
+
+# Progress readouts, only for achievements with a natural numeric
+# scale-up -- a plain earned/not-yet is the honest shape for a one-shot
+# or multi-condition milestone (e.g. "reach round 21 with strain never
+# critical" doesn't get a fake progress bar, same judgment call Grid's
+# ahead_of_the_curve/no_damage_20 make).
+ACHIEVEMENT_PROGRESS = {
+    "full_capacity_portfolio": lambda: (_standing_capacity_type_count(), len(CAPACITY_TYPES)),
+    "services_backbone": lambda: (
+        min(_services_investment_count(), SERVICES_BACKBONE_TARGET),
+        SERVICES_BACKBONE_TARGET,
+    ),
+    "built_to_scale": lambda: (
+        min(round(region.total_capacity()), round(BUILT_TO_SCALE_TARGET)),
+        round(BUILT_TO_SCALE_TARGET),
+    ),
+    "century_arrivals": lambda: (
+        min(round(region.total_arrivals), round(CENTURY_ARRIVALS_TARGET)),
+        round(CENTURY_ARRIVALS_TARGET),
+    ),
+    "century_integrated": lambda: (
+        min(round(region.integrated_population), round(CENTURY_INTEGRATED_TARGET)),
+        round(CENTURY_INTEGRATED_TARGET),
+    ),
+    "thriving_region": lambda: (
+        min(round(region.wellbeing_score()), round(THRIVING_WELLBEING_SCORE)),
+        round(THRIVING_WELLBEING_SCORE),
+    ),
+    "model_region": lambda: (
+        min(round(region.wellbeing_score()), round(MODEL_REGION_WELLBEING_SCORE)),
+        round(MODEL_REGION_WELLBEING_SCORE),
+    ),
+    "steady_ground": lambda: (
+        min(region.best_stable_streak, STEADY_GROUND_STREAK_TARGET),
+        STEADY_GROUND_STREAK_TARGET,
+    ),
+}
+
+
+def achievement_ids_earned():
+    """Every achievement id currently satisfied, in catalog order — the
+    value that rides the existing save/sync mechanism via get_state()'s
+    "achievements_earned" field (ACHIEVEMENTS-SYSTEM-DESIGN.md). Always
+    recomputed, never itself a save input."""
+    return [entry["id"] for entry in ACHIEVEMENTS if ACHIEVEMENT_CHECKS[entry["id"]]()]
+
+
+def achievements_summary():
+    """The full catalog, in order, each entry annotated with whether it's
+    currently earned and (where one exists) a live progress readout."""
+    earned_ids = set(achievement_ids_earned())
+    summary = []
+    for entry in ACHIEVEMENTS:
+        progress_fn = ACHIEVEMENT_PROGRESS.get(entry["id"])
+        summary.append(
+            {
+                "id": entry["id"],
+                "label": entry["label"],
+                "description": entry["description"],
+                "earned": entry["id"] in earned_ids,
+                "progress": progress_fn() if progress_fn else None,
+            }
+        )
+    return summary
+
+
+achievements_open = False
+
+# Unlock toast + hub-dashboard link (TODO.md "roll achievements out
+# everywhere" — required on top of the base per-game rollout, per
+# ACHIEVEMENTS-SYSTEM-DESIGN.md's site-wide goal). Same pattern as
+# SOL/Grid/Canopy's own retrofit: a snapshot of which ids were already
+# earned as of the last seed point, so a fresh load or a loaded save
+# doesn't flood the player with toasts for achievements it already
+# satisfies.
+_achievements_seen_ids = set()
+
+
+def _seed_achievement_toast_baseline():
+    global _achievements_seen_ids
+    _achievements_seen_ids = set(achievement_ids_earned())
+
+
+def _display_achievement_toast(message):
+    toast = document.getElementById("achievement-toast")
+    text = document.getElementById("achievement-toast-text")
+    text.innerText = message
+    toast.hidden = False
+    toast.classList.add("visible")
+
+    def _hide(*args):
+        toast.hidden = True
+        toast.classList.remove("visible")
+        proxy.destroy()
+
+    proxy = create_proxy(_hide)
+    setTimeout(proxy, 4000)
+
+
+def _check_new_achievements_for_toast():
+    """Called after every player action that could change earned status
+    (invest/advance round/toggle coda) — never from render() itself,
+    since load_state() also calls render() and a loaded save with
+    several achievements already earned must not flood the player with
+    toasts for all of them at once (see _seed_achievement_toast_baseline)."""
+    global _achievements_seen_ids
+    earned_now = set(achievement_ids_earned())
+    newly = earned_now - _achievements_seen_ids
+    if newly:
+        by_id = {entry["id"]: entry for entry in ACHIEVEMENTS}
+        labels = [by_id[aid]["label"] for aid in newly if aid in by_id]
+        if labels:
+            if len(labels) == 1:
+                _display_achievement_toast(f"🏆 Achievement unlocked: {labels[0]}")
+            else:
+                _display_achievement_toast(f"🏆 {len(labels)} achievements unlocked: " + ", ".join(labels))
+    _achievements_seen_ids = earned_now
+
+
+def on_toggle_achievements(event=None):
+    global achievements_open
+    achievements_open = not achievements_open
+    update_achievements_display()
+
+
+def update_achievements_display():
+    toggle = document.getElementById("achievements-toggle-button")
+    panel = document.getElementById("achievements-panel")
+    earned_count = len(achievement_ids_earned())
+    toggle.innerText = (
+        f"Hide Achievements ({earned_count}/{len(ACHIEVEMENTS)})"
+        if achievements_open
+        else f"🏆 Achievements ({earned_count}/{len(ACHIEVEMENTS)})"
+    )
+    panel.hidden = not achievements_open
+    if not achievements_open:
+        return
+
+    panel.innerHTML = ""
+    for entry in achievements_summary():
+        card = document.createElement("div")
+        card.className = "achievement-card achievement-card--earned" if entry["earned"] else "achievement-card"
+
+        label = document.createElement("p")
+        label.className = "achievement-card-label"
+        label.innerText = f"🏆 {entry['label']}" if entry["earned"] else entry["label"]
+        card.appendChild(label)
+
+        description = document.createElement("p")
+        description.className = "achievement-card-description"
+        description.innerText = entry["description"]
+        card.appendChild(description)
+
+        if not entry["earned"] and entry["progress"] is not None:
+            current, target = entry["progress"]
+            progress = document.createElement("p")
+            progress.className = "achievement-card-progress"
+            progress.innerText = f"{current} of {target}"
+            card.appendChild(progress)
+
+        panel.appendChild(card)
+
+    # A link out to the hub-wide achievements dashboard (root index.html's
+    # #account-achievements-dashboard, ACHIEVEMENTS-SYSTEM-DESIGN.md §5).
+    # Relative path, no leading "/" (site-level milestone 7's GitHub
+    # Pages subpath fix). Rebuilt each open alongside the cards since the
+    # panel is cleared first. Note: the hub-side script.js registration
+    # that makes Drift's save data actually show up on that dashboard is
+    # a root-file change, out of scope for this games/drift/-only
+    # dispatch — see CLAUDE.md.
+    hub_link = document.createElement("a")
+    hub_link.innerText = "View the hub-wide achievements dashboard →"
+    hub_link.href = "../../index.html#account-achievements-dashboard"
+    hub_link.className = "achievements-hub-link"
+    panel.appendChild(hub_link)
 
 
 # Info Page — optional, player-triggered supplement (never forced
@@ -412,6 +749,7 @@ def on_toggle_info_page(event=None):
 
 def render():
     render_info_page()
+    update_achievements_display()
     document.getElementById("round-display").innerText = f"Round {region.round_number}"
     document.getElementById("funds-display").innerText = f"Funds: {region.funds:.0f}"
     document.getElementById("total-capacity-display").innerText = (
@@ -500,19 +838,24 @@ def render():
 def on_advance_round(event=None):
     region.advance_round()
     render()
+    _check_new_achievements_for_toast()
 
 
 def _make_invest_handler(capacity_type):
     def handler(event=None):
         region.invest(capacity_type)
         render()
+        _check_new_achievements_for_toast()
     return handler
 
 
 def on_toggle_coda(event=None):
     global coda_visible
     coda_visible = not coda_visible
+    if coda_visible:
+        region.coda_ever_viewed = True
     render()
+    _check_new_achievements_for_toast()
 
 
 # --- Save system (SAVE-BUTTON-INTEGRATION.md contract for the shared
@@ -560,8 +903,15 @@ def get_state():
         "cumulative_services_investment": region.cumulative_services_investment,
         "cumulative_integration_contribution": region.cumulative_integration_contribution,
         "net_positive_round": region.net_positive_round,
+        "current_stable_streak": region.current_stable_streak,
+        "best_stable_streak": region.best_stable_streak,
+        "thriving_round": region.thriving_round,
+        "coda_ever_viewed": region.coda_ever_viewed,
         "coda_visible": coda_visible,
         "info_page_open": info_page_open,
+        # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
+        # freshly recomputed, never read back in load_state() below.
+        "achievements_earned": achievement_ids_earned(),
     }
 
 
@@ -594,14 +944,27 @@ def load_state(data):
         "cumulative_integration_contribution", region.cumulative_integration_contribution
     )
     region.net_positive_round = data.get("net_positive_round", region.net_positive_round)
+    region.current_stable_streak = data.get("current_stable_streak", region.current_stable_streak)
+    region.best_stable_streak = data.get("best_stable_streak", region.best_stable_streak)
+    region.thriving_round = data.get("thriving_round", region.thriving_round)
+    region.coda_ever_viewed = data.get("coda_ever_viewed", region.coda_ever_viewed)
     coda_visible = data.get("coda_visible", coda_visible)
     info_page_open = data.get("info_page_open", info_page_open)
+    # "achievements_earned" is intentionally never read back here — see
+    # get_state()'s comment and ACHIEVEMENTS-SYSTEM-DESIGN.md §1.
 
     render()
+    _seed_achievement_toast_baseline()
     return True
 
 
 def setup():
+    # index.html already marks this hidden via the `hidden` attribute, but
+    # that markup default doesn't exist for the pytest fake-DOM harness (a
+    # FakeElement starts with hidden=False) -- setting it explicitly here
+    # keeps both environments consistent and costs nothing in a real
+    # browser, where it's already true.
+    document.getElementById("achievement-toast").hidden = True
     document.getElementById("advance-round-button").addEventListener(
         "click", create_proxy(on_advance_round)
     )
@@ -615,7 +978,11 @@ def setup():
     document.getElementById("info-page-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_info_page)
     )
+    document.getElementById("achievements-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_achievements)
+    )
     render()
+    _seed_achievement_toast_baseline()
 
 
 setup()
