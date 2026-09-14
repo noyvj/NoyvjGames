@@ -45,6 +45,9 @@ ELEMENT_IDS = [
     "info-page-framing",
     "info-page-tie-in",
     "info-page-sources",
+    "achievements-toggle-button",
+    "achievements-panel",
+    "achievement-toast",
 ]
 
 # Buttons that carry the `disabled` attribute in index.html's initial markup
@@ -98,6 +101,9 @@ class GameEnv:
 
     def toggle_info_page(self):
         self.elements["info-page-toggle-button"].dispatch("click", None)
+
+    def toggle_achievements(self):
+        self.elements["achievements-toggle-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements, timers):

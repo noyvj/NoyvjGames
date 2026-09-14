@@ -26,7 +26,7 @@ Two things every game needs once achievements land there, on top of the base rol
 
 - [x] SOL — 18 achievements + panel + hub dashboard (reference implementation).
   - [ ] Retrofit: add the unlock-toast and hub-dashboard-link (built after SOL shipped, per A19/A20).
-- [ ] Canopy
+- [x] Canopy — 20 achievements + panel + unlock toast + hub-dashboard link (hub-side `script.js` registration still needed — out of scope for a `games/canopy/`-only dispatch).
 - [x] Grid — 16 achievements + panel + unlock toast + hub-dashboard link (hub-side `script.js` registration still needed — out of scope for a `games/grid/`-only dispatch).
 - [ ] Tide
 - [ ] Aftermath
