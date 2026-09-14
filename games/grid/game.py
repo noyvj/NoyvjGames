@@ -1062,10 +1062,59 @@ def on_dismiss_maintain_callout(event=None):
     render()
 
 
+DISRUPTION_TOAST_SEVERITY_CLASSES = ("disruption-toast--warning", "disruption-toast--danger")
+
+
+def _display_disruption_toast(message, severity_class):
+    """C12: a visible toast/banner for a disruption or aging-breakdown
+    event, on top of the persistent #event-display/#aging-event-display
+    status lines -- those require scrolling to notice; this surfaces the
+    same information immediately regardless of scroll position. Same
+    show-then-auto-hide shape as the achievement-unlock toast, styled by
+    severity rather than always the same color."""
+    toast = document.getElementById("disruption-toast")
+    text = document.getElementById("disruption-toast-text")
+    text.innerText = message
+    for cls in DISRUPTION_TOAST_SEVERITY_CLASSES:
+        toast.classList.remove(cls)
+    toast.classList.add(severity_class)
+    toast.hidden = False
+    toast.classList.add("visible")
+
+    def _hide(*args):
+        toast.hidden = True
+        toast.classList.remove("visible")
+        proxy.destroy()
+
+    proxy = create_proxy(_hide)
+    setTimeout(proxy, 5000)
+
+
+def _check_disruption_toast():
+    """Called only from on_advance_round(), right after a round resolves:
+    a disruption event takes priority over an aging breakdown when both
+    land the same round, matching render()'s own priority (a "damage"
+    disruption event already implies a plant went offline this round, the
+    more urgent read)."""
+    if state.last_event is not None:
+        severity_class = (
+            "disruption-toast--danger" if state.last_event["type"] == "damage" else "disruption-toast--warning"
+        )
+        _display_disruption_toast(event_message(state.last_event), severity_class)
+    elif state.last_aging_event is not None:
+        plant_name = PLANT_LABEL[state.last_aging_event["plant"]]
+        cost = state.last_aging_event["repair_cost"]
+        _display_disruption_toast(
+            f"Aging breakdown! A {plant_name} plant failed from wear (repair cost {cost:.0f}).",
+            "disruption-toast--danger",
+        )
+
+
 def on_advance_round(event=None):
     state.advance_round()
     _check_renewable_milestone()
     render()
+    _check_disruption_toast()
     _check_new_achievements_for_toast()
 
 
@@ -1185,6 +1234,7 @@ def setup():
     # keeps both environments consistent and costs nothing in a real
     # browser, where it's already true.
     document.getElementById("achievement-toast").hidden = True
+    document.getElementById("disruption-toast").hidden = True
     for plant_type in PLANT_TYPES:
         document.getElementById(f"{plant_type}-build-button").addEventListener(
             "click", create_proxy(_make_build_handler(plant_type))
