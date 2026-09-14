@@ -179,7 +179,7 @@ Two things every game needs once achievements land there, on top of the base rol
 ## Per-game: Canopy
 
 - [ ] B1: End-of-session summary screen.
-- [ ] B2: "Reset session" button.
+- [x] B2: "Reset session" button. Folded together with B13 into one `reset_session()` (see `games/canopy/game.py`) since both mean "rebuild the session from scratch."
 - [ ] B3: A second, unlockable forest region/biome.
 - [x] B4: Coordinate-style plot labels.
 - [ ] B6: A history sparkline (income vs. standing value).
@@ -189,7 +189,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] B10: Surface biodiversity as an explicit number.
 - [ ] B11: Diversify stakeholder requests to sometimes offer a positive trade-off.
 - [x] B12: A visible badge for a pending stakeholder request when scrolled away.
-- [ ] B13: A larger-grid option as a difficulty/length variant.
+- [x] B13: A larger-grid option as a difficulty/length variant. A "Large (9×8)" preset alongside the existing "Normal (6×6)", selectable via a dropdown that triggers a full session reset at the new size; the chosen size round-trips through the save-code system.
 - [x] B14: A persisted "personal best" stat across sessions. (Per-browser, via `localStorage` — deliberately independent of the save-code system; see `games/canopy/game.py`'s `load_personal_best()`/`_maybe_update_personal_best()`.)
 - [x] B16: Keyboard navigation for plot selection/action.
 - [x] B17: A floating "+X value" animation on compounding ticks.

@@ -49,6 +49,8 @@ ELEMENT_IDS = [
     "achievements-toggle-button",
     "achievements-panel",
     "achievement-toast",
+    "reset-session-button",
+    "grid-size-select",
 ]
 
 # Buttons that carry the `disabled` attribute in index.html's initial markup
@@ -106,6 +108,25 @@ class GameEnv:
 
     def toggle_achievements(self):
         self.elements["achievements-toggle-button"].dispatch("click", None)
+
+    def reset_session(self):
+        self.elements["reset-session-button"].dispatch("click", None)
+
+    def change_grid_size(self, value):
+        """Mirrors a real <select> "change" event: sets the element's own
+        `.value` (what a browser does natively before dispatching change)
+        then fires a change event whose `.target` is the select itself, so
+        game.py's on_grid_size_change() can read `event.target.value` the
+        same way it would from a real DOM event."""
+        select = self.elements["grid-size-select"]
+        select.value = value
+
+        class _FakeChangeEvent:
+            pass
+
+        event = _FakeChangeEvent()
+        event.target = select
+        select.dispatch("change", event)
 
 
 def _install_pyodide_fakes(elements, timers, local_storage):

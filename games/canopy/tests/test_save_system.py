@@ -23,6 +23,7 @@ def test_get_state_includes_every_expected_key(game_env):
         "stakeholder_grants_count",
         "stakeholder_declines_count",
         "community_relations_min_ever",
+        "current_grid_size",
         "achievements_earned",
     }
 
