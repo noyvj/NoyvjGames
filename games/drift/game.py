@@ -403,6 +403,39 @@ def trend_graph_svg(strain_history, wellbeing_history):
     )
 
 
+# I2: scale the region skyline's building count/height with real capacity,
+# so the ambient visual reflects institutional growth instead of always
+# rendering the same fixed six buildings regardless of state. Six buildings
+# are authored in the markup (each with its own distinct height, see
+# style.css); they're revealed one at a time as capacity grows, and every
+# revealed building is scaled toward its own authored height by one shared
+# vertical scale factor -- via a CSS transform, not a duplicated pixel
+# height, so this file never needs to know the authored heights themselves.
+REGION_VISUAL_BUILDING_IDS = ["a", "b", "c", "d", "e", "f"]
+REGION_VISUAL_CAPACITY_PER_BUILDING = 20.0
+REGION_VISUAL_MIN_HEIGHT_SCALE = 0.35
+REGION_VISUAL_FULL_HEIGHT_CAPACITY = 150.0
+
+
+def region_visual_building_count(total_capacity):
+    """How many of the six authored buildings are currently revealed --
+    always at least one (a region exists from round 1), one more per
+    REGION_VISUAL_CAPACITY_PER_BUILDING of total capacity built, capped at
+    the six actually authored in the markup."""
+    unlocked = 1 + int(total_capacity // REGION_VISUAL_CAPACITY_PER_BUILDING)
+    return min(unlocked, len(REGION_VISUAL_BUILDING_IDS))
+
+
+def region_visual_height_scale(total_capacity):
+    """A shared vertical scale (never below a visible floor, so a fresh
+    region reads as "just starting out" rather than invisible) applied to
+    every revealed building's own authored height -- grows smoothly toward
+    REGION_VISUAL_FULL_HEIGHT_CAPACITY rather than only jumping in discrete
+    steps when a new building is revealed."""
+    fraction = total_capacity / REGION_VISUAL_FULL_HEIGHT_CAPACITY
+    return max(REGION_VISUAL_MIN_HEIGHT_SCALE, min(1.0, fraction))
+
+
 def wellbeing_message(score):
     if score >= THRIVING_WELLBEING_SCORE:
         return "This region is turning displacement into a manageable — even thriving — transition."
@@ -872,6 +905,14 @@ def render():
         region.wellbeing_score()
     )
     document.getElementById("checkpoint-display").innerText = checkpoint_message(region)
+
+    # I2: skyline building count/height tracking real capacity.
+    visible_building_count = region_visual_building_count(region.total_capacity())
+    building_height_scale = region_visual_height_scale(region.total_capacity())
+    for index, building_id in enumerate(REGION_VISUAL_BUILDING_IDS):
+        building_el = document.getElementById(f"region-visual-building-{building_id}")
+        building_el.hidden = index >= visible_building_count
+        building_el.style.transform = f"scaleY({building_height_scale:.2f})"
 
     # I1: strain/wellbeing trend graph.
     trend_svg = trend_graph_svg(region.strain_log, region.wellbeing_log)
