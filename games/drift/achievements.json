@@ -1,0 +1,94 @@
+{
+  "achievements": [
+    {
+      "id": "first_investment",
+      "label": "First Investment",
+      "description": "Make this region's first capacity investment, of any kind."
+    },
+    {
+      "id": "full_capacity_portfolio",
+      "label": "Full Portfolio",
+      "description": "Have housing, integration services, and infrastructure capacity all standing at once."
+    },
+    {
+      "id": "services_backbone",
+      "label": "Services Backbone",
+      "description": "Invest in Integration Services five times."
+    },
+    {
+      "id": "built_to_scale",
+      "label": "Built to Scale",
+      "description": "Reach 200 total capacity across every capacity type."
+    },
+    {
+      "id": "century_arrivals",
+      "label": "Century Mark",
+      "description": "See this region's lifetime arrivals pass 100 people."
+    },
+    {
+      "id": "crisis_averted",
+      "label": "Crisis Averted",
+      "description": "Reach round 21 without strain ever crossing into critical."
+    },
+    {
+      "id": "full_recovery",
+      "label": "Full Recovery",
+      "description": "Bring a region back from critical strain to stable."
+    },
+    {
+      "id": "turning_point_reached",
+      "label": "The Turning Point",
+      "description": "Cross the point where integration investment starts paying for itself."
+    },
+    {
+      "id": "ahead_of_schedule",
+      "label": "Ahead of Schedule",
+      "description": "Reach the net-positive turning point by round 15."
+    },
+    {
+      "id": "century_integrated",
+      "label": "A Hundred Integrated",
+      "description": "Fully integrate 100 people into this region."
+    },
+    {
+      "id": "backlog_cleared",
+      "label": "Backlog Cleared",
+      "description": "Clear the pending-integration backlog after at least 50 lifetime arrivals."
+    },
+    {
+      "id": "balanced_region",
+      "label": "Balanced Region",
+      "description": "Get service quality, economic health, and social cohesion all to at least 50 at once."
+    },
+    {
+      "id": "thriving_region",
+      "label": "Thriving",
+      "description": "Reach a wellbeing score of 70 or higher."
+    },
+    {
+      "id": "model_region",
+      "label": "Model Region",
+      "description": "Reach a wellbeing score of 90 or higher."
+    },
+    {
+      "id": "economic_engine",
+      "label": "Economic Engine",
+      "description": "Have integration contributions pay back more than double the services investment that enabled them."
+    },
+    {
+      "id": "steady_ground",
+      "label": "Steady Ground",
+      "description": "Hold strain at a stable level for 15 rounds running."
+    },
+    {
+      "id": "long_horizon_reached",
+      "label": "Long Horizon",
+      "description": "Open the Long-Horizon Outcomes projection for the first time."
+    },
+    {
+      "id": "sustained_transition",
+      "label": "Sustained Transition",
+      "description": "Reach round 40 with a wellbeing score of at least 60."
+    }
+  ]
+}

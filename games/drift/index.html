@@ -25,8 +25,14 @@
     <div class="game-toolbar">
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
+      <button id="achievements-toggle-button" class="secondary" type="button">Loading...</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
+    <div id="achievements-panel" class="section achievements-panel" hidden></div>
+
+    <div id="achievement-toast" class="achievement-toast" hidden>
+      <p id="achievement-toast-text"></p>
+    </div>
 
     <p class="tagline">Manage a receiving region as displacement pressure rises. Whether that pressure becomes a crisis or a manageable transition comes down to how well the region prepared.</p>
     <p class="context-blurb">Institutional preparedness, not the scale of arrivals alone, is what determines outcomes. Uganda's refugee policy — granting land access and the right to work and move freely, integrated alongside host communities — is widely cited by policy researchers as a model of how institutional capacity can turn large-scale displacement into manageable, even mutually beneficial, coexistence.</p>
@@ -234,8 +240,11 @@
       // ENGINE_MODULES loop.
       const infoPageSource = await (await fetch("../../shared/info_page.py")).text();
       pyodide.FS.writeFile("info_page.py", infoPageSource, { encoding: "utf8" });
-      const response = await fetch("game.py");
-      const code = await response.text();
+      const [achievementsJson, code] = await Promise.all([
+        fetch("achievements.json").then((response) => response.text()),
+        fetch("game.py").then((response) => response.text()),
+      ]);
+      window.ACHIEVEMENTS_JSON = achievementsJson;
       await pyodide.runPythonAsync(code);
 
       if (window.GameTutorial) {

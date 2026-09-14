@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from .fakes import FakeDocument, FakeElement, create_proxy
+from .fakes import FakeDocument, FakeElement, FakeTimers, create_proxy
 
 GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 
@@ -59,15 +59,20 @@ ELEMENT_IDS = [
     "info-page-framing",
     "info-page-tie-in",
     "info-page-sources",
+    "achievements-toggle-button",
+    "achievements-panel",
+    "achievement-toast",
+    "achievement-toast-text",
 ]
 
 
 class GameEnv:
     """Bundles a freshly-loaded game module with its fake DOM."""
 
-    def __init__(self, module, elements):
+    def __init__(self, module, elements, timers=None):
         self.module = module
         self.elements = elements
+        self.timers = timers
 
     @property
     def region(self):
@@ -82,10 +87,17 @@ class GameEnv:
     def toggle_info_page(self):
         self.elements["info-page-toggle-button"].dispatch("click", None)
 
+    def toggle_achievements(self):
+        self.elements["achievements-toggle-button"].dispatch("click", None)
 
-def _install_pyodide_fakes(elements):
+    def invest(self, capacity_type):
+        self.elements[f"{capacity_type}-invest-button"].dispatch("click", None)
+
+
+def _install_pyodide_fakes(elements, timers):
     fake_js = types.ModuleType("js")
     fake_js.document = FakeDocument(elements)
+    fake_js.setTimeout = timers.setTimeout
 
     fake_pyodide = types.ModuleType("pyodide")
     fake_pyodide_ffi = types.ModuleType("pyodide.ffi")
@@ -116,13 +128,14 @@ def game_env():
     sharing state via Python's normal import cache.
     """
     elements = {id_: FakeElement(id_) for id_ in ELEMENT_IDS}
-    _install_pyodide_fakes(elements)
+    timers = FakeTimers()
+    _install_pyodide_fakes(elements, timers)
 
     spec = importlib.util.spec_from_file_location("game", GAME_PY)
     module = importlib.util.module_from_spec(spec)
     sys.modules["game"] = module
     spec.loader.exec_module(module)  # runs setup() at the bottom of game.py
 
-    yield GameEnv(module, elements)
+    yield GameEnv(module, elements, timers)
 
     _remove_pyodide_fakes()

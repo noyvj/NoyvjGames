@@ -76,6 +76,10 @@ An optional, player-triggered "The Real Story" panel — never forced mid-sessio
 
 All four links verified live before merging. Source 1 (UNHCR) and sources 2–3 (Migration Policy Institute) return 403/bot-challenge to automated fetchers but are well-known, legitimate institutional domains — consistent with the bot-protection pattern confirmed on several other sources across this batch.
 
+## Achievements (implemented)
+
+18 achievements added per the hub-wide framework (`planning/ACHIEVEMENTS-SYSTEM-DESIGN.md`), following SOL's reference integration: `achievements.json` catalog, `game.py`'s `ACHIEVEMENT_CHECKS`/`ACHIEVEMENT_PROGRESS`/`achievement_ids_earned()`/`achievements_summary()`, an in-game toggle + panel, an unlock toast, a hub-dashboard link, and `achievements_earned` riding `get_state()` (never read back on load). Span capacity-building, arrivals/strain resilience (including a genuine crisis-to-recovery achievement and a "never went critical" one), integration milestones, wellbeing-quality thresholds (Thriving/Model Region), and long-run play — kept institutional/systems-level throughout per this file's sensitivity note (no individual-story framing beyond the game's own existing "Integrated: N people" language). Two achievements needed genuinely new tracked state: `best_stable_streak` (a round-by-round stable-strain streak, sticky like Grid's `best_clean_streak`) and `coda_ever_viewed` (has the Long-Horizon Outcomes coda ever actually been opened, since `coda_visible` alone just toggles). Hub-side `script.js` registration (`GAMES_WITH_ACHIEVEMENTS`) is out of scope for this games/drift/-only dispatch, per the pattern already established for Grid/Canopy/Continuum's own rollouts.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
