@@ -14,8 +14,21 @@ import info_page
 from js import document, setInterval, setTimeout
 from pyodide.ffi import create_proxy
 
-GRID_ROWS = 6
-GRID_COLS = 6
+# B13 (planning/TODO.md "Per-game: Canopy"): a larger-grid option as a
+# difficulty/length variant, selectable via reset_session() below. GRID_ROWS/
+# GRID_COLS are deliberately mutable module globals rather than true
+# constants -- a size change rebuilds `plots` at the new dimensions.
+# "normal" (6x6 = 36) stays the default at import time so every existing
+# test/tutorial reference to "36 plots" is unaffected unless a player (or a
+# loaded save) explicitly picks "large" (9x8 = 72, double the plot count for
+# a longer session). GRID_COLS stays under 26 for both presets so
+# plot_coordinate_label()'s A..Z column-letter scheme never needs to wrap.
+GRID_SIZE_PRESETS = {
+    "normal": (6, 6),
+    "large": (9, 8),
+}
+current_grid_size = "normal"
+GRID_ROWS, GRID_COLS = GRID_SIZE_PRESETS[current_grid_size]
 TICK_INTERVAL_MS = 1000
 
 # Standing value accrued per tick at ticks_intact == 0 is BASE_ACCRUAL *
@@ -256,6 +269,77 @@ plots_with_wildlife_ever = set()  # plot indices that have ever crossed the wild
 stakeholder_grants_count = 0  # incremented in grant_stakeholder_request()'s real-grant path
 stakeholder_declines_count = 0  # incremented in decline_stakeholder_request()'s real-decline path
 community_relations_min_ever = STARTING_COMMUNITY_RELATIONS  # lowest community_relations has ever been
+
+
+# B2 (planning/TODO.md "Per-game: Canopy"): a "reset session" option, folded
+# together with B13's grid-size variant since both mean "rebuild the whole
+# session from scratch" -- offering them as two separate controls would just
+# mean two code paths doing almost the same thing. Deliberately a hard reset
+# with no confirmation dialog: matches the site's "no dead-end states"
+# philosophy (nothing here is a save file being destroyed -- that's what the
+# separate save-code widget is for) and the shared confirm-dialog pattern
+# the TODO's own site-wide goal describes is still just a design, not a
+# built component, elsewhere in this file.
+def reset_session(grid_size=None, _render_after=True):
+    """Rebuilds every module-level mutable global back to its fresh-start
+    default, optionally at a different GRID_SIZE_PRESETS key. Always
+    rebuilds `plots` from scratch (even on a same-size reset) rather than
+    resetting each existing Plot in place -- simpler than maintaining two
+    code paths, and correctness-equivalent since Plot.__init__ already is
+    the fresh-plot state. `personal_best` (B14) is deliberately NOT reset
+    here -- it's a per-browser best across every session on this device,
+    not this session's own state."""
+    global plots, GRID_ROWS, GRID_COLS, current_grid_size, _plot_click_proxies
+    global selected_index, total_income, community_relations
+    global pending_stakeholder_request, _ticks_since_last_request, _stakeholder_request_count
+    global total_replants, total_recoveries, plots_with_wildlife_ever
+    global stakeholder_grants_count, stakeholder_declines_count, community_relations_min_ever
+    global _previously_earned_ids
+
+    if grid_size is not None:
+        if grid_size not in GRID_SIZE_PRESETS:
+            return False
+        current_grid_size = grid_size
+    GRID_ROWS, GRID_COLS = GRID_SIZE_PRESETS[current_grid_size]
+
+    # Same leak-prevention discipline as render_grid()'s per-render proxy
+    # cleanup -- these proxies' plots are about to be dropped entirely.
+    for proxy in _plot_click_proxies.values():
+        proxy.destroy()
+    _plot_click_proxies = {}
+
+    plots = [Plot(i) for i in range(GRID_ROWS * GRID_COLS)]
+    selected_index = None
+    total_income = 0.0
+    community_relations = STARTING_COMMUNITY_RELATIONS
+    pending_stakeholder_request = None
+    _ticks_since_last_request = 0
+    _stakeholder_request_count = 0
+    total_replants = 0
+    total_recoveries = 0
+    plots_with_wildlife_ever = set()
+    stakeholder_grants_count = 0
+    stakeholder_declines_count = 0
+    community_relations_min_ever = STARTING_COMMUNITY_RELATIONS
+    _previously_earned_ids = set()
+    if _render_after:
+        render()
+    return True
+
+
+def on_reset_session(event=None):
+    reset_session()
+
+
+def on_grid_size_change(event=None):
+    """Bound to the grid-size <select>'s "change" event in index.html (see
+    setup()) -- `event.target.value` is the chosen preset key ("normal"/
+    "large"), same as any real DOM change handler. Changing it always
+    triggers a full reset_session() at the new size; there's no meaningful
+    way to resize a grid with an in-progress session's plots still on it."""
+    if event is None:
+        return
+    reset_session(grid_size=event.target.value)
 
 
 def _most_established_plot_index():
@@ -1047,12 +1131,24 @@ def on_toggle_info_page(event=None):
     render_info_page()
 
 
+def render_grid_size_select():
+    """Keeps the grid-size <select> showing whatever preset is actually
+    live -- needed because reset_session() can change current_grid_size
+    from code paths other than the dropdown itself (a loaded save, e.g.),
+    which wouldn't otherwise be reflected back into the control."""
+    select = document.getElementById("grid-size-select")
+    if select is None:
+        return
+    select.value = current_grid_size
+
+
 def render():
     render_info_page()
     render_grid()
     render_panel()
     render_stats()
     render_stakeholder_panel()
+    render_grid_size_select()
     update_achievements_display()
     _sync_earned_and_toast()
 
@@ -1148,6 +1244,11 @@ def get_state():
         "stakeholder_grants_count": stakeholder_grants_count,
         "stakeholder_declines_count": stakeholder_declines_count,
         "community_relations_min_ever": community_relations_min_ever,
+        # B13: which GRID_SIZE_PRESETS key produced the `plots` list above —
+        # load_state() needs this *before* it can zip a saved `plots` list
+        # onto the live one, since a "large" save loaded into a fresh
+        # "normal"-sized module would otherwise silently truncate to 36.
+        "current_grid_size": current_grid_size,
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed here, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),
@@ -1171,6 +1272,19 @@ def load_state(data):
     global total_replants, total_recoveries, plots_with_wildlife_ever
     global stakeholder_grants_count, stakeholder_declines_count
     global community_relations_min_ever, _previously_earned_ids
+
+    # B13: a save written at a different grid size (or a save predating
+    # B13 entirely, which simply lacks the key and so implies "normal", the
+    # only size that existed before) needs `plots` rebuilt at the matching
+    # size *before* the per-plot zip below, or a "large" (72-plot) save
+    # loaded into a fresh "normal" (36-plot) module would silently drop the
+    # other 36 plots' data instead of restoring them. reset_session()
+    # already does exactly that rebuild; skip its own render() since the
+    # real one happens at the end of this function once every field below
+    # is actually restored.
+    saved_grid_size = data.get("current_grid_size", "normal")
+    if saved_grid_size != current_grid_size or len(data.get("plots", [])) != len(plots):
+        reset_session(grid_size=saved_grid_size, _render_after=False)
 
     for plot, plot_data in zip(plots, data.get("plots", [])):
         plot.index = plot_data.get("index", plot.index)
@@ -1244,6 +1358,12 @@ def setup():
     )
     document.getElementById("achievements-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_achievements)
+    )
+    document.getElementById("reset-session-button").addEventListener(
+        "click", create_proxy(on_reset_session)
+    )
+    document.getElementById("grid-size-select").addEventListener(
+        "change", create_proxy(on_grid_size_change)
     )
     # Explicit, not just relying on index.html's `hidden` attribute -- the
     # toast element is only otherwise touched by show_achievement_toast()/

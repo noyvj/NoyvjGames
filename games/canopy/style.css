@@ -502,6 +502,30 @@ button.secondary:disabled {
   content: "🏅 ";
 }
 
+/* B2/B13: the reset-session control + grid-size <select>, sitting inline
+   alongside the existing toolbar buttons (Tutorial/How to Play/
+   Achievements). No dedicated .game-toolbar flex rule exists for Canopy
+   (unlike e.g. Continuum) -- these inherit the same unstyled inline-block
+   button flow already in place, so only the label/select itself needs
+   rules. */
+.grid-size-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  opacity: 0.85;
+  margin: 0 0.3rem;
+}
+
+.grid-size-label select {
+  padding: 0.35rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  background: linear-gradient(135deg, #3a4258, #23283a);
+  color: #e8e9f0;
+  font-size: 0.85rem;
+}
+
 #comparison-message::before {
   content: "📊 ";
 }
