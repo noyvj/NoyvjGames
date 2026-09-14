@@ -208,17 +208,17 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] C2: A battery/grid-storage plant tier. Storage-only (excluded from generation/renewable-share metrics); its one mechanical effect is buffering a renewable shortfall when Weather Variability (C4) is on.
 - [x] C3: Attach disruption-event log lines to the specific plant/type that failed.
 - [x] C4: Weather-variability-on-renewables as an opt-in hard mode.
-- [ ] C5: A proper end-of-run summary screen with a score breakdown.
+- [x] C5: A proper end-of-run summary screen with a score breakdown. An on-demand "Run Summary" panel (Grid has no hard end-state to hang a literal end screen off) — score, average clean share, clean trend, funds breakdown, best streak, and the C17 counterfactual, all in one place.
 - [x] C7: A plant-mix bar chart. Generation-only — battery (C2) has no row.
 - [x] C8: A tipping-point callout at 50% cumulative renewable capacity.
 - [ ] C9: Confirmation before retiring the last unit of a plant type — folded into the shared confirmation-dialog goal above.
 - [x] C10: Show the exact aging/wear percentage.
-- [ ] C11: The aggregate clean-score-across-players comparison Pass 2 floated but never built.
+- [ ] C11: The aggregate clean-score-across-players comparison Pass 2 floated but never built. Moved to `LATER.md` — needs a new shared backend aggregate-stats endpoint (`app/main.py`), which is bigger than a single-game scope and affects every game's live backend; worth a deliberate decision rather than a side-effect of a Grid-only session.
 - [x] C12: A visible toast/banner for disruption events.
 - [x] C13: A funds breakdown (build vs. maintenance vs. disruption-damage).
-- [ ] C15: An interactive trend graph (hover for exact values).
+- [x] C15: An interactive trend graph (hover for exact values). Every point on all three trend lines now carries a native SVG `<title>` tooltip with the exact round/value.
 - [x] C16: A "steeper demand growth" difficulty variant.
-- [ ] C17: A closing "grid vs. business-as-usual" counterfactual.
+- [x] C17: A closing "grid vs. business-as-usual" counterfactual. A capacity-held-constant, coal-only shadow trajectory (`bau_emissions`), surfaced in the new C5 Run Summary panel.
 - [ ] C18: Colorblind-safe trend-graph line differentiation — fold into the site-wide colorblind audit.
 - [x] C19: A breakdown-risk badge once a plant type's average age crosses a threshold.
 - [x] C20: A one-time first-use callout for Retire's refund / Maintain's cost math.

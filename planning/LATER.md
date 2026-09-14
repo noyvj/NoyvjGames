@@ -45,6 +45,7 @@ Several items across the ideas file got parked specifically pending this — you
 ## C. Grid
 
 - **C6**: "later" (no further comment attached).
+- **C11**: the aggregate clean-score-across-players comparison Pass 2 floated but never built. CLAUDE.md's own Pass 2 note already flagged this as "a nice stretch goal, but the real-world benchmark is the priority" — the real-world benchmark (the global-comparison trend line) is built; this cross-player version needs a genuinely new shared backend aggregate-stats endpoint in `app/main.py` (nothing there currently aggregates player outcomes, only ratings/saves/feedback/accounts), which would affect every game's live backend, not just Grid's. Worth a deliberate decision on shape/cost before building, rather than a side-effect of a Grid-only session.
 - **C14**: confirmation before retiring the last unit of a plant type. Your note: "an undo button or an 'are you sure?' with a 'don't show again' option — having to confirm every time can get irritating." This is now the seed of the shared confirmation-dialog pattern in `TODO.md`; revisit the exact UX shape (undo window vs. confirm-with-opt-out) once that pattern's designed.
 
 ## D. Tide
