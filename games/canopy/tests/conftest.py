@@ -51,6 +51,11 @@ ELEMENT_IDS = [
     "achievement-toast",
     "reset-session-button",
     "grid-size-select",
+    "session-summary-toggle-button",
+    "session-summary-panel",
+    "session-summary-counterfactual",
+    "session-summary-sparkline",
+    "session-summary-share-text",
 ]
 
 # Buttons that carry the `disabled` attribute in index.html's initial markup
@@ -108,6 +113,9 @@ class GameEnv:
 
     def toggle_achievements(self):
         self.elements["achievements-toggle-button"].dispatch("click", None)
+
+    def toggle_session_summary(self):
+        self.elements["session-summary-toggle-button"].dispatch("click", None)
 
     def reset_session(self):
         self.elements["reset-session-button"].dispatch("click", None)

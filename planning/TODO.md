@@ -178,11 +178,11 @@ Two things every game needs once achievements land there, on top of the base rol
 
 ## Per-game: Canopy
 
-- [ ] B1: End-of-session summary screen.
+- [x] B1: End-of-session summary screen. A player-triggered "Session Summary" panel folding in B6/B18/B20 together (stats recap, sparkline, shareable text, counterfactual line) — see `render_session_summary()` in `games/canopy/game.py`.
 - [x] B2: "Reset session" button. Folded together with B13 into one `reset_session()` (see `games/canopy/game.py`) since both mean "rebuild the session from scratch."
 - [ ] B3: A second, unlockable forest region/biome.
 - [x] B4: Coordinate-style plot labels.
-- [ ] B6: A history sparkline (income vs. standing value).
+- [x] B6: A history sparkline (income vs. standing value). Inline SVG in the Session Summary panel (B1), sampled once per tick, capped at 120 points.
 - [ ] B7: Save/compare two named playstyle runs.
 - [x] B8: Hover/tap tooltips on plot tiles.
 - [x] B9: A colorblind-safe pattern/icon overlay for plot states — fold into the site-wide colorblind audit above if that's more efficient than a one-off.
@@ -193,9 +193,9 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] B14: A persisted "personal best" stat across sessions. (Per-browser, via `localStorage` — deliberately independent of the save-code system; see `games/canopy/game.py`'s `load_personal_best()`/`_maybe_update_personal_best()`.)
 - [x] B16: Keyboard navigation for plot selection/action.
 - [x] B17: A floating "+X value" animation on compounding ticks.
-- [ ] B18: A shareable end-of-session code/snippet.
+- [x] B18: A shareable end-of-session code/snippet. Plain-text bragging-rights summary (not a decodable save code) + copy-to-clipboard, in the Session Summary panel (B1) — see `share_snippet()`.
 - [x] B19: A distinct "fully mature" cap-off visual for Recovered plots.
-- [ ] B20: A closing counterfactual line at session end.
+- [x] B20: A closing counterfactual line at session end. "If every plot had been left standing since the start, this forest would be worth about X" vs. actual standing value, in the Session Summary panel (B1) — see `counterfactual_message()`.
 - [ ] **Unresolved — please clarify**: your answer to B15 talks about "overpinning" and worrying about too much being pinned, but B15 itself was "extend the mobile-dock treatment to the stats/legend panels," which has nothing to do with pinning. I've kept B15 itself as a plain yes (folded into the mobile-dock rollout goal above) but flagging this so you can tell me what B15's actual comment was meant to be about.
 
 ---

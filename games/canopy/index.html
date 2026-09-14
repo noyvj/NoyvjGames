@@ -27,6 +27,12 @@
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
       <button id="achievements-toggle-button" class="secondary" type="button">Loading...</button>
+      <!-- B1/B6/B18/B20: a player-triggered recap (stats, a sparkline of
+           income vs. standing value over the session, a closing
+           counterfactual line, and a shareable text snippet) -- same
+           optional/never-forced pattern as the achievements and info-page
+           panels. See render_session_summary() in game.py. -->
+      <button id="session-summary-toggle-button" class="secondary" type="button">Loading...</button>
       <!-- B13: grid-size difficulty/length variant. Changing this always
            triggers a full reset_session() at the new size (see
            on_grid_size_change() in game.py) -- there's no meaningful way to
@@ -44,6 +50,14 @@
     <div id="howto-panel" class="section" hidden></div>
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
     <div id="achievement-toast" class="achievement-toast" hidden></div>
+    <div id="session-summary-panel" class="section session-summary-panel" hidden>
+      <p id="session-summary-counterfactual" class="session-summary-counterfactual"></p>
+      <div id="session-summary-sparkline" class="session-summary-sparkline"></div>
+      <p class="session-summary-share-label">Share your session:</p>
+      <p id="session-summary-share-text" class="session-summary-share-text"></p>
+      <button id="session-summary-copy-button" class="secondary" type="button">📋 Copy</button>
+      <p id="session-summary-copy-status" class="session-summary-copy-status" aria-live="polite"></p>
+    </div>
 
     <p class="tagline">A forest region. Clear it for quick income, or leave it standing and let its value compound.</p>
 
@@ -185,7 +199,7 @@
       {
         selector: "#stakeholder-panel",
         title: "Stakeholder Requests",
-        text: "Periodically the community asks you to clear your most established standing plot for a stated real need — housing, farming, or resources. Granting clears the plot and raises community relations by 10; declining keeps it standing but costs 5 relations. Neither choice is free, and neither is catastrophic.",
+        text: "Periodically the community asks you to clear your most established standing plot for a stated real need — housing, farming, or resources. Granting clears the plot and raises community relations by 10; declining keeps it standing but costs 5 relations. Neither choice is free, and neither is catastrophic. Every so often the community instead offers something positive for keeping a plot standing — accepting one of those raises relations and pays a small bonus, and there's no cost at all to declining.",
       },
       {
         selector: "#info-page-toggle-button",
@@ -193,8 +207,13 @@
         text: "Open this any time to read how Canopy's clear-or-preserve tension maps onto real deforestation and carbon-sink science, with links to the sources behind it.",
       },
       {
+        selector: "#session-summary-toggle-button",
+        title: "Session Summary",
+        text: "Open this any time for a recap: a trend chart of income vs. standing value, a comparison against what your forest would be worth if every plot had been left standing since the start, and a short shareable summary you can copy.",
+      },
+      {
         title: "You're ready",
-        text: "That's the whole loop: select a plot, decide its fate, and watch how harvested income and standing forest value shift against each other over a session. Weigh community requests as they come. There's no way to lose — just different balances of quick income against a forest left to compound. Good luck out there.",
+        text: "That's the whole loop: select a plot, decide its fate, and watch how harvested income and standing forest value shift against each other over a session. Weigh community requests as they come. There's no way to lose — just different balances of quick income against a forest left to compound. You can also reset the session (or switch to a larger grid) any time from the toolbar. Good luck out there.",
       },
     ];
 
@@ -367,6 +386,25 @@
           e.preventDefault();
           nextTile.focus();
         }
+      });
+
+      // B18: copy-to-clipboard for the session-summary share snippet.
+      // Plain JS -- the Clipboard API isn't something game.py's fake-DOM
+      // test harness can meaningfully exercise, same documented-exception
+      // class as the plot tooltip above.
+      const shareCopyButton = document.getElementById("session-summary-copy-button");
+      const shareCopyStatus = document.getElementById("session-summary-copy-status");
+      shareCopyButton.addEventListener("click", async () => {
+        const text = document.getElementById("session-summary-share-text").textContent;
+        try {
+          await navigator.clipboard.writeText(text);
+          shareCopyStatus.textContent = "Copied!";
+        } catch (err) {
+          shareCopyStatus.textContent = "Couldn't copy — select the text above manually.";
+        }
+        setTimeout(() => {
+          shareCopyStatus.textContent = "";
+        }, 2500);
       });
     }
     main();

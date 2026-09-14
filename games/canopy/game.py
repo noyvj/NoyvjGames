@@ -266,6 +266,18 @@ class Plot:
 _pending_value_pops = {}
 VALUE_POP_MIN_DELTA = 0.05  # below this a pop would just be visual noise
 
+# B1/B6 (planning/TODO.md "Per-game: Canopy"): session-summary support --
+# a running tick count (for B20's counterfactual math) and a bounded
+# history of (income, standing_value) samples (for B6's sparkline).
+# Deliberately ephemeral: never part of get_state()/load_state(), same
+# reasoning as `_pending_value_pops` above -- a loaded save's history
+# would be a different, disjoint session's shape, not a continuation of
+# this one, so starting fresh on load is more honest than splicing two
+# unrelated histories together.
+_session_ticks = 0
+_value_history = []
+VALUE_HISTORY_MAX_POINTS = 120  # ~2 minutes at one point/tick, TICK_INTERVAL_MS==1000
+
 plots = [Plot(i) for i in range(GRID_ROWS * GRID_COLS)]
 selected_index = None
 total_income = 0.0
@@ -317,7 +329,7 @@ def reset_session(grid_size=None, _render_after=True):
     global pending_stakeholder_request, _ticks_since_last_request, _stakeholder_request_count
     global total_replants, total_recoveries, plots_with_wildlife_ever
     global stakeholder_grants_count, stakeholder_declines_count, community_relations_min_ever
-    global _previously_earned_ids
+    global _previously_earned_ids, _session_ticks
 
     if grid_size is not None:
         if grid_size not in GRID_SIZE_PRESETS:
@@ -345,6 +357,8 @@ def reset_session(grid_size=None, _render_after=True):
     stakeholder_declines_count = 0
     community_relations_min_ever = STARTING_COMMUNITY_RELATIONS
     _previously_earned_ids = set()
+    _session_ticks = 0
+    _value_history.clear()
     if _render_after:
         render()
     return True
@@ -763,6 +777,161 @@ def state_breakdown_text():
         f"{counts[PRESERVED]} preserved · {counts[BARE]} bare · "
         f"{counts[REPLANTING]} replanting · {counts[RECOVERED]} recovered"
     )
+
+
+# ===========================================================================
+# Session Summary (B1/B6/B18/B20, planning/TODO.md "Per-game: Canopy") --
+# a player-triggered panel recapping the session, same "optional, never
+# forced" pattern as the info page. Reuses stats that already exist
+# elsewhere in this module; the two pieces genuinely new here are B20's
+# counterfactual (below) and B6's sparkline (render_session_summary()).
+# ===========================================================================
+
+
+def _ideal_accrual_for_ticks(n):
+    """The standing value a single never-cleared, never-degraded plot
+    would have accrued after `n` ticks of full PRESERVED accrual -- i.e.
+    Plot.accrue_tick()'s own formula (BASE_ACCRUAL * productivity_
+    multiplier() * (1 + ticks_intact * GROWTH_PER_TICK)) summed over
+    ticks_intact = 1..n with productivity_multiplier() fixed at 1.0 (no
+    clearing, so no soil degradation). Closed-form sum of an arithmetic
+    sequence rather than a loop -- a long session can have thousands of
+    ticks by the time a player opens this panel."""
+    if n <= 0:
+        return 0.0
+    return BASE_ACCRUAL * (n + GROWTH_PER_TICK * n * (n + 1) / 2)
+
+
+def counterfactual_standing_value():
+    """B20's hope-angle counterfactual: what the *entire* grid would be
+    worth right now if every plot had been left standing, untouched, since
+    the session began -- the "if you'd done this from day one" comparison
+    CLAUDE.md's hope-angle section calls for. Deliberately every plot at
+    the *current* grid size, not a fixed 36 -- a "large" (B13) session
+    compares against its own larger ideal."""
+    return len(plots) * _ideal_accrual_for_ticks(_session_ticks)
+
+
+def counterfactual_message():
+    """The closing line itself. Framed as a comparison, not a scolding —
+    matching this game's no-dead-end-states, no-wrong-answer philosophy;
+    clearing plots for quick income is a legitimate playstyle, not a
+    mistake to be corrected."""
+    if _session_ticks == 0:
+        return "Not enough time has passed yet to compare against a fully-preserved forest."
+    ideal = counterfactual_standing_value()
+    if ideal <= 0:
+        return ""
+    actual = standing_forest_value()
+    if actual >= ideal - 0.5:
+        return (
+            f"Your standing forest ({actual:.1f}) is right around what every plot would be "
+            f"worth if none had ever been cleared ({ideal:.1f}) — patience paid off in full."
+        )
+    pct = max(0, round((actual / ideal) * 100))
+    return (
+        f"If every plot had been left standing since the start, this forest would be worth "
+        f"about {ideal:.1f} by now — your actual standing value ({actual:.1f}) is {pct}% of that."
+    )
+
+
+# B6: a small inline SVG sparkline built directly as a markup string
+# (assigned via innerHTML) rather than a chain of createElement calls --
+# simplest way to draw two polylines from `_value_history`, and this
+# element is replaced wholesale on every summary render anyway (same
+# rebuild-from-scratch approach render_grid() already uses for its tiles).
+SPARKLINE_WIDTH = 260
+SPARKLINE_HEIGHT = 60
+SPARKLINE_INCOME_COLOR = "#e8a33d"
+SPARKLINE_STANDING_COLOR = "#4caf50"
+
+
+def _sparkline_points(series, max_value):
+    """Maps a list of values onto SVG viewport coordinates -- x spread
+    evenly left-to-right, y scaled so 0 sits on the baseline and
+    `max_value` sits at the top. A flat (all-zero, or single-point)
+    series still renders as a flat line along the baseline rather than
+    dividing by zero."""
+    if not series:
+        return ""
+    denominator = max(max_value, 1e-9)
+    step = SPARKLINE_WIDTH / max(1, len(series) - 1)
+    points = []
+    for i, value in enumerate(series):
+        x = i * step
+        y = SPARKLINE_HEIGHT - (value / denominator) * SPARKLINE_HEIGHT
+        points.append(f"{x:.1f},{y:.1f}")
+    return " ".join(points)
+
+
+def session_history_svg():
+    """Returns "" (rather than an empty/degenerate <svg>) once there's no
+    history yet -- render_session_summary() shows a plain "not enough
+    data yet" message instead in that case."""
+    if not _value_history:
+        return ""
+    incomes = [point[0] for point in _value_history]
+    standing_values = [point[1] for point in _value_history]
+    max_value = max(max(incomes, default=0.0), max(standing_values, default=0.0))
+    income_points = _sparkline_points(incomes, max_value)
+    standing_points = _sparkline_points(standing_values, max_value)
+    return (
+        f'<svg viewBox="0 0 {SPARKLINE_WIDTH} {SPARKLINE_HEIGHT}" '
+        f'class="session-sparkline" role="img" '
+        f'aria-label="Income and standing value over the session">'
+        f'<polyline points="{standing_points}" fill="none" '
+        f'stroke="{SPARKLINE_STANDING_COLOR}" stroke-width="2" />'
+        f'<polyline points="{income_points}" fill="none" '
+        f'stroke="{SPARKLINE_INCOME_COLOR}" stroke-width="2" />'
+        f"</svg>"
+    )
+
+
+# B18: a short, plain-text shareable summary -- deliberately NOT a
+# decodable save code (that's the separate shared/save-widget.js system);
+# this is just bragging-rights text a player can paste somewhere, same
+# spirit as SOL's A8 "shareable my solar system end-state summary card".
+def share_snippet():
+    standing_value = standing_forest_value()
+    counts = state_breakdown()
+    standing_plots = counts[PRESERVED] + counts[RECOVERED]
+    return (
+        f"\U0001F332 Canopy — my forest so far: {standing_value:.1f} standing value, "
+        f"{total_income:.1f} harvested, {total_biodiversity():.1f} biodiversity. "
+        f"{standing_plots}/{len(plots)} plots still standing."
+    )
+
+
+session_summary_open = False
+
+
+def on_toggle_session_summary(event=None):
+    global session_summary_open
+    session_summary_open = not session_summary_open
+    render_session_summary()
+
+
+def render_session_summary():
+    toggle = document.getElementById("session-summary-toggle-button")
+    panel = document.getElementById("session-summary-panel")
+    if toggle is None or panel is None:
+        return
+    toggle.innerText = "Hide Session Summary" if session_summary_open else "\U0001F4CB Session Summary"
+    panel.hidden = not session_summary_open
+    if not session_summary_open:
+        return
+
+    document.getElementById("session-summary-counterfactual").innerText = counterfactual_message()
+
+    sparkline_container = document.getElementById("session-summary-sparkline")
+    svg = session_history_svg()
+    if svg:
+        sparkline_container.innerHTML = svg
+    else:
+        sparkline_container.innerHTML = ""
+        sparkline_container.innerText = "Not enough time has passed yet to chart a trend."
+
+    document.getElementById("session-summary-share-text").innerText = share_snippet()
 
 
 def comparison_message(income, standing_value):
@@ -1213,6 +1382,7 @@ def render():
     render_stats()
     render_stakeholder_panel()
     render_grid_size_select()
+    render_session_summary()
     update_achievements_display()
     _sync_earned_and_toast()
 
@@ -1249,7 +1419,8 @@ def on_replant(event=None):
 
 
 def tick(event=None):
-    global pending_stakeholder_request, total_recoveries
+    global pending_stakeholder_request, total_recoveries, _session_ticks
+    _session_ticks += 1
     _pending_value_pops.clear()
     for plot in plots:
         delta = plot.accrue_tick()
@@ -1267,6 +1438,11 @@ def tick(event=None):
         # (meaningless) request still pending.
         pending_stakeholder_request = None
     maybe_trigger_stakeholder_request()
+    # B6: sampled *after* this tick's accrual/payout effects above, so each
+    # point reflects the state the player actually saw land this tick,
+    # not the stale pre-tick value.
+    _value_history.append((total_income, standing_forest_value()))
+    del _value_history[:-VALUE_HISTORY_MAX_POINTS]  # no-op once under the cap
     render()
 
 
@@ -1425,6 +1601,9 @@ def setup():
     )
     document.getElementById("reset-session-button").addEventListener(
         "click", create_proxy(on_reset_session)
+    )
+    document.getElementById("session-summary-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_session_summary)
     )
     document.getElementById("grid-size-select").addEventListener(
         "change", create_proxy(on_grid_size_change)
