@@ -130,6 +130,24 @@ AGE_WEAR_THRESHOLDS = [
     (8, "wear-1"),
 ]
 
+# C10: the exact wear percentage shown next to the existing wear-icon
+# states, on the same scale as the top wear tier -- 100% lines up with
+# wear-3, not with MAX_AGE_BREAKDOWN_PROBABILITY's own cap (a different
+# scale entirely; conflating the two would make the number lie about
+# what "100%" means).
+WEAR_PERCENT_REFERENCE_AGE = AGE_WEAR_THRESHOLDS[0][0]
+
+
+def _breakdown_probability_for_age(age):
+    """Shared by GridState.aging_breakdown_probability() (the single
+    oldest standing plant type, which is the only one actually at risk of
+    breaking down a given round) and breakdown_risk_probability() below
+    (C19's per-type risk badge, informational for every standing type
+    past the grace period, not just the current oldest)."""
+    if age <= AGE_GRACE_PERIOD:
+        return 0.0
+    return min(MAX_AGE_BREAKDOWN_PROBABILITY, (age - AGE_GRACE_PERIOD) * AGE_BREAKDOWN_RATE)
+
 
 class GridState:
     def __init__(self):
@@ -270,10 +288,18 @@ class GridState:
         oldest = self.oldest_vulnerable_plant()
         if oldest is None:
             return 0.0
-        age = self.plant_age[oldest]
-        if age <= AGE_GRACE_PERIOD:
-            return 0.0
-        return min(MAX_AGE_BREAKDOWN_PROBABILITY, (age - AGE_GRACE_PERIOD) * AGE_BREAKDOWN_RATE)
+        return _breakdown_probability_for_age(self.plant_age[oldest])
+
+    def breakdown_risk_probability(self, plant_type):
+        """C19: this specific type's own risk of an aging breakdown, past
+        the grace period -- unlike aging_breakdown_probability() above,
+        this isn't gated on being the single oldest standing type. Only
+        the oldest ever actually breaks down in a given round (see
+        advance_round()), but the badge this drives is informational: it
+        flags every type that HAS crossed the risk threshold, so a player
+        watching a second-oldest fleet age up sees the warning coming
+        before it becomes "the" oldest and its risk becomes live."""
+        return _breakdown_probability_for_age(self.plant_age[plant_type])
 
     def wear_class(self, plant_type):
         age = self.plant_age[plant_type]
@@ -281,6 +307,14 @@ class GridState:
             if age >= threshold:
                 return css_class
         return ""
+
+    def wear_percent(self, plant_type):
+        """C10: the exact aging/wear percentage, shown as a number next to
+        the existing wear-icon states rather than leaving wear legible
+        only as a coarse three-step visual. Capped at 100 -- past the
+        top wear tier, "more than fully worn" isn't a meaningful distinct
+        reading, it's still just wear-3."""
+        return min(100, round(self.plant_age[plant_type] / WEAR_PERCENT_REFERENCE_AGE * 100))
 
     def primary_emissions_source(self):
         """C3: which standing fossil type is most responsible for this
@@ -907,6 +941,21 @@ def render():
         wear_css_class = state.wear_class(plant_type)
         if wear_css_class:
             name_el.classList.add(wear_css_class)
+
+        # C10: the exact wear percentage next to the coarse wear-icon
+        # state -- only meaningful once a unit is actually standing.
+        wear_pct_el = document.getElementById(f"{plant_type}-wear-pct")
+        wear_pct_el.innerText = f"{state.wear_percent(plant_type)}% worn" if count > 0 else ""
+
+        # C19: a breakdown-risk badge once this type's own average age
+        # has crossed the risk threshold, independent of whether it's
+        # currently *the* oldest type (the one actually at risk this
+        # round -- see breakdown_risk_probability()'s docstring).
+        risk_badge = document.getElementById(f"{plant_type}-risk-badge")
+        risk_probability = state.breakdown_risk_probability(plant_type) if count > 0 else 0.0
+        risk_badge.hidden = risk_probability <= 0.0
+        if not risk_badge.hidden:
+            risk_badge.innerText = f"⚠ Aging risk ({risk_probability * 100:.0f}%)"
 
         build_button = document.getElementById(f"{plant_type}-build-button")
         build_button.innerText = f"Build ({cost:.0f})"

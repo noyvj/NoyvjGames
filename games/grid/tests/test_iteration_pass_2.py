@@ -139,3 +139,83 @@ def test_global_comparison_message_reflects_ahead_of_curve(game_env):
 def test_global_comparison_message_reflects_behind_curve(game_env):
     msg = game_env.module.global_comparison_message(100, 10)
     assert "behind" in msg
+
+
+# --- C10: exact wear percentage -----------------------------------------
+
+def test_wear_percent_is_zero_for_a_brand_new_plant(game_env):
+    game_env.build("coal")
+    assert game_env.state.wear_percent("coal") == 0
+
+
+def test_wear_percent_scales_against_the_top_wear_tier(game_env):
+    game_env.build("coal")
+    reference = game_env.module.WEAR_PERCENT_REFERENCE_AGE
+    for _ in range(reference // 2):
+        game_env.state.advance_round(rng=NEVER_TRIGGER, age_rng=NEVER_TRIGGER)
+    assert game_env.state.wear_percent("coal") == 50
+
+
+def test_wear_percent_caps_at_100(game_env):
+    game_env.build("coal")
+    game_env.state.plant_age["coal"] = 999.0
+    assert game_env.state.wear_percent("coal") == 100
+
+
+def test_render_shows_wear_percentage_next_to_the_plant(game_env):
+    game_env.build("coal")
+    for _ in range(8):
+        game_env.state.advance_round(rng=NEVER_TRIGGER, age_rng=NEVER_TRIGGER)
+    game_env.module.render()
+    assert "%" in game_env.elements["coal-wear-pct"].innerText
+
+
+def test_render_shows_no_wear_percentage_with_no_units_standing(game_env):
+    game_env.module.render()
+    assert game_env.elements["coal-wear-pct"].innerText == ""
+
+
+# --- C19: breakdown-risk badge -------------------------------------------
+
+def test_breakdown_risk_probability_zero_within_grace_period(game_env):
+    game_env.build("coal")
+    for _ in range(game_env.module.AGE_GRACE_PERIOD):
+        game_env.state.advance_round(rng=NEVER_TRIGGER, age_rng=NEVER_TRIGGER)
+    assert game_env.state.breakdown_risk_probability("coal") == 0.0
+
+
+def test_breakdown_risk_probability_positive_past_grace_period(game_env):
+    game_env.build("coal")
+    for _ in range(game_env.module.AGE_GRACE_PERIOD + 1):
+        game_env.state.advance_round(rng=NEVER_TRIGGER, age_rng=NEVER_TRIGGER)
+    assert game_env.state.breakdown_risk_probability("coal") > 0.0
+
+
+def test_risk_badge_hidden_for_a_fresh_plant(game_env):
+    game_env.build("coal")
+    game_env.module.render()
+    assert game_env.elements["coal-risk-badge"].hidden is True
+
+
+def test_risk_badge_appears_once_past_the_grace_period(game_env):
+    game_env.build("coal")
+    for _ in range(game_env.module.AGE_GRACE_PERIOD + 1):
+        game_env.state.advance_round(rng=NEVER_TRIGGER, age_rng=NEVER_TRIGGER)
+    game_env.module.render()
+    badge = game_env.elements["coal-risk-badge"]
+    assert badge.hidden is False
+    assert "Aging risk" in badge.innerText
+
+
+def test_risk_badge_only_flags_standing_types_regardless_of_which_is_oldest(game_env):
+    """C19's badge is independent of oldest_vulnerable_plant() -- a second
+    type past the grace period should also flag, not just the single
+    type that would actually break down this round."""
+    game_env.build("coal")
+    for _ in range(game_env.module.AGE_GRACE_PERIOD + 1):
+        game_env.state.advance_round(rng=NEVER_TRIGGER, age_rng=NEVER_TRIGGER)
+    game_env.build("gas")  # brand new -- diluted age dynamics aside, starts fresh
+    game_env.state.plant_age["gas"] = game_env.state.plant_age["coal"]  # force parity
+    game_env.module.render()
+    assert game_env.elements["coal-risk-badge"].hidden is False
+    assert game_env.elements["gas-risk-badge"].hidden is False

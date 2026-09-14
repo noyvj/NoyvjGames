@@ -214,6 +214,26 @@ h1 {
   min-width: 1.5rem;
 }
 
+/* C10: exact wear percentage next to the wear-icon states. */
+.wear-pct {
+  font-size: 0.72rem;
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+/* C19: breakdown-risk badge -- reuses the same amber "warning" hue as
+   .event-display--warning so it reads as the same category of concern. */
+.risk-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  color: #e0b84c;
+  background: rgba(224, 184, 76, 0.12);
+  border: 1px solid rgba(224, 184, 76, 0.35);
+}
+
 button.secondary {
   padding: 0.5rem 0.6rem;
   border: 1px solid rgba(140, 160, 255, 0.18);
