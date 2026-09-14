@@ -47,6 +47,10 @@ ELEMENT_IDS = [
     "achievements-panel",
     "achievement-toast",
     "achievement-toast-text",
+    "retire-callout",
+    "retire-callout-dismiss-button",
+    "maintain-callout",
+    "maintain-callout-dismiss-button",
 ]
 for _plant in PLANT_TYPES:
     ELEMENT_IDS += [

@@ -32,6 +32,8 @@ EXPECTED_KEYS = {
     "current_clean_streak",
     "best_clean_streak",
     "achievements_earned",
+    "seen_retire_callout",
+    "seen_maintain_callout",
 }
 
 
