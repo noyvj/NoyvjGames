@@ -50,12 +50,26 @@ def test_exportable_surplus_positive_once_internal_supply_exceeds_target(game_en
     assert game_env.chain.exportable_surplus() > 0.0
 
 
-def test_imported_supply_is_never_exported(game_env):
-    # Import-only chain (no internal investment) should never show a
-    # surplus, even though total circular_supply might exceed target.
+def test_imported_surplus_is_exported_h1_fix(game_env):
+    # H1 bug fix: excess *imported* supply (from either trade partner)
+    # used to evaporate — no revenue, no carry-over — even though the
+    # player paid real funds for that import capacity. It's now sold
+    # outward exactly like excess internal supply is (see
+    # ChainState.exportable_surplus()'s docstring in game.py).
     game_env.chain.funds = 10000
     for _ in range(20):
         game_env.chain.invest_trade_link()
+    assert game_env.chain.internal_circular_supply() == 0.0
+    assert game_env.chain.imported_supply() > game_env.module.PRODUCTION_TARGET
+    assert game_env.chain.exportable_surplus() == pytest.approx(
+        game_env.chain.imported_supply() - game_env.module.PRODUCTION_TARGET
+    )
+
+
+def test_imported_supply_below_target_is_not_exported(game_env):
+    # A single unit of import capacity doesn't clear the production
+    # target on its own, so there's nothing to export yet.
+    game_env.chain.invest_trade_link()
     assert game_env.chain.exportable_surplus() == 0.0
 
 

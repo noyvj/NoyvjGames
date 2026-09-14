@@ -4,6 +4,19 @@ line vs. closed loop) the plan flagged as worth prioritizing.
 
 
 def test_chain_flow_message_straight_line_by_default(game_env):
+    # H11: cycle 1's uninvested message is deliberately a lighter,
+    # encouraging nudge rather than the starker "100% new extraction"
+    # framing — that framing only shows from cycle 2 onward.
+    game_env.module.render()
+    assert (
+        game_env.elements["chain-flow-message"].innerText
+        == "You're just getting started — invest in circularity below to "
+        "start looping supply back instead of extracting new material."
+    )
+
+
+def test_chain_flow_message_straight_line_after_first_cycle(game_env):
+    game_env.chain.advance_cycle()
     game_env.module.render()
     assert (
         game_env.elements["chain-flow-message"].innerText

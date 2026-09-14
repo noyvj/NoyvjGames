@@ -1,0 +1,104 @@
+{
+  "achievements": [
+    {
+      "id": "first_fix",
+      "label": "First Fix",
+      "description": "Make your first circularity investment — Repair Networks, Reuse Systems, or Recycling Loops."
+    },
+    {
+      "id": "full_toolkit",
+      "label": "Full Toolkit",
+      "description": "Invest in Repair Networks, Reuse Systems, and Recycling Loops at least once each."
+    },
+    {
+      "id": "trade_partner",
+      "label": "Trade Partner",
+      "description": "Invest in a trade partner — the Local Trade Link or the Regional Distributor — for the first time."
+    },
+    {
+      "id": "dual_sourcing",
+      "label": "Dual Sourcing",
+      "description": "Invest in both the Local Trade Link and the Regional Distributor."
+    },
+    {
+      "id": "quarter_loop",
+      "label": "Quarter Loop",
+      "description": "Get this cycle's circular share to at least 25%."
+    },
+    {
+      "id": "half_loop",
+      "label": "Half Loop",
+      "description": "Get this cycle's circular share to at least 50%."
+    },
+    {
+      "id": "three_quarter_loop",
+      "label": "Three-Quarter Loop",
+      "description": "Get this cycle's circular share to at least 75%."
+    },
+    {
+      "id": "loop_closed",
+      "label": "Full Circle",
+      "description": "Close the loop completely — 100% circular in a single cycle, no new extraction needed."
+    },
+    {
+      "id": "lifetime_majority",
+      "label": "Majority Circular",
+      "description": "Reach a lifetime circular share of 50% or higher, at least 5 cycles in."
+    },
+    {
+      "id": "beyond_benchmark",
+      "label": "Beating the Benchmark",
+      "description": "Get your lifetime circular share above the real-world circularity benchmark."
+    },
+    {
+      "id": "first_export",
+      "label": "Selling the Surplus",
+      "description": "Earn export revenue by selling surplus circular supply to the trade network for the first time."
+    },
+    {
+      "id": "trade_surplus_500",
+      "label": "Circular Trade Surplus",
+      "description": "Earn 500 lifetime funds in total from exported surplus."
+    },
+    {
+      "id": "streak_5",
+      "label": "Steady Loop",
+      "description": "Keep the loop fully closed for 5 cycles in a row."
+    },
+    {
+      "id": "streak_10",
+      "label": "Unbroken Circle",
+      "description": "Keep the loop fully closed for 10 cycles in a row."
+    },
+    {
+      "id": "clean_hands",
+      "label": "Clean Hands",
+      "description": "Reach 10 completed cycles without ever needing a single unit of new extraction."
+    },
+    {
+      "id": "capital_committed",
+      "label": "Capital Committed",
+      "description": "Spend 300 lifetime funds in total on circularity and trade investments."
+    },
+    {
+      "id": "score_pragmatist",
+      "label": "Profitable Redesign",
+      "description": "Reach a score of 1000+ with a lifetime circular share of 50%+, at least 10 cycles in."
+    },
+    {
+      "id": "score_master",
+      "label": "Systems Thinker",
+      "description": "Reach a score of 2000+ with a lifetime circular share of 90%+, at least 15 cycles in."
+    },
+    {
+      "id": "serial_redesigner",
+      "label": "Serial Redesigner",
+      "description": "Use Start New Chain to begin a fresh chain at least twice."
+    },
+    {
+      "id": "goods_explorer",
+      "label": "Goods Explorer",
+      "description": "Play chains in at least two different goods categories."
+    }
+  ]
+}

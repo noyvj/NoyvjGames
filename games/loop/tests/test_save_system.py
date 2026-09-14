@@ -18,6 +18,15 @@ def test_get_state_includes_every_expected_key(game_env):
         "circularity_investment",
         "circular_fraction_log",
         "trade_link_investment",
+        "regional_trade_investment",
+        "goods_category",
+        "lifetime_investment_spend",
+        "lifetime_export_revenue",
+        "closed_loop_streak",
+        "best_closed_loop_streak",
+        "chains_completed_count",
+        "goods_categories_tried",
+        "achievements_earned",
     }
 
 

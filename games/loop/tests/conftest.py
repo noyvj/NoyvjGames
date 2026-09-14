@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from .fakes import FakeDocument, FakeElement, create_proxy
+from .fakes import FakeDocument, FakeElement, FakeTimers, create_proxy
 
 GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 
@@ -56,15 +56,38 @@ ELEMENT_IDS = [
     "info-page-framing",
     "info-page-tie-in",
     "info-page-sources",
+    "achievements-toggle-button",
+    "achievements-panel",
+    "achievement-toast",
+    "achievement-toast-text",
+    "loop-closed-banner",
+    "goods-category-picker",
+    "goods-category-electronics-button",
+    "goods-category-clothing-button",
+    "goods-category-furniture-button",
+    "reset-chain-button",
+    "regional-trade-count",
+    "regional-trade-invest-button",
+    "repair-stats",
+    "reuse-stats",
+    "recycle-stats",
+    "loop-ring-node-repair",
+    "loop-ring-node-reuse",
+    "loop-ring-node-recycle",
+    "score-breakdown-display",
+    "loop-projection-display",
+    "sector-comparison-display",
+    "streak-display",
 ]
 
 
 class GameEnv:
     """Bundles a freshly-loaded game module with its fake DOM."""
 
-    def __init__(self, module, elements):
+    def __init__(self, module, elements, timers):
         self.module = module
         self.elements = elements
+        self.timers = timers
 
     @property
     def chain(self):
@@ -76,10 +99,29 @@ class GameEnv:
     def toggle_info_page(self):
         self.elements["info-page-toggle-button"].dispatch("click", None)
 
+    def toggle_achievements(self):
+        self.elements["achievements-toggle-button"].dispatch("click", None)
 
-def _install_pyodide_fakes(elements):
+    def invest_trade_link(self):
+        self.elements["trade-link-invest-button"].dispatch("click", None)
+
+    def invest_regional_trade(self):
+        self.elements["regional-trade-invest-button"].dispatch("click", None)
+
+    def invest_circularity(self, measure):
+        self.elements[f"{measure}-invest-button"].dispatch("click", None)
+
+    def reset_chain(self):
+        self.elements["reset-chain-button"].dispatch("click", None)
+
+    def select_goods_category(self, category):
+        self.elements[f"goods-category-{category}-button"].dispatch("click", None)
+
+
+def _install_pyodide_fakes(elements, timers):
     fake_js = types.ModuleType("js")
     fake_js.document = FakeDocument(elements)
+    fake_js.setTimeout = timers.setTimeout
 
     fake_pyodide = types.ModuleType("pyodide")
     fake_pyodide_ffi = types.ModuleType("pyodide.ffi")
@@ -110,13 +152,14 @@ def game_env():
     sharing state via Python's normal import cache.
     """
     elements = {id_: FakeElement(id_) for id_ in ELEMENT_IDS}
-    _install_pyodide_fakes(elements)
+    timers = FakeTimers()
+    _install_pyodide_fakes(elements, timers)
 
     spec = importlib.util.spec_from_file_location("game", GAME_PY)
     module = importlib.util.module_from_spec(spec)
     sys.modules["game"] = module
     spec.loader.exec_module(module)  # runs setup() at the bottom of game.py
 
-    yield GameEnv(module, elements)
+    yield GameEnv(module, elements, timers)
 
     _remove_pyodide_fakes()
