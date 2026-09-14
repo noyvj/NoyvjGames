@@ -427,6 +427,36 @@ button.primary:active {
   border: 1px solid rgba(140, 160, 255, 0.2);
 }
 
+/* C20: one-time first-use callouts for Retire's refund math and
+   Maintain's cost math -- shown once each, the first time that action is
+   actually used, instead of leaving the explanation only inside the
+   small "i" tooltip a player might never open. */
+.callout {
+  margin: 0.6rem 0 0;
+  padding: 0.6rem 0.75rem;
+  background: rgba(140, 160, 255, 0.1);
+  border: 1px solid rgba(140, 160, 255, 0.3);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.callout-dismiss {
+  display: block;
+  margin: 0.5rem 0 0;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid rgba(140, 160, 255, 0.3);
+  border-radius: 6px;
+  background: rgba(140, 160, 255, 0.14);
+  color: #e8e9f0;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.callout-dismiss:hover {
+  background: rgba(140, 160, 255, 0.24);
+}
+
 /* Info toggles — plain <details>/<summary>, zero JS. For a mechanic that
    isn't self-explanatory from its label alone (why do renewable costs
    drop? why do plants need maintaining?), a small "ⓘ" disclosure sits

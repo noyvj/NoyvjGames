@@ -178,6 +178,12 @@ class GridState:
         self.maintenance_actions_count = 0
         self.current_clean_streak = 0
         self.best_clean_streak = 0
+        # C20 -- one-time first-use callouts for Retire's refund math and
+        # Maintain's cost math, so the explanation isn't left only inside
+        # the small "i" tooltip. Persisted so a returning player who's
+        # already seen it doesn't get it again after a save/load.
+        self.seen_retire_callout = False
+        self.seen_maintain_callout = False
 
     def plant_cost(self, plant_type):
         base = PLANT_BASE_COST[plant_type]
@@ -930,6 +936,9 @@ def render():
         aging_el.innerText = f"Aging breakdown! A {plant_name} plant failed from wear (repair cost {cost:.0f})."
         aging_el.className = "event-display event-display--danger"
 
+    document.getElementById("retire-callout").hidden = not retire_callout_visible
+    document.getElementById("maintain-callout").hidden = not maintain_callout_visible
+
     for plant_type in PLANT_TYPES:
         count = state.plant_counts[plant_type]
         cost = state.plant_cost(plant_type)
@@ -978,9 +987,22 @@ def _make_build_handler(plant_type):
     return handler
 
 
+# C20 -- transient (never saved) "currently showing" flags for the
+# first-use callouts below. state.seen_retire_callout/seen_maintain_callout
+# are the persisted "have we ever shown this" gate; these two control
+# whether it's visible *right now* in this session, so a loaded save that
+# already has the persisted flag set doesn't re-flash the callout on load.
+retire_callout_visible = False
+maintain_callout_visible = False
+
+
 def _make_retire_handler(plant_type):
     def handler(event=None):
-        state.retire_plant(plant_type)
+        global retire_callout_visible
+        succeeded = state.retire_plant(plant_type)
+        if succeeded and not state.seen_retire_callout:
+            state.seen_retire_callout = True
+            retire_callout_visible = True
         render()
         _check_new_achievements_for_toast()
     return handler
@@ -988,10 +1010,26 @@ def _make_retire_handler(plant_type):
 
 def _make_maintain_handler(plant_type):
     def handler(event=None):
-        state.maintain_plant(plant_type)
+        global maintain_callout_visible
+        succeeded = state.maintain_plant(plant_type)
+        if succeeded and not state.seen_maintain_callout:
+            state.seen_maintain_callout = True
+            maintain_callout_visible = True
         render()
         _check_new_achievements_for_toast()
     return handler
+
+
+def on_dismiss_retire_callout(event=None):
+    global retire_callout_visible
+    retire_callout_visible = False
+    render()
+
+
+def on_dismiss_maintain_callout(event=None):
+    global maintain_callout_visible
+    maintain_callout_visible = False
+    render()
 
 
 def on_advance_round(event=None):
@@ -1035,6 +1073,8 @@ def get_state():
         "maintenance_actions_count": state.maintenance_actions_count,
         "current_clean_streak": state.current_clean_streak,
         "best_clean_streak": state.best_clean_streak,
+        "seen_retire_callout": state.seen_retire_callout,
+        "seen_maintain_callout": state.seen_maintain_callout,
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),
@@ -1095,6 +1135,8 @@ def load_state(data):
     state.maintenance_actions_count = data.get("maintenance_actions_count", state.maintenance_actions_count)
     state.current_clean_streak = data.get("current_clean_streak", state.current_clean_streak)
     state.best_clean_streak = data.get("best_clean_streak", state.best_clean_streak)
+    state.seen_retire_callout = data.get("seen_retire_callout", state.seen_retire_callout)
+    state.seen_maintain_callout = data.get("seen_maintain_callout", state.seen_maintain_callout)
     # "achievements_earned" is intentionally never read back here — see
     # get_state()'s comment and ACHIEVEMENTS-SYSTEM-DESIGN.md §1.
 
@@ -1128,6 +1170,12 @@ def setup():
     )
     document.getElementById("achievements-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_achievements)
+    )
+    document.getElementById("retire-callout-dismiss-button").addEventListener(
+        "click", create_proxy(on_dismiss_retire_callout)
+    )
+    document.getElementById("maintain-callout-dismiss-button").addEventListener(
+        "click", create_proxy(on_dismiss_maintain_callout)
     )
     render()
     _seed_achievement_toast_baseline()

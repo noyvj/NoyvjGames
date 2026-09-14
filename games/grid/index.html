@@ -85,6 +85,14 @@
       <p class="meter-label">Maintenance &amp; Aging
         <details class="info-toggle"><summary>i</summary><p>Every standing plant quietly gets older each round. Past 8 rounds old, your oldest fleet risks a costly breakdown that takes a unit offline — Maintain spends funds to lower that plant type's average age instead of resetting it to zero, buying time rather than making it new again.</p></details>
       </p>
+      <p id="retire-callout" class="callout" hidden>
+        Retiring refunds 50% of a plant's <strong>current</strong> cost, not what you originally paid for it — renewables get cheaper the more you build, so retiring one later refunds less than an early one cost to build.
+        <button id="retire-callout-dismiss-button" class="callout-dismiss" type="button">Got it</button>
+      </p>
+      <p id="maintain-callout" class="callout" hidden>
+        Maintain lowers a plant type's average age by a fixed amount, it doesn't reset it to zero — an older fleet needs repeat maintenance to stay ahead of rising breakdown risk.
+        <button id="maintain-callout-dismiss-button" class="callout-dismiss" type="button">Got it</button>
+      </p>
       <div class="plant-row" data-plant="coal">
         <div class="plant-row-top">
           <div class="plant-icon plant-icon--coal" aria-hidden="true">
