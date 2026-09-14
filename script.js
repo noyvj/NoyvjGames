@@ -173,12 +173,18 @@ async function loadMySaves() {
 // checklist.
 const GAMES_WITH_ACHIEVEMENTS = {
   sol: "games/sol/achievements.json",
+  continuum: "games/continuum/achievements.json",
+  canopy: "games/canopy/achievements.json",
+  grid: "games/grid/achievements.json",
 };
 
 // Display label only — falls back to the raw game_id for a game added here
 // without an entry (still readable, just not title-cased).
 const GAME_DISPLAY_NAMES = {
   sol: "SOL",
+  continuum: "Continuum",
+  canopy: "Canopy",
+  grid: "Grid",
 };
 
 const accountAchievementsDashboard = document.getElementById("account-achievements-dashboard");
