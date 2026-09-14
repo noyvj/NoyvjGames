@@ -184,6 +184,10 @@ class GridState:
         # already seen it doesn't get it again after a save/load.
         self.seen_retire_callout = False
         self.seen_maintain_callout = False
+        # C8 -- one-time callout the first time cumulative renewable
+        # capacity crosses 50% of the grid's total. Persisted so it
+        # doesn't re-trigger every session once already reached.
+        self.renewable_50_reached = False
 
     def plant_cost(self, plant_type):
         base = PLANT_BASE_COST[plant_type]
@@ -936,6 +940,7 @@ def render():
         aging_el.innerText = f"Aging breakdown! A {plant_name} plant failed from wear (repair cost {cost:.0f})."
         aging_el.className = "event-display event-display--danger"
 
+    document.getElementById("renewable-milestone-callout").hidden = not renewable_milestone_visible
     document.getElementById("retire-callout").hidden = not retire_callout_visible
     document.getElementById("maintain-callout").hidden = not maintain_callout_visible
 
@@ -982,9 +987,33 @@ def render():
 def _make_build_handler(plant_type):
     def handler(event=None):
         state.build_plant(plant_type)
+        _check_renewable_milestone()
         render()
         _check_new_achievements_for_toast()
     return handler
+
+
+# C8 -- transient (never saved) "currently showing" flag for the one-time
+# 50%-renewable-capacity callout, same reasoning as C20's callouts below:
+# state.renewable_50_reached is the persisted "has this ever happened"
+# gate, this is just whether it's visible in this session right now.
+renewable_milestone_visible = False
+
+
+def _check_renewable_milestone():
+    """Called after every action that could change capacity composition
+    (build/retire/advance round) -- not from render() itself, so a loaded
+    save doesn't flash the callout purely from being rendered once."""
+    global renewable_milestone_visible
+    if not state.renewable_50_reached and renewable_capacity_share() >= 0.5:
+        state.renewable_50_reached = True
+        renewable_milestone_visible = True
+
+
+def on_dismiss_renewable_milestone(event=None):
+    global renewable_milestone_visible
+    renewable_milestone_visible = False
+    render()
 
 
 # C20 -- transient (never saved) "currently showing" flags for the
@@ -1003,6 +1032,7 @@ def _make_retire_handler(plant_type):
         if succeeded and not state.seen_retire_callout:
             state.seen_retire_callout = True
             retire_callout_visible = True
+        _check_renewable_milestone()
         render()
         _check_new_achievements_for_toast()
     return handler
@@ -1034,6 +1064,7 @@ def on_dismiss_maintain_callout(event=None):
 
 def on_advance_round(event=None):
     state.advance_round()
+    _check_renewable_milestone()
     render()
     _check_new_achievements_for_toast()
 
@@ -1075,6 +1106,7 @@ def get_state():
         "best_clean_streak": state.best_clean_streak,
         "seen_retire_callout": state.seen_retire_callout,
         "seen_maintain_callout": state.seen_maintain_callout,
+        "renewable_50_reached": state.renewable_50_reached,
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),
@@ -1137,6 +1169,7 @@ def load_state(data):
     state.best_clean_streak = data.get("best_clean_streak", state.best_clean_streak)
     state.seen_retire_callout = data.get("seen_retire_callout", state.seen_retire_callout)
     state.seen_maintain_callout = data.get("seen_maintain_callout", state.seen_maintain_callout)
+    state.renewable_50_reached = data.get("renewable_50_reached", state.renewable_50_reached)
     # "achievements_earned" is intentionally never read back here — see
     # get_state()'s comment and ACHIEVEMENTS-SYSTEM-DESIGN.md §1.
 
@@ -1170,6 +1203,9 @@ def setup():
     )
     document.getElementById("achievements-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_achievements)
+    )
+    document.getElementById("renewable-milestone-dismiss-button").addEventListener(
+        "click", create_proxy(on_dismiss_renewable_milestone)
     )
     document.getElementById("retire-callout-dismiss-button").addEventListener(
         "click", create_proxy(on_dismiss_retire_callout)

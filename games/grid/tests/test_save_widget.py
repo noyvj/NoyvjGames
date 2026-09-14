@@ -34,6 +34,7 @@ EXPECTED_KEYS = {
     "achievements_earned",
     "seen_retire_callout",
     "seen_maintain_callout",
+    "renewable_50_reached",
 }
 
 
