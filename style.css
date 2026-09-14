@@ -300,6 +300,32 @@ body {
   background: radial-gradient(60% 60% at 40% 35%, rgba(190, 255, 245, 0.35), transparent 70%);
 }
 
+/* Trade Empire: a miniature version of the in-game trade map itself —
+   route lines connecting colony nodes (the same NODE_COLOR blue used by
+   game.py's render_map()) with one gold dot standing in for an automated
+   ship mid-transit (AUTOMATED_SHIP_COLOR), on the same deep-space ground
+   as SOL's thumb. */
+.title-card-thumb--trade-empire {
+  --thumb-glow: #e0c34c;
+  background: radial-gradient(120% 140% at 80% 15%, rgba(224, 195, 76, 0.12), transparent 45%),
+    linear-gradient(160deg, #1a1f3a 0%, #0d0f1e 100%);
+}
+.title-card-thumb--trade-empire::before {
+  background-image:
+    linear-gradient(115deg, transparent 48.5%, rgba(140, 160, 255, 0.4) 49.5%, rgba(140, 160, 255, 0.4) 50.5%, transparent 51.5%),
+    linear-gradient(35deg, transparent 48.5%, rgba(140, 160, 255, 0.4) 49.5%, rgba(140, 160, 255, 0.4) 50.5%, transparent 51.5%),
+    linear-gradient(0deg, transparent 48.5%, rgba(140, 160, 255, 0.28) 49.5%, rgba(140, 160, 255, 0.28) 50.5%, transparent 51.5%);
+  opacity: 0.85;
+}
+.title-card-thumb--trade-empire::after {
+  background-image:
+    radial-gradient(5px 5px at 20% 28%, #3a5a9c, transparent 70%),
+    radial-gradient(5px 5px at 76% 22%, #3a5a9c, transparent 70%),
+    radial-gradient(5px 5px at 60% 74%, #3a5a9c, transparent 70%),
+    radial-gradient(5px 5px at 22% 76%, #3a5a9c, transparent 70%),
+    radial-gradient(4px 4px at 46% 50%, #e0c34c, transparent 70%);
+}
+
 .title-card-name {
   font-size: 1.25rem;
   font-weight: 600;
