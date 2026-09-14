@@ -160,7 +160,7 @@ Two things every game needs once achievements land there, on top of the base rol
 ## Per-game: Continuum
 
 - [ ] K5: A "civilization summary" end-of-playthrough report.
-- [ ] K6: Named camera presets in the 3D scene.
+- [x] K6: Named camera presets in the 3D scene — Overview/Close-up/Aerial buttons above the 3D view (`render3d.js`'s `CAMERA_PRESETS`), reusing the existing drag-to-look camera math so a preset and a manual drag are indistinguishable to the camera itself; shown only alongside the live 3D view, hidden in 2D mode. Live-verified all three angles render distinctly with no console errors.
 - [x] K7: A way to actually view a revisited era's snapshot in the 3D layer — closed a real pre-existing gap (there was no revisit UI at all yet, despite `save.py` fully supporting it since Milestone 4): built a new "Look Back" section (enter/exit buttons per completed era), and confirmed live that the 3D layer's `get_visual_state()` correctly reflects the revisited era's own snapshot automatically once the UI exists to trigger it.
 - [x] K8: Confirm every info-panel source is a clickable outbound link — confirmed via `shared/info_page.py`'s renderer and live-checked across all seven eras; nothing needed fixing.
 - [x] K10: A tutorial walkthrough via `shared/tutorial.js`, if it doesn't have one — already built (`CONTINUUM_TUTORIAL_STEPS` in `index.html`); confirmed present, no new work needed.
@@ -170,7 +170,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] K15: Confirm accessibility settings (text-scale, colorblind fixes) persist through a real save/load, not just `localStorage` — confirmed this is deliberate, not a bug: both are browser-level preferences, not portable save state (baking a local text-size/view-mode choice into a cross-device save would be backwards). No fix applied, per the task's own "only fix if actually broken" instruction.
 - [ ] K17: A subtle day/night or seasonal lighting cycle in the 3D scene.
 - [ ] K18: An optional stricter "hard mode" sustainability variant.
-- [ ] K19: Confirm/extend distinct meshes per building type in the 3D scene.
+- [x] K19: Confirm/extend distinct meshes per building type in the 3D scene — audited every era's building list against `render3d.js`; found one real gap (Sanitation Works, Industrial, had no mesh of its own beyond feeding the smoke-reduction math) and closed it with a distinct teal treatment-tank mesh. Every other era-specific building already had its own distinct shape.
 - [x] K20: A proper hub title-card art pass — done as part of Phase 6 (below): a CSS-only thumb matching every other game's hand-drawn-gradient convention (no photographic-screenshot pattern exists anywhere on this hub to break from).
 - [x] Achievements: 19 achievements + in-game panel + unlock toast + `achievements_earned` in `get_state()` (hub-side `script.js` registration still needed — out of scope for a `games/continuum/`-only dispatch, same caveat Canopy/Grid's own rollouts already noted above).
 

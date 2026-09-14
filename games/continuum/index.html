@@ -84,6 +84,16 @@
         only as an automatic fallback.
       -->
       <button id="visual-mode-toggle-button" class="secondary visual-mode-toggle" type="button" hidden>🖼 2D view</button>
+      <!-- K6 (planning/TODO.md): named camera presets for the 3D scene.
+           render3d.js shows this row only once a real WebGL scene exists
+           (same gating as the 2D/3D toggle above) and wires each button to
+           a fixed yaw/pitch/distance rather than leaving orbit as the only
+           way to see the settlement from a useful angle. -->
+      <div id="camera-preset-buttons" class="camera-preset-buttons" role="group" aria-label="Camera presets" hidden>
+        <button id="camera-preset-overview-button" class="secondary camera-preset-button" type="button">🔭 Overview</button>
+        <button id="camera-preset-closeup-button" class="secondary camera-preset-button" type="button">🔍 Close-up</button>
+        <button id="camera-preset-aerial-button" class="secondary camera-preset-button" type="button">🛰 Aerial</button>
+      </div>
       <div id="visual3d-container" class="visual3d-container" role="img" aria-label="A low-poly 3D view of the settlement" hidden></div>
       <div class="settlement-visual" aria-hidden="true">
         <div class="settlement-sky"></div>
