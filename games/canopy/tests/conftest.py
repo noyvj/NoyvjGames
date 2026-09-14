@@ -32,6 +32,7 @@ ELEMENT_IDS = [
     "replant-button",
     "income-display",
     "standing-value-display",
+    "biodiversity-display",
     "comparison-message",
     "state-breakdown-display",
     "community-relations-display",
