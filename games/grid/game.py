@@ -98,6 +98,14 @@ DISRUPTION_SEVERITY_SCALE = 3000.0
 MAX_REVENUE_LOSS_FRACTION = 0.8
 DAMAGE_SEVERITY_THRESHOLD = 0.5
 
+# C16 -- opt-in "steeper demand growth" difficulty variant. A separate
+# knob from the emissions-driven disruption curve above (see CLAUDE.md's
+# Pass 3 note: that curve is the one that has to scale with the mechanic
+# that teaches the lesson, emissions, not a bolted-on separate difficulty
+# system) -- this only changes how fast demand rises, it never touches
+# disruption_probability()/disruption_severity() or their inputs.
+STEEP_DEMAND_GROWTH_MULTIPLIER = 2.0
+
 # Reference point for the emissions meter bar — matches the severity
 # scale, so a full bar means disruption severity has hit its own cap.
 EMISSIONS_METER_MAX = DISRUPTION_SEVERITY_SCALE
@@ -200,6 +208,9 @@ class GridState:
         self.lifetime_build_spend = 0.0
         self.lifetime_maintenance_spend = 0.0
         self.lifetime_disruption_spend = 0.0
+        # C16 -- opt-in "steeper demand growth" difficulty variant, off by
+        # default. Persisted so it stays set across a save/load.
+        self.steeper_demand_growth_enabled = False
 
     def plant_cost(self, plant_type):
         base = PLANT_BASE_COST[plant_type]
@@ -411,7 +422,10 @@ class GridState:
             aging_event = {"type": "aging_breakdown", "plant": oldest, "repair_cost": repair_cost}
 
         self.round_number += 1
-        self.demand += DEMAND_GROWTH_PER_ROUND
+        demand_growth = DEMAND_GROWTH_PER_ROUND
+        if self.steeper_demand_growth_enabled:
+            demand_growth *= STEEP_DEMAND_GROWTH_MULTIPLIER
+        self.demand += demand_growth
 
         self.last_event = event
         if event:
@@ -941,6 +955,18 @@ def render():
         state.disruption_probability(), state.disruption_severity()
     )
 
+    # C16: opt-in difficulty toggle -- purely reflects the current setting,
+    # never touches disruption math (see STEEP_DEMAND_GROWTH_MULTIPLIER's
+    # comment above).
+    steep_button = document.getElementById("steeper-demand-toggle-button")
+    steep_button.innerText = (
+        "🔥 Steeper Demand Growth: ON" if state.steeper_demand_growth_enabled else "Steeper Demand Growth: OFF"
+    )
+    if state.steeper_demand_growth_enabled:
+        steep_button.classList.add("active")
+    else:
+        steep_button.classList.remove("active")
+
     svg = trend_graph_svg(
         state.emissions_history, state.avg_renewable_cost_history, state.global_reference_emissions_history
     )
@@ -1150,6 +1176,11 @@ def _check_disruption_toast():
         )
 
 
+def on_toggle_steeper_demand(event=None):
+    state.steeper_demand_growth_enabled = not state.steeper_demand_growth_enabled
+    render()
+
+
 def on_advance_round(event=None):
     state.advance_round()
     _check_renewable_milestone()
@@ -1200,6 +1231,7 @@ def get_state():
         "lifetime_build_spend": state.lifetime_build_spend,
         "lifetime_maintenance_spend": state.lifetime_maintenance_spend,
         "lifetime_disruption_spend": state.lifetime_disruption_spend,
+        "steeper_demand_growth_enabled": state.steeper_demand_growth_enabled,
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),
@@ -1267,6 +1299,9 @@ def load_state(data):
     state.lifetime_build_spend = data.get("lifetime_build_spend", state.lifetime_build_spend)
     state.lifetime_maintenance_spend = data.get("lifetime_maintenance_spend", state.lifetime_maintenance_spend)
     state.lifetime_disruption_spend = data.get("lifetime_disruption_spend", state.lifetime_disruption_spend)
+    state.steeper_demand_growth_enabled = data.get(
+        "steeper_demand_growth_enabled", state.steeper_demand_growth_enabled
+    )
     # "achievements_earned" is intentionally never read back here — see
     # get_state()'s comment and ACHIEVEMENTS-SYSTEM-DESIGN.md §1.
 
@@ -1310,6 +1345,9 @@ def setup():
     )
     document.getElementById("maintain-callout-dismiss-button").addEventListener(
         "click", create_proxy(on_dismiss_maintain_callout)
+    )
+    document.getElementById("steeper-demand-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_steeper_demand)
     )
     render()
     _seed_achievement_toast_baseline()
