@@ -61,6 +61,7 @@ h1 {
 }
 
 .plot-tile {
+  position: relative; /* anchors the B9 pattern overlay + B17 value-pop */
   aspect-ratio: 1;
   border: 1px solid rgba(140, 160, 255, 0.16);
   border-radius: 6px;
@@ -70,6 +71,14 @@ h1 {
   line-height: 1;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   transition: transform 80ms ease, filter 80ms ease;
+}
+
+.plot-tile:focus-visible {
+  /* B16: keyboard focus needs its own visible ring, distinct from
+     .plot-selected's outline (a tile can be focused without being the
+     selected plot while arrow-keying across the grid). */
+  outline: 2px solid #9fe0ab;
+  outline-offset: 2px;
 }
 
 .plot-tile:active {
@@ -115,6 +124,133 @@ h1 {
   0% { box-shadow: 0 0 0 0 rgba(139, 195, 74, 0.9); filter: brightness(1); }
   40% { box-shadow: 0 0 8px 3px rgba(139, 195, 74, 0.9); filter: brightness(1.5); }
   100% { box-shadow: 0 0 0 0 rgba(139, 195, 74, 0); filter: brightness(1); }
+}
+
+/* B9 (colorblind-safety, planning/TODO.md's per-game Canopy section): a
+   pattern overlay per plot state, independent of hue, on top of
+   game.py's inline gradient `backgroundColor`. Preserved/Recovered
+   already share the same green gradient function (plot_display_color())
+   at any given maturity, so hue alone can't tell them apart even for
+   full-color vision at a glance -- these patterns plus each state's own
+   icon (STATE_ICON, now including Bare) are the redundant, non-color
+   channel. Not a straight Okabe-Ito hue swap (Continuum's own audit
+   note's method) because there's no discrete red/green confusion *pair*
+   here to re-pick -- these are continuous brown-to-green gradients, so
+   the fix is redundant coding (pattern + icon) rather than a different
+   palette. Kept faint (low opacity) so it reads as texture, not noise,
+   and never obscures the wildlife icon/tooltip/value-pop layered above
+   it (z-index order relies on later-declared rules winning, same stack
+   context via `position: relative`). */
+.plot-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.plot-tile.plot-bare::before {
+  /* Cross-hatch -- "nothing growing here". */
+  background-image:
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.35) 0 2px, transparent 2px 8px),
+    repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.35) 0 2px, transparent 2px 8px);
+}
+
+.plot-tile.plot-replanting::before {
+  /* Dots -- "something small just started". */
+  background-image: radial-gradient(rgba(0, 0, 0, 0.4) 1.5px, transparent 1.6px);
+  background-size: 8px 8px;
+}
+
+.plot-tile.plot-preserved::before {
+  /* Diagonal stripes, one direction. */
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(0, 0, 0, 0.28) 0 2px,
+    transparent 2px 9px
+  );
+}
+
+.plot-tile.plot-recovered::before {
+  /* Diagonal stripes, the other direction -- deliberately distinct from
+     Preserved's, since those two states share the same color gradient. */
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(0, 0, 0, 0.22) 0 2px,
+    transparent 2px 9px
+  );
+}
+
+/* B19: a distinct cap-off visual once a Recovered plot's maturity_
+   fraction() reaches 1.0 -- the hope-angle payoff that restoration
+   doesn't just reach parity with a never-cleared plot, it visibly
+   finishes. A soft golden ring + a small sparkle badge, layered above
+   both the wildlife icon and the pattern overlay. */
+.plot-tile.plot-fully-mature {
+  box-shadow: 0 0 0 2px rgba(255, 214, 110, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.plot-tile.plot-fully-mature::after {
+  content: "\2728"; /* sparkle */
+  position: absolute;
+  top: 1px;
+  left: 2px;
+  font-size: 0.6rem;
+  filter: drop-shadow(0 0 2px rgba(255, 214, 110, 0.9));
+}
+
+/* has-wildlife already uses ::after for its own icon (bottom-right) --
+   fully-mature's ::after (top-left) never collides with it, so both can
+   render on the same tile at once without one overwriting the other. */
+
+/* B17: a brief floating "+X" pop, appended as a real child span (not a
+   pseudo-element, since its text is dynamic) the one render right after
+   a plot's standing value actually rises. Removed from the DOM on the
+   very next render_grid() call (which rebuilds every tile from scratch),
+   so no cleanup timer is needed -- the animation duration is kept safely
+   under game.py's 1-tick interval so it always finishes on screen. */
+.value-pop {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #d6ffb8;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+  animation: value-pop-float 900ms ease-out forwards;
+}
+
+@keyframes value-pop-float {
+  0% { opacity: 0; transform: translate(-50%, 4px); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -14px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .value-pop {
+    animation: none;
+    opacity: 0.9;
+  }
+}
+
+/* B8: hover/tap tooltip on plot tiles (positioning logic lives in
+   index.html's inline script; this is just its look). Fixed positioning
+   so it can float above any tile regardless of scroll/dock state. */
+.plot-tooltip {
+  position: fixed;
+  z-index: 300; /* above panels, below the achievement toast (400) */
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  background: rgba(10, 12, 20, 0.95);
+  border: 1px solid rgba(140, 160, 255, 0.3);
+  color: #e8e9f0;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
 .context-blurb {

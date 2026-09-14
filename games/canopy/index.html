@@ -57,6 +57,7 @@
     </div>
 
     <div id="plot-grid" class="plot-grid"></div>
+    <div id="plot-tooltip" class="plot-tooltip" hidden></div>
 
     <!-- B15 (planning/TODO.md "Per-game: Canopy" + the site-wide
          mobile-dock-rollout goal): extends the same shared/mobile-dock.js
@@ -221,6 +222,96 @@
       mobileInfoDockToggle.addEventListener("click", () => {
         const expanded = mobileInfoDock.classList.toggle("mobile-info-dock--expanded");
         mobileInfoDockToggle.textContent = expanded ? "📊 Stats & Legend ▴" : "📊 Stats & Legend ▾";
+      });
+
+      // B8: hover/tap tooltip on plot tiles, showing the exact numeric
+      // value + degradation level game.py already computed into each
+      // tile's `data-tooltip` attribute (see _plot_tooltip_text() in
+      // game.py). Delegated on #plot-grid (which persists across
+      // re-renders) rather than per-tile, since render_grid() rebuilds
+      // every tile from scratch on every render -- plain DOM/positioning
+      // logic with no game-state dependency, so it's plain JS rather than
+      // round-tripping through Pyodide (documented exception, same class
+      // as the feedback-prompt script below).
+      const plotGrid = document.getElementById("plot-grid");
+      const plotTooltip = document.getElementById("plot-tooltip");
+      function showPlotTooltip(target) {
+        const text = target.getAttribute && target.getAttribute("data-tooltip");
+        if (!text) return;
+        plotTooltip.textContent = text;
+        plotTooltip.hidden = false;
+        const rect = target.getBoundingClientRect();
+        const tooltipRect = plotTooltip.getBoundingClientRect();
+        let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+        left = Math.max(8, Math.min(left, window.innerWidth - tooltipRect.width - 8));
+        plotTooltip.style.left = `${left}px`;
+        plotTooltip.style.top = `${rect.top - tooltipRect.height - 8}px`;
+      }
+      function hidePlotTooltip() {
+        plotTooltip.hidden = true;
+      }
+      plotGrid.addEventListener("mouseover", (e) => {
+        if (e.target.classList && e.target.classList.contains("plot-tile")) {
+          showPlotTooltip(e.target);
+        }
+      });
+      plotGrid.addEventListener("mouseout", (e) => {
+        if (e.target.classList && e.target.classList.contains("plot-tile")) {
+          hidePlotTooltip();
+        }
+      });
+      plotGrid.addEventListener("focusin", (e) => {
+        if (e.target.classList && e.target.classList.contains("plot-tile")) {
+          showPlotTooltip(e.target);
+        }
+      });
+      plotGrid.addEventListener("focusout", (e) => {
+        if (e.target.classList && e.target.classList.contains("plot-tile")) {
+          hidePlotTooltip();
+        }
+      });
+      plotGrid.addEventListener("click", (e) => {
+        if (e.target.classList && e.target.classList.contains("plot-tile")) {
+          // Touch devices have no hover -- show briefly on tap instead.
+          showPlotTooltip(e.target);
+          setTimeout(hidePlotTooltip, 2200);
+        }
+      });
+
+      // B16: arrow-key navigation across the plot grid (Enter/Space to
+      // act on the focused tile is already native <button> behavior, so
+      // there's nothing to add for that half). Plain JS for the same
+      // reason as the tooltip above -- pure focus-management, no game
+      // state. Reads the grid's real column count from the `data-cols`
+      // attribute game.py's render_grid() sets, rather than hardcoding it
+      // a second time here.
+      const ARROW_DELTA = {
+        ArrowLeft: -1,
+        ArrowRight: 1,
+        ArrowUp: "up",
+        ArrowDown: "down",
+      };
+      plotGrid.addEventListener("keydown", (e) => {
+        const delta = ARROW_DELTA[e.key];
+        if (delta === undefined) return;
+        const focused = document.activeElement;
+        if (!focused || !focused.classList || !focused.classList.contains("plot-tile")) return;
+        const match = focused.id.match(/^plot-(\d+)$/);
+        if (!match) return;
+        const cols = parseInt(plotGrid.getAttribute("data-cols"), 10) || 6;
+        const index = parseInt(match[1], 10);
+        const col = index % cols;
+        let nextIndex = null;
+        if (delta === "up") nextIndex = index - cols;
+        else if (delta === "down") nextIndex = index + cols;
+        else if (delta === -1 && col > 0) nextIndex = index - 1; // no wrap off the left edge
+        else if (delta === 1 && col < cols - 1) nextIndex = index + 1; // no wrap off the right edge
+        if (nextIndex === null) return;
+        const nextTile = document.getElementById(`plot-${nextIndex}`);
+        if (nextTile) {
+          e.preventDefault();
+          nextTile.focus();
+        }
       });
     }
     main();

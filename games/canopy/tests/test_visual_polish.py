@@ -55,11 +55,15 @@ def test_preserved_tile_shows_tree_icon(game_env):
     assert tile.innerText != ""
 
 
-def test_bare_tile_shows_no_icon(game_env):
+def test_bare_tile_shows_its_own_icon(game_env):
+    # B9 (colorblind-safety pass): Bare used to be the one state with no
+    # icon at all, relying on hue alone -- it now gets one too, closing
+    # that gap, same as every other state.
     game_env.select(0)
     game_env.clear()
     tile = game_env.elements["plot-0"]
-    assert tile.innerText == ""
+    assert tile.innerText == game_env.module.STATE_ICON["bare"]
+    assert tile.innerText != ""
 
 
 def test_replanting_tile_shows_seedling_icon(game_env):
