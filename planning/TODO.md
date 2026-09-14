@@ -372,7 +372,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [ ] I16: Tie the arrival-dot stream's density/speed to real arrivals-per-round.
 - [ ] I17: A passive "unmanaged control region" for contrast.
 - [ ] I18: A free-text field inviting tone/framing concerns in the feedback prompt.
-- [ ] I19: Turn the net-positive turning-point message into a small persistent badge.
+- [x] I19: Turn the net-positive turning-point message into a small persistent badge.
 - [x] I20: Surface the funds-to-economic-health scale reference point in the UI.
 
 ---

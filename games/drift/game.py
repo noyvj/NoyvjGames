@@ -564,6 +564,18 @@ def thriving_callout_message(region_state):
     )
 
 
+# I19: a small persistent badge for the same net-positive milestone
+# integration_turning_point_message() already announces once, kept
+# visible in the top status readouts for the rest of the run -- so the
+# milestone stays legible even after the player has scrolled past the
+# one-off callout in the Integration section, rather than only living in
+# a sentence they might forget happened.
+def net_positive_badge_text(region_state):
+    if not region_state.has_crossed_to_net_positive():
+        return None
+    return f"🌱 Net-positive since round {region_state.net_positive_round}"
+
+
 def long_horizon_coda_message(region_state):
     return (
         f"Generations from now, the descendants of the {region_state.integrated_population:.0f} "
@@ -940,6 +952,12 @@ def render():
     document.getElementById("total-capacity-display").innerText = (
         f"Total capacity: {region.total_capacity():.0f}"
     )
+    # I19: persistent net-positive badge in the top status readouts.
+    net_positive_badge = document.getElementById("net-positive-badge")
+    badge_text = net_positive_badge_text(region)
+    net_positive_badge.hidden = badge_text is None
+    net_positive_badge.innerText = badge_text or ""
+
     document.getElementById("arrivals-display").innerText = (
         f"Arrivals this round: {region.arrivals_this_round():.0f} people "
         f"(background severity: {region.background_severity:.1f})"
