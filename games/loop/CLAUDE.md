@@ -139,6 +139,74 @@ figures correctly, and the only console errors present are the
 pre-existing site-wide ServiceWorker registration quirk also reproducible
 on the unmodified hub page.
 
+## Post-milestone backlog pass + achievements (H1-H20, H16 parked)
+
+Worked through `planning/TODO.md`'s "Per-game: Loop" checklist (H1-H20; H16
+stayed parked in `LATER.md`) plus the hub-wide achievements framework
+rollout (`ACHIEVEMENTS-SYSTEM-DESIGN.md`), all in one pass.
+
+**H1 bug fix:** `exportable_surplus()` used to read
+`max(0.0, internal_circular_supply() - PRODUCTION_TARGET)` — only excess
+*internal* circularity supply was ever sold outward for export revenue.
+Excess *imported* supply (from either trade partner) simply evaporated —
+no revenue, no carry-over — even though the player paid real funds for
+that import capacity. Fixed to look at total `circular_supply()`
+(internal + imported) beyond the production target instead, so any
+supply the chain doesn't need this cycle is sold outward regardless of
+source. Covered by `tests/test_iteration_pass_2.py`.
+
+**Other H-items, briefly:** a goods-category picker (electronics/
+clothing/furniture) at game start, locked in until reset (H2/H20); a
+second, differently-priced trade partner, the Regional Distributor
+(H8); an in-game "Start New Chain" reset control that wipes the current
+chain but keeps the two lifetime counters (`chains_completed_count`,
+`goods_categories_tried`) that exist specifically to measure across
+resets (H7); a closed-loop streak tracker, sticky best-ever value (H19);
+a "time to close the loop" cycle projection reusing the existing trend
+calculation (H6); loop-ring node highlighting tied to real investment
+(H5); cost-per-unit-of-supply + running-contribution readouts per
+measure (H4/H15); a live score breakdown (H17); a few alternate
+real-world sector comparisons (H9); a documented hard-ceiling note on
+the cost multiplier (H10); a lighter first-cycle message (H11);
+alternate vignette phrasings per fraction bucket (H14); a first-time-
+closed-loop celebratory banner (H3); and reactive visual pulses on the
+funds display (export revenue) and trade-network display (H12/H18).
+
+**Achievements:** 20 achievements (`achievements.json`) covering every
+circularity/trade/streak/score/reset/goods-category system above, an
+in-game panel + toggle button, an unlock toast, and a link to the
+hub-wide achievements dashboard — same pattern as SOL's reference
+integration. `achievements_earned` rides `get_state()`/`load_state()`
+per the design doc; every achievement's earned status is a pure
+function of live state, recomputed on every check, never a hand-set
+flag.
+
+**index.html/style.css:** every new element `game.py`'s `render()`/
+`setup()` reference (the achievements toggle/panel/toast, the
+loop-closed banner, the goods-category picker, the reset button, the
+Regional Distributor row, the per-measure stats lines, the loop-ring
+node ids, and the score-breakdown/loop-projection/sector-comparison/
+streak status lines) was added to the markup and styled to match the
+existing space-themed console look — confirmed live in-browser (no
+console errors, achievements panel/toast/banner/pulses all fire
+correctly) rather than assumed from the pytest fake-DOM harness passing
+alone, since the fake harness defines its own element registry and
+can't catch an index.html/game.py id mismatch on its own.
+
+**Test-harness fixture:** `tests/conftest.py`'s `game_env` fixture now
+creates and passes a `FakeTimers` instance (`tests/fakes.py`) so tests
+can assert on pre/post-`setTimeout`-flush state for the achievement
+toast, loop-closed banner, and funds/trade-network pulse auto-clear
+timers — same shape as Grid's `tests/fakes.py`. `setup()` also now
+explicitly sets the achievement-toast/loop-closed-banner `hidden = True`
+(the fake-DOM harness's `FakeElement` starts `hidden=False`, unlike a
+real `hidden` HTML attribute), matching the pattern already used for
+Grid's own toast/banner reset. New `tests/test_achievements.py` (41
+tests) covers the achievement catalog/checkers, every individual
+achievement earned through real game systems, progress readouts, the
+panel/toggle/toast, and the H3/H12/H18 reactive-effect timers. Full
+suite: 151 tests, all green.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
