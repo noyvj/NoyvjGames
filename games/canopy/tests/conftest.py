@@ -56,6 +56,9 @@ ELEMENT_IDS = [
     "session-summary-counterfactual",
     "session-summary-sparkline",
     "session-summary-share-text",
+    "session-summary-playstyle-comparison",
+    "save-playstyle-run-a-button",
+    "save-playstyle-run-b-button",
 ]
 
 # Buttons that carry the `disabled` attribute in index.html's initial markup
@@ -116,6 +119,12 @@ class GameEnv:
 
     def toggle_session_summary(self):
         self.elements["session-summary-toggle-button"].dispatch("click", None)
+
+    def save_playstyle_run_a(self):
+        self.elements["save-playstyle-run-a-button"].dispatch("click", None)
+
+    def save_playstyle_run_b(self):
+        self.elements["save-playstyle-run-b-button"].dispatch("click", None)
 
     def reset_session(self):
         self.elements["reset-session-button"].dispatch("click", None)

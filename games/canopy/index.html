@@ -57,6 +57,18 @@
       <p id="session-summary-share-text" class="session-summary-share-text"></p>
       <button id="session-summary-copy-button" class="secondary" type="button">📋 Copy</button>
       <p id="session-summary-copy-status" class="session-summary-copy-status" aria-live="polite"></p>
+      <!-- B7: save/compare two named playstyle runs. Per-browser via
+           localStorage (see PLAYSTYLE_RUNS_STORAGE_KEY in game.py) --
+           deliberately survives a Reset Session, unlike everything else
+           in this panel, since these are standalone snapshots for
+           comparing two different play sessions, not this session's own
+           live state. -->
+      <p class="session-summary-playstyle-label">Compare playstyle runs:</p>
+      <div id="session-summary-playstyle-comparison" class="session-summary-playstyle-comparison"></div>
+      <div class="action-buttons">
+        <button id="save-playstyle-run-a-button" class="secondary" type="button">💾 Save as Run A</button>
+        <button id="save-playstyle-run-b-button" class="secondary" type="button">💾 Save as Run B</button>
+      </div>
     </div>
 
     <p class="tagline">A forest region. Clear it for quick income, or leave it standing and let its value compound.</p>
@@ -209,7 +221,7 @@
       {
         selector: "#session-summary-toggle-button",
         title: "Session Summary",
-        text: "Open this any time for a recap: a trend chart of income vs. standing value, a comparison against what your forest would be worth if every plot had been left standing since the start, and a short shareable summary you can copy.",
+        text: "Open this any time for a recap: a trend chart of income vs. standing value, a comparison against what your forest would be worth if every plot had been left standing since the start, and a short shareable summary you can copy. You can also save the current stats as Run A or Run B to compare two different playstyles side by side — those two saved runs stick around even after a Reset Session.",
       },
       {
         title: "You're ready",

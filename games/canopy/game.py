@@ -910,6 +910,117 @@ def share_snippet():
     )
 
 
+# B7 (planning/TODO.md "Per-game: Canopy"): save/compare two named
+# playstyle runs. Per-browser via localStorage -- same mechanism and same
+# "deliberately NOT part of get_state()" reasoning as B14's personal
+# best, since these are standalone comparison snapshots a player takes on
+# purpose, not live state to resume a session from. reset_session() does
+# NOT clear these, matching personal_best's own cross-session lifetime.
+PLAYSTYLE_RUNS_STORAGE_KEY = "canopy_playstyle_runs_v1"
+PLAYSTYLE_RUN_SLOTS = ("a", "b")
+
+
+def load_playstyle_runs():
+    raw = _read_local_storage_item(PLAYSTYLE_RUNS_STORAGE_KEY)
+    if not raw:
+        return {"a": None, "b": None}
+    try:
+        data = json.loads(raw)
+        return {slot: data.get(slot) for slot in PLAYSTYLE_RUN_SLOTS}
+    except (ValueError, TypeError, AttributeError):
+        return {"a": None, "b": None}
+
+
+playstyle_runs = load_playstyle_runs()
+
+
+def _playstyle_run_snapshot():
+    """What gets frozen into a slot -- a plain, JSON-safe dict of the
+    stats worth comparing across two different playstyles (one leaning
+    quick-clear, one leaning preserve-everything, say)."""
+    counts = state_breakdown()
+    return {
+        "income": total_income,
+        "standing_value": standing_forest_value(),
+        "biodiversity": total_biodiversity(),
+        "plots_standing": counts[PRESERVED] + counts[RECOVERED],
+        "plots_total": len(plots),
+        "grid_size": current_grid_size,
+    }
+
+
+def save_playstyle_run(slot, event=None):
+    global playstyle_runs
+    if slot not in PLAYSTYLE_RUN_SLOTS:
+        return False
+    playstyle_runs = dict(playstyle_runs)
+    playstyle_runs[slot] = _playstyle_run_snapshot()
+    _write_local_storage_item(PLAYSTYLE_RUNS_STORAGE_KEY, json.dumps(playstyle_runs))
+    render_session_summary()
+    return True
+
+
+def on_save_playstyle_run_a(event=None):
+    save_playstyle_run("a")
+
+
+def on_save_playstyle_run_b(event=None):
+    save_playstyle_run("b")
+
+
+def _playstyle_stat_row(label, key):
+    def cell(run):
+        if run is None:
+            return "—"
+        value = run[key]
+        return f"{value:.1f}" if isinstance(value, float) else str(value)
+
+    return (
+        f"<tr><td>{label}</td>"
+        f"<td>{cell(playstyle_runs.get('a'))}</td>"
+        f"<td>{cell(playstyle_runs.get('b'))}</td></tr>"
+    )
+
+
+def playstyle_comparison_html():
+    """"" (rather than an empty/degenerate <table>) once neither slot has
+    ever been saved -- render_playstyle_comparison() shows a plain prompt
+    instead in that case, same convention as session_history_svg()."""
+    if playstyle_runs.get("a") is None and playstyle_runs.get("b") is None:
+        return ""
+
+    def plots_cell(run):
+        return "—" if run is None else f"{run['plots_standing']}/{run['plots_total']}"
+
+    rows = "".join(
+        [
+            _playstyle_stat_row("Income", "income"),
+            _playstyle_stat_row("Standing value", "standing_value"),
+            _playstyle_stat_row("Biodiversity", "biodiversity"),
+            "<tr><td>Plots standing</td>"
+            f"<td>{plots_cell(playstyle_runs.get('a'))}</td>"
+            f"<td>{plots_cell(playstyle_runs.get('b'))}</td></tr>",
+        ]
+    )
+    return (
+        '<table class="playstyle-comparison-table">'
+        "<thead><tr><th></th><th>Run A</th><th>Run B</th></tr></thead>"
+        f"<tbody>{rows}</tbody></table>"
+    )
+
+
+def render_playstyle_comparison():
+    container = document.getElementById("session-summary-playstyle-comparison")
+    if container is None:
+        return
+    html = playstyle_comparison_html()
+    if html:
+        container.innerHTML = html
+    else:
+        container.innerHTML = ""
+        container.innerText = "Save a run below to start comparing playstyles."
+
+
 session_summary_open = False
 
 
@@ -940,6 +1051,7 @@ def render_session_summary():
         sparkline_container.innerText = "Not enough time has passed yet to chart a trend."
 
     document.getElementById("session-summary-share-text").innerText = share_snippet()
+    render_playstyle_comparison()
 
 
 def comparison_message(income, standing_value):
@@ -1612,6 +1724,12 @@ def setup():
     )
     document.getElementById("session-summary-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_session_summary)
+    )
+    document.getElementById("save-playstyle-run-a-button").addEventListener(
+        "click", create_proxy(on_save_playstyle_run_a)
+    )
+    document.getElementById("save-playstyle-run-b-button").addEventListener(
+        "click", create_proxy(on_save_playstyle_run_b)
     )
     document.getElementById("grid-size-select").addEventListener(
         "change", create_proxy(on_grid_size_change)
