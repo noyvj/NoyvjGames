@@ -32,14 +32,16 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
     /<future-game>
       ...
   /planning
+    TODO.md          <- THE living cross-game/site task list — check here first for what's next
+    LATER.md          <- deferred items (parked pending your input, or needing a decision) — not scheduled, revisit on request
     site-plan.md
     game-template.md
     pwa-and-ads-setup.md  <- manifest/service worker/ad bar reference
-    SAVE-SYSTEM-DESIGN.md  <- save codes spec — Phase 1 built and live, SOL is the reference integration
     ACCOUNTS-AND-FEEDBACK-DESIGN.md  <- accounts (username+password) + site-wide feedback spec — backend + frontend built
+    ACHIEVEMENTS-SYSTEM-DESIGN.md  <- hub-wide achievements framework spec — SOL is the reference integration; per-game rollout tracked in TODO.md
     SAVE-BUTTON-INTEGRATION.md  <- shared/save-widget.js spec — built and rolled out to every game
-    climate-games-fun-teaching-balance.md  <- Iteration Pass 3 source doc for the 8 climate games
     <game>-plan.md   <- pre-build groundwork notes per game, before folders exist
+    /archive         <- fully-resolved or fully-superseded planning docs, kept for process-evidence history only — not active reference
 ```
 
 ## Site-level rules
@@ -52,6 +54,8 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
 Two running logs live at the repo root: `BCM206-DEV-LOG.md` (site infrastructure — hosting, save system, accounts, deployment, backend) and `BCM114-DEV-LOG.md` (individual game content — mechanics, style, narrative, GenAI prompt iteration).
 
 Before ending any session where code or content changed, append one dated entry to whichever log(s) apply — split across both if the session touched both. Follow the entry format already defined inside each log file. Append only — never edit or remove a past entry. If nothing meaningfully changed, skip logging rather than writing a filler entry.
+
+**Also check off any completed items in `planning/TODO.md`** as they land — it's the standing cross-game/site task list, meant to replace tracking work purely through scattered planning docs. Don't create a new planning `.md` for a cross-cutting idea or gap; add it to `TODO.md` (or `LATER.md` if it's genuinely parked) instead.
 
 ## Per-game conventions (apply inside every `/games/<slug>/`)
 - Default stack: Python via Pyodide, plain HTML/CSS, no build step. Deviating (e.g. plain JS for something trivial) is a deliberate documented exception, not a default.

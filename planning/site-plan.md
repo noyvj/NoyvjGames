@@ -1,7 +1,7 @@
 # Site Plan — Game Demo Portfolio (working name: CodingIsANoyvj)
 
 ## What this is
-A personal hub site collecting small AI-assisted game demos, one of which (SOL) is the dual BCM114/BCM206 DA. The site itself — being publicly accessible and updated — is the "public availability" evidence for both subjects, replacing the need for a separate Instagram/devlog trail. Instagram stays optional/low-effort if 114's rubric wants audience-engagement content specifically (confirm once the outline drops July 27).
+A personal hub site collecting small AI-assisted game demos, one of which (SOL) is the dual BCM114/BCM206 DA. The site itself — being publicly accessible and updated — is the "public availability" evidence for both subjects, replacing the need for a separate Instagram/devlog trail. Instagram stays optional/low-effort if 114's rubric wants audience-engagement content specifically — this was deferred pending the semester outline (was due ~July 27); see `planning/TODO.md` for the still-open status check.
 
 ## Purpose
 Equal parts: a real portfolio (future job/collaborator use), a personal creative outlet, and a way to test "do I want to be a game developer" by throwing ideas at a wall and seeing what people think. The DA requirement rides on top of this rather than driving it.
@@ -9,7 +9,7 @@ Equal parts: a real portfolio (future job/collaborator use), a personal creative
 ## Structure
 - **Hub/lobby page** — "main menu" style. Title card (image placeholder + name) per game, grid or list layout, links into each game's own page.
 - **Reviews/feedback** — star rating + comments per game, visible on the hub or each game's page. This is your public-feedback mechanism for both subjects.
-  - **Open technical question:** needs shared/persistent storage (not localStorage — that's private per-browser). Depends on what your friend's hosting can support (database? just static files?). Until resolved, build the UI as a front-end stub with no real persistence, clearly marked TODO.
+  - **Resolved**: shared/persistent storage is live (FastAPI Cloud + Neon Postgres, not localStorage) — see `app/models.py`'s `Rating`/`Feedback` tables and `planning/ACCOUNTS-AND-FEEDBACK-DESIGN.md`.
 - **Individual game pages** — each fully free to look however it wants once you're inside it. No imposed styling beyond getting there via the hub.
 - **Shared minimal shell** — hub nav/branding/title-card format/review widget stays consistent across the whole site; internals of each game do not have to match it or each other.
 
@@ -24,7 +24,7 @@ Equal parts: a real portfolio (future job/collaborator use), a personal creative
 - Right now (pre-semester, boredom-driven) the pace can be aggressive. Once the semester starts and other subjects are live, pacing gets revisited for real — deliberately deferred rather than solved in advance.
 
 ## Branding
-- Working site name: **CodingIsANoyvj** (placeholder — confirm before anything public launches)
+- Working site name: **CodingIsANoyvj** (placeholder — confirm before anything public launches; see `planning/TODO.md`, since the site is already live and this is overdue)
 - Hub-level visual identity: clean, simple, consistent — think a "school games site" main menu (title card + name per game), not a corporate portfolio.
 
 ## Hosting

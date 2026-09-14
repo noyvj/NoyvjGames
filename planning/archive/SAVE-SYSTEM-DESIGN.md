@@ -1,3 +1,5 @@
+> **Archived 2026-09-14.** Fully superseded by `planning/ACCOUNTS-AND-FEEDBACK-DESIGN.md`, which realized this doc's own deferred Phase 2 and is now the up-to-date reference. The actual live schema/API lives in `app/models.py`/`app/main.py`. Kept here for historical/process-evidence value only — nothing below is still open; see `planning/TODO.md`/`planning/LATER.md` for anything that is.
+
 # Save System Design — Game Hub
 
 Design doc for save functionality + accounts across the game hub. Written against the existing stack: Neon (Postgres 17, currently Auth off), FastAPI Cloud, static GitHub Pages front end, Pyodide-run Python games.

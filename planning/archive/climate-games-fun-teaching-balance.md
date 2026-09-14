@@ -1,3 +1,5 @@
+> **Archived 2026-09-14.** Confirmed fully merged into every one of the 8 games' own `CLAUDE.md` (each has its own "Pass 3" section). Kept here for historical/process-evidence value only.
+
 # Iteration Pass 3 — Fun/Teaching Balance for All 8 Games
 
 **Purpose:** this pass applies research on educational game design specifically to the risk of each game either (a) becoming "chocolate-covered broccoli" — fun bolted onto a lesson rather than fused with it — or (b) tipping out of flow, either into boredom or into anxiety/dread. Same merge rule as the other iteration files: fold the relevant section into each game's own `CLAUDE.md`, under a new `## Iteration Notes — Pass 3 (Fun/Teaching Balance)` heading.

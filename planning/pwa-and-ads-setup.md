@@ -78,4 +78,4 @@ Once per page, near the top of `<head>` (loads the AdSense library):
 
 ## Open item
 
-`ads.txt` content and the real `data-ad-client` / `data-ad-slot` values only exist once the AdSense application is approved — everything above works with placeholders until then.
+`ads.txt` content and the real `data-ad-client` / `data-ad-slot` values only exist once the AdSense application is approved — everything above works with placeholders until then. See `planning/LATER.md`'s L9 entry for the actual next-steps answer once you're ready to apply.
