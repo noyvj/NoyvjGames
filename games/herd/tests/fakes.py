@@ -87,5 +87,48 @@ class FakeDocument:
         return FakeElement(registry=self._elements)
 
 
+class FakeProxy:
+    """Stands in for pyodide.ffi.create_proxy()'s JsProxy: callable just
+    like the wrapped function, but also exposes `.destroy()` so game code
+    that manages a one-shot proxy's lifetime (the achievement/milestone
+    toasts' and investment-pulse's setTimeout callbacks) can be exercised
+    under test the same way it behaves against real Pyodide. Existing
+    callers that just invoke a dispatched handler directly
+    (FakeElement.dispatch) keep working unchanged, since a FakeProxy is
+    still plainly callable."""
+
+    def __init__(self, func):
+        self._func = func
+        self.destroyed = False
+
+    def __call__(self, *args, **kwargs):
+        return self._func(*args, **kwargs)
+
+    def destroy(self):
+        self.destroyed = True
+
+
 def create_proxy(func):
-    return func
+    return FakeProxy(func)
+
+
+class FakeTimers:
+    """Collects setTimeout calls instead of running them on a real clock,
+    so tests can assert on pre/post-flush state (used by the achievement/
+    milestone toasts' auto-hide timers and the investment-pulse's
+    auto-unpulse timer). Same shape as Grid/SOL's tests/fakes.py
+    FakeTimers, minus setInterval -- Herd is turn-based, it has no
+    interval-driven loop."""
+
+    def __init__(self):
+        self.pending = []  # one-shot setTimeout calls
+
+    def setTimeout(self, callback, delay):
+        self.pending.append((callback, delay))
+        return len(self.pending)
+
+    def flush(self):
+        """Runs and clears all pending one-shot setTimeout callbacks."""
+        pending, self.pending = self.pending, []
+        for callback, _delay in pending:
+            callback()

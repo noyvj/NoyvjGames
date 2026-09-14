@@ -140,7 +140,16 @@ h1 {
 
 #actions {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
+}
+
+/* F9 — consequence preview next to the Grow Herd button. */
+.grow-consequence-preview {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.7;
+  text-align: center;
 }
 
 .invest-row {
@@ -836,4 +845,193 @@ button.secondary:disabled::after {
 #grow-herd-button::after {
   top: 0.5rem;
   right: 0.6rem;
+}
+
+/* ============================================================
+   Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md) — same card language
+   used across the hub's shared achievements pattern (Grid/Canopy's
+   reference implementations), on Herd's existing violet-glass +
+   pastoral-gold/green palette. Internals are free per-game once you're
+   inside the game, but there's no reason to invent a new visual
+   language here when the existing one already fits.
+   ============================================================ */
+.achievements-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.achievement-card {
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.achievement-card--earned {
+  border-color: rgba(76, 156, 110, 0.4);
+  background: rgba(76, 156, 110, 0.08);
+  box-shadow: 0 0 18px rgba(76, 156, 110, 0.12);
+}
+
+.achievement-card-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.achievement-card--earned .achievement-card-label {
+  color: #7fd6a3;
+  text-shadow: 0 0 12px rgba(127, 214, 163, 0.35);
+}
+
+.achievement-card-description {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.7;
+  line-height: 1.4;
+}
+
+.achievement-card-progress {
+  margin: 0.4rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+.achievements-hub-link {
+  display: inline-block;
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  color: #a9c3ff;
+}
+
+/* F3 — the on-demand Report Card panel. Reuses .status-line for its
+   individual rows rather than inventing a new text style, same "no new
+   visual language without a reason" approach as the achievements panel
+   above. */
+.report-card-panel {
+  text-align: left;
+}
+
+.summary-line {
+  line-height: 1.4;
+}
+
+/* F13 — the persistent baseline-farm comparison card. Slightly muted
+   relative to the player's own #status card so it reads as reference
+   material, not a second set of numbers to optimize. */
+.baseline-farm-card {
+  opacity: 0.85;
+  border-left-color: #6f9fe0;
+}
+
+/* Unlock toasts: fixed to the top of the viewport so they're visible
+   regardless of scroll position, unlike the panels they summarize.
+   `.visible` is toggled from game.py; `hidden` (native attribute) keeps
+   them out of the layout entirely between toasts. The achievement toast
+   (green) and the milestone-nudge toast (amber) are deliberately
+   different tones so a nudge is never mistaken for an unlock. */
+.achievement-toast,
+.milestone-toast {
+  position: fixed;
+  top: 0.75rem;
+  left: 1rem;
+  right: 1rem;
+  max-width: 480px;
+  margin: 0 auto;
+  z-index: 500;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transform: translateY(-12px);
+  transition: opacity 200ms ease, transform 200ms ease;
+  pointer-events: none;
+}
+
+.achievement-toast {
+  background: linear-gradient(165deg, rgba(76, 156, 110, 0.92), rgba(38, 64, 42, 0.95));
+  border: 1px solid rgba(127, 214, 163, 0.5);
+}
+
+.milestone-toast {
+  background: linear-gradient(165deg, rgba(224, 162, 76, 0.92), rgba(74, 54, 24, 0.95));
+  border: 1px solid rgba(240, 200, 130, 0.5);
+}
+
+.achievement-toast.visible,
+.milestone-toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.achievement-toast p,
+.milestone-toast p {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f2fff6;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .achievement-toast,
+  .milestone-toast {
+    transition: opacity 120ms ease;
+    transform: none;
+  }
+}
+
+/* F14 — min/max labels behind the coupling gauge. */
+.gauge-range-display {
+  margin: 0.3rem 0 0;
+  font-size: 0.7rem;
+  opacity: 0.55;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* F7 — methane-over-rounds trend graph, same shape as Thaw's
+   mini-temp-graph-svg: unlabeled beyond its axis-free shape. */
+.methane-trend-graph {
+  width: 100%;
+}
+
+.methane-trend-graph-svg {
+  width: 100%;
+  height: 48px;
+  display: block;
+}
+
+.methane-trend-line {
+  fill: none;
+  stroke: #b06fd6;
+  stroke-width: 2;
+}
+
+/* F18 — the aggregate community stat pulled from the ratings backend.
+   Starts hidden (see the plain-JS block in index.html) until there's a
+   real sample size. */
+.community-stat {
+  color: #a9c3ff;
+}
+
+/* F19 — lightweight pulse feedback on a successful investment click.
+   Applied to the button/count element by game.py's _pulse() helper and
+   removed automatically after the animation completes. */
+@keyframes invest-pulse-anim {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+.invest-pulse {
+  animation: invest-pulse-anim 350ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .invest-pulse {
+    animation: none;
+  }
 }

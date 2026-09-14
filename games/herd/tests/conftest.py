@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from .fakes import FakeDocument, FakeElement, create_proxy
+from .fakes import FakeDocument, FakeElement, FakeTimers, create_proxy
 
 GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 
@@ -42,6 +42,29 @@ ELEMENT_IDS = [
     "info-page-framing",
     "info-page-tie-in",
     "info-page-sources",
+    "achievements-toggle-button",
+    "achievements-panel",
+    "achievement-toast",
+    "achievement-toast-text",
+    "milestone-toast",
+    "milestone-toast-text",
+    "report-card-toggle-button",
+    "report-card-panel",
+    "grow-consequence-preview",
+    "combined-decoupling-display",
+    "gauge-range-display",
+    "real-world-comparison-display",
+    "methane-trend-graph",
+    "counterfactual-comparison-display",
+    "baseline-herd-display",
+    "baseline-funds-display",
+    "baseline-methane-display",
+    "baseline-score-display",
+    "pasture-cow-a",
+    "pasture-cow-b",
+    "pasture-cow-c",
+    "pasture-cow-d",
+    "pasture-cow-e",
 ]
 for _measure in MEASURE_IDS:
     ELEMENT_IDS += [f"{_measure}-name", f"{_measure}-count", f"{_measure}-invest-button"]
@@ -54,9 +77,10 @@ INITIALLY_DISABLED_IDS = (
 class GameEnv:
     """Bundles a freshly-loaded game module with its fake DOM."""
 
-    def __init__(self, module, elements):
+    def __init__(self, module, elements, timers):
         self.module = module
         self.elements = elements
+        self.timers = timers
 
     @property
     def farm(self):
@@ -77,10 +101,17 @@ class GameEnv:
     def invest_plant_pivot(self):
         self.elements["plant-pivot-invest-button"].dispatch("click", None)
 
+    def toggle_achievements(self):
+        self.elements["achievements-toggle-button"].dispatch("click", None)
 
-def _install_pyodide_fakes(elements):
+    def toggle_report_card(self):
+        self.elements["report-card-toggle-button"].dispatch("click", None)
+
+
+def _install_pyodide_fakes(elements, timers):
     fake_js = types.ModuleType("js")
     fake_js.document = FakeDocument(elements)
+    fake_js.setTimeout = timers.setTimeout
 
     fake_pyodide = types.ModuleType("pyodide")
     fake_pyodide_ffi = types.ModuleType("pyodide.ffi")
@@ -115,13 +146,14 @@ def game_env():
         FakeElement(id_, registry=elements)
     for id_ in INITIALLY_DISABLED_IDS:
         elements[id_].disabled = True
-    _install_pyodide_fakes(elements)
+    timers = FakeTimers()
+    _install_pyodide_fakes(elements, timers)
 
     spec = importlib.util.spec_from_file_location("game", GAME_PY)
     module = importlib.util.module_from_spec(spec)
     sys.modules["game"] = module
     spec.loader.exec_module(module)  # runs setup() at the bottom of game.py
 
-    yield GameEnv(module, elements)
+    yield GameEnv(module, elements, timers)
 
     _remove_pyodide_fakes()

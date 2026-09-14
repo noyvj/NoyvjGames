@@ -26,11 +26,23 @@
     <div class="game-toolbar">
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
+      <button id="achievements-toggle-button" class="secondary" type="button">Loading...</button>
+      <button id="report-card-toggle-button" class="secondary" type="button">Loading...</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
+    <div id="achievements-panel" class="section achievements-panel" hidden></div>
+    <div id="report-card-panel" class="section report-card-panel" hidden></div>
+
+    <div id="achievement-toast" class="achievement-toast" hidden>
+      <p id="achievement-toast-text"></p>
+    </div>
+    <div id="milestone-toast" class="milestone-toast" hidden>
+      <p id="milestone-toast-text"></p>
+    </div>
 
     <p class="tagline">Grow a farm. Herd size and methane emissions are coupled by default — decoupling them takes deliberate investment.</p>
     <p class="context-blurb">Methane is a far more potent greenhouse gas than CO2 over the short term — roughly 80x stronger over 20 years — which makes industrial agriculture's methane output an outsized lever for near-term warming, even though it fades from the atmosphere faster than CO2 does.</p>
+    <p id="community-stat-display" class="comparison-message community-stat" hidden></p>
 
     <div class="pasture-visual" aria-hidden="true">
       <div class="pasture-visual-sky"></div>
@@ -40,11 +52,11 @@
       <div class="pasture-visual-hill pasture-visual-hill--back"></div>
       <div class="pasture-visual-hill pasture-visual-hill--front"></div>
       <div class="pasture-visual-herd">
-        <div class="pasture-visual-cow pasture-visual-cow--a"><span class="pasture-visual-wisp"></span></div>
-        <div class="pasture-visual-cow pasture-visual-cow--b"></div>
-        <div class="pasture-visual-cow pasture-visual-cow--c"><span class="pasture-visual-wisp"></span></div>
-        <div class="pasture-visual-cow pasture-visual-cow--d"></div>
-        <div class="pasture-visual-cow pasture-visual-cow--e"></div>
+        <div id="pasture-cow-a" class="pasture-visual-cow pasture-visual-cow--a" hidden><span class="pasture-visual-wisp"></span></div>
+        <div id="pasture-cow-b" class="pasture-visual-cow pasture-visual-cow--b" hidden></div>
+        <div id="pasture-cow-c" class="pasture-visual-cow pasture-visual-cow--c" hidden><span class="pasture-visual-wisp"></span></div>
+        <div id="pasture-cow-d" class="pasture-visual-cow pasture-visual-cow--d" hidden></div>
+        <div id="pasture-cow-e" class="pasture-visual-cow pasture-visual-cow--e" hidden></div>
       </div>
     </div>
 
@@ -64,7 +76,11 @@
         </div>
       </div>
       <p id="coupling-gauge-label" class="comparison-message">Emissions per herd unit: 1.00 methane/round</p>
+      <p id="gauge-range-display" class="gauge-range-display">Session best: 1.00  |  Baseline: 1.00</p>
+      <p id="real-world-comparison-display" class="comparison-message">You've cut emissions intensity by 0% so far — real farms have documented a ~42% reduction through better practices.</p>
       <details class="info-toggle"><summary>i</summary><p>This tracks methane produced per herd unit, not your total emissions — it only falls when you invest in the decoupling measures below, not by shrinking your herd. Total accumulated methane keeps rising every round as long as you have any herd at all, even at the lowest possible ratio.</p></details>
+      <p class="meter-label">Methane over time</p>
+      <div id="methane-trend-graph" class="methane-trend-graph"></div>
     </div>
 
     <div id="status" class="section">
@@ -80,8 +96,19 @@
       <details class="info-toggle"><summary>i</summary><p>Score is not just your funds — it's funds minus your total accumulated methane multiplied by a fixed penalty weight. A big bank balance built on high, unchecked emissions can score lower than a smaller, cleaner farm.</p></details>
     </div>
 
+    <div id="baseline-farm-card" class="section baseline-farm-card">
+      <p class="meter-label">Baseline Farm — same herd size, no decoupling ever invested</p>
+      <p id="baseline-herd-display" class="status-line">Herd size: 0</p>
+      <p id="baseline-funds-display" class="status-line">Funds: 300</p>
+      <p id="baseline-methane-display" class="status-line">Methane: 0</p>
+      <p id="baseline-score-display" class="status-line">Score: 300</p>
+      <p id="counterfactual-comparison-display" class="comparison-message">Advance a round to see how your farm compares to a pure-growth baseline.</p>
+      <details class="info-toggle"><summary>i</summary><p>This tracks a second, imaginary farm that grew its herd exactly like yours but never invested a single unit in decoupling or the plant-based pivot — and never spent the funds on it either. It's the fairest "what if" comparison: same herd size, only the decoupling choices differ.</p></details>
+    </div>
+
     <div id="actions" class="section">
       <button id="grow-herd-button" class="secondary" disabled>Loading...</button>
+      <p id="grow-consequence-preview" class="grow-consequence-preview">Loading...</p>
     </div>
 
     <div id="decoupling" class="section">
@@ -112,6 +139,7 @@
         <span class="invest-count" id="plant-pivot-count">0</span>
         <button id="plant-pivot-invest-button" class="secondary" disabled>Loading...</button>
       </div>
+      <p id="combined-decoupling-display" class="comparison-message">Efficiency measures alone bring you to 1.00 methane/herd/round — the plant-based pivot isn't active yet.</p>
     </div>
 
     <button id="advance-round-button" class="primary">⏭️ Advance Round</button>
@@ -163,7 +191,7 @@
       {
         selector: "#decoupling",
         title: "Decoupling Investments",
-        text: "Feed Additives, Herd Caps, and Capture Systems all reduce your coupling ratio — same herd size, lower emissions per unit — and their effects stack. There's a floor, though: past a certain point, further investment stops helping.",
+        text: "Feed Additives, Herd Caps, and Capture Systems all reduce your coupling ratio — same herd size, lower emissions per unit — and their effects stack. There's a floor, though: past a certain point, further investment stops helping. Worked example: a herd of 10 at the 1.00 baseline ratio emits 10 methane/round. Five Capture Systems investments (10% reduction each) cut the ratio to 0.50, so that same 10-herd farm now emits only 5 methane/round — half the emissions, same herd size, same income per unit.",
       },
       {
         selector: "#plant-pivot",
@@ -190,8 +218,14 @@
       // ENGINE_MODULES loop.
       const infoPageSource = await (await fetch("../../shared/info_page.py")).text();
       pyodide.FS.writeFile("info_page.py", infoPageSource, { encoding: "utf8" });
-      const response = await fetch("game.py");
-      const code = await response.text();
+      // ACHIEVEMENTS-SYSTEM-DESIGN.md §2/§7: fetch achievements.json
+      // alongside game.py and hand it to Python as a window global before
+      // game.py runs, same convention as SOL/Grid/Canopy.
+      const [achievementsJson, code] = await Promise.all([
+        fetch("achievements.json").then((response) => response.text()),
+        fetch("game.py").then((response) => response.text()),
+      ]);
+      window.ACHIEVEMENTS_JSON = achievementsJson;
       await pyodide.runPythonAsync(code);
 
       if (window.GameTutorial) {
@@ -269,6 +303,41 @@
           submitButton.textContent = "Submit feedback";
         }
       });
+    })();
+  </script>
+  <!--
+    F18 (planning/TODO.md): an aggregate community stat pulled from the
+    existing ratings backend -- plain JS, not Pyodide/game.py, same
+    documented exception as the feedback-prompt script above (a trivial
+    GET against an endpoint that already exists, not game state, so no
+    Python/pytest coverage is needed). No backend changes: GET
+    /ratings/{game_slug} already returns every row for this game,
+    feedback-prompt rows included (each has a `response` string like
+    "yes" / "no — some comment"). Stays hidden until there's a real
+    sample size, rather than ever showing an alarming/uninformative 0%.
+  -->
+  <script>
+    (function () {
+      const RATINGS_API_BASE = "https://noyvjgames.fastapicloud.dev";
+      const MIN_SAMPLE_SIZE = 3;
+      const statEl = document.getElementById("community-stat-display");
+
+      fetch(`${RATINGS_API_BASE}/ratings/herd`)
+        .then((res) => (res.ok ? res.json() : []))
+        .then((ratings) => {
+          const responses = ratings
+            .map((r) => r.response)
+            .filter((r) => typeof r === "string" && r.length > 0);
+          if (responses.length < MIN_SAMPLE_SIZE) return;
+          const yesCount = responses.filter((r) => r.toLowerCase().startsWith("yes")).length;
+          const pct = Math.round((yesCount / responses.length) * 100);
+          statEl.textContent = `${pct}% of ${responses.length} surveyed players said Herd changed how they think about industrial agriculture & methane emissions.`;
+          statEl.hidden = false;
+        })
+        .catch(() => {
+          // Silent failure -- an optional community stat, never worth
+          // surfacing an error over.
+        });
     })();
   </script>
 </body>

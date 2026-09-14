@@ -17,6 +17,14 @@ def test_get_state_includes_every_expected_key(game_env):
         "methane",
         "decoupling_investment",
         "plant_pivot_investment",
+        "counterfactual_funds",
+        "counterfactual_methane",
+        "methane_history",
+        "max_pressure_fraction_seen",
+        "seen_half_decoupled_callout",
+        "seen_pressure_callout",
+        "seen_methane_penalty_nudge",
+        "achievements_earned",
     }
 
 
