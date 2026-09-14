@@ -24,7 +24,26 @@ REFUND_FRACTION = 0.5
 # Order matters for rendering — cheapest/dirtiest first, mirroring the
 # real-world build order the game wants players to eventually move away
 # from.
-PLANT_TYPES = ["coal", "gas", "nuclear", "solar", "wind", "hydro"]
+
+# C2 -- "battery" is a grid-storage tier, not a generation tier: it never
+# produces power of its own, so it's deliberately excluded from
+# GENERATION_TYPES below (total_capacity()/fossil_share()/the plant-mix
+# chart all stay generation-only) and from RENEWABLE_TYPES (it doesn't
+# offset emissions directly, so it must never count toward the
+# clean-capacity-share metric the achievements/callouts are built on --
+# that would let a player "go clean" by buying storage instead of
+# actually building clean generation, undermining the whole lesson).
+# Its mechanical role is scoped narrowly and directly to what real grid
+# storage actually does: buffer renewable intermittency -- see
+# GridState.effective_capacity_for_revenue()'s weather-variability
+# compensation. It deliberately does NOT dampen emissions-driven
+# disruption/brownout losses -- that's a different mechanic (grid
+# instability from a dirty fleet), and blunting it with a purchasable
+# item would dilute the emissions-disruption link Pass 3 confirmed is
+# this game's central lesson-carrying mechanism.
+PLANT_TYPES = ["coal", "gas", "nuclear", "solar", "wind", "hydro", "battery"]
+
+GENERATION_TYPES = tuple(t for t in PLANT_TYPES if t != "battery")
 
 PLANT_LABEL = {
     "coal": "Coal",
@@ -33,6 +52,7 @@ PLANT_LABEL = {
     "solar": "Solar",
     "wind": "Wind",
     "hydro": "Hydro",
+    "battery": "Battery Storage",
 }
 
 PLANT_ICON = {
@@ -42,10 +62,13 @@ PLANT_ICON = {
     "solar": "☀️",  # sun
     "wind": "\U0001F4A8",  # dash/wind
     "hydro": "\U0001F4A7",  # droplet
+    "battery": "\U0001F50B",  # battery
 }
 
 # Flat, un-degraded costs and generation capacity per unit. Renewable
 # cost decay off these base costs is applied by plant_cost() below.
+# Battery's "capacity" is storage-buffer capacity, not generation --
+# see effective_capacity_for_revenue().
 PLANT_BASE_COST = {
     "coal": 50,
     "gas": 40,
@@ -53,6 +76,7 @@ PLANT_BASE_COST = {
     "solar": 80,
     "wind": 70,
     "hydro": 150,
+    "battery": 120,
 }
 
 PLANT_CAPACITY = {
@@ -62,12 +86,14 @@ PLANT_CAPACITY = {
     "solar": 10,
     "wind": 12,
     "hydro": 40,
+    "battery": 15,
 }
 
 # Emissions produced per unit of capacity, per round, while that capacity
 # is part of the fleet. Nuclear counts as zero-emission but — realistically,
 # and per the plan's framing — isn't part of the renewable cost-curve
-# below; its cost stays flat.
+# below; its cost stays flat. Battery is also zero-emission (it stores,
+# doesn't generate).
 EMISSIONS_FACTOR = {
     "coal": 3.0,
     "gas": 1.5,
@@ -75,6 +101,7 @@ EMISSIONS_FACTOR = {
     "solar": 0.0,
     "wind": 0.0,
     "hydro": 0.0,
+    "battery": 0.0,
 }
 
 RENEWABLE_TYPES = {"solar", "wind", "hydro"}
@@ -234,7 +261,15 @@ class GridState:
         return base * multiplier
 
     def total_capacity(self):
-        return sum(self.plant_counts[t] * PLANT_CAPACITY[t] for t in PLANT_TYPES)
+        # Generation only -- battery is storage, not generation (see
+        # GENERATION_TYPES' comment above PLANT_TYPES).
+        return sum(self.plant_counts[t] * PLANT_CAPACITY[t] for t in GENERATION_TYPES)
+
+    def battery_capacity(self):
+        """C2: total storage-buffer capacity, in the same units as
+        PLANT_CAPACITY -- used only by effective_capacity_for_revenue()'s
+        weather-variability compensation, never counted as generation."""
+        return self.plant_counts["battery"] * PLANT_CAPACITY["battery"]
 
     def fossil_capacity(self):
         return sum(self.plant_counts[t] * PLANT_CAPACITY[t] for t in ("coal", "gas"))
@@ -376,20 +411,38 @@ class GridState:
         total_capacity() unless weather_variability_enabled, in which case
         each renewable type's contribution is scaled by an independent
         random factor in [1 - WEATHER_VARIANCE_FRACTION, 1 +
-        WEATHER_VARIANCE_FRACTION] (fossil/nuclear/battery are dispatchable
-        and unaffected). Never mutates total_capacity()'s own inputs --
-        this is purely how much of the installed fleet actually generated
-        this round, not a change to what's installed."""
+        WEATHER_VARIANCE_FRACTION] (fossil/nuclear are dispatchable and
+        unaffected). Never mutates total_capacity()'s own inputs -- this is
+        purely how much of the installed fleet actually generated this
+        round, not a change to what's installed.
+
+        C2: battery buffer capacity compensates for a *shortfall* below
+        renewables' combined nameplate (a bad-weather round), up to the
+        battery fleet's own capacity -- this is the one place battery
+        capacity ever contributes to revenue, and only when there's
+        something to buffer against. It never adds capacity beyond
+        covering that shortfall (no free generation), and never touches
+        the emissions-driven disruption/brownout math at all (see
+        PLANT_TYPES' comment on why that's a deliberately separate axis).
+        """
         if not self.weather_variability_enabled:
             return self.total_capacity()
-        total = 0.0
-        for plant_type in PLANT_TYPES:
+
+        dispatchable_total = 0.0
+        renewable_nameplate = 0.0
+        renewable_actual = 0.0
+        for plant_type in GENERATION_TYPES:
             capacity = self.plant_counts[plant_type] * PLANT_CAPACITY[plant_type]
             if plant_type in RENEWABLE_TYPES:
+                renewable_nameplate += capacity
                 factor = 1 + (weather_rng() * 2 - 1) * WEATHER_VARIANCE_FRACTION
-                capacity *= max(0.0, factor)
-            total += capacity
-        return total
+                renewable_actual += capacity * max(0.0, factor)
+            else:
+                dispatchable_total += capacity
+
+        shortfall = max(0.0, renewable_nameplate - renewable_actual)
+        compensation = min(self.battery_capacity(), shortfall)
+        return dispatchable_total + renewable_actual + compensation
 
     def primary_emissions_source(self):
         """C3: which standing fossil type is most responsible for this
@@ -1084,7 +1137,11 @@ def render():
         maintain_button.innerText = f"Maintain ({maintenance_cost:.0f})"
         maintain_button.disabled = count <= 0 or state.funds < maintenance_cost
 
-        # C7: plant-mix bar chart -- composition of total capacity by type.
+    # C7: plant-mix bar chart -- composition of *generation* capacity by
+    # type. Battery has no row here (see GENERATION_TYPES' comment) --
+    # it's storage, not part of "what's generating," so it has no
+    # meaningful share of a generation-mix chart.
+    for plant_type in GENERATION_TYPES:
         mix_pct = state.capacity_share(plant_type) * 100
         document.getElementById(f"{plant_type}-mix-bar").style.width = f"{mix_pct:.0f}%"
         document.getElementById(f"{plant_type}-mix-pct").innerText = f"{mix_pct:.0f}%"
