@@ -176,6 +176,7 @@ const GAMES_WITH_ACHIEVEMENTS = {
   continuum: "games/continuum/achievements.json",
   canopy: "games/canopy/achievements.json",
   grid: "games/grid/achievements.json",
+  "trade-empire": "games/trade-empire/achievements.json",
 };
 
 // Display label only — falls back to the raw game_id for a game added here
@@ -185,6 +186,7 @@ const GAME_DISPLAY_NAMES = {
   continuum: "Continuum",
   canopy: "Canopy",
   grid: "Grid",
+  "trade-empire": "Trade Empire",
 };
 
 const accountAchievementsDashboard = document.getElementById("account-achievements-dashboard");
