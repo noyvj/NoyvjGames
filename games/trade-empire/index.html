@@ -7,18 +7,16 @@
 <link rel="icon" href="../../icons/icon-192.png">
 <link rel="stylesheet" href="../../shared/space-bg.css">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../../ad-bar.css">
+<link rel="manifest" href="../../manifest.json">
 <script src="../../shared/tutorial.js"></script>
 <script src="../../shared/mobile-hud.js"></script>
 <script src="../../shared/mobile-dock.js"></script>
+<!-- AdSense: placeholder client ID until application is approved -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
 <body>
-  <!-- REVIEW(patterns): no shared/save-widget.js integration, no
-       window.pyodide exposure, no module-level get_state()/load_state() in
-       game.py — diverges from every other hub-linked game (including
-       Continuum, which is also "not yet hub-linked" but still fully
-       implements the widget contract). Not documented in CLAUDE.md as a
-       deliberate exception, just absent. -->
   <div class="space-bg" aria-hidden="true"><div class="space-bg-nebula"></div><div class="space-bg-stars-bright"></div></div>
   <div id="game">
     <a href="../../index.html" class="hub-back-link">&larr; All games</a>
@@ -335,6 +333,17 @@
     </div>
   </div>
 
+  <div class="ad-bar ad-bar--bottom">
+    <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>
+    <span class="ad-bar-label ad-bar-label-short">Ad</span>
+    <!-- Google AdSense manual display ad unit -->
+    <ins class="adsbygoogle"
+         style="display:block; width:320px; height:50px;"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="XXXXXXXXXX"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
   <script>
     const TRADE_EMPIRE_TUTORIAL_STEPS = [
       {
@@ -399,6 +408,7 @@
 
     async function main() {
       const pyodide = await loadPyodide();
+      window.pyodide = pyodide; // exposed for the save/load bridge below
       const response = await fetch("game.py");
       const code = await response.text();
       await pyodide.runPythonAsync(code);
@@ -417,6 +427,18 @@
       }
     }
     main();
+  </script>
+  <!--
+    SAVE-BUTTON-INTEGRATION.md: game.py exposes get_state()/load_state()
+    per the shared contract; the widget itself is untouched per-game, same
+    reference integration pattern as SOL/Canopy.
+  -->
+  <script src="../../shared/hub-auth.js"></script>
+  <script src="../../shared/save-widget.js" data-game-id="trade-empire"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../../sw.js");
+    }
   </script>
 </body>
 </html>

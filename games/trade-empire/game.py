@@ -973,6 +973,113 @@ def tick(event=None):
     render()
 
 
+# ===========================================================================
+# Save widget contract (planning/SAVE-BUTTON-INTEGRATION.md) — the shared
+# shared/save-widget.js drop-in calls these two functions directly via
+# Pyodide globals; nothing here needs to be wired to a button. get_state()
+# returns a plain, JSON-serialisable dict of everything that makes a
+# session distinct (ships, colonies, market, research, fleet priority,
+# endgame progress); load_state() is its exact inverse, restoring onto the
+# live module state field-by-field with a fallback to whatever's already
+# live for any key an older/newer save doesn't carry — the same
+# forward/backward-compatibility discipline every other game on the hub
+# uses (see BCM114-DEV-LOG.md's 2026-09-02 entries for why bare `data[key]`
+# indexing is the wrong default here).
+# ===========================================================================
+
+
+def get_state():
+    return {
+        "ships": {
+            ship_id: {
+                "location": ship.location,
+                "origin": ship.origin,
+                "destination": ship.destination,
+                "cargo_good": ship.cargo_good,
+                "cargo_qty": ship.cargo_qty,
+                "transit_ticks_remaining": ship.transit_ticks_remaining,
+                "transit_total_ticks": ship.transit_total_ticks,
+                "automated": ship.automated,
+            }
+            for ship_id, ship in ships.items()
+        },
+        "total_profit": total_profit,
+        "sale_log": list(sale_log),
+        "market_multiplier": dict(market_multiplier),
+        "colony_states": {
+            colony_id: {
+                "need_satisfaction": state.need_satisfaction,
+                "development_level": state.development_level,
+                "cumulative_delivered": state.cumulative_delivered,
+                "secondary_need_satisfaction": state.secondary_need_satisfaction,
+            }
+            for colony_id, state in colony_states.items()
+        },
+        "research_points": research_points,
+        "unlocked_research": sorted(unlocked_research),
+        "fleet_priority_enabled": fleet_priority_enabled,
+        "endgame_reached": endgame_reached,
+        "ticks_since_endgame": ticks_since_endgame,
+    }
+
+
+def load_state(data):
+    """Exact inverse of get_state(). Colony state for the Kepler Cluster
+    is (re)created here if the save has galaxy_expansion unlocked but the
+    live module hasn't gotten there yet — mirroring what unlock_research()
+    itself does — so a save loaded fresh into a brand-new session doesn't
+    leave Fleet Priority's most_urgent_colony() unable to see colonies the
+    save says should exist."""
+    global total_profit, sale_log, research_points, unlocked_research
+    global fleet_priority_enabled, endgame_reached, ticks_since_endgame
+
+    unlocked_research = set(data.get("unlocked_research", unlocked_research))
+
+    if galaxy_expansion_unlocked():
+        for colony_id in EXPANSION_COLONIES:
+            if colony_id not in colony_states:
+                colony_states[colony_id] = ColonyState(colony_id)
+
+    saved_colony_states = data.get("colony_states", {})
+    for colony_id, state in colony_states.items():
+        saved = saved_colony_states.get(colony_id)
+        if not saved:
+            continue
+        state.need_satisfaction = saved.get("need_satisfaction", state.need_satisfaction)
+        state.development_level = saved.get("development_level", state.development_level)
+        state.cumulative_delivered = saved.get("cumulative_delivered", state.cumulative_delivered)
+        state.secondary_need_satisfaction = saved.get(
+            "secondary_need_satisfaction", state.secondary_need_satisfaction
+        )
+
+    saved_ships = data.get("ships", {})
+    for ship_id, ship in ships.items():
+        saved = saved_ships.get(ship_id)
+        if not saved:
+            continue
+        ship.location = saved.get("location", ship.location)
+        ship.origin = saved.get("origin", ship.origin)
+        ship.destination = saved.get("destination", ship.destination)
+        ship.cargo_good = saved.get("cargo_good", ship.cargo_good)
+        ship.cargo_qty = saved.get("cargo_qty", ship.cargo_qty)
+        ship.transit_ticks_remaining = saved.get(
+            "transit_ticks_remaining", ship.transit_ticks_remaining
+        )
+        ship.transit_total_ticks = saved.get("transit_total_ticks", ship.transit_total_ticks)
+        ship.automated = saved.get("automated", ship.automated)
+
+    market_multiplier.update(data.get("market_multiplier", {}))
+    total_profit = data.get("total_profit", total_profit)
+    sale_log = list(data.get("sale_log", sale_log))
+    research_points = data.get("research_points", research_points)
+    fleet_priority_enabled = data.get("fleet_priority_enabled", fleet_priority_enabled)
+    endgame_reached = data.get("endgame_reached", endgame_reached)
+    ticks_since_endgame = data.get("ticks_since_endgame", ticks_since_endgame)
+
+    render()
+    return True
+
+
 def setup():
     for colony_id, colony in ALL_COLONIES.items():
         document.getElementById(f"colony-{colony_id}-name").innerText = colony["name"]
