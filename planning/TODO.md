@@ -31,7 +31,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [ ] Tide
 - [ ] Aftermath
 - [x] Herd — 18 achievements + panel + unlock toast + hub-dashboard link.
-- [ ] Thaw
+- [x] Thaw — 18 achievements + panel + unlock toast + hub-dashboard link.
 - [ ] Loop
 - [x] Drift — 18 achievements + panel + unlock toast + hub-dashboard link.
 - [ ] Trade Empire
@@ -304,24 +304,24 @@ Two things every game needs once achievements land there, on top of the base rol
 
 *(G7, G8 marked "later" — moved to `LATER.md`.)*
 
-- [ ] G1: Give Region B/C the same richer readouts Region A has.
-- [ ] G2: An explicit end-of-session "which region did best" line.
-- [ ] G3: A distinct "critical" visual/color state beyond binary melting/stable.
-- [ ] G4: Let players optionally label Region B/C's intended strategy.
-- [ ] G5: A real-world time calibration line for the background rise rate.
-- [ ] G6: A `temperature_saved`-style stat for the secondary regions too.
-- [ ] G9: A clarifying line (or rescale) for the maxed-out +30° temperature meter.
-- [ ] G10: A milestone callout the first time dampening measurably delays a melt threshold.
-- [ ] G11: Optional preset strategies for Region B/C.
-- [ ] G12: A small inline forecast on the invest buttons before clicking.
-- [ ] G13: A fourth, optional AI-driven "worst case" region.
-- [ ] G14: A gridline at the melt threshold on the mini graphs.
-- [ ] G15: Log the best-outcome strategy as an aggregate stat via the ratings backend.
-- [ ] G16: A one-line flavor difference per region.
-- [ ] G17: A "next round preview" tooltip on Advance Round.
-- [ ] G18: Vary the intervention-feedback message by dampening magnitude.
-- [ ] G19: A locally-stored "best run" stat.
-- [ ] G20: An optional free-text field for "did intervention feel like it was working?"
+- [x] G1: Give Region B/C the same richer readouts Region A has.
+- [x] G2: An explicit end-of-session "which region did best" line.
+- [x] G3: A distinct "critical" visual/color state beyond binary melting/stable.
+- [x] G4: Let players optionally label Region B/C's intended strategy.
+- [x] G5: A real-world time calibration line for the background rise rate.
+- [x] G6: A `temperature_saved`-style stat for the secondary regions too.
+- [x] G9: A clarifying line (or rescale) for the maxed-out +30° temperature meter.
+- [x] G10: A milestone callout the first time dampening measurably delays a melt threshold.
+- [x] G11: Optional preset strategies for Region B/C.
+- [x] G12: A small inline forecast on the invest buttons before clicking.
+- [x] G13: A fourth, optional AI-driven "worst case" region.
+- [x] G14: A gridline at the melt threshold on the mini graphs.
+- [x] G15: Log the best-outcome strategy as an aggregate stat via the ratings backend.
+- [x] G16: A one-line flavor difference per region.
+- [x] G17: A "next round preview" tooltip on Advance Round.
+- [x] G18: Vary the intervention-feedback message by dampening magnitude.
+- [x] G19: A locally-stored "best run" stat.
+- [x] G20: An optional free-text field for "did intervention feel like it was working?"
 
 ---
 
