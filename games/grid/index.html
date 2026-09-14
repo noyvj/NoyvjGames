@@ -12,6 +12,7 @@
 <link rel="manifest" href="../../manifest.json">
 <script src="../../shared/tutorial.js"></script>
 <script src="../../shared/mobile-hud.js"></script>
+<script src="../../shared/mobile-dock.js"></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -283,6 +284,19 @@
           { selector: "#demand-display", label: "Demand" },
           { selector: "#emissions-display", label: "Emissions" },
         ]);
+      }
+      if (window.MobileDock) {
+        // TODO.md's "finish the mobile-dock rollout" goal labels this
+        // "Grid — plant-build action row", but Grid's six plant rows
+        // already keep their own Build/Retire/Maintain buttons inline
+        // (unlike Canopy's #plot-grid/#action-panel split, there's no
+        // far-apart selection-vs-action gap within a row). The real
+        // equivalent friction here is the single action every round of
+        // building funnels toward -- Advance Round -- sitting at the very
+        // bottom of a long page (status panel + trend graph + six plant
+        // rows). Docking it mirrors Canopy/Trade Empire's exact pattern
+        // (act on your build without scrolling back to the bottom).
+        MobileDock.init("#advance-round-button");
       }
     }
     main();
