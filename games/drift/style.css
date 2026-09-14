@@ -692,6 +692,26 @@ button.primary:active {
 .wellbeing-gauge .meter {
   width: 100%;
   margin-bottom: 0;
+  position: relative;
+}
+
+/* I14 -- a target marker at the "thriving" threshold (70) on each of the
+   three wellbeing gauges, so the player can see at a glance how far a
+   given sub-score is from that band rather than only reading the number.
+   A thin vertical line + small flag, positioned independent of the fill
+   bar underneath it. THRIVING_WELLBEING_SCORE in game.py is 70 -- kept in
+   sync here as a plain CSS percentage since this marker is decorative
+   positioning, not game state. */
+.wellbeing-gauge .meter::after {
+  content: "";
+  position: absolute;
+  left: 70%;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.4);
+  pointer-events: none;
 }
 
 /* --- Capacity investment tiles: an icon medallion beside each row
@@ -827,6 +847,61 @@ button.secondary:disabled::after,
 button.primary:disabled::after {
   background: #3f4658;
   box-shadow: none;
+}
+
+/* I1 -- a small two-line strain/wellbeing trend graph, same rendering
+   approach and visual language as Grid's own trend graph. */
+.trend-graph {
+  margin-top: 0.6rem;
+}
+
+.trend-graph-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.trend-line {
+  fill: none;
+  stroke-width: 2;
+}
+
+.trend-line--strain {
+  stroke: #e0674c;
+}
+
+.trend-line--wellbeing {
+  stroke: #4c9c6e;
+}
+
+.trend-point {
+  fill-opacity: 0.55;
+  stroke: none;
+  cursor: pointer;
+  transition: r 0.1s ease, fill-opacity 0.1s ease;
+}
+
+.trend-point:hover {
+  r: 5;
+  fill-opacity: 1;
+}
+
+.trend-point--strain {
+  fill: #e0674c;
+}
+
+.trend-point--wellbeing {
+  fill: #4c9c6e;
+}
+
+.trend-graph-message {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-top: 0.3rem;
+}
+
+.trend-graph-message::before {
+  content: "📈 ";
 }
 
 /* ============================================================

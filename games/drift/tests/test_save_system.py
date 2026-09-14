@@ -17,6 +17,7 @@ ALL_STATE_KEYS = {
     "total_arrivals",
     "arrivals_log",
     "strain_log",
+    "wellbeing_log",
     "integrated_population",
     "cumulative_services_investment",
     "cumulative_integration_contribution",

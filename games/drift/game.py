@@ -119,6 +119,12 @@ class RegionState:
         self.total_arrivals = 0.0
         self.arrivals_log = []
         self.strain_log = []
+        # I1: per-round wellbeing history for the trend graph, logged the
+        # same way strain_log/arrivals_log already are -- wellbeing_score()
+        # depends on cumulative funds/integration paths, not just the
+        # current snapshot, so a past round's value can't be recomputed
+        # after the fact and has to be recorded when it happens.
+        self.wellbeing_log = []
         self.integrated_population = 0.0
         # Iteration Pass 3 — turning-point tracking: cumulative funds
         # integrated arrivals have contributed back, vs. cumulative funds
@@ -326,9 +332,75 @@ class RegionState:
         if self.thriving_round is None and self.wellbeing_score() >= THRIVING_WELLBEING_SCORE:
             self.thriving_round = completed_round
 
+        # I1: logged last, once every other round-end value is final.
+        self.wellbeing_log.append(self.wellbeing_score())
+
 
 region = RegionState()
 coda_visible = False
+
+
+# I1: a small two-line strain/wellbeing trend graph, same rendering
+# approach as Grid's own trend_graph_svg -- an HTML string built in
+# Python and assigned via .innerHTML, no createElementNS/DOM-building
+# needed for an SVG.
+TREND_GRAPH_WIDTH = 280
+TREND_GRAPH_HEIGHT = 70
+
+
+def _normalize_series(series, height, lo=None, hi=None):
+    """Maps a series of values to y-coordinates in [0, height], flipped so
+    a higher value draws higher on the graph. An explicit lo/hi lets a
+    series be normalized against a fixed scale (0-100 for wellbeing/
+    strain-as-percent) rather than its own min/max, so the line's shape
+    reads on an absolute scale round to round rather than always filling
+    the full height."""
+    if lo is None:
+        lo = min(series)
+    if hi is None:
+        hi = max(series)
+    if hi - lo < 1e-9:
+        return [height / 2 for _ in series]
+    return [height - ((v - lo) / (hi - lo)) * height for v in series]
+
+
+def trend_graph_svg(strain_history, wellbeing_history):
+    """Two-line trend graph: strain (0-100%, rising is worse) vs.
+    composite wellbeing (0-100, rising is better) — both already on a
+    0-100 scale, so they're normalized against that fixed range rather
+    than each other's min/max, keeping round-to-round shape meaningful
+    rather than always stretched to fill the graph."""
+    if len(strain_history) < 2:
+        return ""
+
+    n = len(strain_history)
+    xs = [i * (TREND_GRAPH_WIDTH / (n - 1)) for i in range(n)]
+    strain_pct = [s * 100 for s in strain_history]
+    strain_ys = _normalize_series(strain_pct, TREND_GRAPH_HEIGHT, 0, 100)
+    wellbeing_ys = _normalize_series(wellbeing_history, TREND_GRAPH_HEIGHT, 0, 100)
+
+    strain_points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, strain_ys))
+    wellbeing_points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, wellbeing_ys))
+
+    def _markers(ys, values, css_class, label):
+        return "".join(
+            f'<circle cx="{x:.1f}" cy="{y:.1f}" r="3" class="trend-point {css_class}">'
+            f"<title>Round {i + 1} -- {label}: {v:.0f}</title>"
+            f"</circle>"
+            for i, (x, y, v) in enumerate(zip(xs, ys, values))
+        )
+
+    markers = _markers(strain_ys, strain_pct, "trend-point--strain", "Strain") + _markers(
+        wellbeing_ys, wellbeing_history, "trend-point--wellbeing", "Wellbeing"
+    )
+
+    return (
+        f'<svg viewBox="0 0 {TREND_GRAPH_WIDTH} {TREND_GRAPH_HEIGHT}" class="trend-graph-svg">'
+        f'<polyline points="{strain_points}" class="trend-line trend-line--strain" />'
+        f'<polyline points="{wellbeing_points}" class="trend-line trend-line--wellbeing" />'
+        f"{markers}"
+        f"</svg>"
+    )
 
 
 def wellbeing_message(score):
@@ -801,6 +873,13 @@ def render():
     )
     document.getElementById("checkpoint-display").innerText = checkpoint_message(region)
 
+    # I1: strain/wellbeing trend graph.
+    trend_svg = trend_graph_svg(region.strain_log, region.wellbeing_log)
+    document.getElementById("trend-graph").innerHTML = trend_svg
+    document.getElementById("trend-graph-message").innerText = (
+        "" if trend_svg else "Not enough rounds yet to show a trend."
+    )
+
     coda_button = document.getElementById("coda-button")
     coda_button.hidden = not region.has_long_horizon_story()
     coda_button.innerText = "Hide Long-Horizon Outcomes" if coda_visible else "View Long-Horizon Outcomes"
@@ -899,6 +978,7 @@ def get_state():
         "total_arrivals": region.total_arrivals,
         "arrivals_log": copy.deepcopy(region.arrivals_log),
         "strain_log": copy.deepcopy(region.strain_log),
+        "wellbeing_log": copy.deepcopy(region.wellbeing_log),
         "integrated_population": region.integrated_population,
         "cumulative_services_investment": region.cumulative_services_investment,
         "cumulative_integration_contribution": region.cumulative_integration_contribution,
@@ -936,6 +1016,9 @@ def load_state(data):
     saved_strain_log = data.get("strain_log")
     if isinstance(saved_strain_log, list):
         region.strain_log = copy.deepcopy(saved_strain_log)
+    saved_wellbeing_log = data.get("wellbeing_log")
+    if isinstance(saved_wellbeing_log, list):
+        region.wellbeing_log = copy.deepcopy(saved_wellbeing_log)
     region.integrated_population = data.get("integrated_population", region.integrated_population)
     region.cumulative_services_investment = data.get(
         "cumulative_services_investment", region.cumulative_services_investment

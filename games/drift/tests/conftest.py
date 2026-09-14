@@ -37,6 +37,8 @@ ELEMENT_IDS = [
     "wellbeing-display",
     "wellbeing-message-display",
     "checkpoint-display",
+    "trend-graph",
+    "trend-graph-message",
     "housing-name",
     "housing-count",
     "housing-invest-button",

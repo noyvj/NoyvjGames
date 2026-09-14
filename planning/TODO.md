@@ -355,7 +355,7 @@ Two things every game needs once achievements land there, on top of the base rol
 
 *(I4 marked "maybe" — moved to `LATER.md`.)*
 
-- [ ] I1: A mini strain/wellbeing trend graph.
+- [x] I1: A mini strain/wellbeing trend graph.
 - [ ] I2: Scale the region skyline's building count/height with real capacity.
 - [ ] I3: An explicit in-play comparison to the Uganda policy model.
 - [ ] I5: A one-time callout at the "thriving" wellbeing band (≥70).
@@ -367,7 +367,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [ ] I11: A periodic (e.g. every 20 rounds) session-milestone summary.
 - [ ] I12: Have the checkpoint message occasionally note a comfortably-ahead dimension too.
 - [ ] I13: A difficulty-variant toggle (accelerated background severity).
-- [ ] I14: A "target" marker (e.g. 70) on each wellbeing gauge bar.
+- [x] I14: A "target" marker (e.g. 70) on each wellbeing gauge bar.
 - [ ] I15: A highlight/pulse on the coda button the moment it first becomes available.
 - [ ] I16: Tie the arrival-dot stream's density/speed to real arrivals-per-round.
 - [ ] I17: A passive "unmanaged control region" for contrast.
