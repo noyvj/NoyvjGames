@@ -489,6 +489,19 @@ button.secondary:disabled {
   content: "🦋 ";
 }
 
+/* B14: a per-browser personal-best stat line (localStorage-backed, see
+   load_personal_best()/_maybe_update_personal_best() in game.py). */
+.personal-best-display {
+  margin: 0.6rem 0 0;
+  font-size: 0.78rem;
+  opacity: 0.7;
+  font-style: italic;
+}
+
+#personal-best-display::before {
+  content: "🏅 ";
+}
+
 #comparison-message::before {
   content: "📊 ";
 }

@@ -190,7 +190,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [ ] B11: Diversify stakeholder requests to sometimes offer a positive trade-off.
 - [x] B12: A visible badge for a pending stakeholder request when scrolled away.
 - [ ] B13: A larger-grid option as a difficulty/length variant.
-- [ ] B14: A persisted "personal best" stat across sessions.
+- [x] B14: A persisted "personal best" stat across sessions. (Per-browser, via `localStorage` — deliberately independent of the save-code system; see `games/canopy/game.py`'s `load_personal_best()`/`_maybe_update_personal_best()`.)
 - [x] B16: Keyboard navigation for plot selection/action.
 - [x] B17: A floating "+X value" animation on compounding ticks.
 - [ ] B18: A shareable end-of-session code/snippet.

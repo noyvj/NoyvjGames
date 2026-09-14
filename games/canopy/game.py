@@ -494,6 +494,104 @@ def render_panel():
     replant_button.disabled = "replant" not in VALID_ACTIONS[plot.state]
 
 
+# B14 (planning/TODO.md "Per-game: Canopy"): a per-browser "personal
+# best" for both of the game's own two axes (standing value, harvested
+# income), persisted via localStorage. Deliberately NOT part of
+# get_state()/the save-code system -- this tracks the best this *browser*
+# has ever seen across every session/save on this device, not one save's
+# snapshot, the same distinction B14's other quartet-game equivalents
+# (Tide's D13, Thaw's G19) draw.
+PERSONAL_BEST_STORAGE_KEY = "canopy_personal_best_v1"
+
+
+def _read_local_storage_item(key):
+    """Lazy `import js` (same convention as _read_achievements_json()) so
+    this file stays importable outside a real browser. Broad except on
+    the actual read/write below is deliberate: a real browser can refuse
+    localStorage access entirely (private-browsing mode in some
+    browsers), surfaced as a JS exception with no stable Python type to
+    catch narrowly -- this feature is a nice-to-have, not core gameplay,
+    so it degrades to "no personal best recorded" rather than crashing
+    the module import the way _read_achievements_json()'s own docstring
+    describes for that feature."""
+    try:
+        import js  # noqa: PLC0415 — Pyodide-only import, deliberately lazy
+    except ImportError:
+        return None
+    storage = getattr(js, "localStorage", None)
+    if storage is None:
+        return None
+    try:
+        return storage.getItem(key)
+    except Exception:  # noqa: BLE001 — see docstring above
+        return None
+
+
+def _write_local_storage_item(key, value):
+    try:
+        import js  # noqa: PLC0415
+    except ImportError:
+        return
+    storage = getattr(js, "localStorage", None)
+    if storage is None:
+        return
+    try:
+        storage.setItem(key, value)
+    except Exception:  # noqa: BLE001 — see _read_local_storage_item's docstring
+        pass
+
+
+def load_personal_best():
+    """Reads the stored best (standing_value, income) pair, defaulting to
+    zeros if nothing is stored yet, storage is unavailable, or the stored
+    value is malformed (e.g. hand-edited or from a future incompatible
+    format)."""
+    raw = _read_local_storage_item(PERSONAL_BEST_STORAGE_KEY)
+    if not raw:
+        return {"standing_value": 0.0, "income": 0.0}
+    try:
+        data = json.loads(raw)
+        return {
+            "standing_value": float(data.get("standing_value", 0.0)),
+            "income": float(data.get("income", 0.0)),
+        }
+    except (ValueError, TypeError, AttributeError):
+        return {"standing_value": 0.0, "income": 0.0}
+
+
+personal_best = load_personal_best()
+
+
+def _maybe_update_personal_best():
+    """Called every render(); bumps + persists personal_best whenever the
+    live session exceeds it on either axis. Two independent bests, not
+    one combined score -- income vs. standing value is the game's own
+    central two-axis comparison, and collapsing them into one number
+    would lose exactly the distinction the rest of the game is built
+    around."""
+    global personal_best
+    standing_value = standing_forest_value()
+    changed = False
+    if standing_value > personal_best["standing_value"]:
+        personal_best["standing_value"] = standing_value
+        changed = True
+    if total_income > personal_best["income"]:
+        personal_best["income"] = total_income
+        changed = True
+    if changed:
+        _write_local_storage_item(PERSONAL_BEST_STORAGE_KEY, json.dumps(personal_best))
+
+
+def render_personal_best():
+    element = document.getElementById("personal-best-display")
+    if element is None:
+        return
+    element.innerText = (
+        f"Personal best: standing {personal_best['standing_value']:.1f} "
+        f"· income {personal_best['income']:.1f}"
+    )
+
+
 def standing_forest_value():
     """Live sum of standing value across every plot — only PRESERVED and
     RECOVERED plots hold nonzero value at any given moment."""
@@ -552,6 +650,8 @@ def render_stats():
     document.getElementById("community-relations-display").innerText = (
         f"Community relations: {community_relations}/100"
     )
+    _maybe_update_personal_best()
+    render_personal_best()
 
 
 def render_stakeholder_panel():
