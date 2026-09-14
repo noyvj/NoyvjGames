@@ -230,3 +230,41 @@ def test_mars_terraform_status_independent_message(game_env):
     game_env.mars["ecology_health"] = 100.0
     game_env.module.update_terraform_display("Mars")
     assert "generator or Recycler" in game_env.elements["mars-terraform-status"].innerText
+
+
+# --- A15: visual terraforming feedback -- a color-tier class on the
+# planet's own visual container as terraform_progress climbs -------------
+
+def test_planet_visual_starts_at_tier_zero(game_env):
+    visual = game_env.elements["planet-visual"]
+    assert visual.classList.contains("terraform-tier-0")
+    assert not visual.classList.contains("terraform-tier-4")
+
+
+def test_planet_visual_advances_tiers_as_progress_climbs(game_env):
+    visual = game_env.elements["planet-visual"]
+
+    game_env.earth["terraform_progress"] = 26.0
+    game_env.module.update_terraform_display("Earth")
+    assert visual.classList.contains("terraform-tier-1")
+    assert not visual.classList.contains("terraform-tier-0")
+
+    game_env.earth["terraform_progress"] = 99.0
+    game_env.module.update_terraform_display("Earth")
+    assert visual.classList.contains("terraform-tier-3")
+
+
+def test_planet_visual_reaches_max_tier_at_full_terraform(game_env):
+    visual = game_env.elements["planet-visual"]
+    game_env.earth["terraform_progress"] = 100.0
+    game_env.module.update_terraform_display("Earth")
+    assert visual.classList.contains("terraform-tier-4")
+    for tier in range(4):
+        assert not visual.classList.contains(f"terraform-tier-{tier}")
+
+
+def test_planet_visual_tier_tracks_other_planets_independently(game_env):
+    game_env.mars["terraform_progress"] = 100.0
+    game_env.module.update_terraform_display("Mars")
+    assert game_env.elements["mars-planet-visual"].classList.contains("terraform-tier-4")
+    assert game_env.elements["planet-visual"].classList.contains("terraform-tier-0")
