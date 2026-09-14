@@ -205,23 +205,23 @@ Two things every game needs once achievements land there, on top of the base rol
 *(C6 marked "later" with no further comment — moved to `LATER.md` as-is.)*
 
 - [x] C1 — folded into the mobile-dock rollout goal above.
-- [ ] C2: A battery/grid-storage plant tier.
-- [ ] C3: Attach disruption-event log lines to the specific plant/type that failed.
-- [ ] C4: Weather-variability-on-renewables as an opt-in hard mode.
+- [x] C2: A battery/grid-storage plant tier. Storage-only (excluded from generation/renewable-share metrics); its one mechanical effect is buffering a renewable shortfall when Weather Variability (C4) is on.
+- [x] C3: Attach disruption-event log lines to the specific plant/type that failed.
+- [x] C4: Weather-variability-on-renewables as an opt-in hard mode.
 - [ ] C5: A proper end-of-run summary screen with a score breakdown.
-- [ ] C7: A plant-mix bar chart.
-- [ ] C8: A tipping-point callout at 50% cumulative renewable capacity.
+- [x] C7: A plant-mix bar chart. Generation-only — battery (C2) has no row.
+- [x] C8: A tipping-point callout at 50% cumulative renewable capacity.
 - [ ] C9: Confirmation before retiring the last unit of a plant type — folded into the shared confirmation-dialog goal above.
-- [ ] C10: Show the exact aging/wear percentage.
+- [x] C10: Show the exact aging/wear percentage.
 - [ ] C11: The aggregate clean-score-across-players comparison Pass 2 floated but never built.
-- [ ] C12: A visible toast/banner for disruption events.
-- [ ] C13: A funds breakdown (build vs. maintenance vs. disruption-damage).
+- [x] C12: A visible toast/banner for disruption events.
+- [x] C13: A funds breakdown (build vs. maintenance vs. disruption-damage).
 - [ ] C15: An interactive trend graph (hover for exact values).
-- [ ] C16: A "steeper demand growth" difficulty variant.
+- [x] C16: A "steeper demand growth" difficulty variant.
 - [ ] C17: A closing "grid vs. business-as-usual" counterfactual.
 - [ ] C18: Colorblind-safe trend-graph line differentiation — fold into the site-wide colorblind audit.
-- [ ] C19: A breakdown-risk badge once a plant type's average age crosses a threshold.
-- [ ] C20: A one-time first-use callout for Retire's refund / Maintain's cost math.
+- [x] C19: A breakdown-risk badge once a plant type's average age crosses a threshold.
+- [x] C20: A one-time first-use callout for Retire's refund / Maintain's cost math.
 
 ---
 
