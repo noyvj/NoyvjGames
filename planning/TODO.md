@@ -368,7 +368,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] I12: Have the checkpoint message occasionally note a comfortably-ahead dimension too.
 - [x] I13: A difficulty-variant toggle (accelerated background severity).
 - [x] I14: A "target" marker (e.g. 70) on each wellbeing gauge bar.
-- [ ] I15: A highlight/pulse on the coda button the moment it first becomes available.
+- [x] I15: A highlight/pulse on the coda button the moment it first becomes available.
 - [ ] I16: Tie the arrival-dot stream's density/speed to real arrivals-per-round.
 - [ ] I17: A passive "unmanaged control region" for contrast.
 - [ ] I18: A free-text field inviting tone/framing concerns in the feedback prompt.

@@ -179,6 +179,28 @@ h1 {
   box-shadow: 0 0 10px rgba(122, 156, 90, 0.4);
 }
 
+/* I15 — one-time highlight/pulse on the coda button the moment its
+   long-horizon story first becomes available, applied by game.py's
+   _pulse() helper and removed automatically once the animation
+   completes. Reuses the coda's own warm accent (#7a9c5a) rather than a
+   new colour, so the cue reads as "this button leads to that panel." */
+@keyframes coda-button-pulse-anim {
+  0%, 100% { box-shadow: 0 0 0 rgba(122, 156, 90, 0); }
+  20%, 60% { box-shadow: 0 0 14px 4px rgba(122, 156, 90, 0.65); }
+  40%, 80% { box-shadow: 0 0 4px 1px rgba(122, 156, 90, 0.3); }
+}
+
+.coda-button--pulse {
+  animation: coda-button-pulse-anim 1.6s ease;
+  border-color: #7a9c5a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coda-button--pulse {
+    animation: none;
+  }
+}
+
 .invest-row {
   display: grid;
   grid-template-columns: 1fr auto 1fr;

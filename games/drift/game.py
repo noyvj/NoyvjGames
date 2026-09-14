@@ -176,6 +176,13 @@ class RegionState:
         # variant, off by default. Persisted so it stays set across a
         # save/load, same as Grid's steeper_demand_growth_enabled.
         self.accelerated_severity_enabled = False
+        # I15 -- a transient one-time flag, set in advance_round() the
+        # round has_long_horizon_story() first flips from False to True,
+        # consumed and reset by render() the next time it draws --
+        # same pattern as Thaw's just_started_melting. Not part of the
+        # save contract: it only ever needs to live long enough for one
+        # render() call to see it.
+        self.coda_just_became_available = False
 
     def total_capacity(self):
         return sum(self.capacity[t] for t in CAPACITY_TYPES)
@@ -328,7 +335,12 @@ class RegionState:
         income += contribution
         self.cumulative_integration_contribution += contribution
 
+        # I15: detect the exact round the long-horizon coda first becomes
+        # available, before integrated_population actually changes below.
+        coda_was_available = self.has_long_horizon_story()
         self.integrated_population += self.integration_this_round()
+        if not coda_was_available and self.has_long_horizon_story():
+            self.coda_just_became_available = True
 
         arrivals = self.arrivals_this_round()
         self.total_arrivals += arrivals
@@ -820,6 +832,22 @@ def _seed_achievement_toast_baseline():
     _achievements_seen_ids = set(achievement_ids_earned())
 
 
+# I15 -- lightweight, reusable pulse feedback: adds a CSS animation class
+# to an element for a fixed short duration, then removes it. Same
+# setTimeout+create_proxy technique as Herd's F19 _pulse()/this file's
+# own achievement toast above.
+def _pulse(element_id, css_class, duration_ms=1600):
+    element = document.getElementById(element_id)
+    element.classList.add(css_class)
+
+    def _unpulse(*args):
+        element.classList.remove(css_class)
+        proxy.destroy()
+
+    proxy = create_proxy(_unpulse)
+    setTimeout(proxy, duration_ms)
+
+
 def _display_achievement_toast(message):
     toast = document.getElementById("achievement-toast")
     text = document.getElementById("achievement-toast-text")
@@ -1150,6 +1178,11 @@ def render():
     coda_button = document.getElementById("coda-button")
     coda_button.hidden = not region.has_long_horizon_story()
     coda_button.innerText = "Hide Long-Horizon Outcomes" if coda_visible else "View Long-Horizon Outcomes"
+    # I15: one-time highlight/pulse the moment the coda first becomes
+    # available -- consume-and-reset, so it only ever fires once.
+    if region.coda_just_became_available:
+        region.coda_just_became_available = False
+        _pulse("coda-button", "coda-button--pulse")
 
     coda_section = document.getElementById("coda-section")
     coda_section.hidden = not (coda_visible and region.has_long_horizon_story())
