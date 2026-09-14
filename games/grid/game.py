@@ -188,6 +188,18 @@ class GridState:
         # capacity crosses 50% of the grid's total. Persisted so it
         # doesn't re-trigger every session once already reached.
         self.renewable_50_reached = False
+        # C13 -- lifetime running totals per spend/income category, for
+        # the funds-breakdown display. Mutated only where funds already
+        # change for that reason -- no new call sites invented, and
+        # nothing here changes what any of those existing debits/credits
+        # actually are (see build_plant()/retire_plant()'s own comments
+        # on the flat-refund exploit this game already audited and fixed
+        # once -- this is pure additive bookkeeping alongside that math,
+        # not a second implementation of it).
+        self.lifetime_revenue = 0.0
+        self.lifetime_build_spend = 0.0
+        self.lifetime_maintenance_spend = 0.0
+        self.lifetime_disruption_spend = 0.0
 
     def plant_cost(self, plant_type):
         base = PLANT_BASE_COST[plant_type]
@@ -246,6 +258,7 @@ class GridState:
         if self.funds < cost:
             return False
         self.funds -= cost
+        self.lifetime_build_spend += cost
         old_count = self.plant_counts[plant_type]
         # A freshly built unit has age 0, so it dilutes the type's average
         # fleet age proportionally rather than the average staying put.
@@ -282,6 +295,7 @@ class GridState:
         if self.funds < cost:
             return False
         self.funds -= cost
+        self.lifetime_maintenance_spend += cost
         self.plant_age[plant_type] = max(0.0, self.plant_age[plant_type] - MAINTENANCE_AGE_REDUCTION)
         self.maintenance_actions_count += 1
         return True
@@ -367,6 +381,9 @@ class GridState:
                     event["damaged_plant"] = damaged_type
 
         self.funds += revenue
+        self.lifetime_revenue += revenue
+        if event is not None:
+            self.lifetime_disruption_spend += event["revenue_loss"]
         self.emissions += self.emissions_this_round()
         self.global_reference_emissions += (
             self.total_capacity() * GLOBAL_AVG_FOSSIL_SHARE * GLOBAL_AVG_FOSSIL_EMISSIONS_FACTOR
@@ -381,6 +398,7 @@ class GridState:
             self.plant_counts[oldest] -= 1
             repair_cost = PLANT_BASE_COST[oldest] * AGING_BREAKDOWN_COST_FRACTION
             self.funds = max(0.0, self.funds - repair_cost)
+            self.lifetime_disruption_spend += repair_cost
             aging_event = {"type": "aging_breakdown", "plant": oldest, "repair_cost": repair_cost}
 
         self.round_number += 1
@@ -940,6 +958,14 @@ def render():
         aging_el.innerText = f"Aging breakdown! A {plant_name} plant failed from wear (repair cost {cost:.0f})."
         aging_el.className = "event-display event-display--danger"
 
+    # C13: a funds breakdown across the run so far, for transparency --
+    # pure additive read of the lifetime_* totals above, no change to any
+    # actual cost/refund math itself.
+    document.getElementById("funds-breakdown-revenue").innerText = f"{state.lifetime_revenue:.0f}"
+    document.getElementById("funds-breakdown-build").innerText = f"{state.lifetime_build_spend:.0f}"
+    document.getElementById("funds-breakdown-maintenance").innerText = f"{state.lifetime_maintenance_spend:.0f}"
+    document.getElementById("funds-breakdown-disruption").innerText = f"{state.lifetime_disruption_spend:.0f}"
+
     document.getElementById("renewable-milestone-callout").hidden = not renewable_milestone_visible
     document.getElementById("retire-callout").hidden = not retire_callout_visible
     document.getElementById("maintain-callout").hidden = not maintain_callout_visible
@@ -1156,6 +1182,10 @@ def get_state():
         "seen_retire_callout": state.seen_retire_callout,
         "seen_maintain_callout": state.seen_maintain_callout,
         "renewable_50_reached": state.renewable_50_reached,
+        "lifetime_revenue": state.lifetime_revenue,
+        "lifetime_build_spend": state.lifetime_build_spend,
+        "lifetime_maintenance_spend": state.lifetime_maintenance_spend,
+        "lifetime_disruption_spend": state.lifetime_disruption_spend,
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),
@@ -1219,6 +1249,10 @@ def load_state(data):
     state.seen_retire_callout = data.get("seen_retire_callout", state.seen_retire_callout)
     state.seen_maintain_callout = data.get("seen_maintain_callout", state.seen_maintain_callout)
     state.renewable_50_reached = data.get("renewable_50_reached", state.renewable_50_reached)
+    state.lifetime_revenue = data.get("lifetime_revenue", state.lifetime_revenue)
+    state.lifetime_build_spend = data.get("lifetime_build_spend", state.lifetime_build_spend)
+    state.lifetime_maintenance_spend = data.get("lifetime_maintenance_spend", state.lifetime_maintenance_spend)
+    state.lifetime_disruption_spend = data.get("lifetime_disruption_spend", state.lifetime_disruption_spend)
     # "achievements_earned" is intentionally never read back here — see
     # get_state()'s comment and ACHIEVEMENTS-SYSTEM-DESIGN.md §1.
 

@@ -35,6 +35,10 @@ EXPECTED_KEYS = {
     "seen_retire_callout",
     "seen_maintain_callout",
     "renewable_50_reached",
+    "lifetime_revenue",
+    "lifetime_build_spend",
+    "lifetime_maintenance_spend",
+    "lifetime_disruption_spend",
 }
 
 
