@@ -103,7 +103,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] Canopy — action panel (already done).
 - [x] Trade Empire — needs strip (already done).
 - [ ] Canopy — also extend to the stats/legend panels (B15).
-- [ ] Grid — plant-build action row (C1).
+- [x] Grid — plant-build action row (C1) — docked Advance Round instead (see games/grid/CLAUDE.md for the judgment call: Grid's plant rows already keep build/retire/maintain inline, no far-apart split to close).
 - [ ] Tide — investments panel + Advance Season button (D1).
 - [ ] Aftermath — actions panel: Resilience/Growth/Face Next Event (E1).
 - [ ] Continuum — doesn't have this pattern at all yet (K9).
@@ -203,7 +203,7 @@ Two things every game needs once achievements land there, on top of the base rol
 
 *(C6 marked "later" with no further comment — moved to `LATER.md` as-is.)*
 
-- [ ] C1 — folded into the mobile-dock rollout goal above.
+- [x] C1 — folded into the mobile-dock rollout goal above.
 - [ ] C2: A battery/grid-storage plant tier.
 - [ ] C3: Attach disruption-event log lines to the specific plant/type that failed.
 - [ ] C4: Weather-variability-on-renewables as an opt-in hard mode.
