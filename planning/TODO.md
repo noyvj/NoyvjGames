@@ -187,7 +187,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] B8: Hover/tap tooltips on plot tiles.
 - [x] B9: A colorblind-safe pattern/icon overlay for plot states — fold into the site-wide colorblind audit above if that's more efficient than a one-off.
 - [x] B10: Surface biodiversity as an explicit number.
-- [ ] B11: Diversify stakeholder requests to sometimes offer a positive trade-off.
+- [x] B11: Diversify stakeholder requests to sometimes offer a positive trade-off. A new "incentive" request kind cycles in after every full pass through the original 3 "clear" reasons — accepting keeps the plot standing and pays a relations boost + funding bonus, declining costs nothing (see `STAKEHOLDER_KIND_INCENTIVE` in `games/canopy/game.py`).
 - [x] B12: A visible badge for a pending stakeholder request when scrolled away.
 - [x] B13: A larger-grid option as a difficulty/length variant. A "Large (9×8)" preset alongside the existing "Normal (6×6)", selectable via a dropdown that triggers a full session reset at the new size; the chosen size round-trips through the save-code system.
 - [x] B14: A persisted "personal best" stat across sessions. (Per-browser, via `localStorage` — deliberately independent of the save-code system; see `games/canopy/game.py`'s `load_personal_best()`/`_maybe_update_personal_best()`.)

@@ -143,6 +143,29 @@ STAKEHOLDER_GRANT_RELATIONS_DELTA = 10
 STAKEHOLDER_DECLINE_RELATIONS_DELTA = -5
 STARTING_COMMUNITY_RELATIONS = 50
 
+# B11 (planning/TODO.md "Per-game: Canopy"): diversify stakeholder requests
+# to sometimes offer a positive trade-off instead of only "give up this
+# plot or don't." An "incentive" request never asks the player to clear
+# anything -- accepting keeps the named plot standing untouched and pays a
+# funding bonus + relations boost; declining costs nothing (turning down a
+# gift isn't the same as refusing the community's ask for the plot
+# itself). Cycles in after every full pass through STAKEHOLDER_REASONS
+# (see maybe_trigger_stakeholder_request()) so the original 3-reason
+# "clear" cycle finishes before the first incentive ever appears --
+# preserves test_stakeholder_reason_cycles_deterministically's exact
+# first-3-requests expectation unchanged.
+STAKEHOLDER_KIND_CLEAR = "clear"
+STAKEHOLDER_KIND_INCENTIVE = "incentive"
+STAKEHOLDER_REQUEST_CYCLE_LENGTH = len(STAKEHOLDER_REASONS) + 1  # 3 clear requests, then 1 incentive
+STAKEHOLDER_INCENTIVE_REASONS = ["ecotourism", "conservation_grant", "carbon_credit"]
+STAKEHOLDER_INCENTIVE_REASON_TEXT = {
+    "ecotourism": "a nearby eco-tourism operator wants to feature it on their nature trail if it stays standing",
+    "conservation_grant": "a conservation program is offering a small grant to keep it standing",
+    "carbon_credit": "a carbon-credit buyer wants to certify it as protected forest",
+}
+STAKEHOLDER_INCENTIVE_ACCEPT_RELATIONS_DELTA = 10
+STAKEHOLDER_INCENTIVE_INCOME_BONUS = 25.0
+
 
 class Plot:
     def __init__(self, index):
@@ -362,8 +385,18 @@ def maybe_trigger_stakeholder_request():
     target = _most_established_plot_index()
     if target is None:
         return  # try again next tick once something's actually established
-    reason = STAKEHOLDER_REASONS[_stakeholder_request_count % len(STAKEHOLDER_REASONS)]
-    pending_stakeholder_request = {"plot_index": target, "reason": reason}
+    # B11: a full pass through STAKEHOLDER_REASONS (3 requests) plays out
+    # exactly as before, then the 4th request in the cycle is a positive
+    # incentive offer instead -- see the constants' own comment above.
+    cycle_position = _stakeholder_request_count % STAKEHOLDER_REQUEST_CYCLE_LENGTH
+    if cycle_position < len(STAKEHOLDER_REASONS):
+        kind = STAKEHOLDER_KIND_CLEAR
+        reason = STAKEHOLDER_REASONS[cycle_position]
+    else:
+        kind = STAKEHOLDER_KIND_INCENTIVE
+        incentive_turn = _stakeholder_request_count // STAKEHOLDER_REQUEST_CYCLE_LENGTH
+        reason = STAKEHOLDER_INCENTIVE_REASONS[incentive_turn % len(STAKEHOLDER_INCENTIVE_REASONS)]
+    pending_stakeholder_request = {"plot_index": target, "reason": reason, "kind": kind}
     _stakeholder_request_count += 1
     _ticks_since_last_request = 0
 
@@ -374,6 +407,15 @@ def stakeholder_request_message():
     idx = pending_stakeholder_request["plot_index"]
     reason = pending_stakeholder_request["reason"]
     label = plot_coordinate_label(idx)
+    # .get(), not bare indexing: a request built before B11 (or a manually
+    # constructed test fixture) simply lacks "kind" and means "clear", the
+    # only kind that existed before.
+    kind = pending_stakeholder_request.get("kind", STAKEHOLDER_KIND_CLEAR)
+    if kind == STAKEHOLDER_KIND_INCENTIVE:
+        return (
+            f"Plot {label} is thriving, and {STAKEHOLDER_INCENTIVE_REASON_TEXT[reason]}. "
+            "Accept for a relations boost and a funding bonus, or decline and keep your options open?"
+        )
     return f"Plot {label} is thriving, but {STAKEHOLDER_REASON_TEXT[reason]}. Grant the request, or decline and keep it standing?"
 
 
@@ -406,11 +448,23 @@ def grant_stakeholder_request(event=None):
         pending_stakeholder_request = None
         render()
         return False
-    plot = plots[pending_stakeholder_request["plot_index"]]
-    payout = plot.clear()
-    if payout is not None:
-        total_income += payout
-    community_relations = min(100, community_relations + STAKEHOLDER_GRANT_RELATIONS_DELTA)
+    kind = pending_stakeholder_request.get("kind", STAKEHOLDER_KIND_CLEAR)
+    if kind == STAKEHOLDER_KIND_INCENTIVE:
+        # B11: the whole point of a positive trade-off is that accepting it
+        # does NOT clear the plot -- it stays standing untouched, and the
+        # player is rewarded with a relations boost plus a funding bonus
+        # that (deliberately unlike a normal Clear) doesn't come from the
+        # plot's own standing value.
+        community_relations = min(
+            100, community_relations + STAKEHOLDER_INCENTIVE_ACCEPT_RELATIONS_DELTA
+        )
+        total_income += STAKEHOLDER_INCENTIVE_INCOME_BONUS
+    else:
+        plot = plots[pending_stakeholder_request["plot_index"]]
+        payout = plot.clear()
+        if payout is not None:
+            total_income += payout
+        community_relations = min(100, community_relations + STAKEHOLDER_GRANT_RELATIONS_DELTA)
     _note_community_relations_change()
     stakeholder_grants_count += 1
     pending_stakeholder_request = None
@@ -427,7 +481,12 @@ def decline_stakeholder_request(event=None):
         pending_stakeholder_request = None
         render()
         return False
-    community_relations = max(0, community_relations + STAKEHOLDER_DECLINE_RELATIONS_DELTA)
+    kind = pending_stakeholder_request.get("kind", STAKEHOLDER_KIND_CLEAR)
+    if kind != STAKEHOLDER_KIND_INCENTIVE:
+        community_relations = max(0, community_relations + STAKEHOLDER_DECLINE_RELATIONS_DELTA)
+    # Declining a positive-trade-off incentive costs nothing -- turning down
+    # a gift isn't the same as refusing the community's ask for the plot
+    # itself, so there's no relations penalty for this kind.
     _note_community_relations_change()
     stakeholder_declines_count += 1
     pending_stakeholder_request = None
@@ -749,6 +808,11 @@ def render_stakeholder_panel():
         return
     panel_el.hidden = False
     message_el.innerText = stakeholder_request_message()
+    # B11: "Accept" reads more naturally than "Grant" for a positive-
+    # trade-off offer, where the player isn't granting the community
+    # anything -- the community is offering *them* something.
+    kind = pending_stakeholder_request.get("kind", STAKEHOLDER_KIND_CLEAR)
+    grant_button.innerText = "Accept" if kind == STAKEHOLDER_KIND_INCENTIVE else "Grant"
     grant_button.disabled = False
     decline_button.disabled = False
 
