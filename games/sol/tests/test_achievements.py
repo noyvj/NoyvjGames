@@ -403,21 +403,27 @@ def test_toast_reports_multiple_simultaneous_unlocks_together(game_env):
     assert "achievements unlocked" in text
 
 
-def test_loading_a_save_with_already_earned_achievements_does_not_toast(game_env):
+def test_loading_a_save_with_already_earned_achievements_does_not_replay_them_as_toasts(game_env):
     """A save made after playing for a while already has several
     achievements earned -- load_state() must seed the toast baseline to
     that save's own earned set, not diff against an empty one, or every
-    reload/autoload would replay every past unlock as a fresh toast."""
+    reload/autoload would replay every past unlock as a fresh toast. A3's
+    own welcome-back toast DOES fire on load (that's its whole point), so
+    this checks the toast text is the welcome-back message, not an
+    achievement-unlock one, and that a subsequent tick doesn't add a
+    second, achievement-flavored toast on top of it."""
     module = game_env.module
     game_env.click("Earth")
     saved = module.get_state()
     assert saved["achievements_earned"]  # sanity: this save really has one
 
     module.load_state(saved)
-    assert game_env.elements["achievement-toast"].hidden is True
+    toast_text = game_env.elements["achievement-toast-text"].innerText
+    assert "Welcome back" in toast_text
+    assert "Achievement unlocked" not in toast_text
 
     game_env.timers.tick_intervals(1)
-    assert game_env.elements["achievement-toast"].hidden is True
+    assert "Achievement unlocked" not in game_env.elements["achievement-toast-text"].innerText
 
 
 def test_hub_dashboard_link_is_present_when_the_panel_is_open(game_env):
@@ -427,3 +433,152 @@ def test_hub_dashboard_link_is_present_when_the_panel_is_open(game_env):
     link = next(c for c in panel.children if getattr(c, "tagName", None) == "A")
     assert link.href == "../../index.html#account-achievements-dashboard"
     assert "hub" in link.innerText.lower()
+
+
+# --- A2/A13: second achievement wave (speedrun + pure-clicker) ---------
+# Both categories are one-shot historical flags (game.py's own module
+# comment above ACHIEVEMENT_CHECKS explains why a live-derived check can't
+# express "before a generator ever existed" or "within N minutes of play"),
+# each checked at the exact moment its condition can first become true.
+
+
+def test_quick_start_earned_by_completing_tier_one_within_the_time_window(game_env):
+    module = game_env.module
+    tier = _tier(game_env, 0)
+    game_env.earth["resource_count"] = tier["target"]
+    for _ in range(tier["target"] // module.RESEARCH_FUND_COST):
+        game_env.fund_research()
+    assert module.quick_start_hit is True
+    assert "quick_start" in module.achievement_ids_earned()
+
+
+def test_quick_start_not_earned_outside_the_time_window(game_env):
+    module = game_env.module
+    game_env.timers.tick_intervals(module.QUICK_START_TICKS + 1)
+    tier = _tier(game_env, 0)
+    game_env.earth["resource_count"] = tier["target"]
+    for _ in range(tier["target"] // module.RESEARCH_FUND_COST):
+        game_env.fund_research()
+    assert module.quick_start_hit is False
+
+
+def test_swift_expansion_earned_by_completing_both_tiers_in_time(game_env):
+    module = game_env.module
+    _complete_tier(game_env, 1)
+    assert module.swift_expansion_hit is True
+    assert "swift_expansion" in module.achievement_ids_earned()
+
+
+def test_swift_expansion_not_earned_outside_the_time_window(game_env):
+    module = game_env.module
+    game_env.timers.tick_intervals(module.SWIFT_EXPANSION_TICKS + 1)
+    _complete_tier(game_env, 1)
+    assert module.swift_expansion_hit is False
+    # quick_start also fails here since both tiers were funded well past
+    # its own (shorter) window.
+    assert module.quick_start_hit is False
+
+
+def test_manual_labor_earned_by_reaching_the_threshold_by_hand(game_env):
+    module = game_env.module
+    for _ in range(module.MANUAL_LABOR_THRESHOLD):
+        game_env.click("Earth")
+    assert module.manual_labor_hit is True
+    assert "manual_labor" in module.achievement_ids_earned()
+
+
+def test_manual_labor_not_earned_if_a_generator_exists_first(game_env):
+    module = game_env.module
+    game_env.earth["resource_count"] = 10
+    game_env.buy_generator("Earth")
+    for _ in range(module.MANUAL_LABOR_THRESHOLD):
+        game_env.click("Earth")
+    assert module.manual_labor_hit is False
+
+
+def test_manual_labor_not_earned_below_the_threshold(game_env):
+    module = game_env.module
+    for _ in range(module.MANUAL_LABOR_THRESHOLD - 1):
+        game_env.click("Earth")
+    assert module.manual_labor_hit is False
+
+
+def test_off_the_grid_earned_by_clearing_tier_one_with_no_generator(game_env):
+    module = game_env.module
+    tier = _tier(game_env, 0)
+    game_env.earth["resource_count"] = tier["target"]
+    for _ in range(tier["target"] // module.RESEARCH_FUND_COST):
+        game_env.fund_research()
+    assert module.off_the_grid_hit is True
+    assert "off_the_grid" in module.achievement_ids_earned()
+
+
+def test_off_the_grid_not_earned_if_a_generator_was_ever_built(game_env):
+    module = game_env.module
+    game_env.earth["resource_count"] = 10
+    game_env.buy_generator("Earth")
+    tier = _tier(game_env, 0)
+    game_env.earth["resource_count"] = tier["target"]
+    for _ in range(tier["target"] // module.RESEARCH_FUND_COST):
+        game_env.fund_research()
+    assert module.off_the_grid_hit is False
+
+
+def test_off_the_grid_not_earned_if_the_governor_ever_built_one(game_env):
+    """any_generator_ever_built is also set from governor_step()'s own buy
+    branch -- "never automated" means nowhere, not just not-by-hand."""
+    module = game_env.module
+    module.governor_purchase_count = 0
+    module.any_generator_ever_built = True  # simulate a prior governor buy
+    tier = _tier(game_env, 0)
+    game_env.earth["resource_count"] = tier["target"]
+    for _ in range(tier["target"] // module.RESEARCH_FUND_COST):
+        game_env.fund_research()
+    assert module.off_the_grid_hit is False
+
+
+def test_new_wave_achievements_are_in_the_catalog(game_env):
+    ids = {entry["id"] for entry in game_env.module.ACHIEVEMENTS}
+    assert {"quick_start", "swift_expansion", "manual_labor", "off_the_grid"}.issubset(ids)
+
+
+# --- A3: "welcome back" return-visit summary toast ----------------------
+# Fires only when a save is actually loaded (load_state()/
+# load_save_state_json(), the shared/save-widget.js contract entry
+# points) -- a brand-new game (setup() alone, no save) is never "a
+# returning player" and must not show it.
+
+
+def test_fresh_game_never_shows_a_welcome_back_toast(game_env):
+    assert game_env.elements["achievement-toast"].hidden is True
+    game_env.timers.tick_intervals(5)
+    assert "Welcome back" not in game_env.elements["achievement-toast-text"].innerText
+
+
+def test_load_state_shows_a_welcome_back_toast(game_env):
+    module = game_env.module
+    module.unlocked_bodies.add("Mars")
+    game_env.travel_to("Mars")
+    saved = module.get_state()
+
+    module.load_state(saved)
+
+    toast = game_env.elements["achievement-toast"]
+    assert toast.hidden is False
+    text = game_env.elements["achievement-toast-text"].innerText
+    assert "Welcome back" in text
+    assert "2/" in text  # worlds visited: Earth + Mars
+
+
+def test_load_save_state_json_also_shows_the_welcome_back_toast(game_env):
+    module = game_env.module
+    saved_json = module.get_save_state_json()
+    module.load_save_state_json(saved_json)
+    assert "Welcome back" in game_env.elements["achievement-toast-text"].innerText
+
+
+def test_welcome_back_toast_auto_hides_after_its_timeout(game_env):
+    module = game_env.module
+    module.load_state(module.get_state())
+    game_env.timers.flush()
+    assert game_env.elements["achievement-toast"].hidden is True

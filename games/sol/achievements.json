@@ -89,6 +89,26 @@
       "id": "full_system_terraformed",
       "label": "New Solar System",
       "description": "Terraform every world to 100% — the same milestone that triggers the game's win banner."
+    },
+    {
+      "id": "quick_start",
+      "label": "Quick Start",
+      "description": "Fund the Near Bodies research tier to completion within 10 minutes of play."
+    },
+    {
+      "id": "swift_expansion",
+      "label": "Swift Expansion",
+      "description": "Fund every research tier to completion within 30 minutes of play."
+    },
+    {
+      "id": "manual_labor",
+      "label": "Manual Labor",
+      "description": "Bank 100 Iron on Earth by clicking alone, before ever building a generator anywhere."
+    },
+    {
+      "id": "off_the_grid",
+      "label": "Off the Grid",
+      "description": "Fund the Near Bodies research tier to completion without ever building a generator anywhere."
     }
   ]
 }

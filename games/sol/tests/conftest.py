@@ -95,6 +95,10 @@ ELEMENT_IDS = [
     # Stats & Share (A4/A8), Governor Report (A11)
     "stats-toggle-button",
     "stats-panel",
+    "stats-panel-content",
+    "share-card-text",
+    "copy-share-card-button",
+    "copy-share-card-status",
     "governor-report-toggle-button",
     "governor-report-panel",
     # Research tree diagram (A16)

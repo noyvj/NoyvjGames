@@ -333,3 +333,37 @@ def test_being_outpaced_by_generators_is_still_not_a_dead_end(game_env):
 
     game_env.timers.tick_intervals(10)  # 1 second
     assert game_env.earth["ecology_health"] > 0.0
+
+
+# --- A17: a visible warning banner at the 25%-output-penalty threshold --
+
+def test_no_warning_class_at_full_health(game_env):
+    assert not game_env.elements["ecology-status"].classList.contains("ecology-status--warning")
+
+
+def test_warning_class_applied_below_the_low_ecology_threshold(game_env):
+    game_env.earth["ecology_health"] = 5.0
+    game_env.module.update_ecology_display("Earth")
+    assert game_env.elements["ecology-status"].classList.contains("ecology-status--warning")
+
+
+def test_warning_class_applied_during_full_collapse(game_env):
+    game_env.earth["ecology_health"] = 0.0
+    game_env.module.update_ecology_display("Earth")
+    assert game_env.elements["ecology-status"].classList.contains("ecology-status--warning")
+
+
+def test_warning_class_removed_once_health_recovers(game_env):
+    game_env.earth["ecology_health"] = 5.0
+    game_env.module.update_ecology_display("Earth")
+    assert game_env.elements["ecology-status"].classList.contains("ecology-status--warning")
+
+    game_env.earth["ecology_health"] = 50.0
+    game_env.module.update_ecology_display("Earth")
+    assert not game_env.elements["ecology-status"].classList.contains("ecology-status--warning")
+
+
+def test_warning_class_applies_on_other_planets_too(game_env):
+    game_env.mars["ecology_health"] = 5.0
+    game_env.module.update_ecology_display("Mars")
+    assert game_env.elements["mars-ecology-status"].classList.contains("ecology-status--warning")
