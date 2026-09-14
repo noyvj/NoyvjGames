@@ -650,6 +650,67 @@ button.primary:active {
   }
 }
 
+/* C12: a visible toast/banner for a disruption or aging-breakdown event
+   -- on top of the persistent #event-display/#aging-event-display status
+   lines, which need scrolling to notice. Sits a little lower than the
+   achievement toast so the rare case of both firing at once doesn't fully
+   overlap; severity color is added via .disruption-toast--warning/danger
+   rather than a fixed color, since a brownout and a plant going offline
+   aren't equally urgent. */
+.disruption-toast {
+  position: fixed;
+  top: 3.6rem;
+  left: 1rem;
+  right: 1rem;
+  max-width: 480px;
+  margin: 0 auto;
+  z-index: 499;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transform: translateY(-12px);
+  transition: opacity 200ms ease, transform 200ms ease;
+  pointer-events: none;
+}
+
+.disruption-toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.disruption-toast p {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.disruption-toast--warning {
+  background: linear-gradient(165deg, rgba(224, 184, 76, 0.92), rgba(64, 52, 24, 0.95));
+  border: 1px solid rgba(224, 184, 76, 0.5);
+}
+
+.disruption-toast--warning p {
+  color: #fff6e0;
+}
+
+.disruption-toast--danger {
+  background: linear-gradient(165deg, rgba(224, 103, 76, 0.92), rgba(64, 28, 24, 0.95));
+  border: 1px solid rgba(224, 103, 76, 0.5);
+}
+
+.disruption-toast--danger p {
+  color: #fff0ee;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .disruption-toast {
+    transition: opacity 120ms ease;
+    transform: none;
+  }
+}
+
 /* ============================================================
    Full visual pass — content-window redesign (2026-09-05)
    Grid was a stack of plain text status lines plus a row of
