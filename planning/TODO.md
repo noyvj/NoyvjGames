@@ -33,7 +33,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [ ] Herd
 - [ ] Thaw
 - [ ] Loop
-- [ ] Drift
+- [x] Drift — 18 achievements + panel + unlock toast + hub-dashboard link.
 - [ ] Trade Empire
 - [x] Continuum — 19 achievements + panel + unlock toast + hub-dashboard link.
 - [x] Hub-side `script.js` registration for SOL/Canopy/Grid/Continuum — each per-game dispatch above correctly left this out as out-of-scope for a single-game session (it's a shared file). Done as one pass touching only `script.js`, verified live by claiming fresh Canopy/Grid saves on a throwaway test account and confirming the hub dashboard shows all four games. Do this same registration step for every game below as its own achievements rollout lands.
@@ -381,9 +381,9 @@ Two things every game needs once achievements land there, on top of the base rol
 
 *(J4, J5 answered "no" — dropped entirely, not carried anywhere: this game is explicitly "just fun," not a teaching game, so the info-page/feedback-prompt pattern the teaching games use doesn't apply here.)*
 
-- [ ] J1: Wire up the shared save-widget contract.
-- [ ] J2: Link Trade Empire into the hub's main nav.
-- [ ] J3: Add the shared ad-bar partial.
+- [x] J1: Wire up the shared save-widget contract.
+- [x] J2: Link Trade Empire into the hub's main nav.
+- [x] J3: Add the shared ad-bar partial.
 - [ ] J6: A 5th/6th purchasable ship.
 - [ ] J7: A second automation-slot research tier.
 - [ ] J8: A lightweight "ship arrived" toast.
@@ -405,7 +405,7 @@ Two things every game needs once achievements land there, on top of the base rol
 ## Big standalone features
 
 - [x] **Continuum Phase 6**: link Continuum into the main hub nav (K1/L1) — done (title card + review widget). The dedicated full-playthrough integration test (K3 — marked "later", see `LATER.md`) remains open.
-- [ ] **Trade Empire hub-link** (J2, L1) — same nav-integration work, can be done alongside Continuum's.
+- [x] **Trade Empire hub-link** (J2, L1) — done (title card + review widget), same pattern as Continuum's.
 - [ ] **Le Champ de Mots: a visual-style switcher** — low-poly / text-based / cartoon / high-def, chosen on first load and changeable in settings. Desktop-only is fine (no need to solve mobile scaling for this). Your stated reasons: helps you see what's actually possible visually, and doubles as a BCM206 testing-different-options angle. **Blocked until Champ de Mots' current in-progress work (the minigames) finishes** — same gating as the rest of its section.
 - [ ] Deploy the accounts system to production (L3) — it's built and tested locally but never pushed live.
 - [ ] Real favicon/PWA icon art (L6).
