@@ -154,6 +154,38 @@ resources/resilience/event progress/mitigation bar correctly, and the only
 console errors present are the pre-existing site-wide ServiceWorker
 registration quirk also reproducible on the unmodified hub page.
 
+## Achievements + mobile-dock rollout (E1, ACHIEVEMENTS-SYSTEM-DESIGN.md)
+
+19 achievements (`achievements.json`) following SOL/Canopy/Grid's reference
+pattern: an in-game toggle + panel, an unlock toast, a hub-dashboard link,
+and `achievements_earned` riding `get_state()`. Most checkers read
+already-persisted state directly (`run_history`, `skill_tree.unlocked`),
+but several genuinely needed new persistent tracked state — "ever invested
+in Resilience," "ever finished a run in profit," "ever maxed mitigation,"
+and three playstyle achievements (growth-focused/resilience-focused/
+balanced) — because those are facts about a specific run's `RunState`,
+which resets every new run. Backed by a new small persistent dict
+(`achievement_progress`, its own `aftermath_achievement_progress_v1`
+localStorage key, alongside the pre-existing skill tree/run history/legacy
+events), mutated only inside `RunState.invest_resilience()`/
+`invest_growth()`/`resolve_next_event()` at the exact point each fact
+becomes true — same five-step defensive pattern as the design doc's
+`visited_bodies` example. Knowledge-point achievements needed a similar
+fix: `knowledge_points` is a spendable balance that drops on unlock, so a
+new `SkillTreeState.lifetime_knowledge` field (only ever increments) backs
+the "earn N knowledge points over your lifetime" achievements instead.
+
+E1 (mobile-dock rollout, planning/TODO.md) also landed alongside this:
+Resilience/Growth/Face Next Event/Start New Run are now wrapped in one
+`#actions-dock` element that `shared/mobile-dock.js` pins to the bottom of
+the viewport on mobile, same pattern as Canopy's `#action-panel`/Grid's
+`#advance-round-button`. `#actions` itself (the resilience/growth tiles)
+is untouched internally.
+
+Hub-side `script.js` registration (`GAMES_WITH_ACHIEVEMENTS`) is out of
+scope for this `games/aftermath/`-only dispatch — same caveat every prior
+per-game achievements rollout in this hub has noted.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

@@ -878,3 +878,140 @@ button.primary:disabled::after {
   background: #5a4a42;
   box-shadow: none;
 }
+
+/* ============================================================
+   Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md) — same card language
+   used across the hub's shared achievements pattern (SOL/Canopy/Grid's
+   reference integrations), on Aftermath's existing glass-panel/
+   rgba(140,160,255,...) palette. Internals are free per-game once
+   you're inside the game, but there's no reason to invent a new visual
+   language here when the existing one already fits. */
+#achievements-panel { border-left-color: #d4af37; }
+
+.achievements-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.achievement-card {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  border-radius: 10px;
+  background: rgba(5, 6, 13, 0.4);
+}
+
+.achievement-card--earned {
+  border-color: rgba(212, 175, 55, 0.55);
+  background: linear-gradient(165deg, rgba(212, 175, 55, 0.14), rgba(5, 6, 13, 0.4));
+}
+
+.achievement-card-label {
+  margin: 0 0 0.2rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.achievement-card-description {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+.achievement-card-progress {
+  margin: 0.3rem 0 0;
+  font-size: 0.75rem;
+  opacity: 0.65;
+}
+
+.achievements-hub-link {
+  display: block;
+  margin-top: 0.3rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #a9c3ff;
+  text-decoration: none;
+}
+
+.achievements-hub-link:hover {
+  text-decoration: underline;
+}
+
+/* Unlock toast: fixed near the top of the viewport so it's visible
+   regardless of scroll position (including while #actions-dock is
+   mobile-docked at the bottom), auto-hidden by game.py's own timeout.
+   Hidden by default via the `hidden` attribute in index.html; game.py
+   also explicitly sets `.hidden = True` in setup(). */
+.achievement-toast {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-12px);
+  z-index: 400; /* above panels/ad-bar, below the save widget (9999) */
+  max-width: 90vw;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(184, 145, 30, 0.95), rgba(140, 105, 20, 0.95));
+  border: 1px solid rgba(245, 214, 130, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  color: #fff8e6;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.achievement-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.achievement-toast p {
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .achievement-toast {
+    transition: none;
+  }
+}
+
+/* ============================================================
+   Mobile dock — Resilience/Growth/Face Next Event/Start New Run (E1,
+   planning/TODO.md's mobile-dock rollout). Same shared/mobile-dock.js +
+   fixed-bottom-bar pattern as Canopy's #action-panel and Grid's
+   #advance-round-button: the whole act-on-your-run cluster physically
+   moves to a fixed bar pinned above the ad bar on narrow screens, so a
+   player scrolled down past #status never has to scroll further to
+   invest or resolve the next event. #actions keeps its own internal
+   flex layout (resilience/growth tiles); this only positions the outer
+   wrapper as a unit. Gated on `.mobile-docked` (only added once
+   mobile-dock.js has actually reparented the element to <body>) rather
+   than a bare `@media` id selector, so a JS failure leaves the panel in
+   its normal document position instead of `position: fixed` anchoring
+   against #game's `backdrop-filter` ancestor (see mobile-dock.js's own
+   docstring on that quirk). */
+@media (max-width: 640px) {
+  #actions-dock.mobile-docked {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    bottom: 50px; /* sits directly above the fixed ad-bar */
+    z-index: 150; /* above the ad-bar (100), below the save widget (9999) */
+    max-width: 480px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  /* Reserve room at the bottom of the scrollable page so the last real
+     content (feedback prompt) never ends up hidden behind the
+     now-floating actions cluster + ad bar. */
+  body {
+    padding-bottom: 230px;
+  }
+}

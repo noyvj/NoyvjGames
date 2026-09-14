@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from .fakes import FakeDocument, FakeElement, FakeLocalStorage, create_proxy
+from .fakes import FakeDocument, FakeElement, FakeLocalStorage, FakeTimers, create_proxy
 
 GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 
@@ -40,6 +40,10 @@ ELEMENT_IDS = [
     "info-page-framing",
     "info-page-tie-in",
     "info-page-sources",
+    "achievements-toggle-button",
+    "achievements-panel",
+    "achievement-toast",
+    "achievement-toast-text",
 ]
 for _skill in SKILL_IDS:
     ELEMENT_IDS += [
@@ -57,10 +61,11 @@ INITIALLY_DISABLED_IDS = [
 class GameEnv:
     """Bundles a freshly-loaded game module with its fake DOM."""
 
-    def __init__(self, module, elements, local_storage):
+    def __init__(self, module, elements, local_storage, timers):
         self.module = module
         self.elements = elements
         self.local_storage = local_storage
+        self.timers = timers
 
     @property
     def run(self):
@@ -92,11 +97,15 @@ class GameEnv:
     def toggle_info_page(self):
         self.elements["info-page-toggle-button"].dispatch("click", None)
 
+    def toggle_achievements(self):
+        self.elements["achievements-toggle-button"].dispatch("click", None)
 
-def _install_pyodide_fakes(elements, local_storage):
+
+def _install_pyodide_fakes(elements, local_storage, timers):
     fake_js = types.ModuleType("js")
     fake_js.document = FakeDocument(elements)
     fake_js.localStorage = local_storage
+    fake_js.setTimeout = timers.setTimeout
 
     fake_pyodide = types.ModuleType("pyodide")
     fake_pyodide_ffi = types.ModuleType("pyodide.ffi")
@@ -132,13 +141,14 @@ def game_env():
     for id_ in INITIALLY_DISABLED_IDS:
         elements[id_].disabled = True
     local_storage = FakeLocalStorage()
-    _install_pyodide_fakes(elements, local_storage)
+    timers = FakeTimers()
+    _install_pyodide_fakes(elements, local_storage, timers)
 
     spec = importlib.util.spec_from_file_location("game", GAME_PY)
     module = importlib.util.module_from_spec(spec)
     sys.modules["game"] = module
     spec.loader.exec_module(module)  # runs setup() at the bottom of game.py
 
-    yield GameEnv(module, elements, local_storage)
+    yield GameEnv(module, elements, local_storage, timers)
 
     _remove_pyodide_fakes()
