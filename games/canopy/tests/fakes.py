@@ -50,8 +50,15 @@ class FakeElement:
         self.style = FakeStyle()
         self.children = []
         self._listeners = {}
+        self._attributes = {}
         if id_ is not None and registry is not None:
             registry[id_] = self
+
+    def setAttribute(self, name, value):
+        self._attributes[name] = str(value)
+
+    def getAttribute(self, name):
+        return self._attributes.get(name)
 
     @property
     def id(self):

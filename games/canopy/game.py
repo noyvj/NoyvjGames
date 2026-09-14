@@ -49,10 +49,18 @@ STATE_LABEL = {
 }
 
 # Icons ride alongside color so plot state doesn't rely on color alone —
-# a small accessibility/legibility pass, not just decoration.
+# a small accessibility/legibility pass, not just decoration. B9
+# (colorblind-safety, planning/ACHIEVEMENTS... no, planning/TODO.md's
+# per-game Canopy section) closed the one gap here: BARE previously had no
+# icon at all, meaning it depended on hue alone to read as distinct from a
+# young REPLANTING/PRESERVED tile -- see style.css's `.plot-tile.plot-*`
+# pattern overlays (also new this pass) for the second, independent
+# redundant-coding channel per the Okabe-Ito-audit method (see
+# games/continuum/CLAUDE.md's colorblind-safety-audit note for the
+# worked example this follows).
 STATE_ICON = {
     PRESERVED: "\U0001F332",  # evergreen tree
-    BARE: "",
+    BARE: "\U0001FAB5",  # wood log -- was previously blank (hue-only)
     REPLANTING: "\U0001F331",  # seedling
     RECOVERED: "\U0001F333",  # deciduous tree
 }
@@ -146,13 +154,17 @@ class Plot:
     def accrue_tick(self):
         """Advances one tick of passive value growth. No-op outside
         PRESERVED/RECOVERED — bare and replanting plots hold no standing
-        value to grow."""
+        value to grow. Returns the value actually added this tick (0.0 on
+        the no-op path) so callers (B17's floating "+X" pop) can react to
+        a real increase without re-deriving it from before/after value."""
         if self.state not in ACCRUING_STATES:
-            return
+            return 0.0
         self.ticks_intact += 1
         growth_multiplier = 1 + self.ticks_intact * GROWTH_PER_TICK
-        self.value += BASE_ACCRUAL * self.productivity_multiplier() * growth_multiplier
+        delta = BASE_ACCRUAL * self.productivity_multiplier() * growth_multiplier
+        self.value += delta
         self.biodiversity += BIODIVERSITY_ACCRUAL_PER_TICK
+        return delta
 
     def has_wildlife(self):
         return self.biodiversity >= BIODIVERSITY_WILDLIFE_THRESHOLD
@@ -210,6 +222,13 @@ class Plot:
             return self.finish_recovery()
         return False
 
+
+# B17: plot index -> value gained this tick, for a floating "+X" pop on
+# the next render_grid() call. Populated fresh in tick(), consumed (popped)
+# by render_grid() so a pop only ever shows for the render right after the
+# tick that earned it -- never persisted, never part of get_state().
+_pending_value_pops = {}
+VALUE_POP_MIN_DELTA = 0.05  # below this a pop would just be visual noise
 
 plots = [Plot(i) for i in range(GRID_ROWS * GRID_COLS)]
 selected_index = None
@@ -394,9 +413,27 @@ def plot_display_color(plot):
 _plot_click_proxies = {}
 
 
+def _plot_tooltip_text(plot):
+    """B8: the exact numeric value + degradation level behind a plot tile,
+    surfaced via a data attribute a small vanilla-JS listener in index.html
+    reads on hover/tap (see that file -- positioning a tooltip near the
+    cursor is plain DOM/event work with no game-state logic of its own, so
+    it's a documented exception rather than round-tripping through
+    Pyodide). Coordinate label first (B4) so the tooltip reads as "which
+    plot, in what state, worth what" in one line."""
+    soil_pct = round(plot.productivity_multiplier() * 100)
+    label = f"{plot_coordinate_label(plot.index)} · {STATE_LABEL[plot.state]} · value {plot.value:.1f} · soil {soil_pct}%"
+    if plot.state == REPLANTING:
+        label += f" · recovering in {plot.replant_ticks_remaining} ticks"
+    return label
+
+
 def render_grid():
     grid_el = document.getElementById("plot-grid")
     grid_el.innerHTML = ""
+    # B16: lets the plain-JS arrow-key handler in index.html know the grid
+    # width without hardcoding it a second time in JS.
+    grid_el.setAttribute("data-cols", str(GRID_COLS))
     for plot in plots:
         tile = document.createElement("button")
         tile.id = _plot_tile_id(plot.index)
@@ -406,11 +443,26 @@ def render_grid():
         if plot.just_recovered:
             tile.className += " plot-just-recovered"
             plot.just_recovered = False
+        # B19: a distinct "fully mature" cap-off visual once a Recovered
+        # plot's maturity_fraction() caps out -- the hope-angle payoff that
+        # recovery doesn't just reach parity, it visibly finishes.
+        if plot.state == RECOVERED and plot.maturity_fraction() >= 1.0:
+            tile.className += " plot-fully-mature"
         tile.title = STATE_LABEL[plot.state]
         tile.innerText = STATE_ICON[plot.state]
         if plot.has_wildlife():
             tile.className += " plot-has-wildlife"
         tile.style.backgroundColor = plot_display_color(plot)
+        tile.setAttribute("data-tooltip", _plot_tooltip_text(plot))
+        tile.setAttribute("aria-label", _plot_tooltip_text(plot))
+        # B17: a brief floating "+X" pop the tick this plot's standing
+        # value actually rose, computed by tick() and consumed here once.
+        pop_delta = _pending_value_pops.pop(plot.index, None)
+        if pop_delta is not None:
+            pop = document.createElement("span")
+            pop.className = "value-pop"
+            pop.innerText = f"+{pop_delta:.2f}"
+            tile.appendChild(pop)
         old_proxy = _plot_click_proxies.pop(plot.index, None)
         if old_proxy is not None:
             old_proxy.destroy()
@@ -938,8 +990,11 @@ def on_replant(event=None):
 
 def tick(event=None):
     global pending_stakeholder_request, total_recoveries
+    _pending_value_pops.clear()
     for plot in plots:
-        plot.accrue_tick()
+        delta = plot.accrue_tick()
+        if delta >= VALUE_POP_MIN_DELTA:
+            _pending_value_pops[plot.index] = delta
         if plot.advance_recovery():
             total_recoveries += 1
         if plot.has_wildlife():

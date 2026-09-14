@@ -64,7 +64,7 @@ Two things every game needs once achievements land there, on top of the base rol
 *(Origin: A10, reinforced by L5. Use the same Okabe-Ito-palette method Continuum's Phase 5 already ran and documented.)*
 
 - [ ] SOL
-- [ ] Canopy
+- [x] Canopy — done as B9 (per-game dispatch, not folded into a separate site-wide pass): every plot-tile state now carries its own icon (Bare's gap closed) plus a CSS pattern overlay independent of hue. Not a straight Okabe-Ito hue swap like Continuum's — Canopy's state colors are continuous brown-to-green gradients, not a discrete red/green pair, so redundant coding (icon + pattern) was the applicable fix instead of re-picking a palette. See games/canopy/CLAUDE.md for the worked note.
 - [ ] Grid
 - [ ] Tide
 - [ ] Aftermath
@@ -183,17 +183,17 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] B4: Coordinate-style plot labels.
 - [ ] B6: A history sparkline (income vs. standing value).
 - [ ] B7: Save/compare two named playstyle runs.
-- [ ] B8: Hover/tap tooltips on plot tiles.
-- [ ] B9: A colorblind-safe pattern/icon overlay for plot states — fold into the site-wide colorblind audit above if that's more efficient than a one-off.
+- [x] B8: Hover/tap tooltips on plot tiles.
+- [x] B9: A colorblind-safe pattern/icon overlay for plot states — fold into the site-wide colorblind audit above if that's more efficient than a one-off.
 - [x] B10: Surface biodiversity as an explicit number.
 - [ ] B11: Diversify stakeholder requests to sometimes offer a positive trade-off.
 - [ ] B12: A visible badge for a pending stakeholder request when scrolled away.
 - [ ] B13: A larger-grid option as a difficulty/length variant.
 - [ ] B14: A persisted "personal best" stat across sessions.
-- [ ] B16: Keyboard navigation for plot selection/action.
-- [ ] B17: A floating "+X value" animation on compounding ticks.
+- [x] B16: Keyboard navigation for plot selection/action.
+- [x] B17: A floating "+X value" animation on compounding ticks.
 - [ ] B18: A shareable end-of-session code/snippet.
-- [ ] B19: A distinct "fully mature" cap-off visual for Recovered plots.
+- [x] B19: A distinct "fully mature" cap-off visual for Recovered plots.
 - [ ] B20: A closing counterfactual line at session end.
 - [ ] **Unresolved — please clarify**: your answer to B15 talks about "overpinning" and worrying about too much being pinned, but B15 itself was "extend the mobile-dock treatment to the stats/legend panels," which has nothing to do with pinning. I've kept B15 itself as a plain yes (folded into the mobile-dock rollout goal above) but flagging this so you can tell me what B15's actual comment was meant to be about.
 
