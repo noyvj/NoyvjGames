@@ -30,7 +30,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] Grid — 16 achievements + panel + unlock toast + hub-dashboard link.
 - [ ] Tide
 - [ ] Aftermath
-- [ ] Herd
+- [x] Herd — 18 achievements + panel + unlock toast + hub-dashboard link.
 - [ ] Thaw
 - [ ] Loop
 - [x] Drift — 18 achievements + panel + unlock toast + hub-dashboard link.
@@ -281,22 +281,22 @@ Two things every game needs once achievements land there, on top of the base rol
 
 *(F4, F10, F16, F20 marked "later" — moved to `LATER.md`.)*
 
-- [ ] F1: A live pure-growth-vs-decoupled counterfactual score comparison.
-- [ ] F2: Scale the pasture visual's cow count with real herd size.
-- [ ] F3: An end-of-session "report card" vs. a pure-growth baseline.
-- [ ] F5: A one-time callout at a meaningful decoupling threshold.
-- [ ] F6: A rising growth-cost curve instead of flat cost.
-- [ ] F7: A mini trend graph (methane/coupling ratio over rounds).
-- [ ] F8: A combined dial/readout for decoupling + plant-pivot interaction.
-- [ ] F9: A consequence preview next to the Grow Herd button.
-- [ ] F11: Borrow Thaw's tipping-flash pattern for market/regulatory pressure.
-- [ ] F12: A short worked numeric example in How to Play.
-- [ ] F13: A second comparison farm/region.
-- [ ] F14: Min/max labels or a history sparkline behind the coupling gauge.
-- [ ] F15: Surface the real 42% methane-intensity-reduction figure as a live comparison.
-- [ ] F17: A one-time nudge the first time methane meaningfully drags score down.
-- [ ] F18: An aggregate community stat via the ratings backend.
-- [ ] F19: Lightweight animation/feedback on successful investment clicks.
+- [x] F1: A live pure-growth-vs-decoupled counterfactual score comparison. `FarmState.counterfactual_funds`/`counterfactual_methane` accumulate a same-herd-size, zero-decoupling shadow path each round; `counterfactual_comparison_message()` surfaces the live score gap.
+- [x] F2: Scale the pasture visual's cow count with real herd size. `update_pasture_visual()` reveals 5 fixed cow elements at herd-size thresholds (1/3/6/10/15).
+- [x] F3: An end-of-session "report card" vs. a pure-growth baseline. On-demand panel (`report_card_html()`) restating the F1/F13 counterfactual numbers with a fuller breakdown.
+- [x] F5: A one-time callout at a meaningful decoupling threshold. Milestone toast fires once at 50% decoupled-below-baseline.
+- [x] F6: A rising growth-cost curve instead of flat cost. `grow_herd_cost()` — first unit still costs the original flat price, each unit after adds a fixed slope.
+- [x] F7: A mini trend graph (methane/coupling ratio over rounds). `methane_trend_graph_svg()`, same technique as Thaw's mini_temp_graph_svg.
+- [x] F8: A combined dial/readout for decoupling + plant-pivot interaction. `combined_decoupling_message()`.
+- [x] F9: A consequence preview next to the Grow Herd button. `grow_consequence_message()` — next unit's cost/income/methane delta, no mutation.
+- [x] F11: Borrow Thaw's tipping-flash pattern for market/regulatory pressure. Milestone toast fires once when pressure crosses 25% income loss.
+- [x] F12: A short worked numeric example in How to Play. Added to the Decoupling Investments tutorial step (10-herd/Capture Systems worked example).
+- [x] F13: A second comparison farm/region. The pure-growth counterfactual (F1) doubles as a persistent baseline-farm card (herd/funds/methane/score readouts).
+- [x] F14: Min/max labels or a history sparkline behind the coupling gauge. Session-best (current ratio, monotonically improving) vs. fixed baseline.
+- [x] F15: Surface the real 42% methane-intensity-reduction figure as a live comparison. `real_world_comparison_message()`, also cited in the Info Page.
+- [x] F17: A one-time nudge the first time methane meaningfully drags score down. Milestone toast fires once past a fixed penalty-magnitude threshold.
+- [x] F18: An aggregate community stat via the ratings backend. Fetched client-side in `index.html`, fails silently if unavailable.
+- [x] F19: Lightweight animation/feedback on successful investment clicks. `_pulse()` toggles a short-lived CSS animation class on the clicked control.
 
 ---
 
