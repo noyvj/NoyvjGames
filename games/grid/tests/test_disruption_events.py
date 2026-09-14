@@ -121,6 +121,32 @@ def test_render_shows_no_disruption_message_initially(game_env):
     assert "No disruptions" in game_env.elements["event-display"].innerText
 
 
+def test_brownout_names_the_highest_emitting_standing_fossil_type(game_env):
+    """C3: a brownout's log line should name a specific plant/type
+    responsible, not read as a generic grid-wide message."""
+    game_env.build("coal")  # 20 cap * 3.0 factor = 60 -- more than gas alone
+    game_env.build("gas")  # 15 cap * 1.5 factor = 22.5
+    game_env.state.emissions = 300.0  # severity 0.1 -- below damage threshold
+    game_env.state.advance_round(rng=ALWAYS_TRIGGER)
+    event = game_env.state.last_event
+    assert event["type"] == "brownout"
+    assert event["cause_plant"] == "coal"
+    assert "Coal" in game_env.module.event_message(event)
+
+
+def test_brownout_falls_back_to_a_lingering_emissions_message_with_no_fossil_standing(game_env):
+    """A player can retire every fossil plant while historical emissions
+    still drive disruption risk -- there's no plant left to name, so the
+    message should say so honestly rather than naming nothing at all."""
+    game_env.build("wind")
+    game_env.state.emissions = 2000.0
+    game_env.state.advance_round(rng=ALWAYS_TRIGGER)
+    event = game_env.state.last_event
+    assert event["type"] == "brownout"
+    assert event["cause_plant"] is None
+    assert "lingering historical emissions" in game_env.module.event_message(event)
+
+
 def test_render_shows_damage_event_message(game_env):
     game_env.build("coal")
     game_env.state.emissions = 2000.0
