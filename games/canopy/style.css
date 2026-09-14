@@ -1161,7 +1161,16 @@ button.secondary:disabled::after {
    the existing `.section` glass treatment (achievements-panel carries
    both classes in index.html); this just styles the per-achievement
    cards, the hub-dashboard link, and the unlock toast. */
-.achievements-panel {
+/* :not([hidden]), not a bare class selector -- an author-stylesheet
+   `display` declaration always beats the browser's own `[hidden] {
+   display: none }` UA rule regardless of selector specificity (origin
+   order, not specificity, decides between UA and author rules), so a
+   bare `.achievements-panel { display: flex }` would silently defeat
+   `panel.hidden = true` and leave an empty glass-panel box visible
+   before Python ever populates or re-hides it. Found live in a real
+   browser while verifying the B1 session-summary panel below, which had
+   the identical bug -- fixed both here rather than just the new one. */
+.achievements-panel:not([hidden]) {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
@@ -1169,7 +1178,7 @@ button.secondary:disabled::after {
 
 /* B1/B6/B18/B20: session-summary panel (counterfactual line, income-vs-
    standing sparkline, shareable text snippet). */
-.session-summary-panel {
+.session-summary-panel:not([hidden]) {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;

@@ -591,6 +591,14 @@ def render_grid():
     # B16: lets the plain-JS arrow-key handler in index.html know the grid
     # width without hardcoding it a second time in JS.
     grid_el.setAttribute("data-cols", str(GRID_COLS))
+    # B13: style.css's `.plot-grid` rule hardcodes `repeat(6, 1fr)` for the
+    # "normal" grid shape; an inline style here overrides it (inline style
+    # always wins over any class rule, no cascade tricks needed) so the
+    # "large" (9x8) preset actually lays out 8 columns instead of silently
+    # wrapping at 6. Found live in a real browser -- the fake-DOM pytest
+    # suite has no CSS engine to catch a purely visual layout bug like
+    # this one.
+    grid_el.style.gridTemplateColumns = f"repeat({GRID_COLS}, 1fr)"
     for plot in plots:
         tile = document.createElement("button")
         tile.id = _plot_tile_id(plot.index)
