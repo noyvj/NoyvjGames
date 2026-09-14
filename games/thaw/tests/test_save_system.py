@@ -1,16 +1,25 @@
 """Save system (SAVE-BUTTON-INTEGRATION.md) reference-pattern integration:
 get_state()/load_state() package every module-level mutable global —
-across all THREE regions (the primary region plus Pass 2's Region B and
-Region C) — into a plain JSON-safe dict and back. SOL is the reference
-integration for this contract; these tests mirror
-games/sol/tests/test_save_system.py's coverage shape, adapted to Thaw's
-multi-region state.
+across all FOUR regions (the primary region, Pass 2's Region B and
+Region C, and G13's worst-case Region D) — into a plain JSON-safe dict
+and back. SOL is the reference integration for this contract; these
+tests mirror games/sol/tests/test_save_system.py's coverage shape,
+adapted to Thaw's multi-region state.
 """
 
 
 def test_get_state_includes_every_expected_key(game_env):
     data = game_env.module.get_state()
-    assert set(data.keys()) == {"region", "region_b", "region_c", "info_page_open"}
+    assert set(data.keys()) == {
+        "region",
+        "region_b",
+        "region_c",
+        "region_d",
+        "info_page_open",
+        "worst_case_region_revealed",
+        "preset_used_ever",
+        "achievements_earned",
+    }
 
 
 def test_get_state_region_dict_includes_every_expected_field(game_env):
@@ -25,10 +34,15 @@ def test_get_state_region_dict_includes_every_expected_field(game_env):
         "counterfactual_temperature",
         "temperature_history",
         "just_invested_intervention",
+        "strategy_label",
+        "dampening_at_melt_start",
+        "just_delayed_milestone",
+        "milestone_delay_announced",
     }
     assert set(data["region"].keys()) == expected_fields
     assert set(data["region_b"].keys()) == expected_fields
     assert set(data["region_c"].keys()) == expected_fields
+    assert set(data["region_d"].keys()) == expected_fields
 
 
 def test_get_state_deep_copies_mutable_containers(game_env):

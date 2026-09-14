@@ -1,0 +1,94 @@
+{
+  "achievements": [
+    {
+      "id": "first_output",
+      "label": "Power Up",
+      "description": "Invest in Output for the first time."
+    },
+    {
+      "id": "first_intervention",
+      "label": "Taking Action",
+      "description": "Invest in Permafrost Preservation or Monitoring & Response for the first time."
+    },
+    {
+      "id": "triple_threat",
+      "label": "All Three Fronts",
+      "description": "Invest in Output, Preservation, and Monitoring at least once each."
+    },
+    {
+      "id": "quarter_dampening",
+      "label": "Quarter Shield",
+      "description": "Reach 25% feedback dampening in your region."
+    },
+    {
+      "id": "half_dampening",
+      "label": "Half Shield",
+      "description": "Reach 50% feedback dampening in your region."
+    },
+    {
+      "id": "max_dampening",
+      "label": "Full Shield",
+      "description": "Reach the maximum 85% feedback dampening in your region."
+    },
+    {
+      "id": "tipping_point_witnessed",
+      "label": "The Tipping Point",
+      "description": "Watch your region's permafrost begin melting for the first time."
+    },
+    {
+      "id": "early_investor",
+      "label": "Ahead of the Melt",
+      "description": "Reach at least 25% feedback dampening before your region's permafrost starts melting."
+    },
+    {
+      "id": "degree_saved_5",
+      "label": "Five Degrees Cooler",
+      "description": "Keep your region 5° cooler than the unmitigated counterfactual trajectory."
+    },
+    {
+      "id": "degree_saved_10",
+      "label": "Ten Degrees Cooler",
+      "description": "Keep your region 10° cooler than the unmitigated counterfactual trajectory."
+    },
+    {
+      "id": "degree_saved_20",
+      "label": "Twenty Degrees Cooler",
+      "description": "Keep your region 20° cooler than the unmitigated counterfactual trajectory."
+    },
+    {
+      "id": "slow_burn",
+      "label": "Slowing the Runaway",
+      "description": "Fifteen rounds after melt began, keep warming's acceleration under 1.5x the background rate."
+    },
+    {
+      "id": "well_funded",
+      "label": "Deep Reserves",
+      "description": "Reach 500 Funds in your region at once."
+    },
+    {
+      "id": "long_haul",
+      "label": "The Long Haul",
+      "description": "Reach round 25 in your region."
+    },
+    {
+      "id": "beat_both_regions",
+      "label": "Best in Class",
+      "description": "By round 15 or later, have a lower temperature than both Region B and Region C."
+    },
+    {
+      "id": "comparison_engaged",
+      "label": "Side by Side",
+      "description": "Invest at least once in both Region B and Region C."
+    },
+    {
+      "id": "preset_strategist",
+      "label": "Preset Strategist",
+      "description": "Use a preset strategy on Region B or Region C for the first time."
+    },
+    {
+      "id": "worst_case_witnessed",
+      "label": "Know Thy Enemy",
+      "description": "Reveal the optional worst-case region to see what pure neglect looks like."
+    }
+  ]
+}

@@ -83,7 +83,9 @@ def test_render_shows_secondary_region_temperature(game_env):
 
 
 def test_secondary_region_melt_status_updates_when_melting(game_env):
-    game_env.module.region_b.temperature = 999.0
+    # Just over the melt threshold -- acceleration is still low here, so
+    # this reads as plain "Melting" rather than G3's "Critical" tier.
+    game_env.module.region_b.temperature = game_env.module.MELT_THRESHOLD + 0.5
     game_env.module.render()
     assert game_env.elements["b-melt-status-display"].innerText == "Melting"
     assert "melt-status--active" in game_env.elements["b-melt-status-display"].className

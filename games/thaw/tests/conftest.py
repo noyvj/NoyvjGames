@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from .fakes import FakeDocument, FakeElement, create_proxy
+from .fakes import FakeDocument, FakeElement, FakeTimers, create_proxy
 
 GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 
@@ -19,14 +19,18 @@ if str(SHARED_DIR) not in sys.path:
 
 CATEGORIES = ["output", "preserve", "monitor"]
 
+PRESET_NAMES = ["growth", "preservation", "balanced"]
+
 ELEMENT_IDS = [
     "game",
     "round-display",
     "funds-display",
     "temperature-display",
     "temperature-bar",
+    "temperature-cap-note",
     "rise-rate-display",
     "melt-status-display",
+    "milestone-delay-callout",
     "dampening-display",
     "intervention-feedback-display",
     "acceleration-display",
@@ -34,6 +38,23 @@ ELEMENT_IDS = [
     "trajectory-display",
     "graph",
     "advance-round-button",
+    "output-forecast",
+    "preserve-forecast",
+    "monitor-forecast",
+    "region-comparison-best-display",
+    "best-region-hidden",
+    "personal-best-display",
+    "achievements-toggle-button",
+    "achievements-panel",
+    "achievement-toast",
+    "achievement-toast-text",
+    "worst-case-toggle-button",
+    "worst-case-panel",
+    "d-region-card",
+    "d-graph",
+    "d-temperature-display",
+    "d-funds-display",
+    "d-melt-status-display",
 ]
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-name", f"{_category}-count", f"{_category}-invest-button"]
@@ -45,9 +66,15 @@ for _prefix in ("b", "c"):
         f"{_prefix}-temperature-display",
         f"{_prefix}-funds-display",
         f"{_prefix}-melt-status-display",
+        f"{_prefix}-dampening-display",
+        f"{_prefix}-acceleration-display",
+        f"{_prefix}-trajectory-display",
+        f"{_prefix}-strategy-label-input",
     ]
     for _category in CATEGORIES:
         ELEMENT_IDS += [f"{_prefix}-{_category}-count", f"{_prefix}-{_category}-invest-button"]
+    for _preset in PRESET_NAMES:
+        ELEMENT_IDS += [f"{_prefix}-preset-{_preset}-button"]
 
 ELEMENT_IDS += [
     "info-page-toggle-button",
@@ -65,9 +92,10 @@ INITIALLY_DISABLED_IDS = [f"{c}-invest-button" for c in CATEGORIES] + [
 class GameEnv:
     """Bundles a freshly-loaded game module with its fake DOM."""
 
-    def __init__(self, module, elements):
+    def __init__(self, module, elements, timers):
         self.module = module
         self.elements = elements
+        self.timers = timers
 
     @property
     def region(self):
@@ -85,10 +113,25 @@ class GameEnv:
     def toggle_info_page(self):
         self.elements["info-page-toggle-button"].dispatch("click", None)
 
+    def toggle_achievements(self):
+        self.elements["achievements-toggle-button"].dispatch("click", None)
 
-def _install_pyodide_fakes(elements):
+    def toggle_worst_case_region(self):
+        self.elements["worst-case-toggle-button"].dispatch("click", None)
+
+    def apply_preset(self, prefix, preset_name):
+        self.elements[f"{prefix}-preset-{preset_name}-button"].dispatch("click", None)
+
+    def set_strategy_label(self, prefix, value):
+        element = self.elements[f"{prefix}-strategy-label-input"]
+        element.value = value
+        element.dispatch("input", None)
+
+
+def _install_pyodide_fakes(elements, timers):
     fake_js = types.ModuleType("js")
     fake_js.document = FakeDocument(elements)
+    fake_js.setTimeout = timers.setTimeout
 
     fake_pyodide = types.ModuleType("pyodide")
     fake_pyodide_ffi = types.ModuleType("pyodide.ffi")
@@ -123,13 +166,14 @@ def game_env():
         FakeElement(id_, registry=elements)
     for id_ in INITIALLY_DISABLED_IDS:
         elements[id_].disabled = True
-    _install_pyodide_fakes(elements)
+    timers = FakeTimers()
+    _install_pyodide_fakes(elements, timers)
 
     spec = importlib.util.spec_from_file_location("game", GAME_PY)
     module = importlib.util.module_from_spec(spec)
     sys.modules["game"] = module
     spec.loader.exec_module(module)  # runs setup() at the bottom of game.py
 
-    yield GameEnv(module, elements)
+    yield GameEnv(module, elements, timers)
 
     _remove_pyodide_fakes()

@@ -25,8 +25,13 @@
     <div class="game-toolbar">
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
+      <button id="achievements-toggle-button" class="secondary" type="button">Loading...</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
+    <div id="achievements-panel" class="section achievements-panel" hidden></div>
+    <div id="achievement-toast" class="achievement-toast" hidden>
+      <p id="achievement-toast-text"></p>
+    </div>
 
     <p class="tagline">Manage a northern region as global temperature rises on its own. Watch for the moment a slow problem tips into a runaway feedback loop.</p>
 
@@ -59,9 +64,12 @@
       <p id="funds-display" class="status-line">Funds: 300</p>
       <p id="temperature-display" class="status-line">Global temperature: +0.0°</p>
       <div class="meter"><div id="temperature-bar" class="meter-fill meter-fill--temperature"></div></div>
+      <p id="temperature-cap-note" class="meter-cap-note" hidden></p>
       <p id="rise-rate-display" class="status-line">Current warming rate: 1.00°/round</p>
+      <details class="info-toggle"><summary>i</summary><p>The fixed background rise stands in for a much longer real-world timescale, compressed for pacing — real global average temperature has risen roughly 1.1°C over the last century and a half, not in single fixed jumps per round. Treat each round as a stylized "several years" of real warming, not a literal calendar unit.</p></details>
       <p id="melt-status-display" class="comparison-message">Permafrost stable — no feedback yet.</p>
-      <details class="info-toggle"><summary>i</summary><p>Permafrost starts melting once global temperature crosses +10.0° — below that threshold it's dormant, but above it every extra degree releases methane that adds to next round's warming, on top of the fixed background rise.</p></details>
+      <details class="info-toggle"><summary>i</summary><p>Permafrost starts melting once global temperature crosses +10.0° — below that threshold it's dormant, but above it every extra degree releases methane that adds to next round's warming, on top of the fixed background rise. Past a much faster acceleration, melt status reads as "critical" instead of just "melting" — the feedback loop compounding fast rather than just having started.</p></details>
+      <p id="milestone-delay-callout" class="milestone-delay-callout" hidden></p>
       <p id="dampening-display" class="status-line">Feedback dampening: 0%</p>
       <details class="info-toggle"><summary>i</summary><p>Dampening only reduces the methane feedback bonus caused by melt — it never touches the fixed background warming rate, which always rises no matter what you invest in. That's also why this percentage can sit above 0% with no visible effect yet: it does nothing until melt actually starts.</p></details>
       <p id="intervention-feedback-display" class="comparison-message">No preservation or monitoring investment yet — a future melt would hit at full force.</p>
@@ -71,6 +79,7 @@
       <p id="trajectory-display" class="comparison-message">No meaningful difference from intervention yet.</p>
       <details class="info-toggle"><summary>i</summary><p>This compares your real temperature to a hidden shadow region that faces the exact same background trajectory but never receives any preserve/monitor investment — the gap between the two is how many degrees your interventions have actually saved.</p></details>
       <div id="graph" class="mini-temp-graph"></div>
+      <p id="personal-best-display" class="personal-best-display">Personal best: 0.0° saved</p>
     </div>
 
     <div id="investments" class="section">
@@ -79,16 +88,19 @@
         <details class="info-toggle"><summary>i</summary><p>Output generates funds each round and nothing else — it has no effect on temperature in either direction. Preservation and Monitoring below do the opposite: they never generate funds, but they're the only investments that dampen the feedback loop.</p></details>
         <span class="invest-count" id="output-count">0</span>
         <button id="output-invest-button" class="secondary" disabled>Loading...</button>
+        <span class="invest-forecast" id="output-forecast"></span>
       </div>
       <div class="invest-row" data-category="preserve">
         <span class="invest-name" id="preserve-name">Permafrost Preservation</span>
         <span class="invest-count" id="preserve-count">0</span>
         <button id="preserve-invest-button" class="secondary" disabled>Loading...</button>
+        <span class="invest-forecast" id="preserve-forecast"></span>
       </div>
       <div class="invest-row" data-category="monitor">
         <span class="invest-name" id="monitor-name">Monitoring &amp; Response</span>
         <span class="invest-count" id="monitor-count">0</span>
         <button id="monitor-invest-button" class="secondary" disabled>Loading...</button>
+        <span class="invest-forecast" id="monitor-forecast"></span>
       </div>
     </div>
 
@@ -97,10 +109,14 @@
       <div class="region-comparison-row">
         <div id="b-region-card" class="region-card">
           <p class="region-card-label">Region B</p>
+          <p class="region-flavor">Coastal tundra — closer to the sea, slightly more exposed to storm-driven erosion.</p>
           <div id="b-graph" class="mini-temp-graph"></div>
           <p id="b-temperature-display" class="region-stat">+0.0°</p>
           <p id="b-funds-display" class="region-stat">Funds: 300</p>
           <p id="b-melt-status-display" class="region-melt-status">Stable</p>
+          <p id="b-dampening-display" class="region-stat">Dampening: 0%</p>
+          <p id="b-acceleration-display" class="region-stat">Warming is rising at a steady, linear rate.</p>
+          <p id="b-trajectory-display" class="region-stat">No meaningful difference from intervention yet.</p>
           <div class="region-invest-buttons">
             <button id="b-output-invest-button" class="secondary" disabled>Loading...</button>
             <span class="invest-count" id="b-output-count">0</span>
@@ -109,13 +125,23 @@
             <button id="b-monitor-invest-button" class="secondary" disabled>Loading...</button>
             <span class="invest-count" id="b-monitor-count">0</span>
           </div>
+          <div class="region-preset-buttons">
+            <button id="b-preset-growth-button" class="secondary region-preset-button" type="button">Preset: Growth</button>
+            <button id="b-preset-preservation-button" class="secondary region-preset-button" type="button">Preset: Preservation</button>
+            <button id="b-preset-balanced-button" class="secondary region-preset-button" type="button">Preset: Balanced</button>
+          </div>
+          <input id="b-strategy-label-input" class="region-strategy-label-input" type="text" maxlength="40" placeholder="Label this region's strategy (optional)">
         </div>
         <div id="c-region-card" class="region-card">
           <p class="region-card-label">Region C</p>
+          <p class="region-flavor">Boreal interior — deeper permafrost, slower to feel changes at first.</p>
           <div id="c-graph" class="mini-temp-graph"></div>
           <p id="c-temperature-display" class="region-stat">+0.0°</p>
           <p id="c-funds-display" class="region-stat">Funds: 300</p>
           <p id="c-melt-status-display" class="region-melt-status">Stable</p>
+          <p id="c-dampening-display" class="region-stat">Dampening: 0%</p>
+          <p id="c-acceleration-display" class="region-stat">Warming is rising at a steady, linear rate.</p>
+          <p id="c-trajectory-display" class="region-stat">No meaningful difference from intervention yet.</p>
           <div class="region-invest-buttons">
             <button id="c-output-invest-button" class="secondary" disabled>Loading...</button>
             <span class="invest-count" id="c-output-count">0</span>
@@ -124,6 +150,29 @@
             <button id="c-monitor-invest-button" class="secondary" disabled>Loading...</button>
             <span class="invest-count" id="c-monitor-count">0</span>
           </div>
+          <div class="region-preset-buttons">
+            <button id="c-preset-growth-button" class="secondary region-preset-button" type="button">Preset: Growth</button>
+            <button id="c-preset-preservation-button" class="secondary region-preset-button" type="button">Preset: Preservation</button>
+            <button id="c-preset-balanced-button" class="secondary region-preset-button" type="button">Preset: Balanced</button>
+          </div>
+          <input id="c-strategy-label-input" class="region-strategy-label-input" type="text" maxlength="40" placeholder="Label this region's strategy (optional)">
+        </div>
+      </div>
+      <p id="region-comparison-best-display" class="comparison-message"></p>
+      <span id="best-region-hidden" hidden></span>
+    </div>
+
+    <div id="worst-case-section" class="section">
+      <button id="worst-case-toggle-button" class="secondary" type="button">Loading...</button>
+      <div id="worst-case-panel" class="worst-case-panel" hidden>
+        <p class="meter-label">Region D — pure neglect, auto-played: every round it spends everything on Output and never invests in Preservation or Monitoring.</p>
+        <div id="d-region-card" class="region-card">
+          <p class="region-card-label">Region D (worst case)</p>
+          <p class="region-flavor">No steward — a region left entirely to itself, for comparison.</p>
+          <div id="d-graph" class="mini-temp-graph"></div>
+          <p id="d-temperature-display" class="region-stat">+0.0°</p>
+          <p id="d-funds-display" class="region-stat">Funds: 300</p>
+          <p id="d-melt-status-display" class="region-melt-status">Stable</p>
         </div>
       </div>
     </div>
@@ -147,6 +196,12 @@
         <button id="feedback-intervention-yes-button" class="secondary">Yes</button>
         <button id="feedback-intervention-no-button" class="secondary">No</button>
       </div>
+      <!-- G20: a dedicated optional free-text field for the intervention
+           question specifically, separate from the general comment box
+           below — lets a player elaborate on *why* it did or didn't feel
+           like it was working without that detail getting mixed into a
+           more general closing thought. -->
+      <textarea id="feedback-intervention-comment" class="feedback-comment" placeholder="Optional: what specifically felt like it was (or wasn't) working?"></textarea>
       <textarea id="feedback-comment" class="feedback-comment" placeholder="One more thought? (optional)"></textarea>
       <button id="feedback-submit-button" class="secondary" disabled>Select Yes or No for both questions first</button>
       <p id="feedback-status" class="feedback-status"></p>
@@ -225,8 +280,11 @@
       // ENGINE_MODULES loop.
       const infoPageSource = await (await fetch("../../shared/info_page.py")).text();
       pyodide.FS.writeFile("info_page.py", infoPageSource, { encoding: "utf8" });
-      const response = await fetch("game.py");
-      const code = await response.text();
+      const [achievementsJson, code] = await Promise.all([
+        fetch("achievements.json").then((response) => response.text()),
+        fetch("game.py").then((response) => response.text()),
+      ]);
+      window.ACHIEVEMENTS_JSON = achievementsJson;
       await pyodide.runPythonAsync(code);
 
       if (window.GameTutorial) {
@@ -268,6 +326,7 @@
       const interventionNoButton = document.getElementById("feedback-intervention-no-button");
       const submitButton = document.getElementById("feedback-submit-button");
       const commentBox = document.getElementById("feedback-comment");
+      const interventionCommentBox = document.getElementById("feedback-intervention-comment");
       const statusEl = document.getElementById("feedback-status");
       let answer = null;
       let interventionAnswer = null;
@@ -301,7 +360,17 @@
       submitButton.addEventListener("click", async () => {
         if (!answer || !interventionAnswer) return;
         const comment = commentBox.value.trim();
-        const summary = `understanding=${answer}; intervention_worked=${interventionAnswer}`;
+        const interventionComment = interventionCommentBox.value.trim();
+        // G15: fold in which region is currently doing best as a simple
+        // aggregate stat — Python already computes this every render()
+        // and writes it into the hidden #best-region-hidden span, so
+        // this plain-JS submission script just reads it back out rather
+        // than recomputing anything itself.
+        const bestRegionEl = document.getElementById("best-region-hidden");
+        const bestRegion = bestRegionEl ? bestRegionEl.innerText.trim() : "";
+        let summary = `understanding=${answer}; intervention_worked=${interventionAnswer}`;
+        if (bestRegion) summary += `; best_region=${bestRegion}`;
+        if (interventionComment) summary += ` — intervention_note: ${interventionComment}`;
         const response = comment ? `${summary} — ${comment}` : summary;
 
         submitButton.disabled = true;
