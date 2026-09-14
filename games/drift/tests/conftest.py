@@ -21,6 +21,7 @@ ELEMENT_IDS = [
     "round-display",
     "funds-display",
     "total-capacity-display",
+    "personal-best-display",
     "net-positive-badge",
     "arrivals-display",
     "total-arrivals-display",

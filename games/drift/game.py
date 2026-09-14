@@ -962,9 +962,90 @@ def on_toggle_info_page(event=None):
     render_info_page()
 
 
+# I10: a per-browser "best run" stat -- the highest wellbeing_score() any
+# session on this device has ever reached, persisted via localStorage.
+# Same distinguishing rationale as Thaw's G19/Canopy's B14/Tide's D13:
+# this tracks the best this *browser* has ever seen across every
+# session/save on this device, not one save's snapshot, so it's
+# deliberately NOT part of get_state()/the save-code system.
+PERSONAL_BEST_STORAGE_KEY = "drift_personal_best_v1"
+
+
+def _read_local_storage_item(key):
+    """Lazy `import js` (same convention as _read_achievements_json()) so
+    this file stays importable outside a real browser. Broad except on
+    the actual read/write below is deliberate: a real browser can refuse
+    localStorage access entirely (private-browsing mode in some
+    browsers), surfaced as a JS exception with no stable Python type to
+    catch narrowly -- this feature is a nice-to-have, not core gameplay,
+    so it degrades to "no personal best recorded" rather than crashing
+    the module import."""
+    try:
+        import js  # noqa: PLC0415 -- Pyodide-only import, deliberately lazy
+    except ImportError:
+        return None
+    storage = getattr(js, "localStorage", None)
+    if storage is None:
+        return None
+    try:
+        return storage.getItem(key)
+    except Exception:  # noqa: BLE001 -- see docstring above
+        return None
+
+
+def _write_local_storage_item(key, value):
+    try:
+        import js  # noqa: PLC0415
+    except ImportError:
+        return
+    storage = getattr(js, "localStorage", None)
+    if storage is None:
+        return
+    try:
+        storage.setItem(key, value)
+    except Exception:  # noqa: BLE001 -- see _read_local_storage_item's docstring
+        pass
+
+
+def load_personal_best():
+    """Reads the stored best wellbeing_score(), defaulting to 0.0 if
+    nothing is stored yet, storage is unavailable, or the stored value is
+    malformed (e.g. hand-edited or from a future incompatible format)."""
+    raw = _read_local_storage_item(PERSONAL_BEST_STORAGE_KEY)
+    if not raw:
+        return {"wellbeing_score": 0.0}
+    try:
+        data = json.loads(raw)
+        return {"wellbeing_score": float(data.get("wellbeing_score", 0.0))}
+    except (ValueError, TypeError, AttributeError):
+        return {"wellbeing_score": 0.0}
+
+
+personal_best = load_personal_best()
+
+
+def _maybe_update_personal_best():
+    """Called every render(); bumps + persists personal_best whenever the
+    live session exceeds it."""
+    global personal_best
+    score = region.wellbeing_score()
+    if score > personal_best["wellbeing_score"]:
+        personal_best["wellbeing_score"] = score
+        _write_local_storage_item(PERSONAL_BEST_STORAGE_KEY, json.dumps(personal_best))
+
+
+def render_personal_best():
+    element = document.getElementById("personal-best-display")
+    if element is None:
+        return
+    element.innerText = f"Personal best wellbeing: {personal_best['wellbeing_score']:.0f}"
+
+
 def render():
     render_info_page()
     update_achievements_display()
+    _maybe_update_personal_best()
+    render_personal_best()
     document.getElementById("round-display").innerText = f"Round {region.round_number}"
     document.getElementById("funds-display").innerText = f"Funds: {region.funds:.0f}"
     document.getElementById("total-capacity-display").innerText = (

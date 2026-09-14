@@ -363,7 +363,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] I7: A one-line effect summary on each capacity investment row.
 - [ ] I8: Replace the coda's three meter bars with a clearer before/after comparison.
 - [ ] I9: A real-world resettlement-outcome benchmark comparison (institutional/statistical only, per this game's own sensitivity note).
-- [ ] I10: A locally-stored "best run" stat.
+- [x] I10: A locally-stored "best run" stat.
 - [ ] I11: A periodic (e.g. every 20 rounds) session-milestone summary.
 - [x] I12: Have the checkpoint message occasionally note a comfortably-ahead dimension too.
 - [ ] I13: A difficulty-variant toggle (accelerated background severity).
