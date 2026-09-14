@@ -211,6 +211,21 @@
     return { group, smokeOrigin: new THREE.Vector3(0.28, 1.0, 0) };
   }
 
+  // K19 (planning/TODO.md): Sanitation Works (Industrial) previously had NO
+  // mesh of its own -- worksCount only ever fed the smoke-puff-reduction
+  // math in buildIndustrialScene(), so a settlement could build several and
+  // see nothing distinct for it in the scene at all, unlike every other
+  // building in the game. A squat teal treatment tank (clearly distinct
+  // from the grey chimney factory it sits beside) closes that gap.
+  function buildSanitationWorks() {
+    const group = new THREE.Group();
+    const tank = cylinder(0.32, 0.36, 0.5, 0x3a8a82, 10);
+    const cap = cylinder(0.2, 0.2, 0.12, 0x2a6a64, 10);
+    cap.position.y = 0.31;
+    group.add(tank, cap);
+    return group;
+  }
+
   function buildSmokePuff(hex, scale) {
     const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.14, 6, 5), toonMaterial(hex));
     mesh.scale.setScalar(scale);
@@ -411,6 +426,14 @@
         puff.position.y += p * 0.22;
         group.add(puff);
       }
+    }
+    // Real, distinct meshes for Sanitation Works itself (see
+    // buildSanitationWorks() above) -- previously this building had no
+    // visual footprint at all beyond reducing the factories' smoke.
+    for (let i = 0; i < worksCount; i++) {
+      const works = buildSanitationWorks();
+      works.position.set(1.5, 0, 1.4 + i * 0.7);
+      group.add(works);
     }
     setupLighting(group, lerpColor(0xdfe6ee, 0x8a8a86, pollution), 0x3a3a3a);
     return group;
