@@ -68,15 +68,26 @@ RARE_METALS = "rare_metals"
 BIOMASS = "biomass"
 ISOTOPES = "isotopes"
 
+# J13 — the Rift Colonies, a third self-contained triangle gated behind
+# "Outer Reaches" (itself gated behind Galaxy Expansion). Same reasoning
+# as Kepler's own goods: a third, non-overlapping namespace keeps
+# colony_needing()/colony_producing() single-valued fleet-wide with zero
+# special-casing.
+CRYSTAL = "crystal"
+POLYMER = "polymer"
+ANTIMATTER = "antimatter"
+
 GOOD_LABEL = {
     ORE: "Ore", GRAIN: "Grain", MACHINERY: "Machinery", WATER: "Water", ENERGY: "Energy",
     RARE_METALS: "Rare Metals", BIOMASS: "Biomass", ISOTOPES: "Isotopes",
+    CRYSTAL: "Crystal", POLYMER: "Polymer", ANTIMATTER: "Antimatter",
 }
 
 # Flat per-unit base sell price, before Milestone 4's market multiplier.
 SELL_PRICE = {
     ORE: 8, GRAIN: 6, MACHINERY: 10, WATER: 5, ENERGY: 9,
     RARE_METALS: 14, BIOMASS: 8, ISOTOPES: 18,
+    CRYSTAL: 20, POLYMER: 12, ANTIMATTER: 26,
 }
 
 # Milestone 2: a third colony turned the fixed A<->B pair into a real
@@ -105,11 +116,22 @@ EXPANSION_COLONIES = {
     "kepler_c": {"name": "Kepler Gamma", "produces": ISOTOPES, "needs": RARE_METALS},
 }
 
-# All colony metadata, both systems -- used for lookups that must stay
+# J13 — a third system, the Rift Colonies, gated behind "Outer Reaches"
+# (which itself requires Galaxy Expansion first) -- same self-contained
+# triangle shape as Kepler, just one tier further out. No new mechanic,
+# same deliberate "more of what already exists" scope call Milestone 5
+# made for the home system's own second pair.
+RIFT_COLONIES = {
+    "rift_a": {"name": "Rift Colony Alpha", "produces": CRYSTAL, "needs": ANTIMATTER},
+    "rift_b": {"name": "Rift Colony Beta", "produces": ANTIMATTER, "needs": POLYMER},
+    "rift_c": {"name": "Rift Colony Gamma", "produces": POLYMER, "needs": CRYSTAL},
+}
+
+# All colony metadata, every system -- used for lookups that must stay
 # correct regardless of what's unlocked (colony_needing(),
 # colony_producing(), labels). Which of these are actually *reachable*
 # right now is a separate question, answered by active_colony_ids().
-ALL_COLONIES = {**COLONIES, **EXPANSION_COLONIES}
+ALL_COLONIES = {**COLONIES, **EXPANSION_COLONIES, **RIFT_COLONIES}
 
 # Milestone 3 — minor flavor text per colony, shown in the colony panel.
 COLONY_FLAVOR = {
@@ -121,6 +143,9 @@ COLONY_FLAVOR = {
     "kepler_a": "A newly-charted asteroid belt rich in rare metals — reaching it took the galaxy expansion, and running it still does.",
     "kepler_b": "Vast hydroponic vaults growing biomass for the whole cluster — an engineered ecology this far out, not a natural one.",
     "kepler_c": "Fusion research yards refining isotopes — infrastructure that only exists this far from the core because the expansion made it worth building.",
+    "rift_a": "A crystal-lattice quarry at the edge of charted space — Outer Reaches is the only reason a ship can reach it at all.",
+    "rift_b": "A containment yard breeding antimatter in vanishingly small, carefully metered batches.",
+    "rift_c": "A polymer refinery running on feedstock that has to be shipped in from somewhere else in the Rift.",
 }
 
 # Milestone 3 — colony need system v1: each colony's need_satisfaction
@@ -159,6 +184,12 @@ SECONDARY_NEED = {
     "kepler_a": ENERGY,
     "kepler_b": ORE,
     "kepler_c": WATER,
+    # J13 — the Rift Colonies' own secondary need reaches back one tier,
+    # into the Kepler Cluster, the same "links what was previously
+    # separate" move applied one system further out.
+    "rift_a": RARE_METALS,
+    "rift_b": BIOMASS,
+    "rift_c": ISOTOPES,
 }
 
 # Milestone 10 — colony specialization: distinct strengths/weaknesses
@@ -201,6 +232,18 @@ SPECIALIZATION = {
     "kepler_c": {
         "name": "Fusion Yards", "output_bonus": 0.20, "decay_multiplier": 1.4,
         "description": "+20% isotopes output; needs decay 40% faster (high-maintenance research infrastructure)",
+    },
+    "rift_a": {
+        "name": "Lattice Quarry", "output_bonus": 0.25, "decay_multiplier": 1.6,
+        "description": "+25% crystal output; needs decay 60% faster (edge-of-map, barely supplied)",
+    },
+    "rift_b": {
+        "name": "Containment Yard", "output_bonus": 0.20, "decay_multiplier": 1.5,
+        "description": "+20% antimatter output; needs decay 50% faster (a small batch is already a lot to keep stable)",
+    },
+    "rift_c": {
+        "name": "Feedstock Refinery", "output_bonus": 0.20, "decay_multiplier": 1.4,
+        "description": "+20% polymer output; needs decay 40% faster (every input is imported)",
     },
 }
 
@@ -257,7 +300,7 @@ class ColonyState:
 # methods are just JS method calls, so no separate JS glue file is
 # needed here despite the canvas requirement). Static layout and static
 # routes for now — no moving ships until Milestone 11.
-CANVAS_WIDTH = 460
+CANVAS_WIDTH = 620
 CANVAS_HEIGHT = 300
 NODE_RADIUS = 22
 NODE_POSITIONS = {
@@ -268,10 +311,18 @@ NODE_POSITIONS = {
     "helion": (38, 118),
     # Milestone 13 — the Kepler Cluster sits in its own space on the
     # right half of the (now wider) canvas, visually distinct from the
-    # home system's pentagon rather than crowded into it.
+    # home system's pentagon rather than crowded into it. Positions kept
+    # exactly as Milestone 13 placed them (not re-centered for J13's
+    # further widening below) so an in-flight ship's saved interpolation
+    # coordinates stay valid.
     "kepler_a": (390, 50),
     "kepler_b": (430, 190),
     "kepler_c": (350, 230),
+    # J13 — the Rift Colonies get their own space again, further right
+    # still, on the canvas' newly-widened third of the width.
+    "rift_a": (560, 50),
+    "rift_b": (595, 190),
+    "rift_c": (520, 250),
 }
 NODE_COLOR = "#3a5a9c"
 EDGE_COLOR = "#3a3f5c"
@@ -290,6 +341,11 @@ MAP_LABEL_OVERRIDE = {
     "kepler_a": "Kep. Alpha",
     "kepler_b": "Kep. Beta",
     "kepler_c": "Kep. Gamma",
+    # J13 — same collision as Kepler's: all three Rift colonies share the
+    # literal first word "Rift".
+    "rift_a": "Rift Alpha",
+    "rift_b": "Rift Beta",
+    "rift_c": "Rift Gamma",
 }
 
 
@@ -321,6 +377,8 @@ def route_edges():
 SHIP_DOT_RADIUS = 5
 AUTOMATED_SHIP_COLOR = "#e0c34c"
 MANUAL_SHIP_COLOR = "#e8e9f0"
+# J16 — a color distinct from every node/edge/ship hue already in use.
+FLEET_PRIORITY_TARGET_COLOR = "#ff6ad0"
 
 
 def ship_map_position(ship):
@@ -369,12 +427,39 @@ def render_map():
         ctx.textBaseline = "middle"
         ctx.fillText(colony_map_label(colony_id), x, y)
 
+    # J16 — Fleet Priority's current target, made visible rather than
+    # left implicit: a ring around whichever colony most_urgent_colony()
+    # would currently send an idle automated ship toward.
+    if fleet_priority_enabled and colony_states:
+        target = most_urgent_colony()
+        if target in NODE_POSITIONS:
+            tx, ty = NODE_POSITIONS[target]
+            ctx.strokeStyle = FLEET_PRIORITY_TARGET_COLOR
+            ctx.lineWidth = 3
+            ctx.beginPath()
+            ctx.arc(tx, ty, NODE_RADIUS + 6, 0, 2 * math.pi)
+            ctx.stroke()
+
     for ship in ships.values():
+        if not ship.purchased:
+            continue
         x, y = ship_map_position(ship)
         ctx.fillStyle = AUTOMATED_SHIP_COLOR if ship.automated else MANUAL_SHIP_COLOR
-        ctx.beginPath()
-        ctx.arc(x, y, SHIP_DOT_RADIUS, 0, 2 * math.pi)
-        ctx.fill()
+        if ship.automated:
+            # J18 — colorblind-safe differentiation: a diamond, not just
+            # a different hue, so automated-vs-manual doesn't rely on
+            # color perception at all.
+            ctx.beginPath()
+            ctx.moveTo(x, y - SHIP_DOT_RADIUS)
+            ctx.lineTo(x + SHIP_DOT_RADIUS, y)
+            ctx.lineTo(x, y + SHIP_DOT_RADIUS)
+            ctx.lineTo(x - SHIP_DOT_RADIUS, y)
+            ctx.closePath()
+            ctx.fill()
+        else:
+            ctx.beginPath()
+            ctx.arc(x, y, SHIP_DOT_RADIUS, 0, 2 * math.pi)
+            ctx.fill()
 
 
 colony_states = {colony_id: ColonyState(colony_id) for colony_id in COLONIES}
@@ -393,7 +478,23 @@ MAX_PRICE_MULTIPLIER = 1.0
 market_multiplier = {
     ORE: 1.0, GRAIN: 1.0, MACHINERY: 1.0, WATER: 1.0, ENERGY: 1.0,
     RARE_METALS: 1.0, BIOMASS: 1.0, ISOTOPES: 1.0,
+    CRYSTAL: 1.0, POLYMER: 1.0, ANTIMATTER: 1.0,
 }
+
+# J11 — per-route profitability. Every good in the galaxy is produced by
+# exactly one colony and needed by exactly one other (colony_producing()/
+# colony_needing() are both single-valued), so a good's cumulative sale
+# profit *is* that route's cumulative profit -- no separate route-keyed
+# structure needed on top of the good-keyed one.
+good_profit_total = {good: 0 for good in market_multiplier}
+
+# J12/J14 — a short rolling trend history (market price per good, need
+# satisfaction per colony), just long enough for a small inline
+# sparkline to read as a real shape. Same "unlabeled inline-SVG
+# polyline" technique Herd's own trend graph uses.
+TREND_HISTORY_MAX_POINTS = 30
+price_history = {good: [] for good in market_multiplier}
+need_history = {}
 
 
 def current_sell_price(good):
@@ -451,6 +552,15 @@ def colony_producing(good):
 AUTOMATION_COST = 150
 MAX_AUTOMATED_SHIPS = 2
 
+# J15 — how many consecutive ticks a manual ship can sit docked and
+# empty before its status line flags it as idle. ~20 real seconds at
+# TICK_INTERVAL_MS, long enough that briefly deciding where to send a
+# ship never trips it.
+IDLE_WARNING_TICKS = 20
+
+# J10 — player-chosen ship names, capped to keep the panel header tidy.
+MAX_SHIP_NAME_LENGTH = 24
+
 # Milestone 12 — fleet-level automation: off by default, so Milestone 6's
 # per-route autopilot behavior (and every test written against it) is
 # preserved exactly when the mode isn't switched on. When it is, an idle
@@ -492,8 +602,24 @@ RESEARCH_NODES = {
         "cost": 80, "label": "Galaxy Expansion",
         "description": "Unlocks the Kepler Cluster — 3 new colonies, a new need-triangle",
     },
+    # J7 — a second automation-slot tier. Gated behind the first tier via
+    # "requires" (a node id that must already be unlocked) rather than
+    # just a steeper cost, so the tree gets its first real prerequisite
+    # edge instead of staying flat forever.
+    "automation_slot_2": {
+        "cost": 150, "label": "Automation Expansion II", "description": "+1 more automation slot",
+        "requires": "automation_slot",
+    },
+    # J13 — gates the Rift Colonies, priced above Galaxy Expansion (a
+    # third system, one tier further out) and requiring it first.
+    "outer_reaches": {
+        "cost": 200, "label": "Outer Reaches",
+        "description": "Unlocks the Rift Colonies — 3 new colonies, a new need-triangle",
+        "requires": "galaxy_expansion",
+    },
 }
 AUTOMATION_SLOT_RESEARCH_BONUS = 1
+AUTOMATION_SLOT_2_RESEARCH_BONUS = 1
 FAST_SHIPS_TICK_REDUCTION = 1
 HAULER_CARGO_MULTIPLIER = 1.5
 
@@ -505,20 +631,31 @@ def galaxy_expansion_unlocked():
     return "galaxy_expansion" in unlocked_research
 
 
+def outer_reaches_unlocked():
+    return "outer_reaches" in unlocked_research
+
+
 def active_colony_ids():
-    """Every colony ID the player can currently interact with — the
-    home system always, plus the Kepler Cluster once its research node
-    is unlocked. Everything reachability-sensitive (route drawing,
-    depart-button validity, a ship's list of possible destinations)
-    is scoped to this rather than to ALL_COLONIES directly."""
+    """Every colony ID the player can currently interact with — the home
+    system always, the Kepler Cluster once Galaxy Expansion is unlocked,
+    and the Rift Colonies once Outer Reaches is. Everything reachability-
+    sensitive (route drawing, depart-button validity, a ship's list of
+    possible destinations) is scoped to this rather than to ALL_COLONIES
+    directly."""
     ids = list(COLONIES)
     if galaxy_expansion_unlocked():
         ids += list(EXPANSION_COLONIES)
+    if outer_reaches_unlocked():
+        ids += list(RIFT_COLONIES)
     return ids
 
 
 def can_unlock_research(node_id):
-    return node_id not in unlocked_research and research_points >= RESEARCH_NODES[node_id]["cost"]
+    node = RESEARCH_NODES[node_id]
+    requires = node.get("requires")
+    if requires is not None and requires not in unlocked_research:
+        return False
+    return node_id not in unlocked_research and research_points >= node["cost"]
 
 
 def unlock_research(node_id):
@@ -536,11 +673,16 @@ def unlock_research(node_id):
         # actually reach it to help.
         for colony_id in EXPANSION_COLONIES:
             colony_states[colony_id] = ColonyState(colony_id)
+    elif node_id == "outer_reaches":
+        # Same deferred-creation reasoning, one tier further out.
+        for colony_id in RIFT_COLONIES:
+            colony_states[colony_id] = ColonyState(colony_id)
     return True
 
 
 def max_automated_ships():
     bonus = AUTOMATION_SLOT_RESEARCH_BONUS if "automation_slot" in unlocked_research else 0
+    bonus += AUTOMATION_SLOT_2_RESEARCH_BONUS if "automation_slot_2" in unlocked_research else 0
     return MAX_AUTOMATED_SHIPS + bonus
 
 
@@ -564,6 +706,16 @@ class Ship:
         self.transit_ticks_remaining = 0
         self.transit_total_ticks = 0  # ticks this specific trip started with, for map interpolation
         self.automated = False
+        # J6 — ships 5/6 start unpurchased; the original 4-ship roster is
+        # purchased from the moment the game starts, same as it always
+        # was before this feature existed.
+        self.purchased = True
+        # J10 — player-chosen display name, defaults to "Ship N".
+        self.name = f"Ship {ship_id}"
+        # J15 — consecutive ticks this ship has spent docked, empty, and
+        # not automated. Reset the instant any of those stop being true
+        # (tick() does the resetting; see IDLE_WARNING_TICKS below).
+        self.idle_ticks = 0
 
     @property
     def in_transit(self):
@@ -578,7 +730,7 @@ class Ship:
         return self.cargo_qty > 0
 
     def load(self):
-        if not self.docked or self.loaded:
+        if not self.purchased or not self.docked or self.loaded:
             return False
         self.cargo_good = ALL_COLONIES[self.location]["produces"]
         self.cargo_qty = round(colony_states[self.location].cargo_capacity() * fleet_cargo_multiplier())
@@ -599,7 +751,7 @@ class Ship:
         self.transit_ticks_remaining = self.transit_total_ticks
 
     def depart(self, destination):
-        if not self.docked or not self.loaded:
+        if not self.purchased or not self.docked or not self.loaded:
             return False
         if destination == self.location or destination not in active_colony_ids():
             return False
@@ -650,12 +802,27 @@ class Ship:
         return result
 
 
+# J6 — a 5th/6th purchasable ship. Both exist from module load (so
+# get_state()/load_state()'s existing generic per-ship loops need no
+# special-casing) but start unpurchased/hidden behind a one-time credit
+# cost -- SHIP_PURCHASE_COST below, enforced by can_purchase_ship()/
+# purchase_ship() and Ship.load()/depart()'s own "purchased" guard.
+# Sequential: the 6th requires the 5th already bought, same "one tier at
+# a time" shape as the research tree's own prerequisite edges.
+PURCHASABLE_SHIP_IDS = ("5", "6")
+SHIP_PURCHASE_COST = {"5": 400, "6": 1000}
+
 ships = {
     "1": Ship("1", "aurum"),
     "2": Ship("2", "verdant"),
     "3": Ship("3", "ferrum"),
     "4": Ship("4", "cryo"),
+    "5": Ship("5", "aurum"),
+    "6": Ship("6", "aurum"),
 }
+for _purchasable_id in PURCHASABLE_SHIP_IDS:
+    ships[_purchasable_id].purchased = False
+
 total_profit = 0
 sale_log = []  # most recent sale message, for the status line
 
@@ -686,12 +853,48 @@ def automation_slots_available():
 
 
 def automate_ship(ship_id):
-    global total_profit
+    global total_profit, seen_first_automation_callout
     ship = ships[ship_id]
-    if ship.automated or not automation_slots_available() or total_profit < AUTOMATION_COST:
+    if not ship.purchased or ship.automated or not automation_slots_available() or total_profit < AUTOMATION_COST:
         return False
     total_profit -= AUTOMATION_COST
     ship.automated = True
+    if not seen_first_automation_callout:
+        seen_first_automation_callout = True
+        show_notice_toast(
+            "🚀 First automated ship! It'll load and depart on its own from here — "
+            "automate more ships to scale the whole fleet up."
+        )
+    return True
+
+
+def can_purchase_ship(ship_id):
+    ship = ships[ship_id]
+    if ship.purchased:
+        return False
+    if ship_id == "6" and not ships["5"].purchased:
+        return False
+    return total_profit >= SHIP_PURCHASE_COST[ship_id]
+
+
+def purchase_ship(ship_id):
+    """J6 — a one-time credit spend that unlocks a 5th/6th ship, same
+    shape as automate_ship()'s one-time AUTOMATION_COST spend."""
+    global total_profit
+    if not can_purchase_ship(ship_id):
+        return False
+    total_profit -= SHIP_PURCHASE_COST[ship_id]
+    ships[ship_id].purchased = True
+    return True
+
+
+def rename_ship(ship_id, new_name):
+    """J10 — a blank/whitespace-only name is rejected rather than
+    silently accepted, so a ship can never end up with an empty label."""
+    name = (new_name or "").strip()
+    if not name:
+        return False
+    ships[ship_id].name = name[:MAX_SHIP_NAME_LENGTH]
     return True
 
 
@@ -773,11 +976,46 @@ def ship_status_text(ship):
         return f"Automated — docked at {colony['name']}, running its route on its own."
     if ship.loaded:
         return f"Docked at {colony['name']}, loaded with {ship.cargo_qty} {GOOD_LABEL[ship.cargo_good]}. Choose a destination."
-    return f"Docked at {colony['name']}. Load {GOOD_LABEL[colony['produces']]} to prepare a run."
+    base = f"Docked at {colony['name']}. Load {GOOD_LABEL[colony['produces']]} to prepare a run."
+    if ship.idle_ticks >= IDLE_WARNING_TICKS:
+        base += f" ⚠️ Idle for {ship.idle_ticks} ticks — consider loading it or automating this route."
+    return base
+
+
+def _render_unpurchased_ship(ship):
+    """J6 — ship 5/6 before their one-time purchase: every normal control
+    stays hidden, replaced by a single purchase button + status line."""
+    document.getElementById(f"ship-{ship.id}-status").innerText = (
+        f"Not yet purchased — {SHIP_PURCHASE_COST[ship.id]} credits to add it to the fleet."
+    )
+    document.getElementById(f"ship-{ship.id}-load-button").hidden = True
+    document.getElementById(f"ship-{ship.id}-automate-button").hidden = True
+    for colony_id in ALL_COLONIES:
+        document.getElementById(f"ship-{ship.id}-depart-{colony_id}-button").hidden = True
+
+    purchase_button = document.getElementById(f"ship-{ship.id}-purchase-button")
+    purchase_button.hidden = False
+    purchase_button.innerText = f"Purchase Ship ({SHIP_PURCHASE_COST[ship.id]})"
+    purchase_button.disabled = not can_purchase_ship(ship.id)
 
 
 def render_ship(ship):
-    document.getElementById(f"ship-{ship.id}-status").innerText = ship_status_text(ship)
+    document.getElementById(f"ship-{ship.id}-label").innerText = ship.name
+
+    if ship.id in PURCHASABLE_SHIP_IDS:
+        purchase_button = document.getElementById(f"ship-{ship.id}-purchase-button")
+        if not ship.purchased:
+            _render_unpurchased_ship(ship)
+            return
+        purchase_button.hidden = True
+
+    status_el = document.getElementById(f"ship-{ship.id}-status")
+    status_el.innerText = ship_status_text(ship)
+    # J15 — a manual ship left idle and empty for a long stretch gets a
+    # distinct status style, a nudge that's easy to miss in a wall of
+    # otherwise-identical "docked, nothing loaded" panels.
+    idle_warning = not ship.automated and ship.idle_ticks >= IDLE_WARNING_TICKS
+    status_el.className = "ship-status ship-status--idle-warning" if idle_warning else "ship-status"
 
     load_button = document.getElementById(f"ship-{ship.id}-load-button")
     load_button.hidden = ship.automated
@@ -793,6 +1031,7 @@ def render_ship(ship):
         depart_button.disabled = ship.automated or not applicable
 
     automate_button = document.getElementById(f"ship-{ship.id}-automate-button")
+    automate_button.hidden = False
     if ship.automated:
         automate_button.innerText = "Automated"
         automate_button.disabled = True
@@ -817,6 +1056,10 @@ def render_colony(colony_id):
     document.getElementById(f"colony-{colony_id}-need-display").innerText = need_text
     document.getElementById(f"colony-{colony_id}-need-bar").style.width = (
         f"{state.need_satisfaction * 100:.0f}%"
+    )
+    # J14 — a need-satisfaction-over-time sparkline alongside the meter.
+    document.getElementById(f"colony-{colony_id}-need-sparkline").innerHTML = _trend_sparkline_svg(
+        need_history.get(colony_id, []), "need-sparkline"
     )
 
     dev_el = document.getElementById(f"colony-{colony_id}-development-display")
@@ -850,6 +1093,30 @@ def render_needs_strip():
         )
 
 
+SPARKLINE_WIDTH = 60
+SPARKLINE_HEIGHT = 18
+
+
+def _trend_sparkline_svg(history, css_class):
+    """J12/J14 — an unlabeled inline-SVG polyline over a short rolling
+    history; the point is the shape of the trend, not any exact value.
+    Values are expected roughly in 0..1 (market multiplier, need
+    satisfaction) so a fixed height mapping is enough -- no separate
+    axis scaling needed."""
+    if len(history) < 2:
+        return ""
+    n = len(history)
+    points = []
+    for i, value in enumerate(history):
+        x = (i / (n - 1)) * SPARKLINE_WIDTH
+        y = SPARKLINE_HEIGHT - max(0.0, min(1.0, value)) * SPARKLINE_HEIGHT
+        points.append(f"{x:.1f},{y:.1f}")
+    return (
+        f'<svg viewBox="0 0 {SPARKLINE_WIDTH} {SPARKLINE_HEIGHT}" class="{css_class}" '
+        f'aria-hidden="true"><polyline points="{" ".join(points)}" /></svg>'
+    )
+
+
 def render_market():
     for good in market_multiplier:
         price = current_sell_price(good)
@@ -860,6 +1127,10 @@ def render_market():
         if market_multiplier[good] < 0.7:
             display.className += " market-price--crashed"
         document.getElementById(f"market-{good}-bar").style.width = f"{pct:.0f}%"
+        # J12 — a small price-history sparkline alongside the bar.
+        document.getElementById(f"market-{good}-sparkline").innerHTML = _trend_sparkline_svg(
+            price_history.get(good, []), "price-sparkline"
+        )
 
 
 def render_research():
@@ -909,6 +1180,37 @@ def render_endgame():
         f"quietly among themselves — {background_revenue_this_tick()} credits/tick "
         f"in background revenue."
     )
+    render_endgame_galaxy(worlds)
+
+
+# J20 — a visual flourish on the background galaxy: a small canvas that
+# actually grows a scattering of dots as background_world_count() climbs,
+# rather than the number alone standing in for "a growing galaxy." A
+# fixed golden-angle spiral keeps the scatter stable frame to frame
+# (no jitter) without needing to store per-dot state anywhere.
+ENDGAME_GALAXY_CANVAS_SIZE = 140
+ENDGAME_GALAXY_DOT_CAP = 200
+GOLDEN_ANGLE_RADIANS = 2.399963
+
+
+def render_endgame_galaxy(worlds):
+    canvas = document.getElementById("endgame-galaxy-canvas")
+    if canvas is None:
+        return
+    ctx = canvas.getContext("2d")
+    ctx.clearRect(0, 0, ENDGAME_GALAXY_CANVAS_SIZE, ENDGAME_GALAXY_CANVAS_SIZE)
+    ctx.fillStyle = FLEET_PRIORITY_TARGET_COLOR
+    dot_count = min(ENDGAME_GALAXY_DOT_CAP, worlds)
+    center = ENDGAME_GALAXY_CANVAS_SIZE / 2
+    for i in range(dot_count):
+        angle = i * GOLDEN_ANGLE_RADIANS
+        radius = 3 + 4.6 * math.sqrt(i)
+        cx = center + radius * math.cos(angle)
+        cy = center + radius * math.sin(angle)
+        if 0 <= cx <= ENDGAME_GALAXY_CANVAS_SIZE and 0 <= cy <= ENDGAME_GALAXY_CANVAS_SIZE:
+            ctx.beginPath()
+            ctx.arc(cx, cy, 1.6, 0, 2 * math.pi)
+            ctx.fill()
 
 
 # ===========================================================================
@@ -1103,6 +1405,46 @@ def show_achievement_toast(message):
     setTimeout(_toast_hide_proxy, ACHIEVEMENT_TOAST_DURATION_MS)
 
 
+# J8/J17 — a second, independent toast for lightweight gameplay nudges
+# (a manual ship's arrival, a one-time first-automation callout) that
+# are deliberately *not* achievements, kept as its own element/class/
+# proxy so it can never collide with an achievement unlocking at the
+# same moment (both can be on screen together, in different spots).
+_notice_hide_proxy = None
+NOTICE_TOAST_DURATION_MS = 3000
+
+
+def show_notice_toast(message):
+    global _notice_hide_proxy
+    toast = document.getElementById("notice-toast")
+    if toast is None:
+        return
+    toast.innerText = message
+    toast.hidden = False
+    toast.classList.add("notice-toast--visible")
+
+    if _notice_hide_proxy is not None:
+        _notice_hide_proxy.destroy()
+        _notice_hide_proxy = None
+
+    def _hide():
+        global _notice_hide_proxy
+        toast.classList.remove("notice-toast--visible")
+        toast.hidden = True
+        if _notice_hide_proxy is not None:
+            _notice_hide_proxy.destroy()
+            _notice_hide_proxy = None
+
+    _notice_hide_proxy = create_proxy(_hide)
+    setTimeout(_notice_hide_proxy, NOTICE_TOAST_DURATION_MS)
+
+
+# J17 — a one-time callout the first time any ship is automated,
+# persisted so it never re-fires after being loaded from a save that
+# already has an automated ship on it.
+seen_first_automation_callout = False
+
+
 def _sync_earned_and_toast():
     """Diffs the live earned set against the last-seen snapshot; anything
     newly present gets a toast (batched into one message if several land
@@ -1178,6 +1520,84 @@ def update_achievements_display():
     panel.appendChild(hub_link)
 
 
+# ===========================================================================
+# J9/J11 — an on-demand session summary, following the same toggle+panel
+# idiom as the achievements panel (built, not open, by default; only
+# populated when open; kept live across render() while open). J11's per-
+# route profitability rides along here as the summary's second half,
+# rather than a separate panel of its own -- colony_producing()/
+# colony_needing() already make "route" and "good" the same concept in
+# this game, so listing every good's cumulative sale profit *is* the
+# per-route readout.
+# ===========================================================================
+summary_open = False
+
+
+def on_toggle_summary(event=None):
+    global summary_open
+    summary_open = not summary_open
+    update_summary_display()
+
+
+def _route_profitability_lines():
+    lines = []
+    for good, total in good_profit_total.items():
+        if total <= 0:
+            continue
+        producer = colony_producing(good)
+        consumer = colony_needing(good)
+        producer_name = ALL_COLONIES[producer]["name"] if producer else "?"
+        consumer_name = ALL_COLONIES[consumer]["name"] if consumer else "?"
+        lines.append(f"{GOOD_LABEL[good]} ({producer_name} → {consumer_name}): {total:,} credits")
+    return lines
+
+
+def update_summary_display():
+    toggle = document.getElementById("summary-toggle-button")
+    panel = document.getElementById("summary-panel")
+    toggle.innerText = "Hide Summary" if summary_open else "📊 Summary"
+    panel.hidden = not summary_open
+    if not summary_open:
+        return
+
+    developed = sum(1 for state in colony_states.values() if state.is_developed())
+    ships_owned = sum(1 for ship in ships.values() if ship.purchased)
+    overview_lines = [
+        f"Total profit: {total_profit:,} credits (peak {max_profit_ever:,})",
+        f"Sales completed: {total_sales_count}",
+        f"Ships owned: {ships_owned}/{len(ships)}",
+        f"Ships automated: {automated_ship_count()}/{max_automated_ships()}",
+        f"Research unlocked: {len(unlocked_research)}/{len(RESEARCH_NODES)}",
+        f"Colonies developed: {developed}/{len(colony_states)}",
+        f"Achievements: {len(achievement_ids_earned())}/{len(ACHIEVEMENTS)}",
+        "Status: full-scale endgame reached" if endgame_reached else "Status: still building",
+    ]
+
+    panel.innerHTML = ""
+    for line in overview_lines:
+        p = document.createElement("p")
+        p.className = "summary-line"
+        p.innerText = line
+        panel.appendChild(p)
+
+    route_heading = document.createElement("p")
+    route_heading.className = "panel-label summary-route-heading"
+    route_heading.innerText = "Route profitability"
+    panel.appendChild(route_heading)
+
+    route_lines = _route_profitability_lines()
+    if not route_lines:
+        empty = document.createElement("p")
+        empty.className = "summary-line"
+        empty.innerText = "No completed sales yet."
+        panel.appendChild(empty)
+    for line in route_lines:
+        p = document.createElement("p")
+        p.className = "summary-line"
+        p.innerText = line
+        panel.appendChild(p)
+
+
 def render():
     document.getElementById("profit-display").innerText = f"Total profit: {total_profit} credits"
     document.getElementById("sale-log").innerText = sale_log[-1] if sale_log else "No sales yet."
@@ -1203,13 +1623,34 @@ def render():
     document.getElementById("expansion-colonies-panel").hidden = not expansion_unlocked
     document.getElementById("expansion-market-panel").hidden = not expansion_unlocked
 
+    # J13 — same hidden-until-relevant idiom, one tier further out.
+    expansion2_unlocked = outer_reaches_unlocked()
+    document.getElementById("expansion2-colonies-panel").hidden = not expansion2_unlocked
+    document.getElementById("expansion2-market-panel").hidden = not expansion2_unlocked
+
     update_achievements_display()
     _sync_earned_and_toast()
+    update_summary_display()
 
 
 def _make_load_handler(ship_id):
     def handler(event=None):
         ships[ship_id].load()
+        render()
+    return handler
+
+
+def _make_purchase_ship_handler(ship_id):
+    def handler(event=None):
+        purchase_ship(ship_id)
+        render()
+    return handler
+
+
+def _make_rename_handler(ship_id):
+    def handler(event=None):
+        input_el = document.getElementById(f"ship-{ship_id}-name-input")
+        rename_ship(ship_id, input_el.value)
         render()
     return handler
 
@@ -1250,12 +1691,42 @@ def tick(event=None):
             total_profit += profit
             total_sales_count += 1
             goods_sold_ever.add(good)
+            good_profit_total[good] = good_profit_total.get(good, 0) + profit
             sale_log.append(sell_summary(good, qty, profit, ship.location))
             apply_market_sale(good, qty)
+            # J8 — a lightweight arrival toast, manual ships only: once a
+            # ship is automated the player isn't meant to be watching
+            # every individual cycle any more, so toasting every one of
+            # an automated ship's (much more frequent) arrivals would be
+            # the opposite of "lightweight."
+            if not ship.automated:
+                show_notice_toast(
+                    f"🚚 {ship.name} arrived at {ALL_COLONIES[ship.location]['name']}."
+                )
     run_automation()
     for colony_state in colony_states.values():
         colony_state.decay()
     recover_market()
+
+    # J15 — idle-ticks bookkeeping: counts up only while a ship is
+    # purchased, manual, docked, and empty; anything else (in transit,
+    # loaded, automated, unpurchased) resets it to zero.
+    for ship in ships.values():
+        if ship.purchased and not ship.automated and ship.docked and not ship.loaded:
+            ship.idle_ticks += 1
+        else:
+            ship.idle_ticks = 0
+
+    # J12/J14 — a short rolling history per good/colony, just long enough
+    # for a small trend sparkline to read as a shape rather than noise.
+    for good in market_multiplier:
+        history = price_history.setdefault(good, [])
+        history.append(market_multiplier[good])
+        del history[:-TREND_HISTORY_MAX_POINTS]
+    for colony_id, colony_state in colony_states.items():
+        history = need_history.setdefault(colony_id, [])
+        history.append(colony_state.need_satisfaction)
+        del history[:-TREND_HISTORY_MAX_POINTS]
 
     global endgame_reached, ticks_since_endgame
     if not endgame_reached and endgame_criteria_met():
@@ -1296,6 +1767,9 @@ def get_state():
                 "transit_ticks_remaining": ship.transit_ticks_remaining,
                 "transit_total_ticks": ship.transit_total_ticks,
                 "automated": ship.automated,
+                "purchased": ship.purchased,
+                "name": ship.name,
+                "idle_ticks": ship.idle_ticks,
             }
             for ship_id, ship in ships.items()
         },
@@ -1321,6 +1795,10 @@ def get_state():
         "goods_sold_ever": sorted(goods_sold_ever),
         "ever_repositioned": ever_repositioned,
         "market_crash_ever": dict(market_crash_ever),
+        "good_profit_total": dict(good_profit_total),
+        "price_history": {good: list(values) for good, values in price_history.items()},
+        "need_history": {colony_id: list(values) for colony_id, values in need_history.items()},
+        "seen_first_automation_callout": seen_first_automation_callout,
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed here, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),
@@ -1337,12 +1815,16 @@ def load_state(data):
     global total_profit, sale_log, research_points, unlocked_research
     global fleet_priority_enabled, endgame_reached, ticks_since_endgame
     global total_sales_count, max_profit_ever, goods_sold_ever, ever_repositioned
-    global _previously_earned_ids
+    global _previously_earned_ids, seen_first_automation_callout
 
     unlocked_research = set(data.get("unlocked_research", unlocked_research))
 
     if galaxy_expansion_unlocked():
         for colony_id in EXPANSION_COLONIES:
+            if colony_id not in colony_states:
+                colony_states[colony_id] = ColonyState(colony_id)
+    if outer_reaches_unlocked():
+        for colony_id in RIFT_COLONIES:
             if colony_id not in colony_states:
                 colony_states[colony_id] = ColonyState(colony_id)
 
@@ -1373,6 +1855,9 @@ def load_state(data):
         )
         ship.transit_total_ticks = saved.get("transit_total_ticks", ship.transit_total_ticks)
         ship.automated = saved.get("automated", ship.automated)
+        ship.purchased = saved.get("purchased", ship.purchased)
+        ship.name = saved.get("name", ship.name)
+        ship.idle_ticks = saved.get("idle_ticks", ship.idle_ticks)
 
     market_multiplier.update(data.get("market_multiplier", {}))
     total_profit = data.get("total_profit", total_profit)
@@ -1387,6 +1872,14 @@ def load_state(data):
     goods_sold_ever = set(data.get("goods_sold_ever", goods_sold_ever))
     ever_repositioned = data.get("ever_repositioned", ever_repositioned)
     market_crash_ever.update(data.get("market_crash_ever", {}))
+    good_profit_total.update(data.get("good_profit_total", {}))
+    for good, values in data.get("price_history", {}).items():
+        price_history[good] = list(values)
+    for colony_id, values in data.get("need_history", {}).items():
+        need_history[colony_id] = list(values)
+    seen_first_automation_callout = data.get(
+        "seen_first_automation_callout", seen_first_automation_callout
+    )
     # Belt-and-suspenders backfill, same idea as Canopy's community_
     # relations_min_ever: an old save predating this field can't have
     # recorded it, but the restored total_profit is itself a valid lower
@@ -1419,6 +1912,14 @@ def setup():
         document.getElementById(f"ship-{ship.id}-automate-button").addEventListener(
             "click", create_proxy(_make_automate_handler(ship.id))
         )
+        # J10 — every ship can be renamed, not just the purchasable ones.
+        document.getElementById(f"ship-{ship.id}-rename-button").addEventListener(
+            "click", create_proxy(_make_rename_handler(ship.id))
+        )
+        if ship.id in PURCHASABLE_SHIP_IDS:
+            document.getElementById(f"ship-{ship.id}-purchase-button").addEventListener(
+                "click", create_proxy(_make_purchase_ship_handler(ship.id))
+            )
     for node_id in RESEARCH_NODES:
         document.getElementById(f"research-{node_id}-unlock-button").addEventListener(
             "click", create_proxy(_make_research_handler(node_id))
@@ -1429,6 +1930,9 @@ def setup():
     document.getElementById("achievements-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_achievements)
     )
+    document.getElementById("summary-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_summary)
+    )
     # Explicit, not just relying on index.html's `hidden` attribute -- the
     # toast element is only otherwise touched by show_achievement_toast()/
     # its own hide callback (unlike every *panel*, which gets its `hidden`
@@ -1437,6 +1941,9 @@ def setup():
     toast = document.getElementById("achievement-toast")
     if toast is not None:
         toast.hidden = True
+    notice_toast = document.getElementById("notice-toast")
+    if notice_toast is not None:
+        notice_toast.hidden = True
     setInterval(create_proxy(tick), TICK_INTERVAL_MS)
     render()
     # A fresh session's already-earned achievements (there shouldn't be

@@ -26,13 +26,17 @@ def test_get_state_includes_every_expected_key(game_env):
         "goods_sold_ever",
         "ever_repositioned",
         "market_crash_ever",
+        "good_profit_total",
+        "price_history",
+        "need_history",
+        "seen_first_automation_callout",
         "achievements_earned",
     }
 
 
 def test_get_state_expands_every_ship_into_a_plain_dict(game_env):
     data = game_env.module.get_state()
-    assert set(data["ships"].keys()) == {"1", "2", "3", "4"}
+    assert set(data["ships"].keys()) == {"1", "2", "3", "4", "5", "6"}
     for ship_data in data["ships"].values():
         assert set(ship_data.keys()) == {
             "location",
@@ -43,6 +47,9 @@ def test_get_state_expands_every_ship_into_a_plain_dict(game_env):
             "transit_ticks_remaining",
             "transit_total_ticks",
             "automated",
+            "purchased",
+            "name",
+            "idle_ticks",
         }
 
 

@@ -12,7 +12,11 @@ def test_five_colonies_exist(game_env):
 
 
 def test_four_ships_exist(game_env):
-    assert set(game_env.module.ships) == {"1", "2", "3", "4"}
+    # J6 later added ships 5/6 as purchasable rather than present from the
+    # start -- a fresh session's *purchased* roster is still this
+    # milestone's original 4.
+    purchased = {ship_id for ship_id, ship in game_env.module.ships.items() if ship.purchased}
+    assert purchased == {"1", "2", "3", "4"}
 
 
 def test_new_ships_start_at_new_and_old_colonies(game_env):

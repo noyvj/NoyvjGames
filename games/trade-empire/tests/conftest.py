@@ -9,10 +9,14 @@ from .fakes import FakeDocument, FakeElement, FakeTimers, create_proxy
 
 GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 
-SHIP_IDS = ["1", "2", "3", "4"]
+# J6 — ships 5/6 are purchasable, not present from the start.
+SHIP_IDS = ["1", "2", "3", "4", "5", "6"]
+PURCHASABLE_SHIP_IDS = ["5", "6"]
 COLONY_IDS = ["aurum", "verdant", "ferrum", "cryo", "helion"]
 EXPANSION_COLONY_IDS = ["kepler_a", "kepler_b", "kepler_c"]
-ALL_COLONY_IDS = COLONY_IDS + EXPANSION_COLONY_IDS
+# J13 — the Rift Colonies, a third self-contained cluster.
+RIFT_COLONY_IDS = ["rift_a", "rift_b", "rift_c"]
+ALL_COLONY_IDS = COLONY_IDS + EXPANSION_COLONY_IDS + RIFT_COLONY_IDS
 
 # Statically-declared element IDs, wired up in index.html's initial markup.
 ELEMENT_IDS = [
@@ -25,14 +29,23 @@ ELEMENT_IDS = [
     "fleet-priority-button",
     "expansion-colonies-panel",
     "expansion-market-panel",
+    "expansion2-colonies-panel",
+    "expansion2-market-panel",
     "endgame-panel",
     "endgame-message-display",
     "endgame-worlds-display",
+    "endgame-galaxy-canvas",
     "achievements-toggle-button",
     "achievements-panel",
     "achievement-toast",
+    "summary-toggle-button",
+    "summary-panel",
+    "notice-toast",
 ]
-for _node_id in ("automation_slot", "fast_ships", "hauler", "galaxy_expansion"):
+for _node_id in (
+    "automation_slot", "fast_ships", "hauler", "galaxy_expansion",
+    "automation_slot_2", "outer_reaches",
+):
     ELEMENT_IDS += [f"research-{_node_id}-status", f"research-{_node_id}-unlock-button"]
 for _colony_id in ALL_COLONY_IDS:
     ELEMENT_IDS += [
@@ -40,15 +53,25 @@ for _colony_id in ALL_COLONY_IDS:
         f"colony-{_colony_id}-flavor",
         f"colony-{_colony_id}-need-display",
         f"colony-{_colony_id}-need-bar",
+        f"colony-{_colony_id}-need-sparkline",
         f"colony-{_colony_id}-development-display",
         f"mobile-needs-strip-{_colony_id}",
     ]
-for _good in ("ore", "grain", "machinery", "water", "energy", "rare_metals", "biomass", "isotopes"):
-    ELEMENT_IDS += [f"market-{_good}-display", f"market-{_good}-bar"]
+for _good in (
+    "ore", "grain", "machinery", "water", "energy",
+    "rare_metals", "biomass", "isotopes",
+    "crystal", "polymer", "antimatter",
+):
+    ELEMENT_IDS += [f"market-{_good}-display", f"market-{_good}-bar", f"market-{_good}-sparkline"]
 for _ship_id in SHIP_IDS:
+    ELEMENT_IDS.append(f"ship-{_ship_id}-label")
     ELEMENT_IDS.append(f"ship-{_ship_id}-status")
     ELEMENT_IDS.append(f"ship-{_ship_id}-load-button")
     ELEMENT_IDS.append(f"ship-{_ship_id}-automate-button")
+    ELEMENT_IDS.append(f"ship-{_ship_id}-name-input")
+    ELEMENT_IDS.append(f"ship-{_ship_id}-rename-button")
+    if _ship_id in PURCHASABLE_SHIP_IDS:
+        ELEMENT_IDS.append(f"ship-{_ship_id}-purchase-button")
     for _colony_id in ALL_COLONY_IDS:
         ELEMENT_IDS.append(f"ship-{_ship_id}-depart-{_colony_id}-button")
 
@@ -87,6 +110,16 @@ class GameEnv:
 
     def toggle_achievements(self):
         self.elements["achievements-toggle-button"].dispatch("click", None)
+
+    def toggle_summary(self):
+        self.elements["summary-toggle-button"].dispatch("click", None)
+
+    def purchase_ship(self, ship_id):
+        self.elements[f"ship-{ship_id}-purchase-button"].dispatch("click", None)
+
+    def rename_ship(self, ship_id, new_name):
+        self.elements[f"ship-{ship_id}-name-input"].value = new_name
+        self.elements[f"ship-{ship_id}-rename-button"].dispatch("click", None)
 
     def tick(self, times=1):
         self.timers.tick_intervals(times)

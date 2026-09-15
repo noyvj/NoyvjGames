@@ -71,11 +71,14 @@ def test_transit_total_ticks_fixed_at_departure_even_if_travel_ticks_changes_lat
 
 
 def test_render_map_draws_one_dot_per_ship(game_env):
+    # J6: only *purchased* ships render at all; none are automated by
+    # default, so every purchased ship draws as an arc (manual dot).
     ctx = game_env.elements["map-canvas"].getContext("2d")
     ship_arc_count = sum(
         1 for name, args in ctx.calls if name == "arc" and args[2] == game_env.module.SHIP_DOT_RADIUS
     )
-    assert ship_arc_count == len(game_env.module.ships)
+    purchased_count = sum(1 for ship in game_env.module.ships.values() if ship.purchased)
+    assert ship_arc_count == purchased_count
 
 
 def test_automated_and_manual_ships_use_distinct_colors(game_env):

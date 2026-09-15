@@ -140,12 +140,16 @@ def test_research_achievements_earned_on_unlocking_their_node(game_env):
 
 def test_all_research_unlocked_requires_every_home_system_node(game_env):
     module = game_env.module
-    module.research_points = 1000
+    module.research_points = 1000000
     module.unlock_research("fast_ships")
     module.unlock_research("hauler")
     module.unlock_research("automation_slot")
-    assert "all_research_unlocked" not in module.achievement_ids_earned()
+    # J7/J13 added two more nodes, each gated behind one of the above --
+    # "all research" now means all six, not just the original four.
+    module.unlock_research("automation_slot_2")
     module.unlock_research("galaxy_expansion")
+    assert "all_research_unlocked" not in module.achievement_ids_earned()
+    module.unlock_research("outer_reaches")
     assert "all_research_unlocked" in module.achievement_ids_earned()
 
 

@@ -49,6 +49,9 @@ class FakeCanvasContext:
     def beginPath(self):
         self.calls.append(("beginPath", ()))
 
+    def closePath(self):
+        self.calls.append(("closePath", ()))
+
     def moveTo(self, x, y):
         self.calls.append(("moveTo", (x, y)))
 
@@ -77,6 +80,7 @@ class FakeElement:
         self.disabled = False
         self.hidden = False
         self.title = ""
+        self.value = ""  # J10: stands in for a text <input>'s .value
         self.className = ""
         self.classList = FakeClassList()
         self.style = FakeStyle()
