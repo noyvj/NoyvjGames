@@ -28,7 +28,7 @@ Two things every game needs once achievements land there, on top of the base rol
   - [x] Retrofit: add the unlock-toast and hub-dashboard-link (built after SOL shipped, per A19/A20).
 - [x] Canopy — 20 achievements + panel + unlock toast + hub-dashboard link.
 - [x] Grid — 16 achievements + panel + unlock toast + hub-dashboard link.
-- [ ] Tide
+- [x] Tide — 20 achievements + panel + unlock toast + hub-dashboard link.
 - [x] Aftermath — 19 achievements + panel + unlock toast + hub-dashboard link.
 - [x] Herd — 18 achievements + panel + unlock toast + hub-dashboard link.
 - [x] Thaw — 18 achievements + panel + unlock toast + hub-dashboard link.
@@ -67,7 +67,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [ ] SOL
 - [x] Canopy — done as B9 (per-game dispatch, not folded into a separate site-wide pass): every plot-tile state now carries its own icon (Bare's gap closed) plus a CSS pattern overlay independent of hue. Not a straight Okabe-Ito hue swap like Continuum's — Canopy's state colors are continuous brown-to-green gradients, not a discrete red/green pair, so redundant coding (icon + pattern) was the applicable fix instead of re-picking a palette. See games/canopy/CLAUDE.md for the worked note.
 - [ ] Grid
-- [ ] Tide
+- [x] Tide — audited land/flooded coastline tiles (the one discrete two-state color pair in this game, like Continuum's red/green pair). Not a hue-only encoding to begin with: green vs. blue isn't the deuteranopia/protanopia confusion pair, land/flooded already carry distinct CSS texture patterns (a dot pattern vs. diagonal stripes, from the earlier full visual pass) independent of hue, and D19's new per-tile hover/tap tooltip states "Flooded"/"Floods once sea level reaches N" in plain text, so the distinction no longer depends on color perception at all — same redundant-coding bar Continuum's audit and Canopy's B9 applied. No CSS re-color needed; see games/tide/CLAUDE.md for the worked note.
 - [ ] Aftermath
 - [ ] Herd
 - [ ] Thaw
@@ -105,7 +105,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] Trade Empire — needs strip (already done).
 - [x] Canopy — also extend to the stats/legend panels (B15).
 - [x] Grid — plant-build action row (C1) — docked Advance Round instead (see games/grid/CLAUDE.md for the judgment call: Grid's plant rows already keep build/retire/maintain inline, no far-apart split to close).
-- [ ] Tide — investments panel + Advance Season button (D1).
+- [x] Tide — investments panel + Advance Season button (D1) — wraps both in `#actions-dock`, same pattern as Aftermath's.
 - [x] Aftermath — actions panel: Resilience/Growth/Face Next Event (E1).
 - [ ] Continuum — doesn't have this pattern at all yet (K9).
 
@@ -230,24 +230,24 @@ Two things every game needs once achievements land there, on top of the base rol
 
 *(D10 and D20 marked "later"/"maybe later" — moved to `LATER.md`.)*
 
-- [ ] D1 — folded into the mobile-dock rollout goal above.
-- [ ] D2: A fourth adaptation tier.
-- [ ] D3: A "seasons until next tile floods" estimate.
-- [ ] D4: A numeric then-vs-now stat block.
-- [ ] D5: A scrollable/expandable ticker history.
-- [ ] D6: A "what if you'd invested earlier" counterfactual replay.
-- [ ] D7: An end-of-session summary screen.
-- [ ] D8: A highlight/flash on the coastline row the moment it floods.
-- [ ] D9: An optional "harder lag" difficulty mode.
-- [ ] D11: Colorblind-safe/textured coastline differentiation — fold into the site-wide colorblind audit.
-- [ ] D12: A "worst season" callout.
-- [ ] D13: A persisted "best coastline saved" stat.
-- [ ] D14: An early-warning banner for a fish-yield crash already locked in.
-- [ ] D15: A Grid-style historical mini-graph for acidity vs. fish yield.
-- [ ] D16: Split the Output investment into a fishing/industry sub-choice.
-- [ ] D17: A one-time "first flood" callout.
-- [ ] D18: A player-chosen comparison-baseline checkpoint.
-- [ ] D19: A hover/tap detail per coastline tile showing its flood threshold.
+- [x] D1 — folded into the mobile-dock rollout goal above.
+- [x] D2: A fourth adaptation tier. Storm-surge barriers, threshold 15, 95% dampening.
+- [x] D3: A "seasons until next tile floods" estimate. `next_flood_estimate()`.
+- [x] D4: A numeric then-vs-now stat block. `then_vs_now_text()`.
+- [x] D5: A scrollable/expandable ticker history. `ticker_full_history` behind a `<details>` disclosure.
+- [x] D6: A "what if you'd invested earlier" counterfactual replay. `counterfactual_message()`.
+- [x] D7: An end-of-session summary screen. `session_summary_text()`, on-demand panel.
+- [x] D8: A highlight/flash on the coastline row the moment it floods. `.coastline-flash`, one-shot per row.
+- [x] D9: An optional "harder lag" difficulty mode. `hard_lag_mode` toggle, 6-season lag vs. the default 3.
+- [x] D11: Colorblind-safe/textured coastline differentiation — audited as part of the site-wide colorblind audit above; already redundantly coded (texture + D19's text tooltip), no re-color needed.
+- [x] D12: A "worst season" callout. `worst_season()`.
+- [x] D13: A persisted "best coastline saved" stat. Per-browser via `localStorage`.
+- [x] D14: An early-warning banner for a fish-yield crash already locked in. `next_season_fish_yield_preview()` + `#fish-warning-banner`.
+- [x] D15: A Grid-style historical mini-graph for acidity vs. fish yield. `acidity_fish_history_svg()`.
+- [x] D16: Split the Output investment into a fishing/industry sub-choice. `output_mix` (fishing/mixed/industry), defaults to the original fishing-only formula.
+- [x] D17: A one-time "first flood" callout. `_record_first_flood_message()`.
+- [x] D18: A player-chosen comparison-baseline checkpoint. `set_comparison_baseline()`.
+- [x] D19: A hover/tap detail per coastline tile showing its flood threshold. `tile.title`.
 
 ---
 
@@ -369,7 +369,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] I13: A difficulty-variant toggle (accelerated background severity).
 - [x] I14: A "target" marker (e.g. 70) on each wellbeing gauge bar.
 - [x] I15: A highlight/pulse on the coda button the moment it first becomes available.
-- [ ] I16: Tie the arrival-dot stream's density/speed to real arrivals-per-round.
+- [x] I16: Tie the arrival-dot stream's density/speed to real arrivals-per-round.
 - [ ] I17: A passive "unmanaged control region" for contrast.
 - [ ] I18: A free-text field inviting tone/framing concerns in the feedback prompt.
 - [x] I19: Turn the net-positive turning-point message into a small persistent badge.

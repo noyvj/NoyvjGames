@@ -12,6 +12,7 @@
 <link rel="manifest" href="../../manifest.json">
 <script src="../../shared/tutorial.js"></script>
 <script src="../../shared/mobile-hud.js"></script>
+<script src="../../shared/mobile-dock.js"></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -25,8 +26,25 @@
     <div class="game-toolbar">
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
+      <button id="achievements-toggle-button" class="secondary" type="button">Loading...</button>
+      <button id="session-summary-toggle-button" class="secondary" type="button">Loading...</button>
+    </div>
+    <div class="game-toolbar">
+      <!-- D9: an optional "harder lag" difficulty mode -- same
+           .difficulty-toggle pattern as Grid's steeper-demand/weather-
+           variability toggles, its own toolbar row since it isn't a
+           panel-opening button like the row above. -->
+      <button id="hard-lag-toggle-button" class="secondary difficulty-toggle" type="button">Loading...</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
+    <div id="achievements-panel" class="section achievements-panel" hidden></div>
+    <div id="achievement-toast" class="achievement-toast" hidden></div>
+    <!-- D7: an on-demand end-of-session recap, same never-forced pattern
+         as the achievements/info-page panels. See session_summary_text()
+         in game.py. -->
+    <div id="session-summary-panel" class="section session-summary-panel" hidden>
+      <p id="session-summary-text" class="session-summary-text"></p>
+    </div>
 
     <p class="tagline">Run a coastal settlement. Balance fishing income against ocean health and a slowly rising sea.</p>
     <p class="context-blurb">Ocean acidification and sea-level rise share a real-world trait this game leans on: the delay between cause and effect. Today's emissions and choices don't show their full damage for years — which is exactly why they're easy to underestimate.</p>
@@ -56,8 +74,25 @@
       <p id="fish-yield-display" class="status-line">Fishing yield: 100%</p>
       <details class="info-toggle"><summary>i</summary><p>This reflects ocean acidity from 3 seasons ago, not today's acidity — the delay is deliberate. Fish stocks won't crash the moment acidity rises, but they also won't recover the moment you fix it.</p></details>
       <div class="meter"><div id="fish-yield-bar" class="meter-fill meter-fill--fish"><span class="fish-school" aria-hidden="true">🐟 🐟 🐟 🐟 🐟 🐟 🐟 🐟 🐟 🐟</span></div></div>
+      <!-- D14: an early-warning banner for a fish-yield crash already
+           locked in by acidity already recorded, ahead of the ticker's
+           after-the-fact narration. Hidden by default; game.py's own
+           render_fish_warning_banner() toggles it. -->
+      <p id="fish-warning-banner" class="fish-warning-banner" hidden></p>
       <p class="meter-label">Delayed effects</p>
       <p id="ticker-log" class="comparison-message">No notable changes yet.</p>
+      <!-- D5: the full, longer-lived ticker history behind a zero-JS
+           <details> disclosure, alongside (not instead of) the short
+           live ticker above. -->
+      <details class="ticker-history-toggle">
+        <summary>Full history</summary>
+        <div id="ticker-history-list" class="ticker-history-list">No notable changes yet.</div>
+      </details>
+      <!-- D15: a Grid-style mini-graph charting acidity vs. fishing
+           yield together over the session, so the delayed-consequence
+           relationship between them is visible as a shape. -->
+      <p class="meter-label">Acidity vs. fishing yield, over time</p>
+      <div id="acidity-fish-graph" class="mini-graph"></div>
     </div>
 
     <div id="sea-level-section" class="section sea-level-section">
@@ -70,6 +105,11 @@
       <p id="adaptation-tier-display" class="status-line">Adaptation tier: No adaptation (0% damage dampening)</p>
       <details class="info-toggle"><summary>i</summary><p>Adaptation tiers unlock at fixed total-investment thresholds (3, 6, then 10 units) — it's cumulative and never decays, so spreading investment out over many seasons works just as well as investing it all at once.</p></details>
       <p id="adaptation-tier-progress" class="comparison-message">0/3 invested toward Sandbag berms (next tier).</p>
+      <!-- D3: seasons remaining until the next currently-unflooded row
+           crosses its threshold. -->
+      <p id="next-flood-display" class="comparison-message"></p>
+      <!-- D12: the single highest-damage season played so far. -->
+      <p id="worst-season-display" class="comparison-message">Worst season: none yet.</p>
     </div>
 
     <div class="coastline-scene">
@@ -81,7 +121,7 @@
       <p class="meter-label">Coastline: then vs. now</p>
       <div class="coastline-compare-row">
         <div class="coastline-compare-col">
-          <p class="coastline-compare-label">Season 1</p>
+          <p class="coastline-compare-label" id="coastline-before-label">Season 1</p>
           <div id="coastline-before-grid" class="coastline-grid coastline-grid--mini"></div>
         </div>
         <div class="coastline-compare-col">
@@ -89,27 +129,56 @@
           <div id="coastline-now-grid" class="coastline-grid coastline-grid--mini"></div>
         </div>
       </div>
+      <!-- D4: a numeric companion to the two grids above. -->
+      <p id="then-vs-now-display" class="comparison-message"></p>
+      <!-- D18: re-anchors the comparison above to right now, instead of
+           the literal Season 1 start -- useful for comparing "since I
+           changed my strategy." -->
+      <button id="set-baseline-button" class="secondary" type="button">Set as new baseline</button>
+      <!-- D6: "what if you'd invested earlier" counterfactual replay. -->
+      <p id="counterfactual-display" class="comparison-message"></p>
+      <!-- D13: a per-browser "best coastline saved" personal best,
+           persisted via localStorage across every session/save on this
+           device. -->
+      <p id="best-coastline-display" class="personal-best-display"></p>
     </div>
 
-    <div id="investments" class="section">
-      <div class="invest-row" data-category="output">
-        <span class="invest-name">Output</span>
-        <span class="invest-count" id="output-count">0</span>
-        <button id="output-invest-button" class="secondary" disabled>Loading...</button>
+    <!-- D1: docks the investments panel + Advance Season button to the
+         bottom of the viewport on mobile via shared/mobile-dock.js, same
+         pattern as Aftermath's #actions-dock -- the single cluster every
+         season's decisions funnel toward, kept reachable without
+         scrolling back down a long page. -->
+    <div id="actions-dock">
+      <div id="investments" class="section">
+        <div class="invest-row" data-category="output">
+          <span class="invest-name">Output</span>
+          <span class="invest-count" id="output-count">0</span>
+          <button id="output-invest-button" class="secondary" disabled>Loading...</button>
+        </div>
+        <!-- D16: splits Output into a fishing/industry sub-choice --
+             "fishing" reproduces the original single-formula behavior,
+             so an untouched game plays exactly as before. -->
+        <label class="output-mix-label">Output mix
+          <select id="output-mix-select">
+            <option value="fishing">Fishing (default)</option>
+            <option value="mixed">Mixed</option>
+            <option value="industry">Industry</option>
+          </select>
+        </label>
+        <div class="invest-row" data-category="reduction">
+          <span class="invest-name">Acidity Reduction</span>
+          <span class="invest-count" id="reduction-count">0</span>
+          <button id="reduction-invest-button" class="secondary" disabled>Loading...</button>
+        </div>
+        <div class="invest-row" data-category="adaptation">
+          <span class="invest-name">Adaptation</span>
+          <span class="invest-count" id="adaptation-count">0</span>
+          <button id="adaptation-invest-button" class="secondary" disabled>Loading...</button>
+        </div>
       </div>
-      <div class="invest-row" data-category="reduction">
-        <span class="invest-name">Acidity Reduction</span>
-        <span class="invest-count" id="reduction-count">0</span>
-        <button id="reduction-invest-button" class="secondary" disabled>Loading...</button>
-      </div>
-      <div class="invest-row" data-category="adaptation">
-        <span class="invest-name">Adaptation</span>
-        <span class="invest-count" id="adaptation-count">0</span>
-        <button id="adaptation-invest-button" class="secondary" disabled>Loading...</button>
-      </div>
-    </div>
 
-    <button id="advance-season-button" class="primary">Advance Season</button>
+      <button id="advance-season-button" class="primary">Advance Season</button>
+    </div>
 
     <div id="feedback-prompt" class="section">
       <p class="feedback-question">Did this change how you think about ocean acidification &amp; sea-level rise?</p>
@@ -195,8 +264,15 @@
       // ENGINE_MODULES loop.
       const infoPageSource = await (await fetch("../../shared/info_page.py")).text();
       pyodide.FS.writeFile("info_page.py", infoPageSource, { encoding: "utf8" });
-      const response = await fetch("game.py");
-      const code = await response.text();
+      // Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md): fetched alongside
+      // game.py and handed in as a window global before it runs, same
+      // contract SOL's reference integration established -- see
+      // _read_achievements_json() in game.py.
+      const [achievementsJson, code] = await Promise.all([
+        fetch("achievements.json").then((response) => response.text()),
+        fetch("game.py").then((response) => response.text()),
+      ]);
+      window.ACHIEVEMENTS_JSON = achievementsJson;
       await pyodide.runPythonAsync(code);
 
       if (window.GameTutorial) {
@@ -208,6 +284,12 @@
           { selector: "#acidity-display", label: "" },
           { selector: "#fish-yield-display", label: "" },
         ]);
+      }
+      if (window.MobileDock) {
+        // D1: dock the investments panel + Advance Season button to the
+        // bottom of the viewport on mobile, same shared/mobile-dock.js
+        // mechanism as Grid/Canopy/Aftermath/Trade Empire/Champ de Mots.
+        MobileDock.init("#actions-dock");
       }
     }
     main();

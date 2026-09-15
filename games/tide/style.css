@@ -870,3 +870,253 @@ button.primary:active:not(:disabled) {
   background: #4cd6c9;
   box-shadow: 0 0 6px 1px rgba(76, 214, 201, 0.85);
 }
+
+/* ============================================================
+   Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md) — same card language
+   used across the hub's shared achievements pattern (SOL's reference
+   implementation), on Tide's existing glass-panel/rgba(140,160,255,...)
+   palette, with the same teal (#4cd6c9) accent the console-switch LEDs
+   above already established as Tide's own "active/good" color.
+   ============================================================ */
+.achievements-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.achievement-card {
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.achievement-card--earned {
+  border-color: rgba(76, 214, 201, 0.4);
+  background: rgba(76, 214, 201, 0.08);
+  box-shadow: 0 0 18px rgba(76, 214, 201, 0.12);
+}
+
+.achievement-card-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.achievement-card--earned .achievement-card-label {
+  color: #7fe8dc;
+  text-shadow: 0 0 12px rgba(127, 232, 220, 0.35);
+}
+
+.achievement-card-description {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.7;
+  line-height: 1.4;
+}
+
+.achievement-card-progress {
+  margin: 0.4rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+.achievements-hub-link {
+  display: inline-block;
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  color: #a9c3ff;
+}
+
+/* Unlock toast: fixed to the top of the viewport so it's visible
+   regardless of scroll position, including while #actions-dock is
+   mobile-docked at the bottom. `achievement-toast--visible` is the exact
+   class game.py's show_achievement_toast()/_hide() toggle; `hidden`
+   (native attribute) keeps it out of the layout entirely between
+   toasts. */
+.achievement-toast {
+  position: fixed;
+  top: 0.75rem;
+  left: 1rem;
+  right: 1rem;
+  max-width: 480px;
+  margin: 0 auto;
+  z-index: 500;
+  padding: 0.7rem 1rem;
+  background: linear-gradient(165deg, rgba(76, 214, 201, 0.92), rgba(24, 64, 60, 0.95));
+  border: 1px solid rgba(127, 232, 220, 0.5);
+  border-radius: 10px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f2fffd;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(-12px);
+  transition: opacity 200ms ease, transform 200ms ease;
+  pointer-events: none;
+}
+
+.achievement-toast.achievement-toast--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .achievement-toast {
+    transition: opacity 120ms ease;
+    transform: none;
+  }
+}
+
+/* D7: end-of-session summary -- reuses .comparison-message's plain
+   italic text style rather than inventing a new one, same "no new
+   visual language without a reason" approach the achievements panel
+   above already follows. */
+.session-summary-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* D14: an early-warning banner for a fish-yield crash already locked in
+   -- amber/warm, distinct from the neutral italic ticker messages below
+   it, so a heads-up reads as more urgent than routine narration. */
+.fish-warning-banner {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  background: rgba(224, 162, 76, 0.14);
+  border: 1px solid rgba(224, 162, 76, 0.35);
+  font-size: 0.8rem;
+  color: #f0d9ae;
+}
+
+/* D5: the expandable full ticker history -- same zero-JS <details>
+   mechanics as .info-toggle, but block-level (a whole section, not an
+   inline "i" bubble) so it reads as "more of the log above," not a
+   separate help topic. */
+.ticker-history-toggle {
+  margin-top: 0.5rem;
+}
+
+.ticker-history-toggle summary {
+  font-size: 0.78rem;
+  opacity: 0.65;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ticker-history-toggle summary:hover {
+  opacity: 0.9;
+}
+
+.ticker-history-list {
+  margin-top: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  background: rgba(5, 6, 13, 0.5);
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 8px;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  opacity: 0.85;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+/* D15: acidity-vs-fish-yield mini-graph -- same container/sizing
+   convention as Thaw's .mini-temp-graph, since game.py's own SVG string
+   already carries its own stroke colors inline. */
+.mini-graph {
+  margin: 0.5rem 0 0;
+}
+
+.acidity-fish-sparkline {
+  width: 100%;
+  height: 60px;
+  display: block;
+}
+
+/* D13: a per-browser "best coastline saved" personal best. */
+.personal-best-display {
+  margin: 0.6rem 0 0;
+  font-size: 0.78rem;
+  opacity: 0.7;
+  font-style: italic;
+}
+
+#best-coastline-display::before {
+  content: "🏅 ";
+}
+
+/* D16: the Output investment's fishing/industry sub-choice -- same
+   inline label+select pattern as Canopy's grid-size-label, recolored to
+   Tide's own teal accent instead of Canopy's violet-blue. */
+.output-mix-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin: -0.15rem 0 0.5rem;
+  padding: 0 0.1rem;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.output-mix-label select {
+  padding: 0.35rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  background: linear-gradient(135deg, #3a3f5c, #232538);
+  color: #e8e9f0;
+  font-size: 0.8rem;
+}
+
+/* D18: re-anchor the then-vs-now comparison to right now. Plain
+   .secondary button, full-width to match the section's own rhythm
+   (Advance Season is the only other full-width button in this game,
+   but this sits inside a narrower card, so a smaller inline button
+   reads better than stretching it edge to edge). */
+#set-baseline-button {
+  margin: 0.5rem 0 0;
+}
+
+/* ============================================================
+   D1: mobile dock — investments + Advance Season (site-wide
+   mobile-dock rollout, planning/TODO.md). Same shared/mobile-dock.js +
+   fixed-bottom-bar pattern as Aftermath's #actions-dock/Canopy's
+   #action-panel/Grid's #advance-round-button. Pins the one cluster
+   every season's decisions funnel toward to the bottom of the
+   viewport, so a player who just invested mid-page doesn't have to
+   scroll all the way down to commit the season. Pure CSS positioning
+   on the existing wrapper; game.py never touches where #actions-dock
+   sits in the DOM. */
+@media (max-width: 640px) {
+  #actions-dock.mobile-docked {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    bottom: 50px; /* sits directly above the fixed ad-bar */
+    z-index: 150; /* above the ad-bar (100), below the save widget (9999) */
+    max-width: 480px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  #actions-dock.mobile-docked #investments {
+    margin-bottom: 0;
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+
+  /* Reserve room at the bottom of the scrollable page so the last real
+     content (feedback prompt) never ends up hidden behind the
+     now-floating actions cluster + ad bar. */
+  body {
+    padding-bottom: 230px;
+  }
+}
