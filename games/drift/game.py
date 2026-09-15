@@ -488,6 +488,30 @@ def strain_consequence_message(region_state):
     return STRAIN_LEVEL_CONSEQUENCE[region_state.strain_level()]
 
 
+# I16: tie the decorative arrival-dot stream's density/speed to real
+# arrivals-per-round, so the ambient visual communicates rising pressure
+# instead of always animating the same fixed seven dots at a fixed
+# speed. Seven dots are authored in the markup; how many are visible and
+# how fast they drift both scale with arrivals_this_round().
+ARRIVAL_STREAM_MAX_DOTS = 7
+ARRIVAL_STREAM_ARRIVALS_PER_DOT = 5.0
+ARRIVAL_STREAM_MAX_DURATION_S = 3.2  # slowest -- matches the original fixed speed
+ARRIVAL_STREAM_MIN_DURATION_S = 1.2  # fastest, at/above the reference arrivals level
+ARRIVAL_STREAM_DURATION_REFERENCE_ARRIVALS = 40.0
+
+
+def arrival_stream_dot_count(arrivals_this_round):
+    count = 1 + int(arrivals_this_round // ARRIVAL_STREAM_ARRIVALS_PER_DOT)
+    return max(1, min(ARRIVAL_STREAM_MAX_DOTS, count))
+
+
+def arrival_stream_animation_duration(arrivals_this_round):
+    fraction = min(1.0, arrivals_this_round / ARRIVAL_STREAM_DURATION_REFERENCE_ARRIVALS)
+    return ARRIVAL_STREAM_MAX_DURATION_S - fraction * (
+        ARRIVAL_STREAM_MAX_DURATION_S - ARRIVAL_STREAM_MIN_DURATION_S
+    )
+
+
 def wellbeing_message(score):
     if score >= THRIVING_WELLBEING_SCORE:
         return "This region is turning displacement into a manageable — even thriving — transition."
@@ -1104,6 +1128,14 @@ def render():
         f"Arrivals this round: {region.arrivals_this_round():.0f} people "
         f"(background severity: {region.background_severity:.1f})"
     )
+    # I16: arrival-dot stream density/speed tracking real arrivals.
+    arrivals_now = region.arrivals_this_round()
+    visible_dot_count = arrival_stream_dot_count(arrivals_now)
+    dot_duration = arrival_stream_animation_duration(arrivals_now)
+    for dot_index in range(1, ARRIVAL_STREAM_MAX_DOTS + 1):
+        dot_el = document.getElementById(f"arrival-dot-{dot_index}")
+        dot_el.hidden = dot_index > visible_dot_count
+        dot_el.style.animationDuration = f"{dot_duration:.2f}s"
     document.getElementById("total-arrivals-display").innerText = (
         f"Total arrivals (lifetime): {region.total_arrivals:.0f} people"
     )
