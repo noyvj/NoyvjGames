@@ -6,8 +6,8 @@ Site-shell level — same manifest, service worker, and ad bar shared across the
 
 ```json
 {
-  "name": "CodingIsANoyvj",
-  "short_name": "Noyvj Games",
+  "name": "NoyvjGames",
+  "short_name": "NoyvjGames",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0b0d17",

@@ -1,4 +1,4 @@
-# CodingIsANoyvj — Game Demo Hub
+# NoyvjGames — Game Demo Hub
 
 Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, is also a dual BCM114/BCM206 university digital artefact — the site's public availability + update history is the evidence for that requirement.
 

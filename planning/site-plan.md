@@ -1,7 +1,7 @@
-# Site Plan — Game Demo Portfolio (working name: CodingIsANoyvj)
+# Site Plan — Game Demo Portfolio (NoyvjGames)
 
 ## What this is
-A personal hub site collecting small AI-assisted game demos, one of which (SOL) is the dual BCM114/BCM206 DA. The site itself — being publicly accessible and updated — is the "public availability" evidence for both subjects, replacing the need for a separate Instagram/devlog trail. Instagram stays optional/low-effort if 114's rubric wants audience-engagement content specifically — this was deferred pending the semester outline (was due ~July 27); see `planning/TODO.md` for the still-open status check.
+A personal hub site collecting small AI-assisted game demos, one of which (SOL) is the dual BCM114/BCM206 DA. The site itself — being publicly accessible and updated — is the "public availability" evidence for both subjects, replacing the need for a separate Instagram/devlog trail. **Resolved (2026-09-15): BCM114 does not need separate audience-engagement content (e.g. Instagram) alongside the site** — confirmed directly with the user once the semester outline was available.
 
 ## Purpose
 Equal parts: a real portfolio (future job/collaborator use), a personal creative outlet, and a way to test "do I want to be a game developer" by throwing ideas at a wall and seeing what people think. The DA requirement rides on top of this rather than driving it.
@@ -24,7 +24,7 @@ Equal parts: a real portfolio (future job/collaborator use), a personal creative
 - Right now (pre-semester, boredom-driven) the pace can be aggressive. Once the semester starts and other subjects are live, pacing gets revisited for real — deliberately deferred rather than solved in advance.
 
 ## Branding
-- Working site name: **CodingIsANoyvj** (placeholder — confirm before anything public launches; see `planning/TODO.md`, since the site is already live and this is overdue)
+- Site name: **NoyvjGames** — confirmed 2026-09-15 (was a placeholder, "CodingIsANoyvj," pending confirmation before public launch; the site was already live at the time, so this was overdue).
 - Hub-level visual identity: clean, simple, consistent — think a "school games site" main menu (title card + name per game), not a corporate portfolio.
 
 ## Hosting

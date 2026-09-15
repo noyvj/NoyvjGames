@@ -422,9 +422,9 @@ Two things every game needs once achievements land there, on top of the base rol
 
 ## Planning-doc audit findings (not from the ideas file — found while cleaning up `planning/`)
 
-- [ ] **Password-reset path for accounts** — `planning/ACCOUNTS-AND-FEEDBACK-DESIGN.md` flags this as a known, still-open gap: a forgotten password permanently strands that account's saves/feedback, since auth is username+password with no email on file. Needs a decision on approach (an email provider, e.g. Resend — the exact thing dropped earlier for cost/complexity reasons — or a lower-tech alternative like an admin-assisted manual reset, reasonable at this site's current scale). Moved to `LATER.md` since it's a real design decision, not a quick build.
-- [ ] Confirm whether BCM114 ever needed audience-engagement content (Instagram) alongside the site — `planning/site-plan.md` deferred this pending the semester outline (dated ~July 27, now well past). Just needs a status check, not new work, unless the answer is "yes, build it."
-- [ ] Confirm/finalize the site's real public name — `planning/site-plan.md` still calls "CodingIsANoyvj" a placeholder "to confirm before anything public launches." If the site is already public/live, this is overdue.
+- [x] **Password-reset path for accounts** — decided 2026-09-15: admin-assisted manual reset (no email provider). See `planning/ACCOUNTS-AND-FEEDBACK-DESIGN.md` for the decision note.
+- [x] Confirm whether BCM114 ever needed audience-engagement content (Instagram) alongside the site — confirmed 2026-09-15: no, not needed. `planning/site-plan.md` updated.
+- [x] Confirm/finalize the site's real public name — confirmed 2026-09-15: **NoyvjGames**. Updated in `CLAUDE.md`, `README.md`, `manifest.json`, `index.html`, and `planning/site-plan.md`.
 
 ---
 

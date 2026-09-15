@@ -1,4 +1,4 @@
-# CodingIsANoyvj — Game Demo Hub
+# NoyvjGames — Game Demo Hub
 
 A personal portfolio site collecting small AI-assisted game demos, all running client-side in the browser via Python/Pyodide — no build step. Live, public, and updated regularly.
 
