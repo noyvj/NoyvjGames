@@ -997,8 +997,18 @@ button.primary:disabled::after {
   stroke: #e0674c;
 }
 
+/* Colorblind-safety audit: this red/green pair is exactly the
+   deuteranopia/protanopia confusion risk, and unlike the strain meter's
+   own stable/strained/critical colors (which already have a text status
+   label), the two co-plotted lines here had no non-color cue of their
+   own -- each point's <title> tooltip only reaches a viewer who hovers
+   one point at a time, not someone reading the overall line shapes at a
+   glance. A dash pattern on the wellbeing line (solid strain vs. dashed
+   wellbeing) makes the two lines distinguishable without relying on hue
+   at all, without touching either line's actual color. */
 .trend-line--wellbeing {
   stroke: #4c9c6e;
+  stroke-dasharray: 6 3;
 }
 
 .trend-point {
