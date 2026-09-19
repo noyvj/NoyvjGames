@@ -1,5 +1,7 @@
 # Site-Wide TODO
 
+**Progress: 222/270 items checked off (82%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
+
 The one living list, replacing the scattered planning docs' own "open items"/"stretch goals" sections. Built from your labeled answers in `IMPROVEMENT-IDEAS-2026-09.md` (all "yes" items, resolved), plus a pass through every other file in `planning/` pulling out anything still genuinely unresolved there. "Later" items (things you deferred, or that need more explanation first) live in `LATER.md` instead — not here.
 
 Check items off (`[x]`) as they land. Ordered by priority (my call, per your instruction) — roughly: in-flight work first, then cross-cutting site-wide goals (most of these were flagged "yes but site-wide" across several answers), then per-game work, then the big standalone features, then the closing/meta tasks you explicitly asked to run last.
