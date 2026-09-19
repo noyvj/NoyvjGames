@@ -180,11 +180,11 @@
         <!-- D16: splits Output into a fishing/industry sub-choice --
              "fishing" reproduces the original single-formula behavior,
              so an untouched game plays exactly as before. -->
-        <label class="output-mix-label">Output mix
-          <select id="output-mix-select">
+        <label class="output-mix-label" title="Shifts Output income away from fishing and toward flat industrial income. Fishing is fully exposed to the delayed fish-stock crash; Industry is immune to it but raises acidity 40% faster. Mixed splits the difference (half fishing-tied, +15% acidity).">Output mix
+          <select id="output-mix-select" title="Shifts Output income away from fishing and toward flat industrial income. Fishing is fully exposed to the delayed fish-stock crash; Industry is immune to it but raises acidity 40% faster. Mixed splits the difference (half fishing-tied, +15% acidity).">
             <option value="fishing">Fishing (default)</option>
-            <option value="mixed">Mixed</option>
-            <option value="industry">Industry</option>
+            <option value="mixed">Mixed (+15% acidity, half fishing-tied)</option>
+            <option value="industry">Industry (+40% acidity, no fish-crash exposure)</option>
           </select>
         </label>
         <div class="invest-row" data-category="reduction">

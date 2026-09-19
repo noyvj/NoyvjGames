@@ -166,6 +166,46 @@ cache-busting the stylesheet `<link>` directly (a fresh `?v=` query on its
 quirk — not a defect in the shipped code, the same environment hazard
 Continuum's, SOL's, Canopy's, and Grid's own build notes already document.
 
+## Onboarding-tooltip coverage check (site-wide goal, planning/TODO.md, origin A14)
+
+Audited whether a returning player who's forgotten the tutorial can still
+make sense of the permanent UI's non-obvious parts, on top of the
+persistent, reachable-any-time `#howto-toggle-button`/`#howto-panel`. Most
+of the permanent UI already covers itself well here: D19's per-tile
+coastline tooltips (this game's own reference pattern for the site-wide
+goal) and four section-level `.info-toggle` icons permanently explain the
+delayed-acidity-to-fish-yield lag, the sea-level-vs-damage distinction,
+and the adaptation-tier threshold mechanic.
+
+**Real gap found:** D16's `output-mix-select` dropdown (Fishing/Mixed/
+Industry) changes a real, non-trivial trade-off -- `OUTPUT_MIX` in
+`game.py` shows Industry drops fishing-tied income to zero (dodging the
+delayed fish-stock crash entirely) but raises acidity 40% faster, with
+Mixed splitting the difference (half fishing-tied, +15% acidity) -- and
+none of that was stated anywhere permanent. The tutorial mentions
+"Output (fishing/industry income)" exactly once, in passing, with no
+trade-off numbers; there's no info-toggle nearby; and the three
+`<option>`s just read "Fishing (default)" / "Mixed" / "Industry" with no
+elaboration. A returning player switching this dropdown had no way to
+know what it actually changes.
+
+**Fixed:** added a `title` attribute (identical text) to both the
+`<select id="output-mix-select">` and its wrapping `<label
+class="output-mix-label">`, stating the acidity-rate/fish-crash-exposure
+trade-off in plain language, and enriched the three `<option>` labels
+themselves to show the numbers inline ("Mixed (+15% acidity, half
+fishing-tied)", "Industry (+40% acidity, no fish-crash exposure)") so the
+information is visible even without hovering. No `game.py` change needed
+-- `OUTPUT_MIX`'s values and `set_output_mix()`'s validation were already
+correct; this was purely a missing explanation in the markup.
+
+Verified: full 163/163 pytest suite green (HTML-only change, no Python
+touched, and no test hardcodes option text); live-verified in a real
+browser (post cache-bust, this sandbox's known static-asset-caching quirk
+per this file's own Settings-panel note) that both the select and label
+carry the correct `title` text and the three option labels read as
+written, with zero console errors.
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag tide-milestone-0N`.
