@@ -152,6 +152,52 @@ selector was renamed. Canopy has no meter/progress-bar element, so that
 part of the shared pass didn't apply here. Full `tests/` suite (131
 tests) stayed green throughout.
 
+## Settings panel (site-wide goal, planning/TODO.md, origin A9)
+
+A consolidated settings panel — text-scale (A−/A/A+ buttons, same clamp/step
+shape as Continuum's Phase 5 `accessibility.js`) and a reduced-motion
+checkbox — toggled from a new "⚙️ Settings" button in the top toolbar
+alongside Tutorial/How to Play/Reset Session, rendered into a
+`.section`-styled panel matching the existing `#howto-panel`/
+`#achievements-panel` hidden-until-opened idiom.
+
+Built as `settings.js`, deliberately independent of Pyodide entirely (same
+discipline as Continuum's `accessibility.js`) — it has no Python dependency
+and works even if `game.py` never boots, wired up in `<head>` before
+`game.py`'s own `<script>` runs. `style.css` gained a `:root
+{ --text-scale: 1 }` custom property read by `html { font-size: calc(16px *
+var(--text-scale, 1)) }` (every font-size in this file is already in rem,
+confirmed by grep, so scaling the root font-size scales the whole game
+uniformly with zero other changes needed) and a blanket
+`html[data-reduced-motion="true"] *` override collapsing every
+animation/transition to effectively instant — additive to, not replacing,
+this game's own existing `prefers-reduced-motion` media-query-gated rules
+(`wildlife-flutter`, `plot-sparkle`, `value-pop-float`,
+`stakeholder-badge-pulse`, `forest-visual-sway`).
+
+**Deliberately no sound toggle** — this hub has no audio system built
+anywhere yet (see `planning/LATER.md`'s "what can you actually do with
+audio" standing question), so a sound control here would control nothing
+real.
+
+Both settings are a browser-level UI preference, not game state — persisted
+to `localStorage` (`canopy-text-scale`, `canopy-reduced-motion`),
+deliberately never touching `get_state()`/`load_state()`, since a save code
+is meant to be portable across devices/browsers and a local browser's
+accessibility preference shouldn't silently override another device's.
+
+Verified live: 268/268 pytest suite unaffected (pure HTML/CSS/JS, no Python
+touched); in a real browser, applying a 1.3 text-scale correctly computed
+`<html>`'s font-size to 20.8px, and enabling reduced-motion collapsed a
+sampled `.forest-visual-tree` element's live `animation-duration`/
+`transition-duration` to ~1e-6s, both persisting to their localStorage
+keys, with zero console errors. Verification required cache-busting the
+stylesheet `<link>` directly (a fresh `?v=` query on its `href`) to
+sidestep this sandbox's own known static-asset HTTP-caching quirk (a
+plain reload kept serving a stale `style.css` even after a fresh
+navigation) — not a defect in the shipped code, the same environment
+hazard Continuum's and SOL's own build notes already document.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
