@@ -145,6 +145,39 @@ cache-busting the stylesheet `<link>` directly (a fresh `?v=` query on its
 quirk — not a defect in the shipped code, the same environment hazard
 Continuum's, SOL's, and Canopy's own build notes already document.
 
+## Shared confirmation-dialog integration (C14, site-wide goal)
+
+Retiring a plant type's very last unit now routes through
+`shared/confirm-dialog.js`'s `ConfirmDialog.ask()` instead of retiring
+immediately (`_make_retire_handler()`'s new `handler()` wrapper in
+`game.py`, gated on `state.plant_counts[plant_type] == 1`). Retiring down
+from 2+ units, or an already-empty type, stays exactly as instant as
+before -- only the true "you're about to lose this capacity entirely"
+moment is gated. Covered by 5 new tests in
+`tests/test_confirm_dialog.py` (fake `js.window.ConfirmDialog`, since the
+real fake-DOM harness's `js` module never provides `window` by default).
+
+**Found and fixed a real bug in the shared file itself while
+live-verifying this**: `shared/confirm-dialog.js` built and appended its
+overlay DOM at top-level IIFE-execution time, which crashed with
+`document.body` still null (every game includes it from an un-deferred
+`<script>` tag in `<head>`, before `<body>` is parsed) -- silently
+breaking `window.ConfirmDialog` on every page that includes the script,
+Grid included. Fixed at the shared-file level (deferred DOM setup to
+first real `ask()` call, same lazy pattern `tutorial.js` already uses);
+see that file's own header comment and its commit for the full story.
+Only found because live-browser verification checks `typeof
+window.ConfirmDialog` and the actual click flow, not just the pytest
+fake-DOM suite (which never exercises the real script at all).
+
+Live-verified end to end in a real browser after the shared-file fix:
+built Coal to 1, clicked Retire -> dialog appeared with the correct
+message; Cancel left the plant in place; a second Retire -> checked
+"don't ask me again" -> Retire it -> plant count went to 0 and the skip
+flag persisted to `localStorage`; building Coal back to 1 and retiring a
+third time skipped the dialog entirely as expected. Zero console errors
+during the verified flow. Full 260/260 pytest suite unaffected.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
