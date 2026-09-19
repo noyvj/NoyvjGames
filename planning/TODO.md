@@ -361,17 +361,17 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] I5: A one-time callout at the "thriving" wellbeing band (≥70).
 - [x] I6: A one-line consequence description per strain level.
 - [x] I7: A one-line effect summary on each capacity investment row.
-- [ ] I8: Replace the coda's three meter bars with a clearer before/after comparison.
-- [ ] I9: A real-world resettlement-outcome benchmark comparison (institutional/statistical only, per this game's own sensitivity note).
+- [x] I8: Replace the coda's three meter bars with a clearer before/after comparison.
+- [x] I9: A real-world resettlement-outcome benchmark comparison (institutional/statistical only, per this game's own sensitivity note).
 - [x] I10: A locally-stored "best run" stat.
-- [ ] I11: A periodic (e.g. every 20 rounds) session-milestone summary.
+- [x] I11: A periodic (e.g. every 20 rounds) session-milestone summary.
 - [x] I12: Have the checkpoint message occasionally note a comfortably-ahead dimension too.
 - [x] I13: A difficulty-variant toggle (accelerated background severity).
 - [x] I14: A "target" marker (e.g. 70) on each wellbeing gauge bar.
 - [x] I15: A highlight/pulse on the coda button the moment it first becomes available.
 - [x] I16: Tie the arrival-dot stream's density/speed to real arrivals-per-round.
-- [ ] I17: A passive "unmanaged control region" for contrast.
-- [ ] I18: A free-text field inviting tone/framing concerns in the feedback prompt.
+- [x] I17: A passive "unmanaged control region" for contrast.
+- [x] I18: A free-text field inviting tone/framing concerns in the feedback prompt.
 - [x] I19: Turn the net-positive turning-point message into a small persistent badge.
 - [x] I20: Surface the funds-to-economic-health scale reference point in the UI.
 
