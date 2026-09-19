@@ -45,12 +45,37 @@
     </div>
   </section>
 
+  <section id="continue-playing-section" class="continue-playing-section" hidden>
+    <h2 class="continue-playing-heading">Continue Playing</h2>
+    <div id="continue-playing-list" class="continue-playing-list"></div>
+  </section>
+
+  <section id="game-filter-bar" class="game-filter-bar">
+    <input type="text" id="game-search-input" placeholder="Search games by name or description…" aria-label="Search games">
+    <select id="game-tag-filter" aria-label="Filter games by tag">
+      <option value="">All tags</option>
+      <optgroup label="Subject">
+        <option value="climate">Climate</option>
+        <option value="civilization">Civilization</option>
+        <option value="economy">Economy</option>
+        <option value="language-learning">Language Learning</option>
+        <option value="space">Space</option>
+      </optgroup>
+      <optgroup label="Depth">
+        <option value="quick">Quick</option>
+        <option value="deep-systems">Deep Systems</option>
+      </optgroup>
+    </select>
+  </section>
+  <p id="game-filter-empty" class="game-filter-empty" hidden>No games match your search.</p>
+
   <main id="game-grid">
-    <article class="title-card">
+    <article class="title-card" data-tags="space deep-systems">
       <a class="title-card-link" href="games/sol/index.html">
         <div class="title-card-thumb title-card-thumb--space"></div>
         <h2 class="title-card-name">SOL</h2>
         <p class="title-card-blurb">Solar-system incremental clicker — click, automate, and expand outward through the solar system.</p>
+        <div class="title-card-tags"><span class="tag-pill">Space</span><span class="tag-pill">Deep Systems</span></div>
       </a>
 
       <div class="review-widget" data-game-slug="sol">
@@ -67,12 +92,13 @@
       </div>
     </article>
 
-    <article class="title-card">
+    <article class="title-card" data-tags="climate quick">
       <a class="title-card-link" href="games/canopy/index.html">
         <div class="title-card-thumb title-card-thumb--forest"></div>
         <h2 class="title-card-name">Canopy</h2>
         <p class="title-card-blurb">A forest of plots — clear for quick income, or preserve and let both its value and its biodiversity compound, while the community periodically asks you to clear specific plots for housing or resources. First of the BCM114 climate quartet.</p>
         <p class="title-card-tag">Made for BCM114 Part 1.</p>
+        <div class="title-card-tags"><span class="tag-pill">Climate</span><span class="tag-pill">Quick</span></div>
       </a>
 
       <div class="review-widget" data-game-slug="canopy">
@@ -89,12 +115,13 @@
       </div>
     </article>
 
-    <article class="title-card">
+    <article class="title-card" data-tags="climate quick">
       <a class="title-card-link" href="games/grid/index.html">
         <div class="title-card-thumb title-card-thumb--grid"></div>
         <h2 class="title-card-name">Grid</h2>
         <p class="title-card-blurb">Manage a power grid through rising demand and aging infrastructure — fossil is cheap early, renewables get cheaper the more you invest, and your grid's trajectory is tracked against a real global-average benchmark. Second of the BCM114 climate quartet.</p>
         <p class="title-card-tag">Made for BCM114 Part 1.</p>
+        <div class="title-card-tags"><span class="tag-pill">Climate</span><span class="tag-pill">Quick</span></div>
       </a>
 
       <div class="review-widget" data-game-slug="grid">
@@ -111,12 +138,13 @@
       </div>
     </article>
 
-    <article class="title-card">
+    <article class="title-card" data-tags="climate quick">
       <a class="title-card-link" href="games/tide/index.html">
         <div class="title-card-thumb title-card-thumb--ocean"></div>
         <h2 class="title-card-name">Tide</h2>
         <p class="title-card-blurb">Run a coastal settlement against a rising sea and a delayed acidity crisis, investing through a multi-tier seawall system as the water climbs — the damage from today's choices doesn't show up right away. Third of the BCM114 climate quartet.</p>
         <p class="title-card-tag">Made for BCM114 Part 1.</p>
+        <div class="title-card-tags"><span class="tag-pill">Climate</span><span class="tag-pill">Quick</span></div>
       </a>
 
       <div class="review-widget" data-game-slug="tide">
@@ -133,12 +161,13 @@
       </div>
     </article>
 
-    <article class="title-card">
+    <article class="title-card" data-tags="climate quick">
       <a class="title-card-link" href="games/aftermath/index.html">
         <div class="title-card-thumb title-card-thumb--ember"></div>
         <h2 class="title-card-name">Aftermath</h2>
         <p class="title-card-blurb">Weather a scheduled run of floods, heatwaves, storms, and supply-chain shocks, then carry a persistent skill tree — and your settlement's own remembered history — into the next run. No run is ever wasted. Fourth of the BCM114 climate quartet.</p>
         <p class="title-card-tag">Made for BCM114 Part 1.</p>
+        <div class="title-card-tags"><span class="tag-pill">Climate</span><span class="tag-pill">Quick</span></div>
       </a>
 
       <div class="review-widget" data-game-slug="aftermath">
@@ -155,12 +184,13 @@
       </div>
     </article>
 
-    <article class="title-card">
+    <article class="title-card" data-tags="climate quick">
       <a class="title-card-link" href="games/herd/index.html">
         <div class="title-card-thumb title-card-thumb--pastoral"></div>
         <h2 class="title-card-name">Herd</h2>
         <p class="title-card-blurb">Grow a farm — herd size and methane emissions are coupled by default, but a plant-based production pivot (among other measures) proves decoupling them is better management, not a tax on growth. First of a second climate quartet.</p>
         <p class="title-card-tag">Made for BCM114 Part 1.</p>
+        <div class="title-card-tags"><span class="tag-pill">Climate</span><span class="tag-pill">Quick</span></div>
       </a>
 
       <div class="review-widget" data-game-slug="herd">
@@ -177,12 +207,13 @@
       </div>
     </article>
 
-    <article class="title-card">
+    <article class="title-card" data-tags="climate quick">
       <a class="title-card-link" href="games/thaw/index.html">
         <div class="title-card-thumb title-card-thumb--arctic"></div>
         <h2 class="title-card-name">Thaw</h2>
         <p class="title-card-blurb">Manage three northern regions side by side as global temperature rises largely on its own — watch a slow problem tip into a runaway feedback loop in real time, and see exactly what intervention buys you. Second of a second climate quartet.</p>
         <p class="title-card-tag">Made for BCM114 Part 1.</p>
+        <div class="title-card-tags"><span class="tag-pill">Climate</span><span class="tag-pill">Quick</span></div>
       </a>
 
       <div class="review-widget" data-game-slug="thaw">
@@ -199,12 +230,13 @@
       </div>
     </article>
 
-    <article class="title-card">
+    <article class="title-card" data-tags="climate quick">
       <a class="title-card-link" href="games/loop/index.html">
         <div class="title-card-thumb title-card-thumb--circuit"></div>
         <h2 class="title-card-name">Loop</h2>
         <p class="title-card-blurb">Redesign a supply chain — invest in repair, reuse, and recycling, trade surplus capacity with a neighboring network, and close a straight extract-make-use-discard line into a loop that needs no new extraction at all. Third of a second climate quartet.</p>
         <p class="title-card-tag">Made for BCM114 Part 1.</p>
+        <div class="title-card-tags"><span class="tag-pill">Climate</span><span class="tag-pill">Quick</span></div>
       </a>
 
       <div class="review-widget" data-game-slug="loop">
@@ -221,12 +253,13 @@
       </div>
     </article>
 
-    <article class="title-card">
+    <article class="title-card" data-tags="climate quick">
       <a class="title-card-link" href="games/drift/index.html">
         <div class="title-card-thumb title-card-thumb--dusk"></div>
         <h2 class="title-card-name">Drift</h2>
         <p class="title-card-blurb">Manage a receiving region as climate displacement pressure rises, and project your region's outcome generations forward — whether it becomes a crisis or a manageable transition comes down to how well it prepared. Fourth of a second climate quartet.</p>
         <p class="title-card-tag">Made for BCM114 Part 1.</p>
+        <div class="title-card-tags"><span class="tag-pill">Climate</span><span class="tag-pill">Quick</span></div>
       </a>
 
       <div class="review-widget" data-game-slug="drift">
@@ -243,11 +276,12 @@
       </div>
     </article>
 
-    <article class="title-card">
+    <article class="title-card" data-tags="language-learning deep-systems">
       <a class="title-card-link" href="games/champ-de-mots/index.html">
         <div class="title-card-thumb title-card-thumb--champetre"></div>
         <h2 class="title-card-name">Le Champ de Mots</h2>
         <p class="title-card-blurb">Every plot is one real French vocabulary or grammar fact, planted in actual course order — water it to answer a freshly-generated question, and watch correct recall slowly need you less. A personal spaced-repetition study tool, not a course assessment.</p>
+        <div class="title-card-tags"><span class="tag-pill">Language Learning</span><span class="tag-pill">Deep Systems</span></div>
       </a>
 
       <div class="review-widget" data-game-slug="champ-de-mots">
@@ -264,12 +298,13 @@
       </div>
     </article>
 
-    <article class="title-card">
+    <article class="title-card" data-tags="civilization deep-systems">
       <a class="title-card-link" href="games/continuum/index.html">
         <div class="title-card-thumb title-card-thumb--continuum"></div>
         <h2 class="title-card-name">Continuum</h2>
         <p class="title-card-blurb">Grow one settlement from a tribal community to a space-age civilization across seven eras — a real low-poly 3D city, a research tree spanning the whole arc, and a livability score that gates how big you're actually allowed to get. Flagship BCM114 Round 2 digital artefact.</p>
         <p class="title-card-tag">Made for BCM114 Round 2.</p>
+        <div class="title-card-tags"><span class="tag-pill">Civilization</span><span class="tag-pill">Deep Systems</span></div>
       </a>
 
       <div class="review-widget" data-game-slug="continuum">
@@ -286,11 +321,12 @@
       </div>
     </article>
 
-    <article class="title-card">
+    <article class="title-card" data-tags="economy deep-systems">
       <a class="title-card-link" href="games/trade-empire/index.html">
         <div class="title-card-thumb title-card-thumb--trade-empire"></div>
         <h2 class="title-card-name">Trade Empire</h2>
         <p class="title-card-blurb">Found a private interstellar trading corporation — four ships, five interdependent colonies, and a market that punishes dumping everything on one good. Scale up manually, then research your way to a fleet that runs the whole galaxy on its own. Working title.</p>
+        <div class="title-card-tags"><span class="tag-pill">Economy</span><span class="tag-pill">Deep Systems</span></div>
       </a>
 
       <div class="review-widget" data-game-slug="trade-empire">

@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 247/270 items checked off (91%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
+**Progress: 250/270 items checked off (93%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
 
 The one living list, replacing the scattered planning docs' own "open items"/"stretch goals" sections. Built from your labeled answers in `IMPROVEMENT-IDEAS-2026-09.md` (all "yes" items, resolved), plus a pass through every other file in `planning/` pulling out anything still genuinely unresolved there. "Later" items (things you deferred, or that need more explanation first) live in `LATER.md` instead — not here.
 
@@ -138,9 +138,9 @@ Two things every game needs once achievements land there, on top of the base rol
 
 *(Origin: L11, L12, plus your own added notes.)*
 
-- [ ] Search/filter on the hub lobby (L11).
-- [ ] A "games you have saves for" section pinned to the top for signed-in users, so a player who only plays 2-3 games sees those first (your addition to L11) — this overlaps with L4 ("continue where you left off"); build as one combined feature, not two.
-- [ ] Tags per title card — not just length/depth (L12 originally suggested "quick" vs "deep systems"), but a general sorting/tagging system across the whole site, per your note that this could "start a general sorting system through the whole site." Decide the tag taxonomy (genre? subject? length?) before building.
+- [x] Search/filter on the hub lobby (L11).
+- [x] A "games you have saves for" section pinned to the top for signed-in users, so a player who only plays 2-3 games sees those first (your addition to L11) — this overlaps with L4 ("continue where you left off"); build as one combined feature, not two.
+- [x] Tags per title card — not just length/depth (L12 originally suggested "quick" vs "deep systems"), but a general sorting/tagging system across the whole site, per your note that this could "start a general sorting system through the whole site." Decide the tag taxonomy (genre? subject? length?) before building.
 
 ---
 

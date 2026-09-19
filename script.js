@@ -90,6 +90,52 @@ document.querySelectorAll(".review-widget").forEach((widget) => {
   loadRatings(widget);
 });
 
+// --- Hub lobby search/tag filter (TODO.md "hub lobby improvements", L11/L12) ---
+//
+// Tag taxonomy decision (documented here rather than left implicit, same
+// as the L5 dark/light-theme call in TODO.md): two independent axes, not
+// an arbitrary free-for-all tag set.
+//   - Subject-area (what the game is actually about): "climate" for all 8
+//     climate-quartet games, "civilization" for Continuum (spans many
+//     subjects/SDGs across its seven eras, not just climate), "economy"
+//     for Trade Empire (trading/market sim), "language-learning" for Le
+//     Champ de Mots, "space" for SOL (the one game with no real-world
+//     teaching subject behind it).
+//   - Depth ("quick" vs "deep systems", L12's original suggestion): the
+//     8 climate-quartet games are each a single focused session-length
+//     mechanic ("quick"); SOL, Continuum, Trade Empire, and Le Champ de
+//     Mots each layer multiple interacting systems/progression trees
+//     built over many milestones ("deep systems").
+// Tags live as a space-separated `data-tags` attribute on each
+// `.title-card` article and are also rendered as visible pills (see
+// `.title-card-tags` in style.css) per L12's "tags per title card" ask.
+// Search and tag filter combine (AND) and share one mechanism.
+const gameSearchInput = document.getElementById("game-search-input");
+const gameTagFilter = document.getElementById("game-tag-filter");
+const gameFilterEmpty = document.getElementById("game-filter-empty");
+const allTitleCards = Array.from(document.querySelectorAll(".title-card"));
+
+function applyGameFilter() {
+  const query = gameSearchInput.value.trim().toLowerCase();
+  const tag = gameTagFilter.value;
+  let visibleCount = 0;
+  allTitleCards.forEach((card) => {
+    const text = card.textContent.toLowerCase();
+    const tags = (card.dataset.tags || "").split(/\s+/);
+    const matchesQuery = !query || text.includes(query);
+    const matchesTag = !tag || tags.includes(tag);
+    const visible = matchesQuery && matchesTag;
+    card.hidden = !visible;
+    if (visible) visibleCount += 1;
+  });
+  gameFilterEmpty.hidden = visibleCount > 0;
+}
+
+if (gameSearchInput && gameTagFilter) {
+  gameSearchInput.addEventListener("input", applyGameFilter);
+  gameTagFilter.addEventListener("change", applyGameFilter);
+}
+
 // --- Accounts (ACCOUNTS-AND-FEEDBACK-DESIGN.md Phase 2, revised: username
 // + password, no email — see main.py for why) ---
 // hubGetBearerToken()/hubAuthHeaders() come from shared/hub-auth.js.
@@ -104,10 +150,14 @@ const accountStatus = document.getElementById("account-status");
 const accountUsernameDisplay = document.getElementById("account-username-display");
 const accountSignoutButton = document.getElementById("account-signout-button");
 const accountMySaves = document.getElementById("account-my-saves");
+const continuePlayingSection = document.getElementById("continue-playing-section");
+const continuePlayingList = document.getElementById("continue-playing-list");
 
 function showSignedOut() {
   accountSignedOut.hidden = false;
   accountSignedIn.hidden = true;
+  continuePlayingSection.hidden = true;
+  continuePlayingList.innerHTML = "";
 }
 
 function showSignedIn(username) {
@@ -116,6 +166,7 @@ function showSignedIn(username) {
   accountUsernameDisplay.textContent = `Signed in as ${username}`;
   loadMySaves();
   loadAchievementsDashboard();
+  loadContinuePlaying();
 }
 
 async function loadMySaves() {
@@ -235,6 +286,56 @@ function mostRecentSaveForGame(saves, gameId) {
     return bTime - aTime;
   });
   return forGame[0];
+}
+
+// --- "Continue Playing" (TODO.md L11 + L4, built as one combined feature)
+// ---
+//
+// Pinned above the full game grid for a signed-in player: their claimed
+// saves, most-recent-per-game, each linking straight into that game. No
+// need to pass the save code through the URL — every game's own
+// shared/save-widget.js already autoloads a signed-in user's most recent
+// save on page load, so linking to the game's index.html is enough.
+function gameHrefForId(gameId) {
+  return `games/${gameId}/index.html`;
+}
+
+async function loadContinuePlaying() {
+  try {
+    const res = await fetch(`${RATINGS_API_BASE}/users/me/saves`, { headers: hubAuthHeaders() });
+    if (!res.ok) throw new Error(`status ${res.status}`);
+    const saves = await res.json();
+    const gameIds = [...new Set(saves.map((s) => s.game_id))];
+    if (!gameIds.length) {
+      continuePlayingSection.hidden = true;
+      continuePlayingList.innerHTML = "";
+      return;
+    }
+    const entries = gameIds
+      .map((gameId) => ({ gameId, save: mostRecentSaveForGame(saves, gameId) }))
+      .filter((e) => e.save)
+      .sort((a, b) => {
+        const aTime = new Date(a.save.updated_at || a.save.created_at).getTime();
+        const bTime = new Date(b.save.updated_at || b.save.created_at).getTime();
+        return bTime - aTime;
+      });
+    continuePlayingList.innerHTML = "";
+    entries.forEach(({ gameId }) => {
+      const link = document.createElement("a");
+      link.className = "continue-playing-item";
+      link.href = gameHrefForId(gameId);
+      link.textContent = `Continue ${GAME_DISPLAY_NAMES[gameId] || gameId}`;
+      continuePlayingList.appendChild(link);
+    });
+    continuePlayingSection.hidden = false;
+  } catch (err) {
+    // Silent, non-critical — the full game grid below still works, and a
+    // signed-in player without a fetchable saves list just doesn't get
+    // this convenience section this load, same failure posture the
+    // achievements dashboard and My Saves list already take.
+    console.error("loadContinuePlaying failed:", err);
+    continuePlayingSection.hidden = true;
+  }
 }
 
 async function loadAchievementsDashboard() {
