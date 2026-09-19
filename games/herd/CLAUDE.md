@@ -154,6 +154,33 @@ on the unmodified page. Full pytest suite (125 tests, unchanged —
 `settings.js` is plain frontend JS with no Python surface) stayed green
 throughout.
 
+## Shared confirmation-dialog integration (F16, site-wide goal)
+
+Investing in the Plant-Based Pivot now routes through
+`shared/confirm-dialog.js`'s `ConfirmDialog.ask()` instead of investing
+immediately (`on_invest_plant_pivot()` in `game.py`). It's the pricier of
+the two decoupling investments (25, vs. 15/20/20 for feed/caps/capture)
+and, unlike those three, changes *what* the herd produces rather than
+just how efficiently -- the shared pattern's pre-action-confirm shape
+(not an undo window; the shared file only supports confirm-before, per
+its own header doc), with the built-in "don't ask again" checkbox
+covering the "won't this get annoying on repeat clicks" concern this
+task originated from. Covered by 3 new tests in
+`tests/test_confirm_dialog.py` (fake `js.window.ConfirmDialog`, same
+technique as Grid's C14 integration -- the real fake-DOM harness's `js`
+module never provides `window` by default).
+
+Live-verified in a real browser (after Grid's session had already found
+and fixed a real bug in `shared/confirm-dialog.js` itself -- see that
+file's header comment and Grid's own CLAUDE.md note): clicked
+Plant-Based Pivot -> dialog appeared with the correct message and an
+"Invest" confirm label; Cancel left funds/investment count untouched; a
+second click -> checked "don't ask me again" -> Invest -> investment
+landed and the skip flag persisted to `localStorage`; a third click
+skipped the dialog entirely and invested immediately as expected. Zero
+new console errors during the verified flow. Full 128/128 pytest suite
+(125 existing + 3 new) unaffected.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
