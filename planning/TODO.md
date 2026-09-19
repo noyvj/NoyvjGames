@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 240/270 items checked off (89%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
+**Progress: 241/270 items checked off (89%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
 
 The one living list, replacing the scattered planning docs' own "open items"/"stretch goals" sections. Built from your labeled answers in `IMPROVEMENT-IDEAS-2026-09.md` (all "yes" items, resolved), plus a pass through every other file in `planning/` pulling out anything still genuinely unresolved there. "Later" items (things you deferred, or that need more explanation first) live in `LATER.md` instead — not here.
 
@@ -109,7 +109,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] Grid — plant-build action row (C1) — docked Advance Round instead (see games/grid/CLAUDE.md for the judgment call: Grid's plant rows already keep build/retire/maintain inline, no far-apart split to close).
 - [x] Tide — investments panel + Advance Season button (D1) — wraps both in `#actions-dock`, same pattern as Aftermath's.
 - [x] Aftermath — actions panel: Resilience/Growth/Face Next Event (E1).
-- [ ] Continuum — doesn't have this pattern at all yet (K9).
+- [x] Continuum — doesn't have this pattern at all yet (K9) — docked Advance Season, same judgment call as Grid's own single-button case (see games/continuum/CLAUDE.md).
 
 ---
 
