@@ -182,6 +182,61 @@ A new `⚙️ Settings` toggle button in the toolbar (after Summary) opens `#set
 
 Verified live: toggling both controls updates the page immediately with zero console errors, and both settings survive a full page reload via `localStorage`. Full pytest suite (225 tests) unaffected — this feature touches no Python.
 
+## Shared confirmation-dialog integration (J19, site-wide goal)
+
+`planning/TODO.md`'s J19 line explicitly asked to check real click
+frequency before wiring anything in — skip or soften if spending
+research points/automation credits turns out to be a common, low-stakes
+action rather than a rare one. **Investigated first, gated after
+confirming it's genuinely rare:**
+
+- **Automating a ship** (`automate_ship()`, 150 credits): capped at
+  `max_automated_ships()` — base `MAX_AUTOMATED_SHIPS` (2), +1 from the
+  `automation_slot` research node, +1 more from `automation_slot_2`, for
+  a hard ceiling of 4 — exactly the size of the fixed ship roster. It's
+  also a one-time, irreversible purchase per ship (Milestone 6's own
+  notes: "there's no de-automate toggle in v1... the unlock is a
+  one-time purchase, not a pausable mode"). So this button can be
+  clicked **at most 4 times, ever, across an entire playthrough.**
+- **Unlocking research** (`unlock_research()`): `RESEARCH_NODES` has
+  exactly **6 entries total**, each unlockable exactly once ever — the
+  unlock button hides itself once its node unlocks (Milestone 8's
+  documented UI pattern), with no re-lock or refund path. So this button
+  can be clicked **at most 6 times, ever.**
+
+Combined, that's at most ~10 clicks in an entire playthrough — nowhere
+near the repeated Load Cargo/Depart core loop this task's own caveat was
+worried about. Both are also genuinely high-stakes: irreversible spends
+of currencies that take real session time to accrue (research points at
+0.5/tick; the priciest node, Outer Reaches, costs 200 — a very long
+accrual). **Conclusion: gate both, not skip or soften** — this is
+exactly the rare/high-stakes shape the shared pattern exists for, not
+the common/low-stakes shape the caveat warned against.
+
+Both `_make_automate_handler()` and `_make_research_handler()` in
+`game.py` now route through `shared/confirm-dialog.js`'s
+`ConfirmDialog.ask()` (pre-action confirm only, per the shared pattern's
+own shape) before calling `automate_ship()`/`unlock_research()`. Each
+ship and each research node gets its own confirm id
+(`trade-empire-automate-ship-<id>` / `trade-empire-research-<node_id>`),
+so a player's "don't ask again" choice is per-target, not global.
+Covered by 5 new tests in `tests/test_confirm_dialog.py` (fake
+`js.window.ConfirmDialog`, same technique as Grid's C14/Herd's F16 —
+the real fake-DOM harness's `js` module never provides `window` by
+default).
+
+Live-verified in a real browser: unlocked Fast Ships I -> dialog showed
+"Unlock Fast Ships I for 15 research points? -1 tick travel time,
+fleet-wide." with an "Unlock it" confirm label; Cancel left it
+unresearched; a second attempt with "don't ask me again" checked ->
+Unlock it -> research landed and the skip flag persisted. Separately,
+automating Ship 1 -> dialog showed "Automate this ship for 150 credits?
+This is permanent -- there's no way to de-automate it afterward." with
+an "Automate it" label -> confirmed -> `ships["1"].automated` became
+`True` and `total_profit` dropped from 1000 to 850 as expected. Zero new
+console errors. Full 230/230 pytest suite (225 existing + 5 new)
+unaffected.
+
 ## Working conventions
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag trade-empire-milestone-0N`.
 - Update the Status column as work happens.
