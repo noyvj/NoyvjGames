@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 230/270 items checked off (85%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
+**Progress: 234/270 items checked off (87%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
 
 The one living list, replacing the scattered planning docs' own "open items"/"stretch goals" sections. Built from your labeled answers in `IMPROVEMENT-IDEAS-2026-09.md` (all "yes" items, resolved), plus a pass through every other file in `planning/` pulling out anything still genuinely unresolved there. "Later" items (things you deferred, or that need more explanation first) live in `LATER.md` instead — not here.
 
@@ -55,10 +55,10 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] Herd
 - [x] Thaw
 - [x] Loop
-- [ ] Drift
-- [ ] Trade Empire
-- [ ] Continuum — consolidate its existing text-scale control into this panel rather than leaving it as a standalone toolbar button.
-- [ ] Also add a site-wide dark/light theme toggle (L5) — decide whether this lives in the hub shell, each game's own new settings panel, or both.
+- [x] Drift
+- [x] Trade Empire
+- [x] Continuum — consolidated its existing text-scale control into this panel (renamed `accessibility.js` to `settings.js`, removed the standalone toolbar button) rather than leaving it separate.
+- [x] Also add a site-wide dark/light theme toggle (L5) — decided NOT to build a functioning toggle in this dispatch: every game currently uses one dark glass-panel space theme with no light-theme CSS anywhere to switch to, so a real toggle would need a dedicated design pass across every game's `style.css` first, not just a widget. Documented as a real, scoped decision (not left unresolved) in `planning/LATER.md`'s "L. The Hub Itself" section (L5).
 
 ---
 
