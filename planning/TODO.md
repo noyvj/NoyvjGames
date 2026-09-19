@@ -76,7 +76,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [ ] Trade Empire
 - [x] Continuum — already done as part of Phase 5.
 - [ ] Le Champ de Mots
-- [ ] The hub shell itself (nav, buttons, review widget)
+- [x] The hub shell itself (nav, buttons, review widget) — audited, no change needed: every status/success/failure indicator is plain text with no color coding at all, the achievements-dashboard bars are a single-hue gradient (not a red/green pair), and the star widget's selected/unselected states differ by a large lightness jump (gold vs. dark slate), not a hue-only confusion pair. See root `CLAUDE.md`'s Working notes for the full worked note.
 
 ---
 
