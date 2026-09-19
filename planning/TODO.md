@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 250/270 items checked off (93%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
+**Progress: 251/270 items checked off (93%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
 
 The one living list, replacing the scattered planning docs' own "open items"/"stretch goals" sections. Built from your labeled answers in `IMPROVEMENT-IDEAS-2026-09.md` (all "yes" items, resolved), plus a pass through every other file in `planning/` pulling out anything still genuinely unresolved there. "Later" items (things you deferred, or that need more explanation first) live in `LATER.md` instead — not here.
 
@@ -415,7 +415,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [ ] An aggregate stats/About page — **visible in admin view only for now**, per your scoping note (L8).
 - [ ] Auto-discover each game's `achievements.json` instead of hand-maintaining the list in `script.js` (L14).
 - [ ] A "claim your save" nudge for anonymous players who've clearly invested real time (L15).
-- [ ] A single cross-game feedback/bug-report entry point on the hub (L17).
+- [x] A single cross-game feedback/bug-report entry point on the hub (L17).
 - [ ] A more visible "Add to Home Screen" PWA prompt (L18 — you said you didn't know what this meant; short answer: browsers can show an "install this site as an app" prompt, since the site already has a PWA manifest — right now nothing nudges a visitor toward it, it only works if they know to look for their browser's own install option. Building this means adding a small, dismissible in-page banner that offers the install prompt directly. Moved to `LATER.md` with this explanation attached in case you want to hold off anyway — flip it to here if you're happy to proceed.)
 - [ ] A lightweight public roadmap page generated from each game's own `CLAUDE.md` milestone table (L19) — **caution from you**: a lot of work happened outside the original milestone-table structure this session (e.g. the improvement-ideas rounds, ad-hoc bug fixes); this page needs to pull from actual git history/CLAUDE.md build notes, not just the milestone tables, or it'll undersell how much has shipped.
 - [ ] A UI decluttering pass across every game (your "other comments" note: "everything looks very crowded... making sections either collapsible or other 'screens' within a game could help") — treat as its own review pass once the per-game feature backlog above has landed, since several of those features (colony detail views, settings panels, achievements panels) already reduce crowding as a side effect.
