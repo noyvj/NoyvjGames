@@ -1,0 +1,475 @@
+/*
+ * Le Champ de Mots — visual-style switcher overrides.
+ *
+ * planning/TODO.md's "Big standalone features" list asked for four full art
+ * styles: low-poly / text-based / cartoon / high-def. Read honestly (see
+ * this game's own CLAUDE.md build note for the full scoping call): a real
+ * low-poly 3D mesh or a genuinely hand-drawn cartoon or a true high-fidelity
+ * rendered look each need actual art/geometry assets and a rendering
+ * pipeline this game doesn't have (no build step, no WebGL, per this hub's
+ * own per-game conventions) -- none of that is realistic in one pass. What
+ * *is* real and honestly achievable with CSS/layout alone is four genuinely
+ * visually distinct chrome-and-palette treatments of the same content:
+ * different fonts, borders, shadows, corner-radius language and colour
+ * palettes per style, switched live with zero layout/content change.
+ * "High-def" is simply this game's pre-existing look (the site-wide glossy
+ * violet-glass theme) kept as the default baseline -- it was never rebuilt
+ * as a fifth thing to "look more high-def than the others," since the
+ * existing look already reads as the most polished/rendered of the four and
+ * inventing a *sixth* palette on top of the current one just to call it
+ * "true high-def" would be the fake claim this task explicitly warned
+ * against. Text-based is the one built with the most genuine confidence:
+ * dense, monospace, minimal-chrome, closest to what CSS alone can do
+ * convincingly.
+ *
+ * Selected via `html[data-visual-style="..."]` (see visual-style.js), so
+ * High-def needs no rules here at all -- it *is* the untouched base
+ * style.css/minigames.css.
+ *
+ * The farm's own plot-stage colour *meanings* are never touched here, same
+ * rule this file's sibling stylesheets already follow (see style.css's
+ * "site-wide visual pass" note: "the identity, not the palette, is
+ * protected"). Where a style recolours the plot grid at all, it does so
+ * with a `filter` layered on top of the existing `.plot`/`.plot--*` block
+ * from a separate, later-loaded file -- not a single hex value in that
+ * block is edited -- so every stage stays exactly as distinguishable from
+ * every other stage as it always was, just tinted differently.
+ *
+ * No motion CSS of any kind appears anywhere below. Nothing about this
+ * feature needs one, and this game's whole aesthetic (Milestone 7) is built
+ * on the idea that every frame is a usable screenshot -- a style switch
+ * should be an instant swap, not something to sit through.
+ */
+
+/* ============================================================
+   Settings panel chrome (style-independent -- same panel body used
+   under every visual style, so it lives outside the per-style blocks
+   below and just inherits whichever style is currently active via
+   .section/.primary/.secondary, same as every other panel in the game).
+   ============================================================ */
+
+.settings-panel-heading {
+  margin: 0 0 0.6rem;
+  font-size: 1.05rem;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.settings-label {
+  font-size: 0.85rem;
+  color: #cfd2e6;
+  opacity: 0.85;
+}
+
+.visual-style-control {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.visual-style-option {
+  width: auto;
+}
+
+.visual-style-option.selected {
+  background: linear-gradient(155deg, #dbe7c4, #c3d6a0);
+  border-color: #7ba756;
+  color: #2c3a1c;
+}
+
+.settings-note {
+  margin: 0.4rem 0 0;
+  font-size: 0.78rem;
+  color: #cfd2e6;
+  opacity: 0.7;
+}
+
+/* ============================================================
+   LOW-POLY -- flat, geometric colour blocks. No blur, no gradients,
+   no soft glow: everything reads as a hard-edged flat shape with a
+   faceted accent or two, which is the honest ceiling of what CSS
+   alone can suggest about a low-poly look without a real faceted
+   mesh renderer.
+   ============================================================ */
+
+html[data-visual-style="lowpoly"] body {
+  font-family: "Trebuchet MS", Verdana, system-ui, sans-serif;
+  background: #172029;
+}
+
+html[data-visual-style="lowpoly"] .ambient-bg {
+  display: none;
+}
+
+html[data-visual-style="lowpoly"] h1 {
+  background: none;
+  -webkit-text-fill-color: initial;
+  color: #f4b942;
+  text-shadow: none;
+}
+
+html[data-visual-style="lowpoly"] .context-blurb {
+  background: #1e2b35;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 0;
+  border-left: 4px solid #4fae6e;
+}
+
+html[data-visual-style="lowpoly"] .section,
+html[data-visual-style="lowpoly"] .dashboard-panel,
+html[data-visual-style="lowpoly"] .minigame-panel,
+html[data-visual-style="lowpoly"] .row,
+html[data-visual-style="lowpoly"] .question-card,
+html[data-visual-style="lowpoly"] .minigame-prompt-card {
+  background: #22323d;
+  border: 2px solid #3c5468;
+  border-radius: 3px;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.35);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html[data-visual-style="lowpoly"] .row--locked {
+  background: #182229;
+  border-style: dashed;
+  box-shadow: none;
+}
+
+html[data-visual-style="lowpoly"] .panel-hero {
+  background: #f4b942;
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+  border: none;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.35);
+}
+
+html[data-visual-style="lowpoly"] .primary,
+html[data-visual-style="lowpoly"] .secondary,
+html[data-visual-style="lowpoly"] .choice,
+html[data-visual-style="lowpoly"] .practice-input {
+  border-radius: 3px;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.35);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html[data-visual-style="lowpoly"] .primary {
+  background: #4fae6e;
+  border-color: #2f7a49;
+  color: #0d1a12;
+}
+
+html[data-visual-style="lowpoly"] .secondary {
+  background: #3c5468;
+  border-color: #24323d;
+  color: #eef3f6;
+}
+
+html[data-visual-style="lowpoly"] .info-toggle summary {
+  border-radius: 3px;
+}
+
+html[data-visual-style="lowpoly"] .status-line--due,
+html[data-visual-style="lowpoly"] .row-due {
+  border-radius: 3px;
+}
+
+html[data-visual-style="lowpoly"] .plot {
+  filter: saturate(1.55) contrast(1.12);
+  border-radius: 3px;
+}
+
+/* ============================================================
+   TEXT-BASED -- dense, monospace, minimal-chrome. The most honestly
+   achievable of the four: a real terminal look needs nothing but
+   type, thin rules and flat colour, which is exactly what CSS is
+   best at. Icon emoji are hidden in favour of plain bracket/letter
+   text throughout, including on the farm grid itself.
+   ============================================================ */
+
+html[data-visual-style="textbased"] body {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Courier New", monospace;
+  background: #05080a;
+}
+
+html[data-visual-style="textbased"] .ambient-bg {
+  display: none;
+}
+
+html[data-visual-style="textbased"] h1 {
+  background: none;
+  -webkit-text-fill-color: initial;
+  color: #7cfc9a;
+  text-shadow: none;
+  font-family: inherit;
+}
+
+html[data-visual-style="textbased"] h1::before {
+  content: "> ";
+  opacity: 0.7;
+}
+
+html[data-visual-style="textbased"] .context-blurb {
+  background: #0a0f12;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 0;
+  border-left: 2px solid #4c6353;
+}
+
+html[data-visual-style="textbased"] .section,
+html[data-visual-style="textbased"] .dashboard-panel,
+html[data-visual-style="textbased"] .minigame-panel,
+html[data-visual-style="textbased"] .row,
+html[data-visual-style="textbased"] .question-card,
+html[data-visual-style="textbased"] .minigame-prompt-card {
+  background: #0a0f12;
+  border: 1px solid #2c3a2f;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  font-family: inherit;
+}
+
+html[data-visual-style="textbased"] .row--locked {
+  background: #070a0c;
+  border-style: dashed;
+}
+
+html[data-visual-style="textbased"] .panel-hero {
+  display: none;
+}
+
+html[data-visual-style="textbased"] .primary,
+html[data-visual-style="textbased"] .secondary,
+html[data-visual-style="textbased"] .choice,
+html[data-visual-style="textbased"] .practice-input {
+  font-family: inherit;
+  border-radius: 0;
+  border: 1px solid #4c6353;
+  background: #0a0f12;
+  color: #b9f5c9;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html[data-visual-style="textbased"] .choice--answer {
+  background: #123018;
+  border-color: #7cfc9a;
+  color: #d8ffe4;
+  box-shadow: none;
+}
+
+html[data-visual-style="textbased"] .status-line--due,
+html[data-visual-style="textbased"] .row-due {
+  border-radius: 0;
+  background: transparent;
+  border: 1px solid #4c6353;
+  color: #7cfc9a;
+}
+
+html[data-visual-style="textbased"] .stage-summary {
+  color: #7cfc9a;
+}
+
+html[data-visual-style="textbased"] .info-toggle summary {
+  border-radius: 0;
+  background: transparent;
+  border: 1px solid #4c6353;
+}
+
+/* Icon labels re-set in plain ASCII instead of emoji -- see style.css's own
+   "Icon labels" section for the emoji originals these replace. */
+html[data-visual-style="textbased"] .status-line--due::before,
+html[data-visual-style="textbased"] .row-due::before,
+html[data-visual-style="textbased"] #water-next-button::before {
+  content: "> ";
+}
+
+html[data-visual-style="textbased"] #practice-prompt::before {
+  content: "# ";
+}
+
+html[data-visual-style="textbased"] #practice-report-button::before {
+  content: "! ";
+}
+
+html[data-visual-style="textbased"] #review-toggle-button::before,
+html[data-visual-style="textbased"] #review-word-button::before,
+html[data-visual-style="textbased"] #review-grammar-button::before {
+  content: "~ ";
+}
+
+html[data-visual-style="textbased"] .row-proficiency-button::before {
+  content: "* ";
+}
+
+html[data-visual-style="textbased"] .row-bonus-button::before {
+  content: "+ ";
+}
+
+html[data-visual-style="textbased"] .row-lock::before {
+  content: "x ";
+}
+
+/* The farm grid itself: hide the emoji sprite glyph (font-size: 0 on the
+   cell) and show a plain letter per stage instead via ::before, which gets
+   its own explicit font-size back since font-size is inherited by pseudo-
+   elements from their originating box. The .plot--automated::after
+   sprinkler dot and .plot--weeds::after weeds dot (style.css, untouched)
+   keep rendering on top of this exactly as before -- this only replaces
+   the stage glyph itself, never those corner markers. Every cell keeps its
+   existing aria-label (game.py, Milestone 7), so this loses nothing for
+   assistive tech -- only the visible glyph changes. */
+html[data-visual-style="textbased"] .plot {
+  font-size: 0;
+  position: relative;
+  border-radius: 0;
+  filter: grayscale(1) contrast(1.25);
+}
+
+html[data-visual-style="textbased"] .plot::before {
+  font-size: 11px;
+  font-family: inherit;
+  color: #05080a;
+}
+
+html[data-visual-style="textbased"] .plot--seed::before {
+  content: ".";
+}
+
+html[data-visual-style="textbased"] .plot--sprout::before {
+  content: "s";
+}
+
+html[data-visual-style="textbased"] .plot--budding::before {
+  content: "b";
+}
+
+html[data-visual-style="textbased"] .plot--blooming::before {
+  content: "B";
+}
+
+html[data-visual-style="textbased"] .plot--automated::before {
+  content: "A";
+}
+
+/* ============================================================
+   CARTOON -- bright, saturated, thick-bordered, bouncy hard-offset
+   shadows and a playful rounded font. Not hand-drawn art (no assets
+   to draw from), but a real, distinct treatment: candy colours and
+   chunky pill shapes instead of glass and gradients.
+   ============================================================ */
+
+html[data-visual-style="cartoon"] body {
+  font-family: "Comic Sans MS", "Chalkboard SE", "Marker Felt", ui-rounded, sans-serif;
+  background: #1b0b33;
+}
+
+html[data-visual-style="cartoon"] .ambient-bg {
+  display: none;
+}
+
+html[data-visual-style="cartoon"] h1 {
+  background: none;
+  -webkit-text-fill-color: initial;
+  color: #ffe45e;
+  text-shadow: 3px 3px 0 #ff5da2;
+  font-family: inherit;
+}
+
+html[data-visual-style="cartoon"] .context-blurb {
+  background: #2a1050;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 14px;
+  border-left: 4px solid #ffe45e;
+}
+
+html[data-visual-style="cartoon"] .section,
+html[data-visual-style="cartoon"] .dashboard-panel,
+html[data-visual-style="cartoon"] .minigame-panel,
+html[data-visual-style="cartoon"] .row,
+html[data-visual-style="cartoon"] .question-card,
+html[data-visual-style="cartoon"] .minigame-prompt-card {
+  background: #3a1868;
+  border: 4px solid #ffe45e;
+  border-radius: 22px;
+  box-shadow: 6px 6px 0 #ff5da2;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html[data-visual-style="cartoon"] .row--locked {
+  background: #2a1050;
+  border-style: dashed;
+  box-shadow: none;
+}
+
+html[data-visual-style="cartoon"] .panel-hero {
+  background: #ffe45e;
+  border: 4px solid #3a1868;
+  box-shadow: 4px 4px 0 #ff5da2;
+}
+
+html[data-visual-style="cartoon"] .primary,
+html[data-visual-style="cartoon"] .secondary {
+  font-family: inherit;
+  border-radius: 999px;
+  border: 3px solid #1b0b33;
+  box-shadow: 3px 3px 0 #1b0b33;
+  backdrop-filter: none;
+}
+
+html[data-visual-style="cartoon"] .primary {
+  background: #7ee787;
+  color: #123a1a;
+}
+
+html[data-visual-style="cartoon"] .secondary {
+  background: #8ec9ff;
+  color: #0f2e4d;
+}
+
+html[data-visual-style="cartoon"] .choice {
+  font-family: inherit;
+  border-radius: 16px;
+  border: 3px solid #1b0b33;
+  box-shadow: 3px 3px 0 #1b0b33;
+  background: #ffd6e8;
+  color: #5c1030;
+}
+
+html[data-visual-style="cartoon"] .choice--answer {
+  background: #c8f5b0;
+  border-color: #1b0b33;
+  color: #1c3a12;
+}
+
+html[data-visual-style="cartoon"] .practice-input {
+  font-family: inherit;
+  border-radius: 16px;
+  border: 3px solid #ffe45e;
+  background: #2a1050;
+  color: #f5eaff;
+}
+
+html[data-visual-style="cartoon"] .info-toggle summary {
+  border: 2px solid #1b0b33;
+  background: #ffe45e;
+  color: #1b0b33;
+}
+
+html[data-visual-style="cartoon"] .plot {
+  filter: saturate(1.7) brightness(1.08);
+  border-radius: 10px;
+}

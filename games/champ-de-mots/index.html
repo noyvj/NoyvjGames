@@ -8,11 +8,13 @@
 <link rel="stylesheet" href="../../shared/ambient-bg.css">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="minigames.css">
+<link rel="stylesheet" href="visual-styles.css">
 <link rel="stylesheet" href="../../ad-bar.css">
 <link rel="manifest" href="../../manifest.json">
 <script src="../../shared/tutorial.js"></script>
 <script src="../../shared/mobile-hud.js"></script>
 <script src="../../shared/mobile-dock.js"></script>
+<script src="visual-style.js"></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -33,8 +35,27 @@
       <button id="racer-toggle-button" class="secondary" type="button">🏁 Verb Racer</button>
       <button id="boutique-toggle-button" class="secondary" type="button">👗 Boutique Dash</button>
       <button id="cafe-toggle-button" class="secondary" type="button">☕ Café Rush</button>
+      <!-- planning/TODO.md's visual-style switcher: low-poly / text-based /
+           cartoon / high-def, chosen on first load (a sensible default,
+           applied automatically) and changeable here afterward. Plain JS,
+           independent of Pyodide -- see visual-style.js -- same pattern
+           games/aftermath/settings.js already established for this hub. -->
+      <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
+    <div id="settings-panel" class="section" hidden>
+      <h2 class="settings-panel-heading">Settings</h2>
+      <div class="settings-row">
+        <span class="settings-label">Visual style</span>
+        <div class="visual-style-control" role="group" aria-label="Visual style">
+          <button id="visual-style-highdef-button" class="secondary visual-style-option" type="button" aria-pressed="false">High-def</button>
+          <button id="visual-style-lowpoly-button" class="secondary visual-style-option" type="button" aria-pressed="false">Low-poly</button>
+          <button id="visual-style-textbased-button" class="secondary visual-style-option" type="button" aria-pressed="false">Text-based</button>
+          <button id="visual-style-cartoon-button" class="secondary visual-style-option" type="button" aria-pressed="false">Cartoon</button>
+        </div>
+      </div>
+      <p class="settings-note">Purely visual — changes fonts, colours, borders and shadows, not any content or gameplay. Saved to this browser only (not part of your save code), so a different browser or device starts back at High-def.</p>
+    </div>
     <div id="dashboard-panel" class="dashboard-panel" hidden></div>
     <div id="achievements-panel" class="dashboard-panel" hidden></div>
     <div id="achievement-toast" class="achievement-toast" hidden></div>
