@@ -177,6 +177,12 @@ const GAMES_WITH_ACHIEVEMENTS = {
   canopy: "games/canopy/achievements.json",
   grid: "games/grid/achievements.json",
   "trade-empire": "games/trade-empire/achievements.json",
+  tide: "games/tide/achievements.json",
+  aftermath: "games/aftermath/achievements.json",
+  herd: "games/herd/achievements.json",
+  thaw: "games/thaw/achievements.json",
+  loop: "games/loop/achievements.json",
+  drift: "games/drift/achievements.json",
 };
 
 // Display label only — falls back to the raw game_id for a game added here
@@ -187,6 +193,12 @@ const GAME_DISPLAY_NAMES = {
   canopy: "Canopy",
   grid: "Grid",
   "trade-empire": "Trade Empire",
+  tide: "Tide",
+  aftermath: "Aftermath",
+  herd: "Herd",
+  thaw: "Thaw",
+  loop: "Loop",
+  drift: "Drift",
 };
 
 const accountAchievementsDashboard = document.getElementById("account-achievements-dashboard");

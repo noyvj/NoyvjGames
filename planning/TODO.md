@@ -34,9 +34,9 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] Thaw — 18 achievements + panel + unlock toast + hub-dashboard link.
 - [x] Loop — 20 achievements + panel + unlock toast + hub-dashboard link.
 - [x] Drift — 18 achievements + panel + unlock toast + hub-dashboard link.
-- [ ] Trade Empire
+- [x] Trade Empire — 19 achievements + panel + unlock toast + hub-dashboard link.
 - [x] Continuum — 19 achievements + panel + unlock toast + hub-dashboard link.
-- [x] Hub-side `script.js` registration for SOL/Canopy/Grid/Continuum — each per-game dispatch above correctly left this out as out-of-scope for a single-game session (it's a shared file). Done as one pass touching only `script.js`, verified live by claiming fresh Canopy/Grid saves on a throwaway test account and confirming the hub dashboard shows all four games. Do this same registration step for every game below as its own achievements rollout lands.
+- [x] Hub-side `script.js` registration for every game with achievements (SOL, Canopy, Grid, Continuum, Trade Empire, Tide, Aftermath, Herd, Thaw, Loop, Drift) — each per-game dispatch above correctly left this out as out-of-scope for a single-game session (it's a shared file), so it was swept up in two follow-up passes: SOL/Canopy/Grid/Continuum first, then Tide/Aftermath/Herd/Thaw/Loop/Drift/Trade-Empire once those landed. Verified live both times (a throwaway test account's achievements dashboard correctly showing every game's real progress) — hit and resolved the hub's own `sw.js` stale-while-revalidate service worker serving a cached pre-edit `script.js` on the first reload each time (a known trap, already documented in this session's dev-log entries): the fix is just reloading a second time once the SW's background revalidation fetch completes, not a bug in the worker itself. All 11 games with an achievements catalog are now represented on the hub dashboard.
 - [ ] Le Champ de Mots — **retrofit, not fresh-build**: it already has a game-local achievements slice (its own Milestone 23), but with no `achievements.json` manifest and no hub-dashboard wiring. Reshape it into the cross-game pattern rather than building a second, parallel system.
 
 ---
