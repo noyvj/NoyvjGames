@@ -143,9 +143,28 @@
         <details class="info-toggle"><summary>i</summary><p>This is a rough extrapolation of today's integration contribution compounding forward a few generations — not a guaranteed outcome. It only appears once at least one person has been integrated, and it projects your current trajectory rather than predicting the future exactly.</p></details>
       </p>
       <p id="coda-message-display" class="coda-message"></p>
-      <div class="meter"><div id="coda-service-quality-bar" class="meter-fill meter-fill--wellbeing"></div></div>
-      <div class="meter"><div id="coda-economic-health-bar" class="meter-fill meter-fill--wellbeing"></div></div>
-      <div class="meter"><div id="coda-social-cohesion-bar" class="meter-fill meter-fill--wellbeing"></div></div>
+      <!-- I8: before/after comparison -- the fill bar still shows the
+           projected (generations-from-now) value, a thin marker shows
+           where that same dimension stands today, and the text line
+           spells both numbers out. -->
+      <p class="meter-label">Service quality</p>
+      <div class="meter">
+        <div id="coda-service-quality-bar" class="meter-fill meter-fill--wellbeing"></div>
+        <div id="coda-service-quality-before-marker" class="coda-before-marker"></div>
+      </div>
+      <p id="coda-service-quality-values" class="coda-comparison-values">Today 0 &rarr; generations from now 0</p>
+      <p class="meter-label">Economic health</p>
+      <div class="meter">
+        <div id="coda-economic-health-bar" class="meter-fill meter-fill--wellbeing"></div>
+        <div id="coda-economic-health-before-marker" class="coda-before-marker"></div>
+      </div>
+      <p id="coda-economic-health-values" class="coda-comparison-values">Today 0 &rarr; generations from now 0</p>
+      <p class="meter-label">Social cohesion</p>
+      <div class="meter">
+        <div id="coda-social-cohesion-bar" class="meter-fill meter-fill--wellbeing"></div>
+        <div id="coda-social-cohesion-before-marker" class="coda-before-marker"></div>
+      </div>
+      <p id="coda-social-cohesion-values" class="coda-comparison-values">Today 0 &rarr; generations from now 0</p>
       <p id="coda-wellbeing-display" class="status-line">Projected long-horizon wellbeing: 0</p>
     </div>
 

@@ -51,6 +51,8 @@ ELEMENT_IDS = [
     "wellbeing-message-display",
     "thriving-callout-display",
     "checkpoint-display",
+    "session-milestone-display",
+    "control-region-contrast-display",
     "trend-graph",
     "trend-graph-message",
     "region-visual-building-a",

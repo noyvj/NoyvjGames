@@ -127,6 +127,10 @@ GENERATION_GROWTH_MULTIPLIER = 1.4
 GENERATIONAL_GAP_CLOSURE = 0.75
 GENERATIONAL_FUNDS_ROUNDS_EQUIVALENT = 20
 
+# I11 -- how often a session-milestone snapshot is taken (every N
+# completed rounds).
+SESSION_MILESTONE_INTERVAL = 20
+
 
 class RegionState:
     def __init__(self):
@@ -183,6 +187,18 @@ class RegionState:
         # save contract: it only ever needs to live long enough for one
         # render() call to see it.
         self.coda_just_became_available = False
+        # I11 -- periodic (every SESSION_MILESTONE_INTERVAL rounds) session-
+        # milestone summary: a frozen snapshot of a few headline stats as
+        # of that round, not a live-updating readout, so a player can look
+        # back at exactly where the run stood at a fixed checkpoint rather
+        # than only ever seeing "right now" (every other display here
+        # already covers that). None until the first interval completes.
+        self.last_milestone_round = None
+        self.last_milestone_snapshot = None
+        # Transient one-time flag, same "consumed and reset by render()"
+        # shape as coda_just_became_available above -- not part of the
+        # save contract.
+        self.milestone_just_updated = False
 
     def total_capacity(self):
         return sum(self.capacity[t] for t in CAPACITY_TYPES)
@@ -371,6 +387,19 @@ class RegionState:
 
         # I1: logged last, once every other round-end value is final.
         self.wellbeing_log.append(self.wellbeing_score())
+
+        # I11 -- session-milestone snapshot, taken last of all so it
+        # captures this round's fully-settled values (matches wellbeing_log
+        # above, which is also appended last for the same reason).
+        if completed_round % SESSION_MILESTONE_INTERVAL == 0:
+            self.last_milestone_round = completed_round
+            self.last_milestone_snapshot = {
+                "total_arrivals": self.total_arrivals,
+                "integrated_population": self.integrated_population,
+                "average_strain": self.average_strain(),
+                "wellbeing_score": self.wellbeing_score(),
+            }
+            self.milestone_just_updated = True
 
 
 region = RegionState()
@@ -626,6 +655,53 @@ def checkpoint_message(region_state):
         message += " " + CHECKPOINT_AHEAD_NOTE[highest_key]
 
     return message
+
+
+def session_milestone_message(region_state):
+    """I11: a periodic recap taken every SESSION_MILESTONE_INTERVAL rounds
+    -- reads from the frozen snapshot RegionState.advance_round() took at
+    that checkpoint (see its comment above), not from the region's
+    current live values, so this deliberately stays fixed between
+    milestones rather than quietly turning into just another live
+    readout. Returns None until the first interval completes."""
+    if region_state.last_milestone_round is None:
+        return None
+    snapshot = region_state.last_milestone_snapshot
+    return (
+        f"Session milestone, round {region_state.last_milestone_round}: "
+        f"{snapshot['total_arrivals']:.0f} people had arrived, "
+        f"{snapshot['integrated_population']:.0f} integrated, "
+        f"average strain {snapshot['average_strain'] * 100:.0f}%, "
+        f"wellbeing {snapshot['wellbeing_score']:.0f}."
+    )
+
+
+# I17 -- a passive "unmanaged control region" for contrast: an entirely
+# unmanaged region (no investment of any kind, ever) advancing through
+# the exact same background-severity trajectory as the player's own
+# region, including whether accelerated severity is on, so the
+# comparison stays apples-to-apples. With zero player input of any kind,
+# its whole trajectory is a pure function of how many rounds have
+# completed plus that one toggle -- so it's recomputed fresh from round 1
+# every render rather than tracked as separate live/save state (a
+# simplification: if the player toggles accelerated severity mid-run,
+# this recomputes as though it had been on/off for the whole run, since
+# it's a passive ambient contrast, not a precise parallel save).
+def _simulate_control_region(round_number, accelerated_severity_enabled):
+    control = RegionState()
+    control.accelerated_severity_enabled = accelerated_severity_enabled
+    for _ in range(round_number - 1):
+        control.advance_round()
+    return control
+
+
+def control_region_contrast_message(control):
+    return (
+        "For contrast, a passive region facing the exact same arrival pressure but never "
+        f"investing in any capacity would be sitting at wellbeing {control.wellbeing_score():.0f} "
+        f"({control.strain_level()} strain, {control.social_cohesion():.0f}% integrated) after the "
+        "same number of rounds."
+    )
 
 
 def integration_turning_point_message(region_state):
@@ -1246,6 +1322,27 @@ def render():
 
     document.getElementById("checkpoint-display").innerText = checkpoint_message(region)
 
+    # I11: periodic session-milestone summary.
+    milestone_display = document.getElementById("session-milestone-display")
+    milestone_message = session_milestone_message(region)
+    milestone_display.hidden = milestone_message is None
+    milestone_display.innerText = milestone_message or ""
+    if region.milestone_just_updated:
+        region.milestone_just_updated = False
+        _pulse("session-milestone-display", "session-milestone--pulse")
+
+    # I17: passive unmanaged control region, for contrast -- not enough
+    # signal to show anything meaningful before at least one round has
+    # completed.
+    control_display = document.getElementById("control-region-contrast-display")
+    if region.round_number > 1:
+        control_region = _simulate_control_region(region.round_number, region.accelerated_severity_enabled)
+        control_display.hidden = False
+        control_display.innerText = control_region_contrast_message(control_region)
+    else:
+        control_display.hidden = True
+        control_display.innerText = ""
+
     # I2: skyline building count/height tracking real capacity.
     visible_building_count = region_visual_building_count(region.total_capacity())
     building_height_scale = region_visual_height_scale(region.total_capacity())
@@ -1399,6 +1496,8 @@ def get_state():
         "best_stable_streak": region.best_stable_streak,
         "thriving_round": region.thriving_round,
         "coda_ever_viewed": region.coda_ever_viewed,
+        "last_milestone_round": region.last_milestone_round,
+        "last_milestone_snapshot": copy.deepcopy(region.last_milestone_snapshot),
         "accelerated_severity_enabled": region.accelerated_severity_enabled,
         "coda_visible": coda_visible,
         "info_page_open": info_page_open,
@@ -1444,6 +1543,10 @@ def load_state(data):
     region.best_stable_streak = data.get("best_stable_streak", region.best_stable_streak)
     region.thriving_round = data.get("thriving_round", region.thriving_round)
     region.coda_ever_viewed = data.get("coda_ever_viewed", region.coda_ever_viewed)
+    region.last_milestone_round = data.get("last_milestone_round", region.last_milestone_round)
+    saved_milestone_snapshot = data.get("last_milestone_snapshot")
+    if isinstance(saved_milestone_snapshot, dict):
+        region.last_milestone_snapshot = copy.deepcopy(saved_milestone_snapshot)
     region.accelerated_severity_enabled = data.get(
         "accelerated_severity_enabled", region.accelerated_severity_enabled
     )

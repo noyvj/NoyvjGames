@@ -26,6 +26,8 @@ ALL_STATE_KEYS = {
     "best_stable_streak",
     "thriving_round",
     "coda_ever_viewed",
+    "last_milestone_round",
+    "last_milestone_snapshot",
     "accelerated_severity_enabled",
     "coda_visible",
     "info_page_open",

@@ -226,6 +226,27 @@ h1 {
   }
 }
 
+/* I11 -- one-time pulse the moment a new periodic session-milestone
+   snapshot lands, same _pulse() convention as the coda-button pulse
+   above, but the neutral wellbeing-blue accent rather than the coda's
+   warm one -- this is a periodic checkpoint, not a hope-angle "good
+   news" moment. */
+@keyframes session-milestone-pulse-anim {
+  0%, 100% { box-shadow: 0 0 0 rgba(74, 143, 165, 0); }
+  20%, 60% { box-shadow: 0 0 12px 3px rgba(74, 143, 165, 0.6); }
+  40%, 80% { box-shadow: 0 0 4px 1px rgba(74, 143, 165, 0.3); }
+}
+
+.session-milestone--pulse {
+  animation: session-milestone-pulse-anim 1.6s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .session-milestone--pulse {
+    animation: none;
+  }
+}
+
 .invest-row {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
