@@ -268,6 +268,29 @@ Checked whether a returning player who skipped/forgot the tutorial has anything 
 
 **No other change made** — everything else checked (goods-category picker, Repair/Reuse/Recycle buttons with their own inline stats, the loop-ring visualization, Advance Cycle) already either self-explains via visible text/labels or is covered by the section-level "i" toggles.
 
+## "What's New" changelog panel (K16, planning/TODO.md, site-wide goal)
+
+A small in-game highlights panel — a curated `changelog.json` (flat list of
+`{"date", "entry"}` objects, fetched into the Pyodide boot sequence exactly
+like `achievements.json` already is) rendered into a hidden-until-opened
+"📋 What's New" panel — same toggle+panel idiom as the achievements panel,
+with a plain date+text-card layout (no earned/unearned styling, since a
+changelog entry has no checkable condition). `CHANGELOG` is sorted
+newest-first at load time and degrades to an empty list on a
+malformed/missing file, matching `ACHIEVEMENTS`'s own defensive pattern.
+
+Populated with 9 real highlight entries pulled from this file's own
+milestone table and iteration notes above, dates cross-checked against
+`git log --follow -- games/loop/CLAUDE.md`. Covered by
+`tests/test_changelog.py` (catalog sanity, newest-first ordering, toggle
+open/close, panel content, no state mutation as a side effect — same
+suite shape as Herd/Aftermath/Thaw's own `test_changelog.py`). Full
+pytest suite (151 → 160 tests) stayed green throughout; verified live via
+a local server on a fresh port — the panel opens, shows all 9 real
+entries in the correct order, and there are zero new console errors (the
+pre-existing ServiceWorker-registration quirk on this dev setup is
+unrelated and was present before this change).
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

@@ -579,6 +579,7 @@ button.primary:active {
 #circularity { border-left-color: #4c9c6e; }
 #trade-network { border-left-color: #4c8ed8; }
 #feedback-prompt { border-left-color: #6f6ab0; }
+#changelog-panel { border-left-color: #a9c3ff; }
 
 /* --- Gauges: chunkier ticked, glowing HUD bar instead of the flat 8px
    strip. game.py only ever writes inline `.style.width` on #damage-bar
@@ -1113,6 +1114,38 @@ button.primary:disabled::after {
   margin-top: 0.2rem;
   font-size: 0.8rem;
   color: #a9c3ff;
+}
+
+/* ============================================================
+   K16 (planning/TODO.md "What's New" changelog, site-wide goal): a
+   curated highlights list, same card language as the achievements panel
+   above -- no earned/unearned state, just a date + one-line summary per
+   entry, newest first. Matches Herd/Aftermath/Thaw's own
+   .changelog-panel/.changelog-entry rules verbatim. */
+.changelog-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.changelog-entry {
+  padding: 0.7rem 0.9rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.changelog-entry-date {
+  margin: 0 0 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.65;
+}
+
+.changelog-entry-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
 }
 
 /* Unlock toast: fixed to the top of the viewport so it's visible

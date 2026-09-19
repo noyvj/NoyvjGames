@@ -60,6 +60,9 @@ ELEMENT_IDS = [
     "achievements-panel",
     "achievement-toast",
     "achievement-toast-text",
+    # K16: "What's New" changelog panel.
+    "changelog-toggle-button",
+    "changelog-panel",
     "loop-closed-banner",
     "goods-category-picker",
     "goods-category-electronics-button",
@@ -101,6 +104,9 @@ class GameEnv:
 
     def toggle_achievements(self):
         self.elements["achievements-toggle-button"].dispatch("click", None)
+
+    def toggle_changelog(self):
+        self.elements["changelog-toggle-button"].dispatch("click", None)
 
     def invest_trade_link(self):
         self.elements["trade-link-invest-button"].dispatch("click", None)
