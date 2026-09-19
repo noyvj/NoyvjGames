@@ -40,19 +40,33 @@
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
       <!-- Milestone 15: achievements toggle, same toolbar placement SOL uses. -->
       <button id="achievements-toggle-button" class="secondary" type="button">🏆 Achievements</button>
-      <!-- Phase 5 accessibility: real, working text-size control (see
-           accessibility.js). A browser preference, not game state -- same
-           category as champ-de-mots' accent-sensitivity toggle -- so it's
-           persisted to localStorage rather than the save file. -->
-      <div class="text-size-control" role="group" aria-label="Text size">
-        <button id="text-size-decrease-button" class="secondary" type="button" aria-label="Decrease text size">A−</button>
-        <button id="text-size-reset-button" class="secondary" type="button" aria-label="Reset text size">A</button>
-        <button id="text-size-increase-button" class="secondary" type="button" aria-label="Increase text size">A+</button>
-      </div>
+      <!-- Milestone 19 (site-wide settings panel, TODO.md origin A9):
+           consolidates what used to be a standalone text-size toolbar
+           control (Phase 5) into one panel, alongside a new
+           reduce-motion toggle. See settings.js (renamed from
+           accessibility.js). A browser preference, not game state --
+           same category as champ-de-mots' accent-sensitivity toggle --
+           so it's persisted to localStorage rather than the save file. -->
+      <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
     <!-- Milestone 15: rows are built by game.py — see update_achievements_display(). -->
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
+    <div id="settings-panel" class="section settings-panel" hidden>
+      <div class="settings-row">
+        <span class="settings-row-label">Text size</span>
+        <div class="settings-control-group" role="group" aria-label="Text size">
+          <button id="text-size-decrease-button" class="secondary" type="button" aria-label="Decrease text size">A−</button>
+          <button id="text-size-reset-button" class="secondary" type="button" aria-label="Reset text size">A</button>
+          <button id="text-size-increase-button" class="secondary" type="button" aria-label="Increase text size">A+</button>
+        </div>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-label">Motion</span>
+        <button id="reduce-motion-toggle-button" class="secondary" type="button">Reduce Motion: Off</button>
+      </div>
+      <p class="settings-note">Saved in this browser only — a display preference, not part of your save code.</p>
+    </div>
 
     <div id="achievement-toast" class="achievement-toast" hidden>
       <p id="achievement-toast-text"></p>
@@ -207,17 +221,19 @@
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
   </div>
 
-  <!-- Phase 5: the Three.js render layer (render3d.js) and the text-size
-       accessibility control (accessibility.js). Both are plain, dependency
-       -free JS files local to this game, loaded before the Pyodide boot
-       script below so window.ContinuumVisual/window.ContinuumAccessibility
-       exist by the time it wants them. Neither one requires Pyodide to
-       have finished loading to install itself -- accessibility.js has no
-       Python dependency at all, and render3d.js only reaches into Pyodide
-       once main() explicitly calls ContinuumVisual.init(pyodide) after
-       game.py has booted. -->
+  <!-- Phase 5: the Three.js render layer (render3d.js). Milestone 19: the
+       text-size + reduce-motion settings panel (settings.js, renamed from
+       accessibility.js when Milestone 19 folded the standalone text-size
+       toolbar button into the consolidated panel). Both are plain,
+       dependency-free JS files local to this game, loaded before the
+       Pyodide boot script below so window.ContinuumVisual/
+       window.ContinuumSettings exist by the time it wants them. Neither
+       one requires Pyodide to have finished loading to install itself --
+       settings.js has no Python dependency at all, and render3d.js only
+       reaches into Pyodide once main() explicitly calls
+       ContinuumVisual.init(pyodide) after game.py has booted. -->
   <script src="render3d.js"></script>
-  <script src="accessibility.js"></script>
+  <script src="settings.js"></script>
   <script>
     // Continuum is split into engine modules (see game.py's docstring), so
     // unlike the smaller hub games it fetches more than one Python file.

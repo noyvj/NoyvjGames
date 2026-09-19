@@ -54,16 +54,19 @@ body {
   margin-bottom: 0.75rem;
 }
 
-.text-size-control {
-  display: inline-flex;
-  gap: 0.25rem;
-  margin-left: auto;
-}
-
-.text-size-control button {
-  min-width: 2.1rem;
-  padding: 0.5rem 0.4rem;
-  font-weight: 600;
+/* Settings panel: manual "reduce motion" override. The existing
+   `@media (prefers-reduced-motion: reduce)` rules elsewhere in this
+   file already respect the OS-level setting; this adds a player-facing
+   in-game toggle (settings.js adds/removes `.reduce-motion` on <html>)
+   for someone who wants the same effect without changing a system-wide
+   setting. Forces every animation/transition already in this file to
+   be effectively instantaneous rather than duplicating each one. */
+.reduce-motion,
+.reduce-motion * {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
 }
 
 #game {
@@ -962,6 +965,64 @@ button.primary:disabled::after {
   margin-top: 0.4rem;
   font-size: 0.78rem;
   color: #e0b374;
+}
+
+/* Milestone 19 — Settings panel (text-scale + reduce-motion),
+   consolidated from what used to be a standalone toolbar text-size
+   control. Same glass-panel/card language as .achievements-panel
+   above rather than a new visual idiom. */
+.settings-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.85rem;
+}
+
+/* Same gotcha SOL's/Trade Empire's own achievements CSS documents:
+   `display: grid` above otherwise wins the cascade over the browser's
+   default `[hidden] { display: none }` UA rule (author-origin styles
+   beat user-agent-origin styles regardless of specificity), so the
+   panel would stay visible after being toggled closed without this
+   explicit override. */
+.settings-panel[hidden] {
+  display: none;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.settings-row-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.settings-control-group {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.settings-control-group button {
+  min-width: 2.1rem;
+  padding: 0.5rem 0.4rem;
+  font-weight: 600;
+}
+
+#reduce-motion-toggle-button.active {
+  border-color: rgba(224, 179, 116, 0.5);
+  background: rgba(224, 179, 116, 0.1);
+  color: #e0b374;
+}
+
+.settings-note {
+  margin: 0;
+  font-size: 0.72rem;
+  opacity: 0.6;
+  line-height: 1.4;
 }
 
 /* Unlock toast — fixed-position, auto-dismissing, no continuous animation
