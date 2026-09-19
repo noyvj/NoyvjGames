@@ -36,6 +36,12 @@
  * Deliberately NOT a native browser confirm()/alert(): those block the
  * whole page (including Pyodide's event loop) and can't carry a "don't
  * ask again" checkbox or this site's own visual language.
+ *
+ * The <script> tag above is meant to sit in <head> unmodified, alongside
+ * this hub's other un-deferred shared scripts (tutorial.js, mobile-hud.js,
+ * mobile-dock.js) -- so the actual overlay DOM is built lazily, on the
+ * first real ask()/resetSkip() call, rather than eagerly at script-load
+ * time when <body> doesn't exist yet.
  */
 (function () {
   const STORAGE_PREFIX = "confirm-dialog:skip:";
@@ -100,31 +106,27 @@
     document.head.appendChild(style);
   }
 
-  let overlay = document.getElementById("confirm-dialog-overlay");
-  if (!overlay) {
-    overlay = document.createElement("div");
-    overlay.id = "confirm-dialog-overlay";
-    overlay.hidden = true;
-    overlay.innerHTML = `
-      <div id="confirm-dialog-box" role="alertdialog" aria-modal="true">
-        <p id="confirm-dialog-message"></p>
-        <label id="confirm-dialog-skip-row">
-          <input type="checkbox" id="confirm-dialog-skip-checkbox">
-          Don't ask me again for this
-        </label>
-        <div id="confirm-dialog-actions">
-          <button type="button" id="confirm-dialog-cancel">Cancel</button>
-          <button type="button" id="confirm-dialog-confirm">Confirm</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-  }
-
-  const messageEl = overlay.querySelector("#confirm-dialog-message");
-  const skipCheckbox = overlay.querySelector("#confirm-dialog-skip-checkbox");
-  const cancelButton = overlay.querySelector("#confirm-dialog-cancel");
-  const confirmButton = overlay.querySelector("#confirm-dialog-confirm");
+  // Every game on this site includes this script from a plain, un-deferred
+  // <script src="..."> tag sitting in <head> (same convention as
+  // tutorial.js/mobile-hud.js/mobile-dock.js) -- which runs it before
+  // <body> has been parsed, so `document.body` is still null at this
+  // point. tutorial.js/mobile-hud.js dodge this by only touching
+  // `document.body` from inside a function invoked later (tutorial's
+  // `buildOverlay()`, called on first actual use); this file used to
+  // build+appendChild its overlay at top-level IIFE-execution time
+  // instead, which threw "Cannot read properties of null (reading
+  // 'appendChild')" and aborted before ever reaching the
+  // `window.ConfirmDialog = {...}` assignment below -- silently killing
+  // the dialog on every page that includes this script. Fixed the same
+  // way tutorial.js already does it: defer the DOM-touching setup into
+  // `ensureBuilt()`, called lazily on first real use (`ask()`/
+  // `resetSkip()`) once `document.body` is guaranteed to exist, instead
+  // of eagerly at script-parse time.
+  let overlay = null;
+  let messageEl = null;
+  let skipCheckbox = null;
+  let cancelButton = null;
+  let confirmButton = null;
 
   // Set fresh on every ask() call so cancelButton/confirmButton's click
   // handlers always act on the CURRENT request, not a stale one from an
@@ -140,18 +142,48 @@
     pendingOnConfirm = null;
   }
 
-  cancelButton.addEventListener("click", close);
-  overlay.addEventListener("click", (event) => {
-    if (event.target === overlay) close(); // click on the dim backdrop
-  });
-  confirmButton.addEventListener("click", () => {
-    if (pendingId && skipCheckbox.checked) {
-      localStorage.setItem(STORAGE_PREFIX + pendingId, "true");
+  function ensureBuilt() {
+    if (overlay) return;
+
+    overlay = document.getElementById("confirm-dialog-overlay");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.id = "confirm-dialog-overlay";
+      overlay.hidden = true;
+      overlay.innerHTML = `
+        <div id="confirm-dialog-box" role="alertdialog" aria-modal="true">
+          <p id="confirm-dialog-message"></p>
+          <label id="confirm-dialog-skip-row">
+            <input type="checkbox" id="confirm-dialog-skip-checkbox">
+            Don't ask me again for this
+          </label>
+          <div id="confirm-dialog-actions">
+            <button type="button" id="confirm-dialog-cancel">Cancel</button>
+            <button type="button" id="confirm-dialog-confirm">Confirm</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
     }
-    const onConfirm = pendingOnConfirm;
-    close();
-    if (onConfirm) onConfirm();
-  });
+
+    messageEl = overlay.querySelector("#confirm-dialog-message");
+    skipCheckbox = overlay.querySelector("#confirm-dialog-skip-checkbox");
+    cancelButton = overlay.querySelector("#confirm-dialog-cancel");
+    confirmButton = overlay.querySelector("#confirm-dialog-confirm");
+
+    cancelButton.addEventListener("click", close);
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) close(); // click on the dim backdrop
+    });
+    confirmButton.addEventListener("click", () => {
+      if (pendingId && skipCheckbox.checked) {
+        localStorage.setItem(STORAGE_PREFIX + pendingId, "true");
+      }
+      const onConfirm = pendingOnConfirm;
+      close();
+      if (onConfirm) onConfirm();
+    });
+  }
 
   window.ConfirmDialog = {
     ask({ id, message, confirmLabel, cancelLabel, onConfirm }) {
@@ -163,6 +195,7 @@
         if (onConfirm) onConfirm();
         return;
       }
+      ensureBuilt();
       pendingId = id;
       pendingOnConfirm = onConfirm;
       messageEl.textContent = message || "Are you sure?";
