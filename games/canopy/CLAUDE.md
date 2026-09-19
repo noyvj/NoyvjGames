@@ -203,6 +203,33 @@ hazard Continuum's and SOL's own build notes already document.
 - Python/Pyodide, per root conventions.
 - Keep the plot grid as a simple 2D array of plot-state objects — straightforward to test and to render.
 
+## Onboarding-tooltip coverage check (site-wide goal, planning/TODO.md, origin A14)
+
+Audited, no change needed. Checked whether a returning player who skipped
+or forgot the tutorial (`shared/tutorial.js`'s spotlight walkthrough) can
+still make sense of the permanent UI's non-obvious parts, on top of the
+persistent, reachable-any-time `#howto-toggle-button`/`#howto-panel`.
+
+Found the permanent UI already covers every non-obvious mechanic, at two
+layers:
+- **Section-level `.info-toggle` (i) icons** (from an earlier "add info
+  buttons explaining non-obvious mechanics" pass) on the legend
+  (Preserved/Bare/Replanting/Recovered — explaining compounding growth,
+  soil degradation, and the biodiversity/wildlife threshold) and the
+  stakeholder panel (explaining the grant/decline asymmetry).
+- **Per-plot tooltips**, one level more granular than the legend: every
+  plot tile carries a live `title` + `data-tooltip`/`aria-label`
+  (`_plot_tooltip_text()` in `game.py`) giving that exact tile's
+  coordinate, state, current value, soil %, and (while replanting) ticks
+  remaining to recover — the same per-tile on-demand-detail pattern as
+  Tide's D19 flood-threshold tooltips, already present here independently.
+
+Everything else in the permanent UI is self-explanatory without a tutorial
+(grid-size `<select>` with plain labelled options, a plain Reset Session
+button, achievements/session-summary panels that are read-only recaps with
+their own descriptive text, and the Settings panel's plain text-scale/
+reduced-motion controls) — no gaps found, nothing added.
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag canopy-milestone-0N`.
