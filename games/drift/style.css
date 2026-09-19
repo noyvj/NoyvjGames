@@ -365,6 +365,17 @@ button.primary:active {
   opacity: 0.8;
 }
 
+/* I18 -- a dedicated free-text channel inviting tone/framing concerns,
+   kept visually distinct from the general "one more thought" comment
+   box above it so it reads as its own genuine question, not an
+   afterthought. */
+.feedback-framing-label {
+  margin: 0 0 0.4rem;
+  font-size: 0.78rem;
+  opacity: 0.75;
+  line-height: 1.4;
+}
+
 .hub-back-link {
   display: inline-block;
   margin-bottom: 0.6rem;

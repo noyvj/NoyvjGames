@@ -208,6 +208,12 @@
         <button id="feedback-no-button" class="secondary">No</button>
       </div>
       <textarea id="feedback-comment" class="feedback-comment" placeholder="One more thought? (optional)"></textarea>
+      <!-- I18: this game handles a real, sensitive subject (climate
+           displacement/resettlement) -- a dedicated, genuinely-read
+           channel for whether the game's OWN framing/tone felt off,
+           separate from the general comment box above. -->
+      <p class="feedback-framing-label">This game deals with a real, sensitive subject — climate displacement. If anything about how it's framed felt off, oversimplified, or worth reconsidering, we want to hear it.</p>
+      <textarea id="feedback-framing-comment" class="feedback-comment" placeholder="Anything about this game's own framing or tone feel off? (optional)"></textarea>
       <button id="feedback-submit-button" class="secondary" disabled>Select Yes or No first</button>
       <p id="feedback-status" class="feedback-status"></p>
     </div>
@@ -326,6 +332,7 @@
       const noButton = document.getElementById("feedback-no-button");
       const submitButton = document.getElementById("feedback-submit-button");
       const commentBox = document.getElementById("feedback-comment");
+      const framingBox = document.getElementById("feedback-framing-comment");
       const statusEl = document.getElementById("feedback-status");
       let answer = null;
 
@@ -343,7 +350,10 @@
       submitButton.addEventListener("click", async () => {
         if (!answer) return;
         const comment = commentBox.value.trim();
-        const response = comment ? `${answer} — ${comment}` : answer;
+        const framing = framingBox.value.trim();
+        let response = answer;
+        if (comment) response += ` — ${comment}`;
+        if (framing) response += ` | Framing/tone concern: ${framing}`;
 
         submitButton.disabled = true;
         submitButton.textContent = "Submitting...";
