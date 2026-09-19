@@ -1,3 +1,18 @@
+/* Settings panel: text scaling. settings.js sets --text-scale on the root
+   element and persists it to localStorage; every font-size in this file is
+   already in rem (confirmed by grep before relying on this), so scaling
+   the root font-size scales the whole game uniformly with zero other
+   changes -- same approach Continuum's Phase 5 accessibility.js already
+   established (see games/continuum/CLAUDE.md). Default 1 here means a page
+   that never runs settings.js still renders at exactly today's size. */
+:root {
+  --text-scale: 1;
+}
+
+html {
+  font-size: calc(16px * var(--text-scale, 1));
+}
+
 * {
   box-sizing: border-box;
 }
@@ -1231,4 +1246,69 @@ button.primary:disabled::after {
   margin: 0.3rem 0 0;
   font-size: 0.78rem;
   opacity: 0.8;
+}
+
+/* ============================================================
+   Settings panel (site-wide goal, planning/TODO.md): consolidated
+   text-scale + reduced-motion controls. Reuses .section for the panel
+   shell itself (same hidden-until-opened idiom as #howto-panel/
+   #achievements-panel), so only the internal layout needs its own rules. */
+.settings-panel-heading {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.settings-row:last-child {
+  margin-bottom: 0;
+}
+
+.settings-label {
+  font-size: 0.85rem;
+}
+
+.text-size-control {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.text-size-control button {
+  min-width: 2.2rem;
+  padding: 0.3rem 0.5rem;
+}
+
+.settings-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* Reduced-motion override: a manual, persisted toggle independent of the
+   OS-level `prefers-reduced-motion` media query already gating several
+   animations in this file. Rather than duplicating every individual
+   @keyframes/animation/transition rule with a second selector, this one
+   blanket rule (applied only when settings.js sets the attribute) collapses
+   every animation/transition on the page to effectively instant -- the
+   same standard "force-disable" pattern used site-wide for this kind of
+   manual override, and strictly additive to the existing media-query-gated
+   rules below (an OS-level reduced-motion user gets the same effect either
+   way; this just also covers a player whose OS setting is untouched but
+   who wants motion off in-game). */
+html[data-reduced-motion="true"] *,
+html[data-reduced-motion="true"] *::before,
+html[data-reduced-motion="true"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
 }

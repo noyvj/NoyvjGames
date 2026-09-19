@@ -13,6 +13,7 @@
 <script src="../../shared/tutorial.js"></script>
 <script src="../../shared/mobile-hud.js"></script>
 <script src="../../shared/mobile-dock.js"></script>
+<script src="settings.js"></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -26,8 +27,30 @@
     <div class="game-toolbar">
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
+      <!-- Site-wide settings panel (planning/TODO.md, origin A9): consolidated
+           text-scale + reduced-motion controls. See settings.js -- plain JS,
+           independent of Pyodide, same as Continuum's Phase 5
+           accessibility.js this pattern is modeled on. -->
+      <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
+    <div id="settings-panel" class="section" hidden>
+      <h2 class="settings-panel-heading">Settings</h2>
+      <div class="settings-row">
+        <span class="settings-label">Text size</span>
+        <div class="text-size-control" role="group" aria-label="Text size">
+          <button id="text-size-decrease-button" class="secondary" type="button" aria-label="Decrease text size">A−</button>
+          <button id="text-size-reset-button" class="secondary" type="button" aria-label="Reset text size">A</button>
+          <button id="text-size-increase-button" class="secondary" type="button" aria-label="Increase text size">A+</button>
+        </div>
+      </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="reduced-motion-checkbox">
+          <input type="checkbox" id="reduced-motion-checkbox">
+          Reduce motion (disable animations &amp; transitions)
+        </label>
+      </div>
+    </div>
 
     <p class="tagline">A settlement facing a scheduled run of extreme weather. Build resilience to weather it, or growth to afford more later.</p>
     <p class="context-blurb">Climate adaptation and disaster resilience are their own necessary response category — distinct from mitigation, and not a failure state. Real-world investment in early warning and resilient infrastructure has repeatedly been shown to pay for itself many times over in damage avoided.</p>

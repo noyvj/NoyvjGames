@@ -290,6 +290,52 @@ Audited as part of the site-wide colorblind-safety audit (Okabe-Ito-palette meth
 
 Matches Tide's D11 precedent: investigated the real candidate list (including the one place a prior CLAUDE.md note already flagged as "deliberately left alone" for a different visual-pass reason) and found no genuine deuteranopia/protanopia or blue/purple confusion pair conveying meaning by hue alone, so no speculative change was made.
 
+## Settings panel (site-wide goal, planning/TODO.md, origin A9)
+
+A consolidated settings panel — text-scale (A-/A/A+ buttons, same clamp/step
+shape as Continuum's Phase 5 `accessibility.js`) and a reduced-motion
+checkbox — toggled from a new "⚙️ Settings" button in the top toolbar
+alongside Tutorial/How to Play, rendered into a `.section`-styled panel
+matching the existing `#howto-panel`/`#achievements-panel` hidden-until-
+opened idiom.
+
+Built as `settings.js`, deliberately independent of Pyodide entirely (same
+discipline as Continuum's `accessibility.js`) — it has no Python dependency
+and works even if `game.py` never boots, and it's wired up in `<head>`
+before `game.py`'s own `<script>` runs. `style.css` gained a `:root
+{ --text-scale: 1 }` custom property read by `html { font-size: calc(16px *
+var(--text-scale, 1)) }` (every font-size in this file is already in rem,
+confirmed by grep, so scaling the root font-size scales the whole game
+uniformly with zero other changes needed) and a blanket
+`html[data-reduced-motion="true"] *` override collapsing every
+animation/transition to effectively instant, additive to the existing
+`prefers-reduced-motion` media-query-gated rules already in this file.
+
+**Deliberately no sound toggle** — this hub has no audio system built
+anywhere yet (see `planning/LATER.md`'s "what can you actually do with
+audio" standing question), so a sound control here would control nothing
+real; the site-wide goal's own description ("text-scale, sound, and
+animation toggles") is aspirational and gets corrected in practice by this
+scope decision.
+
+Both settings are a browser-level UI preference, not game state — persisted
+to `localStorage` (`aftermath-text-scale`, `aftermath-reduced-motion`),
+deliberately never touching `get_state()`/`load_state()`, since a save code
+is meant to be portable across devices/browsers and a local browser's
+accessibility preference shouldn't silently override another device's.
+
+Verified live via a local server (fresh port to sidestep an unrelated
+browser heuristic-caching quirk in the dev-server setup that had nothing to
+do with this game's own code): text-scale increases/resets the whole page's
+font size correctly (confirmed via computed `font-size` on `<html>`), the
+reduced-motion checkbox collapses a real animated element's
+`transition-duration` to ~0, and both settings persist correctly across a
+full page reload. Zero new console errors — the only console errors present
+are the pre-existing site-wide ServiceWorker registration quirk already
+documented above, also reproducible on the unmodified hub page. Full pytest
+suite (201 tests, unchanged — `settings.js` is plain frontend JS with no
+Python surface) stayed green throughout.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
