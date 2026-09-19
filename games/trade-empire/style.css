@@ -330,7 +330,8 @@ button.secondary:active:not(:disabled) {
 }
 
 #colonies-panel > .panel-label::before,
-#expansion-colonies-panel > .panel-label::before {
+#expansion-colonies-panel > .panel-label::before,
+#expansion2-colonies-panel > .panel-label::before {
   content: "🪐 ";
 }
 
@@ -878,6 +879,19 @@ button.secondary:active:not(:disabled) {
   padding: 0.75rem 0.5rem 0.65rem;
 }
 
+/* Same gotcha .achievements-panel[hidden] documents elsewhere in this
+   file: the explicit `display: flex` immediately above otherwise wins
+   the cascade over the browser's default `[hidden] { display: none }`
+   UA rule (an author rule always beats a UA rule, regardless of
+   specificity), so a hidden load/automate button would render anyway
+   -- disabled, but visibly present. Surfaced by J6's unpurchased-ship
+   state (_render_unpurchased_ship() hides both buttons), but the same
+   gap silently affected an automated ship's load-button too before this
+   fix -- pre-existing, not introduced by J6. */
+.action-buttons button.secondary[hidden] {
+  display: none;
+}
+
 .action-buttons button.secondary::before {
   font-size: 1.3rem;
   line-height: 1;
@@ -1140,3 +1154,208 @@ button.secondary:disabled::after {
 .achievement-toast--visible {
   box-shadow: 0 0 22px rgba(127, 214, 163, 0.45), 0 4px 24px rgba(0, 0, 0, 0.45);
 }
+
+/* ============================================================
+   J6-J20 backlog UI (2026-09-19) — markup + styling for the batch of
+   backend logic (J6-J20) an earlier session landed in game.py without
+   the matching index.html/style.css wiring, closing the gap before it
+   ever reached a real browser. Same visual language as everything
+   above: glass .section panels, the violet/green established accents,
+   the beveled button.secondary look. No id/class this file already
+   defined was renamed.
+   ============================================================ */
+
+/* --- J8/J17: a second, independent toast for lightweight gameplay
+   nudges (manual-ship arrivals, the first-automation callout) that are
+   deliberately not achievements. Pinned to the top of the viewport
+   (achievement-toast owns the bottom) so both can be visible together
+   without overlapping. Same "no fade, just show/hide + a glow on
+   --visible" idiom as achievement-toast, not a separate animation
+   system. */
+.notice-toast {
+  position: fixed;
+  left: 50%;
+  top: 1.25rem;
+  transform: translateX(-50%);
+  z-index: 200;
+  max-width: min(92vw, 420px);
+  padding: 0.65rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(140, 160, 255, 0.35);
+  background: rgba(10, 12, 22, 0.92);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #a9c3ff;
+}
+
+.notice-toast--visible {
+  box-shadow: 0 0 18px rgba(140, 160, 255, 0.4), 0 4px 24px rgba(0, 0, 0, 0.45);
+}
+
+/* --- J9/J11: on-demand session summary panel, same toggle+hidden-panel
+   idiom as .achievements-panel (built once, populated only while open). */
+.summary-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.summary-panel[hidden] {
+  display: none;
+}
+
+.summary-line {
+  margin: 0;
+  font-size: 0.82rem;
+  opacity: 0.85;
+}
+
+.summary-route-heading {
+  margin-top: 0.5rem;
+}
+
+/* --- J12/J14: small inline-SVG sparklines riding alongside each
+   market/need meter. game.py writes a fresh <svg class="price-
+   sparkline"|"need-sparkline"> into these wrapper divs every render;
+   the wrapper just reserves layout space, the svg's own class carries
+   the stroke color. */
+.sparkline-slot {
+  margin-top: 0.3rem;
+  height: 18px;
+  line-height: 0;
+}
+
+.price-sparkline,
+.need-sparkline {
+  width: 60px;
+  height: 18px;
+  display: block;
+}
+
+.price-sparkline polyline {
+  fill: none;
+  stroke: #e0a24c;
+  stroke-width: 1.5;
+}
+
+.need-sparkline polyline {
+  fill: none;
+  stroke: #7fd6a3;
+  stroke-width: 1.5;
+}
+
+/* --- J15: a manual ship left idle+empty past IDLE_WARNING_TICKS gets a
+   distinct status color — game.py swaps the className, not just the
+   text, specifically so this is easy to spot in a wall of otherwise-
+   identical "docked, nothing loaded" panels. */
+.ship-status--idle-warning {
+  color: #e0b34c;
+}
+
+/* --- J6: the one-time ship-5/6 purchase button. Reuses button.secondary's
+   whole shape/bevel, just a distinct gold gradient so "buy" reads
+   differently from "load"/"depart"/"automate". */
+.purchase-button {
+  background: linear-gradient(135deg, #a1832f, #4a3813);
+  margin-bottom: 0.5rem;
+}
+
+.purchase-button:active:not(:disabled) {
+  background: linear-gradient(135deg, #4a3813, #241b08);
+}
+
+.purchase-button::before {
+  content: "💰 ";
+}
+
+/* --- J10: per-ship rename row (text input + button), same row shape as
+   the research panel's status+button pairing. */
+.rename-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.ship-name-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.65rem;
+  border-radius: 10px;
+  border: 1px solid rgba(140, 160, 255, 0.2);
+  background: rgba(5, 6, 13, 0.6);
+  color: #e8e9f0;
+  font-size: 0.85rem;
+}
+
+.ship-name-input::placeholder {
+  color: rgba(232, 233, 240, 0.4);
+}
+
+.rename-button {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.8rem;
+}
+
+/* --- J20: a small canvas inside #endgame-panel that grows a scattering
+   of dots as the background galaxy count climbs (render_endgame_galaxy()
+   in game.py) instead of the world-count number standing alone as the
+   only payoff. */
+.endgame-galaxy-canvas {
+  display: block;
+  width: 100%;
+  max-width: 140px;
+  height: auto;
+  margin: 0.6rem auto 0;
+  background: rgba(5, 6, 13, 0.65);
+  border: 1px solid rgba(127, 214, 163, 0.25);
+  border-radius: 8px;
+}
+
+/* --- J13: the Rift Colonies' own good icons (crystal/polymer/
+   antimatter), same hand-drawn-shape technique as the existing eight. */
+.good-icon--crystal {
+  clip-path: polygon(50% 0%, 85% 25%, 100% 65%, 70% 100%, 30% 100%, 0% 65%, 15% 25%);
+  background: linear-gradient(160deg, #eafcff 0%, #7fe0e0 45%, #2f9ca8 80%, #164a52 100%);
+}
+
+.good-icon--polymer {
+  width: 24px;
+  height: 24px;
+  margin: 3px;
+  border-radius: 45% 55% 60% 40% / 55% 45% 55% 45%;
+  background: radial-gradient(circle at 35% 30%, #eafff0 0%, #7fe0a8 45%, #2f8f5c 80%, #164a30 100%);
+}
+
+.good-icon--antimatter {
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #ffe0fa 0%, #e06ad0 40%, #8a2f7d 75%, #3a1233 100%);
+  box-shadow: 0 0 10px rgba(224, 106, 208, 0.6);
+}
+
+/* --- J13: Rift Colonies get the same faceted-crystal silhouette as
+   Kepler (marking both expansion clusters as visually distinct from the
+   home system's rounded domes), in their own hues. */
+.colony-visual--rift_a .colony-visual-dome,
+.colony-visual--rift_b .colony-visual-dome,
+.colony-visual--rift_c .colony-visual-dome {
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 100% 38%, 80% 100%, 20% 100%, 0% 38%);
+}
+
+.colony-visual--rift_a .colony-visual-glow { background: radial-gradient(circle, #7fe0e0, transparent 70%); }
+.colony-visual--rift_a .colony-visual-dome { background: linear-gradient(160deg, #eafcff 0%, #6ad6d6 45%, #2f9ca8 75%, #164a52 100%); }
+
+.colony-visual--rift_b .colony-visual-glow { background: radial-gradient(circle, #e06ad0, transparent 70%); }
+.colony-visual--rift_b .colony-visual-dome { background: linear-gradient(160deg, #ffe0fa 0%, #e06ad0 45%, #8a2f7d 75%, #3a1233 100%); }
+
+.colony-visual--rift_c .colony-visual-glow { background: radial-gradient(circle, #7fe0a8, transparent 70%); }
+.colony-visual--rift_c .colony-visual-dome { background: linear-gradient(160deg, #eafff0 0%, #6ad688 45%, #2f8f5c 75%, #164a30 100%); }
+
+/* --- J16: Fleet Priority's live target ring, drawn on the map canvas
+   itself by game.py (FLEET_PRIORITY_TARGET_COLOR) — nothing to add here,
+   noted for completeness since every other J-item above touches this
+   file. */
