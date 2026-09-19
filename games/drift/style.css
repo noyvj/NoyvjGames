@@ -179,6 +179,31 @@ h1 {
   box-shadow: 0 0 10px rgba(122, 156, 90, 0.4);
 }
 
+/* I8 -- coda before/after comparison: the fill bar above keeps showing
+   the projected (generations-from-now) value unchanged, so this only
+   adds a thin "before" marker (today's value, positioned via inline
+   style.left same as the wellbeing-gauge target marker) and a small
+   values line underneath spelling both numbers out. */
+.coda-section .meter {
+  position: relative;
+}
+
+.coda-before-marker {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+}
+
+.coda-comparison-values {
+  margin: 0 0 0.6rem;
+  font-size: 0.72rem;
+  opacity: 0.75;
+}
+
 /* I15 — one-time highlight/pulse on the coda button the moment its
    long-horizon story first becomes available, applied by game.py's
    _pulse() helper and removed automatically once the animation

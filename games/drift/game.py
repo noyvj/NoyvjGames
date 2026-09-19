@@ -645,6 +645,22 @@ def net_positive_badge_text(region_state):
     return f"🌱 Net-positive since round {region_state.net_positive_round}"
 
 
+def _render_coda_comparison(dimension, current, projected):
+    """I8 -- replaces the coda's three bare meter bars with a legible
+    before/after comparison: the fill bar keeps showing the projected
+    (generations-from-now) value exactly as before (same element ids,
+    same width contract existing tests already check), a thin marker
+    now shows where that same dimension stands today, and a values line
+    spells both numbers out -- so the long-horizon payoff reads as a
+    jump from a known starting point rather than an unlabeled single
+    bar."""
+    document.getElementById(f"coda-{dimension}-bar").style.width = f"{projected:.0f}%"
+    document.getElementById(f"coda-{dimension}-before-marker").style.left = f"{current:.0f}%"
+    document.getElementById(f"coda-{dimension}-values").innerText = (
+        f"Today {current:.0f} → generations from now {projected:.0f}"
+    )
+
+
 def long_horizon_coda_message(region_state):
     return (
         f"Generations from now, the descendants of the {region_state.integrated_population:.0f} "
@@ -1220,14 +1236,14 @@ def render():
     coda_section.hidden = not (coda_visible and region.has_long_horizon_story())
     if coda_visible and region.has_long_horizon_story():
         document.getElementById("coda-message-display").innerText = long_horizon_coda_message(region)
-        document.getElementById("coda-service-quality-bar").style.width = (
-            f"{region.projected_service_quality():.0f}%"
+        _render_coda_comparison(
+            "service-quality", region.service_quality(), region.projected_service_quality()
         )
-        document.getElementById("coda-economic-health-bar").style.width = (
-            f"{region.projected_economic_health():.0f}%"
+        _render_coda_comparison(
+            "economic-health", region.economic_health(), region.projected_economic_health()
         )
-        document.getElementById("coda-social-cohesion-bar").style.width = (
-            f"{region.projected_social_cohesion():.0f}%"
+        _render_coda_comparison(
+            "social-cohesion", region.social_cohesion(), region.projected_social_cohesion()
         )
         document.getElementById("coda-wellbeing-display").innerText = (
             f"Projected long-horizon wellbeing: {region.projected_wellbeing_score():.0f} "
