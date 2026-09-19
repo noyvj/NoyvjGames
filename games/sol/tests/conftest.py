@@ -101,6 +101,9 @@ ELEMENT_IDS = [
     "copy-share-card-status",
     "governor-report-toggle-button",
     "governor-report-panel",
+    # "What's New" changelog panel (site-wide goal, origin K16)
+    "changelog-toggle-button",
+    "changelog-panel",
     # Research tree diagram (A16)
     "research-tree",
     # Prestige / New Game+ (A1)
@@ -848,6 +851,9 @@ class GameEnv:
 
     def toggle_governor_report(self):
         self.elements["governor-report-toggle-button"].dispatch("click", None)
+
+    def toggle_changelog(self):
+        self.elements["changelog-toggle-button"].dispatch("click", None)
 
     def prestige(self):
         self.elements["prestige-button"].dispatch("click", None)

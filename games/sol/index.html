@@ -28,6 +28,7 @@
       <button id="achievements-toggle-button" class="secondary" type="button">🏆 Achievements</button>
       <button id="stats-toggle-button" class="secondary" type="button">📊 Stats &amp; Share</button>
       <button id="governor-report-toggle-button" class="secondary" type="button">🎛️ Governor Report</button>
+      <button id="changelog-toggle-button" class="secondary" type="button">📋 What's New</button>
       <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
@@ -60,6 +61,11 @@
       <p id="copy-share-card-status" class="copy-share-card-status"></p>
     </div>
     <div id="governor-report-panel" class="section governor-report-panel" hidden></div>
+    <!-- "What's New" changelog panel (site-wide goal, planning/TODO.md, origin K16):
+         newest-first highlights pulled from CLAUDE.md's own milestone table, not a
+         full duplicate of the dev logs. Same hidden-until-opened .section idiom as
+         achievements/stats/governor-report/settings above. -->
+    <div id="changelog-panel" class="section changelog-panel" hidden></div>
 
     <div id="achievement-toast" class="achievement-toast" hidden>
       <p id="achievement-toast-text"></p>
@@ -1103,11 +1109,13 @@
       // catalog and hand it to Python as a window global *before* game.py
       // runs, same pattern Le Champ de Mots established for its own JSON
       // assets (see that game's index.html + game.py's _read_json_asset()).
-      const [achievementsJson, code] = await Promise.all([
+      const [achievementsJson, changelogJson, code] = await Promise.all([
         fetch("achievements.json").then((response) => response.text()),
+        fetch("changelog.json").then((response) => response.text()),
         fetch("game.py").then((response) => response.text()),
       ]);
       window.ACHIEVEMENTS_JSON = achievementsJson;
+      window.CHANGELOG_JSON = changelogJson;
       await pyodide.runPythonAsync(code);
 
       if (window.GameTutorial) {

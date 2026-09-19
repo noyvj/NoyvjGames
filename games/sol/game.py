@@ -1017,6 +1017,81 @@ def update_achievements_display():
 
 
 # ===========================================================================
+# "What's New" changelog panel (site-wide goal, planning/TODO.md, origin K16)
+# ===========================================================================
+# Same static-JSON-asset loading contract as ACHIEVEMENTS above (and Le
+# Champ de Mots' own precedent): the boot script fetches changelog.json and
+# hands it to Python as a window global before this module runs; the
+# pytest harness's fake `js` has no such attribute, so this falls through
+# to reading the file straight off disk. A flat, hand-written list of
+# highlights pulled from CLAUDE.md's own milestone table and build notes —
+# not a full duplicate of the dev logs, just a quick "what's new" view.
+CHANGELOG_FILENAME = "changelog.json"
+
+
+def _read_changelog_json():
+    try:
+        import js  # noqa: PLC0415 — Pyodide-only import, deliberately lazy
+    except ImportError:
+        js = None
+
+    raw = getattr(js, "CHANGELOG_JSON", None) if js is not None else None
+    if raw is not None:
+        return str(raw)
+
+    import os  # noqa: PLC0415 — only needed on this filesystem-fallback path
+
+    here = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(here, CHANGELOG_FILENAME), encoding="utf-8") as handle:
+        return handle.read()
+
+
+# Same defensive posture as ACHIEVEMENTS above: the changelog is additive,
+# not core to gameplay, so any loading failure degrades to "no changelog"
+# instead of crashing the whole module import.
+try:
+    CHANGELOG = json.loads(_read_changelog_json())["changelog"]
+except (ValueError, OSError, NameError, KeyError):
+    CHANGELOG = []
+
+changelog_open = False
+
+
+def on_toggle_changelog(event=None):
+    global changelog_open
+    changelog_open = not changelog_open
+    update_changelog_display()
+
+
+def update_changelog_display():
+    toggle = document.getElementById("changelog-toggle-button")
+    panel = document.getElementById("changelog-panel")
+    toggle.innerText = "Hide What's New" if changelog_open else "📋 What's New"
+    panel.hidden = not changelog_open
+    if not changelog_open:
+        return
+
+    panel.innerHTML = ""
+    # changelog.json is authored newest-first already, so no re-sort needed
+    # here — same "trust the JSON's own order" posture ACHIEVEMENTS takes.
+    for entry in CHANGELOG:
+        row = document.createElement("div")
+        row.className = "changelog-entry"
+
+        date = document.createElement("p")
+        date.className = "changelog-entry-date"
+        date.innerText = entry["date"]
+        row.appendChild(date)
+
+        text = document.createElement("p")
+        text.className = "changelog-entry-text"
+        text.innerText = entry["entry"]
+        row.appendChild(text)
+
+        panel.appendChild(row)
+
+
+# ===========================================================================
 # Governor Report (A11) — a visible "governor efficiency" readout.
 # ===========================================================================
 # Efficiency here means the same production_multiplier() every planet's own
@@ -2067,6 +2142,7 @@ def tick(*args):
     update_achievements_display()
     update_stats_panel_display()
     update_governor_report_display()
+    update_changelog_display()
     _check_new_achievements_for_toast()
 
 
@@ -2099,6 +2175,7 @@ def _full_render():
     update_achievements_display()
     update_stats_panel_display()
     update_governor_report_display()
+    update_changelog_display()
     # A full render (fresh setup, or a save/load round-trip) always starts
     # with no toast showing and re-seeds the "already earned" baseline to
     # whatever's true right now -- see _seed_achievement_toast_baseline's
@@ -2557,6 +2634,9 @@ def setup():
     )
     document.getElementById("governor-report-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_governor_report)
+    )
+    document.getElementById("changelog-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_changelog)
     )
     document.getElementById("prestige-button").addEventListener("click", create_proxy(on_prestige))
 

@@ -1,0 +1,16 @@
+{
+  "changelog": [
+    {"date": "2026-09-19", "entry": "Settings panel added: text size (A-/A/A+) and a reduce-motion toggle, both persisted per-browser."},
+    {"date": "2026-09-19", "entry": "Colorblind-safety audit completed — no hue-only state encodings found, no change needed."},
+    {"date": "2026-09-14", "entry": "TODO.md batch: Prestige/New Game+, 4 new achievements, lifetime stats & share card, Governor Report panel, research-tree diagram, terraform color shift, ecology warning banner, reset-this-world, welcome-back toast."},
+    {"date": "2026-09-14", "entry": "Achievements retrofit: unlock toast on newly-earned achievements + a link to the hub-wide achievements dashboard."},
+    {"date": "2026-09-14", "entry": "Achievements launched — 18-achievement catalog with an in-game panel, SOL is the reference integration for the whole hub."},
+    {"date": "2026-07-27", "entry": "Milestone 11: Full system endgame — 100% completion win-state and final balance pass. All 17 milestones complete."},
+    {"date": "2026-07-27", "entry": "Milestone 10: Gas giant buildings — reskinned building system, sky cities, Mars-material dependency."},
+    {"date": "2026-07-27", "entry": "Milestone 9e-9g: Pluto, Jupiter's Moons, and Saturn's Moons resource loops — Milestone 9 fully complete."},
+    {"date": "2026-07-06", "entry": "Milestone 9a-9d: research tier 2 framework, Moon/Venus/Asteroid Belt resource loops, governor + trade generalized to N planets."},
+    {"date": "2026-07-06", "entry": "Milestone 6-8: Mars resource loop, trade system v1, and per-planet terraforming."},
+    {"date": "2026-07-03", "entry": "Milestone 2-5: automation, global ecology system, research system v1, and planet travel + the governor system."},
+    {"date": "2026-07-03", "entry": "Milestone 1: core click loop launched — the very first playable version of SOL."}
+  ]
+}

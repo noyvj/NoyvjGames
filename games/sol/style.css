@@ -1295,3 +1295,40 @@ html[data-reduced-motion="true"] *::after {
   transition-duration: 0.001ms !important;
   scroll-behavior: auto !important;
 }
+
+/* ============================================================
+   "What's New" changelog panel (site-wide goal, planning/TODO.md, origin
+   K16). Reuses .section for the panel shell (same hidden-until-opened
+   idiom as #achievements-panel/#settings-panel), and the same glass-panel
+   card language as .achievement-card for each entry. Needs the same
+   explicit [hidden] override .achievements-panel needed, since this is
+   also a grid. */
+.changelog-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.changelog-panel[hidden] {
+  display: none;
+}
+
+.changelog-entry {
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.changelog-entry-date {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+.changelog-entry-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
