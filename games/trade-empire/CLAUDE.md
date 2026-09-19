@@ -237,6 +237,31 @@ an "Automate it" label -> confirmed -> `ships["1"].automated` became
 console errors. Full 230/230 pytest suite (225 existing + 5 new)
 unaffected.
 
+## "What's New" changelog panel (implemented)
+
+Site-wide goal (`planning/TODO.md`, origin K16): a small `changelog.json`
+(flat list of `{"date", "entry"}`, same loading contract as
+`achievements.json` — fetched into the Pyodide boot sequence and handed to
+`game.py` as a window global, filesystem fallback for the pytest harness)
+rendered in a hidden-until-opened panel behind a new "📋 What's New"
+toolbar button, same idiom as the achievements/settings panels
+(`on_toggle_changelog()`/`update_changelog_display()`, matching this
+file's own `on_toggle_achievements()`/`update_achievements_display()`
+almost exactly, including their defensive `if toggle is None or panel is
+None: return` guard). Entries render newest-first.
+
+Populated with 9 real, dated highlights spanning all 14 milestones
+(collapsed into one entry, since they all landed the same day) plus the
+notable post-milestone work above (space-theme pass, mobile needs-strip,
+achievements, colorblind audit, settings panel, J19 confirm-dialogs) —
+dates cross-checked against `git log` where this file didn't already carry
+one.
+
+10 new tests in `tests/test_changelog.py` (catalog/JSON sanity, toggle
+open/close, label text, newest-first ordering, rendered content) —
+240/240 tests green. Verified live: panel opens, shows the real entries
+newest-first, zero console errors.
+
 ## Working conventions
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag trade-empire-milestone-0N`.
 - Update the Status column as work happens.
