@@ -140,12 +140,24 @@ h1 {
   stroke-width: 2;
 }
 
+/* Colorblind-safety audit (site-wide goal, Okabe-Ito-palette method):
+   emissions (vermillion-ish) vs. cost (was green, #4c9c6e) were the one
+   real hue-only deuteranopia/protanopia confusion pair in this game --
+   two solid same-weight lines on one graph, told apart only by red vs.
+   green, with the only text label (each point's <title> tooltip) hidden
+   until hover. Re-picked cost to Okabe-Ito blue so the pair reads as
+   red/orange vs. blue instead, and gave both emissions and cost their own
+   dasharray (the global-benchmark line already had one) so all three
+   lines are also told apart by pattern, not just color, matching how
+   Continuum's own line-adjacent fix paired a re-color with a second,
+   non-color cue rather than relying on the palette swap alone. */
 .trend-line--emissions {
   stroke: #e0674c;
 }
 
 .trend-line--cost {
-  stroke: #4c9c6e;
+  stroke: #4fa8dd;
+  stroke-dasharray: 2 2;
 }
 
 .trend-line--global {
@@ -174,7 +186,7 @@ h1 {
 }
 
 .trend-point--cost {
-  fill: #4c9c6e;
+  fill: #4fa8dd;
 }
 
 .trend-point--global {
