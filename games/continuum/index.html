@@ -12,6 +12,7 @@
 <link rel="manifest" href="../../manifest.json">
 <script src="../../shared/tutorial.js"></script>
 <script src="../../shared/mobile-hud.js"></script>
+<script src="../../shared/mobile-dock.js"></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -347,6 +348,22 @@
           { selector: "#food-display", label: "Food" },
           { selector: "#score-display", label: "Score" },
         ]);
+      }
+      if (window.MobileDock) {
+        // Site-wide mobile-dock rollout (planning/TODO.md, K9). Continuum's
+        // per-row actions (+/- work assignment, per-row Build, per-node
+        // Study) are already inline -- no far-apart selection-vs-action
+        // split within any of those rows, the same reason Grid's plant
+        // rows didn't need this. The real equivalent gap here is bigger
+        // than Grid's: every season funnels toward the single Advance
+        // Season button, which sits at the very bottom of an even longer
+        // page (status, sustainability, work, buildings, research, log,
+        // era progress, and Look Back all above it) -- so adjusting work/
+        // builds meant scrolling all the way down to advance, then all
+        // the way back up to #status to read the season report. Docking
+        // Advance Season mirrors Grid's own #advance-round-button judgment
+        // call exactly.
+        MobileDock.init("#advance-season-button");
       }
       // Phase 5: attempt the 3D layer last, after the real 2D game is
       // fully up and playable. ContinuumVisual.init() is fully

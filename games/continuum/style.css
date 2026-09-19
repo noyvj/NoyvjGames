@@ -1081,3 +1081,46 @@ button.primary:disabled::after {
 .research-search-input::placeholder {
   color: #a0917f;
 }
+
+/* Site-wide mobile-dock rollout (planning/TODO.md, K9) — shared/mobile-dock.js
+   only reparents #advance-season-button to <body> below this breakpoint; the
+   actual fixed-bar styling lives here, same division of labor as every other
+   docked game on the hub. Matches Grid's own #advance-round-button.mobile-
+   docked rule (the closest judgment call to this one: a single per-turn
+   action button, not an action-panel split) rather than Canopy/Aftermath/
+   Tide's wrapped-panel shape, since Continuum's actual gap is the same
+   "one global action, buried at the bottom of a long page" shape Grid's is
+   -- just longer, with sustainability/work/buildings/research/log/era-
+   progress/Look Back all sitting between the decisions and the button.
+   bottom: 50px sits directly above this game's fixed ad-bar (ad-bar.css,
+   z-index 100); z-index 150 keeps it above the ad bar and below the save
+   widget's fixed UI (z-index 9999). */
+@media (max-width: 640px) {
+  #advance-season-button.mobile-docked {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    bottom: 50px;
+    z-index: 150;
+    max-width: 480px;
+    margin: 0 auto;
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  }
+
+  /* Reserve room at the bottom of the scrollable page so the last real
+     content (the Log/Look Back sections) never ends up hidden behind the
+     now-floating button + ad bar -- same fix every other mobile-dock game
+     needed (Grid's own #advance-round-button rule is the closest match,
+     same 130px value: ad-bar.css's 66px base plus room for this button).
+     `html body` (not just `body`) deliberately, to outrank ad-bar.css's own
+     unqualified `body { padding-bottom: 66px }` rule on specificity rather
+     than relying on stylesheet load order -- index.html links style.css
+     before ad-bar.css, so a same-specificity `body` rule here would lose
+     the cascade to ad-bar.css's regardless of this media query, and
+     silently never apply (confirmed live: this exact site-wide ordering
+     issue already affects Grid's own equivalent rule the same way, flagged
+     separately rather than fixed here since it's out of this task's scope). */
+  html body {
+    padding-bottom: 130px;
+  }
+}
