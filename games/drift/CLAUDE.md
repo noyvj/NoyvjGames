@@ -102,6 +102,29 @@ A new `⚙️ Settings` toggle button in the toolbar (after the difficulty toggl
 
 Verified live: toggling both controls updates the page immediately with zero console errors, and both settings survive a full page reload via `localStorage`. Full pytest suite (248 tests) unaffected — this feature touches no Python.
 
+## "What's New" changelog panel (implemented)
+
+Site-wide goal (`planning/TODO.md`, origin K16): a small `changelog.json`
+(flat list of `{"date", "entry"}`, same convention as `achievements.json`'s
+own loading contract — fetched into the Pyodide boot sequence and handed to
+`game.py` as a window global, with a filesystem fallback for the pytest
+harness) rendered in a hidden-until-opened panel behind a new "📋 What's
+New" toolbar button, same idiom as the achievements/settings panels
+(`on_toggle_changelog()`/`update_changelog_display()`, mirroring
+`on_toggle_achievements()`/`update_achievements_display()` almost exactly).
+Entries render newest-first.
+
+Populated with 11 real, dated highlights drawn from this file's own
+milestone table and iteration-pass/achievements/settings/colorblind-audit
+notes above, with dates cross-checked against `git log` where this file
+didn't already carry one — a highlights reel, not a duplicate of the full
+history already here and in `BCM114-DEV-LOG.md`.
+
+10 new tests in `tests/test_changelog.py` (catalog/JSON sanity, toggle
+open/close, label text, newest-first ordering, rendered content) —
+258/258 tests green. Verified live: panel opens, shows the real entries
+newest-first, closes cleanly, zero console errors.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
