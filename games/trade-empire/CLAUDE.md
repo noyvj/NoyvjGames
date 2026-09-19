@@ -170,6 +170,18 @@ Audited as part of the site-wide colorblind-safety audit (`planning/TODO.md`, Ok
 
 No CSS or `game.py` change made by this dispatch (J18's fix predates it). Full pytest suite (unchanged) stays green since nothing was touched.
 
+## Settings panel (implemented)
+
+Site-wide goal (`planning/TODO.md`, origin A9): one panel per game consolidating text-scale and animation/motion controls. **No sound toggle** — this hub has no audio implemented anywhere yet (`planning/LATER.md`'s "Standing question: what can you actually do with audio?"), so a toggle for it would control nothing real.
+
+A new `⚙️ Settings` toggle button in the toolbar (after Summary) opens `#settings-panel`, containing:
+- **Text size** — decrease/reset/increase buttons (A−/A/A+), scaling `--text-scale` on the root element (0.85–1.5, step 0.1), same range/step Continuum's Phase 5 `accessibility.js` established first.
+- **Reduce Motion** — a toggle button adding/removing `.reduce-motion` on `<html>`, which forces every animation/transition already in `style.css` (the meter shimmer, dome pulse, ship-glow keyframes) to be effectively instantaneous — a global override, layered on top of the existing per-animation `@media (prefers-reduced-motion: reduce)` rules that only respect the OS-level setting, not an in-game player choice.
+
+**`settings.js` is a new standalone file, deliberately independent of Pyodide/`game.py`** — same documented exception this hub already established for Continuum's `accessibility.js`: a browser-level UI preference, not game/save state, so it's persisted to `localStorage` (`trade-empire-text-scale`, `trade-empire-reduced-motion`) rather than riding `get_state()`/`load_state()`. It works even before Pyodide finishes booting.
+
+Verified live: toggling both controls updates the page immediately with zero console errors, and both settings survive a full page reload via `localStorage`. Full pytest suite (225 tests) unaffected — this feature touches no Python.
+
 ## Working conventions
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag trade-empire-milestone-0N`.
 - Update the Status column as work happens.

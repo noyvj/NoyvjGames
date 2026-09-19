@@ -2,6 +2,38 @@
   box-sizing: border-box;
 }
 
+/* Settings panel (site-wide goal, TODO.md origin A9): text scaling.
+   settings.js sets --text-scale on the root element and persists it to
+   localStorage; every font-size in this file is already in `rem`
+   (confirmed by grep before relying on this), so scaling the root
+   font-size scales the whole game uniformly with zero other changes.
+   Default 1 here means a page that never runs settings.js (or loads
+   before it finishes) still renders at exactly the size the game
+   always has -- same convention Continuum's Phase 5 accessibility.js
+   established first. */
+:root {
+  --text-scale: 1;
+}
+
+html {
+  font-size: calc(16px * var(--text-scale, 1));
+}
+
+/* Settings panel: manual "reduce motion" override. The existing
+   `@media (prefers-reduced-motion: reduce)` rules elsewhere in this
+   file already respect the OS-level setting; this adds a player-facing
+   in-game toggle (settings.js adds/removes `.reduce-motion` on <html>)
+   for someone who wants the same effect without changing a system-wide
+   setting. Forces every animation/transition already in this file to
+   be effectively instantaneous rather than duplicating each one. */
+.reduce-motion,
+.reduce-motion * {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -1359,3 +1391,57 @@ button.secondary:disabled::after {
    itself by game.py (FLEET_PRIORITY_TARGET_COLOR) — nothing to add here,
    noted for completeness since every other J-item above touches this
    file. */
+
+/* ============================================================
+   Settings panel (site-wide goal, TODO.md origin A9): text scale +
+   reduce motion, consolidated in one place per game. Same card/section
+   language as .achievements-panel above rather than a new visual
+   idiom -- this hub's "free internals, shared shell" rule is about the
+   hub shell, not about every per-game feature needing its own look. */
+.settings-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.settings-panel[hidden] {
+  display: none;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.settings-row-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.settings-control-group {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.settings-control-group button {
+  min-width: 2.1rem;
+  padding: 0.5rem 0.4rem;
+  font-weight: 600;
+}
+
+#reduce-motion-toggle-button.active {
+  border-color: rgba(127, 214, 163, 0.6);
+  background: rgba(127, 214, 163, 0.14);
+  color: #7fd6a3;
+}
+
+.settings-note {
+  margin: 0;
+  font-size: 0.72rem;
+  opacity: 0.6;
+  line-height: 1.4;
+}
