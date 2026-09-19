@@ -277,6 +277,19 @@ completion + past-runs review + end-of-run summary, extended-run mode,
 reset-skill-tree's two-click confirm, and a full export/import round
 trip all behaved correctly with no console errors.
 
+## Colorblind-safety audit (site-wide goal)
+
+Audited as part of the site-wide colorblind-safety audit (Okabe-Ito-palette method, per Continuum's Phase 5, Canopy's B9, Tide's D11, Grid's C18). Checked `game.py`/`style.css` for any place game-state meaning is conveyed by color alone, including the three event-category colors the earlier space-theme visual pass explicitly noted as deliberately untouched.
+
+**No real hue-only encoding found — no change made.**
+- The three event categories — weather (`#6fa8d8`, blue), non-weather (`#d8a24c`, amber), social (`#c07fd8`, purple, added later with E6) — are neither a red/green nor a blue/purple confusion pair with each other, and every place any of them renders (`last-event-display`, `next-event-display`, each `past-run-event` breakdown line) already pairs the color with `EVENT_ICON` + `EVENT_LABEL` text (e.g. "🌊 Flood", "⚡ Civil Unrest") — the color is decoration on top of an icon+text pair that already carries the real distinction, same shape as Tide's D11 finding.
+- The mitigation meter (`.meter-fill--mitigation`) is the only meter in this game — a single always-green gradient bar with no red/contrasting "bad" counterpart, same "single-hue bar" shape Tide's and Grid's own audits already found clean.
+- The skill tree's locked/unlocked node state (`.skill-node`) uses a padlock emoji (🔒) vs. a checkmark (✓) plus a purple-vs-neutral background — icon-driven, not color-only.
+- Severity (`severity--mild`/`--severe`) is opacity/pulse-animation intensity layered on top of whichever event-category color/icon/text is already showing, not a separate color-coded state.
+- The gold achievement toast/panel and the violet skill-unlock toast are two different one-at-a-time notification types (never shown side by side needing discrimination), each carrying its own full text.
+
+Matches Tide's D11 precedent: investigated the real candidate list (including the one place a prior CLAUDE.md note already flagged as "deliberately left alone" for a different visual-pass reason) and found no genuine deuteranopia/protanopia or blue/purple confusion pair conveying meaning by hue alone, so no speculative change was made.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
