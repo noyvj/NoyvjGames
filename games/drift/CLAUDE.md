@@ -90,6 +90,18 @@ Audited as part of the site-wide colorblind-safety audit (`planning/TODO.md`, Ok
 - **The I1 trend graph's two lines (`.trend-line--strain` red `#e0674c`, `.trend-line--wellbeing` green `#4c9c6e`) — real violation, found and fixed.** Unlike the meters above, this red/green pair exists only here (confirmed via `grep` — neither hex value appears anywhere else in `style.css`) and had no non-color cue for reading the two lines' overall shape: each point does carry a `<title>` tooltip (e.g. "Round 4 -- Wellbeing: 55"), but that only reaches a viewer who hovers/taps one point at a time, not someone reading how the two trends move relative to each other at a glance — exactly the deuteranopia/protanopia confusion pair the task calls out, and the same shape of issue as Grid's own copy of this same trend-graph pattern (`I1`'s docstring: "same rendering approach and visual language as Grid's own trend graph" — Grid's copy is out of scope for this dispatch, tracked separately as its own TODO item).
   - **Fix:** CSS-only — added `stroke-dasharray: 6 3` to `.trend-line--wellbeing` (solid strain line vs. dashed wellbeing line), so the two lines are distinguishable by pattern regardless of color perception. Deliberately left both hex values untouched (per the space-theme visual pass's existing "these encode real game state, don't touch the hue" convention) and didn't touch the point markers or `game.py` at all — no shape/count change to the `<circle>` markers `tests/test_trend_graph.py` already pins (`svg.count("<circle") == 8`), so the fix is zero-risk to the existing suite. Full pytest suite (248 tests) green before and after.
 
+## Settings panel (implemented)
+
+Site-wide goal (`planning/TODO.md`, origin A9): one panel per game consolidating text-scale and animation/motion controls. **No sound toggle** — this hub has no audio implemented anywhere yet (`planning/LATER.md`'s "Standing question: what can you actually do with audio?"), so a toggle for it would control nothing real.
+
+A new `⚙️ Settings` toggle button in the toolbar (after the difficulty toggle) opens `#settings-panel`, containing:
+- **Text size** — decrease/reset/increase buttons (A−/A/A+), scaling `--text-scale` on the root element (0.85–1.5, step 0.1), same range/step Continuum's Phase 5 `accessibility.js` established first.
+- **Reduce Motion** — a toggle button adding/removing `.reduce-motion` on `<html>`, which forces every animation/transition already in `style.css` to be effectively instantaneous (a global override, layered on top of the existing per-animation `@media (prefers-reduced-motion: reduce)` rules that only respect the OS-level setting, not an in-game player choice).
+
+**`settings.js` is a new standalone file, deliberately independent of Pyodide/`game.py`** — same documented exception this hub already established for Continuum's `accessibility.js`: a browser-level UI preference, not game/save state, so it's persisted to `localStorage` (`drift-text-scale`, `drift-reduced-motion`) rather than riding `get_state()`/`load_state()`. It works even before Pyodide finishes booting.
+
+Verified live: toggling both controls updates the page immediately with zero console errors, and both settings survive a full page reload via `localStorage`. Full pytest suite (248 tests) unaffected — this feature touches no Python.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

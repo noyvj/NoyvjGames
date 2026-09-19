@@ -12,6 +12,9 @@
 <link rel="manifest" href="../../manifest.json">
 <script src="../../shared/tutorial.js"></script>
 <script src="../../shared/mobile-hud.js"></script>
+<!-- Settings panel (text-scale + reduce-motion): plain, dependency-free
+     JS, deliberately independent of Pyodide -- see settings.js. -->
+<script src="settings.js"></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -27,9 +30,30 @@
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
       <button id="achievements-toggle-button" class="secondary" type="button">Loading...</button>
       <button id="accelerated-severity-toggle-button" class="secondary difficulty-toggle" type="button">Loading...</button>
+      <!-- Site-wide settings panel (TODO.md origin A9): text-scale +
+           reduce-motion. Deliberately independent of Pyodide/game.py
+           entirely -- see settings.js -- same pattern Continuum's Phase
+           5 accessibility.js established first, so it works even before
+           Pyodide finishes booting. -->
+      <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
+    <div id="settings-panel" class="section settings-panel" hidden>
+      <div class="settings-row">
+        <span class="settings-row-label">Text size</span>
+        <div class="settings-control-group" role="group" aria-label="Text size">
+          <button id="text-size-decrease-button" class="secondary" type="button" aria-label="Decrease text size">A−</button>
+          <button id="text-size-reset-button" class="secondary" type="button" aria-label="Reset text size">A</button>
+          <button id="text-size-increase-button" class="secondary" type="button" aria-label="Increase text size">A+</button>
+        </div>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-label">Motion</span>
+        <button id="reduce-motion-toggle-button" class="secondary" type="button">Reduce Motion: Off</button>
+      </div>
+      <p class="settings-note">Saved in this browser only — a display preference, not part of your save code.</p>
+    </div>
 
     <div id="achievement-toast" class="achievement-toast" hidden>
       <p id="achievement-toast-text"></p>
