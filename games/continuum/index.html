@@ -109,7 +109,13 @@
         <button id="camera-preset-closeup-button" class="secondary camera-preset-button" type="button">🔍 Close-up</button>
         <button id="camera-preset-aerial-button" class="secondary camera-preset-button" type="button">🛰 Aerial</button>
       </div>
-      <div id="visual3d-container" class="visual3d-container" role="img" aria-label="A low-poly 3D view of the settlement" hidden></div>
+      <!-- Onboarding-tooltip coverage check (planning/TODO.md, A14 origin):
+           the drag-to-orbit camera control has no tutorial step of its own
+           and its only prior affordance was a CSS cursor:grab a returning
+           player could easily miss -- title/aria-label now say so directly
+           on the permanent element itself, not just in the one-time
+           walkthrough. -->
+      <div id="visual3d-container" class="visual3d-container" role="img" aria-label="A low-poly 3D view of the settlement. Drag to rotate the camera." title="Drag to rotate the view" hidden></div>
       <div class="settlement-visual" aria-hidden="true">
         <div class="settlement-sky"></div>
         <div class="settlement-ground"></div>
