@@ -1,0 +1,38 @@
+[
+  {
+    "date": "2026-09-19",
+    "entry": "Added a settings panel (text size + reduced motion) and completed a colorblind-safety audit — the tipping/dampening flashes are already redundantly coded with text, no change needed."
+  },
+  {
+    "date": "2026-09-15",
+    "entry": "Achievements system added (18 achievements) plus the G1-G20 improvement pass: richer secondary-region readouts, a best-region comparison, preset strategies, a worst-case Region D, and a per-browser personal best."
+  },
+  {
+    "date": "2026-09-09",
+    "entry": "Added a skippable tutorial, a How to Play page, and a mobile sticky HUD."
+  },
+  {
+    "date": "2026-09-05",
+    "entry": "Full visual redesign: starfield/space-themed backdrop, glass panels, icon labels and count chips."
+  },
+  {
+    "date": "2026-09-02",
+    "entry": "Integrated the shared save widget and fixed load_state() crashing outright on missing save fields."
+  },
+  {
+    "date": "2026-08-22",
+    "entry": "Pass 3 balance fix: the intervention lever now gives an immediate, legible efficacy readout instead of a silent number with no felt effect pre-melt."
+  },
+  {
+    "date": "2026-08-18",
+    "entry": "Added an in-game Info Page with real-world permafrost sources; Pass 2 added a multi-region side-by-side comparison."
+  },
+  {
+    "date": "2026-08-11",
+    "entry": "Iteration pass: a tipping-point screen flash and an alarming melt state, so the feedback loop's onset lands as a distinct moment."
+  },
+  {
+    "date": "2026-08-07",
+    "entry": "All 7 core milestones shipped: background trajectory + core loop, permafrost melt + methane feedback, intervention measures, visible acceleration, hope-angle payoff, feedback prompt, and hub integration."
+  }
+]

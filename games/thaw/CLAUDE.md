@@ -159,6 +159,29 @@ AdSense-iframe CSP notice are both already present on the unmodified page.
 Full pytest suite (114 tests, unchanged — `settings.js` is plain frontend JS
 with no Python surface) stayed green throughout.
 
+## "What's New" changelog panel (K16, planning/TODO.md, site-wide goal)
+
+A small in-game highlights panel — a curated `changelog.json` (flat list of
+`{"date", "entry"}` objects, fetched into the Pyodide boot sequence exactly
+like `achievements.json` already is) rendered into a hidden-until-opened
+"📋 What's New" panel — same toggle+panel idiom as the achievements panel,
+with a plain date+text-card layout (no earned/unearned styling, since a
+changelog entry has no checkable condition). `CHANGELOG` is sorted
+newest-first at load time and degrades to an empty list on a
+malformed/missing file, matching `ACHIEVEMENTS`'s own defensive pattern.
+
+Populated with 9 real highlight entries pulled from this file's own
+milestone table and iteration notes above, newest first (2026-09-19 back
+to the 2026-08-07 all-milestones-shipped entry). Covered by
+`tests/test_changelog.py` (catalog sanity, newest-first ordering, toggle
+open/close, panel content, no state mutation as a side effect — same
+suite shape as Herd/Aftermath's own `test_changelog.py`). Full pytest
+suite (114 → 123 tests) stayed green throughout; verified live via a
+local server — the panel opens, shows all 9 real entries in the correct
+order, and there are zero new console errors (the pre-existing
+ServiceWorker-registration quirk on this dev setup is unrelated and was
+present before this change).
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

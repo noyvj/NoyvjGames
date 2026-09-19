@@ -662,6 +662,7 @@ button.primary:active {
 #investments { border-left-color: #6fae8a; }
 #region-comparison { border-left-color: #8f7fe0; }
 #feedback-prompt { border-left-color: #e0a24c; }
+#changelog-panel { border-left-color: #a9c3ff; }
 #info-page-panel { border-left-color: #4cc9d8; }
 
 /* --- Gauges: replace the flat bar with a chunkier, ticked, glowing
@@ -853,6 +854,38 @@ button.primary {
     inset 0 1px 0 rgba(255, 255, 255, 0.18),
     inset 0 -3px 6px rgba(0, 0, 0, 0.25),
     0 0 0 3px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================================
+   K16 (planning/TODO.md "What's New" changelog, site-wide goal): a
+   curated highlights list, same hidden-until-opened idiom as
+   #achievements-panel above -- no earned/unearned state, just a date +
+   one-line summary per entry, newest first. Matches Herd/Aftermath's
+   own .changelog-panel/.changelog-entry rules verbatim. */
+.changelog-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.changelog-entry {
+  padding: 0.7rem 0.9rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.changelog-entry-date {
+  margin: 0 0 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.65;
+}
+
+.changelog-entry-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
 }
 
 /* ============================================================

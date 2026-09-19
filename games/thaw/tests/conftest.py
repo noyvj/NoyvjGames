@@ -48,6 +48,9 @@ ELEMENT_IDS = [
     "achievements-panel",
     "achievement-toast",
     "achievement-toast-text",
+    # K16: "What's New" changelog panel.
+    "changelog-toggle-button",
+    "changelog-panel",
     "worst-case-toggle-button",
     "worst-case-panel",
     "d-region-card",
@@ -118,6 +121,9 @@ class GameEnv:
 
     def toggle_worst_case_region(self):
         self.elements["worst-case-toggle-button"].dispatch("click", None)
+
+    def toggle_changelog(self):
+        self.elements["changelog-toggle-button"].dispatch("click", None)
 
     def apply_preset(self, prefix, preset_name):
         self.elements[f"{prefix}-preset-{preset_name}-button"].dispatch("click", None)
