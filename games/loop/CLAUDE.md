@@ -207,6 +207,16 @@ achievement earned through real game systems, progress readouts, the
 panel/toggle/toast, and the H3/H12/H18 reactive-effect timers. Full
 suite: 151 tests, all green.
 
+## Colorblind-safety audit (audited, no change needed)
+
+Audited as part of the site-wide colorblind-safety audit (`planning/TODO.md`, Okabe-Ito-palette method per Continuum's Phase 5, redundant-cue method per Canopy's B9, audit-only method per Tide/Aftermath/Herd/Thaw's own precedent). Checked every place `game.py`/`style.css` convey game-state meaning by color, especially red/orange-vs-green/brown and blue-vs-purple pairs (the two confusion risks the task calls out).
+
+- **`.meter-fill--extraction` (red/orange) vs. `.meter-fill--circular` (green)** — not a violation. These are two permanently separate, permanently labeled meters (an "Extraction" bar and a "Circularity" bar, per the CLAUDE.md's own visual-pass note), not one element switching between the two colors — a viewer reads which meter is which from its own label, never needing to tell the two hues apart from each other.
+- **`.return-flow-particle`/`.return-flow-label` (green, internal reuse loop) vs. `.import-flow-particle`/`.import-flow-label` (blue, trade-network import)** — not a violation, and not the relevant confusion pair anyway (blue/purple is the risk pair, not blue/green). Each already carries its own icon (↩ vs ⇢) and full descriptive text ("recovered electronics flowing back into Manufacturing" vs. "reuse capacity crossing in from the trade network"), per `index.html`.
+- **`.flow-particle`'s default brown/tan (`#9c7a3c`, linear chain) vs. `.chain-flow--closed .flow-particle`'s green (`#4c9c6e`, closed loop) — the one real candidate, checked closely, concluded already redundantly coded.** Brown-vs-green is exactly the kind of reds/browns-vs-greens pair the task flags as a risk. But this single particle's color isn't the only channel: `chain_flow_message()` renders an always-visible, fully explicit sentence every render pass ("Straight line: 100% of production needs new extraction." / "Loop closed: 100% of production comes from repair, reuse & recycling..." / the live percentage otherwise), and `.chain-arrow`'s opacity independently jumps from 0.5 (dim, linear) to 1.0 (fully lit, closed) — a non-color cue on the same element. A player who can't perceive the particle's hue at all still gets the exact same information from the text and the arrow brightness.
+
+No CSS or `game.py` change made. Full pytest suite (unchanged) stays green since nothing was touched.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
