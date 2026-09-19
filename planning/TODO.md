@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 235/270 items checked off (87%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
+**Progress: 238/270 items checked off (88%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
 
 The one living list, replacing the scattered planning docs' own "open items"/"stretch goals" sections. Built from your labeled answers in `IMPROVEMENT-IDEAS-2026-09.md` (all "yes" items, resolved), plus a pass through every other file in `planning/` pulling out anything still genuinely unresolved there. "Later" items (things you deferred, or that need more explanation first) live in `LATER.md` instead — not here.
 
@@ -199,7 +199,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] B18: A shareable end-of-session code/snippet. Plain-text bragging-rights summary (not a decodable save code) + copy-to-clipboard, in the Session Summary panel (B1) — see `share_snippet()`.
 - [x] B19: A distinct "fully mature" cap-off visual for Recovered plots.
 - [x] B20: A closing counterfactual line at session end. "If every plot had been left standing since the start, this forest would be worth about X" vs. actual standing value, in the Session Summary panel (B1) — see `counterfactual_message()`.
-- [ ] **Unresolved — please clarify**: your answer to B15 talks about "overpinning" and worrying about too much being pinned, but B15 itself was "extend the mobile-dock treatment to the stats/legend panels," which has nothing to do with pinning. I've kept B15 itself as a plain yes (folded into the mobile-dock rollout goal above) but flagging this so you can tell me what B15's actual comment was meant to be about.
+- [x] B15's own unresolved clarification question moved to `planning/FOR-YOU.md` (Q1) — B15 itself is done (folded into the mobile-dock rollout goal above); only the "what did your comment mean" question is still open.
 
 ---
 
@@ -216,7 +216,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] C8: A tipping-point callout at 50% cumulative renewable capacity.
 - [ ] C9: Confirmation before retiring the last unit of a plant type — folded into the shared confirmation-dialog goal above.
 - [x] C10: Show the exact aging/wear percentage.
-- [ ] C11: The aggregate clean-score-across-players comparison Pass 2 floated but never built. Moved to `LATER.md` — needs a new shared backend aggregate-stats endpoint (`app/main.py`), which is bigger than a single-game scope and affects every game's live backend; worth a deliberate decision rather than a side-effect of a Grid-only session.
+- [x] C11: moved to `planning/LATER.md`'s "C. Grid" section (needs a new shared backend aggregate-stats endpoint, bigger than a single-game scope) — tracked there, not duplicated here.
 - [x] C12: A visible toast/banner for disruption events.
 - [x] C13: A funds breakdown (build vs. maintenance vs. disruption-damage).
 - [x] C15: An interactive trend graph (hover for exact values). Every point on all three trend lines now carries a native SVG `<title>` tooltip with the exact round/value.
@@ -410,7 +410,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] **Trade Empire hub-link** (J2, L1) — done (title card + review widget), same pattern as Continuum's.
 - [x] **Le Champ de Mots: a visual-style switcher** — low-poly / text-based / cartoon / high-def, chosen on first load and changeable in settings. Desktop-only is fine (no need to solve mobile scaling for this). Your stated reasons: helps you see what's actually possible visually, and doubles as a BCM206 testing-different-options angle. Done (Milestone 32) — a settings-panel control switches a `data-visual-style` attribute, `localStorage`-persisted; High-def is the pre-existing look kept as the default, the other three are real CSS-only chrome/palette treatments (text-based also re-letters the farm grid's stage glyphs). See `games/champ-de-mots/CLAUDE.md`'s Milestone 32 build note for the honest scoping call on what "four full art styles" could realistically mean in one pass.
 - [ ] Deploy the accounts system to production (L3) — it's built and tested locally but never pushed live.
-- [ ] Real favicon/PWA icon art (L6).
+- [x] Real favicon/PWA icon art (L6) — done as part of resolving `planning/FOR-YOU.md`'s Q4: a crescent-planet + moon + scattered-stars icon (`icons/icon-192.png`/`icon-512.png`), matching the site's dark-navy/lavender-blue palette, replacing the flat solid-blue placeholder. Verified live (browser tab favicon + manifest fetch).
 - [ ] A "last updated" badge per title card (L7).
 - [ ] An aggregate stats/About page — **visible in admin view only for now**, per your scoping note (L8).
 - [ ] Auto-discover each game's `achievements.json` instead of hand-maintaining the list in `script.js` (L14).
