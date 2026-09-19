@@ -30,6 +30,7 @@
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
       <button id="achievements-toggle-button" class="secondary" type="button">🏆 Achievements</button>
+      <button id="changelog-toggle-button" class="secondary" type="button">📋 What's New</button>
       <button id="summary-toggle-button" class="secondary" type="button">📊 Summary</button>
       <!-- Site-wide settings panel (TODO.md origin A9): text-scale +
            reduce-motion. Deliberately independent of Pyodide/game.py
@@ -40,6 +41,10 @@
     </div>
     <div id="howto-panel" class="section" hidden></div>
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
+    <!-- "What's New" changelog panel (site-wide goal, planning/TODO.md,
+         origin K16): same hidden-until-opened idiom as achievements/settings
+         above, populated from changelog.json newest-first. -->
+    <div id="changelog-panel" class="section changelog-panel" hidden></div>
     <div id="settings-panel" class="section settings-panel" hidden>
       <div class="settings-row">
         <span class="settings-row-label">Text size</span>
@@ -617,11 +622,13 @@
       // ACHIEVEMENTS-SYSTEM-DESIGN.md's loading contract: fetch the static
       // catalog and hand it to Python as a window global *before* game.py
       // runs, same pattern SOL (the reference integration) established.
-      const [achievementsJson, code] = await Promise.all([
+      const [achievementsJson, changelogJson, code] = await Promise.all([
         fetch("achievements.json").then((response) => response.text()),
+        fetch("changelog.json").then((response) => response.text()),
         fetch("game.py").then((response) => response.text()),
       ]);
       window.ACHIEVEMENTS_JSON = achievementsJson;
+      window.CHANGELOG_JSON = changelogJson;
       await pyodide.runPythonAsync(code);
 
       if (window.GameTutorial) {

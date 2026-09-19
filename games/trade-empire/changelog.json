@@ -1,0 +1,11 @@
+[
+  { "date": "2026-09-20", "entry": "Confirm-before-spending dialogs added for automating a ship or unlocking research (both rare, irreversible, high-cost actions)." },
+  { "date": "2026-09-19", "entry": "Settings panel: adjustable text size and a Reduce Motion toggle." },
+  { "date": "2026-09-19", "entry": "Gap-closing pass: colorblind-safety audit confirmed (automated vs. manual ships already distinguished by shape, not just color)." },
+  { "date": "2026-09-15", "entry": "Achievements added: 19 achievements, in-game panel, unlock toast, hub dashboard link." },
+  { "date": "2026-09-09", "entry": "Mobile: a condensed colony-needs strip now docks to the bottom of the screen so it's visible alongside the ship panels." },
+  { "date": "2026-09-09", "entry": "Skippable tutorial, a How to Play page, and a mobile sticky HUD." },
+  { "date": "2026-09-05", "entry": "Space-theme visual pass: starfield background, glass panels, gradient buttons." },
+  { "date": "2026-09-02", "entry": "Bug fixes: Kepler Cluster map labels no longer collide; hub-link paths corrected." },
+  { "date": "2026-08-18", "entry": "All 14 milestones shipped: manual trade loop, colony needs and market economics, automation, the 2D map, research tree, colony specialization, fleet-level automation, galaxy expansion, and the fully-automated endgame." }
+]

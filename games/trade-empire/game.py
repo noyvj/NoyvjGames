@@ -1271,6 +1271,80 @@ try:
 except (ValueError, OSError, NameError, KeyError):
     ACHIEVEMENTS = []
 
+
+# ===========================================================================
+# Changelog panel (site-wide goal, planning/TODO.md, origin K16: "Per-game
+# in-game changelog panel, for every game"). A quick highlights view, not a
+# full duplicate of CLAUDE.md/BCM114-DEV-LOG.md -- same loading contract as
+# ACHIEVEMENTS above, except CHANGELOG is a flat list (no wrapping key) --
+# see changelog.json itself.
+# ===========================================================================
+CHANGELOG_FILENAME = "changelog.json"
+
+
+def _read_changelog_json():
+    """Same loading contract as `_read_achievements_json()` above."""
+    try:
+        import js  # noqa: PLC0415 — Pyodide-only import, deliberately lazy
+    except ImportError:
+        js = None
+
+    raw = getattr(js, "CHANGELOG_JSON", None) if js is not None else None
+    if raw is not None:
+        return str(raw)
+
+    import os  # noqa: PLC0415 — only needed on this filesystem-fallback path
+
+    here = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(here, CHANGELOG_FILENAME), encoding="utf-8") as handle:
+        return handle.read()
+
+
+# Degrades to an empty list rather than crashing this module's whole
+# import -- the changelog panel is purely informational, not core to
+# Trade Empire's own gameplay.
+try:
+    CHANGELOG = json.loads(_read_changelog_json())
+except (ValueError, OSError, NameError):
+    CHANGELOG = []
+
+changelog_open = False
+
+
+def on_toggle_changelog(event=None):
+    global changelog_open
+    changelog_open = not changelog_open
+    update_changelog_display()
+
+
+def update_changelog_display():
+    toggle = document.getElementById("changelog-toggle-button")
+    panel = document.getElementById("changelog-panel")
+    if toggle is None or panel is None:
+        return
+    toggle.innerText = "Hide What's New" if changelog_open else "\U0001F4CB What's New"
+    panel.hidden = not changelog_open
+    if not changelog_open:
+        return
+
+    panel.innerHTML = ""
+    for entry in sorted(CHANGELOG, key=lambda e: e["date"], reverse=True):
+        card = document.createElement("div")
+        card.className = "changelog-entry"
+
+        date = document.createElement("p")
+        date.className = "changelog-date"
+        date.innerText = entry["date"]
+        card.appendChild(date)
+
+        text = document.createElement("p")
+        text.className = "changelog-text"
+        text.innerText = entry["entry"]
+        card.appendChild(text)
+
+        panel.appendChild(card)
+
+
 PROFIT_10K_THRESHOLD = 10000
 PROFIT_100K_THRESHOLD = 100000
 
@@ -1997,6 +2071,9 @@ def setup():
     document.getElementById("achievements-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_achievements)
     )
+    document.getElementById("changelog-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_changelog)
+    )
     document.getElementById("summary-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_summary)
     )
@@ -2012,6 +2089,7 @@ def setup():
     if notice_toast is not None:
         notice_toast.hidden = True
     setInterval(create_proxy(tick), TICK_INTERVAL_MS)
+    update_changelog_display()
     render()
     # A fresh session's already-earned achievements (there shouldn't be
     # any at this point, but a defensive baseline is cheap) shouldn't

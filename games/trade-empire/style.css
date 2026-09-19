@@ -1161,6 +1161,40 @@ button.secondary:disabled::after {
   text-decoration: underline;
 }
 
+/* "What's New" changelog panel (site-wide goal, planning/TODO.md, origin
+   K16) — same glass-panel/card language and [hidden] override as
+   .achievements-panel above, since it's the exact same hidden-until-opened
+   idiom. */
+.changelog-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.changelog-panel[hidden] {
+  display: none;
+}
+
+.changelog-entry {
+  padding: 0.7rem 1rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(10, 12, 22, 0.4);
+}
+
+.changelog-date {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
+.changelog-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
 /* Fixed to the viewport (not inside #game's centered column) so it stays
    visible regardless of scroll position, same reasoning as SOL's toast.
    game.py sets innerText directly on this element (no separate child

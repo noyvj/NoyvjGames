@@ -38,6 +38,8 @@ ELEMENT_IDS = [
     "achievements-toggle-button",
     "achievements-panel",
     "achievement-toast",
+    "changelog-toggle-button",
+    "changelog-panel",
     "summary-toggle-button",
     "summary-panel",
     "notice-toast",
@@ -110,6 +112,9 @@ class GameEnv:
 
     def toggle_achievements(self):
         self.elements["achievements-toggle-button"].dispatch("click", None)
+
+    def toggle_changelog(self):
+        self.elements["changelog-toggle-button"].dispatch("click", None)
 
     def toggle_summary(self):
         self.elements["summary-toggle-button"].dispatch("click", None)
