@@ -1662,17 +1662,84 @@ def _make_depart_handler(ship_id, destination):
     return handler
 
 
+def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm):
+    """Routes a guarded action through the shared shared/confirm-dialog.js
+    widget when it's available, or runs the action immediately when it
+    isn't -- same lazy `from js import window`/getattr-default shape as
+    every other optional-JS-hook call in this hub (Grid's C14, Herd's
+    F16). The pytest fake-DOM harness's `js` module only ever fakes
+    `document`/`setTimeout`/`setInterval` (see conftest.py's
+    `_install_pyodide_fakes`), never `window`, so `from js import window`
+    raises ImportError there and this falls straight through to calling
+    on_confirm() synchronously -- which is exactly what every existing
+    automate/research test in this suite already expects."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        on_confirm()
+        return
+    confirm_dialog = getattr(window, "ConfirmDialog", None)
+    if confirm_dialog is None:
+        on_confirm()
+        return
+    confirm_dialog.ask(
+        id=action_id,
+        message=message,
+        confirmLabel=confirm_label,
+        onConfirm=create_proxy(on_confirm),
+    )
+
+
 def _make_automate_handler(ship_id):
-    def handler(event=None):
+    # J19 (planning/TODO.md's shared confirmation-dialog goal) -- checked
+    # frequency before wiring this in: automating a ship is capped at
+    # max_automated_ships() (2, +1 per automation-slot research node, up
+    # to the 4-ship roster) and is a one-time, irreversible purchase per
+    # ship (no de-automate toggle exists), so across an entire
+    # playthrough this button is clicked at most 4 times, ever -- a rare,
+    # deliberate milestone action, not part of the repeated Load/Depart
+    # core loop. Worth the confirm; see CLAUDE.md for the full reasoning.
+    def do_automate():
         automate_ship(ship_id)
         render()
+
+    def handler(event=None):
+        _confirm_dialog_ask(
+            action_id=f"trade-empire-automate-ship-{ship_id}",
+            message=(
+                f"Automate this ship for {AUTOMATION_COST} credits? "
+                "This is permanent -- there's no way to de-automate it "
+                "afterward."
+            ),
+            confirm_label="Automate it",
+            on_confirm=do_automate,
+        )
     return handler
 
 
 def _make_research_handler(node_id):
-    def handler(event=None):
+    # J19 -- same frequency reasoning as automation above: RESEARCH_NODES
+    # has exactly 6 entries total, each unlockable exactly once ever (the
+    # button hides on unlock, no re-lock/refund path), so this button is
+    # clicked at most 6 times across an entire playthrough. Also
+    # genuinely irreversible spend of a slowly-accrued currency -- the
+    # priciest nodes (Galaxy Expansion 80, Outer Reaches 200) represent a
+    # long stretch of passive accrual, not pocket change.
+    def do_unlock():
         unlock_research(node_id)
         render()
+
+    def handler(event=None):
+        node = RESEARCH_NODES[node_id]
+        _confirm_dialog_ask(
+            action_id=f"trade-empire-research-{node_id}",
+            message=(
+                f"Unlock {node['label']} for {node['cost']} research "
+                f"points? {node['description']}."
+            ),
+            confirm_label="Unlock it",
+            on_confirm=do_unlock,
+        )
     return handler
 
 
