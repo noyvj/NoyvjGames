@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 234/270 items checked off (87%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
+**Progress: 235/270 items checked off (87%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
 
 The one living list, replacing the scattered planning docs' own "open items"/"stretch goals" sections. Built from your labeled answers in `IMPROVEMENT-IDEAS-2026-09.md` (all "yes" items, resolved), plus a pass through every other file in `planning/` pulling out anything still genuinely unresolved there. "Later" items (things you deferred, or that need more explanation first) live in `LATER.md` instead — not here.
 
@@ -408,7 +408,7 @@ Two things every game needs once achievements land there, on top of the base rol
 
 - [x] **Continuum Phase 6**: link Continuum into the main hub nav (K1/L1) — done (title card + review widget). The dedicated full-playthrough integration test (K3 — marked "later", see `LATER.md`) remains open.
 - [x] **Trade Empire hub-link** (J2, L1) — done (title card + review widget), same pattern as Continuum's.
-- [ ] **Le Champ de Mots: a visual-style switcher** — low-poly / text-based / cartoon / high-def, chosen on first load and changeable in settings. Desktop-only is fine (no need to solve mobile scaling for this). Your stated reasons: helps you see what's actually possible visually, and doubles as a BCM206 testing-different-options angle. **Blocked until Champ de Mots' current in-progress work (the minigames) finishes** — same gating as the rest of its section.
+- [x] **Le Champ de Mots: a visual-style switcher** — low-poly / text-based / cartoon / high-def, chosen on first load and changeable in settings. Desktop-only is fine (no need to solve mobile scaling for this). Your stated reasons: helps you see what's actually possible visually, and doubles as a BCM206 testing-different-options angle. Done (Milestone 32) — a settings-panel control switches a `data-visual-style` attribute, `localStorage`-persisted; High-def is the pre-existing look kept as the default, the other three are real CSS-only chrome/palette treatments (text-based also re-letters the farm grid's stage glyphs). See `games/champ-de-mots/CLAUDE.md`'s Milestone 32 build note for the honest scoping call on what "four full art styles" could realistically mean in one pass.
 - [ ] Deploy the accounts system to production (L3) — it's built and tested locally but never pushed live.
 - [ ] Real favicon/PWA icon art (L6).
 - [ ] A "last updated" badge per title card (L7).
