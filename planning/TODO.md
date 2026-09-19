@@ -384,21 +384,21 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] J1: Wire up the shared save-widget contract.
 - [x] J2: Link Trade Empire into the hub's main nav.
 - [x] J3: Add the shared ad-bar partial.
-- [ ] J6: A 5th/6th purchasable ship.
-- [ ] J7: A second automation-slot research tier.
-- [ ] J8: A lightweight "ship arrived" toast.
-- [ ] J9: A real end-of-session/summary view.
-- [ ] J10: Let players rename ships.
-- [ ] J11: A per-route profitability readout.
-- [ ] J12: A historical price sparkline per good.
-- [ ] J13: A third self-contained expansion cluster.
-- [ ] J14: A colony detail view (development-level and need history over time).
-- [ ] J15: A warning badge when a manual ship sits idle and empty for a long stretch.
-- [ ] J16: Make Fleet Priority's current target visible on the map.
-- [ ] J17: A one-time callout marking the first automated ship.
-- [ ] J18: Colorblind-safe automated/manual ship-dot differentiation — fold into the site-wide colorblind audit.
+- [x] J6: A 5th/6th purchasable ship.
+- [x] J7: A second automation-slot research tier.
+- [x] J8: A lightweight "ship arrived" toast.
+- [x] J9: A real end-of-session/summary view.
+- [x] J10: Let players rename ships.
+- [x] J11: A per-route profitability readout.
+- [x] J12: A historical price sparkline per good.
+- [x] J13: A third self-contained expansion cluster.
+- [x] J14: A colony detail view (development-level and need history over time) — read as an inline need-history sparkline added to each colony's existing row rather than a separate view, same reasoning as J12's price sparkline.
+- [x] J15: A warning badge when a manual ship sits idle and empty for a long stretch.
+- [x] J16: Make Fleet Priority's current target visible on the map.
+- [x] J17: A one-time callout marking the first automated ship.
+- [x] J18: Colorblind-safe automated/manual ship-dot differentiation — fold into the site-wide colorblind audit.
 - [ ] J19: Confirmation before spending research/automation credits — folded into the shared confirmation-dialog goal above, with your frequency caveat attached.
-- [ ] J20: A visual flourish on the endgame's background-galaxy payoff.
+- [x] J20: A visual flourish on the endgame's background-galaxy payoff.
 
 ---
 
