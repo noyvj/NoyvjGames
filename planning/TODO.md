@@ -72,7 +72,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [ ] Herd
 - [ ] Thaw
 - [ ] Loop
-- [ ] Drift
+- [x] Drift — real violation found and fixed: the I1 strain/wellbeing trend graph's two lines were distinguished only by red/green hue with no other cue for reading the lines' shape at a glance (per-point tooltips only help on hover). Fixed CSS-only with a dashed pattern on the wellbeing line, colors untouched. Everything else checked (strain meter's stable/strained/critical tiers, turning-point/coda accent) was already text-labeled or single-hue, no fix needed. See games/drift/CLAUDE.md for the worked note.
 - [ ] Trade Empire
 - [x] Continuum — already done as part of Phase 5.
 - [ ] Le Champ de Mots
