@@ -112,6 +112,48 @@ Audited as part of the site-wide colorblind-safety audit (Okabe-Ito-palette meth
 
 Three independent non-color cues (length, end-text, live numeric text) were already present before this audit started, which is a stronger redundancy bar than Tide's D11 precedent (texture + a hover tooltip) cleared. Re-picking the gradient's hues would only change which two colors are being lerped between — it wouldn't add any information a colorblind player doesn't already have from (1)-(3) above — so, per this task's own "don't invent a fix for a problem that doesn't exist" instruction, none was made. Also checked and found not a real pair: the milestone-nudge vs. achievement toasts (green vs. amber, two different one-at-a-time notification *types* with their own full text, never shown together) and the selection LED dot (`#5fbf7e` green vs. `#454b5c` neutral grey — on/off, not a red/green pair).
 
+## Settings panel (site-wide goal, planning/TODO.md, origin A9)
+
+A consolidated settings panel — text-scale (A-/A/A+ buttons, same clamp/step
+shape as Continuum's Phase 5 `accessibility.js`, following Aftermath's own
+`settings.js` build) and a reduced-motion checkbox — toggled from a new
+"⚙️ Settings" button in the top toolbar alongside Tutorial/How to Play/
+Achievements/Report Card, rendered into a `.section`-styled panel matching
+the existing `#howto-panel`/`#achievements-panel` hidden-until-opened idiom.
+
+Built as `settings.js`, deliberately independent of Pyodide entirely — it
+has no Python dependency and works even if `game.py` never boots, and it's
+wired up in `<head>` before `game.py`'s own `<script>` runs. `style.css`
+gained a `:root { --text-scale: 1 }` custom property read by `html
+{ font-size: calc(16px * var(--text-scale, 1)) }` (every font-size in this
+file is already in rem, confirmed by grep) and a blanket
+`html[data-reduced-motion="true"] *` override collapsing every
+animation/transition to effectively instant, additive to the existing
+`prefers-reduced-motion` media-query-gated rules already in this file (the
+cow-graze/wisp-rise/meter-shimmer/invest-pulse animations and the gauge's
+own transitions).
+
+**Deliberately no sound toggle** — this hub has no audio system built
+anywhere yet (`planning/LATER.md`'s standing "what can you actually do with
+audio" question), so a sound control here would control nothing real.
+
+Both settings are a browser-level UI preference, not game state — persisted
+to `localStorage` (`herd-text-scale`, `herd-reduced-motion`), never touching
+`get_state()`/`load_state()`.
+
+Verified live via a local server on a fresh port (sidesteps an unrelated
+browser heuristic-caching quirk in the dev-server setup, unrelated to this
+game's own code): text-scale increases the whole page's font size correctly
+(confirmed via computed `font-size` on `<html>`), the reduced-motion
+checkbox collapses the methane meter's `transition-duration` to ~0, and
+both settings persist correctly across a full page reload. Zero new console
+errors — the pre-existing ServiceWorker-registration quirk and a CORS error
+from the unrelated community-stat fetch (an artifact of testing against a
+non-whitelisted localhost port, not this change) are both already present
+on the unmodified page. Full pytest suite (125 tests, unchanged —
+`settings.js` is plain frontend JS with no Python surface) stayed green
+throughout.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
