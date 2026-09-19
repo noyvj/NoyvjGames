@@ -64,6 +64,10 @@
       <button id="achievements-toggle-button" class="secondary" type="button">Loading...</button>
       <!-- E7: review a specific past run's full event-by-event breakdown. -->
       <button id="past-runs-toggle-button" class="secondary" type="button">Loading...</button>
+      <!-- K16 (planning/TODO.md "What's New" changelog, site-wide goal):
+           a small in-game highlights panel, same hidden-until-opened idiom
+           as achievements/past-runs above. -->
+      <button id="changelog-toggle-button" class="secondary" type="button">Loading...</button>
     </div>
     <div id="info-page-panel" class="section" hidden>
       <p id="info-page-framing" class="info-page-framing"></p>
@@ -72,6 +76,7 @@
     </div>
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
     <div id="past-runs-panel" class="section" hidden></div>
+    <div id="changelog-panel" class="section changelog-panel" hidden></div>
 
     <!-- Achievement-unlock toast (ACHIEVEMENTS-SYSTEM-DESIGN.md's
          site-wide "on top of the base rollout" requirement) -- fixed near
@@ -312,11 +317,15 @@
       // Achievements catalog (ACHIEVEMENTS-SYSTEM-DESIGN.md §2) -- fetched
       // and handed to Python as a window global before game.py runs, same
       // three-line convention every other achievements-rollout game uses.
-      const [achievementsJson, code] = await Promise.all([
+      // "What's New" changelog (K16, planning/TODO.md) -- same fetch
+      // convention as achievements.json above.
+      const [achievementsJson, changelogJson, code] = await Promise.all([
         fetch("achievements.json").then((response) => response.text()),
+        fetch("changelog.json").then((response) => response.text()),
         fetch("game.py").then((response) => response.text()),
       ]);
       window.ACHIEVEMENTS_JSON = achievementsJson;
+      window.CHANGELOG_JSON = changelogJson;
       await pyodide.runPythonAsync(code);
 
       if (window.GameTutorial) {

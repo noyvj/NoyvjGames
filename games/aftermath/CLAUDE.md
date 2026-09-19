@@ -336,6 +336,32 @@ documented above, also reproducible on the unmodified hub page. Full pytest
 suite (201 tests, unchanged — `settings.js` is plain frontend JS with no
 Python surface) stayed green throughout.
 
+## "What's New" changelog panel (K16, planning/TODO.md, site-wide goal)
+
+A small in-game highlights panel — a curated `changelog.json` (flat list of
+`{"date", "entry"}` objects, fetched into the Pyodide boot sequence exactly
+like `achievements.json` already is: `window.CHANGELOG_JSON` set before
+`game.py` runs, with a filesystem-read fallback in
+`_read_changelog_json()` for the pytest harness) rendered into a
+hidden-until-opened "📋 What's New" panel — same toggle+panel idiom as the
+achievements/past-runs panels, using the past-runs-panel's plain
+date+text-card layout rather than achievements' earned/unearned styling,
+since a changelog entry has no checkable condition. `CHANGELOG` is sorted
+newest-first at load time (defensive against entries being added out of
+date order later), and degrades to an empty list rather than crashing the
+module on a malformed/missing file, matching `ACHIEVEMENTS`'s own
+defensive pattern.
+
+Populated with 9 real highlight entries pulled from this file's own
+milestone table and iteration notes above, with dates cross-checked
+against `git log` for this game's path — a curated highlights view, not a
+full duplicate of this CLAUDE.md or `BCM114-DEV-LOG.md`. Covered by
+`tests/test_changelog.py` (catalog sanity, newest-first ordering, toggle
+open/close, panel content, no state mutation as a side effect). Full
+pytest suite (201 → 210 tests) stayed green throughout; verified live via
+a local server — the panel opens, shows all 9 real entries in the correct
+order, and there are zero console errors.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

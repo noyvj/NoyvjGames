@@ -953,6 +953,39 @@ button.primary:disabled::after {
   text-decoration: underline;
 }
 
+/* ============================================================
+   K16 (planning/TODO.md "What's New" changelog, site-wide goal): a
+   curated highlights list, same card language as the achievements panel
+   above and the past-run-card list below -- no earned/unearned state,
+   just a date + one-line summary per entry, newest first. */
+#changelog-panel { border-left-color: #a9c3ff; }
+
+.changelog-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.changelog-entry {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  border-radius: 10px;
+  background: rgba(5, 6, 13, 0.4);
+}
+
+.changelog-entry-date {
+  margin: 0 0 0.2rem;
+  font-weight: 600;
+  font-size: 0.78rem;
+  opacity: 0.7;
+}
+
+.changelog-entry-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
 /* Unlock toast: fixed near the top of the viewport so it's visible
    regardless of scroll position (including while #actions-dock is
    mobile-docked at the bottom), auto-hidden by game.py's own timeout.

@@ -50,6 +50,9 @@ ELEMENT_IDS = [
     "achievements-panel",
     "achievement-toast",
     "achievement-toast-text",
+    # K16: "What's New" changelog panel.
+    "changelog-toggle-button",
+    "changelog-panel",
     # E4: expanded legacy system.
     "legacy-history-panel",
     # E7: reviewing a specific past run's event-by-event breakdown.
@@ -142,6 +145,9 @@ class GameEnv:
 
     def toggle_past_runs(self):
         self.elements["past-runs-toggle-button"].dispatch("click", None)
+
+    def toggle_changelog(self):
+        self.elements["changelog-toggle-button"].dispatch("click", None)
 
     def reset_skill_tree_click(self):
         self.elements["reset-skill-tree-button"].dispatch("click", None)
