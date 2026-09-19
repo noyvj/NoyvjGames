@@ -1,0 +1,17 @@
+[
+  { "date": "2026-09-20", "entry": "Mobile: the Advance Season button now docks to the bottom of the screen, plus a site-wide body-padding cascade bug fixed so the dock no longer covers page content." },
+  { "date": "2026-09-19", "entry": "Settings panel: adjustable text size and a Reduce Motion toggle, consolidated into one panel." },
+  { "date": "2026-09-14", "entry": "Distinct building meshes for Sanitation Works, plus three named camera presets (Overview/Close-up/Aerial)." },
+  { "date": "2026-09-14", "entry": "Research tree gained a search/filter box for its 40+ nodes." },
+  { "date": "2026-09-14", "entry": "Achievements added: 19 achievements, in-game panel, unlock toast, hub dashboard link, plus a new \"Look Back\" UI for revisiting completed eras." },
+  { "date": "2026-09-14", "entry": "Linked into the main hub nav — title card and review widget, same as every other game." },
+  { "date": "2026-09-14", "entry": "Visual pass: real low-poly Three.js 3D scenes for all seven eras, a WebGL-unavailable 2D fallback, adjustable text size, and a colorblind-safety audit." },
+  { "date": "2026-09-14", "entry": "Save/security audit: found and fixed six real save-robustness bugs, including an era-restoration crash, adversarial numeric values, a NaN/Infinity gap, a growth-loop page-freeze, and revisit cross-contamination." },
+  { "date": "2026-09-14", "entry": "Space Age era added: habitat capacity becomes a new fourth livability provision. All seven eras are now complete." },
+  { "date": "2026-09-13", "entry": "Digital era added: Urban Planners and Transit Hubs, with a new urban-sprawl mechanic — the flagship SDG 11 era." },
+  { "date": "2026-09-13", "entry": "Industrial era added: Factory Workers and Sanitation Works, with a pollution mechanic — the first era where growth and livability trade off directly, not just on the score." },
+  { "date": "2026-09-13", "entry": "Medieval era added: Guildmasters and Public Works, with the research tree's first resilience-side sustainability bonus." },
+  { "date": "2026-09-13", "entry": "Classical era added: Administrators and Canals, with a resilience-side sustainability adjustment." },
+  { "date": "2026-09-13", "entry": "Story and era-transition framework: ongoing logs, era-transition beats, and the first full Tribal to Agrarian transition." },
+  { "date": "2026-09-02", "entry": "Foundation shipped: the Tribal-era city simulation, sustainability/livability scoring, the continuous research tree, the save system, and the info-panel shell." }
+]

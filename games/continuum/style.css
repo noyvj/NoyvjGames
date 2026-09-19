@@ -967,6 +967,43 @@ button.primary:disabled::after {
   color: #e0b374;
 }
 
+/* "What's New" changelog panel (site-wide goal, planning/TODO.md, origin
+   K16) — same glass-panel/card language as .achievements-panel above,
+   since it's the same hidden-until-opened idiom. Explicit [hidden]
+   override included defensively (see .settings-panel[hidden] below and
+   SOL's own documented cascade bug: a `display` override on the same
+   element as a `hidden` toggle can win the cascade over the browser's
+   default `[hidden] { display: none }` rule). */
+.changelog-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.changelog-panel[hidden] {
+  display: none;
+}
+
+.changelog-entry {
+  padding: 0.7rem 1rem;
+  border: 1px solid rgba(201, 147, 84, 0.16);
+  border-radius: 12px;
+  background: rgba(20, 16, 10, 0.4);
+}
+
+.changelog-date {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
+.changelog-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
 /* Milestone 19 — Settings panel (text-scale + reduce-motion),
    consolidated from what used to be a standalone toolbar text-size
    control. Same glass-panel/card language as .achievements-panel

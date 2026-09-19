@@ -81,6 +81,10 @@ ELEMENT_IDS = [
     "exit-revisit-button",
     # Milestone 17 — research tree search/filter.
     "research-search-input",
+    # "What's New" changelog panel (site-wide goal, planning/TODO.md,
+    # origin K16) — rows are created at runtime.
+    "changelog-toggle-button",
+    "changelog-panel",
 ]
 
 
@@ -110,6 +114,9 @@ class GameEnv:
     def advance_season(self, count=1):
         for _ in range(count):
             self.elements["advance-season-button"].dispatch("click", None)
+
+    def toggle_changelog(self):
+        self.elements["changelog-toggle-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements, timers):

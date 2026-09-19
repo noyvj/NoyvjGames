@@ -837,6 +837,81 @@ def _check_new_achievements_for_toast():
     _achievements_seen_ids = earned_now
 
 
+# ===========================================================================
+# Changelog panel (site-wide goal, planning/TODO.md, origin K16: "Per-game
+# in-game changelog panel, for every game"). A quick highlights view, not a
+# full duplicate of CLAUDE.md/BCM114-DEV-LOG.md -- same loading contract as
+# ACHIEVEMENTS above: the boot script fetches changelog.json and hands it to
+# Python as a window global before this file runs, with a filesystem
+# fallback for the pytest harness (no real `js.CHANGELOG_JSON` there).
+# Unlike ACHIEVEMENTS, this is a flat list (no wrapping key) -- see
+# changelog.json itself.
+# ===========================================================================
+CHANGELOG_FILENAME = "changelog.json"
+
+
+def _read_changelog_json():
+    """Same loading contract as `_read_achievements_json()` above."""
+    try:
+        import js as _js  # noqa: PLC0415 -- Pyodide-only import, deliberately lazy
+    except ImportError:
+        _js = None
+
+    raw = getattr(_js, "CHANGELOG_JSON", None) if _js is not None else None
+    if raw is not None:
+        return str(raw)
+
+    here = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(here, CHANGELOG_FILENAME), encoding="utf-8") as handle:
+        return handle.read()
+
+
+# Degrades to an empty list rather than crashing this module's whole
+# import -- the changelog panel is purely informational, not core to
+# Continuum's gameplay.
+try:
+    CHANGELOG = json.loads(_read_changelog_json())
+except (ValueError, OSError, NameError):
+    CHANGELOG = []
+
+changelog_open = False
+
+
+def on_toggle_changelog(event=None):
+    global changelog_open
+    changelog_open = not changelog_open
+    update_changelog_display()
+
+
+def update_changelog_display():
+    toggle = document.getElementById("changelog-toggle-button")
+    panel = document.getElementById("changelog-panel")
+    toggle.innerText = "Hide What's New" if changelog_open else "📋 What's New"
+    panel.hidden = not changelog_open
+    if not changelog_open:
+        return
+
+    panel.innerHTML = ""
+    # Newest first -- entries are authored newest-first in changelog.json
+    # already, but sort defensively so a future out-of-order edit can't
+    # silently invert the panel.
+    for entry in sorted(CHANGELOG, key=lambda e: e["date"], reverse=True):
+        card = document.createElement("div")
+        card.className = "changelog-entry"
+
+        date = document.createElement("p")
+        date.className = "changelog-date"
+        date.innerText = entry["date"]
+        card.appendChild(date)
+
+        text = document.createElement("p")
+        text.className = "changelog-text"
+        text.innerText = entry["entry"]
+        card.appendChild(text)
+
+        panel.appendChild(card)
+
+
 def render_info_page():
     """The collapsed-by-default real-world-sources panel (Milestone 5).
 
@@ -1164,6 +1239,9 @@ def setup():
     document.getElementById("research-search-input").addEventListener(
         "input", create_proxy(on_research_search_input)
     )
+    document.getElementById("changelog-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_changelog)
+    )
     # Belt-and-suspenders: the toast starts hidden via the static `hidden`
     # attribute in index.html, but every other stateful element in this
     # file (panels, buttons) has its shown/hidden state actively driven by
@@ -1171,6 +1249,7 @@ def setup():
     # means the toast's default state doesn't depend on the static HTML
     # attribute ever being present or correct.
     document.getElementById("achievement-toast").hidden = True
+    update_changelog_display()
     render()
     _seed_achievement_toast_baseline()
 
