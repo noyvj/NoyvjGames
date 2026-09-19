@@ -183,6 +183,7 @@ const GAMES_WITH_ACHIEVEMENTS = {
   thaw: "games/thaw/achievements.json",
   loop: "games/loop/achievements.json",
   drift: "games/drift/achievements.json",
+  "champ-de-mots": "games/champ-de-mots/achievements.json",
 };
 
 // Display label only — falls back to the raw game_id for a game added here
@@ -199,6 +200,7 @@ const GAME_DISPLAY_NAMES = {
   thaw: "Thaw",
   loop: "Loop",
   drift: "Drift",
+  "champ-de-mots": "Le Champ de Mots",
 };
 
 const accountAchievementsDashboard = document.getElementById("account-achievements-dashboard");
