@@ -260,6 +260,14 @@ AdSense-iframe CSP notice are both already present on the unmodified page.
 Full pytest suite (151 tests, unchanged — `settings.js` is plain frontend JS
 with no Python surface) stayed green throughout.
 
+## Onboarding-tooltip coverage check (site-wide goal, planning/TODO.md, origin A14)
+
+Checked whether a returning player who skipped/forgot the tutorial has anything in the PERMANENT UI (not the one-time walkthrough, not the always-reachable How to Play panel) explaining this game's non-obvious controls on demand. Loop already leans heavily on the `<details class="info-toggle"><summary>i</summary>...</details>` pattern — permanent, always-visible disclosure widgets sitting right next to the Environmental damage meter, the Loop closure meter, the score breakdown, the Circularity investments row, and the Trade network row — so most of the game already self-explains.
+
+**Real gap found and fixed:** the Trade network section's own "i" toggle explains what Trade Link does, but never mentions Regional Partner exists at all, and the two buttons ("Trade Link (25)" / "Regional Partner (40)") carry no readout of what a unit of each actually buys — unlike the Circularity Investments row just above, where each of Repair/Reuse/Recycle already prints its own "X funds/unit · supplying Y/cycle" stats line. A player who forgot H8 (the second, differently-priced trade partner) had nothing in the permanent UI to explain why there are two buttons or what distinguishes them beyond price. Fixed with a `title` attribute on each button (`render()` in `game.py`), set from the same `TRADE_LINK_COST`/`IMPORT_SUPPLY_PER_UNIT`/`REGIONAL_TRADE_COST`/`REGIONAL_IMPORT_SUPPLY_PER_UNIT` constants the game logic already uses, so the numbers can't drift out of sync: Trade Link "25 funds for 4 imported units/cycle (6.25 funds/unit)", Regional Partner "40 funds for 6 imported units/cycle (6.67 funds/unit) — a separate trade partner from Trade Link, so both can be invested in at once." Verified live: full 151-test pytest suite green, and in a real browser both tooltips read correctly via `title` (confirmed the exact strings on the live DOM elements) with zero console errors.
+
+**No other change made** — everything else checked (goods-category picker, Repair/Reuse/Recycle buttons with their own inline stats, the loop-ring visualization, Advance Cycle) already either self-explains via visible text/labels or is covered by the section-level "i" toggles.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

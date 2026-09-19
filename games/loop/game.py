@@ -927,11 +927,27 @@ def render():
     trade_link_button = document.getElementById("trade-link-invest-button")
     trade_link_button.innerText = f"Trade Link ({TRADE_LINK_COST})"
     trade_link_button.disabled = chain.funds < TRADE_LINK_COST
+    # Onboarding-tooltip coverage (planning/TODO.md, origin A14): the two
+    # trade-partner buttons look interchangeable at a glance and the
+    # section's own "i" toggle only explains Trade Link generally, never
+    # mentioning Regional Partner exists or how the two differ. A returning
+    # player who forgot the H8 second-partner mechanic had nothing in the
+    # permanent UI to explain the choice. `title` states each one's real
+    # cost-per-unit so the two buttons self-explain on hover/long-press.
+    trade_link_button.title = (
+        f"{TRADE_LINK_COST} funds for {IMPORT_SUPPLY_PER_UNIT:.0f} imported units/cycle "
+        f"({TRADE_LINK_COST / IMPORT_SUPPLY_PER_UNIT:.2f} funds/unit)."
+    )
 
     document.getElementById("regional-trade-count").innerText = str(chain.regional_trade_investment)
     regional_trade_button = document.getElementById("regional-trade-invest-button")
     regional_trade_button.innerText = f"Regional Partner ({REGIONAL_TRADE_COST})"
     regional_trade_button.disabled = chain.funds < REGIONAL_TRADE_COST
+    regional_trade_button.title = (
+        f"{REGIONAL_TRADE_COST} funds for {REGIONAL_IMPORT_SUPPLY_PER_UNIT:.0f} imported units/cycle "
+        f"({REGIONAL_TRADE_COST / REGIONAL_IMPORT_SUPPLY_PER_UNIT:.2f} funds/unit) — a separate trade "
+        f"partner from Trade Link, so both can be invested in at once."
+    )
 
     document.getElementById("trade-network-display").innerText = (
         f"Importing {chain.imported_supply():.0f} units/cycle from the trade network; "
