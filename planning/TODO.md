@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 222/270 items checked off (82%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
+**Progress: 226/270 items checked off (84%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
 
 The one living list, replacing the scattered planning docs' own "open items"/"stretch goals" sections. Built from your labeled answers in `IMPROVEMENT-IDEAS-2026-09.md` (all "yes" items, resolved), plus a pass through every other file in `planning/` pulling out anything still genuinely unresolved there. "Later" items (things you deferred, or that need more explanation first) live in `LATER.md` instead — not here.
 
@@ -47,10 +47,10 @@ Two things every game needs once achievements land there, on top of the base rol
 
 *(Origin: A9. One panel per game consolidating text-scale, sound, and animation toggles — Continuum's Phase 5 already built text-scale + a colorblind fix as separate controls; this is about giving every game the same consolidated panel Continuum improvised for itself.)*
 
-- [ ] SOL
-- [ ] Canopy
-- [ ] Grid
-- [ ] Tide
+- [x] SOL
+- [x] Canopy
+- [x] Grid
+- [x] Tide
 - [ ] Aftermath
 - [ ] Herd
 - [ ] Thaw
