@@ -1327,6 +1327,37 @@ button.secondary:disabled::after {
   text-decoration: none;
 }
 
+/* ============================================================
+   "What's New" changelog panel (site-wide goal, planning/TODO.md, origin
+   K16). Reuses .section for the panel shell (same hidden-until-opened
+   idiom as #achievements-panel), and the same :not([hidden]) override
+   .achievements-panel needed, since this is also a flex column of cards. */
+.changelog-panel:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.changelog-entry {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.changelog-entry-date {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+.changelog-entry-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
 .achievements-hub-link:hover {
   text-decoration: underline;
 }

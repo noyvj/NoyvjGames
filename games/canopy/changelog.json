@@ -1,0 +1,13 @@
+{
+  "changelog": [
+    {"date": "2026-09-20", "entry": "Onboarding-tooltip coverage audit completed — legend and stakeholder info-icons plus per-plot tooltips already cover every non-obvious mechanic, no gap found."},
+    {"date": "2026-09-19", "entry": "Settings panel added: text size (A-/A/A+) and a reduce-motion toggle, both persisted per-browser."},
+    {"date": "2026-09-05", "entry": "Space theme visual pass: starfield background, glass panels, gradient buttons, gradient-glow title."},
+    {"date": "2026-09-02", "entry": "Code-quality audit: fixed a create_proxy memory leak in the plot-grid render loop and a stale stakeholder-request bug that could hand out a free relations bonus."},
+    {"date": "2026-08-22", "entry": "Pass 3 (fun/teaching balance): re-paced stakeholder tension and the biodiversity payoff closer together to close an early idle stretch."},
+    {"date": "2026-08-18", "entry": "Info Page added with curated real-world sources on deforestation and carbon sinks."},
+    {"date": "2026-08-18", "entry": "Pass 2: biodiversity sub-meter (wildlife icons on mature plots) and stakeholder-tension decision events."},
+    {"date": "2026-08-11", "entry": "Pass 1: continuous plot-maturity color gradient, recovery-milestone flash, and a real-world context blurb."},
+    {"date": "2026-08-01", "entry": "All 7 milestones complete: plot grid, passive value accrual, clearing + soil degradation, replant recovery, comparison scoring, feedback prompt, visual pass + hub integration."}
+  ]
+}

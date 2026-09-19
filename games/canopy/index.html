@@ -28,6 +28,7 @@
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
       <button id="achievements-toggle-button" class="secondary" type="button">Loading...</button>
+      <button id="changelog-toggle-button" class="secondary" type="button">📋 What's New</button>
       <!-- B1/B6/B18/B20: a player-triggered recap (stats, a sparkline of
            income vs. standing value over the session, a closing
            counterfactual line, and a shareable text snippet) -- same
@@ -72,6 +73,11 @@
     </div>
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
     <div id="achievement-toast" class="achievement-toast" hidden></div>
+    <!-- "What's New" changelog panel (site-wide goal, planning/TODO.md, origin K16):
+         newest-first highlights pulled from CLAUDE.md's own milestone table, not a
+         full duplicate of the dev logs. Same hidden-until-opened .section idiom as
+         achievements/settings above. -->
+    <div id="changelog-panel" class="section changelog-panel" hidden></div>
     <div id="session-summary-panel" class="section session-summary-panel" hidden>
       <p id="session-summary-counterfactual" class="session-summary-counterfactual"></p>
       <div id="session-summary-sparkline" class="session-summary-sparkline"></div>
@@ -289,11 +295,13 @@
       // ACHIEVEMENTS-SYSTEM-DESIGN.md's loading contract: fetch the static
       // catalog and hand it to Python as a window global *before* game.py
       // runs, same pattern SOL's reference integration established.
-      const [achievementsJson, code] = await Promise.all([
+      const [achievementsJson, changelogJson, code] = await Promise.all([
         fetch("achievements.json").then((response) => response.text()),
+        fetch("changelog.json").then((response) => response.text()),
         fetch("game.py").then((response) => response.text()),
       ]);
       window.ACHIEVEMENTS_JSON = achievementsJson;
+      window.CHANGELOG_JSON = changelogJson;
       await pyodide.runPythonAsync(code);
 
       if (window.GameTutorial) {

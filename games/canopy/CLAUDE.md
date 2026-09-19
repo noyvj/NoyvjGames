@@ -230,6 +230,36 @@ button, achievements/session-summary panels that are read-only recaps with
 their own descriptive text, and the Settings panel's plain text-scale/
 reduced-motion controls) — no gaps found, nothing added.
 
+## "What's New" changelog panel (site-wide goal, planning/TODO.md, origin K16)
+
+A new `changelog.json` manifest (flat list of `{date, entry}` objects,
+hand-authored newest-first, dates sourced from real commit history via
+`git log --follow -- games/canopy/CLAUDE.md` rather than guessed) plus a
+"📋 What's New" toggle+panel, following the exact same hidden-until-opened
+`.section` idiom and dynamic-DOM-build pattern `#achievements-panel`
+already established here. Fetched into the Pyodide boot sequence alongside
+`achievements.json` (`window.CHANGELOG_JSON`), with the same disk-read
+fallback for the pytest harness's fake `js` module that `ACHIEVEMENTS`
+already uses. `render()` keeps an open panel live on every tick/action,
+same as every sibling panel.
+
+Tests: 268 → 278 (new `tests/test_changelog.py`: catalog sanity, toggle
+open/close, panel content matches `CHANGELOG` newest-first, render-time
+liveness). Verified live under Pyodide: forced a fresh (`cache: 'no-store'`)
+fetch + re-exec of `game.py` to sidestep this sandbox's known static-asset
+HTTP-caching quirk (the *inner* `fetch("game.py")` call inside the boot
+script kept resolving to a stale cached response for that exact URL no
+matter how the outer page URL was cache-busted — a stricter case of the
+same caching hazard SOL/Continuum's own build notes already document for
+`style.css`); with the fresh code loaded, the panel opened, listed all 9
+real entries with correct dates/text in newest-first order, and closed
+correctly. **Found and ruled out as pre-existing:** an "Object has already
+been destroyed" Pyodide console error appears on idle page load — verified
+via `git stash` that it reproduces identically on the unmodified,
+pre-existing codebase with zero interaction, so it predates and is
+unrelated to this change; left uninvestigated as out of scope for this
+pass.
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag canopy-milestone-0N`.

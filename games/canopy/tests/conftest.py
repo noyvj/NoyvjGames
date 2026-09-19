@@ -49,6 +49,9 @@ ELEMENT_IDS = [
     "achievements-toggle-button",
     "achievements-panel",
     "achievement-toast",
+    # "What's New" changelog panel (site-wide goal, origin K16)
+    "changelog-toggle-button",
+    "changelog-panel",
     "reset-session-button",
     "grid-size-select",
     "session-summary-toggle-button",
@@ -126,6 +129,9 @@ class GameEnv:
 
     def toggle_achievements(self):
         self.elements["achievements-toggle-button"].dispatch("click", None)
+
+    def toggle_changelog(self):
+        self.elements["changelog-toggle-button"].dispatch("click", None)
 
     def toggle_session_summary(self):
         self.elements["session-summary-toggle-button"].dispatch("click", None)
