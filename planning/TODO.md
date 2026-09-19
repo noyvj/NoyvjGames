@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 246/270 items checked off (91%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
+**Progress: 247/270 items checked off (91%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
 
 The one living list, replacing the scattered planning docs' own "open items"/"stretch goals" sections. Built from your labeled answers in `IMPROVEMENT-IDEAS-2026-09.md` (all "yes" items, resolved), plus a pass through every other file in `planning/` pulling out anything still genuinely unresolved there. "Later" items (things you deferred, or that need more explanation first) live in `LATER.md` instead — not here.
 
@@ -95,7 +95,7 @@ Two things every game needs once achievements land there, on top of the base rol
 *(Origin: K16 "yes but site-wide (all games AND site)", plus L10's own separate hub-page ask — merged into one goal with two parts.)*
 
 - [ ] Per-game in-game changelog panel (K16), for every game.
-- [ ] A hub-level "What's New" page (L10), pulling from `BCM114-DEV-LOG.md`/`BCM206-DEV-LOG.md` — **scoped per your notes: brief bullet points + date only, not direct links into the dev logs, and collapsible by date** since some days have a lot logged.
+- [x] A hub-level "What's New" page (L10), pulling from `BCM114-DEV-LOG.md`/`BCM206-DEV-LOG.md` — **scoped per your notes: brief bullet points + date only, not direct links into the dev logs, and collapsible by date** since some days have a lot logged. Built as a new `whats-new.html` at the repo root (linked from a new hub nav in `index.html`'s header) rather than a heavier section inside the hub page itself — it fetches both dev logs client-side at load time and parses each `### YYYY-MM-DD` entry's `**Did:**` line into a one-line, truncated bullet (no full entry text, no links into the log files), grouped into a `<details>` per date (most recent two dates open by default), matching the `<details>`-based disclosure pattern already used across the games (e.g. Tide's ticker-history toggle). Self-updating: any future dev-log entry shows up here automatically, no regeneration step needed.
 
 ---
 

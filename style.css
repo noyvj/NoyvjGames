@@ -34,6 +34,85 @@ body {
   letter-spacing: 0.02em;
 }
 
+.hub-nav {
+  display: flex;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.8rem;
+}
+
+.hub-nav a {
+  color: #8fb0e8;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+}
+
+.hub-nav a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* whats-new.html */
+.whats-new-main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+}
+
+.whats-new-status {
+  opacity: 0.6;
+  font-size: 0.9rem;
+}
+
+.whats-new-date-group {
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.82), rgba(14, 16, 28, 0.88));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 14px;
+  padding: 0.9rem 1.2rem;
+  margin-bottom: 0.9rem;
+}
+
+.whats-new-date-group summary {
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  outline: none;
+}
+
+.whats-new-entry-list {
+  list-style: none;
+  margin: 0.85rem 0 0;
+  padding: 0;
+}
+
+.whats-new-entry-list li {
+  padding: 0.55rem 0;
+  border-top: 1px solid rgba(140, 160, 255, 0.12);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.whats-new-entry-list li:first-child {
+  border-top: none;
+}
+
+.whats-new-entry-tag {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.55;
+  margin-bottom: 0.2rem;
+}
+
+.whats-new-entry-text {
+  opacity: 0.88;
+}
+
 #game-grid {
   max-width: 1000px;
   margin: 0 auto;
