@@ -222,6 +222,30 @@ async function loadMySaves() {
 // on the hub side) once a game's own achievements.json + get_state()
 // "achievements_earned" field ship — see the design doc's "add a new game"
 // checklist.
+//
+// Revisited 2026-09-20 (TODO.md L14) now that every hub-linked game ships
+// achievements (12/12) — the original "not yet rolled out" reason no
+// longer applies today, but the decision is to keep hand-maintaining this
+// dict rather than switch to probing, for two reasons that will apply
+// again for the next new game:
+//   1. GAME_DISPLAY_NAMES below is its own hand-maintained slug list —
+//      GitHub Pages serves static files with no directory-listing
+//      endpoint, so there's no way to discover "which games exist"
+//      without a hardcoded list somewhere. Hub-linking a game already
+//      means hand-editing this file (a title card, a review widget, this
+//      dict, GAME_DISPLAY_NAMES); one more line here adds negligible
+//      marginal cost to a step you're already doing by hand.
+//   2. History confirms the 404-avoidance reasoning still holds, not just
+//      hypothetically: Trade Empire was hub-linked (added to
+//      GAME_DISPLAY_NAMES/the title-card grid, commit 86ea1b6) before its
+//      achievements were registered here (commit 247c64a) — a real gap,
+//      not a one-off. Probing every hub-linked game's achievements.json
+//      on every load would reintroduce exactly that per-game 404 during
+//      that gap for the next game too.
+// Conclusion: hand-maintained is fine as-is. Revisit only if a future
+// session finds this list actually drifting out of sync in practice
+// (e.g. a game shipping achievements and someone forgetting to add the
+// line here) — that would be a real cost this reasoning doesn't cover.
 const GAMES_WITH_ACHIEVEMENTS = {
   sol: "games/sol/achievements.json",
   continuum: "games/continuum/achievements.json",
