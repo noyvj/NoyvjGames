@@ -27,19 +27,3 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 - The exact `ads.txt` line, if AdSense gave you one.
 
 I'll drop all of that into the ad bar and it goes live everywhere on the site at once, since it's a shared partial.
-
----
-
-## Questions
-
-### Q1. What did your original B15 comment actually mean?
-
-Canopy's `planning/TODO.md` per-game list has one leftover unresolved item: your answer to B15 talked about "overpinning" and worrying about too much being pinned, but B15 itself was "extend the mobile-dock treatment to the stats/legend panels" — which has nothing to do with pinning. I kept B15 itself as a plain yes (it's built, folded into the mobile-dock rollout goal), but I don't know what your actual comment was about. Was it meant for a different item (maybe the hub lobby's "games you have saves for" pinned section, L11)?
-
-**Your answer:**
-
-### Q2. Ready for me to push this repo to GitHub?
-
-The accounts system (signup/login/save-claim/feedback) is built and tested locally but has never gone live — `planning/ACCOUNTS-AND-FEEDBACK-DESIGN.md` confirms the real FastAPI Cloud backend auto-deploys on every push to this repo's GitHub remote, so "deploying" it is just a matter of pushing. I haven't pushed anything to GitHub this session under a standing instruction not to without asking first — there's now a large amount of accumulated work (achievements, settings panels, colorblind fixes, and more across every game) sitting in local commits only. Say the word and I'll push main to the remote; otherwise I'll keep working locally and this stays queued.
-
-**Your answer:**

@@ -8,3 +8,7 @@ venv/
 
 # Personal project, not part of this hub -- explicitly never committed here.
 /warframe_build_tracker/
+
+# Completed TODO.md snapshots, archived locally only (not repo history) --
+# see CLAUDE.md's "Archiving a completed TODO.md" note.
+/planning/todo-archive/
