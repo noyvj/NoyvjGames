@@ -219,6 +219,20 @@ unlock-toast/hub-link retrofit, all built this session on top of the
   prestige → level 1, bonus applied, banner readout updated) — all with a
   clean browser console (no uncaught errors) in a freshly-loaded tab.
 
+## Colorblind-safety audit (site-wide goal)
+
+Audited as part of the site-wide colorblind-safety audit (Okabe-Ito-palette method, per Continuum's Phase 5, Canopy's B9, Tide's D11). Checked `game.py`/`style.css` for any place game-state meaning is conveyed by color alone.
+
+**No real hue-only encoding found — no change made.** The candidates checked and ruled out:
+- The ecology-status danger state (`.ecology-status--warning`, red-bordered) isn't paired against a green "healthy" equivalent — the ecology meter (`.meter-fill`) is a single always-green gradient bar whose *width* (not hue) shows health, and the warning state adds a border/background plus a "⚠ Output reduced 25%..." text line, not a red-vs-green color switch.
+- The reset-world button (`.reset-world-button`, muted red border + amber text) is a single button with its own "Reset This World" label, not one half of a color-coded pair.
+- Governor priority buttons (Growth/Balance/Ecology) and priority-option tiles (Travel) mark selection with a full background-gradient fill change plus a green LED dot — selected vs. unselected is green-vs-neutral-grey, not green-vs-red, and the button's own text label already states which option is active.
+- Achievement cards' earned state (`.achievement-card--earned`, green border/glow) has no "failed"/red counterpart to be confused with — locked achievements are just the default card styling, not a red variant.
+- Section accent colors (`border-left-color` per section: automation blue, ecology green, terraform cyan, research indigo, governor purple, trade amber, sky-city orange, travel green) are per-section decoration, each section already headed by its own text label — not a functional pair a player needs to visually discriminate for meaning.
+- The research-tier panel's Completed/In Progress/Locked states are plain text labels (`update_research_tree_display()`), with no color-only distinction in `style.css` at all.
+
+Matches Tide's D11 precedent: investigated a real candidate list, found the colors in play were never a genuine deuteranopia/protanopia confusion pair (no side-by-side red/green state pair exists in this game), and made no speculative change.
+
 ## Working conventions
 - Commit + tag at the end of each milestone: `git commit -m "Milestone N: <name>"` then `git tag milestone-0N` (e.g. `milestone-09a` for lettered sub-parts of milestone 9).
 - Keep `game.py` as the single source of game logic where reasonable; split into modules only once it gets unwieldy.
