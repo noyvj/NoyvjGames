@@ -125,6 +125,16 @@ open/close, label text, newest-first ordering, rendered content) —
 258/258 tests green. Verified live: panel opens, shows the real entries
 newest-first, closes cleanly, zero console errors.
 
+## Onboarding-tooltip coverage check (site-wide goal, planning/TODO.md, origin A14)
+
+Checked whether a returning player who skipped/forgot the tutorial has anything in the PERMANENT UI (not the one-time walkthrough, not the always-reachable How to Play panel) explaining Drift's non-obvious controls on demand. Drift already leans heavily on the `<details class="info-toggle"><summary>i</summary>...</details>` pattern next to Displacement pressure, Integration, Regional wellbeing, and the coda's "Generations from now" line, plus each capacity-investment row already carries its own always-visible one-line effect description ("Reduces strain. Doesn't speed up integration." / "...is the only capacity that moves pending arrivals to integrated.") — so most of the game already self-explains.
+
+**Real gap found and fixed:** the "Accelerated Severity" difficulty toggle (I13) isn't in `DRIFT_TUTORIAL_STEPS` at all in `index.html`, so it's covered by neither the one-time walkthrough nor the auto-generated How to Play read-through (`shared/tutorial.js` builds that page from the same steps array) — and the button's own label ("Accelerated Severity: ON/OFF") never states what it actually changes. A returning player had no way to find out what this toggle does anywhere in the game. Fixed with a `title` tooltip in `render()` (`game.py`), stating the real effect from the same `ACCELERATED_SEVERITY_MULTIPLIER` constant the game logic uses: "Optional difficulty variant: multiplies background displacement-pressure severity growth by 2x. Only affects how fast arrival pressure rises — never your capacity or funds math directly." Verified live in a real browser (fresh isolated tab): the tooltip reads correctly on the live DOM element, zero console errors. Full pytest suite (258 tests) green.
+
+*(Note: this fix was made while `games/drift/game.py` also had a concurrent session's in-progress "What's New" changelog work (K16) sitting in the same working tree; that session's own commit — `Drift: add in-game "What's New" changelog panel (K16)` — ended up sweeping this tooltip change in alongside its own, since both landed in the same file at the same time. The change is correctly present in the committed code either way; flagging here only so the history's commit message doesn't read as the full story of what changed.)*
+
+**No other change made** — everything else checked (wellbeing gauges' icons/labels, the trend graph's per-point `<title>` tooltips, the net-positive badge, session-milestone/control-region callouts) already either self-explains via visible text or is covered by the section-level "i" toggles.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
