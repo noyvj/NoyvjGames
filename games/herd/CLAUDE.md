@@ -101,6 +101,17 @@ Built the hub-wide achievements framework here as part of the site-wide rollout 
 
 All of the above are pure functions of state that already exists or state that follows the same save/load contract as everything else in `FarmState` — no separate hand-maintained "earned"/"seen" bookkeeping outside what's listed. Full suite: 125/125 (31 new achievement tests), no regressions.
 
+## Colorblind-safety audit (site-wide goal)
+
+Audited as part of the site-wide colorblind-safety audit (Okabe-Ito-palette method, per Continuum's Phase 5, Canopy's B9, Tide's D11, Grid's C18, Aftermath's own pass). The site-wide visual pass note above had already flagged one real candidate worth checking here: `GAUGE_LOW_COLOR`/`GAUGE_HIGH_COLOR` (`game.py`) — the coupling-ratio dial, this game's single most prominent UI element and "the mechanic the whole lesson depends on" per its own docstring — lerp green (`#4c9c6e`, fully decoupled) to red (`#e0674c`, fully coupled) as `coupling_gauge_svg()`'s `fraction` climbs. Continuous, not discrete, so the applicable method (per this audit's own instructions) would be Canopy's redundant-cue approach rather than Continuum's discrete-palette swap, if a fix were actually needed.
+
+**Investigated and found already redundantly coded — no change made.** Unlike Canopy's original plot-tile gradient (color and *only* color, before B9's fix), this gauge was never color-alone to begin with:
+1. **Spatial/length encoding, independent of hue.** `coupling_gauge_svg()` draws `.gauge-fill` as a `stroke-dasharray` partial arc (`dash = fraction * 100` of a `pathLength="100"` path) on top of an always-full-length dark `.gauge-track`. The fraction is directly readable from *how far the colored arc extends against the dark track*, exactly the way a plain progress-bar's fill width works — the same "position/width, not hue, carries the value" shape Continuum's and SOL's own audits found acceptable elsewhere.
+2. **Text end-labels.** `index.html`'s `gauge-tick-label--low`/`--high` spell out "CLEAN" and "HIGH" in words at the two ends of the arc, not just in color.
+3. **Always-visible numeric readout.** `render()` sets `#coupling-gauge-label` to "Emissions per herd unit: X methane/round" and `#coupling-display` to "Coupling ratio: X methane/herd/round" every frame, unconditionally (not behind a hover or a toggle) — the exact figure the gauge represents is on-screen in plain text at all times.
+
+Three independent non-color cues (length, end-text, live numeric text) were already present before this audit started, which is a stronger redundancy bar than Tide's D11 precedent (texture + a hover tooltip) cleared. Re-picking the gradient's hues would only change which two colors are being lerped between — it wouldn't add any information a colorblind player doesn't already have from (1)-(3) above — so, per this task's own "don't invent a fix for a problem that doesn't exist" instruction, none was made. Also checked and found not a real pair: the milestone-nudge vs. achievement toasts (green vs. amber, two different one-at-a-time notification *types* with their own full text, never shown together) and the selection LED dot (`#5fbf7e` green vs. `#454b5c` neutral grey — on/off, not a red/green pair).
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
