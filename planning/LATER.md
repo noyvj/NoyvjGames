@@ -61,7 +61,6 @@ Several items across the ideas file got parked specifically pending this — you
 
 - **F4**: "later" (no further comment attached).
 - **F10**: a full "Restart Farm" reset. Your note: "maybe prestige system rather than full reset" — worth deciding whether Herd wants a Loop/SOL-style prestige layer instead of a plain wipe-and-restart.
-- **F16**: a confirm/undo window on the Plant-Based Pivot buy. Your note: "refer to C14" — same shared confirmation-dialog pattern.
 - **F20**: swapping the context-blurb once methane crosses a threshold. Your note: "I'm not sure what that changes." To clarify: right now the intro/context text at the top of the game stays the same fixed sentence the whole session; this idea would swap in a different pre-written sentence once methane has visibly become a real problem, so the framing text reacts to how the session is actually going rather than staying static flavor text throughout. Minor, cosmetic — fine to drop if it still doesn't seem worth it once explained.
 
 ## G. Thaw
