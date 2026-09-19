@@ -5,3 +5,6 @@ venv/
 *.db
 .env
 .DS_Store
+
+# Personal project, not part of this hub -- explicitly never committed here.
+/warframe_build_tracker/

@@ -431,5 +431,5 @@ Two things every game needs once achievements land there, on top of the base rol
 ## Closing tasks (run these last, per your instruction)
 
 - [ ] A full site-wide bug-check pass, once everything above is done.
-- [ ] Generate a fresh 20-ideas-per-game round-2 document (same format as `IMPROVEMENT-IDEAS-2026-09.md`) once this list is complete, for you to answer again.
+- [ ] Generate a fresh 20-ideas-per-game round-2 document (same format as `IMPROVEMENT-IDEAS-2026-09.md`) once this list is complete, for you to answer again. (For continuum focus on targetting an audience, which is 40 year old white men in the tech industry in california that are my dads friends we are also going to want to do research on this)
 - [ ] A second ideas document specifically for gamifying the "teaching" BCM114 games (Canopy, Grid, Tide, Aftermath, Herd, Thaw, Loop, Drift) — same 20-idea-per-game layout, but leaning into "fun" now that the teaching-focused part of the semester has passed. Explicitly requested to happen *after* everything you said yes to in this list is done.
