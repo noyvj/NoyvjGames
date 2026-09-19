@@ -323,6 +323,26 @@ from a `None.addEventListener` call) tied to another session's concurrent
 in-progress "What's New" changelog feature (uncommitted `game.py`/`style.css`
 changes at the time) — not caused by, or fixed by, this change.
 
+## "What's New" changelog panel (site-wide goal, planning/TODO.md, origin K16)
+
+A new `changelog.json` manifest (flat list of `{date, entry}` objects,
+hand-authored newest-first, pulled from this file's own milestone table
+and the session build notes above — a quick highlights view, not a full
+duplicate of the dev logs) plus a "📋 What's New" toggle+panel, following
+the exact same hidden-until-opened `.section` idiom and dynamic-DOM-build
+pattern the achievements/stats/governor-report panels already established.
+Fetched into the Pyodide boot sequence alongside `achievements.json`
+(`window.CHANGELOG_JSON`), with the same disk-read fallback for the pytest
+harness's fake `js` module that `ACHIEVEMENTS` already uses. `tick()` and
+`_full_render()` both keep an open panel live, same as every sibling panel.
+
+Tests: 616 → 626 (`tests/test_changelog.py`: catalog sanity, toggle
+open/close, panel content matches `CHANGELOG` newest-first, tick-liveness).
+Verified live under Pyodide via the `hub-dev-server` launch config: panel
+opens and lists all 12 real entries with correct dates/text, toggle button
+label flips to "Hide What's New", zero console errors on the SOL page
+itself.
+
 ## Working conventions
 - Commit + tag at the end of each milestone: `git commit -m "Milestone N: <name>"` then `git tag milestone-0N` (e.g. `milestone-09a` for lettered sub-parts of milestone 9).
 - Keep `game.py` as the single source of game logic where reasonable; split into modules only once it gets unwieldy.
