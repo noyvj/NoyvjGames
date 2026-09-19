@@ -201,6 +201,39 @@ stayed green throughout; verified live via a local server — the panel
 opens, shows all 10 real entries in the correct order, and there are zero
 console errors.
 
+## Onboarding-tooltip coverage check (site-wide goal, planning/TODO.md, origin A14)
+
+Audited, no change needed. Checked whether a returning player who's
+forgotten the tutorial can still make sense of the permanent UI's
+non-obvious parts, on top of the persistent, reachable-any-time
+`#howto-toggle-button`/`#howto-panel`.
+
+Found the permanent UI already covers every non-obvious mechanic, at
+multiple redundant layers, matching Aftermath's own "no gap found" audit:
+- Six section-level `.info-toggle` icons permanently explain the coupling
+  gauge's "per-unit, not total" scope, the pressure formula's
+  never-resets/80%-cap behavior, the score formula (funds minus a
+  methane penalty, not just funds), the baseline-farm counterfactual's
+  exact comparison rules, the three efficiency measures' additive
+  stacking (with a floor), and the plant-based pivot's separate-lever/
+  60%-cap/income tradeoff.
+- Every investment button (`Grow Herd (N)`, each decoupling measure, the
+  plant-based pivot) shows its live cost inline in its own label, per
+  `render()` in `game.py` — never a bare unlabeled action.
+- The coupling gauge itself (this game's single most prominent element)
+  is already triple-redundantly coded per the earlier colorblind-safety
+  audit above: arc length against a dark track, "CLEAN"/"HIGH" text
+  labels, and an always-visible numeric readout — none of that is
+  gated behind hover or a one-time callout.
+- The tutorial's Decoupling Investments step already carries a concrete
+  worked numeric example (F12), and the Plant-Based Pivot's
+  confirm-dialog (F16) restates its own tradeoff at the moment of
+  investment, on top of the permanent info-toggle covering the same
+  ground.
+
+No gaps found; nothing added. Full 137/137 pytest suite unaffected (no
+code changed).
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
