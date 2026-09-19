@@ -98,6 +98,53 @@ Site-wide colorblind-safety audit (Okabe-Ito-palette method, per Continuum's Pha
 
 **Fixed** (`games/grid/style.css`'s `.trend-line--cost`/`.trend-point--cost`): re-picked cost's color from green to Okabe-Ito blue (`#4fa8dd`, already used elsewhere in this file for the hydro mix-bar), so the pair reads as red/orange vs. blue instead of red vs. green. Also gave `.trend-line--cost` its own `stroke-dasharray: 2 2` (a fine dash, distinct from the global line's existing `4 3` dash and emissions' solid line), so all three lines are now told apart by pattern as well as color — the same "recolor plus a second, non-color cue" combination Continuum's own fix used, rather than relying on the palette swap alone. `trend-point--cost`'s marker fill was updated to match. No `game.py` change needed — `trend_graph_svg()` only emits CSS classes, never inline colors. Full pytest suite (255 tests) stayed green (CSS-only change, no Python logic touched).
 
+## Settings panel (site-wide goal, planning/TODO.md, origin A9)
+
+A consolidated settings panel — text-scale (A−/A/A+ buttons, same clamp/step
+shape as Continuum's Phase 5 `accessibility.js`) and a reduced-motion
+checkbox — toggled from a new "⚙️ Settings" button in the second toolbar row
+(alongside the Steeper Demand / Weather Variability difficulty toggles),
+rendered into a `.section`-styled panel matching the existing
+`#howto-panel`/`#achievements-panel` hidden-until-opened idiom.
+
+Built as `settings.js`, deliberately independent of Pyodide entirely (same
+discipline as Continuum's `accessibility.js`) — it has no Python dependency
+and works even if `game.py` never boots, wired up in `<head>` before
+`game.py`'s own `<script>` runs. `style.css` gained a `:root
+{ --text-scale: 1 }` custom property read by `html { font-size: calc(16px *
+var(--text-scale, 1)) }` (every font-size in this file is already in rem,
+confirmed by grep, so scaling the root font-size scales the whole game
+uniformly with zero other changes needed) and a blanket
+`html[data-reduced-motion="true"] *` override collapsing every
+animation/transition to effectively instant — additive to, not replacing,
+this game's own existing `prefers-reduced-motion` media-query-gated rules
+(`grid-current-flow`, `grid-meter-shimmer`, `grid-smoke-rise`,
+`grid-flame-flicker`, `grid-radiate-pulse`, `grid-panel-shine`,
+`grid-turbine-spin`, `grid-wave-flow`, `grid-battery-pulse`).
+
+**Deliberately no sound toggle** — this hub has no audio system built
+anywhere yet (see `planning/LATER.md`'s "what can you actually do with
+audio" standing question), so a sound control here would control nothing
+real.
+
+Both settings are a browser-level UI preference, not game state — persisted
+to `localStorage` (`grid-text-scale`, `grid-reduced-motion`), deliberately
+never touching `get_state()`/`load_state()`, since a save code is meant to
+be portable across devices/browsers and a local browser's accessibility
+preference shouldn't silently override another device's.
+
+Verified live: 255/255 pytest suite unaffected (pure HTML/CSS/JS, no Python
+touched); in a real browser, applying a 1.3 text-scale correctly computed
+`<html>`'s font-size to 20.8px, and enabling reduced-motion collapsed the
+`.grid-visual`/pylon elements' live `animation-duration` to ~1e-6s, both
+persisting to their localStorage keys. The only console error present was
+a pre-existing, unrelated AdSense placeholder-client CSP frame-ancestors
+warning, reproducible on the unmodified page. Verification required
+cache-busting the stylesheet `<link>` directly (a fresh `?v=` query on its
+`href`) to sidestep this sandbox's own known static-asset HTTP-caching
+quirk — not a defect in the shipped code, the same environment hazard
+Continuum's, SOL's, and Canopy's own build notes already document.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
