@@ -362,6 +362,44 @@ pytest suite (201 → 210 tests) stayed green throughout; verified live via
 a local server — the panel opens, shows all 9 real entries in the correct
 order, and there are zero console errors.
 
+## Onboarding-tooltip coverage check (site-wide goal, planning/TODO.md, origin A14)
+
+Audited, no change needed. Checked whether a returning player who's
+forgotten the tutorial (`shared/tutorial.js`'s spotlight walkthrough) can
+still make sense of the permanent UI's non-obvious parts, on top of the
+persistent, reachable-any-time `#howto-toggle-button`/`#howto-panel`.
+
+Found the permanent UI already covers every non-obvious mechanic more
+thoroughly than any other quartet game audited so far, with no gated or
+one-time explanation anywhere:
+- Every skill-tree row's `status_el.innerText` permanently states the
+  skill's exact numeric effect (e.g. "Reinforced Infrastructure — +2
+  starting resilience capacity") and, while still locked, exactly which
+  prerequisite skills are still missing (`missing_prereqs()`) rather than
+  just a disabled button with no reason given.
+- Every skill row's `skill-practice` paragraph unconditionally shows that
+  skill's `real_practice` grounding text every render, regardless of
+  unlock state — not a one-time toast (E14's toast is a separate,
+  additional first-unlock moment, not this text's only home).
+- Every action button shows its cost or effect inline in its own label
+  ("Invest in Resilience (10)", "Unlock (N)") rather than requiring a
+  separate lookup.
+- Four section-level `.info-toggle` icons permanently explain the
+  deterministic per-run severity pattern, the mitigation cap/formula, the
+  knowledge-points-per-run formula, and Growth's "no damage mitigation,
+  just flat income" trade-off — the same explanations a one-time-only
+  callout might otherwise carry elsewhere in this hub.
+- The Extended Run checkbox and Export/Import Progress buttons are
+  self-explanatory from their own adjacent label text, with no hidden
+  mechanic behind them beyond what's stated.
+- Reset Skill Tree's two-click confirm needs no advance warning tooltip:
+  the first click is harmless (only arms it) and immediately changes the
+  button's own text to "Click again to confirm reset," so the affordance
+  teaches itself in the one click it takes to discover it exists.
+
+No gaps found; nothing added. Full 210/210 pytest suite unaffected (no
+code changed).
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
