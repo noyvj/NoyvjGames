@@ -158,6 +158,18 @@ Live-verified at 375×812: loaded Ship 1 with Ore at Aurum, confirmed the strip 
 - No hub link or ad-bar/PWA wiring yet — per the other games' pattern, hub integration is a late milestone (visual pass), not part of the core-loop milestone.
 - 13 tests (`tests/test_core_loop.py`), fake-DOM/Pyodide harness copied from Canopy's pattern (`tests/fakes.py`, `tests/conftest.py`).
 
+## Colorblind-safety audit (implemented as J18, confirmed here)
+
+Audited as part of the site-wide colorblind-safety audit (`planning/TODO.md`, Okabe-Ito-palette method per Continuum's Phase 5, redundant-cue method per Canopy's B9, audit-only method per Tide/Aftermath/Herd/Thaw/Loop's own precedent). Per the task's own starting point, checked `render_map()`'s automated-vs-manual ship-dot differentiation (J18) first.
+
+- **J18, automated (`AUTOMATED_SHIP_COLOR` gold `#e0c34c`) vs. manual (`MANUAL_SHIP_COLOR` near-white `#e8e9f0`) ship dots — already fixed, prior to this dispatch, in the J6-J20 gap-closing pass.** Confirmed the fix in `render_map()`: an automated ship draws as a diamond (`moveTo`/`lineTo` forming a rhombus) while a manual ship draws as a circle (`arc`) — the code comment marks this explicitly: "J18 — colorblind-safe differentiation: a diamond, not just a different hue, so automated-vs-manual doesn't rely on color perception at all." Gold vs. near-white also isn't a deuteranopia/protanopia confusion pair to begin with (it's a hue/lightness jump, not a red-green pair), so this was doubly safe even before the shape fix. `planning/TODO.md`'s per-game J18 line was already checked off; this dispatch checked off the separate site-wide colorblind-audit line for Trade Empire that folds J18 in.
+- **`.market-price--crashed` (red)** — not a violation: a single-state modifier on the default price-line color, not paired against a contrasting "healthy" color, and the line's own text already states the exact percentage ("X% of baseline") regardless of the color.
+- **`.ship-status--idle-warning` (amber `#e0b34c`)** — not a violation: same single-state-callout shape as the market-crashed case, and `ship_status_text()`'s own text already describes the idle state in words.
+- **`FLEET_PRIORITY_TARGET_COLOR` (pink) ring, `NODE_COLOR`/`EDGE_COLOR`/`LABEL_COLOR`** — single-purpose decorative/informational colors, no paired good/bad or automated/manual-style state riding on any of them.
+- The generic `.meter-fill` (colony need bars, market price bars) has no per-state color modifier at all — one fill color for every bar, so there's no pair to confuse.
+
+No CSS or `game.py` change made by this dispatch (J18's fix predates it). Full pytest suite (unchanged) stays green since nothing was touched.
+
 ## Working conventions
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag trade-empire-milestone-0N`.
 - Update the Status column as work happens.
