@@ -87,6 +87,7 @@ Two things every game needs once achievements land there, on top of the base rol
 *(Origin: A14 — "that should be in the how-to-play section, if not add it site-wide." Investigate first, only build where there's a real gap.)*
 
 - [ ] For each game: check whether its existing Tutorial / How-to-Play already covers "a returning player who skipped the tutorial and forgot a mechanic." Where it doesn't, add a light contextual-tooltip pass rather than relying solely on the one-time walkthrough.
+  - Covered so far: SOL, Canopy, Grid, Tide, Aftermath, Herd, Continuum, Drift, Loop, Le Champ de Mots (each has its own CLAUDE.md worked note). Still open: Thaw, Trade Empire.
 
 ---
 
