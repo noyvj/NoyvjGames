@@ -278,7 +278,7 @@ def test_proficiency_session_is_not_part_of_the_save_payload(game_env):
     module = game_env.module
     module.start_proficiency_test(1)
     state_dict = module.get_state()
-    assert set(state_dict) == {"version", "current_day", "plots", "error_patterns"}
+    assert set(state_dict) == {"version", "current_day", "plots", "error_patterns", "achievements_earned"}
 
 
 # --- typed-answer input clearing --------------------------------------------

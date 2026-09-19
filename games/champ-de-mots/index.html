@@ -37,6 +37,7 @@
     <div id="howto-panel" class="section" hidden></div>
     <div id="dashboard-panel" class="dashboard-panel" hidden></div>
     <div id="achievements-panel" class="dashboard-panel" hidden></div>
+    <div id="achievement-toast" class="achievement-toast" hidden></div>
 
     <div id="blitz-panel" class="minigame-panel" hidden>
       <h2>Greetings &amp; Basics Blitz</h2>
@@ -358,6 +359,29 @@
       }).catch(function () {});
     };
   </script>
+  <!--
+    Achievements retrofit: the unlock toast's auto-hide delay is scheduled
+    from here rather than from a Python setTimeout/setInterval call, because
+    this game's own Milestone 7 wellbeing constraint (see
+    test_nothing_in_the_game_runs_on_a_timer in tests/test_polish.py) bans a
+    literal timer call from ever appearing in game.py -- the same reason the
+    arcade minigames' 1-second tick lives in this file's own setInterval
+    below rather than in Python. show_achievement_toast() in game.py sets
+    the toast's text/visibility directly, then calls this to schedule its
+    hide, same Python-decides/JS-owns-timing split as the report sender
+    above and the minigame tick loop below.
+  -->
+  <script>
+    window.scheduleAchievementToastHide = function (ms) {
+      clearTimeout(window._achievementToastTimer);
+      window._achievementToastTimer = setTimeout(function () {
+        const toast = document.getElementById("achievement-toast");
+        if (!toast) return;
+        toast.classList.remove("achievement-toast--visible");
+        toast.hidden = true;
+      }, ms);
+    };
+  </script>
   <script>
     const CHAMP_DE_MOTS_TUTORIAL_STEPS = [
       {
@@ -416,14 +440,21 @@
       // The catalog is handed to Python as a window global rather than read
       // from the Pyodide filesystem — no build step, one fetch, and the
       // pytest harness can stand in for it with the same attribute.
-      const [catalogJson, supplementaryNotesJson, minigamesCode, code] = await Promise.all([
-        fetch("fren_combined_catalog.json").then((response) => response.text()),
-        fetch("fren_supplementary_notes.json").then((response) => response.text()),
-        fetch("minigames.py").then((response) => response.text()),
-        fetch("game.py").then((response) => response.text()),
-      ]);
+      const [catalogJson, supplementaryNotesJson, achievementsJson, minigamesCode, code] =
+        await Promise.all([
+          fetch("fren_combined_catalog.json").then((response) => response.text()),
+          fetch("fren_supplementary_notes.json").then((response) => response.text()),
+          fetch("achievements.json").then((response) => response.text()),
+          fetch("minigames.py").then((response) => response.text()),
+          fetch("game.py").then((response) => response.text()),
+        ]);
       window.CATALOG_JSON = catalogJson;
       window.SUPPLEMENTARY_NOTES_JSON = supplementaryNotesJson;
+      // ACHIEVEMENTS-SYSTEM-DESIGN.md §2: achievements.json is the single
+      // source of truth for this game's achievement catalog, read from
+      // Python the same way the catalog/supplementary-notes files already
+      // are (_read_json_asset()'s window-global-then-filesystem-fallback).
+      window.ACHIEVEMENTS_JSON = achievementsJson;
       // Milestones 27-30: the arcade minigame family is its own importable
       // module (see minigames.py's own docstring), not JSON data -- writing
       // its source onto Pyodide's virtual filesystem before running game.py

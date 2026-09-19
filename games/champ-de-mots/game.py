@@ -2190,27 +2190,55 @@ def render_liaison_drill():
 
 
 # ===========================================================================
-# Improvement Ideas addendum -- achievements (a game-local slice only)
+# Achievements (planning/ACHIEVEMENTS-SYSTEM-DESIGN.md) -- retrofit of this
+# game's own Milestone 23 slice into the cross-game pattern (per
+# planning/TODO.md's "roll achievements out everywhere" checklist). SOL is
+# the framework's reference integration; this game is the retrofit case
+# the design doc itself calls out, since Milestone 23 shipped a game-local
+# achievements slice *before* the cross-game framework existed.
 # ===========================================================================
 #
-# The source doc frames achievements as an eventual *cross-game* system this
-# game "would be the first contributor to" -- that architecture (a shared
-# schema/UI other games would also plug into) is a real design project of its
-# own and out of scope here. What's genuinely well-defined without it is a
-# game-local reading of the doc's own example milestones ("25/50/100
-# Automated, full week Automated, etc."). Since §3/Milestone 2 already made
-# plot stages monotonic (a stage never regresses), "currently Automated" and
-# "ever reached Automated" are the same count -- achievements need no new
-# save state at all, just a read of the farm that already exists.
+# Every one of this section's actual unlock conditions is unchanged from
+# Milestone 23: two independent tiers, total plots automated and full
+# syllabus weeks fully automated. What's reshaped is *where the catalog
+# lives* (achievements.json, the cross-game single source of truth for
+# label/description -- §2 -- instead of a hardcoded ACHIEVEMENT_ROW_LABELS
+# dict) and *what this file exposes* (achievement_ids_earned() as a
+# write-only save-state projection, an unlock toast, and a link to the
+# hub-wide dashboard). Needs no new tracked state at all, same as before:
+# since §3/Milestone 2 already made plot stages monotonic (a stage never
+# regresses), "currently Automated" and "ever reached Automated" are the
+# same count, so automated_plot_count()/fully_automated_row_count() are
+# plain reads of the farm that already exists.
+
+ACHIEVEMENTS_FILENAME = "achievements.json"
+
+
+def _read_achievements_json():
+    return _read_json_asset(ACHIEVEMENTS_FILENAME, "ACHIEVEMENTS_JSON")
+
+
+# Defensive, same posture as SUPPLEMENTARY_NOTES above: a missing/broken
+# catalog degrades to "no achievements" rather than taking down the whole
+# module import -- achievements are a layer on top of the real farm, not
+# core gameplay.
+try:
+    ACHIEVEMENTS = json.loads(_read_achievements_json())["achievements"]
+except (ValueError, OSError, NameError):
+    ACHIEVEMENTS = []
+
+ACHIEVEMENTS_BY_ID = {entry["id"]: entry for entry in ACHIEVEMENTS}
 
 ACHIEVEMENT_AUTOMATED_THRESHOLDS = [25, 50, 100, 250, 500, 750]
 ACHIEVEMENT_ROW_THRESHOLDS = [1, 5, 11, 23]
-ACHIEVEMENT_ROW_LABELS = {
-    1: "A full week, automated",
-    5: "5 full weeks, automated",
-    11: "All of FREN151, automated",
-    23: "The whole farm, automated",
-}
+
+
+def automated_achievement_id(threshold):
+    return f"automated_{threshold}"
+
+
+def row_achievement_id(threshold):
+    return f"row_{threshold}"
 
 
 def automated_plot_count():
@@ -2226,40 +2254,142 @@ def fully_automated_row_count():
     return count
 
 
-def _tier_progress(current, thresholds, label_for):
+ACHIEVEMENT_CHECKS = {
+    **{
+        automated_achievement_id(t): (lambda t=t: automated_plot_count() >= t)
+        for t in ACHIEVEMENT_AUTOMATED_THRESHOLDS
+    },
+    **{
+        row_achievement_id(t): (lambda t=t: fully_automated_row_count() >= t)
+        for t in ACHIEVEMENT_ROW_THRESHOLDS
+    },
+}
+
+# Every achievement in this game's catalog has a genuine numeric scale-up
+# (a plot count or a row count against a fixed threshold), so every id gets
+# a progress readout -- unlike SOL's mix of one-shot milestones and
+# numeric ones (ACHIEVEMENTS-SYSTEM-DESIGN.md §3).
+ACHIEVEMENT_PROGRESS = {
+    **{
+        automated_achievement_id(t): (lambda t=t: (automated_plot_count(), t))
+        for t in ACHIEVEMENT_AUTOMATED_THRESHOLDS
+    },
+    **{
+        row_achievement_id(t): (lambda t=t: (fully_automated_row_count(), t))
+        for t in ACHIEVEMENT_ROW_THRESHOLDS
+    },
+}
+
+
+def achievement_ids_earned():
+    """Every achievement id currently satisfied, in catalog order -- the
+    cross-game "achievements_earned" save field (ACHIEVEMENTS-SYSTEM-
+    DESIGN.md §1). Always recomputed, never itself tracked state."""
+    return [entry["id"] for entry in ACHIEVEMENTS if ACHIEVEMENT_CHECKS[entry["id"]]()]
+
+
+def _tier_progress(thresholds, id_for):
     """Every crossed threshold (earned, most recent first) plus the next
     one still ahead (with a plain "x of y" progress read-out), or None for
-    "next" once every threshold is already cleared."""
-    earned = [t for t in thresholds if current >= t]
-    remaining = [t for t in thresholds if current < t]
+    "next" once every threshold is already cleared. Labels now come from
+    the achievements.json catalog -- the single source of truth (§2) --
+    rather than being hardcoded here."""
+    earned_thresholds = [t for t in thresholds if ACHIEVEMENT_CHECKS[id_for(t)]()]
+    remaining_thresholds = [t for t in thresholds if not ACHIEVEMENT_CHECKS[id_for(t)]()]
+    next_entry = None
+    if remaining_thresholds:
+        next_id = id_for(remaining_thresholds[0])
+        next_entry = {
+            "id": next_id,
+            "label": ACHIEVEMENTS_BY_ID[next_id]["label"],
+            "current": ACHIEVEMENT_PROGRESS[next_id]()[0],
+            "target": remaining_thresholds[0],
+        }
     return {
         "earned": [
-            {"id": t, "label": label_for(t)} for t in reversed(earned)
+            {"id": id_for(t), "label": ACHIEVEMENTS_BY_ID[id_for(t)]["label"]}
+            for t in reversed(earned_thresholds)
         ],
-        "next": (
-            {"id": remaining[0], "label": label_for(remaining[0]), "current": current}
-            if remaining
-            else None
-        ),
+        "next": next_entry,
     }
 
 
 def achievements_summary():
+    """Game-facing tiered view for the in-game panel -- kept as its own
+    shape per ACHIEVEMENTS-SYSTEM-DESIGN.md §3's documented judgment call:
+    this game's achievements are naturally tiered (unlike SOL's flat
+    checklist), so its panel groups each tier into "earned so far (most
+    recent first) + next target" rather than being forced into a flat
+    card layout. Both tiers now read their labels from the ACHIEVEMENTS
+    catalog instead of a hardcoded dict."""
     return {
-        "automated": _tier_progress(
-            automated_plot_count(),
-            ACHIEVEMENT_AUTOMATED_THRESHOLDS,
-            lambda t: f"{t} plots automated",
-        ),
-        "rows": _tier_progress(
-            fully_automated_row_count(),
-            ACHIEVEMENT_ROW_THRESHOLDS,
-            lambda t: ACHIEVEMENT_ROW_LABELS[t],
-        ),
+        "automated": _tier_progress(ACHIEVEMENT_AUTOMATED_THRESHOLDS, automated_achievement_id),
+        "rows": _tier_progress(ACHIEVEMENT_ROW_THRESHOLDS, row_achievement_id),
     }
 
 
 achievements_open = False
+
+# Tracks the earned-id set as of the last time it was checked, so a fresh
+# unlock (one that wasn't in this set last time) can trigger a toast
+# without re-toasting every already-earned achievement on every render.
+# Session-only, same category as ACCENT_SENSITIVE -- a fresh page load or
+# a save/load round-trip starts from an empty baseline rather than
+# spamming toasts for achievements that were already satisfied before.
+_achievement_ids_seen = set()
+
+ACHIEVEMENT_TOAST_DURATION_MS = 4000
+
+
+def _schedule_achievement_toast_hide(ms):
+    """The auto-hide delay is scheduled from JS, not Python. This game's
+    own no-timer wellbeing constraint (Milestone 7's
+    test_nothing_in_the_game_runs_on_a_timer, a literal substring scan of
+    this file's own source for the browser's clock-driven timer APIs) bans
+    a real timer call from ever appearing here -- the same constraint that
+    already pushed the arcade minigame family's real 1-second tick out into
+    index.html's own boot script rather than into game.py or minigames.py
+    (see CLAUDE.md's Milestone 27 build note). Safe to call from plain
+    CPython (this file's own test harness): a missing `js.window` or
+    sender function is simply a no-op, the same defensive-import pattern
+    `_dispatch_report()` above already uses for its network call."""
+    try:
+        from js import window  # noqa: PLC0415 — Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    scheduler = getattr(window, "scheduleAchievementToastHide", None)
+    if scheduler is not None:
+        scheduler(ms)
+
+
+def show_achievement_toast(message):
+    toast = _element("achievement-toast")
+    toast.innerText = message
+    toast.hidden = False
+    toast.classList.add("achievement-toast--visible")
+    _schedule_achievement_toast_hide(ACHIEVEMENT_TOAST_DURATION_MS)
+
+
+def _maybe_toast_new_achievements():
+    """Diffs the currently-earned set against what's already been seen this
+    session and toasts anything newly crossed. Called from
+    render_achievements(), which already runs on every render() pass, so
+    there's no need for a separate call site wired into every place a
+    plot can reach Automated (the main practice panel, Review's nudge,
+    etc.)."""
+    global _achievement_ids_seen
+    earned_ids = set(achievement_ids_earned())
+    newly_earned_ids = earned_ids - _achievement_ids_seen
+    _achievement_ids_seen = earned_ids
+    if not newly_earned_ids:
+        return
+    newly_earned = [entry for entry in ACHIEVEMENTS if entry["id"] in newly_earned_ids]
+    if len(newly_earned) == 1:
+        message = f"\U0001F3C6 Achievement unlocked: {newly_earned[0]['label']}"
+    else:
+        labels = ", ".join(entry["label"] for entry in newly_earned)
+        message = f"\U0001F3C6 {len(newly_earned)} achievements unlocked: {labels}"
+    show_achievement_toast(message)
 
 
 def on_toggle_achievements(event=None):
@@ -2277,7 +2407,9 @@ def _render_achievement_group(container, group):
     if group["next"] is not None:
         line = document.createElement("p")
         line.className = "achievement-next"
-        line.innerText = f"Next: {group['next']['label']} ({group['next']['current']} of {group['next']['id']})"
+        line.innerText = (
+            f"Next: {group['next']['label']} ({group['next']['current']} of {group['next']['target']})"
+        )
         container.appendChild(line)
     if not group["earned"] and group["next"] is None:
         line = document.createElement("p")
@@ -2287,9 +2419,16 @@ def _render_achievement_group(container, group):
 
 
 def render_achievements():
+    _maybe_toast_new_achievements()
+
     panel = _element("achievements-panel")
     toggle = _element("achievements-toggle-button")
-    toggle.innerText = "Hide achievements" if achievements_open else "🏆 Achievements"
+    earned_count = len(achievement_ids_earned())
+    toggle.innerText = (
+        f"Hide achievements ({earned_count}/{len(ACHIEVEMENTS)})"
+        if achievements_open
+        else f"\U0001F3C6 Achievements ({earned_count}/{len(ACHIEVEMENTS)})"
+    )
     panel.hidden = not achievements_open
     if not achievements_open:
         return
@@ -2308,6 +2447,17 @@ def render_achievements():
     rows_heading.innerText = "Full weeks automated"
     panel.appendChild(rows_heading)
     _render_achievement_group(panel, summary["rows"])
+
+    # A link out to the hub-wide achievements dashboard (planning/
+    # ACHIEVEMENTS-SYSTEM-DESIGN.md §5, and the "roll achievements out
+    # everywhere" section of planning/TODO.md). Hub-side script.js
+    # registration (GAMES_WITH_ACHIEVEMENTS/GAME_DISPLAY_NAMES) is a
+    # separate, shared-file change tracked outside this game's own dispatch.
+    hub_link = document.createElement("a")
+    hub_link.className = "achievements-hub-link"
+    hub_link.href = "../../index.html"
+    hub_link.innerText = "View achievements across every game →"
+    panel.appendChild(hub_link)
 
 
 def _plot_classes(plot):
@@ -4217,6 +4367,11 @@ def setup():
     _element("achievements-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_achievements)
     )
+    # Explicit, not just relying on index.html's `hidden` attribute -- the
+    # toast element is only otherwise touched by show_achievement_toast()
+    # (unlike every *panel*, which gets its `hidden` state re-set on every
+    # render()), so it needs its own starting state set here.
+    _element("achievement-toast").hidden = True
     _element("bonus-order-continue-button").addEventListener(
         "click", create_proxy(advance_from_order)
     )
@@ -4329,6 +4484,11 @@ def get_state():
             if plot.last_reviewed is not None or plot.stage != STAGE_SEED
         },
         "error_patterns": dict(error_pattern_counts),
+        # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) -- always
+        # freshly recomputed from the farm above, never read back in
+        # load_state(). This is what makes this game's achievements show up
+        # on the hub-wide dashboard alongside every other game's.
+        "achievements_earned": achievement_ids_earned(),
     }
 
 

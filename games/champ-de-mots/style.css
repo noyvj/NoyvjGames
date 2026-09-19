@@ -998,6 +998,55 @@ button:disabled {
   font-style: italic;
 }
 
+.achievements-hub-link {
+  display: inline-block;
+  margin-top: 0.6rem;
+  font-size: 0.8rem;
+  color: #4f7a2f;
+  text-decoration: none;
+}
+
+.achievements-hub-link:hover {
+  text-decoration: underline;
+}
+
+/* Achievements retrofit: unlock toast, fixed near the top of the viewport
+   so it's visible regardless of scroll position. Reuses the same
+   affirmative-green language as .choice--answer/the confidence buttons
+   above rather than inventing a new accent. Deliberately no eased fade --
+   this file's own Milestone 7 constraint (§8, "static and screenshot-
+   friendly", enforced by test_the_farm_has_no_animation's literal scan of
+   this file's own source for CSS motion properties) rules out easing it
+   in and out, so it simply appears and disappears via the
+   `.achievement-toast--visible` class / `hidden` attribute, same as every
+   other panel toggle on this page. Hidden by default via the `hidden`
+   attribute in index.html; game.py's setup() also explicitly sets
+   `.hidden = True` since -- unlike every panel here -- it's otherwise
+   only ever touched by show_achievement_toast()/its own JS-scheduled
+   hide callback, never re-derived on every render(). */
+.achievement-toast {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 400;
+  max-width: 90vw;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  background: linear-gradient(155deg, #dbe7c4, #c3d6a0);
+  border: 1px solid #7ba756;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  color: #2c3a1c;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  pointer-events: none;
+}
+
+.achievement-toast:not(.achievement-toast--visible) {
+  display: none;
+}
+
 /* --- choice tiles: warm paper cards instead of the cool glass
    buttons the rest of the page uses for buttons. */
 .choice {

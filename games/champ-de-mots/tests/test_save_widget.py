@@ -9,7 +9,9 @@ that pair — including through a real `json.dumps`, since the widget POSTs it.
 import json
 
 
-EXPECTED_KEYS = {"version", "current_day", "plots", "error_patterns"}
+EXPECTED_KEYS = {
+    "version", "current_day", "plots", "error_patterns", "achievements_earned",
+}
 PLOT_KEYS = {
     "ease_factor", "interval_days", "last_reviewed", "next_due", "correct_streak",
     "stage", "in_weeds",

@@ -1,0 +1,54 @@
+{
+  "achievements": [
+    {
+      "id": "automated_25",
+      "label": "25 plots automated",
+      "description": "Automate 25 plots across the farm."
+    },
+    {
+      "id": "automated_50",
+      "label": "50 plots automated",
+      "description": "Automate 50 plots across the farm."
+    },
+    {
+      "id": "automated_100",
+      "label": "100 plots automated",
+      "description": "Automate 100 plots across the farm."
+    },
+    {
+      "id": "automated_250",
+      "label": "250 plots automated",
+      "description": "Automate 250 plots across the farm."
+    },
+    {
+      "id": "automated_500",
+      "label": "500 plots automated",
+      "description": "Automate 500 plots across the farm."
+    },
+    {
+      "id": "automated_750",
+      "label": "750 plots automated",
+      "description": "Automate 750 plots across the farm."
+    },
+    {
+      "id": "row_1",
+      "label": "A full week, automated",
+      "description": "Fully automate every plot in one syllabus week."
+    },
+    {
+      "id": "row_5",
+      "label": "5 full weeks, automated",
+      "description": "Fully automate every plot across 5 syllabus weeks."
+    },
+    {
+      "id": "row_11",
+      "label": "All of FREN151, automated",
+      "description": "Fully automate every plot across all 11 of FREN151's weeks."
+    },
+    {
+      "id": "row_23",
+      "label": "The whole farm, automated",
+      "description": "Fully automate every plot across all 23 syllabus weeks."
+    }
+  ]
+}
