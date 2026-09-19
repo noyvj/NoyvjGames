@@ -118,6 +118,54 @@ Unlike Continuum's actual violation (a hue-only green/red pair — exactly the d
 - Keep state and rendering cleanly separated from the start, given the likely rendering-approach decision at milestone 4.
 - Site-wide space-theme visual pass (Sep 2026): adopted the shared starfield/nebula background (`shared/space-bg.css`) and the glass-panel/gradient-button design language already shipped on the hub and SOL — `<div class="space-bg">` markup added right after `<body>`, `.section` blocks (status, sea-level, coastline comparison, investments, feedback) restyled as translucent blurred glass cards with violet-tinted borders, `button.secondary`/`button.primary` moved from flat fills to two-stop gradients with a glossy inset highlight and a `brightness(1.1)` hover state, the three meter fills (acidity/fish-yield/sea-level) got a same-hue gradient + glow, and the `<h1>` got the shared gradient-glow text treatment. Deliberately left untouched: `.coastline-land`/`.coastline-flooded` (functional state colors on the coastline grid) and the `.coastline-seawall` line's own color (only added a same-hue glow around it) — tier/damage-state identity must stay readable exactly as before. No `game.py` changes; no CSS class/id renamed. This game has no "no animation" test constraint (checked `tests/` and this file for one, unlike some other quartet games), so the existing `transition: filter`/`width` rules were kept and extended, matching SOL's pattern — the shared `space-bg.css` animations are unaffected either way. `tests/` stayed at 120/120 passing throughout.
 
+## Settings panel (site-wide goal, planning/TODO.md, origin A9)
+
+A consolidated settings panel — text-scale (A−/A/A+ buttons, same clamp/step
+shape as Continuum's Phase 5 `accessibility.js`) and a reduced-motion
+checkbox — toggled from a new "⚙️ Settings" button in the second toolbar
+row (alongside the Hard Lag difficulty toggle), rendered into a
+`.section`-styled panel matching the existing `#howto-panel`/
+`#achievements-panel` hidden-until-opened idiom.
+
+Built as `settings.js`, deliberately independent of Pyodide entirely (same
+discipline as Continuum's `accessibility.js`) — it has no Python dependency
+and works even if `game.py` never boots, wired up in `<head>` before
+`game.py`'s own `<script>` runs. `style.css` gained a `:root
+{ --text-scale: 1 }` custom property read by `html { font-size: calc(16px *
+var(--text-scale, 1)) }` (every readable font-size in this file is already
+in rem, confirmed by grep — the one exception, `.fish-school`'s decorative
+10px label, was deliberately left alone — so scaling the root font-size
+scales the whole game uniformly with zero other changes needed) and a
+blanket `html[data-reduced-motion="true"] *` override collapsing every
+animation/transition to effectively instant — additive to, not replacing,
+this game's own existing `prefers-reduced-motion` media-query-gated rules
+(`tide-scene-sway`, `tide-scene-fish-swim`, `meter-shimmer`,
+`meter-bubbles`, `meter-foam-drift`).
+
+**Deliberately no sound toggle** — this hub has no audio system built
+anywhere yet (see `planning/LATER.md`'s "what can you actually do with
+audio" standing question), so a sound control here would control nothing
+real.
+
+Both settings are a browser-level UI preference, not game state — persisted
+to `localStorage` (`tide-text-scale`, `tide-reduced-motion`), deliberately
+never touching `get_state()`/`load_state()`, since a save code is meant to
+be portable across devices/browsers and a local browser's accessibility
+preference shouldn't silently override another device's.
+
+Verified live: 163/163 pytest suite unaffected (pure HTML/CSS/JS, no Python
+touched); in a real browser, applying a 1.3 text-scale correctly computed
+`<html>`'s font-size to 20.8px, and enabling reduced-motion collapsed the
+`.tide-scene`/wave elements' live `animation-duration` to ~1e-6s, both
+persisting to their localStorage keys. The only console errors present
+were the pre-existing, unrelated AdSense placeholder-client CSP
+frame-ancestors warning and its associated load failure, reproducible on
+the unmodified page (same as Grid's own build note). Verification required
+cache-busting the stylesheet `<link>` directly (a fresh `?v=` query on its
+`href`) to sidestep this sandbox's own known static-asset HTTP-caching
+quirk — not a defect in the shipped code, the same environment hazard
+Continuum's, SOL's, Canopy's, and Grid's own build notes already document.
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag tide-milestone-0N`.
