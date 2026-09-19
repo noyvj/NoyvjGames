@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 238/270 items checked off (88%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
+**Progress: 239/270 items checked off (89%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
 
 The one living list, replacing the scattered planning docs' own "open items"/"stretch goals" sections. Built from your labeled answers in `IMPROVEMENT-IDEAS-2026-09.md` (all "yes" items, resolved), plus a pass through every other file in `planning/` pulling out anything still genuinely unresolved there. "Later" items (things you deferred, or that need more explanation first) live in `LATER.md` instead — not here.
 
@@ -117,7 +117,7 @@ Two things every game needs once achievements land there, on top of the base rol
 
 *(Origin: three separate games asked for a confirm-before-spending step, and you flagged the same "won't this get annoying" concern each time — C14, F16, J19. Design ONE reusable pattern, not three one-off dialogs.)*
 
-- [ ] Design the shared pattern: a confirm step with a persistent "don't show this again" opt-out (per-browser, e.g. `localStorage`).
+- [x] Design the shared pattern: `shared/confirm-dialog.js` — a self-contained modal (own styling injected, no per-game CSS needed) with a "don't ask me again" checkbox persisted per-browser via `localStorage`, keyed per action id so one game's skip choice never collides with another's. `ConfirmDialog.ask({id, message, confirmLabel, cancelLabel, onConfirm})` — if the id's skip flag is already set, `onConfirm` fires immediately with no dialog shown. Verified live (dialog renders, confirms, and the skip checkbox correctly bypasses the dialog on a second call).
 - [ ] Apply to Grid: confirm before retiring the last remaining unit of a plant type (C14).
 - [ ] Apply to Herd: confirm/undo window before the pricier Plant-Based Pivot buy (F16).
 - [ ] Apply to Trade Empire: confirm before spending research points/automation credits (J19) — **first check how often this button is actually pressed** (your own concern); skip or soften if it's a common action, not a rare one.
