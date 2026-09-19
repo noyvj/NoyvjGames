@@ -924,11 +924,59 @@ def _make_decoupling_handler(measure):
     return handler
 
 
+def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm):
+    """Routes a guarded action through the shared shared/confirm-dialog.js
+    widget when it's available, or runs the action immediately when it
+    isn't -- same lazy `from js import window`/getattr-default shape as
+    every other optional-JS-hook call in this hub (Grid's own copy of
+    this helper, continuum's `_notify_visual_layer()`, champ-de-mots'
+    `_dispatch_report()`). The pytest fake-DOM harness's `js` module only
+    ever fakes `document`/`setTimeout` (see conftest.py's
+    `_install_pyodide_fakes`), never `window`, so `from js import window`
+    raises ImportError there and this falls straight through to calling
+    on_confirm() synchronously -- which is exactly what every existing
+    plant-pivot-invest test in this suite already expects."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        on_confirm()
+        return
+    confirm_dialog = getattr(window, "ConfirmDialog", None)
+    if confirm_dialog is None:
+        on_confirm()
+        return
+    confirm_dialog.ask(
+        id=action_id,
+        message=message,
+        confirmLabel=confirm_label,
+        onConfirm=create_proxy(on_confirm),
+    )
+
+
 def on_invest_plant_pivot(event=None):
-    if farm.invest_plant_pivot():
-        _pulse("plant-pivot-count")
-    render()
-    _check_new_achievements_for_toast()
+    # F16 (planning/TODO.md's shared confirmation-dialog goal) -- this is
+    # the pricier of the two decoupling investments (25, vs. 15/20/20 for
+    # feed/caps/capture) and, unlike those three, it changes *what* the
+    # herd produces rather than just how efficiently -- worth a beat of
+    # confirmation before committing funds to it. Pre-action confirm
+    # only, per the shared pattern's own shape (no undo window); a player
+    # who invests repeatedly can check "don't ask again" once.
+    def do_invest():
+        if farm.invest_plant_pivot():
+            _pulse("plant-pivot-count")
+        render()
+        _check_new_achievements_for_toast()
+
+    _confirm_dialog_ask(
+        action_id="herd-plant-pivot-invest",
+        message=(
+            f"Invest {PLANT_PIVOT_COST} funds in the Plant-Based Pivot? "
+            "It shifts part of your herd's output to near-zero-methane "
+            "plant-based production, at a small ongoing income cost."
+        ),
+        confirm_label="Invest",
+        on_confirm=do_invest,
+    )
 
 
 def on_advance_round(event=None):
