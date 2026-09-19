@@ -825,6 +825,83 @@ try:
 except (ValueError, OSError, NameError, KeyError):
     ACHIEVEMENTS = []
 
+
+# ===========================================================================
+# Changelog panel (site-wide goal, planning/TODO.md, origin K16: "Per-game
+# in-game changelog panel, for every game"). A quick highlights view, not a
+# full duplicate of CLAUDE.md/BCM114-DEV-LOG.md -- same loading contract as
+# ACHIEVEMENTS above: the boot script fetches changelog.json and hands it to
+# Python as a window global before this file runs, with a filesystem
+# fallback for the pytest harness (no real `js.CHANGELOG_JSON` there).
+# Unlike ACHIEVEMENTS, this is a flat list (no wrapping key) -- see
+# changelog.json itself.
+# ===========================================================================
+CHANGELOG_FILENAME = "changelog.json"
+
+
+def _read_changelog_json():
+    """Same loading contract as `_read_achievements_json()` above."""
+    try:
+        import js as _js  # noqa: PLC0415 -- Pyodide-only import, deliberately lazy
+    except ImportError:
+        _js = None
+
+    raw = getattr(_js, "CHANGELOG_JSON", None) if _js is not None else None
+    if raw is not None:
+        return str(raw)
+
+    import os  # noqa: PLC0415 -- only needed on this filesystem-fallback path
+
+    here = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(here, CHANGELOG_FILENAME), encoding="utf-8") as handle:
+        return handle.read()
+
+
+# Degrades to an empty list rather than crashing this module's whole
+# import -- the changelog panel is purely informational, not core to
+# Drift's gameplay.
+try:
+    CHANGELOG = json.loads(_read_changelog_json())
+except (ValueError, OSError, NameError):
+    CHANGELOG = []
+
+changelog_open = False
+
+
+def on_toggle_changelog(event=None):
+    global changelog_open
+    changelog_open = not changelog_open
+    update_changelog_display()
+
+
+def update_changelog_display():
+    toggle = document.getElementById("changelog-toggle-button")
+    panel = document.getElementById("changelog-panel")
+    toggle.innerText = "Hide What's New" if changelog_open else "📋 What's New"
+    panel.hidden = not changelog_open
+    if not changelog_open:
+        return
+
+    panel.innerHTML = ""
+    # Newest first -- entries are authored newest-first in changelog.json
+    # already, but sort defensively so a future out-of-order edit can't
+    # silently invert the panel.
+    for entry in sorted(CHANGELOG, key=lambda e: e["date"], reverse=True):
+        card = document.createElement("div")
+        card.className = "changelog-entry"
+
+        date = document.createElement("p")
+        date.className = "changelog-date"
+        date.innerText = entry["date"]
+        card.appendChild(date)
+
+        text = document.createElement("p")
+        text.className = "changelog-text"
+        text.innerText = entry["entry"]
+        card.appendChild(text)
+
+        panel.appendChild(card)
+
 SERVICES_BACKBONE_TARGET = 5
 BUILT_TO_SCALE_TARGET = 200.0
 CENTURY_ARRIVALS_TARGET = 100.0
@@ -1413,6 +1490,19 @@ def render():
         accelerated_button.classList.add("active")
     else:
         accelerated_button.classList.remove("active")
+    # Onboarding-tooltip coverage (planning/TODO.md, origin A14): this
+    # toggle isn't in DRIFT_TUTORIAL_STEPS at all, so it's covered by
+    # neither the one-time walkthrough nor the auto-generated How to Play
+    # read-through (shared/tutorial.js builds that page from the same
+    # steps array). The label alone ("Accelerated Severity: ON/OFF") never
+    # says what it actually changes, so a returning player has nowhere to
+    # find out. A `title` states the real effect directly from the same
+    # constant the game logic uses.
+    accelerated_button.title = (
+        f"Optional difficulty variant: multiplies background displacement-pressure "
+        f"severity growth by {ACCELERATED_SEVERITY_MULTIPLIER:.0f}x. Only affects how fast "
+        f"arrival pressure rises — never your capacity or funds math directly."
+    )
 
 
 def on_advance_round(event=None):
@@ -1583,9 +1673,13 @@ def setup():
     document.getElementById("achievements-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_achievements)
     )
+    document.getElementById("changelog-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_changelog)
+    )
     document.getElementById("accelerated-severity-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_accelerated_severity)
     )
+    update_changelog_display()
     render()
     _seed_achievement_toast_baseline()
 

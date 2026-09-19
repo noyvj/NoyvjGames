@@ -97,6 +97,8 @@ ELEMENT_IDS = [
     "achievements-panel",
     "achievement-toast",
     "achievement-toast-text",
+    "changelog-toggle-button",
+    "changelog-panel",
 ]
 
 
@@ -123,6 +125,9 @@ class GameEnv:
 
     def toggle_achievements(self):
         self.elements["achievements-toggle-button"].dispatch("click", None)
+
+    def toggle_changelog(self):
+        self.elements["changelog-toggle-button"].dispatch("click", None)
 
     def invest(self, capacity_type):
         self.elements[f"{capacity_type}-invest-button"].dispatch("click", None)
