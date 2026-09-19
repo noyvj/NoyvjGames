@@ -277,6 +277,52 @@ stylesheet `<link>` directly (a fresh `?v=` query on its `href`), which
 showed the real computed `html` font-size respond exactly as expected
 (20.8px at a 1.3 scale) — not a defect in the shipped code.
 
+## Onboarding-tooltip coverage check (site-wide goal, planning/TODO.md, origin A14)
+
+Investigated whether the permanent UI explains itself to a returning player who
+skipped/forgot the one-time tutorial (`shared/tutorial.js`'s spotlight walkthrough
+only covers Earth's click/automation/ecology/terraform/research/governor/travel
+steps) or the How-to-Play panel (persistent `#howto-toggle-button`, reachable any
+time, not a one-shot).
+
+**Found the permanent UI already covers almost everything**, via the `.info-toggle`
+(i) icons added in an earlier pass (commit `c258996`, "SOL: add info buttons
+explaining non-obvious mechanics") on Ecology, Terraforming, Research, Governor,
+Trade Routes, and Travel — all on Earth's instance, which every player passes
+through first regardless of save state, so the explanation is guaranteed seen
+before the mechanic matters anywhere else in the system.
+
+**Real gap found and fixed**: Sky Cities (gas-giant buildings, Jupiter's Moons +
+Saturn's Moons only, Milestone 10) are a genuinely different mechanic — a dual-cost
+building (local resource + Mars materials) — introduced nowhere on Earth and never
+covered by the tutorial's STEPS array (which stops at Travel, well before any
+gas-giant content is reachable). Their permanent UI (`Sky Cities: N (+X% production)`
++ a "Build Sky City (...)" button) had zero in-context explanation of what a Sky
+City is or why it needs a second planet's resource. Added a matching `.info-toggle`
+to both `#jupitermoons-sky-city` and `#saturnmoons-sky-city` in `index.html`,
+reusing the exact same pattern/copy style as the existing six.
+
+Not changed: nothing else — the ecology/terraform status paragraphs already
+self-explain dynamically at the moment they matter (e.g. "⚠ Output reduced 25% —
+ecological health critical", "Paused — ecology 40% (needs 60%+)"), which is a
+stronger form of on-demand explanation than a static tooltip would be, so no
+change was needed there.
+
+Verified: full pytest suite green for this change (624 passed; 2 unrelated
+failures in `tests/test_changelog.py` belong to a different session's concurrent
+in-progress work on a separate feature, not touched by or affecting this change).
+Live in a real browser (`hub-dev-server`, fresh tab to avoid a separate session's
+concurrent browser-tab navigation), unhid both Sky City sections directly via JS,
+confirmed the (i) icon renders and expands to readable text identical to the other
+six info-toggles, with the DOM's "details becomes a sibling of the auto-closed
+`<p>`" quirk matching the exact same pre-existing rendering behavior the original
+six already have (browsers don't allow `<details>`, a flow-content element, inside
+`<p>`, which auto-closes) — not a regression, a pattern already shipped and verified
+site-wide. One unrelated pre-existing console error was observed (an `AttributeError`
+from a `None.addEventListener` call) tied to another session's concurrent
+in-progress "What's New" changelog feature (uncommitted `game.py`/`style.css`
+changes at the time) — not caused by, or fixed by, this change.
+
 ## Working conventions
 - Commit + tag at the end of each milestone: `git commit -m "Milestone N: <name>"` then `git tag milestone-0N` (e.g. `milestone-09a` for lettered sub-parts of milestone 9).
 - Keep `game.py` as the single source of game logic where reasonable; split into modules only once it gets unwieldy.
