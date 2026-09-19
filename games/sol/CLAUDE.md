@@ -233,6 +233,50 @@ Audited as part of the site-wide colorblind-safety audit (Okabe-Ito-palette meth
 
 Matches Tide's D11 precedent: investigated a real candidate list, found the colors in play were never a genuine deuteranopia/protanopia confusion pair (no side-by-side red/green state pair exists in this game), and made no speculative change.
 
+## Settings panel (site-wide goal, planning/TODO.md, origin A9)
+
+A new `settings.js` (independent of Pyodide, same discipline as Continuum's
+Phase 5 `accessibility.js` — see `games/continuum/CLAUDE.md`) consolidates
+two real, working browser-level preferences into one panel behind a new
+"⚙️ Settings" toolbar button, following the same hidden-until-opened
+`.section` idiom every other panel here already uses (achievements/stats/
+governor report):
+
+- **Text size** (A−/A/A+, clamped 0.85–1.5, step 0.1) — sets `--text-scale`
+  on `document.documentElement`; `style.css` reads it via
+  `html { font-size: calc(16px * var(--text-scale, 1)); }`. Every font-size
+  in this file was already `rem` (confirmed by grep before relying on
+  this), so the one root-level change scales the whole game uniformly.
+- **Reduce motion** (a checkbox) — sets `data-reduced-motion="true"` on
+  `<html>`, which a new blanket CSS override collapses every
+  animation/transition duration to ~0 for, additive to (not replacing) the
+  existing `@media (prefers-reduced-motion: reduce)` rules already guarding
+  planet-spin/rock-drift/meter-shimmer.
+
+**Deliberately no sound toggle** — this hub has no audio system anywhere
+yet (`planning/LATER.md`'s standing "what can you actually do with audio"
+question), so a sound control would control nothing real.
+
+Both settings persist to `localStorage` (`sol-text-scale`,
+`sol-reduced-motion`) rather than `get_state()`/`load_state()` — a
+per-browser accessibility preference, not portable save state, matching
+Continuum's own K15 reasoning verbatim.
+
+Verified live: 616/616 pytest suite unaffected (pure HTML/CSS/JS, no
+Python touched); in a real browser, text-scale visibly resized every panel
+and persisted its exact value across a fresh navigation via localStorage,
+and toggling reduced-motion collapsed every `.planet-visual`-family
+element's live `animation-duration`/`transition-duration` to ~1e-6s with
+zero console errors. Verification required working around this sandbox's
+own known static-asset HTTP-caching quirk (a fresh navigation kept serving
+a stale `style.css`/`index.html` even after clearing the service worker and
+Cache Storage — the same category of environment hazard Continuum's own
+Milestone 11 build notes already documented for `sw.js`, but here at the
+plain browser HTTP cache layer instead): confirmed by cache-busting the
+stylesheet `<link>` directly (a fresh `?v=` query on its `href`), which
+showed the real computed `html` font-size respond exactly as expected
+(20.8px at a 1.3 scale) — not a defect in the shipped code.
+
 ## Working conventions
 - Commit + tag at the end of each milestone: `git commit -m "Milestone N: <name>"` then `git tag milestone-0N` (e.g. `milestone-09a` for lettered sub-parts of milestone 9).
 - Keep `game.py` as the single source of game logic where reasonable; split into modules only once it gets unwieldy.
