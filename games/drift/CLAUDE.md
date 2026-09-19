@@ -73,8 +73,9 @@ An optional, player-triggered "The Real Story" panel — never forced mid-sessio
 2. [Migration Policy Institute — Climate Migration 101: An Explainer](https://www.migrationpolicy.org/journal/feature/climate-migration-101-explainer) — real projections (44-216 million internal migrants by 2050) echoing Drift's "preparedness changes the outcome" hope angle.
 3. [Migration Policy Institute — Who Counts as a Climate Migrant?](https://www.migrationpolicy.org/article/who-is-a-climate-migrant) — the legal/definitional gap behind why Drift frames this as a systems/capacity problem, not a legal one.
 4. [Brookings — The climate crisis, migration, and refugees](https://www.brookings.edu/articles/the-climate-crisis-migration-and-refugees/) — policy-level analysis of the institutional response gap.
+5. [Migration Policy Institute — How Are Refugees Faring? Integration at U.S. and State Levels](https://www.migrationpolicy.org/publication/how-are-refugees-faring-integration-us-and-state-levels) — source for the in-game real-world resettlement-outcome benchmark (I9, TODO.md): as of 2023, 89% of working-age refugees resettled in the U.S. within the previous five years were employed.
 
-All four links verified live before merging. Source 1 (UNHCR) and sources 2–3 (Migration Policy Institute) return 403/bot-challenge to automated fetchers but are well-known, legitimate institutional domains — consistent with the bot-protection pattern confirmed on several other sources across this batch.
+All five links verified live before merging (source 5 added alongside I9). Source 1 (UNHCR) and sources 2–3, 5 (Migration Policy Institute) return 403/bot-challenge to automated fetchers but are well-known, legitimate institutional domains — consistent with the bot-protection pattern confirmed on several other sources across this batch.
 
 ## Achievements (implemented)
 

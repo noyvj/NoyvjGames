@@ -39,6 +39,7 @@ ELEMENT_IDS = [
     "pending-display",
     "integration-turning-point-display",
     "uganda-comparison-display",
+    "resettlement-benchmark-display",
     "service-quality-display",
     "service-quality-bar",
     "economic-health-display",

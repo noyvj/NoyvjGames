@@ -559,6 +559,35 @@ def uganda_comparison_message(region_state):
     )
 
 
+# I9: a real-world resettlement-outcome benchmark comparison, distinct
+# from the structural Uganda-policy comparison above -- this one is a
+# genuine, sourced statistic rather than a qualitative structural
+# standard. Source: Migration Policy Institute, "How Are Refugees
+# Faring? Integration at U.S. and State Levels" -- as of 2023, 89% of
+# working-age refugees resettled in the U.S. within the previous five
+# years were employed. That's a real, institutional/statistical figure
+# (per this game's own sensitivity note in CLAUDE.md's Tech notes
+# section), kept factual rather than editorialized: the message below
+# explicitly flags that "employed" and Drift's own broader
+# integration metric (language, employment, education access combined)
+# aren't literally the same measurement, rather than implying a false
+# apples-to-apples equivalence.
+REAL_WORLD_RESETTLEMENT_EMPLOYMENT_BENCHMARK = 89.0  # percent
+
+
+def resettlement_benchmark_message(region_state):
+    coverage = region_state.social_cohesion()
+    standing = "at or above" if coverage >= REAL_WORLD_RESETTLEMENT_EMPLOYMENT_BENCHMARK else "below"
+    return (
+        f"Real-world benchmark: as of 2023, {REAL_WORLD_RESETTLEMENT_EMPLOYMENT_BENCHMARK:.0f}% of "
+        "working-age refugees resettled in the U.S. within the previous five years were employed "
+        "(Migration Policy Institute) — a genuine, sourced outcome statistic for real resettlement "
+        "systems, not the same measurement as this game's own broader integration metric (language, "
+        f"employment, and education access combined). Your region has integrated {coverage:.0f}% of "
+        f"arrivals so far, {standing} that reference point."
+    )
+
+
 # I12: once the lagging dimension is named, also note whenever a *different*
 # dimension is comfortably ahead rather than always naming only the
 # weak point -- so a player who's actually doing well on two of the three
@@ -1026,6 +1055,11 @@ INFO_PAGE = {
             "url": "https://www.brookings.edu/articles/the-climate-crisis-migration-and-refugees/",
             "note": "Policy-level analysis of the institutional response gap, grounding Drift's receiving-region capacity mechanic.",
         },
+        {
+            "label": "Migration Policy Institute — How Are Refugees Faring? Integration at U.S. and State Levels",
+            "url": "https://www.migrationpolicy.org/publication/how-are-refugees-faring-integration-us-and-state-levels",
+            "note": "Source for the in-game real-world resettlement-outcome benchmark (89% employment among recently-resettled working-age refugees, 2023).",
+        },
     ],
 }
 info_page_open = False
@@ -1178,6 +1212,10 @@ def render():
 
     # I3: explicit in-play comparison to the Uganda policy model.
     document.getElementById("uganda-comparison-display").innerText = uganda_comparison_message(region)
+    # I9: real-world resettlement-outcome benchmark comparison.
+    document.getElementById("resettlement-benchmark-display").innerText = resettlement_benchmark_message(
+        region
+    )
 
     document.getElementById("service-quality-display").innerText = (
         f"Service quality: {region.service_quality():.0f}"
