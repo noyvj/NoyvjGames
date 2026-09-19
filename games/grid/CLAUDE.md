@@ -183,6 +183,46 @@ during the verified flow. Full 260/260 pytest suite unaffected.
 - Python/Pyodide, per root conventions.
 - Keep the core state (demand, budget, plant counts, emissions, event log) as a plain serializable object — this makes both testing and later save/resume trivial if you want it.
 
+## Onboarding-tooltip coverage check (site-wide goal, planning/TODO.md, origin A14)
+
+Audited whether a returning player who's forgotten the tutorial can still
+make sense of the permanent UI's non-obvious parts, on top of the
+persistent, reachable-any-time `#howto-toggle-button`/`#howto-panel`.
+
+Most of the permanent UI already covers itself: the "Power Plants" and
+"Maintenance & Aging" section-level `.info-toggle` (i) icons permanently
+explain the renewable learning-curve discount and the aging/breakdown-risk
+mechanic (matching Canopy's own section-level pattern), and per-round
+status figures are all plainly labelled.
+
+**Real gap found:** the Retire button's most non-obvious behavior --
+refunding 50% of a plant's *current* (possibly learning-curve-discounted)
+cost, not what was originally paid -- was explained *only* by a one-time
+`retire-callout` banner, shown once on first-ever retire and then
+permanently suppressed (`state.seen_retire_callout`, persisted in save
+state). A returning player who dismissed it in an earlier session, or
+anyone who first retires a unit long after that banner is gone, had no
+permanent way to learn this. The button itself just read "Retire", and no
+section-level info-toggle covers refund behavior specifically (the
+"Power Plants" toggle only covers *build* cost, not retire refunds).
+
+**Fixed:** added a `title` attribute to all 7 retire buttons (`index.html`)
+stating the 50%-of-current-cost refund rule in plain language, matching
+Tide's D19 per-tile-tooltip / Canopy's per-plot-tooltip reference pattern
+-- a light, permanent, always-available supplement rather than a dialog
+or new panel. No `game.py` change needed since the button's `disabled`
+state and text logic were already correct; this was purely a missing
+static attribute. Maintain's non-obvious "reduces age, doesn't reset to
+zero" behavior was left alone since the "Maintenance & Aging" section
+info-toggle already states this permanently.
+
+Verified: full 260/260 pytest suite green (HTML-only change, no Python
+touched); live-verified in a real browser that all 7 retire buttons
+(`coal`/`gas`/`nuclear`/`solar`/`wind`/`hydro`/`battery`) carry the correct
+`title` text on the live DOM, that Retire remains correctly
+enabled/disabled by plant count exactly as before, and zero new console
+errors.
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag grid-milestone-0N`.
