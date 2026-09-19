@@ -50,6 +50,9 @@ ELEMENT_IDS = [
     "milestone-toast-text",
     "report-card-toggle-button",
     "report-card-panel",
+    # K16: "What's New" changelog panel.
+    "changelog-toggle-button",
+    "changelog-panel",
     "grow-consequence-preview",
     "combined-decoupling-display",
     "gauge-range-display",
@@ -106,6 +109,9 @@ class GameEnv:
 
     def toggle_report_card(self):
         self.elements["report-card-toggle-button"].dispatch("click", None)
+
+    def toggle_changelog(self):
+        self.elements["changelog-toggle-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements, timers):

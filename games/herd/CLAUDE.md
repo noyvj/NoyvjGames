@@ -181,6 +181,26 @@ skipped the dialog entirely and invested immediately as expected. Zero
 new console errors during the verified flow. Full 128/128 pytest suite
 (125 existing + 3 new) unaffected.
 
+## "What's New" changelog panel (K16, planning/TODO.md, site-wide goal)
+
+A small in-game highlights panel — a curated `changelog.json` (flat list of
+`{"date", "entry"}` objects, fetched into the Pyodide boot sequence exactly
+like `achievements.json` already is) rendered into a hidden-until-opened
+"📋 What's New" panel — same toggle+panel idiom as the achievements/report-
+card panels, with a plain date+text-card layout (no earned/unearned styling,
+since a changelog entry has no checkable condition). `CHANGELOG` is sorted
+newest-first at load time and degrades to an empty list on a
+malformed/missing file, matching `ACHIEVEMENTS`'s own defensive pattern.
+
+Populated with 10 real highlight entries pulled from this file's own
+milestone table and iteration notes above, dates cross-checked against
+`git log` for this game's path. Covered by `tests/test_changelog.py`
+(catalog sanity, newest-first ordering, toggle open/close, panel content,
+no state mutation as a side effect). Full pytest suite (128 → 137 tests)
+stayed green throughout; verified live via a local server — the panel
+opens, shows all 10 real entries in the correct order, and there are zero
+console errors.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

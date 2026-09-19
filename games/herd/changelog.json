@@ -1,0 +1,42 @@
+[
+  {
+    "date": "2026-09-20",
+    "entry": "F16: added a confirmation prompt before investing in the Plant-Based Pivot, the pricier of the two decoupling paths."
+  },
+  {
+    "date": "2026-09-19",
+    "entry": "Added a settings panel (text size + reduced motion) and completed a colorblind-safety audit — the coupling gauge was already redundantly coded (length + text labels), no change needed."
+  },
+  {
+    "date": "2026-09-15",
+    "entry": "Achievements framework added (18 achievements) plus a large improvement pass: pure-growth counterfactual comparison, a report card panel, a methane trend graph, and milestone-nudge toasts."
+  },
+  {
+    "date": "2026-09-09",
+    "entry": "Added a skippable tutorial, a How to Play page, and a mobile sticky HUD."
+  },
+  {
+    "date": "2026-09-05",
+    "entry": "Full visual redesign: pastoral farmland backdrop, glass panels, icon labels and investment chips."
+  },
+  {
+    "date": "2026-09-02",
+    "entry": "Integrated the shared save widget and fixed load_state() crashing outright on a save missing a top-level field."
+  },
+  {
+    "date": "2026-08-22",
+    "entry": "Pass 3 audit: confirmed the coupling ratio already drives scoring through two independent paths, added regression tests to lock it in."
+  },
+  {
+    "date": "2026-08-18",
+    "entry": "Added an in-game Info Page with real-world methane sources; Pass 2 added the alternative-protein (plant-based) pivot as a second decoupling path."
+  },
+  {
+    "date": "2026-08-11",
+    "entry": "Iteration pass: a prominent coupling-ratio gauge and an ambient haze overlay tracking the methane meter."
+  },
+  {
+    "date": "2026-08-07",
+    "entry": "All 7 core milestones shipped: core farm loop, coupled methane meter, decoupling measures, soft consequence system, scoring/hope-angle payoff, feedback prompt, and hub integration."
+  }
+]

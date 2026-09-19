@@ -30,6 +30,10 @@
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
       <button id="achievements-toggle-button" class="secondary" type="button">Loading...</button>
       <button id="report-card-toggle-button" class="secondary" type="button">Loading...</button>
+      <!-- K16 (planning/TODO.md "What's New" changelog, site-wide goal):
+           a small in-game highlights panel, same hidden-until-opened idiom
+           as achievements/report-card above. -->
+      <button id="changelog-toggle-button" class="secondary" type="button">Loading...</button>
       <!-- Site-wide settings panel (planning/TODO.md, origin A9): consolidated
            text-scale + reduced-motion controls. See settings.js -- plain JS,
            independent of Pyodide, same as Continuum's Phase 5
@@ -39,6 +43,7 @@
     <div id="howto-panel" class="section" hidden></div>
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
     <div id="report-card-panel" class="section report-card-panel" hidden></div>
+    <div id="changelog-panel" class="section changelog-panel" hidden></div>
     <div id="settings-panel" class="section" hidden>
       <h2 class="settings-panel-heading">Settings</h2>
       <div class="settings-row">
@@ -245,11 +250,15 @@
       // ACHIEVEMENTS-SYSTEM-DESIGN.md §2/§7: fetch achievements.json
       // alongside game.py and hand it to Python as a window global before
       // game.py runs, same convention as SOL/Grid/Canopy.
-      const [achievementsJson, code] = await Promise.all([
+      // "What's New" changelog (K16, planning/TODO.md) -- same fetch
+      // convention as achievements.json above.
+      const [achievementsJson, changelogJson, code] = await Promise.all([
         fetch("achievements.json").then((response) => response.text()),
+        fetch("changelog.json").then((response) => response.text()),
         fetch("game.py").then((response) => response.text()),
       ]);
       window.ACHIEVEMENTS_JSON = achievementsJson;
+      window.CHANGELOG_JSON = changelogJson;
       await pyodide.runPythonAsync(code);
 
       if (window.GameTutorial) {
