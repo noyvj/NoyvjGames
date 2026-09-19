@@ -1327,8 +1327,36 @@ retire_callout_visible = False
 maintain_callout_visible = False
 
 
+def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm):
+    """Routes a guarded action through the shared shared/confirm-dialog.js
+    widget when it's available, or runs the action immediately when it
+    isn't -- same lazy `from js import window`/getattr-default shape as
+    every other optional-JS-hook call in this hub (e.g. continuum's
+    `_notify_visual_layer()`, champ-de-mots' `_dispatch_report()`). The
+    pytest fake-DOM harness's `js` module only ever fakes `document`/
+    `setTimeout` (see tests/conftest.py), never `window`, so `from js
+    import window` raises ImportError there and this falls straight
+    through to calling on_confirm() synchronously -- which is exactly
+    what every existing test that drives a retire click already expects."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        on_confirm()
+        return
+    confirm_dialog = getattr(window, "ConfirmDialog", None)
+    if confirm_dialog is None:
+        on_confirm()
+        return
+    confirm_dialog.ask(
+        id=action_id,
+        message=message,
+        confirmLabel=confirm_label,
+        onConfirm=create_proxy(on_confirm),
+    )
+
+
 def _make_retire_handler(plant_type):
-    def handler(event=None):
+    def do_retire():
         global retire_callout_visible
         succeeded = state.retire_plant(plant_type)
         if succeeded and not state.seen_retire_callout:
@@ -1337,6 +1365,30 @@ def _make_retire_handler(plant_type):
         _check_renewable_milestone()
         render()
         _check_new_achievements_for_toast()
+
+    def handler(event=None):
+        # C14 (planning/TODO.md's shared confirmation-dialog goal) --
+        # retiring a plant type's very last unit is a real, not-quite-free
+        # decision (refund_plant() only rebates REFUND_FRACTION of the
+        # current cost -- rebuilding costs full price again), so that one
+        # case alone is gated behind the shared confirm dialog. Retiring
+        # down from 2+ units stays exactly as instant as it always was.
+        if state.plant_counts[plant_type] <= 0:
+            do_retire()  # already 0 -- retire_plant() is a no-op; let it report False as usual
+            return
+        if state.plant_counts[plant_type] == 1:
+            _confirm_dialog_ask(
+                action_id=f"grid-retire-last-{plant_type}",
+                message=(
+                    f"Retire your last {PLANT_LABEL[plant_type]} plant? "
+                    "You'll lose that capacity, and rebuilding later costs "
+                    "full price again."
+                ),
+                confirm_label="Retire it",
+                on_confirm=do_retire,
+            )
+        else:
+            do_retire()
     return handler
 
 
