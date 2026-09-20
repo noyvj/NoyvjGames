@@ -27,6 +27,7 @@ def test_get_state_includes_every_expected_key(game_env):
         "ever_repositioned",
         "market_crash_ever",
         "good_profit_total",
+        "good_trip_count",
         "good_profit_recent",
         "price_history",
         "need_history",

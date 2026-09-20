@@ -439,3 +439,5 @@ itself; the DOM/console-level checks above are the real verification.)
 ## Working conventions
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag trade-empire-milestone-0N`.
 - Update the Status column as work happens.
+
+- 2026-09-21: J11 -- route readout shows avg profit per trip (new `good_trip_count`, saved; absent in old saves so the average is omitted). Mobile-dock `html body` padding fix (V-AB-2); achievements hub link now anchors to the dashboard (V-AB-5).

@@ -1171,7 +1171,8 @@ button.secondary:disabled::after {
   /* Reserve room at the bottom of the scrollable page so the last real
      content (the ledger) never ends up hidden behind the now-floating
      strip. */
-  body {
+  /* html body outranks ad-bar.css's plain body rule (V-AB-2) */
+  html body {
     padding-bottom: 150px;
   }
 }

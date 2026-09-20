@@ -134,3 +134,21 @@ def test_new_fields_round_trip_and_old_save_defaults(game_env):
     del old["good_profit_recent"]
     m.load_state(old)
     assert ship.route_legs == 0 and ship.route_key is None
+
+
+def test_route_lines_show_average_profit_per_trip(game_env):
+    m = game_env.module
+    m.good_profit_total[m.ORE] = 300
+    m.good_trip_count[m.ORE] = 3
+    lines = m._route_profitability_lines()
+    ore_line = next(l for l in lines if l.startswith(m.GOOD_LABEL[m.ORE]))
+    assert "300 credits" in ore_line
+    assert "avg 100/trip over 3 trips" in ore_line
+
+
+def test_route_line_omits_average_when_trips_unknown(game_env):
+    m = game_env.module
+    m.good_profit_total[m.ORE] = 300
+    m.good_trip_count[m.ORE] = 0
+    ore_line = next(l for l in m._route_profitability_lines() if l.startswith(m.GOOD_LABEL[m.ORE]))
+    assert "/trip" not in ore_line

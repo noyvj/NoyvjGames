@@ -497,6 +497,8 @@ market_multiplier = {
 # structure needed on top of the good-keyed one.
 good_profit_recent = {}  # J2 — good -> last few sale profits, for the trend arrow
 good_profit_total = {good: 0 for good in market_multiplier}
+# V-E-8 (J11): completed sales per good, so each route line can show average profit per trip
+good_trip_count = {good: 0 for good in market_multiplier}
 
 # J12/J14 — a short rolling trend history (market price per good, need
 # satisfaction per colony), just long enough for a small inline
@@ -1699,7 +1701,7 @@ def update_achievements_display():
 
     hub_link = document.createElement("a")
     hub_link.className = "achievements-hub-link"
-    hub_link.href = "../../index.html"
+    hub_link.href = "../../index.html#account-achievements-dashboard"
     hub_link.innerText = "View achievements across every game →"
     panel.appendChild(hub_link)
 
@@ -1783,7 +1785,9 @@ def _route_profitability_lines():
         consumer_name = ALL_COLONIES[consumer]["name"] if consumer else "?"
         arrow = route_trend_arrow(good)
         suffix = f" {arrow}" if arrow else ""
-        lines.append(f"{GOOD_LABEL[good]} ({producer_name} → {consumer_name}): {total:,} credits{suffix}")
+        trips = good_trip_count.get(good, 0)
+        per_trip = f", avg {total // trips:,}/trip over {trips} trips" if trips > 0 else ""
+        lines.append(f"{GOOD_LABEL[good]} ({producer_name} → {consumer_name}): {total:,} credits{per_trip}{suffix}")
     return lines
 
 
@@ -2075,6 +2079,7 @@ def tick(event=None):
             total_sales_count += 1
             goods_sold_ever.add(good)
             good_profit_total[good] = good_profit_total.get(good, 0) + profit
+            good_trip_count[good] = good_trip_count.get(good, 0) + 1
             recent = good_profit_recent.setdefault(good, [])
             recent.append(profit)
             del recent[:-2 * ROUTE_TREND_WINDOW]
@@ -2187,6 +2192,7 @@ def get_state():
         "ever_repositioned": ever_repositioned,
         "market_crash_ever": dict(market_crash_ever),
         "good_profit_total": dict(good_profit_total),
+        "good_trip_count": dict(good_trip_count),
         "good_profit_recent": {g: list(v) for g, v in good_profit_recent.items()},
         "price_history": {good: list(values) for good, values in price_history.items()},
         "need_history": {colony_id: list(values) for colony_id, values in need_history.items()},
@@ -2269,6 +2275,7 @@ def load_state(data):
     ever_repositioned = data.get("ever_repositioned", ever_repositioned)
     market_crash_ever.update(data.get("market_crash_ever", {}))
     good_profit_total.update(data.get("good_profit_total", {}))
+    good_trip_count.update(data.get("good_trip_count", {}))
     for good, values in data.get("good_profit_recent", {}).items():
         good_profit_recent[good] = list(values)
     for good, values in data.get("price_history", {}).items():
