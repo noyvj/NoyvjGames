@@ -1,0 +1,250 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #111318;
+  color: #e8eaf0;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.container {
+  width: min(1400px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0 60px;
+}
+
+.hub-back-link {
+  display: inline-block;
+  margin-bottom: 16px;
+  color: #9ba1af;
+  text-decoration: none;
+  font-size: 13px;
+}
+.hub-back-link:hover { color: #e8eaf0; }
+
+header, .section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+h1 { margin: 0; font-size: 30px; }
+h2 { margin: 0 0 14px; font-size: 21px; }
+.subtitle { margin: 4px 0 0; color: #9ba1af; }
+
+.actions { display: flex; gap: 10px; }
+
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 15px;
+  background: #e44d3c;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+button.secondary { background: #30343d; }
+button:disabled { opacity: .6; cursor: wait; }
+
+.notice, .empty {
+  margin: 22px 0;
+  padding: 14px 16px;
+  border: 1px solid #2c313a;
+  border-radius: 10px;
+  background: #191c22;
+  color: #cdd1da;
+}
+.notice a, table a { color: #f28b7f; }
+
+.sync { color: #8e96a5; font-size: 13px; min-height: 1.2em; }
+.warning { color: #f2bd70; }
+
+section {
+  margin-top: 28px;
+  padding: 20px;
+  background: #181b21;
+  border: 1px solid #292e37;
+  border-radius: 12px;
+}
+
+#account-section {
+  margin-top: 22px;
+}
+.account-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.account-row input {
+  flex: 1;
+  min-width: 140px;
+  padding: 8px 10px;
+  background: #101217;
+  color: #f2f3f5;
+  border: 1px solid #3a404b;
+  border-radius: 6px;
+}
+.account-status {
+  margin: 0;
+  color: #f2bd70;
+  font-size: 13px;
+  min-height: 1.2em;
+}
+#account-signed-in {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+#account-signed-in p { margin: 0; color: #cdd1da; }
+
+.section-head > span {
+  color: #8e96a5;
+  font-size: 13px;
+}
+
+.progress {
+  height: 8px;
+  margin: 0 0 16px;
+  background: #292e37;
+  border-radius: 99px;
+  overflow: hidden;
+}
+#progress-bar {
+  height: 100%;
+  background: #e44d3c;
+  transition: width .2s ease;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 9px 8px;
+  border-bottom: 1px solid #292e37;
+  text-align: left;
+}
+
+th {
+  color: #9ba1af;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+tr.category-row td {
+  padding: 14px 8px 8px;
+  border-bottom: 1px solid #3a404b;
+  color: #e8eaf0;
+  font-size: 13px;
+}
+tr.category-row:first-child td { padding-top: 8px; }
+tr.category-row strong { margin-right: 8px; }
+.category-note {
+  font-weight: 400;
+  color: #9ba1af;
+  font-size: 12px;
+}
+
+tr.complete td {
+  opacity: .55;
+}
+
+tr.complete strong {
+  text-decoration: line-through;
+}
+
+input[type="number"] {
+  width: 90px;
+  padding: 6px 8px;
+  background: #101217;
+  color: #f2f3f5;
+  border: 1px solid #3a404b;
+  border-radius: 6px;
+}
+
+tr.buildable td {
+  background: rgba(88, 199, 128, .07);
+}
+tr.buildable td:first-child {
+  box-shadow: inset 3px 0 0 #4caf7d;
+}
+
+.ready-badge {
+  margin-left: 8px;
+  padding: 2px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  color: #0f1b14;
+  background: #4caf7d;
+  border-radius: 99px;
+}
+
+button.build-btn {
+  background: #3a9d64;
+  white-space: nowrap;
+}
+button.build-btn:disabled {
+  background: #30343d;
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.resource-location {
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 400;
+  color: #8e96a5;
+}
+
+.used-in {
+  margin-top: 3px;
+}
+.used-in summary {
+  cursor: pointer;
+  font-size: 11px;
+  color: #8e96a5;
+  list-style: none;
+}
+.used-in summary::-webkit-details-marker { display: none; }
+.used-in summary::before {
+  content: "▸ ";
+}
+.used-in[open] summary::before {
+  content: "▾ ";
+}
+.used-in ul {
+  margin: 6px 0 2px;
+  padding-left: 16px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #cdd1da;
+}
+.used-in li { margin: 2px 0; }
+.used-in-qty { color: #8e96a5; }
+
+.summary {
+  background: #12151a;
+}
+
+#summary {
+  color: #b9bec9;
+}
+
+/* Shared save-widget's own fixed-position button/panel, unmodified —
+   this stylesheet doesn't need to style it, it ships its own CSS. */
+
+@media (max-width: 850px) {
+  .container { width: calc(100% - 18px); padding-top: 15px; }
+  header { align-items: flex-start; flex-direction: column; }
+  .actions { width: 100%; }
+  button { flex: 1; }
+
+  section { padding: 12px; overflow-x: auto; }
+  table { min-width: 780px; }
+}

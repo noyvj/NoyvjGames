@@ -13,6 +13,7 @@ Several items across the ideas file got parked specifically pending this — you
 - **K4** (Continuum): a distinct audio cue per era transition.
 - **K11** (Continuum): an optional ambient audio bed per era.
 - **G7** (Thaw): a minimal ping for the tipping-point moment — Pass 1 also skipped this for the same reason.
+- **L21, round 2** (Le Champ de Mots): a pronunciation-practice mode (slowed TTS playback + visual syllable breakdown) — your round-2 answer: "audio is still an issue we are not dealing with yet."
 
 ---
 
@@ -34,9 +35,9 @@ Several items across the ideas file got parked specifically pending this — you
 
 - **L5**: site-wide dark/light theme toggle — a real, documented decision, not left unresolved. Building this now would mean a fake or half-working toggle: every game on the site currently uses a single dark, glass-panel space theme (confirmed across Continuum, Canopy, Trade Empire, and every other game's own CLAUDE.md visual-pass notes) with no existing light-theme CSS anywhere for a toggle to switch *to*. A genuine light/dark toggle needs a full second color scheme — backgrounds, borders, meter fills, text contrast, each game's own accent hue — designed and maintained across every single game's `style.css`, which is a large, dedicated design pass in its own right, not a toggle-widget task that fits inside the per-game settings-panel work (`planning/TODO.md`'s "per-game settings panel" section, origin A9). Decided: don't build a toggle until that design pass happens. When it does, the toggle itself would be the easy, mechanical part — a `data-theme` attribute + a CSS custom-property swap, the same shape the settings panels' own `--text-scale` variable already uses.
 - **L9**: whether the site is ready to apply for real ads, and how. You asked directly, so here's the actual answer rather than a deferred question: `planning/pwa-and-ads-setup.md` already has the full setup order written out — (1) apply for Google AdSense (approval can take days to weeks, so applying early doesn't commit you to anything), (2) confirm HTTPS (GitHub Pages already provides this), (3) once approved, add the `ads.txt` file AdSense gives you and drop the real client/slot IDs into the ad bar that's already built and labeled everywhere. The ad bar itself, its labeling, and the placeholder wiring are all already done — the only blocker is actually submitting the AdSense application, which needs your own Google account and is a "you" step, not a "me" step. Say the word whenever you want to move on this.
-- **L16**: a permanent service-worker cache-busting fix. You said: "I don't know what this means." To clarify: the site's service worker (`sw.js`) caches files so the site loads instantly on a repeat visit, but that means after I push an update, a returning player's browser can keep serving the *old* cached version of a game until they manually hard-refresh — this actually bit Continuum's own Phase 5 build once during testing. The fix is a proper "cache version" scheme so the service worker knows to fetch fresh files whenever something's actually changed, without needing the player to do anything manual. Worth doing once explained, but not urgent unless it's already visibly biting real players.
-- **L18**: a more visible "Add to Home Screen" prompt. You said: "I don't know what this means." To clarify: since the site already has a PWA manifest, a phone browser *can* offer "install this as an app" — but right now nothing on the page invites that, so a visitor would only see it if they already knew to dig for their browser's own install option. This item would add a small, dismissible banner that surfaces that install option directly, on mobile. Low priority; worth doing once explained if you want it, otherwise fine to drop.
-- **L20**: an auto-save system, floated as "maybe?" alongside the rate-limiting review — worth noting this would reverse a deliberate design decision (`planning/SAVE-BUTTON-INTEGRATION.md` §5 explicitly chose "no auto-save timer... one explicit button, one explicit save point" to avoid silently overwriting a save the player wanted to keep). Real tradeoff to discuss before building: convenience vs. that overwrite risk.
+- ~~**L16**~~ — resolved: this round's ideas doc answered "yes" (Y9), now tracked as accepted work in `planning/TODO2.md`, not deferred anymore.
+- ~~**L18**~~ — shipped: the PWA install banner is built and checked off in `planning/TODO.md`.
+- ~~**L20**~~ — resolved: this round's Z25 answered "yes" to an opt-in autosave checkbox (every ~5 minutes, defaulting OFF so it never silently overwrites a save without the player choosing it), now tracked as accepted work in `planning/TODO2.md`, not deferred anymore.
 
 ## B. Canopy
 
@@ -75,3 +76,42 @@ Several items across the ideas file got parked specifically pending this — you
 ## I. Drift
 
 - **I4**: an in-game "Start New Region" reset control, marked "maybe" — same category as Thaw's G8 above (a convenience over reload/new-save-code, not new capability).
+
+---
+
+## Round 2 (from `IMPROVEMENT-IDEAS-ROUND-2.md`) — labels re-used from round 1, tagged "round 2" to disambiguate
+
+### Canopy
+
+- **B5, round 2**: comparing the forest's standing value against the site aggregate average — you want "a full multiplayer pass soon" first.
+
+### Grid
+
+- **C21, round 2**: the "grid twin" split-view comparison mode (run two strategies side by side) — you left this as a judgment call on whether it's too much for a player; needs a real scoping conversation.
+
+### Tide
+
+- **D3, round 2**: a multi-settlement mode (manage two coastal settlements at once) — same judgment-call-on-complexity reasoning as Grid's C21 above.
+- **D25, round 2**: the "shared coastline" cooperative-framing community stat — explicitly saved for the multiplayer update.
+
+### Aftermath
+
+- **E11, round 2**: a "mutual aid network" positive event — explicitly waiting for the multiplayer update.
+
+### Thaw
+
+- **G25, round 2**: a "counterfactual world tour" (previewing Region D's trajectory applied to A/B/C's starting conditions) — marked "no but maybe later."
+
+### Continuum
+
+- **K30, round 2**: a "peer city" async ghost overlay *(needs the Z1 aggregate backend from round 2)* — you said it could be good but might also be confusing, and want to prioritize scoping multiplayer across the site first; revisit once that's underway.
+
+### New game concepts (Section M)
+
+- **M2, round 2 — Silk Road**: a historical trade-route management game. You left the call to me ("if you believe it is different enough [from Trade Empire], build it") — my honest read is it's mechanically too similar to Trade Empire (route goods between nodes, react to market/events) without a sharper hook, so parking rather than building. Revisit if a genuinely distinct mechanic comes up, not just a historical reskin.
+- **M8, round 2 — Contraption**: a physics-based sandbox puzzle game. You asked "if you think it's possible, yes; otherwise no." A real drag-and-place physics puzzle needs a proper JS physics engine (e.g. Matter.js) — feasible, but a bigger stack decision than a normal new-game plan (similar in scale to Continuum's Three.js adoption). Parking until that's a deliberate choice.
+- **M9, round 2 — Offbeat**: a rhythm/timing arcade game. You flagged the concern yourself — precise timing is hard given Pyodide's boot overhead, and audio is still unresolved (see the standing audio question at the top of this file). Parking until both are addressed.
+
+### Warframe Build Tracker (Section X, now tracked in `planning/TODO2.md`'s own X section, not a separate local file)
+
+- **Riven disposition reference column**, round 2 — "maybe much later, right now is a crafting and resource tracker," per your answer.

@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Warframe Build Resource Tracker</title>
+<link rel="icon" href="../icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+</head>
+<body>
+<div class="container">
+  <a href="../index.html" class="hub-back-link">&larr; NoyvjGames hub</a>
+
+  <header>
+    <div>
+      <h1>Warframe Build Resource Tracker</h1>
+      <p class="subtitle">Zaws • Kitguns • Amps</p>
+    </div>
+    <div class="actions">
+      <button id="reset-button" class="secondary">Reset inventory</button>
+    </div>
+  </header>
+
+  <section id="account-section">
+    <div id="account-signed-out">
+      <div class="account-row">
+        <input id="account-username-input" type="text" placeholder="username" autocomplete="username">
+        <input id="account-password-input" type="password" placeholder="password" autocomplete="current-password">
+      </div>
+      <div class="account-row">
+        <button type="button" id="account-login-button" class="secondary">Sign In</button>
+        <button type="button" id="account-signup-button" class="secondary">Create Account</button>
+      </div>
+      <p id="account-status" class="account-status"></p>
+    </div>
+    <div id="account-signed-in" hidden>
+      <p id="account-username-display"></p>
+      <button type="button" id="account-logout-button" class="secondary">Sign Out</button>
+    </div>
+  </section>
+
+  <div class="notice">
+    <strong>How it works:</strong>
+    enter how many component parts you already own, then enter your raw/refined
+    resource inventory below. The tracker calculates what is still required.
+    Recipes are hand-curated from the <a href="https://wiki.warframe.com/" target="_blank">WARFRAME Wiki</a>
+    (each part's Wiki page has a direct link below) rather than fetched live —
+    see <code>README.md</code> for why. Sign in above to save your progress to
+    your account (cross-device) — or just play anonymously and use the Save
+    button below, same as any other game on the hub.
+  </div>
+
+  <p id="status-message" class="sync"></p>
+
+  <section>
+    <div class="section-head">
+      <h2>1. Component checklist</h2>
+      <span id="component-progress"></span>
+    </div>
+
+    <div class="progress"><div id="progress-bar"></div></div>
+
+    <table class="parts">
+      <thead>
+        <tr>
+          <th>Part</th>
+          <th>Need</th>
+          <th>Have</th>
+          <th>Still need</th>
+          <th>Wiki</th>
+          <th>Build</th>
+        </tr>
+      </thead>
+      <tbody id="components-body"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>2. Resource checklist</h2>
+      <span>Refined/built resources satisfy the requirement first.</span>
+    </div>
+
+    <table class="resources">
+      <thead>
+        <tr>
+          <th>Resource</th>
+          <th>Needed</th>
+          <th>Built / refined have</th>
+          <th>Raw have</th>
+          <th>Still need</th>
+          <th>Wiki</th>
+        </tr>
+      </thead>
+      <tbody id="resources-body"></tbody>
+    </table>
+  </section>
+
+  <section class="summary">
+    <h2>3. What I still need</h2>
+    <div id="summary"></div>
+  </section>
+</div>
+
+<script>
+  async function main() {
+    const pyodide = await loadPyodide();
+    window.pyodide = pyodide; // exposed for the save/load bridge below
+    const code = await (await fetch("game.py")).text();
+    await pyodide.runPythonAsync(code);
+  }
+  main();
+</script>
+<!--
+  Reuses the hub's existing account + save-code system unmodified —
+  shared/save-widget.js expects game.py's get_state()/load_state(), the
+  same contract every other game on the hub implements. This is the whole
+  reason the rearchitect from Flask happened: no new backend code needed,
+  the existing FastAPI Cloud /saves endpoints are already game-agnostic
+  (a plain game_id string + a JSON blob), so this personal tool gets real
+  multi-user, account-based saves for free.
+-->
+<script src="../shared/hub-auth.js"></script>
+<script src="../shared/save-widget.js" data-game-id="warframe-tracker"></script>
+<script>
+  (function () {
+    const RATINGS_API_BASE = "https://noyvjgames.fastapicloud.dev";
+    const AUTH_USERNAME_KEY = "hub_account_username";
+
+    const signedOut = document.getElementById("account-signed-out");
+    const signedIn = document.getElementById("account-signed-in");
+    const usernameInput = document.getElementById("account-username-input");
+    const passwordInput = document.getElementById("account-password-input");
+    const status = document.getElementById("account-status");
+    const loginButton = document.getElementById("account-login-button");
+    const signupButton = document.getElementById("account-signup-button");
+    const logoutButton = document.getElementById("account-logout-button");
+    const usernameDisplay = document.getElementById("account-username-display");
+
+    function showSignedIn(username) {
+      signedOut.hidden = true;
+      signedIn.hidden = false;
+      usernameDisplay.textContent = `Signed in as ${username}`;
+    }
+
+    function showSignedOut() {
+      signedOut.hidden = false;
+      signedIn.hidden = true;
+    }
+
+    async function submitAuth(endpoint, triggerButton, busyText, idleText) {
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
+      if (!username || !password) {
+        status.textContent = "Enter a username and password first.";
+        return;
+      }
+      loginButton.disabled = true;
+      signupButton.disabled = true;
+      triggerButton.textContent = busyText;
+      try {
+        const res = await fetch(`${RATINGS_API_BASE}${endpoint}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        });
+        const body = await res.json();
+        if (!res.ok) {
+          status.textContent = body.detail || "Something went wrong — try again.";
+          return;
+        }
+        localStorage.setItem(HUB_AUTH_TOKEN_KEY, body.bearer_token);
+        localStorage.setItem(AUTH_USERNAME_KEY, body.username);
+        usernameInput.value = "";
+        passwordInput.value = "";
+        status.textContent = "";
+        showSignedIn(body.username);
+      } catch (err) {
+        status.textContent = "Couldn't reach the server — try again.";
+      } finally {
+        loginButton.disabled = false;
+        signupButton.disabled = false;
+        triggerButton.textContent = idleText;
+      }
+    }
+
+    loginButton.addEventListener("click", () =>
+      submitAuth("/auth/login", loginButton, "Signing in...", "Sign In")
+    );
+    signupButton.addEventListener("click", () =>
+      submitAuth("/auth/signup", signupButton, "Creating...", "Create Account")
+    );
+    logoutButton.addEventListener("click", () => {
+      localStorage.removeItem(HUB_AUTH_TOKEN_KEY);
+      localStorage.removeItem(AUTH_USERNAME_KEY);
+      showSignedOut();
+    });
+
+    const rememberedUsername = localStorage.getItem(AUTH_USERNAME_KEY);
+    if (hubGetBearerToken() && rememberedUsername) {
+      showSignedIn(rememberedUsername);
+    }
+  })();
+</script>
+</body>
+</html>
