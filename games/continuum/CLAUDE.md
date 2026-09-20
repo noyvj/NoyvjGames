@@ -132,6 +132,7 @@ For each remaining era (Agrarian through Space Age), repeat this pattern:
 | 22 | K16 "What's New" changelog panel | **DONE** (untagged) |
 | 23 | K5 summary, K12 scenarios, K13 snapshot, K17 seasonal light, K18 hard mode | **DONE** (untagged) |
 | 24 | UI decluttering pass (research panel disclosures) | **DONE** (untagged) |
+| 25 | Civic-backlog waves (K2/K3/K4/K6/K7/K8/K10/K11/K12/K13/K14/K15/K17/K19/K21/K23/K25/K27/K29) | **DONE** (untagged) |
 
 Milestones 19-24 were never tagged (`git tag -l "continuum-milestone-*"` stops at 18); the commit history is the record for those.
 
@@ -540,6 +541,18 @@ Site-wide goal (`planning/TODO.md`): the user's note that "everything looks very
 - **Result (live, desktop):** research panel 2006px to 853px on a fresh game, page 5478px to 4324px. At 375px: no horizontal overflow, Advance Season still docked, search works, no console errors.
 - **Tests:** `test_research_search.py` gained 3 tests (split by state, studying moves a node to Known, search opens the right disclosure) and its two helpers now read all three containers; `conftest.py` registers the new element ids. Suite 488 to 491.
 - **Left alone deliberately:** the Starting Scenario picker (177px, locks after season 1 but still informative), the Look Back list, and the Log (all short).
+
+## Milestone 25 build decisions (K-section civic backlog, waves 1 and 2)
+
+Test count 491 -> 523, verified live under Pyodide with zero console errors. Commits `5aa6f76`, `dbaad27`, `41b1065`, and the K15/K29 commit after them.
+
+- **`5aa6f76`:** K11 civic challenges (`challenges.py`), K19/K13/K25 trajectory charts with a real-world reference line (`trajectory.py`), K21b research expansion, K2 founded plaque, K8 efficiency readout, K10 calm-season streak, K21a tree completion %.
+- **`dbaad27`:** K4 isometric camera preset, K14 time-of-day pin (session-only `<select>` in the camera row, no animation loop), K6 branch chips, K12 exact node effects (`research.describe_effects`), K23 unlock estimate (`research.unlock_estimate`, tier-gated nodes only), K7 stakeholder statement + K17 efficiency rank (`summary.py`, reuses the hard-mode-aware score bands), K27 `?` shortcuts panel (plain JS).
+- **K3:** "Benchmark your city" `<details>` in `index.html`, plain JS against the public `GET /stats/games/continuum` and `/percentile` (Z1). Fields are the six whitelisted `current_state.city.*` paths; only fetched on button press; any failure or suppression ends in one "not available yet" line. No per-era bucket exists in `STATS_FIELDS`, so it compares against all cities, not "same era".
+- **K15 / K29:** ride in `campaign.ui` (`founders_log`, `play_seconds`), validated/defaulted on every read (`founders_entries()`, `play_seconds()`), so bad saved shapes read as empty/zero. Play time adds the gap between season advances, capped at 5 minutes.
+- **Already satisfied earlier:** K5 (Milestone 23), K9 = K12 scenarios, K16 = K18 hard mode, K20 partial (PNG snapshot button, no infographic card), K14 partly (seasonal light).
+- **Still open:** K1 dashboard overlay, K18 settlement archive, K20 infographic card, K22 consulting mode, K24 civic map, K28 flow diagram, K26b.
+- **K26b scoping note (eighth era, not built):** continues the arc after Space Age. Needs, at minimum: an era id + label in `sim.ERA_ORDER`/`ERA_LABEL`, a city-state mechanic and sustainability rule distinct from Space Age's, a research tier (~9-10 nodes with `EFFECT_LABELS` coverage), log and transition beats from Space Age, info-panel content, a Three.js scene entry in `render3d.js`/`visual.py`, save validation for any new fields, and a test module like `test_space_age_era.py`. Too large to build properly alongside the smaller items; K26a's epilogue stays unbuilt.
 
 ## Deferred items (not now, flagged for later)
 
