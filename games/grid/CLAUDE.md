@@ -249,6 +249,16 @@ With the fresh code loaded: the panel opened, listed all 11 real entries
 with correct dates/text in newest-first order, and closed correctly on a
 second click, with zero console errors.
 
+## UI decluttering pass (2026-09-20, planning/TODO.md closing task)
+
+Audit-first pass, same standard as the site-wide colorblind-safety audit: only change something if it's genuinely crowded, otherwise leave it. Read through `index.html` and `style.css` end to end. Found this game already carries a lot of prior decluttering work: every panel-scale feature (Tutorial, How to Play, Achievements, What's New, Run Summary, Settings) is hidden-until-opened behind toolbar toggles; the funds breakdown is already tucked behind a `.funds-breakdown-toggle` `<details>`; every non-obvious mechanic has its own inline `.info-toggle` "i" disclosure; and `.section` cards each carry a distinct colored left border (`#status` cyan, `#plants` orange, `#plant-mix` green) so the page already reads as labeled zones, not one flat wall.
+
+**Real gap found:** `#plant-mix`'s six `.mix-row` composition bars (Coal/Gas/Nuclear/Solar/Wind/Hydro, each a label + bar + percentage) were the one remaining always-visible block that's genuinely supplementary — it's a generation-capacity-share breakdown a player might check occasionally, not something needed at a glance to decide this round's build/retire/maintain actions (unlike `#status`'s funds/emissions/disruption-risk, which are decision-critical every round), and it added six full rows of always-on UI for information a player doesn't need turn-to-turn.
+
+**Fixed:** wrapped the six `.mix-row` divs in a new block-level `<details class="mix-breakdown-toggle">` (`index.html`), collapsed by default, with a plain "Show breakdown" `<summary>` — the "Plant Mix" heading and its existing info-toggle stay visible outside the disclosure so the feature is still discoverable. Styled in `style.css` by copying Tide's own `.ticker-history-toggle` idiom (0.78rem, opacity 0.65 summary, block spacing) so the two games touched in this pass share one collapse-affordance look. No `game.py` change — `render()` only ever does `document.getElementById(...)` on the same six `-mix-bar`/`-mix-pct` ids, which are untouched by the wrapping div.
+
+Verified: full 270/270 pytest suite green (HTML/CSS-only change, no Python touched, tests only reference elements by id via `getElementById`/`document.elements[...]`, none assert on DOM nesting). Everything else audited and left alone: `#status`'s status-line stack, the trend graph, and the seven `.plant-row` build/retire/maintain rows are all either decision-critical every round or already grouped under a labeled, bordered `.section` card — collapsing any of those further would hide information a player actually needs mid-round, which is exactly the over-collapsing failure mode this pass is meant to avoid.
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag grid-milestone-0N`.

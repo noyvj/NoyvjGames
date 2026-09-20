@@ -957,6 +957,31 @@ button.primary:active {
 #feedback-prompt { border-left-color: #b57de0; }
 #info-page-panel { border-left-color: #6f9fe0; }
 
+/* UI decluttering pass (planning/TODO.md closing task): block-level
+   <details> wrapping the mix-row breakdown, same zero-JS mechanics as
+   .info-toggle but styled to read as "more of the section above" rather
+   than a separate help topic -- copied from Tide's own
+   .ticker-history-toggle idiom for consistency across the two games
+   touched in this pass. */
+.mix-breakdown-toggle {
+  margin-top: 0.4rem;
+}
+
+.mix-breakdown-toggle summary {
+  font-size: 0.78rem;
+  opacity: 0.65;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mix-breakdown-toggle summary:hover {
+  opacity: 0.9;
+}
+
+.mix-breakdown-toggle[open] summary {
+  margin-bottom: 0.3rem;
+}
+
 /* C7: plant-mix bar chart -- composition of total capacity by type.
    Each type keeps a fixed, distinct hue (loosely matching its icon's
    dominant color above) so the bars stay identifiable by more than
