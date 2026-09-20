@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 import stats
 from database import Base, engine, get_db, patch_schema
-from models import AnswerReport, AuthSession, Feedback, Rating, Save, User
+from models import AnswerReport, AuthSession, Feedback, PageView, Rating, Save, User
 
 logger = logging.getLogger(__name__)
 
@@ -636,3 +636,14 @@ def stats_achievements(response: Response, db: Session = Depends(get_db)):
             "achievements": summary["achievements"],
         }
     return {"min_bucket": stats.MIN_BUCKET, "games": out}
+
+
+@app.post("/stats/pageview")
+def stats_pageview(db: Session = Depends(get_db)):
+    """Y29: records one opt-in hub visit and returns the running total.
+    No identifying detail is ever taken from the request -- a bare insert,
+    then a count(*), is the entire implementation."""
+    db.add(PageView())
+    db.commit()
+    total = db.query(PageView).count()
+    return {"total": total}

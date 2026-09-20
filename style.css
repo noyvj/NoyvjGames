@@ -59,6 +59,26 @@ body {
   text-decoration: underline;
 }
 
+/* Y13: "Take the Tour" nav button — matches the plain-text look of the
+   surrounding nav links rather than looking like a form control. */
+.hub-nav-button {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: #8fb0e8;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.hub-nav-button:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
 /* whats-new.html */
 .whats-new-main {
   max-width: 760px;
@@ -654,6 +674,16 @@ body {
   letter-spacing: 0.03em;
 }
 
+/* Y22/Z10: difficulty/challenge-variant marker. A distinct border + a
+   leading glyph (not a color-only difference — see root CLAUDE.md's
+   colorblind-safety working note) so it reads as a different kind of tag
+   from the subject/depth pills at a glance. */
+.tag-pill--difficulty {
+  background: rgba(224, 194, 76, 0.12);
+  border-color: rgba(224, 194, 76, 0.4);
+  opacity: 0.9;
+}
+
 /* Hub lobby search/tag filter (TODO.md L11/L12) */
 .game-filter-bar {
   max-width: 1000px;
@@ -737,6 +767,16 @@ body {
 .continue-playing-item:hover {
   filter: brightness(1.15);
   transform: translateY(-1px);
+}
+
+/* Y15: community highlights text — reuses the .continue-playing-section
+   card shell (see index.html) for visual consistency, just plain status
+   text inside rather than a list of links. */
+.community-highlights-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  opacity: 0.8;
 }
 
 .review-widget {
@@ -1227,3 +1267,27 @@ button.secondary:disabled {
 }
 .hub-footer a { color: #8fb0e8; opacity: 0.8; text-decoration: none; }
 .hub-footer a:hover { opacity: 1; text-decoration: underline; }
+
+/* Y29: self-hosted, opt-in pageview counter */
+.pageview-counter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0 1rem 2rem;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  text-align: center;
+}
+
+.pageview-counter label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+}
+
+.pageview-count-text {
+  opacity: 0.85;
+}

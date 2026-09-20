@@ -19,6 +19,7 @@
       <a href="whats-new.html">What's New<span id="whats-new-badge" class="nav-badge" hidden></span></a>
       <a href="roadmap.html">Roadmap</a>
       <a href="#site-feedback-section">Feedback / Report a Bug</a>
+      <button type="button" id="tutorial-restart-button" class="hub-nav-button">Take the Tour</button>
     </nav>
     <h1>NoyvjGames</h1>
     <p id="hub-tagline">Small AI-assisted game demos, built one milestone at a time.</p>
@@ -81,6 +82,11 @@
   <section id="recently-added-section" class="continue-playing-section" hidden>
     <h2 class="continue-playing-heading">Recently Added</h2>
     <div id="recently-added-list" class="continue-playing-list"></div>
+  </section>
+
+  <section id="community-highlights-section" class="continue-playing-section">
+    <h2 class="continue-playing-heading">Community Highlights</h2>
+    <p id="community-highlights-text" class="community-highlights-text" role="status">Loading community highlights&hellip;</p>
   </section>
 
   <section id="game-filter-bar" class="game-filter-bar">
@@ -406,6 +412,11 @@
     <a href="roadmap.html">Roadmap</a>
   </footer>
 
+  <div class="pageview-counter">
+    <label><input type="checkbox" id="pageview-optin-checkbox"> Help count visits (self-hosted, opt-in, no third-party tracker)</label>
+    <span id="pageview-count" class="pageview-count-text"></span>
+  </div>
+
   <div class="ad-bar ad-bar--bottom">
     <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>
     <span class="ad-bar-label ad-bar-label-short">Ad</span>
@@ -421,6 +432,7 @@
   <button type="button" id="back-to-top" class="back-to-top" aria-label="Back to top" hidden>&uarr;</button>
 
   <script src="shared/hub-auth.js"></script>
+  <script src="shared/tutorial.js"></script>
   <script src="script.js"></script>
   <script>
     if ("serviceWorker" in navigator) {

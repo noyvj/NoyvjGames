@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 215/709 items checked off (30.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 233/709 items checked off (32.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -51,13 +51,13 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [ ] Trade Empire
   - [ ] Continuum
   - [ ] Le Champ de Mots
-- [ ] Z6: A shared CSS utility/pattern for "new personal best" badges:
-  - [ ] Build the shared utility
-  - [ ] Migrate SOL's existing bespoke version
-  - [ ] Migrate Canopy's existing bespoke version
-  - [ ] Migrate Tide's existing bespoke version
-  - [ ] Migrate Thaw's existing bespoke version
-  - [ ] Migrate Grid's existing bespoke version
+- [x] Z6: A shared CSS utility/pattern for "new personal best" badges:
+  - [x] Build the shared utility (`shared/personal-best.css`, 2026-09-21)
+  - [x] Migrate SOL's existing bespoke version (n/a — SOL has no personal-best concept, checked live)
+  - [x] Migrate Canopy's existing bespoke version
+  - [x] Migrate Tide's existing bespoke version
+  - [x] Migrate Thaw's existing bespoke version
+  - [x] Migrate Grid's existing bespoke version (n/a — Grid has no personal-best concept, checked live)
 - [ ] Z7: A genuine "replay value" audit — which games still lack any reason to play twice, and whether that's fine (teaching tools) or worth a light meta-progression pass. **You asked to make a new "ideas" list off the result of this one** — treat the audit's findings as the seed for a future targeted ideas round on replayability specifically, once this audit runs.
   - [ ] SOL
   - [ ] Canopy
@@ -76,7 +76,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [ ] Build the shared helper
   - [ ] Migrate Aftermath's existing E12 export to it
   - [ ] Apply to SOL's A17 export idea (see per-game section) using the shared helper, not a one-off
-- [ ] Z10: A consistent "difficulty variant active" icon/badge on a game's title card when it has one enabled (single hub-side feature, reads each game's own difficulty flag).
+- [x] Z10: A consistent "difficulty variant active" icon/badge on a game's title card when it has one enabled (single hub-side feature, reads each game's own difficulty flag).
 - [ ] Z11: A shared "narrative log" component (a small dated feed of things that happened):
   - [ ] Build the shared component
   - [ ] Migrate Continuum's existing ongoing-log to it
@@ -338,22 +338,22 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] Y10: A small "new since your last visit" count badge on the What's New nav link itself.
 - [ ] Y11 **(you answered "yes" in round 2, and approved it in round 1 as L5 — this had been dropped from this list by mistake)**: A genuine site-wide dark/light theme toggle. Needs the dedicated design pass first: a real second (light) colour scheme for the hub shell and every game's `style.css` (backgrounds, borders, meter fills, text contrast, per-game accent hues, Continuum's 3D scene sky/lighting), then a `data-theme` attribute + CSS custom-property swap, a toggle in each game's settings panel and on the hub, persisted per-device. Do it game by game after the current per-game feature passes land (they all edit `style.css`), and keep the colorblind-safety audit rules.
 - [x] Y12: A small "member since" date on the hub's account section for signed-in users.
-- [ ] Y13: A light, skippable "site tour" onboarding flow for first-time hub visitors — **make it optional, same as the per-game tutorials.**
-- [ ] Y15: A "community highlights" section periodically featuring a real anonymized notable playthrough (needs Z1's aggregate backend).
+- [x] Y13: A light, skippable "site tour" onboarding flow for first-time hub visitors — **make it optional, same as the per-game tutorials.**
+- [x] Y15: A "community highlights" section periodically featuring a real anonymized notable playthrough (needs Z1's aggregate backend).
 - [x] Y16: A loading skeleton/placeholder for the title-card grid while the ratings widget's async fetch resolves.
 - [x] Y17: A proper 404/error page for a broken game link, styled to match the hub.
 - [x] Y18: A brief "Signed out" confirmation message on sign-out before the UI switches views.
 - [x] Y19: A deeper site search that also searches inside game descriptions and changelog entries, not just the visible title-card text.
 - [x] Y20: A "share this game" button per title card (copies a direct link), distinct from the review widget.
 - [x] Y21: A "what's popular" sort option on the hub lobby — **build two separate sort modes**, sort-by-rating-average AND sort-by-save-count, per your own note that save count is probably the more honest popularity signal right now (reviews skew toward test/friend accounts).
-- [ ] Y22: A visual marker on title cards for games with an active difficulty/challenge variant (ties to Z10).
+- [x] Y22: A visual marker on title cards for games with an active difficulty/challenge variant (ties to Z10).
 - [x] Y23: A short, honest terms-of-use/privacy page covering what's stored (accounts/saves/feedback) and why.
 - [x] Y24: A "random game" button for an undecided visitor, weighted toward unplayed titles for a signed-in player.
 - [x] Y25: A dismissible, `localStorage`-tracked site-wide announcement banner mechanism, distinct from the What's New page, for time-sensitive notices.
 - [x] Y26: Let the achievements dashboard's overall progress bar show the exact fraction as a hover tooltip, not just the bar width.
 - [x] Y27: A "recently added" hub-lobby section, separate from Continue Playing, surfacing the newest game(s).
 - [x] Y28: A consistent focus-ring style audit across all hub-level interactive elements for keyboard-navigation clarity.
-- [ ] Y29: A privacy-respecting, self-hosted pageview-counter opt-in for real BCM206 visitor-count evidence (not a third-party tracker).
+- [x] Y29: A privacy-respecting, self-hosted pageview-counter opt-in for real BCM206 visitor-count evidence (not a third-party tracker).
 - [x] Y30: A "back to top" floating button on the hub lobby once scrolled past the fold.
 - [x] Y-extra (added after this doc was first built — you confirmed the repo is already public, no action needed there, but asked for this as a safety check): a full scan of every tracked file **and commit history/messages** across the whole repo for anything personal that shouldn't be public — names, personal notes, stray credentials, anything written assuming a private audience. Worth doing sooner rather than gated behind everything else in this list, since the repo is public right now.
 
@@ -407,13 +407,13 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] B8: A tooltip on the stakeholder "incentive" request type clarifying it's a genuinely positive offer before opening it.
 - [x] B9: A named-run "playstyle badge" (Preservationist/Balanced/Harvester) computed from the session's clear-vs-preserve ratio.
 - [x] B10: Let biodiversity's numeric readout show its rate of change (+X/tick), not just the current total.
-- [ ] B11: A "reforestation partner" mechanic — a second party co-funds replanting a bare plot for a smaller cut of its future value.
+- [x] B11: A "reforestation partner" mechanic — a second party co-funds replanting a bare plot for a smaller cut of its future value.
 - [x] B12: A small "?" tooltip on soil-quality percentages explaining what degradation costs in future yield.
 - [x] B13: A proper end-of-session "forest report card" — biodiversity/standing-value/stakeholder-relations trends as three small graphs.
 - [x] B14: A "Small (4×4)" grid preset alongside the existing Normal/Large options, for a faster session.
-- [ ] B15: A "legacy forest" feature — a fresh session starts with a small permanent bonus based on a previous session's final standing value (Aftermath-style meta-progression, opt-in, built independently per Z3's resolution).
+- [x] B15: A "legacy forest" feature — a fresh session starts with a small permanent bonus based on a previous session's final standing value (Aftermath-style meta-progression, opt-in, built independently per Z3's resolution).
 - [x] B16: A keyboard shortcut for "select next stakeholder request."
-- [ ] B17: A visible seasonal cycle — plots grow slightly faster/slower by an in-game season indicator.
+- [x] B17: A visible seasonal cycle — plots grow slightly faster/slower by an in-game season indicator.
 - [x] B18: A "copy my playstyle badge" button next to the existing shareable snippet.
 - [x] B19: A "community forest" comparison page — see how other players' saved Run A/B snapshots compare in aggregate, anonymized *(needs Z1)*.
 - [x] B20: Let the "+X value" floating animation vary its color slightly by magnitude (size/motion only, no new color-only meaning, consistent with the colorblind audit).
@@ -440,7 +440,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] C4: A tooltip explaining exactly what "aging" does numerically on hover over any plant's wear percentage.
 - [x] C5: A "grid operator report" — extend the existing Run Summary with a letter-grade/tier ranking against the real-world benchmark line.
 - [x] C6: Let the plant-mix bar chart animate bars growing/shrinking on change, rather than snapping instantly.
-- [ ] C7: A "demand response" mechanic — invest in reducing peak demand itself, a fourth lever alongside build/retire/maintain.
+- [x] C7: A "demand response" mechanic — invest in reducing peak demand itself, a fourth lever alongside build/retire/maintain.
 - [x] C8: A small icon distinguishing renewable vs. fossil plant rows in the plant-mix chart legend, beyond color.
 - [ ] C9: A storage-arbitrage mini-game layer — once the battery tier is built, manually choose when to charge/discharge for a small bonus.
 - [x] C10: Let the disruption-event toast include a "why this happened" reason tied to the specific plant that failed.
@@ -449,9 +449,9 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] C13: A scenario-select mode at game start ("coal-heavy legacy grid," "greenfield renewable-first," etc.) with different starting plant mixes.
 - [x] C14: Let the funds-breakdown panel show a small pie/bar visual, not just numbers.
 - [x] C15: A cross-player aggregate comparison *(needs Z1 — the same shared endpoint C15 was already waiting on in `LATER.md`; resolve this one via Z1 rather than the separate multiplayer pass B5/others are waiting on)*.
-- [ ] C17: A weather-event log (separate from the disruption log) narrating exactly how Weather Variability affected a specific round's renewable output.
+- [x] C17: A weather-event log (separate from the disruption log) narrating exactly how Weather Variability affected a specific round's renewable output.
 - [x] C18: Let Retire's confirmation dialog show the plant's current age/wear alongside the "last unit" warning.
-- [ ] C19: A "policy lever" mechanic — an occasional opt-in choice (carbon pricing, subsidy) that shifts the cost curve temporarily.
+- [x] C19: A "policy lever" mechanic — an occasional opt-in choice (carbon pricing, subsidy) that shifts the cost curve temporarily.
 - [x] C20: A small up/down arrow next to the demand number each round, showing faster/slower growth than average.
 - [x] C22: Let the steeper-demand-growth toggle show its exact multiplier in its own label.
 - [ ] C23: A maintenance-scheduling feature — pre-commit to a maintenance cadence per plant type instead of manually clicking Maintain.

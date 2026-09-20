@@ -1123,3 +1123,256 @@ if (backToTop) {
   });
   update();
 }
+
+// --- Y13: light, skippable "site tour" onboarding for first-time hub
+// visitors ---
+//
+// Reuses `shared/tutorial.js` unchanged (the same spotlight-walkthrough
+// engine every game's own "How to Play"/tutorial-restart button already
+// uses — see games/aftermath/index.html for the per-game pattern), just
+// pointed at the hub's own DOM instead of a game's. `GameTutorial.init`
+// only auto-starts once per `gameId` (localStorage `tutorial-seen:hub`)
+// and is always optional: it never blocks the page, Escape/"Skip tutorial"
+// dismiss it immediately, and the "Take the Tour" nav button (auto-wired
+// by tutorial.js via its `tutorial-restart-button` id) re-opens it anytime.
+// A step whose selector doesn't currently exist on the page just falls
+// back to a centered card instead of erroring (see tutorial.js's own
+// currentTarget()), so this stays safe across signed-in/out states and
+// which optional sections happen to be visible.
+const HUB_TOUR_STEPS = [
+  {
+    title: "Welcome to NoyvjGames",
+    text: "A quick, skippable tour of the hub. Skip anytime — this never blocks the games below.",
+  },
+  {
+    selector: "#game-search-input",
+    title: "Search & filter",
+    text: "Search by name or description, or narrow by tag. Your last search and filter are remembered across visits.",
+  },
+  {
+    selector: "#game-sort",
+    title: "Sort the lobby",
+    text: "Sort by highest rated or most saved — most saved is usually the more honest \"popular\" signal.",
+  },
+  {
+    selector: ".title-card",
+    title: "Title cards",
+    text: "Each game gets its own card: a short blurb, tags, when it was last updated, and a star-rating/comment box right on the card.",
+  },
+  {
+    selector: "#account-section",
+    title: "Accounts (optional)",
+    text: "Sign in to sync saves and achievement progress across devices — or skip it entirely and just play. Save codes work without an account too.",
+  },
+  {
+    selector: "#community-highlights-section",
+    title: "Community Highlights",
+    text: "A rotating, anonymized fact drawn from real aggregate player data across the site, once enough saves exist to share one safely.",
+  },
+  {
+    selector: "a[href='whats-new.html']",
+    title: "What's New",
+    text: "A live changelog of what actually shipped recently, parsed straight from this project's own dev logs.",
+  },
+  {
+    selector: "#site-feedback-section",
+    title: "Feedback",
+    text: "General feedback about the hub itself (not one specific game) goes here. Thanks for stopping by!",
+  },
+];
+if (window.GameTutorial) {
+  window.GameTutorial.init(HUB_TOUR_STEPS, { gameId: "hub" });
+}
+
+// --- Y22 / Z10: difficulty/challenge-variant marker on title cards ---
+//
+// Z10's own framing ("reads each game's own difficulty flag") assumes a
+// per-game manifest convention that doesn't exist yet — today exactly one
+// hub-linked game actually ships an opt-in difficulty variant (Continuum's
+// K18 hard mode; see root CLAUDE.md's "Current games" table). Rather than
+// inventing a speculative per-game file format for a population of one,
+// this is a small hub-side registry (the same shape as
+// GAMES_WITH_ACHIEVEMENTS/GAME_DISPLAY_NAMES above) that a game earns an
+// entry in once it actually ships a variant. Deliberately does NOT touch
+// games/continuum/ or any other game's own folder — purely a hub-level
+// label describing already-public, already-shipped functionality.
+const GAMES_WITH_DIFFICULTY_VARIANT = {
+  continuum: "Hard Mode available",
+};
+
+function loadDifficultyBadges() {
+  document.querySelectorAll(".title-card").forEach((card) => {
+    const slug = cardSlug(card);
+    const label = slug && GAMES_WITH_DIFFICULTY_VARIANT[slug];
+    if (!label) return;
+    const tagsRow = card.querySelector(".title-card-tags");
+    if (!tagsRow || tagsRow.querySelector(".tag-pill--difficulty")) return;
+    const pill = document.createElement("span");
+    pill.className = "tag-pill tag-pill--difficulty";
+    // Icon + text, never color alone, per this repo's own colorblind-safety
+    // audit convention (see root CLAUDE.md's "Working notes").
+    pill.textContent = `⚔ ${label}`;
+    tagsRow.appendChild(pill);
+  });
+}
+loadDifficultyBadges();
+
+// --- Y15: "Community Highlights" ---
+//
+// Z1's stats backend (planning/TODO.md Z1; app/stats.py) is built but not
+// yet deployed to production, same caveat as every other "(needs Z1)" item
+// in TODO.md — this degrades to a plain "not available yet" message
+// instead of erroring, exactly like loadRatings()'s "Reviews unavailable
+// right now." fallback above.
+//
+// Z1's privacy rules (stats.py's own docstring) mean no individual save or
+// playthrough is ever returned — no min/max, nothing below MIN_BUCKET
+// saves, no strings from a save. So there is no real "notable playthrough"
+// in this backend's data model to feature. The honest analog built here
+// instead: real anonymized aggregate facts (an achievement's real earn
+// rate across everyone who's played that game, or a numeric field's real
+// community mean) rotating through as "highlights" — still a genuine,
+// live, privacy-respecting community fact, just aggregate rather than
+// per-player.
+const communityHighlightsText = document.getElementById("community-highlights-text");
+let communityHighlights = [];
+let communityHighlightIndex = 0;
+let communityHighlightTimer = null;
+
+function formatStatFieldLabel(path) {
+  return path.split(".").pop().replace(/_/g, " ");
+}
+
+function showCommunityHighlight() {
+  if (communityHighlightsText && communityHighlights.length) {
+    communityHighlightsText.textContent = communityHighlights[communityHighlightIndex];
+  }
+}
+
+async function loadCommunityHighlights() {
+  if (!communityHighlightsText) return;
+  try {
+    const [achRes, gamesRes] = await Promise.all([
+      fetch(`${RATINGS_API_BASE}/stats/achievements`),
+      fetch(`${RATINGS_API_BASE}/stats/games`),
+    ]);
+    if (!achRes.ok || !gamesRes.ok) throw new Error(`status ${achRes.status}/${gamesRes.status}`);
+    const achData = await achRes.json();
+    const gamesMeta = await gamesRes.json();
+
+    const highlights = [];
+    Object.entries(achData).forEach(([gameId, info]) => {
+      if (!info || info.suppressed) return;
+      const label = GAME_DISPLAY_NAMES[gameId] || gameId;
+      Object.entries(info.achievements || {}).forEach(([achId, stat]) => {
+        highlights.push(
+          `Only ${stat.earned_pct}% of ${label} players have earned "${achId.replace(/_/g, " ")}" so far.`
+        );
+      });
+    });
+
+    // One extra field-summary highlight, from a single randomly-picked
+    // known game — one extra request, not one per game, on every hub load.
+    const gameIds = Object.keys((gamesMeta && gamesMeta.games) || {});
+    const sampleGame = gameIds.length ? gameIds[Math.floor(Math.random() * gameIds.length)] : null;
+    if (sampleGame) {
+      try {
+        const fieldRes = await fetch(`${RATINGS_API_BASE}/stats/games/${sampleGame}`);
+        if (fieldRes.ok) {
+          const summary = await fieldRes.json();
+          const fields = summary && !summary.suppressed ? Object.entries(summary.fields || {}) : [];
+          if (fields.length) {
+            const [path, stat] = fields[Math.floor(Math.random() * fields.length)];
+            const label = GAME_DISPLAY_NAMES[sampleGame] || sampleGame;
+            highlights.push(
+              `The average ${label} player has reached ${formatStatFieldLabel(path)} ${stat.mean} across ${stat.count} shared saves.`
+            );
+          }
+        }
+      } catch (err) {
+        console.error(`loadCommunityHighlights: per-game field fetch failed for ${sampleGame}:`, err);
+      }
+    }
+
+    if (!highlights.length) {
+      communityHighlightsText.textContent =
+        "Not enough shared saves yet for a community highlight — check back once more players have saved a run.";
+      return;
+    }
+    communityHighlights = highlights;
+    communityHighlightIndex = 0;
+    showCommunityHighlight();
+    if (communityHighlightTimer) window.clearInterval(communityHighlightTimer);
+    if (communityHighlights.length > 1) {
+      communityHighlightTimer = window.setInterval(() => {
+        communityHighlightIndex = (communityHighlightIndex + 1) % communityHighlights.length;
+        showCommunityHighlight();
+      }, 9000);
+    }
+  } catch (err) {
+    // Expected right now — Z1 isn't deployed to production yet. Same
+    // "fail to a plain message, not an error" stance as every other
+    // Z1-dependent feature in this codebase.
+    console.error("loadCommunityHighlights failed:", err);
+    communityHighlightsText.textContent = "Community highlights aren't available yet — check back soon.";
+  }
+}
+loadCommunityHighlights();
+
+// --- Y29: privacy-respecting, self-hosted pageview counter (opt-in) ---
+//
+// Off by default — a visit is only ever counted once someone explicitly
+// opts in here, and the choice lives in localStorage (per-device, not
+// per-account) so it's never assumed from an account or a previous visit.
+// No IP, user agent, or referrer is collected by this code; the backend
+// endpoint (POST /stats/pageview, app/main.py) only ever sees "one more
+// opted-in visit happened," nothing that identifies who — a plain insert
+// into a table with no columns beyond an id and a timestamp. Real
+// first-party evidence of public availability for BCM206, without a
+// third-party tracker. Still degrades gracefully below if that endpoint
+// isn't live yet on the deployed backend (a fresh commit here can land
+// before the next FastAPI Cloud deploy picks it up).
+const PAGEVIEW_OPT_IN_KEY = "hub_pageview_opt_in";
+
+function pageviewOptedIn() {
+  return lsGet(PAGEVIEW_OPT_IN_KEY) === "1";
+}
+
+async function recordAndShowPageview() {
+  const countEl = document.getElementById("pageview-count");
+  if (!countEl) return;
+  try {
+    const res = await fetch(`${RATINGS_API_BASE}/stats/pageview`, { method: "POST" });
+    if (!res.ok) throw new Error(`status ${res.status}`);
+    const data = await res.json();
+    const total = typeof data.total === "number" ? data.total.toLocaleString() : "?";
+    countEl.textContent = `${total} counted visits.`;
+  } catch (err) {
+    // Falls back to a plain message rather than erroring -- same stance as
+    // Y15 -- covering both a genuinely offline backend and the window
+    // before a deploy picks up this endpoint.
+    console.error("recordAndShowPageview failed:", err);
+    countEl.textContent = "Visitor count isn't available yet — check back soon.";
+  }
+}
+
+function initPageviewCounter() {
+  const checkbox = document.getElementById("pageview-optin-checkbox");
+  const countEl = document.getElementById("pageview-count");
+  if (!checkbox || !countEl) return;
+  checkbox.checked = pageviewOptedIn();
+  checkbox.addEventListener("change", () => {
+    lsSet(PAGEVIEW_OPT_IN_KEY, checkbox.checked ? "1" : "0");
+    if (checkbox.checked) {
+      recordAndShowPageview();
+    } else {
+      countEl.textContent = "Opt in to help count visits.";
+    }
+  });
+  if (pageviewOptedIn()) {
+    recordAndShowPageview();
+  } else {
+    countEl.textContent = "Opt in to help count visits.";
+  }
+}
+initPageviewCounter();

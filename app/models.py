@@ -121,3 +121,17 @@ class Feedback(Base):
     comment = Column(String, nullable=True)
     is_hidden = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class PageView(Base):
+    """Y29 (planning/TODO.md): one row per opt-in hub visit -- a plain
+    row-count table rather than a single incrementing counter row, so a
+    POST is a plain insert with no read-modify-write race to worry about.
+    Deliberately carries nothing else: no IP, user agent, path, or session
+    identifier, per Y29's own "not a third-party tracker" requirement --
+    a row's mere existence is the entire signal."""
+
+    __tablename__ = "pageviews"
+
+    id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
