@@ -355,3 +355,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Herd
 **Did:** F23 poultry as a second herd type (unlocked by sustainable certification, own emissions curve, levers and upkeep), plus breeding (F5), supply chain (F13), welfare (F15), opt-in market/weather variation and demand surges (F9/F3), opt-in regional cap (F19), policy advisor (F27), farm-tour vignettes (F17), and biogas sales from surplus capture (F29, researched: real farms sell biogas/RNG and credits, finding recorded in FOR-YOU.md). New controls sit in one collapsed panel to avoid re-crowding the screen.
 **Result:** 174 to 191 tests green, flake8 clean, verified in the browser with zero console errors. Open: F1, F25, F10/F21 (backend cannot support them).
+
+### 2026-09-21 (Grid: storage arbitrage, emergency scenario, operator career)
+**Game:** Grid
+**Did:** C9 storage arbitrage (per-round Idle/Charge/Discharge battery mode: bank surplus at 85% efficiency, sell into shortfalls at a 1.5x peak price), C27 opt-in Emergency response starting scenario (stabilize capacity vs. demand within 6 rounds, no game over), C1 grid operator career (finish a run to bank points from grade/resilience/emergency, four modest permanent perks, persisted in localStorage plus the save code with validation, achievements banked across runs). Also fixed a real bug: demand-response level, weather log, policy lever and maintenance schedules were never saved. Skipped C3 (two-grid mode, too large for the budget) and C29 (no honestly sourced regional data).
+**Result:** 311 to 343 tests green, flake8 clean; verified live in the browser pane with zero console errors. See `games/grid/CLAUDE.md` Round-4 section.

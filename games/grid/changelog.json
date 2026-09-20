@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-09-21",
+      "entry": "Added a Grid Operator Career (finish a run to bank career points, then spend them on four small permanent perks; achievements now persist across runs), storage arbitrage (charge batteries from surplus, discharge into a shortfall at a peak price), and an opt-in Emergency response starting scenario. Demand response, policy levers, the weather log and auto-maintain schedules are now saved too."
+    },
+    {
+      "date": "2026-09-21",
       "entry": "Each plant type now has its own auto-maintain schedule (Manual / every 3 / 5 / 8 rounds), finishing the maintenance-scheduling feature whose backend landed in the previous entry without a UI yet."
     },
     {
