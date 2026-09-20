@@ -528,6 +528,36 @@ button.primary:active {
   border-radius: 8px;
 }
 
+/* Context-comparison disclosure (UI decluttering pass, TODO.md closing
+   task) — groups the Integration section's two long real-world
+   comparison paragraphs under one <details>, same idiom as Tide's
+   .ticker-history-toggle. Open by default (see index.html's comment),
+   so this only adds a labeled seam/collapse affordance, not a hidden
+   panel. */
+.context-toggle {
+  margin-top: 0.6rem;
+}
+
+.context-toggle summary {
+  font-size: 0.78rem;
+  opacity: 0.65;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.context-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.context-toggle summary:hover {
+  opacity: 0.9;
+}
+
+.context-toggle .comparison-message:first-of-type {
+  margin-top: 0.6rem;
+}
+
 /* ============================================================
    Full visual pass — content-window redesign (2026-09-05)
    Every section here was a stack of plain status lines sitting
