@@ -2071,7 +2071,7 @@ def start_liaison_drill(event=None):
 
 
 def submit_liaison_answer(given):
-    global liaison_result, liaison_score
+    global liaison_result
 
     if liaison_index >= len(liaison_questions) or liaison_result is not None:
         return None
@@ -3174,7 +3174,7 @@ def start_review(mode, event=None):
 
 
 def submit_review_answer(given):
-    global review_result, review_score, review_submitted_answer
+    global review_result, review_submitted_answer
 
     if review_question is None or review_result is not None:
         return None
@@ -3532,7 +3532,7 @@ def start_proficiency_test(sequence, event=None):
 
 
 def submit_proficiency_answer(given):
-    global proficiency_result, proficiency_score, proficiency_submitted_answer
+    global proficiency_result, proficiency_submitted_answer
 
     if proficiency_index >= len(proficiency_questions) or proficiency_result is not None:
         return None
@@ -3915,7 +3915,7 @@ def advance_from_order(event=None):
 def submit_bonus_tile_translation(given):
     """Task 2, one tile at a time, in the sentence's real order. STRICT by
     explicit task assignment (§14.6) — not decided by grading_tier()."""
-    global bonus_tile_result, bonus_tile_score, bonus_score, bonus_tile_submitted_answer
+    global bonus_tile_result, bonus_tile_submitted_answer
 
     if bonus_task != "translate_tiles" or bonus_tile_result is not None:
         return None
@@ -3960,7 +3960,7 @@ def next_bonus_tile(event=None):
 def submit_bonus_sentence_translation(given):
     """Task 3: the whole sentence, LENIENT — explicit task assignment (§14.6),
     same reasoning as task 2's STRICT."""
-    global bonus_sentence_result, bonus_score, bonus_sentence_submitted_answer
+    global bonus_sentence_result, bonus_sentence_submitted_answer
 
     if bonus_task != "translate_sentence" or bonus_sentence_result is not None:
         return None

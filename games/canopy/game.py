@@ -1203,7 +1203,6 @@ def _maybe_update_personal_best():
     central two-axis comparison, and collapsing them into one number
     would lose exactly the distinction the rest of the game is built
     around."""
-    global personal_best
     standing_value = standing_forest_value()
     changed = False
     if standing_value > personal_best["standing_value"]:
@@ -2120,7 +2119,6 @@ def species_seen():
 
 
 def _log_event(kind, text, plot_index=None):
-    global forest_log
     forest_log.append({"tick": forest_tick, "kind": kind, "plot": plot_index, "text": text})
     del forest_log[:-FOREST_LOG_MAX_ENTRIES]
 

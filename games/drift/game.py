@@ -1563,7 +1563,6 @@ personal_best = load_personal_best()
 def _maybe_update_personal_best():
     """Called every render(); bumps + persists personal_best whenever the
     live session exceeds it."""
-    global personal_best
     score = region.wellbeing_score()
     if score > personal_best["wellbeing_score"]:
         personal_best["wellbeing_score"] = score

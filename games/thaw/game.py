@@ -1021,7 +1021,6 @@ personal_best = load_personal_best()
 def _maybe_update_personal_best():
     """Called every render(); bumps + persists personal_best whenever the
     live session exceeds it."""
-    global personal_best
     # G22: consider all three player-managed regions and remember which
     # one earned the record.
     label, saved = max(

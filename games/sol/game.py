@@ -2683,9 +2683,6 @@ def export_stats_code():
 def import_stats_code(code):
     """Returns (ok, message). Only ever raises a counter, never lowers one, so
     a stale code from an old device can't undo newer progress."""
-    global total_ticks, total_manual_clicks, lifetime_resources_mined_by_click
-    global lifetime_resources_generated_by_automation, lifetime_generators_built
-    global lifetime_recyclers_built, lifetime_trade_routes_built, lifetime_sky_cities_built
     import base64  # noqa: PLC0415
 
     code = (code or "").strip()
@@ -3125,8 +3122,7 @@ def deserialize_state(data):
     global lifetime_resources_generated_by_automation, lifetime_generators_built
     global lifetime_recyclers_built, lifetime_trade_routes_built, lifetime_sky_cities_built
     global any_generator_ever_built, quick_start_hit, swift_expansion_hit, manual_labor_hit
-    global off_the_grid_hit, prestige_points_earned, prestige_nodes, ng_challenge_active
-    global sandbox_mode, close_call_hit, back_from_brink_hit
+    global off_the_grid_hit
 
     # Merge in place rather than clear()+update(): a save whose
     # planet_state is missing a body (an older save format from before
