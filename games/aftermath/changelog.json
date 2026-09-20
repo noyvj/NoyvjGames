@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-21",
+    "entry": "Fixed a bug where the Achievements and What's New panels showed as empty boxes before first use, and stayed visible forever after being closed once — a missing CSS override for the hidden state."
+  },
+  {
+    "date": "2026-09-21",
     "entry": "Toolbar cleanup: Info Page/Achievements/Past Runs/Changelog moved out of a stranded second toolbar into the main one at the top, next to Tutorial/How to Play, with Settings last — matching every other game's layout (site-wide Z12 audit)."
   },
   {

@@ -940,6 +940,17 @@ button.primary:disabled::after {
   opacity: 0.65;
 }
 
+/* Same gotcha SOL's/Trade Empire's/Continuum's own achievements CSS
+   documents: `display: grid` above otherwise wins the cascade over the
+   browser's default `[hidden] { display: none }` UA rule (author-origin
+   styles beat user-agent-origin styles regardless of specificity), so
+   without this override the panel stayed visible as an empty box before
+   its first open, and stayed visible with its last-rendered content
+   forever after being toggled closed. */
+.achievements-panel[hidden] {
+  display: none;
+}
+
 .achievements-hub-link {
   display: block;
   margin-top: 0.3rem;
@@ -964,6 +975,11 @@ button.primary:disabled::after {
   text-align: left;
   display: grid;
   gap: 0.5rem;
+}
+
+/* Same [hidden]-vs-`display: grid` gotcha as .achievements-panel above. */
+.changelog-panel[hidden] {
+  display: none;
 }
 
 .changelog-entry {
