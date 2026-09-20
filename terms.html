@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terms &amp; Privacy — NoyvjGames</title>
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="shared/space-bg.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="space-bg" aria-hidden="true"><div class="space-bg-nebula"></div><div class="space-bg-stars-bright"></div></div>
+  <header id="hub-header">
+    <nav class="hub-nav">
+      <a href="index.html">&larr; Back to NoyvjGames</a>
+      <a href="whats-new.html">What's New</a>
+      <a href="roadmap.html">Roadmap</a>
+    </nav>
+    <h1>Terms &amp; Privacy</h1>
+    <p id="hub-tagline">What this site stores, and why. Short on purpose.</p>
+  </header>
+
+  <main class="whats-new-main terms-main">
+    <p>NoyvjGames is a personal portfolio of small game demos. It is also a university project, so it is public and small-scale: there is no company behind it and no legal team, just one person who wants to be straight with you.</p>
+
+    <h2>Using the site</h2>
+    <p>The games are free to play and provided as-is, with no promises about uptime or that saves will last forever. This is a hobby project and the backend can change or go offline. Please don't use the feedback boxes to post anything abusive or personal, and don't attack the site or its API. Comments may be removed.</p>
+
+    <h2>What is stored, and where</h2>
+    <h3>In your browser only (localStorage)</h3>
+    <ul>
+      <li>Preferences and progress helpers: your last search/filter/sort, dismissed banners, and per-game settings and local save data.</li>
+      <li>If you sign in, a login token and your username, so the site remembers you.</li>
+      <li>No cookies are set by this site itself. Clearing your browser's site data removes all of this.</li>
+    </ul>
+    <h3>On the server (a small database)</h3>
+    <ul>
+      <li><strong>Accounts:</strong> a username and a salted, hashed password (never the password itself). There is no email address, so a forgotten password can only be reset by asking the site owner.</li>
+      <li><strong>Saves:</strong> the game state you choose to save, under a save code, and linked to your account if you claim it. Games may also contribute anonymous, aggregate numbers (for example how many saves a game has, or how common an achievement is).</li>
+      <li><strong>Ratings, comments and site feedback:</strong> what you submit, with a timestamp. These are shown publicly on the hub, so don't write anything you wouldn't want public. Feedback sent while signed in may be linked to your account internally.</li>
+      <li><strong>Answer reports</strong> from Le Champ de Mots, if you use its report button.</li>
+    </ul>
+
+    <h2>What is not done</h2>
+    <ul>
+      <li>No analytics or tracking scripts of my own, and no selling of data.</li>
+      <li>Passwords are never stored or shown in plain text.</li>
+    </ul>
+
+    <h2>Third parties</h2>
+    <ul>
+      <li>The site is hosted on GitHub Pages and the API on FastAPI Cloud with a Neon Postgres database. Hosting providers can keep ordinary server logs (such as IP addresses) as part of running their services.</li>
+      <li>The games load the Python runtime (Pyodide) and, for one game, a 3D library, from public CDNs, which will see a normal page request from your browser.</li>
+      <li>There is a clearly labeled ad bar. Right now it is a placeholder with no live ads. If real ads are switched on later, the ad provider may set its own cookies, and this page will be updated first.</li>
+    </ul>
+
+    <h2>Your choices</h2>
+    <p>You can stop using the site at any time and clear your browser data. To have an account, saves or comments removed, use the Feedback / Report a Bug box on the hub and say so (include your username), and it will be dealt with by hand.</p>
+
+    <p class="terms-updated">Last updated 2026-09-20. If this changes, it will show up in <a href="whats-new.html">What's New</a>.</p>
+  </main>
+</body>
+</html>

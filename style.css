@@ -1209,3 +1209,21 @@ button.secondary:disabled {
   outline: 2px solid #a9c3ff !important;
   outline-offset: 2px;
 }
+
+/* Y23: terms/privacy page + hub footer */
+.terms-main h2 { font-size: 1.05rem; margin: 1.8rem 0 0.4rem; letter-spacing: 0.02em; }
+.terms-main h3 { font-size: 0.9rem; margin: 1.1rem 0 0.3rem; opacity: 0.85; }
+.terms-main p, .terms-main li { font-size: 0.9rem; line-height: 1.55; opacity: 0.88; }
+.terms-main a { color: #8fb0e8; }
+.terms-updated { opacity: 0.5 !important; margin-top: 2rem; }
+
+.hub-footer {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  padding: 1.5rem 1rem;
+  font-size: 0.78rem;
+}
+.hub-footer a { color: #8fb0e8; opacity: 0.8; text-decoration: none; }
+.hub-footer a:hover { opacity: 1; text-decoration: underline; }

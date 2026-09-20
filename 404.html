@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page not found — NoyvjGames</title>
+<meta name="robots" content="noindex">
+<!-- GitHub Pages serves this file for any unknown URL, at any depth, and
+     the site lives under a repo subpath (/NoyvjGames/) there. So every
+     asset/link on this page is resolved against a base computed at load
+     time instead of being written relative or root-absolute. -->
+<script>
+  (function () {
+    var onPages = /\.github\.io$/.test(location.hostname);
+    var seg = location.pathname.split("/")[1];
+    var base = onPages && seg ? "/" + seg + "/" : "/";
+    window.__hubBase = base;
+    var b = document.createElement("base");
+    b.href = base;
+    document.head.insertBefore(b, document.head.firstChild);
+  })();
+</script>
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="shared/space-bg.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="space-bg" aria-hidden="true"><div class="space-bg-nebula"></div><div class="space-bg-stars-bright"></div></div>
+  <header id="hub-header">
+    <h1>404</h1>
+    <p id="hub-tagline">That page or game link doesn't exist &mdash; it may have moved, or the link may have a typo.</p>
+  </header>
+  <main class="whats-new-main" style="text-align:center">
+    <p><a class="continue-playing-item" href="index.html">Back to all games</a></p>
+    <p style="opacity:0.6;font-size:0.85rem">or try <a class="account-link-button" href="whats-new.html">What's New</a> &middot; <a class="account-link-button" href="roadmap.html">Roadmap</a></p>
+  </main>
+</body>
+</html>
