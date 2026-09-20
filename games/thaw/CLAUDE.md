@@ -266,4 +266,67 @@ Region B/Region C's comparison cards are dense (a mini-graph plus six stat lines
 ## Round-2 build notes (2026-09-20)
 
 Done (planning/TODO.md "Per-game: Thaw"): G2 (Region A flavor subtitle), G4 (worst-case toggle tooltip), G6 (labelled melt-threshold gridline), G8 (warning icon on critical tier via CSS), G10 (combined three-region next-round tooltip with projections), G12 (one-time pre-emptive dampening callout), G14 (preset purchase previews in hover tooltips, computed on a scratch region), G16 (shape-coded trend arrows), G18 (tier icons in intervention message), G19 (collapsible scientist's log, capped at 40, persisted), G20 (tooltip + info toggle on the +15 milestone), G22 (personal best now spans A/B/C and records the region), G24 (acceleration pulse on entering critical), G26 (strategy-label placeholder example), G28 (rounds-since-tipping-event counter), G30 (first-reveal note for Region D). New state: per-region `just_became_critical`, `rounds_since_tipping_event`, `tipping_events`, `just_preempted_melt`; top-level `worst_case_intro_seen`, `science_log` (all default safely for old saves). Tests: `tests/test_round2_items.py`, 137 total.
-Left: G3, G5, G7, G9, G13, G15, G17, G21, G23, G27, G29 (larger mechanics), G11 (needs Z1; stats field set for thaw is only round/funds/temperature, no acceleration factor to compare).
+Left: G3, G5, G7, G9, G13, G15, G17, G21, G23, G27, G29 (larger mechanics). G11 built later — see its own note below.
+
+## G11 — community "average acceleration factor" comparison (2026-09-21)
+
+`planning/TODO.md`'s Per-game: Thaw section: "G11: A community 'average
+acceleration factor' comparison, reinforcing the hope-angle message that
+intervention is common and effective *(needs Z1)*." Z1's shared
+aggregate-stats backend (`app/stats.py`, `app/main.py`) is built and
+deployed; this pass also registered `region.average_acceleration_factor`
+in its `STATS_FIELDS` whitelist for `"thaw"` (previously only
+`round_number`/`funds`/`temperature` were exposed).
+
+Built byte-for-byte the same optional-hook architecture as Grid's own
+C15 (`_request_comparison()`/`window.gridCompare`, the reference
+integration for this feature in this hub): `game.py`'s
+`_request_community_comparison()` does a lazy, guarded `from js import
+window` (no-op under pytest) and calls `window.thawCompare(accel)` if
+that hook exists; `index.html`'s own inline `<script>` defines the hook,
+fetches `GET /stats/games/thaw/percentile?field=region.average_
+acceleration_factor&value=<x>`, and fills `#community-compare-display`
+with a sentence — or leaves the fallback text in place on any error,
+unreachable backend, or the endpoint's own `suppressed` flag.
+
+**Metric: a new `RegionState.average_acceleration_factor`**, a lifetime
+running mean of `acceleration_factor()` across every round played,
+updated incrementally each `advance_round()` via Welford's mean formula
+(`_record_acceleration_sample()`) rather than a second unbounded history
+list the way `temperature_history` already tracks the raw trajectory.
+Region A only, matching this game's own established convention (Pass 3's
+note already scoped the primary intervention lever to Region A, not the
+B/C comparison regions or D's auto-played worst case). Rides `get_state()`/
+`load_state()` as a plain field (`acceleration_samples` alongside it, so
+the running mean can keep being updated correctly after a load), safe-
+defaulting for older saves that predate this field.
+
+**Wording — the real judgment call this item asked for.** G11's own
+framing is explicit that this should reinforce the hope angle ("intervention
+is common and effective"), not just report a bare percentile the way
+Grid's C15 does. `index.html`'s hook branches on which side of the
+community average the player falls: beating most other players' rate
+("your warming has accelerated less than N% of them — real proof that
+intervention slows the slope, and most players are managing to slow it
+at least some too") and *not* beating most of them are both phrased as
+evidence intervention works, never as a scolding "you're doing worse"
+message — the second branch reads as "look how much further this can
+still go," using the very fact that other players did better as proof the
+lever itself is real and available, not a comparison to feel bad about.
+
+Tests: `tests/test_community_compare.py` (14 new, Thaw 137 -> 151) —
+covers the running-average calculation itself (Welford update across
+several rounds, save/load round-trip, old-save default), the panel
+toggle/fallback text, the hook firing with the right value, safe no-op
+without a hook, and re-asking on every render while the panel stays open
+(mirrors Grid's own C15 coverage shape). flake8 clean.
+
+Verified live against the shared `hub-dev-server`: the panel opens,
+shows the fallback text, and `window.thawCompare` is defined and
+callable with zero code-level console errors. The actual round-trip to
+the deployed production endpoint could not be exercised from this
+sandboxed browser pane — external fetches to that host fail at the
+network layer here regardless of game code, the same environment
+limitation this session's Herd F7 build note documents in more detail.
+Once a production deploy picks up the `app/stats.py` whitelist change,
+this starts showing real percentiles with zero further code changes.

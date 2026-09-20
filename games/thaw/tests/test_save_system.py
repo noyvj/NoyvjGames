@@ -44,6 +44,9 @@ def test_get_state_region_dict_includes_every_expected_field(game_env):
         "rounds_since_tipping_event",
         "tipping_events",
         "just_preempted_melt",
+        # G11: community "average acceleration factor" comparison metric.
+        "average_acceleration_factor",
+        "acceleration_samples",
     }
     assert set(data["region"].keys()) == expected_fields
     assert set(data["region_b"].keys()) == expected_fields

@@ -664,6 +664,12 @@ button.primary:active {
 #feedback-prompt { border-left-color: #e0a24c; }
 #changelog-panel { border-left-color: #a9c3ff; }
 #info-page-panel { border-left-color: #4cc9d8; }
+/* G11: community-comparison panel -- a distinct mint/green accent,
+   deliberately in the same "hope" family as .dampening-flash's green
+   (this game's colorblind-safety audit already documents that hue as
+   meaningful positive-feedback signaling), not reused elsewhere in this
+   left-border set. */
+#community-compare-panel { border-left-color: #6fd0a0; }
 
 /* --- Gauges: replace the flat bar with a chunkier, ticked, glowing
    HUD gauge. game.py only ever writes inline .style.width on

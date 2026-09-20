@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-21",
+    "entry": "G11: a new Community Comparison panel shows how your average warming-acceleration factor stacks up against everyone else's, once enough players have saved to compare against."
+  },
+  {
+    "date": "2026-09-21",
     "entry": "Z6: the personal-best label's \"just improved\" badge flash moved into the new shared shared/personal-best.css (also used by Canopy and Tide) instead of a per-game copy of the same rule."
   },
   {

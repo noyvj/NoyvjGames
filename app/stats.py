@@ -71,11 +71,13 @@ STATS_FIELDS: dict[str, tuple[str, ...]] = {
     ),
     "thaw": (
         "region.round_number", "region.funds", "region.temperature",
+        "region.average_acceleration_factor",
     ),
     "loop": (
         "cycle_number", "funds", "total_extracted", "total_produced",
         "best_closed_loop_streak", "chains_completed_count",
         "lifetime_investment_spend", "lifetime_export_revenue",
+        "lifetime_circular_fraction",
     ),
     "drift": (
         "round_number", "funds", "total_arrivals", "integrated_population",

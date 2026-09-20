@@ -132,6 +132,18 @@ class RegionState:
         # "milestone_delay", "preempt") for the scientist's log. Rebuilt
         # every advance_round(), never saved.
         self.round_events = []
+        # G11: lifetime running average of acceleration_factor() across
+        # every round actually played -- distinct from that method's own
+        # instantaneous current-round reading, and the metric the
+        # community-comparison panel asks the shared stats backend to
+        # rank. Updated via Welford's incremental-mean formula in
+        # advance_round() (see _record_acceleration_sample()) rather than
+        # a second unbounded history list the way temperature_history
+        # already tracks the raw trajectory. Starts at 1.0 -- the same
+        # steady-state reading acceleration_factor() itself returns
+        # before any rounds have been played.
+        self.average_acceleration_factor = 1.0
+        self.acceleration_samples = 0
 
     def is_critical(self):
         return self.is_melting() and self.acceleration_factor() >= CRITICAL_ACCELERATION_FACTOR
@@ -212,11 +224,26 @@ class RegionState:
     def current_rise_rate(self):
         return BASE_TEMP_RISE_PER_ROUND + self.feedback_bonus()
 
+    def _record_acceleration_sample(self):
+        """G11: folds this round's acceleration_factor() into the running
+        lifetime average via Welford's incremental-mean update. Called
+        once per advance_round(), before temperature updates for the
+        round, so the sample averaged in is the exact same reading
+        acceleration_message() would report to the player as "this
+        round's" rate -- not the rate that will be current *after* the
+        round's rise lands."""
+        self.acceleration_samples += 1
+        sample = self.acceleration_factor()
+        self.average_acceleration_factor += (
+            sample - self.average_acceleration_factor
+        ) / self.acceleration_samples
+
     def advance_round(self):
         self.funds += self.capacity["output"] * OUTPUT_INCOME_PER_UNIT
         current_round = self.round_number
         self.round_events = []
         was_critical = self.is_critical()
+        self._record_acceleration_sample()
         self.temperature += self.current_rise_rate()
         if self.melt_started_round is None and self.is_melting():
             self.melt_started_round = current_round
@@ -1152,6 +1179,63 @@ def update_changelog_display():
         panel.appendChild(row)
 
 
+# ===========================================================================
+# G11 -- community "average acceleration factor" comparison
+# (planning/TODO.md, needs Z1). Follows Grid's C15 architecture exactly
+# (games/grid/game.py/index.html): a Python-side optional JS hook call,
+# guarded so it's a safe no-op outside a real browser (the pytest fake-DOM
+# harness's `js` module never provides `window` by default), and the real
+# fetch()/percentile-phrasing lives entirely in index.html's own inline
+# <script>. Region A only -- this game's Pass 3 note already scoped the
+# primary intervention lever to Region A, not the B/C comparison regions
+# or D's auto-played worst case, and that same scoping applies here.
+#
+# "region.average_acceleration_factor" is registered in app/stats.py's
+# per-game STATS_FIELDS whitelist for "thaw" (added alongside this
+# feature), so GET /stats/games/thaw/percentile?field=region.average_
+# acceleration_factor is live once the backend is deployed with it.
+# ===========================================================================
+COMMUNITY_COMPARE_FALLBACK = "Community comparison isn't available yet."
+
+community_compare_open = False
+
+
+def on_toggle_community_compare(event=None):
+    global community_compare_open
+    community_compare_open = not community_compare_open
+    update_community_compare_panel()
+
+
+def update_community_compare_panel():
+    toggle = document.getElementById("community-compare-toggle-button")
+    panel = document.getElementById("community-compare-panel")
+    toggle.innerText = (
+        "Hide Community Comparison" if community_compare_open else "\U0001F30D Community Comparison"
+    )
+    panel.hidden = not community_compare_open
+    if not community_compare_open:
+        return
+    panel.innerHTML = (
+        f'<p id="community-compare-display" class="comparison-message">{COMMUNITY_COMPARE_FALLBACK}</p>'
+    )
+    _request_community_comparison()
+
+
+def _request_community_comparison():
+    """G11: asks the page's optional JS hook (window.thawCompare, see
+    index.html) to fill #community-compare-display with a cross-player
+    percentile of average_acceleration_factor. Absent hook (pytest, or a
+    page without it) leaves the fallback text in place -- mirrors Grid's
+    _request_comparison() exactly."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    hook = getattr(window, "thawCompare", None)
+    if hook is not None:
+        hook(float(region.average_acceleration_factor))
+
+
 def render():
     render_info_page()
     document.getElementById("round-display").innerText = f"Round {region.round_number}"
@@ -1346,6 +1430,7 @@ def render():
     render_personal_best()
     update_achievements_display()
     update_changelog_display()
+    update_community_compare_panel()
 
 
 def _make_invest_handler(category):
@@ -1438,6 +1523,11 @@ def _region_state_dict(r):
         "rounds_since_tipping_event": r.rounds_since_tipping_event,
         "tipping_events": r.tipping_events,
         "just_preempted_melt": r.just_preempted_melt,
+        # G11: the community-comparison metric -- see RegionState.__init__'s
+        # comment on why this rides get_state() as a plain running average
+        # rather than being recomputed from temperature_history.
+        "average_acceleration_factor": r.average_acceleration_factor,
+        "acceleration_samples": r.acceleration_samples,
     }
 
 
@@ -1500,6 +1590,10 @@ def _apply_region_state(r, data):
     )
     r.tipping_events = data.get("tipping_events", r.tipping_events)
     r.just_preempted_melt = data.get("just_preempted_melt", r.just_preempted_melt)
+    r.average_acceleration_factor = data.get(
+        "average_acceleration_factor", r.average_acceleration_factor
+    )
+    r.acceleration_samples = data.get("acceleration_samples", r.acceleration_samples)
 
 
 def get_state():
@@ -1615,6 +1709,9 @@ def setup():
     )
     document.getElementById("changelog-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_changelog)
+    )
+    document.getElementById("community-compare-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_community_compare)
     )
     # Belt-and-suspenders: the toast starts hidden via the static
     # `hidden` attribute in index.html, but every other stateful element

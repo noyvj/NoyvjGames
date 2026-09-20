@@ -592,7 +592,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] G8: A small distinct color-independent icon on the critical melt-status tier, reinforcing its text label with a shape cue.
 - [ ] G9: A "long game" mode — significantly extend session length for players who want the full long-run trajectory.
 - [x] G10: Let the next-round preview tooltip show all three regions' previews simultaneously in one combined tooltip.
-- [ ] G11: A community "average acceleration factor" comparison, reinforcing the hope-angle message that intervention is common and effective *(needs Z1)*.
+- [x] G11: A community "average acceleration factor" comparison, reinforcing the hope-angle message that intervention is common and effective *(needs Z1)*.
 - [x] G12: A one-time callout the very first time `dampening_at_melt_start` is nonzero, praising the pre-emptive investment.
 - [ ] G13: A "policy simulation" branch — choose a real-world-inspired regional policy stance at game start, subtly weighting starting dampening.
 - [x] G14: Let the preset strategies show a small preview of the resulting investment split before committing.

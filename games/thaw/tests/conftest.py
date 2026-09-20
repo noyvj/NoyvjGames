@@ -51,6 +51,9 @@ ELEMENT_IDS = [
     # K16: "What's New" changelog panel.
     "changelog-toggle-button",
     "changelog-panel",
+    # G11: community "average acceleration factor" comparison panel.
+    "community-compare-toggle-button",
+    "community-compare-panel",
     "temperature-trend",
     "preemptive-callout",
     "tipping-streak-display",
@@ -131,6 +134,9 @@ class GameEnv:
 
     def toggle_changelog(self):
         self.elements["changelog-toggle-button"].dispatch("click", None)
+
+    def toggle_community_compare(self):
+        self.elements["community-compare-toggle-button"].dispatch("click", None)
 
     def apply_preset(self, prefix, preset_name):
         self.elements[f"{prefix}-preset-{preset_name}-button"].dispatch("click", None)
