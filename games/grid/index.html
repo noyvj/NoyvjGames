@@ -31,6 +31,7 @@
       <button id="achievements-toggle-button" class="secondary" type="button">Loading...</button>
       <button id="changelog-toggle-button" class="secondary" type="button">📋 What's New</button>
       <button id="summary-toggle-button" class="secondary" type="button">Loading...</button>
+      <button id="weather-log-toggle-button" class="secondary" type="button">🌦️ Weather Log</button>
     </div>
     <div class="game-toolbar">
       <button id="steeper-demand-toggle-button" class="secondary difficulty-toggle" type="button">Loading...</button>
@@ -66,6 +67,10 @@
          achievements/settings above. -->
     <div id="changelog-panel" class="section changelog-panel" hidden></div>
     <div id="summary-panel" class="section summary-panel" hidden></div>
+    <!-- TODO-C17: weather-event log, narrating how Weather Variability actually
+         affected renewable output round to round -- same hidden-until-opened
+         .section idiom as changelog/achievements above. -->
+    <div id="weather-log-panel" class="section changelog-panel" hidden></div>
 
     <div id="achievement-toast" class="achievement-toast" hidden>
       <p id="achievement-toast-text"></p>
@@ -103,6 +108,22 @@
     <div id="status" class="section">
       <p id="round-display" class="status-line">Round 1</p>
       <p id="demand-display" class="status-line">Demand: 100</p>
+      <!-- TODO-C7: demand response -- a fourth lever, trimming demand growth
+           itself instead of building capacity to meet whatever it turns out
+           to be. -->
+      <p id="demand-response-level-display" class="status-line">Demand response: not yet invested</p>
+      <button id="demand-response-button" class="secondary" type="button">Invest in Demand Response</button>
+      <!-- TODO-C19: policy lever -- an occasional opt-in choice, offered
+           periodically, shifting the build-cost curve temporarily. -->
+      <p id="active-policy-display" class="comparison-message" hidden></p>
+      <div id="policy-lever-banner" class="callout" hidden>
+        A policy lever is on the table this round.
+        <div class="policy-lever-actions">
+          <button id="policy-accept-carbon-pricing-button" class="secondary" type="button">Enact Carbon Pricing</button>
+          <button id="policy-accept-renewable-subsidy-button" class="secondary" type="button">Enact Renewable Subsidy</button>
+          <button id="policy-decline-button" class="secondary" type="button">Decline</button>
+        </div>
+      </div>
       <p id="funds-display" class="status-line">Funds: 500</p>
       <details class="info-toggle funds-breakdown-toggle"><summary>i</summary>
         <ul class="funds-breakdown-list">

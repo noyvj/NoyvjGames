@@ -218,6 +218,43 @@ SCENARIO_ORDER = ["standard", "coal_legacy", "greenfield"]
 # C25 -- how far the "grid of the future" projection looks ahead.
 PROJECTION_ROUNDS = 20
 
+# Round-3 pass (2026-09-20) additions below -- see CLAUDE.md's own build
+# note for the full rationale on each.
+
+# TODO-C7 -- demand response: a fourth lever alongside build/retire/
+# maintain. Each purchase permanently trims this round's demand growth by
+# a fixed amount, at an escalating cost (mirrors the renewable learning
+# curve's shape but in reverse -- each purchase costs more than the last,
+# since a grid gets harder to trim further the more efficient it already
+# is). Floored so demand growth can never go negative or stall entirely.
+DEMAND_RESPONSE_BASE_COST = 150
+DEMAND_RESPONSE_COST_GROWTH = 1.35
+DEMAND_RESPONSE_REDUCTION_PER_LEVEL = 1.5
+DEMAND_RESPONSE_MIN_GROWTH = 3.0
+
+# TODO-C17 -- weather-event log: a running narration of how Weather
+# Variability actually affected renewable output round to round, separate
+# from the emissions-driven disruption log. Capped the same way
+# event_log/ticker-style logs are capped elsewhere in the quartet, so a
+# very long run's save doesn't grow this list unboundedly.
+WEATHER_LOG_MAX_ENTRIES = 30
+
+# TODO-C19 -- policy lever: an occasional opt-in choice that temporarily
+# shifts the cost curve, offered every POLICY_LEVER_INTERVAL rounds if no
+# policy is currently active. Carbon pricing makes fossil more expensive
+# to build; a renewable subsidy makes renewables cheaper to build. Both
+# are build-time-only price signals -- see GridState.plant_cost()'s
+# comment on why Retire deliberately never refunds off the policy price.
+POLICY_LEVER_INTERVAL = 6
+POLICY_LEVER_DURATION = 4
+CARBON_PRICING_FOSSIL_COST_MULTIPLIER = 1.3
+RENEWABLE_SUBSIDY_COST_MULTIPLIER = 0.75
+
+# TODO-C23 -- maintenance scheduling: pre-commit a plant type to an
+# auto-maintain cadence instead of manually clicking Maintain every time.
+# 0 means "off" (manual only, the pre-existing behavior).
+MAINTENANCE_SCHEDULE_OPTIONS = (0, 3, 5, 8)
+
 
 def _breakdown_probability_for_age(age):
     """Shared by GridState.aging_breakdown_probability() (the single
@@ -296,6 +333,22 @@ class GridState:
         self.weather_variability_enabled = False
         # C13 -- which starting scenario was applied (see SCENARIOS).
         self.scenario = "standard"
+        # TODO-C7 -- demand-response investment level (see constants above).
+        self.demand_response_level = 0
+        # TODO-C17 -- weather-event log entries, newest last (rendered
+        # newest-first). Also two scratch fields effective_capacity_for_
+        # revenue() fills in each call so advance_round() can narrate what
+        # actually happened without re-consuming weather_rng a second time.
+        self.weather_log = []
+        self.last_weather_renewable_nameplate = 0.0
+        self.last_weather_renewable_actual = 0.0
+        # TODO-C19 -- policy lever: offered periodically, opt-in, one at a
+        # time (see constants above).
+        self.policy_lever_available = False
+        self.active_policy = None
+        self.last_policy_lever_round_offered = 0
+        # TODO-C23 -- per-plant-type auto-maintain cadence, 0 = manual only.
+        self.maintenance_schedule = {t: 0 for t in PLANT_TYPES}
 
     def apply_scenario(self, scenario_id):
         """C13: only allowed before anything has been built/advanced, so a
@@ -312,7 +365,23 @@ class GridState:
         self.scenario = scenario_id
         return True
 
-    def plant_cost(self, plant_type):
+    def _learning_curve_cost(self, plant_type):
+        """The plant's cost before any temporary TODO-C19 policy-lever
+        adjustment -- base cost adjusted only by the renewable learning
+        curve. retire_plant() refunds off *this*, never off plant_cost()'s
+        policy-adjusted price: a policy multiplier is a build-time-only
+        price signal, not a permanent value change, and basing a refund on
+        it would open an exploit in one direction (build cheap during a
+        renewable subsidy, retire later for a refund based on the same
+        discounted price is fine and symmetric -- but the concern is
+        whether *any* combination nets a profit). It never can: the
+        refund fraction is a flat 50%, and neither the subsidy (25% off)
+        nor stacking it with the learning-curve floor discount pushes the
+        price a player actually paid below double what a 50%-of-base-cost
+        refund would return, so there's no direction where this pays out
+        more than it cost -- same reasoning already documented on
+        REFUND_FRACTION's fix elsewhere in this file, just re-verified
+        against this new temporary-price case."""
         base = PLANT_BASE_COST[plant_type]
         if plant_type not in RENEWABLE_TYPES:
             return base
@@ -321,6 +390,20 @@ class GridState:
             RENEWABLE_COST_DECAY ** self.cumulative_built[plant_type],
         )
         return base * multiplier
+
+    def plant_cost(self, plant_type):
+        """The actual price to build this plant type right now, including
+        any active TODO-C19 policy-lever adjustment. Use
+        _learning_curve_cost() instead when computing a Retire refund --
+        see that method's docstring."""
+        cost = self._learning_curve_cost(plant_type)
+        if self.active_policy is not None:
+            policy_type = self.active_policy["type"]
+            if policy_type == "carbon_pricing" and plant_type in FOSSIL_TYPES:
+                cost *= CARBON_PRICING_FOSSIL_COST_MULTIPLIER
+            elif policy_type == "renewable_subsidy" and plant_type in RENEWABLE_TYPES:
+                cost *= RENEWABLE_SUBSIDY_COST_MULTIPLIER
+        return cost
 
     def total_capacity(self):
         # Generation only -- battery is storage, not generation (see
@@ -407,7 +490,7 @@ class GridState:
         # plant just cost to build, turning build+retire into a risk-free
         # money exploit. plant_cost() already equals the base cost for
         # non-renewables, so this changes nothing for fossil/nuclear.
-        self.funds += self.plant_cost(plant_type) * REFUND_FRACTION
+        self.funds += self._learning_curve_cost(plant_type) * REFUND_FRACTION
         return True
 
     def maintenance_cost(self, plant_type):
@@ -488,6 +571,11 @@ class GridState:
         PLANT_TYPES' comment on why that's a deliberately separate axis).
         """
         if not self.weather_variability_enabled:
+            # TODO-C17: no weather effect this call -- reset the scratch
+            # fields so advance_round() never narrates a stale reading
+            # from a round where the toggle was on.
+            self.last_weather_renewable_nameplate = 0.0
+            self.last_weather_renewable_actual = 0.0
             return self.total_capacity()
 
         dispatchable_total = 0.0
@@ -501,6 +589,12 @@ class GridState:
                 renewable_actual += capacity * max(0.0, factor)
             else:
                 dispatchable_total += capacity
+
+        # TODO-C17: stash this round's nameplate/actual renewable output so
+        # advance_round() can narrate it into weather_log without spending
+        # a second, non-deterministic call against weather_rng.
+        self.last_weather_renewable_nameplate = renewable_nameplate
+        self.last_weather_renewable_actual = renewable_actual
 
         shortfall = max(0.0, renewable_nameplate - renewable_actual)
         compensation = min(self.battery_capacity(), shortfall)
@@ -520,8 +614,33 @@ class GridState:
         return max(candidates, key=lambda t: self.plant_counts[t] * PLANT_CAPACITY[t] * EMISSIONS_FACTOR[t])
 
     def advance_round(self, rng=random.random, age_rng=random.random, weather_rng=random.random):
+        # TODO-C23: run any pre-committed auto-maintenance before this
+        # round's own aging/breakdown roll, so a scheduled type actually
+        # gets the benefit this round rather than one round late.
+        self._run_scheduled_maintenance()
+
         met_demand = min(self.effective_capacity_for_revenue(weather_rng), self.demand)
         revenue = met_demand * REVENUE_PER_UNIT_MET
+
+        # TODO-C17: narrate this round's weather effect on renewable
+        # output, using the nameplate/actual figures
+        # effective_capacity_for_revenue() just stashed above -- no second
+        # weather_rng call, so this never changes the round's own outcome,
+        # only whether it gets written down. Skipped when there's no
+        # renewable nameplate capacity to have varied in the first place.
+        if self.weather_variability_enabled and self.last_weather_renewable_nameplate > 0:
+            delta_pct = (
+                (self.last_weather_renewable_actual - self.last_weather_renewable_nameplate)
+                / self.last_weather_renewable_nameplate
+                * 100
+            )
+            direction = "above" if delta_pct >= 0 else "below"
+            self.weather_log.append(
+                f"Round {self.round_number}: weather variability put renewable "
+                f"output {abs(delta_pct):.0f}% {direction} nameplate capacity."
+            )
+            if len(self.weather_log) > WEATHER_LOG_MAX_ENTRIES:
+                self.weather_log = self.weather_log[-WEATHER_LOG_MAX_ENTRIES:]
 
         event = None
         if rng() < self.disruption_probability():
@@ -577,11 +696,29 @@ class GridState:
             self.lifetime_disruption_spend += repair_cost
             aging_event = {"type": "aging_breakdown", "plant": oldest, "repair_cost": repair_cost}
 
+        # TODO-C19: advance the currently-active policy lever's clock, and
+        # -- once no policy is active and the offer isn't already sitting
+        # open -- check whether it's time to offer a fresh one. Checked
+        # against the round that's *about to* start (round_number is still
+        # pre-increment here), so "every POLICY_LEVER_INTERVAL rounds"
+        # reads the same way a player experiences round numbers in the UI.
+        if self.active_policy is not None:
+            self.active_policy["rounds_remaining"] -= 1
+            if self.active_policy["rounds_remaining"] <= 0:
+                self.active_policy = None
+        if (
+            self.active_policy is None
+            and not self.policy_lever_available
+            and self.round_number > self.last_policy_lever_round_offered
+            and self.round_number % POLICY_LEVER_INTERVAL == 0
+        ):
+            self.policy_lever_available = True
+
         self.round_number += 1
-        demand_growth = DEMAND_GROWTH_PER_ROUND
-        if self.steeper_demand_growth_enabled:
-            demand_growth *= STEEP_DEMAND_GROWTH_MULTIPLIER
-        self.demand += demand_growth
+        # TODO-C7: demand_growth_this_round() is the single source of truth
+        # for how much demand rises this round, including any demand-
+        # response investment -- see that method's own docstring.
+        self.demand += self.demand_growth_this_round()
 
         self.last_event = event
         if event:
@@ -646,10 +783,10 @@ class GridState:
         rounds -- emissions if nothing changes, versus the all-coal
         business-as-usual line over the same window, plus where demand
         will be against today's capacity. A straight-line extrapolation,
-        deliberately not a forecast of what the player would do."""
-        base_growth = DEMAND_GROWTH_PER_ROUND * (
-            STEEP_DEMAND_GROWTH_MULTIPLIER if self.steeper_demand_growth_enabled else 1
-        )
+        deliberately not a forecast of what the player would do. Uses
+        demand_growth_this_round() (TODO-C7) so an active demand-response
+        investment correctly flattens the projected demand line too."""
+        base_growth = self.demand_growth_this_round()
         return {
             "rounds": rounds,
             "emissions": self.emissions + self.emissions_this_round() * rounds,
@@ -669,6 +806,89 @@ class GridState:
             if ratio <= limit:
                 return letter
         return "F"
+
+    def demand_response_cost(self):
+        """TODO-C7: escalating cost for the next demand-response purchase."""
+        return DEMAND_RESPONSE_BASE_COST * (DEMAND_RESPONSE_COST_GROWTH ** self.demand_response_level)
+
+    def invest_demand_response(self):
+        """TODO-C7: the fourth lever -- spend funds to permanently trim
+        this grid's demand growth, rather than build/retire/maintain
+        capacity to meet whatever demand turns out to be."""
+        cost = self.demand_response_cost()
+        if self.funds < cost:
+            return False
+        self.funds -= cost
+        # Counted alongside build spend in the funds breakdown -- it's the
+        # same category of "spent on infrastructure," just demand-side
+        # instead of supply-side.
+        self.lifetime_build_spend += cost
+        self.demand_response_level += 1
+        return True
+
+    def demand_growth_this_round(self):
+        """TODO-C7: DEMAND_GROWTH_PER_ROUND (doubled if the steeper-demand
+        difficulty toggle is on), trimmed by demand-response investment,
+        floored so growth can never go negative or stall out entirely.
+        Single source of truth for advance_round()/projection()/the
+        demand-growth-arrow tooltip, so all three always agree."""
+        growth = DEMAND_GROWTH_PER_ROUND
+        if self.steeper_demand_growth_enabled:
+            growth *= STEEP_DEMAND_GROWTH_MULTIPLIER
+        growth -= self.demand_response_level * DEMAND_RESPONSE_REDUCTION_PER_LEVEL
+        return max(DEMAND_RESPONSE_MIN_GROWTH, growth)
+
+    def enact_policy(self, policy_type):
+        """TODO-C19: opt into the currently-offered policy lever. Only one
+        can be active at a time; enacting one clears the offer until the
+        next POLICY_LEVER_INTERVAL passes."""
+        if not self.policy_lever_available:
+            return False
+        if policy_type not in ("carbon_pricing", "renewable_subsidy"):
+            return False
+        self.policy_lever_available = False
+        self.active_policy = {"type": policy_type, "rounds_remaining": POLICY_LEVER_DURATION}
+        self.last_policy_lever_round_offered = self.round_number
+        return True
+
+    def decline_policy(self):
+        """TODO-C19: opt out of the currently-offered lever without
+        enacting either option -- it won't be offered again until the
+        next interval."""
+        if not self.policy_lever_available:
+            return False
+        self.policy_lever_available = False
+        self.last_policy_lever_round_offered = self.round_number
+        return True
+
+    def set_maintenance_schedule(self, plant_type, interval):
+        """TODO-C23: pre-commit plant_type to an auto-maintain cadence
+        (every `interval` rounds), or pass 0 to go back to manual-only."""
+        if plant_type not in self.maintenance_schedule:
+            return False
+        if interval not in MAINTENANCE_SCHEDULE_OPTIONS:
+            return False
+        self.maintenance_schedule[plant_type] = interval
+        return True
+
+    def _run_scheduled_maintenance(self):
+        """TODO-C23: called once at the start of advance_round(), before
+        this round's aging/breakdown roll -- so a scheduled maintenance
+        pass actually pre-empts the risk it's meant to manage, the same
+        round it fires, rather than lagging a round behind. Best-effort:
+        a type whose schedule fires but can't afford maintenance this
+        round is silently skipped (maintain_plant() already returns False
+        for that, same as a manual click on an unaffordable Maintain
+        button would)."""
+        for plant_type in PLANT_TYPES:
+            interval = self.maintenance_schedule[plant_type]
+            if interval <= 0:
+                continue
+            if self.plant_counts[plant_type] <= 0:
+                continue
+            if self.round_number % interval != 0:
+                continue
+            self.maintain_plant(plant_type)
 
 
 # C5 -- ascending (max emissions/benchmark ratio, letter). Above the last
@@ -1384,6 +1604,44 @@ def update_changelog_display():
         panel.appendChild(row)
 
 
+# TODO-C17 -- weather-event log panel, same hidden-until-opened .section
+# idiom as the changelog panel just above.
+weather_log_open = False
+
+
+def on_toggle_weather_log(event=None):
+    global weather_log_open
+    weather_log_open = not weather_log_open
+    update_weather_log_display()
+
+
+def update_weather_log_display():
+    toggle = document.getElementById("weather-log-toggle-button")
+    panel = document.getElementById("weather-log-panel")
+    toggle.innerText = "Hide Weather Log" if weather_log_open else "🌦️ Weather Log"
+    panel.hidden = not weather_log_open
+    if not weather_log_open:
+        return
+
+    panel.innerHTML = ""
+    if not state.weather_log:
+        empty = document.createElement("p")
+        empty.className = "weather-log-empty"
+        empty.innerText = (
+            "No weather-variability effects recorded yet -- turn on Weather Variability "
+            "above and advance a round with renewables built to see entries here."
+        )
+        panel.appendChild(empty)
+        return
+
+    # Newest first, matching the achievements/changelog panels' convention.
+    for message in reversed(state.weather_log):
+        row = document.createElement("p")
+        row.className = "weather-log-entry"
+        row.innerText = message
+        panel.appendChild(row)
+
+
 # Rendering/toggle logic lives in shared/info_page.py now (see that
 # module's docstring) -- this used to be a ~25+4 line implementation
 # byte-identical across all 8 climate games. info_page_open stays local
@@ -1399,16 +1657,30 @@ def on_toggle_info_page(event=None):
 
 
 def demand_growth_arrow():
-    """C20: demand's per-round growth against the standard pace -- up arrow
-    when Steeper Demand Growth makes it faster, a flat marker otherwise.
-    Growth is otherwise constant, so there is no 'slower' state."""
-    return "\u25B2" if state.steeper_demand_growth_enabled else "\u25AC"
+    """C20 (extended by TODO-C7): demand's per-round growth against the
+    standard pace -- up when net growth is faster than standard, flat
+    when unchanged, and (new) down once demand-response investment has
+    pulled net growth below standard, regardless of the Steeper Demand
+    Growth toggle."""
+    growth = state.demand_growth_this_round()
+    if growth > DEMAND_GROWTH_PER_ROUND:
+        return "\u25B2"
+    if growth < DEMAND_GROWTH_PER_ROUND:
+        return "\u25BC"
+    return "\u25AC"
 
 
 def demand_growth_title():
-    growth = DEMAND_GROWTH_PER_ROUND * (
-        STEEP_DEMAND_GROWTH_MULTIPLIER if state.steeper_demand_growth_enabled else 1
-    )
+    growth = state.demand_growth_this_round()
+    if state.demand_response_level > 0:
+        baseline = DEMAND_GROWTH_PER_ROUND * (
+            STEEP_DEMAND_GROWTH_MULTIPLIER if state.steeper_demand_growth_enabled else 1
+        )
+        return (
+            f"Demand is rising +{growth:.1f} per round -- demand-response investment "
+            f"(level {state.demand_response_level}) has trimmed it down from the "
+            f"otherwise-{baseline:.0f}-per-round pace."
+        )
     if state.steeper_demand_growth_enabled:
         return f"Demand is rising +{growth:.0f} per round -- faster than the standard +{DEMAND_GROWTH_PER_ROUND} (Steeper Demand Growth is on)."
     return f"Demand is rising at the standard +{DEMAND_GROWTH_PER_ROUND} per round."
@@ -1429,6 +1701,7 @@ def render():
     render_info_page()
     update_achievements_display()
     update_changelog_display()
+    update_weather_log_display()
     update_summary_panel()
     document.getElementById("round-display").innerText = f"Round {state.round_number}"
     demand_el = document.getElementById("demand-display")
@@ -1541,6 +1814,43 @@ def render():
     document.getElementById("renewable-milestone-callout").hidden = not renewable_milestone_visible
     document.getElementById("retire-callout").hidden = not retire_callout_visible
     document.getElementById("maintain-callout").hidden = not maintain_callout_visible
+
+    # TODO-C7: demand-response lever -- a fourth build/retire/maintain-
+    # style action, but acting on demand growth instead of the fleet.
+    dr_cost = state.demand_response_cost()
+    dr_button = document.getElementById("demand-response-button")
+    dr_button.innerText = f"Invest in Demand Response ({dr_cost:.0f})"
+    dr_button.disabled = state.funds < dr_cost
+    dr_button.title = (
+        f"Permanently trims demand growth by {DEMAND_RESPONSE_REDUCTION_PER_LEVEL:g}/round "
+        f"(floor {DEMAND_RESPONSE_MIN_GROWTH:g}/round). Each purchase costs more than the last."
+    )
+    document.getElementById("demand-response-level-display").innerText = (
+        f"Demand response level: {state.demand_response_level}"
+        if state.demand_response_level > 0
+        else "Demand response: not yet invested"
+    )
+
+    # TODO-C19: policy lever -- offered periodically, opt-in.
+    policy_banner = document.getElementById("policy-lever-banner")
+    policy_banner.hidden = not state.policy_lever_available
+    active_policy_el = document.getElementById("active-policy-display")
+    if state.active_policy is None:
+        active_policy_el.innerText = ""
+        active_policy_el.hidden = True
+    else:
+        active_policy_el.hidden = False
+        label = (
+            "Carbon Pricing" if state.active_policy["type"] == "carbon_pricing" else "Renewable Subsidy"
+        )
+        effect = (
+            f"fossil build costs +{(CARBON_PRICING_FOSSIL_COST_MULTIPLIER - 1) * 100:.0f}%"
+            if state.active_policy["type"] == "carbon_pricing"
+            else f"renewable build costs -{(1 - RENEWABLE_SUBSIDY_COST_MULTIPLIER) * 100:.0f}%"
+        )
+        active_policy_el.innerText = (
+            f"Active policy: {label} -- {effect} ({state.active_policy['rounds_remaining']} round(s) left)."
+        )
 
     for plant_type in PLANT_TYPES:
         count = state.plant_counts[plant_type]
@@ -1807,6 +2117,30 @@ def on_toggle_weather_variability(event=None):
     render()
 
 
+def on_invest_demand_response(event=None):
+    """TODO-C7: the demand-response lever's own button click."""
+    state.invest_demand_response()
+    render()
+
+
+def on_enact_carbon_pricing(event=None):
+    """TODO-C19: accept the currently-offered policy lever as carbon pricing."""
+    state.enact_policy("carbon_pricing")
+    render()
+
+
+def on_enact_renewable_subsidy(event=None):
+    """TODO-C19: accept the currently-offered policy lever as a renewable subsidy."""
+    state.enact_policy("renewable_subsidy")
+    render()
+
+
+def on_decline_policy(event=None):
+    """TODO-C19: turn down the currently-offered policy lever entirely."""
+    state.decline_policy()
+    render()
+
+
 def on_advance_round(event=None):
     state.advance_round()
     _check_renewable_milestone()
@@ -1995,6 +2329,21 @@ def setup():
     )
     document.getElementById("scenario-toggle-button").addEventListener(
         "click", create_proxy(on_cycle_scenario)
+    )
+    document.getElementById("weather-log-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_weather_log)
+    )
+    document.getElementById("demand-response-button").addEventListener(
+        "click", create_proxy(on_invest_demand_response)
+    )
+    document.getElementById("policy-accept-carbon-pricing-button").addEventListener(
+        "click", create_proxy(on_enact_carbon_pricing)
+    )
+    document.getElementById("policy-accept-renewable-subsidy-button").addEventListener(
+        "click", create_proxy(on_enact_renewable_subsidy)
+    )
+    document.getElementById("policy-decline-button").addEventListener(
+        "click", create_proxy(on_decline_policy)
     )
     render()
     _seed_achievement_toast_baseline()

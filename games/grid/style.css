@@ -520,6 +520,16 @@ button.primary:active {
   background: rgba(140, 160, 255, 0.24);
 }
 
+/* TODO-C19: the policy-lever banner's three action buttons, laid out in a
+   row like the existing plant-row build/retire/maintain buttons rather
+   than stacked block buttons. */
+.policy-lever-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
 /* Info toggles — plain <details>/<summary>, zero JS. For a mechanic that
    isn't self-explanatory from its label alone (why do renewable costs
    drop? why do plants need maintaining?), a small "ⓘ" disclosure sits

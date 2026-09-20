@@ -61,6 +61,7 @@ current_difficulty = DIFFICULTY_NORMAL
 def current_degrade_per_clear():
     return DEGRADE_PER_CLEAR_BY_DIFFICULTY.get(current_difficulty, DEGRADE_PER_CLEAR)
 
+
 # How many ticks a replanted plot spends in REPLANTING before it
 # automatically becomes RECOVERED. A never-cleared plot pays no such
 # delay — this is the "slower timeline" the plan calls for.
@@ -107,6 +108,35 @@ VALID_ACTIONS = {
 
 # States in which a plot accrues standing value each tick.
 ACCRUING_STATES = {PRESERVED, RECOVERED}
+
+
+# B17 (planning/TODO.md "Per-game: Canopy"): a genuine in-game seasonal
+# cycle -- distinct from B30's purely decorative real-calendar backdrop
+# tint (settings.js's `data-season`, which never touches game math). This
+# one is driven by `forest_tick`, a persisted counter (unlike the
+# ephemeral `_session_ticks`), so a season boundary survives a save/load
+# exactly like any other real game fact instead of resetting on reload.
+# Each season applies a modest permanent multiplier to a plot's per-tick
+# ECONOMIC growth only -- biodiversity accrual is deliberately untouched,
+# so Pass 3's already-tuned wildlife-icon pacing doesn't shift underneath
+# a season change.
+SEASON_CYCLE_TICKS = 40
+SEASONS = ["spring", "summer", "autumn", "winter"]
+SEASON_GROWTH_MULTIPLIER = {"spring": 1.10, "summer": 1.00, "autumn": 0.95, "winter": 0.85}
+SEASON_ICON = {"spring": "\U0001F331", "summer": "☀️", "autumn": "\U0001F342", "winter": "❄️"}
+SEASON_LABEL = {"spring": "Spring", "summer": "Summer", "autumn": "Autumn", "winter": "Winter"}
+
+
+def current_season():
+    return SEASONS[(forest_tick // SEASON_CYCLE_TICKS) % len(SEASONS)]
+
+
+def current_season_multiplier():
+    return SEASON_GROWTH_MULTIPLIER[current_season()]
+
+
+def ticks_until_next_season():
+    return SEASON_CYCLE_TICKS - (forest_tick % SEASON_CYCLE_TICKS)
 
 
 # Iteration-pass additions: a continuous color gradient per plot (not
@@ -206,6 +236,21 @@ SPECIALIST_BIODIVERSITY_MULTIPLIER = 2.5
 SPECIALIZATION_LABEL = {SPECIALIZATION_ECONOMIC: "economic", SPECIALIZATION_BIODIVERSITY: "biodiversity"}
 
 
+# B11 (planning/TODO.md "Per-game: Canopy"): a "reforestation partner" --
+# an alternate way to replant a Bare plot. (Note: an EARLIER B11 --
+# diversifying stakeholder requests with a positive "incentive" offer --
+# is what the STAKEHOLDER_KIND_INCENTIVE comments above still reference;
+# TODO.md was renumbered after that shipped, and this is the *current*
+# B11.) Canopy has no separate resource currency for a partner to
+# literally "co-fund", so the trade this offers is time for a permanent
+# cut of value instead: the partner halves the recovery wait, in exchange
+# for a fixed share of that one planting's future ECONOMIC value (never
+# biodiversity). The deal is void the moment the plot is next cleared --
+# a fresh partnership has to be struck on the next bare replant.
+PARTNER_RECOVERY_TICKS = max(1, RECOVERY_TICKS // 2)
+PARTNER_SHARE_RATIO = 0.35
+
+
 class Plot:
     def __init__(self, index):
         self.index = index
@@ -224,6 +269,10 @@ class Plot:
         self.requests_survived = 0
         # B21: one-time permanent specialization (None until chosen).
         self.specialization = None
+        # B11: 0.0 normally; PARTNER_SHARE_RATIO while this planting was
+        # done with a reforestation partner (cleared back to 0.0 on the
+        # next clear() -- see that method).
+        self.partner_share = 0.0
 
     def can_specialize(self):
         return (
@@ -255,8 +304,12 @@ class Plot:
         self.ticks_intact += 1
         growth_multiplier = 1 + self.ticks_intact * GROWTH_PER_TICK
         delta = BASE_ACCRUAL * self.productivity_multiplier() * growth_multiplier
+        delta *= current_season_multiplier()  # B17
+        delta *= current_legacy_multiplier()  # B15
         if self.specialization == SPECIALIZATION_ECONOMIC:
             delta *= SPECIALIST_ECONOMIC_VALUE_MULTIPLIER
+        if self.partner_share:  # B11: partner's cut comes off the top, permanently
+            delta *= 1 - self.partner_share
         self.value += delta
         biodiversity_gain = BIODIVERSITY_ACCRUAL_PER_TICK
         if self.specialization == SPECIALIZATION_BIODIVERSITY:
@@ -280,13 +333,20 @@ class Plot:
         self.ticks_intact = 0
         self.biodiversity = 0.0
         self.specialization = None
+        self.partner_share = 0.0  # B11: a partnership is only good for one planting
         return payout
 
-    def replant(self):
+    def replant(self, partner=False):
+        """B11: `partner=True` uses a reforestation partner instead of a
+        plain replant -- recovers in PARTNER_RECOVERY_TICKS (half the
+        normal wait) but this planting's future economic value permanently
+        shares PARTNER_SHARE_RATIO with the partner until the plot is next
+        cleared."""
         if "replant" not in VALID_ACTIONS[self.state]:
             return False
         self.state = REPLANTING
-        self.replant_ticks_remaining = RECOVERY_TICKS
+        self.replant_ticks_remaining = PARTNER_RECOVERY_TICKS if partner else RECOVERY_TICKS
+        self.partner_share = PARTNER_SHARE_RATIO if partner else 0.0
         return True
 
     def finish_recovery(self):
@@ -1137,6 +1197,12 @@ def render_highland_section():
 # (Tide's D13, Thaw's G19) draw.
 PERSONAL_BEST_STORAGE_KEY = "canopy_personal_best_v1"
 
+# Z6 (planning/TODO.md "Z. Games"): how long the shared
+# .personal-best-display.just-improved pulse (shared/personal-best.css)
+# stays on before self-removing -- matches the CSS animation's own
+# duration so the class is gone right as the pulse finishes.
+PERSONAL_BEST_BADGE_MS = 1800
+
 
 def _read_local_storage_item(key):
     """Lazy `import js` (same convention as _read_achievements_json()) so
@@ -1213,6 +1279,26 @@ def _maybe_update_personal_best():
         changed = True
     if changed:
         _write_local_storage_item(PERSONAL_BEST_STORAGE_KEY, json.dumps(personal_best))
+        _flash_personal_best_badge()
+
+
+def _flash_personal_best_badge():
+    """Z6: briefly adds the shared .just-improved class (see
+    shared/personal-best.css) right when a session beats its stored best,
+    then removes it after PERSONAL_BEST_BADGE_MS -- the actual "badge"
+    moment, distinct from render_personal_best()'s always-on label text.
+    Same setTimeout+create_proxy shape as the achievement toast below."""
+    element = document.getElementById("personal-best-display")
+    if element is None:
+        return
+    element.classList.add("just-improved")
+
+    def _unflash():
+        el = document.getElementById("personal-best-display")
+        if el is not None:
+            el.classList.remove("just-improved")
+
+    setTimeout(create_proxy(_unflash), PERSONAL_BEST_BADGE_MS)
 
 
 def render_personal_best():

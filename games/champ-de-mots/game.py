@@ -18,6 +18,9 @@ import random
 import re
 import unicodedata
 
+from js import document
+from pyodide.ffi import create_proxy
+
 # Milestones 27-30: the arcade minigame family lives entirely in its own
 # file (minigames.py) -- see that file's module docstring for the full
 # wellbeing-constraint-exception rationale (the farm's own no-timer/
@@ -510,6 +513,8 @@ def _answer_similarity(value, answer):
     return difflib.SequenceMatcher(
         None, normalize_answer(str(value)), normalize_answer(str(answer))
     ).ratio()
+
+
 NEARBY_TOPIC_SPAN = 4  # topics either side ≈ the same and adjacent weeks
 BLANK_MARKER = "_____"
 MAX_TYPED_ANSWER_LENGTH = 32
@@ -560,6 +565,7 @@ def gender_tag_parts(fr_text):
     """(article, bare_noun) for an unambiguously gendered noun, else None."""
     match = GENDER_TAG_PATTERN.match(fr_text)
     return (match.group(1), match.group(2)) if match else None
+
 
 # The six-person set, plus the shared forms and reflexive/elided spellings the
 # catalog actually uses. Longest first so "il/elle/on" wins over "il".
@@ -1433,9 +1439,6 @@ def check_answer(question, given, tier=None, accent_sensitive=None):
 # once at boot and only its cells' text/classes are rewritten afterwards —
 # 722 cells is too many to recreate on every answer.
 
-from js import document
-from pyodide.ffi import create_proxy
-
 STAGE_ICON = {
     STAGE_SEED: "🟤",
     STAGE_SPROUT: "🌱",
@@ -1548,6 +1551,7 @@ def build_failure_blurb(question):
         "memory_tip": _blurb_memory_tip(plot),
         "why_it_matters": FAILURE_BLURB_WHY_IT_MATTERS[plot.topic_type],
     }
+
 
 # Module-level UI state.
 current_question = None

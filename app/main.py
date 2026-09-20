@@ -96,7 +96,7 @@ SAVE_CODE_GENERATION_ATTEMPTS = 5
 def _generate_save_code() -> str:
     chars = [secrets.choice(SAVE_CODE_ALPHABET) for _ in range(SAVE_CODE_GROUP_LEN * SAVE_CODE_GROUPS)]
     groups = [
-        "".join(chars[i : i + SAVE_CODE_GROUP_LEN])
+        "".join(chars[i:i + SAVE_CODE_GROUP_LEN])
         for i in range(0, len(chars), SAVE_CODE_GROUP_LEN)
     ]
     return "-".join(groups)

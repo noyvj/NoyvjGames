@@ -53,6 +53,17 @@ ELEMENT_IDS = [
     "changelog-panel",
     "summary-toggle-button",
     "summary-panel",
+    # Round-3 pass (2026-09-20): demand response (C7), weather log (C17),
+    # policy lever (C19).
+    "weather-log-toggle-button",
+    "weather-log-panel",
+    "demand-response-button",
+    "demand-response-level-display",
+    "policy-lever-banner",
+    "active-policy-display",
+    "policy-accept-carbon-pricing-button",
+    "policy-accept-renewable-subsidy-button",
+    "policy-decline-button",
     "achievement-toast",
     "achievement-toast-text",
     "retire-callout",
@@ -140,6 +151,21 @@ class GameEnv:
 
     def toggle_weather_variability(self):
         self.elements["weather-variability-toggle-button"].dispatch("click", None)
+
+    def toggle_weather_log(self):
+        self.elements["weather-log-toggle-button"].dispatch("click", None)
+
+    def invest_demand_response(self):
+        self.elements["demand-response-button"].dispatch("click", None)
+
+    def enact_carbon_pricing(self):
+        self.elements["policy-accept-carbon-pricing-button"].dispatch("click", None)
+
+    def enact_renewable_subsidy(self):
+        self.elements["policy-accept-renewable-subsidy-button"].dispatch("click", None)
+
+    def decline_policy(self):
+        self.elements["policy-decline-button"].dispatch("click", None)
 
 
 def _install_pyodide_fakes(elements, timers):

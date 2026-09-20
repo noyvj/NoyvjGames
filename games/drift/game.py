@@ -1168,6 +1168,7 @@ def update_changelog_display():
 
         panel.appendChild(card)
 
+
 SERVICES_BACKBONE_TARGET = 5
 BUILT_TO_SCALE_TARGET = 200.0
 CENTURY_ARRIVALS_TARGET = 100.0

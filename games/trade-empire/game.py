@@ -589,6 +589,7 @@ def set_fleet_priority(enabled):
     global fleet_priority_enabled
     fleet_priority_enabled = enabled
 
+
 # Milestone 8 — research tree v1: a small, flat framework (no
 # prerequisites yet) gating an automation-slot expansion, a fleet-wide
 # speed boost, and a new ship class — spent from a separate currency

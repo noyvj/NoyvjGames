@@ -166,6 +166,7 @@ def severity_label(severity):
         return "severe"
     return "typical"
 
+
 # Skill tree — lives outside the run loop entirely, persisting between
 # runs (and between visits, via localStorage). Bonus application to new
 # runs is Milestone 4's job; this milestone is just the structure.
