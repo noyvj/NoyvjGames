@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-09-20",
+    "entry": "Round-2 pass: two new skill branches (weather hardening, civic preparedness against social shocks), a settlement name and always-visible runs counter, pin-a-skill runs-until-affordable estimates, expected-damage ranges, severity tooltips, one-time reassurance callouts, past-run memories in event flavor, extended-run epilogue, and build-diversity achievements."
+  },
+  {
     "date": "2026-09-19",
     "entry": "Added a settings panel (text size + reduced motion) and completed a colorblind-safety audit — no color-only state found needing a fix."
   },

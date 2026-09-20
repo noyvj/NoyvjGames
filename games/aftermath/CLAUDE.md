@@ -408,6 +408,14 @@ Walked every always-visible block top to bottom. Most of the apparent length is 
 
 **Found one real offender:** `#progress-code-panel` (E12's export/import backup panel — a label paragraph, two textareas, two buttons, and a status line) was a plain always-visible `.section`, despite being a maintenance action a player touches rarely, if ever — the exact "rarely-touched settings/info block" shape the site's decluttering pattern targets. **Fix:** changed it from a `<div class="section">` to a `<details class="section progress-code-toggle">` with a `<summary>💾 Backup / Transfer Progress</summary>` header, collapsed by default. Pure structural swap — every child element keeps its existing id (`#progress-export-button`, `#progress-export-output`, `#progress-import-input`, `#progress-import-button`, `#progress-code-status`), `game.py` never reads or sets this wrapper's own hidden/open state (confirmed via grep), and no Python changed. Added matching CSS (`.progress-code-toggle` `summary` styling with a `▸`/`▾` marker, replacing the browser default triangle) to `style.css`, styled to read as a section heading rather than a raw disclosure widget. Full pytest suite (210/210) unaffected, as expected for a pure HTML/CSS change.
 
+## Round-2 backlog pass (2026-09-20, planning/TODO.md "Per-game: Aftermath")
+
+Built: E1/E3 (skills 6 and 7 -- `civic_preparedness` on the social-shock branch, prereq Community Reserves, -35% Civil Unrest damage; `climate_hardening` on the weather branch, prereqs Reinforced Infrastructure + Early Warning, -20% weather damage; applied via `RunState.mitigation_for(event_type)`, still capped at 85%), E2 (`skill_toast_duration_ms`), E4/E25 (`#runs-completed-display`, settlement name in the Settings panel), E5 (`generational_memory_text`), E6, E7 (`severity_bounds`/`lifetime_severity_widening`, +0.004 per lifetime run capped at 0.06), E8/E28 (`#callout-display`, one-shot flags), E10, E12 (`#settlement-badge-toughest`, lit after surviving a run whose average severity was "severe"; "personal best" interpreted as that), E13 (extended-run epilogue), E14/E20 (range + tooltip), E15 (`deep_specialist`, `broad_generalist`, `both_paths` -- 22 achievements), E16, E18, E22, E24, E26, E30a/b.
+
+Cross-run extras (settlement name, pinned skills, callout flags) live in a localStorage `aftermath_meta_v1` dict (`meta`), included in the progress export bundle with safe defaults, deliberately not in `get_state()` (same reasoning as the skill tree). E8 is interpreted as "a run ends with 0 resources".
+
+Left: E9/E23 (Z1 stats endpoint; not built), E17a/b scenario packs, E19 curriculum, E27 mentor mode, E29 societal-memory skill. Tests: `tests/test_backlog_wave2.py` (210 to 244).
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
