@@ -80,10 +80,11 @@
       <div class="pasture-visual-cloud pasture-visual-cloud--b"></div>
       <div class="pasture-visual-hill pasture-visual-hill--back"></div>
       <div class="pasture-visual-hill pasture-visual-hill--front"></div>
+      <span id="pasture-herd-count" class="pasture-herd-count" hidden>Herd: 0</span>
       <div class="pasture-visual-herd">
-        <div id="pasture-cow-a" class="pasture-visual-cow pasture-visual-cow--a" hidden><span class="pasture-visual-wisp"></span></div>
+        <div id="pasture-cow-a" class="pasture-visual-cow pasture-visual-cow--a" hidden><span id="pasture-wisp-a" class="pasture-visual-wisp"></span></div>
         <div id="pasture-cow-b" class="pasture-visual-cow pasture-visual-cow--b" hidden></div>
-        <div id="pasture-cow-c" class="pasture-visual-cow pasture-visual-cow--c" hidden><span class="pasture-visual-wisp"></span></div>
+        <div id="pasture-cow-c" class="pasture-visual-cow pasture-visual-cow--c" hidden><span id="pasture-wisp-c" class="pasture-visual-wisp"></span></div>
         <div id="pasture-cow-d" class="pasture-visual-cow pasture-visual-cow--d" hidden></div>
         <div id="pasture-cow-e" class="pasture-visual-cow pasture-visual-cow--e" hidden></div>
       </div>
@@ -108,6 +109,7 @@
       <p id="gauge-range-display" class="gauge-range-display">Session best: 1.00  |  Baseline: 1.00</p>
       <p id="real-world-comparison-display" class="comparison-message">You've cut emissions intensity by 0% so far — real farms have documented a ~42% reduction through better practices.</p>
       <details class="info-toggle"><summary>i</summary><p>This tracks methane produced per herd unit, not your total emissions — it only falls when you invest in the decoupling measures below, not by shrinking your herd. Total accumulated methane keeps rising every round as long as you have any herd at all, even at the lowest possible ratio.</p></details>
+      <details class="info-toggle"><summary>i</summary><p>The faint haze tinting the whole page shows market/regulatory pressure: it is clear at 0% income loss and reaches its densest at the 80% cap. Purple wisps rising from the cows thin out as your coupling ratio improves, and vanish once the farm is about 90% decoupled.</p></details>
       <p class="meter-label">Methane over time</p>
       <div id="methane-trend-graph" class="methane-trend-graph"></div>
     </div>
@@ -155,6 +157,7 @@
     <div id="decoupling" class="section">
       <p id="decoupling-summary-display" class="comparison-message">Decoupled: 0% below baseline emissions per herd unit</p>
       <details class="info-toggle"><summary>i</summary><p>Feed Additives, Herd Caps, and Capture Systems all reduce the same underlying emissions ratio, and their effects stack additively — investing in several compounds rather than duplicating effort. The ratio has a floor, though: past a certain point, further investment stops helping.</p></details>
+      <p id="certification-display" class="comparison-message">Sustainable certification</p>
       <div class="invest-row" data-measure="feed">
         <span class="invest-name" id="feed-name">Feed Additives</span>
         <span class="invest-count" id="feed-count">0</span>

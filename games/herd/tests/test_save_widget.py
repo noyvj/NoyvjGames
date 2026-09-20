@@ -24,6 +24,8 @@ def test_get_state_includes_every_expected_key(game_env):
         "seen_half_decoupled_callout",
         "seen_pressure_callout",
         "seen_methane_penalty_nudge",
+        "certification_streak",
+        "certified",
         "achievements_earned",
     }
 

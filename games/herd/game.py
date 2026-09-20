@@ -96,6 +96,13 @@ HALF_DECOUPLED_CALLOUT_THRESHOLD = 0.5
 PRESSURE_CALLOUT_THRESHOLD = 0.25
 METHANE_PENALTY_NUDGE_THRESHOLD = 30.0
 
+# F11 — sustainable certification: holding the coupling ratio at or
+# below this level for this many consecutive rounds earns a permanent
+# income price premium (the counterfactual baseline never gets it).
+CERTIFICATION_RATIO_THRESHOLD = 0.5
+CERTIFICATION_ROUNDS_REQUIRED = 5
+CERTIFICATION_PRICE_PREMIUM = 0.10
+
 # Achievements — clean_operator's round/pressure bar.
 CLEAN_OPERATOR_MIN_ROUND = 15
 CLEAN_OPERATOR_MAX_PRESSURE = 0.1
@@ -140,6 +147,17 @@ class FarmState:
         # F7 — methane-over-rounds trend history, same shape as Thaw's
         # per-region temperature_history / Grid's emissions_history.
         self.methane_history = [0.0]
+
+        # F11 — sustainable certification progress. Both persist.
+        self.certification_streak = 0
+        self.certified = False
+
+        # F16 — one-tick flag (not saved): the round's added methane just
+        # dropped below the previous round's, i.e. the curve flattened.
+        self.just_flattened = False
+
+    def certification_multiplier(self):
+        return 1 + CERTIFICATION_PRICE_PREMIUM if self.certified else 1.0
 
     def _efficiency_coupling_ratio(self):
         """Methane produced per herd unit, per round, from the feed/caps/
@@ -223,7 +241,7 @@ class FarmState:
     def advance_round(self):
         fraction = self.plant_based_fraction()
         income_multiplier = (1 - fraction) + fraction * PLANT_BASED_INCOME_MULTIPLIER
-        raw_income = self.herd_size * HERD_INCOME_PER_UNIT * income_multiplier
+        raw_income = self.herd_size * HERD_INCOME_PER_UNIT * income_multiplier * self.certification_multiplier()
         pressure = self.pressure_fraction()
         self.funds += raw_income * (1 - pressure)
         self.methane += self.methane_this_round()
@@ -239,7 +257,24 @@ class FarmState:
         self.counterfactual_methane += self.herd_size * BASE_COUPLING_RATIO
 
         self.round_number += 1
+        prev_increment = (
+            self.methane_history[-1] - self.methane_history[-2] if len(self.methane_history) >= 2 else 0.0
+        )
         self.methane_history.append(self.methane)
+        # F16 — curve flattening: this round added less than the last.
+        self.just_flattened = (
+            prev_increment > 0 and (self.methane_history[-1] - self.methane_history[-2]) < prev_increment - 1e-9
+        )
+
+        # F11 — certification streak, counted on the ratio held this round.
+        if self.coupling_ratio() <= CERTIFICATION_RATIO_THRESHOLD:
+            self.certification_streak += 1
+        else:
+            self.certification_streak = 0
+        newly_certified = False
+        if not self.certified and self.certification_streak >= CERTIFICATION_ROUNDS_REQUIRED:
+            self.certified = True
+            newly_certified = True
 
         # F5/F11/F17 — one-time nudge callouts, checked in a fixed
         # priority order so at most one fires per round (the shared
@@ -256,6 +291,8 @@ class FarmState:
         ):
             self.seen_methane_penalty_nudge = True
             self.just_hit_callout = "methane_penalty"
+        if newly_certified and self.just_hit_callout is None:
+            self.just_hit_callout = "certified"
 
     def score(self):
         """Profitability weighted against sustained emissions — rewards
@@ -409,9 +446,63 @@ def report_card_html():
             if gap >= 0
             else f"Net: your score is currently {abs(gap):.0f} points behind the baseline — invest more in decoupling to close the gap."
         ),
+        beat_percentage_message(),
+        investment_summary_message(),
         real_world_comparison_message(),
     ]
     return "".join(f'<p class="status-line summary-line">{line}</p>' for line in lines)
+
+
+def beat_percentage_message():
+    """F6 — the exact percentage the score beats (or trails) the
+    pure-growth baseline by."""
+    baseline = farm.counterfactual_score()
+    if abs(baseline) < 1e-9:
+        return "Baseline score is zero, so a percentage comparison isn't meaningful yet."
+    pct = (farm.score() - baseline) / abs(baseline) * 100
+    if pct >= 0:
+        return f"Your score beats the pure-growth baseline by {pct:.1f}%."
+    return f"Your score trails the pure-growth baseline by {abs(pct):.1f}%."
+
+
+def investment_summary_message():
+    """F26 — a summary list where the three efficiency measures carry
+    their own icons and the plant-based pivot is visibly a separate
+    lever (a distinct marker plus the word 'separate')."""
+    parts = [
+        f"{spec['icon']} {spec['label']} x{farm.decoupling_investment[m]}"
+        for m, spec in DECOUPLING_MEASURES.items()
+    ]
+    return (
+        "Efficiency measures: " + ", ".join(parts)
+        + f"  |  \U0001F331 Separate lever \u2014 Plant-Based Pivot x{farm.plant_pivot_investment}"
+    )
+
+
+def certification_message():
+    if farm.certified:
+        return (
+            f"Certified sustainable: permanent +{CERTIFICATION_PRICE_PREMIUM * 100:.0f}% price premium "
+            "on your output."
+        )
+    return (
+        f"Sustainable certification: {farm.certification_streak}/{CERTIFICATION_ROUNDS_REQUIRED} "
+        f"rounds at a coupling ratio of {CERTIFICATION_RATIO_THRESHOLD:.2f} or lower "
+        f"(earns a permanent +{CERTIFICATION_PRICE_PREMIUM * 100:.0f}% price premium)."
+    )
+
+
+def plant_pivot_confirm_message():
+    """F12 — the confirm dialog's exact income tradeoff, computed from
+    the live constants."""
+    discount = (1 - PLANT_BASED_INCOME_MULTIPLIER) * 100
+    total = PLANT_PIVOT_FRACTION_PER_UNIT * (1 - PLANT_BASED_INCOME_MULTIPLIER) * 100
+    return (
+        f"Invest {PLANT_PIVOT_COST} funds in the Plant-Based Pivot? It shifts "
+        f"{PLANT_PIVOT_FRACTION_PER_UNIT * 100:.0f}% of your output to near-zero-methane plant-based "
+        f"production. Tradeoff: shifted output earns {discount:.0f}% less income per unit, so this step "
+        f"lowers your total income by about {total:.2f}%."
+    )
 
 
 report_card_open = False
@@ -438,9 +529,14 @@ def update_report_card():
 def real_world_comparison_message():
     pct = farm.decoupled_fraction() * 100
     real_pct = REAL_WORLD_REDUCTION_FRACTION * 100
+    if farm.decoupled_fraction() > REAL_WORLD_REDUCTION_FRACTION:
+        return (
+            f"Congratulations: you've cut emissions intensity by {pct:.0f}%, beating the real "
+            f"~{real_pct:.0f}% benchmark documented on real farms."
+        )
     if farm.decoupled_fraction() >= REAL_WORLD_REDUCTION_FRACTION:
         return (
-            f"You've cut emissions intensity by {pct:.0f}% — matching or beating the real "
+            f"You've cut emissions intensity by {pct:.0f}% — matching the real "
             f"~{real_pct:.0f}% reduction documented on real farms."
         )
     return (
@@ -474,10 +570,18 @@ def grow_consequence_message():
     methane_delta = farm.coupling_ratio()
     fraction = farm.plant_based_fraction()
     income_multiplier = (1 - fraction) + fraction * PLANT_BASED_INCOME_MULTIPLIER
-    income_delta = HERD_INCOME_PER_UNIT * income_multiplier * (1 - farm.pressure_fraction())
+    income_per_unit = (
+        HERD_INCOME_PER_UNIT * income_multiplier * farm.certification_multiplier()
+        * (1 - farm.pressure_fraction())
+    )
+    # F18 — before -> after totals with a direction arrow.
+    income_before = farm.herd_size * income_per_unit
+    income_after = (farm.herd_size + 1) * income_per_unit
+    methane_before = farm.methane_this_round()
+    methane_after = methane_before + methane_delta
     return (
-        f"Next unit: costs {cost:.0f}, adds ~{income_delta:.1f} income/round and "
-        f"+{methane_delta:.2f} methane/round."
+        f"Next unit: costs {cost:.0f}. Income/round {income_before:.1f} \u2192 {income_after:.1f} \u2191, "
+        f"methane/round {methane_before:.2f} \u2192 {methane_after:.2f} \u2191."
     )
 
 
@@ -740,12 +844,18 @@ def _check_new_achievements_for_toast():
 # an unlock.
 _MILESTONE_CALLOUT_MESSAGES = {
     "half_decoupled": (
-        "You've cut your emissions-per-herd-unit ratio 50% below baseline — decoupling is "
-        "working, without shrinking your herd."
+        "You've cut your emissions-per-herd-unit ratio 50% below baseline. That's what "
+        '"decoupled" means: the same herd now emits half as much methane, so growth and '
+        "emissions are no longer locked together."
     ),
     "pressure": (
         "Market/regulatory pressure just crossed 25% income loss — sustained methane is now "
         "visibly eating into your income."
+    ),
+    "certified": (
+        "Sustainable certification earned! Holding a low coupling ratio for "
+        f"{CERTIFICATION_ROUNDS_REQUIRED} rounds unlocks a permanent "
+        f"+{CERTIFICATION_PRICE_PREMIUM * 100:.0f}% price premium on your output."
     ),
     "methane_penalty": (
         "Your accumulated methane is now cutting a real chunk out of your score — decoupling "
@@ -815,6 +925,18 @@ PASTURE_COW_THRESHOLDS = [
 def update_pasture_visual():
     for element_id, threshold in PASTURE_COW_THRESHOLDS:
         document.getElementById(element_id).hidden = farm.herd_size < threshold
+    # F2 — a small herd-size number overlay alongside the cow visual.
+    count = document.getElementById("pasture-herd-count")
+    count.innerText = f"Herd: {farm.herd_size}"
+    count.hidden = farm.herd_size < 1
+    # F30 — methane wisps thin out as the coupling ratio improves,
+    # reinforcing the haze cue with motion: fainter with a lower ratio,
+    # gone once the farm is ~90% decoupled.
+    wisp_opacity = max(0.0, min(1.0, farm.coupling_ratio() / BASE_COUPLING_RATIO))
+    for element_id in ("pasture-wisp-a", "pasture-wisp-c"):
+        wisp = document.getElementById(element_id)
+        wisp.style.opacity = f"{wisp_opacity:.2f}"
+        wisp.hidden = farm.decoupled_fraction() >= 0.9
 
 
 # ===========================================================================
@@ -968,6 +1090,8 @@ def render():
     # F15 — the real-world 42% comparison.
     document.getElementById("real-world-comparison-display").innerText = real_world_comparison_message()
 
+    document.getElementById("certification-display").innerText = certification_message()
+
     # F7 — methane-over-rounds trend graph.
     document.getElementById("methane-trend-graph").innerHTML = methane_trend_graph_svg(farm.methane_history)
 
@@ -1001,8 +1125,11 @@ def on_grow_herd(event=None):
 
 def _make_decoupling_handler(measure):
     def handler(event=None):
+        ratio_before = farm.coupling_ratio()
         if farm.invest_decoupling(measure):
             _pulse(f"{measure}-count")
+            if farm.coupling_ratio() < ratio_before - 1e-9:
+                _pulse("gauge-range-display")  # F22 — new session-best
         render()
         _check_new_achievements_for_toast()
     return handler
@@ -1046,18 +1173,17 @@ def on_invest_plant_pivot(event=None):
     # only, per the shared pattern's own shape (no undo window); a player
     # who invests repeatedly can check "don't ask again" once.
     def do_invest():
+        ratio_before = farm.coupling_ratio()
         if farm.invest_plant_pivot():
             _pulse("plant-pivot-count")
+            if farm.coupling_ratio() < ratio_before - 1e-9:
+                _pulse("gauge-range-display")  # F22 — new session-best
         render()
         _check_new_achievements_for_toast()
 
     _confirm_dialog_ask(
         action_id="herd-plant-pivot-invest",
-        message=(
-            f"Invest {PLANT_PIVOT_COST} funds in the Plant-Based Pivot? "
-            "It shifts part of your herd's output to near-zero-methane "
-            "plant-based production, at a small ongoing income cost."
-        ),
+        message=plant_pivot_confirm_message(),
         confirm_label="Invest",
         on_confirm=do_invest,
     )
@@ -1068,6 +1194,9 @@ def on_advance_round(event=None):
     render()
     _check_milestone_callout()
     _check_new_achievements_for_toast()
+    if farm.just_flattened:
+        farm.just_flattened = False
+        _pulse("methane-trend-graph")  # F16
 
 
 # SAVE-BUTTON-INTEGRATION.md contract for the shared shared/save-widget.js:
@@ -1093,6 +1222,8 @@ def get_state():
         "seen_half_decoupled_callout": farm.seen_half_decoupled_callout,
         "seen_pressure_callout": farm.seen_pressure_callout,
         "seen_methane_penalty_nudge": farm.seen_methane_penalty_nudge,
+        "certification_streak": farm.certification_streak,
+        "certified": farm.certified,
         "achievements_earned": achievement_ids_earned(),
     }
 
@@ -1139,6 +1270,8 @@ def load_state(data):
     farm.seen_methane_penalty_nudge = data.get(
         "seen_methane_penalty_nudge", farm.seen_methane_penalty_nudge
     )
+    farm.certification_streak = data.get("certification_streak", 0)
+    farm.certified = bool(data.get("certified", False))
     # achievements_earned is deliberately never read back here -- it's a
     # write-only projection recomputed fresh by get_state() every save,
     # per ACHIEVEMENTS-SYSTEM-DESIGN.md.

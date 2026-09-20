@@ -1175,3 +1175,19 @@ html[data-reduced-motion="true"] *::after {
   transition-duration: 0.001ms !important;
   scroll-behavior: auto !important;
 }
+
+/* F2 — herd-size number overlay on the pasture visual. */
+.pasture-herd-count {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  z-index: 3;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(20, 30, 20, 0.55);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* F30 — wisp opacity is driven inline by game.py (coupling ratio). */

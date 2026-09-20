@@ -68,6 +68,10 @@ ELEMENT_IDS = [
     "pasture-cow-c",
     "pasture-cow-d",
     "pasture-cow-e",
+    "pasture-herd-count",
+    "pasture-wisp-a",
+    "pasture-wisp-c",
+    "certification-display",
 ]
 for _measure in MEASURE_IDS:
     ELEMENT_IDS += [f"{_measure}-name", f"{_measure}-count", f"{_measure}-invest-button"]
