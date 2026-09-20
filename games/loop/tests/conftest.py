@@ -28,6 +28,7 @@ ELEMENT_IDS = [
     "production-display",
     "total-extracted-display",
     "damage-display",
+    "damage-ceiling-note",
     "damage-bar",
     "circular-fraction-display",
     "lifetime-circular-display",

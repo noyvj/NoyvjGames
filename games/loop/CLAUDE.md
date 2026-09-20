@@ -442,3 +442,5 @@ site simply doesn't have 3+ real saves yet for most fields) -- so once
 this field is deployed, the realistic day-one state is the same graceful
 "not enough players yet" text, zero console noise, that every other
 game's own C15/B19-style comparison currently shows in production too.
+
+- 2026-09-21: H10 -- the hard 2.5x extraction-cost ceiling is now visible in an info-toggle (`#damage-ceiling-note`) beside the damage meter, not only a hover title.

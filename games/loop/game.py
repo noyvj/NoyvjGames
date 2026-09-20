@@ -1238,6 +1238,11 @@ def render():
         f"Extraction cost has a hard ceiling of x{MAX_COST_MULTIPLIER:.2f} -- it can never rise above that, "
         f"however much damage accumulates. Currently x{chain.extraction_cost_multiplier():.2f}."
     )
+    # V-E-4 (H10): the same ceiling note as visible text, not only a hover tooltip.
+    document.getElementById("damage-ceiling-note").innerText = (
+        f"Extraction cost has a hard ceiling of x{MAX_COST_MULTIPLIER:.2f}: it can never rise above that, "
+        f"however much damage accumulates. Currently x{chain.extraction_cost_multiplier():.2f}."
+    )
     document.getElementById("damage-bar").style.width = f"{chain.damage_fraction() * 100:.0f}%"
 
     document.getElementById("circular-fraction-display").innerText = (

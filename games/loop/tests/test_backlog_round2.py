@@ -255,3 +255,8 @@ def test_reset_message_names_surviving_counters(game_env):
     assert msg.hidden is False
     assert "1 chain(s) completed" in msg.innerText
     assert "2 goods categories tried" in msg.innerText
+
+
+def test_ceiling_note_is_visible_text_near_damage_meter(game_env):
+    text = game_env.elements["damage-ceiling-note"].innerText
+    assert "hard ceiling of x2.50" in text
