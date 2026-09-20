@@ -1,18 +1,64 @@
 {
   "changelog": [
-    {"date": "2026-09-21", "entry": "Round-3 additions, all in collapsed panels: delayed-consequence timeline, a tide indicator, settlement name and chronicle, coastal heritage sites, citizen-science monitoring reports, opt-in storm seasons, managed retreat, population and displacement, economy diversification, and checkpoint replay with foresight."},
-    {"date": "2026-09-21", "entry": "D4: a small decorative wave cue next to the sea-level meter, speeding up as sea level rises — cosmetic only, doesn't change the meter's own numbers."},
-    {"date": "2026-09-21", "entry": "Z6: the personal-best label's \"just improved\" badge flash moved into the new shared shared/personal-best.css (also used by Canopy and Thaw) instead of a per-game copy of the same rule."},
-    {"date": "2026-09-20", "entry": "Round-2 pass: sea-level scenario select (conservative/moderate/severe), a seasons-survived counter, a fish-stock recovery celebration, worst-season cause, a suggested action on the fish-yield warning, live output-mix preview, dashed average and baseline markers on the acidity graph, a then-vs-now damage sparkline, per-tier seawall textures and a tier badge, and per-tile seasons-until-flood tooltips."},
-    {"date": "2026-09-20", "entry": "Output-mix dropdown (Fishing/Mixed/Industry) now states its acidity-rate and fish-crash trade-off directly in the option labels and a tooltip."},
-    {"date": "2026-09-19", "entry": "Settings panel added: text size (A-/A/A+) and a reduce-motion toggle, both persisted per-browser."},
-    {"date": "2026-09-15", "entry": "20 achievements added: investment milestones, all four adaptation tiers, coastline flood progression, the delayed fish-stock crash and recovery, and more — with an in-game panel, unlock toast, and hub link."},
-    {"date": "2026-09-15", "entry": "Post-launch pass (D1-D19): mobile action dock, a fourth adaptation tier (storm-surge barriers), a next-flood estimate, an expandable ticker history, a counterfactual \"what if\" replay, an end-of-session summary, a harder-lag difficulty mode, a fish-yield-crash early warning, and per-tile flood-threshold tooltips."},
-    {"date": "2026-09-05", "entry": "Space theme visual pass: starfield background, glass panels, gradient buttons — coastline land/flood colors kept exactly as they were."},
-    {"date": "2026-08-22", "entry": "Pass 3 (fun/teaching balance): added ticker narration for adaptation-tier unlocks and for the moment the damage curve visibly flattens, giving the payoff its own recovery narration alongside the existing fish-stock one."},
-    {"date": "2026-08-18", "entry": "Info Page added with curated real-world sources on ocean acidification and sea-level rise."},
-    {"date": "2026-08-18", "entry": "Pass 2: adaptation tech tree with per-tier dampening and a matching coastline seawall visual."},
-    {"date": "2026-08-11", "entry": "Pass 1: delayed-effect ticker log and a visually separate sea-level meter."},
-    {"date": "2026-08-01", "entry": "All 7 milestones complete: settlement loop, acidity meter + delayed fish-stock consequence, sea-level timeline, tile-grid coastline, hope-angle payoff, feedback prompt, visual pass + hub integration."}
+    {
+      "date": "2026-09-21",
+      "entry": "Fixed a display bug where the Achievements panel showed as an empty box before its first open and never visually closed again once opened once."
+    },
+    {
+      "date": "2026-09-21",
+      "entry": "Round-3 additions, all in collapsed panels: delayed-consequence timeline, a tide indicator, settlement name and chronicle, coastal heritage sites, citizen-science monitoring reports, opt-in storm seasons, managed retreat, population and displacement, economy diversification, and checkpoint replay with foresight."
+    },
+    {
+      "date": "2026-09-21",
+      "entry": "D4: a small decorative wave cue next to the sea-level meter, speeding up as sea level rises \u2014 cosmetic only, doesn't change the meter's own numbers."
+    },
+    {
+      "date": "2026-09-21",
+      "entry": "Z6: the personal-best label's \"just improved\" badge flash moved into the new shared shared/personal-best.css (also used by Canopy and Thaw) instead of a per-game copy of the same rule."
+    },
+    {
+      "date": "2026-09-20",
+      "entry": "Round-2 pass: sea-level scenario select (conservative/moderate/severe), a seasons-survived counter, a fish-stock recovery celebration, worst-season cause, a suggested action on the fish-yield warning, live output-mix preview, dashed average and baseline markers on the acidity graph, a then-vs-now damage sparkline, per-tier seawall textures and a tier badge, and per-tile seasons-until-flood tooltips."
+    },
+    {
+      "date": "2026-09-20",
+      "entry": "Output-mix dropdown (Fishing/Mixed/Industry) now states its acidity-rate and fish-crash trade-off directly in the option labels and a tooltip."
+    },
+    {
+      "date": "2026-09-19",
+      "entry": "Settings panel added: text size (A-/A/A+) and a reduce-motion toggle, both persisted per-browser."
+    },
+    {
+      "date": "2026-09-15",
+      "entry": "20 achievements added: investment milestones, all four adaptation tiers, coastline flood progression, the delayed fish-stock crash and recovery, and more \u2014 with an in-game panel, unlock toast, and hub link."
+    },
+    {
+      "date": "2026-09-15",
+      "entry": "Post-launch pass (D1-D19): mobile action dock, a fourth adaptation tier (storm-surge barriers), a next-flood estimate, an expandable ticker history, a counterfactual \"what if\" replay, an end-of-session summary, a harder-lag difficulty mode, a fish-yield-crash early warning, and per-tile flood-threshold tooltips."
+    },
+    {
+      "date": "2026-09-05",
+      "entry": "Space theme visual pass: starfield background, glass panels, gradient buttons \u2014 coastline land/flood colors kept exactly as they were."
+    },
+    {
+      "date": "2026-08-22",
+      "entry": "Pass 3 (fun/teaching balance): added ticker narration for adaptation-tier unlocks and for the moment the damage curve visibly flattens, giving the payoff its own recovery narration alongside the existing fish-stock one."
+    },
+    {
+      "date": "2026-08-18",
+      "entry": "Info Page added with curated real-world sources on ocean acidification and sea-level rise."
+    },
+    {
+      "date": "2026-08-18",
+      "entry": "Pass 2: adaptation tech tree with per-tier dampening and a matching coastline seawall visual."
+    },
+    {
+      "date": "2026-08-11",
+      "entry": "Pass 1: delayed-effect ticker log and a visually separate sea-level meter."
+    },
+    {
+      "date": "2026-08-01",
+      "entry": "All 7 milestones complete: settlement loop, acidity meter + delayed fish-stock consequence, sea-level timeline, tile-grid coastline, hope-angle payoff, feedback prompt, visual pass + hub integration."
+    }
   ]
 }

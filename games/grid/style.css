@@ -675,6 +675,17 @@ button.primary:active {
   gap: 0.65rem;
 }
 
+/* Same gotcha SOL's/Trade Empire's/Continuum's own achievements CSS
+   documents: `display: grid` above otherwise wins the cascade over the
+   browser's default `[hidden] { display: none }` UA rule (author-origin
+   styles beat user-agent-origin styles regardless of specificity), so
+   without this override the panel stays visible as an empty box before
+   its first open, and stays visible with its last-rendered content
+   forever after being toggled closed. */
+.achievements-panel[hidden] {
+  display: none;
+}
+
 /* C5 -- the on-demand Run Summary panel. Reuses .status-line for its
    individual rows rather than inventing a new text style, same "no new
    visual language without a reason" approach as the achievements panel
@@ -741,6 +752,11 @@ button.primary:active {
   text-align: left;
   display: grid;
   gap: 0.6rem;
+}
+
+/* Same [hidden]-vs-`display: grid` gotcha as .achievements-panel above. */
+.changelog-panel[hidden] {
+  display: none;
 }
 
 .changelog-entry {

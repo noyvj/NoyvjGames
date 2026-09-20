@@ -1,14 +1,54 @@
 [
-  { "date": "2026-09-20", "entry": "Round-2 polish: capacity forecast, next-milestone estimate, investment ROI, sub-score trend arrows, control line on the trend graph, region naming, Crisis Start mode, capacity reallocation, and a coda legacy choice." },
-  { "date": "2026-09-19", "entry": "Settings panel: adjustable text size and a Reduce Motion toggle." },
-  { "date": "2026-09-19", "entry": "Colorblind-safety audit: wellbeing line on the trend graph now dashed, not just a different color." },
-  { "date": "2026-09-15", "entry": "Achievements added: 18 achievements, in-game panel, unlock toast, hub dashboard link." },
-  { "date": "2026-09-09", "entry": "Skippable tutorial, a How to Play page, and a mobile sticky HUD." },
-  { "date": "2026-09-05", "entry": "Space-theme visual pass and a full redesign of the content window." },
-  { "date": "2026-09-02", "entry": "Save/load added via the shared save widget, so progress carries across devices." },
-  { "date": "2026-08-22", "entry": "Pass 3: a clear \"turning point\" callout the moment integration becomes net-positive, plus a sharper feedback question." },
-  { "date": "2026-08-18", "entry": "Info Page added: real-world sources on climate displacement and institutional preparedness." },
-  { "date": "2026-08-18", "entry": "Pass 2: Long-Horizon Outcomes coda showing the region's generational payoff." },
-  { "date": "2026-08-11", "entry": "Pass 1: three-bar wellbeing dashboard, mid-run checkpoint summary, and case-study context blurbs." },
-  { "date": "2026-08-08", "entry": "All 7 core milestones shipped: allocation loop, displacement pressure, strain vs. capacity, integration payoff, composite wellbeing scoring, feedback prompt, visual/hub pass." }
+  {
+    "date": "2026-09-21",
+    "entry": "Fixed a display bug where the Achievements/Settings panels showed as empty boxes before their first open and never visually closed again once opened once."
+  },
+  {
+    "date": "2026-09-20",
+    "entry": "Round-2 polish: capacity forecast, next-milestone estimate, investment ROI, sub-score trend arrows, control line on the trend graph, region naming, Crisis Start mode, capacity reallocation, and a coda legacy choice."
+  },
+  {
+    "date": "2026-09-19",
+    "entry": "Settings panel: adjustable text size and a Reduce Motion toggle."
+  },
+  {
+    "date": "2026-09-19",
+    "entry": "Colorblind-safety audit: wellbeing line on the trend graph now dashed, not just a different color."
+  },
+  {
+    "date": "2026-09-15",
+    "entry": "Achievements added: 18 achievements, in-game panel, unlock toast, hub dashboard link."
+  },
+  {
+    "date": "2026-09-09",
+    "entry": "Skippable tutorial, a How to Play page, and a mobile sticky HUD."
+  },
+  {
+    "date": "2026-09-05",
+    "entry": "Space-theme visual pass and a full redesign of the content window."
+  },
+  {
+    "date": "2026-09-02",
+    "entry": "Save/load added via the shared save widget, so progress carries across devices."
+  },
+  {
+    "date": "2026-08-22",
+    "entry": "Pass 3: a clear \"turning point\" callout the moment integration becomes net-positive, plus a sharper feedback question."
+  },
+  {
+    "date": "2026-08-18",
+    "entry": "Info Page added: real-world sources on climate displacement and institutional preparedness."
+  },
+  {
+    "date": "2026-08-18",
+    "entry": "Pass 2: Long-Horizon Outcomes coda showing the region's generational payoff."
+  },
+  {
+    "date": "2026-08-11",
+    "entry": "Pass 1: three-bar wellbeing dashboard, mid-run checkpoint summary, and case-study context blurbs."
+  },
+  {
+    "date": "2026-08-08",
+    "entry": "All 7 core milestones shipped: allocation loop, displacement pressure, strain vs. capacity, integration payoff, composite wellbeing scoring, feedback prompt, visual/hub pass."
+  }
 ]

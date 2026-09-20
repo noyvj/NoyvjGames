@@ -435,6 +435,20 @@ Built from `planning/TODO.md`'s Herd F-list (174 -> 191 tests, `tests/test_round
 - Keep the coupling-ratio calculation as an isolated, clearly named function — it's the single mechanic the whole lesson depends on, so it needs to be easy to test in isolation and easy to explain in the Contextual Report Blog.
 - **Site-wide visual pass (Sep 2026):** adopted the shared `ambient-bg.css` background system, using its `--pastoral` theme (warm gold/green farmland motes and blobs) — a space starfield doesn't fit a farm game, so each game gets a theme matching its own subject rather than one look site-wide (SOL and Trade Empire are the two games where an actual starfield fits). Re-skinned this game's own chrome to match — `#game` and every `.section` block became translucent glass panels (gradient background, violet-tinted border, `backdrop-filter` blur, soft shadow), flat gray borders/dividers switched to the shared `rgba(140, 160, 255, 0.12–0.18)` tint, `button.secondary`/`button.primary` moved from flat fills to two-stop gradients with a glossy inset highlight and a `brightness(1.1)` hover (existing `:active`/`:disabled`/`.selected` states re-skinned in place, not renamed), the methane meter fill got a matching-hue glow, and the `<h1>` got the same gradient-clip-text treatment as SOL/the hub. Explicitly left untouched: the coupling-ratio gauge's own color logic (`GAUGE_LOW_COLOR`/`GAUGE_HIGH_COLOR`, `_lerp_color`, `.gauge-track`/`.gauge-fill` in `style.css`) and the haze-overlay's color, since both encode live game state, not chrome. No CSS class/id names changed, no `game.py` logic touched, no motion/transitions added beyond what already existed (`tests/` has no no-animation constraint for this game — unlike some other climate-quartet titles — so the pre-existing `filter`/`width`/`opacity` transitions were left as they were). Full pytest suite (93 tests) green before and after.
 
+## Hidden-panel display bug fix (2026-09-21)
+
+Found during a site-wide sweep after Aftermath's own Z12/panel-hiding
+fixes surfaced the same pattern elsewhere: the achievements/changelog panels (`.achievements-panel`/`.changelog-panel`) set `display:
+grid` as a plain class rule with no `[hidden]` override. Author-origin
+CSS always beats the browser's own `[hidden] { display: none }` UA rule
+regardless of specificity, so once that class applied, the panel stayed
+visible as an empty box before its first open, and stayed visible with
+its last-rendered content forever after being toggled closed. Fixed by
+adding a `.<class>[hidden] { display: none; }` override right after each
+affected rule, the same pattern SOL/Trade Empire/Continuum's own
+achievements CSS already used correctly. CSS-only; no Python change
+needed. Full test suite green, unaffected (pure CSS change).
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag herd-milestone-0N`.

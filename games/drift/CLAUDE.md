@@ -154,6 +154,20 @@ Built from `planning/TODO.md` "Per-game: Drift": I2 (passive control region's we
 - Model regional wellbeing as a small set of tracked sub-scores (service quality, economic health, social cohesion) rather than one blended number — keeps the composite scoring testable and keeps the end-state legible to the player.
 - Site-wide space-theme visual pass (Sep 2026): adopted the shared `shared/space-bg.css` starfield/nebula background and SOL's glass-panel language — `#game` and every `.section` (including the info-page panel) now use a translucent gradient background, violet-tinted border, backdrop-filter blur, and soft drop shadow instead of flat solid panels; `button.secondary`/`button.primary` moved from flat fills to two-stop gradients with a glossy top highlight and a brightness hover state; `.meter` track darkened with an inset shadow; the `<h1>` got the shared gradient-glow text treatment (kept to the top-level title only). Deliberately left untouched: the exact hex colours on `.meter-fill--strain` and its `.strain--stable/strained/critical` modifiers, and on `.turning-point-message` and `.coda-section` (which intentionally reuses the turning-point's warm accent per the Pass 3 notes above) — these encode the strain level and the net-strain-to-net-contribution turning-point milestone, so only same-hue glow (`box-shadow`) was added around them, never a change to the colour itself. No CSS class/id names, no width/fill logic, and no in-game copy changed. Full pytest suite (114 tests) green before and after.
 
+## Hidden-panel display bug fix (2026-09-21)
+
+Found during a site-wide sweep after Aftermath's own Z12/panel-hiding
+fixes surfaced the same pattern elsewhere: the achievements panel and settings panel (`.achievements-panel`/`.settings-panel`) set `display:
+grid` as a plain class rule with no `[hidden]` override. Author-origin
+CSS always beats the browser's own `[hidden] { display: none }` UA rule
+regardless of specificity, so once that class applied, the panel stayed
+visible as an empty box before its first open, and stayed visible with
+its last-rendered content forever after being toggled closed. Fixed by
+adding a `.<class>[hidden] { display: none; }` override right after each
+affected rule, the same pattern SOL/Trade Empire/Continuum's own
+achievements CSS already used correctly. CSS-only; no Python change
+needed. Full test suite green, unaffected (pure CSS change).
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag drift-milestone-0N`.

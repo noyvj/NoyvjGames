@@ -874,6 +874,17 @@ button.primary {
   gap: 0.5rem;
 }
 
+/* Same gotcha SOL's/Trade Empire's/Continuum's own achievements CSS
+   documents: `display: grid` above otherwise wins the cascade over the
+   browser's default `[hidden] { display: none }` UA rule (author-origin
+   styles beat user-agent-origin styles regardless of specificity), so
+   without this override the panel stays visible as an empty box before
+   its first open, and stays visible with its last-rendered content
+   forever after being toggled closed. */
+.changelog-panel[hidden] {
+  display: none;
+}
+
 .changelog-entry {
   padding: 0.7rem 0.9rem;
   border: 1px solid rgba(140, 160, 255, 0.14);

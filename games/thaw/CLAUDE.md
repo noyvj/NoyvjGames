@@ -258,6 +258,20 @@ Region B/Region C's comparison cards are dense (a mini-graph plus six stat lines
 - The feedback-loop math (melt rate feeding back into warming rate) is the trickiest logic in this set — isolate it in its own well-tested function early, since everything else in the game depends on getting this right and legible.
 - Space-theme visual pass (Sep 2026): adopted the site-wide starfield/nebula background (`shared/space-bg.css`) and SOL's glass-panel language — `#game`, `.section`, `.region-card`, `.context-blurb` moved from flat solid backgrounds to translucent gradient + backdrop-blur + violet-tinted borders; `button.secondary`/`button.primary` moved from flat fills to two-stop gradients with a glossy inset highlight and an added `:hover` brighten (on top of the existing `:active` darken); `.meter-fill--temperature` gained a matching glow via `box-shadow` only. `game.py` was not touched — CSS/HTML only. Deliberately left alone: `.melt-status--active`'s red, `.mini-temp-line`'s stroke color, and both the `tipping-point-flash`/`intervention-flash` keyframes (red tipping cue and green dampening cue) — these are meaningful game-state/feedback colors and animations, not chrome, so only their surrounding panels were restyled. `shared/info-page.css` also left untouched (shared across all 8 climate-quartet games, out of this game's scope). Full pytest suite (110 tests) green before and after.
 
+## Hidden-panel display bug fix (2026-09-21)
+
+Found during a site-wide sweep after Aftermath's own Z12/panel-hiding
+fixes surfaced the same pattern elsewhere: the changelog panel (`.changelog-panel`) set `display:
+grid` as a plain class rule with no `[hidden]` override. Author-origin
+CSS always beats the browser's own `[hidden] { display: none }` UA rule
+regardless of specificity, so once that class applied, the panel stayed
+visible as an empty box before its first open, and stayed visible with
+its last-rendered content forever after being toggled closed. Fixed by
+adding a `.<class>[hidden] { display: none; }` override right after each
+affected rule, the same pattern SOL/Trade Empire/Continuum's own
+achievements CSS already used correctly. CSS-only; no Python change
+needed. Full test suite green, unaffected (pure CSS change).
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag thaw-milestone-0N`.

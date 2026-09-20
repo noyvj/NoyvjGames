@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-21",
+    "entry": "Fixed a display bug where the What's New panel showed as an empty box before its first open and never visually closed again once opened once."
+  },
+  {
+    "date": "2026-09-21",
     "entry": "G11: a new Community Comparison panel shows how your average warming-acceleration factor stacks up against everyone else's, once enough players have saved to compare against."
   },
   {
@@ -13,7 +17,7 @@
   },
   {
     "date": "2026-09-19",
-    "entry": "Added a settings panel (text size + reduced motion) and completed a colorblind-safety audit — the tipping/dampening flashes are already redundantly coded with text, no change needed."
+    "entry": "Added a settings panel (text size + reduced motion) and completed a colorblind-safety audit \u2014 the tipping/dampening flashes are already redundantly coded with text, no change needed."
   },
   {
     "date": "2026-09-15",

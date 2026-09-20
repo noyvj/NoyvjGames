@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-21",
+    "entry": "Fixed a display bug where the Achievements/What's New panels showed as empty boxes before their first open and never visually closed again once opened once."
+  },
+  {
+    "date": "2026-09-21",
     "entry": "H5: a new live comparison shows how your lifetime circular share stacks up against other players', once enough chains have been saved to compare against."
   },
   {
@@ -17,7 +21,7 @@
   },
   {
     "date": "2026-09-19",
-    "entry": "Added a settings panel (text size + reduced motion) and completed a colorblind-safety audit — the linear-chain brown vs. closed-loop green flow particle is already redundantly coded via text and arrow brightness, no change needed."
+    "entry": "Added a settings panel (text size + reduced motion) and completed a colorblind-safety audit \u2014 the linear-chain brown vs. closed-loop green flow particle is already redundantly coded via text and arrow brightness, no change needed."
   },
   {
     "date": "2026-09-15",

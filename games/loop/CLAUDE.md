@@ -308,6 +308,20 @@ Verified: full pytest suite (160 tests, unchanged — a pure HTML/CSS markup wra
 - Python/Pyodide, per root conventions.
 - Model the production chain as a graph/flow structure (nodes for extraction/manufacturing/use/disposal, with circularity investments adding new edges back into earlier stages) — this makes both the logic and the eventual visualization more natural than a flat meter-based approach.
 
+## Hidden-panel display bug fix (2026-09-21)
+
+Found during a site-wide sweep after Aftermath's own Z12/panel-hiding
+fixes surfaced the same pattern elsewhere: the achievements/changelog panels (`.achievements-panel`/`.changelog-panel`) set `display:
+grid` as a plain class rule with no `[hidden]` override. Author-origin
+CSS always beats the browser's own `[hidden] { display: none }` UA rule
+regardless of specificity, so once that class applied, the panel stayed
+visible as an empty box before its first open, and stayed visible with
+its last-rendered content forever after being toggled closed. Fixed by
+adding a `.<class>[hidden] { display: none; }` override right after each
+affected rule, the same pattern SOL/Trade Empire/Continuum's own
+achievements CSS already used correctly. CSS-only; no Python change
+needed. Full test suite green, unaffected (pure CSS change).
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag loop-milestone-0N`.

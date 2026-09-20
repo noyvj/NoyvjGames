@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-21",
+    "entry": "Fixed a display bug where the Achievements/What's New panels showed as empty boxes before their first open and never visually closed again once opened once."
+  },
+  {
+    "date": "2026-09-21",
     "entry": "A second herd type: once your farm earns sustainable certification you can diversify into a poultry flock with its own low-emission curve, levers and upkeep (F23)."
   },
   {
@@ -21,7 +25,7 @@
   },
   {
     "date": "2026-09-21",
-    "entry": "F8: a small diamond marker on the coupling gauge showing the best (lowest) decoupling ratio this browser has ever reached across sessions, plus a matching \"Best ever\" label — persisted via localStorage, separate from the gauge's own live reading."
+    "entry": "F8: a small diamond marker on the coupling gauge showing the best (lowest) decoupling ratio this browser has ever reached across sessions, plus a matching \"Best ever\" label \u2014 persisted via localStorage, separate from the gauge's own live reading."
   },
   {
     "date": "2026-09-20",
@@ -33,7 +37,7 @@
   },
   {
     "date": "2026-09-19",
-    "entry": "Added a settings panel (text size + reduced motion) and completed a colorblind-safety audit — the coupling gauge was already redundantly coded (length + text labels), no change needed."
+    "entry": "Added a settings panel (text size + reduced motion) and completed a colorblind-safety audit \u2014 the coupling gauge was already redundantly coded (length + text labels), no change needed."
   },
   {
     "date": "2026-09-15",

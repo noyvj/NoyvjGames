@@ -259,6 +259,20 @@ Audit-first pass, same standard as the site-wide colorblind-safety audit: only c
 
 Verified: full 270/270 pytest suite green (HTML/CSS-only change, no Python touched, tests only reference elements by id via `getElementById`/`document.elements[...]`, none assert on DOM nesting). Everything else audited and left alone: `#status`'s status-line stack, the trend graph, and the seven `.plant-row` build/retire/maintain rows are all either decision-critical every round or already grouped under a labeled, bordered `.section` card — collapsing any of those further would hide information a player actually needs mid-round, which is exactly the over-collapsing failure mode this pass is meant to avoid.
 
+## Hidden-panel display bug fix (2026-09-21)
+
+Found during a site-wide sweep after Aftermath's own Z12/panel-hiding
+fixes surfaced the same pattern elsewhere: the achievements/changelog panels (`.achievements-panel`/`.changelog-panel`) set `display:
+grid` as a plain class rule with no `[hidden]` override. Author-origin
+CSS always beats the browser's own `[hidden] { display: none }` UA rule
+regardless of specificity, so once that class applied, the panel stayed
+visible as an empty box before its first open, and stayed visible with
+its last-rendered content forever after being toggled closed. Fixed by
+adding a `.<class>[hidden] { display: none; }` override right after each
+affected rule, the same pattern SOL/Trade Empire/Continuum's own
+achievements CSS already used correctly. CSS-only; no Python change
+needed. Full test suite green, unaffected (pure CSS change).
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag grid-milestone-0N`.

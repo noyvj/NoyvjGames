@@ -937,6 +937,17 @@ button.primary:active:not(:disabled) {
   gap: 0.65rem;
 }
 
+/* Same gotcha SOL's/Trade Empire's/Continuum's own achievements CSS
+   documents: `display: grid` above otherwise wins the cascade over the
+   browser's default `[hidden] { display: none }` UA rule (author-origin
+   styles beat user-agent-origin styles regardless of specificity), so
+   without this override the panel stays visible as an empty box before
+   its first open, and stays visible with its last-rendered content
+   forever after being toggled closed. */
+.achievements-panel[hidden] {
+  display: none;
+}
+
 .achievement-card {
   padding: 0.85rem 1rem;
   border: 1px solid rgba(140, 160, 255, 0.14);
