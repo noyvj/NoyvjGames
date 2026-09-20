@@ -307,6 +307,26 @@ PRESET_WEIGHTS = {
 preset_used_ever = False
 
 
+def preset_tooltip_text(preset_name):
+    """Onboarding-tooltip audit fix: a preset button's own label ("Preset:
+    Growth") names the strategy but not what clicking it actually does —
+    it immediately spends everything the region can currently afford, in
+    one go, rather than setting an ongoing policy. Built from
+    PRESET_WEIGHTS directly so the tooltip text can't drift out of sync
+    with the real weighting if it's ever tuned."""
+    weights = PRESET_WEIGHTS[preset_name]
+    if len(weights) == 1:
+        (only_category,) = weights.keys()
+        what = f"on {CATEGORY_LABEL[only_category]}"
+    else:
+        parts = [f"{CATEGORY_LABEL[c]} ({w * 100:.0f}%)" for c, w in weights.items()]
+        what = "split roughly " + ", ".join(parts)
+    return (
+        f"Spends everything this region can currently afford right now, {what} "
+        "— a one-time action, not an ongoing policy."
+    )
+
+
 def apply_preset(r, preset_name):
     """Applies one named preset's weighting to region `r`, spending as
     much as it can afford right now. Returns True if at least one
@@ -1309,9 +1329,16 @@ def setup():
                 "click", create_proxy(_make_secondary_invest_handler(prefix, category))
             )
         for preset_name in PRESET_WEIGHTS:
-            document.getElementById(f"{prefix}-preset-{preset_name}-button").addEventListener(
+            preset_button = document.getElementById(f"{prefix}-preset-{preset_name}-button")
+            preset_button.addEventListener(
                 "click", create_proxy(_make_preset_handler(prefix, preset_name))
             )
+            # Onboarding-tooltip audit: presets were added (G11) after the
+            # tutorial/How to Play copy was written, so a returning player
+            # has no permanent explanation of what a preset click actually
+            # does. title= is set once here since the text is static per
+            # preset, not state-dependent.
+            preset_button.title = preset_tooltip_text(preset_name)
         # G4: "input" (not "change") so the label updates live as the
         # player types, without waiting for the field to lose focus.
         document.getElementById(f"{prefix}-strategy-label-input").addEventListener(

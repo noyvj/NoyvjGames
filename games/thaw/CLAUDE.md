@@ -182,6 +182,66 @@ order, and there are zero new console errors (the pre-existing
 ServiceWorker-registration quirk on this dev setup is unrelated and was
 present before this change).
 
+## Onboarding-tooltip coverage check (site-wide goal, planning/TODO.md, origin A14)
+
+Audited whether a returning player who's skipped or forgotten the
+tutorial (`THAW_TUTORIAL_STEPS`) can still make sense of the permanent
+UI's non-obvious parts. Confirmed via `shared/tutorial.js` that the
+"How to Play" panel is literally rendered *from* `THAW_TUTORIAL_STEPS`
+(`renderHowTo()`), not separate copy — so "covered by the tutorial" and
+"covered by How to Play" are the same claim here, and anything the
+walkthrough doesn't mention has zero permanent, reachable-any-time
+explanation unless something else on the page carries it. `game.py` had
+zero `title=`/`aria-label` attributes going in, so this was a real
+investigation, not an assumption.
+
+Most of the permanent UI already covers itself well:
+- Every non-obvious status readout in `#status` (background-rise
+  compression, melt threshold + critical tier, dampening's scope and
+  "does nothing pre-melt" caveat, acceleration multiple, and the
+  trajectory/temperature-saved comparison) has its own permanent
+  `.info-toggle` `<details>` disclosure right next to it.
+- `melt-status-display`, `intervention-feedback-display`,
+  `temperature-cap-note`, and `milestone-delay-callout` are all live,
+  always-current status text driven by `render()` every tick — a
+  stronger form of explanation than a static tooltip, matching Trade
+  Empire's `ship_status_text()` precedent.
+- The Output row's `.info-toggle` already explains the
+  output-vs-preserve/monitor split ("Preservation and Monitoring below
+  do the opposite...") on behalf of all three investment rows, so
+  Preserve/Monitor don't need their own copies.
+- Region B/C's mirrored dampening/acceleration/trajectory readouts and
+  Region D's worst-case panel reuse mechanics already explained for
+  Region A — not new mechanics needing their own explanation, the same
+  reasoning Trade Empire's audit applied to its Rift Colonies.
+- G12's invest-forecast spans and G17's Advance-Round hover tooltip
+  already preview each investment's/round's effect inline.
+
+**Real gap found and fixed:** the three per-preset buttons on Region
+B/C (`Preset: Growth` / `Preset: Preservation` / `Preset: Balanced`,
+G11) were added after the tutorial copy was written and are never
+mentioned in `THAW_TUTORIAL_STEPS` or anywhere else permanent. Reading
+`apply_preset()`/`PRESET_WEIGHTS` confirmed the actual behavior is
+genuinely non-obvious from the label alone: a click immediately spends
+*everything the region can currently afford* toward that weighting, in
+one go — not a standing policy a player can toggle on/off, which a
+returning player could easily assume given every other investment
+control in this game is an incremental per-click spend. Exactly the
+"forgot a mechanic" shape this audit exists to catch.
+
+**Fixed:** added `game.py`'s `preset_tooltip_text()`, built directly
+from `PRESET_WEIGHTS` (so the copy can't drift from the real ratio if
+it's ever retuned), and wired it to each preset button's `.title` once
+in `setup()` (static per-preset text, not state-dependent, so it
+doesn't need to live in `render()`). Growth's tooltip reads "Spends
+everything this region can currently afford right now, on Output — a
+one-time action, not an ongoing policy."; Preservation/Balanced list
+each category's approximate percentage the same way.
+
+Verified: full pytest suite (123 tests, unchanged — this is `.title`
+only, no new game logic) stayed green. No `index.html`/CSS change
+needed; no other permanent control was found undocumented.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
