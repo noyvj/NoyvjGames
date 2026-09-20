@@ -206,6 +206,45 @@ per this file's own Settings-panel note) that both the select and label
 carry the correct `title` text and the three option labels read as
 written, with zero console errors.
 
+## "What's New" changelog panel (site-wide goal, planning/TODO.md, origin K16)
+
+A new `changelog.json` manifest (flat list of `{date, entry}` objects,
+hand-authored newest-first, dates cross-checked against `git log --follow
+-- games/tide/CLAUDE.md`/`git log -- games/tide/game.py` rather than
+guessed) plus a "📋 What's New" toggle+panel, following the exact same
+hidden-until-opened `.section` idiom and dynamic-DOM-build pattern
+`#achievements-panel`/`#session-summary-panel` already established here —
+a plain date+text card layout (like the session-summary panel) rather than
+achievements' earned/unearned styling, since a changelog entry has no
+checkable condition. Fetched into the Pyodide boot sequence alongside
+`achievements.json` (`window.CHANGELOG_JSON`), with the same disk-read
+fallback for the pytest harness's fake `js` module that `ACHIEVEMENTS`
+already uses. Unlike Grid/SOL, `CHANGELOG` sorts its entries newest-first
+defensively at load time rather than trusting the JSON's own order, purely
+a stylistic choice — matches Aftermath's precedent for this same feature.
+`render()` keeps an open panel live on every action, same as every sibling
+panel. Also added `.changelog-panel[hidden] { display: none; }` in
+`style.css` up front, since this panel uses `display: grid` and would
+otherwise be exposed to the exact CSS-cascade-over-`[hidden]` bug SOL's own
+achievements panel hit and had to patch after the fact.
+
+Tests: 163 → 174 (new `tests/test_changelog.py`: catalog sanity, newest-
+first sort, toggle open/close, panel content matches `CHANGELOG`, render-
+time liveness, and a check that opening the panel never mutates
+`SettlementState`). Verified live under Pyodide via the `hub-dev-server`
+launch config: this sandbox's known static-asset HTTP-caching quirk
+(documented in several other games' own build notes, including this file's
+own Settings-panel note) hit the boot script's `fetch("game.py")` call
+directly — a fresh page load kept resolving to a stale cached `game.py`
+with no `CHANGELOG` in it at all, confirmed by inspecting the fetched text
+length against the file on disk — so verification forced a fresh
+(`cache: 'no-store'`, cache-busted query string) fetch of both
+`changelog.json` and `game.py` and re-ran them through the already-loaded
+`pyodide` instance. With the fresh code loaded: the panel opened, listed
+all 10 real entries with correct dates/text in newest-first order, the
+toggle label flipped to "Hide What's New", and it closed correctly on a
+second click — zero console errors throughout.
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag tide-milestone-0N`.

@@ -1090,6 +1090,87 @@ def update_achievements_display():
     panel.appendChild(hub_link)
 
 
+# ===========================================================================
+# "What's New" changelog panel (site-wide goal, planning/TODO.md, origin K16)
+# ===========================================================================
+# Same static-JSON-asset loading contract as ACHIEVEMENTS above: the boot
+# script fetches changelog.json and hands it to Python as a window global
+# before this module runs; the pytest harness's fake `js` has no such
+# attribute, so this falls through to reading the file straight off disk.
+# A flat, hand-written list of highlights pulled from this game's own
+# CLAUDE.md milestone table and iteration-pass notes -- not a full
+# duplicate of the dev logs, just a quick "what's new" view.
+CHANGELOG_FILENAME = "changelog.json"
+
+
+def _read_changelog_json():
+    try:
+        import js  # noqa: PLC0415 -- Pyodide-only import, deliberately lazy
+    except ImportError:
+        js = None
+
+    raw = getattr(js, "CHANGELOG_JSON", None) if js is not None else None
+    if raw is not None:
+        return str(raw)
+
+    import os  # noqa: PLC0415 -- only needed on this filesystem-fallback path
+
+    here = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(here, CHANGELOG_FILENAME), encoding="utf-8") as handle:
+        return handle.read()
+
+
+# Same defensive posture as ACHIEVEMENTS above: the changelog is additive,
+# not core to gameplay, so any loading failure degrades to "no changelog"
+# instead of crashing the whole module import. changelog.json is authored
+# newest-first already, but sorted defensively here in case a future entry
+# is appended out of order.
+try:
+    CHANGELOG = sorted(
+        json.loads(_read_changelog_json())["changelog"],
+        key=lambda entry: entry["date"],
+        reverse=True,
+    )
+except (ValueError, OSError, NameError, KeyError):
+    CHANGELOG = []
+
+changelog_open = False
+
+
+def on_toggle_changelog(event=None):
+    global changelog_open
+    changelog_open = not changelog_open
+    update_changelog_display()
+
+
+def update_changelog_display():
+    toggle = document.getElementById("changelog-toggle-button")
+    panel = document.getElementById("changelog-panel")
+    if toggle is None or panel is None:
+        return
+    toggle.innerText = "Hide What's New" if changelog_open else "📋 What's New"
+    panel.hidden = not changelog_open
+    if not changelog_open:
+        return
+
+    panel.innerHTML = ""
+    for entry in CHANGELOG:
+        row = document.createElement("div")
+        row.className = "changelog-entry"
+
+        date = document.createElement("p")
+        date.className = "changelog-entry-date"
+        date.innerText = entry["date"]
+        row.appendChild(date)
+
+        text = document.createElement("p")
+        text.className = "changelog-entry-text"
+        text.innerText = entry["entry"]
+        row.appendChild(text)
+
+        panel.appendChild(row)
+
+
 # D7: an end-of-session summary screen -- player-triggered, same
 # optional/never-forced pattern as the achievements/info-page panels.
 session_summary_open = False
@@ -1256,6 +1337,7 @@ def render():
     render_output_mix_controls()
     render_hard_lag_toggle()
     update_achievements_display()
+    update_changelog_display()
     update_session_summary_display()
     _sync_earned_and_toast()
 
@@ -1451,6 +1533,9 @@ def setup():
     )
     document.getElementById("achievements-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_achievements)
+    )
+    document.getElementById("changelog-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_changelog)
     )
     document.getElementById("session-summary-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_session_summary)
