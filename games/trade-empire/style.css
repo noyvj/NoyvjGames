@@ -331,6 +331,60 @@ button.secondary:active:not(:disabled) {
   font-size: 1.2rem;
   font-weight: 600;
   color: #7fd6a3;
+  position: relative; /* J22 -- containing block for .sale-spark-container */
+}
+
+/* J22 — a small one-shot particle/spark burst on a high-value sale.
+   game.py's _spark_burst_high_value_sale() appends SALE_SPARK_COUNT of
+   these as children of #sale-spark-container (a zero-size overlay
+   centered on the profit badge, NOT a child of #profit-display-text --
+   render() overwrites that span's innerText every tick, which would
+   wipe out any children appended there before their animation ever got
+   a frame to paint) and removes them again once this animation
+   finishes; the animation itself does all the visual work, Python only
+   creates/times/removes the elements. Six fixed directions (evenly
+   spread, roughly a clock face) rather than randomized inline styles,
+   so the effect is deterministic and testable. */
+.sale-spark-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.sale-spark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #ffe9a8;
+  box-shadow: 0 0 5px 1px rgba(255, 233, 168, 0.85);
+  pointer-events: none;
+  opacity: 0;
+  animation: te-sale-spark 700ms ease-out forwards;
+}
+
+.sale-spark-0 { --spark-x: 0px; --spark-y: -26px; }
+.sale-spark-1 { --spark-x: 22px; --spark-y: -14px; }
+.sale-spark-2 { --spark-x: 22px; --spark-y: 14px; }
+.sale-spark-3 { --spark-x: 0px; --spark-y: 26px; }
+.sale-spark-4 { --spark-x: -22px; --spark-y: 14px; }
+.sale-spark-5 { --spark-x: -22px; --spark-y: -14px; }
+
+@keyframes te-sale-spark {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--spark-x)), calc(-50% + var(--spark-y))) scale(0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sale-spark { animation: none; opacity: 0; display: none; }
 }
 
 .sale-log {

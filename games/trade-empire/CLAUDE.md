@@ -352,6 +352,90 @@ Most of the panel count is legitimate, not clutter: the Kepler/Rift expansion su
 Built (planning/TODO.md J-items): J2 (trend arrow on route profitability, from `good_profit_recent`), J4 (labeled "now" marker + tooltip on the price sparkline), J6 (map-canvas hover text explaining the Fleet Priority ring), J12 (Reset name button per ship), J13 (Galaxy overview section in Summary), J14 (veteran hauler badge after 5 round trips on one route; `route_key`/`route_legs` per ship), J18 (automate-button permanence tooltip), J20 (crash recovery ETA tooltip), J24 (avg needs-met % beside colony sparkline), J25 (Fleet efficiency section in Summary; `total_earned` per ship), J26 (locked research tooltip), J30 (map legend). J8 already existed (idle warning text states the exact tick count). New save fields (`route_key`, `route_legs`, `total_earned`, `good_profit_recent`) default safely for old saves. 255 tests.
 Left for later: J1, J3, J5, J7, J9, J10, J11, J15, J16, J17, J19, J21, J22, J23, J27, J29 (larger mechanics/visuals).
 
+## Sale-spark burst (J22, implemented)
+
+`planning/TODO.md`'s J22: "A small particle/spark effect on a successful
+high-value sale." Purely decorative -- `tick()` only reacts to a sale
+*after* `total_profit` is already updated and `sale_log` already
+appended, so the effect can never change or delay the actual sale
+numbers.
+
+**Threshold: `SALE_SPARK_THRESHOLD = 200` credits.** Reasoning worked
+backward from this game's own economy numbers rather than picking a
+round number blind: a home-system sale (Ore/Grain/Machinery/Water/
+Energy, base `SELL_PRICE` 5-10 credits/unit) tops out around 180 credits
+even at full colony development *and* full Milestone-10 specialization
+(the best case, Forge World's Machinery: 18 units x 10 credits/unit) --
+*without* the Hauler Refit research (`fleet_cargo_multiplier()`, +50%
+cargo). Clearing 200 credits therefore takes real, earned progress: the
+Hauler Refit unlock, a well-developed/specialized colony, or selling one
+of the pricier Kepler/Rift-tier goods (Isotopes 18, Crystal 20,
+Antimatter 26 credits/unit) outright. That keeps the very first, very
+ordinary sales a new player makes from ever triggering it, while still
+making it a recurring mid-game treat rather than a once-a-playthrough
+rarity gated behind the endgame.
+
+**Visual treatment:** six small glowing dots (`.sale-spark-0` through
+`-5`, fixed clock-face directions via `--spark-x`/`--spark-y` custom
+properties rather than randomized inline styles, so the burst is
+deterministic and testable) burst outward from the profit readout and
+fade over a single 700ms `te-sale-spark` CSS keyframe animation --
+matching this game's existing `te-`-prefixed keyframe naming
+(`te-meter-shimmer`, `te-dome-pulse`, `te-ship-glow`) and its established
+`ease-out`/`forwards` idiom. Respects motion preferences the same way
+those three do: an explicit `@media (prefers-reduced-motion: reduce)`
+override turns the animation off at the OS level, and the Settings
+panel's `.reduce-motion` class (site-wide manual override, see the
+"Settings panel" section above) already catches it for free via that
+class's existing `animation-duration: 0.001ms !important` rule -- no
+per-animation reduced-motion code needed for the in-game toggle.
+
+**Implementation shape, and a real bug live verification caught:**
+`_spark_burst_high_value_sale()` (`game.py`) creates the six spans and
+removes them again after `SALE_SPARK_DURATION_MS` (700) via
+`setTimeout(create_proxy(...), ...)` -- the same one-shot create/time/
+remove-after-timeout pattern as Canopy's `_flash_personal_best_badge()`
+and this file's own achievement/notice toasts, just creating transient
+elements instead of toggling a class on a persistent one. The first
+implementation appended those spans directly into `#profit-display`
+(the element `render()` already wrote `Total profit: N credits` into via
+`.innerText`) -- unit tests against the fake-DOM harness passed, because
+that harness's `innerText` was a plain attribute that didn't clear
+`.children` on assignment. A live check in a real browser (Pyodide,
+`hub-dev-server`) caught what the fake DOM couldn't: on a real
+`Element`, assigning `.innerText` replaces all child nodes, so
+`render()`'s very next per-tick update wiped the just-created sparks out
+before they ever got a frame to paint -- the effect fired but was never
+actually visible.
+
+Fixed by splitting `#profit-display` into two children: `#profit-
+display-text` (the span `render()` now targets) and a sibling `#sale-
+spark-container` (a zero-size, centered overlay the spark burst appends
+into instead) -- `index.html`'s only markup change. Also hardened
+`tests/fakes.py`'s `FakeElement.innerText` into a real property whose
+setter clears `.children`, matching real-DOM `.innerText`/`.innerHTML`
+semantics (the latter already worked this way), so this exact bug shape
+would be caught by the unit suite in the future, not just live
+verification. `tests/test_sale_spark.py` (8 tests) covers: the burst
+creates 6 elements with the right classes, it doesn't disturb
+`#profit-display-text`'s own content, elements are removed once the fake
+timer fires, an ordinary sale (80 credits) doesn't trigger it, a sale one
+credit under/exactly at the threshold (192/200 credits) don't/do
+trigger, and a clearly high-value sale (320 credits) both triggers and
+still cleans up. Full suite 255 -> 263.
+
+Live-verified end to end via `hub-dev-server` and Pyodide directly
+(`window.pyodide.runPython(...)`, calling the real gameplay path --
+loading a ship, forcing a 40-unit Ore cargo, departing, then ticking it
+to arrival): confirmed `#sale-spark-container` gains exactly 6 children
+immediately on a 320-credit sale, `#profit-display-text` updates to the
+correct total in the same tick without disturbing them, the children are
+gone again ~1 second later, and zero console errors throughout. (Pixel
+screenshots of this were inconclusive purely because the Browser pane
+was hidden on the host side for this session -- `document.hidden` was
+`true` in the tab throughout -- not because of anything in the feature
+itself; the DOM/console-level checks above are the real verification.)
+
 ## Working conventions
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag trade-empire-milestone-0N`.
 - Update the Status column as work happens.

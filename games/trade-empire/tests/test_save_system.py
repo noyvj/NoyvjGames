@@ -114,7 +114,7 @@ def test_load_state_re_renders_the_ui(game_env):
     saved = module.get_state()
     saved["total_profit"] = 4242
     module.load_state(saved)
-    assert "4242" in game_env.elements["profit-display"].innerText
+    assert "4242" in game_env.elements["profit-display-text"].innerText
 
 
 def test_load_state_on_an_empty_dict_does_not_raise_and_leaves_state_untouched(game_env):

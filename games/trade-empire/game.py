@@ -1848,7 +1848,12 @@ def update_summary_display():
 
 
 def render():
-    document.getElementById("profit-display").innerText = f"Total profit: {total_profit} credits"
+    # J22 -- targets the inner #profit-display-text span, not #profit-display
+    # itself: the sale-spark burst appends transient children to the sibling
+    # #sale-spark-container inside #profit-display, and overwriting
+    # #profit-display's own innerText every render would wipe those children
+    # out before their one-shot animation ever gets a frame to paint.
+    document.getElementById("profit-display-text").innerText = f"Total profit: {total_profit} credits"
     document.getElementById("sale-log").innerText = sale_log[-1] if sale_log else "No sales yet."
     document.getElementById("automation-slots-display").innerText = (
         f"Automation slots: {automated_ship_count()}/{max_automated_ships()} used"
@@ -2007,6 +2012,58 @@ def _fleet_priority_toggle_handler(event=None):
     render()
 
 
+# J22 — a small decorative particle/spark burst on a "high-value" sale.
+# Purely cosmetic: tick() below only calls this *after* total_profit has
+# already been updated and the sale logged, so it can never change or
+# delay the actual sale numbers.
+#
+# Threshold reasoning: a home-system sale (Ore/Grain/Machinery/Water/
+# Energy, base prices 5-10) tops out around 180 credits even at full
+# specialization + full development, *without* the Hauler Refit research
+# (Milestone 10's Forge World bonus, the biggest home-system output
+# bonus: 18 units x 10 credits/unit for Machinery). Reaching 200+ takes
+# genuine progress -- either that Hauler Refit unlock, a well-developed
+# colony, or selling one of the pricier Kepler/Rift-tier goods (Isotopes,
+# Crystal, Antimatter) -- so it reliably skips the very first, ordinary
+# sales a new player makes, without being so high it's a once-a-
+# playthrough rarity either.
+SALE_SPARK_THRESHOLD = 200
+SALE_SPARK_COUNT = 6
+SALE_SPARK_DURATION_MS = 700
+
+
+def _spark_burst_high_value_sale():
+    """J22: bursts a handful of small spark elements out of the profit
+    display, then removes them once their one-shot CSS animation
+    (te-sale-spark in style.css) finishes. Same create/setTimeout+
+    create_proxy/remove-after-timeout shape as
+    _flash_personal_best_badge()-style one-shot effects elsewhere on the
+    hub -- this one creates transient elements instead of toggling a
+    class on a persistent one, since a burst needs several independently
+    positioned dots rather than one badge.
+
+    Appends into #sale-spark-container, a dedicated sibling of
+    #profit-display-text inside #profit-display -- NOT into
+    #profit-display-text itself, since render() overwrites that span's
+    innerText every tick and would wipe the sparks out before they ever
+    got a frame to paint."""
+    container = document.getElementById("sale-spark-container")
+    if container is None:
+        return
+    sparks = []
+    for i in range(SALE_SPARK_COUNT):
+        spark = document.createElement("span")
+        spark.className = f"sale-spark sale-spark-{i}"
+        container.appendChild(spark)
+        sparks.append(spark)
+
+    def _cleanup():
+        for spark in sparks:
+            spark.remove()
+
+    setTimeout(create_proxy(_cleanup), SALE_SPARK_DURATION_MS)
+
+
 def tick(event=None):
     global total_profit, research_points, total_sales_count, max_profit_ever
     research_points += RESEARCH_PER_TICK
@@ -2023,6 +2080,8 @@ def tick(event=None):
             del recent[:-2 * ROUTE_TREND_WINDOW]
             sale_log.append(sell_summary(good, qty, profit, ship.location))
             apply_market_sale(good, qty)
+            if profit >= SALE_SPARK_THRESHOLD:
+                _spark_burst_high_value_sale()
             # J8 — a lightweight arrival toast, manual ships only: once a
             # ship is automated the player isn't meant to be watching
             # every individual cycle any more, so toasting every one of

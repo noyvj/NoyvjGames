@@ -717,7 +717,7 @@ Every idea in this section was accepted, no exceptions.
 - [ ] J19: A "colony rebellion/loyalty" mechanic — chronically under-served colonies occasionally demand a one-time concession.
 - [x] J20: Let the market-crashed styling include a small recovery-ETA estimate in its tooltip.
 - [ ] J21: A "trade empire legacy" meta-progression — a fresh game starts with a small permanent bonus once the endgame state is reached (built independently per Z3's resolution).
-- [ ] J22: A small particle/spark effect on a successful high-value sale.
+- [x] J22: A small particle/spark effect on a successful high-value sale.
 - [ ] J23: A "diplomatic relations" layer between the home system and Kepler Cluster — sustained trade volume unlocks a small permanent efficiency bonus.
 - [x] J24: Let the colony detail sparkline show a small "needs met %" summary number alongside the graph.
 - [x] J25: A "fleet-wide efficiency report" — a periodic optional panel showing which ships/routes are underperforming.

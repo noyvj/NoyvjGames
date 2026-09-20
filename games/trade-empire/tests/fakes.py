@@ -2,9 +2,10 @@
 
 Copied from Canopy's version of this file (same Pyodide-shim needs: document/
 getElementById/addEventListener/setTimeout/setInterval, create_proxy) — Trade
-Empire's index.html is fully static (no dynamically created elements), so the
-createElement/registry machinery isn't needed here, but is kept for parity
-and in case a later milestone (e.g. the map) needs it.
+Empire's index.html is otherwise fully static; the createElement/registry/
+remove() machinery below exists for J22's dynamically-created sale-spark
+burst (game.py's _spark_burst_high_value_sale()), the one place this game
+creates and later removes its own transient elements.
 """
 
 
@@ -75,7 +76,7 @@ class FakeElement:
     def __init__(self, id_=None, registry=None):
         self._id = id_
         self._registry = registry
-        self.innerText = ""
+        self._innerText = ""
         self._innerHTML = ""
         self.disabled = False
         self.hidden = False
@@ -85,6 +86,7 @@ class FakeElement:
         self.classList = FakeClassList()
         self.style = FakeStyle()
         self.children = []
+        self._parent = None
         self._listeners = {}
         if id_ is not None and registry is not None:
             registry[id_] = self
@@ -108,6 +110,23 @@ class FakeElement:
         self._innerHTML = value
         self.children = []
 
+    @property
+    def innerText(self):
+        return self._innerText
+
+    @innerText.setter
+    def innerText(self, value):
+        """Real DOM: assigning .innerText replaces all of an element's
+        child nodes with a single text node, same as .innerHTML. J22's
+        live-browser verification found a real bug this fake previously
+        couldn't catch -- a plain innerText attribute here let a test
+        believe elements appended as children survived a subsequent
+        innerText assignment on the same element, when in a real browser
+        they don't. Clearing .children here keeps this fake honest about
+        that."""
+        self._innerText = value
+        self.children = []
+
     def createElement(self, tag):
         return FakeElement(registry=self._registry)
 
@@ -118,7 +137,20 @@ class FakeElement:
 
     def appendChild(self, child):
         self.children.append(child)
+        child._parent = self
         return child
+
+    def remove(self):
+        """Stands in for real DOM Element.remove() -- detaches self from
+        whichever parent's .children list it was appended to. Added for
+        J22's spark burst, which creates and later removes its own
+        transient elements."""
+        if self._parent is not None:
+            try:
+                self._parent.children.remove(self)
+            except ValueError:
+                pass
+            self._parent = None
 
     def addEventListener(self, event_name, handler):
         self._listeners.setdefault(event_name, []).append(handler)

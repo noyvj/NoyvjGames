@@ -112,4 +112,4 @@ def test_profit_display_updates_on_render(game_env):
     game_env.load()
     game_env.depart("verdant")
     game_env.tick(game_env.module.TRAVEL_TICKS)
-    assert str(game_env.total_profit) in game_env.elements["profit-display"].innerText
+    assert str(game_env.total_profit) in game_env.elements["profit-display-text"].innerText
