@@ -133,3 +133,28 @@ def test_render_shows_updated_automation_slots_after_research(game_env):
     game_env.module.unlock_research("automation_slot")
     game_env.module.render()
     assert "0/3" in game_env.elements["automation-slots-display"].innerText
+
+
+def test_render_states_missing_prereq_on_gated_node(game_env):
+    """Onboarding-tooltip audit (planning/TODO.md, origin A14): a
+    returning player with plenty of research points but a missing
+    prerequisite should be told why a gated node's button is disabled,
+    not just see it sit there unexplained."""
+    game_env.module.research_points = 200  # plenty -- prereq is the only blocker
+    game_env.module.render()
+    text = game_env.elements["research-automation_slot_2-status"].innerText
+    assert "requires" in text.lower()
+    assert "Automation Expansion" in text
+    assert game_env.elements["research-automation_slot_2-unlock-button"].disabled is True
+
+    text2 = game_env.elements["research-outer_reaches-status"].innerText
+    assert "requires" in text2.lower()
+    assert "Galaxy Expansion" in text2
+
+
+def test_render_drops_missing_prereq_note_once_satisfied(game_env):
+    game_env.module.research_points = 200
+    game_env.module.unlock_research("automation_slot")
+    game_env.module.render()
+    text = game_env.elements["research-automation_slot_2-status"].innerText
+    assert "requires" not in text.lower()

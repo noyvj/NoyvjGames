@@ -1145,6 +1145,20 @@ def render_research():
             unlock_button.hidden = True
         else:
             status_el.innerText = f"{node['label']} — {node['description']}"
+            requires = node.get("requires")
+            # Onboarding-tooltip audit (planning/TODO.md, origin A14): the
+            # static index.html placeholder text used to state a node's
+            # prerequisite ("requires Automation Expansion"/"requires Galaxy
+            # Expansion") before Pyodide finished loading, but render()
+            # replaced it with RESEARCH_NODES["description"], which never
+            # mentioned the prereq at all -- so a returning player with
+            # plenty of research points but a missing prerequisite saw the
+            # unlock button disabled with no stated reason anywhere
+            # permanent. Restate it here, matching Aftermath's own
+            # missing-prereq status-text pattern, so it survives every
+            # render rather than only the pre-Python placeholder.
+            if requires is not None and requires not in unlocked_research:
+                status_el.innerText += f" (requires {RESEARCH_NODES[requires]['label']})"
             unlock_button.hidden = False
             unlock_button.innerText = f"Research ({node['cost']})"
             unlock_button.disabled = not can_unlock_research(node_id)

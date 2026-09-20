@@ -262,6 +262,80 @@ open/close, label text, newest-first ordering, rendered content) —
 240/240 tests green. Verified live: panel opens, shows the real entries
 newest-first, zero console errors.
 
+## Onboarding-tooltip coverage check (site-wide goal, planning/TODO.md, origin A14)
+
+Audited whether a returning player who's skipped or forgotten the
+tutorial (`TRADE_EMPIRE_TUTORIAL_STEPS`'s spotlight walkthrough) can
+still make sense of the permanent UI's non-obvious parts, on top of the
+persistent, reachable-any-time `#howto-toggle-button`/`#howto-panel`.
+This game had zero `title=`/`aria-label` attributes in `game.py` going
+in (the 4 in `index.html` are all Settings-panel boilerplate shared with
+every other game), so investigated properly rather than assuming the
+existing four section-level `.info-toggle` icons (Research, Market
+Prices, Colonies, Fleet Priority) plus the Ledger's Automation info-toggle
+were the whole picture.
+
+Most of the permanent UI already covers itself well, at multiple layers:
+- The four section-level `.info-toggle` icons (Research, Market Prices,
+  Colonies, Fleet Priority) plus the Ledger's Automation info-toggle
+  permanently explain the research-points-are-a-second-currency split,
+  the price-crash/recovery mechanic, the need-satisfaction output-scaling
+  formula, Fleet Priority's idle-reposition behavior, and the automation-
+  slot cap — matching the site's established section-level pattern.
+- `ship_status_text()` dynamically states exactly what's going on with
+  every ship every render (in-transit ETA, automated-and-running, loaded-
+  and-awaiting-destination, idle-too-long warning) — a stronger, always-
+  current form of explanation than a static tooltip.
+- Every action button already states its cost/effect inline in its own
+  label (`Automate (150)`, `Research (30)`, `Purchase Ship (400)`), and
+  research nodes needing a prerequisite already said so in their label
+  text (`"...+1 more automation slot (requires Automation Expansion)"`)
+  — but only in the static `index.html` placeholder shown before Pyodide
+  finishes loading.
+- The Rift Colonies (Milestone 13's third system, gated behind the
+  "Outer Reaches" research node) reuse the exact same need/produce/
+  develop mechanic as the home system and the Kepler Cluster, both
+  already explained elsewhere — unlike SOL's Sky Cities gap (a genuinely
+  new dual-cost mechanic), this isn't a new mechanic needing its own
+  explanation, just more colonies using one already covered.
+
+**Real gap found and fixed:** `render_research()` overwrote that
+placeholder text every render with `RESEARCH_NODES[node_id]["description"]`
+alone, which never mentions a node's `"requires"` prerequisite at all. So
+the moment Pyodide finished loading, the "(requires Automation
+Expansion)" / "(requires Galaxy Expansion)" hint vanished from the live
+DOM for `automation_slot_2` and `outer_reaches` — confirmed live via a
+local server (`research_points = 200; render()` left both nodes' status
+text identical whether or not their prerequisite was unlocked, with the
+unlock button simply disabled and no reason given anywhere permanent). A
+returning player sitting on plenty of research points with a locked,
+unexplained button is exactly the scenario this audit exists to catch —
+the same shape as Aftermath's own `missing_prereqs()` fix, just never
+applied here since this tree only grew its first prerequisite edge at
+Milestone 13 (J7's note: "the tree gets its first real prerequisite
+edge"), after the tutorial copy was already written.
+
+**Fixed:** `render_research()` (`game.py`) now appends
+`" (requires {prereq_label})"` to a gated node's status text whenever its
+`requires` node isn't yet unlocked, reading the prerequisite's own label
+from `RESEARCH_NODES` so the two strings can't drift out of sync, and
+drops the note the moment the prerequisite is satisfied. No new DOM
+elements, no `index.html` change — the static placeholder text was
+already correct, this just makes the same information survive every
+subsequent render instead of only the pre-Pyodide flash.
+
+Verified: 2 new tests in `tests/test_research_tree.py`
+(`test_render_states_missing_prereq_on_gated_node`,
+`test_render_drops_missing_prereq_note_once_satisfied`) — full suite
+240 → 242, all green. Live-verified via `hub-dev-server`: with
+`research_points = 200` and no prior unlocks, both
+`research-automation_slot_2-status` and `research-outer_reaches-status`
+read the corrected "(requires ...)" text on the live DOM and the unlock
+buttons stayed correctly disabled; zero console errors attributable to
+this change (one pre-existing `ERR_FAILED` network error is the
+placeholder AdSense client ID failing to load, unrelated to and
+unaffected by this fix, same as every other game's ad-bar).
+
 ## Working conventions
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag trade-empire-milestone-0N`.
 - Update the Status column as work happens.
