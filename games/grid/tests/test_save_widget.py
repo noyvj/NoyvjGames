@@ -43,6 +43,17 @@ EXPECTED_KEYS = {
     "steeper_demand_growth_enabled",
     "weather_variability_enabled",
     "scenario",
+    # Round-3/4 fields (C7/C17/C19/C23 previously unsaved; C9/C27 new).
+    "demand_response_level",
+    "weather_log",
+    "policy_lever_available",
+    "active_policy",
+    "last_policy_lever_round_offered",
+    "maintenance_schedule",
+    "stored_energy",
+    "arbitrage_mode",
+    "arbitrage_revenue_total",
+    "emergency",
 }
 
 

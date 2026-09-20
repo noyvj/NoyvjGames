@@ -1589,3 +1589,17 @@ html[data-reduced-motion="true"] *::after {
   50% { box-shadow: 0 0 12px 4px rgba(240, 228, 66, 0.85); filter: brightness(1.4); }
 }
 .meter-fill.meter-pulse { animation: grid-meter-pulse 0.8s ease 2; }
+
+/* C9 storage arbitrage controls + C27 emergency banner. The mode is always
+   spelled out in the button text and status line, never colour alone. */
+.arbitrage-controls {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.arbitrage-status {
+  font-size: 0.8rem;
+  opacity: 0.85;
+}

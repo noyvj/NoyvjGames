@@ -122,6 +122,8 @@ def test_c13_scenarios(game_env):
     btn.dispatch("click", None)
     assert s.scenario == "greenfield" and s.funds == 700 and s.plant_counts["coal"] == 0
     btn.dispatch("click", None)
+    assert s.scenario == "emergency"  # C27 added a fourth, opt-in scenario
+    btn.dispatch("click", None)
     assert s.scenario == "standard" and s.funds == 500 and sum(s.plant_counts.values()) == 0
     game_env.build("coal")
     assert btn.disabled

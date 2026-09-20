@@ -82,6 +82,9 @@ ELEMENT_IDS = [
     "weather-variability-toggle-button",
     "scenario-toggle-button",
     "streak-display",
+    "arbitrage-mode-button",
+    "arbitrage-status-display",
+    "emergency-status-display",
     "funds-bar-revenue",
     "funds-bar-build",
     "funds-bar-maintenance",
@@ -173,6 +176,9 @@ class GameEnv:
 
     def toggle_weather_log(self):
         self.elements["weather-log-toggle-button"].dispatch("click", None)
+
+    def cycle_arbitrage_mode(self):
+        self.elements["arbitrage-mode-button"].dispatch("click", None)
 
     def invest_demand_response(self):
         self.elements["demand-response-button"].dispatch("click", None)

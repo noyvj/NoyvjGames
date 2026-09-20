@@ -108,6 +108,8 @@
     <div id="status" class="section">
       <p id="round-display" class="status-line">Round 1</p>
       <p id="demand-display" class="status-line">Demand: 100</p>
+      <!-- C27: emergency-response scenario status (only shown in that scenario) -->
+      <p id="emergency-status-display" class="callout" hidden></p>
       <!-- TODO-C7: demand response -- a fourth lever, trimming demand growth
            itself instead of building capacity to meet whatever it turns out
            to be. -->
@@ -345,6 +347,13 @@
               <option value="8">Every 8 rounds</option>
             </select>
           </label>
+          <!-- C9: storage arbitrage -- choose each round whether the batteries bank surplus,
+               sell into a shortfall, or sit idle. Only usable once a battery is built. -->
+          <div class="arbitrage-controls">
+            <button id="arbitrage-mode-button" class="secondary" type="button" disabled>Storage: Idle</button>
+            <details class="info-toggle"><summary>i</summary><p>Storage arbitrage: in Charge mode, batteries bank surplus generation (power above demand that would otherwise earn nothing), losing 15% in the round trip. In Discharge mode they sell stored power into a shortfall at a 1.5x peak price. Storage holds twice the battery fleet's capacity and moves at most the fleet's capacity per round. It never changes emissions or disruption risk.</p></details>
+            <span id="arbitrage-status-display" class="arbitrage-status" hidden></span>
+          </div>
         </div>
       </div>
     </div>

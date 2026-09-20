@@ -212,8 +212,32 @@ SCENARIOS = {
         "funds": 700,
         "plants": {},
     },
+    # C27 -- opt-in emergency-response scenario: the grid starts already
+    # short of demand after a major disruption. See GridState.emergency.
+    "emergency": {
+        "label": "Emergency response",
+        "funds": 300,
+        "plants": {"coal": 3, "gas": 1},
+        "demand": 180,
+    },
 }
-SCENARIO_ORDER = ["standard", "coal_legacy", "greenfield"]
+SCENARIO_ORDER = ["standard", "coal_legacy", "greenfield", "emergency"]
+
+# C27 -- the player has EMERGENCY_ROUNDS rounds to bring capacity up to
+# demand and hold it there for EMERGENCY_HOLD_ROUNDS rounds in a row. There
+# is no game over (root design rule): missing the window just closes the
+# emergency as "not stabilized in time" and the run carries on.
+EMERGENCY_ROUNDS = 6
+EMERGENCY_HOLD_ROUNDS = 2
+
+# C9 -- storage arbitrage. Batteries hold up to ARBITRAGE_STORAGE_MULTIPLE x
+# their own capacity, charge/discharge at their own capacity per round, lose
+# (1 - ARBITRAGE_EFFICIENCY) of what they charge, and sell discharged energy
+# at a peak-price premium. Modes are chosen by the player each round.
+ARBITRAGE_MODES = ("idle", "charge", "discharge")
+ARBITRAGE_STORAGE_MULTIPLE = 2
+ARBITRAGE_EFFICIENCY = 0.85
+ARBITRAGE_PEAK_PRICE_MULTIPLIER = 1.5
 
 # C25 -- how far the "grid of the future" projection looks ahead.
 PROJECTION_ROUNDS = 20
@@ -349,6 +373,66 @@ class GridState:
         self.last_policy_lever_round_offered = 0
         # TODO-C23 -- per-plant-type auto-maintain cadence, 0 = manual only.
         self.maintenance_schedule = {t: 0 for t in PLANT_TYPES}
+        # C9 -- storage arbitrage: stored energy units, the player's chosen
+        # mode for the next round, and the last round's result for display.
+        self.stored_energy = 0.0
+        self.arbitrage_mode = "idle"
+        self.last_arbitrage = None
+        self.arbitrage_revenue_total = 0.0
+        # C27 -- None outside the emergency scenario, else a dict
+        # {"status": "active"|"stabilized"|"missed", "rounds_left", "hold"}.
+        self.emergency = None
+
+    def storage_cap(self):
+        """C9: max stored energy the battery fleet can hold."""
+        return self.battery_capacity() * ARBITRAGE_STORAGE_MULTIPLE
+
+    def set_arbitrage_mode(self, mode):
+        if mode not in ARBITRAGE_MODES:
+            return False
+        self.arbitrage_mode = mode
+        return True
+
+    def _run_arbitrage(self, effective_capacity):
+        """C9: called from advance_round() with this round's effective
+        generation. Charging banks surplus (generation above demand, which
+        earns nothing otherwise) at ARBITRAGE_EFFICIENCY; discharging sells
+        stored energy into a shortfall at a peak-price premium. Returns the
+        extra revenue. Never touches emissions/disruption math."""
+        # A retired battery shrinks the cap; anything above it is lost.
+        self.stored_energy = min(self.stored_energy, self.storage_cap())
+        rate = self.battery_capacity()
+        self.last_arbitrage = None
+        if rate <= 0 or self.arbitrage_mode == "idle":
+            return 0.0
+        if self.arbitrage_mode == "charge":
+            surplus = max(0.0, effective_capacity - self.demand)
+            taken = min(surplus, rate, (self.storage_cap() - self.stored_energy) / ARBITRAGE_EFFICIENCY)
+            self.stored_energy += taken * ARBITRAGE_EFFICIENCY
+            self.last_arbitrage = {"mode": "charge", "units": taken, "revenue": 0.0}
+            return 0.0
+        shortfall = max(0.0, self.demand - effective_capacity)
+        sold = min(shortfall, rate, self.stored_energy)
+        revenue = sold * REVENUE_PER_UNIT_MET * ARBITRAGE_PEAK_PRICE_MULTIPLIER
+        self.stored_energy -= sold
+        self.arbitrage_revenue_total += revenue
+        self.last_arbitrage = {"mode": "discharge", "units": sold, "revenue": revenue}
+        return revenue
+
+    def _update_emergency(self):
+        """C27: called at the end of advance_round() (demand already grown)."""
+        em = self.emergency
+        if em is None or em["status"] != "active":
+            return
+        em["rounds_left"] -= 1
+        if self.total_capacity() >= self.demand:
+            em["hold"] += 1
+        else:
+            em["hold"] = 0
+        if em["hold"] >= EMERGENCY_HOLD_ROUNDS:
+            em["status"] = "stabilized"
+        elif em["rounds_left"] <= 0:
+            em["status"] = "missed"
 
     def apply_scenario(self, scenario_id):
         """C13: only allowed before anything has been built/advanced, so a
@@ -362,6 +446,12 @@ class GridState:
         for plant_type, count in scenario["plants"].items():
             self.plant_counts[plant_type] = count
         self.funds = scenario["funds"]
+        self.demand = scenario.get("demand", STARTING_DEMAND)
+        self.emergency = (
+            {"status": "active", "rounds_left": EMERGENCY_ROUNDS, "hold": 0}
+            if scenario_id == "emergency"
+            else None
+        )
         self.scenario = scenario_id
         return True
 
@@ -619,8 +709,11 @@ class GridState:
         # gets the benefit this round rather than one round late.
         self._run_scheduled_maintenance()
 
-        met_demand = min(self.effective_capacity_for_revenue(weather_rng), self.demand)
+        effective_capacity = self.effective_capacity_for_revenue(weather_rng)
+        met_demand = min(effective_capacity, self.demand)
         revenue = met_demand * REVENUE_PER_UNIT_MET
+        # C9: optional storage arbitrage on top of ordinary revenue.
+        revenue += self._run_arbitrage(effective_capacity)
 
         # TODO-C17: narrate this round's weather effect on renewable
         # output, using the nameplate/actual figures
@@ -728,6 +821,7 @@ class GridState:
             self.current_clean_streak += 1
             self.best_clean_streak = max(self.best_clean_streak, self.current_clean_streak)
         self.last_aging_event = aging_event
+        self._update_emergency()
 
         self.clean_fraction_log.append(1 - self.fossil_share())
         self.emissions_history.append(self.emissions)
@@ -1852,6 +1946,8 @@ def render():
             f"Active policy: {label} -- {effect} ({state.active_policy['rounds_remaining']} round(s) left)."
         )
 
+    _render_arbitrage_and_emergency()
+
     for plant_type in PLANT_TYPES:
         count = state.plant_counts[plant_type]
         cost = state.plant_cost(plant_type)
@@ -1911,6 +2007,93 @@ def render():
         mix_pct = state.capacity_share(plant_type) * 100
         document.getElementById(f"{plant_type}-mix-bar").style.width = f"{mix_pct:.0f}%"
         document.getElementById(f"{plant_type}-mix-pct").innerText = f"{mix_pct:.0f}%"
+
+
+ARBITRAGE_MODE_LABEL = {"idle": "Idle", "charge": "Charge", "discharge": "Discharge"}
+
+
+def arbitrage_status_message():
+    """C9: one plain-text line -- stored level plus what last round did."""
+    cap = state.storage_cap()
+    text = f"Stored {state.stored_energy:.0f}/{cap:.0f}."
+    last = state.last_arbitrage
+    if last is not None:
+        if last["mode"] == "charge":
+            text += f" Last round: banked {last['units']:.0f} surplus."
+        else:
+            text += f" Last round: sold {last['units']:.0f} for +{last['revenue']:.0f} funds."
+    return text
+
+
+def emergency_message():
+    """C27: banner text for the emergency scenario, or '' outside it."""
+    em = state.emergency
+    if em is None:
+        return ""
+    if em["status"] == "stabilized":
+        return "Emergency over: the grid is stabilized. The run carries on as normal."
+    if em["status"] == "missed":
+        return (
+            "Emergency window closed without stabilizing. There is no game over -- "
+            "keep building; demand still has to be met."
+        )
+    return (
+        f"EMERGENCY: a major disruption left capacity {state.total_capacity()} against demand {state.demand}. "
+        f"Get capacity to at least demand for {EMERGENCY_HOLD_ROUNDS} rounds in a row "
+        f"(held {em['hold']}/{EMERGENCY_HOLD_ROUNDS}, {em['rounds_left']} round(s) left)."
+    )
+
+
+def _render_arbitrage_and_emergency():
+    has_battery = state.plant_counts["battery"] > 0
+    mode_button = document.getElementById("arbitrage-mode-button")
+    mode_button.innerText = f"Storage: {ARBITRAGE_MODE_LABEL[state.arbitrage_mode]}"
+    mode_button.disabled = not has_battery
+    mode_button.title = (
+        "Click to cycle Idle / Charge / Discharge for the next round."
+        if has_battery
+        else "Build a battery to use storage arbitrage."
+    )
+    status_el = document.getElementById("arbitrage-status-display")
+    status_el.hidden = not has_battery
+    status_el.innerText = arbitrage_status_message() if has_battery else ""
+    emergency_el = document.getElementById("emergency-status-display")
+    text = emergency_message()
+    emergency_el.hidden = not text
+    emergency_el.innerText = text
+
+
+def on_cycle_arbitrage_mode(event=None):
+    """C9: cycle Idle -> Charge -> Discharge for the next round."""
+    modes = ARBITRAGE_MODES
+    state.set_arbitrage_mode(modes[(modes.index(state.arbitrage_mode) + 1) % len(modes)])
+    render()
+
+
+def _load_arbitrage_and_emergency(data):
+    """Validated restore of C9/C27 fields (defaults if malformed)."""
+    stored = data.get("stored_energy", state.stored_energy)
+    ok = isinstance(stored, (int, float)) and not isinstance(stored, bool) and stored == stored
+    state.stored_energy = max(0.0, min(float(stored), state.storage_cap())) if ok else 0.0
+    mode = data.get("arbitrage_mode", state.arbitrage_mode)
+    state.arbitrage_mode = mode if mode in ARBITRAGE_MODES else "idle"
+    total = data.get("arbitrage_revenue_total", state.arbitrage_revenue_total)
+    ok = isinstance(total, (int, float)) and not isinstance(total, bool) and total == total
+    state.arbitrage_revenue_total = max(0.0, float(total)) if ok else 0.0
+    state.last_arbitrage = None
+    em = data.get("emergency", state.emergency)
+    if (
+        state.scenario == "emergency"
+        and isinstance(em, dict)
+        and em.get("status") in ("active", "stabilized", "missed")
+    ):
+        state.emergency = {
+            "status": em["status"],
+            "rounds_left": _as_int(em.get("rounds_left"), 0, 0, EMERGENCY_ROUNDS),
+            "hold": _as_int(em.get("hold"), 0, 0, EMERGENCY_HOLD_ROUNDS),
+        }
+    else:
+        state.emergency = None
 
 
 def _make_build_handler(plant_type):
@@ -2215,6 +2398,16 @@ def get_state():
         "steeper_demand_growth_enabled": state.steeper_demand_growth_enabled,
         "weather_variability_enabled": state.weather_variability_enabled,
         "scenario": state.scenario,
+        "demand_response_level": state.demand_response_level,
+        "weather_log": list(state.weather_log),
+        "policy_lever_available": state.policy_lever_available,
+        "active_policy": copy.deepcopy(state.active_policy),
+        "last_policy_lever_round_offered": state.last_policy_lever_round_offered,
+        "maintenance_schedule": dict(state.maintenance_schedule),
+        "stored_energy": state.stored_energy,
+        "arbitrage_mode": state.arbitrage_mode,
+        "arbitrage_revenue_total": state.arbitrage_revenue_total,
+        "emergency": copy.deepcopy(state.emergency),
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),
@@ -2235,6 +2428,53 @@ def _merge_plant_dict(live, saved):
     for plant_type in live:
         if plant_type in saved:
             live[plant_type] = saved[plant_type]
+
+
+def _as_int(value, default, minimum=0, maximum=None):
+    """Validation helper for hand-edited/corrupt saves: bool and non-numeric
+    values fall back to the default, numbers are clamped into range."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value != value:
+        return default
+    value = int(value)
+    if value < minimum:
+        return minimum
+    if maximum is not None and value > maximum:
+        return maximum
+    return value
+
+
+def _load_round3_fields(data):
+    """Validated restore of the round-3 fields (C7/C17/C19/C23) that
+    get_state() previously never saved, so they silently reset on every
+    load. Anything malformed falls back to that field's default."""
+    state.demand_response_level = _as_int(data.get("demand_response_level"), state.demand_response_level, 0, 200)
+    log = data.get("weather_log", state.weather_log)
+    if isinstance(log, list):
+        state.weather_log = [str(x) for x in log if isinstance(x, str)][-WEATHER_LOG_MAX_ENTRIES:]
+    available = data.get("policy_lever_available", state.policy_lever_available)
+    state.policy_lever_available = available if isinstance(available, bool) else False
+    policy = data.get("active_policy", state.active_policy)
+    if (
+        isinstance(policy, dict)
+        and policy.get("type") in ("carbon_pricing", "renewable_subsidy")
+        and _as_int(policy.get("rounds_remaining"), 0, 0, POLICY_LEVER_DURATION) > 0
+    ):
+        state.active_policy = {
+            "type": policy["type"],
+            "rounds_remaining": _as_int(policy["rounds_remaining"], 1, 1, POLICY_LEVER_DURATION),
+        }
+    else:
+        state.active_policy = None
+    state.last_policy_lever_round_offered = _as_int(
+        data.get("last_policy_lever_round_offered"), state.last_policy_lever_round_offered, 0
+    )
+    schedule = data.get("maintenance_schedule")
+    if isinstance(schedule, dict):
+        for plant_type in PLANT_TYPES:
+            interval = schedule.get(plant_type)
+            if isinstance(interval, int) and not isinstance(interval, bool) and interval in MAINTENANCE_SCHEDULE_OPTIONS:
+                state.maintenance_schedule[plant_type] = interval
+    _load_arbitrage_and_emergency(data)
 
 
 def load_state(data):
@@ -2291,6 +2531,7 @@ def load_state(data):
     )
     saved_scenario = data.get("scenario", state.scenario)
     state.scenario = saved_scenario if saved_scenario in SCENARIOS else "standard"
+    _load_round3_fields(data)
     # "achievements_earned" is intentionally never read back here — see
     # get_state()'s comment and ACHIEVEMENTS-SYSTEM-DESIGN.md §1.
 
@@ -2355,6 +2596,9 @@ def setup():
     )
     document.getElementById("weather-log-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_weather_log)
+    )
+    document.getElementById("arbitrage-mode-button").addEventListener(
+        "click", create_proxy(on_cycle_arbitrage_mode)
     )
     document.getElementById("demand-response-button").addEventListener(
         "click", create_proxy(on_invest_demand_response)
