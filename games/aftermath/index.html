@@ -45,6 +45,10 @@
         </div>
       </div>
       <div class="settings-row">
+        <label class="settings-label" for="settlement-name-input">Settlement name</label>
+        <input type="text" id="settlement-name-input" class="settlement-name-input" maxlength="30" placeholder="Name your settlement" title="Carried across every run and shown next to your runs-completed counter">
+      </div>
+      <div class="settings-row">
         <label class="settings-checkbox-label" for="reduced-motion-checkbox">
           <input type="checkbox" id="reduced-motion-checkbox">
           Reduce motion (disable animations &amp; transitions)
@@ -54,6 +58,7 @@
 
     <p class="tagline">A settlement facing a scheduled run of extreme weather. Build resilience to weather it, or growth to afford more later.</p>
     <p class="context-blurb">Climate adaptation and disaster resilience are their own necessary response category — distinct from mitigation, and not a failure state. Real-world investment in early warning and resilient infrastructure has repeatedly been shown to pay for itself many times over in damage avoided.</p>
+    <p id="runs-completed-display" class="runs-completed-display" title="Runs this settlement has fully completed, across all sessions">Runs completed: 0</p>
     <p id="legacy-display" class="legacy-display">No history yet — this is the settlement's first trial.</p>
     <!-- E4: expanded legacy system -- a per-event-type "weathered ×N"
          chip row, additive to the flavor-text line above. -->
@@ -109,7 +114,9 @@
           <div class="event-visual-pulse"></div>
         </div>
       </div>
+      <p id="generational-memory-display" class="generational-memory" hidden></p>
       <p id="last-event-display" class="status-line"></p>
+      <p id="callout-display" class="callout-display" role="status" hidden></p>
       <details class="info-toggle"><summary>i</summary><p>Event severity (mild/typical/severe) isn't random — it's a fixed pattern per run number, so replaying the same run always faces the same challenge. Your first run is always "typical." From run 2 onward, the spread widens the more resilience skills you've unlocked overall — a stronger skill tree can hit lower lows and higher highs, not just an easier flat curve.</p></details>
       <p id="resources-display" class="status-line">Resources: 200</p>
       <p id="resilience-display" class="status-line">Resilience: 0</p>
@@ -145,6 +152,8 @@
         <div class="settlement-badge settlement-badge--early_warning" id="settlement-badge-early_warning" aria-hidden="true"></div>
         <div class="settlement-badge settlement-badge--adaptive_growth" id="settlement-badge-adaptive_growth" aria-hidden="true"></div>
         <div class="settlement-badge settlement-badge--mutual_aid_network" id="settlement-badge-mutual_aid_network" aria-hidden="true"></div>
+        <!-- E12: lit once the settlement has survived a run whose average severity was in the severe band. -->
+        <div class="settlement-badge settlement-badge--toughest" id="settlement-badge-toughest" title="Survived a run at severe average intensity" aria-hidden="true"></div>
       </div>
     </div>
 
@@ -169,42 +178,53 @@
            starting a run, so it's hidden/shown alongside #new-run-button. -->
       <label id="extended-run-toggle-wrapper" class="extended-run-toggle-wrapper" hidden>
         <input type="checkbox" id="extended-run-toggle">
-        Extended Run (double-length schedule)
+        <span id="extended-run-toggle-label">Extended Run (double-length schedule)</span>
       </label>
     </div>
 
     <div id="skill-tree" class="section">
       <p id="knowledge-points-display" class="status-line">Resilience knowledge: 0</p>
       <p id="skills-unlocked-display" class="status-line"></p>
+      <p id="pinned-skills-display" class="status-line pinned-skills-display" title="Skills you've pinned, with an estimate of runs until each is affordable"></p>
       <details class="info-toggle"><summary>i</summary><p>Knowledge earned per run is your leftover resources divided by 20, rounded — but never zero, even after a terrible run. Unlocked skills below are permanent: they carry into every future run, unlike Resilience/Growth investment, which resets to a fresh start each run. Some skills require others to be unlocked first.</p></details>
       <div class="skill-row" data-skill="reinforced_infrastructure">
         <span class="skill-node" aria-hidden="true"></span>
         <span class="skill-status" id="skill-reinforced_infrastructure-status">Reinforced Infrastructure — +2 starting resilience capacity</span>
         <button id="skill-reinforced_infrastructure-unlock-button" class="secondary" disabled>Loading...</button>
+        <button id="skill-reinforced_infrastructure-pin-button" class="secondary skill-pin-button" type="button" hidden>Pin</button>
+        <span class="skill-eta" id="skill-reinforced_infrastructure-eta"></span>
         <p class="skill-practice" id="skill-reinforced_infrastructure-practice"></p>
       </div>
       <div class="skill-row" data-skill="community_reserves">
         <span class="skill-node" aria-hidden="true"></span>
         <span class="skill-status" id="skill-community_reserves-status">Community Reserves — +50 starting resources</span>
         <button id="skill-community_reserves-unlock-button" class="secondary" disabled>Loading...</button>
+        <button id="skill-community_reserves-pin-button" class="secondary skill-pin-button" type="button" hidden>Pin</button>
+        <span class="skill-eta" id="skill-community_reserves-eta"></span>
         <p class="skill-practice" id="skill-community_reserves-practice"></p>
       </div>
       <div class="skill-row" data-skill="early_warning">
         <span class="skill-node" aria-hidden="true"></span>
         <span class="skill-status" id="skill-early_warning-status">Early Warning Systems — +10% mitigation on all events</span>
         <button id="skill-early_warning-unlock-button" class="secondary" disabled>Loading...</button>
+        <button id="skill-early_warning-pin-button" class="secondary skill-pin-button" type="button" hidden>Pin</button>
+        <span class="skill-eta" id="skill-early_warning-eta"></span>
         <p class="skill-practice" id="skill-early_warning-practice"></p>
       </div>
       <div class="skill-row" data-skill="adaptive_growth">
         <span class="skill-node" aria-hidden="true"></span>
         <span class="skill-status" id="skill-adaptive_growth-status">Adaptive Growth Practices — +1 starting growth capacity</span>
         <button id="skill-adaptive_growth-unlock-button" class="secondary" disabled>Loading...</button>
+        <button id="skill-adaptive_growth-pin-button" class="secondary skill-pin-button" type="button" hidden>Pin</button>
+        <span class="skill-eta" id="skill-adaptive_growth-eta"></span>
         <p class="skill-practice" id="skill-adaptive_growth-practice"></p>
       </div>
       <div class="skill-row" data-skill="mutual_aid_network">
         <span class="skill-node" aria-hidden="true"></span>
         <span class="skill-status" id="skill-mutual_aid_network-status">Mutual Aid Network — +5% mitigation on all events</span>
         <button id="skill-mutual_aid_network-unlock-button" class="secondary" disabled>Loading...</button>
+        <button id="skill-mutual_aid_network-pin-button" class="secondary skill-pin-button" type="button" hidden>Pin</button>
+        <span class="skill-eta" id="skill-mutual_aid_network-eta"></span>
         <p class="skill-practice" id="skill-mutual_aid_network-practice"></p>
       </div>
       <!-- E13: reset skill tree, gated behind an in-UI two-click confirm

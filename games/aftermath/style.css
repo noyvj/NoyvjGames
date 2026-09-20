@@ -1374,3 +1374,36 @@ html[data-reduced-motion="true"] *::after {
   transition-duration: 0.001ms !important;
   scroll-behavior: auto !important;
 }
+
+/* ============================================================
+   Backlog wave 2 (E4/E5/E8/E12/E16/E18/E24/E28/E30). */
+.runs-completed-display { margin: 0.2rem 0; font-size: 0.9rem; font-weight: 600; }
+.generational-memory { font-size: 0.85rem; font-style: italic; opacity: 0.85; margin: 0.3rem 0; }
+.callout-display {
+  margin: 0.4rem 0; padding: 0.5rem 0.7rem; font-size: 0.85rem;
+  border-left: 3px solid #d4af37; background: rgba(212, 175, 55, 0.1); border-radius: 4px;
+}
+.run-epilogue { margin: 0.6rem 0 0; font-style: italic; font-size: 0.85rem; opacity: 0.9; }
+.settlement-name-input {
+  flex: 1; min-width: 8rem; padding: 0.3rem 0.5rem; font: inherit; color: inherit;
+  background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 4px;
+}
+.settlement-badge--toughest { left: 22%; bottom: 40px; background: radial-gradient(circle, #ffd9d9, #d9534f 70%); box-shadow: 0 0 8px rgba(217, 83, 79, 0.9); }
+.skill-pin-button { padding: 0.15rem 0.5rem; font-size: 0.75rem; }
+.skill-eta { font-size: 0.75rem; opacity: 0.75; margin-left: 0.4rem; }
+.pinned-skills-display:empty { display: none; }
+.past-run-card--record { animation: record-flourish 1.4s ease-out 1; border-color: #d4af37; }
+@keyframes record-flourish {
+  0% { box-shadow: 0 0 0 rgba(212, 175, 55, 0); transform: scale(1); }
+  30% { box-shadow: 0 0 16px rgba(212, 175, 55, 0.9); transform: scale(1.02); }
+  100% { box-shadow: 0 0 0 rgba(212, 175, 55, 0); transform: scale(1); }
+}
+.knowledge-bump::after { content: " +"; color: #d4af37; font-weight: 700; animation: knowledge-bump-rise 0.9s ease-out 1; display: inline-block; }
+@keyframes knowledge-bump-rise {
+  0% { transform: translateY(6px); opacity: 0; }
+  40% { transform: translateY(-2px); opacity: 1; }
+  100% { transform: translateY(-6px); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .past-run-card--record, .knowledge-bump::after { animation: none; }
+}

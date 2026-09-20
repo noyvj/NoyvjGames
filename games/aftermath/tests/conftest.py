@@ -85,6 +85,14 @@ ELEMENT_IDS = [
     "extended-run-toggle-wrapper",
     # E20: live knowledge-points-if-the-run-ended-now preview.
     "knowledge-preview-display",
+    # Backlog wave 2 (E4/E5/E6/E8/E12/E25/E28/E30b).
+    "runs-completed-display",
+    "generational-memory-display",
+    "callout-display",
+    "extended-run-toggle-label",
+    "settlement-name-input",
+    "pinned-skills-display",
+    "settlement-badge-toughest",
 ]
 for _skill in SKILL_IDS:
     ELEMENT_IDS += [
@@ -93,6 +101,9 @@ for _skill in SKILL_IDS:
         f"skill-{_skill}-practice",
         # E15: a settlement-art badge per unlocked skill.
         f"settlement-badge-{_skill}",
+        # E30a/E30b: pin button + runs-until-affordable estimate.
+        f"skill-{_skill}-pin-button",
+        f"skill-{_skill}-eta",
     ]
 
 INITIALLY_DISABLED_IDS = [

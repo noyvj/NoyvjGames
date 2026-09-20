@@ -9,6 +9,7 @@ milestone history.
 """
 
 import base64
+import math
 import copy
 import json
 
@@ -124,15 +125,37 @@ def skill_tree_strength():
     return len(skill_tree.unlocked)
 
 
+# E7: a proper difficulty-scaling curve across many runs -- beyond the
+# per-skill widening above, the severity spread also grows slowly with the
+# number of runs the player has completed over the settlement's lifetime,
+# capped so a very long career can't run away. The center stays 1.0, same
+# hope-angle reasoning as SEVERITY_VARIATION_RANGE_PER_SKILL.
+SEVERITY_VARIATION_RANGE_PER_LIFETIME_RUN = 0.004
+SEVERITY_LIFETIME_RANGE_CAP = 0.06
+
+
+def lifetime_severity_widening(lifetime_runs=None):
+    if lifetime_runs is None:
+        lifetime_runs = len(run_history)
+    return min(SEVERITY_LIFETIME_RANGE_CAP, SEVERITY_VARIATION_RANGE_PER_LIFETIME_RUN * max(0, lifetime_runs))
+
+
+def severity_bounds(skill_strength=0, lifetime_runs=None):
+    """(min, max) of the severity multiplier for run 2 onward at this
+    skill level / career length -- shared by event_severity() and the
+    E14/E20 range and tooltip displays so they can never drift apart."""
+    center = (SEVERITY_VARIATION_MIN + SEVERITY_VARIATION_MAX) / 2
+    half_width = (SEVERITY_VARIATION_MAX - SEVERITY_VARIATION_MIN) / 2
+    half_width += SEVERITY_VARIATION_RANGE_PER_SKILL * skill_strength
+    half_width += lifetime_severity_widening(lifetime_runs)
+    return center - half_width, center + half_width
+
+
 def event_severity(run_number, event_index, skill_strength=0):
     if run_number <= 1:
         return 1.0
     seed = (run_number * 97 + event_index * 31) % 100
-    center = (SEVERITY_VARIATION_MIN + SEVERITY_VARIATION_MAX) / 2
-    half_width = (SEVERITY_VARIATION_MAX - SEVERITY_VARIATION_MIN) / 2
-    half_width += SEVERITY_VARIATION_RANGE_PER_SKILL * skill_strength
-    variation_min = center - half_width
-    variation_max = center + half_width
+    variation_min, variation_max = severity_bounds(skill_strength)
     return variation_min + (seed / 100) * (variation_max - variation_min)
 
 
@@ -303,6 +326,56 @@ def load_run_log_history():
 
 def save_run_log_history(history):
     localStorage.setItem(RUN_LOG_HISTORY_STORAGE_KEY, json.dumps(history))
+
+
+# Small persistent "settlement meta" dict (E25 settlement name, E30b pinned
+# skills, E8/E28 one-time-callout flags). Lives in localStorage next to the
+# skill tree, same category and same reasoning (cross-run progress, not
+# per-run save-widget state); safe defaults for every field so an older
+# browser profile with no such key just gets the empty defaults.
+META_STORAGE_KEY = "aftermath_meta_v1"
+SETTLEMENT_NAME_MAX = 30
+
+
+def _default_meta():
+    return {
+        "settlement_name": "",
+        "pinned_skills": [],
+        "seen_negative_tip": False,
+        "seen_harsh_callout": False,
+    }
+
+
+def _sanitize_meta(data):
+    meta = _default_meta()
+    if not isinstance(data, dict):
+        return meta
+    name = data.get("settlement_name", "")
+    if isinstance(name, str):
+        meta["settlement_name"] = name.strip()[:SETTLEMENT_NAME_MAX]
+    pinned = data.get("pinned_skills", [])
+    if isinstance(pinned, list):
+        meta["pinned_skills"] = [p for p in pinned if isinstance(p, str)]
+    meta["seen_negative_tip"] = bool(data.get("seen_negative_tip", False))
+    meta["seen_harsh_callout"] = bool(data.get("seen_harsh_callout", False))
+    return meta
+
+
+def load_meta():
+    raw = localStorage.getItem(META_STORAGE_KEY)
+    if not raw:
+        return _default_meta()
+    try:
+        return _sanitize_meta(json.loads(raw))
+    except ValueError:
+        return _default_meta()
+
+
+def save_meta():
+    localStorage.setItem(META_STORAGE_KEY, json.dumps(meta))
+
+
+meta = load_meta()
 
 
 def starting_resources_bonus():
@@ -977,18 +1050,40 @@ def on_toggle_past_runs(event=None):
     render_past_runs_panel()
 
 
-def _render_event_breakdown_lines(container, event_log):
+CATEGORY_ICON = {"weather": "🌦️", "non-weather": "🏗️", "social": "👥"}
+
+
+def _render_event_breakdown_lines(container, event_log, show_category=False):
     for entry in event_log:
         line = document.createElement("p")
         line.className = (
             f"past-run-event event-category--{EVENT_CATEGORY[entry['type']]} "
             f"severity--{severity_label(entry['severity'])}"
         )
+        category = EVENT_CATEGORY[entry["type"]]
+        category_prefix = f"{CATEGORY_ICON[category]} " if show_category else ""
+        if show_category:
+            line.title = f"{category.replace('-', ' ')} event"
         line.innerText = (
-            f"{EVENT_ICON[entry['type']]} {EVENT_LABEL[entry['type']]} — "
+            f"{category_prefix}{EVENT_ICON[entry['type']]} {EVENT_LABEL[entry['type']]} — "
             f"{entry['damage']:.0f} damage ({severity_label(entry['severity'])} intensity)"
         )
         container.appendChild(line)
+
+
+def new_record_run_indexes():
+    """E16: indexes into run_log_history of runs whose score beat every
+    earlier run's (the first run is never a 'record' -- nothing to beat).
+    Those cards get a one-shot CSS flourish when the panel is opened."""
+    records = set()
+    best = None
+    for index, entry in enumerate(run_log_history):
+        score = entry.get("score", 0)
+        if best is not None and score > best:
+            records.add(index)
+        if best is None or score > best:
+            best = score
+    return records
 
 
 def render_past_runs_panel():
@@ -1006,18 +1101,21 @@ def render_past_runs_panel():
         panel.appendChild(empty)
         return
 
-    for entry in reversed(run_log_history):
+    record_indexes = new_record_run_indexes()
+    for index in range(len(run_log_history) - 1, -1, -1):
+        entry = run_log_history[index]
         card = document.createElement("div")
-        card.className = "past-run-card"
+        is_record = index in record_indexes
+        card.className = "past-run-card past-run-card--record" if is_record else "past-run-card"
         title = document.createElement("p")
         title.className = "past-run-title"
         title.innerText = (
-            f"Run #{entry['run_number']} — score {entry['score']:.0f} "
+            f"{'🏆 ' if is_record else ''}Run #{entry['run_number']} — score {entry['score']:.0f} "
             f"(resilience {entry['resilience_capacity']}, growth {entry['growth_capacity']}, "
             f"+{entry['knowledge_earned']} knowledge)"
         )
         card.appendChild(title)
-        _render_event_breakdown_lines(card, entry["event_log"])
+        _render_event_breakdown_lines(card, entry["event_log"], show_category=True)
         panel.appendChild(card)
 
 
@@ -1122,6 +1220,38 @@ def expected_next_event_damage(run_state):
     return damage, severity
 
 
+def expected_damage_range(run_state):
+    """E14: (low, high) damage for the next event across the whole
+    severity band this settlement can face (min/max multiplier at the
+    current skill level and career length). The center estimate above is
+    exact for this run number; the range shows how much a different run
+    number could swing the same event."""
+    event_type = run_state.next_event_type()
+    if run_state.run_number <= 1:
+        exact = EVENT_BASE_DAMAGE[event_type] * (1 - run_state.mitigation_fraction())
+        return exact, exact
+    low_sev, high_sev = severity_bounds(skill_tree_strength())
+    base = EVENT_BASE_DAMAGE[event_type] * (1 - run_state.mitigation_fraction())
+    return base * low_sev, base * high_sev
+
+
+def severity_tooltip_text(run_number):
+    """E20: how skill-tree strength (and career length) affect severity."""
+    strength = skill_tree_strength()
+    low, high = severity_bounds(strength)
+    if run_number <= 1:
+        return "Run 1 is always exactly 1.00× severity. From run 2 onward, severity varies per event."
+    return (
+        f"Severity multiplier varies between {low:.2f}× and {high:.2f}×. Base spread is 0.85×–1.15×; "
+        f"each unlocked skill (you have {strength}) widens it by {SEVERITY_VARIATION_RANGE_PER_SKILL:.2f} "
+        f"each side, and each completed run adds a little more (up to {SEVERITY_LIFETIME_RANGE_CAP:.2f}). "
+        f"The center stays 1.00× — a stronger tree faces bigger swings, not a higher average."
+    )
+
+
+last_knowledge_preview = None
+
+
 # ===========================================================================
 # E17: "toughest run yet" -- the lowest-scoring completed run. run_history
 # is a flat list of scores in completion order (no run_number stored
@@ -1138,6 +1268,109 @@ def toughest_run_yet():
         return None
     worst_score = min(run_history)
     return run_history.index(worst_score) + 1, worst_score
+
+
+def toughest_run_sequence():
+    """E10: the event sequence of the toughest run yet, as a list of
+    {"type", "damage", "severity"} dicts, pulled from run_log_history (the
+    detailed per-run log) by matching the toughest score. None if there's
+    no detailed log for it (e.g. progress imported from a code, which
+    carries scores only)."""
+    toughest = toughest_run_yet()
+    if toughest is None:
+        return None
+    for entry in run_log_history:
+        if abs(entry.get("score", -1) - toughest[1]) < 1e-9 and entry.get("event_log"):
+            return entry["event_log"]
+    return None
+
+
+def toughest_run_text():
+    toughest = toughest_run_yet()
+    if toughest is None:
+        return ""
+    text = f"Toughest run yet: Run #{toughest[0]} scored {toughest[1]:.0f}"
+    sequence = toughest_run_sequence()
+    if sequence:
+        parts = [f"{EVENT_ICON[e['type']]} {EVENT_LABEL[e['type']]}" for e in sequence if e["type"] in EVENT_LABEL]
+        text += " — " + " → ".join(parts)
+    return text
+
+
+def average_severity(event_log):
+    if not event_log:
+        return 1.0
+    return sum(e.get("severity", 1.0) for e in event_log) / len(event_log)
+
+
+def toughest_survived_run_badge_earned():
+    """E12: a settlement-art badge for having come through a run whose
+    average event severity was harsh ('severe' band) without ending at zero
+    resources -- a personal-best-style marker for surviving a genuinely
+    tough schedule, separate from the per-skill badges."""
+    for entry in run_log_history:
+        if entry.get("score", 0) > 0 and severity_label(average_severity(entry.get("event_log", []))) == "severe":
+            return True
+    return False
+
+
+def runs_completed_text():
+    name = meta["settlement_name"]
+    prefix = f"{name} — " if name else ""
+    return f"{prefix}Runs completed: {len(run_history)}"
+
+
+# E30a/E30b: "X runs until affordable" estimate + pinned skills.
+def average_knowledge_per_run():
+    runs = len(run_history)
+    if runs <= 0:
+        return None
+    return skill_tree.lifetime_knowledge / runs
+
+
+def runs_until_affordable(skill_id):
+    """Estimated number of further completed runs before skill_id becomes
+    affordable at the average lifetime knowledge-earn rate. 0 if already
+    affordable, None if there's no earn-rate data yet (no runs completed)."""
+    needed = SKILLS[skill_id]["cost"] - skill_tree.knowledge_points
+    if needed <= 0:
+        return 0
+    rate = average_knowledge_per_run()
+    if not rate or rate <= 0:
+        return None
+    return max(1, math.ceil(needed / rate))
+
+
+def _eta_text(skill_id):
+    runs = runs_until_affordable(skill_id)
+    if runs is None:
+        return "Complete a run for an estimate"
+    if runs == 0:
+        return "Affordable now"
+    return f"~{runs} run{'s' if runs != 1 else ''} until affordable"
+
+
+def toggle_pin_skill(skill_id):
+    if skill_id not in SKILLS or skill_id in skill_tree.unlocked:
+        return False
+    if skill_id in meta["pinned_skills"]:
+        meta["pinned_skills"].remove(skill_id)
+    else:
+        meta["pinned_skills"].append(skill_id)
+    save_meta()
+    return True
+
+
+def pinned_skills_text():
+    pinned = [sid for sid in meta["pinned_skills"] if sid in SKILLS and sid not in skill_tree.unlocked]
+    if not pinned:
+        return ""
+    return "📌 Saving toward: " + "; ".join(f"{SKILLS[sid]['label']} ({_eta_text(sid)})" for sid in pinned)
+
+
+def set_settlement_name(name):
+    meta["settlement_name"] = (name or "").strip()[:SETTLEMENT_NAME_MAX]
+    save_meta()
 
 
 # ===========================================================================
@@ -1161,6 +1394,7 @@ def export_progress_code():
         "legacy_event_counts": dict(legacy_event_counts),
         "achievement_progress": dict(achievement_progress),
         "highest_awarded_run": highest_awarded_run,
+        "meta": dict(meta),
     }
     raw = json.dumps(bundle).encode("utf-8")
     return base64.b64encode(raw).decode("ascii")
@@ -1174,7 +1408,7 @@ def import_progress_code(code):
     hand-typed/pasted by a player and a bad paste is an expected, common
     failure mode that should fail soft with a status message, not crash
     the page."""
-    global skill_tree, run_history, legacy_events, legacy_event_counts, achievement_progress, highest_awarded_run
+    global skill_tree, run_history, legacy_events, legacy_event_counts, achievement_progress, highest_awarded_run, meta
 
     try:
         raw = base64.b64decode(code.strip()).decode("utf-8")
@@ -1210,6 +1444,8 @@ def import_progress_code(code):
     legacy_event_counts = new_legacy_event_counts
     achievement_progress = new_achievement_progress
     highest_awarded_run = new_highest_awarded_run
+    meta = _sanitize_meta(bundle.get("meta", {}))
+    save_meta()
 
     skill_tree.save()
     save_run_history(run_history)
@@ -1221,9 +1457,25 @@ def import_progress_code(code):
     return True
 
 
+def progress_summary_text():
+    """E26: a short human-readable summary of what an exported progress
+    code contains, shown before the player copies it."""
+    best = f", best score {max(run_history):.0f}" if run_history else ""
+    earned = len(achievement_ids_earned())
+    name = f"Settlement \"{meta['settlement_name']}\": " if meta["settlement_name"] else ""
+    return (
+        f"{name}{len(run_history)} run{'s' if len(run_history) != 1 else ''} completed{best}, "
+        f"{len(skill_tree.unlocked)}/{len(SKILLS)} skills unlocked, "
+        f"{skill_tree.knowledge_points} knowledge in hand ({skill_tree.lifetime_knowledge} lifetime), "
+        f"{earned} achievement{'s' if earned != 1 else ''}."
+    )
+
+
 def on_export_progress(event=None):
     document.getElementById("progress-export-output").value = export_progress_code()
-    document.getElementById("progress-code-status").innerText = "Progress code generated below — copy it somewhere safe."
+    document.getElementById("progress-code-status").innerText = (
+        "Progress code generated below — copy it somewhere safe. Contains: " + progress_summary_text()
+    )
 
 
 def on_import_progress(event=None):
@@ -1256,15 +1508,23 @@ def _clear_skill_tree_reset_pending():
     skill_tree_reset_pending = False
 
 
+def reset_refund_amount():
+    """E22: knowledge points a reset would refund from *spent* skills --
+    what the second-click confirm button shows before you commit."""
+    return sum(SKILLS[skill_id]["cost"] for skill_id in skill_tree.unlocked)
+
+
+def reset_refund_total():
+    return skill_tree.knowledge_points + reset_refund_amount()
+
+
 def reset_skill_tree():
     """Refunds every spent-and-unspent knowledge point (so respeccing
     doesn't punish a player for having unlocked anything) and clears which
     skills are unlocked. lifetime_knowledge (the achievement-tracking
     total) is deliberately untouched -- it's a lifetime-earned counter,
     not a spendable balance, so a respec shouldn't roll it back."""
-    total_refund = skill_tree.knowledge_points + sum(
-        SKILLS[skill_id]["cost"] for skill_id in skill_tree.unlocked
-    )
+    total_refund = reset_refund_total()
     skill_tree.knowledge_points = total_refund
     skill_tree.unlocked = set()
     skill_tree.save()
@@ -1287,6 +1547,20 @@ def on_reset_skill_tree(event=None):
 # but this makes it impossible to miss on the exact unlock that made it
 # relevant.
 # ===========================================================================
+SKILL_TOAST_BASE_MS = 4000
+SKILL_TOAST_MS_PER_CHAR = 35
+SKILL_TOAST_MIN_MS = 6000
+SKILL_TOAST_MAX_MS = 14000
+
+
+def skill_toast_duration_ms(skill_id):
+    """E2: longer grounding text stays up longer -- a fixed base plus a
+    per-character reading allowance, clamped so no toast is ever gone
+    faster than the old fixed 6s or lingers past 14s."""
+    length = len(SKILLS[skill_id]["real_practice"])
+    return max(SKILL_TOAST_MIN_MS, min(SKILL_TOAST_MAX_MS, SKILL_TOAST_BASE_MS + SKILL_TOAST_MS_PER_CHAR * length))
+
+
 def _display_skill_unlock_toast(skill_id):
     skill = SKILLS[skill_id]
     toast = document.getElementById("skill-unlock-toast")
@@ -1301,7 +1575,7 @@ def _display_skill_unlock_toast(skill_id):
         proxy.destroy()
 
     proxy = create_proxy(_hide)
-    setTimeout(proxy, 6000)
+    setTimeout(proxy, skill_toast_duration_ms(skill_id))
 
 
 # ===========================================================================
@@ -1310,16 +1584,92 @@ def _display_skill_unlock_toast(skill_id):
 # number itself changing. Reuses the same create_proxy/setTimeout
 # one-shot-timer pattern as the achievement/skill-unlock toasts above.
 # ===========================================================================
-def _flash_element(element_id, duration_ms=400):
+def _flash_element(element_id, duration_ms=400, css_class="invest-flash"):
     element = document.getElementById(element_id)
-    element.classList.add("invest-flash")
+    element.classList.add(css_class)
 
     def _remove(*args):
-        element.classList.remove("invest-flash")
+        element.classList.remove(css_class)
         proxy.destroy()
 
     proxy = create_proxy(_remove)
     setTimeout(proxy, duration_ms)
+
+
+# ===========================================================================
+# One-time callouts (E8 first-zero-score reassurance, E28 first harsher-than-
+# base severity swing). A shared #callout-display line; the "already shown"
+# flags persist in `meta` so each fires once per browser, ever. The message
+# itself is transient (cleared when a new run starts).
+# ===========================================================================
+callout_message = ""
+
+NEGATIVE_RUN_TIP = (
+    "💡 That run ended with nothing left — but nothing is lost. Your skill tree persists "
+    "regardless: you still earned at least 1 knowledge point, and every skill you've unlocked "
+    "carries into the next run."
+)
+HARSH_SEVERITY_CALLOUT = (
+    "💡 That event hit harder than a first-run event ever could. This isn't bad luck — the more skills "
+    "you've unlocked (and the more runs you've completed), the wider the severity spread gets: a "
+    "stronger settlement is asked bigger questions, on top of being better equipped to answer them."
+)
+
+
+def _maybe_trigger_callouts(run_state):
+    global callout_message
+    if run_state.event_log:
+        last = run_state.event_log[-1]
+        if not meta["seen_harsh_callout"] and last["severity"] > SEVERITY_VARIATION_MAX:
+            meta["seen_harsh_callout"] = True
+            save_meta()
+            callout_message = HARSH_SEVERITY_CALLOUT
+    if run_state.is_complete() and run_state.resources <= 0 and not meta["seen_negative_tip"]:
+        meta["seen_negative_tip"] = True
+        save_meta()
+        callout_message = NEGATIVE_RUN_TIP
+
+
+# E5: "generational memory" -- occasionally the upcoming event's flavor
+# references what the same slot cost a past run, deepening the legacy system.
+def generational_memory_text(run_state):
+    if run_state.is_complete() or not run_log_history:
+        return ""
+    if (run_state.run_number + run_state.event_index) % 2 != 0:
+        return ""
+    index = run_state.event_index
+    for entry in reversed(run_log_history):
+        if entry.get("run_number") == run_state.run_number:
+            continue
+        log = entry.get("event_log", [])
+        if index < len(log) and log[index]["type"] == run_state.next_event_type():
+            past = log[index]
+            return (
+                f"🕰️ Memory of Run #{entry['run_number']}: the last time this settlement faced "
+                f"{EVENT_LABEL[past['type']]} at this point, it cost {past['damage']:.0f} damage."
+            )
+    return ""
+
+
+# E13: a short narrative epilogue at the end of an extended run, in the
+# spirit of Continuum's era-transition beats, scaled to Aftermath's format.
+def extended_epilogue_text(run_state):
+    if not run_state.extended or not run_state.is_complete():
+        return ""
+    if run_state.resources <= 0:
+        return (
+            "Epilogue — Two full cycles of shocks left the settlement with nothing in reserve. "
+            "But the people are still here, and what they learned is written into every plan that follows."
+        )
+    if run_state.resources > run_state.starting_resources:
+        return (
+            "Epilogue — Fourteen shocks came and went, and the settlement ended richer than it began. "
+            "What once felt like recovery has become routine: a community that expects the next storm and is ready for it."
+        )
+    return (
+        "Epilogue — The settlement came through fourteen shocks bruised but standing. "
+        "Endurance is its own kind of progress: the next generation inherits a place that has already been tested."
+    )
 
 
 def render():
@@ -1331,6 +1681,20 @@ def render():
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
     document.getElementById("resilience-display").innerText = f"Resilience: {run.resilience_capacity}"
     document.getElementById("growth-display").innerText = f"Growth: {run.growth_capacity}"
+    document.getElementById("runs-completed-display").innerText = runs_completed_text()  # E4/E25
+    document.getElementById("settlement-badge-toughest").classList.remove("settlement-badge--earned")
+    if toughest_survived_run_badge_earned():  # E12
+        document.getElementById("settlement-badge-toughest").classList.add("settlement-badge--earned")
+    callout_el = document.getElementById("callout-display")
+    callout_el.innerText = callout_message
+    callout_el.hidden = not callout_message
+    memory_el = document.getElementById("generational-memory-display")
+    memory_text = generational_memory_text(run)
+    memory_el.innerText = memory_text
+    memory_el.hidden = not memory_text
+    document.getElementById("extended-run-toggle-label").innerText = (
+        f"Extended Run ({len(EVENT_SCHEDULE) * 2} events instead of {len(EVENT_SCHEDULE)})"  # E6
+    )
 
     # E4: legacy-history chips (additive to the legacy-display flavor line
     # above).
@@ -1366,6 +1730,12 @@ def render():
         )
         run_summary_panel.appendChild(stats)
         _render_event_breakdown_lines(run_summary_panel, run.event_log)
+        epilogue = extended_epilogue_text(run)
+        if epilogue:
+            epilogue_el = document.createElement("p")
+            epilogue_el.className = "run-epilogue"
+            epilogue_el.innerText = epilogue
+            run_summary_panel.appendChild(epilogue_el)
     else:
         document.getElementById("run-summary-display").innerText = ""
         run_summary_panel.hidden = True
@@ -1381,17 +1751,25 @@ def render():
         # E8/E16: expected-damage-this-event preview, numeric severity band.
         damage, severity = expected_next_event_damage(run)
         expected_el = document.getElementById("expected-damage-display")
+        low, high = expected_damage_range(run)
         expected_el.innerText = (
-            f"Expected damage: ~{damage:.0f} ({severity:.2f}× severity, {severity_label(severity)})"
+            f"Expected damage: ~{damage:.0f} ({severity:.2f}× severity, {severity_label(severity)}; "
+            f"range {low:.0f}–{high:.0f})"
         )
         expected_el.className = f"status-line severity--{severity_label(severity)}"
+        expected_el.title = severity_tooltip_text(run.run_number)
 
         # E20: a live preview of the knowledge points a run would award
         # if it ended right now.
         knowledge_now = run.knowledge_points_earned()
-        document.getElementById("knowledge-preview-display").innerText = (
+        preview_el = document.getElementById("knowledge-preview-display")
+        preview_el.innerText = (
             f"If the run ended now: {knowledge_now} knowledge point{'s' if knowledge_now != 1 else ''}"
         )
+        global last_knowledge_preview
+        if last_knowledge_preview is not None and knowledge_now > last_knowledge_preview:
+            _flash_element("knowledge-preview-display", 900, "knowledge-bump")  # E18
+        last_knowledge_preview = knowledge_now
 
     last_event_el = document.getElementById("last-event-display")
     if run.event_log:
@@ -1432,9 +1810,7 @@ def render():
     # E17: toughest run yet.
     toughest = toughest_run_yet()
     toughest_el = document.getElementById("toughest-run-display")
-    toughest_el.innerText = (
-        f"Toughest run yet: Run #{toughest[0]} scored {toughest[1]:.0f}" if toughest else ""
-    )
+    toughest_el.innerText = toughest_run_text() if toughest else ""
 
     document.getElementById("knowledge-points-display").innerText = (
         f"Resilience knowledge: {skill_tree.knowledge_points}"
@@ -1448,10 +1824,26 @@ def render():
     # E13: reset-skill-tree button, gated behind the in-UI two-click
     # confirmation (skill_tree_reset_pending).
     reset_button = document.getElementById("reset-skill-tree-button")
-    reset_button.innerText = "Click again to confirm reset" if skill_tree_reset_pending else "Reset Skill Tree"
+    reset_button.innerText = (
+        f"Click again to confirm reset (refunds {reset_refund_total()} knowledge points)"
+        if skill_tree_reset_pending
+        else "Reset Skill Tree"
+    )
     reset_button.disabled = not skill_tree.unlocked
 
+    document.getElementById("pinned-skills-display").innerText = pinned_skills_text()  # E30b
     for skill_id, skill in SKILLS.items():
+        eta_el = document.getElementById(f"skill-{skill_id}-eta")
+        pin_button = document.getElementById(f"skill-{skill_id}-pin-button")
+        if skill_id in skill_tree.unlocked:
+            eta_el.innerText = ""
+            pin_button.hidden = True
+        else:
+            eta_el.innerText = _eta_text(skill_id)  # E30a
+            pin_button.hidden = False
+            pinned = skill_id in meta["pinned_skills"]
+            pin_button.innerText = "📌 Pinned" if pinned else "📍 Pin"
+            pin_button.title = "Unpin this skill" if pinned else "Pin this skill to track how many runs until you can afford it"
         status_el = document.getElementById(f"skill-{skill_id}-status")
         practice_el = document.getElementById(f"skill-{skill_id}-practice")
         unlock_button = document.getElementById(f"skill-{skill_id}-unlock-button")
@@ -1506,6 +1898,7 @@ def on_invest_growth(event=None):
 def on_resolve_event(event=None):
     _clear_skill_tree_reset_pending()
     run.resolve_next_event()
+    _maybe_trigger_callouts(run)
     render()
     _check_new_achievements_for_toast()
 
@@ -1530,8 +1923,10 @@ def start_new_run(event=None):
     run uses the doubled-length schedule (RunState's own `extended` flag)
     -- opt-in, and only ever read at the moment a new run starts, so it
     has no effect on a run already in progress."""
-    global run
+    global run, callout_message, last_knowledge_preview
     _clear_skill_tree_reset_pending()
+    callout_message = ""
+    last_knowledge_preview = None
     extended = document.getElementById("extended-run-toggle").checked
     run = RunState(run_number=max(run.run_number, highest_awarded_run) + 1, extended=extended)
     render()
@@ -1617,6 +2012,18 @@ def load_state(data):
     return True
 
 
+def _make_pin_handler(skill_id):
+    def handler(event=None):
+        toggle_pin_skill(skill_id)
+        render()
+    return handler
+
+
+def on_settlement_name_change(event=None):
+    set_settlement_name(document.getElementById("settlement-name-input").value)
+    render()
+
+
 def _make_unlock_handler(skill_id):
     def handler(event=None):
         _clear_skill_tree_reset_pending()
@@ -1645,6 +2052,13 @@ def setup():
         document.getElementById(f"skill-{skill_id}-unlock-button").addEventListener(
             "click", create_proxy(_make_unlock_handler(skill_id))
         )
+        document.getElementById(f"skill-{skill_id}-pin-button").addEventListener(
+            "click", create_proxy(_make_pin_handler(skill_id))
+        )
+    document.getElementById("settlement-name-input").addEventListener(
+        "change", create_proxy(on_settlement_name_change)
+    )
+    document.getElementById("settlement-name-input").value = meta["settlement_name"]
     document.getElementById("info-page-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_info_page)
     )
