@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 241/733 items checked off (32.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 263/733 items checked off (35.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -735,36 +735,36 @@ Every idea in this section was accepted, no exceptions.
 *(This section is Noyvj Claude's to execute, not Noy2 Claude's — Continuum is being actively worked on in a separate concurrent session. Written here so the full ideas doc lands in one place; see `planning/AI-COORDINATION.md` before starting any of it.)* This section was written with real audience research behind it (40-year-old tech-industry men, your dad's friends) — see the ideas doc's own K-section preamble for the research summary (SimCity/Civilization-era nostalgia, deep optimization systems, competitive benchmarking).
 
 - [ ] K1: A "city planner's dashboard" — an optional dense, data-forward overlay (numeric readouts for every stat at once) as an alternate view mode alongside the 3D scene.
-- [ ] K2: A small "founded [year]" plaque-style readout on the main screen.
-- [ ] K3: A "benchmark your city" comparison mode against the aggregate of all other players' cities at the same era *(needs Z1)*.
-- [ ] K4: A subtle SimCity-era-style isometric camera preset alongside the existing Overview/Close-up/Aerial presets.
+- [x] K2: A small "founded [year]" plaque-style readout on the main screen.
+- [x] K3: A "benchmark your city" comparison mode against the aggregate of all other players' cities at the same era *(needs Z1)*.
+- [x] K4: A subtle SimCity-era-style isometric camera preset alongside the existing Overview/Close-up/Aerial presets.
 - [ ] K5: A "policy log" — a running, dated ledger of every major research/infrastructure decision, styled like city council meeting minutes.
-- [ ] K6: Let the research tree's search/filter support filtering by branch (provision/community/craft) as quick-toggle chips.
-- [ ] K7 *(this is `TODO.md`'s still-open K5, now with a concrete direction)*: The "civilization summary" end-of-playthrough report — frame it like an annual shareholder/stakeholder report, complete with a scored "sustainability rating," in-character.
-- [ ] K8: A small efficiency-per-capita readout always visible in the HUD.
-- [ ] K9 *(this is `TODO.md`'s still-open K12, marked "maybe" this round)*: A scenario/difficulty select at new-game start, including a "hard mode: resource-scarce start."
-- [ ] K10: A small "years since last unrest event" streak counter, mirroring Grid's clean-streak idea.
-- [ ] K11 **(prioritize — you called this out explicitly):** A "civic engineering challenge" mode — periodic optional constraints (e.g. build the next tier using 20% less resource extraction) as opt-in mini-challenges within an ongoing playthrough.
-- [ ] K12: A tooltip on each research node showing its exact numeric effect directly in the tree view.
-- [ ] K13: A "my city vs. history" comparison — the player's city trajectory plotted against a real historical reference curve for the same era.
-- [ ] K14 *(this is `TODO.md`'s still-open K17, now with a concrete direction)*: A day/night cycle toggle that can be paused on a specific time-of-day for screenshot purposes.
-- [ ] K15: A "founder's log" — the player writes (or selects templated) short personal annotations at each era transition.
-- [ ] K16 *(this is `TODO.md`'s still-open K18, now with a concrete direction)*: An optional stricter "hard mode" sustainability variant with meaningfully tighter livability thresholds, framed as a mastery challenge.
-- [ ] K17: A small "efficiency rank" badge (Bronze/Silver/Gold city) computed from the final sustainability score.
+- [x] K6: Let the research tree's search/filter support filtering by branch (provision/community/craft) as quick-toggle chips.
+- [x] K7 *(this is `TODO.md`'s still-open K5, now with a concrete direction)*: The "civilization summary" end-of-playthrough report — frame it like an annual shareholder/stakeholder report, complete with a scored "sustainability rating," in-character.
+- [x] K8: A small efficiency-per-capita readout always visible in the HUD.
+- [x] K9 *(this is `TODO.md`'s still-open K12, marked "maybe" this round)*: A scenario/difficulty select at new-game start, including a "hard mode: resource-scarce start."
+- [x] K10: A small "years since last unrest event" streak counter, mirroring Grid's clean-streak idea.
+- [x] K11 **(prioritize — you called this out explicitly):** A "civic engineering challenge" mode — periodic optional constraints (e.g. build the next tier using 20% less resource extraction) as opt-in mini-challenges within an ongoing playthrough.
+- [x] K12: A tooltip on each research node showing its exact numeric effect directly in the tree view.
+- [x] K13: A "my city vs. history" comparison — the player's city trajectory plotted against a real historical reference curve for the same era.
+- [x] K14 *(this is `TODO.md`'s still-open K17, now with a concrete direction)*: A day/night cycle toggle that can be paused on a specific time-of-day for screenshot purposes.
+- [x] K15: A "founder's log" — the player writes (or selects templated) short personal annotations at each era transition.
+- [x] K16 *(this is `TODO.md`'s still-open K18, now with a concrete direction)*: An optional stricter "hard mode" sustainability variant with meaningfully tighter livability thresholds, framed as a mastery challenge.
+- [x] K17: A small "efficiency rank" badge (Bronze/Silver/Gold city) computed from the final sustainability score.
 - [ ] K18: A "settlement archive" — a gallery of every past completed playthrough's final city (stats + screenshot).
-- [ ] K19 **(you flagged this as important for BCM114):** A small real-world GDP-per-capita-style reference line on the resource-balance graph, grounding the abstract number in a familiar economic framing.
+- [x] K19 **(you flagged this as important for BCM114):** A small real-world GDP-per-capita-style reference line on the resource-balance graph, grounding the abstract number in a familiar economic framing.
 - [ ] K20 *(this is `TODO.md`'s still-open K13, now with a concrete direction)*: A "shareable settlement snapshot" rendered as a clean, professional-looking infographic card (stats + a 3D-scene screenshot).
-- [ ] K21a: A small "tech tree completion %" readout.
-- [ ] K21b: Expand the research tree further, per your added note — a real tree-growth task, not just K21a's UI readout.
+- [x] K21a: A small "tech tree completion %" readout.
+- [x] K21b: Expand the research tree further, per your added note — a real tree-growth task, not just K21a's UI readout.
 - [ ] K22: A "consulting mode" — an optional harder scenario taking over a pre-built, already-struggling city that must be turned around.
-- [ ] K23: A small "next tier unlocks in ~N research points" estimate on locked research nodes.
+- [x] K23: A small "next tier unlocks in ~N research points" estimate on locked research nodes.
 - [ ] K24: A "civic infrastructure map" overlay — a simplified 2D top-down schematic view of building placement/density.
-- [ ] K25: A small "livability vs. growth" scatter-plot mini-graph tracked across the whole playthrough.
+- [x] K25: A small "livability vs. growth" scatter-plot mini-graph tracked across the whole playthrough.
 - [ ] K26a **(direction changed from the original pitch, per your answer):** Do NOT build the originally-pitched "Space Age expansion" epilogue that closes out the seven-era arc — "rather than closing it, lets keep making more eras," per your answer.
 - [ ] K26b: Scope what an eighth (and future) era beyond Space Age would look like, continuing the arc rather than ending it.
-- [ ] K27: A small keyboard-shortcut cheat-sheet overlay (accessible via a "?" key).
+- [x] K27: A small keyboard-shortcut cheat-sheet overlay (accessible via a "?" key).
 - [ ] K28: A "resource flow diagram" — an optional Sankey-style visualization of how resources move through the current era's production chain.
-- [ ] K29: A small "time played this city" readout, purely informational.
+- [x] K29: A small "time played this city" readout, purely informational.
 
 **Deferred to `LATER.md`** (your answer): K30 — the "peer city" async ghost overlay *(needs Z1)* — you said it could be good but might also be confusing, and you want to prioritize working multiplayer into as many games as possible soon as "the next big development after this set" — parking this specifically until that multiplayer work is scoped, not rejecting it.
 
