@@ -330,3 +330,5 @@ network layer here regardless of game code, the same environment
 limitation this session's Herd F7 build note documents in more detail.
 Once a production deploy picks up the `app/stats.py` whitelist change,
 this starts showing real percentiles with zero further code changes.
+
+- 2026-09-21: G2 -- `best_region_message()` now names the winning region's preserve/monitor/output mix.

@@ -509,9 +509,11 @@ def best_region_message():
     player-managed regions."""
     label = best_region_identifier()
     best = {"A": region, "B": region_b, "C": region_c}[label]
+    cap = best.capacity
     return (
         f"Region {label} currently has the lowest temperature (+{best.temperature:.1f}°) "
-        f"among your three managed regions."
+        f"among your three managed regions, with an investment mix of "
+        f"{cap['preserve']} preserve / {cap['monitor']} monitor / {cap['output']} output."
     )
 
 

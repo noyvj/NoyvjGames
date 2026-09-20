@@ -150,3 +150,16 @@ def test_worst_case_intro_note_shows_once(game_env):
     assert note.hidden
     assert game_env.module.get_state()["worst_case_intro_seen"] is True
     assert "automated" in game_env.elements["worst-case-toggle-button"].title
+
+
+def test_best_region_message_names_winning_investment_mix(game_env):
+    m = game_env.module
+    m.region_b.capacity["preserve"] = 3
+    m.region_b.capacity["monitor"] = 1
+    m.region_b.capacity["output"] = 2
+    m.region_b.temperature = -5.0
+    label = m.best_region_identifier()
+    assert label == "B"
+    msg = m.best_region_message()
+    assert "Region B" in msg
+    assert "3 preserve / 1 monitor / 2 output" in msg
