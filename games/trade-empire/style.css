@@ -122,6 +122,39 @@ h1 {
   background: linear-gradient(135deg, #1c3540, #101f26);
 }
 
+/* Research-nodes disclosure (UI decluttering pass, TODO.md closing task)
+   — collapses the panel's 6 node rows behind one summary line, same
+   <details>/<summary> idiom as Tide's .ticker-history-toggle. Collapsed
+   by default: see index.html's comment for why (a rare, deliberate
+   action per this game's own J19 audit, not a per-turn check). */
+.research-nodes-toggle {
+  margin-top: 0.4rem;
+}
+
+.research-nodes-toggle summary {
+  font-size: 0.78rem;
+  opacity: 0.65;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.research-nodes-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.research-nodes-toggle summary:hover {
+  opacity: 0.9;
+}
+
+.research-nodes-toggle[open] summary {
+  margin-bottom: 0.6rem;
+}
+
+.research-nodes-toggle .research-row:first-of-type {
+  margin-top: 0.2rem;
+}
+
 .map-canvas {
   display: block;
   width: 100%;

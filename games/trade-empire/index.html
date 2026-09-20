@@ -79,30 +79,47 @@
         <details class="info-toggle"><summary>i</summary><p>Research points build up on their own over time, separately from your trading profit — they're a second currency spent only on these permanent, fleet-wide upgrades, not on ships or routes.</p></details>
       </p>
       <p id="research-points-display" class="research-points">Research points: 0</p>
-      <div class="research-row">
-        <span id="research-automation_slot-status" class="research-status">Automation Expansion — +1 automation slot</span>
-        <button id="research-automation_slot-unlock-button" class="secondary" disabled>Loading...</button>
-      </div>
-      <div class="research-row">
-        <span id="research-fast_ships-status" class="research-status">Fast Ships I — -1 tick travel time, fleet-wide</span>
-        <button id="research-fast_ships-unlock-button" class="secondary" disabled>Loading...</button>
-      </div>
-      <div class="research-row">
-        <span id="research-hauler-status" class="research-status">Hauler-Class Refit — +50% cargo capacity, fleet-wide</span>
-        <button id="research-hauler-unlock-button" class="secondary" disabled>Loading...</button>
-      </div>
-      <div class="research-row">
-        <span id="research-galaxy_expansion-status" class="research-status">Galaxy Expansion — Unlocks the Kepler Cluster</span>
-        <button id="research-galaxy_expansion-unlock-button" class="secondary" disabled>Loading...</button>
-      </div>
-      <div class="research-row">
-        <span id="research-automation_slot_2-status" class="research-status">Automation Expansion II — +1 more automation slot (requires Automation Expansion)</span>
-        <button id="research-automation_slot_2-unlock-button" class="secondary" disabled>Loading...</button>
-      </div>
-      <div class="research-row">
-        <span id="research-outer_reaches-status" class="research-status">Outer Reaches — Unlocks the Rift Colonies (requires Galaxy Expansion)</span>
-        <button id="research-outer_reaches-unlock-button" class="secondary" disabled>Loading...</button>
-      </div>
+      <!-- UI decluttering pass (TODO.md closing task): this panel's 6
+           node rows are always-visible whether or not any of them are
+           actually affordable/relevant yet, stacked directly under the
+           one line (Research points) a player actually needs to glance
+           at most rounds. This game's own J19 audit already established
+           these unlock buttons are clicked at most ~6 times in an entire
+           playthrough -- a rare, deliberate action, not a per-turn
+           check -- so the node list is exactly the "rarely-touched
+           breakdown" the site-wide <details> pattern targets. Collapsed
+           by default (unlike Drift's open-by-default real-world-context
+           block, which is core framing, not an action list); the
+           research-points number itself stays outside the toggle so it
+           reads every render regardless. Same <details>/<summary> idiom
+           as Tide's .ticker-history-toggle. -->
+      <details class="research-nodes-toggle">
+        <summary>Research nodes (6)</summary>
+        <div class="research-row">
+          <span id="research-automation_slot-status" class="research-status">Automation Expansion — +1 automation slot</span>
+          <button id="research-automation_slot-unlock-button" class="secondary" disabled>Loading...</button>
+        </div>
+        <div class="research-row">
+          <span id="research-fast_ships-status" class="research-status">Fast Ships I — -1 tick travel time, fleet-wide</span>
+          <button id="research-fast_ships-unlock-button" class="secondary" disabled>Loading...</button>
+        </div>
+        <div class="research-row">
+          <span id="research-hauler-status" class="research-status">Hauler-Class Refit — +50% cargo capacity, fleet-wide</span>
+          <button id="research-hauler-unlock-button" class="secondary" disabled>Loading...</button>
+        </div>
+        <div class="research-row">
+          <span id="research-galaxy_expansion-status" class="research-status">Galaxy Expansion — Unlocks the Kepler Cluster</span>
+          <button id="research-galaxy_expansion-unlock-button" class="secondary" disabled>Loading...</button>
+        </div>
+        <div class="research-row">
+          <span id="research-automation_slot_2-status" class="research-status">Automation Expansion II — +1 more automation slot (requires Automation Expansion)</span>
+          <button id="research-automation_slot_2-unlock-button" class="secondary" disabled>Loading...</button>
+        </div>
+        <div class="research-row">
+          <span id="research-outer_reaches-status" class="research-status">Outer Reaches — Unlocks the Rift Colonies (requires Galaxy Expansion)</span>
+          <button id="research-outer_reaches-unlock-button" class="secondary" disabled>Loading...</button>
+        </div>
+      </details>
     </div>
 
     <div id="map-panel" class="section">
