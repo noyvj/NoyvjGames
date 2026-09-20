@@ -183,6 +183,12 @@
           <p id="loop-projection-display" class="comparison-message" title="This is an estimate extrapolated from your recent trend, not a guarantee -- buying more or fewer investments changes it immediately.">Not enough cycles yet to project when the loop might close.</p>
           <p id="real-world-comparison-display" class="comparison-message">Your chain is running at 0% circular, versus a roughly 7% estimated real-world average today (a ballpark figure, not a precise benchmark).</p>
           <p id="sector-comparison-display" class="comparison-message">For context, your circular share is also below several real-world sector estimates (ballpark figures, not precise benchmarks).</p>
+          <!-- H5: live cross-player comparison against the shared aggregate-stats
+               endpoint (planning/TODO.md Z1) -- distinct from the two static
+               ballpark real-world/sector comparisons above. Filled in by the
+               window.loopCompare() hook below; game.py never writes into this
+               id directly (same division of labor as Grid's own C15). -->
+          <p id="community-comparison-display" class="comparison-message">Compare with other players isn't available yet.</p>
           <!-- H12: where the score comes from. Percent labels, not hue alone. -->
           <div class="score-pie-row">
             <div id="score-pie" class="score-pie" role="img" aria-label="Score sources"></div>
@@ -335,6 +341,39 @@
         text: "There's no fail-state here — score rewards funds plus a direct bonus for your lifetime circular share, so closing the loop is worth pursuing for its own sake, not just to dodge rising extraction costs. Keep investing in circularity until new extraction hits zero, and watch the trend line confirm you're closing the loop over time. Good luck redesigning the chain.",
       },
     ];
+
+    // H5: optional cross-player comparison for lifetime circular share,
+    // against the shared aggregate-stats endpoint (planning/TODO.md Z1).
+    // Same shape as Grid's own C15 window.gridCompare -- fails soft on any
+    // error/suppression, leaving game.py's static "isn't available yet"
+    // fallback text in place.
+    (function () {
+      const API_BASE = "https://noyvjgames.fastapicloud.dev";
+      const cache = new Map();
+      function show(text) {
+        const el = document.getElementById("community-comparison-display");
+        if (el && text) el.textContent = text;
+      }
+      window.loopCompare = function (lifetimeCircularFraction) {
+        const key = Math.round(lifetimeCircularFraction * 1000);
+        const hit = cache.get(key);
+        if (hit && Date.now() - hit.at < 60000) { show(hit.text); return; }
+        if (hit) return; // in flight
+        cache.set(key, { at: Date.now(), text: null });
+        fetch(`${API_BASE}/stats/games/loop/percentile?field=lifetime_circular_fraction&value=${key / 1000}`)
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d) => {
+            let text = null;
+            if (d && !d.suppressed && typeof d.percentile === "number") {
+              const rounded = Math.round(d.percentile);
+              text = `Compared with ${d.count} other saved chains: your lifetime circular share beats ${rounded}% of them.`;
+            }
+            cache.set(key, { at: Date.now(), text });
+            show(text);
+          })
+          .catch(() => { cache.set(key, { at: Date.now(), text: null }); });
+      };
+    })();
 
     async function main() {
       const pyodide = await loadPyodide();

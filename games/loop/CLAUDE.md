@@ -339,3 +339,106 @@ Left for a later pass: H3, H7, H9, H13, H17, H21, H23 (new mechanics),
 H25b/H29b (rich desktop SVG maps), H19 (largely covered by the existing
 sector comparison), H5 (needs Z1 -- stats endpoint not deployed), H11
 (needs backend).
+
+## H5: live cross-player circular-economy-index comparison (Z1 now deployed)
+
+Z1, the hub-wide cross-game aggregate-stats backend (`app/stats.py` +
+`app/main.py`), is now built and deployed, so came back to unpark H5 from
+the list above -- a "circular economy index" community comparison,
+aggregate stats on average circular-fraction reached across all players.
+Followed Grid's own C15 (`games/grid/game.py`/`index.html`) as the
+established reference architecture for this exact feature (also checked
+Canopy's B19 `community-forest-button`, a button-triggered/multi-field
+variant of the same idea) rather than inventing a new shape: a Python-side
+optional-hook call, guarded by `getattr(window, "loopCompare", None)` so
+it's a safe no-op under the pytest fake-DOM harness (which never fakes
+`window`, only `document`/`setTimeout`), paired with a JS-side `fetch()`
+in `index.html` that does the real network call and writes the result
+into the DOM -- `game.py` never touches `#community-comparison-display`
+directly, same division of labor as Grid's `#summary-compare`.
+
+**Metric chosen:** `chain.lifetime_circular_fraction()` -- the same 0..1
+lifetime circular share already surfacing everywhere else in this game
+(the "Lifetime circular share" meter readout, the two static ballpark
+`real_world_comparison_message()`/`sector_comparison_message()` lines,
+the score bonus) -- rather than a raw count like `total_extracted`, since
+it's the one number this game's whole design already treats as *the*
+circular-economy index a player is optimizing for. It wasn't yet a plain
+top-level `get_state()` field in a form `app/stats.py`'s `STATS_FIELDS`
+whitelist could read directly (only the two raw counts it's derived
+from, `total_extracted`/`total_produced`, were), so `get_state()` now
+also exposes `lifetime_circular_fraction` as a derived, read-only key --
+recomputed fresh every call, never restored by `load_state()` (an extra
+key `load_state()` simply doesn't read), so it can't drift out of sync
+with the two counts it comes from. Added it to `STATS_FIELDS["loop"]` in
+`app/stats.py` (a small, careful addition -- `loop` was already
+registered there for its other five raw counters; this just adds the one
+new key). No dedicated per-field backend test added since
+`app/tests/test_aggregate_stats.py`'s existing pattern doesn't cover
+individual games/fields either (it exercises the whitelist mechanism
+generically against `grid`/`herd`/`thaw`/`tide`) -- full backend suite
+(76 tests) confirmed green with the addition regardless.
+
+**Wiring:** `_request_community_comparison()` (new, next to
+`sector_comparison_message()`) calls `window.loopCompare(chain.lifetime_
+circular_fraction())` from the tail of `render()`, right after the two
+static comparison lines it sits beside in the UI. `index.html` defines
+`window.loopCompare` as an IIFE (same shape as Grid's `window.gridCompare`
+-- cache-by-rounded-value with a 60s TTL and an in-flight guard, so
+Loop's own frequent `render()` calls -- every click, not gated behind an
+open/closed summary-panel flag the way Grid's is, since this game has no
+such panel -- don't spam the endpoint): it fetches `GET
+/stats/games/loop/percentile?field=lifetime_circular_fraction&value=<x>`
+and, on a real non-suppressed percentile, writes "Compared with N other
+saved chains: your lifetime circular share beats X% of them." into
+`#community-comparison-display`; any error, non-2xx response, or
+`suppressed: true` leaves that element's static HTML fallback ("Compare
+with other players isn't available yet.") untouched -- `game.py` never
+writes into that id at all, so the fallback is exactly what a player sees
+until/unless the fetch actually succeeds. Placed inside the existing
+"📊 Streak, trend & real-world comparison" `<details>` block (the UI
+decluttering pass's collapsible), right after `sector-comparison-display`,
+since it's the same kind of supplementary, non-per-click-actionable
+readout the other lines in that block already are.
+
+**Tests:** new `tests/test_community_comparison.py` (5 tests) --
+mirrors `games/grid/tests/test_round2_items.py`'s own C15 coverage shape:
+`render()` calls the hook with the live, freshly-recomputed
+`lifetime_circular_fraction()` value (checked across two different
+lifetime states in the same test, not just once); a safe no-op when
+`window` isn't faked at all (the normal pytest case) and when `window`
+exists but has no `loopCompare` attribute; and a static check that
+`index.html` actually ships the element, its fallback text, and the
+hook/endpoint/field name wiring. Also had to update
+`tests/test_save_system.py::test_get_state_includes_every_expected_key`'s
+exact-key-set assertion to include the new `lifetime_circular_fraction`
+key (a deliberate, expected change, not a regression). Full suite: 186 ->
+191 tests, all green. `flake8 games/loop app --extend-ignore=E501` clean.
+
+**Verified live** against the shared `hub-dev-server` and the *real*
+production backend (`https://noyvjgames.fastapicloud.dev`, same
+`API_BASE` Grid's own `index.html` already points at) in a dedicated
+Claude Browser tab (the shared/default tab in this pane was being
+actively driven by another concurrent session mid-session and kept
+navigating out from under this check -- opened a fresh tab instead of
+fighting over the shared one): confirmed `window.loopCompare` is defined
+and gets called with the live fraction value on every `render()`
+(intercepted the real hook and triggered a Repair Networks investment
+click, confirmed the call), and that `#community-comparison-display`
+never shows raw JSON or an error string -- only ever its plain-English
+fallback or (once real data exists) the plain-English percentile
+sentence. Production's `/stats/games/loop/percentile` currently 404s for
+`field=lifetime_circular_fraction` specifically (expected: this session
+added the field to `app/stats.py` locally, and it hasn't been
+deployed/pushed yet -- same "built, not yet deployed" situation Milestone
+6's accounts backend documents), which does surface as a "Failed to load
+resource: 404" browser console line -- an artifact of the browser's own
+network-panel logging for any non-2xx `fetch()` response, not a JS
+exception this code raises or leaves uncaught, and not something a player
+ever sees on the page itself. Separately confirmed against production
+that even an already-deployed, already-whitelisted field (Grid's
+`emissions`) currently returns `suppressed: true` with a clean 200 (this
+site simply doesn't have 3+ real saves yet for most fields) -- so once
+this field is deployed, the realistic day-one state is the same graceful
+"not enough players yet" text, zero console noise, that every other
+game's own C15/B19-style comparison currently shows in production too.

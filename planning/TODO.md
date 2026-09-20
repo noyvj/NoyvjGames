@@ -626,7 +626,7 @@ Every idea in this section was accepted. **You also flagged a real cross-cutting
 - [x] H2: Let the closed-loop streak tracker show its current streak with a small progress indicator (no guilt-driven "flame" framing, per this game's own design spirit).
 - [ ] H3: A "supply chain redesign" late-game layer — once fully circular, over-invest in a specific measure (repair/reuse/recycle) for a small efficiency bonus.
 - [x] H4: Let the alternate goods-flavor sets be switchable mid-session as a cosmetic-only relabeling, not just at game start.
-- [ ] H5: A "circular economy index" community comparison — aggregate stats on average circular-fraction reached across all players *(needs Z1)*.
+- [x] H5: A "circular economy index" community comparison — aggregate stats on average circular-fraction reached across all players *(needs Z1)*.
 - [x] H6: A small animated particle burst specifically on the moment circular fraction crosses each 25% milestone.
 - [ ] H7: A "product lifecycle" vignette expansion — follow a specific named product across multiple cycles, a small ongoing narrative thread.
 - [x] H8: Let the cost-per-unit-of-supply readout show a small trend indicator (getting cheaper/pricier).

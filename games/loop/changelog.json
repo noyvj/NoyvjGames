@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-21",
+    "entry": "H5: a new live comparison shows how your lifetime circular share stacks up against other players', once enough chains have been saved to compare against."
+  },
+  {
+    "date": "2026-09-21",
     "entry": "Z22 confirmation-dialog audit: \"Start New Chain\" now goes through the shared ConfirmDialog (matching Grid/Herd/Trade Empire) instead of firing instantly, since it's a full wipe of the current chain's funds, cycle, and investments."
   },
   {

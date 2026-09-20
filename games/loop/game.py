@@ -429,6 +429,29 @@ def sector_comparison_message(lifetime_fraction):
     return "For context, your circular share is also " + "; ".join(clauses) + " (again, ballpark figures, not precise benchmarks)."
 
 
+def _request_community_comparison():
+    """H5: asks the page's optional JS hook (window.loopCompare, see
+    index.html) to fill #community-comparison-display with a real
+    cross-player percentile for lifetime circular share, once the shared
+    aggregate-stats endpoint (planning/TODO.md Z1) has enough saves to
+    answer -- unlike real_world_comparison_message()/sector_comparison_message()
+    above, which are static, hedged ballpark figures, not live player data.
+
+    Same lazy `from js import window`/getattr-default shape as Grid's own
+    `_request_comparison()` (games/grid/game.py C15) and this file's own
+    `_confirm_dialog_ask()`: the pytest fake-DOM harness's `js` module only
+    ever fakes `document`/`setTimeout` (see tests/conftest.py), never
+    `window`, so this is a safe no-op under test, and a safe no-op on any
+    page that never defines `window.loopCompare` either."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    hook = getattr(window, "loopCompare", None)
+    if hook is not None:
+        hook(chain.lifetime_circular_fraction())
+
+
 def vignette_message(fraction, item=None, variant_seed=0):
     """A concrete, one-item side-story tracking the same underlying
     circular_fraction_this_cycle() the abstract chain view already
@@ -1241,6 +1264,10 @@ def render():
     document.getElementById("sector-comparison-display").innerText = (
         sector_comparison_message(chain.lifetime_circular_fraction())
     )
+    # H5: live cross-player comparison, distinct from the two static
+    # real-world/sector comparisons just above -- see
+    # _request_community_comparison()'s own docstring.
+    _request_community_comparison()
     document.getElementById("streak-display").innerText = (
         f"Closed-loop streak: {chain.closed_loop_streak} cycle(s) (best: {chain.best_closed_loop_streak})"
     )
@@ -1506,6 +1533,13 @@ def get_state():
         "funds": chain.funds,
         "total_extracted": chain.total_extracted,
         "total_produced": chain.total_produced,
+        # H5: a derived, read-only field -- not restored by load_state()
+        # below, just recomputed fresh from total_extracted/total_produced
+        # every call. Exposed here purely so app/stats.py's STATS_FIELDS
+        # whitelist (a plain top-level get_state() field, planning/TODO.md
+        # Z1) can read it directly instead of a consumer having to derive
+        # the fraction itself from two separate raw-count fields.
+        "lifetime_circular_fraction": chain.lifetime_circular_fraction(),
         "circularity_investment": copy.deepcopy(chain.circularity_investment),
         "circular_fraction_log": copy.deepcopy(chain.circular_fraction_log),
         "trade_link_investment": chain.trade_link_investment,

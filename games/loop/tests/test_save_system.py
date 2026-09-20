@@ -15,6 +15,7 @@ def test_get_state_includes_every_expected_key(game_env):
         "funds",
         "total_extracted",
         "total_produced",
+        "lifetime_circular_fraction",
         "circularity_investment",
         "circular_fraction_log",
         "trade_link_investment",
