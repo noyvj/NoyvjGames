@@ -419,6 +419,16 @@ already covered by the fallback-text tests above, and functionally an
 unreachable/never-resolving backend and a genuinely-down one produce
 the identical player-visible result: the fallback text stays put.
 
+## Round-3 Herd mechanics (2026-09-21)
+
+Built from `planning/TODO.md`'s Herd F-list (174 -> 191 tests, `tests/test_round3_features.py`). New UI lives in one collapsed `#farm-extras` panel (plus a hidden `#policy-panel` and `#poultry-panel`), so the main screen is not re-crowded; all new state is validated and defaulted in `load_state()`.
+- **F23 poultry:** unlocked by sustainable certification (the game's prestige). Own base ratio 0.3 (methane-equivalent; real poultry emissions are mostly manure N2O/ammonia), two own levers (litter, biofilters), housing upkeep, counterfactual includes it at base ratio.
+- **F5 breeding:** fourth lever that matures after 3 rounds. **F13 supply chain:** up to +30% income. **F15 welfare:** feed/caps/breeding raise it, up to +10% income.
+- **F9/F3 (opt-in):** deterministic season income swings and plant-based demand surges; applied to the baseline farm too. **F19 (opt-in):** regional cap of 20 methane/round blocks growth. **F27:** policy advisor every 8 rounds (30% subsidy for 5 rounds or +40 funds). **F17:** farm-tour vignettes by coupling band.
+- **F29:** researched (see `planning/FOR-YOU.md`): real farms sell biogas/RNG and credits, so built as surplus-capture biogas sales (first 2 capture units are on-farm use).
+- Not done: F1 (satellite farm), F25 (succession), F10/F21 (need community stats the backend cannot support).
+- Live-verified: the panel's `innerText` reads empty while the `<details>` is closed (use `textContent`); zero console errors.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

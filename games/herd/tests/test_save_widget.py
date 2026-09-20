@@ -26,6 +26,15 @@ def test_get_state_includes_every_expected_key(game_env):
         "seen_methane_penalty_nudge",
         "certification_streak",
         "certified",
+        "poultry_size",
+        "poultry_investment",
+        "genetics_active",
+        "genetics_pending",
+        "supply_chain_investment",
+        "variation_enabled",
+        "regional_cap_enabled",
+        "policy_offer_pending",
+        "subsidy_rounds_left",
         "achievements_earned",
     }
 

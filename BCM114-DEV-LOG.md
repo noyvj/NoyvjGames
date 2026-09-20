@@ -350,3 +350,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Le Champ de Mots
 **Did:** R2-L1b: the four arcade minigames, gender drill, liaison practice, proficiency tests and bonus sentences now feed one shared, saved, validated practice ledger (per-mode accuracy plus daily/lifetime-capped points), shown as a header "Practice score" tile and a dashboard section; SRS state is never touched. V-AB-1: replaced the silent High-def default with the first-run picker the user actually asked for (desktop only, keyboard-accessible, skippable), with wording that is honest that three styles are CSS chrome, not separate art.
 **Result:** 538 to 561 tests (560 passed + 1 seeded-random skip) green, flake8 clean; verified live in the browser pane with zero console errors (including a stale service-worker cache trap). Not done: per-catalog-topic granularity for the ledger, and the L1 fifth minigame. See `games/champ-de-mots/CLAUDE.md` Milestones 35-36.
+
+### 2026-09-21 (Herd: second herd type and a round of leftover F-mechanics)
+**Game:** Herd
+**Did:** F23 poultry as a second herd type (unlocked by sustainable certification, own emissions curve, levers and upkeep), plus breeding (F5), supply chain (F13), welfare (F15), opt-in market/weather variation and demand surges (F9/F3), opt-in regional cap (F19), policy advisor (F27), farm-tour vignettes (F17), and biogas sales from surplus capture (F29, researched: real farms sell biogas/RNG and credits, finding recorded in FOR-YOU.md). New controls sit in one collapsed panel to avoid re-crowding the screen.
+**Result:** 174 to 191 tests green, flake8 clean, verified in the browser with zero console errors. Open: F1, F25, F10/F21 (backend cannot support them).

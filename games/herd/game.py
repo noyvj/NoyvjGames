@@ -108,6 +108,80 @@ CERTIFICATION_PRICE_PREMIUM = 0.10
 CLEAN_OPERATOR_MIN_ROUND = 15
 CLEAN_OPERATOR_MAX_PRESSURE = 0.1
 
+# F29 -- real-world grounding (see planning/FOR-YOU.md): farms do sell captured
+# biogas/RNG (and its RIN/LCFS credits). The first CAPTURE_SELF_USE_UNITS of
+# capture cover on-farm use; each capture unit beyond that yields saleable gas.
+CAPTURE_SELF_USE_UNITS = 2
+BIOGAS_SALE_PER_UNIT = 0.05  # funds per herd unit per surplus capture unit
+
+# F23 -- second herd type, unlocked by sustainable certification (this
+# game's prestige). Poultry: cheap, low-emission per unit, own levers, own
+# housing upkeep. Its emissions are shown as "methane-equivalent" (real
+# poultry emissions are mostly manure N2O/ammonia, not enteric methane).
+POULTRY_GROW_COST = 12
+POULTRY_GROW_SLOPE = 1.0
+POULTRY_INCOME_PER_UNIT = 2.5
+POULTRY_UPKEEP_PER_UNIT = 0.4
+POULTRY_BASE_RATIO = 0.3
+MIN_POULTRY_RATIO = 0.05
+POULTRY_MEASURES = {
+    "litter": {"cost": 12, "ratio_reduction": 0.04, "label": "Litter Management", "icon": "\U0001F33E"},
+    "biofilter": {"cost": 15, "ratio_reduction": 0.05, "label": "Ventilation Biofilters", "icon": "\U0001F4A8"},
+}
+
+# F5 -- generational genetics: a slow-burn fourth lever. Each investment
+# takes GENETICS_MATURE_ROUNDS rounds to breed through, then permanently
+# lowers the ratio.
+GENETICS_COST = 30
+GENETICS_RATIO_REDUCTION = 0.05
+GENETICS_MATURE_ROUNDS = 3
+
+# F13 -- supply chain: downstream processing/distribution, an income lever
+# independent of herd growth.
+SUPPLY_CHAIN_COST = 30
+SUPPLY_CHAIN_BONUS_PER_UNIT = 0.06
+SUPPLY_CHAIN_MAX_UNITS = 5
+
+# F15 -- herd welfare: a light second axis. Better feed, caps (less
+# crowding) and breeding raise it; above the neutral point it lifts income.
+WELFARE_START = 50.0
+WELFARE_FEED = 5.0
+WELFARE_CAPS = 3.0
+WELFARE_GENETICS = 4.0
+WELFARE_MAX = 100.0
+WELFARE_INCOME_BONUS_MAX = 0.10
+
+# F9/F3 -- opt-in "market & weather variation": deterministic per-round
+# income swings (season) plus periodic plant-based demand surges.
+SEASONS = [
+    ("Drought", -0.10),
+    ("Dry spell", -0.05),
+    ("Normal season", 0.0),
+    ("Good pasture", 0.05),
+    ("Bumper season", 0.10),
+]
+DEMAND_SURGE_PLANT_INCOME_MULTIPLIER = 1.05
+
+# F19 -- opt-in regional methane cap: growth that would push per-round
+# methane past the cap is blocked, forcing decoupling.
+REGIONAL_CAP = 20.0
+
+# F27 -- policy advisor: every POLICY_EVENT_INTERVAL rounds, choose between
+# a decoupling subsidy and a flat cash bonus.
+POLICY_EVENT_INTERVAL = 8
+POLICY_SUBSIDY_DISCOUNT = 0.30
+POLICY_SUBSIDY_ROUNDS = 5
+POLICY_CASH_BONUS = 40
+
+
+def season_for_round(round_number):
+    """Deterministic pseudo-random season (same on every load/replay)."""
+    return SEASONS[(round_number * 7 + 3) % len(SEASONS)]
+
+
+def demand_surge_active(round_number):
+    return round_number % 6 in (4, 5)
+
 
 class FarmState:
     def __init__(self):
@@ -157,6 +231,130 @@ class FarmState:
         # dropped below the previous round's, i.e. the curve flattened.
         self.just_flattened = False
 
+        # F23 poultry (unlocked by certification), F5 genetics, F13 supply
+        # chain, F9/F3 variation toggle, F19 cap toggle, F27 policy event.
+        self.poultry_size = 0
+        self.poultry_investment = {m: 0 for m in POULTRY_MEASURES}
+        self.genetics_active = 0
+        self.genetics_pending = []  # rounds-remaining for each in-progress unit
+        self.supply_chain_investment = 0
+        self.variation_enabled = False
+        self.regional_cap_enabled = False
+        self.policy_offer_pending = False
+        self.subsidy_rounds_left = 0
+
+    # ---- F27 policy advisor ----
+    def decoupling_cost(self, measure):
+        cost = DECOUPLING_MEASURES[measure]["cost"]
+        if self.subsidy_rounds_left > 0:
+            return cost * (1 - POLICY_SUBSIDY_DISCOUNT)
+        return cost
+
+    def choose_policy(self, choice):
+        if not self.policy_offer_pending:
+            return False
+        if choice == "subsidy":
+            self.subsidy_rounds_left = POLICY_SUBSIDY_ROUNDS
+        elif choice == "cash":
+            self.funds += POLICY_CASH_BONUS
+        else:
+            return False
+        self.policy_offer_pending = False
+        return True
+
+    # ---- F23 poultry ----
+    def poultry_unlocked(self):
+        return self.certified
+
+    def poultry_coupling_ratio(self):
+        reduction = sum(
+            self.poultry_investment[m] * POULTRY_MEASURES[m]["ratio_reduction"] for m in POULTRY_MEASURES
+        )
+        return max(MIN_POULTRY_RATIO, POULTRY_BASE_RATIO - reduction)
+
+    def poultry_grow_cost(self):
+        return POULTRY_GROW_COST + self.poultry_size * POULTRY_GROW_SLOPE
+
+    def grow_poultry(self):
+        cost = self.poultry_grow_cost()
+        if not self.poultry_unlocked() or self.funds < cost or self.cap_blocks_growth(poultry=1):
+            return False
+        self.funds -= cost
+        self.poultry_size += 1
+        return True
+
+    def invest_poultry(self, measure):
+        if not self.poultry_unlocked():
+            return False
+        cost = POULTRY_MEASURES[measure]["cost"]
+        if self.funds < cost:
+            return False
+        self.funds -= cost
+        self.poultry_investment[measure] += 1
+        return True
+
+    def poultry_net_income(self):
+        return self.poultry_size * (POULTRY_INCOME_PER_UNIT - POULTRY_UPKEEP_PER_UNIT)
+
+    # ---- F5 genetics ----
+    def invest_genetics(self):
+        if self.funds < GENETICS_COST:
+            return False
+        self.funds -= GENETICS_COST
+        self.genetics_pending.append(GENETICS_MATURE_ROUNDS)
+        return True
+
+    # ---- F13 supply chain ----
+    def invest_supply_chain(self):
+        if self.funds < SUPPLY_CHAIN_COST or self.supply_chain_investment >= SUPPLY_CHAIN_MAX_UNITS:
+            return False
+        self.funds -= SUPPLY_CHAIN_COST
+        self.supply_chain_investment += 1
+        return True
+
+    def supply_chain_multiplier(self):
+        return 1 + self.supply_chain_investment * SUPPLY_CHAIN_BONUS_PER_UNIT
+
+    # ---- F15 welfare ----
+    def welfare(self):
+        score = (
+            WELFARE_START
+            + self.decoupling_investment["feed"] * WELFARE_FEED
+            + self.decoupling_investment["caps"] * WELFARE_CAPS
+            + self.genetics_active * WELFARE_GENETICS
+        )
+        return min(WELFARE_MAX, score)
+
+    def welfare_multiplier(self):
+        return 1 + WELFARE_INCOME_BONUS_MAX * (self.welfare() - WELFARE_START) / (WELFARE_MAX - WELFARE_START)
+
+    # ---- F9/F3 variation ----
+    def season_modifier(self, round_number=None):
+        if not self.variation_enabled:
+            return 0.0
+        return season_for_round(self.round_number if round_number is None else round_number)[1]
+
+    def plant_income_multiplier(self, round_number=None):
+        r = self.round_number if round_number is None else round_number
+        if self.variation_enabled and demand_surge_active(r):
+            return DEMAND_SURGE_PLANT_INCOME_MULTIPLIER
+        return PLANT_BASED_INCOME_MULTIPLIER
+
+    # ---- F29 biogas ----
+    def biogas_sales(self):
+        surplus = max(0, self.decoupling_investment["capture"] - CAPTURE_SELF_USE_UNITS)
+        return self.herd_size * surplus * BIOGAS_SALE_PER_UNIT
+
+    # ---- F19 regional cap ----
+    def cap_blocks_growth(self, herd=0, poultry=0):
+        if not self.regional_cap_enabled:
+            return False
+        projected = (
+            (self.herd_size + herd) * self.coupling_ratio()
+            + (self.poultry_size + poultry) * self.poultry_coupling_ratio()
+        )
+        return projected > REGIONAL_CAP + 1e-9
+
     def certification_multiplier(self):
         return 1 + CERTIFICATION_PRICE_PREMIUM if self.certified else 1.0
 
@@ -166,7 +364,7 @@ class FarmState:
         reduction = sum(
             self.decoupling_investment[m] * DECOUPLING_MEASURES[m]["ratio_reduction"]
             for m in DECOUPLING_MEASURES
-        )
+        ) + self.genetics_active * GENETICS_RATIO_REDUCTION
         return max(MIN_COUPLING_RATIO, BASE_COUPLING_RATIO - reduction)
 
     def plant_based_fraction(self):
@@ -198,7 +396,7 @@ class FarmState:
         return 1 - (self.coupling_ratio() / BASE_COUPLING_RATIO)
 
     def methane_this_round(self):
-        return self.herd_size * self.coupling_ratio()
+        return self.herd_size * self.coupling_ratio() + self.poultry_size * self.poultry_coupling_ratio()
 
     def grow_herd_cost(self):
         """F6 — a rising growth-cost curve: the very first unit still
@@ -210,14 +408,14 @@ class FarmState:
 
     def grow_herd(self):
         cost = self.grow_herd_cost()
-        if self.funds < cost:
+        if self.funds < cost or self.cap_blocks_growth(herd=1):
             return False
         self.funds -= cost
         self.herd_size += 1
         return True
 
     def invest_decoupling(self, measure):
-        cost = DECOUPLING_MEASURES[measure]["cost"]
+        cost = self.decoupling_cost(measure)
         if self.funds < cost:
             return False
         self.funds -= cost
@@ -241,10 +439,15 @@ class FarmState:
 
     def advance_round(self):
         fraction = self.plant_based_fraction()
-        income_multiplier = (1 - fraction) + fraction * PLANT_BASED_INCOME_MULTIPLIER
-        raw_income = self.herd_size * HERD_INCOME_PER_UNIT * income_multiplier * self.certification_multiplier()
+        income_multiplier = (1 - fraction) + fraction * self.plant_income_multiplier()
+        season = 1 + self.season_modifier()
+        raw_income = (
+            self.herd_size * HERD_INCOME_PER_UNIT * income_multiplier
+            * self.certification_multiplier() * self.welfare_multiplier()
+            + self.poultry_net_income()
+        ) * self.supply_chain_multiplier() * season
         pressure = self.pressure_fraction()
-        self.funds += raw_income * (1 - pressure)
+        self.funds += raw_income * (1 - pressure) + self.biogas_sales()
         self.methane += self.methane_this_round()
         self.max_pressure_fraction_seen = max(self.max_pressure_fraction_seen, pressure)
 
@@ -253,9 +456,20 @@ class FarmState:
         # decoupling/pivot spend, so the comparison isolates whether that
         # spend paid for itself.
         counterfactual_pressure = self.counterfactual_pressure_fraction()
-        counterfactual_raw_income = self.herd_size * HERD_INCOME_PER_UNIT
+        counterfactual_raw_income = (self.herd_size * HERD_INCOME_PER_UNIT + self.poultry_net_income()) * season
         self.counterfactual_funds += counterfactual_raw_income * (1 - counterfactual_pressure)
-        self.counterfactual_methane += self.herd_size * BASE_COUPLING_RATIO
+        self.counterfactual_methane += self.herd_size * BASE_COUPLING_RATIO + self.poultry_size * POULTRY_BASE_RATIO
+
+        # F5 -- breeding matures; F27 -- subsidy runs down and a new offer
+        # arrives every POLICY_EVENT_INTERVAL rounds.
+        self.genetics_pending = [r - 1 for r in self.genetics_pending]
+        matured = sum(1 for r in self.genetics_pending if r <= 0)
+        self.genetics_active += matured
+        self.genetics_pending = [r for r in self.genetics_pending if r > 0]
+        if self.subsidy_rounds_left > 0:
+            self.subsidy_rounds_left -= 1
+        if (self.round_number + 1) % POLICY_EVENT_INTERVAL == 0:
+            self.policy_offer_pending = True
 
         self.round_number += 1
         prev_increment = (
@@ -1226,6 +1440,167 @@ def update_changelog_display():
         panel.appendChild(row)
 
 
+# F17 -- farm tour: short flavor vignettes reacting to the coupling ratio.
+VIGNETTES = {
+    "coupled": [
+        "A neighbour's kid asks why the sky over the ridge looks hazy this morning.",
+        "The co-op newsletter mentions methane again. You fold it into the pile of letters.",
+        "Every feed truck that pulls in seems to leave a little more haze behind.",
+    ],
+    "improving": [
+        "The vet notes the herd's digestion is calmer since the feed change.",
+        "A sensor on the barn roof reads lower than last month. You tap it twice to be sure.",
+        "At the market stall someone asks how you cut the smell. You show them the numbers.",
+    ],
+    "clean": [
+        "Evening light, quiet pasture: the wisps over the cows have almost gone.",
+        "A regional inspector visits, nods, and asks if she can bring a school group next spring.",
+        "You catch yourself explaining decoupling to a stranger at the gate, and enjoying it.",
+    ],
+}
+
+
+def farm_vignette():
+    """Pure function of ratio + round: same farm, same story."""
+    ratio = farm.coupling_ratio()
+    band = "coupled" if ratio > 0.8 else ("improving" if ratio > 0.4 else "clean")
+    options = VIGNETTES[band]
+    return "\U0001F69C " + options[farm.round_number % len(options)]
+
+
+def season_message():
+    if not farm.variation_enabled:
+        return "Market & weather variation is off (turn it on under Scenario options)."
+    name, mod = season_for_round(farm.round_number)
+    text = f"This round: {name}, income {mod * 100:+.0f}%."
+    if demand_surge_active(farm.round_number):
+        text += " Plant-based demand surge: plant-based output earns more this round."
+    return text
+
+
+def welfare_message():
+    bonus = (farm.welfare_multiplier() - 1) * 100
+    return f"Herd welfare: {farm.welfare():.0f}/100 (income {bonus:+.1f}% from welfare)"
+
+
+def genetics_message():
+    return (
+        f"Breeding: {farm.genetics_active} lines active, {len(farm.genetics_pending)} maturing "
+        f"({GENETICS_MATURE_ROUNDS} rounds each)"
+    )
+
+
+def biogas_message():
+    surplus = max(0, farm.decoupling_investment["capture"] - CAPTURE_SELF_USE_UNITS)
+    if surplus == 0:
+        return (
+            f"Biogas sales: the first {CAPTURE_SELF_USE_UNITS} Capture Systems cover on-farm energy; "
+            "extra capacity is sold as biogas."
+        )
+    return f"Biogas sales: {surplus} surplus capture unit(s) earn {farm.biogas_sales():.1f} funds per round."
+
+
+def policy_message():
+    if farm.policy_offer_pending:
+        return (
+            f"Policy advisor: choose a {POLICY_SUBSIDY_DISCOUNT * 100:.0f}% decoupling subsidy for "
+            f"{POLICY_SUBSIDY_ROUNDS} rounds, or a flat {POLICY_CASH_BONUS} cash bonus."
+        )
+    if farm.subsidy_rounds_left > 0:
+        return f"Decoupling subsidy active: {farm.subsidy_rounds_left} rounds left."
+    return ""
+
+
+def render_extras():
+    document.getElementById("vignette-display").innerText = farm_vignette()
+    document.getElementById("season-display").innerText = season_message()
+    document.getElementById("welfare-display").innerText = welfare_message()
+    document.getElementById("genetics-display").innerText = genetics_message()
+    genetics_button = document.getElementById("genetics-invest-button")
+    genetics_button.innerText = f"Breeding Program ({GENETICS_COST})"
+    genetics_button.disabled = farm.funds < GENETICS_COST
+    document.getElementById("supply-chain-display").innerText = (
+        f"Supply chain: {farm.supply_chain_investment}/{SUPPLY_CHAIN_MAX_UNITS} "
+        f"(+{(farm.supply_chain_multiplier() - 1) * 100:.0f}% income)"
+    )
+    supply_button = document.getElementById("supply-chain-invest-button")
+    supply_button.innerText = f"Processing & Distribution ({SUPPLY_CHAIN_COST})"
+    supply_button.disabled = farm.funds < SUPPLY_CHAIN_COST or farm.supply_chain_investment >= SUPPLY_CHAIN_MAX_UNITS
+    document.getElementById("biogas-display").innerText = biogas_message()
+    document.getElementById("variation-checkbox").checked = farm.variation_enabled
+    document.getElementById("cap-checkbox").checked = farm.regional_cap_enabled
+    document.getElementById("cap-display").innerText = (
+        f"Regional cap: {farm.methane_this_round():.1f} of {REGIONAL_CAP:.0f} methane/round. Growth is blocked past the cap."
+        if farm.regional_cap_enabled else "Regional methane cap is off."
+    )
+    # F27 policy advisor
+    document.getElementById("policy-panel").hidden = not farm.policy_offer_pending
+    document.getElementById("policy-display").innerText = policy_message()
+    # F23 poultry
+    unlocked = farm.poultry_unlocked()
+    document.getElementById("poultry-panel").hidden = not unlocked
+    if unlocked:
+        document.getElementById("poultry-display").innerText = (
+            f"Flock: {farm.poultry_size} bird(s). Emissions {farm.poultry_coupling_ratio():.2f} methane-equivalent "
+            f"per bird per round (cattle start at {BASE_COUPLING_RATIO:.2f}). Upkeep {POULTRY_UPKEEP_PER_UNIT} per bird."
+        )
+        grow_cost = farm.poultry_grow_cost()
+        button = document.getElementById("poultry-grow-button")
+        button.innerText = f"Grow Flock ({grow_cost:.0f})"
+        button.disabled = farm.funds < grow_cost or farm.cap_blocks_growth(poultry=1)
+        for measure, spec in POULTRY_MEASURES.items():
+            document.getElementById(f"{measure}-count").innerText = str(farm.poultry_investment[measure])
+            b = document.getElementById(f"{measure}-invest-button")
+            b.innerText = f"{spec['label']} ({spec['cost']})"
+            b.disabled = farm.funds < spec["cost"]
+
+
+def on_grow_poultry(event=None):
+    if farm.grow_poultry():
+        _pulse("poultry-grow-button")
+    render()
+
+
+def _make_poultry_handler(measure):
+    def handler(event=None):
+        if farm.invest_poultry(measure):
+            _pulse(f"{measure}-count")
+        render()
+    return handler
+
+
+def on_invest_genetics(event=None):
+    if farm.invest_genetics():
+        _pulse("genetics-invest-button")
+    render()
+
+
+def on_invest_supply_chain(event=None):
+    if farm.invest_supply_chain():
+        _pulse("supply-chain-invest-button")
+    render()
+
+
+def on_toggle_variation(event=None):
+    farm.variation_enabled = bool(document.getElementById("variation-checkbox").checked)
+    render()
+
+
+def on_toggle_cap(event=None):
+    farm.regional_cap_enabled = bool(document.getElementById("cap-checkbox").checked)
+    render()
+
+
+def on_policy_subsidy(event=None):
+    farm.choose_policy("subsidy")
+    render()
+
+
+def on_policy_cash(event=None):
+    farm.choose_policy("cash")
+    render()
+
+
 def render():
     render_info_page()
     _maybe_update_record_coupling_ratio()
@@ -1260,7 +1635,7 @@ def render():
     grow_cost = farm.grow_herd_cost()
     grow_button = document.getElementById("grow-herd-button")
     grow_button.innerText = f"Grow Herd ({grow_cost:.0f})"
-    grow_button.disabled = farm.funds < grow_cost
+    grow_button.disabled = farm.funds < grow_cost or farm.cap_blocks_growth(herd=1)
     # F9 — consequence preview next to the Grow Herd button.
     document.getElementById("grow-consequence-preview").innerText = grow_consequence_message()
 
@@ -1270,8 +1645,9 @@ def render():
             farm.decoupling_investment[measure]
         )
         button = document.getElementById(f"{measure}-invest-button")
-        button.innerText = f"{spec['label']} ({spec['cost']})"
-        button.disabled = farm.funds < spec["cost"]
+        cost = farm.decoupling_cost(measure)
+        button.innerText = f"{spec['label']} ({cost:g})"
+        button.disabled = farm.funds < cost
 
     document.getElementById("decoupling-summary-display").innerText = (
         f"Decoupled: {farm.decoupled_fraction() * 100:.0f}% below baseline emissions per herd unit"
@@ -1325,6 +1701,8 @@ def render():
 
     # F2 — pasture visual cow count scales with real herd size.
     update_pasture_visual()
+
+    render_extras()
 
 
 def on_grow_herd(event=None):
@@ -1435,8 +1813,26 @@ def get_state():
         "seen_methane_penalty_nudge": farm.seen_methane_penalty_nudge,
         "certification_streak": farm.certification_streak,
         "certified": farm.certified,
+        "poultry_size": farm.poultry_size,
+        "poultry_investment": dict(farm.poultry_investment),
+        "genetics_active": farm.genetics_active,
+        "genetics_pending": list(farm.genetics_pending),
+        "supply_chain_investment": farm.supply_chain_investment,
+        "variation_enabled": farm.variation_enabled,
+        "regional_cap_enabled": farm.regional_cap_enabled,
+        "policy_offer_pending": farm.policy_offer_pending,
+        "subsidy_rounds_left": farm.subsidy_rounds_left,
         "achievements_earned": achievement_ids_earned(),
     }
+
+
+def _safe_int(value, default):
+    """Non-negative int from untrusted save data, else default."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return default
+    if value != value or value in (float("inf"), float("-inf")):
+        return default
+    return max(0, int(value))
 
 
 def load_state(data):
@@ -1483,6 +1879,24 @@ def load_state(data):
     )
     farm.certification_streak = data.get("certification_streak", 0)
     farm.certified = bool(data.get("certified", False))
+    # Round-3 fields: every one validated and defaulted (older saves lack them).
+    farm.poultry_size = _safe_int(data.get("poultry_size"), 0)
+    farm.poultry_investment = {m: 0 for m in POULTRY_MEASURES}
+    saved_poultry = data.get("poultry_investment")
+    if isinstance(saved_poultry, dict):
+        for m in POULTRY_MEASURES:
+            farm.poultry_investment[m] = _safe_int(saved_poultry.get(m), 0)
+    farm.genetics_active = _safe_int(data.get("genetics_active"), 0)
+    pending = data.get("genetics_pending")
+    farm.genetics_pending = (
+        [_safe_int(r, 1) for r in pending if isinstance(r, (int, float)) and not isinstance(r, bool)]
+        if isinstance(pending, list) else []
+    )
+    farm.supply_chain_investment = min(SUPPLY_CHAIN_MAX_UNITS, _safe_int(data.get("supply_chain_investment"), 0))
+    farm.variation_enabled = data.get("variation_enabled") is True
+    farm.regional_cap_enabled = data.get("regional_cap_enabled") is True
+    farm.policy_offer_pending = data.get("policy_offer_pending") is True
+    farm.subsidy_rounds_left = _safe_int(data.get("subsidy_rounds_left"), 0)
     # achievements_earned is deliberately never read back here -- it's a
     # write-only projection recomputed fresh by get_state() every save,
     # per ACHIEVEMENTS-SYSTEM-DESIGN.md.
@@ -1524,6 +1938,20 @@ def setup():
     document.getElementById("changelog-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_changelog)
     )
+    for element_id, handler in (
+        ("poultry-grow-button", on_grow_poultry),
+        ("genetics-invest-button", on_invest_genetics),
+        ("supply-chain-invest-button", on_invest_supply_chain),
+        ("variation-checkbox", on_toggle_variation),
+        ("cap-checkbox", on_toggle_cap),
+        ("policy-subsidy-button", on_policy_subsidy),
+        ("policy-cash-button", on_policy_cash),
+    ):
+        document.getElementById(element_id).addEventListener("click", create_proxy(handler))
+    for measure in POULTRY_MEASURES:
+        document.getElementById(f"{measure}-invest-button").addEventListener(
+            "click", create_proxy(_make_poultry_handler(measure))
+        )
     render()
     _seed_achievement_toast_baseline()
 

@@ -1201,3 +1201,8 @@ html[data-reduced-motion="true"] *::after {
 }
 
 /* F30 — wisp opacity is driven inline by game.py (coupling ratio). */
+
+/* Round-3 extras: the collapsible farm-operations panel. */
+.farm-extras > summary { cursor: pointer; font-size: 0.9rem; opacity: 0.9; }
+.farm-extras button { margin: 0.25rem 0.25rem 0.25rem 0; }
+#poultry-panel .invest-row::before { content: "🐔"; }

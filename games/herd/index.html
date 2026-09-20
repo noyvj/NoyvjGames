@@ -193,6 +193,37 @@
       <p id="combined-decoupling-display" class="comparison-message">Efficiency measures alone bring you to 1.00 methane/herd/round — the plant-based pivot isn't active yet.</p>
     </div>
 
+    <details id="farm-extras" class="section farm-extras">
+      <summary>Farm operations &amp; scenario options</summary>
+      <p id="vignette-display" class="comparison-message"></p>
+      <p id="season-display" class="comparison-message"></p>
+      <p id="welfare-display" class="comparison-message" title="Better feed, herd caps and breeding raise welfare; above the neutral 50 it lifts income up to +10%."></p>
+      <p id="biogas-display" class="comparison-message" title="Real farms sell captured biogas / renewable natural gas and its credits (see planning notes)."></p>
+      <p id="genetics-display" class="comparison-message"></p>
+      <button id="genetics-invest-button" class="secondary" title="Slow-burn fourth decoupling lever: each program takes 3 rounds to breed through, then permanently lowers emissions per animal.">Breeding Program</button>
+      <p id="supply-chain-display" class="comparison-message"></p>
+      <button id="supply-chain-invest-button" class="secondary" title="A downstream income lever, independent of herd size.">Processing &amp; Distribution</button>
+      <p class="meter-label">Scenario options</p>
+      <label class="settings-checkbox-label"><input type="checkbox" id="variation-checkbox"> Market &amp; weather variation (seasons swing income; plant-based demand surges)</label>
+      <label class="settings-checkbox-label"><input type="checkbox" id="cap-checkbox"> Regional methane cap (growth blocked past the cap)</label>
+      <p id="cap-display" class="comparison-message"></p>
+    </details>
+
+    <div id="policy-panel" class="section" hidden>
+      <p class="meter-label">Policy advisor</p>
+      <p id="policy-display" class="comparison-message"></p>
+      <button id="policy-subsidy-button" class="secondary">Take the decoupling subsidy</button>
+      <button id="policy-cash-button" class="secondary">Take the cash bonus</button>
+    </div>
+
+    <div id="poultry-panel" class="section" hidden>
+      <p class="meter-label">Poultry flock (unlocked by certification)<details class="info-toggle"><summary>i</summary><p>A second herd type with its own, much lower emissions curve, its own levers and housing upkeep. Your certified farm earned the right to diversify. Real poultry emissions are mostly manure nitrous oxide and ammonia rather than enteric methane, so the game shows a single methane-equivalent number.</p></details></p>
+      <p id="poultry-display" class="comparison-message"></p>
+      <button id="poultry-grow-button" class="secondary">Grow Flock</button>
+      <div class="invest-row"><span class="invest-name">Litter Management</span><span class="invest-count" id="litter-count">0</span><button id="litter-invest-button" class="secondary">Litter</button></div>
+      <div class="invest-row"><span class="invest-name">Ventilation Biofilters</span><span class="invest-count" id="biofilter-count">0</span><button id="biofilter-invest-button" class="secondary">Biofilter</button></div>
+    </div>
+
     <button id="advance-round-button" class="primary">⏭️ Advance Round</button>
 
     <div id="feedback-prompt" class="section">

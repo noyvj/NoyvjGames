@@ -74,6 +74,13 @@ ELEMENT_IDS = [
     "certification-display",
     # F8: per-browser record-decoupling-ratio marker/label.
     "coupling-gauge-record-display",
+    # Round-3 extras (F23/F5/F13/F9/F3/F15/F17/F19/F27/F29).
+    "vignette-display", "season-display", "welfare-display", "biogas-display",
+    "genetics-display", "genetics-invest-button", "supply-chain-display",
+    "supply-chain-invest-button", "variation-checkbox", "cap-checkbox", "cap-display",
+    "policy-panel", "policy-display", "policy-subsidy-button", "policy-cash-button",
+    "poultry-panel", "poultry-display", "poultry-grow-button",
+    "litter-count", "litter-invest-button", "biofilter-count", "biofilter-invest-button",
 ]
 for _measure in MEASURE_IDS:
     ELEMENT_IDS += [f"{_measure}-name", f"{_measure}-count", f"{_measure}-invest-button"]
