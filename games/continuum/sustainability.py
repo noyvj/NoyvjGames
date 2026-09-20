@@ -80,6 +80,37 @@ import sim
 
 COMPONENTS = ["livability", "equity", "balance", "resilience"]
 
+# --- K18: opt-in stricter "hard mode" sustainability variant -------------
+# planning/TODO.md's K18: "an opt-in toggle that tightens the
+# sustainability mechanic's thresholds/penalties", the same "optional
+# stricter variant" shape Grid's own difficulty toggles established. Reads
+# `state.hard_mode` directly (via `is_hard_mode()` below) rather than
+# threading a new parameter through every component function's signature:
+# every function in this module already takes `state`, so this is zero new
+# plumbing, the same reason era-gating already reads `state.era` directly
+# instead of being passed in separately.
+HARD_MODE_PENALTY_MULTIPLIER = 1.5
+
+
+def is_hard_mode(state):
+    """True if hard mode is on. `getattr(..., False)` rather than
+    `state.hard_mode` directly, so a `CityState` restored from a save
+    written before this field existed (or a bare object built by an older
+    test/fixture) reads as ordinary difficulty rather than raising."""
+    return bool(getattr(state, "hard_mode", False))
+
+
+def _penalty_multiplier(state):
+    """1.0 normally, HARD_MODE_PENALTY_MULTIPLIER once hard mode is on --
+    applied to every era-specific score-side PENALTY in this file (surplus
+    hoarding, urban sprawl, industrial pollution, administrative
+    overextension). Deliberately not applied to the one score-side BONUS
+    (Medieval's public-works resilience bonus, see below) -- K18 asks for
+    stricter thresholds/penalties, not a worse bonus, and a settlement
+    that has actually paid ahead for a shock shouldn't be punished by a
+    difficulty toggle for doing the sustainable thing."""
+    return HARD_MODE_PENALTY_MULTIPLIER if is_hard_mode(state) else 1.0
+
 COMPONENT_LABEL = {
     "livability": "Livability",
     "equity": "Equity",
@@ -206,7 +237,7 @@ def _surplus_hoarding_penalty(state):
         return 0.0
     per_capita = state.resources.get("surplus", 0.0) / state.population
     pressure = _clamp(per_capita / SURPLUS_FAIR_SHARE)
-    return pressure * SURPLUS_HOARDING_PENALTY_WEIGHT
+    return pressure * SURPLUS_HOARDING_PENALTY_WEIGHT * _penalty_multiplier(state)
 
 
 
@@ -232,7 +263,7 @@ def _urban_sprawl_penalty(state):
     mere existence."""
     if sim.era_index(state.era) < sim.era_index("digital"):
         return 0.0
-    return _clamp(state.sprawl) * URBAN_SPRAWL_PENALTY_WEIGHT
+    return _clamp(state.sprawl) * URBAN_SPRAWL_PENALTY_WEIGHT * _penalty_multiplier(state)
 
 
 def equity(state, effects=None):
@@ -311,7 +342,7 @@ def _industrial_pollution_penalty(state):
     no extra per-capita ratio work is needed here to keep it scale-neutral."""
     if sim.era_index(state.era) < sim.era_index("industrial"):
         return 0.0
-    return _clamp(state.pollution) * INDUSTRIAL_POLLUTION_PENALTY_WEIGHT
+    return _clamp(state.pollution) * INDUSTRIAL_POLLUTION_PENALTY_WEIGHT * _penalty_multiplier(state)
 
 
 # --- Classical+ : administrative overextension (Milestone 9) ------------
@@ -345,7 +376,7 @@ def _administrative_overextension_penalty(state):
         return 0.0
     share = state.allocation.get("administrators", 0) / assigned
     pressure = _clamp((share - ADMIN_SHARE_FAIR_LIMIT) / (1.0 - ADMIN_SHARE_FAIR_LIMIT))
-    return pressure * ADMIN_OVEREXTENSION_PENALTY_WEIGHT
+    return pressure * ADMIN_OVEREXTENSION_PENALTY_WEIGHT * _penalty_multiplier(state)
 
 
 # --- Medieval+ : public-works shock resilience (Milestone 10) -----------
@@ -446,15 +477,28 @@ def evaluate(state, effects=None):
 # each keeping its own copy in sync by hand.
 SCORE_LABELS = ["Collapsing", "Failing", "Strained", "Steady", "Thriving"]
 
+# Ordinary thresholds, ascending, paired 1:1 with SCORE_LABELS[1:].
+SCORE_LABEL_THRESHOLDS = [30, 50, 70, 85]
 
-def score_label(value):
-    if value >= 85:
+# K18: the same five bands, raised -- a settlement needs to be doing
+# genuinely better to earn the same label, which is what "tightens the
+# sustainability mechanic's thresholds" means for the *narration* half of
+# the mechanic (the *penalty* half is `_penalty_multiplier()` above). This
+# also raises the bar `transition.py`'s own TRANSITION_REQUIREMENTS reads
+# through `score_label()`, since a era-transition's "at least Strained"
+# style requirement is stated in label terms, not a raw number.
+HARD_SCORE_LABEL_THRESHOLDS = [38, 58, 78, 92]
+
+
+def score_label(value, hard_mode=False):
+    thresholds = HARD_SCORE_LABEL_THRESHOLDS if hard_mode else SCORE_LABEL_THRESHOLDS
+    if value >= thresholds[3]:
         return SCORE_LABELS[4]
-    if value >= 70:
+    if value >= thresholds[2]:
         return SCORE_LABELS[3]
-    if value >= 50:
+    if value >= thresholds[1]:
         return SCORE_LABELS[2]
-    if value >= 30:
+    if value >= thresholds[0]:
         return SCORE_LABELS[1]
     return SCORE_LABELS[0]
 

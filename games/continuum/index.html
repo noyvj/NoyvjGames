@@ -45,6 +45,10 @@
            origin K16): same hidden-until-opened idiom as the achievements
            panel above, populated from changelog.json newest-first. -->
       <button id="changelog-toggle-button" class="secondary" type="button">📋 What's New</button>
+      <!-- K5 (planning/TODO.md): the civilization summary report. On-demand,
+           not a forced end screen -- see summary.py's own module docstring
+           for why. Same hidden-until-opened idiom as the two panels above. -->
+      <button id="summary-toggle-button" class="secondary" type="button">📜 Civilization Summary</button>
       <!-- Milestone 19 (site-wide settings panel, TODO.md origin A9):
            consolidates what used to be a standalone text-size toolbar
            control (Phase 5) into one panel, alongside a new
@@ -60,6 +64,9 @@
     <!-- "What's New" changelog panel (origin K16): rows are built by
          game.py — see update_changelog_display(). -->
     <div id="changelog-panel" class="section changelog-panel" hidden></div>
+    <!-- K5: the civilization summary report -- rows are built by
+         game.py, see update_summary_panel(). -->
+    <div id="summary-panel" class="section summary-panel" hidden></div>
     <div id="settings-panel" class="section settings-panel" hidden>
       <div class="settings-row">
         <span class="settings-row-label">Text size</span>
@@ -82,6 +89,27 @@
 
     <p class="tagline">One settlement, carried across the ages. Grow it — but grow something worth living in.</p>
     <p class="context-blurb">A city that gets bigger isn't automatically a city that gets better. Continuum tracks both.</p>
+
+    <!-- K12/K18 (planning/TODO.md): starting scenario select + opt-in hard
+         mode, built together per the task's own "likely alongside" note.
+         Scenario buttons are rendered/enabled/disabled by game.py's
+         update_scenario_display() (locked once state.season > 1); the
+         hard-mode toggle has no lock and can be flipped any time, the
+         same "toggle set, not a full menu system" pattern Grid's own
+         Steeper Demand Growth / Weather Variability toggles established. -->
+    <div id="scenario-select" class="section scenario-select">
+      <h2 class="section-heading">Starting Scenario</h2>
+      <div class="scenario-button-row" role="group" aria-label="Starting scenario">
+        <button id="scenario-standard-button" class="secondary scenario-button" type="button" title="The settlement as designed — no thumb on the scale.">Standard Start</button>
+        <button id="scenario-frontier-button" class="secondary scenario-button" type="button" title="Fewer hands, thinner stores, and land that's already been worked hard. A tougher opening.">Harsh Frontier</button>
+        <button id="scenario-fertile-button" class="secondary scenario-button" type="button" title="A generous opening: more people, deeper stores, and land at full health.">Fertile Valley</button>
+      </div>
+      <p id="scenario-select-note" class="row-blurb">Loading...</p>
+      <div class="settings-row">
+        <span class="settings-row-label">Hard Mode</span>
+        <button id="hard-mode-toggle-button" class="secondary difficulty-toggle" type="button" title="Tightens sustainability penalties and raises the score thresholds for every band. Can be switched on or off at any time.">Loading...</button>
+      </div>
+    </div>
 
     <button id="info-page-toggle-button" class="secondary info-page-toggle" type="button">Loading...</button>
     <div id="info-page-panel" class="section" hidden>
@@ -106,6 +134,13 @@
         only as an automatic fallback.
       -->
       <button id="visual-mode-toggle-button" class="secondary visual-mode-toggle" type="button" hidden>🖼 2D view</button>
+      <!-- K13 (planning/TODO.md): a shareable "my settlement" snapshot,
+           exported straight off the live WebGL canvas via
+           canvas.toDataURL(). render3d.js shows this only once a real 3D
+           scene exists and only while the 3D view is active -- same
+           gating as the camera-preset row below, since a snapshot of the
+           2D CSS diorama wouldn't be this feature's point. -->
+      <button id="visual-snapshot-button" class="secondary visual-snapshot-button" type="button" hidden title="Downloads the current 3D view as a PNG image.">📸 Save Snapshot</button>
       <!-- K6 (planning/TODO.md): named camera presets for the 3D scene.
            render3d.js shows this row only once a real WebGL scene exists
            (same gating as the 2D/3D toggle above) and wires each button to
@@ -254,12 +289,17 @@
     // Each engine module is written into Pyodide's virtual filesystem (the
     // working directory, which is on sys.path) before game.py runs and
     // imports them. Still no build step — just more than one fetch.
-    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py"];
+    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py"];
 
     const CONTINUUM_TUTORIAL_STEPS = [
       {
         title: "Welcome to Continuum",
         text: "You're growing a single settlement across seven eras, from a tribal community toward a space-age civilization. This walkthrough covers the systems you have right now — skip it any time, and reopen it later from the Tutorial button up top.",
+      },
+      {
+        selector: "#scenario-select",
+        title: "Starting Scenario & Hard Mode",
+        text: "Pick a starting scenario before you advance your first season — it's locked in once play begins. Hard Mode tightens the sustainability score's penalties and thresholds, and can be switched on or off at any time.",
       },
       {
         selector: "#status",
@@ -320,6 +360,11 @@
         selector: "#achievements-toggle-button",
         title: "Achievements",
         text: "Reaching an era, mastering a research branch, and running a genuinely well-balanced settlement all earn achievements — check here any time to see what's left.",
+      },
+      {
+        selector: "#summary-toggle-button",
+        title: "Civilization Summary",
+        text: "An on-demand recap of the whole playthrough so far — eras completed, total seasons, peak population and sustainability, and how each era you've finished actually went. Check it any time; there's no forced end screen.",
       },
       {
         title: "You're ready",

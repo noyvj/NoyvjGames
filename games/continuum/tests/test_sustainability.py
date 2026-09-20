@@ -285,3 +285,85 @@ def test_the_ui_shows_the_score_and_its_components(game_env):
         text = game_env.elements[f"{component}-display"].innerText
         assert sustainability.COMPONENT_LABEL[component] in text
     assert game_env.elements["score-note-display"].innerText != ""
+
+
+# --- K18: opt-in "hard mode" sustainability variant ----------------------
+
+
+def test_is_hard_mode_defaults_false_and_reads_the_flag():
+    state = sim.CityState()
+    assert sustainability.is_hard_mode(state) is False
+    state.hard_mode = True
+    assert sustainability.is_hard_mode(state) is True
+
+
+def test_is_hard_mode_is_safe_against_a_state_with_no_hard_mode_attribute():
+    """A bare object standing in for a pre-K18 CityState (or a hand-built
+    test double elsewhere in this suite) must read as ordinary difficulty,
+    not raise AttributeError."""
+
+    class Bare:
+        pass
+
+    assert sustainability.is_hard_mode(Bare()) is False
+
+
+def test_hard_mode_never_makes_a_penalty_smaller():
+    """For every era-specific penalty this file's own audit trail covers
+    (surplus hoarding, urban sprawl, industrial pollution, administrative
+    overextension), the hard-mode equity/balance/resilience component must
+    never score *better* than the ordinary-mode one for an identical,
+    otherwise-penalised settlement."""
+    hoarding = _settlement(
+        era="agrarian", population=10, resources={"surplus": 400.0}
+    )
+    hoarding_hard = _settlement(
+        era="agrarian", population=10, resources={"surplus": 400.0}, hard_mode=True
+    )
+    assert sustainability.equity(hoarding_hard) <= sustainability.equity(hoarding)
+
+    sprawling = _settlement(era="digital", sprawl=0.8)
+    sprawling_hard = _settlement(era="digital", sprawl=0.8, hard_mode=True)
+    assert sustainability.equity(sprawling_hard) <= sustainability.equity(sprawling)
+
+    polluted = _settlement(era="industrial", pollution=0.8)
+    polluted_hard = _settlement(era="industrial", pollution=0.8, hard_mode=True)
+    assert sustainability.balance(polluted_hard) <= sustainability.balance(polluted)
+
+    overextended = _settlement(
+        era="classical", allocation={"administrators": 8, "foragers": 2}
+    )
+    overextended_hard = _settlement(
+        era="classical", allocation={"administrators": 8, "foragers": 2}, hard_mode=True
+    )
+    assert sustainability.resilience(overextended_hard) <= sustainability.resilience(overextended)
+
+
+def test_hard_mode_does_not_touch_the_public_works_resilience_bonus():
+    """K18 tightens penalties, not bonuses -- a settlement that has
+    actually paid ahead for a shock (Medieval's public-works resilience
+    bonus) shouldn't score worse purely for toggling hard mode on."""
+    covered = _settlement(era="medieval", buildings={"public_works": 4}, population=8)
+    covered_hard = _settlement(
+        era="medieval", buildings={"public_works": 4}, population=8, hard_mode=True
+    )
+    assert sustainability.resilience(covered_hard) == sustainability.resilience(covered)
+
+
+def test_hard_mode_raises_the_score_label_thresholds():
+    for value in (35, 55, 75, 88):
+        ordinary = sustainability.score_label(value, hard_mode=False)
+        hard = sustainability.score_label(value, hard_mode=True)
+        ordinary_rank = sustainability.SCORE_LABELS.index(ordinary)
+        hard_rank = sustainability.SCORE_LABELS.index(hard)
+        assert hard_rank <= ordinary_rank
+
+
+def test_score_label_defaults_to_ordinary_thresholds_when_hard_mode_omitted():
+    """Backward compatibility: every pre-K18 call site (and every
+    pre-existing test in this file) calls score_label(value) with no
+    second argument and must see byte-identical behaviour to before K18."""
+    for value in (0, 29, 30, 49, 50, 69, 70, 84, 85, 100):
+        assert sustainability.score_label(value) == sustainability.score_label(
+            value, hard_mode=False
+        )

@@ -78,6 +78,13 @@ CITY_FIELDS = [
     "last_sustainable_yield",
     "last_report",
     "score_history",
+    # K12/K18 (planning/TODO.md) -- the starting scenario id and the
+    # opt-in hard-mode flag. Both live on CityState (not Campaign) because
+    # every sustainability.py component function already takes `state`,
+    # not `campaign` -- see sustainability.py's own "K18" note for why
+    # this is zero new plumbing rather than a signature change everywhere.
+    "scenario",
+    "hard_mode",
 ]
 
 # Fields that are dicts whose *key set* belongs to sim.py, not to the save:
@@ -206,6 +213,19 @@ def restore_city(state, data):
             # `era_snapshots` entry loaded back via a revisit.
             if value in sim.ERA_ORDER:
                 state.era = value
+        elif field == "scenario":
+            # Same validate-against-the-schema's-own-source-of-truth
+            # standard as `era` just above: an unrecognised scenario id
+            # (a stale value from a future build, or a hand-edited save)
+            # is treated as missing rather than trusted verbatim, so
+            # `state.scenario` can never hold a value `sim.SCENARIOS`
+            # doesn't know -- it stays whatever CityState.__init__() (or
+            # a prior load) already set it to, which is always valid.
+            if isinstance(value, str) and value in sim.SCENARIOS:
+                state.scenario = value
+        elif field == "hard_mode":
+            if isinstance(value, bool):
+                state.hard_mode = value
         elif field == "score_history":
             if isinstance(value, list):
                 cleaned = [float(v) for v in value if _is_finite_number(v)]

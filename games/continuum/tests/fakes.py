@@ -27,6 +27,20 @@ class FakeClassList:
     def contains(self, cls):
         return cls in self._classes
 
+    def toggle(self, cls, force=None):
+        """Matches the real DOM's `classList.toggle(token, force)`: with
+        `force` omitted, flips membership; with `force` given, adds when
+        truthy and removes when falsy, regardless of current state. K12/
+        K18 (scenario-select/hard-mode toggle) is this fake DOM's first
+        caller — earlier games' tests never needed more than add/remove."""
+        if force is None:
+            force = cls not in self._classes
+        if force:
+            self.add(cls)
+        else:
+            self.remove(cls)
+        return force
+
     def __contains__(self, cls):
         return cls in self._classes
 

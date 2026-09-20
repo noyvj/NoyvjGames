@@ -1062,6 +1062,96 @@ button.primary:disabled::after {
   line-height: 1.4;
 }
 
+/* K5 — the civilization summary report. Same hidden-until-opened glass-
+   panel/card language as .achievements-panel/.changelog-panel above, plus
+   the explicit [hidden] override every other panel in this cascade needs
+   for the same documented reason (an author-origin `display` rule beats
+   the browser's own default `[hidden] { display: none }` UA rule). */
+.summary-panel {
+  text-align: left;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.summary-panel[hidden] {
+  display: none;
+}
+
+.summary-line {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.summary-eras-heading {
+  margin: 0.6rem 0 0;
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+.summary-era-row {
+  padding: 0.6rem 0.9rem;
+  border: 1px solid rgba(201, 147, 84, 0.16);
+  border-radius: 12px;
+  background: rgba(20, 16, 10, 0.4);
+}
+
+.summary-era-row--current {
+  border-color: rgba(224, 179, 116, 0.35);
+}
+
+.summary-era-name {
+  margin: 0 0 0.2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.summary-era-detail {
+  margin: 0;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+/* K12/K18 — the starting-scenario select + opt-in hard-mode toggle. Same
+   .section glass-panel language every other section on this page already
+   uses, so it reads as part of the game's own shell rather than a new
+   visual idiom bolted on for these two items alone. */
+.scenario-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.scenario-button.selected {
+  border-color: rgba(224, 179, 116, 0.6);
+  background: rgba(224, 179, 116, 0.14);
+  color: #e0b374;
+  box-shadow: 0 0 10px rgba(224, 179, 116, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.scenario-button:disabled {
+  opacity: 0.55;
+}
+
+/* K18 — reuses Grid's own "armed/active switch" difficulty-toggle look
+   (see games/grid/style.css's own .difficulty-toggle.active), a distinct
+   accent from the ordinary secondary-button state so an opt-in stricter
+   mode reads as visibly "on", not just a label change. */
+.difficulty-toggle.active {
+  border-color: rgba(224, 103, 76, 0.6);
+  background: linear-gradient(135deg, #402a26, #241614);
+  box-shadow: 0 0 10px rgba(224, 103, 76, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  color: #e0917c;
+}
+
+/* K13 — the 3D-scene snapshot-export button. Same row/visibility gating
+   as .visual-mode-toggle/.camera-preset-buttons (render3d.js shows/hides
+   it alongside them), styled as an ordinary secondary button since it's
+   not a state toggle the way the other two 3D controls are. */
+.visual-snapshot-button {
+  margin-top: 0.4rem;
+}
+
 /* Unlock toast — fixed-position, auto-dismissing, no continuous animation
    loop (matches this hub's "no gratuitous animation" posture already
    established by Phase 5's render3d.js: it renders once and again only on

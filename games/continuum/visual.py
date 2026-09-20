@@ -59,7 +59,13 @@ def visual_state(state, effects):
         from "applicable and currently zero coverage".
       - score / score_label / weakest_component: the sustainability
         headline, for a scene that wants to tint lighting/mood by how the
-        settlement is actually doing, not just how big it is.
+        settlement is actually doing, not just how big it is. score_label
+        already reflects K18's hard-mode thresholds when `state.hard_mode`
+        is set, the same as every other reader of score_label().
+      - scenario / hard_mode: K12/K18's opt-in starting-condition and
+        difficulty fields, included so a future scene could reflect them
+        (e.g. a harsher Frontier start reading visually rougher) even
+        though no era builder currently does.
     """
     reading = sustainability.evaluate(state, effects)
     score_value = reading["score"]
@@ -93,6 +99,8 @@ def visual_state(state, effects):
         "habitat_layout_ratio": habitat_layout_ratio,
         "public_works_coverage_ratio": public_works_coverage_ratio,
         "score": score_value,
-        "score_label": sustainability.score_label(score_value),
+        "score_label": sustainability.score_label(score_value, sustainability.is_hard_mode(state)),
         "weakest_component": sustainability.weakest_component(state, effects),
+        "scenario": getattr(state, "scenario", sim.DEFAULT_SCENARIO),
+        "hard_mode": sustainability.is_hard_mode(state),
     }

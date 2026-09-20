@@ -41,6 +41,7 @@
   const CONTAINER_ID = "visual3d-container";
   const TOGGLE_BUTTON_ID = "visual-mode-toggle-button";
   const CAMERA_PRESET_ROW_ID = "camera-preset-buttons";
+  const SNAPSHOT_BUTTON_ID = "visual-snapshot-button"; // K13
   const SETTLEMENT_2D_SELECTOR = ".settlement-visual";
   const VIEW_MODE_STORAGE_KEY = "continuum-visual-mode"; // "3d" | "2d"
 
@@ -52,6 +53,10 @@
   let sceneGroup = null; // everything era-specific; replaced wholesale on era change
   let builtEra = null;
   let ready = false;
+  // K13 — the most recent visual_state() snapshot, kept purely so the
+  // snapshot-export filename can name the era/season it was taken in;
+  // never read for anything that affects rendering itself.
+  let lastVisualState = null;
 
   // Orbit state for the built-in drag-to-look control (no OrbitControls
   // import needed — this hub's whole convention is no build step and no
@@ -272,9 +277,41 @@
     return mesh;
   }
 
-  function setupLighting(target, skyHex, groundHex) {
-    const hemi = new THREE.HemisphereLight(skyHex, groundHex, 0.9);
-    const sun = new THREE.DirectionalLight(0xffffff, 0.75);
+  // K17 (planning/TODO.md): a subtle seasonal lighting cycle, tied to
+  // `visual_state().season` -- the same field the 2D UI's own "Season N"
+  // line already reads, so this needs no new state and no new save field.
+  // Deliberately NOT a real-time day/night loop: this hub's Phase 5 build
+  // notes are explicit that "no continuous requestAnimationFrame loop
+  // runs" is a deliberate posture (battery/performance cost for a scene
+  // that isn't otherwise changing), and the scene already only redraws
+  // when continuumOnRender() fires -- i.e. on a real state change. A
+  // four-step cycle mapped onto the season counter steps forward exactly
+  // once per season advance, the same cadence every other scene detail
+  // (building counts, pollution tint) already updates on.
+  const SEASONAL_CYCLE_LENGTH = 4; // spring/summer/autumn/winter, loosely
+  const SEASONAL_BRIGHTNESS_RANGE = 0.08; // +/-8% -- ambience, not a new mechanic
+  const SEASONAL_TINT_PULL = 0.12; // how far skyHex is nudged toward the seasonal tint
+  const SEASONAL_COOL_TINT = 0xaebbe0; // winter/dusk
+  const SEASONAL_WARM_TINT = 0xffdca8; // summer/noon
+
+  function seasonalPhase(season) {
+    const step = ((Math.round(season || 1) - 1) % SEASONAL_CYCLE_LENGTH + SEASONAL_CYCLE_LENGTH) % SEASONAL_CYCLE_LENGTH;
+    return step / SEASONAL_CYCLE_LENGTH; // 0..1
+  }
+
+  function setupLighting(target, skyHex, groundHex, season) {
+    const phase = seasonalPhase(season);
+    // A single sine wave drives both the warm/cool tint pull and the
+    // brightness nudge together, so "brighter" and "warmer" move in
+    // lockstep (a summery peak, a dim, cool trough) instead of two
+    // independent, potentially-clashing cycles.
+    const wave = Math.sin(phase * Math.PI * 2) * 0.5 + 0.5; // 0..1
+    const brightnessFactor = 1.0 + (wave - 0.5) * 2 * SEASONAL_BRIGHTNESS_RANGE;
+    const seasonalTint = lerpColor(SEASONAL_COOL_TINT, SEASONAL_WARM_TINT, wave);
+    const tintedSky = lerpColor(skyHex, seasonalTint, SEASONAL_TINT_PULL);
+
+    const hemi = new THREE.HemisphereLight(tintedSky, groundHex, 0.9 * brightnessFactor);
+    const sun = new THREE.DirectionalLight(0xffffff, 0.75 * brightnessFactor);
     sun.position.set(4, 6, 3);
     target.add(hemi, sun);
   }
@@ -328,7 +365,7 @@
       bench.position.set(-0.9, 0, -1.1);
       group.add(bench);
     }
-    setupLighting(group, 0xfff2d0, 0x3a2c1a);
+    setupLighting(group, 0xfff2d0, 0x3a2c1a, vs.season);
     return group;
   }
 
@@ -349,7 +386,7 @@
       plot.position.set(-2.6 + (i % 3) * 0.95, 0, 2.4 + Math.floor(i / 3) * 0.7);
       group.add(plot);
     }
-    setupLighting(group, 0xfff2d0, 0x4a3a1a);
+    setupLighting(group, 0xfff2d0, 0x4a3a1a, vs.season);
     return group;
   }
 
@@ -380,7 +417,7 @@
       canal.position.set(0, 0, 1.4 + i * 0.35);
       group.add(canal);
     }
-    setupLighting(group, 0xfff6e0, 0x5a4a2a);
+    setupLighting(group, 0xfff6e0, 0x5a4a2a, vs.season);
     return group;
   }
 
@@ -405,7 +442,7 @@
       well.position.set(-1.6 + i * 0.9, 0, -1.8);
       group.add(well);
     }
-    setupLighting(group, 0xf0ead0, 0x3a4a2a);
+    setupLighting(group, 0xf0ead0, 0x3a4a2a, vs.season);
     return group;
   }
 
@@ -449,7 +486,7 @@
       works.position.set(1.5, 0, 1.4 + i * 0.7);
       group.add(works);
     }
-    setupLighting(group, lerpColor(0xdfe6ee, 0x8a8a86, pollution), 0x3a3a3a);
+    setupLighting(group, lerpColor(0xdfe6ee, 0x8a8a86, pollution), 0x3a3a3a, vs.season);
     return group;
   }
 
@@ -471,7 +508,7 @@
       line.position.set(0, 0, -1.2 - i * 0.3);
       group.add(line);
     }
-    setupLighting(group, 0xdbe8f5, 0x40484f);
+    setupLighting(group, 0xdbe8f5, 0x40484f, vs.season);
     return group;
   }
 
@@ -493,7 +530,7 @@
       habitatRing.position.y = 0.9 + i * 0.35;
       group.add(habitatRing);
     }
-    setupLighting(group, 0x9fa8e8, 0x2a2440);
+    setupLighting(group, 0x9fa8e8, 0x2a2440, vs.season);
     return group;
   }
 
@@ -545,6 +582,48 @@
         applyCameraPreset(name);
       });
     });
+  }
+
+  // K13 (planning/TODO.md): a shareable "my settlement" snapshot, exported
+  // straight off the live WebGL canvas. `renderer.domElement` IS the
+  // canvas Three.js draws into, so `toDataURL()` on it captures exactly
+  // what the player is looking at -- no second offscreen render, no
+  // server round-trip, nothing beyond what the browser already gives a
+  // <canvas> for free.
+  function downloadSnapshot() {
+    if (!renderer || !scene || !camera) return;
+    try {
+      // Render one more frame immediately before capturing. The renderer
+      // was constructed with `preserveDrawingBuffer: true` specifically so
+      // this isn't strictly required for correctness, but forcing a fresh
+      // render right before the read guarantees the captured pixels match
+      // the camera's current position even if a drag or preset just
+      // moved it on this exact tick, rather than depending on whichever
+      // frame the browser happened to have buffered last.
+      renderer.render(scene, camera);
+      const dataUrl = renderer.domElement.toDataURL("image/png");
+      const link = document.createElement("a");
+      const era = (lastVisualState && lastVisualState.era) || "settlement";
+      const season = lastVisualState && lastVisualState.season;
+      link.download = "continuum-" + era + (season ? "-season-" + season : "") + ".png";
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      // Same "never let the render layer break the game" posture as
+      // pullStateAndRender()'s own try/catch -- a failed export (a
+      // tainted-canvas security error, an unsupported browser) should
+      // never surface as a broken game, just a snapshot that silently
+      // didn't download.
+      console.warn("Continuum 3D: snapshot export failed.", err);
+    }
+  }
+
+  function setupSnapshotButton() {
+    const button = document.getElementById(SNAPSHOT_BUTTON_ID);
+    if (!button) return;
+    button.addEventListener("click", downloadSnapshot);
   }
 
   function attachDragControls(container) {
@@ -607,6 +686,7 @@
     try {
       raw = getVisualState();
       const vs = raw && raw.toJs ? raw.toJs({ dict_converter: Object.fromEntries }) : raw;
+      lastVisualState = vs;
       renderScene(vs);
     } catch (err) {
       // A render-layer failure must never surface as a broken game — log
@@ -624,18 +704,24 @@
     const fallback = document.querySelector(SETTLEMENT_2D_SELECTOR);
     const button = document.getElementById(TOGGLE_BUTTON_ID);
     const presetRow = document.getElementById(CAMERA_PRESET_ROW_ID);
+    const snapshotButton = document.getElementById(SNAPSHOT_BUTTON_ID);
     if (!container || !fallback) return;
     if (mode === "3d") {
       container.hidden = false;
       fallback.hidden = true;
       if (button) button.innerText = "🖼 2D view";
       if (presetRow) presetRow.hidden = false;
+      // K13 — a snapshot of the 2D CSS diorama isn't this feature's point,
+      // so the button only ever shows alongside a live 3D scene, the same
+      // gating the camera-preset row above already uses.
+      if (snapshotButton) snapshotButton.hidden = false;
     } else {
       container.hidden = true;
       fallback.hidden = false;
       if (button) button.innerText = "🧊 3D view";
       // Camera presets only mean anything with a live 3D scene on screen.
       if (presetRow) presetRow.hidden = true;
+      if (snapshotButton) snapshotButton.hidden = true;
     }
     try {
       window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode);
@@ -687,7 +773,12 @@
       const width = container.clientWidth || 320;
       const height = 220;
 
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      // K13 — preserveDrawingBuffer keeps the drawing buffer intact after
+      // a render instead of letting the browser clear/swap it away before
+      // the next paint, which is what makes toDataURL() a reliable
+      // capture of the last-rendered frame across browsers rather than
+      // occasionally returning a blank PNG.
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
       renderer.setSize(width, height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       container.innerHTML = "";
@@ -717,6 +808,7 @@
 
       setupToggleButton();
       setupCameraPresetButtons();
+      setupSnapshotButton();
       return true;
     } catch (err) {
       console.warn("Continuum 3D: failed to initialise, staying on the 2D view.", err);

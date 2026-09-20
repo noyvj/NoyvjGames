@@ -207,7 +207,9 @@ def missing_requirements(state, tree, effects=None):
     if not tree.tier_unlocked(requirement["min_tier"]):
         reasons.append("Needs more of this era's research discovered first.")
 
-    label = sustainability.score_label(sustainability.score(state, effects))
+    label = sustainability.score_label(
+        sustainability.score(state, effects), sustainability.is_hard_mode(state)
+    )
     needed_label = requirement["min_score_label"]
     if sustainability.SCORE_LABELS.index(label) < sustainability.SCORE_LABELS.index(needed_label):
         reasons.append(f'The settlement needs to be at least "{needed_label}", not "{label}".')

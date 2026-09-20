@@ -170,7 +170,7 @@ class Chronicle:
             m for m in POPULATION_MILESTONES if state.population >= m
         }
         self._last_score_label = sustainability.score_label(
-            sustainability.score(state, effects)
+            sustainability.score(state, effects), sustainability.is_hard_mode(state)
         )
 
     def _add(self, entry):
@@ -203,7 +203,9 @@ class Chronicle:
 
     def check_livability(self, state, effects):
         """Call once per completed season, after `check_population`."""
-        label = sustainability.score_label(sustainability.score(state, effects))
+        label = sustainability.score_label(
+            sustainability.score(state, effects), sustainability.is_hard_mode(state)
+        )
         if self._last_score_label is not None and label != self._last_score_label:
             weakest = sustainability.weakest_component(state, effects)
             self._add(

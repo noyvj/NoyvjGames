@@ -85,6 +85,16 @@ ELEMENT_IDS = [
     # origin K16) — rows are created at runtime.
     "changelog-toggle-button",
     "changelog-panel",
+    # K5 — the civilization summary report (rows are created at runtime).
+    "summary-toggle-button",
+    "summary-panel",
+    # K12 — starting scenario select (three static buttons, never rebuilt).
+    "scenario-standard-button",
+    "scenario-frontier-button",
+    "scenario-fertile-button",
+    "scenario-select-note",
+    # K18 — opt-in hard-mode toggle.
+    "hard-mode-toggle-button",
 ]
 
 

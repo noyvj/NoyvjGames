@@ -342,6 +342,69 @@ START_ALLOCATION = {
     "planners": 0,
     "architects": 0,
 }
+# START_ALLOCATION always assigns exactly 5 workers (3 foragers + 2
+# gatherers) -- every SCENARIOS["population"] below is deliberately kept
+# at 5 or above so a fresh CityState() never starts with more workers
+# assigned than it has people (which CityState.__init__ doesn't itself
+# defend against, unlike every later mutation path, since a fresh
+# settlement's own starting numbers are asserted sane by
+# tests/test_core_loop.py rather than clamped defensively at construction
+# time).
+
+# --- K12: starting scenarios (opt-in initial-condition variants) --------
+# planning/TODO.md's K12: "let the player pick a starting scenario or
+# difficulty variant that meaningfully changes initial conditions or
+# challenge level" -- before/at game start, following the same "toggle
+# set, not a full menu system" UI shape Grid's own difficulty toggles
+# established (see games/grid/CLAUDE.md's settings-panel section).
+#
+# Deliberately NOT wired through NEUTRAL_EFFECTS: `effects` is the
+# research tree's one seam into the season loop (see "Research reaches
+# the simulation through exactly one seam" above) -- an ongoing modifier
+# a node can grant. A scenario is the opposite shape: a one-time starting
+# condition applied once, at CityState construction, never revisited by
+# the season loop again. Every value below is a literal starting number,
+# not a multiplier, so `CityState(scenario="frontier")` reads exactly like
+# a harder opening hand, not a hidden ongoing penalty.
+SCENARIOS = {
+    "standard": {
+        "label": "Standard Start",
+        "blurb": "The settlement as designed — no thumb on the scale.",
+        "population": START_POPULATION,
+        "food": START_FOOD,
+        "materials": START_MATERIALS,
+        "tools": START_TOOLS,
+        "land_health": 1.0,
+    },
+    "frontier": {
+        "label": "Harsh Frontier",
+        "blurb": "Fewer hands, thinner stores, and land that's already been worked hard. A tougher opening.",
+        "population": 5,
+        "food": 10.0,
+        "materials": 10.0,
+        "tools": 1.0,
+        "land_health": 0.75,
+    },
+    "fertile": {
+        "label": "Fertile Valley",
+        "blurb": "A generous opening: more people, deeper stores, and land at full health.",
+        "population": 7,
+        "food": 30.0,
+        "materials": 26.0,
+        "tools": 3.0,
+        "land_health": 1.0,
+    },
+}
+DEFAULT_SCENARIO = "standard"
+
+
+def scenario_config(scenario_id):
+    """The starting-condition dict for `scenario_id`, defaulting to
+    DEFAULT_SCENARIO for anything unrecognised (an old save, a hand-edited
+    one, or simply `None`) — the same "unknown input degrades to the safe
+    default rather than raising" standard `save.restore_city()`'s own
+    `era` handling already holds itself to."""
+    return SCENARIOS.get(scenario_id, SCENARIOS[DEFAULT_SCENARIO])
 
 # --- production and consumption ---------------------------------------
 FOOD_PER_FORAGER = 3.0
@@ -615,21 +678,38 @@ def effects_or_neutral(effects):
 class CityState:
     """One settlement, at one point in time, in one era."""
 
-    def __init__(self, era=FIRST_ERA):
+    def __init__(self, era=FIRST_ERA, scenario=DEFAULT_SCENARIO):
+        # K12 -- resolved once, at construction, against SCENARIOS' own
+        # keys rather than trusted verbatim, so a bogus id (a stale
+        # constant from a future build, a hand-edited save value) can
+        # never linger as `self.scenario` -- same "validate against the
+        # schema's own source of truth" standard save.restore_city() holds
+        # `era` to. `scenario_config()` already degrades gracefully for
+        # the *values* used below; this is what keeps the *label* honest
+        # about which scenario's numbers were actually applied.
+        self.scenario = scenario if scenario in SCENARIOS else DEFAULT_SCENARIO
+        config = scenario_config(self.scenario)
+        # K18 -- opt-in stricter sustainability variant, off by default.
+        # Unlike `scenario` (a one-time starting condition), this can be
+        # flipped at any time during play, the same "toggle anytime"
+        # shape Grid's own steeper-demand-growth/weather-variability
+        # toggles use -- see sustainability.py for what it actually
+        # tightens.
+        self.hard_mode = False
         self.era = era
         self.season = 1
-        self.population = START_POPULATION
+        self.population = config["population"]
         self.growth_progress = 0.0
         self.resources = {
-            "food": START_FOOD,
-            "materials": START_MATERIALS,
-            "tools": START_TOOLS,
+            "food": config["food"],
+            "materials": config["materials"],
+            "tools": config["tools"],
             "knowledge": START_KNOWLEDGE,
             "surplus": START_SURPLUS,
         }
         self.allocation = dict(START_ALLOCATION)
         self.buildings = dict(START_BUILDINGS)
-        self.land_health = 1.0
+        self.land_health = config["land_health"]
         # Industrial+ (Milestone 11): a lagged 0..1 stock, same shape as
         # land_health -- see the "pollution and the growth-side cost of
         # industry" constants above. Always 0.0 before Industrial, both

@@ -111,6 +111,26 @@ def test_pollution_and_sprawl_are_reported_directly_from_state(game_env):
     assert data["sprawl"] == 0.17
 
 
+def test_visual_state_reports_scenario_and_hard_mode(game_env):
+    state = game_env.state
+    data = game_env.module.get_visual_state()
+    assert data["scenario"] == "standard"
+    assert data["hard_mode"] is False
+
+    state.scenario = "frontier"
+    state.hard_mode = True
+    data = visual.visual_state(state, sim.NEUTRAL_EFFECTS)
+    assert data["scenario"] == "frontier"
+    assert data["hard_mode"] is True
+
+
+def test_visual_state_score_label_reflects_hard_mode_thresholds(game_env):
+    state = game_env.state
+    state.hard_mode = True
+    data = visual.visual_state(state, sim.NEUTRAL_EFFECTS)
+    assert data["score_label"] == sustainability.score_label(data["score"], True)
+
+
 def test_visual_state_never_mutates_the_state_it_reads(game_env):
     import copy
 

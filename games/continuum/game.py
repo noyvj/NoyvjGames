@@ -41,6 +41,7 @@ import info_page  # noqa: E402
 import research  # noqa: E402
 import save  # noqa: E402
 import sim  # noqa: E402
+import summary  # noqa: E402
 import sustainability  # noqa: E402
 import transition  # noqa: E402
 import visual  # noqa: E402
@@ -233,6 +234,9 @@ def render():
     render_era_progress(effects)
     render_revisit()
     update_achievements_display()
+    update_scenario_display()
+    update_hard_mode_display()
+    update_summary_panel()
     _notify_visual_layer()
 
 
@@ -271,6 +275,169 @@ def _notify_visual_layer():
     hook = getattr(window, "continuumOnRender", None)
     if hook is not None:
         hook()
+
+
+# ===========================================================================
+# K12/K18 (planning/TODO.md): starting scenario select + opt-in hard mode.
+# Built together since K18 is explicitly "likely alongside K12's scenario
+# select" in the task's own wording, and both are opt-in starting-
+# condition/difficulty controls in the same "toggle set, not a full menu
+# system" shape Grid's own steeper-demand-growth/weather-variability
+# toggles established (see games/grid/CLAUDE.md's settings-panel section).
+# ===========================================================================
+#
+# Scenario is locked once the settlement has taken its first real action.
+# `state.season > 1` is a clean, already-existing "has a season ever been
+# advanced" signal — CityState.__init__ always starts at 1, and
+# advance_season() is the only thing that ever increments it — so
+# re-picking a scenario mid-playthrough can't retroactively rewrite a
+# settlement that has already grown past its starting numbers. Hard mode
+# has no such lock: like Grid's own toggles, it can be flipped at any
+# time; see sustainability.py's own K18 note for exactly what it tightens.
+def _scenario_locked():
+    return state.season > 1
+
+
+def _make_select_scenario_handler(scenario_id):
+    def handler(event=None):
+        if _scenario_locked() or scenario_id not in sim.SCENARIOS:
+            return
+        config = sim.scenario_config(scenario_id)
+        # Mutated in place, the same "restore into the existing object"
+        # discipline save.restore_city() already uses, rather than
+        # constructing and swapping in a whole new CityState — state is
+        # aliased by campaign.state and this module's own `state` name
+        # alike, and mutating in place keeps both valid with no
+        # reassignment needed.
+        state.scenario = scenario_id
+        state.population = config["population"]
+        state.resources["food"] = config["food"]
+        state.resources["materials"] = config["materials"]
+        state.resources["tools"] = config["tools"]
+        state.land_health = config["land_health"]
+        state.clamp_allocation()
+        # Re-baseline the log's own "have we already reported this" state
+        # against the newly-chosen starting numbers -- the settlement is
+        # still at season 1 with nothing researched, the same precondition
+        # bootstrap() itself documents needing, so this is safe to call
+        # again here exactly as it was at Campaign construction.
+        chronicle.bootstrap(state, tree, current_effects())
+        render()
+    return handler
+
+
+def on_toggle_hard_mode(event=None):
+    state.hard_mode = not state.hard_mode
+    render()
+
+
+def update_scenario_display():
+    locked = _scenario_locked()
+    note = document.getElementById("scenario-select-note")
+    note.innerText = (
+        "Locked in for this settlement now that play has begun."
+        if locked
+        else "Pick before advancing your first season — this can't be changed afterward."
+    )
+    for scenario_id in sim.SCENARIOS:
+        button = document.getElementById(f"scenario-{scenario_id}-button")
+        button.disabled = locked
+        button.classList.toggle("selected", state.scenario == scenario_id)
+
+
+def update_hard_mode_display():
+    button = document.getElementById("hard-mode-toggle-button")
+    button.innerText = f"☠️ Hard Mode: {'ON' if state.hard_mode else 'OFF'}"
+    button.classList.toggle("active", state.hard_mode)
+
+
+# ===========================================================================
+# K5 (planning/TODO.md): the civilization summary report. An on-demand
+# panel, not a forced end screen -- see summary.py's own module docstring
+# for why (Continuum has no forced end state to hook, the same "no hard
+# fail/win state" shape Grid's own Run Summary panel documents). Same
+# hidden-until-opened idiom as the achievements/changelog panels above,
+# and (unlike them) purely a this-session display preference -- never
+# persisted to the save, matching changelog_open/achievements_open.
+# ===========================================================================
+summary_panel_open = False
+
+
+def on_toggle_summary_panel(event=None):
+    global summary_panel_open
+    summary_panel_open = not summary_panel_open
+    update_summary_panel()
+
+
+def _summary_stat_row(container, text):
+    row = document.createElement("p")
+    row.className = "status-line summary-line"
+    row.innerText = text
+    container.appendChild(row)
+
+
+def update_summary_panel():
+    toggle = document.getElementById("summary-toggle-button")
+    panel = document.getElementById("summary-panel")
+    toggle.innerText = "Hide Civilization Summary" if summary_panel_open else "📜 Civilization Summary"
+    panel.hidden = not summary_panel_open
+    if not summary_panel_open:
+        return
+
+    panel.innerHTML = ""
+    data = summary.summary(campaign)
+
+    _summary_stat_row(
+        panel,
+        f"Furthest era reached: {data['furthest_era_label']} "
+        f"({data['eras_completed']} of {data['eras_total']} eras completed).",
+    )
+    _summary_stat_row(panel, f"Total seasons played: {data['total_seasons']}.")
+    _summary_stat_row(panel, f"Peak population ever reached: {data['peak_population']}.")
+    if data["peak_score"] is not None:
+        # Labeled against the settlement's *current* hard-mode setting --
+        # score_history is just raw numbers with no per-entry hard-mode
+        # flag of its own, so "what band was this historically" isn't a
+        # question this data can answer; using the live setting is what
+        # keeps this line consistent with every other score_label() call
+        # on this same render (the sustainability panel, the era-by-era
+        # rows below).
+        _summary_stat_row(
+            panel,
+            f"Peak sustainability score: {data['peak_score']:.0f} / 100 "
+            f"({sustainability.score_label(data['peak_score'], sustainability.is_hard_mode(state))}).",
+        )
+    if data["journey_complete"]:
+        _summary_stat_row(panel, "This settlement has carried its story all the way to the Space Age.")
+    if data["has_revisited"]:
+        _summary_stat_row(panel, "You've looked back at least once during this playthrough.")
+    _summary_stat_row(panel, f"Achievements earned: {len(achievement_ids_earned())} of {len(ACHIEVEMENTS)}.")
+
+    heading = document.createElement("h3")
+    heading.className = "summary-eras-heading"
+    heading.innerText = "Era by era"
+    panel.appendChild(heading)
+
+    for row in data["eras"]:
+        entry = document.createElement("div")
+        entry.className = "summary-era-row" if row["completed"] else "summary-era-row summary-era-row--current"
+
+        name = document.createElement("p")
+        name.className = "summary-era-name"
+        status_word = "completed" if row["completed"] else "in progress"
+        name.innerText = f"{row['label']} — {status_word}"
+        entry.appendChild(name)
+
+        detail = document.createElement("p")
+        detail.className = "summary-era-detail"
+        score_text = f"{row['score']:.0f}/100 ({row['score_label']})" if row["score"] is not None else "—"
+        detail.innerText = (
+            f"Season {row['season_reached']} · Population {row['population']} · "
+            f"Sustainability {score_text}"
+        )
+        entry.appendChild(detail)
+
+        panel.appendChild(entry)
 
 
 # Work/Build row buttons, keyed by (role-or-building, "add"/"remove"/
@@ -1000,7 +1167,8 @@ def render_sustainability(effects):
     value = reading["score"]
 
     document.getElementById("score-display").innerText = (
-        f"Sustainability: {value:.0f} / 100 — {sustainability.score_label(value)}"
+        f"Sustainability: {value:.0f} / 100 — "
+        f"{sustainability.score_label(value, sustainability.is_hard_mode(state))}"
     )
     document.getElementById("score-bar").style.width = f"{value:.0f}%"
 
@@ -1241,6 +1409,21 @@ def setup():
     )
     document.getElementById("changelog-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_changelog)
+    )
+    document.getElementById("summary-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_summary_panel)
+    )
+    # K12 — three static scenario buttons (never rebuilt at runtime, unlike
+    # the dynamic per-era rows elsewhere in this file), so each gets its
+    # own one-shot proxy here rather than the "destroy the stale proxy"
+    # discipline render_research()/render_work() need for rows that are
+    # rebuilt every render.
+    for _scenario_id in sim.SCENARIOS:
+        document.getElementById(f"scenario-{_scenario_id}-button").addEventListener(
+            "click", create_proxy(_make_select_scenario_handler(_scenario_id))
+        )
+    document.getElementById("hard-mode-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_hard_mode)
     )
     # Belt-and-suspenders: the toast starts hidden via the static `hidden`
     # attribute in index.html, but every other stateful element in this
