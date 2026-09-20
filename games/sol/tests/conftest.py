@@ -83,6 +83,44 @@ TRAVEL_BUTTON_ID = {
 # Element IDs wired up in index.html — kept in one place so tests and the
 # fixture agree on what "the DOM" contains.
 ELEMENT_IDS = [
+    # A1-A30 batch
+    "prestige-badge",
+    "overview-toggle-button",
+    "overview-panel",
+    "build-plan-toggle-button",
+    "build-plan-panel",
+    "build-plan-input",
+    "build-plan-add-button",
+    "build-plan-list",
+    "build-plan-suggest-button",
+    "build-plan-clear-done-button",
+    "prestige-tree-toggle-button",
+    "prestige-tree-panel",
+    "away-report",
+    "away-report-text",
+    "away-report-dismiss-button",
+    "epilogue-panel",
+    "epilogue-body",
+    "epilogue-close-button",
+    "epilogue-button",
+    "sandbox-toggle-button",
+    "spark-layer",
+    "compare-run-button",
+    "compare-run-results",
+    "stats-export-button",
+    "stats-code-output",
+    "stats-code-input",
+    "stats-import-button",
+    "stats-code-status",
+    "travel-progress",
+    "prestige-bonus",
+    "mars-prestige-bonus",
+    "moon-prestige-bonus",
+    "venus-prestige-bonus",
+    "asteroidbelt-prestige-bonus",
+    "pluto-prestige-bonus",
+    "jupitermoons-prestige-bonus",
+    "saturnmoons-prestige-bonus",
     # Win state (Milestone 11)
     "win-banner",
     "win-banner-heading",
@@ -857,6 +895,14 @@ class GameEnv:
 
     def prestige(self):
         self.elements["prestige-button"].dispatch("click", None)
+
+    def panel_click(self, panel_id, **attrs):
+        """Simulates a click delegated up to `panel_id` from a child button
+        carrying the given data-* attributes (pass data_action=..., etc.)."""
+        target = FakeElement()
+        for key, value in attrs.items():
+            target.setAttribute("data-" + key.replace("_", "-"), value)
+        self.elements[panel_id].dispatch("click", types.SimpleNamespace(target=target))
 
     def set_confirm_response(self, value):
         """Controls what a subsequent js.confirm(...) call inside game.py

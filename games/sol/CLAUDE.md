@@ -394,6 +394,21 @@ running browser this pass (a markup-wrapper-only change with no JS/Python
 behavior difference and an existing widely-used `<details>` pattern
 elsewhere on this same page).
 
+## Per-game TODO batch, A1-A30 (2026-09-20)
+
+Built from `planning/TODO.md` "Per-game: SOL". All new persistent state is in `get_state()`/`load_state()` via `_load_session_additions()` (each field defensively typed; legacy saves default prestige points to prestige level). Tests 626 -> 670 (`tests/test_session_batch.py`).
+
+- **A9 Overview** (toolbar "Overview"): a card per unlocked world (resources, buildings, ecology/terraform bars, efficiency, routes, Sky Cities), a "Travel here" button (any world to any world), and per-world Governor + Focus controls. Cards are rebuilt only when structure changes (signature check) and updated in place each tick, so buttons stay clickable; all buttons in panels use one delegated listener reading `data-*` attributes (`_target_attr`).
+- **A7** per-world Governor personality (Global/Aggressive/Balanced/Conservative presets override the global dial in `governor_step`). **A23** planet Focus (Output: +25% yield, +25% ecology decay; Stability: -30% decay), available at 75% terraform.
+- **A13 Build Plan**: manual checklist (30 steps, 80 chars), suggested opening, saved in state.
+- **A1/A3 Prestige Tree**: 1 point per prestige. Tier 1 (Head Start, Cheaper Machinery, Eco-Conscious); Tier 2 (Deep Research, Governor's Mandate) gated on Prestige Level 3; "New Game+ Challenge" node (level 2) unlocks a harder-replay toggle (+0.05 generator/Recycler cost growth, +1 extra point on prestige).
+- **A2** title badge, **A24** per-world "+N% Prestige bonus" tag, **A4** prestige-button tooltip, **A18** Governor priority tooltips, **A28** exact Sky City ratio (5:2, +15%/city), **A16** "N/8 bodies visited", **A20** terraform swatch legend, **A14** collapsible research tiers, **A8** governed-total stat row, **A6** copy button flashes "Copied!".
+- **A5** away report: on returning to a world, shows resources generated, Governor buys and ecology change since leaving. Uses simulated ticks (not wall clock) and is transient (not saved); no offline progress, so the no-idle rule holds.
+- **A15** sandbox (post-win, zero costs, off on prestige), **A27** epilogue panel, **A12/A30** floating spark/build icons (`#spark-layer`, hidden under reduced motion, silently skipped headless).
+- **A17** `SOLSTATS1:` base64 lifetime-stats code (import only raises counters). **A21** Compare my run: `compare.js` calls the public `GET /stats/games/sol/percentile` only on button click, degrades to one calm sentence (backend not deployed yet).
+- **A19** two achievements (Close Call, Back From the Brink; 22 -> 24), historic flags + per-world pending sets, cleared on world reset/prestige.
+- Not done: A25 (SOL has no existing flavor text to surface), A29 (needs backend), A10/A22/A26 (folded into Z). Live-verified in the browser pane (overview, build plan, prestige tree, away report, floaters, stats code, compare fallback); only network errors in console.
+
 ## Working conventions
 - Commit + tag at the end of each milestone: `git commit -m "Milestone N: <name>"` then `git tag milestone-0N` (e.g. `milestone-09a` for lettered sub-parts of milestone 9).
 - Keep `game.py` as the single source of game logic where reasonable; split into modules only once it gets unwieldy.

@@ -189,6 +189,12 @@ planet_state = {
         # opposed to production that happened while the player was
         # actively on that planet themselves. Never decreases.
         "governed_resource_generated": 0.0,
+        # A7: per-planet Governor personality preset ("default" = follow the
+        # global priority/budget dial). A23: an optional specialization
+        # ("output" / "stability" / None), only choosable once the planet is
+        # well developed (see SPECIALIZATION_MIN_TERRAFORM).
+        "governor_personality": "default",
+        "specialization": None,
     }
     for name in PLANETS
 }
@@ -285,6 +291,143 @@ PRESTIGE_BONUS_PER_LEVEL = 0.10  # +10% resource yield (manual clicks and automa
 
 def prestige_multiplier():
     return 1 + PRESTIGE_BONUS_PER_LEVEL * prestige_level
+
+
+# --- Prestige tree (A1 second tier + A3 New Game+ variant) ---
+# Each prestige earns 1 point (2 if the New Game+ Challenge below was active
+# when you prestiged); points are spent on tree nodes that never reset.
+# Tier 2 is a genuine second branch: gated on Prestige LEVEL (how many times
+# you have prestiged), not just on points. The New Game+ Challenge (A3) is a
+# node INSIDE this tree that unlocks a harder-replay toggle.
+prestige_points_earned = 0
+prestige_nodes = set()
+ng_challenge_active = False
+# A15: sandbox mode (only ever effective while every world is terraformed).
+sandbox_mode = False
+
+PRESTIGE_TIER_2_LEVEL = 3
+NG_CHALLENGE_COST_GROWTH_BONUS = 0.05
+PRESTIGE_TREE = [
+    {"id": "head_start", "tier": 1, "cost": 1, "min_level": 1, "label": "Head Start",
+     "desc": "Every run starts with 50 Iron on Earth."},
+    {"id": "cheaper_machinery", "tier": 1, "cost": 1, "min_level": 1, "label": "Cheaper Machinery",
+     "desc": "Generators and Recyclers cost 10% less."},
+    {"id": "eco_conscious", "tier": 1, "cost": 1, "min_level": 1, "label": "Eco-Conscious",
+     "desc": "Ecology loss from generators is 15% lower."},
+    {"id": "deep_research", "tier": 2, "cost": 2, "min_level": PRESTIGE_TIER_2_LEVEL, "label": "Deep Research",
+     "desc": "Each research investment adds 50% more progress."},
+    {"id": "governors_mandate", "tier": 2, "cost": 2, "min_level": PRESTIGE_TIER_2_LEVEL,
+     "label": "Governor's Mandate", "desc": "Worlds you are not standing on produce 20% more."},
+    {"id": "ng_challenge", "tier": 3, "cost": 2, "min_level": 2, "label": "New Game+ Challenge",
+     "desc": "Unlocks a harder-replay toggle: generators and Recyclers get pricier faster, "
+             "and prestiging while it is on earns 1 extra point."},
+]
+PRESTIGE_TREE_BY_ID = {node["id"]: node for node in PRESTIGE_TREE}
+PRESTIGE_TIER_LABELS = {
+    1: "Tier 1 - Foundations",
+    2: f"Tier 2 - Advanced (unlocks at Prestige Level {PRESTIGE_TIER_2_LEVEL})",
+    3: "Replay Variant",
+}
+
+
+def prestige_has(node_id):
+    return node_id in prestige_nodes
+
+
+def prestige_points_spent():
+    return sum(PRESTIGE_TREE_BY_ID[n]["cost"] for n in prestige_nodes if n in PRESTIGE_TREE_BY_ID)
+
+
+def prestige_points_available():
+    return max(0, prestige_points_earned - prestige_points_spent())
+
+
+def _challenge_on():
+    return ng_challenge_active and prestige_has("ng_challenge")
+
+
+def _sandbox_active():
+    return sandbox_mode and _prestige_available()
+
+
+def _cost_growth(cfg, key):
+    growth = cfg[key]
+    if _challenge_on():
+        growth += NG_CHALLENGE_COST_GROWTH_BONUS
+    return growth
+
+
+# --- Governor personalities (A7) + planet specializations (A23) ---
+# personality -> (priority, budget %), or None for "follow the global dial".
+GOVERNOR_PERSONALITIES = {
+    "default": None,
+    "aggressive": ("growth", 80.0),
+    "balanced": ("balance", 50.0),
+    "conservative": ("ecology", 30.0),
+}
+GOVERNOR_PERSONALITY_LABELS = {
+    "default": "Global",
+    "aggressive": "Aggressive",
+    "balanced": "Balanced",
+    "conservative": "Conservative",
+}
+GOVERNOR_PERSONALITY_TIPS = {
+    "default": "Follows the global Governor priority and budget on the Earth screen.",
+    "aggressive": "Growth priority, 80% budget: buys generators every turn, spending up to 80% of this world's resources.",
+    "balanced": "Balance priority, 50% budget: alternates generators and Recyclers, spending up to 50%.",
+    "conservative": "Ecology priority, 30% budget: builds only Recyclers, spending up to 30%.",
+}
+SPECIALIZATION_MIN_TERRAFORM = 75.0
+SPECIALIZATION_OUTPUT_BONUS = 0.25
+SPECIALIZATION_OUTPUT_DECAY_PENALTY = 0.25
+SPECIALIZATION_STABILITY_DECAY_CUT = 0.30
+SPECIALIZATION_LABELS = {"output": "Output", "stability": "Stability"}
+SPECIALIZATION_TIPS = {
+    "output": "Output focus: +25% production here, but ecology decays 25% faster.",
+    "stability": "Stability focus: ecology decays 30% slower here.",
+}
+
+
+def governor_settings(planet):
+    """(priority, budget_pct) the Governor uses for `planet`: its own
+    personality preset if it has one, else the global dial."""
+    preset = GOVERNOR_PERSONALITIES.get(planet_state[planet].get("governor_personality", "default"))
+    if preset is None:
+        return governor_priority, governor_budget_pct
+    return preset
+
+
+def specialization_eligible(planet):
+    return planet_state[planet]["terraform_progress"] >= SPECIALIZATION_MIN_TERRAFORM
+
+
+def _specialization(planet):
+    # Only counts while the planet is still developed enough to have earned
+    # it (a reset world drops back below the bar and loses the bonus).
+    spec = planet_state[planet].get("specialization")
+    return spec if spec in SPECIALIZATION_LABELS and specialization_eligible(planet) else None
+
+
+# --- Build-order planner (A13), close-call tracking (A19) ---
+BUILD_PLAN_MAX_STEPS = 30
+BUILD_PLAN_MAX_LEN = 80
+BUILD_PLAN_SUGGESTED = [
+    "Mine 10 Iron by hand",
+    "Buy the first Auto-Miner",
+    "Build a Recycler before ecology drops",
+    "Fund Near Bodies research",
+    "Travel to Mars and start a second economy",
+    "Open a trade route to lift a struggling world",
+    "Fund Far Bodies research",
+]
+build_plan = []  # [{"text": str, "done": bool}]
+
+CLOSE_CALL_FLOOR = 3.0
+CLOSE_CALL_RECOVERY = 50.0
+close_call_hit = False
+back_from_brink_hit = False
+_ecology_low_seen = set()
+_ecology_zero_seen = set()
 
 
 # --- Lifetime stats (A4) + second achievement wave (A2/A13) tracked state ---
@@ -387,34 +530,56 @@ def _dom_id(planet, suffix):
     return f"{prefix}{suffix}"
 
 
+def _machinery_discount():
+    return 0.9 if prestige_has("cheaper_machinery") else 1.0
+
+
 def generator_cost(planet):
+    if _sandbox_active():
+        return 0
     cfg = PLANETS[planet]
     count = planet_state[planet]["generator_count"]
-    return math.ceil(cfg["generator_base_cost"] * (cfg["generator_cost_growth"] ** count))
+    return math.ceil(
+        cfg["generator_base_cost"] * (_cost_growth(cfg, "generator_cost_growth") ** count) * _machinery_discount()
+    )
 
 
 def recycler_cost(planet):
+    if _sandbox_active():
+        return 0
     cfg = PLANETS[planet]
     count = planet_state[planet]["recycler_count"]
-    return math.ceil(cfg["recycler_base_cost"] * (cfg["recycler_cost_growth"] ** count))
+    return math.ceil(
+        cfg["recycler_base_cost"] * (_cost_growth(cfg, "recycler_cost_growth") ** count) * _machinery_discount()
+    )
 
 
 def trade_route_cost(planet, destination):
+    if _sandbox_active():
+        return 0
     cfg = PLANETS[planet]
     count = planet_state[planet]["trade_routes"].get(destination, 0)
     return math.ceil(cfg["trade_route_base_cost"] * (cfg["trade_route_cost_growth"] ** count))
 
 
 def sky_city_local_cost(planet):
+    if _sandbox_active():
+        return 0
     cfg = PLANETS[planet]
     count = planet_state[planet]["sky_city_count"]
     return math.ceil(cfg["sky_city_local_base_cost"] * (cfg["sky_city_local_cost_growth"] ** count))
 
 
 def sky_city_mars_cost(planet):
+    if _sandbox_active():
+        return 0
     cfg = PLANETS[planet]
     count = planet_state[planet]["sky_city_count"]
     return math.ceil(cfg["sky_city_mars_base_cost"] * (cfg["sky_city_mars_cost_growth"] ** count))
+
+
+def research_fund_cost():
+    return 0 if _sandbox_active() else RESEARCH_FUND_COST
 
 
 def production_multiplier(planet):
@@ -598,7 +763,7 @@ def update_research_display():
     document.getElementById("research-bar").style.width = f"{progress_pct}%"
     progress_el.innerText = f"{math.floor(research_progress)} / {tier['target']}"
     status.innerText = ""
-    button.innerText = f"Fund Research ({RESEARCH_FUND_COST} Iron)"
+    button.innerText = f"Fund Research ({research_fund_cost()} Iron)"
     button.disabled = False
 
 
@@ -632,10 +797,17 @@ def update_research_tree_display():
         node = document.createElement("div")
         node.className = f"research-tree-node research-tree-node--{tier_status}"
 
-        name = document.createElement("p")
-        name.className = "research-tree-node-name"
-        name.innerText = tier["name"]
+        collapsed = index in research_tree_collapsed
+        name = document.createElement("button")
+        name.type = "button"
+        name.className = "research-tree-node-name research-tree-node-toggle"
+        name.innerText = ("▸ " if collapsed else "▾ ") + tier["name"]
+        name.setAttribute("data-tier", str(index))
+        name.title = "Click to expand or collapse this tier"
         node.appendChild(name)
+        if collapsed:
+            tree.appendChild(node)
+            continue
 
         status_el = document.createElement("p")
         status_el.className = "research-tree-node-status"
@@ -650,6 +822,10 @@ def update_research_tree_display():
         node.appendChild(unlocks)
 
         tree.appendChild(node)
+
+
+def _update_travel_progress():
+    document.getElementById("travel-progress").innerText = f"{len(visited_bodies)}/{len(PLANETS)} bodies visited"
 
 
 def update_travel_display():
@@ -669,6 +845,7 @@ def update_travel_display():
 
     status = document.getElementById("travel-status")
     status.innerText = "Choose a destination:" if unlocked_bodies else "Reach the Near Bodies tier to unlock travel."
+    _update_travel_progress()
 
 
 def update_governor_display():
@@ -706,6 +883,23 @@ def update_win_display():
         )
     else:
         readout.innerText = "Prestige into a New Game+ for a permanent resource bonus."
+
+    # A2: prestige badge next to the title. A24: the exact bonus next to each
+    # world's resource label, where the gains actually show up.
+    badge = document.getElementById("prestige-badge")
+    badge.hidden = prestige_level <= 0
+    badge.innerText = f"Prestige {prestige_level}" if prestige_level > 0 else ""
+    bonus_text = f"+{round(PRESTIGE_BONUS_PER_LEVEL * prestige_level * 100)}% Prestige bonus on yields"
+    for planet in PLANETS:
+        tag = document.getElementById(_dom_id(planet, "prestige-bonus"))
+        tag.hidden = prestige_level <= 0
+        tag.innerText = bonus_text if prestige_level > 0 else ""
+
+    sandbox_button = document.getElementById("sandbox-toggle-button")
+    sandbox_button.hidden = not complete
+    sandbox_button.innerText = "🧪 Sandbox: On" if sandbox_mode else "🧪 Sandbox: Off"
+    document.getElementById("epilogue-button").hidden = not complete
+    update_prestige_tree_display(rebuild=False)
 
 
 # ===========================================================================
@@ -848,6 +1042,10 @@ ACHIEVEMENT_CHECKS = {
     "swift_expansion": lambda: swift_expansion_hit,
     "manual_labor": lambda: manual_labor_hit,
     "off_the_grid": lambda: off_the_grid_hit,
+    # A19: "close call" family. One-shot historical flags for the same reason
+    # as the wave above: "fell to near zero and recovered" is play history.
+    "close_call": lambda: close_call_hit,
+    "back_from_the_brink": lambda: back_from_brink_hit,
 }
 
 # Progress readouts, only for achievements with a natural numeric scale-up —
@@ -1238,6 +1436,7 @@ def on_copy_share_card(event=None):
 
         js.navigator.clipboard.writeText(text)
         status.innerText = "Copied to clipboard!"
+        _flash_copy_button(document.getElementById("copy-share-card-button"), "✓ Copied!")
     except (ImportError, AttributeError):
         status.innerText = "Couldn't access the clipboard — copy the text above manually."
     press_feedback(document.getElementById("copy-share-card-button"))
@@ -1266,6 +1465,10 @@ def update_stats_panel_display():
         (
             "Resources generated by automation",
             str(math.floor(lifetime_resources_generated_by_automation + 1e-9)),
+        ),
+        (
+            "Generated while governed (all worlds)",
+            str(math.floor(sum(planet_state[p]["governed_resource_generated"] for p in PLANETS) + 1e-9)),
         ),
         ("Generators built", str(lifetime_generators_built)),
         ("Recyclers built", str(lifetime_recyclers_built)),
@@ -1374,7 +1577,7 @@ def press_feedback(button):
     setTimeout(proxy, 120)
 
 
-def _mine(planet):
+def _mine(planet, event=None):
     # Manual mining always works, even during an ecological collapse that
     # halts automated production on that planet — otherwise a player who
     # lets health hit 0% with no resources banked could get permanently
@@ -1395,39 +1598,41 @@ def _mine(planet):
     ):
         manual_labor_hit = True
     update_resource_display(planet)
-    press_feedback(document.getElementById(_dom_id(planet, "click-button")))
+    button = document.getElementById(_dom_id(planet, "click-button"))
+    _spawn_floater(button, "✦", "floater--spark", event)
+    press_feedback(button)
 
 
 def on_earth_click(event):
-    _mine("Earth")
+    _mine("Earth", event)
 
 
 def on_mars_click(event):
-    _mine("Mars")
+    _mine("Mars", event)
 
 
 def on_moon_click(event):
-    _mine("Moon")
+    _mine("Moon", event)
 
 
 def on_venus_click(event):
-    _mine("Venus")
+    _mine("Venus", event)
 
 
 def on_asteroid_belt_click(event):
-    _mine("AsteroidBelt")
+    _mine("AsteroidBelt", event)
 
 
 def on_pluto_click(event):
-    _mine("Pluto")
+    _mine("Pluto", event)
 
 
 def on_jupiter_moons_click(event):
-    _mine("JupiterMoons")
+    _mine("JupiterMoons", event)
 
 
 def on_saturn_moons_click(event):
-    _mine("SaturnMoons")
+    _mine("SaturnMoons", event)
 
 
 def _buy_generator(planet):
@@ -1443,6 +1648,7 @@ def _buy_generator(planet):
         update_resource_display(planet)
         update_generator_display(planet)
         update_terraform_display(planet)
+        _spawn_floater(button, "⚙️", "floater--build")
     press_feedback(button)
 
 
@@ -1490,6 +1696,7 @@ def _buy_recycler(planet):
         update_resource_display(planet)
         update_ecology_display(planet)
         update_terraform_display(planet)
+        _spawn_floater(button, "♻️", "floater--build")
     press_feedback(button)
 
 
@@ -1539,6 +1746,7 @@ def _buy_trade_route(planet):
             update_resource_display(planet)
             update_trade_display(planet)
             update_terraform_display(planet)
+            _spawn_floater(button, "🚀", "floater--build")
     press_feedback(button)
 
 
@@ -1594,6 +1802,7 @@ def _buy_sky_city(planet):
         update_resource_display("Mars")
         update_sky_city_display(planet)
         update_terraform_display(planet)
+        _spawn_floater(button, "🏙️", "floater--build")
     press_feedback(button)
 
 
@@ -1642,9 +1851,11 @@ def on_fund_research(event):
     button = document.getElementById("fund-research-button")
     earth = planet_state["Earth"]
     tier = current_tier()
-    if tier is not None and earth["resource_count"] >= RESEARCH_FUND_COST:
-        earth["resource_count"] -= RESEARCH_FUND_COST
-        research_progress = min(research_progress + RESEARCH_FUND_COST, tier["target"])
+    cost = research_fund_cost()
+    if tier is not None and earth["resource_count"] >= cost:
+        earth["resource_count"] -= cost
+        gain = RESEARCH_FUND_COST * (1.5 if prestige_has("deep_research") else 1)
+        research_progress = min(research_progress + gain, tier["target"])
         if research_progress >= tier["target"]:
             unlocked_bodies.update(tier["unlocks"])
             completed_tiers += 1
@@ -1704,131 +1915,121 @@ def on_budget_decrease(event):
     press_feedback(document.getElementById("budget-decrease-button"))
 
 
-def on_travel_moon(event):
+# --- Travel (shared by the Travel buttons, Return-to-Earth, and the A9
+# overview dashboard) plus A5's "while you were away" report ---
+AWAY_REPORT_MIN_TICKS = 100  # 10 seconds of simulated play; shorter hops aren't worth a report
+_departure_snapshots = {}  # planet -> what its state looked like when the player left it
+
+
+def _show_planet_view(planet):
+    _hide_all_views()
+    document.getElementById(f"{planet.lower()}-view").hidden = False
+    update_resource_display(planet)
+    update_generator_display(planet)
+    update_ecology_display(planet)
+    update_trade_display(planet)
+    if planet in GAS_GIANT_BODIES:
+        update_sky_city_display(planet)
+    update_terraform_display(planet)
+    update_all_cross_summaries()
+
+
+def _snapshot_departure(planet):
+    state = planet_state[planet]
+    _departure_snapshots[planet] = {
+        "tick": total_ticks,
+        "generated": state["governed_resource_generated"],
+        "generators": state["generator_count"],
+        "recyclers": state["recycler_count"],
+        "ecology": state["ecology_health"],
+    }
+
+
+def _report_arrival(planet):
+    """A5: on returning to a world, report what happened there while the
+    player was elsewhere: resources its automation generated (real, already
+    tracked as governed_resource_generated), what the Governor built, and
+    how its ecology moved. Reports elapsed simulated play-time and never
+    gates or advances anything, so it doesn't touch the no-idle-timer rule."""
+    snap = _departure_snapshots.pop(planet, None)
+    if snap is None:
+        return
+    elapsed = total_ticks - snap["tick"]
+    if elapsed < AWAY_REPORT_MIN_TICKS:
+        return
+    state = planet_state[planet]
+    gained = math.floor(state["governed_resource_generated"] - snap["generated"] + 1e-9)
+    generators = state["generator_count"] - snap["generators"]
+    recyclers = state["recycler_count"] - snap["recyclers"]
+    name = PLANET_DISPLAY_NAMES.get(planet, planet)
+    parts = [f"+{max(gained, 0)} {PLANETS[planet]['resource_name']}"]
+    if generators > 0 or recyclers > 0:
+        parts.append(f"the Governor built {max(generators, 0)} generator(s) and {max(recyclers, 0)} Recycler(s)")
+    else:
+        parts.append("no Governor purchases")
+    parts.append(f"ecology {round(snap['ecology'])}% to {round(state['ecology_health'])}%")
+    document.getElementById("away-report-text").innerText = (
+        f"While you were away from {name} ({_format_duration(elapsed * TICK_INTERVAL_MS / 1000)}): "
+        + "; ".join(parts) + "."
+    )
+    document.getElementById("away-report").hidden = False
+
+
+def on_dismiss_away_report(event=None):
+    document.getElementById("away-report").hidden = True
+
+
+def _travel_to(planet):
     global current_planet
-    if "Moon" in unlocked_bodies:
-        current_planet = "Moon"
-        _mark_visited("Moon")
-        _hide_all_views()
-        document.getElementById("moon-view").hidden = False
-        update_resource_display("Moon")
-        update_generator_display("Moon")
-        update_ecology_display("Moon")
-        update_trade_display("Moon")
-        update_terraform_display("Moon")
-        update_all_cross_summaries()
-    press_feedback(document.getElementById("travel-moon-button"))
+    if planet != "Earth" and planet not in unlocked_bodies:
+        return False
+    if planet == current_planet:
+        return True
+    if current_planet in planet_state:
+        _snapshot_departure(current_planet)
+    current_planet = planet
+    _mark_visited(planet)
+    _update_travel_progress()
+    _show_planet_view(planet)
+    _report_arrival(planet)
+    return True
+
+
+def _travel_from_button(planet, button_id):
+    _travel_to(planet)
+    press_feedback(document.getElementById(button_id))
+
+
+def on_travel_moon(event):
+    _travel_from_button("Moon", "travel-moon-button")
 
 
 def on_travel_venus(event):
-    global current_planet
-    if "Venus" in unlocked_bodies:
-        current_planet = "Venus"
-        _mark_visited("Venus")
-        _hide_all_views()
-        document.getElementById("venus-view").hidden = False
-        update_resource_display("Venus")
-        update_generator_display("Venus")
-        update_ecology_display("Venus")
-        update_trade_display("Venus")
-        update_terraform_display("Venus")
-        update_all_cross_summaries()
-    press_feedback(document.getElementById("travel-venus-button"))
+    _travel_from_button("Venus", "travel-venus-button")
 
 
 def on_travel_asteroid_belt(event):
-    global current_planet
-    if "AsteroidBelt" in unlocked_bodies:
-        current_planet = "AsteroidBelt"
-        _mark_visited("AsteroidBelt")
-        _hide_all_views()
-        document.getElementById("asteroidbelt-view").hidden = False
-        update_resource_display("AsteroidBelt")
-        update_generator_display("AsteroidBelt")
-        update_ecology_display("AsteroidBelt")
-        update_trade_display("AsteroidBelt")
-        update_terraform_display("AsteroidBelt")
-        update_all_cross_summaries()
-    press_feedback(document.getElementById("travel-asteroid-belt-button"))
+    _travel_from_button("AsteroidBelt", "travel-asteroid-belt-button")
 
 
 def on_travel_pluto(event):
-    global current_planet
-    if "Pluto" in unlocked_bodies:
-        current_planet = "Pluto"
-        _mark_visited("Pluto")
-        _hide_all_views()
-        document.getElementById("pluto-view").hidden = False
-        update_resource_display("Pluto")
-        update_generator_display("Pluto")
-        update_ecology_display("Pluto")
-        update_trade_display("Pluto")
-        update_terraform_display("Pluto")
-        update_all_cross_summaries()
-    press_feedback(document.getElementById("travel-pluto-button"))
+    _travel_from_button("Pluto", "travel-pluto-button")
 
 
 def on_travel_jupiter_moons(event):
-    global current_planet
-    if "JupiterMoons" in unlocked_bodies:
-        current_planet = "JupiterMoons"
-        _mark_visited("JupiterMoons")
-        _hide_all_views()
-        document.getElementById("jupitermoons-view").hidden = False
-        update_resource_display("JupiterMoons")
-        update_generator_display("JupiterMoons")
-        update_ecology_display("JupiterMoons")
-        update_trade_display("JupiterMoons")
-        update_sky_city_display("JupiterMoons")
-        update_terraform_display("JupiterMoons")
-        update_all_cross_summaries()
-    press_feedback(document.getElementById("travel-jupiter-moons-button"))
+    _travel_from_button("JupiterMoons", "travel-jupiter-moons-button")
 
 
 def on_travel_saturn_moons(event):
-    global current_planet
-    if "SaturnMoons" in unlocked_bodies:
-        current_planet = "SaturnMoons"
-        _mark_visited("SaturnMoons")
-        _hide_all_views()
-        document.getElementById("saturnmoons-view").hidden = False
-        update_resource_display("SaturnMoons")
-        update_generator_display("SaturnMoons")
-        update_ecology_display("SaturnMoons")
-        update_trade_display("SaturnMoons")
-        update_sky_city_display("SaturnMoons")
-        update_terraform_display("SaturnMoons")
-        update_all_cross_summaries()
-    press_feedback(document.getElementById("travel-saturn-moons-button"))
+    _travel_from_button("SaturnMoons", "travel-saturn-moons-button")
 
 
 def on_travel_mars(event):
-    global current_planet
-    if "Mars" in unlocked_bodies:
-        current_planet = "Mars"
-        _mark_visited("Mars")
-        _hide_all_views()
-        document.getElementById("mars-view").hidden = False
-        update_resource_display("Mars")
-        update_generator_display("Mars")
-        update_ecology_display("Mars")
-        update_trade_display("Mars")
-        update_terraform_display("Mars")
-        update_all_cross_summaries()
-    press_feedback(document.getElementById("travel-mars-button"))
+    _travel_from_button("Mars", "travel-mars-button")
 
 
 def _return_to_earth():
-    global current_planet
-    current_planet = "Earth"
-    _hide_all_views()
-    document.getElementById("earth-view").hidden = False
-    update_resource_display("Earth")
-    update_generator_display("Earth")
-    update_ecology_display("Earth")
-    update_trade_display("Earth")
-    update_terraform_display("Earth")
-    update_all_cross_summaries()
+    _travel_to("Earth")
 
 
 def on_return_to_earth_from_away_view(event):
@@ -1903,6 +2104,8 @@ def _fresh_planet_state(planet):
         "trade_destination": None,
         "terraform_progress": 0.0,
         "governed_resource_generated": 0.0,
+        "governor_personality": "default",
+        "specialization": None,
     }
     if planet in GAS_GIANT_BODIES:
         fresh["sky_city_count"] = 0
@@ -1918,6 +2121,7 @@ def _reset_world(planet):
     ):
         return
     planet_state[planet] = _fresh_planet_state(planet)
+    _forget_close_call_history(planet)
     update_resource_display(planet)
     update_generator_display(planet)
     update_ecology_display(planet)
@@ -1962,6 +2166,630 @@ def on_reset_saturn_moons(event):
     _reset_world("SaturnMoons")
 
 
+# ===========================================================================
+# Session additions (planning/TODO.md "Per-game: SOL": A2, A4-A9, A12-A21,
+# A23, A24, A27, A28, A30). Panels that carry BUTTONS (overview, build plan,
+# prestige tree) use one delegated listener bound once in setup() and read
+# `data-*` attributes off event.target, and are only rebuilt when their
+# structure actually changes -- never every tick -- so a click can never land
+# on a button that was just swapped out from under the cursor.
+# ===========================================================================
+
+
+def _target_attr(event, name):
+    """Reads a data-* attribute off a delegated click's target, tolerating a
+    text-node/None target (returns None rather than raising)."""
+    try:
+        target = event.target
+        if target is None:
+            return None
+        value = target.getAttribute(name)
+        return None if value is None else str(value)
+    except (AttributeError, TypeError):
+        return None
+
+
+def _make_button(text, attrs, tip=None, selected=False, disabled=False):
+    button = document.createElement("button")
+    button.type = "button"
+    button.className = "secondary mini-button" + (" selected" if selected else "")
+    button.innerText = text
+    for key, value in attrs.items():
+        button.setAttribute(key, value)
+    if tip:
+        button.title = tip
+    button.disabled = disabled
+    return button
+
+
+def _make_text(class_name, text, tag="p"):
+    element = document.createElement(tag)
+    element.className = class_name
+    element.innerText = text
+    return element
+
+
+# --- A12 / A30: floating spark on a manual click, floating icon on a build ---
+_MAX_FLOATERS = 14
+_active_floaters = 0
+
+
+def _spawn_floater(anchor, glyph, css_class, event=None):
+    global _active_floaters
+    if _active_floaters >= _MAX_FLOATERS:
+        return
+    try:
+        rect = anchor.getBoundingClientRect()
+        x = rect.left + rect.width / 2
+        y = rect.top + rect.height / 2
+        if event is not None:
+            client_x = getattr(event, "clientX", None)
+            client_y = getattr(event, "clientY", None)
+            if client_x and client_y:
+                x, y = client_x, client_y
+        layer = document.getElementById("spark-layer")
+        floater = document.createElement("span")
+    except (AttributeError, TypeError, KeyError):
+        return  # no layout/DOM available (headless): visual polish only, skip silently
+    floater.className = f"floater {css_class}"
+    floater.innerText = glyph
+    floater.style.left = f"{x}px"
+    floater.style.top = f"{y}px"
+    layer.appendChild(floater)
+    _active_floaters += 1
+
+    def _remove(*args):
+        global _active_floaters
+        _active_floaters = max(0, _active_floaters - 1)
+        layer.removeChild(floater)
+        proxy.destroy()
+
+    proxy = create_proxy(_remove)
+    setTimeout(proxy, 700)
+
+
+# --- A9: multi-planet overview dashboard (+ A7 personalities, A23 specializations) ---
+overview_open = False
+_overview_signature = None
+_overview_refs = {}
+
+
+def on_toggle_overview(event=None):
+    global overview_open
+    overview_open = not overview_open
+    update_overview_display()
+
+
+def _overview_planets():
+    return [p for p in PLANETS if p == "Earth" or p in unlocked_bodies]
+
+
+def _overview_structure_signature():
+    return (
+        current_planet,
+        tuple(
+            (
+                p,
+                planet_state[p].get("governor_personality", "default"),
+                planet_state[p].get("specialization"),
+                specialization_eligible(p),
+            )
+            for p in _overview_planets()
+        ),
+    )
+
+
+def _build_overview():
+    panel = document.getElementById("overview-panel")
+    panel.innerHTML = ""
+    _overview_refs.clear()
+
+    summary = _make_text("overview-summary", "")
+    panel.appendChild(summary)
+    _overview_refs["_summary"] = summary
+
+    for planet in _overview_planets():
+        state = planet_state[planet]
+        card = document.createElement("div")
+        card.className = "overview-card" + (" overview-card--current" if planet == current_planet else "")
+
+        title = _make_text(
+            "overview-card-title",
+            PLANET_DISPLAY_NAMES.get(planet, planet) + (" (you are here)" if planet == current_planet else ""),
+        )
+        card.appendChild(title)
+        stats = _make_text("overview-card-stats", "")
+        card.appendChild(stats)
+
+        eco_row = document.createElement("div")
+        eco_row.className = "overview-bar-row"
+        eco_label = _make_text("overview-bar-label", "Ecology", "span")
+        eco_meter = document.createElement("div")
+        eco_meter.className = "meter overview-meter"
+        eco_fill = document.createElement("div")
+        eco_fill.className = "meter-fill"
+        eco_meter.appendChild(eco_fill)
+        eco_row.appendChild(eco_label)
+        eco_row.appendChild(eco_meter)
+        card.appendChild(eco_row)
+
+        tf_row = document.createElement("div")
+        tf_row.className = "overview-bar-row"
+        tf_label = _make_text("overview-bar-label", "Terraform", "span")
+        tf_meter = document.createElement("div")
+        tf_meter.className = "meter overview-meter"
+        tf_fill = document.createElement("div")
+        tf_fill.className = "meter-fill terraform-fill"
+        tf_meter.appendChild(tf_fill)
+        tf_row.appendChild(tf_label)
+        tf_row.appendChild(tf_meter)
+        card.appendChild(tf_row)
+
+        extras = _make_text("overview-card-extras", "")
+        card.appendChild(extras)
+
+        actions = document.createElement("div")
+        actions.className = "overview-actions"
+        if planet != current_planet:
+            actions.appendChild(
+                _make_button("Travel here", {"data-action": "travel", "data-planet": planet},
+                             "Fly to this world without going back through Earth.")
+            )
+        card.appendChild(actions)
+
+        personality_row = document.createElement("div")
+        personality_row.className = "overview-actions"
+        personality_row.appendChild(_make_text("overview-actions-label", "Governor:", "span"))
+        current_personality = state.get("governor_personality", "default")
+        for key, label in GOVERNOR_PERSONALITY_LABELS.items():
+            personality_row.appendChild(
+                _make_button(label, {"data-action": "personality", "data-planet": planet, "data-value": key},
+                             GOVERNOR_PERSONALITY_TIPS[key], selected=(key == current_personality))
+            )
+        card.appendChild(personality_row)
+
+        if specialization_eligible(planet):
+            spec_row = document.createElement("div")
+            spec_row.className = "overview-actions"
+            spec_row.appendChild(_make_text("overview-actions-label", "Focus:", "span"))
+            for key, label in SPECIALIZATION_LABELS.items():
+                spec_row.appendChild(
+                    _make_button(label, {"data-action": "specialize", "data-planet": planet, "data-value": key},
+                                 SPECIALIZATION_TIPS[key], selected=(state.get("specialization") == key))
+                )
+            card.appendChild(spec_row)
+
+        panel.appendChild(card)
+        _overview_refs[planet] = {"stats": stats, "eco": eco_fill, "tf": tf_fill, "extras": extras}
+
+
+def _refresh_overview_values():
+    planets = _overview_planets()
+    summary = _overview_refs.get("_summary")
+    if summary is not None:
+        avg_tf = sum(planet_state[p]["terraform_progress"] for p in planets) / len(planets)
+        gens = sum(planet_state[p]["generator_count"] for p in planets)
+        summary.innerText = (
+            f"{len(planets)}/{len(PLANETS)} worlds unlocked · {gens} generators total · "
+            f"average terraforming {round(avg_tf)}%"
+        )
+    for planet in planets:
+        refs = _overview_refs.get(planet)
+        if refs is None:
+            continue
+        state = planet_state[planet]
+        cfg = PLANETS[planet]
+        refs["stats"].innerText = (
+            f"{cfg['resource_name']}: {math.floor(state['resource_count'] + 1e-9)} · "
+            f"{state['generator_count']} generators · {state['recycler_count']} Recyclers"
+        )
+        refs["eco"].style.width = f"{state['ecology_health']}%"
+        refs["tf"].style.width = f"{state['terraform_progress']}%"
+        routes = sum(state["trade_routes"].values())
+        bits = [
+            f"Ecology {round(state['ecology_health'])}%",
+            f"Terraform {round(state['terraform_progress'])}%",
+            f"Output {round(production_multiplier(planet) * 100)}%",
+            f"{routes} trade route(s)",
+        ]
+        if planet in GAS_GIANT_BODIES:
+            bits.append(f"{state.get('sky_city_count', 0)} Sky City(ies)")
+        spec = _specialization(planet)
+        if spec:
+            bits.append(f"Focus: {SPECIALIZATION_LABELS[spec]}")
+        refs["extras"].innerText = " · ".join(bits)
+
+
+def update_overview_display():
+    global _overview_signature
+    toggle = document.getElementById("overview-toggle-button")
+    panel = document.getElementById("overview-panel")
+    toggle.innerText = "Hide Overview" if overview_open else "🌍 Overview"
+    panel.hidden = not overview_open
+    if not overview_open:
+        _overview_signature = None
+        return
+    signature = _overview_structure_signature()
+    if signature != _overview_signature:
+        _build_overview()
+        _overview_signature = signature
+    _refresh_overview_values()
+
+
+def on_overview_click(event):
+    action = _target_attr(event, "data-action")
+    planet = _target_attr(event, "data-planet")
+    value = _target_attr(event, "data-value")
+    if action is None or planet not in PLANETS:
+        return
+    if action == "travel":
+        _travel_to(planet)
+    elif action == "personality" and value in GOVERNOR_PERSONALITIES:
+        planet_state[planet]["governor_personality"] = value
+    elif action == "specialize" and value in SPECIALIZATION_LABELS and specialization_eligible(planet):
+        state = planet_state[planet]
+        state["specialization"] = None if state.get("specialization") == value else value
+    update_overview_display()
+    update_governor_report_display()
+
+
+# --- A13: build-order planner ---
+build_plan_open = False
+
+
+def on_toggle_build_plan(event=None):
+    global build_plan_open
+    build_plan_open = not build_plan_open
+    update_build_plan_display()
+
+
+def _add_build_step(text):
+    text = str(text).strip()[:BUILD_PLAN_MAX_LEN]
+    if not text or len(build_plan) >= BUILD_PLAN_MAX_STEPS:
+        return False
+    build_plan.append({"text": text, "done": False})
+    return True
+
+
+def on_build_plan_add(event=None):
+    field = document.getElementById("build-plan-input")
+    if _add_build_step(getattr(field, "value", "") or ""):
+        field.value = ""
+    update_build_plan_display()
+
+
+def on_build_plan_suggest(event=None):
+    for text in BUILD_PLAN_SUGGESTED:
+        if not any(step["text"] == text for step in build_plan):
+            _add_build_step(text)
+    update_build_plan_display()
+
+
+def on_build_plan_clear_done(event=None):
+    build_plan[:] = [step for step in build_plan if not step["done"]]
+    update_build_plan_display()
+
+
+def on_build_plan_click(event):
+    action = _target_attr(event, "data-action")
+    raw = _target_attr(event, "data-step")
+    try:
+        index = int(raw)
+    except (TypeError, ValueError):
+        return
+    if not 0 <= index < len(build_plan):
+        return
+    if action == "toggle":
+        build_plan[index]["done"] = not build_plan[index]["done"]
+    elif action == "remove":
+        del build_plan[index]
+    update_build_plan_display()
+
+
+def update_build_plan_display():
+    toggle = document.getElementById("build-plan-toggle-button")
+    panel = document.getElementById("build-plan-panel")
+    done = sum(1 for step in build_plan if step["done"])
+    label = f"📝 Build Plan ({done}/{len(build_plan)})" if build_plan else "📝 Build Plan"
+    toggle.innerText = "Hide Build Plan" if build_plan_open else label
+    panel.hidden = not build_plan_open
+    if not build_plan_open:
+        return
+    listing = document.getElementById("build-plan-list")
+    listing.innerHTML = ""
+    if not build_plan:
+        listing.appendChild(_make_text("build-plan-empty", "No steps yet. Add your own, or start from the suggested opening."))
+    for index, step in enumerate(build_plan):
+        row = document.createElement("div")
+        row.className = "build-plan-row" + (" build-plan-row--done" if step["done"] else "")
+        row.appendChild(
+            _make_button("☑" if step["done"] else "☐", {"data-action": "toggle", "data-step": str(index)},
+                         "Tick this step off")
+        )
+        row.appendChild(_make_text("build-plan-text", step["text"], "span"))
+        row.appendChild(
+            _make_button("✕", {"data-action": "remove", "data-step": str(index)}, "Remove this step")
+        )
+        listing.appendChild(row)
+
+
+# --- A1 / A3: prestige tree panel ---
+prestige_tree_open = False
+
+
+def on_toggle_prestige_tree(event=None):
+    global prestige_tree_open
+    prestige_tree_open = not prestige_tree_open
+    update_prestige_tree_display()
+
+
+def _node_unlockable(node):
+    return (
+        node["id"] not in prestige_nodes
+        and prestige_level >= node["min_level"]
+        and prestige_points_available() >= node["cost"]
+    )
+
+
+def update_prestige_tree_display(rebuild=True):
+    toggle = document.getElementById("prestige-tree-toggle-button")
+    panel = document.getElementById("prestige-tree-panel")
+    toggle.hidden = prestige_level <= 0
+    available = prestige_points_available()
+    toggle.innerText = "Hide Prestige Tree" if prestige_tree_open else f"🌳 Prestige Tree ({available})"
+    panel.hidden = not (prestige_tree_open and prestige_level > 0)
+    if panel.hidden or not rebuild:
+        return
+    panel.innerHTML = ""
+    panel.appendChild(
+        _make_text(
+            "prestige-tree-points",
+            f"Prestige Points: {available} available ({prestige_points_earned} earned). "
+            "Each prestige earns 1; unlocks are permanent and survive every prestige.",
+        )
+    )
+    for tier in (1, 2, 3):
+        panel.appendChild(_make_text("stats-panel-heading", PRESTIGE_TIER_LABELS[tier]))
+        for node in [n for n in PRESTIGE_TREE if n["tier"] == tier]:
+            unlocked = node["id"] in prestige_nodes
+            card = document.createElement("div")
+            card.className = "prestige-node" + (" prestige-node--unlocked" if unlocked else "")
+            card.appendChild(_make_text("prestige-node-name", f"{node['label']} ({node['cost']} pt)"))
+            card.appendChild(_make_text("prestige-node-desc", node["desc"]))
+            if unlocked:
+                card.appendChild(_make_text("prestige-node-status", "Unlocked"))
+                if node["id"] == "ng_challenge":
+                    card.appendChild(
+                        _make_button(
+                            "Challenge: On" if ng_challenge_active else "Challenge: Off",
+                            {"data-action": "challenge"},
+                            "Applies at the moment you next Prestige, and to the run after it.",
+                            selected=ng_challenge_active,
+                        )
+                    )
+            elif prestige_level < node["min_level"]:
+                card.appendChild(
+                    _make_text("prestige-node-status", f"Locked: reach Prestige Level {node['min_level']}")
+                )
+            else:
+                card.appendChild(
+                    _make_button(f"Unlock ({node['cost']} pt)", {"data-action": "unlock", "data-node": node["id"]},
+                                 None, disabled=not _node_unlockable(node))
+                )
+            panel.appendChild(card)
+
+
+def on_prestige_tree_click(event):
+    global ng_challenge_active
+    action = _target_attr(event, "data-action")
+    if action == "unlock":
+        node = PRESTIGE_TREE_BY_ID.get(_target_attr(event, "data-node"))
+        if node is not None and _node_unlockable(node):
+            prestige_nodes.add(node["id"])
+    elif action == "challenge" and prestige_has("ng_challenge"):
+        ng_challenge_active = not ng_challenge_active
+    update_prestige_tree_display()
+    _refresh_all_cost_displays()
+
+
+def _refresh_all_cost_displays():
+    for planet in PLANETS:
+        update_generator_display(planet)
+        update_ecology_display(planet)
+        update_trade_display(planet)
+        if planet in GAS_GIANT_BODIES:
+            update_sky_city_display(planet)
+    update_research_display()
+
+
+# --- A15: sandbox mode + A27: epilogue ---
+epilogue_open = False
+
+
+def on_toggle_sandbox(event=None):
+    global sandbox_mode
+    if not _prestige_available():
+        return
+    sandbox_mode = not sandbox_mode
+    _refresh_all_cost_displays()
+    update_win_display()
+
+
+def on_toggle_epilogue(event=None):
+    global epilogue_open
+    if not _prestige_available():
+        epilogue_open = False
+    else:
+        epilogue_open = not epilogue_open
+    update_epilogue_display()
+
+
+def update_epilogue_display():
+    panel = document.getElementById("epilogue-panel")
+    panel.hidden = not (epilogue_open and _prestige_available())
+    if panel.hidden:
+        return
+    body = document.getElementById("epilogue-body")
+    body.innerHTML = ""
+    paragraphs = [
+        "The last survey drones report in. On every world you touched, the air holds, the water runs, "
+        "and the ledgers finally balance against the ground they were drawn from.",
+        f"It took {_format_duration(_lifetime_playtime_seconds())} of simulated time, "
+        f"{total_manual_clicks} hand-mined loads, and {lifetime_generators_built} machines that never tired.",
+        f"{len(visited_bodies)} of {len(PLANETS)} worlds saw your boots, and {len(achievement_ids_earned())} of "
+        f"{len(ACHIEVEMENTS)} milestones are in the log.",
+        "Nothing here has to end. The sandbox stays open, and a New Game+ waits for anyone who wants to do it "
+        "all again a little better.",
+    ]
+    if prestige_level > 0:
+        paragraphs.insert(3, f"You have started over {prestige_level} time(s) already, and each run left the system tidier.")
+    for text in paragraphs:
+        body.appendChild(_make_text("epilogue-paragraph", text))
+
+
+# --- A6 / A17 / A21 / A8-support: stats-panel extras ---
+STATS_CODE_PREFIX = "SOLSTATS1:"
+_STATS_CODE_FIELDS = (
+    "total_ticks",
+    "total_manual_clicks",
+    "lifetime_resources_mined_by_click",
+    "lifetime_resources_generated_by_automation",
+    "lifetime_generators_built",
+    "lifetime_recyclers_built",
+    "lifetime_trade_routes_built",
+    "lifetime_sky_cities_built",
+)
+COMPARE_FIELDS = (
+    "prestige_level",
+    "total_ticks",
+    "total_manual_clicks",
+    "lifetime_generators_built",
+    "lifetime_recyclers_built",
+    "lifetime_trade_routes_built",
+    "lifetime_sky_cities_built",
+    "governor_purchase_count",
+)
+
+
+def export_stats_code():
+    import base64  # noqa: PLC0415
+
+    payload = {name: globals()[name] for name in _STATS_CODE_FIELDS}
+    payload["prestige_level"] = prestige_level
+    raw = json.dumps(payload, sort_keys=True).encode("utf-8")
+    return STATS_CODE_PREFIX + base64.b64encode(raw).decode("ascii")
+
+
+def import_stats_code(code):
+    """Returns (ok, message). Only ever raises a counter, never lowers one, so
+    a stale code from an old device can't undo newer progress."""
+    global total_ticks, total_manual_clicks, lifetime_resources_mined_by_click
+    global lifetime_resources_generated_by_automation, lifetime_generators_built
+    global lifetime_recyclers_built, lifetime_trade_routes_built, lifetime_sky_cities_built
+    import base64  # noqa: PLC0415
+
+    code = (code or "").strip()
+    if not code.startswith(STATS_CODE_PREFIX):
+        return False, "That doesn't look like a SOL stats code."
+    try:
+        payload = json.loads(base64.b64decode(code[len(STATS_CODE_PREFIX):]).decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return False, "That stats code couldn't be read."
+    if not isinstance(payload, dict):
+        return False, "That stats code couldn't be read."
+    for name in _STATS_CODE_FIELDS:
+        value = payload.get(name)
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
+            return False, "That stats code has invalid values."
+    for name in _STATS_CODE_FIELDS:
+        globals()[name] = max(globals()[name], payload[name])
+    return True, "Stats imported. Counters only ever go up."
+
+
+def on_export_stats(event=None):
+    document.getElementById("stats-code-output").value = export_stats_code()
+    document.getElementById("stats-code-status").innerText = "Copy this code and keep it somewhere safe."
+
+
+def on_import_stats(event=None):
+    field = document.getElementById("stats-code-input")
+    ok, message = import_stats_code(getattr(field, "value", ""))
+    document.getElementById("stats-code-status").innerText = message
+    if ok:
+        update_stats_panel_display()
+
+
+def compare_values():
+    values = {name: globals().get(name, 0) for name in COMPARE_FIELDS}
+    values["governor_purchase_count"] = governor_purchase_count
+    return values
+
+
+def on_compare_run(event=None):
+    try:
+        import js  # noqa: PLC0415
+
+        js.SolCompare.run(json.dumps(compare_values()))
+    except (ImportError, AttributeError):
+        document.getElementById("compare-run-results").innerText = "Comparison isn't available right now."
+
+
+def _flash_copy_button(button, done_text):
+    original = "📋 Copy to Clipboard"
+    button.innerText = done_text
+
+    def _restore(*args):
+        button.innerText = original
+        proxy.destroy()
+
+    proxy = create_proxy(_restore)
+    setTimeout(proxy, 1500)
+
+
+# --- A14: research tree tier collapse ---
+research_tree_collapsed = set()
+
+
+def on_research_tree_click(event):
+    raw = _target_attr(event, "data-tier")
+    try:
+        index = int(raw)
+    except (TypeError, ValueError):
+        return
+    if not 0 <= index < len(RESEARCH_TIERS):
+        return
+    if index in research_tree_collapsed:
+        research_tree_collapsed.discard(index)
+    else:
+        research_tree_collapsed.add(index)
+    update_research_tree_display()
+
+
+# --- A19: "close call" tracking ---
+def _track_close_calls():
+    global close_call_hit, back_from_brink_hit
+    for planet in PLANETS:
+        health = planet_state[planet]["ecology_health"]
+        if health < CLOSE_CALL_FLOOR:
+            _ecology_low_seen.add(planet)
+            if health <= 0:
+                _ecology_zero_seen.add(planet)
+        elif health >= CLOSE_CALL_RECOVERY:
+            if planet in _ecology_low_seen:
+                close_call_hit = True
+            if planet in _ecology_zero_seen:
+                back_from_brink_hit = True
+
+
+def _forget_close_call_history(planet=None):
+    if planet is None:
+        _ecology_low_seen.clear()
+        _ecology_zero_seen.clear()
+    else:
+        _ecology_low_seen.discard(planet)
+        _ecology_zero_seen.discard(planet)
+
+
 # --- Prestige / New Game+ (A1) ---
 def _prestige_available():
     return all(planet_state[p]["terraform_progress"] >= TERRAFORM_MAX for p in PLANETS)
@@ -1970,7 +2798,8 @@ def _prestige_available():
 def on_prestige(event=None):
     global prestige_level, research_progress, completed_tiers, unlocked_bodies, visited_bodies
     global current_planet, governor_priority, governor_budget_pct, governor_tick_count
-    global governor_purchase_count, any_generator_ever_built
+    global governor_purchase_count, any_generator_ever_built, prestige_points_earned, sandbox_mode
+    global epilogue_open
 
     if not _prestige_available():
         return
@@ -1980,12 +2809,19 @@ def on_prestige(event=None):
     if not _confirm(
         f"Prestige into a New Game+? Every world resets to its starting state -- "
         f"research, travel, and the Governor included -- and you keep a permanent "
-        f"+{next_bonus_pct}% resource yield (Prestige Level {next_level}). Lifetime "
-        "stats and every achievement you've already earned are kept. This cannot be undone."
+        f"+{next_bonus_pct}% resource yield (Prestige Level {next_level}) and a Prestige Tree "
+        "point. Lifetime stats, tree unlocks and every achievement you've already earned are kept. "
+        "This cannot be undone."
     ):
         return
 
     prestige_level = next_level
+    # A1/A3: 1 tree point per prestige, +1 if the New Game+ Challenge was on.
+    prestige_points_earned += 1 + (1 if _challenge_on() else 0)
+    sandbox_mode = False
+    epilogue_open = False
+    _forget_close_call_history()
+    _departure_snapshots.clear()
     for planet in PLANETS:
         planet_state[planet] = _fresh_planet_state(planet)
     research_progress = 0.0
@@ -2008,6 +2844,8 @@ def on_prestige(event=None):
     governor_tick_count = 0
     governor_purchase_count = 0
     any_generator_ever_built = False
+    if prestige_has("head_start"):
+        planet_state["Earth"]["resource_count"] = 50.0
 
     _full_render()
     press_feedback(document.getElementById("prestige-button"))
@@ -2027,16 +2865,21 @@ def governor_step():
         return
 
     governor_tick_count += 1
-    if governor_priority == "growth":
-        buy_generator_turn = True
-    elif governor_priority == "ecology":
-        buy_generator_turn = False
-    else:  # "balance" — alternate turns between the two buildings
-        buy_generator_turn = governor_tick_count % 2 == 0
 
     for planet in governed_planets:
+        if _sandbox_active():
+            continue  # A15: costs are zero in sandbox, so the Governor would buy without limit
+        # A7: each world may carry its own personality preset; otherwise it
+        # follows the global dial exactly as before.
+        priority, budget_pct = governor_settings(planet)
+        if priority == "growth":
+            buy_generator_turn = True
+        elif priority == "ecology":
+            buy_generator_turn = False
+        else:  # "balance" — alternate turns between the two buildings
+            buy_generator_turn = governor_tick_count % 2 == 0
         state = planet_state[planet]
-        budget = state["resource_count"] * (governor_budget_pct / 100)
+        budget = state["resource_count"] * (budget_pct / 100)
 
         if buy_generator_turn:
             cost = generator_cost(planet)
@@ -2083,6 +2926,7 @@ def _simulate_planet(planet, incoming_trade_restore):
             sky_city_bonus = 1 + cfg.get("sky_city_production_bonus_per_city", 0) * state.get(
                 "sky_city_count", 0
             )
+            spec = _specialization(planet)
             produced = (
                 state["generator_count"]
                 * cfg["generator_rate"]
@@ -2090,6 +2934,8 @@ def _simulate_planet(planet, incoming_trade_restore):
                 * (TICK_INTERVAL_MS / 1000)
                 * multiplier
                 * prestige_multiplier()
+                * (1 + SPECIALIZATION_OUTPUT_BONUS if spec == "output" else 1)
+                * (1.2 if prestige_has("governors_mandate") and planet != current_planet else 1)
             )
             state["resource_count"] += produced
             lifetime_resources_generated_by_automation += produced
@@ -2101,6 +2947,13 @@ def _simulate_planet(planet, incoming_trade_restore):
                 state["governed_resource_generated"] += produced
 
     decay = state["generator_count"] * cfg["ecology_decay_per_generator_per_sec"] * (TICK_INTERVAL_MS / 1000)
+    if prestige_has("eco_conscious"):
+        decay *= 0.85
+    spec = _specialization(planet)
+    if spec == "output":
+        decay *= 1 + SPECIALIZATION_OUTPUT_DECAY_PENALTY
+    elif spec == "stability":
+        decay *= 1 - SPECIALIZATION_STABILITY_DECAY_CUT
     restore = state["recycler_count"] * cfg["recycler_restore_per_sec"] * (TICK_INTERVAL_MS / 1000)
     state["ecology_health"] = clamp(
         state["ecology_health"] - decay + restore + incoming_trade_restore, 0.0, ECOLOGY_MAX
@@ -2126,6 +2979,7 @@ def tick(*args):
         _simulate_planet(planet, incoming_trade_restore[planet])
 
     governor_step()
+    _track_close_calls()
 
     for planet in PLANETS:
         update_resource_display(planet)
@@ -2143,6 +2997,8 @@ def tick(*args):
     update_stats_panel_display()
     update_governor_report_display()
     update_changelog_display()
+    update_overview_display()
+    update_epilogue_display()
     _check_new_achievements_for_toast()
 
 
@@ -2176,6 +3032,12 @@ def _full_render():
     update_stats_panel_display()
     update_governor_report_display()
     update_changelog_display()
+    update_overview_display()
+    update_build_plan_display()
+    update_prestige_tree_display()
+    update_epilogue_display()
+    _refresh_all_cost_displays()
+    document.getElementById("away-report").hidden = True
     # A full render (fresh setup, or a save/load round-trip) always starts
     # with no toast showing and re-seeds the "already earned" baseline to
     # whatever's true right now -- see _seed_achievement_toast_baseline's
@@ -2242,6 +3104,16 @@ def serialize_state():
         "swift_expansion_hit": swift_expansion_hit,
         "manual_labor_hit": manual_labor_hit,
         "off_the_grid_hit": off_the_grid_hit,
+        # Prestige tree (A1/A3), sandbox (A15), build plan (A13), close calls (A19).
+        "prestige_points_earned": prestige_points_earned,
+        "prestige_nodes": sorted(prestige_nodes),
+        "ng_challenge_active": ng_challenge_active,
+        "sandbox_mode": sandbox_mode,
+        "build_plan": copy.deepcopy(build_plan),
+        "close_call_hit": close_call_hit,
+        "back_from_brink_hit": back_from_brink_hit,
+        "ecology_low_seen": sorted(_ecology_low_seen),
+        "ecology_zero_seen": sorted(_ecology_zero_seen),
         "achievements_earned": achievement_ids_earned(),
     }
 
@@ -2253,7 +3125,8 @@ def deserialize_state(data):
     global lifetime_resources_generated_by_automation, lifetime_generators_built
     global lifetime_recyclers_built, lifetime_trade_routes_built, lifetime_sky_cities_built
     global any_generator_ever_built, quick_start_hit, swift_expansion_hit, manual_labor_hit
-    global off_the_grid_hit
+    global off_the_grid_hit, prestige_points_earned, prestige_nodes, ng_challenge_active
+    global sandbox_mode, close_call_hit, back_from_brink_hit
 
     # Merge in place rather than clear()+update(): a save whose
     # planet_state is missing a body (an older save format from before
@@ -2322,6 +3195,46 @@ def deserialize_state(data):
     swift_expansion_hit = data.get("swift_expansion_hit", swift_expansion_hit)
     manual_labor_hit = data.get("manual_labor_hit", manual_labor_hit)
     off_the_grid_hit = data.get("off_the_grid_hit", off_the_grid_hit)
+    _load_session_additions(data)
+
+
+def _load_session_additions(data):
+    """Loads the fields added with the A1-A30 batch, each defensively: a
+    missing key keeps the current value, a wrongly-typed one is ignored, so
+    an old save (or a hand-edited one) can never crash the load."""
+    global prestige_points_earned, prestige_nodes, ng_challenge_active, sandbox_mode
+    global close_call_hit, back_from_brink_hit, _departure_snapshots
+
+    # Legacy saves: prestige_level existed before points did, and each
+    # prestige is worth 1 point, so an old save's points equal its level.
+    earned = data.get("prestige_points_earned", prestige_level)
+    prestige_points_earned = earned if isinstance(earned, int) and not isinstance(earned, bool) and earned >= 0 else prestige_level
+    nodes = data.get("prestige_nodes", sorted(prestige_nodes))
+    if isinstance(nodes, list):
+        prestige_nodes = {n for n in nodes if isinstance(n, str) and n in PRESTIGE_TREE_BY_ID}
+    ng_challenge_active = data.get("ng_challenge_active", ng_challenge_active) is True
+    sandbox_mode = data.get("sandbox_mode", sandbox_mode) is True
+    close_call_hit = data.get("close_call_hit", close_call_hit) is True
+    back_from_brink_hit = data.get("back_from_brink_hit", back_from_brink_hit) is True
+    for key, target in (("ecology_low_seen", _ecology_low_seen), ("ecology_zero_seen", _ecology_zero_seen)):
+        raw = data.get(key)
+        if isinstance(raw, list):
+            target.clear()
+            target.update(p for p in raw if p in PLANETS)
+    plan = data.get("build_plan")
+    if isinstance(plan, list):
+        cleaned = []
+        for step in plan[:BUILD_PLAN_MAX_STEPS]:
+            if isinstance(step, dict) and isinstance(step.get("text"), str) and step["text"].strip():
+                cleaned.append({"text": step["text"].strip()[:BUILD_PLAN_MAX_LEN], "done": step.get("done") is True})
+        build_plan[:] = cleaned
+    # A run-scoped, in-memory report baseline: never meaningful across a load.
+    _departure_snapshots = {}
+    for state in planet_state.values():
+        if state.get("governor_personality") not in GOVERNOR_PERSONALITIES:
+            state["governor_personality"] = "default"
+        if state.get("specialization") not in (None, *SPECIALIZATION_LABELS):
+            state["specialization"] = None
 
 
 def _show_welcome_back_toast():
@@ -2639,6 +3552,31 @@ def setup():
         "click", create_proxy(on_toggle_changelog)
     )
     document.getElementById("prestige-button").addEventListener("click", create_proxy(on_prestige))
+    document.getElementById("sandbox-toggle-button").addEventListener("click", create_proxy(on_toggle_sandbox))
+    document.getElementById("epilogue-button").addEventListener("click", create_proxy(on_toggle_epilogue))
+    document.getElementById("epilogue-close-button").addEventListener("click", create_proxy(on_toggle_epilogue))
+    document.getElementById("overview-toggle-button").addEventListener("click", create_proxy(on_toggle_overview))
+    document.getElementById("overview-panel").addEventListener("click", create_proxy(on_overview_click))
+    document.getElementById("build-plan-toggle-button").addEventListener("click", create_proxy(on_toggle_build_plan))
+    document.getElementById("build-plan-add-button").addEventListener("click", create_proxy(on_build_plan_add))
+    document.getElementById("build-plan-suggest-button").addEventListener(
+        "click", create_proxy(on_build_plan_suggest)
+    )
+    document.getElementById("build-plan-clear-done-button").addEventListener(
+        "click", create_proxy(on_build_plan_clear_done)
+    )
+    document.getElementById("build-plan-list").addEventListener("click", create_proxy(on_build_plan_click))
+    document.getElementById("prestige-tree-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_prestige_tree)
+    )
+    document.getElementById("prestige-tree-panel").addEventListener("click", create_proxy(on_prestige_tree_click))
+    document.getElementById("away-report-dismiss-button").addEventListener(
+        "click", create_proxy(on_dismiss_away_report)
+    )
+    document.getElementById("compare-run-button").addEventListener("click", create_proxy(on_compare_run))
+    document.getElementById("stats-export-button").addEventListener("click", create_proxy(on_export_stats))
+    document.getElementById("stats-import-button").addEventListener("click", create_proxy(on_import_stats))
+    document.getElementById("research-tree").addEventListener("click", create_proxy(on_research_tree_click))
 
     document.getElementById("reset-world-button").addEventListener("click", create_proxy(on_reset_earth))
     document.getElementById("mars-reset-world-button").addEventListener("click", create_proxy(on_reset_mars))

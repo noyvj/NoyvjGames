@@ -109,6 +109,16 @@
       "id": "off_the_grid",
       "label": "Off the Grid",
       "description": "Fund the Near Bodies research tier to completion without ever building a generator anywhere."
+    },
+    {
+      "id": "close_call",
+      "label": "Close Call",
+      "description": "Let a world's ecology fall below 3%, then bring it back above 50%."
+    },
+    {
+      "id": "back_from_the_brink",
+      "label": "Back From the Brink",
+      "description": "Let a world collapse to 0% ecology, then restore it above 50%."
     }
   ]
 }

@@ -47,6 +47,10 @@ class FakeElement:
         self.style = FakeStyle()
         self.children = []
         self._listeners = {}
+        self._attrs = {}
+        self.value = ""
+        self.title = ""
+        self.type = ""
 
     @property
     def innerHTML(self):
@@ -63,6 +67,17 @@ class FakeElement:
 
     def appendChild(self, child):
         self.children.append(child)
+        return child
+
+    def setAttribute(self, name, value):
+        self._attrs[name] = value
+
+    def getAttribute(self, name):
+        return self._attrs.get(name)
+
+    def removeChild(self, child):
+        if child in self.children:
+            self.children.remove(child)
         return child
 
     def addEventListener(self, event_name, handler):

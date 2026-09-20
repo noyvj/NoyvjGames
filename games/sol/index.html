@@ -12,6 +12,7 @@
 <script src="../../shared/tutorial.js"></script>
 <script src="../../shared/mobile-hud.js"></script>
 <script src="settings.js"></script>
+<script src="compare.js"></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -20,11 +21,14 @@
   <div class="space-bg" aria-hidden="true"><div class="space-bg-nebula"></div><div class="space-bg-stars-bright"></div></div>
   <div id="game">
     <a href="../../index.html" class="hub-back-link">&larr; All games</a>
-    <h1>SOL</h1>
+    <h1>SOL <span id="prestige-badge" class="prestige-badge" title="Your current Prestige level" hidden></span></h1>
 
     <div class="game-toolbar">
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
+      <button id="overview-toggle-button" class="secondary" type="button">🌍 Overview</button>
+      <button id="build-plan-toggle-button" class="secondary" type="button">📝 Build Plan</button>
+      <button id="prestige-tree-toggle-button" class="secondary" type="button" hidden>🌳 Prestige Tree</button>
       <button id="achievements-toggle-button" class="secondary" type="button">🏆 Achievements</button>
       <button id="stats-toggle-button" class="secondary" type="button">📊 Stats &amp; Share</button>
       <button id="governor-report-toggle-button" class="secondary" type="button">🎛️ Governor Report</button>
@@ -59,6 +63,21 @@
       <pre id="share-card-text" class="share-card"></pre>
       <button id="copy-share-card-button" class="secondary" type="button">📋 Copy to Clipboard</button>
       <p id="copy-share-card-status" class="copy-share-card-status"></p>
+      <details class="stats-extra">
+        <summary>Compare my run</summary>
+        <p class="stats-extra-hint">See how your lifetime numbers rank against other players (anonymous, needs enough saves to show).</p>
+        <button id="compare-run-button" class="secondary" type="button">Compare my run</button>
+        <div id="compare-run-results" class="compare-run-results"></div>
+      </details>
+      <details class="stats-extra">
+        <summary>Export / import lifetime stats</summary>
+        <p class="stats-extra-hint">A portable code for your lifetime counters, for moving them to another browser. Importing only ever raises a counter, never lowers it.</p>
+        <button id="stats-export-button" class="secondary" type="button">Export stats code</button>
+        <textarea id="stats-code-output" class="stats-code-textarea" readonly placeholder="Your stats code appears here"></textarea>
+        <textarea id="stats-code-input" class="stats-code-textarea" placeholder="Paste a stats code to import"></textarea>
+        <button id="stats-import-button" class="secondary" type="button">Import stats code</button>
+        <p id="stats-code-status" class="copy-share-card-status"></p>
+      </details>
     </div>
     <div id="governor-report-panel" class="section governor-report-panel" hidden></div>
     <!-- "What's New" changelog panel (site-wide goal, planning/TODO.md, origin K16):
@@ -66,6 +85,43 @@
          full duplicate of the dev logs. Same hidden-until-opened .section idiom as
          achievements/stats/governor-report/settings above. -->
     <div id="changelog-panel" class="section changelog-panel" hidden></div>
+
+    <!-- A9: multi-planet overview dashboard. Cards are built once per structure
+         change and updated in place each tick (see game.py's overview section),
+         so the buttons on them stay clickable. -->
+    <div id="overview-panel" class="section overview-panel" hidden></div>
+
+    <!-- A13: manual build-order checklist. -->
+    <div id="build-plan-panel" class="section build-plan-panel" hidden>
+      <p class="stats-panel-heading">Build-Order Planner</p>
+      <p class="build-plan-hint">Write your own build order and tick steps off as you go. Nothing here affects the game.</p>
+      <div class="build-plan-add-row">
+        <input id="build-plan-input" class="build-plan-input" type="text" maxlength="80" placeholder="Next step, e.g. 5 Auto-Miners" aria-label="New build-plan step">
+        <button id="build-plan-add-button" class="secondary" type="button">Add</button>
+      </div>
+      <div id="build-plan-list" class="build-plan-list"></div>
+      <button id="build-plan-suggest-button" class="secondary" type="button">Add suggested opening</button>
+      <button id="build-plan-clear-done-button" class="secondary" type="button">Clear ticked steps</button>
+    </div>
+
+    <!-- A1/A3: Prestige tree (only reachable once at least one prestige is done). -->
+    <div id="prestige-tree-panel" class="section prestige-tree-panel" hidden></div>
+
+    <!-- A5: real "while you were away" report, shown on returning to a world. -->
+    <div id="away-report" class="section away-report" hidden>
+      <p id="away-report-text" class="away-report-text"></p>
+      <button id="away-report-dismiss-button" class="secondary" type="button">Dismiss</button>
+    </div>
+
+    <!-- A27: end-game epilogue. -->
+    <div id="epilogue-panel" class="section epilogue-panel" hidden>
+      <p class="epilogue-heading">Epilogue</p>
+      <div id="epilogue-body"></div>
+      <button id="epilogue-close-button" class="secondary" type="button">Close</button>
+    </div>
+
+    <!-- A12/A30: floating sparks/icons layer, never intercepts clicks. -->
+    <div id="spark-layer" class="spark-layer" aria-hidden="true"></div>
 
     <div id="achievement-toast" class="achievement-toast" hidden>
       <p id="achievement-toast-text"></p>
@@ -75,7 +131,9 @@
       <p id="win-banner-heading" class="win-banner-heading">100% COMPLETE</p>
       <p id="win-banner-subtext" class="win-banner-subtext">Every world in the solar system has been fully terraformed. The simulation continues in sandbox mode.</p>
       <p id="prestige-level-readout" class="prestige-level-readout"></p>
-      <button id="prestige-button" class="secondary" type="button">🌟 Prestige (New Game+)</button>
+      <button id="prestige-button" class="secondary" type="button" title="Prestige resets: every world's resources, buildings, Sky Cities, ecology, trade routes and terraforming; research and unlocked/visited worlds; and Governor settings. It keeps: your Prestige level and Prestige Tree unlocks, lifetime stats, and every achievement you have earned. This is different from Reset This World, which clears only that one planet.">🌟 Prestige (New Game+)</button>
+      <button id="epilogue-button" class="secondary" type="button">📜 Read the Epilogue</button>
+      <button id="sandbox-toggle-button" class="secondary" type="button" title="Sandbox mode removes every resource cost (buildings, trade routes, Sky Cities, research) while every world is fully terraformed. Turns off when you Prestige.">🧪 Sandbox: Off</button>
     </div>
 
     <div id="earth-view">
@@ -84,6 +142,7 @@
         <div class="planet-visual-body"></div>
       </div>
       <p id="resource-label" class="resource-label">Iron — Earth</p>
+      <p id="prestige-bonus" class="prestige-bonus-tag" title="Your Prestige level multiplies every manual click and every automated yield." hidden></p>
       <p id="resource-count" class="resource-count">0</p>
       <button id="click-button" class="click-button" disabled>Loading...</button>
 
@@ -121,6 +180,13 @@
           <div id="terraform-bar" class="meter-fill terraform-fill"></div>
         </div>
         <p id="terraform-status" class="ecology-status"></p>
+        <div class="terraform-legend" aria-label="Terraform color tiers">
+          <span class="terraform-legend-item"><i class="terraform-swatch terraform-swatch--0"></i>0-24%</span>
+          <span class="terraform-legend-item"><i class="terraform-swatch terraform-swatch--1"></i>25-49%</span>
+          <span class="terraform-legend-item"><i class="terraform-swatch terraform-swatch--2"></i>50-74%</span>
+          <span class="terraform-legend-item"><i class="terraform-swatch terraform-swatch--3"></i>75-99%</span>
+          <span class="terraform-legend-item"><i class="terraform-swatch terraform-swatch--4"></i>100%</span>
+        </div>
       </div>
 
       <button id="reset-world-button" class="secondary reset-world-button" type="button">Reset This World</button>
@@ -142,9 +208,9 @@
           <details class="info-toggle"><summary>i</summary><p>The Governor controls how a planet manages itself while you're away — Priority decides what it optimizes for (Growth, Balance, or Ecology), and Budget sets what share of its resources it spends on that goal.</p></details>
         </p>
         <div id="governor-priority-buttons">
-          <button id="priority-growth-button" class="priority-option">Growth</button>
-          <button id="priority-balance-button" class="priority-option">Balance</button>
-          <button id="priority-ecology-button" class="priority-option">Ecology</button>
+          <button id="priority-growth-button" class="priority-option" title="Growth: every Governor turn tries to buy a generator on each governed world (100% of turns on generators, 0% on Recyclers), spending up to your Budget share of that world's resources.">Growth</button>
+          <button id="priority-balance-button" class="priority-option" title="Balance: the Governor alternates turns, one turn a generator, the next a Recycler (50% / 50%), spending up to your Budget share of that world's resources.">Balance</button>
+          <button id="priority-ecology-button" class="priority-option" title="Ecology: every Governor turn tries to build a Recycler (0% generators, 100% Recyclers), each restoring 2 ecology per second, spending up to your Budget share of that world's resources.">Ecology</button>
         </div>
         <p id="governor-budget-label">Budget: <span id="governor-budget-value">50</span>% of Iron</p>
         <div id="governor-budget-buttons">
@@ -226,6 +292,7 @@
           <details class="info-toggle"><summary>i</summary><p>Travel unlocks once you've reached the research tier that targets a body — you don't need to fully develop your current planet first, just meet the research requirement.</p></details>
         </p>
         <p id="travel-status">Reach the Near Bodies tier to unlock travel.</p>
+        <p id="travel-progress" class="travel-progress">1/8 bodies visited</p>
         <button id="travel-moon-button" class="secondary" hidden disabled>🌕 Travel to Moon</button>
         <button id="travel-mars-button" class="secondary" hidden disabled>🔴 Travel to Mars</button>
         <button id="travel-venus-button" class="secondary" hidden disabled>🟠 Travel to Venus</button>
@@ -242,6 +309,7 @@
         <div class="planet-visual-body"></div>
       </div>
       <p id="mars-resource-label" class="resource-label">Water Ice — Mars</p>
+      <p id="mars-prestige-bonus" class="prestige-bonus-tag" title="Your Prestige level multiplies every manual click and every automated yield." hidden></p>
       <p id="mars-resource-count" class="resource-count">0</p>
       <button id="mars-click-button" class="click-button" disabled>Loading...</button>
 
@@ -349,6 +417,7 @@
         <div class="planet-visual-body"></div>
       </div>
       <p id="moon-resource-label" class="resource-label">Regolith — Moon</p>
+      <p id="moon-prestige-bonus" class="prestige-bonus-tag" title="Your Prestige level multiplies every manual click and every automated yield." hidden></p>
       <p id="moon-resource-count" class="resource-count">0</p>
       <button id="moon-click-button" class="click-button" disabled>Loading...</button>
 
@@ -456,6 +525,7 @@
         <div class="planet-visual-body"></div>
       </div>
       <p id="venus-resource-label" class="resource-label">Sulfur — Venus</p>
+      <p id="venus-prestige-bonus" class="prestige-bonus-tag" title="Your Prestige level multiplies every manual click and every automated yield." hidden></p>
       <p id="venus-resource-count" class="resource-count">0</p>
       <button id="venus-click-button" class="click-button" disabled>Loading...</button>
 
@@ -564,6 +634,7 @@
         <div class="planet-visual-rock planet-visual-rock--c"></div>
       </div>
       <p id="asteroidbelt-resource-label" class="resource-label">Platinum — Asteroid Belt</p>
+      <p id="asteroidbelt-prestige-bonus" class="prestige-bonus-tag" title="Your Prestige level multiplies every manual click and every automated yield." hidden></p>
       <p id="asteroidbelt-resource-count" class="resource-count">0</p>
       <button id="asteroidbelt-click-button" class="click-button" disabled>Loading...</button>
 
@@ -671,6 +742,7 @@
         <div class="planet-visual-body"></div>
       </div>
       <p id="pluto-resource-label" class="resource-label">Tholins — Pluto</p>
+      <p id="pluto-prestige-bonus" class="prestige-bonus-tag" title="Your Prestige level multiplies every manual click and every automated yield." hidden></p>
       <p id="pluto-resource-count" class="resource-count">0</p>
       <button id="pluto-click-button" class="click-button" disabled>Loading...</button>
 
@@ -779,6 +851,7 @@
         <div class="planet-visual-body"></div>
       </div>
       <p id="jupitermoons-resource-label" class="resource-label">Helium-3 — Jupiter's Moons</p>
+      <p id="jupitermoons-prestige-bonus" class="prestige-bonus-tag" title="Your Prestige level multiplies every manual click and every automated yield." hidden></p>
       <p id="jupitermoons-resource-count" class="resource-count">0</p>
       <button id="jupitermoons-click-button" class="click-button" disabled>Loading...</button>
 
@@ -829,7 +902,7 @@
         <p id="jupitermoons-sky-city-info" class="generator-info">
           Sky Cities: <span id="jupitermoons-sky-city-count">0</span>
           (+<span id="jupitermoons-sky-city-bonus">0</span>% production)
-          <details class="info-toggle"><summary>i</summary><p>Sky Cities are gas giants' own building — they boost production here just like a generator, but always cost Mars materials on top of the local resource, so a trade or stockpile from Mars keeps them buildable.</p></details>
+          <details class="info-toggle"><summary>i</summary><p>Sky Cities are gas giants' own building — they boost production here just like a generator, but always cost Mars materials on top of the local resource, so a trade or stockpile from Mars keeps them buildable. The first Sky City costs 50 of the local resource plus 20 Mars Water Ice (a 5 : 2 ratio); every city after that costs 15% more of both, and each one adds +10% production.</p></details>
         </p>
         <button id="jupitermoons-buy-sky-city-button" class="secondary" disabled>Loading...</button>
       </div>
@@ -896,6 +969,7 @@
         <div class="planet-visual-body"></div>
       </div>
       <p id="saturnmoons-resource-label" class="resource-label">Methane — Saturn's Moons</p>
+      <p id="saturnmoons-prestige-bonus" class="prestige-bonus-tag" title="Your Prestige level multiplies every manual click and every automated yield." hidden></p>
       <p id="saturnmoons-resource-count" class="resource-count">0</p>
       <button id="saturnmoons-click-button" class="click-button" disabled>Loading...</button>
 
@@ -946,7 +1020,7 @@
         <p id="saturnmoons-sky-city-info" class="generator-info">
           Sky Cities: <span id="saturnmoons-sky-city-count">0</span>
           (+<span id="saturnmoons-sky-city-bonus">0</span>% production)
-          <details class="info-toggle"><summary>i</summary><p>Sky Cities are gas giants' own building — they boost production here just like a generator, but always cost Mars materials on top of the local resource, so a trade or stockpile from Mars keeps them buildable.</p></details>
+          <details class="info-toggle"><summary>i</summary><p>Sky Cities are gas giants' own building — they boost production here just like a generator, but always cost Mars materials on top of the local resource, so a trade or stockpile from Mars keeps them buildable. The first Sky City costs 50 of the local resource plus 20 Mars Water Ice (a 5 : 2 ratio); every city after that costs 15% more of both, and each one adds +10% production.</p></details>
         </p>
         <button id="saturnmoons-buy-sky-city-button" class="secondary" disabled>Loading...</button>
       </div>

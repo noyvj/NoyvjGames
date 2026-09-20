@@ -37,6 +37,15 @@ def test_serialize_state_includes_every_expected_key(game_env):
         "swift_expansion_hit",
         "manual_labor_hit",
         "off_the_grid_hit",
+        "prestige_points_earned",
+        "prestige_nodes",
+        "ng_challenge_active",
+        "sandbox_mode",
+        "build_plan",
+        "close_call_hit",
+        "back_from_brink_hit",
+        "ecology_low_seen",
+        "ecology_zero_seen",
         "achievements_earned",
     }
 
