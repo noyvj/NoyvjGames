@@ -315,3 +315,8 @@ Built ~17 C-items (starting scenarios, operator grade, resilience score, 20-roun
 
 ## 2026-09-20 — Thaw round-2 polish (G2/G4/G6/G8/G10/G12/G14/G16/G18/G19/G20/G22/G24/G26/G28/G30)
 Added readability and feedback features to Thaw without adding screen clutter: trend arrows, stability streak, collapsible scientist's log, labelled melt threshold, shape icons, preset previews, first-time callouts. See games/thaw/CLAUDE.md round-2 notes.
+
+### 2026-09-20 (Loop: round-2 improvement pass)
+**Game:** Loop
+**Did:** Built H1/H2/H4/H6/H8/H10/H12/H14/H15/H16/H18/H20/H22/H24/H25a/H26/H27/H28/H29a/H30 from `planning/TODO.md`: Overseas Consortium third trade partner, 25% milestone particle burst, top-investment ring glow, loop efficiency audit, score-source pie, streak progress, extraction-cost trend arrow, cosmetic goods relabel, weekly featured category, text supply map, Goods Collector achievement, and several tooltips/one-time hints.
+**Result:** 160 to 186 tests green; verified live in an iframe. New mechanics (H3/H9/H13/H17/H21/H23), rich SVG maps and backend-dependent items left for later. See `games/loop/CLAUDE.md`.
