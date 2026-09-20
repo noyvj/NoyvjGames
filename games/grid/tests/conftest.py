@@ -93,6 +93,7 @@ for _plant in PLANT_TYPES:
         f"{_plant}-build-button",
         f"{_plant}-retire-button",
         f"{_plant}-maintain-button",
+        f"{_plant}-maintenance-schedule-select",
         f"{_plant}-name",
         f"{_plant}-wear-pct",
         f"{_plant}-risk-badge",
@@ -107,6 +108,7 @@ INITIALLY_DISABLED_IDS = (
     [f"{p}-build-button" for p in PLANT_TYPES]
     + [f"{p}-retire-button" for p in PLANT_TYPES]
     + [f"{p}-maintain-button" for p in PLANT_TYPES]
+    + [f"{p}-maintenance-schedule-select" for p in PLANT_TYPES]
 )
 
 
@@ -130,6 +132,23 @@ class GameEnv:
 
     def maintain(self, plant_type):
         self.elements[f"{plant_type}-maintain-button"].dispatch("click", None)
+
+    def set_maintenance_schedule(self, plant_type, interval):
+        """TODO-C23: mirrors a real <select> 'change' event -- sets the
+        element's own `.value` (what a browser does natively before
+        dispatching change) then fires a change event whose `.target` is
+        the select itself, so game.py's handler can read
+        `event.target.value` the same way it would from a real DOM
+        event."""
+        select = self.elements[f"{plant_type}-maintenance-schedule-select"]
+        select.value = str(interval)
+
+        class _FakeChangeEvent:
+            pass
+
+        event = _FakeChangeEvent()
+        event.target = select
+        select.dispatch("change", event)
 
     def advance_round(self):
         self.elements["advance-round-button"].dispatch("click", None)

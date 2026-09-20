@@ -454,7 +454,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] C19: A "policy lever" mechanic — an occasional opt-in choice (carbon pricing, subsidy) that shifts the cost curve temporarily.
 - [x] C20: A small up/down arrow next to the demand number each round, showing faster/slower growth than average.
 - [x] C22: Let the steeper-demand-growth toggle show its exact multiplier in its own label.
-- [ ] C23: A maintenance-scheduling feature — pre-commit to a maintenance cadence per plant type instead of manually clicking Maintain.
+- [x] C23: A maintenance-scheduling feature — pre-commit to a maintenance cadence per plant type instead of manually clicking Maintain.
 - [x] C24: A subtle pulse on the emissions meter the instant it crosses the 50% renewable-capacity tipping point.
 - [x] C25: A "grid of the future" endgame projection — extrapolate the current trajectory 20 more rounds, like Thaw's counterfactual.
 - [x] C26: Give the plant-age wear icon three distinct visual tiers, not just a percentage number.

@@ -1894,6 +1894,15 @@ def render():
         maintain_button.innerText = f"Maintain ({maintenance_cost:.0f})"
         maintain_button.disabled = count <= 0 or state.funds < maintenance_cost
 
+        # TODO-C23: keep the select's own displayed value in sync with
+        # state (e.g. after a load_state() or a grid-size reset), same
+        # reasoning as the difficulty/grid-size <select>s elsewhere in
+        # this file -- disabled whenever there's no plant of this type to
+        # schedule anything for, same gating as Maintain itself.
+        schedule_select = document.getElementById(f"{plant_type}-maintenance-schedule-select")
+        schedule_select.value = str(state.maintenance_schedule[plant_type])
+        schedule_select.disabled = count <= 0
+
     # C7: plant-mix bar chart -- composition of *generation* capacity by
     # type. Battery has no row here (see GENERATION_TYPES' comment) --
     # it's storage, not part of "what's generating," so it has no
@@ -2042,6 +2051,17 @@ def _make_maintain_handler(plant_type):
             maintain_callout_visible = True
         render()
         _check_new_achievements_for_toast()
+    return handler
+
+
+def _make_maintenance_schedule_handler(plant_type):
+    """TODO-C23: the per-plant-type auto-maintain cadence <select>'s own
+    change handler -- reads the just-changed value straight off the
+    event's target, same convention as on_grid_size_change() elsewhere in
+    this file."""
+    def handler(event):
+        state.set_maintenance_schedule(plant_type, int(event.target.value))
+        render()
     return handler
 
 
@@ -2296,6 +2316,9 @@ def setup():
         )
         document.getElementById(f"{plant_type}-maintain-button").addEventListener(
             "click", create_proxy(_make_maintain_handler(plant_type))
+        )
+        document.getElementById(f"{plant_type}-maintenance-schedule-select").addEventListener(
+            "change", create_proxy(_make_maintenance_schedule_handler(plant_type))
         )
     document.getElementById("advance-round-button").addEventListener(
         "click", create_proxy(on_advance_round)

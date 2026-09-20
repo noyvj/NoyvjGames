@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-09-21",
+      "entry": "Each plant type now has its own auto-maintain schedule (Manual / every 3 / 5 / 8 rounds), finishing the maintenance-scheduling feature whose backend landed in the previous entry without a UI yet."
+    },
+    {
+      "date": "2026-09-21",
       "entry": "Added demand response (a fourth build/retire/maintain-style lever that permanently trims demand growth), a weather-event log narrating how Weather Variability actually affected renewable output round to round, and a periodic policy lever (opt-in carbon pricing or a renewable subsidy, both temporary build-cost shifts)."
     },
     {

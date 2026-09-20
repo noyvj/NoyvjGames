@@ -232,11 +232,29 @@ h1 {
 
 .plant-row-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.4rem;
+  align-items: center;
 }
 
 .plant-row-actions button.secondary {
   flex: 1;
+}
+
+/* C23: per-plant-type auto-maintain cadence, sitting alongside the
+   Build/Retire/Maintain buttons rather than a separate row -- it's a
+   setting about that one plant type, not a fourth action button. */
+.maintenance-schedule-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  opacity: 0.8;
+  flex-basis: 100%;
+}
+
+.maintenance-schedule-select {
+  font-size: 0.78rem;
 }
 
 .plant-name {
