@@ -11,6 +11,11 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
   manifest.json       <- PWA manifest
   sw.js               <- service worker, stale-while-revalidate (serves cache instantly, refreshes it in the background every request)
   ad-bar.css           <- shared ad bar partial (hub + every game page)
+  whats-new.html       <- public "what shipped" feed, parsed live from the two dev logs below — no build step
+  admin.html           <- unlisted aggregate stats page (ratings/feedback/reports/accounts/saves) — not linked from hub nav, direct-URL only
+  game-last-updated.json  <- slug -> last-git-touched date, powers each title card's "Updated" badge; regenerate with `scripts/generate-last-updated.py` (see that script's docstring for when)
+  /scripts
+    generate-last-updated.py  <- regenerates game-last-updated.json from git history — no CI, run by hand
   icons/               <- PWA icons (placeholder art)
   BCM114-DEV-LOG.md    <- running log: individual game content/mechanics/style (see Session logging below)
   BCM206-DEV-LOG.md    <- running log: site infrastructure (hosting, save system, accounts, backend)

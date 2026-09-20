@@ -438,6 +438,14 @@ body {
   margin-top: 0.75rem;
 }
 
+/* "Last updated" badge per title card (TODO.md L7) */
+.title-card-updated {
+  font-size: 0.68rem;
+  opacity: 0.45;
+  margin: 0.5rem 0 0;
+  letter-spacing: 0.03em;
+}
+
 .tag-pill {
   font-size: 0.68rem;
   padding: 0.22rem 0.6rem;
