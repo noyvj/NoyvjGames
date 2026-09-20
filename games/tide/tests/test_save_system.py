@@ -12,7 +12,8 @@ already half-overwritten.
 
 def test_get_state_includes_every_expected_key(game_env):
     data = game_env.module.get_state()
-    assert set(data.keys()) == {
+    # >= (superset): later passes add keys; tests/test_round3_pass.py pins those.
+    assert set(data.keys()) >= {
         "season",
         "funds",
         "capacity",

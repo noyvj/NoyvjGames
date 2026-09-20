@@ -126,6 +126,14 @@
            relationship between them is visible as a shape. -->
       <p class="meter-label">Acidity vs. fishing yield, over time</p>
       <div id="acidity-fish-graph" class="mini-graph"></div>
+      <!-- D7: the lag itself as a picture -- acidity when banked vs. the
+           fish yield it causes later. Collapsed by default. -->
+      <details class="sea-level-stats-toggle">
+        <summary>Delayed-consequence timeline</summary>
+        <p class="comparison-message">Purple: acidity when banked. Green dashed: the fish yield it causes, shifted right by the lag. Gold dashed line: now.</p>
+        <div id="delayed-consequence-graph" class="mini-graph"></div>
+        <p id="delayed-consequence-text" class="comparison-message"></p>
+      </details>
     </div>
 
     <div id="sea-level-section" class="section sea-level-section">
@@ -138,6 +146,9 @@
            it carries no information beyond what the meter/text already
            state. -->
       <div id="sea-level-wave-cue" class="sea-level-wave-cue" aria-hidden="true"></div>
+      <!-- D8: this season's tide vs. the coastline rows (dry rows the tide
+           reaches get a dashed edge on the grid below). -->
+      <p id="tide-indicator" class="comparison-message tide-indicator" title="The tide swings a few units above and below mean sea level each season. Dry rows the tide reaches show a dashed edge; it never floods a row for good."></p>
       <!-- D19: real-world-grounded rise trajectories; locked once season 1 is played. -->
       <label class="sea-scenario-label" title="Choose how fast the sea rises: Conservative 4/season, Moderate 5/season, Severe 6.5/season. Locked once the first season is played.">Sea-level scenario
         <select id="sea-scenario-select">
@@ -200,6 +211,16 @@
            persisted via localStorage across every session/save on this
            device. -->
       <p id="best-coastline-display" class="personal-best-display"></p>
+    </div>
+
+    <div id="settlement-section" class="section">
+      <!-- D29: light narrative layer: a name plus a chronicle of notable moments. -->
+      <details class="sea-level-stats-toggle settlement-panel">
+        <summary>Settlement name &amp; history</summary>
+        <p id="settlement-heading" class="meter-label">Your settlement — chronicle</p>
+        <input id="settlement-name-input" class="settlement-name-input" type="text" maxlength="24" placeholder="Name your settlement" aria-label="Settlement name">
+        <div id="settlement-chronicle" class="ticker-history-list">Nothing to record yet — history starts as you play.</div>
+      </details>
     </div>
 
     <!-- D1: docks the investments panel + Advance Season button to the

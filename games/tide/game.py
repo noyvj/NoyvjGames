@@ -29,6 +29,13 @@ OUTPUT_INCOME_PER_UNIT = 6
 # Acidity: rises with industry output, falls (more slowly) with dedicated
 # reduction spending. Never goes negative — there's no "banking" cleanup
 # credit for later.
+# D29 / D8: settlement-name cap, chronicle cap, and the tide model.
+SETTLEMENT_NAME_MAX = 24
+CHRONICLE_LIMIT = 40
+TIDE_AMPLITUDE = 4.0
+TIDE_PERIOD_FACTOR = 1.1
+TIDE_HIGH_CUTOFF = 2.0
+
 ACIDITY_RISE_PER_OUTPUT = 2.0
 ACIDITY_FALL_PER_REDUCTION = 1.5
 
@@ -248,6 +255,85 @@ class SettlementState:
         self.recovery_celebrated_season = 0
         # D19: sea-level-rise scenario (locked after the first season).
         self.sea_scenario = DEFAULT_SEA_SCENARIO
+        # D29: a light diegetic layer -- an optional player-chosen name
+        # plus a short chronicle of the settlement's notable moments.
+        self.settlement_name = ""
+        self.chronicle = []
+
+    def set_settlement_name(self, name):
+        """D29: trims, collapses whitespace and caps the length; anything
+        that isn't a string is ignored (no crash, no partial change)."""
+        if not isinstance(name, str):
+            return False
+        cleaned = " ".join(name.split())[:SETTLEMENT_NAME_MAX]
+        self.settlement_name = cleaned
+        return True
+
+    def display_name(self):
+        return self.settlement_name or "Your settlement"
+
+    def _chronicle_event(self, text):
+        """D29: appends one dated line to the settlement's history."""
+        self.chronicle.append({"season": self.season, "text": text})
+        self.chronicle = self.chronicle[-CHRONICLE_LIMIT:]
+
+    def chronicle_lines(self):
+        return [f"Season {e['season']}: {e['text']}" for e in self.chronicle]
+
+    def tide_offset(self):
+        """D8: this season's tide height relative to mean sea level, a
+        deterministic function of the season number (so it needs no saved
+        state and a loaded save shows the same tide)."""
+        return round(TIDE_AMPLITUDE * math.sin(self.season * TIDE_PERIOD_FACTOR), 1)
+
+    def tide_label(self):
+        offset = self.tide_offset()
+        if offset >= TIDE_HIGH_CUTOFF:
+            return "High"
+        if offset <= -TIDE_HIGH_CUTOFF:
+            return "Low"
+        return "Mid"
+
+    def tidal_rows(self):
+        """D8: rows that are dry at mean sea level but that this season's
+        tide would wash over."""
+        effective = self.sea_level + self.tide_offset()
+        return [
+            row
+            for row in range(COASTLINE_ROWS)
+            if self.sea_level < row_flood_threshold(row) <= effective
+        ]
+
+    def tide_text(self):
+        offset = self.tide_offset()
+        rows = self.tidal_rows()
+        wash = (
+            f" — the tide is washing over {len(rows)} otherwise-dry row(s)."
+            if rows
+            else " — no dry rows are reached."
+        )
+        return f"Tide this season: {self.tide_label()} ({offset:+.1f} vs. mean sea level){wash}"
+
+    def delayed_consequence_rows(self):
+        """D7: for each banked season, the acidity fraction it recorded
+        and the fish yield it will cause `lag` seasons later, as
+        (season, acidity_fraction, arrival_season, projected_yield)."""
+        lag = self._effective_fish_lag()
+        rows = []
+        for i, acidity in enumerate(self.acidity_history):
+            projected = max(MIN_FISH_MULTIPLIER, 1 - acidity / FISH_DAMAGE_SCALE)
+            rows.append((i + 1, min(1.0, acidity / FISH_DAMAGE_SCALE), i + 1 + lag, projected))
+        return rows
+
+    def delayed_consequence_text(self):
+        rows = self.delayed_consequence_rows()
+        if not rows:
+            return "Advance a season to see today's acidity choices lined up against their later fish-yield impact."
+        season, _fraction, arrival, projected = rows[-1]
+        return (
+            f"Acidity banked in Season {season} reaches fish stocks in Season {arrival}: "
+            f"yield of about {projected * 100:.0f}% from that season's acidity alone."
+        )
 
     def sea_rise_per_season(self):
         return SEA_SCENARIOS[self.sea_scenario]["rise"]
@@ -542,6 +628,7 @@ class SettlementState:
             f"dampened {tier['dampening'] * 100:.0f}%, effective immediately."
         )
         self._log_ticker(message)
+        self._chronicle_event(f"{tier['name']} completed along the shore.")
 
     def _record_trend_message(self):
         """Iteration Pass 3 — recovery narration for the delayed damage
@@ -576,6 +663,7 @@ class SettlementState:
             self._log_ticker(
                 "The first coastline tile has flooded — the sea has arrived."
             )
+            self._chronicle_event("The first stretch of coast went under.")
 
     def advance_season(self):
         old_fish_yield = self.fish_yield_multiplier()
@@ -618,10 +706,13 @@ class SettlementState:
         """D23: a celebratory callout, equal in weight to the decline
         narration, once a crashed stock rebuilds."""
         if fish_yield <= FISH_CRASH_LEVEL:
+            if not self.fish_crash_open:
+                self._chronicle_event("The fish stocks crashed; boats came back near-empty.")
             self.fish_crash_open = True
         elif self.fish_crash_open and fish_yield >= FISH_RECOVERED_LEVEL:
             self.fish_crash_open = False
             self.recovery_celebrated_season = self.season
+            self._chronicle_event("The fish stocks rebuilt after the lean years.")
             self._log_ticker(
                 f"🎉 The fish stock has rebuilt to {fish_yield * 100:.0f}% — the "
                 "consequence of past acidity has finally faded. Cleaner choices paid off."
@@ -707,6 +798,7 @@ def render_coastline():
     grid_el.innerHTML = ""
     tier_index = state.current_tier_index()
     current_flooded_rows = set()
+    tidal_rows = state.tidal_rows()
     for row_index, row in enumerate(coastline_grid(state.sea_level)):
         tile_state = row[0]  # every column in a row shares the same state
         threshold = row_flood_threshold(row_index)
@@ -727,6 +819,11 @@ def render_coastline():
                 tile.className += f" coastline-seawall coastline-seawall--t{tier_index}"
             if just_flooded:
                 tile.className += " coastline-flash"
+            # D8: dry rows the current tide reaches get a dashed edge
+            # (a shape cue, not a hue one) and a title note.
+            tidal = row_index in tidal_rows
+            if tidal:
+                tile.className += " coastline-tidal"
             # D19: a native hover/tap tooltip naming this row's flood
             # threshold -- zero extra markup, works identically for mouse
             # hover and (on most mobile browsers) a long-press/tap.
@@ -735,6 +832,7 @@ def render_coastline():
                 if tile_state == FLOODED
                 else f"Floods once sea level reaches {threshold:.0f} "
                 f"(about {state.seasons_until_flood(row_index)} season(s) at the current pace)."
+                + (" This season's tide is washing over it." if tidal else "")
             )
             grid_el.appendChild(tile)
     _previous_flooded_rows = current_flooded_rows
@@ -915,6 +1013,44 @@ def acidity_fish_history_svg():
         f'stroke="{SPARKLINE_ACIDITY_COLOR}" stroke-width="2" />'
         f'<polyline points="{fish_points}" fill="none" '
         f'stroke="{SPARKLINE_FISH_COLOR}" stroke-width="2" />'
+        f"</svg>"
+    )
+
+
+def delayed_consequence_svg():
+    """D7: acidity (purple) plotted at the season it was banked, against
+    the fish yield it will cause (green, dashed) plotted `lag` seasons
+    later -- the horizontal gap between the two lines is the lag. "" with
+    no history yet."""
+    rows = state.delayed_consequence_rows()
+    if not rows:
+        return ""
+    lag = state._effective_fish_lag()
+    total_seasons = len(rows) + lag
+    step = SPARKLINE_WIDTH / max(1, total_seasons - 1)
+    acidity_pts = " ".join(
+        f"{(season - 1) * step:.1f},{SPARKLINE_HEIGHT - fraction * SPARKLINE_HEIGHT:.1f}"
+        for season, fraction, _arrival, _yield in rows
+    )
+    fish_pts = " ".join(
+        f"{(arrival - 1) * step:.1f},{SPARKLINE_HEIGHT - projected * SPARKLINE_HEIGHT:.1f}"
+        for _season, _fraction, arrival, projected in rows
+    )
+    now_x = (state.season - 1) * step
+    now_line = (
+        f'<line x1="{now_x:.1f}" y1="0" x2="{now_x:.1f}" y2="{SPARKLINE_HEIGHT}" '
+        f'stroke="#d8c088" stroke-width="1" stroke-dasharray="2 2">'
+        f"<title>Now (Season {state.season}): everything right of here has not happened yet</title></line>"
+    )
+    return (
+        f'<svg viewBox="0 0 {SPARKLINE_WIDTH} {SPARKLINE_HEIGHT}" '
+        f'class="acidity-fish-sparkline" role="img" '
+        f'aria-label="Acidity banked each season and the fish yield it causes {lag} seasons later">'
+        f"{now_line}"
+        f'<polyline points="{acidity_pts}" fill="none" '
+        f'stroke="{SPARKLINE_ACIDITY_COLOR}" stroke-width="2" />'
+        f'<polyline points="{fish_pts}" fill="none" stroke="{SPARKLINE_FISH_COLOR}" '
+        f'stroke-width="2" stroke-dasharray="5 3" />'
         f"</svg>"
     )
 
@@ -1466,6 +1602,22 @@ def render_sea_scenario_controls():
         select.disabled = bool(state.damage_log) or state.season != 1
 
 
+def render_settlement_history():
+    """D29: the settlement's name field and chronicle."""
+    heading = document.getElementById("settlement-heading")
+    if heading is not None:
+        heading.innerText = f"{state.display_name()} — chronicle"
+    name_input = document.getElementById("settlement-name-input")
+    if name_input is not None and name_input.value != state.settlement_name:
+        name_input.value = state.settlement_name
+    log_el = document.getElementById("settlement-chronicle")
+    if log_el is not None:
+        lines = state.chronicle_lines()
+        log_el.innerHTML = (
+            "<br>".join(lines) if lines else "Nothing to record yet — history starts as you play."
+        )
+
+
 def render_hard_lag_toggle():
     """D9: keeps the toggle button's label in sync with the live mode."""
     button = document.getElementById("hard-lag-toggle-button")
@@ -1556,6 +1708,19 @@ def render():
             graph_container.innerHTML = ""
             graph_container.innerText = "Not enough seasons yet to chart a trend."
 
+    # D7: today's acidity choices vs. the fish yield they cause later.
+    consequence_graph = document.getElementById("delayed-consequence-graph")
+    if consequence_graph is not None:
+        consequence_graph.innerHTML = delayed_consequence_svg()
+    consequence_text = document.getElementById("delayed-consequence-text")
+    if consequence_text is not None:
+        consequence_text.innerText = state.delayed_consequence_text()
+    # D8: this season's tide.
+    tide_el = document.getElementById("tide-indicator")
+    if tide_el is not None:
+        tide_el.innerText = state.tide_text()
+    render_settlement_history()
+
     sea_level_bar = document.getElementById("sea-level-bar")
     sea_level_bar.style.width = f"{state.sea_level_fraction() * 100:.0f}%"
 
@@ -1622,6 +1787,14 @@ def on_toggle_hard_lag(event=None):
     render()
 
 
+def on_settlement_name_change(event):
+    """D29: reads the text input's value on change."""
+    if state.set_settlement_name(event.target.value) and state.settlement_name:
+        if not any("Founded" in e["text"] for e in state.chronicle):
+            state.chronicle.insert(0, {"season": state.season, "text": f"Founded as {state.settlement_name}."})
+    render()
+
+
 def on_set_baseline(event=None):
     state.set_comparison_baseline()
     render()
@@ -1670,6 +1843,8 @@ def get_state():
         "fish_crash_open": state.fish_crash_open,
         "recovery_celebrated_season": state.recovery_celebrated_season,
         "sea_scenario": state.sea_scenario,
+        "settlement_name": state.settlement_name,
+        "chronicle": copy.deepcopy(state.chronicle),
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) —
         # always freshly recomputed, never read back in load_state().
         "achievements_earned": achievement_ids_earned(),
@@ -1779,6 +1954,22 @@ def load_state(data):
     if saved_scenario in SEA_SCENARIOS:
         state.sea_scenario = saved_scenario
 
+    saved_name = data.get("settlement_name")
+    state.settlement_name = (
+        " ".join(saved_name.split())[:SETTLEMENT_NAME_MAX] if isinstance(saved_name, str) else ""
+    )
+    saved_chronicle = data.get("chronicle")
+    if isinstance(saved_chronicle, list):
+        state.chronicle = [
+            {"season": e["season"], "text": e["text"][:200]}
+            for e in saved_chronicle
+            if isinstance(e, dict)
+            and isinstance(e.get("season"), int)
+            and isinstance(e.get("text"), str)
+        ][-CHRONICLE_LIMIT:]
+    else:
+        state.chronicle = []
+
     # D8's flash-tracking global and the achievements toast-diffing
     # baseline both need to resync to the just-loaded state before
     # render() below draws anything or checks for newly-earned
@@ -1822,6 +2013,9 @@ def setup():
     document.getElementById("hard-lag-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_hard_lag)
     )
+    name_input = document.getElementById("settlement-name-input")
+    if name_input is not None:
+        name_input.addEventListener("change", create_proxy(on_settlement_name_change))
     document.getElementById("set-baseline-button").addEventListener(
         "click", create_proxy(on_set_baseline)
     )

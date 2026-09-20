@@ -1309,3 +1309,27 @@ html[data-reduced-motion="true"] *::after {
 .sea-scenario-label select { margin-left: 0.4rem; max-width: 100%; }
 .output-mix-preview { font-size: 0.75rem; opacity: 0.8; }
 .tier-badge { margin-left: 0.4rem; }
+
+/* D8: dry rows this season's tide reaches -- a dashed edge (shape cue,
+   not a hue one). */
+.coastline-tile.coastline-tidal {
+  outline: 1px dashed rgba(240, 217, 174, 0.85);
+  outline-offset: -2px;
+}
+
+.tide-indicator {
+  margin-top: 0.3rem;
+}
+
+/* D29: settlement name field. */
+.settlement-name-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0.4rem 0;
+  padding: 0.4rem 0.6rem;
+  font: inherit;
+  color: inherit;
+  background: rgba(5, 6, 13, 0.5);
+  border: 1px solid rgba(140, 160, 255, 0.25);
+  border-radius: 8px;
+}

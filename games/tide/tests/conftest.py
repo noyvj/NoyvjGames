@@ -78,6 +78,13 @@ ELEMENT_IDS = [
     "then-vs-now-graph",
     "output-mix-preview",
     "adaptation-tier-badge",
+    # D7 / D8 / D29.
+    "delayed-consequence-graph",
+    "delayed-consequence-text",
+    "tide-indicator",
+    "settlement-heading",
+    "settlement-name-input",
+    "settlement-chronicle",
 ]
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-count", f"{_category}-invest-button"]
