@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 305/747 items checked off (40.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 329/747 items checked off (44.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -82,19 +82,19 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [ ] Migrate Continuum's existing ongoing-log to it
   - [ ] Build Thaw's proposed scientist's-log (G19) on it
   - [ ] Build Le Champ de Mots' report-confirmation flow (L14) on it
-- [ ] Z12: A quick audit confirming the achievements/settings/changelog toggle buttons land in a consistent order/position across every game's toolbar.
-  - [ ] SOL
-  - [ ] Canopy
-  - [ ] Grid
-  - [ ] Tide
-  - [ ] Aftermath
-  - [ ] Herd
-  - [ ] Thaw
-  - [ ] Loop
-  - [ ] Drift
-  - [ ] Trade Empire
-  - [ ] Continuum
-  - [ ] Le Champ de Mots
+- [ ] Z12: A quick audit confirming the achievements/settings/changelog toggle buttons land in a consistent order/position across every game's toolbar. Audited via `grep` across every game's `index.html`: 11/12 already consistent (Tutorial -> How to Play -> [Info Page ->] Achievements -> Changelog -> [game-specific toggles] -> Settings always last, whether in one `.game-toolbar` or split across two adjacent ones like Grid/Tide's difficulty-toggle row). **Aftermath was the one real outlier** (Settings landed in the first toolbar near the top, Achievements/Changelog got stranded in a second toolbar after a block of narrative content) — fix dispatched separately, see its own line below.
+  - [x] SOL
+  - [x] Canopy
+  - [x] Grid
+  - [x] Tide
+  - [ ] Aftermath (real inconsistency found — fix in progress, see AI-COORDINATION.md)
+  - [x] Herd
+  - [x] Thaw
+  - [x] Loop
+  - [x] Drift
+  - [x] Trade Empire
+  - [x] Continuum
+  - [x] Le Champ de Mots
 - [ ] Z13: A real "onboarding survey" — a single optional first-visit prompt (subjects of interest, quick vs. deep games) feeding the hub lobby's tag-filter defaults.
 - [ ] Z14: A shared "time since last played" freshness-badge helper (groundwork for Z2).
 - [ ] Z15: A genuine screen-reader accessibility audit (ARIA labels, focus order) across at least the achievements/settings panels:
@@ -228,19 +228,19 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [ ] Continuum
   - [ ] Le Champ de Mots
 - [ ] Z27b: Add a "% of players who have earned this" stat per achievement *(needs Z1)* — per your own added note, "that's how I see how difficult it is on most sites."
-- [ ] Z28: A consistent loading-state check — confirm every game shows a visible "loading…" state during Pyodide boot rather than a blank screen:
-  - [ ] SOL
-  - [ ] Canopy
-  - [ ] Grid
-  - [ ] Tide
-  - [ ] Aftermath
-  - [ ] Herd
-  - [ ] Thaw
-  - [ ] Loop
-  - [ ] Drift
-  - [ ] Trade Empire
-  - [ ] Continuum
-  - [ ] Le Champ de Mots
+- [x] Z28: A consistent loading-state check — confirm every game shows a visible "loading…" state during Pyodide boot rather than a blank screen. Audited, no change needed: every game's static HTML (rendered instantly, before Pyodide even starts fetching) already includes its `<h1>` title plus every interactive control in a `disabled` state showing the literal text "Loading..." (buttons) or a "Loading..." status paragraph — confirmed via `grep -rn "Loading\.\.\." games/*/index.html` across all 12. No game shows a blank screen at any point between initial paint and Pyodide finishing boot; the pattern is already consistent site-wide (a disabled-button/status-text convention, not a dedicated spinner component) rather than needing one to be built.
+  - [x] SOL
+  - [x] Canopy
+  - [x] Grid
+  - [x] Tide
+  - [x] Aftermath
+  - [x] Herd
+  - [x] Thaw
+  - [x] Loop
+  - [x] Drift
+  - [x] Trade Empire
+  - [x] Continuum
+  - [x] Le Champ de Mots
 - [ ] Z29: A cross-game "credits/sources" aggregation page — gather each game's real-world sources, then build the page:
   - [ ] Canopy's Info Page sources
   - [ ] Grid's Info Page sources
