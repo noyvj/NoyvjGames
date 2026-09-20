@@ -252,19 +252,19 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [ ] Drift's Info Page sources
   - [ ] Continuum's era sources
   - [ ] Build the aggregation page from the gathered list
-- [ ] Z30: A quick pass confirming every game's favicon/tab title is set correctly and distinctly, matching the NoyvjGames branding:
-  - [ ] SOL
-  - [ ] Canopy
-  - [ ] Grid
-  - [ ] Tide
-  - [ ] Aftermath
-  - [ ] Herd
-  - [ ] Thaw
-  - [ ] Loop
-  - [ ] Drift
-  - [ ] Trade Empire
-  - [ ] Continuum
-  - [ ] Le Champ de Mots
+- [x] Z30: A quick pass confirming every game's favicon/tab title is set correctly and distinctly, matching the NoyvjGames branding. Tab `<title>` half needed no fix (already distinct per game). Favicon half was a real gap — all 12 games (and the hub itself) pointed at the exact same `icons/icon-192.png`, pixel-identical across tabs. Fixed: one new `icons/favicon-<slug>.svg` per game (rounded-square background in that game's own existing hub-thumbnail accent color, single bold letter/small glyph centered), one new `<link rel="icon">` line per game's `index.html`. `icons/icon-192.png`/`icon-512.png` (PWA manifest icons) untouched. Hub's own root `index.html` kept the original placeholder icon. Live-verified (200 + correct content-type + visually distinct at 16px) for SOL/Canopy/Continuum/Le Champ de Mots; all 12 diffed for the same one-line change.
+  - [x] SOL
+  - [x] Canopy
+  - [x] Grid
+  - [x] Tide
+  - [x] Aftermath
+  - [x] Herd
+  - [x] Thaw
+  - [x] Loop
+  - [x] Drift
+  - [x] Trade Empire
+  - [x] Continuum
+  - [x] Le Champ de Mots
 - [ ] Z-extra (folded from C16's answer): audit one-time toast/banner callouts (first-X, milestone-crossed, etc.) and convert the ones that are really just "you did a thing once" into achievements instead of bespoke UI — "these should all be built into achievements and stop doing callouts since it will be announced through achievement gains" was Grid's own C16 answer; audit case by case, not a blanket removal:
   - [ ] SOL
   - [ ] Canopy
