@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 93/708 items checked off (13.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 107/708 items checked off (15.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -471,32 +471,32 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 ## Per-game: Tide
 
 - [ ] D1: A fifth adaptation tier beyond Storm-surge barriers — a "managed retreat" option trading some coastline for guaranteed long-term stability, a genuinely different strategy branch.
-- [ ] D2: Let the worst-season callout also show which specific investment (or lack of one) contributed most to that season's damage.
+- [x] D2: Let the worst-season callout also show which specific investment (or lack of one) contributed most to that season's damage.
 - [ ] D4: A small wave/tide animation cue tied to the sea-level meter's current percentage, purely decorative.
 - [ ] D5: A "climate refugee" mechanic — once a coastline is sufficiently flooded, population must relocate to remaining land (a light connection to Drift's displacement theme, not a duplicate of its mechanics).
-- [ ] D6: Let the fish-yield crash warning banner include a suggested action (invest in acidity reduction), not just the warning.
+- [x] D6: Let the fish-yield crash warning banner include a suggested action (invest in acidity reduction), not just the warning.
 - [ ] D7: A "delayed consequence" visualization — a timeline graph showing today's acidity choices against the eventual fish-yield impact several seasons later.
 - [ ] D8: A small tide-level indicator showing the current season's high/low tide relative to the coastline tiles.
 - [ ] D9: A community seawall-design comparison — aggregate stats on which adaptation-tier combination other players reach fastest *(needs Z1)*.
-- [ ] D10: Let the acidity/fish-yield mini-graph show a dashed reference line at the historical average, like Thaw's melt-threshold gridline.
+- [x] D10: Let the acidity/fish-yield mini-graph show a dashed reference line at the historical average, like Thaw's melt-threshold gridline.
 - [ ] D11: A "coastal economy diversification" mechanic — a third income source (tourism, aquaculture) as a hedge against acidity-driven fish crashes.
 - [ ] D13: A "storm season" event layer — periodic acute weather events (distinct from the slow background sea-level rise) testing whether adaptation infrastructure holds under immediate shock.
-- [ ] D14: Let the then-vs-now stat block include a small sparkline, not just numbers.
+- [x] D14: Let the then-vs-now stat block include a small sparkline, not just numbers.
 - [ ] D15: A proper settlement-growth mechanic — population/economy grow over a successful session, giving "success" a visibly growing settlement, not just a stable one.
-- [ ] D16: A tooltip on the hard-lag difficulty toggle explaining exactly what the extended lag means in seasons.
+- [x] D16: A tooltip on the hard-lag difficulty toggle explaining exactly what the extended lag means in seasons.
 - [ ] D17: A "coastal heritage" mechanic — certain coastline tiles carry extra value (a historic site, a reef) worth protecting even at higher cost.
-- [ ] D18: Let the comparison-baseline checkpoint show a small marker on the trend graphs at the exact season it was set.
-- [ ] D19: A "sea-level rise scenario" select at game start — conservative/moderate/severe real-world-grounded trajectories.
-- [ ] D20: A small icon-badge extension of the seawall visual's per-tier signature into the investments panel too.
+- [x] D18: Let the comparison-baseline checkpoint show a small marker on the trend graphs at the exact season it was set.
+- [x] D19: A "sea-level rise scenario" select at game start — conservative/moderate/severe real-world-grounded trajectories.
+- [x] D20: A small icon-badge extension of the seawall visual's per-tier signature into the investments panel too.
 - [ ] D21: A "citizen science" side-mechanic — monitoring investment periodically reveals a piece of real-world acidification data as a reward.
-- [ ] D22: Let the output-mix sub-choice show a live preview of the income/fish-yield tradeoff before committing.
-- [ ] D23: A proper "recovery" narrative — a distinct celebratory callout once a crashed fish stock rebuilds, mirroring the existing decline narration with equal weight.
-- [ ] D24: A small "seasons survived" counter always visible, not just inside the session summary.
-- [ ] D26: Let the per-tile flood-threshold tooltip also state how many seasons remain at current pace.
+- [x] D22: Let the output-mix sub-choice show a live preview of the income/fish-yield tradeoff before committing.
+- [x] D23: A proper "recovery" narrative — a distinct celebratory callout once a crashed fish stock rebuilds, mirroring the existing decline narration with equal weight.
+- [x] D24: A small "seasons survived" counter always visible, not just inside the session summary.
+- [x] D26: Let the per-tile flood-threshold tooltip also state how many seasons remain at current pace.
 - [ ] D27: A "before it's too late" replay mode — replay from a mid-session checkpoint with knowledge of what's coming, distinct from the existing counterfactual.
-- [ ] D28: A subtle color-independent pattern on the seawall visual tiers, extending the existing colorblind-audit redundancy to the new infrastructure art.
+- [x] D28: A subtle color-independent pattern on the seawall visual tiers, extending the existing colorblind-audit redundancy to the new infrastructure art.
 - [ ] D29: A "settlement name and history" light narrative layer, scaled-down diegetic flavor in Continuum's spirit.
-- [ ] D30: A one-time tooltip the first time hard-lag mode is toggled, confirming the change takes effect next season.
+- [x] D30: A one-time tooltip the first time hard-lag mode is toggled, confirming the change takes effect next season.
 
 **Folded into Z (see "Games" section above):** D12's original "first adaptation tier unlocked" celebratory callout — tie into an achievement pop-up instead, per your answer.
 
