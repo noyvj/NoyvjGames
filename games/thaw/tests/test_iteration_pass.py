@@ -11,8 +11,6 @@ call render() explicitly where the render behavior itself is under
 test.
 """
 
-import pytest
-
 
 def test_just_started_melting_false_initially(game_env):
     assert game_env.region.just_started_melting is False

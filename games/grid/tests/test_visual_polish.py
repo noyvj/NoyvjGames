@@ -2,8 +2,13 @@
 event-severity-distinct styling on the disruption notification.
 """
 
-ALWAYS_TRIGGER = lambda: 0.0
-NEVER_TRIGGER = lambda: 0.999999
+
+def ALWAYS_TRIGGER():
+    return 0.0
+
+
+def NEVER_TRIGGER():
+    return 0.999999
 
 
 def test_plant_name_includes_icon(game_env):

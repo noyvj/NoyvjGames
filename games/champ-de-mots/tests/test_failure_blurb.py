@@ -6,8 +6,6 @@ fields plus a generic per-topic_type "why it matters" template -- there is
 no Claude API call here (that's Phase 2, explicitly out of scope).
 """
 
-import pytest
-
 
 def _first_plot(game_env, topic_type, needs_rule=False):
     plots = [p for p in game_env.state.plots if p.topic_type == topic_type]

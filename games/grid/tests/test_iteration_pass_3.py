@@ -12,8 +12,6 @@ rising emissions ARE what's driving disruption risk. These tests cover the
 new disruption_risk_message() and its render wiring.
 """
 
-import pytest
-
 
 def test_disruption_risk_message_zero_at_zero_emissions(game_env):
     msg = game_env.module.disruption_risk_message(0.0, 0.0)

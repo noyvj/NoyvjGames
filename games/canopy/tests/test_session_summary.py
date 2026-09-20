@@ -99,7 +99,6 @@ def test_share_snippet_contains_key_stats(game_env):
 
 
 def test_opening_panel_populates_all_fields(game_env):
-    m = game_env.module
     game_env.tick(5)
     game_env.toggle_session_summary()
     assert len(game_env.elements["session-summary-counterfactual"].innerText) > 0

@@ -191,7 +191,6 @@ def test_prestige_bonus_applies_to_automated_production(game_env):
 
 
 def test_win_banner_shows_prestige_level_readout(game_env):
-    module = game_env.module
     _win_the_game(game_env)
     assert "Prestige into a New Game+" in game_env.elements["prestige-level-readout"].innerText
 

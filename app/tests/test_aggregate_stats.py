@@ -167,7 +167,8 @@ def test_cache_serves_repeat_reads_until_cleared():
     assert client.get("/stats/games/grid").json()["save_count"] == 3
     db = SessionLocal()
     db.add(Save(save_code="CACHEX", game_id="grid", save_data={}))
-    db.commit(); db.close()
+    db.commit()
+    db.close()
     assert client.get("/stats/games/grid").json()["save_count"] == 3  # cached
     stats.cache_clear()
     assert client.get("/stats/games/grid").json()["save_count"] == 4

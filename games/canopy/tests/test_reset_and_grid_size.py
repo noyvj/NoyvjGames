@@ -53,7 +53,6 @@ def test_changing_grid_size_updates_the_css_column_count(game_env):
     the "large" (9x8) preset would silently wrap at 6 columns instead of
     laying out 8 -- a purely visual bug the fake-DOM harness can only
     catch by checking the inline style value itself, not real layout."""
-    m = game_env.module
     game_env.change_grid_size("large")
     assert game_env.elements["plot-grid"].style.gridTemplateColumns == "repeat(8, 1fr)"
     assert game_env.elements["plot-grid"].getAttribute("data-cols") == "8"

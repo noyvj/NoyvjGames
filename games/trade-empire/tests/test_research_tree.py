@@ -4,8 +4,6 @@ points currency -- distinct from trade profit -- gating an automation-
 slot expansion, a fleet-wide speed boost, and a fleet-wide cargo boost.
 """
 
-import pytest
-
 
 def test_research_points_start_at_zero(game_env):
     assert game_env.module.research_points == 0.0

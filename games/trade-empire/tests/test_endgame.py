@@ -83,7 +83,6 @@ def test_endgame_panel_hidden_before_reached(game_env):
 
 
 def test_endgame_panel_visible_once_reached(game_env):
-    module = game_env.module
     _meet_endgame_criteria(game_env)
     game_env.tick(1)
     assert game_env.elements["endgame-panel"].hidden is False

@@ -6,7 +6,9 @@ probability/severity math."""
 
 import pytest
 
-NEVER_TRIGGER = lambda: 0.999999
+
+def NEVER_TRIGGER():
+    return 0.999999
 
 
 def test_off_by_default(game_env):
@@ -87,13 +89,15 @@ def test_effective_capacity_scales_only_renewables_when_enabled(game_env):
 
     # A "high wind/sun" roll (rng() -> 1.0) pushes the factor to its max:
     # 1 + (1*2-1)*0.2 = 1.2
-    high_roll = lambda: 1.0
+    def high_roll():
+        return 1.0
     effective = state.effective_capacity_for_revenue(weather_rng=high_roll)
     assert effective == pytest.approx(20 + 10 * 1.2)
 
     # A "low wind/sun" roll (rng() -> 0.0) pushes the factor to its min:
     # 1 + (0*2-1)*0.2 = 0.8
-    low_roll = lambda: 0.0
+    def low_roll():
+        return 0.0
     effective = state.effective_capacity_for_revenue(weather_rng=low_roll)
     assert effective == pytest.approx(20 + 10 * 0.8)
 

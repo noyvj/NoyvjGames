@@ -5,8 +5,13 @@ fleets risk a costly breakdown unless maintained)."""
 
 import pytest
 
-ALWAYS_TRIGGER = lambda: 0.0
-NEVER_TRIGGER = lambda: 0.999999
+
+def ALWAYS_TRIGGER():
+    return 0.0
+
+
+def NEVER_TRIGGER():
+    return 0.999999
 
 
 def test_plant_age_starts_at_zero(game_env):

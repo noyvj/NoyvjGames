@@ -7,8 +7,6 @@ across the Pyodide boundary.
 
 import json
 
-import pytest
-
 
 def test_serialize_state_includes_every_expected_key(game_env):
     data = game_env.module.serialize_state()

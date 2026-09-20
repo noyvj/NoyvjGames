@@ -42,7 +42,6 @@ def test_log_is_capped(game_env):
 
 
 def test_forest_history_panel_lists_newest_first(game_env):
-    m = game_env.module
     game_env.select(0)
     game_env.clear()
     game_env.tick(2)

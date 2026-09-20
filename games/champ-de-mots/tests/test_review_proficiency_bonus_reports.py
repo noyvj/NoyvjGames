@@ -405,7 +405,6 @@ def test_bonus_sentence_reports_reset_on_the_next_sentence(game_env):
     module.start_bonus_section(1)
     _complete_order_task(module)
     _complete_tile_task(module)
-    sentence = module.bonus_queue[module.bonus_index]
     module.submit_bonus_sentence_translation("nope")
     module.submit_bonus_sentence_report()
     assert module.bonus_sentence_report_sent is True

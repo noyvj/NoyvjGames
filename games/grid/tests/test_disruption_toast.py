@@ -4,8 +4,13 @@ lines (which need scrolling to notice). Fires only from on_advance_round,
 never from a bare render(), so re-rendering (e.g. toggling a panel)
 doesn't repeatedly flash it."""
 
-ALWAYS_TRIGGER = lambda: 0.0
-NEVER_TRIGGER = lambda: 0.999999
+
+def ALWAYS_TRIGGER():
+    return 0.0
+
+
+def NEVER_TRIGGER():
+    return 0.999999
 
 
 def test_toast_hidden_before_any_round_is_advanced(game_env):

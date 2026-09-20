@@ -33,7 +33,6 @@ def test_overview_hidden_then_lists_unlocked_worlds(game_env):
 
 
 def test_overview_updates_in_place_without_rebuilding(game_env):
-    m = game_env.module
     game_env.elements["overview-toggle-button"].dispatch("click")
     panel = game_env.elements["overview-panel"]
     first_children = list(panel.children)
@@ -67,7 +66,6 @@ def test_personality_overrides_global_dial(game_env):
 
 
 def test_conservative_personality_only_builds_recyclers(game_env):
-    m = game_env.module
     game_env.mars["governor_personality"] = "conservative"
     game_env.mars["resource_count"] = 1000
     game_env.timers.tick_intervals(3)
@@ -92,7 +90,6 @@ def test_specialization_needs_development(game_env):
 
 
 def test_output_specialization_boosts_production_and_decay(game_env):
-    m = game_env.module
     base = _produced(game_env, None)
     spec = _produced(game_env, "output")
     assert spec[0] > base[0] and spec[1] > base[1]

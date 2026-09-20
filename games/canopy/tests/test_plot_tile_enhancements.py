@@ -69,7 +69,6 @@ def test_fully_mature_class_does_not_appear_for_preserved_plots(game_env):
 
 
 def test_value_pop_appears_after_a_tick_with_meaningful_growth(game_env):
-    m = game_env.module
     game_env.tick(1)
     tile = game_env.elements["plot-0"]
     pops = [c for c in tile.children if c.className.startswith("value-pop")]
@@ -86,7 +85,6 @@ def test_value_pop_is_cleared_on_the_next_render_without_a_new_tick(game_env):
 
 
 def test_no_value_pop_for_bare_or_replanting_plots(game_env):
-    m = game_env.module
     game_env.select(0)
     game_env.clear()
     game_env.tick(1)

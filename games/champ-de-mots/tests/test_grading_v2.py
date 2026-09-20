@@ -10,8 +10,6 @@ that the new `tier`/`accent_sensitive` machinery is purely additive.
 
 import re
 
-import pytest
-
 
 # --- grading_tier ------------------------------------------------------
 

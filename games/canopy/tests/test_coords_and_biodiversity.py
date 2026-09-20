@@ -18,14 +18,8 @@ def test_plot_coordinate_label_second_row(game_env):
 
 
 def test_plot_coordinate_labels_are_all_unique():
-    import importlib.util
-    from pathlib import Path
-
     # Cheap sanity check independent of the fixture: every index in a full
     # grid maps to a distinct label (no row/col collision in the formula).
-    spec = importlib.util.spec_from_file_location(
-        "coord_check", Path(__file__).resolve().parent.parent / "game.py"
-    )
     # Not executed directly (it needs the fake DOM) -- instead just re-derive
     # the same formula here as a cross-check against game.py's docstring
     # contract (row letters A.., column numbers 1..) without re-importing.

@@ -480,7 +480,7 @@ def test_no_interface_string_uses_failure_or_streak_framing(game_env):
 
 
 def test_wrong_answer_feedback_is_gentle_and_reopenable(game_env):
-    module, state = game_env.module, game_env.state
+    state = game_env.state
     plot = state.plots[0]
     open_plot(game_env, plot.plot_id)
     answer_current_incorrectly(game_env)
@@ -494,7 +494,7 @@ def test_wrong_answer_feedback_is_gentle_and_reopenable(game_env):
 
 
 def test_combo_display_is_hidden_until_the_second_correct_answer_in_a_row(game_env):
-    module, state = game_env.module, game_env.state
+    state = game_env.state
     combo_el = game_env.elements["combo-display"]
     assert combo_el.hidden is True
 
@@ -594,7 +594,7 @@ def test_a_confident_wrong_answer_costs_more_than_an_unsure_one_end_to_end(game_
 
 
 def test_confidence_controls_hide_once_the_question_is_answered(game_env):
-    module, state = game_env.module, game_env.state
+    state = game_env.state
     open_plot(game_env, state.plots[0].plot_id)
     assert game_env.elements["practice-confidence"].hidden is False
     answer_current_correctly(game_env)

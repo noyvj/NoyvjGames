@@ -6,8 +6,6 @@ correct answer nudges the source plot's SRS interval slightly forward rather
 than being untracked.
 """
 
-import pytest
-
 
 def _unlock_row_12(game_env):
     """Row 12 stays locked until every plot in row 11 reaches Sprout+."""

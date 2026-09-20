@@ -316,7 +316,7 @@ def test_bonus_session_is_not_part_of_the_save_payload(game_env):
 
 
 def test_each_unlocked_row_gets_a_bonus_section_button(game_env):
-    module, state = game_env.module, game_env.state
+    state = game_env.state
     for row in state.rows:
         button = game_env.elements.get(f"row-bonus-{row.sequence}")
         assert button is not None

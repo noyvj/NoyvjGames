@@ -3,8 +3,6 @@ mid-run plain-language checkpoint identifying which dimension is
 currently lagging most.
 """
 
-import pytest
-
 
 def test_checkpoint_identifies_cohesion_by_default(game_env):
     # fresh region: service quality 100, economic health 30, cohesion 0

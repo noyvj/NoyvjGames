@@ -13,8 +13,6 @@ one fails loudly, rather than this "single most important check" only
 ever having been an audit note.
 """
 
-import pytest
-
 
 def test_lower_coupling_ratio_directly_increases_score_at_equal_herd_size(game_env):
     # Isolate the ratio's effect on score() by setting decoupling

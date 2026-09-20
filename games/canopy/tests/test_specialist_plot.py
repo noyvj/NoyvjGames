@@ -8,7 +8,6 @@ def _ready(game_env, index=0):
 
 
 def test_row_hidden_until_plot_is_old_enough(game_env):
-    m = game_env.module
     game_env.select(0)
     assert game_env.elements["specialist-row"].hidden is True
     _ready(game_env)

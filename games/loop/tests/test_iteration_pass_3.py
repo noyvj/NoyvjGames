@@ -9,8 +9,6 @@ text. These tests lock that behavior in as a permanent regression check.
 No code changes were needed — the vignette already satisfied this bar.
 """
 
-import pytest
-
 
 def test_vignette_starts_at_straight_line_message(game_env):
     game_env.module.render()

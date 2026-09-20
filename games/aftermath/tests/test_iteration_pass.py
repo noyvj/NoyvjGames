@@ -6,8 +6,6 @@ doesn't disturb the run-1-vs-latest-run hope-angle comparison or any
 of the many single-run exact-value tests elsewhere in this suite.
 """
 
-import pytest
-
 
 def test_first_run_has_run_number_one(game_env):
     assert game_env.run.run_number == 1

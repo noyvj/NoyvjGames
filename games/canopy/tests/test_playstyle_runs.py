@@ -64,11 +64,13 @@ def test_saved_runs_persist_to_local_storage(game_env):
 
 def test_load_playstyle_runs_reads_existing_storage(game_env):
     m = game_env.module
+    run_a = {
+        "income": 42.0, "standing_value": 1.0, "biodiversity": 0.0,
+        "plots_standing": 1, "plots_total": 36, "grid_size": "normal",
+    }
     game_env.local_storage.setItem(
         m.PLAYSTYLE_RUNS_STORAGE_KEY,
-        json.dumps({"a": {"income": 42.0, "standing_value": 1.0, "biodiversity": 0.0,
-                           "plots_standing": 1, "plots_total": 36, "grid_size": "normal"},
-                    "b": None}),
+        json.dumps({"a": run_a, "b": None}),
     )
     loaded = m.load_playstyle_runs()
     assert loaded["a"]["income"] == 42.0

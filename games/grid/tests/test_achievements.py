@@ -9,7 +9,9 @@ maintaining, advancing rounds) rather than poking an `_earned` flag that
 doesn't exist.
 """
 
-NEVER_TRIGGER = lambda: 0.999999
+
+def NEVER_TRIGGER():
+    return 0.999999
 
 
 # --- the catalog itself -----------------------------------------------

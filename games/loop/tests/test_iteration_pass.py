@@ -3,8 +3,6 @@ flow visibility tied to circular fraction), goods-category flavor
 naming, and an illustrative real-world circularity comparison.
 """
 
-import pytest
-
 
 def test_extraction_display_includes_goods_label(game_env):
     game_env.module.render()

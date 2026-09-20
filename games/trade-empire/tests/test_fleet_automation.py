@@ -78,14 +78,12 @@ def test_fleet_priority_does_not_reposition_a_ship_already_at_the_right_producer
 
 
 def test_reposition_requires_the_ship_to_be_empty(game_env):
-    module = game_env.module
     ship = game_env.ship("1")
     ship.load()
     assert ship.reposition("verdant") is False
 
 
 def test_reposition_moves_ship_out_of_dock(game_env):
-    module = game_env.module
     ship = game_env.ship("1")  # docked at aurum, empty
     assert ship.reposition("ferrum") is True
     assert ship.in_transit

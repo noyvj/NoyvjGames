@@ -13,6 +13,7 @@ funds-burst pulse, trade-network pulse) that shares the same
 `_run_action`/timer plumbing as the achievement toast.
 """
 
+
 def _close_the_loop(game_env, units=10):
     """Invest enough Recycling Loops (5.0 supply/unit) to exactly clear
     PRODUCTION_TARGET (50.0) -- a fully closed loop with zero surplus,

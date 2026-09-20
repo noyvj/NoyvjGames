@@ -3,8 +3,6 @@ slope clearly, with threshold-crossing detection, not just a bigger
 raw number.
 """
 
-import pytest
-
 
 def test_melt_started_round_is_none_before_crossing(game_env):
     assert game_env.region.melt_started_round is None

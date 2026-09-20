@@ -4,7 +4,9 @@ whole run, not just a final snapshot — the hope-angle payoff.
 
 import pytest
 
-NEVER_TRIGGER = lambda: 0.999999
+
+def NEVER_TRIGGER():
+    return 0.999999
 
 
 def test_score_is_zero_before_any_round_is_played(game_env):

@@ -6,8 +6,6 @@ deserialize_state() (unlike SOL's pre-existing bridge) -- get_state()/
 load_state() are the only save-system functions this game defines.
 """
 
-import pytest
-
 
 ALL_STATE_KEYS = {
     "round_number",

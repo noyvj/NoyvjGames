@@ -5,8 +5,13 @@ this round's revenue gain; it never bankrupts existing funds.
 
 import pytest
 
-ALWAYS_TRIGGER = lambda: 0.0
-NEVER_TRIGGER = lambda: 0.999999
+
+def ALWAYS_TRIGGER():
+    return 0.0
+
+
+def NEVER_TRIGGER():
+    return 0.999999
 
 
 def test_disruption_probability_is_zero_with_no_emissions(game_env):

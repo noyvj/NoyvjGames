@@ -7,7 +7,9 @@ BAU counterfactual math and messaging it surfaces.
 
 import pytest
 
-NEVER_TRIGGER = lambda: 0.999999
+
+def NEVER_TRIGGER():
+    return 0.999999
 
 
 def test_bau_emissions_starts_at_zero(game_env):

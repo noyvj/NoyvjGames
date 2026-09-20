@@ -6,8 +6,6 @@ across the week's topics. Purely informational -- score + per-topic
 breakdown, no unlock-gating, no SRS state touched at all.
 """
 
-import pytest
-
 
 def _unlock_row_12(game_env):
     for plot in game_env.state.row_plots(11):
@@ -249,7 +247,7 @@ def test_proficiency_panel_hides_on_close(game_env):
 
 
 def test_each_unlocked_row_gets_a_proficiency_test_button(game_env):
-    module, state = game_env.module, game_env.state
+    state = game_env.state
     for row in state.rows:
         button = game_env.elements.get(f"row-proficiency-{row.sequence}")
         assert button is not None

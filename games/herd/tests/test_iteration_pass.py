@@ -2,8 +2,6 @@
 haze overlay tracking methane pressure.
 """
 
-import pytest
-
 
 def test_lerp_color_at_endpoints(game_env):
     lerp = game_env.module._lerp_color
