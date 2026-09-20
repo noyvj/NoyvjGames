@@ -325,3 +325,43 @@ def test_stakeholder_statement_and_rank_in_summary_panel(game_env):
     panel = game_env.elements["summary-panel"]
     text = " ".join(c.innerText for c in panel.children)
     assert "stakeholders" in text and "Efficiency rank" in text
+
+
+# --- K15 founder's log / K29 time played -------------------------------------
+def test_founders_note_added_and_rendered(game_env):
+    m = game_env.module
+    game_env.elements["founders-toggle-button"].dispatch("click", None)
+    game_env.elements["founders-input"].value = "  Chose the river site.  "
+    game_env.elements["founders-add-button"].dispatch("click", None)
+    entries = m.founders_entries()
+    assert entries[0]["note"] == "Chose the river site." and entries[0]["season"] == 1
+    assert game_env.elements["founders-input"].value == ""
+    assert "river site" in game_env.elements["founders-list"].children[0].innerText
+    assert m.add_founders_note("   ") is False
+
+
+def test_founders_and_play_time_survive_round_trip_and_garbage(game_env):
+    m = game_env.module
+    m.add_founders_note("first")
+    m.campaign.ui["play_seconds"] = 125
+    data = m.get_state()
+    assert m.load_state(data)
+    assert m.founders_entries()[0]["note"] == "first"
+    assert m.play_seconds() == 125
+    for junk in ("x", 5, None, [1, "a", {"note": 3}, {"note": "ok", "era": "nope", "season": 1},
+                 {"note": "ok", "era": "tribal", "season": True}, {"note": "y" * 999, "era": "tribal", "season": 2}]):
+        m.campaign.ui["founders_log"] = junk
+        result = m.founders_entries()
+        assert isinstance(result, list)
+        assert all(len(e["note"]) <= m.FOUNDERS_NOTE_MAX for e in result)
+    for junk in ("x", -5, float("nan"), True, None, 1e30):
+        m.campaign.ui["play_seconds"] = junk
+        assert 0.0 <= m.play_seconds() <= 1e9
+
+
+def test_play_time_accumulates_and_caps_idle_gaps(game_env):
+    m = game_env.module
+    m._last_tick = m.time.time() - 10_000
+    game_env.advance_season()
+    assert 0 < m.play_seconds() <= m.PLAY_GAP_CAP_SECONDS + 5
+    assert m.format_play_time(3900) == "1 h 5 min" and m.format_play_time(90) == "1 min"

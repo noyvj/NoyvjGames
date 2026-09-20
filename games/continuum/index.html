@@ -49,6 +49,7 @@
            not a forced end screen -- see summary.py's own module docstring
            for why. Same hidden-until-opened idiom as the two panels above. -->
       <button id="summary-toggle-button" class="secondary" type="button">📜 Civilization Summary</button>
+      <button id="founders-toggle-button" class="secondary" type="button">📓 Founder's Log</button>
       <!-- Milestone 19 (site-wide settings panel, TODO.md origin A9):
            consolidates what used to be a standalone text-size toolbar
            control (Phase 5) into one panel, alongside a new
@@ -78,6 +79,13 @@
     <!-- K5: the civilization summary report -- rows are built by
          game.py, see update_summary_panel(). -->
     <div id="summary-panel" class="section summary-panel" hidden></div>
+    <!-- K15: personal annotations, stamped with the current era and season. -->
+    <div id="founders-panel" class="section founders-panel" hidden>
+      <h2 class="section-heading">Founder's Log</h2>
+      <input id="founders-input" class="research-search-input" type="text" maxlength="200" placeholder="A note on what you decided, and why...">
+      <button id="founders-add-button" class="secondary" type="button">Add entry</button>
+      <div id="founders-list"></div>
+    </div>
     <!-- K3: opt-in community comparison (GET /stats/games/continuum + /percentile, Z1). -->
     <details id="community-details" class="section community-details">
       <summary>Benchmark your city</summary>
@@ -206,6 +214,7 @@
       <p id="surplus-display" class="status-line" hidden>Surplus: 0.0</p>
       <!-- K8: output per person, K10: calm-season streak. -->
       <p id="efficiency-display" class="status-line" title="What the settlement produced last season (food, materials, tools, knowledge) per person, as a multiple of what one person eats in a season. 1.0x means just enough to live on.">Output per person: -</p>
+      <p id="play-time-display" class="status-line" title="Active time spent on this city. Long idle gaps are not counted.">Time played: 0 min</p>
       <p id="calm-streak-display" class="status-line" title="Completed seasons in a row with everyone fed and nobody lost. Any hunger or death resets it.">Calm seasons in a row: 0</p>
       <p id="land-health-display" class="status-line">Land health: 100%</p>
       <details class="info-toggle"><summary>i</summary><p>The land can only give so much per season. Harvesting more than that sustainable amount degrades land health, which cuts every future harvest — staying under the line lets it recover instead. This is what lets a small, careful settlement out-score a big, careless one.</p></details>

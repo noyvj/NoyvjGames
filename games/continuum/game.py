@@ -27,6 +27,7 @@ systems land here too, since both are things the player reads.
 import json
 import os
 import sys
+import time
 
 # index.html writes the engine modules into Pyodide's virtual filesystem
 # (the working directory) before running this file; make sure that
@@ -369,6 +370,104 @@ def update_hard_mode_display():
 summary_panel_open = False
 
 
+# --- K15 founder's log + K29 time played --------------------------------
+# Both ride in campaign.ui (already saved as a plain dict) and are
+# validated/defaulted on every read, so an old or hand-edited save can
+# never break the panel: bad shapes read as empty / zero.
+FOUNDERS_NOTE_MAX = 200
+FOUNDERS_LOG_MAX = 60
+PLAY_GAP_CAP_SECONDS = 300.0
+founders_log_open = False
+_last_tick = time.time()
+
+
+def founders_entries():
+    raw = campaign.ui.get("founders_log")
+    if not isinstance(raw, list):
+        return []
+    out = []
+    for item in raw[-FOUNDERS_LOG_MAX:]:
+        if not isinstance(item, dict):
+            continue
+        note = item.get("note")
+        era = item.get("era")
+        season = item.get("season")
+        if not isinstance(note, str) or not note.strip():
+            continue
+        if era not in sim.ERA_LABEL or isinstance(season, bool) or not isinstance(season, int) or season < 1:
+            continue
+        out.append({"era": era, "season": season, "note": note[:FOUNDERS_NOTE_MAX]})
+    return out
+
+
+def add_founders_note(text):
+    """Append a personal annotation stamped with the current era/season."""
+    if not isinstance(text, str) or not text.strip():
+        return False
+    entries = founders_entries()
+    entries.append({"era": state.era, "season": int(state.season), "note": text.strip()[:FOUNDERS_NOTE_MAX]})
+    campaign.ui["founders_log"] = entries[-FOUNDERS_LOG_MAX:]
+    return True
+
+
+def play_seconds():
+    value = campaign.ui.get("play_seconds")
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value != value or value < 0:
+        return 0.0
+    return min(float(value), 1e9)
+
+
+def _tick_play_time():
+    """Accumulate active time between actions; long idle gaps are capped."""
+    global _last_tick
+    now = time.time()
+    campaign.ui["play_seconds"] = play_seconds() + max(0.0, min(now - _last_tick, PLAY_GAP_CAP_SECONDS))
+    _last_tick = now
+
+
+def format_play_time(seconds):
+    minutes = int(seconds // 60)
+    if minutes < 60:
+        return f"{minutes} min"
+    return f"{minutes // 60} h {minutes % 60} min"
+
+
+def update_founders_panel():
+    toggle = document.getElementById("founders-toggle-button")
+    panel = document.getElementById("founders-panel")
+    toggle.innerText = "Hide Founder's Log" if founders_log_open else "📓 Founder's Log"
+    panel.hidden = not founders_log_open
+    if not founders_log_open:
+        return
+    container = document.getElementById("founders-list")
+    container.innerHTML = ""
+    entries = founders_entries()
+    if not entries:
+        empty = document.createElement("p")
+        empty.className = "row-blurb"
+        empty.innerText = "No entries yet. Note what you decided and why, as the founder."
+        container.appendChild(empty)
+    for entry in reversed(entries):
+        year, season_name = year_and_season(entry["season"])
+        row = document.createElement("p")
+        row.className = "status-line founders-entry"
+        row.innerText = f"Year {year}, {season_name} ({sim.ERA_LABEL[entry['era']]}): {entry['note']}"
+        container.appendChild(row)
+
+
+def on_toggle_founders(event=None):
+    global founders_log_open
+    founders_log_open = not founders_log_open
+    update_founders_panel()
+
+
+def on_add_founders_note(event=None):
+    field = document.getElementById("founders-input")
+    if add_founders_note(field.value):
+        field.value = ""
+        update_founders_panel()
+
+
 def on_toggle_summary_panel(event=None):
     global summary_panel_open
     summary_panel_open = not summary_panel_open
@@ -504,6 +603,7 @@ def render_insights(effects):
     document.getElementById("calm-streak-display").innerText = (
         f"Calm seasons in a row: {state.calm_streak}"
     )
+    document.getElementById("play-time-display").innerText = f"Time played: {format_play_time(play_seconds())}"
     done, total, percent = tree_completion()
     document.getElementById("research-completion-display").innerText = (
         f"Tree: {done} of {total} discoveries ({percent}%)"
@@ -1541,6 +1641,7 @@ def on_advance_season(event=None):
         chronicle.log_challenge(state.season, state.era, event["text"])
     chronicle.check_population(state)
     chronicle.check_livability(state, effects)
+    _tick_play_time()
     render()
     _check_new_achievements_for_toast()
 
@@ -1623,6 +1724,12 @@ def setup():
     )
     document.getElementById("summary-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_summary_panel)
+    )
+    document.getElementById("founders-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_founders)
+    )
+    document.getElementById("founders-add-button").addEventListener(
+        "click", create_proxy(on_add_founders_note)
     )
     # K12 — three static scenario buttons (never rebuilt at runtime, unlike
     # the dynamic per-era rows elsewhere in this file), so each gets its
