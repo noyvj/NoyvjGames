@@ -1,5 +1,6 @@
 {
   "changelog": [
+    {"date": "2026-09-21", "entry": "Round-3 additions, all in collapsed panels: delayed-consequence timeline, a tide indicator, settlement name and chronicle, coastal heritage sites, citizen-science monitoring reports, opt-in storm seasons, managed retreat, population and displacement, economy diversification, and checkpoint replay with foresight."},
     {"date": "2026-09-21", "entry": "D4: a small decorative wave cue next to the sea-level meter, speeding up as sea level rises — cosmetic only, doesn't change the meter's own numbers."},
     {"date": "2026-09-21", "entry": "Z6: the personal-best label's \"just improved\" badge flash moved into the new shared shared/personal-best.css (also used by Canopy and Thaw) instead of a per-game copy of the same rule."},
     {"date": "2026-09-20", "entry": "Round-2 pass: sea-level scenario select (conservative/moderate/severe), a seasons-survived counter, a fish-stock recovery celebration, worst-season cause, a suggested action on the fish-yield warning, live output-mix preview, dashed average and baseline markers on the acidity graph, a then-vs-now damage sparkline, per-tier seawall textures and a tier badge, and per-tile seasons-until-flood tooltips."},

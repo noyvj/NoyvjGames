@@ -259,7 +259,7 @@ Verified: full 174/174 pytest suite green (HTML/CSS-only change, no Python touch
 
 Built: D2 (worst-season cause via new `tier_log`), D6 (warning-banner suggested action), D10 (dashed average line on the acidity/fish graph), D14 (then-vs-now damage sparkline), D16 (hard-lag tooltip), D18 (baseline marker on the graph), D19 (`sea_scenario`: conservative 4 / moderate 5 / severe 6.5 per season, locked after season 1; `SEA_LEVEL_RISE_PER_SEASON` is now the moderate default and all rise maths goes through `sea_rise_per_season()`), D20 (tier badge in the investments row), D22 (live output-mix preview), D23 (recovery banner + ticker celebration, `fish_crash_open`/`recovery_celebrated_season`), D24 (seasons-survived counter), D26 (per-tile seasons-until-flood tooltip), D28 (per-tier seawall textures `coastline-seawall--tN`), D30 (one-time hard-lag ticker note, `hard_lag_note_seen`). All new state is in `get_state()`/`load_state()` with safe defaults for old saves. Tests 175 -> 195 (`tests/test_round2_pass.py`).
 
-Not built: D9 (`/stats/games/tide` exposes no adaptation-tier field), D1/D4/D5/D7/D8/D11/D13/D15/D17/D21/D27/D29 (larger mechanics or decorative work left for a later pass).
+Not built in that pass: D9 (`/stats/games/tide` exposes no adaptation-tier field, still open) and the larger mechanics, built in the 2026-09-21 round-3 pass below.
 
 ## Decorative sea-level wave cue (planning/TODO.md D4)
 
@@ -318,3 +318,21 @@ defect.
 - Update the milestone table Status as work happens.
 
 - 2026-09-21: mobile-dock `body` padding-bottom now `html body` so it beats ad-bar.css (V-AB-2).
+
+## Round-3 pass (2026-09-21, planning/TODO.md D-list)
+
+Built (all in `game.py`, tests in `tests/test_round3_pass.py`, 202 -> 252):
+- **D7** delayed-consequence timeline (collapsed `<details>` under the acidity graph; purple acidity vs. green dashed yield shifted right by the live lag).
+- **D8** tide indicator: deterministic `tide_offset()` (sine of the season, no saved state); dry rows the tide reaches get a dashed edge plus tooltip note.
+- **D29** settlement name (24-char cap, sanitised) and a capped chronicle of notable moments.
+- **D17** coastal heritage: two sites (lighthouse row 5, oyster reef row 6) shown as emoji tiles; protect for a one-off cost plus 6/season upkeep, else lost when their row goes.
+- **D21** citizen-science monitoring: paid report every 2 seasons at most, revealing 8 real-world findings in order.
+- **D13** storm seasons: opt-in toggle, surge every 5 seasons, forecast ahead, cut by current dampening; the rest costs funds.
+- **D1** managed retreat: up to 2 steps, each gives up the lowest dry row (hatched, drawn flooded) for a compounding 20% extra damage cut via `dampening_fraction()`. Deliberately not a fifth `ADAPTATION_TIERS` entry so tier indices/achievements are untouched.
+- **D5 + D15** population: grows toward housing (dry rows x density by tier) while fish yield >= 50%; lost rows displace the excess (orderly retreat counts as "relocated"). Display only, no funds effect.
+- **D11** diversification: tourism (fades with lost coast, boosted by protected heritage) and aquaculture (mild unlagged acidity penalty), 3 levels each.
+- **D27** checkpoint replay: `set_checkpoint()` stores a compact snapshot (no nested checkpoint/foresight/full ticker); `replay_from_checkpoint()` rewinds and records the abandoned run's per-season yield/damage/flooding as "foresight".
+
+All new state is in `get_state()`/`load_state()` with validation and safe defaults for old saves (`test_get_state_includes_every_expected_key` is now a superset check). Every new element lookup tolerates a missing node. Nothing new is hue-only (emoji, dashed/hatched patterns, text). Verified live (Pyodide, fresh `game.py` re-run to bypass the known boot-fetch cache): all buttons work, zero console errors. Achievements not extended for these mechanics.
+
+Still open: D9 (needs a tier field in the stats backend).
