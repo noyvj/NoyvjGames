@@ -312,3 +312,6 @@ Built ~17 C-items (starting scenarios, operator grade, resilience score, 20-roun
 **Game:** Trade Empire
 **Did:** Built J2/J4/J6/J12/J13/J14/J18/J20/J24/J25/J26/J30 from `planning/TODO.md`: route trend arrows, price-now marker, Fleet Priority ring tooltip, ship name reset, galaxy overview and fleet-efficiency report in Summary, veteran hauler badge, automate permanence tooltip, crash recovery ETA, needs-met average, locked-research tooltips, map legend.
 **Result:** 243 to 255 tests green; verified live with only network console errors. See `games/trade-empire/CLAUDE.md`.
+
+## 2026-09-20 — Thaw round-2 polish (G2/G4/G6/G8/G10/G12/G14/G16/G18/G19/G20/G22/G24/G26/G28/G30)
+Added readability and feedback features to Thaw without adding screen clutter: trend arrows, stability streak, collapsible scientist's log, labelled melt threshold, shape icons, preset previews, first-time callouts. See games/thaw/CLAUDE.md round-2 notes.
