@@ -132,6 +132,12 @@
       <p id="sea-level-display" class="status-line">Sea level: 0</p>
       <details class="info-toggle"><summary>i</summary><p>Sea level keeps rising every season no matter what you do — nothing stops or slows the rise itself. Adaptation investment only reduces how much economic damage that rise causes, not the rise itself.</p></details>
       <div class="meter"><div id="sea-level-bar" class="meter-fill meter-fill--sea-level"></div></div>
+      <!-- D4: purely decorative wave cue, separate from the meter fill
+           itself -- its speed (not the meter's width/text) scales with
+           sea_level_fraction() via game.py's render(). aria-hidden since
+           it carries no information beyond what the meter/text already
+           state. -->
+      <div id="sea-level-wave-cue" class="sea-level-wave-cue" aria-hidden="true"></div>
       <!-- D19: real-world-grounded rise trajectories; locked once season 1 is played. -->
       <label class="sea-scenario-label" title="Choose how fast the sea rises: Conservative 4/season, Moderate 5/season, Severe 6.5/season. Locked once the first season is played.">Sea-level scenario
         <select id="sea-scenario-select">

@@ -652,10 +652,46 @@ button.primary:active {
   100% { background-position: 40px 0; }
 }
 
+/* D4: small standalone wave/tide cue, separate from the meter fill's own
+   `meter-foam-drift` sweep above (that one's speed is fixed and lives
+   inside the fill itself) -- this one sits just below the meter as its
+   own thin strip, purely decorative, with only its animation-duration
+   (not the strip's size/position) driven by an inline style game.py sets
+   from the current sea-level fraction each render(). Faster == higher
+   sea level; never changes what the meter itself communicates. */
+.sea-level-wave-cue {
+  height: 5px;
+  margin-top: 4px;
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+  background: rgba(76, 156, 214, 0.18);
+}
+
+.sea-level-wave-cue::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    -35deg,
+    rgba(255, 255, 255, 0.55) 0,
+    rgba(255, 255, 255, 0.55) 3px,
+    transparent 3px,
+    transparent 10px
+  );
+  animation: sea-level-wave-cue-drift 4s linear infinite;
+}
+
+@keyframes sea-level-wave-cue-drift {
+  0% { background-position: 0 0; }
+  100% { background-position: 30px 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .meter-fill::after,
   .meter-fill--acidity::after,
-  .meter-fill--sea-level::after {
+  .meter-fill--sea-level::after,
+  .sea-level-wave-cue::after {
     animation: none;
   }
 }

@@ -261,6 +261,57 @@ Built: D2 (worst-season cause via new `tier_log`), D6 (warning-banner suggested 
 
 Not built: D9 (`/stats/games/tide` exposes no adaptation-tier field), D1/D4/D5/D7/D8/D11/D13/D15/D17/D21/D27/D29 (larger mechanics or decorative work left for a later pass).
 
+## Decorative sea-level wave cue (planning/TODO.md D4)
+
+A small standalone `#sea-level-wave-cue` strip sits directly under the
+sea-level meter (`index.html`, right after `#sea-level-bar`) — a separate
+element from the meter fill's own `meter-foam-drift` sweep (that one lives
+inside `.meter-fill--sea-level::after` and always runs at a fixed 3.2s;
+left untouched here rather than repurposed, since D4 asks for the cue's
+speed itself to track the percentage, and folding that into an animation
+that's already documented/tested elsewhere risked entangling two separate
+concerns). Same "Python computes, CSS `@keyframes` just plays it" pattern
+as this hub's other percentage-driven visuals: `render()` sets only the
+strip's `animationDuration` inline style each call, from a new
+`sea_level_wave_cue_duration()` helper that linearly maps
+`sea_level_fraction()` (0..1) onto `SEA_LEVEL_WAVE_CUE_MAX_DURATION` (6s,
+calm) down to `SEA_LEVEL_WAVE_CUE_MIN_DURATION` (1.5s, fastest at a full
+meter) — the `@keyframes sea-level-wave-cue-drift` rule in `style.css`
+never changes. Purely cosmetic: `render()` never reads the element back,
+and `#sea-level-display`/`#sea-level-bar`'s own numeric text and width are
+set on the lines immediately before it, untouched.
+
+Confirmed before building: this game has no "no animation" constraint
+(this file's own Tech notes already state that explicitly), and it already
+has both a `prefers-reduced-motion` media-query convention and a
+settings-driven `data-reduced-motion` attribute toggle (Settings panel
+section above). The new `.sea-level-wave-cue::after` rule was added to the
+existing `@media (prefers-reduced-motion: reduce)` block alongside the
+other meter-fill animations, and is also covered for free by the blanket
+`html[data-reduced-motion="true"] *` override, same as every other
+animated element in this file.
+
+Tests: 195 → 202 (new `tests/test_wave_cue.py`: element exists, duration
+sits at the slow end at zero sea level and the fast end once the meter
+caps out, duration strictly decreases across sample sea-level values, the
+helper function's own boundary values, that the cue never changes
+`#sea-level-display`'s text or `#sea-level-bar`'s width, and that
+`render()` doesn't error if the element is missing). Full suite green,
+flake8 clean.
+
+Verified live via the `hub-dev-server` launch config: hit both of this
+sandbox's known caching quirks this session's other build notes already
+document (`game.py` boot-fetch and the `style.css` `<link>` both needed a
+cache-busted re-fetch to pick up the new code) — with fresh code loaded,
+`#sea-level-wave-cue` rendered at its styled 5px/412px box with the
+correct `animation` shorthand, `animationDuration` read `"6.00s"` at
+`sea_level = 0`, `"4.00s"` at 40, and `"1.50s"` once the meter capped out,
+while `#sea-level-display`/`#sea-level-bar` kept updating normally
+alongside it. Zero console errors beyond the pre-existing, unrelated
+pageview-tracking 404 (the local dev server has no `/app` backend) this
+file's other build notes already note as an environment artifact, not a
+defect.
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag tide-milestone-0N`.

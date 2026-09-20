@@ -34,6 +34,7 @@ ELEMENT_IDS = [
     "adaptation-tier-progress",
     "coastline-grid",
     "sea-level-bar",
+    "sea-level-wave-cue",
     "ticker-log",
     "coastline-before-grid",
     "coastline-now-grid",

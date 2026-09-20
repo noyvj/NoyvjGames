@@ -134,6 +134,25 @@ TICKER_LOG_LIMIT = 5
 # unbounded, so a very long session's save payload doesn't grow forever.
 TICKER_FULL_HISTORY_LIMIT = 200
 
+# D4: purely decorative wave-cue speed range, in seconds per animation
+# cycle -- calmest (slowest) at an empty meter, fastest at a full one.
+# Python computes the duration from sea_level_fraction() and sets it as
+# an inline style; the CSS @keyframes itself (`sea-level-wave-cue-drift`
+# in style.css) never changes, same "Python computes, CSS keyframe just
+# plays it" pattern as this hub's other percentage-driven visuals.
+SEA_LEVEL_WAVE_CUE_MAX_DURATION = 6.0
+SEA_LEVEL_WAVE_CUE_MIN_DURATION = 1.5
+
+
+def sea_level_wave_cue_duration(fraction):
+    """Maps a 0..1 sea-level fraction to an animation-duration in seconds,
+    linearly interpolating from the slow/calm end down to the fast end as
+    the fraction climbs. Purely cosmetic -- never read back, never affects
+    game state."""
+    fraction = max(0.0, min(1.0, fraction))
+    span = SEA_LEVEL_WAVE_CUE_MAX_DURATION - SEA_LEVEL_WAVE_CUE_MIN_DURATION
+    return SEA_LEVEL_WAVE_CUE_MAX_DURATION - span * fraction
+
 
 def row_flood_threshold(row):
     elevation = COASTLINE_ROWS - row  # bottom row (index ROWS-1) = elevation 1
@@ -1539,6 +1558,13 @@ def render():
 
     sea_level_bar = document.getElementById("sea-level-bar")
     sea_level_bar.style.width = f"{state.sea_level_fraction() * 100:.0f}%"
+
+    # D4: decorative wave/tide cue next to the meter -- speed only, never
+    # touches the meter's own width/text above.
+    wave_cue = document.getElementById("sea-level-wave-cue")
+    if wave_cue is not None:
+        duration = sea_level_wave_cue_duration(state.sea_level_fraction())
+        wave_cue.style.animationDuration = f"{duration:.2f}s"
 
     ticker_el = document.getElementById("ticker-log")
     if state.ticker_log:

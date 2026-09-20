@@ -473,7 +473,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 
 - [ ] D1: A fifth adaptation tier beyond Storm-surge barriers — a "managed retreat" option trading some coastline for guaranteed long-term stability, a genuinely different strategy branch.
 - [x] D2: Let the worst-season callout also show which specific investment (or lack of one) contributed most to that season's damage.
-- [ ] D4: A small wave/tide animation cue tied to the sea-level meter's current percentage, purely decorative.
+- [x] D4: A small wave/tide animation cue tied to the sea-level meter's current percentage, purely decorative.
 - [ ] D5: A "climate refugee" mechanic — once a coastline is sufficiently flooded, population must relocate to remaining land (a light connection to Drift's displacement theme, not a duplicate of its mechanics).
 - [x] D6: Let the fish-yield crash warning banner include a suggested action (invest in acidity reduction), not just the warning.
 - [ ] D7: A "delayed consequence" visualization — a timeline graph showing today's acidity choices against the eventual fish-yield impact several seasons later.
