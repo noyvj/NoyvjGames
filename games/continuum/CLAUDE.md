@@ -49,7 +49,7 @@ One continuous save spanning the whole arc, with the ability to revisit/replay c
 ### 6. Real-world info panel (collapsed by default)
 A single "Info" button, always available but never intrusive — tapping it expands a panel with real-world sources for the current era (see the companion research doc, `continuum-real-world-sources.md`). Collapsed by default specifically to avoid overloading the screen or forcing scroll on mobile — the main screen should show gameplay only. This replaces the climate quartet's per-game "Learn More" page pattern with something more compact, since Continuum is one continuous game rather than eight separate short ones.
 
-**Not yet built** — no info panel exists in the shipped Phase 1 code. `continuum-real-world-sources.md` is landed as reference content only; wiring it up (era-aware, collapsed-by-default) is Phase 2/3 scope, built alongside each era's own content per the Phase 3 pattern below.
+**Built** (Milestone 5 shell, filled per era through Milestone 13) — an era-aware, collapsed-by-default info page fed by `info_content.py`, drawing on `continuum-real-world-sources.md` (28 sources, every one a live outbound link, audited in Milestone 16).
 
 ### 7. Visual style: low-poly, cartoonish 3D
 Achievable, but it's an architecture decision worth being explicit about: **Pyodide alone can't render 3D** — this requires a hybrid setup, with game state and logic staying in Python (testable, consistent with the rest of the hub) while a Three.js layer handles rendering. Low-poly/cartoonish is a good style match for this constraint — flat-shaded geometry, simple toon-style shading, and simplified geometric forms per era (a cluster of huts for Tribal, blocky spires for Space Age) are all very achievable in Three.js without needing realistic textures or complex asset pipelines. This is a genuine scope increase over the climate quartet's plain HTML/Pyodide games — budget for it as its own milestone track (Phase 5), not a drop-in visual pass at the end. Supersedes the space-theme glass-panel visual pass Phase 1 shipped with (see the build note below) — that pass was a stopgap consistent with the rest of the hub, not the intended final visual direction.
@@ -98,7 +98,7 @@ For each remaining era (Agrarian through Space Age), repeat this pattern:
 | Digital | **Done (Milestone 12)** — sim content (Urban Planners/Transit Hubs), research tier 11-12, a second distinct growth-side mechanic (`sprawl`, produced by unmanaged population growth, reaching growth through the *existing* land_health/extraction pathway rather than a second copy of Industrial's GROWTH_RATE lever) plus an equity-side score penalty for the same stock, a fifth full Industrial→Digital transition (log/transition-beat entry), and info-panel content grounded in all five Current/Digital sources including the dedicated "Current Day" 2025 stocktaking source — the flagship SDG 11 era |
 | Space Age | **Done (Milestone 13)** — sim content (Habitat Architects/Habitat Rings), research tier 13-14, and a mechanic that is deliberately NOT a third growth-side stock: `habitat_capacity()` becomes a brand-new FOURTH basic provision (alongside food/shelter/culture) that `livability()`/`equity()` read through their existing shared plumbing, the game's first era-specific mechanic to live there rather than beside it as a bolt-on penalty/bonus function — grounded in the Dagstuhl/SpaceCHI 2025 source on modular habitat layout usability, with the Canal/Administrator staffing shape reused for Habitat Rings/Architects rather than the "unstaffed building" shape of Public Works/Sanitation Works/Transit Hubs. The sixth and FINAL full transition (Digital→Space Age, log/transition-beat entry), and info-panel content grounded in all four Space Age sources including the current 2025 Dagstuhl one. **This closes out Phase 3 entirely — all seven eras are now built.** |
 
-**Phase 3 complete.** All seven eras (Tribal through Space Age) now have real sim content, a research tier, a sustainability mechanic, a full transition, and info-panel content. Phase 4 (save/security audit) is now also complete — see below. Phase 5 (Three.js visuals + accessibility) is also now complete — all seven eras have a real, live-verified low-poly scene, plus text scaling and a colorblind-safety audit — see "Phase 5 build decisions" below. Phase 6 (hub integration) remains.
+**Phase 3 complete.** All seven eras (Tribal through Space Age) now have real sim content, a research tier, a sustainability mechanic, a full transition, and info-panel content. Phase 4 (save/security audit) is now also complete — see below. Phase 5 (Three.js visuals + accessibility) is also now complete — all seven eras have a real, live-verified low-poly scene, plus text scaling and a colorblind-safety audit — see "Phase 5 build decisions" below. Phase 6 (hub integration) is partly done — see the Phase 6 section below.
 
 **Phase 4 — Save/security audit — DONE**
 
@@ -108,13 +108,32 @@ For each remaining era (Agrarian through Space Age), repeat this pattern:
 **Phase 5 — Visual & accessibility — DONE**
 
 - Three.js low-poly/cartoonish rendering layer, built against the already-tested Python state (state and rendering stay cleanly separated). **Done for all seven eras** — architecture proved on Tribal first, then extended across Agrarian/Classical/Medieval/Industrial/Digital/Space Age in the same pass, all seven verified live and reactive to real state changes. See "Phase 5 build decisions" below for the full era-by-era table, the exact state→visual data contract, and what's still a minor polish gap (Industrial's smoke puffs read subtly at default scale) versus what's genuinely pending (nothing blocking; a future pass could add per-era worker figures or richer terrain).
-- Colorblind-safe palette and text scaling. **Done** — a real text-size control (`accessibility.js`, persisted to `localStorage`) and a colorblind-safety audit against the Okabe-Ito reference palette (one real green/red pair found and fixed, with a redundant icon prefix, everything else already redundantly coded).
+- Colorblind-safe palette and text scaling. **Done** — a real text-size control (originally `accessibility.js`, now consolidated into `settings.js` — see Milestone 19; persisted to `localStorage`) and a colorblind-safety audit against the Okabe-Ito reference palette (one real green/red pair found and fixed, with a redundant icon prefix, everything else already redundantly coded).
 
 **Phase 6 — Polish & hub integration**
 
-- Full playthrough testing (tribal through space age) for save/revisit integrity.
-- Maximize test coverage across the whole game before considering it feature-complete — this is also worth flagging as a practice to apply hub-wide once the hub reaches this level of maturity generally (see Deferred Items).
-- Hub integration: link Continuum into the main hub nav. While doing this, check for and link anything else currently sitting unlinked (Trade Empire was flagged as having the same unlinked status).
+- Hub-nav integration: **Done** (Milestone 14) — title card + review widget, same pattern as every other game.
+- Post-Phase-6 backlog items (`planning/TODO.md` K-series), numbered as milestones 15-24 in the table below: achievements, Look Back UI, research search, camera presets, settings panel, mobile dock, tooltip audit, changelog panel, summary/scenarios/hard mode/snapshot/seasonal lighting, and the UI decluttering pass.
+- Full playthrough testing (tribal through space age) for save/revisit integrity: **still open** — no single test drives all six transitions in one continuous run, though each era's own test file pushes to and through its transition and Phase 4 audited revisit against real transition traffic.
+- Maximize test coverage: **ongoing** — 491 tests across 19 test files; `render3d.js`/`settings.js` remain verified-live only (no WebGL/real DOM in the harness).
+
+### Milestones 14-24 (backlog-driven, post-Phase 6)
+
+| # | Milestone | Status |
+|---|-----------|--------|
+| 14 | Hub-nav integration (title card, review widget) | **DONE** (tagged) |
+| 15 | Achievements system (19) + Look Back era-revisit UI (K7) | **DONE** (tagged) |
+| 16 | K8 info-link audit, K15 accessibility-persistence verification | **DONE** (tagged) |
+| 17 | K14 research tree search/filter | **DONE** (tagged) |
+| 18 | K19 distinct building meshes, K6 camera presets | **DONE** (tagged) |
+| 19 | Settings panel (text scale + reduce motion, `settings.js`) | **DONE** (untagged) |
+| 20 | K9 mobile-dock (Advance Season button) | **DONE** (untagged) |
+| 21 | Onboarding-tooltip coverage check | **DONE** (untagged) |
+| 22 | K16 "What's New" changelog panel | **DONE** (untagged) |
+| 23 | K5 summary, K12 scenarios, K13 snapshot, K17 seasonal light, K18 hard mode | **DONE** (untagged) |
+| 24 | UI decluttering pass (research panel disclosures) | **DONE** (untagged) |
+
+Milestones 19-24 were never tagged (`git tag -l "continuum-milestone-*"` stops at 18); the commit history is the record for those.
 
 ## Phase 1 build decisions
 
@@ -512,9 +531,19 @@ Five `planning/TODO.md` items landed together (test count 396 -> 488, verified l
 - **K17 seasonal lighting**: `render3d.js` maps `visual_state().season` onto a four-step cycle, nudging light brightness (+/-8%) and sky tint (12% pull toward a cool/warm tint). Ambience only, no mechanic.
 - Scenario select added to the onboarding tour. New tests: `test_scenarios.py`, `test_summary.py`, plus additions to `test_sustainability.py`/`test_visual_state.py`.
 
+## Milestone 24 build decisions (UI decluttering pass)
+
+Site-wide goal (`planning/TODO.md`): the user's note that "everything looks very crowded". Investigate-first. The toolbar panels (Achievements, What's New, Summary, Settings, How to Play, Info) are already hidden until opened, the mobile dock already handles Advance Season, and the status/work/build panels are checked every season, so none needed touching. The one genuine gap: the Research panel, at 2006px tall on desktop even in the Tribal era (9 rows, 6 of them locked with multi-line reasons) and growing towards ~45 rows by Space Age, most of it either locked or already researched, neither of which is actionable.
+
+- **Fix:** `render_research()` now sorts rows into three containers. `#research-list` keeps only nodes that can be studied now; locked nodes go into a collapsed `<details id="research-locked-details">` ("Locked (N)"), already-researched into `#research-known-details` ("Known discoveries (N)"). Counts and the hidden state (when a group is empty) are set by `_update_research_disclosures()`. Nothing is removed and locked reasons still show — the tree's shape is one click away. The Knowledge line and search box stay always visible.
+- **Search still finds everything:** while a query is active, any disclosure holding a match is opened automatically (`details.open = True`), so a result is never hidden behind a closed toggle.
+- **Result (live, desktop):** research panel 2006px to 853px on a fresh game, page 5478px to 4324px. At 375px: no horizontal overflow, Advance Season still docked, search works, no console errors.
+- **Tests:** `test_research_search.py` gained 3 tests (split by state, studying moves a node to Known, search opens the right disclosure) and its two helpers now read all three containers; `conftest.py` registers the new element ids. Suite 488 to 491.
+- **Left alone deliberately:** the Starting Scenario picker (177px, locks after season 1 but still informative), the Look Back list, and the Log (all short).
+
 ## Deferred items (not now, flagged for later)
 
-- **Site-wide leaderboard/achievements system** — deferred as its own project, likely alongside a broader site-wide feature pass; too much to take on inside Continuum's own scope right now.
+- **Site-wide leaderboard** — deferred as its own project (achievements themselves shipped in Milestone 15 and now have a hub-wide dashboard).
 - **Generational "descendants" narrative thread** — considered for tying eras together more tightly through character continuity; may be good story fodder later, not committed to yet.
 - **Site-wide accessibility pass** and **site-wide "maximize test coverage" practice** — both flagged as patterns worth applying across the whole hub once it reaches that point of maturity, not just within Continuum.
 - **How the Contextual Report Blog will discuss this single large DA vs. the Round 1 quartet's eight-small-games framing** — worth thinking about once there's enough built to write about.

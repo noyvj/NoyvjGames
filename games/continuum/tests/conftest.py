@@ -51,6 +51,12 @@ ELEMENT_IDS = [
     # Milestone 3 — research panel (node rows are created at runtime)
     "research-status-display",
     "research-list",
+    "research-locked-list",
+    "research-known-list",
+    "research-locked-details",
+    "research-locked-summary",
+    "research-known-details",
+    "research-known-summary",
     # Milestone 5 — collapsed real-world info panel
     "info-page-toggle-button",
     "info-page-panel",

@@ -16,9 +16,11 @@ def _dispatch_search(game_env, query):
 
 
 def _rendered_node_names(game_env):
-    container = game_env.elements["research-list"]
+    rows = []
+    for cid in ("research-list", "research-locked-list", "research-known-list"):
+        rows.extend(game_env.elements[cid].children)
     names = []
-    for row in container.children:
+    for row in rows:
         # Each row's first child is .row-top, whose first child is the
         # name span (see render_research()) -- walk the same structure the
         # real DOM has rather than re-deriving it from the tree directly.
@@ -118,8 +120,7 @@ def test_locked_node_reasons_still_show_while_filtered(game_env):
         n for n in tree.visible_nodes() if not tree.is_researched(n.node_id) and not tree.is_available(n.node_id)
     )
     _dispatch_search(game_env, locked.name)
-    container = game_env.elements["research-list"]
-    all_text = " ".join(row.innerText if hasattr(row, "innerText") else "" for row in container.children)
+    container = game_env.elements["research-locked-list"]
     # Rows are built via createElement, not innerHTML, so check the
     # dedicated locked-reason child text instead of a flattened innerText.
     found_reason = False
@@ -134,3 +135,35 @@ def test_research_branch_label_import_is_used_correctly():
     # Sanity check the module this filter reads from -- BRANCH_LABEL must
     # cover every branch the filter can be asked to match against.
     assert set(research.BRANCH_LABEL.keys()) == set(research.BRANCHES)
+
+
+# --- UI decluttering: locked/known nodes live in collapsed disclosures ----
+def test_locked_and_known_nodes_are_split_out_of_the_main_list(game_env):
+    tree = game_env.module.tree
+    main = game_env.elements["research-list"].children
+    locked = game_env.elements["research-locked-list"].children
+    known = game_env.elements["research-known-list"].children
+    assert len(main) + len(locked) + len(known) == len(tree.visible_nodes())
+    assert len(main) == len([n for n in tree.visible_nodes() if tree.is_available(n.node_id)])
+    assert len(locked) > 0 and len(known) == 0
+    assert game_env.elements["research-locked-summary"].innerText == f"Locked ({len(locked)})"
+    assert game_env.elements["research-known-details"].hidden is True
+
+
+def test_studying_a_node_moves_it_to_the_known_disclosure(game_env):
+    game_env.module.state.resources["knowledge"] = 500.0
+    game_env.elements["research-fire_keeping"].dispatch("click", None)
+    known = game_env.elements["research-known-list"].children
+    assert len(known) == 1
+    assert game_env.elements["research-known-summary"].innerText == "Known discoveries (1)"
+    assert game_env.elements["research-known-details"].hidden is False
+
+
+def test_a_search_opens_the_disclosure_holding_the_match(game_env):
+    tree = game_env.module.tree
+    locked = next(
+        n for n in tree.visible_nodes() if not tree.is_researched(n.node_id) and not tree.is_available(n.node_id)
+    )
+    assert not getattr(game_env.elements["research-locked-details"], "open", False)
+    _dispatch_search(game_env, locked.name)
+    assert game_env.elements["research-locked-details"].open is True

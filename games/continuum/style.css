@@ -1251,3 +1251,22 @@ button.primary:disabled::after {
     padding-bottom: 130px;
   }
 }
+
+/* UI decluttering: collapsed "Locked" / "Known discoveries" research
+   disclosures. Summary styled as a quiet full-width toggle, matching the
+   panel's own amber accent rather than the small round info-toggle. */
+.research-disclosure { margin-top: 0.6rem; }
+.research-disclosure[hidden] { display: none; }
+.research-disclosure > summary {
+  cursor: pointer;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid rgba(201, 147, 84, 0.3);
+  border-radius: 8px;
+  color: #d9b98a;
+  font-size: 0.9rem;
+  list-style: none;
+}
+.research-disclosure > summary::-webkit-details-marker { display: none; }
+.research-disclosure > summary::before { content: "▸ "; }
+.research-disclosure[open] > summary::before { content: "▾ "; }
+.research-disclosure > summary:hover { background: rgba(201, 147, 84, 0.1); }

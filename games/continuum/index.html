@@ -231,6 +231,17 @@
       <input id="research-search-input" class="research-search-input" type="text" placeholder="Search the research tree by name, branch, or description...">
       <!-- Node rows are built by game.py — see render_research(). -->
       <div id="research-list"></div>
+      <!-- UI decluttering: locked and already-known nodes live in two
+           collapsed disclosures (built by game.py's render_research());
+           the list above holds only what can be studied right now. -->
+      <details id="research-locked-details" class="research-disclosure">
+        <summary id="research-locked-summary">Locked</summary>
+        <div id="research-locked-list"></div>
+      </details>
+      <details id="research-known-details" class="research-disclosure">
+        <summary id="research-known-summary">Known discoveries</summary>
+        <div id="research-known-list"></div>
+      </details>
     </div>
 
     <div id="log" class="section">

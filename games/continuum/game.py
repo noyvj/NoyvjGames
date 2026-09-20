@@ -1213,8 +1213,16 @@ def render_research():
         f"{len(tree.researched)} discoveries made"
     )
 
-    container = document.getElementById("research-list")
-    container.innerHTML = ""
+    # UI decluttering: only nodes the player can act on right now live in
+    # the always-visible list; locked and already-known nodes sit in two
+    # collapsed disclosures below it, which stay rebuilt every render.
+    open_container = document.getElementById("research-list")
+    locked_container = document.getElementById("research-locked-list")
+    known_container = document.getElementById("research-known-list")
+    open_container.innerHTML = ""
+    locked_container.innerHTML = ""
+    known_container.innerHTML = ""
+    n_locked = n_known = 0
 
     query = research_search_query.strip().lower()
     live_node_ids = set()
@@ -1282,8 +1290,18 @@ def render_research():
         actions.appendChild(button)
         row.appendChild(actions)
 
-        container.appendChild(row)
+        if researched:
+            known_container.appendChild(row)
+            n_known += 1
+        elif not available:
+            locked_container.appendChild(row)
+            n_locked += 1
+        else:
+            open_container.appendChild(row)
 
+    _update_research_disclosures(query, n_locked, n_known)
+
+    container = open_container
     if query and not any_rendered:
         empty = document.createElement("p")
         empty.className = "row-blurb"
@@ -1299,6 +1317,21 @@ def render_research():
     for node_id in list(_research_button_proxies):
         if node_id not in live_node_ids:
             _research_button_proxies.pop(node_id).destroy()
+
+
+def _update_research_disclosures(query, n_locked, n_known):
+    """Labels the two collapsed research disclosures with live counts, and
+    (only while a search is active) opens any that hold a match so a
+    search result is never hidden behind a closed toggle."""
+    for prefix, count, noun in (
+        ("research-locked", n_locked, "Locked"),
+        ("research-known", n_known, "Known discoveries"),
+    ):
+        details = document.getElementById(f"{prefix}-details")
+        document.getElementById(f"{prefix}-summary").innerText = f"{noun} ({count})"
+        details.hidden = count == 0
+        if query and count:
+            details.open = True
 
 
 def _research_node_matches(node, query):
