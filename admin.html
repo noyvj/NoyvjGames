@@ -143,6 +143,7 @@
     <h2>Overview</h2>
     <p class="status-line" id="overview-status">Loading…</p>
     <div class="stat-row" id="overview-stats"></div>
+    <p class="status-line" id="overview-saves-by-game"></p>
   </section>
 
   <section class="panel">
@@ -326,12 +327,29 @@ async function loadReports() {
   return allReports.length;
 }
 
+async function loadAdminStats() {
+  // New endpoint (TODO.md L8) -- the only aggregate numbers this page
+  // couldn't already assemble from the per-game/per-feature public reads
+  // below: how many accounts and how many saves exist, total and broken
+  // down per game. Optional (Promise.allSettled-style try/catch) since
+  // this endpoint is new and the rest of the page has always worked
+  // without it -- a fetch failure here shouldn't blank out ratings,
+  // feedback, or reports.
+  try {
+    return await fetchJson(`${API_BASE}/admin/stats`);
+  } catch (err) {
+    console.error("loadAdminStats failed:", err);
+    return null;
+  }
+}
+
 async function loadAll() {
   document.getElementById("overview-status").textContent = "Loading…";
-  const [ratingsSummary, feedbackCount, reportsCount] = await Promise.all([
+  const [ratingsSummary, feedbackCount, reportsCount, adminStats] = await Promise.all([
     loadRatings(),
     loadFeedback(),
     loadReports(),
+    loadAdminStats(),
   ]);
 
   const overviewStats = document.getElementById("overview-stats");
@@ -339,12 +357,25 @@ async function loadAll() {
     ? (ratingsSummary.starSum / ratingsSummary.starCount).toFixed(2)
     : "—";
   overviewStats.innerHTML = `
+    <div class="stat-chip">Games on the hub<strong>${GAME_SLUGS.length}</strong></div>
+    <div class="stat-chip">Accounts<strong>${adminStats ? adminStats.total_users : "—"}</strong></div>
+    <div class="stat-chip">Saves (all games)<strong>${adminStats ? adminStats.total_saves : "—"}</strong></div>
     <div class="stat-chip">Rating/feedback rows<strong>${ratingsSummary.totalCount}</strong></div>
     <div class="stat-chip">Site-wide average★<strong>${avgStars}</strong></div>
     <div class="stat-chip">Site feedback entries<strong>${feedbackCount}</strong></div>
     <div class="stat-chip">French answer reports<strong>${reportsCount}</strong></div>
   `;
   document.getElementById("overview-status").textContent = `Last refreshed ${new Date().toLocaleString()}.`;
+
+  const savesByGameEl = document.getElementById("overview-saves-by-game");
+  if (adminStats && Object.keys(adminStats.saves_by_game).length) {
+    const parts = Object.entries(adminStats.saves_by_game)
+      .sort((a, b) => b[1] - a[1])
+      .map(([gameId, count]) => `${GAME_LABELS[gameId] || gameId}: ${count}`);
+    savesByGameEl.textContent = `Saves by game — ${parts.join(", ")}`;
+  } else {
+    savesByGameEl.textContent = "";
+  }
 }
 
 document.getElementById("reports-filter").addEventListener("input", renderReports);

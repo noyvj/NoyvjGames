@@ -10,6 +10,7 @@ from typing import List, Optional
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -518,3 +519,32 @@ def list_feedback(response: Response, game_id: Optional[str] = None, db: Session
     query = db.query(Feedback).filter(Feedback.is_hidden.is_(False))
     query = query.filter(Feedback.game_id.is_(None)) if game_id is None else query.filter(Feedback.game_id == game_id)
     return query.order_by(Feedback.created_at.desc()).all()
+
+
+# --- Admin aggregate stats (TODO.md L8) ---
+# Backs the unlisted admin.html page's Overview panel. `admin.html`'s own
+# comment already establishes the precedent this follows: every number
+# here is a count, never a row of actual user content (no usernames,
+# emails, save contents, or comment text) — accounts and saves had no
+# aggregate-count endpoint before this, only per-user (/users/me/saves)
+# or per-code (/saves/{code}) lookups, neither of which can answer "how
+# many, total". Unauthenticated and public like every other endpoint
+# admin.html already calls, for the same reason: a bare count isn't
+# meaningfully sensitive at this site's scale, and gating it behind auth
+# would need inventing an admin-role concept (there isn't one — see
+# models.py's User) for very little actual protection.
+class AdminStatsOut(BaseModel):
+    total_users: int
+    total_saves: int
+    saves_by_game: dict[str, int]
+
+
+@app.get("/admin/stats", response_model=AdminStatsOut)
+def admin_stats(response: Response, db: Session = Depends(get_db)):
+    response.headers["Cache-Control"] = "no-store"
+    total_users = db.query(func.count(User.id)).scalar() or 0
+    total_saves = db.query(func.count(Save.id)).scalar() or 0
+    saves_by_game = dict(
+        db.query(Save.game_id, func.count(Save.id)).group_by(Save.game_id).all()
+    )
+    return AdminStatsOut(total_users=total_users, total_saves=total_saves, saves_by_game=saves_by_game)
