@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 44/709 items checked off (6.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 68/708 items checked off (9.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -398,34 +398,34 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 ## Per-game: Canopy
 
 - [ ] B1: A third biome beyond the main forest and Highland Grove — a wetland/coastal-forest region with its own tension (e.g. flood risk on preserved plots), unlocked at a higher threshold than Highland Grove.
-- [ ] B2: Let the coordinate-style plot labels also show up in the stakeholder-request panel.
-- [ ] B3: A "forest history" timeline view — a scrollable log of every clear/preserve/replant decision this session.
-- [ ] B4: A confetti/leaf-burst animation the first time a plot reaches "fully mature."
-- [ ] B6: Let the Highland Grove's unlock threshold show as a progress bar toward 2,000 standing value, not a silent unlock.
-- [ ] B7: A "forest ranger" harder-difficulty mode — steeper soil degradation from clearing.
-- [ ] B8: A tooltip on the stakeholder "incentive" request type clarifying it's a genuinely positive offer before opening it.
-- [ ] B9: A named-run "playstyle badge" (Preservationist/Balanced/Harvester) computed from the session's clear-vs-preserve ratio.
-- [ ] B10: Let biodiversity's numeric readout show its rate of change (+X/tick), not just the current total.
+- [x] B2: Let the coordinate-style plot labels also show up in the stakeholder-request panel.
+- [x] B3: A "forest history" timeline view — a scrollable log of every clear/preserve/replant decision this session.
+- [x] B4: A confetti/leaf-burst animation the first time a plot reaches "fully mature."
+- [x] B6: Let the Highland Grove's unlock threshold show as a progress bar toward 2,000 standing value, not a silent unlock.
+- [x] B7: A "forest ranger" harder-difficulty mode — steeper soil degradation from clearing.
+- [x] B8: A tooltip on the stakeholder "incentive" request type clarifying it's a genuinely positive offer before opening it.
+- [x] B9: A named-run "playstyle badge" (Preservationist/Balanced/Harvester) computed from the session's clear-vs-preserve ratio.
+- [x] B10: Let biodiversity's numeric readout show its rate of change (+X/tick), not just the current total.
 - [ ] B11: A "reforestation partner" mechanic — a second party co-funds replanting a bare plot for a smaller cut of its future value.
-- [ ] B12: A small "?" tooltip on soil-quality percentages explaining what degradation costs in future yield.
-- [ ] B13: A proper end-of-session "forest report card" — biodiversity/standing-value/stakeholder-relations trends as three small graphs.
-- [ ] B14: A "Small (4×4)" grid preset alongside the existing Normal/Large options, for a faster session.
+- [x] B12: A small "?" tooltip on soil-quality percentages explaining what degradation costs in future yield.
+- [x] B13: A proper end-of-session "forest report card" — biodiversity/standing-value/stakeholder-relations trends as three small graphs.
+- [x] B14: A "Small (4×4)" grid preset alongside the existing Normal/Large options, for a faster session.
 - [ ] B15: A "legacy forest" feature — a fresh session starts with a small permanent bonus based on a previous session's final standing value (Aftermath-style meta-progression, opt-in, built independently per Z3's resolution).
-- [ ] B16: A keyboard shortcut for "select next stakeholder request."
+- [x] B16: A keyboard shortcut for "select next stakeholder request."
 - [ ] B17: A visible seasonal cycle — plots grow slightly faster/slower by an in-game season indicator.
-- [ ] B18: A "copy my playstyle badge" button next to the existing shareable snippet.
-- [ ] B19: A "community forest" comparison page — see how other players' saved Run A/B snapshots compare in aggregate, anonymized *(needs Z1)*.
-- [ ] B20: Let the "+X value" floating animation vary its color slightly by magnitude (size/motion only, no new color-only meaning, consistent with the colorblind audit).
-- [ ] B21: A "specialist plot" upgrade — a long-preserved plot gets a one-time permanent specialization choice (biodiversity vs. economic value).
-- [ ] B22: A small "veteran plot" icon marker for plots that survived 3+ clear-requests without ever being cleared.
-- [ ] B23: A wildlife log — a running record of which species icons have appeared and when.
-- [ ] B24: Let the Reset Session confirmation show the current standing value being given up.
-- [ ] B25: A "community grant" event type — a stakeholder occasionally offers funding specifically for replanting.
-- [ ] B26: A subtle highlight/glow on whichever plot the mouse last hovered, for easier tracking on the larger grid.
-- [ ] B27: An "adopt a plot" personal-goal feature — mark one plot as a long-term project with its own mini-history.
-- [ ] B28: Let the Session Summary's counterfactual line also state the percentage difference, not just the absolute value.
+- [x] B18: A "copy my playstyle badge" button next to the existing shareable snippet.
+- [x] B19: A "community forest" comparison page — see how other players' saved Run A/B snapshots compare in aggregate, anonymized *(needs Z1)*.
+- [x] B20: Let the "+X value" floating animation vary its color slightly by magnitude (size/motion only, no new color-only meaning, consistent with the colorblind audit).
+- [x] B21: A "specialist plot" upgrade — a long-preserved plot gets a one-time permanent specialization choice (biodiversity vs. economic value).
+- [x] B22: A small "veteran plot" icon marker for plots that survived 3+ clear-requests without ever being cleared.
+- [x] B23: A wildlife log — a running record of which species icons have appeared and when.
+- [x] B24: Let the Reset Session confirmation show the current standing value being given up.
+- [x] B25: A "community grant" event type — a stakeholder occasionally offers funding specifically for replanting.
+- [x] B26: A subtle highlight/glow on whichever plot the mouse last hovered, for easier tracking on the larger grid.
+- [x] B27: An "adopt a plot" personal-goal feature — mark one plot as a long-term project with its own mini-history.
+- [x] B28: Let the Session Summary's counterfactual line also state the percentage difference, not just the absolute value.
 - [ ] B29: A guided "best strategy" AI-narrated example playthrough demonstrating a strong preserve/clear balance.
-- [ ] B30: A small monthly/seasonal color-palette shift on the forest background art, purely decorative.
+- [x] B30: A small monthly/seasonal color-palette shift on the forest background art, purely decorative.
 
 **Deferred to `LATER.md`** (your answer): B5 — comparing your forest's standing value against the site aggregate average — parked pending "a full multiplayer pass soon," distinct from B19 above (which only needs Z1, not multiplayer, and is accepted).
 
@@ -883,6 +883,4 @@ A "yes" here means "worth a groundwork plan" (a new `planning/<game>-plan.md`, p
 ## Closing tasks (run these last, per your standing instruction)
 
 - [x] A full site-wide bug-check pass, once everything above is done. (Done 2026-09-20: two real bugs found and fixed, see the BCM114/BCM206 dev logs.)
-- [ ] Generate a fresh round-3 ideas document (same 30-ideas-per-section format as `IMPROVEMENT-IDEAS-ROUND-2.md`) once this list is complete, for you to answer again.
-
-- [ ] Generate a "gamify the teaching games" ideas document (Canopy, Grid, Tide, Aftermath, Herd, Thaw, Loop, Drift): fun-first, 30 ideas per game (10+ big, 10+ small), not duplicating round 2. Requested to be queued in this closing section rather than built now (round 2 wasn't framed around fun; carried over from the old TODO.md's closing task).
+- [ ] Generate a fresh round-3 ideas document (same 30-ideas-per-section format as `IMPROVEMENT-IDEAS-ROUND-2.md`) once this list is complete, for you to answer again. Generate a "gamify the teaching games" in the ideas document (Canopy, Grid, Tide, Aftermath, Herd, Thaw, Loop, Drift): fun-first, 30 ideas per game (10+ big, 10+ small), not duplicating round 2. Requested to be queued in this closing section rather than built now (round 2 wasn't framed around fun; carried over from the old TODO.md's closing task).
