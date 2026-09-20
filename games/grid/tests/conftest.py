@@ -69,6 +69,12 @@ ELEMENT_IDS = [
     "funds-breakdown-disruption",
     "steeper-demand-toggle-button",
     "weather-variability-toggle-button",
+    "scenario-toggle-button",
+    "streak-display",
+    "funds-bar-revenue",
+    "funds-bar-build",
+    "funds-bar-maintenance",
+    "funds-bar-disruption",
 ]
 for _plant in PLANT_TYPES:
     ELEMENT_IDS += [

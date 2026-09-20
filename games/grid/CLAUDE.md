@@ -263,3 +263,9 @@ Verified: full 270/270 pytest suite green (HTML/CSS-only change, no Python touch
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag grid-milestone-0N`.
 - Update the milestone table Status as work happens.
+
+## Round-2 improvement pass (2026-09-20, planning/TODO.md C-items)
+
+Built: C4 (wear-% tooltip with the numeric aging rules), C26 (three wear-tier glyphs ○◔◑● beside the wear %), C5 (operator letter grade A-F from cumulative emissions vs. the benchmark line, in Run Summary), C11 (resilience/diversification score = normalized Shannon entropy of generation shares), C25 (20-round unchanged-fleet projection in Run Summary), C12 (diamond marker at the best-clean-share round on the trend graph), C14 (bar visuals in the funds breakdown), C13 (starting scenarios — Standard / Coal-heavy legacy / Greenfield — cycled by a toolbar button, locked after the first build or round; `scenario` persisted, defaults safely for old saves), C10 (toast now carries a "Why:" line naming the plant), C18 (retire-last dialog shows wear + age), C20 (demand growth arrow; only up/flat states exist since growth is otherwise constant), C22 (steeper label shows x2), C24 (emissions-meter pulse on the 50%-renewable crossing), C28 (always-visible clean-streak line), C8 (renewable/fossil/low-carbon icon on plant-mix labels), C6 (mix-bar transition lengthened; width was already animated), C15 (Run Summary percentile of emissions via `GET /stats/games/grid/percentile`, JS hook `window.gridCompare` in index.html; falls back to "isn't available yet" until the endpoint is deployed).
+Already satisfied, no change: C2 (badge already shows the exact %), C30 (persistent renewable-unlock blurb).
+Not built: C1, C3, C7, C9, C17, C19, C23, C27, C29 (large mechanics, left for later passes). Tests 270 -> 287 (`tests/test_round2_items.py`).

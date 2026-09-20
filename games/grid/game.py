@@ -194,6 +194,30 @@ AGE_WEAR_THRESHOLDS = [
 # what "100%" means).
 WEAR_PERCENT_REFERENCE_AGE = AGE_WEAR_THRESHOLDS[0][0]
 
+# C26 -- three distinct wear-tier glyphs (plus "fresh"), a shape cue that
+# reads independently of the wear-1/2/3 CSS desaturation on the name.
+WEAR_TIER_GLYPH = {"": "\u25CB", "wear-1": "\u25D4", "wear-2": "\u25D1", "wear-3": "\u25CF"}
+
+# C13 -- starting scenarios, selectable only before anything has been built
+# or any round played. Each is a fixed opening fleet + funds.
+SCENARIOS = {
+    "standard": {"label": "Standard start", "funds": STARTING_FUNDS, "plants": {}},
+    "coal_legacy": {
+        "label": "Coal-heavy legacy grid",
+        "funds": 300,
+        "plants": {"coal": 4, "gas": 1},
+    },
+    "greenfield": {
+        "label": "Greenfield renewable-first",
+        "funds": 700,
+        "plants": {},
+    },
+}
+SCENARIO_ORDER = ["standard", "coal_legacy", "greenfield"]
+
+# C25 -- how far the "grid of the future" projection looks ahead.
+PROJECTION_ROUNDS = 20
+
 
 def _breakdown_probability_for_age(age):
     """Shared by GridState.aging_breakdown_probability() (the single
@@ -270,6 +294,23 @@ class GridState:
         self.steeper_demand_growth_enabled = False
         # C4 -- opt-in weather-variability hard mode, off by default.
         self.weather_variability_enabled = False
+        # C13 -- which starting scenario was applied (see SCENARIOS).
+        self.scenario = "standard"
+
+    def apply_scenario(self, scenario_id):
+        """C13: only allowed before anything has been built/advanced, so a
+        scenario can never be used to reset progress mid-run."""
+        if scenario_id not in SCENARIOS:
+            return False
+        if self.round_number != 1 or any(self.cumulative_built.values()):
+            return False
+        scenario = SCENARIOS[scenario_id]
+        self.plant_counts = {t: 0 for t in PLANT_TYPES}
+        for plant_type, count in scenario["plants"].items():
+            self.plant_counts[plant_type] = count
+        self.funds = scenario["funds"]
+        self.scenario = scenario_id
+        return True
 
     def plant_cost(self, plant_type):
         base = PLANT_BASE_COST[plant_type]
@@ -587,6 +628,52 @@ class GridState:
         second_half_avg = sum(self.clean_fraction_log[half:]) / (n - half)
         return first_half_avg, second_half_avg
 
+    def resilience_score(self):
+        """C11: diversification as its own axis, 0..100 -- normalized
+        Shannon entropy of the generation-capacity shares across the six
+        generation types. All-one-type (all-renewable OR all-fossil) scores
+        0; an even spread across every type scores 100. Deliberately
+        independent of clean share: it rewards not depending on a single
+        source, not cleanliness."""
+        import math  # noqa: PLC0415
+
+        shares = [self.capacity_share(t) for t in GENERATION_TYPES]
+        entropy = -sum(x * math.log(x) for x in shares if x > 0)
+        return round(entropy / math.log(len(GENERATION_TYPES)) * 100)
+
+    def projection(self, rounds=PROJECTION_ROUNDS):
+        """C25: extrapolates the current fleet unchanged for `rounds` more
+        rounds -- emissions if nothing changes, versus the all-coal
+        business-as-usual line over the same window, plus where demand
+        will be against today's capacity. A straight-line extrapolation,
+        deliberately not a forecast of what the player would do."""
+        base_growth = DEMAND_GROWTH_PER_ROUND * (
+            STEEP_DEMAND_GROWTH_MULTIPLIER if self.steeper_demand_growth_enabled else 1
+        )
+        return {
+            "rounds": rounds,
+            "emissions": self.emissions + self.emissions_this_round() * rounds,
+            "bau_emissions": self.emissions + self.total_capacity() * BAU_EMISSIONS_FACTOR * rounds,
+            "demand": self.demand + base_growth * rounds,
+            "capacity": self.total_capacity(),
+        }
+
+    def benchmark_grade(self):
+        """C5: a letter grade of cumulative emissions against the
+        real-world benchmark line (global_reference_emissions). None until
+        a round has been played (no benchmark to compare against yet)."""
+        if self.global_reference_emissions <= 0:
+            return None
+        ratio = self.emissions / self.global_reference_emissions
+        for limit, letter in GRADE_THRESHOLDS:
+            if ratio <= limit:
+                return letter
+        return "F"
+
+
+# C5 -- ascending (max emissions/benchmark ratio, letter). Above the last
+# limit is an "F".
+GRADE_THRESHOLDS = [(0.2, "A"), (0.5, "B"), (0.8, "C"), (1.0, "D")]
 
 state = GridState()
 
@@ -613,6 +700,25 @@ def event_message(event):
             f"(lost {event['revenue_loss']:.0f} funds to instability)."
         )
     return f"Brownout! Lost {event['revenue_loss']:.0f} funds to lingering historical emissions."
+
+
+def disruption_reason(event):
+    """C10: a 'why this happened' line tied to the specific plant behind the
+    event, for the disruption toast."""
+    severity_pct = event["severity"] * 100
+    if event["type"] == "damage":
+        plant = PLANT_LABEL[event["damaged_plant"]]
+        return (
+            f"Why: accumulated emissions put disruption severity at {severity_pct:.0f}%, past the "
+            f"{DAMAGE_SEVERITY_THRESHOLD * 100:.0f}% damage line -- your largest fossil fleet ({plant}) took the hit."
+        )
+    cause = event.get("cause_plant")
+    if cause:
+        return (
+            f"Why: emissions put disruption severity at {severity_pct:.0f}%, and {PLANT_LABEL[cause]} "
+            "is your biggest emissions source."
+        )
+    return f"Why: historical emissions still put disruption severity at {severity_pct:.0f}%."
 
 
 def event_severity_class(event):
@@ -698,7 +804,7 @@ def _normalize_series(series, height, lo=None, hi=None):
     return [height - ((v - lo) / (hi - lo)) * height for v in series]
 
 
-def trend_graph_svg(emissions_history, cost_history, global_reference_history):
+def trend_graph_svg(emissions_history, cost_history, global_reference_history, clean_fraction_history=None):
     """Three-line trend graph: emissions (rising, red) vs. average
     renewable cost (falling as investment compounds, green) vs. a
     hardcoded global-average emissions benchmark (dashed grey) — the
@@ -747,12 +853,25 @@ def trend_graph_svg(emissions_history, cost_history, global_reference_history):
         + _markers(cost_ys, cost_history, "trend-point--cost", "Avg renewable cost")
     )
 
+    # C12: a diamond marker (shape, not just color) on the emissions line at
+    # the player's best round -- highest clean share, earliest on ties.
+    best_marker = ""
+    if clean_fraction_history and len(clean_fraction_history) == n and max(clean_fraction_history) > 0:
+        best_i = clean_fraction_history.index(max(clean_fraction_history))
+        bx, by = xs[best_i], emissions_ys[best_i]
+        best_marker = (
+            f'<polygon points="{bx:.1f},{by - 6:.1f} {bx + 5:.1f},{by:.1f} {bx:.1f},{by + 6:.1f} {bx - 5:.1f},{by:.1f}" '
+            f'class="trend-best-marker"><title>Best round: Round {best_i + 1} '
+            f"({clean_fraction_history[best_i] * 100:.0f}% clean)</title></polygon>"
+        )
+
     return (
         f'<svg viewBox="0 0 {TREND_GRAPH_WIDTH} {TREND_GRAPH_HEIGHT}" class="trend-graph-svg">'
         f'<polyline points="{global_points}" class="trend-line trend-line--global" />'
         f'<polyline points="{emissions_points}" class="trend-line trend-line--emissions" />'
         f'<polyline points="{cost_points}" class="trend-line trend-line--cost" />'
         f"{markers}"
+        f"{best_marker}"
         f"</svg>"
     )
 
@@ -999,6 +1118,49 @@ def on_toggle_summary_panel(event=None):
     update_summary_panel()
 
 
+COMPARE_FALLBACK = "Comparison with other players isn't available yet."
+
+
+def _request_comparison():
+    """C15: asks the page's optional JS hook (window.gridCompare, see
+    index.html) to fill #summary-compare with a cross-player percentile.
+    Absent hook (pytest, or a page without it) leaves the fallback text."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    hook = getattr(window, "gridCompare", None)
+    if hook is not None:
+        hook(float(state.emissions), state.round_number)
+
+
+def grade_message():
+    """C5: operator-report letter grade vs. the real-world benchmark line."""
+    grade = state.benchmark_grade()
+    if grade is None:
+        return "Operator grade: not graded yet -- play a round to get a benchmark to compare against."
+    pct = state.emissions / state.global_reference_emissions * 100
+    return (
+        f"Operator grade: {grade} -- cumulative emissions are {pct:.0f}% of a "
+        "global-average-mix grid's (A: under 20%, B: under 50%, C: under 80%, D: under 100%)."
+    )
+
+
+def projection_message(projection):
+    """C25: the 'grid of the future' line."""
+    shortfall = projection["demand"] - projection["capacity"]
+    demand_note = (
+        f"demand would reach {projection['demand']:.0f} against {projection['capacity']} capacity "
+        f"({shortfall:.0f} short)"
+        if shortfall > 0
+        else f"capacity {projection['capacity']} would still cover demand of {projection['demand']:.0f}"
+    )
+    return (
+        f"If you changed nothing for {projection['rounds']} more rounds: emissions would reach "
+        f"{projection['emissions']:.0f} (all-coal would be {projection['bau_emissions']:.0f}), and {demand_note}."
+    )
+
+
 def summary_panel_html():
     """C5: the Run Summary panel's content -- pure read of existing
     state/score/funds-breakdown/C17-counterfactual math, no new
@@ -1016,8 +1178,15 @@ def summary_panel_html():
         ),
         f"Best disruption-free streak so far: {state.best_clean_streak} round(s).",
         business_as_usual_message(state.emissions, state.bau_emissions),
+        grade_message(),
+        f"Grid resilience (diversification, separate from clean share): {state.resilience_score()}/100.",
+        projection_message(state.projection()),
     ]
-    return "".join(f'<p class="status-line summary-line">{line}</p>' for line in lines)
+    body = "".join(f'<p class="status-line summary-line">{line}</p>' for line in lines)
+    # C15: filled in by index.html's window.gridCompare() when the shared
+    # stats endpoint (planning/TODO.md Z1) is reachable; otherwise this
+    # fallback text simply stays.
+    return body + f'<p id="summary-compare" class="status-line summary-line">{COMPARE_FALLBACK}</p>'
 
 
 def update_summary_panel():
@@ -1028,6 +1197,7 @@ def update_summary_panel():
     if not summary_panel_open:
         return
     panel.innerHTML = summary_panel_html()
+    _request_comparison()
 
 
 # Unlock toast + hub-dashboard link (TODO.md "roll achievements out
@@ -1228,13 +1398,46 @@ def on_toggle_info_page(event=None):
     render_info_page()
 
 
+def demand_growth_arrow():
+    """C20: demand's per-round growth against the standard pace -- up arrow
+    when Steeper Demand Growth makes it faster, a flat marker otherwise.
+    Growth is otherwise constant, so there is no 'slower' state."""
+    return "\u25B2" if state.steeper_demand_growth_enabled else "\u25AC"
+
+
+def demand_growth_title():
+    growth = DEMAND_GROWTH_PER_ROUND * (
+        STEEP_DEMAND_GROWTH_MULTIPLIER if state.steeper_demand_growth_enabled else 1
+    )
+    if state.steeper_demand_growth_enabled:
+        return f"Demand is rising +{growth:.0f} per round -- faster than the standard +{DEMAND_GROWTH_PER_ROUND} (Steeper Demand Growth is on)."
+    return f"Demand is rising at the standard +{DEMAND_GROWTH_PER_ROUND} per round."
+
+
+def wear_tooltip(plant_type):
+    """C4: what the wear percentage means numerically."""
+    age = state.plant_age[plant_type]
+    return (
+        f"Average fleet age {age:.1f} rounds. Wear % = age / {WEAR_PERCENT_REFERENCE_AGE} rounds (100% is the "
+        f"top wear tier). Breakdown risk starts past {AGE_GRACE_PERIOD} rounds: +{AGE_BREAKDOWN_RATE * 100:.0f}% "
+        f"per extra round, capped at {MAX_AGE_BREAKDOWN_PROBABILITY * 100:.0f}%. Maintain takes "
+        f"{MAINTENANCE_AGE_REDUCTION} rounds off the average age."
+    )
+
+
 def render():
     render_info_page()
     update_achievements_display()
     update_changelog_display()
     update_summary_panel()
     document.getElementById("round-display").innerText = f"Round {state.round_number}"
-    document.getElementById("demand-display").innerText = f"Demand: {state.demand}"
+    demand_el = document.getElementById("demand-display")
+    demand_el.innerText = f"Demand: {state.demand} {demand_growth_arrow()}"
+    demand_el.title = demand_growth_title()
+    document.getElementById("streak-display").innerText = (
+        f"Clean streak: {state.current_clean_streak} round(s) without a disruption "
+        f"(best {state.best_clean_streak})"
+    )
     document.getElementById("funds-display").innerText = f"Funds: {state.funds:.0f}"
     document.getElementById("capacity-display").innerText = f"Capacity: {state.total_capacity()}"
     document.getElementById("emissions-display").innerText = f"Emissions: {state.emissions:.0f}"
@@ -1260,7 +1463,9 @@ def render():
     # comment above).
     steep_button = document.getElementById("steeper-demand-toggle-button")
     steep_button.innerText = (
-        "🔥 Steeper Demand Growth: ON" if state.steeper_demand_growth_enabled else "Steeper Demand Growth: OFF"
+        f"🔥 Steeper Demand Growth (x{STEEP_DEMAND_GROWTH_MULTIPLIER:g}): ON"
+        if state.steeper_demand_growth_enabled
+        else f"Steeper Demand Growth (x{STEEP_DEMAND_GROWTH_MULTIPLIER:g}): OFF"
     )
     if state.steeper_demand_growth_enabled:
         steep_button.classList.add("active")
@@ -1277,7 +1482,10 @@ def render():
         weather_button.classList.remove("active")
 
     svg = trend_graph_svg(
-        state.emissions_history, state.avg_renewable_cost_history, state.global_reference_emissions_history
+        state.emissions_history,
+        state.avg_renewable_cost_history,
+        state.global_reference_emissions_history,
+        state.clean_fraction_log,
     )
     document.getElementById("trend-graph").innerHTML = svg
     document.getElementById("trend-graph-message").innerText = (
@@ -1310,6 +1518,26 @@ def render():
     document.getElementById("funds-breakdown-maintenance").innerText = f"{state.lifetime_maintenance_spend:.0f}"
     document.getElementById("funds-breakdown-disruption").innerText = f"{state.lifetime_disruption_spend:.0f}"
 
+    funds_values = {
+        "revenue": state.lifetime_revenue,
+        "build": state.lifetime_build_spend,
+        "maintenance": state.lifetime_maintenance_spend,
+        "disruption": state.lifetime_disruption_spend,
+    }
+    funds_max = max(funds_values.values()) or 1.0
+    for key, value in funds_values.items():
+        document.getElementById(f"funds-bar-{key}").style.width = f"{value / funds_max * 100:.0f}%"
+
+    scenario_button = document.getElementById("scenario-toggle-button")
+    scenario_button.innerText = f"Scenario: {SCENARIOS[state.scenario]['label']}"
+    scenario_locked = state.round_number != 1 or any(state.cumulative_built.values())
+    scenario_button.disabled = scenario_locked
+    scenario_button.title = (
+        "Starting scenario -- locked once you build anything or advance a round."
+        if scenario_locked
+        else "Click to cycle the starting scenario (only available before your first build or round)."
+    )
+
     document.getElementById("renewable-milestone-callout").hidden = not renewable_milestone_visible
     document.getElementById("retire-callout").hidden = not retire_callout_visible
     document.getElementById("maintain-callout").hidden = not maintain_callout_visible
@@ -1329,7 +1557,10 @@ def render():
         # C10: the exact wear percentage next to the coarse wear-icon
         # state -- only meaningful once a unit is actually standing.
         wear_pct_el = document.getElementById(f"{plant_type}-wear-pct")
-        wear_pct_el.innerText = f"{state.wear_percent(plant_type)}% worn" if count > 0 else ""
+        wear_pct_el.innerText = (
+            f"{WEAR_TIER_GLYPH[wear_css_class]} {state.wear_percent(plant_type)}% worn" if count > 0 else ""
+        )
+        wear_pct_el.title = wear_tooltip(plant_type) if count > 0 else ""
 
         # C19: a breakdown-risk badge once this type's own average age
         # has crossed the risk threshold, independent of whether it's
@@ -1379,6 +1610,27 @@ def _make_build_handler(plant_type):
 renewable_milestone_visible = False
 
 
+def _pulse_emissions_meter():
+    """C24: a brief pulse on the emissions meter the instant renewables
+    cross 50% of capacity. Pure CSS class, removed by timer."""
+    meter = document.getElementById("emissions-bar")
+    meter.classList.add("meter-pulse")
+
+    def _clear(*args):
+        meter.classList.remove("meter-pulse")
+        proxy.destroy()
+
+    proxy = create_proxy(_clear)
+    setTimeout(proxy, 1600)
+
+
+def on_cycle_scenario(event=None):
+    """C13: cycle to the next starting scenario (only before any build)."""
+    next_id = SCENARIO_ORDER[(SCENARIO_ORDER.index(state.scenario) + 1) % len(SCENARIO_ORDER)]
+    state.apply_scenario(next_id)
+    render()
+
+
 def _check_renewable_milestone():
     """Called after every action that could change capacity composition
     (build/retire/advance round) -- not from render() itself, so a loaded
@@ -1387,6 +1639,7 @@ def _check_renewable_milestone():
     if not state.renewable_50_reached and renewable_capacity_share() >= 0.5:
         state.renewable_50_reached = True
         renewable_milestone_visible = True
+        _pulse_emissions_meter()
 
 
 def on_dismiss_renewable_milestone(event=None):
@@ -1457,7 +1710,8 @@ def _make_retire_handler(plant_type):
             _confirm_dialog_ask(
                 action_id=f"grid-retire-last-{plant_type}",
                 message=(
-                    f"Retire your last {PLANT_LABEL[plant_type]} plant? "
+                    f"Retire your last {PLANT_LABEL[plant_type]} plant "
+                    f"(wear {state.wear_percent(plant_type)}%, average age {state.plant_age[plant_type]:.1f} rounds)? "
                     "You'll lose that capacity, and rebuilding later costs "
                     "full price again."
                 ),
@@ -1531,7 +1785,9 @@ def _check_disruption_toast():
         severity_class = (
             "disruption-toast--danger" if state.last_event["type"] == "damage" else "disruption-toast--warning"
         )
-        _display_disruption_toast(event_message(state.last_event), severity_class)
+        _display_disruption_toast(
+            f"{event_message(state.last_event)} {disruption_reason(state.last_event)}", severity_class
+        )
     elif state.last_aging_event is not None:
         plant_name = PLANT_LABEL[state.last_aging_event["plant"]]
         cost = state.last_aging_event["repair_cost"]
@@ -1604,6 +1860,7 @@ def get_state():
         "lifetime_disruption_spend": state.lifetime_disruption_spend,
         "steeper_demand_growth_enabled": state.steeper_demand_growth_enabled,
         "weather_variability_enabled": state.weather_variability_enabled,
+        "scenario": state.scenario,
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),
@@ -1678,6 +1935,8 @@ def load_state(data):
     state.weather_variability_enabled = data.get(
         "weather_variability_enabled", state.weather_variability_enabled
     )
+    saved_scenario = data.get("scenario", state.scenario)
+    state.scenario = saved_scenario if saved_scenario in SCENARIOS else "standard"
     # "achievements_earned" is intentionally never read back here — see
     # get_state()'s comment and ACHIEVEMENTS-SYSTEM-DESIGN.md §1.
 
@@ -1733,6 +1992,9 @@ def setup():
     )
     document.getElementById("weather-variability-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_weather_variability)
+    )
+    document.getElementById("scenario-toggle-button").addEventListener(
+        "click", create_proxy(on_cycle_scenario)
     )
     render()
     _seed_achievement_toast_baseline()

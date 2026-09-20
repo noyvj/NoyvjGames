@@ -35,6 +35,7 @@
     <div class="game-toolbar">
       <button id="steeper-demand-toggle-button" class="secondary difficulty-toggle" type="button">Loading...</button>
       <button id="weather-variability-toggle-button" class="secondary difficulty-toggle" type="button">Loading...</button>
+      <button id="scenario-toggle-button" class="secondary difficulty-toggle" type="button">Loading...</button>
       <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
@@ -105,10 +106,10 @@
       <p id="funds-display" class="status-line">Funds: 500</p>
       <details class="info-toggle funds-breakdown-toggle"><summary>i</summary>
         <ul class="funds-breakdown-list">
-          <li>Revenue earned: <span id="funds-breakdown-revenue">0</span></li>
-          <li>Spent building: <span id="funds-breakdown-build">0</span></li>
-          <li>Spent maintaining: <span id="funds-breakdown-maintenance">0</span></li>
-          <li>Lost to disruptions: <span id="funds-breakdown-disruption">0</span></li>
+          <li>Revenue earned: <span id="funds-breakdown-revenue">0</span><div class="funds-bar-track"><div id="funds-bar-revenue" class="funds-bar funds-bar--revenue"></div></div></li>
+          <li>Spent building: <span id="funds-breakdown-build">0</span><div class="funds-bar-track"><div id="funds-bar-build" class="funds-bar funds-bar--build"></div></div></li>
+          <li>Spent maintaining: <span id="funds-breakdown-maintenance">0</span><div class="funds-bar-track"><div id="funds-bar-maintenance" class="funds-bar funds-bar--maintenance"></div></div></li>
+          <li>Lost to disruptions: <span id="funds-breakdown-disruption">0</span><div class="funds-bar-track"><div id="funds-bar-disruption" class="funds-bar funds-bar--disruption"></div></div></li>
         </ul>
       </details>
       <p id="capacity-display" class="status-line">Capacity: 0</p>
@@ -117,6 +118,7 @@
       <p id="disruption-risk-display" class="comparison-message">No disruption risk yet — emissions are still at zero.</p>
       <p id="fossil-share-display" class="status-line">Fossil share of grid: 0%</p>
       <p id="event-display" class="event-display">No disruptions last round.</p>
+      <p id="streak-display" class="status-line">Clean streak: 0 round(s) without a disruption (best 0)</p>
       <p id="score-display" class="status-line">Sustained clean-grid score: 0</p>
       <details class="info-toggle"><summary>i</summary><p>This score averages how clean your grid's mix has been across every round you've played, not just where it stands right now — a late clean sprint can't fully erase a dirty start, and a dirty finish can't erase an early clean run either.</p></details>
       <div class="meter"><div id="score-bar" class="meter-fill meter-fill--score"></div></div>
@@ -285,32 +287,32 @@
       <details class="mix-breakdown-toggle">
         <summary>Show breakdown</summary>
         <div class="mix-row" data-plant="coal">
-          <span class="mix-label">Coal</span>
+          <span class="mix-label" title="Fossil">🏭 Coal</span>
           <div class="mix-bar-track"><div id="coal-mix-bar" class="mix-bar mix-bar--coal"></div></div>
           <span class="mix-pct" id="coal-mix-pct">0%</span>
         </div>
         <div class="mix-row" data-plant="gas">
-          <span class="mix-label">Gas</span>
+          <span class="mix-label" title="Fossil">🏭 Gas</span>
           <div class="mix-bar-track"><div id="gas-mix-bar" class="mix-bar mix-bar--gas"></div></div>
           <span class="mix-pct" id="gas-mix-pct">0%</span>
         </div>
         <div class="mix-row" data-plant="nuclear">
-          <span class="mix-label">Nuclear</span>
+          <span class="mix-label" title="Low-carbon">⚛️ Nuclear</span>
           <div class="mix-bar-track"><div id="nuclear-mix-bar" class="mix-bar mix-bar--nuclear"></div></div>
           <span class="mix-pct" id="nuclear-mix-pct">0%</span>
         </div>
         <div class="mix-row" data-plant="solar">
-          <span class="mix-label">Solar</span>
+          <span class="mix-label" title="Renewable">🌱 Solar</span>
           <div class="mix-bar-track"><div id="solar-mix-bar" class="mix-bar mix-bar--solar"></div></div>
           <span class="mix-pct" id="solar-mix-pct">0%</span>
         </div>
         <div class="mix-row" data-plant="wind">
-          <span class="mix-label">Wind</span>
+          <span class="mix-label" title="Renewable">🌱 Wind</span>
           <div class="mix-bar-track"><div id="wind-mix-bar" class="mix-bar mix-bar--wind"></div></div>
           <span class="mix-pct" id="wind-mix-pct">0%</span>
         </div>
         <div class="mix-row" data-plant="hydro">
-          <span class="mix-label">Hydro</span>
+          <span class="mix-label" title="Renewable">🌱 Hydro</span>
           <div class="mix-bar-track"><div id="hydro-mix-bar" class="mix-bar mix-bar--hydro"></div></div>
           <span class="mix-pct" id="hydro-mix-pct">0%</span>
         </div>
@@ -393,6 +395,37 @@
         text: "That's the full loop: build capacity to meet rising demand, lean into renewables early to unlock the learning-curve payoff, maintain aging plants, and keep emissions down to avoid disruption. There's no game over — just a grid that gets harder to manage the longer you delay the clean transition. Good luck out there.",
       },
     ];
+
+    // C15: optional cross-player comparison for the Run Summary panel,
+    // against the shared aggregate-stats endpoint (planning/TODO.md Z1).
+    // Fails soft: any error/suppression leaves game.py's fallback text.
+    (function () {
+      const API_BASE = "https://noyvjgames.fastapicloud.dev";
+      const cache = new Map();
+      function show(text) {
+        const el = document.getElementById("summary-compare");
+        if (el && text) el.textContent = text;
+      }
+      window.gridCompare = function (emissions) {
+        const key = Math.round(emissions);
+        const hit = cache.get(key);
+        if (hit && Date.now() - hit.at < 60000) { show(hit.text); return; }
+        if (hit) return; // in flight
+        cache.set(key, { at: Date.now(), text: null });
+        fetch(`${API_BASE}/stats/games/grid/percentile?field=emissions&value=${key}`)
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d) => {
+            let text = null;
+            if (d && !d.suppressed && typeof d.percentile === "number") {
+              const lower = Math.round(100 - d.percentile);
+              text = `Compared with ${d.count} other saved grids: your emissions are lower than ${lower}% of them.`;
+            }
+            cache.set(key, { at: Date.now(), text });
+            show(text);
+          })
+          .catch(() => { cache.set(key, { at: Date.now(), text: null }); });
+      };
+    })();
 
     async function main() {
       const pyodide = await loadPyodide();

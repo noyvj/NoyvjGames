@@ -1545,3 +1545,18 @@ html[data-reduced-motion="true"] *::after {
   transition-duration: 0.001ms !important;
   scroll-behavior: auto !important;
 }
+
+/* C6/C14/C12/C24 (2026-09-20 pass) */
+.mix-bar { transition: width 0.6s ease; }
+.funds-bar-track { height: 6px; background: rgba(140, 160, 255, 0.15); border-radius: 3px; margin-top: 2px; }
+.funds-bar { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+.funds-bar--revenue { background: #4fa8dd; }
+.funds-bar--build { background: #e0a24c; }
+.funds-bar--maintenance { background: #b9a0e8; }
+.funds-bar--disruption { background: #e0674c; }
+.trend-best-marker { fill: #f0e442; stroke: #1a1d2b; stroke-width: 1; }
+@keyframes grid-meter-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(240, 228, 66, 0); filter: brightness(1); }
+  50% { box-shadow: 0 0 12px 4px rgba(240, 228, 66, 0.85); filter: brightness(1.4); }
+}
+.meter-fill.meter-pulse { animation: grid-meter-pulse 0.8s ease 2; }
