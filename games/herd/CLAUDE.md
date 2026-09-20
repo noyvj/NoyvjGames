@@ -347,6 +347,78 @@ regardless of code changes and inconsistent with the DOM/accessibility
 -tree reads taken at the same moments, which were correct throughout —
 noted here as a tool quirk, not a defect in the shipped code.)
 
+## F7 — "farm cooperative" community comparison (2026-09-21)
+
+`planning/TODO.md`'s Per-game: Herd section: "F7: A 'farm cooperative'
+comparison — aggregate stats on community-wide methane-per-unit avoided
+*(needs Z1 for a first pass ... ship the Z1-backed version now, expand
+later)*." Z1's shared aggregate-stats backend (`app/stats.py`,
+`app/main.py`) is built and deployed, and Herd is already registered in
+its `STATS_FIELDS` whitelist (`round_number`, `funds`, `herd_size`,
+`methane`).
+
+Built byte-for-byte the same optional-hook architecture as Grid's own
+C15 (`_request_comparison()`/`window.gridCompare`, the reference
+integration for this feature in this hub): `game.py`'s
+`_request_comparison()` does a lazy, guarded `from js import window`
+(no-op under pytest, where `js.window` doesn't exist by default) and
+calls `window.herdCompare(methane, round_number)` if that hook exists;
+`index.html`'s own inline `<script>` defines the hook, does the real
+`fetch()` against `GET /stats/games/herd/percentile?field=methane&value=
+<x>`, and fills `#report-card-compare` with a plain-English sentence —
+or leaves `game.py`'s own fallback text ("Comparison with other farms
+isn't available yet.") in place on any error, an unreachable backend, or
+the endpoint's own `suppressed` flag (too few saves to compare against
+without risking identifying anyone).
+
+**Metric chosen: `methane` (lifetime accumulated methane), not a raw
+coupling ratio.** `coupling_ratio()` is a live per-round rate with no
+save-state field of its own, so it isn't one of the numeric paths
+`app/stats.py`'s whitelist can rank — the single-field `/percentile`
+endpoint needs an actual `get_state()` field. `methane` is the closest
+honest stand-in: it's the direct cumulative output of `coupling_ratio()
+x herd_size` every round (`methane_this_round()`), so two farms at a
+similar round/herd_size mostly diverge on lifetime methane by how well
+they've actually decoupled — the same relationship Grid's own
+`emissions` field has to its own cost-curve mechanic, just measured
+cumulatively rather than as a live rate. Framed to the player as
+"your lifetime methane is lower than N% of them" (lower is better, same
+polarity as the rest of this game's own framing) rather than a bare
+percentile number.
+
+Surfaces inside the existing F3 report-card panel (`#report-card-compare`,
+a new line appended after the existing summary lines in
+`report_card_html()`), asked for once when the panel opens and re-asked
+on every subsequent render while it stays open — same "ask again each
+render, let the JS side cache/dedupe by rounded value" pattern C15 uses,
+so repeatedly re-opening the panel at the same methane total doesn't
+hammer the endpoint.
+
+Tests: `tests/test_community_comparison.py` (7 new, Herd 167 -> 174) —
+mirrors Grid's own C15 test coverage exactly (fallback text present
+before any hook runs, safe no-op with no `js.window` at all, the hook
+firing with the right `(methane, round_number)` pair once installed,
+re-asking on a later render while the panel stays open, never asking
+while the panel is closed, and the fallback constant matching the
+panel's own text) — the real `fetch()` itself can't be exercised from
+Python tests, same limitation Grid's own suite has for this feature.
+flake8 clean.
+
+Verified live against the shared `hub-dev-server`: opened the report
+card and confirmed `#report-card-compare` correctly holds the fallback
+text with zero console errors, and confirmed `window.herdCompare` is
+defined and callable. The actual round-trip to the deployed production
+endpoint (`https://noyvjgames.fastapicloud.dev`) could not be exercised
+in this sandboxed browser pane specifically — an external `fetch()` to
+that host never resolved or errored within this session's tooling (no
+request even appears in the network log), a sandbox network limitation
+rather than a code defect, consistent with the AdSense/CSP network
+quirks other games' build notes in this repo already document for the
+same environment. The `.catch()` path this leaves untested live is
+already covered by the fallback-text tests above, and functionally an
+unreachable/never-resolving backend and a genuinely-down one produce
+the identical player-visible result: the fallback text stays put.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.

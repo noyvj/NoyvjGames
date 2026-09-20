@@ -596,6 +596,40 @@ def counterfactual_comparison_message():
     return f"Your farm is {abs(gap):.0f} points behind a pure-growth farm with the same herd size."
 
 
+COMPARE_FALLBACK = "Comparison with other farms isn't available yet."
+
+
+def _request_comparison():
+    """F7 — asks the page's optional JS hook (window.herdCompare, see
+    index.html) to fill #report-card-compare with a cross-player
+    percentile, against the shared aggregate-stats endpoint (Z1,
+    planning/TODO.md). Byte-for-byte the same optional-hook shape as
+    Grid's own C15 (`_request_comparison()`/`window.gridCompare`) --
+    the reference integration for this exact feature -- right down to
+    the lazy `from js import window` import and the `getattr` default,
+    so an absent hook (pytest, or a page that never defines it) is a
+    silent no-op and the fallback text above simply stays put.
+
+    `methane` (this farm's lifetime accumulated methane) is the field
+    used, not a raw coupling ratio -- `coupling_ratio()` is a live
+    per-round rate with no save-state field of its own, so it isn't
+    one of the numeric paths `app/stats.py`'s STATS_FIELDS whitelists
+    for this game, and the single-field `/percentile` endpoint can only
+    rank a whitelisted field. `methane` is the closest real stand-in:
+    it's the direct cumulative output of coupling_ratio() x herd_size
+    every round (see `methane_this_round()`), so two farms at a similar
+    round/herd_size mostly diverge on methane by how well they've
+    decoupled -- same relationship Grid's own `emissions` field has to
+    its cost-curve mechanic."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    hook = getattr(window, "herdCompare", None)
+    if hook is not None:
+        hook(float(farm.methane), farm.round_number)
+
+
 def report_card_html():
     """F3 — an on-demand end-of-session report card. Reuses the exact
     same counterfactual numbers as the live comparison (F1) and the
@@ -617,7 +651,11 @@ def report_card_html():
         investment_summary_message(),
         real_world_comparison_message(),
     ]
-    return "".join(f'<p class="status-line summary-line">{line}</p>' for line in lines)
+    body = "".join(f'<p class="status-line summary-line">{line}</p>' for line in lines)
+    # F7: filled in by index.html's window.herdCompare() when the shared
+    # stats endpoint (planning/TODO.md Z1) is reachable; otherwise this
+    # fallback text simply stays.
+    return body + f'<p id="report-card-compare" class="status-line summary-line">{COMPARE_FALLBACK}</p>'
 
 
 def beat_percentage_message():
@@ -689,6 +727,7 @@ def update_report_card():
     if not report_card_open:
         return
     panel.innerHTML = report_card_html()
+    _request_comparison()
 
 
 # F15 — surfacing the real documented ~42% methane-intensity-reduction
@@ -1276,6 +1315,7 @@ def render():
     # F3 — report card panel, kept in sync if left open across a render.
     if report_card_open:
         document.getElementById("report-card-panel").innerHTML = report_card_html()
+        _request_comparison()  # F7 -- re-asks the hook; JS side caches/dedupes
 
     # Achievements panel, kept in sync if left open across a render.
     update_achievements_display()

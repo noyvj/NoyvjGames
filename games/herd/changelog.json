@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-21",
+    "entry": "F7: the report card now compares your lifetime methane against every other player's, once enough farms have saved to compare against."
+  },
+  {
+    "date": "2026-09-21",
     "entry": "F8: a small diamond marker on the coupling gauge showing the best (lowest) decoupling ratio this browser has ever reached across sessions, plus a matching \"Best ever\" label — persisted via localStorage, separate from the gauge's own live reading."
   },
   {

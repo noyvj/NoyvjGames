@@ -395,5 +395,45 @@
         });
     })();
   </script>
+  <!--
+    F7 (planning/TODO.md, "farm cooperative" comparison): cross-player
+    percentile against the shared aggregate-stats endpoint (Z1). Exact
+    same optional-hook architecture as Grid's own C15 (the reference
+    integration for this feature) -- game.py's _request_comparison()
+    calls window.herdCompare() if it exists; this script is what defines
+    it. Fails soft: any error, an unreachable backend, or a too-small
+    sample (the endpoint's own `suppressed` flag) all leave the plain
+    "isn't available yet" fallback text game.py already wrote into
+    #report-card-compare -- never a raw error or JSON shown to the player.
+  -->
+  <script>
+    (function () {
+      const API_BASE = "https://noyvjgames.fastapicloud.dev";
+      const cache = new Map();
+      function show(text) {
+        const el = document.getElementById("report-card-compare");
+        if (el && text) el.textContent = text;
+      }
+      window.herdCompare = function (methane) {
+        const key = Math.round(methane);
+        const hit = cache.get(key);
+        if (hit && Date.now() - hit.at < 60000) { show(hit.text); return; }
+        if (hit) return; // in flight
+        cache.set(key, { at: Date.now(), text: null });
+        fetch(`${API_BASE}/stats/games/herd/percentile?field=methane&value=${key}`)
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d) => {
+            let text = null;
+            if (d && !d.suppressed && typeof d.percentile === "number") {
+              const lower = Math.round(100 - d.percentile);
+              text = `Compared with ${d.count} other farms: your lifetime methane is lower than ${lower}% of them.`;
+            }
+            cache.set(key, { at: Date.now(), text });
+            show(text);
+          })
+          .catch(() => { cache.set(key, { at: Date.now(), text: null }); });
+      };
+    })();
+  </script>
 </body>
 </html>
