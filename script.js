@@ -7,6 +7,10 @@ const RATINGS_API_BASE = "https://noyvjgames.fastapicloud.dev";
 // this is how a game page's save widget knows whether the player is
 // signed in without its own account UI.
 const AUTH_USERNAME_KEY = "hub_account_username";
+// Y12: the backend doesn't expose an account-created date yet, so "member
+// since" is only known for accounts created on this device (recorded at
+// signup); it's simply omitted otherwise rather than guessed.
+const AUTH_SINCE_KEY = "hub_account_since";
 
 function bindStarRating(ratingWidget) {
   const stars = ratingWidget.querySelectorAll(".star");
@@ -536,7 +540,26 @@ if (claimSaveNudgeDismiss) {
   });
 }
 
+// Y8: a small fixed "signed in as ..." pill, shown only while signed in AND
+// the account section itself is scrolled out of view.
+const signedInPill = document.getElementById("signed-in-pill");
+let signedInPillUsername = null;
+let accountSectionVisible = true;
+function updateSignedInPill(username) {
+  signedInPillUsername = username;
+  if (!signedInPill) return;
+  if (username) signedInPill.textContent = `Signed in as ${username}`;
+  signedInPill.hidden = !username || accountSectionVisible;
+}
+if (signedInPill && "IntersectionObserver" in window) {
+  new IntersectionObserver((entries) => {
+    accountSectionVisible = entries[0].isIntersecting;
+    signedInPill.hidden = !signedInPillUsername || accountSectionVisible;
+  }).observe(document.getElementById("account-section"));
+}
+
 function showSignedOut() {
+  updateSignedInPill(null);
   accountSignedOut.hidden = false;
   accountSignedIn.hidden = true;
   continuePlayingSection.hidden = true;
@@ -548,6 +571,13 @@ function showSignedIn(username) {
   accountSignedOut.hidden = true;
   accountSignedIn.hidden = false;
   accountUsernameDisplay.textContent = `Signed in as ${username}`;
+  updateSignedInPill(username);
+  const since = lsGet(AUTH_SINCE_KEY);
+  const memberSince = document.getElementById("account-member-since");
+  if (memberSince) {
+    memberSince.hidden = !since;
+    if (since) memberSince.textContent = `Member since ${since}`;
+  }
   loadMySaves();
   loadAchievementsDashboard();
   loadContinuePlaying();
@@ -673,6 +703,14 @@ function renderProgressBar(container, label, earned, total) {
   labelEl.textContent = `${label}: ${earned}/${total}`;
   const track = document.createElement("div");
   track.className = "achievements-bar-track";
+  // Y26: exact fraction on hover (and to assistive tech), not just bar width.
+  const pct = total > 0 ? Math.round((earned / total) * 100) : 0;
+  track.title = `${earned} of ${total} achievements (${pct}%)`;
+  track.setAttribute("role", "progressbar");
+  track.setAttribute("aria-valuemin", "0");
+  track.setAttribute("aria-valuemax", String(total));
+  track.setAttribute("aria-valuenow", String(earned));
+  track.setAttribute("aria-label", `${label} achievements`);
   const fill = document.createElement("div");
   fill.className = "achievements-bar-fill";
   fill.style.width = `${total > 0 ? Math.min(100, (earned / total) * 100) : 0}%`;
@@ -847,6 +885,7 @@ async function submitAuth(endpoint, triggerButton, busyText, idleText) {
     }
     localStorage.setItem(HUB_AUTH_TOKEN_KEY, body.bearer_token);
     localStorage.setItem(AUTH_USERNAME_KEY, body.username);
+    if (endpoint === "/auth/signup") lsSet(AUTH_SINCE_KEY, new Date().toISOString().slice(0, 10));
     accountUsernameInput.value = "";
     accountPasswordInput.value = "";
     accountStatus.textContent = "";
@@ -868,9 +907,20 @@ accountSignupButton.addEventListener("click", () =>
 );
 
 accountSignoutButton.addEventListener("click", () => {
+  // The session is dropped immediately; only the view switch waits a beat
+  // so a "Signed out" confirmation is actually seen (Y18).
   localStorage.removeItem(HUB_AUTH_TOKEN_KEY);
   localStorage.removeItem(AUTH_USERNAME_KEY);
-  showSignedOut();
+  try { localStorage.removeItem(AUTH_SINCE_KEY); } catch (err) { /* convenience only */ }
+  accountSignoutButton.disabled = true;
+  accountSignoutButton.textContent = "Signed out \u2713";
+  updateSignedInPill(null);
+  setTimeout(() => {
+    accountSignoutButton.disabled = false;
+    accountSignoutButton.textContent = "Sign out";
+    showSignedOut();
+    accountStatus.textContent = "You've been signed out.";
+  }, 900);
 });
 
 const savedUsername = localStorage.getItem(AUTH_USERNAME_KEY);
@@ -991,4 +1041,85 @@ if (pwaInstallDismiss) {
     localStorage.setItem(PWA_INSTALL_DISMISSED_KEY, "1");
     pwaInstallBanner.hidden = true;
   });
+}
+
+// --- Y10: "new since your last visit" badge on the What's New nav link ---
+// whats-new.html records the newest entry date it showed
+// (hub_whats_new_seen). Here we count dev-log entry headings dated after
+// that. A first-ever visitor has no baseline, so no badge -- nothing is
+// "new" to someone who has never looked. Fetched after load so it never
+// competes with the lobby.
+async function loadWhatsNewBadge() {
+  const badge = document.getElementById("whats-new-badge");
+  const seen = lsGet("hub_whats_new_seen");
+  if (!badge || !seen) return;
+  try {
+    const texts = await Promise.all(
+      ["BCM114-DEV-LOG.md", "BCM206-DEV-LOG.md"].map((path) =>
+        fetch(path).then((res) => (res.ok ? res.text() : ""))
+      )
+    );
+    let count = 0;
+    texts.forEach((text) => {
+      (text.match(/^### \d{4}-\d{2}-\d{2}/gm) || []).forEach((h) => {
+        if (h.slice(4) > seen) count += 1;
+      });
+    });
+    if (count > 0) {
+      badge.textContent = String(count);
+      badge.title = `${count} update${count === 1 ? "" : "s"} since your last visit`;
+      badge.hidden = false;
+    }
+  } catch (err) {
+    console.error("loadWhatsNewBadge failed:", err);
+  }
+}
+loadWhatsNewBadge();
+
+// --- Y25: dismissible site-wide announcement banner ---
+// Driven by announcement.json: { "id": "<unique string>", "message": "...",
+// "link": "<optional url>", "linkText": "...", "expires": "YYYY-MM-DD" }.
+// An empty/absent id means no announcement. Dismissal is remembered per id
+// in localStorage, so a NEW id re-shows the banner. Distinct from What's
+// New: this is for time-sensitive notices, not history.
+const ANNOUNCEMENT_DISMISSED_KEY = "hub_announcement_dismissed";
+async function loadAnnouncement() {
+  const banner = document.getElementById("announcement-banner");
+  if (!banner) return;
+  try {
+    const res = await fetch("announcement.json");
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data || !data.id || !data.message) return;
+    if (data.expires && new Date().toISOString().slice(0, 10) > data.expires) return;
+    if (lsGet(ANNOUNCEMENT_DISMISSED_KEY) === String(data.id)) return;
+    document.getElementById("announcement-text").textContent = data.message;
+    const link = document.getElementById("announcement-link");
+    if (data.link && /^(https?:\/\/|[\w./#-]+$)/.test(data.link)) {
+      link.href = data.link;
+      link.textContent = data.linkText || "Learn more";
+      link.hidden = false;
+    }
+    document.getElementById("announcement-dismiss").addEventListener("click", () => {
+      lsSet(ANNOUNCEMENT_DISMISSED_KEY, String(data.id));
+      banner.hidden = true;
+    });
+    banner.hidden = false;
+  } catch (err) {
+    console.error("loadAnnouncement failed:", err);
+  }
+}
+loadAnnouncement();
+
+// --- Y30: floating "back to top" button once scrolled past the fold ---
+const backToTop = document.getElementById("back-to-top");
+if (backToTop) {
+  const update = () => { backToTop.hidden = window.scrollY < window.innerHeight; };
+  window.addEventListener("scroll", update, { passive: true });
+  backToTop.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    document.getElementById("hub-header")?.setAttribute("tabindex", "-1");
+    document.getElementById("hub-header")?.focus({ preventScroll: true });
+  });
+  update();
 }

@@ -16,7 +16,7 @@
   <div class="space-bg" aria-hidden="true"><div class="space-bg-nebula"></div><div class="space-bg-stars-bright"></div></div>
   <header id="hub-header">
     <nav class="hub-nav">
-      <a href="whats-new.html">What's New</a>
+      <a href="whats-new.html">What's New<span id="whats-new-badge" class="nav-badge" hidden></span></a>
       <a href="roadmap.html">Roadmap</a>
       <a href="#site-feedback-section">Feedback / Report a Bug</a>
     </nav>
@@ -24,6 +24,14 @@
     <p id="hub-tagline">Small AI-assisted game demos, built one milestone at a time.</p>
     <p id="hub-game-count" class="hub-game-count"></p>
   </header>
+
+  <div id="announcement-banner" class="pwa-install-banner" role="status" hidden>
+    <p id="announcement-text" class="pwa-install-banner-text"></p>
+    <div class="pwa-install-banner-actions">
+      <a id="announcement-link" class="account-link-button" hidden></a>
+      <button type="button" id="announcement-dismiss" class="account-link-button">Dismiss</button>
+    </div>
+  </div>
 
   <div id="pwa-install-banner" class="pwa-install-banner" hidden>
     <p class="pwa-install-banner-text">Install NoyvjGames as an app for quicker access and an offline-friendly shell — no app store, just your browser.</p>
@@ -58,6 +66,7 @@
     </div>
     <div id="account-signed-in" hidden>
       <p id="account-username-display" class="account-username-display"></p>
+      <p id="account-member-since" class="account-password-hint" hidden></p>
       <button type="button" id="account-signout-button" class="account-link-button">Sign out</button>
       <div id="account-my-saves"></div>
       <div id="account-achievements-dashboard" class="achievements-dashboard"></div>
@@ -401,6 +410,9 @@
          data-ad-slot="XXXXXXXXXX"></ins>
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
   </div>
+
+  <a id="signed-in-pill" class="signed-in-pill" href="#account-section" hidden></a>
+  <button type="button" id="back-to-top" class="back-to-top" aria-label="Back to top" hidden>&uarr;</button>
 
   <script src="shared/hub-auth.js"></script>
   <script src="script.js"></script>

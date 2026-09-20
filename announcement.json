@@ -1,0 +1,8 @@
+{
+  "_readme": "Site-wide announcement banner (Y25). Set a unique non-empty \"id\" plus \"message\" to show it; optional \"link\", \"linkText\", and \"expires\" (YYYY-MM-DD, last day shown). Changing the id re-shows it to people who dismissed an earlier one. Leave \"id\" empty for no announcement.",
+  "id": "",
+  "message": "",
+  "link": "",
+  "linkText": "",
+  "expires": ""
+}

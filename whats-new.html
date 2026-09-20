@@ -89,6 +89,9 @@
         return;
       }
       status.remove();
+      // Y10: remember the newest date seen, so the hub's nav badge can count
+      // only entries newer than this on the visitor's next visit.
+      try { localStorage.setItem("hub_whats_new_seen", groupedDates[0][0]); } catch (err) { /* convenience only */ }
       groupedDates.forEach(([date, entries], i) => {
         const details = document.createElement("details");
         details.className = "whats-new-date-group";
