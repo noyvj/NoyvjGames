@@ -54,6 +54,7 @@ EXPECTED_KEYS = {
     "arbitrage_mode",
     "arbitrage_revenue_total",
     "emergency",
+    "career",
 }
 
 

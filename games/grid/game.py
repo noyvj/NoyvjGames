@@ -280,6 +280,44 @@ RENEWABLE_SUBSIDY_COST_MULTIPLIER = 0.75
 MAINTENANCE_SCHEDULE_OPTIONS = (0, 3, 5, 8)
 
 
+# C1 -- grid operator career: persistent cross-run meta-progression.
+# Finishing a run (Career panel) banks Career Points from how it went, and
+# points buy small permanent perks for later runs. Perks are deliberately
+# modest conveniences -- none touches emissions, disruption or the learning
+# curve, so the "invest early, come out ahead" lesson is not bought away.
+CAREER_STORAGE_KEY = "grid_career_v1"
+CAREER_MIN_ROUNDS = 5
+CAREER_GRADE_POINTS = {"A": 4, "B": 3, "C": 2, "D": 1, "F": 0}
+CAREER_RESILIENCE_BONUS_THRESHOLD = 60
+CAREER_UNLOCKS = {
+    "seed_capital": {
+        "label": "Seed capital",
+        "cost": 3,
+        "description": "Start every new run with 75 extra funds.",
+    },
+    "crew_training": {
+        "label": "Crew training",
+        "cost": 4,
+        "description": "Maintenance costs 15% less.",
+    },
+    "storage_partners": {
+        "label": "Storage partnerships",
+        "cost": 5,
+        "description": "Battery round-trip efficiency rises from 85% to 92%.",
+    },
+    "demand_analytics": {
+        "label": "Demand analytics",
+        "cost": 6,
+        "description": "Demand response costs 20% less.",
+    },
+}
+CAREER_UNLOCK_ORDER = ["seed_capital", "crew_training", "storage_partners", "demand_analytics"]
+SEED_CAPITAL_BONUS = 75
+CREW_TRAINING_MAINTENANCE_MULTIPLIER = 0.85
+STORAGE_PARTNERS_EFFICIENCY = 0.92
+DEMAND_ANALYTICS_COST_MULTIPLIER = 0.8
+
+
 def _breakdown_probability_for_age(age):
     """Shared by GridState.aging_breakdown_probability() (the single
     oldest standing plant type, which is the only one actually at risk of
@@ -382,6 +420,12 @@ class GridState:
         # C27 -- None outside the emergency scenario, else a dict
         # {"status": "active"|"stabilized"|"missed", "rounds_left", "hold"}.
         self.emergency = None
+        # C1 -- permanent career perks in force for this run (ids from
+        # CAREER_UNLOCKS); assigned by _sync_perks(), never saved per-run.
+        self.perks = set()
+
+    def arbitrage_efficiency(self):
+        return STORAGE_PARTNERS_EFFICIENCY if "storage_partners" in self.perks else ARBITRAGE_EFFICIENCY
 
     def storage_cap(self):
         """C9: max stored energy the battery fleet can hold."""
@@ -407,8 +451,8 @@ class GridState:
             return 0.0
         if self.arbitrage_mode == "charge":
             surplus = max(0.0, effective_capacity - self.demand)
-            taken = min(surplus, rate, (self.storage_cap() - self.stored_energy) / ARBITRAGE_EFFICIENCY)
-            self.stored_energy += taken * ARBITRAGE_EFFICIENCY
+            taken = min(surplus, rate, (self.storage_cap() - self.stored_energy) / self.arbitrage_efficiency())
+            self.stored_energy += taken * self.arbitrage_efficiency()
             self.last_arbitrage = {"mode": "charge", "units": taken, "revenue": 0.0}
             return 0.0
         shortfall = max(0.0, self.demand - effective_capacity)
@@ -445,7 +489,7 @@ class GridState:
         self.plant_counts = {t: 0 for t in PLANT_TYPES}
         for plant_type, count in scenario["plants"].items():
             self.plant_counts[plant_type] = count
-        self.funds = scenario["funds"]
+        self.funds = scenario["funds"] + (SEED_CAPITAL_BONUS if "seed_capital" in self.perks else 0)
         self.demand = scenario.get("demand", STARTING_DEMAND)
         self.emergency = (
             {"status": "active", "rounds_left": EMERGENCY_ROUNDS, "hold": 0}
@@ -584,7 +628,10 @@ class GridState:
         return True
 
     def maintenance_cost(self, plant_type):
-        return PLANT_BASE_COST[plant_type] * MAINTENANCE_COST_FRACTION
+        cost = PLANT_BASE_COST[plant_type] * MAINTENANCE_COST_FRACTION
+        if "crew_training" in self.perks:
+            cost *= CREW_TRAINING_MAINTENANCE_MULTIPLIER
+        return cost
 
     def maintain_plant(self, plant_type):
         """Spends funds to refurbish a plant type's fleet, knocking its
@@ -903,7 +950,10 @@ class GridState:
 
     def demand_response_cost(self):
         """TODO-C7: escalating cost for the next demand-response purchase."""
-        return DEMAND_RESPONSE_BASE_COST * (DEMAND_RESPONSE_COST_GROWTH ** self.demand_response_level)
+        cost = DEMAND_RESPONSE_BASE_COST * (DEMAND_RESPONSE_COST_GROWTH ** self.demand_response_level)
+        if "demand_analytics" in self.perks:
+            cost *= DEMAND_ANALYTICS_COST_MULTIPLIER
+        return cost
 
     def invest_demand_response(self):
         """TODO-C7: the fourth lever -- spend funds to permanently trim
@@ -990,6 +1040,141 @@ class GridState:
 GRADE_THRESHOLDS = [(0.2, "A"), (0.5, "B"), (0.8, "C"), (1.0, "D")]
 
 state = GridState()
+
+
+# --- C1: grid operator career ------------------------------------------------
+# Persisted in the browser's localStorage (survives across runs, unlike the
+# per-run save code) and mirrored into get_state() so a save code carries it
+# to another device; load_state() only adopts a saved career that has
+# completed at least as many runs as the live one (never rolls it back).
+
+def _default_career():
+    return {"runs": 0, "points": 0, "best_score": 0.0, "best_grade": None, "unlocked": [], "achievements": []}
+
+
+career = _default_career()
+
+
+def _career_number(value, default, lo, hi):
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value != value:
+        return default
+    return max(lo, min(hi, value))
+
+
+def validate_career(raw):
+    """Coerce anything (corrupt JSON, hand-edited save) into a valid career
+    dict; every bad field falls back to its default."""
+    out = _default_career()
+    if not isinstance(raw, dict):
+        return out
+    out["runs"] = int(_career_number(raw.get("runs"), 0, 0, 100000))
+    out["points"] = int(_career_number(raw.get("points"), 0, 0, 1000000))
+    out["best_score"] = float(_career_number(raw.get("best_score"), 0.0, 0.0, 100.0))
+    grade = raw.get("best_grade")
+    out["best_grade"] = grade if grade in CAREER_GRADE_POINTS else None
+    unlocked = raw.get("unlocked")
+    if isinstance(unlocked, list):
+        out["unlocked"] = [u for u in CAREER_UNLOCK_ORDER if u in unlocked]
+    banked = raw.get("achievements")
+    if isinstance(banked, list):
+        out["achievements"] = [a for a in banked if isinstance(a, str)][:200]
+    # Never let unlocks exceed what the earned points could have paid for.
+    spent = 0
+    kept = []
+    for uid in out["unlocked"]:
+        if spent + CAREER_UNLOCKS[uid]["cost"] <= out["points"]:
+            spent += CAREER_UNLOCKS[uid]["cost"]
+            kept.append(uid)
+    out["unlocked"] = kept
+    return out
+
+
+def career_points_available():
+    spent = sum(CAREER_UNLOCKS[u]["cost"] for u in career["unlocked"])
+    return career["points"] - spent
+
+
+def _career_storage():
+    try:
+        import js  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return None
+    return getattr(js, "localStorage", None)
+
+
+def load_career_from_storage():
+    storage = _career_storage()
+    if storage is None:
+        return _default_career()
+    try:
+        raw = storage.getItem(CAREER_STORAGE_KEY)
+        return validate_career(json.loads(raw)) if raw else _default_career()
+    except Exception:  # noqa: BLE001 -- private mode / corrupt JSON: start fresh
+        return _default_career()
+
+
+def save_career_to_storage():
+    storage = _career_storage()
+    if storage is None:
+        return
+    try:
+        storage.setItem(CAREER_STORAGE_KEY, json.dumps(career))
+    except Exception:  # noqa: BLE001 -- a refused write must never break play
+        pass
+
+
+def _sync_perks():
+    state.perks = set(career["unlocked"])
+
+
+def run_career_points():
+    """Points finishing the current run would bank, with a short breakdown
+    list; (0, [reason]) if the run is too short to count."""
+    rounds_played = state.round_number - 1
+    if rounds_played < CAREER_MIN_ROUNDS:
+        return 0, [f"Play at least {CAREER_MIN_ROUNDS} rounds ({rounds_played} so far) for a run to count."]
+    grade = state.benchmark_grade() or "F"
+    parts = ["1 for finishing", f"{CAREER_GRADE_POINTS[grade]} for operator grade {grade}"]
+    total = 1 + CAREER_GRADE_POINTS[grade]
+    if state.resilience_score() >= CAREER_RESILIENCE_BONUS_THRESHOLD:
+        total += 1
+        parts.append("1 for resilience 60+")
+    if state.emergency is not None and state.emergency["status"] == "stabilized":
+        total += 1
+        parts.append("1 for stabilizing the emergency")
+    return total, parts
+
+
+def finish_run():
+    """Bank this run into the career and start a fresh run. Returns the
+    points banked, or None if the run is too short to count (nothing
+    changes in that case)."""
+    points, _ = run_career_points()
+    if points <= 0 and state.round_number - 1 < CAREER_MIN_ROUNDS:
+        return None
+    grade = state.benchmark_grade() or "F"
+    career["runs"] += 1
+    career["points"] += points
+    career["best_score"] = max(career["best_score"], round(state.score(), 1))
+    order = "ABCDF"
+    best = career["best_grade"]
+    if best is None or order.index(grade) < order.index(best):
+        career["best_grade"] = grade
+    banked = set(career["achievements"]) | set(achievement_ids_earned())
+    career["achievements"] = [e["id"] for e in ACHIEVEMENTS if e["id"] in banked]
+    save_career_to_storage()
+    _start_new_run()
+    return points
+
+
+def unlock_career_perk(perk_id):
+    if perk_id not in CAREER_UNLOCKS or perk_id in career["unlocked"]:
+        return False
+    if career_points_available() < CAREER_UNLOCKS[perk_id]["cost"]:
+        return False
+    career["unlocked"] = [u for u in CAREER_UNLOCK_ORDER if u in career["unlocked"] or u == perk_id]
+    save_career_to_storage()
+    return True
 
 
 def event_message(event):
@@ -1389,7 +1574,8 @@ def achievement_ids_earned():
     value that rides the existing save/sync mechanism via get_state()'s
     "achievements_earned" field (ACHIEVEMENTS-SYSTEM-DESIGN.md). Always
     recomputed, never itself a save input."""
-    return [entry["id"] for entry in ACHIEVEMENTS if ACHIEVEMENT_CHECKS[entry["id"]]()]
+    banked = set(career["achievements"])
+    return [entry["id"] for entry in ACHIEVEMENTS if entry["id"] in banked or ACHIEVEMENT_CHECKS[entry["id"]]()]
 
 
 def achievements_summary():
@@ -1947,6 +2133,7 @@ def render():
         )
 
     _render_arbitrage_and_emergency()
+    update_career_panel()
 
     for plant_type in PLANT_TYPES:
         count = state.plant_counts[plant_type]
@@ -2007,6 +2194,95 @@ def render():
         mix_pct = state.capacity_share(plant_type) * 100
         document.getElementById(f"{plant_type}-mix-bar").style.width = f"{mix_pct:.0f}%"
         document.getElementById(f"{plant_type}-mix-pct").innerText = f"{mix_pct:.0f}%"
+
+
+career_open = False
+
+
+def _start_new_run():
+    """C1: replace the live GridState with a fresh one carrying the
+    career's unlocked perks (seed capital is applied via the standard
+    scenario so it uses the same funds path as every other start)."""
+    global state, renewable_milestone_visible, retire_callout_visible, maintain_callout_visible
+    state = GridState()
+    _sync_perks()
+    state.apply_scenario("standard")
+    renewable_milestone_visible = False
+    retire_callout_visible = False
+    maintain_callout_visible = False
+    _seed_achievement_toast_baseline()
+
+
+def career_panel_lines():
+    """Plain-text lines for the Career panel's stat blocks."""
+    best = career["best_grade"] or "none yet"
+    stats = (
+        f"Runs finished: {career['runs']}. Best sustained clean score: {career['best_score']:.0f}/100. "
+        f"Best operator grade: {best}. Career points: {career_points_available()} to spend "
+        f"({career['points']} earned in total)."
+    )
+    points, parts = run_career_points()
+    if points > 0:
+        preview = f"Finishing this run now would bank {points} point(s): " + ", ".join(parts) + "."
+    else:
+        preview = parts[0]
+    return stats, preview
+
+
+def update_career_panel():
+    toggle = document.getElementById("career-toggle-button")
+    panel = document.getElementById("career-panel")
+    toggle.innerText = "Hide Career" if career_open else f"🎖️ Career ({career_points_available()} pts)"
+    panel.hidden = not career_open
+    if not career_open:
+        return
+    stats, preview = career_panel_lines()
+    document.getElementById("career-stats-display").innerText = stats
+    document.getElementById("career-preview-display").innerText = preview
+    finish = document.getElementById("career-finish-button")
+    finish.disabled = state.round_number - 1 < CAREER_MIN_ROUNDS
+    for perk_id in CAREER_UNLOCK_ORDER:
+        info = CAREER_UNLOCKS[perk_id]
+        button = document.getElementById(f"career-unlock-{perk_id}-button")
+        if perk_id in career["unlocked"]:
+            button.innerText = f"Unlocked: {info['label']} -- {info['description']}"
+            button.disabled = True
+        else:
+            button.innerText = f"{info['label']} ({info['cost']} pts) -- {info['description']}"
+            button.disabled = career_points_available() < info["cost"]
+        button.title = "Permanent perk. Takes effect from your next run (and when you load a save)."
+
+
+def on_toggle_career(event=None):
+    global career_open
+    career_open = not career_open
+    render()
+
+
+def on_finish_run(event=None):
+    def do_finish():
+        finish_run()
+        render()
+
+    if state.round_number - 1 < CAREER_MIN_ROUNDS:
+        return
+    points, _ = run_career_points()
+    _confirm_dialog_ask(
+        action_id="grid-finish-run",
+        message=(
+            f"Finish this run and bank {points} career point(s)? "
+            "Your grid resets to a fresh start; career points, unlocked perks and earned achievements stay."
+        ),
+        confirm_label="Finish run",
+        on_confirm=do_finish,
+    )
+
+
+def _make_unlock_handler(perk_id):
+    def handler(event=None):
+        unlock_career_perk(perk_id)
+        render()
+    return handler
 
 
 ARBITRAGE_MODE_LABEL = {"idle": "Idle", "charge": "Charge", "discharge": "Discharge"}
@@ -2408,6 +2684,7 @@ def get_state():
         "arbitrage_mode": state.arbitrage_mode,
         "arbitrage_revenue_total": state.arbitrage_revenue_total,
         "emergency": copy.deepcopy(state.emergency),
+        "career": copy.deepcopy(career),
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),
@@ -2477,6 +2754,21 @@ def _load_round3_fields(data):
     _load_arbitrage_and_emergency(data)
 
 
+def _load_career(data):
+    """C1: adopt a saved career only if it has finished at least as many
+    runs as the live one (a stale save never rolls progress back), after
+    full validation; then refresh perks."""
+    global career
+    saved = validate_career(data.get("career"))
+    if "career" in data and saved["runs"] >= career["runs"]:
+        # Keep any achievements/unlocks the live career already has.
+        saved["achievements"] = sorted(set(saved["achievements"]) | set(career["achievements"]))
+        saved["achievements"] = [e["id"] for e in ACHIEVEMENTS if e["id"] in saved["achievements"]]
+        career = validate_career(saved)
+        save_career_to_storage()
+    _sync_perks()
+
+
 def load_state(data):
     global info_page_open
 
@@ -2532,6 +2824,7 @@ def load_state(data):
     saved_scenario = data.get("scenario", state.scenario)
     state.scenario = saved_scenario if saved_scenario in SCENARIOS else "standard"
     _load_round3_fields(data)
+    _load_career(data)
     # "achievements_earned" is intentionally never read back here — see
     # get_state()'s comment and ACHIEVEMENTS-SYSTEM-DESIGN.md §1.
 
@@ -2541,6 +2834,10 @@ def load_state(data):
 
 
 def setup():
+    global career
+    career = load_career_from_storage()
+    _sync_perks()
+    state.apply_scenario("standard")
     # index.html already marks this hidden via the `hidden` attribute, but
     # that markup default doesn't exist for the pytest fake-DOM harness (a
     # FakeElement starts with hidden=False) -- setting it explicitly here
@@ -2597,6 +2894,12 @@ def setup():
     document.getElementById("weather-log-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_weather_log)
     )
+    document.getElementById("career-toggle-button").addEventListener("click", create_proxy(on_toggle_career))
+    document.getElementById("career-finish-button").addEventListener("click", create_proxy(on_finish_run))
+    for perk_id in CAREER_UNLOCK_ORDER:
+        document.getElementById(f"career-unlock-{perk_id}-button").addEventListener(
+            "click", create_proxy(_make_unlock_handler(perk_id))
+        )
     document.getElementById("arbitrage-mode-button").addEventListener(
         "click", create_proxy(on_cycle_arbitrage_mode)
     )

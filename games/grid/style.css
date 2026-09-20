@@ -1603,3 +1603,16 @@ html[data-reduced-motion="true"] *::after {
   font-size: 0.8rem;
   opacity: 0.85;
 }
+
+/* C1 career panel: unlock buttons are full-width stacked rows; owned perks
+   read "Unlocked:" in text, never colour alone. */
+.career-unlocks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+.career-unlocks button {
+  text-align: left;
+  white-space: normal;
+}

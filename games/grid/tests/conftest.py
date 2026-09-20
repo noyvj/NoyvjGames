@@ -82,6 +82,15 @@ ELEMENT_IDS = [
     "weather-variability-toggle-button",
     "scenario-toggle-button",
     "streak-display",
+    "career-toggle-button",
+    "career-panel",
+    "career-stats-display",
+    "career-preview-display",
+    "career-finish-button",
+    "career-unlock-seed_capital-button",
+    "career-unlock-crew_training-button",
+    "career-unlock-storage_partners-button",
+    "career-unlock-demand_analytics-button",
     "arbitrage-mode-button",
     "arbitrage-status-display",
     "emergency-status-display",
@@ -176,6 +185,9 @@ class GameEnv:
 
     def toggle_weather_log(self):
         self.elements["weather-log-toggle-button"].dispatch("click", None)
+
+    def toggle_career(self):
+        self.elements["career-toggle-button"].dispatch("click", None)
 
     def cycle_arbitrage_mode(self):
         self.elements["arbitrage-mode-button"].dispatch("click", None)

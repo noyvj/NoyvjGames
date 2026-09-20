@@ -37,7 +37,21 @@
       <button id="steeper-demand-toggle-button" class="secondary difficulty-toggle" type="button">Loading...</button>
       <button id="weather-variability-toggle-button" class="secondary difficulty-toggle" type="button">Loading...</button>
       <button id="scenario-toggle-button" class="secondary difficulty-toggle" type="button">Loading...</button>
+      <button id="career-toggle-button" class="secondary" type="button">🎖️ Career</button>
       <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
+    </div>
+    <!-- C1: grid operator career -- persistent cross-run points and perks (game.py). -->
+    <div id="career-panel" class="section career-panel" hidden>
+      <p class="settings-panel-heading">Grid Operator Career</p>
+      <p id="career-stats-display" class="status-line"></p>
+      <p id="career-preview-display" class="comparison-message"></p>
+      <button id="career-finish-button" class="secondary" type="button" title="Bank this run's career points and start a fresh grid. Career points, perks and achievements are kept.">Finish run &amp; bank points</button>
+      <div class="career-unlocks">
+        <button id="career-unlock-seed_capital-button" class="secondary" type="button"></button>
+        <button id="career-unlock-crew_training-button" class="secondary" type="button"></button>
+        <button id="career-unlock-storage_partners-button" class="secondary" type="button"></button>
+        <button id="career-unlock-demand_analytics-button" class="secondary" type="button"></button>
+      </div>
     </div>
     <div id="howto-panel" class="section" hidden></div>
     <!-- Settings panel (site-wide goal, planning/TODO.md): text-scale + reduced-motion,
