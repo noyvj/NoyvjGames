@@ -365,3 +365,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Tide
 **Did:** Built D7 (delayed-consequence timeline), D8 (tide indicator), D29 (settlement name and chronicle), D17 (coastal heritage sites with upkeep), D21 (citizen-science monitoring revealing real findings), D13 (opt-in storm seasons), D1 (managed retreat, kept out of the tier list so achievements are untouched), D5/D15 (population growth and displacement), D11 (tourism/aquaculture diversification) and D27 (checkpoint replay with foresight from the abandoned run). All controls live in collapsed panels; every new saved field is validated with old-save defaults; no hue-only cues.
 **Result:** 202 to 252 tests green, flake8 clean, verified live with zero console errors. Skipped D9 (stats backend has no adaptation-tier field). See `games/tide/CLAUDE.md` Round-3 section.
+
+### 2026-09-21 (Continuum: City Views, settlement archive and card, consulting mode)
+**Game:** Continuum
+**Did:** K1/K24/K28 as one opt-in City Views panel (numbers dashboard, top-down civic map with a distinct glyph per building, Sankey-style resource flow from the season report); K18 settlement archive (validated, capped localStorage gallery with a 3D-view thumbnail, delete and clear) and K20 shareable PNG card drawn on a canvas; K22 consulting mode (two pre-built struggling cities to turn around within 30 seasons, balance-checked by simulation, inherited eras/research excluded from achievements).
+**Result:** 523 to 562 tests green; verified live with no errors from this code. Found and fixed an unhashable-value crash in the consulting validator via tests. K26b (eighth era) not built: no verifiable source base for its info panel. See `games/continuum/CLAUDE.md` Milestone 26.
