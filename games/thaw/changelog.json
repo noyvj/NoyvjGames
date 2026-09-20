@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-09-21",
+    "entry": "Z6: the personal-best label's \"just improved\" badge flash moved into the new shared shared/personal-best.css (also used by Canopy and Tide) instead of a per-game copy of the same rule."
+  },
+  {
     "date": "2026-09-20",
     "entry": "Round-2 polish: temperature trend arrows, a stability streak counter, a scientist's log of key moments, a labelled melt-threshold line, warning icons on critical status, preset purchase previews, pre-emptive-investment praise, and a per-region personal best."
   },

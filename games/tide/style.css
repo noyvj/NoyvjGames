@@ -1118,17 +1118,9 @@ button.primary:active:not(:disabled) {
   display: block;
 }
 
-/* D13: a per-browser "best coastline saved" personal best. */
-.personal-best-display {
-  margin: 0.6rem 0 0;
-  font-size: 0.78rem;
-  opacity: 0.7;
-  font-style: italic;
-}
-
-#best-coastline-display::before {
-  content: "🏅 ";
-}
+/* D13/Z6: .personal-best-display + its ::before medal prefix now live in
+   the shared shared/personal-best.css (opt-in <link> in index.html)
+   instead of being redefined per game -- see that file's header comment. */
 
 /* D16: the Output investment's fishing/industry sub-choice -- same
    inline label+select pattern as Canopy's grid-size-label, recolored to

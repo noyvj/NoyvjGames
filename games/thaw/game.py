@@ -958,6 +958,12 @@ def _check_new_achievements_for_toast():
 # features already draw.
 PERSONAL_BEST_STORAGE_KEY = "thaw_personal_best_v1"
 
+# Z6 (planning/TODO.md "Z. Games"): duration of the shared
+# .personal-best-display.just-improved pulse (shared/personal-best.css) --
+# matches the CSS animation's own length so the class is gone right as
+# the pulse finishes. Same value Canopy uses for the same reason.
+PERSONAL_BEST_BADGE_MS = 1800
+
 
 def _read_local_storage_item(key):
     """Lazy `import js` (same convention as _read_achievements_json()) so
@@ -1032,6 +1038,25 @@ def _maybe_update_personal_best():
         personal_best["temperature_saved"] = saved
         personal_best["region"] = label
         _write_local_storage_item(PERSONAL_BEST_STORAGE_KEY, json.dumps(personal_best))
+        _flash_personal_best_badge()
+
+
+def _flash_personal_best_badge():
+    """Z6: briefly adds the shared .just-improved class (see
+    shared/personal-best.css) right when a session beats its stored best.
+    Same setTimeout+create_proxy shape as this game's other one-shot UI
+    cues (e.g. the achievement toast)."""
+    element = document.getElementById("personal-best-display")
+    if element is None:
+        return
+    element.classList.add("just-improved")
+
+    def _unflash():
+        el = document.getElementById("personal-best-display")
+        if el is not None:
+            el.classList.remove("just-improved")
+
+    setTimeout(create_proxy(_unflash), PERSONAL_BEST_BADGE_MS)
 
 
 def render_personal_best():

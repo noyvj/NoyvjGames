@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-09-21",
+    "entry": "Z22 confirmation-dialog audit: \"Start New Chain\" now goes through the shared ConfirmDialog (matching Grid/Herd/Trade Empire) instead of firing instantly, since it's a full wipe of the current chain's funds, cycle, and investments."
+  },
+  {
     "date": "2026-09-20",
     "entry": "Round-2 wave: a third trade partner (Overseas Consortium), a 25% milestone particle burst, ring-node glow on your top investment, a loop efficiency audit, score-source pie, streak progress, extraction-cost trend arrow, cosmetic goods relabel, a weekly featured category, and a Goods Collector achievement."
   },

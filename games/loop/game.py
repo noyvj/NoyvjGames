@@ -98,16 +98,43 @@ VIGNETTE_ITEM = GOODS_CATEGORIES[DEFAULT_GOODS_CATEGORY]["vignette_item"]
 # precise or authoritative figure — framed that way in the UI.
 REAL_WORLD_CIRCULARITY_BENCHMARK = 0.07
 
-# H9: a couple of alternate real-world sector ballparks beyond the single
+# A couple of alternate real-world sector ballparks beyond the single
 # static benchmark above, so the comparison doesn't lean on one figure
 # alone. Same "illustrative, not authoritative" hedge as
 # real_world_comparison_message() -- these are ballpark figures pulled
 # from general circular-economy reporting, not a precise dataset.
+# (This list shipped under an earlier round's H9 numbering -- see
+# CLAUDE.md's "Post-milestone backlog pass" notes. The current
+# planning/TODO.md's H9 is a different, later-numbered item -- "waste
+# stream diversification" -- built separately below; don't confuse the
+# two when reading old vs. new session notes.)
 SECTOR_COMPARISONS = [
     ("textiles & apparel", 0.01),
     ("plastics", 0.09),
     ("metals", 0.33),
+    ("packaging", 0.14),
 ]
+
+# H9 (current numbering): waste stream diversification -- specialize
+# recovery effort on ONE circularity measure for a supply bonus on that
+# measure alone, the other two staying at their base rate. Framed as a
+# standing emphasis rather than a purchase (freely switchable, no cost)
+# since the real trade-off is structural -- only one measure can carry
+# the bonus at a time -- not a friction point worth gating further.
+WASTE_STREAM_SPECIALIZATION_BONUS = 0.25
+
+# H13: an opt-in harder variant, selectable only before the chain has
+# produced anything (see ChainState.set_challenge_mode()) -- multiplies
+# both internal and imported circular supply down, so closing the loop
+# takes meaningfully more investment than the default chain.
+CHALLENGE_MODE_SUPPLY_MULTIPLIER = 0.65
+
+# H23: an opt-in "zero-waste" variant, also chosen only at game start --
+# a soft, scored challenge (never a hard fail-state, per this hub's
+# no-fail-state convention) tracking whether lifetime extraction ever
+# exceeds this cap. Failing it doesn't block play; it just ends the
+# challenge's own clean streak.
+ZERO_WASTE_EXTRACTION_CAP = 150.0
 
 # Iteration Pass 2 — trade network: a basic bidirectional link with one
 # neighboring system, not a full second economy. Import: investing in
@@ -1350,23 +1377,68 @@ def _make_relabel_handler(category):
     return handler
 
 
+def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm):
+    """Routes a guarded action through the shared shared/confirm-dialog.js
+    widget when it's available, or runs the action immediately when it
+    isn't -- same lazy `from js import window`/getattr-default shape as
+    Grid's/Herd's/Trade Empire's own `_confirm_dialog_ask()` helpers. The
+    pytest fake-DOM harness's `js` module only ever fakes `document`/
+    `setTimeout` (see tests/conftest.py), never `window`, so `from js
+    import window` raises ImportError there and this falls straight
+    through to calling on_confirm() synchronously -- which is exactly
+    what the existing reset-chain test already expects."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        on_confirm()
+        return
+    confirm_dialog = getattr(window, "ConfirmDialog", None)
+    if confirm_dialog is None:
+        on_confirm()
+        return
+    confirm_dialog.ask(
+        id=action_id,
+        message=message,
+        confirmLabel=confirm_label,
+        onConfirm=create_proxy(on_confirm),
+    )
+
+
 def on_reset_chain(event=None):
     """H7: an in-game "Start New Chain" reset control. Wipes the current
     chain back to a fresh ChainState() (funds, cycle number, every
     investment) — the two module-level counters that exist specifically
     to measure things *across* resets (chains_completed_count,
-    goods_categories_tried) are deliberately not touched here."""
-    global chains_completed_count
+    goods_categories_tried) are deliberately not touched here.
+
+    Z22 cross-game audit: unlike every other game's reset/retire-style
+    action, this one fired instantly with no confirmation at all --
+    gated now behind the shared ConfirmDialog (same helper shape as
+    Grid's retire-last-plant and Herd's pivot-investment guards) rather
+    than left as a silent one-click wipe."""
 
     def _do_reset():
         global chain
         chain = ChainState()
 
-    chains_completed_count += 1
-    _run_action(_do_reset)
-    message = document.getElementById("reset-chain-message")
-    message.innerText = reset_chain_message()
-    message.hidden = False
+    def _confirmed():
+        global chains_completed_count
+        chains_completed_count += 1
+        _run_action(_do_reset)
+        message = document.getElementById("reset-chain-message")
+        message.innerText = reset_chain_message()
+        message.hidden = False
+
+    _confirm_dialog_ask(
+        action_id="loop-reset-chain",
+        message=(
+            "Start a new chain? This wipes your current funds, cycle, and every "
+            "circularity/trade investment. Chains completed and goods categories "
+            "tried are kept."
+        ),
+        confirm_label="Start New Chain",
+        on_confirm=_confirmed,
+    )
 
 
 def _make_goods_category_handler(category):

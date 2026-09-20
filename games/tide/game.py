@@ -907,6 +907,11 @@ def acidity_fish_history_svg():
 # device record, not one save's snapshot.
 BEST_COASTLINE_STORAGE_KEY = "tide_best_coastline_saved_v1"
 
+# Z6 (planning/TODO.md "Z. Games"): duration of the shared
+# .personal-best-display.just-improved pulse (shared/personal-best.css) --
+# matches the CSS animation's own length, same value Canopy/Thaw use.
+PERSONAL_BEST_BADGE_MS = 1800
+
 
 def _read_local_storage_item(key):
     """Lazy `import js` (same convention as _read_achievements_json())
@@ -964,6 +969,24 @@ def _maybe_update_best_coastline_saved():
     if saved > best_coastline_saved:
         best_coastline_saved = saved
         _write_local_storage_item(BEST_COASTLINE_STORAGE_KEY, json.dumps(best_coastline_saved))
+        _flash_personal_best_badge()
+
+
+def _flash_personal_best_badge():
+    """Z6: briefly adds the shared .just-improved class (see
+    shared/personal-best.css) right when a session beats its stored best.
+    Same setTimeout+create_proxy shape as Canopy/Thaw's equivalent."""
+    element = document.getElementById("best-coastline-display")
+    if element is None:
+        return
+    element.classList.add("just-improved")
+
+    def _unflash():
+        el = document.getElementById("best-coastline-display")
+        if el is not None:
+            el.classList.remove("just-improved")
+
+    setTimeout(create_proxy(_unflash), PERSONAL_BEST_BADGE_MS)
 
 
 def render_best_coastline_saved():
