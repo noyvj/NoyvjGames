@@ -18,6 +18,8 @@ def test_get_state_includes_every_expected_key(game_env):
         "info_page_open",
         "worst_case_region_revealed",
         "preset_used_ever",
+        "worst_case_intro_seen",
+        "science_log",
         "achievements_earned",
     }
 
@@ -38,6 +40,10 @@ def test_get_state_region_dict_includes_every_expected_field(game_env):
         "dampening_at_melt_start",
         "just_delayed_milestone",
         "milestone_delay_announced",
+        "just_became_critical",
+        "rounds_since_tipping_event",
+        "tipping_events",
+        "just_preempted_melt",
     }
     assert set(data["region"].keys()) == expected_fields
     assert set(data["region_b"].keys()) == expected_fields

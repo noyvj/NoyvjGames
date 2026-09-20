@@ -88,9 +88,11 @@
     </div>
 
     <div id="status" class="section">
+      <!-- G2: Region A's permanent flavor subtitle, matching the ones on Regions B/C/D below. -->
+      <p class="region-flavor" id="region-a-flavor">Region A: high-arctic peatland, your home region, where frozen peat stores centuries of carbon.</p>
       <p id="round-display" class="status-line">Round 1</p>
       <p id="funds-display" class="status-line">Funds: 300</p>
-      <p id="temperature-display" class="status-line">Global temperature: +0.0°</p>
+      <p id="temperature-display" class="status-line" title="Global temperature rise. Past +10° permafrost melts; the second warming milestone at +15° is roughly where thaw stops being a regional problem and starts driving global warming in its own right.">Global temperature: +0.0°</p><span id="temperature-trend" class="trend-arrow"></span>
       <div class="meter"><div id="temperature-bar" class="meter-fill meter-fill--temperature"></div></div>
       <p id="temperature-cap-note" class="meter-cap-note" hidden></p>
       <p id="rise-rate-display" class="status-line">Current warming rate: 1.00°/round</p>
@@ -98,6 +100,9 @@
       <p id="melt-status-display" class="comparison-message">Permafrost stable — no feedback yet.</p>
       <details class="info-toggle"><summary>i</summary><p>Permafrost starts melting once global temperature crosses +10.0° — below that threshold it's dormant, but above it every extra degree releases methane that adds to next round's warming, on top of the fixed background rise. Past a much faster acceleration, melt status reads as "critical" instead of just "melting" — the feedback loop compounding fast rather than just having started.</p></details>
       <p id="milestone-delay-callout" class="milestone-delay-callout" hidden></p>
+      <p id="preemptive-callout" class="milestone-delay-callout" hidden></p>
+      <p id="tipping-streak-display" class="comparison-message"></p>
+      <details class="info-toggle"><summary>i</summary><p>A tipping event is permafrost starting to melt, or warming going critical (2x the background rate). This counts rounds since the last one. The +15° milestone is the second warming marker: past it, the feedback loop is releasing more methane than intervention alone can easily offset.</p></details>
       <p id="dampening-display" class="status-line">Feedback dampening: 0%</p>
       <details class="info-toggle"><summary>i</summary><p>Dampening only reduces the methane feedback bonus caused by melt — it never touches the fixed background warming rate, which always rises no matter what you invest in. That's also why this percentage can sit above 0% with no visible effect yet: it does nothing until melt actually starts.</p></details>
       <p id="intervention-feedback-display" class="comparison-message">No preservation or monitoring investment yet — a future melt would hit at full force.</p>
@@ -108,6 +113,10 @@
       <details class="info-toggle"><summary>i</summary><p>This compares your real temperature to a hidden shadow region that faces the exact same background trajectory but never receives any preserve/monitor investment — the gap between the two is how many degrees your interventions have actually saved.</p></details>
       <div id="graph" class="mini-temp-graph"></div>
       <p id="personal-best-display" class="personal-best-display">Personal best: 0.0° saved</p>
+      <details id="science-log-details" class="science-log">
+        <summary>📓 Scientist's log (<span id="science-log-count">0</span>)</summary>
+        <ol id="science-log-list" class="science-log-list"></ol>
+      </details>
     </div>
 
     <div id="investments" class="section">
@@ -139,7 +148,7 @@
           <p class="region-card-label">Region B</p>
           <p class="region-flavor">Coastal tundra — closer to the sea, slightly more exposed to storm-driven erosion.</p>
           <div id="b-graph" class="mini-temp-graph"></div>
-          <p id="b-temperature-display" class="region-stat">+0.0°</p>
+          <p id="b-temperature-display" class="region-stat">+0.0°</p><span id="b-temperature-trend" class="trend-arrow"></span>
           <p id="b-funds-display" class="region-stat">Funds: 300</p>
           <p id="b-melt-status-display" class="region-melt-status">Stable</p>
           <p id="b-dampening-display" class="region-stat">Dampening: 0%</p>
@@ -158,13 +167,13 @@
             <button id="b-preset-preservation-button" class="secondary region-preset-button" type="button">Preset: Preservation</button>
             <button id="b-preset-balanced-button" class="secondary region-preset-button" type="button">Preset: Balanced</button>
           </div>
-          <input id="b-strategy-label-input" class="region-strategy-label-input" type="text" maxlength="40" placeholder="Label this region's strategy (optional)">
+          <input id="b-strategy-label-input" class="region-strategy-label-input" type="text" maxlength="40" placeholder="Label this strategy, e.g. &quot;all-in on preservation&quot; (optional)">
         </div>
         <div id="c-region-card" class="region-card">
           <p class="region-card-label">Region C</p>
           <p class="region-flavor">Boreal interior — deeper permafrost, slower to feel changes at first.</p>
           <div id="c-graph" class="mini-temp-graph"></div>
-          <p id="c-temperature-display" class="region-stat">+0.0°</p>
+          <p id="c-temperature-display" class="region-stat">+0.0°</p><span id="c-temperature-trend" class="trend-arrow"></span>
           <p id="c-funds-display" class="region-stat">Funds: 300</p>
           <p id="c-melt-status-display" class="region-melt-status">Stable</p>
           <p id="c-dampening-display" class="region-stat">Dampening: 0%</p>
@@ -183,7 +192,7 @@
             <button id="c-preset-preservation-button" class="secondary region-preset-button" type="button">Preset: Preservation</button>
             <button id="c-preset-balanced-button" class="secondary region-preset-button" type="button">Preset: Balanced</button>
           </div>
-          <input id="c-strategy-label-input" class="region-strategy-label-input" type="text" maxlength="40" placeholder="Label this region's strategy (optional)">
+          <input id="c-strategy-label-input" class="region-strategy-label-input" type="text" maxlength="40" placeholder="Label this strategy, e.g. &quot;all-in on preservation&quot; (optional)">
         </div>
       </div>
       <p id="region-comparison-best-display" class="comparison-message"></p>
@@ -193,6 +202,7 @@
     <div id="worst-case-section" class="section">
       <button id="worst-case-toggle-button" class="secondary" type="button">Loading...</button>
       <div id="worst-case-panel" class="worst-case-panel" hidden>
+        <p id="d-intro-note" class="milestone-delay-callout" hidden>Region D is fully automated. It never needs any input from you, and it never will.</p>
         <p class="meter-label">Region D — pure neglect, auto-played: every round it spends everything on Output and never invests in Preservation or Monitoring.</p>
         <div id="d-region-card" class="region-card">
           <p class="region-card-label">Region D (worst case)</p>

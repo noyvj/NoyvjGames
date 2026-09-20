@@ -955,3 +955,21 @@ html[data-reduced-motion="true"] *::after {
   transition-duration: 0.001ms !important;
   scroll-behavior: auto !important;
 }
+
+/* Round-2 additions (G2/G6/G8/G16/G24/G19) */
+.trend-arrow { margin-left: 0.4rem; opacity: 0.9; }
+#temperature-display, .region-stat[id$="temperature-display"] { display: inline-block; }
+.mini-temp-threshold-label { font-size: 7px; fill: currentColor; opacity: 0.75; }
+/* G8: shape cue on the critical tier, independent of color. */
+[id$="melt-status-display"].melt-status--critical::before { content: "⚠️ "; }
+/* G24 */
+.acceleration-pulse { animation: acceleration-pulse 1100ms ease 2; border-radius: 4px; }
+@keyframes acceleration-pulse {
+  0%, 100% { background: transparent; }
+  40% { background: #5a2416; }
+}
+:root[data-reduced-motion="true"] .acceleration-pulse { animation: none; }
+/* G19 */
+.science-log { margin-top: 0.5rem; }
+.science-log summary { cursor: pointer; opacity: 0.85; }
+.science-log-list { max-height: 10rem; overflow-y: auto; padding-left: 1.2rem; font-size: 0.85rem; }

@@ -116,6 +116,39 @@ class RegionState:
         # SOL/Grid's own achievement-adjacent "first time" trackers.
         self.just_delayed_milestone = False
         self.milestone_delay_announced = False
+        # G24: one-tick flag, true only for the render right after this
+        # region's warming first crosses into the critical tier (and again
+        # only if it later drops out and re-crosses).
+        self.just_became_critical = False
+        # G28: rounds since this region last had a "tipping event" (melt
+        # starting, or warming entering the critical tier); tipping_events
+        # counts how many have happened so the UI can tell "none yet" from
+        # "reset just now".
+        self.rounds_since_tipping_event = 0
+        self.tipping_events = 0
+        # G12: one-tick flag for the pre-emptive-dampening praise callout.
+        self.just_preempted_melt = False
+        # G16/G19: transient per-round event tags ("melt", "critical",
+        # "milestone_delay", "preempt") for the scientist's log. Rebuilt
+        # every advance_round(), never saved.
+        self.round_events = []
+
+    def is_critical(self):
+        return self.is_melting() and self.acceleration_factor() >= CRITICAL_ACCELERATION_FACTOR
+
+    def temperature_trend(self):
+        """G16: "up"/"down"/"flat" comparing the most recent round's rise to
+        the one before it, or None until at least one round has elapsed."""
+        series = [0.0] + list(self.temperature_history)
+        if len(series) < 3:
+            return None
+        last = series[-1] - series[-2]
+        prev = series[-2] - series[-3]
+        if last > prev + 0.005:
+            return "up"
+        if last < prev - 0.005:
+            return "down"
+        return "flat"
 
     def invest(self, category):
         cost = INVEST_COST[category]
@@ -157,11 +190,11 @@ class RegionState:
             return "No preservation or monitoring investment yet — a future melt would hit at full force."
         pct = dampening * 100
         if dampening < 0.3:
-            tier = "a modest start"
+            tier = "\U0001F331 a modest start"
         elif dampening < 0.6:
-            tier = "a meaningful buffer"
+            tier = "\U0001F6E1\uFE0F a meaningful buffer"
         else:
-            tier = "a strong shield"
+            tier = "\U0001F3F0 a strong shield"
         return (
             f"Preservation & monitoring investment is already dampening the feedback loop by "
             f"{pct:.0f}% — {tier}, in place now, whether or not melt has started yet."
@@ -182,6 +215,8 @@ class RegionState:
     def advance_round(self):
         self.funds += self.capacity["output"] * OUTPUT_INCOME_PER_UNIT
         current_round = self.round_number
+        self.round_events = []
+        was_critical = self.is_critical()
         self.temperature += self.current_rise_rate()
         if self.melt_started_round is None and self.is_melting():
             self.melt_started_round = current_round
@@ -191,6 +226,18 @@ class RegionState:
             # meaningful protection already in place *before* melt
             # started" rather than just "is it in place right now."
             self.dampening_at_melt_start = self.feedback_dampening_fraction()
+            self.round_events.append("melt")
+            if self.dampening_at_melt_start > 0:
+                self.just_preempted_melt = True
+                self.round_events.append("preempt")
+        if not was_critical and self.is_critical():
+            self.just_became_critical = True
+            self.round_events.append("critical")
+        if "melt" in self.round_events or "critical" in self.round_events:
+            self.tipping_events += 1
+            self.rounds_since_tipping_event = 0
+        else:
+            self.rounds_since_tipping_event += 1
 
         counterfactual_excess = max(0.0, self.counterfactual_temperature - MELT_THRESHOLD)
         counterfactual_rate = BASE_TEMP_RISE_PER_ROUND + (
@@ -217,6 +264,7 @@ class RegionState:
         ):
             self.milestone_delay_announced = True
             self.just_delayed_milestone = True
+            self.round_events.append("milestone_delay")
 
     def temperature_saved(self):
         """The hope-angle payoff, as a direct number: how much lower
@@ -279,6 +327,47 @@ REGION_FLAVOR = {
 # is the one genuinely new player action involved.
 region_d = RegionState()
 worst_case_region_revealed = False
+# G30: the "Region D is fully automated" first-reveal note shows until the
+# player closes the panel once, then never again.
+worst_case_intro_seen = False
+
+# G19: scientist's log -- a running, per-round record of key moments in the
+# three managed regions. Newest last; capped so a long session (and the
+# save payload) stays small.
+SCIENCE_LOG_MAX = 40
+science_log = []
+
+_EVENT_TEXT = {
+    "melt": "permafrost began melting at +{temp:.1f}\u00b0.",
+    "critical": "the feedback loop went critical ({accel:.1f}x background warming).",
+    "milestone_delay": "intervention delayed reaching +{milestone:.0f}\u00b0 warming.",
+    "preempt": "pre-emptive protection ({damp:.0f}% dampening) was already in place when melt began.",
+}
+
+
+def _record_round_events():
+    for label, r in (("A", region), ("B", region_b), ("C", region_c)):
+        for event in r.round_events:
+            text = _EVENT_TEXT[event].format(
+                temp=r.temperature,
+                accel=r.acceleration_factor(),
+                milestone=SECOND_WARMING_MILESTONE,
+                damp=(r.dampening_at_melt_start or 0.0) * 100,
+            )
+            science_log.append({"region": label, "round": r.round_number - 1, "text": text})
+    del science_log[:-SCIENCE_LOG_MAX]
+
+
+def science_log_html():
+    if not science_log:
+        return "<li>No key moments recorded yet.</li>"
+    items = []
+    for entry in reversed(science_log):
+        text = (
+            str(entry["text"]).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        )
+        items.append(f"<li>Round {entry['round']} \u2014 Region {entry['region']}: {text}</li>")
+    return "".join(items)
 
 
 def _auto_play_worst_case_region():
@@ -337,6 +426,13 @@ def apply_preset(r, preset_name):
     weights = PRESET_WEIGHTS.get(preset_name)
     if not weights:
         return False
+    invested_any = _run_preset(r, weights)
+    if invested_any:
+        preset_used_ever = True
+    return invested_any
+
+
+def _run_preset(r, weights):
     categories = list(weights.keys())
     spent = dict.fromkeys(categories, 0.0)
     invested_any = False
@@ -349,9 +445,24 @@ def apply_preset(r, preset_name):
             break
         spent[target] += INVEST_COST[target]
         invested_any = True
-    if invested_any:
-        preset_used_ever = True
     return invested_any
+
+
+def preset_preview_text(r, preset_name):
+    """G14: what clicking a preset would buy right now, computed on a
+    scratch RegionState so nothing is committed. Used in the button's
+    hover tooltip alongside the static explanation."""
+    weights = PRESET_WEIGHTS.get(preset_name)
+    if not weights:
+        return ""
+    scratch = RegionState()
+    scratch.funds = r.funds
+    if not _run_preset(scratch, weights):
+        return "Right now: not enough funds for anything."
+    parts = [
+        f"{scratch.capacity[c]}x {CATEGORY_LABEL[c]}" for c in CATEGORIES if scratch.capacity[c]
+    ]
+    return "Right now this would buy: " + ", ".join(parts) + "."
 
 
 def best_region_identifier():
@@ -409,6 +520,8 @@ def mini_temp_graph_svg(history):
         threshold_line = (
             f'<line x1="0" y1="{threshold_y:.1f}" x2="{MINI_GRAPH_WIDTH}" y2="{threshold_y:.1f}" '
             f'class="mini-temp-threshold-line" />'
+            f'<text x="2" y="{max(threshold_y - 2, 7):.1f}" class="mini-temp-threshold-label">'
+            f"+{MELT_THRESHOLD:.0f}\u00b0</text>"
         )
 
     return (
@@ -432,6 +545,27 @@ def _melt_status_label(r):
     return "melting"
 
 
+TREND_TEXT = {
+    "up": ("\u25B2", "Rising faster than last round"),
+    "down": ("\u25BC", "Rising slower than last round"),
+    "flat": ("\u25B6", "Rising at the same pace as last round"),
+}
+
+
+def _render_trend(element_id, r):
+    """G16: a small shape-coded arrow (not color-only) next to a region's
+    temperature readout, comparing this round's rise to the previous one."""
+    element = document.getElementById(element_id)
+    trend = r.temperature_trend()
+    if trend is None:
+        element.innerText = ""
+        element.title = ""
+        return
+    arrow, meaning = TREND_TEXT[trend]
+    element.innerText = arrow
+    element.title = meaning
+
+
 def render_secondary_region(prefix, r):
     """Renders one of the two added regions into its `{prefix}-*`
     elements. Deliberately separate from the primary region's inline
@@ -444,6 +578,11 @@ def render_secondary_region(prefix, r):
     generic RegionState method, so no new game logic was needed, only
     new elements to write them into."""
     document.getElementById(f"{prefix}-temperature-display").innerText = f"+{r.temperature:.1f}°"
+    _render_trend(f"{prefix}-temperature-trend", r)
+    for preset_name in PRESET_WEIGHTS:
+        document.getElementById(f"{prefix}-preset-{preset_name}-button").title = (
+            preset_tooltip_text(preset_name) + " " + preset_preview_text(r, preset_name)
+        )
     document.getElementById(f"{prefix}-funds-display").innerText = f"Funds: {r.funds:.0f}"
     document.getElementById(f"{prefix}-graph").innerHTML = mini_temp_graph_svg(r.temperature_history)
     document.getElementById(f"{prefix}-dampening-display").innerText = (
@@ -862,12 +1001,18 @@ def load_personal_best():
     malformed (e.g. hand-edited or from a future incompatible format)."""
     raw = _read_local_storage_item(PERSONAL_BEST_STORAGE_KEY)
     if not raw:
-        return {"temperature_saved": 0.0}
+        return {"temperature_saved": 0.0, "region": None}
     try:
         data = json.loads(raw)
-        return {"temperature_saved": float(data.get("temperature_saved", 0.0))}
+        region_label = data.get("region")
+        if region_label not in ("A", "B", "C"):
+            region_label = None
+        return {
+            "temperature_saved": float(data.get("temperature_saved", 0.0)),
+            "region": region_label,
+        }
     except (ValueError, TypeError, AttributeError):
-        return {"temperature_saved": 0.0}
+        return {"temperature_saved": 0.0, "region": None}
 
 
 personal_best = load_personal_best()
@@ -877,9 +1022,16 @@ def _maybe_update_personal_best():
     """Called every render(); bumps + persists personal_best whenever the
     live session exceeds it."""
     global personal_best
-    saved = region.temperature_saved()
+    # G22: consider all three player-managed regions and remember which
+    # one earned the record.
+    label, saved = max(
+        (("A", region.temperature_saved()), ("B", region_b.temperature_saved()),
+         ("C", region_c.temperature_saved())),
+        key=lambda pair: pair[1],
+    )
     if saved > personal_best["temperature_saved"]:
         personal_best["temperature_saved"] = saved
+        personal_best["region"] = label
         _write_local_storage_item(PERSONAL_BEST_STORAGE_KEY, json.dumps(personal_best))
 
 
@@ -887,7 +1039,10 @@ def render_personal_best():
     element = document.getElementById("personal-best-display")
     if element is None:
         return
-    element.innerText = f"Personal best: {personal_best['temperature_saved']:.1f}° saved"
+    text = f"Personal best: {personal_best['temperature_saved']:.1f}° saved"
+    if personal_best.get("region"):
+        text += f" (Region {personal_best['region']})"
+    element.innerText = text
 
 
 # ===========================================================================
@@ -994,6 +1149,7 @@ def render():
         cap_note_el.hidden = False
     else:
         cap_note_el.hidden = True
+    _render_trend("temperature-trend", region)
     document.getElementById("rise-rate-display").innerText = (
         f"Current warming rate: {region.current_rise_rate():.2f}°/round"
     )
@@ -1039,6 +1195,32 @@ def render():
     else:
         milestone_delay_el.hidden = True
 
+    # G12: one-time praise the round melt begins with protection already
+    # in place -- can only ever fire once per region (melt starts once).
+    preempt_el = document.getElementById("preemptive-callout")
+    if region.just_preempted_melt:
+        preempt_el.innerText = (
+            f"Well done: {(region.dampening_at_melt_start or 0) * 100:.0f}% feedback dampening was "
+            "already in place before melt began. Pre-emptive investment is the strongest "
+            "lever there is."
+        )
+        preempt_el.hidden = False
+        region.just_preempted_melt = False
+    else:
+        preempt_el.hidden = True
+
+    # G28: stability streak.
+    streak_el = document.getElementById("tipping-streak-display")
+    if region.tipping_events == 0:
+        streak_el.innerText = (
+            f"No tipping event yet: {region.rounds_since_tipping_event} rounds stable."
+        )
+    else:
+        streak_el.innerText = (
+            f"{region.rounds_since_tipping_event} rounds since the last tipping event "
+            f"({region.tipping_events} so far)."
+        )
+
     dampening_el = document.getElementById("dampening-display")
     dampening_el.innerText = f"Feedback dampening: {region.feedback_dampening_fraction() * 100:.0f}%"
     if region.just_invested_intervention:
@@ -1049,7 +1231,14 @@ def render():
     document.getElementById("intervention-feedback-display").innerText = (
         region.intervention_feedback_message()
     )
-    document.getElementById("acceleration-display").innerText = region.acceleration_message()
+    acceleration_el = document.getElementById("acceleration-display")
+    acceleration_el.innerText = region.acceleration_message()
+    # G24: a brief pulse the instant the region crosses into the critical tier.
+    if region.just_became_critical:
+        acceleration_el.className = "comparison-message acceleration-pulse"
+        region.just_became_critical = False
+    else:
+        acceleration_el.className = "comparison-message"
     document.getElementById("acceleration-bar").style.width = (
         f"{min(1.0, (region.acceleration_factor() - 1) / 2) * 100:.0f}%"
     )
@@ -1091,6 +1280,20 @@ def render():
     worst_case_toggle.innerText = (
         "Hide the worst-case region" if worst_case_region_revealed else "Reveal a worst-case region"
     )
+    # G4: explain "worst case" before the player reveals it.
+    worst_case_toggle.title = (
+        "Region D is a fully automated stand-in for pure neglect: every round it spends "
+        "everything on Output and never invests in Preservation or Monitoring. It shows "
+        "what warming looks like if nobody intervenes."
+    )
+    # G30: first-reveal-only note that D needs no input.
+    document.getElementById("d-intro-note").hidden = not (
+        worst_case_region_revealed and not worst_case_intro_seen
+    )
+
+    # G19: scientist's log.
+    document.getElementById("science-log-count").innerText = str(len(science_log))
+    document.getElementById("science-log-list").innerHTML = science_log_html()
 
     # G2: an explicit "which region did best" comparison line, always
     # visible (not gated on an end-of-session state, since this game has
@@ -1104,10 +1307,15 @@ def render():
     # G17: a next-round forecast, available as a hover tooltip on Advance
     # Round rather than a permanent line, since it's a "before you click"
     # preview rather than information about the current state.
-    document.getElementById("advance-round-button").title = (
-        f"Next round — Region A: +{region.current_rise_rate():.2f}°, "
-        f"Region B: +{region_b.current_rise_rate():.2f}°, "
-        f"Region C: +{region_c.current_rise_rate():.2f}°"
+    # G10: one combined tooltip covering all three managed regions, each
+    # with its projected temperature after the coming round.
+    document.getElementById("advance-round-button").title = "\n".join(
+        ["Next round preview"]
+        + [
+            f"Region {label}: +{r.current_rise_rate():.2f}° "
+            f"(to +{r.temperature + r.current_rise_rate():.1f}°)"
+            for label, r in (("A", region), ("B", region_b), ("C", region_c))
+        ]
     )
 
     _maybe_update_personal_best()
@@ -1155,7 +1363,9 @@ def _make_strategy_label_handler(prefix):
 
 
 def on_toggle_worst_case_region(event=None):
-    global worst_case_region_revealed
+    global worst_case_region_revealed, worst_case_intro_seen
+    if worst_case_region_revealed:
+        worst_case_intro_seen = True  # closing it after the first look retires the note
     worst_case_region_revealed = not worst_case_region_revealed
     render()
     _check_new_achievements_for_toast()
@@ -1166,6 +1376,7 @@ def on_advance_round(event=None):
     for r in SECONDARY_REGIONS.values():
         r.advance_round()
     _auto_play_worst_case_region()
+    _record_round_events()
     render()
     _check_new_achievements_for_toast()
 
@@ -1199,6 +1410,10 @@ def _region_state_dict(r):
         "dampening_at_melt_start": r.dampening_at_melt_start,
         "just_delayed_milestone": r.just_delayed_milestone,
         "milestone_delay_announced": r.milestone_delay_announced,
+        "just_became_critical": r.just_became_critical,
+        "rounds_since_tipping_event": r.rounds_since_tipping_event,
+        "tipping_events": r.tipping_events,
+        "just_preempted_melt": r.just_preempted_melt,
     }
 
 
@@ -1255,6 +1470,12 @@ def _apply_region_state(r, data):
     r.milestone_delay_announced = data.get(
         "milestone_delay_announced", r.milestone_delay_announced
     )
+    r.just_became_critical = data.get("just_became_critical", r.just_became_critical)
+    r.rounds_since_tipping_event = data.get(
+        "rounds_since_tipping_event", r.rounds_since_tipping_event
+    )
+    r.tipping_events = data.get("tipping_events", r.tipping_events)
+    r.just_preempted_melt = data.get("just_preempted_melt", r.just_preempted_melt)
 
 
 def get_state():
@@ -1275,6 +1496,8 @@ def get_state():
         "info_page_open": info_page_open,
         "worst_case_region_revealed": worst_case_region_revealed,
         "preset_used_ever": preset_used_ever,
+        "worst_case_intro_seen": worst_case_intro_seen,
+        "science_log": [dict(entry) for entry in science_log],
         "achievements_earned": achievement_ids_earned(),
     }
 
@@ -1292,6 +1515,7 @@ def load_state(data):
     untouched instead of crashing, same reasoning as every other
     per-field fallback in _apply_region_state()."""
     global info_page_open, worst_case_region_revealed, preset_used_ever
+    global worst_case_intro_seen
     if not isinstance(data, dict):
         return False
     region_data = data.get("region")
@@ -1311,6 +1535,15 @@ def load_state(data):
         "worst_case_region_revealed", worst_case_region_revealed
     )
     preset_used_ever = data.get("preset_used_ever", preset_used_ever)
+    worst_case_intro_seen = data.get("worst_case_intro_seen", worst_case_intro_seen)
+    saved_log = data.get("science_log")
+    if isinstance(saved_log, list):
+        science_log[:] = [
+            {"region": str(e.get("region", "A"))[:1], "round": int(e.get("round", 0)),
+             "text": str(e.get("text", ""))}
+            for e in saved_log
+            if isinstance(e, dict) and isinstance(e.get("round", 0), (int, float))
+        ][-SCIENCE_LOG_MAX:]
     document.getElementById("b-strategy-label-input").value = region_b.strategy_label
     document.getElementById("c-strategy-label-input").value = region_c.strategy_label
     render()

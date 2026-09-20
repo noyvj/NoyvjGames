@@ -262,3 +262,8 @@ Region B/Region C's comparison cards are dense (a mini-graph plus six stat lines
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag thaw-milestone-0N`.
 - Update the milestone table Status as work happens.
+
+## Round-2 build notes (2026-09-20)
+
+Done (planning/TODO.md "Per-game: Thaw"): G2 (Region A flavor subtitle), G4 (worst-case toggle tooltip), G6 (labelled melt-threshold gridline), G8 (warning icon on critical tier via CSS), G10 (combined three-region next-round tooltip with projections), G12 (one-time pre-emptive dampening callout), G14 (preset purchase previews in hover tooltips, computed on a scratch region), G16 (shape-coded trend arrows), G18 (tier icons in intervention message), G19 (collapsible scientist's log, capped at 40, persisted), G20 (tooltip + info toggle on the +15 milestone), G22 (personal best now spans A/B/C and records the region), G24 (acceleration pulse on entering critical), G26 (strategy-label placeholder example), G28 (rounds-since-tipping-event counter), G30 (first-reveal note for Region D). New state: per-region `just_became_critical`, `rounds_since_tipping_event`, `tipping_events`, `just_preempted_melt`; top-level `worst_case_intro_seen`, `science_log` (all default safely for old saves). Tests: `tests/test_round2_items.py`, 137 total.
+Left: G3, G5, G7, G9, G13, G15, G17, G21, G23, G27, G29 (larger mechanics), G11 (needs Z1; stats field set for thaw is only round/funds/temperature, no acceleration factor to compare).
