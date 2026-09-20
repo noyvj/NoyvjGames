@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 156/709 items checked off (22.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 172/709 items checked off (24.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -583,34 +583,34 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 
 ## Per-game: Thaw
 
-- [ ] G2: Let the region flavor lines be visible as a permanent subtitle under each region's name, not just discoverable once.
+- [x] G2: Let the region flavor lines be visible as a permanent subtitle under each region's name, not just discoverable once.
 - [ ] G3: A "permafrost carbon bank" mechanic — sustained low-acceleration play in a region banks a resource usable for a one-time bonus elsewhere.
-- [ ] G4: A tooltip on the Region D reveal toggle explaining what "worst case" means before the player reveals it.
+- [x] G4: A tooltip on the Region D reveal toggle explaining what "worst case" means before the player reveals it.
 - [ ] G5: A "tipping cascade" mechanic — once one region tips into the feedback loop, a small chance it accelerates a neighboring region too.
-- [ ] G6: Label the melt-threshold gridline with its exact temperature value, not just a dashed line.
+- [x] G6: Label the melt-threshold gridline with its exact temperature value, not just a dashed line.
 - [ ] G7: A "climate scientist" info-mode — an optional deeper data view showing real-world methane-release curves alongside the in-game graph.
-- [ ] G8: A small distinct color-independent icon on the critical melt-status tier, reinforcing its text label with a shape cue.
+- [x] G8: A small distinct color-independent icon on the critical melt-status tier, reinforcing its text label with a shape cue.
 - [ ] G9: A "long game" mode — significantly extend session length for players who want the full long-run trajectory.
-- [ ] G10: Let the next-round preview tooltip show all three regions' previews simultaneously in one combined tooltip.
+- [x] G10: Let the next-round preview tooltip show all three regions' previews simultaneously in one combined tooltip.
 - [ ] G11: A community "average acceleration factor" comparison, reinforcing the hope-angle message that intervention is common and effective *(needs Z1)*.
-- [ ] G12: A one-time callout the very first time `dampening_at_melt_start` is nonzero, praising the pre-emptive investment.
+- [x] G12: A one-time callout the very first time `dampening_at_melt_start` is nonzero, praising the pre-emptive investment.
 - [ ] G13: A "policy simulation" branch — choose a real-world-inspired regional policy stance at game start, subtly weighting starting dampening.
-- [ ] G14: Let the preset strategies show a small preview of the resulting investment split before committing.
+- [x] G14: Let the preset strategies show a small preview of the resulting investment split before committing.
 - [ ] G15: A "permafrost restoration" late-game mechanic — once a region stabilizes, sustained investment slowly reverses some melt.
-- [ ] G16: A small trend arrow next to each region's temperature readout, showing faster/slower rise than last round.
+- [x] G16: A small trend arrow next to each region's temperature readout, showing faster/slower rise than last round.
 - [ ] G17: A "four regions, one story" narrative thread connecting A/B/C/D lightly (a shared research effort or funding pool) without merging their independent mechanics.
-- [ ] G18: Let the intervention feedback message's tiered phrasing include a small icon per tier, not text alone.
-- [ ] G19: A "scientist's log" — a running, dated record of key moments per region, a lightweight version of Continuum's ongoing-log system.
-- [ ] G20: A tooltip explaining exactly what `SECOND_WARMING_MILESTONE` represents in real terms before it's ever crossed.
+- [x] G18: Let the intervention feedback message's tiered phrasing include a small icon per tier, not text alone.
+- [x] G19: A "scientist's log" — a running, dated record of key moments per region, a lightweight version of Continuum's ongoing-log system.
+- [x] G20: A tooltip explaining exactly what `SECOND_WARMING_MILESTONE` represents in real terms before it's ever crossed.
 - [ ] G21: A "region rescue" mechanic — a costly one-time emergency intervention if a region tips into critical, a last-resort lever.
-- [ ] G22: Let the best-run personal record show which region achieved it, not just the raw `temperature_saved` number.
+- [x] G22: Let the best-run personal record show which region achieved it, not just the raw `temperature_saved` number.
 - [ ] G23: A proper multi-session "climate archive" — a persistent record across many sessions of every region's best-ever performance.
-- [ ] G24: A small pulse on the acceleration-factor readout the instant a region crosses into the critical tier.
-- [ ] G26: Let the intervention free-text field show a short prompt/example answer as placeholder text.
+- [x] G24: A small pulse on the acceleration-factor readout the instant a region crosses into the critical tier.
+- [x] G26: Let the intervention free-text field show a short prompt/example answer as placeholder text.
 - [ ] G27: A "thaw forecast" mini-game — periodically predict next-round temperature before advancing, rewarded cosmetically for accuracy.
-- [ ] G28: A small "rounds since last tipping event" counter, giving stability its own visible streak like Grid's clean streaks.
+- [x] G28: A small "rounds since last tipping event" counter, giving stability its own visible streak like Grid's clean streaks.
 - [ ] G29: A "global vs. regional" framing toggle — the same mechanic reframed as either "my region's choices" or "the global aggregate."
-- [ ] G30: A one-time tooltip the first time Region D is revealed, clarifying it's fully automated and never needs player input.
+- [x] G30: A one-time tooltip the first time Region D is revealed, clarifying it's fully automated and never needs player input.
 
 **Explicitly rejected this round:** G1 — a fifth "wildcard" region — dropped; you don't think the game needs that many regions running.
 
