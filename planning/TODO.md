@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 3/709 items checked off (0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 4/709 items checked off (0.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -16,7 +16,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 
 *(Origin: Z1, accepted — "yes.")* A shared backend endpoint several other accepted ideas below depend on (Grid's C11/C15 comparisons, Canopy's community-forest comparison, SOL's compare-my-run/leaderboard, Continuum's benchmark-your-city, Herd's community stats extensions). One real decision and one real build, instead of every game separately floating its own "needs a new endpoint" caveat. Build this before touching any per-game item below that's marked "(needs Z1)."
 
-- [ ] Design and build the shared cross-game aggregate-stats endpoint on the existing FastAPI Cloud + Neon backend — decide what it aggregates (per-game average scores/completion stats, achievement rarity %, etc.) once, reused by every dependent feature below.
+- [x] Design and build the shared cross-game aggregate-stats endpoint on the existing FastAPI Cloud + Neon backend — decide what it aggregates (per-game average scores/completion stats, achievement rarity %, etc.) once, reused by every dependent feature below. Built: `/stats/games`, `/stats/games/{id}`, `/stats/games/{id}/percentile`, `/stats/achievements` (app/stats.py, commit 9266ba0; small-N suppression at 3, whitelist in `STATS_FIELDS`). Not yet deployed.
 
 ---
 
