@@ -280,6 +280,35 @@ body {
   font-size: 0.78rem;
 }
 
+/* Bug-check pass: the 3-column table's min-content width (long note text
+   like tag names) pushed the whole page wider than a 375px phone. Stack
+   each row's cells vertically on narrow screens and let long tokens wrap. */
+.roadmap-site-table td {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .roadmap-site-table,
+  .roadmap-site-table tbody,
+  .roadmap-site-table tr,
+  .roadmap-site-table td {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .roadmap-site-table tr {
+    padding: 0.4rem 0;
+    border-bottom: 1px solid rgba(140, 160, 255, 0.12);
+  }
+
+  .roadmap-site-table td,
+  .roadmap-site-table tr:last-child td {
+    border-bottom: none;
+    padding: 0.15rem 0.7rem;
+  }
+}
+
 .roadmap-generated-note {
   font-size: 0.72rem;
   opacity: 0.45;
