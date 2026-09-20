@@ -130,12 +130,15 @@
   .status-line { opacity: 0.6; font-size: 0.8rem; margin: 0 0 1rem; }
   .answer-list { margin: 0; padding-left: 1.1rem; }
   code { font-size: 0.82rem; background: rgba(5, 6, 13, 0.5); padding: 0.1rem 0.35rem; border-radius: 4px; }
+.skip-link-admin{position:absolute;left:-9999px;top:0;background:#a9c3ff;color:#111;padding:.5rem 1rem;z-index:100}.skip-link-admin:focus{left:0}
+:focus-visible{outline:2px solid #a9c3ff}
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link-admin">Skip to content</a>
 <div class="space-bg" aria-hidden="true"><div class="space-bg-nebula"></div><div class="space-bg-stars-bright"></div></div>
 
-<main>
+<main id="main-content" tabindex="-1">
   <h1>SITE ADMIN</h1>
   <p id="subtitle">Ratings, feedback, and French answer reports — pulled live from the existing public read endpoints, nothing new exposed.</p>
 

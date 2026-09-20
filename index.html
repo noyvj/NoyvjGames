@@ -13,6 +13,7 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 </head>
 <body>
+  <a class="skip-link" href="#game-grid">Skip to games</a>
   <div class="space-bg" aria-hidden="true"><div class="space-bg-nebula"></div><div class="space-bg-stars-bright"></div></div>
   <header id="hub-header">
     <nav class="hub-nav">
@@ -63,12 +64,13 @@
         <button type="button" id="account-login-button" class="secondary">Sign In</button>
         <button type="button" id="account-signup-button" class="secondary">Create Account</button>
       </div>
-      <p id="account-status" class="account-status"></p>
+      <p id="account-status" class="account-status" role="status"></p>
     </div>
     <div id="account-signed-in" hidden>
       <p id="account-username-display" class="account-username-display"></p>
       <p id="account-member-since" class="account-password-hint" hidden></p>
       <button type="button" id="account-signout-button" class="account-link-button">Sign out</button>
+      <div id="account-event-badges" class="achievements-dashboard" hidden></div>
       <div id="account-my-saves"></div>
       <div id="account-achievements-dashboard" class="achievements-dashboard"></div>
     </div>
@@ -115,7 +117,7 @@
   <p id="game-sort-status" class="game-filter-empty" role="status" hidden></p>
   <p id="game-filter-empty" class="game-filter-empty" hidden>No games match your search.</p>
 
-  <main id="game-grid">
+  <main id="game-grid" tabindex="-1">
     <article class="title-card" data-tags="space deep-systems">
       <a class="title-card-link" href="games/sol/index.html">
         <div class="title-card-thumb title-card-thumb--space"></div>
@@ -407,6 +409,9 @@
   </section>
 
   <footer class="hub-footer">
+    <span class="hub-footer-name">NoyvjGames</span>
+    <a href="https://github.com/noyvj/NoyvjGames" target="_blank" rel="noopener noreferrer">Source on GitHub</a>
+    <a href="#site-feedback-section">Feedback / Contact</a>
     <a href="terms.html">Terms &amp; Privacy</a>
     <a href="whats-new.html">What's New</a>
     <a href="roadmap.html">Roadmap</a>

@@ -1291,3 +1291,25 @@ button.secondary:disabled {
 .pageview-count-text {
   opacity: 0.85;
 }
+
+/* R1-L13: skip-to-content link, visible only on keyboard focus */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 10001;
+  background: #a9c3ff;
+  color: #111;
+  padding: 0.55rem 1rem;
+  border-radius: 0 0 8px 0;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+.skip-link:focus { left: 0; }
+#game-grid:focus, main[tabindex="-1"]:focus, #hub-header:focus { outline: none !important; }
+
+.hub-footer-name { opacity: 0.6; font-weight: 600; letter-spacing: 0.04em; }
+
+/* R2-Z23b: earned event badges (account area) */
+.event-badge-list { list-style: none; margin: 0.3rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.event-badge { padding: 0.25rem 0.65rem; border: 1px solid #a9c3ff; border-radius: 999px; font-size: 0.78rem; background: rgba(111, 143, 224, 0.15); }

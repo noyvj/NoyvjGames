@@ -12,22 +12,51 @@ const AUTH_USERNAME_KEY = "hub_account_username";
 // signup); it's simply omitted otherwise rather than guessed.
 const AUTH_SINCE_KEY = "hub_account_since";
 
+// R1-L13: the star row is a WAI-ARIA radiogroup with a roving tabindex --
+// one Tab stop for the whole row, Left/Right/Up/Down (Home/End) move and
+// select, Space/Enter on a focused star selects it (native button click).
+function syncStarA11y(ratingWidget) {
+  const value = Number(ratingWidget.dataset.rating) || 0;
+  const stars = Array.from(ratingWidget.querySelectorAll(".star"));
+  stars.forEach((s, i) => {
+    const n = Number(s.dataset.value);
+    s.setAttribute("role", "radio");
+    s.setAttribute("aria-checked", String(n === value));
+    s.setAttribute("aria-label", `${n} star${n === 1 ? "" : "s"}`);
+    s.tabIndex = n === value || (value === 0 && i === 0) ? 0 : -1;
+    s.classList.toggle("selected", n <= value);
+  });
+}
+
 function bindStarRating(ratingWidget) {
-  const stars = ratingWidget.querySelectorAll(".star");
+  const stars = Array.from(ratingWidget.querySelectorAll(".star"));
+  ratingWidget.setAttribute("role", "radiogroup");
+  if (!ratingWidget.hasAttribute("aria-label")) ratingWidget.setAttribute("aria-label", "Your rating");
+  const choose = (value, focus) => {
+    ratingWidget.dataset.rating = String(value);
+    syncStarA11y(ratingWidget);
+    if (focus) stars[value - 1].focus();
+  };
   stars.forEach((star) => {
-    star.addEventListener("click", () => {
-      const value = Number(star.dataset.value);
-      ratingWidget.dataset.rating = String(value);
-      stars.forEach((s) => {
-        s.classList.toggle("selected", Number(s.dataset.value) <= value);
-      });
+    star.addEventListener("click", () => choose(Number(star.dataset.value), false));
+    star.addEventListener("keydown", (e) => {
+      const cur = Number(star.dataset.value);
+      let next = null;
+      if (e.key === "ArrowRight" || e.key === "ArrowUp") next = Math.min(stars.length, cur + 1);
+      else if (e.key === "ArrowLeft" || e.key === "ArrowDown") next = Math.max(1, cur - 1);
+      else if (e.key === "Home") next = 1;
+      else if (e.key === "End") next = stars.length;
+      if (next === null) return;
+      e.preventDefault();
+      choose(next, true);
     });
   });
+  syncStarA11y(ratingWidget);
 }
 
 function resetStarRating(ratingWidget) {
   ratingWidget.dataset.rating = "0";
-  ratingWidget.querySelectorAll(".star").forEach((s) => s.classList.remove("selected"));
+  syncStarA11y(ratingWidget);
 }
 
 // Y6: a five-star glyph row filled to the average's fraction (a
@@ -578,6 +607,7 @@ function showSignedIn(username) {
     memberSince.hidden = !since;
     if (since) memberSince.textContent = `Member since ${since}`;
   }
+  renderEventBadges(null);
   loadMySaves();
   loadAchievementsDashboard();
   loadContinuePlaying();
@@ -670,6 +700,74 @@ const GAME_DISPLAY_NAMES = {
   drift: "Drift",
   "champ-de-mots": "Le Champ de Mots",
 };
+
+// --- R2-Z23b: earned holiday-event badges (data contract v1) ---
+//
+// Contract (documented in planning/ACHIEVEMENTS-SYSTEM-DESIGN.md §8): a
+// game records an earned event badge as an entry in `event_badges`, an
+// array of { id, label, earned_at } where
+//   id         lowercase slug, /^[a-z0-9-]{1,64}$/, e.g. "christmas-2026"
+//   label      short display text (<= 60 chars), e.g. "Christmas 2026"
+//   earned_at  ISO date/datetime string (<= 32 chars)
+// in either place (the hub reads both and de-dupes by id):
+//   1. the game's save state -- `save_data.event_badges`, same pattern as
+//      `save_data.achievements_earned` (travels with the account's saves);
+//   2. localStorage key "event_badges_v1" holding
+//      { "version": 1, "badges": [ ...same entries... ] } (this device only,
+//      for games/events that don't write into a save).
+// Unknown versions and malformed entries are ignored, never thrown on.
+const EVENT_BADGES_LS_KEY = "event_badges_v1";
+const accountEventBadges = document.getElementById("account-event-badges");
+
+function sanitizeEventBadges(list) {
+  if (!Array.isArray(list)) return [];
+  return list
+    .filter(
+      (b) =>
+        b &&
+        typeof b.id === "string" && /^[a-z0-9-]{1,64}$/.test(b.id) &&
+        typeof b.label === "string" && b.label.trim() && b.label.length <= 60 &&
+        (b.earned_at === undefined || (typeof b.earned_at === "string" && b.earned_at.length <= 32))
+    )
+    .map((b) => ({ id: b.id, label: b.label.trim(), earned_at: b.earned_at || "" }));
+}
+
+function collectEventBadges(saves) {
+  const found = [];
+  try {
+    const raw = localStorage.getItem(EVENT_BADGES_LS_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (parsed && parsed.version === 1) found.push(...sanitizeEventBadges(parsed.badges));
+  } catch (err) { /* malformed or unavailable storage -- ignore */ }
+  (Array.isArray(saves) ? saves : []).forEach((save) => {
+    if (save && save.save_data) found.push(...sanitizeEventBadges(save.save_data.event_badges));
+  });
+  const byId = new Map();
+  found.forEach((b) => { if (!byId.has(b.id)) byId.set(b.id, b); });
+  return Array.from(byId.values());
+}
+
+function renderEventBadges(saves) {
+  if (!accountEventBadges) return;
+  const badges = collectEventBadges(saves);
+  accountEventBadges.innerHTML = "";
+  accountEventBadges.hidden = badges.length === 0;
+  if (!badges.length) return;
+  const heading = document.createElement("p");
+  heading.className = "achievements-dashboard-heading";
+  heading.textContent = "Event badges";
+  accountEventBadges.appendChild(heading);
+  const list = document.createElement("ul");
+  list.className = "event-badge-list";
+  badges.forEach((b) => {
+    const li = document.createElement("li");
+    li.className = "event-badge";
+    li.textContent = b.label;
+    if (b.earned_at) li.title = `Earned ${b.earned_at.slice(0, 10)}`;
+    list.appendChild(li);
+  });
+  accountEventBadges.appendChild(list);
+}
 
 const accountAchievementsDashboard = document.getElementById("account-achievements-dashboard");
 
@@ -782,6 +880,7 @@ async function loadAchievementsDashboard() {
     ]);
     if (!savesRes.ok) throw new Error(`status ${savesRes.status}`);
     const saves = await savesRes.json();
+    renderEventBadges(saves);
 
     accountAchievementsDashboard.innerHTML = "";
     const heading = document.createElement("p");
@@ -868,6 +967,10 @@ async function submitAuth(endpoint, triggerButton, busyText, idleText) {
     accountPasswordInput.value = "";
     accountStatus.textContent = "";
     showSignedIn(body.username);
+    // R1-L13: the focused Sign In button just left the DOM flow (hidden
+    // view) -- put keyboard focus on the new view's heading line instead.
+    accountUsernameDisplay.setAttribute("tabindex", "-1");
+    accountUsernameDisplay.focus({ preventScroll: true });
   } catch (err) {
     accountStatus.textContent = "Couldn't reach the server — try again.";
   } finally {
@@ -884,6 +987,16 @@ accountSignupButton.addEventListener("click", () =>
   submitAuth("/auth/signup", accountSignupButton, "Creating...", "Create Account")
 );
 
+// R1-L13: Enter in either field signs in (they aren't inside a <form>).
+[accountUsernameInput, accountPasswordInput].forEach((input) =>
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !accountLoginButton.disabled) {
+      e.preventDefault();
+      accountLoginButton.click();
+    }
+  })
+);
+
 accountSignoutButton.addEventListener("click", () => {
   // The session is dropped immediately; only the view switch waits a beat
   // so a "Signed out" confirmation is actually seen (Y18).
@@ -898,6 +1011,7 @@ accountSignoutButton.addEventListener("click", () => {
     accountSignoutButton.textContent = "Sign out";
     showSignedOut();
     accountStatus.textContent = "You've been signed out.";
+    accountUsernameInput.focus({ preventScroll: true });
   }, 900);
 });
 

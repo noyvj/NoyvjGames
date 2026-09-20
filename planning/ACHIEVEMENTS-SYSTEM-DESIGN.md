@@ -120,3 +120,7 @@ For each of the remaining 11 games, in order:
 10. Commit + tag per that game's existing milestone convention (e.g. `git commit -m "Milestone N: Achievements"` then the game's own tag pattern).
 
 Nothing in this checklist requires touching `app/` (the FastAPI backend) or any other already-shipped game — each game's rollout is fully independent of every other's, which is what makes staging this across 11 separate future tasks safe.
+
+## 8. Event badges data contract (v1, R2-Z23b)
+
+Hub-side display of earned holiday-event badges (e.g. a week-long Christmas event) is built in `script.js` (`renderEventBadges`); the per-game event mechanism (Z23) is separate. A game records a badge as `{ id, label, earned_at }` (`id` = `/^[a-z0-9-]{1,64}$/` slug like `christmas-2026`, `label` <= 60 chars, `earned_at` ISO string <= 32 chars) in either `save_data.event_badges` (an array in its save state, like `achievements_earned`) or the `localStorage` key `event_badges_v1` = `{ "version": 1, "badges": [...] }`. The hub unions both, de-dupes by `id`, ignores malformed entries/unknown versions, and shows an "Event badges" block in the signed-in account area (hidden when empty).
