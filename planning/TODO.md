@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 120/708 items checked off (16.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 143/708 items checked off (20.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -506,36 +506,36 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 
 ## Per-game: Aftermath
 
-- [ ] E1: A sixth and seventh skill node, extending the existing prerequisite-tree pattern into a genuine multi-branch tree — **"will add a bunch of new nodes with important decisions,"** per your note, so treat this as a real tree expansion, not just two extra leaves.
-- [ ] E2: Let the skill-unlock toast persist slightly longer for skills with more real-world grounding text to read.
-- [ ] E3: A "disaster type specialization" — the skill tree branches into weather-focused vs. social-shock-focused resilience paths, giving Civil Unrest its own upgrade path.
-- [ ] E4: A small "runs completed" counter always visible, not just inside the Review Past Runs panel.
-- [ ] E5: A "generational memory" mechanic — a run occasionally references a specific past run's outcome in its event flavor text, deepening the legacy system.
-- [ ] E6: Let the extended-run mode show its exact new event count in the toggle's own label.
-- [ ] E7: A proper difficulty-scaling curve across many runs — event severity variation could also scale with total lifetime runs played.
-- [ ] E8: A one-time tooltip the first time a run scores negative, reassuring the player the skill tree persists regardless.
+- [x] E1: A sixth and seventh skill node, extending the existing prerequisite-tree pattern into a genuine multi-branch tree — **"will add a bunch of new nodes with important decisions,"** per your note, so treat this as a real tree expansion, not just two extra leaves.
+- [x] E2: Let the skill-unlock toast persist slightly longer for skills with more real-world grounding text to read.
+- [x] E3: A "disaster type specialization" — the skill tree branches into weather-focused vs. social-shock-focused resilience paths, giving Civil Unrest its own upgrade path.
+- [x] E4: A small "runs completed" counter always visible, not just inside the Review Past Runs panel.
+- [x] E5: A "generational memory" mechanic — a run occasionally references a specific past run's outcome in its event flavor text, deepening the legacy system.
+- [x] E6: Let the extended-run mode show its exact new event count in the toggle's own label.
+- [x] E7: A proper difficulty-scaling curve across many runs — event severity variation could also scale with total lifetime runs played.
+- [x] E8: A one-time tooltip the first time a run scores negative, reassuring the player the skill tree persists regardless.
 - [ ] E9: A "community resilience index" — an aggregate stat showing average skill-tree strength across all players *(needs Z1)* — **you flagged this for a fuller build-out once the multiplayer update and "holiday events" (see Z23) land**, so treat the Z1-dependent version here as a first pass, not the final shape.
-- [ ] E10: Let the toughest-run-yet comparison show the specific event sequence that made it toughest, not just the score.
-- [ ] E12: A small badge on the settlement art for reaching a "toughest run" personal best, not just per-skill badges.
-- [ ] E13: A proper narrative epilogue at the end of an extended run, in Continuum's era-transition-beat spirit, scaled to Aftermath's shorter format.
-- [ ] E14: Let the expected-damage preview show a confidence range, not just a single number.
-- [ ] E15: A "specialize or generalize" build-diversity achievement family, rewarding both a narrow deep-investment strategy and a broad balanced one.
-- [ ] E16: A small animated flourish on the Review Past Runs panel when a run's score beats the previous best.
+- [x] E10: Let the toughest-run-yet comparison show the specific event sequence that made it toughest, not just the score.
+- [x] E12: A small badge on the settlement art for reaching a "toughest run" personal best, not just per-skill badges.
+- [x] E13: A proper narrative epilogue at the end of an extended run, in Continuum's era-transition-beat spirit, scaled to Aftermath's shorter format.
+- [x] E14: Let the expected-damage preview show a confidence range, not just a single number.
+- [x] E15: A "specialize or generalize" build-diversity achievement family, rewarding both a narrow deep-investment strategy and a broad balanced one.
+- [x] E16: A small animated flourish on the Review Past Runs panel when a run's score beats the previous best.
 - [ ] E17a: A "climate scenario pack" — choose among a few real-world-grounded event-schedule variants (coastal/inland/urban) at run start.
 - [ ] E17b: Extend E17a to real named locations (per your example: San Francisco skews earthquake/fire risk with near-zero snow/hurricane risk), not just generic region types.
-- [ ] E18: Let the knowledge-points-live-preview show a small "+" animation when it increases.
+- [x] E18: Let the knowledge-points-live-preview show a small "+" animation when it increases.
 - [ ] E19: A proper "resilience curriculum" mode — a guided sequence of runs with specific goals each time.
-- [ ] E20: A tooltip explaining exactly how skill-tree strength affects severity variation.
-- [ ] E22: Let the reset-skill-tree two-click confirm show exactly how many knowledge points will be refunded before the second click.
+- [x] E20: A tooltip explaining exactly how skill-tree strength affects severity variation.
+- [x] E22: Let the reset-skill-tree two-click confirm show exactly how many knowledge points will be refunded before the second click.
 - [ ] E23: A community "hardest schedule survived" leaderboard, since severity variation means no two hard runs are identical *(needs Z1)*.
-- [ ] E24: A small icon per event category (weather/non-weather/social) in the Review Past Runs list itself, not just the live event display.
-- [ ] E25: A proper "settlement identity" customization — name the settlement once, carried across all runs.
-- [ ] E26: Let the export/import progress code show a short human-readable summary of its contents before copying.
+- [x] E24: A small icon per event category (weather/non-weather/social) in the Review Past Runs list itself, not just the live event display.
+- [x] E25: A proper "settlement identity" customization — name the settlement once, carried across all runs.
+- [x] E26: Let the export/import progress code show a short human-readable summary of its contents before copying.
 - [ ] E27: A "resilience mentor" onboarding mode — an optional guided first run with inline suggestions, distinct from the standard tutorial.
-- [ ] E28: A one-time callout the first time severity variation swings notably harsher due to skill-tree strength, explaining why.
+- [x] E28: A one-time callout the first time severity variation swings notably harsher due to skill-tree strength, explaining why.
 - [ ] E29: A "societal memory" system — a very bad past-run outcome permanently unlocks a unique defensive skill not otherwise available.
-- [ ] E30a: A small "X runs until next skill affordable" estimate next to a locked skill's cost, based on average knowledge-point earn rate.
-- [ ] E30b: A "pin" feature so the player can mark specific skills they're saving toward and have E30a's estimate tracked for exactly those, per your addition.
+- [x] E30a: A small "X runs until next skill affordable" estimate next to a locked skill's cost, based on average knowledge-point earn rate.
+- [x] E30b: A "pin" feature so the player can mark specific skills they're saving toward and have E30a's estimate tracked for exactly those, per your addition.
 
 **Explicitly rejected this round:** E21 — the "what would have happened" hypothetical-skill-tree replay — dropped, not carried anywhere.
 
