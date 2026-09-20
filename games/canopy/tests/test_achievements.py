@@ -342,15 +342,26 @@ def test_toast_fires_on_a_fresh_unlock(game_env):
 
 
 def test_toast_does_not_fire_for_already_earned_achievements(game_env):
+    # A tick first, so the cleared plot actually holds a nonzero payout --
+    # clearing at tick 0 would pay out 0.0, which never beats a starting
+    # personal_best of 0.0 and so wouldn't schedule Z6's flash at all. That
+    # tick schedules its own unrelated value-pop timer, so clear it out
+    # before counting the ones the clear itself schedules.
+    game_env.tick(1)
+    game_env.timers.pending.clear()
     game_env.select(0)
     game_env.clear()
-    assert len(game_env.timers.pending) == 1  # the one auto-hide timeout from this real unlock
+    # Two timers from this one real unlock: the achievement toast's
+    # auto-hide, plus Z6's personal-best badge flash (this clear's income
+    # beats the session's starting personal_best of zero).
+    assert len(game_env.timers.pending) == 2
 
     # A second, unrelated render (a plain tick) must not re-toast
-    # first_clear -- only genuinely *new* unlocks should show up, so no
-    # second auto-hide timeout should get scheduled.
+    # first_clear, and must not re-flash the personal-best badge either
+    # (nothing new was beaten) -- only genuinely *new* events should
+    # schedule timers, so no third timeout should get scheduled.
     game_env.tick(1)
-    assert len(game_env.timers.pending) == 1
+    assert len(game_env.timers.pending) == 2
 
 
 def test_no_toast_on_a_freshly_booted_game(game_env):

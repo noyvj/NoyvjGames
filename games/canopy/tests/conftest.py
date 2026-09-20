@@ -37,6 +37,7 @@ ELEMENT_IDS = [
     "state-breakdown-display",
     "community-relations-display",
     "personal-best-display",
+    "legacy-bonus-display",
     "stakeholder-panel",
     "stakeholder-message",
     "stakeholder-grant-button",

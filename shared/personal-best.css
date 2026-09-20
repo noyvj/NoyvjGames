@@ -1,0 +1,41 @@
+/* Z6 (planning/TODO.md "Z. Games"): shared "new personal best" badge
+   pattern. Canopy, Tide, and Thaw had each independently built almost the
+   exact same `.personal-best-display` rule (persistent italic label,
+   opacity 0.7, medal-emoji prefix via ::before) -- this file is that rule
+   said once, consolidated. Class-based, not ID-based, so it works no
+   matter what element id a given game uses for its own label
+   (Canopy/Thaw: #personal-best-display, Tide: #best-coastline-display).
+
+   Opt-in per game via <link>, same convention as shared/info-page.css --
+   not every game has a personal-best concept (SOL and Grid don't; see
+   planning/TODO.md's Z6 note), so this isn't forced into ad-bar.css or
+   any other universally-loaded stylesheet. */
+
+.personal-best-display {
+  margin: 0.6rem 0 0;
+  font-size: 0.78rem;
+  opacity: 0.7;
+  font-style: italic;
+  transition: opacity 0.3s ease, color 0.3s ease;
+}
+
+.personal-best-display::before {
+  content: "🏅 ";
+}
+
+/* The actual "badge" moment: added for ~1.8s by each game's own game.py
+   right when a session beats its stored best, so the medal briefly lights
+   up instead of the label just silently updating. Self-clears via
+   setTimeout in each game's own code (see e.g. Canopy's
+   _maybe_update_personal_best()), not via animation-fill-mode, so it
+   still works if a game's render() cadence is slower than the animation. */
+.personal-best-display.just-improved {
+  opacity: 1;
+  color: #e0c24c;
+  animation: personal-best-pulse 1.8s ease-out;
+}
+
+@keyframes personal-best-pulse {
+  0% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}

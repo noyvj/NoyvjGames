@@ -497,7 +497,20 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None):
     global highland_unlocked, highland_plots, highland_selected_index, highland_income
     global _highland_plot_click_proxies, _reset_confirm_armed
     global forest_log, forest_tick, adopted_plot_index, current_difficulty
+    global legacy_multiplier
 
+    # B15: bank this (about-to-end) session's standing value for the next
+    # session's legacy bonus, then reload the multiplier so the session
+    # that's about to start immediately reflects it -- not just a future
+    # page load. Skipped on the very first call (plots is still empty
+    # before the module has ever had a session), so there's nothing to
+    # bank yet.
+    if plots:
+        _bank_legacy_value()
+        legacy_multiplier = load_legacy_bonus()
+
+    _personal_best_flashed["standing_value"] = False
+    _personal_best_flashed["income"] = False
     _reset_confirm_armed = False
     if difficulty is not None:
         if difficulty not in DEGRADE_PER_CLEAR_BY_DIFFICULTY:
@@ -1261,6 +1274,68 @@ def load_personal_best():
 
 personal_best = load_personal_best()
 
+# Z6: one-shot-per-session guard so _maybe_update_personal_best() flashes
+# the badge exactly once per axis per session, not on every tick after the
+# stored best is first beaten -- see that function's docstring.
+_personal_best_flashed = {"standing_value": False, "income": False}
+
+# B15 (planning/TODO.md "Per-game: Canopy"): "legacy forest" -- a fresh
+# session starts with a small permanent economic-growth bonus based on
+# the standing forest value the *previous* session ended with, banked to
+# localStorage the moment reset_session() wipes state for a new one --
+# same per-browser pattern as personal_best above. A first-ever session
+# has nothing banked yet, so it starts at the neutral 1.0 multiplier
+# (this is what makes it "opt-in" in practice: nothing changes until a
+# real session has actually ended once). Built independently of any
+# shared cross-game meta-progression module, per planning/TODO.md's Z3
+# resolution ("better to let each game build its own").
+LEGACY_STORAGE_KEY = "canopy_legacy_forest_v1"
+LEGACY_BONUS_PER_BANKED_VALUE = 0.0002  # +0.02% growth per 1 banked value point
+LEGACY_MAX_BONUS = 0.25  # capped so legacy can never dwarf the base game
+
+
+def load_legacy_bonus():
+    """Reads the banked standing value from the previous session and
+    converts it into a growth multiplier, defaulting to 1.0 (no bonus) if
+    nothing is banked yet, storage is unavailable, or the stored value is
+    malformed."""
+    raw = _read_local_storage_item(LEGACY_STORAGE_KEY)
+    banked = 0.0
+    if raw:
+        try:
+            banked = max(0.0, float(json.loads(raw).get("banked_value", 0.0)))
+        except (ValueError, TypeError, AttributeError):
+            banked = 0.0
+    return 1.0 + min(LEGACY_MAX_BONUS, banked * LEGACY_BONUS_PER_BANKED_VALUE)
+
+
+def _bank_legacy_value():
+    """Called from reset_session() just before state is wiped -- banks
+    this session's final standing value for the *next* session's legacy
+    bonus. Replaces whatever was banked before (this session's own most
+    recent result, not a lifetime max, matching B15's own "based on a
+    previous session's final standing value" wording)."""
+    _write_local_storage_item(
+        LEGACY_STORAGE_KEY, json.dumps({"banked_value": standing_forest_value()})
+    )
+
+
+legacy_multiplier = load_legacy_bonus()
+
+
+def current_legacy_multiplier():
+    return legacy_multiplier
+
+
+def render_legacy_bonus():
+    element = document.getElementById("legacy-bonus-display")
+    if element is None:
+        return
+    if legacy_multiplier <= 1.0:
+        element.innerText = "Legacy bonus: none yet — it's set the first time a session ends."
+    else:
+        element.innerText = f"Legacy bonus: +{(legacy_multiplier - 1) * 100:.1f}% growth, from your last session's forest."
+
 
 def _maybe_update_personal_best():
     """Called every render(); bumps + persists personal_best whenever the
@@ -1268,17 +1343,33 @@ def _maybe_update_personal_best():
     one combined score -- income vs. standing value is the game's own
     central two-axis comparison, and collapsing them into one number
     would lose exactly the distinction the rest of the game is built
-    around."""
+    around.
+
+    Both axes climb every tick during ordinary preserved-plot accrual, so
+    once a session has beaten a stored best it would otherwise keep
+    re-beating its own just-bumped record on every following tick --
+    the flash would spam constantly instead of marking one felt moment.
+    `_personal_best_flashed` makes each axis's flash fire at most once per
+    session (still comparing against the true stored best, so a session
+    that beats it on both axes in the same tick still only flashes once)."""
     standing_value = standing_forest_value()
-    changed = False
+    persist = False
+    flash = False
     if standing_value > personal_best["standing_value"]:
         personal_best["standing_value"] = standing_value
-        changed = True
+        persist = True
+        if not _personal_best_flashed["standing_value"]:
+            _personal_best_flashed["standing_value"] = True
+            flash = True
     if total_income > personal_best["income"]:
         personal_best["income"] = total_income
-        changed = True
-    if changed:
+        persist = True
+        if not _personal_best_flashed["income"]:
+            _personal_best_flashed["income"] = True
+            flash = True
+    if persist:
         _write_local_storage_item(PERSONAL_BEST_STORAGE_KEY, json.dumps(personal_best))
+    if flash:
         _flash_personal_best_badge()
 
 
@@ -1364,12 +1455,29 @@ def _ideal_accrual_for_ticks(n):
     Plot.accrue_tick()'s own formula (BASE_ACCRUAL * productivity_
     multiplier() * (1 + ticks_intact * GROWTH_PER_TICK)) summed over
     ticks_intact = 1..n with productivity_multiplier() fixed at 1.0 (no
-    clearing, so no soil degradation). Closed-form sum of an arithmetic
-    sequence rather than a loop -- a long session can have thousands of
-    ticks by the time a player opens this panel."""
+    clearing, so no soil degradation).
+
+    B17/B15 made the per-tick multiplier season-dependent (and scaled by a
+    session-constant legacy bonus), so the old closed-form arithmetic-sum
+    no longer matches accrue_tick()'s real formula -- season changes every
+    SEASON_CYCLE_TICKS, breaking the single-ratio assumption a closed form
+    needs. Looping is the only way to stay exact; tick() runs at ~1/sec so
+    even an hours-long session is a few thousand cheap iterations, run only
+    on demand when the summary panel is opened (never per-tick).
+
+    `start_tick` is forest_tick's value when *this session* began -- tick()
+    increments forest_tick before calling accrue_tick(), so the season in
+    effect during the plot's j-th accrual this session was whatever
+    current_season() would have returned at absolute forest_tick
+    (start_tick + j)."""
     if n <= 0:
         return 0.0
-    return BASE_ACCRUAL * (n + GROWTH_PER_TICK * n * (n + 1) / 2)
+    start_tick = forest_tick - _session_ticks
+    total = 0.0
+    for j in range(1, n + 1):
+        season = SEASONS[((start_tick + j) // SEASON_CYCLE_TICKS) % len(SEASONS)]
+        total += BASE_ACCRUAL * (1 + j * GROWTH_PER_TICK) * SEASON_GROWTH_MULTIPLIER[season]
+    return total * current_legacy_multiplier()
 
 
 def counterfactual_standing_value():
@@ -1651,6 +1759,7 @@ def render_stats():
     )
     _maybe_update_personal_best()
     render_personal_best()
+    render_legacy_bonus()
 
 
 INCENTIVE_MESSAGE_TOOLTIP = (
