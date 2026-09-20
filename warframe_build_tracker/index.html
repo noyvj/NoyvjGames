@@ -51,6 +51,26 @@
     button below, same as any other game on the hub.
   </div>
 
+  <div class="notice">
+    <strong>Import from a real inventory snapshot (optional):</strong>
+    if you've run <a href="https://github.com/Sainan/warframe-api-helper" target="_blank">warframe-api-helper</a>
+    or AlecaFrame, you'll have a <code>lastData.dat</code> (or <code>inventory.json</code>)
+    file — upload it below to auto-fill your resource "built" counts from
+    your real in-game inventory instead of typing them by hand. Everything
+    happens in your browser; the file is never sent anywhere. This matches
+    resource names by the tail end of their internal game path, so it's a
+    best-effort match, not guaranteed exhaustive — the summary after
+    uploading tells you exactly what did and didn't match, so you can fill
+    any gaps manually. Only resource "built" counts are touched; part-owned
+    counts and "raw" amounts are untouched, since a built component isn't
+    tracked as a standalone countable item in Warframe's own data.
+    <div class="actions" style="margin-top: 10px;">
+      <button type="button" id="import-lastdata-button" class="secondary">Import lastData.dat / inventory.json</button>
+      <input type="file" id="import-lastdata-input" accept=".dat,.json" hidden>
+    </div>
+    <p id="import-summary" class="sync"></p>
+  </div>
+
   <p id="status-message" class="sync"></p>
 
   <section>
@@ -111,6 +131,71 @@
     await pyodide.runPythonAsync(code);
   }
   main();
+</script>
+<!--
+  X-b (planning/TODO2.md): lastData.dat / inventory.json import.
+
+  lastData.dat is just the real Digital Extremes mobile-inventory-API JSON
+  response, AES-128-CBC + PKCS7 encrypted with a key/IV that's hardcoded
+  and published in the open-source warframe-api-helper tool itself (see
+  https://github.com/Sainan/warframe-api-helper/blob/master/main.cpp) --
+  not a secret, so decrypting it client-side with the browser's own Web
+  Crypto API needs no server round-trip and no dependency. That same tool
+  also writes a plain inventory.json sibling with the exact same content,
+  so this accepts either: valid JSON is used as-is, anything else is
+  assumed to be the encrypted .dat and run through AES-CBC first.
+
+  Decryption happens here in plain JS (not Pyodide) -- same "Python owns
+  state, JS owns the one external thing it needs" split the save-widget's
+  own fetch calls already use -- then the resulting JSON text is handed
+  into Python as a single string for game.py's import_last_data() to
+  parse/match/apply, since the actual matching logic belongs with the
+  rest of this app's state management, not duplicated in JS.
+-->
+<script>
+  (function () {
+    const KEY_BYTES = new Uint8Array([76, 69, 79, 45, 65, 76, 69, 67, 9, 69, 79, 45, 65, 76, 69, 67]);
+    const IV_BYTES = new Uint8Array([49, 50, 70, 71, 66, 51, 54, 45, 76, 69, 51, 45, 113, 61, 57, 0]);
+
+    const importButton = document.getElementById("import-lastdata-button");
+    const importInput = document.getElementById("import-lastdata-input");
+    const importSummary = document.getElementById("import-summary");
+
+    async function decryptLastData(bytes) {
+      const key = await crypto.subtle.importKey("raw", KEY_BYTES, { name: "AES-CBC" }, false, ["decrypt"]);
+      const plaintext = await crypto.subtle.decrypt({ name: "AES-CBC", iv: IV_BYTES }, key, bytes);
+      return new TextDecoder("utf-8").decode(plaintext);
+    }
+
+    importButton.addEventListener("click", () => importInput.click());
+
+    importInput.addEventListener("change", async () => {
+      const file = importInput.files[0];
+      if (!file) return;
+      importSummary.textContent = "Reading file...";
+      try {
+        const buffer = await file.arrayBuffer();
+        let jsonText;
+        try {
+          // Try as plain JSON first (the tool's own inventory.json sibling).
+          jsonText = new TextDecoder("utf-8").decode(buffer);
+          JSON.parse(jsonText);
+        } catch (plainErr) {
+          // Not plain JSON -- assume it's the encrypted lastData.dat.
+          jsonText = await decryptLastData(buffer);
+          JSON.parse(jsonText); // throws if decryption produced garbage
+        }
+        const summary = pyodide.globals.get("import_last_data")(jsonText);
+        importSummary.textContent = summary;
+      } catch (err) {
+        importSummary.textContent =
+          "Couldn't read that file as either plain JSON or an encrypted lastData.dat. " +
+          "Make sure it's an unmodified file from warframe-api-helper or AlecaFrame.";
+      } finally {
+        importInput.value = "";
+      }
+    });
+  })();
 </script>
 <!--
   Reuses the hub's existing account + save-code system unmodified —

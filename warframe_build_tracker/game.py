@@ -18,6 +18,7 @@ into this file).
 """
 
 import copy
+import json
 
 from js import confirm, document
 from pyodide.ffi import create_proxy
@@ -266,6 +267,18 @@ RECIPES = {
 }
 
 
+def _normalize_resource_key(name):
+    """Strips spaces/punctuation and lowercases, so e.g. "Tear Azurite"
+    matches an internal game path ending in ".../TearAzurite" regardless
+    of exact casing/separator conventions -- see import_last_data()'s own
+    docstring for why this is a deliberately fuzzy tail-match rather than
+    a hardcoded exact-path lookup table."""
+    return "".join(ch for ch in name if ch.isalnum()).lower()
+
+
+_RESOURCE_MATCH_KEYS = {_normalize_resource_key(name): name for name in RESOURCE_LOCATIONS}
+
+
 def flatten_recipe(item_name, multiplier, out=None, stack=None):
     """Recursively converts a component requirement into lowest-level
     resources. If a resource has its own crafting recipe in RECIPES, it is
@@ -445,6 +458,75 @@ def load_state(data):
             inv["built"] = max(0, int(amounts["built"]))
 
     render()
+
+
+def import_last_data(json_text):
+    """X-b (planning/TODO2.md): best-effort import of a real Warframe
+    inventory snapshot -- either a plain inventory.json or a decrypted
+    lastData.dat (index.html's own script handles the AES-CBC decryption
+    before calling this; by the time json_text reaches here it's always
+    plain JSON text).
+
+    Deliberately narrow in scope: this only ever sets resource "built"
+    counts, never part-owned counts or the "raw" bucket. Two real reasons,
+    not just caution:
+      - A built Zaw/Kitgun/Amp component isn't tracked as a standalone
+        countable inventory item in Warframe's own data model -- once
+        built, it becomes part of a specific equipped weapon, not a
+        stackable count the way a resource is. There's nothing in this
+        API response that means "how many spare Raplak Prisms do I have."
+      - This tracker's own "raw" bucket is a convenience concept (an
+        unrefined precursor you haven't cut/refined yet) that doesn't
+        correspond to a single named inventory entry the way "built"
+        does -- a resource's own MiscItems count IS its "built" total.
+
+    Matching is a fuzzy tail-match on the internal item path (see
+    _normalize_resource_key/_RESOURCE_MATCH_KEYS above), not a hardcoded
+    exact-path table -- this project doesn't have a verified real sample
+    file to test the exact schema against, so silently claiming a
+    guaranteed-correct exhaustive mapping would be dishonest. Returns a
+    plain summary string naming exactly what matched and what didn't,
+    so a partial result is still useful and the gap is visible rather
+    than hidden.
+    """
+    try:
+        data = json.loads(json_text)
+    except (ValueError, TypeError):
+        return "That file's contents weren't valid JSON once read -- nothing was imported."
+
+    misc_items = data.get("MiscItems") or data.get("miscItems") or []
+    if not isinstance(misc_items, list):
+        return "No MiscItems inventory list found in that file -- nothing was imported."
+
+    counts_by_key = {}
+    for entry in misc_items:
+        if not isinstance(entry, dict):
+            continue
+        item_type = entry.get("ItemType") or entry.get("itemType") or entry.get("Type") or ""
+        count = entry.get("ItemCount", entry.get("itemCount", entry.get("Count", 0)))
+        tail = item_type.rstrip("/").rsplit("/", 1)[-1]
+        try:
+            counts_by_key[_normalize_resource_key(tail)] = int(count)
+        except (TypeError, ValueError):
+            continue
+
+    matched = []
+    unmatched = []
+    for match_key, resource_name in _RESOURCE_MATCH_KEYS.items():
+        if match_key in counts_by_key:
+            inv = state["inventory"].setdefault(resource_name, {"raw": 0, "built": 0})
+            inv["built"] = counts_by_key[match_key]
+            matched.append(resource_name)
+        else:
+            unmatched.append(resource_name)
+
+    render()
+
+    total = len(matched) + len(unmatched)
+    summary = f"Imported {len(matched)}/{total} resources' built counts from your file."
+    if unmatched:
+        summary += " Not found in the file (fill in manually): " + ", ".join(sorted(unmatched)) + "."
+    return summary
 
 
 # --- Rendering -------------------------------------------------------

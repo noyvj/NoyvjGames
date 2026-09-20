@@ -38,6 +38,44 @@ identical to every other page on the site.
   rearchitect. That constant stops mattering the moment you save once (or
   sign in with an account that already has a save).
 
+## Importing a real inventory snapshot
+
+The "Import lastData.dat / inventory.json" button (near the top of the
+page) auto-fills resource **built** counts from a real Warframe inventory
+export, instead of typing every number by hand:
+
+1. Run [`warframe-api-helper`](https://github.com/Sainan/warframe-api-helper)
+   (or AlecaFrame) while Warframe is open and you're logged in. Either
+   produces `lastData.dat`; the helper also writes a plain `inventory.json`
+   sibling with the same content.
+2. Upload either file. Everything happens in your browser — the file is
+   never sent anywhere. `lastData.dat` is AES-128-CBC + PKCS7 encrypted
+   with a key/IV that's hardcoded and published in `warframe-api-helper`'s
+   own open-source code (not a secret), so it's decrypted client-side with
+   the Web Crypto API; a plain `inventory.json` is used as-is.
+3. Each of the 65 tracked resources is matched against the file's
+   `MiscItems` list by the tail of its internal game path (e.g. anything
+   ending in `.../Iradite` matches this tracker's "Iradite" row) — a
+   fuzzy, best-effort match, not a hardcoded exact-path table, since this
+   project has no verified real sample file to confirm the exact schema
+   against. The summary shown after uploading names exactly what matched
+   and what didn't, so any gap is visible and fillable by hand rather than
+   silently wrong.
+4. Only **built** counts are touched. Part-owned counts and the **raw**
+   bucket are never touched by an import — neither has a real equivalent
+   in Warframe's own data (a built component isn't tracked as a
+   standalone countable item once it's part of an equipped Zaw/Kitgun/Amp,
+   and "raw precursor" is this tracker's own bookkeeping convenience, not
+   a single named inventory entry).
+
+**Honest caveat:** this was built and verified against a synthetic file
+encrypted with the real published key/IV, not a real Warframe export —
+there was no real sample available to test against. If you try it with
+your own file and something looks wrong (a resource you know you have
+shows as unmatched, or a count looks off), that's useful signal — the
+matching logic can be tightened once there's a real example to check it
+against.
+
 ## What the tracker does
 
 - Starts with the exact 33 parts and quantities you asked for, grouped into
@@ -110,11 +148,10 @@ what you have available to refine.
 ## What's next
 
 See the hub's `planning/TODO2.md`, "X. Warframe Build Tracker" section, for
-the full open-items list — including the planned `lastData.dat` import
-(auto-filling inventory from a real game-session snapshot, via the
-open-source `warframe-api-helper`/AlecaFrame tools, parsed entirely
-client-side) and the recursive-refinery-expansion idea this tracker's
-`flatten_recipe()` already supports without needing any code change.
+the full open-items list — including the recursive-refinery-expansion idea
+this tracker's `flatten_recipe()` already supports without needing any
+code change, and refining the real-inventory-import matching logic above
+once there's a real sample file to check it against.
 
 ## Updating the requested parts
 

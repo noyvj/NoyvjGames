@@ -3,6 +3,8 @@ Build Resource Tracker, following its 2026-09-20 rearchitect from a Flask
 app into Python-via-Pyodide (see planning/TODO2.md's "X. Warframe Build
 Tracker" section)."""
 
+import json
+
 
 def _find_row(tbody, attr, value):
     for child in tbody.children:
@@ -443,3 +445,113 @@ def test_reset_cancelled_leaves_state_untouched(game_env):
     game_env.reset()
 
     assert module.state["parts"]["Raplak Prism"]["owned"] == 1
+
+
+# --- import_last_data() (X-b) --------------------------------------------
+
+
+def _fake_inventory_json(entries):
+    """Builds a fake decrypted-lastData.dat/inventory.json payload shaped
+    like a real Warframe MiscItems dump (ItemType is the full internal
+    path, only the tail segment after the last "/" is meant to matter)."""
+    return json.dumps({
+        "MiscItems": [{"ItemType": path, "ItemCount": count} for path, count in entries]
+    })
+
+
+def test_import_last_data_matches_by_path_tail(game_env):
+    module = game_env.module
+    _reset_to_known_state(module)
+    payload = _fake_inventory_json([
+        ("/Lotus/Types/Items/MiscItems/Iradite", 850),
+        ("/Lotus/Types/Gameplay/Eidolon/Resources/TearAzurite", 40),
+    ])
+
+    summary = module.import_last_data(payload)
+
+    assert module.state["inventory"]["Iradite"]["built"] == 850
+    assert module.state["inventory"]["Tear Azurite"]["built"] == 40
+    assert "2/" in summary  # exactly 2 real resources matched
+
+
+def test_import_last_data_never_touches_raw_bucket(game_env):
+    module = game_env.module
+    _reset_to_known_state(module, inventory={"Iradite": {"raw": 99, "built": 0}})
+    payload = _fake_inventory_json([("/Lotus/Types/Items/MiscItems/Iradite", 12)])
+
+    module.import_last_data(payload)
+
+    assert module.state["inventory"]["Iradite"]["built"] == 12
+    assert module.state["inventory"]["Iradite"]["raw"] == 99
+
+
+def test_import_last_data_reports_unmatched_resources(game_env):
+    module = game_env.module
+    _reset_to_known_state(module)
+    payload = _fake_inventory_json([("/Lotus/Types/Items/MiscItems/Iradite", 10)])
+
+    summary = module.import_last_data(payload)
+
+    assert "Ferrite" in summary  # a real tracked resource that wasn't in the payload
+    assert f"1/{len(module.RESOURCE_LOCATIONS)}" in summary
+
+
+def test_import_last_data_invalid_json_reports_failure_without_crashing(game_env):
+    module = game_env.module
+    _reset_to_known_state(module)
+
+    summary = module.import_last_data("not valid json {{{")
+
+    assert "valid JSON" in summary
+    assert module.state["inventory"] == {}
+
+
+def test_import_last_data_missing_misc_items_key_matches_nothing(game_env):
+    module = game_env.module
+    _reset_to_known_state(module)
+
+    # No "MiscItems" key at all is treated the same as an empty list --
+    # a normal "nothing matched" result, not a distinct error state.
+    summary = module.import_last_data(json.dumps({"SomeOtherField": []}))
+
+    assert "Imported 0/" in summary
+    assert module.state["inventory"] == {}
+
+
+def test_import_last_data_non_list_misc_items_reports_failure(game_env):
+    module = game_env.module
+    _reset_to_known_state(module)
+
+    summary = module.import_last_data(json.dumps({"MiscItems": "not a list"}))
+
+    assert "MiscItems" in summary
+    assert module.state["inventory"] == {}
+
+
+def test_import_last_data_ignores_malformed_entries(game_env):
+    module = game_env.module
+    _reset_to_known_state(module)
+    payload = json.dumps({"MiscItems": [
+        "not a dict",
+        {"ItemType": "/Lotus/Types/Items/MiscItems/Iradite", "ItemCount": "not a number"},
+        {"ItemType": "/Lotus/Types/Items/MiscItems/Rubedo", "ItemCount": 500},
+    ]})
+
+    module.import_last_data(payload)
+
+    assert "Iradite" not in module.state["inventory"]
+    assert module.state["inventory"]["Rubedo"]["built"] == 500
+
+
+def test_import_last_data_calls_render(game_env):
+    module = game_env.module
+    # At least one incomplete part, so calculate() actually has a
+    # resource need for render() to draw a row for.
+    _reset_to_known_state(module, parts={"Raplak Prism": {"target": 1, "owned": 0}})
+    payload = _fake_inventory_json([("/Lotus/Types/Items/MiscItems/Iradite", 10)])
+
+    module.import_last_data(payload)
+
+    # render() should have rebuilt the resource table from the new inventory.
+    tbody = game_env.elements["resources-body"]
+    assert len(tbody.children) > 0
