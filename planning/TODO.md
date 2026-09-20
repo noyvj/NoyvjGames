@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 254/270 items checked off (94%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
+**Progress: 255/270 items checked off (94%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
 
 The one living list, replacing the scattered planning docs' own "open items"/"stretch goals" sections. Built from your labeled answers in `IMPROVEMENT-IDEAS-2026-09.md` (all "yes" items, resolved), plus a pass through every other file in `planning/` pulling out anything still genuinely unresolved there. "Later" items (things you deferred, or that need more explanation first) live in `LATER.md` instead — not here.
 
@@ -86,8 +86,8 @@ Two things every game needs once achievements land there, on top of the base rol
 
 *(Origin: A14 — "that should be in the how-to-play section, if not add it site-wide." Investigate first, only build where there's a real gap.)*
 
-- [ ] For each game: check whether its existing Tutorial / How-to-Play already covers "a returning player who skipped the tutorial and forgot a mechanic." Where it doesn't, add a light contextual-tooltip pass rather than relying solely on the one-time walkthrough.
-  - Covered so far: SOL, Canopy, Grid, Tide, Aftermath, Herd, Continuum, Drift, Loop, Le Champ de Mots (each has its own CLAUDE.md worked note). Still open: Thaw, Trade Empire.
+- [x] For each game: check whether its existing Tutorial / How-to-Play already covers "a returning player who skipped the tutorial and forgot a mechanic." Where it doesn't, add a light contextual-tooltip pass rather than relying solely on the one-time walkthrough.
+  - All 12 done: SOL, Canopy, Grid, Tide, Aftermath, Herd, Continuum, Drift, Loop, Le Champ de Mots, Trade Empire (fixed a real lost research-prereq hint), Thaw (fixed a real gap on the Region B/C preset buttons) — each has its own CLAUDE.md worked note, confirmed via direct inspection (not just a prior claim) for the last two.
 
 ---
 
