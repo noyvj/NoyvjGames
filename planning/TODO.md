@@ -96,6 +96,7 @@ Two things every game needs once achievements land there, on top of the base rol
 *(Origin: K16 "yes but site-wide (all games AND site)", plus L10's own separate hub-page ask — merged into one goal with two parts.)*
 
 - [ ] Per-game in-game changelog panel (K16), for every game.
+  - Covered so far: SOL, Canopy, Grid, Tide, Aftermath, Herd, Thaw, Loop, Drift, Trade Empire, Continuum (each has its own CLAUDE.md worked note). Still open: Le Champ de Mots (in progress in a concurrent session as of this note — changelog.json + tests exist locally but uncommitted).
 - [x] A hub-level "What's New" page (L10), pulling from `BCM114-DEV-LOG.md`/`BCM206-DEV-LOG.md` — **scoped per your notes: brief bullet points + date only, not direct links into the dev logs, and collapsible by date** since some days have a lot logged. Built as a new `whats-new.html` at the repo root (linked from a new hub nav in `index.html`'s header) rather than a heavier section inside the hub page itself — it fetches both dev logs client-side at load time and parses each `### YYYY-MM-DD` entry's `**Did:**` line into a one-line, truncated bullet (no full entry text, no links into the log files), grouped into a `<details>` per date (most recent two dates open by default), matching the `<details>`-based disclosure pattern already used across the games (e.g. Tide's ticker-history toggle). Self-updating: any future dev-log entry shows up here automatically, no regeneration step needed.
 
 ---
