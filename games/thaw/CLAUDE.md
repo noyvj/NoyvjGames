@@ -272,6 +272,29 @@ affected rule, the same pattern SOL/Trade Empire/Continuum's own
 achievements CSS already used correctly. CSS-only; no Python change
 needed. Full test suite green, unaffected (pure CSS change).
 
+## Exponential-slowdown bug fix (2026-09-21)
+
+Found by the Z25 save-payload audit while measuring a long simulated
+session, then confirmed directly: `_auto_play_worst_case_region()` spent
+Region D's funds on Output one unit at a time, via `while region_d.invest
+("output"): pass`. Region D's whole premise is neglect — every round's
+income (`capacity["output"] * OUTPUT_INCOME_PER_UNIT`) gets reinvested
+straight back into more output at a flat per-unit cost, which compounds
+capacity by roughly 30% every round. That exponential growth in Region
+D's capacity is the intended "look how much worse doing nothing gets"
+story — but spending it down one `invest()` call at a time meant the
+loop's iteration count grew exponentially with round count too, not just
+the number it was simulating. A real session's Advance Round click could
+balloon to multiple seconds by round 50-60 and keep climbing from there.
+
+**Fix:** compute the affordable unit count directly (`funds // cost`) and
+apply it in one step, instead of looping. Produces the exact same
+end state `invest()` would have one unit at a time (same flat per-unit
+cost, no partial-unit spend) — verified in `tests/test_worst_case_perf.py`
+against a hand-computed expected outcome, plus a regression guard timing
+400 simulated rounds (was minutes and climbing; now ~2ms). 152 -> 156
+tests, flake8 clean.
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag thaw-milestone-0N`.

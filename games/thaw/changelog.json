@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-21",
+    "entry": "Fixed a performance bug where long sessions could make Advance Round take multiple seconds and climbing, caused by how the (intentionally worst-case) Region D reinvested its own growing income each round."
+  },
+  {
+    "date": "2026-09-21",
     "entry": "Fixed a display bug where the What's New panel showed as an empty box before its first open and never visually closed again once opened once."
   },
   {

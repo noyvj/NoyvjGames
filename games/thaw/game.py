@@ -401,9 +401,25 @@ def _auto_play_worst_case_region():
     """Called once per Advance Round: spends every affordable unit of
     Region D's funds on Output only, then advances it — pure neglect,
     replayed automatically every round regardless of whether the panel
-    revealing it is currently open."""
-    while region_d.invest("output"):
-        pass
+    revealing it is currently open.
+
+    Region D's own neglect is what makes it a worst case: every round's
+    income is `capacity["output"] * OUTPUT_INCOME_PER_UNIT`, all of which
+    gets reinvested straight back into more output at a flat per-unit
+    cost — a compounding ~30% growth in capacity every round. That
+    exponential growth is the intended story ("look how much worse doing
+    nothing gets"), but spending it one unit at a time via a `while
+    region_d.invest("output"): pass` loop meant the SIMULATION cost grew
+    exponentially with round count too — a long session's Advance Round
+    click could take seconds by round 50+. Buying the affordable unit
+    count directly is O(1) regardless of how large the region has grown,
+    with the exact same end state `invest()` would have produced one unit
+    at a time (same flat per-unit cost, no partial-unit spend)."""
+    cost = INVEST_COST["output"]
+    units = int(region_d.funds // cost)
+    if units:
+        region_d.funds -= units * cost
+        region_d.capacity["output"] += units
     region_d.advance_round()
 
 
