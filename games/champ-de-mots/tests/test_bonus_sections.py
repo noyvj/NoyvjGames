@@ -304,7 +304,7 @@ def test_bonus_session_is_not_part_of_the_save_payload(game_env):
     module = game_env.module
     module.start_bonus_section(1)
     state_dict = module.get_state()
-    assert set(state_dict) == {"version", "current_day", "plots", "error_patterns", "achievements_earned"}
+    assert set(state_dict) == {"version", "current_day", "plots", "error_patterns", "practice_ledger", "achievements_earned"}
 
 
 # --- rendering / entry point -------------------------------------------

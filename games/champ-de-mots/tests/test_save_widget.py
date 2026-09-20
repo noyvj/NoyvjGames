@@ -10,7 +10,7 @@ import json
 
 
 EXPECTED_KEYS = {
-    "version", "current_day", "plots", "error_patterns", "achievements_earned",
+    "version", "current_day", "plots", "error_patterns", "practice_ledger", "achievements_earned",
 }
 PLOT_KEYS = {
     "ease_factor", "interval_days", "last_reviewed", "next_due", "correct_streak",
@@ -37,7 +37,7 @@ def test_an_untouched_farm_saves_almost_nothing(game_env):
     plots that have actually been watered are stored; everything else is
     reconstructed from the catalog at load, which is where it came from."""
     raw = json.dumps(game_env.module.get_state())
-    assert len(raw) < 200
+    assert len(raw) < 250
 
 
 def test_watered_plots_are_stored_with_their_full_srs_state(game_env):

@@ -768,6 +768,10 @@ button:disabled {
   content: "🌱";
 }
 
+.stat-tile--practice::before {
+  content: "🎯";
+}
+
 .stat-tile--rows::before {
   content: "🔓";
 }

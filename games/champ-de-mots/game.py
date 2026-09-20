@@ -1828,6 +1828,113 @@ def render_legend():
 cultural_notes_open = False
 
 
+# ===========================================================================
+# Practice progress ledger (TODO R2-L1b)
+# ===========================================================================
+#
+# The user's rule: "practice through games should show progress on
+# respective topics... it should impact the player score" and "everything
+# gives progress to something measured at the top". Every practice mode
+# outside the farm's own watering (the four arcade minigames, the gender
+# drill, liaison practice, proficiency tests, bonus sentence sections) feeds
+# ONE shared ledger through record_practice(): a lifetime correct/total tally
+# per mode (its "respective topic" -- Verb Racer is verbs, Boutique Dash is
+# clothing, the gender drill is noun gender, and so on), plus capped
+# "practice points" that sum into the header's Practice score tile.
+#
+# Deliberately NOT touched: SRS state. A minigame answer never calls
+# state.review() or nudges an interval/next_due (CLAUDE.md Milestone 5's
+# stance that only real watering moves the schedule still holds); the ledger
+# is a parallel, purely additive measure. Anti-farming: 1 point per correct
+# answer, at most PRACTICE_DAILY_CAP points per mode per in-game day and
+# PRACTICE_MODE_CAP per mode for good, so a 60-second Blitz can't inflate the
+# score no matter how fast it is replayed. Wrong answers count toward the
+# accuracy tally but earn nothing. Saved (validated on load) as
+# "practice_ledger".
+
+PRACTICE_MODES = {
+    "blitz": "Greetings & Basics Blitz",
+    "racer": "Verb Racer",
+    "boutique": "Boutique Dash",
+    "cafe": "Café Rush",
+    "gender": "Gender drill (le/la)",
+    "liaison": "Liaison practice",
+    "proficiency": "Proficiency tests",
+    "bonus": "Bonus sentences",
+}
+PRACTICE_DAILY_CAP = 10
+PRACTICE_MODE_CAP = 100
+PRACTICE_COUNT_LIMIT = 1_000_000  # sanity bound when loading a save
+
+
+def _blank_practice_entry():
+    return {"correct": 0, "total": 0, "points": 0, "day": -1, "day_points": 0}
+
+
+practice_ledger = {mode: _blank_practice_entry() for mode in PRACTICE_MODES}
+
+
+def practice_score():
+    """The player's total practice points across every mode."""
+    return sum(entry["points"] for entry in practice_ledger.values())
+
+
+def record_practice(mode, correct):
+    """Tally one answered question for `mode`; True if it earned a point."""
+    entry = practice_ledger.get(mode)
+    if entry is None:
+        return False
+    entry["total"] = min(entry["total"] + 1, PRACTICE_COUNT_LIMIT)
+    if entry["day"] != state.current_day:
+        entry["day"] = state.current_day
+        entry["day_points"] = 0
+    awarded = False
+    if correct:
+        entry["correct"] = min(entry["correct"] + 1, PRACTICE_COUNT_LIMIT)
+        if entry["day_points"] < PRACTICE_DAILY_CAP and entry["points"] < PRACTICE_MODE_CAP:
+            entry["points"] += 1
+            entry["day_points"] += 1
+            awarded = True
+    try:
+        render_practice_score()
+    except Exception:
+        # A headline-tile repaint must never break answering a question.
+        pass
+    return awarded
+
+
+def render_practice_score():
+    _element("practice-score-display").innerText = f"Practice score: {practice_score()}"
+
+
+def _validated_practice_ledger(raw):
+    """Defaulted/clamped ledger from an untrusted save value."""
+    ledger = {mode: _blank_practice_entry() for mode in PRACTICE_MODES}
+    if not isinstance(raw, dict):
+        return ledger
+
+    def as_int(value, low, high, default):
+        if isinstance(value, bool) or not isinstance(value, int):
+            return default
+        return max(low, min(high, value))
+
+    for mode in PRACTICE_MODES:
+        record = raw.get(mode)
+        if not isinstance(record, dict):
+            continue
+        total = as_int(record.get("total"), 0, PRACTICE_COUNT_LIMIT, 0)
+        correct = min(as_int(record.get("correct"), 0, PRACTICE_COUNT_LIMIT, 0), total)
+        ledger[mode] = {
+            "correct": correct,
+            "total": total,
+            # Points can never exceed correct answers or the lifetime cap.
+            "points": min(as_int(record.get("points"), 0, PRACTICE_MODE_CAP, 0), correct),
+            "day": as_int(record.get("day"), -1, PRACTICE_COUNT_LIMIT, -1),
+            "day_points": as_int(record.get("day_points"), 0, PRACTICE_DAILY_CAP, 0),
+        }
+    return ledger
+
+
 # Improvement Ideas §5: a progress dashboard, deliberately its own separate
 # screen rather than more numbers crammed into the calm main status line --
 # per-row mastery, the weakest touched topics, and how long it's been since
@@ -1945,6 +2052,27 @@ def render_dashboard():
             line.innerText = f"{entry['title']} (wk {entry['sequence']})"
             weakest_list.appendChild(line)
         panel.appendChild(weakest_list)
+
+    practice_heading = document.createElement("p")
+    practice_heading.className = "dashboard-heading"
+    practice_heading.innerText = f"Practice progress — {practice_score()} {'point' if practice_score() == 1 else 'points'}"
+    panel.appendChild(practice_heading)
+    practice_list = document.createElement("div")
+    practice_list.className = "dashboard-practice-list"
+    for mode, label in PRACTICE_MODES.items():
+        entry = practice_ledger[mode]
+        line = document.createElement("p")
+        line.className = "dashboard-practice-row"
+        if entry["total"]:
+            accuracy = round(entry["correct"] / entry["total"] * 100)
+            line.innerText = (
+                f"{label} — {entry['correct']} of {entry['total']} correct ({accuracy}%) · "
+                f"{entry['points']}/{PRACTICE_MODE_CAP} points"
+            )
+        else:
+            line.innerText = f"{label} — not played yet"
+        practice_list.appendChild(line)
+    panel.appendChild(practice_list)
 
     patterns_heading = document.createElement("p")
     patterns_heading.className = "dashboard-heading"
@@ -2087,6 +2215,7 @@ def submit_liaison_answer(given):
     liaison_score["total"] += 1
     if liaison_result:
         liaison_score["correct"] += 1
+    record_practice("liaison", liaison_result)
     render()
     return liaison_result
 
@@ -2632,6 +2761,8 @@ def render_status():
         f"{growing} of {len(state.plots)} plots growing · {automated} automated"
     )
 
+    render_practice_score()
+
     unlocked = sum(1 for r in state.rows if state.is_row_unlocked(r.sequence))
     _element("row-summary-display").innerText = f"{unlocked} of {len(state.rows)} rows open"
 
@@ -2839,6 +2970,8 @@ def submit_answer(given):
         current_question, given, tier=tier, accent_sensitive=ACCENT_SENSITIVE
     )
     combo_count = combo_count + 1 if current_result else 0
+    if current_question.get("variant") == V_GENDER_TAG:
+        record_practice("gender", current_result)
     plot = state.plots_by_id.get(current_question["plot_id"])
     if plot is not None:
         if current_result:
@@ -3192,6 +3325,8 @@ def submit_review_answer(given):
         review_question, given, tier=tier, accent_sensitive=ACCENT_SENSITIVE
     )
     review_score["total"] += 1
+    if review_question.get("variant") == V_GENDER_TAG:
+        record_practice("gender", review_result)
     if review_result:
         review_score["correct"] += 1
         plot = state.plots_by_id.get(review_question["plot_id"])
@@ -3552,6 +3687,7 @@ def submit_proficiency_answer(given):
         question, given, tier=tier, accent_sensitive=ACCENT_SENSITIVE
     )
     proficiency_score["total"] += 1
+    record_practice("proficiency", proficiency_result)
     topic_score = proficiency_topic_scores[entry["topic_id"]]
     topic_score["total"] += 1
     if proficiency_result:
@@ -3902,6 +4038,7 @@ def place_bonus_tile(pool_index):
         bonus_score["total"] += 1
         if bonus_order_correct:
             bonus_score["correct"] += 1
+        record_practice("bonus", bonus_order_correct)
     render()
     return bonus_order_correct
 
@@ -3937,6 +4074,7 @@ def submit_bonus_tile_translation(given):
     )
     bonus_tile_score["total"] += 1
     bonus_score["total"] += 1
+    record_practice("bonus", bonus_tile_result)
     if bonus_tile_result:
         bonus_tile_score["correct"] += 1
         bonus_score["correct"] += 1
@@ -3982,6 +4120,7 @@ def submit_bonus_sentence_translation(given):
     bonus_score["total"] += 1
     if bonus_sentence_result:
         bonus_score["correct"] += 1
+    record_practice("bonus", bonus_sentence_result)
     render()
     return bonus_sentence_result
 
@@ -4491,7 +4630,7 @@ def setup():
     # plus the two question-generation functions every minigame reuses, then
     # let minigames.py wire its own DOM listeners entirely on its own (see
     # that module's docstring for why it stays fully self-contained).
-    minigames.configure(state, generate_question, variants_for)
+    minigames.configure(state, generate_question, variants_for, record_practice)
     minigames.setup()
 
     render()
@@ -4553,6 +4692,9 @@ def get_state():
             if plot.last_reviewed is not None or plot.stage != STAGE_SEED
         },
         "error_patterns": dict(error_pattern_counts),
+        "practice_ledger": {
+            mode: dict(entry) for mode, entry in practice_ledger.items() if entry["total"]
+        },
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) -- always
         # freshly recomputed from the farm above, never read back in
         # load_state(). This is what makes this game's achievements show up
@@ -4568,12 +4710,13 @@ def get_state():
 # notes call out as in-scope. Also no test loads a save with an unrecognized
 # stage string to exercise the STAGE_RANK fallback a few lines below.
 def load_state(data):
-    global error_pattern_counts
+    global error_pattern_counts, practice_ledger
 
     saved_plots = data.get("plots") or {}
     state.current_day = data.get("current_day", 0)
     state.invalidate_unlocks()
     error_pattern_counts = dict(data.get("error_patterns") or {})
+    practice_ledger = _validated_practice_ledger(data.get("practice_ledger"))
 
     for plot in state.plots:
         # Plots missing from the save are reset rather than left as they are:

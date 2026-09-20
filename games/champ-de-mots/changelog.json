@@ -1,4 +1,5 @@
 [
+  { "date": "2026-09-21", "entry": "Practice now counts: the four arcade minigames, the gender drill, liaison practice, proficiency tests and bonus sentences all feed a new Practice score at the top of the farm, with per-mode accuracy on the progress dashboard (capped per day so it can't be farmed, and it never changes your watering schedule)." },
   { "date": "2026-09-20", "entry": "Row-unlock pacing removed: every week is now open from day one, so joining partway through the real course no longer locks you out of content your classmates already covered." },
   { "date": "2026-09-19", "entry": "Visual-style switcher added: choose High-def, Low-poly, Text-based, or Cartoon chrome and palette, changeable any time in Settings." },
   { "date": "2026-09-19", "entry": "Achievements retrofitted into the hub-wide framework: a static catalog, unlock toast, and hub dashboard link (unlock conditions unchanged)." },

@@ -62,13 +62,23 @@ from pyodide.ffi import create_proxy
 _farm = None
 _generate_question = None
 _variants_for = None
+_record_practice = None
 
 
-def configure(farm, generate_question_fn, variants_for_fn):
+def _record(mode, correct):
+    """Feed one answered question into game.py's practice-progress ledger
+    (see game.py's "practice progress" build note). A no-op when nothing was
+    wired in, so the module stays usable standalone."""
+    if _record_practice is not None:
+        _record_practice(mode, bool(correct))
+
+
+def configure(farm, generate_question_fn, variants_for_fn, record_practice_fn=None):
     """Called once from game.py's setup(): hands in the live FarmState plus
     the two question-generation functions every minigame reuses rather than
     re-deriving vocab/distractor selection from scratch (per the brief)."""
-    global _farm, _generate_question, _variants_for
+    global _farm, _generate_question, _variants_for, _record_practice
+    _record_practice = record_practice_fn
     _farm = farm
     _generate_question = generate_question_fn
     _variants_for = variants_for_fn
@@ -360,6 +370,7 @@ def submit_blitz_choice(given):
     if not blitz_active or blitz_question is None:
         return None
     correct = given == blitz_question["answer"]
+    _record("blitz", correct)
     if correct:
         blitz_combo += 1
         blitz_score += round(BLITZ_BASE_POINTS * _blitz_multiplier(blitz_combo))
@@ -656,6 +667,7 @@ def submit_racer_choice(given):
     if not racer_active or racer_question is None:
         return None
     racer_result = given == racer_question["answer"]
+    _record("racer", racer_result)
     if racer_result:
         racer_player_position += 1
         if racer_player_position >= RACER_TOTAL_STEPS:
@@ -1006,6 +1018,7 @@ def _resolve_boutique_customer(served):
     global boutique_active, boutique_order, boutique_patience_remaining, boutique_last_result
 
     boutique_last_result = served
+    _record("boutique", served)
     if served:
         boutique_served += 1
         boutique_score += BOUTIQUE_BASE_POINTS
@@ -1401,6 +1414,7 @@ def _resolve_cafe_customer(served, speed_up):
     global cafe_active, cafe_order, cafe_stage, cafe_twist_question, cafe_last_result
 
     cafe_last_result = served
+    _record("cafe", served)
     if served:
         cafe_served += 1
         cafe_score += CAFE_BASE_POINTS + (CAFE_TWIST_BONUS_POINTS if cafe_stage == CAFE_STAGE_TWIST else 0)
