@@ -89,3 +89,24 @@ This is public-facing user-generated content, so it needs *some* abuse protectio
 3. Feedback (general site feedback first, since it needs no auth; game-specific filtering is a one-line addition once general works).
 
 Log each stage in `BCM206-DEV-LOG.md` as you go, same as the save system.
+
+## 5. Cross-game aggregate stats (TODO.md Z1)
+
+Read-only, public, cache-friendly endpoints over the existing `saves` table — **zero per-game backend changes**. Code: `app/stats.py` (pure helpers + the per-game whitelist) and the `/stats/*` block at the end of `app/main.py`.
+
+| Path | Returns |
+|------|---------|
+| `GET /stats/games` | the whitelist: game id -> opted-in numeric field paths, plus `min_bucket` |
+| `GET /stats/games/{game_id}` | `save_count`, `achievements` (`earned_pct` + `earned_count` per id, denominator = that game's saves), `fields` (per whitelisted path: `count`, `mean`, `p10/25/50/75/90`) |
+| `GET /stats/games/{game_id}/percentile?field=..&value=..` | mid-rank percentile (0-100) of a submitted value among that game's saves (ties count half) |
+| `GET /stats/achievements` | every game's achievement rarity in one call (hub dashboard, the "% of players who have this" figure) |
+
+**What counts as a "player":** a save row. Anonymous save codes and account-linked saves are both included; one person with several saves counts several times. This is an accepted approximation, and it means an attacker can skew stats by POSTing saves (same open-write posture as the rest of the API).
+
+**Privacy rules (enforced in `stats.py`):** any bucket built from fewer than `MIN_BUCKET = 3` saves is suppressed — the whole game, each achievement (earned by <3 saves is dropped and only counted in `achievements_suppressed_count`), each numeric field, and the percentile endpoint (`suppressed: true`, `percentile: null`). No min/max is ever returned. Only whitelisted numeric leaf fields are read; achievement ids must match `^[a-z0-9_]{1,64}$`; nothing string-valued from a save, no usernames, no `user_id`, no save codes appear in any response.
+
+**Opting a field in:** add its top-level key (or dotted path, e.g. `region.temperature`, `current_state.city.population`) to that game's tuple in `stats.STATS_FIELDS`; non-numeric, bool, NaN/Infinity or missing values are skipped per save. Unknown game or non-whitelisted field -> 404; non-finite `value` -> 422.
+
+**Performance:** one `SELECT save_data WHERE game_id=?` (newest `MAX_SAVES_SCANNED = 5000`), decoded in Python (opaque JSON cannot be safely cast in portable SQL), with a 60 s in-process cache per game and `Cache-Control: public, max-age=300`. Revisit (SQL JSON aggregation or a materialised table) only if a game's save count grows into the tens of thousands.
+
+**Known gap for dependents:** stats are current-state snapshots, not per-run history — features needing "best ever" or per-era comparisons (Continuum benchmark, SOL leaderboard) should first opt in a suitable field, and any true leaderboard would need an explicit opt-in submission endpoint (deliberately not built here).
