@@ -22,6 +22,7 @@
     </nav>
     <h1>NoyvjGames</h1>
     <p id="hub-tagline">Small AI-assisted game demos, built one milestone at a time.</p>
+    <p id="hub-game-count" class="hub-game-count"></p>
   </header>
 
   <div id="pwa-install-banner" class="pwa-install-banner" hidden>
@@ -68,6 +69,11 @@
     <div id="continue-playing-list" class="continue-playing-list"></div>
   </section>
 
+  <section id="recently-added-section" class="continue-playing-section" hidden>
+    <h2 class="continue-playing-heading">Recently Added</h2>
+    <div id="recently-added-list" class="continue-playing-list"></div>
+  </section>
+
   <section id="game-filter-bar" class="game-filter-bar">
     <input type="text" id="game-search-input" placeholder="Search games by name or description…" aria-label="Search games">
     <select id="game-tag-filter" aria-label="Filter games by tag">
@@ -84,7 +90,14 @@
         <option value="deep-systems">Deep Systems</option>
       </optgroup>
     </select>
+    <select id="game-sort" aria-label="Sort games">
+      <option value="default">Sort: Default order</option>
+      <option value="rating">Sort: Highest rated</option>
+      <option value="saves">Sort: Most saved</option>
+    </select>
+    <button type="button" id="random-game-button" class="secondary">Random game</button>
   </section>
+  <p id="game-sort-status" class="game-filter-empty" role="status" hidden></p>
   <p id="game-filter-empty" class="game-filter-empty" hidden>No games match your search.</p>
 
   <main id="game-grid">
@@ -97,7 +110,7 @@
       </a>
 
       <div class="review-widget" data-game-slug="sol">
-        <p class="ratings-summary">Loading reviews&hellip;</p>
+        <p class="ratings-summary is-loading" aria-busy="true">Loading reviews&hellip;</p>
         <div class="star-rating" data-rating="0">
           <button type="button" class="star" data-value="1">&#9733;</button>
           <button type="button" class="star" data-value="2">&#9733;</button>
@@ -120,7 +133,7 @@
       </a>
 
       <div class="review-widget" data-game-slug="canopy">
-        <p class="ratings-summary">Loading reviews&hellip;</p>
+        <p class="ratings-summary is-loading" aria-busy="true">Loading reviews&hellip;</p>
         <div class="star-rating" data-rating="0">
           <button type="button" class="star" data-value="1">&#9733;</button>
           <button type="button" class="star" data-value="2">&#9733;</button>
@@ -143,7 +156,7 @@
       </a>
 
       <div class="review-widget" data-game-slug="grid">
-        <p class="ratings-summary">Loading reviews&hellip;</p>
+        <p class="ratings-summary is-loading" aria-busy="true">Loading reviews&hellip;</p>
         <div class="star-rating" data-rating="0">
           <button type="button" class="star" data-value="1">&#9733;</button>
           <button type="button" class="star" data-value="2">&#9733;</button>
@@ -166,7 +179,7 @@
       </a>
 
       <div class="review-widget" data-game-slug="tide">
-        <p class="ratings-summary">Loading reviews&hellip;</p>
+        <p class="ratings-summary is-loading" aria-busy="true">Loading reviews&hellip;</p>
         <div class="star-rating" data-rating="0">
           <button type="button" class="star" data-value="1">&#9733;</button>
           <button type="button" class="star" data-value="2">&#9733;</button>
@@ -189,7 +202,7 @@
       </a>
 
       <div class="review-widget" data-game-slug="aftermath">
-        <p class="ratings-summary">Loading reviews&hellip;</p>
+        <p class="ratings-summary is-loading" aria-busy="true">Loading reviews&hellip;</p>
         <div class="star-rating" data-rating="0">
           <button type="button" class="star" data-value="1">&#9733;</button>
           <button type="button" class="star" data-value="2">&#9733;</button>
@@ -212,7 +225,7 @@
       </a>
 
       <div class="review-widget" data-game-slug="herd">
-        <p class="ratings-summary">Loading reviews&hellip;</p>
+        <p class="ratings-summary is-loading" aria-busy="true">Loading reviews&hellip;</p>
         <div class="star-rating" data-rating="0">
           <button type="button" class="star" data-value="1">&#9733;</button>
           <button type="button" class="star" data-value="2">&#9733;</button>
@@ -235,7 +248,7 @@
       </a>
 
       <div class="review-widget" data-game-slug="thaw">
-        <p class="ratings-summary">Loading reviews&hellip;</p>
+        <p class="ratings-summary is-loading" aria-busy="true">Loading reviews&hellip;</p>
         <div class="star-rating" data-rating="0">
           <button type="button" class="star" data-value="1">&#9733;</button>
           <button type="button" class="star" data-value="2">&#9733;</button>
@@ -258,7 +271,7 @@
       </a>
 
       <div class="review-widget" data-game-slug="loop">
-        <p class="ratings-summary">Loading reviews&hellip;</p>
+        <p class="ratings-summary is-loading" aria-busy="true">Loading reviews&hellip;</p>
         <div class="star-rating" data-rating="0">
           <button type="button" class="star" data-value="1">&#9733;</button>
           <button type="button" class="star" data-value="2">&#9733;</button>
@@ -281,7 +294,7 @@
       </a>
 
       <div class="review-widget" data-game-slug="drift">
-        <p class="ratings-summary">Loading reviews&hellip;</p>
+        <p class="ratings-summary is-loading" aria-busy="true">Loading reviews&hellip;</p>
         <div class="star-rating" data-rating="0">
           <button type="button" class="star" data-value="1">&#9733;</button>
           <button type="button" class="star" data-value="2">&#9733;</button>
@@ -303,7 +316,7 @@
       </a>
 
       <div class="review-widget" data-game-slug="champ-de-mots">
-        <p class="ratings-summary">Loading reviews&hellip;</p>
+        <p class="ratings-summary is-loading" aria-busy="true">Loading reviews&hellip;</p>
         <div class="star-rating" data-rating="0">
           <button type="button" class="star" data-value="1">&#9733;</button>
           <button type="button" class="star" data-value="2">&#9733;</button>
@@ -326,7 +339,7 @@
       </a>
 
       <div class="review-widget" data-game-slug="continuum">
-        <p class="ratings-summary">Loading reviews&hellip;</p>
+        <p class="ratings-summary is-loading" aria-busy="true">Loading reviews&hellip;</p>
         <div class="star-rating" data-rating="0">
           <button type="button" class="star" data-value="1">&#9733;</button>
           <button type="button" class="star" data-value="2">&#9733;</button>
@@ -348,7 +361,7 @@
       </a>
 
       <div class="review-widget" data-game-slug="trade-empire">
-        <p class="ratings-summary">Loading reviews&hellip;</p>
+        <p class="ratings-summary is-loading" aria-busy="true">Loading reviews&hellip;</p>
         <div class="star-rating" data-rating="0">
           <button type="button" class="star" data-value="1">&#9733;</button>
           <button type="button" class="star" data-value="2">&#9733;</button>

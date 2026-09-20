@@ -26,8 +26,15 @@ function resetStarRating(ratingWidget) {
   ratingWidget.querySelectorAll(".star").forEach((s) => s.classList.remove("selected"));
 }
 
+// Y6: a five-star glyph row filled to the average's fraction (a
+// hard-stop gradient clipped to the text), sitting beside the numeric
+// text rather than replacing it -- the number stays the source of truth
+// for screen readers and anyone who can't tell partial fills apart.
 function renderSummary(widget, ratings) {
   const summary = widget.querySelector(".ratings-summary");
+  const card = widget.closest(".title-card");
+  summary.classList.remove("is-loading");
+  summary.removeAttribute("aria-busy");
   // /ratings/{slug} also returns per-game text-feedback-prompt rows
   // (stars: null, response: "...") alongside this widget's own star
   // submissions — both share the same table, filtered only by game_slug.
@@ -35,11 +42,22 @@ function renderSummary(widget, ratings) {
   const starRatings = ratings.filter((r) => typeof r.stars === "number");
   if (!starRatings.length) {
     summary.textContent = "No reviews yet — be the first.";
+    if (card) { card.dataset.avg = "0"; card.dataset.reviewCount = "0"; }
     return;
   }
   const average = starRatings.reduce((sum, r) => sum + r.stars, 0) / starRatings.length;
   const count = starRatings.length;
-  summary.textContent = `${average.toFixed(1)} ★ average (${count} review${count === 1 ? "" : "s"})`;
+  if (card) { card.dataset.avg = String(average); card.dataset.reviewCount = String(count); }
+  summary.textContent = "";
+  const stars = document.createElement("span");
+  stars.className = "avg-stars";
+  stars.setAttribute("aria-hidden", "true");
+  stars.style.setProperty("--fill", `${(average / 5) * 100}%`);
+  stars.textContent = "\u2605\u2605\u2605\u2605\u2605";
+  summary.appendChild(stars);
+  summary.appendChild(
+    document.createTextNode(`${average.toFixed(1)} ★ average (${count} review${count === 1 ? "" : "s"})`)
+  );
 }
 
 async function loadRatings(widget) {
@@ -54,8 +72,12 @@ async function loadRatings(widget) {
     // console at all — the only place this context is ever visible for a
     // personal-site-scale project with no server-side error tracking.
     console.error(`loadRatings(${slug}) failed:`, err);
+    summary.classList.remove("is-loading");
+    summary.removeAttribute("aria-busy");
     summary.textContent = "Reviews unavailable right now.";
   }
+  // Ratings arriving (or a new submission) can change a rating-sorted order.
+  if (typeof applySort === "function") applySort();
 }
 
 async function submitRating(widget) {
@@ -150,29 +172,304 @@ loadLastUpdatedBadges();
 // Search and tag filter combine (AND) and share one mechanism.
 const gameSearchInput = document.getElementById("game-search-input");
 const gameTagFilter = document.getElementById("game-tag-filter");
+const gameSortSelect = document.getElementById("game-sort");
+const gameSortStatus = document.getElementById("game-sort-status");
 const gameFilterEmpty = document.getElementById("game-filter-empty");
+const gameGrid = document.getElementById("game-grid");
 const allTitleCards = Array.from(document.querySelectorAll(".title-card"));
+
+// Small localStorage helpers: storage can throw (private windows, blocked
+// site data), and every use here is a convenience, never required state.
+function lsGet(key) {
+  try { return localStorage.getItem(key); } catch (err) { return null; }
+}
+function lsSet(key, value) {
+  try { localStorage.setItem(key, value); } catch (err) { /* convenience only */ }
+}
+
+// Y4: live game count, derived from the cards actually on the page so it
+// can never drift from what a visitor can see.
+const hubGameCount = document.getElementById("hub-game-count");
+if (hubGameCount) hubGameCount.textContent = `${allTitleCards.length} games and counting`;
+
+// Each card's own searchable text: only its link block (name, blurb, tags,
+// updated badge) -- not the review widget, share button or notes, which
+// would make "share" or "review" match every card.
+function cardBaseText(card) {
+  const link = card.querySelector(".title-card-link");
+  return (link ? link.textContent : card.textContent).toLowerCase();
+}
+
+// Y19: deeper search. `extraSearchText` maps card -> lowercase text drawn
+// from the update history (BCM114 dev log entries whose "Game:" line names
+// the game) and recent commit subjects (game-roadmap-data.json). Loaded
+// lazily the first time someone actually searches, so ordinary visits pay
+// nothing for it. A match found only there is flagged on the card.
+const extraSearchText = new Map();
+let extendedSearchRequested = false;
+
+function cardSlug(card) {
+  return card.querySelector(".review-widget")?.dataset.gameSlug;
+}
+function cardName(card) {
+  return (card.querySelector(".title-card-name")?.textContent || "").trim().toLowerCase();
+}
+
+async function loadExtendedSearchIndex() {
+  if (extendedSearchRequested) return;
+  extendedSearchRequested = true;
+  const addExtra = (card, text) =>
+    extraSearchText.set(card, ((extraSearchText.get(card) || "") + " " + text).toLowerCase());
+  try {
+    const [logRes, roadmapRes] = await Promise.all([
+      fetch("BCM114-DEV-LOG.md").catch(() => null),
+      fetch("game-roadmap-data.json").catch(() => null),
+    ]);
+    if (logRes && logRes.ok) {
+      const text = await logRes.text();
+      text.split(/\n(?=### \d{4}-\d{2}-\d{2})/).forEach((block) => {
+        const gameMatch = block.match(/\*\*Game:\*\*\s*(.+)/);
+        const didMatch = block.match(/\*\*Did:\*\*\s*([\s\S]*?)(?:\n\*\*|\n---|\n##|$)/);
+        if (!gameMatch || !didMatch) return;
+        const tokens = gameMatch[1].toLowerCase().split(/[,;/&()—]|\band\b/).map((t) => t.trim()).filter(Boolean);
+        allTitleCards.forEach((card) => {
+          const name = cardName(card);
+          if (tokens.some((t) => t === name || (t.length > 3 && (name.includes(t) || t.includes(name))))) {
+            addExtra(card, didMatch[1].replace(/\s+/g, " "));
+          }
+        });
+      });
+    }
+    if (roadmapRes && roadmapRes.ok) {
+      const data = await roadmapRes.json();
+      allTitleCards.forEach((card) => {
+        const entry = data.games && data.games[cardSlug(card)];
+        if (entry && entry.recent_commits) addExtra(card, entry.recent_commits.join(" "));
+      });
+    }
+  } catch (err) {
+    console.error("loadExtendedSearchIndex failed:", err);
+  }
+  applyGameFilter();
+}
+
+// Every card gets a small "matched in ..." note (outside the link, so it
+// isn't itself searchable), and a sort note (used by "Most saved").
+allTitleCards.forEach((card) => {
+  const matchNote = document.createElement("p");
+  matchNote.className = "title-card-match-note";
+  matchNote.hidden = true;
+  matchNote.textContent = "Matched in the update history";
+  const sortNote = document.createElement("p");
+  sortNote.className = "title-card-sortnote";
+  sortNote.hidden = true;
+  const link = card.querySelector(".title-card-link");
+  if (link) link.insertAdjacentElement("afterend", sortNote);
+  if (link) link.insertAdjacentElement("afterend", matchNote);
+
+  // Y20: per-card "Share" button, distinct from the review widget. Copies
+  // an absolute link to this game (works from any host/subpath).
+  const share = document.createElement("button");
+  share.type = "button";
+  share.className = "account-link-button title-card-share";
+  share.textContent = "Share this game";
+  share.addEventListener("click", async () => {
+    const url = new URL(link.getAttribute("href"), location.href).href;
+    let done = false;
+    try {
+      await navigator.clipboard.writeText(url);
+      done = true;
+    } catch (err) {
+      // Clipboard blocked (insecure context / permissions): fall back to a prompt.
+      window.prompt("Copy this link:", url);
+    }
+    if (done) {
+      share.textContent = "Link copied!";
+      setTimeout(() => (share.textContent = "Share this game"), 1500);
+    }
+  });
+  card.querySelector(".review-widget")?.insertAdjacentElement("beforebegin", share);
+});
+
+// Y2: remember the last search/tag/sort across reloads.
+const FILTER_QUERY_KEY = "hub_filter_query";
+const FILTER_TAG_KEY = "hub_filter_tag";
+const SORT_MODE_KEY = "hub_sort_mode";
 
 function applyGameFilter() {
   const query = gameSearchInput.value.trim().toLowerCase();
   const tag = gameTagFilter.value;
   let visibleCount = 0;
   allTitleCards.forEach((card) => {
-    const text = card.textContent.toLowerCase();
     const tags = (card.dataset.tags || "").split(/\s+/);
-    const matchesQuery = !query || text.includes(query);
     const matchesTag = !tag || tags.includes(tag);
-    const visible = matchesQuery && matchesTag;
+    const inBase = !query || cardBaseText(card).includes(query);
+    const inExtra = !!query && !inBase && (extraSearchText.get(card) || "").includes(query);
+    const visible = matchesTag && (inBase || inExtra);
     card.hidden = !visible;
+    const note = card.querySelector(".title-card-match-note");
+    if (note) note.hidden = !(visible && inExtra);
     if (visible) visibleCount += 1;
   });
   gameFilterEmpty.hidden = visibleCount > 0;
 }
 
-if (gameSearchInput && gameTagFilter) {
-  gameSearchInput.addEventListener("input", applyGameFilter);
-  gameTagFilter.addEventListener("change", applyGameFilter);
+// --- Y21: sort modes (default / highest rated / most saved) ---
+// Rating average comes from each card's own review widget
+// (data-avg, set by renderSummary). Save count is the more honest
+// popularity signal while reviews skew toward test/friend accounts; it's
+// read through loadSaveCounts(), kept deliberately isolated so it can be
+// repointed at a dedicated public per-game count endpoint without touching
+// the sort code. Currently it uses the public GET /admin/stats
+// `saves_by_game` map, and returns null (graceful fallback to default
+// order + a status line) if that's unreachable.
+let saveCountsPromise = null;
+function loadSaveCounts() {
+  if (!saveCountsPromise) {
+    saveCountsPromise = fetch(`${RATINGS_API_BASE}/admin/stats`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        return res.json();
+      })
+      .then((body) => (body && typeof body.saves_by_game === "object" ? body.saves_by_game : null))
+      .catch((err) => {
+        console.error("loadSaveCounts failed:", err);
+        return null;
+      });
+  }
+  return saveCountsPromise;
 }
+
+let saveCounts = null; // null = not loaded / unavailable
+async function applySort() {
+  if (!gameSortSelect) return;
+  const mode = gameSortSelect.value;
+  let ordered = allTitleCards.slice();
+  gameSortStatus.hidden = true;
+  allTitleCards.forEach((card) => {
+    const note = card.querySelector(".title-card-sortnote");
+    if (note) note.hidden = true;
+  });
+  if (mode === "rating") {
+    ordered.sort(
+      (a, b) =>
+        Number(b.dataset.avg || 0) - Number(a.dataset.avg || 0) ||
+        Number(b.dataset.reviewCount || 0) - Number(a.dataset.reviewCount || 0)
+    );
+  } else if (mode === "saves") {
+    if (!saveCounts) saveCounts = await loadSaveCounts();
+    if (gameSortSelect.value !== "saves") return; // changed while loading
+    if (!saveCounts) {
+      gameSortStatus.textContent = "Save counts are unavailable right now — showing the default order.";
+      gameSortStatus.hidden = false;
+    } else {
+      const count = (card) => Number(saveCounts[cardSlug(card)] || 0);
+      ordered.sort((a, b) => count(b) - count(a));
+      ordered.forEach((card) => {
+        const note = card.querySelector(".title-card-sortnote");
+        if (note) {
+          const n = count(card);
+          note.textContent = `${n} save${n === 1 ? "" : "s"}`;
+          note.hidden = false;
+        }
+      });
+    }
+  }
+  gameGrid.append(...ordered);
+}
+
+if (gameSearchInput && gameTagFilter) {
+  const savedQuery = lsGet(FILTER_QUERY_KEY);
+  const savedTag = lsGet(FILTER_TAG_KEY);
+  if (savedQuery) gameSearchInput.value = savedQuery;
+  if (savedTag && Array.from(gameTagFilter.options).some((o) => o.value === savedTag)) {
+    gameTagFilter.value = savedTag;
+  }
+  const savedSort = lsGet(SORT_MODE_KEY);
+  if (savedSort && gameSortSelect && Array.from(gameSortSelect.options).some((o) => o.value === savedSort)) {
+    gameSortSelect.value = savedSort;
+  }
+  gameSearchInput.addEventListener("input", () => {
+    lsSet(FILTER_QUERY_KEY, gameSearchInput.value);
+    loadExtendedSearchIndex();
+    applyGameFilter();
+  });
+  gameSearchInput.addEventListener("focus", loadExtendedSearchIndex, { once: true });
+  gameTagFilter.addEventListener("change", () => {
+    lsSet(FILTER_TAG_KEY, gameTagFilter.value);
+    applyGameFilter();
+  });
+  if (gameSortSelect) {
+    gameSortSelect.addEventListener("change", () => {
+      lsSet(SORT_MODE_KEY, gameSortSelect.value);
+      applySort();
+    });
+  }
+  if (gameSearchInput.value.trim()) loadExtendedSearchIndex();
+  applyGameFilter();
+  applySort();
+}
+
+// --- Y24: "Random game" -- weighted toward titles the visitor hasn't
+// started. "Played" = a claimed account save (claimedGameIds, filled in by
+// loadContinuePlaying) or a local anonymous save code on this device.
+const claimedGameIds = new Set();
+function playedSlugs() {
+  const played = new Set(claimedGameIds);
+  try {
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith("savecode:"))
+      .forEach((k) => played.add(k.slice("savecode:".length)));
+  } catch (err) { /* convenience only */ }
+  return played;
+}
+const randomGameButton = document.getElementById("random-game-button");
+if (randomGameButton) {
+  randomGameButton.addEventListener("click", () => {
+    const played = playedSlugs();
+    const weighted = allTitleCards.map((card) => ({
+      card,
+      weight: played.has(cardSlug(card)) ? 1 : 4,
+    }));
+    let roll = Math.random() * weighted.reduce((sum, w) => sum + w.weight, 0);
+    let pick = weighted[weighted.length - 1].card;
+    for (const w of weighted) {
+      roll -= w.weight;
+      if (roll < 0) { pick = w.card; break; }
+    }
+    location.href = pick.querySelector(".title-card-link").getAttribute("href");
+  });
+}
+
+// --- Y27: "Recently Added" -- the newest couple of games by the date
+// their index.html first landed in git (game-added.json, regenerated with
+// the last-updated dates by scripts/generate-last-updated.py).
+async function loadRecentlyAdded() {
+  const section = document.getElementById("recently-added-section");
+  const list = document.getElementById("recently-added-list");
+  if (!section || !list) return;
+  try {
+    const res = await fetch("game-added.json");
+    if (!res.ok) throw new Error(`status ${res.status}`);
+    const added = await res.json();
+    const newest = allTitleCards
+      .map((card) => ({ card, date: added[cardSlug(card)] }))
+      .filter((e) => e.date)
+      .sort((a, b) => (a.date < b.date ? 1 : -1))
+      .slice(0, 2);
+    newest.forEach(({ card, date }) => {
+      const link = document.createElement("a");
+      link.className = "continue-playing-item";
+      link.href = card.querySelector(".title-card-link").getAttribute("href");
+      link.textContent = `${card.querySelector(".title-card-name").textContent} — added ${date}`;
+      list.appendChild(link);
+    });
+    section.hidden = newest.length === 0;
+  } catch (err) {
+    console.error("loadRecentlyAdded failed:", err);
+  }
+}
+loadRecentlyAdded();
 
 // --- Accounts (ACCOUNTS-AND-FEEDBACK-DESIGN.md Phase 2, revised: username
 // + password, no email — see main.py for why) ---
@@ -418,6 +715,7 @@ async function loadContinuePlaying() {
     if (!res.ok) throw new Error(`status ${res.status}`);
     const saves = await res.json();
     const gameIds = [...new Set(saves.map((s) => s.game_id))];
+    gameIds.forEach((id) => claimedGameIds.add(id));
     if (!gameIds.length) {
       continuePlayingSection.hidden = true;
       continuePlayingList.innerHTML = "";

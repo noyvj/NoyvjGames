@@ -1073,3 +1073,74 @@ button.secondary:disabled {
   background: linear-gradient(90deg, #6f8fe0, #a9c3ff);
   box-shadow: 0 0 10px rgba(140, 160, 255, 0.4);
 }
+
+/* Y4: live game-count line under the tagline */
+.hub-game-count {
+  margin: 0.4rem 0 0;
+  font-size: 0.78rem;
+  opacity: 0.5;
+  letter-spacing: 0.04em;
+}
+
+/* Y6: average-rating star visual. A hard-stop gradient clipped to the
+   glyph row fills the stars to the average's fraction (--fill is set in
+   script.js); the numeric text beside it stays the source of truth. */
+.avg-stars {
+  display: inline-block;
+  margin-right: 0.45rem;
+  letter-spacing: 0.08em;
+  background: linear-gradient(90deg, #e0c24c var(--fill, 0%), #3a3f52 var(--fill, 0%));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Y16: placeholder shimmer while a title card's ratings fetch resolves */
+.ratings-summary.is-loading {
+  width: 60%;
+  height: 0.95rem;
+  border-radius: 6px;
+  color: transparent;
+  overflow: hidden;
+  background: linear-gradient(90deg, rgba(140, 160, 255, 0.08) 25%, rgba(140, 160, 255, 0.2) 50%, rgba(140, 160, 255, 0.08) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  opacity: 1;
+}
+
+@keyframes skeleton-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ratings-summary.is-loading { animation: none; }
+  html { scroll-behavior: auto; }
+}
+
+/* Y19/Y21/Y20: small per-card notes and the share button */
+.title-card-match-note,
+.title-card-sortnote {
+  font-size: 0.7rem;
+  margin: 0;
+  padding: 0 1.4rem 0.5rem;
+  opacity: 0.6;
+  letter-spacing: 0.03em;
+}
+
+.title-card-share {
+  align-self: flex-start;
+  margin: 0 1.4rem 0.6rem;
+  font-size: 0.72rem;
+}
+
+#random-game-button {
+  width: auto;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+#game-sort-status {
+  margin-top: 0;
+}

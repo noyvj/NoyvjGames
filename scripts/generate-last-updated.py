@@ -28,6 +28,21 @@ from typing import Optional
 REPO_ROOT = Path(__file__).resolve().parent.parent
 GAMES_DIR = REPO_ROOT / "games"
 OUTPUT_PATH = REPO_ROOT / "game-last-updated.json"
+# Sibling output: the date each game's index.html first landed in git, for
+# the hub's "Recently Added" section (Y27).
+ADDED_OUTPUT_PATH = REPO_ROOT / "game-added.json"
+
+
+def first_commit_date(slug: str) -> Optional[str]:
+    result = subprocess.run(
+        ["git", "log", "--diff-filter=A", "--format=%ad", "--date=format:%Y-%m-%d", "--", f"games/{slug}/index.html"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    lines = result.stdout.strip().splitlines()
+    return lines[-1] if lines else None
 
 
 def last_commit_date(slug: str) -> Optional[str]:
@@ -45,7 +60,11 @@ def last_commit_date(slug: str) -> Optional[str]:
 def main() -> None:
     slugs = sorted(p.name for p in GAMES_DIR.iterdir() if p.is_dir())
     dates = {}
+    added = {}
     for slug in slugs:
+        first = first_commit_date(slug)
+        if first:
+            added[slug] = first
         date = last_commit_date(slug)
         if date:
             dates[slug] = date
@@ -53,6 +72,7 @@ def main() -> None:
             print(f"warning: no git history found for games/{slug}/ — skipping")
 
     OUTPUT_PATH.write_text(json.dumps(dates, indent=2, sort_keys=True) + "\n")
+    ADDED_OUTPUT_PATH.write_text(json.dumps(added, indent=2, sort_keys=True) + "\n")
     print(f"Wrote {len(dates)} game dates to {OUTPUT_PATH.relative_to(REPO_ROOT)}")
 
 
