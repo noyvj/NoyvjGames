@@ -17,12 +17,13 @@
  * save code is meant to be portable across devices/browsers and a local
  * browser's visual preference shouldn't silently override another device's.
  *
- * "Chosen on first load" is read as: a sensible default (High-def, i.e.
- * exactly the game's pre-existing look) is applied automatically the first
- * time this file ever runs in a given browser, and a settings control lets
- * that choice be changed at any time afterward -- not a forced first-run
- * picker dialog, which would be one more thing standing between opening the
- * game and actually playing it.
+ * "Chosen on first load": when nothing is stored (and the viewport is
+ * desktop-width) a small modal picker offers the four styles once, with a
+ * Skip button that takes High-def; either way the answer is stored, so it
+ * never reappears, and the Settings control changes it later. The page is
+ * already styled High-def behind the dialog (applied but not persisted until
+ * an answer), so nothing flashes. Narrow/mobile viewports skip the picker
+ * (the switcher is desktop-only) and simply keep High-def.
  */
 (function () {
   "use strict";
@@ -62,6 +63,13 @@
     });
   }
 
+  function applyStyleUnsaved(value) {
+    const style = STYLES.indexOf(value) !== -1 ? value : DEFAULT_STYLE;
+    document.documentElement.setAttribute("data-visual-style", style);
+    updateButtons(style);
+    return style;
+  }
+
   function applyStyle(value) {
     const style = STYLES.indexOf(value) !== -1 ? value : DEFAULT_STYLE;
     document.documentElement.setAttribute("data-visual-style", style);
@@ -70,8 +78,122 @@
     return style;
   }
 
+  const DESKTOP_QUERY = "(min-width: 641px)";
+  let pickerOpen = false;
+  const pickerCallbacks = [];
+
+  function isDesktop() {
+    try {
+      return !window.matchMedia || window.matchMedia(DESKTOP_QUERY).matches;
+    } catch (e) {
+      return true;
+    }
+  }
+
+  function hasStoredStyle() {
+    try {
+      return STYLES.indexOf(window.localStorage.getItem(STORAGE_KEY)) !== -1;
+    } catch (e) {
+      // Storage unreadable: treat as answered so a blocked-storage browser
+      // isn't nagged on every load with a choice it can't remember.
+      return true;
+    }
+  }
+
+  function settlePicker() {
+    pickerOpen = false;
+    while (pickerCallbacks.length) {
+      const callback = pickerCallbacks.shift();
+      try {
+        callback();
+      } catch (e) {
+        // A misbehaving callback must not block the others.
+      }
+    }
+  }
+
+  // Runs `callback` now if no picker is showing, else once it is dismissed.
+  function whenPickerDone(callback) {
+    if (pickerOpen) {
+      pickerCallbacks.push(callback);
+    } else {
+      callback();
+    }
+  }
+
+  function openPicker(onChoose) {
+    const picker = document.getElementById("visual-style-picker");
+    if (!picker) {
+      return false;
+    }
+    const options = Array.prototype.slice.call(picker.querySelectorAll(".visual-style-picker-option"));
+    const skip = document.getElementById("visual-style-picker-skip");
+    const focusable = options.concat(skip ? [skip] : []);
+    const previouslyFocused = document.activeElement;
+    pickerOpen = true;
+    picker.hidden = false;
+
+    function close(style) {
+      picker.hidden = true;
+      picker.removeEventListener("keydown", onKeydown);
+      onChoose(style);
+      if (previouslyFocused && previouslyFocused.focus) {
+        try {
+          previouslyFocused.focus();
+        } catch (e) {
+          // Element may be gone; nothing to restore.
+        }
+      }
+      settlePicker();
+    }
+
+    function onKeydown(event) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close(DEFAULT_STYLE);
+      } else if (event.key === "Tab" && focusable.length) {
+        // Keep Tab inside the dialog while it is modal.
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    }
+
+    picker.addEventListener("keydown", onKeydown);
+    options.forEach(function (button) {
+      button.addEventListener("click", function () {
+        close(button.getAttribute("data-style"));
+      });
+    });
+    if (skip) {
+      skip.addEventListener("click", function () {
+        close(DEFAULT_STYLE);
+      });
+    }
+    if (options[0]) {
+      options[0].focus();
+    }
+    return true;
+  }
+
   function init() {
-    let current = applyStyle(readStoredStyle());
+    const firstRun = !hasStoredStyle();
+    // Apply the stored style (or High-def) immediately. On a first run the
+    // choice is only persisted once the picker is answered.
+    let current = firstRun ? applyStyleUnsaved(DEFAULT_STYLE) : applyStyle(readStoredStyle());
+    if (firstRun && isDesktop()) {
+      openPicker(function (style) {
+        current = applyStyle(style);
+      });
+    } else if (firstRun) {
+      current = applyStyle(DEFAULT_STYLE);
+    }
 
     const panel = document.getElementById("settings-panel");
     const toggleButton = document.getElementById("settings-toggle-button");
@@ -101,6 +223,7 @@
   // (and so a live check in the browser console can confirm behaviour).
   window.ChampDeMotsVisualStyle = {
     applyStyle: applyStyle,
+    whenPickerDone: whenPickerDone,
     STYLES: STYLES,
     DEFAULT_STYLE: DEFAULT_STYLE,
   };

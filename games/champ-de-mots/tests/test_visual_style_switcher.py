@@ -100,3 +100,43 @@ def test_visual_styles_css_has_no_animation_or_timers():
 def test_settings_note_explains_the_scope_and_persistence():
     html = _source("index.html")
     assert "Saved to this browser only" in html
+
+
+# --- V-AB-1: first-run picker ------------------------------------------
+
+
+def test_index_html_has_an_accessible_first_run_picker():
+    html = _source("index.html")
+    assert 'id="visual-style-picker"' in html
+    assert 'role="dialog"' in html and 'aria-modal="true"' in html
+    assert 'id="visual-style-picker-skip"' in html
+    for name in ("highdef", "lowpoly", "textbased", "cartoon"):
+        assert f'data-style="{name}"' in html
+    # Starts hidden; only visual-style.js reveals it on a first run.
+    picker_tag = html[html.index('<div id="visual-style-picker"'):]
+    assert " hidden>" in picker_tag.split(">", 1)[0] + ">"
+
+
+def test_picker_text_is_honest_about_css_only_styles():
+    html = _source("index.html").lower()
+    assert "not separate artwork" in html
+
+
+def test_visual_style_js_opens_picker_only_on_first_desktop_run():
+    source = _source("visual-style.js")
+    assert "hasStoredStyle" in source
+    assert "min-width: 641px" in source
+    assert "openPicker" in source
+    # Skip / Escape both take the default, and the choice is persisted via applyStyle.
+    assert 'event.key === "Escape"' in source
+    assert "close(DEFAULT_STYLE)" in source
+
+
+def test_first_run_default_is_not_persisted_until_answered():
+    source = _source("visual-style.js")
+    assert "applyStyleUnsaved" in source
+
+
+def test_tutorial_waits_for_the_picker():
+    html = _source("index.html")
+    assert "whenPickerDone(startTutorial)" in html

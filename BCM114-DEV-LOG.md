@@ -345,3 +345,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Grid, Canopy, Tide, Aftermath, Trade Empire, Thaw, Loop
 **Did:** Mobile-dock `padding-bottom` rules changed to `html body` so they outrank ad-bar.css (verified at 375px: 130/268/230/230/150px computed). Aftermath Growth button/readout show the real current payoff. Thaw best-region line names the winning investment mix. Loop shows the extraction-cost ceiling as visible info text. Trade Empire route lines show average profit per trip (new saved `good_trip_count`); its achievements hub link now anchors to the dashboard.
 **Result:** aftermath 246, trade-empire 265, thaw 152, loop 192 tests green.
+
+### 2026-09-21 (Le Champ de Mots: practice-progress ledger + first-run visual-style picker)
+**Game:** Le Champ de Mots
+**Did:** R2-L1b: the four arcade minigames, gender drill, liaison practice, proficiency tests and bonus sentences now feed one shared, saved, validated practice ledger (per-mode accuracy plus daily/lifetime-capped points), shown as a header "Practice score" tile and a dashboard section; SRS state is never touched. V-AB-1: replaced the silent High-def default with the first-run picker the user actually asked for (desktop only, keyboard-accessible, skippable), with wording that is honest that three styles are CSS chrome, not separate art.
+**Result:** 538 to 561 tests (560 passed + 1 seeded-random skip) green, flake8 clean; verified live in the browser pane with zero console errors (including a stale service-worker cache trap). Not done: per-catalog-topic granularity for the ledger, and the L1 fifth minigame. See `games/champ-de-mots/CLAUDE.md` Milestones 35-36.

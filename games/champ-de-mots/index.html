@@ -46,6 +46,22 @@
            games/aftermath/settings.js already established for this hub. -->
       <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
     </div>
+    <!-- First-run visual-style picker (TODO V-AB-1): shown once, desktop only,
+         when no style has ever been stored; see visual-style.js. -->
+    <div id="visual-style-picker" class="visual-style-picker" role="dialog" aria-modal="true" aria-labelledby="visual-style-picker-title" aria-describedby="visual-style-picker-note" hidden>
+      <div class="visual-style-picker-card">
+        <h2 id="visual-style-picker-title" class="visual-style-picker-title">Choose a look</h2>
+        <p id="visual-style-picker-note" class="visual-style-picker-note">Pick how the game looks. These are four restyles of the same game — colours, fonts, borders and shadows — not separate artwork, and none changes the content or gameplay. High-def is the game's original look. You can change this any time in ⚙️ Settings.</p>
+        <div class="visual-style-picker-options" role="group" aria-label="Visual style">
+          <button type="button" class="secondary visual-style-picker-option" data-style="highdef"><strong>High-def</strong><span>The original glossy look (default)</span></button>
+          <button type="button" class="secondary visual-style-picker-option" data-style="lowpoly"><strong>Low-poly</strong><span>Flat, hard-edged colour blocks</span></button>
+          <button type="button" class="secondary visual-style-picker-option" data-style="textbased"><strong>Text-based</strong><span>Dense monospace, letters for plants</span></button>
+          <button type="button" class="secondary visual-style-picker-option" data-style="cartoon"><strong>Cartoon</strong><span>Rounded, bold-outline, playful</span></button>
+        </div>
+        <button id="visual-style-picker-skip" type="button" class="secondary visual-style-picker-skip">Skip — use High-def</button>
+      </div>
+    </div>
+
     <div id="howto-panel" class="section" hidden></div>
     <div id="settings-panel" class="section" hidden>
       <h2 class="settings-panel-heading">Settings</h2>
@@ -58,7 +74,7 @@
           <button id="visual-style-cartoon-button" class="secondary visual-style-option" type="button" aria-pressed="false">Cartoon</button>
         </div>
       </div>
-      <p class="settings-note">Purely visual — changes fonts, colours, borders and shadows, not any content or gameplay. Saved to this browser only (not part of your save code), so a different browser or device starts back at High-def.</p>
+      <p class="settings-note">Purely visual — changes fonts, colours, borders and shadows, not any content or gameplay. Low-poly, Text-based and Cartoon are restyles (colours, fonts, borders, shadows), not separate artwork. Saved to this browser only (not part of your save code), so a different browser or device asks again.</p>
     </div>
     <div id="dashboard-panel" class="dashboard-panel" hidden></div>
     <div id="achievements-panel" class="dashboard-panel" hidden></div>
@@ -517,8 +533,17 @@
         if (cafeTick) cafeTick();
       }, 1000);
 
-      if (window.GameTutorial) {
-        GameTutorial.init(CHAMP_DE_MOTS_TUTORIAL_STEPS, { gameId: "champ-de-mots" });
+      // The first-run visual-style picker (visual-style.js) goes first; the
+      // tutorial only starts once it has been answered or skipped.
+      const startTutorial = function () {
+        if (window.GameTutorial) {
+          GameTutorial.init(CHAMP_DE_MOTS_TUTORIAL_STEPS, { gameId: "champ-de-mots" });
+        }
+      };
+      if (window.ChampDeMotsVisualStyle) {
+        window.ChampDeMotsVisualStyle.whenPickerDone(startTutorial);
+      } else {
+        startTutorial();
       }
       if (window.MobileHud) {
         MobileHud.init([

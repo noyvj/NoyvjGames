@@ -90,6 +90,73 @@
   opacity: 0.7;
 }
 
+/* First-run picker (V-AB-1). A plain static modal: no motion, and it
+   inherits whichever style is applied behind it. Desktop-only in practice --
+   visual-style.js never opens it on narrow viewports. */
+.visual-style-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(10, 10, 24, 0.72);
+}
+
+.visual-style-picker[hidden] {
+  display: none;
+}
+
+.visual-style-picker-card {
+  max-width: 34rem;
+  width: 100%;
+  padding: 1.2rem 1.4rem;
+  border-radius: 10px;
+  background: #23233f;
+  border: 1px solid #5a5a8a;
+  color: #eef0ff;
+}
+
+.visual-style-picker-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
+}
+
+.visual-style-picker-note {
+  margin: 0 0 0.9rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  opacity: 0.9;
+}
+
+.visual-style-picker-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.visual-style-picker-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  width: auto;
+  text-align: left;
+}
+
+.visual-style-picker-option span {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.visual-style-picker-option:focus-visible,
+.visual-style-picker-skip:focus-visible {
+  outline: 3px solid #ffd54a;
+  outline-offset: 2px;
+}
+
 /* ============================================================
    LOW-POLY -- flat, geometric colour blocks. No blur, no gradients,
    no soft glow: everything reads as a hard-edged flat shape with a
