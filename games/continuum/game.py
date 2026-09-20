@@ -37,6 +37,7 @@ _HERE = os.getcwd()
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
+import archive  # noqa: E402
 import challenges  # noqa: E402
 import info_content  # noqa: E402
 import info_page  # noqa: E402
@@ -372,6 +373,206 @@ def update_hard_mode_display():
 summary_panel_open = False
 
 
+# ===========================================================================
+# K18 settlement archive + K20 shareable infographic card. Records live in
+# the browser's localStorage (a per-device keepsake, not part of the save
+# code), validated through archive.py on every read. The thumbnail and the
+# card image come from the 3D canvas via window.ContinuumVisual.capture and
+# window.ContinuumCard.download (plain JS); both are absent in the 2D
+# fallback and under the test harness, and everything degrades to no image.
+# ===========================================================================
+_archive_proxies = []
+_archive_confirm_clear = False
+
+
+def _js_window():
+    try:
+        from js import window
+    except ImportError:
+        return None
+    return window
+
+
+def archive_load():
+    window = _js_window()
+    if window is None:
+        return []
+    try:
+        raw = window.localStorage.getItem(archive.STORAGE_KEY)
+    except Exception:
+        return []
+    return archive.clean_records(raw) if isinstance(raw, str) else []
+
+
+def archive_store(records):
+    window = _js_window()
+    if window is None:
+        return False
+    try:
+        window.localStorage.setItem(archive.STORAGE_KEY, archive.serialize(records))
+        return True
+    except Exception:
+        return False
+
+
+def _capture_image(width, quality):
+    """A JPEG data URL of the live 3D scene, or '' when there is none."""
+    window = _js_window()
+    visual_layer = getattr(window, "ContinuumVisual", None) if window is not None else None
+    capture = getattr(visual_layer, "capture", None)
+    if capture is None:
+        return ""
+    try:
+        result = capture(width, quality)
+    except Exception:
+        return ""
+    return result if isinstance(result, str) else ""
+
+
+def _today():
+    return time.strftime("%Y-%m-%d")
+
+
+def current_record(thumbnail=""):
+    return archive.make_record(campaign, len(achievement_ids_earned()), _today(), thumbnail)
+
+
+def on_archive_current(event=None):
+    global _archive_confirm_clear
+    _archive_confirm_clear = False
+    record = current_record(archive.clean_thumbnail(_capture_image(320, 0.7)))
+    if record is not None:
+        archive_store(archive.add_record(archive_load(), record))
+    update_summary_panel()
+
+
+def _make_archive_delete_handler(index):
+    def handler(event=None):
+        archive_store(archive.remove_record(archive_load(), index))
+        update_summary_panel()
+    return handler
+
+
+def on_archive_clear(event=None):
+    global _archive_confirm_clear
+    if not _archive_confirm_clear:
+        _archive_confirm_clear = True
+    else:
+        _archive_confirm_clear = False
+        archive_store([])
+    update_summary_panel()
+
+
+def _download_card(record, thumbnail):
+    window = _js_window()
+    card = getattr(window, "ContinuumCard", None) if window is not None else None
+    download = getattr(card, "download", None)
+    if download is None:
+        return False
+    payload = {
+        "title": "Continuum",
+        "lines": archive.card_lines(record),
+        "thumb": thumbnail,
+        "filename": f"continuum-card-{record['era']}-{record['saved_on']}.png",
+    }
+    try:
+        download(json.dumps(payload))
+    except Exception:
+        return False
+    return True
+
+
+def on_card_current(event=None):
+    _download_card(current_record(), _capture_image(720, 0.85))
+
+
+def _make_card_handler(index):
+    def handler(event=None):
+        records = archive_load()
+        if 0 <= index < len(records):
+            _download_card(records[index], records[index]["thumb"])
+    return handler
+
+
+def _archive_button(parent, button_id, text, handler):
+    button = document.createElement("button")
+    button.id = button_id
+    button.className = "secondary"
+    button.innerText = text
+    proxy = create_proxy(handler)
+    _archive_proxies.append(proxy)
+    button.addEventListener("click", proxy)
+    parent.appendChild(button)
+    return button
+
+
+def _render_archive_section(panel):
+    """Appends the archive gallery + card buttons to the summary panel."""
+    for proxy in _archive_proxies:
+        proxy.destroy()
+    del _archive_proxies[:]
+    records = archive_load()
+
+    heading = document.createElement("h3")
+    heading.className = "summary-eras-heading"
+    heading.innerText = f"Settlement archive ({len(records)} of {archive.MAX_RECORDS})"
+    panel.appendChild(heading)
+    note = document.createElement("p")
+    note.className = "row-blurb"
+    note.innerText = (
+        "File this settlement's stats and a picture of its 3D view in a gallery kept on this device only. "
+        "The oldest entry is dropped once the archive is full."
+    )
+    panel.appendChild(note)
+    actions = document.createElement("div")
+    actions.className = "archive-actions"
+    _archive_button(actions, "archive-add-button", "Add this settlement to the archive", on_archive_current)
+    _archive_button(actions, "archive-card-current-button", "Download a shareable card", on_card_current)
+    panel.appendChild(actions)
+
+    gallery = document.createElement("div")
+    gallery.className = "archive-gallery"
+    for index in range(len(records) - 1, -1, -1):
+        record = records[index]
+        card = document.createElement("div")
+        card.className = "archive-entry"
+        if record["thumb"]:
+            image = document.createElement("img")
+            image.className = "archive-thumb"
+            image.src = record["thumb"]
+            image.alt = f"{sim.ERA_LABEL[record['era']]} era settlement"
+            card.appendChild(image)
+        text = document.createElement("div")
+        text.className = "archive-text"
+        for i, line in enumerate(archive.card_lines(record)):
+            row = document.createElement("p")
+            row.className = "archive-line archive-line--head" if i == 0 else "archive-line"
+            row.innerText = line
+            text.appendChild(row)
+        stamp = document.createElement("p")
+        stamp.className = "archive-line archive-date"
+        stamp.innerText = f"Filed {record['saved_on']}"
+        text.appendChild(stamp)
+        card.appendChild(text)
+        buttons = document.createElement("div")
+        buttons.className = "archive-actions"
+        _archive_button(buttons, f"archive-card-{index}-button", "Card", _make_card_handler(index))
+        _archive_button(buttons, f"archive-delete-{index}-button", "Delete", _make_archive_delete_handler(index))
+        card.appendChild(buttons)
+        gallery.appendChild(card)
+    panel.appendChild(gallery)
+    if records:
+        clear_wrap = document.createElement("div")
+        clear_wrap.className = "archive-actions"
+        _archive_button(
+            clear_wrap,
+            "archive-clear-button",
+            "Really clear the whole archive?" if _archive_confirm_clear else "Clear archive",
+            on_archive_clear,
+        )
+        panel.appendChild(clear_wrap)
+
+
 # --- K15 founder's log + K29 time played --------------------------------
 # Both ride in campaign.ui (already saved as a plain dict) and are
 # validated/defaulted on every read, so an old or hand-edited save can
@@ -552,6 +753,8 @@ def update_summary_panel():
         entry.appendChild(detail)
 
         panel.appendChild(entry)
+
+    _render_archive_section(panel)
 
 
 

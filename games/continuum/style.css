@@ -1330,3 +1330,12 @@ kbd { border: 1px solid rgba(201, 147, 84, 0.5); border-radius: 4px; padding: 0 
 .flow-ribbon--materials { fill: #8fb5e8; stroke: #8fb5e8; }
 .flow-ribbon--tools { fill: #c0c0c8; stroke: #c0c0c8; }
 .flow-ribbon--knowledge { fill: #e88fb5; stroke: #e88fb5; }
+
+/* K18/K20: settlement archive gallery + card buttons (inside the summary panel). */
+.archive-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.4rem 0; }
+.archive-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.6rem; }
+.archive-entry { border: 1px solid rgba(201, 147, 84, 0.4); border-radius: 8px; padding: 0.5rem; background: rgba(20, 16, 10, 0.4); }
+.archive-thumb { width: 100%; height: auto; display: block; border-radius: 6px; margin-bottom: 0.4rem; }
+.archive-line { margin: 0.1rem 0; font-size: 0.82rem; }
+.archive-line--head { font-weight: 600; font-size: 0.9rem; }
+.archive-date { opacity: 0.7; font-size: 0.75rem; }

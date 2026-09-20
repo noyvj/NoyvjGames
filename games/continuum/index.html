@@ -379,6 +379,8 @@
        ContinuumVisual.init(pyodide) after game.py has booted. -->
   <script src="render3d.js"></script>
   <script src="settings.js"></script>
+  <!-- K20: shareable infographic card, drawn on a 2D canvas (card.js). -->
+  <script src="card.js"></script>
   <script>
     // K3: plain fetch + text render (no game-state logic). The endpoint may
     // not be reachable, so every failure ends in one "not available" line,
@@ -462,7 +464,7 @@
     // Each engine module is written into Pyodide's virtual filesystem (the
     // working directory, which is on sys.path) before game.py runs and
     // imports them. Still no build step — just more than one fetch.
-    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py"];
+    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py"];
 
     const CONTINUUM_TUTORIAL_STEPS = [
       {

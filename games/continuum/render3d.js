@@ -648,6 +648,32 @@
     }
   }
 
+  // K18/K20: a downscaled JPEG data URL of the current 3D view, used for the
+  // settlement archive thumbnail and the shareable card. Returns "" when no
+  // scene exists or the capture fails. The scene has a transparent
+  // background, so it is composited on a dark backdrop before encoding.
+  function capture(width, quality) {
+    if (!renderer || !scene || !camera) return "";
+    try {
+      const w = Math.min(Math.max(Math.floor(Number(width)) || 240, 64), 1200);
+      const q = Math.min(Math.max(Number(quality) || 0.7, 0.3), 0.95);
+      renderer.render(scene, camera);
+      const src = renderer.domElement;
+      if (!src.width || !src.height) return "";
+      const out = document.createElement("canvas");
+      out.width = w;
+      out.height = Math.max(1, Math.round((w * src.height) / src.width));
+      const ctx = out.getContext("2d");
+      ctx.fillStyle = "#1a1410";
+      ctx.fillRect(0, 0, out.width, out.height);
+      ctx.drawImage(src, 0, 0, out.width, out.height);
+      return out.toDataURL("image/jpeg", q);
+    } catch (err) {
+      console.warn("Continuum 3D: capture failed.", err);
+      return "";
+    }
+  }
+
   function setupSnapshotButton() {
     const button = document.getElementById(SNAPSHOT_BUTTON_ID);
     if (!button) return;
@@ -845,5 +871,5 @@
     }
   }
 
-  window.ContinuumVisual = { init: init };
+  window.ContinuumVisual = { init: init, capture: capture };
 })();
