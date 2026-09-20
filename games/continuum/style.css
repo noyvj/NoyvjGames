@@ -1304,3 +1304,29 @@ kbd { border: 1px solid rgba(201, 147, 84, 0.5); border-radius: 4px; padding: 0 
 .community-city-result { white-space: pre-wrap; font: inherit; font-size: 0.85rem; margin: 0.5rem 0 0; }
 .founders-panel[hidden] { display: none; }
 .founders-entry { font-size: 0.85rem; }
+
+/* K1/K24/K28: optional City Views. Nothing is encoded by colour alone: the
+   map uses a distinct glyph shape per building plus text labels, and the
+   flow diagram labels every node and ribbon with its value. */
+.views-panel[hidden], .views-map[hidden], .views-flow[hidden], .views-dashboard[hidden] { display: none; }
+.views-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.4rem 0 0.6rem; }
+.views-tabs .branch-chip[aria-pressed="true"] { border-color: #e0b374; background: rgba(224, 179, 116, 0.18); font-weight: 600; }
+.views-dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0.6rem 1rem; }
+.views-dash-row { display: flex; justify-content: space-between; gap: 0.6rem; margin: 0.1rem 0; font-size: 0.85rem; font-variant-numeric: tabular-nums; border-bottom: 1px dotted rgba(201, 147, 84, 0.2); }
+.views-dash-value { font-weight: 600; text-align: right; }
+.views-svg { width: 100%; height: auto; display: block; border-radius: 8px; }
+.map-bg { fill: rgba(20, 16, 10, 0.5); }
+.map-district { fill: rgba(201, 147, 84, 0.08); stroke: rgba(201, 147, 84, 0.5); stroke-width: 1; }
+.map-district--empty { stroke-dasharray: 4 3; fill: none; }
+.map-label { fill: #f0dcbc; font-size: 8.5px; }
+.map-count { fill: #d9b98a; font-size: 8px; }
+.map-glyph { fill: #e0b374; stroke: #2a1f10; stroke-width: 0.6; }
+.map-glyph--line { fill: none; stroke: #e0b374; stroke-width: 1.8; stroke-linecap: round; }
+.map-glyph--hollow { fill: none; stroke: #e0b374; stroke-width: 1.6; }
+.flow-node { fill: rgba(60, 46, 28, 0.95); stroke: #e0b374; stroke-width: 1; }
+.flow-label { fill: #f6e6c8; font-size: 8.5px; }
+.flow-ribbon { fill-opacity: 0.55; stroke-width: 0.5; }
+.flow-ribbon--food { fill: #d9a441; stroke: #d9a441; }
+.flow-ribbon--materials { fill: #8fb5e8; stroke: #8fb5e8; }
+.flow-ribbon--tools { fill: #c0c0c8; stroke: #c0c0c8; }
+.flow-ribbon--knowledge { fill: #e88fb5; stroke: #e88fb5; }

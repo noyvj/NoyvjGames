@@ -50,6 +50,8 @@
            for why. Same hidden-until-opened idiom as the two panels above. -->
       <button id="summary-toggle-button" class="secondary" type="button">📜 Civilization Summary</button>
       <button id="founders-toggle-button" class="secondary" type="button">📓 Founder's Log</button>
+      <!-- K1/K24/K28: optional City Views (dashboard, civic map, flow diagram). -->
+      <button id="views-toggle-button" class="secondary" type="button" title="Optional data views of the same city: a numbers dashboard, a top-down map and a resource flow diagram.">📊 City Views</button>
       <!-- Milestone 19 (site-wide settings panel, TODO.md origin A9):
            consolidates what used to be a standalone text-size toolbar
            control (Phase 5) into one panel, alongside a new
@@ -79,6 +81,23 @@
     <!-- K5: the civilization summary report -- rows are built by
          game.py, see update_summary_panel(). -->
     <div id="summary-panel" class="section summary-panel" hidden></div>
+    <div id="views-panel" class="section views-panel" hidden>
+      <h2 class="section-heading">City Views</h2>
+      <div class="views-tabs" role="group" aria-label="City view">
+        <button id="views-tab-dashboard-button" class="secondary branch-chip" type="button" aria-pressed="true">Dashboard</button>
+        <button id="views-tab-map-button" class="secondary branch-chip" type="button" aria-pressed="false">Civic map</button>
+        <button id="views-tab-flow-button" class="secondary branch-chip" type="button" aria-pressed="false">Resource flow</button>
+      </div>
+      <div id="views-dashboard" class="views-dashboard"></div>
+      <div id="views-map" class="views-map" hidden>
+        <div id="views-map-svg"></div>
+        <p id="views-map-caption" class="row-blurb"></p>
+      </div>
+      <div id="views-flow" class="views-flow" hidden>
+        <div id="views-flow-svg"></div>
+        <p id="views-flow-caption" class="row-blurb"></p>
+      </div>
+    </div>
     <!-- K15: personal annotations, stamped with the current era and season. -->
     <div id="founders-panel" class="section founders-panel" hidden>
       <h2 class="section-heading">Founder's Log</h2>
@@ -443,7 +462,7 @@
     // Each engine module is written into Pyodide's virtual filesystem (the
     // working directory, which is on sys.path) before game.py runs and
     // imports them. Still no build step — just more than one fetch.
-    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py"];
+    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py"];
 
     const CONTINUUM_TUTORIAL_STEPS = [
       {

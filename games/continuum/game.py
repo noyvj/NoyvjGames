@@ -46,6 +46,7 @@ import sim  # noqa: E402
 import summary  # noqa: E402
 import sustainability  # noqa: E402
 import trajectory  # noqa: E402
+import views  # noqa: E402
 import transition  # noqa: E402
 import visual  # noqa: E402
 
@@ -243,6 +244,7 @@ def render():
     update_scenario_display()
     update_hard_mode_display()
     update_summary_panel()
+    update_views_panel(effects)
     render_insights(effects)
     _notify_visual_layer()
 
@@ -565,6 +567,73 @@ SEASON_NAMES = ["Spring", "Summer", "Autumn", "Winter"]
 def year_and_season(season):
     index = max(1, int(season)) - 1
     return index // SEASONS_PER_YEAR + 1, SEASON_NAMES[index % SEASONS_PER_YEAR]
+
+
+# ===========================================================================
+# K1/K24/K28: the optional City Views panel (dashboard, civic map, flow
+# diagram). Session-only display state, never saved; built by views.py.
+# ===========================================================================
+views_panel_open = False
+views_tab = "dashboard"
+VIEW_TABS = ("dashboard", "map", "flow")
+
+
+def on_toggle_views(event=None):
+    global views_panel_open
+    views_panel_open = not views_panel_open
+    update_views_panel(current_effects())
+
+
+def _make_views_tab_handler(tab):
+    def handler(event=None):
+        global views_tab
+        views_tab = tab
+        update_views_panel(current_effects())
+    return handler
+
+
+def update_views_panel(effects=None):
+    toggle = document.getElementById("views-toggle-button")
+    panel = document.getElementById("views-panel")
+    toggle.innerText = "Hide City Views" if views_panel_open else "📊 City Views"
+    panel.hidden = not views_panel_open
+    if not views_panel_open:
+        return
+    effects = current_effects() if effects is None else effects
+    for tab in VIEW_TABS:
+        document.getElementById(f"views-tab-{tab}-button").setAttribute(
+            "aria-pressed", "true" if tab == views_tab else "false"
+        )
+        document.getElementById(f"views-{tab}").hidden = tab != views_tab
+    if views_tab == "dashboard":
+        container = document.getElementById("views-dashboard")
+        container.innerHTML = ""
+        done, total, _percent = tree_completion()
+        for section in views.dashboard(state, effects, (done, total)):
+            block = document.createElement("div")
+            block.className = "views-dash-section"
+            heading = document.createElement("h3")
+            heading.className = "summary-eras-heading"
+            heading.innerText = section["title"]
+            block.appendChild(heading)
+            for label, value in section["rows"]:
+                row = document.createElement("p")
+                row.className = "views-dash-row"
+                name = document.createElement("span")
+                name.innerText = label
+                number = document.createElement("span")
+                number.className = "views-dash-value"
+                number.innerText = value
+                row.appendChild(name)
+                row.appendChild(number)
+                block.appendChild(row)
+            container.appendChild(block)
+    elif views_tab == "map":
+        document.getElementById("views-map-svg").innerHTML = views.civic_map_svg(state)
+        document.getElementById("views-map-caption").innerText = views.map_caption(state)
+    else:
+        document.getElementById("views-flow-svg").innerHTML = views.flow_svg(state, state.last_report)
+        document.getElementById("views-flow-caption").innerText = views.flow_caption(state.last_report)
 
 
 def tree_completion():
@@ -1728,6 +1797,13 @@ def setup():
     document.getElementById("founders-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_founders)
     )
+    document.getElementById("views-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_views)
+    )
+    for _tab in VIEW_TABS:
+        document.getElementById(f"views-tab-{_tab}-button").addEventListener(
+            "click", create_proxy(_make_views_tab_handler(_tab))
+        )
     document.getElementById("founders-add-button").addEventListener(
         "click", create_proxy(on_add_founders_note)
     )

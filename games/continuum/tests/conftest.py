@@ -122,6 +122,19 @@ ELEMENT_IDS = [
     "research-branch-provision-button",
     "research-branch-community-button",
     "research-branch-craft-button",
+    # K1/K24/K28 -- optional City Views panel.
+    "views-toggle-button",
+    "views-panel",
+    "views-tab-dashboard-button",
+    "views-tab-map-button",
+    "views-tab-flow-button",
+    "views-dashboard",
+    "views-map",
+    "views-map-svg",
+    "views-map-caption",
+    "views-flow",
+    "views-flow-svg",
+    "views-flow-caption",
 ]
 
 
@@ -151,6 +164,9 @@ class GameEnv:
     def advance_season(self, count=1):
         for _ in range(count):
             self.elements["advance-season-button"].dispatch("click", None)
+
+    def toggle_views(self):
+        self.elements["views-toggle-button"].dispatch("click", None)
 
     def toggle_changelog(self):
         self.elements["changelog-toggle-button"].dispatch("click", None)
