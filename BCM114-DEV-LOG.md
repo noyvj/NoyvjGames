@@ -297,3 +297,8 @@ Built ~17 C-items (starting scenarios, operator grade, resilience score, 20-roun
 **Game:** Tide
 **Did:** Built D2/D6/D10/D14/D16/D18/D19/D20/D22/D23/D24/D26/D28/D30 from `planning/TODO.md`: sea-level scenario select, seasons-survived counter, fish-stock recovery celebration, worst-season cause, actionable fish-yield warning, live output-mix preview, average/baseline markers on the acidity graph, a then-vs-now damage sparkline, per-tier seawall textures with a tier badge, per-tile seasons-until-flood tooltips, and a one-time hard-lag note.
 **Result:** 175 to 195 tests green; verified live in the browser with no non-network console errors.
+
+### 2026-09-20 (Herd: round-2 improvement pass)
+**Game:** Herd
+**Did:** Built F2/F4/F6/F11/F12/F14/F16/F18/F22/F24/F26/F30 from `planning/TODO.md`: sustainable certification with a permanent price premium, before/after arrows on the Grow preview, pasture herd count, thinning methane wisps, exact tradeoff in the pivot confirm, report-card percentage vs baseline, flatten pulse on the trend graph. F28 already satisfied.
+**Result:** 137 to 153 tests green; verified live, only network console errors. See `games/herd/CLAUDE.md`.
