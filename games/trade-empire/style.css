@@ -1321,6 +1321,9 @@ button.secondary:disabled::after {
    the wrapper just reserves layout space, the svg's own class carries
    the stroke color. */
 .sparkline-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-top: 0.3rem;
   height: 18px;
   line-height: 0;
@@ -1511,4 +1514,16 @@ button.secondary:disabled::after {
   font-size: 0.72rem;
   opacity: 0.6;
   line-height: 1.4;
+}
+
+.sparkline-now {
+  fill: #ffffff;
+  stroke: #e0a24c;
+  stroke-width: 1;
+}
+
+.sparkline-pct {
+  font-size: 0.75rem;
+  line-height: 1;
+  opacity: 0.8;
 }

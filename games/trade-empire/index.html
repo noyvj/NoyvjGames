@@ -126,6 +126,7 @@
       <p class="panel-label">Trade routes</p>
       <canvas id="map-canvas" width="620" height="300" class="map-canvas"></canvas>
       <p class="map-caption">Each colony ships to whichever other colony needs what it makes.</p>
+      <p id="map-legend" class="map-caption">Legend: ● manual ship &nbsp; ◆ automated ship &nbsp; pink ring = Fleet Priority target (hover the map for details)</p>
     </div>
 
     <div id="market-panel" class="section">
@@ -381,6 +382,7 @@
       <div class="rename-row">
         <input id="ship-1-name-input" type="text" class="ship-name-input" placeholder="Rename ship" maxlength="24">
         <button id="ship-1-rename-button" class="secondary rename-button" type="button">Rename</button>
+        <button id="ship-1-reset-name-button" class="secondary rename-button" type="button" title="Restore the default ship name">Reset</button>
       </div>
       <div class="depart-buttons">
         <button id="ship-1-depart-aurum-button" class="secondary" disabled hidden>Loading...</button>
@@ -410,6 +412,7 @@
       <div class="rename-row">
         <input id="ship-2-name-input" type="text" class="ship-name-input" placeholder="Rename ship" maxlength="24">
         <button id="ship-2-rename-button" class="secondary rename-button" type="button">Rename</button>
+        <button id="ship-2-reset-name-button" class="secondary rename-button" type="button" title="Restore the default ship name">Reset</button>
       </div>
       <div class="depart-buttons">
         <button id="ship-2-depart-aurum-button" class="secondary" disabled hidden>Loading...</button>
@@ -439,6 +442,7 @@
       <div class="rename-row">
         <input id="ship-3-name-input" type="text" class="ship-name-input" placeholder="Rename ship" maxlength="24">
         <button id="ship-3-rename-button" class="secondary rename-button" type="button">Rename</button>
+        <button id="ship-3-reset-name-button" class="secondary rename-button" type="button" title="Restore the default ship name">Reset</button>
       </div>
       <div class="depart-buttons">
         <button id="ship-3-depart-aurum-button" class="secondary" disabled hidden>Loading...</button>
@@ -468,6 +472,7 @@
       <div class="rename-row">
         <input id="ship-4-name-input" type="text" class="ship-name-input" placeholder="Rename ship" maxlength="24">
         <button id="ship-4-rename-button" class="secondary rename-button" type="button">Rename</button>
+        <button id="ship-4-reset-name-button" class="secondary rename-button" type="button" title="Restore the default ship name">Reset</button>
       </div>
       <div class="depart-buttons">
         <button id="ship-4-depart-aurum-button" class="secondary" disabled hidden>Loading...</button>
@@ -498,6 +503,7 @@
       <div class="rename-row">
         <input id="ship-5-name-input" type="text" class="ship-name-input" placeholder="Rename ship" maxlength="24">
         <button id="ship-5-rename-button" class="secondary rename-button" type="button">Rename</button>
+        <button id="ship-5-reset-name-button" class="secondary rename-button" type="button" title="Restore the default ship name">Reset</button>
       </div>
       <div class="depart-buttons">
         <button id="ship-5-depart-aurum-button" class="secondary" disabled hidden>Loading...</button>
@@ -528,6 +534,7 @@
       <div class="rename-row">
         <input id="ship-6-name-input" type="text" class="ship-name-input" placeholder="Rename ship" maxlength="24">
         <button id="ship-6-rename-button" class="secondary rename-button" type="button">Rename</button>
+        <button id="ship-6-reset-name-button" class="secondary rename-button" type="button" title="Restore the default ship name">Reset</button>
       </div>
       <div class="depart-buttons">
         <button id="ship-6-depart-aurum-button" class="secondary" disabled hidden>Loading...</button>

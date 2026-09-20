@@ -27,6 +27,7 @@ def test_get_state_includes_every_expected_key(game_env):
         "ever_repositioned",
         "market_crash_ever",
         "good_profit_total",
+        "good_profit_recent",
         "price_history",
         "need_history",
         "seen_first_automation_callout",
@@ -50,6 +51,9 @@ def test_get_state_expands_every_ship_into_a_plain_dict(game_env):
             "purchased",
             "name",
             "idle_ticks",
+            "route_key",
+            "route_legs",
+            "total_earned",
         }
 
 

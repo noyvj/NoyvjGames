@@ -307,3 +307,8 @@ Built ~17 C-items (starting scenarios, operator grade, resilience score, 20-roun
 **Game:** Aftermath
 **Did:** Built E1/E3 (two new skill nodes forming weather and social-shock branches with category-specific damage reduction), E2 (toast lingers longer for longer grounding text), E4/E25 (always-visible runs-completed counter plus a persisted settlement name), E5 (past-run memory lines), E6, E7 (severity spread also widens with lifetime runs, capped), E8/E28 (one-time callouts), E10, E12 (toughest-survived badge), E13 (extended-run epilogue), E14/E20 (damage range and severity tooltip), E15 (three build-diversity achievements), E16, E18, E22, E24, E26 (export summary), E30a/b (runs-until-affordable estimates and pinned skills). Cross-run extras (name, pins, callout flags) live in a new localStorage `meta` dict and ride the progress export code. Left: E9/E23 (Z1 stats), E17a/b, E19, E27, E29.
 **Result:** 210 to 244 tests green; verified live with only network console errors. See `games/aftermath/CLAUDE.md`.
+
+### 2026-09-20 (Trade Empire: round-2 improvement pass, wave 1)
+**Game:** Trade Empire
+**Did:** Built J2/J4/J6/J12/J13/J14/J18/J20/J24/J25/J26/J30 from `planning/TODO.md`: route trend arrows, price-now marker, Fleet Priority ring tooltip, ship name reset, galaxy overview and fleet-efficiency report in Summary, veteran hauler badge, automate permanence tooltip, crash recovery ETA, needs-met average, locked-research tooltips, map legend.
+**Result:** 243 to 255 tests green; verified live with only network console errors. See `games/trade-empire/CLAUDE.md`.

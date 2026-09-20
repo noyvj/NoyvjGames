@@ -72,6 +72,7 @@ for _ship_id in SHIP_IDS:
     ELEMENT_IDS.append(f"ship-{_ship_id}-automate-button")
     ELEMENT_IDS.append(f"ship-{_ship_id}-name-input")
     ELEMENT_IDS.append(f"ship-{_ship_id}-rename-button")
+    ELEMENT_IDS.append(f"ship-{_ship_id}-reset-name-button")
     if _ship_id in PURCHASABLE_SHIP_IDS:
         ELEMENT_IDS.append(f"ship-{_ship_id}-purchase-button")
     for _colony_id in ALL_COLONY_IDS:

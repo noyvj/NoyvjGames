@@ -401,6 +401,15 @@ def render_map():
     canvas = document.getElementById("map-canvas")
     ctx = canvas.getContext("2d")
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+    # J6 — hover text explaining what the pink target ring points at.
+    if fleet_priority_enabled and colony_states:
+        canvas.title = (
+            f"Pink ring: Fleet Priority's current target, {ALL_COLONIES[most_urgent_colony()]['name']} "
+            "(the colony with the lowest need satisfaction). Idle automated ships reposition "
+            "toward whichever producer feeds it."
+        )
+    else:
+        canvas.title = "Trade routes map. Turn on Fleet Priority to see its target ring."
 
     ctx.strokeStyle = EDGE_COLOR
     ctx.lineWidth = 2
@@ -486,6 +495,7 @@ market_multiplier = {
 # colony_needing() are both single-valued), so a good's cumulative sale
 # profit *is* that route's cumulative profit -- no separate route-keyed
 # structure needed on top of the good-keyed one.
+good_profit_recent = {}  # J2 — good -> last few sale profits, for the trend arrow
 good_profit_total = {good: 0 for good in market_multiplier}
 
 # J12/J14 — a short rolling trend history (market price per good, need
@@ -695,6 +705,12 @@ def fleet_cargo_multiplier():
     return HAULER_CARGO_MULTIPLIER if "hauler" in unlocked_research else 1.0
 
 
+VETERAN_ROUND_TRIPS = 5  # J14 — round trips on one route for the badge
+UNDERPERFORM_FRACTION = 0.5  # J25 — below this share of fleet-average earnings
+ROUTE_TREND_WINDOW = 4  # J2 — sales per half-window compared for the arrow
+DEFAULT_TREND_EPSILON = 0.05
+
+
 class Ship:
     def __init__(self, ship_id, start_colony):
         self.id = ship_id
@@ -716,6 +732,21 @@ class Ship:
         # not automated. Reset the instant any of those stop being true
         # (tick() does the resetting; see IDLE_WARNING_TICKS below).
         self.idle_ticks = 0
+        # J14 — veteran-hauler bookkeeping: the (unordered) colony pair of
+        # the last completed cargo leg, and how many consecutive legs
+        # have been on that same pair. Two legs = one round trip.
+        self.route_key = None
+        self.route_legs = 0
+        # J25 — lifetime credits this ship's own deliveries have earned.
+        self.total_earned = 0
+
+    @property
+    def round_trips(self):
+        return self.route_legs // 2
+
+    @property
+    def is_veteran(self):
+        return self.round_trips >= VETERAN_ROUND_TRIPS
 
     @property
     def in_transit(self):
@@ -794,6 +825,13 @@ class Ship:
             elif dest_state.is_developed() and dest_state.secondary_need() == good:
                 dest_state.deliver_secondary(qty)
             result = (good, qty, profit)
+            self.total_earned += profit
+            key = frozenset((self.origin, destination))
+            if key == self.route_key:
+                self.route_legs += 1
+            else:
+                self.route_key = key
+                self.route_legs = 1
         self.location = destination
         self.origin = None
         self.destination = None
@@ -895,6 +933,12 @@ def rename_ship(ship_id, new_name):
     if not name:
         return False
     ships[ship_id].name = name[:MAX_SHIP_NAME_LENGTH]
+    return True
+
+
+def reset_ship_name(ship_id):
+    """J12 — restore the default "Ship N" name."""
+    ships[ship_id].name = f"Ship {ship_id}"
     return True
 
 
@@ -1000,7 +1044,15 @@ def _render_unpurchased_ship(ship):
 
 
 def render_ship(ship):
-    document.getElementById(f"ship-{ship.id}-label").innerText = ship.name
+    label_text = ship.name
+    if ship.purchased and ship.is_veteran:
+        label_text += " ★ Veteran hauler"  # J14
+    label_el = document.getElementById(f"ship-{ship.id}-label")
+    label_el.innerText = label_text
+    label_el.title = (
+        f"{ship.round_trips} round trips on the same route (veteran at {VETERAN_ROUND_TRIPS})."
+        if ship.purchased else ""
+    )
 
     if ship.id in PURCHASABLE_SHIP_IDS:
         purchase_button = document.getElementById(f"ship-{ship.id}-purchase-button")
@@ -1032,6 +1084,11 @@ def render_ship(ship):
 
     automate_button = document.getElementById(f"ship-{ship.id}-automate-button")
     automate_button.hidden = False
+    # J18 — automation is a one-time, permanent choice per ship.
+    automate_button.title = (
+        f"Automating costs {AUTOMATION_COST} credits and is permanent: "
+        "there is no way to de-automate a ship afterward."
+    )
     if ship.automated:
         automate_button.innerText = "Automated"
         automate_button.disabled = True
@@ -1061,6 +1118,14 @@ def render_colony(colony_id):
     document.getElementById(f"colony-{colony_id}-need-sparkline").innerHTML = _trend_sparkline_svg(
         need_history.get(colony_id, []), "need-sparkline"
     )
+    # J24 — a plain "needs met" average alongside the graph.
+    hist = need_history.get(colony_id, [])
+    if hist:
+        avg_pct = sum(hist) / len(hist) * 100
+        document.getElementById(f"colony-{colony_id}-need-sparkline").innerHTML += (
+            f'<span class="sparkline-pct" title="Average need satisfaction over the last '
+            f'{len(hist)} ticks">avg {avg_pct:.0f}%</span>'
+        )
 
     dev_el = document.getElementById(f"colony-{colony_id}-development-display")
     if state.is_developed():
@@ -1097,7 +1162,7 @@ SPARKLINE_WIDTH = 60
 SPARKLINE_HEIGHT = 18
 
 
-def _trend_sparkline_svg(history, css_class):
+def _trend_sparkline_svg(history, css_class, now_label=None):
     """J12/J14 — an unlabeled inline-SVG polyline over a short rolling
     history; the point is the shape of the trend, not any exact value.
     Values are expected roughly in 0..1 (market multiplier, need
@@ -1111,9 +1176,17 @@ def _trend_sparkline_svg(history, css_class):
         x = (i / (n - 1)) * SPARKLINE_WIDTH
         y = SPARKLINE_HEIGHT - max(0.0, min(1.0, value)) * SPARKLINE_HEIGHT
         points.append(f"{x:.1f},{y:.1f}")
+    # J4 — an explicit, labeled marker on the most recent point.
+    marker = ""
+    if now_label:
+        last_x, last_y = points[-1].split(",")
+        marker = (
+            f'<circle cx="{last_x}" cy="{last_y}" r="2" class="sparkline-now">'
+            f"<title>{now_label}</title></circle>"
+        )
     return (
         f'<svg viewBox="0 0 {SPARKLINE_WIDTH} {SPARKLINE_HEIGHT}" class="{css_class}" '
-        f'aria-hidden="true"><polyline points="{" ".join(points)}" /></svg>'
+        f'aria-hidden="{"false" if now_label else "true"}"><polyline points="{" ".join(points)}" />{marker}</svg>'
     )
 
 
@@ -1124,12 +1197,21 @@ def render_market():
         display = document.getElementById(f"market-{good}-display")
         display.innerText = f"{GOOD_LABEL[good]}: {price} credits/unit ({pct:.0f}% of baseline)"
         display.className = "market-price"
+        display.title = ""
         if market_multiplier[good] < 0.7:
             display.className += " market-price--crashed"
+            # J20 — recovery ETA back to baseline at the flat per-tick rate
+            # (further sales of this good would push it back down).
+            eta = math.ceil(round((MAX_PRICE_MULTIPLIER - market_multiplier[good])
+                                  / MARKET_PRICE_RECOVERY_PER_TICK, 6))
+            display.title = (
+                f"Crashed: about {eta} tick(s) to recover to baseline if nothing "
+                f"more of it is sold."
+            )
         document.getElementById(f"market-{good}-bar").style.width = f"{pct:.0f}%"
         # J12 — a small price-history sparkline alongside the bar.
         document.getElementById(f"market-{good}-sparkline").innerHTML = _trend_sparkline_svg(
-            price_history.get(good, []), "price-sparkline"
+            price_history.get(good, []), "price-sparkline", f"Now: {price} credits"
         )
 
 
@@ -1162,6 +1244,13 @@ def render_research():
             unlock_button.hidden = False
             unlock_button.innerText = f"Research ({node['cost']})"
             unlock_button.disabled = not can_unlock_research(node_id)
+            # J26 — say exactly what a locked node still needs.
+            needs = []
+            if requires is not None and requires not in unlocked_research:
+                needs.append(f"unlock {RESEARCH_NODES[requires]['label']} first")
+            if research_points < node["cost"]:
+                needs.append(f"{node['cost'] - research_points:.0f} more research points")
+            unlock_button.title = ("Still needed: " + " and ".join(needs)) if needs else "Ready to unlock."
 
 
 def render_fleet_priority():
@@ -1633,6 +1722,55 @@ def on_toggle_summary(event=None):
     update_summary_display()
 
 
+def route_trend_arrow(good):
+    """J2 — ▲ improving / ▼ declining / ▶ steady, comparing the newer half
+    of the last few sales on this good against the older half. Needs at
+    least 4 sales to say anything."""
+    recent = good_profit_recent.get(good, [])
+    if len(recent) < 4:
+        return ""
+    half = len(recent) // 2
+    older = sum(recent[:half]) / half
+    newer = sum(recent[half:]) / (len(recent) - half)
+    if older <= 0:
+        return ""
+    change = (newer - older) / older
+    if change > DEFAULT_TREND_EPSILON:
+        return "▲"
+    if change < -DEFAULT_TREND_EPSILON:
+        return "▼"
+    return "▶"
+
+
+def fleet_efficiency_lines():
+    """J25 — which purchased ships are earning well below the fleet
+    average. Empty until at least two ships have earned something."""
+    earners = [sh for sh in ships.values() if sh.purchased]
+    total = sum(sh.total_earned for sh in earners)
+    if len(earners) < 2 or total <= 0:
+        return []
+    avg = total / len(earners)
+    lines = []
+    for sh in earners:
+        if sh.total_earned < avg * UNDERPERFORM_FRACTION:
+            hint = "idle" if sh.idle_ticks >= IDLE_WARNING_TICKS else "consider automating or rerouting"
+            lines.append(f"{sh.name}: {sh.total_earned:,} credits earned (fleet average {avg:,.0f}) — {hint}")
+    return lines
+
+
+def colony_overview_lines():
+    """J13 — every active colony's need/supply state on one screen."""
+    lines = []
+    for colony_id, state in colony_states.items():
+        colony = ALL_COLONIES[colony_id]
+        lines.append(
+            f"{colony['name']}: {GOOD_LABEL[colony['needs']]} {state.need_satisfaction * 100:.0f}% "
+            f"met, {GOOD_LABEL[colony['produces']]} x{state.output_multiplier():.2f} output"
+            f"{' (developed)' if state.is_developed() else ''}"
+        )
+    return lines
+
+
 def _route_profitability_lines():
     lines = []
     for good, total in good_profit_total.items():
@@ -1642,7 +1780,9 @@ def _route_profitability_lines():
         consumer = colony_needing(good)
         producer_name = ALL_COLONIES[producer]["name"] if producer else "?"
         consumer_name = ALL_COLONIES[consumer]["name"] if consumer else "?"
-        lines.append(f"{GOOD_LABEL[good]} ({producer_name} → {consumer_name}): {total:,} credits")
+        arrow = route_trend_arrow(good)
+        suffix = f" {arrow}" if arrow else ""
+        lines.append(f"{GOOD_LABEL[good]} ({producer_name} → {consumer_name}): {total:,} credits{suffix}")
     return lines
 
 
@@ -1690,6 +1830,20 @@ def update_summary_display():
         p.className = "summary-line"
         p.innerText = line
         panel.appendChild(p)
+
+    for heading, lines, empty_text in (
+        ("Fleet efficiency", fleet_efficiency_lines(), "No underperforming ships."),
+        ("Galaxy overview", colony_overview_lines(), "No colonies yet."),
+    ):
+        h = document.createElement("p")
+        h.className = "panel-label summary-route-heading"
+        h.innerText = heading
+        panel.appendChild(h)
+        for line in lines or [empty_text]:
+            p = document.createElement("p")
+            p.className = "summary-line"
+            p.innerText = line
+            panel.appendChild(p)
 
 
 def render():
@@ -1745,6 +1899,16 @@ def _make_rename_handler(ship_id):
     def handler(event=None):
         input_el = document.getElementById(f"ship-{ship_id}-name-input")
         rename_ship(ship_id, input_el.value)
+        render()
+    return handler
+
+
+def _make_reset_name_handler(ship_id):
+    def handler(event=None):
+        reset_ship_name(ship_id)
+        input_el = document.getElementById(f"ship-{ship_id}-name-input")
+        if input_el is not None:
+            input_el.value = ""
         render()
     return handler
 
@@ -1853,6 +2017,9 @@ def tick(event=None):
             total_sales_count += 1
             goods_sold_ever.add(good)
             good_profit_total[good] = good_profit_total.get(good, 0) + profit
+            recent = good_profit_recent.setdefault(good, [])
+            recent.append(profit)
+            del recent[:-2 * ROUTE_TREND_WINDOW]
             sale_log.append(sell_summary(good, qty, profit, ship.location))
             apply_market_sale(good, qty)
             # J8 — a lightweight arrival toast, manual ships only: once a
@@ -1931,6 +2098,9 @@ def get_state():
                 "purchased": ship.purchased,
                 "name": ship.name,
                 "idle_ticks": ship.idle_ticks,
+                "route_key": sorted(ship.route_key) if ship.route_key else None,
+                "route_legs": ship.route_legs,
+                "total_earned": ship.total_earned,
             }
             for ship_id, ship in ships.items()
         },
@@ -1957,6 +2127,7 @@ def get_state():
         "ever_repositioned": ever_repositioned,
         "market_crash_ever": dict(market_crash_ever),
         "good_profit_total": dict(good_profit_total),
+        "good_profit_recent": {g: list(v) for g, v in good_profit_recent.items()},
         "price_history": {good: list(values) for good, values in price_history.items()},
         "need_history": {colony_id: list(values) for colony_id, values in need_history.items()},
         "seen_first_automation_callout": seen_first_automation_callout,
@@ -2019,6 +2190,10 @@ def load_state(data):
         ship.purchased = saved.get("purchased", ship.purchased)
         ship.name = saved.get("name", ship.name)
         ship.idle_ticks = saved.get("idle_ticks", ship.idle_ticks)
+        saved_key = saved.get("route_key")
+        ship.route_key = frozenset(saved_key) if saved_key else None
+        ship.route_legs = saved.get("route_legs", 0)
+        ship.total_earned = saved.get("total_earned", 0)
 
     market_multiplier.update(data.get("market_multiplier", {}))
     total_profit = data.get("total_profit", total_profit)
@@ -2034,6 +2209,8 @@ def load_state(data):
     ever_repositioned = data.get("ever_repositioned", ever_repositioned)
     market_crash_ever.update(data.get("market_crash_ever", {}))
     good_profit_total.update(data.get("good_profit_total", {}))
+    for good, values in data.get("good_profit_recent", {}).items():
+        good_profit_recent[good] = list(values)
     for good, values in data.get("price_history", {}).items():
         price_history[good] = list(values)
     for colony_id, values in data.get("need_history", {}).items():
@@ -2077,6 +2254,9 @@ def setup():
         document.getElementById(f"ship-{ship.id}-rename-button").addEventListener(
             "click", create_proxy(_make_rename_handler(ship.id))
         )
+        reset_button = document.getElementById(f"ship-{ship.id}-reset-name-button")
+        if reset_button is not None:
+            reset_button.addEventListener("click", create_proxy(_make_reset_name_handler(ship.id)))
         if ship.id in PURCHASABLE_SHIP_IDS:
             document.getElementById(f"ship-{ship.id}-purchase-button").addEventListener(
                 "click", create_proxy(_make_purchase_ship_handler(ship.id))

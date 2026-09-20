@@ -1,4 +1,5 @@
 [
+  { "date": "2026-09-20", "entry": "Round-2 quality pass: ship name reset, veteran-hauler badge, route trend arrows, fleet-efficiency and galaxy overview in Summary, map legend and Fleet Priority ring tooltip, crash recovery ETA, locked-research tooltips, labeled price-now marker, needs-met average." },
   { "date": "2026-09-20", "entry": "Confirm-before-spending dialogs added for automating a ship or unlocking research (both rare, irreversible, high-cost actions)." },
   { "date": "2026-09-19", "entry": "Settings panel: adjustable text size and a Reduce Motion toggle." },
   { "date": "2026-09-19", "entry": "Gap-closing pass: colorblind-safety audit confirmed (automated vs. manual ships already distinguished by shape, not just color)." },
