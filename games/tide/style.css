@@ -1224,7 +1224,8 @@ button.primary:active:not(:disabled) {
   /* Reserve room at the bottom of the scrollable page so the last real
      content (feedback prompt) never ends up hidden behind the
      now-floating actions cluster + ad bar. */
-  body {
+  /* html body outranks ad-bar.css's plain body rule (V-AB-2) */
+  html body {
     padding-bottom: 230px;
   }
 }

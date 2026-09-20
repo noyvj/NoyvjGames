@@ -316,3 +316,5 @@ defect.
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag tide-milestone-0N`.
 - Update the milestone table Status as work happens.
+
+- 2026-09-21: mobile-dock `body` padding-bottom now `html body` so it beats ad-bar.css (V-AB-2).

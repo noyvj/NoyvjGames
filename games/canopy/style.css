@@ -1127,7 +1127,8 @@ button.secondary:disabled::after {
      now-floating action panel + ad bar. Widened to 268px (from an
      original 216px) once #mobile-info-dock (below) started stacking a
      second docked sheet above this one -- see that rule's own comment. */
-  body {
+  /* html body outranks ad-bar.css's plain body rule (V-AB-2) */
+  html body {
     padding-bottom: 268px;
   }
 }

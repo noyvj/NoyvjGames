@@ -323,3 +323,5 @@ Tests 279 -> 350 (new files: `test_display_batch_1.py`, `test_forest_log_and_bad
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag canopy-milestone-0N`.
 - Update the milestone table Status as work happens.
+
+- 2026-09-21: mobile-dock `body` padding-bottom now `html body` so it beats ad-bar.css (V-AB-2).
