@@ -59,7 +59,7 @@ def test_biodiversity_display_rises_as_plots_accrue(game_env):
     game_env.tick(20)
     text = game_env.elements["biodiversity-display"].innerText
     m = game_env.module
-    assert text == f"Biodiversity: {m.total_biodiversity():.1f}"
+    assert text.startswith(f"Biodiversity: {m.total_biodiversity():.1f}")
     assert m.total_biodiversity() > 0
 
 

@@ -72,7 +72,7 @@ def test_value_pop_appears_after_a_tick_with_meaningful_growth(game_env):
     m = game_env.module
     game_env.tick(1)
     tile = game_env.elements["plot-0"]
-    pops = [c for c in tile.children if c.className == "value-pop"]
+    pops = [c for c in tile.children if c.className.startswith("value-pop")]
     assert len(pops) == 1
     assert pops[0].innerText.startswith("+")
 

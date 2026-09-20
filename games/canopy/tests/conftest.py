@@ -63,6 +63,9 @@ ELEMENT_IDS = [
     "save-playstyle-run-a-button",
     "save-playstyle-run-b-button",
     "highland-lock-banner",
+    "highland-unlock-progress",
+    "soil-hint",
+    "stakeholder-badge",
     "highland-section",
     "highland-plot-grid",
     "highland-income-display",
@@ -158,7 +161,12 @@ class GameEnv:
         self.elements["highland-replant-button"].dispatch("click", None)
 
     def reset_session(self):
-        self.elements["reset-session-button"].dispatch("click", None)
+        """Clicks Reset Session; if B24's confirm step armed instead of
+        resetting (something was at stake), clicks once more to confirm."""
+        button = self.elements["reset-session-button"]
+        button.dispatch("click", None)
+        if self.module._reset_confirm_armed:
+            button.dispatch("click", None)
 
     def change_grid_size(self, value):
         """Mirrors a real <select> "change" event: sets the element's own

@@ -24,6 +24,7 @@ from pyodide.ffi import create_proxy
 # a longer session). GRID_COLS stays under 26 for both presets so
 # plot_coordinate_label()'s A..Z column-letter scheme never needs to wrap.
 GRID_SIZE_PRESETS = {
+    "small": (4, 4),
     "normal": (6, 6),
     "large": (9, 8),
 }
@@ -353,8 +354,9 @@ def reset_session(grid_size=None, _render_after=True):
     global stakeholder_grants_count, stakeholder_declines_count, community_relations_min_ever
     global _previously_earned_ids, _session_ticks
     global highland_unlocked, highland_plots, highland_selected_index, highland_income
-    global _highland_plot_click_proxies
+    global _highland_plot_click_proxies, _reset_confirm_armed
 
+    _reset_confirm_armed = False
     if grid_size is not None:
         if grid_size not in GRID_SIZE_PRESETS:
             return False
@@ -397,8 +399,53 @@ def reset_session(grid_size=None, _render_after=True):
     return True
 
 
+# B24: Reset Session now asks first, but only when there is something to
+# lose. The first click arms the button and shows exactly what is being
+# given up (the current standing value); a second click within
+# RESET_CONFIRM_WINDOW_MS confirms. A session with nothing standing worth
+# keeping (no standing value, no income) resets immediately, since there is
+# nothing to confirm. Never persisted: a stale armed flag across a save/load
+# would be a trap.
+RESET_CONFIRM_WINDOW_MS = 5000
+_reset_confirm_armed = False
+_reset_confirm_token = 0
+
+
+def reset_confirm_label():
+    return (
+        f"Confirm reset? Gives up {standing_forest_value():.1f} standing value"
+        f" and {total_income:.1f} income"
+    )
+
+
+def render_reset_button():
+    button = document.getElementById("reset-session-button")
+    if button is None:
+        return
+    button.innerText = reset_confirm_label() if _reset_confirm_armed else "\U0001F504 Reset Session"
+
+
+def _disarm_reset_confirm(token):
+    global _reset_confirm_armed
+    if token == _reset_confirm_token and _reset_confirm_armed:
+        _reset_confirm_armed = False
+        render_reset_button()
+
+
 def on_reset_session(event=None):
-    reset_session()
+    global _reset_confirm_armed, _reset_confirm_token
+    if _reset_confirm_armed:
+        _reset_confirm_armed = False
+        reset_session()
+        return
+    if standing_forest_value() <= 0 and total_income <= 0:
+        reset_session()
+        return
+    _reset_confirm_armed = True
+    _reset_confirm_token += 1
+    token = _reset_confirm_token
+    setTimeout(create_proxy(lambda: _disarm_reset_confirm(token)), RESET_CONFIRM_WINDOW_MS)
+    render_reset_button()
 
 
 def on_grid_size_change(event=None):
@@ -603,6 +650,20 @@ def plot_display_color(plot):
 _plot_click_proxies = {}
 
 
+def soil_hint_text(plot):
+    """B12: plain-language explanation behind the soil-quality percentage.
+    Soil quality is the plot's productivity multiplier: each clear cuts it
+    permanently, and standing value grows in proportion to it."""
+    pct = round(plot.productivity_multiplier() * 100)
+    floor_pct = round(MIN_PRODUCTIVITY_MULTIPLIER * 100)
+    step_pct = round(DEGRADE_PER_CLEAR * 100)
+    return (
+        f"Soil quality: this plot's future value grows at {pct}% of the rate of a never-cleared plot. "
+        f"Every clear permanently costs {step_pct} points (never below {floor_pct}%), and replanting "
+        "does not restore it."
+    )
+
+
 def _plot_tooltip_text(plot):
     """B8: the exact numeric value + degradation level behind a plot tile,
     surfaced via a data attribute a small vanilla-JS listener in index.html
@@ -616,6 +677,22 @@ def _plot_tooltip_text(plot):
     if plot.state == REPLANTING:
         label += f" · recovering in {plot.replant_ticks_remaining} ticks"
     return label
+
+
+# B20: the floating "+X" pop varies by size only (font size + float
+# distance in style.css), never by hue, so it adds no color-only meaning
+# (consistent with the site's colorblind audit). Thresholds sit against a
+# plot's real per-tick delta (~1.05 on a fresh plot, growing ~0.05/tick).
+VALUE_POP_MEDIUM_DELTA = 2.0
+VALUE_POP_LARGE_DELTA = 4.0
+
+
+def _value_pop_size_class(delta):
+    if delta >= VALUE_POP_LARGE_DELTA:
+        return "value-pop--large"
+    if delta >= VALUE_POP_MEDIUM_DELTA:
+        return "value-pop--medium"
+    return "value-pop--small"
 
 
 def render_grid():
@@ -658,7 +735,7 @@ def render_grid():
         pop_delta = _pending_value_pops.pop(plot.index, None)
         if pop_delta is not None:
             pop = document.createElement("span")
-            pop.className = "value-pop"
+            pop.className = f"value-pop {_value_pop_size_class(pop_delta)}"
             pop.innerText = f"+{pop_delta:.2f}"
             tile.appendChild(pop)
         old_proxy = _plot_click_proxies.pop(plot.index, None)
@@ -675,10 +752,12 @@ def render_panel():
     clear_button = document.getElementById("clear-button")
     replant_button = document.getElementById("replant-button")
 
+    soil_el = document.getElementById("soil-hint")
     if selected_index is None:
         panel_state_el.innerText = "No plot selected"
         clear_button.disabled = True
         replant_button.disabled = True
+        soil_el.hidden = True
         return
 
     plot = plots[selected_index]
@@ -688,6 +767,9 @@ def render_panel():
     panel_state_el.innerText = (
         f"Plot {plot_coordinate_label(selected_index)}: {STATE_LABEL[plot.state]} ({detail})"
     )
+    soil_el.hidden = False
+    soil_el.innerText = f"Soil {round(plot.productivity_multiplier() * 100)}% ?"
+    soil_el.title = soil_hint_text(plot)
     clear_button.disabled = "clear" not in VALID_ACTIONS[plot.state]
     replant_button.disabled = "replant" not in VALID_ACTIONS[plot.state]
 
@@ -836,12 +918,18 @@ def render_highland_section():
     this one *starts* inaccessible rather than merely collapsed."""
     banner = document.getElementById("highland-lock-banner")
     section = document.getElementById("highland-section")
+    bar = document.getElementById("highland-unlock-progress")
     if banner is None or section is None:
         return
     if not highland_unlocked:
         section.hidden = True
         banner.hidden = False
         progress = min(standing_forest_value(), HIGHLAND_UNLOCK_STANDING_VALUE_THRESHOLD)
+        # B6: the unlock is a visible progress bar toward the threshold,
+        # not just a fraction in text.
+        bar.hidden = False
+        bar.max = HIGHLAND_UNLOCK_STANDING_VALUE_THRESHOLD
+        bar.value = progress
         banner.innerText = (
             "⛰️ Highland Grove is locked — reach "
             f"{HIGHLAND_UNLOCK_STANDING_VALUE_THRESHOLD:.0f} standing forest value in your "
@@ -850,6 +938,7 @@ def render_highland_section():
         )
         return
     banner.hidden = True
+    bar.hidden = True
     section.hidden = False
     render_highland_grid()
     render_highland_panel()
@@ -968,6 +1057,14 @@ def total_biodiversity():
     return sum(plot.biodiversity for plot in plots)
 
 
+def biodiversity_rate_per_tick():
+    """B10: how fast total biodiversity is rising right now -- every
+    standing (PRESERVED/RECOVERED) plot adds the same flat
+    BIODIVERSITY_ACCRUAL_PER_TICK, so the rate is just that times the
+    standing-plot count. Zero when nothing is standing."""
+    return sum(1 for plot in plots if plot.state in ACCRUING_STATES) * BIODIVERSITY_ACCRUAL_PER_TICK
+
+
 def state_breakdown():
     """Count of plots in each state — the grid-level session summary."""
     counts = {PRESERVED: 0, BARE: 0, REPLANTING: 0, RECOVERED: 0}
@@ -1036,7 +1133,8 @@ def counterfactual_message():
     pct = max(0, round((actual / ideal) * 100))
     return (
         f"If every plot had been left standing since the start, this forest would be worth "
-        f"about {ideal:.1f} by now — your actual standing value ({actual:.1f}) is {pct}% of that."
+        f"about {ideal:.1f} by now — your actual standing value ({actual:.1f}) is {pct}% of that, "
+        f"a {100 - pct}% difference."
     )
 
 
@@ -1273,7 +1371,9 @@ def render_stats():
     standing_value = standing_forest_value()
     document.getElementById("income-display").innerText = f"Harvested income: {total_income:.1f}"
     document.getElementById("standing-value-display").innerText = f"Standing forest value: {standing_value:.1f}"
-    document.getElementById("biodiversity-display").innerText = f"Biodiversity: {total_biodiversity():.1f}"
+    document.getElementById("biodiversity-display").innerText = (
+        f"Biodiversity: {total_biodiversity():.1f} (+{biodiversity_rate_per_tick():.2f}/tick)"
+    )
     document.getElementById("comparison-message").innerText = comparison_message(total_income, standing_value)
     document.getElementById("state-breakdown-display").innerText = state_breakdown_text()
     document.getElementById("community-relations-display").innerText = (
@@ -1281,6 +1381,23 @@ def render_stats():
     )
     _maybe_update_personal_best()
     render_personal_best()
+
+
+INCENTIVE_MESSAGE_TOOLTIP = (
+    "This is a genuinely positive offer: it never asks you to clear anything. "
+    "Accepting keeps the plot standing and adds funding and community trust."
+)
+INCENTIVE_ACCEPT_TOOLTIP = (
+    f"Accept: the plot stays standing, +{STAKEHOLDER_INCENTIVE_INCOME_BONUS:.0f} funding, "
+    f"+{STAKEHOLDER_INCENTIVE_ACCEPT_RELATIONS_DELTA} community relations."
+)
+INCENTIVE_DECLINE_TOOLTIP = "Decline: no cost and no relations penalty, the offer just passes."
+CLEAR_GRANT_TOOLTIP = (
+    f"Grant: clears the plot and banks its value, +{STAKEHOLDER_GRANT_RELATIONS_DELTA} community relations."
+)
+CLEAR_DECLINE_TOOLTIP = (
+    f"Decline: the plot stays standing, {STAKEHOLDER_DECLINE_RELATIONS_DELTA} community relations."
+)
 
 
 def render_stakeholder_panel():
@@ -1299,6 +1416,17 @@ def render_stakeholder_panel():
     # anything -- the community is offering *them* something.
     kind = pending_stakeholder_request.get("kind", STAKEHOLDER_KIND_CLEAR)
     grant_button.innerText = "Accept" if kind == STAKEHOLDER_KIND_INCENTIVE else "Grant"
+    # B8: an incentive is a gift, not an ask -- say so on hover before the
+    # player commits (and on the floating badge, before the panel is even
+    # scrolled into view).
+    is_incentive = kind == STAKEHOLDER_KIND_INCENTIVE
+    grant_button.title = INCENTIVE_ACCEPT_TOOLTIP if is_incentive else CLEAR_GRANT_TOOLTIP
+    decline_button.title = INCENTIVE_DECLINE_TOOLTIP if is_incentive else CLEAR_DECLINE_TOOLTIP
+    message_el.title = INCENTIVE_MESSAGE_TOOLTIP if is_incentive else ""
+    badge = document.getElementById("stakeholder-badge")
+    if badge is not None:
+        badge.innerText = "\U0001F381 Incentive offer" if is_incentive else "\U0001F3D8\ufe0f Pending request"
+        badge.title = INCENTIVE_MESSAGE_TOOLTIP if is_incentive else "A community request is waiting for your decision."
     grant_button.disabled = False
     decline_button.disabled = False
 
@@ -1784,6 +1912,7 @@ def render():
     render_stats()
     render_stakeholder_panel()
     render_grid_size_select()
+    render_reset_button()
     render_session_summary()
     render_highland_section()
     update_achievements_display()

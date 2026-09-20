@@ -244,6 +244,34 @@ h1 {
   100% { opacity: 0; transform: translate(-50%, -14px); }
 }
 
+/* B20: size/motion only, never hue -- see _value_pop_size_class() in game.py. */
+.value-pop--medium { font-size: 0.8rem; }
+.value-pop--large { font-size: 0.95rem; }
+.value-pop--large { animation-name: value-pop-float-far; }
+@keyframes value-pop-float-far {
+  0% { opacity: 0; transform: translate(-50%, 4px); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -24px); }
+}
+
+.soil-hint {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 0.85rem;
+  opacity: 0.85;
+  cursor: help;
+  text-decoration: underline dotted;
+  width: fit-content;
+}
+
+.highland-unlock-progress {
+  display: block;
+  width: 100%;
+  height: 0.75rem;
+  margin: -0.25rem 0 1rem;
+  accent-color: #6fbf73;
+}
+.highland-unlock-progress[hidden] { display: none; }
+
 @media (prefers-reduced-motion: reduce) {
   .value-pop {
     animation: none;

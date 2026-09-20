@@ -41,6 +41,7 @@
            resize an in-progress grid in place. -->
       <label class="grid-size-label">Grid size
         <select id="grid-size-select">
+          <option value="small">Small (4×4)</option>
           <option value="normal">Normal (6×6)</option>
           <option value="large">Large (9×8)</option>
         </select>
@@ -181,6 +182,8 @@
 
     <div id="action-panel" class="section">
       <p id="selected-plot-state" class="selected-plot-state">No plot selected</p>
+      <!-- B12: soil-quality readout with a "?" hover explanation of what degradation costs in future yield (title text set live by game.py's soil_hint_text()). -->
+      <p id="soil-hint" class="soil-hint" tabindex="0" hidden></p>
       <div class="action-buttons">
         <button id="clear-button" class="secondary" disabled>Loading...</button>
         <button id="replant-button" class="secondary" disabled>Loading...</button>
@@ -195,6 +198,7 @@
          mechanics as the main forest, no separate biodiversity or
          stakeholder-tension system of its own. -->
     <p id="highland-lock-banner" class="section highland-lock-banner"></p>
+    <progress id="highland-unlock-progress" class="highland-unlock-progress" max="2000" value="0" aria-label="Progress toward unlocking Highland Grove"></progress>
     <div id="highland-section" class="section highland-section" hidden>
       <h2 class="highland-heading">⛰️ Highland Grove</h2>
       <p class="highland-blurb">A smaller, higher grove you've unlocked — the same clear/preserve/replant choices, on a fresh grid.</p>
