@@ -27,3 +27,13 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 - The exact `ads.txt` line, if AdSense gave you one.
 
 I'll drop all of that into the ad bar and it goes live everywhere on the site at once, since it's a shared partial.
+
+---
+
+## Questions
+
+### Q1. Public git history shows a work email
+
+The repo is public. A full history scan (2026-09-20) found no secrets or credentials, but one commit authored as "Sean Hart" carries a work email (`[work email]`) in its metadata, and the others use GitHub noreply addresses. Removing it would mean rewriting history, which I won't do without you asking.
+
+**Your answer:** (leave it / rewrite history to remove it / other)

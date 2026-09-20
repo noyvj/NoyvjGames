@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 23/709 items checked off (3.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 44/709 items checked off (6.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -330,31 +330,31 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 
 **Already done, not carried forward** (this ideas doc was drafted before these landed this session): Y1 (public roadmap page → `roadmap.html`, done), Y3 (admin aggregate stats page → `admin.html` + `GET /admin/stats`, done), Y5 ("claim your save" nudge, done), Y7 (PWA install banner, done). If you want any of these revisited/extended, that's new scope, not this list.
 
-- [ ] Y2: Let the hub's search/filter bar remember the last-used search term and tag filter across a reload, via `localStorage`.
-- [ ] Y4: A small live game-count readout ("12 games and counting") on the hub's header/tagline.
-- [ ] Y6: Let the review widget's star-rating show the current average as a filled/half-filled star visual, not just numeric text.
-- [ ] Y8: A small persistent "you're signed in" indicator visible even when scrolled past the account section.
-- [ ] Y9: A permanent service-worker cache-busting fix — a proper cache-version scheme for `sw.js` so it doesn't need the "reload twice" workaround this whole project has repeatedly had to use. *(Promoted out of `LATER.md`'s L16 — this round's "yes" resolves it; remove the old L16 entry there.)*
-- [ ] Y10: A small "new since your last visit" count badge on the What's New nav link itself.
-- [ ] Y12: A small "member since" date on the hub's account section for signed-in users.
+- [x] Y2: Let the hub's search/filter bar remember the last-used search term and tag filter across a reload, via `localStorage`.
+- [x] Y4: A small live game-count readout ("12 games and counting") on the hub's header/tagline.
+- [x] Y6: Let the review widget's star-rating show the current average as a filled/half-filled star visual, not just numeric text.
+- [x] Y8: A small persistent "you're signed in" indicator visible even when scrolled past the account section.
+- [x] Y9: A permanent service-worker cache-busting fix — a proper cache-version scheme for `sw.js` so it doesn't need the "reload twice" workaround this whole project has repeatedly had to use. *(Promoted out of `LATER.md`'s L16 — this round's "yes" resolves it; remove the old L16 entry there.)*
+- [x] Y10: A small "new since your last visit" count badge on the What's New nav link itself.
+- [x] Y12: A small "member since" date on the hub's account section for signed-in users.
 - [ ] Y13: A light, skippable "site tour" onboarding flow for first-time hub visitors — **make it optional, same as the per-game tutorials.**
 - [ ] Y15: A "community highlights" section periodically featuring a real anonymized notable playthrough (needs Z1's aggregate backend).
-- [ ] Y16: A loading skeleton/placeholder for the title-card grid while the ratings widget's async fetch resolves.
-- [ ] Y17: A proper 404/error page for a broken game link, styled to match the hub.
-- [ ] Y18: A brief "Signed out" confirmation message on sign-out before the UI switches views.
-- [ ] Y19: A deeper site search that also searches inside game descriptions and changelog entries, not just the visible title-card text.
-- [ ] Y20: A "share this game" button per title card (copies a direct link), distinct from the review widget.
-- [ ] Y21: A "what's popular" sort option on the hub lobby — **build two separate sort modes**, sort-by-rating-average AND sort-by-save-count, per your own note that save count is probably the more honest popularity signal right now (reviews skew toward test/friend accounts).
+- [x] Y16: A loading skeleton/placeholder for the title-card grid while the ratings widget's async fetch resolves.
+- [x] Y17: A proper 404/error page for a broken game link, styled to match the hub.
+- [x] Y18: A brief "Signed out" confirmation message on sign-out before the UI switches views.
+- [x] Y19: A deeper site search that also searches inside game descriptions and changelog entries, not just the visible title-card text.
+- [x] Y20: A "share this game" button per title card (copies a direct link), distinct from the review widget.
+- [x] Y21: A "what's popular" sort option on the hub lobby — **build two separate sort modes**, sort-by-rating-average AND sort-by-save-count, per your own note that save count is probably the more honest popularity signal right now (reviews skew toward test/friend accounts).
 - [ ] Y22: A visual marker on title cards for games with an active difficulty/challenge variant (ties to Z10).
-- [ ] Y23: A short, honest terms-of-use/privacy page covering what's stored (accounts/saves/feedback) and why.
-- [ ] Y24: A "random game" button for an undecided visitor, weighted toward unplayed titles for a signed-in player.
-- [ ] Y25: A dismissible, `localStorage`-tracked site-wide announcement banner mechanism, distinct from the What's New page, for time-sensitive notices.
-- [ ] Y26: Let the achievements dashboard's overall progress bar show the exact fraction as a hover tooltip, not just the bar width.
-- [ ] Y27: A "recently added" hub-lobby section, separate from Continue Playing, surfacing the newest game(s).
-- [ ] Y28: A consistent focus-ring style audit across all hub-level interactive elements for keyboard-navigation clarity.
+- [x] Y23: A short, honest terms-of-use/privacy page covering what's stored (accounts/saves/feedback) and why.
+- [x] Y24: A "random game" button for an undecided visitor, weighted toward unplayed titles for a signed-in player.
+- [x] Y25: A dismissible, `localStorage`-tracked site-wide announcement banner mechanism, distinct from the What's New page, for time-sensitive notices.
+- [x] Y26: Let the achievements dashboard's overall progress bar show the exact fraction as a hover tooltip, not just the bar width.
+- [x] Y27: A "recently added" hub-lobby section, separate from Continue Playing, surfacing the newest game(s).
+- [x] Y28: A consistent focus-ring style audit across all hub-level interactive elements for keyboard-navigation clarity.
 - [ ] Y29: A privacy-respecting, self-hosted pageview-counter opt-in for real BCM206 visitor-count evidence (not a third-party tracker).
-- [ ] Y30: A "back to top" floating button on the hub lobby once scrolled past the fold.
-- [ ] Y-extra (added after this doc was first built — you confirmed the repo is already public, no action needed there, but asked for this as a safety check): a full scan of every tracked file **and commit history/messages** across the whole repo for anything personal that shouldn't be public — names, personal notes, stray credentials, anything written assuming a private audience. Worth doing sooner rather than gated behind everything else in this list, since the repo is public right now.
+- [x] Y30: A "back to top" floating button on the hub lobby once scrolled past the fold.
+- [x] Y-extra (added after this doc was first built — you confirmed the repo is already public, no action needed there, but asked for this as a safety check): a full scan of every tracked file **and commit history/messages** across the whole repo for anything personal that shouldn't be public — names, personal notes, stray credentials, anything written assuming a private audience. Worth doing sooner rather than gated behind everything else in this list, since the repo is public right now.
 
 **Resolved, not carried forward:** Y14 — the repo is already public; no action needed.
 
