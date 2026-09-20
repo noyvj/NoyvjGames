@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 143/708 items checked off (20.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 143/709 items checked off (20.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -304,7 +304,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [ ] Trade Empire
   - [ ] Continuum
   - [ ] Le Champ de Mots
-- [ ] Z-extra (folded from Y11, "let players pick to do a story mode in each game or turn off the story elements"): audit which games carry narrative/flavor-text framing and add an opt-out toggle where relevant:
+- [ ] Z-extra (folded from Z11, "let players pick to do a story mode in each game or turn off the story elements"): audit which games carry narrative/flavor-text framing and add an opt-out toggle where relevant:
   - [ ] SOL (flavor text/milestone framing)
   - [ ] Canopy
   - [ ] Grid
@@ -336,6 +336,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] Y8: A small persistent "you're signed in" indicator visible even when scrolled past the account section.
 - [x] Y9: A permanent service-worker cache-busting fix — a proper cache-version scheme for `sw.js` so it doesn't need the "reload twice" workaround this whole project has repeatedly had to use. *(Promoted out of `LATER.md`'s L16 — this round's "yes" resolves it; remove the old L16 entry there.)*
 - [x] Y10: A small "new since your last visit" count badge on the What's New nav link itself.
+- [ ] Y11 **(you answered "yes" in round 2, and approved it in round 1 as L5 — this had been dropped from this list by mistake)**: A genuine site-wide dark/light theme toggle. Needs the dedicated design pass first: a real second (light) colour scheme for the hub shell and every game's `style.css` (backgrounds, borders, meter fills, text contrast, per-game accent hues, Continuum's 3D scene sky/lighting), then a `data-theme` attribute + CSS custom-property swap, a toggle in each game's settings panel and on the hub, persisted per-device. Do it game by game after the current per-game feature passes land (they all edit `style.css`), and keep the colorblind-safety audit rules.
 - [x] Y12: A small "member since" date on the hub's account section for signed-in users.
 - [ ] Y13: A light, skippable "site tour" onboarding flow for first-time hub visitors — **make it optional, same as the per-game tutorials.**
 - [ ] Y15: A "community highlights" section periodically featuring a real anonymized notable playthrough (needs Z1's aggregate backend).
