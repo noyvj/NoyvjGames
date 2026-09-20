@@ -242,6 +242,16 @@ Verified: full pytest suite (123 tests, unchanged — this is `.title`
 only, no new game logic) stayed green. No `index.html`/CSS change
 needed; no other permanent control was found undocumented.
 
+## UI decluttering pass (2026-09-20, planning/TODO.md closing task — audited, no change needed)
+
+Audited as the last open item in `planning/TODO.md`'s "Big standalone features" section (the user's own crowding note: "everything looks very crowded... making sections either collapsible or other 'screens' within a game could help"). Read `index.html`/`style.css` section by section, then compared directly against Loop's own audit from the same pass (see `games/loop/CLAUDE.md`, which did find and fix a real issue) to calibrate what "genuinely crowded" means in practice, since both games share the same climate-quartet-2 status-block layout pattern.
+
+**Findings:** `#status` is long — round/funds/temperature, melt status, dampening, intervention feedback, acceleration, trajectory, the mini-graph, personal best, roughly a dozen lines — but unlike Loop's `#status`, nearly every one of those lines is a load-bearing per-turn mechanic readout that a specific iteration pass explicitly built to be always visible, not supplementary context: `melt-status-display` and the tipping-flash (Pass 1), `dampening-display`/`intervention-feedback-display` (Pass 3's specific fix for the "silent number with no felt consequence" risk), `acceleration-display` (Milestone 4's "visible acceleration" requirement), and `trajectory-display` (Milestone 5's hope-angle payoff) are each the direct subject of a design pass that wanted exactly this always-on visibility — collapsing any of them behind a disclosure would undo that design intent, not just tidy the screen. The five inline `.info-toggle` "i" bubbles already interspersed through the section are the existing collapsed/supplementary layer; the stat lines themselves aren't candidates for a second layer of collapsing on top of that. The one line that reads as genuinely supplementary, `personal-best-display`, is a single line — not enough density on its own to justify a `<details>` wrapper.
+
+Region B/Region C's comparison cards are dense (a mini-graph plus six stat lines plus investment/preset buttons plus a label input, times two), but Pass 2's own design note calls for exactly this: "the divergence between regions is the dominant visual read of the screen" — this section is supposed to be visually heavy, since side-by-side comparison is the whole point of the addition. Region D (the worst-case comparison) is already collapsed behind `#worst-case-toggle-button`/`#worst-case-panel`, so the site's disclosure pattern is already applied exactly where it fits.
+
+**Conclusion: no crowding problem found that isn't either intentional (region comparison) or already addressed by the existing `.info-toggle` layer.** No `index.html`/`style.css`/`game.py` change made. Full pytest suite (123 tests, unchanged) stays green since nothing was touched.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
