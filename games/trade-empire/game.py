@@ -866,6 +866,18 @@ for _purchasable_id in PURCHASABLE_SHIP_IDS:
 
 total_profit = 0
 sale_log = []  # most recent sale message, for the status line
+# Z25 save-portability audit: only sale_log[-1] is ever read (the status
+# line and its own regression test both index just the last entry), but
+# tick() appended to this list every sale with no truncation at all --
+# unlike every sibling rolling-history field in this file
+# (good_profit_recent/price_history/need_history), which are all capped.
+# Left unbounded, a long automated session (this game ticks once a second
+# via setInterval regardless of whether the player is present, see
+# TICK_INTERVAL_MS) grows this without limit: measured ~100KB of a
+# ~110KB save payload after 5000 ticks (~83 simulated minutes) in a
+# fully-automated session. Capped generously above the "just the last
+# one" need in case a future feature wants a short recent-sales view.
+SALE_LOG_MAX_ENTRIES = 20
 
 # New tracked state for achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md §4):
 # each of these tracks something that genuinely *happened*, which isn't
@@ -2084,6 +2096,7 @@ def tick(event=None):
             recent.append(profit)
             del recent[:-2 * ROUTE_TREND_WINDOW]
             sale_log.append(sell_summary(good, qty, profit, ship.location))
+            del sale_log[:-SALE_LOG_MAX_ENTRIES]
             apply_market_sale(good, qty)
             if profit >= SALE_SPARK_THRESHOLD:
                 _spark_burst_high_value_sale()

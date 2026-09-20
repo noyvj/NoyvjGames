@@ -441,3 +441,51 @@ itself; the DOM/console-level checks above are the real verification.)
 - Update the Status column as work happens.
 
 - 2026-09-21: J11 -- route readout shows avg profit per trip (new `good_trip_count`, saved; absent in old saves so the average is omitted). Mobile-dock `html body` padding fix (V-AB-2); achievements hub link now anchors to the dashboard (V-AB-5).
+
+## Save-portability audit fix (Z25, 2026-09-21)
+
+Site-wide `planning/TODO.md` Z25 audit (confirm every game's save-code
+payload is still a reasonable size). Built a driver script against this
+game's own `tests/conftest.py` `GameEnv` (purchase + automate every ship,
+unlock all research, then run 5000 real `tick()` calls -- ~83 simulated
+minutes at this game's `TICK_INTERVAL_MS=1000`, a realistic "left it
+running automated for a long session" case since this game explicitly has
+no idle/wait-timer gate but *does* auto-tick via `setInterval` regardless
+of player presence) and measured `len(json.dumps(get_state()))`.
+
+**Found a real issue:** `sale_log` (comment: "most recent sale message,
+for the status line") is appended to on every single sale inside `tick()`
+with no cap at all, unlike every sibling rolling-history field in this
+file (`good_profit_recent` capped at `2 * ROUTE_TREND_WINDOW`,
+`price_history`/`need_history` capped at `TREND_HISTORY_MAX_POINTS`) --
+and confirmed by grep that only `sale_log[-1]` is ever read anywhere
+(`render()`'s status line, and its own regression test in
+`tests/test_core_loop.py`). At 5000 ticks this alone was ~100KB of a
+~110KB total payload -- squarely the "hundreds of KB, worth flagging"
+range this audit's own threshold calls out, and it scales without bound
+the longer an automated session runs.
+
+**Fixed:** added `SALE_LOG_MAX_ENTRIES = 20` and a
+`del sale_log[:-SALE_LOG_MAX_ENTRIES]` right after the existing append in
+`tick()`, matching the `del recent[:-2 * ROUTE_TREND_WINDOW]` idiom
+already used two lines above it for `good_profit_recent`. 20 is generous
+above the "only the last one is read" actual need, in case a future
+feature wants a short recent-sales view, same margin this file's other
+rolling-history caps already give themselves. `load_state()` was left
+restoring `sale_log` without its own truncation (matching
+`good_profit_recent`/`price_history`/`need_history`'s existing
+load-time behavior, none of which truncate on load either) -- an
+oversized loaded save self-heals on the very next `tick()`, so no
+correctness gap exists between load and the first tick.
+
+Re-measured after the fix: the identical 5000-tick session's payload
+dropped from ~110,566 bytes to 11,000 bytes (`sale_log` itself:
+100,576 -> 1,010 bytes). Every other field was already within reason
+(ships/colony_states/market_multiplier/research are all bounded by fixed
+counts, not per-tick growth).
+
+Verified: full 265/265 pytest suite green (no test asserted `sale_log`'s
+length or read anything but its last entry), `flake8 games/trade-empire
+--extend-ignore=E501` clean on `game.py` itself (two pre-existing E741
+findings in `tests/test_backlog_wave.py` predate and are unrelated to
+this change).

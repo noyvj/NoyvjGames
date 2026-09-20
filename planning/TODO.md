@@ -189,19 +189,19 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [ ] Trade Empire
   - [ ] Continuum
   - [ ] Le Champ de Mots
-- [ ] Z25: A genuine save-portability audit — confirm every game's save-code payload size is still reasonable now that achievements/run-histories/changelogs have grown each save state:
-  - [ ] SOL
-  - [ ] Canopy
-  - [ ] Grid
-  - [ ] Tide
-  - [ ] Aftermath
-  - [ ] Herd
-  - [ ] Thaw
-  - [ ] Loop
-  - [ ] Drift
-  - [ ] Trade Empire
-  - [ ] Continuum
-  - [ ] Le Champ de Mots
+- [ ] Z25: A genuine save-portability audit — confirm every game's save-code payload size is still reasonable now that achievements/run-histories/changelogs have grown each save state. Measured every game via a driven long-session script against its own pytest harness rather than eyeballing: 10 of 12 are comfortably small (a few KB to ~166KB for a fully-played session, well within reason for an uncapped Postgres JSON column); found and fixed one real bug (Trade Empire's `sale_log` was unbounded despite only ever reading its last entry — ~110KB -> ~11KB for the same session); found one real-but-deferred issue (Drift's per-round history logs are unbounded and reach the hundreds-of-KB range in an extreme session, but a safe fix needs a small refactor rather than a one-line cap — Q17 in `FOR-YOU.md`); Continuum (read-only for this pass) has a similar but compounding pattern worth a closer look.
+  - [x] SOL — clicked/bought through a long session via its own test harness: ~3.3KB. No change needed.
+  - [x] Canopy — 400 ticks with plot activity: 19.3KB; `FOREST_LOG_MAX_ENTRIES`/`VALUE_HISTORY_MAX_POINTS` caps working as designed. No change needed.
+  - [x] Grid — 500 rounds: 12.6KB; per-round histories uncapped but tiny (floats). No change needed.
+  - [x] Tide — 600 seasons: 23KB; damage/tier logs uncapped but tiny, everything else already capped. No change needed.
+  - [x] Aftermath — 300 events resolved in one run: 719 bytes; meta-progression history lives in `localStorage`, never rides the save payload at all. No change needed.
+  - [x] Herd — 800 rounds: 4.8KB. No change needed.
+  - [x] Thaw — measured to 60 rounds (7.1KB, small and capped `SCIENCE_LOG_MAX`); found a real but unrelated exponential-slowdown bug in `_auto_play_worst_case_region()` while doing this (each Advance Round gets ~1.3x slower past round ~50) — flagged as a separate background task, not a payload-size issue so left out of scope here. No change needed to save size.
+  - [x] Loop — 300 cycles: 2.1KB; `circular_fraction_log` uncapped but tiny. No change needed.
+  - [ ] Drift — found a real issue: `arrivals_log`/`strain_log`/`wellbeing_log`/`subscore_log` are unbounded (3000 rounds -> 383KB, linear ~128 bytes/round) unlike every sibling game's capped rolling-history fields. Didn't fix: `average_strain()` and the `crisis_averted` achievement's `_ever_reached_critical_strain()` both need the *full* history, not a window, so a safe fix needs decoupled running-sum/flag tracking first, not just a cap — genuine design/priority call, see `FOR-YOU.md` Q17.
+  - [x] Trade Empire — found and fixed: `sale_log` grew unbounded (only `sale_log[-1]` is ever read) — ~100KB of a ~110KB payload at 5000 ticks (~83 simulated minutes, this game auto-ticks via `setInterval` regardless of player presence). Added `SALE_LOG_MAX_ENTRIES = 20` + truncation in `tick()`, matching this file's own `good_profit_recent`/`price_history` cap idiom. Re-measured: 11KB for the same session. 265/265 tests green, flake8 clean, build note in `games/trade-empire/CLAUDE.md`.
+  - [ ] Continuum (read-only finding: `score_history` in `sim.py`/`save.py` is never capped, and every one of the 7 possible `era_snapshots` embeds a full copy of it at time-of-snapshot, so the save grows faster than linearly as more eras complete — measured 36KB for a 105-season 7-era playthrough vs. 103KB for a 420-season one via a driver script against Continuum's own test harness. Not yet a hard concern, but the growth pattern is exactly what `Chronicle`'s own `MAX_ENTRIES` cap in `log.py` already guards against elsewhere in this same game — Noyvj's own session can check this off after reading and deciding whether it's worth a cap.)
+  - [x] Le Champ de Mots — simulated all 790 plots reviewed over 400 days: 165.8KB; already follows the documented "only touched plots are saved" pattern (Milestone 5), this is the genuine full-payload ceiling. No change needed.
 - [ ] Z25b: Add an opt-in autosave checkbox (every ~5 minutes) — a deliberate, explicit reversal of the original "no auto-save timer" design decision (see `SAVE-BUTTON-INTEGRATION.md` §5). Must default OFF; the player turns it on, never the other way around.
   - [ ] Build the shared opt-in autosave mechanism once
   - [ ] Roll out to each game alongside its own save widget (same 12-game list as above)
