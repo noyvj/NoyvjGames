@@ -141,20 +141,20 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [ ] Continuum
   - [ ] Le Champ de Mots
 - [ ] Z19: A genuine "New Player" landing flow — a single guided "start here" recommendation (e.g. Canopy as a simple first pick). **Builds well on Z13 per your own note** — design them together.
-- [ ] Z20: A consistent emoji/icon-meaning audit, confirming no icon means two different things in two different games:
-  - [ ] SOL
-  - [ ] Canopy
-  - [ ] Grid
-  - [ ] Tide
-  - [ ] Aftermath
-  - [ ] Herd
-  - [ ] Thaw
-  - [ ] Loop
-  - [ ] Drift
-  - [ ] Trade Empire
-  - [ ] Continuum
-  - [ ] Le Champ de Mots
-  - [ ] Cross-check the full list for collisions once every game's icons are catalogued
+- [x] Z20: A consistent emoji/icon-meaning audit, confirming no icon means two different things in two different games. Audited, no change needed: catalogued every bespoke (non-shared-toolbar) emoji across all 12 games' `game.py`/`index.html`/`style.css` and cross-referenced the full list — every emoji that recurs across 2+ games maps to the same real-world referent or theme in each (growth/renewable `🌱`, protection `🛡️`, industry `🏭`, water/flood `🌊`, warning `⚠`, money `💰`, stats `📊`/`📈`, etc.), the same "consistent reuse of an obvious real-world association" pattern already ruled non-colliding elsewhere in this file; the closest borderline cases (Tide's top-tier `🌊` adaptation badge vs. Aftermath's `🌊` flood-event icon; Grid/Drift's `🔥` "intensity toggle" vs. Aftermath's `🔥` heatwave-event vs. Continuum's literal hearth `🔥`) all stay within one literal referent (water, fire) rather than crossing into an unrelated or contradictory meaning, so none reach the "a player would plausibly notice and find confusing" bar the task sets.
+  - [x] SOL — toolbar-shared icons only (🎓📖📋🏆⚙️) plus bespoke: 🌍 Overview, 🎛️ Governor Report, 📝 Build Plan, 🌳 Prestige Tree, 🧪 Sandbox mode, 📊 Stats & Share, colored circles/🪐🌕🔴🟠🪨⚪🟤 as literal planet icons, ♻️/🚀/🏙️/⚙️ as per-building construction floaters, ☑/☐/✕ build-plan checkboxes. No collisions.
+  - [x] Canopy — bespoke: 🌱☀️🍂❄️ season icons, ⛰️ Highland Grove (locked area), 💰 economic specialization, 🦋 biodiversity specialization, 🏘️ stakeholder request badge, ⭐ adopted plot, 🌍 compare with other players, 💾 save-run slots, plus css icons (🤝📍✅❌💬👍👎📨🌲🪓🌱🌳) for the stakeholder-request/plot-type legend. No collisions.
+  - [x] Grid — bespoke: fuel-source icons (⚫ coal, ☢️ nuclear, ☀️ solar), 🌱 "Renewable" / 🏭 "Fossil" / ⚛️ "Nuclear" mix labels, 🌦️ Weather Log, 🎖️ Career, 🔥 Steeper Demand Growth toggle, 🌩️ Weather Variability toggle, ⚠ aging-risk badge, plus css sidebar icons (🔁⚡💰🔌🛢️🚨🛠️♻️🔨🗑️🔧🌍📈). No collisions.
+  - [x] Tide — bespoke: TIER_BADGES progression (⚪🧱🏗️🛡️🌊), 🦪/🗼 heritage-site sprites, ⛈️ storm surge, 🎉 fish-stock recovery, ✖ heritage site lost, 🐟 fish-yield meter, plus css icons (💰🧪🏖️🎣🌿). No collisions.
+  - [x] Aftermath — bespoke: disaster-event icons (🌊 flood, 🔥 heatwave, 🌪️ storm, ⚡ infrastructure failure), CATEGORY_ICON (🌦️ weather / 🏗️ non-weather / 👥 social), 📜 Review Past Runs, 📌/📍 pin a savings goal, 🔓 skill unlocked, 💡 insight tips, 🕰️ "Memory of Run #", plus css icons (📦🧠📊🔄🔒✓, and a bespoke `⚔️` on the in-game "Resolve Event" button — a literal confront/battle icon, unrelated to and never co-displayed with the hub's shared `⚔` difficulty-badge convention). No collisions.
+  - [x] Herd — bespoke: ♻️ Capture Systems, 🌿 Plant-Based Pivot, 📊 Report Card, 👍/👎 feedback, plus css icons (💰🐄💨⚖⚠🌡️🥦🌱🌾🚧🐮🐔) for the investment/measure legend. No collisions.
+  - [x] Thaw — bespoke: 📓 Scientist's log, plus css icons (📊🛡️💰🌡️🧊📈📡⚠️) for stats/measure labels. No collisions.
+  - [x] Loop — bespoke: chain-stage icons (🪨 Extract → 🏭 Manufacture → 📦 Use → 🗑️ Discard), loop-ring icons (♻️ Recycle, 🔄 Reuse, 🔧 Repair, 🔁 "Loop closed" banner), 🌐 Trade Link, 🚚/🚢 trade tiers, goods-category icons (📱👕🪑), 🔎 efficiency audit, 🗺️ supply map, ↩/⇢ flow labels, plus css (💰⛏️🌍). No collisions.
+  - [x] Drift — bespoke: wellbeing-gauge icons (📋 service quality, 📊 economic health, 🔗 social cohesion), investment icons (🏠 Housing, 📚 Integration Services, 🛠️ Infrastructure), 🌟 "Model Region" recognition tier, 🌱 "Net-positive since round", 🔥 Accelerated Severity toggle, plus css (📈🌅💰🏘️⚖). No collisions.
+  - [x] Trade Empire — bespoke: ⚠️ idle-ship warning, 🚀 "First automated ship" milestone, ★ "Veteran hauler" tag, 🚚 ship-arrival notice, plus css icons (🔬🛰️💰🗺️🎯🏗️📦🤖🧾🪐) for the tech/economy sidebar. No collisions.
+  - [x] Continuum — bespoke: per-era worker icons (🌾🪵🪓🔥⚒️🏭🗺️🌱📜🛰️) and building icons (⛺🫙🔥🪨🌿🏛️🚰🏗️🚉🛞), ☠️ Hard Mode toggle, 📜 Civilization Summary, 📓 Founder's Log, 📊 City Views, 🔭/🔍/🛰 camera presets, 🖼 2D view, 📸 snapshot, plus css icons (🗓️👥🏠🍞🔨📚⚖🛡️🛠️). No collisions found — **read-only finding, not independently re-verified by Noyvj since `games/continuum/` is owned by that session; flagging for Noyvj to confirm independently rather than editing it directly.**
+  - [x] Le Champ de Mots — bespoke: crop-growth-stage icons (🟤 seed → 🌱 sprout → 🌿 budding → 🌷 blooming → 🌻 automated), 💧 "drooping" (needs a review) legend, 🌾 "weeds" (known mix-up) legend, 🔊 pronunciation-concern report, 🗣️ liaison practice, minigame icons (⚡ Blitz, 🏁 Verb Racer, 👗 Boutique Dash, ☕ Café Rush), 🚗/🚙 racer markers, ❤ lives, section-hero icons (📖🔁📝🧩); notably `🔥` is explicitly *banned* from ever appearing in minigame fail/success text (existing test coverage), a deliberate avoidance of the "fire = danger/failure" association other games lean on. No collisions.
+  - [x] Cross-check the full list for collisions once every game's icons are catalogued — done (see summary sentence above); zero genuine collisions found, no code changes made.
 - [ ] Z21: A shared print-friendly CSS stylesheet for end-of-session summary screens:
   - [ ] Build the shared stylesheet
   - [ ] Apply to Canopy's Session Summary
