@@ -973,6 +973,34 @@ button.secondary:disabled::after {
   border-left-color: #6f9fe0;
 }
 
+/* UI decluttering pass (planning/TODO.md closing task): styles the
+   <summary> of the collapsed baseline-numbers breakdown to read as a
+   small text link rather than the browser's default disclosure triangle
+   + inline text, matching the .info-toggle badge's understated tone. */
+.baseline-stats-toggle > summary {
+  cursor: pointer;
+  font-size: 0.78rem;
+  opacity: 0.7;
+  list-style: none;
+  margin-bottom: 0.4rem;
+}
+
+.baseline-stats-toggle > summary:hover {
+  opacity: 0.9;
+}
+
+.baseline-stats-toggle > summary::-webkit-details-marker {
+  display: none;
+}
+
+.baseline-stats-toggle > summary::before {
+  content: "▸ ";
+}
+
+.baseline-stats-toggle[open] > summary::before {
+  content: "▾ ";
+}
+
 /* Unlock toasts: fixed to the top of the viewport so they're visible
    regardless of scroll position, unlike the panels they summarize.
    `.visible` is toggled from game.py; `hidden` (native attribute) keeps

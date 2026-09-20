@@ -127,11 +127,23 @@
 
     <div id="baseline-farm-card" class="section baseline-farm-card">
       <p class="meter-label">Baseline Farm — same herd size, no decoupling ever invested</p>
-      <p id="baseline-herd-display" class="status-line">Herd size: 0</p>
-      <p id="baseline-funds-display" class="status-line">Funds: 300</p>
-      <p id="baseline-methane-display" class="status-line">Methane: 0</p>
-      <p id="baseline-score-display" class="status-line">Score: 300</p>
       <p id="counterfactual-comparison-display" class="comparison-message">Advance a round to see how your farm compares to a pure-growth baseline.</p>
+      <!-- UI decluttering pass (planning/TODO.md closing task): the raw
+           herd/funds/methane/score breakdown below is collapsed by
+           default -- it's the same information the on-demand Report Card
+           panel (report_card_html() in game.py) already restates in full
+           sentence form, so keeping it always-expanded here duplicated a
+           feature that already exists as an on-demand summary. The one
+           line players actually want every round without a click --
+           counterfactual-comparison-display above -- stays visible. Pure
+           HTML move: every child id/game.py lookup is unchanged. -->
+      <details class="baseline-stats-toggle">
+        <summary>Show baseline numbers</summary>
+        <p id="baseline-herd-display" class="status-line">Herd size: 0</p>
+        <p id="baseline-funds-display" class="status-line">Funds: 300</p>
+        <p id="baseline-methane-display" class="status-line">Methane: 0</p>
+        <p id="baseline-score-display" class="status-line">Score: 300</p>
+      </details>
       <details class="info-toggle"><summary>i</summary><p>This tracks a second, imaginary farm that grew its herd exactly like yours but never invested a single unit in decoupling or the plant-based pivot — and never spent the funds on it either. It's the fairest "what if" comparison: same herd size, only the decoupling choices differ.</p></details>
     </div>
 
