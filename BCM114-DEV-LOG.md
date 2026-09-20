@@ -340,3 +340,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Continuum
 **Did:** Audited a half-finished uncommitted diff and committed it (K4 isometric preset, K14 time-of-day pin, K6 branch chips, K12/K23 research effects and unlock estimates, K7/K17 stakeholder report and efficiency rank, K27 shortcuts panel), then added K3 (opt-in community benchmark against the Z1 stats endpoint, graceful fallback) and K15/K29 (founder's log, time played, validated saved fields). Also documented the K26b eighth-era scope in `games/continuum/CLAUDE.md` without building it.
 **Result:** 491 to 523 tests green; verified live with zero console errors. Open: K1, K18, K20, K22, K24, K28, K26b. See `games/continuum/CLAUDE.md` Milestone 25.
+
+### 2026-09-21 (Completion-audit small fixes: five games' dock padding, Aftermath E20, Thaw G2, Loop H10, Trade Empire J11)
+**Game:** Grid, Canopy, Tide, Aftermath, Trade Empire, Thaw, Loop
+**Did:** Mobile-dock `padding-bottom` rules changed to `html body` so they outrank ad-bar.css (verified at 375px: 130/268/230/230/150px computed). Aftermath Growth button/readout show the real current payoff. Thaw best-region line names the winning investment mix. Loop shows the extraction-cost ceiling as visible info text. Trade Empire route lines show average profit per trip (new saved `good_trip_count`); its achievements hub link now anchors to the dashboard.
+**Result:** aftermath 246, trade-empire 265, thaw 152, loop 192 tests green.
