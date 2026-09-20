@@ -4,7 +4,9 @@ Written assuming everything currently in `planning/TODO.md` has landed (achievem
 
 **Structure change from round 1:** the old single "site-wide" bucket is now two sections — **Z. Games** (things worth doing across many/all games, not any one game's own feature) and **Y. Home** (the hub shell itself — `index.html`/`script.js`/`style.css`, not any individual game). The Warframe tracker (a personal project living in this workspace but outside the hub's own git tracking, per `warframe_build_tracker/TODO.md`) gets its own section too, per standing instruction — its answers route back to that local file, not to this repo's `planning/TODO.md`.
 
-Order: hub games in the usual listing order, then Z (Games), Y (Home), then the Warframe tracker.
+**New this round:** a **M. New Game Ideas** section — 5 fresh, brand-new game concepts (not features for an existing game) every round from here on, per your standing instruction. These are pitches for a possible 13th+ game, not scoped work — a "yes" here means "build a groundwork plan for this," not "add this to an existing game's TODO.md."
+
+Order: hub games in the usual listing order, then M (New Game Ideas), then Z (Games), Y (Home), then the Warframe tracker.
 
 ---
 
@@ -427,6 +429,18 @@ Order: hub games in the usual listing order, then Z (Games), Y (Home), then the 
 28. **[SMALL]** A small badge/icon for perfectly answering a full row's worth of plots in one sitting.
 29. **[BIG]** A second, standalone mini-game family beyond the arcade minigames — a lighter, more frequent "quick water" mode (a single rapid-fire question, no full minigame session) for very short study breaks, distinct from the four full arcade games' own sequence-range gating.
 30. **[SMALL]** Let the achievements panel's "View achievements across every game" hub link open in a way that preserves the current visual style choice when navigating back, rather than resetting to default.
+
+---
+
+## M. New Game Ideas
+
+Five brand-new concepts this round — not features for an existing game, pitches for a possible next one. A "yes" here means "worth a groundwork plan," not "add to an existing TODO.md."
+
+1. **Compound Interest** — an incremental/clicker in SOL's own spirit, but the resource is money and the mechanics are real personal-finance concepts: compound interest, debt vs. savings, the cost of high-interest borrowing, diversification. The hope-angle/teaching shape the climate quartet already proved (a mechanic that's the lesson, not a tooltip about it) applied to financial literacy instead of climate — a genuinely different BCM114/206-relevant subject if either subject's outline ever wants a second flagship DA candidate.
+2. **Silk Road** — a historical trade-route management game blending Trade Empire's colony-need/market-price mechanics with real Silk Road geography and goods (silk, spices, paper), where the player routes caravans between real historical cities and reacts to real historical events (plague outbreaks disrupting a route, a new city rising in prominence). Distinct from Continuum's fictional-city arc by being grounded in one specific real historical system rather than an invented civilization.
+3. **Signal** — a small, standalone daily puzzle game (Wordle-adjacent in spirit, not derivative in mechanic) with an original twist, shippable small per the site's own "as big or small as the idea wants" philosophy — a genuinely quick build if the idea itself turns out simple, useful as a fast "something visible every 2 weeks" cadence-filler between bigger builds.
+4. **Undersleep** — a wellness-themed idle/management game where the player balances a character's daily schedule (work, rest, social, exercise) against a circadian-rhythm meter, teaching the real cost of chronic sleep debt the way Herd teaches methane coupling — through a mechanic that punishes ignoring it, not a lecture about it.
+5. **Rootstock** — a "digital garden" knowledge-management sim where the player plants "ideas" (short notes) that grow and cross-pollinate into a personal wiki over real time, gamifying the act of building a second brain/notebook — a genuinely different kind of "game" (closer to a tool with game-like feedback) than anything else currently on the hub, worth a real conversation about whether it fits before building.
 
 ---
 
