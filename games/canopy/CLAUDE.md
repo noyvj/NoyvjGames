@@ -260,6 +260,43 @@ pre-existing codebase with zero interaction, so it predates and is
 unrelated to this change; left uninvestigated as out of scope for this
 pass.
 
+## UI decluttering pass (site-wide goal, planning/TODO.md closing task)
+
+Audited whether Canopy's single-page view is too crowded, per the
+site-wide "UI decluttering pass" task (the user's own note: "everything
+looks very crowded... making sections either collapsible or other
+'screens' within a game could help"), the same review already run against
+SOL in this same pass (see that game's `CLAUDE.md` — a real problem found
+and fixed there: unconditional 6-7-card `cross-summary` stacks on every
+planet view).
+
+**Audited, no real crowding problem found here — no change made.**
+Compared against SOL's actual issue (many redundant always-visible cards
+stacked with no grouping), Canopy's desktop layout doesn't have an
+equivalent: every major block — `#stats`, `.legend`, `#stakeholder-panel`,
+`#action-panel`, `.legend`, `#feedback-prompt`, `#info-page-panel` — is
+already its own visually distinct bordered/colored `.section` card (the
+site's existing "HUD module" treatment, `style.css` lines ~807-816, one
+accent color per section, same pattern SOL uses), not an undifferentiated
+wall of text. On top of that, several already-built features already
+reduce crowding as a side effect, exactly as this task's own framing
+anticipated: `#achievements-panel`, `#settings-panel`, `#changelog-panel`,
+`#session-summary-panel`, and `#info-page-panel` are all hidden-until-
+opened behind toolbar buttons; `#stakeholder-panel` only renders when a
+request is actually pending; `#highland-section` stays hidden until the
+second grove unlocks; and B15 (`#mobile-info-dock`) already wraps the
+stats+legend pair behind a collapsed-by-default toggle specifically on
+mobile, where the same fixed content is proportionally more crowding than
+on desktop. The only always-visible desktop stack is plot-grid → stats →
+legend → (stakeholder, when pending) → action-panel → highland-banner →
+feedback-prompt — six or so clearly-labeled cards, not the kind of dense,
+ungrouped pile this task is aimed at. Matches the "audited, found no real
+issue, made no speculative change" precedent this file's own Onboarding-
+tooltip and Code-quality audit notes above already set.
+
+Verified: full 278/278 pytest suite green (no change made, ran as the
+baseline check this pass calls for regardless of verdict).
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag canopy-milestone-0N`.
