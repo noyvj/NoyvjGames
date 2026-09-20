@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 107/708 items checked off (15.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 120/708 items checked off (16.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -546,33 +546,33 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 ## Per-game: Herd
 
 - [ ] F1: A "regional herd network" — manage a second, smaller satellite farm with its own coupling ratio; surplus decoupling investment from the main farm partially offsets the satellite's emissions.
-- [ ] F2: Let the pasture visual's cow-count thresholds include a small herd-size number overlay, not just the visual count.
+- [x] F2: Let the pasture visual's cow-count thresholds include a small herd-size number overlay, not just the visual count.
 - [ ] F3: A "consumer demand shift" mechanic — market preference occasionally shifts toward plant-based output, temporarily making the pivot more profitable.
-- [ ] F4: A one-time tooltip the first time coupling ratio crosses below 0.5, explaining "decoupled" in plain terms.
+- [x] F4: A one-time tooltip the first time coupling ratio crosses below 0.5, explaining "decoupled" in plain terms.
 - [ ] F5: A "generational herd genetics" system — invest in breeding for naturally lower methane intensity per animal, a slow-burn fourth decoupling lever.
-- [ ] F6: Let the report card show the exact percentage the player's score beat the pure-growth baseline by.
+- [x] F6: Let the report card show the exact percentage the player's score beat the pure-growth baseline by.
 - [ ] F7: A "farm cooperative" comparison — aggregate stats on community-wide methane-per-unit avoided *(needs Z1 for a first pass — you flagged this as feeling especially important but possibly better suited to a fuller build once the multiplayer update lands; ship the Z1-backed version now, expand later)*.
 - [ ] F8: A small "record decoupling ratio" marker on the coupling gauge, like Grid's best-round marker.
 - [ ] F9: A proper multi-season weather/feed-cost variation layer, adding light unpredictability to the investment-return math.
 - [ ] F10: Let the community stat show a small trend arrow if the backend can support it cheaply *(same F7/Z1 caveat above)*.
-- [ ] F11: A "sustainable certification" milestone — a sustained low coupling ratio for N rounds unlocks a permanent price premium.
-- [ ] F12: A tooltip on the Plant-Based Pivot's confirm dialog stating the exact income tradeoff percentage.
+- [x] F11: A "sustainable certification" milestone — a sustained low coupling ratio for N rounds unlocks a permanent price premium.
+- [x] F12: A tooltip on the Plant-Based Pivot's confirm dialog stating the exact income tradeoff percentage.
 - [ ] F13: A "supply chain" expansion — invest downstream (processing, distribution efficiency) as a new income lever distinct from herd growth.
-- [ ] F14: Let the real-world comparison message update its framing once the player's own reduction exceeds the cited 42% figure, congratulating them for beating the real benchmark.
+- [x] F14: Let the real-world comparison message update its framing once the player's own reduction exceeds the cited 42% figure, congratulating them for beating the real benchmark.
 - [ ] F15: A "herd health" sub-system — animal welfare as a light second axis, where certain decoupling measures (better feed) also improve welfare.
-- [ ] F16: A small pulse on the methane trend graph the moment the curve visibly flattens.
+- [x] F16: A small pulse on the methane trend graph the moment the curve visibly flattens.
 - [ ] F17: A "farm tour" narrative mode — periodic short flavor vignettes reacting to the farm's current coupling ratio.
-- [ ] F18: Let the investment consequence preview show numbers with a small before/after arrow.
+- [x] F18: Let the investment consequence preview show numbers with a small before/after arrow.
 - [ ] F19: A "regional methane cap" scenario mode — an opt-in harder variant with a hard regulatory cap forcing decoupling.
 - [ ] F21: A community "decoupling leaderboard" by best score-vs-baseline gap *(same F7/Z1 caveat above)*.
-- [ ] F22: Let the min/max range labels behind the coupling gauge flash when a new session-best is set.
+- [x] F22: Let the min/max range labels behind the coupling gauge flash when a new session-best is set.
 - [ ] F23 **(you called this "the next big thing this game needs"):** A "second herd type" — a genuinely different animal (poultry, aquaculture) with its own coupling curve, **unlocked via prestige**, each type with its own needs and decoupling levers, per your framing.
-- [ ] F24: A tooltip explaining exactly what the ambient haze overlay's intensity represents.
+- [x] F24: A tooltip explaining exactly what the ambient haze overlay's intensity represents.
 - [ ] F25: A "farm succession" meta-progression, Aftermath-style (built independently per Z3's resolution) — **explicitly tie this to F23**, per your note that they work well together (e.g. succession unlocking or feeding into new animal types).
-- [ ] F26: A small icon distinguishing the three original decoupling measures (feed/caps/capture) from the plant-based pivot in any summary list.
+- [x] F26: A small icon distinguishing the three original decoupling measures (feed/caps/capture) from the plant-based pivot in any summary list.
 - [ ] F27: A "policy advisor" event — periodically offers a choice between a subsidy for decoupling investment or a flat cash bonus.
-- [ ] F28: Let the worked numeric example in the tutorial be revisitable from the How to Play panel directly.
-- [ ] F30: A small animated methane-wisp effect that visibly thins as coupling ratio improves, reinforcing the haze overlay's intensity cue with motion.
+- [x] F28: Let the worked numeric example in the tutorial be revisitable from the How to Play panel directly.
+- [x] F30: A small animated methane-wisp effect that visibly thins as coupling ratio improves, reinforcing the haze overlay's intensity cue with motion.
 
 **Folded into Z (see "Games" section above):** F20's "maximum feasible decoupling ratio" badge — build as an achievement pop-up instead of a bespoke badge, per your answer.
 
