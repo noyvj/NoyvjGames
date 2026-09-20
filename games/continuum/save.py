@@ -52,9 +52,11 @@ module-level `state` and `tree`) stay valid across a load.
 import copy
 import math
 
+import challenges
 import log
 import sim
 import sustainability
+import trajectory
 
 SAVE_VERSION = 1
 GAME_ID = "continuum"
@@ -85,6 +87,10 @@ CITY_FIELDS = [
     # this is zero new plumbing rather than a signature change everywhere.
     "scenario",
     "hard_mode",
+    # K11 / K19 / K25 / K10 -- validated field-by-field in restore_city().
+    "challenge",
+    "trajectory",
+    "calm_streak",
 ]
 
 # Fields that are dicts whose *key set* belongs to sim.py, not to the save:
@@ -133,6 +139,7 @@ NUMERIC_FIELD_BOUNDS = {
     "fed_fraction": (0.0, 1.0, False),
     "last_extraction": (0.0, None, False),
     "last_sustainable_yield": (0.0, None, False),
+    "calm_streak": (0, 100000, True),
 }
 
 
@@ -226,6 +233,10 @@ def restore_city(state, data):
         elif field == "hard_mode":
             if isinstance(value, bool):
                 state.hard_mode = value
+        elif field == "challenge":
+            state.challenge = challenges.clean(value)
+        elif field == "trajectory":
+            state.trajectory = trajectory.clean_points(value)
         elif field == "score_history":
             if isinstance(value, list):
                 cleaned = [float(v) for v in value if _is_finite_number(v)]

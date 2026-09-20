@@ -733,6 +733,17 @@ class CityState:
         # saved, snapshotted, and eventually graphed — so it lives here.
         # game.py appends one entry per completed season.
         self.score_history = []
+        # K11 (challenges.py) -- the opt-in civic-challenge state. Kept as a
+        # plain literal here (challenges.py imports sim, so sim can't import
+        # it back); save.py validates it on load via challenges.clean().
+        self.challenge = {"active": None, "completed": {}, "failed": 0}
+        # K19/K13/K25/K8 (trajectory.py) -- one [output_index, era_index,
+        # population, livability] point per completed season, capped.
+        self.trajectory = []
+        # K10 -- completed seasons in a row with everyone fed and nobody
+        # dying. Reset by any hunger or death, the same "clean streak" idea
+        # as Grid's own.
+        self.calm_streak = 0
 
     # --- allocation -----------------------------------------------------
     def assigned_workers(self):
@@ -1120,6 +1131,11 @@ class CityState:
             self.sprawl = 0.0
 
         self.season += 1
+
+        if deaths > 0 or fed_fraction < 1.0:
+            self.calm_streak = 0
+        else:
+            self.calm_streak += 1
 
         # Public Works coverage (Medieval+) -- purely for narration, the
         # same "convenience fields on the report" precedent Milestone 9 set

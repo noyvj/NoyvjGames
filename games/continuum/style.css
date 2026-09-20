@@ -1270,3 +1270,21 @@ button.primary:disabled::after {
 .research-disclosure > summary::before { content: "▸ "; }
 .research-disclosure[open] > summary::before { content: "▾ "; }
 .research-disclosure > summary:hover { background: rgba(201, 147, 84, 0.1); }
+
+/* K11/K19/K25: civic challenges + trajectory charts. Same amber accent as
+   the rest of the game; colors are told apart by dash pattern and line
+   weight as well as hue (colorblind-safe). */
+.founded-plaque { font-variant: small-caps; letter-spacing: 0.04em; opacity: 0.85; }
+.challenge-row { margin-top: 0.6rem; }
+.challenge-active { color: #e0b374; }
+.trajectory-graph { margin-top: 0.6rem; }
+.trajectory-svg { width: 100%; height: auto; display: block; border-radius: 8px; }
+.trajectory-bg { fill: rgba(20, 16, 10, 0.5); }
+.trajectory-line { stroke-linejoin: round; stroke-linecap: round; }
+.trajectory-line--mine { stroke: #e0b374; stroke-width: 2.5; }
+.trajectory-line--ref { stroke: #8fb5e8; stroke-width: 1.8; }
+.trajectory-dot { fill: rgba(224, 179, 116, 0.7); }
+.trajectory-dot--latest { fill: #ffe0a8; stroke: #e0b374; stroke-width: 1.5; }
+.trajectory-legend { font-size: 0.78rem; opacity: 0.8; margin: 0.4rem 0 0; }
+.trajectory-key { display: inline-block; width: 1.4rem; height: 0; border-top: 3px solid #e0b374; vertical-align: middle; margin: 0 0.3rem 0 0.6rem; }
+.trajectory-key--ref { border-top: 3px dashed #8fb5e8; }

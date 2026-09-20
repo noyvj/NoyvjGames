@@ -36,6 +36,7 @@ _HERE = os.getcwd()
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
+import challenges  # noqa: E402
 import info_content  # noqa: E402
 import info_page  # noqa: E402
 import research  # noqa: E402
@@ -43,6 +44,7 @@ import save  # noqa: E402
 import sim  # noqa: E402
 import summary  # noqa: E402
 import sustainability  # noqa: E402
+import trajectory  # noqa: E402
 import transition  # noqa: E402
 import visual  # noqa: E402
 
@@ -237,6 +239,7 @@ def render():
     update_scenario_display()
     update_hard_mode_display()
     update_summary_panel()
+    render_insights(effects)
     _notify_visual_layer()
 
 
@@ -438,6 +441,134 @@ def update_summary_panel():
         entry.appendChild(detail)
 
         panel.appendChild(entry)
+
+
+
+# ===========================================================================
+# K2/K8/K10/K21a small readouts, K11 civic challenges, K19/K13/K25 charts.
+# All read-only views of state (challenge start/abandon aside), all inside
+# collapsed panels or single status lines -- nothing here adds a screen.
+# ===========================================================================
+SEASONS_PER_YEAR = 4
+SEASON_NAMES = ["Spring", "Summer", "Autumn", "Winter"]
+
+
+def year_and_season(season):
+    index = max(1, int(season)) - 1
+    return index // SEASONS_PER_YEAR + 1, SEASON_NAMES[index % SEASONS_PER_YEAR]
+
+
+def tree_completion():
+    """K21a: (researched, total, percent) over the whole tree."""
+    total = len(tree.nodes)
+    done = len(tree.researched)
+    return done, total, (100 * done // total if total else 0)
+
+
+_challenge_button_proxies = {}
+
+
+def _make_start_challenge_handler(cid):
+    def handler(event=None):
+        if campaign.revisiting is not None:
+            return
+        if challenges.start(state, current_effects(), cid):
+            render()
+    return handler
+
+
+def on_abandon_challenge(event=None):
+    if challenges.abandon(state):
+        render()
+
+
+def render_insights(effects):
+    year, season_name = year_and_season(state.season)
+    document.getElementById("founded-display").innerText = (
+        f"Founded Year 1 · now Year {year}, {season_name}"
+    )
+    index = trajectory.current_output_index(state)
+    document.getElementById("efficiency-display").innerText = (
+        "Output per person: -" if index is None else f"Output per person: {index:.1f}x subsistence"
+    )
+    document.getElementById("calm-streak-display").innerText = (
+        f"Calm seasons in a row: {state.calm_streak}"
+    )
+    done, total, percent = tree_completion()
+    document.getElementById("research-completion-display").innerText = (
+        f"Tree: {done} of {total} discoveries ({percent}%)"
+    )
+
+    # --- K11 civic challenges -------------------------------------------
+    active_line = challenges.status_text(state)
+    document.getElementById("challenges-summary").innerText = (
+        "Civic Challenges (1 active)" if active_line else "Civic Challenges (optional)"
+    )
+    status = document.getElementById("challenge-status-display")
+    status.innerText = active_line or f"Challenges met: {challenges.total_completed(state)}"
+    container = document.getElementById("challenge-list")
+    container.innerHTML = ""
+    live = set()
+    if active_line:
+        row = document.createElement("div")
+        row.className = "row challenge-row"
+        button = document.createElement("button")
+        button.id = "challenge-abandon-button"
+        button.className = "secondary"
+        button.innerText = "Abandon challenge"
+        proxy = create_proxy(on_abandon_challenge)
+        stale = _challenge_button_proxies.get("abandon")
+        if stale is not None:
+            stale.destroy()
+        _challenge_button_proxies["abandon"] = proxy
+        live.add("abandon")
+        button.addEventListener("click", proxy)
+        row.appendChild(button)
+        container.appendChild(row)
+    elif campaign.revisiting is None:
+        for cid in challenges.offered(state, effects):
+            spec = challenges.CHALLENGES[cid]
+            row = document.createElement("div")
+            row.className = "row challenge-row"
+            top = document.createElement("div")
+            top.className = "row-top"
+            name = document.createElement("span")
+            name.className = "row-name"
+            name.innerText = f"{spec['label']} ({spec['seasons']} seasons)"
+            top.appendChild(name)
+            row.appendChild(top)
+            blurb = document.createElement("p")
+            blurb.className = "row-blurb"
+            blurb.innerText = (
+                f"{spec['blurb']} Reward: +{challenges.reward_for(state.era):.0f} knowledge."
+            )
+            row.appendChild(blurb)
+            actions = document.createElement("div")
+            actions.className = "row-actions"
+            button = document.createElement("button")
+            button.id = f"challenge-start-{cid}-button"
+            button.className = "secondary"
+            button.innerText = "Accept"
+            proxy = create_proxy(_make_start_challenge_handler(cid))
+            stale = _challenge_button_proxies.get(cid)
+            if stale is not None:
+                stale.destroy()
+            _challenge_button_proxies[cid] = proxy
+            live.add(cid)
+            button.addEventListener("click", proxy)
+            actions.appendChild(button)
+            row.appendChild(actions)
+            container.appendChild(row)
+    for key in list(_challenge_button_proxies):
+        if key not in live:
+            _challenge_button_proxies.pop(key).destroy()
+
+    # --- K19/K13/K25 charts ---------------------------------------------
+    points = state.trajectory
+    document.getElementById("trajectory-graph").innerHTML = trajectory.trajectory_svg(points)
+    document.getElementById("livability-scatter").innerHTML = trajectory.scatter_svg(points)
+    document.getElementById("trajectory-summary").innerText = trajectory.summary_line(points)
+    document.getElementById("trajectory-source").innerText = trajectory.SOURCE_NOTE
 
 
 # Work/Build row buttons, keyed by (role-or-building, "add"/"remove"/
@@ -1378,8 +1509,12 @@ def _make_research_handler(node_id):
 
 def on_advance_season(event=None):
     effects = current_effects()
-    state.advance_season(effects)
+    report = state.advance_season(effects)
     state.score_history.append(sustainability.score(state, effects))
+    trajectory.record(state, report, sustainability.livability(state, effects) * 100.0)
+    event = challenges.after_season(state, report, effects)
+    if event is not None:
+        chronicle.log_challenge(state.season, state.era, event["text"])
     chronicle.check_population(state)
     chronicle.check_livability(state, effects)
     render()

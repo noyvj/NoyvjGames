@@ -101,6 +101,18 @@ ELEMENT_IDS = [
     "scenario-select-note",
     # K18 — opt-in hard-mode toggle.
     "hard-mode-toggle-button",
+    # K2/K8/K10/K21a readouts, K11 civic challenges, K19/K13/K25 charts.
+    "founded-display",
+    "efficiency-display",
+    "calm-streak-display",
+    "research-completion-display",
+    "challenges-summary",
+    "challenge-status-display",
+    "challenge-list",
+    "trajectory-graph",
+    "livability-scatter",
+    "trajectory-summary",
+    "trajectory-source",
 ]
 
 

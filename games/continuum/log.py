@@ -221,6 +221,10 @@ class Chronicle:
         readiness rules, not by anything Chronicle tracks itself)."""
         self._add(LogEntry(season, era, "transition", text))
 
+    def log_challenge(self, season, era, text):
+        """K11: a civic challenge started/ended -- appended in the council's voice."""
+        self._add(LogEntry(season, era, "challenge", text))
+
     # --- save support -------------------------------------------------------
     def snapshot(self):
         return {

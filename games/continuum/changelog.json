@@ -1,4 +1,5 @@
 [
+  { "date": "2026-09-20", "entry": "New: optional Civic Challenges (opt-in constraints like taking 20% less from the land, for a knowledge reward), an 'Your city vs. history' chart with a real-world GDP-per-person reference line and its source, a livability-vs-population scatter, nine new research nodes, and small readouts (founded year, output per person, calm-season streak, tree completion)." },
   { "date": "2026-09-20", "entry": "Research panel decluttered: only nodes you can study right now stay in view; Locked and Known discoveries fold into collapsible sections (searching opens them automatically)." },
   { "date": "2026-09-20", "entry": "New: civilization summary report, three starting scenarios, an opt-in Hard Mode, a snapshot-to-PNG button for the 3D view, and subtle seasonal lighting." },
   { "date": "2026-09-20", "entry": "Mobile: the Advance Season button now docks to the bottom of the screen, plus a site-wide body-padding cascade bug fixed so the dock no longer covers page content." },
