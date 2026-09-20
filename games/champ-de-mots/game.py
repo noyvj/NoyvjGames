@@ -2460,6 +2460,64 @@ def render_achievements():
     panel.appendChild(hub_link)
 
 
+# ===========================================================================
+# "What's New" changelog panel (site-wide goal, planning/TODO.md, origin
+# K16: "Per-game in-game changelog panel, for every game"). A quick
+# highlights view, not a full duplicate of CLAUDE.md -- same loading
+# contract as ACHIEVEMENTS above, reusing the shared _read_json_asset()
+# helper this game already uses for the catalog/supplementary-notes files.
+# Unlike ACHIEVEMENTS, this is a flat list (no wrapping key) -- see
+# changelog.json itself.
+# ===========================================================================
+CHANGELOG_FILENAME = "changelog.json"
+
+
+def _read_changelog_json():
+    return _read_json_asset(CHANGELOG_FILENAME, "CHANGELOG_JSON")
+
+
+# Degrades to an empty list rather than crashing this module's whole
+# import -- the changelog panel is purely informational, not core to this
+# game's gameplay.
+try:
+    CHANGELOG = json.loads(_read_changelog_json())
+except (ValueError, OSError, NameError):
+    CHANGELOG = []
+
+changelog_open = False
+
+
+def on_toggle_changelog(event=None):
+    global changelog_open
+    changelog_open = not changelog_open
+    render()
+
+
+def render_changelog():
+    # Reuses .dashboard-panel's card and the same one-<p>-per-row idiom the
+    # progress dashboard's own mastery/weakest/pattern lists already use
+    # (see render_dashboard() above), rather than the two-part
+    # "changelog-entry" card the rest of the hub's own K16 dispatches use --
+    # internals are free once you're inside a game, and this game already
+    # has its own established row idiom worth staying consistent with.
+    panel = _element("changelog-panel")
+    toggle = _element("changelog-toggle-button")
+    toggle.innerText = "Hide What's New" if changelog_open else "📋 What's New"
+    panel.hidden = not changelog_open
+    if not changelog_open:
+        return
+
+    panel.innerHTML = ""
+    # Newest first -- entries are authored newest-first in changelog.json
+    # already, but sort defensively so a future out-of-order edit can't
+    # silently invert the panel.
+    for entry in sorted(CHANGELOG, key=lambda e: e["date"], reverse=True):
+        line = document.createElement("p")
+        line.className = "changelog-row"
+        line.innerText = f"{entry['date']} — {entry['entry']}"
+        panel.appendChild(line)
+
+
 def _plot_classes(plot):
     classes = ["plot", f"plot--{plot.stage}"]
     # Weeds takes the place ordinary wilting would otherwise show for this
@@ -2718,6 +2776,7 @@ def render():
     render_dashboard()
     render_liaison_drill()
     render_achievements()
+    render_changelog()
     minigames.render()
 
 
@@ -4366,6 +4425,9 @@ def setup():
     )
     _element("achievements-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_achievements)
+    )
+    _element("changelog-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_changelog)
     )
     # Explicit, not just relying on index.html's `hidden` attribute -- the
     # toast element is only otherwise touched by show_achievement_toast()

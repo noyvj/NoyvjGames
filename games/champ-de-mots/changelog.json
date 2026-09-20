@@ -1,0 +1,14 @@
+[
+  { "date": "2026-09-19", "entry": "Visual-style switcher added: choose High-def, Low-poly, Text-based, or Cartoon chrome and palette, changeable any time in Settings." },
+  { "date": "2026-09-19", "entry": "Achievements retrofitted into the hub-wide framework: a static catalog, unlock toast, and hub dashboard link (unlock conditions unchanged)." },
+  { "date": "2026-09-14", "entry": "Four arcade minigames added: Greetings & Basics Blitz, Verb Racer, Boutique Dash, and Café Rush — timed, scored alternatives to the calm farm loop, each gated to its own row range." },
+  { "date": "2026-09-14", "entry": "Report buttons extended to Review, Proficiency, and Bonus sections; typed-answer boxes now clear between questions." },
+  { "date": "2026-09-14", "entry": "Pronunciation-risk report button added for known mispronunciation traps." },
+  { "date": "2026-09-13", "entry": "Achievements added: two tiers tracking total plots automated and full weeks fully automated." },
+  { "date": "2026-09-13", "entry": "\"Weeds\" mix-up state, a personal error-pattern digest, a gender-tagging drill, and a liaison/elision practice quiz added." },
+  { "date": "2026-09-13", "entry": "Combo bonus, self-rated confidence, deliberate interleaving, adaptive distractor difficulty, a cultural notes toggle, and a progress dashboard added." },
+  { "date": "2026-09-13", "entry": "Slideshow cross-check merge: 9 new topics and 75 new items added from the teacher's own lecture slides." },
+  { "date": "2026-09-05", "entry": "Site-wide space theme visual pass." },
+  { "date": "2026-09-03", "entry": "Grading engine v2 (STRICT/LENIENT tiers), a \"flag as correct\" report button, a failure feedback blurb, a Review tab, weekly proficiency tests, and bonus sentence-building sections." },
+  { "date": "2026-09-02", "entry": "Core farm launched: the 23-week FREN151 to FREN152 syllabus catalog, spaced-repetition plant growth, a runtime question generator, and save-code support." }
+]

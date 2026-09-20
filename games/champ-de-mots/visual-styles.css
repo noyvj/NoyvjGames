@@ -142,6 +142,18 @@ html[data-visual-style="lowpoly"] .row--locked {
   box-shadow: none;
 }
 
+/* The changelog panel's rows (game.py's render_changelog()) inherit
+   .dashboard-panel's own dark-brown-on-warm-paper text colour (style.css's
+   .dashboard-mastery-row/.dashboard-weakest-topic/.dashboard-pattern-row
+   share the exact same #33291f, a pre-existing gap in this same shape --
+   flagged separately, not fixed here since it's out of this panel's own
+   scope) -- against this style's own dark .dashboard-panel background that
+   reads as near-invisible without a light override, matching the light text
+   colour .secondary already uses against the same dark slate palette. */
+html[data-visual-style="lowpoly"] .changelog-row {
+  color: #eef3f6;
+}
+
 html[data-visual-style="lowpoly"] .panel-hero {
   background: #f4b942;
   border-radius: 0;
@@ -242,6 +254,15 @@ html[data-visual-style="textbased"] .minigame-prompt-card {
 html[data-visual-style="textbased"] .row--locked {
   background: #070a0c;
   border-style: dashed;
+}
+
+/* Same legibility fix as low-poly's own note above, this theme's palette:
+   the changelog rows' inherited #33291f dark-brown text is unreadable
+   against this theme's near-black .dashboard-panel background, so it's
+   re-set to the same terminal-green already used for .primary/.secondary/
+   .choice/.practice-input text against the same dark background. */
+html[data-visual-style="textbased"] .changelog-row {
+  color: #b9f5c9;
 }
 
 html[data-visual-style="textbased"] .panel-hero {
@@ -413,6 +434,15 @@ html[data-visual-style="cartoon"] .row--locked {
   background: #2a1050;
   border-style: dashed;
   box-shadow: none;
+}
+
+/* Same legibility fix as low-poly/text-based's own notes above: the
+   changelog rows' inherited #33291f dark-brown text is unreadable against
+   this theme's dark-purple .dashboard-panel background, so it's re-set to
+   the same near-white lavender already used for .practice-input text
+   against the same background. */
+html[data-visual-style="cartoon"] .changelog-row {
+  color: #f5eaff;
 }
 
 html[data-visual-style="cartoon"] .panel-hero {

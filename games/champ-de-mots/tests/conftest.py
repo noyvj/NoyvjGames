@@ -45,6 +45,8 @@ ELEMENT_IDS = [
     "achievements-toggle-button",
     "achievements-panel",
     "achievement-toast",
+    "changelog-toggle-button",
+    "changelog-panel",
     "blitz-toggle-button",
     "blitz-panel",
     "blitz-lock-message",

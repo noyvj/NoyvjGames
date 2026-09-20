@@ -1010,6 +1010,16 @@ button:disabled {
   text-decoration: underline;
 }
 
+/* "What's New" changelog panel (site-wide goal, planning/TODO.md, origin
+   K16) -- reuses .dashboard-panel's card, one <p> per entry in the same
+   idiom as .dashboard-mastery-row/.dashboard-pattern-row above, rather than
+   the two-part card the rest of the hub's own K16 dispatches use. */
+.changelog-row {
+  margin: 0 0 0.2rem;
+  font-size: 0.8rem;
+  color: #33291f;
+}
+
 /* Achievements retrofit: unlock toast, fixed near the top of the viewport
    so it's visible regardless of scroll position. Reuses the same
    affirmative-green language as .choice--answer/the confidence buttons
