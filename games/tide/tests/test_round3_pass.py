@@ -152,3 +152,191 @@ def test_d29_save_round_trip_and_bad_data(game_env):
     assert st.chronicle == [{"season": 1, "text": "ok"}]
     game_env.module.load_state({k: v for k, v in data.items() if k not in ("chronicle", "settlement_name")})
     assert st.chronicle == [] and st.settlement_name == ""
+
+
+# ---- D17 heritage -------------------------------------------------------
+
+
+def test_d17_protect_costs_funds_once(game_env):
+    st = game_env.state
+    st.funds = 500
+    assert st.protect_heritage("lighthouse")
+    assert st.funds == 500 - 120
+    assert st.heritage["lighthouse"] == "protected"
+    assert not st.protect_heritage("lighthouse")  # already protected
+    assert not st.protect_heritage("nope")
+
+
+def test_d17_cannot_protect_without_funds_or_after_flood(game_env):
+    st = game_env.state
+    st.funds = 10
+    assert not st.protect_heritage("reef")
+    st.funds = 500
+    st.sea_level = 20.0  # row 5 (threshold 15) already flooded
+    assert not st.protect_heritage("reef")
+
+
+def test_d17_unprotected_site_is_lost_protected_survives(game_env):
+    st = game_env.state
+    st.funds = 500
+    st.protect_heritage("reef")
+    st.sea_level = 14.0
+    game_env.advance_season()  # sea 19 -> row 5 floods
+    assert st.heritage["reef"] == "protected"
+    st.sea_level = 30.0
+    game_env.advance_season()  # row 4 (threshold 30) floods
+    assert st.heritage["lighthouse"] == "lost"
+    assert any("lost to the sea" in m for m in st.ticker_full_history)
+
+
+def test_d17_upkeep_charged_per_protected_site_and_floored(game_env):
+    st = game_env.state
+    st.funds = 500
+    st.protect_heritage("lighthouse")
+    before = st.funds
+    game_env.advance_season()
+    assert st.funds == before - game_env.module.HERITAGE_UPKEEP
+    st.funds = 2
+    game_env.advance_season()
+    assert st.funds == 0
+
+
+def test_d17_tile_marker_and_button(game_env):
+    st = game_env.state
+    st.funds = 500
+    game_env.module.render()
+    tile = game_env.elements["coastline-tile-5-3"]
+    assert tile.innerText == "🦪" and "coastline-heritage--unprotected" in tile.className
+    game_env.elements["heritage-protect-1"].dispatch("click", None)
+    assert st.heritage["reef"] == "protected"
+    assert "coastline-heritage--protected" in game_env.elements["coastline-tile-5-3"].className
+    assert game_env.elements["heritage-protect-1"].disabled
+
+
+def test_d17_save_round_trip_and_bad_data(game_env):
+    st = game_env.state
+    st.funds = 500
+    st.protect_heritage("reef")
+    data = game_env.module.get_state()
+    st.heritage["reef"] = "unprotected"
+    game_env.module.load_state(data)
+    assert st.heritage["reef"] == "protected"
+    game_env.module.load_state(dict(data, heritage={"reef": "banana", "lighthouse": 5}))
+    assert st.heritage == {"lighthouse": "unprotected", "reef": "unprotected"}
+    game_env.module.load_state(dict(data, heritage="x"))
+    assert st.heritage == {"lighthouse": "unprotected", "reef": "unprotected"}
+
+
+# ---- D21 citizen science ------------------------------------------------
+
+
+def test_d21_monitoring_reveals_facts_in_order_with_cooldown(game_env):
+    st = game_env.state
+    m = game_env.module
+    st.funds = 1000
+    assert st.fund_monitoring()
+    assert st.revealed_facts() == m.CITIZEN_SCIENCE_FACTS[:1]
+    assert st.funds == 1000 - m.MONITOR_COST
+    assert not st.fund_monitoring()  # cooldown
+    game_env.advance_season()
+    game_env.advance_season()
+    assert st.fund_monitoring()
+    assert len(st.revealed_facts()) == 2
+    assert m.CITIZEN_SCIENCE_FACTS[0] in st.ticker_full_history[-2] or any(
+        m.CITIZEN_SCIENCE_FACTS[0] in t for t in st.ticker_full_history
+    )
+
+
+def test_d21_needs_funds_and_caps_at_all_facts(game_env):
+    st = game_env.state
+    m = game_env.module
+    st.funds = 10
+    assert not st.fund_monitoring()
+    st.funds = 100000
+    for _ in range(len(m.CITIZEN_SCIENCE_FACTS) + 3):
+        st.fund_monitoring()
+        st.season += m.MONITOR_COOLDOWN_SEASONS
+    assert st.monitoring_reports == len(m.CITIZEN_SCIENCE_FACTS)
+    assert not st.can_monitor()
+
+
+def test_d21_button_and_log_render(game_env):
+    st = game_env.state
+    st.funds = 500
+    game_env.module.render()
+    assert not game_env.elements["monitor-button"].disabled
+    game_env.elements["monitor-button"].dispatch("click", None)
+    assert game_env.elements["monitor-button"].disabled
+    assert "1. " in game_env.elements["monitor-log"].innerHTML
+
+
+def test_d21_save_validation(game_env):
+    st = game_env.state
+    data = game_env.module.get_state()
+    game_env.module.load_state(dict(data, monitoring_reports=999, monitoring_last_season="x"))
+    assert st.monitoring_reports == len(game_env.module.CITIZEN_SCIENCE_FACTS)
+    assert st.monitoring_last_season == 0
+    game_env.module.load_state(dict(data, monitoring_reports=-4))
+    assert st.monitoring_reports == 0
+    game_env.module.load_state(dict(data, monitoring_reports=True))
+    assert st.monitoring_reports == 0
+
+
+# ---- D13 storms ---------------------------------------------------------
+
+
+def test_d13_off_by_default_changes_nothing(game_env):
+    st = game_env.state
+    for _ in range(12):
+        game_env.advance_season()
+    assert st.storm_log == [] and st.seasons_until_storm() is None
+
+
+def test_d13_storm_fires_every_interval_when_on(game_env):
+    st = game_env.state
+    m = game_env.module
+    st.set_storm_mode(True)
+    for _ in range(m.STORM_INTERVAL * 2):
+        game_env.advance_season()
+    assert [e["season"] for e in st.storm_log] == [m.STORM_INTERVAL, 2 * m.STORM_INTERVAL]
+    assert st.storm_log[1]["surge"] > st.storm_log[0]["surge"]
+
+
+def test_d13_adaptation_holds_back_the_surge(game_env):
+    m = game_env.module
+
+    def run(adaptation):
+        game_env.state.storm_log = []
+        game_env.state.season = m.STORM_INTERVAL
+        game_env.state.funds = 1000
+        game_env.state.capacity["adaptation"] = adaptation
+        game_env.state.set_storm_mode(True)
+        game_env.advance_season()
+        return game_env.state.storm_log[-1]["taken"]
+
+    assert run(10) < run(0)
+    assert run(15) < run(10)
+
+
+def test_d13_funds_never_negative_and_forecast(game_env):
+    st = game_env.state
+    st.set_storm_mode(True)
+    st.season = 5
+    st.funds = 1
+    game_env.advance_season()
+    assert st.funds >= 0
+    assert st.seasons_until_storm() == 4
+    game_env.module.render()
+    assert "Forecast" in game_env.elements["storm-forecast"].innerText
+
+
+def test_d13_toggle_and_save_validation(game_env):
+    st = game_env.state
+    game_env.elements["storm-toggle-button"].dispatch("click", None)
+    assert st.storm_mode
+    data = game_env.module.get_state()
+    game_env.module.load_state(dict(data, storm_mode=False, storm_log=[{"season": "x"}, 3, {"season": 5, "surge": 1, "taken": 1, "blocked": 0}]))
+    assert not st.storm_mode
+    assert len(st.storm_log) == 1
+    game_env.module.load_state(dict(data, storm_log="nope"))
+    assert st.storm_log == []

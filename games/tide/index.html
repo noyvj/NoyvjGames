@@ -223,6 +223,32 @@
       </details>
     </div>
 
+    <div id="programmes-section" class="section">
+      <p class="meter-label">Coastal programmes</p>
+      <!-- D17: heritage sites worth protecting, even at a running cost. -->
+      <details class="sea-level-stats-toggle">
+        <summary>Coastal heritage</summary>
+        <p class="comparison-message">Two sites sit on the coast. Protecting one costs a one-off sum plus upkeep each season, but it survives even if its row floods. Unprotected sites are lost when their row goes under.</p>
+        <p id="heritage-status-0" class="comparison-message"></p>
+        <button id="heritage-protect-0" class="secondary" type="button">Protect</button>
+        <p id="heritage-status-1" class="comparison-message"></p>
+        <button id="heritage-protect-1" class="secondary" type="button">Protect</button>
+      </details>
+      <!-- D21: citizen-science monitoring reveals real findings. -->
+      <details class="sea-level-stats-toggle">
+        <summary>Citizen-science monitoring</summary>
+        <p class="comparison-message">Fund volunteer monitoring crews (one report every 2 seasons at most). Each report reveals a real-world finding about ocean acidification and sea level.</p>
+        <button id="monitor-button" class="secondary" type="button">Fund monitoring (50)</button>
+        <p id="monitor-log" class="comparison-message"></p>
+      </details>
+      <!-- D13: opt-in storm surges. -->
+      <details class="sea-level-stats-toggle">
+        <summary>Storm seasons</summary>
+        <button id="storm-toggle-button" class="secondary difficulty-toggle" type="button" title="Adds an acute storm surge every 5 seasons, forecast a season ahead. Your adaptation tier holds part of it back; what gets through costs funds. Can be switched any time.">Storm seasons: Off (turn on)</button>
+        <p id="storm-forecast" class="comparison-message"></p>
+      </details>
+    </div>
+
     <!-- D1: docks the investments panel + Advance Season button to the
          bottom of the viewport on mobile via shared/mobile-dock.js, same
          pattern as Aftermath's #actions-dock -- the single cluster every

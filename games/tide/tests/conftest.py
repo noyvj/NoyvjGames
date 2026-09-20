@@ -85,6 +85,15 @@ ELEMENT_IDS = [
     "settlement-heading",
     "settlement-name-input",
     "settlement-chronicle",
+    # D17 / D21 / D13.
+    "heritage-status-0",
+    "heritage-protect-0",
+    "heritage-status-1",
+    "heritage-protect-1",
+    "monitor-button",
+    "monitor-log",
+    "storm-toggle-button",
+    "storm-forecast",
 ]
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-count", f"{_category}-invest-button"]

@@ -36,6 +36,43 @@ TIDE_AMPLITUDE = 4.0
 TIDE_PERIOD_FACTOR = 1.1
 TIDE_HIGH_CUTOFF = 2.0
 
+# D17: coastal heritage. Each site sits on one coastline row (column
+# HERITAGE_COL); protecting it costs a one-off sum plus a small upkeep
+# every season, and a protected site survives its row flooding.
+HERITAGE_COL = 3
+HERITAGE_UPKEEP = 6
+HERITAGE_SITES = [
+    {"id": "lighthouse", "name": "Old lighthouse", "emoji": "🗼", "row": 4, "cost": 120},
+    {"id": "reef", "name": "Oyster-reef nursery", "emoji": "🦪", "row": 5, "cost": 180},
+]
+HERITAGE_UNPROTECTED = "unprotected"
+HERITAGE_PROTECTED = "protected"
+HERITAGE_LOST = "lost"
+
+# D21: citizen-science monitoring -- a paid, cooled-down action whose
+# reward is the next fact in a list of real-world acidification/sea-level
+# findings (paraphrased from NOAA/NASA public material, same sources as the
+# info page).
+MONITOR_COST = 50
+MONITOR_COOLDOWN_SEASONS = 2
+CITIZEN_SCIENCE_FACTS = [
+    "Since the start of the industrial era, average surface-ocean pH has fallen from about 8.2 to about 8.1 — around 30% more acidic, because the pH scale is logarithmic.",
+    "The ocean has taken up roughly a quarter of the carbon dioxide people have emitted — a service that slows warming but is exactly what acidifies the water.",
+    "Global mean sea level has risen roughly 8–9 inches (21–24 cm) since 1880, and the yearly rate in recent decades is faster than the 20th-century average.",
+    "Shell-building animals such as oysters and pteropods struggle in more acidic water: carbonate ions, the raw material for shells, become scarcer.",
+    "US Pacific Northwest oyster hatcheries suffered major larval die-offs in the 2000s tied to corrosive seawater, and now monitor and buffer the water they draw in.",
+    "The ocean has absorbed around 90% of the extra heat trapped by greenhouse gases; warm water expands, so thermal expansion is a major driver of sea-level rise alongside melting ice.",
+    "Cold water dissolves more CO2, so polar seas are among the first places acidification becomes severe.",
+    "Community and volunteer programmes help track coastal water chemistry and temperature, filling gaps between research ships and buoys.",
+]
+
+# D13: opt-in storm seasons -- an acute shock every STORM_INTERVAL seasons,
+# forecast a season ahead, whose bite is cut by the current dampening.
+STORM_INTERVAL = 5
+STORM_BASE_SURGE = 18.0
+STORM_SURGE_GROWTH = 3.0
+STORM_FUNDS_PER_DAMAGE = 3.0
+
 ACIDITY_RISE_PER_OUTPUT = 2.0
 ACIDITY_FALL_PER_REDUCTION = 1.5
 
@@ -259,6 +296,97 @@ class SettlementState:
         # plus a short chronicle of the settlement's notable moments.
         self.settlement_name = ""
         self.chronicle = []
+        # D17: id -> HERITAGE_* status.
+        self.heritage = {site["id"]: HERITAGE_UNPROTECTED for site in HERITAGE_SITES}
+        # D21: how many facts revealed, and the season of the last report.
+        self.monitoring_reports = 0
+        self.monitoring_last_season = 0
+        # D13: opt-in storm seasons.
+        self.storm_mode = False
+        self.storm_log = []
+
+    # ---- D17 heritage ------------------------------------------------
+    def protect_heritage(self, site_id):
+        site = next((x for x in HERITAGE_SITES if x["id"] == site_id), None)
+        if site is None or self.heritage.get(site_id) != HERITAGE_UNPROTECTED:
+            return False
+        if self.funds < site["cost"] or tile_row_state(site["row"], self.sea_level) == FLOODED:
+            return False
+        self.funds -= site["cost"]
+        self.heritage[site_id] = HERITAGE_PROTECTED
+        self._log_ticker(f"{site['name']} is now protected — it will outlast the flood, at a small upkeep each season.")
+        self._chronicle_event(f"Townsfolk pooled funds to protect the {site['name'].lower()}.")
+        return True
+
+    def protected_heritage_count(self):
+        return sum(1 for v in self.heritage.values() if v == HERITAGE_PROTECTED)
+
+    def _update_heritage(self):
+        """Unprotected sites whose row has flooded are lost; protected ones
+        cost upkeep (never below zero funds)."""
+        for site in HERITAGE_SITES:
+            if (
+                self.heritage.get(site["id"]) == HERITAGE_UNPROTECTED
+                and tile_row_state(site["row"], self.sea_level) == FLOODED
+            ):
+                self.heritage[site["id"]] = HERITAGE_LOST
+                self._log_ticker(f"The {site['name'].lower()} has been lost to the sea.")
+                self._chronicle_event(f"The {site['name'].lower()} was swallowed by the sea.")
+        self.funds = max(0.0, self.funds - HERITAGE_UPKEEP * self.protected_heritage_count())
+
+    # ---- D21 citizen science -----------------------------------------
+    def can_monitor(self):
+        if self.monitoring_reports >= len(CITIZEN_SCIENCE_FACTS) or self.funds < MONITOR_COST:
+            return False
+        return (
+            self.monitoring_last_season == 0
+            or self.season - self.monitoring_last_season >= MONITOR_COOLDOWN_SEASONS
+        )
+
+    def fund_monitoring(self):
+        if not self.can_monitor():
+            return False
+        self.funds -= MONITOR_COST
+        self.monitoring_reports += 1
+        self.monitoring_last_season = self.season
+        self._log_ticker("Monitoring report in: " + CITIZEN_SCIENCE_FACTS[self.monitoring_reports - 1])
+        return True
+
+    def revealed_facts(self):
+        return CITIZEN_SCIENCE_FACTS[: self.monitoring_reports]
+
+    # ---- D13 storms --------------------------------------------------
+    def set_storm_mode(self, enabled):
+        self.storm_mode = bool(enabled)
+
+    def storm_this_season(self):
+        return self.storm_mode and self.season % STORM_INTERVAL == 0
+
+    def seasons_until_storm(self):
+        """0 if the storm lands when this season resolves; None when off."""
+        if not self.storm_mode:
+            return None
+        return (-self.season) % STORM_INTERVAL
+
+    def storm_surge_strength(self):
+        return STORM_BASE_SURGE + STORM_SURGE_GROWTH * len(self.storm_log)
+
+    def _resolve_storm(self):
+        """Called while advance_season() resolves a season. The surge is cut
+        by the current dampening; what gets through costs funds."""
+        surge = self.storm_surge_strength()
+        taken = surge * (1 - self.dampening_fraction())
+        funds_lost = min(self.funds, taken * STORM_FUNDS_PER_DAMAGE)
+        self.funds -= funds_lost
+        self.storm_log.append(
+            {"season": self.season, "surge": surge, "taken": taken, "blocked": surge - taken}
+        )
+        self.storm_log = self.storm_log[-20:]
+        self._log_ticker(
+            f"⛈️ Storm surge in Season {self.season}: {surge - taken:.0f} of {surge:.0f} held back "
+            f"by your defences; the rest cost {funds_lost:.0f} funds."
+        )
+        self._chronicle_event(f"A storm surge struck; defences held back {surge - taken:.0f} of {surge:.0f}.")
 
     def set_settlement_name(self, name):
         """D29: trims, collapses whitespace and caps the length; anything
@@ -691,6 +819,10 @@ class SettlementState:
         self.damage_log.append(damage_this_season)
         self.tier_log.append(self.current_tier_index())
 
+        self._update_heritage()
+        if self.storm_this_season():
+            self._resolve_storm()
+
         self.season += 1
 
         new_fish_yield = self.fish_yield_multiplier()
@@ -792,6 +924,24 @@ def _resync_previous_flooded_rows():
     }
 
 
+def heritage_site_at(row, col):
+    if col != HERITAGE_COL:
+        return None
+    for site in HERITAGE_SITES:
+        if site["row"] == row:
+            return site
+    return None
+
+
+def heritage_status_text(site):
+    status = state.heritage.get(site["id"])
+    if status == HERITAGE_PROTECTED:
+        return f"{site['emoji']} {site['name']}: protected (upkeep {HERITAGE_UPKEEP}/season)."
+    if status == HERITAGE_LOST:
+        return f"✖ {site['name']}: lost to the sea."
+    return f"{site['emoji']} {site['name']}: unprotected — floods with row {site['row'] + 1}. Protect for {site['cost']}."
+
+
 def render_coastline():
     global _previous_flooded_rows
     grid_el = document.getElementById("coastline-grid")
@@ -819,6 +969,11 @@ def render_coastline():
                 tile.className += f" coastline-seawall coastline-seawall--t{tier_index}"
             if just_flooded:
                 tile.className += " coastline-flash"
+            site = heritage_site_at(row_index, col_index)
+            if site is not None:
+                status = state.heritage.get(site["id"])
+                tile.innerText = site["emoji"] if status != HERITAGE_LOST else "✖"
+                tile.className += f" coastline-heritage coastline-heritage--{status}"
             # D8: dry rows the current tide reaches get a dashed edge
             # (a shape cue, not a hue one) and a title note.
             tidal = row_index in tidal_rows
@@ -827,13 +982,14 @@ def render_coastline():
             # D19: a native hover/tap tooltip naming this row's flood
             # threshold -- zero extra markup, works identically for mouse
             # hover and (on most mobile browsers) a long-press/tap.
-            tile.title = (
+            base_title = (
                 f"Flooded — this row floods once sea level reaches {threshold:.0f}."
                 if tile_state == FLOODED
                 else f"Floods once sea level reaches {threshold:.0f} "
                 f"(about {state.seasons_until_flood(row_index)} season(s) at the current pace)."
                 + (" This season's tide is washing over it." if tidal else "")
             )
+            tile.title = (heritage_status_text(site) + " " if site is not None else "") + base_title
             grid_el.appendChild(tile)
     _previous_flooded_rows = current_flooded_rows
 
@@ -1618,6 +1774,62 @@ def render_settlement_history():
         )
 
 
+def render_programmes():
+    """D17 / D21 / D13 (and later additions): the collapsed "Coastal
+    programmes" section's readouts and button states."""
+    for i, site in enumerate(HERITAGE_SITES):
+        status_el = document.getElementById(f"heritage-status-{i}")
+        if status_el is not None:
+            status_el.innerText = heritage_status_text(site)
+        button = document.getElementById(f"heritage-protect-{i}")
+        if button is not None:
+            button.innerText = f"Protect ({site['cost']})"
+            button.disabled = not (
+                state.heritage.get(site["id"]) == HERITAGE_UNPROTECTED
+                and state.funds >= site["cost"]
+                and tile_row_state(site["row"], state.sea_level) != FLOODED
+            )
+    monitor_button = document.getElementById("monitor-button")
+    if monitor_button is not None:
+        if state.monitoring_reports >= len(CITIZEN_SCIENCE_FACTS):
+            monitor_button.innerText = "All monitoring reports collected"
+        elif (
+            state.monitoring_last_season
+            and state.season - state.monitoring_last_season < MONITOR_COOLDOWN_SEASONS
+        ):
+            monitor_button.innerText = "Monitoring crews are out — report next season"
+        else:
+            monitor_button.innerText = f"Fund monitoring ({MONITOR_COST})"
+        monitor_button.disabled = not state.can_monitor()
+    monitor_log = document.getElementById("monitor-log")
+    if monitor_log is not None:
+        facts = state.revealed_facts()
+        monitor_log.innerHTML = (
+            "<br>".join(f"{i + 1}. {fact}" for i, fact in enumerate(facts))
+            if facts
+            else "No reports yet — each funded report reveals a real-world finding."
+        )
+    storm_button = document.getElementById("storm-toggle-button")
+    if storm_button is not None:
+        storm_button.innerText = "Storm seasons: On (turn off)" if state.storm_mode else "Storm seasons: Off (turn on)"
+    storm_el = document.getElementById("storm-forecast")
+    if storm_el is not None:
+        storm_el.innerText = storm_forecast_text()
+
+
+def storm_forecast_text():
+    wait = state.seasons_until_storm()
+    if wait is None:
+        return "Storm seasons are off. Turn them on for a surge every 5 seasons that tests your adaptation tier."
+    surge = state.storm_surge_strength()
+    held = surge * state.dampening_fraction()
+    when = "this season's end" if wait == 0 else f"{wait} season(s) from now"
+    return (
+        f"Forecast: a surge of about {surge:.0f} arrives at {when}; your current tier would hold back "
+        f"about {held:.0f} of it."
+    )
+
+
 def render_hard_lag_toggle():
     """D9: keeps the toggle button's label in sync with the live mode."""
     button = document.getElementById("hard-lag-toggle-button")
@@ -1751,6 +1963,7 @@ def render():
         badge.innerText = TIER_BADGES[state.current_tier_index()]
         badge.title = f"Current tier: {state.current_tier()['name']}"
     render_hard_lag_toggle()
+    render_programmes()
     update_achievements_display()
     update_changelog_display()
     update_session_summary_display()
@@ -1784,6 +1997,23 @@ def on_sea_scenario_change(event):
 
 def on_toggle_hard_lag(event=None):
     state.set_hard_lag_mode(not state.hard_lag_mode)
+    render()
+
+
+def _make_heritage_handler(site_id):
+    def handler(event=None):
+        state.protect_heritage(site_id)
+        render()
+    return handler
+
+
+def on_monitor(event=None):
+    state.fund_monitoring()
+    render()
+
+
+def on_toggle_storms(event=None):
+    state.set_storm_mode(not state.storm_mode)
     render()
 
 
@@ -1845,6 +2075,11 @@ def get_state():
         "sea_scenario": state.sea_scenario,
         "settlement_name": state.settlement_name,
         "chronicle": copy.deepcopy(state.chronicle),
+        "heritage": copy.deepcopy(state.heritage),
+        "monitoring_reports": state.monitoring_reports,
+        "monitoring_last_season": state.monitoring_last_season,
+        "storm_mode": state.storm_mode,
+        "storm_log": copy.deepcopy(state.storm_log),
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) —
         # always freshly recomputed, never read back in load_state().
         "achievements_earned": achievement_ids_earned(),
@@ -1872,6 +2107,14 @@ def get_state():
 # (aftermath, canopy, drift, grid, herd, loop, thaw all raise KeyError on a
 # malformed/missing field instead). Not documented as an intentional
 # deviation in this file's CLAUDE.md.
+def _clamped_int(value, low, high):
+    """Save-field validator: a real int (not bool) clamped to [low, high],
+    else `low`."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        return low
+    return max(low, min(high, value))
+
+
 def load_state(data):
     if not isinstance(data, dict):
         return False
@@ -1970,6 +2213,29 @@ def load_state(data):
     else:
         state.chronicle = []
 
+    saved_heritage = data.get("heritage")
+    state.heritage = {site["id"]: HERITAGE_UNPROTECTED for site in HERITAGE_SITES}
+    if isinstance(saved_heritage, dict):
+        for site in HERITAGE_SITES:
+            if saved_heritage.get(site["id"]) in (HERITAGE_UNPROTECTED, HERITAGE_PROTECTED, HERITAGE_LOST):
+                state.heritage[site["id"]] = saved_heritage[site["id"]]
+    state.monitoring_reports = _clamped_int(
+        data.get("monitoring_reports"), 0, len(CITIZEN_SCIENCE_FACTS)
+    )
+    state.monitoring_last_season = _clamped_int(data.get("monitoring_last_season"), 0, 10**6)
+    state.storm_mode = bool(data.get("storm_mode", False))
+    saved_storm_log = data.get("storm_log")
+    state.storm_log = (
+        [
+            {k: float(e[k]) if k != "season" else int(e[k]) for k in ("season", "surge", "taken", "blocked")}
+            for e in saved_storm_log
+            if isinstance(e, dict)
+            and all(isinstance(e.get(k), (int, float)) and not isinstance(e.get(k), bool) for k in ("season", "surge", "taken", "blocked"))
+        ][-20:]
+        if isinstance(saved_storm_log, list)
+        else []
+    )
+
     # D8's flash-tracking global and the achievements toast-diffing
     # baseline both need to resync to the just-loaded state before
     # render() below draws anything or checks for newly-earned
@@ -2013,6 +2279,14 @@ def setup():
     document.getElementById("hard-lag-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_hard_lag)
     )
+    for i, site in enumerate(HERITAGE_SITES):
+        protect_button = document.getElementById(f"heritage-protect-{i}")
+        if protect_button is not None:
+            protect_button.addEventListener("click", create_proxy(_make_heritage_handler(site["id"])))
+    for element_id, handler in (("monitor-button", on_monitor), ("storm-toggle-button", on_toggle_storms)):
+        el = document.getElementById(element_id)
+        if el is not None:
+            el.addEventListener("click", create_proxy(handler))
     name_input = document.getElementById("settlement-name-input")
     if name_input is not None:
         name_input.addEventListener("change", create_proxy(on_settlement_name_change))
