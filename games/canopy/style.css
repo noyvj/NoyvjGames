@@ -1496,3 +1496,66 @@ html[data-reduced-motion="true"] *::after {
   transition-duration: 0.001ms !important;
   scroll-behavior: auto !important;
 }
+
+
+/* B4: one-shot leaf burst on a plot's first full maturity. Six leaves fly
+   out along fixed angles; the whole set is removed on the next render. */
+.plot-tile { overflow: visible; }
+.leaf-burst {
+  position: absolute;
+  top: 40%;
+  left: 40%;
+  font-size: 0.8rem;
+  pointer-events: none;
+  animation: leaf-burst-fly 900ms ease-out forwards;
+  z-index: 3;
+}
+.leaf-burst--0 { --lx: -26px; --ly: -26px; }
+.leaf-burst--1 { --lx: 0px; --ly: -32px; }
+.leaf-burst--2 { --lx: 26px; --ly: -22px; }
+.leaf-burst--3 { --lx: -28px; --ly: 12px; }
+.leaf-burst--4 { --lx: 4px; --ly: 30px; }
+.leaf-burst--5 { --lx: 28px; --ly: 16px; }
+@keyframes leaf-burst-fly {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(0.6); }
+  100% { opacity: 0; transform: translate(var(--lx), var(--ly)) rotate(200deg) scale(1.1); }
+}
+
+/* B22 / B27: small corner marks (icon, so no color-only meaning). */
+.veteran-mark, .adopted-mark {
+  position: absolute;
+  font-size: 0.65rem;
+  line-height: 1;
+  pointer-events: none;
+}
+.veteran-mark { bottom: 1px; left: 2px; }
+.adopted-mark { top: 1px; right: 2px; }
+.plot-tile.plot-adopted { outline: 1px dashed rgba(255, 224, 130, 0.8); outline-offset: -3px; }
+
+/* B26: subtle glow on the last-hovered plot. */
+.plot-tile.plot-last-hovered {
+  box-shadow: 0 0 0 2px rgba(214, 255, 184, 0.55), 0 0 12px rgba(214, 255, 184, 0.45);
+}
+
+.adopted-plot-panel { margin: 0.5rem 0 0; font-size: 0.85rem; opacity: 0.9; }
+.stakeholder-shortcut-hint { margin: 0.25rem 0; font-size: 0.75rem; opacity: 0.7; }
+.session-summary-badge { font-weight: 700; margin: 0.5rem 0; }
+.summary-details { margin: 0.5rem 0; }
+.summary-details > summary { cursor: pointer; font-weight: 600; }
+.summary-graph-label { margin: 0.4rem 0 0.1rem; font-size: 0.8rem; opacity: 0.85; }
+.forest-log-list {
+  max-height: 11rem;
+  overflow-y: auto;
+  white-space: pre-line;
+  font-size: 0.8rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* B30: decorative seasonal tint on the forest backdrop (data-season is set
+   by settings.js from the real calendar month; purely cosmetic). */
+html[data-season="spring"] .ambient-bg { filter: saturate(1.1) brightness(1.05); }
+html[data-season="summer"] .ambient-bg { filter: saturate(1.2); }
+html[data-season="autumn"] .ambient-bg { filter: hue-rotate(-50deg) saturate(1.15); }
+html[data-season="winter"] .ambient-bg { filter: hue-rotate(35deg) saturate(0.55) brightness(1.05); }

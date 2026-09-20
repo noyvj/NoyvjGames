@@ -82,6 +82,27 @@
     <div id="session-summary-panel" class="section session-summary-panel" hidden>
       <p id="session-summary-counterfactual" class="session-summary-counterfactual"></p>
       <div id="session-summary-sparkline" class="session-summary-sparkline"></div>
+      <p id="session-summary-badge" class="session-summary-badge"></p>
+      <button id="session-summary-copy-badge-button" class="secondary" type="button">📋 Copy badge</button>
+      <!-- B13: end-of-session report card, three separate small graphs
+           (each labelled, so nothing relies on line color alone). -->
+      <details class="summary-details" open>
+        <summary>Forest report card</summary>
+        <p class="summary-graph-label">Biodiversity</p>
+        <div id="report-card-biodiversity" class="session-summary-sparkline"></div>
+        <p class="summary-graph-label">Standing value</p>
+        <div id="report-card-standing" class="session-summary-sparkline"></div>
+        <p class="summary-graph-label">Community relations</p>
+        <div id="report-card-relations" class="session-summary-sparkline"></div>
+      </details>
+      <details class="summary-details">
+        <summary>Forest history</summary>
+        <div id="forest-history-list" class="forest-log-list" tabindex="0"></div>
+      </details>
+      <details class="summary-details">
+        <summary>Wildlife log</summary>
+        <div id="wildlife-log-list" class="forest-log-list" tabindex="0"></div>
+      </details>
       <p class="session-summary-share-label">Share your session:</p>
       <p id="session-summary-share-text" class="session-summary-share-text"></p>
       <button id="session-summary-copy-button" class="secondary" type="button">📋 Copy</button>
@@ -173,6 +194,7 @@
         <div class="settlement-visual-roof settlement-visual-roof--c"></div>
       </div>
       <p id="stakeholder-message" class="stakeholder-message"></p>
+      <p class="stakeholder-shortcut-hint">Press N to select the requested plot.</p>
       <details class="info-toggle"><summary>i</summary><p>Most requests ask you to clear the plot — granting clears it (banking its value) and raises community relations by 10, while declining keeps it standing but costs 5 relations. Occasionally the community instead offers something positive for keeping a plot standing — accepting one of those raises relations and pays a small funding bonus, with no cost at all to declining.</p></details>
       <div class="action-buttons">
         <button id="stakeholder-grant-button" class="secondary" disabled>Grant</button>
@@ -187,7 +209,9 @@
       <div class="action-buttons">
         <button id="clear-button" class="secondary" disabled>Loading...</button>
         <button id="replant-button" class="secondary" disabled>Loading...</button>
+        <button id="adopt-plot-button" class="secondary" type="button" disabled title="Mark the selected plot as a long-term personal project with its own mini-history">⭐ Adopt plot</button>
       </div>
+      <p id="adopted-plot-panel" class="adopted-plot-panel" hidden></p>
     </div>
 
     <!-- B3: a second, unlockable forest region. Locked behind a plain
@@ -458,6 +482,57 @@
           e.preventDefault();
           nextTile.focus();
         }
+      });
+
+      // B16: "N" selects the plot the pending stakeholder request names
+      // (Python does the selecting; this just routes the key and moves
+      // focus/scroll). Ignored while typing in any field.
+      document.addEventListener("keydown", (e) => {
+        if (e.key !== "n" && e.key !== "N") return;
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        const tag = (e.target && e.target.tagName) || "";
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (e.target && e.target.isContentEditable)) return;
+        const fn = pyodide.globals.get("select_stakeholder_plot");
+        const index = fn ? fn() : null;
+        if (index === null || index === undefined) return;
+        const tile = document.getElementById(`plot-${index}`);
+        if (tile) tile.focus();
+      });
+
+      // B26: keep a subtle glow on whichever plot the pointer/focus last
+      // touched. render_grid() rebuilds every tile each tick, so remember
+      // the tile id and re-apply after each rebuild (a childList observer;
+      // adding a class is not a childList change, so no feedback loop).
+      let lastHoveredTileId = null;
+      function applyLastHovered() {
+        plotGrid.querySelectorAll(".plot-last-hovered").forEach((el) => el.classList.remove("plot-last-hovered"));
+        if (!lastHoveredTileId) return;
+        const tile = document.getElementById(lastHoveredTileId);
+        if (tile) tile.classList.add("plot-last-hovered");
+      }
+      plotGrid.addEventListener("mouseover", (e) => {
+        if (e.target.classList && e.target.classList.contains("plot-tile")) {
+          lastHoveredTileId = e.target.id;
+          applyLastHovered();
+        }
+      });
+      if (window.MutationObserver) {
+        new MutationObserver(applyLastHovered).observe(plotGrid, { childList: true });
+      }
+
+      // B18: copy the playstyle badge next to the share snippet's copy.
+      const badgeCopyButton = document.getElementById("session-summary-copy-badge-button");
+      badgeCopyButton.addEventListener("click", async () => {
+        const badgeLine = document.getElementById("session-summary-badge").textContent.replace("Playstyle badge:", "Canopy playstyle badge:");
+        try {
+          await navigator.clipboard.writeText(badgeLine);
+          document.getElementById("session-summary-copy-status").textContent = "Badge copied!";
+        } catch (err) {
+          document.getElementById("session-summary-copy-status").textContent = "Couldn't copy the badge — select the text manually.";
+        }
+        setTimeout(() => {
+          document.getElementById("session-summary-copy-status").textContent = "";
+        }, 2500);
       });
 
       // B18: copy-to-clipboard for the session-summary share snippet.

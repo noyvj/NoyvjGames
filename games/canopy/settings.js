@@ -24,6 +24,19 @@
  * browser's accessibility preference shouldn't silently override another
  * device's.
  */
+// B30: purely decorative seasonal tint on the backdrop, keyed off the
+// real calendar month (northern-hemisphere meteorological seasons). Only
+// sets a data attribute; style.css does the tinting. Not game state.
+(function () {
+  try {
+    const month = new Date().getMonth(); // 0 = January
+    const season = month >= 2 && month <= 4 ? "spring" : month >= 5 && month <= 7 ? "summer" : month >= 8 && month <= 10 ? "autumn" : "winter";
+    document.documentElement.setAttribute("data-season", season);
+  } catch (err) {
+    /* decorative only */
+  }
+})();
+
 (function () {
   "use strict";
 

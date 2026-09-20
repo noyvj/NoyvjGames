@@ -166,6 +166,7 @@ STAKEHOLDER_INCENTIVE_REASON_TEXT = {
 }
 STAKEHOLDER_INCENTIVE_ACCEPT_RELATIONS_DELTA = 10
 STAKEHOLDER_INCENTIVE_INCOME_BONUS = 25.0
+VETERAN_REQUESTS_SURVIVED = 3  # B22
 
 
 class Plot:
@@ -178,6 +179,15 @@ class Plot:
         self.replant_ticks_remaining = 0
         self.just_recovered = False
         self.biodiversity = 0.0
+        # B4: True once this plot has ever hit "fully mature" (so the leaf
+        # burst celebrates that moment exactly once per plot, ever).
+        self.mature_celebrated = False
+        # B22: how many clear-requests aimed at this plot the player has
+        # declined. A plot with 3+ of these and no clears is a "veteran".
+        self.requests_survived = 0
+
+    def is_veteran(self):
+        return self.requests_survived >= VETERAN_REQUESTS_SURVIVED and self.clear_count == 0
 
     def productivity_multiplier(self):
         """Soil quality factor from past clearing — 1.0 for a never-cleared
@@ -279,6 +289,14 @@ _session_ticks = 0
 _value_history = []
 VALUE_HISTORY_MAX_POINTS = 120  # ~2 minutes at one point/tick, TICK_INTERVAL_MS==1000
 
+# B13: three parallel per-tick series (biodiversity, standing value, community
+# relations) for the report card's small trend graphs. Ephemeral for the same
+# reason as _value_history above.
+_report_history = []
+# B4: plot indices that first hit "fully mature" this tick, consumed by the
+# next render_grid() (same one-shot pattern as _pending_value_pops).
+_pending_mature_bursts = set()
+
 plots = [Plot(i) for i in range(GRID_ROWS * GRID_COLS)]
 selected_index = None
 total_income = 0.0
@@ -305,6 +323,17 @@ plots_with_wildlife_ever = set()  # plot indices that have ever crossed the wild
 stakeholder_grants_count = 0  # incremented in grant_stakeholder_request()'s real-grant path
 stakeholder_declines_count = 0  # incremented in decline_stakeholder_request()'s real-decline path
 community_relations_min_ever = STARTING_COMMUNITY_RELATIONS  # lowest community_relations has ever been
+
+# B3/B23/B27: a bounded, persisted event log ("forest history"). Entries are
+# {"tick", "kind", "plot", "text"} dicts; `plot` is the main-forest plot
+# index the event concerns (or None), which is what B27's adopted-plot
+# mini-history filters on. `forest_tick` is its own persisted counter
+# rather than reusing `_session_ticks` (deliberately ephemeral, resets on
+# load) so entry ticks stay monotonic across a save/load.
+FOREST_LOG_MAX_ENTRIES = 200
+forest_log = []
+forest_tick = 0
+adopted_plot_index = None  # B27
 
 # B3 (planning/TODO.md "Per-game: Canopy"): a second, unlockable forest
 # region. Deliberately a smaller, simpler, self-contained sibling grid --
@@ -355,6 +384,7 @@ def reset_session(grid_size=None, _render_after=True):
     global _previously_earned_ids, _session_ticks
     global highland_unlocked, highland_plots, highland_selected_index, highland_income
     global _highland_plot_click_proxies, _reset_confirm_armed
+    global forest_log, forest_tick, adopted_plot_index
 
     _reset_confirm_armed = False
     if grid_size is not None:
@@ -385,6 +415,11 @@ def reset_session(grid_size=None, _render_after=True):
     _previously_earned_ids = set()
     _session_ticks = 0
     _value_history.clear()
+    _report_history.clear()
+    _pending_mature_bursts.clear()
+    forest_log = []
+    forest_tick = 0
+    adopted_plot_index = None
 
     for proxy in _highland_plot_click_proxies.values():
         proxy.destroy()
@@ -558,7 +593,15 @@ def grant_stakeholder_request(event=None):
         payout = plot.clear()
         if payout is not None:
             total_income += payout
+            _log_event(
+                "clear",
+                f"Granted the community's request: cleared {plot_coordinate_label(plot.index)} for {payout:.1f} income",
+                plot.index,
+            )
         community_relations = min(100, community_relations + STAKEHOLDER_GRANT_RELATIONS_DELTA)
+    if kind == STAKEHOLDER_KIND_INCENTIVE:
+        idx = pending_stakeholder_request["plot_index"]
+        _log_event("preserve", f"Accepted an incentive to keep {plot_coordinate_label(idx)} standing", idx)
     _note_community_relations_change()
     stakeholder_grants_count += 1
     pending_stakeholder_request = None
@@ -578,6 +621,11 @@ def decline_stakeholder_request(event=None):
     kind = pending_stakeholder_request.get("kind", STAKEHOLDER_KIND_CLEAR)
     if kind != STAKEHOLDER_KIND_INCENTIVE:
         community_relations = max(0, community_relations + STAKEHOLDER_DECLINE_RELATIONS_DELTA)
+        # B22/B3: declining a clear-request is a real preserve decision, and
+        # the plot survived one more request without ever being cleared.
+        idx = pending_stakeholder_request["plot_index"]
+        plots[idx].requests_survived += 1
+        _log_event("preserve", f"Declined a request to clear {plot_coordinate_label(idx)}: kept it standing", idx)
     # Declining a positive-trade-off incentive costs nothing -- turning down
     # a gift isn't the same as refusing the community's ask for the plot
     # itself, so there's no relations penalty for this kind.
@@ -676,6 +724,10 @@ def _plot_tooltip_text(plot):
     label = f"{plot_coordinate_label(plot.index)} · {STATE_LABEL[plot.state]} · value {plot.value:.1f} · soil {soil_pct}%"
     if plot.state == REPLANTING:
         label += f" · recovering in {plot.replant_ticks_remaining} ticks"
+    if plot.is_veteran():
+        label += f" · veteran ({plot.requests_survived} requests survived)"
+    if plot.index == adopted_plot_index:
+        label += " · adopted"
     return label
 
 
@@ -693,6 +745,16 @@ def _value_pop_size_class(delta):
     if delta >= VALUE_POP_MEDIUM_DELTA:
         return "value-pop--medium"
     return "value-pop--small"
+
+
+LEAF_BURST_COUNT = 6
+
+
+def _make_tile_mark(class_name, text):
+    mark = document.createElement("span")
+    mark.className = class_name
+    mark.innerText = text
+    return mark
 
 
 def render_grid():
@@ -727,6 +789,18 @@ def render_grid():
         tile.innerText = STATE_ICON[plot.state]
         if plot.has_wildlife():
             tile.className += " plot-has-wildlife"
+        if plot.is_veteran():
+            tile.className += " plot-veteran"
+            tile.appendChild(_make_tile_mark("veteran-mark", "\U0001F396\ufe0f"))
+        if plot.index == adopted_plot_index:
+            tile.className += " plot-adopted"
+            tile.appendChild(_make_tile_mark("adopted-mark", "\u2B50"))
+        if plot.index in _pending_mature_bursts:
+            tile.className += " plot-mature-burst"
+            for n in range(LEAF_BURST_COUNT):
+                leaf = _make_tile_mark("leaf-burst", "\U0001F343")
+                leaf.className = f"leaf-burst leaf-burst--{n}"
+                tile.appendChild(leaf)
         tile.style.backgroundColor = plot_display_color(plot)
         tile.setAttribute("data-tooltip", _plot_tooltip_text(plot))
         tile.setAttribute("aria-label", _plot_tooltip_text(plot))
@@ -793,6 +867,7 @@ def _maybe_unlock_highland():
     global highland_unlocked
     if not highland_unlocked and standing_forest_value() >= HIGHLAND_UNLOCK_STANDING_VALUE_THRESHOLD:
         highland_unlocked = True
+        _log_event("unlock", "Highland Grove unlocked", None)
 
 
 def highland_plot_coordinate_label(index):
@@ -1347,6 +1422,8 @@ def render_session_summary():
 
     document.getElementById("session-summary-share-text").innerText = share_snippet()
     render_playstyle_comparison()
+    render_report_card()
+    render_forest_log_panels()
 
 
 def comparison_message(income, standing_value):
@@ -1894,6 +1971,204 @@ def on_toggle_info_page(event=None):
     render_info_page()
 
 
+# ===========================================================================
+# Forest log (B3 history timeline, B23 wildlife log, B27 adopted plot),
+# playstyle badge (B9/B18) and end-of-session report card (B13). All of it
+# lives inside the already-opt-in Session Summary panel (collapsible
+# <details> sections) so the main screen gains no new always-visible block.
+# ===========================================================================
+
+WILDLIFE_SPECIES = [
+    ("\U0001F989", "owl"),
+    ("\U0001F98A", "fox"),
+    ("\U0001F98C", "deer"),
+    ("\U0001F438", "frog"),
+    ("\U0001F98B", "butterfly"),
+    ("\U0001F426", "woodpecker"),
+]
+FOREST_LOG_DISPLAY_LIMIT = 60
+
+
+def wildlife_species_for_plot(index):
+    """B23: each plot's wildlife is a fixed species (deterministic by plot
+    index, no RNG anywhere in this game) so the log can name what arrived."""
+    return WILDLIFE_SPECIES[index % len(WILDLIFE_SPECIES)]
+
+
+def species_seen():
+    """B23: the distinct species whose icons have ever appeared, in catalog
+    order. Derived from plots_with_wildlife_ever, so it needs no state of its
+    own."""
+    seen_names = {wildlife_species_for_plot(i)[1] for i in plots_with_wildlife_ever}
+    return [sp for sp in WILDLIFE_SPECIES if sp[1] in seen_names]
+
+
+def _log_event(kind, text, plot_index=None):
+    global forest_log
+    forest_log.append({"tick": forest_tick, "kind": kind, "plot": plot_index, "text": text})
+    del forest_log[:-FOREST_LOG_MAX_ENTRIES]
+
+
+def forest_log_lines(limit=FOREST_LOG_DISPLAY_LIMIT, kinds=None, plot_index=None):
+    """Newest-first display strings, optionally filtered by event kind(s) or
+    plot."""
+    entries = [
+        e for e in forest_log
+        if (kinds is None or e["kind"] in kinds) and (plot_index is None or e["plot"] == plot_index)
+    ]
+    return [f"t{e['tick']}: {e['text']}" for e in reversed(entries)][:limit]
+
+
+# B27 ------------------------------------------------------------------------
+
+def on_adopt_plot(event=None):
+    """Toggles adoption of the selected main-forest plot as a personal
+    long-term project. One adopted plot at a time."""
+    global adopted_plot_index
+    if selected_index is None:
+        return False
+    if adopted_plot_index == selected_index:
+        adopted_plot_index = None
+    else:
+        adopted_plot_index = selected_index
+        _log_event("adopt", f"Adopted {plot_coordinate_label(selected_index)} as a long-term project", selected_index)
+    render()
+    return True
+
+
+def render_adopt_panel():
+    button = document.getElementById("adopt-plot-button")
+    panel = document.getElementById("adopted-plot-panel")
+    if button is None or panel is None:
+        return
+    button.disabled = selected_index is None
+    button.innerText = (
+        "\u2B50 Release adopted plot" if selected_index is not None and selected_index == adopted_plot_index
+        else "\u2B50 Adopt plot"
+    )
+    if adopted_plot_index is None:
+        panel.hidden = True
+        return
+    panel.hidden = False
+    plot = plots[adopted_plot_index]
+    history = forest_log_lines(limit=8, plot_index=adopted_plot_index)
+    panel.innerText = (
+        f"Adopted plot {plot_coordinate_label(adopted_plot_index)}: {STATE_LABEL[plot.state]}, "
+        f"value {plot.value:.1f}, cleared {plot.clear_count}x, soil {round(plot.productivity_multiplier() * 100)}%."
+        + (" History: " + " | ".join(history) if history else "")
+    )
+
+
+# B9 / B18 -------------------------------------------------------------------
+
+BADGE_PRESERVATIONIST = "Preservationist"
+BADGE_BALANCED = "Balanced"
+BADGE_HARVESTER = "Harvester"
+BADGE_UNDECIDED = "Undecided"
+BADGE_PRESERVATIONIST_MAX_CLEAR_RATIO = 0.25  # clears per plot, below this
+BADGE_BALANCED_MAX_CLEAR_RATIO = 0.6
+BADGE_ICON = {
+    BADGE_PRESERVATIONIST: "\U0001F332",
+    BADGE_BALANCED: "\u2696\ufe0f",
+    BADGE_HARVESTER: "\U0001FA93",
+    BADGE_UNDECIDED: "\u2753",
+}
+
+
+def playstyle_badge():
+    """B9: a named playstyle from the session's clear-vs-preserve balance --
+    total clears so far as a fraction of the grid's plot count (a clear is
+    a plot-clear event, so clearing the same plot twice counts twice, which
+    is the honest reading of "how much harvesting"). Undecided until the
+    session has any play at all."""
+    clears = _total_clear_count()
+    if clears == 0 and _session_ticks == 0 and forest_tick == 0:
+        return BADGE_UNDECIDED
+    ratio = clears / max(1, len(plots))
+    if ratio < BADGE_PRESERVATIONIST_MAX_CLEAR_RATIO:
+        return BADGE_PRESERVATIONIST
+    if ratio < BADGE_BALANCED_MAX_CLEAR_RATIO:
+        return BADGE_BALANCED
+    return BADGE_HARVESTER
+
+
+def badge_share_text():
+    badge = playstyle_badge()
+    return f"{BADGE_ICON[badge]} Canopy playstyle badge: {badge} ({_total_clear_count()} clears across {len(plots)} plots)"
+
+
+# B13 ------------------------------------------------------------------------
+
+REPORT_CARD_GRAPHS = [
+    ("report-card-biodiversity", "Biodiversity", 0, "#4caf50"),
+    ("report-card-standing", "Standing value", 1, "#66b2e8"),
+    ("report-card-relations", "Community relations", 2, "#e8a33d"),
+]
+
+
+def _report_graph_svg(index, label, color):
+    series = [point[index] for point in _report_history]
+    if not series:
+        return ""
+    points = _sparkline_points(series, max(max(series), 1e-9))
+    return (
+        f'<svg viewBox="0 0 {SPARKLINE_WIDTH} {SPARKLINE_HEIGHT}" class="session-sparkline" '
+        f'role="img" aria-label="{label} over the session, now {series[-1]:.1f}">'
+        f'<polyline points="{points}" fill="none" stroke="{color}" stroke-width="2" /></svg>'
+    )
+
+
+def render_report_card():
+    for element_id, label, index, color in REPORT_CARD_GRAPHS:
+        container = document.getElementById(element_id)
+        if container is None:
+            continue
+        svg = _report_graph_svg(index, label, color)
+        if svg:
+            container.innerHTML = svg
+        else:
+            container.innerHTML = ""
+            container.innerText = "Not enough time has passed yet to chart a trend."
+
+
+def render_forest_log_panels():
+    badge_el = document.getElementById("session-summary-badge")
+    if badge_el is not None:
+        badge = playstyle_badge()
+        badge_el.innerText = f"{BADGE_ICON[badge]} Playstyle badge: {badge}"
+    seen = species_seen()
+    wildlife_el = document.getElementById("wildlife-log-list")
+    if wildlife_el is not None:
+        head = (
+            "Species seen ({}/{}): ".format(len(seen), len(WILDLIFE_SPECIES))
+            + (" ".join(f"{icon} {name}" for icon, name in seen) if seen else "none yet")
+        )
+        lines = forest_log_lines(kinds={"wildlife"})
+        wildlife_el.innerText = head + ("\n" + "\n".join(lines) if lines else "")
+    history_el = document.getElementById("forest-history-list")
+    if history_el is not None:
+        lines = forest_log_lines()
+        history_el.innerText = "\n".join(lines) if lines else "No decisions yet: clear, replant, or decline a request to start the log."
+
+
+def on_copy_badge_source(event=None):
+    """Nothing to do in Python: the copy itself is a plain-JS clipboard call
+    (see index.html), which reads the badge text from the DOM."""
+
+
+# B16 ------------------------------------------------------------------------
+
+def select_stakeholder_plot(event=None):
+    """B16: selects the plot named by the pending stakeholder request (bound
+    to the "N" key in index.html). Returns the plot index, or None when no
+    request is pending."""
+    if pending_stakeholder_request is None:
+        return None
+    index = pending_stakeholder_request["plot_index"]
+    select_plot(index)
+    return index
+
+
 def render_grid_size_select():
     """Keeps the grid-size <select> showing whatever preset is actually
     live -- needed because reset_session() can change current_grid_size
@@ -1913,6 +2188,7 @@ def render():
     render_stakeholder_panel()
     render_grid_size_select()
     render_reset_button()
+    render_adopt_panel()
     render_session_summary()
     render_highland_section()
     update_achievements_display()
@@ -1939,6 +2215,7 @@ def on_clear(event=None):
     payout = plots[selected_index].clear()
     if payout is not None:
         total_income += payout
+        _log_event("clear", f"Cleared {plot_coordinate_label(selected_index)} for {payout:.1f} income", selected_index)
     render()
 
 
@@ -1948,21 +2225,36 @@ def on_replant(event=None):
         return
     if plots[selected_index].replant():
         total_replants += 1
+        _log_event("replant", f"Replanted {plot_coordinate_label(selected_index)}", selected_index)
     render()
 
 
 def tick(event=None):
-    global pending_stakeholder_request, total_recoveries, _session_ticks
+    global pending_stakeholder_request, total_recoveries, _session_ticks, forest_tick
     _session_ticks += 1
+    forest_tick += 1
     _pending_value_pops.clear()
+    _pending_mature_bursts.clear()
     for plot in plots:
         delta = plot.accrue_tick()
         if delta >= VALUE_POP_MIN_DELTA:
             _pending_value_pops[plot.index] = delta
         if plot.advance_recovery():
             total_recoveries += 1
+            _log_event("recovered", f"{plot_coordinate_label(plot.index)} finished recovering", plot.index)
+        if plot.has_wildlife() and plot.index not in plots_with_wildlife_ever:
+            icon, name = wildlife_species_for_plot(plot.index)
+            _log_event("wildlife", f"{icon} A {name} appeared at {plot_coordinate_label(plot.index)}", plot.index)
         if plot.has_wildlife():
             plots_with_wildlife_ever.add(plot.index)
+        if (
+            plot.state in ACCRUING_STATES
+            and not plot.mature_celebrated
+            and plot.maturity_fraction() >= 1.0
+        ):
+            plot.mature_celebrated = True
+            _pending_mature_bursts.add(plot.index)
+            _log_event("mature", f"{plot_coordinate_label(plot.index)} reached full maturity", plot.index)
     if pending_stakeholder_request is not None and not _stakeholder_target_is_still_standing():
         # The requested plot was cleared/replanted directly (see the
         # grant/decline guard above) — drop the now-stale request so a new
@@ -1975,6 +2267,8 @@ def tick(event=None):
     # point reflects the state the player actually saw land this tick,
     # not the stale pre-tick value.
     _value_history.append((total_income, standing_forest_value()))
+    _report_history.append((total_biodiversity(), standing_forest_value(), community_relations))
+    del _report_history[:-VALUE_HISTORY_MAX_POINTS]
     del _value_history[:-VALUE_HISTORY_MAX_POINTS]  # no-op once under the cap
     # B3: checked every tick regardless of whether it's already unlocked
     # (a no-op once True) -- accrual only starts once unlocked, so a
@@ -1998,19 +2292,41 @@ def tick(event=None):
 # on the way out so continued play after taking a snapshot can't mutate
 # the dict already handed back to the caller. Canopy tracks no sets or
 # other non-JSON-native scalar types, unlike SOL's `unlocked_bodies`.
+def _plot_to_dict(plot):
+    return {
+        "index": plot.index,
+        "state": plot.state,
+        "value": plot.value,
+        "ticks_intact": plot.ticks_intact,
+        "clear_count": plot.clear_count,
+        "replant_ticks_remaining": plot.replant_ticks_remaining,
+        "just_recovered": plot.just_recovered,
+        "biodiversity": plot.biodiversity,
+        "mature_celebrated": plot.mature_celebrated,
+        "requests_survived": plot.requests_survived,
+    }
+
+
+def _apply_plot_dict(plot, plot_data):
+    """Safe-defaulting inverse of _plot_to_dict(): every key falls back to
+    the plot's live value, so a save predating any field (mature_celebrated
+    and requests_survived are newer than the rest) still loads."""
+    plot.index = plot_data.get("index", plot.index)
+    plot.state = plot_data.get("state", plot.state)
+    plot.value = plot_data.get("value", plot.value)
+    plot.ticks_intact = plot_data.get("ticks_intact", plot.ticks_intact)
+    plot.clear_count = plot_data.get("clear_count", plot.clear_count)
+    plot.replant_ticks_remaining = plot_data.get("replant_ticks_remaining", plot.replant_ticks_remaining)
+    plot.just_recovered = plot_data.get("just_recovered", plot.just_recovered)
+    plot.biodiversity = plot_data.get("biodiversity", plot.biodiversity)
+    plot.mature_celebrated = plot_data.get("mature_celebrated", plot.mature_celebrated)
+    plot.requests_survived = plot_data.get("requests_survived", plot.requests_survived)
+
+
 def get_state():
     return {
         "plots": [
-            {
-                "index": plot.index,
-                "state": plot.state,
-                "value": plot.value,
-                "ticks_intact": plot.ticks_intact,
-                "clear_count": plot.clear_count,
-                "replant_ticks_remaining": plot.replant_ticks_remaining,
-                "just_recovered": plot.just_recovered,
-                "biodiversity": plot.biodiversity,
-            }
+            _plot_to_dict(plot)
             for plot in plots
         ],
         "selected_index": selected_index,
@@ -2031,6 +2347,9 @@ def get_state():
         # onto the live one, since a "large" save loaded into a fresh
         # "normal"-sized module would otherwise silently truncate to 36.
         "current_grid_size": current_grid_size,
+        "forest_log": copy.deepcopy(forest_log),
+        "forest_tick": forest_tick,
+        "adopted_plot_index": adopted_plot_index,
         # B3: Highland Grove's own state -- a save predating this feature
         # simply lacks these keys and load_state() treats that as "not
         # unlocked yet, empty grove", the correct pre-B3 truth.
@@ -2038,16 +2357,7 @@ def get_state():
         "highland_selected_index": highland_selected_index,
         "highland_income": highland_income,
         "highland_plots": [
-            {
-                "index": plot.index,
-                "state": plot.state,
-                "value": plot.value,
-                "ticks_intact": plot.ticks_intact,
-                "clear_count": plot.clear_count,
-                "replant_ticks_remaining": plot.replant_ticks_remaining,
-                "just_recovered": plot.just_recovered,
-                "biodiversity": plot.biodiversity,
-            }
+            _plot_to_dict(plot)
             for plot in highland_plots
         ],
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
@@ -2074,6 +2384,7 @@ def load_state(data):
     global stakeholder_grants_count, stakeholder_declines_count
     global community_relations_min_ever, _previously_earned_ids
     global highland_unlocked, highland_selected_index, highland_income
+    global forest_log, forest_tick, adopted_plot_index
 
     # B13: a save written at a different grid size (or a save predating
     # B13 entirely, which simply lacks the key and so implies "normal", the
@@ -2089,16 +2400,20 @@ def load_state(data):
         reset_session(grid_size=saved_grid_size, _render_after=False)
 
     for plot, plot_data in zip(plots, data.get("plots", [])):
-        plot.index = plot_data.get("index", plot.index)
-        plot.state = plot_data.get("state", plot.state)
-        plot.value = plot_data.get("value", plot.value)
-        plot.ticks_intact = plot_data.get("ticks_intact", plot.ticks_intact)
-        plot.clear_count = plot_data.get("clear_count", plot.clear_count)
-        plot.replant_ticks_remaining = plot_data.get(
-            "replant_ticks_remaining", plot.replant_ticks_remaining
-        )
-        plot.just_recovered = plot_data.get("just_recovered", plot.just_recovered)
-        plot.biodiversity = plot_data.get("biodiversity", plot.biodiversity)
+        _apply_plot_dict(plot, plot_data)
+
+    # Forest log / adoption (B3/B23/B27): an older save lacks all three, so
+    # the (fresh or reset) live values stand.
+    raw_log = data.get("forest_log", forest_log)
+    forest_log = [
+        {"tick": int(e.get("tick", 0)), "kind": str(e.get("kind", "")), "plot": e.get("plot"), "text": str(e.get("text", ""))}
+        for e in raw_log
+        if isinstance(e, dict)
+    ][-FOREST_LOG_MAX_ENTRIES:]
+    forest_tick = data.get("forest_tick", forest_tick)
+    adopted_plot_index = data.get("adopted_plot_index", adopted_plot_index)
+    if adopted_plot_index is not None and not (0 <= adopted_plot_index < len(plots)):
+        adopted_plot_index = None
 
     selected_index = data.get("selected_index", selected_index)
     total_income = data.get("total_income", total_income)
@@ -2142,16 +2457,7 @@ def load_state(data):
     highland_selected_index = data.get("highland_selected_index", highland_selected_index)
     highland_income = data.get("highland_income", highland_income)
     for plot, plot_data in zip(highland_plots, data.get("highland_plots", [])):
-        plot.index = plot_data.get("index", plot.index)
-        plot.state = plot_data.get("state", plot.state)
-        plot.value = plot_data.get("value", plot.value)
-        plot.ticks_intact = plot_data.get("ticks_intact", plot.ticks_intact)
-        plot.clear_count = plot_data.get("clear_count", plot.clear_count)
-        plot.replant_ticks_remaining = plot_data.get(
-            "replant_ticks_remaining", plot.replant_ticks_remaining
-        )
-        plot.just_recovered = plot_data.get("just_recovered", plot.just_recovered)
-        plot.biodiversity = plot_data.get("biodiversity", plot.biodiversity)
+        _apply_plot_dict(plot, plot_data)
 
     # achievements_earned itself is never read back (write-only, §1) — but
     # the toast-diffing baseline must be reset here, before render() below
@@ -2190,6 +2496,9 @@ def setup():
     )
     document.getElementById("session-summary-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_session_summary)
+    )
+    document.getElementById("adopt-plot-button").addEventListener(
+        "click", create_proxy(on_adopt_plot)
     )
     document.getElementById("save-playstyle-run-a-button").addEventListener(
         "click", create_proxy(on_save_playstyle_run_a)

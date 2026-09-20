@@ -24,6 +24,9 @@ def test_get_state_includes_every_expected_key(game_env):
         "stakeholder_declines_count",
         "community_relations_min_ever",
         "current_grid_size",
+        "forest_log",
+        "forest_tick",
+        "adopted_plot_index",
         "highland_unlocked",
         "highland_selected_index",
         "highland_income",
@@ -45,6 +48,8 @@ def test_get_state_expands_every_plot_into_a_plain_dict(game_env):
             "replant_ticks_remaining",
             "just_recovered",
             "biodiversity",
+            "mature_celebrated",
+            "requests_survived",
         }
 
 
