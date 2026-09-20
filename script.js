@@ -649,3 +649,48 @@ siteFeedbackSubmit.addEventListener("click", async () => {
 });
 
 loadSiteFeedback();
+
+// "Add to Home Screen" install prompt banner (TODO.md L18) — browsers
+// suppress their own install UI until `beforeinstallprompt` fires and we
+// call .prompt() on it ourselves; without this, installability is real
+// (the manifest/service worker already qualify) but invisible unless a
+// visitor already knows to check their browser's own menu for it.
+// Dismissal is permanent (a hub-wide localStorage flag), same
+// "respect the player's choice, don't re-nag" posture as the claim-save
+// nudge above. Never shown at all if the browser doesn't fire the event
+// (e.g. Safari, or an already-installed instance of the site).
+const PWA_INSTALL_DISMISSED_KEY = "pwa_install_banner_dismissed";
+const pwaInstallBanner = document.getElementById("pwa-install-banner");
+const pwaInstallCta = document.getElementById("pwa-install-cta");
+const pwaInstallDismiss = document.getElementById("pwa-install-dismiss");
+let deferredInstallPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  if (pwaInstallBanner && !localStorage.getItem(PWA_INSTALL_DISMISSED_KEY)) {
+    pwaInstallBanner.hidden = false;
+  }
+});
+
+window.addEventListener("appinstalled", () => {
+  deferredInstallPrompt = null;
+  if (pwaInstallBanner) pwaInstallBanner.hidden = true;
+});
+
+if (pwaInstallCta) {
+  pwaInstallCta.addEventListener("click", async () => {
+    if (!deferredInstallPrompt) return;
+    pwaInstallBanner.hidden = true;
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+  });
+}
+
+if (pwaInstallDismiss) {
+  pwaInstallDismiss.addEventListener("click", () => {
+    localStorage.setItem(PWA_INSTALL_DISMISSED_KEY, "1");
+    pwaInstallBanner.hidden = true;
+  });
+}
