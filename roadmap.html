@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roadmap — NoyvjGames</title>
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="shared/space-bg.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="space-bg" aria-hidden="true"><div class="space-bg-nebula"></div><div class="space-bg-stars-bright"></div></div>
+  <header id="hub-header">
+    <nav class="hub-nav">
+      <a href="index.html">&larr; Back to NoyvjGames</a>
+      <a href="whats-new.html">What's New</a>
+      <a href="index.html#site-feedback-section">Feedback / Report a Bug</a>
+    </nav>
+    <h1>Roadmap</h1>
+    <p id="hub-tagline">What's shipped and what's in progress across the whole hub — pulled from real project history, not just a checklist.</p>
+  </header>
+
+  <main id="roadmap-main" class="roadmap-main">
+    <p id="roadmap-status" class="roadmap-status">Loading roadmap&hellip;</p>
+
+    <section id="roadmap-numbers" class="roadmap-numbers" hidden></section>
+
+    <p class="roadmap-caveat">
+      Milestone tables alone undersell how much has actually shipped — plenty of real work
+      (bug-fix passes, UI-polish rounds, accessibility audits, ideas-round follow-through) never
+      gets its own milestone-table line. Each game below pairs its milestone-table status (from
+      this repo's own <code>CLAUDE.md</code>) with real commit counts and recent commit subjects
+      pulled straight from git history, for a fuller, more honest picture of real velocity. See
+      <a href="whats-new.html">What's New</a> for the rolling, dated changelog.
+    </p>
+
+    <section class="roadmap-section">
+      <h2>Games</h2>
+      <div id="roadmap-games-list" class="roadmap-games-list"></div>
+    </section>
+
+    <section class="roadmap-section">
+      <h2>Site infrastructure</h2>
+      <div id="roadmap-site-list" class="roadmap-site-list"></div>
+    </section>
+
+    <p id="roadmap-generated-note" class="roadmap-generated-note"></p>
+  </main>
+
+  <script>
+    // Pulls its qualitative "what shipped" text straight from the root
+    // CLAUDE.md's own `## Current games` / `## Site-level milestones`
+    // tables at load time (same "derive from a real project artifact,
+    // no hand-maintained duplicate" approach whats-new.html already uses
+    // for the two dev logs) — that part needs no build step and can never
+    // drift out of sync with CLAUDE.md itself. Real git history (commit
+    // counts, recent commit subjects) can't be read from a static page at
+    // runtime, so that half comes from a small precomputed
+    // game-roadmap-data.json — see scripts/generate-roadmap-data.py's own
+    // docstring for what generates it and when to re-run it.
+    const CLAUDE_MD_PATH = "CLAUDE.md";
+    const ROADMAP_DATA_PATH = "game-roadmap-data.json";
+
+    function extractSection(markdown, heading) {
+      const start = markdown.indexOf(`## ${heading}`);
+      if (start === -1) return "";
+      const rest = markdown.slice(start + heading.length + 3);
+      const end = rest.search(/\n## /);
+      return end === -1 ? rest : rest.slice(0, end);
+    }
+
+    // Parses a plain GitHub-flavored markdown pipe table (header row,
+    // "|---|---|" separator, then data rows) into an array of cell arrays.
+    // No support for escaped pipes or multi-line cells -- neither table in
+    // CLAUDE.md needs either.
+    function parseMarkdownTable(section) {
+      const lines = section.split("\n").map((l) => l.trim()).filter((l) => l.startsWith("|"));
+      const rows = [];
+      lines.forEach((line, i) => {
+        if (i === 0) return; // header row
+        if (/^\|[-\s|]+\|$/.test(line)) return; // separator row
+        const cells = line.slice(1, -1).split("|").map((c) => c.trim());
+        rows.push(cells);
+      });
+      return rows;
+    }
+
+    function truncate(text, maxLength) {
+      if (text.length <= maxLength) return text;
+      const cut = text.slice(0, maxLength);
+      const lastSpace = cut.lastIndexOf(" ");
+      return `${cut.slice(0, lastSpace > 0 ? lastSpace : maxLength)}…`;
+    }
+
+    function gameHref(slug) {
+      return `games/${slug}/index.html`;
+    }
+
+    function renderGames(gameRows, roadmapData) {
+      const list = document.getElementById("roadmap-games-list");
+      list.innerHTML = "";
+      const games = (roadmapData && roadmapData.games) || {};
+      gameRows.forEach(([slug, name, status]) => {
+        const card = document.createElement("article");
+        card.className = "roadmap-game-card";
+
+        const heading = document.createElement("h3");
+        const link = document.createElement("a");
+        link.href = gameHref(slug);
+        link.textContent = name;
+        heading.appendChild(link);
+        card.appendChild(heading);
+
+        const statusEl = document.createElement("p");
+        statusEl.className = "roadmap-game-status";
+        statusEl.textContent = truncate(status, 420);
+        card.appendChild(statusEl);
+
+        const meta = games[slug];
+        if (meta) {
+          const metaLine = document.createElement("p");
+          metaLine.className = "roadmap-game-meta";
+          const parts = [`${meta.commit_count} commit${meta.commit_count === 1 ? "" : "s"}`];
+          if (meta.last_updated) parts.push(`last touched ${meta.last_updated}`);
+          metaLine.textContent = parts.join(" · ");
+          card.appendChild(metaLine);
+
+          if (meta.recent_commits && meta.recent_commits.length) {
+            const recentHeading = document.createElement("p");
+            recentHeading.className = "roadmap-recent-heading";
+            recentHeading.textContent = "Recent commits:";
+            card.appendChild(recentHeading);
+            const ul = document.createElement("ul");
+            ul.className = "roadmap-recent-commits";
+            meta.recent_commits.forEach((subject) => {
+              const li = document.createElement("li");
+              li.textContent = subject;
+              ul.appendChild(li);
+            });
+            card.appendChild(ul);
+          }
+        }
+
+        list.appendChild(card);
+      });
+    }
+
+    function renderNumbers(gameRows, milestoneRows, roadmapData) {
+      const numbersEl = document.getElementById("roadmap-numbers");
+      const doneMilestones = milestoneRows.filter(([, , status]) => /^done\b/i.test(status.trim())).length;
+      const totalCommits = roadmapData ? roadmapData.total_commits : null;
+      numbersEl.innerHTML = `
+        <div class="roadmap-number-chip"><strong>${gameRows.length}</strong><span>games shipped</span></div>
+        <div class="roadmap-number-chip"><strong>${doneMilestones}/${milestoneRows.length}</strong><span>site milestones done</span></div>
+        ${totalCommits != null ? `<div class="roadmap-number-chip"><strong>${totalCommits}</strong><span>commits, whole repo</span></div>` : ""}
+      `;
+      numbersEl.hidden = false;
+    }
+
+    async function loadRoadmap() {
+      try {
+        const [claudeMdText, roadmapData] = await Promise.all([
+          fetch(CLAUDE_MD_PATH).then((r) => {
+            if (!r.ok) throw new Error(`CLAUDE.md status ${r.status}`);
+            return r.text();
+          }),
+          fetch(ROADMAP_DATA_PATH)
+            .then((r) => (r.ok ? r.json() : null))
+            .catch(() => null),
+        ]);
+
+        const gameRows = parseMarkdownTable(extractSection(claudeMdText, "Current games"));
+        const milestoneRows = parseMarkdownTable(
+          extractSection(claudeMdText, "Site-level milestones (separate from per-game milestones)")
+        );
+
+        if (!gameRows.length) throw new Error("no game rows parsed from CLAUDE.md");
+
+        document.getElementById("roadmap-status").remove();
+        renderNumbers(gameRows, milestoneRows, roadmapData);
+        renderGames(gameRows, roadmapData);
+        renderSiteMilestonesTable(milestoneRows);
+
+        if (roadmapData && roadmapData.generated_at) {
+          document.getElementById("roadmap-generated-note").textContent =
+            `Commit stats last regenerated ${roadmapData.generated_at} (scripts/generate-roadmap-data.py).`;
+        }
+      } catch (err) {
+        console.error("loadRoadmap failed:", err);
+        document.getElementById("roadmap-status").textContent = "Couldn't load the roadmap right now.";
+      }
+    }
+
+    function renderSiteMilestonesTable(milestoneRows) {
+      const container = document.getElementById("roadmap-site-list");
+      container.innerHTML = "";
+      const table = document.createElement("table");
+      table.className = "roadmap-site-table";
+      const tbody = document.createElement("tbody");
+      milestoneRows.forEach(([num, milestone, status]) => {
+        const tr = document.createElement("tr");
+        const isDone = /^done\b/i.test(status.trim());
+
+        const statusCell = document.createElement("td");
+        statusCell.className = `roadmap-site-status-cell ${isDone ? "roadmap-status-done" : "roadmap-status-progress"}`;
+        statusCell.textContent = isDone ? "Done" : "In progress";
+
+        const descCell = document.createElement("td");
+        descCell.textContent = milestone;
+
+        const noteCell = document.createElement("td");
+        noteCell.className = "roadmap-site-note-cell";
+        noteCell.textContent = status;
+
+        tr.appendChild(statusCell);
+        tr.appendChild(descCell);
+        tr.appendChild(noteCell);
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      container.appendChild(table);
+    }
+
+    loadRoadmap();
+  </script>
+</body>
+</html>

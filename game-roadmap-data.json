@@ -1,0 +1,114 @@
+{
+  "games": {
+    "aftermath": {
+      "commit_count": 38,
+      "last_updated": "2026-09-20",
+      "recent_commits": [
+        "Aftermath CLAUDE.md: document onboarding-tooltip audit (A14)",
+        "Aftermath: add per-game \"What's New\" changelog panel (K16)",
+        "Aftermath: per-game settings panel (text-scale + reduced motion)"
+      ]
+    },
+    "canopy": {
+      "commit_count": 47,
+      "last_updated": "2026-09-20",
+      "recent_commits": [
+        "Canopy: add \"What's New\" in-game changelog panel (K16)",
+        "Canopy CLAUDE.md: document onboarding-tooltip audit (A14)",
+        "Canopy: add consolidated settings panel (text-scale + reduced-motion)"
+      ]
+    },
+    "champ-de-mots": {
+      "commit_count": 55,
+      "last_updated": "2026-09-20",
+      "recent_commits": [
+        "Le Champ de Mots CLAUDE.md + dev log: document the K16 changelog panel",
+        "Le Champ de Mots: add \"What's New\" in-game changelog panel (K16)",
+        "Le Champ de Mots: onboarding-tooltip audit (A14) \u2014 no change needed"
+      ]
+    },
+    "continuum": {
+      "commit_count": 38,
+      "last_updated": "2026-09-20",
+      "recent_commits": [
+        "Continuum: add in-game \"What's New\" changelog panel (K16)",
+        "Continuum CLAUDE.md: document onboarding-tooltip audit (A14)",
+        "Continuum: onboarding-tooltip audit \u2014 3D drag-to-rotate hint"
+      ]
+    },
+    "drift": {
+      "commit_count": 51,
+      "last_updated": "2026-09-20",
+      "recent_commits": [
+        "Drift CLAUDE.md: document onboarding-tooltip audit (A14)",
+        "Drift CLAUDE.md: document the What's New changelog panel (K16)",
+        "Drift: add in-game \"What's New\" changelog panel (K16)"
+      ]
+    },
+    "grid": {
+      "commit_count": 49,
+      "last_updated": "2026-09-20",
+      "recent_commits": [
+        "Grid: add in-game \"What's New\" changelog panel",
+        "Grid: add Retire-button tooltip (onboarding-tooltip audit, A14)",
+        "Grid CLAUDE.md: document C14 confirm-dialog integration + shared-file bug fix"
+      ]
+    },
+    "herd": {
+      "commit_count": 39,
+      "last_updated": "2026-09-20",
+      "recent_commits": [
+        "Herd CLAUDE.md: document onboarding-tooltip audit (A14)",
+        "Herd: add per-game \"What's New\" changelog panel (K16)",
+        "Herd CLAUDE.md: document F16 confirm-dialog integration"
+      ]
+    },
+    "loop": {
+      "commit_count": 36,
+      "last_updated": "2026-09-20",
+      "recent_commits": [
+        "Loop: add per-game \"What's New\" changelog panel (K16)",
+        "Loop: add trade-partner tooltip coverage (onboarding-tooltip audit)",
+        "Loop: per-game settings panel (text-scale + reduced motion)"
+      ]
+    },
+    "sol": {
+      "commit_count": 43,
+      "last_updated": "2026-09-20",
+      "recent_commits": [
+        "SOL CLAUDE.md: document the What's New changelog panel (K16)",
+        "SOL: add \"What's New\" in-game changelog panel (K16)",
+        "SOL: add Sky City info-toggle (onboarding-tooltip coverage check)"
+      ]
+    },
+    "thaw": {
+      "commit_count": 36,
+      "last_updated": "2026-09-20",
+      "recent_commits": [
+        "Thaw: onboarding-tooltip audit (A14) \u2014 add preset-button tooltip",
+        "Thaw: add per-game \"What's New\" changelog panel (K16)",
+        "Thaw: per-game settings panel (text-scale + reduced motion)"
+      ]
+    },
+    "tide": {
+      "commit_count": 34,
+      "last_updated": "2026-09-20",
+      "recent_commits": [
+        "Tide: add in-game \"What's New\" changelog panel",
+        "Tide: explain output-mix trade-off (onboarding-tooltip audit, A14)",
+        "Tide: add consolidated settings panel (text-scale + reduced-motion)"
+      ]
+    },
+    "trade-empire": {
+      "commit_count": 36,
+      "last_updated": "2026-09-20",
+      "recent_commits": [
+        "Trade Empire: onboarding-tooltip audit (A14) \u2014 fix lost research-prereq hint",
+        "Trade Empire CLAUDE.md: document the What's New changelog panel (K16)",
+        "Trade Empire: add in-game \"What's New\" changelog panel (K16)"
+      ]
+    }
+  },
+  "generated_at": "2026-09-20",
+  "total_commits": 554
+}

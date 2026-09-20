@@ -117,6 +117,175 @@ body {
   opacity: 0.88;
 }
 
+/* roadmap.html (TODO.md L19) */
+.roadmap-main {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+}
+
+.roadmap-status {
+  opacity: 0.6;
+  font-size: 0.9rem;
+}
+
+.roadmap-numbers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-bottom: 1.5rem;
+}
+
+.roadmap-number-chip {
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.82), rgba(14, 16, 28, 0.88));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  padding: 0.8rem 1.1rem;
+  min-width: 140px;
+  text-align: center;
+}
+
+.roadmap-number-chip strong {
+  display: block;
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.roadmap-number-chip span {
+  font-size: 0.75rem;
+  opacity: 0.65;
+  letter-spacing: 0.02em;
+}
+
+.roadmap-caveat {
+  font-size: 0.82rem;
+  opacity: 0.7;
+  line-height: 1.6;
+  background: rgba(140, 160, 255, 0.08);
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.roadmap-caveat a {
+  color: #8fb0e8;
+}
+
+.roadmap-section {
+  margin-bottom: 2.25rem;
+}
+
+.roadmap-section h2 {
+  font-size: 1.05rem;
+  letter-spacing: 0.03em;
+  margin: 0 0 1rem;
+}
+
+.roadmap-games-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.roadmap-game-card {
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.82), rgba(14, 16, 28, 0.88));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 14px;
+  padding: 1.1rem 1.3rem;
+}
+
+.roadmap-game-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.roadmap-game-card h3 a {
+  color: #eaeaf0;
+  text-decoration: none;
+}
+
+.roadmap-game-card h3 a:hover {
+  text-decoration: underline;
+}
+
+.roadmap-game-status {
+  font-size: 0.85rem;
+  opacity: 0.78;
+  line-height: 1.55;
+  margin: 0 0 0.6rem;
+}
+
+.roadmap-game-meta {
+  font-size: 0.75rem;
+  opacity: 0.55;
+  margin: 0 0 0.4rem;
+  letter-spacing: 0.02em;
+}
+
+.roadmap-recent-heading {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.5;
+  margin: 0.6rem 0 0.3rem;
+}
+
+.roadmap-recent-commits {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.78rem;
+  opacity: 0.7;
+  line-height: 1.6;
+}
+
+.roadmap-site-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
+}
+
+.roadmap-site-table td {
+  padding: 0.6rem 0.7rem;
+  border-bottom: 1px solid rgba(140, 160, 255, 0.12);
+  vertical-align: top;
+}
+
+.roadmap-site-table tr:last-child td {
+  border-bottom: none;
+}
+
+.roadmap-site-status-cell {
+  white-space: nowrap;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+}
+
+/* Done/in-progress is distinguished by the text itself ("Done" vs "In
+   progress"), not by color alone -- same colorblind-safe pattern as the
+   rest of the hub shell (see CLAUDE.md's Working notes audit). The
+   weight difference below is a bonus visual cue, not the only signal. */
+.roadmap-status-done {
+  font-weight: 700;
+}
+
+.roadmap-status-progress {
+  font-weight: 400;
+}
+
+.roadmap-site-note-cell {
+  opacity: 0.6;
+  font-size: 0.78rem;
+}
+
+.roadmap-generated-note {
+  font-size: 0.72rem;
+  opacity: 0.45;
+  margin-top: 1.5rem;
+}
+
 #game-grid {
   max-width: 1000px;
   margin: 0 auto;
