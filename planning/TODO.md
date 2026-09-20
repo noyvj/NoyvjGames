@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 143/709 items checked off (20.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 156/709 items checked off (22.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -697,34 +697,34 @@ Every idea in this section was accepted, no exceptions.
 ## Per-game: Trade Empire
 
 - [ ] J1: A fourth self-contained expansion cluster beyond the home system and Kepler Cluster, requiring deeper research investment.
-- [ ] J2: Let the per-route profitability readout show a small trend arrow (improving/declining) based on recent trips.
+- [x] J2: Let the per-route profitability readout show a small trend arrow (improving/declining) based on recent trips.
 - [ ] J3: A "trade guild" mechanic — an NPC faction offering occasional bulk contracts (deliver X units of Y to Z by a deadline) for bonus rewards.
-- [ ] J4: Let the historical price sparkline show the exact current price as a labeled point, not just the trend line.
+- [x] J4: Let the historical price sparkline show the exact current price as a labeled point, not just the trend line.
 - [ ] J5: A "fleet composition" upgrade — choose among distinct ship archetypes (cargo-heavy/fast/balanced) at purchase time.
-- [ ] J6: A tooltip explaining exactly what Fleet Priority's target-ring visualization is pointing at.
+- [x] J6: A tooltip explaining exactly what Fleet Priority's target-ring visualization is pointing at.
 - [ ] J7: A "colony investment" mechanic — directly fund a colony's development to accelerate its growth/specialization.
-- [ ] J8: Let the idle-manual-ship warning badge show exactly how many ticks it's been idle.
+- [x] J8: Let the idle-manual-ship warning badge show exactly how many ticks it's been idle.
 - [ ] J9: A "market speculation" layer — stockpile a good during a price crash, sell during a later recovery.
 - [ ] J10: A small animated docking/undocking visual on the map when a ship arrives/departs.
 - [ ] J11: A "trade route insurance" mechanic — a small recurring cost protecting against a rare route-disruption event.
-- [ ] J12: Let the ship-rename feature support a quick "reset to default name" option.
-- [ ] J13: A "galactic economy overview" dashboard — a single screen summarizing every colony's need/supply state at once.
-- [ ] J14: A small badge for a ship completing N round trips on the same route — a "veteran hauler" marker.
+- [x] J12: Let the ship-rename feature support a quick "reset to default name" option.
+- [x] J13: A "galactic economy overview" dashboard — a single screen summarizing every colony's need/supply state at once.
+- [x] J14: A small badge for a ship completing N round trips on the same route — a "veteran hauler" marker.
 - [ ] J15 **("I do love extensive research trees," per your note):** A "research specialization" branch — choose between an automation-focused or market-focused research path once the tree grows large enough.
 - [ ] J16: Let the endgame galaxy-dot canvas respond to mouse hover with a small info tooltip per dot.
 - [ ] J17: A "player-run trade post" mechanic — once automation is maxed, establish a passive trade post generating income without an assigned ship.
-- [ ] J18: A tooltip on the automate button reminding the player automation is a one-time, non-reversible choice per ship.
+- [x] J18: A tooltip on the automate button reminding the player automation is a one-time, non-reversible choice per ship.
 - [ ] J19: A "colony rebellion/loyalty" mechanic — chronically under-served colonies occasionally demand a one-time concession.
-- [ ] J20: Let the market-crashed styling include a small recovery-ETA estimate in its tooltip.
+- [x] J20: Let the market-crashed styling include a small recovery-ETA estimate in its tooltip.
 - [ ] J21: A "trade empire legacy" meta-progression — a fresh game starts with a small permanent bonus once the endgame state is reached (built independently per Z3's resolution).
 - [ ] J22: A small particle/spark effect on a successful high-value sale.
 - [ ] J23: A "diplomatic relations" layer between the home system and Kepler Cluster — sustained trade volume unlocks a small permanent efficiency bonus.
-- [ ] J24: Let the colony detail sparkline show a small "needs met %" summary number alongside the graph.
-- [ ] J25: A "fleet-wide efficiency report" — a periodic optional panel showing which ships/routes are underperforming.
-- [ ] J26: A tooltip on the research panel's locked nodes explaining exactly what's still needed to unlock them.
+- [x] J24: Let the colony detail sparkline show a small "needs met %" summary number alongside the graph.
+- [x] J25: A "fleet-wide efficiency report" — a periodic optional panel showing which ships/routes are underperforming.
+- [x] J26: A tooltip on the research panel's locked nodes explaining exactly what's still needed to unlock them.
 - [ ] J27: A "trade empire almanac" — an in-game reference documenting each good's typical price range and which colonies produce/need it.
 - [ ] J29: A "seasonal demand" mechanic — periodic, predictable shifts in which goods are in higher demand.
-- [ ] J30: A small map legend explaining the automated-vs-manual diamond/circle ship-dot distinction for a first-time viewer.
+- [x] J30: A small map legend explaining the automated-vs-manual diamond/circle ship-dot distinction for a first-time viewer.
 
 **Folded into Z (see "Games" section above):** J28's original "first automated ship" congratulatory animation — build it as an achievement pop-up instead of a bespoke callout, per your answer.
 
