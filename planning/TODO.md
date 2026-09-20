@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 274/747 items checked off (36.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 284/747 items checked off (38.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -548,30 +548,30 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 
 - [ ] F1: A "regional herd network" — manage a second, smaller satellite farm with its own coupling ratio; surplus decoupling investment from the main farm partially offsets the satellite's emissions.
 - [x] F2: Let the pasture visual's cow-count thresholds include a small herd-size number overlay, not just the visual count.
-- [ ] F3: A "consumer demand shift" mechanic — market preference occasionally shifts toward plant-based output, temporarily making the pivot more profitable.
+- [x] F3: A "consumer demand shift" mechanic — market preference occasionally shifts toward plant-based output, temporarily making the pivot more profitable.
 - [x] F4: A one-time tooltip the first time coupling ratio crosses below 0.5, explaining "decoupled" in plain terms.
-- [ ] F5: A "generational herd genetics" system — invest in breeding for naturally lower methane intensity per animal, a slow-burn fourth decoupling lever.
+- [x] F5: A "generational herd genetics" system — invest in breeding for naturally lower methane intensity per animal, a slow-burn fourth decoupling lever.
 - [x] F6: Let the report card show the exact percentage the player's score beat the pure-growth baseline by.
 - [x] F7: A "farm cooperative" comparison — aggregate stats on community-wide methane-per-unit avoided *(needs Z1 for a first pass — you flagged this as feeling especially important but possibly better suited to a fuller build once the multiplayer update lands; ship the Z1-backed version now, expand later)*.
 - [x] F8: A small "record decoupling ratio" marker on the coupling gauge, like Grid's best-round marker.
-- [ ] F9: A proper multi-season weather/feed-cost variation layer, adding light unpredictability to the investment-return math.
+- [x] F9: A proper multi-season weather/feed-cost variation layer, adding light unpredictability to the investment-return math.
 - [ ] F10: Let the community stat show a small trend arrow if the backend can support it cheaply *(same F7/Z1 caveat above)*.
 - [x] F11: A "sustainable certification" milestone — a sustained low coupling ratio for N rounds unlocks a permanent price premium.
 - [x] F12: A tooltip on the Plant-Based Pivot's confirm dialog stating the exact income tradeoff percentage.
-- [ ] F13: A "supply chain" expansion — invest downstream (processing, distribution efficiency) as a new income lever distinct from herd growth.
+- [x] F13: A "supply chain" expansion — invest downstream (processing, distribution efficiency) as a new income lever distinct from herd growth.
 - [x] F14: Let the real-world comparison message update its framing once the player's own reduction exceeds the cited 42% figure, congratulating them for beating the real benchmark.
-- [ ] F15: A "herd health" sub-system — animal welfare as a light second axis, where certain decoupling measures (better feed) also improve welfare.
+- [x] F15: A "herd health" sub-system — animal welfare as a light second axis, where certain decoupling measures (better feed) also improve welfare.
 - [x] F16: A small pulse on the methane trend graph the moment the curve visibly flattens.
-- [ ] F17: A "farm tour" narrative mode — periodic short flavor vignettes reacting to the farm's current coupling ratio.
+- [x] F17: A "farm tour" narrative mode — periodic short flavor vignettes reacting to the farm's current coupling ratio.
 - [x] F18: Let the investment consequence preview show numbers with a small before/after arrow.
-- [ ] F19: A "regional methane cap" scenario mode — an opt-in harder variant with a hard regulatory cap forcing decoupling.
+- [x] F19: A "regional methane cap" scenario mode — an opt-in harder variant with a hard regulatory cap forcing decoupling.
 - [ ] F21: A community "decoupling leaderboard" by best score-vs-baseline gap *(same F7/Z1 caveat above)*.
 - [x] F22: Let the min/max range labels behind the coupling gauge flash when a new session-best is set.
-- [ ] F23 **(you called this "the next big thing this game needs"):** A "second herd type" — a genuinely different animal (poultry, aquaculture) with its own coupling curve, **unlocked via prestige**, each type with its own needs and decoupling levers, per your framing.
+- [x] F23 **(you called this "the next big thing this game needs"):** A "second herd type" — a genuinely different animal (poultry, aquaculture) with its own coupling curve, **unlocked via prestige**, each type with its own needs and decoupling levers, per your framing.
 - [x] F24: A tooltip explaining exactly what the ambient haze overlay's intensity represents.
 - [ ] F25: A "farm succession" meta-progression, Aftermath-style (built independently per Z3's resolution) — **explicitly tie this to F23**, per your note that they work well together (e.g. succession unlocking or feeding into new animal types).
 - [x] F26: A small icon distinguishing the three original decoupling measures (feed/caps/capture) from the plant-based pivot in any summary list.
-- [ ] F27: A "policy advisor" event — periodically offers a choice between a subsidy for decoupling investment or a flat cash bonus.
+- [x] F27: A "policy advisor" event — periodically offers a choice between a subsidy for decoupling investment or a flat cash bonus.
 - [x] F28: Let the worked numeric example in the tutorial be revisitable from the How to Play panel directly.
 - [x] F30: A small animated methane-wisp effect that visibly thins as coupling ratio improves, reinforcing the haze overlay's intensity cue with motion.
 
@@ -884,7 +884,7 @@ A "yes" here means "worth a groundwork plan" (a new `planning/<game>-plan.md`, p
 ## Closing tasks (run these last, per your standing instruction)
 
 - [x] A full site-wide bug-check pass, once everything above is done. (Done 2026-09-20: two real bugs found and fixed, see the BCM114/BCM206 dev logs.)
-- [ ] Generate a fresh round-3 ideas document (same 30-ideas-per-section format as `IMPROVEMENT-IDEAS-ROUND-2.md`) once this list is complete, for you to answer again. Generate a "gamify the teaching games" in the ideas document (Canopy, Grid, Tide, Aftermath, Herd, Thaw, Loop, Drift): fun-first, 30 ideas per game (10+ big, 10+ small), not duplicating round 2. Requested to be queued in this closing section rather than built now (round 2 wasn't framed around fun; carried over from the old TODO.md's closing task).
+- [ ] Generate a fresh round-3 ideas document (same 30-ideas-per-section format as `IMPROVEMENT-IDEAS-ROUND-2.md`) once this list is complete, for you to answer again. Generate a "gamify the teaching games" in the ideas document (Canopy, Grid, Tide, Aftermath, Herd, Thaw, Loop, Drift): fun-first, 30 ideas per game (10+ big, 10+ small), not duplicating round 2. Requested to be queued in this closing section rather than built now (round 2 wasn't framed around fun; carried over from the old TODO.md's closing task). Also pull eveything from later and make that a section.
 
 ---
 
@@ -904,7 +904,7 @@ A "yes" here means "worth a groundwork plan" (a new `planning/<game>-plan.md`, p
 - [ ] R2-multiplayer: Write a scoping plan for the "full multiplayer pass" you said is the next big development: which games get which multiplayer feature, and the shared backend needs beyond Z1. Items waiting on it: B5, D25, E9 (build-out), E11, F7 (build-out), K30. *(Recovered: the dependent items sit in LATER but nothing owned the pass itself.)*
 - [ ] R2-C16: Grid: add a "first battery built" achievement (and the other first-plant-type callouts as achievements) with the in-game achievement pop-up, per your note that callouts should become achievements. *(Recovered: C16 was folded into the generic callout audit, which never creates it.)*
 - [ ] R2-E3: Aftermath E3: your note "this will add a bunch of new nodes with important decisions" belongs to E3 (the disaster-type specialization branches), not E1. Check that E3 is a real multi-node branch with meaningful decisions, not one extra node; extend if it is thin. *(Recovered: the note was attached to the wrong item.)*
-- [ ] R2-F29: Herd F29: you asked "is this realistic? if there are real-world examples, yes; otherwise no." Research whether excess methane-capture capacity is actually sold or credited (biogas, carbon-credit markets), write the finding into `planning/FOR-YOU.md`, then build or drop F29 on that basis. *(Recovered: nothing made the research happen.)*
+- [x] R2-F29: Herd F29: you asked "is this realistic? if there are real-world examples, yes; otherwise no." Research whether excess methane-capture capacity is actually sold or credited (biogas, carbon-credit markets), write the finding into `planning/FOR-YOU.md`, then build or drop F29 on that basis. *(Recovered: nothing made the research happen.)*
 - [ ] R2-K26: Continuum: you said "rather than closing it, let's keep making more eras." Build an eighth era beyond Space Age (sim content, research tier, sustainability mechanic, log/transition beats, info-panel content, Three.js scene, tests), then keep going. *(Recovered: the request was reduced to a scoping note, K26b.)*
 - [x] R2-L1b: Le Champ de Mots: retrofit the practice modes so each visibly feeds a measured progress stat and the player score (the four arcade minigames, gender drill, liaison quiz, proficiency tests, bonus sentence sections), per "practice through games should show progress on respective topics... it should impact the player score" and "everything gives progress to something measured at the top". *(Recovered: the TODO called it a forward-looking principle, not a retrofit.)*
 - [ ] R2-X17: Warframe tracker: write up for you in `planning/FOR-YOU.md` how feasible it is to (a) connect directly to account info like AlecaFrame does (what the X-b `lastData.dat` import already achieves, what live linking would need) and (b) track frame/weapon/companion crafting, not only Amp/Zaw/Kitgun parts. *(Recovered: no discussion was ever written.)*
