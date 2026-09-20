@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Regenerate game-last-updated.json (hub TODO.md L7).
+"""Regenerate game-last-updated.json (hub TODO.md L7), game-added.json (Y27)
+and game-manifest.json (R1-L14).
+
+game-manifest.json lists every games/<slug>/ folder that has an
+achievements.json; the hub's achievements dashboard (script.js) reads it
+instead of a hand-maintained slug map, since GitHub Pages has no directory
+listing. Adding a game's achievements.json therefore only needs this script
+re-run and the JSON committed.
 
 The hub's title cards show a "last updated" badge per game, sourced from
 real git history rather than a hand-maintained date (with ~12 games and
@@ -31,6 +38,8 @@ OUTPUT_PATH = REPO_ROOT / "game-last-updated.json"
 # Sibling output: the date each game's index.html first landed in git, for
 # the hub's "Recently Added" section (Y27).
 ADDED_OUTPUT_PATH = REPO_ROOT / "game-added.json"
+# Sibling output: slugs of games shipping achievements.json (R1-L14).
+MANIFEST_OUTPUT_PATH = REPO_ROOT / "game-manifest.json"
 
 
 def first_commit_date(slug: str) -> Optional[str]:
@@ -73,6 +82,12 @@ def main() -> None:
 
     OUTPUT_PATH.write_text(json.dumps(dates, indent=2, sort_keys=True) + "\n")
     ADDED_OUTPUT_PATH.write_text(json.dumps(added, indent=2, sort_keys=True) + "\n")
+    manifest = {
+        "version": 1,
+        "achievements": [s for s in slugs if (GAMES_DIR / s / "achievements.json").is_file()],
+    }
+    MANIFEST_OUTPUT_PATH.write_text(json.dumps(manifest, indent=2) + "\n")
+    print(f"Wrote {len(manifest['achievements'])} achievement games to {MANIFEST_OUTPUT_PATH.relative_to(REPO_ROOT)}")
     print(f"Wrote {len(dates)} game dates to {OUTPUT_PATH.relative_to(REPO_ROOT)}")
 
 
