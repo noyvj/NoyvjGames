@@ -112,6 +112,29 @@ def create_proxy(func):
     return FakeProxy(func)
 
 
+class FakeLocalStorage:
+    """Stands in for the real browser `window.localStorage` (F8's
+    per-browser record_coupling_ratio reads/writes it via Pyodide's `js`
+    module, same as Canopy's personal_best / Tide's best_coastline_saved).
+    Plain in-memory dict -- persistence across real browser sessions is
+    exactly the one thing this fake deliberately does NOT need to
+    emulate; tests that want to check "survives a fresh module load"
+    instead reuse the same FakeLocalStorage instance across two module
+    loads (see conftest.py's GameEnv.reload())."""
+
+    def __init__(self):
+        self._store = {}
+
+    def getItem(self, key):
+        return self._store.get(key)
+
+    def setItem(self, key, value):
+        self._store[key] = str(value)
+
+    def removeItem(self, key):
+        self._store.pop(key, None)
+
+
 class FakeTimers:
     """Collects setTimeout calls instead of running them on a real clock,
     so tests can assert on pre/post-flush state (used by the achievement/

@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="../../ad-bar.css">
 <link rel="stylesheet" href="../../shared/info-page.css">
+<link rel="stylesheet" href="../../shared/personal-best.css">
 <link rel="manifest" href="../../manifest.json">
 <script src="../../shared/tutorial.js"></script>
 <script src="../../shared/mobile-hud.js"></script>
@@ -107,6 +108,12 @@
       </div>
       <p id="coupling-gauge-label" class="comparison-message">Emissions per herd unit: 1.00 methane/round</p>
       <p id="gauge-range-display" class="gauge-range-display">Session best: 1.00  |  Baseline: 1.00</p>
+      <!-- F8 (planning/TODO.md): a small per-browser "record decoupling
+           ratio" marker, distinct from the session-only gauge-range-display
+           above -- see game.py's record_coupling_ratio / render_record_coupling_ratio()
+           for why the two need to be separate labels. Hidden until a
+           record actually exists (a brand-new browser shows nothing). -->
+      <p id="coupling-gauge-record-display" class="personal-best-display" hidden></p>
       <p id="real-world-comparison-display" class="comparison-message">You've cut emissions intensity by 0% so far — real farms have documented a ~42% reduction through better practices.</p>
       <details class="info-toggle"><summary>i</summary><p>This tracks methane produced per herd unit, not your total emissions — it only falls when you invest in the decoupling measures below, not by shrinking your herd. Total accumulated methane keeps rising every round as long as you have any herd at all, even at the lowest possible ratio.</p></details>
       <details class="info-toggle"><summary>i</summary><p>The faint haze tinting the whole page shows market/regulatory pressure: it is clear at 0% income loss and reaches its densest at the 80% cap. Purple wisps rising from the cows thin out as your coupling ratio improves, and vanish once the farm is about 90% decoupled.</p></details>

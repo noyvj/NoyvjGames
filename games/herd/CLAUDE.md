@@ -243,8 +243,109 @@ Audited the single-page layout for the "everything looks very crowded" concern (
 ## Round-2 improvement pass (2026-09-20)
 
 Built from `planning/TODO.md`'s Herd F-list (137 -> 153 tests, `tests/test_round2_features.py`):
-F2 herd-size overlay on the pasture; F4 half-decoupled toast now defines "decoupled" in plain terms; F6 report-card percentage vs baseline (`beat_percentage_message()`); F11 sustainable certification (5 rounds at ratio <= 0.5 gives a permanent +10% income premium; `certification_streak`/`certified` saved, old saves default safely; baseline never gets it); F12 exact income tradeoff in the pivot confirm; F14 congratulation once the 42% real benchmark is beaten; F16 methane graph pulses when a round adds less than the last; F18 before -> after arrows in the Grow preview; F22 gauge range label pulses on a new best; F24 info toggle explaining haze; F26 icon investment summary in the report card with the pivot marked a separate lever; F30 wisps fade with coupling ratio and vanish at 90% decoupled. F28 audited: the How to Play panel already renders every tutorial step including the worked example. F8 skipped: the ratio only ever falls, so a "record" marker would always equal the current value.
+F2 herd-size overlay on the pasture; F4 half-decoupled toast now defines "decoupled" in plain terms; F6 report-card percentage vs baseline (`beat_percentage_message()`); F11 sustainable certification (5 rounds at ratio <= 0.5 gives a permanent +10% income premium; `certification_streak`/`certified` saved, old saves default safely; baseline never gets it); F12 exact income tradeoff in the pivot confirm; F14 congratulation once the 42% real benchmark is beaten; F16 methane graph pulses when a round adds less than the last; F18 before -> after arrows in the Grow preview; F22 gauge range label pulses on a new best; F24 info toggle explaining haze; F26 icon investment summary in the report card with the pivot marked a separate lever; F30 wisps fade with coupling ratio and vanish at 90% decoupled. F28 audited: the How to Play panel already renders every tutorial step including the worked example. F8 skipped at the time: a *session*-scoped record marker would always equal the current value, since the ratio only ever falls within one session -- see the dedicated "F8 — record decoupling ratio marker" note below for the cross-session (per-browser, localStorage) version actually built later, which doesn't have that redundancy problem.
 Left: F1, F3, F5, F7/F10/F21 (community, would need Z1 fields that don't fit), F9, F13, F15, F17, F19, F23/F25 (large), F27, F29.
+
+## F8 — record decoupling ratio marker on the coupling gauge (2026-09-21)
+
+`planning/TODO.md`'s Herd checklist carried one leftover item from the
+Round-2 pass above: "F8: A small 'record decoupling ratio' marker on the
+coupling gauge, like Grid's best-round marker." The Round-2 pass note
+itself had explicitly *skipped* an earlier reading of this same idea --
+"the ratio only ever falls, so a 'record' marker would always equal the
+current value" -- and that reasoning is still correct for a *session*-
+scoped record: `coupling_ratio()` never rises within one session
+(decoupling/pivot investment counts only ever go up), so `#gauge-range-
+display`'s existing "Session best: X | Baseline: Y" line already covers
+that axis and a second copy of it would be exactly the redundant marker
+the earlier pass rightly declined to build.
+
+What makes the TODO item non-redundant is a different axis entirely: the
+best ratio this **browser** has ever reached, **across every session**,
+via `localStorage` -- the same per-browser "personal best" pattern this
+hub already uses elsewhere (Canopy's `personal_best`, Tide's
+`best_coastline_saved`, Thaw's G19). A fresh session always starts back
+at `BASE_COUPLING_RATIO` (1.0), so once a player has played this game
+before on this browser, "best ever" and "the current session's value"
+genuinely diverge -- that divergence is exactly what makes a persistent
+marker worth drawing.
+
+**Built:**
+- `_read_local_storage_item()`/`_write_local_storage_item()` (`game.py`)
+  -- byte-for-byte the same lazy-`import js`/broad-except shape every
+  other game's equivalent pair uses, so a real browser refusing
+  localStorage access (private browsing) degrades to "no record" instead
+  of crashing the module.
+- `load_record_coupling_ratio()` / module-level `record_coupling_ratio`
+  -- unlike Tide's `best_coastline_saved` (where 0.0 is a safe "nothing
+  recorded" default because higher is better), lower is better here and
+  both `BASE_COUPLING_RATIO` (1.0) and `MIN_COUPLING_RATIO` (0.1) are
+  real, reachable ratios -- so the "no record yet" sentinel is `None`,
+  not a number.
+- `_maybe_update_record_coupling_ratio()`, called every `render()`: only
+  writes a new record when `farm.coupling_ratio()` drops **below
+  baseline** (not just below the previous record) -- a fresh,
+  never-decoupled farm sitting exactly at `BASE_COUPLING_RATIO` is the
+  starting point, not an achievement, and without this guard every brand
+  -new browser would silently "record" 1.0 on its very first render,
+  defeating the "marker only appears once a real record exists"
+  requirement.
+- `coupling_gauge_svg()` gained an optional `record_ratio` parameter and
+  a new `_gauge_point(fraction)` helper (shared geometry so the live
+  `.gauge-fill` arc and the record diamond agree on the exact same
+  semicircle math) -- when a record exists, a small `<polygon>` diamond
+  (`.gauge-record-marker`, gold `#e0c24c`, matching the shared
+  `personal-best.css` medal color) is drawn on the arc at the record's
+  position, carrying its own `<title>` tooltip. Same "shape, not just
+  color" technique as Grid's own best-round diamond on its trend graph.
+- `render_record_coupling_ratio()` / `#coupling-gauge-record-display`
+  (`index.html`, styled via the shared `shared/personal-best.css`
+  `.personal-best-display`/`.just-improved` classes, newly linked into
+  this page) -- a small persistent label beside `#gauge-range-display`,
+  hidden entirely until a record exists, briefly pulsing gold the moment
+  a new one is set (`_flash_record_coupling_ratio_badge()`, same
+  setTimeout+create_proxy shape as Canopy/Tide's equivalent).
+- Deliberately **not** part of `get_state()`/`load_state()` -- same
+  distinction Canopy's B14/Tide's D13/Thaw's G19 draw: this is a
+  per-browser device record across every session/save, not one save's
+  snapshot, so loading someone else's save code must never overwrite it.
+
+Tests: 137 -> 167 in this pass overall (F8 alone: 15 new tests in
+`tests/test_record_coupling_ratio.py`), covering: no record on a brand
+-new browser and the marker/label staying absent until one exists; the
+first qualifying investment setting a record; the marker's diamond
+position and the label's stated value updating on each new (lower) best;
+the record staying byte-for-byte unchanged (identical gauge SVG, no
+`localStorage` write) across a re-render with no state change; advancing
+rounds alone (which grows accumulated methane but never moves
+`coupling_ratio()` itself) never creating a spurious record; and the
+core cross-session contract, that a record written by one module load is
+picked back up by the very next one against the same `localStorage` --
+required adding a `FakeLocalStorage` (`tests/fakes.py`, copied from
+Canopy/Tide's own fake) and a `GameEnv.reload()` helper
+(`tests/conftest.py`) that re-execs a fresh `game.py` against the same
+fake storage, since this test harness had never needed either before.
+
+Verified live via `hub-dev-server`: hit this sandbox's own well
+-documented static-asset-caching quirk (several other games' build notes
+above already describe it) where the boot script's own `fetch("game.py")`
+call keeps resolving to a stale cached response regardless of the outer
+page URL being cache-busted -- worked around the same way those notes
+do, by forcing a fresh `cache: "no-store"` fetch of `game.py` and
+re-running it through the already-booted `pyodide` instance. With fresh
+code loaded: a brand-new browser (no `localStorage` entry) showed no
+marker and a hidden label; investing in Capture Systems immediately drew
+the diamond at the correct arc position and un-hid the label reading
+"Best ever (this browser): 0.90 methane/herd/round"; a second investment
+moved the diamond and updated the label to 0.80; and a full page
+navigation picked the 0.80 record straight back up from `localStorage`
+on a fresh farm sitting at baseline, with the marker visible immediately
+and zero console errors throughout. (This session's screenshot tool
+itself hit an unrelated rendering glitch — a solid-black band over the
+upper portion of some mid-scroll captures on this page, reproducible
+regardless of code changes and inconsistent with the DOM/accessibility
+-tree reads taken at the same moments, which were correct throughout —
+noted here as a tool quirk, not a defect in the shipped code.)
 
 ## Tech notes
 

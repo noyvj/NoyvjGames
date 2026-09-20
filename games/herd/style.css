@@ -80,6 +80,16 @@ body {
   transition: stroke-dasharray 0.3s ease, stroke 0.3s ease;
 }
 
+/* F8 (planning/TODO.md): the record-decoupling-ratio marker on the
+   coupling gauge -- a small diamond, distinct in shape (not just color)
+   from the live .gauge-fill arc, matching the shared "record" gold used
+   by shared/personal-best.css's medal badge elsewhere on this page. */
+.gauge-record-marker {
+  fill: #e0c24c;
+  stroke: #1a1d2b;
+  stroke-width: 1;
+}
+
 h1 {
   margin: 0 0 0.25rem;
   font-size: 1.75rem;

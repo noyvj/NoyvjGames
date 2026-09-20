@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from .fakes import FakeDocument, FakeElement, FakeTimers, create_proxy
+from .fakes import FakeDocument, FakeElement, FakeLocalStorage, FakeTimers, create_proxy
 
 GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 
@@ -72,6 +72,8 @@ ELEMENT_IDS = [
     "pasture-wisp-a",
     "pasture-wisp-c",
     "certification-display",
+    # F8: per-browser record-decoupling-ratio marker/label.
+    "coupling-gauge-record-display",
 ]
 for _measure in MEASURE_IDS:
     ELEMENT_IDS += [f"{_measure}-name", f"{_measure}-count", f"{_measure}-invest-button"]
@@ -84,10 +86,11 @@ INITIALLY_DISABLED_IDS = (
 class GameEnv:
     """Bundles a freshly-loaded game module with its fake DOM."""
 
-    def __init__(self, module, elements, timers):
+    def __init__(self, module, elements, timers, local_storage):
         self.module = module
         self.elements = elements
         self.timers = timers
+        self.local_storage = local_storage
 
     @property
     def farm(self):
@@ -117,11 +120,27 @@ class GameEnv:
     def toggle_changelog(self):
         self.elements["changelog-toggle-button"].dispatch("click", None)
 
+    def reload(self):
+        """Re-execs a brand-new game.py module against the *same*
+        FakeLocalStorage instance -- simulates a fresh page load on a
+        browser that already has a record stored, which is what F8's
+        "record persists across a fresh module load" test needs. Reuses
+        this env's existing fake DOM elements/timers (a real page reload
+        would build fresh DOM nodes too, but nothing under test here reads
+        stale state off them -- setup() at the bottom of game.py
+        overwrites everything on exec)."""
+        for name in ("game", "info_page"):
+            sys.modules.pop(name, None)
+        module = _load_module(self.elements, self.timers, self.local_storage)
+        self.module = module
+        return module
 
-def _install_pyodide_fakes(elements, timers):
+
+def _install_pyodide_fakes(elements, timers, local_storage):
     fake_js = types.ModuleType("js")
     fake_js.document = FakeDocument(elements)
     fake_js.setTimeout = timers.setTimeout
+    fake_js.localStorage = local_storage
 
     fake_pyodide = types.ModuleType("pyodide")
     fake_pyodide_ffi = types.ModuleType("pyodide.ffi")
@@ -143,6 +162,18 @@ def _remove_pyodide_fakes():
         sys.modules.pop(name, None)
 
 
+def _load_module(elements, timers, local_storage):
+    """Execs a fresh game.py module against the given fake DOM/storage.
+    Factored out of the game_env fixture so GameEnv.reload() (F8's "fresh
+    module load against the same localStorage" test) can reuse it."""
+    _install_pyodide_fakes(elements, timers, local_storage)
+    spec = importlib.util.spec_from_file_location("game", GAME_PY)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["game"] = module
+    spec.loader.exec_module(module)  # runs setup() at the bottom of game.py
+    return module
+
+
 @pytest.fixture
 def game_env():
     """Loads a brand-new game.py module against a fresh fake DOM.
@@ -157,13 +188,9 @@ def game_env():
     for id_ in INITIALLY_DISABLED_IDS:
         elements[id_].disabled = True
     timers = FakeTimers()
-    _install_pyodide_fakes(elements, timers)
+    local_storage = FakeLocalStorage()
+    module = _load_module(elements, timers, local_storage)
 
-    spec = importlib.util.spec_from_file_location("game", GAME_PY)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules["game"] = module
-    spec.loader.exec_module(module)  # runs setup() at the bottom of game.py
-
-    yield GameEnv(module, elements, timers)
+    yield GameEnv(module, elements, timers, local_storage)
 
     _remove_pyodide_fakes()

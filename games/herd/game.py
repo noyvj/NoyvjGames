@@ -8,6 +8,7 @@ all 7 milestones are complete (see CLAUDE.md's milestone table).
 """
 
 import json
+import math
 import os
 
 import info_page
@@ -317,21 +318,187 @@ def _lerp_color(start_hex, end_hex, t):
     return f"#{r:02x}{g:02x}{b:02x}"
 
 
-def coupling_gauge_svg(fraction):
+def _gauge_point(fraction):
+    """The (x, y) point on the coupling gauge's semicircle arc (same path
+    coupling_gauge_svg() draws below) at the given 0..1 fraction along it
+    -- shared by the live fill and the F8 record marker so both agree on
+    the exact same geometry. Arc: center (60, 60), radius 50, running
+    from 180 degrees (fraction 0, the CLEAN end) down to 0 degrees
+    (fraction 1, the HIGH end), matching the path's own
+    "M 10 60 A 50 50 0 0 1 110 60" sweep."""
+    fraction = max(0.0, min(1.0, fraction))
+    angle = math.radians(180 - fraction * 180)
+    return 60 + 50 * math.cos(angle), 60 - 50 * math.sin(angle)
+
+
+def coupling_gauge_svg(fraction, record_ratio=None):
     """Semi-circle dial gauge: 0 = fully decoupled (green), 1 = fully
     coupled at baseline (red). Iteration-pass addition — the single
     most prominent UI element, replacing a plain ratio number with an
-    at-a-glance dial for the mechanic the whole lesson depends on."""
+    at-a-glance dial for the mechanic the whole lesson depends on.
+
+    F8 (planning/TODO.md) — record_ratio, when given, draws a small
+    diamond marker on the arc at the best (lowest) coupling ratio this
+    browser has ever reached across every session/save on this device.
+    Distinct from the live .gauge-fill arc, which only ever reflects the
+    current farm's state -- a fresh session starts back at
+    BASE_COUPLING_RATIO, so the two genuinely diverge once a player has
+    played before. Same "shape, not just color" marker technique as
+    Grid's own best-round diamond on its trend graph (see
+    trend_graph_svg() there)."""
     fraction = max(0.0, min(1.0, fraction))
     color = _lerp_color(GAUGE_LOW_COLOR, GAUGE_HIGH_COLOR, fraction)
     dash = fraction * 100
+    record_marker = ""
+    if record_ratio is not None:
+        record_fraction = max(0.0, min(1.0, record_ratio / BASE_COUPLING_RATIO))
+        rx, ry = _gauge_point(record_fraction)
+        record_marker = (
+            f'<polygon points="{rx:.1f},{ry - 4:.1f} {rx + 4:.1f},{ry:.1f} '
+            f'{rx:.1f},{ry + 4:.1f} {rx - 4:.1f},{ry:.1f}" class="gauge-record-marker">'
+            f"<title>Best ever (this browser): {record_ratio:.2f} methane/herd/round</title>"
+            "</polygon>"
+        )
     return (
         '<svg viewBox="0 0 120 66" class="coupling-gauge-svg">'
         '<path d="M 10 60 A 50 50 0 0 1 110 60" class="gauge-track" pathLength="100" />'
         f'<path d="M 10 60 A 50 50 0 0 1 110 60" class="gauge-fill" pathLength="100" '
         f'stroke="{color}" stroke-dasharray="{dash:.1f} 100" />'
+        f"{record_marker}"
         "</svg>"
     )
+
+
+# F8 (planning/TODO.md) — a small per-browser "record decoupling ratio"
+# marker on the coupling gauge, like Grid's best-round marker. F14's own
+# comment above (in render()) already explains why a *session* best would
+# be redundant: coupling_ratio() only ever falls within a single session
+# (investment counts never go down), so it always equals the session's
+# current value -- a fact the Round-2 pass explicitly used to skip this
+# exact idea at the time. This is a different axis: the best ratio this
+# browser has EVER reached, across every session/save on this device, via
+# localStorage. A fresh session starts back at BASE_COUPLING_RATIO, so
+# once a player has played before, "best ever" and "current" genuinely
+# diverge -- that's what makes a persistent marker meaningful here. Same
+# _read/_write_local_storage_item lazy-import pattern as Canopy's
+# personal_best / Tide's best_coastline_saved / Thaw's G19.
+RECORD_COUPLING_RATIO_STORAGE_KEY = "herd_record_coupling_ratio_v1"
+
+# Z6 (planning/TODO.md "Z. Games"): duration of the shared
+# .personal-best-display.just-improved pulse (shared/personal-best.css) --
+# same value every other game using that shared badge uses.
+RECORD_COUPLING_RATIO_BADGE_MS = 1800
+
+
+def _read_local_storage_item(key):
+    """Lazy `import js` so this module stays importable outside a real
+    browser (the pytest fake `js` module has no localStorage at all,
+    which this degrades to gracefully). Broad except on the actual read
+    is deliberate: a real browser can refuse localStorage access entirely
+    (private-browsing mode in some browsers), surfaced as a JS exception
+    with no stable Python type to catch narrowly -- this feature is a
+    nice-to-have, so it degrades to "no record yet" rather than crashing
+    the module import."""
+    try:
+        import js  # noqa: PLC0415 — Pyodide-only import, deliberately lazy
+    except ImportError:
+        return None
+    storage = getattr(js, "localStorage", None)
+    if storage is None:
+        return None
+    try:
+        return storage.getItem(key)
+    except Exception:  # noqa: BLE001 — see docstring above
+        return None
+
+
+def _write_local_storage_item(key, value):
+    try:
+        import js  # noqa: PLC0415
+    except ImportError:
+        return
+    storage = getattr(js, "localStorage", None)
+    if storage is None:
+        return
+    try:
+        storage.setItem(key, value)
+    except Exception:  # noqa: BLE001 — see _read_local_storage_item's docstring
+        pass
+
+
+def load_record_coupling_ratio():
+    """None means "no record yet" -- deliberately distinct from any real
+    ratio value, since both BASE_COUPLING_RATIO (1.0) and
+    MIN_COUPLING_RATIO (0.1) are real, reachable numbers and neither
+    would be a safe "nothing recorded" sentinel the way 0.0 is for a
+    "higher is better" stat like Tide's best_coastline_saved."""
+    raw = _read_local_storage_item(RECORD_COUPLING_RATIO_STORAGE_KEY)
+    if not raw:
+        return None
+    try:
+        return float(json.loads(raw))
+    except (ValueError, TypeError):
+        return None
+
+
+record_coupling_ratio = load_record_coupling_ratio()
+
+
+def _maybe_update_record_coupling_ratio():
+    """Called every render(); bumps + persists the record whenever the
+    live farm's coupling_ratio() drops below it. Lower is better here --
+    coupling_ratio() is methane per herd unit, and the gauge's own
+    CLEAN/HIGH labels run green-at-0/red-at-baseline -- so a new record is
+    a *drop* below whatever's stored, the opposite direction from every
+    other game's "higher is better" personal-best stat.
+
+    A fresh, never-decoupled farm sits exactly at BASE_COUPLING_RATIO --
+    that's the starting point, not an achievement, so it must never get
+    written as a "record" on its own. Only an actual improvement over
+    baseline counts, which is also what keeps a brand-new browser (no
+    localStorage entry, no decoupling investment yet) showing no marker
+    at all, per this feature's own "record only appears once a record
+    exists" requirement."""
+    global record_coupling_ratio
+    current = farm.coupling_ratio()
+    if current >= BASE_COUPLING_RATIO - 1e-9:
+        return
+    if record_coupling_ratio is None or current < record_coupling_ratio - 1e-9:
+        record_coupling_ratio = current
+        _write_local_storage_item(RECORD_COUPLING_RATIO_STORAGE_KEY, json.dumps(record_coupling_ratio))
+        _flash_record_coupling_ratio_badge()
+
+
+def _flash_record_coupling_ratio_badge():
+    """Z6: briefly adds the shared .just-improved class (see
+    shared/personal-best.css) right when a new record is set. Same
+    setTimeout+create_proxy shape as Canopy/Tide/Thaw's equivalent."""
+    element = document.getElementById("coupling-gauge-record-display")
+    if element is None:
+        return
+    element.classList.add("just-improved")
+
+    def _unflash():
+        el = document.getElementById("coupling-gauge-record-display")
+        if el is not None:
+            el.classList.remove("just-improved")
+
+    setTimeout(create_proxy(_unflash), RECORD_COUPLING_RATIO_BADGE_MS)
+
+
+def render_record_coupling_ratio():
+    """The record only ever appears once one actually exists -- a brand
+    new browser with no play history shows nothing here, matching the
+    marker's own behavior on the gauge SVG (coupling_gauge_svg() draws no
+    diamond at all when record_ratio is None)."""
+    element = document.getElementById("coupling-gauge-record-display")
+    if element is None:
+        return
+    if record_coupling_ratio is None:
+        element.hidden = True
+        return
+    element.hidden = False
+    element.innerText = f"Best ever (this browser): {record_coupling_ratio:.2f} methane/herd/round"
 
 
 # Info Page — optional, player-triggered supplement (never forced
@@ -1022,11 +1189,15 @@ def update_changelog_display():
 
 def render():
     render_info_page()
+    _maybe_update_record_coupling_ratio()
     coupling_fraction = farm.coupling_ratio() / BASE_COUPLING_RATIO
-    document.getElementById("coupling-gauge").innerHTML = coupling_gauge_svg(coupling_fraction)
+    document.getElementById("coupling-gauge").innerHTML = coupling_gauge_svg(
+        coupling_fraction, record_coupling_ratio
+    )
     document.getElementById("coupling-gauge-label").innerText = (
         f"Emissions per herd unit: {farm.coupling_ratio():.2f} methane/round"
     )
+    render_record_coupling_ratio()
 
     document.getElementById("haze-overlay").style.opacity = (
         f"{(farm.pressure_fraction() / MAX_PRESSURE) * MAX_HAZE_OPACITY:.3f}"
