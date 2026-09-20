@@ -154,6 +154,17 @@
         <span class="settings-row-label">Hard Mode</span>
         <button id="hard-mode-toggle-button" class="secondary difficulty-toggle" type="button" title="Tightens sustainability penalties and raises the score thresholds for every band. Can be switched on or off at any time.">Loading...</button>
       </div>
+      <!-- K22: optional consulting mode, a harder pre-built-city scenario. -->
+      <details id="consulting-details" class="research-disclosure">
+        <summary>Consulting mode (optional, harder)</summary>
+        <p class="row-blurb">Instead of founding a settlement, take over a city that is already in trouble and turn it around: hold a Steady or better score for three seasons in a row within thirty seasons. Only offered before you play a season; you can abandon the case for a fresh start.</p>
+        <div class="scenario-button-row" role="group" aria-label="Consulting cases">
+          <button id="consulting-case-smokestack-button" class="secondary scenario-button" type="button" title="Industrial era: choking factories, thin land, overcrowded shelter.">The Smokestack City</button>
+          <button id="consulting-case-sprawl-button" class="secondary scenario-button" type="button" title="Digital era: a city that spread out faster than it filled in.">The Sprawling Suburbs</button>
+        </div>
+        <p id="consulting-status-display" class="row-blurb"></p>
+        <button id="consulting-abandon-button" class="secondary" type="button" hidden>Abandon this case (fresh start)</button>
+      </details>
     </div>
 
     <button id="info-page-toggle-button" class="secondary info-page-toggle" type="button">Loading...</button>
@@ -464,7 +475,7 @@
     // Each engine module is written into Pyodide's virtual filesystem (the
     // working directory, which is on sys.path) before game.py runs and
     // imports them. Still no build step — just more than one fetch.
-    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py"];
+    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py"];
 
     const CONTINUUM_TUTORIAL_STEPS = [
       {

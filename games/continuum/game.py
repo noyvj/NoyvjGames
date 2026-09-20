@@ -39,6 +39,7 @@ if _HERE not in sys.path:
 
 import archive  # noqa: E402
 import challenges  # noqa: E402
+import consulting  # noqa: E402
 import info_content  # noqa: E402
 import info_page  # noqa: E402
 import research  # noqa: E402
@@ -246,6 +247,7 @@ def render():
     update_hard_mode_display()
     update_summary_panel()
     update_views_panel(effects)
+    update_consulting_display()
     render_insights(effects)
     _notify_visual_layer()
 
@@ -305,7 +307,9 @@ def _notify_visual_layer():
 # has no such lock: like Grid's own toggles, it can be flipped at any
 # time; see sustainability.py's own K18 note for exactly what it tightens.
 def _scenario_locked():
-    return state.season > 1
+    # K22: a consulting case replaces the opening conditions wholesale, so the
+    # normal scenario picker stays locked while one is on the table.
+    return state.season > 1 or consulting.get(campaign.ui) is not None
 
 
 def _make_select_scenario_handler(scenario_id):
@@ -339,6 +343,42 @@ def _make_select_scenario_handler(scenario_id):
 def on_toggle_hard_mode(event=None):
     state.hard_mode = not state.hard_mode
     render()
+
+
+# --- K22 consulting mode --------------------------------------------------
+def _make_consulting_start_handler(case_id):
+    def handler(event=None):
+        if consulting.apply(campaign, case_id, chronicle):
+            chronicle.log_challenge(
+                state.season, state.era, f"Called in to advise: {consulting.CASES[case_id]['label']}."
+            )
+            render()
+            _seed_achievement_toast_baseline()
+    return handler
+
+
+def on_consulting_abandon(event=None):
+    if consulting.abandon(campaign, chronicle):
+        render()
+        _seed_achievement_toast_baseline()
+
+
+def update_consulting_display():
+    entry = consulting.get(campaign.ui)
+    pristine = consulting.is_pristine(campaign)
+    for case_id in consulting.CASES:
+        button = document.getElementById(f"consulting-case-{case_id}-button")
+        button.disabled = not pristine
+        button.classList.toggle("selected", entry is not None and entry["case"] == case_id)
+    document.getElementById("consulting-status-display").innerText = (
+        consulting.status_text(entry, state)
+        or (
+            "Take over a struggling, pre-built city. Only offered before you play a season."
+            if pristine
+            else "Consulting cases are only offered on a fresh, untouched start."
+        )
+    )
+    document.getElementById("consulting-abandon-button").hidden = entry is None
 
 
 def update_scenario_display():
@@ -1321,7 +1361,18 @@ def _ever_recovered_from_collapse():
 
 
 def _era_reached(era):
+    # K22: eras a consulting case starts in (or before) were inherited, not
+    # reached, so they do not count towards the "reached era" achievements.
+    case = consulting.get(campaign.ui)
+    if case is not None and sim.era_index(era) <= sim.era_index(consulting.CASES[case["case"]]["era"]):
+        return False
     return sim.era_index(campaign.furthest_era) >= sim.era_index(era)
+
+
+def _earned_affinity(branch):
+    """Researched nodes in a branch, not counting any a consulting case inherited (K22)."""
+    inherited = set(consulting.inherited_for(campaign))
+    return sum(1 for n in tree.researched if n not in inherited and tree.nodes[n].branch == branch)
 
 
 def _full_coordination():
@@ -1350,9 +1401,9 @@ ACHIEVEMENT_CHECKS = {
     "reached_space": lambda: _era_reached("space"),
     "thriving_once": _ever_thriving,
     "phoenix_settlement": _ever_recovered_from_collapse,
-    "provision_specialist": lambda: tree.affinity("provision") >= BRANCH_SPECIALIST_THRESHOLD,
-    "community_specialist": lambda: tree.affinity("community") >= BRANCH_SPECIALIST_THRESHOLD,
-    "craft_specialist": lambda: tree.affinity("craft") >= BRANCH_SPECIALIST_THRESHOLD,
+    "provision_specialist": lambda: _earned_affinity("provision") >= BRANCH_SPECIALIST_THRESHOLD,
+    "community_specialist": lambda: _earned_affinity("community") >= BRANCH_SPECIALIST_THRESHOLD,
+    "craft_specialist": lambda: _earned_affinity("craft") >= BRANCH_SPECIALIST_THRESHOLD,
     "root_and_branch": lambda: len(tree.researched) >= len(tree.nodes),
     "equity_champion": lambda: (
         state.population >= EQUITY_CHAMPION_MIN_POPULATION
@@ -1372,9 +1423,9 @@ ACHIEVEMENT_CHECKS = {
 # a plain earned/not-yet is the honest shape for the rest (era-reached,
 # phoenix, the coordination/coverage achievements are all one-shot).
 ACHIEVEMENT_PROGRESS = {
-    "provision_specialist": lambda: (tree.affinity("provision"), BRANCH_SPECIALIST_THRESHOLD),
-    "community_specialist": lambda: (tree.affinity("community"), BRANCH_SPECIALIST_THRESHOLD),
-    "craft_specialist": lambda: (tree.affinity("craft"), BRANCH_SPECIALIST_THRESHOLD),
+    "provision_specialist": lambda: (_earned_affinity("provision"), BRANCH_SPECIALIST_THRESHOLD),
+    "community_specialist": lambda: (_earned_affinity("community"), BRANCH_SPECIALIST_THRESHOLD),
+    "craft_specialist": lambda: (_earned_affinity("craft"), BRANCH_SPECIALIST_THRESHOLD),
     "root_and_branch": lambda: (len(tree.researched), len(tree.nodes)),
     "a_real_city": lambda: (state.population, A_REAL_CITY_POPULATION),
 }
@@ -1908,6 +1959,10 @@ def on_advance_season(event=None):
     report = state.advance_season(effects)
     state.score_history.append(sustainability.score(state, effects))
     trajectory.record(state, report, sustainability.livability(state, effects) * 100.0)
+    before = consulting.get(campaign.ui)
+    after = consulting.step(campaign, effects)
+    if after is not None and after["result"] and (before is None or before["result"] is None):
+        chronicle.log_challenge(state.season, state.era, consulting.status_text(after, state))
     event = challenges.after_season(state, report, effects)
     if event is not None:
         chronicle.log_challenge(state.season, state.era, event["text"])
@@ -2021,6 +2076,13 @@ def setup():
         )
     document.getElementById("hard-mode-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_hard_mode)
+    )
+    for _case_id in consulting.CASES:
+        document.getElementById(f"consulting-case-{_case_id}-button").addEventListener(
+            "click", create_proxy(_make_consulting_start_handler(_case_id))
+        )
+    document.getElementById("consulting-abandon-button").addEventListener(
+        "click", create_proxy(on_consulting_abandon)
     )
     # Belt-and-suspenders: the toast starts hidden via the static `hidden`
     # attribute in index.html, but every other stateful element in this

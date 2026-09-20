@@ -123,6 +123,10 @@ ELEMENT_IDS = [
     "research-branch-community-button",
     "research-branch-craft-button",
     # K1/K24/K28 -- optional City Views panel.
+    "consulting-case-smokestack-button",
+    "consulting-case-sprawl-button",
+    "consulting-status-display",
+    "consulting-abandon-button",
     "views-toggle-button",
     "views-panel",
     "views-tab-dashboard-button",
