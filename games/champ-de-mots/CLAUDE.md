@@ -143,6 +143,26 @@ This state is per-plot, per-user — fits your existing save-code system (Neon/P
 | 11 | Review tab | §14.4 — Random Word Review + Grammar Review | Done |
 | 12 | Weekly proficiency tests | §14.5 — one per `sequence` entry, informational only (see §14.4 decision) | Done |
 | 13 | Bonus sentence-building sections | §14.6 — 1-2 original sentences per week, tile-drag + translate | Done — 23/23 weeks, 1 original sentence each |
+| 14 | Combo bonus + confidence rating | Correct-answer combo speeds SRS growth; self-rated confidence sharpens the wrong-answer penalty | Done |
+| 15 | Deliberate interleaving in Review | Stratified round-robin by plot stage in place of a plain shuffle | Done |
+| 16 | Adaptive distractor difficulty | Budding+ plots draw harder, similarity-ranked multiple-choice distractors | Done |
+| 17 | Cultural notes toggle | Surfaces the cultural-notes half of `fren_supplementary_notes.json`, gated to unlocked rows | Done |
+| 18 | Progress dashboard | Row mastery, weakest topics, days-since-last-touch — read-only, no SRS mutation | Done |
+| 19 | "Weeds" plot state | Distinct overlay for known French mix-ups (à/a, où/ou, etc.), takes precedence over wilting | Done |
+| 20 | Personal error-pattern digest | Classifies why a typed miss happened (mix-up / accent slip / typo / genuine miss); surfaces on the dashboard | Done |
+| 21 | Gender-tagging drill | `V_GENDER_TAG` variant tests le/la recall apart from meaning, for unambiguous-article vocab items | Done |
+| 22 | Liaison/elision practice | Hand-authored 10-question quiz grounded in the TTS pronunciation watchlist | Done |
+| 23 | Achievements (game-local slice) | Plots-automated + full-weeks-automated tiers; needed no new save state | Done — retrofitted into the hub-wide cross-game pattern by Milestone 31 |
+| 24 | Mispronunciation-risk report button | Flags known mispronunciation-trap items from the TTS watchlist for human triage | Done |
+| 25 | Bugfix: typed-answer inputs weren't clearing between questions | Reset the input's value at every "move on" path (Review/Proficiency/Bonus), not just the main panel | Done |
+| 26 | Report buttons extended to Review, Proficiency, and Bonus | Shared payload builders reused across all four practice surfaces | Done |
+| 27 | "Greetings & Basics Blitz" arcade minigame | 60-second beat-the-clock vocab match, sequence 1-11 | Done |
+| 28 | "Verb Racer" arcade minigame | Grammar-only lane race vs. a fixed-pace rival, sequence 12-15 | Done |
+| 29 | "Boutique Dash" arcade minigame | Colour+garment order-rush with a patience clock, sequence 16-18 | Done |
+| 30 | "Café Rush" arcade minigame | Food/drink order-rush with a passé-composé confirmation twist every 3rd customer, sequence 19-23 | Done — completes the 4-part arcade family |
+| 31 | Achievements retrofit into the hub-wide cross-game pattern | Static `achievements.json` manifest, `achievements_earned` save field, unlock toast, hub-dashboard link | Done |
+| 32 | Visual-style switcher | Low-poly / text-based / cartoon / high-def chrome-and-palette themes, desktop-only, `localStorage`-persisted | Done |
+| 33 | "What's New" in-game changelog panel | 12-entry curated highlights list (site-wide K16 goal) | Done |
 
 ## 12. Build Notes & Decisions
 
