@@ -1281,6 +1281,35 @@ button.primary:disabled::after {
   opacity: 0.8;
 }
 
+/* UI decluttering pass (planning/TODO.md closing task): the panel above is
+   now a <details> collapsed by default -- this just styles the <summary>
+   to read as a section heading (matching .settings-panel-heading's size)
+   rather than the browser's default disclosure triangle + inline text. */
+.progress-code-toggle > summary {
+  cursor: pointer;
+  font-size: 0.95rem;
+  opacity: 0.9;
+  list-style: none;
+}
+
+.progress-code-toggle > summary::-webkit-details-marker {
+  display: none;
+}
+
+.progress-code-toggle > summary::before {
+  content: "▸ ";
+  display: inline-block;
+  opacity: 0.7;
+}
+
+.progress-code-toggle[open] > summary::before {
+  content: "▾ ";
+}
+
+.progress-code-toggle[open] > summary {
+  margin-bottom: 0.75rem;
+}
+
 /* ============================================================
    Settings panel (site-wide goal, planning/TODO.md): consolidated
    text-scale + reduced-motion controls. Reuses .section for the panel

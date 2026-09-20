@@ -217,7 +217,16 @@
          run history, legacy system, and achievement progress -- the
          cross-run progress this game keeps outside the per-run save
          widget below (see game.py's export_progress_code() for why). -->
-    <div id="progress-code-panel" class="section">
+    <!-- UI decluttering pass (planning/TODO.md closing task): collapsed by
+         default. Export/import is a rarely-touched backup action, not
+         something checked every run, so it's tucked behind a disclosure
+         the same way Tide's .ticker-history-toggle collapses its own
+         secondary panel. Purely a div->details swap plus a wrapping
+         <summary> -- every child id (#progress-export-button etc.) and
+         game.py's lookups of them are unchanged, and nothing in game.py
+         ever reads or sets this element's own hidden/open state. -->
+    <details id="progress-code-panel" class="section progress-code-toggle">
+      <summary>💾 Backup / Transfer Progress</summary>
       <p class="progress-code-label">Back up or transfer your settlement's skill tree, run history, and legacy progress (separate from the per-run save code below):</p>
       <div class="progress-code-row">
         <button id="progress-export-button" class="secondary" type="button">Export Progress</button>
@@ -228,7 +237,7 @@
         <button id="progress-import-button" class="secondary" type="button">Import Progress</button>
       </div>
       <p id="progress-code-status" class="progress-code-status"></p>
-    </div>
+    </details>
 
     <div id="feedback-prompt" class="section">
       <p class="feedback-question">Did this change how you think about climate adaptation &amp; disaster resilience?</p>

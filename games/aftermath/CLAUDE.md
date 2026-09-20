@@ -400,6 +400,14 @@ one-time explanation anywhere:
 No gaps found; nothing added. Full 210/210 pytest suite unaffected (no
 code changed).
 
+## UI decluttering pass (site-wide goal, planning/TODO.md closing task)
+
+Audited the single-page layout for the "everything looks very crowded" concern (the user's own framing) against the established `<details>`-disclosure fix pattern (Tide's `.ticker-history-toggle`, this game's own `.info-toggle` badges). This game has accumulated the most per-game features of the quartet by a wide margin (see the E1-E20 backlog pass and the changelog/achievements/past-runs/settings additions above) — a genuine, not speculative, crowding candidate.
+
+Walked every always-visible block top to bottom. Most of the apparent length is already load-bearing or already disclosure-gated: `#howto-panel`/`#settings-panel`/`#info-page-panel`/`#achievements-panel`/`#past-runs-panel`/`#changelog-panel` are all `hidden`-by-default toggles already; `#status`'s four `.info-toggle` badges already collapse their own explanatory text; the skill tree's always-visible `skill-practice` paragraphs are a *deliberate* choice from the onboarding-tooltip audit above (permanent, non-gated grounding text, explicitly not a one-time toast) and collapsing them would undo that finding, so they were left alone; the settlement/event decorative visuals are `aria-hidden` art, not text stacking.
+
+**Found one real offender:** `#progress-code-panel` (E12's export/import backup panel — a label paragraph, two textareas, two buttons, and a status line) was a plain always-visible `.section`, despite being a maintenance action a player touches rarely, if ever — the exact "rarely-touched settings/info block" shape the site's decluttering pattern targets. **Fix:** changed it from a `<div class="section">` to a `<details class="section progress-code-toggle">` with a `<summary>💾 Backup / Transfer Progress</summary>` header, collapsed by default. Pure structural swap — every child element keeps its existing id (`#progress-export-button`, `#progress-export-output`, `#progress-import-input`, `#progress-import-button`, `#progress-code-status`), `game.py` never reads or sets this wrapper's own hidden/open state (confirmed via grep), and no Python changed. Added matching CSS (`.progress-code-toggle` `summary` styling with a `▸`/`▾` marker, replacing the browser default triangle) to `style.css`, styled to read as a section heading rather than a raw disclosure widget. Full pytest suite (210/210) unaffected, as expected for a pure HTML/CSS change.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
