@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 68/708 items checked off (9.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 93/708 items checked off (13.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -362,36 +362,36 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 
 ## Per-game: SOL
 
-- [ ] A1: A second prestige tier beyond the existing flat yield bonus — a genuine skill-tree branch unlocked only after N prestiges.
-- [ ] A2: Show the current prestige level as a small badge next to the game's title, not just inside the win-banner toggle.
-- [ ] A3: A "New Game+" replay variant — **built as an unlock inside the existing prestige tree**, per your own note, rather than a separate standalone mode.
-- [ ] A4: A tooltip on the Prestige button stating exactly what resets and what doesn't, distinct from the "reset this world" option.
-- [ ] A5: A real "while you were away" delta report (resources gained, Governor decisions made) — reports on real elapsed time, doesn't gate progress on it, so it doesn't violate the no-idle-timer rule.
-- [ ] A6: Let the Stats & Share card's copy button flash "Copied!" like the shared save-widget's own copy button.
-- [ ] A7: A "Governor AI personality" choice per planet (aggressive/balanced/conservative presets) instead of one flat priority dial.
-- [ ] A8: Surface `governed_resource_generated`'s lifetime total on the main Stats screen too.
-- [ ] A9 **(prioritize — you called this "very important"):** A proper multi-planet overview dashboard — every unlocked planet's key stats at once, instead of navigating planet-by-planet.
+- [x] A1: A second prestige tier beyond the existing flat yield bonus — a genuine skill-tree branch unlocked only after N prestiges.
+- [x] A2: Show the current prestige level as a small badge next to the game's title, not just inside the win-banner toggle.
+- [x] A3: A "New Game+" replay variant — **built as an unlock inside the existing prestige tree**, per your own note, rather than a separate standalone mode.
+- [x] A4: A tooltip on the Prestige button stating exactly what resets and what doesn't, distinct from the "reset this world" option.
+- [x] A5: A real "while you were away" delta report (resources gained, Governor decisions made) — reports on real elapsed time, doesn't gate progress on it, so it doesn't violate the no-idle-timer rule.
+- [x] A6: Let the Stats & Share card's copy button flash "Copied!" like the shared save-widget's own copy button.
+- [x] A7: A "Governor AI personality" choice per planet (aggressive/balanced/conservative presets) instead of one flat priority dial.
+- [x] A8: Surface `governed_resource_generated`'s lifetime total on the main Stats screen too.
+- [x] A9 **(prioritize — you called this "very important"):** A proper multi-planet overview dashboard — every unlocked planet's key stats at once, instead of navigating planet-by-planet.
 - [ ] A10 → folded into Z (see "Games" section above): achievement-progress toolbar badge, site-wide.
-- [ ] A11: A "trade route automation" layer — once two planets have stable economies, set a standing trade rule instead of manually re-triggering.
-- [ ] A12: A subtle particle/spark animation on the resource icon when a manual click lands.
-- [ ] A13: A build-order planner/checklist players can manually tick through.
-- [ ] A14: Let the research-tree diagram collapse by tier.
-- [ ] A15: A "sandbox mode" toggle post-win-state — remove resource costs for free end-game experimentation.
-- [ ] A16: A small planet-count readout ("7/11 bodies visited") near the Travel button.
-- [ ] A17: An export/import progress code for lifetime stats, mirroring Aftermath's E12.
-- [ ] A18: `title` tooltips on each Governor priority button explaining exactly what the weighting does numerically.
-- [ ] A19: A "close call" achievement family — surviving a near-0%-ecology collapse and recovering.
-- [ ] A20: A small swatch legend for the terraform color-shift tiers.
-- [ ] A21: A "compare my run" feature against site aggregate stats *(needs Z1)*.
+- [x] A11: A "trade route automation" layer — once two planets have stable economies, set a standing trade rule instead of manually re-triggering.
+- [x] A12: A subtle particle/spark animation on the resource icon when a manual click lands.
+- [x] A13: A build-order planner/checklist players can manually tick through.
+- [x] A14: Let the research-tree diagram collapse by tier.
+- [x] A15: A "sandbox mode" toggle post-win-state — remove resource costs for free end-game experimentation.
+- [x] A16: A small planet-count readout ("7/11 bodies visited") near the Travel button.
+- [x] A17: An export/import progress code for lifetime stats, mirroring Aftermath's E12.
+- [x] A18: `title` tooltips on each Governor priority button explaining exactly what the weighting does numerically.
+- [x] A19: A "close call" achievement family — surviving a near-0%-ecology collapse and recovering.
+- [x] A20: A small swatch legend for the terraform color-shift tiers.
+- [x] A21: A "compare my run" feature against site aggregate stats *(needs Z1)*.
 - [ ] A22 → folded into Z22 (see "Games" section above): confirm-before-full-save-wipe, as part of the site-wide `ConfirmDialog` wording audit.
-- [ ] A23: A "planet specialization" system — a fully-developed planet leans into one resource type for a production bonus.
-- [ ] A24: Surface the exact prestige-bonus percentage next to resource-gain numbers, not only in the Stats panel.
+- [x] A23: A "planet specialization" system — a fully-developed planet leans into one resource type for a production bonus.
+- [x] A24: Surface the exact prestige-bonus percentage next to resource-gain numbers, not only in the Stats panel.
 - [ ] A25: A "story mode" toggle surfacing existing flavor text more prominently as a light narrative thread.
 - [ ] A26 → folded into Z (see "Games" section above): "reset settings to default" button, site-wide.
-- [ ] A27: A proper end-game "epilogue" screen once every planet is 100% terraformed, beyond the current banner.
-- [ ] A28: Let the Sky City info-toggle state the exact Mars-material cost ratio.
+- [x] A27: A proper end-game "epilogue" screen once every planet is 100% terraformed, beyond the current banner.
+- [x] A28: Let the Sky City info-toggle state the exact Mars-material cost ratio.
 - [ ] A29: A community leaderboard for fastest full completion, opt-in *(needs Z1)*.
-- [ ] A30: A small animated icon transition when a building finishes constructing.
+- [x] A30: A small animated icon transition when a building finishes constructing.
 
 ---
 
