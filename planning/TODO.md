@@ -1,439 +1,888 @@
 # Site-Wide TODO
 
-**Progress: 267/270 items checked off (99%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
+**Progress: 3/709 items checked off (0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
-The one living list, replacing the scattered planning docs' own "open items"/"stretch goals" sections. Built from your labeled answers in `IMPROVEMENT-IDEAS-2026-09.md` (all "yes" items, resolved), plus a pass through every other file in `planning/` pulling out anything still genuinely unresolved there. "Later" items (things you deferred, or that need more explanation first) live in `LATER.md` instead — not here.
+Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
-Check items off (`[x]`) as they land. Ordered by priority (my call, per your instruction) — roughly: in-flight work first, then cross-cutting site-wide goals (most of these were flagged "yes but site-wide" across several answers), then per-game work, then the big standalone features, then the closing/meta tasks you explicitly asked to run last.
+A few round-2 answers flagged a per-game idea as "shouldn't this be site-wide?" (A10, A22, A26) — those are folded into the Games (Z) section below instead of listed under their originating game, with a note pointing back to where they came from.
 
-Le Champ de Mots is included here now that its own answers would apply — its 4th minigame batch is still finishing in the background; its own labeled section (M) will fold in once you've reviewed it, same as every other game.
+Two round-2 answers (Z3, Z5) explicitly rejected building a *shared module* for meta-progression and challenge-mode patterns ("it is better to have all the games take the progression they naturally do rather than building a one-size-fits-all standard") — every per-game idea in this doc that proposes its own meta-progression or hard-mode variant (SOL, Canopy, Herd, Drift, Continuum, Grid, Tide) is still accepted, just built independently per game, not through one shared pattern.
 
----
-
-## In flight
-
-- [x] Le Champ de Mots Milestones 27-28 (Greetings & Basics Blitz, Verb Racer arcade minigames) — done, committed.
-- [x] Le Champ de Mots Milestones 29-30 (Boutique Dash, Café Rush arcade minigames) — done, all 4 minigames complete, 517/517 tests green.
-- [x] Continuum Phase 6 (hub nav integration) — done, see "Big standalone features" below.
+Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sections in the usual listing order → **M. New game concepts** → closing tasks.
 
 ---
 
-## Site-wide goal: roll achievements out everywhere
+## Site-wide goal: cross-game aggregate-stats backend (Z1)
 
-*(Origin: L2, A2, K2, and the framework itself — `planning/ACHIEVEMENTS-SYSTEM-DESIGN.md` has the full technical pattern and §7's per-game checklist. SOL is the reference implementation.)*
+*(Origin: Z1, accepted — "yes.")* A shared backend endpoint several other accepted ideas below depend on (Grid's C11/C15 comparisons, Canopy's community-forest comparison, SOL's compare-my-run/leaderboard, Continuum's benchmark-your-city, Herd's community stats extensions). One real decision and one real build, instead of every game separately floating its own "needs a new endpoint" caveat. Build this before touching any per-game item below that's marked "(needs Z1)."
 
-Two things every game needs once achievements land there, on top of the base rollout (per A19/A20, "yes but site-wide"):
-- An achievement-earned toast/popup at the moment it's unlocked (not just visible inside the panel).
-- A link from the in-game achievements panel to the hub-wide dashboard.
-
-- [x] SOL — 18 achievements + panel + hub dashboard (reference implementation).
-  - [x] Retrofit: add the unlock-toast and hub-dashboard-link (built after SOL shipped, per A19/A20).
-- [x] Canopy — 20 achievements + panel + unlock toast + hub-dashboard link.
-- [x] Grid — 16 achievements + panel + unlock toast + hub-dashboard link.
-- [x] Tide — 20 achievements + panel + unlock toast + hub-dashboard link.
-- [x] Aftermath — 19 achievements + panel + unlock toast + hub-dashboard link.
-- [x] Herd — 18 achievements + panel + unlock toast + hub-dashboard link.
-- [x] Thaw — 18 achievements + panel + unlock toast + hub-dashboard link.
-- [x] Loop — 20 achievements + panel + unlock toast + hub-dashboard link.
-- [x] Drift — 18 achievements + panel + unlock toast + hub-dashboard link.
-- [x] Trade Empire — 19 achievements + panel + unlock toast + hub-dashboard link.
-- [x] Continuum — 19 achievements + panel + unlock toast + hub-dashboard link.
-- [x] Hub-side `script.js` registration for every game with achievements (SOL, Canopy, Grid, Continuum, Trade Empire, Tide, Aftermath, Herd, Thaw, Loop, Drift) — each per-game dispatch above correctly left this out as out-of-scope for a single-game session (it's a shared file), so it was swept up in two follow-up passes: SOL/Canopy/Grid/Continuum first, then Tide/Aftermath/Herd/Thaw/Loop/Drift/Trade-Empire once those landed. Verified live both times (a throwaway test account's achievements dashboard correctly showing every game's real progress) — hit and resolved the hub's own `sw.js` stale-while-revalidate service worker serving a cached pre-edit `script.js` on the first reload each time (a known trap, already documented in this session's dev-log entries): the fix is just reloading a second time once the SW's background revalidation fetch completes, not a bug in the worker itself. All 11 games with an achievements catalog are now represented on the hub dashboard.
-- [x] Le Champ de Mots — **retrofit, not fresh-build**: reshaped the existing game-local slice (Milestone 23) into the cross-game pattern (Milestone 31) — 10 achievements now backed by a real `achievements.json` manifest, `achievements_earned` in `get_state()`, an unlock toast (JS-scheduled, since this game's own no-timer test bans a Python-side timer call), and a hub-dashboard link. Every original unlock condition unchanged. Hub-side `script.js` registration done — verified live (throwaway test account's dashboard shows "Le Champ de Mots: 0/10" alongside all 11 other games). Achievements are now rolled out to every game on the site.
+- [ ] Design and build the shared cross-game aggregate-stats endpoint on the existing FastAPI Cloud + Neon backend — decide what it aggregates (per-game average scores/completion stats, achievement rarity %, etc.) once, reused by every dependent feature below.
 
 ---
 
-## Site-wide goal: per-game settings panel
+## Z. Games (things worth doing across many/all games)
 
-*(Origin: A9. One panel per game consolidating text-scale, sound, and animation toggles — Continuum's Phase 5 already built text-scale + a colorblind fix as separate controls; this is about giving every game the same consolidated panel Continuum improvised for itself.)*
+**Every item below that applies "to every game" is broken into one checkbox per game, on purpose — so a rollout can't silently skip one the way a single flat checkbox could hide.** The 12-game list, in the usual order: SOL, Canopy, Grid, Tide, Aftermath, Herd, Thaw, Loop, Drift, Trade Empire, Continuum, Le Champ de Mots.
 
-- [x] SOL
-- [x] Canopy
-- [x] Grid
-- [x] Tide
-- [x] Aftermath
-- [x] Herd
-- [x] Thaw
-- [x] Loop
-- [x] Drift
-- [x] Trade Empire
-- [x] Continuum — consolidated its existing text-scale control into this panel (renamed `accessibility.js` to `settings.js`, removed the standalone toolbar button) rather than leaving it separate.
-- [x] Also add a site-wide dark/light theme toggle (L5) — decided NOT to build a functioning toggle in this dispatch: every game currently uses one dark glass-panel space theme with no light-theme CSS anywhere to switch to, so a real toggle would need a dedicated design pass across every game's `style.css` first, not just a widget. Documented as a real, scoped decision (not left unresolved) in `planning/LATER.md`'s "L. The Hub Itself" section (L5).
+- [ ] Z2: A consistent "last played" per-game timestamp, client-side, surfaced on hub title cards (distinct from the "last updated" site badge).
+  - [ ] SOL
+  - [ ] Canopy
+  - [ ] Grid
+  - [ ] Tide
+  - [ ] Aftermath
+  - [ ] Herd
+  - [ ] Thaw
+  - [ ] Loop
+  - [ ] Drift
+  - [ ] Trade Empire
+  - [ ] Continuum
+  - [ ] Le Champ de Mots
+- [ ] Z4: A consistent keyboard-shortcut convention (`?` for help, `Esc` to close any open panel) — first decide the shared convention, then audit/align each game:
+  - [ ] Decide the shared convention (which keys, which actions)
+  - [ ] SOL
+  - [ ] Canopy
+  - [ ] Grid
+  - [ ] Tide
+  - [ ] Aftermath
+  - [ ] Herd
+  - [ ] Thaw
+  - [ ] Loop
+  - [ ] Drift
+  - [ ] Trade Empire
+  - [ ] Continuum
+  - [ ] Le Champ de Mots
+- [ ] Z6: A shared CSS utility/pattern for "new personal best" badges:
+  - [ ] Build the shared utility
+  - [ ] Migrate SOL's existing bespoke version
+  - [ ] Migrate Canopy's existing bespoke version
+  - [ ] Migrate Tide's existing bespoke version
+  - [ ] Migrate Thaw's existing bespoke version
+  - [ ] Migrate Grid's existing bespoke version
+- [ ] Z7: A genuine "replay value" audit — which games still lack any reason to play twice, and whether that's fine (teaching tools) or worth a light meta-progression pass. **You asked to make a new "ideas" list off the result of this one** — treat the audit's findings as the seed for a future targeted ideas round on replayability specifically, once this audit runs.
+  - [ ] SOL
+  - [ ] Canopy
+  - [ ] Grid
+  - [ ] Tide
+  - [ ] Aftermath
+  - [ ] Herd
+  - [ ] Thaw
+  - [ ] Loop
+  - [ ] Drift
+  - [ ] Trade Empire
+  - [ ] Continuum
+  - [ ] Le Champ de Mots
+  - [ ] Write the follow-up replayability ideas round from this audit's findings
+- [ ] Z8: A shared "export my progress" helper/module for the portable-progress-code pattern:
+  - [ ] Build the shared helper
+  - [ ] Migrate Aftermath's existing E12 export to it
+  - [ ] Apply to SOL's A17 export idea (see per-game section) using the shared helper, not a one-off
+- [ ] Z10: A consistent "difficulty variant active" icon/badge on a game's title card when it has one enabled (single hub-side feature, reads each game's own difficulty flag).
+- [ ] Z11: A shared "narrative log" component (a small dated feed of things that happened):
+  - [ ] Build the shared component
+  - [ ] Migrate Continuum's existing ongoing-log to it
+  - [ ] Build Thaw's proposed scientist's-log (G19) on it
+  - [ ] Build Le Champ de Mots' report-confirmation flow (L14) on it
+- [ ] Z12: A quick audit confirming the achievements/settings/changelog toggle buttons land in a consistent order/position across every game's toolbar.
+  - [ ] SOL
+  - [ ] Canopy
+  - [ ] Grid
+  - [ ] Tide
+  - [ ] Aftermath
+  - [ ] Herd
+  - [ ] Thaw
+  - [ ] Loop
+  - [ ] Drift
+  - [ ] Trade Empire
+  - [ ] Continuum
+  - [ ] Le Champ de Mots
+- [ ] Z13: A real "onboarding survey" — a single optional first-visit prompt (subjects of interest, quick vs. deep games) feeding the hub lobby's tag-filter defaults.
+- [ ] Z14: A shared "time since last played" freshness-badge helper (groundwork for Z2).
+- [ ] Z15: A genuine screen-reader accessibility audit (ARIA labels, focus order) across at least the achievements/settings panels:
+  - [ ] SOL
+  - [ ] Canopy
+  - [ ] Grid
+  - [ ] Tide
+  - [ ] Aftermath
+  - [ ] Herd
+  - [ ] Thaw
+  - [ ] Loop
+  - [ ] Drift
+  - [ ] Trade Empire
+  - [ ] Continuum
+  - [ ] Le Champ de Mots
+- [ ] Z16: Audit whether the other 11 games have an equivalent lightweight in-game bug/typo report affordance to Le Champ de Mots' existing one:
+  - [ ] SOL
+  - [ ] Canopy
+  - [ ] Grid
+  - [ ] Tide
+  - [ ] Aftermath
+  - [ ] Herd
+  - [ ] Thaw
+  - [ ] Loop
+  - [ ] Drift
+  - [ ] Trade Empire
+  - [ ] Continuum
+- [ ] Z17: A shared "comparison/benchmark" chart component with swappable reference-data sources:
+  - [ ] Build the shared component
+  - [ ] Migrate Grid's existing global-comparison line to it
+  - [ ] Build Continuum's history-comparison idea (K13) on it
+  - [ ] Build Herd's real-world % comparison on it
+- [ ] Z18: A mobile-viewport audit at 320px (not just 375px), catching any edge-of-screen clipping the original mobile pass missed:
+  - [ ] SOL
+  - [ ] Canopy
+  - [ ] Grid
+  - [ ] Tide
+  - [ ] Aftermath
+  - [ ] Herd
+  - [ ] Thaw
+  - [ ] Loop
+  - [ ] Drift
+  - [ ] Trade Empire
+  - [ ] Continuum
+  - [ ] Le Champ de Mots
+- [ ] Z19: A genuine "New Player" landing flow — a single guided "start here" recommendation (e.g. Canopy as a simple first pick). **Builds well on Z13 per your own note** — design them together.
+- [ ] Z20: A consistent emoji/icon-meaning audit, confirming no icon means two different things in two different games:
+  - [ ] SOL
+  - [ ] Canopy
+  - [ ] Grid
+  - [ ] Tide
+  - [ ] Aftermath
+  - [ ] Herd
+  - [ ] Thaw
+  - [ ] Loop
+  - [ ] Drift
+  - [ ] Trade Empire
+  - [ ] Continuum
+  - [ ] Le Champ de Mots
+  - [ ] Cross-check the full list for collisions once every game's icons are catalogued
+- [ ] Z21: A shared print-friendly CSS stylesheet for end-of-session summary screens:
+  - [ ] Build the shared stylesheet
+  - [ ] Apply to Canopy's Session Summary
+  - [ ] Apply to Tide's session summary
+  - [ ] Apply to Aftermath's run summary
+  - [ ] Apply to Herd's report card
+- [ ] Z22: Audit every game's "Reset progress" confirmation wording now that the shared `ConfirmDialog` exists, and decide migrate-for-consistency vs. intentionally-varied per game. *(Folds in A22's "shouldn't this be site-wide?" flag — SOL's own full-save-wipe confirmation is exactly this case.)*
+  - [ ] SOL (`_confirm()`, predates the shared pattern)
+  - [ ] Canopy
+  - [ ] Grid
+  - [ ] Tide
+  - [ ] Aftermath (two-click confirm, predates the shared pattern)
+  - [ ] Herd
+  - [ ] Thaw
+  - [ ] Loop
+  - [ ] Drift
+  - [ ] Trade Empire
+  - [ ] Continuum
+  - [ ] Le Champ de Mots
+- [ ] Z23: A lightweight shared mechanism for a game to show different flavor text/art on real-world dates (an optional seasonal Easter-egg layer) — **you specifically want this event-based**, e.g. a week-long "holiday" event (a Christmas-themed Canopy tree-planting push earning a "Christmas 2026" profile badge). Design the shared mechanism with that kind of event in mind, not just a palette swap. Opt-in per game, not a mandatory rollout — no per-game checklist needed until a specific game opts in.
+- [ ] Z24: A shared "what changed since you last played" banner (distinct from each game's own changelog panel):
+  - [ ] Build the shared banner component
+  - [ ] SOL
+  - [ ] Canopy
+  - [ ] Grid
+  - [ ] Tide
+  - [ ] Aftermath
+  - [ ] Herd
+  - [ ] Thaw
+  - [ ] Loop
+  - [ ] Drift
+  - [ ] Trade Empire
+  - [ ] Continuum
+  - [ ] Le Champ de Mots
+- [ ] Z25: A genuine save-portability audit — confirm every game's save-code payload size is still reasonable now that achievements/run-histories/changelogs have grown each save state:
+  - [ ] SOL
+  - [ ] Canopy
+  - [ ] Grid
+  - [ ] Tide
+  - [ ] Aftermath
+  - [ ] Herd
+  - [ ] Thaw
+  - [ ] Loop
+  - [ ] Drift
+  - [ ] Trade Empire
+  - [ ] Continuum
+  - [ ] Le Champ de Mots
+- [ ] Z25b: Add an opt-in autosave checkbox (every ~5 minutes) — a deliberate, explicit reversal of the original "no auto-save timer" design decision (see `SAVE-BUTTON-INTEGRATION.md` §5). Must default OFF; the player turns it on, never the other way around.
+  - [ ] Build the shared opt-in autosave mechanism once
+  - [ ] Roll out to each game alongside its own save widget (same 12-game list as above)
+- [ ] Z26: A consistent "info page" discoverability regression check — confirm "The Real Story" button wording/icon is identical via the shared `info_page.py`, across the 8 climate-quartet games only:
+  - [ ] Canopy
+  - [ ] Grid
+  - [ ] Tide
+  - [ ] Aftermath
+  - [ ] Herd
+  - [ ] Thaw
+  - [ ] Loop
+  - [ ] Drift
+- [ ] Z27: A shared "difficulty-aware achievements" audit — check whether any achievement becomes impossible or trivially easy under a game's own hard-mode/difficulty toggle:
+  - [ ] SOL
+  - [ ] Canopy
+  - [ ] Grid
+  - [ ] Tide
+  - [ ] Aftermath
+  - [ ] Herd
+  - [ ] Thaw
+  - [ ] Loop
+  - [ ] Drift
+  - [ ] Trade Empire
+  - [ ] Continuum
+  - [ ] Le Champ de Mots
+- [ ] Z27b: Add a "% of players who have earned this" stat per achievement *(needs Z1)* — per your own added note, "that's how I see how difficult it is on most sites."
+- [ ] Z28: A consistent loading-state check — confirm every game shows a visible "loading…" state during Pyodide boot rather than a blank screen:
+  - [ ] SOL
+  - [ ] Canopy
+  - [ ] Grid
+  - [ ] Tide
+  - [ ] Aftermath
+  - [ ] Herd
+  - [ ] Thaw
+  - [ ] Loop
+  - [ ] Drift
+  - [ ] Trade Empire
+  - [ ] Continuum
+  - [ ] Le Champ de Mots
+- [ ] Z29: A cross-game "credits/sources" aggregation page — gather each game's real-world sources, then build the page:
+  - [ ] Canopy's Info Page sources
+  - [ ] Grid's Info Page sources
+  - [ ] Tide's Info Page sources
+  - [ ] Aftermath's Info Page sources
+  - [ ] Herd's Info Page sources
+  - [ ] Thaw's Info Page sources
+  - [ ] Loop's Info Page sources
+  - [ ] Drift's Info Page sources
+  - [ ] Continuum's era sources
+  - [ ] Build the aggregation page from the gathered list
+- [ ] Z30: A quick pass confirming every game's favicon/tab title is set correctly and distinctly, matching the NoyvjGames branding:
+  - [ ] SOL
+  - [ ] Canopy
+  - [ ] Grid
+  - [ ] Tide
+  - [ ] Aftermath
+  - [ ] Herd
+  - [ ] Thaw
+  - [ ] Loop
+  - [ ] Drift
+  - [ ] Trade Empire
+  - [ ] Continuum
+  - [ ] Le Champ de Mots
+- [ ] Z-extra (folded from C16's answer): audit one-time toast/banner callouts (first-X, milestone-crossed, etc.) and convert the ones that are really just "you did a thing once" into achievements instead of bespoke UI — "these should all be built into achievements and stop doing callouts since it will be announced through achievement gains" was Grid's own C16 answer; audit case by case, not a blanket removal:
+  - [ ] SOL
+  - [ ] Canopy
+  - [ ] Grid (originating case — C16's "first battery built" callout)
+  - [ ] Tide (D12, D17 callouts)
+  - [ ] Aftermath (E17-era callouts)
+  - [ ] Herd
+  - [ ] Thaw
+  - [ ] Loop
+  - [ ] Drift (I10, I26 callouts)
+  - [ ] Trade Empire (J28's callout, see per-game section)
+  - [ ] Continuum
+  - [ ] Le Champ de Mots
+- [ ] Z-extra (folded from A26): a "reset settings to default" button inside every game's settings panel — SOL's A26 flagged this as a site-wide pattern, not SOL-only:
+  - [ ] SOL
+  - [ ] Canopy
+  - [ ] Grid
+  - [ ] Tide
+  - [ ] Aftermath
+  - [ ] Herd
+  - [ ] Thaw
+  - [ ] Loop
+  - [ ] Drift
+  - [ ] Trade Empire
+  - [ ] Continuum
+  - [ ] Le Champ de Mots
+- [ ] Z-extra (folded from A10): an achievement-progress bar (X/N) visible in every game's toolbar itself, not only after opening the achievements panel — SOL's A10 flagged this as a site-wide pattern:
+  - [ ] SOL
+  - [ ] Canopy
+  - [ ] Grid
+  - [ ] Tide
+  - [ ] Aftermath
+  - [ ] Herd
+  - [ ] Thaw
+  - [ ] Loop
+  - [ ] Drift
+  - [ ] Trade Empire
+  - [ ] Continuum
+  - [ ] Le Champ de Mots
+- [ ] Z-extra (folded from Y11, "let players pick to do a story mode in each game or turn off the story elements"): audit which games carry narrative/flavor-text framing and add an opt-out toggle where relevant:
+  - [ ] SOL (flavor text/milestone framing)
+  - [ ] Canopy
+  - [ ] Grid
+  - [ ] Tide
+  - [ ] Aftermath (legacy system)
+  - [ ] Herd
+  - [ ] Thaw (region flavor lines)
+  - [ ] Loop
+  - [ ] Drift
+  - [ ] Trade Empire
+  - [ ] Continuum (story/era-transition beats)
+  - [ ] Le Champ de Mots
+- [ ] Z-extra (folded from Le Champ de Mots' L1/L10/L29 answers): a general design principle for any future minigame/practice feature anywhere on the site — every such action should visibly feed a measured top-level progress stat, so it always visibly "counts" toward something the player can see. (Forward-looking guidance, not a per-existing-game retrofit task.)
+- [ ] Z-extra (folded from Le Champ de Mots' L30 answer): preserve a player's current visual/display-mode choice when navigating away to the hub and back, instead of resetting to default. Currently only concretely actionable for Le Champ de Mots (the only game with a visual-style switcher) — revisit the checklist here if another game adds a similar per-game display setting.
+
+**Explicitly rejected this round (not carried anywhere, per your own answers):**
+- Z3: a shared meta-progression module — build each game's own accepted meta-progression idea independently instead (see SOL, Canopy, Herd, Drift below).
+- Z5: a shared challenge-mode/hard-mode naming convention — build each game's own accepted hard-mode idea independently instead (see Grid, Tide, Continuum below).
 
 ---
 
-## Site-wide goal: colorblind-safety audit
+## Y. Home (the hub shell — index.html/script.js/style.css)
 
-*(Origin: A10, reinforced by L5. Use the same Okabe-Ito-palette method Continuum's Phase 5 already ran and documented.)*
+**Already done, not carried forward** (this ideas doc was drafted before these landed this session): Y1 (public roadmap page → `roadmap.html`, done), Y3 (admin aggregate stats page → `admin.html` + `GET /admin/stats`, done), Y5 ("claim your save" nudge, done), Y7 (PWA install banner, done). If you want any of these revisited/extended, that's new scope, not this list.
 
-- [x] SOL — audited, no change needed: no hue-only state encoding found (ecology warning uses a border + text line, not a red/green pair; priority/achievement selection states use a full background/LED change plus text, not color alone; section accent colors are per-section decoration, each already headed by its own text label). See games/sol/CLAUDE.md for the worked note.
-- [x] Canopy — done as B9 (per-game dispatch, not folded into a separate site-wide pass): every plot-tile state now carries its own icon (Bare's gap closed) plus a CSS pattern overlay independent of hue. Not a straight Okabe-Ito hue swap like Continuum's — Canopy's state colors are continuous brown-to-green gradients, not a discrete red/green pair, so redundant coding (icon + pattern) was the applicable fix instead of re-picking a palette. See games/canopy/CLAUDE.md for the worked note.
-- [x] Grid — real violation found and fixed (also closes C18): the C15 trend graph's emissions (red) vs. renewable-cost (green) lines were solid, same-weight, and told apart only by hue, with their only text label hidden behind a hover tooltip. Recolored cost to Okabe-Ito blue and gave it its own dash pattern, distinct from the pre-existing dashed global-benchmark line. Meters/plant-mix bars/disruption toasts audited and found already safe. See games/grid/CLAUDE.md for the worked note.
-- [x] Tide — audited land/flooded coastline tiles (the one discrete two-state color pair in this game, like Continuum's red/green pair). Not a hue-only encoding to begin with: green vs. blue isn't the deuteranopia/protanopia confusion pair, land/flooded already carry distinct CSS texture patterns (a dot pattern vs. diagonal stripes, from the earlier full visual pass) independent of hue, and D19's new per-tile hover/tap tooltip states "Flooded"/"Floods once sea level reaches N" in plain text, so the distinction no longer depends on color perception at all — same redundant-coding bar Continuum's audit and Canopy's B9 applied. No CSS re-color needed; see games/tide/CLAUDE.md for the worked note.
-- [x] Aftermath — audited, no change needed: the three event-category colors (weather/non-weather/social) aren't a deuteranopia/protanopia or blue/purple confusion pair with each other, and every render site already pairs them with an icon + text label; the mitigation meter is a single always-green bar with no red counterpart; skill-tree locked/unlocked state is icon-driven (padlock vs. checkmark). See games/aftermath/CLAUDE.md for the worked note.
-- [x] Herd — audited, no change needed: the coupling-ratio dial's green-to-red continuous gradient (this game's own most prominent UI element) is already redundantly coded three ways independent of hue — arc-fill length against a dark track (like a progress bar), text end-labels ("CLEAN"/"HIGH"), and an always-visible numeric readout. See games/herd/CLAUDE.md for the worked note.
-- [x] Thaw — audited, no change needed: the tipping-flash (red) vs. dampening-flash (green) is an intentional contrast, but the two never appear side by side (one-shot flashes fired by different actions at different times) and each is already fully redundantly described by text that changes in the same render pass (melt-status sentence + crack/bubble visual; dampening percentage + intervention message). Meter fills, critical-status styling, and the feedback survey's selection highlight audited and already safe. See games/thaw/CLAUDE.md for the worked note.
-- [x] Loop — audited, no change needed: the extraction/circularity meters are two separately-labeled bars (not a switching pair); the return-flow/import-flow particles already carry their own icon + full descriptive text; the chain-flow particle's brown-vs-green closed-loop state (the one real reds/browns-vs-greens risk pair) is already redundantly coded via `chain_flow_message()`'s always-visible text and the chain-arrow's independent opacity change. See games/loop/CLAUDE.md for the worked note.
-- [x] Drift — real violation found and fixed: the I1 strain/wellbeing trend graph's two lines were distinguished only by red/green hue with no other cue for reading the lines' shape at a glance (per-point tooltips only help on hover). Fixed CSS-only with a dashed pattern on the wellbeing line, colors untouched. Everything else checked (strain meter's stable/strained/critical tiers, turning-point/coda accent) was already text-labeled or single-hue, no fix needed. See games/drift/CLAUDE.md for the worked note.
-- [x] Trade Empire — already fixed as J18 (automated ships draw as a diamond, manual as a circle, on top of the gold/near-white color which wasn't a real confusion pair to begin with); confirmed here and audited everything else (market-crashed, ship idle-warning, fleet-priority ring, meter fills) — all already text-backed single-state callouts, no fix needed. See games/trade-empire/CLAUDE.md for the worked note.
-- [x] Continuum — already done as part of Phase 5.
-- [x] Le Champ de Mots — audited, no change needed: the plot-stage progression is already redundantly coded by emoji sprite + tooltip/`aria-label` text (not hue-only to begin with); the automated-sprinkler vs. weeds-mixup overlay dots are told apart by corner position, not color; the correct-answer choice highlight has no paired "wrong" color to confuse it with (wrong picks stay default styling, distinguished by feedback text); confidence-rating and gender-tagging buttons carry no color-by-value coding; the shop-rush patience bar's real signal is its own shrinking width, not its green-to-red gradient; Verb Racer's player/rival markers are already told apart by glyph, lane, and a grayscale filter; the progress dashboard/error digest are plain text with no chart to carry a color-only line-identity problem; and none of the four visual styles (Milestone 32) introduce a new color-only cue. See games/champ-de-mots/CLAUDE.md for the worked note.
-- [x] The hub shell itself (nav, buttons, review widget) — audited, no change needed: every status/success/failure indicator is plain text with no color coding at all, the achievements-dashboard bars are a single-hue gradient (not a red/green pair), and the star widget's selected/unselected states differ by a large lightness jump (gold vs. dark slate), not a hue-only confusion pair. See root `CLAUDE.md`'s Working notes for the full worked note.
+- [ ] Y2: Let the hub's search/filter bar remember the last-used search term and tag filter across a reload, via `localStorage`.
+- [ ] Y4: A small live game-count readout ("12 games and counting") on the hub's header/tagline.
+- [ ] Y6: Let the review widget's star-rating show the current average as a filled/half-filled star visual, not just numeric text.
+- [ ] Y8: A small persistent "you're signed in" indicator visible even when scrolled past the account section.
+- [ ] Y9: A permanent service-worker cache-busting fix — a proper cache-version scheme for `sw.js` so it doesn't need the "reload twice" workaround this whole project has repeatedly had to use. *(Promoted out of `LATER.md`'s L16 — this round's "yes" resolves it; remove the old L16 entry there.)*
+- [ ] Y10: A small "new since your last visit" count badge on the What's New nav link itself.
+- [ ] Y12: A small "member since" date on the hub's account section for signed-in users.
+- [ ] Y13: A light, skippable "site tour" onboarding flow for first-time hub visitors — **make it optional, same as the per-game tutorials.**
+- [ ] Y15: A "community highlights" section periodically featuring a real anonymized notable playthrough (needs Z1's aggregate backend).
+- [ ] Y16: A loading skeleton/placeholder for the title-card grid while the ratings widget's async fetch resolves.
+- [ ] Y17: A proper 404/error page for a broken game link, styled to match the hub.
+- [ ] Y18: A brief "Signed out" confirmation message on sign-out before the UI switches views.
+- [ ] Y19: A deeper site search that also searches inside game descriptions and changelog entries, not just the visible title-card text.
+- [ ] Y20: A "share this game" button per title card (copies a direct link), distinct from the review widget.
+- [ ] Y21: A "what's popular" sort option on the hub lobby — **build two separate sort modes**, sort-by-rating-average AND sort-by-save-count, per your own note that save count is probably the more honest popularity signal right now (reviews skew toward test/friend accounts).
+- [ ] Y22: A visual marker on title cards for games with an active difficulty/challenge variant (ties to Z10).
+- [ ] Y23: A short, honest terms-of-use/privacy page covering what's stored (accounts/saves/feedback) and why.
+- [ ] Y24: A "random game" button for an undecided visitor, weighted toward unplayed titles for a signed-in player.
+- [ ] Y25: A dismissible, `localStorage`-tracked site-wide announcement banner mechanism, distinct from the What's New page, for time-sensitive notices.
+- [ ] Y26: Let the achievements dashboard's overall progress bar show the exact fraction as a hover tooltip, not just the bar width.
+- [ ] Y27: A "recently added" hub-lobby section, separate from Continue Playing, surfacing the newest game(s).
+- [ ] Y28: A consistent focus-ring style audit across all hub-level interactive elements for keyboard-navigation clarity.
+- [ ] Y29: A privacy-respecting, self-hosted pageview-counter opt-in for real BCM206 visitor-count evidence (not a third-party tracker).
+- [ ] Y30: A "back to top" floating button on the hub lobby once scrolled past the fold.
+- [ ] Y-extra (added after this doc was first built — you confirmed the repo is already public, no action needed there, but asked for this as a safety check): a full scan of every tracked file **and commit history/messages** across the whole repo for anything personal that shouldn't be public — names, personal notes, stray credentials, anything written assuming a private audience. Worth doing sooner rather than gated behind everything else in this list, since the repo is public right now.
 
----
-
-## Site-wide goal: onboarding-tooltip coverage check
-
-*(Origin: A14 — "that should be in the how-to-play section, if not add it site-wide." Investigate first, only build where there's a real gap.)*
-
-- [x] For each game: check whether its existing Tutorial / How-to-Play already covers "a returning player who skipped the tutorial and forgot a mechanic." Where it doesn't, add a light contextual-tooltip pass rather than relying solely on the one-time walkthrough.
-  - All 12 done: SOL, Canopy, Grid, Tide, Aftermath, Herd, Continuum, Drift, Loop, Le Champ de Mots, Trade Empire (fixed a real lost research-prereq hint), Thaw (fixed a real gap on the Region B/C preset buttons) — each has its own CLAUDE.md worked note, confirmed via direct inspection (not just a prior claim) for the last two.
-
----
-
-## Site-wide goal: "What's New" changelog
-
-*(Origin: K16 "yes but site-wide (all games AND site)", plus L10's own separate hub-page ask — merged into one goal with two parts.)*
-
-- [x] Per-game in-game changelog panel (K16), for every game.
-  - All 12 done: SOL, Canopy, Grid, Tide, Aftermath, Herd, Thaw, Loop, Drift, Trade Empire, Continuum, and now Le Champ de Mots (each has its own CLAUDE.md worked note) — confirmed via `git log --oneline -- games/<slug>` for each.
-- [x] A hub-level "What's New" page (L10), pulling from `BCM114-DEV-LOG.md`/`BCM206-DEV-LOG.md` — **scoped per your notes: brief bullet points + date only, not direct links into the dev logs, and collapsible by date** since some days have a lot logged. Built as a new `whats-new.html` at the repo root (linked from a new hub nav in `index.html`'s header) rather than a heavier section inside the hub page itself — it fetches both dev logs client-side at load time and parses each `### YYYY-MM-DD` entry's `**Did:**` line into a one-line, truncated bullet (no full entry text, no links into the log files), grouped into a `<details>` per date (most recent two dates open by default), matching the `<details>`-based disclosure pattern already used across the games (e.g. Tide's ticker-history toggle). Self-updating: any future dev-log entry shows up here automatically, no regeneration step needed.
-
----
-
-## Site-wide goal: finish the mobile-dock rollout
-
-*(Origin: several games separately asked for the same fix Canopy and Trade Empire already have — `shared/mobile-dock.js` docking a game's key action panel to the bottom of the viewport on mobile.)*
-
-- [x] Canopy — action panel (already done).
-- [x] Trade Empire — needs strip (already done).
-- [x] Canopy — also extend to the stats/legend panels (B15).
-- [x] Grid — plant-build action row (C1) — docked Advance Round instead (see games/grid/CLAUDE.md for the judgment call: Grid's plant rows already keep build/retire/maintain inline, no far-apart split to close).
-- [x] Tide — investments panel + Advance Season button (D1) — wraps both in `#actions-dock`, same pattern as Aftermath's.
-- [x] Aftermath — actions panel: Resilience/Growth/Face Next Event (E1).
-- [x] Continuum — doesn't have this pattern at all yet (K9) — docked Advance Season, same judgment call as Grid's own single-button case (see games/continuum/CLAUDE.md).
-
----
-
-## Site-wide goal: a shared confirmation-dialog pattern ("don't ask again")
-
-*(Origin: three separate games asked for a confirm-before-spending step, and you flagged the same "won't this get annoying" concern each time — C14, F16, J19. Design ONE reusable pattern, not three one-off dialogs.)*
-
-- [x] Design the shared pattern: `shared/confirm-dialog.js` — a self-contained modal (own styling injected, no per-game CSS needed) with a "don't ask me again" checkbox persisted per-browser via `localStorage`, keyed per action id so one game's skip choice never collides with another's. `ConfirmDialog.ask({id, message, confirmLabel, cancelLabel, onConfirm})` — if the id's skip flag is already set, `onConfirm` fires immediately with no dialog shown. Verified live (dialog renders, confirms, and the skip checkbox correctly bypasses the dialog on a second call).
-- [x] Apply to Grid: confirm before retiring the last remaining unit of a plant type (C14).
-- [x] Apply to Herd: confirm/undo window before the pricier Plant-Based Pivot buy (F16).
-- [x] Apply to Trade Empire: confirm before spending research points/automation credits (J19) — **first check how often this button is actually pressed** (your own concern); skip or soften if it's a common action, not a rare one.
-
----
-
-## Site-wide goal: shared save-widget QoL fixes
-
-*(Origin: two stale `REVIEW(documentation)` comments in `planning/SAVE-BUTTON-INTEGRATION.md` describing behavior the widget never actually had — copy-to-clipboard and load-field autofill. Worth actually building now rather than just correcting the docs, since both are small, genuinely useful, and touch exactly one shared file affecting every game at once.)*
-
-- [x] Add a copy-to-clipboard button next to the displayed save code. Tries the Clipboard API first, falls back to a legacy `execCommand` copy on any failure, shows a plain "couldn't copy" message rather than failing silently if both are blocked (verified: this browser pane's own sandbox denies clipboard-write entirely, and the fallback chain degrades gracefully exactly as designed).
-- [x] Auto-fill the "load by code" input with the last remembered code for this game. Only fills when the field is empty, so it never overwrites a code the player is actively typing in.
-- [x] Fix the two stale doc comments in `planning/SAVE-BUTTON-INTEGRATION.md` — rewritten to describe the actual behavior now that it's built.
-
----
-
-## Site-wide goal: hub lobby improvements
-
-*(Origin: L11, L12, plus your own added notes.)*
-
-- [x] Search/filter on the hub lobby (L11).
-- [x] A "games you have saves for" section pinned to the top for signed-in users, so a player who only plays 2-3 games sees those first (your addition to L11) — this overlaps with L4 ("continue where you left off"); build as one combined feature, not two.
-- [x] Tags per title card — not just length/depth (L12 originally suggested "quick" vs "deep systems"), but a general sorting/tagging system across the whole site, per your note that this could "start a general sorting system through the whole site." Decide the tag taxonomy (genre? subject? length?) before building.
+**Resolved, not carried forward:** Y14 — the repo is already public; no action needed.
 
 ---
 
 ## Per-game: SOL
 
-- [x] A1: Prestige / "New Game+" layer after the soft win-state. Went with the simple version — a permanent flat resource-yield bonus per prestige level, not a skill tree (see `games/sol/CLAUDE.md`'s own build note for the full reasoning and what does/doesn't reset).
-- [x] A2/A13: A second achievement wave — speedrun-style and "pure clicker/never automated" challenge runs. **Constraint from you: keep 100% achievable without extreme grinding or huge time investment.** (4 new achievements, generous timers/thresholds — see `games/sol/CLAUDE.md`.)
-- [x] A3: A "welcome back" return-visit summary toast.
-- [x] A4: A lifetime-stats screen.
-- [x] A6: Layer in the icon/visual layer the design doc always left room for — **only if straightforward**; if it turns into a real asset-pipeline project, downgrade to `LATER.md` instead of forcing it. Found this was already solved via a pure-CSS icon system with zero markup changes needed — no `LATER.md` downgrade needed.
-- [x] A8: A shareable "my solar system" end-state summary card.
-- [x] A11: A visible "governor efficiency" readout.
-- [x] A15: Visual terraforming feedback (color shift as `terraform_progress` climbs).
-- [x] A16: A simple research-tree diagram instead of a flat list.
-- [x] A17: An ecology warning banner at the 25%-output-penalty threshold.
-- [x] A18: A "reset this world only" option.
-
----
-
-## Per-game: Continuum
-
-- [x] K5: A "civilization summary" end-of-playthrough report.
-- [x] K6: Named camera presets in the 3D scene — Overview/Close-up/Aerial buttons above the 3D view (`render3d.js`'s `CAMERA_PRESETS`), reusing the existing drag-to-look camera math so a preset and a manual drag are indistinguishable to the camera itself; shown only alongside the live 3D view, hidden in 2D mode. Live-verified all three angles render distinctly with no console errors.
-- [x] K7: A way to actually view a revisited era's snapshot in the 3D layer — closed a real pre-existing gap (there was no revisit UI at all yet, despite `save.py` fully supporting it since Milestone 4): built a new "Look Back" section (enter/exit buttons per completed era), and confirmed live that the 3D layer's `get_visual_state()` correctly reflects the revisited era's own snapshot automatically once the UI exists to trigger it.
-- [x] K8: Confirm every info-panel source is a clickable outbound link — confirmed via `shared/info_page.py`'s renderer and live-checked across all seven eras; nothing needed fixing.
-- [x] K10: A tutorial walkthrough via `shared/tutorial.js`, if it doesn't have one — already built (`CONTINUUM_TUTORIAL_STEPS` in `index.html`); confirmed present, no new work needed.
-- [x] K12: A scenario/difficulty select at new-game start.
-- [x] K13: A shareable "my settlement" snapshot image, exported from the 3D scene.
-- [x] K14: A search/filter on the research tree (14 tiers across 3 branches now) — a text input filtering by name/blurb/branch, live-verified.
-- [x] K15: Confirm accessibility settings (text-scale, colorblind fixes) persist through a real save/load, not just `localStorage` — confirmed this is deliberate, not a bug: both are browser-level preferences, not portable save state (baking a local text-size/view-mode choice into a cross-device save would be backwards). No fix applied, per the task's own "only fix if actually broken" instruction.
-- [x] K17: A subtle day/night or seasonal lighting cycle in the 3D scene.
-- [x] K18: An optional stricter "hard mode" sustainability variant.
-- [x] K19: Confirm/extend distinct meshes per building type in the 3D scene — audited every era's building list against `render3d.js`; found one real gap (Sanitation Works, Industrial, had no mesh of its own beyond feeding the smoke-reduction math) and closed it with a distinct teal treatment-tank mesh. Every other era-specific building already had its own distinct shape.
-- [x] K20: A proper hub title-card art pass — done as part of Phase 6 (below): a CSS-only thumb matching every other game's hand-drawn-gradient convention (no photographic-screenshot pattern exists anywhere on this hub to break from).
-- [x] Achievements: 19 achievements + in-game panel + unlock toast + `achievements_earned` in `get_state()` (hub-side `script.js` registration still needed — out of scope for a `games/continuum/`-only dispatch, same caveat Canopy/Grid's own rollouts already noted above).
+- [ ] A1: A second prestige tier beyond the existing flat yield bonus — a genuine skill-tree branch unlocked only after N prestiges.
+- [ ] A2: Show the current prestige level as a small badge next to the game's title, not just inside the win-banner toggle.
+- [ ] A3: A "New Game+" replay variant — **built as an unlock inside the existing prestige tree**, per your own note, rather than a separate standalone mode.
+- [ ] A4: A tooltip on the Prestige button stating exactly what resets and what doesn't, distinct from the "reset this world" option.
+- [ ] A5: A real "while you were away" delta report (resources gained, Governor decisions made) — reports on real elapsed time, doesn't gate progress on it, so it doesn't violate the no-idle-timer rule.
+- [ ] A6: Let the Stats & Share card's copy button flash "Copied!" like the shared save-widget's own copy button.
+- [ ] A7: A "Governor AI personality" choice per planet (aggressive/balanced/conservative presets) instead of one flat priority dial.
+- [ ] A8: Surface `governed_resource_generated`'s lifetime total on the main Stats screen too.
+- [ ] A9 **(prioritize — you called this "very important"):** A proper multi-planet overview dashboard — every unlocked planet's key stats at once, instead of navigating planet-by-planet.
+- [ ] A10 → folded into Z (see "Games" section above): achievement-progress toolbar badge, site-wide.
+- [ ] A11: A "trade route automation" layer — once two planets have stable economies, set a standing trade rule instead of manually re-triggering.
+- [ ] A12: A subtle particle/spark animation on the resource icon when a manual click lands.
+- [ ] A13: A build-order planner/checklist players can manually tick through.
+- [ ] A14: Let the research-tree diagram collapse by tier.
+- [ ] A15: A "sandbox mode" toggle post-win-state — remove resource costs for free end-game experimentation.
+- [ ] A16: A small planet-count readout ("7/11 bodies visited") near the Travel button.
+- [ ] A17: An export/import progress code for lifetime stats, mirroring Aftermath's E12.
+- [ ] A18: `title` tooltips on each Governor priority button explaining exactly what the weighting does numerically.
+- [ ] A19: A "close call" achievement family — surviving a near-0%-ecology collapse and recovering.
+- [ ] A20: A small swatch legend for the terraform color-shift tiers.
+- [ ] A21: A "compare my run" feature against site aggregate stats *(needs Z1)*.
+- [ ] A22 → folded into Z22 (see "Games" section above): confirm-before-full-save-wipe, as part of the site-wide `ConfirmDialog` wording audit.
+- [ ] A23: A "planet specialization" system — a fully-developed planet leans into one resource type for a production bonus.
+- [ ] A24: Surface the exact prestige-bonus percentage next to resource-gain numbers, not only in the Stats panel.
+- [ ] A25: A "story mode" toggle surfacing existing flavor text more prominently as a light narrative thread.
+- [ ] A26 → folded into Z (see "Games" section above): "reset settings to default" button, site-wide.
+- [ ] A27: A proper end-game "epilogue" screen once every planet is 100% terraformed, beyond the current banner.
+- [ ] A28: Let the Sky City info-toggle state the exact Mars-material cost ratio.
+- [ ] A29: A community leaderboard for fastest full completion, opt-in *(needs Z1)*.
+- [ ] A30: A small animated icon transition when a building finishes constructing.
 
 ---
 
 ## Per-game: Canopy
 
-- [x] B1: End-of-session summary screen. A player-triggered "Session Summary" panel folding in B6/B18/B20 together (stats recap, sparkline, shareable text, counterfactual line) — see `render_session_summary()` in `games/canopy/game.py`.
-- [x] B2: "Reset session" button. Folded together with B13 into one `reset_session()` (see `games/canopy/game.py`) since both mean "rebuild the session from scratch."
-- [x] B3: A second, unlockable forest region/biome. "Highland Grove" — a smaller (3×4), independent grid reusing the same Plot clear/replant/accrue mechanics (no biodiversity or stakeholder tension of its own), permanently unlocked once the main forest's standing value crosses 2,000. New "Second Growth" achievement (21st entry) fires on unlock. See `HIGHLAND_ROWS`/`render_highland_section()` in `games/canopy/game.py`.
-- [x] B4: Coordinate-style plot labels.
-- [x] B6: A history sparkline (income vs. standing value). Inline SVG in the Session Summary panel (B1), sampled once per tick, capped at 120 points.
-- [x] B7: Save/compare two named playstyle runs. "Save as Run A"/"Save as Run B" snapshot the current stats to per-browser `localStorage` (survives a Reset Session, unlike everything else in the Session Summary panel); a comparison table renders once at least one slot is saved — see `save_playstyle_run()`/`playstyle_comparison_html()`.
-- [x] B8: Hover/tap tooltips on plot tiles.
-- [x] B9: A colorblind-safe pattern/icon overlay for plot states — fold into the site-wide colorblind audit above if that's more efficient than a one-off.
-- [x] B10: Surface biodiversity as an explicit number.
-- [x] B11: Diversify stakeholder requests to sometimes offer a positive trade-off. A new "incentive" request kind cycles in after every full pass through the original 3 "clear" reasons — accepting keeps the plot standing and pays a relations boost + funding bonus, declining costs nothing (see `STAKEHOLDER_KIND_INCENTIVE` in `games/canopy/game.py`).
-- [x] B12: A visible badge for a pending stakeholder request when scrolled away.
-- [x] B13: A larger-grid option as a difficulty/length variant. A "Large (9×8)" preset alongside the existing "Normal (6×6)", selectable via a dropdown that triggers a full session reset at the new size; the chosen size round-trips through the save-code system.
-- [x] B14: A persisted "personal best" stat across sessions. (Per-browser, via `localStorage` — deliberately independent of the save-code system; see `games/canopy/game.py`'s `load_personal_best()`/`_maybe_update_personal_best()`.)
-- [x] B16: Keyboard navigation for plot selection/action.
-- [x] B17: A floating "+X value" animation on compounding ticks.
-- [x] B18: A shareable end-of-session code/snippet. Plain-text bragging-rights summary (not a decodable save code) + copy-to-clipboard, in the Session Summary panel (B1) — see `share_snippet()`.
-- [x] B19: A distinct "fully mature" cap-off visual for Recovered plots.
-- [x] B20: A closing counterfactual line at session end. "If every plot had been left standing since the start, this forest would be worth about X" vs. actual standing value, in the Session Summary panel (B1) — see `counterfactual_message()`.
-- [x] B15's own unresolved clarification question moved to `planning/FOR-YOU.md` (Q1) — B15 itself is done (folded into the mobile-dock rollout goal above); only the "what did your comment mean" question is still open.
+- [ ] B1: A third biome beyond the main forest and Highland Grove — a wetland/coastal-forest region with its own tension (e.g. flood risk on preserved plots), unlocked at a higher threshold than Highland Grove.
+- [ ] B2: Let the coordinate-style plot labels also show up in the stakeholder-request panel.
+- [ ] B3: A "forest history" timeline view — a scrollable log of every clear/preserve/replant decision this session.
+- [ ] B4: A confetti/leaf-burst animation the first time a plot reaches "fully mature."
+- [ ] B6: Let the Highland Grove's unlock threshold show as a progress bar toward 2,000 standing value, not a silent unlock.
+- [ ] B7: A "forest ranger" harder-difficulty mode — steeper soil degradation from clearing.
+- [ ] B8: A tooltip on the stakeholder "incentive" request type clarifying it's a genuinely positive offer before opening it.
+- [ ] B9: A named-run "playstyle badge" (Preservationist/Balanced/Harvester) computed from the session's clear-vs-preserve ratio.
+- [ ] B10: Let biodiversity's numeric readout show its rate of change (+X/tick), not just the current total.
+- [ ] B11: A "reforestation partner" mechanic — a second party co-funds replanting a bare plot for a smaller cut of its future value.
+- [ ] B12: A small "?" tooltip on soil-quality percentages explaining what degradation costs in future yield.
+- [ ] B13: A proper end-of-session "forest report card" — biodiversity/standing-value/stakeholder-relations trends as three small graphs.
+- [ ] B14: A "Small (4×4)" grid preset alongside the existing Normal/Large options, for a faster session.
+- [ ] B15: A "legacy forest" feature — a fresh session starts with a small permanent bonus based on a previous session's final standing value (Aftermath-style meta-progression, opt-in, built independently per Z3's resolution).
+- [ ] B16: A keyboard shortcut for "select next stakeholder request."
+- [ ] B17: A visible seasonal cycle — plots grow slightly faster/slower by an in-game season indicator.
+- [ ] B18: A "copy my playstyle badge" button next to the existing shareable snippet.
+- [ ] B19: A "community forest" comparison page — see how other players' saved Run A/B snapshots compare in aggregate, anonymized *(needs Z1)*.
+- [ ] B20: Let the "+X value" floating animation vary its color slightly by magnitude (size/motion only, no new color-only meaning, consistent with the colorblind audit).
+- [ ] B21: A "specialist plot" upgrade — a long-preserved plot gets a one-time permanent specialization choice (biodiversity vs. economic value).
+- [ ] B22: A small "veteran plot" icon marker for plots that survived 3+ clear-requests without ever being cleared.
+- [ ] B23: A wildlife log — a running record of which species icons have appeared and when.
+- [ ] B24: Let the Reset Session confirmation show the current standing value being given up.
+- [ ] B25: A "community grant" event type — a stakeholder occasionally offers funding specifically for replanting.
+- [ ] B26: A subtle highlight/glow on whichever plot the mouse last hovered, for easier tracking on the larger grid.
+- [ ] B27: An "adopt a plot" personal-goal feature — mark one plot as a long-term project with its own mini-history.
+- [ ] B28: Let the Session Summary's counterfactual line also state the percentage difference, not just the absolute value.
+- [ ] B29: A guided "best strategy" AI-narrated example playthrough demonstrating a strong preserve/clear balance.
+- [ ] B30: A small monthly/seasonal color-palette shift on the forest background art, purely decorative.
+
+**Deferred to `LATER.md`** (your answer): B5 — comparing your forest's standing value against the site aggregate average — parked pending "a full multiplayer pass soon," distinct from B19 above (which only needs Z1, not multiplayer, and is accepted).
 
 ---
 
 ## Per-game: Grid
 
-*(C6 marked "later" with no further comment — moved to `LATER.md` as-is.)*
+- [ ] C1: A genuine "grid operator career" meta-progression — persistent stats/unlocks across multiple runs (Aftermath-style skill tree), since Grid currently resets fully each session (built independently per Z3's resolution).
+- [ ] C2: Let the breakdown-risk badge show the exact percentage chance, not just a badge.
+- [ ] C3: A regional/multi-grid mode — manage two interconnected grids, sharing surplus capacity between them.
+- [ ] C4: A tooltip explaining exactly what "aging" does numerically on hover over any plant's wear percentage.
+- [ ] C5: A "grid operator report" — extend the existing Run Summary with a letter-grade/tier ranking against the real-world benchmark line.
+- [ ] C6: Let the plant-mix bar chart animate bars growing/shrinking on change, rather than snapping instantly.
+- [ ] C7: A "demand response" mechanic — invest in reducing peak demand itself, a fourth lever alongside build/retire/maintain.
+- [ ] C8: A small icon distinguishing renewable vs. fossil plant rows in the plant-mix chart legend, beyond color.
+- [ ] C9: A storage-arbitrage mini-game layer — once the battery tier is built, manually choose when to charge/discharge for a small bonus.
+- [ ] C10: Let the disruption-event toast include a "why this happened" reason tied to the specific plant that failed.
+- [ ] C11: A "grid resilience score" separate from clean-share — rewarding diversification (not all-renewable, not all-fossil) as its own axis.
+- [ ] C12: A small historical "best round" marker on the trend graph.
+- [ ] C13: A scenario-select mode at game start ("coal-heavy legacy grid," "greenfield renewable-first," etc.) with different starting plant mixes.
+- [ ] C14: Let the funds-breakdown panel show a small pie/bar visual, not just numbers.
+- [ ] C15: A cross-player aggregate comparison *(needs Z1 — the same shared endpoint C15 was already waiting on in `LATER.md`; resolve this one via Z1 rather than the separate multiplayer pass B5/others are waiting on)*.
+- [ ] C17: A weather-event log (separate from the disruption log) narrating exactly how Weather Variability affected a specific round's renewable output.
+- [ ] C18: Let Retire's confirmation dialog show the plant's current age/wear alongside the "last unit" warning.
+- [ ] C19: A "policy lever" mechanic — an occasional opt-in choice (carbon pricing, subsidy) that shifts the cost curve temporarily.
+- [ ] C20: A small up/down arrow next to the demand number each round, showing faster/slower growth than average.
+- [ ] C22: Let the steeper-demand-growth toggle show its exact multiplier in its own label.
+- [ ] C23: A maintenance-scheduling feature — pre-commit to a maintenance cadence per plant type instead of manually clicking Maintain.
+- [ ] C24: A subtle pulse on the emissions meter the instant it crosses the 50% renewable-capacity tipping point.
+- [ ] C25: A "grid of the future" endgame projection — extrapolate the current trajectory 20 more rounds, like Thaw's counterfactual.
+- [ ] C26: Give the plant-age wear icon three distinct visual tiers, not just a percentage number.
+- [ ] C27: An "emergency response" mode — a rare opt-in scenario where a major disruption hits and the player must stabilize the grid within a few rounds (built independently per Z5's resolution).
+- [ ] C28: A small "clean streak" counter visible at all times, not just inside the achievements panel.
+- [ ] C29: A community-sourced "real utility" comparison mode against a specific real region's actual generation mix (stretch — needs real per-region data sourcing).
+- [ ] C30: A one-time tooltip explaining why renewable costs decrease with cumulative investment, the first time a renewable is built.
 
-- [x] C1 — folded into the mobile-dock rollout goal above.
-- [x] C2: A battery/grid-storage plant tier. Storage-only (excluded from generation/renewable-share metrics); its one mechanical effect is buffering a renewable shortfall when Weather Variability (C4) is on.
-- [x] C3: Attach disruption-event log lines to the specific plant/type that failed.
-- [x] C4: Weather-variability-on-renewables as an opt-in hard mode.
-- [x] C5: A proper end-of-run summary screen with a score breakdown. An on-demand "Run Summary" panel (Grid has no hard end-state to hang a literal end screen off) — score, average clean share, clean trend, funds breakdown, best streak, and the C17 counterfactual, all in one place.
-- [x] C7: A plant-mix bar chart. Generation-only — battery (C2) has no row.
-- [x] C8: A tipping-point callout at 50% cumulative renewable capacity.
-- [x] C9: Confirmation before retiring the last unit of a plant type — folded into the shared confirmation-dialog goal above.
-- [x] C10: Show the exact aging/wear percentage.
-- [x] C11: moved to `planning/LATER.md`'s "C. Grid" section (needs a new shared backend aggregate-stats endpoint, bigger than a single-game scope) — tracked there, not duplicated here.
-- [x] C12: A visible toast/banner for disruption events.
-- [x] C13: A funds breakdown (build vs. maintenance vs. disruption-damage).
-- [x] C15: An interactive trend graph (hover for exact values). Every point on all three trend lines now carries a native SVG `<title>` tooltip with the exact round/value.
-- [x] C16: A "steeper demand growth" difficulty variant.
-- [x] C17: A closing "grid vs. business-as-usual" counterfactual. A capacity-held-constant, coal-only shadow trajectory (`bau_emissions`), surfaced in the new C5 Run Summary panel.
-- [x] C18: Colorblind-safe trend-graph line differentiation — fold into the site-wide colorblind audit.
-- [x] C19: A breakdown-risk badge once a plant type's average age crosses a threshold.
-- [x] C20: A one-time first-use callout for Retire's refund / Maintain's cost math.
+**Folded into Z (see "Games" section above):** C16's original "first battery built" callout — reshape into an achievement instead of a bespoke toast, per your own "these should all be built into achievements" answer; this is the specific case that seeded the broader Z-extra callout-to-achievement audit.
+
+**Deferred to `LATER.md`** (your answer): C21 — the "grid twin" split-view comparison mode — you left this as a judgment call on whether it's too much for a player; parking it for a real scoping conversation rather than deciding unilaterally.
 
 ---
 
 ## Per-game: Tide
 
-*(D10 and D20 marked "later"/"maybe later" — moved to `LATER.md`.)*
+- [ ] D1: A fifth adaptation tier beyond Storm-surge barriers — a "managed retreat" option trading some coastline for guaranteed long-term stability, a genuinely different strategy branch.
+- [ ] D2: Let the worst-season callout also show which specific investment (or lack of one) contributed most to that season's damage.
+- [ ] D4: A small wave/tide animation cue tied to the sea-level meter's current percentage, purely decorative.
+- [ ] D5: A "climate refugee" mechanic — once a coastline is sufficiently flooded, population must relocate to remaining land (a light connection to Drift's displacement theme, not a duplicate of its mechanics).
+- [ ] D6: Let the fish-yield crash warning banner include a suggested action (invest in acidity reduction), not just the warning.
+- [ ] D7: A "delayed consequence" visualization — a timeline graph showing today's acidity choices against the eventual fish-yield impact several seasons later.
+- [ ] D8: A small tide-level indicator showing the current season's high/low tide relative to the coastline tiles.
+- [ ] D9: A community seawall-design comparison — aggregate stats on which adaptation-tier combination other players reach fastest *(needs Z1)*.
+- [ ] D10: Let the acidity/fish-yield mini-graph show a dashed reference line at the historical average, like Thaw's melt-threshold gridline.
+- [ ] D11: A "coastal economy diversification" mechanic — a third income source (tourism, aquaculture) as a hedge against acidity-driven fish crashes.
+- [ ] D13: A "storm season" event layer — periodic acute weather events (distinct from the slow background sea-level rise) testing whether adaptation infrastructure holds under immediate shock.
+- [ ] D14: Let the then-vs-now stat block include a small sparkline, not just numbers.
+- [ ] D15: A proper settlement-growth mechanic — population/economy grow over a successful session, giving "success" a visibly growing settlement, not just a stable one.
+- [ ] D16: A tooltip on the hard-lag difficulty toggle explaining exactly what the extended lag means in seasons.
+- [ ] D17: A "coastal heritage" mechanic — certain coastline tiles carry extra value (a historic site, a reef) worth protecting even at higher cost.
+- [ ] D18: Let the comparison-baseline checkpoint show a small marker on the trend graphs at the exact season it was set.
+- [ ] D19: A "sea-level rise scenario" select at game start — conservative/moderate/severe real-world-grounded trajectories.
+- [ ] D20: A small icon-badge extension of the seawall visual's per-tier signature into the investments panel too.
+- [ ] D21: A "citizen science" side-mechanic — monitoring investment periodically reveals a piece of real-world acidification data as a reward.
+- [ ] D22: Let the output-mix sub-choice show a live preview of the income/fish-yield tradeoff before committing.
+- [ ] D23: A proper "recovery" narrative — a distinct celebratory callout once a crashed fish stock rebuilds, mirroring the existing decline narration with equal weight.
+- [ ] D24: A small "seasons survived" counter always visible, not just inside the session summary.
+- [ ] D26: Let the per-tile flood-threshold tooltip also state how many seasons remain at current pace.
+- [ ] D27: A "before it's too late" replay mode — replay from a mid-session checkpoint with knowledge of what's coming, distinct from the existing counterfactual.
+- [ ] D28: A subtle color-independent pattern on the seawall visual tiers, extending the existing colorblind-audit redundancy to the new infrastructure art.
+- [ ] D29: A "settlement name and history" light narrative layer, scaled-down diegetic flavor in Continuum's spirit.
+- [ ] D30: A one-time tooltip the first time hard-lag mode is toggled, confirming the change takes effect next season.
 
-- [x] D1 — folded into the mobile-dock rollout goal above.
-- [x] D2: A fourth adaptation tier. Storm-surge barriers, threshold 15, 95% dampening.
-- [x] D3: A "seasons until next tile floods" estimate. `next_flood_estimate()`.
-- [x] D4: A numeric then-vs-now stat block. `then_vs_now_text()`.
-- [x] D5: A scrollable/expandable ticker history. `ticker_full_history` behind a `<details>` disclosure.
-- [x] D6: A "what if you'd invested earlier" counterfactual replay. `counterfactual_message()`.
-- [x] D7: An end-of-session summary screen. `session_summary_text()`, on-demand panel.
-- [x] D8: A highlight/flash on the coastline row the moment it floods. `.coastline-flash`, one-shot per row.
-- [x] D9: An optional "harder lag" difficulty mode. `hard_lag_mode` toggle, 6-season lag vs. the default 3.
-- [x] D11: Colorblind-safe/textured coastline differentiation — audited as part of the site-wide colorblind audit above; already redundantly coded (texture + D19's text tooltip), no re-color needed.
-- [x] D12: A "worst season" callout. `worst_season()`.
-- [x] D13: A persisted "best coastline saved" stat. Per-browser via `localStorage`.
-- [x] D14: An early-warning banner for a fish-yield crash already locked in. `next_season_fish_yield_preview()` + `#fish-warning-banner`.
-- [x] D15: A Grid-style historical mini-graph for acidity vs. fish yield. `acidity_fish_history_svg()`.
-- [x] D16: Split the Output investment into a fishing/industry sub-choice. `output_mix` (fishing/mixed/industry), defaults to the original fishing-only formula.
-- [x] D17: A one-time "first flood" callout. `_record_first_flood_message()`.
-- [x] D18: A player-chosen comparison-baseline checkpoint. `set_comparison_baseline()`.
-- [x] D19: A hover/tap detail per coastline tile showing its flood threshold. `tile.title`.
+**Folded into Z (see "Games" section above):** D12's original "first adaptation tier unlocked" celebratory callout — tie into an achievement pop-up instead, per your answer.
+
+**Deferred to `LATER.md`** (your answers): D3 — a multi-settlement mode — left as a judgment call on player-facing complexity, parked for a scoping conversation. D25 — the "shared coastline" cooperative-framing stat — explicitly saved for the multiplayer update.
 
 ---
 
 ## Per-game: Aftermath
 
-*(E5 marked "later" — moved to `LATER.md`.)*
+- [ ] E1: A sixth and seventh skill node, extending the existing prerequisite-tree pattern into a genuine multi-branch tree — **"will add a bunch of new nodes with important decisions,"** per your note, so treat this as a real tree expansion, not just two extra leaves.
+- [ ] E2: Let the skill-unlock toast persist slightly longer for skills with more real-world grounding text to read.
+- [ ] E3: A "disaster type specialization" — the skill tree branches into weather-focused vs. social-shock-focused resilience paths, giving Civil Unrest its own upgrade path.
+- [ ] E4: A small "runs completed" counter always visible, not just inside the Review Past Runs panel.
+- [ ] E5: A "generational memory" mechanic — a run occasionally references a specific past run's outcome in its event flavor text, deepening the legacy system.
+- [ ] E6: Let the extended-run mode show its exact new event count in the toggle's own label.
+- [ ] E7: A proper difficulty-scaling curve across many runs — event severity variation could also scale with total lifetime runs played.
+- [ ] E8: A one-time tooltip the first time a run scores negative, reassuring the player the skill tree persists regardless.
+- [ ] E9: A "community resilience index" — an aggregate stat showing average skill-tree strength across all players *(needs Z1)* — **you flagged this for a fuller build-out once the multiplayer update and "holiday events" (see Z23) land**, so treat the Z1-dependent version here as a first pass, not the final shape.
+- [ ] E10: Let the toughest-run-yet comparison show the specific event sequence that made it toughest, not just the score.
+- [ ] E12: A small badge on the settlement art for reaching a "toughest run" personal best, not just per-skill badges.
+- [ ] E13: A proper narrative epilogue at the end of an extended run, in Continuum's era-transition-beat spirit, scaled to Aftermath's shorter format.
+- [ ] E14: Let the expected-damage preview show a confidence range, not just a single number.
+- [ ] E15: A "specialize or generalize" build-diversity achievement family, rewarding both a narrow deep-investment strategy and a broad balanced one.
+- [ ] E16: A small animated flourish on the Review Past Runs panel when a run's score beats the previous best.
+- [ ] E17a: A "climate scenario pack" — choose among a few real-world-grounded event-schedule variants (coastal/inland/urban) at run start.
+- [ ] E17b: Extend E17a to real named locations (per your example: San Francisco skews earthquake/fire risk with near-zero snow/hurricane risk), not just generic region types.
+- [ ] E18: Let the knowledge-points-live-preview show a small "+" animation when it increases.
+- [ ] E19: A proper "resilience curriculum" mode — a guided sequence of runs with specific goals each time.
+- [ ] E20: A tooltip explaining exactly how skill-tree strength affects severity variation.
+- [ ] E22: Let the reset-skill-tree two-click confirm show exactly how many knowledge points will be refunded before the second click.
+- [ ] E23: A community "hardest schedule survived" leaderboard, since severity variation means no two hard runs are identical *(needs Z1)*.
+- [ ] E24: A small icon per event category (weather/non-weather/social) in the Review Past Runs list itself, not just the live event display.
+- [ ] E25: A proper "settlement identity" customization — name the settlement once, carried across all runs.
+- [ ] E26: Let the export/import progress code show a short human-readable summary of its contents before copying.
+- [ ] E27: A "resilience mentor" onboarding mode — an optional guided first run with inline suggestions, distinct from the standard tutorial.
+- [ ] E28: A one-time callout the first time severity variation swings notably harsher due to skill-tree strength, explaining why.
+- [ ] E29: A "societal memory" system — a very bad past-run outcome permanently unlocks a unique defensive skill not otherwise available.
+- [ ] E30a: A small "X runs until next skill affordable" estimate next to a locked skill's cost, based on average knowledge-point earn rate.
+- [ ] E30b: A "pin" feature so the player can mark specific skills they're saving toward and have E30a's estimate tracked for exactly those, per your addition.
 
-- [x] E1 — folded into the mobile-dock rollout goal above.
-- [x] E2: A fourth and fifth skill-tree node — Adaptive Growth Practices (+1 starting growth) and Mutual Aid Network (+5% mitigation).
-- [x] E3: Branching/prerequisite structure for the skill tree — Mutual Aid Network requires both Reinforced Infrastructure and Community Reserves; locked skills show which prereqs are missing.
-- [x] E4: Build out the "legacy system" beyond its current flavor-text line — a per-event-type weathered-count chip row, additive to the original single line.
-- [x] E6: Another event category beyond weather/non-weather — a "social" category (Civil Unrest), replacing the schedule's second Storm slot to preserve the existing 7-event balance.
-- [x] E7: Let players review a specific past run's full event-by-event breakdown — a new persisted run-log history + "Review Past Runs" panel.
-- [x] E8: An "expected damage this event" preview before Face Next Event.
-- [x] E9: A visible "X/5 skills unlocked" progress summary.
-- [x] E10: A confirmation animation/state change when investment is spent — a brief flash on the resources readout.
-- [x] E11: A proper end-of-run summary — final stats + full event-by-event breakdown, beyond the original one-line score.
-- [x] E12: Export/import code for the localStorage-based skill tree and run history — a base64 progress code, separate from the per-run save widget.
-- [x] E13: A "reset skill tree" option with confirmation — an in-UI two-click confirm (no browser dialog), fully refunding spent knowledge.
-- [x] E14: Surface each skill's real-world grounding text more prominently on first unlock — a dedicated unlock toast.
-- [x] E15: A visual badge on the settlement art per unlocked skill.
-- [x] E16: Show the current run's severity band numerically — folded into the E8 expected-damage preview line.
-- [x] E17: A "toughest run yet" comparison.
-- [x] E18: An optional extended-run mode — a checkbox doubling the event schedule length for the next run.
-- [x] E19: Distinct visual intensity per event severity.
-- [x] E20: A live preview of the knowledge points a run will award.
+**Explicitly rejected this round:** E21 — the "what would have happened" hypothetical-skill-tree replay — dropped, not carried anywhere.
+
+**Deferred to `LATER.md`** (your answer): E11 — the "mutual aid network" positive event — explicitly waiting for the multiplayer update.
 
 ---
 
 ## Per-game: Herd
 
-*(F4, F10, F16, F20 marked "later" — moved to `LATER.md`.)*
+- [ ] F1: A "regional herd network" — manage a second, smaller satellite farm with its own coupling ratio; surplus decoupling investment from the main farm partially offsets the satellite's emissions.
+- [ ] F2: Let the pasture visual's cow-count thresholds include a small herd-size number overlay, not just the visual count.
+- [ ] F3: A "consumer demand shift" mechanic — market preference occasionally shifts toward plant-based output, temporarily making the pivot more profitable.
+- [ ] F4: A one-time tooltip the first time coupling ratio crosses below 0.5, explaining "decoupled" in plain terms.
+- [ ] F5: A "generational herd genetics" system — invest in breeding for naturally lower methane intensity per animal, a slow-burn fourth decoupling lever.
+- [ ] F6: Let the report card show the exact percentage the player's score beat the pure-growth baseline by.
+- [ ] F7: A "farm cooperative" comparison — aggregate stats on community-wide methane-per-unit avoided *(needs Z1 for a first pass — you flagged this as feeling especially important but possibly better suited to a fuller build once the multiplayer update lands; ship the Z1-backed version now, expand later)*.
+- [ ] F8: A small "record decoupling ratio" marker on the coupling gauge, like Grid's best-round marker.
+- [ ] F9: A proper multi-season weather/feed-cost variation layer, adding light unpredictability to the investment-return math.
+- [ ] F10: Let the community stat show a small trend arrow if the backend can support it cheaply *(same F7/Z1 caveat above)*.
+- [ ] F11: A "sustainable certification" milestone — a sustained low coupling ratio for N rounds unlocks a permanent price premium.
+- [ ] F12: A tooltip on the Plant-Based Pivot's confirm dialog stating the exact income tradeoff percentage.
+- [ ] F13: A "supply chain" expansion — invest downstream (processing, distribution efficiency) as a new income lever distinct from herd growth.
+- [ ] F14: Let the real-world comparison message update its framing once the player's own reduction exceeds the cited 42% figure, congratulating them for beating the real benchmark.
+- [ ] F15: A "herd health" sub-system — animal welfare as a light second axis, where certain decoupling measures (better feed) also improve welfare.
+- [ ] F16: A small pulse on the methane trend graph the moment the curve visibly flattens.
+- [ ] F17: A "farm tour" narrative mode — periodic short flavor vignettes reacting to the farm's current coupling ratio.
+- [ ] F18: Let the investment consequence preview show numbers with a small before/after arrow.
+- [ ] F19: A "regional methane cap" scenario mode — an opt-in harder variant with a hard regulatory cap forcing decoupling.
+- [ ] F21: A community "decoupling leaderboard" by best score-vs-baseline gap *(same F7/Z1 caveat above)*.
+- [ ] F22: Let the min/max range labels behind the coupling gauge flash when a new session-best is set.
+- [ ] F23 **(you called this "the next big thing this game needs"):** A "second herd type" — a genuinely different animal (poultry, aquaculture) with its own coupling curve, **unlocked via prestige**, each type with its own needs and decoupling levers, per your framing.
+- [ ] F24: A tooltip explaining exactly what the ambient haze overlay's intensity represents.
+- [ ] F25: A "farm succession" meta-progression, Aftermath-style (built independently per Z3's resolution) — **explicitly tie this to F23**, per your note that they work well together (e.g. succession unlocking or feeding into new animal types).
+- [ ] F26: A small icon distinguishing the three original decoupling measures (feed/caps/capture) from the plant-based pivot in any summary list.
+- [ ] F27: A "policy advisor" event — periodically offers a choice between a subsidy for decoupling investment or a flat cash bonus.
+- [ ] F28: Let the worked numeric example in the tutorial be revisitable from the How to Play panel directly.
+- [ ] F30: A small animated methane-wisp effect that visibly thins as coupling ratio improves, reinforcing the haze overlay's intensity cue with motion.
 
-- [x] F1: A live pure-growth-vs-decoupled counterfactual score comparison. `FarmState.counterfactual_funds`/`counterfactual_methane` accumulate a same-herd-size, zero-decoupling shadow path each round; `counterfactual_comparison_message()` surfaces the live score gap.
-- [x] F2: Scale the pasture visual's cow count with real herd size. `update_pasture_visual()` reveals 5 fixed cow elements at herd-size thresholds (1/3/6/10/15).
-- [x] F3: An end-of-session "report card" vs. a pure-growth baseline. On-demand panel (`report_card_html()`) restating the F1/F13 counterfactual numbers with a fuller breakdown.
-- [x] F5: A one-time callout at a meaningful decoupling threshold. Milestone toast fires once at 50% decoupled-below-baseline.
-- [x] F6: A rising growth-cost curve instead of flat cost. `grow_herd_cost()` — first unit still costs the original flat price, each unit after adds a fixed slope.
-- [x] F7: A mini trend graph (methane/coupling ratio over rounds). `methane_trend_graph_svg()`, same technique as Thaw's mini_temp_graph_svg.
-- [x] F8: A combined dial/readout for decoupling + plant-pivot interaction. `combined_decoupling_message()`.
-- [x] F9: A consequence preview next to the Grow Herd button. `grow_consequence_message()` — next unit's cost/income/methane delta, no mutation.
-- [x] F11: Borrow Thaw's tipping-flash pattern for market/regulatory pressure. Milestone toast fires once when pressure crosses 25% income loss.
-- [x] F12: A short worked numeric example in How to Play. Added to the Decoupling Investments tutorial step (10-herd/Capture Systems worked example).
-- [x] F13: A second comparison farm/region. The pure-growth counterfactual (F1) doubles as a persistent baseline-farm card (herd/funds/methane/score readouts).
-- [x] F14: Min/max labels or a history sparkline behind the coupling gauge. Session-best (current ratio, monotonically improving) vs. fixed baseline.
-- [x] F15: Surface the real 42% methane-intensity-reduction figure as a live comparison. `real_world_comparison_message()`, also cited in the Info Page.
-- [x] F17: A one-time nudge the first time methane meaningfully drags score down. Milestone toast fires once past a fixed penalty-magnitude threshold.
-- [x] F18: An aggregate community stat via the ratings backend. Fetched client-side in `index.html`, fails silently if unavailable.
-- [x] F19: Lightweight animation/feedback on successful investment clicks. `_pulse()` toggles a short-lived CSS animation class on the clicked control.
+**Folded into Z (see "Games" section above):** F20's "maximum feasible decoupling ratio" badge — build as an achievement pop-up instead of a bespoke badge, per your answer.
+
+**Needs a feasibility check before deciding:** F29 — a "methane capture marketplace" where excess capture capacity is "sold" for a small return. You asked: is there a real-world example of this? If yes, build it; if it's not grounded in anything real, drop it. Research this before adding it to the working list.
 
 ---
 
 ## Per-game: Thaw
 
-*(G7, G8 marked "later" — moved to `LATER.md`.)*
+- [ ] G2: Let the region flavor lines be visible as a permanent subtitle under each region's name, not just discoverable once.
+- [ ] G3: A "permafrost carbon bank" mechanic — sustained low-acceleration play in a region banks a resource usable for a one-time bonus elsewhere.
+- [ ] G4: A tooltip on the Region D reveal toggle explaining what "worst case" means before the player reveals it.
+- [ ] G5: A "tipping cascade" mechanic — once one region tips into the feedback loop, a small chance it accelerates a neighboring region too.
+- [ ] G6: Label the melt-threshold gridline with its exact temperature value, not just a dashed line.
+- [ ] G7: A "climate scientist" info-mode — an optional deeper data view showing real-world methane-release curves alongside the in-game graph.
+- [ ] G8: A small distinct color-independent icon on the critical melt-status tier, reinforcing its text label with a shape cue.
+- [ ] G9: A "long game" mode — significantly extend session length for players who want the full long-run trajectory.
+- [ ] G10: Let the next-round preview tooltip show all three regions' previews simultaneously in one combined tooltip.
+- [ ] G11: A community "average acceleration factor" comparison, reinforcing the hope-angle message that intervention is common and effective *(needs Z1)*.
+- [ ] G12: A one-time callout the very first time `dampening_at_melt_start` is nonzero, praising the pre-emptive investment.
+- [ ] G13: A "policy simulation" branch — choose a real-world-inspired regional policy stance at game start, subtly weighting starting dampening.
+- [ ] G14: Let the preset strategies show a small preview of the resulting investment split before committing.
+- [ ] G15: A "permafrost restoration" late-game mechanic — once a region stabilizes, sustained investment slowly reverses some melt.
+- [ ] G16: A small trend arrow next to each region's temperature readout, showing faster/slower rise than last round.
+- [ ] G17: A "four regions, one story" narrative thread connecting A/B/C/D lightly (a shared research effort or funding pool) without merging their independent mechanics.
+- [ ] G18: Let the intervention feedback message's tiered phrasing include a small icon per tier, not text alone.
+- [ ] G19: A "scientist's log" — a running, dated record of key moments per region, a lightweight version of Continuum's ongoing-log system.
+- [ ] G20: A tooltip explaining exactly what `SECOND_WARMING_MILESTONE` represents in real terms before it's ever crossed.
+- [ ] G21: A "region rescue" mechanic — a costly one-time emergency intervention if a region tips into critical, a last-resort lever.
+- [ ] G22: Let the best-run personal record show which region achieved it, not just the raw `temperature_saved` number.
+- [ ] G23: A proper multi-session "climate archive" — a persistent record across many sessions of every region's best-ever performance.
+- [ ] G24: A small pulse on the acceleration-factor readout the instant a region crosses into the critical tier.
+- [ ] G26: Let the intervention free-text field show a short prompt/example answer as placeholder text.
+- [ ] G27: A "thaw forecast" mini-game — periodically predict next-round temperature before advancing, rewarded cosmetically for accuracy.
+- [ ] G28: A small "rounds since last tipping event" counter, giving stability its own visible streak like Grid's clean streaks.
+- [ ] G29: A "global vs. regional" framing toggle — the same mechanic reframed as either "my region's choices" or "the global aggregate."
+- [ ] G30: A one-time tooltip the first time Region D is revealed, clarifying it's fully automated and never needs player input.
 
-- [x] G1: Give Region B/C the same richer readouts Region A has.
-- [x] G2: An explicit end-of-session "which region did best" line.
-- [x] G3: A distinct "critical" visual/color state beyond binary melting/stable.
-- [x] G4: Let players optionally label Region B/C's intended strategy.
-- [x] G5: A real-world time calibration line for the background rise rate.
-- [x] G6: A `temperature_saved`-style stat for the secondary regions too.
-- [x] G9: A clarifying line (or rescale) for the maxed-out +30° temperature meter.
-- [x] G10: A milestone callout the first time dampening measurably delays a melt threshold.
-- [x] G11: Optional preset strategies for Region B/C.
-- [x] G12: A small inline forecast on the invest buttons before clicking.
-- [x] G13: A fourth, optional AI-driven "worst case" region.
-- [x] G14: A gridline at the melt threshold on the mini graphs.
-- [x] G15: Log the best-outcome strategy as an aggregate stat via the ratings backend.
-- [x] G16: A one-line flavor difference per region.
-- [x] G17: A "next round preview" tooltip on Advance Round.
-- [x] G18: Vary the intervention-feedback message by dampening magnitude.
-- [x] G19: A locally-stored "best run" stat.
-- [x] G20: An optional free-text field for "did intervention feel like it was working?"
+**Explicitly rejected this round:** G1 — a fifth "wildcard" region — dropped; you don't think the game needs that many regions running.
+
+**Deferred to `LATER.md`** (your answer): G25 — the "counterfactual world tour" applying Region D's trajectory to Region A/B/C's starting conditions — parked as "maybe later," not rejected outright.
 
 ---
 
 ## Per-game: Loop
 
-*(H16 marked "later" — moved to `LATER.md`.)*
+Every idea in this section was accepted. **You also flagged a real cross-cutting design direction here:** on H25/H29 (see below), you said visual design could be a big thing for this game, even if some visual options only work on desktop — build a simple/text version that works everywhere, alongside a richer visual version that's a notably better experience on desktop specifically, rather than one-size-fits-all. Keep that framing in mind for both items.
 
-- [x] H1: Fix the import/export asymmetry (excess imported supply currently evaporates).
-- [x] H2: Let the player choose a different goods category at game start.
-- [x] H3: A celebratory animation/banner the first time the loop closes.
-- [x] H4: A "cost per unit of supply" readout next to Repair/Reuse/Recycle.
-- [x] H5: Animate/highlight the decorative loop-ring nodes proportional to real investment.
-- [x] H6: A "time to close the loop" projection.
-- [x] H7: An in-game "Start New Chain" reset control.
-- [x] H8: A second, differently-priced trading partner.
-- [x] H9: A few alternate real-world sector comparisons, not just the static 7% one.
-- [x] H10: A note clarifying the 2.5x cost multiplier is a hard ceiling.
-- [x] H11: A lighter interim message for the first few cycles.
-- [x] H12: A visible funds count-up/particle burst on export revenue.
-- [x] H13: Toast callouts at circular-fraction milestones (25/50/75/100%).
-- [x] H14: A few alternate vignette phrasings per fraction bucket.
-- [x] H15: Show each measure's running contribution to supply next to its owned count.
-- [x] H17: A live score breakdown instead of an info-toggle-only explanation.
-- [x] H18: A visual pulse on the trade-network display when its numbers change.
-- [x] H19: A "closed-loop streak" tracker.
-- [x] H20: 2-3 alternate goods-flavor sets to pick from at game start.
+- [ ] H1: A third trading partner beyond Trade Link and Regional Partner, with its own distinct cost/supply ratio.
+- [ ] H2: Let the closed-loop streak tracker show its current streak with a small progress indicator (no guilt-driven "flame" framing, per this game's own design spirit).
+- [ ] H3: A "supply chain redesign" late-game layer — once fully circular, over-invest in a specific measure (repair/reuse/recycle) for a small efficiency bonus.
+- [ ] H4: Let the alternate goods-flavor sets be switchable mid-session as a cosmetic-only relabeling, not just at game start.
+- [ ] H5: A "circular economy index" community comparison — aggregate stats on average circular-fraction reached across all players *(needs Z1)*.
+- [ ] H6: A small animated particle burst specifically on the moment circular fraction crosses each 25% milestone.
+- [ ] H7: A "product lifecycle" vignette expansion — follow a specific named product across multiple cycles, a small ongoing narrative thread.
+- [ ] H8: Let the cost-per-unit-of-supply readout show a small trend indicator (getting cheaper/pricier).
+- [ ] H9: A "waste stream diversification" mechanic — specialize in recovering a specific material type for a bonus.
+- [ ] H10: A tooltip on the "time to close the loop" projection clarifying it's an estimate, not a guarantee.
+- [ ] H11: A "regional recycling network" — a shared community pool where excess recovered material could represent value for others (stretch — needs real backend support).
+- [ ] H12: Let the score breakdown show a small pie chart of score sources.
+- [ ] H13: A "circular design challenge" scenario mode — start with a deliberately hard-to-close chain as an opt-in harder variant.
+- [ ] H14: A small badge for trying all available goods-flavor sets across different sessions.
+- [ ] H15: A "loop efficiency audit" panel — a periodic optional deep-dive showing exactly where supply is wasted, with actionable suggestions.
+- [ ] H16: Let the first-time-closed-loop banner include the exact cycle number it happened on.
+- [ ] H17: A "consumer behavior" mechanic — invest in demand-side changes (encouraging reuse/repair culture) distinct from supply-side investment.
+- [ ] H18: A small glow on the loop-ring visualization's node currently receiving the most investment.
+- [ ] H19: A "circular economy scorecard" comparing the player's achieved circularity against several real-world sector benchmarks simultaneously (extends the existing single comparison).
+- [ ] H20: Let the alternate vignette phrasings rotate randomly among a fraction-bucket's options, for variety on repeat sessions.
+- [ ] H21: A "material passport" mechanic — track a piece of material's full journey as a literal traceable object.
+- [ ] H22: A tooltip explaining the hard-ceiling note with its exact multiplier value inline.
+- [ ] H23: A "zero-waste challenge" mode — a stricter variant where the extraction meter must stay below a hard cap.
+- [ ] H24: A small running count of "cycles since last new extraction," visible once circularity is high.
+- [ ] H25a: A "trade network visualization" upgrade — a small diagram showing both trade partners and the internal loop simultaneously, in a simple/text version that works everywhere.
+- [ ] H25b: A richer visual version of H25a, notably better on desktop specifically, per your note above.
+- [ ] H26: Let the reactive pulse on the trade-network display vary in intensity based on the size of the change.
+- [ ] H27: A "community goods category" vote/rotation — periodically feature a specific goods category as the "challenge of the week."
+- [ ] H28: A one-time tooltip the first time Regional Partner becomes available, distinguishing it from Trade Link.
+- [ ] H29a: A "circular supply chain map" — a visual network diagram (nodes for extraction/manufacturing/use/disposal/trade partners), replacing or supplementing the current linear-flow visualization, in a simple/text version that works everywhere.
+- [ ] H29b: A richer visual version of H29a, notably better on desktop specifically — same simple/visual split as H25.
+- [ ] H30: Let the "Start New Chain" reset show the two lifetime counters that survive (chains completed, categories tried) in the confirmation message.
 
 ---
 
 ## Per-game: Drift
 
-*(I4 marked "maybe" — moved to `LATER.md`.)*
+Every idea in this section was accepted, no exceptions.
 
-- [x] I1: A mini strain/wellbeing trend graph.
-- [x] I2: Scale the region skyline's building count/height with real capacity.
-- [x] I3: An explicit in-play comparison to the Uganda policy model.
-- [x] I5: A one-time callout at the "thriving" wellbeing band (≥70).
-- [x] I6: A one-line consequence description per strain level.
-- [x] I7: A one-line effect summary on each capacity investment row.
-- [x] I8: Replace the coda's three meter bars with a clearer before/after comparison.
-- [x] I9: A real-world resettlement-outcome benchmark comparison (institutional/statistical only, per this game's own sensitivity note).
-- [x] I10: A locally-stored "best run" stat.
-- [x] I11: A periodic (e.g. every 20 rounds) session-milestone summary.
-- [x] I12: Have the checkpoint message occasionally note a comfortably-ahead dimension too.
-- [x] I13: A difficulty-variant toggle (accelerated background severity).
-- [x] I14: A "target" marker (e.g. 70) on each wellbeing gauge bar.
-- [x] I15: A highlight/pulse on the coda button the moment it first becomes available.
-- [x] I16: Tie the arrival-dot stream's density/speed to real arrivals-per-round.
-- [x] I17: A passive "unmanaged control region" for contrast.
-- [x] I18: A free-text field inviting tone/framing concerns in the feedback prompt.
-- [x] I19: Turn the net-positive turning-point message into a small persistent badge.
-- [x] I20: Surface the funds-to-economic-health scale reference point in the UI.
+- [ ] I1: A second receiving region — manage two regions with different starting capacity/pressure profiles simultaneously.
+- [ ] I2: Let the passive unmanaged control region show its wellbeing trend on the same trend graph as the player's own region.
+- [ ] I3: A "policy toolkit" mechanic — choose among a few real-world-grounded institutional policy levers (streamlined credentialing, language-access funding) as named investment options, rather than the current abstract housing/services/infrastructure split.
+- [ ] I4: A visible (not just hover) statement of the accelerated-severity toggle's exact multiplier.
+- [ ] I5: A "generations forward" interactive coda — one or two final symbolic choices that flavor (not mechanically alter) the epilogue text.
+- [ ] I6: Let the session-milestone summary include a small trend indicator (improving/plateauing/declining) alongside the snapshot numbers.
+- [ ] I7: A "regional network" mechanic — a well-prepared region optionally supports a struggling neighboring region (light connection to I1).
+- [ ] I8: A small icon distinguishing the three composite wellbeing sub-scores (services/economy/cohesion) everywhere they're shown.
+- [ ] I9: A "capacity planning" forecast tool — a projected arrivals curve for the next N rounds based on current background severity.
+- [ ] I10: Let the net-positive turning-point badge show the exact round it was reached.
+- [ ] I11: A "thriving region" showcase mode — reaching the Thriving band unlocks a short optional descriptive vignette, institutional framing.
+- [ ] I12: A tooltip explaining what "unmanaged control region" represents and why it's shown.
+- [ ] I13: A "resettlement outcome" real-data comparison — the region's integration rate compared directly against the real 89% benchmark as a live in-session stat.
+- [ ] I14: Label the target marker on wellbeing gauges with the exact threshold number.
+- [ ] I15: A "crisis-to-recovery" narrative mode — an opt-in harder start (already-strained region) demonstrating the "not too late" message from a bad starting position.
+- [ ] I16: A small badge for reaching Model Region tier via a from-behind recovery, distinct from steady management.
+- [ ] I17: A "community capacity index" — aggregate stat showing average regional wellbeing across all players *(needs Z1)*.
+- [ ] I18: Let the free-text tone/framing feedback field show a short explanatory placeholder.
+- [ ] I19: A "resource reallocation" mid-run mechanic — shift already-committed capacity between housing/services/infrastructure at a small cost.
+- [ ] I20: A one-time callout the first time the arrival-dot stream's density visibly changes due to a difficulty toggle.
+- [ ] I21: A "long-horizon divergence" comparison — the coda's generations-later outcome shown side by side for both the player's region and the passive control region.
+- [ ] I22: Show the funds-to-economic-health scale reference as a small always-visible conversion note.
+- [ ] I23: A "regional identity" light customization — name the region once, carried through the whole session and into the coda.
+- [ ] I24: A small trend arrow next to each of the three composite sub-scores.
+- [ ] I25: A "second wave" mechanic — after initial arrivals integrate, a second, larger wave tests whether improved capacity holds up.
+- [ ] I26: Let the comfortably-ahead dimension callout name the specific sub-score that's ahead.
+- [ ] I27: A "capacity investment ROI" dashboard — exactly how much each dollar invested has returned in integration contribution.
+- [ ] I28: A tooltip explaining exactly what triggers the strain-level consequence descriptions.
+- [ ] I29: A "cross-region learning" mechanic — reaching Thriving once unlocks a small permanent efficiency bonus for any future region managed (built independently per Z3's resolution).
+- [ ] I30: A small "rounds until next capacity milestone" estimate, based on current investment pace.
 
 ---
 
 ## Per-game: Trade Empire
 
-*(J4, J5 answered "no" — dropped entirely, not carried anywhere: this game is explicitly "just fun," not a teaching game, so the info-page/feedback-prompt pattern the teaching games use doesn't apply here.)*
+- [ ] J1: A fourth self-contained expansion cluster beyond the home system and Kepler Cluster, requiring deeper research investment.
+- [ ] J2: Let the per-route profitability readout show a small trend arrow (improving/declining) based on recent trips.
+- [ ] J3: A "trade guild" mechanic — an NPC faction offering occasional bulk contracts (deliver X units of Y to Z by a deadline) for bonus rewards.
+- [ ] J4: Let the historical price sparkline show the exact current price as a labeled point, not just the trend line.
+- [ ] J5: A "fleet composition" upgrade — choose among distinct ship archetypes (cargo-heavy/fast/balanced) at purchase time.
+- [ ] J6: A tooltip explaining exactly what Fleet Priority's target-ring visualization is pointing at.
+- [ ] J7: A "colony investment" mechanic — directly fund a colony's development to accelerate its growth/specialization.
+- [ ] J8: Let the idle-manual-ship warning badge show exactly how many ticks it's been idle.
+- [ ] J9: A "market speculation" layer — stockpile a good during a price crash, sell during a later recovery.
+- [ ] J10: A small animated docking/undocking visual on the map when a ship arrives/departs.
+- [ ] J11: A "trade route insurance" mechanic — a small recurring cost protecting against a rare route-disruption event.
+- [ ] J12: Let the ship-rename feature support a quick "reset to default name" option.
+- [ ] J13: A "galactic economy overview" dashboard — a single screen summarizing every colony's need/supply state at once.
+- [ ] J14: A small badge for a ship completing N round trips on the same route — a "veteran hauler" marker.
+- [ ] J15 **("I do love extensive research trees," per your note):** A "research specialization" branch — choose between an automation-focused or market-focused research path once the tree grows large enough.
+- [ ] J16: Let the endgame galaxy-dot canvas respond to mouse hover with a small info tooltip per dot.
+- [ ] J17: A "player-run trade post" mechanic — once automation is maxed, establish a passive trade post generating income without an assigned ship.
+- [ ] J18: A tooltip on the automate button reminding the player automation is a one-time, non-reversible choice per ship.
+- [ ] J19: A "colony rebellion/loyalty" mechanic — chronically under-served colonies occasionally demand a one-time concession.
+- [ ] J20: Let the market-crashed styling include a small recovery-ETA estimate in its tooltip.
+- [ ] J21: A "trade empire legacy" meta-progression — a fresh game starts with a small permanent bonus once the endgame state is reached (built independently per Z3's resolution).
+- [ ] J22: A small particle/spark effect on a successful high-value sale.
+- [ ] J23: A "diplomatic relations" layer between the home system and Kepler Cluster — sustained trade volume unlocks a small permanent efficiency bonus.
+- [ ] J24: Let the colony detail sparkline show a small "needs met %" summary number alongside the graph.
+- [ ] J25: A "fleet-wide efficiency report" — a periodic optional panel showing which ships/routes are underperforming.
+- [ ] J26: A tooltip on the research panel's locked nodes explaining exactly what's still needed to unlock them.
+- [ ] J27: A "trade empire almanac" — an in-game reference documenting each good's typical price range and which colonies produce/need it.
+- [ ] J29: A "seasonal demand" mechanic — periodic, predictable shifts in which goods are in higher demand.
+- [ ] J30: A small map legend explaining the automated-vs-manual diamond/circle ship-dot distinction for a first-time viewer.
 
-- [x] J1: Wire up the shared save-widget contract.
-- [x] J2: Link Trade Empire into the hub's main nav.
-- [x] J3: Add the shared ad-bar partial.
-- [x] J6: A 5th/6th purchasable ship.
-- [x] J7: A second automation-slot research tier.
-- [x] J8: A lightweight "ship arrived" toast.
-- [x] J9: A real end-of-session/summary view.
-- [x] J10: Let players rename ships.
-- [x] J11: A per-route profitability readout.
-- [x] J12: A historical price sparkline per good.
-- [x] J13: A third self-contained expansion cluster.
-- [x] J14: A colony detail view (development-level and need history over time) — read as an inline need-history sparkline added to each colony's existing row rather than a separate view, same reasoning as J12's price sparkline.
-- [x] J15: A warning badge when a manual ship sits idle and empty for a long stretch.
-- [x] J16: Make Fleet Priority's current target visible on the map.
-- [x] J17: A one-time callout marking the first automated ship.
-- [x] J18: Colorblind-safe automated/manual ship-dot differentiation — fold into the site-wide colorblind audit.
-- [x] J19: Confirmation before spending research/automation credits — folded into the shared confirmation-dialog goal above, with your frequency caveat attached.
-- [x] J20: A visual flourish on the endgame's background-galaxy payoff.
-
----
-
-## Big standalone features
-
-- [x] **Continuum Phase 6**: link Continuum into the main hub nav (K1/L1) — done (title card + review widget). The dedicated full-playthrough integration test (K3 — marked "later", see `LATER.md`) remains open.
-- [x] **Trade Empire hub-link** (J2, L1) — done (title card + review widget), same pattern as Continuum's.
-- [x] **Le Champ de Mots: a visual-style switcher** — low-poly / text-based / cartoon / high-def, chosen on first load and changeable in settings. Desktop-only is fine (no need to solve mobile scaling for this). Your stated reasons: helps you see what's actually possible visually, and doubles as a BCM206 testing-different-options angle. Done (Milestone 32) — a settings-panel control switches a `data-visual-style` attribute, `localStorage`-persisted; High-def is the pre-existing look kept as the default, the other three are real CSS-only chrome/palette treatments (text-based also re-letters the farm grid's stage glyphs). See `games/champ-de-mots/CLAUDE.md`'s Milestone 32 build note for the honest scoping call on what "four full art styles" could realistically mean in one pass.
-- [ ] Deploy the accounts system to production (L3) — it's built and tested locally but never pushed live.
-- [x] Real favicon/PWA icon art (L6) — done as part of resolving `planning/FOR-YOU.md`'s Q4: a crescent-planet + moon + scattered-stars icon (`icons/icon-192.png`/`icon-512.png`), matching the site's dark-navy/lavender-blue palette, replacing the flat solid-blue placeholder. Verified live (browser tab favicon + manifest fetch).
-- [x] A "last updated" badge per title card (L7) — `scripts/generate-last-updated.py` writes `game-last-updated.json` from real git history, `script.js`'s `loadLastUpdatedBadges()` renders it under each card's tag row.
-- [x] An aggregate stats/About page — **visible in admin view only for now**, per your scoping note (L8) — `admin.html`'s existing aggregate-stats page (ratings/feedback/answer-reports) extended with `GET /admin/stats` for account/save counts.
-- [x] Auto-discover each game's `achievements.json` instead of hand-maintaining the list in `script.js` (L14) — revisited 2026-09-20, decided **no change**: `script.js`'s `GAMES_WITH_ACHIEVEMENTS` comment now documents why (a hand-maintained slug list is unavoidable anyway since GitHub Pages has no directory index, and history shows a real hub-linked-before-achievements-shipped gap — Trade Empire — that probing would reintroduce the exact per-game 404 this was built to avoid).
-- [x] A "claim your save" nudge for anonymous players who've clearly invested real time (L15) — dismissible banner shown when a signed-out visitor has at least one `savecode:<slug>` key in `localStorage`; CTA scrolls to and focuses the sign-up form.
-- [x] A single cross-game feedback/bug-report entry point on the hub (L17).
-- [x] A more visible "Add to Home Screen" PWA prompt (L18 — you said you didn't know what this meant; short answer: browsers can show an "install this site as an app" prompt, since the site already has a PWA manifest — right now nothing nudges a visitor toward it, it only works if they know to look for their browser's own install option). Built as a dismissible `#pwa-install-banner` that listens for the browser's `beforeinstallprompt` event and surfaces its own install flow via a button; permanently dismissible via `localStorage`, matching the claim-save-nudge's own posture. Verified live by dispatching a synthetic `beforeinstallprompt` event — banner shows, Install click hides it. Commit `5d82dde`.
-- [x] A lightweight public roadmap page generated from each game's own `CLAUDE.md` milestone table (L19) — built as `roadmap.html`, parsing root `CLAUDE.md`'s own "Current games"/"Site-level milestones" tables live and pairing each with real per-game commit counts/last-touched dates/recent commit subjects from `scripts/generate-roadmap-data.py`/`game-roadmap-data.json`, addressing your undersell caution directly.
-- [x] A UI decluttering pass across every game (your "other comments" note: "everything looks very crowded... making sections either collapsible or other 'screens' within a game could help") — audited all 11 non-Continuum games (Continuum itself is mid-session with a separate concurrent AI session, tracked in `planning/AI-COORDINATION.md`, not this pass). Confirmed the TODO note's own prediction: most crowding was already resolved as a side effect of the feature backlog (settings/achievements/changelog panels, on-demand summary screens, mobile-dock docking). SOL, Grid, Tide, Aftermath, Herd, Loop, Drift, and Trade Empire each had one genuine remaining crowding gap, fixed with a collapsed-by-default `<details>` disclosure (matching the site's existing Tide-ticker-history/`.info-toggle` pattern) around a specific always-visible-but-supplementary block — no game logic touched, nothing removed, every test suite unchanged in count. Canopy and Le Champ de Mots were audited and found not genuinely crowded — no change made. Each game has its own dated worked note in its `CLAUDE.md`. See `BCM114-DEV-LOG.md` for the full per-game breakdown and commit hashes.
+**Folded into Z (see "Games" section above):** J28's original "first automated ship" congratulatory animation — build it as an achievement pop-up instead of a bespoke callout, per your answer.
 
 ---
 
-## Planning-doc audit findings (not from the ideas file — found while cleaning up `planning/`)
+## Per-game: Continuum
 
-- [x] **Password-reset path for accounts** — decided 2026-09-15: admin-assisted manual reset (no email provider). See `planning/ACCOUNTS-AND-FEEDBACK-DESIGN.md` for the decision note.
-- [x] Confirm whether BCM114 ever needed audience-engagement content (Instagram) alongside the site — confirmed 2026-09-15: no, not needed. `planning/site-plan.md` updated.
-- [x] Confirm/finalize the site's real public name — confirmed 2026-09-15: **NoyvjGames**. Updated in `CLAUDE.md`, `README.md`, `manifest.json`, `index.html`, and `planning/site-plan.md`.
+*(This section is Noyvj Claude's to execute, not Noy2 Claude's — Continuum is being actively worked on in a separate concurrent session. Written here so the full ideas doc lands in one place; see `planning/AI-COORDINATION.md` before starting any of it.)* This section was written with real audience research behind it (40-year-old tech-industry men, your dad's friends) — see the ideas doc's own K-section preamble for the research summary (SimCity/Civilization-era nostalgia, deep optimization systems, competitive benchmarking).
+
+- [ ] K1: A "city planner's dashboard" — an optional dense, data-forward overlay (numeric readouts for every stat at once) as an alternate view mode alongside the 3D scene.
+- [ ] K2: A small "founded [year]" plaque-style readout on the main screen.
+- [ ] K3: A "benchmark your city" comparison mode against the aggregate of all other players' cities at the same era *(needs Z1)*.
+- [ ] K4: A subtle SimCity-era-style isometric camera preset alongside the existing Overview/Close-up/Aerial presets.
+- [ ] K5: A "policy log" — a running, dated ledger of every major research/infrastructure decision, styled like city council meeting minutes.
+- [ ] K6: Let the research tree's search/filter support filtering by branch (provision/community/craft) as quick-toggle chips.
+- [ ] K7 *(this is `TODO.md`'s still-open K5, now with a concrete direction)*: The "civilization summary" end-of-playthrough report — frame it like an annual shareholder/stakeholder report, complete with a scored "sustainability rating," in-character.
+- [ ] K8: A small efficiency-per-capita readout always visible in the HUD.
+- [ ] K9 *(this is `TODO.md`'s still-open K12, marked "maybe" this round)*: A scenario/difficulty select at new-game start, including a "hard mode: resource-scarce start."
+- [ ] K10: A small "years since last unrest event" streak counter, mirroring Grid's clean-streak idea.
+- [ ] K11 **(prioritize — you called this out explicitly):** A "civic engineering challenge" mode — periodic optional constraints (e.g. build the next tier using 20% less resource extraction) as opt-in mini-challenges within an ongoing playthrough.
+- [ ] K12: A tooltip on each research node showing its exact numeric effect directly in the tree view.
+- [ ] K13: A "my city vs. history" comparison — the player's city trajectory plotted against a real historical reference curve for the same era.
+- [ ] K14 *(this is `TODO.md`'s still-open K17, now with a concrete direction)*: A day/night cycle toggle that can be paused on a specific time-of-day for screenshot purposes.
+- [ ] K15: A "founder's log" — the player writes (or selects templated) short personal annotations at each era transition.
+- [ ] K16 *(this is `TODO.md`'s still-open K18, now with a concrete direction)*: An optional stricter "hard mode" sustainability variant with meaningfully tighter livability thresholds, framed as a mastery challenge.
+- [ ] K17: A small "efficiency rank" badge (Bronze/Silver/Gold city) computed from the final sustainability score.
+- [ ] K18: A "settlement archive" — a gallery of every past completed playthrough's final city (stats + screenshot).
+- [ ] K19 **(you flagged this as important for BCM114):** A small real-world GDP-per-capita-style reference line on the resource-balance graph, grounding the abstract number in a familiar economic framing.
+- [ ] K20 *(this is `TODO.md`'s still-open K13, now with a concrete direction)*: A "shareable settlement snapshot" rendered as a clean, professional-looking infographic card (stats + a 3D-scene screenshot).
+- [ ] K21a: A small "tech tree completion %" readout.
+- [ ] K21b: Expand the research tree further, per your added note — a real tree-growth task, not just K21a's UI readout.
+- [ ] K22: A "consulting mode" — an optional harder scenario taking over a pre-built, already-struggling city that must be turned around.
+- [ ] K23: A small "next tier unlocks in ~N research points" estimate on locked research nodes.
+- [ ] K24: A "civic infrastructure map" overlay — a simplified 2D top-down schematic view of building placement/density.
+- [ ] K25: A small "livability vs. growth" scatter-plot mini-graph tracked across the whole playthrough.
+- [ ] K26a **(direction changed from the original pitch, per your answer):** Do NOT build the originally-pitched "Space Age expansion" epilogue that closes out the seven-era arc — "rather than closing it, lets keep making more eras," per your answer.
+- [ ] K26b: Scope what an eighth (and future) era beyond Space Age would look like, continuing the arc rather than ending it.
+- [ ] K27: A small keyboard-shortcut cheat-sheet overlay (accessible via a "?" key).
+- [ ] K28: A "resource flow diagram" — an optional Sankey-style visualization of how resources move through the current era's production chain.
+- [ ] K29: A small "time played this city" readout, purely informational.
+
+**Deferred to `LATER.md`** (your answer): K30 — the "peer city" async ghost overlay *(needs Z1)* — you said it could be good but might also be confusing, and you want to prioritize working multiplayer into as many games as possible soon as "the next big development after this set" — parking this specifically until that multiplayer work is scoped, not rejecting it.
 
 ---
 
-## Closing tasks (run these last, per your instruction)
+## Per-game: Le Champ de Mots
 
-- [ ] A full site-wide bug-check pass, once everything above is done.
-- [x] Generate a fresh 20-ideas-per-game round-2 document (same format as `IMPROVEMENT-IDEAS-2026-09.md`) once this list is complete, for you to answer again. (For continuum focus on targetting an audience, which is 40 year old white men in the tech industry in california that are my dads friends we are also going to want to do research on this)
-- [ ] A second ideas document specifically for gamifying the "teaching" BCM114 games (Canopy, Grid, Tide, Aftermath, Herd, Thaw, Loop, Drift) — same 20-idea-per-game layout, but leaning into "fun" now that the teaching-focused part of the semester has passed. Explicitly requested to happen *after* everything you said yes to in this list is done.
+**Two real design changes in this section — read these before the checklist:**
+- **L4 reverses this game's own row-unlock pacing design.** The original idea (a "days until next row unlocks" countdown) was rejected outright — your actual answer replaces it with two concrete steps below, touching the core "row-unlock pacing" mechanic this game has had since Milestone 1. Scope as its own real design pass, not a quick tweak.
+- **L7 (study streak calendar) needs a real day-tracker built first** — the game currently has no actual concept of a calendar day (the player just advances "whenever"), so that infrastructure has to exist before the calendar view can be built. Split into its own prerequisite step below.
+
+- [ ] L4a: Remove the row-unlock pacing gate entirely — unlock every row immediately, so a player joining weeks into the course isn't locked out.
+- [ ] L4b: Build a general placement test that lets a returning/advanced player skip past earlier content.
+- [ ] L1: A fifth arcade minigame covering a sequence range not yet dedicated (e.g. passé composé/partitive weeks). **You also pitched a genuinely new idea here**, worth scoping as part of this same item: a music- or reading-based game that links to a Spotify song (quizzing on its lyrics/words) or an open-source short story (quizzing on its content) — decide whether this becomes L1's fifth minigame itself or a separate addition. **Also a real site-wide principle from this answer** (see Z-extra below): every practice-through-a-minigame action should visibly feed a measured top-level progress stat (watering count or equivalent), so playing a minigame always visibly "counts" toward something.
+- [ ] L2: Let the visual-style switcher remember two saved per-context presets (e.g. Cartoon for casual review, Text-based for a focused cram session) instead of one single choice.
+- [ ] L3: A "weak spot drill" mode generated purely from the error-pattern digest's flagged topics. **Also wire Review-tab practice into watering**: if a plot's topic hasn't been watered yet today, reviewing it through this (or any) practice mode should count as watering it, per your addition.
+- [ ] L5: A "conversation simulator" — a longer-form practice mode chaining several related vocab/grammar items into a short simulated dialogue exchange.
+- [ ] L6: Let the confidence-rating buttons show a small running accuracy-by-confidence stat, so the player can see whether their self-assessment is well-calibrated.
+- [ ] L7a: Build the day-tracker prerequisite — a real concept of a calendar day, since the player currently just advances "whenever."
+- [ ] L7b: A "study streak calendar" — a lightweight monthly calendar view of review activity, without guilt-driven streak-fire framing (needs L7a).
+- [ ] L8: A small "plots automated" progress bar always visible at the top of the farm.
+- [ ] L9: A "listening comprehension" practice type (TTS-based audio prompts) — **you noted audio is still hard, but L1's music-minigame pitch might be the practical way in**; scope these two together rather than solving audio comprehension from scratch here.
+- [ ] L10: Let the gender-tagging drill show its own running accuracy stat, separate from the overall dashboard. **Same top-level "everything shows measurable progress" principle as L1 applies here too**, per your note.
+- [ ] L11: A "sentence builder" freeform mode — a general-purpose sentence constructor usable with any mastered vocabulary at any time.
+- [ ] L12: A small "next review due" countdown on each automated plot.
+- [ ] L13: A "study buddy" pacing coach — an opt-in daily suggested review-session length based on how many plots are currently due.
+- [ ] L14: Let the report-button flow show a short "thanks, noted" confirmation distinct from the normal question-feedback flow.
+- [ ] L15: A "grammar deep-dive" panel per grammar topic — an optional expanded explanation beyond the terse in-practice rule.
+- [ ] L16: A small visual distinction (border color or icon) between vocab/grammar/phrase/phonetic plot types on the farm grid itself.
+- [ ] L17 **(you called this "very important"):** A "mixed review marathon" mode — a long-form session pulling due plots from across the entire farm regardless of row.
+- [ ] L18: Let the weeds mix-up state show a small note naming exactly which other item it's being confused with.
+- [ ] L19: A "personal phrasebook" — bookmark specific items into a custom cross-cutting list, independent of the syllabus row structure.
+- [ ] L20: A small "catch-up progress" readout for already-unlocked rows, distinguishing "reviewed since unlocking" from "never yet watered." *(Note: since L4 above removes row-gating entirely, re-scope this as covering however "already unlocked" ends up being defined post-L4 — likely "every row.")*
+- [ ] L22: Let the cultural-notes toggle show a small "new note available" indicator when a freshly-unlocked row has cultural context worth reading.
+- [ ] L23: A "spaced repetition transparency" panel — an optional, fully explained view of exactly how the SM-2-style scheduling works.
+- [ ] L24: A small animated watering-can cursor/effect when actively watering a plot.
+- [ ] L25: A "review before the exam" cram mode — a dedicated denser review session covering everything from a chosen chapter range.
+- [ ] L26: Let the liaison/elision quiz show a small phonetic-symbol legend.
+- [ ] L27: A "farm-wide health" summary visualization — a single glanceable chart of the whole farm's mastery distribution.
+- [ ] L28: A small badge/icon for perfectly answering a full row's worth of plots in one sitting.
+- [ ] L29: A second, standalone mini-game family — a lighter, more frequent "quick water" mode (a single rapid-fire question, no full session) for very short study breaks. **Same top-level progress-visibility principle as L1 applies here.**
+
+**Folded into Z (see "Games" section above):** L30's original "preserve visual style when navigating back from the hub achievements link" — generalize this into a site-wide UI-state-preservation principle, not a Le Champ de Mots-only fix, per your answer.
+
+**Parked pending the audio question already tracked in `LATER.md`:** L21 — the pronunciation-practice mode (slowed TTS + syllable breakdown) — your answer was "audio is still an issue we are not dealing with yet"; add this to `LATER.md`'s existing "Standing question: what can you actually do with audio" section rather than duplicating that discussion here.
+
+---
+
+## M. New game concepts
+
+A "yes" here means "worth a groundwork plan" (a new `planning/<game>-plan.md`, per this repo's own convention), not scoped work yet — per your own standing instruction for this section.
+
+- [ ] M3 — **Signal**: a small, standalone daily puzzle game (Wordle-adjacent in spirit, original mechanic) — "may as well try it... that can be good," per your answer. Write a groundwork plan.
+- [ ] M4 — **Undersleep**: a wellness-themed idle/management game balancing a daily schedule against a circadian-rhythm meter. You liked this one specifically and want it expanded — **also explore a life-tracker angle**, per your note that "there is a lot that can be done to make this more and better." Write a groundwork plan with that broader scope in mind.
+- [ ] M6 — **Overclock** (roguelike deck-builder): accepted, but **scoped down for now** per your instruction — the initial groundwork plan should cover only the baseline every game gets (save system, settings panel, the other standard shared infrastructure), not the deck-building specifics. You're leaning toward a **space or cult theme/gimmick** — revisit the actual gimmick in the next ideas round, per your own instruction.
+- [ ] M7 — **Last Line** (tower defense): accepted, **same scoping as M6** — baseline infra first, gimmick/specifics deferred to the next ideas round.
+- [ ] M10 — **Deep Descent** (roguelite dungeon-crawler): accepted, **same scoping as M6/M7** — baseline infra first, specifics deferred to the next ideas round.
+
+**Rejected/parked this round — too teaching-coded, per your own stated preference for "fun not learning" in new games:**
+- M1 — **Compound Interest** (financial-literacy incremental) — parked unless a specific class assignment ever calls for it.
+- M5 — **Rootstock** (digital-garden knowledge sim) — same reasoning, "I like it but again with these being too informative."
+
+**Deferred to `LATER.md`, pending a feasibility/differentiation call:**
+- M2 — **Silk Road**: you left this as "if you believe it is different enough [from Trade Empire], build it." My honest read: mechanically it's still "route goods between nodes reacting to market/events," the same shape as Trade Empire, just historically themed — not different enough from Trade Empire's existing mechanics to justify a whole new game without a sharper, more specific hook. Parking rather than building, but revisit if a genuinely distinct mechanic (not just a reskin) comes up.
+- M8 — **Contraption** (physics-based sandbox puzzle): you asked "if you think it's possible, yes; otherwise no." Honest read: a real drag-and-place physics puzzle game needs a proper JS physics engine (e.g. Matter.js) and a much heavier interaction model than anything else on this site — feasible, but a bigger stack decision (similar in scale to Continuum's Three.js adoption) than a normal new-game groundwork plan. Parking until that's a deliberate decision, not building it as a default-scope game.
+- M9 — **Offbeat** (rhythm/timing arcade): you flagged the same concern yourself — precise timing is hard given how these games load (Pyodide boot overhead), and audio is still an open question (see `LATER.md`'s audio section). Parking until both are resolved.
+
+---
+
+## X. Warframe Build Tracker
+
+**This section now lives here instead of a separate local `warframe_build_tracker/TODO.md`** — that file has been deleted and everything it held is consolidated below, per your instruction (2026-09-20). It's still not part of the hub's own site (no game, not built with Pyodide), but it's tracked in this same list now rather than a second file. **`.gitignore`'s exclusion of `warframe_build_tracker/` has also been removed** — it can be committed to this repo.
+
+**Already shipped, not carried forward as tasks** (kept here for context): the reverse "used in" lookup per resource, real farm/refine locations for all 65 resources, Amp/Zaw/Kitgun component grouping with honest per-slot notes, and the buildable-highlight + one-click Build button.
+
+**Decided order of work (2026-09-20) — do these two first, everything else after:**
+- [x] X-a **[BIG]**: Rearchitect the tracker from its current Flask app (`render_template`/`data.json`-on-disk) into a static HTML/JS frontend + small backend, matching the hub's own `admin.html` pattern — committed to this repo, unlinked from the hub nav, direct-URL only. Built as a full Python-via-Pyodide port (`game.py`, `index.html`, `style.css`) matching every other game's own stack — turned out no *new* backend was needed at all: the hub's existing `shared/hub-auth.js` + `shared/save-widget.js` (unmodified, `data-game-id="warframe-tracker"`) work against the already-deployed, game-agnostic FastAPI Cloud `/saves`/`/auth` endpoints exactly as-is. Real progress from the old `data.json` (24/33 parts owned, 55 tracked resources) was migrated into `game.py`'s bootstrap state, not lost. 33 new pytest tests (own fake-DOM harness, `tests/`), all green. Live-verified against the real production backend: saved anonymously (real code `ADHA-H47B`), reloaded the page fresh, loaded it back, and confirmed a Build-button click's state change round-tripped correctly — zero console errors throughout. Old `app.py`/`templates/`/`static/`/`data.json` removed.
+- [x] X-b **[BIG]**: Add a `lastData.dat` file-upload/import feature on top of X-a's architecture. Inspected `warframe-api-helper`'s own source directly (no sample file existed) — confirmed `lastData.dat` is just the real (unofficial) Digital Extremes mobile-inventory-API JSON response, AES-128-CBC + PKCS7 encrypted with a key/IV that's hardcoded and published in that tool's own open-source code, so it's decryptable client-side with the Web Crypto API, no server round-trip, no secret involved. Built: an upload button + hidden file input, plain-JS AES-CBC decrypt (falls back to treating the file as already-plain JSON, for the tool's own `inventory.json` sibling output or AlecaFrame's format), handed to a new `import_last_data()` in `game.py` that fuzzy-matches each of the 65 tracked resources against the file's `MiscItems` list by the tail of its internal item path (not a hardcoded exact-path table, since the real schema isn't something this project could verify against a live sample) and fills only the "built" bucket — never part-owned counts or the "raw" bucket, since neither has a real equivalent in Warframe's own data model (a built component isn't a stackable countable item; "raw precursor" is this tracker's own convenience concept). Returns a plain summary naming exactly what matched and what didn't, so a partial/imperfect match is transparent, not silent. 8 new tests (41 total), all green. Live-verified end-to-end with a synthetic file encrypted using the same real key/IV: decrypted, matched, and applied correctly (confirmed via direct Pyodide state inspection), plus the plain-JSON fallback path separately. Honest caveat, documented in the code/README: matching accuracy against a *real* export hasn't been verified, since no real sample file was available to test against.
+
+**Everything else (original tracker ideas):**
+- [ ] Recursive refinery expansion — populate `MANUFACTURING_RECIPES` for the ~15-20 resources (Alloys, Toroids, Marquise-tier gems) that are themselves refined from a raw material; `flatten_recipe()` in `app.py` already supports expanding these recursively, it's just not populated yet.
+
+**Everything else (round 2, from `IMPROVEMENT-IDEAS-ROUND-2.md` Section X):**
+- [ ] A small "days since last `data.json` update" readout.
+- [ ] A "build priority" sort/highlight — rank the 33 parts by "closest to buildable" (fewest missing resources), not the fixed category order.
+- [ ] A small icon per planet/location on the resource location tooltip, for faster scanning.
+- [ ] A "farming route planner" — suggest which single location would satisfy the most outstanding resource needs at once.
+- [ ] A confirmation-gated "reset all inventory to zero" button.
+- [ ] Expand the category-level "meta build" notes into per-part notes pulling from each part's own Wiki "Tips" section — **and go bigger, per your own note**: also track what the built parts *become* (e.g. a "177" amp combo), not just per-part tips. Ties directly to the build-comparison idea below.
+- [ ] A small per-category (Amp/Zaw/Kitgun) progress bar ("X/Y parts complete"), not just one overall number.
+- [ ] A "resource shopping list" export — a plain-text/copyable summary of exactly what's still needed.
+- [ ] Let the "used in" tab show a resource's own total remaining-needed count inline.
+- [ ] A source layer for resources gated behind **Syndicate standing**, not Void Relics — you confirmed none of the 65 resources are relic-gated, but some are standing-gated, so build that instead of the originally-pitched relic layer.
+- [ ] A dark/light toggle for the tracker's own UI (a personal preference option, separate from the hub site's own much bigger dark/light-theme discussion in `planning/LATER.md` L5).
+- [ ] A "resource value" heuristic — flag which owned resources are rare/hard-to-farm vs. common, to help prioritize which builds to do first.
+- [ ] Visually distinguish Wiki links already visited this session.
+- [ ] A small favicon for the tracker itself.
+- [ ] A small inline "grindy" flag on resources with unusually high quantity requirements.
+- [ ] A "build comparison" mode suggesting which un-built combinations are closest to completion — **specifically tracking known community "meta" combos**, per your note ("many people want to build the metas... rather than saying just build whatever"), not a quality-agnostic closest-to-complete ranking.
+- [ ] A small manual "note to self" free-text field per part.
+- [ ] A small confirmation toast ("Built!") on a successful Build click, replacing the current page-reload-based feedback.
+- [ ] A "what's blocking me" summary at the top of the page — the single resource currently blocking the most builds.
+- [ ] A small percentage-complete readout for the whole 33-part list.
+- [ ] A mobile-friendly layout pass.
+- [ ] A small "copy resource name" button next to each resource.
+- [ ] A market-price reference (Warframe.market or similar) integration.
+- [ ] An "archive completed parts" toggle to hide fully-built parts, **plus a search/sort system**, per your own addition, to make things easier to find.
+- [ ] A "session farming log" (resource-inventory deltas over time) — makes a lot more sense once X-b's import exists, since manual entry alone makes deltas unreliable to track meaningfully.
+
+**Deferred to `LATER.md`:**
+- A "riven disposition" reference column for completed builds — "maybe much later, right now is a crafting and resource tracker," per your answer.
+
+**Explicitly rejected, not carried anywhere:** a "build queue" (batch-build several parts in one click), and a per-part "last built" timestamp — both answered "no."
+
+---
+
+## Closing tasks (run these last, per your standing instruction)
+
+- [x] A full site-wide bug-check pass, once everything above is done. (Done 2026-09-20: two real bugs found and fixed, see the BCM114/BCM206 dev logs.)
+- [ ] Generate a fresh round-3 ideas document (same 30-ideas-per-section format as `IMPROVEMENT-IDEAS-ROUND-2.md`) once this list is complete, for you to answer again.
+
+- [ ] Generate a "gamify the teaching games" ideas document (Canopy, Grid, Tide, Aftermath, Herd, Thaw, Loop, Drift): fun-first, 30 ideas per game (10+ big, 10+ small), not duplicating round 2. Requested to be queued in this closing section rather than built now (round 2 wasn't framed around fun; carried over from the old TODO.md's closing task).
