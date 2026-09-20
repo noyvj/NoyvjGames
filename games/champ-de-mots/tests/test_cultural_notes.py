@@ -30,15 +30,21 @@ def test_toggling_opens_and_closes_the_panel(game_env):
     assert game_env.elements["cultural-notes-panel"].hidden is True
 
 
-def test_only_unlocked_weeks_notes_are_shown(game_env):
-    """Sequence 17 (FREN152) has a cultural note in the real supplementary
-    file but starts locked; sequence 1 (FREN151, catch-up zone) also has
-    one and is open from the start."""
+def test_every_weeks_note_is_shown_now_that_nothing_is_locked(game_env):
+    """Before L4a removed the row-unlock gate, sequence 17 (FREN152) had a
+    cultural note but started locked, so `render_cultural_notes()`'s
+    `state.is_row_unlocked()` filter (kept in place per game.py's
+    `is_row_unlocked()` docstring, dormant rather than torn out) hid it.
+    Sequence 1's note was always shown, being in the FREN151 catch-up zone.
+    With every row unlocked from the start, both notes -- and every other
+    week's -- render; this is a regression guard that the dormant filter
+    genuinely never suppresses anything anymore, not just an absence of the
+    old locked-week case."""
     module, state = game_env.module, game_env.state
     assert 1 in module.CULTURAL_NOTES_BY_SEQUENCE
     assert 17 in module.CULTURAL_NOTES_BY_SEQUENCE
     assert state.is_row_unlocked(1) is True
-    assert state.is_row_unlocked(17) is False
+    assert state.is_row_unlocked(17) is True
 
     module.on_toggle_cultural_notes()
     panel_text = " ".join(
@@ -49,7 +55,7 @@ def test_only_unlocked_weeks_notes_are_shown(game_env):
     week_1_note = module.CULTURAL_NOTES_BY_SEQUENCE[1]
     week_17_note = module.CULTURAL_NOTES_BY_SEQUENCE[17]
     assert week_1_note in panel_text
-    assert week_17_note not in panel_text
+    assert week_17_note in panel_text
 
 
 def test_a_note_never_grows_a_plant_or_touches_unlock_state(game_env):

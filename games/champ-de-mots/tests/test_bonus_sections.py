@@ -59,15 +59,24 @@ def test_bonus_section_is_available_for_an_unlocked_week_with_sentences(game_env
     assert module.is_bonus_section_available(1) is True
 
 
-def test_bonus_section_is_not_available_for_a_locked_week(game_env):
+def test_bonus_section_is_not_available_for_a_nonexistent_week(game_env):
+    """L4a removed the row-unlock gate entirely (see game.py's
+    `is_row_unlocked()`/`_compute_unlocked()` and CLAUDE.md's L4a build
+    note), so every real week's bonus section is available immediately --
+    there is no longer a "locked week" case to exercise here. What
+    `is_bonus_section_available()` still legitimately refuses is a sequence
+    that isn't a real row at all: `state.is_row_unlocked()` only ever
+    includes sequences that exist (`_compute_unlocked()` builds its set from
+    `state.rows`), so a nonexistent sequence like 999 still reads as
+    unavailable, and `bonus_sentences_for()` also has nothing to offer it."""
     module, state = game_env.module, game_env.state
-    assert state.is_row_unlocked(12) is False
-    assert module.is_bonus_section_available(12) is False
+    assert state.is_row_unlocked(999) is False
+    assert module.is_bonus_section_available(999) is False
 
 
-def test_starting_a_bonus_section_for_a_locked_week_does_nothing(game_env):
+def test_starting_a_bonus_section_for_a_nonexistent_week_does_nothing(game_env):
     module = game_env.module
-    module.start_bonus_section(12)
+    module.start_bonus_section(999)
     assert module.bonus_mode is False
 
 
@@ -289,20 +298,6 @@ def test_bonus_section_never_touches_srs_state(game_env):
         for p in state.plots
     }
     assert before == after
-
-
-def test_bonus_section_never_affects_row_unlock_state(game_env):
-    module, state = game_env.module, game_env.state
-    assert state.is_row_unlocked(12) is False
-    module.start_bonus_section(1)
-    total_sentences = len(module.bonus_queue)
-    for _ in range(total_sentences):
-        _complete_order_task(module)
-        _complete_tile_task(module)
-        sentence = module.bonus_queue[module.bonus_index]
-        module.submit_bonus_sentence_translation(sentence["en"])
-        module.next_bonus_sentence()
-    assert state.is_row_unlocked(12) is False
 
 
 def test_bonus_session_is_not_part_of_the_save_payload(game_env):

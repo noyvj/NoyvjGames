@@ -98,17 +98,6 @@ def test_weakest_topics_ranks_the_least_grown_first(game_env):
     assert top_one[0]["topic_id"] == weak_topic_id
 
 
-def test_weakest_topics_never_includes_a_locked_row(game_env):
-    module, state = game_env.module, game_env.state
-    locked_plot = next(p for p in state.plots if not state.is_row_unlocked(p.sequence))
-    # Force some SRS state directly (bypassing the row-unlock check that
-    # open_practice() would normally enforce) to prove the dashboard itself
-    # still won't surface a locked row even if a plot somehow got touched.
-    locked_plot.last_reviewed = 0
-    weakest = module.dashboard_weakest_topics(limit=50)
-    assert all(entry["sequence"] != locked_plot.sequence for entry in weakest)
-
-
 def test_the_dashboard_never_mutates_srs_state(game_env):
     module, state = game_env.module, game_env.state
     stages_before = [p.stage for p in state.plots]

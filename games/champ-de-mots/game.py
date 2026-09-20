@@ -413,31 +413,34 @@ class FarmState:
         return [self.plots_by_id[pid] for pid in row.plot_ids]
 
     def is_row_unlocked(self, sequence):
-        """§7's pacing gate: a row opens only once every plot in the row before
-        it has reached at least Sprout.
+        """L4a (2026-09-20): the §7 pacing gate this method used to enforce —
+        a row opened only once every plot in the row before it had reached at
+        least Sprout — has been removed outright, not just loosened. A player
+        joining weeks into the real course was being locked out of syllabus
+        content their classmates already covered, which defeated the whole
+        point of a study tool. Every row is unlocked from the very first day
+        now, unconditionally.
 
-        FREN151 (sequence 1-11) is already finished in real life, so those rows
-        are a catch-up zone that is open from the start. The gate is expressed
-        purely as a growth condition — there is no live "today" in this game,
-        and a date-driven release would sit on top of this rule rather than
-        replace it.
+        The method (and the cache/invalidation machinery below it) is kept
+        exactly as it was rather than deleted, on purpose: well over a dozen
+        call sites across this file and minigames.py ask "is this row's
+        content available" as their one real question, and every one of them
+        keeps working unchanged because the answer is just always "yes" now.
+        See this file's own CLAUDE.md, the L4a build note, for the full
+        reasoning and for what downstream UI (the lock note, `.row--locked`/
+        `.plot--locked` CSS, the disabled proficiency/bonus buttons) this
+        leaves permanently dormant rather than torn out.
         """
         if self._unlocked_cache is None:
             self._unlocked_cache = self._compute_unlocked()
         return sequence in self._unlocked_cache
 
     def _compute_unlocked(self):
-        unlocked = set()
-        for row in self.rows:
-            if row.sequence <= CATCH_UP_MAX_SEQUENCE:
-                unlocked.add(row.sequence)
-                continue
-            previous = self.row_plots(row.sequence - 1)
-            if previous and all(
-                STAGE_RANK[p.stage] >= STAGE_RANK[STAGE_SPROUT] for p in previous
-            ):
-                unlocked.add(row.sequence)
-        return unlocked
+        # L4a: no gate. Every row is open from the start, regardless of any
+        # other row's stage — CATCH_UP_MAX_SEQUENCE stays defined below as a
+        # content-boundary fact (FREN151 ends at sequence 11), it just no
+        # longer does any gating work here.
+        return {row.sequence for row in self.rows}
 
     def invalidate_unlocks(self):
         """Anything that can change a plot's stage has to drop the cache."""

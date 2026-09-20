@@ -29,10 +29,17 @@ def test_proficiency_test_is_available_for_an_unlocked_week(game_env):
     assert module.is_proficiency_test_available(1) is True
 
 
-def test_proficiency_test_is_not_available_for_a_locked_week(game_env):
+def test_proficiency_test_is_not_available_for_a_nonexistent_week(game_env):
+    """L4a removed the row-unlock gate entirely (game.py's `is_row_unlocked()`
+    /`_compute_unlocked()`, CLAUDE.md's L4a build note), so every real
+    week's proficiency test is available immediately -- there's no more
+    "locked week" case for `is_proficiency_test_available()` to refuse.
+    What it still legitimately refuses is a sequence that isn't a real row:
+    `_compute_unlocked()` only ever contains sequences that exist, so a
+    nonexistent one like 999 still reads as unavailable."""
     module, state = game_env.module, game_env.state
-    assert state.is_row_unlocked(12) is False
-    assert module.is_proficiency_test_available(12) is False
+    assert state.is_row_unlocked(999) is False
+    assert module.is_proficiency_test_available(999) is False
 
 
 def test_proficiency_test_becomes_available_once_the_week_unlocks(game_env):
@@ -42,9 +49,9 @@ def test_proficiency_test_becomes_available_once_the_week_unlocks(game_env):
     assert module.is_proficiency_test_available(12) is True
 
 
-def test_starting_a_test_for_a_locked_week_does_nothing(game_env):
+def test_starting_a_test_for_a_nonexistent_week_does_nothing(game_env):
     module = game_env.module
-    module.start_proficiency_test(12)
+    module.start_proficiency_test(999)
     assert module.proficiency_mode is False
     assert module.proficiency_questions == []
 
@@ -160,17 +167,6 @@ def test_proficiency_test_never_touches_srs_state(game_env):
     assert before == after
 
 
-def test_proficiency_test_never_affects_row_unlock_state(game_env):
-    module, state = game_env.module, game_env.state
-    assert state.is_row_unlocked(12) is False
-    module.start_proficiency_test(1)
-    for _ in range(len(module.proficiency_questions)):
-        question = module.proficiency_questions[module.proficiency_index]["question"]
-        module.submit_proficiency_answer(question["answer"])
-        module.next_proficiency_question()
-    assert state.is_row_unlocked(12) is False
-
-
 def test_next_proficiency_question_advances_and_resets_result(game_env):
     module = game_env.module
     module.start_proficiency_test(1)
@@ -261,12 +257,18 @@ def test_clicking_a_row_proficiency_button_starts_that_weeks_test(game_env):
     assert module.proficiency_sequence == 1
 
 
-def test_locked_row_proficiency_button_is_disabled_and_does_nothing(game_env):
+def test_a_formerly_locked_rows_proficiency_button_is_enabled_and_works(game_env):
+    """Row 12 used to be locked, with its own proficiency button disabled
+    and inert. With L4a's row-unlock gate gone, it behaves exactly like row
+    1's -- confirmed live rather than assumed, since `test_each_unlocked_
+    row_gets_a_proficiency_test_button` only checks the disabled flag,
+    never an actual click's effect."""
     module = game_env.module
     button = game_env.elements["row-proficiency-12"]
-    assert button.disabled is True
+    assert button.disabled is False
     button.dispatch("click", None)
-    assert module.proficiency_mode is False
+    assert module.proficiency_mode is True
+    assert module.proficiency_sequence == 12
 
 
 # --- no SRS state leaks into the save payload -------------------------------

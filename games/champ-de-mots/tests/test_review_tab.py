@@ -7,21 +7,21 @@ than being untracked.
 """
 
 
-def _unlock_row_12(game_env):
-    """Row 12 stays locked until every plot in row 11 reaches Sprout+."""
-    state = game_env.state
-    for plot in state.row_plots(11):
-        state.review(plot.plot_id, True)
-
-
 # --- candidate selection -----------------------------------------------
 
 
-def test_review_candidates_only_pulls_from_unlocked_rows(game_env):
+def test_review_candidates_pull_from_every_row_now_that_none_are_locked(game_env):
+    """Before L4a removed the row-unlock gate, `review_candidates()` only
+    ever drew from an already-unlocked row (game.py still runs its plots
+    through `state.is_row_unlocked()` -- that filter is kept, per
+    CLAUDE.md's L4a build note, it just never excludes anything now). Row
+    12 used to be the standing example of a locked row this filtered out;
+    now it -- and every other row -- is included."""
     module, state = game_env.module, game_env.state
     candidates = module.review_candidates({"vocab", "phrase"})
     assert all(state.is_row_unlocked(p.sequence) for p in candidates)
-    assert not any(p.sequence == 12 for p in candidates)  # row 12 starts locked
+    assert any(p.sequence == 12 for p in candidates)
+    assert any(p.sequence == 23 for p in candidates)
 
 
 def test_review_candidates_filters_by_topic_type(game_env):
@@ -44,15 +44,6 @@ def test_review_candidates_respects_the_minimum_stage_filter(game_env):
     assert plot in at_sprout
     assert any(p.stage == module.STAGE_SEED for p in at_seed)
     assert all(p.stage != module.STAGE_SEED for p in at_sprout)
-
-
-def test_review_never_pulls_plots_from_a_locked_row_even_after_unlock_changes(game_env):
-    module, state = game_env.module, game_env.state
-    _unlock_row_12(game_env)
-    assert state.is_row_unlocked(12)
-    candidates = module.review_candidates({"vocab", "phrase"})
-    assert any(p.sequence == 12 for p in candidates)
-    assert not any(p.sequence == 13 for p in candidates)  # still locked
 
 
 # --- starting a session --------------------------------------------------
@@ -181,19 +172,6 @@ def test_review_never_promotes_a_plot_past_its_daily_loop_stage(game_env):
     for plot in state.plots:
         if plot.last_reviewed is not None:
             assert plot.stage == module.STAGE_SEED  # never watered via the main loop
-
-
-def test_review_does_not_change_row_unlock_state(game_env):
-    """§14.4: Review is opt-in and doesn't affect plot unlock pacing."""
-    module, state = game_env.module, game_env.state
-    assert state.is_row_unlocked(12) is False
-    module.start_review("word")
-    for _ in range(20):
-        if module.review_question is None:
-            break
-        module.submit_review_answer(module.review_question["answer"])
-        module.next_review_question()
-    assert state.is_row_unlocked(12) is False
 
 
 # --- session progression ---------------------------------------------------

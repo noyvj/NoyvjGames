@@ -24,15 +24,19 @@ class FakeKeyEvent:
 
 
 def test_the_due_counter_reads_as_a_sentence_not_a_scoreboard(game_env):
+    """L4a (removing the row-unlock gate) means a fresh farm's due count is
+    every plot in the farm (790), not just the old 504-plot catch-up zone --
+    see game.py's `is_row_unlocked()`/`_compute_unlocked()` and CLAUDE.md's
+    L4a build note."""
     text = game_env.elements["due-display"].innerText
-    assert text == "504 plots are ready for water today."
+    assert text == "790 plots are ready for water today."
 
 
 def test_the_due_counter_gets_the_singular_right(game_env):
     module, state = game_env.module, game_env.state
-    # Leave one plot of row 11 unwatered: that keeps row 12's gate shut, so the
-    # queue really does come down to exactly one plot rather than cascading a
-    # fresh row open underneath it.
+    # Leave one plot in the whole farm unwatered (any plot will do now that
+    # L4a means there's no row-unlock cascade to worry about triggering) so
+    # the queue comes down to exactly one plot rather than zero.
     last = state.row_plots(11)[-1]
     for plot in state.due_plots():
         if plot is not last:
@@ -106,8 +110,15 @@ def test_a_row_with_nothing_due_says_nothing(game_env):
     assert game_env.elements["row-due-1"].hidden is True
 
 
-def test_a_locked_row_shows_no_due_count(game_env):
-    assert game_env.elements["row-due-12"].hidden is True
+def test_a_formerly_locked_row_now_shows_its_own_due_count(game_env):
+    """Before L4a, row 12 was locked and `render_farm()`'s row-due note
+    stayed hidden for it (`row_due = ... if unlocked else 0`, game.py) --
+    with every row unlocked from the start, it renders its real count just
+    like row 1 does, which is the regression guard this replaces: the
+    dormant lock check must not still be zeroing it out."""
+    element = game_env.elements["row-due-12"]
+    assert element.hidden is False
+    assert "ready" in element.innerText
 
 
 # --- input polish ----------------------------------------------------------

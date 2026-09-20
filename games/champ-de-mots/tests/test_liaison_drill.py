@@ -38,19 +38,6 @@ def test_build_liaison_drill_only_includes_unlocked_sequences(game_env):
         assert state.is_row_unlocked(entry["sequence"])
 
 
-def test_build_liaison_drill_excludes_a_locked_sequence(game_env):
-    module, state = game_env.module, game_env.state
-    locked_sequences = {
-        entry["sequence"]
-        for entry in module.LIAISON_DRILL_QUESTIONS
-        if not state.is_row_unlocked(entry["sequence"])
-    }
-    assert locked_sequences, "fixture assumption: at least one drill question targets a locked week"
-    drill = module.build_liaison_drill()
-    drill_sequences = {entry["sequence"] for entry in drill}
-    assert not (locked_sequences & drill_sequences)
-
-
 def test_starting_the_drill_populates_a_session(game_env):
     module = game_env.module
     questions = module.start_liaison_drill()
