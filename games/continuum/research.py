@@ -1125,6 +1125,73 @@ NODE_LIST = [
 
 NODES = {node.node_id: node for node in NODE_LIST}
 
+# K12: plain-language names for every effect key, so a node's exact numeric
+# effect can be shown right in the tree (tooltip + a line on the row).
+# Multiplier-style keys read as percentages, capacity-style keys as flat
+# amounts. `pollution_output_mult`/`sprawl_output_mult`/`extraction_
+# efficiency` are "lower is better" keys, so a negative delta is shown as a
+# reduction, not a penalty.
+EFFECT_LABELS = {
+    "food_yield_mult": ("food yield", "pct"),
+    "materials_yield_mult": ("materials yield", "pct"),
+    "tool_yield_mult": ("tool output", "pct"),
+    "knowledge_mult": ("knowledge output", "pct"),
+    "regen_mult": ("land recovery", "pct"),
+    "extraction_efficiency": ("land pressure per harvest", "pct"),
+    "food_storage_bonus": ("food storage", "flat"),
+    "housing_bonus": ("people housed", "flat"),
+    "culture_bonus": ("gathering space", "flat"),
+    "equity_bonus": ("equity", "score"),
+    "resilience_bonus": ("resilience", "score"),
+    "surplus_conversion_bonus": ("surplus banked from spoilage", "pct"),
+    "canal_yield_bonus": ("canal yield", "pct"),
+    "public_works_bonus": ("public works coverage", "pct"),
+    "pollution_output_mult": ("pollution per factory worker", "pct"),
+    "sanitation_bonus": ("sanitation absorption", "pct"),
+    "sprawl_output_mult": ("sprawl from growth", "pct"),
+    "transit_bonus": ("transit hub absorption", "pct"),
+    "habitat_layout_bonus": ("habitat layout quality", "pct"),
+}
+
+
+def describe_effects(node):
+    """K12: 'food yield +20%, land recovery +25%' for one node."""
+    parts = []
+    for key, delta in node.effects.items():
+        label, kind = EFFECT_LABELS.get(key, (key, "flat"))
+        if kind == "pct":
+            parts.append(f"{label} {delta * 100:+.0f}%")
+        elif kind == "score":
+            parts.append(f"{label} {delta * 100:+.0f} points")
+        else:
+            parts.append(f"{label} {delta:+.0f}")
+    return ", ".join(parts)
+
+
+def unlock_estimate(tree, node_id):
+    """K23: roughly how much knowledge it takes to open a tier-gated node.
+
+    Only meaningful when the tier gate is what is holding the node back: the
+    sum of the cheapest still-unresearched, currently-available nodes in the
+    tier below that would close the gap, plus the node's own cost. Returns
+    None when something else (era, prerequisites, branch affinity) is the
+    blocker, or the gap cannot be closed from what is available right now.
+    An estimate, not a promise: it ignores what those nodes unlock.
+    """
+    node = tree.nodes.get(node_id)
+    if node is None or tree.is_researched(node_id) or not tree.era_reached(node.era):
+        return None
+    if tree.tier_unlocked(node.tier):
+        return None
+    short = TIER_UNLOCK_REQUIREMENT - tree.researched_in_tier(node.tier - 1)
+    candidates = sorted(
+        n.cost for n in tree.nodes.values()
+        if n.tier == node.tier - 1 and not tree.is_researched(n.node_id) and tree.is_available(n.node_id)
+    )
+    if len(candidates) < short:
+        return None
+    return sum(candidates[:short]) + node.cost
+
 
 def build_tree(current_era=sim.FIRST_ERA, researched=None):
     return ResearchTree(NODES, current_era=current_era, researched=researched)

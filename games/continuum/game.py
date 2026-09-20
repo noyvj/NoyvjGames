@@ -73,6 +73,9 @@ info_page_open = False
 # category — also never saved.
 research_search_query = ""
 
+# K6 -- branch quick-filter chips. Transient like the search query.
+research_branch_filter = set()
+
 
 def current_effects():
     """The aggregate modifiers applied to the simulation this season.
@@ -390,6 +393,13 @@ def update_summary_panel():
     panel.innerHTML = ""
     data = summary.summary(campaign)
 
+    # K7: in-character stakeholder-report framing, K17: efficiency rank.
+    statement = document.createElement("p")
+    statement.className = "row-blurb summary-statement"
+    statement.innerText = summary.stakeholder_statement(data, data["rank"])
+    panel.appendChild(statement)
+    if data["rank"]:
+        _summary_stat_row(panel, f"Efficiency rank: {data['rank']} city.")
     _summary_stat_row(
         panel,
         f"Furthest era reached: {data['furthest_era_label']} "
@@ -1361,6 +1371,8 @@ def render_research():
     for node in tree.visible_nodes():
         if query and not _research_node_matches(node, query):
             continue
+        if research_branch_filter and node.branch not in research_branch_filter:
+            continue
         any_rendered = True
         researched = tree.is_researched(node.node_id)
         available = tree.is_available(node.node_id)
@@ -1394,11 +1406,23 @@ def render_research():
         blurb.innerText = node.blurb
         row.appendChild(blurb)
 
+        # K12: the exact numeric effect, on the row and as a tooltip.
+        effect_text = research.describe_effects(node)
+        row.title = f"Effect: {effect_text}"
+        effect_line = document.createElement("p")
+        effect_line.className = "research-effect"
+        effect_line.innerText = f"Effect: {effect_text}"
+        row.appendChild(effect_line)
+
         if not researched and not available:
             reasons = document.createElement("p")
             reasons.className = "research-locked-reason"
             reasons.innerText = " ".join(tree.missing_requirements(node.node_id))
             row.appendChild(reasons)
+            # K23: a rough knowledge estimate when the tier gate is the blocker.
+            estimate = research.unlock_estimate(tree, node.node_id)
+            if estimate is not None:
+                reasons.innerText += f" Roughly {estimate:.0f} knowledge to open and study this."
 
         actions = document.createElement("div")
         actions.className = "row-actions"
@@ -1546,6 +1570,21 @@ def load_state(data):
     return True
 
 
+def _make_branch_chip_handler(branch):
+    def handler(event=None):
+        if branch in research_branch_filter:
+            research_branch_filter.discard(branch)
+        else:
+            research_branch_filter.add(branch)
+        for b in research.BRANCHES:
+            chip = document.getElementById(f"research-branch-{b}-button")
+            on = b in research_branch_filter
+            chip.classList.toggle("active", on)
+            chip.setAttribute("aria-pressed", "true" if on else "false")
+        render_research()
+    return handler
+
+
 def on_research_search_input(event=None):
     global research_search_query
     research_search_query = document.getElementById("research-search-input").value
@@ -1572,6 +1611,10 @@ def setup():
     document.getElementById("exit-revisit-button").addEventListener(
         "click", create_proxy(on_exit_revisit)
     )
+    for _branch in research.BRANCHES:
+        document.getElementById(f"research-branch-{_branch}-button").addEventListener(
+            "click", create_proxy(_make_branch_chip_handler(_branch))
+        )
     document.getElementById("research-search-input").addEventListener(
         "input", create_proxy(on_research_search_input)
     )

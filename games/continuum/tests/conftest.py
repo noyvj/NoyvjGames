@@ -113,6 +113,9 @@ ELEMENT_IDS = [
     "livability-scatter",
     "trajectory-summary",
     "trajectory-source",
+    "research-branch-provision-button",
+    "research-branch-community-button",
+    "research-branch-craft-button",
 ]
 
 

@@ -59,6 +59,17 @@
       <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
+    <!-- K27: keyboard cheat-sheet, toggled with the ? key. -->
+    <div id="shortcuts-panel" class="section shortcuts-panel" hidden>
+      <h2 class="section-heading">Keyboard shortcuts</h2>
+      <ul class="shortcuts-list">
+        <li><kbd>?</kbd> show or hide this list</li>
+        <li><kbd>N</kbd> advance the season</li>
+        <li><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> camera: overview, close-up, aerial, isometric</li>
+        <li><kbd>Esc</kbd> close this list</li>
+      </ul>
+      <p class="settings-note">Shortcuts pause while you are typing in the research search box.</p>
+    </div>
     <!-- Milestone 15: rows are built by game.py — see update_achievements_display(). -->
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
     <!-- "What's New" changelog panel (origin K16): rows are built by
@@ -150,6 +161,12 @@
         <button id="camera-preset-overview-button" class="secondary camera-preset-button" type="button">🔭 Overview</button>
         <button id="camera-preset-closeup-button" class="secondary camera-preset-button" type="button">🔍 Close-up</button>
         <button id="camera-preset-aerial-button" class="secondary camera-preset-button" type="button">🛰 Aerial</button>
+        <button id="camera-preset-isometric-button" class="secondary camera-preset-button" type="button" title="The classic isometric city-builder angle.">◇ Isometric</button>
+        <label class="time-of-day-label" title="Pin the scene's light to a time of day, handy for screenshots. Auto follows the seasons.">Light
+          <select id="time-of-day-select" class="time-of-day-select">
+            <option value="auto">Auto (seasons)</option><option value="dawn">Dawn</option><option value="noon">Noon</option><option value="dusk">Dusk</option><option value="night">Night</option>
+          </select>
+        </label>
       </div>
       <!-- Onboarding-tooltip coverage check (planning/TODO.md, A14 origin):
            the drag-to-orbit camera control has no tutorial step of its own
@@ -256,6 +273,11 @@
         <details class="info-toggle"><summary>i</summary><p>A tier only opens once two nodes in the tier below it are researched — you don't need everything in a tier, just enough to prove the ground beneath it. Some nodes also require a minimum number of discoveries already made in one branch, so leaning into a branch early can open or close doors many tiers later.</p></details>
       </p>
       <!-- Milestone 17 (K14): filters the rows below by name/blurb/branch. -->
+      <div class="research-branch-chips" role="group" aria-label="Filter by branch">
+        <button id="research-branch-provision-button" class="secondary branch-chip" type="button" aria-pressed="false">Provision</button>
+        <button id="research-branch-community-button" class="secondary branch-chip" type="button" aria-pressed="false">Community</button>
+        <button id="research-branch-craft-button" class="secondary branch-chip" type="button" aria-pressed="false">Craft</button>
+      </div>
       <input id="research-search-input" class="research-search-input" type="text" placeholder="Search the research tree by name, branch, or description...">
       <!-- Node rows are built by game.py — see render_research(). -->
       <div id="research-list"></div>
@@ -322,6 +344,24 @@
        ContinuumVisual.init(pyodide) after game.py has booted. -->
   <script src="render3d.js"></script>
   <script src="settings.js"></script>
+  <script>
+    // K27: keyboard shortcuts + the "?" cheat-sheet. Plain DOM, no Python.
+    document.addEventListener("keydown", function (event) {
+      const t = event.target;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const panel = document.getElementById("shortcuts-panel");
+      if (event.key === "?") { panel.hidden = !panel.hidden; return; }
+      if (event.key === "Escape") { panel.hidden = true; return; }
+      if (event.key === "n" || event.key === "N") {
+        const b = document.getElementById("advance-season-button");
+        if (b) b.click();
+        return;
+      }
+      const presets = { "1": "overview", "2": "closeup", "3": "aerial", "4": "isometric" };
+      if (presets[event.key] && window.ContinuumCamera) window.ContinuumCamera.preset(presets[event.key]);
+    });
+  </script>
   <script>
     // Continuum is split into engine modules (see game.py's docstring), so
     // unlike the smaller hub games it fetches more than one Python file.

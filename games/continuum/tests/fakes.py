@@ -90,6 +90,10 @@ class FakeElement:
         self.children.append(child)
         return child
 
+    def setAttribute(self, name, value):
+        self.attributes = getattr(self, 'attributes', {})
+        self.attributes[name] = value
+
     def addEventListener(self, event_name, handler):
         self._listeners.setdefault(event_name, []).append(handler)
 

@@ -255,3 +255,73 @@ def test_new_nodes_do_not_break_the_score_bound():
     state.era = "space"
     value = sustainability.score(state, effects)
     assert 0.0 <= value <= 100.0 and math.isfinite(value)
+
+
+# --- K12 / K23 / K6 / K17 / K7 -----------------------------------------------
+import summary
+
+
+def test_every_effect_key_has_a_label_and_describe_effects_reads_numbers():
+    for key in sim.NEUTRAL_EFFECTS:
+        assert key in research.EFFECT_LABELS, key
+    assert research.describe_effects(research.NODES["foraging_lore"]) == "food yield +20%"
+    text = research.describe_effects(research.NODES["seasonal_rounds"])
+    assert "land recovery +25%" in text and "land pressure per harvest -10%" in text
+    assert "people housed +4" in research.describe_effects(research.NODES["banked_shelters"])
+
+
+def test_research_rows_show_effects_and_locked_rows_show_an_estimate(game_env):
+    locked = game_env.elements["research-locked-list"].children
+    assert locked
+    texts = []
+    def walk(el):
+        texts.append(el.innerText)
+        for c in el.children:
+            walk(c)
+    for row in locked:
+        walk(row)
+    assert any(t.startswith("Effect: ") for t in texts)
+    assert any("Roughly" in t for t in texts)
+
+
+def test_unlock_estimate_only_for_tier_gated_nodes():
+    tree = research.build_tree(current_era="agrarian")
+    # plow_and_furrow is tier 3, gated by the tier-2 nodes.
+    estimate = research.unlock_estimate(tree, "plow_and_furrow")
+    assert estimate is None or estimate > research.NODES["plow_and_furrow"].cost
+    assert research.unlock_estimate(tree, "fire_keeping") is None      # tier 1: not gated
+    assert research.unlock_estimate(tree, "canal_engineering") is None  # era not reached
+    assert research.unlock_estimate(tree, "no_such_node") is None
+
+
+def test_branch_chips_filter_the_research_list(game_env):
+    def names():
+        out = []
+        for c in game_env.elements["research-list"].children:
+            out.append(c)
+        return out
+    all_rows = len(names())
+    game_env.elements["research-branch-craft-button"].dispatch("click", None)
+    assert game_env.module.research_branch_filter == {"craft"}
+    craft_rows = len(names())
+    assert 0 < craft_rows < all_rows
+    game_env.elements["research-branch-craft-button"].dispatch("click", None)
+    assert game_env.module.research_branch_filter == set()
+    assert len(names()) == all_rows
+
+
+def test_efficiency_rank_follows_the_score_bands():
+    assert summary.efficiency_rank(90) == "Gold"
+    assert summary.efficiency_rank(75) == "Silver"
+    assert summary.efficiency_rank(40) == "Bronze"
+    assert summary.efficiency_rank(90, hard_mode=True) == "Silver"  # harder bands
+    assert summary.efficiency_rank(None) is None
+    assert summary.efficiency_rank(float("nan")) is None
+
+
+def test_stakeholder_statement_and_rank_in_summary_panel(game_env):
+    game_env.advance_season(2)
+    game_env.elements["summary-toggle-button"].dispatch("click", None)
+    panel = game_env.elements["summary-panel"]
+    text = " ".join(c.innerText for c in panel.children)
+    assert "stakeholders" in text and "Efficiency rank" in text

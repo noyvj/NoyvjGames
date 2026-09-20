@@ -82,7 +82,21 @@
     overview: { yaw: 0.7, pitch: 0.55, distance: 9.5 },
     closeup: { yaw: 0.7, pitch: 0.4, distance: 5.5 },
     aerial: { yaw: 0.7, pitch: 1.2, distance: 9.5 },
+    // K4: the classic isometric city-builder angle (45 degrees around,
+    // about 35 degrees down), pulled back a little so the whole map fits.
+    isometric: { yaw: 0.785, pitch: 0.615, distance: 11.5 },
   };
+
+  // K14: an optional time-of-day override for screenshots. "auto" keeps the
+  // seasonal cycle below; the others pin the light to a fixed look until
+  // changed again (session-only, not saved). Still no animation loop.
+  const TIME_OF_DAY = {
+    dawn: { wave: 0.6, brightness: 0.95 },
+    noon: { wave: 1.0, brightness: 1.08 },
+    dusk: { wave: 0.3, brightness: 0.85 },
+    night: { wave: 0.0, brightness: 0.62 },
+  };
+  let timeOfDay = "auto";
 
   // --- feature detection ---------------------------------------------
 
@@ -305,8 +319,12 @@
     // brightness nudge together, so "brighter" and "warmer" move in
     // lockstep (a summery peak, a dim, cool trough) instead of two
     // independent, potentially-clashing cycles.
-    const wave = Math.sin(phase * Math.PI * 2) * 0.5 + 0.5; // 0..1
-    const brightnessFactor = 1.0 + (wave - 0.5) * 2 * SEASONAL_BRIGHTNESS_RANGE;
+    let wave = Math.sin(phase * Math.PI * 2) * 0.5 + 0.5; // 0..1
+    let brightnessFactor = 1.0 + (wave - 0.5) * 2 * SEASONAL_BRIGHTNESS_RANGE;
+    if (TIME_OF_DAY[timeOfDay]) {
+      wave = TIME_OF_DAY[timeOfDay].wave;
+      brightnessFactor = TIME_OF_DAY[timeOfDay].brightness;
+    }
     const seasonalTint = lerpColor(SEASONAL_COOL_TINT, SEASONAL_WARM_TINT, wave);
     const tintedSky = lerpColor(skyHex, seasonalTint, SEASONAL_TINT_PULL);
 
@@ -572,9 +590,19 @@
     if (renderer && scene) renderer.render(scene, camera);
   }
 
+  // K27: keyboard access to the presets (see the shortcuts panel).
+  window.ContinuumCamera = { preset: applyCameraPreset };
+
   function setupCameraPresetButtons() {
     const row = document.getElementById(CAMERA_PRESET_ROW_ID);
     if (!row) return;
+    const timeSelect = document.getElementById("time-of-day-select");
+    if (timeSelect) {
+      timeSelect.addEventListener("change", function () {
+        timeOfDay = timeSelect.value;
+        pullStateAndRender();
+      });
+    }
     Object.keys(CAMERA_PRESETS).forEach(function (name) {
       const button = document.getElementById("camera-preset-" + name + "-button");
       if (!button) return;

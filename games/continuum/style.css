@@ -1288,3 +1288,14 @@ button.primary:disabled::after {
 .trajectory-legend { font-size: 0.78rem; opacity: 0.8; margin: 0.4rem 0 0; }
 .trajectory-key { display: inline-block; width: 1.4rem; height: 0; border-top: 3px solid #e0b374; vertical-align: middle; margin: 0 0.3rem 0 0.6rem; }
 .trajectory-key--ref { border-top: 3px dashed #8fb5e8; }
+
+.research-branch-chips { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.5rem 0; }
+.branch-chip { padding: 0.25rem 0.7rem; font-size: 0.8rem; border-radius: 999px; }
+.branch-chip.active { border-color: #e0b374; background: rgba(224, 179, 116, 0.18); font-weight: 600; }
+.shortcuts-panel[hidden] { display: none; }
+.shortcuts-list { list-style: none; padding: 0; margin: 0.4rem 0; display: grid; gap: 0.4rem; font-size: 0.9rem; }
+kbd { border: 1px solid rgba(201, 147, 84, 0.5); border-radius: 4px; padding: 0 0.4rem; font-family: inherit; background: rgba(20, 16, 10, 0.5); }
+.time-of-day-label { font-size: 0.8rem; opacity: 0.85; display: inline-flex; align-items: center; gap: 0.3rem; }
+.time-of-day-select { font: inherit; font-size: 0.8rem; background: rgba(20, 16, 10, 0.6); color: inherit; border: 1px solid rgba(201, 147, 84, 0.4); border-radius: 6px; padding: 0.2rem; }
+.research-effect { margin: 0.2rem 0; font-size: 0.8rem; color: #d9b98a; }
+.summary-rank { font-weight: 600; color: #e0b374; }

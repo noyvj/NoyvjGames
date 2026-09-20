@@ -135,6 +135,32 @@ def peak_score(campaign):
     return max(numeric) if numeric else None
 
 
+# K17: a Bronze/Silver/Gold "efficiency rank" from the peak sustainability
+# score's own label, so it follows the same (hard-mode-aware) bands the rest
+# of the game already uses rather than a second set of thresholds.
+RANKS = {"Thriving": "Gold", "Steady": "Silver"}
+
+
+def efficiency_rank(peak, hard_mode=False):
+    """'Gold' / 'Silver' / 'Bronze' city, or None with no score yet."""
+    if not isinstance(peak, (int, float)) or peak != peak:
+        return None
+    return RANKS.get(sustainability.score_label(peak, hard_mode), "Bronze")
+
+
+def stakeholder_statement(data, rank):
+    """K7: the report's in-character opening paragraph, in the register of
+    an annual report to stakeholders. Plain facts, framed; no new numbers."""
+    rating = f"{data['peak_score']:.0f}/100" if data["peak_score"] is not None else "not yet rated"
+    rank_text = f" The council's efficiency rank stands at {rank}." if rank else ""
+    return (
+        f"To the citizens and stakeholders of the settlement: over {data['total_seasons']} seasons "
+        f"we grew to a peak of {data['peak_population']} people and reached the "
+        f"{data['furthest_era_label']} era. Our sustainability rating at its best was {rating}."
+        f"{rank_text} What follows is the record of how each era went."
+    )
+
+
 def summary(campaign):
     """The full civilization summary report — a plain, JSON-safe dict, the
     same "pure function of state" shape `visual.visual_state()` already
@@ -154,4 +180,5 @@ def summary(campaign):
         "peak_score": peak_score(campaign),
         "has_revisited": campaign.has_revisited,
         "journey_complete": journey_complete,
+        "rank": efficiency_rank(peak_score(campaign), bool(campaign.state.hard_mode)),
     }
