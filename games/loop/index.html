@@ -62,7 +62,7 @@
       <p id="achievement-toast-text"></p>
     </div>
     <div id="loop-closed-banner" class="loop-closed-banner" hidden>
-      <p>🔁 Loop closed — 100% of this cycle's production came from repair, reuse &amp; recycling. No new extraction needed.</p>
+      <p id="loop-closed-banner-text">🔁 Loop closed — 100% of this cycle's production came from repair, reuse &amp; recycling. No new extraction needed.</p>
     </div>
 
     <p class="tagline">Redesign a supply chain. By default it's a straight line: extract, make, use, discard. Waste is a design choice — not an inevitability.</p>
@@ -75,7 +75,23 @@
         <button id="goods-category-clothing-button" class="secondary goods-category-button">👕 Clothing</button>
         <button id="goods-category-furniture-button" class="secondary goods-category-button">🪑 Furniture</button>
       </div>
+      <!-- H27: a deterministic weekly featured category (no backend). -->
+      <p id="featured-goods-display" class="comparison-message"></p>
     </div>
+
+    <!-- H4: cosmetic-only relabel once a chain is running (the picker above hides
+         after the first cycle). Never counts toward "categories tried". -->
+    <details id="relabel-goods-panel" class="stats-detail-toggle" hidden>
+      <summary>🏷️ Relabel goods (cosmetic only)</summary>
+      <div class="stats-detail-body">
+        <p class="comparison-message">Changes only the words and the followed item -- no effect on numbers, score or achievements.</p>
+        <div class="goods-category-buttons">
+          <button id="relabel-electronics-button" class="secondary goods-category-button" type="button">📱 Electronics</button>
+          <button id="relabel-clothing-button" class="secondary goods-category-button" type="button">👕 Clothing</button>
+          <button id="relabel-furniture-button" class="secondary goods-category-button" type="button">🪑 Furniture</button>
+        </div>
+      </div>
+    </details>
 
     <button id="info-page-toggle-button" class="secondary info-page-toggle">Loading...</button>
     <div id="info-page-panel" class="section" hidden>
@@ -131,13 +147,15 @@
       <div class="meter">
         <div id="damage-bar" class="meter-fill meter-fill--extraction"></div>
       </div>
-      <p id="damage-display" class="status-line">Environmental damage: 0% (extraction cost x1.00)</p>
+      <p id="damage-display" class="status-line" title="">Environmental damage: 0% (extraction cost x1.00)</p>
       <p class="meter-label">Loop closure
         <details class="info-toggle"><summary>i</summary><p>These two numbers can diverge: "Circular this cycle" reflects only your current investment mix right now, while "Lifetime circular share" is the average across every cycle you've run, including any earlier straight-line cycles before you invested.</p></details>
       </p>
       <div class="meter">
         <div id="circular-bar" class="meter-fill meter-fill--circular"></div>
       </div>
+      <!-- H6: particle burst when circular share crosses 25/50/75/100%. -->
+      <div id="circular-burst" class="circular-burst" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
       <p id="circular-fraction-display" class="status-line">Circular this cycle: 0%</p>
       <p id="lifetime-circular-display" class="status-line">Lifetime circular share: 0%</p>
       <p id="score-display" class="status-line">Score: 300</p>
@@ -158,10 +176,19 @@
         <summary>📊 Streak, trend &amp; real-world comparison</summary>
         <div class="stats-detail-body">
           <p id="streak-display" class="status-line">Closed-loop streak: 0 cycle(s) (best: 0)</p>
+          <p id="streak-progress" class="comparison-message"></p>
+          <p id="streak-since-display" class="comparison-message" hidden></p>
           <p id="trend-display" class="comparison-message">Not enough cycles yet to show a trend.</p>
-          <p id="loop-projection-display" class="comparison-message">Not enough cycles yet to project when the loop might close.</p>
+          <p id="loop-projection-display" class="comparison-message" title="This is an estimate extrapolated from your recent trend, not a guarantee -- buying more or fewer investments changes it immediately.">Not enough cycles yet to project when the loop might close.</p>
           <p id="real-world-comparison-display" class="comparison-message">Your chain is running at 0% circular, versus a roughly 7% estimated real-world average today (a ballpark figure, not a precise benchmark).</p>
           <p id="sector-comparison-display" class="comparison-message">For context, your circular share is also below several real-world sector estimates (ballpark figures, not precise benchmarks).</p>
+          <!-- H12: where the score comes from. Percent labels, not hue alone. -->
+          <div class="score-pie-row">
+            <div id="score-pie" class="score-pie" role="img" aria-label="Score sources"></div>
+            <p id="score-pie-legend" class="comparison-message"></p>
+          </div>
+          <!-- H15: on-demand efficiency audit. -->
+          <details class="info-toggle" id="audit-panel"><summary>🔎 Loop efficiency audit</summary><div id="audit-body"></div></details>
         </div>
       </details>
     </div>
@@ -201,6 +228,7 @@
         <p id="recycle-stats" class="invest-stats">6.0 funds/unit · supplying 0/cycle</p>
       </div>
       <button id="reset-chain-button" class="secondary reset-chain-button" type="button">🔁 Start New Chain</button>
+      <p id="reset-chain-message" class="comparison-message" hidden></p>
     </div>
 
     <div id="trade-network" class="section">
@@ -226,6 +254,18 @@
         <span id="regional-trade-count" class="invest-count">0</span>
         <button id="regional-trade-invest-button" class="secondary">Regional Partner (40)</button>
       </div>
+      <!-- H28: one-time note the first time the Regional Partner is affordable. -->
+      <p id="regional-hint" class="comparison-message" hidden>
+        New option: the Regional Partner costs more than the Trade Link but imports more per purchase -- a separate partner, so you can run both. <button id="regional-hint-dismiss-button" class="secondary" type="button">Got it</button>
+      </p>
+      <!-- H1: third trading partner. -->
+      <div class="invest-row invest-row--regional">
+        <span class="invest-name">🚢 Overseas Consortium</span>
+        <span id="overseas-trade-count" class="invest-count">0</span>
+        <button id="overseas-trade-invest-button" class="secondary">Overseas Consortium (90)</button>
+      </div>
+      <!-- H25a/H29a: simple text map of the internal loop plus partners. -->
+      <details class="info-toggle" id="network-map-panel"><summary>🗺️ Supply map</summary><pre id="network-map-display" class="network-map"></pre></details>
     </div>
 
     <button id="advance-cycle-button" class="primary">Advance Cycle</button>

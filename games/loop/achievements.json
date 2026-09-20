@@ -99,6 +99,11 @@
       "id": "goods_explorer",
       "label": "Goods Explorer",
       "description": "Play chains in at least two different goods categories."
+    },
+    {
+      "id": "goods_collector",
+      "label": "Goods Collector",
+      "description": "Try every goods category (electronics, clothing and furniture) across your chains."
     }
   ]
 }

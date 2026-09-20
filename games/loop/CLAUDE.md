@@ -312,3 +312,30 @@ Verified: full pytest suite (160 tests, unchanged — a pure HTML/CSS markup wra
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag loop-milestone-0N`.
 - Update the milestone table Status as work happens.
+
+## Round-2 backlog wave (2026-09-20, planning/TODO.md "Per-game: Loop")
+
+Built (all UI additions sit inside collapsibles or existing rows; state
+additions default safely for old saves): H1 third partner "Overseas
+Consortium" (90 funds / 15 units, 6.0 funds/unit); H2 streak progress
+text bar toward the next 5-cycle mark; H4 cosmetic-only relabel panel
+(does not touch `goods_categories_tried`); H6 particle burst on crossing
+each 25% circular step; H8 extraction-cost trend arrow (rising/steady --
+damage never decays so "cheaper" cannot occur); H10 projection tooltip;
+H12 score-source pie (conic-gradient plus percent legend); H14
+`goods_collector` achievement (now 23 achievements); H15 loop efficiency
+audit (`audit_lines()`); H16 first-closed cycle number in the banner
+(`first_loop_closed_cycle`, saved); H18 top-investment ring node glow;
+H20 random per-session vignette-variant offset (browser only, 0 in
+tests); H22 ceiling-multiplier tooltip; H24 cycles-since-extraction line
+(shown at >=75% circular); H25a/H29a a text supply map (`network_map_text()`
+inside the Trade network section); H26 pulse intensity tiers; H27
+deterministic weekly featured category (no backend); H28 one-time Regional
+Partner hint (`regional_hint_seen`, saved); H30 reset confirmation naming
+surviving counters. Tests: 160 -> 186 (`tests/test_backlog_round2.py`).
+Verified live in an iframe (the shared browser pane was contended).
+
+Left for a later pass: H3, H7, H9, H13, H17, H21, H23 (new mechanics),
+H25b/H29b (rich desktop SVG maps), H19 (largely covered by the existing
+sector comparison), H5 (needs Z1 -- stats endpoint not deployed), H11
+(needs backend).

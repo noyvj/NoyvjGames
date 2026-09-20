@@ -1428,3 +1428,35 @@ html[data-reduced-motion="true"] *::after {
   transition-duration: 0.001ms !important;
   scroll-behavior: auto !important;
 }
+
+/* ---- Round-2 additions: H6 burst, H12 pie, H15 audit, H18 top node, H25/H29 text map, H26 pulse tiers ---- */
+.circular-burst { position: relative; height: 0; pointer-events: none; }
+.circular-burst span {
+  position: absolute; top: -10px; left: 50%; width: 6px; height: 6px; border-radius: 50%;
+  background: #7fd6a3; opacity: 0;
+}
+.circular-burst--active span { animation: circular-burst-fly 900ms ease-out; }
+.circular-burst span:nth-child(1) { --dx: -70px; --dy: -18px; }
+.circular-burst span:nth-child(2) { --dx: -45px; --dy: -34px; }
+.circular-burst span:nth-child(3) { --dx: -20px; --dy: -42px; }
+.circular-burst span:nth-child(4) { --dx: 0px; --dy: -46px; }
+.circular-burst span:nth-child(5) { --dx: 20px; --dy: -42px; }
+.circular-burst span:nth-child(6) { --dx: 45px; --dy: -34px; }
+.circular-burst span:nth-child(7) { --dx: 70px; --dy: -18px; }
+.circular-burst span:nth-child(8) { --dx: 0px; --dy: -26px; }
+@keyframes circular-burst-fly {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.4); }
+}
+.loop-ring-node--top { outline: 2px solid #ffd479; outline-offset: 3px; box-shadow: 0 0 20px rgba(255, 212, 121, 0.75); }
+.score-pie-row { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem; }
+.score-pie { flex: 0 0 56px; width: 56px; height: 56px; border-radius: 50%; border: 1px solid rgba(140, 160, 255, 0.3); }
+.score-pie-row .comparison-message { margin: 0; }
+#audit-body p { margin: 0.3rem 0; font-size: 0.82rem; }
+.network-map { font-size: 0.78rem; line-height: 1.35; white-space: pre-wrap; overflow-x: auto; margin: 0.4rem 0 0; }
+.trade-network-display--pulse-small { animation-duration: 350ms; }
+.trade-network-display--pulse-large { animation-duration: 1100ms; font-weight: 600; }
+#regional-hint button { margin-left: 0.4rem; padding: 0.15rem 0.6rem; }
+@media (prefers-reduced-motion: reduce) {
+  .circular-burst--active span { animation: none; }
+}

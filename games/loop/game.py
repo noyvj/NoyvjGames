@@ -131,6 +131,18 @@ EXPORT_PRICE_PER_UNIT = 3.0
 REGIONAL_TRADE_COST = 40
 REGIONAL_IMPORT_SUPPLY_PER_UNIT = 6.0
 
+# H1: a third trading partner with its own distinct cost/supply ratio --
+# a big, expensive, high-capacity consortium (6.0 funds/unit, the best
+# ratio of the three partners, but a 90-fund lump).
+OVERSEAS_TRADE_COST = 90
+OVERSEAS_IMPORT_SUPPLY_PER_UNIT = 15.0
+
+# Round-2 (H6/H26/H27/H28): UI-only tuning.
+BURST_MILESTONES = 4  # circular-fraction crosses each 25% step
+PULSE_LARGE_UNITS = 20.0
+PULSE_MEDIUM_UNITS = 8.0
+STREAK_PROGRESS_STEP = 5  # H2: progress toward the next 5-cycle streak mark
+
 # Iteration Pass 2 — single-item vignette: a concrete side-story
 # following one representative product, alongside the abstract chain
 # view, for a player who doesn't naturally read a flow diagram.
@@ -156,6 +168,9 @@ class ChainState:
         self.circular_fraction_log = []
         self.trade_link_investment = 0
         self.regional_trade_investment = 0
+        self.overseas_trade_investment = 0
+        # H16: the cycle number the loop first closed on (None until then).
+        self.first_loop_closed_cycle = None
         self.goods_category = DEFAULT_GOODS_CATEGORY
         # Lifetime tallies + streak tracking added for the achievements
         # rollout and H19's closed-loop-streak tracker — all reset with a
@@ -181,6 +196,7 @@ class ChainState:
         return (
             self.trade_link_investment * IMPORT_SUPPLY_PER_UNIT
             + self.regional_trade_investment * REGIONAL_IMPORT_SUPPLY_PER_UNIT
+            + self.overseas_trade_investment * OVERSEAS_IMPORT_SUPPLY_PER_UNIT
         )
 
     def circular_supply(self):
@@ -229,6 +245,27 @@ class ChainState:
         self.regional_trade_investment += 1
         self.lifetime_investment_spend += REGIONAL_TRADE_COST
         return True
+
+    def invest_overseas_trade(self):
+        """H1: the third trading partner (see OVERSEAS_TRADE_COST)."""
+        if self.funds < OVERSEAS_TRADE_COST:
+            return False
+        self.funds -= OVERSEAS_TRADE_COST
+        self.overseas_trade_investment += 1
+        self.lifetime_investment_spend += OVERSEAS_TRADE_COST
+        return True
+
+    def extraction_cost_trend(self):
+        """H8: 'rising' if last cycle's extraction pushed the per-unit
+        extraction cost multiplier up, else 'steady' (also before any
+        cycle has run). Damage never decays, so it can never get cheaper
+        -- the honest options are pricier or unchanged."""
+        if not self.circular_fraction_log:
+            return "steady"
+        last_extraction = PRODUCTION_TARGET * (1.0 - self.circular_fraction_log[-1])
+        prev_damage = min(1.0, max(0.0, self.total_extracted - last_extraction) / ENVIRONMENTAL_DAMAGE_SCALE)
+        prev_mult = 1.0 + prev_damage * (MAX_COST_MULTIPLIER - 1.0)
+        return "rising" if self.extraction_cost_multiplier() > prev_mult + 1e-9 else "steady"
 
     def is_loop_closed(self):
         return self.new_extraction_needed() <= 0.0
@@ -313,6 +350,12 @@ chain = ChainState()
 # Both ride get_state()/load_state() as top-level (not chain-scoped) keys.
 chains_completed_count = 0
 goods_categories_tried = {DEFAULT_GOODS_CATEGORY}
+# H28: one-time Regional Partner hint; survives reset like the counters
+# above (a player who has seen the explanation does not need it again).
+regional_hint_seen = False
+# H20: per-session random offset for which vignette variant a bucket
+# starts on. 0 (deterministic) outside a real browser -- setup() sets it.
+vignette_session_offset = 0
 
 
 def circular_trend_message(trend):
@@ -598,6 +641,8 @@ ACHIEVEMENT_CHECKS = {
     ),
     "serial_redesigner": lambda: chains_completed_count >= SERIAL_REDESIGNER_TARGET,
     "goods_explorer": lambda: len(goods_categories_tried) >= GOODS_EXPLORER_TARGET,
+    # H14: a badge for trying every goods-flavor set.
+    "goods_collector": lambda: len(goods_categories_tried) >= len(GOODS_CATEGORIES),
 }
 
 # Progress readouts, only for achievements with a natural numeric scale-up
@@ -632,6 +677,7 @@ ACHIEVEMENT_PROGRESS = {
     ),
     "serial_redesigner": lambda: (min(chains_completed_count, SERIAL_REDESIGNER_TARGET), SERIAL_REDESIGNER_TARGET),
     "goods_explorer": lambda: (min(len(goods_categories_tried), GOODS_EXPLORER_TARGET), GOODS_EXPLORER_TARGET),
+    "goods_collector": lambda: (len(goods_categories_tried), len(GOODS_CATEGORIES)),
 }
 
 
@@ -776,8 +822,38 @@ def _check_new_achievements_for_toast():
 # achievement toast. Tracks whether the loop was already closed
 # immediately before the action that just ran, so this only fires on the
 # false->true transition, never on every render while it stays closed.
+def _trigger_circular_burst():
+    """H6: a small particle burst when circular share crosses a 25% step."""
+    el = document.getElementById("circular-burst")
+    el.classList.add("circular-burst--active")
+
+    def _clear(*args):
+        el.classList.remove("circular-burst--active")
+        proxy.destroy()
+
+    proxy = create_proxy(_clear)
+    setTimeout(proxy, 900)
+
+
+def _milestone_step(fraction):
+    return min(BURST_MILESTONES, int(fraction * BURST_MILESTONES + 1e-9))
+
+
 def _show_loop_closed_banner():
     banner = document.getElementById("loop-closed-banner")
+    # H16: name the exact cycle the loop first closed on.
+    if chain.first_loop_closed_cycle is None:
+        chain.first_loop_closed_cycle = chain.cycle_number
+        text = (
+            f"🔁 Loop closed for the first time, on cycle {chain.first_loop_closed_cycle} — 100% of "
+            "this cycle's production came from repair, reuse & recycling. No new extraction needed."
+        )
+    else:
+        text = (
+            "🔁 Loop closed — 100% of this cycle's production came from repair, reuse & recycling. "
+            "No new extraction needed."
+        )
+    document.getElementById("loop-closed-banner-text").innerText = text
     banner.hidden = False
     banner.classList.add("visible")
 
@@ -804,14 +880,28 @@ def _trigger_funds_burst():
     setTimeout(proxy, 700)
 
 
-def _trigger_trade_network_pulse():
+def pulse_tier(delta_units):
+    """H26: 'small' / 'medium' / 'large' by the size of the supply change."""
+    delta = abs(delta_units)
+    if delta >= PULSE_LARGE_UNITS:
+        return "large"
+    if delta >= PULSE_MEDIUM_UNITS:
+        return "medium"
+    return "small"
+
+
+def _trigger_trade_network_pulse(delta_units=PULSE_MEDIUM_UNITS):
     """H18: a brief visible pulse on the trade-network readout whenever
-    its rendered numbers actually change."""
+    its rendered numbers actually change. H26: intensity varies with the
+    size of the change (a tier class alongside the base pulse class)."""
     el = document.getElementById("trade-network-display")
+    tier_class = f"trade-network-display--pulse-{pulse_tier(delta_units)}"
     el.classList.add("trade-network-display--pulse")
+    el.classList.add(tier_class)
 
     def _clear(*args):
         el.classList.remove("trade-network-display--pulse")
+        el.classList.remove(tier_class)
         proxy.destroy()
 
     proxy = create_proxy(_clear)
@@ -901,6 +991,131 @@ def update_changelog_display():
         panel.appendChild(row)
 
 
+# ===========================================================================
+# Round-2 helpers (H2, H12, H15, H18, H25a/H29a, H27, H30). Pure functions of
+# state, so they are directly testable.
+# ===========================================================================
+def streak_progress_text():
+    """H2: a small text progress bar toward the next 5-cycle streak mark.
+    Deliberately neutral (no flame/guilt framing): a plain 'x of 5'."""
+    streak = chain.closed_loop_streak
+    into = streak % STREAK_PROGRESS_STEP
+    target = (streak // STREAK_PROGRESS_STEP + 1) * STREAK_PROGRESS_STEP
+    bar = "\u25b0" * into + "\u25b1" * (STREAK_PROGRESS_STEP - into)
+    return f"{bar}  {streak} of {target} cycles toward the next streak mark"
+
+
+def score_pie_percentages():
+    """H12: (funds_pct, bonus_pct) shares of the score, summing to 100."""
+    bonus = chain.lifetime_circular_fraction() * CIRCULARITY_BONUS_WEIGHT
+    total = chain.funds + bonus
+    if total <= 0:
+        return (100, 0)
+    bonus_pct = round(bonus / total * 100)
+    return (100 - bonus_pct, bonus_pct)
+
+
+def score_pie_style():
+    funds_pct, _ = score_pie_percentages()
+    return f"conic-gradient(#e0c24c 0 {funds_pct}%, #4c9c6e {funds_pct}% 100%)"
+
+
+def top_investment_measure():
+    """H18: the circularity measure with the most invested (ties broken by
+    catalog order); None if nothing is invested yet."""
+    best, best_count = None, 0
+    for measure in CIRCULARITY_INVESTMENTS:
+        if chain.circularity_investment[measure] > best_count:
+            best, best_count = measure, chain.circularity_investment[measure]
+    return best
+
+
+def _partner_options():
+    """(label, cost, supply_per_unit) for every purchasable supply source."""
+    options = [
+        (spec["label"], spec["cost"], spec["supply_per_unit"]) for spec in CIRCULARITY_INVESTMENTS.values()
+    ]
+    options.append(("Trade Link", TRADE_LINK_COST, IMPORT_SUPPLY_PER_UNIT))
+    options.append(("Regional Partner", REGIONAL_TRADE_COST, REGIONAL_IMPORT_SUPPLY_PER_UNIT))
+    options.append(("Overseas Consortium", OVERSEAS_TRADE_COST, OVERSEAS_IMPORT_SUPPLY_PER_UNIT))
+    return options
+
+
+def audit_lines():
+    """H15: where supply/money is being wasted right now, with an
+    actionable suggestion each. Always returns at least one line."""
+    lines = []
+    gap = chain.new_extraction_needed()
+    surplus = chain.exportable_surplus()
+    if gap > 0:
+        cost = gap * EXTRACTION_COST_PER_UNIT * chain.extraction_cost_multiplier()
+        lines.append(
+            f"New extraction is {gap:.0f} units this cycle, costing about {cost:.0f} funds "
+            f"(and adding to lasting damage)."
+        )
+        label, unit_cost, supply = min(_partner_options(), key=lambda o: o[1] / o[2])
+        buys = math.ceil(gap / supply)
+        lines.append(
+            f"Cheapest way to cover it: {label} at {unit_cost / supply:.1f} funds/unit -- "
+            f"about {buys} purchase(s), {buys * unit_cost} funds."
+        )
+    if surplus > 0:
+        lines.append(
+            f"{surplus:.0f} units of supply exceed the production target; they sell for only "
+            f"{EXPORT_PRICE_PER_UNIT:.0f}/unit versus {SALE_PRICE_PER_UNIT:.0f} for goods, so more investment "
+            f"here adds little."
+        )
+    if chain.extraction_cost_multiplier() > 1.5:
+        lines.append(
+            f"Damage has pushed extraction cost to x{chain.extraction_cost_multiplier():.2f}; "
+            "each extracted unit now costs noticeably more."
+        )
+    if not lines:
+        lines.append("Nothing is being wasted right now: supply matches the production target.")
+    return lines
+
+
+def network_map_text():
+    """H25a/H29a: a simple, everywhere-works text map of the chain, the
+    internal recovery loop, and every trade partner's flow."""
+    internal = chain.internal_circular_supply()
+    parts = " / ".join(
+        f"{CIRCULARITY_INVESTMENTS[m]['icon']} {chain.circularity_investment[m] * CIRCULARITY_INVESTMENTS[m]['supply_per_unit']:.0f}"
+        for m in CIRCULARITY_INVESTMENTS
+    )
+    lines = [
+        "Extract -> Manufacture -> Use -> Discard",
+        f"   new extraction: {chain.new_extraction_needed():.0f}/cycle",
+        f"Internal loop back into Manufacture: {internal:.0f}/cycle  ({parts})",
+        "Trade partners:",
+        f"  Trade Link          in +{chain.trade_link_investment * IMPORT_SUPPLY_PER_UNIT:.0f}",
+        f"  Regional Partner    in +{chain.regional_trade_investment * REGIONAL_IMPORT_SUPPLY_PER_UNIT:.0f}",
+        f"  Overseas Consortium in +{chain.overseas_trade_investment * OVERSEAS_IMPORT_SUPPLY_PER_UNIT:.0f}",
+        f"  surplus out -> {chain.exportable_surplus():.0f}/cycle",
+    ]
+    return "\n".join(lines)
+
+
+def featured_goods_category(week_index=None):
+    """H27: the 'challenge of the week' goods category -- deterministic
+    rotation by week number, so no backend is needed and every player
+    sees the same one. `week_index` defaults to the current UTC week."""
+    if week_index is None:
+        import time  # noqa: PLC0415
+        week_index = int(time.time() // (7 * 24 * 3600))
+    keys = list(GOODS_CATEGORIES)
+    return keys[week_index % len(keys)]
+
+
+def reset_chain_message():
+    """H30: the confirmation shown after Start New Chain, naming the two
+    lifetime counters that survive it."""
+    return (
+        f"New chain started. Kept from before: {chains_completed_count} chain(s) completed, "
+        f"{len(goods_categories_tried)} goods categor{'y' if len(goods_categories_tried) == 1 else 'ies'} tried."
+    )
+
+
 def render():
     render_info_page()
     update_achievements_display()
@@ -914,6 +1129,20 @@ def render():
             button.classList.add("selected")
         else:
             button.classList.remove("selected")
+
+    # H4: relabel panel only once the picker itself is gone.
+    document.getElementById("relabel-goods-panel").hidden = not picker.hidden
+    for key in GOODS_CATEGORIES:
+        rb = document.getElementById(f"relabel-{key}-button")
+        if key == chain.goods_category:
+            rb.classList.add("selected")
+        else:
+            rb.classList.remove("selected")
+    featured = featured_goods_category()
+    document.getElementById("featured-goods-display").innerText = (
+        f"Challenge of the week: try a chain of {GOODS_CATEGORIES[featured]['label']} "
+        f"{GOODS_CATEGORIES[featured]['icon']}."
+    )
 
     fraction = chain.circular_fraction_this_cycle()
     flow_el = document.getElementById("chain-flow")
@@ -930,7 +1159,9 @@ def render():
     import_flow_row.style.opacity = f"{import_fraction:.2f}"
 
     vignette_variant = (chain.cycle_number - 1) if chain.cycle_number > 0 else 0
-    document.getElementById("vignette-display").innerText = vignette_message(fraction, variant_seed=vignette_variant)
+    document.getElementById("vignette-display").innerText = vignette_message(
+        fraction, variant_seed=vignette_variant + vignette_session_offset
+    )
 
     document.getElementById("cycle-display").innerText = f"Cycle {chain.cycle_number}"
     document.getElementById("funds-display").innerText = f"Funds: {chain.funds:.0f}"
@@ -947,6 +1178,15 @@ def render():
     document.getElementById("damage-display").innerText = (
         f"Environmental damage: {chain.damage_fraction() * 100:.0f}% "
         f"(extraction cost x{chain.extraction_cost_multiplier():.2f})"
+    )
+    # H8: a small trend arrow on the per-unit extraction cost; H22: the
+    # hard-ceiling multiplier spelled out in the tooltip.
+    trend_word = chain.extraction_cost_trend()
+    trend_note = " \u2197 pricier than last cycle" if trend_word == "rising" else ""
+    document.getElementById("damage-display").innerText += trend_note
+    document.getElementById("damage-display").title = (
+        f"Extraction cost has a hard ceiling of x{MAX_COST_MULTIPLIER:.2f} -- it can never rise above that, "
+        f"however much damage accumulates. Currently x{chain.extraction_cost_multiplier():.2f}."
     )
     document.getElementById("damage-bar").style.width = f"{chain.damage_fraction() * 100:.0f}%"
 
@@ -978,6 +1218,20 @@ def render():
         f"Closed-loop streak: {chain.closed_loop_streak} cycle(s) (best: {chain.best_closed_loop_streak})"
     )
 
+    # H2 / H24: streak progress, and cycles since last new extraction.
+    document.getElementById("streak-progress").innerText = streak_progress_text()
+    since = document.getElementById("streak-since-display")
+    since.hidden = chain.circular_fraction_this_cycle() < 0.75
+    since.innerText = f"Cycles since last new extraction: {chain.closed_loop_streak}"
+    # H12: score-source pie, H15: audit.
+    funds_pct, bonus_pct = score_pie_percentages()
+    document.getElementById("score-pie").style.background = score_pie_style()
+    document.getElementById("score-pie-legend").innerText = (
+        f"Score sources: funds {funds_pct}% (gold), circular bonus {bonus_pct}% (green)"
+    )
+    document.getElementById("audit-body").innerHTML = "".join(f"<p>{line}</p>" for line in audit_lines())
+
+    top_measure = top_investment_measure()
     for measure, spec in CIRCULARITY_INVESTMENTS.items():
         document.getElementById(f"{measure}-name").innerText = f"{spec['icon']} {spec['label']}"
         document.getElementById(f"{measure}-count").innerText = str(
@@ -1006,6 +1260,9 @@ def render():
             node.className = f"{base_class} loop-ring-node--active"
         else:
             node.className = base_class
+        # H18: extra glow on the node receiving the most investment.
+        if measure == top_measure:
+            node.className += " loop-ring-node--top"
 
     document.getElementById("trade-link-count").innerText = str(chain.trade_link_investment)
     trade_link_button = document.getElementById("trade-link-invest-button")
@@ -1033,6 +1290,21 @@ def render():
         f"partner from Trade Link, so both can be invested in at once."
     )
 
+    document.getElementById("overseas-trade-count").innerText = str(chain.overseas_trade_investment)
+    overseas_button = document.getElementById("overseas-trade-invest-button")
+    overseas_button.innerText = f"Overseas Consortium ({OVERSEAS_TRADE_COST})"
+    overseas_button.disabled = chain.funds < OVERSEAS_TRADE_COST
+    overseas_button.title = (
+        f"{OVERSEAS_TRADE_COST} funds for {OVERSEAS_IMPORT_SUPPLY_PER_UNIT:.0f} imported units/cycle "
+        f"({OVERSEAS_TRADE_COST / OVERSEAS_IMPORT_SUPPLY_PER_UNIT:.2f} funds/unit) -- the best price per unit "
+        f"of the three partners, but a big single purchase."
+    )
+    # H28: one-time hint the first time the Regional Partner is affordable.
+    document.getElementById("regional-hint").hidden = not (
+        chain.funds >= REGIONAL_TRADE_COST and not regional_hint_seen
+    )
+    document.getElementById("network-map-display").innerText = network_map_text()
+
     document.getElementById("trade-network-display").innerText = (
         f"Importing {chain.imported_supply():.0f} units/cycle from the trade network; "
         f"exporting {chain.exportable_surplus():.0f} units/cycle of surplus this cycle."
@@ -1057,6 +1329,27 @@ def on_invest_regional_trade(event=None):
     _run_action(chain.invest_regional_trade)
 
 
+def on_invest_overseas_trade(event=None):
+    _run_action(chain.invest_overseas_trade)
+
+
+def on_dismiss_regional_hint(event=None):
+    global regional_hint_seen
+    regional_hint_seen = True
+    render()
+
+
+def _make_relabel_handler(category):
+    """H4: cosmetic-only -- changes labels/vignette item, deliberately
+    does NOT add to goods_categories_tried (that counter and the
+    achievements built on it measure real picks at chain start)."""
+    def handler(event=None):
+        def _do_relabel():
+            chain.goods_category = category
+        _run_action(_do_relabel)
+    return handler
+
+
 def on_reset_chain(event=None):
     """H7: an in-game "Start New Chain" reset control. Wipes the current
     chain back to a fresh ChainState() (funds, cycle number, every
@@ -1071,6 +1364,9 @@ def on_reset_chain(event=None):
 
     chains_completed_count += 1
     _run_action(_do_reset)
+    message = document.getElementById("reset-chain-message")
+    message.innerText = reset_chain_message()
+    message.hidden = False
 
 
 def _make_goods_category_handler(category):
@@ -1080,6 +1376,10 @@ def _make_goods_category_handler(category):
             goods_categories_tried.add(category)
         _run_action(_do_select)
     return handler
+
+
+def supply_after_minus(supply_before):
+    return chain.imported_supply() + chain.exportable_surplus() - supply_before
 
 
 def _run_action(mutate_fn):
@@ -1092,14 +1392,20 @@ def _run_action(mutate_fn):
     trade_text_before = document.getElementById("trade-network-display").innerText
     export_before = chain.lifetime_export_revenue
     was_closed = chain.is_loop_closed()
+    step_before = _milestone_step(chain.circular_fraction_this_cycle())
+    supply_before = chain.imported_supply() + chain.exportable_surplus()
 
     mutate_fn()
     render()
 
+    # H6: burst on crossing upward through a 25% step (not on every render).
+    if _milestone_step(chain.circular_fraction_this_cycle()) > step_before:
+        _trigger_circular_burst()
+
     if chain.lifetime_export_revenue > export_before:
         _trigger_funds_burst()
     if document.getElementById("trade-network-display").innerText != trade_text_before:
-        _trigger_trade_network_pulse()
+        _trigger_trade_network_pulse(supply_after_minus(supply_before))
     if chain.is_loop_closed() and not was_closed:
         _show_loop_closed_banner()
     _check_new_achievements_for_toast()
@@ -1132,6 +1438,9 @@ def get_state():
         "circular_fraction_log": copy.deepcopy(chain.circular_fraction_log),
         "trade_link_investment": chain.trade_link_investment,
         "regional_trade_investment": chain.regional_trade_investment,
+        "overseas_trade_investment": chain.overseas_trade_investment,
+        "first_loop_closed_cycle": chain.first_loop_closed_cycle,
+        "regional_hint_seen": regional_hint_seen,
         "goods_category": chain.goods_category,
         "lifetime_investment_spend": chain.lifetime_investment_spend,
         "lifetime_export_revenue": chain.lifetime_export_revenue,
@@ -1163,7 +1472,7 @@ def load_state(data):
     module-level reset-survivor counters) defaults defensively via
     `.get(..., <safe default>)` so a save from before that field existed
     loads cleanly instead of raising KeyError."""
-    global chains_completed_count, goods_categories_tried
+    global chains_completed_count, goods_categories_tried, regional_hint_seen
 
     chain.cycle_number = data["cycle_number"]
     chain.funds = data["funds"]
@@ -1179,6 +1488,9 @@ def load_state(data):
     # rather than raising KeyError and failing the whole load.
     chain.trade_link_investment = data.get("trade_link_investment", 0)
     chain.regional_trade_investment = data.get("regional_trade_investment", 0)
+    chain.overseas_trade_investment = data.get("overseas_trade_investment", 0)
+    chain.first_loop_closed_cycle = data.get("first_loop_closed_cycle", None)
+    regional_hint_seen = bool(data.get("regional_hint_seen", False))
     chain.goods_category = data.get("goods_category", DEFAULT_GOODS_CATEGORY)
     chain.lifetime_investment_spend = data.get("lifetime_investment_spend", 0.0)
     chain.lifetime_export_revenue = data.get("lifetime_export_revenue", 0.0)
@@ -1236,6 +1548,26 @@ def setup():
     document.getElementById("changelog-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_changelog)
     )
+    document.getElementById("overseas-trade-invest-button").addEventListener(
+        "click", create_proxy(on_invest_overseas_trade)
+    )
+    document.getElementById("regional-hint-dismiss-button").addEventListener(
+        "click", create_proxy(on_dismiss_regional_hint)
+    )
+    for category in GOODS_CATEGORIES:
+        document.getElementById(f"relabel-{category}-button").addEventListener(
+            "click", create_proxy(_make_relabel_handler(category))
+        )
+    document.getElementById("reset-chain-message").hidden = True
+    document.getElementById("regional-hint").hidden = True
+    # H20: random per-session vignette-variant offset (real browser only;
+    # the pytest fake `js` has no Math, so tests stay deterministic).
+    global vignette_session_offset
+    try:
+        from js import Math  # noqa: PLC0415
+        vignette_session_offset = int(Math.random() * 1000)
+    except ImportError:
+        vignette_session_offset = 0
     _seed_achievement_toast_baseline()
     render()
 

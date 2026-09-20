@@ -81,6 +81,25 @@ ELEMENT_IDS = [
     "loop-projection-display",
     "sector-comparison-display",
     "streak-display",
+    # Round-2 additions.
+    "loop-closed-banner-text",
+    "featured-goods-display",
+    "relabel-goods-panel",
+    "relabel-electronics-button",
+    "relabel-clothing-button",
+    "relabel-furniture-button",
+    "circular-burst",
+    "streak-progress",
+    "streak-since-display",
+    "score-pie",
+    "score-pie-legend",
+    "audit-body",
+    "reset-chain-message",
+    "regional-hint",
+    "regional-hint-dismiss-button",
+    "overseas-trade-count",
+    "overseas-trade-invest-button",
+    "network-map-display",
 ]
 
 
@@ -116,6 +135,9 @@ class GameEnv:
 
     def invest_circularity(self, measure):
         self.elements[f"{measure}-invest-button"].dispatch("click", None)
+
+    def invest_overseas_trade(self):
+        self.elements["overseas-trade-invest-button"].dispatch("click", None)
 
     def reset_chain(self):
         self.elements["reset-chain-button"].dispatch("click", None)
