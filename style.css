@@ -623,6 +623,37 @@ body {
   opacity: 0.5;
 }
 
+/* "Claim your save" nudge for anonymous players (TODO.md L15) */
+.claim-save-nudge {
+  max-width: 1000px;
+  margin: 0 auto 1.25rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(165deg, rgba(58, 77, 120, 0.35), rgba(24, 27, 43, 0.85));
+  border: 1px solid rgba(140, 160, 255, 0.22);
+  border-radius: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.claim-save-nudge-text {
+  font-size: 0.82rem;
+  opacity: 0.85;
+  margin: 0;
+  line-height: 1.5;
+  flex: 1;
+  min-width: 220px;
+}
+
+.claim-save-nudge-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-shrink: 0;
+}
+
 .account-section,
 .site-feedback-section {
   max-width: 1000px;

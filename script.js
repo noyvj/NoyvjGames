@@ -191,11 +191,60 @@ const accountMySaves = document.getElementById("account-my-saves");
 const continuePlayingSection = document.getElementById("continue-playing-section");
 const continuePlayingList = document.getElementById("continue-playing-list");
 
+// --- "Claim your save" nudge for anonymous players (TODO.md L15) ---
+//
+// Threshold deliberately kept cheap per the TODO note: any local save
+// code at all counts as "clearly invested real time" — every
+// shared/save-widget.js save is an explicit, player-initiated action
+// (there's no autosave to trigger this from a single accidental click),
+// so one `savecode:<slug>` key already means someone chose to save
+// progress in a game. Not shown at all once signed in — a signed-in
+// player's saves are either already claimed or trivially claimable from
+// each game's own "Claim this save" button, so the nudge would just be
+// noise. Dismissal is permanent (a hub-wide localStorage flag), same
+// "respect the player's choice, don't re-nag" posture as every other
+// dismissible bit of hub UI. Declared here, ahead of showSignedIn/
+// showSignedOut below, since both call maybeShowClaimSaveNudge() and are
+// themselves invoked (from the bottom of this file) before any code
+// further down would otherwise have run.
+const CLAIM_NUDGE_DISMISSED_KEY = "claim_save_nudge_dismissed";
+const claimSaveNudge = document.getElementById("claim-save-nudge");
+const claimSaveNudgeCta = document.getElementById("claim-save-nudge-cta");
+const claimSaveNudgeDismiss = document.getElementById("claim-save-nudge-dismiss");
+
+function anonymousSaveCodeSlugs() {
+  return Object.keys(localStorage)
+    .filter((key) => key.startsWith("savecode:"))
+    .map((key) => key.slice("savecode:".length));
+}
+
+function maybeShowClaimSaveNudge() {
+  if (!claimSaveNudge) return;
+  const alreadySignedIn = Boolean(hubGetBearerToken());
+  const dismissed = localStorage.getItem(CLAIM_NUDGE_DISMISSED_KEY);
+  claimSaveNudge.hidden = alreadySignedIn || Boolean(dismissed) || !anonymousSaveCodeSlugs().length;
+}
+
+if (claimSaveNudgeCta) {
+  claimSaveNudgeCta.addEventListener("click", () => {
+    document.getElementById("account-section")?.scrollIntoView({ behavior: "smooth" });
+    accountUsernameInput?.focus();
+  });
+}
+
+if (claimSaveNudgeDismiss) {
+  claimSaveNudgeDismiss.addEventListener("click", () => {
+    localStorage.setItem(CLAIM_NUDGE_DISMISSED_KEY, "1");
+    claimSaveNudge.hidden = true;
+  });
+}
+
 function showSignedOut() {
   accountSignedOut.hidden = false;
   accountSignedIn.hidden = true;
   continuePlayingSection.hidden = true;
   continuePlayingList.innerHTML = "";
+  maybeShowClaimSaveNudge();
 }
 
 function showSignedIn(username) {
@@ -205,6 +254,7 @@ function showSignedIn(username) {
   loadMySaves();
   loadAchievementsDashboard();
   loadContinuePlaying();
+  maybeShowClaimSaveNudge();
 }
 
 async function loadMySaves() {
