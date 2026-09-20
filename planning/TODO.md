@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 192/709 items checked off (27.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 215/709 items checked off (30.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -662,35 +662,35 @@ Every idea in this section was accepted. **You also flagged a real cross-cutting
 Every idea in this section was accepted, no exceptions.
 
 - [ ] I1: A second receiving region — manage two regions with different starting capacity/pressure profiles simultaneously.
-- [ ] I2: Let the passive unmanaged control region show its wellbeing trend on the same trend graph as the player's own region.
+- [x] I2: Let the passive unmanaged control region show its wellbeing trend on the same trend graph as the player's own region.
 - [ ] I3: A "policy toolkit" mechanic — choose among a few real-world-grounded institutional policy levers (streamlined credentialing, language-access funding) as named investment options, rather than the current abstract housing/services/infrastructure split.
-- [ ] I4: A visible (not just hover) statement of the accelerated-severity toggle's exact multiplier.
-- [ ] I5: A "generations forward" interactive coda — one or two final symbolic choices that flavor (not mechanically alter) the epilogue text.
-- [ ] I6: Let the session-milestone summary include a small trend indicator (improving/plateauing/declining) alongside the snapshot numbers.
+- [x] I4: A visible (not just hover) statement of the accelerated-severity toggle's exact multiplier.
+- [x] I5: A "generations forward" interactive coda — one or two final symbolic choices that flavor (not mechanically alter) the epilogue text.
+- [x] I6: Let the session-milestone summary include a small trend indicator (improving/plateauing/declining) alongside the snapshot numbers.
 - [ ] I7: A "regional network" mechanic — a well-prepared region optionally supports a struggling neighboring region (light connection to I1).
-- [ ] I8: A small icon distinguishing the three composite wellbeing sub-scores (services/economy/cohesion) everywhere they're shown.
-- [ ] I9: A "capacity planning" forecast tool — a projected arrivals curve for the next N rounds based on current background severity.
-- [ ] I10: Let the net-positive turning-point badge show the exact round it was reached.
-- [ ] I11: A "thriving region" showcase mode — reaching the Thriving band unlocks a short optional descriptive vignette, institutional framing.
-- [ ] I12: A tooltip explaining what "unmanaged control region" represents and why it's shown.
-- [ ] I13: A "resettlement outcome" real-data comparison — the region's integration rate compared directly against the real 89% benchmark as a live in-session stat.
-- [ ] I14: Label the target marker on wellbeing gauges with the exact threshold number.
-- [ ] I15: A "crisis-to-recovery" narrative mode — an opt-in harder start (already-strained region) demonstrating the "not too late" message from a bad starting position.
-- [ ] I16: A small badge for reaching Model Region tier via a from-behind recovery, distinct from steady management.
+- [x] I8: A small icon distinguishing the three composite wellbeing sub-scores (services/economy/cohesion) everywhere they're shown.
+- [x] I9: A "capacity planning" forecast tool — a projected arrivals curve for the next N rounds based on current background severity.
+- [x] I10: Let the net-positive turning-point badge show the exact round it was reached.
+- [x] I11: A "thriving region" showcase mode — reaching the Thriving band unlocks a short optional descriptive vignette, institutional framing.
+- [x] I12: A tooltip explaining what "unmanaged control region" represents and why it's shown.
+- [x] I13: A "resettlement outcome" real-data comparison — the region's integration rate compared directly against the real 89% benchmark as a live in-session stat.
+- [x] I14: Label the target marker on wellbeing gauges with the exact threshold number.
+- [x] I15: A "crisis-to-recovery" narrative mode — an opt-in harder start (already-strained region) demonstrating the "not too late" message from a bad starting position.
+- [x] I16: A small badge for reaching Model Region tier via a from-behind recovery, distinct from steady management.
 - [ ] I17: A "community capacity index" — aggregate stat showing average regional wellbeing across all players *(needs Z1)*.
-- [ ] I18: Let the free-text tone/framing feedback field show a short explanatory placeholder.
-- [ ] I19: A "resource reallocation" mid-run mechanic — shift already-committed capacity between housing/services/infrastructure at a small cost.
+- [x] I18: Let the free-text tone/framing feedback field show a short explanatory placeholder.
+- [x] I19: A "resource reallocation" mid-run mechanic — shift already-committed capacity between housing/services/infrastructure at a small cost.
 - [ ] I20: A one-time callout the first time the arrival-dot stream's density visibly changes due to a difficulty toggle.
-- [ ] I21: A "long-horizon divergence" comparison — the coda's generations-later outcome shown side by side for both the player's region and the passive control region.
-- [ ] I22: Show the funds-to-economic-health scale reference as a small always-visible conversion note.
-- [ ] I23: A "regional identity" light customization — name the region once, carried through the whole session and into the coda.
-- [ ] I24: A small trend arrow next to each of the three composite sub-scores.
+- [x] I21: A "long-horizon divergence" comparison — the coda's generations-later outcome shown side by side for both the player's region and the passive control region.
+- [x] I22: Show the funds-to-economic-health scale reference as a small always-visible conversion note.
+- [x] I23: A "regional identity" light customization — name the region once, carried through the whole session and into the coda.
+- [x] I24: A small trend arrow next to each of the three composite sub-scores.
 - [ ] I25: A "second wave" mechanic — after initial arrivals integrate, a second, larger wave tests whether improved capacity holds up.
-- [ ] I26: Let the comfortably-ahead dimension callout name the specific sub-score that's ahead.
-- [ ] I27: A "capacity investment ROI" dashboard — exactly how much each dollar invested has returned in integration contribution.
-- [ ] I28: A tooltip explaining exactly what triggers the strain-level consequence descriptions.
+- [x] I26: Let the comfortably-ahead dimension callout name the specific sub-score that's ahead.
+- [x] I27: A "capacity investment ROI" dashboard — exactly how much each dollar invested has returned in integration contribution.
+- [x] I28: A tooltip explaining exactly what triggers the strain-level consequence descriptions.
 - [ ] I29: A "cross-region learning" mechanic — reaching Thriving once unlocks a small permanent efficiency bonus for any future region managed (built independently per Z3's resolution).
-- [ ] I30: A small "rounds until next capacity milestone" estimate, based on current investment pace.
+- [x] I30: A small "rounds until next capacity milestone" estimate, based on current investment pace.
 
 ---
 
