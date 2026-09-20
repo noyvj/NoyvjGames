@@ -282,3 +282,8 @@ This log tracks the game-making side of the DA for BCM114: individual game conce
 
 ## 2026-09-20 — Grid: round-2 improvement pass
 Built ~17 C-items (starting scenarios, operator grade, resilience score, 20-round projection, best-round marker, funds bars, clean streak, wear tiers/tooltips, disruption "why" reasons, cross-player percentile against the not-yet-deployed stats endpoint with graceful fallback). See games/grid/CLAUDE.md. Tests 270 -> 287; live-verified in browser, no non-network console errors.
+
+### 2026-09-20 (Canopy: round-2 improvement pass)
+**Game:** Canopy
+**Did:** Worked through `planning/TODO.md`'s Canopy B-list: B2/B3/B4/B6/B7/B8/B9/B10/B12/B13/B14/B16/B18/B19/B20/B21/B22/B23/B24/B25/B26/B27/B28/B30. Most of it lives behind the existing opt-in Session Summary panel (report card, forest history, wildlife log, community comparison, playstyle badge) so the main screen gained almost nothing; gameplay additions are the Forest ranger difficulty, a Small 4x4 grid, veteran/adopted/specialist plots, a first-maturity leaf burst and a replanting community grant. Left for later: B1, B11, B15, B17, B29.
+**Result:** 279 to 350 tests green. Verified live in a fresh browser tab; the community comparison degrades to a plain message while the Z1 stats endpoint is undeployed (404 was the only console error).

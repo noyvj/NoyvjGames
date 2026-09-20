@@ -1,5 +1,6 @@
 {
   "changelog": [
+    {"date": "2026-09-20", "entry": "Round-2 pass: Small 4x4 grid, Forest ranger difficulty, forest history + wildlife log, playstyle badge, report-card graphs, veteran and adopted plots, specialist plots, replanting grants, Highland unlock progress bar, biodiversity rate, and an opt-in community comparison."},
     {"date": "2026-09-20", "entry": "Onboarding-tooltip coverage audit completed — legend and stakeholder info-icons plus per-plot tooltips already cover every non-obvious mechanic, no gap found."},
     {"date": "2026-09-19", "entry": "Settings panel added: text size (A-/A/A+) and a reduce-motion toggle, both persisted per-browser."},
     {"date": "2026-09-05", "entry": "Space theme visual pass: starfield background, glass panels, gradient buttons, gradient-glow title."},

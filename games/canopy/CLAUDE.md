@@ -297,6 +297,20 @@ tooltip and Code-quality audit notes above already set.
 Verified: full 278/278 pytest suite green (no change made, ran as the
 baseline check this pass calls for regardless of verdict).
 
+## Round-2 improvement pass (planning/TODO.md "Per-game: Canopy", 2026-09-20)
+
+Built B2 (already true: `stakeholder_request_message()` has used `plot_coordinate_label()` since the original B4, now covered by the new tests' assertions), B3, B4, B6, B7, B8, B9, B10, B12, B13, B14, B16, B18, B19, B20, B21, B22, B23, B24, B25, B26, B27, B28, B30. Not built: B1 (wetland biome), B11 (reforestation partner), B15 (legacy forest), B17 (seasonal growth), B29 (guided playthrough); B5 stays in LATER.md.
+
+Where it lives (no new always-visible blocks, per the decluttering pass):
+- **Session Summary panel** gained collapsible `<details>`: Forest report card (B13, three separately labelled sparklines of biodiversity / standing value / relations, ephemeral `_report_history`), Forest history (B3), Wildlife log (B23, six deterministic species by plot index), Community forest (B19, opt-in button, fetches `/stats/games/canopy` + `/percentile` only on click, falls back to a plain "not available yet" message; the endpoint is not deployed yet). Plus the playstyle badge (B9: Preservationist/Balanced/Harvester from total clears per plot) and a "Copy badge" button (B18).
+- **State** (all safe-defaulting in `load_state()`): `forest_log` (capped 200, `{tick, kind, plot, text}`), `forest_tick`, `adopted_plot_index`, `current_difficulty`, and per-plot `mature_celebrated`, `requests_survived`, `specialization` (via new `_plot_to_dict`/`_apply_plot_dict`, shared by main and Highland grids).
+- **Plots:** first full maturity fires a one-shot leaf burst (B4); 3+ declined clear-requests without ever clearing marks a veteran plot (B22); an adopted plot (B27, action-panel button, mini-history filtered from `forest_log`); specialists (B21: after 90 ticks intact, one permanent economic +25% value or biodiversity x2.5 choice, lost on clear).
+- **Requests:** incentive tooltips + badge relabel (B8); `N` key selects the requested plot (B16); every second incentive slot becomes a replanting grant on a bare plot when one exists (B25, `replant_grant` kind, target validity is kind-aware).
+- **Difficulty / size:** Small 4x4 preset (B14); "Forest ranger" doubles soil degradation per clear (B7), changing it resets the session like grid size.
+- **Small UI:** Highland unlock `<progress>` (B6), biodiversity `(+X/tick)` (B10), soil `?` hint with dynamic `title` (B12), value-pop size classes (B20, size/motion only), two-step Reset Session that names the standing value given up and skips confirmation when nothing is at stake (B24, disarms after 5s), counterfactual line states the percentage difference (B28), last-hovered plot glow (B26, plain JS + childList observer), decorative seasonal backdrop tint from the real calendar month (B30, `settings.js`).
+
+Tests 279 -> 350 (new files: `test_display_batch_1.py`, `test_forest_log_and_badge.py`, `test_ranger_mode.py`, `test_replant_grant.py`, `test_specialist_plot.py`). The test harness `GameEnv.reset_session()` now clicks a second time when B24's confirm step arms. Verified live under Pyodide (fresh tab, service worker unregistered, caches cleared): leaf burst, adopted star, hover glow, pop sizes, badge, report-card SVGs, log panels, ranger select, specialist row and the community fallback all worked; the only console error was the expected 404 from the undeployed stats endpoint.
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag canopy-milestone-0N`.
