@@ -1081,6 +1081,30 @@ button.primary:active:not(:disabled) {
   overflow-y: auto;
 }
 
+/* UI decluttering pass (planning/TODO.md closing task): wraps the
+   flood-countdown (D3) and worst-season (D12) derived stats in the same
+   block-level <details> idiom as .ticker-history-toggle above --
+   identical rule shapes, kept as their own class since these sit in
+   #sea-level-section rather than the ticker log. */
+.sea-level-stats-toggle {
+  margin-top: 0.4rem;
+}
+
+.sea-level-stats-toggle summary {
+  font-size: 0.78rem;
+  opacity: 0.65;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sea-level-stats-toggle summary:hover {
+  opacity: 0.9;
+}
+
+.sea-level-stats-toggle p {
+  margin: 0.4rem 0 0;
+}
+
 /* D15: acidity-vs-fish-yield mini-graph -- same container/sizing
    convention as Thaw's .mini-temp-graph, since game.py's own SVG string
    already carries its own stroke colors inline. */

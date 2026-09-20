@@ -245,6 +245,16 @@ all 10 real entries with correct dates/text in newest-first order, the
 toggle label flipped to "Hide What's New", and it closed correctly on a
 second click — zero console errors throughout.
 
+## UI decluttering pass (2026-09-20, planning/TODO.md closing task)
+
+Audit-first pass, same standard as the site-wide colorblind-safety audit: only change something if it's genuinely crowded, otherwise leave it. Read through `index.html` and `style.css` end to end. This game has had the most post-launch iteration of the quartet (the full D1-D19 pass, plus achievements, settings, changelog, session-summary), and most of it already declutters as a side effect: every panel-scale feature is hidden-until-opened (Tutorial/How to Play/Achievements/What's New/Session Summary/Settings), D5 already tucked the full ticker history behind a `.ticker-history-toggle` `<details>`, D19's per-tile tooltips replaced what could have been more on-screen UI, and D1's mobile dock keeps the investments panel from competing with the status cards on small screens.
+
+**Real gap found:** `#sea-level-section` had accreted two derived "nice to know" stat lines one at a time as separate passes landed — D3's `#next-flood-display` (seasons until the next row floods) and D12's `#worst-season-display` (the worst single season so far) — each just appended as another always-visible `<p>` under the section's core sea-level/damage/adaptation-tier readouts, with no grouping consideration at the time either landed. Neither is something a player needs at a glance to decide this season's investment (unlike sea-level, cumulative damage, and the adaptation tier/progress lines directly above them, which are), so they were the one part of this section that had drifted toward "just more stacked text" rather than a deliberately-scoped display.
+
+**Fixed:** wrapped both in a new block-level `<details class="sea-level-stats-toggle">` (`index.html`) with a plain "More stats" `<summary>`, collapsed by default, sitting after the core sea-level/damage/adaptation-tier lines so those stay immediately visible. Styled in `style.css` by copying this game's own `.ticker-history-toggle` rule shapes (0.78rem, opacity 0.65 summary) under a new class name (it's a different section, so reusing the "ticker" class name would have been misleading) — same look Grid's own decluttering pass in this session adopted for consistency. No `game.py` change — `render_sea_level_stats()`'s equivalent code (the block writing `next-flood-display`/`worst-season-display`'s `innerText` in `render()`) only does `document.getElementById(...)`, untouched by the new wrapping div.
+
+Verified: full 174/174 pytest suite green (HTML/CSS-only change, no Python touched; `tests/conftest.py`'s `next-flood-display`/`worst-season-display` ids are read the same way regardless of DOM nesting). Everything else audited and left alone: the coastline grid, the then-vs-now comparison, and `#investments` are either the game's core visual payoff or already docked/grouped from prior passes — collapsing any of those further would hide information or controls a player actually needs mid-season, the over-collapsing failure mode this pass is meant to avoid.
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag tide-milestone-0N`.

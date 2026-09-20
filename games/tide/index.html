@@ -133,11 +133,21 @@
       <p id="adaptation-tier-display" class="status-line">Adaptation tier: No adaptation (0% damage dampening)</p>
       <details class="info-toggle"><summary>i</summary><p>Adaptation tiers unlock at fixed total-investment thresholds (3, 6, then 10 units) — it's cumulative and never decays, so spreading investment out over many seasons works just as well as investing it all at once.</p></details>
       <p id="adaptation-tier-progress" class="comparison-message">0/3 invested toward Sandbag berms (next tier).</p>
-      <!-- D3: seasons remaining until the next currently-unflooded row
-           crosses its threshold. -->
-      <p id="next-flood-display" class="comparison-message"></p>
-      <!-- D12: the single highest-damage season played so far. -->
-      <p id="worst-season-display" class="comparison-message">Worst season: none yet.</p>
+      <!-- UI decluttering pass (planning/TODO.md closing task): D3's
+           flood countdown and D12's worst-season record are both
+           "nice to know" derived stats, not something a player needs
+           at a glance to decide this season's investment -- unlike
+           sea-level/damage/adaptation-tier above, which are. Tucked
+           behind a block-level <details>, same zero-JS pattern as this
+           game's own .ticker-history-toggle. Collapsed by default. -->
+      <details class="sea-level-stats-toggle">
+        <summary>More stats</summary>
+        <!-- D3: seasons remaining until the next currently-unflooded row
+             crosses its threshold. -->
+        <p id="next-flood-display" class="comparison-message"></p>
+        <!-- D12: the single highest-damage season played so far. -->
+        <p id="worst-season-display" class="comparison-message">Worst season: none yet.</p>
+      </details>
     </div>
 
     <div class="coastline-scene">
