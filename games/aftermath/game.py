@@ -414,6 +414,20 @@ def early_warning_mitigation_bonus():
     return 0.10 if "early_warning" in skill_tree.unlocked else 0.0
 
 
+def growth_income_now(growth_capacity):
+    """E20: the growth payoff the player is actually earning right now."""
+    return growth_capacity * GROWTH_INCOME_PER_UNIT
+
+
+def growth_button_label(growth_capacity):
+    """E20: the button shows the real current payoff and what one more
+    unit would make it, instead of a static per-unit number."""
+    return (
+        f"Invest in Growth ({GROWTH_COST}) · +{growth_income_now(growth_capacity)}"
+        f" → +{growth_income_now(growth_capacity + 1)} resources/event"
+    )
+
+
 def adaptive_growth_bonus():
     """E2: the fourth skill node -- a starting-growth-capacity bonus,
     mirroring reinforced_infrastructure/community_reserves' starting-stat
@@ -1742,7 +1756,9 @@ def render():
     document.getElementById("legacy-display").innerText = legacy_message()
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
     document.getElementById("resilience-display").innerText = f"Resilience: {run.resilience_capacity}"
-    document.getElementById("growth-display").innerText = f"Growth: {run.growth_capacity}"
+    document.getElementById("growth-display").innerText = (
+        f"Growth: {run.growth_capacity} (+{growth_income_now(run.growth_capacity)} resources/event)"
+    )
     document.getElementById("runs-completed-display").innerText = runs_completed_text()  # E4/E25
     document.getElementById("settlement-badge-toughest").classList.remove("settlement-badge--earned")
     if toughest_survived_run_badge_earned():  # E12
@@ -1857,7 +1873,7 @@ def render():
     resilience_button.disabled = run.resources < RESILIENCE_COST or run.is_complete()
 
     growth_button = document.getElementById("growth-invest-button")
-    growth_button.innerText = f"Invest in Growth ({GROWTH_COST})"
+    growth_button.innerText = growth_button_label(run.growth_capacity)
     growth_button.disabled = run.resources < GROWTH_COST or run.is_complete()
 
     resolve_button = document.getElementById("resolve-event-button")

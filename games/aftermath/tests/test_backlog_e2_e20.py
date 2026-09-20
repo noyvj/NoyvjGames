@@ -438,3 +438,23 @@ def test_knowledge_preview_cleared_once_run_complete(game_env):
     for _ in range(len(game_env.module.EVENT_SCHEDULE)):
         game_env.resolve_event()
     assert game_env.elements["knowledge-preview-display"].innerText == ""
+
+
+# ---------------------------------------------------------------------------
+# E20 (V-CD-1): growth button/readout show the real current payoff.
+# ---------------------------------------------------------------------------
+def test_growth_payoff_helpers_scale_with_capacity(game_env):
+    m = game_env.module
+    assert m.growth_income_now(0) == 0
+    assert m.growth_income_now(2) == 16
+    assert "+16 → +24 resources/event" in m.growth_button_label(2)
+
+
+def test_growth_button_and_readout_update_after_investing(game_env):
+    m = game_env.module
+    m.run.resources = 100
+    game_env.invest_growth()
+    game_env.invest_growth()
+    assert m.run.growth_capacity == 2
+    assert "+16 → +24 resources/event" in game_env.elements["growth-invest-button"].innerText
+    assert "+16 resources/event" in game_env.elements["growth-display"].innerText

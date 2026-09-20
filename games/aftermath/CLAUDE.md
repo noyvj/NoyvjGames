@@ -426,3 +426,5 @@ Left: E9/E23 (Z1 stats endpoint; not built), E17a/b scenario packs, E19 curricul
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag aftermath-milestone-0N`.
 - Update the milestone table Status as work happens.
+
+- 2026-09-21: E20 -- Growth button/readout now show the real current payoff ("+16 -> +24 resources/event") instead of a static number (`growth_button_label`). Mobile-dock `html body` padding fix (V-AB-2).
