@@ -223,6 +223,32 @@ touched); live-verified in a real browser that all 7 retire buttons
 enabled/disabled by plant count exactly as before, and zero new console
 errors.
 
+## "What's New" changelog panel (site-wide goal, planning/TODO.md, origin K16)
+
+A new `changelog.json` manifest (flat list of `{date, entry}` objects,
+hand-authored newest-first, dates sourced from real commit history via
+`git log --follow -- games/grid/CLAUDE.md` rather than guessed) plus a
+"📋 What's New" toggle+panel, following the exact same hidden-until-opened
+`.section` idiom and dynamic-DOM-build pattern `#achievements-panel`
+already established here. Fetched into the Pyodide boot sequence alongside
+`achievements.json` (`window.CHANGELOG_JSON`), with the same disk-read
+fallback for the pytest harness's fake `js` module that `ACHIEVEMENTS`
+already uses. `render()` keeps an open panel live on every action, same
+as every sibling panel.
+
+Tests: 260 → 270 (new `tests/test_changelog.py`: catalog sanity, toggle
+open/close, panel content matches `CHANGELOG` newest-first, render-time
+liveness). Verified live under Pyodide: this sandbox's known static-asset
+HTTP-caching quirk (documented in several other games' own build notes)
+hit the boot script's *own* `fetch("game.py")` call directly — its default
+cache mode kept resolving to a stale cached response for that exact URL
+regardless of the outer page URL being cache-busted — so verification
+forced a fresh (`cache: 'no-store'`) fetch of both `changelog.json` and
+`game.py` and re-ran them through the already-loaded `pyodide` instance.
+With the fresh code loaded: the panel opened, listed all 11 real entries
+with correct dates/text in newest-first order, and closed correctly on a
+second click, with zero console errors.
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag grid-milestone-0N`.

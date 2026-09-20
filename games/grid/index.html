@@ -29,6 +29,7 @@
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
       <button id="achievements-toggle-button" class="secondary" type="button">Loading...</button>
+      <button id="changelog-toggle-button" class="secondary" type="button">📋 What's New</button>
       <button id="summary-toggle-button" class="secondary" type="button">Loading...</button>
     </div>
     <div class="game-toolbar">
@@ -58,6 +59,11 @@
       </div>
     </div>
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
+    <!-- "What's New" changelog panel (site-wide goal, planning/TODO.md, origin K16):
+         newest-first highlights pulled from CLAUDE.md's own milestone table, not a
+         full duplicate of the dev logs. Same hidden-until-opened .section idiom as
+         achievements/settings above. -->
+    <div id="changelog-panel" class="section changelog-panel" hidden></div>
     <div id="summary-panel" class="section summary-panel" hidden></div>
 
     <div id="achievement-toast" class="achievement-toast" hidden>
@@ -387,11 +393,13 @@
       // ENGINE_MODULES loop.
       const infoPageSource = await (await fetch("../../shared/info_page.py")).text();
       pyodide.FS.writeFile("info_page.py", infoPageSource, { encoding: "utf8" });
-      const [achievementsJson, code] = await Promise.all([
+      const [achievementsJson, changelogJson, code] = await Promise.all([
         fetch("achievements.json").then((response) => response.text()),
+        fetch("changelog.json").then((response) => response.text()),
         fetch("game.py").then((response) => response.text()),
       ]);
       window.ACHIEVEMENTS_JSON = achievementsJson;
+      window.CHANGELOG_JSON = changelogJson;
       await pyodide.runPythonAsync(code);
 
       if (window.GameTutorial) {

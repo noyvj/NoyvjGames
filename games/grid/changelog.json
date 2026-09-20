@@ -1,0 +1,15 @@
+{
+  "changelog": [
+    {"date": "2026-09-20", "entry": "Retire-button tooltip added: states the 50%-of-current-cost refund rule permanently, not just in a one-time callout."},
+    {"date": "2026-09-20", "entry": "Shared confirm-dialog integration: retiring a plant type's last unit now asks for confirmation."},
+    {"date": "2026-09-19", "entry": "Settings panel added: text size (A-/A/A+) and a reduce-motion toggle, both persisted per-browser."},
+    {"date": "2026-09-19", "entry": "Colorblind-safety audit: fixed a red/green trend-graph line pair (cost line recolored to blue, plus a dash pattern)."},
+    {"date": "2026-09-05", "entry": "Space theme visual pass: starfield background, glass panels, gradient buttons."},
+    {"date": "2026-09-02", "entry": "Code-quality audits: fixed a retire-refund exploit (refunded off current cost, not flat base cost) and a save/load merge bug."},
+    {"date": "2026-08-22", "entry": "Pass 3 (fun/teaching balance): added a live disruption-risk message tying rising emissions to brownout chance."},
+    {"date": "2026-08-18", "entry": "Info Page added with curated real-world sources on energy-sector emissions and renewable cost curves."},
+    {"date": "2026-08-18", "entry": "Pass 2: global-comparison benchmark line and infrastructure aging/vulnerability."},
+    {"date": "2026-08-11", "entry": "Pass 1: live emissions/renewable-cost trend graph and a first-unlock context blurb."},
+    {"date": "2026-08-01", "entry": "All 6 milestones complete: core state loop, emissions + cost curve, disruption events, scoring, feedback prompt, visual pass + hub integration."}
+  ]
+}
