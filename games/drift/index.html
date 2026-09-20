@@ -31,6 +31,7 @@
       <button id="achievements-toggle-button" class="secondary" type="button">Loading...</button>
       <button id="changelog-toggle-button" class="secondary" type="button">📋 What's New</button>
       <button id="accelerated-severity-toggle-button" class="secondary difficulty-toggle" type="button">Loading...</button>
+      <button id="crisis-start-toggle-button" class="secondary difficulty-toggle" type="button">Crisis Start: OFF</button>
       <!-- Site-wide settings panel (TODO.md origin A9): text-scale +
            reduce-motion. Deliberately independent of Pyodide/game.py
            entirely -- see settings.js -- same pattern Continuum's Phase
@@ -93,6 +94,11 @@
       <p id="total-capacity-display" class="status-line">Total capacity: 0</p>
       <p id="personal-best-display" class="status-line">Personal best wellbeing: 0</p>
       <p id="net-positive-badge" class="net-positive-badge" hidden></p>
+      <p id="recovery-badge" class="net-positive-badge" hidden></p>
+      <p id="capacity-milestone-display" class="status-line">Next capacity milestone: 50 total capacity.</p>
+      <label class="region-name-row">Region name (optional, carried into the coda)
+        <input id="region-name-input" class="region-name-input" type="text" maxlength="30" placeholder="Name your region">
+      </label>
     </div>
 
     <div id="pressure" class="section">
@@ -115,6 +121,10 @@
       </div>
       <p id="strain-display" class="status-line">Strain: 0% (stable)</p>
       <p id="strain-consequence-display" class="comparison-message">Services are keeping pace with arrivals — no meaningful drag on income.</p>
+      <details class="context-toggle">
+        <summary>Capacity planning forecast</summary>
+        <p id="forecast-display" class="comparison-message"></p>
+      </details>
     </div>
 
     <div id="integration" class="section">
@@ -151,24 +161,31 @@
       <div class="wellbeing-trio">
         <div class="wellbeing-gauge wellbeing-gauge--service">
           <span class="wellbeing-gauge-icon" aria-hidden="true">📋</span>
-          <p id="service-quality-display" class="status-line">Service quality: 100</p>
+          <p id="service-quality-display" class="status-line">Service quality: 100</p><span id="service-quality-trend" class="gauge-trend" aria-label="trend"></span>
           <div class="meter"><div id="service-quality-bar" class="meter-fill meter-fill--wellbeing"></div></div>
+          <p id="service-quality-target" class="gauge-reference-note"></p>
         </div>
         <div class="wellbeing-gauge wellbeing-gauge--economy">
           <span class="wellbeing-gauge-icon" aria-hidden="true">📊</span>
-          <p id="economic-health-display" class="status-line">Economic health: 30</p>
+          <p id="economic-health-display" class="status-line">Economic health: 30</p><span id="economic-health-trend" class="gauge-trend" aria-label="trend"></span>
           <div class="meter"><div id="economic-health-bar" class="meter-fill meter-fill--wellbeing"></div></div>
+          <p id="economic-health-target" class="gauge-reference-note"></p>
           <p id="economic-health-reference-display" class="gauge-reference-note">Reaches 100 at 1000+ funds.</p>
         </div>
         <div class="wellbeing-gauge wellbeing-gauge--cohesion">
           <span class="wellbeing-gauge-icon" aria-hidden="true">🔗</span>
-          <p id="social-cohesion-display" class="status-line">Social cohesion: 0</p>
+          <p id="social-cohesion-display" class="status-line">Social cohesion: 0</p><span id="social-cohesion-trend" class="gauge-trend" aria-label="trend"></span>
           <div class="meter"><div id="social-cohesion-bar" class="meter-fill meter-fill--wellbeing"></div></div>
+          <p id="social-cohesion-target" class="gauge-reference-note"></p>
         </div>
       </div>
       <p id="wellbeing-display" class="status-line">Wellbeing score: 43</p>
       <p id="wellbeing-message-display" class="comparison-message">This region is managing, but strain and slow integration are holding it back.</p>
       <p id="thriving-callout-display" class="turning-point-message" hidden></p>
+      <details id="thriving-vignette-box" class="context-toggle" hidden>
+        <summary>What a thriving region looks like</summary>
+        <p id="thriving-vignette-display" class="comparison-message"></p>
+      </details>
       <p id="checkpoint-display" class="comparison-message">Social cohesion is lagging — most arrivals still haven't been integrated yet.</p>
       <!-- I11: a periodic (every 20 rounds) frozen session-milestone
            recap -- a fixed snapshot, not a live-updating readout. -->
@@ -178,6 +195,7 @@
       <p id="control-region-contrast-display" class="comparison-message" hidden></p>
       <div id="trend-graph" class="trend-graph"></div>
       <p id="trend-graph-message" class="trend-graph-message">Not enough rounds yet to show a trend.</p>
+      <p class="trend-legend">Solid line: strain. Dashed: your wellbeing. Dotted grey: the passive unmanaged region's wellbeing.</p>
     </div>
 
     <button id="coda-button" class="secondary" hidden>View Long-Horizon Outcomes</button>
@@ -190,25 +208,32 @@
            projected (generations-from-now) value, a thin marker shows
            where that same dimension stands today, and the text line
            spells both numbers out. -->
-      <p class="meter-label">Service quality</p>
+      <p class="meter-label">📋 Service quality</p>
       <div class="meter">
         <div id="coda-service-quality-bar" class="meter-fill meter-fill--wellbeing"></div>
         <div id="coda-service-quality-before-marker" class="coda-before-marker"></div>
       </div>
       <p id="coda-service-quality-values" class="coda-comparison-values">Today 0 &rarr; generations from now 0</p>
-      <p class="meter-label">Economic health</p>
+      <p class="meter-label">📊 Economic health</p>
       <div class="meter">
         <div id="coda-economic-health-bar" class="meter-fill meter-fill--wellbeing"></div>
         <div id="coda-economic-health-before-marker" class="coda-before-marker"></div>
       </div>
       <p id="coda-economic-health-values" class="coda-comparison-values">Today 0 &rarr; generations from now 0</p>
-      <p class="meter-label">Social cohesion</p>
+      <p class="meter-label">🔗 Social cohesion</p>
       <div class="meter">
         <div id="coda-social-cohesion-bar" class="meter-fill meter-fill--wellbeing"></div>
         <div id="coda-social-cohesion-before-marker" class="coda-before-marker"></div>
       </div>
       <p id="coda-social-cohesion-values" class="coda-comparison-values">Today 0 &rarr; generations from now 0</p>
       <p id="coda-wellbeing-display" class="status-line">Projected long-horizon wellbeing: 0</p>
+      <p id="coda-control-display" class="comparison-message"></p>
+      <p id="coda-legacy-display" class="comparison-message"></p>
+      <div class="coda-legacy-buttons">
+        <button id="coda-legacy-community-button" class="secondary" type="button">Community institutions</button>
+        <button id="coda-legacy-services-button" class="secondary" type="button">Public services</button>
+        <button id="coda-legacy-economy-button" class="secondary" type="button">Local economy</button>
+      </div>
     </div>
 
     <div id="capacity" class="section">
@@ -240,6 +265,30 @@
           <p id="infrastructure-effect-display" class="invest-effect">Reduces strain. Doesn't speed up integration.</p>
         </div>
       </div>
+    </div>
+
+    <div id="capacity-tools" class="section">
+      <details class="context-toggle">
+        <summary>Reallocate committed capacity</summary>
+        <p id="realloc-note" class="comparison-message"></p>
+        <div class="realloc-row">
+          <select id="realloc-from" aria-label="Move capacity from">
+            <option value="housing">From Housing</option>
+            <option value="services">From Integration Services</option>
+            <option value="infrastructure">From Infrastructure</option>
+          </select>
+          <select id="realloc-to" aria-label="Move capacity to">
+            <option value="services">To Integration Services</option>
+            <option value="housing">To Housing</option>
+            <option value="infrastructure">To Infrastructure</option>
+          </select>
+          <button id="realloc-button" class="secondary" type="button">Reallocate</button>
+        </div>
+      </details>
+      <details class="context-toggle">
+        <summary>Investment return (ROI)</summary>
+        <p id="roi-display" class="comparison-message"></p>
+      </details>
     </div>
 
     <button id="advance-round-button" class="primary">Advance Round</button>

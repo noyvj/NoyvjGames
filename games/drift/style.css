@@ -1290,3 +1290,56 @@ button.primary:disabled::after {
   opacity: 0.6;
   line-height: 1.4;
 }
+
+
+/* --- Round-2 additions (I2/I5/I15/I19/I23/I24) --- */
+.trend-line--control {
+  stroke: #9aa3b5;
+  stroke-width: 1.5;
+  stroke-dasharray: 1.5 3;
+}
+
+.trend-legend {
+  font-size: 0.7rem;
+  opacity: 0.6;
+  margin: 0.2rem 0 0;
+}
+
+.gauge-trend {
+  font-size: 0.75rem;
+  min-height: 1em;
+  opacity: 0.85;
+}
+
+.region-name-row {
+  display: block;
+  font-size: 0.75rem;
+  opacity: 0.85;
+  margin-top: 0.4rem;
+}
+
+.region-name-input,
+.realloc-row select {
+  display: block;
+  margin-top: 0.2rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid rgba(154, 130, 220, 0.4);
+  background: rgba(20, 16, 40, 0.6);
+  color: inherit;
+  font: inherit;
+  max-width: 100%;
+}
+
+.realloc-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.coda-legacy-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}

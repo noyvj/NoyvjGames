@@ -132,6 +132,49 @@ GENERATIONAL_FUNDS_ROUNDS_EQUIVALENT = 20
 SESSION_MILESTONE_INTERVAL = 20
 
 
+REGION_NAME_MAX_LENGTH = 30
+
+# I15 -- opt-in "crisis start": an already-strained region (fewer funds,
+# people already arrived and waiting, severity already elevated).
+CRISIS_START_FUNDS = 150.0
+CRISIS_START_ARRIVALS = 60.0
+CRISIS_START_SEVERITY = 2.0
+
+# I19 -- mid-run reallocation: move a fixed block of committed capacity
+# between types for a small funds fee, losing a fraction in the move.
+REALLOCATION_UNITS = 10.0
+REALLOCATION_FUNDS_COST = 10.0
+REALLOCATION_LOSS_FRACTION = 0.2
+
+# I6/I24 -- trend labelling.
+TREND_WINDOW_ROUNDS = 5
+TREND_TOLERANCE = 2.0
+
+
+def trend_indicator(values, window=TREND_WINDOW_ROUNDS, tolerance=TREND_TOLERANCE):
+    """improving / plateauing / declining, from the change across the
+    last `window` entries. Too little history reads as plateauing."""
+    if len(values) < 2:
+        return "plateauing"
+    delta = values[-1] - values[max(0, len(values) - 1 - window)]
+    if delta > tolerance:
+        return "improving"
+    if delta < -tolerance:
+        return "declining"
+    return "plateauing"
+
+
+TREND_ARROW = {"improving": "▲", "plateauing": "▶", "declining": "▼"}
+
+
+def subscore_arrow(subscore_log, key):
+    """I24: arrow for one sub-score, or '' before two rounds exist."""
+    if len(subscore_log) < 2:
+        return ""
+    values = [entry.get(key, 0.0) for entry in subscore_log if isinstance(entry, dict)]
+    return TREND_ARROW[trend_indicator(values, tolerance=1.0)]
+
+
 class RegionState:
     def __init__(self):
         self.round_number = 1
@@ -199,6 +242,16 @@ class RegionState:
         # shape as coda_just_became_available above -- not part of the
         # save contract.
         self.milestone_just_updated = False
+        # I24: per-round sub-score history (service/economy/cohesion), so
+        # each gauge can show a trend arrow -- same "logged when it
+        # happens" reason as wellbeing_log above.
+        self.subscore_log = []
+        # I23 / I5: light customization carried through the run and coda.
+        self.region_name = ""
+        self.coda_legacy_choice = None
+        # I15: opt-in already-strained starting state; only togglable
+        # before any round is played.
+        self.crisis_start_enabled = False
 
     def total_capacity(self):
         return sum(self.capacity[t] for t in CAPACITY_TYPES)
@@ -387,6 +440,13 @@ class RegionState:
 
         # I1: logged last, once every other round-end value is final.
         self.wellbeing_log.append(self.wellbeing_score())
+        self.subscore_log.append(
+            {
+                "service": self.service_quality(),
+                "economy": self.economic_health(),
+                "cohesion": self.social_cohesion(),
+            }
+        )
 
         # I11 -- session-milestone snapshot, taken last of all so it
         # captures this round's fully-settled values (matches wellbeing_log
@@ -398,8 +458,54 @@ class RegionState:
                 "integrated_population": self.integrated_population,
                 "average_strain": self.average_strain(),
                 "wellbeing_score": self.wellbeing_score(),
+                "trend": trend_indicator(self.wellbeing_log),
             }
             self.milestone_just_updated = True
+
+    # I27: total funds spent across every capacity type. Each type is
+    # bought at a fixed cost per fixed capacity step, so spend is exactly
+    # recoverable from standing capacity -- no separate counter needed.
+    def total_invested(self):
+        return sum(
+            self.capacity[t] / CAPACITY_PER_INVESTMENT[t] * INVEST_COST[t] for t in CAPACITY_TYPES
+        )
+
+    def investment_roi(self):
+        """Integration contribution returned per fund invested (all
+        capacity types), or None before anything's been invested."""
+        invested = self.total_invested()
+        if invested <= 0:
+            return None
+        return self.cumulative_integration_contribution / invested
+
+    # I15: an already-strained start, applied only before round 1 resolves.
+    def can_toggle_crisis_start(self):
+        return self.round_number == 1 and self.total_capacity() == 0 and not self.strain_log
+
+    def set_crisis_start(self, enabled):
+        if not self.can_toggle_crisis_start():
+            return False
+        self.crisis_start_enabled = bool(enabled)
+        if enabled:
+            self.funds = CRISIS_START_FUNDS
+            self.total_arrivals = CRISIS_START_ARRIVALS
+            self.background_severity = CRISIS_START_SEVERITY
+        else:
+            self.funds = STARTING_FUNDS
+            self.total_arrivals = 0.0
+            self.background_severity = 0.0
+        return True
+
+    # I19: shift already-committed capacity between types at a small cost.
+    def reallocate(self, from_type, to_type):
+        if from_type == to_type or from_type not in CAPACITY_TYPES or to_type not in CAPACITY_TYPES:
+            return False
+        if self.capacity[from_type] < REALLOCATION_UNITS or self.funds < REALLOCATION_FUNDS_COST:
+            return False
+        self.funds -= REALLOCATION_FUNDS_COST
+        self.capacity[from_type] -= REALLOCATION_UNITS
+        self.capacity[to_type] += REALLOCATION_UNITS * (1 - REALLOCATION_LOSS_FRACTION)
+        return True
 
 
 region = RegionState()
@@ -430,7 +536,7 @@ def _normalize_series(series, height, lo=None, hi=None):
     return [height - ((v - lo) / (hi - lo)) * height for v in series]
 
 
-def trend_graph_svg(strain_history, wellbeing_history):
+def trend_graph_svg(strain_history, wellbeing_history, control_wellbeing_history=None):
     """Two-line trend graph: strain (0-100%, rising is worse) vs.
     composite wellbeing (0-100, rising is better) — both already on a
     0-100 scale, so they're normalized against that fixed range rather
@@ -460,10 +566,21 @@ def trend_graph_svg(strain_history, wellbeing_history):
         wellbeing_ys, wellbeing_history, "trend-point--wellbeing", "Wellbeing"
     )
 
+    # I2: the passive unmanaged control region's wellbeing, drawn as a
+    # third, muted dotted line (no point markers -- context, not a
+    # second thing to inspect). Needs 2+ points to be a line.
+    control_line = ""
+    if control_wellbeing_history and len(control_wellbeing_history) >= 2:
+        m = min(n, len(control_wellbeing_history))
+        control_ys = _normalize_series(control_wellbeing_history[:m], TREND_GRAPH_HEIGHT, 0, 100)
+        control_points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, control_ys))
+        control_line = f'<polyline points="{control_points}" class="trend-line trend-line--control" />'
+
     return (
         f'<svg viewBox="0 0 {TREND_GRAPH_WIDTH} {TREND_GRAPH_HEIGHT}" class="trend-graph-svg">'
         f'<polyline points="{strain_points}" class="trend-line trend-line--strain" />'
         f'<polyline points="{wellbeing_points}" class="trend-line trend-line--wellbeing" />'
+        f"{control_line}"
         f"{markers}"
         f"</svg>"
     )
@@ -672,7 +789,8 @@ def session_milestone_message(region_state):
         f"{snapshot['total_arrivals']:.0f} people had arrived, "
         f"{snapshot['integrated_population']:.0f} integrated, "
         f"average strain {snapshot['average_strain'] * 100:.0f}%, "
-        f"wellbeing {snapshot['wellbeing_score']:.0f}."
+        f"wellbeing {snapshot['wellbeing_score']:.0f}"
+        + (f" ({snapshot['trend']})." if snapshot.get("trend") else ".")
     )
 
 
@@ -702,6 +820,154 @@ def control_region_contrast_message(control):
         f"({control.strain_level()} strain, {control.social_cohesion():.0f}% integrated) after the "
         "same number of rounds."
     )
+
+
+# I28: what triggers each strain-consequence description (tooltip text,
+# built from the same thresholds strain_level() uses).
+def strain_consequence_tooltip():
+    strained = STRAIN_LEVEL_THRESHOLDS[1][0] * 100
+    critical = STRAIN_LEVEL_THRESHOLDS[2][0] * 100
+    return (
+        "Strain is the share of everyone who has arrived that your total capacity doesn't "
+        f"cover. This message changes with the level: stable below {strained:.0f}%, strained "
+        f"from {strained:.0f}%, critical from {critical:.0f}%."
+    )
+
+
+CONTROL_REGION_TOOLTIP = (
+    "The unmanaged control region is a passive comparison: the same arrivals and severity "
+    "as yours, but with no investment ever made. It shows what preparation is worth -- it is "
+    "not a forecast for your region."
+)
+
+
+# I9: capacity-planning forecast over the next few rounds.
+FORECAST_ROUNDS = 5
+
+
+def forecast_arrivals(region_state, rounds=FORECAST_ROUNDS):
+    severity = region_state.background_severity
+    rise = BACKGROUND_SEVERITY_RISE_PER_ROUND
+    if region_state.accelerated_severity_enabled:
+        rise *= ACCELERATED_SEVERITY_MULTIPLIER
+    out = []
+    for _ in range(rounds):
+        out.append(BASE_ARRIVALS_PER_ROUND + severity * ARRIVALS_PER_SEVERITY_POINT)
+        severity += rise
+    return out
+
+
+def forecast_message(region_state):
+    arrivals = forecast_arrivals(region_state)
+    needed = region_state.total_arrivals + sum(arrivals)
+    have = region_state.total_capacity()
+    listed = ", ".join(f"{a:.0f}" for a in arrivals)
+    if have >= needed:
+        verdict = f"Your {have:.0f} total capacity already covers that horizon."
+    else:
+        verdict = (
+            f"To keep strain at zero through then, total capacity would need to reach about "
+            f"{needed:.0f} (you have {have:.0f})."
+        )
+    return (
+        f"Projected arrivals over the next {len(arrivals)} rounds, at the current background "
+        f"severity trajectory: {listed} people. {verdict}"
+    )
+
+
+# I30: rounds until the next capacity milestone, at the pace so far.
+CAPACITY_MILESTONE_STEP = 50.0
+
+
+def capacity_milestone_message(region_state):
+    total = region_state.total_capacity()
+    target = (int(total // CAPACITY_MILESTONE_STEP) + 1) * CAPACITY_MILESTONE_STEP
+    rounds_played = region_state.round_number - 1
+    if rounds_played <= 0 or total <= 0:
+        return f"Next capacity milestone: {target:.0f} total capacity (invest to set a pace)."
+    pace = total / rounds_played
+    rounds_left = max(1, int(-(-(target - total) // pace)))
+    unit = "round" if rounds_left == 1 else "rounds"
+    return (
+        f"Next capacity milestone: {target:.0f} total capacity — about {rounds_left} {unit} "
+        f"at your average pace of {pace:.1f}/round."
+    )
+
+
+# I27: what each fund invested has returned.
+def roi_message(region_state):
+    roi = region_state.investment_roi()
+    if roi is None:
+        return "No capacity invested yet, so nothing has been returned yet."
+    services_spent = region_state.cumulative_services_investment
+    services_part = ""
+    if services_spent > 0:
+        services_part = (
+            f" Counting only Integration Services spending, {region_state.cumulative_integration_contribution / services_spent:.2f} "
+            "funds returned per fund spent."
+        )
+    return (
+        f"Across all {region_state.total_invested():.0f} funds invested, integrated arrivals have "
+        f"contributed {region_state.cumulative_integration_contribution:.0f} funds back — "
+        f"{roi:.2f} per fund invested.{services_part} Housing and infrastructure return nothing "
+        "directly; they hold strain down so income isn't lost."
+    )
+
+
+# I16: a "from behind" Model Region badge.
+def recovery_badge_text(region_state, ever_critical):
+    if ever_critical and region_state.wellbeing_score() >= MODEL_REGION_WELLBEING_SCORE:
+        return "🌟 Model Region by recovery — reached this tier after a critical-strain stretch"
+    return None
+
+
+# I11: thriving-band vignette, institutional framing only.
+THRIVING_VIGNETTE = (
+    "A thriving receiving region looks unremarkable from the outside: language classes that "
+    "run at the times people can attend, credential recognition that moves in weeks not "
+    "years, clinics and transit sized for the population that actually lives there. Nothing "
+    "about it is a miracle -- it is the visible result of capacity built before the pressure "
+    "arrived."
+)
+
+
+def thriving_vignette_message(region_state):
+    if region_state.thriving_round is None:
+        return None
+    return THRIVING_VIGNETTE
+
+
+# I21: coda comparison against the passive control region.
+def coda_control_message(region_state, control):
+    if not control.has_long_horizon_story():
+        return (
+            "The passive region never integrated anyone, so it has no long-horizon story: "
+            f"nothing accrues generations from now. Yours projects to wellbeing "
+            f"{region_state.projected_wellbeing_score():.0f}."
+        )
+    return (
+        f"Side by side, generations from now: your region projects to wellbeing "
+        f"{region_state.projected_wellbeing_score():.0f}; the passive region, "
+        f"{control.projected_wellbeing_score():.0f}."
+    )
+
+
+# I5: symbolic final choice -- flavors the epilogue text only.
+CODA_LEGACY_CHOICES = {
+    "community": "Community institutions: schools, associations, and local governance reflect everyone who settled here.",
+    "services": "Public services: the systems built for arrivals turned out to serve the whole region better.",
+    "economy": "Local economy: new industries and trades grew from the region's expanded workforce.",
+}
+
+
+def coda_legacy_message(choice):
+    if choice not in CODA_LEGACY_CHOICES:
+        return "Choose what this region's institutions carry forward (flavor only -- it changes no numbers)."
+    return "What this region carries forward — " + CODA_LEGACY_CHOICES[choice]
+
+
+def region_name_prefix(name):
+    return f"{name}: " if name else ""
 
 
 def integration_turning_point_message(region_state):
@@ -768,7 +1034,7 @@ def _render_coda_comparison(dimension, current, projected):
 
 def long_horizon_coda_message(region_state):
     return (
-        f"Generations from now, the descendants of the {region_state.integrated_population:.0f} "
+        f"{region_name_prefix(region_state.region_name)}Generations from now, the descendants of the {region_state.integrated_population:.0f} "
         "people this region integrated are woven into its workforce, institutions, and community "
         "leadership — not a footnote to the region's history, but a working part of it. What "
         f"started as {region_state.integration_contribution():.0f} funds/round of contribution "
@@ -1420,6 +1686,70 @@ def render():
         control_display.hidden = True
         control_display.innerText = ""
 
+    control_display.title = CONTROL_REGION_TOOLTIP  # I12
+
+    # I28: what triggers the strain-consequence messages.
+    document.getElementById("strain-consequence-display").title = strain_consequence_tooltip()
+    # I9: capacity-planning forecast. I30: next capacity milestone.
+    document.getElementById("forecast-display").innerText = forecast_message(region)
+    document.getElementById("capacity-milestone-display").innerText = capacity_milestone_message(region)
+    # I27: capacity-investment ROI.
+    document.getElementById("roi-display").innerText = roi_message(region)
+    # I16: recovery-path Model Region badge.
+    recovery_badge = document.getElementById("recovery-badge")
+    recovery_text = recovery_badge_text(region, _ever_reached_critical_strain())
+    recovery_badge.hidden = recovery_text is None
+    recovery_badge.innerText = recovery_text or ""
+    # I11: thriving vignette.
+    vignette_box = document.getElementById("thriving-vignette-box")
+    vignette_text = thriving_vignette_message(region)
+    vignette_box.hidden = vignette_text is None
+    document.getElementById("thriving-vignette-display").innerText = vignette_text or ""
+    # I24: per-sub-score trend arrows. I14: threshold number on the target marker.
+    for key, arrow_id, target_id in (
+        ("service", "service-quality-trend", "service-quality-target"),
+        ("economy", "economic-health-trend", "economic-health-target"),
+        ("cohesion", "social-cohesion-trend", "social-cohesion-target"),
+    ):
+        arrow_el = document.getElementById(arrow_id)
+        arrow = subscore_arrow(region.subscore_log, key)
+        arrow_el.innerText = arrow
+        arrow_el.title = {"▲": "improving", "▶": "plateauing", "▼": "declining"}.get(arrow, "")
+        document.getElementById(target_id).innerText = (
+            f"Thriving marker: {THRIVING_WELLBEING_SCORE:.0f}"
+        )
+
+    # I23: region name, I15 crisis start, I19 reallocation controls.
+    crisis_button = document.getElementById("crisis-start-toggle-button")
+    crisis_button.innerText = (
+        "Crisis Start: ON" if region.crisis_start_enabled else "Crisis Start: OFF"
+    )
+    crisis_button.disabled = not region.can_toggle_crisis_start()
+    crisis_button.title = (
+        "Optional harder start, choosable only before round 1: begin with fewer funds and a "
+        "backlog of people already arrived, to try recovering from behind."
+    )
+    if region.crisis_start_enabled:
+        crisis_button.classList.add("active")
+    else:
+        crisis_button.classList.remove("active")
+    document.getElementById("realloc-button").disabled = not (
+        region.funds >= REALLOCATION_FUNDS_COST
+        and any(region.capacity[t] >= REALLOCATION_UNITS for t in CAPACITY_TYPES)
+    )
+    document.getElementById("realloc-note").innerText = (
+        f"Move {REALLOCATION_UNITS:.0f} capacity between types for {REALLOCATION_FUNDS_COST:.0f} funds; "
+        f"{REALLOCATION_LOSS_FRACTION * 100:.0f}% of the moved capacity is lost in the transition."
+    )
+    # I5 coda legacy line, I21 side-by-side control comparison.
+    document.getElementById("coda-legacy-display").innerText = coda_legacy_message(
+        region.coda_legacy_choice
+    )
+    if coda_visible and region.has_long_horizon_story():
+        document.getElementById("coda-control-display").innerText = coda_control_message(
+            region, _simulate_control_region(region.round_number, region.accelerated_severity_enabled)
+        )
+
     # I2: skyline building count/height tracking real capacity.
     visible_building_count = region_visual_building_count(region.total_capacity())
     building_height_scale = region_visual_height_scale(region.total_capacity())
@@ -1429,7 +1759,12 @@ def render():
         building_el.style.transform = f"scaleY({building_height_scale:.2f})"
 
     # I1: strain/wellbeing trend graph.
-    trend_svg = trend_graph_svg(region.strain_log, region.wellbeing_log)
+    control_wellbeing = None
+    if region.round_number > 2:
+        control_wellbeing = _simulate_control_region(
+            region.round_number, region.accelerated_severity_enabled
+        ).wellbeing_log
+    trend_svg = trend_graph_svg(region.strain_log, region.wellbeing_log, control_wellbeing)
     document.getElementById("trend-graph").innerHTML = trend_svg
     document.getElementById("trend-graph-message").innerText = (
         "" if trend_svg else "Not enough rounds yet to show a trend."
@@ -1482,7 +1817,7 @@ def render():
     # ACCELERATED_SEVERITY_MULTIPLIER's comment above).
     accelerated_button = document.getElementById("accelerated-severity-toggle-button")
     accelerated_button.innerText = (
-        "🔥 Accelerated Severity: ON"
+        f"🔥 Accelerated Severity: ON ({ACCELERATED_SEVERITY_MULTIPLIER:.0f}x)"
         if region.accelerated_severity_enabled
         else "Accelerated Severity: OFF"
     )
@@ -1534,6 +1869,31 @@ def on_toggle_coda(event=None):
 def on_toggle_accelerated_severity(event=None):
     region.accelerated_severity_enabled = not region.accelerated_severity_enabled
     render()
+
+
+def on_toggle_crisis_start(event=None):
+    region.set_crisis_start(not region.crisis_start_enabled)
+    render()
+
+
+def on_reallocate(event=None):
+    from_type = getattr(document.getElementById("realloc-from"), "value", "housing")
+    to_type = getattr(document.getElementById("realloc-to"), "value", "services")
+    region.reallocate(from_type, to_type)
+    render()
+
+
+def on_region_name_input(event=None):
+    raw = getattr(document.getElementById("region-name-input"), "value", "") or ""
+    region.region_name = str(raw).strip()[:REGION_NAME_MAX_LENGTH]
+    render()
+
+
+def _make_legacy_handler(choice):
+    def handler(event=None):
+        region.coda_legacy_choice = choice
+        render()
+    return handler
 
 
 # --- Save system (SAVE-BUTTON-INTEGRATION.md contract for the shared
@@ -1589,6 +1949,10 @@ def get_state():
         "last_milestone_round": region.last_milestone_round,
         "last_milestone_snapshot": copy.deepcopy(region.last_milestone_snapshot),
         "accelerated_severity_enabled": region.accelerated_severity_enabled,
+        "subscore_log": copy.deepcopy(region.subscore_log),
+        "region_name": region.region_name,
+        "coda_legacy_choice": region.coda_legacy_choice,
+        "crisis_start_enabled": region.crisis_start_enabled,
         "coda_visible": coda_visible,
         "info_page_open": info_page_open,
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
@@ -1640,6 +2004,18 @@ def load_state(data):
     region.accelerated_severity_enabled = data.get(
         "accelerated_severity_enabled", region.accelerated_severity_enabled
     )
+    saved_subscores = data.get("subscore_log")
+    if isinstance(saved_subscores, list):
+        region.subscore_log = [e for e in copy.deepcopy(saved_subscores) if isinstance(e, dict)]
+    saved_name = data.get("region_name")
+    if isinstance(saved_name, str):
+        region.region_name = saved_name.strip()[:REGION_NAME_MAX_LENGTH]
+    saved_choice = data.get("coda_legacy_choice")
+    if saved_choice in CODA_LEGACY_CHOICES or saved_choice is None:
+        region.coda_legacy_choice = saved_choice
+    region.crisis_start_enabled = bool(data.get("crisis_start_enabled", region.crisis_start_enabled))
+    name_input = document.getElementById("region-name-input")
+    name_input.value = region.region_name
     coda_visible = data.get("coda_visible", coda_visible)
     info_page_open = data.get("info_page_open", info_page_open)
     # "achievements_earned" is intentionally never read back here — see
@@ -1679,6 +2055,17 @@ def setup():
     document.getElementById("accelerated-severity-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_accelerated_severity)
     )
+    document.getElementById("crisis-start-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_crisis_start)
+    )
+    document.getElementById("realloc-button").addEventListener("click", create_proxy(on_reallocate))
+    document.getElementById("region-name-input").addEventListener(
+        "change", create_proxy(on_region_name_input)
+    )
+    for legacy_choice in CODA_LEGACY_CHOICES:
+        document.getElementById(f"coda-legacy-{legacy_choice}-button").addEventListener(
+            "click", create_proxy(_make_legacy_handler(legacy_choice))
+        )
     update_changelog_display()
     render()
     _seed_achievement_toast_baseline()

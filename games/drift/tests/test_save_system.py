@@ -32,6 +32,10 @@ ALL_STATE_KEYS = {
     "coda_visible",
     "info_page_open",
     "achievements_earned",
+    "subscore_log",
+    "region_name",
+    "coda_legacy_choice",
+    "crisis_start_enabled",
 }
 
 

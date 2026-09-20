@@ -320,3 +320,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Loop
 **Did:** Built H1/H2/H4/H6/H8/H10/H12/H14/H15/H16/H18/H20/H22/H24/H25a/H26/H27/H28/H29a/H30 from `planning/TODO.md`: Overseas Consortium third trade partner, 25% milestone particle burst, top-investment ring glow, loop efficiency audit, score-source pie, streak progress, extraction-cost trend arrow, cosmetic goods relabel, weekly featured category, text supply map, Goods Collector achievement, and several tooltips/one-time hints.
 **Result:** 160 to 186 tests green; verified live in an iframe. New mechanics (H3/H9/H13/H17/H21/H23), rich SVG maps and backend-dependent items left for later. See `games/loop/CLAUDE.md`.
+
+### 2026-09-20 (Drift: round-2 improvement pass)
+**Game:** Drift
+**Did:** Built I2/I4/I5/I6/I9/I11/I12/I14/I15/I16/I19/I21/I23/I24/I27/I28/I30 from `planning/TODO.md`: control-region trend line, capacity forecast, milestone estimate, ROI, sub-score trend arrows, Crisis Start mode, capacity reallocation, region naming, coda legacy choice and side-by-side comparison. Larger mechanics (I1/I3/I7/I25/I29) left for later.
+**Result:** 258 to 290 tests green; verified live with only network console errors. See `games/drift/CLAUDE.md`.
