@@ -51,6 +51,7 @@ def test_get_state_expands_every_plot_into_a_plain_dict(game_env):
             "biodiversity",
             "mature_celebrated",
             "requests_survived",
+            "specialization",
         }
 
 

@@ -227,6 +227,11 @@
         <button id="replant-button" class="secondary" disabled>Loading...</button>
         <button id="adopt-plot-button" class="secondary" type="button" disabled title="Mark the selected plot as a long-term personal project with its own mini-history">⭐ Adopt plot</button>
       </div>
+      <!-- B21: shown only when the selected plot has stood long enough to specialize (one-time, permanent choice). -->
+      <div id="specialist-row" class="action-buttons" hidden>
+        <button id="specialize-economic-button" class="secondary" type="button" title="Permanent: this plot's standing value grows 25% faster">💰 Specialize: economic</button>
+        <button id="specialize-biodiversity-button" class="secondary" type="button" title="Permanent: this plot's biodiversity grows 2.5x faster">🦋 Specialize: biodiversity</button>
+      </div>
       <p id="adopted-plot-panel" class="adopted-plot-panel" hidden></p>
     </div>
 

@@ -184,6 +184,27 @@ STAKEHOLDER_INCENTIVE_ACCEPT_RELATIONS_DELTA = 10
 STAKEHOLDER_INCENTIVE_INCOME_BONUS = 25.0
 VETERAN_REQUESTS_SURVIVED = 3  # B22
 
+# B25: an occasional "community grant" -- a fund offers money specifically
+# for replanting a bare plot. Rides the incentive slot of the request cycle:
+# every second incentive turn (the 8th, 16th, ... request), if any plot is
+# bare, the incentive is a replant grant instead. Accepting replants the
+# offered plot and pays the grant; declining costs nothing.
+STAKEHOLDER_KIND_REPLANT_GRANT = "replant_grant"
+REPLANT_GRANT_INCOME_BONUS = 15.0
+REPLANT_GRANT_RELATIONS_DELTA = 5
+
+
+# B21: a plot left standing SPECIALIST_MIN_TICKS_INTACT ticks can be given a
+# one-time, permanent specialization. Economic: +25% standing-value accrual.
+# Biodiversity: 2.5x biodiversity accrual. Not reversible, and lost with the
+# plot if it is ever cleared (clear() resets it).
+SPECIALIST_MIN_TICKS_INTACT = 90
+SPECIALIZATION_ECONOMIC = "economic"
+SPECIALIZATION_BIODIVERSITY = "biodiversity"
+SPECIALIST_ECONOMIC_VALUE_MULTIPLIER = 1.25
+SPECIALIST_BIODIVERSITY_MULTIPLIER = 2.5
+SPECIALIZATION_LABEL = {SPECIALIZATION_ECONOMIC: "economic", SPECIALIZATION_BIODIVERSITY: "biodiversity"}
+
 
 class Plot:
     def __init__(self, index):
@@ -201,6 +222,15 @@ class Plot:
         # B22: how many clear-requests aimed at this plot the player has
         # declined. A plot with 3+ of these and no clears is a "veteran".
         self.requests_survived = 0
+        # B21: one-time permanent specialization (None until chosen).
+        self.specialization = None
+
+    def can_specialize(self):
+        return (
+            self.state in ACCRUING_STATES
+            and self.specialization is None
+            and self.ticks_intact >= SPECIALIST_MIN_TICKS_INTACT
+        )
 
     def is_veteran(self):
         return self.requests_survived >= VETERAN_REQUESTS_SURVIVED and self.clear_count == 0
@@ -225,8 +255,13 @@ class Plot:
         self.ticks_intact += 1
         growth_multiplier = 1 + self.ticks_intact * GROWTH_PER_TICK
         delta = BASE_ACCRUAL * self.productivity_multiplier() * growth_multiplier
+        if self.specialization == SPECIALIZATION_ECONOMIC:
+            delta *= SPECIALIST_ECONOMIC_VALUE_MULTIPLIER
         self.value += delta
-        self.biodiversity += BIODIVERSITY_ACCRUAL_PER_TICK
+        biodiversity_gain = BIODIVERSITY_ACCRUAL_PER_TICK
+        if self.specialization == SPECIALIZATION_BIODIVERSITY:
+            biodiversity_gain *= SPECIALIST_BIODIVERSITY_MULTIPLIER
+        self.biodiversity += biodiversity_gain
         return delta
 
     def has_wildlife(self):
@@ -244,6 +279,7 @@ class Plot:
         self.value = 0.0
         self.ticks_intact = 0
         self.biodiversity = 0.0
+        self.specialization = None
         return payout
 
     def replant(self):
@@ -532,6 +568,15 @@ def _most_established_plot_index():
     return max(candidates, key=lambda p: p.value).index
 
 
+def _replant_grant_target_index():
+    """B25: the bare plot a replant grant would restore -- the one with the
+    healthiest soil (most worth restoring), lowest index on ties."""
+    bare = [p for p in plots if p.state == BARE]
+    if not bare:
+        return None
+    return max(bare, key=lambda p: (p.productivity_multiplier(), -p.index)).index
+
+
 def maybe_trigger_stakeholder_request():
     global pending_stakeholder_request, _ticks_since_last_request, _stakeholder_request_count
     if pending_stakeholder_request is not None:
@@ -542,6 +587,21 @@ def maybe_trigger_stakeholder_request():
     target = _most_established_plot_index()
     if target is None:
         return  # try again next tick once something's actually established
+    grant_target = _replant_grant_target_index()
+    incentive_slot = _stakeholder_request_count % STAKEHOLDER_REQUEST_CYCLE_LENGTH >= len(STAKEHOLDER_REASONS)
+    if (
+        incentive_slot
+        and grant_target is not None
+        and (_stakeholder_request_count // STAKEHOLDER_REQUEST_CYCLE_LENGTH) % 2 == 1
+    ):
+        pending_stakeholder_request = {
+            "plot_index": grant_target,
+            "reason": "replant_fund",
+            "kind": STAKEHOLDER_KIND_REPLANT_GRANT,
+        }
+        _stakeholder_request_count += 1
+        _ticks_since_last_request = 0
+        return
     # B11: a full pass through STAKEHOLDER_REASONS (3 requests) plays out
     # exactly as before, then the 4th request in the cycle is a positive
     # incentive offer instead -- see the constants' own comment above.
@@ -568,6 +628,11 @@ def stakeholder_request_message():
     # constructed test fixture) simply lacks "kind" and means "clear", the
     # only kind that existed before.
     kind = pending_stakeholder_request.get("kind", STAKEHOLDER_KIND_CLEAR)
+    if kind == STAKEHOLDER_KIND_REPLANT_GRANT:
+        return (
+            f"Plot {label} is bare, and a community restoration fund is offering a {REPLANT_GRANT_INCOME_BONUS:.0f} "
+            "grant specifically to replant it. Accept to start replanting it now, or decline?"
+        )
     if kind == STAKEHOLDER_KIND_INCENTIVE:
         return (
             f"Plot {label} is thriving, and {STAKEHOLDER_INCENTIVE_REASON_TEXT[reason]}. "
@@ -585,6 +650,8 @@ def _stakeholder_target_is_still_standing():
     and Decline would penalize relations for a plot that isn't standing
     anymore."""
     plot = plots[pending_stakeholder_request["plot_index"]]
+    if pending_stakeholder_request.get("kind") == STAKEHOLDER_KIND_REPLANT_GRANT:
+        return plot.state == BARE  # B25: the offer is for a plot that must still be bare
     return plot.state in ACCRUING_STATES
 
 
@@ -598,7 +665,7 @@ def _note_community_relations_change():
 
 def grant_stakeholder_request(event=None):
     global pending_stakeholder_request, community_relations, total_income
-    global stakeholder_grants_count
+    global stakeholder_grants_count, total_replants
     if pending_stakeholder_request is None:
         return False
     if not _stakeholder_target_is_still_standing():
@@ -606,7 +673,18 @@ def grant_stakeholder_request(event=None):
         render()
         return False
     kind = pending_stakeholder_request.get("kind", STAKEHOLDER_KIND_CLEAR)
-    if kind == STAKEHOLDER_KIND_INCENTIVE:
+    if kind == STAKEHOLDER_KIND_REPLANT_GRANT:
+        idx = pending_stakeholder_request["plot_index"]
+        if plots[idx].replant():
+            total_replants += 1
+        total_income += REPLANT_GRANT_INCOME_BONUS
+        community_relations = min(100, community_relations + REPLANT_GRANT_RELATIONS_DELTA)
+        _log_event(
+            "replant",
+            f"Accepted a replanting grant: replanted {plot_coordinate_label(idx)} (+{REPLANT_GRANT_INCOME_BONUS:.0f})",
+            idx,
+        )
+    elif kind == STAKEHOLDER_KIND_INCENTIVE:
         # B11: the whole point of a positive trade-off is that accepting it
         # does NOT clear the plot -- it stays standing untouched, and the
         # player is rewarded with a relations boost plus a funding bonus
@@ -647,7 +725,7 @@ def decline_stakeholder_request(event=None):
         render()
         return False
     kind = pending_stakeholder_request.get("kind", STAKEHOLDER_KIND_CLEAR)
-    if kind != STAKEHOLDER_KIND_INCENTIVE:
+    if kind not in (STAKEHOLDER_KIND_INCENTIVE, STAKEHOLDER_KIND_REPLANT_GRANT):
         community_relations = max(0, community_relations + STAKEHOLDER_DECLINE_RELATIONS_DELTA)
         # B22/B3: declining a clear-request is a real preserve decision, and
         # the plot survived one more request without ever being cleared.
@@ -754,6 +832,8 @@ def _plot_tooltip_text(plot):
         label += f" · recovering in {plot.replant_ticks_remaining} ticks"
     if plot.is_veteran():
         label += f" · veteran ({plot.requests_survived} requests survived)"
+    if plot.specialization:
+        label += f" · {SPECIALIZATION_LABEL[plot.specialization]} specialist"
     if plot.index == adopted_plot_index:
         label += " · adopted"
     return label
@@ -1496,6 +1576,10 @@ INCENTIVE_ACCEPT_TOOLTIP = (
     f"Accept: the plot stays standing, +{STAKEHOLDER_INCENTIVE_INCOME_BONUS:.0f} funding, "
     f"+{STAKEHOLDER_INCENTIVE_ACCEPT_RELATIONS_DELTA} community relations."
 )
+REPLANT_GRANT_ACCEPT_TOOLTIP = (
+    f"Accept: replants the bare plot now, +{REPLANT_GRANT_INCOME_BONUS:.0f} funding, "
+    f"+{REPLANT_GRANT_RELATIONS_DELTA} community relations."
+)
 INCENTIVE_DECLINE_TOOLTIP = "Decline: no cost and no relations penalty, the offer just passes."
 CLEAR_GRANT_TOOLTIP = (
     f"Grant: clears the plot and banks its value, +{STAKEHOLDER_GRANT_RELATIONS_DELTA} community relations."
@@ -1520,12 +1604,16 @@ def render_stakeholder_panel():
     # trade-off offer, where the player isn't granting the community
     # anything -- the community is offering *them* something.
     kind = pending_stakeholder_request.get("kind", STAKEHOLDER_KIND_CLEAR)
-    grant_button.innerText = "Accept" if kind == STAKEHOLDER_KIND_INCENTIVE else "Grant"
+    is_replant_grant = kind == STAKEHOLDER_KIND_REPLANT_GRANT
+    grant_button.innerText = "Accept" if (kind == STAKEHOLDER_KIND_INCENTIVE or is_replant_grant) else "Grant"
     # B8: an incentive is a gift, not an ask -- say so on hover before the
     # player commits (and on the floating badge, before the panel is even
     # scrolled into view).
-    is_incentive = kind == STAKEHOLDER_KIND_INCENTIVE
-    grant_button.title = INCENTIVE_ACCEPT_TOOLTIP if is_incentive else CLEAR_GRANT_TOOLTIP
+    is_incentive = kind == STAKEHOLDER_KIND_INCENTIVE or is_replant_grant
+    grant_button.title = (
+        REPLANT_GRANT_ACCEPT_TOOLTIP if is_replant_grant
+        else INCENTIVE_ACCEPT_TOOLTIP if is_incentive else CLEAR_GRANT_TOOLTIP
+    )
     decline_button.title = INCENTIVE_DECLINE_TOOLTIP if is_incentive else CLEAR_DECLINE_TOOLTIP
     message_el.title = INCENTIVE_MESSAGE_TOOLTIP if is_incentive else ""
     badge = document.getElementById("stakeholder-badge")
@@ -2064,6 +2152,40 @@ def on_adopt_plot(event=None):
     return True
 
 
+def specialize_selected_plot(kind):
+    """B21: applies a one-time permanent specialization to the selected
+    main-forest plot. Returns True only on a real change."""
+    if selected_index is None or kind not in SPECIALIZATION_LABEL:
+        return False
+    plot = plots[selected_index]
+    if not plot.can_specialize():
+        return False
+    plot.specialization = kind
+    _log_event(
+        "specialize",
+        f"{plot_coordinate_label(plot.index)} became a {SPECIALIZATION_LABEL[kind]} specialist",
+        plot.index,
+    )
+    render()
+    return True
+
+
+def on_specialize_economic(event=None):
+    specialize_selected_plot(SPECIALIZATION_ECONOMIC)
+
+
+def on_specialize_biodiversity(event=None):
+    specialize_selected_plot(SPECIALIZATION_BIODIVERSITY)
+
+
+def render_specialist_panel():
+    row = document.getElementById("specialist-row")
+    if row is None:
+        return
+    plot = plots[selected_index] if selected_index is not None else None
+    row.hidden = plot is None or not plot.can_specialize()
+
+
 def render_adopt_panel():
     button = document.getElementById("adopt-plot-button")
     panel = document.getElementById("adopted-plot-panel")
@@ -2220,6 +2342,7 @@ def render():
     render_grid_size_select()
     render_reset_button()
     render_adopt_panel()
+    render_specialist_panel()
     render_session_summary()
     render_highland_section()
     update_achievements_display()
@@ -2335,6 +2458,7 @@ def _plot_to_dict(plot):
         "biodiversity": plot.biodiversity,
         "mature_celebrated": plot.mature_celebrated,
         "requests_survived": plot.requests_survived,
+        "specialization": plot.specialization,
     }
 
 
@@ -2352,6 +2476,8 @@ def _apply_plot_dict(plot, plot_data):
     plot.biodiversity = plot_data.get("biodiversity", plot.biodiversity)
     plot.mature_celebrated = plot_data.get("mature_celebrated", plot.mature_celebrated)
     plot.requests_survived = plot_data.get("requests_survived", plot.requests_survived)
+    saved_spec = plot_data.get("specialization", plot.specialization)
+    plot.specialization = saved_spec if saved_spec in SPECIALIZATION_LABEL else None
 
 
 def get_state():
@@ -2535,6 +2661,12 @@ def setup():
     )
     document.getElementById("session-summary-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_session_summary)
+    )
+    document.getElementById("specialize-economic-button").addEventListener(
+        "click", create_proxy(on_specialize_economic)
+    )
+    document.getElementById("specialize-biodiversity-button").addEventListener(
+        "click", create_proxy(on_specialize_biodiversity)
     )
     document.getElementById("adopt-plot-button").addEventListener(
         "click", create_proxy(on_adopt_plot)
