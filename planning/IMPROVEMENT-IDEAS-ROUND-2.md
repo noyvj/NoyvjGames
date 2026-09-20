@@ -436,11 +436,18 @@ Order: hub games in the usual listing order, then M (New Game Ideas), then Z (Ga
 
 Five brand-new concepts this round — not features for an existing game, pitches for a possible next one. A "yes" here means "worth a groundwork plan," not "add to an existing TODO.md."
 
+**Items 6-10 added per your feedback on 1-5** — you flagged Compound Interest and Rootstock as too teaching/informative-coded, and asked for a follow-up batch that's fun-first rather than fun-plus-a-lesson. None of the five below carry any "this is secretly teaching you X" framing — they're straightforward genre fun (deck-builder, tower defense, physics sandbox, rhythm arcade, roguelite dungeon-crawler), the kind of thing you'd build purely because it's satisfying to play.
+
 1. **Compound Interest** — an incremental/clicker in SOL's own spirit, but the resource is money and the mechanics are real personal-finance concepts: compound interest, debt vs. savings, the cost of high-interest borrowing, diversification. The hope-angle/teaching shape the climate quartet already proved (a mechanic that's the lesson, not a tooltip about it) applied to financial literacy instead of climate — a genuinely different BCM114/206-relevant subject if either subject's outline ever wants a second flagship DA candidate.
 2. **Silk Road** — a historical trade-route management game blending Trade Empire's colony-need/market-price mechanics with real Silk Road geography and goods (silk, spices, paper), where the player routes caravans between real historical cities and reacts to real historical events (plague outbreaks disrupting a route, a new city rising in prominence). Distinct from Continuum's fictional-city arc by being grounded in one specific real historical system rather than an invented civilization.
 3. **Signal** — a small, standalone daily puzzle game (Wordle-adjacent in spirit, not derivative in mechanic) with an original twist, shippable small per the site's own "as big or small as the idea wants" philosophy — a genuinely quick build if the idea itself turns out simple, useful as a fast "something visible every 2 weeks" cadence-filler between bigger builds.
 4. **Undersleep** — a wellness-themed idle/management game where the player balances a character's daily schedule (work, rest, social, exercise) against a circadian-rhythm meter, teaching the real cost of chronic sleep debt the way Herd teaches methane coupling — through a mechanic that punishes ignoring it, not a lecture about it.
 5. **Rootstock** — a "digital garden" knowledge-management sim where the player plants "ideas" (short notes) that grow and cross-pollinate into a personal wiki over real time, gamifying the act of building a second brain/notebook — a genuinely different kind of "game" (closer to a tool with game-like feedback) than anything else currently on the hub, worth a real conversation about whether it fits before building.
+6. **Overclock** — a roguelike deck-builder: draft a run-specific deck of abilities each attempt, fight through procedurally arranged encounters with escalating difficulty, permadeath-and-retry loop. Pure build-crafting-and-combat satisfaction, no framing beyond "this run vs. the last one" — the genre's own replayability (every deck plays differently) carries the game, nothing needs to be secretly educational.
+7. **Last Line** — a classic tower-defense: place and upgrade defenses along a winding path against escalating waves, chase a personal-best wave-survived count. Straightforward arcade-strategy fun, leaderboard-friendly, no narrative or lesson attached.
+8. **Contraption** — a physics-based sandbox puzzle game: drag-and-place a toybox of parts (ramps, springs, fans, counterweights) to build a Rube-Goldberg-style chain reaction that solves each level's goal. A genuinely different interaction model from anything else on the site (physical placement, not clicking numbers), pure tinkering fun.
+9. **Offbeat** — a rhythm/timing arcade game: hit prompts in sync with a beat across tracks of rising difficulty, a pure reflex-and-timing skill game. No narrative, no subject matter — just chasing a higher combo/score, the arcade-minigame feel Le Champ de Mots' Blitz/Verb Racer already prove this stack can pull off, standalone rather than tied to any content.
+10. **Deep Descent** — a roguelite dungeon-crawler: procedurally generated floors, permadeath runs, loot and ability pickups that change each attempt's build. Pure exploration-and-combat fun, with replayability coming entirely from randomization rather than any real-world hook.
 
 ---
 
@@ -546,3 +553,491 @@ Five brand-new concepts this round — not features for an existing game, pitche
 28. **[SMALL]** A small "copy resource name" button next to each resource, for quickly pasting into an in-game trade-chat search.
 29. **[BIG]** A "market price reference" (Warframe.market or similar) integration — showing whether it's cheaper to farm or simply buy a specific missing resource with platinum, if that data can be sourced without hitting the same bot-protection wall the Wiki did.
 30. **[SMALL]** A small "archive completed parts" toggle to hide fully-built parts from the main view, decluttering the list as more of it gets finished.
+
+## A
+1. yes
+2. yes
+3. I feel this could be an unlock in the prestige tree
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes, this is very important. make sure to prioritize this
+10. yes but shouldn't this be site-wide
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes but shouldn't this be site-wide
+23. yes
+24. yes
+25. yes
+26. yes but shouldn't this be site-wide
+27. yes
+28. yes
+29. yes
+30. yes
+
+## B
+1. yes
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+## C
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+## D
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+## E
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+## F
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+## G
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+## H
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+## I
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+## J
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+## K
+1. yes
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. maybe
+10. yes
+11. yes, prioritize this
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes, this will be important for 114
+20. yes
+21. yes, also lets expand the tree more
+22. yes
+23. yes
+24. yes
+25. yes
+26. rather than closing it, lets keep making more eras
+27. yes
+28. yes
+29. yes
+30. this could be good but may also be confusing. i do want to work into multiplayer in as many of the games as possible soon, it may be the next big development after this set. put is as later for now.
+
+## L
+1. yes
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+## M
+1. feels a bit too teaching, i want to focus on fun not learning with these new games unless it is specifically for a class
+2. maybe, if feels a bit too similar to trade empire but if you believe it is different enough, build it
+3. may as well try it, it seems very simple but that can be good
+4. yes, i like this idea. there is a lot that can be done to make this more and better and it could also be made somewhat like a life tracker too.
+5. i like it but again with these being too informative. 
+
+## Z
+1. yes
+2. yes
+3. no, it is better to have all the games take the progression they naturally do rather than building a one side fits all standard
+4. yes
+5. no, same as #3
+6. yes
+7. yes and make a new "ideas" list off of it
+8. sure, i am answering site-wide first so I will look at those in a bit
+9. maybe later but probably not, I am trying to let all the games exist on their own right now
+10. yes
+11. yes, might as well let the players pick to do a story mode in each game orturn off the story elements
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes, I think this builds well on 13
+20. yes
+21. yes
+22. yes
+23. yes, this could be really interesting maybe event based challenges so a "holiday" lasts a week and something like christmas they have to play canopy in a mode for getting christmas trees to get the "christmas 2026" badge on their profile
+24. yes
+25. yes, also on saves can we make a checkbox of if they want it to autosave every 5 mins or so?
+26. yes
+27. yes, also have achievements have a "% of players that have it" log since on most sites that is how I see how difficult it is
+28. yes
+29. yes
+30. yes
+
+## Y
+1. yes
+2. yes
+3. yes
+4. yes
+5. yes, i thought this was already in the current todo list
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes, I think I commented on this elsewhere too
+12. yes
+13. yes but have it optional like the tutorials
+14. yes, the repo has to be public for githubpages to be free to it is live. ust add a question with everything you need in "for you"
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes but I feel there should be a "sort by reviews" AND a "sort by saves because games with higher save counts are probably actually better than high reviews since most of the current reviews are tests or friends who aren't exactly truthful
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
+
+## X
+1. yes
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes, we are both going smaller through respources and I want to go bigger through what the parts become like a "177" amp and such.
+8. yes
+9. yes
+10. yes
+11. none of them are currently behind relics but some are behind sydacate standing so maybe that
+12. yes but I believe this should be site-wide
+13. no
+14. no
+15. yes
+16. yes
+17. the "even better tracker" goal is find a way to maybe directly connect to acoount info like alecaframe does and/or track frame/weapon/companion crafting. talk to me about this in "for you" regarding how possible they are. 
+18. yes
+19. maybe much later, right now is a crafting and resource tracker. 
+20. yes
+21. this goes back to 7, many people want to build the "meta"s so we want to be tracking those rather sayng "just build whatever"
+22. yes
+23. maybe latter, this goes back to if it can be linked since otheriwse I am just coming in after the session and updating all the nubers so this can not be tracked easily
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes and maybe a search/sort system added as well to find things easier
+
