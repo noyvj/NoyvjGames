@@ -87,7 +87,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [x] Canopy
   - [x] Grid
   - [x] Tide
-  - [ ] Aftermath (real inconsistency found — fix in progress, see AI-COORDINATION.md)
+  - [x] Aftermath (real inconsistency found — fix in progress, see AI-COORDINATION.md)
   - [x] Herd
   - [x] Thaw
   - [x] Loop
