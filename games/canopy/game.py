@@ -45,6 +45,22 @@ GROWTH_PER_TICK = 0.05
 DEGRADE_PER_CLEAR = 0.1
 MIN_PRODUCTIVITY_MULTIPLIER = 0.2
 
+# B7: "forest ranger" harder difficulty -- each clear degrades soil twice as
+# steeply. A session-wide setting (changing it resets the session, exactly
+# like a grid-size change, since soil quality is derived from clear_count
+# and would otherwise silently rewrite every plot's history).
+DIFFICULTY_NORMAL = "normal"
+DIFFICULTY_RANGER = "ranger"
+DEGRADE_PER_CLEAR_BY_DIFFICULTY = {
+    DIFFICULTY_NORMAL: DEGRADE_PER_CLEAR,
+    DIFFICULTY_RANGER: DEGRADE_PER_CLEAR * 2,
+}
+current_difficulty = DIFFICULTY_NORMAL
+
+
+def current_degrade_per_clear():
+    return DEGRADE_PER_CLEAR_BY_DIFFICULTY.get(current_difficulty, DEGRADE_PER_CLEAR)
+
 # How many ticks a replanted plot spends in REPLANTING before it
 # automatically becomes RECOVERED. A never-cleared plot pays no such
 # delay — this is the "slower timeline" the plan calls for.
@@ -195,7 +211,7 @@ class Plot:
         never stops producing entirely."""
         return max(
             MIN_PRODUCTIVITY_MULTIPLIER,
-            1 - DEGRADE_PER_CLEAR * self.clear_count,
+            1 - current_degrade_per_clear() * self.clear_count,
         )
 
     def accrue_tick(self):
@@ -367,7 +383,7 @@ _highland_plot_click_proxies = {}
 # separate save-code widget is for) and the shared confirm-dialog pattern
 # the TODO's own site-wide goal describes is still just a design, not a
 # built component, elsewhere in this file.
-def reset_session(grid_size=None, _render_after=True):
+def reset_session(grid_size=None, _render_after=True, difficulty=None):
     """Rebuilds every module-level mutable global back to its fresh-start
     default, optionally at a different GRID_SIZE_PRESETS key. Always
     rebuilds `plots` from scratch (even on a same-size reset) rather than
@@ -384,9 +400,13 @@ def reset_session(grid_size=None, _render_after=True):
     global _previously_earned_ids, _session_ticks
     global highland_unlocked, highland_plots, highland_selected_index, highland_income
     global _highland_plot_click_proxies, _reset_confirm_armed
-    global forest_log, forest_tick, adopted_plot_index
+    global forest_log, forest_tick, adopted_plot_index, current_difficulty
 
     _reset_confirm_armed = False
+    if difficulty is not None:
+        if difficulty not in DEGRADE_PER_CLEAR_BY_DIFFICULTY:
+            return False
+        current_difficulty = difficulty
     if grid_size is not None:
         if grid_size not in GRID_SIZE_PRESETS:
             return False
@@ -481,6 +501,14 @@ def on_reset_session(event=None):
     token = _reset_confirm_token
     setTimeout(create_proxy(lambda: _disarm_reset_confirm(token)), RESET_CONFIRM_WINDOW_MS)
     render_reset_button()
+
+
+def on_difficulty_change(event=None):
+    """B7: bound to the difficulty <select>; always a full reset, like
+    on_grid_size_change()."""
+    if event is None:
+        return
+    reset_session(difficulty=event.target.value)
 
 
 def on_grid_size_change(event=None):
@@ -704,7 +732,7 @@ def soil_hint_text(plot):
     permanently, and standing value grows in proportion to it."""
     pct = round(plot.productivity_multiplier() * 100)
     floor_pct = round(MIN_PRODUCTIVITY_MULTIPLIER * 100)
-    step_pct = round(DEGRADE_PER_CLEAR * 100)
+    step_pct = round(current_degrade_per_clear() * 100)
     return (
         f"Soil quality: this plot's future value grows at {pct}% of the rate of a never-cleared plot. "
         f"Every clear permanently costs {step_pct} points (never below {floor_pct}%), and replanting "
@@ -2178,6 +2206,9 @@ def render_grid_size_select():
     if select is None:
         return
     select.value = current_grid_size
+    difficulty_select = document.getElementById("difficulty-select")
+    if difficulty_select is not None:
+        difficulty_select.value = current_difficulty
 
 
 def render():
@@ -2347,6 +2378,7 @@ def get_state():
         # onto the live one, since a "large" save loaded into a fresh
         # "normal"-sized module would otherwise silently truncate to 36.
         "current_grid_size": current_grid_size,
+        "current_difficulty": current_difficulty,
         "forest_log": copy.deepcopy(forest_log),
         "forest_tick": forest_tick,
         "adopted_plot_index": adopted_plot_index,
@@ -2396,8 +2428,15 @@ def load_state(data):
     # real one happens at the end of this function once every field below
     # is actually restored.
     saved_grid_size = data.get("current_grid_size", "normal")
-    if saved_grid_size != current_grid_size or len(data.get("plots", [])) != len(plots):
-        reset_session(grid_size=saved_grid_size, _render_after=False)
+    saved_difficulty = data.get("current_difficulty", DIFFICULTY_NORMAL)
+    if saved_difficulty not in DEGRADE_PER_CLEAR_BY_DIFFICULTY:
+        saved_difficulty = DIFFICULTY_NORMAL
+    if (
+        saved_grid_size != current_grid_size
+        or saved_difficulty != current_difficulty
+        or len(data.get("plots", [])) != len(plots)
+    ):
+        reset_session(grid_size=saved_grid_size, _render_after=False, difficulty=saved_difficulty)
 
     for plot, plot_data in zip(plots, data.get("plots", [])):
         _apply_plot_dict(plot, plot_data)
@@ -2508,6 +2547,9 @@ def setup():
     )
     document.getElementById("grid-size-select").addEventListener(
         "change", create_proxy(on_grid_size_change)
+    )
+    document.getElementById("difficulty-select").addEventListener(
+        "change", create_proxy(on_difficulty_change)
     )
     document.getElementById("highland-clear-button").addEventListener(
         "click", create_proxy(on_highland_clear)

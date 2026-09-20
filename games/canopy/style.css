@@ -1559,3 +1559,5 @@ html[data-season="spring"] .ambient-bg { filter: saturate(1.1) brightness(1.05);
 html[data-season="summer"] .ambient-bg { filter: saturate(1.2); }
 html[data-season="autumn"] .ambient-bg { filter: hue-rotate(-50deg) saturate(1.15); }
 html[data-season="winter"] .ambient-bg { filter: hue-rotate(35deg) saturate(0.55) brightness(1.05); }
+
+.community-forest-result { white-space: pre-line; font-size: 0.85rem; margin-top: 0.5rem; }

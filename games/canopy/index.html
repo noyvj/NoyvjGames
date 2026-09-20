@@ -46,6 +46,14 @@
           <option value="large">Large (9×8)</option>
         </select>
       </label>
+      <!-- B7: "forest ranger" harder mode (steeper soil degradation). Changing it
+           resets the session, same as grid size. -->
+      <label class="grid-size-label">Difficulty
+        <select id="difficulty-select">
+          <option value="normal">Normal</option>
+          <option value="ranger" title="Each clear degrades soil twice as steeply">Forest ranger (harder)</option>
+        </select>
+      </label>
       <!-- B2: hard reset back to a fresh session, no confirmation dialog --
            see reset_session()'s docstring in game.py for why. -->
       <button id="reset-session-button" class="secondary" type="button">🔄 Reset Session</button>
@@ -102,6 +110,14 @@
       <details class="summary-details">
         <summary>Wildlife log</summary>
         <div id="wildlife-log-list" class="forest-log-list" tabindex="0"></div>
+      </details>
+      <!-- B19: community forest comparison against the public aggregate-stats
+           endpoint (Z1). Opt-in: nothing is fetched until the button is
+           pressed, and any failure/suppression degrades to a plain message. -->
+      <details class="summary-details">
+        <summary>Community forest</summary>
+        <button id="community-forest-button" class="secondary" type="button">🌍 Compare with other players</button>
+        <div id="community-forest-result" class="community-forest-result" aria-live="polite"></div>
       </details>
       <p class="session-summary-share-label">Share your session:</p>
       <p id="session-summary-share-text" class="session-summary-share-text"></p>
@@ -519,6 +535,57 @@
       if (window.MutationObserver) {
         new MutationObserver(applyLastHovered).observe(plotGrid, { childList: true });
       }
+
+      // B19: opt-in community comparison against GET /stats/games/canopy and
+      // its /percentile endpoint (Z1). Plain JS like the feedback prompt:
+      // it's a read-only fetch + text render with no game-state logic. The
+      // endpoint may not be deployed yet, so every failure path ends in the
+      // same plain "not available yet" message, and nothing is fetched until
+      // the player presses the button (so no background request noise).
+      const COMMUNITY_FIELDS = [
+        ["total_income", "Harvested income"],
+        ["community_relations", "Community relations"],
+        ["total_replants", "Plots replanted"],
+        ["total_recoveries", "Plots recovered"],
+      ];
+      const communityButton = document.getElementById("community-forest-button");
+      const communityResult = document.getElementById("community-forest-result");
+      communityButton.addEventListener("click", async () => {
+        const API = "https://noyvjgames.fastapicloud.dev";
+        communityButton.disabled = true;
+        communityResult.textContent = "Loading...";
+        try {
+          const summaryRes = await fetch(`${API}/stats/games/canopy`);
+          if (!summaryRes.ok) throw new Error(`status ${summaryRes.status}`);
+          const summary = await summaryRes.json();
+          if (summary.suppressed) {
+            communityResult.textContent = `Not enough players yet for an anonymous comparison (needs ${summary.min_bucket}+).`;
+            return;
+          }
+          const rows = [];
+          for (const [field, label] of COMMUNITY_FIELDS) {
+            const info = summary.fields && summary.fields[field];
+            if (!info) continue;
+            const mine = Number(pyodide.globals.get(field));
+            let pct = "";
+            try {
+              const pRes = await fetch(`${API}/stats/games/canopy/percentile?field=${field}&value=${encodeURIComponent(mine)}`);
+              if (pRes.ok) {
+                const p = await pRes.json();
+                if (!p.suppressed && typeof p.percentile === "number") pct = `${Math.round(p.percentile)}th percentile`;
+              }
+            } catch (err) { /* percentile is a bonus; the average still shows */ }
+            rows.push(`${label}: you ${mine.toFixed(1)} · community average ${Number(info.mean).toFixed(1)}${pct ? " · " + pct : ""}`);
+          }
+          communityResult.textContent = rows.length
+            ? rows.join("\n")
+            : "Not enough players yet for an anonymous comparison.";
+        } catch (err) {
+          communityResult.textContent = "Community comparison isn't available yet. Check back later.";
+        } finally {
+          communityButton.disabled = false;
+        }
+      });
 
       // B18: copy the playstyle badge next to the share snippet's copy.
       const badgeCopyButton = document.getElementById("session-summary-copy-badge-button");

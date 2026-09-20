@@ -54,6 +54,7 @@ ELEMENT_IDS = [
     "changelog-panel",
     "reset-session-button",
     "grid-size-select",
+    "difficulty-select",
     "session-summary-toggle-button",
     "session-summary-panel",
     "session-summary-counterfactual",
@@ -175,6 +176,17 @@ class GameEnv:
         button.dispatch("click", None)
         if self.module._reset_confirm_armed:
             button.dispatch("click", None)
+
+    def change_difficulty(self, value):
+        select = self.elements["difficulty-select"]
+        select.value = value
+
+        class _FakeChangeEvent:
+            pass
+
+        event = _FakeChangeEvent()
+        event.target = select
+        select.dispatch("change", event)
 
     def change_grid_size(self, value):
         """Mirrors a real <select> "change" event: sets the element's own
