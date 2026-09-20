@@ -28,15 +28,3 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 
 I'll drop all of that into the ad bar and it goes live everywhere on the site at once, since it's a shared partial.
 
-
----
-
-## Answered for you (no action needed)
-
-### Herd F29: is a "methane capture marketplace" realistic? Yes.
-
-**Finding:** real farms do sell the output of methane capture. Manure digesters produce biogas that is sold as renewable natural gas (RNG) or used for electricity, and the resulting fuel can also earn federal Renewable Fuel Standard RIN credits and California LCFS credits, on top of the gas revenue. The EPA's AgSTAR programme documents this, and industry reporting counts 191 manure-based RNG digesters operating in the US as of mid-2024. Caveat: what gets sold is the captured gas and its credits, not spare "capacity" as an abstract good, and economics depend on farm scale.
-
-**What I did:** built it in Herd as "biogas sales": the first 2 Capture Systems cover on-farm energy use, and each further unit sells gas for a small per-round income. No abstract marketplace UI.
-
-Sources: [US EPA AgSTAR, renewable natural gas from agricultural digesters](https://www.epa.gov/agstar/renewable-natural-gas-agricultural-based-adbiogas-systems); [ICCT, project economics of California RNG](https://theicct.org/wp-content/uploads/2023/05/case-studies-california-rng-outlook-2030-may23.pdf); [American Biogas Council, LCFS 101](https://americanbiogascouncil.org/101-for-low-carbon-fuel-standard/). Remove this entry once read.
