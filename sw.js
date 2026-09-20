@@ -1,4 +1,12 @@
-const CACHE_NAME = "site-cache-v11";
+// Bump SW_VERSION on any deploy that changes this file's own behaviour or
+// the precache list; ordinary content deploys don't need it, because
+// same-origin requests are network-first (see the fetch handler below) and
+// so always pick up fresh files whenever the player is online.
+const SW_VERSION = 12;
+const CACHE_NAME = "site-cache-v" + SW_VERSION;
+// How long a same-origin network request may take before we give up and
+// serve the cached copy instead (a slow/flaky connection shouldn't hang).
+const NETWORK_TIMEOUT_MS = 4000;
 // Every entry here is relative to sw.js's own location (this file, at the
 // repo root), never a "/"-rooted absolute path -- GitHub Pages serves this
 // repo under /NoyvjGames/, not the domain root, so an absolute path like
@@ -73,22 +81,52 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// Stale-while-revalidate: serve the cached copy immediately when there is
-// one (keeps the app fast and usable offline), but every request also
-// kicks off a real network fetch in the background and overwrites the
-// cache with whatever comes back. This load may still be stale, but the
-// very next load already has it — no one needs to remember to bump
-// CACHE_NAME by hand for a deploy to eventually reach returning players.
+// Same-origin requests are NETWORK-FIRST: try the network (bounded by a
+// timeout), refresh the cache with any good response, and fall back to the
+// cached copy only when offline / slow / erroring. This is what fixes the
+// old "reload twice after a deploy" trap -- the previous stale-while-
+// revalidate strategy always served the *old* cached copy first, so a
+// returning player saw the previous version until their next load.
+// Cross-origin requests (Pyodide's CDN, ad script) stay cache-first with a
+// background refresh: they're versioned/immutable-ish and slow to refetch.
+function cacheable(response) {
+  return response && (response.ok || response.type === "opaque");
+}
+
 self.addEventListener("fetch", (event) => {
+  const request = event.request;
+  if (request.method !== "GET" || request.headers.has("range")) return;
+  const url = new URL(request.url);
+  if (!/^https?:$/.test(url.protocol)) return;
+  const sameOrigin = url.origin === self.location.origin;
+
+  if (sameOrigin) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then((cache) => {
+        const fromNetwork = fetch(request).then((response) => {
+          if (cacheable(response)) cache.put(request, response.clone());
+          return response;
+        });
+        const timeout = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("timeout")), NETWORK_TIMEOUT_MS)
+        );
+        return Promise.race([fromNetwork, timeout]).catch(() =>
+          cache.match(request).then((cached) => cached || fromNetwork)
+        );
+      })
+    );
+    return;
+  }
+
   event.respondWith(
     caches.open(CACHE_NAME).then((cache) =>
-      cache.match(event.request).then((cached) => {
-        const network = fetch(event.request)
+      cache.match(request).then((cached) => {
+        const network = fetch(request)
           .then((response) => {
-            cache.put(event.request, response.clone());
+            if (cacheable(response)) cache.put(request, response.clone());
             return response;
           })
-          .catch(() => cached); // offline with nothing cached: this just fails through
+          .catch(() => cached);
         return cached || network;
       })
     )
