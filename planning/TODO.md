@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 252/270 items checked off (93%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
+**Progress: 254/270 items checked off (94%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
 
 The one living list, replacing the scattered planning docs' own "open items"/"stretch goals" sections. Built from your labeled answers in `IMPROVEMENT-IDEAS-2026-09.md` (all "yes" items, resolved), plus a pass through every other file in `planning/` pulling out anything still genuinely unresolved there. "Later" items (things you deferred, or that need more explanation first) live in `LATER.md` instead — not here.
 
@@ -95,8 +95,8 @@ Two things every game needs once achievements land there, on top of the base rol
 
 *(Origin: K16 "yes but site-wide (all games AND site)", plus L10's own separate hub-page ask — merged into one goal with two parts.)*
 
-- [ ] Per-game in-game changelog panel (K16), for every game.
-  - Covered so far: SOL, Canopy, Grid, Tide, Aftermath, Herd, Thaw, Loop, Drift, Trade Empire, Continuum (each has its own CLAUDE.md worked note). Still open: Le Champ de Mots (in progress in a concurrent session as of this note — changelog.json + tests exist locally but uncommitted).
+- [x] Per-game in-game changelog panel (K16), for every game.
+  - All 12 done: SOL, Canopy, Grid, Tide, Aftermath, Herd, Thaw, Loop, Drift, Trade Empire, Continuum, and now Le Champ de Mots (each has its own CLAUDE.md worked note) — confirmed via `git log --oneline -- games/<slug>` for each.
 - [x] A hub-level "What's New" page (L10), pulling from `BCM114-DEV-LOG.md`/`BCM206-DEV-LOG.md` — **scoped per your notes: brief bullet points + date only, not direct links into the dev logs, and collapsible by date** since some days have a lot logged. Built as a new `whats-new.html` at the repo root (linked from a new hub nav in `index.html`'s header) rather than a heavier section inside the hub page itself — it fetches both dev logs client-side at load time and parses each `### YYYY-MM-DD` entry's `**Did:**` line into a one-line, truncated bullet (no full entry text, no links into the log files), grouped into a `<details>` per date (most recent two dates open by default), matching the `<details>`-based disclosure pattern already used across the games (e.g. Tide's ticker-history toggle). Self-updating: any future dev-log entry shows up here automatically, no regeneration step needed.
 
 ---
@@ -224,7 +224,7 @@ Two things every game needs once achievements land there, on top of the base rol
 - [x] C15: An interactive trend graph (hover for exact values). Every point on all three trend lines now carries a native SVG `<title>` tooltip with the exact round/value.
 - [x] C16: A "steeper demand growth" difficulty variant.
 - [x] C17: A closing "grid vs. business-as-usual" counterfactual. A capacity-held-constant, coal-only shadow trajectory (`bau_emissions`), surfaced in the new C5 Run Summary panel.
-- [ ] C18: Colorblind-safe trend-graph line differentiation — fold into the site-wide colorblind audit.
+- [x] C18: Colorblind-safe trend-graph line differentiation — fold into the site-wide colorblind audit.
 - [x] C19: A breakdown-risk badge once a plant type's average age crosses a threshold.
 - [x] C20: A one-time first-use callout for Retire's refund / Maintain's cost math.
 
