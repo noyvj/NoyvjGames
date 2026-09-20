@@ -343,6 +343,57 @@ opens and lists all 12 real entries with correct dates/text, toggle button
 label flips to "Hide What's New", zero console errors on the SOL page
 itself.
 
+## UI decluttering pass (site-wide goal, planning/TODO.md closing task)
+
+Audited whether SOL's single-page view is too crowded, per the site-wide
+"UI decluttering pass" task (the user's own note: "everything looks very
+crowded... making sections either collapsible or other 'screens' within a
+game could help"). Read through `index.html`'s full structure across all
+nine views (Earth + 7 planet views + the `away-view` travel placeholder).
+
+**Real crowding found, and it wasn't the panels already gated behind
+toggle buttons** (Achievements/Stats/Governor Report/Settings/Changelog
+are already `hidden`-until-opened `.section`s, per their own build notes
+above — those already solved this). The actual problem was the
+`cross-summary` widgets: every non-Earth planet view unconditionally
+stacks six or seven "`<Planet>` (governed)" status cards — one per every
+*other* real economy — one after another, with no `hidden` gating at all
+on those views (only Earth's own copies were gated, per
+`update_cross_summary()`'s comment on this). That's up to 7 always-visible
+read-only stat cards piled beneath the view's own
+automation/ecology/terraform/trade/sky-city sections and above its Reset/
+Return buttons — by far the densest stretch of the page, and the one part
+of the layout that scales with how many planets are unlocked rather than
+staying fixed.
+
+**Fixed**: wrapped each view's own group of `.cross-summary` divs (Earth's
+7 gated ones, and the 6-8 unconditional ones on each of Mars/Moon/Venus/
+Asteroid Belt/Pluto/Jupiter's Moons/Saturn's Moons/`away-view`) in a new
+`<details class="cross-summary-group"><summary>Other Worlds
+(Governed)</summary>...</details>`, collapsed by default — same
+`<details>`/`<summary>` disclosure idiom `.info-toggle` already uses here,
+and Tide's `.ticker-history-toggle` uses for its own "supplementary,
+not-checked-every-turn" panel. Purely a markup wrapper: every inner div
+keeps its exact `id`/class/`hidden` attribute, so `update_cross_summary()`
+and `update_all_cross_summaries()` in `game.py` (untouched, zero Python
+changes) keep toggling each card's visibility by its own id exactly as
+before — the `<details>` wrapper doesn't know or care which children are
+currently hidden inside it. New `.cross-summary-group` CSS in `style.css`
+(arrow-marker summary matching the site's existing disclosure look, no
+changes to `.cross-summary`'s own card styling). Nothing else on the page
+was dense enough to warrant touching — the per-planet sections
+(automation/ecology/terraform/research/governor/trade/sky-city/travel)
+are each a single focused block already given their own bordered card via
+the existing "HUD module" `.section` styling, not a wall of undifferentiated
+text.
+
+Verified: full 626/626 pytest suite green (pure HTML/CSS change, `game.py`
+untouched, and no test asserts exact DOM nesting around the cross-summary
+divs — confirmed by grep before relying on this). Not verified live in a
+running browser this pass (a markup-wrapper-only change with no JS/Python
+behavior difference and an existing widely-used `<details>` pattern
+elsewhere on this same page).
+
 ## Working conventions
 - Commit + tag at the end of each milestone: `git commit -m "Milestone N: <name>"` then `git tag milestone-0N` (e.g. `milestone-09a` for lettered sub-parts of milestone 9).
 - Keep `game.py` as the single source of game logic where reasonable; split into modules only once it gets unwieldy.

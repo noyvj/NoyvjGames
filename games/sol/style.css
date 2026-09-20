@@ -770,6 +770,48 @@ button.priority-option::before {
   line-height: 1;
 }
 
+/* --- UI decluttering pass (TODO.md closing task): every planet view
+   was stacking six or seven of these cross-summary cards (one per
+   other governed world) unconditionally, on top of that planet's own
+   automation/ecology/terraform/trade/sky-city sections -- the single
+   densest part of SOL's layout. Grouped behind one <details>
+   disclosure per view, collapsed by default (look-but-don't-touch
+   status, not something checked every turn), same idiom as
+   .info-toggle above and Tide's .ticker-history-toggle. Purely a
+   wrapper -- game.py's update_cross_summary() still toggles each
+   inner .cross-summary div's own `hidden` by its own id. */
+.cross-summary-group {
+  margin-top: 1.25rem;
+}
+
+.cross-summary-group > summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0.7rem 1.1rem;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.01));
+  border: 1px solid rgba(140, 160, 255, 0.12);
+  border-left: 3px solid rgba(140, 160, 255, 0.25);
+  border-radius: 12px;
+  list-style: none;
+  user-select: none;
+}
+
+.cross-summary-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.cross-summary-group > summary::before {
+  content: "▸ ";
+}
+
+.cross-summary-group[open] > summary::before {
+  content: "▾ ";
+}
+
+.cross-summary-group[open] > summary {
+  border-radius: 12px 12px 0 0;
+}
+
 /* --- Cross-summary rows: small stat-chip card instead of plain
    stacked paragraphs. Targeted by paragraph position since the
    resource/generator/ecology lines carry no id or class of their

@@ -163,6 +163,14 @@
         <button id="cycle-trade-destination-button" class="secondary" disabled>Loading...</button>
       </div>
 
+      <!-- UI decluttering pass (TODO.md closing task): every other governed
+           world's status card grouped behind one collapsed-by-default
+           disclosure instead of stacking all seven inline. Each card below
+           is untouched (same id, class, hidden attribute) -- game.py's
+           update_cross_summary() keeps toggling each one by its own id, and
+           the wrapper is purely a visual grouping. -->
+      <details class="cross-summary-group">
+        <summary>Other Worlds (Governed)</summary>
       <div id="mars-summary" class="section cross-summary" hidden>
         <p class="cross-summary-label">Mars (governed)</p>
         <p><span id="mars-summary-resource">0</span> Water Ice</p>
@@ -211,6 +219,7 @@
         <p><span id="saturnmoons-summary-generators">0</span> Auto-Condensers, <span id="saturnmoons-summary-recyclers">0</span> Recyclers</p>
         <p>Ecology: <span id="saturnmoons-summary-ecology">100</span>%</p>
       </div>
+      </details>
 
       <div id="travel" class="section">
         <p id="travel-label">Travel
@@ -279,6 +288,8 @@
         <button id="mars-cycle-trade-destination-button" class="secondary" disabled>Loading...</button>
       </div>
 
+      <details class="cross-summary-group">
+        <summary>Other Worlds (Governed)</summary>
       <div id="mars-earth-summary" class="section cross-summary">
         <p class="cross-summary-label">Earth (governed)</p>
         <p><span id="mars-earth-summary-resource">0</span> Iron</p>
@@ -327,6 +338,7 @@
         <p><span id="mars-saturnmoons-summary-generators">0</span> Auto-Condensers, <span id="mars-saturnmoons-summary-recyclers">0</span> Recyclers</p>
         <p>Ecology: <span id="mars-saturnmoons-summary-ecology">100</span>%</p>
       </div>
+      </details>
 
       <button id="mars-return-to-earth-button" class="secondary">Return to Earth</button>
     </div>
@@ -383,6 +395,8 @@
         <button id="moon-cycle-trade-destination-button" class="secondary" disabled>Loading...</button>
       </div>
 
+      <details class="cross-summary-group">
+        <summary>Other Worlds (Governed)</summary>
       <div id="moon-earth-summary" class="section cross-summary">
         <p class="cross-summary-label">Earth (governed)</p>
         <p><span id="moon-earth-summary-resource">0</span> Iron</p>
@@ -431,6 +445,7 @@
         <p><span id="moon-saturnmoons-summary-generators">0</span> Auto-Condensers, <span id="moon-saturnmoons-summary-recyclers">0</span> Recyclers</p>
         <p>Ecology: <span id="moon-saturnmoons-summary-ecology">100</span>%</p>
       </div>
+      </details>
 
       <button id="moon-return-to-earth-button" class="secondary">Return to Earth</button>
     </div>
@@ -487,6 +502,8 @@
         <button id="venus-cycle-trade-destination-button" class="secondary" disabled>Loading...</button>
       </div>
 
+      <details class="cross-summary-group">
+        <summary>Other Worlds (Governed)</summary>
       <div id="venus-earth-summary" class="section cross-summary">
         <p class="cross-summary-label">Earth (governed)</p>
         <p><span id="venus-earth-summary-resource">0</span> Iron</p>
@@ -535,6 +552,7 @@
         <p><span id="venus-saturnmoons-summary-generators">0</span> Auto-Condensers, <span id="venus-saturnmoons-summary-recyclers">0</span> Recyclers</p>
         <p>Ecology: <span id="venus-saturnmoons-summary-ecology">100</span>%</p>
       </div>
+      </details>
 
       <button id="venus-return-to-earth-button" class="secondary">Return to Earth</button>
     </div>
@@ -592,6 +610,8 @@
         <button id="asteroidbelt-cycle-trade-destination-button" class="secondary" disabled>Loading...</button>
       </div>
 
+      <details class="cross-summary-group">
+        <summary>Other Worlds (Governed)</summary>
       <div id="asteroidbelt-earth-summary" class="section cross-summary">
         <p class="cross-summary-label">Earth (governed)</p>
         <p><span id="asteroidbelt-earth-summary-resource">0</span> Iron</p>
@@ -640,6 +660,7 @@
         <p><span id="asteroidbelt-saturnmoons-summary-generators">0</span> Auto-Condensers, <span id="asteroidbelt-saturnmoons-summary-recyclers">0</span> Recyclers</p>
         <p>Ecology: <span id="asteroidbelt-saturnmoons-summary-ecology">100</span>%</p>
       </div>
+      </details>
 
       <button id="asteroidbelt-return-to-earth-button" class="secondary">Return to Earth</button>
     </div>
@@ -696,6 +717,8 @@
         <button id="pluto-cycle-trade-destination-button" class="secondary" disabled>Loading...</button>
       </div>
 
+      <details class="cross-summary-group">
+        <summary>Other Worlds (Governed)</summary>
       <div id="pluto-earth-summary" class="section cross-summary">
         <p class="cross-summary-label">Earth (governed)</p>
         <p><span id="pluto-earth-summary-resource">0</span> Iron</p>
@@ -744,6 +767,7 @@
         <p><span id="pluto-saturnmoons-summary-generators">0</span> Auto-Condensers, <span id="pluto-saturnmoons-summary-recyclers">0</span> Recyclers</p>
         <p>Ecology: <span id="pluto-saturnmoons-summary-ecology">100</span>%</p>
       </div>
+      </details>
 
       <button id="pluto-return-to-earth-button" class="secondary">Return to Earth</button>
     </div>
@@ -810,6 +834,8 @@
         <button id="jupitermoons-buy-sky-city-button" class="secondary" disabled>Loading...</button>
       </div>
 
+      <details class="cross-summary-group">
+        <summary>Other Worlds (Governed)</summary>
       <div id="jupitermoons-earth-summary" class="section cross-summary">
         <p class="cross-summary-label">Earth (governed)</p>
         <p><span id="jupitermoons-earth-summary-resource">0</span> Iron</p>
@@ -858,6 +884,7 @@
         <p><span id="jupitermoons-saturnmoons-summary-generators">0</span> Auto-Condensers, <span id="jupitermoons-saturnmoons-summary-recyclers">0</span> Recyclers</p>
         <p>Ecology: <span id="jupitermoons-saturnmoons-summary-ecology">100</span>%</p>
       </div>
+      </details>
 
       <button id="jupitermoons-return-to-earth-button" class="secondary">Return to Earth</button>
     </div>
@@ -924,6 +951,8 @@
         <button id="saturnmoons-buy-sky-city-button" class="secondary" disabled>Loading...</button>
       </div>
 
+      <details class="cross-summary-group">
+        <summary>Other Worlds (Governed)</summary>
       <div id="saturnmoons-earth-summary" class="section cross-summary">
         <p class="cross-summary-label">Earth (governed)</p>
         <p><span id="saturnmoons-earth-summary-resource">0</span> Iron</p>
@@ -972,6 +1001,7 @@
         <p><span id="saturnmoons-jupitermoons-summary-generators">0</span> Auto-Skimmers, <span id="saturnmoons-jupitermoons-summary-recyclers">0</span> Recyclers</p>
         <p>Ecology: <span id="saturnmoons-jupitermoons-summary-ecology">100</span>%</p>
       </div>
+      </details>
 
       <button id="saturnmoons-return-to-earth-button" class="secondary">Return to Earth</button>
     </div>
@@ -984,6 +1014,8 @@
       <p id="away-planet-name">ASTEROID BELT</p>
       <p id="away-arrival-text">You have arrived.</p>
 
+      <details class="cross-summary-group">
+        <summary>Other Worlds (Governed)</summary>
       <div id="away-earth-summary" class="section cross-summary">
         <p class="cross-summary-label">Earth (governed)</p>
         <p><span id="away-earth-resource">0</span> Iron</p>
@@ -1039,6 +1071,7 @@
         <p><span id="away-saturnmoons-generators">0</span> Auto-Condensers, <span id="away-saturnmoons-recyclers">0</span> Recyclers</p>
         <p>Ecology: <span id="away-saturnmoons-ecology">100</span>%</p>
       </div>
+      </details>
 
       <button id="return-to-earth-button" class="secondary">Return to Earth</button>
     </div>
