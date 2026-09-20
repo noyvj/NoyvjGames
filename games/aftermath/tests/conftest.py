@@ -23,6 +23,8 @@ SKILL_IDS = [
     "early_warning",
     "adaptive_growth",
     "mutual_aid_network",
+    "civic_preparedness",
+    "climate_hardening",
 ]
 
 ELEMENT_IDS = [

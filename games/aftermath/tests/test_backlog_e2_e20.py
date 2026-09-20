@@ -13,7 +13,7 @@ import json
 # ---------------------------------------------------------------------------
 def test_five_skills_exist_with_prereqs_field(game_env):
     module = game_env.module
-    assert len(module.SKILLS) == 5
+    assert len(module.SKILLS) == 7
     for skill in module.SKILLS.values():
         assert "prereqs" in skill
 
@@ -199,10 +199,10 @@ def test_render_shows_expected_damage_line(game_env):
 # ---------------------------------------------------------------------------
 def test_skills_unlocked_display_updates(game_env):
     game_env.module.render()
-    assert game_env.elements["skills-unlocked-display"].innerText == "0/5 skills unlocked"
+    assert game_env.elements["skills-unlocked-display"].innerText == "0/7 skills unlocked"
     game_env.skill_tree.add_knowledge(20)
     game_env.unlock_skill("early_warning")
-    assert game_env.elements["skills-unlocked-display"].innerText == "1/5 skills unlocked"
+    assert game_env.elements["skills-unlocked-display"].innerText == "1/7 skills unlocked"
 
 
 # ---------------------------------------------------------------------------

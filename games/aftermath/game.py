@@ -213,6 +213,29 @@ SKILLS = {
         "description": "+5% mitigation on all events (stacks with Resilience investment)",
         "real_practice": "Mirrors real mutual-aid networks, which only function once a settlement already has both physical infrastructure and pooled resources to organize around — neighbors sharing tools, shelter, and labor during recovery.",
     },
+    # E1/E3: a sixth and seventh node -- the tree branches after its
+    # foundations into two specialization paths. Weather-focused
+    # (climate_hardening) builds on the physical/early-warning side;
+    # social-shock-focused (civic_preparedness) builds on the pooled-
+    # resources side and gives Civil Unrest its own upgrade path. Each
+    # only reduces damage from its own event category, so choosing
+    # between them (or paying for both) is a genuine allocation decision.
+    "civic_preparedness": {
+        "cost": 5,
+        "prereqs": ["community_reserves"],
+        "branch": "social",
+        "label": "Civic Preparedness",
+        "description": "-35% damage from social-shock events (Civil Unrest)",
+        "real_practice": "Mirrors community-resilience programs — trusted local institutions, neighborhood councils, and conflict-mediation training — that keep cooperation intact when disaster strain would otherwise fray it.",
+    },
+    "climate_hardening": {
+        "cost": 6,
+        "prereqs": ["reinforced_infrastructure", "early_warning"],
+        "branch": "weather",
+        "label": "Climate Hardening",
+        "description": "-20% damage from weather events (Flood, Heatwave, Storm)",
+        "real_practice": "Mirrors retrofit programs — raised foundations, cool roofs, storm-rated grids — layered on top of warning systems so the same alert buys far more protection.",
+    },
 }
 
 SKILL_TREE_STORAGE_KEY = "aftermath_skill_tree_v1"
@@ -403,6 +426,22 @@ def mutual_aid_mitigation_bonus():
     return 0.05 if "mutual_aid_network" in skill_tree.unlocked else 0.0
 
 
+# E1/E3: per-category damage reduction from the two specialization nodes.
+CATEGORY_DAMAGE_BONUS = {
+    "civic_preparedness": ("social", 0.35),
+    "climate_hardening": ("weather", 0.20),
+}
+
+
+def category_mitigation_bonus(event_type):
+    category = EVENT_CATEGORY.get(event_type)
+    return sum(
+        amount
+        for skill_id, (cat, amount) in CATEGORY_DAMAGE_BONUS.items()
+        if cat == category and skill_id in skill_tree.unlocked
+    )
+
+
 class RunState:
     def __init__(self, run_number=1, extended=False):
         """Reads current skill-tree bonuses at creation time — a new run
@@ -467,6 +506,12 @@ class RunState:
             from_resilience + early_warning_mitigation_bonus() + mutual_aid_mitigation_bonus(),
         )
 
+    def mitigation_for(self, event_type):
+        """Total damage reduction for one event: the general mitigation
+        plus any category-specific specialization bonus, still capped at
+        MAX_MITIGATION so nothing ever reaches full immunity."""
+        return min(MAX_MITIGATION, self.mitigation_fraction() + category_mitigation_bonus(event_type))
+
     def resolve_next_event(self):
         """Applies growth income, then resolves the next scheduled event's
         damage (reduced by resilience mitigation). No-op once the run is
@@ -478,7 +523,7 @@ class RunState:
 
         event_type = self.schedule[self.event_index]
         severity = event_severity(self.run_number, self.event_index, skill_tree_strength())
-        damage = EVENT_BASE_DAMAGE[event_type] * severity * (1 - self.mitigation_fraction())
+        damage = EVENT_BASE_DAMAGE[event_type] * severity * (1 - self.mitigation_for(event_type))
         self.resources = max(0.0, self.resources - damage)
         self.damage_taken += damage
         self.event_log.append({"type": event_type, "damage": damage, "severity": severity})
@@ -537,6 +582,15 @@ class RunState:
                     _note_achievement_progress(ever_resilience_heavy_run=True)
                 if self.growth_capacity >= 2 and self.growth_capacity == self.resilience_capacity:
                     _note_achievement_progress(ever_balanced_run=True)
+                # E15: a narrow deep-investment run (5+ in one track, none
+                # in the other) and a broad run (3+ in both) are both
+                # rewarded; a third achievement needs both.
+                if max(self.growth_capacity, self.resilience_capacity) >= 5 and min(
+                    self.growth_capacity, self.resilience_capacity
+                ) == 0:
+                    _note_achievement_progress(ever_deep_specialist_run=True)
+                if self.growth_capacity >= 3 and self.resilience_capacity >= 3:
+                    _note_achievement_progress(ever_broad_generalist_run=True)
 
         return True
 
@@ -707,6 +761,9 @@ def _default_achievement_progress():
         "ever_growth_heavy_run": False,
         "ever_resilience_heavy_run": False,
         "ever_balanced_run": False,
+        # E15: build-diversity family.
+        "ever_deep_specialist_run": False,
+        "ever_broad_generalist_run": False,
     }
 
 
@@ -769,6 +826,10 @@ ACHIEVEMENT_CHECKS = {
     "growth_focused": lambda: achievement_progress["ever_growth_heavy_run"],
     "resilience_focused": lambda: achievement_progress["ever_resilience_heavy_run"],
     "balanced_strategy": lambda: achievement_progress["ever_balanced_run"],
+    "deep_specialist": lambda: achievement_progress["ever_deep_specialist_run"],
+    "broad_generalist": lambda: achievement_progress["ever_broad_generalist_run"],
+    "both_paths": lambda: achievement_progress["ever_deep_specialist_run"]
+    and achievement_progress["ever_broad_generalist_run"],
     "come_back_stronger": lambda: len(run_history) >= 2 and run_history[-1] > run_history[0],
 }
 
@@ -1216,7 +1277,7 @@ def expected_next_event_damage(run_state):
         return None
     event_type = run_state.next_event_type()
     severity = event_severity(run_state.run_number, run_state.event_index, skill_tree_strength())
-    damage = EVENT_BASE_DAMAGE[event_type] * severity * (1 - run_state.mitigation_fraction())
+    damage = EVENT_BASE_DAMAGE[event_type] * severity * (1 - run_state.mitigation_for(event_type))
     return damage, severity
 
 
@@ -1228,10 +1289,10 @@ def expected_damage_range(run_state):
     number could swing the same event."""
     event_type = run_state.next_event_type()
     if run_state.run_number <= 1:
-        exact = EVENT_BASE_DAMAGE[event_type] * (1 - run_state.mitigation_fraction())
+        exact = EVENT_BASE_DAMAGE[event_type] * (1 - run_state.mitigation_for(event_type))
         return exact, exact
     low_sev, high_sev = severity_bounds(skill_tree_strength())
-    base = EVENT_BASE_DAMAGE[event_type] * (1 - run_state.mitigation_fraction())
+    base = EVENT_BASE_DAMAGE[event_type] * (1 - run_state.mitigation_for(event_type))
     return base * low_sev, base * high_sev
 
 

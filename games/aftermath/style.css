@@ -1407,3 +1407,5 @@ html[data-reduced-motion="true"] *::after {
 @media (prefers-reduced-motion: reduce) {
   .past-run-card--record, .knowledge-bump::after { animation: none; }
 }
+.settlement-badge--civic_preparedness { left: 41%; }
+.settlement-badge--climate_hardening { left: 59%; }

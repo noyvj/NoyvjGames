@@ -290,3 +290,87 @@ def test_pin_hidden_once_unlocked_and_cannot_pin_unlocked(game_env):
     game_env.unlock_skill("early_warning")
     assert game_env.elements["skill-early_warning-pin-button"].hidden is True
     assert game_env.module.toggle_pin_skill("early_warning") is False
+
+
+# ---------------------------------------------------------------------------
+# E1/E3: seventh-node skill-tree expansion -- weather vs social-shock branches.
+# ---------------------------------------------------------------------------
+def test_specialization_nodes_have_branch_prereqs(game_env):
+    m = game_env.module
+    assert m.SKILLS["civic_preparedness"]["prereqs"] == ["community_reserves"]
+    assert set(m.SKILLS["climate_hardening"]["prereqs"]) == {"reinforced_infrastructure", "early_warning"}
+    game_env.skill_tree.add_knowledge(50)
+    assert not game_env.skill_tree.can_unlock("civic_preparedness")
+    game_env.unlock_skill("community_reserves")
+    assert game_env.skill_tree.can_unlock("civic_preparedness")
+
+
+def test_civic_preparedness_only_reduces_social_events(game_env):
+    m = game_env.module
+    base_social = m.EVENT_BASE_DAMAGE["civil_unrest"]
+    game_env.skill_tree.unlocked.add("civic_preparedness")
+    r = m.RunState()
+    assert abs(r.mitigation_for("civil_unrest") - 0.35) < 1e-9
+    assert r.mitigation_for("flood") == 0
+    r.event_index = len(r.schedule) - 1  # civil_unrest slot
+    before = r.resources
+    r.resolve_next_event()
+    assert abs((before - r.resources) - base_social * 0.65) < 1e-6
+
+
+def test_climate_hardening_reduces_weather_and_stays_capped(game_env):
+    m = game_env.module
+    game_env.skill_tree.unlocked.update({"climate_hardening"})
+    r = m.RunState()
+    assert abs(r.mitigation_for("storm") - 0.20) < 1e-9
+    assert r.mitigation_for("supply_chain") == 0
+    r.resilience_capacity = 100
+    assert r.mitigation_for("storm") == m.MAX_MITIGATION
+
+
+def test_expected_damage_preview_matches_resolution_with_specialization(game_env):
+    m = game_env.module
+    game_env.skill_tree.unlocked.update({"climate_hardening", "civic_preparedness"})
+    r = m.RunState(run_number=4)
+    for _ in range(len(r.schedule)):
+        predicted, _sev = m.expected_next_event_damage(r)
+        before = r.resources
+        r.resolve_next_event()
+        assert abs(r.event_log[-1]["damage"] - predicted) < 1e-9
+        assert before >= 0
+
+
+def test_new_skills_render_rows_and_badges(game_env):
+    game_env.skill_tree.add_knowledge(30)
+    game_env.unlock_skill("community_reserves")
+    game_env.unlock_skill("civic_preparedness")
+    assert "unlocked" in _text(game_env, "skill-civic_preparedness-status")
+    assert "settlement-badge--earned" in game_env.elements["settlement-badge-civic_preparedness"].classList
+    assert "requires" in _text(game_env, "skill-climate_hardening-status")
+
+
+# ---------------------------------------------------------------------------
+# E15: build-diversity achievements.
+# ---------------------------------------------------------------------------
+def _complete_with(env, resilience, growth):
+    env.run.resilience_capacity = resilience
+    env.run.growth_capacity = growth
+    env.run.event_index = len(env.run.schedule) - 1
+    env.resolve_event()
+
+
+def test_deep_specialist_and_broad_generalist_both_reward(game_env):
+    m = game_env.module
+    _complete_with(game_env, 6, 0)
+    ids = m.achievement_ids_earned()
+    assert "deep_specialist" in ids and "broad_generalist" not in ids and "both_paths" not in ids
+    game_env.start_new_run()
+    _complete_with(game_env, 3, 3)
+    ids = m.achievement_ids_earned()
+    assert {"deep_specialist", "broad_generalist", "both_paths"} <= set(ids)
+
+
+def test_lopsided_but_not_deep_run_earns_neither(game_env):
+    _complete_with(game_env, 2, 1)
+    ids = game_env.module.achievement_ids_earned()
+    assert "deep_specialist" not in ids and "broad_generalist" not in ids

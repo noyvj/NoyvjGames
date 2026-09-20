@@ -153,6 +153,8 @@
         <div class="settlement-badge settlement-badge--adaptive_growth" id="settlement-badge-adaptive_growth" aria-hidden="true"></div>
         <div class="settlement-badge settlement-badge--mutual_aid_network" id="settlement-badge-mutual_aid_network" aria-hidden="true"></div>
         <!-- E12: lit once the settlement has survived a run whose average severity was in the severe band. -->
+        <div class="settlement-badge settlement-badge--civic_preparedness" id="settlement-badge-civic_preparedness" aria-hidden="true"></div>
+        <div class="settlement-badge settlement-badge--climate_hardening" id="settlement-badge-climate_hardening" aria-hidden="true"></div>
         <div class="settlement-badge settlement-badge--toughest" id="settlement-badge-toughest" title="Survived a run at severe average intensity" aria-hidden="true"></div>
       </div>
     </div>
@@ -226,6 +228,23 @@
         <button id="skill-mutual_aid_network-pin-button" class="secondary skill-pin-button" type="button" hidden>Pin</button>
         <span class="skill-eta" id="skill-mutual_aid_network-eta"></span>
         <p class="skill-practice" id="skill-mutual_aid_network-practice"></p>
+      </div>
+      <!-- E1/E3: specialization branches (social-shock / weather). -->
+      <div class="skill-row" data-skill="civic_preparedness">
+        <span class="skill-node" aria-hidden="true"></span>
+        <span class="skill-status" id="skill-civic_preparedness-status">Civic Preparedness — -35% damage from social-shock events (Civil Unrest)</span>
+        <button id="skill-civic_preparedness-unlock-button" class="secondary" disabled>Loading...</button>
+        <button id="skill-civic_preparedness-pin-button" class="secondary skill-pin-button" type="button" hidden>Pin</button>
+        <span class="skill-eta" id="skill-civic_preparedness-eta"></span>
+        <p class="skill-practice" id="skill-civic_preparedness-practice"></p>
+      </div>
+      <div class="skill-row" data-skill="climate_hardening">
+        <span class="skill-node" aria-hidden="true"></span>
+        <span class="skill-status" id="skill-climate_hardening-status">Climate Hardening — -20% damage from weather events (Flood, Heatwave, Storm)</span>
+        <button id="skill-climate_hardening-unlock-button" class="secondary" disabled>Loading...</button>
+        <button id="skill-climate_hardening-pin-button" class="secondary skill-pin-button" type="button" hidden>Pin</button>
+        <span class="skill-eta" id="skill-climate_hardening-eta"></span>
+        <p class="skill-practice" id="skill-climate_hardening-practice"></p>
       </div>
       <!-- E13: reset skill tree, gated behind an in-UI two-click confirm
            (see game.py's on_reset_skill_tree -- clicking once arms it,

@@ -94,6 +94,21 @@
       "id": "come_back_stronger",
       "label": "Look How Far You've Come",
       "description": "Score higher on your most recent run than your very first run."
+    },
+    {
+      "id": "deep_specialist",
+      "label": "All In",
+      "description": "Finish a run with 5 or more investments in one track and none in the other."
+    },
+    {
+      "id": "broad_generalist",
+      "label": "Well-Rounded",
+      "description": "Finish a run with at least 3 investments in both Resilience and Growth."
+    },
+    {
+      "id": "both_paths",
+      "label": "Two Ways to Win",
+      "description": "Earn both All In and Well-Rounded — a narrow strategy and a broad one."
     }
   ]
 }
