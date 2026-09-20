@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 298/747 items checked off (39.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 304/747 items checked off (40.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -734,7 +734,7 @@ Every idea in this section was accepted, no exceptions.
 
 *(This section is Noyvj Claude's to execute, not Noy2 Claude's — Continuum is being actively worked on in a separate concurrent session. Written here so the full ideas doc lands in one place; see `planning/AI-COORDINATION.md` before starting any of it.)* This section was written with real audience research behind it (40-year-old tech-industry men, your dad's friends) — see the ideas doc's own K-section preamble for the research summary (SimCity/Civilization-era nostalgia, deep optimization systems, competitive benchmarking).
 
-- [ ] K1: A "city planner's dashboard" — an optional dense, data-forward overlay (numeric readouts for every stat at once) as an alternate view mode alongside the 3D scene.
+- [x] K1: A "city planner's dashboard" — an optional dense, data-forward overlay (numeric readouts for every stat at once) as an alternate view mode alongside the 3D scene.
 - [x] K2: A small "founded [year]" plaque-style readout on the main screen.
 - [x] K3: A "benchmark your city" comparison mode against the aggregate of all other players' cities at the same era *(needs Z1)*.
 - [x] K4: A subtle SimCity-era-style isometric camera preset alongside the existing Overview/Close-up/Aerial presets.
@@ -751,19 +751,19 @@ Every idea in this section was accepted, no exceptions.
 - [x] K15: A "founder's log" — the player writes (or selects templated) short personal annotations at each era transition.
 - [x] K16 *(this is `TODO.md`'s still-open K18, now with a concrete direction)*: An optional stricter "hard mode" sustainability variant with meaningfully tighter livability thresholds, framed as a mastery challenge.
 - [x] K17: A small "efficiency rank" badge (Bronze/Silver/Gold city) computed from the final sustainability score.
-- [ ] K18: A "settlement archive" — a gallery of every past completed playthrough's final city (stats + screenshot).
+- [x] K18: A "settlement archive" — a gallery of every past completed playthrough's final city (stats + screenshot).
 - [x] K19 **(you flagged this as important for BCM114):** A small real-world GDP-per-capita-style reference line on the resource-balance graph, grounding the abstract number in a familiar economic framing.
-- [ ] K20 *(this is `TODO.md`'s still-open K13, now with a concrete direction)*: A "shareable settlement snapshot" rendered as a clean, professional-looking infographic card (stats + a 3D-scene screenshot).
+- [x] K20 *(this is `TODO.md`'s still-open K13, now with a concrete direction)*: A "shareable settlement snapshot" rendered as a clean, professional-looking infographic card (stats + a 3D-scene screenshot).
 - [x] K21a: A small "tech tree completion %" readout.
 - [x] K21b: Expand the research tree further, per your added note — a real tree-growth task, not just K21a's UI readout.
-- [ ] K22: A "consulting mode" — an optional harder scenario taking over a pre-built, already-struggling city that must be turned around.
+- [x] K22: A "consulting mode" — an optional harder scenario taking over a pre-built, already-struggling city that must be turned around.
 - [x] K23: A small "next tier unlocks in ~N research points" estimate on locked research nodes.
-- [ ] K24: A "civic infrastructure map" overlay — a simplified 2D top-down schematic view of building placement/density.
+- [x] K24: A "civic infrastructure map" overlay — a simplified 2D top-down schematic view of building placement/density.
 - [x] K25: A small "livability vs. growth" scatter-plot mini-graph tracked across the whole playthrough.
 - [ ] K26a **(direction changed from the original pitch, per your answer):** Do NOT build the originally-pitched "Space Age expansion" epilogue that closes out the seven-era arc — "rather than closing it, lets keep making more eras," per your answer.
 - [ ] K26b: Scope what an eighth (and future) era beyond Space Age would look like, continuing the arc rather than ending it.
 - [x] K27: A small keyboard-shortcut cheat-sheet overlay (accessible via a "?" key).
-- [ ] K28: A "resource flow diagram" — an optional Sankey-style visualization of how resources move through the current era's production chain.
+- [x] K28: A "resource flow diagram" — an optional Sankey-style visualization of how resources move through the current era's production chain.
 - [x] K29: A small "time played this city" readout, purely informational.
 
 **Deferred to `LATER.md`** (your answer): K30 — the "peer city" async ghost overlay *(needs Z1)* — you said it could be good but might also be confusing, and you want to prioritize working multiplayer into as many games as possible soon as "the next big development after this set" — parking this specifically until that multiplayer work is scoped, not rejecting it.
