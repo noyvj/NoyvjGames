@@ -79,6 +79,10 @@ Several items across the ideas file got parked specifically pending this — you
 
 ## Round 2 (from `IMPROVEMENT-IDEAS-ROUND-2.md`) — labels re-used from round 1, tagged "round 2" to disambiguate
 
+### Z. Games (cross-game)
+
+- **Z9, round 2**: a cross-game "campaign" framing — one combined progress checklist/percentage across all 12 games. Your answer: "maybe later but probably not, I am trying to let all the games exist on their own right now." Not building.
+
 ### Canopy
 
 - **B5, round 2**: comparing the forest's standing value against the site aggregate average — you want "a full multiplayer pass soon" first.
