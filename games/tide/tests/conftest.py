@@ -71,6 +71,12 @@ ELEMENT_IDS = [
     "acidity-fish-graph",
     "ticker-history-list",
     "fish-warning-banner",
+    "fish-recovery-banner",
+    "seasons-survived-display",
+    "sea-scenario-select",
+    "then-vs-now-graph",
+    "output-mix-preview",
+    "adaptation-tier-badge",
 ]
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-count", f"{_category}-invest-button"]

@@ -255,6 +255,12 @@ Audit-first pass, same standard as the site-wide colorblind-safety audit: only c
 
 Verified: full 174/174 pytest suite green (HTML/CSS-only change, no Python touched; `tests/conftest.py`'s `next-flood-display`/`worst-season-display` ids are read the same way regardless of DOM nesting). Everything else audited and left alone: the coastline grid, the then-vs-now comparison, and `#investments` are either the game's core visual payoff or already docked/grouped from prior passes — collapsing any of those further would hide information or controls a player actually needs mid-season, the over-collapsing failure mode this pass is meant to avoid.
 
+## Round-2 pass (2026-09-20, planning/TODO.md D-list)
+
+Built: D2 (worst-season cause via new `tier_log`), D6 (warning-banner suggested action), D10 (dashed average line on the acidity/fish graph), D14 (then-vs-now damage sparkline), D16 (hard-lag tooltip), D18 (baseline marker on the graph), D19 (`sea_scenario`: conservative 4 / moderate 5 / severe 6.5 per season, locked after season 1; `SEA_LEVEL_RISE_PER_SEASON` is now the moderate default and all rise maths goes through `sea_rise_per_season()`), D20 (tier badge in the investments row), D22 (live output-mix preview), D23 (recovery banner + ticker celebration, `fish_crash_open`/`recovery_celebrated_season`), D24 (seasons-survived counter), D26 (per-tile seasons-until-flood tooltip), D28 (per-tier seawall textures `coastline-seawall--tN`), D30 (one-time hard-lag ticker note, `hard_lag_note_seen`). All new state is in `get_state()`/`load_state()` with safe defaults for old saves. Tests 175 -> 195 (`tests/test_round2_pass.py`).
+
+Not built: D9 (`/stats/games/tide` exposes no adaptation-tier field), D1/D4/D5/D7/D8/D11/D13/D15/D17/D21/D27/D29 (larger mechanics or decorative work left for a later pass).
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag tide-milestone-0N`.

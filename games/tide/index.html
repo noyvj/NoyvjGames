@@ -36,7 +36,7 @@
            .difficulty-toggle pattern as Grid's steeper-demand/weather-
            variability toggles, its own toolbar row since it isn't a
            panel-opening button like the row above. -->
-      <button id="hard-lag-toggle-button" class="secondary difficulty-toggle" type="button">Loading...</button>
+      <button id="hard-lag-toggle-button" class="secondary difficulty-toggle" type="button" title="Harder Lag stretches the delay between acidity and fish yield from 3 seasons to 6. It can be switched any time and takes effect from the next season's yield onward.">Loading...</button>
       <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
     </div>
     <div id="howto-panel" class="section" hidden></div>
@@ -95,6 +95,8 @@
 
     <div id="status" class="section">
       <p id="season-display" class="status-line">Season 1</p>
+      <!-- D24: an always-visible survival counter. -->
+      <p id="seasons-survived-display" class="status-line seasons-survived">Seasons survived: 0</p>
       <p id="funds-display" class="status-line">Funds: 300</p>
       <p id="acidity-display" class="status-line">Ocean acidity: 0.0</p>
       <details class="info-toggle"><summary>i</summary><p>Ocean acidity doesn't hurt you right away — it only affects fishing yield after a delay of several seasons, so acidity you raise now shows up as a fish-stock problem later, not immediately.</p></details>
@@ -107,6 +109,8 @@
            after-the-fact narration. Hidden by default; game.py's own
            render_fish_warning_banner() toggles it. -->
       <p id="fish-warning-banner" class="fish-warning-banner" hidden></p>
+      <!-- D23: celebratory counterpart once a crashed stock rebuilds. -->
+      <p id="fish-recovery-banner" class="fish-recovery-banner" hidden></p>
       <p class="meter-label">Delayed effects</p>
       <p id="ticker-log" class="comparison-message">No notable changes yet.</p>
       <!-- D5: the full, longer-lived ticker history behind a zero-JS
@@ -127,6 +131,14 @@
       <p id="sea-level-display" class="status-line">Sea level: 0</p>
       <details class="info-toggle"><summary>i</summary><p>Sea level keeps rising every season no matter what you do — nothing stops or slows the rise itself. Adaptation investment only reduces how much economic damage that rise causes, not the rise itself.</p></details>
       <div class="meter"><div id="sea-level-bar" class="meter-fill meter-fill--sea-level"></div></div>
+      <!-- D19: real-world-grounded rise trajectories; locked once season 1 is played. -->
+      <label class="sea-scenario-label" title="Choose how fast the sea rises: Conservative 4/season, Moderate 5/season, Severe 6.5/season. Locked once the first season is played.">Sea-level scenario
+        <select id="sea-scenario-select">
+          <option value="conservative">Conservative (low-emissions pathway, 4/season)</option>
+          <option value="moderate" selected>Moderate (intermediate pathway, 5/season)</option>
+          <option value="severe">Severe (high-emissions pathway, 6.5/season)</option>
+        </select>
+      </label>
       <p id="damage-display" class="status-line">Cumulative damage: 0</p>
       <p id="damage-saved-display" class="comparison-message">No adaptation investment yet — every season of sea-level rise is hitting at full force.</p>
       <p id="damage-trend-display" class="comparison-message">Not enough seasons yet to show a trend.</p>
@@ -169,6 +181,8 @@
       </div>
       <!-- D4: a numeric companion to the two grids above. -->
       <p id="then-vs-now-display" class="comparison-message"></p>
+      <!-- D14: damage-per-season sparkline since the baseline. -->
+      <div id="then-vs-now-graph" class="mini-graph"></div>
       <!-- D18: re-anchors the comparison above to right now, instead of
            the literal Season 1 start -- useful for comparing "since I
            changed my strategy." -->
@@ -203,6 +217,8 @@
             <option value="industry">Industry (+40% acidity, no fish-crash exposure)</option>
           </select>
         </label>
+        <!-- D22: live per-season trade-off of each mix at current capacity. -->
+        <p id="output-mix-preview" class="comparison-message output-mix-preview"></p>
         <div class="invest-row" data-category="reduction">
           <span class="invest-name">Acidity Reduction</span>
           <span class="invest-count" id="reduction-count">0</span>
@@ -211,6 +227,7 @@
         <div class="invest-row" data-category="adaptation">
           <span class="invest-name">Adaptation</span>
           <span class="invest-count" id="adaptation-count">0</span>
+          <span id="adaptation-tier-badge" class="tier-badge" aria-hidden="true">⚪</span>
           <button id="adaptation-invest-button" class="secondary" disabled>Loading...</button>
         </div>
       </div>

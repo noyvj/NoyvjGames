@@ -292,3 +292,8 @@ Built ~17 C-items (starting scenarios, operator grade, resilience score, 20-roun
 **Game:** SOL
 **Did:** Worked through `planning/TODO.md`'s SOL list: A9 multi-planet Overview dashboard (with travel-anywhere, per-world Governor personalities A7 and planet Focus A23), A13 build-order planner, A1/A3 Prestige Tree (tier 2 gated on Prestige Level 3, New Game+ Challenge as a tree node), A2/A4/A24 badge/tooltip/bonus tags, A5 away report, A6/A8/A12/A14/A15/A16/A17/A18/A19/A20/A21/A27/A28/A30. Skipped A25 (no existing flavor text), A29 (needs backend), A10/A22/A26 (folded into Z). Compare-my-run calls the undeployed stats endpoint only on click and degrades gracefully.
 **Result:** 626 to 670 tests green (`tests/test_session_batch.py`). Live-verified in the browser pane: overview travel/personality/focus clicks, build plan, prestige + tree unlock, away report, floaters, stats code, compare fallback; only network errors in console. See `games/sol/CLAUDE.md`.
+
+### 2026-09-20 (Tide: round-2 improvement pass)
+**Game:** Tide
+**Did:** Built D2/D6/D10/D14/D16/D18/D19/D20/D22/D23/D24/D26/D28/D30 from `planning/TODO.md`: sea-level scenario select, seasons-survived counter, fish-stock recovery celebration, worst-season cause, actionable fish-yield warning, live output-mix preview, average/baseline markers on the acidity graph, a then-vs-now damage sparkline, per-tier seawall textures with a tier badge, per-tile seasons-until-flood tooltips, and a one-time hard-lag note.
+**Result:** 175 to 195 tests green; verified live in the browser with no non-network console errors.

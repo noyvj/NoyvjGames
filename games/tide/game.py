@@ -57,6 +57,25 @@ FISH_YIELD_WARNING_THRESHOLD = 0.7
 SEA_LEVEL_RISE_PER_SEASON = 5.0
 MAX_DAMPENING = 0.9
 
+# D19: real-world-grounded sea-level-rise trajectories, chosen at game
+# start (locked once the first season is played). "moderate" is the
+# original SEA_LEVEL_RISE_PER_SEASON, so an untouched game is unchanged.
+SEA_SCENARIOS = {
+    "conservative": {"label": "Conservative (low-emissions pathway)", "rise": 4.0},
+    "moderate": {"label": "Moderate (intermediate pathway)", "rise": SEA_LEVEL_RISE_PER_SEASON},
+    "severe": {"label": "Severe (high-emissions pathway)", "rise": 6.5},
+}
+DEFAULT_SEA_SCENARIO = "moderate"
+
+# D20/D28: one glyph per adaptation tier, shared by the investments
+# panel badge (a non-colour cue, like the seawall texture per tier).
+TIER_BADGES = ["⚪", "🧱", "🏗️", "🛡️", "🌊"]
+
+# D23: yield must have dipped to/below this before a rebuild counts as a
+# "recovery", and must climb back to/above RECOVERED to celebrate it.
+FISH_CRASH_LEVEL = 0.7
+FISH_RECOVERED_LEVEL = 0.9
+
 # Iteration Pass 2 — adaptation tech tree: dampening no longer scales
 # continuously with adaptation capacity. Instead, sustained investment
 # (cumulative capacity — it never decays, so "sustained" just means
@@ -198,6 +217,30 @@ class SettlementState:
         # alone can't recover later once the sea catches up.
         self.fortified_in_time_earned = False
 
+        # D2: adaptation tier index active during each season, parallel
+        # to damage_log, so the worst-season callout can name what was
+        # (or wasn't) protecting the coast then.
+        self.tier_log = []
+        # D30: the one-time "takes effect next season" note for hard lag.
+        self.hard_lag_note_seen = False
+        # D23: a crash is "open" once yield dips to FISH_CRASH_LEVEL; the
+        # recovery celebration fires once when it climbs back.
+        self.fish_crash_open = False
+        self.recovery_celebrated_season = 0
+        # D19: sea-level-rise scenario (locked after the first season).
+        self.sea_scenario = DEFAULT_SEA_SCENARIO
+
+    def sea_rise_per_season(self):
+        return SEA_SCENARIOS[self.sea_scenario]["rise"]
+
+    def set_sea_scenario(self, scenario):
+        """D19: only while nothing has been played yet -- changing the
+        trajectory mid-run would silently rewrite history."""
+        if scenario not in SEA_SCENARIOS or self.damage_log or self.season != 1:
+            return False
+        self.sea_scenario = scenario
+        return True
+
     def invest(self, category):
         cost = INVEST_COST[category]
         if self.funds < cost:
@@ -231,7 +274,16 @@ class SettlementState:
         mid-session -- it only changes which index _effective_fish_lag()
         reads out of acidity_history on the next call, nothing is
         recomputed retroactively."""
-        self.hard_lag_mode = bool(enabled)
+        enabled = bool(enabled)
+        first_time = enabled != self.hard_lag_mode and not self.hard_lag_note_seen
+        self.hard_lag_mode = enabled
+        if first_time:
+            # D30: one-time confirmation, via the same ticker the player
+            # already reads.
+            self.hard_lag_note_seen = True
+            self._log_ticker(
+                "Lag mode changed — the new lag takes effect from next season's fish yield."
+            )
 
     def set_comparison_baseline(self):
         """D18: lets the player re-anchor the "then vs. now" comparison
@@ -314,7 +366,7 @@ class SettlementState:
             threshold = row_flood_threshold(row)
             if self.sea_level < threshold:
                 remaining = threshold - self.sea_level
-                return math.ceil(remaining / SEA_LEVEL_RISE_PER_SEASON)
+                return math.ceil(remaining / self.sea_rise_per_season())
         return 0
 
     def worst_season(self):
@@ -327,6 +379,48 @@ class SettlementState:
             return None
         worst_index = max(range(len(self.damage_log)), key=lambda i: self.damage_log[i])
         return worst_index + 1, self.damage_log[worst_index]
+
+    def seasons_until_flood(self, row):
+        """D26: seasons left at the current pace before `row` floods (0
+        once it already has)."""
+        remaining = row_flood_threshold(row) - self.sea_level
+        if remaining <= 0:
+            return 0
+        return math.ceil(remaining / self.sea_rise_per_season())
+
+    def worst_season_cause(self):
+        """D2: names what was (or wasn't) protecting the coast during the
+        worst season. Returns None with no data; for a save that predates
+        tier_log, falls back to no explanation."""
+        worst = self.worst_season()
+        if worst is None:
+            return None
+        index = worst[0] - 1
+        if index >= len(self.tier_log):
+            return None
+        tier = ADAPTATION_TIERS[self.tier_log[index]]
+        if self.tier_log[index] == 0:
+            return "no adaptation investment had reached a tier yet"
+        return f"only {tier['name']} ({tier['dampening'] * 100:.0f}% dampening) was in place"
+
+    def then_vs_now_damage_series(self):
+        """D14: per-season damage since the baseline, for a sparkline."""
+        return list(self.damage_log[max(0, self.baseline_season - 1):])
+
+    def output_mix_preview(self, mix):
+        """D22: per-season (income, acidity change) at current capacity
+        for a given mix, using the live fish-yield lag -- what the
+        dropdown would do if chosen now."""
+        cfg = OUTPUT_MIX[mix]
+        share = cfg["fishing_share"]
+        income = self.capacity["output"] * OUTPUT_INCOME_PER_UNIT * (
+            share * self.fish_yield_multiplier() + (1 - share)
+        )
+        acidity = (
+            self.capacity["output"] * ACIDITY_RISE_PER_OUTPUT * cfg["acidity_multiplier"]
+            - self.capacity["reduction"] * ACIDITY_FALL_PER_REDUCTION
+        )
+        return income, acidity
 
     def then_vs_now_text(self):
         """D4: a numeric companion to the visual coastline-comparison
@@ -355,7 +449,7 @@ class SettlementState:
         if seasons_played == 0:
             return "Play a few seasons to see what earlier adaptation investment could have saved."
         hypothetical_damage = (
-            SEA_LEVEL_RISE_PER_SEASON * (1 - self.dampening_fraction()) * seasons_played
+            self.sea_rise_per_season() * (1 - self.dampening_fraction()) * seasons_played
         )
         difference = self.cumulative_damage - hypothetical_damage
         if difference <= 0.5:
@@ -482,11 +576,13 @@ class SettlementState:
         self.acidity_history.append(self.acidity)
         self.max_acidity_ever = max(self.max_acidity_ever, self.acidity)
 
-        self.sea_level += SEA_LEVEL_RISE_PER_SEASON
-        damage_this_season = SEA_LEVEL_RISE_PER_SEASON * (1 - self.dampening_fraction())
+        rise = self.sea_rise_per_season()
+        self.sea_level += rise
+        damage_this_season = rise * (1 - self.dampening_fraction())
         self.cumulative_damage += damage_this_season
-        self.undampened_damage_total += SEA_LEVEL_RISE_PER_SEASON
+        self.undampened_damage_total += rise
         self.damage_log.append(damage_this_season)
+        self.tier_log.append(self.current_tier_index())
 
         self.season += 1
 
@@ -497,6 +593,20 @@ class SettlementState:
         self._record_ticker_message(acidity_change, old_fish_yield, new_fish_yield)
         self._record_trend_message()
         self._record_first_flood_message()
+        self._record_recovery_message(new_fish_yield)
+
+    def _record_recovery_message(self, fish_yield):
+        """D23: a celebratory callout, equal in weight to the decline
+        narration, once a crashed stock rebuilds."""
+        if fish_yield <= FISH_CRASH_LEVEL:
+            self.fish_crash_open = True
+        elif self.fish_crash_open and fish_yield >= FISH_RECOVERED_LEVEL:
+            self.fish_crash_open = False
+            self.recovery_celebrated_season = self.season
+            self._log_ticker(
+                f"🎉 The fish stock has rebuilt to {fish_yield * 100:.0f}% — the "
+                "consequence of past acidity has finally faded. Cleaner choices paid off."
+            )
 
     def damage_saved(self):
         """The hope-angle payoff, as a direct number: how much less
@@ -593,7 +703,9 @@ def render_coastline():
             tile.id = f"coastline-tile-{row_index}-{col_index}"
             tile.className = f"coastline-tile coastline-{tile_state}"
             if _is_seawall_row(row_index, tier_index):
-                tile.className += " coastline-seawall"
+                # D28: per-tier class -> a distinct texture per tier, so
+                # tiers are told apart without relying on colour.
+                tile.className += f" coastline-seawall coastline-seawall--t{tier_index}"
             if just_flooded:
                 tile.className += " coastline-flash"
             # D19: a native hover/tap tooltip naming this row's flood
@@ -602,7 +714,8 @@ def render_coastline():
             tile.title = (
                 f"Flooded — this row floods once sea level reaches {threshold:.0f}."
                 if tile_state == FLOODED
-                else f"Floods once sea level reaches {threshold:.0f}."
+                else f"Floods once sea level reaches {threshold:.0f} "
+                f"(about {state.seasons_until_flood(row_index)} season(s) at the current pace)."
             )
             grid_el.appendChild(tile)
     _previous_flooded_rows = current_flooded_rows
@@ -710,6 +823,23 @@ SPARKLINE_ACIDITY_COLOR = "#b06fd6"
 SPARKLINE_FISH_COLOR = "#4c9c6e"
 
 
+def then_vs_now_sparkline_svg():
+    """D14: tiny per-season damage sparkline since the baseline; "" until
+    there are two points to draw a line between."""
+    series = state.then_vs_now_damage_series()
+    if len(series) < 2:
+        return ""
+    top = max(max(series), 1e-9)
+    points = _sparkline_points(series, top)
+    return (
+        f'<svg viewBox="0 0 {SPARKLINE_WIDTH} {SPARKLINE_HEIGHT}" '
+        f'class="acidity-fish-sparkline" role="img" '
+        f'aria-label="Damage per season since the baseline">'
+        f'<polyline points="{points}" fill="none" stroke="#d8c088" stroke-width="2" />'
+        f"</svg>"
+    )
+
+
 def _sparkline_points(series, max_value):
     """Maps a list of values onto SVG viewport coordinates -- x spread
     evenly left-to-right, y scaled so 0 sits on the baseline and
@@ -738,10 +868,30 @@ def acidity_fish_history_svg():
     acidity_fractions = [min(1.0, a / FISH_DAMAGE_SCALE) for a in state.acidity_history]
     fish_points = _sparkline_points(state.fish_yield_history, 1.0)
     acidity_points = _sparkline_points(acidity_fractions, 1.0)
+    # D10: dashed reference line at the session-average acidity, like
+    # Thaw's melt-threshold gridline.
+    average = sum(acidity_fractions) / len(acidity_fractions)
+    average_y = SPARKLINE_HEIGHT - average * SPARKLINE_HEIGHT
+    reference = (
+        f'<line x1="0" y1="{average_y:.1f}" x2="{SPARKLINE_WIDTH}" y2="{average_y:.1f}" '
+        f'stroke="{SPARKLINE_ACIDITY_COLOR}" stroke-width="1" stroke-dasharray="4 3" '
+        f'opacity="0.6"><title>Average acidity this session</title></line>'
+    )
+    # D18: a marker at the season the comparison baseline was set.
+    marker = ""
+    if state.baseline_season > 1 and len(state.acidity_history) > 1:
+        step = SPARKLINE_WIDTH / max(1, len(state.acidity_history) - 1)
+        marker_x = min(SPARKLINE_WIDTH, (state.baseline_season - 1) * step)
+        marker = (
+            f'<line x1="{marker_x:.1f}" y1="0" x2="{marker_x:.1f}" y2="{SPARKLINE_HEIGHT}" '
+            f'stroke="#d8c088" stroke-width="1" stroke-dasharray="2 2">'
+            f'<title>Baseline set here (Season {state.baseline_season})</title></line>'
+        )
     return (
         f'<svg viewBox="0 0 {SPARKLINE_WIDTH} {SPARKLINE_HEIGHT}" '
         f'class="acidity-fish-sparkline" role="img" '
         f'aria-label="Ocean acidity and fishing yield over the session">'
+        f"{reference}{marker}"
         f'<polyline points="{acidity_points}" fill="none" '
         f'stroke="{SPARKLINE_ACIDITY_COLOR}" stroke-width="2" />'
         f'<polyline points="{fish_points}" fill="none" '
@@ -1213,7 +1363,8 @@ def render_fish_warning_banner():
         banner.hidden = False
         banner.innerText = (
             f"⚠️ Heads up: fishing yield is on track to fall to about {preview * 100:.0f}% "
-            f"next season — acidity already recorded is catching up."
+            f"next season — acidity already recorded is catching up. "
+            "Suggested action: invest in Acidity Reduction now, and expect the dip to last a few seasons."
         )
     else:
         banner.hidden = True
@@ -1239,6 +1390,38 @@ def render_output_mix_controls():
     select = document.getElementById("output-mix-select")
     if select is not None:
         select.value = state.output_mix
+    # D22: live preview of every mix's per-season trade-off at current
+    # capacity, so the choice is informed before it's made.
+    preview_el = document.getElementById("output-mix-preview")
+    if preview_el is not None:
+        parts = []
+        for mix in OUTPUT_MIX:
+            income, acidity = state.output_mix_preview(mix)
+            parts.append(f"{mix.capitalize()}: {income:+.0f} funds, {acidity:+.1f} acidity")
+        preview_el.innerText = "Per season at current capacity — " + " | ".join(parts)
+
+
+def render_fish_recovery_banner():
+    """D23: shown for the season a crashed fish stock finishes rebuilding."""
+    banner = document.getElementById("fish-recovery-banner")
+    if banner is None:
+        return
+    if state.recovery_celebrated_season and state.recovery_celebrated_season == state.season:
+        banner.hidden = False
+        banner.innerText = (
+            "🎉 Recovery! The fish stock has rebuilt — the lag that delayed the "
+            "damage also delayed the healing, and your cleaner choices got you here."
+        )
+    else:
+        banner.hidden = True
+
+
+def render_sea_scenario_controls():
+    """D19: syncs the scenario <select>, locking it once play has begun."""
+    select = document.getElementById("sea-scenario-select")
+    if select is not None:
+        select.value = state.sea_scenario
+        select.disabled = bool(state.damage_log) or state.season != 1
 
 
 def render_hard_lag_toggle():
@@ -1262,6 +1445,10 @@ def render():
     document.getElementById("fish-yield-display").innerText = f"Fishing yield: {fish_yield * 100:.0f}%"
     document.getElementById("fish-yield-bar").style.width = f"{fish_yield * 100:.0f}%"
     render_fish_warning_banner()
+    render_fish_recovery_banner()
+    survived_el = document.getElementById("seasons-survived-display")
+    if survived_el is not None:
+        survived_el.innerText = f"Seasons survived: {max(0, state.season - 1)}"
     document.getElementById("sea-level-display").innerText = f"Sea level: {state.sea_level:.0f}"
     document.getElementById("damage-display").innerText = (
         f"Cumulative damage: {state.cumulative_damage:.0f}"
@@ -1288,8 +1475,10 @@ def render():
     worst_el = document.getElementById("worst-season-display")
     if worst_el is not None:
         worst = state.worst_season()
+        cause = state.worst_season_cause()
         worst_el.innerText = (
-            f"Worst season: Season {worst[0]} ({worst[1]:.0f} damage)."
+            f"Worst season: Season {worst[0]} ({worst[1]:.0f} damage)"
+            + (f" — {cause}." if cause else ".")
             if worst
             else "Worst season: none yet."
         )
@@ -1301,6 +1490,10 @@ def render():
     then_vs_now_el = document.getElementById("then-vs-now-display")
     if then_vs_now_el is not None:
         then_vs_now_el.innerText = state.then_vs_now_text()
+
+    then_vs_now_graph = document.getElementById("then-vs-now-graph")
+    if then_vs_now_graph is not None:
+        then_vs_now_graph.innerHTML = then_vs_now_sparkline_svg()
 
     # D6: "what if you'd invested earlier" counterfactual replay.
     counterfactual_el = document.getElementById("counterfactual-display")
@@ -1338,6 +1531,11 @@ def render():
         invest_button.disabled = state.funds < INVEST_COST[category]
 
     render_output_mix_controls()
+    render_sea_scenario_controls()
+    badge = document.getElementById("adaptation-tier-badge")
+    if badge is not None:
+        badge.innerText = TIER_BADGES[state.current_tier_index()]
+        badge.title = f"Current tier: {state.current_tier()['name']}"
     render_hard_lag_toggle()
     update_achievements_display()
     update_changelog_display()
@@ -1362,6 +1560,11 @@ def on_output_mix_change(event):
     on_grid_size_change() reads event.target.value from a real DOM change
     event; an unrecognized value is a silent no-op via set_output_mix()."""
     state.set_output_mix(event.target.value)
+    render()
+
+
+def on_sea_scenario_change(event):
+    state.set_sea_scenario(event.target.value)
     render()
 
 
@@ -1413,6 +1616,11 @@ def get_state():
         "max_acidity_ever": state.max_acidity_ever,
         "max_funds_ever": state.max_funds_ever,
         "fortified_in_time_earned": state.fortified_in_time_earned,
+        "tier_log": copy.deepcopy(state.tier_log),
+        "hard_lag_note_seen": state.hard_lag_note_seen,
+        "fish_crash_open": state.fish_crash_open,
+        "recovery_celebrated_season": state.recovery_celebrated_season,
+        "sea_scenario": state.sea_scenario,
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) —
         # always freshly recomputed, never read back in load_state().
         "achievements_earned": achievement_ids_earned(),
@@ -1509,6 +1717,19 @@ def load_state(data):
         data.get("fortified_in_time_earned", state.fortified_in_time_earned)
     )
 
+    saved_tier_log = data.get("tier_log")
+    if isinstance(saved_tier_log, list):
+        state.tier_log = [
+            t for t in saved_tier_log if isinstance(t, int) and 0 <= t < len(ADAPTATION_TIERS)
+        ]
+    state.hard_lag_note_seen = bool(data.get("hard_lag_note_seen", state.hard_lag_note_seen))
+    state.fish_crash_open = bool(data.get("fish_crash_open", state.fish_crash_open))
+    saved_recovery = data.get("recovery_celebrated_season", state.recovery_celebrated_season)
+    state.recovery_celebrated_season = saved_recovery if isinstance(saved_recovery, int) else 0
+    saved_scenario = data.get("sea_scenario")
+    if saved_scenario in SEA_SCENARIOS:
+        state.sea_scenario = saved_scenario
+
     # D8's flash-tracking global and the achievements toast-diffing
     # baseline both need to resync to the just-loaded state before
     # render() below draws anything or checks for newly-earned
@@ -1546,6 +1767,9 @@ def setup():
     output_mix_select = document.getElementById("output-mix-select")
     if output_mix_select is not None:
         output_mix_select.addEventListener("change", create_proxy(on_output_mix_change))
+    scenario_select = document.getElementById("sea-scenario-select")
+    if scenario_select is not None:
+        scenario_select.addEventListener("change", create_proxy(on_sea_scenario_change))
     document.getElementById("hard-lag-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_hard_lag)
     )

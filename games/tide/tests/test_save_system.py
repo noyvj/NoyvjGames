@@ -36,6 +36,11 @@ def test_get_state_includes_every_expected_key(game_env):
         "max_acidity_ever",
         "max_funds_ever",
         "fortified_in_time_earned",
+        "tier_log",
+        "hard_lag_note_seen",
+        "fish_crash_open",
+        "recovery_celebrated_season",
+        "sea_scenario",
         "achievements_earned",
     }
 

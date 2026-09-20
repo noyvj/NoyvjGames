@@ -1267,3 +1267,16 @@ html[data-reduced-motion="true"] *::after {
   transition-duration: 0.001ms !important;
   scroll-behavior: auto !important;
 }
+
+/* D28: a distinct non-colour texture per seawall tier. */
+.coastline-seawall--t2 { background-image: repeating-linear-gradient(90deg, rgba(0,0,0,0.16) 0, rgba(0,0,0,0.16) 1px, transparent 1px, transparent 5px); }
+.coastline-seawall--t3 { background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0, rgba(0,0,0,0.16) 1px, transparent 1px, transparent 5px), repeating-linear-gradient(90deg, rgba(0,0,0,0.16) 0, rgba(0,0,0,0.16) 1px, transparent 1px, transparent 5px); }
+.coastline-seawall--t4 { background-image: radial-gradient(rgba(0,0,0,0.25) 1px, transparent 1.5px); background-size: 5px 5px; }
+
+.fish-recovery-banner { font-size: 0.85rem; margin: 0.4rem 0; padding: 0.4rem 0.6rem; border-radius: 6px; border: 1px solid rgba(216, 192, 136, 0.6); background: rgba(216, 192, 136, 0.12); }
+.fish-recovery-banner[hidden] { display: none; }
+.seasons-survived { opacity: 0.8; font-size: 0.9rem; }
+.sea-scenario-label { display: block; font-size: 0.8rem; margin: 0.4rem 0; }
+.sea-scenario-label select { margin-left: 0.4rem; max-width: 100%; }
+.output-mix-preview { font-size: 0.75rem; opacity: 0.8; }
+.tier-badge { margin-left: 0.4rem; }

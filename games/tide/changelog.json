@@ -1,5 +1,6 @@
 {
   "changelog": [
+    {"date": "2026-09-20", "entry": "Round-2 pass: sea-level scenario select (conservative/moderate/severe), a seasons-survived counter, a fish-stock recovery celebration, worst-season cause, a suggested action on the fish-yield warning, live output-mix preview, dashed average and baseline markers on the acidity graph, a then-vs-now damage sparkline, per-tier seawall textures and a tier badge, and per-tile seasons-until-flood tooltips."},
     {"date": "2026-09-20", "entry": "Output-mix dropdown (Fishing/Mixed/Industry) now states its acidity-rate and fish-crash trade-off directly in the option labels and a tooltip."},
     {"date": "2026-09-19", "entry": "Settings panel added: text size (A-/A/A+) and a reduce-motion toggle, both persisted per-browser."},
     {"date": "2026-09-15", "entry": "20 achievements added: investment milestones, all four adaptation tiers, coastline flood progression, the delayed fish-stock crash and recovery, and more — with an in-game panel, unlock toast, and hub link."},
