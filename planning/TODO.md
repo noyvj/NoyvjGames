@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 284/747 items checked off (38.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 287/747 items checked off (38.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -434,7 +434,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 
 ## Per-game: Grid
 
-- [ ] C1: A genuine "grid operator career" meta-progression — persistent stats/unlocks across multiple runs (Aftermath-style skill tree), since Grid currently resets fully each session (built independently per Z3's resolution).
+- [x] C1: A genuine "grid operator career" meta-progression — persistent stats/unlocks across multiple runs (Aftermath-style skill tree), since Grid currently resets fully each session (built independently per Z3's resolution).
 - [x] C2: Let the breakdown-risk badge show the exact percentage chance, not just a badge.
 - [ ] C3: A regional/multi-grid mode — manage two interconnected grids, sharing surplus capacity between them.
 - [x] C4: A tooltip explaining exactly what "aging" does numerically on hover over any plant's wear percentage.
@@ -442,7 +442,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] C6: Let the plant-mix bar chart animate bars growing/shrinking on change, rather than snapping instantly.
 - [x] C7: A "demand response" mechanic — invest in reducing peak demand itself, a fourth lever alongside build/retire/maintain.
 - [x] C8: A small icon distinguishing renewable vs. fossil plant rows in the plant-mix chart legend, beyond color.
-- [ ] C9: A storage-arbitrage mini-game layer — once the battery tier is built, manually choose when to charge/discharge for a small bonus.
+- [x] C9: A storage-arbitrage mini-game layer — once the battery tier is built, manually choose when to charge/discharge for a small bonus.
 - [x] C10: Let the disruption-event toast include a "why this happened" reason tied to the specific plant that failed.
 - [x] C11: A "grid resilience score" separate from clean-share — rewarding diversification (not all-renewable, not all-fossil) as its own axis.
 - [x] C12: A small historical "best round" marker on the trend graph.
@@ -458,7 +458,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] C24: A subtle pulse on the emissions meter the instant it crosses the 50% renewable-capacity tipping point.
 - [x] C25: A "grid of the future" endgame projection — extrapolate the current trajectory 20 more rounds, like Thaw's counterfactual.
 - [x] C26: Give the plant-age wear icon three distinct visual tiers, not just a percentage number.
-- [ ] C27: An "emergency response" mode — a rare opt-in scenario where a major disruption hits and the player must stabilize the grid within a few rounds (built independently per Z5's resolution).
+- [x] C27: An "emergency response" mode — a rare opt-in scenario where a major disruption hits and the player must stabilize the grid within a few rounds (built independently per Z5's resolution).
 - [x] C28: A small "clean streak" counter visible at all times, not just inside the achievements panel.
 - [ ] C29: A community-sourced "real utility" comparison mode against a specific real region's actual generation mix (stretch — needs real per-region data sourcing).
 - [x] C30: A one-time tooltip explaining why renewable costs decrease with cumulative investment, the first time a renewable is built.
