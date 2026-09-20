@@ -121,6 +121,10 @@ class FakeJsProxy:
         self.destroyed = False
 
     def __call__(self, *args, **kwargs):
+        # Real Pyodide throws when a destroyed proxy is invoked (a pending
+        # setTimeout firing after its proxy was destroyed).
+        if self.destroyed:
+            raise RuntimeError("Object has already been destroyed")
         return self._func(*args, **kwargs)
 
     def destroy(self):

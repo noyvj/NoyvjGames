@@ -1460,6 +1460,7 @@ achievements_open = False
 # this render cycle started.
 _previously_earned_ids = set()
 _toast_hide_proxy = None
+_toast_hide_proxy_gen = 0
 
 ACHIEVEMENT_TOAST_DURATION_MS = 4000
 
@@ -1469,7 +1470,6 @@ def _earned_snapshot():
 
 
 def show_achievement_toast(message):
-    global _toast_hide_proxy
     toast = document.getElementById("achievement-toast")
     if toast is None:
         return
@@ -1477,20 +1477,23 @@ def show_achievement_toast(message):
     toast.hidden = False
     toast.classList.add("achievement-toast--visible")
 
-    if _toast_hide_proxy is not None:
-        _toast_hide_proxy.destroy()
-        _toast_hide_proxy = None
+    # Never destroy a still-pending timer's proxy: the browser would later
+    # call it and Pyodide throws "Object has already been destroyed". Each
+    # timer owns its own proxy and destroys it after firing; a newer toast
+    # just bumps the generation so stale timers become no-ops.
+    global _toast_hide_proxy_gen
+    _toast_hide_proxy_gen += 1
+    my_gen = _toast_hide_proxy_gen
+    holder = []
 
     def _hide():
-        global _toast_hide_proxy
-        toast.classList.remove("achievement-toast--visible")
-        toast.hidden = True
-        if _toast_hide_proxy is not None:
-            _toast_hide_proxy.destroy()
-            _toast_hide_proxy = None
+        if my_gen == _toast_hide_proxy_gen:
+            toast.classList.remove("achievement-toast--visible")
+            toast.hidden = True
+        holder[0].destroy()
 
-    _toast_hide_proxy = create_proxy(_hide)
-    setTimeout(_toast_hide_proxy, ACHIEVEMENT_TOAST_DURATION_MS)
+    holder.append(create_proxy(_hide))
+    setTimeout(holder[0], ACHIEVEMENT_TOAST_DURATION_MS)
 
 
 # J8/J17 — a second, independent toast for lightweight gameplay nudges
@@ -1499,11 +1502,11 @@ def show_achievement_toast(message):
 # proxy so it can never collide with an achievement unlocking at the
 # same moment (both can be on screen together, in different spots).
 _notice_hide_proxy = None
+_notice_hide_proxy_gen = 0
 NOTICE_TOAST_DURATION_MS = 3000
 
 
 def show_notice_toast(message):
-    global _notice_hide_proxy
     toast = document.getElementById("notice-toast")
     if toast is None:
         return
@@ -1511,20 +1514,23 @@ def show_notice_toast(message):
     toast.hidden = False
     toast.classList.add("notice-toast--visible")
 
-    if _notice_hide_proxy is not None:
-        _notice_hide_proxy.destroy()
-        _notice_hide_proxy = None
+    # Never destroy a still-pending timer's proxy: the browser would later
+    # call it and Pyodide throws "Object has already been destroyed". Each
+    # timer owns its own proxy and destroys it after firing; a newer toast
+    # just bumps the generation so stale timers become no-ops.
+    global _notice_hide_proxy_gen
+    _notice_hide_proxy_gen += 1
+    my_gen = _notice_hide_proxy_gen
+    holder = []
 
     def _hide():
-        global _notice_hide_proxy
-        toast.classList.remove("notice-toast--visible")
-        toast.hidden = True
-        if _notice_hide_proxy is not None:
-            _notice_hide_proxy.destroy()
-            _notice_hide_proxy = None
+        if my_gen == _notice_hide_proxy_gen:
+            toast.classList.remove("notice-toast--visible")
+            toast.hidden = True
+        holder[0].destroy()
 
-    _notice_hide_proxy = create_proxy(_hide)
-    setTimeout(_notice_hide_proxy, NOTICE_TOAST_DURATION_MS)
+    holder.append(create_proxy(_hide))
+    setTimeout(holder[0], NOTICE_TOAST_DURATION_MS)
 
 
 # J17 — a one-time callout the first time any ship is automated,
