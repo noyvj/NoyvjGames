@@ -143,11 +143,27 @@
       <p id="score-display" class="status-line">Score: 300</p>
       <p id="score-breakdown-display" class="comparison-message">Score = funds (300) + circular bonus (0) = 300</p>
       <details class="info-toggle"><summary>i</summary><p>Score isn't just your funds — it also adds a direct bonus (up to 300) for your lifetime circular share, so closing the loop is rewarded on its own terms even beyond the extraction costs it helps you dodge.</p></details>
-      <p id="streak-display" class="status-line">Closed-loop streak: 0 cycle(s) (best: 0)</p>
-      <p id="trend-display" class="comparison-message">Not enough cycles yet to show a trend.</p>
-      <p id="loop-projection-display" class="comparison-message">Not enough cycles yet to project when the loop might close.</p>
-      <p id="real-world-comparison-display" class="comparison-message">Your chain is running at 0% circular, versus a roughly 7% estimated real-world average today (a ballpark figure, not a precise benchmark).</p>
-      <p id="sector-comparison-display" class="comparison-message">For context, your circular share is also below several real-world sector estimates (ballpark figures, not precise benchmarks).</p>
+      <!-- UI decluttering pass (planning/TODO.md closing task): these five
+           lines used to trail directly off the Loop-closure meter above
+           with no grouping at all -- a streak counter, a trend read, a
+           projection, and two real-world comparisons all just running
+           together as plain text. None of them are per-click actionable
+           (unlike the meters/investment rows above), so they're grouped
+           under one disclosure, collapsed by default, matching the
+           `.ticker-history-toggle` block-level pattern already used for
+           Tide's expandable ticker history. Purely a markup wrapper --
+           game.py's render() still writes into the same element ids
+           exactly as before, open or closed. -->
+      <details class="stats-detail-toggle">
+        <summary>📊 Streak, trend &amp; real-world comparison</summary>
+        <div class="stats-detail-body">
+          <p id="streak-display" class="status-line">Closed-loop streak: 0 cycle(s) (best: 0)</p>
+          <p id="trend-display" class="comparison-message">Not enough cycles yet to show a trend.</p>
+          <p id="loop-projection-display" class="comparison-message">Not enough cycles yet to project when the loop might close.</p>
+          <p id="real-world-comparison-display" class="comparison-message">Your chain is running at 0% circular, versus a roughly 7% estimated real-world average today (a ballpark figure, not a precise benchmark).</p>
+          <p id="sector-comparison-display" class="comparison-message">For context, your circular share is also below several real-world sector estimates (ballpark figures, not precise benchmarks).</p>
+        </div>
+      </details>
     </div>
 
     <div id="circularity" class="section">

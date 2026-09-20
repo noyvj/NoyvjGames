@@ -546,6 +546,51 @@ button.primary:active {
   border-radius: 8px;
 }
 
+/* UI decluttering pass (planning/TODO.md closing task): a block-level
+   disclosure for the streak/trend/projection/real-world-comparison
+   cluster in #status -- same zero-JS <details> mechanics as .info-toggle
+   above, but sized for a whole group of lines rather than one inline "i"
+   bubble, matching games/tide/style.css's .ticker-history-toggle
+   precedent for exactly this "supplementary readouts, not a new help
+   topic" case. Collapsed by default so these five secondary lines don't
+   compete with the core funds/production/damage/circularity numbers for
+   attention on first glance. */
+.stats-detail-toggle {
+  margin-top: 0.6rem;
+}
+
+.stats-detail-toggle summary {
+  font-size: 0.82rem;
+  opacity: 0.7;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.stats-detail-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.stats-detail-toggle summary:hover {
+  opacity: 0.95;
+}
+
+.stats-detail-toggle[open] summary {
+  opacity: 0.95;
+}
+
+.stats-detail-body {
+  margin-top: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  background: rgba(5, 6, 13, 0.5);
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 8px;
+}
+
+.stats-detail-body > *:first-child {
+  margin-top: 0;
+}
+
 /* ============================================================
    Full visual pass — content-window redesign (2026-09-05)
    Every section here was a stack of plain-text lines with a flat-color

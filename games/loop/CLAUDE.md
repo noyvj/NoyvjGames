@@ -291,6 +291,18 @@ entries in the correct order, and there are zero new console errors (the
 pre-existing ServiceWorker-registration quirk on this dev setup is
 unrelated and was present before this change).
 
+## UI decluttering pass (2026-09-20, planning/TODO.md closing task)
+
+Audited as the last open item in `planning/TODO.md`'s "Big standalone features" section (the user's own crowding note: "everything looks very crowded... making sections either collapsible or other 'screens' within a game could help"). Read `index.html`/`style.css` section by section rather than assuming either "obviously fine" or "obviously broken" going in, and cross-checked the verdict against Thaw's own audit from the same pass (see `games/thaw/CLAUDE.md`) to calibrate what "genuinely crowded" means in practice, since both games share the same climate-quartet-2 status-block layout pattern.
+
+**Real crowding found and fixed:** `#status`'s tail end. After the Environmental damage and Loop closure meter groups, `score-display`/`score-breakdown-display` ran directly into five more lines — `streak-display`, `trend-display`, `loop-projection-display`, `real-world-comparison-display`, `sector-comparison-display` — with zero header or visual break between any of them, reading as one undifferentiated run of `.comparison-message` text. Unlike the meters/investment rows above (checked every cycle before deciding an allocation), none of these five are per-click actionable — they're supplementary readouts a player checks with interest, not something they act on each turn.
+
+**Fixed:** wrapped those five lines in a new `.stats-detail-toggle` `<details>` block (`<summary>📊 Streak, trend &amp; real-world comparison</summary>`), collapsed by default, styled in `style.css` to match Tide's own `.ticker-history-toggle` block-level disclosure precedent — deliberately distinct from the inline "i" `.info-toggle` bubble already used elsewhere in this game, since this collapses a whole group of lines rather than one explanatory paragraph. Same zero-JS native `<details>` mechanism; no `game.py`/Python change; no element id renamed, so `render()` still writes into `streak-display` etc. exactly as before regardless of the panel's open/closed state. `score-display`/`score-breakdown-display` stayed outside the collapse since score is the headline end-of-session stat, not supplementary.
+
+**Everything else audited and left alone:** the goods-category picker, chain-flow/vignette block, `#circularity`, and `#trade-network` sections are each either compact (3-4 rows) or already use the `.info-toggle` disclosure pattern for their own supplementary explanation text — none showed the same flat run-on stacking `#status`'s tail had.
+
+Verified: full pytest suite (160 tests, unchanged — a pure HTML/CSS markup wrapper, `game.py` untouched) stayed green. Live-browser verification wasn't reachable this session (the shared dev-server port was in use by another concurrent session's work, and editing `.claude/launch.json` to add a second port was out of scope for a `games/loop/`-only change); confirmed instead by manual review that no test or `game.py` code path reads DOM structure or parent tags — this hub's fake-DOM test harness keys purely on element ids (confirmed via `tests/conftest.py`), so wrapping existing ids in a `<details>` container is safe by construction.
+
 ## Tech notes
 
 - Python/Pyodide, per root conventions.
