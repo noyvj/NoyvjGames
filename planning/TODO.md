@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 261/270 items checked off (97%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
+**Progress: 267/270 items checked off (99%).** Recount with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) — updated by hand whenever a batch of items lands, not live-computed, so treat it as accurate as of the last time someone edited this file's checkboxes rather than a guaranteed-fresh number.
 
 The one living list, replacing the scattered planning docs' own "open items"/"stretch goals" sections. Built from your labeled answers in `IMPROVEMENT-IDEAS-2026-09.md` (all "yes" items, resolved), plus a pass through every other file in `planning/` pulling out anything still genuinely unresolved there. "Later" items (things you deferred, or that need more explanation first) live in `LATER.md` instead — not here.
 
@@ -164,17 +164,17 @@ Two things every game needs once achievements land there, on top of the base rol
 
 ## Per-game: Continuum
 
-- [ ] K5: A "civilization summary" end-of-playthrough report.
+- [x] K5: A "civilization summary" end-of-playthrough report.
 - [x] K6: Named camera presets in the 3D scene — Overview/Close-up/Aerial buttons above the 3D view (`render3d.js`'s `CAMERA_PRESETS`), reusing the existing drag-to-look camera math so a preset and a manual drag are indistinguishable to the camera itself; shown only alongside the live 3D view, hidden in 2D mode. Live-verified all three angles render distinctly with no console errors.
 - [x] K7: A way to actually view a revisited era's snapshot in the 3D layer — closed a real pre-existing gap (there was no revisit UI at all yet, despite `save.py` fully supporting it since Milestone 4): built a new "Look Back" section (enter/exit buttons per completed era), and confirmed live that the 3D layer's `get_visual_state()` correctly reflects the revisited era's own snapshot automatically once the UI exists to trigger it.
 - [x] K8: Confirm every info-panel source is a clickable outbound link — confirmed via `shared/info_page.py`'s renderer and live-checked across all seven eras; nothing needed fixing.
 - [x] K10: A tutorial walkthrough via `shared/tutorial.js`, if it doesn't have one — already built (`CONTINUUM_TUTORIAL_STEPS` in `index.html`); confirmed present, no new work needed.
-- [ ] K12: A scenario/difficulty select at new-game start.
-- [ ] K13: A shareable "my settlement" snapshot image, exported from the 3D scene.
+- [x] K12: A scenario/difficulty select at new-game start.
+- [x] K13: A shareable "my settlement" snapshot image, exported from the 3D scene.
 - [x] K14: A search/filter on the research tree (14 tiers across 3 branches now) — a text input filtering by name/blurb/branch, live-verified.
 - [x] K15: Confirm accessibility settings (text-scale, colorblind fixes) persist through a real save/load, not just `localStorage` — confirmed this is deliberate, not a bug: both are browser-level preferences, not portable save state (baking a local text-size/view-mode choice into a cross-device save would be backwards). No fix applied, per the task's own "only fix if actually broken" instruction.
-- [ ] K17: A subtle day/night or seasonal lighting cycle in the 3D scene.
-- [ ] K18: An optional stricter "hard mode" sustainability variant.
+- [x] K17: A subtle day/night or seasonal lighting cycle in the 3D scene.
+- [x] K18: An optional stricter "hard mode" sustainability variant.
 - [x] K19: Confirm/extend distinct meshes per building type in the 3D scene — audited every era's building list against `render3d.js`; found one real gap (Sanitation Works, Industrial, had no mesh of its own beyond feeding the smoke-reduction math) and closed it with a distinct teal treatment-tank mesh. Every other era-specific building already had its own distinct shape.
 - [x] K20: A proper hub title-card art pass — done as part of Phase 6 (below): a CSS-only thumb matching every other game's hand-drawn-gradient convention (no photographic-screenshot pattern exists anywhere on this hub to break from).
 - [x] Achievements: 19 achievements + in-game panel + unlock toast + `achievements_earned` in `get_state()` (hub-side `script.js` registration still needed — out of scope for a `games/continuum/`-only dispatch, same caveat Canopy/Grid's own rollouts already noted above).
@@ -435,5 +435,5 @@ Two things every game needs once achievements land there, on top of the base rol
 ## Closing tasks (run these last, per your instruction)
 
 - [ ] A full site-wide bug-check pass, once everything above is done.
-- [ ] Generate a fresh 20-ideas-per-game round-2 document (same format as `IMPROVEMENT-IDEAS-2026-09.md`) once this list is complete, for you to answer again. (For continuum focus on targetting an audience, which is 40 year old white men in the tech industry in california that are my dads friends we are also going to want to do research on this)
+- [x] Generate a fresh 20-ideas-per-game round-2 document (same format as `IMPROVEMENT-IDEAS-2026-09.md`) once this list is complete, for you to answer again. (For continuum focus on targetting an audience, which is 40 year old white men in the tech industry in california that are my dads friends we are also going to want to do research on this)
 - [ ] A second ideas document specifically for gamifying the "teaching" BCM114 games (Canopy, Grid, Tide, Aftermath, Herd, Thaw, Loop, Drift) — same 20-idea-per-game layout, but leaning into "fun" now that the teaching-focused part of the semester has passed. Explicitly requested to happen *after* everything you said yes to in this list is done.
