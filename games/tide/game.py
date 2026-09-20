@@ -73,6 +73,37 @@ STORM_BASE_SURGE = 18.0
 STORM_SURGE_GROWTH = 3.0
 STORM_FUNDS_PER_DAMAGE = 3.0
 
+# D1: managed retreat -- a strategy branch alongside the four adaptation
+# tiers. Each step gives up the lowest still-dry row on purpose (it shows as
+# flooded) in exchange for a permanent extra cut to sea-level damage.
+RETREAT_COST = 100
+RETREAT_MAX_STEPS = 2
+RETREAT_DAMAGE_CUT = 0.2
+
+# D5 / D15: population. It grows toward the housing the dry rows can hold
+# (denser building behind higher adaptation tiers); rows lost push the
+# excess out as displaced people.
+POP_START = 100
+POP_PER_ROW = 22
+POP_PER_ROW_PER_TIER = 4
+POP_GROWTH_RATE = 0.06
+POP_GROWTH_MIN_FISH_YIELD = 0.5
+
+# D11: economy diversification -- a third income source, hedging the fish
+# crash. Tourism fades as coastline is lost (and gets a boost from protected
+# heritage); aquaculture pays on a shorter, milder acidity penalty.
+DIVERSIFY_COST = {"tourism": 140, "aquaculture": 160}
+DIVERSIFY_MAX_LEVEL = 3
+TOURISM_INCOME_PER_LEVEL = 5.0
+TOURISM_HERITAGE_BONUS = 2.0
+AQUACULTURE_INCOME_PER_LEVEL = 5.0
+AQUACULTURE_ACIDITY_SCALE = 75.0  # 1.5x FISH_DAMAGE_SCALE: a milder, unlagged penalty
+AQUACULTURE_MIN_MULTIPLIER = 0.4
+
+# D27: how much of the run's state a checkpoint keeps.
+CHECKPOINT_FORESIGHT_LIMIT = 200
+CHECKPOINT_DROP_KEYS = ("ticker_full_history", "achievements_earned")
+
 ACIDITY_RISE_PER_OUTPUT = 2.0
 ACIDITY_FALL_PER_REDUCTION = 1.5
 
@@ -304,13 +335,147 @@ class SettlementState:
         # D13: opt-in storm seasons.
         self.storm_mode = False
         self.storm_log = []
+        # D1: rows given up on purpose (row indices, lowest first).
+        self.retreat_rows = []
+        # D5 / D15: population and displacement counters.
+        self.population = POP_START
+        self.peak_population = POP_START
+        self.displaced_total = 0
+        self.relocated_total = 0
+        # D11: level of each diversified income source.
+        self.diversification = {"tourism": 0, "aquaculture": 0}
+        # D27: a saved snapshot of the run, and the "foresight" record of
+        # what happened after it the last time the player replayed from it.
+        self.checkpoint = None
+        self.foresight = []
+        self.replay_count = 0
+
+    # ---- D1 managed retreat ------------------------------------------
+    def row_lost(self, row):
+        """True for a flooded row and for one given up by managed retreat."""
+        return row in self.retreat_rows or tile_row_state(row, self.sea_level) == FLOODED
+
+    def next_retreat_row(self):
+        for row in range(COASTLINE_ROWS - 1, -1, -1):
+            if not self.row_lost(row):
+                return row
+        return None
+
+    def can_retreat(self):
+        return (
+            len(self.retreat_rows) < RETREAT_MAX_STEPS
+            and self.funds >= RETREAT_COST
+            and self.next_retreat_row() is not None
+        )
+
+    def managed_retreat(self):
+        if not self.can_retreat():
+            return False
+        row = self.next_retreat_row()
+        self.funds -= RETREAT_COST
+        self.retreat_rows.append(row)
+        self._log_ticker(
+            f"Managed retreat: row {row + 1} was cleared and its people rehoused inland — "
+            f"sea-level damage is now permanently {RETREAT_DAMAGE_CUT * 100:.0f}% lower per step."
+        )
+        self._chronicle_event(f"The council chose an orderly retreat from row {row + 1}.")
+        self._update_heritage()
+        self._update_population(orderly=True)
+        return True
+
+    # ---- D5 / D15 population -----------------------------------------
+    def housing_capacity(self):
+        land_rows = sum(1 for row in range(COASTLINE_ROWS) if not self.row_lost(row))
+        return land_rows * (POP_PER_ROW + POP_PER_ROW_PER_TIER * self.current_tier_index())
+
+    def _update_population(self, orderly=False):
+        """Displaces the excess when housing shrinks below the population,
+        otherwise grows toward capacity while fish yield is healthy."""
+        capacity = self.housing_capacity()
+        if self.population > capacity:
+            displaced = self.population - capacity
+            self.population = capacity
+            if orderly or self.retreat_rows:
+                relocated = displaced // 2 if not orderly else displaced
+                self.relocated_total += relocated
+                self.displaced_total += displaced - relocated
+            else:
+                self.displaced_total += displaced
+            self._log_ticker(
+                f"{displaced} people had to leave the flooded coast"
+                + (" (many rehoused in an orderly retreat)." if orderly or self.retreat_rows else " — refugees moving inland.")
+            )
+            self._chronicle_event(f"{displaced} residents relocated inland.")
+        elif (
+            self.population < capacity
+            and self.fish_yield_multiplier() >= POP_GROWTH_MIN_FISH_YIELD
+        ):
+            growth = max(1, round(self.population * POP_GROWTH_RATE))
+            self.population = min(capacity, self.population + growth)
+        self.peak_population = max(self.peak_population, self.population)
+
+    def population_text(self):
+        text = f"Population {self.population} of {self.housing_capacity()} housing (peak {self.peak_population})."
+        if self.displaced_total or self.relocated_total:
+            text += f" Displaced so far: {self.displaced_total}; rehoused in orderly retreat: {self.relocated_total}."
+        return text
+
+    # ---- D11 diversification -----------------------------------------
+    def diversify(self, kind):
+        if kind not in DIVERSIFY_COST or self.diversification[kind] >= DIVERSIFY_MAX_LEVEL:
+            return False
+        if self.funds < DIVERSIFY_COST[kind]:
+            return False
+        self.funds -= DIVERSIFY_COST[kind]
+        self.diversification[kind] += 1
+        self._log_ticker(f"Economy diversified: {kind} is now level {self.diversification[kind]}.")
+        return True
+
+    def diversified_income(self):
+        """(tourism, aquaculture) income per season at the current state."""
+        land_rows = sum(1 for row in range(COASTLINE_ROWS) if not self.row_lost(row))
+        tourism = self.diversification["tourism"] * (
+            TOURISM_INCOME_PER_LEVEL * land_rows / COASTLINE_ROWS
+            + TOURISM_HERITAGE_BONUS * self.protected_heritage_count()
+        )
+        multiplier = max(AQUACULTURE_MIN_MULTIPLIER, 1 - self.acidity / AQUACULTURE_ACIDITY_SCALE)
+        aquaculture = self.diversification["aquaculture"] * AQUACULTURE_INCOME_PER_LEVEL * multiplier
+        return tourism, aquaculture
+
+    # ---- D27 checkpoint replay ---------------------------------------
+    def set_checkpoint(self):
+        snapshot = get_state()
+        for key in CHECKPOINT_DROP_KEYS:
+            snapshot.pop(key, None)
+        snapshot.pop("checkpoint", None)
+        snapshot.pop("foresight", None)
+        self.checkpoint = snapshot
+        self._log_ticker(f"Checkpoint saved at Season {self.season}.")
+
+    def can_replay(self):
+        return self.checkpoint is not None and self.season > self.checkpoint["season"]
+
+    def foresight_text(self):
+        """What the earlier run did in the seasons ahead, for the season the
+        replay is currently in."""
+        if not self.foresight:
+            return ""
+        upcoming = [e for e in self.foresight if e["season"] >= self.season][:3]
+        if not upcoming:
+            return "You have passed everything the earlier run showed you."
+        parts = [
+            f"Season {e['season']}: fish yield {e['fish_yield'] * 100:.0f}%, "
+            f"{e['damage']:.0f} damage, {e['flooded']} row(s) flooded"
+            for e in upcoming
+        ]
+        return "Foresight from your earlier run — " + " | ".join(parts)
 
     # ---- D17 heritage ------------------------------------------------
     def protect_heritage(self, site_id):
         site = next((x for x in HERITAGE_SITES if x["id"] == site_id), None)
         if site is None or self.heritage.get(site_id) != HERITAGE_UNPROTECTED:
             return False
-        if self.funds < site["cost"] or tile_row_state(site["row"], self.sea_level) == FLOODED:
+        if self.funds < site["cost"] or self.row_lost(site["row"]):
             return False
         self.funds -= site["cost"]
         self.heritage[site_id] = HERITAGE_PROTECTED
@@ -327,7 +492,7 @@ class SettlementState:
         for site in HERITAGE_SITES:
             if (
                 self.heritage.get(site["id"]) == HERITAGE_UNPROTECTED
-                and tile_row_state(site["row"], self.sea_level) == FLOODED
+                and self.row_lost(site["row"])
             ):
                 self.heritage[site["id"]] = HERITAGE_LOST
                 self._log_ticker(f"The {site['name'].lower()} has been lost to the sea.")
@@ -571,7 +736,12 @@ class SettlementState:
         return ADAPTATION_TIERS[self.current_tier_index()]
 
     def dampening_fraction(self):
-        return self.current_tier()["dampening"]
+        """Tier dampening, plus D1's permanent per-step cut from managed
+        retreat (compounded, so it can never reach 100%)."""
+        tier = self.current_tier()["dampening"]
+        if not self.retreat_rows:
+            return tier
+        return 1 - (1 - tier) * (1 - RETREAT_DAMAGE_CUT * len(self.retreat_rows))
 
     def next_tier_progress_text(self):
         tier_index = self.current_tier_index()
@@ -800,7 +970,8 @@ class SettlementState:
         income = self.capacity["output"] * OUTPUT_INCOME_PER_UNIT * (
             fishing_share * old_fish_yield + (1 - fishing_share)
         )
-        self.funds += income
+        tourism_income, aquaculture_income = self.diversified_income()
+        self.funds += income + tourism_income + aquaculture_income
         self.max_funds_ever = max(self.max_funds_ever, self.funds)
 
         acidity_change = (
@@ -820,6 +991,7 @@ class SettlementState:
         self.tier_log.append(self.current_tier_index())
 
         self._update_heritage()
+        self._update_population()
         if self.storm_this_season():
             self._resolve_storm()
 
@@ -952,6 +1124,11 @@ def render_coastline():
     for row_index, row in enumerate(coastline_grid(state.sea_level)):
         tile_state = row[0]  # every column in a row shares the same state
         threshold = row_flood_threshold(row_index)
+        # D1: a row given up by managed retreat is drawn flooded, with its
+        # own class (diagonal hatch in CSS) so it reads as chosen.
+        retreated = row_index in state.retreat_rows
+        if retreated:
+            tile_state = FLOODED
         if tile_state == FLOODED:
             current_flooded_rows.add(row_index)
         # D8: flash any row flooding for the first time this render --
@@ -967,6 +1144,8 @@ def render_coastline():
                 # D28: per-tier class -> a distinct texture per tier, so
                 # tiers are told apart without relying on colour.
                 tile.className += f" coastline-seawall coastline-seawall--t{tier_index}"
+            if retreated:
+                tile.className += " coastline-retreated"
             if just_flooded:
                 tile.className += " coastline-flash"
             site = heritage_site_at(row_index, col_index)
@@ -983,7 +1162,9 @@ def render_coastline():
             # threshold -- zero extra markup, works identically for mouse
             # hover and (on most mobile browsers) a long-press/tap.
             base_title = (
-                f"Flooded — this row floods once sea level reaches {threshold:.0f}."
+                "Managed retreat — this row was cleared on purpose and its people rehoused inland."
+                if retreated
+                else f"Flooded — this row floods once sea level reaches {threshold:.0f}."
                 if tile_state == FLOODED
                 else f"Floods once sea level reaches {threshold:.0f} "
                 f"(about {state.seasons_until_flood(row_index)} season(s) at the current pace)."
@@ -1787,7 +1968,7 @@ def render_programmes():
             button.disabled = not (
                 state.heritage.get(site["id"]) == HERITAGE_UNPROTECTED
                 and state.funds >= site["cost"]
-                and tile_row_state(site["row"], state.sea_level) != FLOODED
+                and not state.row_lost(site["row"])
             )
     monitor_button = document.getElementById("monitor-button")
     if monitor_button is not None:
@@ -1809,6 +1990,59 @@ def render_programmes():
             if facts
             else "No reports yet — each funded report reveals a real-world finding."
         )
+    # D1 managed retreat.
+    retreat_button = document.getElementById("retreat-button")
+    if retreat_button is not None:
+        retreat_button.innerText = (
+            f"Managed retreat ({RETREAT_COST})"
+            if len(state.retreat_rows) < RETREAT_MAX_STEPS
+            else "Managed retreat complete"
+        )
+        retreat_button.disabled = not state.can_retreat()
+    retreat_el = document.getElementById("retreat-status")
+    if retreat_el is not None:
+        steps = len(state.retreat_rows)
+        retreat_el.innerText = (
+            f"Retreat steps taken: {steps}/{RETREAT_MAX_STEPS} — sea-level damage cut a further "
+            f"{steps * RETREAT_DAMAGE_CUT * 100:.0f}% (compounding with your tier), at the price of "
+            f"{steps} row(s) of coast."
+        )
+    # D5 / D15 population, always visible in the status block.
+    population_el = document.getElementById("population-display")
+    if population_el is not None:
+        population_el.innerText = state.population_text()
+    # D11 diversification.
+    for kind, cost in DIVERSIFY_COST.items():
+        button = document.getElementById(f"diversify-{kind}-button")
+        if button is not None:
+            level = state.diversification[kind]
+            button.innerText = (
+                f"{kind.capitalize()} level {level}/{DIVERSIFY_MAX_LEVEL} — max"
+                if level >= DIVERSIFY_MAX_LEVEL
+                else f"{kind.capitalize()} level {level}/{DIVERSIFY_MAX_LEVEL} — upgrade ({cost})"
+            )
+            button.disabled = level >= DIVERSIFY_MAX_LEVEL or state.funds < cost
+    diversify_el = document.getElementById("diversify-status")
+    if diversify_el is not None:
+        tourism, aquaculture = state.diversified_income()
+        diversify_el.innerText = (
+            f"Extra income per season: tourism {tourism:.1f}, aquaculture {aquaculture:.1f}. "
+            "Neither depends on the lagged fish-yield crash; tourism fades as coast is lost."
+        )
+    # D27 checkpoint replay.
+    checkpoint_el = document.getElementById("checkpoint-status")
+    if checkpoint_el is not None:
+        checkpoint_el.innerText = (
+            f"Checkpoint set at Season {state.checkpoint['season']}."
+            if state.checkpoint
+            else "No checkpoint set."
+        ) + (f" Replays so far: {state.replay_count}." if state.replay_count else "")
+    replay_button = document.getElementById("replay-button")
+    if replay_button is not None:
+        replay_button.disabled = not state.can_replay()
+    foresight_el = document.getElementById("foresight-display")
+    if foresight_el is not None:
+        foresight_el.innerText = state.foresight_text()
     storm_button = document.getElementById("storm-toggle-button")
     if storm_button is not None:
         storm_button.innerText = "Storm seasons: On (turn off)" if state.storm_mode else "Storm seasons: Off (turn on)"
@@ -2007,6 +2241,62 @@ def _make_heritage_handler(site_id):
     return handler
 
 
+def on_retreat(event=None):
+    state.managed_retreat()
+    render()
+
+
+def _make_diversify_handler(kind):
+    def handler(event=None):
+        state.diversify(kind)
+        render()
+    return handler
+
+
+def on_set_checkpoint(event=None):
+    state.set_checkpoint()
+    render()
+
+
+def replay_from_checkpoint():
+    """D27: rewinds to the checkpoint, keeping a record of what happened
+    afterwards in the abandoned run as "foresight" -- unlike D6's
+    counterfactual (a what-if computed on the same history), the player
+    actually plays the stretch again knowing what is coming."""
+    if not state.can_replay():
+        return False
+    snapshot = copy.deepcopy(state.checkpoint)
+    start = snapshot["season"]
+    rise = state.sea_rise_per_season()
+    foresight = []
+    for season in range(start, state.season):
+        index = season - 1
+        if index >= len(state.damage_log) or index >= len(state.fish_yield_history):
+            continue
+        foresight.append(
+            {
+                "season": season,
+                "fish_yield": state.fish_yield_history[index],
+                "damage": state.damage_log[index],
+                "flooded": flooded_row_count(rise * season),
+            }
+        )
+    replays = state.replay_count + 1
+    load_state(snapshot)
+    state.checkpoint = copy.deepcopy(snapshot)
+    state.foresight = foresight
+    state.replay_count = replays
+    state._log_ticker(
+        f"Replaying from Season {start} — you now know what the earlier run brought."
+    )
+    render()
+    return True
+
+
+def on_replay(event=None):
+    replay_from_checkpoint()
+
+
 def on_monitor(event=None):
     state.fund_monitoring()
     render()
@@ -2080,6 +2370,15 @@ def get_state():
         "monitoring_last_season": state.monitoring_last_season,
         "storm_mode": state.storm_mode,
         "storm_log": copy.deepcopy(state.storm_log),
+        "retreat_rows": list(state.retreat_rows),
+        "population": state.population,
+        "peak_population": state.peak_population,
+        "displaced_total": state.displaced_total,
+        "relocated_total": state.relocated_total,
+        "diversification": dict(state.diversification),
+        "checkpoint": copy.deepcopy(state.checkpoint),
+        "foresight": copy.deepcopy(state.foresight),
+        "replay_count": state.replay_count,
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) —
         # always freshly recomputed, never read back in load_state().
         "achievements_earned": achievement_ids_earned(),
@@ -2236,6 +2535,61 @@ def load_state(data):
         else []
     )
 
+    saved_retreat = data.get("retreat_rows")
+    retreat_rows = []
+    if isinstance(saved_retreat, list):
+        for row in saved_retreat:
+            if (
+                isinstance(row, int)
+                and not isinstance(row, bool)
+                and 0 <= row < COASTLINE_ROWS
+                and row not in retreat_rows
+                and len(retreat_rows) < RETREAT_MAX_STEPS
+            ):
+                retreat_rows.append(row)
+    state.retreat_rows = retreat_rows
+    state.population = _clamped_int(data.get("population"), 0, 10**5) or POP_START
+    state.peak_population = max(state.population, _clamped_int(data.get("peak_population"), 0, 10**5))
+    state.displaced_total = _clamped_int(data.get("displaced_total"), 0, 10**7)
+    state.relocated_total = _clamped_int(data.get("relocated_total"), 0, 10**7)
+    saved_diversification = data.get("diversification")
+    state.diversification = {
+        kind: _clamped_int(
+            saved_diversification.get(kind) if isinstance(saved_diversification, dict) else 0,
+            0,
+            DIVERSIFY_MAX_LEVEL,
+        )
+        for kind in DIVERSIFY_COST
+    }
+    saved_checkpoint = data.get("checkpoint")
+    state.checkpoint = (
+        copy.deepcopy(saved_checkpoint)
+        if isinstance(saved_checkpoint, dict)
+        and isinstance(saved_checkpoint.get("season"), int)
+        and not isinstance(saved_checkpoint.get("season"), bool)
+        and saved_checkpoint["season"] >= 1
+        else None
+    )
+    saved_foresight = data.get("foresight")
+    state.foresight = (
+        [
+            {
+                "season": e["season"],
+                "fish_yield": float(e["fish_yield"]),
+                "damage": float(e["damage"]),
+                "flooded": e["flooded"],
+            }
+            for e in saved_foresight
+            if isinstance(e, dict)
+            and isinstance(e.get("season"), int)
+            and isinstance(e.get("flooded"), int)
+            and all(isinstance(e.get(k), (int, float)) for k in ("fish_yield", "damage"))
+        ][:CHECKPOINT_FORESIGHT_LIMIT]
+        if isinstance(saved_foresight, list)
+        else []
+    )
+    state.replay_count = _clamped_int(data.get("replay_count"), 0, 10**4)
+
     # D8's flash-tracking global and the achievements toast-diffing
     # baseline both need to resync to the just-loaded state before
     # render() below draws anything or checks for newly-earned
@@ -2283,7 +2637,17 @@ def setup():
         protect_button = document.getElementById(f"heritage-protect-{i}")
         if protect_button is not None:
             protect_button.addEventListener("click", create_proxy(_make_heritage_handler(site["id"])))
-    for element_id, handler in (("monitor-button", on_monitor), ("storm-toggle-button", on_toggle_storms)):
+    for kind in DIVERSIFY_COST:
+        el = document.getElementById(f"diversify-{kind}-button")
+        if el is not None:
+            el.addEventListener("click", create_proxy(_make_diversify_handler(kind)))
+    for element_id, handler in (
+        ("monitor-button", on_monitor),
+        ("storm-toggle-button", on_toggle_storms),
+        ("retreat-button", on_retreat),
+        ("checkpoint-button", on_set_checkpoint),
+        ("replay-button", on_replay),
+    ):
         el = document.getElementById(element_id)
         if el is not None:
             el.addEventListener("click", create_proxy(handler))

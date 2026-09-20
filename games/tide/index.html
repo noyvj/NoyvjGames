@@ -98,6 +98,9 @@
       <p id="season-display" class="status-line">Season 1</p>
       <!-- D24: an always-visible survival counter. -->
       <p id="seasons-survived-display" class="status-line seasons-survived">Seasons survived: 0</p>
+      <!-- D5/D15: settlement growth and displacement. -->
+      <p id="population-display" class="comparison-message population-display" title="Population grows toward the housing your dry rows can hold (denser behind higher adaptation tiers) while fish yield stays healthy. Lost rows push the excess out as displaced people."></p>
+      <p id="foresight-display" class="comparison-message foresight-display"></p>
       <p id="funds-display" class="status-line">Funds: 300</p>
       <p id="acidity-display" class="status-line">Ocean acidity: 0.0</p>
       <details class="info-toggle"><summary>i</summary><p>Ocean acidity doesn't hurt you right away — it only affects fishing yield after a delay of several seasons, so acidity you raise now shows up as a fish-stock problem later, not immediately.</p></details>
@@ -240,6 +243,29 @@
         <p class="comparison-message">Fund volunteer monitoring crews (one report every 2 seasons at most). Each report reveals a real-world finding about ocean acidification and sea level.</p>
         <button id="monitor-button" class="secondary" type="button">Fund monitoring (50)</button>
         <p id="monitor-log" class="comparison-message"></p>
+      </details>
+      <!-- D1: an orderly-retreat strategy branch beside the adaptation tiers. -->
+      <details class="sea-level-stats-toggle">
+        <summary>Managed retreat</summary>
+        <p class="comparison-message">A different strategy from building higher: deliberately clear the lowest dry row (it shows hatched, as flooded) and rehouse people inland. Each of up to 2 steps permanently cuts sea-level damage by a further 20%, but you keep less coast, and heritage on that row is lost.</p>
+        <button id="retreat-button" class="secondary" type="button">Managed retreat (100)</button>
+        <p id="retreat-status" class="comparison-message"></p>
+      </details>
+      <!-- D11: a third income source beyond output. -->
+      <details class="sea-level-stats-toggle">
+        <summary>Economy diversification</summary>
+        <p class="comparison-message">Tourism and aquaculture add income that does not ride the delayed fish-stock crash. Tourism shrinks as coast is lost and gains from protected heritage; aquaculture loses a little to acidity straight away.</p>
+        <button id="diversify-tourism-button" class="secondary" type="button">Tourism</button>
+        <button id="diversify-aquaculture-button" class="secondary" type="button">Aquaculture</button>
+        <p id="diversify-status" class="comparison-message"></p>
+      </details>
+      <!-- D27: replay from a mid-session checkpoint with foresight. -->
+      <details class="sea-level-stats-toggle">
+        <summary>Checkpoint &amp; replay</summary>
+        <p class="comparison-message">Save a checkpoint now. Later, replay from it: the run rewinds to the checkpoint, and you are shown what the abandoned run actually brought in the seasons ahead (fish yield, damage, flooding) so you can choose differently.</p>
+        <button id="checkpoint-button" class="secondary" type="button">Set checkpoint here</button>
+        <button id="replay-button" class="secondary" type="button" disabled>Replay from checkpoint</button>
+        <p id="checkpoint-status" class="comparison-message"></p>
       </details>
       <!-- D13: opt-in storm surges. -->
       <details class="sea-level-stats-toggle">

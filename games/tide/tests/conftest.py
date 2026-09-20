@@ -94,6 +94,17 @@ ELEMENT_IDS = [
     "monitor-log",
     "storm-toggle-button",
     "storm-forecast",
+    # D1 / D5+D15 / D11 / D27.
+    "retreat-button",
+    "retreat-status",
+    "population-display",
+    "diversify-tourism-button",
+    "diversify-aquaculture-button",
+    "diversify-status",
+    "checkpoint-button",
+    "replay-button",
+    "checkpoint-status",
+    "foresight-display",
 ]
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-count", f"{_category}-invest-button"]

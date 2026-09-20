@@ -1355,3 +1355,19 @@ html[data-reduced-motion="true"] *::after {
 #programmes-section button {
   margin: 0.25rem 0 0.5rem;
 }
+
+/* D1: a row given up on purpose -- diagonal hatch, distinct from the
+   flooded stripe so it reads as chosen, not suffered. */
+.coastline-tile.coastline-retreated {
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(240, 217, 174, 0.55) 0,
+    rgba(240, 217, 174, 0.55) 2px,
+    transparent 2px,
+    transparent 6px
+  );
+}
+
+.foresight-display:empty {
+  display: none;
+}

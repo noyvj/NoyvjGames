@@ -340,3 +340,251 @@ def test_d13_toggle_and_save_validation(game_env):
     assert len(st.storm_log) == 1
     game_env.module.load_state(dict(data, storm_log="nope"))
     assert st.storm_log == []
+
+
+# ---- D1 managed retreat -------------------------------------------------
+
+
+def test_d1_retreat_costs_funds_and_clears_lowest_dry_row(game_env):
+    st = game_env.state
+    st.funds = 500
+    assert st.managed_retreat()
+    assert st.retreat_rows == [5] and st.funds == 400
+    assert st.managed_retreat()
+    assert st.retreat_rows == [5, 4]
+    assert not st.managed_retreat()  # max steps
+
+
+def test_d1_retreat_needs_funds_and_skips_flooded_rows(game_env):
+    st = game_env.state
+    st.funds = 50
+    assert not st.managed_retreat()
+    st.funds = 500
+    st.sea_level = 20.0  # row 5 already flooded
+    st.managed_retreat()
+    assert st.retreat_rows == [4]
+
+
+def test_d1_retreat_cuts_damage_permanently_and_compounds(game_env):
+    st = game_env.state
+    base = st.dampening_fraction()
+    st.funds = 500
+    st.managed_retreat()
+    one = st.dampening_fraction()
+    st.managed_retreat()
+    two = st.dampening_fraction()
+    assert base < one < two < 1.0
+    assert abs(one - (1 - (1 - base) * 0.8)) < 1e-9
+    st2_damage_before = st.cumulative_damage
+    game_env.advance_season()
+    assert st.cumulative_damage - st2_damage_before < 5.0 * (1 - base)
+
+
+def test_d1_retreated_row_renders_flooded_with_class_and_loses_heritage(game_env):
+    st = game_env.state
+    st.funds = 500
+    st.managed_retreat()
+    game_env.module.render()
+    tile = game_env.elements["coastline-tile-5-0"]
+    assert "coastline-retreated" in tile.className and "coastline-flooded" in tile.className
+    assert "Managed retreat" in tile.title
+    assert st.heritage["reef"] == "lost"
+
+
+def test_d1_button_and_save_round_trip_and_bad_data(game_env):
+    st = game_env.state
+    st.funds = 500
+    game_env.elements["retreat-button"].dispatch("click", None)
+    assert st.retreat_rows == [5]
+    data = game_env.module.get_state()
+    st.retreat_rows = []
+    game_env.module.load_state(data)
+    assert st.retreat_rows == [5]
+    game_env.module.load_state(dict(data, retreat_rows=[5, 5, 99, "x", True, 4, 3]))
+    assert st.retreat_rows == [5, 4]
+    game_env.module.load_state(dict(data, retreat_rows="nope"))
+    assert st.retreat_rows == []
+
+
+# ---- D5 / D15 population ------------------------------------------------
+
+
+def test_d15_population_grows_toward_capacity_when_healthy(game_env):
+    st = game_env.state
+    start = st.population
+    game_env.advance_season()
+    assert st.population > start
+    for _ in range(40):
+        game_env.advance_season()
+        assert st.population <= st.housing_capacity() or st.population == st.peak_population
+
+
+def test_d15_higher_tier_raises_capacity(game_env):
+    st = game_env.state
+    low = st.housing_capacity()
+    st.capacity["adaptation"] = 15
+    assert st.housing_capacity() > low
+
+
+def test_d15_growth_stalls_when_fish_yield_is_low(game_env):
+    st = game_env.state
+    st.acidity_history = [50.0] * 5  # yield floors well below the cutoff
+    before = st.population
+    game_env.advance_season()
+    assert st.population == before
+
+
+def test_d5_flooding_displaces_the_excess(game_env):
+    st = game_env.state
+    st.population = st.housing_capacity()
+    st.sea_level = 14.0
+    game_env.advance_season()  # row 5 floods
+    assert st.displaced_total > 0
+    assert st.population <= st.housing_capacity()
+    assert any("refugees" in m for m in st.ticker_full_history)
+
+
+def test_d5_orderly_retreat_counts_as_relocated_not_displaced(game_env):
+    st = game_env.state
+    st.funds = 500
+    st.population = st.housing_capacity()
+    st.managed_retreat()
+    assert st.relocated_total > 0 and st.displaced_total == 0
+
+
+def test_d5_population_text_and_save_validation(game_env):
+    st = game_env.state
+    game_env.module.render()
+    assert "Population" in game_env.elements["population-display"].innerText
+    data = game_env.module.get_state()
+    game_env.module.load_state(dict(data, population="x", displaced_total=-3, peak_population=None))
+    assert st.population == game_env.module.POP_START and st.displaced_total == 0
+    game_env.module.load_state(dict(data, population=140, peak_population=10))
+    assert st.population == 140 and st.peak_population == 140
+
+
+# ---- D11 diversification ------------------------------------------------
+
+
+def test_d11_diversify_costs_caps_and_validates(game_env):
+    st = game_env.state
+    m = game_env.module
+    st.funds = 10000
+    for _ in range(5):
+        st.diversify("tourism")
+    assert st.diversification["tourism"] == m.DIVERSIFY_MAX_LEVEL
+    assert st.funds == 10000 - 3 * m.DIVERSIFY_COST["tourism"]
+    assert not st.diversify("banana")
+    st.funds = 1
+    assert not st.diversify("aquaculture")
+
+
+def test_d11_income_added_each_season(game_env):
+    st = game_env.state
+    st.funds = 1000
+    st.diversify("tourism")
+    st.diversify("aquaculture")
+    before = st.funds
+    tourism, aquaculture = st.diversified_income()
+    game_env.advance_season()
+    assert tourism > 0 and aquaculture > 0
+    assert abs(st.funds - (before + tourism + aquaculture)) < 1e-6 or st.funds > before
+
+
+def test_d11_tourism_fades_with_lost_coast_and_grows_with_heritage(game_env):
+    st = game_env.state
+    st.diversification["tourism"] = 2
+    full = st.diversified_income()[0]
+    st.funds = 500
+    st.protect_heritage("lighthouse")
+    assert st.diversified_income()[0] > full
+    st.sea_level = 60.0
+    assert st.diversified_income()[0] < full
+
+
+def test_d11_hedges_the_fish_crash(game_env):
+    st = game_env.state
+    st.diversification["aquaculture"] = 3
+    st.acidity_history = [40.0] * 6
+    st.acidity = 40.0
+    assert st.fish_yield_multiplier() <= 0.3
+    assert st.diversified_income()[1] > 3 * 5.0 * 0.4 - 1e-9
+
+
+def test_d11_buttons_and_save_validation(game_env):
+    st = game_env.state
+    st.funds = 1000
+    game_env.module.render()
+    game_env.elements["diversify-tourism-button"].dispatch("click", None)
+    assert st.diversification["tourism"] == 1
+    data = game_env.module.get_state()
+    game_env.module.load_state(dict(data, diversification={"tourism": 99, "aquaculture": "x", "junk": 1}))
+    assert st.diversification == {"tourism": 3, "aquaculture": 0}
+    game_env.module.load_state(dict(data, diversification=None))
+    assert st.diversification == {"tourism": 0, "aquaculture": 0}
+
+
+# ---- D27 checkpoint replay ----------------------------------------------
+
+
+def test_d27_replay_needs_a_checkpoint_and_progress(game_env):
+    st = game_env.state
+    assert not st.can_replay() and not game_env.module.replay_from_checkpoint()
+    game_env.elements["checkpoint-button"].dispatch("click", None)
+    assert st.checkpoint["season"] == 1 and not st.can_replay()
+    game_env.advance_season()
+    assert st.can_replay()
+
+
+def test_d27_replay_rewinds_and_records_foresight(game_env):
+    st = game_env.state
+    game_env.invest("output")
+    game_env.advance_season()
+    st.set_checkpoint()
+    cp_season, cp_funds = st.season, st.funds
+    for _ in range(4):
+        game_env.advance_season()
+    assert game_env.module.replay_from_checkpoint()
+    assert st.season == cp_season and st.funds == cp_funds
+    assert len(st.damage_log) == cp_season - 1
+    assert [e["season"] for e in st.foresight] == list(range(cp_season, cp_season + 4))
+    assert st.replay_count == 1 and st.checkpoint["season"] == cp_season
+    assert "Foresight" in st.foresight_text()
+    game_env.module.render()
+    assert "Foresight" in game_env.elements["foresight-display"].innerText
+
+
+def test_d27_foresight_runs_out_and_replay_is_repeatable(game_env):
+    st = game_env.state
+    st.set_checkpoint()
+    for _ in range(2):
+        game_env.advance_season()
+    game_env.module.replay_from_checkpoint()
+    for _ in range(3):
+        game_env.advance_season()
+    assert "passed everything" in st.foresight_text()
+    assert game_env.module.replay_from_checkpoint()
+    assert st.replay_count == 2
+
+
+def test_d27_checkpoint_is_not_nested_and_survives_save(game_env):
+    st = game_env.state
+    st.set_checkpoint()
+    st.set_checkpoint()
+    assert "checkpoint" not in st.checkpoint and "foresight" not in st.checkpoint
+    data = game_env.module.get_state()
+    st.checkpoint = None
+    game_env.module.load_state(data)
+    assert st.checkpoint is not None
+
+
+def test_d27_save_validation(game_env):
+    st = game_env.state
+    data = game_env.module.get_state()
+    game_env.module.load_state(dict(data, checkpoint={"season": "x"}, foresight=[1, {"season": 2}], replay_count=-5))
+    assert st.checkpoint is None and st.foresight == [] and st.replay_count == 0
+    game_env.module.load_state(dict(data, checkpoint="junk"))
+    assert st.checkpoint is None
+    good = {"season": 3, "fish_yield": 0.5, "damage": 2, "flooded": 1}
+    game_env.module.load_state(dict(data, foresight=[good, {"season": 3}]))
+    assert st.foresight == [good | {"fish_yield": 0.5, "damage": 2.0}]
