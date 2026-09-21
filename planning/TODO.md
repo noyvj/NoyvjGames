@@ -319,6 +319,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [ ] Le Champ de Mots
 - [ ] Z-extra (folded from Le Champ de Mots' L1/L10/L29 answers): a general design principle for any future minigame/practice feature anywhere on the site — every such action should visibly feed a measured top-level progress stat, so it always visibly "counts" toward something the player can see. (Forward-looking guidance, not a per-existing-game retrofit task.)
 - [ ] Z-extra (folded from Le Champ de Mots' L30 answer): preserve a player's current visual/display-mode choice when navigating away to the hub and back, instead of resetting to default. Currently only concretely actionable for Le Champ de Mots (the only game with a visual-style switcher) — revisit the checklist here if another game adds a similar per-game display setting.
+- [ ] Z-extra (found during Z22's audit, 2026-09-21): `shared/save-widget.js`'s "Start a new save (forget this code)" button — the actual site-wide full-save-wipe action, identical across all 12 games — fires with **zero confirmation of any kind**, not even a native `confirm()`. Worse than what Z22 was auditing per-game. Needs the shared `ConfirmDialog` added directly to `shared/save-widget.js` itself (one fix, all 12 games get it at once) rather than a per-game pass.
 
 **Explicitly rejected this round (not carried anywhere, per your own answers):**
 - Z3: a shared meta-progression module — build each game's own accepted meta-progression idea independently instead (see SOL, Canopy, Herd, Drift below).
