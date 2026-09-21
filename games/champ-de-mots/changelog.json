@@ -1,4 +1,5 @@
 [
+  { "date": "2026-09-21", "entry": "Gender-tagging questions now show your running gender-drill accuracy under the question." },
   { "date": "2026-09-21", "entry": "After you rate your confidence (Sure / Not sure) on a few questions, a small line shows how often each rating was actually right this session." },
   { "date": "2026-09-21", "entry": "Liaison practice now shows a small sound legend (for example [z] = the 'z' in 'zoo') when a question mentions a bracketed sound." },
   { "date": "2026-09-21", "entry": "A small bar at the top of the farm now shows how much of the whole farm is automated." },

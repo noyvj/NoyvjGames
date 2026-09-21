@@ -410,3 +410,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Le Champ de Mots
 **Did:** Added a session-only running tally of how often the "Sure" and "Not sure" confidence ratings were right, shown as one line under the confidence buttons. Kept session-only to match the game's existing combo/confidence design and avoid a save-shape change.
 **Result:** Suite 566/566 passing, flake8 clean; verified live under Pyodide.
+
+### 2026-09-21 (Le Champ de Mots: gender drill accuracy line, L10)
+**Game:** Le Champ de Mots
+**Did:** Showed the gender-tagging drill's running accuracy under gender questions, read from the existing practice ledger so it matches the dashboard.
+**Result:** Suite 568/568 passing, flake8 clean; not separately browser-checked.

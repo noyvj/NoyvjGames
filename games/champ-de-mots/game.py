@@ -1915,6 +1915,16 @@ def record_practice(mode, correct):
     return awarded
 
 
+def gender_drill_accuracy_text():
+    """L10 -- the gender-tagging drill's own running accuracy, read from the
+    practice ledger (the same numbers the dashboard's per-mode section shows)."""
+    entry = practice_ledger.get("gender")
+    if not entry or entry["total"] == 0:
+        return ""
+    percent = round(100 * entry["correct"] / entry["total"])
+    return f"Gender drill so far: {entry['correct']}/{entry['total']} right ({percent}%)"
+
+
 def render_practice_score():
     _element("practice-score-display").innerText = f"Practice score: {practice_score()}"
 
@@ -2866,6 +2876,9 @@ def render_practice():
     # nothing left to weigh at that point (submit_answer() already read it).
     confidence_box = _element("practice-confidence")
     confidence_box.hidden = answered
+    gender_text = gender_drill_accuracy_text() if current_question.get("variant") == V_GENDER_TAG else ""
+    _element("gender-accuracy-display").innerText = gender_text
+    _element("gender-accuracy-display").hidden = not gender_text
     stats_text = confidence_stats_text()
     _element("practice-confidence-stats").innerText = stats_text
     _element("practice-confidence-stats").hidden = not stats_text

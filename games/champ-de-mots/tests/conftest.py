@@ -111,6 +111,7 @@ ELEMENT_IDS = [
     "practice-panel",
     "practice-confidence",
     "practice-confidence-stats",
+    "gender-accuracy-display",
     "practice-confidence-sure-button",
     "practice-confidence-unsure-button",
     "practice-context",

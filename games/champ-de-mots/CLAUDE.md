@@ -596,3 +596,7 @@ The liaison/elision drill shows a one-line legend (`#liaison-legend`) for the br
 ## L6: confidence accuracy stat (2026-09-21)
 
 A one-line tally (`#practice-confidence-stats`) shows how often the player's "Sure" and "Not sure" ratings were right: `confidence_tally` (`[correct, total]` per tag) is updated in `submit_answer()` only when a confidence tag was set, and `confidence_stats_text()` renders it. It is session-only by design, the same posture as `combo_count`/`current_confidence` (a fresh page starts at zero and nothing goes into `get_state()`); making it persistent would need a save-shape change, so it was left as a possible follow-up. Suite 566 passing (1 new test in `tests/test_farm_ui.py`); checked live under Pyodide.
+
+## L10: gender drill accuracy line (2026-09-21)
+
+When the open question is a gender-tag question, a line under it (`#gender-accuracy-display`) shows the drill's running accuracy, e.g. "Gender drill so far: 2/3 right (67%)". It reads `practice_ledger["gender"]` (the Milestone 35 ledger, so it's saved and consistent with the dashboard's per-mode numbers) via `gender_drill_accuracy_text()`; it stays hidden for other question types and before the first answer. Suite 568 passing (2 new tests in `tests/test_gender_tag.py`). Not separately checked in a browser (same display pattern as L6/L8).

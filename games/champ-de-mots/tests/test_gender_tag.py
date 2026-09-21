@@ -98,3 +98,24 @@ def test_answering_the_gender_tag_question_incorrectly_does_not_grow_the_plot(ga
     module.submit_answer("la")
     assert module.current_result is False
     assert plot.stage == module.STAGE_SEED
+
+
+def test_gender_drill_accuracy_line_reads_the_practice_ledger(game_env):
+    module = game_env.module
+    assert module.gender_drill_accuracy_text() == ""
+    module.record_practice("gender", True)
+    module.record_practice("gender", True)
+    module.record_practice("gender", False)
+    assert module.gender_drill_accuracy_text() == "Gender drill so far: 2/3 right (67%)"
+
+
+def test_gender_accuracy_line_only_shows_on_a_gender_question(game_env):
+    module, state = game_env.module, game_env.state
+    plot = _plot_for_fr(state, "le tourisme")
+    module.record_practice("gender", True)
+    module.open_practice(plot.plot_id, variant=module.V_GENDER_TAG)
+    shown = game_env.elements["gender-accuracy-display"]
+    assert shown.hidden is False and "1/1 right" in shown.innerText
+    other = next(p for p in state.plots if p.topic_type == "vocab" and p is not plot)
+    module.open_practice(other.plot_id, variant=module.V_FR_EN_CHOICE)
+    assert shown.hidden is True
