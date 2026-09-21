@@ -1205,7 +1205,59 @@ def _trend_sparkline_svg(history, css_class, now_label=None):
     )
 
 
+# J27 — a trade almanac: a static-ish reference of each good's baseline
+# price, the range the market can push it through, and which colony makes
+# it and which needs it. Only goods from systems the player can reach are
+# listed, so it never spoils the systems that are still locked.
+def _system_label_for_colony(colony_id):
+    if colony_id in COLONIES:
+        return "Home system"
+    if colony_id in EXPANSION_COLONIES:
+        return "Kepler Cluster"
+    return "Rift Colonies"
+
+
+def almanac_rows():
+    rows = []
+    reachable = set(active_colony_ids())
+    for good, base in SELL_PRICE.items():
+        producer = colony_producing(good)
+        consumer = colony_needing(good)
+        if producer not in reachable:
+            continue
+        rows.append({
+            "good": GOOD_LABEL[good],
+            "base": base,
+            "low": round(base * MIN_PRICE_MULTIPLIER, 1),
+            "high": round(base * MAX_PRICE_MULTIPLIER, 1),
+            "made_by": ALL_COLONIES[producer]["name"],
+            "needed_by": ALL_COLONIES[consumer]["name"] if consumer else "nobody",
+            "system": _system_label_for_colony(producer),
+        })
+    return rows
+
+
+def render_almanac():
+    body = document.getElementById("almanac-body")
+    if body is None:
+        return
+    lines = [
+        "<table class=\"almanac-table\"><thead><tr><th>Good</th><th>Base</th>"
+        "<th>Typical range</th><th>Made by</th><th>Needed by</th></tr></thead><tbody>"
+    ]
+    for row in almanac_rows():
+        lines.append(
+            f"<tr><td>{row['good']}</td><td>{row['base']}</td>"
+            f"<td>{row['low']:g}\u2013{row['high']:g}</td>"
+            f"<td>{row['made_by']} <span class=\"almanac-system\">({row['system']})</span></td>"
+            f"<td>{row['needed_by']}</td></tr>"
+        )
+    lines.append("</tbody></table>")
+    body.innerHTML = "".join(lines)
+
+
 def render_market():
+    render_almanac()
     for good in market_multiplier:
         price = current_sell_price(good)
         pct = market_multiplier[good] * 100

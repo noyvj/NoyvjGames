@@ -1,4 +1,5 @@
 [
+  { "date": "2026-09-21", "entry": "New Trade almanac in the Market prices panel: each good's baseline price, typical range, and which colony makes and needs it." },
   { "date": "2026-09-21", "entry": "Hover over the endgame galaxy dots to see which background world you're pointing at." },
   { "date": "2026-09-21", "entry": "A small spark/particle burst now plays briefly on a high-value sale (200+ credits)." },
   { "date": "2026-09-20", "entry": "Round-2 quality pass: ship name reset, veteran-hauler badge, route trend arrows, fleet-efficiency and galaxy overview in Summary, map legend and Fleet Priority ring tooltip, crash recovery ETA, locked-research tooltips, labeled price-now marker, needs-met average." },

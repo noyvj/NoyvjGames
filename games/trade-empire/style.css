@@ -1582,3 +1582,10 @@ button.secondary:disabled::after {
   line-height: 1;
   opacity: 0.8;
 }
+
+/* J27 trade almanac */
+.info-toggle.almanac { display: block; margin: 6px 0; }
+.info-toggle.almanac summary { width: auto; height: auto; border-radius: 6px; padding: 3px 10px; font-size: 0.8rem; font-weight: 600; }
+.almanac-table { width: 100%; border-collapse: collapse; font-size: 0.85em; margin-top: 6px; }
+.almanac-table th, .almanac-table td { text-align: left; padding: 3px 6px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
+.almanac-system { opacity: 0.7; }

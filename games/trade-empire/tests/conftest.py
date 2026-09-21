@@ -30,6 +30,7 @@ ELEMENT_IDS = [
     "fleet-priority-status",
     "fleet-priority-button",
     "expansion-colonies-panel",
+    "almanac-body",
     "expansion-market-panel",
     "expansion2-colonies-panel",
     "expansion2-market-panel",
