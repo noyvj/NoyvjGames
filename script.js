@@ -1342,9 +1342,388 @@ const HUB_TOUR_STEPS = [
     text: "General feedback about the hub itself (not one specific game) goes here. Thanks for stopping by!",
   },
 ];
-if (window.GameTutorial) {
-  window.GameTutorial.init(HUB_TOUR_STEPS, { gameId: "hub" });
+// Z13's onboarding survey (below) is also a first-visit modal -- to avoid
+// stacking two overlays on top of each other on someone's very first load,
+// the tour's own auto-start is deferred until after the survey closes
+// (whether saved or skipped) when the survey is actually going to show.
+// `shared/tutorial.js` itself stays untouched: this just controls *when*
+// `init()` (which both wires "Take the Tour" and schedules the auto-start)
+// gets called, exactly as before for anyone who's already past the survey.
+function startHubTourIfNeeded() {
+  if (window.GameTutorial) {
+    window.GameTutorial.init(HUB_TOUR_STEPS, { gameId: "hub" });
+  }
 }
+
+// --- Z13/Z19: onboarding survey + "New Player? Start here" recommendation
+// ---
+//
+// Designed together per planning/TODO.md's own note on Z19 ("builds well
+// on Z13 -- design them together"). Z13 is a one-time, optional, skippable
+// survey feeding the existing tag-filter defaults; Z19 is a small
+// dismissible banner recommending one specific game to a genuinely new
+// visitor, using Z13's answers when available. Feels like a sibling to
+// shared/tutorial.js's own "first-visit, skippable, localStorage-remembered"
+// convention (see that file's header comment) -- built directly here rather
+// than through that engine, since this is a short answer-pills form, not a
+// spotlight walkthrough.
+//
+// Survey questions map onto the EXISTING tag taxonomy documented above in
+// the search/tag filter comment ("Tag taxonomy decision") -- no new tags
+// invented:
+//   Q1 "What are you interested in?"   -> subject tags (multi-select pills)
+//   Q2 "Quick games or deep systems?"  -> depth tag (single-select pills)
+// #game-tag-filter is a single <select>, so only one value can be the
+// *active* default filter at a time. Priority when computing that one
+// value: an exact single subject pick is the most specific signal, so it
+// wins; multiple subject picks (or none) fall back to the depth answer; no
+// signal at all leaves the filter on "All tags", same as today. Whatever
+// gets set behaves exactly like a manual pick from here on (same
+// hub_filter_tag key), adjustable any time via that same dropdown.
+const ONBOARDING_SEEN_KEY = "hub-onboarding-seen";
+const ONBOARDING_INTERESTS_KEY = "hub-onboarding-interests";
+const NEW_PLAYER_BANNER_DISMISSED_KEY = "hub-new-player-banner-dismissed";
+
+const ONBOARDING_SUBJECTS = [
+  { value: "climate", label: "Climate" },
+  { value: "civilization", label: "Civilization" },
+  { value: "economy", label: "Economy" },
+  { value: "language-learning", label: "Language Learning" },
+  { value: "space", label: "Space" },
+];
+const ONBOARDING_DEPTHS = [
+  { value: "quick", label: "Quick games" },
+  { value: "deep-systems", label: "Deep systems" },
+  { value: "", label: "No preference" },
+];
+
+function loadOnboardingAnswers() {
+  try {
+    const raw = localStorage.getItem(ONBOARDING_INTERESTS_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (!parsed || typeof parsed !== "object") return { subjects: [], depth: "" };
+    return {
+      subjects: Array.isArray(parsed.subjects)
+        ? parsed.subjects.filter((s) => ONBOARDING_SUBJECTS.some((o) => o.value === s))
+        : [],
+      depth:
+        typeof parsed.depth === "string" && ONBOARDING_DEPTHS.some((o) => o.value === parsed.depth)
+          ? parsed.depth
+          : "",
+    };
+  } catch (err) {
+    return { subjects: [], depth: "" };
+  }
+}
+
+function saveOnboardingAnswers(answers) {
+  lsSet(ONBOARDING_INTERESTS_KEY, JSON.stringify(answers));
+  let defaultTag = "";
+  if (answers.subjects.length === 1) defaultTag = answers.subjects[0];
+  else if (answers.depth) defaultTag = answers.depth;
+  if (defaultTag && gameTagFilter && Array.from(gameTagFilter.options).some((o) => o.value === defaultTag)) {
+    gameTagFilter.value = defaultTag;
+    lsSet(FILTER_TAG_KEY, defaultTag);
+    applyGameFilter();
+    applySort();
+  }
+  // The New Player banner (if showing) was already computed once at page
+  // load, before these answers existed -- refresh its pick now so a saved
+  // subject interest is reflected immediately, not just on the next visit.
+  maybeShowNewPlayerBanner();
+}
+
+function buildOnboardingSurvey(onClose) {
+  if (document.getElementById("onboarding-survey-overlay")) return;
+  if (!document.getElementById("onboarding-survey-styles")) {
+    const style = document.createElement("style");
+    style.id = "onboarding-survey-styles";
+    style.textContent = `
+      #onboarding-survey-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 10500;
+        background: rgba(4, 5, 10, 0.65);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        font-family: inherit;
+      }
+      #onboarding-survey-card {
+        max-width: min(440px, calc(100vw - 2rem));
+        max-height: calc(100vh - 2rem);
+        overflow-y: auto;
+        background: linear-gradient(165deg, rgba(24, 27, 43, 0.96), rgba(14, 16, 28, 0.98));
+        border: 1px solid rgba(140, 160, 255, 0.22);
+        border-radius: 18px;
+        padding: 1.5rem 1.6rem 1.6rem;
+        color: #eaeaf0;
+        box-shadow: 0 16px 50px rgba(0, 0, 0, 0.55);
+      }
+      #onboarding-survey-card h2 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+      }
+      #onboarding-survey-card .onboarding-intro {
+        font-size: 0.82rem;
+        opacity: 0.7;
+        margin: 0 0 1.2rem;
+        line-height: 1.5;
+      }
+      #onboarding-survey-card .onboarding-question {
+        font-size: 0.88rem;
+        font-weight: 600;
+        margin: 0 0 0.6rem;
+      }
+      .onboarding-pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 0 0 1.4rem;
+      }
+      .onboarding-pill {
+        font-size: 0.78rem;
+        padding: 0.45rem 0.85rem;
+        border-radius: 999px;
+        background: rgba(140, 160, 255, 0.1);
+        border: 1px solid rgba(140, 160, 255, 0.25);
+        color: #eaeaf0;
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease;
+      }
+      .onboarding-pill:hover { background: rgba(140, 160, 255, 0.2); }
+      .onboarding-pill[aria-pressed="true"] {
+        background: linear-gradient(135deg, #4a6cb5, #2c4370);
+        border-color: rgba(140, 160, 255, 0.6);
+        font-weight: 600;
+      }
+      #onboarding-survey-buttons {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin-top: 0.4rem;
+      }
+      #onboarding-survey-buttons button.secondary {
+        width: auto;
+      }
+      #onboarding-skip-button {
+        margin-left: auto;
+        background: none !important;
+        color: inherit;
+        opacity: 0.65;
+        box-shadow: none !important;
+        border: none !important;
+        text-decoration: underline;
+        cursor: pointer;
+        font-size: 0.8rem;
+      }
+      #onboarding-skip-button:hover { opacity: 0.9; }
+    `;
+    document.head.appendChild(style);
+  }
+
+  const overlay = document.createElement("div");
+  overlay.id = "onboarding-survey-overlay";
+  const card = document.createElement("div");
+  card.id = "onboarding-survey-card";
+  card.setAttribute("role", "dialog");
+  card.setAttribute("aria-modal", "true");
+  card.setAttribute("aria-labelledby", "onboarding-survey-heading");
+  overlay.appendChild(card);
+
+  const heading = document.createElement("h2");
+  heading.id = "onboarding-survey-heading";
+  heading.textContent = "Welcome! Two quick, optional questions";
+  const intro = document.createElement("p");
+  intro.className = "onboarding-intro";
+  intro.textContent =
+    "This just sets the game filter below to match what you're after — skip it any time, and you can always change the filter yourself later.";
+  card.appendChild(heading);
+  card.appendChild(intro);
+
+  const selectedSubjects = new Set();
+  let selectedDepth = "";
+
+  const q1 = document.createElement("p");
+  q1.className = "onboarding-question";
+  q1.textContent = "What are you interested in? (pick any)";
+  card.appendChild(q1);
+  const subjectRow = document.createElement("div");
+  subjectRow.className = "onboarding-pill-row";
+  subjectRow.setAttribute("role", "group");
+  subjectRow.setAttribute("aria-label", "Subjects of interest");
+  ONBOARDING_SUBJECTS.forEach((opt) => {
+    const pill = document.createElement("button");
+    pill.type = "button";
+    pill.className = "onboarding-pill";
+    pill.textContent = opt.label;
+    pill.setAttribute("aria-pressed", "false");
+    pill.addEventListener("click", () => {
+      if (selectedSubjects.has(opt.value)) {
+        selectedSubjects.delete(opt.value);
+        pill.setAttribute("aria-pressed", "false");
+      } else {
+        selectedSubjects.add(opt.value);
+        pill.setAttribute("aria-pressed", "true");
+      }
+    });
+    subjectRow.appendChild(pill);
+  });
+  card.appendChild(subjectRow);
+
+  const q2 = document.createElement("p");
+  q2.className = "onboarding-question";
+  q2.textContent = "Quick games or deep systems?";
+  card.appendChild(q2);
+  const depthRow = document.createElement("div");
+  depthRow.className = "onboarding-pill-row";
+  depthRow.setAttribute("role", "radiogroup");
+  depthRow.setAttribute("aria-label", "Preferred depth");
+  const depthPills = [];
+  ONBOARDING_DEPTHS.forEach((opt) => {
+    const pill = document.createElement("button");
+    pill.type = "button";
+    pill.className = "onboarding-pill";
+    pill.textContent = opt.label;
+    pill.setAttribute("role", "radio");
+    pill.setAttribute("aria-checked", "false");
+    pill.addEventListener("click", () => {
+      selectedDepth = opt.value;
+      depthPills.forEach((p) => {
+        const active = p.value === opt.value;
+        p.el.setAttribute("aria-checked", String(active));
+        p.el.setAttribute("aria-pressed", String(active));
+      });
+    });
+    depthPills.push({ el: pill, value: opt.value });
+    depthRow.appendChild(pill);
+  });
+  card.appendChild(depthRow);
+
+  const buttons = document.createElement("div");
+  buttons.id = "onboarding-survey-buttons";
+  const saveBtn = document.createElement("button");
+  saveBtn.type = "button";
+  saveBtn.className = "secondary";
+  saveBtn.textContent = "Save preferences";
+  saveBtn.addEventListener("click", () => {
+    saveOnboardingAnswers({ subjects: Array.from(selectedSubjects), depth: selectedDepth });
+    finish();
+  });
+  const skipBtn = document.createElement("button");
+  skipBtn.type = "button";
+  skipBtn.id = "onboarding-skip-button";
+  skipBtn.textContent = "Skip";
+  skipBtn.addEventListener("click", finish);
+  buttons.appendChild(saveBtn);
+  buttons.appendChild(skipBtn);
+  card.appendChild(buttons);
+
+  document.body.appendChild(overlay);
+
+  function finish() {
+    lsSet(ONBOARDING_SEEN_KEY, "1");
+    overlay.remove();
+    document.removeEventListener("keydown", onKeydown);
+    if (typeof onClose === "function") onClose();
+  }
+  function onKeydown(e) {
+    if (e.key === "Escape") finish();
+  }
+  document.addEventListener("keydown", onKeydown);
+  // Plain .focus() scrolls its nearest scrollable ancestor (this card,
+  // overflow-y: auto) to bring the button into view -- on a short viewport
+  // that scrolls straight past the heading/questions to the bottom before
+  // the player has read anything. Same preventScroll fix already used
+  // elsewhere in this file (e.g. accountUsernameDisplay.focus() above).
+  heading.setAttribute("tabindex", "-1");
+  heading.focus({ preventScroll: true });
+}
+
+function maybeShowOnboardingSurvey() {
+  if (lsGet(ONBOARDING_SEEN_KEY)) return false;
+  buildOnboardingSurvey(startHubTourIfNeeded);
+  return true;
+}
+
+// "New" reuses the exact same signal Z2/Z14's last-played badges are built
+// on (localStorage "last-played:<slug>", stamped by shared/last-played.js
+// on every game page load) rather than inventing a second "is this player
+// new" heuristic -- a visitor with even one such key has genuinely opened a
+// game here before, whatever the survey did or didn't capture.
+const RECOMMENDED_GAME_BY_SUBJECT = {
+  climate: "canopy",
+  "language-learning": "champ-de-mots",
+  economy: "trade-empire",
+  space: "sol",
+  civilization: "continuum",
+};
+// Priority when more than one subject was picked, and the pool this falls
+// back to for a subject with more than one matching game: favour the games
+// with the shortest onboarding curve and no combat/reading load (see root
+// CLAUDE.md's "Current games" table) -- the climate quartet's single-plot,
+// single-mechanic games read fastest, French vocab needs zero prior
+// game-mechanic learning, trading and especially Continuum (seven eras, a
+// research tree, a livability score) ask the most of a first-ever visitor.
+const RECOMMENDATION_SUBJECT_PRIORITY = ["climate", "language-learning", "economy", "space", "civilization"];
+// Fallback pick with no survey signal at all: same one the TODO.md item
+// itself suggested, and still the right call on its own merits -- simplest
+// onboarding curve of any game on the hub, a clear payoff within a couple
+// of minutes, no combat or reading load.
+const DEFAULT_RECOMMENDED_GAME = "canopy";
+
+function isNewPlayer() {
+  try {
+    return !Object.keys(localStorage).some((k) => k.startsWith("last-played:"));
+  } catch (err) {
+    return false; // storage unavailable -- safest is to not claim "new"
+  }
+}
+
+function pickRecommendedGame() {
+  const answers = loadOnboardingAnswers();
+  const picked = RECOMMENDATION_SUBJECT_PRIORITY.find((s) => answers.subjects.includes(s));
+  return (picked && RECOMMENDED_GAME_BY_SUBJECT[picked]) || DEFAULT_RECOMMENDED_GAME;
+}
+
+function maybeShowNewPlayerBanner() {
+  const banner = document.getElementById("new-player-banner");
+  if (!banner) return;
+  if (lsGet(NEW_PLAYER_BANNER_DISMISSED_KEY) || !isNewPlayer()) {
+    banner.hidden = true;
+    return;
+  }
+  const slug = pickRecommendedGame();
+  const card = allTitleCards.find((c) => cardSlug(c) === slug);
+  if (!card) {
+    banner.hidden = true;
+    return;
+  }
+  const name = card.querySelector(".title-card-name")?.textContent || slug;
+  const href = card.querySelector(".title-card-link")?.getAttribute("href") || gameHrefForId(slug);
+  const bannerText = document.getElementById("new-player-banner-text");
+  if (bannerText) {
+    bannerText.textContent = `New here? Start with ${name} — a simple, approachable first pick before exploring the rest of the lobby.`;
+  }
+  const goLink = document.getElementById("new-player-banner-cta");
+  if (goLink) {
+    goLink.href = href;
+    goLink.textContent = `Play ${name}`;
+  }
+  banner.hidden = false;
+}
+
+document.getElementById("new-player-banner-dismiss")?.addEventListener("click", () => {
+  lsSet(NEW_PLAYER_BANNER_DISMISSED_KEY, "1");
+  const banner = document.getElementById("new-player-banner");
+  if (banner) banner.hidden = true;
+});
+
+if (!maybeShowOnboardingSurvey()) {
+  startHubTourIfNeeded();
+}
+maybeShowNewPlayerBanner();
 
 // --- Y22 / Z10: difficulty/challenge-variant marker on title cards ---
 //

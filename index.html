@@ -52,6 +52,21 @@
     </div>
   </div>
 
+  <!-- Z19: "New Player? Start here" recommendation -- a small dismissible
+       banner rather than a highlighted title card, per the "everything
+       looks very crowded" concern already documented in planning/TODO.md
+       and root CLAUDE.md; see script.js's Z13/Z19 section for the pick
+       logic (informed by the Z13 onboarding survey when answered). Shown
+       only to a genuinely new visitor (no last-played:* localStorage key
+       yet, same signal Z2/Z14's badges use) and dismissible/remembered. -->
+  <div id="new-player-banner" class="new-player-banner" hidden>
+    <p id="new-player-banner-text" class="new-player-banner-text"></p>
+    <div class="new-player-banner-actions">
+      <a id="new-player-banner-cta" class="continue-playing-item" href="#"></a>
+      <button type="button" id="new-player-banner-dismiss" class="account-link-button">Dismiss</button>
+    </div>
+  </div>
+
   <section id="account-section" class="account-section">
     <div id="account-signed-out">
       <p class="account-label">Have an account? Save codes can be claimed to it from any game.</p>
