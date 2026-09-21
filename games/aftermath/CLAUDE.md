@@ -542,3 +542,42 @@ green, `flake8` clean. Live-verified via `hub-dev-server`: unlocking a
 skill then clicking Reset Skill Tree shows the dialog with the correct
 live refund total in its message; Confirm resets `skill_tree.unlocked` to
 empty and fully refunds `knowledge_points`. Zero console errors.
+
+## Print-friendly summary (Z21, site-wide goal)
+
+`planning/TODO.md`'s Z21: a shared `media="print"` stylesheet
+(`shared/print-summary.css`) so printing the page while a game's
+end-of-session summary is open produces a clean paper page instead of the
+site's dark space theme (which prints as blank/near-blank on most
+printers) plus a pointless copy of the nav/ad bar/toolbar/starfield. The
+shared file works off one convention: whatever element the game's own
+summary lives in gets a `print-summary` class, and the stylesheet hides
+everything else on the page (`body * { visibility: hidden }`, then
+un-hides `.print-summary` and its descendants), strips
+gradients/glow/`backdrop-filter` in favor of plain dark-on-white, hides
+any buttons/inputs inside the summary itself, forces open any collapsed
+`<details>`, and adds `page-break-inside: avoid` on the summary's own
+direct-child blocks.
+
+**Applied here:** `index.html` gained
+`<link rel="stylesheet" href="../../shared/print-summary.css" media="print">`
+right after the existing `ad-bar.css` link. The target here is
+`#run-summary-panel` — E11's "a proper end-of-run summary" (final
+resilience/growth/damage stats, the full event-by-event breakdown, and
+the extended epilogue when one applies), which is what the game's own
+code comments already call the run summary, distinct from the terse
+one-line `#run-summary-display` score sitting just above it. Gained the
+`print-summary` class alongside its existing `run-summary-panel` class.
+`render()` only ever calls `run_summary_panel.innerHTML = ""` and
+re-appends children — it never touches the element's own class list — so
+this survives every re-render untouched. Purely additive: `media="print"`
+never applies on-screen, and no `game.py`/on-screen markup changed.
+
+**Verification method used:** this sandbox has no print-to-PDF affordance,
+so per this task's own guidance, verification was done by confirming the
+stylesheet loads with `media="print"` and that its selectors have real
+targets in the live DOM, rather than a literal print render — same method
+as Canopy's Z21 pass (see that game's CLAUDE.md for the detailed
+DOM-selector checks run against a structurally similar panel).
+`python3 -m pytest games/aftermath/tests -q` stayed at 257/257 (pure HTML
+class/link addition, no Python touched).

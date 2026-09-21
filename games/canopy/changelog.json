@@ -1,5 +1,6 @@
 {
   "changelog": [
+    {"date": "2026-09-21", "entry": "Session Summary is now print-friendly: printing the page (e.g. Ctrl/Cmd+P) while it's open hides the site chrome and renders the summary in clean dark-on-white, instead of the site's usual dark theme and UI."},
     {"date": "2026-09-21", "entry": "Highland Grove now has its own distinct rates: soil degrades 50% faster per clear and standing value compounds 25% slower than the main forest, reflecting a harsher high-altitude ecosystem."},
     {"date": "2026-09-21", "entry": "Round-2 pass, remaining items: reforestation partner (faster replant recovery for a permanent value share), a legacy forest bonus carried into the next session from the last one's standing value, a seasonal growth cycle, and the shared personal-best badge flash (also rolled out to Tide and Thaw)."},
     {"date": "2026-09-20", "entry": "Round-2 pass: Small 4x4 grid, Forest ranger difficulty, forest history + wildlife log, playstyle badge, report-card graphs, veteran and adopted plots, specialist plots, replanting grants, Highland unlock progress bar, biodiversity rate, and an opt-in community comparison."},

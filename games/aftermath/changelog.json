@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-21",
+    "entry": "The end-of-run summary is now print-friendly: printing the page (e.g. Ctrl/Cmd+P) while it's open hides the site chrome and renders it in clean dark-on-white, instead of the site's usual dark theme and UI."
+  },
+  {
+    "date": "2026-09-21",
     "entry": "Reset Skill Tree now uses the site's shared confirmation dialog (with the exact refund amount in its message) instead of a click-twice button."
   },
   {

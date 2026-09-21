@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-09-21",
+      "entry": "Session Summary is now print-friendly: printing the page (e.g. Ctrl/Cmd+P) while it's open hides the site chrome and renders the summary in clean dark-on-white, instead of the site's usual dark theme and UI."
+    },
+    {
+      "date": "2026-09-21",
       "entry": "Fixed a display bug where the Achievements panel showed as an empty box before its first open and never visually closed again once opened once."
     },
     {

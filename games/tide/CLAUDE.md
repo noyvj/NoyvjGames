@@ -393,3 +393,37 @@ Everything else audited clean, matching this hub's site-wide pattern:
 
 Verified: full pytest suite green (pure HTML tag-name change, no Python
 touched), `flake8` unaffected (no `.py` file in the diff).
+
+## Print-friendly summary (Z21, site-wide goal)
+
+`planning/TODO.md`'s Z21: a shared `media="print"` stylesheet
+(`shared/print-summary.css`) so printing the page while a game's
+end-of-session summary is open produces a clean paper page instead of the
+site's dark space theme (which prints as blank/near-blank on most
+printers) plus a pointless copy of the nav/ad bar/toolbar/starfield. The
+shared file works off one convention: whatever element the game's own
+summary lives in gets a `print-summary` class, and the stylesheet hides
+everything else on the page (`body * { visibility: hidden }`, then
+un-hides `.print-summary` and its descendants), strips
+gradients/glow/`backdrop-filter` in favor of plain dark-on-white, hides
+any buttons/inputs inside the summary itself, forces open any collapsed
+`<details>`, and adds `page-break-inside: avoid` on the summary's own
+direct-child blocks.
+
+**Applied here:** `index.html` gained
+`<link rel="stylesheet" href="../../shared/print-summary.css" media="print">`
+right after the existing `ad-bar.css` link, and `#session-summary-panel`
+(D7's own end-of-session recap, `#session-summary-text`) gained the
+`print-summary` class alongside its existing `section
+session-summary-panel` classes. Purely additive — `media="print"` means
+these rules never apply on-screen, and no `game.py`/on-screen markup
+changed.
+
+**Verification method used:** this sandbox has no print-to-PDF affordance,
+so per this task's own guidance, verification was done by confirming the
+stylesheet loads with `media="print"` and that its selectors have real
+targets in the live DOM, rather than a literal print render — the same
+method used for Canopy's Z21 pass (see that game's CLAUDE.md for the
+detailed DOM-selector checks run against a structurally similar panel).
+`python3 -m pytest games/tide/tests -q` stayed at 252/252 (pure HTML
+class/link addition, no Python touched).

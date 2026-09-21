@@ -1,0 +1,148 @@
+/*
+ * Shared print-friendly stylesheet for end-of-session summary screens
+ * (planning/TODO.md Z21, site-wide goal). Every game on this hub renders
+ * its dark space-themed shell (nav, ad bar, toolbar, starfield/ambient
+ * background, achievement toasts, save widget, panel-toggle buttons) around
+ * a small pocket of content that's actually worth putting on paper: a
+ * session summary / run summary / report card. Printing the shell as-is
+ * would waste ink on a UI that's meaningless off-screen, and white-on-dark
+ * text prints as blank or near-blank pages on most browsers/printers
+ * unless something forces high-contrast dark-on-white first.
+ *
+ * How a game opts in (two steps, both required):
+ *   1. Link this file with media="print" in <head>, same spot/idiom as
+ *      ad-bar.css:
+ *        <link rel="stylesheet" href="../../shared/print-summary.css" media="print">
+ *      media="print" means the browser never even applies these rules
+ *      on-screen -- zero risk to the normal in-game appearance, no
+ *      @media print wrapper needed inside this file itself.
+ *   2. Add the class "print-summary" to the one element that IS the
+ *      summary/report screen -- the panel a player opens at the end of a
+ *      session/run, not the toggle button that opens it. Example:
+ *        <div id="session-summary-panel" class="section session-summary-panel print-summary" hidden>
+ *      That's the only per-game markup change this requires. Everything
+ *      else on the page is hidden by the universal "hide everything
+ *      except .print-summary" rule below, so there's no need to chase
+ *      down and individually hide the ad bar / nav / toolbar / other
+ *      panels / achievement toasts / space-bg or ambient-bg starfield per
+ *      game -- they're covered automatically, including ones added later.
+ *
+ * Gotchas:
+ *   - A summary panel that uses the native `hidden` attribute while the
+ *     player hasn't opened it (every game's does, e.g.
+ *     `<div id="session-summary-panel" ... hidden>`) is forced visible
+ *     for print regardless, so "print the page" produces the summary even
+ *     if the player never toggled the panel open on-screen. This only
+ *     applies under the print media type -- the on-screen hidden/shown
+ *     behavior is completely untouched.
+ *   - Interactive controls that happen to live inside a summary panel
+ *     (copy-to-clipboard buttons, "compare with other players" fetch
+ *     buttons, save-a-named-run buttons, selects, checkboxes) are hidden
+ *     too -- they do nothing on paper and just add clutter. Only text/
+ *     stat content prints.
+ *   - Collapsed `<details>` sections inside a summary (e.g. Canopy's
+ *     "Forest history" / "Wildlife log", closed by default) are forced
+ *     open for print, so a report card's secondary sections aren't
+ *     silently dropped just because the player hadn't clicked them open.
+ *     This is a best-effort override of the browser's internal
+ *     details-content hiding and is verified against Chromium's
+ *     rendering; other engines may vary slightly.
+ *   - Core stat blocks (the summary's own direct-child paragraphs/divs/
+ *     details) get page-break-inside: avoid so a short stat block doesn't
+ *     get split across a page boundary -- but a summary panel long enough
+ *     to exceed one full page will still paginate across multiple pages,
+ *     which is expected and fine.
+ */
+
+/* Hide the entire page except the summary panel and its descendants.
+   This is the one rule that makes "hide the shell" work without needing
+   to know or enumerate every game's own toolbar/nav/toast/background
+   markup -- anything that isn't inside .print-summary simply isn't
+   rendered, full stop. */
+body * {
+  visibility: hidden;
+}
+
+.print-summary,
+.print-summary * {
+  visibility: visible;
+}
+
+/* Force the summary to render even if the player never opened its panel
+   on-screen (every game's summary panel starts with the `hidden`
+   attribute until toggled open). Pull it out of wherever it sat in the
+   now-invisible page flow and lay it out fresh at the top of the printed
+   page. */
+.print-summary {
+  display: block !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0.5cm 0;
+}
+
+/* Dark-space-theme colors/effects don't survive printing -- force plain
+   high-contrast dark-on-white and strip anything that assumes a screen
+   (gradients, glows, blur) instead of paper. */
+.print-summary,
+.print-summary * {
+  background: #fff !important;
+  background-image: none !important;
+  color: #111 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  backdrop-filter: none !important;
+  filter: none !important;
+  border-color: #999 !important;
+}
+
+.print-summary {
+  font-size: 12pt;
+  line-height: 1.45;
+}
+
+.print-summary summary,
+.print-summary h1,
+.print-summary h2,
+.print-summary h3 {
+  font-size: 13pt;
+  font-weight: 700;
+}
+
+/* Interactive controls inside a summary panel do nothing on paper --
+   copy/share/compare/save-run buttons, any stray inputs/selects. */
+.print-summary button,
+.print-summary input,
+.print-summary select,
+.print-summary textarea {
+  display: none !important;
+}
+
+/* Force open any collapsed <details> sections so secondary summary
+   content (e.g. a report card's history/log sub-sections) isn't silently
+   dropped just because the player hadn't expanded it. Best-effort across
+   engines -- verified on Chromium. */
+.print-summary details:not([open]) > *:not(summary) {
+  display: block !important;
+}
+
+.print-summary details > summary {
+  list-style: none;
+}
+
+.print-summary details > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Keep each stat block/section intact across a page boundary where
+   possible. */
+.print-summary > * {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+@page {
+  margin: 1.5cm;
+}

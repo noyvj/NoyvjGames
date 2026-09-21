@@ -406,3 +406,48 @@ Everything else audited clean, matching this hub's site-wide pattern:
 
 Verified: full pytest suite green (pure HTML tag-name change, no Python
 touched), `flake8` unaffected (no `.py` file in the diff).
+
+## Print-friendly summary (Z21, site-wide goal)
+
+`planning/TODO.md`'s Z21: a shared `media="print"` stylesheet
+(`shared/print-summary.css`) so printing the page while a game's
+end-of-session summary is open produces a clean paper page instead of the
+site's dark space theme (which prints as blank/near-blank on most
+printers) plus a pointless copy of the nav/ad bar/toolbar/starfield. The
+shared file works off one convention: whatever element the game's own
+summary lives in gets a `print-summary` class, and the stylesheet hides
+everything else on the page (`body * { visibility: hidden }`, then
+un-hides `.print-summary` and its descendants), strips
+gradients/glow/`backdrop-filter` in favor of plain dark-on-white, hides
+any buttons/inputs inside the summary itself (they do nothing on paper),
+forces open any collapsed `<details>` so nothing is silently dropped, and
+adds `page-break-inside: avoid` on the summary's own direct-child blocks.
+
+**Applied here:** `index.html` gained
+`<link rel="stylesheet" href="../../shared/print-summary.css" media="print">`
+right after the existing `ad-bar.css` link, and `#session-summary-panel`
+(this game's "Session Summary" panel — counterfactual line, sparkline,
+playstyle badge, the collapsible Forest report card/Forest history/
+Wildlife log/Community forest sections, and the share/playstyle-comparison
+controls) gained the `print-summary` class alongside its existing
+`section session-summary-panel` classes. Purely additive — `media="print"`
+means these rules never apply on-screen, and no `game.py`/on-screen markup
+changed.
+
+**Verification method used:** this sandbox has no print-to-PDF affordance,
+so per this task's own guidance, verification was done by confirming the
+new stylesheet actually loads with `media="print"` and that its selectors
+have real targets in the live DOM (via `document.querySelectorAll(...)` in
+the browser), rather than a literal print render. Live-verified via
+`hub-dev-server`: the `<link>` tag resolves with `media: "print"`; opening
+Session Summary shows `.print-summary` matches `#session-summary-panel`
+with its expected classes and `hidden=false`; the panel contains 5 real
+`<button>`s (Copy badge, Compare with other players, Copy, Save as Run A/
+B — all targeted by the shared file's `.print-summary button` hide rule)
+and 3 closed `<details>` (targeted by the forced-open rule); the page's
+`.ad-bar`/`.game-toolbar`/`.ambient-bg`/`.hub-back-link` and 13 `.section`
+panels (12 of which are *not* `.print-summary`) all exist as real elements
+the "hide everything else" rule has to act on. On-screen appearance
+before/after was visually identical (screenshot-compared) and zero new
+console errors were introduced. `python3 -m pytest games/canopy/tests -q`
+stayed at 356/356 (pure HTML class/link addition, no Python touched).
