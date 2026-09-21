@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 476/747 items checked off (63.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 477/747 items checked off (63.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -705,7 +705,7 @@ Every idea in this section was accepted, no exceptions.
 - [x] J7: A "colony investment" mechanic — directly fund a colony's development to accelerate its growth/specialization.
 - [x] J8: Let the idle-manual-ship warning badge show exactly how many ticks it's been idle.
 - [x] J9: A "market speculation" layer — stockpile a good during a price crash, sell during a later recovery.
-- [ ] J10: A small animated docking/undocking visual on the map when a ship arrives/departs.
+- [x] J10: A small animated docking/undocking visual on the map when a ship arrives/departs.
 - [x] J11: A "trade route insurance" mechanic — a small recurring cost protecting against a rare route-disruption event.
 - [x] J12: Let the ship-rename feature support a quick "reset to default name" option.
 - [x] J13: A "galactic economy overview" dashboard — a single screen summarizing every colony's need/supply state at once.
