@@ -1134,6 +1134,57 @@ def automate_ship(ship_id):
     return True
 
 
+# J17 -- player-run trade posts. Once every automation slot is filled
+# (automation is "maxed"), the player can establish a trade post in a
+# reachable star system: a passive income source that needs no ship. One
+# post per system, so it scales with how far the empire has expanded, and
+# it pays a small flat amount each tick (not counted as a sale).
+TRADE_POST_SYSTEMS = ("Home system", "Kepler Cluster", "Rift Colonies")
+TRADE_POST_COST = 400
+TRADE_POST_INCOME_PER_TICK = 2
+trade_posts = []
+
+
+def automation_is_maxed():
+    return not automation_slots_available()
+
+
+def _system_is_reachable(system_label):
+    if system_label == "Home system":
+        return True
+    if system_label == "Kepler Cluster":
+        return galaxy_expansion_unlocked()
+    return outer_reaches_unlocked()
+
+
+def next_trade_post_system():
+    for system_label in TRADE_POST_SYSTEMS:
+        if system_label not in trade_posts and _system_is_reachable(system_label):
+            return system_label
+    return None
+
+
+def can_build_trade_post():
+    return (
+        automation_is_maxed()
+        and next_trade_post_system() is not None
+        and total_profit >= TRADE_POST_COST
+    )
+
+
+def build_trade_post():
+    global total_profit
+    if not can_build_trade_post():
+        return False
+    total_profit -= TRADE_POST_COST
+    trade_posts.append(next_trade_post_system())
+    return True
+
+
+def trade_post_income_per_tick():
+    return len(trade_posts) * TRADE_POST_INCOME_PER_TICK
+
+
 # J7 -- colony investment: spend credits to push an undeveloped colony
 # toward its Level 2 development (the same progress deliveries build),
 # so surplus credits can accelerate growth and specialization. It costs
@@ -1530,6 +1581,35 @@ def on_toggle_route_insurance(event=None):
     render_market()
 
 
+def on_build_trade_post(event=None):
+    build_trade_post()
+    render_market()
+
+
+def render_trade_post():
+    button = document.getElementById("trade-post-button")
+    status = document.getElementById("trade-post-status")
+    if button is None or status is None:
+        return
+    show = automation_is_maxed() or bool(trade_posts)
+    button.hidden = not show
+    status.hidden = not show
+    if not show:
+        return
+    target = next_trade_post_system()
+    button.innerText = f"Establish trade post ({TRADE_POST_COST})" if target else "All trade posts established"
+    button.disabled = not can_build_trade_post()
+    button.title = (
+        f"Build a post in the {target}: +{TRADE_POST_INCOME_PER_TICK} credits per tick, no ship needed."
+        if target else "Every reachable system already has a trade post."
+    )
+    posts = ", ".join(trade_posts) if trade_posts else "none yet"
+    status.innerText = (
+        f"Trade posts: {posts} (+{trade_post_income_per_tick()} credits per tick). "
+        f"Available once every automation slot is in use; one per system."
+    )
+
+
 def render_route_hazards():
     hazards_button = document.getElementById("route-hazards-toggle-button")
     insurance_button = document.getElementById("route-insurance-toggle-button")
@@ -1591,6 +1671,7 @@ def render_seasonal_demand():
 
 
 def render_market():
+    render_trade_post()
     render_route_hazards()
     render_diplomacy()
     render_seasonal_demand()
@@ -2620,6 +2701,7 @@ def tick(event=None):
     for colony_state in colony_states.values():
         colony_state.decay()
     recover_market()
+    total_profit += trade_post_income_per_tick()
 
     # J15 — idle-ticks bookkeeping: counts up only while a ship is
     # purchased, manual, docked, and empty; anything else (in transit,
@@ -2720,6 +2802,7 @@ def get_state():
         "seen_first_automation_callout": seen_first_automation_callout,
         "seasonal_demand": {"enabled": seasonal_demand_enabled, "ticks": season_ticks},
         "cross_system_units": cross_system_units,
+        "trade_posts": list(trade_posts),
         "stockpile": {good: units for good, units in stockpile.items() if units},
         "route_hazards": {
             "hazards": route_hazards_enabled,
@@ -2753,6 +2836,13 @@ def load_state(data):
         units = stockpile_raw.get(good) if isinstance(stockpile_raw, dict) else None
         valid = isinstance(units, int) and not isinstance(units, bool) and 0 <= units <= STOCKPILE_CAPACITY
         stockpile[good] = units if valid else 0
+
+    posts_raw = data.get("trade_posts")
+    trade_posts[:] = []
+    if isinstance(posts_raw, list):
+        for label in posts_raw:
+            if isinstance(label, str) and label in TRADE_POST_SYSTEMS and label not in trade_posts:
+                trade_posts.append(label)
 
     hazards_raw = data.get("route_hazards")
     if not isinstance(hazards_raw, dict):
@@ -2869,6 +2959,7 @@ def setup():
     document.getElementById("seasonal-demand-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_seasonal_demand)
     )
+    document.getElementById("trade-post-button").addEventListener("click", create_proxy(on_build_trade_post))
     for good in SELL_PRICE:
         buy_button = document.getElementById(f"stockpile-{good}-buy-button")
         if buy_button is not None:

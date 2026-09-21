@@ -36,6 +36,8 @@ ELEMENT_IDS = [
     "seasonal-demand-toggle-button",
     "seasonal-demand-status",
     "diplomacy-status",
+    "trade-post-button",
+    "trade-post-status",
     "route-hazards-toggle-button",
     "route-insurance-toggle-button",
     "route-hazards-status",

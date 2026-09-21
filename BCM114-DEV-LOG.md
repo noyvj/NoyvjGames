@@ -490,3 +490,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Trade Empire
 **Did:** Added per-good stockpiles (buy 5 at the current price, capped at 15, sell all less a 10% fee) with symmetric price impact and no effect on trade-sale stats, so a crash-then-recovery cycle can profit but a flat market loses to the fee; per-good validated save field.
 **Result:** Suite 329 passing, flake8 clean; verified live.
+
+### 2026-09-21 (Trade Empire: player-run trade posts, J17)
+**Game:** Trade Empire
+**Did:** Added passive-income trade posts (one per reachable star system, 400 credits, 2 credits per tick) unlocked once every automation slot is in use; income isn't counted as a sale; per-entry validated save field.
+**Result:** Suite 336 passing, flake8 clean; verified live.

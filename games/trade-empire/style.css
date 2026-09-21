@@ -1607,3 +1607,7 @@ button.secondary:disabled::after {
 /* J9 market speculation */
 .stockpile-controls { margin: 4px 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .stockpile-status { font-size: 0.8em; opacity: 0.8; }
+
+/* J17 trade posts */
+.trade-post { margin: 6px 0; }
+.trade-post .map-caption { margin: 4px 0 0; }

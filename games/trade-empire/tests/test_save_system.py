@@ -36,6 +36,7 @@ def test_get_state_includes_every_expected_key(game_env):
         "cross_system_units",
         "route_hazards",
         "stockpile",
+        "trade_posts",
         "achievements_earned",
     }
 
