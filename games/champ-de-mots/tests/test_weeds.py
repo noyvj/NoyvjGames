@@ -115,3 +115,25 @@ def test_the_legend_mentions_weeds(game_env):
     module = game_env.module
     module.render_legend()
     assert module.WEEDS_ICON in game_env.elements["legend"].innerText
+
+
+def test_weeds_confusions_name_the_lookalike_for_travailler(game_env):
+    module, state = game_env.module, game_env.state
+    plot = _travailler_plot(state)
+    assert module.weeds_confusions_for(plot) == ["travel"]
+
+
+def test_the_tooltip_names_the_lookalike_only_while_in_the_weeds(game_env):
+    module, state = game_env.module, game_env.state
+    plot = _travailler_plot(state)
+    assert "Easy to mix up with" not in module._plot_title(plot)
+    plot.in_weeds = True
+    title = module._plot_title(plot)
+    assert "Easy to mix up with: “travel”" in title
+
+
+def test_a_plot_with_no_table_entry_gets_no_lookalike_note(game_env):
+    module, state = game_env.module, game_env.state
+    plot = next(p for p in state.plots if module.weeds_confusions_for(p) == [])
+    plot.in_weeds = True
+    assert "Easy to mix up" not in module._plot_title(plot)

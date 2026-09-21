@@ -600,3 +600,7 @@ A one-line tally (`#practice-confidence-stats`) shows how often the player's "Su
 ## L10: gender drill accuracy line (2026-09-21)
 
 When the open question is a gender-tag question, a line under it (`#gender-accuracy-display`) shows the drill's running accuracy, e.g. "Gender drill so far: 2/3 right (67%)". It reads `practice_ledger["gender"]` (the Milestone 35 ledger, so it's saved and consistent with the dashboard's per-mode numbers) via `gender_drill_accuracy_text()`; it stays hidden for other question types and before the first answer. Suite 568 passing (2 new tests in `tests/test_gender_tag.py`). Not separately checked in a browser (same display pattern as L6/L8).
+
+## L18: weeds tooltip names the look-alike (2026-09-21)
+
+`weeds_confusions_for(plot)` looks the plot's own French and English text up in `WEED_CONFUSIONS` (the table that puts plots in the weeds) and `_plot_title()` appends "Easy to mix up with: “x”" while the plot is in the weeds and the table has an entry. It names the table's known look-alikes rather than storing which specific wrong answer the player typed, which would need a save-shape change (`get_state()` per-plot record). Suite 571 passing (3 new tests in `tests/test_weeds.py`). Not separately browser-checked (tooltip text only).

@@ -415,3 +415,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Le Champ de Mots
 **Did:** Showed the gender-tagging drill's running accuracy under gender questions, read from the existing practice ledger so it matches the dashboard.
 **Result:** Suite 568/568 passing, flake8 clean; not separately browser-checked.
+
+### 2026-09-21 (Le Champ de Mots: weeds look-alike note, L18)
+**Game:** Le Champ de Mots
+**Did:** A plot in the weeds now names, in its hover text, the look-alike word from the game's own confusion table. Deliberately reads the table instead of recording what was typed, to avoid a save-shape change.
+**Result:** Suite 571/571 passing, flake8 clean; tooltip text not separately browser-checked.

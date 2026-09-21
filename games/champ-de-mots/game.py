@@ -2723,12 +2723,28 @@ def _plot_classes(plot):
     return " ".join(classes)
 
 
+def weeds_confusions_for(plot):
+    """L18 -- the specific look-alike(s) a weeds plot is likely being mixed
+    up with, from the same WEED_CONFUSIONS table that put it in the weeds.
+    Sorted so the note is stable; empty when the table has no entry."""
+    found = set()
+    for item in plot.items:
+        for key in ("fr", "en"):
+            text = item.get(key)
+            if text:
+                found |= WEED_CONFUSIONS.get(normalize_answer(str(text), fold_accents=False), set())
+    return sorted(found)
+
+
 def _plot_title(plot):
     parts = [f"{plot.label} — {plot.topic_title}", STAGE_LABEL[plot.stage].split(" — ")[0]]
     if plot.stage == STAGE_AUTOMATED:
         parts.append(AUTOMATED_TOOLTIP_NOTE)
     if plot.in_weeds:
         parts.append(WEEDS_TOOLTIP_NOTE)
+        confusions = weeds_confusions_for(plot)
+        if confusions:
+            parts.append("Easy to mix up with: " + ", ".join(f"\u201c{c}\u201d" for c in confusions))
     if is_due(plot, state.current_day):
         parts.append(DUE_NOTE)
     return " · ".join(parts)
