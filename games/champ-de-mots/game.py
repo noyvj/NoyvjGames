@@ -3327,6 +3327,28 @@ REVIEW_NUDGE_DAYS = 1
 
 GRAMMAR_REVIEW_PREFERRED_VARIANTS = (V_BLANK_WORD, V_CONJUGATION_SWAP, V_BLANK_ENDING)
 
+# L17 -- the mixed review marathon: a long session across the whole farm
+# (every topic type, any row), pulling plots that are due. Plots that have
+# been watered before come first, most overdue at the top; plots that were
+# never watered fill any remaining slots, so a mature farm gets a genuine
+# catch-up session and a brand-new farm still gets something to do.
+MARATHON_MODE = "marathon"
+MARATHON_COUNT = 40
+MARATHON_EMPTY_MESSAGE = (
+    "Nothing is due for a marathon right now — come back once more plots are ready "
+    "for water, or use a Random Word or Grammar Review."
+)
+
+
+def marathon_candidates(farm=None, day=None):
+    farm = state if farm is None else farm
+    day = farm.current_day if day is None else day
+    due = [p for p in farm.plots if is_due(p, day)]
+    watered = sorted((p for p in due if p.last_reviewed is not None), key=lambda p: p.next_due)
+    never = [p for p in due if p.last_reviewed is None]
+    return (watered + never)[:MARATHON_COUNT]
+
+
 REVIEW_SUMMARY_MESSAGE = "Review complete — {correct}/{total} correct."
 REVIEW_EMPTY_MESSAGE = (
     "Nothing matches those filters yet — try a lower minimum stage, "
@@ -3412,7 +3434,7 @@ def _review_variant_for(plot, mode):
     conjugation prompts"): if the plot can produce one of those variants,
     roll among just those; otherwise (word review, or a grammar plot that
     can't offer one) let generate_question() pick from its full pool."""
-    if mode != "grammar":
+    if mode != "grammar" and not (mode == MARATHON_MODE and plot.topic_type == "grammar"):
         return None
     preferred = [v for v in variants_for(plot) if v in GRAMMAR_REVIEW_PREFERRED_VARIANTS]
     return QUESTION_RNG.choice(preferred) if preferred else None
@@ -3446,12 +3468,18 @@ def start_review(mode, event=None):
     own in-page controls (§14.4: both configurable, not fixed)."""
     global review_mode, review_queue, review_index, review_score
 
-    topic_types = {"vocab", "phrase"} if mode == "word" else {"grammar"}
-    candidates = review_candidates(topic_types, _review_min_stage_setting())
-    candidates = _interleave_by_stage(candidates, REVIEW_RNG)
+    if mode == MARATHON_MODE:
+        # Ignores the count and minimum-stage controls on purpose: the point
+        # is "everything that's due", ordered by how overdue it is.
+        review_mode = mode
+        review_queue = [p.plot_id for p in marathon_candidates()]
+    else:
+        topic_types = {"vocab", "phrase"} if mode == "word" else {"grammar"}
+        candidates = review_candidates(topic_types, _review_min_stage_setting())
+        candidates = _interleave_by_stage(candidates, REVIEW_RNG)
 
-    review_mode = mode
-    review_queue = [p.plot_id for p in candidates[: _review_count_setting()]]
+        review_mode = mode
+        review_queue = [p.plot_id for p in candidates[: _review_count_setting()]]
     review_index = 0
     review_score = {"correct": 0, "total": 0}
     _advance_review_question()
@@ -3575,6 +3603,10 @@ def on_start_grammar_review(event=None):
     start_review("grammar")
 
 
+def on_start_marathon_review(event=None):
+    start_review(MARATHON_MODE)
+
+
 def _make_review_choice_handler(choice):
     def handler(event=None):
         submit_review_answer(choice)
@@ -3619,7 +3651,7 @@ def render_review():
             # Session started, but nothing matched the filters.
             panel.hidden = True
             empty_message.hidden = False
-            empty_message.innerText = REVIEW_EMPTY_MESSAGE
+            empty_message.innerText = MARATHON_EMPTY_MESSAGE if review_mode == MARATHON_MODE else REVIEW_EMPTY_MESSAGE
             summary.hidden = True
             return
         # Queue exhausted -- show the score, nothing else.
@@ -4685,6 +4717,9 @@ def setup():
     _element("review-word-button").addEventListener("click", create_proxy(on_start_word_review))
     _element("review-grammar-button").addEventListener(
         "click", create_proxy(on_start_grammar_review)
+    )
+    _element("review-marathon-button").addEventListener(
+        "click", create_proxy(on_start_marathon_review)
     )
     _element("review-submit-button").addEventListener(
         "click", create_proxy(on_review_submit_typed)

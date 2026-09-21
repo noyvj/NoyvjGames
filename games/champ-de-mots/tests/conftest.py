@@ -143,6 +143,7 @@ ELEMENT_IDS = [
     "review-min-stage-select",
     "review-word-button",
     "review-grammar-button",
+    "review-marathon-button",
     "review-empty-message",
     "review-panel",
     "review-progress",

@@ -445,3 +445,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Le Champ de Mots
 **Did:** Added a transparency explainer for the spaced-repetition scheduler under the Progress dashboard, generated from the real scheduling constants.
 **Result:** Suite passing, flake8 clean; verified live with no unexpected console errors.
+
+### 2026-09-21 (Le Champ de Mots: mixed review marathon, L17)
+**Game:** Le Champ de Mots
+**Did:** Built the "very important" mixed review marathon as a third Review-tab mode: up to 40 due plots from anywhere on the farm, most overdue first, reusing the existing Review flow with no new saved state.
+**Result:** Suite 586 passing, flake8 clean; verified live.
