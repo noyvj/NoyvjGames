@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 475/747 items checked off (63.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 476/747 items checked off (63.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -712,7 +712,7 @@ Every idea in this section was accepted, no exceptions.
 - [x] J14: A small badge for a ship completing N round trips on the same route — a "veteran hauler" marker.
 - [x] J15 **("I do love extensive research trees," per your note):** A "research specialization" branch — choose between an automation-focused or market-focused research path once the tree grows large enough.
 - [x] J16: Let the endgame galaxy-dot canvas respond to mouse hover with a small info tooltip per dot.
-- [ ] J17: A "player-run trade post" mechanic — once automation is maxed, establish a passive trade post generating income without an assigned ship.
+- [x] J17: A "player-run trade post" mechanic — once automation is maxed, establish a passive trade post generating income without an assigned ship.
 - [x] J18: A tooltip on the automate button reminding the player automation is a one-time, non-reversible choice per ship.
 - [ ] J19: A "colony rebellion/loyalty" mechanic — chronically under-served colonies occasionally demand a one-time concession.
 - [x] J20: Let the market-crashed styling include a small recovery-ETA estimate in its tooltip.
