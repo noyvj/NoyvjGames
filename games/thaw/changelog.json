@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-21",
+    "entry": "Settings panel: added a \"Reset to Default\" button that resets text size and reduce-motion back to their defaults in one click (site-wide goal, folded from A26)."
+  },
+  {
+    "date": "2026-09-21",
     "entry": "Fixed a region's strategy-label text box overflowing the screen edge on narrow phones."
   },
   {

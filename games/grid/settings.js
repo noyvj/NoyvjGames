@@ -128,6 +128,17 @@
         reduced = applyMotion(motionCheckbox.checked);
       });
     }
+
+    const settingsResetButton = document.getElementById("settings-reset-button");
+    if (settingsResetButton) {
+      settingsResetButton.addEventListener("click", function () {
+        scale = applyScale(DEFAULT_SCALE);
+        reduced = applyMotion(false);
+        if (motionCheckbox) {
+          motionCheckbox.checked = false;
+        }
+      });
+    }
   }
 
   if (document.readyState === "loading") {

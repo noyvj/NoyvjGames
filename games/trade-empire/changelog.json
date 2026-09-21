@@ -1,4 +1,5 @@
 [
+  { "date": "2026-09-21", "entry": "Settings panel: added a \"Reset to Default\" button that resets text size and reduce-motion back to their defaults in one click (site-wide goal, folded from A26)." },
   { "date": "2026-09-21", "entry": "Colony loyalty: a colony left badly under-supplied for a long stretch now asks for a one-time concession (80 credits to restore 30% satisfaction). Ignoring it costs nothing; it just lapses and only returns after a cooldown." },
   { "date": "2026-09-21", "entry": "The map now shows a brief pulse when a ship leaves a colony (a ring growing outward) or arrives at one (a ring closing in). Nothing is drawn if you have reduced motion on." },
   { "date": "2026-09-21", "entry": "Trade posts: once every automation slot is in use you can establish a trade post in each reachable star system (400 credits each), earning 2 credits per tick with no ship needed." },

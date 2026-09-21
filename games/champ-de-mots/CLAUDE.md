@@ -674,3 +674,22 @@ over time, accented or not.
 
 **Le Champ de Mots has no difficulty/hard-mode toggle that gates
 achievement reachability — not applicable.** No code touched.
+
+## Z-extra/A26: reset-to-default settings button (2026-09-21)
+
+A "Reset to Default" button (`#settings-reset-button`) sits at the bottom
+of the Settings panel, below the visual-style control row — SOL's own A26
+answer flagged a settings reset as a site-wide pattern rather than a
+SOL-only feature, folded into `planning/TODO.md`'s Z-extra checklist. This
+game's own Settings panel only ever carried the Milestone 32 visual-style
+switcher (no text-scale/reduce-motion controls exist here — those were
+never built for this game), so "reset to default" means one thing:
+`applyStyle(DEFAULT_STYLE)`, returning the page to High-def. Implemented
+entirely in `visual-style.js` (no Python touched, same "independent of
+Pyodide" rule the rest of this file's visual-style build notes already
+establish) — one click updates `data-visual-style` on `<html>` and every
+style button's `aria-pressed` state immediately, and writes `"highdef"`
+back to `localStorage` so the reset survives a reload rather than only
+looking reset until the next render. No confirmation dialog — this is a
+low-stakes, instantly-reversible display preference, not a destructive
+action, so `shared/confirm-dialog.js` is deliberately not wired up here.

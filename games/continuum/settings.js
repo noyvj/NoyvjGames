@@ -170,6 +170,15 @@
         updateMotionLabel();
       });
     }
+
+    var settingsResetButton = document.getElementById("settings-reset-button");
+    if (settingsResetButton) {
+      settingsResetButton.addEventListener("click", function () {
+        scale = applyScale(DEFAULT_SCALE);
+        reduced = applyMotion(false);
+        updateMotionLabel();
+      });
+    }
   }
 
   if (document.readyState === "loading") {

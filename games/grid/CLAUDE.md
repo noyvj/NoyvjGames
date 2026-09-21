@@ -145,6 +145,11 @@ cache-busting the stylesheet `<link>` directly (a fresh `?v=` query on its
 quirk — not a defect in the shipped code, the same environment hazard
 Continuum's, SOL's, and Canopy's own build notes already document.
 
+
+## Reset-to-default settings button (Z-extra/A26, site-wide goal)
+
+A "Reset to Default" button (`#settings-reset-button`) sits at the bottom of the settings panel, below the existing text-size and reduce-motion controls -- SOL's own A26 answer flagged this as a site-wide pattern rather than a SOL-only feature, folded into `planning/TODO.md`'s Z-extra checklist. Implemented entirely in `settings.js` (no Python touched, matching this file's own "deliberately independent of Pyodide" rule for the rest of the settings panel): one click calls `applyScale(DEFAULT_SCALE)` and `applyMotion(false)`, updates `--text-scale`/`data-text-scale`/`data-reduced-motion` on the live DOM immediately, resets the reduce-motion checkbox's own `checked` state to match, and writes both defaults back to `localStorage` so the reset survives a reload rather than only looking reset until the next render. No confirmation dialog -- this is a low-stakes, instantly-reversible display preference, not a destructive action, so `shared/confirm-dialog.js` is deliberately not wired up here.
+
 ## Shared confirmation-dialog integration (C14, site-wide goal)
 
 Retiring a plant type's very last unit now routes through

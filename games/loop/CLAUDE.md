@@ -260,6 +260,11 @@ AdSense-iframe CSP notice are both already present on the unmodified page.
 Full pytest suite (151 tests, unchanged — `settings.js` is plain frontend JS
 with no Python surface) stayed green throughout.
 
+
+## Reset-to-default settings button (Z-extra/A26, site-wide goal)
+
+A "Reset to Default" button (`#settings-reset-button`) sits at the bottom of the settings panel, below the existing text-size and reduce-motion controls -- SOL's own A26 answer flagged this as a site-wide pattern rather than a SOL-only feature, folded into `planning/TODO.md`'s Z-extra checklist. Implemented entirely in `settings.js` (no Python touched, matching this file's own "deliberately independent of Pyodide" rule for the rest of the settings panel): one click calls `applyScale(DEFAULT_SCALE)` and `applyMotion(false)`, updates `--text-scale`/`data-text-scale`/`data-reduced-motion` on the live DOM immediately, resets the reduce-motion checkbox's own `checked` state to match, and writes both defaults back to `localStorage` so the reset survives a reload rather than only looking reset until the next render. No confirmation dialog -- this is a low-stakes, instantly-reversible display preference, not a destructive action, so `shared/confirm-dialog.js` is deliberately not wired up here.
+
 ## Onboarding-tooltip coverage check (site-wide goal, planning/TODO.md, origin A14)
 
 Checked whether a returning player who skipped/forgot the tutorial has anything in the PERMANENT UI (not the one-time walkthrough, not the always-reachable How to Play panel) explaining this game's non-obvious controls on demand. Loop already leans heavily on the `<details class="info-toggle"><summary>i</summary>...</details>` pattern — permanent, always-visible disclosure widgets sitting right next to the Environmental damage meter, the Loop closure meter, the score breakdown, the Circularity investments row, and the Trade network row — so most of the game already self-explains.

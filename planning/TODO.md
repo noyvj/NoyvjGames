@@ -278,19 +278,19 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [ ] Trade Empire (J28's callout, see per-game section)
   - [ ] Continuum
   - [ ] Le Champ de Mots
-- [ ] Z-extra (folded from A26): a "reset settings to default" button inside every game's settings panel — SOL's A26 flagged this as a site-wide pattern, not SOL-only:
-  - [ ] SOL
-  - [ ] Canopy
-  - [ ] Grid
-  - [ ] Tide
-  - [ ] Aftermath
-  - [ ] Herd
-  - [ ] Thaw
-  - [ ] Loop
-  - [ ] Drift
-  - [ ] Trade Empire
-  - [ ] Continuum
-  - [ ] Le Champ de Mots
+- [x] Z-extra (folded from A26): a "reset settings to default" button inside every game's settings panel — SOL's A26 flagged this as a site-wide pattern, not SOL-only:
+  - [x] SOL
+  - [x] Canopy
+  - [x] Grid
+  - [x] Tide
+  - [x] Aftermath
+  - [x] Herd
+  - [x] Thaw
+  - [x] Loop
+  - [x] Drift
+  - [x] Trade Empire
+  - [x] Continuum
+  - [x] Le Champ de Mots
 - [ ] Z-extra (folded from A10): an achievement-progress bar (X/N) visible in every game's toolbar itself, not only after opening the achievements panel — SOL's A10 flagged this as a site-wide pattern:
   - [ ] SOL
   - [ ] Canopy
@@ -389,7 +389,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] A23: A "planet specialization" system — a fully-developed planet leans into one resource type for a production bonus.
 - [x] A24: Surface the exact prestige-bonus percentage next to resource-gain numbers, not only in the Stats panel.
 - [ ] A25: A "story mode" toggle surfacing existing flavor text more prominently as a light narrative thread.
-- [ ] A26 → folded into Z (see "Games" section above): "reset settings to default" button, site-wide.
+- [x] A26 → folded into Z (see "Games" section above): "reset settings to default" button, site-wide.
 - [x] A27: A proper end-game "epilogue" screen once every planet is 100% terraformed, beyond the current banner.
 - [x] A28: Let the Sky City info-toggle state the exact Mars-material cost ratio.
 - [ ] A29: A community leaderboard for fastest full completion, opt-in *(needs Z1)*.

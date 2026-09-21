@@ -211,6 +211,13 @@
         });
       }
     });
+
+    const settingsResetButton = document.getElementById("settings-reset-button");
+    if (settingsResetButton) {
+      settingsResetButton.addEventListener("click", function () {
+        current = applyStyle(DEFAULT_STYLE);
+      });
+    }
   }
 
   if (document.readyState === "loading") {

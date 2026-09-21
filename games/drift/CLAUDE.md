@@ -102,6 +102,11 @@ A new `⚙️ Settings` toggle button in the toolbar (after the difficulty toggl
 
 Verified live: toggling both controls updates the page immediately with zero console errors, and both settings survive a full page reload via `localStorage`. Full pytest suite (248 tests) unaffected — this feature touches no Python.
 
+
+## Reset-to-default settings button (Z-extra/A26, site-wide goal)
+
+A "Reset to Default" button (`#settings-reset-button`) sits at the bottom of the settings panel, below the existing text-size and reduce-motion controls -- SOL's own A26 answer flagged this as a site-wide pattern rather than a SOL-only feature, folded into `planning/TODO.md`'s Z-extra checklist. Implemented entirely in `settings.js` (no Python touched): one click calls `applyScale(DEFAULT_SCALE)` and `applyMotion(false)`, updates `--text-scale`/`data-text-scale` and the `.reduce-motion` class on `<html>` immediately, refreshes the Reduce Motion button's own label/active state via `updateMotionLabel()`, and writes both defaults back to `localStorage` so the reset survives a reload. No confirmation dialog -- this is a low-stakes, instantly-reversible display preference, not a destructive action, so `shared/confirm-dialog.js` is deliberately not wired up here.
+
 ## "What's New" changelog panel (implemented)
 
 Site-wide goal (`planning/TODO.md`, origin K16): a small `changelog.json`

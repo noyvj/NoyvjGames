@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-21",
+    "entry": "Settings panel: added a \"Reset to Default\" button that resets text size and reduce-motion back to their defaults in one click (site-wide goal, folded from A26)."
+  },
+  {
+    "date": "2026-09-21",
     "entry": "The Report Card is now print-friendly: printing the page (e.g. Ctrl/Cmd+P) while it's open hides the site chrome and renders it in clean dark-on-white, instead of the site's usual dark theme and UI."
   },
   {
