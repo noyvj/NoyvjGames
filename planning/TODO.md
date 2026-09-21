@@ -82,12 +82,12 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [ ] Migrate Continuum's existing ongoing-log to it
   - [ ] Build Thaw's proposed scientist's-log (G19) on it
   - [ ] Build Le Champ de Mots' report-confirmation flow (L14) on it
-- [ ] Z12: A quick audit confirming the achievements/settings/changelog toggle buttons land in a consistent order/position across every game's toolbar. Audited via `grep` across every game's `index.html`: 11/12 already consistent (Tutorial -> How to Play -> [Info Page ->] Achievements -> Changelog -> [game-specific toggles] -> Settings always last, whether in one `.game-toolbar` or split across two adjacent ones like Grid/Tide's difficulty-toggle row). **Aftermath was the one real outlier** (Settings landed in the first toolbar near the top, Achievements/Changelog got stranded in a second toolbar after a block of narrative content) — fix dispatched separately, see its own line below.
+- [x] Z12: A quick audit confirming the achievements/settings/changelog toggle buttons land in a consistent order/position across every game's toolbar. Audited via `grep` across every game's `index.html`: 11/12 already consistent (Tutorial -> How to Play -> [Info Page ->] Achievements -> Changelog -> [game-specific toggles] -> Settings always last, whether in one `.game-toolbar` or split across two adjacent ones like Grid/Tide's difficulty-toggle row). **Aftermath was the one real outlier** (Settings landed in the first toolbar near the top, Achievements/Changelog got stranded in a second toolbar after a block of narrative content) — fixed, commit `b49bed3`, 246/246 tests, verified live.
   - [x] SOL
   - [x] Canopy
   - [x] Grid
   - [x] Tide
-  - [x] Aftermath (real inconsistency found — fix in progress, see AI-COORDINATION.md)
+  - [x] Aftermath (real inconsistency found and fixed — commit `b49bed3`)
   - [x] Herd
   - [x] Thaw
   - [x] Loop
