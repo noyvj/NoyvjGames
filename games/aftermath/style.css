@@ -809,10 +809,6 @@ button.primary:disabled {
   content: "🔓 ";
 }
 
-#info-page-toggle-button::before {
-  content: "📖 ";
-}
-
 /* ============================================================
    Design pass 2 — embed controls & readouts into the console
    (2026-09-06). Mirrors the technique piloted in games/sol/style.css
