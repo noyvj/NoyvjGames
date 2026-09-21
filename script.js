@@ -183,6 +183,61 @@ async function loadLastUpdatedBadges() {
 
 loadLastUpdatedBadges();
 
+// --- "Last played" badge per title card (TODO.md Z2/Z14) ---
+//
+// Distinct from the "Updated" badge above: that one is sourced from git
+// history and is the same for every visitor; this one is read from
+// `localStorage["last-played:<slug>"]`, stamped by `shared/last-played.js`
+// on every game page load (see that file's own header comment), so it's
+// per-browser and simply absent until the player has actually opened that
+// game at least once in this browser -- no badge renders for a game never
+// visited here, rather than a misleading "never" or a fabricated date.
+function relativeLastPlayedText(timestampMs) {
+  const diffMs = Date.now() - timestampMs;
+  const diffMinutes = Math.floor(diffMs / 60000);
+  if (diffMinutes < 1) return "Last played just now";
+  if (diffMinutes < 60) return `Last played ${diffMinutes} minute${diffMinutes === 1 ? "" : "s"} ago`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `Last played ${diffHours} hour${diffHours === 1 ? "" : "s"} ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) return "Last played yesterday";
+  if (diffDays < 30) return `Last played ${diffDays} days ago`;
+  const diffMonths = Math.floor(diffDays / 30);
+  if (diffMonths < 12) return `Last played ${diffMonths} month${diffMonths === 1 ? "" : "s"} ago`;
+  const diffYears = Math.floor(diffMonths / 12);
+  return `Last played ${diffYears} year${diffYears === 1 ? "" : "s"} ago`;
+}
+
+function loadLastPlayedBadges() {
+  document.querySelectorAll(".title-card").forEach((card) => {
+    const slug = card.querySelector(".review-widget")?.dataset.gameSlug;
+    if (!slug) return;
+    let raw;
+    try {
+      raw = localStorage.getItem("last-played:" + slug);
+    } catch (err) {
+      // Private-browsing mode or storage disabled -- degrade silently,
+      // same as loadLastUpdatedBadges()'s own fetch-failure handling.
+      return;
+    }
+    const timestampMs = raw && Number(raw);
+    if (!timestampMs) return;
+    // Inserted right after the tags row, same anchor loadLastUpdatedBadges()
+    // itself uses -- NOT chained off .title-card-updated, since that badge
+    // is filled in asynchronously (after a fetch) and might not exist yet
+    // when this runs; anchoring both badges independently off the same
+    // synchronous element avoids a render-order race between the two.
+    const tagsRow = card.querySelector(".title-card-tags");
+    const badge = document.createElement("p");
+    badge.className = "title-card-last-played";
+    badge.textContent = relativeLastPlayedText(timestampMs);
+    if (tagsRow) tagsRow.insertAdjacentElement("afterend", badge);
+    else card.querySelector(".title-card-link")?.appendChild(badge);
+  });
+}
+
+loadLastPlayedBadges();
+
 // --- Hub lobby search/tag filter (TODO.md "hub lobby improvements", L11/L12) ---
 //
 // Tag taxonomy decision (documented here rather than left implicit, same

@@ -24,19 +24,19 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 
 **Every item below that applies "to every game" is broken into one checkbox per game, on purpose — so a rollout can't silently skip one the way a single flat checkbox could hide.** The 12-game list, in the usual order: SOL, Canopy, Grid, Tide, Aftermath, Herd, Thaw, Loop, Drift, Trade Empire, Continuum, Le Champ de Mots.
 
-- [ ] Z2: A consistent "last played" per-game timestamp, client-side, surfaced on hub title cards (distinct from the "last updated" site badge).
-  - [ ] SOL
-  - [ ] Canopy
-  - [ ] Grid
-  - [ ] Tide
-  - [ ] Aftermath
-  - [ ] Herd
-  - [ ] Thaw
-  - [ ] Loop
-  - [ ] Drift
-  - [ ] Trade Empire
-  - [ ] Continuum
-  - [ ] Le Champ de Mots
+- [x] Z2: A consistent "last played" per-game timestamp, client-side, surfaced on hub title cards (distinct from the "last updated" site badge). Built on Z14's shared helper: `shared/last-played.js` (one `<script>` include per game, same `data-game-id` convention as `save-widget.js`) stamps `localStorage["last-played:<slug>"]` on every page load; the hub's `script.js`/`loadLastPlayedBadges()` reads all 12 keys back and renders a `.title-card-last-played` badge (relative time — "just now" / "N minutes/hours/days/months/years ago") right under each card's existing "Updated" badge. Absent entirely for a game never opened in this browser, rather than a fabricated "never" date. Live-verified: badge appears with correct relative text after visiting a game, stays absent for an unvisited one, zero console errors.
+  - [x] SOL
+  - [x] Canopy
+  - [x] Grid
+  - [x] Tide
+  - [x] Aftermath
+  - [x] Herd
+  - [x] Thaw
+  - [x] Loop
+  - [x] Drift
+  - [x] Trade Empire
+  - [x] Continuum
+  - [x] Le Champ de Mots
 - [ ] Z4: A consistent keyboard-shortcut convention (`?` for help, `Esc` to close any open panel) — first decide the shared convention, then audit/align each game:
   - [ ] Decide the shared convention (which keys, which actions)
   - [ ] SOL
@@ -96,7 +96,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [x] Continuum
   - [x] Le Champ de Mots
 - [ ] Z13: A real "onboarding survey" — a single optional first-visit prompt (subjects of interest, quick vs. deep games) feeding the hub lobby's tag-filter defaults.
-- [ ] Z14: A shared "time since last played" freshness-badge helper (groundwork for Z2).
+- [x] Z14: A shared "time since last played" freshness-badge helper (groundwork for Z2). Built as `shared/last-played.js` (the timestamp-stamper) + `script.js`'s `relativeLastPlayedText()` (the formatter, hub-side since it's the hub, not each game, that renders the freshness text). See Z2 for the full build note.
 - [x] Z15: A genuine screen-reader accessibility audit (ARIA labels, focus order) across at least the achievements/settings panels. Static-analysis method (grep/read, no live screen reader available in this environment — same precedent as the colorblind-safety audits). One real, concrete gap found and fixed across 4 games (SOL/Canopy/Grid/Tide's settings-panel title was a plain `<p>`, invisible to a screen reader's heading-navigation mode — changed to `<h2>`, CSS unaffected). Everything else audited clean site-wide: both toggle buttons already have descriptive visible text (no `aria-label` needed), no clickable `<div>`s anywhere (grepped for `.onclick =` — none found, all interactive elements are real `<button>`/`<input>`), every checkbox is properly `<label for=...>`-associated, and no focus-trap issue exists since clicking a toggle button never moves focus away from itself. See each game's own CLAUDE.md "Screen-reader accessibility audit" section for the per-game detail.
   - [x] SOL — fixed: settings-panel heading `<p>` → `<h2>`.
   - [x] Canopy — fixed: settings-panel heading `<p>` → `<h2>`.

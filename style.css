@@ -664,6 +664,20 @@ body {
   letter-spacing: 0.03em;
 }
 
+/* "Last played" badge per title card (TODO.md Z2/Z14) -- distinct from
+   .title-card-updated above: that one says when the GAME last changed
+   (git history, same for everyone); this one says when THIS PLAYER, in
+   THIS BROWSER, last opened it (localStorage, per-browser, absent until
+   the player has actually visited that game once). Same visual weight as
+   the updated badge so neither reads as more/less important than the
+   other -- they answer two genuinely different questions. */
+.title-card-last-played {
+  font-size: 0.68rem;
+  opacity: 0.45;
+  margin: 0.15rem 0 0;
+  letter-spacing: 0.03em;
+}
+
 .tag-pill {
   font-size: 0.68rem;
   padding: 0.22rem 0.6rem;
