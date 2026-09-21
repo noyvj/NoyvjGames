@@ -3233,21 +3233,123 @@ def _load_session_additions(data):
             state["specialization"] = None
 
 
+# V-CD-4 (planning/TODO.md, from the completion audit's A3 follow-up):
+# the welcome-back toast's "last time" reference point, persisted PER
+# BROWSER via localStorage -- deliberately NOT part of get_state()/the
+# save-code payload, since a save code is meant to be portable across
+# devices/browsers while "what this browser last saw" is a per-browser
+# fact, not a save-state fact. Same lazy `import js`/getattr-defaulting
+# pattern as Canopy's personal_best / Tide's best_coastline_saved
+# (`_read_local_storage_item()`/`_write_local_storage_item()`), SOL's
+# first use of Python-side localStorage (settings.js's text-scale/
+# reduced-motion prefs use the same storage but from plain JS, outside
+# Pyodide entirely).
+WELCOME_BACK_SNAPSHOT_STORAGE_KEY = "sol_welcome_back_snapshot_v1"
+
+
+def _read_local_storage_item(key):
+    """Broad except on the actual read is deliberate: a real browser can
+    refuse localStorage access entirely (private-browsing mode in some
+    browsers), surfaced as a JS exception with no stable Python type to
+    catch narrowly -- this feature is a nice-to-have, not core gameplay,
+    so it degrades to "nothing stored" rather than crashing the toast."""
+    try:
+        import js  # noqa: PLC0415 — Pyodide-only import, deliberately lazy
+    except ImportError:
+        return None
+    storage = getattr(js, "localStorage", None)
+    if storage is None:
+        return None
+    try:
+        return storage.getItem(key)
+    except Exception:  # noqa: BLE001 — see docstring above
+        return None
+
+
+def _write_local_storage_item(key, value):
+    try:
+        import js  # noqa: PLC0415
+    except ImportError:
+        return
+    storage = getattr(js, "localStorage", None)
+    if storage is None:
+        return
+    try:
+        storage.setItem(key, value)
+    except Exception:  # noqa: BLE001 — see _read_local_storage_item's docstring
+        pass
+
+
+def _load_welcome_back_snapshot():
+    """Reads the (worlds_visited, achievements_earned) pair this browser
+    recorded the last time a save loaded here. Returns None if nothing is
+    stored yet, storage is unavailable, or the stored value is
+    malformed."""
+    raw = _read_local_storage_item(WELCOME_BACK_SNAPSHOT_STORAGE_KEY)
+    if not raw:
+        return None
+    try:
+        data = json.loads(raw)
+        return {
+            "worlds_visited": int(data["worlds_visited"]),
+            "achievements_earned": int(data["achievements_earned"]),
+        }
+    except (ValueError, TypeError, KeyError):
+        return None
+
+
+def _save_welcome_back_snapshot(worlds_visited, achievements_earned):
+    _write_local_storage_item(
+        WELCOME_BACK_SNAPSHOT_STORAGE_KEY,
+        json.dumps({"worlds_visited": worlds_visited, "achievements_earned": achievements_earned}),
+    )
+
+
 def _show_welcome_back_toast():
     """A3: a "welcome back" return-visit summary toast. Fires whenever a
     save is loaded -- the only situation SOL can actually call "a
     returning player" (see load_state()/load_save_state_json() below, the
-    two entry points a loaded save ever arrives through). SOL has no
+    two entry points a loaded save ever arrives through).
+
+    Originally a static current-standing snapshot: SOL has no
     offline-production system (the project's own "no idle/wait-timer
     mechanics" rule means nothing advances while the tab is closed), so
-    there's no real "here's what changed while you were away" delta to
-    report -- this is a snapshot recap of where the save stands, using the
-    same toast mechanism as an achievement unlock."""
+    there was no real "here's what changed while you were away" delta to
+    report against the save's own numbers. Revised per V-CD-4 to a
+    genuine "+X since last time" delta by comparing this load's numbers
+    against what this same BROWSER last recorded (`_load_welcome_back_
+    snapshot()`), not the save code itself -- so the delta is meaningful
+    per browser while the save stays portable across devices. Falls back
+    to the original static wording when there's nothing sensible to
+    diff against: this browser's first-ever load (nothing stored yet),
+    or the just-loaded save's numbers sitting at or below the stored
+    snapshot (an older or different save code loaded into the same
+    browser) -- never shows a negative "-N" as though something was
+    lost. The stored snapshot is updated to this load's numbers only
+    AFTER computing the delta against the OLD stored values, so next
+    time compares against this visit, not some frozen baseline."""
+    worlds = len(visited_bodies)
     earned = len(achievement_ids_earned())
-    _display_toast(
-        f"👋 Welcome back! {len(visited_bodies)}/{len(PLANETS)} worlds visited, "
-        f"{earned}/{len(ACHIEVEMENTS)} achievements earned."
-    )
+    previous = _load_welcome_back_snapshot()
+
+    message = None
+    if previous is not None:
+        delta_worlds = worlds - previous["worlds_visited"]
+        delta_achievements = earned - previous["achievements_earned"]
+        if delta_worlds >= 0 and delta_achievements >= 0 and (delta_worlds > 0 or delta_achievements > 0):
+            message = (
+                f"👋 Welcome back! +{delta_worlds} world(s) visited, "
+                f"+{delta_achievements} achievement(s) since you were last here."
+            )
+
+    if message is None:
+        message = (
+            f"👋 Welcome back! {worlds}/{len(PLANETS)} worlds visited, "
+            f"{earned}/{len(ACHIEVEMENTS)} achievements earned."
+        )
+
+    _display_toast(message)
+    _save_welcome_back_snapshot(worlds, earned)
 
 
 def get_save_state_json():

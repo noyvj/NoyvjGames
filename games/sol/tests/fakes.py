@@ -156,3 +156,26 @@ class FakeProxy:
 
 def create_proxy(func):
     return FakeProxy(func)
+
+
+class FakeLocalStorage:
+    """Stands in for the real browser `window.localStorage` (V-CD-4's
+    welcome-back-toast delta reads/writes it via Pyodide's `js` module, the
+    same per-browser-record-outside-the-save pattern as Canopy's
+    personal_best/Tide's best_coastline_saved). Plain in-memory dict --
+    persistence across real browser sessions is exactly the one thing this
+    fake deliberately does NOT need to emulate; each test gets a fresh
+    instance via a fresh game_env fixture, same as every other piece of
+    fake browser state."""
+
+    def __init__(self):
+        self._store = {}
+
+    def getItem(self, key):
+        return self._store.get(key)
+
+    def setItem(self, key, value):
+        self._store[key] = str(value)
+
+    def removeItem(self, key):
+        self._store.pop(key, None)

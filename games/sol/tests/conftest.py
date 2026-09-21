@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from .fakes import FakeDocument, FakeElement, FakeTimers, create_proxy
+from .fakes import FakeDocument, FakeElement, FakeLocalStorage, FakeTimers, create_proxy
 
 GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 
@@ -792,10 +792,11 @@ _RESET_WORLD_BUTTON_ID = {
 class GameEnv:
     """Bundles a freshly-loaded game module with its fake DOM/timers."""
 
-    def __init__(self, module, elements, timers):
+    def __init__(self, module, elements, timers, local_storage=None):
         self.module = module
         self.elements = elements
         self.timers = timers
+        self.local_storage = local_storage
 
     @property
     def earth(self):
@@ -911,7 +912,7 @@ class GameEnv:
         sys.modules["js"].confirm = lambda message=None: value
 
 
-def _install_pyodide_fakes(elements, timers):
+def _install_pyodide_fakes(elements, timers, local_storage):
     fake_js = types.ModuleType("js")
     fake_js.document = FakeDocument(elements)
     fake_js.setTimeout = timers.setTimeout
@@ -922,6 +923,7 @@ def _install_pyodide_fakes(elements, timers):
     # existed) doesn't have to know about this to keep passing; tests for
     # the cancel path flip it via game_env.set_confirm_response(False).
     fake_js.confirm = lambda message=None: True
+    fake_js.localStorage = local_storage
 
     fake_pyodide = types.ModuleType("pyodide")
     fake_pyodide_ffi = types.ModuleType("pyodide.ffi")
@@ -950,13 +952,14 @@ def game_env():
     for id_ in INITIALLY_DISABLED_IDS:
         elements[id_].disabled = True
     timers = FakeTimers()
-    _install_pyodide_fakes(elements, timers)
+    local_storage = FakeLocalStorage()
+    _install_pyodide_fakes(elements, timers, local_storage)
 
     spec = importlib.util.spec_from_file_location("game", GAME_PY)
     module = importlib.util.module_from_spec(spec)
     sys.modules["game"] = module
     spec.loader.exec_module(module)  # runs setup() at the bottom of game.py
 
-    yield GameEnv(module, elements, timers)
+    yield GameEnv(module, elements, timers, local_storage)
 
     _remove_pyodide_fakes()

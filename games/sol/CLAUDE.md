@@ -409,6 +409,50 @@ Built from `planning/TODO.md` "Per-game: SOL". All new persistent state is in `g
 - **A19** two achievements (Close Call, Back From the Brink; 22 -> 24), historic flags + per-world pending sets, cleared on world reset/prestige.
 - Not done: A25 (SOL has no existing flavor text to surface), A29 (needs backend), A10/A22/A26 (folded into Z). Live-verified in the browser pane (overview, build plan, prestige tree, away report, floaters, stats code, compare fallback); only network errors in console.
 
+## Welcome-back toast: real delta, not a static snapshot (V-CD-4, 2026-09-21)
+
+The completion-verification audit found the original A3 idea asked for
+"what changed since last session"; what shipped was a static recap of
+current standing ("N/8 worlds visited, X achievements earned") on every
+save load, with no actual comparison against a previous visit. The
+user's answer: "real delta."
+
+SOL has no offline-production system (this project's own "no idle/wait-
+timer mechanics" rule), so there's genuinely nothing that changes purely
+from time passing — the only meaningful "since last time" comparison is
+against what THIS BROWSER last saw, not what the loaded save code
+implies (a save is portable across devices, so diffing against the save
+itself would conflate "time passed" with "you're on a different
+computer"). `_load_welcome_back_snapshot()`/`_save_welcome_back_
+snapshot()` persist a `{worlds_visited, achievements_earned}` pair to
+`localStorage` (`_read_local_storage_item()`/`_write_local_storage_item()`,
+the same lazy-`import js`/per-browser-record pattern Canopy's
+`personal_best` and Tide's `best_coastline_saved` already established —
+deliberately outside `get_state()`, since this is a per-browser fact, not
+a save-state fact) — SOL's first use of Python-side `localStorage`.
+
+`_show_welcome_back_toast()` now diffs the just-loaded numbers against
+the stored snapshot and shows "+X world(s) visited, +Y achievement(s)
+since you were last here" when both deltas are non-negative and at least
+one is positive. Falls back to the original static wording in the two
+cases where a delta wouldn't make sense: this browser's first-ever load
+(nothing stored yet), or the loaded save's numbers sitting at or below
+the stored snapshot (an older or different save code loaded into the
+same browser) — never shows a negative delta as though progress was
+lost. The stored snapshot updates to this load's numbers only AFTER
+computing the delta against the OLD values, so the next visit compares
+against this one, not a frozen baseline.
+
+Tests: 670 -> 676 (new `tests/test_welcome_back_delta.py`: first-load
+fallback, a genuine positive delta, the same-or-lower no-negative-delta
+guard, the snapshot updating correctly across two consecutive loads,
+malformed-storage defaulting, and confirming the snapshot never leaks
+into `get_state()`). A new `FakeLocalStorage` (`tests/fakes.py`) backs
+`game_env.local_storage` for these tests. flake8 clean. Verified live:
+cleared `localStorage`, confirmed the first load shows the static
+snapshot, then confirmed a second load after real progress shows the
+real "+1 world(s), +1 achievement(s)" delta, zero console errors.
+
 ## Working conventions
 - Commit + tag at the end of each milestone: `git commit -m "Milestone N: <name>"` then `git tag milestone-0N` (e.g. `milestone-09a` for lettered sub-parts of milestone 9).
 - Keep `game.py` as the single source of game logic where reasonable; split into modules only once it gets unwieldy.

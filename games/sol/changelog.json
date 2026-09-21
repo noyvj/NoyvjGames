@@ -1,5 +1,6 @@
 {
   "changelog": [
+    {"date": "2026-09-21", "entry": "The welcome-back toast now shows a real \"+X worlds, +Y achievements since you were last here\" delta for this browser, instead of just restating your current totals."},
     {"date": "2026-09-19", "entry": "Settings panel added: text size (A-/A/A+) and a reduce-motion toggle, both persisted per-browser."},
     {"date": "2026-09-19", "entry": "Colorblind-safety audit completed — no hue-only state encodings found, no change needed."},
     {"date": "2026-09-14", "entry": "TODO.md batch: Prestige/New Game+, 4 new achievements, lifetime stats & share card, Governor Report panel, research-tree diagram, terraform color shift, ecology warning banner, reset-this-world, welcome-back toast."},
