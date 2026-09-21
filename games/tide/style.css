@@ -1190,6 +1190,14 @@ button.primary:active:not(:disabled) {
   background: linear-gradient(135deg, #3a3f5c, #232538);
   color: #e8e9f0;
   font-size: 0.8rem;
+  /* Z18 320px audit: a flex child (.output-mix-label is `display: flex`)
+     has an implicit `min-width: auto` floor equal to its content's
+     intrinsic width -- for a <select>, that's sized off its longest
+     <option> text ("Industry (+40% acidity, no fish-crash exposure)"),
+     wide enough to push this past both the card and the viewport's right
+     edge at 320px. min-width: 0 lets it actually shrink to the space
+     .output-mix-label has; flex-shrink is already the flex default. */
+  min-width: 0;
 }
 
 /* D18: re-anchor the then-vs-now comparison to right now. Plain

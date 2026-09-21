@@ -38,6 +38,19 @@ body {
     display: none;
   }
   .ad-bar-label-short {
+    /* Taken out of the flex flow: as a normal flex sibling of the 320px-wide
+       ad slot, this label's own width + the row's `gap` pushed the combined
+       content past 320px, clipping ~13px off BOTH edges of the ad slot on
+       every phone-width screen (320-480px) — not just at 320px, the original
+       375px mobile pass just never isolated the ad bar to notice it.
+       Overlaying it instead (position: absolute, off the flex track) lets
+       `justify-content: center` center the ad slot alone, at its full
+       unclipped width. */
     display: inline;
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
   }
 }

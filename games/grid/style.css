@@ -646,6 +646,11 @@ button.primary:active {
     position: fixed;
     left: 1rem;
     right: 1rem;
+    width: auto; /* button.primary's base `width: 100%` resolves against the
+      viewport once fixed-positioned (its containing block, since nothing
+      here re-establishes one) instead of shrinking between left/right --
+      same Z18 320px-audit bug Continuum's docked button had, clipping this
+      one past the right edge too. */
     bottom: 50px; /* sits directly above the fixed ad-bar */
     z-index: 150; /* above the ad-bar (100), below the save widget (9999) */
     max-width: 480px;

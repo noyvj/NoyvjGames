@@ -1586,7 +1586,15 @@ button.secondary:disabled::after {
 /* J27 trade almanac */
 .info-toggle.almanac { display: block; margin: 6px 0; }
 .info-toggle.almanac summary { width: auto; height: auto; border-radius: 6px; padding: 3px 10px; font-size: 0.8rem; font-weight: 600; }
-.almanac-table { width: 100%; border-collapse: collapse; font-size: 0.85em; margin-top: 6px; }
+/* Z18 320px audit: 5 columns of real content (a full colony/good name plus
+   "(Home system)" in the last two columns) can't compress under a mobile
+   viewport's width even with cell text wrapping -- the longest unbreakable
+   word in each column still summed past the card's edge and off the right
+   side of the screen. Same "let it scroll instead of clip" idiom this game's
+   own #mobile-needs-strip-track already uses for a different wide element,
+   rather than redesigning the table into cards. */
+#almanac-body { overflow-x: auto; }
+.almanac-table { width: 100%; min-width: 480px; border-collapse: collapse; font-size: 0.85em; margin-top: 6px; }
 .almanac-table th, .almanac-table td { text-align: left; padding: 3px 6px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
 .almanac-system { opacity: 0.7; }
 
