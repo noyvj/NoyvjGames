@@ -1915,6 +1915,46 @@ def record_practice(mode, correct):
     return awarded
 
 
+# L13 -- an opt-in "study buddy": a daily suggested review-session length
+# based on how many already-watered plots are due (never-watered seeds don't
+# count, or a brand-new farm would demand hundreds of reviews). It only
+# ever suggests; nothing is blocked or scored, and there's no streak
+# framing, matching the game's calm, no-guilt stance.
+STUDY_BUDDY_MAX_SUGGESTION = 25
+STUDY_BUDDY_SECONDS_PER_REVIEW = 30
+study_buddy_enabled = False
+
+
+def study_buddy_overdue_count():
+    return sum(1 for p in state.plots if p.last_reviewed is not None and is_due(p, state.current_day))
+
+
+def study_buddy_message():
+    overdue = study_buddy_overdue_count()
+    if overdue == 0:
+        return "Study buddy: you're all caught up. If you want to add something new, water a handful of fresh plots."
+    suggested = min(overdue, STUDY_BUDDY_MAX_SUGGESTION)
+    minutes = max(1, round(suggested * STUDY_BUDDY_SECONDS_PER_REVIEW / 60))
+    message = f"Study buddy: about {suggested} review{'s' if suggested != 1 else ''} today, roughly {minutes} min."
+    if overdue > suggested:
+        message += f" You have {overdue} due; a Mixed Review Marathon can clear more."
+    return message
+
+
+def on_toggle_study_buddy(event=None):
+    global study_buddy_enabled
+    study_buddy_enabled = not study_buddy_enabled
+    render()
+
+
+def render_study_buddy():
+    button = _element("study-buddy-toggle-button")
+    display = _element("study-buddy-display")
+    button.innerText = f"Study buddy: {'on' if study_buddy_enabled else 'off'}"
+    display.hidden = not study_buddy_enabled
+    display.innerText = study_buddy_message() if study_buddy_enabled else ""
+
+
 def gender_drill_accuracy_text():
     """L10 -- the gender-tagging drill's own running accuracy, read from the
     practice ledger (the same numbers the dashboard's per-mode section shows)."""
@@ -2899,6 +2939,7 @@ def render_status():
     _element("automated-meter").title = f"{automated} of {len(state.plots)} plots automated"
 
     render_practice_score()
+    render_study_buddy()
 
     unlocked = sum(1 for r in state.rows if state.is_row_unlocked(r.sequence))
     _element("row-summary-display").innerText = f"{unlocked} of {len(state.rows)} rows open"
@@ -4721,6 +4762,9 @@ def setup():
     _element("review-marathon-button").addEventListener(
         "click", create_proxy(on_start_marathon_review)
     )
+    _element("study-buddy-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_study_buddy)
+    )
     _element("review-submit-button").addEventListener(
         "click", create_proxy(on_review_submit_typed)
     )
@@ -4881,6 +4925,9 @@ def get_state():
         # load_state(). This is what makes this game's achievements show up
         # on the hub-wide dashboard alongside every other game's.
         "achievements_earned": achievement_ids_earned(),
+        # L13 -- opt-in study-buddy preference; only written when on, so
+        # the default save is unchanged.
+        **({"study_buddy": True} if study_buddy_enabled else {}),
     }
 
 
@@ -4891,7 +4938,9 @@ def get_state():
 # notes call out as in-scope. Also no test loads a save with an unrecognized
 # stage string to exercise the STAGE_RANK fallback a few lines below.
 def load_state(data):
-    global error_pattern_counts, practice_ledger
+    global error_pattern_counts, practice_ledger, study_buddy_enabled
+
+    study_buddy_enabled = data.get("study_buddy") is True
 
     saved_plots = data.get("plots") or {}
     state.current_day = data.get("current_day", 0)

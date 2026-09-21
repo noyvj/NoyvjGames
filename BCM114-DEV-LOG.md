@@ -465,3 +465,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Trade Empire
 **Did:** Added opt-in route hazards (8% of loaded arrivals lose their cargo) and route insurance (a per-tick premium for ships in transit, refunding 75% of a lost trip), both off by default so the base economy is unchanged. Disruptions reuse the existing arrival path with a qty-0 marker; new save fields are validated.
 **Result:** Suite 297 passing, flake8 clean; verified live.
+
+### 2026-09-21 (Le Champ de Mots: opt-in study buddy, L13; changelog curation fix)
+**Game:** Le Champ de Mots
+**Did:** Added an opt-in study buddy that suggests a daily review length from the number of due, already-watered plots (saved preference, validated). The full suite then caught that my earlier L17 commit had put `changelog.json` over its 25-entry cap without a rerun, so I merged the day's small entries into one grouped entry.
+**Result:** Suite 592 passing, flake8 clean; verified live with no console errors.
