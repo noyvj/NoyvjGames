@@ -78,6 +78,7 @@ for _good in (
     "crystal", "polymer", "antimatter",
 ):
     ELEMENT_IDS += [f"market-{_good}-display", f"market-{_good}-bar", f"market-{_good}-sparkline"]
+    ELEMENT_IDS += [f"stockpile-{_good}-buy-button", f"stockpile-{_good}-sell-button", f"stockpile-{_good}-status"]
 for _ship_id in SHIP_IDS:
     ELEMENT_IDS.append(f"ship-{_ship_id}-label")
     ELEMENT_IDS.append(f"ship-{_ship_id}-status")

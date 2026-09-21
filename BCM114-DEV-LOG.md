@@ -485,3 +485,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Trade Empire
 **Did:** Added an Invest button to each colony that spends credits to add development progress, factoring the progress logic into `ColonyState.add_development()`; no new saved state.
 **Result:** Suite 320 passing, flake8 clean; verified live.
+
+### 2026-09-21 (Trade Empire: market speculation, J9)
+**Game:** Trade Empire
+**Did:** Added per-good stockpiles (buy 5 at the current price, capped at 15, sell all less a 10% fee) with symmetric price impact and no effect on trade-sale stats, so a crash-then-recovery cycle can profit but a flat market loses to the fee; per-good validated save field.
+**Result:** Suite 329 passing, flake8 clean; verified live.

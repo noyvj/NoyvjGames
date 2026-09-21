@@ -609,6 +609,55 @@ def apply_market_sale(good, qty):
         market_crash_ever[good] = True
 
 
+# J9 -- market speculation: a small warehouse per good. Buy a lot while a
+# price is crashed, hold it, and sell once the price has recovered. Buying
+# pushes the price up and selling pushes it down (the same per-unit impact
+# a ship's sale has), capacity is small, and selling pays a fee, so it is a
+# timing decision with real risk, not a money loop. Stockpile sales are not
+# counted as trade sales (no achievements or route stats).
+STOCKPILE_CAPACITY = 15
+STOCKPILE_LOT = 5
+STOCKPILE_SELL_FEE = 0.10
+stockpile = {good: 0 for good in SELL_PRICE}
+
+
+def can_stockpile_buy(good):
+    if good not in stockpile or colony_producing(good) not in active_colony_ids():
+        return False
+    if stockpile[good] >= STOCKPILE_CAPACITY:
+        return False
+    qty = min(STOCKPILE_LOT, STOCKPILE_CAPACITY - stockpile[good])
+    return total_profit >= qty * current_sell_price(good)
+
+
+def buy_stockpile(good):
+    global total_profit
+    if not can_stockpile_buy(good):
+        return False
+    qty = min(STOCKPILE_LOT, STOCKPILE_CAPACITY - stockpile[good])
+    total_profit -= qty * current_sell_price(good)
+    stockpile[good] += qty
+    market_multiplier[good] = min(
+        MAX_PRICE_MULTIPLIER, market_multiplier[good] + qty * MARKET_PRICE_DECAY_PER_UNIT_SOLD
+    )
+    return True
+
+
+def stockpile_sale_value(good):
+    return int(round(stockpile.get(good, 0) * current_sell_price(good) * (1 - STOCKPILE_SELL_FEE)))
+
+
+def sell_stockpile(good):
+    global total_profit
+    if stockpile.get(good, 0) <= 0 or colony_producing(good) not in active_colony_ids():
+        return False
+    qty = stockpile[good]
+    total_profit += stockpile_sale_value(good)
+    stockpile[good] = 0
+    apply_market_sale(good, qty)
+    return True
+
+
 def recover_market():
     for good in market_multiplier:
         recovery = MARKET_PRICE_RECOVERY_PER_TICK * (
@@ -1566,6 +1615,17 @@ def render_market():
                 f"Crashed: about {eta} tick(s) to recover to baseline if nothing "
                 f"more of it is sold."
             )
+        buy_button = document.getElementById(f"stockpile-{good}-buy-button")
+        if buy_button is not None:
+            sell_button = document.getElementById(f"stockpile-{good}-sell-button")
+            status = document.getElementById(f"stockpile-{good}-status")
+            buy_button.disabled = not can_stockpile_buy(good)
+            buy_button.innerText = f"Buy {STOCKPILE_LOT}"
+            sell_button.disabled = stockpile[good] <= 0
+            status.innerText = (
+                f"Stockpile {stockpile[good]}/{STOCKPILE_CAPACITY}"
+                + (f" (sells for {stockpile_sale_value(good)} after the {int(STOCKPILE_SELL_FEE * 100)}% fee)" if stockpile[good] else "")
+            )
         document.getElementById(f"market-{good}-bar").style.width = f"{pct:.0f}%"
         # J12 — a small price-history sparkline alongside the bar.
         document.getElementById(f"market-{good}-sparkline").innerHTML = _trend_sparkline_svg(
@@ -2321,6 +2381,20 @@ def _make_load_handler(ship_id):
     return handler
 
 
+def _make_stockpile_buy_handler(good):
+    def handler(event=None):
+        buy_stockpile(good)
+        render()
+    return handler
+
+
+def _make_stockpile_sell_handler(good):
+    def handler(event=None):
+        sell_stockpile(good)
+        render()
+    return handler
+
+
 def _make_invest_handler(colony_id):
     def handler(event=None):
         invest_in_colony(colony_id)
@@ -2646,6 +2720,7 @@ def get_state():
         "seen_first_automation_callout": seen_first_automation_callout,
         "seasonal_demand": {"enabled": seasonal_demand_enabled, "ticks": season_ticks},
         "cross_system_units": cross_system_units,
+        "stockpile": {good: units for good, units in stockpile.items() if units},
         "route_hazards": {
             "hazards": route_hazards_enabled,
             "insurance": route_insurance_enabled,
@@ -2672,6 +2747,12 @@ def load_state(data):
     global _previously_earned_ids, seen_first_automation_callout
     global seasonal_demand_enabled, season_ticks, cross_system_units
     global route_hazards_enabled, route_insurance_enabled, disruptions_suffered, insurance_payouts, premiums_paid
+
+    stockpile_raw = data.get("stockpile")
+    for good in stockpile:
+        units = stockpile_raw.get(good) if isinstance(stockpile_raw, dict) else None
+        valid = isinstance(units, int) and not isinstance(units, bool) and 0 <= units <= STOCKPILE_CAPACITY
+        stockpile[good] = units if valid else 0
 
     hazards_raw = data.get("route_hazards")
     if not isinstance(hazards_raw, dict):
@@ -2788,6 +2869,13 @@ def setup():
     document.getElementById("seasonal-demand-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_seasonal_demand)
     )
+    for good in SELL_PRICE:
+        buy_button = document.getElementById(f"stockpile-{good}-buy-button")
+        if buy_button is not None:
+            buy_button.addEventListener("click", create_proxy(_make_stockpile_buy_handler(good)))
+            document.getElementById(f"stockpile-{good}-sell-button").addEventListener(
+                "click", create_proxy(_make_stockpile_sell_handler(good))
+            )
     for colony_id in ALL_COLONIES:
         invest_button = document.getElementById(f"colony-{colony_id}-invest-button")
         if invest_button is not None:

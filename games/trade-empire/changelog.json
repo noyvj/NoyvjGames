@@ -1,4 +1,5 @@
 [
+  { "date": "2026-09-21", "entry": "Market speculation: every good now has a small stockpile (15 units). Buy 5 while a price is crashed, hold it, and sell once the price recovers. Buying pushes the price up, selling pushes it down and pays a 10% fee." },
   { "date": "2026-09-21", "entry": "Colony investment: each undeveloped colony has an Invest button that spends 60 credits to add 10 units of development progress, so spare credits can speed up a colony's growth and specialization." },
   { "date": "2026-09-21", "entry": "Research specialization: after Automation Expansion II you choose an Automation path (+10% on automated ships' sales, then +1 automation slot) or a Market path (prices recover 50% faster, then drop 30% less per sale). Picking one closes the other for good." },
   { "date": "2026-09-21", "entry": "When you buy ship 5 or 6 you now choose its type: Balanced, Cargo-heavy (carries 50% more but is one tick slower) or Fast (one tick quicker but carries 25% less)." },
