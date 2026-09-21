@@ -22,8 +22,11 @@
  * showActiveCode() (which surfaces the claim button) also runs on plain page
  * load if a signed-in user already has a stored code, and after a successful
  * Load, not just after a Save.
- * save. No auto-save, no conflict resolution — one explicit button, one
- * explicit save point, last write wins. See §5 of the design doc for why.
+ * save. No auto-save by default, no conflict resolution — one explicit
+ * button, one explicit save point, last write wins. See §5 of the design
+ * doc for why — and its new §7 for the Z25b opt-in autosave-checkbox
+ * exception to that "no auto-save" default (still OFF unless the player
+ * turns it on).
  *
  * Signed-in autoload: on page load, if signed in, the widget fetches the
  * account's saves for this game and, if any exist, loads the most recently
@@ -183,6 +186,20 @@
         margin: 0.4rem 0 0;
         min-height: 1em;
       }
+      #save-widget .save-widget-autosave-label {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-top: 0.5rem;
+        font-size: 0.72rem;
+        opacity: 0.85;
+        cursor: pointer;
+      }
+      #save-widget .save-widget-autosave-label input {
+        width: auto;
+        margin: 0;
+        flex: none;
+      }
       #save-widget .save-widget-link {
         background: none;
         border: none;
@@ -213,6 +230,7 @@
     <button type="button" class="save-widget-toggle"><span class="save-widget-toggle-label">&#128190; Save / Load</span><span class="save-widget-toggle-arrow" aria-hidden="true">&#9662;</span></button>
     <div class="save-widget-body">
       <button type="button" class="save-widget-save-button">Save Progress</button>
+      <label class="save-widget-autosave-label"><input type="checkbox" class="save-widget-autosave-checkbox"> Autosave every 5 minutes</label>
       <p class="save-widget-code" hidden></p>
       <button type="button" class="save-widget-copy-button save-widget-link" hidden>Copy code</button>
       <button type="button" class="save-widget-claim-button save-widget-link" hidden>Claim this save to your account</button>
@@ -230,6 +248,7 @@
   else document.addEventListener("DOMContentLoaded", mount);
 
   const saveButton = root.querySelector(".save-widget-save-button");
+  const autosaveCheckbox = root.querySelector(".save-widget-autosave-checkbox");
   const codeDisplay = root.querySelector(".save-widget-code");
   const copyButton = root.querySelector(".save-widget-copy-button");
   const claimButton = root.querySelector(".save-widget-claim-button");
@@ -450,18 +469,24 @@
     }
   }
 
-  saveButton.addEventListener("click", async () => {
+  // Core save logic (Z25b refactor) -- the ONE code path that actually talks
+  // to the save endpoint, shared by the manual "Save Progress" button below
+  // and the opt-in autosave timer further down, so autosave can't drift out
+  // of sync with a manual save by duplicating its request-building logic.
+  // Returns true/false; deliberately leaves ALL user-facing feedback (status
+  // text, button disabling) to the caller, since the two call sites want
+  // different feedback (a disabled "Saving..." button vs. a silent
+  // unattended timer tick).
+  async function doSave(onRetrying) {
     const state = readGameState();
     if (state === null) {
       statusEl.textContent = "Still loading — try again in a moment.";
-      return;
+      return false;
     }
     if (state === undefined) {
       statusEl.textContent = "This game hasn't wired up saving yet.";
-      return;
+      return false;
     }
-    saveButton.disabled = true;
-    saveButton.textContent = "Saving...";
     try {
       const code = localStorage.getItem(STORAGE_KEY);
       const res = await fetchWithRetry(
@@ -474,21 +499,95 @@
             undefinedToNull
           ),
         },
-        () => (statusEl.textContent = "Saving... (retrying)")
+        onRetrying
       );
       if (!res.ok) throw new Error(`status ${res.status}`);
       const body = await res.json();
       localStorage.setItem(STORAGE_KEY, body.save_code);
       showActiveCode(body.save_code);
-      statusEl.textContent = "Saved!";
+      return true;
     } catch (err) {
       console.error(`${GAME_ID} save-widget: save failed`, err);
-      statusEl.textContent = "Save failed — try again.";
-    } finally {
-      saveButton.disabled = false;
-      saveButton.textContent = "Save Progress";
+      return false;
     }
+  }
+
+  saveButton.addEventListener("click", async () => {
+    saveButton.disabled = true;
+    saveButton.textContent = "Saving...";
+    const ok = await doSave(() => (statusEl.textContent = "Saving... (retrying)"));
+    statusEl.textContent = ok ? "Saved!" : "Save failed — try again.";
+    saveButton.disabled = false;
+    saveButton.textContent = "Save Progress";
   });
+
+  // Z25b: opt-in autosave, every 5 minutes, default OFF -- a deliberate,
+  // explicit exception to the "no auto-save timer" decision in
+  // SAVE-BUTTON-INTEGRATION.md §5 (see that doc's new §7 for the writeup).
+  // Calls the exact same doSave() the manual button uses; last-write-wins
+  // (already this file's stated design principle) means an autosave and a
+  // manual save can never meaningfully "race" each other in a way worth
+  // guarding against.
+  const AUTOSAVE_KEY = `autosave-enabled:${GAME_ID}`;
+  const AUTOSAVE_INTERVAL_MS = 5 * 60 * 1000;
+  let autosaveTimer = null;
+
+  function isAutosaveEnabled() {
+    try {
+      return localStorage.getItem(AUTOSAVE_KEY) === "true";
+    } catch (err) {
+      return false;
+    }
+  }
+
+  function setAutosaveEnabled(enabled) {
+    try {
+      localStorage.setItem(AUTOSAVE_KEY, enabled ? "true" : "false");
+    } catch (err) {
+      console.error(`${GAME_ID} save-widget: failed to persist autosave preference`, err);
+    }
+  }
+
+  function stopAutosaveTimer() {
+    if (autosaveTimer !== null) {
+      clearInterval(autosaveTimer);
+      autosaveTimer = null;
+    }
+  }
+
+  function startAutosaveTimer() {
+    stopAutosaveTimer(); // guards against ever running two overlapping intervals
+    autosaveTimer = setInterval(performAutosave, AUTOSAVE_INTERVAL_MS);
+  }
+
+  async function performAutosave() {
+    // Runs unattended -- a failed/not-ready autosave (still loading, game
+    // hasn't wired up get_state() yet, network error) stays silent besides
+    // doSave()'s own console.error; the manual Save button is unaffected
+    // and remains the reliable fallback. Only a SUCCESSFUL autosave gets
+    // any player-visible feedback, briefly, then reverts.
+    const previousStatus = statusEl.textContent;
+    const ok = await doSave();
+    if (!ok) return;
+    statusEl.textContent = "Autosaved";
+    setTimeout(() => {
+      if (statusEl.textContent === "Autosaved") statusEl.textContent = previousStatus;
+    }, 4000);
+  }
+
+  autosaveCheckbox.addEventListener("change", () => {
+    setAutosaveEnabled(autosaveCheckbox.checked);
+    if (autosaveCheckbox.checked) startAutosaveTimer();
+    else stopAutosaveTimer();
+  });
+
+  // Restore on load. A brand-new visitor has no AUTOSAVE_KEY yet --
+  // isAutosaveEnabled() returns false for a missing key, same as an
+  // explicit "false", so the default is OFF either way. A returning player
+  // who previously turned it on gets the timer running again automatically
+  // from page load, without needing to re-check the box every visit.
+  autosaveCheckbox.checked = isAutosaveEnabled();
+  if (autosaveCheckbox.checked) startAutosaveTimer();
 
   loadButton.addEventListener("click", async () => {
     if (!window.pyodide) {

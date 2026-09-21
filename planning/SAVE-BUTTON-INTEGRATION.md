@@ -64,7 +64,7 @@ Every game's HTML page includes, near the end of `<body>`:
 
 ## 5. What this deliberately doesn't do
 
-- No auto-save timer or auto-save-on-every-action — one explicit button, one explicit save point per click. Simpler to build, simpler to reason about, and avoids silently overwriting a save the player wanted to keep.
+- No auto-save timer or auto-save-on-every-action — one explicit button, one explicit save point per click. Simpler to build, simpler to reason about, and avoids silently overwriting a save the player wanted to keep. **As of Z25b, an opt-in exception exists — see §7.** This bullet's original reasoning still holds as the *default*; §7 only changes behavior for a player who explicitly turns the checkbox on.
 - No conflict resolution if the same save code is loaded and saved from two different tabs/devices at once — last write wins. Fine for a solo-player hub; not worth solving unless it actually comes up.
 - No per-game save UI customisation. If a specific game genuinely needs something the shared widget can't do, that's a deliberate exception to flag and log, not a default to design around up front.
 
@@ -74,3 +74,14 @@ Every game's HTML page includes, near the end of `<body>`:
 2. Confirm `get_state()`/`load_state()` round-trip correctly for that one game.
 3. Add the same two functions + the one `<script>` tag to each remaining game — this step should be fast precisely because the widget itself doesn't change.
 4. Log each stage in `BCM206-DEV-LOG.md`, same as the rest of the save system.
+
+## 7. Z25b: opt-in autosave checkbox
+
+Status: **Built — 2026-09-21.** `planning/TODO.md` Z25b, a deliberate, explicit reversal of §5's "no auto-save timer" bullet — but only as an opt-in, not as a new default. Lives entirely in `shared/save-widget.js`, so all 12 games get it from the one shared file with no per-game changes.
+
+- A checkbox in the widget body, "Autosave every 5 minutes", next to the existing Save/Load controls. **Defaults to unchecked/OFF** — true both for a brand-new visitor (no `localStorage` key yet) and preserved correctly across reloads.
+- Persisted per game in `localStorage` as `autosave-enabled:<slug>` (matching the existing `savecode:<slug>` naming convention).
+- When checked: starts a `setInterval` at exactly 5 minutes (300000ms) that calls `doSave()` — the same internal function the manual "Save Progress" button calls (the button's click handler and the autosave timer both call it; the save-request logic itself is written once). When unchecked, no timer runs at all.
+- Toggling is immediate and survives reload: checking starts the interval, unchecking clears it, and a returning player who previously enabled it gets the timer running again automatically from page load (read from `localStorage`) without needing to re-check the box.
+- Feedback: a successful autosave briefly shows "Autosaved" in the widget's existing status line, then reverts to whatever it showed before (only if nothing else has overwritten it in the meantime). A failed/skipped autosave (still loading, game hasn't wired up `get_state()`, network error) stays silent to the player — it's an unattended timer tick, not a player action, and the manual Save button remains the reliable fallback; the failure is still logged to the console for debugging.
+- No new conflict-handling was needed for autosave-vs-manual-save: both are just independent calls to the same `doSave()`, and last-write-wins is already this file's stated design principle (§5's second bullet) — nothing about autosave changes that.

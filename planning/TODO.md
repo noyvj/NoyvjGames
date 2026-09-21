@@ -202,9 +202,9 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [x] Trade Empire — found and fixed: `sale_log` grew unbounded (only `sale_log[-1]` is ever read) — ~100KB of a ~110KB payload at 5000 ticks (~83 simulated minutes, this game auto-ticks via `setInterval` regardless of player presence). Added `SALE_LOG_MAX_ENTRIES = 20` + truncation in `tick()`, matching this file's own `good_profit_recent`/`price_history` cap idiom. Re-measured: 11KB for the same session. 265/265 tests green, flake8 clean, build note in `games/trade-empire/CLAUDE.md`.
   - [ ] Continuum (read-only finding: `score_history` in `sim.py`/`save.py` is never capped, and every one of the 7 possible `era_snapshots` embeds a full copy of it at time-of-snapshot, so the save grows faster than linearly as more eras complete — measured 36KB for a 105-season 7-era playthrough vs. 103KB for a 420-season one via a driver script against Continuum's own test harness. Not yet a hard concern, but the growth pattern is exactly what `Chronicle`'s own `MAX_ENTRIES` cap in `log.py` already guards against elsewhere in this same game — Noyvj's own session can check this off after reading and deciding whether it's worth a cap.)
   - [x] Le Champ de Mots — simulated all 790 plots reviewed over 400 days: 165.8KB; already follows the documented "only touched plots are saved" pattern (Milestone 5), this is the genuine full-payload ceiling. No change needed.
-- [ ] Z25b: Add an opt-in autosave checkbox (every ~5 minutes) — a deliberate, explicit reversal of the original "no auto-save timer" design decision (see `SAVE-BUTTON-INTEGRATION.md` §5). Must default OFF; the player turns it on, never the other way around.
-  - [ ] Build the shared opt-in autosave mechanism once
-  - [ ] Roll out to each game alongside its own save widget (same 12-game list as above)
+- [x] Z25b: Add an opt-in autosave checkbox (every ~5 minutes) — a deliberate, explicit reversal of the original "no auto-save timer" design decision (see `SAVE-BUTTON-INTEGRATION.md` §5, new §7). Defaults OFF (both for a brand-new visitor and preserved across reloads); the player turns it on, never the other way around. Built entirely in `shared/save-widget.js` (checkbox + `autosave-enabled:<slug>` localStorage key + `setInterval`/`clearInterval` calling the exact same `doSave()` the manual button now shares, brief "Autosaved" status feedback) — since this one shared file already reaches all 12 games unchanged, no per-game files needed touching.
+  - [x] Build the shared opt-in autosave mechanism once
+  - [x] Roll out to each game alongside its own save widget (same 12-game list as above) — automatic: all 12 games load `shared/save-widget.js` unchanged, so the one shared-file change reaches every game at once, no per-game edits needed.
 - [x] Z26: A consistent "info page" discoverability regression check — confirm "The Real Story" button wording/icon is identical via the shared `info_page.py`, across the 8 climate-quartet games only. Audited via `shared/info_page.py`/`shared/info-page.css` plus each game's `index.html`/`game.py`/`style.css`: 7/8 already identical (same button id/class/static "Loading..." placeholder markup, same `render_info_page()`/`on_toggle_info_page()` wrapper calling straight into `info_page.render()`/`info_page.toggle()` with no game-specific override, same `shared/info-page.css` link, no per-game CSS on `#info-page-toggle-button`). **Aftermath was the one real outlier**: a leftover `#info-page-toggle-button::before { content: "📖 "; }` rule in its `style.css`, from a 2026-09-05 visual-redesign pass that predates this game's migration onto the shared module, gave its toggle a book-icon prefix none of the other 7 games have — fixed, 254/254 tests, flake8 clean, verified live.
   - [x] Canopy — clean, verified live (plain "The Real Story" / "Hide The Real Story", no icon).
   - [x] Grid — clean, verified live.
@@ -291,19 +291,19 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [x] Trade Empire
   - [x] Continuum
   - [x] Le Champ de Mots
-- [ ] Z-extra (folded from A10): an achievement-progress bar (X/N) visible in every game's toolbar itself, not only after opening the achievements panel — SOL's A10 flagged this as a site-wide pattern:
-  - [ ] SOL
-  - [ ] Canopy
-  - [ ] Grid
-  - [ ] Tide
-  - [ ] Aftermath
-  - [ ] Herd
-  - [ ] Thaw
-  - [ ] Loop
-  - [ ] Drift
-  - [ ] Trade Empire
-  - [ ] Continuum
-  - [ ] Le Champ de Mots
+- [x] Z-extra (folded from A10): an achievement-progress bar (X/N) visible in every game's toolbar itself, not only after opening the achievements panel — SOL's A10 flagged this as a site-wide pattern. Audited all 12 games directly (not assumed): every one already sets its `#achievements-toggle-button`'s `innerText` to `"🏆 Achievements (N/M)"` inside `update_achievements_display()`/`render_achievements()`, and that function is already called from the main render loop (not only the toggle handler) in every game — so the live count is already visible in the toolbar before the panel is ever opened, everywhere. No code changes were needed anywhere; each game's own CLAUDE.md got a short confirming note:
+  - [x] SOL
+  - [x] Canopy
+  - [x] Grid
+  - [x] Tide
+  - [x] Aftermath
+  - [x] Herd
+  - [x] Thaw
+  - [x] Loop
+  - [x] Drift
+  - [x] Trade Empire
+  - [x] Continuum
+  - [x] Le Champ de Mots
 - [ ] Z-extra (folded from Z11, "let players pick to do a story mode in each game or turn off the story elements"): audit which games carry narrative/flavor-text framing and add an opt-out toggle where relevant:
   - [ ] SOL (flavor text/milestone framing)
   - [ ] Canopy
