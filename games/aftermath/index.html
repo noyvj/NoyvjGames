@@ -154,6 +154,16 @@
         <div class="settlement-badge settlement-badge--civic_preparedness" id="settlement-badge-civic_preparedness" aria-hidden="true"></div>
         <div class="settlement-badge settlement-badge--climate_hardening" id="settlement-badge-climate_hardening" aria-hidden="true"></div>
         <div class="settlement-badge settlement-badge--toughest" id="settlement-badge-toughest" title="Survived a run at severe average intensity" aria-hidden="true"></div>
+        <!-- V-CD-6: legacy weathering scars -- one per event category,
+             along the ground line so they never collide with the rooftop
+             badges above. Escalate through tier-1/2/3 classes driven by
+             legacy_event_counts (cross-run history), not the current
+             run's damage marks above. Purely decorative (aria-hidden);
+             the same data is available as accessible text in the
+             legacy-history-panel chips below. -->
+        <div class="settlement-legacy-scar settlement-legacy-scar--weather" id="settlement-legacy-scar-weather" aria-hidden="true"></div>
+        <div class="settlement-legacy-scar settlement-legacy-scar--non-weather" id="settlement-legacy-scar-non-weather" aria-hidden="true"></div>
+        <div class="settlement-legacy-scar settlement-legacy-scar--social" id="settlement-legacy-scar-social" aria-hidden="true"></div>
       </div>
     </div>
 

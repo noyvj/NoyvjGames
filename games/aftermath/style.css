@@ -1259,6 +1259,65 @@ button.primary:disabled::after {
 }
 
 /* ============================================================
+   V-CD-6: legacy weathering scars -- a real visual marker tied to
+   legacy_event_counts (cross-run history), sitting on the settlement's
+   own ground line so it never collides with the rooftop skill badges
+   above. Distinct from .settlement-damage above (which only reacts to
+   the *current* run's most recent event) and from the E4 legacy-history
+   chip row (text-only, in legacy-history-panel below) -- this is the
+   settlement itself visibly showing what it has weathered. One scar per
+   event *category* (not per exact event type -- six more rooftop-style
+   dots on top of the eight skill/toughest badges already there would be
+   exactly the "everything looks very crowded" failure mode the UI
+   decluttering pass above flagged), reusing the same
+   weather/non-weather/social hue identity a player already recognizes
+   from event-category--weather/non-weather/social elsewhere on the page.
+   Escalates through three tiers (game.py's legacy_scar_tier()) as that
+   category's aggregated legacy_event_counts total climbs; tier 0 stays
+   fully transparent so a fresh settlement's ground is unmarked. */
+.settlement-legacy-scar {
+  position: absolute;
+  bottom: 2px;
+  width: 13%;
+  height: 12px;
+  border-radius: 2px;
+  opacity: 0;
+  transform: scaleX(0.4);
+  transform-origin: center bottom;
+  transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.5s ease;
+  background: repeating-linear-gradient(100deg, currentColor 0 2px, transparent 2px 5px);
+}
+
+.settlement-legacy-scar--weather { left: 14%; color: #6fa8d8; }
+.settlement-legacy-scar--non-weather { left: 44%; color: #d8a24c; }
+.settlement-legacy-scar--social { left: 74%; color: #c07fd8; }
+
+.settlement-legacy-scar--tier-1 { opacity: 0.45; transform: scaleX(0.7); }
+.settlement-legacy-scar--tier-2 { opacity: 0.75; transform: scaleX(1); }
+
+.settlement-legacy-scar--tier-3 {
+  opacity: 1;
+  transform: scaleX(1);
+  box-shadow: 0 0 8px currentColor;
+  animation: legacy-scar-pulse 3.5s ease-in-out infinite;
+}
+
+@keyframes legacy-scar-pulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.6); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settlement-legacy-scar {
+    transition: none;
+  }
+
+  .settlement-legacy-scar--tier-3 {
+    animation: none;
+  }
+}
+
+/* ============================================================
    E12: export/import progress-code panel. */
 .progress-code-label {
   margin: 0 0 0.6rem;

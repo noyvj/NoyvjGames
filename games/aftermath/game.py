@@ -1113,6 +1113,52 @@ def legacy_history_summary():
 
 
 # ===========================================================================
+# V-CD-6: legacy weathering scars -- a genuinely visual marker on the
+# settlement itself, referencing prior-run history, addressing the
+# completion-audit finding that E4 above only ever produced a text chip
+# row (legacy_history_summary()), not any visual marker on the settlement
+# as the original Pass-2 idea described. One scar per event *category*
+# (not one per exact event type -- six more rooftop-style dots stacked on
+# top of the eight skill/toughest badges the settlement already carries
+# would be exactly the crowding problem the UI-decluttering pass above
+# was written to avoid), escalating through three tiers as that
+# category's aggregated legacy_event_counts total climbs. Purely derived
+# from already-persisted legacy_event_counts -- no new storage key.
+# ===========================================================================
+LEGACY_SCAR_CATEGORIES = ("weather", "non-weather", "social")
+LEGACY_SCAR_TIER_THRESHOLDS = (1, 3, 6)  # cumulative count needed for tier 1 / 2 / 3
+
+
+def legacy_category_totals():
+    """Aggregate legacy_event_counts (per exact event type, cross-run) up
+    to the three event categories, so the settlement's ground shows one
+    scar per category rather than one per exact event type. Always
+    returns all three categories, 0 where nothing of that category has
+    ever been weathered yet."""
+    totals = {category: 0 for category in LEGACY_SCAR_CATEGORIES}
+    for event_type, count in legacy_event_counts.items():
+        category = EVENT_CATEGORY.get(event_type)
+        if category in totals:
+            totals[category] += count
+    return totals
+
+
+def legacy_scar_tier(count):
+    """0 (no scar yet) through 3 (heaviest), from how many times this
+    settlement has weathered that category across every run ever
+    played."""
+    tier = 0
+    for threshold in LEGACY_SCAR_TIER_THRESHOLDS:
+        if count >= threshold:
+            tier += 1
+    return tier
+
+
+def legacy_scar_tiers():
+    return {category: legacy_scar_tier(total) for category, total in legacy_category_totals().items()}
+
+
+# ===========================================================================
 # E7: reviewing a specific past run's full event-by-event breakdown, from
 # the new run_log_history persisted alongside (not instead of) the
 # existing run_history score-only list.
@@ -1783,6 +1829,15 @@ def render():
         chip.className = "legacy-history-chip"
         chip.innerText = f"{entry['icon']} {entry['label']} ×{entry['count']}"
         history_panel.appendChild(chip)
+
+    # V-CD-6: legacy weathering scars -- one CSS tier class per category,
+    # driven by the same legacy_event_counts as the chip row above.
+    for category, tier in legacy_scar_tiers().items():
+        scar_el = document.getElementById(f"settlement-legacy-scar-{category}")
+        for t in (1, 2, 3):
+            scar_el.classList.remove(f"settlement-legacy-scar--tier-{t}")
+        if tier:
+            scar_el.classList.add(f"settlement-legacy-scar--tier-{tier}")
 
     run_summary_panel = document.getElementById("run-summary-panel")
 

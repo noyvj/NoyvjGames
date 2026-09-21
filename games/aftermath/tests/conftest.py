@@ -95,6 +95,10 @@ ELEMENT_IDS = [
     "settlement-name-input",
     "pinned-skills-display",
     "settlement-badge-toughest",
+    # V-CD-6: legacy weathering scars, one per event category.
+    "settlement-legacy-scar-weather",
+    "settlement-legacy-scar-non-weather",
+    "settlement-legacy-scar-social",
 ]
 for _skill in SKILL_IDS:
     ELEMENT_IDS += [
