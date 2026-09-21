@@ -500,3 +500,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Trade Empire
 **Did:** Added a brief ring pulse on the map when a ship departs (growing) or arrives (closing in), differentiated by direction and line weight, skipped under reduced motion, nothing saved.
 **Result:** Suite 343 passing, flake8 clean; state and canvas redraw checked live, the pulse not confirmed by eye.
+
+### 2026-09-21 (Trade Empire: colony loyalty demands, J19)
+**Game:** Trade Empire
+**Did:** Added colony loyalty: a chronically under-served colony asks for a one-time paid concession that restores some satisfaction; ignoring it is free and it lapses with a cooldown, so it's an offer, not a punishment. Per-colony validated save fields.
+**Result:** Suite 352 passing, flake8 clean; verified live.

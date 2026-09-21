@@ -1611,3 +1611,7 @@ button.secondary:disabled::after {
 /* J17 trade posts */
 .trade-post { margin: 6px 0; }
 .trade-post .map-caption { margin: 4px 0 0; }
+
+/* J19 colony loyalty */
+.colony-demand { margin: 4px 0; font-size: 0.85em; }
+.concede-button { margin: 2px 0 8px; }

@@ -249,9 +249,27 @@ SPECIALIZATION = {
 }
 
 
+# J19 -- colony loyalty. A colony left chronically under-served (need
+# satisfaction below NEGLECT_THRESHOLD for NEGLECT_DEMAND_TICKS in a row)
+# makes a one-time concession demand. Granting it costs CONCESSION_COST
+# credits and restores CONCESSION_SATISFACTION_BOOST of need satisfaction;
+# ignoring it costs nothing, the demand simply lapses after
+# DEMAND_WINDOW_TICKS and can only come back after DEMAND_COOLDOWN_TICKS.
+# It's an offer that rewards attention, never a punishment.
+NEGLECT_THRESHOLD = 0.25
+NEGLECT_DEMAND_TICKS = 40
+DEMAND_WINDOW_TICKS = 30
+DEMAND_COOLDOWN_TICKS = 60
+CONCESSION_COST = 80
+CONCESSION_SATISFACTION_BOOST = 0.3
+
+
 class ColonyState:
     def __init__(self, colony_id):
         self.id = colony_id
+        self.neglect_ticks = 0
+        self.demand_ticks_left = 0
+        self.demand_cooldown = 0
         self.need_satisfaction = STARTING_NEED_SATISFACTION
         self.development_level = 1
         self.cumulative_delivered = 0.0
@@ -283,6 +301,32 @@ class ColonyState:
         self.need_satisfaction = max(0.0, self.need_satisfaction - decay_rate)
         if self.is_developed():
             self.secondary_need_satisfaction = max(0.0, self.secondary_need_satisfaction - decay_rate)
+
+    def has_demand(self):
+        return self.demand_ticks_left > 0
+
+    def update_loyalty(self):
+        """One tick of loyalty bookkeeping (called from tick())."""
+        if self.demand_cooldown > 0:
+            self.demand_cooldown -= 1
+        if self.has_demand():
+            self.demand_ticks_left -= 1
+            if self.demand_ticks_left == 0:
+                self.demand_cooldown = DEMAND_COOLDOWN_TICKS
+                self.neglect_ticks = 0
+            return
+        if self.need_satisfaction < NEGLECT_THRESHOLD:
+            self.neglect_ticks += 1
+        else:
+            self.neglect_ticks = 0
+        if self.neglect_ticks >= NEGLECT_DEMAND_TICKS and self.demand_cooldown == 0:
+            self.demand_ticks_left = DEMAND_WINDOW_TICKS
+
+    def grant_concession(self):
+        self.need_satisfaction = min(1.0, self.need_satisfaction + CONCESSION_SATISFACTION_BOOST)
+        self.demand_ticks_left = 0
+        self.demand_cooldown = DEMAND_COOLDOWN_TICKS
+        self.neglect_ticks = 0
 
     def add_development(self, units):
         self.cumulative_delivered += units
@@ -1247,6 +1291,20 @@ COLONY_INVEST_COST = 60
 COLONY_INVEST_UNITS = 10
 
 
+def can_grant_concession(colony_id):
+    state = colony_states.get(colony_id)
+    return state is not None and state.has_demand() and total_profit >= CONCESSION_COST
+
+
+def grant_concession(colony_id):
+    global total_profit
+    if not can_grant_concession(colony_id):
+        return False
+    total_profit -= CONCESSION_COST
+    colony_states[colony_id].grant_concession()
+    return True
+
+
 def can_invest_in_colony(colony_id):
     if colony_id not in active_colony_ids() or colony_id not in colony_states:
         return False
@@ -1502,6 +1560,20 @@ def render_colony(colony_id):
             f"Development: Level 1 ({state.cumulative_delivered:.0f}/{DEVELOPMENT_THRESHOLD:.0f} "
             f"{GOOD_LABEL[colony['needs']]} delivered to develop further)"
         )
+    demand_el = document.getElementById(f"colony-{colony_id}-demand-display")
+    concede_button = document.getElementById(f"colony-{colony_id}-concede-button")
+    if demand_el is not None and concede_button is not None:
+        demanding = state.has_demand()
+        demand_el.hidden = not demanding
+        concede_button.hidden = not demanding
+        if demanding:
+            demand_el.innerText = (
+                f"{colony['name']} feels neglected and asks for a concession: {CONCESSION_COST} credits "
+                f"to restore {int(CONCESSION_SATISFACTION_BOOST * 100)}% satisfaction "
+                f"({state.demand_ticks_left} tick(s) left; ignoring it costs nothing)."
+            )
+            concede_button.innerText = f"Grant concession ({CONCESSION_COST})"
+            concede_button.disabled = not can_grant_concession(colony_id)
     invest_button = document.getElementById(f"colony-{colony_id}-invest-button")
     if invest_button is not None:
         invest_button.hidden = state.is_developed()
@@ -2529,6 +2601,13 @@ def _make_stockpile_sell_handler(good):
     return handler
 
 
+def _make_concession_handler(colony_id):
+    def handler(event=None):
+        grant_concession(colony_id)
+        render()
+    return handler
+
+
 def _make_invest_handler(colony_id):
     def handler(event=None):
         invest_in_colony(colony_id)
@@ -2754,6 +2833,7 @@ def tick(event=None):
     run_automation()
     for colony_state in colony_states.values():
         colony_state.decay()
+        colony_state.update_loyalty()
     recover_market()
     total_profit += trade_post_income_per_tick()
 
@@ -2835,6 +2915,9 @@ def get_state():
                 "development_level": state.development_level,
                 "cumulative_delivered": state.cumulative_delivered,
                 "secondary_need_satisfaction": state.secondary_need_satisfaction,
+                "neglect_ticks": state.neglect_ticks,
+                "demand_ticks_left": state.demand_ticks_left,
+                "demand_cooldown": state.demand_cooldown,
             }
             for colony_id, state in colony_states.items()
         },
@@ -2943,6 +3026,14 @@ def load_state(data):
         state.secondary_need_satisfaction = saved.get(
             "secondary_need_satisfaction", state.secondary_need_satisfaction
         )
+        for loyalty_key, limit in (
+            ("neglect_ticks", NEGLECT_DEMAND_TICKS),
+            ("demand_ticks_left", DEMAND_WINDOW_TICKS),
+            ("demand_cooldown", DEMAND_COOLDOWN_TICKS),
+        ):
+            raw = saved.get(loyalty_key)
+            valid = isinstance(raw, int) and not isinstance(raw, bool) and 0 <= raw <= limit
+            setattr(state, loyalty_key, raw if valid else 0)
 
     saved_ships = data.get("ships", {})
     for ship_id, ship in ships.items():
@@ -3021,6 +3112,10 @@ def setup():
             document.getElementById(f"stockpile-{good}-sell-button").addEventListener(
                 "click", create_proxy(_make_stockpile_sell_handler(good))
             )
+    for colony_id in ALL_COLONIES:
+        concede_button = document.getElementById(f"colony-{colony_id}-concede-button")
+        if concede_button is not None:
+            concede_button.addEventListener("click", create_proxy(_make_concession_handler(colony_id)))
     for colony_id in ALL_COLONIES:
         invest_button = document.getElementById(f"colony-{colony_id}-invest-button")
         if invest_button is not None:
