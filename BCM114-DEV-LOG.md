@@ -475,3 +475,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Trade Empire
 **Did:** Ships 5 and 6 are now bought with a chosen type (Balanced, Cargo-heavy, Fast), each trading cargo against travel time; validated per-ship save field, unchanged behaviour for old saves and the original four ships.
 **Result:** Suite 305 passing, flake8 clean; verified live.
+
+### 2026-09-21 (Trade Empire: research specialization fork, J15)
+**Game:** Trade Empire
+**Did:** Added a two-path research fork after Automation Expansion II (Automation: +10% on automated sales then +1 slot; Market: faster price recovery then softer price drops), mutually exclusive and permanent, with the closed path explained in the UI. "Fully Studied" now means every shared node plus one completed path. Live checking exposed a real bug in existing code: reading `innerText` back inside a collapsed `<details>` returns "", so `innerText +=` wiped a research node's label; fixed by building the string in a local.
+**Result:** Suite 313 passing, flake8 clean; verified live.

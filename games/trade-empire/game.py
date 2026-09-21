@@ -598,18 +598,20 @@ def current_sell_price(good):
 
 
 def apply_market_sale(good, qty):
-    market_multiplier[good] = max(
-        MIN_PRICE_MULTIPLIER, market_multiplier[good] - qty * MARKET_PRICE_DECAY_PER_UNIT_SOLD
+    decay = MARKET_PRICE_DECAY_PER_UNIT_SOLD * (
+        MARKET_INSIGHT_2_DECAY_MULTIPLIER if "market_insight_2" in unlocked_research else 1.0
     )
+    market_multiplier[good] = max(MIN_PRICE_MULTIPLIER, market_multiplier[good] - qty * decay)
     if market_multiplier[good] < MARKET_CRASH_THRESHOLD:
         market_crash_ever[good] = True
 
 
 def recover_market():
     for good in market_multiplier:
-        market_multiplier[good] = min(
-            MAX_PRICE_MULTIPLIER, market_multiplier[good] + MARKET_PRICE_RECOVERY_PER_TICK
+        recovery = MARKET_PRICE_RECOVERY_PER_TICK * (
+            MARKET_INSIGHT_RECOVERY_MULTIPLIER if "market_insight" in unlocked_research else 1.0
         )
+        market_multiplier[good] = min(MAX_PRICE_MULTIPLIER, market_multiplier[good] + recovery)
 
 
 def colony_needing(good):
@@ -714,7 +716,35 @@ RESEARCH_NODES = {
         "description": "Unlocks the Rift Colonies — 3 new colonies, a new need-triangle",
         "requires": "galaxy_expansion",
     },
+    # J15 -- a specialization fork, unlocked once the tree has grown to
+    # Automation Expansion II. Committing to either branch's first tier
+    # permanently closes the other branch ("excludes"), so this is a real
+    # choice about how the empire is run rather than a to-do list.
+    "auto_efficiency": {
+        "cost": 120, "label": "Autopilot Optimisation (Automation path)",
+        "description": "Automated ships earn +10% on every sale",
+        "requires": "automation_slot_2", "excludes": ("market_insight", "market_insight_2"),
+    },
+    "auto_efficiency_2": {
+        "cost": 260, "label": "Autopilot Optimisation II (Automation path)",
+        "description": "+1 more automation slot",
+        "requires": "auto_efficiency", "excludes": ("market_insight", "market_insight_2"),
+    },
+    "market_insight": {
+        "cost": 120, "label": "Market Insight (Market path)",
+        "description": "Sold-down prices recover 50% faster",
+        "requires": "automation_slot_2", "excludes": ("auto_efficiency", "auto_efficiency_2"),
+    },
+    "market_insight_2": {
+        "cost": 260, "label": "Market Insight II (Market path)",
+        "description": "Each unit sold pushes its price down 30% less",
+        "requires": "market_insight", "excludes": ("auto_efficiency", "auto_efficiency_2"),
+    },
 }
+AUTO_EFFICIENCY_BONUS = 0.10
+AUTO_EFFICIENCY_2_SLOT_BONUS = 1
+MARKET_INSIGHT_RECOVERY_MULTIPLIER = 1.5
+MARKET_INSIGHT_2_DECAY_MULTIPLIER = 0.7
 AUTOMATION_SLOT_RESEARCH_BONUS = 1
 AUTOMATION_SLOT_2_RESEARCH_BONUS = 1
 FAST_SHIPS_TICK_REDUCTION = 1
@@ -752,7 +782,18 @@ def can_unlock_research(node_id):
     requires = node.get("requires")
     if requires is not None and requires not in unlocked_research:
         return False
+    if research_node_blocked_by(node_id) is not None:
+        return False
     return node_id not in unlocked_research and research_points >= node["cost"]
+
+
+def research_node_blocked_by(node_id):
+    """J15 -- the already-unlocked node (if any) that permanently closes
+    this one, because the two are opposite sides of a specialization fork."""
+    for other in RESEARCH_NODES[node_id].get("excludes", ()):
+        if other in unlocked_research:
+            return other
+    return None
 
 
 def unlock_research(node_id):
@@ -780,6 +821,7 @@ def unlock_research(node_id):
 def max_automated_ships():
     bonus = AUTOMATION_SLOT_RESEARCH_BONUS if "automation_slot" in unlocked_research else 0
     bonus += AUTOMATION_SLOT_2_RESEARCH_BONUS if "automation_slot_2" in unlocked_research else 0
+    bonus += AUTO_EFFICIENCY_2_SLOT_BONUS if "auto_efficiency_2" in unlocked_research else 0
     return MAX_AUTOMATED_SHIPS + bonus
 
 
@@ -926,7 +968,8 @@ class Ship:
             # Milestone 12's empty reposition() trips have no cargo, so
             # there's nothing to sell or deliver on arrival -- just dock.
             global cross_system_units, disruptions_suffered, insurance_payouts
-            profit = int(round(qty * current_sell_price(good) * diplomacy_multiplier()))
+            efficiency = 1.0 + (AUTO_EFFICIENCY_BONUS if self.automated and "auto_efficiency" in unlocked_research else 0.0)
+            profit = int(round(qty * current_sell_price(good) * diplomacy_multiplier() * efficiency))
             if route_hazards_enabled and hazard_rng.random() < ROUTE_HAZARD_CHANCE:
                 # J11 -- a route disruption: the cargo is lost, nothing is
                 # delivered or sold. Insurance pays a share of what the
@@ -1471,9 +1514,10 @@ def render_market():
         price = current_sell_price(good)
         pct = market_multiplier[good] * 100
         display = document.getElementById(f"market-{good}-display")
-        display.innerText = f"{GOOD_LABEL[good]}: {price} credits/unit ({pct:.0f}% of baseline)"
+        line = f"{GOOD_LABEL[good]}: {price} credits/unit ({pct:.0f}% of baseline)"
         if seasonal_multiplier(good) > 1.0:
-            display.innerText += f" · in demand (+{int(SEASONAL_DEMAND_BONUS * 100)}%)"
+            line += f" · in demand (+{int(SEASONAL_DEMAND_BONUS * 100)}%)"
+        display.innerText = line
         display.className = "market-price"
         display.title = ""
         if market_multiplier[good] < 0.7:
@@ -1504,7 +1548,7 @@ def render_research():
             status_el.innerText = f"{node['label']} — unlocked ({node['description']})"
             unlock_button.hidden = True
         else:
-            status_el.innerText = f"{node['label']} — {node['description']}"
+            status_text = f"{node['label']} — {node['description']}"
             requires = node.get("requires")
             # Onboarding-tooltip audit (planning/TODO.md, origin A14): the
             # static index.html placeholder text used to state a node's
@@ -1517,8 +1561,15 @@ def render_research():
             # permanent. Restate it here, matching Aftermath's own
             # missing-prereq status-text pattern, so it survives every
             # render rather than only the pre-Python placeholder.
+            # Build the text in a local and assign once: reading innerText
+            # back from an element inside a collapsed <details> returns ""
+            # in a real browser, so `innerText += ...` would wipe the label.
             if requires is not None and requires not in unlocked_research:
-                status_el.innerText += f" (requires {RESEARCH_NODES[requires]['label']})"
+                status_text += f" (requires {RESEARCH_NODES[requires]['label']})"
+            closed_by = research_node_blocked_by(node_id)
+            if closed_by is not None:
+                status_text += f" (closed: you chose {RESEARCH_NODES[closed_by]['label']})"
+            status_el.innerText = status_text
             unlock_button.hidden = False
             unlock_button.innerText = f"Research ({node['cost']})"
             unlock_button.disabled = not can_unlock_research(node_id)
@@ -1528,7 +1579,10 @@ def render_research():
                 needs.append(f"unlock {RESEARCH_NODES[requires]['label']} first")
             if research_points < node["cost"]:
                 needs.append(f"{node['cost'] - research_points:.0f} more research points")
-            unlock_button.title = ("Still needed: " + " and ".join(needs)) if needs else "Ready to unlock."
+            if closed_by is not None:
+                unlock_button.title = f"Closed by your choice of {RESEARCH_NODES[closed_by]['label']}."
+            else:
+                unlock_button.title = ("Still needed: " + " and ".join(needs)) if needs else "Ready to unlock."
 
 
 def render_fleet_priority():
@@ -1785,7 +1839,11 @@ PROFIT_100K_THRESHOLD = 100000
 
 
 def _all_research_unlocked():
-    return set(RESEARCH_NODES) <= unlocked_research
+    # J15: the two specialization branches exclude each other, so "all
+    # research" means every shared node plus a completed branch (either).
+    shared = {node_id for node_id, node in RESEARCH_NODES.items() if not node.get("excludes")}
+    completed_branch = "auto_efficiency_2" in unlocked_research or "market_insight_2" in unlocked_research
+    return shared <= unlocked_research and completed_branch
 
 
 def _any_colony_developed():

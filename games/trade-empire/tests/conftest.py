@@ -58,6 +58,7 @@ ELEMENT_IDS = [
 for _node_id in (
     "automation_slot", "fast_ships", "hauler", "galaxy_expansion",
     "automation_slot_2", "outer_reaches",
+    "auto_efficiency", "auto_efficiency_2", "market_insight", "market_insight_2",
 ):
     ELEMENT_IDS += [f"research-{_node_id}-status", f"research-{_node_id}-unlock-button"]
 for _colony_id in ALL_COLONY_IDS:

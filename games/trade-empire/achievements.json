@@ -43,7 +43,7 @@
     {
       "id": "all_research_unlocked",
       "label": "Fully Studied",
-      "description": "Unlock every research node in the home system's tree."
+      "description": "Unlock every shared research node and finish one specialization path (Automation or Market)."
     },
     {
       "id": "galaxy_expansion_unlocked",
