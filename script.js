@@ -888,9 +888,21 @@ async function loadAchievementsDashboard() {
     heading.textContent = "Achievements";
     accountAchievementsDashboard.appendChild(heading);
 
+    // Per-game bars render into their own collapsed-by-default <details>
+    // instead of straight into the dashboard — with achievements now
+    // shipped on all 12 games, this section was one bar per game stacked
+    // in a signed-in visitor's account panel, which reads as a wall of
+    // bars before they've even scrolled to a single game. The one number
+    // most visitors actually want at a glance (the Overall bar) stays
+    // outside the collapse, right under the heading.
+    const perGameDetails = document.createElement("details");
+    perGameDetails.className = "achievements-per-game-toggle";
+    const perGameSummary = document.createElement("summary");
+    perGameDetails.appendChild(perGameSummary);
+
     let totalEarned = 0;
     let totalPossible = 0;
-    let anyGameRendered = false;
+    let gamesRendered = 0;
 
     gameIds.forEach((gameId, i) => {
       const catalog = catalogResults[i];
@@ -910,17 +922,17 @@ async function loadAchievementsDashboard() {
       const earned = Math.min(earnedList.length, total);
 
       renderProgressBar(
-        accountAchievementsDashboard,
+        perGameDetails,
         GAME_DISPLAY_NAMES[gameId] || gameId,
         earned,
         total
       );
       totalEarned += earned;
       totalPossible += total;
-      anyGameRendered = true;
+      gamesRendered += 1;
     });
 
-    if (!anyGameRendered) {
+    if (!gamesRendered) {
       const note = document.createElement("p");
       note.className = "achievements-dashboard-empty";
       note.textContent = "No games with achievements yet — check back as more games get them.";
@@ -933,6 +945,9 @@ async function loadAchievementsDashboard() {
     divider.textContent = "Overall";
     accountAchievementsDashboard.appendChild(divider);
     renderProgressBar(accountAchievementsDashboard, "All games", totalEarned, totalPossible);
+
+    perGameSummary.textContent = `Per-game breakdown (${gamesRendered} games)`;
+    accountAchievementsDashboard.appendChild(perGameDetails);
   } catch (err) {
     console.error("loadAchievementsDashboard failed:", err);
     accountAchievementsDashboard.textContent = "Couldn't load achievement progress right now.";

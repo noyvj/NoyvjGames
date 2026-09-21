@@ -1106,6 +1106,35 @@ button.secondary:disabled {
   margin: 0.5rem 0 0;
 }
 
+/* Collapsed-by-default wrapper around the per-game bar list, so a
+   signed-in visitor sees the Overall bar first and doesn't have to
+   scroll past one row per game (12 and counting) just to reach the rest
+   of the account panel. Same idiom as several games' own
+   .stats-detail-toggle/.ticker-history-toggle disclosures. */
+.achievements-per-game-toggle {
+  margin-top: 0.75rem;
+}
+
+.achievements-per-game-toggle summary {
+  font-size: 0.78rem;
+  opacity: 0.65;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.achievements-per-game-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.achievements-per-game-toggle summary:hover {
+  opacity: 0.9;
+}
+
+.achievements-per-game-toggle[open] summary {
+  margin-bottom: 0.6rem;
+}
+
 .achievements-bar-row {
   margin: 0 0 0.6rem;
 }
