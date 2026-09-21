@@ -461,6 +461,19 @@ def test_an_automated_plot_tooltip_counts_down_to_its_next_review(game_env):
     assert "next review in" not in module._plot_title(plot)
 
 
+def test_row_progress_tooltip_separates_watered_from_never_watered(game_env):
+    module, state = game_env.module, game_env.state
+    row = state.rows[0]
+    plots = state.row_plots(row.sequence)
+    module.render()
+    assert f"0 of {len(plots)} plots watered at least once" in game_env.elements[f"row-progress-{row.sequence}"].title
+    state.review(plots[0].plot_id, False)  # a wrong answer still counts as watered
+    module.render()
+    title = game_env.elements[f"row-progress-{row.sequence}"].title
+    assert f"1 of {len(plots)} plots watered at least once" in title
+    assert f"{len(plots) - 1} never watered yet" in title
+
+
 def test_row_progress_shows_how_far_each_row_has_come(game_env):
     module, state = game_env.module, game_env.state
     row = state.rows[0]

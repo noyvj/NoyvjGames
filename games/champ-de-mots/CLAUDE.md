@@ -612,3 +612,7 @@ When the open question is a gender-tag question, a line under it (`#gender-accur
 ## L12: next-review countdown on automated plots (2026-09-21)
 
 `_plot_title()` appends "next review in N day(s)" to an automated plot's tooltip (and its aria-label, which shares the text) whenever `plot.next_due` is still in the future; once it is due the existing "ready for water" note takes over. Tooltip-only, so nothing is added to the 25px cells. Suite 573 passing (1 new test in `tests/test_farm_ui.py`); not separately browser-checked.
+
+## L20: watered vs never-watered row readout (2026-09-21)
+
+Each row's progress count (`row-progress-<n>`, still "grown/total") now has a tooltip separating plots watered at least once (`last_reviewed` set, which includes wrong answers) from plots never watered. Re-scoped per the TODO note: with row gating gone (L4a) it applies to every row. It is a tooltip on the existing count rather than a second visible number, to keep the row header uncluttered. Suite 573 passing (1 new test in `tests/test_farm_ui.py`); not separately browser-checked.

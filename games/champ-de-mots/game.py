@@ -2774,6 +2774,13 @@ def render_farm():
         plots = state.row_plots(row.sequence)
         grown = sum(1 for p in plots if p.stage != STAGE_SEED)
         _element(f"row-progress-{row.sequence}").innerText = f"{grown}/{len(plots)}"
+        # L20 -- separate "watered at least once" from "never watered yet"
+        # (a wrong answer counts as watered but leaves the plot a seed, so
+        # the grown/total number above can understate real catch-up).
+        watered = sum(1 for p in plots if p.last_reviewed is not None)
+        _element(f"row-progress-{row.sequence}").title = (
+            f"{watered} of {len(plots)} plots watered at least once, {len(plots) - watered} never watered yet"
+        )
         unlocked = state.is_row_unlocked(row.sequence)
         _element(f"row-lock-{row.sequence}").hidden = unlocked
         _element(f"row-{row.sequence}").className = "row" if unlocked else "row row--locked"

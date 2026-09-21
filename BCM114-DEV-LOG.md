@@ -430,3 +430,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Le Champ de Mots
 **Did:** Automated plots' hover text now counts down the days until their next review.
 **Result:** Suite 573/573 passing, flake8 clean; tooltip text not separately browser-checked.
+
+### 2026-09-21 (Le Champ de Mots: watered vs never-watered row readout, L20)
+**Game:** Le Champ de Mots
+**Did:** Row progress counts now have a tooltip distinguishing plots watered at least once from plots never watered, for every row (re-scoped after L4a removed row gating).
+**Result:** Suite 573 passing, flake8 clean; tooltip text not separately browser-checked.
