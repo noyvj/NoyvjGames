@@ -363,3 +363,46 @@ lower (slower growth) than the main forest's, zero console errors.
 - Update the milestone table Status as work happens.
 
 - 2026-09-21: mobile-dock `body` padding-bottom now `html body` so it beats ad-bar.css (V-AB-2).
+## Screen-reader accessibility audit (Z15, site-wide goal, planning/TODO.md)
+
+Static-analysis audit (grepping/reading `index.html`/`game.py`, no live screen
+reader in this environment — same audit-only method the colorblind-safety
+passes already established for this hub) of the achievements and settings
+panels: toggle-button accessible names, panel role/heading semantics, focus
+order on open/close, keyboard reachability of interactive elements, and
+checkbox/label association.
+
+**Found and fixed one real gap:** the settings panel's own title
+(`Display Settings`) was marked up as a plain `<p class="settings-panel-heading">`
+rather than a heading element, so a screen-reader user navigating by heading
+(the "jump between headings" navigation mode most screen readers offer) would
+never see it — it read as an anonymous paragraph. Changed to
+`<h2 class="settings-panel-heading">` (CSS is a pure class selector, so the
+visual appearance is unaffected — it now matches the `<h2>` several other
+games in this hub already use for the identical heading). No `game.py`
+change needed; no test referenced the tag.
+
+Everything else audited clean, matching this hub's site-wide pattern:
+- Both toggle buttons (`#achievements-toggle-button`, `#settings-toggle-button`)
+  already carry descriptive visible text ("🏆 Achievements (N/M)" / "⚙️ Settings"),
+  which is a sufficient accessible name on its own — no `aria-label` needed.
+- The achievements panel itself has no heading of its own, but is adequately
+  labeled by the toggle button's own visible text immediately above it — the
+  same "plain semantic markup is enough" call this hub's colorblind-safety
+  audits already made for comparable cases; not over-engineered with ARIA
+  that plain HTML already covers.
+- No focus-trap exists anywhere in this hub, and none was warranted here:
+  clicking the toggle button never moves focus itself, so it naturally stays
+  on that same button when the panel opens or closes (no case of focus being
+  silently dropped to `document.body`).
+- Every interactive element inside both panels is a real `<button>`/`<input>`
+  (confirmed via a site-wide grep for `.onclick =` assignments and
+  `createElement("div")` calls with a wired click handler — none found; the
+  achievements panel's own cards are static informational `<div>`s with no
+  click behavior, so they don't need to be buttons).
+- The reduced-motion checkbox is properly associated with its label
+  (`<label class="settings-checkbox-label" for="reduced-motion-checkbox">`
+  wrapping the input).
+
+Verified: full pytest suite green (pure HTML tag-name change, no Python
+touched), `flake8` unaffected (no `.py` file in the diff).

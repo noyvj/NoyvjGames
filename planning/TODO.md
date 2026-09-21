@@ -97,19 +97,19 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [x] Le Champ de Mots
 - [ ] Z13: A real "onboarding survey" — a single optional first-visit prompt (subjects of interest, quick vs. deep games) feeding the hub lobby's tag-filter defaults.
 - [ ] Z14: A shared "time since last played" freshness-badge helper (groundwork for Z2).
-- [ ] Z15: A genuine screen-reader accessibility audit (ARIA labels, focus order) across at least the achievements/settings panels:
-  - [ ] SOL
-  - [ ] Canopy
-  - [ ] Grid
-  - [ ] Tide
-  - [ ] Aftermath
-  - [ ] Herd
-  - [ ] Thaw
-  - [ ] Loop
-  - [ ] Drift
-  - [ ] Trade Empire
-  - [ ] Continuum
-  - [ ] Le Champ de Mots
+- [x] Z15: A genuine screen-reader accessibility audit (ARIA labels, focus order) across at least the achievements/settings panels. Static-analysis method (grep/read, no live screen reader available in this environment — same precedent as the colorblind-safety audits). One real, concrete gap found and fixed across 4 games (SOL/Canopy/Grid/Tide's settings-panel title was a plain `<p>`, invisible to a screen reader's heading-navigation mode — changed to `<h2>`, CSS unaffected). Everything else audited clean site-wide: both toggle buttons already have descriptive visible text (no `aria-label` needed), no clickable `<div>`s anywhere (grepped for `.onclick =` — none found, all interactive elements are real `<button>`/`<input>`), every checkbox is properly `<label for=...>`-associated, and no focus-trap issue exists since clicking a toggle button never moves focus away from itself. See each game's own CLAUDE.md "Screen-reader accessibility audit" section for the per-game detail.
+  - [x] SOL — fixed: settings-panel heading `<p>` → `<h2>`.
+  - [x] Canopy — fixed: settings-panel heading `<p>` → `<h2>`.
+  - [x] Grid — fixed: settings-panel heading `<p>` → `<h2>`.
+  - [x] Tide — fixed: settings-panel heading `<p>` → `<h2>`.
+  - [x] Aftermath — already correct (`<h2>`), audited clean, no change.
+  - [x] Herd — already correct (`<h2>`), audited clean, no change.
+  - [x] Thaw — already correct (`<h2>`), audited clean, no change.
+  - [x] Loop — already correct (`<h2>`), audited clean, no change.
+  - [x] Drift — audited clean, no change (short row-based settings panel, no heading needed).
+  - [x] Trade Empire — audited clean, no change (short row-based settings panel, no heading needed).
+  - [x] Continuum — audited clean, no change; already uses `role="group"`/`aria-label` on its button groups.
+  - [x] Le Champ de Mots — audited clean, no change; already uses `aria-pressed` (kept in sync by `visual-style.js`) on its visual-style buttons.
 - [x] Z16: Audit whether the other 11 games have an equivalent lightweight in-game bug/typo report affordance to Le Champ de Mots' existing one. Audited: none of the 11 have Le Champ de Mots' exact typed-answer-report shape (none are quiz/typed-answer games), the 8 climate-quartet games' existing end-of-session Yes/No+comment feedback prompt is real but genuinely different in spirit (a general post-session survey, not a flag-this-one-exact-thing action), and SOL/Trade Empire are fictional sandboxes with no citable facts to attach a report to (documented gap, not built). Continuum was the one genuine, well-targeted case — its real-world info panel (28 cited sources) had no way to flag a fact as wrong, so a small "Report an issue with this info" button was added there reusing the existing `answer_reports` backend with zero schema changes — commit `d29d35c`, see `games/continuum/CLAUDE.md`'s Milestone 27 build note.
   - [x] SOL — no contextual report affordance and no end-of-session feedback prompt either; a fictional space-economy sandbox with no citable real-world facts to dispute, so there's no natural "this specific fact might be wrong" attachment point the way Le Champ de Mots' translations (or Continuum's info panel) have. Documented gap, left for a future dedicated pass rather than built reactively.
   - [x] Canopy — has the climate-quartet's own end-of-session feedback prompt (Yes/No + optional comment, piped to the ratings backend). Real, but a genuinely different mechanism: a general post-session survey, not a flag-this-one-exact-moment action. No contextual report button.

@@ -453,3 +453,37 @@ needed. Full test suite green, unaffected (pure CSS change).
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag herd-milestone-0N`.
 - Update the milestone table Status as work happens.
+## Screen-reader accessibility audit (Z15, site-wide goal, planning/TODO.md)
+
+Static-analysis audit (grepping/reading `index.html`/`game.py`, no live screen
+reader in this environment — same audit-only method the colorblind-safety
+passes already established for this hub) of the achievements and settings
+panels: toggle-button accessible names, panel role/heading semantics, focus
+order on open/close, keyboard reachability of interactive elements, and
+checkbox/label association.
+
+**No real gap found — no change made.** Checked against the same candidate
+list as every other game in this pass:
+- Both toggle buttons (`#achievements-toggle-button`, `#settings-toggle-button`)
+  already carry descriptive visible text, a sufficient accessible name on its
+  own — no `aria-label` needed.
+- The settings panel's own title is already a real `<h2 class="settings-panel-heading">`
+  (this game was already ahead of four sibling games in this hub that had it
+  as a plain, heading-nav-invisible `<p>` — fixed there this same pass), so
+  it's already reachable via a screen reader's heading-navigation mode.
+- The achievements panel itself has no heading of its own, but is adequately
+  labeled by the toggle button's own visible text immediately above it — the
+  same "plain semantic markup is enough" call this hub's colorblind-safety
+  audits already made for comparable cases.
+- No focus-trap exists anywhere in this hub, and none was warranted here:
+  clicking the toggle button never moves focus itself, so it naturally stays
+  on that same button when the panel opens or closes.
+- Every interactive element inside both panels is a real `<button>`/`<input>`
+  (confirmed via a site-wide grep for `.onclick =` assignments and
+  `createElement("div")` calls with a wired click handler — none found).
+- The reduced-motion checkbox is properly associated with its label
+  (`<label class="settings-checkbox-label" for="reduced-motion-checkbox">`
+  wrapping the input).
+
+No code changed; ran as the baseline check this pass calls for regardless
+of verdict.

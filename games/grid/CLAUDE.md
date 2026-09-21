@@ -307,3 +307,46 @@ Built C9, C27, C1 (`tests/test_round4_items.py`, `tests/test_career.py`; 311 -> 
 - **C1 operator career.** Career panel (toolbar toggle). "Finish run" (through ConfirmDialog) banks points (1 + operator grade A4..F0 + 1 for resilience 60+ + 1 for stabilizing the emergency; runs under 5 rounds don't count) and starts a fresh GridState. Points buy four modest perks (seed capital, crew training, storage partnerships, demand analytics) that apply from the next run; none touches emissions, disruption or the learning curve. Earned achievements are banked so they persist across runs. Persisted in localStorage `grid_career_v1` and mirrored into `get_state()["career"]`; `validate_career()` defaults/clamps everything, unlocks can't exceed earned points, and `load_state()` never adopts a career with fewer finished runs than the live one.
 - **Save fix.** `get_state()` previously omitted the round-3 fields (demand response level, weather log, policy lever state, maintenance schedules), so they silently reset on load; now saved with validation (`_load_round3_fields`).
 - Live-verified in the browser pane: emergency scenario, arbitrage button, finishing a run via the real dialog, localStorage write; zero console errors.
+## Screen-reader accessibility audit (Z15, site-wide goal, planning/TODO.md)
+
+Static-analysis audit (grepping/reading `index.html`/`game.py`, no live screen
+reader in this environment — same audit-only method the colorblind-safety
+passes already established for this hub) of the achievements and settings
+panels: toggle-button accessible names, panel role/heading semantics, focus
+order on open/close, keyboard reachability of interactive elements, and
+checkbox/label association.
+
+**Found and fixed one real gap:** the settings panel's own title
+(`Display Settings`) was marked up as a plain `<p class="settings-panel-heading">`
+rather than a heading element, so a screen-reader user navigating by heading
+(the "jump between headings" navigation mode most screen readers offer) would
+never see it — it read as an anonymous paragraph. Changed to
+`<h2 class="settings-panel-heading">` (CSS is a pure class selector, so the
+visual appearance is unaffected — it now matches the `<h2>` several other
+games in this hub already use for the identical heading). No `game.py`
+change needed; no test referenced the tag.
+
+Everything else audited clean, matching this hub's site-wide pattern:
+- Both toggle buttons (`#achievements-toggle-button`, `#settings-toggle-button`)
+  already carry descriptive visible text ("🏆 Achievements (N/M)" / "⚙️ Settings"),
+  which is a sufficient accessible name on its own — no `aria-label` needed.
+- The achievements panel itself has no heading of its own, but is adequately
+  labeled by the toggle button's own visible text immediately above it — the
+  same "plain semantic markup is enough" call this hub's colorblind-safety
+  audits already made for comparable cases; not over-engineered with ARIA
+  that plain HTML already covers.
+- No focus-trap exists anywhere in this hub, and none was warranted here:
+  clicking the toggle button never moves focus itself, so it naturally stays
+  on that same button when the panel opens or closes (no case of focus being
+  silently dropped to `document.body`).
+- Every interactive element inside both panels is a real `<button>`/`<input>`
+  (confirmed via a site-wide grep for `.onclick =` assignments and
+  `createElement("div")` calls with a wired click handler — none found; the
+  achievements panel's own cards are static informational `<div>`s with no
+  click behavior, so they don't need to be buttons).
+- The reduced-motion checkbox is properly associated with its label
+  (`<label class="settings-checkbox-label" for="reduced-motion-checkbox">`
+  wrapping the input).
+
+Verified: full pytest suite green (pure HTML tag-name change, no Python
+touched), `flake8` unaffected (no `.py` file in the diff).

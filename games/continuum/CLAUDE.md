@@ -587,3 +587,43 @@ Test count 523 -> 562, each group verified live under Pyodide (zero console erro
 ## Naming
 
 No better name landed this round — sticking with **Continuum**, which already fits well thematically (continuity of one settlement across eras). Revisit if inspiration strikes later; not worth blocking on.
+## Screen-reader accessibility audit (Z15, site-wide goal, planning/TODO.md)
+
+Static-analysis audit (grepping/reading `index.html`/`game.py`, no live screen
+reader in this environment — same audit-only method the colorblind-safety
+passes already established for this hub) of the achievements and settings
+panels: toggle-button accessible names, panel role/heading semantics, focus
+order on open/close, keyboard reachability of interactive elements, and
+checkbox/label association. (No code touched this pass — checked the
+coordination board first per the standing rule about this game; nothing
+live-claimed on it at the time, and this was read-only anyway.)
+
+**No real gap found — no change made.** Continuum's settings panel is the
+same short two-row control block as Drift/Trade Empire (text-size buttons +
+a "Reduce Motion: On/Off" toggle button, each already carrying its own
+`<span class="settings-row-label">`) — no separate panel-title heading, but
+nothing in it needs one, since each control already names itself and the
+`#settings-toggle-button` above states the panel's purpose. This game is
+also the one place in the hub where a settings-adjacent control group
+already uses real ARIA beyond that: the text-size button trio and the
+Starting Scenario / Consulting-mode button rows are wrapped in
+`<div role="group" aria-label="...">`, which is the correct, not-over-
+engineered pattern for a set of related buttons a screen reader should
+announce as one control group. Checked against the same candidate list as
+every other game in this pass:
+- Both toggle buttons (`#achievements-toggle-button`, `#settings-toggle-button`)
+  already carry descriptive visible text, a sufficient accessible name on
+  its own — no `aria-label` needed.
+- The achievements panel itself has no heading of its own, but is adequately
+  labeled by the toggle button's own visible text immediately above it.
+- No focus-trap exists anywhere in this hub, and none was warranted here:
+  clicking the toggle button never moves focus itself, so it naturally
+  stays on that same button when the panel opens or closes.
+- Every interactive element inside both panels is a real `<button>`
+  (confirmed via a grep for `.onclick =` assignments and
+  `createElement("div")` calls with a wired click handler in `game.py` —
+  none found; this game's settings panel has no checkbox at all, so the
+  label/`for` question doesn't apply here).
+
+No code changed; ran as the baseline check this pass calls for regardless
+of verdict.

@@ -468,3 +468,37 @@ The completion audit found a real gap: the original Pass-2 legacy-system idea (`
 Implementation: three new `aria-hidden` divs inside `.settlement-visual` (`#settlement-legacy-scar-weather/-non-weather/-social`), a `.settlement-legacy-scar`/`--tier-1/2/3` CSS block in `style.css` positioned along the ground line so it can never collide with the rooftop badges, and one small loop in `render()` (right after the E4 chip-row loop it sits next to) that clears and re-applies the matching tier class per category every render. Covered by a new `tests/test_legacy_scars.py` (category aggregation, tier thresholds at the exact boundary counts, and `render()`-driven classList checks across zero/one/two completed runs, including a stale-higher-tier-doesn't-stick check). Full pytest suite (246 → 254 tests) and flake8 stayed clean throughout.
 
 Verified live via the shared `hub-dev-server` (fresh tab, since the port was already in use): drove `legacy_event_counts` up directly via `pyodide.runPython` (flood/heatwave/storm, supply_chain, and civil_unrest at varying counts) and called `render()` -- all three category scars appeared with the correct tier class (verified via `classList` and visually, via a temporary debug-only `transform: scale(3)` zoom on `.settlement-visual` to inspect the small ground-line marks up close), the civil-unrest scar at count 8 showed the tier-3 pulsing glow, and a fresh/untouched settlement showed all three scars fully transparent (no tier class). Zero console errors throughout.
+## Screen-reader accessibility audit (Z15, site-wide goal, planning/TODO.md)
+
+Static-analysis audit (grepping/reading `index.html`/`game.py`, no live screen
+reader in this environment — same audit-only method the colorblind-safety
+passes already established for this hub) of the achievements and settings
+panels: toggle-button accessible names, panel role/heading semantics, focus
+order on open/close, keyboard reachability of interactive elements, and
+checkbox/label association.
+
+**No real gap found — no change made.** Checked against the same candidate
+list as every other game in this pass:
+- Both toggle buttons (`#achievements-toggle-button`, `#settings-toggle-button`)
+  already carry descriptive visible text, a sufficient accessible name on its
+  own — no `aria-label` needed.
+- The settings panel's own title is already a real `<h2 class="settings-panel-heading">`
+  (this game was already ahead of four sibling games in this hub that had it
+  as a plain, heading-nav-invisible `<p>` — fixed there this same pass), so
+  it's already reachable via a screen reader's heading-navigation mode.
+- The achievements panel itself has no heading of its own, but is adequately
+  labeled by the toggle button's own visible text immediately above it — the
+  same "plain semantic markup is enough" call this hub's colorblind-safety
+  audits already made for comparable cases.
+- No focus-trap exists anywhere in this hub, and none was warranted here:
+  clicking the toggle button never moves focus itself, so it naturally stays
+  on that same button when the panel opens or closes.
+- Every interactive element inside both panels is a real `<button>`/`<input>`
+  (confirmed via a site-wide grep for `.onclick =` assignments and
+  `createElement("div")` calls with a wired click handler — none found).
+- The reduced-motion checkbox is properly associated with its label
+  (`<label class="settings-checkbox-label" for="reduced-motion-checkbox">`
+  wrapping the input).
+
+No code changed; ran as the baseline check this pass calls for regardless
+of verdict.

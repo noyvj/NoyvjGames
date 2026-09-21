@@ -186,3 +186,40 @@ Fix for a real bug the site-wide Z25 save-payload audit found (`planning/TODO.md
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag drift-milestone-0N`.
 - Update the milestone table Status as work happens.
+## Screen-reader accessibility audit (Z15, site-wide goal, planning/TODO.md)
+
+Static-analysis audit (grepping/reading `index.html`/`game.py`, no live screen
+reader in this environment — same audit-only method the colorblind-safety
+passes already established for this hub) of the achievements and settings
+panels: toggle-button accessible names, panel role/heading semantics, focus
+order on open/close, keyboard reachability of interactive elements, and
+checkbox/label association.
+
+**No real gap found — no change made.** This game's settings panel is a
+short two-row control block (text-size buttons + a "Reduce Motion: On/Off"
+toggle button, each row already carrying its own visible `<span
+class="settings-row-label">`) rather than the longer checkbox-based panel
+some other games in this hub have — there's no separate panel-title heading
+element, but nothing in it needs one: each control already names itself via
+its own visible label text and the button's own state-reflecting text
+("Reduce Motion: Off"/"Reduce Motion: On"), and the `#settings-toggle-button`
+above it already states the panel's purpose. Same "plain semantic markup
+already covers it" call this hub's colorblind-safety audits make for
+comparable cases — not adding a heading purely for the sake of having one.
+Checked against the same candidate list as every other game in this pass:
+- Both toggle buttons (`#achievements-toggle-button`, `#settings-toggle-button`)
+  already carry descriptive visible text, a sufficient accessible name on its
+  own — no `aria-label` needed.
+- The achievements panel itself has no heading of its own, but is adequately
+  labeled by the toggle button's own visible text immediately above it.
+- No focus-trap exists anywhere in this hub, and none was warranted here:
+  clicking the toggle button never moves focus itself, so it naturally stays
+  on that same button when the panel opens or closes.
+- Every interactive element inside both panels is a real `<button>`
+  (confirmed via a site-wide grep for `.onclick =` assignments and
+  `createElement("div")` calls with a wired click handler — none found; this
+  game's settings panel has no checkbox at all, so the label/`for` question
+  doesn't apply here).
+
+No code changed; ran as the baseline check this pass calls for regardless
+of verdict.

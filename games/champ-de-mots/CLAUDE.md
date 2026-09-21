@@ -543,3 +543,44 @@ Each week keeps its existing plot count unchanged; a bonus section is added per 
 ### 14.7 Milestone build order
 
 Continues the existing numbering (see §11's table) rather than restarting — the source doc's own numbered list maps its already-built steps (content catalog, plant-state model, question generator, farm UI, save-code hook, row-unlock pacing, polish) onto this game's existing Milestones 1-3 and 7-9 respectively. New work is Milestones 8-13: grading engine v2 → report button + backend table → failure blurb → review tab → weekly proficiency tests → bonus sentence sections. Each gets its own commit + tag per §13's convention.
+## Screen-reader accessibility audit (Z15, site-wide goal, planning/TODO.md)
+
+Static-analysis audit (grepping/reading `index.html`/`game.py`, no live screen
+reader in this environment — same audit-only method the colorblind-safety
+passes already established for this hub) of the achievements and settings
+panels: toggle-button accessible names, panel role/heading semantics, focus
+order on open/close, keyboard reachability of interactive elements, and
+checkbox/label association.
+
+**No real gap found — no change made.** This game's settings panel already
+has a real `<h2 class="settings-panel-heading">` title, and its visual-style
+switcher (Milestone 32) is the best-instrumented control in the whole hub for
+this exact audit: the four style buttons sit in a `<div role="group"
+aria-label="Visual style">` and each carries a live `aria-pressed` attribute
+that `visual-style.js` keeps in sync with the actually-selected style —
+confirmed by reading the file, not just assuming from the markup. Checked
+against the same candidate list as every other game in this pass:
+- Both toggle buttons (`#achievements-toggle-button`, `#settings-toggle-button`)
+  already carry descriptive visible text, a sufficient accessible name on
+  its own — no `aria-label` needed.
+- The achievements/dashboard panels (`.dashboard-panel`) have no heading of
+  their own, but are adequately labeled by their toggle buttons' own visible
+  text immediately above them.
+- No focus-trap exists anywhere in the achievements/settings toggle flow
+  (the first-run visual-style *picker* modal is a separate, already-correct
+  case — `visual-style.js` already restores focus to the previously-focused
+  element on close and traps Tab inside the modal while it's open, which
+  this game had already built before this audit even started); clicking the
+  settings/achievements toggle buttons never moves focus itself, so it
+  naturally stays on that same button when either panel opens or closes.
+- Every interactive element inside both panels is a real `<button>`
+  (confirmed via a grep for `.onclick =` assignments and
+  `createElement("div")` calls with a wired click handler in `game.py` —
+  none found).
+- Every checkbox/select in the wider practice UI is properly labeled: the
+  accent-sensitivity checkbox is wrapped by `<label class="accent-toggle">`,
+  and the Review panel's "Items per session"/"Minimum growth stage" controls
+  are each wrapped by `<label class="review-setting">`.
+
+No code changed; ran as the baseline check this pass calls for regardless
+of verdict.
