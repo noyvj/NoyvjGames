@@ -350,3 +350,7 @@ Everything else audited clean, matching this hub's site-wide pattern:
 
 Verified: full pytest suite green (pure HTML tag-name change, no Python
 touched), `flake8` unaffected (no `.py` file in the diff).
+
+## R2-C16: "Stored Power" achievement (2026-09-21)
+
+Added the `first_storage` achievement (label "Stored Power", earned by building the first battery; predicate `state.cumulative_built["battery"] >= 1`, so it survives retiring the battery) instead of a bespoke first-battery callout, per the user's note that callouts should become achievements. The existing unlock toast announces it. The other existing callouts (renewable milestone, Retire refund, Maintain cost) are not plant-type callouts and were left as they are. Grid now has 17 achievements; suite 344 passing (added one test in `tests/test_achievements.py`).

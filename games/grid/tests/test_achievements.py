@@ -63,6 +63,13 @@ def test_renewable_pioneer_requires_a_renewable_specifically(game_env):
     assert "renewable_pioneer" in game_env.module.achievement_ids_earned()
 
 
+def test_first_storage_earned_only_by_a_battery(game_env):
+    game_env.build("coal")
+    assert "first_storage" not in game_env.module.achievement_ids_earned()
+    game_env.build("battery")
+    assert "first_storage" in game_env.module.achievement_ids_earned()
+
+
 def test_clean_capacity_share_milestones(game_env):
     module = game_env.module
     game_env.state.funds = 10_000

@@ -1523,6 +1523,7 @@ def _any_renewable_at_cost_floor():
 ACHIEVEMENT_CHECKS = {
     "first_watt": lambda: sum(state.plant_counts.values()) >= 1,
     "renewable_pioneer": lambda: any(state.plant_counts[t] >= 1 for t in RENEWABLE_TYPES),
+    "first_storage": lambda: state.cumulative_built["battery"] >= 1,
     "clean_quarter": lambda: renewable_capacity_share() >= 0.25,
     "clean_half": lambda: renewable_capacity_share() >= 0.5,
     "clean_three_quarters": lambda: renewable_capacity_share() >= 0.75,

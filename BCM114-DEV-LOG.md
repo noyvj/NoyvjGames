@@ -380,3 +380,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Warframe Build Tracker (personal tool, unlisted)
 **Did:** Built the open X-section quality-of-life items: a "what's blocking me" summary, per-category and overall progress, a `DATA_UPDATED` age readout, a build-priority sort (plus name/most-needed), search, an archive-completed toggle, per-part notes, a copyable shopping list, copy-resource buttons with inline still-needed totals, a Built!/Copied! toast, a ConfirmDialog-gated inventory reset, a grindy flag (one threshold constant), session-visited Wiki links and a favicon. New saved fields (`notes`, `prefs`) are validated with old-save defaults. Skipped: market prices (live network), recursive refinery expansion and the syndicate-standing layer (need data research).
 **Result:** 41 to 78 tests green, flake8 clean, verified live at desktop and 375px with zero console errors. See `warframe_build_tracker/README.md`.
+
+### 2026-09-21 (Grid: first-battery achievement)
+**Game:** Grid
+**Did:** Closed recovered task R2-C16: added a "Stored Power" achievement for building the first battery (achievements.json entry, `ACHIEVEMENT_CHECKS` predicate, test, changelog entry) rather than a separate callout, since the user asked for callouts to become achievements.
+**Result:** Grid suite 344/344 passing (was 343). Toast reuses the existing achievement unlock path; not separately checked in a browser.

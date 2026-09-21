@@ -11,6 +11,11 @@
       "description": "Build your first Solar, Wind, or Hydro plant."
     },
     {
+      "id": "first_storage",
+      "label": "Stored Power",
+      "description": "Build your first battery storage."
+    },
+    {
       "id": "clean_quarter",
       "label": "Quarter Clean",
       "description": "Get renewables to at least 25% of your grid's total capacity."
