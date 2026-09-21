@@ -64,23 +64,3 @@ Both ideas got "I'll let you make the call" and are currently parked in `LATER.m
 Both would be a real scope jump for their game (meaningfully more UI, more state, more to test) rather than a small feature — worth deciding deliberately rather than me guessing at the shape. What's the actual player experience you want out of either one, and does "full duplicate" or "lighter shadow/sister" match that better?
 
 **Your answer:**
-
----
-
-### Q2. Warframe tracker: how possible is linking to real account data, and tracking frame/weapon/companion crafting?
-
-You asked (round 2, X17) for a feasibility talk on two goals. Short version first: the account-data half is **already partly done**, the crafting half is **not figured out yet**.
-
-**(a) Connecting to account data, the way AlecaFrame does.**
-- *Already built (X-b):* the tracker's "Import lastData.dat / inventory.json" button fills every resource's **built** count from a real inventory export. You produce the file with `warframe-api-helper` or AlecaFrame while the game is running, then upload it. Decryption and matching happen in your browser; nothing is sent anywhere. Details are in `warframe_build_tracker/README.md`.
-- *Honest gap:* it was tested only against a synthetic file, because no real export was available. The matching is a best-effort guess on item paths, and the import summary lists anything it couldn't match.
-- *Truly live linking* (no manual export step) is **not realistic** for a static site: the game has no official public API for a player's inventory, and the community tools get it by reading the game or its login session on your own PC, which a web page can't do and shouldn't. The practical ceiling is "export a file, upload it," which exists now.
-
-**(b) Tracking frame / weapon / companion crafting, not only Amp/Zaw/Kitgun parts.**
-- *Feasibility: moderate, and it depends on one thing I can't check from here.* Real inventory exports are known to contain more than resources (owned blueprints, items currently in the foundry, and owned frames, weapons and companions), so an import could tell the tracker which crafts you already own or have running. I'm going from general knowledge of the file format, not from a real file in this repo, so treat the field names as unconfirmed.
-- *The bigger cost is reference data, not import:* every extra item needs its own component and resource list. There are hundreds of frames and weapons, so I'd propose starting with a small hand-picked list you actually farm, the same way the current 33 parts started, and growing it.
-- *Foundry timers* ("ready at" times) look easy to add once a real export shows how timers are stored.
-
-**What I need from you:** run `warframe-api-helper` (or AlecaFrame) once and give me a real `lastData.dat` or `inventory.json`, ideally with your personal identifiers removed or just checked by you before sharing. With a real file I can verify the resource import and see exactly what the crafting data looks like, and then say concretely what's feasible instead of guessing. If you'd rather not share one, I can keep building on the synthetic file, but crafting tracking would stay guesswork.
-
-**Your answer:** (share a sample / no sample, keep it resource-only / start with a small hand-picked crafting list)
