@@ -34,6 +34,7 @@ def test_get_state_includes_every_expected_key(game_env):
         "seen_first_automation_callout",
         "seasonal_demand",
         "cross_system_units",
+        "route_hazards",
         "achievements_earned",
     }
 

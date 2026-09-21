@@ -1593,3 +1593,7 @@ button.secondary:disabled::after {
 /* J29 seasonal demand */
 .seasonal-demand { margin: 6px 0; }
 .seasonal-demand .map-caption { margin: 4px 0 0; }
+
+/* J11 route hazards and insurance */
+.route-hazards { margin: 6px 0; }
+.route-hazards .map-caption { margin: 4px 0 0; }

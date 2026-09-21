@@ -46,6 +46,7 @@ trickles in passive revenue. The sandbox itself never ends or locks.
 
 import json
 import math
+import random
 
 from js import document, setInterval, setTimeout
 from pyodide.ffi import create_proxy
@@ -547,6 +548,23 @@ def diplomacy_units_to_next_level():
     return 0
 
 
+# J11 -- opt-in route hazards and insurance. With hazards on, each loaded
+# arrival has a ROUTE_HAZARD_CHANCE of being disrupted (cargo lost, nothing
+# sold or delivered). Insurance costs INSURANCE_PREMIUM_PER_TICK for every
+# ship in transit and refunds INSURANCE_COVERAGE of the lost trip's
+# proceeds, so it is a variance-versus-cost decision, roughly break-even.
+# Both are off by default: the base economy carries no hazard.
+ROUTE_HAZARD_CHANCE = 0.08
+INSURANCE_COVERAGE = 0.75
+INSURANCE_PREMIUM_PER_TICK = 1
+route_hazards_enabled = False
+route_insurance_enabled = False
+disruptions_suffered = 0
+insurance_payouts = 0
+premiums_paid = 0
+hazard_rng = random.Random()
+
+
 def seasonal_reachable_goods():
     reachable = set(active_colony_ids())
     return [g for g in SELL_PRICE if colony_producing(g) in reachable]
@@ -887,17 +905,28 @@ class Ship:
         if good is not None:
             # Milestone 12's empty reposition() trips have no cargo, so
             # there's nothing to sell or deliver on arrival -- just dock.
-            global cross_system_units
+            global cross_system_units, disruptions_suffered, insurance_payouts
             profit = int(round(qty * current_sell_price(good) * diplomacy_multiplier()))
-            if self.origin is not None and _system_label_for_colony(self.origin) != _system_label_for_colony(destination):
-                cross_system_units = min(cross_system_units + qty, 10_000_000)
-            dest_state = colony_states[destination]
-            if ALL_COLONIES[destination]["needs"] == good:
-                dest_state.deliver(qty)
-            elif dest_state.is_developed() and dest_state.secondary_need() == good:
-                dest_state.deliver_secondary(qty)
-            result = (good, qty, profit)
-            self.total_earned += profit
+            if route_hazards_enabled and hazard_rng.random() < ROUTE_HAZARD_CHANCE:
+                # J11 -- a route disruption: the cargo is lost, nothing is
+                # delivered or sold. Insurance pays a share of what the
+                # trip would have earned. qty == 0 marks the disruption
+                # for tick(), which logs it instead of a sale.
+                payout = int(round(profit * INSURANCE_COVERAGE)) if route_insurance_enabled else 0
+                disruptions_suffered += 1
+                insurance_payouts += payout
+                result = (good, 0, payout)
+                self.total_earned += payout
+            else:
+                if self.origin is not None and _system_label_for_colony(self.origin) != _system_label_for_colony(destination):
+                    cross_system_units = min(cross_system_units + qty, 10_000_000)
+                dest_state = colony_states[destination]
+                if ALL_COLONIES[destination]["needs"] == good:
+                    dest_state.deliver(qty)
+                elif dest_state.is_developed() and dest_state.secondary_need() == good:
+                    dest_state.deliver_secondary(qty)
+                result = (good, qty, profit)
+                self.total_earned += profit
             key = frozenset((self.origin, destination))
             if key == self.route_key:
                 self.route_legs += 1
@@ -1331,6 +1360,42 @@ def on_toggle_seasonal_demand(event=None):
     render_market()
 
 
+def on_toggle_route_hazards(event=None):
+    global route_hazards_enabled
+    route_hazards_enabled = not route_hazards_enabled
+    render_market()
+
+
+def on_toggle_route_insurance(event=None):
+    global route_insurance_enabled
+    route_insurance_enabled = not route_insurance_enabled
+    render_market()
+
+
+def render_route_hazards():
+    hazards_button = document.getElementById("route-hazards-toggle-button")
+    insurance_button = document.getElementById("route-insurance-toggle-button")
+    status = document.getElementById("route-hazards-status")
+    if hazards_button is None or insurance_button is None or status is None:
+        return
+    hazards_button.innerText = f"Route hazards: {'on' if route_hazards_enabled else 'off'}"
+    insurance_button.innerText = f"Route insurance: {'on' if route_insurance_enabled else 'off'}"
+    insurance_button.disabled = not route_hazards_enabled
+    if not route_hazards_enabled:
+        status.innerText = (
+            f"Optional: with hazards on, {int(ROUTE_HAZARD_CHANCE * 100)}% of loaded arrivals are disrupted "
+            "and the cargo is lost. Insurance is then available."
+        )
+        return
+    line = (
+        f"Hazards on: {int(ROUTE_HAZARD_CHANCE * 100)}% of loaded arrivals are disrupted. "
+        f"Insurance costs {INSURANCE_PREMIUM_PER_TICK} credit per ship in transit per tick and refunds "
+        f"{int(INSURANCE_COVERAGE * 100)}% of a lost trip. "
+    )
+    line += f"So far: {disruptions_suffered} disrupted, {insurance_payouts} paid out, {premiums_paid} in premiums."
+    status.innerText = line
+
+
 def render_diplomacy():
     status = document.getElementById("diplomacy-status")
     if status is None:
@@ -1368,6 +1433,7 @@ def render_seasonal_demand():
 
 
 def render_market():
+    render_route_hazards()
     render_diplomacy()
     render_seasonal_demand()
     render_almanac()
@@ -2302,7 +2368,7 @@ def _spark_burst_high_value_sale():
 
 
 def tick(event=None):
-    global total_profit, research_points, total_sales_count, max_profit_ever, season_ticks
+    global total_profit, research_points, total_sales_count, max_profit_ever, season_ticks, premiums_paid
     research_points += RESEARCH_PER_TICK
     if seasonal_demand_enabled:
         season_ticks += 1
@@ -2310,6 +2376,13 @@ def tick(event=None):
         result = ship.advance_transit()
         if result is not None:
             good, qty, profit = result
+            if qty == 0:
+                # J11 -- a disrupted trip: only an insurance payout (if any)
+                # counts; no sale, no market impact, no delivery.
+                total_profit += profit
+                note = f" Insurance paid {profit} credits." if profit else ""
+                show_notice_toast(f"\u26a0\ufe0f {ship.name}'s cargo was lost on the route.{note}")
+                continue
             total_profit += profit
             total_sales_count += 1
             goods_sold_ever.add(good)
@@ -2332,6 +2405,11 @@ def tick(event=None):
                 show_notice_toast(
                     f"🚚 {ship.name} arrived at {ALL_COLONIES[ship.location]['name']}."
                 )
+    if route_hazards_enabled and route_insurance_enabled:
+        for ship in ships.values():
+            if ship.in_transit and total_profit >= INSURANCE_PREMIUM_PER_TICK:
+                total_profit -= INSURANCE_PREMIUM_PER_TICK
+                premiums_paid += INSURANCE_PREMIUM_PER_TICK
     run_automation()
     for colony_state in colony_states.values():
         colony_state.decay()
@@ -2435,6 +2513,13 @@ def get_state():
         "seen_first_automation_callout": seen_first_automation_callout,
         "seasonal_demand": {"enabled": seasonal_demand_enabled, "ticks": season_ticks},
         "cross_system_units": cross_system_units,
+        "route_hazards": {
+            "hazards": route_hazards_enabled,
+            "insurance": route_insurance_enabled,
+            "disruptions": disruptions_suffered,
+            "payouts": insurance_payouts,
+            "premiums": premiums_paid,
+        },
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed here, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),
@@ -2453,6 +2538,19 @@ def load_state(data):
     global total_sales_count, max_profit_ever, goods_sold_ever, ever_repositioned
     global _previously_earned_ids, seen_first_automation_callout
     global seasonal_demand_enabled, season_ticks, cross_system_units
+    global route_hazards_enabled, route_insurance_enabled, disruptions_suffered, insurance_payouts, premiums_paid
+
+    hazards_raw = data.get("route_hazards")
+    if not isinstance(hazards_raw, dict):
+        hazards_raw = {}
+
+    def _count(key):
+        value = hazards_raw.get(key)
+        return value if isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= 10_000_000 else 0
+
+    route_hazards_enabled = hazards_raw.get("hazards") is True
+    route_insurance_enabled = hazards_raw.get("insurance") is True
+    disruptions_suffered, insurance_payouts, premiums_paid = _count("disruptions"), _count("payouts"), _count("premiums")
 
     units_raw = data.get("cross_system_units")
     cross_system_units = units_raw if isinstance(units_raw, int) and not isinstance(units_raw, bool) and 0 <= units_raw <= 10_000_000 else 0
@@ -2554,6 +2652,12 @@ def load_state(data):
 def setup():
     document.getElementById("seasonal-demand-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_seasonal_demand)
+    )
+    document.getElementById("route-hazards-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_route_hazards)
+    )
+    document.getElementById("route-insurance-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_route_insurance)
     )
     for colony_id, colony in ALL_COLONIES.items():
         document.getElementById(f"colony-{colony_id}-name").innerText = colony["name"]
