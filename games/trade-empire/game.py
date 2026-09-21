@@ -522,6 +522,31 @@ seasonal_demand_enabled = False
 season_ticks = 0
 
 
+# J23 -- diplomatic relations between star systems. Every unit delivered on
+# a trip that crosses systems (home / Kepler / Rift) counts toward a
+# relations level; each level is a small permanent bonus on the proceeds of
+# every sale. Purely a bonus, and it can only matter once the player has
+# reached a second system, so the base game is untouched.
+DIPLOMACY_THRESHOLDS = (25, 75, 150)
+DIPLOMACY_BONUS_PER_LEVEL = 0.05
+cross_system_units = 0
+
+
+def diplomacy_level():
+    return sum(1 for threshold in DIPLOMACY_THRESHOLDS if cross_system_units >= threshold)
+
+
+def diplomacy_multiplier():
+    return 1.0 + diplomacy_level() * DIPLOMACY_BONUS_PER_LEVEL
+
+
+def diplomacy_units_to_next_level():
+    for threshold in DIPLOMACY_THRESHOLDS:
+        if cross_system_units < threshold:
+            return threshold - cross_system_units
+    return 0
+
+
 def seasonal_reachable_goods():
     reachable = set(active_colony_ids())
     return [g for g in SELL_PRICE if colony_producing(g) in reachable]
@@ -862,7 +887,10 @@ class Ship:
         if good is not None:
             # Milestone 12's empty reposition() trips have no cargo, so
             # there's nothing to sell or deliver on arrival -- just dock.
-            profit = qty * current_sell_price(good)
+            global cross_system_units
+            profit = int(round(qty * current_sell_price(good) * diplomacy_multiplier()))
+            if self.origin is not None and _system_label_for_colony(self.origin) != _system_label_for_colony(destination):
+                cross_system_units = min(cross_system_units + qty, 10_000_000)
             dest_state = colony_states[destination]
             if ALL_COLONIES[destination]["needs"] == good:
                 dest_state.deliver(qty)
@@ -1303,6 +1331,22 @@ def on_toggle_seasonal_demand(event=None):
     render_market()
 
 
+def render_diplomacy():
+    status = document.getElementById("diplomacy-status")
+    if status is None:
+        return
+    if not galaxy_expansion_unlocked():
+        status.hidden = True
+        return
+    status.hidden = False
+    level = diplomacy_level()
+    to_next = diplomacy_units_to_next_level()
+    bonus = int(round((diplomacy_multiplier() - 1.0) * 100))
+    line = f"Diplomatic relations: level {level} of {len(DIPLOMACY_THRESHOLDS)} (+{bonus}% on every sale)."
+    line += f" Deliver {to_next} more unit(s) between systems for the next level." if to_next else " Fully established."
+    status.innerText = line
+
+
 def render_seasonal_demand():
     button = document.getElementById("seasonal-demand-toggle-button")
     status = document.getElementById("seasonal-demand-status")
@@ -1324,6 +1368,7 @@ def render_seasonal_demand():
 
 
 def render_market():
+    render_diplomacy()
     render_seasonal_demand()
     render_almanac()
     for good in market_multiplier:
@@ -2389,6 +2434,7 @@ def get_state():
         "need_history": {colony_id: list(values) for colony_id, values in need_history.items()},
         "seen_first_automation_callout": seen_first_automation_callout,
         "seasonal_demand": {"enabled": seasonal_demand_enabled, "ticks": season_ticks},
+        "cross_system_units": cross_system_units,
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed here, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),
@@ -2406,7 +2452,10 @@ def load_state(data):
     global fleet_priority_enabled, endgame_reached, ticks_since_endgame
     global total_sales_count, max_profit_ever, goods_sold_ever, ever_repositioned
     global _previously_earned_ids, seen_first_automation_callout
-    global seasonal_demand_enabled, season_ticks
+    global seasonal_demand_enabled, season_ticks, cross_system_units
+
+    units_raw = data.get("cross_system_units")
+    cross_system_units = units_raw if isinstance(units_raw, int) and not isinstance(units_raw, bool) and 0 <= units_raw <= 10_000_000 else 0
 
     seasonal_raw = data.get("seasonal_demand")
     if isinstance(seasonal_raw, dict):

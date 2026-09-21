@@ -1,4 +1,5 @@
 [
+  { "date": "2026-09-21", "entry": "Diplomatic relations: units you deliver between star systems now build relations (3 levels), each giving a permanent +5% on every sale." },
   { "date": "2026-09-21", "entry": "New optional Seasonal demand toggle in the Market prices panel: every 30 ticks two goods are in demand and sell for 25% more, with the current and next pair always shown. Nothing is ever marked down." },
   { "date": "2026-09-21", "entry": "New Trade almanac in the Market prices panel: each good's baseline price, typical range, and which colony makes and needs it." },
   { "date": "2026-09-21", "entry": "Hover over the endgame galaxy dots to see which background world you're pointing at." },

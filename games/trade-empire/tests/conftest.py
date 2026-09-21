@@ -33,6 +33,7 @@ ELEMENT_IDS = [
     "almanac-body",
     "seasonal-demand-toggle-button",
     "seasonal-demand-status",
+    "diplomacy-status",
     "expansion-market-panel",
     "expansion2-colonies-panel",
     "expansion2-market-panel",

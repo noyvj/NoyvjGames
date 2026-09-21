@@ -455,3 +455,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Trade Empire
 **Did:** Added an optional Seasonal demand mode: every 30 ticks a predictable pair of goods is in demand and sells for 25% more, hooked into the single price function. Default off so the base economy is unchanged; new save field is validated. Live checking showed the market line's "% of baseline" hid the bonus, so in-demand goods are now flagged there.
 **Result:** Suite 282 passing, flake8 clean; verified live.
+
+### 2026-09-21 (Trade Empire: diplomatic relations, J23)
+**Game:** Trade Empire
+**Did:** Added a diplomatic-relations layer: units delivered between star systems build three relations levels, each a permanent +5% on sale proceeds. Applied to proceeds (not unit price) to avoid rounding away the bonus on cheap goods; new save field is validated.
+**Result:** Suite 288 passing, flake8 clean; status line verified live.
