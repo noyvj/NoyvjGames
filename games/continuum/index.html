@@ -172,6 +172,13 @@
       <p id="info-page-framing" class="info-page-framing"></p>
       <p id="info-page-tie-in" class="info-page-tie-in"></p>
       <ul id="info-page-sources" class="info-page-sources"></ul>
+      <!-- Z16 audit: a lightweight "something here might be wrong" report,
+           matching Le Champ de Mots' report-button mechanism in spirit —
+           this panel is the one place in this game that states citable
+           real-world facts a player could reasonably dispute. See
+           game.py's info-page-report section and CLAUDE.md's Milestone 27
+           build note. -->
+      <button id="info-page-report-button" class="secondary" type="button" hidden>Report an issue with this info</button>
     </div>
 
     <div id="status" class="section">
@@ -630,6 +637,23 @@
   -->
   <script src="../../shared/hub-auth.js"></script>
   <script src="../../shared/save-widget.js" data-game-id="continuum"></script>
+  <!--
+    Z16 audit: the info-panel report button's actual network call, the
+    exact same split and endpoint Le Champ de Mots' report button already
+    uses (see that game's index.html and its CLAUDE.md Milestone 9 build
+    note) — Python (game.py) decides what to send, this owns the fetch().
+    Fire-and-forget: a dropped report is a "let a human know" nicety, not
+    core gameplay, so failures are swallowed rather than surfaced.
+  -->
+  <script>
+    window.submitAnswerReport = function (jsonPayload) {
+      fetch("https://noyvjgames.fastapicloud.dev/answer-reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: jsonPayload,
+      }).catch(function () {});
+    };
+  </script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../../sw.js");

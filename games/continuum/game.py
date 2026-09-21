@@ -1654,12 +1654,109 @@ def render_info_page():
     this function needing to change as later eras ship.
     """
     info_page.render(info_content.era_info_page(state.era), info_page_open)
+    _render_info_page_report()
 
 
 def on_toggle_info_page(event=None):
     global info_page_open
     info_page_open = info_page.toggle(info_page_open)
     render_info_page()
+
+
+# ---------------------------------------------------------------------
+# Z16 audit (planning/TODO.md): a lightweight in-game "something here
+# might be wrong" report, matching Le Champ de Mots' report-button
+# mechanism (games/champ-de-mots/CLAUDE.md's Milestone 9/24 build notes)
+# in spirit rather than byte-for-byte — Continuum has no typed-answer
+# content to reuse that shape verbatim, but the Milestone 5 real-world
+# info panel above states citable real-world facts a player could
+# reasonably dispute, which is exactly the "content that could be
+# objectively wrong" case the reference feature exists for. Reuses the
+# exact same answer_reports backend table/endpoint with zero schema
+# changes (see app/models.py's own AnswerReport docstring: "game_id...
+# isn't hardcoded... in case another game ever wants the same reporting
+# mechanism"): a fixed marker string stands in for submitted_answer, the
+# era's own source labels satisfy marked_correct_answer's "at least one"
+# requirement, and topic_type="info_panel" lets a human triaging the
+# queue (GET /answer-reports?topic_type=info_panel) tell this apart from
+# any other game's reports sharing the same table.
+# ---------------------------------------------------------------------
+
+INFO_PAGE_REPORT_TOPIC_TYPE = "info_panel"
+INFO_PAGE_REPORT_MARKER = "[info panel concern]"
+INFO_PAGE_REPORT_BUTTON_LABEL = "Report an issue with this info"
+INFO_PAGE_REPORT_SENT_LABEL = "Reported — thanks"
+
+# Session-only, like every report_sent flag in champ-de-mots — never rides
+# get_state()/load_state(). _info_page_report_era tracks which era the
+# "already sent" state applies to, so switching eras (or revisiting an
+# earlier one via Look Back) reopens the report rather than permanently
+# disabling the button after the first-ever report of a session.
+info_page_report_sent = False
+_info_page_report_era = None
+
+
+def _info_page_report_payload():
+    """The payload for the era currently shown in the info panel, or None
+    if there's nothing worth reporting — an era with no real content yet
+    (the _PENDING placeholder) has no sources, and flagging placeholder
+    framing text as "wrong" would tell a human triager nothing useful."""
+    content = info_content.era_info_page(state.era)
+    sources = content.get("sources") or []
+    if not sources:
+        return None
+    return {
+        "game_id": "continuum",
+        "item_id": f"info-{state.era}",
+        "submitted_answer": INFO_PAGE_REPORT_MARKER,
+        "marked_correct_answer": [source["label"] for source in sources],
+        "topic_type": INFO_PAGE_REPORT_TOPIC_TYPE,
+    }
+
+
+def _dispatch_info_page_report(payload):
+    """Same Python-computes/JS-sends split as champ-de-mots' report sender
+    (see index.html's window.submitAnswerReport) — a no-op outside a real
+    browser (missing js.window), so the pytest harness never touches the
+    network."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    sender = getattr(window, "submitAnswerReport", None)
+    if sender is not None:
+        sender(json.dumps(payload))
+
+
+def submit_info_page_report(event=None):
+    """Send an info-panel report for the era currently shown, once per era.
+    A second click for the same era (or a call with nothing to report) is a
+    no-op; switching to a different era's content reopens the report."""
+    global info_page_report_sent, _info_page_report_era
+
+    if info_page_report_sent and _info_page_report_era == state.era:
+        return None
+    payload = _info_page_report_payload()
+    if payload is None:
+        return None
+    info_page_report_sent = True
+    _info_page_report_era = state.era
+    _dispatch_info_page_report(payload)
+    render_info_page()
+    return payload
+
+
+def _render_info_page_report():
+    """Visibility/label for the report button — only shown while the panel
+    is open and the current era actually has real sources to flag."""
+    button = document.getElementById("info-page-report-button")
+    if not info_page_open or _info_page_report_payload() is None:
+        button.hidden = True
+        return
+    already_sent = info_page_report_sent and _info_page_report_era == state.era
+    button.hidden = False
+    button.disabled = already_sent
+    button.innerText = INFO_PAGE_REPORT_SENT_LABEL if already_sent else INFO_PAGE_REPORT_BUTTON_LABEL
 
 
 # Rendered entries, newest first, capped independently of how many
@@ -2029,6 +2126,9 @@ def setup():
     )
     document.getElementById("info-page-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_info_page)
+    )
+    document.getElementById("info-page-report-button").addEventListener(
+        "click", create_proxy(submit_info_page_report)
     )
     document.getElementById("advance-era-button").addEventListener(
         "click", create_proxy(on_advance_era)

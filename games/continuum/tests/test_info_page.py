@@ -115,3 +115,75 @@ def test_load_state_without_a_saved_toggle_defaults_closed(game_env):
 
     assert game_env.module.load_state(saved) is True
     assert game_env.module.info_page_open is False
+
+
+# ---------------------------------------------------------------------
+# Z16 audit: the info-panel "Report an issue with this info" button.
+# Mirrors games/champ-de-mots/tests/test_pronunciation_reports.py's own
+# coverage shape (payload contents, visibility, one-shot behaviour) for
+# the closest equivalent this game has to that game's report button.
+# ---------------------------------------------------------------------
+
+
+def test_report_button_is_hidden_while_the_panel_is_closed(game_env):
+    assert game_env.module.info_page_open is False
+    assert game_env.elements["info-page-report-button"].hidden is True
+
+
+def test_report_button_appears_once_the_panel_is_open(game_env):
+    game_env.elements["info-page-toggle-button"].dispatch("click", None)
+    button = game_env.elements["info-page-report-button"]
+    assert button.hidden is False
+    assert button.innerText == game_env.module.INFO_PAGE_REPORT_BUTTON_LABEL
+    assert button.disabled is False
+
+
+def test_report_button_is_hidden_for_an_era_with_no_sources_yet(game_env):
+    """An era with no info-panel content yet (the _PENDING placeholder) has
+    nothing worth flagging -- the button shouldn't offer to report it."""
+    game_env.state.era = "does-not-exist-yet"
+    game_env.elements["info-page-toggle-button"].dispatch("click", None)
+    assert game_env.elements["info-page-report-button"].hidden is True
+
+
+def test_submitting_a_report_sends_the_current_eras_source_labels(game_env):
+    module = game_env.module
+    game_env.elements["info-page-toggle-button"].dispatch("click", None)
+
+    payload = module.submit_info_page_report()
+
+    tribal = info_content.era_info_page("tribal")
+    assert payload["game_id"] == "continuum"
+    assert payload["item_id"] == "info-tribal"
+    assert payload["submitted_answer"] == module.INFO_PAGE_REPORT_MARKER
+    assert payload["marked_correct_answer"] == [s["label"] for s in tribal["sources"]]
+    assert payload["topic_type"] == "info_panel"
+
+
+def test_a_second_report_for_the_same_era_is_a_no_op(game_env):
+    module = game_env.module
+    game_env.elements["info-page-toggle-button"].dispatch("click", None)
+
+    first = module.submit_info_page_report()
+    assert first is not None
+    assert module.submit_info_page_report() is None
+
+    button = game_env.elements["info-page-report-button"]
+    assert button.disabled is True
+    assert button.innerText == module.INFO_PAGE_REPORT_SENT_LABEL
+
+
+def test_switching_eras_reopens_the_report(game_env):
+    """Reporting Tribal's sources shouldn't silently disable the button
+    forever once the settlement reaches a later era with different, equally
+    reportable sources."""
+    module = game_env.module
+    game_env.elements["info-page-toggle-button"].dispatch("click", None)
+    module.submit_info_page_report()
+
+    game_env.state.era = "agrarian"
+    module.render()
+
+    button = game_env.elements["info-page-report-button"]
+    assert button.disabled is False
+    assert button.innerText == module.INFO_PAGE_REPORT_BUTTON_LABEL

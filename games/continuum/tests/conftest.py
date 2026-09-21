@@ -63,6 +63,8 @@ ELEMENT_IDS = [
     "info-page-framing",
     "info-page-tie-in",
     "info-page-sources",
+    # Z16 audit — info-panel "report an issue" button
+    "info-page-report-button",
     # Milestone 6 — the ongoing log (rows are created at runtime)
     "log-status-display",
     "log-list",
