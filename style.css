@@ -1303,6 +1303,99 @@ button.secondary:disabled {
 .terms-main a { color: #8fb0e8; }
 .terms-updated { opacity: 0.5 !important; margin-top: 2rem; }
 
+/* Z29: sources.html -- cross-game real-world sources aggregation page.
+   Reuses the same glass-card language roadmap.html's game cards already
+   established, rather than inventing a new visual pattern for a third
+   supplementary page. */
+.sources-main { max-width: 760px; }
+
+.sources-intro, .sources-caveat {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  opacity: 0.75;
+  margin: 0 0 1.1rem;
+}
+
+.sources-caveat {
+  background: rgba(140, 160, 255, 0.08);
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 1.8rem;
+}
+
+.sources-intro a, .sources-caveat a, .sources-updated a { color: #8fb0e8; }
+
+.sources-game-card {
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.82), rgba(14, 16, 28, 0.88));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 14px;
+  padding: 1.1rem 1.3rem;
+  margin-bottom: 1.1rem;
+}
+
+.sources-game-card h2 { margin: 0 0 0.15rem; font-size: 1.1rem; }
+.sources-game-card h2 a { color: #eaeaf0; text-decoration: none; }
+.sources-game-card h2 a:hover { text-decoration: underline; }
+
+.sources-game-issue {
+  font-size: 0.78rem;
+  opacity: 0.55;
+  letter-spacing: 0.02em;
+  margin: 0 0 0.9rem;
+}
+
+.sources-era-heading {
+  font-size: 0.82rem;
+  opacity: 0.8;
+  letter-spacing: 0.03em;
+  margin: 1.1rem 0 0.5rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgba(140, 160, 255, 0.12);
+}
+
+.sources-game-card--continuum .sources-era-heading:first-of-type {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0.3rem;
+}
+
+.sources-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sources-item {
+  padding: 0.55rem 0;
+  border-top: 1px solid rgba(140, 160, 255, 0.1);
+}
+
+.sources-list > .sources-item:first-child { border-top: none; }
+
+.sources-item a {
+  color: #a9c3ff;
+  font-size: 0.87rem;
+  line-height: 1.4;
+  text-decoration: none;
+}
+
+.sources-item a:hover { text-decoration: underline; }
+
+.sources-item-note {
+  font-size: 0.78rem;
+  opacity: 0.65;
+  line-height: 1.5;
+  margin: 0.25rem 0 0;
+}
+
+.sources-updated {
+  font-size: 0.78rem;
+  opacity: 0.5;
+  margin-top: 1.8rem;
+  line-height: 1.6;
+}
+
 .hub-footer {
   display: flex;
   justify-content: center;

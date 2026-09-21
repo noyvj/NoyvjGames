@@ -241,17 +241,17 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [x] Trade Empire
   - [x] Continuum
   - [x] Le Champ de Mots
-- [ ] Z29: A cross-game "credits/sources" aggregation page — gather each game's real-world sources, then build the page:
-  - [ ] Canopy's Info Page sources
-  - [ ] Grid's Info Page sources
-  - [ ] Tide's Info Page sources
-  - [ ] Aftermath's Info Page sources
-  - [ ] Herd's Info Page sources
-  - [ ] Thaw's Info Page sources
-  - [ ] Loop's Info Page sources
-  - [ ] Drift's Info Page sources
-  - [ ] Continuum's era sources
-  - [ ] Build the aggregation page from the gathered list
+- [x] Z29: A cross-game "credits/sources" aggregation page — gather each game's real-world sources, then build the page. Built as `sources.html` (static — see the page's own caveat note for why a live-parsed approach didn't fit here, unlike whats-new.html/roadmap.html), linked from the hub nav/footer and every other supplementary page's nav. Sources copied from each game's own canonical `game.py` `INFO_PAGE` dict (Continuum from `info_content.py`), not re-researched.
+  - [x] Canopy's Info Page sources
+  - [x] Grid's Info Page sources
+  - [x] Tide's Info Page sources
+  - [x] Aftermath's Info Page sources
+  - [x] Herd's Info Page sources
+  - [x] Thaw's Info Page sources
+  - [x] Loop's Info Page sources
+  - [x] Drift's Info Page sources
+  - [x] Continuum's era sources
+  - [x] Build the aggregation page from the gathered list
 - [x] Z30: A quick pass confirming every game's favicon/tab title is set correctly and distinctly, matching the NoyvjGames branding. Tab `<title>` half needed no fix (already distinct per game). Favicon half was a real gap — all 12 games (and the hub itself) pointed at the exact same `icons/icon-192.png`, pixel-identical across tabs. Fixed: one new `icons/favicon-<slug>.svg` per game (rounded-square background in that game's own existing hub-thumbnail accent color, single bold letter/small glyph centered), one new `<link rel="icon">` line per game's `index.html`. `icons/icon-192.png`/`icon-512.png` (PWA manifest icons) untouched. Hub's own root `index.html` kept the original placeholder icon. Live-verified (200 + correct content-type + visually distinct at 16px) for SOL/Canopy/Continuum/Le Champ de Mots; all 12 diffed for the same one-line change.
   - [x] SOL
   - [x] Canopy

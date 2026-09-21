@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sources &amp; Credits — NoyvjGames</title>
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="shared/space-bg.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#sources-main">Skip to content</a>
+  <div class="space-bg" aria-hidden="true"><div class="space-bg-nebula"></div><div class="space-bg-stars-bright"></div></div>
+  <header id="hub-header">
+    <nav class="hub-nav">
+      <a href="index.html">&larr; Back to NoyvjGames</a>
+      <a href="whats-new.html">What's New</a>
+      <a href="roadmap.html">Roadmap</a>
+      <a href="index.html#site-feedback-section">Feedback / Report a Bug</a>
+    </nav>
+    <h1>Sources &amp; Credits</h1>
+    <p id="hub-tagline">The real-world research behind every game that draws on one — gathered in one place instead of scattered across nine "The Real Story" panels.</p>
+  </header>
+
+  <main id="sources-main" tabindex="-1" class="whats-new-main sources-main">
+    <p class="sources-intro">
+      Nine of the twelve NoyvjGames titles are built around a real climate or civic issue, and each
+      one cites the actual research its mechanics are grounded in — the eight climate-quartet games
+      via an in-game "The Real Story" panel, and Continuum via a per-era real-world info panel. This
+      page is that same content, pulled together across every game so it can be read (or checked) in
+      one place. SOL, Trade Empire and Le Champ de Mots aren't listed below — they're fictional
+      sandboxes / a language-study tool, not built around a specific real-world source base.
+    </p>
+    <p class="sources-caveat">
+      This is a plain hand-written page, not a live-parsed one like <a href="whats-new.html">What's New</a>
+      or <a href="roadmap.html">Roadmap</a> — those two pull from a dev log and a CLAUDE.md table, both
+      plain text a browser can fetch and parse directly. A game's actual source list lives inside its
+      Python <code>game.py</code> (or, for Continuum, <code>info_content.py</code>), and reliably
+      parsing a Python dict literal out of source text in client-side JavaScript would be far more
+      fragile than the payoff is worth for a list that changes only when a game's research base
+      changes — rare, and always a deliberate edit. So this page is copied from that same canonical
+      Python data by hand, kept in sync manually going forward, same as this hub's other few fully
+      static pages (<a href="terms.html">Terms &amp; Privacy</a>). Every link below was live in each
+      game's own source list at the time it was added there.
+    </p>
+
+    <section class="sources-game-card">
+      <h2><a href="games/canopy/index.html">Canopy</a></h2>
+      <p class="sources-game-issue">Deforestation &amp; carbon sinks</p>
+      <ul class="sources-list">
+        <li class="sources-item"><a href="https://www.wri.org/insights/forests-ipcc-special-report-land-use-7-things-know" target="_blank" rel="noopener noreferrer">World Resources Institute — Forests in the IPCC Special Report on Land Use: 7 Things to Know</a><p class="sources-item-note">Explains why deforestation and forest carbon sinks are two sides of the same coin — maps directly to Canopy's clear/preserve tension.</p></li>
+        <li class="sources-item"><a href="https://www.wri.org/insights/how-effective-land-removing-carbon-pollution-ipcc-weighs" target="_blank" rel="noopener noreferrer">World Resources Institute — How Effective Is Land At Removing Carbon Pollution? The IPCC Weighs In</a><p class="sources-item-note">Real reforestation carbon-removal potential — grounds the "replanting works, just slower" hope angle in actual IPCC figures.</p></li>
+        <li class="sources-item"><a href="https://unfccc.int/topics/land-use/workstreams/land-use--land-use-change-and-forestry-lulucf" target="_blank" rel="noopener noreferrer">UNFCCC — Land Use, Land-Use Change and Forestry (LULUCF)</a><p class="sources-item-note">The formal policy framework for tracking forest carbon sinks internationally — why Canopy treats plots as carbon-relevant assets, not scenery.</p></li>
+        <li class="sources-item"><a href="https://climatechangeresources.org/learn-more/science/reforestation-deforestation/" target="_blank" rel="noopener noreferrer">Climate Change Resources — Deforestation &amp; Reforestation</a><p class="sources-item-note">Accessible overview with links to real reforestation organizations, for players who want to go from facts to action.</p></li>
+      </ul>
+    </section>
+
+    <section class="sources-game-card">
+      <h2><a href="games/grid/index.html">Grid</a></h2>
+      <p class="sources-game-issue">Energy transition &amp; the renewable cost curve</p>
+      <ul class="sources-list">
+        <li class="sources-item"><a href="https://www.iea.org/news/rapid-rollout-of-clean-technologies-makes-energy-cheaper-not-more-costly" target="_blank" rel="noopener noreferrer">IEA — Rapid rollout of clean technologies makes energy cheaper, not more costly</a><p class="sources-item-note">Real-world backing for Grid's central claim: leaning renewable is the cheaper long-run path, not a sacrifice.</p></li>
+        <li class="sources-item"><a href="https://www.oxfordenergy.org/publications/a-critical-assessment-of-learning-curves-for-solar-and-wind-power-technologies/" target="_blank" rel="noopener noreferrer">Oxford Institute for Energy Studies — A critical assessment of learning curves for solar and wind</a><p class="sources-item-note">A balanced, critical look at the same cost-decline concept Grid's core mechanic is built on.</p></li>
+        <li class="sources-item"><a href="https://www.energy.gov/cmei/solar/articles/learning-better-way-forecast-wind-and-solar-energy-costs" target="_blank" rel="noopener noreferrer">US DOE / Lawrence Berkeley National Lab — Learning a Better Way To Forecast Wind and Solar Energy Costs</a><p class="sources-item-note">The actual learning-rate figures (wind ~15%, solar ~24% per capacity doubling) behind Grid's cost curve.</p></li>
+        <li class="sources-item"><a href="https://www.iea.org/reports/breakthrough-agenda-report-2025/power" target="_blank" rel="noopener noreferrer">IEA — Breakthrough Agenda Report 2025: Power</a><p class="sources-item-note">Current real-world electricity cost figures, grounding the global-comparison line.</p></li>
+      </ul>
+    </section>
+
+    <section class="sources-game-card">
+      <h2><a href="games/tide/index.html">Tide</a></h2>
+      <p class="sources-game-issue">Ocean acidification &amp; sea-level rise</p>
+      <ul class="sources-list">
+        <li class="sources-item"><a href="https://www.fisheries.noaa.gov/insight/understanding-ocean-acidification" target="_blank" rel="noopener noreferrer">NOAA Fisheries — Understanding Ocean Acidification</a><p class="sources-item-note">Explains the shellfish/reef impact mechanism directly — the real process behind Tide's fish-stock crash.</p></li>
+        <li class="sources-item"><a href="https://sealevel.nasa.gov/understanding-sea-level/key-indicators/global-mean-sea-level/" target="_blank" rel="noopener noreferrer">NASA Sea Level Change Portal — Global Mean Sea Level</a><p class="sources-item-note">Real satellite-measured sea-level data and rate-of-rise figures, informing the pacing of Tide's background timeline.</p></li>
+        <li class="sources-item"><a href="https://www.climate.gov/news-features/understanding-climate/climate-change-global-sea-level" target="_blank" rel="noopener noreferrer">NOAA Climate.gov — Climate Change: Global Sea Level</a><p class="sources-item-note">Explains both causes of sea-level rise (thermal expansion + ice melt) in plain language.</p></li>
+        <li class="sources-item"><a href="https://ocean.si.edu/ocean-life/invertebrates/ocean-acidification" target="_blank" rel="noopener noreferrer">Smithsonian Ocean Portal — Ocean Acidification</a><p class="sources-item-note">A clear, visual explanation of the acidification chemistry, most accessible of the four sources.</p></li>
+      </ul>
+    </section>
+
+    <section class="sources-game-card">
+      <h2><a href="games/aftermath/index.html">Aftermath</a></h2>
+      <p class="sources-game-issue">Climate adaptation &amp; resilience</p>
+      <ul class="sources-list">
+        <li class="sources-item"><a href="https://www.ipcc.ch/report/ar6/wg2/" target="_blank" rel="noopener noreferrer">IPCC AR6 Working Group II — Climate Change 2022: Impacts, Adaptation and Vulnerability</a><p class="sources-item-note">The authoritative global reference on adaptation as a distinct climate response, backing Aftermath's core framing.</p></li>
+        <li class="sources-item"><a href="https://www.wri.org/research/accelerating-climate-resilient-infrastructure-investment-china" target="_blank" rel="noopener noreferrer">World Resources Institute — Accelerating Climate-resilient Infrastructure Investment in China</a><p class="sources-item-note">A real resilience-infrastructure investment case study, grounding Aftermath's resource-allocation mechanic.</p></li>
+        <li class="sources-item"><a href="https://www.wri.org/research/driving-system-shifts-climate-resilience-case-studies-transformative-adaptation-bhutan" target="_blank" rel="noopener noreferrer">World Resources Institute — Driving System Shifts for Climate Resilience (Bhutan, Ethiopia, Costa Rica)</a><p class="sources-item-note">Real communities' documented adaptation journeys — strong backing for the "look how far you've come" hope angle.</p></li>
+        <li class="sources-item"><a href="https://mission-adaptation-portal.ec.europa.eu/stories-0_en" target="_blank" rel="noopener noreferrer">EU Mission on Adaptation to Climate Change — Success Stories</a><p class="sources-item-note">A running collection of real municipal adaptation wins — concrete "this actually worked" examples.</p></li>
+      </ul>
+    </section>
+
+    <section class="sources-game-card">
+      <h2><a href="games/herd/index.html">Herd</a></h2>
+      <p class="sources-game-issue">Industrial agriculture &amp; methane</p>
+      <ul class="sources-list">
+        <li class="sources-item"><a href="https://www.fao.org/in-action/enteric-methane/en" target="_blank" rel="noopener noreferrer">FAO — Livestock and enteric methane</a><p class="sources-item-note">The definitive real-world figures behind Herd's core mechanic — agriculture's share of methane emissions and where it comes from.</p></li>
+        <li class="sources-item"><a href="https://www.catf.us/2024/10/accelerating-climate-solutions-agriculture-why-reducing-methane-livestock-urgent-opportunity/" target="_blank" rel="noopener noreferrer">Clean Air Task Force — Accelerating climate solutions in agriculture</a><p class="sources-item-note">Documents a real ~42% methane-intensity reduction from better farm practices — directly supports Herd's decoupling hope angle.</p></li>
+        <li class="sources-item"><a href="https://www.epa.gov/snep/agriculture-and-aquaculture-food-thought" target="_blank" rel="noopener noreferrer">US EPA — Agriculture and Aquaculture: Food for Thought</a><p class="sources-item-note">Explains why methane's short-lived-but-potent warming profile makes it a distinct lever from CO2.</p></li>
+      </ul>
+    </section>
+
+    <section class="sources-game-card">
+      <h2><a href="games/thaw/index.html">Thaw</a></h2>
+      <p class="sources-game-issue">Permafrost &amp; the methane feedback loop</p>
+      <ul class="sources-list">
+        <li class="sources-item"><a href="https://climate.mit.edu/ask-mit/methane-release-arctic-unstoppable" target="_blank" rel="noopener noreferrer">MIT Climate Portal — Is methane release from the Arctic unstoppable?</a><p class="sources-item-note">The clearest source for Thaw's hope angle — frames the feedback loop as a dimmer switch, not an on/off switch.</p></li>
+        <li class="sources-item"><a href="https://www.nature.com/articles/s41558-022-01512-4" target="_blank" rel="noopener noreferrer">Nature Climate Change — Seasonal increase of methane emissions linked to warming in Siberian tundra</a><p class="sources-item-note">Real observational evidence (not just modeling) of the feedback loop already measurably happening.</p></li>
+        <li class="sources-item"><a href="https://www.arcticwwf.org/the-circle/stories/thawing-permafrost/" target="_blank" rel="noopener noreferrer">WWF Arctic — Thawing permafrost</a><p class="sources-item-note">An accessible explainer connecting permafrost thaw to real Arctic communities' lived experience.</p></li>
+        <li class="sources-item"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6093858/" target="_blank" rel="noopener noreferrer">PMC/NCBI — 21st-century modeled permafrost carbon emissions accelerated by abrupt thaw beneath lakes</a><p class="sources-item-note">A more technical source on abrupt (not just gradual) thaw mechanisms, tying to Thaw's tipping-point moment.</p></li>
+      </ul>
+    </section>
+
+    <section class="sources-game-card">
+      <h2><a href="games/loop/index.html">Loop</a></h2>
+      <p class="sources-game-issue">Circular economy &amp; overconsumption</p>
+      <ul class="sources-list">
+        <li class="sources-item"><a href="https://www.ellenmacarthurfoundation.org/topics/circular-economy-introduction/overview" target="_blank" rel="noopener noreferrer">Ellen MacArthur Foundation — The Circular Economy: Definition &amp; Model Explained</a><p class="sources-item-note">The standard-setting definition of circular economy — Loop's core mechanic is a direct translation of this framework.</p></li>
+        <li class="sources-item"><a href="https://www.ellenmacarthurfoundation.org/circular-economy-principles" target="_blank" rel="noopener noreferrer">Ellen MacArthur Foundation — Circular Economy Principles</a><p class="sources-item-note">Breaks circularity into three concrete design principles, structuring Loop's three types of circularity investment.</p></li>
+        <li class="sources-item"><a href="https://news.mongabay.com/2023/07/the-circular-economy-sustainable-solutions-to-solve-planetary-overshoot/" target="_blank" rel="noopener noreferrer">Mongabay — The circular economy: Sustainable solutions to solve planetary overshoot?</a><p class="sources-item-note">Accessible journalism with a concrete example (recycled steel's emissions/water savings) for the framing paragraph.</p></li>
+        <li class="sources-item"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10693739/" target="_blank" rel="noopener noreferrer">PMC/NCBI — Waste metrics in the framework of circular economy</a><p class="sources-item-note">A more academic treatment connecting overconsumption directly to circular economy metrics.</p></li>
+      </ul>
+    </section>
+
+    <section class="sources-game-card">
+      <h2><a href="games/drift/index.html">Drift</a></h2>
+      <p class="sources-game-issue">Climate migration &amp; displacement</p>
+      <ul class="sources-list">
+        <li class="sources-item"><a href="https://www.unhcr.org/us/what-we-do/build-better-futures/climate-change-and-displacement" target="_blank" rel="noopener noreferrer">UNHCR — Climate change and displacement</a><p class="sources-item-note">The authoritative agency perspective, framing displacement institutionally — consistent with Drift's own framing.</p></li>
+        <li class="sources-item"><a href="https://www.migrationpolicy.org/journal/feature/climate-migration-101-explainer" target="_blank" rel="noopener noreferrer">Migration Policy Institute — Climate Migration 101: An Explainer</a><p class="sources-item-note">Real projections (44-216 million internal migrants by 2050) that echo Drift's "preparedness changes the outcome" hope angle.</p></li>
+        <li class="sources-item"><a href="https://www.migrationpolicy.org/article/who-is-a-climate-migrant" target="_blank" rel="noopener noreferrer">Migration Policy Institute — Who Counts as a Climate Migrant?</a><p class="sources-item-note">Explains the legal/definitional gap behind why Drift frames this as a systems/capacity problem, not a legal one.</p></li>
+        <li class="sources-item"><a href="https://www.brookings.edu/articles/the-climate-crisis-migration-and-refugees/" target="_blank" rel="noopener noreferrer">Brookings — The climate crisis, migration, and refugees</a><p class="sources-item-note">Policy-level analysis of the institutional response gap, grounding Drift's receiving-region capacity mechanic.</p></li>
+        <li class="sources-item"><a href="https://www.migrationpolicy.org/publication/how-are-refugees-faring-integration-us-and-state-levels" target="_blank" rel="noopener noreferrer">Migration Policy Institute — How Are Refugees Faring? Integration at U.S. and State Levels</a><p class="sources-item-note">Source for the in-game real-world resettlement-outcome benchmark: as of 2023, 89% of working-age refugees resettled in the U.S. within the previous five years were employed.</p></li>
+      </ul>
+    </section>
+
+    <section class="sources-game-card sources-game-card--continuum">
+      <h2><a href="games/continuum/index.html">Continuum</a></h2>
+      <p class="sources-game-issue">Sustainable cities across the ages (SDG 11) — sourced per era, seven eras, four sources each</p>
+
+      <h3 class="sources-era-heading">Tribal</h3>
+      <ul class="sources-list">
+        <li class="sources-item"><a href="https://pressbooks.nebraska.edu/anth110/chapter/political-systems/" target="_blank" rel="noopener noreferrer">Pressbooks Nebraska — "Political Systems" (Introduction to Anthropology)</a><p class="sources-item-note">The real anthropological distinction between bands and tribes, and how village growth and architecture marked the shift.</p></li>
+        <li class="sources-item"><a href="https://whc.unesco.org/en/list/1405/" target="_blank" rel="noopener noreferrer">UNESCO World Heritage Centre — Neolithic Site of Çatalhöyük</a><p class="sources-item-note">One of the earliest known settlements, notable for its egalitarian layout — a direct anchor for the Tribal era's non-hierarchical starting roles.</p></li>
+        <li class="sources-item"><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8948180/" target="_blank" rel="noopener noreferrer">PMC — "The study of early human settlement preference and settlement prediction in Xinjiang, China"</a><p class="sources-item-note">How early humans actually chose settlement locations based on geography and environment.</p></li>
+        <li class="sources-item"><a href="https://researchoutreach.org/articles/size-matters-social-groups-human-evolution/" target="_blank" rel="noopener noreferrer">Research Outreach / Medium — Dunbar's Number</a><p class="sources-item-note">The real cognitive/social limit on stable group size (~150, in a layered structure of 5/15/50/150) — calibrates this era's population thresholds.</p></li>
+      </ul>
+
+      <h3 class="sources-era-heading">Agrarian</h3>
+      <ul class="sources-list">
+        <li class="sources-item"><a href="https://www.nationalgeographic.com/culture/article/neolithic-agricultural-revolution" target="_blank" rel="noopener noreferrer">National Geographic — "What was the Neolithic Revolution?"</a><p class="sources-item-note">How early farmers produced storable surplus in the first place — the basis for this era's surplus/storage mechanics.</p></li>
+        <li class="sources-item"><a href="https://www.history.com/articles/neolithic-revolution" target="_blank" rel="noopener noreferrer">HISTORY — "Neolithic Revolution"</a><p class="sources-item-note">The shift from nomadic to settled farming life, with Çatalhöyük as the bridge example.</p></li>
+        <li class="sources-item"><a href="https://www.ebsco.com/research-starters/agriculture-and-agribusiness/neolithic-revolution" target="_blank" rel="noopener noreferrer">EBSCO Research Starters — "Neolithic Revolution"</a><p class="sources-item-note">Specialized tools, pottery, and early urbanization as direct consequences of food surplus.</p></li>
+        <li class="sources-item"><a href="https://txwes.pressbooks.pub/internationalstudies/chapter/2-3-the-neolithic-revolution-world-history-volume-1-to-1500-openstax/" target="_blank" rel="noopener noreferrer">TxWes Pressbooks — "The Neolithic Revolution" (World History)</a><p class="sources-item-note">Surplus specifically creating the first social hierarchies and property accumulation — basis for the surplus-hoarding equity penalty.</p></li>
+      </ul>
+
+      <h3 class="sources-era-heading">Classical</h3>
+      <ul class="sources-list">
+        <li class="sources-item"><a href="https://www.getty.edu/art/exhibitions/mesopotamia/explore.html" target="_blank" rel="noopener noreferrer">The Getty — "Mesopotamia: Civilization Begins"</a><p class="sources-item-note">Uruk's growth into a walled city of roughly 100,000 via intensive irrigation agriculture directed by temple estates.</p></li>
+        <li class="sources-item"><a href="https://www.thecollector.com/uruk-and-ur-birth-of-civilization/" target="_blank" rel="noopener noreferrer">TheCollector — "What Can Uruk and Ur Teach Us About the Birth of Civilization?"</a><p class="sources-item-note">Canal management required centralized planning and coordinated labor — why Canals need Administrators to deliver their yield bonus.</p></li>
+        <li class="sources-item"><a href="https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0329084" target="_blank" rel="noopener noreferrer">PLOS One — "Morphodynamic Foundations of Sumer"</a><p class="sources-item-note">Recent research proposing that natural tidal irrigation, not just human planning, jumpstarted Sumerian urbanization.</p></li>
+        <li class="sources-item"><a href="https://www.globalsecurity.org/military/world/iraq/history-uruk.htm" target="_blank" rel="noopener noreferrer">GlobalSecurity.org — "Uruk Period"</a><p class="sources-item-note">Concrete scale figures — population around 45,000, a trade network stretching from Turkey to Iran.</p></li>
+      </ul>
+
+      <h3 class="sources-era-heading">Medieval</h3>
+      <ul class="sources-list">
+        <li class="sources-item"><a href="https://popular-archaeology.com/article/inside-a-medieval-city-public-health-housing-and-everyday-regulations/" target="_blank" rel="noopener noreferrer">Popular Archaeology — "Inside a Medieval City: Public Health, Housing, and Everyday Regulations"</a><p class="sources-item-note">Real medieval sanitation regulation — waste fines, zoning toxic trades away from drinking water.</p></li>
+        <li class="sources-item"><a href="https://journals.sagepub.com/doi/10.1177/00961442221124892" target="_blank" rel="noopener noreferrer">SAGE Journals — Coomans &amp; Hermenault, "Public Works, Spatial Strategies, and Mobility in Late Medieval Ghent"</a><p class="sources-item-note">Academic analysis of medieval public-works investment used specifically to mitigate risk, not to grow output.</p></li>
+        <li class="sources-item"><a href="https://press.jhu.edu/books/title/12618/urban-infrastructure-medieval-england" target="_blank" rel="noopener noreferrer">Johns Hopkins University Press — Magnusson, "Urban Infrastructure in Medieval England: Sustainability and Resilience"</a><p class="sources-item-note">A recent academic study literally framed around sustainability and resilience in medieval public works.</p></li>
+        <li class="sources-item"><a href="https://fiveable.me/europe-1000-1500/unit-7/urban-revival-growth-cities/study-guide/91Ey4PdQIbJK9yOx" target="_blank" rel="noopener noreferrer">Fiveable — "Urban Revival and the Growth of Cities" (European History 1000-1500)</a><p class="sources-item-note">Guild specialisation and municipal charters granting real self-governance.</p></li>
+      </ul>
+
+      <h3 class="sources-era-heading">Industrial</h3>
+      <ul class="sources-list">
+        <li class="sources-item"><a href="https://www.britannica.com/topic/urban-planning/The-era-of-industrialization" target="_blank" rel="noopener noreferrer">Britannica — "Urban Planning: Industrialization, Infrastructure, Cities"</a><p class="sources-item-note">19th-century industrial growth outpacing planning, producing slums and disease before sanitation reform caught up.</p></li>
+        <li class="sources-item"><a href="https://academic.oup.com/ej/article-abstract/130/626/462/5602598" target="_blank" rel="noopener noreferrer">The Economic Journal (Oxford Academic) — "Coal Smoke, City Growth, and the Costs of the Industrial Revolution"</a><p class="sources-item-note">Rigorous economic research showing industrial pollution measurably reduced long-run city growth.</p></li>
+        <li class="sources-item"><a href="https://sociology.institute/urban-sociology/evolution-industrial-cities-work-urban-environment/" target="_blank" rel="noopener noreferrer">Sociology.Institute — "The Evolution of Industrial Cities"</a><p class="sources-item-note">Global urban population rising from 3% (1800) to nearly 50% (2000).</p></li>
+        <li class="sources-item"><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8464861/" target="_blank" rel="noopener noreferrer">PMC — "Bibliometric Analysis and Research Trend Forecast of Healthy Urban Planning for 40 Years"</a><p class="sources-item-note">How modern urban planning as a discipline emerged directly in response to industrial-era public health crises.</p></li>
+      </ul>
+
+      <h3 class="sources-era-heading">Digital</h3>
+      <ul class="sources-list">
+        <li class="sources-item"><a href="https://desapublications.un.org/publications/sdgs/SDG%2011%20Sustainable%20Cities%20and%20Communities" target="_blank" rel="noopener noreferrer">UN DESA — "SDG 11: Sustainable Cities and Communities"</a><p class="sources-item-note">The official UN publication on this goal — the game's own SDG framing is built around it.</p></li>
+        <li class="sources-item"><a href="https://ourworldindata.org/sdgs/sustainable-cities" target="_blank" rel="noopener noreferrer">Our World in Data — "Make Cities Inclusive, Safe, Resilient and Sustainable"</a><p class="sources-item-note">Breaks SDG 11 into its actual 10 targets and 16 measurable indicators.</p></li>
+        <li class="sources-item"><a href="https://education.nationalgeographic.org/resource/sustainable-development-goal-11-sustainable-cities-and-communities/" target="_blank" rel="noopener noreferrer">National Geographic Education — "Sustainable Development Goal 11: Sustainable Cities and Communities"</a><p class="sources-item-note">Urban areas grew 1.28 times faster than their populations between 2000 and 2014 — the basis for the sprawl mechanic.</p></li>
+        <li class="sources-item"><a href="https://agenda2030lac.org/en/sdg/11-sustainable-cities-and-communities" target="_blank" rel="noopener noreferrer">Agenda 2030 in Latin America and the Caribbean (ECLAC) — "Sustainable Cities and Communities"</a><p class="sources-item-note">Concrete present-day figures — 70% of people projected to live in cities by 2050, 1.1 billion currently in slum-like conditions.</p></li>
+        <li class="sources-item"><a href="https://desapublications.un.org/publications/sdgs/SDG%2011%20Sustainable%20Cities%20and%20Communities" target="_blank" rel="noopener noreferrer">UN — The Sustainable Development Goals Report 2025 (Current Day)</a><p class="sources-item-note">The tenth annual global stocktaking of SDG progress: real gains made, but the current pace isn't enough to meet the 2030 targets.</p></li>
+      </ul>
+
+      <h3 class="sources-era-heading">Space Age</h3>
+      <ul class="sources-list">
+        <li class="sources-item"><a href="https://bigthink.com/hard-science/urban-planning-in-space/" target="_blank" rel="noopener noreferrer">Big Think — "Urban planning in space: 3 off-world designs for future cities"</a><p class="sources-item-note">Covers three real design concepts — NASA's 1977 rotating habitat study, MIT's Mars City "Redwood Forest" winner, and ring habitats.</p></li>
+        <li class="sources-item"><a href="https://www.planetizen.com/news/2018/12/101790-nasas-urban-plan-space-settlements" target="_blank" rel="noopener noreferrer">Planetizen — "NASA's Urban Plan for Space Settlements"</a><p class="sources-item-note">Frames NASA's 1977 "Space Settlements: A Design Study" as literally a city-planning policy document.</p></li>
+        <li class="sources-item"><a href="https://cup.columbia.edu/book/space-settlements/9781941332498/" target="_blank" rel="noopener noreferrer">Columbia University Press — Scharmen, "Space Settlements"</a><p class="sources-item-note">An academic architectural history taking NASA's 1975 Summer Study designs seriously as real design problems.</p></li>
+        <li class="sources-item"><a href="https://drops.dagstuhl.de/storage/01oasics/oasics-vol130-spacechi2025/OASIcs.SpaceCHI.2025.4/OASIcs.SpaceCHI.2025.4.pdf" target="_blank" rel="noopener noreferrer">Dagstuhl / SpaceCHI 2025 — "Designing for Usability in Modular Space Habitats: A Space Syntax Perspective"</a><p class="sources-item-note">Current (2025) research on how modular space habitat layouts affect real usability at scale.</p></li>
+      </ul>
+    </section>
+
+    <p class="sources-updated">Gathered 2026-09-21 from each game's own <code>game.py</code> <code>INFO_PAGE</code> dict (the climate quartet) and Continuum's <code>info_content.py</code> — the same data each game's own in-game panel renders. If a game's source list changes, this page needs a matching manual update.</p>
+  </main>
+</body>
+</html>
