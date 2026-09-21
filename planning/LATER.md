@@ -23,13 +23,11 @@ Several items across the ideas file got parked specifically pending this — you
 - **A7**: a "+X since last save" delta readout right after loading. You said: "don't understand the meaning." To clarify: the idea is that the moment a save code finishes loading, the game shows something like "+540 Iron, +12 Auto-Miners since this save was made" — a quick summary of what's different between the saved state and wherever you are now, mostly useful if you load an *old* save and want to see how much you'd be giving up, or just as a fun "look how far you've come" moment right after loading. Let me know if that's worth building once explained, or if it still doesn't seem useful.
 - **A12**: a personal-best "fastest full playthrough" timer.
 - **A13**: a "pure clicker / never touched automation" challenge achievement — you tied this back to A2's "keep achievements easy, not extreme" constraint; revisit together.
-- **A18**: a "reset this world only" option distinct from a full save wipe.
 
 ## K. Continuum
 
 - **K3**: a dedicated full-playthrough integration test (Tribal through Space Age in one run) — a testing/engineering task, not player-facing; low urgency.
 - **K4, K11**: see the audio question above.
-- **K7**: a way to actually *view* a revisited era's snapshot in the 3D layer, not just its stats.
 
 ## L. The Hub Itself
 
@@ -51,10 +49,6 @@ Several items across the ideas file got parked specifically pending this — you
 
 - **D10**: "later" (no further comment attached).
 - **D20**: "maybe later" (no further comment attached — was "a light visual flourish on the endgame," carried over from the original idea's own wording).
-
-## E. Aftermath
-
-- **E5**: "later" (no further comment attached).
 
 ## F. Herd
 
