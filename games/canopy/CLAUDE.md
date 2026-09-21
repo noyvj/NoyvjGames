@@ -319,6 +319,44 @@ Where it lives (no new always-visible blocks, per the decluttering pass):
 
 Tests 279 -> 350 (new files: `test_display_batch_1.py`, `test_forest_log_and_badge.py`, `test_ranger_mode.py`, `test_replant_grant.py`, `test_specialist_plot.py`). The test harness `GameEnv.reset_session()` now clicks a second time when B24's confirm step arms. Verified live under Pyodide (fresh tab, service worker unregistered, caches cleared): leaf burst, adopted star, hover glow, pop sizes, badge, report-card SVGs, log panels, ranger select, specialist row and the community fallback all worked; the only console error was the expected 404 from the undeployed stats endpoint.
 
+## Highland Grove distinct rates (V-CD-5, 2026-09-21)
+
+The completion-verification audit found the original B3 idea specified
+Highland Grove should have genuinely different degradation/compounding
+rates than the main forest — what shipped was a same-rules bonus copy
+(the same `Plot` class, same constants, just a second grid). The user's
+answer: "add distinct."
+
+Highland Grove is already framed everywhere it appears (its lock banner,
+mountain iconography, "a smaller, higher grove") as a high-altitude
+ecosystem, so the distinction is grounded in real alpine-ecology
+tradeoffs rather than an arbitrary number: **thin alpine soil erodes
+faster once disturbed** (`HIGHLAND_DEGRADE_MULTIPLIER = 1.5` — soil
+degrades 50% faster per clear than the main forest) while **a harsher,
+shorter high-altitude growing season means standing value compounds more
+slowly** (`HIGHLAND_GROWTH_MULTIPLIER = 0.75` — 25% slower). `Plot` gained
+a `region` field ("main" or "highland", structural — fixed for a plot's
+whole lifetime by which list constructed it, never saved/loaded since
+reconstructing `highland_plots` always passes `region="highland"` again).
+Both multipliers apply only inside `productivity_multiplier()`/
+`accrue_tick()` when `self.region == "highland"` — main-forest plots
+(`region == "main"`, the default) are multiplied by an implicit 1.0 and
+stay byte-for-byte unaffected, pinned by a dedicated regression test.
+
+The Highland Grove blurb (`index.html`) now states both numbers in plain
+language instead of implying "same mechanics, different grid."
+
+Tests: 350 -> 356 (`tests/test_highland_distinct_rates.py`: both
+multipliers are genuinely non-1.0, the main forest's degradation math is
+an exact regression pin, Highland's soil degrades faster and its value
+compounds slower than the main forest at matched state, the growth ratio
+is pinned to the exact constant rather than just "slower than," and
+`reset_session()`'s highland-plot reconstruction correctly tags every
+plot `region="highland"`). flake8 clean. Verified live: cleared plots at
+matched `clear_count` on both grids and confirmed Highland's productivity
+multiplier reads lower (more degraded) and its per-tick accrual reads
+lower (slower growth) than the main forest's, zero console errors.
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag canopy-milestone-0N`.

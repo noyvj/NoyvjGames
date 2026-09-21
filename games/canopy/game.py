@@ -252,8 +252,17 @@ PARTNER_SHARE_RATIO = 0.35
 
 
 class Plot:
-    def __init__(self, index):
+    def __init__(self, index, region="main"):
         self.index = index
+        # V-CD-5 (planning/TODO.md section N): which grid this plot belongs
+        # to -- "main" (the default) or "highland". Structural, not saved
+        # state: it's fixed for a plot's whole lifetime by which list it was
+        # constructed into (see highland_plots' construction sites), so
+        # _plot_to_dict()/_apply_plot_dict() never need to persist it --
+        # reconstructing highland_plots always passes region="highland"
+        # again. Drives productivity_multiplier()/accrue_tick()'s region-
+        # specific rate multipliers below.
+        self.region = region
         self.state = PRESERVED
         self.value = 0.0
         self.ticks_intact = 0
@@ -287,10 +296,17 @@ class Plot:
     def productivity_multiplier(self):
         """Soil quality factor from past clearing — 1.0 for a never-cleared
         plot, stepping down permanently with each clear, floored so a plot
-        never stops producing entirely."""
+        never stops producing entirely.
+
+        V-CD-5: a Highland Grove plot's soil degrades HIGHLAND_DEGRADE_
+        MULTIPLIER times faster per clear than the main forest's (thin,
+        fragile alpine soil erodes faster once disturbed) — main-forest
+        plots (region == "main") are completely untouched by this, since
+        the multiplier is exactly 1.0 for them."""
+        region_degrade_multiplier = HIGHLAND_DEGRADE_MULTIPLIER if self.region == "highland" else 1.0
         return max(
             MIN_PRODUCTIVITY_MULTIPLIER,
-            1 - current_degrade_per_clear() * self.clear_count,
+            1 - current_degrade_per_clear() * region_degrade_multiplier * self.clear_count,
         )
 
     def accrue_tick(self):
@@ -304,6 +320,11 @@ class Plot:
         self.ticks_intact += 1
         growth_multiplier = 1 + self.ticks_intact * GROWTH_PER_TICK
         delta = BASE_ACCRUAL * self.productivity_multiplier() * growth_multiplier
+        # V-CD-5: Highland Grove compounds HIGHLAND_GROWTH_MULTIPLIER times
+        # slower than the main forest (a harsher, shorter high-altitude
+        # growing season) — 1.0 (a no-op) for main-forest plots.
+        if self.region == "highland":
+            delta *= HIGHLAND_GROWTH_MULTIPLIER
         delta *= current_season_multiplier()  # B17
         delta *= current_legacy_multiplier()  # B15
         if self.specialization == SPECIALIZATION_ECONOMIC:
@@ -460,8 +481,25 @@ HIGHLAND_ROWS = 3
 HIGHLAND_COLS = 4
 HIGHLAND_UNLOCK_STANDING_VALUE_THRESHOLD = 2000.0
 
+# V-CD-5 (planning/TODO.md section N, completion-audit fix): the original
+# B3 idea specified Highland Grove should have genuinely different
+# degradation/compounding rates than the main forest, not just a same-
+# rules bonus copy. Highland Grove is framed (its lock banner/blurb, its
+# mountain iconography, "a smaller, higher grove") as a high-altitude
+# ecosystem, so the distinction is grounded in real alpine-ecology
+# tradeoffs rather than an arbitrary number: thin alpine soil erodes
+# faster once disturbed (soil degrades HIGHLAND_DEGRADE_MULTIPLIER times
+# faster per clear than the main forest), while a harsher, shorter
+# high-altitude growing season means standing value compounds
+# HIGHLAND_GROWTH_MULTIPLIER times slower once a plot is intact. Both
+# apply only inside Plot.productivity_multiplier()/accrue_tick() when
+# self.region == "highland" -- main-forest plots (region == "main") are
+# multiplied by an implicit 1.0 and are byte-for-byte unaffected.
+HIGHLAND_DEGRADE_MULTIPLIER = 1.5
+HIGHLAND_GROWTH_MULTIPLIER = 0.75
+
 highland_unlocked = False
-highland_plots = [Plot(i) for i in range(HIGHLAND_ROWS * HIGHLAND_COLS)]
+highland_plots = [Plot(i, region="highland") for i in range(HIGHLAND_ROWS * HIGHLAND_COLS)]
 highland_selected_index = None
 highland_income = 0.0
 # Same leak-prevention pattern as the main grid's `_plot_click_proxies`
@@ -554,7 +592,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None):
         proxy.destroy()
     _highland_plot_click_proxies = {}
     highland_unlocked = False
-    highland_plots = [Plot(i) for i in range(HIGHLAND_ROWS * HIGHLAND_COLS)]
+    highland_plots = [Plot(i, region="highland") for i in range(HIGHLAND_ROWS * HIGHLAND_COLS)]
     highland_selected_index = None
     highland_income = 0.0
 

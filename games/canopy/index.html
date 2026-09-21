@@ -242,13 +242,18 @@
          HIGHLAND_UNLOCK_STANDING_VALUE_THRESHOLD (see
          render_highland_section() in game.py), then the actual smaller
          (3x4) grove grid appears with its own clear/replant loop -- same
-         mechanics as the main forest, no separate biodiversity or
-         stakeholder-tension system of its own. -->
+         Plot class and clear/replant actions as the main forest, no
+         separate biodiversity or stakeholder-tension system of its own,
+         but (V-CD-5) its own distinct degradation/compounding rates:
+         soil degrades 1.5x faster per clear (HIGHLAND_DEGRADE_MULTIPLIER,
+         fragile alpine soil) and standing value compounds 0.75x as fast
+         (HIGHLAND_GROWTH_MULTIPLIER, a harsher high-altitude growing
+         season) than the main forest. -->
     <p id="highland-lock-banner" class="section highland-lock-banner"></p>
     <progress id="highland-unlock-progress" class="highland-unlock-progress" max="2000" value="0" aria-label="Progress toward unlocking Highland Grove"></progress>
     <div id="highland-section" class="section highland-section" hidden>
       <h2 class="highland-heading">⛰️ Highland Grove</h2>
-      <p class="highland-blurb">A smaller, higher grove you've unlocked — the same clear/preserve/replant choices, on a fresh grid.</p>
+      <p class="highland-blurb">A smaller, higher grove you've unlocked — same clear/preserve/replant choices, but a harsher alpine ecosystem: soil degrades 50% faster per clear, and standing value compounds 25% slower.</p>
       <div id="highland-plot-grid" class="plot-grid highland-plot-grid"></div>
       <p id="highland-income-display" class="income-display">Harvested income: 0.0</p>
       <p id="highland-standing-value-display" class="income-display">Standing grove value: 0.0</p>
