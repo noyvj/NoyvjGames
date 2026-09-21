@@ -584,3 +584,7 @@ against the same candidate list as every other game in this pass:
 
 No code changed; ran as the baseline check this pass calls for regardless
 of verdict.
+
+## L8: plots-automated bar (2026-09-21)
+
+A thin bar under the "plots growing / automated" tile shows automated plots as a share of the whole farm (`#automated-bar` inside `#automated-meter`, updated in `render()` next to the existing `progress-display` text; the title reads "N of M plots automated"). It deliberately has no width transition: `tests/test_polish.py::test_the_farm_has_no_animation` enforces the calm-farm rule, and this pass's first draft failed it until the transition was removed. Suite 562 passing (added one test in `tests/test_farm_ui.py`); checked live, no unexpected console errors.

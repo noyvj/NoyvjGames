@@ -23,6 +23,8 @@ ELEMENT_IDS = [
     "due-display",
     "pace-display",
     "progress-display",
+    "automated-meter",
+    "automated-bar",
     "practice-score-display",
     "stage-summary-display",
     "row-summary-display",

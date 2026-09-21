@@ -1418,3 +1418,7 @@ button:disabled {
     box-shadow: 0 -8px 28px rgba(20, 16, 8, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 }
+
+/* L8 plots-automated bar */
+.automated-meter { height: 6px; margin-top: 6px; border-radius: 3px; background: rgba(0, 0, 0, 0.18); overflow: hidden; }
+.automated-bar { height: 100%; width: 0; border-radius: 3px; background: currentColor; opacity: 0.55; }

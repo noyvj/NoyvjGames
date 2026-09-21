@@ -2760,6 +2760,10 @@ def render_status():
     _element("progress-display").innerText = (
         f"{growing} of {len(state.plots)} plots growing · {automated} automated"
     )
+    # L8 -- an always-visible bar for how much of the whole farm is automated.
+    automated_share = automated / len(state.plots) if state.plots else 0.0
+    _element("automated-bar").style.width = f"{automated_share * 100:.1f}%"
+    _element("automated-meter").title = f"{automated} of {len(state.plots)} plots automated"
 
     render_practice_score()
 

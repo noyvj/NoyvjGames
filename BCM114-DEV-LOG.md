@@ -395,3 +395,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Trade Empire
 **Did:** Added a collapsed "Trade almanac" reference to the Market prices panel (baseline price, typical range, producer and consumer per good, scoped to unlocked systems). Caught a real styling issue in live checking: reusing `.info-toggle` made the label a 17px circle, fixed with an almanac-specific override.
 **Result:** Suite 274/274 passing (was 270), flake8 clean; verified live at desktop and 375px with no console errors.
+
+### 2026-09-21 (Le Champ de Mots: plots-automated bar, L8)
+**Game:** Le Champ de Mots
+**Did:** Added an always-visible bar for the share of the farm that is automated, beside the existing progress text. The full suite caught a first draft that used a CSS width transition, which breaks this game's enforced "the farm has no animation" rule; removed it.
+**Result:** Suite 562/562 passing, flake8 clean; checked live with no unexpected console errors.

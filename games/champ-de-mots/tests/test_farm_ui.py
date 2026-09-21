@@ -427,6 +427,17 @@ def test_progress_display_counts_growing_and_automated_plots(game_env):
     assert "1" in text
 
 
+def test_automated_bar_tracks_the_share_of_automated_plots(game_env):
+    module, state = game_env.module, game_env.state
+    module.render()
+    assert game_env.elements["automated-bar"].style.width == "0.0%"
+    state.plots[0].stage = module.STAGE_AUTOMATED
+    module.render()
+    share = 100 / len(state.plots)
+    assert game_env.elements["automated-bar"].style.width == f"{share:.1f}%"
+    assert "1 of" in game_env.elements["automated-meter"].title
+
+
 def test_row_progress_shows_how_far_each_row_has_come(game_env):
     module, state = game_env.module, game_env.state
     row = state.rows[0]
