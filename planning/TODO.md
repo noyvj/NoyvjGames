@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 455/747 items checked off (60.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 456/747 items checked off (61.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -785,7 +785,7 @@ Every idea in this section was accepted, no exceptions.
 - [ ] L6: Let the confidence-rating buttons show a small running accuracy-by-confidence stat, so the player can see whether their self-assessment is well-calibrated.
 - [ ] L7a: Build the day-tracker prerequisite — a real concept of a calendar day, since the player currently just advances "whenever."
 - [ ] L7b: A "study streak calendar" — a lightweight monthly calendar view of review activity, without guilt-driven streak-fire framing (needs L7a).
-- [ ] L8: A small "plots automated" progress bar always visible at the top of the farm.
+- [x] L8: A small "plots automated" progress bar always visible at the top of the farm.
 - [ ] L9: A "listening comprehension" practice type (TTS-based audio prompts) — **you noted audio is still hard, but L1's music-minigame pitch might be the practical way in**; scope these two together rather than solving audio comprehension from scratch here.
 - [ ] L10: Let the gender-tagging drill show its own running accuracy stat, separate from the overall dashboard. **Same top-level "everything shows measurable progress" principle as L1 applies here too**, per your note.
 - [ ] L11: A "sentence builder" freeform mode — a general-purpose sentence constructor usable with any mastered vocabulary at any time.
