@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 465/747 items checked off (62.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 466/747 items checked off (62.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -799,7 +799,7 @@ Every idea in this section was accepted, no exceptions.
 - [ ] L19: A "personal phrasebook" — bookmark specific items into a custom cross-cutting list, independent of the syllabus row structure.
 - [x] L20: A small "catch-up progress" readout for already-unlocked rows, distinguishing "reviewed since unlocking" from "never yet watered." *(Note: since L4 above removes row-gating entirely, re-scope this as covering however "already unlocked" ends up being defined post-L4 — likely "every row.")*
 - [ ] L22: Let the cultural-notes toggle show a small "new note available" indicator when a freshly-unlocked row has cultural context worth reading. **Note 2026-09-21:** not built. L4a removed row-unlock pacing (every row is open from the start), so a "freshly-unlocked row" no longer happens. It would need redefining, e.g. an "unread notes" badge backed by a saved seen-list. Your call.
-- [ ] L23: A "spaced repetition transparency" panel — an optional, fully explained view of exactly how the SM-2-style scheduling works.
+- [x] L23: A "spaced repetition transparency" panel — an optional, fully explained view of exactly how the SM-2-style scheduling works.
 - [ ] L24: A small animated watering-can cursor/effect when actively watering a plot.
 - [ ] L25: A "review before the exam" cram mode — a dedicated denser review session covering everything from a chosen chapter range.
 - [x] L26: Let the liaison/elision quiz show a small phonetic-symbol legend.
