@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-21",
+    "entry": "The warming-rate info toggle now states a concrete calibration (roughly 50 real-world years per round, from NOAA's warming rate) instead of a vague \"several years\" disclaimer."
+  },
+  {
+    "date": "2026-09-21",
     "entry": "Fixed a performance bug where long sessions could make Advance Round take multiple seconds and climbing, caused by how the (intentionally worst-case) Region D reinvested its own growing income each round."
   },
   {

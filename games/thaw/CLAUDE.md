@@ -369,3 +369,39 @@ Once a production deploy picks up the `app/stats.py` whitelist change,
 this starts showing real percentiles with zero further code changes.
 
 - 2026-09-21: G2 -- `best_region_message()` now names the winning region's preserve/monitor/output mix.
+
+## G5 — concrete years-per-round calibration (2026-09-21)
+
+`planning/TODO.md`'s completion audit (V-E-2) found G5's original ask —
+a concrete "each round ≈ X years of real-world warming" line — was never
+actually built; only the vague info-toggle wording ("stylized several
+years") existed. User's call when asked: "may as well design a real
+number behind it, you pick what makes the most sense."
+
+**The math:** `BASE_TEMP_RISE_PER_ROUND = 1.0` (this game's fixed
+per-round background rise, displayed to the player as `+1.0°`). NOAA
+Climate.gov ([Climate Change: Global Temperature](https://www.climate.gov/news-features/understanding-climate/climate-change-global-temperature))
+states the recent-decades rate as "0.36°F (0.20°C) per decade" since
+1982 — i.e. 0.02°C/year. Dividing the fixed per-round rise by that
+real-world annual rate: `1.0 / 0.02 = 50` real-world years per round.
+Used the recent-decades rate rather than the long-run since-1850 average
+(NOAA's own "0.06°C/decade" figure) because it's the pace the game's own
+existing sentence already frames as "today's" — the long-run figure would
+roughly triple the years-per-round number and undersell how much faster
+warming has gotten.
+
+**Change:** `index.html`'s warming-rate info-toggle (`#rise-rate-display`'s
+`.info-toggle`) now states this concretely — "At today's warming pace
+(NOAA: about 0.20°C per decade since 1982, i.e. 0.02°C/year), this
+game's fixed +1.0°/round works out to roughly 50 years of real-world
+warming compressed into one round" — replacing the old "several years"
+hand-wave, while keeping the original 1.1°C-over-150-years historical
+anchor sentence and the stylization/"not a literal calendar unit"
+caveat. `index.html`-only: confirmed no `game.py` logic or test reads
+this string, and every other `.info-toggle` disclosure in this game
+(melt threshold, dampening, etc.) is likewise static prose in `index.html`
+rather than Python-rendered, so this stayed consistent with that existing
+pattern rather than becoming a computed value in `game.py`. `changelog.json`
+got a matching entry. Full pytest suite (156 tests, unchanged — no logic
+touched) stayed green; verified live via the shared `hub-dev-server`, the
+new text renders correctly with zero console errors.
