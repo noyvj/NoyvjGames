@@ -72,10 +72,10 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [ ] Continuum
   - [ ] Le Champ de Mots
   - [ ] Write the follow-up replayability ideas round from this audit's findings
-- [ ] Z8: A shared "export my progress" helper/module for the portable-progress-code pattern:
-  - [ ] Build the shared helper
-  - [ ] Migrate Aftermath's existing E12 export to it
-  - [ ] Apply to SOL's A17 export idea (see per-game section) using the shared helper, not a one-off
+- [x] Z8: A shared "export my progress" helper/module for the portable-progress-code pattern:
+  - [x] Build the shared helper (`shared/export_progress.py`)
+  - [x] Migrate Aftermath's existing E12 export to it
+  - [x] Apply to SOL's A17 export idea (see per-game section) using the shared helper, not a one-off
 - [x] Z10: A consistent "difficulty variant active" icon/badge on a game's title card when it has one enabled (single hub-side feature, reads each game's own difficulty flag).
 - [ ] Z11: A shared "narrative log" component (a small dated feed of things that happened):
   - [ ] Build the shared component

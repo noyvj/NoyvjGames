@@ -1216,6 +1216,12 @@
     async function main() {
       const pyodide = await loadPyodide();
       window.pyodide = pyodide; // exposed for the save/load bridge below
+      // Shared "export my progress" helper (Z8, see shared/export_progress.py)
+      // -- written into Pyodide's virtual filesystem before game.py runs so
+      // `import export_progress` resolves normally, same fetch-then-write
+      // pattern Aftermath's index.html already uses for shared/info_page.py.
+      const exportProgressSource = await (await fetch("../../shared/export_progress.py")).text();
+      pyodide.FS.writeFile("export_progress.py", exportProgressSource, { encoding: "utf8" });
       // ACHIEVEMENTS-SYSTEM-DESIGN.md's loading contract: fetch the static
       // catalog and hand it to Python as a window global *before* game.py
       // runs, same pattern Le Champ de Mots established for its own JSON

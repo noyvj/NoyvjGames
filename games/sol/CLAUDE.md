@@ -458,6 +458,43 @@ cleared `localStorage`, confirmed the first load shows the static
 snapshot, then confirmed a second load after real progress shows the
 real "+1 world(s), +1 achievement(s)" delta, zero console errors.
 
+## Export-progress shared helper (Z8, site-wide goal)
+
+`planning/TODO.md`'s Z8: A17's `SOLSTATS1:` stats code now runs on a new
+shared `shared/export_progress.py` module (the base64<->JSON codec, the
+prefix check, the finite-non-negative-number field validation, and the
+"counters only ever go up" max-merge) instead of hand-rolling all four of
+those inline. Aftermath's E12 export/import migrated onto the same shared
+module in the same pass — the two turned out to be genuinely different
+shapes of one "portable progress-code" pattern (A17: flat counters,
+monotonic merge; E12: a structural bundle, replace-on-import), which is
+why the shared module exposes small composable pieces
+(`encode_progress_code`/`decode_progress_code`/`validate_numeric_fields`/
+`merge_counters_max`) rather than one do-everything function.
+
+Pure refactor, no player-visible change: `export_stats_code()`/
+`import_stats_code()` keep their exact signatures, the exported code's
+shape (`SOLSTATS1:` prefix, same field set, `prestige_level` still along
+for the ride on export only, unchanged from before) and status messages
+are untouched, and the "Export / import lifetime stats" panel's UI/copy
+didn't change. `game.py` now does `import export_progress` — SOL's first
+use of a shared Python module, loaded into Pyodide's virtual filesystem by
+`index.html` the same fetch-then-`FS.writeFile` way Aftermath's
+`info_page.py` already is (and pointed at via `sys.path` in
+`tests/conftest.py`, matching Aftermath's own conftest pattern, since this
+is SOL's first shared-module import for tests to resolve at all). No
+`changelog.json` entry added — A17 itself already shipped and was already
+checked off in `planning/TODO.md` before this pass; only its internals
+moved.
+
+Verified: full pytest suite (680/680) and `flake8` clean. Live via
+`hub-dev-server`: exporting real (non-zero) lifetime-counter state
+produced a correctly-prefixed, real decodable code; importing a code with
+a lower counter value correctly left the higher existing value alone
+(monotonic merge); and both a garbage string and a wrongly-prefixed code
+failed soft with the existing "That doesn't look like a SOL stats code."
+message — zero console errors throughout.
+
 ## Working conventions
 - Commit + tag at the end of each milestone: `git commit -m "Milestone N: <name>"` then `git tag milestone-0N` (e.g. `milestone-09a` for lettered sub-parts of milestone 9).
 - Keep `game.py` as the single source of game logic where reasonable; split into modules only once it gets unwieldy.

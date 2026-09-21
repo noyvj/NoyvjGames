@@ -473,6 +473,34 @@ The completion audit found a real gap: the original Pass-2 legacy-system idea (`
 Implementation: three new `aria-hidden` divs inside `.settlement-visual` (`#settlement-legacy-scar-weather/-non-weather/-social`), a `.settlement-legacy-scar`/`--tier-1/2/3` CSS block in `style.css` positioned along the ground line so it can never collide with the rooftop badges, and one small loop in `render()` (right after the E4 chip-row loop it sits next to) that clears and re-applies the matching tier class per category every render. Covered by a new `tests/test_legacy_scars.py` (category aggregation, tier thresholds at the exact boundary counts, and `render()`-driven classList checks across zero/one/two completed runs, including a stale-higher-tier-doesn't-stick check). Full pytest suite (246 → 254 tests) and flake8 stayed clean throughout.
 
 Verified live via the shared `hub-dev-server` (fresh tab, since the port was already in use): drove `legacy_event_counts` up directly via `pyodide.runPython` (flood/heatwave/storm, supply_chain, and civil_unrest at varying counts) and called `render()` -- all three category scars appeared with the correct tier class (verified via `classList` and visually, via a temporary debug-only `transform: scale(3)` zoom on `.settlement-visual` to inspect the small ground-line marks up close), the civil-unrest scar at count 8 showed the tier-3 pulsing glow, and a fresh/untouched settlement showed all three scars fully transparent (no tier class). Zero console errors throughout.
+## Export-progress shared helper (Z8, site-wide goal)
+
+`planning/TODO.md`'s Z8: E12's export/import progress code now runs on a
+new shared `shared/export_progress.py` (the base64<->JSON codec plus the
+"is this even a dict" structural check), rather than hand-rolling its own
+copy of that logic — the same shared module SOL's A17 stats code also
+migrated onto in the same pass, since both games turned out to be two
+real-world shapes of the same "portable progress-code" pattern (E12: a
+structural bundle, replace-on-import; A17: flat counters, monotonic-max
+merge — see the shared module's own docstring for why one shape wasn't
+forced onto both).
+
+Pure refactor, no player-visible change: `export_progress_code()`/
+`import_progress_code()` keep their exact same signatures, the exported
+code's shape (no prefix, same bundle keys) and `progress_summary_text()`
+are untouched, and the Backup/Transfer Progress panel's UI/copy is
+unchanged. `game.py` now does `import export_progress` (loaded into
+Pyodide's virtual filesystem by `index.html` the same fetch-then-
+`FS.writeFile` way `info_page.py` already is) and the top-level `import
+base64` was removed as now-unused. No `changelog.json` entry added, since
+nothing a player sees or does changed.
+
+Verified: full pytest suite (257/257) and `flake8` clean. Live via
+`hub-dev-server`: exporting real (non-zero) skill-tree/knowledge state
+produced a real decodable code, re-importing it round-tripped correctly,
+and a malformed pasted code failed soft with the existing status message
+— zero console errors throughout.
+
 ## Screen-reader accessibility audit (Z15, site-wide goal, planning/TODO.md)
 
 Static-analysis audit (grepping/reading `index.html`/`game.py`, no live screen

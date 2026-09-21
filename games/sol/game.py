@@ -1,4 +1,5 @@
 import copy
+import export_progress
 import json
 import math
 from js import document, setInterval, setTimeout
@@ -2696,34 +2697,29 @@ COMPARE_FIELDS = (
 
 
 def export_stats_code():
-    import base64  # noqa: PLC0415
-
+    # Z8: codec now lives in shared/export_progress.py (the "portable
+    # progress-code" pattern shared with Aftermath's E12) -- behavior is
+    # unchanged, same STATS_CODE_PREFIX, same flat-counter payload.
     payload = {name: globals()[name] for name in _STATS_CODE_FIELDS}
     payload["prestige_level"] = prestige_level
-    raw = json.dumps(payload, sort_keys=True).encode("utf-8")
-    return STATS_CODE_PREFIX + base64.b64encode(raw).decode("ascii")
+    return export_progress.encode_progress_code(payload, prefix=STATS_CODE_PREFIX)
 
 
 def import_stats_code(code):
     """Returns (ok, message). Only ever raises a counter, never lowers one, so
     a stale code from an old device can't undo newer progress."""
-    import base64  # noqa: PLC0415
-
-    code = (code or "").strip()
-    if not code.startswith(STATS_CODE_PREFIX):
-        return False, "That doesn't look like a SOL stats code."
-    try:
-        payload = json.loads(base64.b64decode(code[len(STATS_CODE_PREFIX):]).decode("utf-8"))
-    except (ValueError, UnicodeDecodeError):
-        return False, "That stats code couldn't be read."
-    if not isinstance(payload, dict):
-        return False, "That stats code couldn't be read."
+    ok, payload = export_progress.decode_progress_code(
+        code, prefix=STATS_CODE_PREFIX, bad_format_message="That doesn't look like a SOL stats code."
+    )
+    if not ok:
+        return False, payload
+    if not export_progress.validate_numeric_fields(payload, _STATS_CODE_FIELDS):
+        return False, "That stats code has invalid values."
+    merged = export_progress.merge_counters_max(
+        {name: globals()[name] for name in _STATS_CODE_FIELDS}, payload, _STATS_CODE_FIELDS
+    )
     for name in _STATS_CODE_FIELDS:
-        value = payload.get(name)
-        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
-            return False, "That stats code has invalid values."
-    for name in _STATS_CODE_FIELDS:
-        globals()[name] = max(globals()[name], payload[name])
+        globals()[name] = merged[name]
     return True, "Stats imported. Counters only ever go up."
 
 

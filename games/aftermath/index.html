@@ -375,6 +375,11 @@
       // ENGINE_MODULES loop.
       const infoPageSource = await (await fetch("../../shared/info_page.py")).text();
       pyodide.FS.writeFile("info_page.py", infoPageSource, { encoding: "utf8" });
+      // Shared "export my progress" helper (Z8, see shared/export_progress.py)
+      // -- same fetch-then-write-into-Pyodide-FS pattern as info_page.py just
+      // above, so `import export_progress` resolves normally from game.py.
+      const exportProgressSource = await (await fetch("../../shared/export_progress.py")).text();
+      pyodide.FS.writeFile("export_progress.py", exportProgressSource, { encoding: "utf8" });
       // Achievements catalog (ACHIEVEMENTS-SYSTEM-DESIGN.md §2) -- fetched
       // and handed to Python as a window global before game.py runs, same
       // three-line convention every other achievements-rollout game uses.

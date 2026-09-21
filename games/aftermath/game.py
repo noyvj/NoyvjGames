@@ -8,11 +8,11 @@ and damage resolution, feeding a persistent cross-run skill tree and
 milestone history.
 """
 
-import base64
 import math
 import copy
 import json
 
+import export_progress
 import info_page
 from js import document, localStorage, setTimeout
 from pyodide.ffi import create_proxy
@@ -1518,8 +1518,12 @@ def export_progress_code():
         "highest_awarded_run": highest_awarded_run,
         "meta": dict(meta),
     }
-    raw = json.dumps(bundle).encode("utf-8")
-    return base64.b64encode(raw).decode("ascii")
+    # Z8: codec now lives in shared/export_progress.py (the "portable
+    # progress-code" pattern shared with SOL's A17) -- no prefix, matching
+    # this code's original plain-base64 shape (no existing player-held
+    # code has a tag to check against, so adding one now would just be
+    # decoration).
+    return export_progress.encode_progress_code(bundle)
 
 
 def import_progress_code(code):
@@ -1532,12 +1536,8 @@ def import_progress_code(code):
     the page."""
     global skill_tree, run_history, legacy_events, legacy_event_counts, achievement_progress, highest_awarded_run, meta
 
-    try:
-        raw = base64.b64decode(code.strip()).decode("utf-8")
-        bundle = json.loads(raw)
-    except Exception:  # noqa: BLE001 -- deliberately broad, see docstring
-        return False
-    if not isinstance(bundle, dict) or "skill_tree" not in bundle:
+    ok, bundle = export_progress.decode_progress_code(code)
+    if not ok or "skill_tree" not in bundle:
         return False
 
     try:

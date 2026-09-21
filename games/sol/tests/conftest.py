@@ -9,6 +9,15 @@ from .fakes import FakeDocument, FakeElement, FakeLocalStorage, FakeTimers, crea
 
 GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 
+# Z8: game.py now imports the shared "export my progress" helper
+# (shared/export_progress.py) the same way the real Pyodide boot script
+# does -- see index.html -- so the repo-root shared/ directory has to be
+# importable before game.py can be exec'd. Same pattern Aftermath's own
+# conftest.py already established for shared/info_page.py.
+SHARED_DIR = Path(__file__).resolve().parent.parent.parent.parent / "shared"
+if str(SHARED_DIR) not in sys.path:
+    sys.path.insert(0, str(SHARED_DIR))
+
 # Buttons that carry the `disabled` attribute in index.html's initial markup
 # (they read "Loading..." until Pyodide finishes and setup() enables them).
 # The fixture mirrors this so a setup() that forgets to re-enable one of
