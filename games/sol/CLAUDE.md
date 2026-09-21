@@ -565,3 +565,36 @@ laid out beside the ad slot), so `justify-content: center` centers the ad
 slot alone at its full width. This fix applies to all 12 games at once
 (shared file) — see root `CLAUDE.md`'s Working notes for the full writeup.
 `flake8`/tests unaffected (pure CSS); SOL's own suite stayed at 680/680.
+
+## Difficulty-aware achievements audit (Z27, site-wide goal)
+
+`planning/TODO.md`'s Z27: check whether any achievement becomes impossible
+or trivially easy under a game's own hard-mode/difficulty toggle. SOL's
+only real candidate is the prestige tree's "New Game+ Challenge" node
+(`ng_challenge`/`ng_challenge_active`, A1/A3) — a genuine opt-in harder
+replay variant: once unlocked it can be switched on/off freely at any time
+(`_challenge_on()` just reads the two flags live, no lock-in), and while on
+it grows every generator's and Recycler's cost faster (`NG_CHALLENGE_COST_
+GROWTH_BONUS`), in exchange for +1 extra prestige point per prestige.
+
+Checked all 24 achievements against it. The two time-limited ones
+(`quick_start`, `swift_expansion` — fund a research tier within 10/30
+sim-minutes) get genuinely harder with the challenge on, since a slower-
+growing economy is slower to reach a funding target — but not impossible:
+the toggle is freely reversible, so a player going for either achievement
+can simply switch it off first, and neither achievement's own condition
+checks whether the challenge was active while earning it. The two pure-
+clicker achievements this same wave added (`manual_labor`, `off_the_grid`)
+are explicitly defined as "before ever building a generator anywhere," so
+a cost-growth toggle on generators has no bearing on them at all. Every
+other achievement (ecology thresholds, building counts, trade routes,
+terraforming, visited-body counts) reads state that the challenge toggle
+never touches.
+
+**No change needed.** Every toggle in SOL that affects economy pacing is
+freely switchable per-action rather than a session-locked choice, which is
+what keeps a harder setting from ever permanently locking an achievement
+out — the player can always turn it off immediately before attempting
+something toggle-sensitive. No simulation was needed; the toggle's own
+implementation (a live-read boolean with no historical stickiness) settles
+this by inspection. `flake8`/tests unaffected — no code touched.
