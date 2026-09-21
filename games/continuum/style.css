@@ -1227,6 +1227,15 @@ button.primary:disabled::after {
     position: fixed;
     left: 1rem;
     right: 1rem;
+    /* Z18 (320px mobile-viewport audit): button.primary's base rule sets
+       width: 100% (of the fixed element's containing block -- the
+       viewport), and this selector never overrode it, so left/right's
+       intended 1rem margins couldn't both hold at once: the box stayed
+       320px wide on a 320px screen and quietly overflowed past the
+       right edge instead of shrinking, clipping this game's single most
+       important control. `width: auto` lets left/right (and max-width
+       below) size the box correctly instead. */
+    width: auto;
     bottom: 50px;
     z-index: 150;
     max-width: 480px;

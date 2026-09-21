@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-21",
+    "entry": "Fixed the chain-flow visualization overflowing the screen edge on narrow phones."
+  },
+  {
+    "date": "2026-09-21",
     "entry": "Each goods-flavor set (electronics/clothing/furniture) now has its own distinct loop story, not just a different noun in the same sentence. The achievement-unlock toast also no longer overlaps with the loop-closed banner."
   },
   {

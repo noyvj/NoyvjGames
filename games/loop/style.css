@@ -688,6 +688,7 @@ button.primary:active {
   flex-direction: column;
   align-items: center;
   gap: 0.2rem;
+  min-width: 0;
 }
 
 .chain-icon {
@@ -697,6 +698,40 @@ button.primary:active {
 
 .chain-label {
   font-size: 0.7rem;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Z18 (320px mobile-viewport audit): four flex:1 stages + three arrows
+   fit comfortably at 375px+, but "Manufacture" alone plus each stage's
+   padding/gap and the arrows' own min-width added up to more than a
+   320px screen has room for -- .chain-stage had no min-width:0, so
+   flexbox's default content-based min-width kept the row from
+   shrinking, pushing the whole #chain-flow-section (and the page) wider
+   than the viewport. Shrinking the row's own spacing/type at this width
+   is enough on its own; the min-width:0/word-break above are the
+   fallback for anything still tight. */
+@media (max-width: 359px) {
+  .chain-flow {
+    gap: 0.2rem;
+  }
+
+  .chain-stage {
+    padding: 0.4rem 0.15rem;
+  }
+
+  .chain-icon {
+    font-size: 1.1rem;
+  }
+
+  .chain-label {
+    font-size: 0.62rem;
+  }
+
+  .chain-arrow {
+    min-width: 0.9rem;
+    font-size: 0.75rem;
+  }
 }
 
 /* --- Illustration 1: the closed-loop ring. A literal ring of arrows

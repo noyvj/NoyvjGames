@@ -223,3 +223,20 @@ Checked against the same candidate list as every other game in this pass:
 
 No code changed; ran as the baseline check this pass calls for regardless
 of verdict.
+
+## 320px mobile-viewport audit (Z18, site-wide goal, planning/TODO.md)
+
+Checked at a genuine 320px viewport (narrower than the original 375px
+mobile pass) via the Claude Browser tool's `resize_window`.
+
+**Real bug found and fixed:** `.invest-fields` used a bare
+`grid-template-columns: 1fr auto 1fr` for its two investment buttons —
+CSS Grid's classic gotcha is that a bare `1fr` track still respects its
+content's *min-content* width as a floor, so a longer button label like
+"Infrastructure (25)" kept this row (and `#capacity`, and the page) wider
+than a 320px screen even though `1fr` looks like it should shrink freely.
+Fixed with `minmax(0, 1fr)` on both flexible tracks, letting them actually
+shrink to the row's real available width instead of their content's
+natural size.
+
+No other overflow found at 320px. `flake8`/tests unaffected (pure CSS).

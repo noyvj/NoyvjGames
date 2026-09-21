@@ -439,3 +439,18 @@ list as every other game in this pass:
 
 No code changed; ran as the baseline check this pass calls for regardless
 of verdict.
+
+## 320px mobile-viewport audit (Z18, site-wide goal, planning/TODO.md)
+
+Checked at a genuine 320px viewport (narrower than the original 375px
+mobile pass) via the Claude Browser tool's `resize_window`.
+
+**Real bug found and fixed:** `.region-strategy-label-input` (a plain
+`<input>` with no CSS width of its own) fell back to the browser's default
+intrinsic size (~20 characters), which — unlike every other child of its
+flex-item `.region-card` — doesn't shrink with its container. At 320px
+that pushed the card (and the page, by a few px) past the viewport edge.
+Fixed by sizing it to its own container (`width: 100%; max-width: 100%;
+box-sizing: border-box`) instead of relying on the browser default.
+
+No other overflow found at 320px. `flake8`/tests unaffected (pure CSS).

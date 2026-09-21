@@ -541,3 +541,23 @@ list as every other game in this pass:
 
 No code changed; ran as the baseline check this pass calls for regardless
 of verdict.
+
+## 320px mobile-viewport audit (Z18, site-wide goal, planning/TODO.md)
+
+Checked at a genuine 320px viewport (narrower than the original 375px
+mobile pass) via the Claude Browser tool's `resize_window`.
+
+**Real bug found and fixed:** the four-stage chain-flow visualization
+(`.chain-stage` + three `.chain-arrow`s) fits comfortably at 375px+, but
+at 320px the combined width of "Manufacture" (the longest stage label)
+plus each stage's own padding/gap and the arrows' minimum width added up
+to more than the viewport has room for. `.chain-stage` had no
+`min-width: 0`, so flexbox's default content-based min-width kept the row
+from shrinking below its content, pushing `#chain-flow-section` (and the
+page) wider than 320px. Fixed with `min-width: 0` on `.chain-stage`,
+`overflow-wrap`/`word-break` on `.chain-label` as a safety net, and a
+`@media (max-width: 359px)` block trimming padding/font-size/arrow-width
+just enough at this one breakpoint to fit without needing the wrap/break
+fallback in practice.
+
+No other overflow found at 320px. `flake8`/tests unaffected (pure CSS).

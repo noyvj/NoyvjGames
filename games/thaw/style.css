@@ -146,6 +146,18 @@ body {
   text-align: right;
 }
 
+/* Z18 (320px mobile-viewport audit): a plain <input> with no CSS width
+   falls back to the browser's default ~20-character intrinsic size,
+   which doesn't shrink with its flex-item .region-card the way every
+   other child here does -- at 320px that pushed the card (and the whole
+   page, by a few px) wider than the viewport. Sizing it to its own
+   container instead of the browser default fixes that at any width. */
+.region-strategy-label-input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 .context-blurb {
   margin: 0 0 1.25rem;
   padding: 0.6rem 0.75rem;

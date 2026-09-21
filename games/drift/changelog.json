@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-21",
+    "entry": "Fixed the investment buttons row overflowing the screen edge on narrow phones."
+  },
+  {
+    "date": "2026-09-21",
     "entry": "Capped the per-round history logs (arrivals/strain/wellbeing/sub-score) so long sessions no longer grow an unbounded save -- the lifetime strain average and the critical-strain-recovery achievement still work correctly, unaffected by the cap."
   },
   {

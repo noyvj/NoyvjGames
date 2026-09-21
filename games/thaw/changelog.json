@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-21",
+    "entry": "Fixed a region's strategy-label text box overflowing the screen edge on narrow phones."
+  },
+  {
+    "date": "2026-09-21",
     "entry": "The warming-rate info toggle now states a concrete calibration (roughly 50 real-world years per round, from NOAA's warming rate) instead of a vague \"several years\" disclaimer."
   },
   {

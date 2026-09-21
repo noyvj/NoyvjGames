@@ -627,3 +627,23 @@ every other game in this pass:
 
 No code changed; ran as the baseline check this pass calls for regardless
 of verdict.
+
+## 320px mobile-viewport audit (Z18, site-wide goal, planning/TODO.md)
+
+Checked at a genuine 320px viewport (narrower than the original 375px
+mobile pass) via the Claude Browser tool's `resize_window`, looking for
+horizontal overflow/clipping the 375px pass wouldn't have caught.
+
+**Real bug found and fixed:** the mobile-dock's docked primary button
+(`.mobile-dock-slot button.primary` — Advance Season) is `position: fixed`
+with `left`/`right: 1rem`, but `button.primary`'s own base rule sets
+`width: 100%` with nothing here overriding it — of the *fixed* element's
+containing block, which is the viewport itself, not the 2rem-narrower gap
+`left`/`right` were trying to carve out. At 320px the button held its full
+320px width and clipped past the right edge instead of shrinking to fit
+between its intended margins, on this game's single most-used mobile
+control. Fixed with `width: auto`, letting `left`/`right` (and the
+existing `max-width: 480px`) size the box correctly.
+
+No other overflow found at 320px — every other panel/section already
+reflows cleanly. `flake8`/tests unaffected (pure CSS).

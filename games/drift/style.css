@@ -922,7 +922,13 @@ button.primary:active {
 .invest-fields {
   flex: 1 1 auto;
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  /* Z18 (320px mobile-viewport audit): a bare `1fr` track still respects
+     its content's min-content width as a floor (the classic CSS Grid
+     overflow gotcha), so a longer button label like "Infrastructure
+     (25)" kept this row -- and #capacity, and the page -- wider than a
+     320px viewport. minmax(0, 1fr) lets both flexible columns actually
+     shrink to the row's real available width. */
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 0.5rem;
 }
