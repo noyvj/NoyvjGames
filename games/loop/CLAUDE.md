@@ -322,6 +322,55 @@ affected rule, the same pattern SOL/Trade Empire/Continuum's own
 achievements CSS already used correctly. CSS-only; no Python change
 needed. Full test suite green, unaffected (pure CSS change).
 
+## H13/H20 completion-audit fixes (2026-09-21)
+
+**H13 — no more overlapping toast/banner.** The audit found closing the
+loop for the first time earns the "loop_closed" achievement in the exact
+same action that fires the H3 celebratory banner — two one-shot
+notifications from one event, both visible at once. The user's answer:
+keep the achievement-toast substitution (don't build a separate
+milestone-toast system), just "don't want both popping up at the same
+time." `_check_new_achievements_for_toast()` gained an optional
+`delay_ms` parameter; `_run_action()` now passes
+`LOOP_CLOSED_BANNER_DURATION_MS` on exactly the loop-closing transition,
+so the achievement toast waits until the banner's own visible window has
+passed instead of stacking with it. Every other achievement-earning
+action still shows its toast immediately (delay 0), unchanged.
+
+**H20 — genuinely distinct goods-flavor content.** The three goods
+categories (electronics/clothing/furniture) previously differed only in
+the swapped noun/icon/label — every vignette sentence's actual repair/
+reuse/recycle mechanism was identical prose. The user's answer:
+"distinct." `CATEGORY_LOOP_DETAIL` gives each category its own concrete,
+category-appropriate loop mechanics across all four fraction buckets
+(closed/majority/minority/none) — a battery swap and circuit-board
+metal reclamation for electronics, a mended seam and shredded fabric for
+clothing, a fixed joint and remilled timber for furniture — instead of
+one generic "repaired... recycled" phrase with a different noun plugged
+in. `vignette_message()` looks up `CATEGORY_LOOP_DETAIL[chain.goods_
+category][bucket]` and falls back to the original generic wording for
+any category not covered there (defensive, in case a future category is
+added to `GOODS_CATEGORIES` without flavor content yet). H14's per-cycle
+variant-cycling behavior (at least 2 phrasings per bucket) is preserved
+for every category, not just the original default.
+
+Tests: 191 -> 201 (`tests/test_achievements.py`'s two new H13 tests:
+the toast is held back exactly as long as the banner shows, then appears
+correctly, with a regression check that ordinary achievements still show
+immediately; new `tests/test_distinct_flavor_content.py`: every category
+produces genuinely different text at every fraction bucket, each
+category's "closed" wording actually mentions its own mechanic,
+every category/bucket combination keeps at least 2 variants, an unknown
+category falls back safely, and variant-cycling still works within a
+category). Four pre-existing tests that pinned the old generic wording
+literally (`"recycled"`, `"Nothing about it comes back"`) were updated
+to match the new, equally-valid, more specific default-category text —
+the underlying behavior they guard (a closed loop reads as fully
+circular, a straight line reads as fully linear) is unchanged. 201/201
+green, flake8 clean. Verified live: switching to Furniture and closing
+the loop showed the correct furniture-specific "wood... reclaimed"
+vignette text, zero console errors.
+
 ## Working conventions
 
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag loop-milestone-0N`.

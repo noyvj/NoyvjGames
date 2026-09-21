@@ -109,13 +109,16 @@ def test_import_flow_row_opacity_reflects_import_fraction(game_env):
 
 
 def test_vignette_message_straight_line(game_env):
+    # H20: wording is now category-specific (default category is
+    # electronics) rather than one generic phrase reused everywhere --
+    # this pins the "none" bucket's actual current default-variant text.
     text = game_env.module.vignette_message(0.0)
-    assert "Nothing about it comes back" in text
+    assert "landfilled" in text
 
 
 def test_vignette_message_fully_closed(game_env):
     text = game_env.module.vignette_message(1.0)
-    assert "recycled" in text
+    assert "reclaimed" in text
 
 
 def test_vignette_message_partial(game_env):

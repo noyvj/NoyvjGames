@@ -11,9 +11,11 @@ No code changes were needed — the vignette already satisfied this bar.
 
 
 def test_vignette_starts_at_straight_line_message(game_env):
+    # H20: wording is now category-specific (default category is
+    # electronics) rather than one generic phrase reused everywhere.
     game_env.module.render()
     text = game_env.elements["vignette-display"].innerText
-    assert "Nothing about it comes back" in text
+    assert "landfilled" in text
 
 
 def test_vignette_updates_immediately_on_circularity_investment_click(game_env):
@@ -69,4 +71,4 @@ def test_vignette_does_not_require_advance_cycle_to_reflect_investment(game_env)
     game_env.module.render()
 
     text = game_env.elements["vignette-display"].innerText
-    assert "recycled" in text  # fully-closed tier, reached without advance_cycle()
+    assert "reclaimed" in text  # fully-closed tier, reached without advance_cycle()

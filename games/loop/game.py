@@ -86,6 +86,97 @@ GOODS_CATEGORIES = {
     "clothing": {"label": "clothing", "vignette_item": "a jacket", "icon": "\U0001F455"},
     "furniture": {"label": "furniture", "vignette_item": "a chair", "icon": "\U0001FA91"},
 }
+
+# H20 (planning/TODO.md, completion-audit fix): the three goods-flavor
+# sets above previously differed ONLY in the swapped noun (item/label/
+# icon) -- every vignette sentence's actual repair/reuse/recycle
+# mechanism was identical prose regardless of category. The user's
+# answer was "distinct": each category now gets its own concrete,
+# category-appropriate loop mechanics instead of a generic "repaired...
+# recycled" phrase that happened to have a different noun plugged in.
+# Keyed the same way vignette_message()'s existing fraction buckets are
+# ("closed"/"majority"/"minority"/"none"); see _vignette_variants_for()
+# below for how these combine with `item`.
+CATEGORY_LOOP_DETAIL = {
+    "electronics": {
+        "closed": [
+            "its battery was swapped for a fresh one, and when it finally died its "
+            "circuit board's metals were reclaimed straight into the next batch",
+            "a cracked screen got replaced, then every rare-earth trace inside it "
+            "was recovered when it was finally retired",
+        ],
+        "majority": [
+            "there's a good chance a worn battery gets swapped before the whole "
+            "thing is written off, and its board's metals get reclaimed after",
+            "more often than not it gets a battery or screen repair first, and its "
+            "materials are recovered rather than landfilled once it's truly done",
+        ],
+        "minority": [
+            "most units like it are used once and binned, though a growing share "
+            "have their rare-earth metals recovered afterward",
+            "repair almost never happens to it, but a small share still get their "
+            "circuit boards stripped for reclaimable metals",
+        ],
+        "none": [
+            "mined for rare metals, assembled, used until it's obsolete, then "
+            "landfilled with those metals still locked inside",
+            "extracted, assembled, discarded — none of its rare-earth content is "
+            "ever recovered",
+        ],
+    },
+    "clothing": {
+        "closed": [
+            "it was mended at a seam more than once, and when it finally wore "
+            "through, its fabric was shredded into insulation for something else",
+            "a button and a zipper were replaced along the way, then the fabric "
+            "itself was rewoven into new thread once it was retired",
+        ],
+        "majority": [
+            "there's a good chance a loose seam gets mended before it's given up "
+            "on, and its fabric gets shredded into new material afterward",
+            "more often than not it gets a repair first, and its fabric is "
+            "recycled into something else rather than thrown out",
+        ],
+        "minority": [
+            "most pieces like it are worn until they fall apart and binned, "
+            "though a growing share have their fabric shredded for reuse after",
+            "mending it almost never happens, but a small share still have their "
+            "fabric recovered for insulation or new thread",
+        ],
+        "none": [
+            "spun, sewn, worn until it frays, then landfilled — its fibers never "
+            "come back as anything",
+            "manufactured, worn briefly, discarded — none of its fabric is ever "
+            "rewoven into anything new",
+        ],
+    },
+    "furniture": {
+        "closed": [
+            "a broken leg was fixed once, and when it was finally past saving its "
+            "wood was reclaimed and remilled into a new piece",
+            "a loose joint was reglued along the way, then its timber was "
+            "recovered and remilled once it was finally retired",
+        ],
+        "majority": [
+            "there's a good chance a wobbly joint gets fixed before it's given "
+            "up on, and its timber gets reclaimed for remilling afterward",
+            "more often than not it gets a repair first, and its wood is "
+            "recovered rather than sent to landfill once it's truly done",
+        ],
+        "minority": [
+            "most pieces like it are used until they break and thrown out, "
+            "though a growing share have their timber reclaimed afterward",
+            "repair almost never happens to it, but a small share still have "
+            "their wood salvaged and remilled",
+        ],
+        "none": [
+            "milled, assembled, used until it breaks, then landfilled — its "
+            "timber never comes back as anything",
+            "manufactured, used briefly, discarded — none of its wood is ever "
+            "reclaimed",
+        ],
+    },
+}
 DEFAULT_GOODS_CATEGORY = "electronics"
 GOODS_LABEL = GOODS_CATEGORIES[DEFAULT_GOODS_CATEGORY]["label"]
 VIGNETTE_ITEM = GOODS_CATEGORIES[DEFAULT_GOODS_CATEGORY]["vignette_item"]
@@ -465,21 +556,31 @@ def vignette_message(fraction, item=None, variant_seed=0):
     each bucket) so every existing direct call to this function keeps
     its original behavior."""
     item = item or current_vignette_item()
-    if fraction >= 1.0:
+    bucket = "closed" if fraction >= 1.0 else "majority" if fraction >= 0.5 else "minority" if fraction > 0.0 else "none"
+
+    # H20: category-specific loop mechanics (see CATEGORY_LOOP_DETAIL's own
+    # comment) instead of the same generic "repaired... recycled" phrase
+    # regardless of which goods category is active. Falls back to the
+    # original generic wording for any category not covered there, so an
+    # unlisted/future category never crashes this function.
+    details = CATEGORY_LOOP_DETAIL.get(chain.goods_category, {}).get(bucket)
+    if details:
+        variants = [f"Follow {item}: {detail}." for detail in details]
+    elif bucket == "closed":
         variants = [
             f"Follow {item}: it was repaired once, then eventually recycled — "
             "its materials became part of the casing for the next one off the line.",
             f"Follow {item}: by the time it wore out, every stage of its journey "
             "looped back — nothing about it ended up as waste.",
         ]
-    elif fraction >= 0.5:
+    elif bucket == "majority":
         variants = [
             f"Follow {item}: it gets used, and there's a good chance it comes "
             "back through repair or recycling when its owner is done with it.",
             f"Follow {item}: more than half its journey loops back somewhere — "
             "repaired, reused, or recycled rather than simply discarded.",
         ]
-    elif fraction > 0.0:
+    elif bucket == "minority":
         variants = [
             f"Follow {item}: it gets used, then thrown away — though a little of "
             "what's inside it might still come back as recycled material someday.",
@@ -656,7 +757,11 @@ GOODS_EXPLORER_TARGET = 2
 # H13's "toast callouts at circular-fraction milestones" — they're keyed
 # to exactly those 25/50/75/100% thresholds on circular_fraction_this_cycle(),
 # so the existing achievement-unlock toast (below) already delivers that
-# callout without a second, redundant toast system.
+# callout without a second, redundant toast system. (V-E-5 audit,
+# planning/TODO.md: the one real overlap this created — "loop_closed"
+# firing in the same action as the H3 loop-closed banner — is sequenced
+# in `_run_action()`/`_check_new_achievements_for_toast()` below, not
+# fixed by adding a new toast.)
 ACHIEVEMENT_CHECKS = {
     "first_fix": lambda: any(chain.circularity_investment[m] >= 1 for m in CIRCULARITY_INVESTMENTS),
     "full_toolkit": lambda: all(chain.circularity_investment[m] >= 1 for m in CIRCULARITY_INVESTMENTS),
@@ -847,23 +952,50 @@ def _display_achievement_toast(message):
     setTimeout(proxy, 4000)
 
 
-def _check_new_achievements_for_toast():
+def _check_new_achievements_for_toast(delay_ms=0):
     """Called after every player action that could change earned status
     — never from render() itself, since load_state() also calls render()
     and a loaded save with several achievements already earned must not
-    flood the player with toasts for all of them at once."""
+    flood the player with toasts for all of them at once.
+
+    H13 audit fix (planning/TODO.md V-E-5): "loop_closed" is itself one of
+    the checkable achievements, so the exact action that closes the loop
+    for the first time earns it in the very same tick that
+    `_show_loop_closed_banner()` (below) also fires — two one-shot
+    notifications from one event. `_run_action()` passes a non-zero
+    `delay_ms` (the loop-closed banner's own visible duration) on exactly
+    that transition, so the toast waits its turn instead of stacking with
+    the banner. Every other call site passes 0 (show immediately), the
+    original behavior. Which achievement(s) newly unlocked — and whether
+    they get shown at all — is decided the same way regardless of timing;
+    only *when* the resulting toast becomes visible changes."""
     global _achievements_seen_ids
     earned_now = set(achievement_ids_earned())
     newly = earned_now - _achievements_seen_ids
-    if newly:
-        by_id = {entry["id"]: entry for entry in ACHIEVEMENTS}
-        labels = [by_id[aid]["label"] for aid in newly if aid in by_id]
-        if labels:
-            if len(labels) == 1:
-                _display_achievement_toast(f"🏆 Achievement unlocked: {labels[0]}")
-            else:
-                _display_achievement_toast(f"🏆 {len(labels)} achievements unlocked: " + ", ".join(labels))
     _achievements_seen_ids = earned_now
+    if not newly:
+        return
+
+    by_id = {entry["id"]: entry for entry in ACHIEVEMENTS}
+    labels = [by_id[aid]["label"] for aid in newly if aid in by_id]
+    if not labels:
+        return
+
+    if len(labels) == 1:
+        message = f"🏆 Achievement unlocked: {labels[0]}"
+    else:
+        message = f"🏆 {len(labels)} achievements unlocked: " + ", ".join(labels)
+
+    if delay_ms <= 0:
+        _display_achievement_toast(message)
+        return
+
+    def _show(*args):
+        _display_achievement_toast(message)
+        proxy.destroy()
+
+    proxy = create_proxy(_show)
+    setTimeout(proxy, delay_ms)
 
 
 # H3: a first-time-closed-loop celebratory banner — distinct from (and in
@@ -887,6 +1019,11 @@ def _trigger_circular_burst():
 
 def _milestone_step(fraction):
     return min(BURST_MILESTONES, int(fraction * BURST_MILESTONES + 1e-9))
+
+
+# H13 audit fix: how long the loop-closed banner stays visible, shared with
+# _run_action()'s toast-delay so the two constants can't drift apart.
+LOOP_CLOSED_BANNER_DURATION_MS = 5000
 
 
 def _show_loop_closed_banner():
@@ -913,7 +1050,7 @@ def _show_loop_closed_banner():
         proxy.destroy()
 
     proxy = create_proxy(_hide)
-    setTimeout(proxy, 5000)
+    setTimeout(proxy, LOOP_CLOSED_BANNER_DURATION_MS)
 
 
 def _trigger_funds_burst():
@@ -1510,9 +1647,18 @@ def _run_action(mutate_fn):
         _trigger_funds_burst()
     if document.getElementById("trade-network-display").innerText != trade_text_before:
         _trigger_trade_network_pulse(supply_after_minus(supply_before))
-    if chain.is_loop_closed() and not was_closed:
+    # H13 audit fix (planning/TODO.md V-E-5): closing the loop for the
+    # first time also satisfies the "loop_closed" achievement check, so
+    # without this the loop-closed banner and the achievement-unlock toast
+    # would both appear on screen from this exact same action. Sequence
+    # them instead of suppressing either: the banner (the bigger, rarer,
+    # H3-specific celebratory moment) shows immediately as before, and any
+    # achievement toast this same action also earned is held back until
+    # the banner's own visible window has passed.
+    loop_just_closed = chain.is_loop_closed() and not was_closed
+    if loop_just_closed:
         _show_loop_closed_banner()
-    _check_new_achievements_for_toast()
+    _check_new_achievements_for_toast(delay_ms=LOOP_CLOSED_BANNER_DURATION_MS if loop_just_closed else 0)
 
 
 # SAVE-BUTTON-INTEGRATION.md contract for the shared shared/save-widget.js:

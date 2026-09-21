@@ -427,6 +427,57 @@ def test_loop_closed_banner_auto_hides_after_its_timer_fires(game_env):
     assert banner.hidden is True
 
 
+# --- H13 audit fix (planning/TODO.md V-E-5): banner/toast never overlap ---
+
+
+def test_achievement_toast_is_held_back_while_loop_closed_banner_is_showing(game_env):
+    """Closing the loop for the first time earns the 'loop_closed'
+    achievement in the exact same action that fires the H3 banner -- the
+    two must not both be on screen at once. The banner should show right
+    away; the achievement toast for that same action must stay hidden
+    until the banner's own visible window has elapsed."""
+    module = game_env.module
+    banner = game_env.elements["loop-closed-banner"]
+    toast = game_env.elements["achievement-toast"]
+    game_env.chain.funds = 100_000
+    for _ in range(9):
+        game_env.invest_circularity("recycle")
+    # Reset both to a clean slate regardless of whatever earlier
+    # investment-click toast (e.g. "first_fix") may still be showing --
+    # what this test cares about is the state transition caused by the
+    # 10th click below, not anything that happened before it.
+    banner.hidden = True
+    toast.hidden = True
+
+    game_env.invest_circularity("recycle")  # 10th unit closes the loop
+
+    assert banner.hidden is False  # banner fires immediately
+    assert toast.hidden is True  # toast deliberately held back, not shown at the same time
+    # The delayed toast is queued for exactly the banner's own visible
+    # duration, not some arbitrary/shorter gap that could still overlap.
+    assert any(delay == module.LOOP_CLOSED_BANNER_DURATION_MS for _cb, delay in game_env.timers.pending)
+
+    game_env.timers.flush()  # runs the banner's auto-hide timer + the toast's delayed show
+
+    assert banner.hidden is True
+    assert toast.hidden is False
+    assert "Full Circle" in game_env.elements["achievement-toast-text"].innerText
+
+    game_env.timers.flush()  # the now-visible toast's own auto-hide timer
+    assert toast.hidden is True
+
+
+def test_achievement_toast_still_shows_immediately_when_loop_does_not_close(game_env):
+    """The delay is specific to the loop-closing transition -- an ordinary
+    achievement earned any other way still shows its toast right away, no
+    regression from the H13 sequencing fix."""
+    toast = game_env.elements["achievement-toast"]
+    assert toast.hidden is True
+    game_env.invest_circularity("repair")  # earns "first_fix", loop stays open
+    assert toast.hidden is False
+    assert game_env.elements["loop-closed-banner"].hidden is True
+
+
 # --- H12/H18: funds-burst / trade-network reactive pulses -----------------
 
 
