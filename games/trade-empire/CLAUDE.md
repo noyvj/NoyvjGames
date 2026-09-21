@@ -526,3 +526,7 @@ Checked against the same candidate list as every other game in this pass:
 
 No code changed; ran as the baseline check this pass calls for regardless
 of verdict.
+
+## J16: galaxy-dot hover tooltip (2026-09-21)
+
+Hovering the endgame galaxy canvas now names the nearest drawn dot ("Background world #N of M ... decorative dot; the galaxy is abstracted") within a 5px radius, and shows a default explanation elsewhere. Dot placement moved into `endgame_galaxy_dot_position(i)` (same golden-angle spiral, so drawing is unchanged); `endgame_galaxy_hover_text()` is a pure function; the `mousemove` listener is wired once via `_wire_endgame_galaxy_hover`. The tooltip is deliberately honest that dots are decorative rather than inventing per-world data. Suite 270 passing (new `tests/test_galaxy_hover.py`); checked live under Pyodide with no console errors (the render and hover text were exercised through `pyodide.runPython`; a real mouse hover wasn't simulated).

@@ -385,3 +385,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Grid
 **Did:** Closed recovered task R2-C16: added a "Stored Power" achievement for building the first battery (achievements.json entry, `ACHIEVEMENT_CHECKS` predicate, test, changelog entry) rather than a separate callout, since the user asked for callouts to become achievements.
 **Result:** Grid suite 344/344 passing (was 343). Toast reuses the existing achievement unlock path; not separately checked in a browser.
+
+### 2026-09-21 (Trade Empire: galaxy-dot hover tooltip, J16)
+**Game:** Trade Empire
+**Did:** Added a hover tooltip to the endgame galaxy canvas that names the nearest dot ("Background world #N of M") and says plainly that the dots are decorative; factored dot positions into a shared helper so drawing and hover agree.
+**Result:** Suite 270/270 passing (was 265), flake8 clean. Verified in Pyodide with no console errors; actual mouse hover not simulated.
