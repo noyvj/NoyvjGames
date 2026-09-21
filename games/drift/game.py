@@ -132,6 +132,24 @@ GENERATIONAL_FUNDS_ROUNDS_EQUIVALENT = 20
 SESSION_MILESTONE_INTERVAL = 20
 
 
+# Z25 save-payload audit: per-round history logs (arrivals_log/strain_log/
+# wellbeing_log/subscore_log) previously grew by one entry per round with
+# no cap at all -- unlike every sibling "rolling history" field elsewhere
+# in this hub (Canopy's FOREST_LOG_MAX_ENTRIES, Tide's
+# TICKER_FULL_HISTORY_LIMIT, Grid's WEATHER_LOG_MAX_ENTRIES, Trade
+# Empire's TREND_HISTORY_MAX_POINTS). 200 matches the Canopy/Tide order of
+# magnitude for a log meant to back a full-run trend graph rather than
+# just a short recent window (Grid/Trade Empire's 30-entry caps back a
+# much shorter recent-window display instead). A naive cap alone wasn't
+# safe here: strain_log has two real consumers that need the FULL
+# history, not a recent window -- average_strain()'s lifetime average
+# and the "ever reached critical strain" achievement gate. Both are
+# decoupled from the raw list below (see RegionState._strain_sum/
+# _strain_count/_ever_critical_strain), so capping strain_log here can't
+# silently turn the lifetime average into a rolling-window one or make
+# the achievement un-earnable once the critical round rolls off the list.
+DRIFT_LOG_MAX_ENTRIES = 200
+
 REGION_NAME_MAX_LENGTH = 30
 
 # I15 -- opt-in "crisis start": an already-strained region (fewer funds,
@@ -184,6 +202,18 @@ class RegionState:
         self.total_arrivals = 0.0
         self.arrivals_log = []
         self.strain_log = []
+        # Z25: strain_log's two real consumers (average_strain()'s
+        # lifetime average, the "ever reached critical strain"
+        # achievement gate) need the full history's sum/count and a
+        # sticky ever-true flag, not the raw list itself. Both are
+        # updated once per round in advance_round() alongside the append
+        # to strain_log, so the log can be capped (DRIFT_LOG_MAX_ENTRIES)
+        # without either of them silently going wrong. Recomputed from
+        # strain_log on load for an old save that predates this refactor
+        # (see load_state()).
+        self._strain_sum = 0.0
+        self._strain_count = 0
+        self._ever_critical_strain = False
         # I1: per-round wellbeing history for the trend graph, logged the
         # same way strain_log/arrivals_log already are -- wellbeing_score()
         # depends on cumulative funds/integration paths, not just the
@@ -322,10 +352,14 @@ class RegionState:
     def average_strain(self):
         """Sustained strain across the whole run so far, not just the
         current snapshot — a late recovery can't fully erase an early
-        crisis, mirroring Grid's average_clean_fraction."""
-        if not self.strain_log:
+        crisis, mirroring Grid's average_clean_fraction. Reads the
+        running _strain_sum/_strain_count (Z25) rather than summing
+        strain_log itself -- strain_log is capped at
+        DRIFT_LOG_MAX_ENTRIES, so summing it directly would silently
+        turn this lifetime average into a rolling-window one instead."""
+        if self._strain_count == 0:
             return 0.0
-        return sum(self.strain_log) / len(self.strain_log)
+        return self._strain_sum / self._strain_count
 
     def integration_fraction(self):
         if self.total_arrivals <= 0:
@@ -389,6 +423,14 @@ class RegionState:
         completed_round = self.round_number
         strain = self.strain_fraction()
         self.strain_log.append(strain)
+        del self.strain_log[:-DRIFT_LOG_MAX_ENTRIES]
+        # Z25: running totals + a sticky flag, updated alongside the
+        # (now-capped) log above so average_strain()/
+        # _ever_reached_critical_strain() never need the raw list itself.
+        self._strain_sum += strain
+        self._strain_count += 1
+        if strain >= STRAIN_LEVEL_THRESHOLDS[2][0]:
+            self._ever_critical_strain = True
 
         # Achievements: "stable" streak tracking, same band strain_level()
         # itself uses (below STRAIN_LEVEL_THRESHOLDS[1][0]) so this always
@@ -414,6 +456,7 @@ class RegionState:
         arrivals = self.arrivals_this_round()
         self.total_arrivals += arrivals
         self.arrivals_log.append(arrivals)
+        del self.arrivals_log[:-DRIFT_LOG_MAX_ENTRIES]
         severity_rise = BACKGROUND_SEVERITY_RISE_PER_ROUND
         if self.accelerated_severity_enabled:
             severity_rise *= ACCELERATED_SEVERITY_MULTIPLIER
@@ -440,6 +483,7 @@ class RegionState:
 
         # I1: logged last, once every other round-end value is final.
         self.wellbeing_log.append(self.wellbeing_score())
+        del self.wellbeing_log[:-DRIFT_LOG_MAX_ENTRIES]
         self.subscore_log.append(
             {
                 "service": self.service_quality(),
@@ -447,6 +491,7 @@ class RegionState:
                 "cohesion": self.social_cohesion(),
             }
         )
+        del self.subscore_log[:-DRIFT_LOG_MAX_ENTRIES]
 
         # I11 -- session-milestone snapshot, taken last of all so it
         # captures this round's fully-settled values (matches wellbeing_log
@@ -1196,8 +1241,12 @@ def _standing_capacity_type_count():
 
 
 def _ever_reached_critical_strain():
-    critical_threshold = STRAIN_LEVEL_THRESHOLDS[2][0]
-    return any(s >= critical_threshold for s in region.strain_log)
+    """Z25: reads the sticky _ever_critical_strain flag rather than
+    scanning strain_log -- the log itself is capped at
+    DRIFT_LOG_MAX_ENTRIES, so scanning it directly would make this
+    achievement un-earnable once the round that crossed critical strain
+    rolls off the capped list."""
+    return region._ever_critical_strain
 
 
 # Each checker is a zero-argument predicate read fresh off live state —
@@ -1937,6 +1986,12 @@ def get_state():
         "total_arrivals": region.total_arrivals,
         "arrivals_log": copy.deepcopy(region.arrivals_log),
         "strain_log": copy.deepcopy(region.strain_log),
+        # Z25: strain_log's decoupled running consumers -- see
+        # RegionState.__init__'s comment and load_state()'s recompute
+        # fallback for an old save that predates these three fields.
+        "strain_sum": region._strain_sum,
+        "strain_count": region._strain_count,
+        "ever_critical_strain": region._ever_critical_strain,
         "wellbeing_log": copy.deepcopy(region.wellbeing_log),
         "integrated_population": region.integrated_population,
         "cumulative_services_investment": region.cumulative_services_investment,
@@ -1982,6 +2037,26 @@ def load_state(data):
     saved_strain_log = data.get("strain_log")
     if isinstance(saved_strain_log, list):
         region.strain_log = copy.deepcopy(saved_strain_log)
+    # Z25: _strain_sum/_strain_count/_ever_critical_strain ride the save
+    # from here on; an old save from before this refactor won't have
+    # them, so recompute all three from whatever strain_log that old
+    # save still has (its full, not-yet-capped history) rather than
+    # defaulting to 0/False and silently losing the correct lifetime
+    # average / achievement-earned state.
+    if "strain_sum" in data and "strain_count" in data:
+        region._strain_sum = data.get("strain_sum", region._strain_sum)
+        region._strain_count = data.get("strain_count", region._strain_count)
+    else:
+        region._strain_sum = sum(region.strain_log)
+        region._strain_count = len(region.strain_log)
+    if "ever_critical_strain" in data:
+        region._ever_critical_strain = bool(
+            data.get("ever_critical_strain", region._ever_critical_strain)
+        )
+    else:
+        region._ever_critical_strain = any(
+            s >= STRAIN_LEVEL_THRESHOLDS[2][0] for s in region.strain_log
+        )
     saved_wellbeing_log = data.get("wellbeing_log")
     if isinstance(saved_wellbeing_log, list):
         region.wellbeing_log = copy.deepcopy(saved_wellbeing_log)

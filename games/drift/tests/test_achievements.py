@@ -195,7 +195,7 @@ def test_balanced_region_requires_all_three_sub_scores_at_fifty(game_env):
     region.funds = 500.0  # economic_health -> 50
     region.total_arrivals = 10.0
     region.integrated_population = 5.0  # social_cohesion -> 50
-    region.strain_log = [0.5]  # service_quality -> 50
+    game_env.set_strain_log([0.5])  # service_quality -> 50
     assert "balanced_region" in module.achievement_ids_earned()
 
 
@@ -205,7 +205,7 @@ def test_thriving_and_model_region_wellbeing_thresholds(game_env):
     region.funds = 700.0
     region.total_arrivals = 10.0
     region.integrated_population = 7.0
-    region.strain_log = [0.0]
+    game_env.set_strain_log([0.0])
     assert region.wellbeing_score() >= 70
     assert "thriving_region" in module.achievement_ids_earned()
     assert "model_region" not in module.achievement_ids_earned()
@@ -277,7 +277,7 @@ def test_sustained_transition_requires_round_40_and_score_60(game_env):
     region.funds = 900.0
     region.total_arrivals = 10.0
     region.integrated_population = 9.0
-    region.strain_log = [0.0]
+    game_env.set_strain_log([0.0])
     assert region.wellbeing_score() >= 60
     assert "sustained_transition" in module.achievement_ids_earned()
     region.round_number = 39

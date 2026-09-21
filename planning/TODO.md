@@ -198,22 +198,22 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [x] Herd — 800 rounds: 4.8KB. No change needed.
   - [x] Thaw — measured to 60 rounds (7.1KB, small and capped `SCIENCE_LOG_MAX`); found a real but unrelated exponential-slowdown bug in `_auto_play_worst_case_region()` while doing this (each Advance Round gets ~1.3x slower past round ~50) — flagged as a separate background task, not a payload-size issue so left out of scope here. No change needed to save size.
   - [x] Loop — 300 cycles: 2.1KB; `circular_fraction_log` uncapped but tiny. No change needed.
-  - [ ] Drift — found a real issue: `arrivals_log`/`strain_log`/`wellbeing_log`/`subscore_log` are unbounded (3000 rounds -> 383KB, linear ~128 bytes/round) unlike every sibling game's capped rolling-history fields. Didn't fix: `average_strain()` and the `crisis_averted` achievement's `_ever_reached_critical_strain()` both need the *full* history, not a window, so a safe fix needs decoupled running-sum/flag tracking first, not just a cap — genuine design/priority call, see `FOR-YOU.md` Q17.
+  - [x] Drift — found and fixed: `arrivals_log`/`strain_log`/`wellbeing_log`/`subscore_log` were unbounded (3000 rounds -> 383KB, linear ~128 bytes/round) unlike every sibling game's capped rolling-history fields. `average_strain()` and the `full_recovery`/`crisis_averted` achievements' `_ever_reached_critical_strain()` both needed the *full* history, not a window, so decoupled both first (`RegionState._strain_sum`/`_strain_count` running totals, `_ever_critical_strain` sticky flag, both riding `get_state()`/`load_state()` with recompute-from-`strain_log` for old saves) before capping all four logs at `DRIFT_LOG_MAX_ENTRIES = 200`. 295/295 tests green (5 new in `tests/test_z25_log_caps.py`), flake8 clean, build note in `games/drift/CLAUDE.md`.
   - [x] Trade Empire — found and fixed: `sale_log` grew unbounded (only `sale_log[-1]` is ever read) — ~100KB of a ~110KB payload at 5000 ticks (~83 simulated minutes, this game auto-ticks via `setInterval` regardless of player presence). Added `SALE_LOG_MAX_ENTRIES = 20` + truncation in `tick()`, matching this file's own `good_profit_recent`/`price_history` cap idiom. Re-measured: 11KB for the same session. 265/265 tests green, flake8 clean, build note in `games/trade-empire/CLAUDE.md`.
   - [ ] Continuum (read-only finding: `score_history` in `sim.py`/`save.py` is never capped, and every one of the 7 possible `era_snapshots` embeds a full copy of it at time-of-snapshot, so the save grows faster than linearly as more eras complete — measured 36KB for a 105-season 7-era playthrough vs. 103KB for a 420-season one via a driver script against Continuum's own test harness. Not yet a hard concern, but the growth pattern is exactly what `Chronicle`'s own `MAX_ENTRIES` cap in `log.py` already guards against elsewhere in this same game — Noyvj's own session can check this off after reading and deciding whether it's worth a cap.)
   - [x] Le Champ de Mots — simulated all 790 plots reviewed over 400 days: 165.8KB; already follows the documented "only touched plots are saved" pattern (Milestone 5), this is the genuine full-payload ceiling. No change needed.
 - [ ] Z25b: Add an opt-in autosave checkbox (every ~5 minutes) — a deliberate, explicit reversal of the original "no auto-save timer" design decision (see `SAVE-BUTTON-INTEGRATION.md` §5). Must default OFF; the player turns it on, never the other way around.
   - [ ] Build the shared opt-in autosave mechanism once
   - [ ] Roll out to each game alongside its own save widget (same 12-game list as above)
-- [ ] Z26: A consistent "info page" discoverability regression check — confirm "The Real Story" button wording/icon is identical via the shared `info_page.py`, across the 8 climate-quartet games only:
-  - [ ] Canopy
-  - [ ] Grid
-  - [ ] Tide
-  - [ ] Aftermath
-  - [ ] Herd
-  - [ ] Thaw
-  - [ ] Loop
-  - [ ] Drift
+- [x] Z26: A consistent "info page" discoverability regression check — confirm "The Real Story" button wording/icon is identical via the shared `info_page.py`, across the 8 climate-quartet games only. Audited via `shared/info_page.py`/`shared/info-page.css` plus each game's `index.html`/`game.py`/`style.css`: 7/8 already identical (same button id/class/static "Loading..." placeholder markup, same `render_info_page()`/`on_toggle_info_page()` wrapper calling straight into `info_page.render()`/`info_page.toggle()` with no game-specific override, same `shared/info-page.css` link, no per-game CSS on `#info-page-toggle-button`). **Aftermath was the one real outlier**: a leftover `#info-page-toggle-button::before { content: "📖 "; }` rule in its `style.css`, from a 2026-09-05 visual-redesign pass that predates this game's migration onto the shared module, gave its toggle a book-icon prefix none of the other 7 games have — fixed, 254/254 tests, flake8 clean, verified live.
+  - [x] Canopy — clean, verified live (plain "The Real Story" / "Hide The Real Story", no icon).
+  - [x] Grid — clean, verified live.
+  - [x] Tide — clean, confirmed via code (identical markup/wrapper, no CSS override).
+  - [x] Aftermath — found and fixed: stray `#info-page-toggle-button::before` icon rule in `style.css` removed; verified live post-fix.
+  - [x] Herd — clean, confirmed via code.
+  - [x] Thaw — clean, confirmed via code.
+  - [x] Loop — clean, confirmed via code.
+  - [x] Drift — clean, confirmed via code.
 - [ ] Z27: A shared "difficulty-aware achievements" audit — check whether any achievement becomes impossible or trivially easy under a game's own hard-mode/difficulty toggle:
   - [ ] SOL
   - [ ] Canopy
@@ -932,7 +932,7 @@ A "yes" here means "worth a groundwork plan" (a new `planning/<game>-plan.md`, p
 - [x] V-CD-3: SOL A18 "reset this world only": user answered "later"; built anyway (Reset This World button, test_reset_world.py) and marked [x] with no recorded approval; LATER.md still lists it as deferred. User confirmed: keep it. LATER.md's SOL A18 entry removed.
 - [x] V-CD-4: SOL A3 welcome-back toast: idea was "what changed since last session"; built is a static snapshot ("N/8 worlds visited, X achievements earned") fired only on save load (game.py _show_welcome_back_toast). User confirmed: real delta. Built a per-browser localStorage snapshot comparison (same pattern as Canopy's personal_best/Tide's best_coastline_saved), falling back to the static wording on first load or a same-or-lower reload.
 - [x] V-CD-5: Canopy B3 second biome: user idea specified "different degradation/compounding rates"; Highland Grove (games/canopy/game.py ~line 456) reuses identical Plot rates. User confirmed: add distinct. Built `HIGHLAND_DEGRADE_MULTIPLIER` (1.5x faster soil degradation) and `HIGHLAND_GROWTH_MULTIPLIER` (0.75x slower compounding), grounded in alpine-ecology framing already established for the biome.
-- [ ] V-CD-6: Aftermath E4 legacy system: idea was a visual settlement marker referencing prior runs; built is only a per-event-type count chip row (legacy_event_counts). Add a marker on the settlement art tied to run history, or get user sign-off.
+- [x] V-CD-6: Aftermath E4 legacy system: idea was a visual settlement marker referencing prior runs; built is only a per-event-type count chip row (legacy_event_counts). User said decide. Built: three CSS "weathering scar" marks on the existing settlement ground line, one per event category (weather/non-weather/social), escalating through 3 tiers driven by legacy_event_counts — see games/aftermath/CLAUDE.md's "Legacy weathering scars" note.
 - [x] V-CD-7: Grid C11 (user said yes): archived TODO marked [x] while saying it was moved to LATER (never agreed). Feature is now satisfied via round 2 (/stats/games/grid/percentile in app/main.py + Grid index.html), so only cleanup needed: remove the stale C11 entry from planning/LATER.md. Done — confirmed the endpoint/hook both exist, removed the stale LATER.md entry.
 Not audited (site-wide goals, folded lines): C1/D1/E1 mobile dock, B15 pin-restraint condition.
 Test suites at audit time all pass: sol 670, canopy 350, grid 311, tide 202, aftermath 244, herd 174.

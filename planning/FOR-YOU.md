@@ -49,7 +49,6 @@ From the completion-verification audit's questions (all answered 2026-09-21):
 - **Grid/Continuum mobile dock** (was Q14): keeping the lighter version deliberately, no change. Recorded in `planning/TODO.md` V-AB-3.
 - **UI decluttering, Canopy/Le Champ de Mots** (was Q15): you agree, no change. Recorded in `planning/TODO.md` V-AB-6.
 - **Continuum K9 / Warframe X23** (was part of Q16): both kept as their own separate items, no folding/moving.
-- **Drift's unbounded history logs** (was Q17): building the refactor (separate running sum/count + an "ever critical" flag, decoupled from the raw log) then capping all four logs like every sibling game already does.
 
 ---
 

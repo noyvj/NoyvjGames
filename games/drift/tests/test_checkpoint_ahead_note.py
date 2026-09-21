@@ -17,7 +17,7 @@ def test_no_ahead_note_when_nothing_is_comfortably_ahead(game_env):
 
 def test_no_ahead_note_when_all_dimensions_are_middling(game_env):
     region = game_env.region
-    region.strain_log = [0.5]  # service_quality -> 50
+    game_env.set_strain_log([0.5])  # service_quality -> 50
     region.funds = 500.0  # economic_health -> 50
     region.total_arrivals = 10.0
     region.integrated_population = 6.0  # cohesion -> 60
@@ -27,7 +27,7 @@ def test_no_ahead_note_when_all_dimensions_are_middling(game_env):
 
 def test_ahead_note_names_the_comfortably_ahead_dimension(game_env):
     region = game_env.region
-    region.strain_log = [1.0]  # service_quality -> 0 (lagging)
+    game_env.set_strain_log([1.0])  # service_quality -> 0 (lagging)
     region.funds = 1000.0  # economic_health -> 100 (comfortably ahead)
     region.total_arrivals = 10.0
     region.integrated_population = 5.0  # cohesion -> 50
@@ -40,7 +40,7 @@ def test_ahead_note_omitted_when_ahead_dimension_equals_lagging_dimension(game_e
     # All three scores identical -> min/max both resolve to the first
     # matching key, so no "different dimension" is comfortably ahead.
     region = game_env.region
-    region.strain_log = [0.0]  # service_quality -> 100
+    game_env.set_strain_log([0.0])  # service_quality -> 100
     region.funds = 1000.0  # economic_health -> 100
     region.total_arrivals = 10.0
     region.integrated_population = 10.0  # cohesion -> 100

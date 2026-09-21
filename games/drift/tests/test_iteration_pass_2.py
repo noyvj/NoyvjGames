@@ -56,7 +56,7 @@ def test_projected_generational_contribution_exceeds_current(game_env):
 
 
 def test_projected_service_quality_moves_toward_ceiling(game_env):
-    game_env.region.strain_log = [0.5, 0.5]  # service_quality() = 50
+    game_env.set_strain_log([0.5, 0.5])  # service_quality() = 50
     current = game_env.region.service_quality()
     projected = game_env.region.projected_service_quality()
     assert projected > current
@@ -84,7 +84,7 @@ def test_projected_economic_health_reflects_compounded_contribution(game_env):
 def test_projected_wellbeing_at_least_current_wellbeing(game_env):
     game_env.region.integrated_population = 20.0
     game_env.region.total_arrivals = 30.0
-    game_env.region.strain_log = [0.3]
+    game_env.set_strain_log([0.3])
     assert game_env.region.projected_wellbeing_score() >= game_env.region.wellbeing_score()
 
 

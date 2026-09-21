@@ -44,7 +44,7 @@ def test_wellbeing_score_is_average_of_three_subscores(game_env):
 
 
 def test_average_strain_reflects_sustained_history(game_env):
-    game_env.region.strain_log = [0.0, 1.0]
+    game_env.set_strain_log([0.0, 1.0])
     assert game_env.region.average_strain() == pytest.approx(0.5)
 
 

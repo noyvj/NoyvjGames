@@ -155,7 +155,7 @@ def test_recovery_badge(game_env):
     r.funds = 5000
     r.total_arrivals = 10
     r.integrated_population = 10
-    r.strain_log = [0.0]
+    game_env.set_strain_log([0.0])
     assert r.wellbeing_score() >= 90
     assert "recovery" in m.recovery_badge_text(r, True)
     assert m.recovery_badge_text(r, False) is None

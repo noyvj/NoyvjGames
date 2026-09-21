@@ -12,7 +12,7 @@ def test_checkpoint_identifies_cohesion_by_default(game_env):
 
 
 def test_checkpoint_identifies_services_when_strain_dominates(game_env):
-    game_env.region.strain_log = [1.0, 1.0, 1.0]  # service_quality -> 0
+    game_env.set_strain_log([1.0, 1.0, 1.0])  # service_quality -> 0
     game_env.region.funds = 1000.0  # economic_health -> 100
     game_env.region.total_arrivals = 10.0
     game_env.region.integrated_population = 10.0  # cohesion -> 100
@@ -21,7 +21,7 @@ def test_checkpoint_identifies_services_when_strain_dominates(game_env):
 
 
 def test_checkpoint_identifies_economy_when_funds_are_lowest(game_env):
-    game_env.region.strain_log = [0.0]  # service_quality -> 100
+    game_env.set_strain_log([0.0])  # service_quality -> 100
     game_env.region.funds = 0.0  # economic_health -> 0
     game_env.region.total_arrivals = 10.0
     game_env.region.integrated_population = 10.0  # cohesion -> 100

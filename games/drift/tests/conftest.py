@@ -155,6 +155,23 @@ class GameEnv:
     def invest(self, capacity_type):
         self.elements[f"{capacity_type}-invest-button"].dispatch("click", None)
 
+    def set_strain_log(self, values):
+        """Z25: test helper for stubbing strain_log directly (bypassing
+        advance_round()) to control average_strain()/service_quality()
+        at a fixed value, while keeping the running _strain_sum/
+        _strain_count/_ever_critical_strain fields consistent with it --
+        the same recompute-from-strain_log fallback load_state() uses
+        for an old save that predates those fields. Without this,
+        average_strain() (which now reads _strain_sum/_strain_count, not
+        strain_log itself) would silently ignore a directly-assigned
+        strain_log."""
+        region = self.region
+        region.strain_log = list(values)
+        region._strain_sum = sum(region.strain_log)
+        region._strain_count = len(region.strain_log)
+        critical_threshold = self.module.STRAIN_LEVEL_THRESHOLDS[2][0]
+        region._ever_critical_strain = any(s >= critical_threshold for s in region.strain_log)
+
 
 def _install_pyodide_fakes(elements, timers):
     fake_js = types.ModuleType("js")
