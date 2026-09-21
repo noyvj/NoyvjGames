@@ -2255,6 +2255,32 @@ def _make_liaison_choice_handler(choice):
     return handler
 
 
+# L26 -- a small sound legend for the bracketed sounds a liaison/elision
+# question mentions ("[z]"). Data-driven: it lists only the symbols that
+# actually appear in the current question's text, described with plain
+# English comparisons, so a future question using [t] or [n] needs no code.
+LIAISON_SOUND_LEGEND = {
+    "z": "the 'z' sound, as in English 'zoo'",
+    "t": "the 't' sound, as in English 'tea'",
+    "n": "the 'n' sound, as in English 'no'",
+    "ʁ": "the French 'r', made at the back of the throat",
+    "p": "the 'p' sound, as in English 'pea'",
+}
+
+
+def liaison_legend_text(entry):
+    import re  # noqa: PLC0415 -- only needed here
+
+    text = " ".join([entry.get("prompt", ""), entry.get("explanation", ""), *entry.get("choices", [])])
+    seen = []
+    for symbol in re.findall(r"\[([^\]\s]{1,3})\]", text):
+        if symbol in LIAISON_SOUND_LEGEND and symbol not in seen:
+            seen.append(symbol)
+    if not seen:
+        return ""
+    return "Sounds: " + "; ".join(f"[{s}] = {LIAISON_SOUND_LEGEND[s]}" for s in seen)
+
+
 def render_liaison_drill():
     panel = _element("liaison-panel")
     toggle = _element("liaison-toggle-button")
@@ -2283,6 +2309,7 @@ def render_liaison_drill():
         _element("liaison-context").innerText = ""
         _element("liaison-instruction").innerText = ""
         _element("liaison-prompt").innerText = ""
+        _element("liaison-legend").hidden = True
         explanation.hidden = True
         _element("liaison-next-button").hidden = True
         _element("liaison-feedback").innerText = ""
@@ -2295,6 +2322,9 @@ def render_liaison_drill():
     _element("liaison-context").innerText = entry["item"]
     _element("liaison-instruction").innerText = LIAISON_INSTRUCTION
     _element("liaison-prompt").innerText = entry["prompt"]
+    legend = liaison_legend_text(entry)
+    _element("liaison-legend").innerText = legend
+    _element("liaison-legend").hidden = not legend
 
     answered = liaison_result is not None
     next_button = _element("liaison-next-button")

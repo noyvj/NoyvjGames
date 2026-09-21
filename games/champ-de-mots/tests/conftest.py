@@ -39,6 +39,7 @@ ELEMENT_IDS = [
     "liaison-context",
     "liaison-instruction",
     "liaison-prompt",
+    "liaison-legend",
     "liaison-choices",
     "liaison-feedback",
     "liaison-explanation",

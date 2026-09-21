@@ -196,3 +196,30 @@ def test_a_correct_choice_button_is_highlighted_after_answering(game_env):
     answer_button = next(c for c in choices_box.children if c.innerText == entry["answer"])
     assert "choice--answer" in answer_button.className
     assert all(c.disabled for c in choices_box.children)
+
+
+def test_legend_lists_only_the_bracketed_sounds_a_question_uses(game_env):
+    module = game_env.module
+    with_z = {"prompt": "x", "explanation": "the 's' becomes a [z] sound", "choices": ["a", "b"]}
+    text = module.liaison_legend_text(with_z)
+    assert "[z] = " in text and "[t]" not in text
+    assert module.liaison_legend_text({"prompt": "none here", "choices": ["a"]}) == ""
+
+
+def test_legend_ignores_unknown_symbols_and_dedupes(game_env):
+    module = game_env.module
+    entry = {"prompt": "[z] and [z] and [??] and [t]", "choices": []}
+    text = module.liaison_legend_text(entry)
+    assert text.count("[z]") == 1 and "[t] = " in text and "??" not in text
+
+
+def test_the_panel_shows_the_legend_for_a_question_with_a_sound(game_env):
+    module = game_env.module
+    module.start_liaison_drill()
+    module.liaison_questions[:] = [
+        {"item": "i", "prompt": "Which has a [z]?", "choices": ["a", "b"], "answer": "a", "explanation": ""}
+    ]
+    module.liaison_index = 0
+    module.render_liaison_drill()
+    legend = game_env.elements["liaison-legend"]
+    assert legend.hidden is False and "[z] = " in legend.innerText

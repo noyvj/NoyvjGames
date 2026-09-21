@@ -400,3 +400,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Le Champ de Mots
 **Did:** Added an always-visible bar for the share of the farm that is automated, beside the existing progress text. The full suite caught a first draft that used a CSS width transition, which breaks this game's enforced "the farm has no animation" rule; removed it.
 **Result:** Suite 562/562 passing, flake8 clean; checked live with no unexpected console errors.
+
+### 2026-09-21 (Le Champ de Mots: liaison sound legend, L26)
+**Game:** Le Champ de Mots
+**Did:** Added a small data-driven sound legend to the liaison/elision drill (only the sounds a question actually mentions, with English comparisons). Only one current question uses a bracketed sound, so today it shows in that one place.
+**Result:** Suite 565/565 passing, flake8 clean; verified live.

@@ -1,4 +1,5 @@
 [
+  { "date": "2026-09-21", "entry": "Liaison practice now shows a small sound legend (for example [z] = the 'z' in 'zoo') when a question mentions a bracketed sound." },
   { "date": "2026-09-21", "entry": "A small bar at the top of the farm now shows how much of the whole farm is automated." },
   { "date": "2026-09-21", "entry": "First-run look picker: the first time you open the game on a desktop you can choose High-def, Low-poly, Text-based or Cartoon (or skip for High-def), and change it later in Settings. They are restyles of the same game, not separate artwork." },
   { "date": "2026-09-21", "entry": "Practice now counts: the four arcade minigames, the gender drill, liaison practice, proficiency tests and bonus sentences all feed a new Practice score at the top of the farm, with per-mode accuracy on the progress dashboard (capped per day so it can't be farmed, and it never changes your watering schedule)." },

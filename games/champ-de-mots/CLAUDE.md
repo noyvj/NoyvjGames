@@ -588,3 +588,7 @@ of verdict.
 ## L8: plots-automated bar (2026-09-21)
 
 A thin bar under the "plots growing / automated" tile shows automated plots as a share of the whole farm (`#automated-bar` inside `#automated-meter`, updated in `render()` next to the existing `progress-display` text; the title reads "N of M plots automated"). It deliberately has no width transition: `tests/test_polish.py::test_the_farm_has_no_animation` enforces the calm-farm rule, and this pass's first draft failed it until the transition was removed. Suite 562 passing (added one test in `tests/test_farm_ui.py`); checked live, no unexpected console errors.
+
+## L26: liaison sound legend (2026-09-21)
+
+The liaison/elision drill shows a one-line legend (`#liaison-legend`) for the bracketed sounds a question mentions. `liaison_legend_text(entry)` scans the prompt, choices and explanation for `[x]` symbols, keeps those in `LIAISON_SOUND_LEGEND` (z, t, n, r, p, each described by an English comparison) and hides the line when there are none. It is data-driven, so future drill questions using another listed sound need no code; today only the `[z]` question triggers it, which is why the legend is a one-liner rather than a full IPA chart. Suite 565 passing (3 new tests in `tests/test_liaison_drill.py`); checked live, the legend renders for the [z] question.
