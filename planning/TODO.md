@@ -110,18 +110,18 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [ ] Trade Empire
   - [ ] Continuum
   - [ ] Le Champ de Mots
-- [ ] Z16: Audit whether the other 11 games have an equivalent lightweight in-game bug/typo report affordance to Le Champ de Mots' existing one:
-  - [ ] SOL
-  - [ ] Canopy
-  - [ ] Grid
-  - [ ] Tide
-  - [ ] Aftermath
-  - [ ] Herd
-  - [ ] Thaw
-  - [ ] Loop
-  - [ ] Drift
-  - [ ] Trade Empire
-  - [ ] Continuum
+- [x] Z16: Audit whether the other 11 games have an equivalent lightweight in-game bug/typo report affordance to Le Champ de Mots' existing one. Audited: none of the 11 have Le Champ de Mots' exact typed-answer-report shape (none are quiz/typed-answer games), the 8 climate-quartet games' existing end-of-session Yes/No+comment feedback prompt is real but genuinely different in spirit (a general post-session survey, not a flag-this-one-exact-thing action), and SOL/Trade Empire are fictional sandboxes with no citable facts to attach a report to (documented gap, not built). Continuum was the one genuine, well-targeted case — its real-world info panel (28 cited sources) had no way to flag a fact as wrong, so a small "Report an issue with this info" button was added there reusing the existing `answer_reports` backend with zero schema changes — commit `d29d35c`, see `games/continuum/CLAUDE.md`'s Milestone 27 build note.
+  - [x] SOL — no contextual report affordance and no end-of-session feedback prompt either; a fictional space-economy sandbox with no citable real-world facts to dispute, so there's no natural "this specific fact might be wrong" attachment point the way Le Champ de Mots' translations (or Continuum's info panel) have. Documented gap, left for a future dedicated pass rather than built reactively.
+  - [x] Canopy — has the climate-quartet's own end-of-session feedback prompt (Yes/No + optional comment, piped to the ratings backend). Real, but a genuinely different mechanism: a general post-session survey, not a flag-this-one-exact-moment action. No contextual report button.
+  - [x] Grid — same as Canopy: end-of-session feedback prompt only, no contextual report button.
+  - [x] Tide — same as Canopy.
+  - [x] Aftermath — same as Canopy.
+  - [x] Herd — same as Canopy.
+  - [x] Thaw — same as Canopy.
+  - [x] Loop — same as Canopy.
+  - [x] Drift — same as Canopy (its feedback prompt also has an extra framing-sensitivity comment box for the climate-displacement topic; still the same end-of-session-survey mechanism, not a contextual one).
+  - [x] Trade Empire — no contextual report affordance and no end-of-session feedback prompt either; a fictional trading-economy sandbox with no citable real-world facts to dispute. Documented gap, left for a future dedicated pass rather than built reactively.
+  - [x] Continuum — had neither mechanism (this game's own design philosophy explicitly rules out end-of-session survey prompts) but its Milestone 5 real-world info panel (28 cited sources across seven eras) states citable facts a player could reasonably dispute — the one genuinely deserving spot found in this audit. Built a small "Report an issue with this info" button there, reusing the existing `answer_reports` backend table/endpoint with zero schema changes, scoped to Continuum's own files only (not the `shared/info_page.py` module 8 other games also use). 568/568 tests green, flake8 clean, verified live — commit `d29d35c`.
 - [ ] Z17: A shared "comparison/benchmark" chart component with swappable reference-data sources:
   - [ ] Build the shared component
   - [ ] Migrate Grid's existing global-comparison line to it
