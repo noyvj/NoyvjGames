@@ -105,3 +105,31 @@ def test_the_dashboard_never_mutates_srs_state(game_env):
     module.on_toggle_dashboard()
     assert [p.stage for p in state.plots] == stages_before
     assert [p.interval_days for p in state.plots] == intervals_before
+
+
+def _texts(element):
+    out = [element.innerText]
+    for child in element.children:
+        out.extend(_texts(child))
+    return out
+
+
+def test_stage_distribution_counts_every_plot_once(game_env):
+    module, state = game_env.module, game_env.state
+    rows = module.dashboard_stage_distribution()
+    assert [stage for stage, _, _ in rows] == module.STAGE_ORDER
+    assert sum(count for _, count, _ in rows) == len(state.plots)
+    assert abs(sum(percent for _, _, percent in rows) - 100) < 0.001
+    state.plots[0].stage = module.STAGE_AUTOMATED
+    by_stage = {stage: count for stage, count, _ in module.dashboard_stage_distribution()}
+    assert by_stage[module.STAGE_AUTOMATED] == 1
+    assert by_stage[module.STAGE_SEED] == len(state.plots) - 1
+
+
+def test_the_dashboard_shows_a_text_labelled_farm_health_section(game_env):
+    module = game_env.module
+    module.on_toggle_dashboard()
+    texts = _texts(game_env.elements["dashboard-panel"])
+    assert "Farm health" in texts
+    seed_line = next(t for t in texts if t.startswith(module.STAGE_ICON[module.STAGE_SEED]))
+    assert "Seed:" in seed_line and "%" in seed_line

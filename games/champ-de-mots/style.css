@@ -1428,3 +1428,8 @@ button:disabled {
 .plot--type-grammar { border-style: dashed; border-width: 2px; }
 .plot--type-phrase { border-style: dotted; border-width: 2px; }
 .plot--type-phonetic { border-style: double; border-width: 3px; }
+
+/* L27 farm-health distribution: neutral bars, every row also spelled out in
+   text (icon, stage name, count, percent), so nothing relies on colour. */
+.dashboard-health-row { margin: 2px 0; }
+.dashboard-health-bar { display: block; height: 4px; margin-top: 2px; border-radius: 2px; background: currentColor; opacity: 0.4; }

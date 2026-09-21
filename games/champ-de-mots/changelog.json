@@ -1,4 +1,5 @@
 [
+  { "date": "2026-09-21", "entry": "The Progress dashboard now opens with a Farm health section: how many plots are at each growth stage, as counts and percentages." },
   { "date": "2026-09-21", "entry": "Hover a row's progress count to see how many of its plots you have watered at least once and how many are still untouched." },
   { "date": "2026-09-21", "entry": "Hovering an automated plot now says how many days until its next review." },
   { "date": "2026-09-21", "entry": "Farm plots now look slightly different by topic type without relying on colour: grammar plots have a dashed border, phrases a dotted one, and phonetic plots a double border." },

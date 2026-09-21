@@ -2017,6 +2017,17 @@ def on_toggle_dashboard(event=None):
     render()
 
 
+def dashboard_stage_distribution():
+    """L27 -- how the whole farm's plots split across the five growth
+    stages: [(stage, count, percent)] in STAGE_ORDER. Purely a count of
+    existing plot.stage values, no new state."""
+    total = len(state.plots)
+    counts = {stage: 0 for stage in STAGE_ORDER}
+    for plot in state.plots:
+        counts[plot.stage] += 1
+    return [(stage, counts[stage], (100 * counts[stage] / total) if total else 0.0) for stage in STAGE_ORDER]
+
+
 def render_dashboard():
     panel = _element("dashboard-panel")
     toggle = _element("dashboard-toggle-button")
@@ -2039,6 +2050,20 @@ def render_dashboard():
     else:
         since_line.innerText = f"Last watered something {since} days ago."
     panel.appendChild(since_line)
+
+    health_heading = document.createElement("p")
+    health_heading.className = "dashboard-heading"
+    health_heading.innerText = "Farm health"
+    panel.appendChild(health_heading)
+    for stage, count, percent in dashboard_stage_distribution():
+        health_row = document.createElement("p")
+        health_row.className = "dashboard-health-row"
+        health_row.innerText = f"{STAGE_ICON[stage]} {STAGE_LABEL[stage].split(' — ')[0]}: {count} ({percent:.0f}%)"
+        health_bar = document.createElement("span")
+        health_bar.className = "dashboard-health-bar"
+        health_bar.style.width = f"{percent:.1f}%"
+        health_row.appendChild(health_bar)
+        panel.appendChild(health_row)
 
     mastery_heading = document.createElement("p")
     mastery_heading.className = "dashboard-heading"

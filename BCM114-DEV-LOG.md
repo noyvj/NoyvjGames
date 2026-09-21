@@ -435,3 +435,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Le Champ de Mots
 **Did:** Row progress counts now have a tooltip distinguishing plots watered at least once from plots never watered, for every row (re-scoped after L4a removed row gating).
 **Result:** Suite 573 passing, flake8 clean; tooltip text not separately browser-checked.
+
+### 2026-09-21 (Le Champ de Mots: farm-health distribution, L27)
+**Game:** Le Champ de Mots
+**Did:** Added a "Farm health" section to the Progress dashboard showing how many plots sit at each growth stage (text rows plus a neutral bar).
+**Result:** Suite passing, flake8 clean; verified live with no unexpected console errors.

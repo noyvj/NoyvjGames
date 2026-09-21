@@ -616,3 +616,7 @@ When the open question is a gender-tag question, a line under it (`#gender-accur
 ## L20: watered vs never-watered row readout (2026-09-21)
 
 Each row's progress count (`row-progress-<n>`, still "grown/total") now has a tooltip separating plots watered at least once (`last_reviewed` set, which includes wrong answers) from plots never watered. Re-scoped per the TODO note: with row gating gone (L4a) it applies to every row. It is a tooltip on the existing count rather than a second visible number, to keep the row header uncluttered. Suite 573 passing (1 new test in `tests/test_farm_ui.py`); not separately browser-checked.
+
+## L27: farm-health distribution on the dashboard (2026-09-21)
+
+The Progress dashboard gained a "Farm health" section (top of the panel): one row per growth stage with its icon, name, plot count and percentage, plus a thin neutral bar. `dashboard_stage_distribution()` just counts existing `plot.stage` values (no new state); every row is spelled out in text so nothing relies on the bar or on colour. Suite 575 passing (2 new tests in `tests/test_progress_dashboard.py`); checked live at desktop width (5 rows, no overflow).
