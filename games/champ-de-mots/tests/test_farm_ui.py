@@ -448,6 +448,19 @@ def test_each_plot_carries_its_topic_type_class(game_env):
     assert {"vocab", "grammar", "phrase", "phonetic"} <= seen
 
 
+def test_an_automated_plot_tooltip_counts_down_to_its_next_review(game_env):
+    module, state = game_env.module, game_env.state
+    plot = state.plots[0]
+    plot.stage = module.STAGE_AUTOMATED
+    plot.next_due = state.current_day + 12
+    assert "next review in 12 days" in module._plot_title(plot)
+    plot.next_due = state.current_day + 1
+    assert "next review in 1 day" in module._plot_title(plot)
+    assert "next review in 1 days" not in module._plot_title(plot)
+    plot.next_due = state.current_day
+    assert "next review in" not in module._plot_title(plot)
+
+
 def test_row_progress_shows_how_far_each_row_has_come(game_env):
     module, state = game_env.module, game_env.state
     row = state.rows[0]

@@ -608,3 +608,7 @@ When the open question is a gender-tag question, a line under it (`#gender-accur
 ## L16: topic-type cue on farm plots (2026-09-21)
 
 `_plot_classes()` adds `plot--type-<topic_type>` to every plot cell, and `style.css` gives grammar a dashed 2px border, phrase a dotted 2px border and phonetic a double 3px border (vocab keeps the plain solid one). It is a border-style cue rather than a colour, so it is colourblind-safe and independent of the stage colours; the cells stay 25x25. The four visual-style themes may restyle borders, so the cue is guaranteed only for the default look. Suite 572 passing (1 new test in `tests/test_farm_ui.py`); computed styles checked live for all four types.
+
+## L12: next-review countdown on automated plots (2026-09-21)
+
+`_plot_title()` appends "next review in N day(s)" to an automated plot's tooltip (and its aria-label, which shares the text) whenever `plot.next_due` is still in the future; once it is due the existing "ready for water" note takes over. Tooltip-only, so nothing is added to the 25px cells. Suite 573 passing (1 new test in `tests/test_farm_ui.py`); not separately browser-checked.

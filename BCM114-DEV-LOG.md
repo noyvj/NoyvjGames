@@ -425,3 +425,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Le Champ de Mots
 **Did:** Gave farm plots a colour-independent cue for their topic type (dashed/dotted/double borders for grammar/phrase/phonetic).
 **Result:** Suite 572/572 passing, flake8 clean; computed styles checked live.
+
+### 2026-09-21 (Le Champ de Mots: automated-plot review countdown, L12)
+**Game:** Le Champ de Mots
+**Did:** Automated plots' hover text now counts down the days until their next review.
+**Result:** Suite 573/573 passing, flake8 clean; tooltip text not separately browser-checked.

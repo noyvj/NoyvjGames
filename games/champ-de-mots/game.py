@@ -2742,6 +2742,10 @@ def _plot_title(plot):
     parts = [f"{plot.label} — {plot.topic_title}", STAGE_LABEL[plot.stage].split(" — ")[0]]
     if plot.stage == STAGE_AUTOMATED:
         parts.append(AUTOMATED_TOOLTIP_NOTE)
+        # L12 -- how long until this automated plot next wants water.
+        if plot.next_due is not None and plot.next_due > state.current_day:
+            days = plot.next_due - state.current_day
+            parts.append(f"next review in {days} day{'s' if days != 1 else ''}")
     if plot.in_weeds:
         parts.append(WEEDS_TOOLTIP_NOTE)
         confusions = weeds_confusions_for(plot)

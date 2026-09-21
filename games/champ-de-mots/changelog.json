@@ -1,4 +1,5 @@
 [
+  { "date": "2026-09-21", "entry": "Hovering an automated plot now says how many days until its next review." },
   { "date": "2026-09-21", "entry": "Farm plots now look slightly different by topic type without relying on colour: grammar plots have a dashed border, phrases a dotted one, and phonetic plots a double border." },
   { "date": "2026-09-21", "entry": "A plot in the weeds now names the look-alike it is easy to mix up with, in its hover text." },
   { "date": "2026-09-21", "entry": "Gender-tagging questions now show your running gender-drill accuracy under the question." },
