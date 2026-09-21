@@ -19,11 +19,27 @@ into this file).
 
 import copy
 import json
+from datetime import date
 
 from js import confirm, document
 from pyodide.ffi import create_proxy
 
 WIKI_BASE = "https://wiki.warframe.com/w/"
+
+# X: "days since last update" readout. The recipe/location data lives in this
+# file now (there's no data.json to stat), so "last updated" honestly means
+# "the day the maintainer last hand-edited MANUFACTURING_RECIPES /
+# RESOURCE_LOCATIONS / DEFAULT_PARTS". Bump this ISO date whenever you do --
+# see README.md "Updating the requested parts".
+DATA_UPDATED = "2026-09-20"
+
+# X: a resource whose total requirement across the whole build list is at
+# least this many units gets a small "grindy" flag. One place to tune it.
+GRINDY_THRESHOLD = 500
+
+# Sort modes for the component table. "category" is the original fixed order.
+SORT_MODES = ("category", "priority", "name", "remaining")
+NOTE_MAX_LEN = 500
 
 # Your requested parts and target quantities.
 DEFAULT_PARTS = [
@@ -367,12 +383,110 @@ state = {
         for name, qty in DEFAULT_PARTS
     },
     "inventory": {k: dict(v) for k, v in _MIGRATED_FROM_DATA_JSON["inventory"].items()},
+    # X: per-part free-text "note to self" (name -> str), and the two saved
+    # view preferences. Both are optional in old saves -- load_state()
+    # validates/defaults them.
+    "notes": {},
+    "prefs": {"sort": "category", "hide_complete": False},
 }
+
+# UI-only (not saved): current search text, and Wiki links already clicked
+# this session.
+_search = {"text": ""}
+_visited_wiki = set()
+
+
+def days_since(date_str, today=None):
+    """Whole days between an ISO date string and `today` (default: the real
+    today). None if the string isn't a valid ISO date; never negative."""
+    try:
+        then = date.fromisoformat(date_str)
+    except (TypeError, ValueError):
+        return None
+    return max(0, ((today or date.today()) - then).days)
+
+
+def missing_for_one(ingredients, inventory):
+    """Resource -> units short for a single craft of `ingredients`, pooling
+    built + raw the same way has_enough_for_one() does. Credits skipped."""
+    missing = {}
+    for resource, qty in ingredients.items():
+        if resource == "Credits":
+            continue
+        inv = inventory.get(resource, {})
+        have = int(inv.get("built", 0)) + int(inv.get("raw", 0))
+        if have < qty:
+            missing[resource] = qty - have
+    return missing
+
+
+def whats_blocking(components):
+    """The single resource currently short for the most unfinished parts
+    -> (resource, parts_blocked, [part names]) or None if nothing is
+    blocked. Ties break on total units short, then name."""
+    blocked = {}
+    for part in components:
+        if part["complete"]:
+            continue
+        for resource, short in part["missing"].items():
+            entry = blocked.setdefault(resource, {"parts": [], "short": 0})
+            entry["parts"].append(part["name"])
+            entry["short"] += short
+    if not blocked:
+        return None
+    best = min(blocked, key=lambda r: (-len(blocked[r]["parts"]), -blocked[r]["short"], r))
+    return best, len(blocked[best]["parts"]), blocked[best]["parts"]
+
+
+def category_progress(components):
+    """category -> (done, total), in Amp/Zaw/Kitgun order."""
+    out = {}
+    for cat in ("amp", "zaw", "kitgun"):
+        group = [p for p in components if p["category"] == cat]
+        out[cat] = (sum(1 for p in group if p["complete"]), len(group))
+    return out
+
+
+def arrange_components(components, sort_mode="category", query="", hide_complete=False):
+    """Filters (search text, hide-completed) and orders the component list.
+    "category" keeps the fixed DEFAULT_PARTS order; "priority" ranks by
+    closest-to-buildable (fewest resources short for one craft, finished
+    parts last)."""
+    query = (query or "").strip().lower()
+    rows = [
+        p for p in components
+        if (not hide_complete or not p["complete"])
+        and (not query or query in p["name"].lower())
+    ]
+    if sort_mode == "priority":
+        rows.sort(key=lambda p: (p["complete"], len(p["missing"]), sum(p["missing"].values())))
+    elif sort_mode == "name":
+        rows.sort(key=lambda p: p["name"].lower())
+    elif sort_mode == "remaining":
+        rows.sort(key=lambda p: (-p["remaining"], p["name"].lower()))
+    return rows  # list.sort is stable, so ties keep the fixed order
+
+
+def shopping_list_text(resources):
+    """Plain-text list of exactly what's still needed (built/refined stock
+    is what satisfies a requirement, same as the resource checklist)."""
+    short = [r for r in resources if r["built_short"] > 0]
+    if not short:
+        return "Nothing left to farm -- every requirement is covered."
+    lines = [f"Warframe build shopping list ({len(short)} resources)"]
+    for r in short:
+        line = f"- {r['name']} x{r['built_short']}"
+        if r["raw_have"]:
+            line += f" ({r['raw_have']} raw on hand to refine)"
+        line += f" -- {r['location']}"
+        lines.append(line)
+    return "\n".join(lines)
 
 
 def calculate():
     parts = state["parts"]
     inventory = state["inventory"]
+    notes = state["notes"]
 
     raw_need = {}
     component_status = []
@@ -385,6 +499,8 @@ def calculate():
         remaining_parts = max(0, target - owned)
         ingredients = RECIPES.get(name, {}).get("ingredients", {})
         component_status.append({
+            "missing": missing_for_one(ingredients, inventory) if remaining_parts > 0 else {},
+            "note": notes.get(name, ""),
             "name": name,
             "target": target,
             "owned": owned,
@@ -421,6 +537,7 @@ def calculate():
             "wiki": wiki_url(resource),
             "used_in": resource_usage(resource),
             "location": RESOURCE_LOCATIONS.get(resource, "Unknown -- not yet researched"),
+            "grindy": needed >= GRINDY_THRESHOLD,
         })
 
     return component_status, resource_rows
@@ -430,6 +547,8 @@ def get_state():
     return {
         "parts": copy.deepcopy(state["parts"]),
         "inventory": copy.deepcopy(state["inventory"]),
+        "notes": dict(state["notes"]),
+        "prefs": dict(state["prefs"]),
     }
 
 
@@ -456,6 +575,20 @@ def load_state(data):
             inv["raw"] = max(0, int(amounts["raw"]))
         if "built" in amounts:
             inv["built"] = max(0, int(amounts["built"]))
+
+    # Old saves have neither field -- default, and drop anything malformed.
+    saved_notes = data.get("notes")
+    if isinstance(saved_notes, dict):
+        state["notes"] = {
+            name: text[:NOTE_MAX_LEN] for name, text in saved_notes.items()
+            if name in RECIPES and isinstance(text, str) and text.strip()
+        }
+    saved_prefs = data.get("prefs")
+    if isinstance(saved_prefs, dict):
+        if saved_prefs.get("sort") in SORT_MODES:
+            state["prefs"]["sort"] = saved_prefs["sort"]
+        if isinstance(saved_prefs.get("hide_complete"), bool):
+            state["prefs"]["hide_complete"] = saved_prefs["hide_complete"]
 
     render()
 
@@ -560,6 +693,92 @@ def _el(tag, **attrs):
     return node
 
 
+# --- Toast / clipboard / confirm helpers --------------------------------
+
+_toast_timer = {"id": None, "proxy": None}
+TOAST_MS = 2200
+
+
+def _toast(message):
+    """Brief non-blocking confirmation ("Built!", "Copied!") in the
+    #toast live region. Auto-hides; timer calls are skipped harmlessly when
+    the JS timer API isn't available (tests)."""
+    el = document.getElementById("toast")
+    el.textContent = message
+    el.hidden = False
+    try:
+        from js import clearTimeout, setTimeout  # noqa: PLC0415 -- Pyodide-only
+    except ImportError:
+        return
+    if _toast_timer["id"] is not None:
+        clearTimeout(_toast_timer["id"])
+        if _toast_timer["proxy"] is not None:
+            _toast_timer["proxy"].destroy()
+
+    def hide():
+        el.hidden = True
+        _toast_timer["id"] = None
+
+    proxy = create_proxy(hide)
+    _toast_timer["proxy"] = proxy
+    _toast_timer["id"] = setTimeout(proxy, TOAST_MS)
+
+
+def _copy_text(text, label):
+    try:
+        from js import navigator  # noqa: PLC0415 -- Pyodide-only
+        navigator.clipboard.writeText(text)
+    except Exception:  # noqa: BLE001 -- no clipboard API / not permitted
+        _toast(f"Couldn't copy {label} -- select the text and copy it manually.")
+        return False
+    _toast(f"Copied {label}!")
+    return True
+
+
+def _ask_confirm(action_id, message, confirm_label, on_confirm):
+    """Uses the hub's shared ConfirmDialog when the page loaded it (it does,
+    see index.html); otherwise falls back to a plain browser confirm()."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only
+        dialog = getattr(window, "ConfirmDialog", None)
+    except ImportError:
+        dialog = None
+    if dialog is None:
+        if confirm(message):
+            on_confirm()
+        return
+    proxy = create_proxy(on_confirm)
+    _active_dialog_proxies.append(proxy)
+    dialog.ask(id=action_id, message=message, confirmLabel=confirm_label, onConfirm=proxy)
+
+
+_active_dialog_proxies = []
+
+
+def _make_copy_handler(text_fn, label):
+    def handler(_event):
+        _copy_text(text_fn(), label)
+
+    return handler
+
+
+def _wiki_link(href, key):
+    """Wiki anchor that remembers being clicked this session (a.visited-
+    session), so it stays visually distinct across re-renders."""
+    link = _el("a", href=href, target="_blank", rel="noopener", text="Wiki ↗")
+    if key in _visited_wiki:
+        link.className = "visited-session"
+
+    def on_click(_event):
+        _visited_wiki.add(key)
+        link.className = "visited-session"
+
+    proxy = create_proxy(on_click)
+    link.addEventListener("click", proxy)
+    _active_proxies.append(proxy)
+    return link
+
+
 def _make_part_change_handler(name, target_input, owned_input):
     """Closes directly over the row's own input elements rather than
     re-querying the DOM for them by attribute selector -- both because
@@ -616,18 +835,46 @@ def _make_build_handler(name):
         target = int(part.get("target", 0))
         part["owned"] = min(target, int(part.get("owned", 0)) + 1) if target else int(part.get("owned", 0)) + 1
         document.getElementById("status-message").textContent = f"Built {name}."
+        _toast(f"Built! {name}")
         render()
 
     return handler
+
+
+def _make_note_handler(name, textarea, summary):
+    def handler(_event):
+        text = str(textarea.value or "")[:NOTE_MAX_LEN]
+        if text.strip():
+            state["notes"][name] = text
+        else:
+            state["notes"].pop(name, None)
+        summary.textContent = _note_summary(text)
+
+    return handler
+
+
+def _note_summary(text):
+    text = (text or "").strip()
+    if not text:
+        return "note"
+    return "note: " + (text[:28] + "…" if len(text) > 28 else text)
 
 
 def _render_component_table(components):
     tbody = document.getElementById("components-body")
     tbody.innerHTML = ""
     last_category = None
+    prefs = state["prefs"]
+    sort_mode = prefs["sort"]
+    rows = arrange_components(components, sort_mode, _search["text"], prefs["hide_complete"])
 
-    for part in components:
-        if part["category"] != last_category:
+    if not rows:
+        empty = _el("tr", class_="empty-row")
+        empty.appendChild(_el("td", colspan="6", text="No parts match the current search/filter."))
+        tbody.appendChild(empty)
+
+    for rank, part in enumerate(rows, start=1):
+        if sort_mode == "category" and part["category"] != last_category:
             info = CATEGORY_INFO.get(part["category"], {"label": part["category"], "note": ""})
             cat_row = _el("tr", class_="category-row")
             cat_cell = _el("td", colspan="6")
@@ -643,16 +890,42 @@ def _render_component_table(components):
         name_cell.innerHTML = f"<strong>{part['name']}</strong>" + (
             ' <span class="ready-badge">ready</span>' if part["can_build"] else ""
         )
+        if sort_mode != "category":
+            label = CATEGORY_INFO.get(part["category"], {}).get("label", part["category"])
+            name_cell.innerHTML += f' <span class="tag">{label.replace(" builds", "")}</span>'
+        if sort_mode == "priority" and not part["complete"]:
+            name_cell.innerHTML += f' <span class="tag rank">#{rank}</span>'
+        if part["missing"]:
+            n = len(part["missing"])
+            name_cell.appendChild(_el(
+                "div", class_="missing-note",
+                text=f"{n} resource{'s' if n != 1 else ''} short: " + ", ".join(sorted(part["missing"])),
+            ))
+        note_details = _el("details", class_="part-note")
+        note_summary = _el("summary", text=_note_summary(part["note"]))
+        note_details.appendChild(note_summary)
+        note_box = _el(
+            "textarea", rows="2", maxlength=str(NOTE_MAX_LEN),
+            aria_label=f"Note to self for {part['name']}", placeholder="Note to self…",
+        )
+        note_box.value = part["note"]
+        note_details.appendChild(note_box)
+        note_proxy = create_proxy(_make_note_handler(part["name"], note_box, note_summary))
+        note_box.addEventListener("change", note_proxy)
+        _active_proxies.append(note_proxy)
+        name_cell.appendChild(note_details)
         row.appendChild(name_cell)
 
         target_cell = _el("td")
-        target_input = _el("input", type="number", min="0", class_="target-input")
+        target_input = _el("input", type="number", min="0", class_="target-input",
+                           aria_label=f"{part['name']} target")
         target_input.value = str(part["target"])
         target_cell.appendChild(target_input)
         row.appendChild(target_cell)
 
         owned_cell = _el("td")
-        owned_input = _el("input", type="number", min="0", **{"max": str(part["target"])}, class_="owned-input")
+        owned_input = _el("input", type="number", min="0", **{"max": str(part["target"])}, class_="owned-input",
+                          aria_label=f"{part['name']} owned")
         owned_input.value = str(part["owned"])
         owned_cell.appendChild(owned_input)
         row.appendChild(owned_cell)
@@ -661,8 +934,7 @@ def _render_component_table(components):
         row.appendChild(remaining_cell)
 
         wiki_cell = _el("td")
-        wiki_link = _el("a", href=part["wiki"], target="_blank", text="Wiki ↗")
-        wiki_cell.appendChild(wiki_link)
+        wiki_cell.appendChild(_wiki_link(part["wiki"], part["name"]))
         row.appendChild(wiki_cell)
 
         build_cell = _el("td")
@@ -684,9 +956,54 @@ def _render_component_table(components):
 
     done = sum(1 for p in components if p["complete"])
     total = len(components)
-    document.getElementById("component-progress").textContent = f"{done} / {total} complete"
+    pct = round(done / total * 100) if total else 0
+    document.getElementById("component-progress").textContent = f"{done} / {total} complete · {pct}%"
     bar = document.getElementById("progress-bar")
-    bar.style.width = f"{(done / total * 100) if total else 0}%"
+    bar.style.width = f"{pct}%"
+
+
+def _progress_bar(label, done, total):
+    """One labelled "X/Y" bar for the dashboard (role=progressbar)."""
+    pct = round(done / total * 100) if total else 0
+    wrap = _el("div", class_="cat-progress")
+    wrap.appendChild(_el("span", class_="cat-progress-label", text=label))
+    track = _el("div", class_="progress small", role="progressbar", aria_valuemin="0",
+                aria_valuemax=str(total), aria_valuenow=str(done), aria_label=f"{label} progress")
+    fill = _el("div", class_="progress-fill")
+    fill.style.width = f"{pct}%"
+    track.appendChild(fill)
+    wrap.appendChild(track)
+    wrap.appendChild(_el("span", class_="cat-progress-count", text=f"{done}/{total} parts complete"))
+    return wrap
+
+
+def _render_dashboard(components):
+    days = days_since(DATA_UPDATED)
+    if days is None:
+        age = "Recipe data: last-updated date unknown"
+    elif days == 0:
+        age = f"Recipe data last updated {DATA_UPDATED} (today)"
+    else:
+        age = f"Recipe data last updated {DATA_UPDATED} ({days} day{'s' if days != 1 else ''} ago)"
+    document.getElementById("data-updated").textContent = age
+
+    holder = document.getElementById("category-progress")
+    holder.innerHTML = ""
+    for cat, (done, total) in category_progress(components).items():
+        holder.appendChild(_progress_bar(CATEGORY_INFO[cat]["label"], done, total))
+
+    blocking = whats_blocking(components)
+    box = document.getElementById("blocking-summary")
+    if blocking is None:
+        pending = any(not p["complete"] for p in components)
+        box.textContent = ("Nothing is blocking you -- everything unfinished has the resources it needs."
+                           if pending else "Every part is built.")
+    else:
+        resource, count, names = blocking
+        box.textContent = (
+            f"What's blocking me: {resource} -- short for {count} unfinished build{'s' if count != 1 else ''} "
+            f"({', '.join(names[:4])}{'…' if len(names) > 4 else ''})."
+        )
 
 
 def _render_resource_table(resources):
@@ -700,10 +1017,21 @@ def _render_resource_table(resources):
         name_cell = _el("td")
         name_cell.innerHTML = (
             f"<strong>{resource['name']}</strong>"
-            f"<div class=\"resource-location\">📍 {resource['location']}</div>"
+            + (' <span class="grindy-flag" title="Large total requirement across your build list">grindy</span>'
+               if resource["grindy"] and not resource["complete"] else "")
         )
+        copy_btn = _el("button", class_="copy-btn secondary", type="button", text="Copy",
+                       aria_label=f"Copy resource name {resource['name']}", title="Copy resource name")
+        copy_proxy = create_proxy(_make_copy_handler(lambda n=resource["name"]: n, resource["name"]))
+        copy_btn.addEventListener("click", copy_proxy)
+        _active_proxies.append(copy_proxy)
+        name_cell.appendChild(copy_btn)
+        name_cell.appendChild(_el("div", class_="resource-location", text=f"📍 {resource['location']}"))
         used_in = _el("details", class_="used-in")
-        summary = _el("summary", text=f"used in ({len(resource['used_in'])})")
+        summary = _el("summary", text=(
+            f"used in ({len(resource['used_in'])}) · "
+            + (f"{resource['built_short']} still needed" if resource["built_short"] else "covered")
+        ))
         used_in.appendChild(summary)
         ul = _el("ul")
         for usage in resource["used_in"]:
@@ -733,8 +1061,7 @@ def _render_resource_table(resources):
         row.appendChild(short_cell)
 
         wiki_cell = _el("td")
-        wiki_link = _el("a", href=resource["wiki"], target="_blank", text="Wiki ↗")
-        wiki_cell.appendChild(wiki_link)
+        wiki_cell.appendChild(_wiki_link(resource["wiki"], resource["name"]))
         row.appendChild(wiki_cell)
 
         tbody.appendChild(row)
@@ -760,26 +1087,68 @@ def _render_summary(components, resources):
     document.getElementById("summary").textContent = text
 
 
+def _sync_controls():
+    prefs = state["prefs"]
+    document.getElementById("sort-select").value = prefs["sort"]
+    document.getElementById("hide-complete-toggle").checked = prefs["hide_complete"]
+
+
 def render():
     _destroy_active_proxies()
     components, resources = calculate()
+    _sync_controls()
+    _render_dashboard(components)
     _render_component_table(components)
     _render_resource_table(resources)
     _render_summary(components, resources)
+    document.getElementById("shopping-text").value = shopping_list_text(resources)
 
 
-def on_reset(_event=None):
-    if not confirm("Reset all component and resource inventory counts?"):
-        return
+def _do_reset():
     state["parts"] = {name: {"target": qty, "owned": 0} for name, qty in DEFAULT_PARTS}
     state["inventory"] = {}
     document.getElementById("status-message").textContent = "Inventory reset."
+    _toast("Inventory reset to zero.")
+    render()
+
+
+def on_reset(_event=None):
+    _ask_confirm(
+        "warframe-tracker-reset-inventory",
+        "Reset all component and resource inventory counts to zero? Your notes are kept. This can't be undone.",
+        "Reset everything",
+        _do_reset,
+    )
+
+
+def _on_search(_event=None):
+    _search["text"] = str(document.getElementById("search-input").value or "")
+    render()
+
+
+def _on_sort(_event=None):
+    value = str(document.getElementById("sort-select").value)
+    if value in SORT_MODES:
+        state["prefs"]["sort"] = value
+    render()
+
+
+def _on_hide_complete(_event=None):
+    state["prefs"]["hide_complete"] = bool(document.getElementById("hide-complete-toggle").checked)
     render()
 
 
 def setup():
-    reset_proxy = create_proxy(on_reset)
-    document.getElementById("reset-button").addEventListener("click", reset_proxy)
+    def wire(element_id, event, handler):
+        proxy = create_proxy(handler)
+        document.getElementById(element_id).addEventListener(event, proxy)
+
+    wire("reset-button", "click", on_reset)
+    wire("search-input", "input", _on_search)
+    wire("sort-select", "change", _on_sort)
+    wire("hide-complete-toggle", "change", _on_hide_complete)
+    wire("copy-shopping-button", "click",
+         _make_copy_handler(lambda: document.getElementById("shopping-text").value, "shopping list"))
     render()
 
 

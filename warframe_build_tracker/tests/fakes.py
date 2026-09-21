@@ -154,3 +154,41 @@ class FakeConfirm:
     def __call__(self, message):
         self.last_message = message
         return self.next_result
+
+
+class FakeClipboard:
+    def __init__(self):
+        self.written = []
+        self.fail = False
+
+    def writeText(self, text):  # noqa: N802 -- matches the JS API name
+        if self.fail:
+            raise RuntimeError("clipboard blocked")
+        self.written.append(text)
+
+
+class FakeNavigator:
+    def __init__(self):
+        self.clipboard = FakeClipboard()
+
+
+class FakeTimers:
+    """Records setTimeout callbacks so tests can fire them by hand."""
+
+    def __init__(self):
+        self.pending = {}
+        self._next = 1
+
+    def set_timeout(self, callback, ms):
+        handle = self._next
+        self._next += 1
+        self.pending[handle] = (callback, ms)
+        return handle
+
+    def clear_timeout(self, handle):
+        self.pending.pop(handle, None)
+
+    def fire_all(self):
+        for handle in list(self.pending):
+            callback, _ms = self.pending.pop(handle)
+            callback()

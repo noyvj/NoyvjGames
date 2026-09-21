@@ -98,6 +98,34 @@ against.
   resource's name.
 - Every part/resource has a direct link to its real WARFRAME Wiki page.
 
+## Planning and browsing tools (2026-09-21 batch)
+
+- **Overview block** at the top: the single resource currently blocking the
+  most unfinished builds, per-category (Amp/Zaw/Kitgun) "X/Y parts complete"
+  bars, and how many days ago the recipe data was last updated.
+- **"Last updated" is `DATA_UPDATED` in `game.py`** -- an ISO date the
+  maintainer bumps by hand whenever `MANUFACTURING_RECIPES`,
+  `RESOURCE_LOCATIONS` or `DEFAULT_PARTS` change (there's no `data.json`
+  file to stat any more). Bump it in the same commit as the data edit.
+- **Search, sort and archive** above the part table: search by name; sort by
+  fixed category order, **build priority** (fewest resources short for one
+  craft first, finished parts last), name, or most-still-needed; and an
+  "Archive completed parts" checkbox. Sort mode and the archive checkbox are
+  saved; the search text is not.
+- **Notes**: each part has a collapsible "note to self" (saved, max 500
+  chars, stored/rendered as plain text only).
+- **Shopping list** (section 3): a copyable plain-text list of what's still
+  short (built/refined stock is what counts, same as the resource table).
+- **Copy** button beside every resource name; each resource's "used in" line
+  shows its still-needed total. Build and copy actions show a brief toast.
+- **Grindy flag** on resources whose total requirement is at least
+  `GRINDY_THRESHOLD` (500) in `game.py`. Wiki links you've clicked this
+  session are struck through and dimmed.
+- **Reset inventory** now goes through the hub's shared `ConfirmDialog`
+  (falls back to the browser's `confirm()` if that script isn't loaded);
+  notes and view preferences survive a reset.
+- Saved state gained `notes` and `prefs`; old saves without them load fine.
+
 ## Why recipe data is hand-curated, not fetched live
 
 The original version of this tracker tried to fetch recipes live from the
@@ -156,4 +184,4 @@ once there's a real sample file to check it against.
 ## Updating the requested parts
 
 Edit `DEFAULT_PARTS` (and `MANUFACTURING_RECIPES` for the new part's recipe)
-in `game.py`, then just reload the page — no restart, no sync step.
+in `game.py`, bump `DATA_UPDATED`, then just reload the page — no restart, no sync step.

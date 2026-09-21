@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Warframe Build Resource Tracker</title>
-<link rel="icon" href="../icons/icon-192.png">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="stylesheet" href="style.css">
+<script src="../shared/confirm-dialog.js"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 </head>
 <body>
@@ -71,7 +72,14 @@
     <p id="import-summary" class="sync"></p>
   </div>
 
-  <p id="status-message" class="sync"></p>
+  <section id="dashboard" aria-label="Progress overview">
+    <p id="blocking-summary" class="blocking-summary"></p>
+    <div id="category-progress"></div>
+    <p id="data-updated" class="sync"></p>
+  </section>
+
+  <p id="status-message" class="sync" aria-live="polite"></p>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
   <section>
     <div class="section-head">
@@ -80,6 +88,23 @@
     </div>
 
     <div class="progress"><div id="progress-bar"></div></div>
+
+    <div class="toolbar">
+      <label class="toolbar-field">Search
+        <input id="search-input" type="search" placeholder="Find a part…" autocomplete="off">
+      </label>
+      <label class="toolbar-field">Sort
+        <select id="sort-select">
+          <option value="category">Category (fixed order)</option>
+          <option value="priority">Build priority (closest to buildable)</option>
+          <option value="name">Name (A-Z)</option>
+          <option value="remaining">Most still needed</option>
+        </select>
+      </label>
+      <label class="toolbar-check">
+        <input id="hide-complete-toggle" type="checkbox"> Archive completed parts
+      </label>
+    </div>
 
     <table class="parts">
       <thead>
@@ -120,6 +145,11 @@
   <section class="summary">
     <h2>3. What I still need</h2>
     <div id="summary"></div>
+    <details class="shopping">
+      <summary>Shopping list (copyable)</summary>
+      <textarea id="shopping-text" readonly rows="8" aria-label="Shopping list"></textarea>
+      <button type="button" id="copy-shopping-button" class="secondary">Copy list</button>
+    </details>
   </section>
 </div>
 

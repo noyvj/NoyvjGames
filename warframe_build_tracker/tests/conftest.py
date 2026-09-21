@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from .fakes import FakeConfirm, FakeDocument, FakeElement, create_proxy
+from .fakes import FakeConfirm, FakeDocument, FakeElement, FakeNavigator, FakeTimers, create_proxy
 
 GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
 
@@ -17,6 +17,15 @@ ELEMENT_IDS = [
     "summary",
     "status-message",
     "reset-button",
+    "toast",
+    "data-updated",
+    "category-progress",
+    "blocking-summary",
+    "search-input",
+    "sort-select",
+    "hide-complete-toggle",
+    "shopping-text",
+    "copy-shopping-button",
 ]
 
 
@@ -28,6 +37,10 @@ class GameEnv:
         self.elements = elements
         self.confirm = confirm_fn
 
+    @property
+    def js(self):
+        return sys.modules["js"]
+
     def reset(self):
         self.elements["reset-button"].dispatch("click", None)
 
@@ -36,6 +49,10 @@ def _install_pyodide_fakes(elements, confirm_fn):
     fake_js = types.ModuleType("js")
     fake_js.document = FakeDocument(elements)
     fake_js.confirm = confirm_fn
+    fake_js.navigator = FakeNavigator()
+    fake_js.timers = FakeTimers()
+    fake_js.setTimeout = fake_js.timers.set_timeout
+    fake_js.clearTimeout = fake_js.timers.clear_timeout
 
     fake_pyodide = types.ModuleType("pyodide")
     fake_pyodide_ffi = types.ModuleType("pyodide.ffi")
@@ -64,6 +81,9 @@ def game_env():
     for id_ in ELEMENT_IDS:
         el = FakeElement(registry=elements)
         el.id = id_
+    elements["sort-select"].value = "category"
+    elements["hide-complete-toggle"].checked = False
+    elements["toast"].hidden = True
 
     confirm_fn = FakeConfirm()
     _install_pyodide_fakes(elements, confirm_fn)

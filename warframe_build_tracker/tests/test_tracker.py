@@ -298,7 +298,7 @@ def test_render_updates_progress_readout(game_env):
     module.render()
 
     total = len(module.DEFAULT_PARTS)
-    assert game_env.elements["component-progress"].textContent == f"1 / {total} complete"
+    assert game_env.elements["component-progress"].textContent == f"1 / {total} complete · 3%"
 
 
 def test_render_resource_rows_match_calculate_output(game_env):
