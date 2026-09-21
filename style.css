@@ -876,6 +876,18 @@ body {
   gap: 0.85rem;
 }
 
+/* Author-origin `display: flex` above otherwise beats the browser's own
+   `[hidden] { display: none }` UA rule regardless of specificity, so
+   without this override this banner (and #announcement-banner, which
+   shares this same class) rendered as an empty box before any real
+   content ever set it visible, and a Dismiss click's `hidden = true`
+   never actually hid it -- it stayed on screen with its last content
+   forever after. Same gotcha the games' own achievements/changelog
+   panels had; see e.g. games/aftermath/style.css's identical fix. */
+.pwa-install-banner[hidden] {
+  display: none;
+}
+
 .pwa-install-banner-text {
   font-size: 0.82rem;
   opacity: 0.85;
@@ -905,6 +917,11 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 0.85rem;
+}
+
+/* Same [hidden]-vs-`display: flex` gotcha as .pwa-install-banner above. */
+.claim-save-nudge[hidden] {
+  display: none;
 }
 
 .claim-save-nudge-text {
