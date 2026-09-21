@@ -614,3 +614,23 @@ only from the toggle handler — so the live earned/total count is visible
 in the toolbar on every render, before the panel is ever opened. This is
 in fact the pattern SOL's own A10 answer flagged as worth rolling out
 site-wide. No code change needed here.
+
+## "What's new since you played" banner (Z24, site-wide goal)
+
+A new shared `shared/whats-new-banner.js` -- deliberately distinct from
+this game's own in-game "📋 What's New" changelog PANEL above (opt-in,
+player-triggered, always shows the full history from scratch). The
+banner instead appears automatically on page load, but ONLY for a
+RETURNING player who has missed real entries since their last visit: it
+diffs this game's `changelog.json` against
+`localStorage["whats-new-seen:sol"]` (the date string of the newest
+entry already shown) and lists just the new ones, not the whole log. A
+first-ever visit silently marks the current changelog as seen rather
+than dumping the full history on a brand-new player. Reuses the same
+`window.CHANGELOG_JSON` global this game's own changelog panel already
+fetches -- no second network request. One `<script
+src="../../shared/whats-new-banner.js" data-game-id="sol">` include,
+added right after `shared/last-played.js`'s own include. See root
+`CLAUDE.md`'s Working notes for the full write-up -- shared
+infrastructure, documented once there rather than duplicated across all
+12 games' own files.

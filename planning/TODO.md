@@ -175,20 +175,20 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [x] Continuum — **no reset-progress action exists** (era progression is one long continuous playthrough by design). Found two much narrower, lower-stakes actions with zero confirmation of any kind — "Abandon challenge" and "Consulting: abandon" (each only forfeits one optional side-attempt, not core civilization progress) — noted here as a much smaller, separate finding, out of scope for this reset-progress-shaped pass; left untouched (read-only finding on `games/continuum/`, per this session's own file-ownership convention).
   - [x] Le Champ de Mots — **no reset-progress action exists.** SRS farm game with no full-wipe control; the internal `_reset_plot()` helper is a per-plot mechanic (the "weeds" mix-up state), not a player-facing reset.
 - [ ] Z23: A lightweight shared mechanism for a game to show different flavor text/art on real-world dates (an optional seasonal Easter-egg layer) — **you specifically want this event-based**, e.g. a week-long "holiday" event (a Christmas-themed Canopy tree-planting push earning a "Christmas 2026" profile badge). Design the shared mechanism with that kind of event in mind, not just a palette swap. Opt-in per game, not a mandatory rollout — no per-game checklist needed until a specific game opts in.
-- [ ] Z24: A shared "what changed since you last played" banner (distinct from each game's own changelog panel):
-  - [ ] Build the shared banner component
-  - [ ] SOL
-  - [ ] Canopy
-  - [ ] Grid
-  - [ ] Tide
-  - [ ] Aftermath
-  - [ ] Herd
-  - [ ] Thaw
-  - [ ] Loop
-  - [ ] Drift
-  - [ ] Trade Empire
-  - [ ] Continuum
-  - [ ] Le Champ de Mots
+- [x] Z24: A shared "what changed since you last played" banner (distinct from each game's own changelog panel) — `shared/whats-new-banner.js`, see root `CLAUDE.md`'s Working notes for the full write-up:
+  - [x] Build the shared banner component
+  - [x] SOL
+  - [x] Canopy
+  - [x] Grid
+  - [x] Tide
+  - [x] Aftermath
+  - [x] Herd
+  - [x] Thaw
+  - [x] Loop
+  - [x] Drift
+  - [x] Trade Empire
+  - [x] Continuum
+  - [x] Le Champ de Mots
 - [ ] Z25: A genuine save-portability audit — confirm every game's save-code payload size is still reasonable now that achievements/run-histories/changelogs have grown each save state. Measured every game via a driven long-session script against its own pytest harness rather than eyeballing: 10 of 12 are comfortably small (a few KB to ~166KB for a fully-played session, well within reason for an uncapped Postgres JSON column); found and fixed two real bugs (Trade Empire's `sale_log` was unbounded despite only ever reading its last entry — ~110KB -> ~11KB for the same session; Drift's `arrivals_log`/`strain_log`/`wellbeing_log`/`subscore_log` were unbounded — 383KB -> capped at 200 entries each, commit `86f80f2`); Continuum (read-only for this pass) has a similar but compounding pattern worth a closer look, left as its own sub-item since it's a judgment call on whether it's worth a cap yet.
   - [x] SOL — clicked/bought through a long session via its own test harness: ~3.3KB. No change needed.
   - [x] Canopy — 400 ticks with plot activity: 19.3KB; `FOREST_LOG_MAX_ENTRIES`/`VALUE_HISTORY_MAX_POINTS` caps working as designed. No change needed.
