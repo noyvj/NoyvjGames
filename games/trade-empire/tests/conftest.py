@@ -68,6 +68,7 @@ for _colony_id in ALL_COLONY_IDS:
         f"colony-{_colony_id}-need-display",
         f"colony-{_colony_id}-need-bar",
         f"colony-{_colony_id}-need-sparkline",
+        f"colony-{_colony_id}-invest-button",
         f"colony-{_colony_id}-development-display",
         f"mobile-needs-strip-{_colony_id}",
     ]

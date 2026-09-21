@@ -480,3 +480,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Trade Empire
 **Did:** Added a two-path research fork after Automation Expansion II (Automation: +10% on automated sales then +1 slot; Market: faster price recovery then softer price drops), mutually exclusive and permanent, with the closed path explained in the UI. "Fully Studied" now means every shared node plus one completed path. Live checking exposed a real bug in existing code: reading `innerText` back inside a collapsed `<details>` returns "", so `innerText +=` wiped a research node's label; fixed by building the string in a local.
 **Result:** Suite 313 passing, flake8 clean; verified live.
+
+### 2026-09-21 (Trade Empire: colony investment, J7)
+**Game:** Trade Empire
+**Did:** Added an Invest button to each colony that spends credits to add development progress, factoring the progress logic into `ColonyState.add_development()`; no new saved state.
+**Result:** Suite 320 passing, flake8 clean; verified live.

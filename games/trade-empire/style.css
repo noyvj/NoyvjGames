@@ -1600,3 +1600,6 @@ button.secondary:disabled::after {
 
 /* J5 ship archetype picker */
 .archetype-select { margin: 4px 0; max-width: 100%; }
+
+/* J7 colony investment */
+.invest-button { margin: 4px 0 8px; }

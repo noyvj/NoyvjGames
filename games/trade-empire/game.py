@@ -284,12 +284,15 @@ class ColonyState:
         if self.is_developed():
             self.secondary_need_satisfaction = max(0.0, self.secondary_need_satisfaction - decay_rate)
 
+    def add_development(self, units):
+        self.cumulative_delivered += units
+        if self.cumulative_delivered >= DEVELOPMENT_THRESHOLD and self.development_level < 2:
+            self.development_level = 2
+
     def deliver(self, qty):
         gain = qty * NEED_SATISFACTION_PER_UNIT_DELIVERED
         self.need_satisfaction = min(1.0, self.need_satisfaction + gain)
-        self.cumulative_delivered += qty
-        if self.cumulative_delivered >= DEVELOPMENT_THRESHOLD and self.development_level < 2:
-            self.development_level = 2
+        self.add_development(qty)
 
     def deliver_secondary(self, qty):
         gain = qty * NEED_SATISFACTION_PER_UNIT_DELIVERED
@@ -1082,6 +1085,30 @@ def automate_ship(ship_id):
     return True
 
 
+# J7 -- colony investment: spend credits to push an undeveloped colony
+# toward its Level 2 development (the same progress deliveries build),
+# so surplus credits can accelerate growth and specialization. It costs
+# more per unit than the credits a delivery earns, so it speeds a colony up
+# without replacing supplying it. Repeatable until the colony is developed.
+COLONY_INVEST_COST = 60
+COLONY_INVEST_UNITS = 10
+
+
+def can_invest_in_colony(colony_id):
+    if colony_id not in active_colony_ids() or colony_id not in colony_states:
+        return False
+    return not colony_states[colony_id].is_developed() and total_profit >= COLONY_INVEST_COST
+
+
+def invest_in_colony(colony_id):
+    global total_profit
+    if not can_invest_in_colony(colony_id):
+        return False
+    total_profit -= COLONY_INVEST_COST
+    colony_states[colony_id].add_development(COLONY_INVEST_UNITS)
+    return True
+
+
 def can_purchase_ship(ship_id):
     ship = ships[ship_id]
     if ship.purchased:
@@ -1321,6 +1348,15 @@ def render_colony(colony_id):
         dev_el.innerText = (
             f"Development: Level 1 ({state.cumulative_delivered:.0f}/{DEVELOPMENT_THRESHOLD:.0f} "
             f"{GOOD_LABEL[colony['needs']]} delivered to develop further)"
+        )
+    invest_button = document.getElementById(f"colony-{colony_id}-invest-button")
+    if invest_button is not None:
+        invest_button.hidden = state.is_developed()
+        invest_button.innerText = f"Invest ({COLONY_INVEST_COST})"
+        invest_button.disabled = not can_invest_in_colony(colony_id)
+        invest_button.title = (
+            f"Spend {COLONY_INVEST_COST} credits to add {COLONY_INVEST_UNITS} units of development progress "
+            f"({COLONY_INVEST_UNITS / DEVELOPMENT_THRESHOLD * 100:.0f}% of Level 2)."
         )
 
 
@@ -2285,6 +2321,13 @@ def _make_load_handler(ship_id):
     return handler
 
 
+def _make_invest_handler(colony_id):
+    def handler(event=None):
+        invest_in_colony(colony_id)
+        render()
+    return handler
+
+
 def _make_purchase_ship_handler(ship_id):
     def handler(event=None):
         select = document.getElementById(f"ship-{ship_id}-archetype-select")
@@ -2745,6 +2788,10 @@ def setup():
     document.getElementById("seasonal-demand-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_seasonal_demand)
     )
+    for colony_id in ALL_COLONIES:
+        invest_button = document.getElementById(f"colony-{colony_id}-invest-button")
+        if invest_button is not None:
+            invest_button.addEventListener("click", create_proxy(_make_invest_handler(colony_id)))
     document.getElementById("route-hazards-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_route_hazards)
     )
