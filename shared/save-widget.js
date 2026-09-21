@@ -33,6 +33,22 @@
  * signed-in player who forgot to paste in their code by hand would see a
  * blank farm/city/settlement every time and reasonably read that as "my
  * save keeps resetting" — it wasn't resetting, it just was never loading.
+ *
+ * Dev-environment note (found verifying the Z22 follow-up's ConfirmDialog
+ * gating on "Start a new save"): this repo's local dev server sends no
+ * cache-control header, and this exact file gets loaded by every game
+ * across an entire long working session, so Chrome's heuristic HTTP cache
+ * can end up serving a genuinely stale copy of THIS SPECIFIC file even
+ * after a hard page reload -- confirmed by fetching it with
+ * `{cache: "no-store"}` and comparing against what a plain <script> tag
+ * actually executed. A brand-new tab with no service-worker registration
+ * still hit this. If a save-widget.js change ever appears to have "no
+ * effect" while manually verifying in this dev setup, check this before
+ * assuming the code is wrong: fetch this file with cache disabled and
+ * compare, or open the file's URL directly and hard-refresh with dev
+ * tools' cache disabled. Not a concern in production (GitHub Pages serves
+ * with different caching behavior, and real users don't reload the same
+ * dev tab for hours).
  */
 (function () {
   const SCRIPT = document.currentScript;
@@ -325,7 +341,19 @@
     if (existingCode) showActiveCode(existingCode);
   })();
 
-  newButton.addEventListener("click", () => {
+  // Z22 follow-up (planning/TODO.md, found while auditing every game's own
+  // reset-progress action): this button is the actual site-wide full-save
+  // wipe -- identical across all 12 games since this file is shared
+  // unchanged -- and used to fire with zero confirmation of any kind, not
+  // even a native confirm(). Gated behind the shared ConfirmDialog here
+  // (one fix, every game gets it at once) rather than per-game, matching
+  // this file's own "one script, included unchanged by every game"
+  // contract. Falls through to firing immediately if a page hasn't
+  // included shared/confirm-dialog.js -- same graceful-degradation shape
+  // every Python-side _confirm_dialog_ask() helper already uses -- so this
+  // is strictly additive for pages that opt in and a no-op change for ones
+  // that don't (yet).
+  function forgetSavedCode() {
     localStorage.removeItem(STORAGE_KEY);
     codeDisplay.hidden = true;
     copyButton.hidden = true;
@@ -333,6 +361,23 @@
     claimButton.hidden = true;
     loadInput.value = "";
     statusEl.textContent = "Next save starts a fresh code.";
+  }
+
+  newButton.addEventListener("click", () => {
+    if (window.ConfirmDialog) {
+      window.ConfirmDialog.ask({
+        id: `${GAME_ID}-save-widget-forget-code`,
+        message:
+          "Start a new save? This forgets your current save code in this browser -- " +
+          "your progress under that code isn't deleted from the server and can still " +
+          "be loaded later by pasting the code back in, but you'll need to have saved " +
+          "it somewhere first. This browser won't remember it anymore.",
+        confirmLabel: "Start a new save",
+        onConfirm: forgetSavedCode,
+      });
+    } else {
+      forgetSavedCode();
+    }
   });
 
   function legacyCopy(text) {
