@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 456/747 items checked off (61.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 457/747 items checked off (61.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -802,7 +802,7 @@ Every idea in this section was accepted, no exceptions.
 - [ ] L23: A "spaced repetition transparency" panel — an optional, fully explained view of exactly how the SM-2-style scheduling works.
 - [ ] L24: A small animated watering-can cursor/effect when actively watering a plot.
 - [ ] L25: A "review before the exam" cram mode — a dedicated denser review session covering everything from a chosen chapter range.
-- [ ] L26: Let the liaison/elision quiz show a small phonetic-symbol legend.
+- [x] L26: Let the liaison/elision quiz show a small phonetic-symbol legend.
 - [ ] L27: A "farm-wide health" summary visualization — a single glanceable chart of the whole farm's mastery distribution.
 - [ ] L28: A small badge/icon for perfectly answering a full row's worth of plots in one sitting.
 - [ ] L29: A second, standalone mini-game family — a lighter, more frequent "quick water" mode (a single rapid-fire question, no full session) for very short study breaks. **Same top-level progress-visibility principle as L1 applies here.**
