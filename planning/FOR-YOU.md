@@ -64,3 +64,33 @@ Both ideas got "I'll let you make the call" and are currently parked in `LATER.m
 Both would be a real scope jump for their game (meaningfully more UI, more state, more to test) rather than a small feature — worth deciding deliberately rather than me guessing at the shape. What's the actual player experience you want out of either one, and does "full duplicate" or "lighter shadow/sister" match that better?
 
 **Your answer:**
+
+---
+
+### Q2. Signal (M3) — six questions before it gets built
+
+The groundwork plan is `planning/signal-plan.md` (recommended mechanic: "Triangulate", a summed-signal deduction puzzle with a daily seed and no backend). Answer under each line.
+
+1. Plain-JS exception OK (the game opens instantly), or do you want Pyodide anyway for consistency (a multi-second first load on a "quick daily" game)? **Your answer:**
+2. Theme: retro radio-room (recommended), submarine sonar, or alien SETI? **Your answer:**
+3. UTC daily reset (same puzzle for everyone, good for share talk), or each player's local midnight? **Your answer:**
+4. Want an optional non-daily "endless" practice mode beyond the archive? **Your answer:**
+5. Should puzzle #1 launch on a specific day, to help the 2-week "something new is visible" cadence? **Your answer:**
+6. Is the recommended mechanic (Option A) what you want, or should I prototype B briefly first? **Your answer:**
+
+---
+
+### Q3. Undersleep (M4) — eight questions before it gets built
+
+The groundwork plan is `planning/undersleep-plan.md` (a game layer plus an optional local-first sleep/mood journal, kept separable). Answer under each line.
+
+1. Journal cloud sync: allow it at all (through the existing save system, as a separate opt-in), or keep the journal strictly local plus manual export/import? **Your answer:**
+2. If sync is allowed, are you comfortable with that data sitting in the Neon database, given it is more personal than game saves? Would you want it encrypted client-side with a passphrase? **Your answer:**
+3. Start with the tracker hidden ("Just play" default, recommended) or shown at first run? **Your answer:**
+4. Tone: deadpan-absurd (recommended) or warmer/cozy? **Your answer:**
+5. One persistent character, or a roster with "retire and inherit"? **Your answer:**
+6. Is a one-time "not medical advice" acknowledgement at first Journal open acceptable, or too heavy? **Your answer:**
+7. Any real-life tags you specifically want (caffeine, exercise, screen-late...), or leave it to my defaults? **Your answer:**
+8. Story mode: a light arc (new job, new city) or sandbox only at launch? **Your answer:**
+
+*(Overclock, Last Line and Deep Descent are deliberately not asked here: per your scoping, their theme and mechanic questions wait for the next ideas round, `planning/IMPROVEMENT-IDEAS-ROUND-3.md`.)*
