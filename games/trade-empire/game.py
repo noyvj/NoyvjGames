@@ -1311,23 +1311,77 @@ ENDGAME_GALAXY_DOT_CAP = 200
 GOLDEN_ANGLE_RADIANS = 2.399963
 
 
+def endgame_galaxy_dot_position(i):
+    """Canvas position of dot `i`, or None when the spiral has drifted
+    off the canvas (those dots are simply not drawn)."""
+    center = ENDGAME_GALAXY_CANVAS_SIZE / 2
+    angle = i * GOLDEN_ANGLE_RADIANS
+    radius = 3 + 4.6 * math.sqrt(i)
+    cx = center + radius * math.cos(angle)
+    cy = center + radius * math.sin(angle)
+    if 0 <= cx <= ENDGAME_GALAXY_CANVAS_SIZE and 0 <= cy <= ENDGAME_GALAXY_CANVAS_SIZE:
+        return cx, cy
+    return None
+
+
+# J16 — hovering the galaxy canvas names the nearest drawn dot. The dots
+# are decoration standing in for the abstracted background worlds, so the
+# tooltip says so honestly rather than inventing per-world data.
+ENDGAME_GALAXY_HOVER_RADIUS = 5
+ENDGAME_GALAXY_DEFAULT_TITLE = "The background galaxy: each dot is one of the worlds that trickle in passive revenue."
+
+
+def endgame_galaxy_hover_text(x, y, worlds):
+    best_index = None
+    best_distance = ENDGAME_GALAXY_HOVER_RADIUS
+    for i in range(min(ENDGAME_GALAXY_DOT_CAP, worlds)):
+        position = endgame_galaxy_dot_position(i)
+        if position is None:
+            continue
+        distance = math.hypot(position[0] - x, position[1] - y)
+        if distance <= best_distance:
+            best_index, best_distance = i, distance
+    if best_index is None:
+        return ENDGAME_GALAXY_DEFAULT_TITLE
+    return (
+        f"Background world #{best_index + 1} of {worlds:,}: part of the growing galaxy "
+        "that trickles in passive revenue (decorative dot; the galaxy is abstracted)."
+    )
+
+
+_galaxy_hover_wired = False
+
+
+def _wire_endgame_galaxy_hover(canvas):
+    global _galaxy_hover_wired
+    if _galaxy_hover_wired:
+        return
+    _galaxy_hover_wired = True
+
+    def on_move(event):
+        scale = ENDGAME_GALAXY_CANVAS_SIZE / (getattr(canvas, "clientWidth", 0) or ENDGAME_GALAXY_CANVAS_SIZE)
+        x = float(getattr(event, "offsetX", -100)) * scale
+        y = float(getattr(event, "offsetY", -100)) * scale
+        canvas.title = endgame_galaxy_hover_text(x, y, background_world_count())
+
+    canvas.addEventListener("mousemove", create_proxy(on_move))
+
+
 def render_endgame_galaxy(worlds):
     canvas = document.getElementById("endgame-galaxy-canvas")
     if canvas is None:
         return
+    _wire_endgame_galaxy_hover(canvas)
+    canvas.title = ENDGAME_GALAXY_DEFAULT_TITLE
     ctx = canvas.getContext("2d")
     ctx.clearRect(0, 0, ENDGAME_GALAXY_CANVAS_SIZE, ENDGAME_GALAXY_CANVAS_SIZE)
     ctx.fillStyle = FLEET_PRIORITY_TARGET_COLOR
     dot_count = min(ENDGAME_GALAXY_DOT_CAP, worlds)
-    center = ENDGAME_GALAXY_CANVAS_SIZE / 2
     for i in range(dot_count):
-        angle = i * GOLDEN_ANGLE_RADIANS
-        radius = 3 + 4.6 * math.sqrt(i)
-        cx = center + radius * math.cos(angle)
-        cy = center + radius * math.sin(angle)
-        if 0 <= cx <= ENDGAME_GALAXY_CANVAS_SIZE and 0 <= cy <= ENDGAME_GALAXY_CANVAS_SIZE:
+        position = endgame_galaxy_dot_position(i)
+        if position is not None:
             ctx.beginPath()
-            ctx.arc(cx, cy, 1.6, 0, 2 * math.pi)
+            ctx.arc(position[0], position[1], 1.6, 0, 2 * math.pi)
             ctx.fill()
 
 
