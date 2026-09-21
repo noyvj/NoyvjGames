@@ -502,3 +502,43 @@ list as every other game in this pass:
 
 No code changed; ran as the baseline check this pass calls for regardless
 of verdict.
+
+## Reset-confirmation migration to shared ConfirmDialog (Z22, site-wide goal)
+
+`planning/TODO.md`'s Z22 audit flagged this game as one of two (SOL's
+Reset This World/Prestige is the other) whose irreversible-action
+confirmation predates `shared/confirm-dialog.js`: Reset Skill Tree (E13)
+used an in-UI two-click "arm, then confirm" pattern (click once to arm,
+click again to actually reset — see the now-superseded comment this
+replaced) rather than a modal, chosen back when the shared widget didn't
+exist yet and a self-contained approach avoided needing a new `window`
+global under the fake-DOM test harness.
+
+Migrated to the shared ConfirmDialog via the same `_confirm_dialog_ask()`
+helper shape as Grid/Herd/Loop/Trade Empire/SOL's own copies — falls
+through to running the reset immediately if `window`/`window.ConfirmDialog`
+isn't available, matching every other game's fallback and the pytest
+fake-DOM harness's default. Added `shared/confirm-dialog.js` to
+`index.html` (never included before). The refund total, previously shown
+by silently changing the button's own label after the first click, now
+states itself directly in the dialog's message
+(`reset_refund_total()` unchanged). `on_reset_skill_tree()` also gained an
+explicit early return when nothing is unlocked, matching every other
+game's "never even ask when there's nothing to lose" convention — the
+render-time `disabled` state already prevented a real click getting here,
+but the guard makes the handler correct on its own terms too. The old
+`skill_tree_reset_pending` flag and its `_clear_skill_tree_reset_pending()`
+call sites (scattered across every other skill-tree-mutating handler) are
+gone entirely — a real modal doesn't need a same-session "cancel by doing
+something else" escape hatch.
+
+Tests: 254 → 257 (`tests/test_confirm_dialog.py`, new — 4 tests covering
+the dialog-gated path: message/id, cancel leaves state untouched, confirm
+resets and fully refunds, and the nothing-unlocked no-op case). Existing
+`test_backlog_e2_e20.py`/`test_backlog_wave2.py` tests that drove the old
+two-click flow directly were updated to match the new single-click
+(no-dialog-faked, immediate) and dialog-faked-and-confirmed shapes. All
+green, `flake8` clean. Live-verified via `hub-dev-server`: unlocking a
+skill then clicking Reset Skill Tree shows the dialog with the correct
+live refund total in its message; Confirm resets `skill_tree.unlocked` to
+empty and fully refunds `knowledge_points`. Zero console errors.

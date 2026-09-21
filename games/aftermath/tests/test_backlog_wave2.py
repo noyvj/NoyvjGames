@@ -3,6 +3,8 @@ E2, E4-E8, E10, E12-E14, E16, E18, E20, E22, E24-E26, E28, E30a/b."""
 
 import json
 
+from .test_confirm_dialog import install_fake_confirm_dialog
+
 
 def _finish_run(env):
     while not env.run.is_complete():
@@ -230,15 +232,23 @@ def test_knowledge_preview_bumps_only_when_it_increases(game_env):
     assert "knowledge-bump" not in game_env.elements["knowledge-preview-display"].classList
 
 
-# E22 ---------------------------------------------------------------------
+# E22 -----------------------------------------------------------------
+# Z22 cross-game audit: the refund total used to show on the reset
+# button's own second-click label; now that the reset routes through the
+# shared ConfirmDialog (see tests/test_confirm_dialog.py), it shows in
+# the dialog's message instead.
 def test_reset_confirm_shows_refund_total(game_env):
     game_env.skill_tree.add_knowledge(10)
     game_env.unlock_skill("early_warning")  # cost 5, leaves 5
+    fake_window = install_fake_confirm_dialog()
+
     game_env.reset_skill_tree_click()
-    text = _text(game_env, "reset-skill-tree-button")
-    assert "confirm" in text and "10 knowledge" in text
+
+    message = fake_window.ConfirmDialog.calls[0]["message"]
+    assert "10 knowledge points" in message
     assert game_env.module.reset_refund_amount() == 5
-    game_env.reset_skill_tree_click()
+
+    fake_window.ConfirmDialog.confirm()
     assert game_env.skill_tree.knowledge_points == 10
 
 

@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-21",
+    "entry": "Reset Skill Tree now uses the site's shared confirmation dialog (with the exact refund amount in its message) instead of a click-twice button."
+  },
+  {
+    "date": "2026-09-21",
     "entry": "The settlement's ground now visibly scars where it's been hit before — a small crack for each of weather, infrastructure, and social shocks, deepening the more times you've weathered that kind of disaster across every run."
   },
   {

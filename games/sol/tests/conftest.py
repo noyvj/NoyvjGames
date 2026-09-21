@@ -905,24 +905,24 @@ class GameEnv:
             target.setAttribute("data-" + key.replace("_", "-"), value)
         self.elements[panel_id].dispatch("click", types.SimpleNamespace(target=target))
 
-    def set_confirm_response(self, value):
-        """Controls what a subsequent js.confirm(...) call inside game.py
-        returns (used by A18's reset-this-world and A1's prestige, both of
-        which gate an irreversible action behind one)."""
-        sys.modules["js"].confirm = lambda message=None: value
-
 
 def _install_pyodide_fakes(elements, timers, local_storage):
     fake_js = types.ModuleType("js")
     fake_js.document = FakeDocument(elements)
     fake_js.setTimeout = timers.setTimeout
     fake_js.setInterval = timers.setInterval
-    # A18 ("reset this world") and the A1 prestige reset both gate an
-    # irreversible action behind a real browser confirm() dialog. Defaults
-    # to "confirmed" so every existing test (written before either feature
-    # existed) doesn't have to know about this to keep passing; tests for
-    # the cancel path flip it via game_env.set_confirm_response(False).
-    fake_js.confirm = lambda message=None: True
+    # Z22 cross-game audit: A18 ("reset this world") and the A1 prestige
+    # reset both used to gate on a real browser confirm() dialog here
+    # (fake_js.confirm, defaulting to "confirmed"); migrated to the shared
+    # ConfirmDialog (see game.py's `_confirm_dialog_ask()`). This fake `js`
+    # module deliberately never sets `window` by default (same as Grid's/
+    # Herd's/Loop's/Trade Empire's own conftest.py), so `from js import
+    # window` raises ImportError and both actions fall through to running
+    # immediately -- exactly what every existing test written before either
+    # feature had a confirm step expects. Tests for the real dialog-gated
+    # path (message/id, cancel leaves state untouched, confirm runs the
+    # action) install a fake `window.ConfirmDialog` directly -- see
+    # tests/test_confirm_dialog.py.
     fake_js.localStorage = local_storage
 
     fake_pyodide = types.ModuleType("pyodide")

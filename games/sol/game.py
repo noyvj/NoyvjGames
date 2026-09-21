@@ -2079,19 +2079,36 @@ def on_return_to_earth_from_saturn_moons(event):
 # defaults. Research/unlocked_bodies/visited_bodies/achievements/current_
 # planet are all untouched, since re-locking a world you already unlocked
 # via research (or "unvisiting" it) isn't what "reset this world" means.
-def _confirm(message):
-    # Lazy import, same convention as _read_achievements_json()'s own
-    # optional `import js` -- a plain top-level `from js import confirm`
-    # would bind this module's own name to whatever js.confirm WAS at
-    # import time, which the pytest fake-DOM harness can no longer swap out
-    # afterward (game_env.set_confirm_response() replaces
-    # sys.modules["js"].confirm, not this module's own already-bound
-    # copy of it). Importing `js` fresh here and reading its `.confirm`
-    # attribute live sidesteps that entirely, in both the real browser and
-    # under test.
-    import js  # noqa: PLC0415
-
-    return js.confirm(message)
+#
+# Z22 cross-game audit: this used to gate on a native browser confirm()
+# dialog (`_confirm()`, a lazy `import js` per call). That predated
+# shared/confirm-dialog.js entirely -- SOL is one of two games flagged as
+# such (Aftermath's skill-tree reset is the other). Migrated to the shared
+# ConfirmDialog for the same reasons every other game's reset/retire-style
+# action already gets it: a native confirm() blocks Pyodide's whole event
+# loop, can't offer "don't ask me again," and looks nothing like the rest
+# of this site. Same `_confirm_dialog_ask()` helper shape as Grid's/Herd's/
+# Loop's/Trade Empire's own copies (lazy `from js import window`, fall
+# through to calling on_confirm() immediately when `window` or
+# `window.ConfirmDialog` isn't available -- which is what the pytest
+# fake-DOM harness's `js` module does by default, and what a page that
+# somehow loaded without confirm-dialog.js would do too).
+def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm):
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        on_confirm()
+        return
+    confirm_dialog = getattr(window, "ConfirmDialog", None)
+    if confirm_dialog is None:
+        on_confirm()
+        return
+    confirm_dialog.ask(
+        id=action_id,
+        message=message,
+        confirmLabel=confirm_label,
+        onConfirm=create_proxy(on_confirm),
+    )
 
 
 def _fresh_planet_state(planet):
@@ -2114,24 +2131,31 @@ def _fresh_planet_state(planet):
 
 def _reset_world(planet):
     display_name = PLANET_DISPLAY_NAMES.get(planet, planet)
-    if not _confirm(
-        f"Reset {display_name}? This clears its resources, buildings, ecology, "
-        "trade routes, and terraforming progress. Research, travel, and "
-        "achievements are not affected. This cannot be undone."
-    ):
-        return
-    planet_state[planet] = _fresh_planet_state(planet)
-    _forget_close_call_history(planet)
-    update_resource_display(planet)
-    update_generator_display(planet)
-    update_ecology_display(planet)
-    update_trade_display(planet)
-    if planet in GAS_GIANT_BODIES:
-        update_sky_city_display(planet)
-    update_terraform_display(planet)
-    update_all_cross_summaries()
-    update_win_display()
-    press_feedback(document.getElementById(_dom_id(planet, "reset-world-button")))
+
+    def _do_reset():
+        planet_state[planet] = _fresh_planet_state(planet)
+        _forget_close_call_history(planet)
+        update_resource_display(planet)
+        update_generator_display(planet)
+        update_ecology_display(planet)
+        update_trade_display(planet)
+        if planet in GAS_GIANT_BODIES:
+            update_sky_city_display(planet)
+        update_terraform_display(planet)
+        update_all_cross_summaries()
+        update_win_display()
+        press_feedback(document.getElementById(_dom_id(planet, "reset-world-button")))
+
+    _confirm_dialog_ask(
+        action_id=f"sol-reset-world-{planet}",
+        message=(
+            f"Reset {display_name}? This clears its resources, buildings, ecology, "
+            "trade routes, and terraforming progress. Research, travel, and "
+            "achievements are not affected. This cannot be undone."
+        ),
+        confirm_label=f"Reset {display_name}",
+        on_confirm=_do_reset,
+    )
 
 
 def on_reset_earth(event):
@@ -2793,59 +2817,71 @@ def _prestige_available():
 
 
 def on_prestige(event=None):
-    global prestige_level, research_progress, completed_tiers, unlocked_bodies, visited_bodies
-    global current_planet, governor_priority, governor_budget_pct, governor_tick_count
-    global governor_purchase_count, any_generator_ever_built, prestige_points_earned, sandbox_mode
-    global epilogue_open
-
+    # No `global` needed here -- `prestige_level` is only read (for
+    # `next_level`/`next_bonus_pct`'s preview text below); every actual
+    # mutation happens inside `_do_prestige()`, which declares its own.
     if not _prestige_available():
         return
 
     next_level = prestige_level + 1
     next_bonus_pct = round(PRESTIGE_BONUS_PER_LEVEL * next_level * 100)
-    if not _confirm(
-        f"Prestige into a New Game+? Every world resets to its starting state -- "
-        f"research, travel, and the Governor included -- and you keep a permanent "
-        f"+{next_bonus_pct}% resource yield (Prestige Level {next_level}) and a Prestige Tree "
-        "point. Lifetime stats, tree unlocks and every achievement you've already earned are kept. "
-        "This cannot be undone."
-    ):
-        return
 
-    prestige_level = next_level
-    # A1/A3: 1 tree point per prestige, +1 if the New Game+ Challenge was on.
-    prestige_points_earned += 1 + (1 if _challenge_on() else 0)
-    sandbox_mode = False
-    epilogue_open = False
-    _forget_close_call_history()
-    _departure_snapshots.clear()
-    for planet in PLANETS:
-        planet_state[planet] = _fresh_planet_state(planet)
-    research_progress = 0.0
-    completed_tiers = 0
-    unlocked_bodies = set()
-    # Prestige is a genuine "run reset", not a lifetime wipe: visited_bodies
-    # goes back to just Earth (matching a fresh planet_state, since nothing
-    # else has been visited yet in this new run), current_planet returns to
-    # Earth, and the Governor's own run-scoped counters (not the lifetime
-    # ones in the stats panel) reset to their fresh-game defaults.
-    # any_generator_ever_built resets too -- deliberately -- so a player who
-    # already automated everything pre-prestige gets a genuine second shot
-    # at the pure-clicker achievements (A2/A13) in their New Game+, without
-    # touching manual_labor_hit/off_the_grid_hit themselves, which (once
-    # True) never reset.
-    visited_bodies = {"Earth"}
-    current_planet = "Earth"
-    governor_priority = "balance"
-    governor_budget_pct = 50.0
-    governor_tick_count = 0
-    governor_purchase_count = 0
-    any_generator_ever_built = False
-    if prestige_has("head_start"):
-        planet_state["Earth"]["resource_count"] = 50.0
+    def _do_prestige():
+        global prestige_level, research_progress, completed_tiers, unlocked_bodies, visited_bodies
+        global current_planet, governor_priority, governor_budget_pct, governor_tick_count
+        global governor_purchase_count, any_generator_ever_built, prestige_points_earned, sandbox_mode
+        global epilogue_open
 
-    _full_render()
-    press_feedback(document.getElementById("prestige-button"))
+        prestige_level = next_level
+        # A1/A3: 1 tree point per prestige, +1 if the New Game+ Challenge was on.
+        prestige_points_earned += 1 + (1 if _challenge_on() else 0)
+        sandbox_mode = False
+        epilogue_open = False
+        _forget_close_call_history()
+        _departure_snapshots.clear()
+        for planet in PLANETS:
+            planet_state[planet] = _fresh_planet_state(planet)
+        research_progress = 0.0
+        completed_tiers = 0
+        unlocked_bodies = set()
+        # Prestige is a genuine "run reset", not a lifetime wipe: visited_bodies
+        # goes back to just Earth (matching a fresh planet_state, since nothing
+        # else has been visited yet in this new run), current_planet returns to
+        # Earth, and the Governor's own run-scoped counters (not the lifetime
+        # ones in the stats panel) reset to their fresh-game defaults.
+        # any_generator_ever_built resets too -- deliberately -- so a player who
+        # already automated everything pre-prestige gets a genuine second shot
+        # at the pure-clicker achievements (A2/A13) in their New Game+, without
+        # touching manual_labor_hit/off_the_grid_hit themselves, which (once
+        # True) never reset.
+        visited_bodies = {"Earth"}
+        current_planet = "Earth"
+        governor_priority = "balance"
+        governor_budget_pct = 50.0
+        governor_tick_count = 0
+        governor_purchase_count = 0
+        any_generator_ever_built = False
+        if prestige_has("head_start"):
+            planet_state["Earth"]["resource_count"] = 50.0
+
+        _full_render()
+        press_feedback(document.getElementById("prestige-button"))
+
+    # Z22 cross-game audit: migrated from a native browser confirm() (see
+    # `_confirm_dialog_ask()`'s own comment above `_reset_world`) to the
+    # shared ConfirmDialog, same as reset-this-world.
+    _confirm_dialog_ask(
+        action_id="sol-prestige",
+        message=(
+            f"Prestige into a New Game+? Every world resets to its starting state -- "
+            f"research, travel, and the Governor included -- and you keep a permanent "
+            f"+{next_bonus_pct}% resource yield (Prestige Level {next_level}) and a Prestige Tree "
+            "point. Lifetime stats, tree unlocks and every achievement you've already earned are kept. "
+            "This cannot be undone."
+        ),
+        confirm_label="Prestige into New Game+",
+        on_confirm=_do_prestige,
+    )
 
 
 def governor_step():

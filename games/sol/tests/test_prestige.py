@@ -3,9 +3,13 @@ starting simple -- a permanent flat resource-yield bonus on restart --
 over a full skill-tree layer, since the latter is genuinely its own
 milestone-sized feature; game.py went with that (see its own "Prestige /
 New Game+ (A1)" comment block). Only available once every world is fully
-terraformed (the existing soft win-state), gated behind confirm(), and
-resets every world/research/governor/travel state while keeping
-prestige_level, lifetime stats, and every already-earned achievement."""
+terraformed (the existing soft win-state), gated behind a confirmation
+step (the shared ConfirmDialog since Z22 -- see
+tests/test_confirm_dialog.py for that gating itself), and resets every
+world/research/governor/travel state while keeping prestige_level,
+lifetime stats, and every already-earned achievement. These tests run
+with no `window.ConfirmDialog` faked, which is the "no dialog available,
+run immediately" fallback path."""
 
 
 def _win_the_game(game_env):
@@ -41,14 +45,6 @@ def test_prestige_increments_the_level(game_env):
     _win_the_game(game_env)
     game_env.prestige()
     assert game_env.module.prestige_level == 1
-
-
-def test_prestige_does_nothing_without_confirmation(game_env):
-    _win_the_game(game_env)
-    game_env.set_confirm_response(False)
-    game_env.prestige()
-    assert game_env.module.prestige_level == 0
-    assert game_env.earth["terraform_progress"] == game_env.module.TERRAFORM_MAX
 
 
 def test_prestige_resets_every_planets_economy(game_env):

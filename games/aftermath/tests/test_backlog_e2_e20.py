@@ -277,41 +277,36 @@ def test_import_button_reports_failure_for_bad_paste(game_env):
 
 
 # ---------------------------------------------------------------------------
-# E13: reset skill tree with an in-UI two-click confirmation.
+# E13: reset skill tree. Z22 cross-game audit migrated this from an in-UI
+# two-click confirmation to the shared ConfirmDialog -- see
+# tests/test_confirm_dialog.py for the dialog-gated path itself (message
+# content, cancel leaves state untouched, confirm actually resets). These
+# tests run with no `window.ConfirmDialog` faked, which is the "no dialog
+# available, run immediately" fallback path every other game's own
+# reset/retire tests already rely on by default.
 # ---------------------------------------------------------------------------
-def test_reset_skill_tree_requires_two_clicks(game_env):
+def test_reset_skill_tree_click_resets_immediately_without_a_dialog_faked(game_env):
     game_env.skill_tree.add_knowledge(20)
     game_env.unlock_skill("early_warning")
     assert game_env.skill_tree.knowledge_points == 15
 
-    game_env.reset_skill_tree_click()  # first click just arms it
-    assert game_env.skill_tree.unlocked == {"early_warning"}
-    assert game_env.module.skill_tree_reset_pending is True
+    game_env.reset_skill_tree_click()
 
-    game_env.reset_skill_tree_click()  # second click actually resets
     assert game_env.skill_tree.unlocked == set()
     assert game_env.skill_tree.knowledge_points == 20  # fully refunded
-    assert game_env.module.skill_tree_reset_pending is False
 
 
-def test_reset_skill_tree_pending_cleared_by_other_actions(game_env):
+def test_reset_skill_tree_click_is_a_no_op_with_nothing_unlocked(game_env):
     game_env.skill_tree.add_knowledge(20)
-    game_env.unlock_skill("early_warning")
-    game_env.reset_skill_tree_click()
-    assert game_env.module.skill_tree_reset_pending is True
 
-    game_env.invest_resilience()
-    assert game_env.module.skill_tree_reset_pending is False
-    # A stray second click after the pending flag was cleared must not
-    # reset -- it re-arms instead.
     game_env.reset_skill_tree_click()
-    assert game_env.skill_tree.unlocked == {"early_warning"}
+
+    assert game_env.skill_tree.knowledge_points == 20
 
 
 def test_reset_skill_tree_does_not_reduce_lifetime_knowledge(game_env):
     game_env.skill_tree.add_knowledge(20)
     game_env.unlock_skill("early_warning")
-    game_env.reset_skill_tree_click()
     game_env.reset_skill_tree_click()
     assert game_env.skill_tree.lifetime_knowledge == 20
 

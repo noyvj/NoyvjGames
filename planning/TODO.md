@@ -161,19 +161,19 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [ ] Apply to Tide's session summary
   - [ ] Apply to Aftermath's run summary
   - [ ] Apply to Herd's report card
-- [ ] Z22: Audit every game's "Reset progress" confirmation wording now that the shared `ConfirmDialog` exists, and decide migrate-for-consistency vs. intentionally-varied per game. *(Folds in A22's "shouldn't this be site-wide?" flag — SOL's own full-save-wipe confirmation is exactly this case.)*
-  - [ ] SOL (`_confirm()`, predates the shared pattern)
-  - [ ] Canopy
-  - [ ] Grid
-  - [ ] Tide
-  - [ ] Aftermath (two-click confirm, predates the shared pattern)
-  - [ ] Herd
-  - [ ] Thaw
-  - [ ] Loop
-  - [ ] Drift
-  - [ ] Trade Empire
-  - [ ] Continuum
-  - [ ] Le Champ de Mots
+- [x] Z22: Audit every game's "Reset progress" confirmation wording now that the shared `ConfirmDialog` exists, and decide migrate-for-consistency vs. intentionally-varied per game. *(Folds in A22's "shouldn't this be site-wide?" flag — SOL's own full-save-wipe confirmation is exactly this case.)* **Done — see CLAUDE.md notes below for the two real migrations. SOL's actual "full save wipe" turned out to be `shared/save-widget.js`'s "Start a new save (forget this code)" button, not a per-game action — it currently fires with zero confirmation of any kind (worse than a native `confirm()`) and is identical across all 12 games; flagged as a separate follow-up rather than folded into this per-game pass, since fixing it touches shared infrastructure all 12 games load, not one game's own reset action.**
+  - [x] SOL (`_confirm()`, predates the shared pattern) — **migrated.** Reset This World (A18) and Prestige/New Game+ (A1) both routed through a native `js.confirm()`; both now go through the shared ConfirmDialog via a new `_confirm_dialog_ask()` helper (same shape as Grid/Herd/Loop/Trade Empire). Added `shared/confirm-dialog.js` to `index.html` (SOL never included it before). Tests: `tests/test_confirm_dialog.py` (new, fake-`window` gating coverage) + updated `test_reset_world.py`/`test_prestige.py`. 680/680 passing, flake8 clean, live-verified (dialog message/button label, Cancel leaves state untouched, Confirm performs the reset/prestige, zero console errors).
+  - [x] Canopy — **left as intentionally varied, documented reason.** Its own B24 two-click "arm" pattern (click once arms the button and shows the exact standing value + income about to be lost on the button itself, second click within a 5s window confirms) is exactly the "reset itself already has an unusually strong two-step confirmation for good reason" exception this audit's own instructions call out — it's a considered design (not a naive default), skips the confirm entirely when there's nothing to lose, and shows the cost inline rather than in a separate modal. No change made.
+  - [x] Grid — **already migrated** (C14: "Finish run"/retire-last-plant route through the shared ConfirmDialog). No change needed.
+  - [x] Tide — **no reset-progress action exists.** Continuous round-based game with no full-wipe/start-over control; the shared save-widget's own "load a different code" flow is the only reset-equivalent. Nothing to migrate.
+  - [x] Aftermath (two-click confirm, predates the shared pattern) — **migrated.** Reset Skill Tree (E13) used an in-UI two-click arm/confirm predating `shared/confirm-dialog.js`; now routed through the shared ConfirmDialog (same `_confirm_dialog_ask()` helper shape), with the refund amount stated in the dialog message instead of the button's own second-click label. Added `shared/confirm-dialog.js` to `index.html`. Tests: `tests/test_confirm_dialog.py` (new) + updated `test_backlog_e2_e20.py`/`test_backlog_wave2.py`. 257/257 passing, flake8 clean, live-verified (dialog message shows the correct refund total, Cancel leaves the tree untouched, Confirm resets and fully refunds knowledge points, zero console errors).
+  - [x] Herd — **no reset-progress action exists.** Its own ConfirmDialog usage (plant-pivot investment) guards a different, non-reset irreversible spend; methane/pressure never resets by design (per its own in-game copy), so there's no full-wipe control to audit.
+  - [x] Thaw — **no reset-progress action exists.** Same continuous round-based shape as Tide; only has preset-investment buttons, no start-over control.
+  - [x] Loop — **already migrated** (H7/Z22, noted in `games/loop/CLAUDE.md`: "Start New Chain" now routes through the shared ConfirmDialog). No further change needed.
+  - [x] Drift — **no reset-progress action exists.** Same continuous round-based shape as Tide/Thaw.
+  - [x] Trade Empire — **no reset-progress action exists.** Its own J19 ConfirmDialog usage guards ship automation and research-node unlocks (each a rare, one-time-per-target spend), not a full save wipe — no such action exists in this game.
+  - [x] Continuum — **no reset-progress action exists** (era progression is one long continuous playthrough by design). Found two much narrower, lower-stakes actions with zero confirmation of any kind — "Abandon challenge" and "Consulting: abandon" (each only forfeits one optional side-attempt, not core civilization progress) — noted here as a much smaller, separate finding, out of scope for this reset-progress-shaped pass; left untouched (read-only finding on `games/continuum/`, per this session's own file-ownership convention).
+  - [x] Le Champ de Mots — **no reset-progress action exists.** SRS farm game with no full-wipe control; the internal `_reset_plot()` helper is a per-plot mechanic (the "weeds" mix-up state), not a player-facing reset.
 - [ ] Z23: A lightweight shared mechanism for a game to show different flavor text/art on real-world dates (an optional seasonal Easter-egg layer) — **you specifically want this event-based**, e.g. a week-long "holiday" event (a Christmas-themed Canopy tree-planting push earning a "Christmas 2026" profile badge). Design the shared mechanism with that kind of event in mind, not just a palette swap. Opt-in per game, not a mandatory rollout — no per-game checklist needed until a specific game opts in.
 - [ ] Z24: A shared "what changed since you last played" banner (distinct from each game's own changelog panel):
   - [ ] Build the shared banner component

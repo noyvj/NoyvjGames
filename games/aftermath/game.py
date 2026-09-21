@@ -1614,25 +1614,46 @@ def on_import_progress(event=None):
 
 
 # ===========================================================================
-# E13: reset skill tree, gated behind a lightweight in-UI two-click
-# confirmation (click once to arm, click again to actually reset) rather
-# than a browser confirm() dialog -- keeps this self-contained in the same
-# fake-DOM test harness every other handler here already uses, no new
-# `window` global needed. Any other skill-tree/run action clears the
-# pending confirmation, so a reset can't accidentally fire from a stray
-# click much later.
+# E13: reset skill tree.
+#
+# Z22 cross-game audit: this used to be gated behind a lightweight in-UI
+# two-click confirmation (click once to arm, click again to actually
+# reset) rather than a browser confirm() dialog -- chosen at the time to
+# stay self-contained in the fake-DOM test harness with no new `window`
+# global needed, and any other skill-tree/run action cleared the pending
+# confirmation so a stray click much later couldn't accidentally fire it.
+# shared/confirm-dialog.js didn't exist yet when that was written; now
+# that it does (and every other game's own reset/retire-style action
+# already routes through it -- Grid's retire-last-plant, Herd's pivot
+# investment, Loop's Start New Chain, Trade Empire's automate/research,
+# SOL's reset-world/prestige), migrated to match: a real modal is a
+# stronger affordance than a button whose label silently changes meaning
+# after the first click, offers "don't ask me again," and doesn't block
+# on some *other* button being clicked first to "escape" a still-armed
+# reset the way the two-click version could. `_confirm_dialog_ask()` is
+# the same helper shape as every other game's own copy.
 # ===========================================================================
-skill_tree_reset_pending = False
-
-
-def _clear_skill_tree_reset_pending():
-    global skill_tree_reset_pending
-    skill_tree_reset_pending = False
+def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm):
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        on_confirm()
+        return
+    confirm_dialog = getattr(window, "ConfirmDialog", None)
+    if confirm_dialog is None:
+        on_confirm()
+        return
+    confirm_dialog.ask(
+        id=action_id,
+        message=message,
+        confirmLabel=confirm_label,
+        onConfirm=create_proxy(on_confirm),
+    )
 
 
 def reset_refund_amount():
     """E22: knowledge points a reset would refund from *spent* skills --
-    what the second-click confirm button shows before you commit."""
+    what the confirm dialog's message shows before you commit."""
     return sum(SKILLS[skill_id]["cost"] for skill_id in skill_tree.unlocked)
 
 
@@ -1653,13 +1674,23 @@ def reset_skill_tree():
 
 
 def on_reset_skill_tree(event=None):
-    global skill_tree_reset_pending
-    if not skill_tree_reset_pending:
-        skill_tree_reset_pending = True
-    else:
+    if not skill_tree.unlocked:
+        return  # nothing to lose -- render()'s own disabled-state already guards this too
+
+    def _do_reset():
         reset_skill_tree()
-        skill_tree_reset_pending = False
-    render()
+        render()
+
+    _confirm_dialog_ask(
+        action_id="aftermath-reset-skill-tree",
+        message=(
+            f"Reset the skill tree? This refunds all {reset_refund_total()} knowledge points "
+            "spent and unspent, and clears every unlocked skill. Your lifetime knowledge total "
+            "is not affected. This cannot be undone."
+        ),
+        confirm_label="Reset skill tree",
+        on_confirm=_do_reset,
+    )
 
 
 # ===========================================================================
@@ -1954,14 +1985,10 @@ def render():
         f"{len(skill_tree.unlocked)}/{len(SKILLS)} skills unlocked"
     )
 
-    # E13: reset-skill-tree button, gated behind the in-UI two-click
-    # confirmation (skill_tree_reset_pending).
+    # E13: reset-skill-tree button (Z22: gated behind the shared
+    # ConfirmDialog, which itself states the refund amount in its message
+    # -- see on_reset_skill_tree()).
     reset_button = document.getElementById("reset-skill-tree-button")
-    reset_button.innerText = (
-        f"Click again to confirm reset (refunds {reset_refund_total()} knowledge points)"
-        if skill_tree_reset_pending
-        else "Reset Skill Tree"
-    )
     reset_button.disabled = not skill_tree.unlocked
 
     document.getElementById("pinned-skills-display").innerText = pinned_skills_text()  # E30b
@@ -2011,7 +2038,6 @@ def render():
 
 
 def on_invest_resilience(event=None):
-    _clear_skill_tree_reset_pending()
     invested = run.invest_resilience()
     render()
     if invested:
@@ -2020,7 +2046,6 @@ def on_invest_resilience(event=None):
 
 
 def on_invest_growth(event=None):
-    _clear_skill_tree_reset_pending()
     invested = run.invest_growth()
     render()
     if invested:
@@ -2029,7 +2054,6 @@ def on_invest_growth(event=None):
 
 
 def on_resolve_event(event=None):
-    _clear_skill_tree_reset_pending()
     run.resolve_next_event()
     _maybe_trigger_callouts(run)
     render()
@@ -2057,7 +2081,6 @@ def start_new_run(event=None):
     -- opt-in, and only ever read at the moment a new run starts, so it
     has no effect on a run already in progress."""
     global run, callout_message, last_knowledge_preview
-    _clear_skill_tree_reset_pending()
     callout_message = ""
     last_knowledge_preview = None
     extended = document.getElementById("extended-run-toggle").checked
@@ -2159,7 +2182,6 @@ def on_settlement_name_change(event=None):
 
 def _make_unlock_handler(skill_id):
     def handler(event=None):
-        _clear_skill_tree_reset_pending()
         unlocked = skill_tree.unlock(skill_id)
         render()
         if unlocked:

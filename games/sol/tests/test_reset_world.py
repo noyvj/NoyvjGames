@@ -1,8 +1,12 @@
 """Tests for A18: "reset this world only" -- distinct from a full save
 wipe, this clears exactly one planet's own economy (resources, buildings,
 ecology, trade routes, terraforming) back to its fresh-game defaults,
-gated behind a real confirm() dialog, and leaves everything else (research,
-unlocked_bodies, visited_bodies, achievements, current_planet) untouched."""
+gated behind a confirmation step (the shared ConfirmDialog since Z22 --
+see tests/test_confirm_dialog.py for that gating itself), and leaves
+everything else (research, unlocked_bodies, visited_bodies, achievements,
+current_planet) untouched. These tests run with no `window.ConfirmDialog`
+faked, which is the "no dialog available, run immediately" fallback path
+-- exactly what a headless/no-JS-window test environment gets by default."""
 
 
 def test_reset_clears_earths_economy(game_env):
@@ -30,17 +34,6 @@ def test_reset_updates_the_displayed_numbers(game_env):
     assert game_env.elements["generator-count"].innerText == "0"
     assert game_env.elements["ecology-percent"].innerText == "100%"
     assert game_env.elements["terraform-percent"].innerText == "0%"
-
-
-def test_reset_does_nothing_without_confirmation(game_env):
-    game_env.earth["resource_count"] = 500
-    game_env.earth["generator_count"] = 3
-    game_env.set_confirm_response(False)
-
-    game_env.reset_world("Earth")
-
-    assert game_env.earth["resource_count"] == 500
-    assert game_env.earth["generator_count"] == 3
 
 
 def test_reset_does_not_touch_research_or_unlocked_bodies(game_env):

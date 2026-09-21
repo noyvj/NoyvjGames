@@ -501,3 +501,45 @@ Everything else audited clean, matching this hub's site-wide pattern:
 
 Verified: full pytest suite green (pure HTML tag-name change, no Python
 touched), `flake8` unaffected (no `.py` file in the diff).
+
+## Reset-confirmation migration to shared ConfirmDialog (Z22, site-wide goal)
+
+`planning/TODO.md`'s Z22 audit flagged SOL as one of two games (Aftermath's
+skill-tree reset is the other) whose irreversible-action confirmation
+predates `shared/confirm-dialog.js`: Reset This World (A18) and Prestige/
+New Game+ (A1) both gated on a native `js.confirm()` (`_confirm()`, a lazy
+per-call `import js`). Migrated both to the shared ConfirmDialog via a new
+`_confirm_dialog_ask()` helper, same shape as Grid/Herd/Loop/Trade Empire's
+own copies — falls through to running the action immediately if `window`
+or `window.ConfirmDialog` isn't available (Pyodide not loaded yet, or the
+script somehow missing), which is also what the pytest fake-DOM harness's
+`js` module does by default. Added `shared/confirm-dialog.js` to
+`index.html` — SOL never included it before, since it had no prior use for
+the shared widget.
+
+`_reset_world()`'s and `on_prestige()`'s actual mutation logic is
+unchanged, just moved inside an `on_confirm` callback instead of running
+directly after an `if not _confirm(...): return` guard. `on_prestige()`
+no longer needs `global prestige_level` at its own top level — only
+`_do_prestige()` mutates it now, declared in its own scope.
+
+`tests/conftest.py`'s old `set_confirm_response()`/`fake_js.confirm`
+plumbing was removed (nothing reads `js.confirm` anymore) in favor of a
+new `tests/test_confirm_dialog.py`, matching the technique already
+established by Grid/Herd/Loop/Trade Empire's own `test_confirm_dialog.py`
+files: a fake `window.ConfirmDialog` installed only where the real gating
+branch needs exercising, recording `ask()` calls and letting a test fire
+the pending `onConfirm` on demand. The pre-existing
+`test_prestige_does_nothing_without_confirmation`/
+`test_reset_does_nothing_without_confirmation` tests (which drove
+`js.confirm` returning `False`) were replaced by `test_confirm_dialog.py`'s
+`test_cancelling_*_leaves_*_untouched` equivalents — same behavior, correct
+mechanism.
+
+Tests: 676 → 680 (`test_confirm_dialog.py`'s 7 new tests, net of the 2
+removed from `test_prestige.py`/`test_reset_world.py`), all green;
+`flake8` clean. Live-verified via `hub-dev-server`: clicking "Reset This
+World" on Earth shows the dialog with the correct message and a "Reset
+Earth" (not generic "OK") confirm label; Cancel leaves `resource_count`
+untouched; a second click through to Confirm actually resets the planet.
+Zero console errors throughout.

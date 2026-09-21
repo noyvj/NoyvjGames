@@ -13,6 +13,7 @@
 <script src="../../shared/tutorial.js"></script>
 <script src="../../shared/mobile-hud.js"></script>
 <script src="../../shared/mobile-dock.js"></script>
+<script src="../../shared/confirm-dialog.js"></script>
 <script src="settings.js"></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
@@ -254,9 +255,9 @@
         <span class="skill-eta" id="skill-climate_hardening-eta"></span>
         <p class="skill-practice" id="skill-climate_hardening-practice"></p>
       </div>
-      <!-- E13: reset skill tree, gated behind an in-UI two-click confirm
-           (see game.py's on_reset_skill_tree -- clicking once arms it,
-           clicking again actually resets). -->
+      <!-- E13: reset skill tree, gated behind the shared ConfirmDialog
+           (Z22 -- see game.py's on_reset_skill_tree; this used to be an
+           in-UI two-click confirm before shared/confirm-dialog.js existed). -->
       <button id="reset-skill-tree-button" class="secondary" type="button">Reset Skill Tree</button>
     </div>
 
