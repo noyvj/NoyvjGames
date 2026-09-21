@@ -470,3 +470,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Le Champ de Mots
 **Did:** Added an opt-in study buddy that suggests a daily review length from the number of due, already-watered plots (saved preference, validated). The full suite then caught that my earlier L17 commit had put `changelog.json` over its 25-entry cap without a rerun, so I merged the day's small entries into one grouped entry.
 **Result:** Suite 592 passing, flake8 clean; verified live with no console errors.
+
+### 2026-09-21 (Trade Empire: ship archetypes, J5)
+**Game:** Trade Empire
+**Did:** Ships 5 and 6 are now bought with a chosen type (Balanced, Cargo-heavy, Fast), each trading cargo against travel time; validated per-ship save field, unchanged behaviour for old saves and the original four ships.
+**Result:** Suite 305 passing, flake8 clean; verified live.

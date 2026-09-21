@@ -792,6 +792,22 @@ def fleet_cargo_multiplier():
     return HAULER_CARGO_MULTIPLIER if "hauler" in unlocked_research else 1.0
 
 
+# J5 -- ship archetypes, chosen when buying ship 5 or 6 (the original four
+# ships are always balanced). "cargo" carries more but is slower, "fast"
+# arrives sooner but carries less; both trade off, so no archetype is
+# strictly better. Saved per ship and validated on load.
+SHIP_ARCHETYPES = {
+    "balanced": {"label": "Balanced", "cargo": 1.0, "ticks": 0},
+    "cargo": {"label": "Cargo-heavy", "cargo": 1.5, "ticks": 1},
+    "fast": {"label": "Fast", "cargo": 0.75, "ticks": -1},
+}
+DEFAULT_ARCHETYPE = "balanced"
+
+
+def archetype_for(ship):
+    return SHIP_ARCHETYPES.get(getattr(ship, "archetype", DEFAULT_ARCHETYPE), SHIP_ARCHETYPES[DEFAULT_ARCHETYPE])
+
+
 VETERAN_ROUND_TRIPS = 5  # J14 — round trips on one route for the badge
 UNDERPERFORM_FRACTION = 0.5  # J25 — below this share of fleet-average earnings
 ROUTE_TREND_WINDOW = 4  # J2 — sales per half-window compared for the arrow
@@ -813,6 +829,7 @@ class Ship:
         # purchased from the moment the game starts, same as it always
         # was before this feature existed.
         self.purchased = True
+        self.archetype = DEFAULT_ARCHETYPE  # J5
         # J10 — player-chosen display name, defaults to "Ship N".
         self.name = f"Ship {ship_id}"
         # J15 — consecutive ticks this ship has spent docked, empty, and
@@ -851,7 +868,10 @@ class Ship:
         if not self.purchased or not self.docked or self.loaded:
             return False
         self.cargo_good = ALL_COLONIES[self.location]["produces"]
-        self.cargo_qty = round(colony_states[self.location].cargo_capacity() * fleet_cargo_multiplier())
+        self.cargo_qty = max(
+            1,
+            round(colony_states[self.location].cargo_capacity() * fleet_cargo_multiplier() * archetype_for(self)["cargo"]),
+        )
         return True
 
     def other_colonies(self):
@@ -865,7 +885,7 @@ class Ship:
         self.origin = self.location
         self.destination = destination
         self.location = None
-        self.transit_total_ticks = travel_ticks()
+        self.transit_total_ticks = max(1, travel_ticks() + archetype_for(self)["ticks"])
         self.transit_ticks_remaining = self.transit_total_ticks
 
     def depart(self, destination):
@@ -1028,14 +1048,16 @@ def can_purchase_ship(ship_id):
     return total_profit >= SHIP_PURCHASE_COST[ship_id]
 
 
-def purchase_ship(ship_id):
+def purchase_ship(ship_id, archetype=DEFAULT_ARCHETYPE):
     """J6 — a one-time credit spend that unlocks a 5th/6th ship, same
-    shape as automate_ship()'s one-time AUTOMATION_COST spend."""
+    shape as automate_ship()'s one-time AUTOMATION_COST spend. J5 -- the
+    buyer also picks an archetype (an unknown value falls back to balanced)."""
     global total_profit
     if not can_purchase_ship(ship_id):
         return False
     total_profit -= SHIP_PURCHASE_COST[ship_id]
     ships[ship_id].purchased = True
+    ships[ship_id].archetype = archetype if archetype in SHIP_ARCHETYPES else DEFAULT_ARCHETYPE
     return True
 
 
@@ -1150,6 +1172,9 @@ def _render_unpurchased_ship(ship):
     for colony_id in ALL_COLONIES:
         document.getElementById(f"ship-{ship.id}-depart-{colony_id}-button").hidden = True
 
+    archetype_select = document.getElementById(f"ship-{ship.id}-archetype-select")
+    if archetype_select is not None:
+        archetype_select.hidden = False
     purchase_button = document.getElementById(f"ship-{ship.id}-purchase-button")
     purchase_button.hidden = False
     purchase_button.innerText = f"Purchase Ship ({SHIP_PURCHASE_COST[ship.id]})"
@@ -1158,6 +1183,8 @@ def _render_unpurchased_ship(ship):
 
 def render_ship(ship):
     label_text = ship.name
+    if ship.archetype != DEFAULT_ARCHETYPE:
+        label_text += f" ({archetype_for(ship)['label']})"
     if ship.purchased and ship.is_veteran:
         label_text += " ★ Veteran hauler"  # J14
     label_el = document.getElementById(f"ship-{ship.id}-label")
@@ -1173,6 +1200,9 @@ def render_ship(ship):
             _render_unpurchased_ship(ship)
             return
         purchase_button.hidden = True
+        archetype_select = document.getElementById(f"ship-{ship.id}-archetype-select")
+        if archetype_select is not None:
+            archetype_select.hidden = True
 
     status_el = document.getElementById(f"ship-{ship.id}-status")
     status_el.innerText = ship_status_text(ship)
@@ -2199,7 +2229,8 @@ def _make_load_handler(ship_id):
 
 def _make_purchase_ship_handler(ship_id):
     def handler(event=None):
-        purchase_ship(ship_id)
+        select = document.getElementById(f"ship-{ship_id}-archetype-select")
+        purchase_ship(ship_id, str(select.value) if select is not None else DEFAULT_ARCHETYPE)
         render()
     return handler
 
@@ -2475,6 +2506,7 @@ def get_state():
                 "transit_total_ticks": ship.transit_total_ticks,
                 "automated": ship.automated,
                 "purchased": ship.purchased,
+                "archetype": ship.archetype,
                 "name": ship.name,
                 "idle_ticks": ship.idle_ticks,
                 "route_key": sorted(ship.route_key) if ship.route_key else None,
@@ -2602,6 +2634,8 @@ def load_state(data):
         ship.transit_total_ticks = saved.get("transit_total_ticks", ship.transit_total_ticks)
         ship.automated = saved.get("automated", ship.automated)
         ship.purchased = saved.get("purchased", ship.purchased)
+        saved_archetype = saved.get("archetype")
+        ship.archetype = saved_archetype if isinstance(saved_archetype, str) and saved_archetype in SHIP_ARCHETYPES else DEFAULT_ARCHETYPE
         ship.name = saved.get("name", ship.name)
         ship.idle_ticks = saved.get("idle_ticks", ship.idle_ticks)
         saved_key = saved.get("route_key")

@@ -53,6 +53,7 @@ def test_get_state_expands_every_ship_into_a_plain_dict(game_env):
             "transit_total_ticks",
             "automated",
             "purchased",
+            "archetype",
             "name",
             "idle_ticks",
             "route_key",

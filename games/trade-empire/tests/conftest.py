@@ -31,6 +31,8 @@ ELEMENT_IDS = [
     "fleet-priority-button",
     "expansion-colonies-panel",
     "almanac-body",
+    "ship-5-archetype-select",
+    "ship-6-archetype-select",
     "seasonal-demand-toggle-button",
     "seasonal-demand-status",
     "diplomacy-status",
