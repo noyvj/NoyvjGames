@@ -471,3 +471,11 @@ counterfactual comparison panel (and doubles as the tracked state for the
 numeric constant, multiplier, or game-balance behavior anywhere. **Thaw
 has no player-facing difficulty/hard-mode toggle — not applicable.** No
 code touched.
+
+## Achievement-progress bar in toolbar (Z-extra/A10, site-wide goal)
+
+Already satisfied — see the existing toggle-button label. `#achievements-
+toggle-button`'s `innerText` already reads `"🏆 Achievements (N/M)"` via
+`update_achievements_display()`, called from the main render loop, so the
+live earned/total count is visible in the toolbar before the panel is
+ever opened. No code change needed here.

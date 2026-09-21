@@ -428,3 +428,11 @@ start; the scenario just demands that one specific piece of savvy play
 achievement's condition unsatisfiable — every path stays a "play better"
 problem, never a "the toggle removed this outcome" one. No code touched;
 `flake8`/tests unaffected.
+
+## Achievement-progress bar in toolbar (Z-extra/A10, site-wide goal)
+
+Already satisfied — see the existing toggle-button label. `#achievements-
+toggle-button`'s `innerText` already reads `"🏆 Achievements (N/M)"` via
+`update_achievements_display()`, called from the main render loop, so the
+live earned/total count is visible in the toolbar before the panel is
+ever opened. No code change needed here.

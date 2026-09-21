@@ -612,3 +612,11 @@ widening()`), and it is not a toggle at all: it's an automatic function of
 influences only indirectly through ordinary play, with no on/off control
 or difficulty picker anywhere in the UI. **Aftermath has no player-facing
 difficulty toggle to audit — not applicable.** No code touched.
+
+## Achievement-progress bar in toolbar (Z-extra/A10, site-wide goal)
+
+Already satisfied — see the existing toggle-button label. `#achievements-
+toggle-button`'s `innerText` already reads `"🏆 Achievements (N/M)"` via
+`update_achievements_display()`, called from the main render loop, so the
+live earned/total count is visible in the toolbar before the panel is
+ever opened. No code change needed here.

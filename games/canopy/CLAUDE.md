@@ -509,3 +509,11 @@ achievement becomes harder to reach on the smallest grid either.
 **No change needed.** Ranger mode changes pacing, never reachability —
 the floor multiplier is exactly what stops "twice as steep" from ever
 compounding into "impossible." No code touched; `flake8`/tests unaffected.
+
+## Achievement-progress bar in toolbar (Z-extra/A10, site-wide goal)
+
+Already satisfied — see the existing toggle-button label. `#achievements-
+toggle-button`'s `innerText` already reads `"🏆 Achievements (N/M)"` via
+`update_achievements_display()`, called from the main render loop, so the
+live earned/total count is visible in the toolbar before the panel is
+ever opened. No code change needed here.

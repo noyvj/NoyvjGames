@@ -603,3 +603,14 @@ out — the player can always turn it off immediately before attempting
 something toggle-sensitive. No simulation was needed; the toggle's own
 implementation (a live-read boolean with no historical stickiness) settles
 this by inspection. `flake8`/tests unaffected — no code touched.
+
+## Achievement-progress bar in toolbar (Z-extra/A10, site-wide goal)
+
+Already satisfied — see the existing toggle-button label. SOL's own
+`update_achievements_display()` sets `#achievements-toggle-button`'s
+`innerText` to `"🏆 Achievements (N/M)"` (or `"Hide Achievements (N/M)"`
+while open), and that function is called from the main render loop, not
+only from the toggle handler — so the live earned/total count is visible
+in the toolbar on every render, before the panel is ever opened. This is
+in fact the pattern SOL's own A10 answer flagged as worth rolling out
+site-wide. No code change needed here.

@@ -693,3 +693,12 @@ back to `localStorage` so the reset survives a reload rather than only
 looking reset until the next render. No confirmation dialog — this is a
 low-stakes, instantly-reversible display preference, not a destructive
 action, so `shared/confirm-dialog.js` is deliberately not wired up here.
+
+## Achievement-progress bar in toolbar (Z-extra/A10, site-wide goal)
+
+Already satisfied — see the existing toggle-button label. This game's
+`render_achievements()` sets `#achievements-toggle-button`'s `innerText`
+to `"🏆 Achievements (N/M)"` (or `"Hide achievements (N/M)"` while open),
+and that function already runs on every `render()` pass (not only from
+the toggle handler), so the live count is visible in the toolbar before
+the panel is ever opened. No code change needed here.

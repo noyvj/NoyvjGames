@@ -592,3 +592,11 @@ audit pass (Z27 is about auditing existing toggles, not building new
 ones); they remain open items in `planning/TODO.md` for whenever they're
 actually built, at which point this same Z27 question is worth re-asking.
 No code touched.
+
+## Achievement-progress bar in toolbar (Z-extra/A10, site-wide goal)
+
+Already satisfied — see the existing toggle-button label. `#achievements-
+toggle-button`'s `innerText` already reads `"🏆 Achievements (N/M)"` via
+`update_achievements_display()`, which runs on every render pass (not
+only on toggle), so the live count is visible in the toolbar before the
+panel is ever opened. No code change needed here.

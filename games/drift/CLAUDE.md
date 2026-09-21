@@ -273,3 +273,11 @@ simulation already tested clean, not a separate one — no reason to expect
 a different outcome for them.
 
 **No change needed.** No code touched; `flake8`/tests unaffected.
+
+## Achievement-progress bar in toolbar (Z-extra/A10, site-wide goal)
+
+Already satisfied — see the existing toggle-button label. `#achievements-
+toggle-button`'s `innerText` already reads `"🏆 Achievements (N/M)"` via
+`update_achievements_display()`, called from the main render loop, so the
+live earned/total count is visible in the toolbar before the panel is
+ever opened. No code change needed here.

@@ -505,3 +505,11 @@ background suggestion for a dedicated look rather than folded into this
 pass. No code changed for Tide as part of Z27; `flake8`/tests unaffected
 (252/252, confirmed unchanged — the scratch simulation script used for
 this investigation was never committed).
+
+## Achievement-progress bar in toolbar (Z-extra/A10, site-wide goal)
+
+Already satisfied — see the existing toggle-button label. `#achievements-
+toggle-button`'s `innerText` already reads `"🏆 Achievements (N/M)"` via
+`update_achievements_display()`, called from the main render loop, so the
+live earned/total count is visible in the toolbar before the panel is
+ever opened. No code change needed here.
