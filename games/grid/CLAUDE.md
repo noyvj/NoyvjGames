@@ -354,3 +354,72 @@ touched), `flake8` unaffected (no `.py` file in the diff).
 ## R2-C16: "Stored Power" achievement (2026-09-21)
 
 Added the `first_storage` achievement (label "Stored Power", earned by building the first battery; predicate `state.cumulative_built["battery"] >= 1`, so it survives retiring the battery) instead of a bespoke first-battery callout, per the user's note that callouts should become achievements. The existing unlock toast announces it. The other existing callouts (renewable milestone, Retire refund, Maintain cost) are not plant-type callouts and were left as they are. Grid now has 17 achievements; suite 344 passing (added one test in `tests/test_achievements.py`).
+
+## 320px mobile-viewport audit (Z18, site-wide goal, planning/TODO.md)
+
+Checked at a genuine 320px viewport (narrower than the original 375px
+mobile pass) via the Claude Browser tool's `resize_window`.
+
+**Real bug found and fixed:** `#advance-round-button.mobile-docked`
+(`style.css`) set `position: fixed; left: 1rem; right: 1rem;` to dock the
+button above the ad bar with a 1rem margin on each side, but never
+overrode `button.primary`'s base `width: 100%` — once fixed-positioned,
+that `100%` resolves against the *viewport* (its containing block, since
+nothing here re-establishes one), not the narrower gap `left`/`right` were
+trying to carve out. At 320px the button held its full 320px width and ran
+past the right edge instead of shrinking to fit — the exact same bug shape
+Continuum's own docked Advance Season button had (see that game's Z18
+section). Fixed with `width: auto`, letting `left`/`right` (and the
+existing `max-width: 480px`) size the box correctly; confirmed live at
+288px wide (320 − 2×16px), flush inside both margins.
+
+No other overflow found (the top `#mobile-hud-bar` strip's own
+`overflow-x: auto` is the same deliberate "let it scroll instead of clip"
+idiom Canopy's Z18 section documents, not a bug). `flake8`/tests
+unaffected (pure CSS) — suite stayed at 344/344; a caching quirk in this
+dev environment (documented earlier in this file, under "Settings panel")
+required busting the `style.css` `<link>` directly, not just the page URL,
+to see the fix take effect while verifying.
+
+## Difficulty-aware achievements audit (Z27, site-wide goal)
+
+Grid has the most difficulty-shaped surface area in the hub: two freely
+reversible opt-in toggles (C16 steeper demand growth, C4 weather
+variability on renewable output) plus C13's four starting scenarios
+(standard/coal-heavy legacy/greenfield/emergency), locked in once any
+round has been played.
+
+Checked both toggles first, since they're the more obviously "hard mode"
+pair. **Weather variability never touches `disruption_probability()`/
+`disruption_severity()` at all** — `effective_capacity_for_revenue()`
+only varies *revenue* around a fixed nameplate figure; the two
+achievements most likely to be at risk from a harder disruption profile
+(`clean_streak_15`, `no_damage_20`) read `disruption_probability()`
+exclusively, so this toggle can't touch them either way. **Steeper demand
+growth** only doubles `demand_growth_this_round()` — it makes the demand
+target rise faster, but `disruption_probability()` is driven purely by
+`self.emissions` (cumulative fossil-plant output), which the player
+controls directly by choosing what to build to meet that faster-growing
+demand. A harder demand curve makes the balancing act harder, not
+structurally different — the same "more skill required, not less
+possible" shape SOL's/Canopy's own toggles land on.
+
+**C13's scenarios were the one candidate worth actually running the
+numbers on.** `coal_legacy`/`emergency` both start with real standing
+fossil capacity (4 coal + 1 gas, or 3 coal + 1 gas), and `self.emissions`
+is a cumulative, never-decreasing counter — a naive worry was that
+starting emissions baked in during round 1 could permanently inflate
+`disruption_probability()` for the rest of the game, threatening
+`clean_streak_15`/`no_damage_20`. Checked the actual mechanics: emissions
+only accrue via `advance_round()` calling `emissions_this_round()`, which
+reads the CURRENT standing fleet — so a player who retires every inherited
+fossil plant before ever clicking "Advance Round" for the first time never
+adds a single unit of emissions from the scenario's starting fleet at all.
+Both achievements stay fully reachable from a coal-heavy or emergency
+start; the scenario just demands that one specific piece of savvy play
+(retire first, advance second) that a standard/greenfield start doesn't.
+
+**No change needed.** Nothing in Grid's difficulty surface makes an
+achievement's condition unsatisfiable — every path stays a "play better"
+problem, never a "the toggle removed this outcome" one. No code touched;
+`flake8`/tests unaffected.

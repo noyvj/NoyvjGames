@@ -523,3 +523,47 @@ as Canopy's Z21 pass (see that game's CLAUDE.md for the detailed
 DOM-selector checks run against a structurally similar panel).
 `python3 -m pytest games/herd/tests -q` stayed at 191/191 (pure HTML
 class/link addition, no Python touched).
+
+## 320px mobile-viewport audit (Z18, site-wide goal, planning/TODO.md)
+
+Checked at a genuine 320px viewport (narrower than the original 375px
+mobile pass) via the Claude Browser tool's `resize_window`: tutorial,
+Achievements, Settings panels, plus a full-DOM `scrollWidth`/`clientWidth`
+sweep. Audited, no change needed — `document.documentElement.scrollWidth`
+never exceeded 320 in any state checked. Herd has no shared `mobile-dock.js`
+integration (unlike Canopy/Grid/Tide/Aftermath/Trade Empire/Le Champ de
+Mots), so there was no docked-button width case to check here, and its top
+status bar (Funds/Herd size/Methane) is short enough to fit without the
+`overflow-x: auto` HUD-strip pattern several other games in this hub use.
+
+## Difficulty-aware achievements audit (Z27, site-wide goal)
+
+Herd has two opt-in toggles: F9/F3's "market & weather variation"
+(`variation_enabled`) and F19's regional methane cap (`regional_cap_
+enabled`).
+
+**Variation** applies a deterministic, symmetric per-round income modifier
+(`SEASONS`, -10% to +10%, mean zero) plus an occasional plant-based-income
+demand surge that is strictly a bonus (`DEMAND_SURGE_PLANT_INCOME_
+MULTIPLIER` 1.05 vs. the base 0.85 multiplier — surge can only ever raise
+plant income, never lower it). Neither touches `methane` or `pressure_
+fraction()` at all — confirmed by reading `pressure_fraction()`, which is
+a pure function of `self.methane` — so `clean_operator` (the one
+achievement built directly around pressure) is completely unaffected.
+Every score-threshold achievement (`score_400`, `decoupling_dividend`,
+etc.) can only be nudged by a small, mean-zero, deterministic swing, never
+pushed out of reach.
+
+**The regional cap** blocks herd/poultry growth once projected methane
+would exceed `REGIONAL_CAP` — this looked like a real candidate for
+blocking `major_operation` (herd size 25) or `score_400`, since it
+directly gates growth. But the cap is on METHANE, not herd size, and
+decoupling investment (Feed Additives/Herd Caps/Capture Systems) reduces
+the methane-per-herd-unit ratio by up to 90% (`fully_decoupled`) — so the
+cap doesn't remove any achievement's reachability, it just requires
+decoupling investment to happen BEFORE further herd growth rather than
+after. That ordering requirement is, if anything, the core lesson the
+whole game is built to teach (coupling ratio vs. growth), not a bug the
+toggle introduces.
+
+**No change needed.** No code touched; `flake8`/tests unaffected.

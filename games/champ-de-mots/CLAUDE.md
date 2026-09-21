@@ -634,3 +634,43 @@ A third Review-tab button (`#review-marathon-button`, "Mixed Review Marathon") s
 A "Study buddy: off/on" button in the stats row (`#study-buddy-toggle-button`) shows a suggested daily review length (`#study-buddy-display`) when on. `study_buddy_overdue_count()` counts already-watered plots that are due (never-watered seeds are excluded, or a fresh farm would suggest hundreds of reviews); `study_buddy_message()` suggests min(due, `STUDY_BUDDY_MAX_SUGGESTION` = 25) reviews at `STUDY_BUDDY_SECONDS_PER_REVIEW` = 30s each, points to the Mixed Review Marathon when more are due, and says "all caught up" when none are. It only ever suggests: nothing is blocked or scored, and there is no streak framing. The on/off preference is saved as `study_buddy: true` only when enabled (the default save is unchanged) and validated on load.
 
 **Test-suite housekeeping (same pass):** `tests/test_changelog.py` caps `changelog.json` at 25 entries ("curate, don't dump"). The L17 marathon commit had pushed it to 26 without a full-suite rerun after adding its entry, so the suite was red; this pass merged the day's small display-detail entries into one grouped entry (17 entries now) and the full suite is green again. Suite 592 passing (`tests/test_study_buddy.py`, 6 tests).
+
+## 320px mobile-viewport audit (Z18, site-wide goal, planning/TODO.md)
+
+Checked at a genuine 320px viewport (narrower than the original 375px
+mobile pass) via the Claude Browser tool's `resize_window`: tutorial,
+Achievements, Settings panels, a live plot question card, and the Verb
+Racer minigame panel (started a race, checked the track/marker layout),
+plus a full-DOM `scrollWidth`/`clientWidth` sweep in each state. Audited,
+no change needed — `document.documentElement.scrollWidth` never exceeded
+320. The top `#mobile-hud-bar` strip's own `overflow-x: auto` is the same
+deliberate scroll-not-clip idiom Canopy's Z18 section documents, not a
+bug. The other three arcade minigames (Greetings & Basics Blitz, Boutique
+Dash, Café Rush) share the same `.minigame-panel` shell already checked
+clean here and weren't each individually played through.
+
+## Difficulty-aware achievements audit (Z27, site-wide goal)
+
+Checked `game.py` for a player-facing difficulty/hard-mode toggle. Two
+candidates surfaced and both turned out not to qualify: **STRICT/LENIENT
+grading tiers** (`§14.2`) are an automatic per-question classification
+(single word/compound vs. a phrase or sentence) decided by `answer_
+tier()`, not something a player chooses — every question always gets
+graded at its own fixed tier regardless of any setting. **`ACCENT_
+SENSITIVE`** is a real player toggle (via `on_toggle_accent_sensitivity()`)
+that does make grading measurably stricter when on (accents must match
+exactly rather than being folded/ignored), but it's session-only (never
+persisted, resets fresh each load, matching the same category this file's
+`ACCENT_SENSITIVE` comment already documents alongside L13's study-buddy
+preference), freely toggleable at any time, and never makes a correct
+answer unreachable — French accents are always objectively typable, so
+turning accent-sensitivity on only demands more precision, never blocks
+progress outright. Checked it against the achievement catalog
+(`automated_25` through `row_23`, all built around cumulative plot-
+automation counts via the SRS engine, none keyed to a raw accuracy
+percentage or an answer-tier condition) and found no dependency on
+grading strictness at all — automating a plot just takes correct answers
+over time, accented or not.
+
+**Le Champ de Mots has no difficulty/hard-mode toggle that gates
+achievement reachability — not applicable.** No code touched.

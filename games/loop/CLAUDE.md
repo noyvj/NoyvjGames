@@ -561,3 +561,29 @@ just enough at this one breakpoint to fit without needing the wrap/break
 fallback in practice.
 
 No other overflow found at 320px. `flake8`/tests unaffected (pure CSS).
+
+## Difficulty-aware achievements audit (Z27, site-wide goal)
+
+Grepped `game.py` for a difficulty/hard-mode toggle and found two
+candidates that turned out to be forward-looking scaffolding, not shipped
+features: **H13** ("an opt-in harder variant... multiplies both internal
+and imported circular supply down") and **H23** ("an opt-in 'zero-waste'
+variant... tracking whether lifetime extraction ever exceeds this cap")
+both exist ONLY as a constant (`CHALLENGE_MODE_SUPPLY_MULTIPLIER`,
+`ZERO_WASTE_EXTRACTION_CAP`) and an explanatory comment referencing a
+`ChainState.set_challenge_mode()` method that doesn't exist anywhere in
+the file — no toggle checkbox, no state field, no code path a player can
+actually reach. Cross-checked against `planning/TODO.md`: both H13 and
+H23 are still unchecked (`- [ ]`) open backlog items, not completed
+features — the "H13" references elsewhere in this file and in `game.py`
+(the toast/banner-overlap audit fix, V-E-5) are about the achievement-
+unlock toast timing for the EXISTING milestone achievements
+(`quarter_loop`/`half_loop`/etc.), an unrelated use of the same H-number,
+not this difficulty variant.
+
+**Loop currently has no reachable difficulty/hard-mode toggle to audit —
+not applicable.** Building H13/H23 for real is out of scope for this
+audit pass (Z27 is about auditing existing toggles, not building new
+ones); they remain open items in `planning/TODO.md` for whenever they're
+actually built, at which point this same Z27 question is worth re-asking.
+No code touched.

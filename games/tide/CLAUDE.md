@@ -427,3 +427,76 @@ method used for Canopy's Z21 pass (see that game's CLAUDE.md for the
 detailed DOM-selector checks run against a structurally similar panel).
 `python3 -m pytest games/tide/tests -q` stayed at 252/252 (pure HTML
 class/link addition, no Python touched).
+
+## 320px mobile-viewport audit (Z18, site-wide goal, planning/TODO.md)
+
+Checked at a genuine 320px viewport (narrower than the original 375px
+mobile pass) via the Claude Browser tool's `resize_window`.
+
+**Real bug found and fixed:** `#output-mix-select` (the D16 fishing/mixed/
+industry dropdown) sits inside `.output-mix-label`, a `display: flex` row.
+A `<select>` has no CSS width of its own here, so as a flex item it fell
+back to flexbox's default `min-width: auto` — a floor equal to its content's
+intrinsic width, which for a `<select>` is sized off its *longest* `<option>`
+text ("Industry (+40% acidity, no fish-crash exposure)"). That intrinsic
+width was wide enough to push the select past both the `#investments` card
+and the viewport's right edge at 320px — 85px past the card, 69px past the
+screen itself. The same "flex child needs `min-width: 0`" shape Loop's own
+Z18 fix already documented, just on a `<select>` instead of a flex row.
+Fixed by adding `min-width: 0` to `.output-mix-label select`, letting it
+actually shrink to the space `.output-mix-label` has (`flex-shrink` was
+already the flex default); confirmed live afterward at 200px wide, fully
+inside the card, with the card's own `overflow-x: auto` no longer needed
+(its `scrollWidth`/`clientWidth` now match exactly).
+
+No other overflow found — the top `#mobile-hud-bar` strip's own
+`overflow-x: auto` is the same deliberate scroll-not-clip idiom Canopy's
+Z18 section documents. `flake8`/tests unaffected (pure CSS) — suite stayed
+at 252/252.
+
+## Difficulty-aware achievements audit (Z27, site-wide goal)
+
+Tide has two difficulty-shaped toggles: D9's hard-lag mode (freely
+reversible mid-session, only changes which index `_effective_fish_lag()`
+reads) and D19's sea-level scenario (conservative/moderate/severe,
+locked once season 1 has played).
+
+**Hard-lag mode:** checked against `the_lag_arrives`/`stocks_rebound`
+(the two achievements most obviously tied to the lag mechanic) — both
+just need the fish-yield multiplier to eventually cross a threshold, which
+a longer lag only delays, never blocks (acidity keeps accruing into
+`acidity_history` regardless of which index reads it back out), and the
+toggle is freely reversible besides. No change needed here.
+
+**Sea-level scenario, and a real finding that turned out NOT to be
+toggle-specific:** `fortified_in_time` ("reach the max adaptation tier
+before a single coastline tile floods") looked like the obvious
+severity-sensitive candidate — a faster sea-level rise leaves less safe
+time to reach the 15-investment threshold before the first row (threshold
+15) floods. Wrote a standalone simulation (game-module-level, not a
+committed test) trying every reasonable organic strategy — pure
+adaptation-rushing off the 300 starting funds, bootstrapping N units of
+Output first then rushing adaptation, and a compounding-output strategy
+growing Output capacity across several safe seasons before switching to
+adaptation — against all three scenarios. Result: **the achievement never
+got earned via organic play in ANY of the three scenarios, including
+`moderate` (the un-toggled default)**. The economics are the reason:
+reaching the max tier costs 15 x 30 = 450 funds in adaptation investment
+alone, starting funds are only 300, and the only income source (Output)
+means diverting some of that 300 away from adaptation to ever earn more —
+the existing unit test for this achievement (`test_fortified_in_time_
+needs_max_tier_before_any_flood`) only proves the condition *logic* is
+correct, by injecting `funds = 10000` directly rather than earning it
+through play.
+
+Since this shows up identically whether the scenario is severe, moderate,
+or conservative, it is **not a difficulty-toggle-differential issue** —
+the achievement is equally (un)reachable regardless of which scenario a
+player picks, so there's nothing for a hard-mode-specific fix to correct.
+Rebalancing the underlying economy so `fortified_in_time` is earnable
+through ordinary play at all is a real but separate question from Z27's
+scope (does the DIFFICULTY TOGGLE change reachability) — flagged as a
+background suggestion for a dedicated look rather than folded into this
+pass. No code changed for Tide as part of Z27; `flake8`/tests unaffected
+(252/252, confirmed unchanged — the scratch simulation script used for
+this investigation was never committed).

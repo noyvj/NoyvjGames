@@ -581,3 +581,29 @@ as Canopy's Z21 pass (see that game's CLAUDE.md for the detailed
 DOM-selector checks run against a structurally similar panel).
 `python3 -m pytest games/aftermath/tests -q` stayed at 257/257 (pure HTML
 class/link addition, no Python touched).
+
+## 320px mobile-viewport audit (Z18, site-wide goal, planning/TODO.md)
+
+Checked at a genuine 320px viewport (narrower than the original 375px
+mobile pass) via the Claude Browser tool's `resize_window`: tutorial,
+Achievements, Settings panels, the mobile-docked "Face Next Event" button,
+plus a full-DOM `scrollWidth`/`clientWidth` sweep. Audited, no change
+needed — `document.documentElement.scrollWidth` never exceeded 320 in any
+state checked, and the docked button sat correctly at 288px wide (16px
+margin each side), unlike Grid's/Continuum's docked buttons which had a
+real `width: 100%` bug — Aftermath's own mobile-dock CSS already sets
+`width: auto` there. The top `#mobile-hud-bar` strip's own `overflow-x:
+auto` is the same deliberate scroll-not-clip idiom Canopy's Z18 section
+documents, not a bug.
+
+## Difficulty-aware achievements audit (Z27, site-wide goal)
+
+Checked `game.py` for anything resembling a player-facing hard-mode/
+difficulty toggle (grep across "difficulty", "hard mode", "scenario",
+"challenge", "opt-in") — the only hit is E7's severity-scaling curve
+(`SEVERITY_VARIATION_RANGE_PER_LIFETIME_RUN`/`lifetime_severity_
+widening()`), and it is not a toggle at all: it's an automatic function of
+`skill_tree_strength()` and lifetime run count, both of which the player
+influences only indirectly through ordinary play, with no on/off control
+or difficulty picker anywhere in the UI. **Aftermath has no player-facing
+difficulty toggle to audit — not applicable.** No code touched.

@@ -647,3 +647,55 @@ existing `max-width: 480px`) size the box correctly.
 
 No other overflow found at 320px — every other panel/section already
 reflows cleanly. `flake8`/tests unaffected (pure CSS).
+
+## Difficulty-aware achievements audit (Z27, site-wide goal)
+
+Checked board first per the standing rule (nothing live-claimed on
+Continuum at the time). Continuum has two difficulty-shaped systems: K12's
+starting scenarios (Standard/Harsh Frontier/Fertile Valley, locked once
+`state.season > 1`) and K18's hard mode (`state.hard_mode`, a score-side
+penalty multiplier).
+
+**Hard mode** turned out to already have this exact fairness question
+built into its own design, not something this pass had to discover cold —
+`sustainability._penalty_multiplier()`'s own comment states it applies
+`HARD_MODE_PENALTY_MULTIPLIER` (1.5) to every era-specific score-side
+PENALTY (surplus hoarding, urban sprawl, industrial pollution,
+administrative overextension) but deliberately NOT to the one score-side
+BONUS (Medieval's public-works resilience bonus) "since a settlement that
+has actually paid ahead for a shock shouldn't be punished by a difficulty
+toggle for doing the sustainable thing." Checked the achievements against
+it directly: `thriving_once` (score >= 85) is unaffected by hard mode
+either way, because every one of the four penalty functions is era-gated
+to Agrarian-or-later, and Milestone 15's own build notes already recorded
+that a fresh Tribal settlement scores ~88 by construction — the
+achievement is earned before hard mode's penalties can ever apply,
+regardless of whether hard mode is on. `phoenix_settlement` (recover from
+Collapsing back to Steady+) stays reachable under hard mode because every
+penalty is proportional to a REDUCIBLE current stock (pollution/sprawl/
+surplus/admin share), never a permanent floor — mitigating buildings and
+roles (Sanitation Works, Transit Hubs, trading off surplus, capping
+administrator staffing) can always drive the relevant stock back toward
+zero, which drives the hard-mode-multiplied penalty toward zero right
+alongside it. `equity_champion`/`built_to_last` (component-threshold
+achievements) are the ones most exposed to the multiplier, but by the same
+reasoning: a disciplined settlement that avoids over-hoarding/over-sprawl/
+over-administration keeps the relevant penalty near zero under hard mode
+just as it would under normal — the toggle asks for more discipline, not a
+different outcome.
+
+**K12 scenarios** only change STARTING resources (population/food/
+materials/tools/land_health) at construction — Harsh Frontier's lower
+land_health (0.75) and thinner stores are recoverable through ordinary
+play (land_health isn't a floor; the sustainable-yield mechanic lets it
+climb back toward 1.0 under a good harvest/land-pressure balance), and no
+era-reached achievement has any dependency on starting resources beyond
+"can this settlement eventually reach the population/research/score
+requirement" — a slower start, not a blocked one.
+
+**No change needed.** Continuum's own K18 design already anticipated
+exactly the class of problem Z27 asks about (see the quoted code comment
+above), and Milestone 26's consulting-mode achievement-fairness exclusion
+(inherited eras/nodes not counting toward Tradition achievements) shows
+the same fairness instinct applied a second time elsewhere in this game.
+No code touched; full 568-test suite unaffected.

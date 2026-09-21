@@ -127,19 +127,19 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [ ] Migrate Grid's existing global-comparison line to it
   - [ ] Build Continuum's history-comparison idea (K13) on it
   - [ ] Build Herd's real-world % comparison on it
-- [ ] Z18: A mobile-viewport audit at 320px (not just 375px), catching any edge-of-screen clipping the original mobile pass missed:
-  - [ ] SOL
-  - [ ] Canopy
-  - [ ] Grid
-  - [ ] Tide
-  - [ ] Aftermath
-  - [ ] Herd
-  - [ ] Thaw
-  - [ ] Loop
-  - [ ] Drift
-  - [ ] Trade Empire
-  - [ ] Continuum
-  - [ ] Le Champ de Mots
+- [x] Z18: A mobile-viewport audit at 320px (not just 375px), catching any edge-of-screen clipping the original mobile pass missed. All 12 games audited across two passes: 7 real per-game overflow bugs found and fixed (Continuum, Drift, Loop, Thaw, Grid, Tide, Trade Empire), plus one shared site-wide bug in `ad-bar.css` affecting all 12 games' ad bar at every phone width (see root `CLAUDE.md`'s Working notes). SOL, Canopy, Aftermath, Herd, Le Champ de Mots audited with no change needed. See each game's own CLAUDE.md "320px mobile-viewport audit (Z18...)" section for details.
+  - [x] SOL
+  - [x] Canopy
+  - [x] Grid
+  - [x] Tide
+  - [x] Aftermath
+  - [x] Herd
+  - [x] Thaw
+  - [x] Loop
+  - [x] Drift
+  - [x] Trade Empire
+  - [x] Continuum
+  - [x] Le Champ de Mots
 - [ ] Z19: A genuine "New Player" landing flow — a single guided "start here" recommendation (e.g. Canopy as a simple first pick). **Builds well on Z13 per your own note** — design them together.
 - [x] Z20: A consistent emoji/icon-meaning audit, confirming no icon means two different things in two different games. Audited, no change needed: catalogued every bespoke (non-shared-toolbar) emoji across all 12 games' `game.py`/`index.html`/`style.css` and cross-referenced the full list — every emoji that recurs across 2+ games maps to the same real-world referent or theme in each (growth/renewable `🌱`, protection `🛡️`, industry `🏭`, water/flood `🌊`, warning `⚠`, money `💰`, stats `📊`/`📈`, etc.), the same "consistent reuse of an obvious real-world association" pattern already ruled non-colliding elsewhere in this file; the closest borderline cases (Tide's top-tier `🌊` adaptation badge vs. Aftermath's `🌊` flood-event icon; Grid/Drift's `🔥` "intensity toggle" vs. Aftermath's `🔥` heatwave-event vs. Continuum's literal hearth `🔥`) all stay within one literal referent (water, fire) rather than crossing into an unrelated or contradictory meaning, so none reach the "a player would plausibly notice and find confusing" bar the task sets.
   - [x] SOL — toolbar-shared icons only (🎓📖📋🏆⚙️) plus bespoke: 🌍 Overview, 🎛️ Governor Report, 📝 Build Plan, 🌳 Prestige Tree, 🧪 Sandbox mode, 📊 Stats & Share, colored circles/🪐🌕🔴🟠🪨⚪🟤 as literal planet icons, ♻️/🚀/🏙️/⚙️ as per-building construction floaters, ☑/☐/✕ build-plan checkboxes. No collisions.
@@ -214,19 +214,19 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [x] Thaw — clean, confirmed via code.
   - [x] Loop — clean, confirmed via code.
   - [x] Drift — clean, confirmed via code.
-- [ ] Z27: A shared "difficulty-aware achievements" audit — check whether any achievement becomes impossible or trivially easy under a game's own hard-mode/difficulty toggle:
-  - [ ] SOL
-  - [ ] Canopy
-  - [ ] Grid
-  - [ ] Tide
-  - [ ] Aftermath
-  - [ ] Herd
-  - [ ] Thaw
-  - [ ] Loop
-  - [ ] Drift
-  - [ ] Trade Empire
-  - [ ] Continuum
-  - [ ] Le Champ de Mots
+- [x] Z27: A shared "difficulty-aware achievements" audit — check whether any achievement becomes impossible or trivially easy under a game's own hard-mode/difficulty toggle. All 12 audited: SOL/Canopy/Grid/Herd/Drift/Trade Empire/Continuum have a real toggle and were confirmed safe (each game's own CLAUDE.md has the reasoning); Aftermath/Thaw/Loop have no reachable player-facing toggle to audit (Loop's H13/H23 are still unbuilt TODO items); Le Champ de Mots' grading-strictness toggle doesn't gate any achievement. One real but non-toggle-specific finding: Tide's `fortified_in_time` appears unearnable through organic play under ALL THREE sea-level scenarios equally (a base-economy balance question, not a hard-mode regression) — flagged separately, not fixed here.
+  - [x] SOL
+  - [x] Canopy
+  - [x] Grid
+  - [x] Tide
+  - [x] Aftermath
+  - [x] Herd
+  - [x] Thaw
+  - [x] Loop
+  - [x] Drift
+  - [x] Trade Empire
+  - [x] Continuum
+  - [x] Le Champ de Mots
 - [ ] Z27b: Add a "% of players who have earned this" stat per achievement *(needs Z1)* — per your own added note, "that's how I see how difficult it is on most sites."
 - [x] Z28: A consistent loading-state check — confirm every game shows a visible "loading…" state during Pyodide boot rather than a blank screen. Audited, no change needed: every game's static HTML (rendered instantly, before Pyodide even starts fetching) already includes its `<h1>` title plus every interactive control in a `disabled` state showing the literal text "Loading..." (buttons) or a "Loading..." status paragraph — confirmed via `grep -rn "Loading\.\.\." games/*/index.html` across all 12. No game shows a blank screen at any point between initial paint and Pyodide finishing boot; the pattern is already consistent site-wide (a disabled-button/status-text convention, not a dedicated spinner component) rather than needing one to be built.
   - [x] SOL

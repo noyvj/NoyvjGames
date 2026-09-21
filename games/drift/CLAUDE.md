@@ -240,3 +240,31 @@ shrink to the row's real available width instead of their content's
 natural size.
 
 No other overflow found at 320px. `flake8`/tests unaffected (pure CSS).
+
+## Difficulty-aware achievements audit (Z27, site-wide goal)
+
+Drift already has its own dedicated `tests/test_difficulty_toggle.py` for
+I13's "accelerated background severity" toggle (`accelerated_severity_
+enabled`, freely reversible, doubles `BACKGROUND_SEVERITY_RISE_PER_ROUND`
+via `ACCELERATED_SEVERITY_MULTIPLIER`) — a good sign this exact question
+was already on this game's radar. `crisis_averted` ("reach round 21
+without strain ever crossing into critical") was the obvious candidate,
+since higher background severity directly raises `arrivals_this_round()`,
+which is what strain is measured against.
+
+Wrote a standalone simulation (not committed) that plays 20 real rounds
+organically — spending all available funds on Housing (the cheapest
+capacity-per-dollar option) before every round advance, no funds cheat —
+under both settings. Result: **`crisis_averted` stays fully earnable under
+accelerated severity**, with strain never leaving 0.0 in either run
+(620 capacity built by round 21 against 385 lifetime arrivals normally, or
+670 under accelerated severity — comfortably ahead either way, since
+Housing investment scales with available funds and income far outpaces
+the arrivals curve at this game's constants). The other severity-linked
+achievements (`turning_point_reached`, `ahead_of_schedule`, `steady_
+ground`) get harder under the toggle (a faster-growing arrival rate raises
+the bar for keeping pace) but through the exact same mechanism this
+simulation already tested clean, not a separate one — no reason to expect
+a different outcome for them.
+
+**No change needed.** No code touched; `flake8`/tests unaffected.

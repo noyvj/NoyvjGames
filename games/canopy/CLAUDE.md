@@ -451,3 +451,56 @@ the "hide everything else" rule has to act on. On-screen appearance
 before/after was visually identical (screenshot-compared) and zero new
 console errors were introduced. `python3 -m pytest games/canopy/tests -q`
 stayed at 356/356 (pure HTML class/link addition, no Python touched).
+
+## 320px mobile-viewport audit (Z18, site-wide goal, planning/TODO.md)
+
+Checked at a genuine 320px viewport (narrower than the original 375px
+mobile pass) via the Claude Browser tool's `resize_window`: tutorial,
+Achievements, Settings panels, plus a full-DOM `scrollWidth`/`clientWidth`
+sweep. Audited, no change needed.
+
+The one thing the sweep flagged (`#mobile-hud-bar`, showing "Harvested
+income"/"Standing forest value" at the very top) is a deliberate
+`overflow-x: auto` strip, not a bug — content past the first stat is
+reachable by swiping sideways, the same "let it scroll instead of clip"
+idiom this hub already uses elsewhere, not a page-level overflow (the
+element is `aria-hidden="true"`, a decorative duplicate of stats shown
+accessibly elsewhere). `document.documentElement.scrollWidth` never
+exceeded 320 in any state checked. `games/canopy/style.css`'s
+`.grid-size-label select` (the same inline label+select pattern that
+turned out to be genuinely broken in Tide — see that game's own Z18
+section) was checked too: Canopy's option text is short enough
+("Small (4×4)"/"Normal (6×6)"/"Large (9×8)") that it never approaches the
+320px edge, so it was left alone.
+
+## Difficulty-aware achievements audit (Z27, site-wide goal)
+
+Canopy's one real difficulty toggle is B7's "Forest Ranger" mode
+(`DIFFICULTY_RANGER`) — each clear degrades a plot's soil twice as steeply
+as normal (`DEGRADE_PER_CLEAR_BY_DIFFICULTY`). Changing it resets the
+session (soil quality is derived from `clear_count`, so it can't be
+flipped mid-run the way SOL's/Grid's own toggles can), so unlike most of
+this hub's difficulty toggles it IS a session-long, locked-in choice.
+
+Checked it against every achievement that touches clearing or standing
+value. The key fact that keeps it safe: `MIN_PRODUCTIVITY_MULTIPLIER`
+(0.2) is a hard floor — no matter how many times a plot is cleared, or how
+steep the degrade-per-clear rate is, a plot's productivity can never reach
+zero, only approach 20% of its fresh value. That means clearing itself is
+never blocked (`soil_scarred`, `resourceful_extractor` — pure clear
+counts — are completely unaffected by the degrade rate) and standing-value
+growth on a recovered/preserved plot never actually stops, only slows
+(`standing_fortune`, `flourishing_canopy`, `balanced_ledger` — all still
+reachable, just requiring more patience under Ranger mode). `true_
+conservationist` (reach 300 standing value "without ever clearing") is
+untouched by construction, since the degrade rate only ever applies to a
+plot that HAS been cleared. B13's grid-size presets (small/normal/large)
+were also checked as a second "difficulty/length variant" candidate — they
+only change plot COUNT, and no achievement requires anywhere near the
+16-plot floor of the small preset (`old_growth_grove` needs 5 mature plots
+at once, `every_stage_at_once` needs one of each of 4 states), so no
+achievement becomes harder to reach on the smallest grid either.
+
+**No change needed.** Ranger mode changes pacing, never reachability —
+the floor multiplier is exactly what stops "twice as steep" from ever
+compounding into "impossible." No code touched; `flake8`/tests unaffected.

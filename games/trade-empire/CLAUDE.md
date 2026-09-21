@@ -576,3 +576,54 @@ Once automation is maxed (`automation_is_maxed()`: no free automation slot), a "
 ## J19: colony loyalty demands (2026-09-21)
 
 `ColonyState.update_loyalty()` (called from `tick()` next to `decay()`) counts consecutive ticks with need satisfaction below `NEGLECT_THRESHOLD` (0.25); after `NEGLECT_DEMAND_TICKS` (40) the colony makes a one-time concession demand that stays open for `DEMAND_WINDOW_TICKS` (30). Granting it (`grant_concession()`, `CONCESSION_COST` 80 credits) restores `CONCESSION_SATISFACTION_BOOST` (30%) of need satisfaction and starts a `DEMAND_COOLDOWN_TICKS` (60) cooldown; ignoring it costs nothing, it lapses, resets the neglect count and starts the same cooldown, so a demand can never re-arm during a cooldown. It is deliberately an offer that rewards attention rather than a punishment (no output penalty, no forced payment), which also keeps the base economy's balance and every existing tick-driven test unchanged. Each colony panel shows the demand line and a "Grant concession" button only while a demand is open. Saved per colony as `neglect_ticks`, `demand_ticks_left` and `demand_cooldown`, each validated as a bounded non-bool int on load (bad or missing values become 0). Suite 352 passing (`tests/test_colony_loyalty.py`, 9 tests); checked live (demand appears, the concession costs 80 credits, the demand clears, no console errors).
+
+## 320px mobile-viewport audit (Z18, site-wide goal, planning/TODO.md)
+
+Checked at a genuine 320px viewport (narrower than the original 375px
+mobile pass) via the Claude Browser tool's `resize_window`.
+
+**Real bug found and fixed:** the J27 Trade Almanac (`#almanac-body`, a
+`<table class="almanac-table">` with 5 columns — Good/Base/Typical
+range/Made by/Needed by) is tucked behind a `<details class="info-toggle
+almanac">` disclosure. Closed, it contributes nothing to layout; opened at
+320px, its cells' own longest unbreakable words (a full colony name plus
+"(Home system)" in the last two columns) still summed past the card's
+252px width even with normal text wrapping, pushing real page-level
+horizontal overflow (`document.documentElement.scrollWidth` hit 344 against
+a 320 viewport) — the "Needed by" column was clipped clean off the right
+edge of the *screen*, not just the card, with no way to reach it. Fixed by
+giving `#almanac-body` `overflow-x: auto` and `.almanac-table` a
+`min-width: 480px`, the same "let it scroll instead of clip" idiom this
+game's own `#mobile-needs-strip-track` already uses for a different wide
+element, rather than redesigning the table into cards. Confirmed live
+afterward: the table now scrolls horizontally within its own card (a
+visible scroll thumb appears under the header row) and
+`document.documentElement.scrollWidth` stays at 320 with the almanac open.
+
+No other real overflow found — the mobile-docked `#mobile-needs-strip`
+(J-series colony-needs strip) sat correctly at 288px wide, and its own
+inner `.mobile-needs-strip-track` horizontal scroll is itself a deliberate,
+pre-existing pattern, not a bug. `flake8`/tests unaffected (pure CSS) —
+suite stayed at 352/352.
+
+## Difficulty-aware achievements audit (Z27, site-wide goal)
+
+Trade Empire has two opt-in toggles: J29's seasonal demand (a pure income
+bonus — `SEASONAL_DEMAND_BONUS` only ever raises a hot good's sell price,
+never lowers anything) and J11's route hazards + insurance
+(`route_hazards_enabled`/`route_insurance_enabled`, both freely
+switchable at any time, no lock-in).
+
+J29 is strictly a buff, so it can only ever make an income/profit
+achievement (`profit_10k`, `profit_100k`) easier, never harder or
+impossible — checked and confirmed there's no achievement with an upper
+bound or a "without any bonus" condition that a buff could trivialize
+either. J11's hazards add an 8% per-arrival chance of a disrupted trip
+(cargo lost) — probabilistic, not deterministic, refundable via insurance,
+and freely reversible before attempting anything achievement-sensitive.
+No achievement (`diversified_trader`, `market_recovery`, the profit
+thresholds) has a component that this variance could push out of reach
+altogether — worst case it's slower, the same "harder, not impossible"
+shape every other toggle in this hub lands on once it's freely reversible.
+
+**No change needed.** No code touched; `flake8`/tests unaffected.

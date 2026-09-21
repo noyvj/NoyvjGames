@@ -454,3 +454,15 @@ Fixed by sizing it to its own container (`width: 100%; max-width: 100%;
 box-sizing: border-box`) instead of relying on the browser default.
 
 No other overflow found at 320px. `flake8`/tests unaffected (pure CSS).
+
+## Difficulty-aware achievements audit (Z27, site-wide goal)
+
+Checked `game.py` for a difficulty/hard-mode toggle. The only candidate
+that came up in an initial grep was `worst_case_region_revealed`
+(Region D, the "what if nobody intervened" comparison) — read its own
+comment and implementation directly: it's a pure visibility reveal for a
+counterfactual comparison panel (and doubles as the tracked state for the
+`worst_case_witnessed` achievement itself), not a toggle that changes any
+numeric constant, multiplier, or game-balance behavior anywhere. **Thaw
+has no player-facing difficulty/hard-mode toggle — not applicable.** No
+code touched.
