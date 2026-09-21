@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 458/747 items checked off (61.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 459/747 items checked off (61.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -782,7 +782,7 @@ Every idea in this section was accepted, no exceptions.
 - [ ] L2: Let the visual-style switcher remember two saved per-context presets (e.g. Cartoon for casual review, Text-based for a focused cram session) instead of one single choice.
 - [ ] L3: A "weak spot drill" mode generated purely from the error-pattern digest's flagged topics. **Also wire Review-tab practice into watering**: if a plot's topic hasn't been watered yet today, reviewing it through this (or any) practice mode should count as watering it, per your addition.
 - [ ] L5: A "conversation simulator" — a longer-form practice mode chaining several related vocab/grammar items into a short simulated dialogue exchange.
-- [ ] L6: Let the confidence-rating buttons show a small running accuracy-by-confidence stat, so the player can see whether their self-assessment is well-calibrated.
+- [x] L6: Let the confidence-rating buttons show a small running accuracy-by-confidence stat, so the player can see whether their self-assessment is well-calibrated.
 - [ ] L7a: Build the day-tracker prerequisite — a real concept of a calendar day, since the player currently just advances "whenever."
 - [ ] L7b: A "study streak calendar" — a lightweight monthly calendar view of review activity, without guilt-driven streak-fire framing (needs L7a).
 - [x] L8: A small "plots automated" progress bar always visible at the top of the farm.
