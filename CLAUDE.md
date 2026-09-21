@@ -44,14 +44,16 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
     TODO.md          <- THE living cross-game/site task list — check here first for what's next
     LATER.md          <- deferred items (parked pending your input, or needing a decision) — not scheduled, revisit on request
     FOR-YOU.md        <- action items only the user can do (external signups, deploys) + open questions for the user to answer — check every session, remove an entry once it's resolved
-    site-plan.md
+    TODO.md / LATER.md / FOR-YOU.md above are the only always-live planning docs; the ideas rounds (IMPROVEMENT-IDEAS-ROUND-2.md, -ROUND-3.md) hold the user's answers until processed into TODO.md
+    AI-COORDINATION.md  <- (gitignored) the two-session handoff board — read it first every session
+    todo-archive/       <- (gitignored) finished TODO lists, YYMMDD_YYMMDD.md
     game-template.md
     pwa-and-ads-setup.md  <- manifest/service worker/ad bar reference
     ACCOUNTS-AND-FEEDBACK-DESIGN.md  <- accounts (username+password) + site-wide feedback spec — backend + frontend built
     ACHIEVEMENTS-SYSTEM-DESIGN.md  <- hub-wide achievements framework spec — SOL is the reference integration; per-game rollout tracked in TODO.md
     SAVE-BUTTON-INTEGRATION.md  <- shared/save-widget.js spec — built and rolled out to every game
     <game>-plan.md   <- pre-build groundwork notes per game, before folders exist
-    /archive         <- fully-resolved or fully-superseded planning docs, kept for process-evidence history only — not active reference
+    /archive         <- fully-resolved or fully-superseded planning docs (site-plan.md, SAVE-SYSTEM-DESIGN.md, round-1 ideas, ...), kept for process-evidence history only — not active reference
 ```
 
 ## Site-level rules

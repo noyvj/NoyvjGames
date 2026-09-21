@@ -9,9 +9,17 @@ One demo, **SOL**, is also a dual BCM114/BCM206 university digital artefact — 
 - **SOL** — a solar-system incremental clicker. The reference integration for the shared save widget.
 - **Eight climate games** (Canopy, Grid, Tide, Aftermath, Herd, Thaw, Loop, Drift) — each a small, self-contained demo built around a distinct real-world climate mechanic, made for BCM114 Part 1. Every game includes an optional in-game "The Real Story" panel citing the real sources behind its mechanic.
 - **Le Champ de Mots** — a French-vocabulary spaced-repetition study tool, built as a personal project (not tied to any coursework).
-- **Trade Empire** and **Continuum** — larger-scope personal stretch projects, both built but not yet linked from the hub.
+- **Trade Empire** and **Continuum** — larger-scope personal stretch projects, both linked from the hub. Continuum is the flagship BCM114 Round 2 artefact (a seven-era civilization sim with a Three.js scene).
 
 Every game keeps its own `CLAUDE.md` documenting its concept, milestones, and design decisions in `games/<slug>/`.
+
+## Where the docs live
+
+- `CLAUDE.md` (root) — project rules, file map, current game status; the source of truth for how work is done here.
+- `planning/TODO.md` — the one living task list; `planning/LATER.md` parked ideas; `planning/FOR-YOU.md` things only the owner can do.
+- `planning/*-DESIGN.md`, `SAVE-BUTTON-INTEGRATION.md`, `pwa-and-ads-setup.md` — reference specs for the accounts, achievements, save and PWA systems.
+- `planning/archive/` — resolved or superseded planning docs kept as process evidence.
+- `BCM114-DEV-LOG.md` / `BCM206-DEV-LOG.md` — dated session logs (game content vs. site infrastructure).
 
 ## Stack
 
