@@ -32,6 +32,7 @@ def test_get_state_includes_every_expected_key(game_env):
         "price_history",
         "need_history",
         "seen_first_automation_callout",
+        "seasonal_demand",
         "achievements_earned",
     }
 

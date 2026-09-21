@@ -1589,3 +1589,7 @@ button.secondary:disabled::after {
 .almanac-table { width: 100%; border-collapse: collapse; font-size: 0.85em; margin-top: 6px; }
 .almanac-table th, .almanac-table td { text-align: left; padding: 3px 6px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
 .almanac-system { opacity: 0.7; }
+
+/* J29 seasonal demand */
+.seasonal-demand { margin: 6px 0; }
+.seasonal-demand .map-caption { margin: 4px 0 0; }

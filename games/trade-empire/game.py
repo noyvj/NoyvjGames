@@ -509,8 +509,49 @@ price_history = {good: [] for good in market_multiplier}
 need_history = {}
 
 
+# J29 -- opt-in seasonal demand. Every SEASON_LENGTH_TICKS the "in demand"
+# pair of goods rotates through the goods the player can reach; a good in
+# demand sells for SEASONAL_DEMAND_BONUS more. Purely a bonus (nothing is
+# ever marked down), fully predictable (the status line always names the
+# current and next pair), and off by default so the base economy is
+# unchanged. season_ticks only advances while the mode is on.
+SEASON_LENGTH_TICKS = 30
+SEASONAL_DEMAND_BONUS = 0.25
+SEASONAL_HOT_GOOD_COUNT = 2
+seasonal_demand_enabled = False
+season_ticks = 0
+
+
+def seasonal_reachable_goods():
+    reachable = set(active_colony_ids())
+    return [g for g in SELL_PRICE if colony_producing(g) in reachable]
+
+
+def seasonal_hot_goods(season_index):
+    goods = seasonal_reachable_goods()
+    if not goods:
+        return []
+    count = min(SEASONAL_HOT_GOOD_COUNT, len(goods))
+    start = (season_index * SEASONAL_HOT_GOOD_COUNT) % len(goods)
+    return [goods[(start + offset) % len(goods)] for offset in range(count)]
+
+
+def seasonal_status():
+    """(season number, ticks left, hot goods now, hot goods next season)."""
+    index = season_ticks // SEASON_LENGTH_TICKS
+    left = SEASON_LENGTH_TICKS - (season_ticks % SEASON_LENGTH_TICKS)
+    return index + 1, left, seasonal_hot_goods(index), seasonal_hot_goods(index + 1)
+
+
+def seasonal_multiplier(good):
+    if not seasonal_demand_enabled:
+        return 1.0
+    hot = seasonal_hot_goods(season_ticks // SEASON_LENGTH_TICKS)
+    return 1.0 + SEASONAL_DEMAND_BONUS if good in hot else 1.0
+
+
 def current_sell_price(good):
-    return max(1, round(SELL_PRICE[good] * market_multiplier[good]))
+    return max(1, round(SELL_PRICE[good] * market_multiplier[good] * seasonal_multiplier(good)))
 
 
 def apply_market_sale(good, qty):
@@ -1256,13 +1297,42 @@ def render_almanac():
     body.innerHTML = "".join(lines)
 
 
+def on_toggle_seasonal_demand(event=None):
+    global seasonal_demand_enabled
+    seasonal_demand_enabled = not seasonal_demand_enabled
+    render_market()
+
+
+def render_seasonal_demand():
+    button = document.getElementById("seasonal-demand-toggle-button")
+    status = document.getElementById("seasonal-demand-status")
+    if button is None or status is None:
+        return
+    button.innerText = f"Seasonal demand: {'on' if seasonal_demand_enabled else 'off'}"
+    if not seasonal_demand_enabled:
+        status.innerText = (
+            f"Optional: every {SEASON_LENGTH_TICKS} ticks two goods are in demand and sell for "
+            f"{int(SEASONAL_DEMAND_BONUS * 100)}% more. Nothing is ever marked down."
+        )
+        return
+    number, left, hot, upcoming = seasonal_status()
+    names = lambda goods: " and ".join(GOOD_LABEL[g] for g in goods)  # noqa: E731
+    status.innerText = (
+        f"Season {number}: {names(hot)} in demand (+{int(SEASONAL_DEMAND_BONUS * 100)}%) for "
+        f"{left} more tick(s). Next: {names(upcoming)}."
+    )
+
+
 def render_market():
+    render_seasonal_demand()
     render_almanac()
     for good in market_multiplier:
         price = current_sell_price(good)
         pct = market_multiplier[good] * 100
         display = document.getElementById(f"market-{good}-display")
         display.innerText = f"{GOOD_LABEL[good]}: {price} credits/unit ({pct:.0f}% of baseline)"
+        if seasonal_multiplier(good) > 1.0:
+            display.innerText += f" · in demand (+{int(SEASONAL_DEMAND_BONUS * 100)}%)"
         display.className = "market-price"
         display.title = ""
         if market_multiplier[good] < 0.7:
@@ -2187,8 +2257,10 @@ def _spark_burst_high_value_sale():
 
 
 def tick(event=None):
-    global total_profit, research_points, total_sales_count, max_profit_ever
+    global total_profit, research_points, total_sales_count, max_profit_ever, season_ticks
     research_points += RESEARCH_PER_TICK
+    if seasonal_demand_enabled:
+        season_ticks += 1
     for ship in ships.values():
         result = ship.advance_transit()
         if result is not None:
@@ -2316,6 +2388,7 @@ def get_state():
         "price_history": {good: list(values) for good, values in price_history.items()},
         "need_history": {colony_id: list(values) for colony_id, values in need_history.items()},
         "seen_first_automation_callout": seen_first_automation_callout,
+        "seasonal_demand": {"enabled": seasonal_demand_enabled, "ticks": season_ticks},
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed here, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),
@@ -2333,6 +2406,15 @@ def load_state(data):
     global fleet_priority_enabled, endgame_reached, ticks_since_endgame
     global total_sales_count, max_profit_ever, goods_sold_ever, ever_repositioned
     global _previously_earned_ids, seen_first_automation_callout
+    global seasonal_demand_enabled, season_ticks
+
+    seasonal_raw = data.get("seasonal_demand")
+    if isinstance(seasonal_raw, dict):
+        seasonal_demand_enabled = seasonal_raw.get("enabled") is True
+        ticks_raw = seasonal_raw.get("ticks")
+        season_ticks = ticks_raw if isinstance(ticks_raw, int) and not isinstance(ticks_raw, bool) and 0 <= ticks_raw <= 10_000_000 else 0
+    else:
+        seasonal_demand_enabled, season_ticks = False, 0
 
     unlocked_research = set(data.get("unlocked_research", unlocked_research))
 
@@ -2421,6 +2503,9 @@ def load_state(data):
 
 
 def setup():
+    document.getElementById("seasonal-demand-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_seasonal_demand)
+    )
     for colony_id, colony in ALL_COLONIES.items():
         document.getElementById(f"colony-{colony_id}-name").innerText = colony["name"]
         document.getElementById(f"colony-{colony_id}-flavor").innerText = COLONY_FLAVOR[colony_id]

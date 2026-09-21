@@ -31,6 +31,8 @@ ELEMENT_IDS = [
     "fleet-priority-button",
     "expansion-colonies-panel",
     "almanac-body",
+    "seasonal-demand-toggle-button",
+    "seasonal-demand-status",
     "expansion-market-panel",
     "expansion2-colonies-panel",
     "expansion2-market-panel",
