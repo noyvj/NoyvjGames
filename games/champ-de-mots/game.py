@@ -2708,6 +2708,8 @@ def render_changelog():
 
 def _plot_classes(plot):
     classes = ["plot", f"plot--{plot.stage}"]
+    # L16 -- a non-colour cue for the topic type (border style, see style.css).
+    classes.append(f"plot--type-{plot.topic_type}")
     # Weeds takes the place ordinary wilting would otherwise show for this
     # specific plot -- a known mix-up is more informative than a generic
     # "overdue" droop, so it's checked first and wilting is skipped when

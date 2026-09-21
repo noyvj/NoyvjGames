@@ -438,6 +438,16 @@ def test_automated_bar_tracks_the_share_of_automated_plots(game_env):
     assert "1 of" in game_env.elements["automated-meter"].title
 
 
+def test_each_plot_carries_its_topic_type_class(game_env):
+    module, state = game_env.module, game_env.state
+    module.render()
+    seen = set()
+    for plot in state.plots:
+        assert f"plot--type-{plot.topic_type}" in cell(game_env, plot.plot_id).className
+        seen.add(plot.topic_type)
+    assert {"vocab", "grammar", "phrase", "phonetic"} <= seen
+
+
 def test_row_progress_shows_how_far_each_row_has_come(game_env):
     module, state = game_env.module, game_env.state
     row = state.rows[0]

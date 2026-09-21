@@ -1422,3 +1422,9 @@ button:disabled {
 /* L8 plots-automated bar */
 .automated-meter { height: 6px; margin-top: 6px; border-radius: 3px; background: rgba(0, 0, 0, 0.18); overflow: hidden; }
 .automated-bar { height: 100%; width: 0; border-radius: 3px; background: currentColor; opacity: 0.55; }
+
+/* L16 topic-type cue: border style, so the distinction never relies on hue.
+   Vocab keeps the plain solid border. */
+.plot--type-grammar { border-style: dashed; border-width: 2px; }
+.plot--type-phrase { border-style: dotted; border-width: 2px; }
+.plot--type-phonetic { border-style: double; border-width: 3px; }

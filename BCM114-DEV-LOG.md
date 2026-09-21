@@ -420,3 +420,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Le Champ de Mots
 **Did:** A plot in the weeds now names, in its hover text, the look-alike word from the game's own confusion table. Deliberately reads the table instead of recording what was typed, to avoid a save-shape change.
 **Result:** Suite 571/571 passing, flake8 clean; tooltip text not separately browser-checked.
+
+### 2026-09-21 (Le Champ de Mots: topic-type border cue, L16)
+**Game:** Le Champ de Mots
+**Did:** Gave farm plots a colour-independent cue for their topic type (dashed/dotted/double borders for grammar/phrase/phonetic).
+**Result:** Suite 572/572 passing, flake8 clean; computed styles checked live.

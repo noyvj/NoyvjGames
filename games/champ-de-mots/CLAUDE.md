@@ -604,3 +604,7 @@ When the open question is a gender-tag question, a line under it (`#gender-accur
 ## L18: weeds tooltip names the look-alike (2026-09-21)
 
 `weeds_confusions_for(plot)` looks the plot's own French and English text up in `WEED_CONFUSIONS` (the table that puts plots in the weeds) and `_plot_title()` appends "Easy to mix up with: “x”" while the plot is in the weeds and the table has an entry. It names the table's known look-alikes rather than storing which specific wrong answer the player typed, which would need a save-shape change (`get_state()` per-plot record). Suite 571 passing (3 new tests in `tests/test_weeds.py`). Not separately browser-checked (tooltip text only).
+
+## L16: topic-type cue on farm plots (2026-09-21)
+
+`_plot_classes()` adds `plot--type-<topic_type>` to every plot cell, and `style.css` gives grammar a dashed 2px border, phrase a dotted 2px border and phonetic a double 3px border (vocab keeps the plain solid one). It is a border-style cue rather than a colour, so it is colourblind-safe and independent of the stage colours; the cells stay 25x25. The four visual-style themes may restyle borders, so the cue is guaranteed only for the default look. Suite 572 passing (1 new test in `tests/test_farm_ui.py`); computed styles checked live for all four types.
