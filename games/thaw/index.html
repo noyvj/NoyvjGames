@@ -331,6 +331,13 @@
       // ENGINE_MODULES loop.
       const infoPageSource = await (await fetch("../../shared/info_page.py")).text();
       pyodide.FS.writeFile("info_page.py", infoPageSource, { encoding: "utf8" });
+      // Shared narrative-log widget (Z11, see shared/narrative_log.py) --
+      // same fetch-then-writeFile pattern as info_page.py above, so
+      // game.py's `import narrative_log` resolves. G19's scientist's log
+      // reuses this component's append-and-cap bookkeeping (its own
+      // rendering stays bespoke -- see the CLAUDE.md build note for why).
+      const narrativeLogSource = await (await fetch("../../shared/narrative_log.py")).text();
+      pyodide.FS.writeFile("narrative_log.py", narrativeLogSource, { encoding: "utf8" });
       // "What's New" changelog (K16, planning/TODO.md) -- same fetch
       // convention as achievements.json above.
       const [achievementsJson, changelogJson, code] = await Promise.all([

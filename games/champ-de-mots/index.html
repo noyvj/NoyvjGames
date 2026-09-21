@@ -36,6 +36,11 @@
            origin K16): same hidden-until-opened idiom as Achievements
            above, populated from changelog.json newest-first. -->
       <button id="changelog-toggle-button" class="secondary" type="button">📋 What's New</button>
+      <!-- "My Reports" (Z11, planning/TODO.md, site-wide goal): a small
+           dated feed of report-button confirmations, built on the shared
+           shared/narrative_log.py component -- see game.py's own Z11 build
+           note above render_report_log(). -->
+      <button id="report-log-toggle-button" class="secondary" type="button">📨 My Reports</button>
       <button id="blitz-toggle-button" class="secondary" type="button">⚡ Greetings & Basics Blitz</button>
       <button id="racer-toggle-button" class="secondary" type="button">🏁 Verb Racer</button>
       <button id="boutique-toggle-button" class="secondary" type="button">👗 Boutique Dash</button>
@@ -86,6 +91,9 @@
     <!-- "What's New" changelog panel (origin K16): rows are built by
          game.py — see render_changelog(). -->
     <div id="changelog-panel" class="dashboard-panel" hidden></div>
+    <!-- "My Reports" (Z11): rows are built by game.py's render_report_log()
+         via the shared shared/narrative_log.py render() helper. -->
+    <div id="report-log-panel" class="dashboard-panel" hidden></div>
     <div id="achievement-toast" class="achievement-toast" hidden></div>
 
     <div id="blitz-panel" class="minigame-panel" hidden>
@@ -501,15 +509,28 @@
       // The catalog is handed to Python as a window global rather than read
       // from the Pyodide filesystem — no build step, one fetch, and the
       // pytest harness can stand in for it with the same attribute.
-      const [catalogJson, supplementaryNotesJson, achievementsJson, changelogJson, minigamesCode, code] =
-        await Promise.all([
-          fetch("fren_combined_catalog.json").then((response) => response.text()),
-          fetch("fren_supplementary_notes.json").then((response) => response.text()),
-          fetch("achievements.json").then((response) => response.text()),
-          fetch("changelog.json").then((response) => response.text()),
-          fetch("minigames.py").then((response) => response.text()),
-          fetch("game.py").then((response) => response.text()),
-        ]);
+      const [
+        catalogJson,
+        supplementaryNotesJson,
+        achievementsJson,
+        changelogJson,
+        minigamesCode,
+        narrativeLogCode,
+        code,
+      ] = await Promise.all([
+        fetch("fren_combined_catalog.json").then((response) => response.text()),
+        fetch("fren_supplementary_notes.json").then((response) => response.text()),
+        fetch("achievements.json").then((response) => response.text()),
+        fetch("changelog.json").then((response) => response.text()),
+        fetch("minigames.py").then((response) => response.text()),
+        // Shared narrative-log widget (Z11, see shared/narrative_log.py):
+        // this game's "My Reports" panel is the third integration, after
+        // Continuum's own Chronicle and Thaw's scientist's log. Written
+        // into the Pyodide filesystem the same way minigames.py is below,
+        // so game.py's `import narrative_log` resolves normally.
+        fetch("../../shared/narrative_log.py").then((response) => response.text()),
+        fetch("game.py").then((response) => response.text()),
+      ]);
       window.CATALOG_JSON = catalogJson;
       window.SUPPLEMENTARY_NOTES_JSON = supplementaryNotesJson;
       // ACHIEVEMENTS-SYSTEM-DESIGN.md §2: achievements.json is the single
@@ -527,6 +548,7 @@
       // the browser, the same way it already resolves under pytest via a
       // real file on disk.
       pyodide.FS.writeFile("minigames.py", minigamesCode);
+      pyodide.FS.writeFile("narrative_log.py", narrativeLogCode);
       await pyodide.runPythonAsync(code);
 
       // Milestones 27-30: each minigame's on-screen countdown is Python

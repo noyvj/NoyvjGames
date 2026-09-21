@@ -582,6 +582,14 @@
       // quartet games (e.g. canopy's boot script).
       const infoPageSource = await (await fetch("../../shared/info_page.py")).text();
       pyodide.FS.writeFile("info_page.py", infoPageSource, { encoding: "utf8" });
+      // Shared narrative-log widget (Z11, see shared/narrative_log.py) --
+      // same fetch-then-writeFile pattern as info_page.py above, so both
+      // `log.py` and `game.py`'s own `import narrative_log` resolve
+      // normally. Continuum is this component's reference integration
+      // (its own pre-existing "Chronicle" log was generalized into this
+      // shared module); Thaw and Le Champ de Mots reuse it too.
+      const narrativeLogSource = await (await fetch("../../shared/narrative_log.py")).text();
+      pyodide.FS.writeFile("narrative_log.py", narrativeLogSource, { encoding: "utf8" });
       // ACHIEVEMENTS-SYSTEM-DESIGN.md's loading contract: fetch the static
       // catalog and hand it to Python as a window global *before* game.py
       // runs, same pattern SOL/Le Champ de Mots use for their own JSON

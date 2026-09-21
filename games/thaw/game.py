@@ -10,6 +10,7 @@ loop (the entire point of this game) lands in Milestone 2.
 import json
 
 import info_page
+import narrative_log
 from js import document, setTimeout
 from pyodide.ffi import create_proxy
 
@@ -361,6 +362,18 @@ worst_case_intro_seen = False
 # G19: scientist's log -- a running, per-round record of key moments in the
 # three managed regions. Newest last; capped so a long session (and the
 # save payload) stays small.
+#
+# Z11 (planning/TODO.md, site-wide goal): the append-and-cap bookkeeping
+# below delegates to shared/narrative_log.py -- the shared component this
+# game's own pattern (alongside Continuum's "Chronicle") helped generalize.
+# A pure refactor, not a behavior change: narrative_log.add_entry() trims
+# exactly the way the old `del science_log[:-SCIENCE_LOG_MAX]` line always
+# trimmed. This game's own rendering (science_log_html(), an HTML-string
+# builder feeding a `<ol>`/`<li>` list inside a <details> disclosure) is
+# deliberately NOT migrated onto the shared module's DOM-based `render()` --
+# see this file's own CLAUDE.md Z11 build note for why forcing that
+# render shape onto this already-shipped, differently-structured markup
+# would be a rewrite, not a drop-in.
 SCIENCE_LOG_MAX = 40
 science_log = []
 
@@ -382,7 +395,7 @@ def _record_round_events():
                 damp=(r.dampening_at_melt_start or 0.0) * 100,
             )
             science_log.append({"region": label, "round": r.round_number - 1, "text": text})
-    del science_log[:-SCIENCE_LOG_MAX]
+    narrative_log.cap_entries(science_log, SCIENCE_LOG_MAX)
 
 
 def science_log_html():

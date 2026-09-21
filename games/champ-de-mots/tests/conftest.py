@@ -11,6 +11,15 @@ GAME_DIR = Path(__file__).resolve().parent.parent
 GAME_PY = GAME_DIR / "game.py"
 CATALOG_PATH = GAME_DIR / "fren_combined_catalog.json"
 
+# Z11: game.py imports the shared narrative-log widget (shared/
+# narrative_log.py) the same way the real Pyodide boot script does (see
+# index.html) and the same way Continuum's/Thaw's own tests already do --
+# so the repo-root shared/ directory has to be importable before game.py
+# can be exec'd.
+SHARED_DIR = GAME_DIR.parent.parent / "shared"
+if str(SHARED_DIR) not in sys.path:
+    sys.path.insert(0, str(SHARED_DIR))
+
 # The page's boot script fetches the catalog and hands it to Python as a
 # window global before running game.py (see index.html); the fake `js`
 # module below stands in for that, so tests exercise the real 966-item
@@ -55,6 +64,8 @@ ELEMENT_IDS = [
     "achievement-toast",
     "changelog-toggle-button",
     "changelog-panel",
+    "report-log-toggle-button",
+    "report-log-panel",
     "blitz-toggle-button",
     "blitz-panel",
     "blitz-lock-message",

@@ -1,4 +1,5 @@
 [
+  { "date": "2026-09-22", "entry": "New \"My Reports\" panel: a small dated feed confirming every correctness or pronunciation report you've sent, from any practice mode (site-wide goal, Z11)." },
   { "date": "2026-09-21", "entry": "Settings panel: added a \"Reset to Default\" button that resets the visual style back to High-def in one click (site-wide goal, folded from A26)." },
   { "date": "2026-09-21", "entry": "New Mixed Review Marathon in the Review tab: a long session of up to 40 due plots from anywhere on the farm, most overdue first." },
   { "date": "2026-09-21", "entry": "A batch of small progress and practice details: an opt-in Study buddy that suggests a daily review length, a Farm health section and a scheduling explainer under the Progress dashboard, a plots-automated bar, hover text for row catch-up and automated-plot review countdowns, colour-independent plot borders by topic type, weeds plots that name their look-alike, running accuracy lines for the gender drill and for Sure / Not sure confidence, and a sound legend in liaison practice." },

@@ -722,3 +722,83 @@ include, added right after `shared/last-played.js`'s own include. See
 root `CLAUDE.md`'s Working notes for the full write-up -- shared
 infrastructure, documented once there rather than duplicated across all
 12 games' own files.
+
+## Narrative log migrated to shared component (Z11, site-wide goal), and a new "My Reports" panel
+
+`planning/TODO.md`'s Z11 line asked to build this game's "report-
+confirmation flow (L14)" on a new shared narrative-log component. Checking
+what L14 actually specifies first (per the task's own instruction, given
+this hub's history of cross-round label collisions) found it already
+fully satisfied by something unrelated to a narrative log at all: L14
+("let the report-button flow show a short 'thanks, noted' confirmation
+distinct from the normal question-feedback flow") is the pre-existing
+`REPORT_SENT_LABEL`/`PRONUNCIATION_REPORT_SENT_LABEL` button relabel
+(every report button already reads "Reported — thanks" and disables
+itself, separate from the answer-feedback line) -- checked off in
+`planning/TODO.md` back on 2026-09-21, before this session started.
+
+Rather than force that unrelated, already-done feature to stand in for
+this task, this session built the genuinely narrative-log-shaped feature
+Z11's own fallback language asks for: **"My Reports"** (`📨 My Reports`
+toolbar button → `#report-log-panel`), a small dated feed confirming every
+correctness/pronunciation report actually sent this session, across all
+10 of this game's `submit_*_report()` call sites (main panel, Review,
+Proficiency, and Bonus's tile/sentence tasks, each with both a
+correctness and a pronunciation variant). Built on the new shared
+`shared/narrative_log.py` module (generalized from Continuum's own
+"Chronicle" log; Thaw's scientist's log is the second integration, this
+is the third): `_record_report_log_entry(payload)` is called right after
+every `_dispatch_report(payload)` call (added once, via a single
+`replace_all` across all 10 identical call sites), and appends
+`{"day": state.current_day, "topic": payload["topic_type"], "text": ...}`
+via `narrative_log.add_entry(report_log, entry, cap=REPORT_LOG_MAX)`
+(capped at 20). "Dated" means `state.current_day` (this game's own
+no-wall-clock day counter, Milestone 2) rather than a real calendar date
+-- `game.py` is forbidden from touching any clock API at all (Milestone
+7's own tested constraint), the same reason §14.2.4's report payload
+itself never builds a timestamp (the backend's `created_at` covers that).
+`REPORT_LOG_TOPIC_LABEL` maps the three fixed non-plot topic-type markers
+(`pronunciation`/`bonus_tile`/`bonus_sentence`) to a readable phrase;
+anything else (a plot's own `vocab`/`grammar`/`phrase`/`phonetic`
+topic_type) falls back to a generic "a {topic_type} answer" phrase.
+
+Rendering reuses this game's own established one-`<p>`-per-row panel
+idiom (`render_changelog()`/`render_dashboard()`'s own convention) via a
+`_build_report_log_row()` callback handed to `narrative_log.render()`,
+rather than Continuum's multi-element `row`/`row-top`/`row-name`/
+`row-blurb` structure -- internals are free once you're inside a game.
+`.report-log-row` reuses `.changelog-row`'s exact styling (including the
+same three per-theme legibility overrides in `visual-styles.css` that
+Milestone 33 already added for `.changelog-row` against the Low-poly/
+Text-based/Cartoon palettes, since a new row class inheriting the same
+dark-on-dark text would hit the identical bug). `report_log` rides
+`get_state()`/`load_state()` (only written once non-empty, matching
+`practice_ledger`'s own "don't bloat an untouched save" rule), validated
+entry-by-entry on load via `narrative_log.sanitize()` with a small
+`_is_valid_report_log_entry()` predicate -- a malformed or missing key
+drops just that one entry rather than failing the whole load. An old save
+predating this feature has no `report_log` key at all, which `sanitize()`
+already treats as an empty list.
+
+`index.html`'s boot script fetches `shared/narrative_log.py` and writes it
+into the Pyodide filesystem alongside `minigames.py`, and
+`tests/conftest.py` gained the same `SHARED_DIR` `sys.path` insertion
+Continuum's/Thaw's own conftest.py already have (this game's own
+`import minigames` resolves through a different, self-contained
+try/except-with-path-insertion fallback that doesn't cover a second,
+unrelated shared-directory import). New tests:
+`tests/test_report_log.py` (17 tests -- recording from both report kinds,
+one-shot behavior, the cap, panel open/close and empty-state rendering,
+and the full save/load round-trip including a malformed-entry drop case).
+592 → 607 tests (one pre-existing, unrelated test self-skips on its own
+documented nondeterminism); `flake8` clean. A `changelog.json` entry was
+added since this is new player-visible behavior (unlike Continuum's/
+Thaw's pure refactors, which needed none).
+
+Verified live via the shared `hub-dev-server`: submitting both a
+correctness report and a pronunciation report produced two correctly-
+labeled entries; a real DOM `.click()` on the toolbar button (not just a
+direct Python call) correctly opened the panel and showed "Day 1 —
+Reported a vocab answer for “hello”."; the panel's text color was checked
+distinct and legible across all four visual styles (High-def/Low-poly/
+Text-based/Cartoon). Zero console errors throughout.

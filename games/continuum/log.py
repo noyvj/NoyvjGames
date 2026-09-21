@@ -42,8 +42,18 @@ of concerns the rest of Phase 1 set up. `save.py`'s `Campaign` owns one
 `Chronicle` alongside its `CityState` and `ResearchTree`, and Milestone 7's
 era-transition beat system is expected to add a `"transition"` kind here
 by calling into `Chronicle` from `Campaign.advance_to_era()`.
+
+**Z11 (`planning/TODO.md`, site-wide goal): the append-and-cap bookkeeping
+below now delegates to `shared/narrative_log.py`**, the shared component
+this game's own pattern was generalized into (reused since by Thaw's
+scientist's-log and Le Champ de Mots' report log). This is a pure
+refactor, not a behavior change: `narrative_log.add_entry()` trims exactly
+the way `Chronicle._add()` always trimmed by hand (append, then drop from
+the front down to the cap), so `MAX_ENTRIES`, every trigger condition
+below, and the save schema are all unchanged.
 """
 
+import narrative_log
 import sustainability
 
 # --- population thresholds ----------------------------------------------
@@ -174,9 +184,7 @@ class Chronicle:
         )
 
     def _add(self, entry):
-        self.entries.append(entry)
-        if len(self.entries) > MAX_ENTRIES:
-            self.entries = self.entries[-MAX_ENTRIES:]
+        narrative_log.add_entry(self.entries, entry, cap=MAX_ENTRIES)
 
     # --- triggers ---------------------------------------------------------
     def check_research(self, state, tree):

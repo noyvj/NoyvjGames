@@ -732,3 +732,25 @@ include, added right after `shared/last-played.js`'s own include. See
 root `CLAUDE.md`'s Working notes for the full write-up -- shared
 infrastructure, documented once there rather than duplicated across all
 12 games' own files.
+
+## Narrative log migrated to shared component (Z11, site-wide goal)
+
+`log.py`'s Chronicle is the reference integration for a new shared
+`shared/narrative_log.py` module, generalizing this game's own append-and-
+cap/render pattern (Milestone 6) for reuse by Thaw's scientist's log and
+Le Champ de Mots' new report-confirmation log. Pure refactor, zero
+player-visible change: `Chronicle._add()` now calls
+`narrative_log.add_entry(self.entries, entry, cap=MAX_ENTRIES)` instead of
+trimming by hand, and `game.py`'s `render_log()` delegates its cap/empty-
+state/count-label loop to `narrative_log.render()`, handing it a
+`_build_log_row()` callback that builds the exact same
+`row`/`row-top`/`row-name`/`row-blurb` markup the old inline loop built --
+same 20-row `LOG_VISIBLE_ENTRIES` cap, same newest-first order, same CSS
+classes/icons. `index.html`'s boot script fetches `shared/narrative_log.py`
+and writes it into the Pyodide filesystem the same way `shared/info_page.py`
+already is, so both `log.py`'s and `game.py`'s `import narrative_log`
+resolve. All 568 tests pass unchanged in substance (only the internals of
+`Chronicle._add()`/`render_log()` moved); `flake8` clean (no new findings).
+Verified live: researching a node produced the correct Chronicle entry and
+the exact same DOM structure the pre-migration `render_log()` produced,
+with zero console errors.

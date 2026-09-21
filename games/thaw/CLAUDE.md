@@ -499,3 +499,29 @@ added right after `shared/last-played.js`'s own include. See root
 `CLAUDE.md`'s Working notes for the full write-up -- shared
 infrastructure, documented once there rather than duplicated across all
 12 games' own files.
+
+## Narrative log migrated to shared component (Z11, site-wide goal)
+
+G19's scientist's log (`science_log`, capped at `SCIENCE_LOG_MAX = 40`) now
+delegates its append-and-cap bookkeeping to a new `shared/narrative_log.py`
+module, generalized from Continuum's own "Chronicle" log pattern (that
+game's `log.py` is the reference integration; this is the second). Only
+the cap/append logic moved -- `_record_round_events()` still appends each
+event's own `{"region", "round", "text"}` dict directly, then calls
+`narrative_log.cap_entries(science_log, SCIENCE_LOG_MAX)` once after the
+loop, matching this game's own pre-migration behavior exactly (a single
+unconditional trim per round regardless of how many regions had something
+happen that round, not a trim-per-append -- an early attempt to call the
+shared module's own `add_entry()` per event inside the loop changed this
+behavior in a test-caught regression, since it only trims on the calls
+that actually appended something). `science_log_html()`'s own rendering
+(an HTML-string builder feeding a `<ol>`/`<li>` list inside a `<details>`
+disclosure) was deliberately left as-is rather than forced onto the
+shared module's DOM-based `render()` -- a different, already-shipped,
+already-tested markup shape with no real duplication left to extract once
+the cap/append logic moved out. `index.html`'s boot script fetches
+`shared/narrative_log.py` the same way it already fetches
+`shared/info_page.py`. All 156 tests pass unchanged in substance; `flake8`
+clean. Verified live: advancing rounds until melt started still produced
+the correct three-region log entries, rendered in the same `<li>` markup
+as before, with zero console errors.

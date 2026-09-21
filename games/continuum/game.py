@@ -42,6 +42,7 @@ import challenges  # noqa: E402
 import consulting  # noqa: E402
 import info_content  # noqa: E402
 import info_page  # noqa: E402
+import narrative_log  # noqa: E402
 import research  # noqa: E402
 import save  # noqa: E402
 import sim  # noqa: E402
@@ -1778,6 +1779,32 @@ LOG_KIND_ICON = {
 }
 
 
+def _build_log_row(entry):
+    """One log row's DOM, handed to `narrative_log.render()` as its
+    `build_row` callback (Z11) — byte-identical markup to what render_log()
+    used to build inline, just factored out so the shared module can own
+    the surrounding cap/empty-state/count loop instead of this game
+    repeating it."""
+    row = document.createElement("div")
+    row.className = f"row log-row log-row--{entry.kind}"
+
+    top = document.createElement("div")
+    top.className = "row-top"
+    tag = document.createElement("span")
+    tag.className = "row-name"
+    icon = LOG_KIND_ICON.get(entry.kind, "")
+    tag.innerText = f"{icon}{sim.ERA_LABEL.get(entry.era, entry.era)} · Season {entry.season}"
+    top.appendChild(tag)
+    row.appendChild(top)
+
+    text = document.createElement("p")
+    text.className = "row-blurb"
+    text.innerText = entry.text
+    row.appendChild(text)
+
+    return row
+
+
 def render_log():
     """The ongoing log (Milestone 6) — lightweight, skippable flavor text
     triggered by research unlocks, population thresholds, and livability
@@ -1786,40 +1813,21 @@ def render_log():
     rebuilt from `chronicle.entries` the same way render_research() rebuilds
     the research panel from the tree, for the same reason: a session's
     worth of rows can't be static markup.
+
+    Z11: delegates the cap/empty-state/count-label loop to
+    `narrative_log.render()` — this game's own reference integration for
+    that shared component. Same player-visible behavior as before the
+    migration (same 20-row cap, same newest-first order, same markup).
     """
-    document.getElementById("log-status-display").innerText = (
-        f"{len(chronicle.entries)} entries"
+    narrative_log.render(
+        "log-list",
+        chronicle.entries,
+        _build_log_row,
+        empty_text="Nothing to report yet.",
+        max_visible=LOG_VISIBLE_ENTRIES,
+        count_element_id="log-status-display",
+        count_text=f"{len(chronicle.entries)} entries",
     )
-
-    container = document.getElementById("log-list")
-    container.innerHTML = ""
-
-    if not chronicle.entries:
-        empty = document.createElement("p")
-        empty.className = "row-blurb"
-        empty.innerText = "Nothing to report yet."
-        container.appendChild(empty)
-        return
-
-    for entry in reversed(chronicle.entries[-LOG_VISIBLE_ENTRIES:]):
-        row = document.createElement("div")
-        row.className = f"row log-row log-row--{entry.kind}"
-
-        top = document.createElement("div")
-        top.className = "row-top"
-        tag = document.createElement("span")
-        tag.className = "row-name"
-        icon = LOG_KIND_ICON.get(entry.kind, "")
-        tag.innerText = f"{icon}{sim.ERA_LABEL.get(entry.era, entry.era)} · Season {entry.season}"
-        top.appendChild(tag)
-        row.appendChild(top)
-
-        text = document.createElement("p")
-        text.className = "row-blurb"
-        text.innerText = entry.text
-        row.appendChild(text)
-
-        container.appendChild(row)
 
 
 def render_sustainability(effects):

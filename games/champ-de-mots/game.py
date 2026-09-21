@@ -18,6 +18,7 @@ import random
 import re
 import unicodedata
 
+import narrative_log
 from js import document
 from pyodide.ffi import create_proxy
 
@@ -1716,6 +1717,103 @@ bonus_sentence_report_sent = False
 bonus_sentence_pronunciation_report_sent = False
 
 
+# ===========================================================================
+# "My Reports" (Z11, planning/TODO.md, site-wide goal) -- a small, dated feed
+# confirming every report this player has actually sent, built on the shared
+# shared/narrative_log.py component (Continuum's "Chronicle" is that
+# component's reference integration; Thaw's scientist's log is the second;
+# this is the third). Investigating this task's own L14 line ("let the
+# report-button flow show a short 'thanks, noted' confirmation distinct from
+# the normal question-feedback flow") found it was already fully satisfied
+# by the pre-existing REPORT_SENT_LABEL/PRONUNCIATION_REPORT_SENT_LABEL
+# button-label swap defined above (each report button already reads
+# "Reported — thanks" and disables itself) -- a genuine cross-round label
+# collision with a *different* feature, per planning/TODO.md's own L14 line
+# under this game's section, not a narrative-log-shaped gap at all. This
+# panel is the actual narrative-log-shaped feature the Z11 task asks to
+# build instead: "a dated feed of 'you reported X on this date'
+# confirmations from its existing answer-reports feature." "Dated" here
+# means `state.current_day` (this game's own no-wall-clock day counter,
+# Milestone 2) rather than a real calendar date -- `game.py` is forbidden
+# from touching any clock API at all (Milestone 7's own tested constraint,
+# `test_nothing_in_the_game_runs_on_a_timer`), the same reason §14.2.4's
+# report payload itself never builds its own timestamp.
+# ===========================================================================
+REPORT_LOG_MAX = 20
+
+# Every one of this game's 10 submit_*_report() functions sends a payload
+# whose "topic_type" is either a plot's own topic_type (vocab/grammar/
+# phrase/phonetic, from the main/Review/Proficiency "should count" reports)
+# or one of these three fixed markers (pronunciation concerns, and Bonus's
+# two non-plot-backed report kinds) -- this maps the fixed markers to a
+# readable phrase; anything else falls back to a generic "a {topic_type}
+# answer" phrase built from the raw value itself.
+REPORT_LOG_TOPIC_LABEL = {
+    PRONUNCIATION_REPORT_TOPIC_TYPE: "a pronunciation concern",
+    BONUS_TILE_REPORT_TOPIC_TYPE: "a bonus-tile translation",
+    BONUS_SENTENCE_REPORT_TOPIC_TYPE: "a bonus-sentence translation",
+}
+
+report_log = []
+report_log_open = False
+
+
+def _report_log_topic_label(topic_type):
+    return REPORT_LOG_TOPIC_LABEL.get(topic_type, f"a {topic_type} answer")
+
+
+def _record_report_log_entry(payload):
+    """Called right after every submit_*_report() function marks its own
+    one-shot "sent" flag -- a local confirmation that a report was actually
+    sent this session, independent of whether _dispatch_report()'s own
+    network call succeeds (the flag it rides alongside is already
+    fire-and-forget the same way, and this game has no clock to timestamp
+    a network round-trip with regardless)."""
+    answers = payload.get("marked_correct_answer") or [""]
+    text = f"Reported {_report_log_topic_label(payload['topic_type'])} for “{answers[0]}”."
+    narrative_log.add_entry(
+        report_log,
+        {"day": state.current_day, "topic": payload["topic_type"], "text": text},
+        cap=REPORT_LOG_MAX,
+    )
+
+
+def on_toggle_report_log(event=None):
+    global report_log_open
+    report_log_open = not report_log_open
+    render()
+
+
+def _build_report_log_row(entry):
+    # Same one-<p>-per-row idiom render_changelog()/render_dashboard()
+    # already use for this game's own panels, rather than the
+    # row/row-top/row-name/row-blurb multi-element structure Continuum's
+    # own build_row callback uses -- internals are free once you're inside
+    # a game, and this keeps the new panel visually consistent with the
+    # rest of this game's own dashboard-style panels.
+    row = document.createElement("p")
+    row.className = "report-log-row"
+    row.innerText = f"Day {entry['day'] + 1} — {entry['text']}"
+    return row
+
+
+def render_report_log():
+    panel = _element("report-log-panel")
+    toggle = _element("report-log-toggle-button")
+    count = len(report_log)
+    toggle.innerText = f"Hide My Reports ({count})" if report_log_open else f"📨 My Reports ({count})"
+    panel.hidden = not report_log_open
+    if not report_log_open:
+        return
+    narrative_log.render(
+        "report-log-panel",
+        report_log,
+        _build_report_log_row,
+        empty_text="Nothing reported yet — reports you send from any practice mode will show up here.",
+        max_visible=REPORT_LOG_MAX,
+    )
+
+
 def _element(element_id):
     return document.getElementById(element_id)
 
@@ -3099,6 +3197,7 @@ def render():
     render_liaison_drill()
     render_achievements()
     render_changelog()
+    render_report_log()
     minigames.render()
 
 
@@ -3280,6 +3379,7 @@ def submit_report(event=None):
         return None
     report_sent = True
     _dispatch_report(payload)
+    _record_report_log_entry(payload)
     render()
     return payload
 
@@ -3307,6 +3407,7 @@ def submit_pronunciation_report(event=None):
         return None
     pronunciation_report_sent = True
     _dispatch_report(payload)
+    _record_report_log_entry(payload)
     render()
     return payload
 
@@ -3608,6 +3709,7 @@ def submit_review_report(event=None):
         return None
     review_report_sent = True
     _dispatch_report(payload)
+    _record_report_log_entry(payload)
     render()
     return payload
 
@@ -3626,6 +3728,7 @@ def submit_review_pronunciation_report(event=None):
         return None
     review_pronunciation_report_sent = True
     _dispatch_report(payload)
+    _record_report_log_entry(payload)
     render()
     return payload
 
@@ -3983,6 +4086,7 @@ def submit_proficiency_report(event=None):
         return None
     proficiency_report_sent = True
     _dispatch_report(payload)
+    _record_report_log_entry(payload)
     render()
     return payload
 
@@ -4001,6 +4105,7 @@ def submit_proficiency_pronunciation_report(event=None):
         return None
     proficiency_pronunciation_report_sent = True
     _dispatch_report(payload)
+    _record_report_log_entry(payload)
     render()
     return payload
 
@@ -4427,6 +4532,7 @@ def submit_bonus_tile_report(event=None):
         return None
     bonus_tile_report_sent = True
     _dispatch_report(payload)
+    _record_report_log_entry(payload)
     render()
     return payload
 
@@ -4457,6 +4563,7 @@ def submit_bonus_tile_pronunciation_report(event=None):
         return None
     bonus_tile_pronunciation_report_sent = True
     _dispatch_report(payload)
+    _record_report_log_entry(payload)
     render()
     return payload
 
@@ -4486,6 +4593,7 @@ def submit_bonus_sentence_report(event=None):
         return None
     bonus_sentence_report_sent = True
     _dispatch_report(payload)
+    _record_report_log_entry(payload)
     render()
     return payload
 
@@ -4515,6 +4623,7 @@ def submit_bonus_sentence_pronunciation_report(event=None):
         return None
     bonus_sentence_pronunciation_report_sent = True
     _dispatch_report(payload)
+    _record_report_log_entry(payload)
     render()
     return payload
 
@@ -4800,6 +4909,9 @@ def setup():
     _element("changelog-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_changelog)
     )
+    _element("report-log-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_report_log)
+    )
     # Explicit, not just relying on index.html's `hidden` attribute -- the
     # toast element is only otherwise touched by show_achievement_toast()
     # (unlike every *panel*, which gets its `hidden` state re-set on every
@@ -4920,6 +5032,10 @@ def get_state():
         "practice_ledger": {
             mode: dict(entry) for mode, entry in practice_ledger.items() if entry["total"]
         },
+        # Z11 "My Reports" -- only written once something has actually been
+        # reported, matching practice_ledger's own "don't bloat an untouched
+        # save" rule above.
+        **({"report_log": list(report_log)} if report_log else {}),
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) -- always
         # freshly recomputed from the farm above, never read back in
         # load_state(). This is what makes this game's achievements show up
@@ -4937,8 +5053,17 @@ def get_state():
 # together end-to-end, the "truly empty save" case CLAUDE.md's Milestone 5
 # notes call out as in-scope. Also no test loads a save with an unrecognized
 # stage string to exercise the STAGE_RANK fallback a few lines below.
+def _is_valid_report_log_entry(entry):
+    return (
+        isinstance(entry.get("day"), int)
+        and not isinstance(entry.get("day"), bool)
+        and isinstance(entry.get("topic"), str)
+        and isinstance(entry.get("text"), str)
+    )
+
+
 def load_state(data):
-    global error_pattern_counts, practice_ledger, study_buddy_enabled
+    global error_pattern_counts, practice_ledger, study_buddy_enabled, report_log
 
     study_buddy_enabled = data.get("study_buddy") is True
 
@@ -4947,6 +5072,13 @@ def load_state(data):
     state.invalidate_unlocks()
     error_pattern_counts = dict(data.get("error_patterns") or {})
     practice_ledger = _validated_practice_ledger(data.get("practice_ledger"))
+    # Z11 "My Reports" -- an old save predating this feature simply has no
+    # "report_log" key, which sanitize() already treats as "empty list",
+    # the same forward-compatibility standard every other per-game field
+    # in this hub's save schemas already holds itself to.
+    report_log = narrative_log.sanitize(
+        data.get("report_log"), REPORT_LOG_MAX, is_valid=_is_valid_report_log_entry
+    )
 
     for plot in state.plots:
         # Plots missing from the save are reset rather than left as they are:

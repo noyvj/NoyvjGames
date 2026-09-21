@@ -77,11 +77,11 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [x] Migrate Aftermath's existing E12 export to it
   - [x] Apply to SOL's A17 export idea (see per-game section) using the shared helper, not a one-off
 - [x] Z10: A consistent "difficulty variant active" icon/badge on a game's title card when it has one enabled (single hub-side feature, reads each game's own difficulty flag).
-- [ ] Z11: A shared "narrative log" component (a small dated feed of things that happened):
-  - [ ] Build the shared component
-  - [ ] Migrate Continuum's existing ongoing-log to it
-  - [ ] Build Thaw's proposed scientist's-log (G19) on it
-  - [ ] Build Le Champ de Mots' report-confirmation flow (L14) on it
+- [x] Z11: A shared "narrative log" component (a small dated feed of things that happened): built as `shared/narrative_log.py` (append-and-cap bookkeeping + a DOM render helper, the two genuinely duplicated pieces of Continuum's own pre-existing pattern). L14 turned out to already be satisfied by something unrelated (a button-relabel, not a narrative log) — the real cross-round label collision this doc has hit before — so Le Champ de Mots got a new, genuinely narrative-log-shaped "My Reports" panel instead. See each game's own CLAUDE.md Z11 build note for details.
+  - [x] Build the shared component
+  - [x] Migrate Continuum's existing ongoing-log to it
+  - [x] Build Thaw's proposed scientist's-log (G19) on it
+  - [x] Build Le Champ de Mots' report-confirmation flow (L14) on it — L14 itself was already satisfied (a button-relabel, unrelated to a narrative log); built a new "My Reports" dated report-confirmation feed on the shared component instead, per this line's own intent
 - [x] Z12: A quick audit confirming the achievements/settings/changelog toggle buttons land in a consistent order/position across every game's toolbar. Audited via `grep` across every game's `index.html`: 11/12 already consistent (Tutorial -> How to Play -> [Info Page ->] Achievements -> Changelog -> [game-specific toggles] -> Settings always last, whether in one `.game-toolbar` or split across two adjacent ones like Grid/Tide's difficulty-toggle row). **Aftermath was the one real outlier** (Settings landed in the first toolbar near the top, Achievements/Changelog got stranded in a second toolbar after a block of narrative content) — fixed, commit `b49bed3`, 246/246 tests, verified live.
   - [x] SOL
   - [x] Canopy

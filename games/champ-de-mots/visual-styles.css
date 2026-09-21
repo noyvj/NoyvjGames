@@ -221,6 +221,12 @@ html[data-visual-style="lowpoly"] .changelog-row {
   color: #eef3f6;
 }
 
+/* Z11: the new "My Reports" panel reuses .changelog-row's exact styling
+   (see style.css), so it needs the identical legibility fix here. */
+html[data-visual-style="lowpoly"] .report-log-row {
+  color: #eef3f6;
+}
+
 html[data-visual-style="lowpoly"] .panel-hero {
   background: #f4b942;
   border-radius: 0;
@@ -329,6 +335,12 @@ html[data-visual-style="textbased"] .row--locked {
    re-set to the same terminal-green already used for .primary/.secondary/
    .choice/.practice-input text against the same dark background. */
 html[data-visual-style="textbased"] .changelog-row {
+  color: #b9f5c9;
+}
+
+/* Z11: the new "My Reports" panel reuses .changelog-row's exact styling
+   (see style.css), so it needs the identical legibility fix here. */
+html[data-visual-style="textbased"] .report-log-row {
   color: #b9f5c9;
 }
 
@@ -509,6 +521,12 @@ html[data-visual-style="cartoon"] .row--locked {
    the same near-white lavender already used for .practice-input text
    against the same background. */
 html[data-visual-style="cartoon"] .changelog-row {
+  color: #f5eaff;
+}
+
+/* Z11: the new "My Reports" panel reuses .changelog-row's exact styling
+   (see style.css), so it needs the identical legibility fix here. */
+html[data-visual-style="cartoon"] .report-log-row {
   color: #f5eaff;
 }
 

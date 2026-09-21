@@ -1024,6 +1024,16 @@ button:disabled {
   color: #33291f;
 }
 
+/* "My Reports" panel (Z11, planning/TODO.md, site-wide goal) -- same
+   one-<p>-per-row idiom as .changelog-row above, deliberately reusing its
+   exact styling rather than inventing a second look for what is visually
+   the same kind of panel. */
+.report-log-row {
+  margin: 0 0 0.2rem;
+  font-size: 0.8rem;
+  color: #33291f;
+}
+
 /* Achievements retrofit: unlock toast, fixed near the top of the viewport
    so it's visible regardless of scroll position. Reuses the same
    affirmative-green language as .choice--answer/the confidence buttons
