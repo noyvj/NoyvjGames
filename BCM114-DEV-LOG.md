@@ -495,3 +495,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Trade Empire
 **Did:** Added passive-income trade posts (one per reachable star system, 400 credits, 2 credits per tick) unlocked once every automation slot is in use; income isn't counted as a sale; per-entry validated save field.
 **Result:** Suite 336 passing, flake8 clean; verified live.
+
+### 2026-09-21 (Trade Empire: docking pulses on the map, J10)
+**Game:** Trade Empire
+**Did:** Added a brief ring pulse on the map when a ship departs (growing) or arrives (closing in), differentiated by direction and line weight, skipped under reduced motion, nothing saved.
+**Result:** Suite 343 passing, flake8 clean; state and canvas redraw checked live, the pulse not confirmed by eye.

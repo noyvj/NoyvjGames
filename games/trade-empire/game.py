@@ -401,6 +401,55 @@ def ship_map_position(ship):
     )
 
 
+# J10 -- a brief docking/undocking pulse on the map. Undocking is a ring
+# that grows outward from the colony a ship just left; docking is a ring
+# that closes in on the colony a ship just reached. Direction and line
+# weight carry the meaning (not colour), each pulse lasts DOCK_PULSE_TICKS
+# ticks, and none are drawn while the player has reduced motion on. Purely
+# a view effect: nothing is saved.
+DOCK_PULSE_TICKS = 3
+dock_pulses = []  # [colony_id, "dock" | "undock", age_in_ticks]
+
+
+def add_dock_pulse(colony_id, kind):
+    if colony_id in NODE_POSITIONS:
+        dock_pulses.append([colony_id, kind, 0])
+
+
+def age_dock_pulses():
+    for pulse in dock_pulses:
+        pulse[2] += 1
+    dock_pulses[:] = [p for p in dock_pulses if p[2] < DOCK_PULSE_TICKS]
+
+
+def _reduced_motion_on():
+    try:
+        return bool(document.documentElement.classList.contains("reduce-motion"))
+    except Exception:
+        return False
+
+
+def dock_pulse_radius(kind, age):
+    step = age / DOCK_PULSE_TICKS
+    if kind == "undock":
+        return NODE_RADIUS + 4 + step * 18
+    return NODE_RADIUS + 4 + (1 - step) * 18
+
+
+def draw_dock_pulses(ctx):
+    if _reduced_motion_on():
+        return
+    for colony_id, kind, age in dock_pulses:
+        if colony_id not in active_colony_ids():
+            continue
+        x, y = NODE_POSITIONS[colony_id]
+        ctx.strokeStyle = LABEL_COLOR
+        ctx.lineWidth = 3 if kind == "dock" else 1.5
+        ctx.beginPath()
+        ctx.arc(x, y, dock_pulse_radius(kind, age), 0, 2 * math.pi)
+        ctx.stroke()
+
+
 def render_map():
     canvas = document.getElementById("map-canvas")
     ctx = canvas.getContext("2d")
@@ -452,6 +501,8 @@ def render_map():
             ctx.beginPath()
             ctx.arc(tx, ty, NODE_RADIUS + 6, 0, 2 * math.pi)
             ctx.stroke()
+
+    draw_dock_pulses(ctx)
 
     for ship in ships.values():
         if not ship.purchased:
@@ -976,6 +1027,7 @@ class Ship:
         return [c for c in active_colony_ids() if c != self.location]
 
     def _begin_transit(self, destination):
+        add_dock_pulse(self.location, "undock")
         self.origin = self.location
         self.destination = destination
         self.location = None
@@ -1049,6 +1101,7 @@ class Ship:
                 self.route_key = key
                 self.route_legs = 1
         self.location = destination
+        add_dock_pulse(destination, "dock")
         self.origin = None
         self.destination = None
         self.cargo_good = None
@@ -2692,6 +2745,7 @@ def tick(event=None):
                 show_notice_toast(
                     f"🚚 {ship.name} arrived at {ALL_COLONIES[ship.location]['name']}."
                 )
+    age_dock_pulses()
     if route_hazards_enabled and route_insurance_enabled:
         for ship in ships.values():
             if ship.in_transit and total_profit >= INSURANCE_PREMIUM_PER_TICK:
