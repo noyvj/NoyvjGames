@@ -592,3 +592,7 @@ A thin bar under the "plots growing / automated" tile shows automated plots as a
 ## L26: liaison sound legend (2026-09-21)
 
 The liaison/elision drill shows a one-line legend (`#liaison-legend`) for the bracketed sounds a question mentions. `liaison_legend_text(entry)` scans the prompt, choices and explanation for `[x]` symbols, keeps those in `LIAISON_SOUND_LEGEND` (z, t, n, r, p, each described by an English comparison) and hides the line when there are none. It is data-driven, so future drill questions using another listed sound need no code; today only the `[z]` question triggers it, which is why the legend is a one-liner rather than a full IPA chart. Suite 565 passing (3 new tests in `tests/test_liaison_drill.py`); checked live, the legend renders for the [z] question.
+
+## L6: confidence accuracy stat (2026-09-21)
+
+A one-line tally (`#practice-confidence-stats`) shows how often the player's "Sure" and "Not sure" ratings were right: `confidence_tally` (`[correct, total]` per tag) is updated in `submit_answer()` only when a confidence tag was set, and `confidence_stats_text()` renders it. It is session-only by design, the same posture as `combo_count`/`current_confidence` (a fresh page starts at zero and nothing goes into `get_state()`); making it persistent would need a save-shape change, so it was left as a possible follow-up. Suite 566 passing (1 new test in `tests/test_farm_ui.py`); checked live under Pyodide.

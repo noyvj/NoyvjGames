@@ -604,6 +604,29 @@ def test_a_confident_wrong_answer_costs_more_than_an_unsure_one_end_to_end(game_
     assert plot_sure.ease_factor < plot_unsure.ease_factor
 
 
+def test_confidence_stats_tally_right_and_wrong_by_tag(game_env):
+    module, state = game_env.module, game_env.state
+    assert module.confidence_stats_text() == ""
+
+    open_plot(game_env, state.plots[0].plot_id)
+    module.set_confidence("sure")
+    answer_current_correctly(game_env)
+    open_plot(game_env, state.plots[1].plot_id)
+    module.set_confidence("sure")
+    answer_current_incorrectly(game_env)
+    open_plot(game_env, state.plots[2].plot_id)
+    module.set_confidence("unsure")
+    answer_current_correctly(game_env)
+    open_plot(game_env, state.plots[3].plot_id)  # untagged answers don't count
+    answer_current_correctly(game_env)
+
+    assert module.confidence_tally == {"sure": [1, 2], "unsure": [1, 1]}
+    text = module.confidence_stats_text()
+    assert "sure 1/2 right" in text and "not sure 1/1 right" in text
+    shown = game_env.elements["practice-confidence-stats"]
+    assert shown.hidden is False and "sure 1/2" in shown.innerText
+
+
 def test_confidence_controls_hide_once_the_question_is_answered(game_env):
     state = game_env.state
     open_plot(game_env, state.plots[0].plot_id)

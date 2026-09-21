@@ -110,6 +110,7 @@ ELEMENT_IDS = [
     "cafe-close-button",
     "practice-panel",
     "practice-confidence",
+    "practice-confidence-stats",
     "practice-confidence-sure-button",
     "practice-confidence-unsure-button",
     "practice-context",

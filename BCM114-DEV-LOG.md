@@ -405,3 +405,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Le Champ de Mots
 **Did:** Added a small data-driven sound legend to the liaison/elision drill (only the sounds a question actually mentions, with English comparisons). Only one current question uses a bracketed sound, so today it shows in that one place.
 **Result:** Suite 565/565 passing, flake8 clean; verified live.
+
+### 2026-09-21 (Le Champ de Mots: confidence accuracy stat, L6)
+**Game:** Le Champ de Mots
+**Did:** Added a session-only running tally of how often the "Sure" and "Not sure" confidence ratings were right, shown as one line under the confidence buttons. Kept session-only to match the game's existing combo/confidence design and avoid a save-shape change.
+**Result:** Suite 566/566 passing, flake8 clean; verified live under Pyodide.

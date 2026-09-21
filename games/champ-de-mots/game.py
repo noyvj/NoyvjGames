@@ -1572,6 +1572,18 @@ QUESTION_RNG = random.Random()
 # get_state()/load_state(): a fresh page load always starts at zero/unset.
 combo_count = 0
 current_confidence = None  # None | "sure" | "unsure"
+# L6 -- session-only running tally of [correct, total] per confidence tag,
+# so the player can see whether "sure" really means right. Same posture as
+# combo_count/current_confidence: not persisted, a fresh page starts empty.
+confidence_tally = {"sure": [0, 0], "unsure": [0, 0]}
+
+
+def confidence_stats_text():
+    sure, unsure = confidence_tally["sure"], confidence_tally["unsure"]
+    if sure[1] == 0 and unsure[1] == 0:
+        return ""
+    return f"Your confidence so far: sure {sure[0]}/{sure[1]} right · not sure {unsure[0]}/{unsure[1]} right"
+
 
 # §14.2's accent-sensitivity toggle: default ON (accents must be typed
 # correctly) since spelling them right is an assessed skill. A session
@@ -2854,6 +2866,9 @@ def render_practice():
     # nothing left to weigh at that point (submit_answer() already read it).
     confidence_box = _element("practice-confidence")
     confidence_box.hidden = answered
+    stats_text = confidence_stats_text()
+    _element("practice-confidence-stats").innerText = stats_text
+    _element("practice-confidence-stats").hidden = not stats_text
     sure_button = _element("practice-confidence-sure-button")
     unsure_button = _element("practice-confidence-unsure-button")
     sure_button.className = "secondary" + (" selected" if current_confidence == "sure" else "")
@@ -3004,6 +3019,9 @@ def submit_answer(given):
         current_question, given, tier=tier, accent_sensitive=ACCENT_SENSITIVE
     )
     combo_count = combo_count + 1 if current_result else 0
+    if current_confidence in confidence_tally:
+        confidence_tally[current_confidence][1] += 1
+        confidence_tally[current_confidence][0] += 1 if current_result else 0
     if current_question.get("variant") == V_GENDER_TAG:
         record_practice("gender", current_result)
     plot = state.plots_by_id.get(current_question["plot_id"])
