@@ -440,3 +440,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Le Champ de Mots
 **Did:** Added a "Farm health" section to the Progress dashboard showing how many plots sit at each growth stage (text rows plus a neutral bar).
 **Result:** Suite passing, flake8 clean; verified live with no unexpected console errors.
+
+### 2026-09-21 (Le Champ de Mots: scheduling explainer, L23)
+**Game:** Le Champ de Mots
+**Did:** Added a transparency explainer for the spaced-repetition scheduler under the Progress dashboard, generated from the real scheduling constants.
+**Result:** Suite passing, flake8 clean; verified live with no unexpected console errors.

@@ -133,3 +133,23 @@ def test_the_dashboard_shows_a_text_labelled_farm_health_section(game_env):
     assert "Farm health" in texts
     seed_line = next(t for t in texts if t.startswith(module.STAGE_ICON[module.STAGE_SEED]))
     assert "Seed:" in seed_line and "%" in seed_line
+
+
+def test_srs_explainer_quotes_the_real_constants(game_env):
+    module = game_env.module
+    text = " ".join(module.srs_explanation_lines())
+    assert str(module.DEFAULT_EASE) in text and str(module.MAX_EASE) in text
+    assert f"{module.FIRST_INTERVAL_DAYS} day out" in text
+    assert f"{module.AUTOMATION_INTERVAL_DAYS} days" in text
+    assert f"{module.CONFIDENT_WRONG_PENALTY_MULTIPLIER}x" in text
+
+
+def test_srs_explainer_only_shows_with_the_dashboard(game_env):
+    module = game_env.module
+    assert game_env.elements["srs-explainer"].hidden is True
+    module.on_toggle_dashboard()
+    explainer = game_env.elements["srs-explainer"]
+    assert explainer.hidden is False
+    assert len(game_env.elements["srs-explainer-body"].children) == len(module.srs_explanation_lines())
+    module.on_toggle_dashboard()
+    assert explainer.hidden is True

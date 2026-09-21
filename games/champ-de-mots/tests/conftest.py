@@ -33,6 +33,8 @@ ELEMENT_IDS = [
     "cultural-notes-panel",
     "dashboard-toggle-button",
     "dashboard-panel",
+    "srs-explainer",
+    "srs-explainer-body",
     "liaison-toggle-button",
     "liaison-panel",
     "liaison-progress",

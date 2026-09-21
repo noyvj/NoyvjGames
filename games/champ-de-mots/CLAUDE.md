@@ -620,3 +620,7 @@ Each row's progress count (`row-progress-<n>`, still "grown/total") now has a to
 ## L27: farm-health distribution on the dashboard (2026-09-21)
 
 The Progress dashboard gained a "Farm health" section (top of the panel): one row per growth stage with its icon, name, plot count and percentage, plus a thin neutral bar. `dashboard_stage_distribution()` just counts existing `plot.stage` values (no new state); every row is spelled out in text so nothing relies on the bar or on colour. Suite 575 passing (2 new tests in `tests/test_progress_dashboard.py`); checked live at desktop width (5 rows, no overflow).
+
+## L23: scheduling transparency explainer (2026-09-21)
+
+A disclosure under the Progress dashboard (`#srs-explainer`, visible only while the dashboard is open) explains the SM-2-flavoured scheduler in seven plain lines. `srs_explanation_lines()` builds them from the real constants (`DEFAULT_EASE`, `MIN_EASE`/`MAX_EASE`, the interval and bonus constants, the confidence multipliers, the stage thresholds), so the text can't drift from the code, and a test asserts the numbers appear. The `<details>` element is static in `index.html` (only its body is refilled) so its open state survives re-renders. Suite passing (2 new tests in `tests/test_progress_dashboard.py`); checked live.

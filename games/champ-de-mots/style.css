@@ -1433,3 +1433,9 @@ button:disabled {
    text (icon, stage name, count, percent), so nothing relies on colour. */
 .dashboard-health-row { margin: 2px 0; }
 .dashboard-health-bar { display: block; height: 4px; margin-top: 2px; border-radius: 2px; background: currentColor; opacity: 0.4; }
+
+/* L23 scheduling explainer: reuse the info-toggle disclosure, but as a
+   labelled row rather than the small circular "i". */
+.info-toggle.srs-explainer { display: block; margin: 8px 0; }
+.info-toggle.srs-explainer summary { width: auto; height: auto; border-radius: 6px; padding: 3px 10px; font-size: 0.85rem; font-weight: 600; }
+.srs-explainer-line { margin: 4px 0; font-size: 0.9em; }

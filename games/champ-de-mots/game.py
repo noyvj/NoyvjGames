@@ -2017,6 +2017,32 @@ def on_toggle_dashboard(event=None):
     render()
 
 
+def srs_explanation_lines():
+    """L23 -- a plain-language account of the scheduler, built from the real
+    constants above so it can never drift from what actually runs."""
+    return [
+        f"Every plot has a review interval and an ease score (starts at {DEFAULT_EASE}, always kept between {MIN_EASE} and {MAX_EASE}).",
+        f"Your first correct answer schedules the next review {FIRST_INTERVAL_DAYS} day out and your second {SECOND_INTERVAL_DAYS} days out.",
+        "From the third correct answer on, the interval grows by its ease score each time (and always by at least one day).",
+        f"Each correct answer nudges ease up by {EASE_CORRECT_BONUS}; each wrong answer drops it by {EASE_INCORRECT_PENALTY} and sends the plot back to a {RESET_INTERVAL_DAYS}-day interval with its streak reset.",
+        f"Combo bonus: each answer in a correct row shortens the wait a little more, {int(COMBO_BONUS_PER_STEP * 100)}% per step, capped at {int(MAX_COMBO_BONUS * 100)}%.",
+        f"Confidence: tagging 'Sure' before a wrong answer makes that penalty {CONFIDENT_WRONG_PENALTY_MULTIPLIER}x; tagging 'Not sure' makes it {UNSURE_WRONG_PENALTY_MULTIPLIER}x. It never changes what a correct answer does.",
+        f"Growth stages follow the interval: Blooming from {BLOOMING_INTERVAL_DAYS} days, Automated from {AUTOMATION_INTERVAL_DAYS} days. A plot never visibly shrinks back a stage.",
+    ]
+
+
+def render_srs_explainer():
+    details = _element("srs-explainer")
+    details.hidden = not dashboard_open
+    body = _element("srs-explainer-body")
+    body.innerHTML = ""
+    for line in srs_explanation_lines():
+        item = document.createElement("p")
+        item.className = "srs-explainer-line"
+        item.innerText = line
+        body.appendChild(item)
+
+
 def dashboard_stage_distribution():
     """L27 -- how the whole farm's plots split across the five growth
     stages: [(stage, count, percent)] in STAGE_ORDER. Purely a count of
@@ -2033,6 +2059,7 @@ def render_dashboard():
     toggle = _element("dashboard-toggle-button")
     toggle.innerText = "Hide progress dashboard" if dashboard_open else "Progress dashboard"
     panel.hidden = not dashboard_open
+    render_srs_explainer()
     if not dashboard_open:
         return
 
