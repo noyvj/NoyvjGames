@@ -786,7 +786,7 @@ Overlaps: Loop 8 and Drift 3 (assist/planner) sit beside the gamified Autopilot/
 
 ---
 
-## N. Seasonal/Real-World-Date Events (folded in from `planning/IMPROVEMENT-IDEAS-SEASONAL-EVENTS.md`, seeded from TODO.md's Z23)
+## N. Seasonal/Real-World-Date Events (originally its own doc, seeded from TODO.md's Z23; folded in here and the standalone file deleted 2026-09-22 — this section is now the only copy)
 
 Your own Round 2 answer set the shape: *"a 'holiday' lasts a week and something like christmas they have to play canopy in a mode for getting christmas trees to get the 'christmas 2026' badge on their profile."* Every idea below follows that shape exactly — a real-world date window, a flavor-only change to existing UI/text, and a reward that's a badge or small cosmetic, never a new balanced mechanic. It rides the achievements framework's existing zero-backend-cost plumbing (`achievements_earned`), so a badge here costs nothing new to store. The 8 climate-quartet games each get one idea tied to a real, dated awareness day; SOL and Le Champ de Mots get one idea fitting their own theme; Trade Empire and Continuum are deliberately skipped (neither has a natural "climate holiday" hook).
 
@@ -816,7 +816,7 @@ Your own Round 2 answer set the shape: *"a 'holiday' lasts a week and something 
 
 ---
 
-## O. Replayability follow-up (folded in from `planning/IMPROVEMENT-IDEAS-REPLAYABILITY.md`, seeded from TODO.md's Z7 audit)
+## O. Replayability follow-up (originally its own doc, seeded from TODO.md's Z7 audit; folded in here and the standalone file deleted 2026-09-22 — this section is now the only copy)
 
 The Z7 read-only audit found 10 of the 12 games already have enough of a reason to play twice (or correctly don't need one — a teaching tool where one thorough playthrough *is* the point): SOL's Prestige/NG+, Canopy's legacy-forest carryover, Grid's Operator Career + scenarios, Tide's scenarios + checkpoint-replay, Aftermath's run-based skill tree, Herd's/Thaw's/Le Champ de Mots' teaching-tool shape (replay isn't the right lever), Loop's category-picker + streak, and Drift's built-in comparison-region payoff. Only two games came out with a real, specific gap — both below.
 
