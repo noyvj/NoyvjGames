@@ -67,37 +67,11 @@ Both would be a real scope jump for their game (meaningfully more UI, more state
 
 ---
 
-### Q2. Signal (M3) — six questions before it gets built
-
-The groundwork plan is `planning/signal-plan.md` (recommended mechanic: "Triangulate", a summed-signal deduction puzzle with a daily seed and no backend). Answer under each line.
-
-1. Plain-JS exception OK (the game opens instantly), or do you want Pyodide anyway for consistency (a multi-second first load on a "quick daily" game)? **Your answer:**
-2. Theme: retro radio-room (recommended), submarine sonar, or alien SETI? **Your answer:**
-3. UTC daily reset (same puzzle for everyone, good for share talk), or each player's local midnight? **Your answer:**
-4. Want an optional non-daily "endless" practice mode beyond the archive? **Your answer:**
-5. Should puzzle #1 launch on a specific day, to help the 2-week "something new is visible" cadence? **Your answer:**
-6. Is the recommended mechanic (Option A) what you want, or should I prototype B briefly first? **Your answer:**
+*(Signal's and Undersleep's own groundwork-plan open questions — originally listed here as Q2/Q3 — turned out to be a duplicate: they already have their own full sections in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` — section P (Signal) and section Q (Undersleep) — including that doc's own "Part 4 — Your Answers" scaffold, same as Overclock/Last Line/Deep Descent's sections S/T/U. Removed from here 2026-09-22 so there's only one place to answer each — ROUND-3.md, not both docs.)*
 
 ---
 
-### Q3. Undersleep (M4) — eight questions before it gets built
-
-The groundwork plan is `planning/undersleep-plan.md` (a game layer plus an optional local-first sleep/mood journal, kept separable). Answer under each line.
-
-1. Journal cloud sync: allow it at all (through the existing save system, as a separate opt-in), or keep the journal strictly local plus manual export/import? **Your answer:**
-2. If sync is allowed, are you comfortable with that data sitting in the Neon database, given it is more personal than game saves? Would you want it encrypted client-side with a passphrase? **Your answer:**
-3. Start with the tracker hidden ("Just play" default, recommended) or shown at first run? **Your answer:**
-4. Tone: deadpan-absurd (recommended) or warmer/cozy? **Your answer:**
-5. One persistent character, or a roster with "retire and inherit"? **Your answer:**
-6. Is a one-time "not medical advice" acknowledgement at first Journal open acceptable, or too heavy? **Your answer:**
-7. Any real-life tags you specifically want (caffeine, exercise, screen-late...), or leave it to my defaults? **Your answer:**
-8. Story mode: a light arc (new job, new city) or sandbox only at launch? **Your answer:**
-
-*(Overclock, Last Line and Deep Descent are deliberately not asked here: per your scoping, their theme and mechanic questions wait for the next ideas round, `planning/IMPROVEMENT-IDEAS-ROUND-3.md`.)*
-
----
-
-### Q4. Continuum K26b — an eighth era, before any code starts
+### Q2. Continuum K26b — an eighth era, before any code starts
 
 Per your "rather than closing it, let's keep making more eras" answer, `games/continuum/CLAUDE.md`'s new "K26b: Era 8 scoping" section proposes a working concept: **"Diaspora"** — a second, distant site founded by descendants of the original settlement (finally using the long-deferred generational-descendants narrative thread), with equity measured *between* the two sites (not just within one) as the sustainability mechanic — a genuinely new shape none of the seven existing eras repeat. Read that section for the full reasoning; answer under each line.
 
@@ -109,7 +83,7 @@ Per your "rather than closing it, let's keep making more eras" answer, `games/co
 
 ---
 
-### Q5. Le Champ de Mots L22 — redefine "new cultural note" now that rows aren't gated
+### Q3. Le Champ de Mots L22 — redefine "new cultural note" now that rows aren't gated
 
 The original idea was a "new note available" indicator that fires when a row freshly unlocks and has cultural context worth reading. L4a (already built) removed row-unlock pacing entirely — every row is open from the start — so "freshly-unlocked row" no longer means anything, and the original trigger can't fire the way it was designed to.
 
