@@ -373,7 +373,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] A7: A "Governor AI personality" choice per planet (aggressive/balanced/conservative presets) instead of one flat priority dial.
 - [x] A8: Surface `governed_resource_generated`'s lifetime total on the main Stats screen too.
 - [x] A9 **(prioritize — you called this "very important"):** A proper multi-planet overview dashboard — every unlocked planet's key stats at once, instead of navigating planet-by-planet.
-- [ ] A10 → folded into Z (see "Games" section above): achievement-progress toolbar badge, site-wide.
+- [x] A10 → folded into Z (see "Games" section above): achievement-progress toolbar badge, site-wide. Done — see Z-extra (folded from A10) above, audited across all 12 games.
 - [x] A11: A "trade route automation" layer — once two planets have stable economies, set a standing trade rule instead of manually re-triggering.
 - [x] A12: A subtle particle/spark animation on the resource icon when a manual click lands.
 - [x] A13: A build-order planner/checklist players can manually tick through.
