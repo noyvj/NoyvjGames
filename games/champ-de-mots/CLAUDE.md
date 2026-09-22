@@ -821,3 +821,48 @@ Study Buddy display aren't in the list -- none is a simple show/hide
 toggle with one dedicated button the way the panels above are; they're
 row-unlock-gated content screens or inline hints shown/hidden by game
 state.
+
+## L28: a session-only "perfect row" badge (2026-09-22)
+
+`planning/TODO.md`'s L28: "a small badge/icon for perfectly answering a
+full row's worth of plots in one sitting." Read "one sitting" literally
+as *this session*, not a permanent unlock -- so unlike this game's other
+achievements (all pure functions of the farm's own persistent state, per
+Milestone 23/31's own design), the badge is deliberately session-only
+state, same category as `combo_count`/`ACCENT_SENSITIVE`: it never
+reaches `get_state()`/`load_state()`, and a fresh page load always starts
+every row unspoiled and un-badged.
+
+Three module-level dicts/sets track it: `row_session_correct` (sequence
+-> the set of plot ids answered correctly this session), `row_session_
+spoiled` (sequences with at least one wrong answer this session), and
+`row_session_perfect_badge` (sequences that have earned the badge).
+`_track_row_session_answer(plot, correct)`, called from `submit_answer()`
+right after the existing weeds/error-pattern bookkeeping, is a no-op for
+an already-spoiled row; a wrong answer spoils the row outright (and drops
+any correct-so-far progress for it, since the badge means a *clean* run
+through the row, not "eventually got them all right" -- a plot corrected
+on a later attempt can never earn the badge for that row this session); a
+correct answer adds the plot to the row's correct set and, once that set
+covers every plot in the row, sets the badge. Scoped to the main practice
+panel's `submit_answer()` only -- Review/Proficiency/Bonus answers don't
+count toward it, keeping the feature's surface small and its meaning
+unambiguous (this game's farm-watering interaction specifically, not
+"any practice anywhere").
+
+Rendered as `#row-perfect-badge-<sequence>` in each row's header (`⭐
+Perfect this session`, gold `#e0c24c` text -- this game's existing warm/
+positive accent, not a new colour), hidden until earned. Built and tested
+against sequence 22, the catalog's smallest week (2 plots), so a full row
+can be driven in just two submissions.
+
+Tests: 608 -> 614 (`tests/test_row_perfect_badge.py`, 6 tests: hidden by
+default, appears once both plots are answered correctly, a wrong answer
+spoils the row even when everything else is right, correcting a spoiled
+plot on a later attempt still never earns it this session, one row's
+spoiling doesn't touch another row's tracking, and none of the three new
+globals appear in `get_state()`'s output). `flake8` clean. Verified live
+under Pyodide (`hub-dev-server`, fresh page load to sidestep this
+sandbox's documented stale-`game.py`-fetch cache quirk): watering both of
+sequence 22's plots correctly showed the badge in the row header with the
+correct text and styling, zero console errors.

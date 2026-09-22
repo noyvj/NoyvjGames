@@ -1586,6 +1586,35 @@ def confidence_stats_text():
     return f"Your confidence so far: sure {sure[0]}/{sure[1]} right · not sure {unsure[0]}/{unsure[1]} right"
 
 
+# L28 -- a small badge for perfectly answering a full row's worth of plots
+# in one sitting: every plot in that row answered correctly this session,
+# with zero wrong answers anywhere in the row this session. "One sitting"
+# is read literally as *this session*, not a permanent unlock, so -- same
+# posture as combo_count/ACCENT_SENSITIVE above -- all three dicts here are
+# pure session state and never reach get_state()/load_state(); a fresh
+# page load always starts every row unspoiled and un-badged. A row that's
+# already spoiled this session can never earn the badge later even if
+# every subsequent answer in it is correct -- the point is a clean run
+# through the whole row, not just "eventually got them all right".
+row_session_correct = {}  # sequence -> set of plot_ids answered correctly this session
+row_session_spoiled = set()  # sequences with at least one wrong answer this session
+row_session_perfect_badge = set()  # sequences that have earned the badge this session
+
+
+def _track_row_session_answer(plot, correct):
+    sequence = plot.sequence
+    if sequence in row_session_spoiled:
+        return
+    if not correct:
+        row_session_spoiled.add(sequence)
+        row_session_correct.pop(sequence, None)
+        return
+    row_session_correct.setdefault(sequence, set()).add(plot.plot_id)
+    row_plots = state.row_plots(sequence)
+    if row_plots and row_session_correct[sequence] >= {p.plot_id for p in row_plots}:
+        row_session_perfect_badge.add(sequence)
+
+
 # §14.2's accent-sensitivity toggle: default ON (accents must be typed
 # correctly) since spelling them right is an assessed skill. A session
 # preference, not SRS state, so it deliberately stays out of get_state()/
@@ -1873,6 +1902,16 @@ def build_farm():
         progress.id = f"row-progress-{row.sequence}"
         progress.className = "row-progress"
         head.appendChild(progress)
+
+        perfect_badge = document.createElement("span")
+        perfect_badge.id = f"row-perfect-badge-{row.sequence}"
+        perfect_badge.className = "row-perfect-badge"
+        perfect_badge.innerText = "⭐ Perfect this session"
+        perfect_badge.title = (
+            "Every plot in this row answered correctly this session, with no misses along the way."
+        )
+        perfect_badge.hidden = True
+        head.appendChild(perfect_badge)
 
         due = document.createElement("span")
         due.id = f"row-due-{row.sequence}"
@@ -2999,6 +3038,9 @@ def render_farm():
         unlocked = state.is_row_unlocked(row.sequence)
         _element(f"row-lock-{row.sequence}").hidden = unlocked
         _element(f"row-{row.sequence}").className = "row" if unlocked else "row row--locked"
+        _element(f"row-perfect-badge-{row.sequence}").hidden = (
+            row.sequence not in row_session_perfect_badge
+        )
 
         row_due = sum(1 for p in plots if is_due(p, state.current_day)) if unlocked else 0
         due_element = _element(f"row-due-{row.sequence}")
@@ -3289,6 +3331,7 @@ def submit_answer(given):
             plot.in_weeds = False
         elif typed_mode and is_weed_confusion(current_question["answer"], given):
             plot.in_weeds = True
+        _track_row_session_answer(plot, current_result)
     if not current_result and typed_mode:
         pattern = classify_wrong_typed_answer(current_question, given, tier)
         record_error_pattern(pattern)

@@ -1,4 +1,5 @@
 [
+  { "date": "2026-09-22", "entry": "A small gold \"Perfect this session\" badge now appears on a row once every plot in it has been answered correctly this session, with no misses along the way." },
   { "date": "2026-09-22", "entry": "Achievements now show \"Earned by N% of players\" once enough real save data exists for that achievement (site-wide goal, Z1/Z27b)." },
   { "date": "2026-09-22", "entry": "Added a keyboard-shortcuts help overlay: press ? to see it, Esc to close it or whichever panel is open (site-wide goal, Z4)." },
   { "date": "2026-09-22", "entry": "New \"My Reports\" panel: a small dated feed confirming every correctness or pronunciation report you've sent, from any practice mode (site-wide goal, Z11)." },

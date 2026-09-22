@@ -438,6 +438,16 @@ button:disabled {
   font-style: italic;
 }
 
+/* L28: a small, session-only badge for a row answered perfectly (every
+   plot correct, no misses) this session -- gold, matching this game's
+   existing warm/positive accent language elsewhere rather than inventing
+   a new colour. Text-labelled, not colour-only. */
+.row-perfect-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #e0c24c;
+}
+
 .row-plots {
   display: flex;
   flex-wrap: wrap;
