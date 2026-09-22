@@ -2,12 +2,13 @@
 
 Written assuming **everything currently in `planning/TODO.md` has landed** (every open per-game item, the cross-game Z section, the hub Y section including the site-wide light/dark theme, the Warframe items, the recovered tasks, and the multiplayer scoping plan). Nothing below repeats something built, on that list, or answered "no"/"later" earlier.
 
-**One file, three parts, per your instruction:**
+**One file, three parts, per your instruction — plus a fourth folded in afterward (see below):**
 - **Part 1 — Gamify the teaching games (sections GB–GI).** Fun-first ideas for the eight games that started as BCM114 teaching games (Canopy, Grid, Tide, Aftermath, Herd, Thaw, Loop, Drift), 30 each. The lens is fun, replayability and tension, not lessons.
-- **Part 2 — Round 3 for every game (sections A–L, M, Z, Y, X).** 30 ideas per game in hub listing order, then **M** (5 brand-new game concepts, fun-first), **Z** (cross-game patterns), **Y** (the hub itself) and **X** (the Warframe tracker). For the eight teaching games this covers the *other* dimensions (depth, polish, quality-of-life, presentation, stats, sharing, long-term progression) so it doesn't repeat Part 1.
+- **Part 2 — Round 3 for every game (sections A–L, M, N–U, Z, Y, X).** 31 ideas per game in hub listing order (item 31 on every one is the same standing idea: make that game's own achievements more visible/stylized — see each section's own final item for the game-specific version), then **M** (5 brand-new game concepts, fun-first), then two folded-in follow-up docs given their own sections — **N** (seasonal/real-world-date event ideas, from the Z23 seed doc) and **O** (the replayability-audit follow-up for Trade Empire/Continuum, from the Z7 seed doc) — then **P–U** (open questions for the five new games already approved in round 2: Signal, Undersleep, Overclock, Last Line, Deep Descent — each needs a full groundwork plan read before building, but the genuinely undecided design forks are pulled out here so you can answer them the same way as everything else), then **Z** (cross-game patterns), **Y** (the hub itself) and **X** (the Warframe tracker). For the eight teaching games this covers the *other* dimensions (depth, polish, quality-of-life, presentation, stats, sharing, long-term progression) so it doesn't repeat Part 1.
 - **Part 3 — Returning later (section R).** Everything parked in `planning/LATER.md`, each needing one word from you: now / later / drop.
+- **Part 4 — Your answers.** A ready-made answer sheet at the very end of this file: every section above, already titled and pre-numbered to match its own items, with a blank after each number. You never have to write out `## <SECTION>` headers or item numbers yourself — just fill in a word (or a few) after each pre-existing number and leave anything you're not ready to answer blank.
 
-**How to answer:** same as round 2 — add your answers at the end of the file as `## <SECTION>` blocks (for example `## GB`, `## B`, `## R`) with numbered lines matching the item numbers. "Yes" builds it, "no" drops it, "later" parks it, and any note you add is kept. Ideas are tagged **[BIG]** or **[SMALL]**; every section has at least 10 of each.
+**How to answer:** fill in Part 4 at the end of the file — one line per item, in place, under its own pre-made section heading. "Yes" builds it, "no" drops it, "later" parks it, and any note you add after the word is kept. (If you'd rather answer the old way, `## <SECTION>` blocks with numbered lines still work exactly as before — Part 4 is just a scaffold, not a new format.) Ideas are tagged **[BIG]** or **[SMALL]**; every section has at least 10 of each, except M/N/O/P/Q/S/T/U, which are shorter by nature (5-11 items).
 
 **Where overlap is likely:** several ideas appear in more than one game's section (run modifiers, daily seeds, event decks, unlock trees). Each section ends with a short notes paragraph flagging those, so shared scaffolding can be built once and reused.
 
@@ -347,6 +348,7 @@ Overlaps: Loop 1/2/4/10 and Drift 1/4/9/27 are the same shape (draft traits, met
 28. **[SMALL]** After a stress test, show a per-planet heatmap strip of when each dipped, so the player sees which Governor failed.
 29. **[BIG]** A wildcard "Ghost Run" mode: race a recorded replay of your own personal best (or an imported friend's blueprint code) on a split track showing lead/lag in terraform percent every 25 ticks. Not multiplayer, but a stepping stone for the multiplayer direction and a fresh reason to re-run the same speedrun.
 30. **[SMALL]** Speedrun splits panel: lap times per planet unlocked, with a green/red delta against personal best, hidden unless "Show timing" is enabled in Settings.
+31. **[SMALL]** Make achievements more visible and stylized. Give the achievements panel real visual presence instead of a plain scroll list: a small "trophy shelf" strip of the most-recently-earned badges pinned near the top toolbar (not only the existing "(N/M)" toggle-button count), each badge rendered with SOL's own gradient-glow treatment, plus a brief particle/glow flourish at the moment of unlock instead of only a toast.
 
 ---
 
@@ -382,6 +384,7 @@ Overlaps: Loop 1/2/4/10 and Drift 1/4/9/27 are the same shape (draft traits, met
 28. **[SMALL]** Larger click targets and a pointer-friendly action panel on mobile: a plot long-press opens a bottom sheet with big Clear/Replant/Adopt buttons instead of a small side panel. It addresses phone play without touching desktop layout.
 29. **[BIG]** Custom grid shapes: an editor to paint which of the 9x8 cells exist (island, ring, plus-sign, river-split), saved as named layouts with their own personal-best slot. It multiplies replay variety from one already-built renderer since plots are already indexed by position.
 30. **[SMALL]** Performance guard: auto-throttle wildlife sprite animation and value-pop effects when the tick loop lags or the tab is on a low-end device, with a "Performance mode" indicator in Settings. It keeps the Large grid smooth without the player having to find the reduced-motion switch.
+31. **[SMALL]** Make achievements more visible and stylized. Give Canopy's achievement cards a forest-themed visual upgrade: a small leaf/wildlife glyph per earned badge (reusing the existing wildlife-sprite art) instead of plain text rows, laid out like a "grove wall" that visually echoes the plot grid rather than a flat scrolling list.
 
 ---
 
@@ -417,6 +420,7 @@ Overlaps: Loop 1/2/4/10 and Drift 1/4/9/27 are the same shape (draft traits, met
 28. **[SMALL]** Colour theme picker for the trend graph and plant-mix chart (default, high-contrast, grayscale with patterns). It adds a small pattern-fill option to bars, which strengthens the colour-independent cues from the C8 icons.
 29. **[BIG]** Instant-replay share code. Compress a run's key decisions and seeds into a short string that anyone can paste to watch the same run play back in a read-only viewer, with the grade result at the end. It is the single-player groundwork multiplayer would later reuse, and it needs the seeded RNG history already stored per run.
 30. **[SMALL]** Performance and mobile polish: batch DOM updates per round, lazy-render the log panels, and show a light "loading round" state in slow Pyodide moments. It keeps late-run rounds with many plants and logs responsive on phones.
+31. **[SMALL]** Make achievements more visible and stylized. Restyle Grid's achievement cards around its own skyline-HUD visual language: earned badges render as small lit-building icons against the city-skyline palette, with a brief "power up" flash on unlock, instead of the current plain card list.
 
 ---
 
@@ -456,6 +460,7 @@ Overlaps: Loop 1/2/4/10 and Drift 1/4/9/27 are the same shape (draft traits, met
 28. **[SMALL]** **Delta breakdown popover.** Clicking any meter change (acidity +4) opens a small popup listing the contributors ("+6 output, -2 reduction, +0 aquaculture"). Explains the economy's moving parts using the terms the game already tracks.
 29. **[SMALL]** **Plain-language label mode.** A Settings switch renaming jargon (dampening, lag, OUTPUT_MIX-type labels) to everyday words in buttons and tooltips. Helps new players without changing any mechanic.
 30. **[SMALL]** **Pause animations when tab hidden.** Stop the wave cue, tide ripple and any looping effects when the page is hidden or the device reports low power, and resume on return. Invisible but improves battery and performance on phones.
+31. **[SMALL]** Make achievements more visible and stylized. Give Tide's achievement cards an ocean-themed visual upgrade: a small coral/wave glyph per earned badge and a coral-reef-accent border reusing the existing coastline art, with a brief ripple flourish on unlock, instead of the current plain card rows.
 
 ---
 
@@ -491,6 +496,7 @@ Overlaps: Loop 1/2/4/10 and Drift 1/4/9/27 are the same shape (draft traits, met
 28. **[SMALL]** **Unspent-resources confirm.** If you hit Resolve with a large unspent balance, an opt-out prompt asks "Keep 80 resources unspent?". A guard against accidental waste, with a Settings switch to disable it.
 29. **[SMALL]** **Skill tooltip: helps against.** Each skill's tooltip lists which upcoming events it would soften and by roughly how much for the current schedule. Turns tree reading into planning.
 30. **[SMALL]** **Save health indicator.** A small "Saved 12s ago / storage full / unsaved changes" badge with a one-click export prompt if local storage fails. Makes the persistence layer visible for a game where the tree is everything.
+31. **[SMALL]** Make achievements more visible and stylized. Tie Aftermath's achievement cards visually to the skill tree: earned badges show as small lit nodes on a mini tree-shaped strip near the toggle button rather than a plain list, so mastery reads at a glance the same way the real skill tree does.
 
 ---
 
@@ -530,6 +536,7 @@ Overlaps: Loop 1/2/4/10 and Drift 1/4/9/27 are the same shape (draft traits, met
 28. **[SMALL]** **Session timer and pace estimate.** A discreet "about 3 min left at this pace" note on the round counter, with a "save and quit" nudge every 10 rounds. Helps short class sessions and plays nicely with save codes.
 29. **[SMALL]** **Plain-language glossary popovers.** Terms like "coupling ratio", "counterfactual", "welfare" and "capture" get dotted underlines opening a one-line definition; a full glossary in How to Play. Extends the onboarding-tooltip pass to every label.
 30. **[SMALL]** **Failed-save/corrupt-state friendly recovery.** If a save code fails validation in load_state, show a plain reason ("welfare value out of range, defaulted") and an option to load with defaults rather than a generic error. Surfaces the robustness work already in load_state to the player.
+31. **[SMALL]** Make achievements more visible and stylized. Give Herd's achievement cards a farm-themed visual upgrade: small livestock/pasture glyphs per earned badge and a barnyard-accent border, with a brief flourish on unlock, instead of the current plain card rows.
 
 ---
 
@@ -565,6 +572,7 @@ Overlaps: Loop 1/2/4/10 and Drift 1/4/9/27 are the same shape (draft traits, met
 28. **[SMALL]** **Glossary popovers.** Underlined terms (dampening, acceleration factor, melt threshold, monitoring) open one-line definitions; full glossary in How to Play. Extends onboarding-tooltip coverage.
 29. **[SMALL]** **Friendly corrupt-save recovery.** Save-code validation failures explain which field failed and offer load-with-defaults. Surfaces load_state robustness to the player.
 30. **[SMALL]** **Community-compare history.** The G11 acceleration comparison keeps your last five percentiles in a mini list so you see improvement over runs. Adds a personal trend to an existing feature.
+31. **[SMALL]** Make achievements more visible and stylized. Give Thaw's achievement cards an arctic-themed visual upgrade: small frost/permafrost glyphs per earned badge and an icy-accent border matching the region map's palette, with a brief flourish on unlock, instead of the current plain card rows.
 
 **Notes:** Herd 2/5/7/29 and Thaw 1/2/8/29 are twin pairs (history ledger, save-code challenge sharing, planner, save recovery) and should share hub components (ledger store, snapshot-code format, planner drawer), as should the replay scrubber (Herd 3, Thaw 3), inspector (Herd 6, Thaw 4), difficulty panel (Herd 1, Thaw 6), share card (Herd 4, Thaw 7) and accessibility pass (Herd 10, Thaw 10). Herd 5 and Thaw 8 lean toward the multiplayer direction the user marked "later". Thaw 1 is the display layer for open G23 and Thaw 9 deliberately avoids G7's overlay.
 
@@ -602,6 +610,7 @@ Overlaps: Loop 1/2/4/10 and Drift 1/4/9/27 are the same shape (draft traits, met
 28. **[SMALL]** **Cycle notes.** A one-line optional note field per cycle ("tried recycling heavy") shown in the ledger and history. Gives note-takers a place for their own strategy thinking.
 29. **[SMALL]** **Performance auto-mode.** The game samples frame times and, if the ring animation is struggling, suggests "Switch to light animation?" with a one-click accept saved to settings. Keeps older phones smooth without asking players to hunt for options.
 30. **[SMALL]** **Coach marks replay.** A Settings button "Replay tips" resets the one-time onboarding tooltips (Regional Partner, hard ceiling, etc.) so returning players can see them again. Closes the gap for players who dismissed them too quickly.
+31. **[SMALL]** Make achievements more visible and stylized. Give Loop's achievement cards a circular-economy visual upgrade: earned badges render inside a small closed-loop ring icon (echoing the loop-closure visualization) rather than a plain card, with a brief flourish on unlock.
 
 ---
 
@@ -637,6 +646,7 @@ Overlaps: Loop 1/2/4/10 and Drift 1/4/9/27 are the same shape (draft traits, met
 28. **[SMALL]** **Large-move confirmation.** Optional confirm when a reallocation moves more than a set share of committed capacity, tied to its cost. Guards against accidents without a token.
 29. **[SMALL]** **Glossary popovers.** Tap-or-hover terms (capacity, strain, integration, control region) open a one-line definition popover with a link to The Real Story where relevant. Improves onboarding for new players.
 30. **[SMALL]** **Load-time integrity check.** Corrupted or old-version saves show a friendly "restored X, reset Y" note instead of silently defaulting. Visible robustness on top of the existing save audits.
+31. **[SMALL]** Make achievements more visible and stylized. Give Drift's achievement cards a visual upgrade tied to its own map/region art: a small route or milestone glyph per earned badge, with a brief flourish on unlock, instead of the current plain card rows.
 
 **Notes:**
 
@@ -676,6 +686,7 @@ Overlaps: Loop 8 and Drift 3 (assist/planner) sit beside the gamified Autopilot/
 28. **[SMALL]** An "order book" mini-table with the last five fills, so the exchange feels alive.
 29. **[BIG]** A "Blackout Challenge" hard mode: opt-in, the map and market sparklines are hidden except through purchased Market Intel research, and prices display as ranges, not exact figures. Trades become judgment calls, the opposite of the almanac-heavy default, aimed at veterans wanting a tense replay.
 30. **[SMALL]** A "dark run" achievement and Ledger stamp for completing the endgame under Blackout, with the badge showing on the title screen.
+31. **[SMALL]** Make achievements more visible and stylized. Give Trade Empire's achievement cards a space-commerce visual upgrade: earned badges render on a small "Ledger" ribbon strip near the toggle button (echoing the game's own Ledger/title-screen stamp language), with a brief flourish on unlock, instead of a plain card list.
 
 ---
 
@@ -717,6 +728,7 @@ Overlaps: Loop 8 and Drift 3 (assist/planner) sit beside the gamified Autopilot/
 28. **[SMALL]** A "citizen of the season" spotlight card in the log: one named resident, one line of colour tied to a recent event, purely flavour and removable with the story toggle.
 29. **[SMALL]** A "blitz" opt-in timer per season for hard-mode players: decisions must be made in 30 seconds or the default policy applies. It is a pure adrenaline variant and earns a dedicated achievement.
 30. **[SMALL]** (T) A hotkey remapping panel in Settings next to the "?" cheat-sheet, so a keyboard-fluent player can bind advance-season, view switches and camera presets to their own keys.
+31. **[SMALL]** Make achievements more visible and stylized. Give Continuum's achievement cards a civic/era-themed visual upgrade: earned badges render with a small per-era icon and the violet-glass accent already used elsewhere in the shell, laid out like a small "monument row" rather than a plain card list.
 
 ---
 
@@ -754,6 +766,7 @@ Overlaps: Loop 8 and Drift 3 (assist/planner) sit beside the gamified Autopilot/
 28. **[SMALL]** An exam countdown widget in the header that shows the number of days to the entered exam date and the current projected coverage, hiding itself if no date is set.
 29. **[SMALL]** A weak-items export: a CSV or Anki-compatible deck of the player's flagged items for use in another study tool, since the player's own study habits may not stay within one app.
 30. **[SMALL]** Rotating seasonal farm sprites and weather (autumn leaves, snow) tied to the real calendar or the semester's stage, purely cosmetic and controlled by the visual-style switcher.
+31. **[SMALL]** Make achievements more visible and stylized. Give Le Champ de Mots' achievement cards a warmer, farm-themed visual upgrade — small crop/harvest glyphs per earned badge instead of plain rows — themed consistently across all four visual styles (High-def/Low-poly/Text-based/Cartoon), the same "restyle, not rebuild" discipline the visual-style switcher itself already established.
 
 ---
 
@@ -770,6 +783,122 @@ Overlaps: Loop 8 and Drift 3 (assist/planner) sit beside the gamified Autopilot/
 3. **Cryptid Hunt** — a deduction roguelite. Each run, a hidden creature is generated from a handful of traits (habitat, diet, active hours, weakness); you gather evidence from a small procedural map (tracks, sounds, photos) using a limited number of field days, then commit to a trap. The satisfaction is the "aha" of narrowing candidates, and runs are short and endlessly different. Reuses the roguelite meta-progression idea (unlock gear and clue types between runs) inside this one game only.
 4. **Pocket Bazaar** — a fast merge-and-fulfil game: a small market stall where customers arrive with orders, you combine basic goods into better ones on a merge board, and you race the clock and their patience. Streaks, combos and a rotating "festival" modifier keep it snappy. It is the most arcade-like of the five, with a quick session length (3-5 minutes), and pairs naturally with the hub's mobile-dock and settings work.
 5. **Dead Reckoning** — a navigation puzzle game: you are a ship's navigator with only speed, heading and time (no map reveal), plotting a course across a chart with currents, wind and hazards, then "sailing" it and seeing how far your estimate drifted from the truth. Later charts add fog, tides and multiple ships. It is a satisfying skill/precision game with an honest sense of mastery, and the core is a small pure-Python simulation with a clean chart UI.
+
+---
+
+## N. Seasonal/Real-World-Date Events (folded in from `planning/IMPROVEMENT-IDEAS-SEASONAL-EVENTS.md`, seeded from TODO.md's Z23)
+
+Your own Round 2 answer set the shape: *"a 'holiday' lasts a week and something like christmas they have to play canopy in a mode for getting christmas trees to get the 'christmas 2026' badge on their profile."* Every idea below follows that shape exactly — a real-world date window, a flavor-only change to existing UI/text, and a reward that's a badge or small cosmetic, never a new balanced mechanic. It rides the achievements framework's existing zero-backend-cost plumbing (`achievements_earned`), so a badge here costs nothing new to store. The 8 climate-quartet games each get one idea tied to a real, dated awareness day; SOL and Le Champ de Mots get one idea fitting their own theme; Trade Empire and Continuum are deliberately skipped (neither has a natural "climate holiday" hook).
+
+1. **[SOL]** New Year "New Horizons" nudge (Dec 31 – Jan 6). A one-line seasonal banner next to the Prestige button; starting a prestige run during the window grants a "New Horizons 2027" badge. No numeric bonus — a nudge toward something already possible, timed to a real date.
+2. **[Canopy]** Christmas "Holiday Tree-Planting Drive" (Dec 20–27) — the exact case from your own answer. Forest-request flavor text swaps to holiday-themed asks, the Replant button gets a small string-of-lights reskin for the week (cosmetic only, no cost change). Replanting 5 plots during the window earns the "Christmas 2026" badge. The cleanest fit in the hub: Canopy's real mechanic (replant, watch it recover) already *is* tree-planting.
+3. **[Grid]** Earth Hour "Lights Out" week (last Saturday of March, ±3 days — a real dated annual event). One round per session gets a flavor overlay about the city switching off for an hour; finishing that round with the grid above 50% clean share earns an "Earth Hour 2027" badge.
+4. **[Tide]** World Oceans Day "Reef Watch" week (Jun 8, ±3 days — a real UN-recognized date). Ticker/button text swaps to a beach-cleanup flavor, the acidity meter gets a small coral accent for the week. Investing in adaptation infrastructure during the window earns an "Oceans Day 2027" badge.
+5. **[Aftermath]** International Day for Disaster Risk Reduction week (Oct 13, ±3 days — a real UN-designated day, a strong thematic match). Event-sequence narration frames around "community preparedness" for the week. Unlocking any skill-tree node during the window earns a "Disaster Risk Reduction 2026" badge.
+6. **[Herd]** World Environment Day "Methane Watch" week (Jun 5, ±3 days — real, UN-designated). Round-event text frames the week's pressure narration around environmental awareness; the methane meter gets a small leaf-accent border. Investing in any decoupling measure during the window earns an "Environment Day 2027" badge.
+7. **[Thaw]** International Polar Bear Day week (Feb 27, ±3 days — real, dated, Arctic-specific). A seasonal ticker note plus a small polar-bear-silhouette accent on the region map; purely cosmetic, doesn't touch the feedback-loop math. Investing in a permafrost-preserving measure during the window earns a "Polar Bear Day 2027" badge.
+8. **[Loop]** Global Recycling Day "Closed Loop" week (Mar 18, ±3 days — real, dated). Circularity-investment buttons get a seasonal callout; the loop-closure visualization gets a seasonal highlight when it improves. Raising circular-vs-new-extraction percentage during the window earns a "Recycling Day 2027" badge.
+9. **[Drift]** World Refugee Day "Welcome Week" (Jun 20, ±3 days — real, UN-designated, and thematically the strongest fit of the set). Integration-service flavor text swaps to welcome-week framing. Investing in integration services during the window earns a "Refugee Day 2027" badge.
+10. **[Le Champ de Mots]** Bastille Day "Quatorze Juillet" week (Jul 14, ±3 days). The existing cultural-notes toggle gets extra Bastille-Day content for the week; completed review sessions during the window get a small tricolor plot-border accent. Completing a review session during the window earns a "Quatorze Juillet 2027" badge.
+11. **[BIG]** Build the shared mechanism this all rides on. Not built yet — the shape below is a starting sketch, not a spec. A game that opts in declares a small `EVENTS` list next to where `achievements.json` is already referenced:
+    ```python
+    EVENTS = [
+        {
+            "id": "canopy-christmas-2026",
+            "start": "2026-12-20", "end": "2026-12-27",
+            "flavor": {"request_intro": "A family wants a tree for the town square this Christmas..."},
+            "badge_id": "christmas-2026",
+            "qualifies": lambda state: state["replants_this_event"] >= 5,
+        },
+    ]
+    ```
+    A tiny shared `shared/seasonal-events.js` (dropped in unchanged, same as `shared/save-widget.js`) would: check today's date against each declared event's window; if active, swap in the `flavor` overrides and show a small banner; and once `qualifies` passes, call the existing achievement-grant path — no new backend, no new save field, no new account-side storage beyond what achievements already have. Keeps the whole feature opt-in per game and every event cosmetic-only.
+
+---
+
+## O. Replayability follow-up (folded in from `planning/IMPROVEMENT-IDEAS-REPLAYABILITY.md`, seeded from TODO.md's Z7 audit)
+
+The Z7 read-only audit found 10 of the 12 games already have enough of a reason to play twice (or correctly don't need one — a teaching tool where one thorough playthrough *is* the point): SOL's Prestige/NG+, Canopy's legacy-forest carryover, Grid's Operator Career + scenarios, Tide's scenarios + checkpoint-replay, Aftermath's run-based skill tree, Herd's/Thaw's/Le Champ de Mots' teaching-tool shape (replay isn't the right lever), Loop's category-picker + streak, and Drift's built-in comparison-region payoff. Only two games came out with a real, specific gap — both below.
+
+**Trade Empire** — a full 14-milestone sandbox economy with **zero prestige/legacy/meta-progression**; once the automated trade network runs itself, there's no mechanical reason to found a new corporation and do it again (this concretizes the already-open `J21` backlog item rather than inventing a new ask).
+
+1. **[BIG]** Charter renewal (concretizes J21). On reaching the endgame state, offer a "Renew the Charter" reset — same shape as SOL's Prestige button, confirm-dialog gated. Pick **one** small inherited advantage (a pre-established trade route, a discount on the first automation system, starting reputation with one colony type) once per charter, not stacked freely.
+2. **[SMALL]** Founding-conditions variety on renewal: each charter randomizes which two colonies start connected and what they specialize in, so the first logistics bottleneck differs charter to charter.
+3. **[BIG]** Lifetime ledger: a small permanent stats page (mirrors SOL's lifetime stats surviving Prestige) tracking cumulative goods moved, routes established, and charters completed across every past playthrough on this browser.
+4. **[SMALL]** An opt-in "harder charter" toggle, unlocked only after the first endgame — same shape as SOL's New Game+ Challenge (faster market saturation, shorter colony-need cadence) for players who want a tougher run rather than a bonus-boosted easier one.
+
+**Continuum** — real scenario/mode variety already exists (K12's three starting scenarios, K18's hard mode, K22's consulting-mode cases) plus a settlement archive, but **no in-game "start a new settlement" control anywhere** — the built variety currently has no front door back to it short of clearing browser storage by hand.
+
+5. **[BIG]** An actual "Found a New Settlement" control: a confirm-dialog-gated action (same pattern as SOL's Reset This World/Prestige) that archives the current settlement if needed, then starts a brand-new `Campaign` — the missing front door back to K12's scenario picker, K18's hard mode, and K22's consulting mode.
+6. **[SMALL]** Surface the archive as a jumping-off point, not just a record: a "Found a new settlement" button next to each archived entry on the Civilization Summary panel, not only a passive read of past runs.
+7. **[BIG]** A light "founder's legacy" carryover, in the spirit of Canopy's B15 legacy-forest pattern — a new settlement's opening season starts with one small, named bonus derived from the previous settlement's peak achievement, capped small and singular like SOL's one-node-at-a-time Prestige tree.
+8. **[SMALL]** A fourth starting scenario, unlocked only after reaching Space Age once, for a returning player who's seen every era and wants a deliberately different opening than the existing Standard/Harsh Frontier/Fertile Valley set.
+
+**Notes.** If Trade Empire's charter-renewal idea (1) is accepted, it directly resolves the open `J21` line in `TODO.md` — check that item off rather than tracking both separately. Items 1-4 and 5-8 don't overlap or need shared scaffolding.
+
+---
+
+## P. Signal — open questions (approved round-2 M3, full plan in `planning/signal-plan.md`)
+
+*A five-minute daily deduction puzzle: hidden transmitters broadcast on a grid, you can only "listen" at a few spots, and work out where they are from the summed signal strength.* Recommended mechanic (Option A, "Triangulate"): 9x9 grid, 3 hidden transmitters, 8 pings, each ping returns the *sum* of every transmitter's signal at that cell — an analog-sum puzzle distinct from Wordle/Mastermind/Minesweeper. Daily seed is a pure function of the UTC date (no backend, works offline); one deliberate stack exception is plain vanilla JS instead of Pyodide, since a daily puzzle needs to open instantly. The full plan has the complete data model, 14 launch achievements, and an 8-milestone build order — nothing below repeats that, only the genuinely open calls.
+
+1. Plain-JS exception OK, or do you want Pyodide anyway for consistency (costs a multi-second first load on a "quick daily" game)?
+2. Theme: retro radio-room (recommended) or something else (submarine sonar, alien SETI)?
+3. UTC daily reset acceptable, or prefer each player's local midnight (then different time zones get different puzzles, killing "same puzzle for everyone" share talk)?
+4. Want an optional non-daily "endless" practice mode beyond the archive?
+5. Should the launch date (puzzle #1) be tied to a specific day for the 2-week visibility cadence?
+6. Is Option A the mechanic you want, or should we prototype Option B ("Tuner", slider-based) briefly first?
+
+---
+
+## Q. Undersleep — open questions (approved round-2 M4, full plan in `planning/undersleep-plan.md`)
+
+*Run one slightly overcommitted person's day: slot work, food, friends and naps into a schedule while their body clock quietly judges you, and optionally let the game mirror your own real sleep and mood.* Your own answer asked for more: *"there is a lot that can be done to make this more and better and it could also be made somewhat like a life tracker too."* The plan is deliberately split into two separable layers — **Layer A, the game** (a circadian-curve sim, fully playable with zero real data) and **Layer B, an optional Journal** (a 10-second daily sleep/mood/energy check-in, local-only by default, that can cosmetically or numerically mirror into the game only behind explicit opt-in toggles). No medical claims anywhere; the "teaches sleep debt" framing from the original pitch is dropped in favor of pure fun/comedy. The full plan has the complete meter/event/progression design, privacy controls, and a 10-milestone build order (1-7 ship a complete game with no tracker; 8-9 add the journal as a fully cuttable add-on).
+
+1. Journal cloud sync: allow it at all (via the existing save system, separate opt-in), or keep the journal strictly local plus manual export/import?
+2. If sync is allowed, are you comfortable with that data in the Neon database given it's more personal than game saves? (Want it encrypted client-side with a passphrase?)
+3. Should the game start with the tracker hidden ("Just play" default, recommended) or present at first run?
+4. Tone: deadpan-absurd (recommended) or warmer/cozy?
+5. Character: one persistent character, or a roster with "retire and inherit"?
+6. Is a hard "Not medical advice" gate at first Journal open (one-time acknowledge) acceptable, or too heavy?
+7. Any real-life journal tags you specifically want (caffeine, exercise, screen-late...) or leave to my defaults?
+8. Story mode: a light arc (new job, new city) or sandbox only at launch?
+
+---
+
+## S. Overclock — open questions (approved round-2 M6, full plan in `planning/overclock-plan.md`)
+
+*A roguelike deck-builder: draft a run-specific deck of abilities, fight through procedurally arranged encounters of escalating difficulty, permadeath-and-retry — pure build-crafting-and-combat satisfaction, "this run vs. the last one." Fun-first, no educational framing.* You said you want "some kind of gimmick that makes this game special" and lean space or cult, but neither is chosen yet, and this plan deliberately doesn't define cards, energy rules, enemy design, encounter shape, or theme — those all wait on your answers below. The full plan has the complete technical foundation (seeded-RNG run engine, run/meta state split, content-as-JSON pipeline) and a 7-milestone baseline build order that's genre-agnostic; a second milestone set starts only once the gimmick is picked. This plan's own section 4 is also the **shared baseline checklist** that Last Line and Deep Descent below both reference rather than repeat.
+
+1. Space or cult (or something else)? This sets tone, palette, favicon glyph and ambient background.
+2. What is the one mechanic that makes it not-just-Slay-the-Spire (e.g. a resource that overheats/corrupts, a shared deck between runs, a ritual/sacrifice loop)?
+3. Run length target: ~15 minutes (quick, mobile-friendly) or 45+ minutes? Drives whether mid-run saves matter.
+4. Meta-progression between runs: unlocks only (new cards), permanent stat upgrades, or none (pure skill)?
+5. Story/flavor text on or off by default?
+
+---
+
+## T. Last Line — open questions (approved round-2 M7, "same as 6", full plan in `planning/last-line-plan.md`)
+
+*Classic tower defense: place and upgrade defenses along a winding path against escalating waves, chase a personal-best wave-survived count. Arcade-strategy fun, leaderboard-friendly, no narrative.* Shares Overclock's full baseline checklist (save/settings/achievements/changelog/tutorial/confirm-dialog/mobile-dock/colorblind rules/test harness/feedback/hub integration) rather than repeating it. The one big genre-specific technical fork already resolved in the plan: a tick-driven deterministic sim stepped by a fixed-step `step(dt_ticks)`, with Fast-forward/Pause/"Send next wave" controls from day one, since real-time proved a poor fit for how this stack loads games. What's still open:
+
+1. What is the gimmick that differentiates it (e.g. the path can be rerouted, towers decay, a shared resource with the player's own "last line" unit)?
+2. Fixed handcrafted maps, or seeded procedurally generated paths?
+3. Real-time waves, or wave-by-wave turn-based (the biggest technical fork — see the plan's section 3)?
+4. Endless mode with a best-wave leaderboard only, or also a campaign of finite levels?
+5. Is a hub-wide leaderboard wanted (needs a new backend table — currently no such thing beyond ratings/saves)?
+
+---
+
+## U. Deep Descent — open questions (approved round-2 M10, "same as 6", full plan in `planning/deep-descent-plan.md`)
+
+*Roguelite dungeon-crawler: procedurally generated floors, permadeath runs, loot and ability pickups that change each attempt's build. Exploration-and-combat fun; replayability comes entirely from randomization.* Also shares Overclock's full baseline checklist. Turn-based on a tile grid is the assumed shape (consistent with real-time being a poor fit here), but movement/combat rules are undecided; rendering is planned as a DOM monospaced text-grid (roguelike ASCII look), not canvas, for testability and accessibility. What's still open:
+
+1. What is the hook (e.g. light/darkness, a rising hazard chasing you down, floors that remember your previous runs)?
+2. Grid-step turn-based (roguelike classic), or room-to-room node navigation (closer to Overclock's map)?
+3. How much meta-progression: pure permadeath, or a hub between runs that unlocks classes/items?
+4. Fog of war and line-of-sight: yes or no (affects generation and rendering cost)?
+5. Overlap check with Overclock: both are permadeath runs with loot — how do these two feel distinct on the same hub?
 
 ---
 
@@ -936,3 +1065,868 @@ Nothing here is new; these are the items you (or I) deferred earlier. Each one n
 37. [New game M2, Silk Road] my read is it's too close to Trade Empire without a sharper hook. Is there a distinct mechanic you want to give it, or should it stay parked?
 38. [New game M8, Contraption] a physics sandbox needs a JS physics engine (for example Matter.js), a bigger stack decision similar to Continuum adopting Three.js. Adopt one deliberately, or keep it parked?
 39. **The multiplayer pass itself.** Six of the items above (27, 30, 31, 33, and the Continuum/Herd community items) wait on it. You said it's likely the next big development after this set. Want a scoping document written for it as the first step?
+
+---
+
+# PART 4 — Your Answers
+
+Everything above, pre-titled and pre-numbered so you never have to write out a `## <SECTION>` header or an item number yourself. Just type after the number — "yes", "no", "later", or a word plus a short note — and leave anything you're not ready for blank. Same rules as always: "yes" builds it, "no" drops it, "later" parks it. For Part 4's own N/O/P/Q/S/T/U sections (the folded-in seasonal-events, replayability, and new-game-groundwork content), the same words apply, except "later" and "drop" for the new-game open questions (P/Q/S/T/U) just mean "leave that specific design fork undecided a while longer" rather than dropping the whole game, since those five games are already approved.
+
+### GB — Canopy (gamified)
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+### GC — Grid (gamified)
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+### GD — Tide (gamified)
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+### GE — Aftermath (gamified)
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+### GF — Herd (gamified)
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+### GG — Thaw (gamified)
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+### GH — Loop (gamified)
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+### GI — Drift (gamified)
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+### A — SOL
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+31. 
+
+### B — Canopy
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+31. 
+
+### C — Grid
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+31. 
+
+### D — Tide
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+31. 
+
+### E — Aftermath
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+31. 
+
+### F — Herd
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+31. 
+
+### G — Thaw
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+31. 
+
+### H — Loop
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+31. 
+
+### I — Drift
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+31. 
+
+### J — Trade Empire
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+31. 
+
+### K — Continuum
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+31. 
+
+### L — Le Champ de Mots
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+31. 
+
+### M — New Game Ideas
+1. 
+2. 
+3. 
+4. 
+5. 
+
+### N — Seasonal/Real-World-Date Events
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+
+### O — Replayability follow-up (Trade Empire + Continuum)
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+
+### P — Signal — open questions
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+
+### Q — Undersleep — open questions
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+
+### S — Overclock — open questions
+1. 
+2. 
+3. 
+4. 
+5. 
+
+### T — Last Line — open questions
+1. 
+2. 
+3. 
+4. 
+5. 
+
+### U — Deep Descent — open questions
+1. 
+2. 
+3. 
+4. 
+5. 
+
+### Z — Games (cross-game patterns)
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+### Y — Home (the hub shell)
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+### X — Warframe Build Tracker
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+
+### R — Returning Later
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+31. 
+32. 
+33. 
+34. 
+35. 
+36. 
+37. 
+38. 
+39. 
+
