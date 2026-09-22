@@ -253,6 +253,18 @@ class RegionState:
         # variant, off by default. Persisted so it stays set across a
         # save/load, same as Grid's steeper_demand_growth_enabled.
         self.accelerated_severity_enabled = False
+        # I20 -- a one-time callout the first time the arrival-dot stream's
+        # visible density actually changes because of the severity toggle,
+        # not just because arrivals grow on their own over time. Captured
+        # once, the very first time the toggle is switched on: the dot
+        # count *at that exact moment* becomes the baseline to compare
+        # future renders against, so the callout is attributable to the
+        # toggle rather than firing on ordinary background growth. Both
+        # fields are permanent once set (never reset by toggling off/on
+        # again), matching the "recorded once, stays true" shape
+        # thriving_round/net_positive_round already use above.
+        self.severity_toggle_dot_baseline = None
+        self.severity_density_callout_shown = False
         # I15 -- a transient one-time flag, set in advance_round() the
         # round has_long_horizon_story() first flips from False to True,
         # consumed and reset by render() the next time it draws --
@@ -1936,6 +1948,19 @@ def on_toggle_coda(event=None):
 # action achievements can key off of, so no toast check here.
 def on_toggle_accelerated_severity(event=None):
     region.accelerated_severity_enabled = not region.accelerated_severity_enabled
+    # I20: capture the dot-density baseline the very first time the toggle
+    # is ever switched on, so a later render can tell whether the stream's
+    # density has genuinely moved since then. Never re-captured on a later
+    # toggle -- the callout is a one-time "here's the effect" moment, not a
+    # per-toggle reminder.
+    if (
+        region.accelerated_severity_enabled
+        and region.severity_toggle_dot_baseline is None
+        and not region.severity_density_callout_shown
+    ):
+        region.severity_toggle_dot_baseline = arrival_stream_dot_count(
+            region.arrivals_this_round()
+        )
     render()
 
 
