@@ -182,6 +182,28 @@ RESOURCE_LOCATIONS = {
     "Venerdo Alloy": "Refined from Venerol (see Venerol's own Wiki page)",
 }
 
+# Round-2 idea (TODO.md, section X): "a small icon per planet/location on
+# the resource location tooltip, for faster scanning" -- RESOURCE_LOCATIONS
+# above is free-text (straight off each resource's Wiki infobox), not a
+# structured field, so the icon is picked by matching a handful of
+# substrings that actually occur in that text, checked in order (most
+# specific first) with a generic fallback for an ordinary planet list.
+_LOCATION_ICON_KEYWORDS = [
+    ("Refined from", "\U0001F504"),  # 🔄 -- not farmed directly, refined from another resource
+    ("Plains of Eidolon", "\U0001F33E"),  # 🌾 -- Cetus open world
+    ("Orb Vallis", "❄️"),  # ❄️ -- Fortuna open world
+    ("Cambion Drift", "\U0001F9EC"),  # 🧬 -- Deimos open world (Infested)
+]
+_LOCATION_ICON_DEFAULT = "\U0001FA90"  # 🪐 -- an ordinary planet/mission-node list
+
+
+def location_icon(location_text):
+    for keyword, icon in _LOCATION_ICON_KEYWORDS:
+        if keyword in location_text:
+            return icon
+    return _LOCATION_ICON_DEFAULT
+
+
 # Real Wiki page slugs that don't match the part's display name -- mostly
 # zaw Strikes/Grips/Links/kitgun Chambers, which the Wiki documents under
 # just the component's proper noun (e.g. "Balla", not "Balla Strike").
@@ -1026,7 +1048,10 @@ def _render_resource_table(resources):
         copy_btn.addEventListener("click", copy_proxy)
         _active_proxies.append(copy_proxy)
         name_cell.appendChild(copy_btn)
-        name_cell.appendChild(_el("div", class_="resource-location", text=f"📍 {resource['location']}"))
+        loc_icon = location_icon(resource["location"])
+        name_cell.appendChild(
+            _el("div", class_="resource-location", text=f"{loc_icon} {resource['location']}")
+        )
         used_in = _el("details", class_="used-in")
         summary = _el("summary", text=(
             f"used in ({len(resource['used_in'])}) · "

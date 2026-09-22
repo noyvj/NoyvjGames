@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 631/748 items checked off (84.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 632/748 items checked off (84.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -851,7 +851,7 @@ A "yes" here means "worth a groundwork plan" (a new `planning/<game>-plan.md`, p
 **Everything else (round 2, from `IMPROVEMENT-IDEAS-ROUND-2.md` Section X):**
 - [x] A small "days since last `data.json` update" readout.
 - [x] A "build priority" sort/highlight — rank the 33 parts by "closest to buildable" (fewest missing resources), not the fixed category order.
-- [ ] A small icon per planet/location on the resource location tooltip, for faster scanning.
+- [x] A small icon per planet/location on the resource location tooltip, for faster scanning. `location_icon()` matches a handful of substrings against the existing free-text location strings (Plains of Eidolon 🌾, Orb Vallis ❄️, Cambion Drift 🧬, "Refined from" 🔄, default 🪐 for a plain planet/mission list), prefixed onto each resource row's location line in place of the previous generic 📍.
 - [ ] A "farming route planner" — suggest which single location would satisfy the most outstanding resource needs at once.
 - [x] A confirmation-gated "reset all inventory to zero" button.
 - [ ] Expand the category-level "meta build" notes into per-part notes pulling from each part's own Wiki "Tips" section — **and go bigger, per your own note**: also track what the built parts *become* (e.g. a "177" amp combo), not just per-part tips. Ties directly to the build-comparison idea below.

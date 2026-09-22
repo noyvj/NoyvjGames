@@ -291,6 +291,39 @@ def test_used_in_shows_remaining_needed(game_env):
     assert "covered" in summary.textContent
 
 
+# --- 6b. location icon -----------------------------------------------------
+
+
+def test_location_icon_matches_each_known_region(game_env):
+    m = game_env.module
+    assert m.location_icon("Plains of Eidolon (Earth)") == "\U0001F33E"
+    assert m.location_icon("Orb Vallis (Venus) -- Heist reward") == "❄️"
+    assert m.location_icon("Cambion Drift (Deimos)") == "\U0001F9EC"
+    assert m.location_icon("Refined from Auron (see Auron's own Wiki page)") == "\U0001F504"
+    assert m.location_icon("Venus, Phobos, Ceres, Jupiter, Pluto, and Sedna") == "\U0001FA90"
+
+
+def test_resource_location_div_is_prefixed_with_the_matching_icon(game_env):
+    m = game_env.module
+    _reset_to_known_state(m, parts={"Raplak Prism": {"owned": 0}})
+    m.render()
+    # Iradite -> "Plains of Eidolon (Earth)" -> the Cetus open-world icon.
+    loc_div = _find(
+        _resource_row(game_env, "Iradite").children[0],
+        lambda n: n.className == "resource-location",
+    )
+    assert loc_div.textContent.startswith("\U0001F33E ")
+    assert "Plains of Eidolon" in loc_div.textContent
+    # Esher Devar -> a "Refined from ..." entry -> the refined-chain icon.
+    # (Also one of Raplak Prism's own ingredients, so it's guaranteed to be
+    # a rendered row under the same reset-to-known-state fixture above.)
+    loc_div = _find(
+        _resource_row(game_env, "Esher Devar").children[0],
+        lambda n: n.className == "resource-location",
+    )
+    assert loc_div.textContent.startswith("\U0001F504 ")
+
+
 # --- 7. toast + reset dialog ----------------------------------------------
 
 
