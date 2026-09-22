@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 643/748 items checked off (86.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 644/749 items checked off (86.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -578,7 +578,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 
 **Folded into Z (see "Games" section above):** F20's "maximum feasible decoupling ratio" badge — build as an achievement pop-up instead of a bespoke badge, per your answer.
 
-**Needs a feasibility check before deciding:** F29 — a "methane capture marketplace" where excess capture capacity is "sold" for a small return. You asked: is there a real-world example of this? If yes, build it; if it's not grounded in anything real, drop it. Research this before adding it to the working list.
+- [x] F29 — a "methane capture marketplace" where excess capture capacity is "sold" for a small return. Researched (R2-F29): real farms genuinely do this — captured biogas/RNG (and its RIN/LCFS credits) is a real revenue stream once on-farm energy use is covered. Built as `biogas_sales()`: the first `CAPTURE_SELF_USE_UNITS` of Capture investment cover on-farm use, every unit beyond that earns `BIOGAS_SALE_PER_UNIT` funds per herd unit per round, narrated via `biogas_message()`. Bookkeeping fix only (2026-09-22) — this line was still prose-only despite the feature already being live in `games/herd/game.py` and documented in `games/herd/CLAUDE.md`.
 
 ---
 
