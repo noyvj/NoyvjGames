@@ -802,3 +802,22 @@ direct Python call) correctly opened the panel and showed "Day 1 —
 Reported a vocab answer for “hello”."; the panel's text color was checked
 distinct and legible across all four visual styles (High-def/Low-poly/
 Text-based/Cartoon). Zero console errors throughout.
+
+## Keyboard-shortcut convention: ?/Esc (Z4, site-wide goal)
+
+Wired via the new shared `shared/keyboard-shortcuts.js` -- one script
+include plus one `KeyboardShortcuts.init({panels: [...]})` call at the
+end of `index.html`, listing this game's real toggle-button + hidden-
+panel pairs: How to Play, Settings, Progress Dashboard, Achievements,
+What's New, My Reports, and all four arcade minigames (Greetings &
+Basics Blitz, Verb Racer, Boutique Dash, Café Rush), plus Liaison
+Practice, Review, and Cultural Notes. `?` opens a small floating
+shortcuts-help overlay; `Esc` closes it and clicks the toggle button of
+whichever listed panel is currently open, reusing each panel's own
+open/close logic (kept working correctly under all four visual styles,
+which only restyle chrome, not the toggle-button/panel wiring itself).
+The Practice/Proficiency/Bonus panels, the cafe-twist sub-panel, and the
+Study Buddy display aren't in the list -- none is a simple show/hide
+toggle with one dedicated button the way the panels above are; they're
+row-unlock-gated content screens or inline hints shown/hidden by game
+state.

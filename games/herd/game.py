@@ -11,6 +11,7 @@ import json
 import math
 import os
 
+import comparison_chart
 import info_page
 from js import document, setTimeout
 from pyodide.ffi import create_proxy
@@ -965,6 +966,25 @@ def real_world_comparison_message():
     )
 
 
+def real_world_comparison_chart_svg():
+    """Z17 (site-wide goal): a small bar chart alongside the F15 text
+    sentence above -- this comparison previously had no chart at all,
+    only prose. Built on the shared shared/comparison_chart.py component
+    (the same module Grid's own C15/global-comparison line and
+    Continuum's K13 "vs. history" chart now share), via its
+    bar_comparison_svg() -- the simplest chart shape in that module, for
+    a single current value against a single hardcoded real-world
+    reference rather than a round-by-round history."""
+    return comparison_chart.bar_comparison_svg(
+        farm.decoupled_fraction() * 100,
+        REAL_WORLD_REDUCTION_FRACTION * 100,
+        unit="%",
+        your_label="You",
+        reference_label="Real farms (documented)",
+        aria_label="Your emissions-intensity reduction against the documented real-world benchmark",
+    )
+
+
 # F8 — a combined readout for how the efficiency measures (feed/caps/
 # capture) and the plant-based pivot interact, since coupling_ratio()
 # blends both but the UI otherwise only ever shows them separately.
@@ -1173,6 +1193,7 @@ def update_achievements_display():
     for entry in achievements_summary():
         card = document.createElement("div")
         card.className = "achievement-card achievement-card--earned" if entry["earned"] else "achievement-card"
+        card.dataset.achievementId = entry["id"]
 
         label = document.createElement("p")
         label.className = "achievement-card-label"
@@ -1205,6 +1226,24 @@ def update_achievements_display():
     hub_link.href = "../../index.html#account-achievements-dashboard"
     hub_link.className = "achievements-hub-link"
     panel.appendChild(hub_link)
+
+    _request_achievement_stats()
+
+
+def _request_achievement_stats():
+    """Z27b: asks the page's optional JS hook (window.applyAchievementStats,
+    shared/achievement-stats.js) to fill in each achievement card's own
+    "Earned by N% of players" line from the cross-player stats endpoint
+    (planning/TODO.md Z1). Absent hook (pytest, or a page without the
+    shared script) leaves the cards exactly as rendered above -- same
+    fails-soft shape as Grid's C15 window.gridCompare."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    hook = getattr(window, "applyAchievementStats", None)
+    if hook is not None:
+        hook()
 
 
 # Unlock toast (TODO.md "roll achievements out everywhere" — required on
@@ -1675,6 +1714,7 @@ def render():
 
     # F15 — the real-world 42% comparison.
     document.getElementById("real-world-comparison-display").innerText = real_world_comparison_message()
+    document.getElementById("real-world-comparison-chart").innerHTML = real_world_comparison_chart_svg()
 
     document.getElementById("certification-display").innerText = certification_message()
 

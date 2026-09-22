@@ -37,20 +37,20 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [x] Trade Empire
   - [x] Continuum
   - [x] Le Champ de Mots
-- [ ] Z4: A consistent keyboard-shortcut convention (`?` for help, `Esc` to close any open panel) — first decide the shared convention, then audit/align each game:
-  - [ ] Decide the shared convention (which keys, which actions)
-  - [ ] SOL
-  - [ ] Canopy
-  - [ ] Grid
-  - [ ] Tide
-  - [ ] Aftermath
-  - [ ] Herd
-  - [ ] Thaw
-  - [ ] Loop
-  - [ ] Drift
-  - [ ] Trade Empire
-  - [ ] Continuum
-  - [ ] Le Champ de Mots
+- [x] Z4: A consistent keyboard-shortcut convention (`?` for help, `Esc` to close any open panel) — first decide the shared convention, then audit/align each game. Convention: `?` opens/closes a floating shortcuts-help overlay, `Esc` closes the overlay plus whichever of that game's panels is open (clicking each panel's own toggle button, never touching `.hidden` directly, so button-label swaps stay correct). Built as a new shared `shared/keyboard-shortcuts.js` (one script include + one `KeyboardShortcuts.init({panels: [...]})` call per game), rolled out to 11 games; Continuum already had this exact pattern built first (K27) and needed no change. See each game's own CLAUDE.md "Keyboard-shortcut convention: ?/Esc (Z4...)" section for its exact panel list.
+  - [x] Decide the shared convention (which keys, which actions)
+  - [x] SOL
+  - [x] Canopy
+  - [x] Grid
+  - [x] Tide
+  - [x] Aftermath
+  - [x] Herd
+  - [x] Thaw
+  - [x] Loop
+  - [x] Drift
+  - [x] Trade Empire
+  - [x] Continuum — already satisfied (its own K27 build), audited and confirmed, no change needed
+  - [x] Le Champ de Mots
 - [x] Z6: A shared CSS utility/pattern for "new personal best" badges:
   - [x] Build the shared utility (`shared/personal-best.css`, 2026-09-21)
   - [x] Migrate SOL's existing bespoke version (n/a — SOL has no personal-best concept, checked live)
@@ -122,11 +122,11 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [x] Drift — same as Canopy (its feedback prompt also has an extra framing-sensitivity comment box for the climate-displacement topic; still the same end-of-session-survey mechanism, not a contextual one).
   - [x] Trade Empire — no contextual report affordance and no end-of-session feedback prompt either; a fictional trading-economy sandbox with no citable real-world facts to dispute. Documented gap, left for a future dedicated pass rather than built reactively.
   - [x] Continuum — had neither mechanism (this game's own design philosophy explicitly rules out end-of-session survey prompts) but its Milestone 5 real-world info panel (28 cited sources across seven eras) states citable facts a player could reasonably dispute — the one genuinely deserving spot found in this audit. Built a small "Report an issue with this info" button there, reusing the existing `answer_reports` backend table/endpoint with zero schema changes, scoped to Continuum's own files only (not the `shared/info_page.py` module 8 other games also use). 568/568 tests green, flake8 clean, verified live — commit `d29d35c`.
-- [ ] Z17: A shared "comparison/benchmark" chart component with swappable reference-data sources:
-  - [ ] Build the shared component
-  - [ ] Migrate Grid's existing global-comparison line to it
-  - [ ] Build Continuum's history-comparison idea (K13) on it
-  - [ ] Build Herd's real-world % comparison on it
+- [x] Z17: A shared "comparison/benchmark" chart component with swappable reference-data sources. New `shared/comparison_chart.py` (SVG-string building blocks + two convenience wrappers, `two_series_chart_svg()`/`bar_comparison_svg()`; `reference` accepts a constant, a per-point series, or `None`). Grid's C15 global-comparison line, Continuum's K13 "vs. history" chart, and Herd's F15 real-world-% comparison all migrated/built onto it — see each game's own CLAUDE.md "Comparison/benchmark chart migrated to shared component (Z17...)" section.
+  - [x] Build the shared component
+  - [x] Migrate Grid's existing global-comparison line to it
+  - [x] Build Continuum's history-comparison idea (K13) on it — was already built (Milestone 25); this migrated its rendering onto the shared component
+  - [x] Build Herd's real-world % comparison on it — F15 previously had text only; now has an actual chart
 - [x] Z18: A mobile-viewport audit at 320px (not just 375px), catching any edge-of-screen clipping the original mobile pass missed. All 12 games audited across two passes: 7 real per-game overflow bugs found and fixed (Continuum, Drift, Loop, Thaw, Grid, Tide, Trade Empire), plus one shared site-wide bug in `ad-bar.css` affecting all 12 games' ad bar at every phone width (see root `CLAUDE.md`'s Working notes). SOL, Canopy, Aftermath, Herd, Le Champ de Mots audited with no change needed. See each game's own CLAUDE.md "320px mobile-viewport audit (Z18...)" section for details.
   - [x] SOL
   - [x] Canopy
@@ -227,7 +227,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [x] Trade Empire
   - [x] Continuum
   - [x] Le Champ de Mots
-- [ ] Z27b: Add a "% of players who have earned this" stat per achievement *(needs Z1)* — per your own added note, "that's how I see how difficult it is on most sites."
+- [x] Z27b: Add a "% of players who have earned this" stat per achievement *(needs Z1)* — per your own added note, "that's how I see how difficult it is on most sites." Built as one shared `shared/achievement-stats.js` (not 12 copy-pasted hooks — every game's achievements panel needs the same "look up this row's id in a fetched blob, write a line of text" treatment), reading `GET /stats/games/<slug>` (already returns per-achievement `earned_pct`/`earned_count` once at least 3 saves have earned it) and writing into each achievement row (tagged with a `data-achievement-id` attribute, added to all 12 games' panels alongside this rollout). An id absent from the response (under-sampled) shows nothing rather than a misleading "0%". Rolled out to all 12 games.
 - [x] Z28: A consistent loading-state check — confirm every game shows a visible "loading…" state during Pyodide boot rather than a blank screen. Audited, no change needed: every game's static HTML (rendered instantly, before Pyodide even starts fetching) already includes its `<h1>` title plus every interactive control in a `disabled` state showing the literal text "Loading..." (buttons) or a "Loading..." status paragraph — confirmed via `grep -rn "Loading\.\.\." games/*/index.html` across all 12. No game shows a blank screen at any point between initial paint and Pyodide finishing boot; the pattern is already consistent site-wide (a disabled-button/status-text convention, not a dedicated spinner component) rather than needing one to be built.
   - [x] SOL
   - [x] Canopy

@@ -671,3 +671,23 @@ added right after `shared/last-played.js`'s own include. See root
 `CLAUDE.md`'s Working notes for the full write-up -- shared
 infrastructure, documented once there rather than duplicated across all
 12 games' own files.
+
+## Keyboard-shortcut convention: ?/Esc (Z4, site-wide goal)
+
+Wired via the new shared `shared/keyboard-shortcuts.js` (see that file's
+own header comment for the full API and rationale) -- one script include
+plus one `KeyboardShortcuts.init({panels: [...]})` call at the end of
+`index.html`, listing every real toggle-button + hidden-panel pair this
+game has: How to Play, Settings, Achievements, Stats, Governor Report,
+What's New, Overview, Build Plan, Prestige Tree, and the Epilogue
+(`epilogue-button`/`epilogue-panel`). `?` opens/closes a small floating
+help overlay (built generically by the shared file, since SOL had no
+pre-existing one of its own); `Esc` closes the help overlay and clicks
+the toggle button of whichever of the listed panels is currently open,
+reusing each panel's own existing open/close logic (button-label swaps
+like "Achievements (N/M)" stay correct) rather than touching `.hidden`
+directly. Sandbox mode's flag toggle and the always-visible cross-summary
+`<details>` groups aren't in the panel list -- neither has a dismissible
+"panel" shape a generic Esc handler could safely close.
+
+

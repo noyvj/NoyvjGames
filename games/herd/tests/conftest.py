@@ -57,6 +57,7 @@ ELEMENT_IDS = [
     "combined-decoupling-display",
     "gauge-range-display",
     "real-world-comparison-display",
+    "real-world-comparison-chart",
     "methane-trend-graph",
     "counterfactual-comparison-display",
     "baseline-herd-display",

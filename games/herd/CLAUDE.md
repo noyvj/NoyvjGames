@@ -600,3 +600,46 @@ added right after `shared/last-played.js`'s own include. See root
 `CLAUDE.md`'s Working notes for the full write-up -- shared
 infrastructure, documented once there rather than duplicated across all
 12 games' own files.
+
+## Keyboard-shortcut convention: ?/Esc (Z4, site-wide goal)
+
+Wired via the new shared `shared/keyboard-shortcuts.js` -- one script
+include plus one `KeyboardShortcuts.init({panels: [...]})` call at the
+end of `index.html`, listing this game's real toggle-button + hidden-
+panel pairs: How to Play, Achievements, Report Card, What's New,
+Settings, and the Info Page. `?` opens a small floating shortcuts-help
+overlay; `Esc` closes it and clicks the toggle button of whichever listed
+panel is currently open, reusing each panel's own open/close logic. The
+policy panel and the poultry panel aren't in the list -- both are shown
+by game state (a pending offer, an unlock), not a player-clicked toggle
+button.
+
+## Comparison/benchmark chart migrated to shared component (Z17, site-wide goal)
+
+F15's real-world comparison previously had a text sentence only
+(`real_world_comparison_message()`) and no chart at all. `planning/TODO.md`'s
+Z17 asked for exactly this: F7 (the "farm cooperative" live-percentile
+comparison, `window.herdCompare`) was considered as the migration target
+too, but F15 is the genuinely chart-shaped, "hardcoded real-world constant"
+comparison Z17's own wording describes -- F7's live-percentile hook is a
+different, already-shared architecture (byte-for-byte the same pattern as
+Grid's own C15 hook) that this rollout deliberately didn't touch.
+
+New `real_world_comparison_chart_svg()` builds a small two-bar chart (You
+vs. "Real farms (documented)") via the new shared
+`shared/comparison_chart.py`'s `bar_comparison_svg()` -- the same module
+Grid's C15 global-comparison line and Continuum's K13 "vs. history" chart
+also now share -- rendered into a new `#real-world-comparison-chart` div
+right under the existing sentence. "You" reuses the gauge's own
+decoupled-green; the reference bar uses an Okabe-Ito blue rather than red,
+so this never becomes a red/green colorblind-confusion pair.
+
+This is genuinely new player-facing behavior (a chart where there was none
+before), so it's in `changelog.json` too. 3 new tests
+(`tests/test_real_world_comparison_chart.py`); full suite green aside from
+the same unrelated `test_achievements.py` `card.dataset` failures a
+concurrently-running sibling agent's in-flight work left mid-edit (not
+touched by this change). `flake8` clean. Live-verified via the shared
+`hub-dev-server`: a fresh farm showed the chart at 0% vs. the 42%
+reference bar; growing the herd and investing in Capture Systems three
+times correctly grew the "You" bar to 30%. Zero console errors.

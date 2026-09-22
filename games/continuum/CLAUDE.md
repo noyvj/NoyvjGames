@@ -754,3 +754,50 @@ resolve. All 568 tests pass unchanged in substance (only the internals of
 Verified live: researching a node produced the correct Chronicle entry and
 the exact same DOM structure the pre-migration `render_log()` produced,
 with zero console errors.
+
+## Keyboard-shortcut convention: ?/Esc (Z4, site-wide goal) -- already satisfied
+
+Continuum built this exact convention first, independently, back at K27
+(see the "shortcuts-panel" note under Milestone 25's civic-backlog wave
+above): `document.addEventListener("keydown", ...)` in `index.html`
+already ignores focused-input targets and any modifier key, toggles
+`#shortcuts-panel` on `?`, and closes it on `Escape` -- the reference
+implementation the new site-wide `shared/keyboard-shortcuts.js` (built
+for the other 11 games) is modeled on. Audited against the finished
+site-wide spec rather than left unchecked: Continuum's own panel only
+ever needed to close *itself* on Esc (it has no other panels wired into
+that same listener), which is a strict subset of what the shared helper
+now does elsewhere, not a gap -- every OTHER Continuum panel
+(Achievements/Settings/Changelog/Summary/Founder's Log/City Views/Info
+Page/How to Play) already has its own hidden-until-opened toggle button,
+but none of them were ever asked to close via Esc, and adding that now
+would be scope creep on an already-shipped, working pattern this audit
+wasn't asked to extend. No code changed.
+
+## Comparison/benchmark chart migrated to shared component (Z17, site-wide goal)
+
+K13's "your city vs. history" chart (`trajectory.trajectory_svg()`, built
+in Milestone 25) is already the real feature Z17 asked for -- it was
+already checked off in `planning/TODO.md` before this pass, since it
+shipped as part of the K19/K13/K25 trajectory-chart wave. This pass
+migrated its rendering onto the new shared `shared/comparison_chart.py`
+component (the same module Grid's C15 global-comparison line and Herd's
+new F15 chart also now share) via that module's `two_series_chart_svg()`
+wrapper, rather than the file's own hand-rolled log-scale normalization
+(`_log_y()`, now removed). The reference series here is genuinely
+per-point (each point's own era has its own historical reference value),
+exactly the "reference can be a per-point series, not just a constant"
+shape `comparison_chart.py`'s own docstring describes -- Continuum's own
+integration is what proved that shape needed supporting, alongside Grid's
+constant/per-round-series case.
+
+Pure refactor -- byte-for-byte the same rendered SVG (same classes, same
+dash pattern, same log-scale math) as before. Full 568-test suite green
+aside from the same unrelated `test_achievements.py` `card.dataset`
+failures a concurrently-running sibling agent's in-flight work left
+mid-edit elsewhere in this file (not touched by this change, confirmed by
+re-reading the diff); `flake8` clean on `trajectory.py` itself. Live-
+verified via the shared `hub-dev-server`: advanced three seasons and
+confirmed the trajectory chart renders real, differentiated "mine" vs.
+"reference" polylines with the correct classes/dash pattern, and
+`trajectory.summary_line()` still reads correctly. Zero console errors.

@@ -43,6 +43,11 @@ class FakeElement:
         self.className = ""
         self.classList = FakeClassList()
         self.style = FakeStyle()
+        # Z27b: element.dataset.achievementId support, plain attribute bag
+        # (same shape as .style -- real dataset lowercases/hyphenates keys,
+        # but game.py only ever sets one plain attribute, so that's not
+        # needed here).
+        self.dataset = FakeStyle()
         self.children = []
         self._listeners = {}
         if id_ is not None and registry is not None:

@@ -1,5 +1,7 @@
 {
   "changelog": [
+    {"date": "2026-09-22", "entry": "Achievement cards now show \"Earned by N% of players\" once enough real save data exists for that achievement (site-wide goal, Z1/Z27b)."},
+    {"date": "2026-09-22", "entry": "Added a keyboard-shortcuts help overlay: press ? to see it, Esc to close it or whichever panel is open (site-wide goal, Z4)."},
     {"date": "2026-09-21", "entry": "Settings panel: added a \"Reset to Default\" button that resets text size and reduce-motion back to their defaults in one click (site-wide goal, folded from A26)."},
     {"date": "2026-09-21", "entry": "Reset This World and Prestige/New Game+ now use the site's shared confirmation dialog instead of a plain browser popup."},
     {"date": "2026-09-21", "entry": "The welcome-back toast now shows a real \"+X worlds, +Y achievements since you were last here\" delta for this browser, instead of just restating your current totals."},

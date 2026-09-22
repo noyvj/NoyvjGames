@@ -136,6 +136,35 @@ h1 {
 /* .info-page-* rules moved to shared/info-page.css (see index.html's
    <link> in <head>) as part of consolidating the info-page feature. */
 
+/* Z17 (site-wide goal): the F15 real-world comparison chart, built on
+   shared/comparison_chart.py's bar_comparison_svg(). "You" reuses the
+   gauge's own decoupled-green; "real farms (documented)" uses an
+   Okabi-Ito blue rather than red, so this never becomes a red/green
+   colorblind-confusion pair (this game's own earlier colorblind-safety
+   audit already established that convention for this file). */
+.comparison-chart {
+  margin: 0.5rem 0 0;
+}
+
+.comparison-bar-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.comparison-bar--you {
+  fill: #4c9c6e;
+}
+
+.comparison-bar--reference {
+  fill: #4fa8dd;
+}
+
+.comparison-bar-label {
+  fill: #e8ecf6;
+  font-size: 7px;
+}
+
 .meter-label {
   margin: 0.4rem 0 0.3rem;
   font-size: 0.8rem;
@@ -934,6 +963,18 @@ button.secondary:disabled::after {
   font-size: 0.72rem;
   opacity: 0.55;
   font-variant-numeric: tabular-nums;
+}
+
+/* Z27b: cross-player "Earned by N% of players" line, filled in by
+   shared/achievement-stats.js once the aggregate-stats endpoint responds
+   -- same muted small-text treatment as .achievement-card-progress, kept
+   distinct via italics so the two never look identical if both appear on
+   the same card. */
+.achievement-earn-rate {
+  margin: 0.3rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.5;
+  font-style: italic;
 }
 
 .achievements-hub-link {

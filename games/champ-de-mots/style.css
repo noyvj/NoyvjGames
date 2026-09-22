@@ -1002,6 +1002,18 @@ button:disabled {
   font-style: italic;
 }
 
+/* Z27b: cross-player "Earned by N% of players" line, filled in by
+   shared/achievement-stats.js once the aggregate-stats endpoint responds
+   -- appended after an earned/next row's own text, same muted-italic
+   treatment as .achievement-next so it reads as a secondary line. */
+.achievement-earn-rate {
+  margin: 0.1rem 0 0.3rem;
+  font-size: 0.75rem;
+  color: #6b5c46;
+  font-style: italic;
+  opacity: 0.8;
+}
+
 .achievements-hub-link {
   display: inline-block;
   margin-top: 0.6rem;

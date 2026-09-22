@@ -119,6 +119,10 @@
            record actually exists (a brand-new browser shows nothing). -->
       <p id="coupling-gauge-record-display" class="personal-best-display" hidden></p>
       <p id="real-world-comparison-display" class="comparison-message">You've cut emissions intensity by 0% so far — real farms have documented a ~42% reduction through better practices.</p>
+      <!-- Z17 (site-wide goal): a small chart alongside the sentence
+           above, built on the shared shared/comparison_chart.py
+           component -- see game.py's real_world_comparison_chart_svg(). -->
+      <div id="real-world-comparison-chart" class="comparison-chart"></div>
       <details class="info-toggle"><summary>i</summary><p>This tracks methane produced per herd unit, not your total emissions — it only falls when you invest in the decoupling measures below, not by shrinking your herd. Total accumulated methane keeps rising every round as long as you have any herd at all, even at the lowest possible ratio.</p></details>
       <details class="info-toggle"><summary>i</summary><p>The faint haze tinting the whole page shows market/regulatory pressure: it is clear at 0% income loss and reaches its densest at the 80% cap. Purple wisps rising from the cows thin out as your coupling ratio improves, and vanish once the farm is about 90% decoupled.</p></details>
       <p class="meter-label">Methane over time</p>
@@ -304,6 +308,12 @@
       // ENGINE_MODULES loop.
       const infoPageSource = await (await fetch("../../shared/info_page.py")).text();
       pyodide.FS.writeFile("info_page.py", infoPageSource, { encoding: "utf8" });
+      // Shared comparison-chart component (Z17, see
+      // shared/comparison_chart.py) -- same fetch-then-writeFile pattern
+      // as info_page.py above, so game.py's `import comparison_chart`
+      // resolves normally. Powers the F15 real-world comparison chart.
+      const comparisonChartSource = await (await fetch("../../shared/comparison_chart.py")).text();
+      pyodide.FS.writeFile("comparison_chart.py", comparisonChartSource, { encoding: "utf8" });
       // ACHIEVEMENTS-SYSTEM-DESIGN.md §2/§7: fetch achievements.json
       // alongside game.py and hand it to Python as a window global before
       // game.py runs, same convention as SOL/Grid/Canopy.
@@ -340,6 +350,22 @@
   <script src="../../shared/save-widget.js" data-game-id="herd"></script>
   <script src="../../shared/last-played.js" data-game-id="herd"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="herd"></script>
+  <script src="../../shared/achievement-stats.js" data-game-id="herd"></script>
+  <!-- Z4 (site-wide goal): "?" shows a keyboard-shortcuts help overlay,
+       Esc closes whichever panel is open. See shared/keyboard-shortcuts.js. -->
+  <script src="../../shared/keyboard-shortcuts.js"></script>
+  <script>
+    window.KeyboardShortcuts.init({
+      panels: [
+        { toggle: "howto-toggle-button", panel: "howto-panel" },
+        { toggle: "achievements-toggle-button", panel: "achievements-panel" },
+        { toggle: "report-card-toggle-button", panel: "report-card-panel" },
+        { toggle: "changelog-toggle-button", panel: "changelog-panel" },
+        { toggle: "settings-toggle-button", panel: "settings-panel" },
+        { toggle: "info-page-toggle-button", panel: "info-page-panel" },
+      ],
+    });
+  </script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../../sw.js");

@@ -660,3 +660,18 @@ include, added right after `shared/last-played.js`'s own include. See
 root `CLAUDE.md`'s Working notes for the full write-up -- shared
 infrastructure, documented once there rather than duplicated across all
 12 games' own files.
+
+## Keyboard-shortcut convention: ?/Esc (Z4, site-wide goal)
+
+Wired via the new shared `shared/keyboard-shortcuts.js` -- one script
+include plus one `KeyboardShortcuts.init({panels: [...]})` call at the
+end of `index.html`, listing this game's real toggle-button + hidden-
+panel pairs: How to Play, Achievements, What's New, and Summary. `?`
+opens a small floating shortcuts-help overlay; `Esc` closes it and clicks
+the toggle button of whichever listed panel is currently open, reusing
+each panel's own open/close logic. The endgame panel, the research-nodes
+`<details>` disclosure, the Route Hazards/Insurance/Seasonal Demand flag
+toggles, and every always-visible galaxy-content section (Research,
+Market, Colonies, the ship panels) aren't in the list -- none has a
+single player-clicked toggle button a generic Esc handler could safely
+reuse to close it.

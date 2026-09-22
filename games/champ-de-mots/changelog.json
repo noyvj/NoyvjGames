@@ -1,4 +1,6 @@
 [
+  { "date": "2026-09-22", "entry": "Achievements now show \"Earned by N% of players\" once enough real save data exists for that achievement (site-wide goal, Z1/Z27b)." },
+  { "date": "2026-09-22", "entry": "Added a keyboard-shortcuts help overlay: press ? to see it, Esc to close it or whichever panel is open (site-wide goal, Z4)." },
   { "date": "2026-09-22", "entry": "New \"My Reports\" panel: a small dated feed confirming every correctness or pronunciation report you've sent, from any practice mode (site-wide goal, Z11)." },
   { "date": "2026-09-21", "entry": "Settings panel: added a \"Reset to Default\" button that resets the visual style back to High-def in one click (site-wide goal, folded from A26)." },
   { "date": "2026-09-21", "entry": "New Mixed Review Marathon in the Review tab: a long session of up to 40 due plots from anywhere on the farm, most overdue first." },

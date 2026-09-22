@@ -537,3 +537,18 @@ added right after `shared/last-played.js`'s own include. See root
 `CLAUDE.md`'s Working notes for the full write-up -- shared
 infrastructure, documented once there rather than duplicated across all
 12 games' own files.
+
+## Keyboard-shortcut convention: ?/Esc (Z4, site-wide goal)
+
+Wired via the new shared `shared/keyboard-shortcuts.js` -- one script
+include plus one `KeyboardShortcuts.init({panels: [...], extra: [...]})`
+call at the end of `index.html`, listing this game's real toggle-button +
+hidden-panel pairs: How to Play, Settings, Achievements, What's New,
+Session Summary, and the Info Page. `?` opens a small floating
+shortcuts-help overlay (also listing B16's existing `N` shortcut, which
+this game's own separate `keydown` listener still handles); `Esc` closes
+the overlay and clicks the toggle button of whichever listed panel is
+currently open, reusing each panel's own open/close logic. The
+stakeholder-request panel and the adopted-plot readout aren't in the list
+-- both are shown/hidden by game state, not a player-clicked toggle
+button, so there's no toggle to reuse for a generic Esc close.

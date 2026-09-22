@@ -41,6 +41,7 @@ not a measurement:
 
 import math
 
+import comparison_chart
 import sim
 
 # One entry per era: (reference year label, multiple of the 1 CE level, is_measured)
@@ -129,37 +130,40 @@ def current_output_index(state):
     return output_index(report, state.population)
 
 
-def _log_y(value, low, high, height, pad):
-    value = min(max(value, low), high)
-    frac = (math.log10(value) - math.log10(low)) / (math.log10(high) - math.log10(low))
-    return pad + (1.0 - frac) * (height - 2 * pad)
-
-
 def trajectory_svg(points, width=320, height=150):
-    """The K19/K13 chart as an SVG string: your line vs the reference line."""
-    pad = 12
+    """The K19/K13 chart as an SVG string: your line vs the reference line.
+
+    Z17 (site-wide goal): now built on the shared shared/comparison_chart.py
+    two_series_chart_svg() wrapper rather than this file's own (now-
+    removed) log-scale normalization -- Continuum's K13 "vs. history"
+    chart is one of the three integrations that shared component was
+    generalized for (alongside Grid's C15 global-comparison line and
+    Herd's new F15 chart). The reference here is genuinely per-point (each
+    point's own era has its own historical reference value), exactly the
+    "a reference can be a per-point series, not just a constant" shape
+    that module's own docstring describes -- pure refactor, byte-for-byte
+    the same rendered numbers as before this migration."""
     if not points:
         return ""
-    ys = [p[0] for p in points] + [reference_index(sim.ERA_ORDER[int(p[1])]) for p in points]
+    mine = [p[0] for p in points]
+    ref = [reference_index(sim.ERA_ORDER[int(p[1])]) for p in points]
     low = 0.5
-    high = max(2.0, max(ys) * 1.15)
-    n = len(points)
-
-    def x(i):
-        return pad + (i / (n - 1)) * (width - 2 * pad) if n > 1 else width / 2
-
-    mine = " ".join(f"{x(i):.1f},{_log_y(max(p[0], low), low, high, height, pad):.1f}" for i, p in enumerate(points))
-    ref = " ".join(
-        f"{x(i):.1f},{_log_y(reference_index(sim.ERA_ORDER[int(p[1])]), low, high, height, pad):.1f}"
-        for i, p in enumerate(points)
-    )
-    return (
-        f'<svg viewBox="0 0 {width} {height}" class="trajectory-svg" role="img" '
-        f'aria-label="Your output per person against the real historical reference, log scale">'
-        f'<rect x="0" y="0" width="{width}" height="{height}" class="trajectory-bg"/>'
-        f'<polyline points="{ref}" class="trajectory-line trajectory-line--ref" fill="none" stroke-dasharray="5 3"/>'
-        f'<polyline points="{mine}" class="trajectory-line trajectory-line--mine" fill="none"/>'
-        f"</svg>"
+    high = max(2.0, max(mine + ref) * 1.15)
+    return comparison_chart.two_series_chart_svg(
+        mine,
+        ref,
+        width=width,
+        height=height,
+        pad=12,
+        log_scale=True,
+        low=low,
+        high=high,
+        your_class="trajectory-line trajectory-line--mine",
+        reference_class="trajectory-line trajectory-line--ref",
+        reference_dash="5 3",
+        background_class="trajectory-bg",
+        svg_class="trajectory-svg",
+        aria_label="Your output per person against the real historical reference, log scale",
     )
 
 

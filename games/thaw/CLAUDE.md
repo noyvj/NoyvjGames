@@ -525,3 +525,15 @@ the cap/append logic moved out. `index.html`'s boot script fetches
 clean. Verified live: advancing rounds until melt started still produced
 the correct three-region log entries, rendered in the same `<li>` markup
 as before, with zero console errors.
+
+## Keyboard-shortcut convention: ?/Esc (Z4, site-wide goal)
+
+Wired via the new shared `shared/keyboard-shortcuts.js` -- one script
+include plus one `KeyboardShortcuts.init({panels: [...]})` call at the
+end of `index.html`, listing this game's real toggle-button + hidden-
+panel pairs: How to Play, Achievements, What's New, Community Compare,
+Settings, the Info Page, and the Worst-Case Region reveal
+(`worst-case-toggle-button`/`worst-case-panel`). `?` opens a small
+floating shortcuts-help overlay; `Esc` closes it and clicks the toggle
+button of whichever listed panel is currently open, reusing each panel's
+own open/close logic.

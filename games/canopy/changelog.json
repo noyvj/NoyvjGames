@@ -1,5 +1,7 @@
 {
   "changelog": [
+    {"date": "2026-09-22", "entry": "Achievement cards now show \"Earned by N% of players\" once enough real save data exists for that achievement (site-wide goal, Z1/Z27b)."},
+    {"date": "2026-09-22", "entry": "Added a keyboard-shortcuts help overlay: press ? to see it, Esc to close it or whichever panel is open (site-wide goal, Z4)."},
     {"date": "2026-09-21", "entry": "Settings panel: added a \"Reset to Default\" button that resets text size and reduce-motion back to their defaults in one click (site-wide goal, folded from A26)."},
     {"date": "2026-09-21", "entry": "Session Summary is now print-friendly: printing the page (e.g. Ctrl/Cmd+P) while it's open hides the site chrome and renders the summary in clean dark-on-white, instead of the site's usual dark theme and UI."},
     {"date": "2026-09-21", "entry": "Highland Grove now has its own distinct rates: soil degrades 50% faster per clear and standing value compounds 25% slower than the main forest, reflecting a harsher high-altitude ecosystem."},

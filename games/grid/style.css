@@ -741,6 +741,18 @@ button.primary:active {
   font-variant-numeric: tabular-nums;
 }
 
+/* Z27b: cross-player "Earned by N% of players" line, filled in by
+   shared/achievement-stats.js once the aggregate-stats endpoint responds
+   -- same muted small-text treatment as .achievement-card-progress, kept
+   distinct via italics so the two never look identical if both appear on
+   the same card. */
+.achievement-earn-rate {
+  margin: 0.3rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.5;
+  font-style: italic;
+}
+
 .achievements-hub-link {
   display: inline-block;
   margin-top: 0.2rem;

@@ -456,3 +456,46 @@ added right after `shared/last-played.js`'s own include. See root
 `CLAUDE.md`'s Working notes for the full write-up -- shared
 infrastructure, documented once there rather than duplicated across all
 12 games' own files.
+
+## Keyboard-shortcut convention: ?/Esc (Z4, site-wide goal)
+
+Wired via the new shared `shared/keyboard-shortcuts.js` -- one script
+include plus one `KeyboardShortcuts.init({panels: [...]})` call at the
+end of `index.html`, listing this game's real toggle-button + hidden-
+panel pairs: How to Play, Settings, Achievements, What's New, Summary,
+Weather Log, the Info Page, and Career. `?` opens a small floating
+shortcuts-help overlay; `Esc` closes it and clicks the toggle button of
+whichever listed panel is currently open, reusing each panel's own
+open/close logic. The Steeper Demand / Weather Variability / Scenario
+difficulty toggle buttons aren't in the list -- they're on/off flags with
+no corresponding panel, not something Esc can meaningfully "close."
+
+## Comparison/benchmark chart migrated to shared component (Z17, site-wide goal)
+
+The C15/Pass-2 "global comparison" line -- this game's own hand-rolled
+combined-min-max trend-graph normalization plus per-point hoverable
+markers -- is now built by composing the new shared
+`shared/comparison_chart.py`'s `normalize_together()`/`marker_fragment()`/
+`xs_for()` building blocks, and `global_comparison_message()` now
+delegates its ahead/behind/tie branching to that module's
+`comparison_message()` (with this game's exact original wording kept via
+its `ahead_text`/`behind_text`/`tie_text` overrides). Grid is the
+reference integration this shared component was generalized FROM -- see
+that module's own header comment for the full story, and Continuum's K13
+"vs. history" chart / Herd's new F15 chart for the other two integrations
+built on it. The avg-renewable-cost line and the best-round diamond
+marker stay local to this file's own `trend_graph_svg()`, since neither
+is part of the "you vs. a reference" comparison shape the shared
+component covers.
+
+Pure refactor -- byte-for-byte the same rendered SVG/message text as
+before. Full 344-test pytest suite green (the 6 unrelated failures seen
+mid-session in `test_achievements.py`, from a concurrently-running
+sibling agent's in-flight `card.dataset` work, are not from this change --
+confirmed by re-reading the diff, which touches none of that code); `flake8`
+clean. Live-verified via the shared `hub-dev-server`: built coal capacity
+and advanced several rounds, confirmed the trend graph renders real,
+differentiated emissions/global/cost lines with correct hoverable
+`<title>` tooltips, and the global-comparison message correctly read
+"Your grid has emitted 720 vs. an estimated 329 ... you're behind the
+curve." Zero console errors.

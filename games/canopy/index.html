@@ -649,6 +649,23 @@
   <script src="../../shared/save-widget.js" data-game-id="canopy"></script>
   <script src="../../shared/last-played.js" data-game-id="canopy"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="canopy"></script>
+  <script src="../../shared/achievement-stats.js" data-game-id="canopy"></script>
+  <!-- Z4 (site-wide goal): "?" shows a keyboard-shortcuts help overlay,
+       Esc closes whichever panel is open. See shared/keyboard-shortcuts.js. -->
+  <script src="../../shared/keyboard-shortcuts.js"></script>
+  <script>
+    window.KeyboardShortcuts.init({
+      panels: [
+        { toggle: "howto-toggle-button", panel: "howto-panel" },
+        { toggle: "settings-toggle-button", panel: "settings-panel" },
+        { toggle: "achievements-toggle-button", panel: "achievements-panel" },
+        { toggle: "changelog-toggle-button", panel: "changelog-panel" },
+        { toggle: "session-summary-toggle-button", panel: "session-summary-panel" },
+        { toggle: "info-page-toggle-button", panel: "info-page-panel" },
+      ],
+      extra: ["N — jump to the plot a pending stakeholder request names"],
+    });
+  </script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../../sw.js");

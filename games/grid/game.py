@@ -11,6 +11,7 @@ import copy
 import json
 import random
 
+import comparison_chart
 import info_page
 from js import document, setTimeout
 from pyodide.ffi import create_proxy
@@ -1314,19 +1315,30 @@ def trend_graph_svg(emissions_history, cost_history, global_reference_history, c
     C15: every point on every line also gets a small hoverable marker
     carrying the exact round/value in a native <title> tooltip, so a
     player who wants a precise number isn't limited to reading it off
-    the shape of the line."""
+    the shape of the line.
+
+    Z17 (site-wide goal): the emissions-vs-global-reference pair -- this
+    game's own C15/Pass-2 "global comparison" line, the feature the
+    shared shared/comparison_chart.py component was generalized FROM --
+    is now built by composing that module's normalize_together()/
+    marker_fragment() building blocks rather than this file's own
+    (now-removed) combined-min-max/marker code. The avg-renewable-cost
+    line stays local: it's a third, unrelated series, not part of the
+    "you vs. a reference" comparison shape the shared component covers,
+    so this function doesn't use the module's higher-level
+    two_series_chart_svg() wrapper (Continuum's/Herd's simpler two-series
+    charts do -- see those games' own code)."""
     if len(emissions_history) < 2:
         return ""
 
     n = len(emissions_history)
-    xs = [i * (TREND_GRAPH_WIDTH / (n - 1)) for i in range(n)]
+    xs = comparison_chart.xs_for(n, TREND_GRAPH_WIDTH)
     # Normalized together (not each series against its own min/max) so
     # the player's emissions line and the global-reference line stay
     # comparable to each other on the same scale.
-    combined_min = min(min(emissions_history), min(global_reference_history))
-    combined_max = max(max(emissions_history), max(global_reference_history))
-    emissions_ys = _normalize_series(emissions_history, TREND_GRAPH_HEIGHT, combined_min, combined_max)
-    global_ys = _normalize_series(global_reference_history, TREND_GRAPH_HEIGHT, combined_min, combined_max)
+    emissions_ys, global_ys = comparison_chart.normalize_together(
+        emissions_history, global_reference_history, TREND_GRAPH_HEIGHT
+    )
     cost_ys = _normalize_series(cost_history, TREND_GRAPH_HEIGHT)
 
     emissions_points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, emissions_ys))
@@ -1338,18 +1350,19 @@ def trend_graph_svg(emissions_history, cost_history, global_reference_history, c
     # event wiring needed -- the browser's own hover-title behavior does
     # the work, consistent with this module keeping real logic in Python
     # rather than adding a parallel JS layer for something this simple.
-    def _markers(ys, values, css_class, label):
-        return "".join(
-            f'<circle cx="{x:.1f}" cy="{y:.1f}" r="3" class="trend-point {css_class}">'
-            f"<title>Round {i + 1} -- {label}: {v:.0f}</title>"
-            f"</circle>"
-            for i, (x, y, v) in enumerate(zip(xs, ys, values))
-        )
-
     markers = (
-        _markers(global_ys, global_reference_history, "trend-point--global", "Global-average benchmark")
-        + _markers(emissions_ys, emissions_history, "trend-point--emissions", "Your emissions")
-        + _markers(cost_ys, cost_history, "trend-point--cost", "Avg renewable cost")
+        comparison_chart.marker_fragment(
+            xs, global_ys, global_reference_history, "trend-point trend-point--global",
+            "Global-average benchmark", index_label="Round", value_format="{:.0f}",
+        )
+        + comparison_chart.marker_fragment(
+            xs, emissions_ys, emissions_history, "trend-point trend-point--emissions",
+            "Your emissions", index_label="Round", value_format="{:.0f}",
+        )
+        + comparison_chart.marker_fragment(
+            xs, cost_ys, cost_history, "trend-point trend-point--cost",
+            "Avg renewable cost", index_label="Round", value_format="{:.0f}",
+        )
     )
 
     # C12: a diamond marker (shape, not just color) on the emissions line at
@@ -1376,17 +1389,25 @@ def trend_graph_svg(emissions_history, cost_history, global_reference_history, c
 
 
 def global_comparison_message(emissions, global_reference_emissions):
-    if emissions < global_reference_emissions:
-        return (
+    """Z17: delegates its ahead/behind/tie branching to the shared
+    shared/comparison_chart.py's comparison_message() -- this game's own
+    wording is kept verbatim via the ahead_text/behind_text/tie_text
+    overrides, so this is a pure refactor with no player-visible change."""
+    return comparison_chart.comparison_message(
+        emissions,
+        global_reference_emissions,
+        subject="grid's emissions",
+        higher_is_better=False,
+        ahead_text=(
             f"Your grid has emitted {emissions:.0f} vs. an estimated {global_reference_emissions:.0f} "
             "for a grid built to the global-average fossil mix — you're ahead of the curve."
-        )
-    if emissions > global_reference_emissions:
-        return (
+        ),
+        behind_text=(
             f"Your grid has emitted {emissions:.0f} vs. an estimated {global_reference_emissions:.0f} "
             "for a grid built to the global-average fossil mix — you're behind the curve."
-        )
-    return "Your grid is tracking almost exactly the global-average fossil mix so far."
+        ),
+        tie_text="Your grid is tracking almost exactly the global-average fossil mix so far.",
+    )
 
 
 def business_as_usual_message(emissions, bau_emissions):
@@ -1774,6 +1795,7 @@ def update_achievements_display():
     for entry in achievements_summary():
         card = document.createElement("div")
         card.className = "achievement-card achievement-card--earned" if entry["earned"] else "achievement-card"
+        card.dataset.achievementId = entry["id"]
 
         label = document.createElement("p")
         label.className = "achievement-card-label"
@@ -1807,6 +1829,24 @@ def update_achievements_display():
     hub_link.href = "../../index.html#account-achievements-dashboard"
     hub_link.className = "achievements-hub-link"
     panel.appendChild(hub_link)
+
+    _request_achievement_stats()
+
+
+def _request_achievement_stats():
+    """Z27b: asks the page's optional JS hook (window.applyAchievementStats,
+    shared/achievement-stats.js) to fill in each achievement card's own
+    "Earned by N% of players" line from the cross-player stats endpoint
+    (planning/TODO.md Z1). Absent hook (pytest, or a page without the
+    shared script) leaves the cards exactly as rendered above -- same
+    fails-soft shape as this file's own C15 window.gridCompare."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    hook = getattr(window, "applyAchievementStats", None)
+    if hook is not None:
+        hook()
 
 
 # ===========================================================================

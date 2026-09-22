@@ -917,6 +917,20 @@ button.primary {
   line-height: 1.4;
 }
 
+/* Z27b: cross-player "Earned by N% of players" line, filled in by
+   shared/achievement-stats.js once the aggregate-stats endpoint responds.
+   Note: this game's own achievement cards (className "achievement-card"
+   in game.py) have no dedicated CSS block of their own in this file --
+   a pre-existing gap unrelated to this change, left alone since fixing
+   it is out of Z27b's scope -- so this rule is styled to match the
+   sibling games' small-muted-italic convention on its own. */
+.achievement-earn-rate {
+  margin: 0.3rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.55;
+  font-style: italic;
+}
+
 /* ============================================================
    Settings panel (site-wide goal, planning/TODO.md): consolidated
    text-scale + reduced-motion controls. Reuses .section for the panel

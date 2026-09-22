@@ -2781,6 +2781,7 @@ def _render_achievement_group(container, group):
         line = document.createElement("p")
         line.className = "achievement-earned"
         line.innerText = f"🏆 {entry['label']}"
+        line.dataset.achievementId = entry["id"]
         container.appendChild(line)
     if group["next"] is not None:
         line = document.createElement("p")
@@ -2788,6 +2789,7 @@ def _render_achievement_group(container, group):
         line.innerText = (
             f"Next: {group['next']['label']} ({group['next']['current']} of {group['next']['target']})"
         )
+        line.dataset.achievementId = group["next"]["id"]
         container.appendChild(line)
     if not group["earned"] and group["next"] is None:
         line = document.createElement("p")
@@ -2836,6 +2838,29 @@ def render_achievements():
     hub_link.href = "../../index.html"
     hub_link.innerText = "View achievements across every game →"
     panel.appendChild(hub_link)
+
+    _request_achievement_stats()
+
+
+def _request_achievement_stats():
+    """Z27b: asks the page's optional JS hook (window.applyAchievementStats,
+    shared/achievement-stats.js) to fill in each visible achievement row's
+    own "Earned by N% of players" line from the cross-player stats endpoint
+    (planning/TODO.md Z1). Unlike the other 11 games' full card grid, this
+    game's panel only ever shows each tier's earned entries plus its one
+    "next" target -- see _render_achievement_group() above -- so most
+    achievement ids never appear in the DOM at all here, which is fine:
+    the shared hook only ever touches rows it can find via
+    data-achievement-id. Absent hook (pytest, or a page without the shared
+    script) leaves the rows exactly as rendered above -- same fails-soft
+    shape as Grid's C15 window.gridCompare."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    hook = getattr(window, "applyAchievementStats", None)
+    if hook is not None:
+        hook()
 
 
 # ===========================================================================

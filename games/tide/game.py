@@ -1731,6 +1731,7 @@ def update_achievements_display():
         card.className = (
             "achievement-card achievement-card--earned" if entry["earned"] else "achievement-card"
         )
+        card.dataset.achievementId = entry["id"]
 
         label = document.createElement("p")
         label.className = "achievement-card-label"
@@ -1756,6 +1757,24 @@ def update_achievements_display():
     hub_link.href = "../../index.html"
     hub_link.innerText = "View achievements across every game →"
     panel.appendChild(hub_link)
+
+    _request_achievement_stats()
+
+
+def _request_achievement_stats():
+    """Z27b: asks the page's optional JS hook (window.applyAchievementStats,
+    shared/achievement-stats.js) to fill in each achievement card's own
+    "Earned by N% of players" line from the cross-player stats endpoint
+    (planning/TODO.md Z1). Absent hook (pytest, or a page without the
+    shared script) leaves the cards exactly as rendered above -- same
+    fails-soft shape as Grid's C15 window.gridCompare."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    hook = getattr(window, "applyAchievementStats", None)
+    if hook is not None:
+        hook()
 
 
 # ===========================================================================

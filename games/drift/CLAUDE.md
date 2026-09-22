@@ -301,3 +301,16 @@ added right after `shared/last-played.js`'s own include. See root
 `CLAUDE.md`'s Working notes for the full write-up -- shared
 infrastructure, documented once there rather than duplicated across all
 12 games' own files.
+
+## Keyboard-shortcut convention: ?/Esc (Z4, site-wide goal)
+
+Wired via the new shared `shared/keyboard-shortcuts.js` -- one script
+include plus one `KeyboardShortcuts.init({panels: [...]})` call at the
+end of `index.html`, listing this game's real toggle-button + hidden-
+panel pairs: How to Play, Achievements, What's New, Settings, the Info
+Page, and the Long-Horizon Outcomes coda (`coda-button`/`coda-section`).
+`?` opens a small floating shortcuts-help overlay; `Esc` closes it and
+clicks the toggle button of whichever listed panel is currently open,
+reusing each panel's own open/close logic. The Accelerated Severity /
+Crisis Start difficulty toggles aren't in the list -- they're on/off
+flags with no corresponding panel.

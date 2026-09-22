@@ -1,5 +1,17 @@
 [
   {
+    "date": "2026-09-22",
+    "entry": "Achievement cards now show \"Earned by N% of players\" once enough real save data exists for that achievement (site-wide goal, Z1/Z27b)."
+  },
+  {
+    "date": "2026-09-22",
+    "entry": "The real-world comparison (F15) now shows an actual chart, not just a sentence: your emissions-intensity cut plotted against the documented ~42% real-farm benchmark (site-wide goal, Z17)."
+  },
+  {
+    "date": "2026-09-22",
+    "entry": "Added a keyboard-shortcuts help overlay: press ? to see it, Esc to close it or whichever panel is open (site-wide goal, Z4)."
+  },
+  {
     "date": "2026-09-21",
     "entry": "Settings panel: added a \"Reset to Default\" button that resets text size and reduce-motion back to their defaults in one click (site-wide goal, folded from A26)."
   },

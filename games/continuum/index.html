@@ -590,6 +590,14 @@
       // shared module); Thaw and Le Champ de Mots reuse it too.
       const narrativeLogSource = await (await fetch("../../shared/narrative_log.py")).text();
       pyodide.FS.writeFile("narrative_log.py", narrativeLogSource, { encoding: "utf8" });
+      // Shared comparison-chart component (Z17, see
+      // shared/comparison_chart.py) -- same fetch-then-writeFile pattern
+      // as info_page.py/narrative_log.py above, so trajectory.py's
+      // `import comparison_chart` resolves normally. Continuum's K13
+      // "your city vs. history" chart (trajectory.py) is one of the
+      // three integrations this shared module was generalized for.
+      const comparisonChartSource = await (await fetch("../../shared/comparison_chart.py")).text();
+      pyodide.FS.writeFile("comparison_chart.py", comparisonChartSource, { encoding: "utf8" });
       // ACHIEVEMENTS-SYSTEM-DESIGN.md's loading contract: fetch the static
       // catalog and hand it to Python as a window global *before* game.py
       // runs, same pattern SOL/Le Champ de Mots use for their own JSON
@@ -651,6 +659,7 @@
   <script src="../../shared/save-widget.js" data-game-id="continuum"></script>
   <script src="../../shared/last-played.js" data-game-id="continuum"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="continuum"></script>
+  <script src="../../shared/achievement-stats.js" data-game-id="continuum"></script>
   <!--
     Z16 audit: the info-panel report button's actual network call, the
     exact same split and endpoint Le Champ de Mots' report button already
