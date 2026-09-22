@@ -314,3 +314,45 @@ clicks the toggle button of whichever listed panel is currently open,
 reusing each panel's own open/close logic. The Accelerated Severity /
 Crisis Start difficulty toggles aren't in the list -- they're on/off
 flags with no corresponding panel.
+
+## I20: one-time callout for the arrival-dot density change (2026-09-22)
+
+`planning/TODO.md`'s I20: "a one-time callout the first time the
+arrival-dot stream's density visibly changes due to a difficulty
+toggle." The real design question was what "due to" should mean, since
+severity (and so the dot stream) already climbs on its own every round
+regardless of the Accelerated Severity toggle -- a naive "did the dot
+count change since I flipped the toggle" would misattribute ordinary
+background growth to the toggle.
+
+Resolved by making attribution structural rather than inferred: the
+toggle handler (`on_toggle_accelerated_severity()`) captures a baseline
+-- the dot count at the exact moment the toggle is first switched on --
+into `RegionState.severity_toggle_dot_baseline`, and *only* the first
+time it's ever switched on (turning it off and back on later never
+recaptures it). Until that baseline exists, `severity_toggle_dot_
+baseline` stays `None` and the callout can never fire, so a player who
+never touches the toggle never sees it, no matter how much the stream
+changes on its own. `maybe_flag_severity_density_change()` (called from
+`render()` right after the existing I16 dot-stream update) sets the
+one-time `severity_density_callout_shown` flag the first render where
+the live dot count no longer matches that baseline -- both fields are
+permanent once set, same "recorded once, stays true" shape `thriving_
+round`/`net_positive_round` already use elsewhere in this file.
+
+Rendered as `#severity-density-callout` (`index.html`, right under the
+arrival-dot stream), reusing the `.turning-point-message` warm-accent
+box style with its own `👁️` icon rather than the turning-point's `🌅`.
+Both new fields ride `get_state()`/`load_state()` with safe `None`/
+`False` defaults for old saves.
+
+Tests: 295 -> 303 (`tests/test_difficulty_toggle.py`: baseline captured
+only on the on-transition, never re-captured on a later toggle, never
+set at all without ever toggling, callout stays hidden until the
+density genuinely moves, fires exactly once and stays shown afterward,
+never fires without a baseline even after 20 rounds of natural growth,
+and a full save/load round-trip including an old-save-missing-keys
+case). `flake8` clean. Verified live under Pyodide (`hub-dev-server`):
+toggling on captured baseline 2, advancing 6 rounds moved the dot count
+to 5 and the callout appeared with the exact expected text, styled
+correctly, zero console errors.

@@ -457,6 +457,10 @@ button.primary:active {
   content: "🌅 ";
 }
 
+#severity-density-callout::before {
+  content: "👁️ ";
+}
+
 #coda-message-display::before,
 #coda-wellbeing-display::before {
   content: "🌅 ";

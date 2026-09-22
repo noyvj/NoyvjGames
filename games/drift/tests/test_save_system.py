@@ -30,6 +30,8 @@ ALL_STATE_KEYS = {
     "last_milestone_round",
     "last_milestone_snapshot",
     "accelerated_severity_enabled",
+    "severity_toggle_dot_baseline",
+    "severity_density_callout_shown",
     "coda_visible",
     "info_page_open",
     "achievements_earned",

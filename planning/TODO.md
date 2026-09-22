@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 628/748 items checked off (84.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 630/748 items checked off (84.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -681,7 +681,7 @@ Every idea in this section was accepted, no exceptions.
 - [ ] I17: A "community capacity index" — aggregate stat showing average regional wellbeing across all players *(needs Z1)*.
 - [x] I18: Let the free-text tone/framing feedback field show a short explanatory placeholder.
 - [x] I19: A "resource reallocation" mid-run mechanic — shift already-committed capacity between housing/services/infrastructure at a small cost.
-- [ ] I20: A one-time callout the first time the arrival-dot stream's density visibly changes due to a difficulty toggle.
+- [x] I20: A one-time callout the first time the arrival-dot stream's density visibly changes due to a difficulty toggle. Attribution is structural: a baseline dot count is captured the moment the Accelerated Severity toggle is first switched on, so the callout can only ever fire for a player who's used the toggle, never from ordinary background growth alone. See `games/drift/CLAUDE.md`.
 - [x] I21: A "long-horizon divergence" comparison — the coda's generations-later outcome shown side by side for both the player's region and the passive control region.
 - [x] I22: Show the funds-to-economic-health scale reference as a small always-visible conversion note.
 - [x] I23: A "regional identity" light customization — name the region once, carried through the whole session and into the coda.

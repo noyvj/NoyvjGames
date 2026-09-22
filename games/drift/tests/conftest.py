@@ -38,6 +38,7 @@ ELEMENT_IDS = [
     "integrated-display",
     "pending-display",
     "integration-turning-point-display",
+    "severity-density-callout",
     "uganda-comparison-display",
     "resettlement-benchmark-display",
     "service-quality-display",

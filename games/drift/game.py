@@ -715,6 +715,30 @@ def arrival_stream_animation_duration(arrivals_this_round):
     )
 
 
+# I20: a one-time callout the first time the arrival-dot stream's density
+# visibly changes because of the accelerated-severity toggle specifically,
+# not just because arrivals grow on their own over time. See RegionState's
+# severity_toggle_dot_baseline/severity_density_callout_shown fields.
+SEVERITY_DENSITY_CALLOUT_TEXT = (
+    "You can see it: since you turned on Accelerated Severity, the "
+    "arrival-dot stream above has visibly changed (more dots, moving "
+    "faster) as background pressure rises quicker."
+)
+
+
+def maybe_flag_severity_density_change(region, visible_dot_count):
+    """Sets the one-time I20 callout flag if the dot count has moved away
+    from the baseline captured when the severity toggle was first switched
+    on. A no-op once the flag is already set, or if no baseline exists
+    (the toggle has never been turned on)."""
+    if region.severity_density_callout_shown:
+        return
+    if region.severity_toggle_dot_baseline is None:
+        return
+    if visible_dot_count != region.severity_toggle_dot_baseline:
+        region.severity_density_callout_shown = True
+
+
 def wellbeing_message(score):
     if score >= THRIVING_WELLBEING_SCORE:
         return "This region is turning displacement into a manageable — even thriving — transition."
@@ -1685,6 +1709,13 @@ def render():
         dot_el = document.getElementById(f"arrival-dot-{dot_index}")
         dot_el.hidden = dot_index > visible_dot_count
         dot_el.style.animationDuration = f"{dot_duration:.2f}s"
+    # I20: one-time callout once the stream's density has genuinely moved
+    # since the severity toggle was first switched on.
+    maybe_flag_severity_density_change(region, visible_dot_count)
+    density_callout = document.getElementById("severity-density-callout")
+    density_callout.hidden = not region.severity_density_callout_shown
+    if region.severity_density_callout_shown:
+        density_callout.innerText = SEVERITY_DENSITY_CALLOUT_TEXT
     document.getElementById("total-arrivals-display").innerText = (
         f"Total arrivals (lifetime): {region.total_arrivals:.0f} people"
     )
@@ -2048,6 +2079,8 @@ def get_state():
         "last_milestone_round": region.last_milestone_round,
         "last_milestone_snapshot": copy.deepcopy(region.last_milestone_snapshot),
         "accelerated_severity_enabled": region.accelerated_severity_enabled,
+        "severity_toggle_dot_baseline": region.severity_toggle_dot_baseline,
+        "severity_density_callout_shown": region.severity_density_callout_shown,
         "subscore_log": copy.deepcopy(region.subscore_log),
         "region_name": region.region_name,
         "coda_legacy_choice": region.coda_legacy_choice,
@@ -2122,6 +2155,12 @@ def load_state(data):
         region.last_milestone_snapshot = copy.deepcopy(saved_milestone_snapshot)
     region.accelerated_severity_enabled = data.get(
         "accelerated_severity_enabled", region.accelerated_severity_enabled
+    )
+    saved_dot_baseline = data.get("severity_toggle_dot_baseline")
+    if isinstance(saved_dot_baseline, int) and not isinstance(saved_dot_baseline, bool):
+        region.severity_toggle_dot_baseline = saved_dot_baseline
+    region.severity_density_callout_shown = bool(
+        data.get("severity_density_callout_shown", region.severity_density_callout_shown)
     )
     saved_subscores = data.get("subscore_log")
     if isinstance(saved_subscores, list):
