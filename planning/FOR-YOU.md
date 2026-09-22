@@ -94,3 +94,15 @@ The groundwork plan is `planning/undersleep-plan.md` (a game layer plus an optio
 8. Story mode: a light arc (new job, new city) or sandbox only at launch? **Your answer:**
 
 *(Overclock, Last Line and Deep Descent are deliberately not asked here: per your scoping, their theme and mechanic questions wait for the next ideas round, `planning/IMPROVEMENT-IDEAS-ROUND-3.md`.)*
+
+---
+
+### Q4. Continuum K26b — an eighth era, before any code starts
+
+Per your "rather than closing it, let's keep making more eras" answer, `games/continuum/CLAUDE.md`'s new "K26b: Era 8 scoping" section proposes a working concept: **"Diaspora"** — a second, distant site founded by descendants of the original settlement (finally using the long-deferred generational-descendants narrative thread), with equity measured *between* the two sites (not just within one) as the sustainability mechanic — a genuinely new shape none of the seven existing eras repeat. Read that section for the full reasoning; answer under each line.
+
+1. Is "Diaspora" the right name/theme, or do you want something else (fully fictional off-world, a more grounded on-world "regional expansion" framing, or a different angle entirely)? **Your answer:**
+2. Is a second full site the right shape, or would the equity-as-primary-lever idea work better applied to something smaller (e.g. two districts within one settlement), so it ships faster than standing up a second full site's worth of state? **Your answer:**
+3. What should Relay Stations (the new building) actually move between sites — people, a resource, or knowledge/research points? This decides a fair amount of the mechanic's exact math. **Your answer:**
+4. Real-world grounding: a regional-inequality/secondary-city angle (UN-Habitat-style sources), an off-world/space-habitat-network angle, or should this era stay closer to Earth and skip the space-diaspora framing entirely? **Your answer:**
+5. Once this is answered, should building it follow the same "repeat the Phase-3 per-era pattern" process every prior era used, or do you want a dedicated milestone breakout first? **Your answer:**
