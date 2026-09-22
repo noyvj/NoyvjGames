@@ -1,6 +1,6 @@
 # Tide — Ocean Acidification & Sea-Level Rise Game
 
-**Read `../climate-quartet-plan.md` first for shared conventions (testing, feedback hook, hope-angle requirement, hub integration).** This file is Tide-specific only. **Build third** — the grid redraw is the most visually involved piece of the four, so get Grid and Canopy's patterns solid first.
+**Built following the shared conventions in `planning/archive/climate-quartet-plan.md`** (testing, feedback hook, hope-angle requirement, hub integration — moved there 2026-09-22 once all four quartet games shipped; was `climate-quartet-plan.md` at the games root while build order still mattered). This file is Tide-specific only. Built third of the four — the grid redraw was the most visually involved piece, built after Grid and Canopy's patterns were solid.
 
 ## Concept
 

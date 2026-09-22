@@ -1,6 +1,6 @@
 # Aftermath — Climate Adaptation & Resilience Game
 
-**Read `../climate-quartet-plan.md` first for shared conventions (testing, feedback hook, hope-angle requirement, hub integration).** This file is Aftermath-specific only. **Build last** — the meta-progression skill tree is the most complex system of the four; only tackle it once the other three patterns are proven.
+**Built following the shared conventions in `planning/archive/climate-quartet-plan.md`** (testing, feedback hook, hope-angle requirement, hub integration — moved there 2026-09-22 once all four quartet games shipped; was `climate-quartet-plan.md` at the games root while build order still mattered). This file is Aftermath-specific only. Built last of the four — the meta-progression skill tree was the most complex system, tackled once the other three patterns were proven.
 
 ## Concept
 
@@ -143,8 +143,9 @@ green, are exactly the colors a player already relies on to tell things
 apart at a glance — only a matching `text-shadow`/`box-shadow` glow was
 added around each, the hue itself is untouched. No "no animation" test or
 CLAUDE.md constraint exists for this game (checked `tests/` and the shared
-`games/climate-quartet-plan.md` — the quartet's standing visual-polish
-requirement actually asks for eased state transitions, not against them),
+`climate-quartet-plan.md` (now `planning/archive/climate-quartet-plan.md`)
+— the quartet's standing visual-polish requirement actually asks for eased
+state transitions, not against them),
 so the existing `transition: filter`/`width` rules were kept and a couple
 more added for button hover states; nothing in `shared/space-bg.css`'s own
 drift animation was touched either way. Full pytest suite (116 tests)

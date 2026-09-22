@@ -1,6 +1,6 @@
 # Loop — Circular Economy & Overconsumption Game
 
-**Read `../climate-quartet-2-plan.md` first for shared conventions.** This file is Loop-specific only. **Build third** in this set — it's more structurally different from the others (redesigning a system rather than managing a rising meter), so get the simpler patterns solid first.
+**Built following the shared conventions in `planning/archive/climate-quartet-2-plan.md`** (moved there 2026-09-22 once all four second-set games shipped; was `climate-quartet-2-plan.md` at the games root while build order still mattered). This file is Loop-specific only. Built third in this set — more structurally different from the others (redesigning a system rather than managing a rising meter), so built after the simpler patterns were solid.
 
 ## Concept
 

@@ -1,6 +1,6 @@
 # Canopy — Deforestation & Carbon Sinks Game
 
-**Read `../climate-quartet-plan.md` first for shared conventions (testing, feedback hook, hope-angle requirement, hub integration).** This file is Canopy-specific only. **Build this one first** — it's the simplest of the four and establishes the pattern the others follow.
+**Built following the shared conventions in `planning/archive/climate-quartet-plan.md`** (testing, feedback hook, hope-angle requirement, hub integration — moved there 2026-09-22 once all four quartet games shipped; was `climate-quartet-plan.md` at the games root while build order still mattered). This file is Canopy-specific only. This was the first of the four built, establishing the pattern the others followed.
 
 ## Concept
 

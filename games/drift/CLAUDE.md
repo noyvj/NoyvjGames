@@ -1,6 +1,6 @@
 # Drift — Climate Migration & Displacement Game
 
-**Read `../climate-quartet-2-plan.md` first for shared conventions.** This file is Drift-specific only. **Build last** in this set — it's the most systems-heavy and longest-timeline game across both sets; only tackle it once the other patterns are proven.
+**Built following the shared conventions in `planning/archive/climate-quartet-2-plan.md`** (moved there 2026-09-22 once all four second-set games shipped; was `climate-quartet-2-plan.md` at the games root while build order still mattered). This file is Drift-specific only. Built last in this set — the most systems-heavy and longest-timeline game across both sets, tackled once the other patterns were proven.
 
 ## Concept
 

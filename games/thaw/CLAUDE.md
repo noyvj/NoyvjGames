@@ -1,6 +1,6 @@
 # Thaw — Permafrost Feedback Loop Game
 
-**Read `../climate-quartet-2-plan.md` first for shared conventions.** This file is Thaw-specific only. **Build second** in this set.
+**Built following the shared conventions in `planning/archive/climate-quartet-2-plan.md`** (moved there 2026-09-22 once all four second-set games shipped; was `climate-quartet-2-plan.md` at the games root while build order still mattered). This file is Thaw-specific only. Built second in this set.
 
 ## Concept
 

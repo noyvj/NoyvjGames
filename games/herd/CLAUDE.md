@@ -1,6 +1,6 @@
 # Herd — Industrial Agriculture & Methane Game
 
-**Read `../climate-quartet-2-plan.md` first for shared conventions.** This file is Herd-specific only. **Build this one first** in the second set — it's the simplest, closest in shape to Grid/Canopy from the original four.
+**Built following the shared conventions in `planning/archive/climate-quartet-2-plan.md`** (moved there 2026-09-22 once all four second-set games shipped; was `climate-quartet-2-plan.md` at the games root while build order still mattered). This file is Herd-specific only. Built first of the second set — the simplest, closest in shape to Grid/Canopy from the original four.
 
 ## Concept
 
