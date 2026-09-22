@@ -7,17 +7,19 @@ workers, building, researching, advancing seasons, transitioning eras,
 entering/exiting a revisit) rather than poking a synthetic "earned" flag,
 progress readouts, a no-mutation check, and the toggle/panel/toast.
 
-Two achievements are tested as pure functions of a hand-built
-`state.score_history` rather than through a full play-through
-(`thriving_once`'s "already true at the very start" case aside): getting a
-real settlement to genuinely collapse (<30) and then recover (>=70) through
-natural seasons would take many turns to engineer reliably, and
-`score_history` is itself a plain, real, already-tested field on
-`CityState` (see test_core_loop.py's own history assertions) -- setting it
-directly here is the same class of direct-field setup every era's own
-`push_to_*` helper below already uses for population/resources/buildings,
-not a hand-set achievement flag. This is called out explicitly rather than
-silently treated as equivalent to a full playthrough.
+Two achievements are tested as pure functions of a hand-built score
+history rather than through a full play-through (`thriving_once`'s
+"already true at the very start" case aside): getting a real settlement to
+genuinely collapse (<30) and then recover (>=70) through natural seasons
+would take many turns to engineer reliably. `_replay_scores()` below drives
+`state.record_score()` for each value in sequence -- the same real method
+`game.py`'s `on_advance_season()` calls every season -- rather than setting
+`state.score_history` directly, since Z25 moved the achievement's own
+"ever collapsed then recovered" signal onto a sticky field
+(`ever_recovered_from_collapse`) that only `record_score()` maintains;
+assigning to `score_history` alone would no longer be enough to earn it.
+This is called out explicitly rather than silently treated as equivalent
+to a full playthrough.
 """
 
 import research
@@ -125,17 +127,31 @@ def test_thriving_once_is_earned_immediately_by_a_fresh_settlement(game_env):
     assert "thriving_once" in game_env.module.achievement_ids_earned()
 
 
+def _replay_scores(state, values):
+    """Resets the score-history derivatives and replays `values` through
+    the real `record_score()` method, in order -- the same call
+    `on_advance_season()` makes every season (see the module docstring
+    above for why this can't be a plain `score_history` assignment
+    anymore)."""
+    state.score_history = []
+    state.peak_score = None
+    state.lowest_score_seen = None
+    state.ever_recovered_from_collapse = False
+    for value in values:
+        state.record_score(value)
+
+
 def test_phoenix_settlement_needs_a_real_collapse_then_recovery(game_env):
     state = game_env.state
     assert "phoenix_settlement" not in game_env.module.achievement_ids_earned()
 
-    state.score_history = [88.0, 70.0, 45.0]
+    _replay_scores(state, [88.0, 70.0, 45.0])
     assert "phoenix_settlement" not in game_env.module.achievement_ids_earned()  # never dropped below 30
 
-    state.score_history = [88.0, 25.0, 60.0]
+    _replay_scores(state, [88.0, 25.0, 60.0])
     assert "phoenix_settlement" not in game_env.module.achievement_ids_earned()  # recovered, but not to 70+
 
-    state.score_history = [88.0, 25.0, 71.0]
+    _replay_scores(state, [88.0, 25.0, 71.0])
     assert "phoenix_settlement" in game_env.module.achievement_ids_earned()
 
 
@@ -145,7 +161,7 @@ def test_phoenix_settlement_requires_the_recovery_to_come_after_the_collapse(gam
     contains the same two numbers (88, then eventually 25) that a genuine
     recovery case would also contain, just in the opposite order."""
     state = game_env.state
-    state.score_history = [88.0, 70.0, 45.0, 25.0]
+    _replay_scores(state, [88.0, 70.0, 45.0, 25.0])
     assert "phoenix_settlement" not in game_env.module.achievement_ids_earned()
 
 

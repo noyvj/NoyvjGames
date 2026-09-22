@@ -80,6 +80,14 @@ CITY_FIELDS = [
     "last_sustainable_yield",
     "last_report",
     "score_history",
+    # Z25: two facts derived from score_history that must survive that
+    # list's own cap intact -- see sim.CityState.record_score()/CLAUDE.md's
+    # Z25 build note. Validated field-by-field in restore_city() below,
+    # with a recompute-from-history fallback for a save from before these
+    # fields existed.
+    "peak_score",
+    "lowest_score_seen",
+    "ever_recovered_from_collapse",
     # K12/K18 (planning/TODO.md) -- the starting scenario id and the
     # opt-in hard-mode flag. Both live on CityState (not Campaign) because
     # every sustainability.py component function already takes `state`,
@@ -140,6 +148,8 @@ NUMERIC_FIELD_BOUNDS = {
     "last_extraction": (0.0, None, False),
     "last_sustainable_yield": (0.0, None, False),
     "calm_streak": (0, 100000, True),
+    "peak_score": (0.0, 100.0, False),
+    "lowest_score_seen": (0.0, 100.0, False),
 }
 
 
@@ -241,12 +251,24 @@ def restore_city(state, data):
             if isinstance(value, list):
                 cleaned = [float(v) for v in value if _is_finite_number(v)]
                 setattr(state, field, cleaned)
+        elif field == "ever_recovered_from_collapse":
+            if isinstance(value, bool):
+                state.ever_recovered_from_collapse = value
         elif field in NUMERIC_FIELD_BOUNDS:
             sanitized = _sanitize_numeric_field(value, NUMERIC_FIELD_BOUNDS[field])
             if sanitized is not None:
                 setattr(state, field, sanitized)
         else:
             setattr(state, field, copy.deepcopy(value))
+    # Z25: a save written before peak_score/lowest_score_seen/
+    # ever_recovered_from_collapse existed has real score_history entries
+    # but none of those three fields -- state.peak_score is the tell (it
+    # only stays None here if nothing above set it), so rebuild all three
+    # from whatever history this save actually has rather than silently
+    # leaving a real achievement/readout unearnable or wrong for an old,
+    # already-in-progress save.
+    if state.peak_score is None and state.score_history:
+        state.recompute_score_derivatives_from_history()
     state.clamp_allocation()
 
 

@@ -123,16 +123,23 @@ def peak_population(campaign, rows):
 
 def peak_score(campaign):
     """The highest sustainability score ever recorded by the settlement's
-    real forward progress — `state.score_history` is a genuine, append-
-    only per-completed-season time series (see `sim.CityState.
-    score_history`), not a snapshot-derived estimate, so this is an actual
-    historical high, not a reconstruction."""
-    history = campaign.state.score_history
+    real forward progress — not a snapshot-derived estimate, an actual
+    historical high.
+
+    Z25: `state.score_history` is now capped (see `sim.CityState.
+    record_score()`), so the live case reads the separately-tracked
+    `peak_score` field instead of `max()`-ing the (possibly-trimmed) list.
+    A parked/revisited snapshot dict predating that field (no `peak_score`
+    key) falls back to `max(score_history)` — safe there, since an OLD
+    snapshot's own copy of the list was never capped to begin with."""
     parked_city = _live_progress_city(campaign)
-    if parked_city is not None and isinstance(parked_city.get("score_history"), list):
-        history = parked_city["score_history"]
-    numeric = [v for v in history if isinstance(v, (int, float))]
-    return max(numeric) if numeric else None
+    if parked_city is not None:
+        if isinstance(parked_city.get("peak_score"), (int, float)):
+            return parked_city["peak_score"]
+        history = parked_city.get("score_history")
+        numeric = [v for v in history if isinstance(v, (int, float))] if isinstance(history, list) else []
+        return max(numeric) if numeric else None
+    return campaign.state.peak_score
 
 
 # K17: a Bronze/Silver/Gold "efficiency rank" from the peak sustainability

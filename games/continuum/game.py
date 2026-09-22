@@ -1340,7 +1340,7 @@ BUILT_TO_LAST_MIN_RESILIENCE = 0.85
 
 
 def _ever_thriving():
-    if state.score_history and max(state.score_history) >= 85:
+    if state.peak_score is not None and state.peak_score >= 85:
         return True
     return sustainability.score(state, current_effects()) >= 85
 
@@ -1348,17 +1348,12 @@ def _ever_thriving():
 def _ever_recovered_from_collapse():
     """True if the score ever fell into Collapsing (<30) and later, at some
     later point in the same history, recovered to Steady or better (>=70).
-    Reads state.score_history — one entry per completed season, in order,
-    never truncated — so this is a real historical check, not a live one,
-    unlike several of the checks below that only have a live signal to
-    read."""
-    lowest_seen = None
-    for value in state.score_history:
-        if lowest_seen is not None and lowest_seen < 30 and value >= 70:
-            return True
-        if lowest_seen is None or value < lowest_seen:
-            lowest_seen = value
-    return False
+
+    Reads state.ever_recovered_from_collapse, a sticky flag CityState.
+    record_score() maintains incrementally as each season's score comes in
+    — not a scan over score_history itself, which is now capped (Z25) and
+    so is no longer guaranteed to hold the whole lifetime history."""
+    return state.ever_recovered_from_collapse
 
 
 def _era_reached(era):
@@ -2081,7 +2076,7 @@ def _make_research_handler(node_id):
 def on_advance_season(event=None):
     effects = current_effects()
     report = state.advance_season(effects)
-    state.score_history.append(sustainability.score(state, effects))
+    state.record_score(sustainability.score(state, effects))
     trajectory.record(state, report, sustainability.livability(state, effects) * 100.0)
     before = consulting.get(campaign.ui)
     after = consulting.step(campaign, effects)

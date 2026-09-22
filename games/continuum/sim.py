@@ -675,6 +675,21 @@ def effects_or_neutral(effects):
     return merged
 
 
+# Z25 (planning/TODO.md): score_history was append-only and uncapped, and
+# every one of the seven possible era_snapshots embeds a full copy of it at
+# time-of-snapshot -- so the save grew faster than linearly as more eras
+# completed, the same shape log.Chronicle's own MAX_ENTRIES cap already
+# guards against elsewhere in this game. Capped here, the same 60-entry
+# size as Chronicle, for consistency rather than a separately-tuned number.
+SCORE_HISTORY_MAX_ENTRIES = 60
+# The two thresholds `_ever_recovered_from_collapse`-shaped logic has always
+# used (see game.py's achievement check) -- named here now that the
+# "lowest ever seen, then later recovered" tracking moved onto CityState
+# itself so the cap above can't quietly break that achievement.
+SCORE_COLLAPSE_THRESHOLD = 30
+SCORE_RECOVERY_THRESHOLD = 70
+
+
 class CityState:
     """One settlement, at one point in time, in one era."""
 
@@ -731,8 +746,21 @@ class CityState:
         # The sustainability score is computed by sustainability.py as a
         # pure function of this state, but its history is state — it gets
         # saved, snapshotted, and eventually graphed — so it lives here.
-        # game.py appends one entry per completed season.
+        # game.py calls record_score() with one value per completed season.
+        # Z25: capped at SCORE_HISTORY_MAX_ENTRIES (see record_score below)
+        # to stop this list -- and every era_snapshot's own copy of it --
+        # from growing unbounded over a very long session.
         self.score_history = []
+        # Two facts derived from score_history that must survive the cap
+        # above intact, since both are read by real features (the K17
+        # peak-score/efficiency-rank readout, and the "ever recovered from
+        # collapse" achievement) that need the TRUE lifetime history, not
+        # just whatever's left in the capped tail. Updated incrementally by
+        # record_score() the instant each score is recorded -- before any
+        # later cap-driven truncation could discard the evidence.
+        self.peak_score = None
+        self.lowest_score_seen = None
+        self.ever_recovered_from_collapse = False
         # K11 (challenges.py) -- the opt-in civic-challenge state. Kept as a
         # plain literal here (challenges.py imports sim, so sim can't import
         # it back); save.py validates it on load via challenges.clean().
@@ -887,6 +915,48 @@ class CityState:
         self.resources["materials"] -= BUILDING_COST[building]
         self.buildings[building] += 1
         return True
+
+    # --- sustainability score history ------------------------------------
+    def _record_score_derivatives(self, score):
+        """Updates peak_score/lowest_score_seen/ever_recovered_from_collapse
+        for one more observed score. Factored out of record_score() so
+        recompute_score_derivatives_from_history() can replay an existing
+        list through the exact same logic (used when restoring a save from
+        before these fields existed — see save.py's restore_city())."""
+        if self.peak_score is None or score > self.peak_score:
+            self.peak_score = score
+        if not self.ever_recovered_from_collapse:
+            if (
+                self.lowest_score_seen is not None
+                and self.lowest_score_seen < SCORE_COLLAPSE_THRESHOLD
+                and score >= SCORE_RECOVERY_THRESHOLD
+            ):
+                self.ever_recovered_from_collapse = True
+            if self.lowest_score_seen is None or score < self.lowest_score_seen:
+                self.lowest_score_seen = score
+
+    def record_score(self, score):
+        """Appends one season's sustainability score, trimming the front of
+        score_history down to SCORE_HISTORY_MAX_ENTRIES once it grows past
+        that cap (Z25). Safe to cap because the two facts that actually
+        need the full lifetime history (peak_score, ever_recovered_from_
+        collapse) are updated here, before the trim, not derived from the
+        list afterward."""
+        self._record_score_derivatives(score)
+        self.score_history.append(score)
+        if len(self.score_history) > SCORE_HISTORY_MAX_ENTRIES:
+            del self.score_history[: len(self.score_history) - SCORE_HISTORY_MAX_ENTRIES]
+
+    def recompute_score_derivatives_from_history(self):
+        """Rebuilds peak_score/lowest_score_seen/ever_recovered_from_collapse
+        from whatever's currently in score_history. Only meaningful for a
+        save written before these fields existed — see save.py's
+        restore_city(), the only caller."""
+        self.peak_score = None
+        self.lowest_score_seen = None
+        self.ever_recovered_from_collapse = False
+        for value in self.score_history:
+            self._record_score_derivatives(value)
 
     # --- the season loop ------------------------------------------------
     def advance_season(self, effects=None):

@@ -505,3 +505,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Trade Empire
 **Did:** Added colony loyalty: a chronically under-served colony asks for a one-time paid concession that restores some satisfaction; ignoring it is free and it lapses with a cooldown, so it's an offer, not a punishment. Per-colony validated save fields.
 **Result:** Suite 352 passing, flake8 clean; verified live.
+
+### 2026-09-22 (Continuum: score-history cap, Z25)
+**Game:** Continuum
+**Did:** Capped `CityState.score_history` at 60 entries (matching `log.Chronicle`'s own cap), the Z25 audit's own left-open Continuum sub-item, now that two real features (K5/K17's peak-score/rank readouts, the `phoenix_settlement` achievement) genuinely need the full lifetime history. Decoupled a running `peak_score` and a sticky `ever_recovered_from_collapse` flag onto `CityState`, updated the instant each score is recorded via a new `record_score()` method, so both survive the cap intact. Old saves (missing the two new fields) recompute them from whatever history they have on load.
+**Result:** 568 → 578 tests passing, flake8 clean; live-verified a capped-out peak surviving through a real save/load round-trip.

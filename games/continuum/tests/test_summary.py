@@ -117,7 +117,8 @@ def test_peak_population_includes_completed_rows_the_live_row_and_a_revisit_park
 
 def test_peak_score_reads_the_real_score_history():
     campaign = save.Campaign()
-    campaign.state.score_history = [40.0, 85.0, 60.0]
+    for value in [40.0, 85.0, 60.0]:
+        campaign.state.record_score(value)
     assert summary.peak_score(campaign) == 85.0
 
 
