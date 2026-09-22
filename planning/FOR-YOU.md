@@ -106,3 +106,16 @@ Per your "rather than closing it, let's keep making more eras" answer, `games/co
 3. What should Relay Stations (the new building) actually move between sites — people, a resource, or knowledge/research points? This decides a fair amount of the mechanic's exact math. **Your answer:**
 4. Real-world grounding: a regional-inequality/secondary-city angle (UN-Habitat-style sources), an off-world/space-habitat-network angle, or should this era stay closer to Earth and skip the space-diaspora framing entirely? **Your answer:**
 5. Once this is answered, should building it follow the same "repeat the Phase-3 per-era pattern" process every prior era used, or do you want a dedicated milestone breakout first? **Your answer:**
+
+---
+
+### Q5. Le Champ de Mots L22 — redefine "new cultural note" now that rows aren't gated
+
+The original idea was a "new note available" indicator that fires when a row freshly unlocks and has cultural context worth reading. L4a (already built) removed row-unlock pacing entirely — every row is open from the start — so "freshly-unlocked row" no longer means anything, and the original trigger can't fire the way it was designed to.
+
+Options, so you're not answering from a blank page:
+- **(a)** Redefine it as an "unread notes" badge: track which rows' cultural notes you've actually opened at least once (a saved seen-list), and badge any row whose note you haven't opened yet — closer to the original intent (surface content you haven't seen), just triggered by "never opened" instead of "just unlocked."
+- **(b)** Drop it — with every row open from day one, a player can just browse cultural notes at their own pace, and a badge might just add clutter.
+- **(c)** Something else you have in mind.
+
+**Your answer:**
