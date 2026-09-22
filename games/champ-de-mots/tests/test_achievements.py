@@ -249,7 +249,7 @@ def test_the_panel_links_to_the_hub_wide_dashboard(game_env):
     links = [child for child in panel.children if child.className == "achievements-hub-link"]
     assert len(links) == 1
     assert "every game" in links[0].innerText
-    assert links[0].href == "../../index.html"
+    assert links[0].href == "../../index.html#account-achievements-dashboard"
 
 
 # --- unlock toast ------------------------------------------------------------

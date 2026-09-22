@@ -2180,7 +2180,7 @@ def update_achievements_display():
     # does.
     hub_link = document.createElement("a")
     hub_link.className = "achievements-hub-link"
-    hub_link.href = "../../index.html"
+    hub_link.href = "../../index.html#account-achievements-dashboard"
     hub_link.innerText = "View achievements across every game →"
     panel.appendChild(hub_link)
 

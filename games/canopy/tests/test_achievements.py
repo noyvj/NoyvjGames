@@ -318,7 +318,7 @@ def test_achievements_panel_marks_an_earned_card_distinctly(game_env):
 def test_achievements_panel_includes_hub_dashboard_link(game_env):
     game_env.toggle_achievements()
     panel = game_env.elements["achievements-panel"]
-    assert any(getattr(child, "href", None) == "../../index.html" for child in panel.children)
+    assert any(getattr(child, "href", None) == "../../index.html#account-achievements-dashboard" for child in panel.children)
 
 
 def test_achievements_panel_stays_live_across_a_tick(game_env):
