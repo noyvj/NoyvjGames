@@ -510,3 +510,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Continuum
 **Did:** Capped `CityState.score_history` at 60 entries (matching `log.Chronicle`'s own cap), the Z25 audit's own left-open Continuum sub-item, now that two real features (K5/K17's peak-score/rank readouts, the `phoenix_settlement` achievement) genuinely need the full lifetime history. Decoupled a running `peak_score` and a sticky `ever_recovered_from_collapse` flag onto `CityState`, updated the instant each score is recorded via a new `record_score()` method, so both survive the cap intact. Old saves (missing the two new fields) recompute them from whatever history they have on load.
 **Result:** 568 → 578 tests passing, flake8 clean; live-verified a capped-out peak surviving through a real save/load round-trip.
+
+### 2026-09-22 (Le Champ de Mots: two per-context visual-style presets, L2)
+**Game:** Le Champ de Mots
+**Did:** The visual-style switcher now remembers two independent presets — one for browsing the farm, one for an active review session — instead of one single choice. `game.py`'s `render_review()` tells `visual-style.js` which context is live whenever it actually changes; an unset review preset falls back to the farm one, so existing players see no change until they set a distinct review style.
+**Result:** 614 → 621 tests passing, flake8 clean; live-verified the page switching styles automatically on entering/leaving a review session.

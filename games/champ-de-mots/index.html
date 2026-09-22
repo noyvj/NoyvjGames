@@ -72,15 +72,24 @@
     <div id="settings-panel" class="section" hidden>
       <h2 class="settings-panel-heading">Settings</h2>
       <div class="settings-row">
-        <span class="settings-label">Visual style</span>
-        <div class="visual-style-control" role="group" aria-label="Visual style">
-          <button id="visual-style-highdef-button" class="secondary visual-style-option" type="button" aria-pressed="false">High-def</button>
-          <button id="visual-style-lowpoly-button" class="secondary visual-style-option" type="button" aria-pressed="false">Low-poly</button>
-          <button id="visual-style-textbased-button" class="secondary visual-style-option" type="button" aria-pressed="false">Text-based</button>
-          <button id="visual-style-cartoon-button" class="secondary visual-style-option" type="button" aria-pressed="false">Cartoon</button>
+        <span class="settings-label">Visual style — while on the farm</span>
+        <div class="visual-style-control" role="group" aria-label="Visual style while on the farm">
+          <button id="visual-style-highdef-farm-button" class="secondary visual-style-option" type="button" aria-pressed="false">High-def</button>
+          <button id="visual-style-lowpoly-farm-button" class="secondary visual-style-option" type="button" aria-pressed="false">Low-poly</button>
+          <button id="visual-style-textbased-farm-button" class="secondary visual-style-option" type="button" aria-pressed="false">Text-based</button>
+          <button id="visual-style-cartoon-farm-button" class="secondary visual-style-option" type="button" aria-pressed="false">Cartoon</button>
         </div>
       </div>
-      <p class="settings-note">Purely visual — changes fonts, colours, borders and shadows, not any content or gameplay. Low-poly, Text-based and Cartoon are restyles (colours, fonts, borders, shadows), not separate artwork. Saved to this browser only (not part of your save code), so a different browser or device asks again.</p>
+      <div class="settings-row">
+        <span class="settings-label">Visual style — during a review session</span>
+        <div class="visual-style-control" role="group" aria-label="Visual style during a review session">
+          <button id="visual-style-highdef-review-button" class="secondary visual-style-option" type="button" aria-pressed="false">High-def</button>
+          <button id="visual-style-lowpoly-review-button" class="secondary visual-style-option" type="button" aria-pressed="false">Low-poly</button>
+          <button id="visual-style-textbased-review-button" class="secondary visual-style-option" type="button" aria-pressed="false">Text-based</button>
+          <button id="visual-style-cartoon-review-button" class="secondary visual-style-option" type="button" aria-pressed="false">Cartoon</button>
+        </div>
+      </div>
+      <p class="settings-note">Purely visual — changes fonts, colours, borders and shadows, not any content or gameplay. Low-poly, Text-based and Cartoon are restyles (colours, fonts, borders, shadows), not separate artwork. Two independent presets — pick a relaxed look for browsing the farm and a plainer, more focused one for review sessions, or leave them the same. Saved to this browser only (not part of your save code), so a different browser or device asks again.</p>
       <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
       </div>

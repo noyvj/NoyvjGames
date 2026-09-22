@@ -24,38 +24,60 @@
  * already styled High-def behind the dialog (applied but not persisted until
  * an answer), so nothing flashes. Narrow/mobile viewports skip the picker
  * (the switcher is desktop-only) and simply keep High-def.
+ *
+ * L2 (planning/TODO.md): two independent presets, one per CONTEXT ("farm"
+ * while browsing the dashboard/farm grid, "review" while a review session
+ * is open), each with its own localStorage key -- e.g. Cartoon for casual
+ * farm browsing, Text-based (fewer distractions) for a focused review.
+ * `setContext()` is called from game.py's render_review() (the one place
+ * that knows whether #review-panel is actually showing) whenever the
+ * context genuinely changes, and swaps which stored style is applied to
+ * the page -- exactly the same "Python owns state, JS owns the one
+ * external thing it needs" hook shape Continuum's `_notify_visual_layer()`
+ * already established for this hub, just naming a mode instead of pushing
+ * a data snapshot. A player who never sets a review-specific preset sees
+ * no behavior change at all: reading an unset review key falls back to
+ * whatever the farm key holds.
  */
 (function () {
   "use strict";
 
-  const STORAGE_KEY = "champ-de-mots-visual-style";
+  const CONTEXTS = ["farm", "review"];
+  const STORAGE_KEYS = {
+    farm: "champ-de-mots-visual-style",
+    review: "champ-de-mots-visual-style-review",
+  };
   const STYLES = ["highdef", "lowpoly", "textbased", "cartoon"];
   const DEFAULT_STYLE = "highdef";
+  let currentContext = "farm";
 
-  function readStoredStyle() {
+  function readStoredStyle(context) {
     try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
+      const raw = window.localStorage.getItem(STORAGE_KEYS[context]);
       if (STYLES.indexOf(raw) !== -1) {
         return raw;
       }
     } catch (e) {
       // Storage can throw in a locked-down/private-browsing context --
-      // fall back to the default rather than failing the whole page.
+      // fall back below rather than failing the whole page.
     }
-    return DEFAULT_STYLE;
+    // An unset review preset inherits whatever the farm preset currently
+    // is, so a returning player who never touches the new review row sees
+    // the exact same single-style behavior this switcher always had.
+    return context === "review" ? readStoredStyle("farm") : DEFAULT_STYLE;
   }
 
-  function writeStoredStyle(value) {
+  function writeStoredStyle(context, value) {
     try {
-      window.localStorage.setItem(STORAGE_KEY, value);
+      window.localStorage.setItem(STORAGE_KEYS[context], value);
     } catch (e) {
       // Losing persistence isn't worth breaking the control for this load.
     }
   }
 
-  function updateButtons(style) {
+  function updateButtons(context, style) {
     STYLES.forEach(function (name) {
-      const button = document.getElementById("visual-style-" + name + "-button");
+      const button = document.getElementById("visual-style-" + name + "-" + context + "-button");
       if (button) {
         button.classList.toggle("selected", name === style);
         button.setAttribute("aria-pressed", name === style ? "true" : "false");
@@ -66,16 +88,37 @@
   function applyStyleUnsaved(value) {
     const style = STYLES.indexOf(value) !== -1 ? value : DEFAULT_STYLE;
     document.documentElement.setAttribute("data-visual-style", style);
-    updateButtons(style);
     return style;
   }
 
-  function applyStyle(value) {
+  // Sets the preset for one context (farm/review) and, if that context is
+  // the one currently showing, applies it to the page immediately.
+  function applyStyleForContext(context, value) {
     const style = STYLES.indexOf(value) !== -1 ? value : DEFAULT_STYLE;
-    document.documentElement.setAttribute("data-visual-style", style);
-    writeStoredStyle(style);
-    updateButtons(style);
+    writeStoredStyle(context, style);
+    updateButtons(context, style);
+    if (context === currentContext) {
+      document.documentElement.setAttribute("data-visual-style", style);
+    }
     return style;
+  }
+
+  // Switches which context is live (farm/review) and paints its own
+  // stored preset -- does not touch storage, since nothing was chosen.
+  function applyContextStyle(context) {
+    currentContext = context;
+    const style = readStoredStyle(context);
+    document.documentElement.setAttribute("data-visual-style", style);
+    return style;
+  }
+
+  // Exposed for game.py's render_review() to call whenever
+  // #review-panel's shown/hidden state actually changes.
+  function setContext(context) {
+    if (CONTEXTS.indexOf(context) === -1 || context === currentContext) {
+      return;
+    }
+    applyContextStyle(context);
   }
 
   const DESKTOP_QUERY = "(min-width: 641px)";
@@ -92,7 +135,10 @@
 
   function hasStoredStyle() {
     try {
-      return STYLES.indexOf(window.localStorage.getItem(STORAGE_KEY)) !== -1;
+      // Only the farm key gates the first-run picker -- review's own
+      // preset always has a valid fallback (readStoredStyle's own
+      // recursion onto "farm"), so it never needs its own first-run ask.
+      return STYLES.indexOf(window.localStorage.getItem(STORAGE_KEYS.farm)) !== -1;
     } catch (e) {
       // Storage unreadable: treat as answered so a blocked-storage browser
       // isn't nagged on every load with a choice it can't remember.
@@ -184,15 +230,20 @@
 
   function init() {
     const firstRun = !hasStoredStyle();
+    currentContext = "farm"; // the page always loads showing the farm first
     // Apply the stored style (or High-def) immediately. On a first run the
     // choice is only persisted once the picker is answered.
-    let current = firstRun ? applyStyleUnsaved(DEFAULT_STYLE) : applyStyle(readStoredStyle());
-    if (firstRun && isDesktop()) {
-      openPicker(function (style) {
-        current = applyStyle(style);
-      });
-    } else if (firstRun) {
-      current = applyStyle(DEFAULT_STYLE);
+    if (firstRun) {
+      applyStyleUnsaved(DEFAULT_STYLE);
+      if (isDesktop()) {
+        openPicker(function (style) {
+          applyStyleForContext("farm", style);
+        });
+      } else {
+        applyStyleForContext("farm", DEFAULT_STYLE);
+      }
+    } else {
+      applyContextStyle("farm");
     }
 
     const panel = document.getElementById("settings-panel");
@@ -203,19 +254,26 @@
       });
     }
 
-    STYLES.forEach(function (name) {
-      const button = document.getElementById("visual-style-" + name + "-button");
-      if (button) {
-        button.addEventListener("click", function () {
-          current = applyStyle(name);
-        });
-      }
+    CONTEXTS.forEach(function (context) {
+      STYLES.forEach(function (name) {
+        const button = document.getElementById("visual-style-" + name + "-" + context + "-button");
+        if (button) {
+          button.addEventListener("click", function () {
+            applyStyleForContext(context, name);
+          });
+        }
+      });
+      // Reflects each row's own saved preset in its button highlighting,
+      // independent of which context happens to be live right now.
+      updateButtons(context, readStoredStyle(context));
     });
 
     const settingsResetButton = document.getElementById("settings-reset-button");
     if (settingsResetButton) {
       settingsResetButton.addEventListener("click", function () {
-        current = applyStyle(DEFAULT_STYLE);
+        CONTEXTS.forEach(function (context) {
+          applyStyleForContext(context, DEFAULT_STYLE);
+        });
       });
     }
   }
@@ -227,9 +285,13 @@
   }
 
   // Exposed for anything that wants to read/set the style programmatically
-  // (and so a live check in the browser console can confirm behaviour).
+  // (and so a live check in the browser console can confirm behaviour), plus
+  // setContext() for game.py's render_review() to call.
   window.ChampDeMotsVisualStyle = {
-    applyStyle: applyStyle,
+    applyStyle: function (value) {
+      return applyStyleForContext("farm", value);
+    },
+    setContext: setContext,
     whenPickerDone: whenPickerDone,
     STYLES: STYLES,
     DEFAULT_STYLE: DEFAULT_STYLE,

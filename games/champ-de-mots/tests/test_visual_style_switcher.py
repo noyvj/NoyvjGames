@@ -38,12 +38,15 @@ def test_index_html_links_the_visual_style_files():
     assert minigames_pos < switcher_pos
 
 
-def test_settings_panel_has_all_four_style_buttons():
+def test_settings_panel_has_all_four_style_buttons_for_both_contexts():
+    """L2: two independent presets (farm/review), each with its own row of
+    the same four style buttons."""
     html = _source("index.html")
     assert 'id="settings-toggle-button"' in html
     assert 'id="settings-panel"' in html
-    for name in ("highdef", "lowpoly", "textbased", "cartoon"):
-        assert f'id="visual-style-{name}-button"' in html
+    for context in ("farm", "review"):
+        for name in ("highdef", "lowpoly", "textbased", "cartoon"):
+            assert f'id="visual-style-{name}-{context}-button"' in html
 
 
 def test_visual_style_js_declares_the_same_four_styles():
@@ -140,3 +143,55 @@ def test_first_run_default_is_not_persisted_until_answered():
 def test_tutorial_waits_for_the_picker():
     html = _source("index.html")
     assert "whenPickerDone(startTutorial)" in html
+
+
+# --- L2: two independent per-context presets (farm / review) -----------
+
+
+def test_visual_style_js_has_two_distinct_storage_keys():
+    source = _source("visual-style.js")
+    assert '"champ-de-mots-visual-style"' in source
+    assert '"champ-de-mots-visual-style-review"' in source
+
+
+def test_an_unset_review_preset_falls_back_to_the_farm_preset():
+    """A returning player who never touches the new review row should see
+    no behavior change from before this feature existed."""
+    source = _source("visual-style.js")
+    assert 'context === "review" ? readStoredStyle("farm")' in source
+
+
+def test_set_context_is_exposed_for_game_py_to_call():
+    source = _source("visual-style.js")
+    assert "function setContext(context)" in source
+    assert "setContext: setContext" in source
+
+
+def test_set_context_is_a_no_op_when_the_context_is_unchanged():
+    """Avoids redundant DOM writes every render — render_review() calls
+    this on every single render() pass, not just on a real transition."""
+    source = _source("visual-style.js")
+    assert "context === currentContext" in source
+
+
+def test_reset_button_resets_both_contexts():
+    source = _source("visual-style.js")
+    reset_section = source[source.index("settingsResetButton"):]
+    assert "CONTEXTS.forEach" in reset_section
+
+
+def test_game_py_notifies_the_switcher_from_render_review():
+    """L2's actual context signal: game.py's render_review() is the one
+    function that knows whether #review-panel is genuinely showing."""
+    source = _source("game.py")
+    assert "def _notify_visual_style_context(context):" in source
+    assert 'ChampDeMotsVisualStyle' in source
+    render_review = source[source.index("def render_review():"):]
+    assert '_notify_visual_style_context("review" if review_mode is not None else "farm")' in render_review[:200]
+
+
+def test_settings_note_explains_the_two_contexts():
+    html = _source("index.html")
+    assert "Two independent presets" in html
+    assert "while on the farm" in html.lower()
+    assert "during a review session" in html.lower()

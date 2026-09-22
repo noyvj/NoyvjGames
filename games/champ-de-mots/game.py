@@ -3419,6 +3419,21 @@ def _report_payload():
     return _typed_wrong_report_payload(current_question, current_submitted_answer)
 
 
+def _notify_visual_style_context(context):
+    """L2 (planning/TODO.md): tells visual-style.js which per-context
+    preset (farm/review) should be live, whenever that context actually
+    changes. Same Python-computes/JS-owns-the-one-external-thing split as
+    _dispatch_report() below -- a no-op under the pytest harness (no
+    js.window) or a page without visual-style.js loaded."""
+    try:
+        from js import window  # noqa: PLC0415 — Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    api = getattr(window, "ChampDeMotsVisualStyle", None)
+    if api is not None:
+        api.setContext(context)
+
+
 def _dispatch_report(payload):
     """Hands the payload to a JS-side sender, same split as the shared save
     widget: Python computes state, JS owns the actual fetch() call (see
@@ -3836,6 +3851,8 @@ def on_review_answer_keydown(event=None):
 
 
 def render_review():
+    _notify_visual_style_context("review" if review_mode is not None else "farm")
+
     controls = _element("review-controls")
     controls.hidden = not review_controls_open
 
