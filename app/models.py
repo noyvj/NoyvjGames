@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Text, JSON, Boolean, Column, DateTime, ForeignKey, Integer, String, false, func
+from sqlalchemy import Text, JSON, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, false, func
 
 from database import Base
 
@@ -141,6 +141,23 @@ class Feedback(Base):
     comment = Column(String, nullable=True)
     is_hidden = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class LeaderboardEntry(Base):
+    """Opt-in community leaderboards (see leaderboards.py): one row per
+    (game, board, account) holding that account's best score. A row exists
+    only because the player chose to submit it; deleting it is opting out."""
+
+    __tablename__ = "leaderboard_entries"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    game_id = Column(String, nullable=False, index=True)
+    board = Column(String, nullable=False, index=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    score = Column(Float, nullable=False)
+    detail = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 
 class PageView(Base):
