@@ -1097,3 +1097,15 @@ html[data-reduced-motion="true"] *::after {
 .shared-research-story li {
   margin-bottom: 0.4rem;
 }
+
+/* G3: the carbon bank grant buttons. */
+.carbon-bank-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.carbon-bank-buttons button.secondary {
+  flex: 1 1 6rem;
+  font-size: 0.8rem;
+}

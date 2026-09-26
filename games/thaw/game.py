@@ -984,6 +984,67 @@ def on_toggle_info_page(event=None):
 
 
 # ===========================================================================
+# G3: the permafrost carbon bank. A region that keeps warming acceleration
+# under CARBON_BANK_MAX_ACCELERATION while actively protecting its peat
+# (at least one Preservation unit) banks one carbon credit per round into a
+# shared bank. CARBON_CREDITS_PER_GRANT credits can be spent for a one-time
+# CARBON_GRANT_FUNDS grant to any one of Regions A-C: sustained good play in
+# one place funds a push somewhere else. Region D never earns or receives.
+# ===========================================================================
+CARBON_BANK_MAX_ACCELERATION = 1.2
+CARBON_CREDITS_PER_GRANT = 10
+CARBON_GRANT_FUNDS = 120.0
+CARBON_BANK_CAP = 50
+
+carbon_bank = 0
+
+
+def _carbon_target(key):
+    return {"a": region, "b": region_b, "c": region_c}[key]
+
+
+def bank_carbon_credits():
+    """Called once per Advance Round after the regions have advanced.
+    Returns how many credits this round added (before the cap)."""
+    global carbon_bank
+    earned = 0
+    for r in (region, region_b, region_c):
+        if r.capacity["preserve"] >= 1 and r._investment_acceleration_factor() <= CARBON_BANK_MAX_ACCELERATION:
+            earned += 1
+    carbon_bank = min(CARBON_BANK_CAP, carbon_bank + earned)
+    return earned
+
+
+def spend_carbon_credits(key):
+    """Spends one grant's worth of credits to give region `key` extra funds.
+    Returns True if it happened."""
+    global carbon_bank
+    if key not in ("a", "b", "c") or carbon_bank < CARBON_CREDITS_PER_GRANT:
+        return False
+    carbon_bank -= CARBON_CREDITS_PER_GRANT
+    _carbon_target(key).funds += CARBON_GRANT_FUNDS
+    return True
+
+
+def render_carbon_bank():
+    document.getElementById("carbon-bank-display").innerText = (
+        f"Carbon bank: {carbon_bank} credit{'s' if carbon_bank != 1 else ''} "
+        f"(cap {CARBON_BANK_CAP}). A region earns 1 a round by holding warming under "
+        f"{CARBON_BANK_MAX_ACCELERATION}x with Preservation in place; "
+        f"{CARBON_CREDITS_PER_GRANT} credits fund a one-time +{CARBON_GRANT_FUNDS:.0f} grant."
+    )
+    for key in ("a", "b", "c"):
+        document.getElementById(f"carbon-bank-{key}-button").disabled = carbon_bank < CARBON_CREDITS_PER_GRANT
+
+
+def _make_carbon_handler(key):
+    def handler(event=None):
+        if spend_carbon_credits(key):
+            render()
+    return handler
+
+
+# ===========================================================================
 # G17: "four regions, one story". A light narrative thread tying the four
 # regions together through one shared research station: every Monitoring &
 # Response unit funded in Regions A, B or C feeds a common pool of
@@ -1841,6 +1902,7 @@ def render():
     _render_forecast()
     _render_framing()
     render_shared_research()
+    render_carbon_bank()
     document.getElementById("rise-rate-display").innerText = (
         f"Current warming rate: {region.current_rise_rate():.2f}°/round"
     )
@@ -2088,6 +2150,7 @@ def on_advance_round(event=None):
     resolve_forecast()
     for r in SECONDARY_REGIONS.values():
         r.advance_round()
+    bank_carbon_credits()
     _auto_play_worst_case_region()
     _record_round_events()
     render()
@@ -2274,6 +2337,9 @@ def get_state():
     # G27: the forecast record is written only once a forecast has been scored.
     if forecast_total > 0:
         state["forecast"] = {"total": forecast_total, "hits": forecast_hits}
+    # G3: the carbon bank is written only when it holds credits.
+    if carbon_bank > 0:
+        state["carbon_bank"] = carbon_bank
     # G29: only the non-default framing is written.
     if framing != "regional":
         state["framing"] = framing
@@ -2294,7 +2360,7 @@ def load_state(data):
     per-field fallback in _apply_region_state()."""
     global info_page_open, worst_case_region_revealed, preset_used_ever
     global worst_case_intro_seen, forecast_guess, forecast_total, forecast_hits, forecast_last
-    global framing
+    global framing, carbon_bank
     if not isinstance(data, dict):
         return False
     region_data = data.get("region")
@@ -2321,6 +2387,11 @@ def load_state(data):
     forecast_last = None
     forecast_total = 0
     forecast_hits = 0
+    saved_bank = data.get("carbon_bank")
+    if isinstance(saved_bank, int) and not isinstance(saved_bank, bool) and 0 <= saved_bank <= CARBON_BANK_CAP:
+        carbon_bank = saved_bank
+    else:
+        carbon_bank = 0
     saved_framing = data.get("framing")
     framing = saved_framing if saved_framing in FRAMINGS else "regional"
     saved_forecast = data.get("forecast")
@@ -2350,6 +2421,10 @@ def load_state(data):
 
 
 def setup():
+    for key in ("a", "b", "c"):
+        document.getElementById(f"carbon-bank-{key}-button").addEventListener(
+            "click", create_proxy(_make_carbon_handler(key))
+        )
     document.getElementById("archive-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_archive)
     )

@@ -605,3 +605,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Thaw
 **Did:** Added a shared-research narrative thread: Monitoring units across Regions A-C feed one research station whose story advances in chapters at 3, 8 and 15 units, ending with Region D as the control every paper cites. Derived from live state, no new save data, no effect on mechanics.
 **Result:** 237 → 247 tests passing, flake8 clean; verified live, zero console errors.
+
+### 2026-09-26 (Thaw: permafrost carbon bank, G3)
+**Game:** Thaw
+**Did:** Added a shared carbon bank: each of Regions A-C with Preservation in place that holds warming under 1.2x banks a credit per round, and 10 credits fund a one-time +120 grant to a chosen region. Rescue boosts can't farm it; Region D is excluded.
+**Result:** 247 → 262 tests passing, flake8 clean; verified live, zero console errors.
