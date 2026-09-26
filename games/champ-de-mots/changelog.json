@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-26",
+    "entry": "Sentence builder: a 🧩 button next to Water next opens a freeform builder any time. It shows an English sentence and you tap the French tiles into order, drawing on the sentences of every week you have unlocked. Each finished sentence counts toward your practice score and study days (L11)."
+  },
+  {
+    "date": "2026-09-26",
     "entry": "Quick water: a 💧 button next to Water next that starts a one-question session on your most overdue plot, for a very short study break. A correct answer waters the plot like any review, and every quick water counts toward your practice score and study days (L29)."
   },
   {
@@ -93,10 +97,6 @@
   },
   {
     "date": "2026-09-13",
-    "entry": "Combo bonus, self-rated confidence, deliberate interleaving, adaptive distractor difficulty, a cultural notes toggle, and a progress dashboard added."
-  },
-  {
-    "date": "2026-09-13",
-    "entry": "Slideshow cross-check merge: 9 new topics and 75 new items added from the teacher's own lecture slides; core farm launched: the 23-week FREN151 to FREN152 syllabus catalog, spaced-repetition plant growth, a runtime question generator, and save-code support; then grading engine v2 (STRICT/LENIENT tiers), a \"flag as correct\" report button, a failure feedback blurb, a Review tab, weekly proficiency tests, and bonus sentence-building sections; then site-wide space theme visual pass."
+    "entry": "Combo bonus, self-rated confidence, deliberate interleaving, adaptive distractor difficulty, a cultural notes toggle, and a progress dashboard added; slideshow cross-check merge: 9 new topics and 75 new items added from the teacher's own lecture slides; core farm launched: the 23-week FREN151 to FREN152 syllabus catalog, spaced-repetition plant growth, a runtime question generator, and save-code support; then grading engine v2 (STRICT/LENIENT tiers), a \"flag as correct\" report button, a failure feedback blurb, a Review tab, weekly proficiency tests, and bonus sentence-building sections; then site-wide space theme visual pass."
   }
 ]

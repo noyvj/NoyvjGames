@@ -2010,6 +2010,7 @@ PRACTICE_MODES = {
     "boutique": "Boutique Dash",
     "cafe": "Café Rush",
     "quick": "Quick water",
+    "builder": "Sentence builder",
     "gender": "Gender drill (le/la)",
     "liaison": "Liaison practice",
     "proficiency": "Proficiency tests",
@@ -3704,6 +3705,7 @@ def render():
     render_review()
     render_proficiency()
     render_bonus()
+    render_builder()
     render_cultural_notes()
     render_dashboard()
     render_liaison_drill()
@@ -5345,6 +5347,188 @@ def on_bonus_sentence_answer_keydown(event=None):
         on_bonus_sentence_submit_typed()
 
 
+# ===========================================================================
+# L11 -- the freeform sentence builder. Unlike a week's Bonus section (one
+# sentence, three tasks, opened from that row), this can be opened at any time
+# and mixes the bonus sentences of EVERY unlocked week: the English meaning is
+# shown and you tap the French word tiles into order. It only ever draws on
+# weeks the pacing gate has already unlocked, never touches a plot's SRS state,
+# and every finished sentence lands in the practice ledger as "builder", so it
+# visibly counts toward the headline practice score and the study streak.
+# ===========================================================================
+BUILDER_SESSION_LENGTH = 10
+BUILDER_RNG = random.Random()
+BUILDER_EMPTY_MESSAGE = (
+    "No sentences are unlocked yet. Each unlocked week brings its own sentence into the builder."
+)
+BUILDER_CORRECT = "That's the right order."
+BUILDER_INCORRECT = "Not quite. The sentence is: {sentence}"
+BUILDER_SUMMARY = "Sentence builder complete: {correct}/{total} in the right order."
+
+builder_active = False
+builder_queue = []
+builder_index = 0
+builder_pool = []
+builder_placed = []
+builder_result = None
+builder_score = {"correct": 0, "total": 0}
+builder_proxies = []
+
+
+def _destroy_builder_proxies():
+    for proxy in builder_proxies:
+        proxy.destroy()
+    builder_proxies.clear()
+
+
+def builder_sentences():
+    """Every bonus sentence from every unlocked week."""
+    return [
+        sentence
+        for week in CATALOG["weeks"]
+        if state.is_row_unlocked(week["sequence"])
+        for sentence in week.get("bonus_sentences", [])
+    ]
+
+
+def _begin_builder_sentence():
+    global builder_pool, builder_placed, builder_result
+    builder_placed = []
+    builder_result = None
+    if builder_index >= len(builder_queue):
+        builder_pool = []
+        return
+    sentence = builder_queue[builder_index]
+    pool = list(sentence["tiles"])
+    BUILDER_RNG.shuffle(pool)
+    # A shuffle that lands on the answer would make the task trivial.
+    if len(pool) > 1 and [t["fr"] for t in pool] == [t["fr"] for t in sentence["tiles"]]:
+        pool.reverse()
+    builder_pool = pool
+
+
+def start_sentence_builder(event=None):
+    global builder_active, builder_queue, builder_index, builder_score
+    sentences = builder_sentences()
+    BUILDER_RNG.shuffle(sentences)
+    builder_queue = sentences[:BUILDER_SESSION_LENGTH]
+    builder_index = 0
+    builder_score = {"correct": 0, "total": 0}
+    builder_active = True
+    _begin_builder_sentence()
+    render()
+    return builder_queue
+
+
+def place_builder_tile(pool_index):
+    """Moves one tile from the pool to the end of the sentence. When the pool
+    empties the order is checked (a whole-sentence pass or fail)."""
+    global builder_result
+    if not builder_active or builder_result is not None or not (0 <= pool_index < len(builder_pool)):
+        return None
+    builder_placed.append(builder_pool.pop(pool_index))
+    if not builder_pool:
+        sentence = builder_queue[builder_index]
+        builder_result = [t["fr"] for t in builder_placed] == [t["fr"] for t in sentence["tiles"]]
+        builder_score["total"] += 1
+        if builder_result:
+            builder_score["correct"] += 1
+        record_practice("builder", builder_result)
+    render()
+    return builder_result
+
+
+def undo_builder_tile(event=None):
+    """Takes the last placed tile back (only before the sentence is checked)."""
+    if not builder_active or builder_result is not None or not builder_placed:
+        return False
+    builder_pool.append(builder_placed.pop())
+    render()
+    return True
+
+
+def next_builder_sentence(event=None):
+    global builder_index
+    if not builder_active or builder_result is None:
+        return None
+    builder_index += 1
+    _begin_builder_sentence()
+    render()
+    return builder_index < len(builder_queue)
+
+
+def close_sentence_builder(event=None):
+    global builder_active, builder_queue, builder_index, builder_pool, builder_placed, builder_result
+    builder_active = False
+    builder_queue = []
+    builder_index = 0
+    builder_pool = []
+    builder_placed = []
+    builder_result = None
+    render()
+
+
+def _make_builder_pool_handler(index):
+    def handler(event=None):
+        place_builder_tile(index)
+    return handler
+
+
+def render_builder():
+    panel = _element("builder-panel")
+    pool_box = _element("builder-pool")
+    placed_box = _element("builder-placed")
+    _destroy_builder_proxies()
+    pool_box.innerHTML = ""
+    placed_box.innerHTML = ""
+    if not builder_active:
+        panel.hidden = True
+        return
+    panel.hidden = False
+    empty = _element("builder-empty-message")
+    summary = _element("builder-summary")
+    card = _element("builder-card")
+    if not builder_queue:
+        empty.hidden = False
+        empty.innerText = BUILDER_EMPTY_MESSAGE
+        summary.hidden = True
+        card.hidden = True
+        return
+    empty.hidden = True
+    if builder_index >= len(builder_queue):
+        card.hidden = True
+        summary.hidden = False
+        summary.innerText = BUILDER_SUMMARY.format(**builder_score)
+        _element("builder-progress").innerText = ""
+        return
+    card.hidden = False
+    summary.hidden = True
+    sentence = builder_queue[builder_index]
+    _element("builder-progress").innerText = f"Sentence {builder_index + 1} of {len(builder_queue)}"
+    _element("builder-prompt").innerText = sentence["en"]
+    for index, tile in enumerate(builder_pool):
+        button = document.createElement("button")
+        button.id = f"builder-pool-tile-{index}"
+        button.innerText = tile["fr"]
+        button.className = "bonus-tile"
+        proxy = create_proxy(_make_builder_pool_handler(index))
+        button.addEventListener("click", proxy)
+        builder_proxies.append(proxy)
+        pool_box.appendChild(button)
+    for tile in builder_placed:
+        span = document.createElement("span")
+        span.className = "bonus-tile bonus-tile--placed"
+        span.innerText = tile["fr"]
+        placed_box.appendChild(span)
+    _element("builder-undo-button").hidden = builder_result is not None or not builder_placed
+    _element("builder-next-button").hidden = builder_result is None
+    feedback = _element("builder-feedback")
+    if builder_result is None:
+        feedback.innerText = ""
+    else:
+        feedback.innerText = BUILDER_CORRECT if builder_result else BUILDER_INCORRECT.format(sentence=sentence["fr"])
+
+
 def render_bonus():
     panel = _element("bonus-panel")
     pool_box = _element("bonus-tile-pool")
@@ -5571,6 +5755,10 @@ def setup():
         "click", create_proxy(on_start_grammar_review)
     )
     _element("quick-water-button").addEventListener("click", create_proxy(on_quick_water))
+    _element("sentence-builder-button").addEventListener("click", create_proxy(start_sentence_builder))
+    _element("builder-undo-button").addEventListener("click", create_proxy(undo_builder_tile))
+    _element("builder-next-button").addEventListener("click", create_proxy(next_builder_sentence))
+    _element("builder-close-button").addEventListener("click", create_proxy(close_sentence_builder))
     _element("review-marathon-button").addEventListener(
         "click", create_proxy(on_start_marathon_review)
     )
