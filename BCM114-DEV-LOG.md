@@ -867,3 +867,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Did:** Built by a delegated agent inside those two folders, committed by the log owner, using the shared `shared/story-chapters.js` pattern from Grid. Loop gets 'The Workshop on Mill Lane' (22 chapters: an opening plus one per achievement, a small workshop becoming a circular economy, no statistics) and Drift gets 'A Region Prepares' (19 chapters, institutional, hopeful and dignified, newcomers written as people). The `_story_reach_all()` hook runs from the achievement check and the load-time baseline seeding, is silent without the script, and the save format is untouched; `#story-chapters` was appended to each game's existing story-toggle selectors so the Story pill controls it.
 **Result:** Loop 307 -> 316 tests, Drift 356 -> 365 (9 new each), flake8 clean, checked live (panel shows N of M, chapters in story order, a loaded save restores them, the pill hides it, no console errors). Story copy is authored text worth a read-through, especially Drift's full-recovery and crisis-averted chapters.
 
+
+### 2026-09-26 (Aftermath W2: real-world examples)
+**Game:** aftermath
+**Did:** Added an In the real world note to Aftermath: one sourced, dated real recovery per shock type (flood, heat wave, storm, supply chain, power failure, civil unrest), linked to its source, changing no numbers.
+**Result:** 322 Aftermath tests pass (5 new).

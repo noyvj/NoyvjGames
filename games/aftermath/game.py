@@ -2180,6 +2180,70 @@ def extended_epilogue_text(run_state):
     )
 
 
+# ===========================================================================
+# W2-aftermath -- "In the real world": for each kind of shock, one real
+# recovery or response, with the source named and linked. Every figure was read
+# from the linked page on 2026-09-26 (nothing recalled from memory); where a
+# page did not give a number, none is quoted. The note follows the event you
+# last faced, or the next one before the first event, and never changes any
+# number in a run.
+# ===========================================================================
+REAL_WORLD_READ_DATE = "2026-09-26"
+REAL_WORLD_EXAMPLES = {
+    "flood": {
+        "title": "Room for the River (Netherlands)",
+        "text": "After floods in 1993 and 1995 forced the evacuation of over 200,000 people, the Netherlands ran a programme from 2006 to 2015 with a budget of 2.2 billion euros, about forty projects, to give its rivers more space rather than only raising dikes.",
+        "source": "Wikipedia, Room for the River", "url": "https://en.wikipedia.org/wiki/Room_for_the_River",
+    },
+    "heatwave": {
+        "title": "France's National Heat Wave Plan",
+        "text": "The 2003 European heat wave is estimated to have killed more than 70,000 people, including 14,802 in France, mostly elderly. The following year France drew up a National Heat Wave Plan built on forecasting and alert systems.",
+        "source": "Wikipedia, 2003 European heat wave", "url": "https://en.wikipedia.org/wiki/2003_European_heat_wave",
+    },
+    "storm": {
+        "title": "Bangladesh's Cyclone Preparedness Programme",
+        "text": "Set up in 1973 as an early-warning system for coastal Bangladesh, the programme now has 55 thousand volunteers who carry warnings to villages, and is credited with saving thousands of lives.",
+        "source": "Wikipedia, Cyclone Preparedness Programme", "url": "https://en.wikipedia.org/wiki/Cyclone_Preparedness_Programme",
+    },
+    "supply_chain": {
+        "title": "The 2021 Suez Canal blockage",
+        "text": "One grounded ship blocked the canal for six days, 23 to 29 March 2021. By 28 March at least 369 ships were queuing, and Lloyd's List calculated about 9.6 billion dollars of goods a day was held up.",
+        "source": "Wikipedia, 2021 Suez Canal obstruction", "url": "https://en.wikipedia.org/wiki/2021_Suez_Canal_obstruction",
+    },
+    "infrastructure_failure": {
+        "title": "The 2003 Northeast blackout",
+        "text": "On 14 August 2003 a software bug that stalled a control room's alarm system for over an hour let a local fault cascade, and 55 million people in Ontario and eight US states lost power, for between two hours and four days depending on where they lived.",
+        "source": "Wikipedia, Northeast blackout of 2003", "url": "https://en.wikipedia.org/wiki/Northeast_blackout_of_2003",
+    },
+    "civil_unrest": {
+        "title": "Christchurch's Student Volunteer Army",
+        "text": "After the 2010 and 2011 Christchurch earthquakes strained the city, a student-started volunteer effort grew to 13,000 students a week at its peak and helped clear over 360,000 tonnes of silt, showing how community cooperation can be rebuilt fast.",
+        "source": "Wikipedia, Student Volunteer Army", "url": "https://en.wikipedia.org/wiki/Student_Volunteer_Army",
+    },
+}
+
+
+def real_world_event_type():
+    """The event type the note is about: the last one faced, else the next."""
+    if run.event_log:
+        return run.event_log[-1]["type"]
+    if run.event_index < len(run.schedule):
+        return run.schedule[run.event_index]
+    return None
+
+
+def render_real_world():
+    box = document.getElementById("real-world-note")
+    example = REAL_WORLD_EXAMPLES.get(real_world_event_type())
+    box.hidden = example is None
+    if example is None:
+        return
+    document.getElementById("real-world-text").innerText = f"In the real world: {example['title']}. {example['text']}"
+    link = document.getElementById("real-world-source")
+    link.innerText = f"Source: {example['source']} (read {REAL_WORLD_READ_DATE})"
+    link.href = example["url"]
+
+
 def render():
     render_info_page()
     update_achievements_display()
@@ -2188,6 +2252,7 @@ def render():
     document.getElementById("legacy-display").innerText = legacy_message()
     document.getElementById("societal-memory-display").innerText = societal_memory_message()
     render_mentor()
+    render_real_world()
     document.getElementById("curriculum-display").innerText = curriculum_message()
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
     document.getElementById("resilience-display").innerText = f"Resilience: {run.resilience_capacity}"
