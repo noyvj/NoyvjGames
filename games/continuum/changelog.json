@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-27",
+    "entry": "Light mode polish: the theme switch now lives in Settings (the floating Light/Dark pill is gone from this game), the 3D sky and lighting brighten in light mode and re-light the moment you flip the theme, and every panel (readouts, research and consulting-mode text, meters, the Hamlet chips and Town panel, the City Views dashboard, civic map, flow diagram and trajectory chart) now meets text contrast in light mode. Dark mode is unchanged."
+  },
+  {
+    "date": "2026-09-27",
     "entry": "Eighth era added: the Relay Age, after the Space Age. The settlement becomes a region: Relay Stations link it to outlying holdings (surface outposts, orbital platforms, first footholds off-world) and Wayfinders haul banked surplus out along the links. A supplied holding opens up new sustainable land; an unsupplied one shrinks that gain and costs equity by the gap between how well the core and the holdings live. New research tiers 15-16, a Relay Age scene, Hamlet station, info-panel sources and two achievements (R2-K26)."
   },
   {
@@ -92,11 +96,7 @@
     "entry": "Save/security audit: found and fixed six real save-robustness bugs, including an era-restoration crash, adversarial numeric values, a NaN/Infinity gap, a growth-loop page-freeze, and revisit cross-contamination."
   },
   {
-    "date": "2026-09-14",
-    "entry": "Space Age era added: habitat capacity becomes a new fourth livability provision. All seven eras are now complete."
-  },
-  {
     "date": "2026-09-13",
-    "entry": "Digital era added: Urban Planners and Transit Hubs, with a new urban-sprawl mechanic — the flagship SDG 11 era. Earlier: industrial era added: Factory Workers and Sanitation Works, with a pollution mechanic — the first era where growth and livability trade off directly, not just on the score. Earlier: medieval era added: Guildmasters and Public Works, with the research tree's first resilience-side sustainability bonus. Earlier: Classical era added: Administrators and Canals, with a resilience-side sustainability adjustment; foundations (from 2026-09-02): Foundation shipped: the Tribal-era city simulation, sustainability/livability scoring, the continuous research tree, the save system, and the info-panel shell; then story and era-transition framework: ongoing logs, era-transition beats, and the first full Tribal to Agrarian transition."
+    "entry": "Digital era added: Urban Planners and Transit Hubs, with a new urban-sprawl mechanic — the flagship SDG 11 era. Earlier: industrial era added: Factory Workers and Sanitation Works, with a pollution mechanic — the first era where growth and livability trade off directly, not just on the score. Earlier: medieval era added: Guildmasters and Public Works, with the research tree's first resilience-side sustainability bonus. Earlier: Classical era added: Administrators and Canals, with a resilience-side sustainability adjustment; foundations (from 2026-09-02): Foundation shipped: the Tribal-era city simulation, sustainability/livability scoring, the continuous research tree, the save system, and the info-panel shell; then story and era-transition framework: ongoing logs, era-transition beats, and the first full Tribal to Agrarian transition. Earlier: Space Age era added: habitat capacity becomes a new fourth livability provision. All seven eras are now complete."
   }
 ]

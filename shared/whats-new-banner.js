@@ -117,11 +117,11 @@
         font-weight: 600;
         font-family: inherit;
         cursor: pointer;
-        background: rgba(255, 255, 255, 0.14);
+        background: rgba(0, 0, 0, 0.3);
         color: #eef0ff;
         align-self: center;
       }
-      #whats-new-banner-dismiss:hover { background: rgba(255, 255, 255, 0.24); }
+      #whats-new-banner-dismiss:hover { background: rgba(0, 0, 0, 0.45); }
       @media (prefers-reduced-motion: reduce) {
         #whats-new-banner { transition: none; }
       }

@@ -1589,7 +1589,196 @@ kbd { border: 1px solid rgba(201, 147, 84, 0.5); border-radius: 4px; padding: 0 
 .real-world-note > summary { cursor: pointer; font-weight: 600; }
 .real-world-text { margin: 0.5rem 0 0.25rem; }
 .real-world-source { font-size: 0.8rem; }
+.settings-row #theme-toggle { flex: 0 0 auto; padding: 0.5rem 1.3rem 0.5rem 0.8rem; }
+
+/* ==========================================================================
+   Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
+   restyles the common chrome (page, #game shell, .section panels, buttons,
+   inputs, achievement/changelog cards, save widget). Everything below is the
+   Continuum-specific remainder, found with a computed-style contrast scan of
+   the light theme: this game's amber-on-dark accent text, its dark recessed
+   readouts, opacity-dimmed text (opacity multiplies into contrast, so the
+   dimmer values are lifted here), the 3D sky, the Hamlet chips and side
+   panel, and the City Views SVGs. Every rule is scoped to
+   html[data-theme="light"] (bar the layout rule above), so dark mode, the
+   default, is unchanged. Colours only; no layout, text or icon changes, so
+   every state cue (glyphs, dashes, labels) still holds. The dark accent
+   text is a deep amber (#7a4a12) instead of the dark theme's #e0b374 gold.
+   ========================================================================== */
+html[data-theme="light"] .hub-back-link { opacity: 1; color: #3a4468; }
+html[data-theme="light"] .tagline,
+html[data-theme="light"] .settings-note,
+html[data-theme="light"] .settings-row-label,
+html[data-theme="light"] .changelog-date,
+html[data-theme="light"] .achievement-card-description,
+html[data-theme="light"] .achievement-card-progress,
+html[data-theme="light"] .achievement-earn-rate,
+html[data-theme="light"] .summary-era-detail,
+html[data-theme="light"] .summary-eras-heading,
+html[data-theme="light"] .archive-date,
+html[data-theme="light"] .trajectory-legend,
+html[data-theme="light"] .time-of-day-label,
+html[data-theme="light"] .founded-plaque,
+html[data-theme="light"] .event-display,
+html[data-theme="light"] .row-count,
+html[data-theme="light"] .row-blurb,
+html[data-theme="light"] .section-heading { opacity: 1; }
+html[data-theme="light"] .tagline,
+html[data-theme="light"] .settings-note,
+html[data-theme="light"] .changelog-date,
+html[data-theme="light"] .achievement-card-progress,
+html[data-theme="light"] .achievement-earn-rate,
+html[data-theme="light"] .archive-date { color: #4a5272; }
+html[data-theme="light"] .context-blurb { opacity: 1; color: #3a4468; }
+
+/* Dark recessed readouts and nameplates become pale ones. */
+html[data-theme="light"] .row-count,
+html[data-theme="light"] .component-line {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(70, 95, 170, 0.25);
+  box-shadow: inset 0 1px 3px rgba(40, 55, 110, 0.12);
+  color: #1b2033;
+}
+html[data-theme="light"] .row-name,
+html[data-theme="light"] .era-line,
+html[data-theme="light"] .section-heading {
+  background: rgba(70, 95, 170, 0.1);
+  border-color: rgba(70, 95, 170, 0.25);
+  box-shadow: none;
+}
+html[data-theme="light"] .era-line { color: #7a4a12; }
+html[data-theme="light"] .component-line { opacity: 1; }
+html[data-theme="light"] .component-line--weakest { color: #8f4a08; border-color: rgba(143, 74, 8, 0.55); }
+html[data-theme="light"] .event-display--warning { color: #7d5200; }
+html[data-theme="light"] .research-locked-reason { color: #8f4210; opacity: 1; }
+html[data-theme="light"] .research-meta {
+  opacity: 1; color: #3a4468; background: rgba(70, 95, 170, 0.1); border-color: rgba(70, 95, 170, 0.28);
+}
+html[data-theme="light"] .research-row--done { opacity: 0.85; }
+html[data-theme="light"] .research-row--locked { opacity: 0.92; }
+html[data-theme="light"] .research-effect,
+html[data-theme="light"] .challenge-active,
+html[data-theme="light"] .summary-rank,
+html[data-theme="light"] .achievements-hub-link { color: #7a4a12; }
+
+/* Buttons: a disabled control is exempt from the contrast rule, but the dark
+   theme's 40% fade makes it unreadable on pale panels, so lift it. */
+html[data-theme="light"] button.secondary:disabled { opacity: 0.6; }
+html[data-theme="light"] button.secondary::after,
+html[data-theme="light"] button.primary::after { background: #2f8a3a; box-shadow: 0 0 5px 1px rgba(47, 138, 58, 0.55); }
+html[data-theme="light"] button.secondary:disabled::after,
+html[data-theme="light"] button.primary:disabled::after { background: #8b93ad; box-shadow: none; }
+html[data-theme="light"] button.secondary,
+html[data-theme="light"] button.primary {
+  box-shadow: 0 2px 6px rgba(40, 55, 110, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 0 0 2px rgba(70, 95, 170, 0.1);
+}
+html[data-theme="light"] button.primary { background: linear-gradient(135deg, #a8691f, #7a4a12); }
+html[data-theme="light"] .achievement-toast { border-color: rgba(224, 179, 116, 0.6); }
+html[data-theme="light"] .achievement-toast-text { color: #ffffff; }
+
+/* Meters: deeper fills so the bar reads against the pale track (3:1). */
+html[data-theme="light"] .meter { border-color: rgba(70, 95, 170, 0.28); box-shadow: inset 0 1px 3px rgba(40, 55, 110, 0.2); }
+html[data-theme="light"] .meter-fill--land { background: #3f7a2c; box-shadow: none; }
+html[data-theme="light"] .meter-fill--score { background: #a5680f; box-shadow: none; }
+html[data-theme="light"] .meter-fill--season { background: linear-gradient(90deg, #7a5a2c, #a5680f); }
+html[data-theme="light"] .settlement-visual,
+html[data-theme="light"] .visual3d-container { box-shadow: inset 0 0 0 1px rgba(70, 95, 170, 0.25), 0 6px 18px rgba(40, 55, 110, 0.18); }
+
+/* Disclosures, info badges, selection states. Consulting mode and the civic
+   challenge summaries were pale gold on white; they take the deep amber. */
+html[data-theme="light"] .info-toggle summary {
+  background: rgba(168, 105, 31, 0.16); border-color: rgba(122, 74, 18, 0.55); color: #6b3f0c;
+}
+html[data-theme="light"] .info-toggle summary:hover,
+html[data-theme="light"] .info-toggle[open] summary { background: rgba(168, 105, 31, 0.3); }
+html[data-theme="light"] .info-toggle p { border-color: rgba(122, 74, 18, 0.3); opacity: 1; }
+html[data-theme="light"] .research-disclosure > summary { color: #7a4a12; border-color: rgba(122, 74, 18, 0.45); }
+html[data-theme="light"] .research-disclosure > summary:hover { background: rgba(168, 105, 31, 0.12); }
+html[data-theme="light"] .community-details summary,
+html[data-theme="light"] .real-world-note > summary { color: #1b2033; }
+html[data-theme="light"] .scenario-button.selected,
+html[data-theme="light"] #reduce-motion-toggle-button.active,
+html[data-theme="light"] .branch-chip.active,
+html[data-theme="light"] .views-tabs .branch-chip[aria-pressed="true"] {
+  border-color: #7a4a12; background: #f6e3bd; color: #5c3508; box-shadow: none;
+}
+html[data-theme="light"] .difficulty-toggle.active {
+  border-color: #a3341c; background: #fbd9d0; color: #7a1f0d; box-shadow: none;
+}
+html[data-theme="light"] .speed-button.selected { outline-color: #7a4a12; }
+html[data-theme="light"] .achievement-card--earned { border-color: rgba(122, 74, 18, 0.55); box-shadow: none; }
+html[data-theme="light"] .achievement-card--earned .achievement-card-label { color: #7a4a12; text-shadow: none; }
+html[data-theme="light"] .summary-era-row--current { border-color: rgba(122, 74, 18, 0.5); }
+html[data-theme="light"] .research-search-input::placeholder { color: #5f6580; }
+html[data-theme="light"] kbd { background: #ffffff; border-color: rgba(70, 95, 170, 0.4); color: #1b2033; }
 html[data-theme="light"] .real-world-note {
   border-color: rgba(150, 100, 40, 0.4);
   background: rgba(255, 255, 255, 0.6);
 }
+html[data-theme="light"] .real-world-source { color: #2a4ba0; }
+
+/* The 3D sky. render3d.js draws with a transparent renderer, so this CSS
+   gradient is the sky; the lights are brightened in render3d.js. */
+html[data-theme="light"] .visual3d-container {
+  background: linear-gradient(180deg, #a9c9f0 0%, #d3e3f7 55%, #f0ead6 100%);
+}
+html[data-theme="light"] #game.hamlet-on .visual-stage {
+  background: linear-gradient(180deg, #a9c9f0 0%, #d3e3f7 55%, #f0ead6 100%);
+  box-shadow: inset 0 0 0 1px rgba(70, 95, 170, 0.25), 0 6px 18px rgba(40, 55, 110, 0.18);
+}
+
+/* City Views (dashboard rows, civic map, flow diagram, trajectory chart):
+   the SVG fills were tuned for a dark panel. Strokes are deepened and every
+   series keeps its dash/glyph/label cue. */
+html[data-theme="light"] .views-dash-row { border-bottom-color: rgba(70, 95, 170, 0.25); }
+html[data-theme="light"] .trajectory-bg,
+html[data-theme="light"] .map-bg { fill: rgba(255, 255, 255, 0.75); }
+html[data-theme="light"] .trajectory-line--mine { stroke: #8a5208; }
+html[data-theme="light"] .trajectory-line--ref { stroke: #2a5aa8; }
+html[data-theme="light"] .trajectory-dot { fill: rgba(138, 82, 8, 0.7); }
+html[data-theme="light"] .trajectory-dot--latest { fill: #f6d58f; stroke: #8a5208; }
+html[data-theme="light"] .trajectory-key { border-top-color: #8a5208; }
+html[data-theme="light"] .trajectory-key--ref { border-top-color: #2a5aa8; }
+html[data-theme="light"] .map-district { fill: rgba(168, 105, 31, 0.1); stroke: rgba(122, 74, 18, 0.7); }
+html[data-theme="light"] .map-label { fill: #2a1c08; }
+html[data-theme="light"] .map-count { fill: #5c3a0a; }
+html[data-theme="light"] .map-glyph { fill: #8a5208; stroke: #ffffff; }
+html[data-theme="light"] .map-glyph--line,
+html[data-theme="light"] .map-glyph--hollow { stroke: #8a5208; }
+html[data-theme="light"] .flow-node { fill: #fff6e0; stroke: #8a5208; }
+html[data-theme="light"] .flow-label { fill: #2a1c08; }
+html[data-theme="light"] .flow-ribbon { fill-opacity: 0.7; }
+html[data-theme="light"] .flow-ribbon--food { fill: #b07a12; stroke: #8a5f08; }
+html[data-theme="light"] .flow-ribbon--materials { fill: #2a5aa8; stroke: #1f4682; }
+html[data-theme="light"] .flow-ribbon--tools { fill: #6a6a78; stroke: #4a4a58; }
+html[data-theme="light"] .flow-ribbon--knowledge { fill: #b23a78; stroke: #8a2a5c; }
+html[data-theme="light"] .archive-entry { border-color: rgba(122, 74, 18, 0.4); }
+
+/* Hamlet view: pale chips and side panel over the pale sky. The white focus
+   ring of the dark theme would vanish, so it becomes near-black. */
+html[data-theme="light"] .hamlet-hud,
+html[data-theme="light"] .hamlet-note {
+  background: rgba(255, 255, 255, 0.9); color: #1b2033; box-shadow: 0 1px 4px rgba(40, 55, 110, 0.25);
+}
+html[data-theme="light"] .hamlet-main,
+html[data-theme="light"] .hamlet-mini {
+  background: rgba(255, 255, 255, 0.95); color: #2a1c08; border-color: #7a4a12; box-shadow: 0 2px 6px rgba(40, 55, 110, 0.3);
+}
+html[data-theme="light"] .hamlet-count { color: #7a4a12; }
+html[data-theme="light"] .hamlet-name {
+  background: #ffffff; color: #2a1c08; border-color: #7a4a12;
+}
+html[data-theme="light"] .hamlet-chip[data-station="town_centre"] .hamlet-name { background: none; }
+html[data-theme="light"] .hamlet-sub { background: rgba(255, 255, 255, 0.9); color: #3a2a10; }
+html[data-theme="light"] .hamlet-buy { border-color: #2f7a2a; }
+html[data-theme="light"] .hamlet-main:hover,
+html[data-theme="light"] .hamlet-mini:hover,
+html[data-theme="light"] .hamlet-chip--hover .hamlet-main,
+html[data-theme="light"] .hamlet-chip--open .hamlet-main { background: #fbe7b8; border-color: #5c3508; }
+html[data-theme="light"] .hamlet-blocked { opacity: 0.9; }
+html[data-theme="light"] .hamlet-chip button:focus-visible { outline-color: #1b2033; }
+html[data-theme="light"] .hamlet-town-panel {
+  background: rgba(255, 255, 255, 0.97); color: #1b2033; border-color: #7a4a12; box-shadow: 0 4px 16px rgba(40, 55, 110, 0.25);
+}
+html[data-theme="light"] .hamlet-town-heading { color: #7a4a12; }
+html[data-theme="light"] .hamlet-town-dim { opacity: 0.85; }

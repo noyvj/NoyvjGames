@@ -148,7 +148,7 @@
     group = new THREE.Group();
     // Rim of earth beyond the era's own ground disc, so the outer ring of
     // buildings never floats over empty sky in an era whose ground is small.
-    const rim = new THREE.Mesh(new THREE.CircleGeometry(5.0, 32), H.toonMaterial(0x40392c));
+    const rim = new THREE.Mesh(new THREE.CircleGeometry(5.0, 32), H.toonMaterial(api().isLight && api().isLight() ? 0x8a7d62 : 0x40392c));
     rim.rotation.x = -Math.PI / 2;
     rim.position.y = -0.03;
     group.add(rim);
@@ -233,7 +233,8 @@
       return;
     }
     if (is3d) {
-      const key = chips.map(function (c) { return c.getAttribute("data-station") + ":" + c.getAttribute("data-count"); }).join("|");
+      // The theme is part of the key: the rim of earth is a different colour in light mode.
+      const key = (api().isLight && api().isLight() ? "L|" : "D|") + chips.map(function (c) { return c.getAttribute("data-station") + ":" + c.getAttribute("data-count"); }).join("|");
       if (key !== meshKey || !group || !group.parent) {
         meshKey = key;
         rebuildBuildings(chips);

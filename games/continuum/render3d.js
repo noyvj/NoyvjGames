@@ -331,6 +331,23 @@
     return step / SEASONAL_CYCLE_LENGTH; // 0..1
   }
 
+  // Y11b (light theme): the renderer is transparent (alpha: true) and the
+  // "sky" is the container's CSS background, so the light theme swaps that
+  // gradient in style.css; here only the lights change. Dark mode's numbers
+  // are untouched. A little extra hemisphere light lifts the shadowed
+  // sides of the low-poly buildings, and the sky tint is pulled toward a
+  // pale daylight blue so the ground-side colours read as bright, not murky.
+  const LIGHT_THEME_HEMI_BOOST = 1.18;
+  const LIGHT_THEME_SUN_BOOST = 1.1;
+  const LIGHT_THEME_SKY_TINT = 0xdbe8ff;
+  const LIGHT_THEME_SKY_PULL = 0.35;
+
+  function isLightTheme() {
+    const attr = document.documentElement && document.documentElement.getAttribute("data-theme");
+    if (attr) return attr === "light";
+    return !!(window.NoyvjTheme && window.NoyvjTheme.get() === "light");
+  }
+
   function setupLighting(target, skyHex, groundHex, season) {
     const phase = seasonalPhase(season);
     // A single sine wave drives both the warm/cool tint pull and the
@@ -344,10 +361,17 @@
       brightnessFactor = TIME_OF_DAY[timeOfDay].brightness;
     }
     const seasonalTint = lerpColor(SEASONAL_COOL_TINT, SEASONAL_WARM_TINT, wave);
-    const tintedSky = lerpColor(skyHex, seasonalTint, SEASONAL_TINT_PULL);
+    let tintedSky = lerpColor(skyHex, seasonalTint, SEASONAL_TINT_PULL);
+    let hemiBoost = 1.0;
+    let sunBoost = 1.0;
+    if (isLightTheme()) {
+      tintedSky = lerpColor(tintedSky, LIGHT_THEME_SKY_TINT, LIGHT_THEME_SKY_PULL);
+      hemiBoost = LIGHT_THEME_HEMI_BOOST;
+      sunBoost = LIGHT_THEME_SUN_BOOST;
+    }
 
-    const hemi = new THREE.HemisphereLight(tintedSky, groundHex, 0.9 * brightnessFactor);
-    const sun = new THREE.DirectionalLight(0xffffff, 0.75 * brightnessFactor);
+    const hemi = new THREE.HemisphereLight(tintedSky, groundHex, 0.9 * brightnessFactor * hemiBoost);
+    const sun = new THREE.DirectionalLight(0xffffff, 0.75 * brightnessFactor * sunBoost);
     sun.position.set(4, 6, 3);
     target.add(hemi, sun);
   }
@@ -997,6 +1021,15 @@
       pyodideRef = pyodide;
       ready = true;
 
+      // Y11b: re-light the scene when the player flips the theme in
+      // Settings (shared/theme.js fires this event). The sky itself is a CSS
+      // background, so only the lights need rebuilding.
+      document.addEventListener("noyvj-theme-change", function () {
+        if (ready && lastVisualState) {
+          try { renderScene(lastVisualState); } catch (err) { console.warn("Continuum 3D: theme re-light failed.", err); }
+        }
+      });
+
       // First paint, then wire the hook game.py calls after every render().
       pullStateAndRender();
       window.continuumOnRender = pullStateAndRender;
@@ -1021,6 +1054,7 @@
   // helpers every era scene above is made of, so hamlet buildings match.
   window.ContinuumScene = {
     ready: function () { return ready; },
+    isLight: isLightTheme,
     is3dVisible: function () {
       const container = document.getElementById(CONTAINER_ID);
       return !!(ready && container && !container.hidden);

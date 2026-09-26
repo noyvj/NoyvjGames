@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="../../shared/ambient-bg.css">
 <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="../../shared/theme-light-games.css">
-  <script src="../../shared/theme.js" data-floating-toggle></script>
+  <script src="../../shared/theme.js"></script>
   <script src="../../shared/site-settings.js" data-game-id="continuum"></script>
 <link rel="stylesheet" href="../../ad-bar.css">
 <link rel="stylesheet" href="../../shared/info-page.css">
@@ -135,6 +135,13 @@
       <div class="settings-row">
         <span class="settings-row-label">Motion</span>
         <button id="reduce-motion-toggle-button" class="secondary" type="button">Reduce Motion: Off</button>
+      </div>
+      <!-- Light/dark theme (Y11b): the floating pill was retired for this game;
+           shared/theme.js labels and wires any #theme-toggle it finds, and
+           render3d.js re-lights the 3D scene on its noyvj-theme-change event. -->
+      <div class="settings-row">
+        <span class="settings-row-label">Theme</span>
+        <button id="theme-toggle" class="secondary" type="button" aria-pressed="false">Light mode</button>
       </div>
       <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
