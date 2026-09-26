@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-09-26",
+      "entry": "Wetland Forest: a third region unlocked at 5000 standing forest value. It grows 25% faster than the main forest, but a flood sweeps it every 50 ticks — young plots lose 30% of their value, mature ones 10%, replanting plots get silted back — with a 10-tick warning so you can harvest ahead of the water (B1)."
+    },
+    {
+      "date": "2026-09-26",
       "entry": "Example playthrough: a narrated, worked-out example of a strong preserve/clear balance, with every number calculated from the game's own settings (B29)."
     },
     {

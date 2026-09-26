@@ -725,3 +725,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Warframe Build Resource Tracker
 **Did:** Added a light theme for the tracker's own UI: it now loads the shared `theme.js` (a floating Light/Dark pill, remembered per device and account-synced) and `style.css` gained a full light palette (page, sections, tables, inputs, buttons, tags, progress bars) plus the shared light styles for the save widget. Dark is unchanged.
 **Result:** 80 → 87 tracker tests passing; verified live.
+
+### 2026-09-26 (Canopy B1: Wetland Forest)
+**Game:** canopy
+**Did:** Added a third, flood-prone region to Canopy: own 3x4 grid, income and Clear/Replant, unlocked at 5000 standing forest value (higher than Highland Grove's 2000). Growth is 25% faster than the main forest, and a 50-tick flood timer strips 30% of young plots' value and 10% of mature ones, silts replanting plots, and gives a 10-tick warning (status line plus dashed outline on at-risk plots) so the player can harvest ahead. New wetland_* save keys are written only after unlock and fully validated on load.
+**Result:** 381 Canopy tests pass (16 new); live-checked with the wetland force-unlocked: section renders 12 tiles, warning text and risk outlines appear at the warning threshold, no new console errors.

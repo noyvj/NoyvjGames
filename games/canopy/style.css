@@ -1309,6 +1309,30 @@ button.secondary:disabled::after {
   margin-bottom: 1rem;
 }
 
+/* B1: third region, Wetland Forest. */
+.wetland-lock-banner {
+  font-style: italic;
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+
+.wetland-blurb {
+  margin: 0 0 0.6rem;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.wetland-flood-status {
+  margin: 0 0 0.8rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.plot-tile.plot-flood-risk {
+  outline: 2px dashed #6ec1ff;
+  outline-offset: -3px;
+}
+
 .achievement-card {
   padding: 0.6rem 0.75rem;
   border: 1px solid rgba(140, 160, 255, 0.14);

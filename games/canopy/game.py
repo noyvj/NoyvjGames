@@ -304,6 +304,8 @@ class Plot:
         plots (region == "main") are completely untouched by this, since
         the multiplier is exactly 1.0 for them."""
         region_degrade_multiplier = HIGHLAND_DEGRADE_MULTIPLIER if self.region == "highland" else 1.0
+        # B1: Wetland Forest keeps the main forest's soil rate (its tension
+        # is flooding, not erosion) -- so it multiplies by 1.0 here.
         return max(
             MIN_PRODUCTIVITY_MULTIPLIER,
             1 - current_degrade_per_clear() * region_degrade_multiplier * self.clear_count,
@@ -325,6 +327,8 @@ class Plot:
         # growing season) — 1.0 (a no-op) for main-forest plots.
         if self.region == "highland":
             delta *= HIGHLAND_GROWTH_MULTIPLIER
+        elif self.region == "wetland":  # B1: lush, fast-growing, but floods
+            delta *= WETLAND_GROWTH_MULTIPLIER
         delta *= current_season_multiplier()  # B17
         delta *= current_legacy_multiplier()  # B15
         if self.specialization == SPECIALIZATION_ECONOMIC:
@@ -507,6 +511,35 @@ highland_income = 0.0
 # these track a disjoint set of DOM elements.
 _highland_plot_click_proxies = {}
 
+# B1 (planning/TODO.md "Per-game: Canopy"): a third biome, Wetland Forest.
+# Same Plot class and clear/replant loop again, but its own tension: it
+# grows faster than the main forest (WETLAND_GROWTH_MULTIPLIER) and a flood
+# sweeps it on a fixed timer. A flood strips a fraction of every standing
+# plot's value -- much less from a plot that has stood a full MATURITY_TICKS
+# (deep roots hold the water back) than from a young one -- and silts up
+# any plot still replanting, pushing its recovery back. There is a warning
+# window before each flood, so the choice is real: harvest a young plot
+# now and bank its value, or gamble that it holds. Unlocks (sticky, one-way)
+# at a higher standing-value threshold than Highland Grove.
+WETLAND_ROWS = 3
+WETLAND_COLS = 4
+WETLAND_UNLOCK_STANDING_VALUE_THRESHOLD = 5000.0
+WETLAND_GROWTH_MULTIPLIER = 1.25
+WETLAND_FLOOD_INTERVAL_TICKS = 50
+WETLAND_FLOOD_WARNING_TICKS = 10
+WETLAND_FLOOD_LOSS_YOUNG = 0.30
+WETLAND_FLOOD_LOSS_MATURE = 0.10
+WETLAND_FLOOD_SILT_TICKS = 8
+
+wetland_unlocked = False
+wetland_plots = [Plot(i, region="wetland") for i in range(WETLAND_ROWS * WETLAND_COLS)]
+wetland_selected_index = None
+wetland_income = 0.0
+wetland_flood_countdown = WETLAND_FLOOD_INTERVAL_TICKS
+wetland_floods_survived = 0
+wetland_flood_value_lost = 0.0
+_wetland_plot_click_proxies = {}
+
 
 # B2 (planning/TODO.md "Per-game: Canopy"): a "reset session" option, folded
 # together with B13's grid-size variant since both mean "rebuild the whole
@@ -534,6 +567,9 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None):
     global _previously_earned_ids, _session_ticks
     global highland_unlocked, highland_plots, highland_selected_index, highland_income
     global _highland_plot_click_proxies, _reset_confirm_armed
+    global wetland_unlocked, wetland_plots, wetland_selected_index, wetland_income
+    global wetland_flood_countdown, wetland_floods_survived, wetland_flood_value_lost
+    global _wetland_plot_click_proxies
     global forest_log, forest_tick, adopted_plot_index, current_difficulty
     global legacy_multiplier
 
@@ -595,6 +631,17 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None):
     highland_plots = [Plot(i, region="highland") for i in range(HIGHLAND_ROWS * HIGHLAND_COLS)]
     highland_selected_index = None
     highland_income = 0.0
+
+    for proxy in _wetland_plot_click_proxies.values():
+        proxy.destroy()
+    _wetland_plot_click_proxies = {}
+    wetland_unlocked = False
+    wetland_plots = [Plot(i, region="wetland") for i in range(WETLAND_ROWS * WETLAND_COLS)]
+    wetland_selected_index = None
+    wetland_income = 0.0
+    wetland_flood_countdown = WETLAND_FLOOD_INTERVAL_TICKS
+    wetland_floods_survived = 0
+    wetland_flood_value_lost = 0.0
 
     if _render_after:
         render()
@@ -1237,6 +1284,214 @@ def render_highland_section():
     render_highland_grid()
     render_highland_panel()
     render_highland_stats()
+
+
+# ===========================================================================
+# Wetland Forest -- B1's third region. Same shape as Highland Grove above
+# (own grid, selection, income), plus the flood timer described at
+# WETLAND_ROWS.
+# ===========================================================================
+
+
+def _maybe_unlock_wetland():
+    global wetland_unlocked, wetland_flood_countdown
+    if not wetland_unlocked and standing_forest_value() >= WETLAND_UNLOCK_STANDING_VALUE_THRESHOLD:
+        wetland_unlocked = True
+        wetland_flood_countdown = WETLAND_FLOOD_INTERVAL_TICKS
+        _log_event("unlock", "Wetland Forest unlocked", None)
+
+
+def wetland_plot_coordinate_label(index):
+    row, col = divmod(index, WETLAND_COLS)
+    return f"{chr(ord('A') + col)}{row + 1}"
+
+
+def wetland_standing_value():
+    return sum(plot.value for plot in wetland_plots)
+
+
+def wetland_flood_loss_fraction(plot):
+    """Share of a standing plot's value the next flood would strip: mature
+    plots (a full MATURITY_TICKS intact) hold the water back far better
+    than young ones. 0.0 for a plot holding no standing value."""
+    if plot.state not in ACCRUING_STATES:
+        return 0.0
+    return WETLAND_FLOOD_LOSS_MATURE if plot.ticks_intact >= MATURITY_TICKS else WETLAND_FLOOD_LOSS_YOUNG
+
+
+def wetland_flood_warning_active():
+    return wetland_unlocked and wetland_flood_countdown <= WETLAND_FLOOD_WARNING_TICKS
+
+
+def apply_wetland_flood():
+    """Sweeps every wetland plot once. Returns the total value stripped."""
+    global wetland_floods_survived, wetland_flood_value_lost
+    lost = 0.0
+    for plot in wetland_plots:
+        if plot.state in ACCRUING_STATES:
+            loss = plot.value * wetland_flood_loss_fraction(plot)
+            plot.value -= loss
+            lost += loss
+        elif plot.state == REPLANTING:
+            plot.replant_ticks_remaining = min(
+                RECOVERY_TICKS, plot.replant_ticks_remaining + WETLAND_FLOOD_SILT_TICKS
+            )
+    wetland_floods_survived += 1
+    wetland_flood_value_lost += lost
+    _log_event("flood", f"Wetland flood: {lost:.1f} standing value swept away", None)
+    return lost
+
+
+def _advance_wetland_tick():
+    """One tick of the wetland: grow/recover every plot, then run the flood
+    timer. Only called once the region is unlocked."""
+    global wetland_flood_countdown
+    for plot in wetland_plots:
+        plot.accrue_tick()
+        plot.advance_recovery()
+    wetland_flood_countdown -= 1
+    if wetland_flood_countdown <= 0:
+        apply_wetland_flood()
+        wetland_flood_countdown = WETLAND_FLOOD_INTERVAL_TICKS
+
+
+def _wetland_tooltip_text(plot):
+    soil_pct = round(plot.productivity_multiplier() * 100)
+    label = f"{wetland_plot_coordinate_label(plot.index)} · {STATE_LABEL[plot.state]} · value {plot.value:.1f} · soil {soil_pct}%"
+    if plot.state == REPLANTING:
+        label += f" · recovering in {plot.replant_ticks_remaining} ticks"
+    loss = wetland_flood_loss_fraction(plot)
+    if loss:
+        label += f" · flood would cost {round(loss * 100)}%"
+    return label
+
+
+def _make_wetland_select_handler(index):
+    def handler(event):
+        wetland_select_plot(index)
+    return handler
+
+
+def wetland_select_plot(index):
+    global wetland_selected_index
+    wetland_selected_index = index
+    render()
+
+
+def on_wetland_clear(event=None):
+    global wetland_income
+    if wetland_selected_index is None:
+        return
+    payout = wetland_plots[wetland_selected_index].clear()
+    if payout is not None:
+        wetland_income += payout
+    render()
+
+
+def on_wetland_replant(event=None):
+    if wetland_selected_index is None:
+        return
+    wetland_plots[wetland_selected_index].replant()
+    render()
+
+
+def render_wetland_grid():
+    grid_el = document.getElementById("wetland-plot-grid")
+    grid_el.innerHTML = ""
+    grid_el.setAttribute("data-cols", str(WETLAND_COLS))
+    grid_el.style.gridTemplateColumns = f"repeat({WETLAND_COLS}, 1fr)"
+    warning = wetland_flood_warning_active()
+    for plot in wetland_plots:
+        tile = document.createElement("button")
+        tile.id = f"wetland-plot-{plot.index}"
+        tile.className = f"plot-tile plot-{plot.state}"
+        if plot.index == wetland_selected_index:
+            tile.className += " plot-selected"
+        if plot.just_recovered:
+            tile.className += " plot-just-recovered"
+            plot.just_recovered = False
+        if plot.state == RECOVERED and plot.maturity_fraction() >= 1.0:
+            tile.className += " plot-fully-mature"
+        if warning and wetland_flood_loss_fraction(plot) >= WETLAND_FLOOD_LOSS_YOUNG:
+            tile.className += " plot-flood-risk"
+        tile.title = STATE_LABEL[plot.state]
+        tile.innerText = STATE_ICON[plot.state]
+        tile.style.backgroundColor = plot_display_color(plot)
+        tile.setAttribute("data-tooltip", _wetland_tooltip_text(plot))
+        tile.setAttribute("aria-label", _wetland_tooltip_text(plot))
+        old_proxy = _wetland_plot_click_proxies.pop(plot.index, None)
+        if old_proxy is not None:
+            old_proxy.destroy()
+        proxy = create_proxy(_make_wetland_select_handler(plot.index))
+        _wetland_plot_click_proxies[plot.index] = proxy
+        tile.addEventListener("click", proxy)
+        grid_el.appendChild(tile)
+
+
+def render_wetland_panel():
+    state_el = document.getElementById("wetland-selected-plot-state")
+    clear_button = document.getElementById("wetland-clear-button")
+    replant_button = document.getElementById("wetland-replant-button")
+
+    if wetland_selected_index is None:
+        state_el.innerText = "No plot selected"
+        clear_button.disabled = True
+        replant_button.disabled = True
+        return
+
+    plot = wetland_plots[wetland_selected_index]
+    detail = f"value {plot.value:.1f}"
+    if plot.state == REPLANTING:
+        detail = f"recovering in {plot.replant_ticks_remaining} ticks"
+    state_el.innerText = (
+        f"Plot {wetland_plot_coordinate_label(wetland_selected_index)}: {STATE_LABEL[plot.state]} ({detail})"
+    )
+    clear_button.disabled = "clear" not in VALID_ACTIONS[plot.state]
+    replant_button.disabled = "replant" not in VALID_ACTIONS[plot.state]
+
+
+def wetland_flood_status_text():
+    if wetland_flood_warning_active():
+        return f"🌊 Flood warning — water arrives in {wetland_flood_countdown} ticks. Young plots (highlighted) would lose {round(WETLAND_FLOOD_LOSS_YOUNG * 100)}%."
+    return f"Next flood in {wetland_flood_countdown} ticks · floods survived: {wetland_floods_survived}"
+
+
+def render_wetland_stats():
+    document.getElementById("wetland-income-display").innerText = f"Harvested income: {wetland_income:.1f}"
+    document.getElementById("wetland-standing-value-display").innerText = (
+        f"Standing wetland value: {wetland_standing_value():.1f}"
+    )
+    document.getElementById("wetland-flood-status").innerText = wetland_flood_status_text()
+
+
+def render_wetland_section():
+    banner = document.getElementById("wetland-lock-banner")
+    section = document.getElementById("wetland-section")
+    bar = document.getElementById("wetland-unlock-progress")
+    if banner is None or section is None:
+        return
+    if not wetland_unlocked:
+        section.hidden = True
+        # Only tease this third region once the second one is open, so the
+        # early game doesn't stack two locked banners.
+        banner.hidden = not highland_unlocked
+        bar.hidden = not highland_unlocked
+        progress = min(standing_forest_value(), WETLAND_UNLOCK_STANDING_VALUE_THRESHOLD)
+        bar.max = WETLAND_UNLOCK_STANDING_VALUE_THRESHOLD
+        bar.value = progress
+        banner.innerText = (
+            "🌊 Wetland Forest is locked — reach "
+            f"{WETLAND_UNLOCK_STANDING_VALUE_THRESHOLD:.0f} standing forest value in your "
+            f"main forest to open a lush but flood-prone third region ({progress:.0f}/"
+            f"{WETLAND_UNLOCK_STANDING_VALUE_THRESHOLD:.0f})."
+        )
+        return
+    banner.hidden = True
+    bar.hidden = True
+    section.hidden = False
+    render_wetland_grid()
+    render_wetland_panel()
+    render_wetland_stats()
 
 
 # B14 (planning/TODO.md "Per-game: Canopy"): a per-browser "personal
@@ -2711,6 +2966,7 @@ def render():
     render_specialist_panel()
     render_session_summary()
     render_highland_section()
+    render_wetland_section()
     update_achievements_display()
     update_changelog_display()
     _sync_earned_and_toast()
@@ -2799,6 +3055,9 @@ def tick(event=None):
         for plot in highland_plots:
             plot.accrue_tick()
             plot.advance_recovery()
+    _maybe_unlock_wetland()
+    if wetland_unlocked:
+        _advance_wetland_tick()
     render()
 
 
@@ -2846,6 +3105,32 @@ def _apply_plot_dict(plot, plot_data):
     plot.specialization = saved_spec if saved_spec in SPECIALIZATION_LABEL else None
 
 
+def _wetland_state_fields():
+    """B1: Wetland Forest's own state, written only once the region is open
+    (a save that never reached it stays exactly as it was before B1)."""
+    if not wetland_unlocked:
+        return {}
+    return {
+        "wetland_unlocked": True,
+        "wetland_selected_index": wetland_selected_index,
+        "wetland_income": wetland_income,
+        "wetland_plots": [_plot_to_dict(plot) for plot in wetland_plots],
+        "wetland_flood_countdown": wetland_flood_countdown,
+        "wetland_floods_survived": wetland_floods_survived,
+        "wetland_flood_value_lost": wetland_flood_value_lost,
+    }
+
+
+def _number_or(value, default, low=0.0, high=None):
+    """A finite non-bool number clamped into [low, high], else `default`."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value != value:
+        return default
+    if value in (float("inf"), float("-inf")):
+        return default
+    value = max(low, value)
+    return value if high is None else min(high, value)
+
+
 def get_state():
     return {
         "plots": [
@@ -2887,6 +3172,7 @@ def get_state():
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed here, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),
+        **_wetland_state_fields(),
     }
 
 
@@ -2909,6 +3195,8 @@ def load_state(data):
     global community_relations_min_ever, _previously_earned_ids
     global highland_unlocked, highland_selected_index, highland_income
     global forest_log, forest_tick, adopted_plot_index
+    global wetland_unlocked, wetland_selected_index, wetland_income
+    global wetland_flood_countdown, wetland_floods_survived, wetland_flood_value_lost
 
     # B13: a save written at a different grid size (or a save predating
     # B13 entirely, which simply lacks the key and so implies "normal", the
@@ -2990,6 +3278,38 @@ def load_state(data):
     for plot, plot_data in zip(highland_plots, data.get("highland_plots", [])):
         _apply_plot_dict(plot, plot_data)
 
+    # B1: Wetland Forest. Absent keys mean "never reached it" (reset_session
+    # above already left a fresh locked region); everything present is
+    # validated because a hand-edited or corrupt save must not break ticks.
+    wetland_unlocked = data.get("wetland_unlocked") is True
+    if not wetland_unlocked:
+        # A save that never reached the wetland must not inherit the live
+        # session's wetland: put it back to a fresh, locked region.
+        wetland_plots[:] = [Plot(i, region="wetland") for i in range(WETLAND_ROWS * WETLAND_COLS)]
+        wetland_selected_index = None
+        wetland_income = 0.0
+        wetland_flood_countdown = WETLAND_FLOOD_INTERVAL_TICKS
+        wetland_floods_survived = 0
+        wetland_flood_value_lost = 0.0
+    else:
+        saved_selected = data.get("wetland_selected_index")
+        wetland_selected_index = (
+            saved_selected
+            if isinstance(saved_selected, int) and not isinstance(saved_selected, bool)
+            and 0 <= saved_selected < len(wetland_plots)
+            else None
+        )
+        wetland_income = _number_or(data.get("wetland_income"), 0.0)
+        wetland_flood_countdown = int(_number_or(
+            data.get("wetland_flood_countdown"), WETLAND_FLOOD_INTERVAL_TICKS, 1, WETLAND_FLOOD_INTERVAL_TICKS
+        ))
+        wetland_floods_survived = int(_number_or(data.get("wetland_floods_survived"), 0))
+        wetland_flood_value_lost = _number_or(data.get("wetland_flood_value_lost"), 0.0)
+        saved_plots = data.get("wetland_plots")
+        for plot, plot_data in zip(wetland_plots, saved_plots if isinstance(saved_plots, list) else []):
+            if isinstance(plot_data, dict):
+                _apply_plot_dict(plot, plot_data)
+
     # achievements_earned itself is never read back (write-only, §1) — but
     # the toast-diffing baseline must be reset here, before render() below
     # calls _sync_earned_and_toast(), so a loaded save's already-earned
@@ -3057,6 +3377,12 @@ def setup():
     )
     document.getElementById("highland-replant-button").addEventListener(
         "click", create_proxy(on_highland_replant)
+    )
+    document.getElementById("wetland-clear-button").addEventListener(
+        "click", create_proxy(on_wetland_clear)
+    )
+    document.getElementById("wetland-replant-button").addEventListener(
+        "click", create_proxy(on_wetland_replant)
     )
     # Explicit, not just relying on index.html's `hidden` attribute -- the
     # toast element is only otherwise touched by show_achievement_toast()/

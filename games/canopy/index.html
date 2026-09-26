@@ -274,6 +274,27 @@
       </div>
     </div>
 
+    <!-- B1: a third region, Wetland Forest -- unlocks at a higher standing
+         value than Highland Grove (render_wetland_section() in game.py).
+         Grows faster than the main forest, but a flood sweeps it every 50
+         ticks: young plots lose 30% of their value, mature ones 10%, and a
+         warning window before each flood lets you harvest early. -->
+    <p id="wetland-lock-banner" class="section wetland-lock-banner" hidden></p>
+    <progress id="wetland-unlock-progress" class="highland-unlock-progress" max="5000" value="0" aria-label="Progress toward unlocking Wetland Forest" hidden></progress>
+    <div id="wetland-section" class="section wetland-section" hidden>
+      <h2 class="highland-heading">🌊 Wetland Forest</h2>
+      <p class="wetland-blurb">A lush coastal wetland: standing value compounds 25% faster than the main forest, but floods sweep it on a timer. Young plots lose 30% of their value to a flood, mature ones only 10% — and a warning gives you time to harvest ahead of the water.</p>
+      <p id="wetland-flood-status" class="wetland-flood-status" role="status"></p>
+      <div id="wetland-plot-grid" class="plot-grid highland-plot-grid"></div>
+      <p id="wetland-income-display" class="income-display">Harvested income: 0.0</p>
+      <p id="wetland-standing-value-display" class="income-display">Standing wetland value: 0.0</p>
+      <p id="wetland-selected-plot-state" class="selected-plot-state">No plot selected</p>
+      <div class="action-buttons">
+        <button id="wetland-clear-button" class="secondary" disabled>Clear</button>
+        <button id="wetland-replant-button" class="secondary" disabled>Replant</button>
+      </div>
+    </div>
+
     <div id="feedback-prompt" class="section">
       <p class="feedback-question">Did this change how you think about deforestation &amp; carbon sinks?</p>
       <div class="feedback-buttons">
@@ -653,7 +674,7 @@
   <script src="../../shared/hub-auth.js"></script>
   <script src="../../shared/save-widget.js" data-game-id="canopy"></script>
   <script src="../../shared/opening-screen.js" data-game-id="canopy" data-tagline="Clear a forest for quick income, or let it grow and compound." data-game-name="Canopy"></script>
-  <script src="../../shared/story-toggle.js" data-game-id="canopy" data-story-selectors="#forest-history-list, .highland-blurb"></script>
+  <script src="../../shared/story-toggle.js" data-game-id="canopy" data-story-selectors="#forest-history-list, .highland-blurb, .wetland-blurb"></script>
   <script src="../../shared/last-played.js" data-game-id="canopy"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="canopy"></script>
   <script src="../../shared/achievement-stats.js" data-game-id="canopy"></script>

@@ -88,6 +88,16 @@ ELEMENT_IDS = [
     "highland-selected-plot-state",
     "highland-clear-button",
     "highland-replant-button",
+    "wetland-lock-banner",
+    "wetland-unlock-progress",
+    "wetland-section",
+    "wetland-plot-grid",
+    "wetland-flood-status",
+    "wetland-income-display",
+    "wetland-standing-value-display",
+    "wetland-selected-plot-state",
+    "wetland-clear-button",
+    "wetland-replant-button",
 ]
 
 # Buttons that carry the `disabled` attribute in index.html's initial markup
@@ -100,6 +110,8 @@ INITIALLY_DISABLED_IDS = [
     "stakeholder-decline-button",
     "highland-clear-button",
     "highland-replant-button",
+    "wetland-clear-button",
+    "wetland-replant-button",
 ]
 
 
