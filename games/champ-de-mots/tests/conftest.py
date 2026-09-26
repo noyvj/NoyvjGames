@@ -171,6 +171,7 @@ ELEMENT_IDS = [
     "review-grammar-button",
     "review-marathon-button",
     "review-cram-button",
+    "review-weakspots-button",
     "review-cram-from-select",
     "review-cram-to-select",
     "review-empty-message",

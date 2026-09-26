@@ -545,3 +545,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Le Champ de Mots
 **Did:** Added an Exam cram mode to the Review tab: pick a range of weeks and get a dense session (up to 60 items, weakest first, ties sampled across the range, interleaved by stage) via a new cram mode reusing the Review machinery; it ignores schedules and the count/stage controls but answers still only nudge, never grow a stage.
 **Result:** 643 → 651 tests passing, flake8 clean; verified live (weeks 3-5 gave a "1 of 60" session inside the range), zero console errors.
+
+### 2026-09-26 (Le Champ de Mots: weak-spot drill + Review answers count as watering, L3)
+**Game:** Le Champ de Mots
+**Did:** Added a Weak-spot drill (a session built only from flagged material: weeds first, then the lowest-growth topics' shaky plots, capped at 20, gentle empty state) and made the first correct Review answer for a plot each in-game day count as a real watering, reversing Milestone 11's "Review never grows a plant" rule at the user's request (repeat answers the same day stay a nudge, so it can't outpace one watering a day; wrong answers still touch nothing). Two tests pinning the old rule were rewritten.
+**Result:** 651 → 660 tests passing (one pre-existing nondeterministic skip), flake8 clean; verified live.

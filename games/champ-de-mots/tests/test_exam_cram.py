@@ -68,13 +68,15 @@ def test_a_reversed_range_still_works(game_env):
     assert all(2 <= game_env.state.plots_by_id[i].sequence <= 5 for i in module.review_queue)
 
 
-def test_cram_answers_use_the_normal_review_nudge_and_never_change_the_stage(game_env):
+def test_cram_answers_follow_the_review_watering_rule(game_env):
+    """A cram answer is an ordinary Review answer: the first correct one for a
+    plot that day counts as its watering (L3); it never grows a plot twice."""
     module = game_env.module
     game_env.elements["review-cram-button"].dispatch("click", None)
     plot = game_env.state.plots_by_id[module.review_question["plot_id"]]
-    stage_before = plot.stage
+    assert plot.last_reviewed is None
     module.submit_review_answer(module.review_question["answer"])
-    assert plot.stage == stage_before
+    assert plot.last_reviewed == game_env.state.current_day and plot.correct_streak == 1
 
 
 def test_ties_sample_across_the_whole_range_not_just_its_first_weeks(game_env):

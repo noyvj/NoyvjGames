@@ -1,4 +1,5 @@
 [
+  { "date": "2026-09-26", "entry": "New Weak-spot drill in the Review tab, built only from what the game has flagged as shaky (known mix-ups first, then your lowest-growth topics). Also, the first correct Review answer for a plot each day now counts as watering it." },
   { "date": "2026-09-26", "entry": "New Exam cram in the Review tab: pick a range of weeks and get a dense session of up to 60 items from just those weeks, weakest material first." },
   { "date": "2026-09-26", "entry": "New personal phrasebook: star any question while you practise to keep that item in your own list, whatever row it belongs to, and practise just those items on their own." },
   { "date": "2026-09-26", "entry": "New Study calendar: a monthly view marking each real day you answered questions, with a small count. It only shows what you did, with no counters to keep alive." },
@@ -22,6 +23,5 @@
   { "date": "2026-09-13", "entry": "Combo bonus, self-rated confidence, deliberate interleaving, adaptive distractor difficulty, a cultural notes toggle, and a progress dashboard added." },
   { "date": "2026-09-13", "entry": "Slideshow cross-check merge: 9 new topics and 75 new items added from the teacher's own lecture slides." },
   { "date": "2026-09-05", "entry": "Site-wide space theme visual pass." },
-  { "date": "2026-09-03", "entry": "Grading engine v2 (STRICT/LENIENT tiers), a \"flag as correct\" report button, a failure feedback blurb, a Review tab, weekly proficiency tests, and bonus sentence-building sections." },
-  { "date": "2026-09-02", "entry": "Core farm launched: the 23-week FREN151 to FREN152 syllabus catalog, spaced-repetition plant growth, a runtime question generator, and save-code support." }
+  { "date": "2026-09-03", "entry": "Core farm launched: the 23-week FREN151 to FREN152 syllabus catalog, spaced-repetition plant growth, a runtime question generator, and save-code support; then grading engine v2 (STRICT/LENIENT tiers), a \"flag as correct\" report button, a failure feedback blurb, a Review tab, weekly proficiency tests, and bonus sentence-building sections." }
 ]

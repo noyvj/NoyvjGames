@@ -3920,6 +3920,45 @@ def marathon_candidates(farm=None, day=None):
     return (watered + never)[:MARATHON_COUNT]
 
 
+# L3: weak-spot drill -- a session built only from what the game already
+# flags as shaky: plots sitting in the weeds (known mix-ups the error-pattern
+# digest classifies) and the touched plots of the dashboard's weakest topics.
+WEAK_SPOT_MODE = "weakspots"
+WEAK_SPOT_SESSION_MAX = 20
+WEAK_SPOT_TOPIC_COUNT = 5
+WEAK_SPOT_EMPTY_MESSAGE = (
+    "Nothing is flagged as a weak spot yet. Mix-ups and low-growth topics show up "
+    "here once you have practised a little."
+)
+
+
+def weak_spot_candidates(farm=None):
+    """Weeds first (the known mix-ups), then the lowest-ease touched plots of
+    the weakest topics that are not already Automated. At most
+    WEAK_SPOT_SESSION_MAX, no duplicates."""
+    farm = state if farm is None else farm
+    chosen, seen = [], set()
+    for plot in farm.plots:
+        if plot.in_weeds and plot.plot_id not in seen:
+            chosen.append(plot)
+            seen.add(plot.plot_id)
+    for entry in dashboard_weakest_topics(WEAK_SPOT_TOPIC_COUNT):
+        record = farm.topic_records[farm.topic_pos[entry["topic_id"]]]
+        shaky = [
+            p for p in _topic_plots(record["topic"])
+            if p.last_reviewed is not None and p.stage != STAGE_AUTOMATED and p.plot_id not in seen
+        ]
+        shaky.sort(key=lambda p: (p.ease_factor, STAGE_RANK[p.stage]))
+        for plot in shaky:
+            chosen.append(plot)
+            seen.add(plot.plot_id)
+    return chosen[:WEAK_SPOT_SESSION_MAX]
+
+
+def on_start_weak_spot_review(event=None):
+    start_review(WEAK_SPOT_MODE)
+
+
 # L25: exam cram -- a dense session over a chosen range of weeks (say, the
 # chapters an exam covers), weakest material first, whatever its schedule.
 CRAM_MODE = "cram"
@@ -4037,6 +4076,19 @@ def nudge_review_correct(plot, day):
     plot.last_reviewed = day
 
 
+def water_from_review(plot):
+    """L3: reviewing a plot that has not been watered yet today counts as
+    watering it -- a full SRS review (interval, ease, streak, stage), the
+    same as answering it on the farm. Once it has been watered today, any
+    further correct Review answers are the gentle nudge as before, so this
+    is never a way to grow a plot faster than one watering a day."""
+    if plot.last_reviewed != state.current_day:
+        state.review(plot.plot_id, True)
+        return True
+    nudge_review_correct(plot, state.current_day)
+    return False
+
+
 def _review_count_setting():
     raw = _element("review-count-input").value
     try:
@@ -4056,7 +4108,9 @@ def _review_variant_for(plot, mode):
     conjugation prompts"): if the plot can produce one of those variants,
     roll among just those; otherwise (word review, or a grammar plot that
     can't offer one) let generate_question() pick from its full pool."""
-    if mode != "grammar" and not (mode in (MARATHON_MODE, PHRASEBOOK_MODE, CRAM_MODE) and plot.topic_type == "grammar"):
+    if mode != "grammar" and not (
+        mode in (MARATHON_MODE, PHRASEBOOK_MODE, CRAM_MODE, WEAK_SPOT_MODE) and plot.topic_type == "grammar"
+    ):
         return None
     preferred = [v for v in variants_for(plot) if v in GRAMMAR_REVIEW_PREFERRED_VARIANTS]
     return QUESTION_RNG.choice(preferred) if preferred else None
@@ -4090,7 +4144,12 @@ def start_review(mode, event=None):
     own in-page controls (§14.4: both configurable, not fixed)."""
     global review_mode, review_queue, review_index, review_score
 
-    if mode == CRAM_MODE:
+    if mode == WEAK_SPOT_MODE:
+        review_mode = mode
+        queue = [p.plot_id for p in weak_spot_candidates()]
+        REVIEW_RNG.shuffle(queue)
+        review_queue = queue
+    elif mode == CRAM_MODE:
         review_mode = mode
         review_queue = [
             p.plot_id
@@ -4143,7 +4202,7 @@ def submit_review_answer(given):
         review_score["correct"] += 1
         plot = state.plots_by_id.get(review_question["plot_id"])
         if plot is not None:
-            nudge_review_correct(plot, state.current_day)
+            water_from_review(plot)
     render()
     return review_result
 
@@ -4296,6 +4355,7 @@ def render_review():
             empty_message.innerText = (
                 MARATHON_EMPTY_MESSAGE if review_mode == MARATHON_MODE
                 else PHRASEBOOK_EMPTY_MESSAGE if review_mode == PHRASEBOOK_MODE
+                else WEAK_SPOT_EMPTY_MESSAGE if review_mode == WEAK_SPOT_MODE
                 else REVIEW_EMPTY_MESSAGE
             )
             summary.hidden = True
@@ -5369,6 +5429,7 @@ def setup():
     _element("calendar-toggle-button").addEventListener("click", create_proxy(on_toggle_calendar))
     _populate_cram_selects()
     _element("review-cram-button").addEventListener("click", create_proxy(on_start_cram_review))
+    _element("review-weakspots-button").addEventListener("click", create_proxy(on_start_weak_spot_review))
     _element("phrasebook-toggle-button").addEventListener("click", create_proxy(on_toggle_phrasebook_panel))
     _element("phrasebook-practice-button").addEventListener("click", create_proxy(on_start_phrasebook_review))
     _element("practice-bookmark-button").addEventListener("click", create_proxy(on_bookmark_practice))

@@ -125,9 +125,13 @@ def test_starting_a_review_with_no_candidates_leaves_the_panel_closed(game_env):
 
 
 def test_correct_review_answer_nudges_the_interval_without_touching_stage(game_env):
+    """After a plot has already been watered today, further correct Review
+    answers are only the gentle nudge (L3: the FIRST one of the day is a real
+    watering -- see the water_from_review tests below)."""
     module, state = game_env.module, game_env.state
     module.start_review("word")
     plot = state.plots_by_id[module.review_question["plot_id"]]
+    plot.last_reviewed = state.current_day  # already watered today
     stage_before = plot.stage
     interval_before = plot.interval_days
 
@@ -157,21 +161,22 @@ def test_wrong_review_answer_does_not_touch_srs_state_at_all(game_env):
     assert before == after
 
 
-def test_review_never_promotes_a_plot_past_its_daily_loop_stage(game_env):
-    """§14.4: Review nudges the interval but is explicitly not a substitute
-    for the daily watering loop that actually grows the farm."""
+def test_review_can_never_grow_a_plot_more_than_once_per_day(game_env):
+    """L3 supersedes §14.4's "Review never grows a plant": the first correct
+    Review answer for a plot on a given day counts as its watering (so it may
+    reach Sprout), but repeating it the same day only nudges -- Review is
+    still never a way to out-grow one watering a day."""
     module, state = game_env.module, game_env.state
     module.start_review("word")
-    for _ in range(10):
-        if module.review_question is None:
-            module.start_review("word")
-            if module.review_question is None:
-                break
-        module.submit_review_answer(module.review_question["answer"])
-        module.next_review_question()
-    for plot in state.plots:
-        if plot.last_reviewed is not None:
-            assert plot.stage == module.STAGE_SEED  # never watered via the main loop
+    plot = state.plots_by_id[module.review_question["plot_id"]]
+    module.submit_review_answer(module.review_question["answer"])
+    assert plot.stage == module.STAGE_SPROUT and plot.correct_streak == 1
+    streak = plot.correct_streak
+    # Same day, same plot again: a nudge, not another watering.
+    module.review_question = module.generate_question(plot, module.QUESTION_RNG, variant=module.V_FR_EN_CHOICE)
+    module.review_result = None
+    module.submit_review_answer(module.review_question["answer"])
+    assert plot.correct_streak == streak and plot.stage == module.STAGE_SPROUT
 
 
 # --- session progression ---------------------------------------------------
