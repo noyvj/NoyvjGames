@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 689/768 items checked off (89.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 702/768 items checked off (91.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -304,19 +304,19 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [x] Trade Empire
   - [x] Continuum
   - [x] Le Champ de Mots
-- [ ] Z-extra (folded from Z11, "let players pick to do a story mode in each game or turn off the story elements"): audit which games carry narrative/flavor-text framing and add an opt-out toggle where relevant:
-  - [ ] SOL (flavor text/milestone framing)
-  - [ ] Canopy
-  - [ ] Grid
-  - [ ] Tide
-  - [ ] Aftermath (legacy system)
-  - [ ] Herd
-  - [ ] Thaw (region flavor lines)
-  - [ ] Loop
-  - [ ] Drift
-  - [ ] Trade Empire
-  - [ ] Continuum (story/era-transition beats)
-  - [ ] Le Champ de Mots
+- [x] Z-extra (folded from Z11, "let players pick to do a story mode in each game or turn off the story elements"): audit which games carry narrative/flavor-text framing and add an opt-out toggle where relevant. **Done 2026-09-26:** one shared `shared/story-toggle.js` (a small "Story: on/off" pill, per-device, persisted per game; each game lists only its narrative elements so nothing needed to play is ever hidden). Wired into the 10 games that carry narrative (SOL epilogue, Canopy forest history and Highland blurb, Tide ticker, Aftermath legacy history, Herd vignettes, Thaw region flavor and shared-research story, Loop vignette, Drift thriving vignette, Trade Empire colony flavor, Continuum chronicle log). Audited and NOT given a toggle: Grid and Le Champ de Mots (their text is mechanics explanation and instruction, not story).
+  - [x] SOL (flavor text/milestone framing)
+  - [x] Canopy
+  - [x] Grid
+  - [x] Tide
+  - [x] Aftermath (legacy system)
+  - [x] Herd
+  - [x] Thaw (region flavor lines)
+  - [x] Loop
+  - [x] Drift
+  - [x] Trade Empire
+  - [x] Continuum (story/era-transition beats)
+  - [x] Le Champ de Mots
 - [ ] Z-extra (folded from Le Champ de Mots' L1/L10/L29 answers): a general design principle for any future minigame/practice feature anywhere on the site — every such action should visibly feed a measured top-level progress stat, so it always visibly "counts" toward something the player can see. (Forward-looking guidance, not a per-existing-game retrofit task.)
 - [x] Z-extra (folded from Le Champ de Mots' L30 answer): preserve a player's current visual/display-mode choice when navigating away to the hub and back, instead of resetting to default. Currently only concretely actionable for Le Champ de Mots (the only game with a visual-style switcher) — revisit the checklist here if another game adds a similar per-game display setting. **Verified 2026-09-22, already working, no code change needed:** `visual-style.js` persists the choice to `localStorage["champ-de-mots-visual-style"]`, which is per-origin (not per-page) — since the hub and every game share one origin on GitHub Pages, the choice already survives a round trip through the hub automatically. Live-verified: set Cartoon inside the game, navigated to the hub root and back, style was still Cartoon on return, no reset to default anywhere in the flow.
 - [x] Z-extra (found during Z22's audit, 2026-09-21): `shared/save-widget.js`'s "Start a new save (forget this code)" button — the actual site-wide full-save-wipe action, identical across all 12 games — fired with **zero confirmation of any kind**, not even a native `confirm()`. **Fixed:** gated `forgetSavedCode()` behind `window.ConfirmDialog.ask()` directly in `shared/save-widget.js` (falls through to firing immediately if a page hasn't loaded `confirm-dialog.js`, matching every Python-side `_confirm_dialog_ask()` helper's own fallback). 6 games didn't load `confirm-dialog.js` at all yet (Canopy, Tide, Thaw, Drift, Continuum, Le Champ de Mots) — added the `<script>` include to each so the fix actually reaches all 12 games, not just the 6 that already had it from an earlier feature. All 12 games' test suites green (this file has no pytest coverage of its own; confirms no accidental Python-side breakage). Live-verified against Grid (a genuine fresh-tab load, working around this long dev session's own stale browser-HTTP-cache-on-`shared/save-widget.js` artifact — not a real bug, see the note in `shared/save-widget.js` itself): dialog shows the correct message/label, Cancel leaves the save code untouched, Confirm actually forgets it, zero console errors.
