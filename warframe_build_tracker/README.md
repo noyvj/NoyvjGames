@@ -199,3 +199,7 @@ Nineteen tracked resources are refined in the Foundry from a raw material (the a
 - **Farming route planner:** under "What I still need", one line names the single place that would cover the most resources you are still short on (with the runners-up). Places are read from each resource's location text (`ROUTE_PLACES`, `location_places()`); resources refined from another material name no place and are left out.
 - **Rare flag:** a small "rare" tag on resources that are hard to come by for this list. There is no price or drop-rate data, so `resource_rarity()` judges from the location text: found in five or more places is common, a single place or a gated source (heist, bounty, fish part, a specific enemy) is rare. It is a prioritising hint, not a market value.
 
+## Farming log
+
+Under "What I still need", a collapsible **Farming log** records every time a resource's total on hand goes up, either because you typed a bigger number or because an import found more (`log_gain()`). Decreases are not logged: spending on a build or fixing a typo is not farming. It shows what you gained today and overall (top five) and the latest entries, keeps the newest 300, saves with your progress (`farm_log`, validated on load) and can be cleared with one button. Times are UTC.
+

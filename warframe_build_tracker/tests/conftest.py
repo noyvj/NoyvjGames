@@ -17,6 +17,8 @@ ELEMENT_IDS = [
     "summary",
     "refinery-summary",
     "route-planner",
+    "farm-log-text",
+    "clear-farm-log-button",
     "status-message",
     "reset-button",
     "toast",

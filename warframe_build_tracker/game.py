@@ -20,7 +20,7 @@ into this file).
 import copy
 import json
 import re
-from datetime import date
+from datetime import date, datetime, timezone
 
 from js import confirm, document
 from pyodide.ffi import create_proxy
@@ -496,12 +496,70 @@ state = {
     # validates/defaults them.
     "notes": {},
     "prefs": {"sort": "category", "hide_complete": False},
+    # Session farming log: every increase in a resource's total on hand
+    # (typed in, or found by an import), newest last. See log_gain().
+    "farm_log": [],
 }
+
+FARM_LOG_MAX = 300
+_LOG_TIME_RE = re.compile(r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$")
 
 # UI-only (not saved): current search text, and Wiki links already clicked
 # this session.
 _search = {"text": ""}
 _visited_wiki = set()
+
+
+def _now_stamp():
+    """UTC "YYYY-MM-DD HH:MM" for a farming-log entry. One place, so tests can
+    swap it for a fixed clock."""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
+
+
+def log_gain(resource, before, after):
+    """Records that the total on hand of `resource` (built + raw) rose from
+    `before` to `after`. Decreases are not logged: spending on a build or
+    correcting a typo down is not farming. Same-minute gains of the same
+    resource merge into one entry. The log is capped at FARM_LOG_MAX."""
+    gained = int(after) - int(before)
+    if gained <= 0:
+        return False
+    stamp = _now_stamp()
+    log = state["farm_log"]
+    if log and log[-1]["r"] == resource and log[-1]["t"] == stamp:
+        log[-1]["d"] += gained
+    else:
+        log.append({"t": stamp, "r": resource, "d": gained})
+    del log[:-FARM_LOG_MAX]
+    return True
+
+
+def farm_log_summary(today=None):
+    """Totals gained per resource: {"today": {...}, "all": {...}} for the
+    logged history ("today" is the UTC date of `today`, default now)."""
+    today_prefix = (today or _now_stamp())[:10]
+    summary = {"today": {}, "all": {}}
+    for entry in state["farm_log"]:
+        summary["all"][entry["r"]] = summary["all"].get(entry["r"], 0) + entry["d"]
+        if entry["t"].startswith(today_prefix):
+            summary["today"][entry["r"]] = summary["today"].get(entry["r"], 0) + entry["d"]
+    return summary
+
+
+def farm_log_text(limit=10):
+    if not state["farm_log"]:
+        return "Nothing logged yet. Gains show up here when you raise a resource's count."
+    summary = farm_log_summary()
+
+    def top(totals):
+        ranked = sorted(totals.items(), key=lambda kv: (-kv[1], kv[0]))[:5]
+        return ", ".join(f"{name} +{qty}" for name, qty in ranked) or "nothing"
+
+    lines = [f"Gained today: {top(summary['today'])}.", f"Gained overall: {top(summary['all'])}."]
+    lines.append("Latest: " + "; ".join(
+        f"{e['t']} {e['r']} +{e['d']}" for e in reversed(state["farm_log"][-limit:])
+    ))
+    return " ".join(lines)
 
 
 def days_since(date_str, today=None):
@@ -733,6 +791,7 @@ def get_state():
         "inventory": copy.deepcopy(state["inventory"]),
         "notes": dict(state["notes"]),
         "prefs": dict(state["prefs"]),
+        **({"farm_log": [dict(e) for e in state["farm_log"]]} if state["farm_log"] else {}),
     }
 
 
@@ -767,6 +826,17 @@ def load_state(data):
             name: text[:NOTE_MAX_LEN] for name, text in saved_notes.items()
             if name in RECIPES and isinstance(text, str) and text.strip()
         }
+    saved_log = data.get("farm_log")
+    state["farm_log"] = []
+    if isinstance(saved_log, list):
+        for entry in saved_log:
+            if (
+                isinstance(entry, dict) and isinstance(entry.get("t"), str) and _LOG_TIME_RE.match(entry["t"])
+                and entry.get("r") in RESOURCE_LOCATIONS
+                and isinstance(entry.get("d"), int) and not isinstance(entry["d"], bool) and entry["d"] > 0
+            ):
+                state["farm_log"].append({"t": entry["t"], "r": entry["r"], "d": entry["d"]})
+        del state["farm_log"][:-FARM_LOG_MAX]
     saved_prefs = data.get("prefs")
     if isinstance(saved_prefs, dict):
         if saved_prefs.get("sort") in SORT_MODES:
@@ -832,6 +902,8 @@ def import_last_data(json_text):
     for match_key, resource_name in _RESOURCE_MATCH_KEYS.items():
         if match_key in counts_by_key:
             inv = state["inventory"].setdefault(resource_name, {"raw": 0, "built": 0})
+            log_gain(resource_name, int(inv.get("raw", 0)) + int(inv.get("built", 0)),
+                     int(inv.get("raw", 0)) + counts_by_key[match_key])
             inv["built"] = counts_by_key[match_key]
             matched.append(resource_name)
         else:
@@ -985,6 +1057,7 @@ def _make_resource_change_handler(name, raw_input, built_input):
         raw = max(0, int(raw_input.value or 0))
         built = max(0, int(built_input.value or 0))
         inv = state["inventory"].setdefault(name, {})
+        log_gain(name, int(inv.get("raw", 0)) + int(inv.get("built", 0)), raw + built)
         inv["raw"] = raw
         inv["built"] = built
         render()
@@ -1315,6 +1388,7 @@ def render():
     _render_resource_table(resources)
     _render_summary(components, resources)
     document.getElementById("shopping-text").value = shopping_list_text(resources)
+    document.getElementById("farm-log-text").textContent = farm_log_text()
 
 
 def _do_reset():
@@ -1322,6 +1396,11 @@ def _do_reset():
     state["inventory"] = {}
     document.getElementById("status-message").textContent = "Inventory reset."
     _toast("Inventory reset to zero.")
+    render()
+
+
+def _on_clear_farm_log(_event=None):
+    state["farm_log"] = []
     render()
 
 
@@ -1360,6 +1439,7 @@ def setup():
     wire("search-input", "input", _on_search)
     wire("sort-select", "change", _on_sort)
     wire("hide-complete-toggle", "change", _on_hide_complete)
+    wire("clear-farm-log-button", "click", _on_clear_farm_log)
     wire("copy-shopping-button", "click",
          _make_copy_handler(lambda: document.getElementById("shopping-text").value, "shopping list"))
     render()

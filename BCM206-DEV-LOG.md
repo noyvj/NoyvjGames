@@ -321,3 +321,8 @@ The clearest cross-cutting infra lesson from this pass: three separate games' au
 **Did:** Two small tracker features built on the free-text location data already curated. The route planner (`location_places()`, `route_suggestions()`, `route_text()`) ranks places by how many short resources they cover, then units short. The rarity flag (`resource_rarity()`) marks single-source or gated resources as rare and resources dropping in five or more places as common; refined resources take no rarity of their own. No new external data, and the flag says plainly it is a heuristic.
 **Result:** 89 -> 110 tracker tests; live-checked against the real migrated state (Orb Vallis is the best single stop, covering 11 short resources).
 
+### 2026-09-26 (Warframe tracker: session farming log)
+**Area:** `warframe_build_tracker/game.py`, `index.html`, `README.md`
+**Did:** Added the resource-inventory delta log the TODO said made sense once the import existed: `log_gain()` is called from the resource-count handler and from `import_last_data()`, only for increases, merging same-minute gains and capping at 300 entries. A collapsible panel summarises today's and overall gains and lists the latest. Saved as an optional `farm_log` key (only when non-empty) and fully validated on load (timestamp format, known resource, positive int).
+**Result:** 110 -> 118 tracker tests; live-checked by editing a count on the real page.
+
