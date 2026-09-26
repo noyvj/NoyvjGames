@@ -14,3 +14,6 @@ venv/
 # working in this same checkout -- pure logistics, not project content or
 # BCM-evidence, and would just get noisy/stale in repo history.
 /planning/AI-COORDINATION.md
+
+# Local-only AI admin token (see planning/FOR-YOU.md action item 2)
+.ai-admin-token
