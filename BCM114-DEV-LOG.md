@@ -670,3 +670,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** loop
 **Did:** Added a collapsed Material passport panel that follows one traced unit of material through the chain each cycle (mined, repaired, reused, recycled or traded), drawn deterministically from the real supply mix, with a running tally.
 **Result:** 263 → 276 tests passing, flake8 clean.
+
+### 2026-09-26 (Loop: product lifecycle story, H7)
+**Game:** loop
+**Did:** Turned the passport's traced unit into a named product per goods category with a category-specific sentence for each step of its journey and a running count of its lives.
+**Result:** 276 → 283 tests passing, flake8 clean; verified live with six cycles.

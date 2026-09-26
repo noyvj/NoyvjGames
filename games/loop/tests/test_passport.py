@@ -85,7 +85,7 @@ def test_render_lists_newest_first_and_at_most_eight(game_env):
     rows = game_env.elements["passport-list"].children
     assert len(rows) == 8
     assert rows[0].innerText.startswith("Cycle 12:")
-    assert "Unit #1" in game_env.elements["passport-summary"].innerText
+    assert "Nova, a phone" in game_env.elements["passport-summary"].innerText
 
 
 def test_save_round_trip_and_empty_omits_key(game_env):

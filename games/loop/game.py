@@ -244,6 +244,44 @@ PASSPORT_SOURCE_LABEL = {
 }
 _GOLDEN = 0.6180339887498949
 
+# H7: the traced unit is also a NAMED product with a small ongoing story. Each
+# goods category follows one named item across cycles; each journey step gets a
+# sentence written for that category and source, and every step that keeps the
+# product in the loop adds a generation ("its 3rd life"), so the thread has a
+# shape: mined, then lives again and again, or back to the mine.
+PASSPORT_PRODUCT_NAME = {
+    "electronics": "Nova, a phone",
+    "clothing": "Juniper, a jacket",
+    "furniture": "Oak, a chair",
+}
+PASSPORT_STORY = {
+    "extraction": {
+        "electronics": "{product} starts again from freshly mined metals and rare earths.",
+        "clothing": "{product} starts again from new fibre, grown and dyed from scratch.",
+        "furniture": "{product} starts again from newly felled timber.",
+    },
+    "repair": {
+        "electronics": "A new screen and battery keep {product} going ({life}).",
+        "clothing": "A patched elbow and fresh buttons keep {product} in wear ({life}).",
+        "furniture": "A re-glued joint and a new seat keep {product} in use ({life}).",
+    },
+    "reuse": {
+        "electronics": "{product} is wiped and passed to a new owner ({life}).",
+        "clothing": "{product} is passed on through a clothing swap ({life}).",
+        "furniture": "{product} finds a second home through a resale shop ({life}).",
+    },
+    "recycle": {
+        "electronics": "{product} is stripped for its metals, which come back as a new device ({life}).",
+        "clothing": "{product} is shredded and respun into new yarn ({life}).",
+        "furniture": "{product} is chipped and pressed into new board ({life}).",
+    },
+    "trade": {
+        "electronics": "A partner network ships {product}'s recovered parts in ({life}).",
+        "clothing": "A partner network ships recovered fibre for {product} ({life}).",
+        "furniture": "A partner network ships reclaimed wood for {product} ({life}).",
+    },
+}
+
 CULTURE_BASE_COST = 40
 CULTURE_MAX_LEVEL = 5
 CULTURE_DEMAND_REDUCTION = 0.04
@@ -1906,6 +1944,26 @@ def _make_goods_category_handler(category):
     return handler
 
 
+def passport_story_lines(entries, goods_category):
+    """H7: (cycle, sentence) for each recorded step, oldest first. A step that
+    keeps the product in the loop is its next 'life'; a fresh mining resets the
+    count. Falls back to the default category for an unknown one."""
+    category = goods_category if goods_category in PASSPORT_PRODUCT_NAME else DEFAULT_GOODS_CATEGORY
+    product = PASSPORT_PRODUCT_NAME[category].split(",")[0]  # "Nova", not "Nova, a phone"
+    lives = 1
+    lines = []
+    for entry in entries:
+        source = entry["source"]
+        if source == "extraction":
+            lives = 1
+            text = PASSPORT_STORY["extraction"][category].format(product=product)
+        else:
+            lives += 1
+            text = PASSPORT_STORY[source][category].format(product=product, life=f"life {lives}")
+        lines.append((entry["cycle"], text))
+    return lines
+
+
 def render_passport():
     """H21: the traced unit's journey, newest first, plus a one-line tally."""
     container = document.getElementById("passport-list")
@@ -1916,13 +1974,14 @@ def render_passport():
         return
     mined, recovered, longest = chain.passport_summary()
     summary.innerText = (
-        f"Unit #1 of {current_goods_label()}: newly mined {mined} time(s), kept in the loop {recovered} time(s), "
+        f"{PASSPORT_PRODUCT_NAME.get(chain.goods_category, PASSPORT_PRODUCT_NAME[DEFAULT_GOODS_CATEGORY])}: "
+        f"newly mined {mined} time(s), kept in the loop {recovered} time(s), "
         f"longest unbroken run in the loop {longest} cycle(s)."
     )
-    for entry in reversed(chain.passport[-8:]):
+    for cycle, sentence in reversed(passport_story_lines(chain.passport, chain.goods_category)[-8:]):
         row = document.createElement("li")
         row.className = "passport-entry"
-        row.innerText = f"Cycle {entry['cycle']}: {PASSPORT_SOURCE_LABEL[entry['source']]}"
+        row.innerText = f"Cycle {cycle}: {sentence}"
         container.appendChild(row)
 
 
