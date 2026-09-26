@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-09-26",
+    "entry": "Region rescue: once per region, when it tips into the critical tier, you can pay 200 funds for an emergency rescue that sharply dampens the feedback loop for 5 rounds (G21)."
+  },
+  {
     "date": "2026-09-22",
     "entry": "Achievement cards now show \"Earned by N% of players\" once enough real save data exists for that achievement (site-wide goal, Z1/Z27b)."
   },
@@ -41,7 +45,7 @@
   },
   {
     "date": "2026-09-19",
-    "entry": "Added a settings panel (text size + reduced motion) and completed a colorblind-safety audit \u2014 the tipping/dampening flashes are already redundantly coded with text, no change needed."
+    "entry": "Added a settings panel (text size + reduced motion) and completed a colorblind-safety audit — the tipping/dampening flashes are already redundantly coded with text, no change needed."
   },
   {
     "date": "2026-09-15",

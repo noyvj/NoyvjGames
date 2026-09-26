@@ -67,6 +67,8 @@ ELEMENT_IDS = [
     "d-temperature-display",
     "d-funds-display",
     "d-melt-status-display",
+    "rescue-button",
+    "rescue-status",
 ]
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-name", f"{_category}-count", f"{_category}-invest-button"]
@@ -74,6 +76,8 @@ for _category in CATEGORIES:
 for _prefix in ("b", "c"):
     ELEMENT_IDS += [
         f"{_prefix}-region-card",
+        f"{_prefix}-rescue-button",
+        f"{_prefix}-rescue-status",
         f"{_prefix}-graph",
         f"{_prefix}-temperature-display",
         f"{_prefix}-temperature-trend",

@@ -537,3 +537,13 @@ Settings, the Info Page, and the Worst-Case Region reveal
 floating shortcuts-help overlay; `Esc` closes it and clicks the toggle
 button of whichever listed panel is currently open, reusing each panel's
 own open/close logic.
+
+## Region rescue (G21, 2026-09-26)
+
+A last-resort lever for a region that has tipped into the critical tier (melting with acceleration at or above 2x). Once per region, ever, the player can pay `RESCUE_COST` (200 funds) for `RESCUE_DURATION_ROUNDS` (5) rounds of extra feedback dampening (`RESCUE_DAMPENING_BONUS` 0.5, capped at `RESCUE_MAX_DAMPENING` 0.95, which deliberately exceeds the normal 0.85 investment cap). It buys breathing room, not a fix: when it lapses only real preserve/monitor investment holds the loop, and the region can read as critical again.
+
+- `RegionState.effective_dampening_fraction()` (investment plus any active rescue) is what `feedback_bonus()` uses. `feedback_dampening_fraction()` stays investment-only on purpose, so the dampening achievements, the Dampening readout and `dampening_at_melt_start` can't be inflated by a temporary emergency boost.
+- The rescue lowers the acceleration reading, so `is_critical()` goes false while it runs; the status line handles that by checking "rescue active" first. Re-entering critical after it lapses counts as another tipping event, which is the honest reading.
+- UI: an "Emergency rescue" button and status line in Region A, B and C (Region D is auto-played and has none). The button is shown only while the region is critical and the rescue unspent, and disabled until funds cover the cost; the status line is hidden on a stable region.
+- Save: `rescue_used` and `rescue_rounds_left` are written only once a rescue has been used (older saves and untouched regions are byte-identical), and validated on load (a bool, an int in 0..5, never a bool-as-int; an active countdown implies used).
+- 156 -> 172 tests (`tests/test_region_rescue.py`); verified live: the button appears disabled or enabled by funds, a click spends 200 and the warming rate drops from 1.85 to 1.52 then counts down, zero console errors.

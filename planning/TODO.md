@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 672/767 items checked off (87.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 673/767 items checked off (87.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -607,7 +607,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] G18: Let the intervention feedback message's tiered phrasing include a small icon per tier, not text alone.
 - [x] G19: A "scientist's log" — a running, dated record of key moments per region, a lightweight version of Continuum's ongoing-log system.
 - [x] G20: A tooltip explaining exactly what `SECOND_WARMING_MILESTONE` represents in real terms before it's ever crossed.
-- [ ] G21: A "region rescue" mechanic — a costly one-time emergency intervention if a region tips into critical, a last-resort lever.
+- [x] G21: A "region rescue" mechanic — a costly one-time emergency intervention if a region tips into critical, a last-resort lever.
 - [x] G22: Let the best-run personal record show which region achieved it, not just the raw `temperature_saved` number.
 - [ ] G23: A proper multi-session "climate archive" — a persistent record across many sessions of every region's best-ever performance.
 - [x] G24: A small pulse on the acceleration-factor readout the instant a region crosses into the critical tier.

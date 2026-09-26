@@ -71,6 +71,18 @@ DAMPENING_PER_PRESERVE_UNIT = 0.08
 DAMPENING_PER_MONITOR_UNIT = 0.04
 MAX_FEEDBACK_DAMPENING = 0.85
 
+# G21: the region rescue — a costly, one-time-per-region emergency lever
+# available only while that region is in the critical tier. It is a
+# temporary dampening boost layered ON TOP of investment dampening (and
+# allowed to push past MAX_FEEDBACK_DAMPENING, up to RESCUE_MAX_DAMPENING)
+# for a fixed number of rounds, buying a stricken region breathing room
+# but never a permanent fix: once it lapses, only real preserve/monitor
+# investment keeps the feedback loop in check.
+RESCUE_COST = 200.0
+RESCUE_DURATION_ROUNDS = 5
+RESCUE_DAMPENING_BONUS = 0.5
+RESCUE_MAX_DAMPENING = 0.95
+
 
 class RegionState:
     def __init__(self):
@@ -145,6 +157,10 @@ class RegionState:
         # before any rounds have been played.
         self.average_acceleration_factor = 1.0
         self.acceleration_samples = 0
+        # G21: one rescue per region, ever. `rescue_rounds_left` counts down
+        # the boost's remaining rounds; `rescue_used` stays true afterwards.
+        self.rescue_used = False
+        self.rescue_rounds_left = 0
 
     def is_critical(self):
         return self.is_melting() and self.acceleration_factor() >= CRITICAL_ACCELERATION_FACTOR
@@ -183,6 +199,34 @@ class RegionState:
         )
         return min(MAX_FEEDBACK_DAMPENING, total)
 
+    def rescue_active(self):
+        return self.rescue_rounds_left > 0
+
+    def can_rescue(self):
+        """G21: true only while critical, not already spent, and affordable."""
+        return self.is_critical() and not self.rescue_used and self.funds >= RESCUE_COST
+
+    def rescue(self):
+        """Spends RESCUE_COST for RESCUE_DURATION_ROUNDS of extra dampening.
+        Returns False (changing nothing) if the rescue isn't available."""
+        if not self.can_rescue():
+            return False
+        self.funds -= RESCUE_COST
+        self.rescue_used = True
+        self.rescue_rounds_left = RESCUE_DURATION_ROUNDS
+        return True
+
+    def effective_dampening_fraction(self):
+        """What the feedback loop actually feels this round: investment
+        dampening plus any active rescue boost. Deliberately separate from
+        feedback_dampening_fraction() (investment only), which the
+        dampening achievements and readouts keep using so a temporary
+        emergency boost can't earn a permanent-protection achievement."""
+        base = self.feedback_dampening_fraction()
+        if self.rescue_active():
+            return max(base, min(RESCUE_MAX_DAMPENING, base + RESCUE_DAMPENING_BONUS))
+        return base
+
     def intervention_feedback_message(self):
         """Iteration Pass 3 fix: an immediate, legible efficacy readout
         for the intervention lever, true from the very first preserve/
@@ -220,7 +264,7 @@ class RegionState:
         investment dampens this, never the background rise itself."""
         excess = max(0.0, self.temperature - MELT_THRESHOLD)
         raw_bonus = excess * FEEDBACK_RATE_PER_DEGREE_OVER
-        return raw_bonus * (1 - self.feedback_dampening_fraction())
+        return raw_bonus * (1 - self.effective_dampening_fraction())
 
     def current_rise_rate(self):
         return BASE_TEMP_RISE_PER_ROUND + self.feedback_bonus()
@@ -246,6 +290,8 @@ class RegionState:
         was_critical = self.is_critical()
         self._record_acceleration_sample()
         self.temperature += self.current_rise_rate()
+        if self.rescue_rounds_left > 0:
+            self.rescue_rounds_left -= 1
         if self.melt_started_round is None and self.is_melting():
             self.melt_started_round = current_round
             self.just_started_melting = True
@@ -624,6 +670,33 @@ def _render_trend(element_id, r):
     element.title = meaning
 
 
+def _rescue_status_text(r):
+    if r.rescue_active():
+        n = r.rescue_rounds_left
+        return f"\U0001F6DF Rescue active \u2014 extra dampening for {n} more round{'s' if n != 1 else ''}."
+    if r.rescue_used:
+        return "Rescue spent \u2014 this region's one emergency lever has been used."
+    if r.is_critical():
+        if r.funds >= RESCUE_COST:
+            return f"Critical \u2014 an emergency rescue ({RESCUE_COST:.0f} funds) is available, once."
+        return f"Critical \u2014 an emergency rescue costs {RESCUE_COST:.0f} funds (you have {r.funds:.0f})."
+    return ""
+
+
+def _render_rescue(prefix, r):
+    """G21: shows the rescue button only while it is a live option (critical
+    and unspent), and the status line only when there is something to say,
+    so a stable region carries no extra clutter."""
+    button = document.getElementById(f"{prefix}rescue-button")
+    status = document.getElementById(f"{prefix}rescue-status")
+    button.innerText = f"\U0001F6DF Emergency rescue ({RESCUE_COST:.0f})"
+    button.hidden = not (r.is_critical() and not r.rescue_used)
+    button.disabled = not r.can_rescue()
+    text = _rescue_status_text(r)
+    status.innerText = text
+    status.hidden = text == ""
+
+
 def render_secondary_region(prefix, r):
     """Renders one of the two added regions into its `{prefix}-*`
     elements. Deliberately separate from the primary region's inline
@@ -648,6 +721,7 @@ def render_secondary_region(prefix, r):
     )
     document.getElementById(f"{prefix}-acceleration-display").innerText = r.acceleration_message()
     document.getElementById(f"{prefix}-trajectory-display").innerText = r.trajectory_message()
+    _render_rescue(f"{prefix}-", r)
 
     status = _melt_status_label(r)
     melt_status_el = document.getElementById(f"{prefix}-melt-status-display")
@@ -1308,6 +1382,7 @@ def render():
     else:
         cap_note_el.hidden = True
     _render_trend("temperature-trend", region)
+    _render_rescue("", region)
     document.getElementById("rise-rate-display").innerText = (
         f"Current warming rate: {region.current_rise_rate():.2f}°/round"
     )
@@ -1499,6 +1574,16 @@ def _make_secondary_invest_handler(prefix, category):
     return handler
 
 
+def _make_rescue_handler(prefix):
+    """G21: prefix "" is Region A, "b"/"c" the secondary regions."""
+    def handler(event=None):
+        target = region if prefix == "" else SECONDARY_REGIONS[prefix]
+        if target.rescue():
+            render()
+            _check_new_achievements_for_toast()
+    return handler
+
+
 def _make_preset_handler(prefix, preset_name):
     def handler(event=None):
         apply_preset(SECONDARY_REGIONS[prefix], preset_name)
@@ -1555,7 +1640,7 @@ def _region_state_dict(r):
     referenced, so continued play after taking a snapshot can't silently
     mutate a saved copy — same reasoning as SOL's serialize_state()
     docstring."""
-    return {
+    data = {
         "round_number": r.round_number,
         "funds": r.funds,
         "capacity": dict(r.capacity),
@@ -1579,6 +1664,12 @@ def _region_state_dict(r):
         "average_acceleration_factor": r.average_acceleration_factor,
         "acceleration_samples": r.acceleration_samples,
     }
+    # G21: written only once a rescue has actually been used, so a save
+    # from a region that never needed one is byte-identical to before.
+    if r.rescue_used:
+        data["rescue_used"] = True
+        data["rescue_rounds_left"] = r.rescue_rounds_left
+    return data
 
 
 def _apply_region_state(r, data):
@@ -1644,6 +1735,19 @@ def _apply_region_state(r, data):
         "average_acceleration_factor", r.average_acceleration_factor
     )
     r.acceleration_samples = data.get("acceleration_samples", r.acceleration_samples)
+    # G21: validated -- a bool and an int in range, else the safe default.
+    saved_rescue_used = data.get("rescue_used")
+    if isinstance(saved_rescue_used, bool):
+        r.rescue_used = saved_rescue_used
+    saved_rescue_rounds = data.get("rescue_rounds_left")
+    if (
+        isinstance(saved_rescue_rounds, int)
+        and not isinstance(saved_rescue_rounds, bool)
+        and 0 <= saved_rescue_rounds <= RESCUE_DURATION_ROUNDS
+    ):
+        r.rescue_rounds_left = saved_rescue_rounds
+    if r.rescue_rounds_left > 0:
+        r.rescue_used = True
 
 
 def get_state():
@@ -1720,6 +1824,13 @@ def load_state(data):
 
 
 def setup():
+    document.getElementById("rescue-button").addEventListener(
+        "click", create_proxy(_make_rescue_handler(""))
+    )
+    for prefix in SECONDARY_REGIONS:
+        document.getElementById(f"{prefix}-rescue-button").addEventListener(
+            "click", create_proxy(_make_rescue_handler(prefix))
+        )
     for category in CATEGORIES:
         document.getElementById(f"{category}-invest-button").addEventListener(
             "click", create_proxy(_make_invest_handler(category))

@@ -1016,3 +1016,22 @@ html[data-reduced-motion="true"] *::after {
 .science-log { margin-top: 0.5rem; }
 .science-log summary { cursor: pointer; opacity: 0.85; }
 .science-log-list { max-height: 10rem; overflow-y: auto; padding-left: 1.2rem; font-size: 0.85rem; }
+
+/* G21: the emergency rescue button + status line appear only while a
+   region is critical (or a rescue is running / has been spent). */
+.rescue-button {
+  margin: 0.4rem 0 0.25rem;
+  font-size: 0.8rem;
+  border-color: #e0a04a;
+}
+
+.rescue-button[hidden],
+.rescue-status[hidden] {
+  display: none;
+}
+
+.rescue-status {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}

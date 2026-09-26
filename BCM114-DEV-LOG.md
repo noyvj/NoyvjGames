@@ -570,3 +570,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Trade Empire
 **Did:** Added the Trade Guild: an optional NPC faction that occasionally offers a bulk contract (deliver 10-30 units of a good to a colony that needs it within 150 ticks) for a bonus on top of the normal sale. Nothing is lost by declining, ignoring or missing one. Panel with Accept/Decline and live progress, saved and validated on load, two new achievements (Guild Partner, Guild Favorite), reset by founding a new corporation.
 **Result:** 367 → 381 tests passing, flake8 clean; verified live end to end, zero console errors.
+
+### 2026-09-26 (Thaw: region rescue, G21)
+**Game:** Thaw
+**Did:** Added a once-per-region emergency rescue for a region that has tipped into critical: 200 funds buys 5 rounds of extra feedback dampening (past the normal 85% investment cap). It is a temporary lever, not a fix, and it never counts toward the permanent-dampening achievements.
+**Result:** 156 → 172 tests passing, flake8 clean; verified live on Regions A and B, zero console errors.
