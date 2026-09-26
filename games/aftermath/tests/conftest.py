@@ -87,6 +87,8 @@ ELEMENT_IDS = [
     "scenario-wrapper",
     "scenario-blurb",
     "societal-memory-display",
+    "mentor-toggle",
+    "mentor-hint",
     "extended-run-toggle",
     "extended-run-toggle-wrapper",
     # E20: live knowledge-points-if-the-run-ended-now preview.

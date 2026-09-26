@@ -1307,6 +1307,78 @@ def legacy_scar_tiers():
 past_runs_open = False
 
 
+# E27: the resilience mentor. An OPTIONAL guided mode (off by default, saved per
+# browser, distinct from the one-time tutorial): one inline suggestion, right
+# where the decision is made, that reads the live run and says what it would
+# do and why. Advice only: it never acts for the player and never changes any
+# number. Rules are checked in order and the first that applies wins.
+MENTOR_STORAGE_KEY = "aftermath_mentor_v1"
+mentor_enabled = False
+
+
+def load_mentor_enabled():
+    return localStorage.getItem(MENTOR_STORAGE_KEY) == "1"
+
+
+def mentor_suggestion(run_state):
+    """The single most useful piece of advice for this moment, as one sentence."""
+    if run_state.is_complete():
+        return (
+            "The run is over. Spend the knowledge you earned in the skill tree: even a rough run "
+            "always leaves the next one a little stronger."
+        )
+    event_type = run_state.next_event_type()
+    label = EVENT_LABEL[event_type]
+    expected, _severity = expected_next_event_damage(run_state)
+    resilience_cost = RESILIENCE_COST
+    if run_state.event_index == 0 and run_state.resilience_capacity == 0 and run_state.growth_capacity == 0:
+        return (
+            f"Start by choosing a balance. Resilience ({resilience_cost} resources) cuts the damage of every shock; "
+            f"growth ({GROWTH_COST} resources) earns {GROWTH_INCOME_PER_UNIT} more each round. "
+            f"A {label} is coming first."
+        )
+    if expected >= run_state.resources:
+        if run_state.resources >= resilience_cost:
+            return (
+                f"Careful: the coming {label} would take about {expected:.0f} and you have {run_state.resources:.0f}. "
+                f"Put resources into resilience now to shrink the hit."
+            )
+        return (
+            f"The coming {label} could take about {expected:.0f} of your {run_state.resources:.0f}. "
+            f"You can't afford resilience right now, so brace: the run still teaches something."
+        )
+    if run_state.resilience_capacity == 0:
+        return (
+            f"You have no resilience yet, so the {label} lands at full force (about {expected:.0f}). "
+            f"One resilience purchase would already soften every shock after it."
+        )
+    if run_state.growth_capacity == 0 and run_state.event_index >= 2 and run_state.resources >= GROWTH_COST:
+        return (
+            "You have no growth: every event drains a pool that never refills. One growth unit "
+            f"pays back {GROWTH_INCOME_PER_UNIT} each round."
+        )
+    events_left = len(run_state.schedule) - run_state.event_index
+    return (
+        f"You're in a steady position. The {label} should cost about {expected:.0f}; "
+        f"{events_left} event(s) remain, so keep some resources in reserve."
+    )
+
+
+def render_mentor():
+    toggle = document.getElementById("mentor-toggle")
+    hint = document.getElementById("mentor-hint")
+    toggle.checked = mentor_enabled
+    hint.hidden = not mentor_enabled
+    hint.innerText = f"\U0001F9ED Mentor: {mentor_suggestion(run)}" if mentor_enabled else ""
+
+
+def on_toggle_mentor(event=None):
+    global mentor_enabled
+    mentor_enabled = document.getElementById("mentor-toggle").checked
+    localStorage.setItem(MENTOR_STORAGE_KEY, "1" if mentor_enabled else "0")
+    render_mentor()
+
+
 def on_toggle_past_runs(event=None):
     global past_runs_open
     past_runs_open = not past_runs_open
@@ -1973,6 +2045,7 @@ def render():
     update_changelog_display()
     document.getElementById("legacy-display").innerText = legacy_message()
     document.getElementById("societal-memory-display").innerText = societal_memory_message()
+    render_mentor()
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
     document.getElementById("resilience-display").innerText = f"Resilience: {run.resilience_capacity}"
     document.getElementById("growth-display").innerText = (
@@ -2367,6 +2440,9 @@ def setup():
     document.getElementById("resolve-event-button").addEventListener(
         "click", create_proxy(on_resolve_event)
     )
+    global mentor_enabled
+    mentor_enabled = load_mentor_enabled()
+    document.getElementById("mentor-toggle").addEventListener("change", create_proxy(on_toggle_mentor))
     document.getElementById("scenario-select").addEventListener("change", create_proxy(on_scenario_change))
     document.getElementById("new-run-button").addEventListener(
         "click", create_proxy(start_new_run)

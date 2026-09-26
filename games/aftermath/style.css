@@ -1493,3 +1493,7 @@ html[data-reduced-motion="true"] *::after {
 }
 .settlement-badge--civic_preparedness { left: 41%; }
 .settlement-badge--climate_hardening { left: 59%; }
+
+/* E27: the optional resilience mentor. */
+.mentor-toggle-label { display: block; margin: 0.4rem 0; font-size: 0.85rem; }
+.mentor-hint { border-left: 3px solid #6fa8d8; padding-left: 0.6rem; }
