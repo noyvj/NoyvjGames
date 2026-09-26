@@ -1524,6 +1524,46 @@ button.secondary:disabled::after {
 .colony-visual--rift_c .colony-visual-glow { background: radial-gradient(circle, #7fe0a8, transparent 70%); }
 .colony-visual--rift_c .colony-visual-dome { background: linear-gradient(160deg, #eafff0 0%, #6ad688 45%, #2f8f5c 75%, #164a30 100%); }
 
+/* --- J1: the Umbral Deep's own good icons (neutronium/superfluid/
+   aerogel) and colony visuals, deliberately the coldest, darkest palette
+   on the page (violet-black, ice-blue, pale grey) to read as "far from any
+   sun" next to Kepler's warm metals and the Rift's cyan/magenta/green. */
+.good-icon--neutronium {
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #f0eaff 0%, #8f7fd6 35%, #3a2f7a 70%, #0d0a22 100%);
+  box-shadow: 0 0 8px rgba(143, 127, 214, 0.55), inset 0 0 0 2px rgba(240, 234, 255, 0.35);
+}
+
+.good-icon--superfluid {
+  width: 24px;
+  height: 24px;
+  margin: 3px;
+  border-radius: 55% 45% 40% 60% / 45% 55% 45% 55%;
+  background: radial-gradient(circle at 35% 30%, #f2fbff 0%, #a8e0ff 40%, #4a90c0 75%, #16324a 100%);
+}
+
+.good-icon--aerogel {
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  background: linear-gradient(160deg, #ffffff 0%, #d6dcea 45%, #9aa4bd 80%, #4a5270 100%);
+  opacity: 0.85;
+}
+
+.colony-visual--deep_a .colony-visual-dome,
+.colony-visual--deep_b .colony-visual-dome,
+.colony-visual--deep_c .colony-visual-dome {
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+.colony-visual--deep_a .colony-visual-glow { background: radial-gradient(circle, #8f7fd6, transparent 70%); }
+.colony-visual--deep_a .colony-visual-dome { background: linear-gradient(160deg, #f0eaff 0%, #8f7fd6 45%, #3a2f7a 75%, #0d0a22 100%); }
+
+.colony-visual--deep_b .colony-visual-glow { background: radial-gradient(circle, #a8e0ff, transparent 70%); }
+.colony-visual--deep_b .colony-visual-dome { background: linear-gradient(160deg, #f2fbff 0%, #a8e0ff 45%, #4a90c0 75%, #16324a 100%); }
+
+.colony-visual--deep_c .colony-visual-glow { background: radial-gradient(circle, #d6dcea, transparent 70%); }
+.colony-visual--deep_c .colony-visual-dome { background: linear-gradient(160deg, #ffffff 0%, #d6dcea 45%, #9aa4bd 75%, #4a5270 100%); }
+
 /* --- J16: Fleet Priority's live target ring, drawn on the map canvas
    itself by game.py (FLEET_PRIORITY_TARGET_COLOR) — nothing to add here,
    noted for completeness since every other J-item above touches this

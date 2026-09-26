@@ -162,6 +162,10 @@ def test_all_research_unlocked_requires_every_home_system_node(game_env):
     module.unlock_research("galaxy_expansion")
     assert "all_research_unlocked" not in module.achievement_ids_earned()
     module.unlock_research("outer_reaches")
+    # J1: the Umbral Deep's two-step chain counts as shared research too.
+    module.unlock_research("deep_survey")
+    assert "all_research_unlocked" not in module.achievement_ids_earned()
+    module.unlock_research("umbral_reach")
     # J15: the two specialization paths exclude each other, so "all
     # research" also needs one path completed (either).
     assert "all_research_unlocked" not in module.achievement_ids_earned()

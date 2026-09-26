@@ -115,7 +115,7 @@
            reads every render regardless. Same <details>/<summary> idiom
            as Tide's .ticker-history-toggle. -->
       <details class="research-nodes-toggle">
-        <summary>Research nodes (6)</summary>
+        <summary>Research nodes (12)</summary>
         <div class="research-row">
           <span id="research-automation_slot-status" class="research-status">Automation Expansion — +1 automation slot</span>
           <button id="research-automation_slot-unlock-button" class="secondary" disabled>Loading...</button>
@@ -141,6 +141,14 @@
           <button id="research-outer_reaches-unlock-button" class="secondary" disabled>Loading...</button>
         </div>
         <div class="research-row">
+          <span id="research-deep_survey-status" class="research-status">Deep Survey — Long-baseline survey arrays — no direct bonus, but the required first step toward the Umbral Deep (requires Outer Reaches)</span>
+          <button id="research-deep_survey-unlock-button" class="secondary" disabled>Loading...</button>
+        </div>
+        <div class="research-row">
+          <span id="research-umbral_reach-status" class="research-status">Umbral Reach — Unlocks the Umbral Deep — 3 new colonies, a new need-triangle (requires Deep Survey)</span>
+          <button id="research-umbral_reach-unlock-button" class="secondary" disabled>Loading...</button>
+        </div>
+        <div class="research-row">
           <span id="research-auto_efficiency-status" class="research-status">Autopilot Optimisation (Automation path) — Automated ships earn +10% on every sale</span>
           <button id="research-auto_efficiency-unlock-button" class="secondary" disabled>Loading...</button>
         </div>
@@ -161,7 +169,7 @@
 
     <div id="map-panel" class="section">
       <p class="panel-label">Trade routes</p>
-      <canvas id="map-canvas" width="620" height="300" class="map-canvas"></canvas>
+      <canvas id="map-canvas" width="620" height="450" class="map-canvas"></canvas>
       <p class="map-caption">Each colony ships to whichever other colony needs what it makes.</p>
       <p id="map-legend" class="map-caption">Legend: ● manual ship &nbsp; ◆ automated ship &nbsp; pink ring = Fleet Priority target (hover the map for details)</p>
     </div>
@@ -248,6 +256,7 @@
           <div class="stockpile-controls"><button id="stockpile-isotopes-buy-button" class="secondary stockpile-button" type="button" disabled>Buy 5</button> <button id="stockpile-isotopes-sell-button" class="secondary stockpile-button" type="button" disabled>Sell all</button> <span id="stockpile-isotopes-status" class="stockpile-status"></span></div>
           </div>
         </div>
+      </div>
 
       <div id="expansion2-market-panel" hidden>
         <div class="market-row">
@@ -278,6 +287,34 @@
           </div>
         </div>
       </div>
+      <div id="expansion3-market-panel" hidden>
+        <div class="market-row">
+          <div class="good-icon good-icon--neutronium" aria-hidden="true"></div>
+          <div class="market-row-body">
+            <p id="market-neutronium-display" class="market-price">Loading...</p>
+            <div class="meter"><div id="market-neutronium-bar" class="meter-fill"></div></div>
+            <div id="market-neutronium-sparkline" class="sparkline-slot"></div>
+          <div class="stockpile-controls"><button id="stockpile-neutronium-buy-button" class="secondary stockpile-button" type="button" disabled>Buy 5</button> <button id="stockpile-neutronium-sell-button" class="secondary stockpile-button" type="button" disabled>Sell all</button> <span id="stockpile-neutronium-status" class="stockpile-status"></span></div>
+          </div>
+        </div>
+        <div class="market-row">
+          <div class="good-icon good-icon--superfluid" aria-hidden="true"></div>
+          <div class="market-row-body">
+            <p id="market-superfluid-display" class="market-price">Loading...</p>
+            <div class="meter"><div id="market-superfluid-bar" class="meter-fill"></div></div>
+            <div id="market-superfluid-sparkline" class="sparkline-slot"></div>
+          <div class="stockpile-controls"><button id="stockpile-superfluid-buy-button" class="secondary stockpile-button" type="button" disabled>Buy 5</button> <button id="stockpile-superfluid-sell-button" class="secondary stockpile-button" type="button" disabled>Sell all</button> <span id="stockpile-superfluid-status" class="stockpile-status"></span></div>
+          </div>
+        </div>
+        <div class="market-row">
+          <div class="good-icon good-icon--aerogel" aria-hidden="true"></div>
+          <div class="market-row-body">
+            <p id="market-aerogel-display" class="market-price">Loading...</p>
+            <div class="meter"><div id="market-aerogel-bar" class="meter-fill"></div></div>
+            <div id="market-aerogel-sparkline" class="sparkline-slot"></div>
+          <div class="stockpile-controls"><button id="stockpile-aerogel-buy-button" class="secondary stockpile-button" type="button" disabled>Buy 5</button> <button id="stockpile-aerogel-sell-button" class="secondary stockpile-button" type="button" disabled>Sell all</button> <span id="stockpile-aerogel-status" class="stockpile-status"></span></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -425,6 +462,46 @@
         <button id="colony-rift_c-concede-button" class="secondary concede-button" type="button" hidden>Grant concession (80)</button>
         </div>
       </div>
+
+      <div id="expansion3-colonies-panel" hidden>
+        <p class="panel-label">The Umbral Deep</p>
+        <div class="colony-row">
+          <div class="colony-visual colony-visual--deep_a" aria-hidden="true"><div class="colony-visual-glow"></div><div class="colony-visual-dome"></div></div>
+          <p id="colony-deep_a-name" class="colony-name">Nadir Foundry</p>
+          <p id="colony-deep_a-flavor" class="colony-flavor"></p>
+          <p id="colony-deep_a-need-display" class="colony-need">Loading...</p>
+          <div class="meter"><div id="colony-deep_a-need-bar" class="meter-fill"></div></div>
+          <div id="colony-deep_a-need-sparkline" class="sparkline-slot"></div>
+          <p id="colony-deep_a-development-display" class="colony-development">Loading...</p>
+        <button id="colony-deep_a-invest-button" class="secondary invest-button" type="button" hidden>Invest (60)</button>
+        <p id="colony-deep_a-demand-display" class="colony-demand" hidden></p>
+        <button id="colony-deep_a-concede-button" class="secondary concede-button" type="button" hidden>Grant concession (80)</button>
+        </div>
+        <div class="colony-row">
+          <div class="colony-visual colony-visual--deep_b" aria-hidden="true"><div class="colony-visual-glow"></div><div class="colony-visual-dome"></div></div>
+          <p id="colony-deep_b-name" class="colony-name">Hush Cryostat</p>
+          <p id="colony-deep_b-flavor" class="colony-flavor"></p>
+          <p id="colony-deep_b-need-display" class="colony-need">Loading...</p>
+          <div class="meter"><div id="colony-deep_b-need-bar" class="meter-fill"></div></div>
+          <div id="colony-deep_b-need-sparkline" class="sparkline-slot"></div>
+          <p id="colony-deep_b-development-display" class="colony-development">Loading...</p>
+        <button id="colony-deep_b-invest-button" class="secondary invest-button" type="button" hidden>Invest (60)</button>
+        <p id="colony-deep_b-demand-display" class="colony-demand" hidden></p>
+        <button id="colony-deep_b-concede-button" class="secondary concede-button" type="button" hidden>Grant concession (80)</button>
+        </div>
+        <div class="colony-row">
+          <div class="colony-visual colony-visual--deep_c" aria-hidden="true"><div class="colony-visual-glow"></div><div class="colony-visual-dome"></div></div>
+          <p id="colony-deep_c-name" class="colony-name">Tenebra Loom</p>
+          <p id="colony-deep_c-flavor" class="colony-flavor"></p>
+          <p id="colony-deep_c-need-display" class="colony-need">Loading...</p>
+          <div class="meter"><div id="colony-deep_c-need-bar" class="meter-fill"></div></div>
+          <div id="colony-deep_c-need-sparkline" class="sparkline-slot"></div>
+          <p id="colony-deep_c-development-display" class="colony-development">Loading...</p>
+        <button id="colony-deep_c-invest-button" class="secondary invest-button" type="button" hidden>Invest (60)</button>
+        <p id="colony-deep_c-demand-display" class="colony-demand" hidden></p>
+        <button id="colony-deep_c-concede-button" class="secondary concede-button" type="button" hidden>Grant concession (80)</button>
+        </div>
+      </div>
     </div>
 
     <!-- Condensed "needs at a glance" summary. Deciding where to send a
@@ -452,6 +529,9 @@
         <span id="mobile-needs-strip-rift_a" class="mobile-needs-strip-chip" hidden>Loading...</span>
         <span id="mobile-needs-strip-rift_b" class="mobile-needs-strip-chip" hidden>Loading...</span>
         <span id="mobile-needs-strip-rift_c" class="mobile-needs-strip-chip" hidden>Loading...</span>
+        <span id="mobile-needs-strip-deep_a" class="mobile-needs-strip-chip" hidden>Loading...</span>
+        <span id="mobile-needs-strip-deep_b" class="mobile-needs-strip-chip" hidden>Loading...</span>
+        <span id="mobile-needs-strip-deep_c" class="mobile-needs-strip-chip" hidden>Loading...</span>
       </div>
     </div>
 
@@ -482,6 +562,9 @@
         <button id="ship-1-depart-rift_a-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-1-depart-rift_b-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-1-depart-rift_c-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-1-depart-deep_a-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-1-depart-deep_b-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-1-depart-deep_c-button" class="secondary" disabled hidden>Loading...</button>
       </div>
     </div>
 
@@ -512,6 +595,9 @@
         <button id="ship-2-depart-rift_a-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-2-depart-rift_b-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-2-depart-rift_c-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-2-depart-deep_a-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-2-depart-deep_b-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-2-depart-deep_c-button" class="secondary" disabled hidden>Loading...</button>
       </div>
     </div>
 
@@ -542,6 +628,9 @@
         <button id="ship-3-depart-rift_a-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-3-depart-rift_b-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-3-depart-rift_c-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-3-depart-deep_a-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-3-depart-deep_b-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-3-depart-deep_c-button" class="secondary" disabled hidden>Loading...</button>
       </div>
     </div>
 
@@ -572,6 +661,9 @@
         <button id="ship-4-depart-rift_a-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-4-depart-rift_b-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-4-depart-rift_c-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-4-depart-deep_a-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-4-depart-deep_b-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-4-depart-deep_c-button" class="secondary" disabled hidden>Loading...</button>
       </div>
     </div>
 
@@ -608,6 +700,9 @@
         <button id="ship-5-depart-rift_a-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-5-depart-rift_b-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-5-depart-rift_c-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-5-depart-deep_a-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-5-depart-deep_b-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-5-depart-deep_c-button" class="secondary" disabled hidden>Loading...</button>
       </div>
     </div>
 
@@ -644,6 +739,9 @@
         <button id="ship-6-depart-rift_a-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-6-depart-rift_b-button" class="secondary" disabled hidden>Loading...</button>
         <button id="ship-6-depart-rift_c-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-6-depart-deep_a-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-6-depart-deep_b-button" class="secondary" disabled hidden>Loading...</button>
+        <button id="ship-6-depart-deep_c-button" class="secondary" disabled hidden>Loading...</button>
       </div>
     </div>
 
@@ -723,7 +821,7 @@
       {
         selector: "#expansion-colonies-panel",
         title: "The Kepler Cluster",
-        text: "Unlock the Galaxy Expansion research node and a second, self-contained three-colony need-triangle opens up — three brand-new goods, reachable by any ship. A developed Kepler colony's second need reaches back into the home system, linking the two clusters together.",
+        text: "Unlock the Galaxy Expansion research node and a second, self-contained three-colony need-triangle opens up — three brand-new goods, reachable by any ship. A developed Kepler colony's second need reaches back into the home system, linking the two clusters together. Deeper research keeps going: Outer Reaches opens the Rift Colonies, and Deep Survey then Umbral Reach (the costliest node in the tree) opens a fourth cluster, the Umbral Deep.",
       },
       {
         selector: "#endgame-panel",

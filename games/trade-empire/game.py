@@ -78,10 +78,19 @@ CRYSTAL = "crystal"
 POLYMER = "polymer"
 ANTIMATTER = "antimatter"
 
+# J1 — the Umbral Deep, a fourth self-contained triangle gated behind a
+# two-step research chain (Deep Survey, then Umbral Reach) that costs more
+# than anything before it. Its goods are again a brand-new, non-overlapping
+# namespace, and priced above every earlier tier.
+NEUTRONIUM = "neutronium"
+SUPERFLUID = "superfluid"
+AEROGEL = "aerogel"
+
 GOOD_LABEL = {
     ORE: "Ore", GRAIN: "Grain", MACHINERY: "Machinery", WATER: "Water", ENERGY: "Energy",
     RARE_METALS: "Rare Metals", BIOMASS: "Biomass", ISOTOPES: "Isotopes",
     CRYSTAL: "Crystal", POLYMER: "Polymer", ANTIMATTER: "Antimatter",
+    NEUTRONIUM: "Neutronium", SUPERFLUID: "Superfluid", AEROGEL: "Aerogel",
 }
 
 # Flat per-unit base sell price, before Milestone 4's market multiplier.
@@ -89,6 +98,7 @@ SELL_PRICE = {
     ORE: 8, GRAIN: 6, MACHINERY: 10, WATER: 5, ENERGY: 9,
     RARE_METALS: 14, BIOMASS: 8, ISOTOPES: 18,
     CRYSTAL: 20, POLYMER: 12, ANTIMATTER: 26,
+    NEUTRONIUM: 34, SUPERFLUID: 24, AEROGEL: 16,
 }
 
 # Milestone 2: a third colony turned the fixed A<->B pair into a real
@@ -128,11 +138,23 @@ RIFT_COLONIES = {
     "rift_c": {"name": "Rift Colony Gamma", "produces": POLYMER, "needs": CRYSTAL},
 }
 
+# J1 — a fourth system, the Umbral Deep, gated behind "Umbral Reach"
+# (which requires "Deep Survey", which requires Outer Reaches). Same
+# self-contained triangle shape as the two clusters before it -- no new
+# mechanic, just one more tier further out. Deliberately not sharing a
+# name prefix (unlike "Kepler ..."/"Rift Colony ..."), so the map's default
+# first-word label is already unique without an override.
+DEEP_COLONIES = {
+    "deep_a": {"name": "Nadir Foundry", "produces": NEUTRONIUM, "needs": SUPERFLUID},
+    "deep_b": {"name": "Hush Cryostat", "produces": SUPERFLUID, "needs": AEROGEL},
+    "deep_c": {"name": "Tenebra Loom", "produces": AEROGEL, "needs": NEUTRONIUM},
+}
+
 # All colony metadata, every system -- used for lookups that must stay
 # correct regardless of what's unlocked (colony_needing(),
 # colony_producing(), labels). Which of these are actually *reachable*
 # right now is a separate question, answered by active_colony_ids().
-ALL_COLONIES = {**COLONIES, **EXPANSION_COLONIES, **RIFT_COLONIES}
+ALL_COLONIES = {**COLONIES, **EXPANSION_COLONIES, **RIFT_COLONIES, **DEEP_COLONIES}
 
 # Milestone 3 — minor flavor text per colony, shown in the colony panel.
 COLONY_FLAVOR = {
@@ -147,6 +169,9 @@ COLONY_FLAVOR = {
     "rift_a": "A crystal-lattice quarry at the edge of charted space — Outer Reaches is the only reason a ship can reach it at all.",
     "rift_b": "A containment yard breeding antimatter in vanishingly small, carefully metered batches.",
     "rift_c": "A polymer refinery running on feedstock that has to be shipped in from somewhere else in the Rift.",
+    "deep_a": "A foundry working scraps of collapsed star into neutronium, under a sky with nothing in it. Every hour of supply it gets is an hour of light it doesn't have.",
+    "deep_b": "A cryostat holding helium at temperatures where it stops behaving like a liquid at all. Aerogel lining is the difference between working and not.",
+    "deep_c": "Looms spinning aerogel inside neutronium-lined pressure vessels. The output is almost weightless; getting the vessels here was not.",
 }
 
 # Milestone 3 — colony need system v1: each colony's need_satisfaction
@@ -191,6 +216,11 @@ SECONDARY_NEED = {
     "rift_a": RARE_METALS,
     "rift_b": BIOMASS,
     "rift_c": ISOTOPES,
+    # J1 — the Umbral Deep's secondary need reaches back one tier again,
+    # into the Rift Colonies' goods.
+    "deep_a": ANTIMATTER,
+    "deep_b": CRYSTAL,
+    "deep_c": POLYMER,
 }
 
 # Milestone 10 — colony specialization: distinct strengths/weaknesses
@@ -245,6 +275,20 @@ SPECIALIZATION = {
     "rift_c": {
         "name": "Feedstock Refinery", "output_bonus": 0.20, "decay_multiplier": 1.4,
         "description": "+20% polymer output; needs decay 40% faster (every input is imported)",
+    },
+    # J1 — the highest-reward, highest-maintenance profiles in the game:
+    # the furthest colonies pay the most and are the hardest to keep fed.
+    "deep_a": {
+        "name": "Collapsed-Star Smelter", "output_bonus": 0.30, "decay_multiplier": 1.7,
+        "description": "+30% neutronium output; needs decay 70% faster (no sunlight, no margin for error)",
+    },
+    "deep_b": {
+        "name": "Absolute-Zero Works", "output_bonus": 0.25, "decay_multiplier": 1.6,
+        "description": "+25% superfluid output; needs decay 60% faster (the cold only holds while it is being tended)",
+    },
+    "deep_c": {
+        "name": "Weightless Looms", "output_bonus": 0.25, "decay_multiplier": 1.5,
+        "description": "+25% aerogel output; needs decay 50% faster (delicate output, heavy-duty inputs)",
     },
 }
 
@@ -349,7 +393,10 @@ class ColonyState:
 # needed here despite the canvas requirement). Static layout and static
 # routes for now — no moving ships until Milestone 11.
 CANVAS_WIDTH = 620
-CANVAS_HEIGHT = 300
+# J1 — the Umbral Deep gets its own band along the bottom, so the canvas
+# grew taller rather than wider (it is displayed at a fixed max width, so
+# widening it again would have shrunk every existing node further).
+CANVAS_HEIGHT = 450
 NODE_RADIUS = 22
 NODE_POSITIONS = {
     "aurum": (150, 36),
@@ -371,6 +418,10 @@ NODE_POSITIONS = {
     "rift_a": (560, 50),
     "rift_b": (595, 190),
     "rift_c": (520, 250),
+    # J1 — the Umbral Deep: its own band below every other system.
+    "deep_a": (250, 350),
+    "deep_b": (370, 415),
+    "deep_c": (490, 350),
 }
 NODE_COLOR = "#3a5a9c"
 EDGE_COLOR = "#3a3f5c"
@@ -587,6 +638,7 @@ market_multiplier = {
     ORE: 1.0, GRAIN: 1.0, MACHINERY: 1.0, WATER: 1.0, ENERGY: 1.0,
     RARE_METALS: 1.0, BIOMASS: 1.0, ISOTOPES: 1.0,
     CRYSTAL: 1.0, POLYMER: 1.0, ANTIMATTER: 1.0,
+    NEUTRONIUM: 1.0, SUPERFLUID: 1.0, AEROGEL: 1.0,
 }
 
 # J11 — per-route profitability. Every good in the galaxy is produced by
@@ -622,7 +674,7 @@ season_ticks = 0
 
 
 # J23 -- diplomatic relations between star systems. Every unit delivered on
-# a trip that crosses systems (home / Kepler / Rift) counts toward a
+# a trip that crosses systems (home / Kepler / Rift / Umbral Deep) counts toward a
 # relations level; each level is a small permanent bonus on the proceeds of
 # every sale. Purely a bonus, and it can only matter once the player has
 # reached a second system, so the base game is untouched.
@@ -863,6 +915,21 @@ RESEARCH_NODES = {
         "description": "Unlocks the Rift Colonies — 3 new colonies, a new need-triangle",
         "requires": "galaxy_expansion",
     },
+    # J1 — the deepest research investment yet: a two-step chain past
+    # Outer Reaches. Deep Survey has no effect of its own beyond being the
+    # required first step (honestly labelled as such); Umbral Reach is the
+    # priciest node in the tree and is what actually opens the fourth
+    # system.
+    "deep_survey": {
+        "cost": 240, "label": "Deep Survey",
+        "description": "Long-baseline survey arrays — no direct bonus, but the required first step toward the Umbral Deep",
+        "requires": "outer_reaches",
+    },
+    "umbral_reach": {
+        "cost": 360, "label": "Umbral Reach",
+        "description": "Unlocks the Umbral Deep — 3 new colonies, a new need-triangle",
+        "requires": "deep_survey",
+    },
     # J15 -- a specialization fork, unlocked once the tree has grown to
     # Automation Expansion II. Committing to either branch's first tier
     # permanently closes the other branch ("excludes"), so this is a real
@@ -909,10 +976,15 @@ def outer_reaches_unlocked():
     return "outer_reaches" in unlocked_research
 
 
+def umbral_reach_unlocked():
+    return "umbral_reach" in unlocked_research
+
+
 def active_colony_ids():
     """Every colony ID the player can currently interact with — the home
     system always, the Kepler Cluster once Galaxy Expansion is unlocked,
-    and the Rift Colonies once Outer Reaches is. Everything reachability-
+    the Rift Colonies once Outer Reaches is, and the Umbral Deep once
+    Umbral Reach is. Everything reachability-
     sensitive (route drawing, depart-button validity, a ship's list of
     possible destinations) is scoped to this rather than to ALL_COLONIES
     directly."""
@@ -921,6 +993,8 @@ def active_colony_ids():
         ids += list(EXPANSION_COLONIES)
     if outer_reaches_unlocked():
         ids += list(RIFT_COLONIES)
+    if umbral_reach_unlocked():
+        ids += list(DEEP_COLONIES)
     return ids
 
 
@@ -961,6 +1035,10 @@ def unlock_research(node_id):
     elif node_id == "outer_reaches":
         # Same deferred-creation reasoning, one tier further out.
         for colony_id in RIFT_COLONIES:
+            colony_states[colony_id] = ColonyState(colony_id)
+    elif node_id == "umbral_reach":
+        # Same deferred-creation reasoning, one tier further out again.
+        for colony_id in DEEP_COLONIES:
             colony_states[colony_id] = ColonyState(colony_id)
     return True
 
@@ -1230,7 +1308,7 @@ def automate_ship(ship_id):
 # reachable star system: a passive income source that needs no ship. One
 # post per system, so it scales with how far the empire has expanded, and
 # it pays a small flat amount each tick (not counted as a sale).
-TRADE_POST_SYSTEMS = ("Home system", "Kepler Cluster", "Rift Colonies")
+TRADE_POST_SYSTEMS = ("Home system", "Kepler Cluster", "Rift Colonies", "Umbral Deep")
 TRADE_POST_COST = 400
 TRADE_POST_INCOME_PER_TICK = 2
 trade_posts = []
@@ -1245,7 +1323,9 @@ def _system_is_reachable(system_label):
         return True
     if system_label == "Kepler Cluster":
         return galaxy_expansion_unlocked()
-    return outer_reaches_unlocked()
+    if system_label == "Rift Colonies":
+        return outer_reaches_unlocked()
+    return umbral_reach_unlocked()
 
 
 def next_trade_post_system():
@@ -1829,7 +1909,9 @@ def _system_label_for_colony(colony_id):
         return "Home system"
     if colony_id in EXPANSION_COLONIES:
         return "Kepler Cluster"
-    return "Rift Colonies"
+    if colony_id in RIFT_COLONIES:
+        return "Rift Colonies"
+    return "Umbral Deep"
 
 
 def almanac_rows():
@@ -2788,6 +2870,11 @@ def render():
     document.getElementById("expansion2-colonies-panel").hidden = not expansion2_unlocked
     document.getElementById("expansion2-market-panel").hidden = not expansion2_unlocked
 
+    # J1 — and once more for the Umbral Deep.
+    expansion3_unlocked = umbral_reach_unlocked()
+    document.getElementById("expansion3-colonies-panel").hidden = not expansion3_unlocked
+    document.getElementById("expansion3-market-panel").hidden = not expansion3_unlocked
+
     update_achievements_display()
     _sync_earned_and_toast()
     update_summary_display()
@@ -3235,6 +3322,15 @@ def _load_guild(raw):
     })
 
 
+def _saved_float(value, low, high, default):
+    """A save's number, or `default` if it isn't a real, finite, in-range one."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return default
+    if not math.isfinite(value) or not low <= value <= high:
+        return default
+    return float(value)
+
+
 def load_state(data):
     """Exact inverse of get_state(). Colony state for the Kepler Cluster
     is (re)created here if the save has galaxy_expansion unlocked but the
@@ -3286,7 +3382,14 @@ def load_state(data):
     else:
         seasonal_demand_enabled, season_ticks = False, 0
 
-    unlocked_research = set(data.get("unlocked_research", unlocked_research))
+    # Untrusted save value: only known node ids survive (a non-list, or a
+    # list holding unhashable/non-string/unknown entries, must not crash the
+    # set() build or invent research).
+    research_raw = data.get("unlocked_research", sorted(unlocked_research))
+    unlocked_research = {
+        node for node in (research_raw if isinstance(research_raw, list) else [])
+        if isinstance(node, str) and node in RESEARCH_NODES
+    }
 
     # A save that hasn't unlocked an expansion must not keep that expansion's
     # colonies from whatever was running before (loading an earlier save, or
@@ -3296,6 +3399,9 @@ def load_state(data):
             colony_states.pop(colony_id, None)
     if not outer_reaches_unlocked():
         for colony_id in RIFT_COLONIES:
+            colony_states.pop(colony_id, None)
+    if not umbral_reach_unlocked():
+        for colony_id in DEEP_COLONIES:
             colony_states.pop(colony_id, None)
 
     _load_guild(data.get("guild"))
@@ -3319,17 +3425,29 @@ def load_state(data):
         for colony_id in RIFT_COLONIES:
             if colony_id not in colony_states:
                 colony_states[colony_id] = ColonyState(colony_id)
+    if umbral_reach_unlocked():
+        for colony_id in DEEP_COLONIES:
+            if colony_id not in colony_states:
+                colony_states[colony_id] = ColonyState(colony_id)
 
     saved_colony_states = data.get("colony_states", {})
     for colony_id, state in colony_states.items():
         saved = saved_colony_states.get(colony_id)
         if not saved:
             continue
-        state.need_satisfaction = saved.get("need_satisfaction", state.need_satisfaction)
-        state.development_level = saved.get("development_level", state.development_level)
-        state.cumulative_delivered = saved.get("cumulative_delivered", state.cumulative_delivered)
-        state.secondary_need_satisfaction = saved.get(
-            "secondary_need_satisfaction", state.secondary_need_satisfaction
+        if not isinstance(saved, dict):
+            continue
+        # Untrusted save values: numbers only (never bool), finite, and inside
+        # each field's real range; anything else keeps the colony's default.
+        state.need_satisfaction = _saved_float(saved.get("need_satisfaction"), 0.0, 1.0, state.need_satisfaction)
+        level = saved.get("development_level")
+        if isinstance(level, int) and not isinstance(level, bool) and 1 <= level <= 2:
+            state.development_level = level
+        state.cumulative_delivered = _saved_float(
+            saved.get("cumulative_delivered"), 0.0, 10_000_000.0, state.cumulative_delivered
+        )
+        state.secondary_need_satisfaction = _saved_float(
+            saved.get("secondary_need_satisfaction"), 0.0, 1.0, state.secondary_need_satisfaction
         )
         for loyalty_key, limit in (
             ("neglect_ticks", NEGLECT_DEMAND_TICKS),
@@ -3341,9 +3459,11 @@ def load_state(data):
             setattr(state, loyalty_key, raw if valid else 0)
 
     saved_ships = data.get("ships", {})
+    if not isinstance(saved_ships, dict):
+        saved_ships = {}
     for ship_id, ship in ships.items():
         saved = saved_ships.get(ship_id)
-        if not saved:
+        if not saved or not isinstance(saved, dict):
             continue
         ship.location = saved.get("location", ship.location)
         ship.origin = saved.get("origin", ship.origin)
@@ -3364,6 +3484,23 @@ def load_state(data):
         ship.route_key = frozenset(saved_key) if saved_key else None
         ship.route_legs = saved.get("route_legs", 0)
         ship.total_earned = saved.get("total_earned", 0)
+
+    # A ship can't be docked at, or flying to/from, a colony this save hasn't
+    # unlocked (its colony state was just pruned above, and a docked ship
+    # would crash load()): send it home, empty, rather than trusting the save.
+    reachable_now = active_colony_ids()
+    for ship in ships.values():
+        docked_ok = ship.location in reachable_now if isinstance(ship.location, str) else False
+        transit_ok = (
+            ship.location is None
+            and isinstance(ship.origin, str) and ship.origin in reachable_now
+            and isinstance(ship.destination, str) and ship.destination in reachable_now
+        )
+        if not (docked_ok or transit_ok):
+            ship.location = "aurum"
+            ship.origin = ship.destination = None
+            ship.cargo_good, ship.cargo_qty = None, 0
+            ship.transit_ticks_remaining = ship.transit_total_ticks = 0
 
     market_multiplier.update(data.get("market_multiplier", {}))
     total_profit = data.get("total_profit", total_profit)

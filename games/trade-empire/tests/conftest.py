@@ -16,7 +16,9 @@ COLONY_IDS = ["aurum", "verdant", "ferrum", "cryo", "helion"]
 EXPANSION_COLONY_IDS = ["kepler_a", "kepler_b", "kepler_c"]
 # J13 — the Rift Colonies, a third self-contained cluster.
 RIFT_COLONY_IDS = ["rift_a", "rift_b", "rift_c"]
-ALL_COLONY_IDS = COLONY_IDS + EXPANSION_COLONY_IDS + RIFT_COLONY_IDS
+# J1 — the Umbral Deep, a fourth self-contained cluster.
+DEEP_COLONY_IDS = ["deep_a", "deep_b", "deep_c"]
+ALL_COLONY_IDS = COLONY_IDS + EXPANSION_COLONY_IDS + RIFT_COLONY_IDS + DEEP_COLONY_IDS
 
 # Statically-declared element IDs, wired up in index.html's initial markup.
 ELEMENT_IDS = [
@@ -44,6 +46,8 @@ ELEMENT_IDS = [
     "expansion-market-panel",
     "expansion2-colonies-panel",
     "expansion2-market-panel",
+    "expansion3-colonies-panel",
+    "expansion3-market-panel",
     "endgame-panel",
     "endgame-message-display",
     "endgame-worlds-display",
@@ -65,7 +69,7 @@ ELEMENT_IDS = [
 ]
 for _node_id in (
     "automation_slot", "fast_ships", "hauler", "galaxy_expansion",
-    "automation_slot_2", "outer_reaches",
+    "automation_slot_2", "outer_reaches", "deep_survey", "umbral_reach",
     "auto_efficiency", "auto_efficiency_2", "market_insight", "market_insight_2",
 ):
     ELEMENT_IDS += [f"research-{_node_id}-status", f"research-{_node_id}-unlock-button"]
@@ -86,6 +90,7 @@ for _good in (
     "ore", "grain", "machinery", "water", "energy",
     "rare_metals", "biomass", "isotopes",
     "crystal", "polymer", "antimatter",
+    "neutronium", "superfluid", "aerogel",
 ):
     ELEMENT_IDS += [f"market-{_good}-display", f"market-{_good}-bar", f"market-{_good}-sparkline"]
     ELEMENT_IDS += [f"stockpile-{_good}-buy-button", f"stockpile-{_good}-sell-button", f"stockpile-{_good}-status"]

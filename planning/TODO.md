@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 765/781 items checked off (98.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 767/781 items checked off (98.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -702,7 +702,7 @@ Every idea in this section was accepted, no exceptions.
 
 ## Per-game: Trade Empire
 
-- [ ] J1: A fourth self-contained expansion cluster beyond the home system and Kepler Cluster, requiring deeper research investment.
+- [x] J1: A fourth self-contained expansion cluster beyond the home system and Kepler Cluster, requiring deeper research investment. **Done 2026-09-26:** the Umbral Deep, a fourth cluster (three colonies, three goods, two research nodes costing 880 points in total); see games/trade-empire/CLAUDE.md.
 - [x] J2: Let the per-route profitability readout show a small trend arrow (improving/declining) based on recent trips.
 - [x] J3: A "trade guild" mechanic — an NPC faction offering occasional bulk contracts (deliver X units of Y to Z by a deadline) for bonus rewards. **Done 2026-09-26** — see `games/trade-empire/CLAUDE.md`'s J3 section.
 - [x] J4: Let the historical price sparkline show the exact current price as a labeled point, not just the trend line.
@@ -783,7 +783,7 @@ Every idea in this section was accepted, no exceptions.
 - **L7 (study streak calendar) needs a real day-tracker built first** — the game currently has no actual concept of a calendar day (the player just advances "whenever"), so that infrastructure has to exist before the calendar view can be built. Split into its own prerequisite step below.
 
 - [x] L4a: Remove the row-unlock pacing gate entirely — unlock every row immediately, so a player joining weeks into the course isn't locked out.
-- [ ] L4b: Build a general placement test that lets a returning/advanced player skip past earlier content.
+- [x] L4b: Build a general placement test that lets a returning/advanced player skip past earlier content. **Done 2026-09-26:** an opt-in placement test that only ever raises untouched plots to a modest Sprout (see games/champ-de-mots/CLAUDE.md).
 - [x] L1: A fifth arcade minigame covering a sequence range not yet dedicated (e.g. passé composé/partitive weeks). **You also pitched a genuinely new idea here**, worth scoping as part of this same item: a music- or reading-based game that links to a Spotify song (quizzing on its lyrics/words) or an open-source short story (quizzing on its content) — decide whether this becomes L1's fifth minigame itself or a separate addition. **Also a real site-wide principle from this answer** (see Z-extra below): every practice-through-a-minigame action should visibly feed a measured top-level progress stat (watering count or equivalent), so playing a minigame always visibly "counts" toward something.
 - [x] L2: Let the visual-style switcher remember two saved per-context presets (e.g. Cartoon for casual review, Text-based for a focused cram session) instead of one single choice. Built as two independent presets — farm browsing vs. an active review session — since those are this game's own two genuinely distinct UI moments; a "cram mode" doesn't exist yet (see L25). See `games/champ-de-mots/CLAUDE.md`'s "L2" section. 614 → 621 tests.
 - [x] L3: A "weak spot drill" mode generated purely from the error-pattern digest's flagged topics. **Also wire Review-tab practice into watering**: if a plot's topic hasn't been watered yet today, reviewing it through this (or any) practice mode should count as watering it, per your addition. **Done 2026-09-26** for the drill and for every Review-tab mode; the "or any practice mode" part (arcade minigames etc.) is noted as a possible follow-up in `games/champ-de-mots/CLAUDE.md`'s L3 section.

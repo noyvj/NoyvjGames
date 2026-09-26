@@ -110,7 +110,7 @@ def test_save_round_trip_keeps_the_choice_and_the_exclusion(game_env):
 def test_fully_studied_needs_one_completed_path_not_both(game_env):
     game = game_env.module
     game.research_points = 1_000_000
-    for node in ("fast_ships", "hauler", "automation_slot", "automation_slot_2", "galaxy_expansion", "outer_reaches"):
+    for node in ("fast_ships", "hauler", "automation_slot", "automation_slot_2", "galaxy_expansion", "outer_reaches", "deep_survey", "umbral_reach"):
         game.unlock_research(node)
     assert "all_research_unlocked" not in game.achievement_ids_earned()
     game.unlock_research("auto_efficiency")
