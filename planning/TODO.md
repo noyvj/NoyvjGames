@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 727/769 items checked off (94.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 728/769 items checked off (94.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -503,7 +503,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] D29: A "settlement name and history" light narrative layer, scaled-down diegetic flavor in Continuum's spirit.
 - [x] D30: A one-time tooltip the first time hard-lag mode is toggled, confirming the change takes effect next season.
 
-- [ ] D3 (answered 2026-09-26, was parked in LATER.md): multi-settlement mode, built as the lighter **sister-settlement** version — the user ruled out a fully independent second settlement. A second coastal settlement that shares the player's funds and adaptation tier but has its own coastline and sea-level exposure.
+- [x] D3 (answered 2026-09-26, was parked in LATER.md): multi-settlement mode, built as the lighter **sister-settlement** version — the user ruled out a fully independent second settlement. A second coastal settlement that shares the player's funds and adaptation tier but has its own coastline and sea-level exposure.
 
 **Folded into Z (see "Games" section above):** D12's original "first adaptation tier unlocked" celebratory callout — tie into an achievement pop-up instead, per your answer.
 

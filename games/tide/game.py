@@ -192,6 +192,20 @@ COASTLINE_ROWS = 6
 COASTLINE_COLS = 8
 ROW_FLOOD_STEP = 15.0
 
+# D3: the sister settlement (the lighter version of a multi-settlement mode).
+# An optional second coastal settlement that SHARES your funds and your
+# adaptation tier (so one investment protects both) but has its own, lower-lying
+# coastline: the same sea rise reaches it SISTER_EXPOSURE times harder, and its
+# rows flood SISTER_LEVEL_OFFSET earlier. Each season it pays SISTER_FUNDS_PER_DAMAGE
+# funds for every point of damage it takes (after the shared dampening) and
+# earns SISTER_INCOME from its own fishing and trade. It is not a second game to
+# manage: it only adds a second, differently exposed thing that your one set of
+# decisions has to protect. Off by default and turned on once, by choice.
+SISTER_EXPOSURE = 1.3
+SISTER_LEVEL_OFFSET = 20.0
+SISTER_FUNDS_PER_DAMAGE = 2.0
+SISTER_INCOME = 10.0
+
 LAND = "land"
 FLOODED = "flooded"
 
@@ -280,6 +294,10 @@ class SettlementState:
         # D9: optional harder delayed-consequence lag (see
         # FISH_LAG_SEASONS_HARD/_effective_fish_lag()).
         self.hard_lag_mode = False
+        # D3: the optional sister settlement (see SISTER_* above).
+        self.sister_enabled = False
+        self.sister_cumulative_damage = 0.0
+        self.sister_net_funds = 0.0
         # D16: which income/acidity mix Output investment currently uses.
         # "fishing" reproduces the original single-formula behavior.
         self.output_mix = DEFAULT_OUTPUT_MIX
@@ -723,6 +741,42 @@ class SettlementState:
         lagged_acidity = self.acidity_history[-(lag - 1)]
         return max(MIN_FISH_MULTIPLIER, 1 - lagged_acidity / FISH_DAMAGE_SCALE)
 
+    def enable_sister(self):
+        """D3: switches the sister settlement on (once; it cannot be turned off,
+        since its history is part of the run)."""
+        if self.sister_enabled:
+            return False
+        self.sister_enabled = True
+        return True
+
+    def sister_sea_level(self):
+        return self.sea_level + SISTER_LEVEL_OFFSET
+
+    def sister_rows_flooded(self):
+        """How many of the sister's COASTLINE_ROWS rows the sea has reached."""
+        return sum(1 for row in range(COASTLINE_ROWS) if self.sister_sea_level() >= row_flood_threshold(row))
+
+    def _advance_sister(self, rise):
+        """D3: this season's effect of the sister on the shared funds. Called
+        right after the main coastline's own rise, with that same `rise`."""
+        if not self.sister_enabled:
+            return
+        damage = rise * SISTER_EXPOSURE * (1 - self.dampening_fraction())
+        self.sister_cumulative_damage += damage
+        net = SISTER_INCOME - damage * SISTER_FUNDS_PER_DAMAGE
+        self.sister_net_funds += net
+        self.funds += net
+
+    def sister_text(self):
+        if not self.sister_enabled:
+            return ""
+        return (
+            f"Sister settlement (low-lying, shares your funds and seawall tier): "
+            f"{self.sister_rows_flooded()} of {COASTLINE_ROWS} rows flooded, "
+            f"{self.sister_cumulative_damage:.0f} damage so far, "
+            f"{self.sister_net_funds:+.0f} funds net for you."
+        )
+
     def current_tier_index(self):
         """Index into ADAPTATION_TIERS of the highest tier this
         settlement's cumulative adaptation investment has reached."""
@@ -989,6 +1043,7 @@ class SettlementState:
         self.undampened_damage_total += rise
         self.damage_log.append(damage_this_season)
         self.tier_log.append(self.current_tier_index())
+        self._advance_sister(rise)
 
         self._update_heritage()
         self._update_population()
@@ -2094,6 +2149,7 @@ def render_hard_lag_toggle():
 
 def render():
     render_info_page()
+    render_sister()
     document.getElementById("season-display").innerText = f"Season {state.season}"
     document.getElementById("funds-display").innerText = f"Funds: {state.funds:.0f}"
     document.getElementById("acidity-display").innerText = f"Ocean acidity: {state.acidity:.1f}"
@@ -2248,6 +2304,19 @@ def on_sea_scenario_change(event):
     render()
 
 
+def on_enable_sister(event=None):
+    if state.enable_sister():
+        render()
+
+
+def render_sister():
+    button = document.getElementById("sister-enable-button")
+    text = document.getElementById("sister-display")
+    button.hidden = state.sister_enabled
+    text.hidden = not state.sister_enabled
+    text.innerText = state.sister_text()
+
+
 def on_toggle_hard_lag(event=None):
     state.set_hard_lag_mode(not state.hard_lag_mode)
     render()
@@ -2367,6 +2436,12 @@ def get_state():
         "trend_flattening_announced": state.trend_flattening_announced,
         "ticker_full_history": copy.deepcopy(state.ticker_full_history),
         "hard_lag_mode": state.hard_lag_mode,
+        **(
+            {"sister": {
+                "damage": state.sister_cumulative_damage, "net_funds": state.sister_net_funds,
+            }}
+            if state.sister_enabled else {}
+        ),
         "output_mix": state.output_mix,
         "fish_yield_history": copy.deepcopy(state.fish_yield_history),
         "first_flood_announced": state.first_flood_announced,
@@ -2433,6 +2508,23 @@ def _clamped_int(value, low, high):
     return max(low, min(high, value))
 
 
+def _load_sister(data):
+    """D3: a save without a valid 'sister' block loads with the sister off."""
+    state.sister_enabled = False
+    state.sister_cumulative_damage = 0.0
+    state.sister_net_funds = 0.0
+    saved = data.get("sister")
+    if not isinstance(saved, dict):
+        return
+    state.sister_enabled = True
+    damage = saved.get("damage")
+    net = saved.get("net_funds")
+    if isinstance(damage, (int, float)) and not isinstance(damage, bool) and damage == damage and 0 <= damage < 1e9:
+        state.sister_cumulative_damage = float(damage)
+    if isinstance(net, (int, float)) and not isinstance(net, bool) and net == net and abs(net) < 1e9:
+        state.sister_net_funds = float(net)
+
+
 def load_state(data):
     if not isinstance(data, dict):
         return False
@@ -2471,6 +2563,7 @@ def load_state(data):
     if isinstance(saved_ticker_full_history, list):
         state.ticker_full_history = copy.deepcopy(saved_ticker_full_history)
     state.hard_lag_mode = bool(data.get("hard_lag_mode", state.hard_lag_mode))
+    _load_sister(data)
     saved_output_mix = data.get("output_mix")
     if saved_output_mix in OUTPUT_MIX:
         state.output_mix = saved_output_mix
@@ -2649,6 +2742,7 @@ def setup():
     scenario_select = document.getElementById("sea-scenario-select")
     if scenario_select is not None:
         scenario_select.addEventListener("change", create_proxy(on_sea_scenario_change))
+    document.getElementById("sister-enable-button").addEventListener("click", create_proxy(on_enable_sister))
     document.getElementById("hard-lag-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_hard_lag)
     )

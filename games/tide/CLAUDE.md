@@ -545,3 +545,7 @@ overlay; `Esc` closes it and clicks the toggle button of whichever listed
 panel is currently open, reusing each panel's own open/close logic. The
 Hard Lag difficulty toggle isn't in the list -- it's an on/off flag with
 no corresponding panel.
+
+## Sister settlement (D3, 2026-09-26)
+
+The lighter multi-settlement mode: an optional, one-way switch ('Add a sister settlement') that adds a second coastal settlement which SHARES your funds and your adaptation tier but has its own, lower-lying coastline (`SISTER_EXPOSURE` 1.3 times the sea rise, rows flooding `SISTER_LEVEL_OFFSET` 20 earlier via `sister_sea_level()`/`sister_rows_flooded()`). Each season, right after the main coast's rise, `_advance_sister()` charges the shared funds `SISTER_FUNDS_PER_DAMAGE` (2) per point of the sister's damage (taken after the same tier dampening, so one seawall investment protects both) and credits `SISTER_INCOME` (10) from its own fishing and trade. It is not a second game to manage: it adds a second, differently exposed thing that your one set of decisions must protect, and it cannot be switched off once added because its history is part of the run. A readout shows rows flooded, damage so far and the net funds effect. Off by default, with no effect on funds while off (tested). Save: `sister` written only when on (damage and net funds, validated finite and bounded); a save without the key loads with it off. 252 -> 265 tests (`tests/test_sister_settlement.py`); verified live.

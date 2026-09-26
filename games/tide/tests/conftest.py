@@ -60,6 +60,8 @@ ELEMENT_IDS = [
     "output-mix-select",
     # D9: harder-lag difficulty toggle.
     "hard-lag-toggle-button",
+    "sister-enable-button",
+    "sister-display",
     # D18: player-chosen comparison baseline.
     "set-baseline-button",
     "coastline-before-label",

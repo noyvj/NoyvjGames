@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-09-26",
+      "entry": "Sister settlement: add a second, lower-lying coastal settlement that shares your funds and seawall tier but faces the sea harder (D3)."
+    },
+    {
       "date": "2026-09-22",
       "entry": "Achievement cards now show \"Earned by N% of players\" once enough real save data exists for that achievement (site-wide goal, Z1/Z27b)."
     },
@@ -26,7 +30,7 @@
     },
     {
       "date": "2026-09-21",
-      "entry": "D4: a small decorative wave cue next to the sea-level meter, speeding up as sea level rises \u2014 cosmetic only, doesn't change the meter's own numbers."
+      "entry": "D4: a small decorative wave cue next to the sea-level meter, speeding up as sea level rises — cosmetic only, doesn't change the meter's own numbers."
     },
     {
       "date": "2026-09-21",
@@ -46,7 +50,7 @@
     },
     {
       "date": "2026-09-15",
-      "entry": "20 achievements added: investment milestones, all four adaptation tiers, coastline flood progression, the delayed fish-stock crash and recovery, and more \u2014 with an in-game panel, unlock toast, and hub link."
+      "entry": "20 achievements added: investment milestones, all four adaptation tiers, coastline flood progression, the delayed fish-stock crash and recovery, and more — with an in-game panel, unlock toast, and hub link."
     },
     {
       "date": "2026-09-15",
@@ -54,7 +58,7 @@
     },
     {
       "date": "2026-09-05",
-      "entry": "Space theme visual pass: starfield background, glass panels, gradient buttons \u2014 coastline land/flood colors kept exactly as they were."
+      "entry": "Space theme visual pass: starfield background, glass panels, gradient buttons — coastline land/flood colors kept exactly as they were."
     },
     {
       "date": "2026-08-22",
