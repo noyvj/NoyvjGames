@@ -1497,3 +1497,6 @@ html[data-reduced-motion="true"] *::after {
 /* E27: the optional resilience mentor. */
 .mentor-toggle-label { display: block; margin: 0.4rem 0; font-size: 0.85rem; }
 .mentor-hint { border-left: 3px solid #6fa8d8; padding-left: 0.6rem; }
+
+/* E19: the resilience curriculum line. */
+.curriculum-display { border-left: 3px solid #c99354; padding-left: 0.6rem; }

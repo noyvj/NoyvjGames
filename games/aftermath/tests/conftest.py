@@ -87,6 +87,7 @@ ELEMENT_IDS = [
     "scenario-wrapper",
     "scenario-blurb",
     "societal-memory-display",
+    "curriculum-display",
     "mentor-toggle",
     "mentor-hint",
     "extended-run-toggle",

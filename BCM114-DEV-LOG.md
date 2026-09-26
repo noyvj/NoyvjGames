@@ -705,3 +705,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** aftermath
 **Did:** Added an optional Resilience mentor checkbox that shows one live, rule-based suggestion at a time (opening balance, a wipe-out warning, missing resilience or growth, steady state, post-run), read-only and saved per browser.
 **Result:** 286 → 299 tests passing, flake8 clean; verified live.
+
+### 2026-09-26 (Aftermath: resilience curriculum, E19)
+**Game:** aftermath
+**Did:** Added a five-lesson guided curriculum (survive, resilience first, growth pays, balance, the coastal test) with a goal per run, judged in order when a run pays out and kept per browser.
+**Result:** 299 → 311 tests passing, flake8 clean; verified live.

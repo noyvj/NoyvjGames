@@ -366,6 +366,100 @@ def save_societal_memory(categories):
     localStorage.setItem(SOCIETAL_MEMORY_STORAGE_KEY, json.dumps(sorted(categories)))
 
 
+# E19: the resilience curriculum. A guided sequence of runs, each with one
+# specific goal that teaches one idea, done in order: the current lesson is the
+# only one that can be completed, and it is judged on the run's FINAL state when
+# it pays out. Progress is a plain count kept per browser
+# (aftermath_curriculum_v1), like the skill tree; the lessons never change
+# any number in a run, they only name a goal and notice when it is met.
+CURRICULUM_STORAGE_KEY = "aftermath_curriculum_v1"
+CURRICULUM = [
+    {
+        "id": "first_steps",
+        "title": "First steps",
+        "goal": "Finish a run with resources still in hand.",
+        "idea": "A settlement can absorb a bad year if it isn't running on empty.",
+        "check": lambda r: r.resources > 0,
+    },
+    {
+        "id": "resilience_first",
+        "title": "Resilience first",
+        "goal": "Finish with at least 3 resilience and resources still in hand.",
+        "idea": "Resilience shrinks every shock that follows it, so it pays back the earlier it is built.",
+        "check": lambda r: r.resilience_capacity >= 3 and r.resources > 0,
+    },
+    {
+        "id": "growth_pays",
+        "title": "Growth pays",
+        "goal": "Finish with at least 2 growth and more resources than you started with.",
+        "idea": "Growth is an income that keeps arriving between disasters.",
+        "check": lambda r: r.growth_capacity >= 2 and r.resources > r.starting_resources,
+    },
+    {
+        "id": "balance",
+        "title": "Balance",
+        "goal": "Finish with at least 2 growth, at least 2 resilience and 100+ resources.",
+        "idea": "Protection and income together beat either alone.",
+        "check": lambda r: r.growth_capacity >= 2 and r.resilience_capacity >= 2 and r.resources >= 100,
+    },
+    {
+        "id": "coastal_test",
+        "title": "The coastal test",
+        "goal": "Choose the Coastal scenario and finish with resources in hand.",
+        "idea": "Different places face different shocks, so the same plan is tested differently.",
+        "check": lambda r: r.scenario == "coastal" and r.resources > 0,
+    },
+]
+
+
+def load_curriculum_progress():
+    raw = localStorage.getItem(CURRICULUM_STORAGE_KEY)
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return 0
+    return max(0, min(len(CURRICULUM), value))
+
+
+def save_curriculum_progress(value):
+    localStorage.setItem(CURRICULUM_STORAGE_KEY, str(value))
+
+
+def curriculum_current():
+    """The lesson the player is on, or None once every lesson is done."""
+    if curriculum_progress >= len(CURRICULUM):
+        return None
+    return CURRICULUM[curriculum_progress]
+
+
+def note_curriculum_run(finished_run):
+    """Called once when a run completes and pays out. If it meets the CURRENT
+    lesson's goal, advances the curriculum and returns that lesson; else None."""
+    global curriculum_progress
+    lesson = curriculum_current()
+    if lesson is None or not lesson["check"](finished_run):
+        return None
+    curriculum_progress += 1
+    save_curriculum_progress(curriculum_progress)
+    return lesson
+
+
+def curriculum_message():
+    global curriculum_just_completed
+    parts = []
+    if curriculum_just_completed:
+        parts.append(f"Lesson complete: {curriculum_just_completed['title']}. {curriculum_just_completed['idea']}")
+        curriculum_just_completed = None
+    lesson = curriculum_current()
+    if lesson is None:
+        parts.append(f"Curriculum complete: all {len(CURRICULUM)} lessons done.")
+    else:
+        parts.append(
+            f"Curriculum, lesson {curriculum_progress + 1} of {len(CURRICULUM)}: {lesson['title']}. Goal: {lesson['goal']}"
+        )
+    return " ".join(parts)
+
+
 def load_run_history():
     raw = localStorage.getItem(RUN_HISTORY_STORAGE_KEY)
     if not raw:
@@ -655,8 +749,9 @@ class RunState:
                 skill_tree.save()
                 run_history.append(self.run_score())
                 save_run_history(run_history)
-                global memory_just_formed
+                global memory_just_formed, curriculum_just_completed
                 memory_just_formed = record_societal_memory(self.event_log, self.run_score())  # E29
+                curriculum_just_completed = note_curriculum_run(self)  # E19
                 legacy_events.update(entry["type"] for entry in self.event_log)
                 save_legacy_events(legacy_events)
                 # E4: build out the legacy system beyond its original
@@ -802,6 +897,8 @@ run_history = load_run_history()
 legacy_events = load_legacy_events()
 societal_memory = load_societal_memory()  # E29
 memory_just_formed = None  # E29: the category remembered by the run that just completed, for one callout
+curriculum_progress = load_curriculum_progress()  # E19
+curriculum_just_completed = None  # E19: the lesson the run that just completed finished, for one callout
 legacy_event_counts = load_legacy_event_counts()
 run_log_history = load_run_log_history()
 highest_awarded_run = load_highest_awarded_run()
@@ -2046,6 +2143,7 @@ def render():
     document.getElementById("legacy-display").innerText = legacy_message()
     document.getElementById("societal-memory-display").innerText = societal_memory_message()
     render_mentor()
+    document.getElementById("curriculum-display").innerText = curriculum_message()
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
     document.getElementById("resilience-display").innerText = f"Resilience: {run.resilience_capacity}"
     document.getElementById("growth-display").innerText = (
