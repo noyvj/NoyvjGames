@@ -70,6 +70,8 @@ ELEMENT_IDS = [
     "rescue-button",
     "rescue-status",
     "restoration-status",
+    "framing-toggle-button",
+    "framing-summary",
     "forecast-input",
     "forecast-lock-button",
     "forecast-status",

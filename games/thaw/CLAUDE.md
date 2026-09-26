@@ -572,3 +572,7 @@ Before advancing, the player may lock in a guess of Region A's temperature after
 - Module-level `forecast_guess`/`forecast_total`/`forecast_hits`/`forecast_last`; `lock_forecast()` rejects blank, non-numeric, non-finite and out-of-range (-100..1000) input; `resolve_forecast()` runs right after Region A advances.
 - Save: a `forecast` dict (`total`, `hits`) written only once one has been scored, validated on load (non-negative ints, hits never above total, bools rejected); the locked guess and last result are per-session and reset on load.
 - 202 -> 216 tests (`tests/test_forecast.py`); verified live, zero console errors.
+
+## Global vs. regional framing toggle (G29, 2026-09-26)
+
+One button (`framing-toggle-button`) flips a summary line between two readings of the same numbers: "regional" (default) reads Region A as the player's own choices (its temperature and degrees saved), "global" reads Regions A-C together as one planet (average warming, how many of the three are melting, average degrees saved). Presentation only: nothing in any mechanic reads `framing`, and Region D (the unmanaged what-if) is never part of either summary. Only the non-default framing is saved; a wrong-typed or unknown value loads as "regional". 216 -> 226 tests (`tests/test_framing.py`); verified live, zero console errors.

@@ -984,6 +984,47 @@ def on_toggle_info_page(event=None):
 
 
 # ===========================================================================
+# G29: the "global vs. regional" framing toggle. The same three regions and
+# the same numbers, reframed: "regional" reads them as the player's own
+# region's choices; "global" reads Regions A-C together as one aggregate
+# planet. Presentation only -- no mechanic reads it, and Region D (the
+# unmanaged what-if) is never part of either summary.
+# ===========================================================================
+FRAMINGS = ("regional", "global")
+framing = "regional"
+
+
+def framing_summary_text():
+    if framing == "global":
+        regions = [region, region_b, region_c]
+        mean_temp = sum(r.temperature for r in regions) / len(regions)
+        mean_saved = sum(r.temperature_saved() for r in regions) / len(regions)
+        melting = sum(1 for r in regions if r.is_melting())
+        return (
+            f"Global picture, Regions A\u2013C together: +{mean_temp:.1f}\u00b0 average warming, "
+            f"{melting} of {len(regions)} regions melting, {mean_saved:.1f}\u00b0 saved on average "
+            f"versus no action."
+        )
+    return (
+        f"Your region's choices (Region A): +{region.temperature:.1f}\u00b0 warming, "
+        f"{region.temperature_saved():.1f}\u00b0 saved versus no action."
+    )
+
+
+def _render_framing():
+    document.getElementById("framing-toggle-button").innerText = (
+        "Framing: global aggregate" if framing == "global" else "Framing: my region's choices"
+    )
+    document.getElementById("framing-summary").innerText = framing_summary_text()
+
+
+def on_toggle_framing(event=None):
+    global framing
+    framing = "global" if framing == "regional" else "regional"
+    render()
+
+
+# ===========================================================================
 # G27: the "thaw forecast" mini-game. Before advancing, the player may lock
 # in a guess of Region A's temperature after the coming round; on advance
 # the guess is scored against the real number. Purely cosmetic: a running
@@ -1637,6 +1678,7 @@ def render():
     _render_restoration("", region)
     _render_policy_stance()
     _render_forecast()
+    _render_framing()
     document.getElementById("rise-rate-display").innerText = (
         f"Current warming rate: {region.current_rise_rate():.2f}°/round"
     )
@@ -2068,6 +2110,9 @@ def get_state():
     # G27: the forecast record is written only once a forecast has been scored.
     if forecast_total > 0:
         state["forecast"] = {"total": forecast_total, "hits": forecast_hits}
+    # G29: only the non-default framing is written.
+    if framing != "regional":
+        state["framing"] = framing
     return state
 
 
@@ -2085,6 +2130,7 @@ def load_state(data):
     per-field fallback in _apply_region_state()."""
     global info_page_open, worst_case_region_revealed, preset_used_ever
     global worst_case_intro_seen, forecast_guess, forecast_total, forecast_hits, forecast_last
+    global framing
     if not isinstance(data, dict):
         return False
     region_data = data.get("region")
@@ -2111,6 +2157,8 @@ def load_state(data):
     forecast_last = None
     forecast_total = 0
     forecast_hits = 0
+    saved_framing = data.get("framing")
+    framing = saved_framing if saved_framing in FRAMINGS else "regional"
     saved_forecast = data.get("forecast")
     if isinstance(saved_forecast, dict):
         total = saved_forecast.get("total")
@@ -2138,6 +2186,9 @@ def load_state(data):
 
 
 def setup():
+    document.getElementById("framing-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_framing)
+    )
     document.getElementById("forecast-lock-button").addEventListener(
         "click", create_proxy(on_lock_forecast)
     )

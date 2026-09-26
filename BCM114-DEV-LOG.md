@@ -590,3 +590,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Thaw
 **Did:** Added the optional "thaw forecast": lock in a guess of Region A's next-round temperature, get scored on Advance, and earn a cosmetic Forecaster title from the running hit rate. No mechanic reads it.
 **Result:** 202 → 216 tests passing, flake8 clean; verified live, zero console errors.
+
+### 2026-09-26 (Thaw: global vs. regional framing, G29)
+**Game:** Thaw
+**Did:** Added a framing toggle that reads the same three regions either as "my region's choices" or as a global aggregate (average warming, regions melting, average degrees saved). Presentation only, Region D excluded.
+**Result:** 216 → 226 tests passing, flake8 clean; verified live, zero console errors.

@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 676/767 items checked off (88.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 677/767 items checked off (88.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -614,7 +614,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] G26: Let the intervention free-text field show a short prompt/example answer as placeholder text.
 - [x] G27: A "thaw forecast" mini-game — periodically predict next-round temperature before advancing, rewarded cosmetically for accuracy.
 - [x] G28: A small "rounds since last tipping event" counter, giving stability its own visible streak like Grid's clean streaks.
-- [ ] G29: A "global vs. regional" framing toggle — the same mechanic reframed as either "my region's choices" or "the global aggregate."
+- [x] G29: A "global vs. regional" framing toggle — the same mechanic reframed as either "my region's choices" or "the global aggregate."
 - [x] G30: A one-time tooltip the first time Region D is revealed, clarifying it's fully automated and never needs player input.
 
 **Explicitly rejected this round:** G1 — a fifth "wildcard" region — dropped; you don't think the game needs that many regions running.
