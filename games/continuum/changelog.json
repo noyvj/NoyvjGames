@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-26",
+    "entry": "New optional Hamlet view (desktop only, off by default): switch it on and the controls move into the scene itself. Click a building to build more of it or put a worker on it, use the small buttons under each building to take workers off or buy another, and click the Town Centre for research, civic challenges and the next era. Every building is also reachable and usable from the keyboard, and it falls back to a flat map if the 3D view is off (U2)."
+  },
+  {
+    "date": "2026-09-26",
     "entry": "Seasons now pass on their own. Pause, 1x, 2x and 4x speed controls replace the Advance Season button, and every settlement starts paused (U1)."
   },
   {
@@ -93,10 +97,6 @@
   },
   {
     "date": "2026-09-13",
-    "entry": "Medieval era added: Guildmasters and Public Works, with the research tree's first resilience-side sustainability bonus."
-  },
-  {
-    "date": "2026-09-13",
-    "entry": "Classical era added: Administrators and Canals, with a resilience-side sustainability adjustment; foundations (from 2026-09-02): Foundation shipped: the Tribal-era city simulation, sustainability/livability scoring, the continuous research tree, the save system, and the info-panel shell; then story and era-transition framework: ongoing logs, era-transition beats, and the first full Tribal to Agrarian transition."
+    "entry": "Medieval era added: Guildmasters and Public Works, with the research tree's first resilience-side sustainability bonus. Earlier: Classical era added: Administrators and Canals, with a resilience-side sustainability adjustment; foundations (from 2026-09-02): Foundation shipped: the Tribal-era city simulation, sustainability/livability scoring, the continuous research tree, the save system, and the info-panel shell; then story and era-transition framework: ongoing logs, era-transition beats, and the first full Tribal to Agrarian transition."
   }
 ]

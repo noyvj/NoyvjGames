@@ -1368,3 +1368,210 @@ kbd { border: 1px solid rgba(201, 147, 84, 0.5); border-radius: 4px; padding: 0 
 .speed-buttons .speed-button { flex: 1 1 0; }
 .speed-button.selected { outline: 2px solid #c99354; }
 .meter-fill--season { background: linear-gradient(90deg, #8c6a3c, #c99354); width: 0; transition: width 0.25s linear; }
+
+/* ==========================================================================
+   U2: the optional Hamlet view (desktop only, off by default).
+   Everything below is inert unless game.py adds `hamlet-on` to #game, so with
+   the mode off nothing above changes. The ordinary Work / Build / Research /
+   Civic / Era Progress panels are hidden (not removed) while it is on; the
+   chips are real buttons laid over the scene by hamlet.js (3D) or at flat
+   top-down positions (no WebGL / 2D view).
+   ========================================================================== */
+.visual-stage { position: relative; }
+.hamlet-toggle { margin-bottom: 0.5rem; }
+.hamlet-toggle[hidden] { display: none; }
+
+.hamlet-stage { display: none; }
+
+#game.hamlet-on { max-width: 1180px; display: flex; flex-direction: column; }
+/* One-screen layout: pull the clock and the scene up under the title, and
+   let everything else (scenario, info, sustainability, log...) follow. */
+#game.hamlet-on > * { order: 5; }
+#game.hamlet-on > .hub-back-link,
+#game.hamlet-on > h1,
+#game.hamlet-on > .game-toolbar { order: 0; }
+#game.hamlet-on > #speed-controls { order: 1; }
+#game.hamlet-on > #status { order: 2; }
+#game.hamlet-on > .tagline,
+#game.hamlet-on > .context-blurb { display: none; }
+#game.hamlet-on > h1 { align-self: flex-start; }
+#game.hamlet-on #work,
+#game.hamlet-on #buildings,
+#game.hamlet-on #research,
+#game.hamlet-on #civic,
+#game.hamlet-on #era-progress { display: none; }
+
+#game.hamlet-on .visual-stage {
+  height: clamp(420px, calc(100vh - 330px), 620px);
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #2a2440 0%, #3d3a3a 100%);
+  box-shadow: inset 0 0 0 1px rgba(216, 164, 92, 0.2), 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+#game.hamlet-on .visual3d-container { height: 100%; margin-bottom: 0; border-radius: 0; box-shadow: none; }
+#game.hamlet-on .settlement-visual { display: none; }
+
+#game.hamlet-on .hamlet-stage {
+  display: block;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.hamlet-stage[hidden] { display: none !important; }
+/* The flat "ground" only shows when there is no 3D scene behind the chips. */
+.hamlet-ground {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  top: 14%;
+  bottom: 4%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 50%, #6f9c5a 0%, #4a6f3a 62%, #32501e 100%);
+  box-shadow: 0 0 0 10px rgba(74, 111, 58, 0.25);
+  display: none;
+}
+#game.hamlet-on:not(.hamlet-3d) .hamlet-ground { display: block; }
+
+.hamlet-hud {
+  position: absolute;
+  left: 10px;
+  top: 8px;
+  width: 230px;
+  margin: 0;
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  background: rgba(16, 14, 12, 0.72);
+  color: #f2e8d6;
+  font-size: 0.82rem;
+  pointer-events: none;
+  z-index: 400;
+}
+.hamlet-note {
+  position: absolute;
+  left: 10px;
+  bottom: 8px;
+  margin: 0;
+  padding: 0.25rem 0.55rem;
+  border-radius: 8px;
+  background: rgba(16, 14, 12, 0.72);
+  color: #e8d8b8;
+  font-size: 0.75rem;
+  z-index: 400;
+}
+.hamlet-note[hidden] { display: none; }
+/* Visually hidden but still announced. */
+.hamlet-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.hamlet-chips { position: absolute; inset: 0; pointer-events: none; }
+.hamlet-chip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+}
+.hamlet-chip button { pointer-events: auto; font: inherit; cursor: pointer; }
+.hamlet-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(232, 184, 118, 0.65);
+  background: rgba(24, 20, 16, 0.86);
+  color: #f6ecd9;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+.hamlet-count { font-weight: 700; color: #ffd98f; }
+/* Compact by default: the name floats above a building on hover/focus (it is
+   always in the button's aria-label and title); the Town Centre keeps its name. */
+.hamlet-main { position: relative; }
+.hamlet-name {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.1rem 0.5rem;
+  border-radius: 8px;
+  background: rgba(16, 14, 12, 0.95);
+  border: 1px solid rgba(232, 184, 118, 0.6);
+  color: #fff3d8;
+  font-size: 0.75rem;
+  pointer-events: none;
+}
+.hamlet-chip:hover .hamlet-name,
+.hamlet-chip:focus-within .hamlet-name,
+.hamlet-chip--hover .hamlet-name { display: block; }
+.hamlet-chip[data-station="town_centre"] .hamlet-name { display: inline; position: static; transform: none; padding: 0; border: 0; background: none; }
+.hamlet-chip:hover, .hamlet-chip:focus-within, .hamlet-chip--hover { z-index: 900 !important; }
+.hamlet-sub {
+  font-size: 0.68rem;
+  color: #f0e4cc;
+  background: rgba(16, 14, 12, 0.7);
+  border-radius: 6px;
+  padding: 0 0.35rem;
+  white-space: nowrap;
+}
+.hamlet-sub[hidden] { display: none; }
+.hamlet-actions { display: flex; gap: 3px; align-items: center; }
+.hamlet-mini {
+  padding: 0.08rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid rgba(232, 184, 118, 0.55);
+  background: rgba(24, 20, 16, 0.86);
+  color: #f6ecd9;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+.hamlet-buy { border-color: #8fd37a; }
+.hamlet-main:hover,
+.hamlet-mini:hover,
+.hamlet-chip--hover .hamlet-main { background: rgba(80, 58, 24, 0.95); border-color: #ffd98f; }
+.hamlet-chip--open .hamlet-main { background: rgba(80, 58, 24, 0.95); border-color: #ffd98f; }
+/* A building that cannot act right now: dimmed, dashed, still focusable. */
+.hamlet-blocked { opacity: 0.55; border-style: dashed; }
+.hamlet-chip button:focus-visible { outline: 3px solid #ffffff; outline-offset: 2px; }
+
+.hamlet-town-panel {
+  position: absolute;
+  right: 10px;
+  top: 52px;
+  bottom: 10px;
+  width: 300px;
+  overflow-y: auto;
+  padding: 0.6rem 0.75rem;
+  border-radius: 12px;
+  background: rgba(20, 17, 14, 0.94);
+  border: 1px solid rgba(232, 184, 118, 0.5);
+  color: #f2e8d6;
+  font-size: 0.8rem;
+  pointer-events: auto;
+  z-index: 500;
+}
+.hamlet-town-panel[hidden] { display: none; }
+.hamlet-town-head { display: flex; justify-content: space-between; align-items: center; }
+.hamlet-town-heading { margin: 0.6rem 0 0.25rem; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: #e8b876; }
+.hamlet-town-line { margin: 0.15rem 0; }
+.hamlet-town-dim { opacity: 0.7; }
+.hamlet-town-row { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin: 0.2rem 0; }
+.hamlet-town-name { flex: 1 1 auto; }
+.hamlet-town-panel button { pointer-events: auto; font: inherit; cursor: pointer; }
+.hamlet-town-panel:focus { outline: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .hamlet-main, .hamlet-mini { transition: background 0.12s ease, border-color 0.12s ease; }
+}

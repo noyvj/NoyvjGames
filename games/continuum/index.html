@@ -223,6 +223,11 @@
         only as an automatic fallback.
       -->
       <button id="visual-mode-toggle-button" class="secondary visual-mode-toggle" type="button" hidden>🖼 2D view</button>
+      <!-- U2: optional desktop-only Hamlet view -- the controls become
+           clickable buildings inside the scene. Off by default; game.py
+           shows this button only on a desktop-class screen and remembers
+           the choice in localStorage. -->
+      <button id="hamlet-toggle-button" class="secondary hamlet-toggle" type="button" aria-pressed="false" title="Play from inside the scene: click buildings to assign workers, build, research and more. Desktop only." hidden>🏘 Hamlet view: Off</button>
       <!-- K13 (planning/TODO.md): a shareable "my settlement" snapshot,
            exported straight off the live WebGL canvas via
            canvas.toDataURL(). render3d.js shows this only once a real 3D
@@ -252,6 +257,10 @@
            player could easily miss -- title/aria-label now say so directly
            on the permanent element itself, not just in the one-time
            walkthrough. -->
+      <!-- U2: #visual-stage wraps the scene so the Hamlet overlay (below) can
+           sit exactly on top of either the 3D canvas or the 2D diorama.
+           With the Hamlet view off it is a plain block and changes nothing. -->
+      <div id="visual-stage" class="visual-stage">
       <div id="visual3d-container" class="visual3d-container" role="img" aria-label="A low-poly 3D view of the settlement. Drag to rotate the camera." title="Drag to rotate the view" hidden></div>
       <div class="settlement-visual" aria-hidden="true">
         <div class="settlement-sky"></div>
@@ -260,6 +269,18 @@
         <div class="settlement-hut settlement-hut--b"></div>
         <div class="settlement-hut settlement-hut--c"></div>
         <div class="settlement-fire"></div>
+      </div>
+      <!-- U2: the Hamlet overlay. Every chip is a real button built by
+           game.py (render_hamlet); hamlet.js only positions them over the
+           3D buildings and lets a click on a building press its button. -->
+      <div id="hamlet-stage" class="hamlet-stage" hidden>
+        <div class="hamlet-ground" aria-hidden="true"></div>
+        <p id="hamlet-hud" class="hamlet-hud"></p>
+        <div id="hamlet-chips" class="hamlet-chips" role="group" aria-label="Settlement buildings"></div>
+        <div id="hamlet-town-panel" class="hamlet-town-panel" hidden></div>
+        <p id="hamlet-note" class="hamlet-note" hidden></p>
+        <p id="hamlet-live" class="hamlet-live" role="status" aria-live="polite"></p>
+      </div>
       </div>
       <p id="revisit-active-banner" class="event-display event-display--warning revisit-banner" hidden></p>
       <p id="era-display" class="era-line">Tribal era</p>
@@ -422,6 +443,8 @@
        ContinuumVisual.init(pyodide) after game.py has booted. -->
   <script src="render3d.js"></script>
   <script src="settings.js"></script>
+  <!-- U2: the Hamlet view's browser half (overlay positioning, 3D buildings, picking). -->
+  <script src="hamlet.js"></script>
   <!-- K20: shareable infographic card, drawn on a 2D canvas (card.js). -->
   <script src="card.js"></script>
   <script>
@@ -508,7 +531,7 @@
     // Each engine module is written into Pyodide's virtual filesystem (the
     // working directory, which is on sys.path) before game.py runs and
     // imports them. Still no build step — just more than one fetch.
-    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py", "minutes.py"];
+    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py", "minutes.py", "hamlet.py"];
 
     const CONTINUUM_TUTORIAL_STEPS = [
       {

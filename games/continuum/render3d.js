@@ -85,6 +85,9 @@
     // K4: the classic isometric city-builder angle (45 degrees around,
     // about 35 degrees down), pulled back a little so the whole map fits.
     isometric: { yaw: 0.785, pitch: 0.615, distance: 11.5 },
+    // U2: the Hamlet view's default angle -- a little higher and further
+    // back so the whole ring of buildings sits inside the taller stage.
+    hamlet: { yaw: 0.785, pitch: 0.98, distance: 12.5 },
   };
 
   // K14: an optional time-of-day override for screenshots. "auto" keeps the
@@ -588,6 +591,62 @@
     cameraDistance = preset.distance;
     updateCameraPosition();
     if (renderer && scene) renderer.render(scene, camera);
+    notifyChange();
+  }
+
+  // U2 (the Hamlet view): a small, read-mostly surface for hamlet.js so the
+  // overlay can sit on the same scene without this file knowing it exists.
+  // notifyChange() fires after anything that moves the picture (a redraw,
+  // the camera, a resize, the 2D/3D toggle); hamlet.js re-projects its
+  // buttons then. Nothing here is ever called unless hamlet.js registered.
+  const changeListeners = [];
+  function notifyChange() {
+    changeListeners.forEach(function (fn) {
+      try { fn(); } catch (err) { console.warn("Continuum 3D: change listener failed.", err); }
+    });
+  }
+
+  function viewHeight() {
+    const container = document.getElementById(CONTAINER_ID);
+    return (container && container.clientHeight) || 220;
+  }
+
+  function resizeToContainer() {
+    const container = document.getElementById(CONTAINER_ID);
+    if (!renderer || !container) return;
+    const w = container.clientWidth || 320;
+    const h = viewHeight();
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    if (scene) renderer.render(scene, camera);
+    notifyChange();
+  }
+
+  // A ground-plane/world point -> percentages of the canvas box (or null if
+  // it is behind the camera). Only valid after a render (three updates the
+  // camera's inverse matrix during renderer.render).
+  function projectPoint(x, y, z) {
+    if (!renderer || !camera) return null;
+    const v = new THREE.Vector3(x, y, z).project(camera);
+    if (v.z > 1) return null;
+    return { left: (v.x * 0.5 + 0.5) * 100, top: (-v.y * 0.5 + 0.5) * 100, depth: v.z };
+  }
+
+  // First object hit under a client-space pointer, among `objects` (and
+  // their descendants), or null.
+  function pickAt(clientX, clientY, objects) {
+    if (!renderer || !camera || !objects || !objects.length) return null;
+    const rect = renderer.domElement.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    const ndc = new THREE.Vector2(
+      ((clientX - rect.left) / rect.width) * 2 - 1,
+      -((clientY - rect.top) / rect.height) * 2 + 1
+    );
+    const caster = new THREE.Raycaster();
+    caster.setFromCamera(ndc, camera);
+    const hits = caster.intersectObjects(objects, true);
+    return hits.length ? hits[0].object : null;
   }
 
   // K27: keyboard access to the presets (see the shortcuts panel).
@@ -699,6 +758,7 @@
       pitch += dy * 0.006;
       updateCameraPosition();
       renderer.render(scene, camera);
+      notifyChange();
     });
   }
 
@@ -724,6 +784,7 @@
       scene.add(sceneGroup);
     }
     renderer.render(scene, camera);
+    notifyChange();
   }
 
   function pullStateAndRender() {
@@ -784,6 +845,7 @@
       // the toggle still works for this page load, it just won't be
       // remembered next time. Not worth failing the toggle over.
     }
+    notifyChange();
   }
 
   function currentViewMode() {
@@ -825,7 +887,7 @@
 
     try {
       const width = container.clientWidth || 320;
-      const height = 220;
+      const height = viewHeight();
 
       // K13 — preserveDrawingBuffer keeps the drawing buffer intact after
       // a render instead of letting the browser clear/swap it away before
@@ -847,10 +909,12 @@
       attachDragControls(container);
       window.addEventListener("resize", function () {
         const w = container.clientWidth || width;
-        renderer.setSize(w, height);
-        camera.aspect = w / height;
+        const h = viewHeight();
+        renderer.setSize(w, h);
+        camera.aspect = w / h;
         camera.updateProjectionMatrix();
         if (scene) renderer.render(scene, camera);
+        notifyChange();
       });
 
       pyodideRef = pyodide;
@@ -863,6 +927,9 @@
       setupToggleButton();
       setupCameraPresetButtons();
       setupSnapshotButton();
+      if (window.ContinuumHamlet && window.ContinuumHamlet.sceneReady) {
+        window.ContinuumHamlet.sceneReady();
+      }
       return true;
     } catch (err) {
       console.warn("Continuum 3D: failed to initialise, staying on the 2D view.", err);
@@ -872,4 +939,27 @@
   }
 
   window.ContinuumVisual = { init: init, capture: capture };
+
+  // U2: what hamlet.js may use. The building blocks are the same low-poly
+  // helpers every era scene above is made of, so hamlet buildings match.
+  window.ContinuumScene = {
+    ready: function () { return ready; },
+    is3dVisible: function () {
+      const container = document.getElementById(CONTAINER_ID);
+      return !!(ready && container && !container.hidden);
+    },
+    scene: function () { return scene; },
+    project: projectPoint,
+    pick: pickAt,
+    redraw: function () { if (renderer && scene) { renderer.render(scene, camera); notifyChange(); } },
+    resize: resizeToContainer,
+    onChange: function (fn) { changeListeners.push(fn); },
+    helpers: {
+      box: box, cylinder: cylinder, coneRoof: coneRoof, ring: ring, flatPlot: flatPlot,
+      buildHut: buildHut, buildHouse: buildHouse, buildCampfire: buildCampfire,
+      buildMound: buildMound, buildChimneyFactory: buildChimneyFactory,
+      buildSanitationWorks: buildSanitationWorks, buildGlassTower: buildGlassTower,
+      buildSpire: buildSpire, toonMaterial: toonMaterial, lerpColor: lerpColor,
+    },
+  };
 })();

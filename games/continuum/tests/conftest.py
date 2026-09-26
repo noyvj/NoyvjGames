@@ -149,6 +149,14 @@ ELEMENT_IDS = [
     "views-flow",
     "views-flow-svg",
     "views-flow-caption",
+    # U2 -- the optional Hamlet view (chips/panel rows are created at runtime).
+    "game",
+    "hamlet-toggle-button",
+    "hamlet-stage",
+    "hamlet-hud",
+    "hamlet-chips",
+    "hamlet-town-panel",
+    "hamlet-live",
 ]
 
 
