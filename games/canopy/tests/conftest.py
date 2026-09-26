@@ -53,6 +53,10 @@ ELEMENT_IDS = [
     # "What's New" changelog panel (site-wide goal, origin K16)
     "changelog-toggle-button",
     "changelog-panel",
+    # W2-canopy: sourced real-world note
+    "real-world-note",
+    "real-world-text",
+    "real-world-source",
     "example-toggle-button",
     "example-panel",
     "reset-session-button",

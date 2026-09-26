@@ -564,3 +564,16 @@ A third region after Highland Grove. `WETLAND_UNLOCK_STANDING_VALUE_THRESHOLD` =
 ## Story mode (W1, 2026-09-26)
 
 A light narrative thread, "Wren Hollow", built on the shared `shared/story-chapters.js` (Grid was the reference integration; that file is not edited per game). `story.json` holds an opening chapter `begin` plus exactly one chapter per achievement id in `achievements.json`, in story order from early to late game, about plots, seasons and village stakeholders. `_story_reach_all(earned_ids)` in `game.py` calls `window.NoyvjStory.reach()` for `begin` and every earned id, from the achievement check (`_sync_earned_and_toast`) and from the load/baseline path, so a loaded save brings its chapters back. It is idempotent and silent when the script is missing. Progress lives in `localStorage["story-chapters:canopy"]`, never in the save. `#story-chapters` is appended to the existing `story-toggle.js` selectors, so the Story on/off pill hides it. Tests: `tests/test_story_chapters.py` (7).
+
+## In the real world (W2-canopy, 2026-09-27)
+
+A collapsible "In the real world" `<details id="real-world-note">` (above the action panel) shows one sourced real example, chosen deterministically by `real_world_topic()` (no RNG) and rendered by `render_real_world()`. It changes no game number and adds no save state. Priority: a pending community request (clear request -> `community`; incentive or replant-fund offer -> `funded_restoration`), else the newest mapped forest-log event (`REAL_WORLD_LOG_TOPICS`: clear -> `forest_loss`, replant -> `restoration`, wildlife/preserve/recovered -> `wildlife`, mature -> `carbon`), else rotation by `forest_tick // REAL_WORLD_ROTATE_TICKS`. Every fact below was read with a live fetch on 2026-09-27 (nothing recalled from memory); the source line reads "Source: <name> (read 2026-09-27)" and links with `target=_blank rel="noopener noreferrer"`. Tests: `tests/test_real_world.py`.
+
+| Topic | Mechanic | Source and URL |
+|-------|----------|----------------|
+| `forest_loss` | clearing a plot | Wikipedia, Deforestation (FAO: 10 million ha/yr 2015-2020, 17.6 million ha/yr 1990-2000) - https://en.wikipedia.org/wiki/Deforestation |
+| `restoration` | replanting | Wikipedia, Atlantic Forest (Pact for Atlantic Forest Restoration: 100+ organisations, 15 million ha by 2050) - https://en.wikipedia.org/wiki/Atlantic_Forest |
+| `wildlife` | biodiversity / preserved plots | Wikipedia, Secondary forest (species richness recovers quickly, abundances and identities slower; tropical biodiversity slower than carbon) - https://en.wikipedia.org/wiki/Secondary_forest |
+| `carbon` | mature plots | Wikipedia, Carbon sink (forests ~25% of human emissions annually; a third less carbon taken up in 2019 than 1990s) - https://en.wikipedia.org/wiki/Carbon_sink |
+| `community` | stakeholder clear request | Wikipedia, Community forestry in Nepal (19,000+ user groups, a quarter of national forests, 1.6 million households; equity caveat) - https://en.wikipedia.org/wiki/Community_forestry_in_Nepal |
+| `funded_restoration` | incentive / replant-fund offer | Wikipedia, Great Green Wall (Africa) (adopted 2007, 100 million ha goal by 2030, ~30 million ha as of 2024, figures vary by report) - https://en.wikipedia.org/wiki/Great_Green_Wall_(Africa) |

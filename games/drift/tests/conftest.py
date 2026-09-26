@@ -67,6 +67,10 @@ ELEMENT_IDS = [
     "housing-invest-button",
     "learning-display",
     "second-wave-display",
+    # W2-drift: sourced real-world note
+    "real-world-note",
+    "real-world-text",
+    "real-world-source",
     "neighbor-panel",
     "neighbor-display",
     "neighbor-open-button",

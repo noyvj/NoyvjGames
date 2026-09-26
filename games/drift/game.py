@@ -1976,12 +1976,89 @@ def render_personal_best():
     element.innerText = f"Personal best wellbeing: {personal_best['wellbeing_score']:.0f}"
 
 
+# ===========================================================================
+# W2-drift -- "In the real world": a collapsible note that pairs the region's
+# current situation with one real, sourced example of institutions handling
+# the same thing. Every figure below was read from the linked page on
+# 2026-09-27 (nothing recalled from memory); where a page gave no number, none
+# is quoted. Kept institutional and neutral, in line with this game's
+# sensitivity note: programmes, laws and documented figures, never individual
+# stories or advocacy. The choice is a pure function of run state, with no RNG:
+#   * a warned or active second wave -> the 2022 EU temporary-protection surge,
+#   * else any strain above "stable" -> Jordan's services under pressure,
+#   * else the funded policies (language access, credentialing, sponsorship)
+#     rotate by round, one example per funded policy,
+#   * else all examples rotate by round.
+# It never changes any number in a run.
+# ===========================================================================
+REAL_WORLD_READ_DATE = "2026-09-27"
+REAL_WORLD_ORDER = ["settlement", "language_access", "credentialing", "sponsorship", "surge", "services_strain"]
+REAL_WORLD_POLICY_TOPICS = ["language_access", "credentialing", "sponsorship"]  # POLICIES keys that have an example
+REAL_WORLD_EXAMPLES = {
+    "settlement": {
+        "title": "Uganda's settlement approach",
+        "text": "Uganda's 2006 Refugee Act granted freedom of movement, the right to work and access to public services, and households in settlements were allotted a uniform plot of 30 by 30 metres. The page also records that implementation gaps remained, and reports about 1.95 million refugees in the country by October 2025.",
+        "source": "Wikipedia, Refugees in Uganda", "url": "https://en.wikipedia.org/wiki/Refugees_in_Uganda",
+    },
+    "language_access": {
+        "title": "Germany's integration courses",
+        "text": "Germany introduced state-funded integration courses in 2005: 600 hours of language instruction plus 100 hours of orientation (as of 2016). About 94,020 people started one in 2012 and 142,439 in 2014; the page notes one evaluation found a 53% pass rate in 2012.",
+        "source": "Wikipedia, Integration course", "url": "https://en.wikipedia.org/wiki/Integration_course",
+    },
+    "credentialing": {
+        "title": "Recognising qualifications gained abroad (Germany)",
+        "text": "Germany's federal migration office describes a recognition process in which qualifications obtained abroad are compared with German requirements. Nationality is not decisive and no residence permit is needed, and as a rule the process should not take longer than three months if all documents are complete.",
+        "source": "BAMF (German Federal Office for Migration and Refugees), Recognition of foreign professional qualifications", "url": "https://www.bamf.de/EN/Themen/Integration/ZugewanderteTeilnehmende/AnerkennungBerufsabschluesse/anerkennungberufsabschluesse-node.html",
+    },
+    "sponsorship": {
+        "title": "Canada's Private Sponsorship of Refugees Program",
+        "text": "Established in 1978, the programme lets groups of citizens and organisations provide social, emotional, residential and financial support for one year or until a refugee becomes self-sufficient. The page counts nearly 300,000 refugees resettled through it since 1979 (as of January 2020).",
+        "source": "Wikipedia, Private Sponsorship of Refugees Program", "url": "https://en.wikipedia.org/wiki/Private_Sponsorship_of_Refugees_Program",
+    },
+    "surge": {
+        "title": "The EU's temporary protection for Ukraine (2022)",
+        "text": "The EU invoked its Temporary Protection Directive on 3 March 2022: people covered can get a residence permit without the complicated bureaucracy normally associated with asylum, may work and access social welfare, and children can attend school as EU residents do. Protection can last up to three years.",
+        "source": "Wikipedia, Temporary Protection Directive", "url": "https://en.wikipedia.org/wiki/Temporary_Protection_Directive",
+    },
+    "services_strain": {
+        "title": "Jordan's public services under pressure",
+        "text": "By November 2015, 630,776 Syrian refugees were registered in Jordan according to UNHCR data cited by the page, which describes the added pressure on Jordan's infrastructure, specifically water supplies, sanitation, housing and energy.",
+        "source": "Wikipedia, Syrian refugees in Jordan", "url": "https://en.wikipedia.org/wiki/Syrian_refugees_in_Jordan",
+    },
+}
+
+
+def real_world_topic():
+    """Which example the note shows right now (pure function of run state)."""
+    if region.second_wave_status in ("warned", "active"):
+        return "surge"
+    if region.strain_level() != STRAIN_LEVEL_THRESHOLDS[0][1]:
+        return "services_strain"
+    funded = [p for p in REAL_WORLD_POLICY_TOPICS if region.policy_level.get(p, 0) > 0]
+    if funded:
+        return funded[region.round_number % len(funded)]
+    return REAL_WORLD_ORDER[region.round_number % len(REAL_WORLD_ORDER)]
+
+
+def render_real_world():
+    box = document.getElementById("real-world-note")
+    if box is None:
+        return
+    example = REAL_WORLD_EXAMPLES[real_world_topic()]
+    box.hidden = False
+    document.getElementById("real-world-text").innerText = f"{example['title']}. {example['text']}"
+    link = document.getElementById("real-world-source")
+    link.innerText = f"Source: {example['source']} (read {REAL_WORLD_READ_DATE})"
+    link.href = example["url"]
+
+
 def render():
     _sync_spillover()
     render_info_page()
     render_neighbor()
     render_policies()
     render_second_wave()
+    render_real_world()
     _maybe_record_learning()
     render_learning()
     update_achievements_display()
