@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 728/769 items checked off (94.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 729/769 items checked off (94.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -864,7 +864,7 @@ A "yes" here means "worth a groundwork plan" (a new `planning/<game>-plan.md`, p
 - [x] A "resource shopping list" export — a plain-text/copyable summary of exactly what's still needed.
 - [x] Let the "used in" tab show a resource's own total remaining-needed count inline.
 - [ ] A source layer for resources gated behind **Syndicate standing**, not Void Relics — you confirmed none of the 65 resources are relic-gated, but some are standing-gated, so build that instead of the originally-pitched relic layer.
-- [ ] A dark/light toggle for the tracker's own UI (a personal preference option, separate from the hub site's own much bigger dark/light-theme discussion in `planning/LATER.md` L5).
+- [x] A dark/light toggle for the tracker's own UI (a personal preference option, separate from the hub site's own much bigger dark/light-theme discussion in `planning/LATER.md` L5). **Done 2026-09-26:** the tracker loads the shared `theme.js` (floating Light/Dark pill, remembered per device and synced to the account via Y31) and `style.css` gained a real light palette (page, sections, tables, inputs, buttons, tags, progress bars) plus the shared light widget styles for the save widget; dark is unchanged. 80 -> 87 tracker tests (`tests/test_theme_toggle.py`), verified live.
 - [ ] A "resource value" heuristic — flag which owned resources are rare/hard-to-farm vs. common, to help prioritize which builds to do first.
 - [x] Visually distinguish Wiki links already visited this session.
 - [x] A small favicon for the tracker itself.

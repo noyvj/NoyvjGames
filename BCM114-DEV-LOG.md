@@ -720,3 +720,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** tide
 **Did:** Added an optional lower-lying sister settlement that shares funds and the seawall tier: it takes 1.3 times the sea rise, costs shared funds for its damage and earns some income, with a readout; one-way switch, saved only when on.
 **Result:** 252 → 265 tests passing, flake8 clean; verified live.
+
+### 2026-09-26 (Warframe tracker: dark/light toggle)
+**Game:** Warframe Build Resource Tracker
+**Did:** Added a light theme for the tracker's own UI: it now loads the shared `theme.js` (a floating Light/Dark pill, remembered per device and account-synced) and `style.css` gained a full light palette (page, sections, tables, inputs, buttons, tags, progress bars) plus the shared light styles for the save widget. Dark is unchanged.
+**Result:** 80 → 87 tracker tests passing; verified live.

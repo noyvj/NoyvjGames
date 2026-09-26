@@ -295,3 +295,51 @@ a.visited-session { color: #9ba1af !important; text-decoration: line-through; te
   section { padding: 12px; overflow-x: auto; }
   table { min-width: 780px; }
 }
+
+/* Light theme (X, "a dark/light toggle for the tracker's own UI"). A personal
+   preference for this tool, driven by the same shared/theme.js the hub and
+   games use, so the choice is remembered per device and follows the account. */
+html[data-theme="light"] body { background: #f1f3f8; color: #1b2033; }
+html[data-theme="light"] .hub-back-link,
+html[data-theme="light"] .subtitle,
+html[data-theme="light"] .sync,
+html[data-theme="light"] .section-head > span,
+html[data-theme="light"] th,
+html[data-theme="light"] .category-note,
+html[data-theme="light"] .resource-location,
+html[data-theme="light"] .used-in summary,
+html[data-theme="light"] .used-in-qty,
+html[data-theme="light"] .cat-progress-count,
+html[data-theme="light"] .toolbar-field,
+html[data-theme="light"] .tag,
+html[data-theme="light"] .missing-note,
+html[data-theme="light"] tr.empty-row td,
+html[data-theme="light"] .part-note summary,
+html[data-theme="light"] a.visited-session { color: #555c72 !important; }
+html[data-theme="light"] .hub-back-link:hover,
+html[data-theme="light"] tr.category-row td { color: #1b2033; }
+html[data-theme="light"] section,
+html[data-theme="light"] .notice,
+html[data-theme="light"] .empty,
+html[data-theme="light"] .summary { background: #ffffff; border-color: #d4d9e6; color: #2a3048; }
+html[data-theme="light"] th,
+html[data-theme="light"] td { border-bottom-color: #d4d9e6; }
+html[data-theme="light"] tr.category-row td { border-bottom-color: #b9c0d4; }
+html[data-theme="light"] .progress { background: #d9deeb; }
+html[data-theme="light"] button.secondary { background: #dbe2f3; color: #1b2033; }
+html[data-theme="light"] button.build-btn:disabled { background: #d4d9e6; color: #6a7188; }
+html[data-theme="light"] .account-row input,
+html[data-theme="light"] input[type="number"],
+html[data-theme="light"] .toolbar input[type="search"],
+html[data-theme="light"] .toolbar select,
+html[data-theme="light"] .part-note textarea { background: #ffffff; color: #1b2033; border-color: #b9c0d4; }
+html[data-theme="light"] #account-signed-in p,
+html[data-theme="light"] .used-in ul,
+html[data-theme="light"] .cat-progress-label,
+html[data-theme="light"] .toolbar-check,
+html[data-theme="light"] .shopping summary { color: #2a3048; }
+html[data-theme="light"] .tag { border-color: #b9c0d4; }
+#theme-toggle-floating { position: fixed; left: 0.6rem; bottom: 0.6rem; z-index: 800; font: inherit; font-size: 0.75rem;
+  padding: 0.3rem 0.7rem; cursor: pointer; color: inherit; background: rgba(20, 22, 36, 0.85);
+  border: 1px solid rgba(140, 160, 255, 0.3); border-radius: 999px; }
+html[data-theme="light"] #theme-toggle-floating { background: rgba(255, 255, 255, 0.95); color: #1b2033; }
