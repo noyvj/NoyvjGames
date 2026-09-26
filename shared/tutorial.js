@@ -244,32 +244,75 @@
       const target = currentTarget();
 
       if (target) {
-        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        // `behavior: "smooth"` used to run here, with positioning deferred
+        // to a fixed 260ms timeout plus a 'scroll' listener meant to catch
+        // up once the animation finished. For a target far down a long
+        // page, the smooth-scroll animation can genuinely take longer than
+        // that (and, in at least one real environment, stopped dispatching
+        // 'scroll' events before the animation visually settled) -- either
+        // way, positionNow() below ran once against a mid-scroll rect and
+        // then never got a correcting call, leaving the card stuck exactly
+        // where that one bad reading put it: fully off-screen. An instant
+        // jump removes the whole race -- there's no animation left to
+        // outrun, so the very next positionNow() call always sees the
+        // final, settled rect.
+        target.scrollIntoView({ behavior: "auto", block: "center" });
       }
 
       const positionNow = () => {
         card.classList.remove("centered");
         if (target) {
+          // #tutorial-overlay is `position: fixed`, which makes it the
+          // containing block for its `position: absolute` children
+          // (spotlight/card) -- their top/left are relative to the
+          // VIEWPORT, exactly like getBoundingClientRect()'s own numbers
+          // already are. Adding window.scrollX/scrollY here double-counts
+          // the scroll offset once the page has actually scrolled (which
+          // target.scrollIntoView() below routinely causes), pushing the
+          // card further down/right the more the page is scrolled -- a
+          // real bug (not a hypothetical one) that pushed step 2's card
+          // fully off-screen on a short mobile viewport. Fixed by using
+          // the viewport-relative rect directly, with no scroll offset.
           const rect = target.getBoundingClientRect();
           const pad = 6;
           spotlight.style.display = "block";
-          spotlight.style.top = `${rect.top - pad + window.scrollY}px`;
-          spotlight.style.left = `${rect.left - pad + window.scrollX}px`;
+          spotlight.style.top = `${rect.top - pad}px`;
+          spotlight.style.left = `${rect.left - pad}px`;
           spotlight.style.width = `${rect.width + pad * 2}px`;
           spotlight.style.height = `${rect.height + pad * 2}px`;
 
-          const spaceBelow = window.innerHeight - rect.bottom;
-          const cardTop =
-            spaceBelow > 200
-              ? rect.bottom + window.scrollY + 14
-              : Math.max(window.scrollY + 12, rect.top + window.scrollY - 180);
-          card.style.top = `${cardTop}px`;
-          let cardLeft = rect.left + window.scrollX;
-          const maxLeft = window.scrollX + document.documentElement.clientWidth - 340;
-          cardLeft = Math.max(window.scrollX + 12, Math.min(cardLeft, maxLeft));
+          // Horizontal first: the card's width (and so how its text wraps,
+          // and so its height) depends on `left`, so it has to be applied
+          // before the height is measured below.
+          let cardLeft = rect.left;
+          const maxLeft = document.documentElement.clientWidth - 340;
+          cardLeft = Math.max(12, Math.min(cardLeft, maxLeft));
           card.style.left = `${cardLeft}px`;
+
+          // Measure the card's real height (it varies with each step's
+          // text) instead of assuming ~200px: prefer below the target if it
+          // fits, else above, and in every case clamp into the viewport so
+          // a tall target can't push the card past either edge.
+          const cardHeight = card.offsetHeight;
+          const spaceBelow = window.innerHeight - rect.bottom;
+          const spaceAbove = rect.top;
+          let cardTop;
+          if (spaceBelow >= cardHeight + 26) {
+            cardTop = rect.bottom + 14;
+          } else if (spaceAbove >= cardHeight + 26) {
+            cardTop = rect.top - cardHeight - 14;
+          } else {
+            cardTop = rect.bottom + 14;
+          }
+          cardTop = Math.max(12, Math.min(cardTop, window.innerHeight - cardHeight - 12));
+          card.style.top = `${cardTop}px`;
         } else {
           spotlight.style.display = "none";
+          // The `.centered` rule positions via top/left 50% + a translate;
+          // an inline top/left left over from the previous (targeted) step
+          // would override it and drag the card partly off-screen.
+          card.style.top = "";
+          card.style.left = "";
           card.classList.add("centered");
         }
       };
