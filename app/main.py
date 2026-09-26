@@ -20,6 +20,7 @@ import leaderboards
 import market
 import pools
 import stats
+from throttle import FailureLimiter
 from database import Base, engine, get_db, patch_schema
 from models import AnswerReport, AuthSession, Feedback, LeaderboardEntry, PageView, PoolDay, Rating, Save, User
 
@@ -157,10 +158,14 @@ def create_save(payload: SaveIn, db: Session = Depends(get_db)):
 
 
 @app.get("/saves/{save_code}", response_model=SaveOut)
-def get_save(save_code: str, response: Response, db: Session = Depends(get_db)):
+def get_save(save_code: str, request: Request, response: Response, db: Session = Depends(get_db)):
     response.headers["Cache-Control"] = "no-store"
+    ip = _client_key(request)
+    if SAVE_CODE_MISS_LIMITER.blocked(ip):
+        raise HTTPException(status_code=429, detail="Too many unknown save codes, try again in a few minutes")
     row = db.query(Save).filter(Save.save_code == save_code).first()
     if row is None:
+        SAVE_CODE_MISS_LIMITER.record_failure(ip)
         raise HTTPException(status_code=404, detail="Save code not found")
     return row
 
@@ -392,6 +397,23 @@ def _username_exists(db: Session, username: str) -> bool:
 
 AI_TEST_USERNAME_PREFIX = "aitest"
 
+# Online-guessing brakes. A wrong password counts against BOTH the username
+# (so a distributed guesser is stopped) and the client address (so one machine
+# cannot try many usernames); a wrong save code counts against the address.
+# Successes clear the counters. See throttle.py.
+LOGIN_FAILURE_LIMITER = FailureLimiter(max_failures=8, window_seconds=15 * 60)
+LOGIN_IP_FAILURE_LIMITER = FailureLimiter(max_failures=40, window_seconds=15 * 60)
+SAVE_CODE_MISS_LIMITER = FailureLimiter(max_failures=40, window_seconds=15 * 60)
+
+
+def _client_key(request: Request) -> str:
+    """The caller's address: the first X-Forwarded-For entry when behind the
+    host's proxy, else the socket peer."""
+    forwarded = request.headers.get("x-forwarded-for", "")
+    if forwarded.strip():
+        return forwarded.split(",")[0].strip()[:64]
+    return request.client.host if request.client else "unknown"
+
 
 @app.post("/auth/signup", response_model=AuthOut)
 def signup(payload: AuthIn, db: Session = Depends(get_db)):
@@ -425,11 +447,17 @@ def signup(payload: AuthIn, db: Session = Depends(get_db)):
 
 
 @app.post("/auth/login", response_model=AuthOut)
-def login(payload: AuthIn, db: Session = Depends(get_db)):
+def login(payload: AuthIn, request: Request, db: Session = Depends(get_db)):
     username = _normalize_username(payload.username)
+    ip = _client_key(request)
+    if LOGIN_FAILURE_LIMITER.blocked(username) or LOGIN_IP_FAILURE_LIMITER.blocked(ip):
+        raise HTTPException(status_code=429, detail="Too many failed logins, try again in a few minutes")
     user = db.query(User).filter(User.username == username).first()
     if user is None or not _verify_password(payload.password, user.password_hash):
+        LOGIN_FAILURE_LIMITER.record_failure(username)
+        LOGIN_IP_FAILURE_LIMITER.record_failure(ip)
         raise HTTPException(status_code=401, detail="Invalid username or password")
+    LOGIN_FAILURE_LIMITER.clear(username)
 
     session_token = _start_session(db, user)
     return AuthOut(bearer_token=session_token, username=user.username)
@@ -736,6 +764,17 @@ class FeedbackOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class FeedbackPublicOut(BaseModel):
+    """What the public listing shows: no account identifier of any kind."""
+    id: str
+    game_id: Optional[str]
+    rating: Optional[int]
+    comment: Optional[str]
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 @app.post("/feedback", response_model=FeedbackOut)
 def create_feedback(
     payload: FeedbackIn,
@@ -756,7 +795,7 @@ def create_feedback(
     return row
 
 
-@app.get("/feedback", response_model=List[FeedbackOut])
+@app.get("/feedback", response_model=List[FeedbackPublicOut])
 def list_feedback(response: Response, game_id: Optional[str] = None, db: Session = Depends(get_db)):
     response.headers["Cache-Control"] = "no-store"
     query = db.query(Feedback).filter(Feedback.is_hidden.is_(False))
