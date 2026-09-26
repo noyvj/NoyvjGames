@@ -325,6 +325,59 @@ PART_CATEGORY.update({name: "amp" for name in _AMP_PARTS})
 PART_CATEGORY.update({name: "zaw" for name in _ZAW_PARTS})
 PART_CATEGORY.update({name: "kitgun" for name in _KITGUN_PARTS})
 
+# What each requested part actually does, one line each, read from the
+# Warframe Wiki's Amp, Zaw and Kitgun pages on 2026-09-26. Stat lines are the
+# Wiki's own figures; kitgun parts are described only in the Wiki's relative
+# terms ("higher", "much lower"), so they are kept that way rather than given
+# invented numbers.
+PART_NOTES = {
+    "Raplak Prism": "Semi-auto, long-range, precise hit-scan.",
+    "Shwaak Prism": "Semi-auto, medium range, punch-through projectile.",
+    "Granmu Prism": "Three-shot grenade burst.",
+    "Rahn Prism": "Fully-auto, long range shots.",
+    "Cantic Prism": "Quick and precise three-shot burst.",
+    "Lega Prism": "Continuous, widespread jet of void fire with medium range.",
+    "Klamora Prism": "Wide, short ranged beam.",
+    "Shraksun Scaffold": "Alt-fire: short-range flak grenade.",
+    "Phahd Scaffold": "Alt-fire: powerful shots bounce between targets.",
+    "Propa Scaffold": "Alt-fire: timed explosive that also detonates on impact.",
+    "Certus Brace": "+20% Amp critical chance.",
+    "Lohrin Brace": "+12% Amp critical/status chance.",
+    "Balla Strike": "Puncture. Base damage 224, speed +0.083, crit 18%/2.0x, status 18%, disposition 0.8.",
+    "Cyath Strike": "Slash. Base damage 230, speed +0.000, crit 18%/2.0x, status 18%, disposition 0.95.",
+    "Dehtat Strike": "Puncture. Base damage 224, speed +0.083, crit 18%/2.0x, status 18%, disposition 1.2.",
+    "Dokrahm Strike": "Slash. Base damage 309, speed +0.083, crit 18%/2.0x, status 18%, disposition 0.75.",
+    "Kronsh Strike": "Impact. Base damage 234, speed -0.067, crit 18%/2.0x, status 18%, disposition 1.3.",
+    "Mewan Strike": "Slash. Base damage 224, speed -0.067, crit 18%/2.0x, status 18%, disposition 1.1.",
+    "Ooltha Strike": "Slash. Base damage 224, speed +0.000, crit 18%/2.0x, status 18%, disposition 1.25.",
+    "Rabvee Strike": "Impact. Base damage 234, speed -0.067, crit 18%/2.0x, status 18%, disposition 1.3.",
+    "Sepfahn Strike": "Slash. Base damage 226, speed +0.000, crit 20%/2.0x, status 20%, disposition 0.7.",
+    "Plague Keewar Strike": "Viral. Base damage 306, speed -0.033, crit 18%/2.0x, status 22%, disposition 0.85.",
+    "Plague Kripath Strike": "Viral. Base damage 213, speed +0.033, crit 22%/2.2x, status 18%, disposition 0.6.",
+    "Shtung Grip": "Two-handed: +28 damage bonus, base speed 0.783.",
+    "Vargeet Jai II Link": "Speed +0.167, crit +7%, status -4%, damage -8.",
+    "Catchmoon Chamber": "Impact and heat damage.",
+    "Gaze Chamber": "Puncture and radiation damage (radiation only as a primary).",
+    "Rattleguts Chamber": "Slash, puncture and radiation damage.",
+    "Tombfinger Chamber": "Impact, puncture and radiation damage.",
+    "Sporelacer Chamber": "Impact and toxin damage.",
+    "Vermisplicer Chamber": "Impact, puncture, slash and toxin damage.",
+    "Haymaker Grip": "Secondary grip: much higher damage, much lower fire rate and beam range, much higher recoil.",
+    "Splat Loader": "Higher magazine, slower reload, much higher crit, much lower status.",
+}
+
+# Named builds worth tracking. Only combinations with a named source belong
+# here: the Wiki's Amp page names "177" (Raplak, Propa, Certus). The Wiki's Zaw
+# and Kitgun pages name no popular combination, so none is invented for them;
+# add your own with the "My combos" box (state["combos"]).
+KNOWN_COMBOS = [
+    {"name": "177", "category": "amp", "parts": ["Raplak Prism", "Propa Scaffold", "Certus Brace"],
+     "source": "the Warframe Wiki's Amp page"},
+]
+COMBO_MAX_PARTS = 5
+COMBO_NAME_MAX = 30
+COMBO_MAX_COUNT = 20
+
 # One short, honest comment per build type -- assembly mechanics and what
 # each component slot actually controls, not a "current meta" claim.
 CATEGORY_INFO = {
@@ -530,6 +583,8 @@ state = {
     # Refined-resource name -> True/False when the player ticked "blueprint
     # owned" themselves (see blueprint_owned()).
     "blueprints": {},
+    # Player-defined combos for the build comparison: [{"name", "parts"}].
+    "combos": [],
 }
 
 FARM_LOG_MAX = 300
@@ -770,6 +825,87 @@ def syndicate_text(resources):
     ) + "."
 
 
+def all_combos():
+    """The built-in named combos followed by the player's own."""
+    return [dict(c, custom=False) for c in KNOWN_COMBOS] + [
+        {"name": c["name"], "category": PART_CATEGORY.get(c["parts"][0], "other"), "parts": list(c["parts"]),
+         "source": "your own list", "custom": True}
+        for c in state["combos"]
+    ]
+
+
+def add_combo(name, part_names):
+    """Saves a custom combo. Returns (ok, message)."""
+    name = str(name or "").strip()[:COMBO_NAME_MAX]
+    parts = [p.strip() for p in part_names if p and p.strip()] if isinstance(part_names, list) else []
+    if not name:
+        return False, "Give the combo a name."
+    if not parts or len(parts) > COMBO_MAX_PARTS:
+        return False, f"A combo needs 1 to {COMBO_MAX_PARTS} parts."
+    unknown = [p for p in parts if p not in RECIPES]
+    if unknown:
+        return False, "Unknown part(s): " + ", ".join(unknown)
+    if len(set(parts)) != len(parts):
+        return False, "List each part once."
+    if len(state["combos"]) >= COMBO_MAX_COUNT:
+        return False, "That is the maximum number of saved combos."
+    if any(c["name"].lower() == name.lower() for c in all_combos()):
+        return False, "A combo with that name already exists."
+    state["combos"].append({"name": name, "parts": parts})
+    return True, f"Saved combo {name}."
+
+
+def remove_combo(name):
+    before = len(state["combos"])
+    state["combos"] = [c for c in state["combos"] if c["name"] != name]
+    return len(state["combos"]) != before
+
+
+def combo_progress(combo, components):
+    """How close one combo is: which parts are built, which are not, and what
+    the unbuilt ones are still short of for one craft each."""
+    by_name = {c["name"]: c for c in components}
+    built, missing_parts, short = [], [], {}
+    for part in combo["parts"]:
+        info = by_name.get(part)
+        if info is not None and info["owned"] >= 1:
+            built.append(part)
+            continue
+        missing_parts.append(part)
+        for resource, qty in missing_for_one(RECIPES.get(part, {}).get("ingredients", {}), state["inventory"]).items():
+            short[resource] = short.get(resource, 0) + qty
+    return {
+        "combo": combo, "built": built, "missing_parts": missing_parts, "short": short,
+        "units_short": sum(short.values()), "complete": not missing_parts,
+    }
+
+
+def compare_combos(components):
+    """Every combo ranked by how close it is: fewest parts still to build, then
+    fewest resource units short, then name. Finished combos come last."""
+    rows = [combo_progress(c, components) for c in all_combos()]
+    rows.sort(key=lambda r: (r["complete"], len(r["missing_parts"]), r["units_short"], r["combo"]["name"].lower()))
+    return rows
+
+
+def combos_text(components):
+    rows = compare_combos(components)
+    if not rows:
+        return "No combos to compare yet."
+    lines = []
+    for r in rows:
+        head = f"{r['combo']['name']} ({r['combo']['category']}): {len(r['built'])}/{len(r['combo']['parts'])} parts built"
+        if r["complete"]:
+            lines.append(head + ", complete.")
+        else:
+            lines.append(
+                head + "; still to build " + ", ".join(r["missing_parts"])
+                + (f" (short {r['units_short']} resource units)" if r["units_short"] else " (all resources on hand)")
+                + "."
+            )
+    return "\n".join(lines)
+
+
 def shopping_list_text(resources):
     """Plain-text list of exactly what's still needed (built/refined stock
     is what satisfies a requirement, same as the resource checklist)."""
@@ -856,6 +992,7 @@ def get_state():
         "prefs": dict(state["prefs"]),
         **({"farm_log": [dict(e) for e in state["farm_log"]]} if state["farm_log"] else {}),
         **({"blueprints": dict(state["blueprints"])} if state["blueprints"] else {}),
+        **({"combos": [{"name": c["name"], "parts": list(c["parts"])} for c in state["combos"]]} if state["combos"] else {}),
     }
 
 
@@ -901,6 +1038,20 @@ def load_state(data):
             ):
                 state["farm_log"].append({"t": entry["t"], "r": entry["r"], "d": entry["d"]})
         del state["farm_log"][:-FARM_LOG_MAX]
+    saved_combos = data.get("combos")
+    state["combos"] = []
+    if isinstance(saved_combos, list):
+        for entry in saved_combos[:COMBO_MAX_COUNT]:
+            if not isinstance(entry, dict) or not isinstance(entry.get("name"), str) or not isinstance(entry.get("parts"), list):
+                continue
+            name = entry["name"].strip()[:COMBO_NAME_MAX]
+            parts = entry["parts"]
+            if (
+                name and 1 <= len(parts) <= COMBO_MAX_PARTS and all(isinstance(p, str) and p in RECIPES for p in parts)
+                and len(set(parts)) == len(parts)
+                and not any(c["name"].lower() == name.lower() for c in all_combos())
+            ):
+                state["combos"].append({"name": name, "parts": list(parts)})
     saved_blueprints = data.get("blueprints")
     state["blueprints"] = (
         {name: value for name, value in saved_blueprints.items() if name in SYNDICATE_SOURCES and isinstance(value, bool)}
@@ -1235,6 +1386,8 @@ def _render_component_table(components):
                 "div", class_="missing-note",
                 text=f"{n} resource{'s' if n != 1 else ''} short: " + ", ".join(sorted(part["missing"])),
             ))
+        if part["name"] in PART_NOTES:
+            name_cell.appendChild(_el("div", class_="part-tip", text=PART_NOTES[part["name"]]))
         note_details = _el("details", class_="part-note")
         note_summary = _el("summary", text=_note_summary(part["note"]))
         note_details.appendChild(note_summary)
@@ -1486,6 +1639,7 @@ def render():
     _render_summary(components, resources)
     document.getElementById("shopping-text").value = shopping_list_text(resources)
     document.getElementById("farm-log-text").textContent = farm_log_text()
+    document.getElementById("combo-compare").textContent = combos_text(components)
 
 
 def _do_reset():
@@ -1493,6 +1647,25 @@ def _do_reset():
     state["inventory"] = {}
     document.getElementById("status-message").textContent = "Inventory reset."
     _toast("Inventory reset to zero.")
+    render()
+
+
+def _on_add_combo(_event=None):
+    name = document.getElementById("combo-name-input").value
+    parts = str(document.getElementById("combo-parts-input").value or "").split(",")
+    ok, message = add_combo(name, parts)
+    document.getElementById("combo-message").textContent = message
+    if ok:
+        document.getElementById("combo-name-input").value = ""
+        document.getElementById("combo-parts-input").value = ""
+    render()
+
+
+def _on_remove_combo(_event=None):
+    name = str(document.getElementById("combo-remove-input").value or "").strip()
+    document.getElementById("combo-message").textContent = (
+        f"Removed {name}." if remove_combo(name) else "No custom combo with that name."
+    )
     render()
 
 
@@ -1537,6 +1710,8 @@ def setup():
     wire("sort-select", "change", _on_sort)
     wire("hide-complete-toggle", "change", _on_hide_complete)
     wire("clear-farm-log-button", "click", _on_clear_farm_log)
+    wire("combo-add-button", "click", _on_add_combo)
+    wire("combo-remove-button", "click", _on_remove_combo)
     wire("copy-shopping-button", "click",
          _make_copy_handler(lambda: document.getElementById("shopping-text").value, "shopping list"))
     render()

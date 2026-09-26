@@ -207,3 +207,9 @@ Under "What I still need", a collapsible **Farming log** records every time a re
 
 None of the 65 tracked resources are Void Relic gated, but every refined resource needs a reusable Foundry blueprint bought with Syndicate standing (Ostron's Old Man Suumbaat, Solaris United's Smokefinger, the Entrati's Otak). `SYNDICATE_SOURCES` records the vendor, faction, standing cost and rank for each of the 19, read from each Wiki page on 2026-09-26 (Auroxium Alloy's page shows both 7,500 and 7,000; the higher one is used). Each refined resource row shows its blueprint source with an "owned" tick (ticked automatically if you already hold some of the resource; your own tick or untick wins), and "What I still need" totals the standing you still have to earn per faction for blueprints you do not own yet.
 
+## Part notes and the build comparison
+
+- **Part notes:** every requested part now shows a one-line description under its name (`PART_NOTES`), read from the Warframe Wiki's Amp, Zaw and Kitgun pages on 2026-09-26: the Wiki's own stat figures for amps and zaw parts, and its relative wording for kitgun parts (no invented numbers).
+- **What built parts become:** `KNOWN_COMBOS` holds named builds. The Wiki names exactly one, the "177" Amp (Raplak Prism, Propa Scaffold, Certus Brace); its Zaw and Kitgun pages name no popular combination, so none is invented. **My combos** (name plus comma-separated parts) adds your own, saved with your progress.
+- **Build comparison:** the collapsible "Build comparison" ranks every combo by how close it is: parts already built, which are still to build, and how many resource units those are short for one craft each. Finished combos sort last.
+

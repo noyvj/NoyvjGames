@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 750/769 items checked off (97.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 752/769 items checked off (97.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -859,7 +859,7 @@ A "yes" here means "worth a groundwork plan" (a new `planning/<game>-plan.md`, p
 - [x] A small icon per planet/location on the resource location tooltip, for faster scanning. `location_icon()` matches a handful of substrings against the existing free-text location strings (Plains of Eidolon 🌾, Orb Vallis ❄️, Cambion Drift 🧬, "Refined from" 🔄, default 🪐 for a plain planet/mission list), prefixed onto each resource row's location line in place of the previous generic 📍.
 - [x] A "farming route planner" — suggest which single location would satisfy the most outstanding resource needs at once. **Done 2026-09-26:** a single 'best stop' line plus runners-up under 'What I still need' (see README).
 - [x] A confirmation-gated "reset all inventory to zero" button.
-- [ ] Expand the category-level "meta build" notes into per-part notes pulling from each part's own Wiki "Tips" section — **and go bigger, per your own note**: also track what the built parts *become* (e.g. a "177" amp combo), not just per-part tips. Ties directly to the build-comparison idea below.
+- [x] Expand the category-level "meta build" notes into per-part notes pulling from each part's own Wiki "Tips" section — **and go bigger, per your own note**: also track what the built parts *become* (e.g. a "177" amp combo), not just per-part tips. Ties directly to the build-comparison idea below. **Done 2026-09-26:** wiki-sourced PART_NOTES on all 33 parts and KNOWN_COMBOS (only the Wiki-named '177' amp; see README and FOR-YOU 3).
 - [x] A small per-category (Amp/Zaw/Kitgun) progress bar ("X/Y parts complete"), not just one overall number.
 - [x] A "resource shopping list" export — a plain-text/copyable summary of exactly what's still needed.
 - [x] Let the "used in" tab show a resource's own total remaining-needed count inline.
@@ -869,7 +869,7 @@ A "yes" here means "worth a groundwork plan" (a new `planning/<game>-plan.md`, p
 - [x] Visually distinguish Wiki links already visited this session.
 - [x] A small favicon for the tracker itself.
 - [x] A small inline "grindy" flag on resources with unusually high quantity requirements.
-- [ ] A "build comparison" mode suggesting which un-built combinations are closest to completion — **specifically tracking known community "meta" combos**, per your note ("many people want to build the metas... rather than saying just build whatever"), not a quality-agnostic closest-to-complete ranking.
+- [x] A "build comparison" mode suggesting which un-built combinations are closest to completion — **specifically tracking known community "meta" combos**, per your note ("many people want to build the metas... rather than saying just build whatever"), not a quality-agnostic closest-to-complete ranking. **Done 2026-09-26:** combos ranked by parts still to build then resources short, with your own combos (see README; the meta list itself is FOR-YOU 3).
 - [x] A small manual "note to self" free-text field per part.
 - [x] A small confirmation toast ("Built!") on a successful Build click, replacing the current page-reload-based feedback.
 - [x] A "what's blocking me" summary at the top of the page — the single resource currently blocking the most builds.

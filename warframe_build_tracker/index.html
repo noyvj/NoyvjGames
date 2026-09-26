@@ -152,6 +152,18 @@
     <p id="syndicate-summary" class="sync" hidden></p>
     <p id="refinery-summary" class="sync" hidden></p>
     <details class="shopping">
+      <summary>Build comparison: which combos are closest</summary>
+      <p class="sync">Named builds ranked by how close you are to having every part. The Wiki names only one combo ("177", an Amp); add the ones you care about.</p>
+      <pre id="combo-compare" class="sync"></pre>
+      <p class="sync">My combos: a name, then part names separated by commas (for example <code>Raplak Prism, Propa Scaffold, Certus Brace</code>).</p>
+      <input id="combo-name-input" type="text" maxlength="30" placeholder="Combo name" aria-label="Combo name">
+      <input id="combo-parts-input" type="text" placeholder="Part, part, part" aria-label="Combo parts, comma separated">
+      <button type="button" id="combo-add-button" class="secondary">Save combo</button>
+      <input id="combo-remove-input" type="text" maxlength="30" placeholder="Name to remove" aria-label="Combo name to remove">
+      <button type="button" id="combo-remove-button" class="secondary">Remove combo</button>
+      <p id="combo-message" class="sync"></p>
+    </details>
+    <details class="shopping">
       <summary>Farming log (what you have gained)</summary>
       <p id="farm-log-text" class="sync"></p>
       <button type="button" id="clear-farm-log-button" class="secondary">Clear log</button>

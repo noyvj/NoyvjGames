@@ -331,3 +331,8 @@ The clearest cross-cutting infra lesson from this pass: three separate games' au
 **Did:** Built the standing-gated source layer that replaced the originally pitched Void Relic idea: `SYNDICATE_SOURCES` (vendor, faction, standing, rank for all 19 refined resources, fetched from the Warframe Wiki pages, one page discrepancy noted in the data comment), a per-row blueprint line with an owned checkbox (`blueprint_owned()`: explicit tick wins, else holding stock counts), and `standing_needed()` / `syndicate_text()` totalling standing still to earn per faction. Saved as an optional `blueprints` dict, validated on load (known resource, real booleans only).
 **Result:** 118 -> 124 tracker tests; live-checked on the real state (13 blueprint rows, 7,500 Ostron standing still to earn).
 
+### 2026-09-26 (Warframe tracker: part notes and build comparison)
+**Area:** `warframe_build_tracker/game.py`, `index.html`, `style.css`, `README.md`
+**Did:** `PART_NOTES` (one wiki-sourced line for each of the 33 parts, fetched from the Amp/Zaw/Kitgun pages), `KNOWN_COMBOS` (only "177", the one combination the Wiki names; no community meta was invented for Zaw or Kitgun) plus a validated custom-combo list, and `compare_combos()` ranking by parts still to build then resource units short. Custom combos save as an optional `combos` key, validated on load (known parts, 1 to 5 unique, unique names, capped at 20). Added a question to FOR-YOU asking which meta combos the user wants pre-loaded.
+**Result:** 124 -> 132 tracker tests; live-checked (33 tips render, saving a custom combo updates the ranking).
+

@@ -36,6 +36,12 @@ I'll drop all of that into the ad bar and it goes live everywhere on the site at
 
 **What to tell me:** just "redeployed", and I will live-check `GET /leaderboards/sol/fastest_completion` returns 200.
 
+### 3. Which Warframe "meta" combos should the tracker pre-load?
+
+**Why:** the build comparison ranks named combos by how close you are to finishing them. The Warframe Wiki names only one popular combo (the "177" Amp: Raplak Prism, Propa Scaffold, Certus Brace) and none for Zaws or Kitguns, and I will not invent community metas. You can already add your own in the tracker's "My combos" box.
+
+**Your answer:** list any combos you want built in (name plus the parts), or say "just my own box is fine".
+
 ---
 
 ## Answered — building now (no further input needed, listed so you can see what your answers turned into)
