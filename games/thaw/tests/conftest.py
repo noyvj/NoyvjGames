@@ -54,6 +54,8 @@ ELEMENT_IDS = [
     # G11: community "average acceleration factor" comparison panel.
     "community-compare-toggle-button",
     "community-compare-panel",
+    "climate-scientist-toggle-button",
+    "climate-scientist-panel",
     "temperature-trend",
     "preemptive-callout",
     "tipping-streak-display",

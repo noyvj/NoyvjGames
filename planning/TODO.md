@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 735/769 items checked off (95.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 736/769 items checked off (95.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -594,7 +594,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] G4: A tooltip on the Region D reveal toggle explaining what "worst case" means before the player reveals it.
 - [x] G5: A "tipping cascade" mechanic — once one region tips into the feedback loop, a small chance it accelerates a neighboring region too.
 - [x] G6: Label the melt-threshold gridline with its exact temperature value, not just a dashed line.
-- [ ] G7: A "climate scientist" info-mode — an optional deeper data view showing real-world methane-release curves alongside the in-game graph.
+- [x] G7: A "climate scientist" info-mode — an optional deeper data view showing real-world methane-release curves alongside the in-game graph. Built as a toggle+panel showing NOAA's real annual global atmospheric methane growth rate, 1984-2025 (live-checked against NOAA's own page rather than recalled from memory) — stated plainly as the total real-world growth from every source, not a permafrost-only figure. See `games/thaw/CLAUDE.md`.
 - [x] G8: A small distinct color-independent icon on the critical melt-status tier, reinforcing its text label with a shape cue.
 - [ ] G9: A "long game" mode — significantly extend session length for players who want the full long-run trajectory.
 - [x] G10: Let the next-round preview tooltip show all three regions' previews simultaneously in one combined tooltip.

@@ -43,6 +43,10 @@
            and this file's own window.thawCompare hook below -- follows
            Grid's C15 architecture exactly. -->
       <button id="community-compare-toggle-button" class="secondary" type="button">Loading...</button>
+      <!-- G7: an optional "deeper data view" alongside the in-game graph --
+           real published atmospheric methane data, same hidden-until-opened
+           idiom as the panels above. -->
+      <button id="climate-scientist-toggle-button" class="secondary" type="button">Loading...</button>
       <!-- Site-wide settings panel (planning/TODO.md, origin A9): consolidated
            text-scale + reduced-motion controls. See settings.js -- plain JS,
            independent of Pyodide, same as Continuum's Phase 5
@@ -53,6 +57,7 @@
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
     <div id="changelog-panel" class="section changelog-panel" hidden></div>
     <div id="community-compare-panel" class="section" hidden></div>
+    <div id="climate-scientist-panel" class="section" hidden></div>
     <div id="settings-panel" class="section" hidden>
       <h2 class="settings-panel-heading">Settings</h2>
       <div class="settings-row">

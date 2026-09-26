@@ -1005,6 +1005,15 @@ html[data-reduced-motion="true"] *::after {
 .mini-temp-threshold-label { font-size: 7px; fill: currentColor; opacity: 0.75; }
 /* G8: shape cue on the critical tier, independent of color. */
 [id$="melt-status-display"].melt-status--critical::before { content: "⚠️ "; }
+
+/* G7: the real-data methane growth-rate chart. */
+.methane-chart-svg { display: block; margin: 0.5rem 0; max-width: 100%; }
+.methane-chart-line { fill: none; stroke: #e0674c; stroke-width: 2; }
+.methane-chart-baseline { stroke: currentColor; stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.5; }
+.methane-chart-baseline-label { font-size: 7px; fill: currentColor; opacity: 0.75; }
+.methane-chart-tick { font-size: 7px; fill: currentColor; opacity: 0.6; }
+.climate-scientist-framing { font-size: 0.85rem; line-height: 1.4; }
+.climate-scientist-source { font-size: 0.75rem; opacity: 0.75; }
 /* G24 */
 .acceleration-pulse { animation: acceleration-pulse 1100ms ease 2; border-radius: 4px; }
 @keyframes acceleration-pulse {

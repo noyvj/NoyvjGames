@@ -1915,6 +1915,128 @@ def _request_community_comparison():
         hook(float(region.average_acceleration_factor))
 
 
+# G7: an optional "deeper data view" -- real published atmospheric methane
+# data shown ALONGSIDE the in-game graph, not overlaid onto it (Thaw's
+# rounds have no real calendar-time axis to align against a real dataset
+# without implying false precision). Source: NOAA Global Monitoring
+# Laboratory, "Trends in Atmospheric Methane (CH4)"
+# (https://gml.noaa.gov/ccgg/trends_ch4/, accessed 2026-09-26, page's own
+# "Last updated: Sep 05, 2026") -- the real annual increase in globally-
+# averaged atmospheric methane, continuously measured since 1983. This is
+# the TOTAL real-world growth rate (agriculture, wetlands, fossil-fuel
+# leaks, and permafrost all contribute); it is not a permafrost-only
+# figure, and the panel says so plainly rather than implying a 1:1 match
+# with this game's own feedback-loop mechanic.
+REAL_METHANE_GROWTH_PPB_PER_YEAR = [
+    (1984, 12.89), (1985, 12.18), (1986, 12.90), (1987, 11.43), (1988, 10.74),
+    (1989, 11.12), (1990, 8.71), (1991, 13.99), (1992, 2.43), (1993, 3.85),
+    (1994, 7.30), (1995, 3.82), (1996, 2.47), (1997, 6.36), (1998, 12.13),
+    (1999, 2.25), (2000, -1.34), (2001, -0.66), (2002, 3.17), (2003, 4.84),
+    (2004, -4.72), (2005, 0.21), (2006, 1.85), (2007, 7.85), (2008, 6.52),
+    (2009, 4.77), (2010, 5.03), (2011, 5.02), (2012, 5.01), (2013, 5.70),
+    (2014, 12.69), (2015, 10.03), (2016, 7.13), (2017, 6.83), (2018, 8.72),
+    (2019, 9.64), (2020, 14.78), (2021, 17.70), (2022, 13.01), (2023, 8.32),
+    (2024, 7.91), (2025, 5.14),
+]
+
+CLIMATE_SCIENTIST_SOURCE_URL = "https://gml.noaa.gov/ccgg/trends_ch4/"
+CLIMATE_SCIENTIST_FRAMING = (
+    "Real-world atmospheric methane has been measured continuously since 1983 "
+    "(NOAA's Global Monitoring Laboratory). The chart below is the real annual "
+    "growth rate — how much the global average rose that year, in parts "
+    "per billion. This is the TOTAL real-world increase from every source "
+    "combined (agriculture, wetlands, fossil-fuel leaks, and permafrost thaw "
+    "all contribute) — it is not a permafrost-only figure, and Thaw's own "
+    "feedback-loop mechanic is a simplified stand-in for one piece of this "
+    "larger, real picture, not a literal model of it. Notice the recent run: "
+    "2020-2022 saw the three highest annual increases on record."
+)
+
+METHANE_CHART_WIDTH = 320
+METHANE_CHART_HEIGHT = 90
+METHANE_CHART_BASELINE_YEARS = 30  # 1984-2013, before the recent acceleration
+
+
+def real_methane_growth_chart_svg():
+    """A labeled real-data line chart -- deliberately a bigger, more
+    legible sibling of mini_temp_graph_svg above (this one is meant to be
+    read, not just glanced at for shape): year tick labels plus a dashed
+    reference line at the pre-acceleration baseline average, so the
+    recent run reads clearly against its own real historical range."""
+    years = [y for y, _ in REAL_METHANE_GROWTH_PPB_PER_YEAR]
+    values = [v for _, v in REAL_METHANE_GROWTH_PPB_PER_YEAR]
+    n = len(values)
+    lo, hi = min(values), max(values)
+    span = hi - lo if hi - lo > 1e-9 else 1.0
+    pad_top, pad_bottom = 10, 16
+    plot_h = METHANE_CHART_HEIGHT - pad_top - pad_bottom
+    xs = [i * (METHANE_CHART_WIDTH / (n - 1)) for i in range(n)]
+    ys = [pad_top + plot_h - ((v - lo) / span) * plot_h for v in values]
+    points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, ys))
+
+    baseline = sum(values[:METHANE_CHART_BASELINE_YEARS]) / METHANE_CHART_BASELINE_YEARS
+    baseline_y = pad_top + plot_h - ((baseline - lo) / span) * plot_h
+
+    # The first/last ticks sit right at the SVG's own edges, so a centered
+    # anchor there would clip half the label outside the viewBox -- anchor
+    # those two to their own inside edge instead, interior ticks stay
+    # centered on their point.
+    tick_indices = sorted({0, 10, 20, 30, n - 1})
+    ticks = []
+    for i in tick_indices:
+        if i == 0:
+            anchor = "start"
+        elif i == n - 1:
+            anchor = "end"
+        else:
+            anchor = "middle"
+        ticks.append(
+            f'<text x="{xs[i]:.1f}" y="{METHANE_CHART_HEIGHT - 2}" '
+            f'style="text-anchor:{anchor}" class="methane-chart-tick">{years[i]}</text>'
+        )
+    ticks = "".join(ticks)
+
+    return (
+        f'<svg viewBox="0 0 {METHANE_CHART_WIDTH} {METHANE_CHART_HEIGHT}" class="methane-chart-svg" '
+        f'role="img" aria-label="Real annual growth in atmospheric methane, '
+        f'1984 to 2025, in parts per billion per year">'
+        f'<line x1="0" y1="{baseline_y:.1f}" x2="{METHANE_CHART_WIDTH}" y2="{baseline_y:.1f}" '
+        f'class="methane-chart-baseline" />'
+        f'<text x="2" y="{max(baseline_y - 2, 9):.1f}" class="methane-chart-baseline-label">'
+        f"1984–2013 average</text>"
+        f'<polyline points="{points}" class="methane-chart-line" />'
+        f"{ticks}"
+        f"</svg>"
+    )
+
+
+climate_scientist_open = False
+
+
+def on_toggle_climate_scientist(event=None):
+    global climate_scientist_open
+    climate_scientist_open = not climate_scientist_open
+    render_climate_scientist()
+
+
+def render_climate_scientist():
+    toggle = document.getElementById("climate-scientist-toggle-button")
+    panel = document.getElementById("climate-scientist-panel")
+    toggle.innerText = (
+        "Hide Climate Scientist" if climate_scientist_open else "\U0001F52C Climate Scientist"
+    )
+    panel.hidden = not climate_scientist_open
+    if not climate_scientist_open:
+        return
+    panel.innerHTML = (
+        f'<p class="climate-scientist-framing">{CLIMATE_SCIENTIST_FRAMING}</p>'
+        f"{real_methane_growth_chart_svg()}"
+        f'<p class="climate-scientist-source">Source: '
+        f'<a href="{CLIMATE_SCIENTIST_SOURCE_URL}" target="_blank" rel="noopener">'
+        f"NOAA Global Monitoring Laboratory, Trends in Atmospheric Methane</a>.</p>"
+    )
+
+
 def render():
     render_info_page()
     document.getElementById("round-display").innerText = f"Round {region.round_number}"
@@ -2119,6 +2241,7 @@ def render():
     update_achievements_display()
     update_changelog_display()
     update_community_compare_panel()
+    render_climate_scientist()
 
 
 def _make_invest_handler(category):
@@ -2529,6 +2652,9 @@ def setup():
     )
     document.getElementById("community-compare-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_community_compare)
+    )
+    document.getElementById("climate-scientist-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_climate_scientist)
     )
     # Belt-and-suspenders: the toast starts hidden via the static
     # `hidden` attribute in index.html, but every other stateful element
