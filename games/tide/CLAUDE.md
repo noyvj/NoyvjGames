@@ -562,3 +562,6 @@ Method: a computed-style WCAG scan run in a real browser with the light theme on
 **Fixed:** a `Y11b` block at the end of `style.css`, every rule under `html[data-theme="light"]`: captions to `opacity: 1` with a deeper slate, info bubble, earned label, feedback button text, fish warning, coastline grid border. Dark is untouched.
 
 **After:** 0 flagged text and 0 flagged fills on the fresh game, after about 40 seasons of play, and with every hidden element shown. Exceptions: disabled buttons (2.37:1, exempt), the transparent gradient-clipped `h1` (its glyphs are the shared layer's dark gradient, measured 1.0 only because the scan can't read a clipped gradient) and the achievement toast (deliberately a dark toast in both themes). `tests/test_light_theme.py` pins that the block exists and stays light-scoped. Needs a human eye: the pill still floats bottom-left here (this game has a Settings panel, but moving the switch was only asked for SOL).
+
+## Endgame flourish (R-19, 2026-09-27)
+CSS only: `.coastline-seawall--t4` (the top tier) animates `tide-barrier-glint`, a slow inset shadow pulse that changes no tile state or colour, inside `@media (prefers-reduced-motion: no-preference)`; the existing in-game `html[data-reduced-motion="true"]` blanket rule collapses it too. Tests: `tests/test_barrier_flourish.py` (3; 271 -> 274).

@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 32/109 items checked off (29.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 33/109 items checked off (30.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Only the sections you have answered so far are here: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -178,7 +178,7 @@ Dropped or parked: audio items R1-R8 (revisit round 6), R24 and R26 (Thaw/Drift 
 - [x] R-10: SOL personal-best fastest full playthrough timer.
 - [x] R-11: SOL "never touched automation" pure-clicker achievement (kept easy).
 - [ ] R-13: Continuum full-playthrough integration test (Tribal to Space Age; engineering task).
-- [ ] R-19: Tide endgame visual flourish.
+- [x] R-19: Tide endgame visual flourish.
 - [x] R-22: Herd prestige layer (the succession system built as F25 may already cover this: confirm and close).
 - [x] R-23: Herd intro blurb that reacts to the methane level.
 - [ ] R-27: Canopy compare standing value against the site-wide average (the stats backend now exists).

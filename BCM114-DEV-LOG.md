@@ -930,3 +930,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** sol
 **Did:** Extended SOL's welcome-back delta with machines built and hand-mined loads, and added a per-run personal-best fastest full playthrough to the Stats panel, saved as three optional validated keys.
 **Result:** 722 SOL tests pass (9 new).
+
+### 2026-09-27 (Tide R-19: endgame flourish)
+**Game:** tide
+**Did:** Added a subtle glint on the top-tier seawall, CSS only and reduced-motion safe.
+**Result:** 274 Tide tests pass (3 new).

@@ -1333,6 +1333,19 @@ html[data-reduced-motion="true"] *::after {
 .coastline-seawall--t3 { background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0, rgba(0,0,0,0.16) 1px, transparent 1px, transparent 5px), repeating-linear-gradient(90deg, rgba(0,0,0,0.16) 0, rgba(0,0,0,0.16) 1px, transparent 1px, transparent 5px); }
 .coastline-seawall--t4 { background-image: radial-gradient(rgba(0,0,0,0.25) 1px, transparent 1.5px); background-size: 5px 5px; }
 
+/* R-19: a light endgame flourish. A coastline held by the top-tier storm-surge
+   barriers gets a slow, faint glint travelling along the wall: motion only, no
+   change to any tile's state or colour. Gated on no-preference so an OS
+   reduced-motion user gets none, and the in-game reduced-motion switch
+   collapses it like every other animation in this file. */
+@keyframes tide-barrier-glint {
+  0%, 100% { box-shadow: inset 0 0 0 rgba(255, 255, 255, 0); }
+  50% { box-shadow: inset 0 -3px 6px rgba(255, 255, 255, 0.28); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .coastline-seawall--t4 { animation: tide-barrier-glint 6s ease-in-out infinite; }
+}
+
 .fish-recovery-banner { font-size: 0.85rem; margin: 0.4rem 0; padding: 0.4rem 0.6rem; border-radius: 6px; border: 1px solid rgba(216, 192, 136, 0.6); background: rgba(216, 192, 136, 0.12); }
 .fish-recovery-banner[hidden] { display: none; }
 .seasons-survived { opacity: 0.8; font-size: 0.9rem; }
