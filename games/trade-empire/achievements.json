@@ -96,6 +96,16 @@
       "description": "Reach the endgame, then found a new corporation with a permanent legacy bonus."
     },
     {
+      "id": "guild_partner",
+      "label": "Guild Partner",
+      "description": "Complete a Trade Guild bulk contract."
+    },
+    {
+      "id": "guild_favorite",
+      "label": "Guild Favorite",
+      "description": "Complete five Trade Guild contracts."
+    },
+    {
       "id": "background_galaxy_maxed",
       "label": "A Thousand Quiet Ledgers",
       "description": "Grow the endgame's background galaxy to its full size."

@@ -80,6 +80,18 @@
       <button id="found-new-corporation-button" class="secondary" type="button" hidden title="Reset to a fresh start and permanently raise your legacy bonus.">🏛️ Found a new corporation</button>
     </div>
 
+    <!-- J3: the Trade Guild's occasional bulk contracts (optional, no penalty). -->
+    <div id="guild-panel" class="section">
+      <p class="panel-label">Trade Guild
+        <details class="info-toggle"><summary>i</summary><p>Now and then the guild offers a bulk contract: deliver a number of units of a good to a colony that needs it before a deadline. You still sell the goods as normal — the contract is an extra bonus. Declining, ignoring or missing one costs nothing.</p></details>
+      </p>
+      <p id="guild-status-display" class="research-points"></p>
+      <div class="controls">
+        <button id="guild-accept-button" class="secondary" type="button" hidden>Accept contract</button>
+        <button id="guild-decline-button" class="secondary" type="button" hidden>Decline</button>
+      </div>
+    </div>
+
     <div id="research-panel" class="section">
       <p class="panel-label">Research
         <details class="info-toggle"><summary>i</summary><p>Research points build up on their own over time, separately from your trading profit — they're a second currency spent only on these permanent, fleet-wide upgrades, not on ships or routes.</p></details>

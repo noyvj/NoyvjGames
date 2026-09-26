@@ -1393,6 +1393,141 @@ ENDGAME_BACKGROUND_REVENUE_PER_WORLD = 0.4
 endgame_reached = False
 ticks_since_endgame = 0
 
+# J3 -- the Trade Guild: an NPC faction that occasionally offers a bulk
+# contract (deliver N units of a good to a colony that needs it, before a
+# deadline) for a bonus on top of the ordinary sale. Deliveries still sell
+# normally, so a contract is purely an extra reward. Accepting is optional;
+# failing or ignoring one costs nothing.
+GUILD_MIN_SALES = 3  # nothing is offered until the player has made a few sales
+GUILD_FIRST_OFFER_TICKS = 40
+GUILD_COOLDOWN_TICKS = 60  # quiet time after a contract resolves or lapses
+GUILD_OFFER_LAPSE_TICKS = 90  # how long an unanswered offer stays on the table
+GUILD_DEADLINE_TICKS = 150
+GUILD_UNITS_MIN, GUILD_UNITS_MAX = 10, 30
+GUILD_REWARD_MULTIPLIER = 1.6  # bonus credits = units x current price x this
+GUILD_STATES = ("none", "offered", "active")
+guild_rng = random.Random()
+guild_state = "none"
+guild_contract = {"good": None, "destination": None, "units": 0, "delivered": 0, "ticks_left": 0, "reward": 0}
+guild_cooldown = GUILD_FIRST_OFFER_TICKS
+guild_completed = 0
+guild_failed = 0
+
+
+def _guild_clear(cooldown=GUILD_COOLDOWN_TICKS):
+    global guild_state, guild_cooldown
+    guild_state = "none"
+    guild_cooldown = cooldown
+    guild_contract.update({"good": None, "destination": None, "units": 0, "delivered": 0, "ticks_left": 0, "reward": 0})
+
+
+def guild_candidates():
+    """(destination, good) pairs the guild could ask for: a reachable colony
+    and the good it naturally needs."""
+    return [(cid, ALL_COLONIES[cid]["needs"]) for cid in active_colony_ids()]
+
+
+def guild_make_offer():
+    global guild_state
+    options = guild_candidates()
+    if not options or guild_state != "none":
+        return False
+    destination, good = guild_rng.choice(options)
+    units = guild_rng.randint(GUILD_UNITS_MIN, GUILD_UNITS_MAX)
+    guild_contract.update({
+        "good": good,
+        "destination": destination,
+        "units": units,
+        "delivered": 0,
+        "ticks_left": GUILD_OFFER_LAPSE_TICKS,
+        "reward": int(round(units * current_sell_price(good) * GUILD_REWARD_MULTIPLIER)),
+    })
+    guild_state = "offered"
+    return True
+
+
+def guild_accept():
+    global guild_state
+    if guild_state != "offered":
+        return False
+    guild_state = "active"
+    guild_contract["ticks_left"] = GUILD_DEADLINE_TICKS
+    return True
+
+
+def guild_decline():
+    if guild_state != "offered":
+        return False
+    _guild_clear()
+    return True
+
+
+def guild_record_delivery(good, destination, qty):
+    """Called for every completed, undisrupted sale."""
+    global total_profit, max_profit_ever, guild_completed
+    if guild_state != "active" or good != guild_contract["good"] or destination != guild_contract["destination"]:
+        return
+    guild_contract["delivered"] = min(guild_contract["units"], guild_contract["delivered"] + max(0, int(qty)))
+    if guild_contract["delivered"] >= guild_contract["units"]:
+        reward = guild_contract["reward"]
+        total_profit += reward
+        max_profit_ever = max(max_profit_ever, total_profit)
+        guild_completed += 1
+        _guild_clear()
+        show_notice_toast(f"\U0001F91D Trade Guild contract complete: +{reward:,} credits.")
+
+
+def guild_tick():
+    global guild_cooldown, guild_failed
+    if guild_state == "none":
+        guild_cooldown -= 1
+        if guild_cooldown <= 0 and total_sales_count >= GUILD_MIN_SALES:
+            guild_make_offer()
+    elif guild_state == "offered":
+        guild_contract["ticks_left"] -= 1
+        if guild_contract["ticks_left"] <= 0:
+            _guild_clear()  # lapsed unanswered: no penalty
+    elif guild_state == "active":
+        guild_contract["ticks_left"] -= 1
+        if guild_contract["ticks_left"] <= 0:
+            guild_failed += 1
+            _guild_clear()  # missed the deadline: no penalty, just no bonus
+
+
+def guild_status_text():
+    c = guild_contract
+    if guild_state == "offered":
+        return (
+            f"The Trade Guild offers a contract: deliver {c['units']} {c['good'].replace('_', ' ')} to "
+            f"{ALL_COLONIES[c['destination']]['name']} within {GUILD_DEADLINE_TICKS} ticks of accepting "
+            f"for a {c['reward']:,}-credit bonus on top of the normal sale."
+        )
+    if guild_state == "active":
+        return (
+            f"Contract accepted: {c['delivered']}/{c['units']} {c['good'].replace('_', ' ')} delivered to "
+            f"{ALL_COLONIES[c['destination']]['name']}, {c['ticks_left']} ticks left "
+            f"for a {c['reward']:,}-credit bonus."
+        )
+    record = f" Contracts completed: {guild_completed}." if guild_completed else ""
+    return "The Trade Guild is watching your fleet. A contract will be offered when it has one for you." + record
+
+
+def render_guild():
+    document.getElementById("guild-status-display").innerText = guild_status_text()
+    document.getElementById("guild-accept-button").hidden = guild_state != "offered"
+    document.getElementById("guild-decline-button").hidden = guild_state != "offered"
+
+
+def on_guild_accept(event=None):
+    if guild_accept():
+        render()
+
+
+def on_guild_decline(event=None):
+    if guild_decline():
+        render()
+
+
 # J21 -- "trade empire legacy": once the endgame is reached, the player may
 # found a NEW corporation. The world resets to a fresh start, but each
 # founding permanently raises a small legacy bonus (built independently of
@@ -2242,6 +2377,8 @@ ACHIEVEMENT_CHECKS = {
     "market_recovery": _market_recovered_from_a_crash,
     "endgame_reached": lambda: endgame_reached,
     "new_corporation": lambda: legacy_level >= 1,
+    "guild_partner": lambda: guild_completed >= 1,
+    "guild_favorite": lambda: guild_completed >= 5,
     "background_galaxy_maxed": lambda: background_world_count() >= ENDGAME_BACKGROUND_WORLD_CAP,
 }
 
@@ -2628,6 +2765,7 @@ def render():
     )
     render_fleet_priority()
     render_endgame()
+    render_guild()
     render_research()
     render_map()
     for ship in ships.values():
@@ -2906,6 +3044,7 @@ def tick(event=None):
             del recent[:-2 * ROUTE_TREND_WINDOW]
             sale_log.append(sell_summary(good, qty, profit, ship.location))
             del sale_log[:-SALE_LOG_MAX_ENTRIES]
+            guild_record_delivery(good, ship.location, qty)
             apply_market_sale(good, qty)
             if profit >= SALE_SPARK_THRESHOLD:
                 _spark_burst_high_value_sale()
@@ -2919,6 +3058,7 @@ def tick(event=None):
                     f"🚚 {ship.name} arrived at {ALL_COLONIES[ship.location]['name']}."
                 )
     age_dock_pulses()
+    guild_tick()
     if route_hazards_enabled and route_insurance_enabled:
         for ship in ships.values():
             if ship.in_transit and total_profit >= INSURANCE_PREMIUM_PER_TICK:
@@ -3037,6 +3177,12 @@ def get_state():
         # J21 -- only written once a new corporation has been founded, so a
         # first-run save is unchanged.
         **({"legacy": {"level": legacy_level, "achievements": list(legacy_achievements)}} if legacy_level else {}),
+        # J3 -- only written once the guild has done anything at all.
+        **(
+            {"guild": {"state": guild_state, **guild_contract, "completed": guild_completed, "failed": guild_failed}}
+            if guild_state != "none" or guild_completed or guild_failed
+            else {}
+        ),
         "route_hazards": {
             "hazards": route_hazards_enabled,
             "insurance": route_insurance_enabled,
@@ -3048,6 +3194,45 @@ def get_state():
         # freshly recomputed here, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),
     }
+
+
+def _load_guild(raw):
+    """Restore the guild from an untrusted save value; anything malformed or
+    referring to a colony that isn't reachable falls back to 'none'."""
+    global guild_completed, guild_failed
+    _guild_clear(GUILD_FIRST_OFFER_TICKS)
+    guild_completed = guild_failed = 0
+    if not isinstance(raw, dict):
+        return
+
+    def as_int(value, low, high):
+        return value if isinstance(value, int) and not isinstance(value, bool) and low <= value <= high else None
+
+    guild_completed = as_int(raw.get("completed"), 0, 10_000_000) or 0
+    guild_failed = as_int(raw.get("failed"), 0, 10_000_000) or 0
+    state_name = raw.get("state")
+    if state_name not in ("offered", "active"):
+        return
+    good, destination = raw.get("good"), raw.get("destination")
+    units = as_int(raw.get("units"), GUILD_UNITS_MIN, GUILD_UNITS_MAX)
+    delivered = as_int(raw.get("delivered"), 0, GUILD_UNITS_MAX)
+    ticks_left = as_int(raw.get("ticks_left"), 1, GUILD_DEADLINE_TICKS)
+    reward = as_int(raw.get("reward"), 0, 10_000_000)
+    valid = (
+        destination in ALL_COLONIES
+        and destination in active_colony_ids()
+        and good == ALL_COLONIES[destination]["needs"]
+        and None not in (units, delivered, ticks_left, reward)
+        and delivered <= units
+    )
+    if not valid:
+        return
+    global guild_state
+    guild_state = state_name
+    guild_contract.update({
+        "good": good, "destination": destination, "units": units,
+        "delivered": delivered, "ticks_left": ticks_left, "reward": reward,
+    })
 
 
 def load_state(data):
@@ -3113,6 +3298,7 @@ def load_state(data):
         for colony_id in RIFT_COLONIES:
             colony_states.pop(colony_id, None)
 
+    _load_guild(data.get("guild"))
     legacy_raw = data.get("legacy")
     legacy_level = 0
     legacy_achievements = []
@@ -3284,6 +3470,8 @@ def setup():
     document.getElementById("summary-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_summary)
     )
+    document.getElementById("guild-accept-button").addEventListener("click", create_proxy(on_guild_accept))
+    document.getElementById("guild-decline-button").addEventListener("click", create_proxy(on_guild_decline))
     document.getElementById("found-new-corporation-button").addEventListener(
         "click", create_proxy(on_found_new_corporation)
     )

@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 671/767 items checked off (87.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 672/767 items checked off (87.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -703,7 +703,7 @@ Every idea in this section was accepted, no exceptions.
 
 - [ ] J1: A fourth self-contained expansion cluster beyond the home system and Kepler Cluster, requiring deeper research investment.
 - [x] J2: Let the per-route profitability readout show a small trend arrow (improving/declining) based on recent trips.
-- [ ] J3: A "trade guild" mechanic — an NPC faction offering occasional bulk contracts (deliver X units of Y to Z by a deadline) for bonus rewards.
+- [x] J3: A "trade guild" mechanic — an NPC faction offering occasional bulk contracts (deliver X units of Y to Z by a deadline) for bonus rewards. **Done 2026-09-26** — see `games/trade-empire/CLAUDE.md`'s J3 section.
 - [x] J4: Let the historical price sparkline show the exact current price as a labeled point, not just the trend line.
 - [x] J5: A "fleet composition" upgrade — choose among distinct ship archetypes (cargo-heavy/fast/balanced) at purchase time.
 - [x] J6: A tooltip explaining exactly what Fleet Priority's target-ring visualization is pointing at.

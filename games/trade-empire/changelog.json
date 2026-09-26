@@ -1,4 +1,5 @@
 [
+  { "date": "2026-09-26", "entry": "New Trade Guild: now and then it offers a bulk contract (deliver a number of units of a good to a colony before a deadline) for a bonus on top of the normal sale. Optional, and missing one costs nothing. Two new achievements, Guild Partner and Guild Favorite." },
   { "date": "2026-09-26", "entry": "New Legacy: once you reach the endgame you can found a new corporation. Everything resets to a fresh start, but you keep your achievements and gain a permanent legacy bonus (extra starting credits and a small boost to every sale, up to five levels)." },
   { "date": "2026-09-22", "entry": "Achievement cards now show \"Earned by N% of players\" once enough real save data exists for that achievement (site-wide goal, Z1/Z27b)." },
   { "date": "2026-09-22", "entry": "Added a keyboard-shortcuts help overlay: press ? to see it, Esc to close it or whichever panel is open (site-wide goal, Z4)." },
@@ -22,6 +23,5 @@
   { "date": "2026-09-19", "entry": "Gap-closing pass: colorblind-safety audit confirmed (automated vs. manual ships already distinguished by shape, not just color)." },
   { "date": "2026-09-15", "entry": "Achievements added: 19 achievements, in-game panel, unlock toast, hub dashboard link." },
   { "date": "2026-09-09", "entry": "Mobile: a condensed colony-needs strip now docks to the bottom of the screen so it's visible alongside the ship panels." },
-  { "date": "2026-09-09", "entry": "Skippable tutorial, a How to Play page, and a mobile sticky HUD." },
-  { "date": "2026-09-05", "entry": "All 14 milestones shipped: manual trade loop, colony needs and market economics, automation, the 2D map, research tree, colony specialization, fleet-level automation, galaxy expansion, and the fully-automated endgame. Followed by a bug-fix pass: Kepler Cluster map labels no longer collide; hub-link paths corrected; then space-theme visual pass: starfield background, glass panels, gradient buttons." }
+  { "date": "2026-09-09", "entry": "All 14 milestones shipped: manual trade loop, colony needs and market economics, automation, the 2D map, research tree, colony specialization, fleet-level automation, galaxy expansion, and the fully-automated endgame. Followed by a bug-fix pass: Kepler Cluster map labels no longer collide; hub-link paths corrected; then space-theme visual pass: starfield background, glass panels, gradient buttons; then skippable tutorial, a How to Play page, and a mobile sticky HUD." }
 ]

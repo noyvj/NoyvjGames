@@ -565,3 +565,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Trade Empire
 **Did:** Added the "trade empire legacy": after the endgame you can found a new corporation (confirm-gated, no "don't ask again"). The world resets to a fresh start, a permanent legacy level rises (max 5: +150 starting credits and +2% on every sale per level), earned achievements carry over, and a new "A New Beginning" achievement is earned. The legacy rides the save (validated on load). Supporting fixes: `load_state()` now prunes expansion colonies a loaded save hasn't unlocked (it only ever added them), and the shared confirm dialog gained an optional `allowSkip`.
 **Result:** 353 → 367 tests passing, flake8 clean; verified live through the real confirm dialog, zero console errors.
+
+### 2026-09-26 (Trade Empire: the Trade Guild, J3)
+**Game:** Trade Empire
+**Did:** Added the Trade Guild: an optional NPC faction that occasionally offers a bulk contract (deliver 10-30 units of a good to a colony that needs it within 150 ticks) for a bonus on top of the normal sale. Nothing is lost by declining, ignoring or missing one. Panel with Accept/Decline and live progress, saved and validated on load, two new achievements (Guild Partner, Guild Favorite), reset by founding a new corporation.
+**Result:** 367 → 381 tests passing, flake8 clean; verified live end to end, zero console errors.
