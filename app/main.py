@@ -202,8 +202,14 @@ class AnswerReportOut(BaseModel):
     marked_correct_answer: List[str]
     topic_type: Optional[str]
     created_at: datetime
+    is_resolved: bool = False
+    resolved_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ReportResolveIn(BaseModel):
+    resolved: bool
 
 
 # --- U8: admin access ---
@@ -253,10 +259,13 @@ def list_answer_reports(
     game_id: Optional[str] = None,
     topic_type: Optional[str] = None,
     item_id: Optional[str] = None,
+    resolved: Optional[bool] = None,
     db: Session = Depends(get_db),
 ):
     response.headers["Cache-Control"] = "no-store"
     query = db.query(AnswerReport)
+    if resolved is not None:
+        query = query.filter(AnswerReport.is_resolved.is_(resolved))
     if game_id is not None:
         query = query.filter(AnswerReport.game_id == game_id)
     if topic_type is not None:
@@ -264,6 +273,26 @@ def list_answer_reports(
     if item_id is not None:
         query = query.filter(AnswerReport.item_id == item_id)
     return query.order_by(AnswerReport.created_at.desc()).all()
+
+
+@app.patch("/answer-reports/{report_id}", response_model=AnswerReportOut)
+def resolve_answer_report(
+    report_id: str,
+    body: ReportResolveIn,
+    response: Response,
+    _admin: None = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """U6: mark a report done (or reopen it). Admin-token only."""
+    response.headers["Cache-Control"] = "no-store"
+    row = db.query(AnswerReport).filter(AnswerReport.id == report_id).first()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Report not found")
+    row.is_resolved = body.resolved
+    row.resolved_at = func.now() if body.resolved else None
+    db.commit()
+    db.refresh(row)
+    return row
 
 
 # --- Accounts (ACCOUNTS-AND-FEEDBACK-DESIGN.md Phase 2, revised: username +

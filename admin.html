@@ -203,14 +203,19 @@
 
   <details class="panel" id="panel-reports" open>
     <summary><h2>French Answer Reports <span style="opacity:0.5; font-weight:400;">(Le Champ de Mots)</span></h2></summary>
-    <p class="status-line">Every "I think this should count" report ever submitted. There's no resolved/unresolved flag in the backend (§14.4's deliberate no-admin-UI decision) — once you've triaged one (accepted into the catalog's <code>accepted_fr</code>/<code>accepted_en</code>, or rejected), it stays in this list as a historical record; it doesn't disappear.</p>
+    <p class="status-line">Every "I think this should count" report ever submitted. Triage one by hand (accept it into the catalog's <code>accepted_fr</code>/<code>accepted_en</code>, or reject it), then press <strong>Mark done</strong>: it moves out of the Open list but stays under Done as a historical record, and you can reopen it.</p>
     <div class="filter-row">
+      <select id="reports-state" aria-label="Show open or done reports">
+        <option value="open">Open</option>
+        <option value="done">Done</option>
+        <option value="all">All</option>
+      </select>
       <input type="text" id="reports-filter" placeholder="Filter by item id or text…">
       <button type="button" class="refresh-button" id="reports-refresh">Refresh</button>
     </div>
     <p class="status-line" id="reports-status">Loading…</p>
     <table id="reports-table">
-      <thead><tr><th>Item</th><th>Submitted</th><th>Marked correct</th><th>Topic</th><th>When</th></tr></thead>
+      <thead><tr><th>Item</th><th>Submitted</th><th>Marked correct</th><th>Topic</th><th>When</th><th>Status</th></tr></thead>
       <tbody></tbody>
     </table>
   </details>
@@ -358,16 +363,19 @@ let allReports = [];
 function renderReports() {
   const tbody = document.querySelector("#reports-table tbody");
   const filter = document.getElementById("reports-filter").value.trim().toLowerCase();
+  const state = document.getElementById("reports-state").value;
+  const byState = allReports.filter((r) =>
+    state === "all" ? true : state === "done" ? r.is_resolved : !r.is_resolved);
   const filtered = filter
-    ? allReports.filter((r) =>
+    ? byState.filter((r) =>
         r.item_id.toLowerCase().includes(filter) ||
         r.submitted_answer.toLowerCase().includes(filter) ||
         r.marked_correct_answer.join(" ").toLowerCase().includes(filter)
       )
-    : allReports;
+    : byState;
 
   if (!filtered.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="5">${allReports.length ? "No reports match that filter." : "No answer reports submitted yet."}</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">${allReports.length ? "No reports here." : "No answer reports submitted yet."}</td></tr>`;
     return;
   }
   tbody.innerHTML = filtered.map((r) => `
@@ -377,8 +385,25 @@ function renderReports() {
       <td><ul class="answer-list">${r.marked_correct_answer.map((a) => `<li>${escapeHtml(a)}</li>`).join("")}</ul></td>
       <td>${escapeHtml(r.topic_type) || "—"}</td>
       <td>${formatWhen(r.created_at)}</td>
+      <td>${r.is_resolved ? `Done ${formatWhen(r.resolved_at)}<br>` : ""}<button type="button" class="refresh-button report-toggle" data-id="${escapeHtml(r.id)}" data-resolved="${r.is_resolved ? "false" : "true"}">${r.is_resolved ? "Reopen" : "Mark done"}</button></td>
     </tr>
   `).join("");
+}
+
+async function setReportResolved(id, resolved) {
+  const res = await fetch(`${API_BASE}/answer-reports/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", "X-Admin-Token": getAdminToken() },
+    body: JSON.stringify({ resolved }),
+  });
+  if (res.status === 401 || res.status === 503) { setAdminToken(""); showLogin("That token wasn't accepted. Try again."); return; }
+  if (!res.ok) { document.getElementById("reports-status").textContent = "Couldn't update that report."; return; }
+  const updated = await res.json();
+  const index = allReports.findIndex((r) => r.id === id);
+  if (index >= 0) allReports[index] = updated;
+  const open = allReports.filter((r) => !r.is_resolved).length;
+  document.getElementById("reports-status").textContent = `${allReports.length} reports total, ${open} open.`;
+  renderReports();
 }
 
 async function loadReports() {
@@ -392,7 +417,7 @@ async function loadReports() {
     return 0;
   }
   allReports.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  status.textContent = `${allReports.length} reports total.`;
+  status.textContent = `${allReports.length} reports total, ${allReports.filter((r) => !r.is_resolved).length} open.`;
   renderReports();
   return allReports.length;
 }
@@ -467,6 +492,11 @@ async function loadAll() {
 })();
 
 document.getElementById("reports-filter").addEventListener("input", renderReports);
+document.getElementById("reports-state").addEventListener("change", renderReports);
+document.querySelector("#reports-table tbody").addEventListener("click", (event) => {
+  const button = event.target.closest(".report-toggle");
+  if (button) setReportResolved(button.dataset.id, button.dataset.resolved === "true");
+});
 document.getElementById("reports-refresh").addEventListener("click", loadAll);
 
 document.getElementById("admin-login-form").addEventListener("submit", (event) => {

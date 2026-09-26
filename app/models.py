@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Text, JSON, Boolean, Column, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Text, JSON, Boolean, Column, DateTime, ForeignKey, Integer, String, false, func
 
 from database import Base
 
@@ -108,6 +108,10 @@ class AnswerReport(Base):
     marked_correct_answer = Column(JSON, nullable=False)
     topic_type = Column(String, nullable=True, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    # U6: an admin marks a report done once it has been dealt with. Set only by
+    # the admin-token-protected PATCH /answer-reports/{id}.
+    is_resolved = Column(Boolean, nullable=False, default=False, server_default=false())
+    resolved_at = Column(DateTime(timezone=True), nullable=True)
 
 
 class Feedback(Base):

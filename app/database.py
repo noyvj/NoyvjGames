@@ -79,6 +79,9 @@ def patch_schema():
         "ALTER TABLE saves ADD COLUMN IF NOT EXISTS user_id VARCHAR REFERENCES users(id)",
         # Y31: per-account synced site-wide preferences.
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS settings_json TEXT",
+        # U6: report triage state.
+        "ALTER TABLE answer_reports ADD COLUMN IF NOT EXISTS is_resolved BOOLEAN NOT NULL DEFAULT FALSE",
+        "ALTER TABLE answer_reports ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMPTZ",
     ]
     with engine.begin() as conn:
         for statement in statements:
