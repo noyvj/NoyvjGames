@@ -685,3 +685,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** drift
 **Did:** Reaching Thriving once now unlocks a permanent +10% integration speed for every region begun afterwards, remembered per browser; the region that earned it does not get it.
 **Result:** 316 → 329 tests passing, flake8 clean; verified live.
+
+### 2026-09-26 (Drift: second wave, I25)
+**Game:** drift
+**Did:** Added a once-per-region second wave of arrivals (double for five rounds) after the first arrivals mostly integrate, announced a round ahead and ending in a held/strained verdict; saved and validated.
+**Result:** 329 → 342 tests passing, flake8 clean; verified live.

@@ -99,6 +99,18 @@ POLICIES = {
 LEARNING_STORAGE_KEY = "drift_cross_region_learning_v1"
 LEARNING_INTEGRATION_BONUS = 0.10
 
+# I25: the second wave. Once the first arrivals have largely integrated (and at
+# least SECOND_WAVE_MIN_ROUND rounds have passed) a larger wave arrives for
+# SECOND_WAVE_ROUNDS rounds at SECOND_WAVE_ARRIVALS_MULTIPLIER times the usual
+# arrivals: a test of whether the capacity and services you built actually
+# hold, not a punishment. It is announced the round before it lands, happens
+# once per region, and ends with a plain verdict. The verdict is "held" if
+# strain never left the stable/strained bands during the wave.
+SECOND_WAVE_MIN_ROUND = 10
+SECOND_WAVE_TRIGGER_INTEGRATION = 0.7
+SECOND_WAVE_ROUNDS = 5
+SECOND_WAVE_ARRIVALS_MULTIPLIER = 2.0
+
 POLICY_BASE_COST = 60.0
 POLICY_MAX_LEVEL = 3
 
@@ -244,6 +256,13 @@ class RegionState:
         # I29: whether lessons from an earlier Thriving region apply here,
         # fixed when the region begins.
         self.learning_active = cross_region_learning
+        # I25: second wave state. status: None (not yet), "warned" (lands next
+        # round), "active", "done". peak_strain is the worst strain seen while
+        # it was active; result is "held" or "strained" once done.
+        self.second_wave_status = None
+        self.second_wave_rounds_left = 0
+        self.second_wave_peak_strain = 0.0
+        self.second_wave_result = None
         self.background_severity = 0.0
         self.total_arrivals = 0.0
         self.arrivals_log = []
@@ -376,7 +395,10 @@ class RegionState:
         """People arriving this round, rising with background severity —
         loosely tied to it, not a hard function the player can reverse-
         engineer to zero, but predictable enough to plan capacity around."""
-        return BASE_ARRIVALS_PER_ROUND + self.background_severity * ARRIVALS_PER_SEVERITY_POINT
+        base = BASE_ARRIVALS_PER_ROUND + self.background_severity * ARRIVALS_PER_SEVERITY_POINT
+        if self.second_wave_status == "active":
+            base *= SECOND_WAVE_ARRIVALS_MULTIPLIER
+        return base
 
     def strain_fraction(self):
         """0..1 — the share of the region's arrived population that
@@ -535,6 +557,7 @@ class RegionState:
         if not coda_was_available and self.has_long_horizon_story():
             self.coda_just_became_available = True
 
+        self._advance_second_wave(strain, completed_round)
         arrivals = self.arrivals_this_round()
         self.total_arrivals += arrivals
         self.arrivals_log.append(arrivals)
@@ -588,6 +611,46 @@ class RegionState:
                 "trend": trend_indicator(self.wellbeing_log),
             }
             self.milestone_just_updated = True
+
+    def _advance_second_wave(self, strain, completed_round):
+        """I25: called once per round before this round's arrivals are added,
+        with the strain measured at the start of the round. Warns one round
+        ahead, runs the wave, then records the verdict."""
+        if self.second_wave_status == "active":
+            self.second_wave_peak_strain = max(self.second_wave_peak_strain, strain)
+            self.second_wave_rounds_left -= 1
+            if self.second_wave_rounds_left <= 0:
+                self.second_wave_status = "done"
+                self.second_wave_result = (
+                    "held" if self.second_wave_peak_strain < STRAIN_LEVEL_THRESHOLDS[2][0] else "strained"
+                )
+        elif self.second_wave_status == "warned":
+            self.second_wave_status = "active"
+            self.second_wave_rounds_left = SECOND_WAVE_ROUNDS
+            self.second_wave_peak_strain = strain
+        elif (
+            self.second_wave_status is None
+            and completed_round >= SECOND_WAVE_MIN_ROUND
+            and self.integration_fraction() >= SECOND_WAVE_TRIGGER_INTEGRATION
+        ):
+            self.second_wave_status = "warned"
+
+    def second_wave_message(self):
+        if self.second_wave_status == "warned":
+            return (
+                f"A second, larger wave is on its way: about {SECOND_WAVE_ARRIVALS_MULTIPLIER:.0f}x the usual arrivals "
+                f"for {SECOND_WAVE_ROUNDS} rounds, starting next round. Build now."
+            )
+        if self.second_wave_status == "active":
+            return (
+                f"The second wave is here: {self.second_wave_rounds_left} round(s) left. "
+                f"Worst strain so far: {self.second_wave_peak_strain * 100:.0f}%."
+            )
+        if self.second_wave_status == "done":
+            if self.second_wave_result == "held":
+                return "The second wave has passed and your capacity held: strain never reached critical."
+            return "The second wave has passed. Strain went critical at its worst: what you built wasn't enough this time."
+        return ""
 
     # I27: total funds spent across every capacity type. Each type is
     # bought at a fixed cost per fixed capacity step, so spend is exactly
@@ -1803,6 +1866,7 @@ def render_personal_best():
 def render():
     render_info_page()
     render_policies()
+    render_second_wave()
     _maybe_record_learning()
     render_learning()
     update_achievements_display()
@@ -2079,6 +2143,15 @@ def on_advance_round(event=None):
     _check_new_achievements_for_toast()
 
 
+def render_second_wave():
+    element = document.getElementById("second-wave-display")
+    if element is None:
+        return
+    text = region.second_wave_message()
+    element.innerText = text
+    element.hidden = text == ""
+
+
 def render_policies():
     for policy, spec in POLICIES.items():
         level = region.policy_level[policy]
@@ -2232,6 +2305,13 @@ def get_state():
         "crisis_start_enabled": region.crisis_start_enabled,
         **({"policy_level": dict(region.policy_level)} if any(region.policy_level.values()) else {}),
         **({"learning_active": True} if region.learning_active else {}),
+        **(
+            {"second_wave": {
+                "status": region.second_wave_status, "rounds_left": region.second_wave_rounds_left,
+                "peak_strain": region.second_wave_peak_strain, "result": region.second_wave_result,
+            }}
+            if region.second_wave_status is not None else {}
+        ),
         "coda_visible": coda_visible,
         "info_page_open": info_page_open,
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
@@ -2321,6 +2401,26 @@ def load_state(data):
     region.crisis_start_enabled = bool(data.get("crisis_start_enabled", region.crisis_start_enabled))
     # I29: a loaded region keeps whatever it began with; a save without the key began without it.
     region.learning_active = data.get("learning_active") is True
+    region.second_wave_status = None
+    region.second_wave_rounds_left = 0
+    region.second_wave_peak_strain = 0.0
+    region.second_wave_result = None
+    saved_wave = data.get("second_wave")
+    if isinstance(saved_wave, dict):
+        status = saved_wave.get("status")
+        left = saved_wave.get("rounds_left")
+        peak = saved_wave.get("peak_strain")
+        result = saved_wave.get("result")
+        if status in ("warned", "active", "done"):
+            region.second_wave_status = status
+            if isinstance(left, int) and not isinstance(left, bool) and 0 <= left <= SECOND_WAVE_ROUNDS:
+                region.second_wave_rounds_left = left
+            elif status == "active":
+                region.second_wave_rounds_left = SECOND_WAVE_ROUNDS
+            if isinstance(peak, (int, float)) and not isinstance(peak, bool) and peak == peak and 0.0 <= peak <= 1.0:
+                region.second_wave_peak_strain = float(peak)
+            if status == "done":
+                region.second_wave_result = result if result in ("held", "strained") else "strained"
     region.policy_level = {p: 0 for p in POLICIES}
     saved_policies = data.get("policy_level")
     if isinstance(saved_policies, dict):

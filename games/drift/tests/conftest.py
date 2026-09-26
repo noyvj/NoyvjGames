@@ -66,6 +66,7 @@ ELEMENT_IDS = [
     "housing-count",
     "housing-invest-button",
     "learning-display",
+    "second-wave-display",
     "policy-credentialing-name",
     "policy-credentialing-button",
     "policy-language-access-name",
