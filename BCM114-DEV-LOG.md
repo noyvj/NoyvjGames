@@ -530,3 +530,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Continuum
 **Did:** Added a "Council Minutes" panel: a dated ledger of every major decision (discoveries studied, buildings raised, eras entered), worded like council meeting minutes. New pure module `minutes.py` storing validated entries in `campaign.ui` (no save-schema change, capped at 80), wired into the build/research/era handlers; only successful actions are minuted.
 **Result:** 578 → 587 tests passing, flake8 clean apart from two pre-existing warnings; verified live with real Build/Study clicks, zero console errors.
+
+### 2026-09-26 (Le Champ de Mots: real study days + study calendar, L7a/L7b)
+**Game:** Le Champ de Mots
+**Did:** Added a real calendar-day tracker (which real dates had study activity, from a JS date hook since `game.py` may not use a clock) recorded once per answered question across the main panel, Review and every practice mode, saved and validated, plus a "Study calendar" panel: a Monday-first month view with month navigation, studied days marked by a heavier border and a visible count (not colour alone), today outlined, and a gentle no-counter summary. Caught a legibility bug by looking at it (near-invisible text on the cream panel) and themed it across all four visual styles.
+**Result:** 621 → 633 tests passing, flake8 clean; verified live with the real browser date and computed colours in all four styles.

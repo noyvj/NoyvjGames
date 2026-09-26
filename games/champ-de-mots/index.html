@@ -30,6 +30,7 @@
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
       <button id="dashboard-toggle-button" class="secondary" type="button">📊 Progress dashboard</button>
+      <button id="calendar-toggle-button" class="secondary" type="button">🗓️ Study calendar</button>
       <button id="liaison-toggle-button" class="secondary" type="button">🗣️ Liaison practice</button>
       <button id="achievements-toggle-button" class="secondary" type="button">🏆 Achievements</button>
       <!-- "What's New" changelog panel (site-wide goal, planning/TODO.md,
@@ -95,6 +96,18 @@
       </div>
     </div>
     <div id="dashboard-panel" class="dashboard-panel" hidden></div>
+    <!-- L7b: which real calendar days you studied. Only ever shows what you did; no counters to keep alive. -->
+    <div id="calendar-panel" class="dashboard-panel calendar-panel" hidden>
+      <p class="dashboard-heading">Study calendar</p>
+      <div class="calendar-nav">
+        <button id="calendar-prev-button" class="secondary" type="button" aria-label="Previous month">&larr; Previous</button>
+        <span id="calendar-month-label" class="calendar-month-label" aria-live="polite"></span>
+        <button id="calendar-next-button" class="secondary" type="button" aria-label="Next month">Next &rarr;</button>
+      </div>
+      <div id="calendar-grid" class="calendar-grid" role="group" aria-label="Days of the month"></div>
+      <p id="calendar-summary" class="dashboard-since"></p>
+      <p class="calendar-note">A day is marked when you answer at least one question anywhere in the game; the small number is how many. Dates come from this device's clock and are saved with your farm.</p>
+    </div>
     <details id="srs-explainer" class="info-toggle srs-explainer" hidden><summary>How is my review schedule worked out?</summary><div id="srs-explainer-body"></div></details>
     <div id="achievements-panel" class="dashboard-panel" hidden></div>
     <!-- "What's New" changelog panel (origin K16): rows are built by
@@ -429,6 +442,13 @@
     nicety, not core gameplay.
   -->
   <script>
+    // L7a: the real calendar date (device-local, YYYY-MM-DD) for the study
+    // calendar. game.py may not touch a clock itself, so it asks here.
+    window.studyToday = function () {
+      const d = new Date();
+      const pad = (n) => String(n).padStart(2, "0");
+      return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+    };
     window.submitAnswerReport = function (jsonPayload) {
       fetch("https://noyvjgames.fastapicloud.dev/answer-reports", {
         method: "POST",
@@ -633,6 +653,7 @@
         { toggle: "howto-toggle-button", panel: "howto-panel" },
         { toggle: "settings-toggle-button", panel: "settings-panel" },
         { toggle: "dashboard-toggle-button", panel: "dashboard-panel" },
+        { toggle: "calendar-toggle-button", panel: "calendar-panel" },
         { toggle: "achievements-toggle-button", panel: "achievements-panel" },
         { toggle: "changelog-toggle-button", panel: "changelog-panel" },
         { toggle: "report-log-toggle-button", panel: "report-log-panel" },

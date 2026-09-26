@@ -588,3 +588,11 @@ html[data-visual-style="cartoon"] .plot {
   filter: saturate(1.7) brightness(1.08);
   border-radius: 10px;
 }
+
+/* L7b: the study calendar inherits the panel's text colour; each alternate
+   theme has a dark .dashboard-panel, so give it that theme's own light body
+   text (same colours .changelog-row already uses) rather than the default
+   theme's dark brown. */
+html[data-visual-style="lowpoly"] .calendar-panel { color: #eef3f6; }
+html[data-visual-style="textbased"] .calendar-panel { color: #b9f5c9; }
+html[data-visual-style="cartoon"] .calendar-panel { color: #f5eaff; }

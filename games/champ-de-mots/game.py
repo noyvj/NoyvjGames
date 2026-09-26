@@ -12,6 +12,7 @@ reschedules the plot sooner (it "needs water again") but never demotes the
 plant, never removes it, and never produces a failure state.
 """
 
+import calendar as _calendar
 import difflib
 import json
 import random
@@ -2034,6 +2035,7 @@ def record_practice(mode, correct):
     if entry is None:
         return False
     entry["total"] = min(entry["total"] + 1, PRACTICE_COUNT_LIMIT)
+    note_study_answer()
     if entry["day"] != state.current_day:
         entry["day"] = state.current_day
         entry["day_points"] = 0
@@ -2186,6 +2188,210 @@ def dashboard_days_since_last_touch():
     if not touched_days:
         return None
     return state.current_day - max(touched_days)
+
+
+# ===========================================================================
+# L7a/L7b: a real calendar-day concept and a lightweight study calendar.
+# `state.current_day` is the SRS's own in-game day counter (advanced by the
+# player), so it says nothing about real dates. This records which REAL
+# calendar days had any study activity, as {"YYYY-MM-DD": answers}. The date
+# itself comes from a JS hook (window.studyToday, in index.html) because this
+# file may not touch any clock API (Milestone 7's tested constraint). No
+# streak counter, no missed-day marker: the calendar only ever shows what you
+# DID, matching this game's no-guilt stance (section 3).
+# ===========================================================================
+STUDY_DAY_LIMIT = 400  # newest days kept, so the save stays small
+STUDY_COUNT_LIMIT = 9999
+CALENDAR_MONTHS_BACK = 36
+MONTH_NAMES = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+]
+WEEKDAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+study_days = {}
+calendar_open = False
+calendar_view = None  # (year, month) being shown; None means today's month
+_today_override = None  # tests only
+
+
+def _parse_iso_date(text):
+    """(year, month, day) for a real 'YYYY-MM-DD' date, else None."""
+    if not isinstance(text, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", text):
+        return None
+    year, month, day = int(text[0:4]), int(text[5:7]), int(text[8:10])
+    if year < 1970 or year > 2200 or month < 1 or month > 12:
+        return None
+    if day < 1 or day > _calendar.monthrange(year, month)[1]:
+        return None
+    return year, month, day
+
+
+def study_today():
+    """Today's real date as 'YYYY-MM-DD', or None when there's no clock."""
+    if _today_override is not None:
+        return _today_override
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return None
+    hook = getattr(window, "studyToday", None)
+    if hook is None:
+        return None
+    value = hook()
+    return value if _parse_iso_date(value) else None
+
+
+def note_study_answer():
+    """Count one answered question against today's real date."""
+    day = study_today()
+    if day is None:
+        return
+    study_days[day] = min(study_days.get(day, 0) + 1, STUDY_COUNT_LIMIT)
+    if len(study_days) > STUDY_DAY_LIMIT:
+        for old in sorted(study_days)[: len(study_days) - STUDY_DAY_LIMIT]:
+            del study_days[old]
+
+
+def _validated_study_days(raw):
+    if not isinstance(raw, dict):
+        return {}
+    clean = {}
+    for key, count in raw.items():
+        if _parse_iso_date(key) is None:
+            continue
+        if isinstance(count, bool) or not isinstance(count, int) or count < 1:
+            continue
+        clean[key] = min(count, STUDY_COUNT_LIMIT)
+    for old in sorted(clean)[: max(0, len(clean) - STUDY_DAY_LIMIT)]:
+        del clean[old]
+    return clean
+
+
+def calendar_month_days(year, month):
+    """Weeks of the month, Monday first: [[day-or-0 x 7], ...]."""
+    return _calendar.Calendar(firstweekday=0).monthdayscalendar(year, month)
+
+
+def calendar_current_view():
+    if calendar_view is not None:
+        return calendar_view
+    today = _parse_iso_date(study_today())
+    if today is not None:
+        return today[0], today[1]
+    if study_days:
+        latest = _parse_iso_date(max(study_days))
+        return latest[0], latest[1]
+    return None
+
+
+def _shift_month(view, delta):
+    year, month = view
+    index = year * 12 + (month - 1) + delta
+    return index // 12, index % 12 + 1
+
+
+def _calendar_view_allowed(view):
+    today = _parse_iso_date(study_today())
+    if today is None:
+        return True
+    now = today[0] * 12 + today[1] - 1
+    shown = view[0] * 12 + view[1] - 1
+    return now - CALENDAR_MONTHS_BACK <= shown <= now
+
+
+def on_toggle_calendar(event=None):
+    global calendar_open, calendar_view
+    calendar_open = not calendar_open
+    if not calendar_open:
+        calendar_view = None
+    render_calendar()
+
+
+def _on_calendar_shift(delta):
+    global calendar_view
+    view = calendar_current_view()
+    if view is None:
+        return
+    target = _shift_month(view, delta)
+    if _calendar_view_allowed(target):
+        calendar_view = target
+    render_calendar()
+
+
+def on_calendar_prev(event=None):
+    _on_calendar_shift(-1)
+
+
+def on_calendar_next(event=None):
+    _on_calendar_shift(1)
+
+
+def render_calendar():
+    panel = _element("calendar-panel")
+    toggle = _element("calendar-toggle-button")
+    toggle.innerText = "Hide study calendar" if calendar_open else "🗓️ Study calendar"
+    panel.hidden = not calendar_open
+    if not calendar_open:
+        return
+    grid = _element("calendar-grid")
+    grid.innerHTML = ""
+    view = calendar_current_view()
+    if view is None:
+        _element("calendar-month-label").innerText = ""
+        _element("calendar-summary").innerText = (
+            "Nothing to show yet. Answer a question and today will appear here."
+        )
+        return
+    year, month = view
+    _element("calendar-month-label").innerText = f"{MONTH_NAMES[month - 1]} {year}"
+    _element("calendar-prev-button").disabled = not _calendar_view_allowed(_shift_month(view, -1))
+    _element("calendar-next-button").disabled = not _calendar_view_allowed(_shift_month(view, 1))
+    today = _parse_iso_date(study_today())
+    for name in WEEKDAY_NAMES:
+        head = document.createElement("span")
+        head.className = "calendar-weekday"
+        head.innerText = name
+        grid.appendChild(head)
+    studied_here = 0
+    for week in calendar_month_days(year, month):
+        for day in week:
+            cell = document.createElement("span")
+            if day == 0:
+                cell.className = "calendar-cell calendar-cell--blank"
+                grid.appendChild(cell)
+                continue
+            iso = f"{year:04d}-{month:02d}-{day:02d}"
+            answers = study_days.get(iso, 0)
+            is_today = today == (year, month, day)
+            cell.className = "calendar-cell"
+            if answers:
+                studied_here += 1
+                cell.className += " calendar-cell--studied"
+            if is_today:
+                cell.className += " calendar-cell--today"
+            label = f"{day} {MONTH_NAMES[month - 1]}"
+            if answers:
+                label += f": {answers} answer{'s' if answers != 1 else ''}"
+            if is_today:
+                label += " (today)"
+            cell.setAttribute("aria-label", label)
+            cell.title = label
+            number = document.createElement("span")
+            number.className = "calendar-day-number"
+            number.innerText = str(day)
+            cell.appendChild(number)
+            if answers:
+                count = document.createElement("span")
+                count.className = "calendar-day-count"
+                count.innerText = f"\u00b7{answers}"
+                cell.appendChild(count)
+            grid.appendChild(cell)
+    if studied_here:
+        noun = "day" if studied_here == 1 else "days"
+        summary = f"You studied on {studied_here} {noun} this month."
+    else:
+        summary = "No study days recorded this month. Nothing here ever expires."
+    _element("calendar-summary").innerText = summary
 
 
 def on_toggle_dashboard(event=None):
@@ -3253,6 +3459,7 @@ def render_practice():
 
 
 def render():
+    render_calendar()
     render_farm()
     render_status()
     render_practice()
@@ -3324,7 +3531,9 @@ def submit_answer(given):
         confidence_tally[current_confidence][1] += 1
         confidence_tally[current_confidence][0] += 1 if current_result else 0
     if current_question.get("variant") == V_GENDER_TAG:
-        record_practice("gender", current_result)
+        record_practice("gender", current_result)  # also counts the study day
+    else:
+        note_study_answer()
     plot = state.plots_by_id.get(current_question["plot_id"])
     if plot is not None:
         if current_result:
@@ -3725,7 +3934,9 @@ def submit_review_answer(given):
     )
     review_score["total"] += 1
     if review_question.get("variant") == V_GENDER_TAG:
-        record_practice("gender", review_result)
+        record_practice("gender", review_result)  # also counts the study day
+    else:
+        note_study_answer()
     if review_result:
         review_score["correct"] += 1
         plot = state.plots_by_id.get(review_question["plot_id"])
@@ -4949,6 +5160,9 @@ def setup():
     _element("dashboard-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_dashboard)
     )
+    _element("calendar-toggle-button").addEventListener("click", create_proxy(on_toggle_calendar))
+    _element("calendar-prev-button").addEventListener("click", create_proxy(on_calendar_prev))
+    _element("calendar-next-button").addEventListener("click", create_proxy(on_calendar_next))
     _element("review-word-button").addEventListener("click", create_proxy(on_start_word_review))
     _element("review-grammar-button").addEventListener(
         "click", create_proxy(on_start_grammar_review)
@@ -5129,6 +5343,9 @@ def get_state():
         # L13 -- opt-in study-buddy preference; only written when on, so
         # the default save is unchanged.
         **({"study_buddy": True} if study_buddy_enabled else {}),
+        # L7a -- real calendar days with study activity; only written once
+        # something has been studied, like practice_ledger above.
+        **({"study_days": dict(study_days)} if study_days else {}),
     }
 
 
@@ -5148,7 +5365,7 @@ def _is_valid_report_log_entry(entry):
 
 
 def load_state(data):
-    global error_pattern_counts, practice_ledger, study_buddy_enabled, report_log
+    global error_pattern_counts, practice_ledger, study_buddy_enabled, report_log, study_days
 
     study_buddy_enabled = data.get("study_buddy") is True
 
@@ -5157,6 +5374,7 @@ def load_state(data):
     state.invalidate_unlocks()
     error_pattern_counts = dict(data.get("error_patterns") or {})
     practice_ledger = _validated_practice_ledger(data.get("practice_ledger"))
+    study_days = _validated_study_days(data.get("study_days"))
     # Z11 "My Reports" -- an old save predating this feature simply has no
     # "report_log" key, which sanitize() already treats as "empty list",
     # the same forward-compatibility standard every other per-game field
