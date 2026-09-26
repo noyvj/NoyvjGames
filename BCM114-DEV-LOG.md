@@ -660,3 +660,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** loop
 **Did:** Added a late-game redesign layer, unlocked by the first closed loop: each circularity measure can be redesigned up to three times for a permanent +5% supply per level, stacking additively with the waste-stream focus.
 **Result:** 236 → 249 tests passing, flake8 clean.
+
+### 2026-09-26 (Loop: consumer behavior campaign, H17)
+**Game:** loop
+**Did:** Added a demand-side culture campaign: five levels, each cutting 4% off the material a cycle needs, which lowers new extraction and helps close the loop with less supply. Revenue is unchanged.
+**Result:** 249 → 263 tests passing, flake8 clean; verified live with H3, zero new console errors.

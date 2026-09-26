@@ -220,6 +220,17 @@ WASTE_STREAM_SPECIALIZATION_BONUS = 0.25
 # level) that makes that measure's supply count REDESIGN_SUPPLY_BONUS higher for
 # good. Small on purpose ("a small efficiency bonus"), and it stacks additively
 # with the H9 focus rather than compounding with it.
+# H17: consumer behavior -- a DEMAND-side lever, distinct from every supply-side
+# measure above. A repair-and-reuse culture campaign lowers how much material
+# each cycle's production needs in the first place (products last longer, fewer
+# are wanted), so it shrinks the gap that supply has to fill instead of adding
+# supply. Each level costs more than the last and is worth CULTURE_DEMAND_REDUCTION
+# of the production target's material need, up to CULTURE_MAX_LEVEL levels (a
+# ceiling well short of removing demand: people still buy things).
+CULTURE_BASE_COST = 40
+CULTURE_MAX_LEVEL = 5
+CULTURE_DEMAND_REDUCTION = 0.04
+
 REDESIGN_BASE_COST = 120
 REDESIGN_MAX_LEVEL = 3
 REDESIGN_SUPPLY_BONUS = 0.05
@@ -318,6 +329,8 @@ class ChainState:
         self.waste_focus = None
         # H3: redesign level per measure (0..REDESIGN_MAX_LEVEL).
         self.redesign_level = {m: 0 for m in CIRCULARITY_INVESTMENTS}
+        # H17: demand-side campaign level (0..CULTURE_MAX_LEVEL).
+        self.culture_level = 0
 
     def can_choose_mode(self):
         """H13/H23: the modes change the rules of the whole chain, so they
@@ -349,6 +362,25 @@ class ChainState:
         higher; the other two stay at their base rate."""
         focus = WASTE_STREAM_SPECIALIZATION_BONUS if self.waste_focus == measure else 0.0
         return 1.0 + focus + REDESIGN_SUPPLY_BONUS * self.redesign_level.get(measure, 0)
+
+    def material_need(self):
+        """H17: units of material one cycle's production actually needs, after
+        any demand-side culture campaign. Equals PRODUCTION_TARGET with none."""
+        return PRODUCTION_TARGET * (1.0 - CULTURE_DEMAND_REDUCTION * self.culture_level)
+
+    def culture_cost(self):
+        return CULTURE_BASE_COST * (self.culture_level + 1)
+
+    def invest_culture(self):
+        if self.culture_level >= CULTURE_MAX_LEVEL:
+            return False
+        cost = self.culture_cost()
+        if self.funds < cost:
+            return False
+        self.funds -= cost
+        self.culture_level += 1
+        self.lifetime_investment_spend += cost
+        return True
 
     def redesign_unlocked(self):
         """H3: opens once the loop has closed at least once."""
@@ -413,13 +445,13 @@ class ChainState:
         (internal + imported) beyond the production target instead, so
         any supply this chain doesn't need this cycle — regardless of
         source — is sold outward rather than silently discarded."""
-        return max(0.0, self.circular_supply() - PRODUCTION_TARGET)
+        return max(0.0, self.circular_supply() - self.material_need())
 
     def new_extraction_needed(self):
         """The straight-line default: whatever circular supply doesn't
         cover has to come from newly extracted raw material. Floored at
         zero — enough circularity investment closes the loop entirely."""
-        return max(0.0, PRODUCTION_TARGET - self.circular_supply())
+        return max(0.0, self.material_need() - self.circular_supply())
 
     def invest_trade_link(self):
         if self.funds < TRADE_LINK_COST:
@@ -1475,6 +1507,18 @@ def render():
             ("\u2713 " if active else "")
             + ("Circular design challenge" if which == "challenge" else "Zero-waste challenge")
         )
+    culture_button = document.getElementById("culture-invest-button")
+    if chain.culture_level >= CULTURE_MAX_LEVEL:
+        culture_button.innerText = "Culture campaign (max)"
+        culture_button.disabled = True
+    else:
+        culture_button.innerText = f"Culture campaign ({chain.culture_cost()})"
+        culture_button.disabled = chain.funds < chain.culture_cost()
+    document.getElementById("culture-count").innerText = str(chain.culture_level)
+    document.getElementById("culture-stats").innerText = (
+        f"Each level trims {CULTURE_DEMAND_REDUCTION * 100:.0f}% off the material a cycle needs · "
+        f"now {chain.material_need():.0f} of {PRODUCTION_TARGET:.0f} units"
+    )
     mode_text = mode_status_text()
     mode_el = document.getElementById("mode-status")
     mode_el.innerText = mode_text
@@ -1805,6 +1849,10 @@ def _make_goods_category_handler(category):
     return handler
 
 
+def on_invest_culture(event=None):
+    _run_action(chain.invest_culture)
+
+
 def _make_redesign_handler(measure):
     def handler(event=None):
         _run_action(lambda: chain.redesign(measure))
@@ -1951,6 +1999,8 @@ def get_state():
         state["waste_focus"] = chain.waste_focus
     if any(chain.redesign_level.values()):
         state["redesign_level"] = dict(chain.redesign_level)
+    if chain.culture_level:
+        state["culture_level"] = chain.culture_level
     return state
 
 
@@ -1999,6 +2049,12 @@ def load_state(data):
     chain.zero_waste = data.get("zero_waste") is True
     saved_focus = data.get("waste_focus")
     chain.waste_focus = saved_focus if isinstance(saved_focus, str) and saved_focus in CIRCULARITY_INVESTMENTS else None
+    saved_culture = data.get("culture_level")
+    chain.culture_level = (
+        saved_culture
+        if isinstance(saved_culture, int) and not isinstance(saved_culture, bool) and 0 <= saved_culture <= CULTURE_MAX_LEVEL
+        else 0
+    )
     chain.redesign_level = {m: 0 for m in CIRCULARITY_INVESTMENTS}
     saved_redesign = data.get("redesign_level")
     if isinstance(saved_redesign, dict):
@@ -2053,6 +2109,7 @@ def setup():
         document.getElementById(f"goods-category-{category}-button").addEventListener(
             "click", create_proxy(_make_goods_category_handler(category))
         )
+    document.getElementById("culture-invest-button").addEventListener("click", create_proxy(on_invest_culture))
     for measure in CIRCULARITY_INVESTMENTS:
         document.getElementById(f"focus-{measure}-button").addEventListener(
             "click", create_proxy(_make_focus_handler(measure))
