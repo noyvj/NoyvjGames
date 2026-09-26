@@ -42,6 +42,7 @@ import challenges  # noqa: E402
 import consulting  # noqa: E402
 import info_content  # noqa: E402
 import info_page  # noqa: E402
+import minutes  # noqa: E402
 import narrative_log  # noqa: E402
 import research  # noqa: E402
 import save  # noqa: E402
@@ -670,10 +671,10 @@ def _tick_play_time():
 
 
 def format_play_time(seconds):
-    minutes = int(seconds // 60)
-    if minutes < 60:
-        return f"{minutes} min"
-    return f"{minutes // 60} h {minutes % 60} min"
+    mins = int(seconds // 60)
+    if mins < 60:
+        return f"{mins} min"
+    return f"{mins // 60} h {mins % 60} min"
 
 
 def update_founders_panel():
@@ -710,6 +711,43 @@ def on_add_founders_note(event=None):
     if add_founders_note(field.value):
         field.value = ""
         update_founders_panel()
+
+
+# --- K5 council minutes -------------------------------------------------
+minutes_open = False
+
+
+def record_motion(kind, subject):
+    minutes.record(campaign.ui, kind, subject, state.era, int(state.season))
+
+
+def update_minutes_panel():
+    toggle = document.getElementById("minutes-toggle-button")
+    panel = document.getElementById("minutes-panel")
+    toggle.innerText = "Hide Council Minutes" if minutes_open else "🏛️ Council Minutes"
+    panel.hidden = not minutes_open
+    if not minutes_open:
+        return
+    container = document.getElementById("minutes-list")
+    container.innerHTML = ""
+    entries = minutes.entries(campaign.ui)
+    if not entries:
+        empty = document.createElement("p")
+        empty.className = "row-blurb"
+        empty.innerText = "No motions recorded yet. Research a discovery or raise a building and it will be minuted here."
+        container.appendChild(empty)
+    for entry in reversed(entries):
+        year, season_name = year_and_season(entry["season"])
+        row = document.createElement("p")
+        row.className = "status-line minutes-entry"
+        row.innerText = f"Year {year}, {season_name} ({sim.ERA_LABEL[entry['era']]}): {entry['text']}"
+        container.appendChild(row)
+
+
+def on_toggle_minutes(event=None):
+    global minutes_open
+    minutes_open = not minutes_open
+    update_minutes_panel()
 
 
 def on_toggle_summary_panel(event=None):
@@ -1178,6 +1216,8 @@ def render_era_progress(effects):
 
 def on_advance_era(event=None):
     if transition.attempt_transition(campaign):
+        record_motion("era", sim.ERA_LABEL[state.era] + " era")
+        update_minutes_panel()
         render()
         _check_new_achievements_for_toast()
 
@@ -2058,7 +2098,9 @@ def _make_unassign_handler(role):
 
 def _make_build_handler(building):
     def handler(event=None):
-        state.build(building)
+        if state.build(building):
+            record_motion("build", sim.BUILDING_LABEL[building])
+        update_minutes_panel()
         render()
         _check_new_achievements_for_toast()
     return handler
@@ -2066,7 +2108,9 @@ def _make_build_handler(building):
 
 def _make_research_handler(node_id):
     def handler(event=None):
-        tree.research(node_id, state.resources)
+        if tree.research(node_id, state.resources):
+            record_motion("research", tree.nodes[node_id].name)
+        update_minutes_panel()
         chronicle.check_research(state, tree)
         render()
         _check_new_achievements_for_toast()
@@ -2176,6 +2220,9 @@ def setup():
     )
     document.getElementById("founders-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_founders)
+    )
+    document.getElementById("minutes-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_minutes)
     )
     document.getElementById("views-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_views)

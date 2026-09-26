@@ -836,3 +836,8 @@ verified via the shared `hub-dev-server`: advanced three seasons and
 confirmed the trajectory chart renders real, differentiated "mine" vs.
 "reference" polylines with the correct classes/dash pattern, and
 `trajectory.summary_line()` still reads correctly. Zero console errors.
+
+
+## K5: Council Minutes policy log (2026-09-26)
+
+A "🏛️ Council Minutes" toolbar button opens a ledger of every major decision the player makes, worded like council meeting minutes ("Year 1, Spring (Tribal): Motion carried: the council resolves to study Foraging Lore."). Three kinds are minuted: a discovery studied, a building raised (only when the build actually succeeds), and an era entered. Distinct from `log.Chronicle` (what happened to the settlement) and the founder's log (the player's own notes): this is what the player decided. Logic lives in a new pure module `minutes.py` (`record()`, `clean()`, `entries()`), stored in `campaign.ui["policy_log"]` exactly like the founder's log (K15) so it needs no save-schema change and is validated on every read (bad kind/era/season/text dropped, text capped at 160 chars, ledger capped at the newest 80). `game.py` adds `record_motion()`, the panel (`update_minutes_panel()`), and hooks in the build/research/era handlers; `minutes.py` was added to `index.html`'s `ENGINE_MODULES` list. `changelog.json` was at its 25-entry cap, so the two oldest foundation entries were merged into one to make room. 578 -> 587 tests (`tests/test_minutes.py`); flake8 shows only the two pre-existing warnings; verified live with real Build/Study button clicks.

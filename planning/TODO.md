@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 649/767 items checked off (84.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 636/741 items checked off (85.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -717,7 +717,7 @@ Every idea in this section was accepted, no exceptions.
 - [x] K2: A small "founded [year]" plaque-style readout on the main screen.
 - [x] K3: A "benchmark your city" comparison mode against the aggregate of all other players' cities at the same era *(needs Z1)*.
 - [x] K4: A subtle SimCity-era-style isometric camera preset alongside the existing Overview/Close-up/Aerial presets.
-- [ ] K5: A "policy log" — a running, dated ledger of every major research/infrastructure decision, styled like city council meeting minutes.
+- [x] K5: A "policy log" — a running, dated ledger of every major research/infrastructure decision, styled like city council meeting minutes. **Done 2026-09-26** as the Council Minutes panel (`games/continuum/minutes.py`) — see `games/continuum/CLAUDE.md`.
 - [x] K6: Let the research tree's search/filter support filtering by branch (provision/community/craft) as quick-toggle chips.
 - [x] K7 *(this is `TODO.md`'s still-open K5, now with a concrete direction)*: The "civilization summary" end-of-playthrough report — frame it like an annual shareholder/stakeholder report, complete with a scored "sustainability rating," in-character.
 - [x] K8: A small efficiency-per-capita readout always visible in the HUD.

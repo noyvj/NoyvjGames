@@ -525,3 +525,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Herd, Trade Empire (plus a read-only audit of all 12)
 **Did:** Audited every game for one-time "you did a thing" toasts/banners that aren't achievements, deciding case by case rather than removing everything. Converted two: Herd's `certified` toast became the new Sustainably Certified achievement, and Trade Empire's "first automated ship" toast (J28) was removed because the `first_automation` achievement already announces it, along with its persisted flag. Kept the rest on purpose: explainers (Herd F4, Aftermath E8/E28, Thaw G30, Drift I20), gameplay warnings (Herd pressure/methane), persistent narrative readouts (Drift turning-point/thriving lines, Tide chronicle entries) and Loop's climax banner (user already accepted it in V-E-5). Grid was already resolved (`first_storage`); SOL/Canopy/Continuum/Le Champ de Mots had none.
 **Result:** Herd 191 → 194 and Trade Empire 352 → 353 tests passing, flake8 clean.
+
+### 2026-09-26 (Continuum: Council Minutes policy log, K5)
+**Game:** Continuum
+**Did:** Added a "Council Minutes" panel: a dated ledger of every major decision (discoveries studied, buildings raised, eras entered), worded like council meeting minutes. New pure module `minutes.py` storing validated entries in `campaign.ui` (no save-schema change, capped at 80), wired into the build/research/era handlers; only successful actions are minuted.
+**Result:** 578 → 587 tests passing, flake8 clean apart from two pre-existing warnings; verified live with real Build/Study clicks, zero console errors.

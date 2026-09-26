@@ -51,6 +51,7 @@
            for why. Same hidden-until-opened idiom as the two panels above. -->
       <button id="summary-toggle-button" class="secondary" type="button">📜 Civilization Summary</button>
       <button id="founders-toggle-button" class="secondary" type="button">📓 Founder's Log</button>
+      <button id="minutes-toggle-button" class="secondary" type="button" title="A dated ledger of every major decision you have made, worded like council meeting minutes.">🏛️ Council Minutes</button>
       <!-- K1/K24/K28: optional City Views (dashboard, civic map, flow diagram). -->
       <button id="views-toggle-button" class="secondary" type="button" title="Optional data views of the same city: a numbers dashboard, a top-down map and a resource flow diagram.">📊 City Views</button>
       <!-- Milestone 19 (site-wide settings panel, TODO.md origin A9):
@@ -105,6 +106,12 @@
       <input id="founders-input" class="research-search-input" type="text" maxlength="200" placeholder="A note on what you decided, and why...">
       <button id="founders-add-button" class="secondary" type="button">Add entry</button>
       <div id="founders-list"></div>
+    </div>
+    <!-- K5: council-minutes policy log (minutes.py) — what the player DECIDED. -->
+    <div id="minutes-panel" class="section minutes-panel" hidden>
+      <h2 class="section-heading">Council Minutes</h2>
+      <p class="row-blurb">Every major decision, in order: discoveries studied, buildings raised, eras entered.</p>
+      <div id="minutes-list"></div>
     </div>
     <!-- K3: opt-in community comparison (GET /stats/games/continuum + /percentile, Z1). -->
     <details id="community-details" class="section community-details">
@@ -486,7 +493,7 @@
     // Each engine module is written into Pyodide's virtual filesystem (the
     // working directory, which is on sys.path) before game.py runs and
     // imports them. Still no build step — just more than one fetch.
-    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py"];
+    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py", "minutes.py"];
 
     const CONTINUUM_TUTORIAL_STEPS = [
       {

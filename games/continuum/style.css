@@ -1325,6 +1325,8 @@ kbd { border: 1px solid rgba(201, 147, 84, 0.5); border-radius: 4px; padding: 0 
 .community-city-result { white-space: pre-wrap; font: inherit; font-size: 0.85rem; margin: 0.5rem 0 0; }
 .founders-panel[hidden] { display: none; }
 .founders-entry { font-size: 0.85rem; }
+.minutes-panel[hidden] { display: none; }
+.minutes-entry { font-size: 0.85rem; }
 
 /* K1/K24/K28: optional City Views. Nothing is encoded by colour alone: the
    map uses a distinct glyph shape per building plus text labels, and the
