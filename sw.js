@@ -2,11 +2,13 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 12;
+const SW_VERSION = 13;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
 const NETWORK_TIMEOUT_MS = 4000;
+// The FastAPI Cloud backend (same host script.js's RATINGS_API_BASE uses).
+const API_ORIGIN = "https://noyvjgames.fastapicloud.dev";
 // Every entry here is relative to sw.js's own location (this file, at the
 // repo root), never a "/"-rooted absolute path -- GitHub Pages serves this
 // repo under /NoyvjGames/, not the domain root, so an absolute path like
@@ -99,6 +101,15 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (!/^https?:$/.test(url.protocol)) return;
   const sameOrigin = url.origin === self.location.origin;
+
+  // Backend API calls (saves, achievements, ratings, stats, accounts) are
+  // live per-user data, never "versioned/immutable-ish" like a CDN script.
+  // The cache-first strategy below used to serve the PREVIOUS response for
+  // these and only refresh it in the background, so a player who saved or
+  // earned something and then went back to the hub saw the old numbers
+  // until a manual reload (and, worse, an account's authenticated response
+  // sat in the browser cache). Leave them entirely to the network.
+  if (url.origin === API_ORIGIN || request.headers.has("authorization")) return;
 
   if (sameOrigin) {
     event.respondWith(

@@ -1927,3 +1927,11 @@ function initPageviewCounter() {
   }
 }
 initPageviewCounter();
+
+// A page restored from the browser's back/forward cache (e.g. Back from a
+// game, or a tab re-shown) keeps its old DOM and never re-runs any of the
+// loaders above, so new achievements/saves/last-played badges only appeared
+// after a manual reload. Reload instead of trying to patch each section.
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) location.reload();
+});
