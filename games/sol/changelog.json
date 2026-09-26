@@ -1,5 +1,6 @@
 {
   "changelog": [
+    {"date": "2026-09-26", "entry": "Hold to repeat: holding Mine or an Auto-Miner/Recycler Buy button now repeats it slowly (about 4 a second) so big buying sessions don't strain your hands. It never beats clicking manually, and it can be switched off in Settings."},
     {"date": "2026-09-22", "entry": "Achievement cards now show \"Earned by N% of players\" once enough real save data exists for that achievement (site-wide goal, Z1/Z27b)."},
     {"date": "2026-09-22", "entry": "Added a keyboard-shortcuts help overlay: press ? to see it, Esc to close it or whichever panel is open (site-wide goal, Z4)."},
     {"date": "2026-09-21", "entry": "Settings panel: added a \"Reset to Default\" button that resets text size and reduce-motion back to their defaults in one click (site-wide goal, folded from A26)."},

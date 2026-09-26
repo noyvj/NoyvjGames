@@ -691,3 +691,8 @@ directly. Sandbox mode's flag toggle and the always-visible cross-summary
 "panel" shape a generic Esc handler could safely close.
 
 
+
+
+## Hold to repeat (U11, 2026-09-26)
+
+Holding the mining click button or any world's Auto-Miner/Recycler buy button repeats it slowly: after a 450ms pause, one extra click every 250ms (about 4 a second). It's deliberately gentler than a quick manual clicker so it spares hands during a big buying session without beating manual play; a plain tap is still exactly one click. Implemented in `hold-repeat.js` (plain DOM JS beside `settings.js`, no Pyodide dependency): it clicks the real buttons, so every cost/disabled/achievement rule in `game.py` still applies. Covers mouse, touch and Enter/Space (native Enter key-repeat is swallowed so it can't outrun the timer), stops on release/leave/blur/tab-hide, and suppresses the release click after a real hold so it doesn't add one more. A "Hold to repeat" checkbox in Settings (on by default, persisted to `localStorage["sol-hold-repeat"]`, restored by Reset to Default) turns it off; it is a browser preference and never part of the save code. 680 → 686 tests (`tests/test_hold_repeat.py`, structural, since the JS has no Python harness); verified live: a 2.1s hold gave 7 repeats, a tap gave 1, none after release, and the checkbox disabled it.

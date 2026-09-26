@@ -515,3 +515,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Le Champ de Mots
 **Did:** The visual-style switcher now remembers two independent presets — one for browsing the farm, one for an active review session — instead of one single choice. `game.py`'s `render_review()` tells `visual-style.js` which context is live whenever it actually changes; an unset review preset falls back to the farm one, so existing players see no change until they set a distinct review style.
 **Result:** 614 → 621 tests passing, flake8 clean; live-verified the page switching styles automatically on entering/leaving a review session.
+
+### 2026-09-26 (SOL: hold to repeat, U11)
+**Game:** SOL
+**Did:** Added an optional hold-to-repeat for the mining click and every world's Auto-Miner/Recycler buy buttons: holding repeats the click after a 450ms pause, then every 250ms (about 4 a second), deliberately slower than a quick manual clicker so it never beats manual play. Handles mouse, touch and Enter/Space, suppresses the release click after a real hold, and can be switched off in Settings (on by default, browser-only preference). Plain JS beside `settings.js`; it clicks the real buttons so every game rule still applies.
+**Result:** 680 → 686 tests passing; verified live (7 repeats from a 2.1s hold, 1 from a tap, none after release, checkbox disables it), zero console errors.
