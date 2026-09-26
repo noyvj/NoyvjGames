@@ -160,6 +160,20 @@ class LeaderboardEntry(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 
+class PoolDay(Base):
+    """One community pool's running total for one UTC day (see pools.py):
+    anonymous, no account or address is stored."""
+
+    __tablename__ = "pool_days"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    game_id = Column(String, nullable=False, index=True)
+    pool = Column(String, nullable=False, index=True)
+    day = Column(String, nullable=False, index=True)  # "YYYY-MM-DD" (UTC)
+    total = Column(Float, nullable=False, default=0.0)
+    contributions = Column(Integer, nullable=False, default=0)
+
+
 class PageView(Base):
     """Y29 (planning/TODO.md): one row per opt-in hub visit -- a plain
     row-count table rather than a single incrementing counter row, so a
