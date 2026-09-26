@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-09-26",
+      "entry": "Story mode: a running story about a small valley utility, told in 18 short chapters that unlock as you earn each achievement. The new Story pill hides it (W1)."
+    },
+    {
+      "date": "2026-09-26",
       "entry": "Real grid comparison: pick the United States (2025), Germany (2025) or France (2020) and see your plant mix beside that region's published generation mix, with a per-source gap and a plain verdict on how much cleaner or dirtier your grid is. Sources are named on screen (C29)."
     },
     {

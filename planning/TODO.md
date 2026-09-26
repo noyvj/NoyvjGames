@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 763/781 items checked off (97.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 764/781 items checked off (97.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -917,7 +917,7 @@ A "yes" here means "worth a groundwork plan" (a new `planning/<game>-plan.md`, p
 
 *W1. "For games with little to no story, add a story mode with more story."* A Story mode toggle (reusing `shared/story-toggle.js`'s pill for on/off) whose text is a real narrative thread tied to the game's own progress, a few short authored beats per milestone, kept quiet enough that the game still plays the same with it off. SOL's captain's log (A25, done) is the reference shape.
 - [ ] W1-canopy: Canopy story mode (a forest's-eye narrative thread: the community, the plots, the seasons).
-- [ ] W1-grid: Grid story mode (a small utility's story as the mix changes).
+- [x] W1-grid: Grid story mode (a small utility's story as the mix changes).
 - [ ] W1-herd: Herd story mode (a farm family across generations, tying into the succession system).
 - [ ] W1-loop: Loop story mode (a workshop turning into a circular economy).
 - [ ] W1-trade-empire: Trade Empire story mode (a trader's rise through the clusters).

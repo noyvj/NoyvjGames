@@ -1,0 +1,95 @@
+{
+  "title": "Kestrel Valley",
+  "chapters": [
+    {
+      "id": "begin",
+      "title": "Kestrel Valley",
+      "text": "The county utility board hands you the keys to a small grid and a plain instruction: keep the lights on, and stop making the air worse. There is a little money, a lot of demand, and nobody to ask."
+    },
+    {
+      "id": "first_watt",
+      "title": "The first plant",
+      "text": "The first plant hums to life and the meter on the wall finally moves. It is not much, but it is yours, and for the first time the town's demand has something answering it."
+    },
+    {
+      "id": "renewable_pioneer",
+      "title": "Wind on the ridge",
+      "text": "You put the first renewable on the ridge above town. Half the board thinks it is a gesture. The other half is quietly checking the wind reports."
+    },
+    {
+      "id": "first_storage",
+      "title": "Somewhere to put it",
+      "text": "A battery bank goes in beside the substation. Suddenly a windy afternoon is not wasted, and a still evening is not an emergency."
+    },
+    {
+      "id": "clean_quarter",
+      "title": "A quarter of the way",
+      "text": "A quarter of your capacity now comes from sources that do not burn anything. The number is small, but a board member asks to see the chart, which is new."
+    },
+    {
+      "id": "learning_curve_floored",
+      "title": "Cheaper every time",
+      "text": "Your crews have built so many of the same panel that the price has stopped falling only because it cannot fall further. What was a bet is now the cheapest thing you buy."
+    },
+    {
+      "id": "well_maintained",
+      "title": "The unglamorous work",
+      "text": "Maintenance rounds add up. The fleet is younger than it should be, and the night-shift crew has stopped keeping a list of things that might break."
+    },
+    {
+      "id": "clean_half",
+      "title": "Halfway there",
+      "text": "Half the grid is clean. The neighbours' utility calls to ask how you did it, and you find you can answer honestly: one plant at a time, and by retiring the ones that cost more than they earned."
+    },
+    {
+      "id": "diverse_grid",
+      "title": "A full portfolio",
+      "text": "Coal, gas, nuclear, sun, wind, water and storage all stand on one grid at once. It is untidy, but the untidiness is the point: when one fails, another is already carrying the load."
+    },
+    {
+      "id": "clean_streak_15",
+      "title": "Steady hand",
+      "text": "Fifteen rounds without a disruption. The control room is quiet in a way it has never been, and someone has started a pool on how long it will last."
+    },
+    {
+      "id": "ahead_of_the_curve",
+      "title": "Ahead of the curve",
+      "text": "Your emissions now sit under the benchmark for a typical grid. It is not a victory lap, exactly, but the auditors have stopped asking why."
+    },
+    {
+      "id": "no_damage_20",
+      "title": "Untouched",
+      "text": "Twenty rounds and not one plant damaged by a disruption. The insurers send a polite letter that reads suspiciously like admiration."
+    },
+    {
+      "id": "score_50",
+      "title": "Sustained effort",
+      "text": "Your sustained score passes fifty. It is the kind of number that only counts if you kept it up for ten rounds, and you did."
+    },
+    {
+      "id": "clean_three_quarters",
+      "title": "Mostly clean",
+      "text": "Three quarters of the grid is clean. The last stubborn fossil plants feel less like the backbone and more like the past you have not finished with."
+    },
+    {
+      "id": "grid_at_scale",
+      "title": "Grid at scale",
+      "text": "The grid has grown far beyond the little system you inherited. Demand grew, and you grew with it, which was the hard part."
+    },
+    {
+      "id": "fossil_phase_out",
+      "title": "Phase-out complete",
+      "text": "The last coal and gas plants are switched off, and there is a small ceremony that is mostly people standing quietly. It took real capacity to get here, and real courage to retire it."
+    },
+    {
+      "id": "score_80",
+      "title": "The transition pays off",
+      "text": "A sustained score of eighty. The numbers now say what you suspected in the first round: a clean grid is not the expensive choice, just the one that has to be started early."
+    },
+    {
+      "id": "fully_renewable",
+      "title": "Zero fossil",
+      "text": "No coal, no gas, nothing burning. The valley's grid runs on wind, sun and water, and the board asks, almost as an afterthought, what you would like to build next."
+    }
+  ]
+}
