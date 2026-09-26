@@ -28,41 +28,6 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 
 I'll drop all of that into the ad bar and it goes live everywhere on the site at once, since it's a shared partial.
 
-### 2. Set the admin password (U8) — needed before I can lock the admin page
-
-**Why:** `admin.html` currently sits behind nothing but an unlisted URL, and it (and the raw reports list) shows real data. To lock it, the backend needs a secret only you control. I can't create or store it for you: it has to live as an environment variable on the FastAPI Cloud app (like `DATABASE_URL` already does) and stay out of git. You answered the design questions (Q6), so this is now the only thing blocking U6, U7, U8 and U9.
-
-**What you're setting:** two separate secrets, so the AIs' access can be revoked without changing your own:
-- `ADMIN_TOKEN` — **your** admin password. You type it into the box on `admin.html`.
-- `AI_ADMIN_TOKEN` — a second, independent token that only the AIs use (kept in a local file that git ignores). If it ever leaks, you delete just this one variable and your own password is untouched.
-
-**Walkthrough (about 5 minutes):**
-
-1. **Make two strong random values.** In a Terminal, run this **twice** (one for each secret) and keep the two outputs somewhere private, like your password manager (1Password is already on this Mac):
-   ```
-   python3 -c "import secrets; print(secrets.token_urlsafe(32))"
-   ```
-   Each run prints a long string like `k3Jd...`. Label them "NoyvjGames ADMIN_TOKEN" and "NoyvjGames AI_ADMIN_TOKEN". A random string beats a memorable password here: you'll paste it into a box, not remember it. (If you'd rather have a passphrase you can type from memory for your own token, that works too — make it long, 5+ random words — but keep the AI token random.)
-
-2. **Add both to the FastAPI Cloud app.** Pick whichever way you prefer:
-   - **Dashboard (easiest to see what you're doing):** go to fastapicloud.com, sign in, open the NoyvjGames app (the one at `noyvjgames.fastapicloud.dev`), find its **Environment variables** settings, and add `ADMIN_TOKEN` and `AI_ADMIN_TOKEN` with the values from step 1. Tick "secret" if it offers that.
-   - **Or the command line** (from the repo folder, which is where the app is linked; if it says the app isn't linked, run `python3 -m fastapi cloud link` first and pick the app):
-     ```
-     python3 -m fastapi cloud login
-     python3 -m fastapi cloud env set --secret ADMIN_TOKEN "paste-value-here"
-     python3 -m fastapi cloud env set --secret AI_ADMIN_TOKEN "paste-value-here"
-     python3 -m fastapi cloud env list
-     ```
-     The last command should show both names (secret values are hidden). Don't paste the values into chat or a repo file; the commands above are the only place they go.
-
-3. **Give the AI token to the local checkout only.** Create a file called `.ai-admin-token` in the repo's top folder containing just the `AI_ADMIN_TOKEN` value (one line, nothing else). It's already in `.gitignore`, so it never gets committed. The AIs read it locally to check admin data; it never appears in any tracked file. (If you'd rather not, say so and the AIs will just use a local test database instead, which is option (c) from Q6.)
-
-4. **Redeploy later, not now.** Setting a variable doesn't change the running site until it next redeploys. I'll build the locked admin page and tell you when it's ready; you'll deploy that (as with every backend change) and it will start using the new variables. Until then nothing changes and nothing breaks.
-
-5. **Tell me just "set".** Not the values. I'll build against those two names, and the first time you open `admin.html` after the deploy it will ask for your `ADMIN_TOKEN`.
-
-**If something goes wrong:** you can always run `python3 -m fastapi cloud env delete ADMIN_TOKEN` (or remove it in the dashboard) and set a new one; nothing is lost, the admin page just stays locked until the value matches. Forgot your own token? Same fix: set a fresh one.
-
 ---
 
 ## Answered — building now (no further input needed, listed so you can see what your answers turned into)
@@ -85,16 +50,6 @@ From the completion-verification audit's questions (all answered 2026-09-21):
 - **UI decluttering, Canopy/Le Champ de Mots** (was Q15): you agree, no change. Recorded in `planning/TODO.md` V-AB-6.
 - **Continuum K9 / Warframe X23** (was part of Q16): both kept as their own separate items, no folding/moving.
 
-### 3. Redeploy the backend (small, whenever convenient)
-
-**Why:** account-synced settings (Y31) added a `settings_json` column and two endpoints (`/users/me/settings`). The site works without them (signed-in players just don't get synced preferences yet), but they only go live when the FastAPI Cloud app is redeployed. The column is added automatically at startup (`patch_schema()`), so there is nothing to migrate by hand.
-
-**What this deploy also turns on:** the admin token lock (U8), mark-report-done (U6), the test-data flag and Accounts panel (U7), the optional account email (U9), and the three save slots (U3). Until both tokens from action item 2 are set, the admin page's data stays locked (fail closed), so set them first or right after. To mark your own real accounts vs test ones, open `admin.html`, unlock it, and tick **Test** on the fake accounts in the Accounts panel.
-
-**Also, this is the only thing blocking Z1 (the shared cross-game stats endpoint):** `/stats/games`, `/stats/games/{id}`, `/stats/games/{id}/percentile`, `/stats/achievements` are already fully built and wired into `app/main.py` (see `app/stats.py`) — the code just isn't live yet. That in turn is the only thing blocking a whole backlog of "needs Z1" community-stat TODO items across the hub (SOL A29, Grid C29, Tide D9, Aftermath E9/E23, Herd F10/F21, Drift I17) — once this deploy lands, those become buildable without any further backend work.
-
-**Steps:** from the repo folder run `python3 -m fastapi cloud deploy` (or however you usually deploy), then tell me it's done. I'll do a live check that `GET /users/me/settings` answers. The upcoming admin-password and test-data work (U6-U9) will need one more deploy later, so batching them is fine.
-
 ---
 
 ## Answered 2026-09-26 — folded into `planning/TODO.md` section U (nothing further needed from you)
@@ -106,7 +61,7 @@ Your Q1-Q10 answers are now the decided specs on U1-U14 in `planning/TODO.md` (e
 - **Saving (U3):** claim-to-account by default when signed in, Overwrite/New slot/Cancel prompt (or pick from the U4 saves screen), 3 slots for signed-in accounts only, existing saves become slot 1.
 - **Opening screen (U4):** built per game from a common starting layout, "Continue" first when a save exists, tutorial offered only from New Game, visual-set picker only for games that have one (Le Champ de Mots), light/dark in general Settings.
 - **Test data (U7):** `is_test` flag + AI testing account + hide-test-data checkbox, excluded from public stats too. Neither of us can see which accounts are real, so the locked admin page gets an Accounts panel where you tick the fake ones.
-- **Admin password (U8):** `X-Admin-Token` header, separate revocable AI token, protects every admin endpoint. **Your only step is action item 2 above.**
+- **Admin password (U8):** `X-Admin-Token` header, separate revocable AI token, protects every admin endpoint. Both tokens are set and the backend is deployed — confirmed live 2026-09-26 (`GET /admin/stats` returns 401 with no token, 200 with the real one).
 - **Account email (U9):** optional, manual reset verification only, visible to admin (which is why admin is locked), editable by the player from the hub account panel.
 - **SOL research tree (U10):** ~20 varied-cost nodes per level, rejoining at Near Bodies then again at Far Bodies, most nodes give a small bonus, existing progress converts.
 - **Collapsible cards (U13):** compact by default, remembered on this device, Play stays visible.
