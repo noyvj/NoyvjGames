@@ -1,0 +1,130 @@
+{
+  "title": "The Founding Contract",
+  "chapters": [
+    {
+      "id": "begin",
+      "title": "One ship, one contract",
+      "text": "You sign the founding papers with one ship, a little borrowed credit, and a route between Aurum Station and Verdant Reach. Nobody out here needs a hero, only someone who notices what a world is short of and has room in the hold."
+    },
+    {
+      "id": "first_sale",
+      "title": "The first ledger line",
+      "text": "The ore goes down the ramp at Verdant Reach and the credits arrive before the ship has finished cooling. It is a small number, but it is the first line in a ledger that did not exist this morning, and you read it twice."
+    },
+    {
+      "id": "first_automation",
+      "title": "Hands off the wheel",
+      "text": "You set a ship on its route and step away from the console. It docks, unloads, and turns for home with nobody watching, and you spend the whole trip hovering in case it is a mistake. It is not."
+    },
+    {
+      "id": "fast_ships_researched",
+      "title": "Faster engines",
+      "text": "The refit crews bolt new drives onto the hull and the trips get noticeably shorter. Contracts that used to leave a gap in the schedule now close with time to spare."
+    },
+    {
+      "id": "hauler_researched",
+      "title": "Bigger holds",
+      "text": "The hauler refit doubles as a lesson in why colonies always seem to want a little more than one hold carries. Now a single trip covers a whole order, and the dock crews stop giving you sympathetic looks."
+    },
+    {
+      "id": "automation_slot_researched",
+      "title": "Another pair of hands",
+      "text": "Research opens another slot for a self-running ship, and you realise the fleet is no longer limited by how many routes you can keep in your head. It is limited by how many you are willing to trust."
+    },
+    {
+      "id": "fleet_priority_enabled",
+      "title": "Whichever is most urgent",
+      "text": "You tell the fleet to look for whichever colony is running lowest and head there. It feels like handing the map to someone else, right up until the first shortfall is filled before you have even noticed it."
+    },
+    {
+      "id": "fleet_priority_reposition",
+      "title": "Changing course",
+      "text": "An idle ship turns away from its usual dock and heads for a colony that needs it more. Nobody told it to. You note the new route in the ledger with something close to pride."
+    },
+    {
+      "id": "automation_slots_maxed",
+      "title": "Every slot running",
+      "text": "Every automation slot is filled, and the console is oddly quiet. The work has not gone away; it has moved from moving cargo to deciding what the fleet should be for."
+    },
+    {
+      "id": "colony_developed",
+      "title": "Growing pains",
+      "text": "A colony you have been supplying steadily reaches its next level of development, and its needs grow with it. The dock manager sends a polite message that amounts to: more, please, and a wider range this time."
+    },
+    {
+      "id": "diversified_trader",
+      "title": "A little of everything",
+      "text": "You have now sold every good the home system makes. The market boards used to show only your favourites; now the whole system's prices are a map you can read at a glance."
+    },
+    {
+      "id": "profit_10k",
+      "title": "A modest fortune",
+      "text": "The total on the ledger passes ten thousand credits. It would not buy a colony, but it would buy a very comfortable retirement on one, and you find you have no interest in that at all."
+    },
+    {
+      "id": "market_recovery",
+      "title": "Let it recover",
+      "text": "You flooded one market and watched its price sink, then routed your ships elsewhere and gave it time. The price crept back up on its own, and you remember it: markets forgive, if you let them."
+    },
+    {
+      "id": "home_system_fully_developed",
+      "title": "An established economy",
+      "text": "All five home-system colonies have grown into themselves, each leaning on the others in its own way. Aurum, Verdant, Ferrum, Cryo, Helion: the routes between them now look less like a plan and more like a habit."
+    },
+    {
+      "id": "guild_partner",
+      "title": "The Guild's first contract",
+      "text": "A message from the Trade Guild arrives asking for a bulk delivery to a colony that needs it. You deliver, they pay a bonus on top of the sale, and the Guild sends a short note of thanks that reads as if written by a person who has seen many late shipments."
+    },
+    {
+      "id": "all_research_unlocked",
+      "title": "Fully studied",
+      "text": "The last shared research node is done, and one specialization path stands finished. The research board is at last a list of things you know rather than things you might, and you take a moment to enjoy how ordinary it feels."
+    },
+    {
+      "id": "galaxy_expansion_unlocked",
+      "title": "The Kepler Cluster",
+      "text": "The expansion charter clears and the map opens outward to the Kepler Cluster: Alpha, Beta and Gamma, three new worlds that need each other as much as your first five did. The first ship out carries more hope than cargo."
+    },
+    {
+      "id": "kepler_colony_developed",
+      "title": "Frontier boomtown",
+      "text": "A Kepler colony reaches its second level of development, well past the range of any old home-system schedule. The frontier is not a place you visit and leave; it is a place that has started to pay its own way."
+    },
+    {
+      "id": "guild_favorite",
+      "title": "A name the Guild knows",
+      "text": "Five Guild contracts delivered, and the dispatcher now greets your ships by name. Nothing formal changes, but you notice the offers now feel less like requests to a stranger and more like errands between colleagues."
+    },
+    {
+      "id": "profit_100k",
+      "title": "A trading dynasty",
+      "text": "One hundred thousand credits of profit, counted line by line across every route you ever ran. You go back through the early pages of the ledger and find the first sale, and it looks very small and very brave."
+    },
+    {
+      "id": "rift_colonies",
+      "title": "Past the Rift",
+      "text": "The Outer Reaches research clears and the charts show the Rift Colonies, three worlds trading crystal, antimatter and polymer among themselves. They are further out than anything you have supplied, and their needs are stranger, but the logic of the routes is the same."
+    },
+    {
+      "id": "umbral_deep",
+      "title": "The Umbral Deep",
+      "text": "Beyond the Rift the map goes dark and quiet: Nadir Foundry, Hush Cryostat and Tenebra Loom, far from any sun and paying the best prices anywhere. It is the furthest anyone has traded, and the ledger has never had lines this long."
+    },
+    {
+      "id": "endgame_reached",
+      "title": "A galaxy at scale",
+      "text": "The fleet runs itself, the colonies feed one another, and you find yourself checking in on the whole thing the way you would check on a garden. It works. You are, for the first time, not needed on every trip."
+    },
+    {
+      "id": "new_corporation",
+      "title": "A new beginning",
+      "text": "You close the books on the old company and found a new one, keeping only a legacy behind you: a little more starting capital and a slightly better name on every sale. One ship, one route, and this time you know how it goes."
+    },
+    {
+      "id": "background_galaxy_maxed",
+      "title": "A thousand quiet ledgers",
+      "text": "Beyond the routes you fly yourself, a whole background galaxy of worlds has grown to its full size, each one sending a small, steady trickle of revenue your way. You will never visit most of them, but every one of them is, quietly, part of the company."
+    }
+  ]
+}

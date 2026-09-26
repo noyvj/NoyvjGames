@@ -1,0 +1,60 @@
+{
+  "title": "Le Champ de Mots",
+  "chapters": [
+    {
+      "id": "begin",
+      "title": "A small plot of earth",
+      "text": "You inherit a small field at the edge of a village, with a wooden gate, a well, and a few rows of bare soil. There is no rush and nobody keeping score; the seeds are French words, and they will grow whenever you come back to water them."
+    },
+    {
+      "id": "automated_25",
+      "title": "The first sprinklers",
+      "text": "Twenty-five plots now water themselves, each with a little sprinkler ticking softly in the morning light. The baker across the lane leans on the fence and says the garden sounds like it has started to talk to itself, which you decide is a compliment."
+    },
+    {
+      "id": "row_1",
+      "title": "A whole week in bloom",
+      "text": "One whole row is tended and thriving, every plot in it looking after itself. You sit on the gate for a while and read the words aloud, and the field seems to listen."
+    },
+    {
+      "id": "automated_50",
+      "title": "Market morning",
+      "text": "Fifty plots are running on their own, and you carry a basket of the first harvest to the village market. The stallholders speak slowly and kindly, and for the first time you understand most of what they say."
+    },
+    {
+      "id": "automated_100",
+      "title": "A hundred small gardens",
+      "text": "A hundred plots now keep themselves watered. You lose count of the little conversations with neighbours along the lane, each one a bit longer than the last, and none of them a test."
+    },
+    {
+      "id": "row_5",
+      "title": "Five rows and a change of season",
+      "text": "Five weeks of the field are tended and calm, and the season has turned without you quite noticing. The leaves on the far hedge are gold, and you have learned the words for gold, and for leaves, and for the smell of a late-autumn afternoon."
+    },
+    {
+      "id": "automated_250",
+      "title": "Winter by the stove",
+      "text": "Two hundred and fifty plots are looking after themselves, and the first frost has arrived. You read by the stove while the sprinklers rest, and the words on the page feel like things you have known for a long time."
+    },
+    {
+      "id": "row_11",
+      "title": "The first year of the field",
+      "text": "Every plot in the first year's weeks is now thriving without your help. The village throws a small supper in the barn, and someone toasts your garden in a French you do not have to translate."
+    },
+    {
+      "id": "automated_500",
+      "title": "Spring on the far rows",
+      "text": "Five hundred plots water themselves as the far rows come into flower. The lane to the village is busier, the greetings at the gate are easier, and you have stopped counting how many words it takes to say hello."
+    },
+    {
+      "id": "automated_750",
+      "title": "A field that runs itself",
+      "text": "Seven hundred and fifty plots stand green and self-tending, more than one person could ever water by hand. You walk the rows in the early light with nothing to do but look, and it turns out that is a good use of a morning."
+    },
+    {
+      "id": "row_23",
+      "title": "The whole farm in bloom",
+      "text": "The last row is done, and the entire field is in flower, every plot looking after itself. You lock the gate for the evening, and the village lamps come on across the valley. The garden will still be here whenever you want to visit, and there is always a new word to plant."
+    }
+  ]
+}

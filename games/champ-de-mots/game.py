@@ -3209,6 +3209,24 @@ def show_achievement_toast(message):
     _schedule_achievement_toast_hide(ACHIEVEMENT_TOAST_DURATION_MS)
 
 
+def _story_reach_all(earned_ids):
+    """W1: unlocks the story chapter for every earned achievement (and the
+    opening one) via the shared story-chapters.js. Idempotent and silent: no
+    story script, or a chapter id it does not know, simply does nothing.
+    Never touches the save, and there is no missing-chapter callout (this
+    game's no-guilt stance): unreached chapters are simply not shown."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    story = getattr(window, "NoyvjStory", None)
+    if story is None:
+        return
+    story.reach("begin")
+    for achievement_id in sorted(earned_ids):
+        story.reach(achievement_id)
+
+
 def _maybe_toast_new_achievements():
     """Diffs the currently-earned set against what's already been seen this
     session and toasts anything newly crossed. Called from
@@ -3218,6 +3236,7 @@ def _maybe_toast_new_achievements():
     etc.)."""
     global _achievement_ids_seen
     earned_ids = set(achievement_ids_earned())
+    _story_reach_all(earned_ids)  # W1: also brings a loaded save's chapters back
     newly_earned_ids = earned_ids - _achievement_ids_seen
     _achievement_ids_seen = earned_ids
     if not newly_earned_ids:

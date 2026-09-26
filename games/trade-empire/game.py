@@ -2522,7 +2522,31 @@ ACHIEVEMENT_TOAST_DURATION_MS = 4000
 
 
 def _earned_snapshot():
-    return set(achievement_ids_earned())
+    earned = set(achievement_ids_earned())
+    _story_reach_all(earned)  # W1: every toast check / load baseline also unlocks story chapters
+    return earned
+
+
+def _story_reach_all(earned_ids):
+    """W1: unlocks the story chapter for every earned achievement, the
+    opening one, and the two cluster beats that have no achievement of
+    their own (the Rift Colonies and the Umbral Deep), via the shared
+    story-chapters.js. Idempotent and silent: no story script, or a chapter
+    id it does not know, simply does nothing. Never touches the save."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    story = getattr(window, "NoyvjStory", None)
+    if story is None:
+        return
+    story.reach("begin")
+    for achievement_id in sorted(earned_ids):
+        story.reach(achievement_id)
+    if outer_reaches_unlocked():
+        story.reach("rift_colonies")
+    if umbral_reach_unlocked():
+        story.reach("umbral_deep")
 
 
 def show_achievement_toast(message):
