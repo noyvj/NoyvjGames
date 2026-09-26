@@ -91,6 +91,8 @@ From the completion-verification audit's questions (all answered 2026-09-21):
 
 **What this deploy also turns on:** the admin token lock (U8), mark-report-done (U6), the test-data flag and Accounts panel (U7), the optional account email (U9), and the three save slots (U3). Until both tokens from action item 2 are set, the admin page's data stays locked (fail closed), so set them first or right after. To mark your own real accounts vs test ones, open `admin.html`, unlock it, and tick **Test** on the fake accounts in the Accounts panel.
 
+**Also, this is the only thing blocking Z1 (the shared cross-game stats endpoint):** `/stats/games`, `/stats/games/{id}`, `/stats/games/{id}/percentile`, `/stats/achievements` are already fully built and wired into `app/main.py` (see `app/stats.py`) — the code just isn't live yet. That in turn is the only thing blocking a whole backlog of "needs Z1" community-stat TODO items across the hub (SOL A29, Grid C29, Tide D9, Aftermath E9/E23, Herd F10/F21, Drift I17) — once this deploy lands, those become buildable without any further backend work.
+
 **Steps:** from the repo folder run `python3 -m fastapi cloud deploy` (or however you usually deploy), then tell me it's done. I'll do a live check that `GET /users/me/settings` answers. The upcoming admin-password and test-data work (U6-U9) will need one more deploy later, so batching them is fine.
 
 ---
