@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-09-26",
+      "entry": "Captain's log: a running story line under the title (latest entry) plus a collapsible log, recording your first arrival at each world and every achievement you earn. The existing Story pill turns it on and off (A25)."
+    },
+    {
+      "date": "2026-09-26",
       "entry": "Community leaderboard: an opt-in 'fastest full completion' board in the Stats panel, ranked by the simulated time it took to terraform every world. Nothing is shared unless you tick the box while signed in (A29)."
     },
     {

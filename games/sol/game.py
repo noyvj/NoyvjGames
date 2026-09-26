@@ -1429,6 +1429,9 @@ def _check_new_achievements_for_toast():
     earned_now = set(achievement_ids_earned())
     newly = earned_now - _achievements_seen_ids
     if newly:
+        for aid in sorted(newly):
+            story_note(f"ach:{aid}")
+        render_story_log()
         by_id = {entry["id"]: entry for entry in ACHIEVEMENTS}
         labels = [by_id[aid]["label"] for aid in newly if aid in by_id]
         if labels:
@@ -1439,8 +1442,77 @@ def _check_new_achievements_for_toast():
     _achievements_seen_ids = earned_now
 
 
+# ===========================================================================
+# A25 -- the captain's log: a light narrative thread through the run. Every
+# first arrival at a world and every achievement earned adds one line to a log
+# (recorded whether or not story text is showing, so switching the "Story"
+# pill on later reveals the whole history). The latest line sits under the title
+# as a banner and the full log is a collapsible list; both are listed as story
+# elements for shared/story-toggle.js, so the existing Story pill turns them on
+# and off. The lines are the achievements' own descriptions plus one short
+# arrival line per world; nothing here changes any number or unlock.
+# ===========================================================================
+STORY_LOG_MAX = 80
+STORY_ARRIVAL_LINES = {
+    "Earth": "Log opened. One planet, one pile of iron, and a long way to go.",
+    "Mars": "Mars: red dust, thin air, and the first place that feels like somewhere else.",
+    "Moon": "The Moon: quiet, close, and a good place to keep the ledger honest.",
+    "Venus": "Venus: hot enough to teach patience, thick enough to hide a lot of possibilities.",
+    "AsteroidBelt": "The Belt: no ground to stand on, just rock to mine and a lot of room.",
+    "Pluto": "Pluto: the edge of the map, cold and slow, and yours anyway.",
+    "JupiterMoons": "Jupiter's moons: a small system inside the system, with a giant for a neighbour.",
+    "SaturnMoons": "Saturn's moons: rings overhead, and one more world that needs a plan.",
+}
+story_log = []
+
+
+def story_note(entry_id):
+    """Adds an entry id ("arrive:<world>" or "ach:<achievement id>") once."""
+    if entry_id in story_log:
+        return False
+    story_log.append(entry_id)
+    del story_log[:-STORY_LOG_MAX]
+    return True
+
+
+def story_line(entry_id):
+    """The display text for a log entry id, or None if it is not a known one."""
+    kind, _, key = entry_id.partition(":")
+    if kind == "arrive":
+        return STORY_ARRIVAL_LINES.get(key)
+    if kind == "ach":
+        for entry in ACHIEVEMENTS:
+            if entry["id"] == key:
+                return f"{entry['label']}: {entry['description']}"
+    return None
+
+
+def story_log_lines():
+    """Every log line, oldest first (unknown ids skipped)."""
+    return [line for line in (story_line(e) for e in story_log) if line]
+
+
+def render_story_log():
+    latest = document.getElementById("captains-log-latest")
+    panel = document.getElementById("captains-log")
+    list_el = document.getElementById("captains-log-list")
+    lines = story_log_lines()
+    latest.hidden = not lines
+    latest.innerText = f"Captain's log: {lines[-1]}" if lines else ""
+    panel.hidden = not lines
+    list_el.innerHTML = ""
+    for line in reversed(lines):
+        item = document.createElement("li")
+        item.innerText = line
+        list_el.appendChild(item)
+
+
 def _mark_visited(planet):
+    first_visit = planet not in visited_bodies
     visited_bodies.add(planet)
+    if first_visit or planet == "Earth":
+        story_note(f"arrive:{planet}")
+        render_story_log()
 
 
 def on_toggle_achievements(event=None):
@@ -3341,6 +3413,7 @@ def _full_render():
     update_governor_report_display()
     update_changelog_display()
     update_overview_display()
+    render_story_log()
     update_build_plan_display()
     update_prestige_tree_display()
     update_epilogue_display()
@@ -3425,6 +3498,7 @@ def serialize_state():
         "ecology_low_seen": sorted(_ecology_low_seen),
         "ecology_zero_seen": sorted(_ecology_zero_seen),
         "achievements_earned": achievement_ids_earned(),
+        **({"story_log": list(story_log)} if story_log else {}),
     }
 
 
@@ -3528,6 +3602,14 @@ def _load_session_additions(data):
     global prestige_points_earned, prestige_nodes, ng_challenge_active, sandbox_mode
     global close_call_hit, back_from_brink_hit, _departure_snapshots
     global full_system_completed_tick, _leaderboard_reported
+
+    saved_story = data.get("story_log")
+    story_log.clear()
+    if isinstance(saved_story, list):
+        for entry_id in saved_story:
+            if isinstance(entry_id, str) and story_line(entry_id) and entry_id not in story_log:
+                story_log.append(entry_id)
+        del story_log[:-STORY_LOG_MAX]
 
     saved_completion = data.get("full_system_completed_tick")
     full_system_completed_tick = (

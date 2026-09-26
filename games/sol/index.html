@@ -27,6 +27,7 @@
   <div id="game">
     <a href="../../index.html" class="hub-back-link">&larr; All games</a>
     <h1>SOL <span id="prestige-badge" class="prestige-badge" title="Your current Prestige level" hidden></span></h1>
+    <p id="captains-log-latest" class="captains-log-latest" hidden></p>
 
     <div class="game-toolbar">
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
@@ -70,6 +71,10 @@
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
       </div>
     </div>
+    <details id="captains-log" class="section captains-log" hidden>
+      <summary>📜 Captain's log</summary>
+      <ol id="captains-log-list" class="captains-log-list"></ol>
+    </details>
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
     <div id="stats-panel" class="section stats-panel" hidden>
       <div id="stats-panel-content"></div>
@@ -1268,7 +1273,7 @@
   <script src="../../shared/hub-auth.js"></script>
   <script src="../../shared/save-widget.js" data-game-id="sol"></script>
   <script src="../../shared/opening-screen.js" data-game-id="sol" data-tagline="Click, automate and expand outward through the solar system." data-game-name="SOL"></script>
-  <script src="../../shared/story-toggle.js" data-game-id="sol" data-story-selectors="#epilogue-button, #epilogue-panel"></script>
+  <script src="../../shared/story-toggle.js" data-game-id="sol" data-story-selectors="#epilogue-button, #epilogue-panel, #captains-log-latest, #captains-log"></script>
   <script src="../../shared/last-played.js" data-game-id="sol"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="sol"></script>
   <script src="../../shared/achievement-stats.js" data-game-id="sol"></script>

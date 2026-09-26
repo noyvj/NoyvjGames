@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 760/769 items checked off (98.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 761/784 items checked off (97.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -389,7 +389,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] A22 → folded into Z22 (see "Games" section above): confirm-before-full-save-wipe, as part of the site-wide `ConfirmDialog` wording audit. Done — Z22 migrated SOL's own `Reset This World`/`Prestige` dialogs, and the separate Z-extra (found during Z22) fix gated `shared/save-widget.js`'s "Start a new save (forget this code)" button (the actual full-save-wipe action, identical across all 12 games including SOL) behind the shared `ConfirmDialog` too.
 - [x] A23: A "planet specialization" system — a fully-developed planet leans into one resource type for a production bonus.
 - [x] A24: Surface the exact prestige-bonus percentage next to resource-gain numbers, not only in the Stats panel.
-- [ ] A25: A "story mode" toggle surfacing existing flavor text more prominently as a light narrative thread.
+- [x] A25: A "story mode" toggle surfacing existing flavor text more prominently as a light narrative thread.
 - [x] A26 → folded into Z (see "Games" section above): "reset settings to default" button, site-wide.
 - [x] A27: A proper end-game "epilogue" screen once every planet is 100% terraformed, beyond the current banner.
 - [x] A28: Let the Sky City info-toggle state the exact Mars-material cost ratio.
@@ -910,6 +910,29 @@ A "yes" here means "worth a groundwork plan" (a new `planning/<game>-plan.md`, p
 - [x] U15: Rate every game's "how finished it feels" 1-5 and let that set ideas-sheet list lengths. **Done 2026-09-26 — see `planning/GAME-COMPLETENESS-RATINGS.md`** (first ratings, the 30/25/20/15/5 mapping, and the fallback 30/20/10/5/2 mapping). Re-rate every time a new ideas sheet is generated.
 
 ---
+
+## W. Added by the user, 2026-09-26 (night session)
+
+**Two site-wide asks, one item per game so each ships and ticks on its own.** Both follow the existing rules: opt-in or unobtrusive, no change to core numbers, saves only gain optional validated keys, and every real-world fact is read from a live source, dated and named on screen (the Thaw G7 and Grid C29 pattern), never recalled from memory.
+
+*W1. "For games with little to no story, add a story mode with more story."* A Story mode toggle (reusing `shared/story-toggle.js`'s pill for on/off) whose text is a real narrative thread tied to the game's own progress, a few short authored beats per milestone, kept quiet enough that the game still plays the same with it off. SOL's captain's log (A25, done) is the reference shape.
+- [ ] W1-canopy: Canopy story mode (a forest's-eye narrative thread: the community, the plots, the seasons).
+- [ ] W1-grid: Grid story mode (a small utility's story as the mix changes).
+- [ ] W1-herd: Herd story mode (a farm family across generations, tying into the succession system).
+- [ ] W1-loop: Loop story mode (a workshop turning into a circular economy).
+- [ ] W1-trade-empire: Trade Empire story mode (a trader's rise through the clusters).
+- [ ] W1-champ-de-mots: Le Champ de Mots story mode (a light narrative around the farm and the French-speaking world).
+- [ ] W1-drift: Drift story mode (extend the existing vignettes into a running thread).
+- [ ] W1-sol: SOL story mode, deeper (grow the A25 captain's log into chapters and per-world beats).
+
+*W2. "More games could benefit from real-life examples."* A small "In the real world" element attached to the mechanic it illustrates, with a sourced, dated real example or figure, the source named, and a link to the page it was read from.
+- [ ] W2-sol: SOL real-life examples (real asteroid-mining missions, real solar-system exploration facts).
+- [ ] W2-trade-empire: Trade Empire real-life examples (real trade routes and market mechanics).
+- [ ] W2-champ-de-mots: Le Champ de Mots real-life examples (real French-speaking places, institutions and everyday usage).
+- [ ] W2-continuum: Continuum real-life examples (real cities and civilisations behind each era's mechanics).
+- [ ] W2-aftermath: Aftermath real-life examples (real disaster recoveries and what worked).
+- [ ] W2-drift: Drift real-life examples (real resettlement programs and their documented outcomes).
+- [ ] W2-canopy: Canopy real-life examples (real reforestation and forest-loss figures).
 
 ## Closing tasks (run these last, per your standing instruction)
 

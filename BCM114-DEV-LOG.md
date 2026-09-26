@@ -830,3 +830,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** grid
 **Did:** Added a real-grid comparison: choose the US, Germany or France and compare your plant mix against that region's published generation mix, with per-source gaps, a verdict and the named source. Figures come from the EIA and Wikipedia tables, read on 2026-09-26; the panel notes capacity shares versus generation shares.
 **Result:** 370 Grid tests pass (10 new); live-checked the select, verdict, nine-row table and source text with no console errors.
+
+### 2026-09-26 (SOL A25: captain's log story mode)
+**Game:** sol
+**Did:** Added a captain's log to SOL: first arrivals and earned achievements become a running story line and a collapsible log, controlled by the existing Story pill, saved as an optional validated list.
+**Result:** 702 SOL tests pass (8 new).
