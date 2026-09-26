@@ -1595,3 +1595,69 @@ button.secondary:disabled {
 .title-card-expand[hidden] {
   display: none;
 }
+
+/* Y11: light theme for the hub shell (see shared/theme.js). Only the colours
+   change; layout, spacing and every state cue (text labels, icons) are the
+   same as dark, so the colorblind-safety findings still hold. */
+html[data-theme="light"] body { color: #1b2033; }
+html[data-theme="light"] .space-bg { background: linear-gradient(180deg, #eef2fc, #dfe6f7); }
+html[data-theme="light"] .space-bg::before,
+html[data-theme="light"] .space-bg::after,
+html[data-theme="light"] .space-bg-stars-bright { display: none; }
+html[data-theme="light"] .space-bg-nebula { opacity: 0.18; }
+html[data-theme="light"] #hub-header h1 {
+  background: linear-gradient(120deg, #1b2033 20%, #3b5fc0 55%, #1b2033 80%);
+  -webkit-background-clip: text; background-clip: text; text-shadow: none;
+}
+html[data-theme="light"] .title-card,
+html[data-theme="light"] .whats-new-date-group,
+html[data-theme="light"] .roadmap-number-chip,
+html[data-theme="light"] .roadmap-game-card,
+html[data-theme="light"] .continue-playing-section,
+html[data-theme="light"] .account-section,
+html[data-theme="light"] .site-feedback-section,
+html[data-theme="light"] .sources-game-card,
+html[data-theme="light"] .ach-game {
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.92), rgba(240, 244, 255, 0.92));
+  border-color: rgba(70, 95, 170, 0.22);
+  box-shadow: 0 6px 22px rgba(40, 55, 110, 0.12);
+}
+html[data-theme="light"] .pwa-install-banner,
+html[data-theme="light"] .claim-save-nudge,
+html[data-theme="light"] .new-player-banner {
+  background: linear-gradient(165deg, rgba(200, 214, 250, 0.7), rgba(240, 244, 255, 0.9));
+}
+html[data-theme="light"] .signed-in-pill,
+html[data-theme="light"] .back-to-top,
+html[data-theme="light"] .ach-jump-chip { background: rgba(255, 255, 255, 0.95); color: #1b2033; }
+html[data-theme="light"] .game-filter-bar input[type="text"],
+html[data-theme="light"] .game-filter-bar select,
+html[data-theme="light"] .comment-box,
+html[data-theme="light"] .account-row input[type="text"],
+html[data-theme="light"] .account-row input[type="password"] {
+  background: #ffffff; color: #1b2033; border-color: rgba(70, 95, 170, 0.35);
+}
+html[data-theme="light"] button.secondary,
+html[data-theme="light"] .comment-submit,
+html[data-theme="light"] .continue-playing-item {
+  background: linear-gradient(135deg, #dbe4fb, #c6d3f5); color: #1b2033;
+}
+html[data-theme="light"] .hub-nav a,
+html[data-theme="light"] .hub-nav-button,
+html[data-theme="light"] .account-link-button,
+html[data-theme="light"] .roadmap-caveat a,
+html[data-theme="light"] .terms-main a,
+html[data-theme="light"] .sources-intro a,
+html[data-theme="light"] .sources-caveat a,
+html[data-theme="light"] .sources-updated a,
+html[data-theme="light"] .hub-footer a,
+html[data-theme="light"] .ach-summary a,
+html[data-theme="light"] .ach-game-link,
+html[data-theme="light"] .sources-item a { color: #2a4ba0; }
+html[data-theme="light"] .roadmap-game-card h3 a,
+html[data-theme="light"] .sources-game-card h2 a { color: #1b2033; }
+html[data-theme="light"] :focus-visible { outline-color: #2a4ba0 !important; }
+html[data-theme="light"] .star { color: #b9c1d8; }
+html[data-theme="light"] .star.selected { color: #c48a00; }
+.theme-toggle { background: transparent; border: 1px solid rgba(140, 160, 255, 0.3); border-radius: 999px;
+  color: inherit; font: inherit; font-size: 0.85rem; padding: 0.25rem 0.8rem; cursor: pointer; }

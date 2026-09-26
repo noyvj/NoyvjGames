@@ -54,3 +54,9 @@ body {
     pointer-events: none;
   }
 }
+
+/* Y11: light theme (only applies on pages that include shared/theme.js). */
+html[data-theme="light"] .ad-bar {
+  background: #e6ebf8;
+  border-top-color: #c3cbe6;
+}
