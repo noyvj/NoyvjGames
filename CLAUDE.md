@@ -44,7 +44,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
     TODO.md          <- THE living cross-game/site task list — check here first for what's next
     LATER.md          <- deferred items (parked pending your input, or needing a decision) — not scheduled, revisit on request
     FOR-YOU.md        <- action items only the user can do (external signups, deploys) + open questions for the user to answer — check every session, remove an entry once it's resolved
-    TODO.md / LATER.md / FOR-YOU.md above are the only always-live planning docs; the ideas rounds (IMPROVEMENT-IDEAS-ROUND-2.md, -ROUND-3.md) hold the user's answers until processed into TODO.md
+    TODO.md / LATER.md / FOR-YOU.md above are the only always-live planning docs (plus GAME-COMPLETENESS-RATINGS.md, re-rated every ideas round to size each game's list); the ideas rounds (IMPROVEMENT-IDEAS-ROUND-2.md, -ROUND-3.md) hold the user's answers until processed into TODO.md
     AI-COORDINATION.md  <- (gitignored) the two-session handoff board — read it first every session
     todo-archive/       <- (gitignored) finished TODO lists, YYMMDD_YYMMDD.md
     game-template.md

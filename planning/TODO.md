@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 644/751 items checked off (85.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 645/766 items checked off (84.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -883,6 +883,28 @@ A "yes" here means "worth a groundwork plan" (a new `planning/<game>-plan.md`, p
 - A "riven disposition" reference column for completed builds — "maybe much later, right now is a crafting and resource tracker," per your answer.
 
 **Explicitly rejected, not carried anywhere:** a "build queue" (batch-build several parts in one click), and a per-part "last built" timestamp — both answered "no."
+
+---
+
+## U. User audit list (2026-09-26)
+
+*(From the user's own quick audit of the live site. Items marked **[needs your input]** have questions in `planning/FOR-YOU.md` (Q-numbers given); everything else is buildable as written. Several overlap existing items — noted inline rather than duplicated.)*
+
+- [ ] U1 **[needs your input, FOR-YOU Q1]**: Continuum: make it tick-based instead of the manual "Advance Season" button — the button is hard to find and confusing, and ticking makes you feel more in the settlement. (Touches K9's mobile-dock Advance Season, the tutorial step for it, consulting mode's "N seasons" goal counting, and the play-time readout.)
+- [ ] U2 **[needs your input, FOR-YOU Q2]**: A "Hearth and Hamlet"-style visual style — a UI where the buttons/controls are integrated into the game's own visuals rather than the block-of-buttons layout every game shares, more compact (everything on one screen instead of moving around). Desktop-only is fine.
+- [ ] U3 **[needs your input, FOR-YOU Q3]**: Saving: "claim this save to your account" becomes the default when signed in, with a pop-up if the account already has a save for that game; possibly 3 save slots per game.
+- [ ] U4 **[needs your input, FOR-YOU Q4]**: A per-game "homepage"/opening screen (New Game, Saves, Tutorial, Settings, Info, Feedback) shown before the game itself, so the growing toolbar of buttons stops accumulating at the top; "New Game" then offers a visual-set picker with a live example and "confirm — this can be changed later in settings". (Overlaps U14 and the first-run picker Le Champ de Mots already has.)
+- [ ] U5: Admin page: make each section collapsible.
+- [ ] U6: Admin page: give reports a "mark as done" option (persisted server-side, so a done report drops out of the open queue).
+- [ ] U7 **[needs your input, FOR-YOU Q5]**: Clean up, or add a way to ignore, test reviews/reports/saves/accounts on the admin page; add a dedicated AI-testing account (only ~2-3 of the 5 current accounts are real).
+- [ ] U8 **[needs your input, FOR-YOU Q6 + action item 2]**: Put the admin page behind a password so only you (and the AIs building the site) can see that data.
+- [ ] U9 **[needs your input, FOR-YOU Q7]**: An optional email field on accounts (shown in admin once U8 is done) so a password-reset request can be checked as really coming from the account owner. (Needs a matching update to `terms.html`'s privacy wording.)
+- [ ] U10 **[needs your input, FOR-YOU Q8]**: SOL: replace "click Fund Research ~20 times for 50 Iron each" with a real research tree — about 20 nodes that split and rejoin (Civ-6-style tech trees) and end at "Near Bodies", with themed nodes like "Space Travel" and "Space-Grade Mining Equipment". Currently `RESEARCH_TIERS` is two flat progress bars (Near Bodies 1000, Far Bodies 5000) filled 50 Iron at a time.
+- [ ] U11: SOL: an optional "hold to auto-click" for mining and for buying miners/recyclers — slow enough that hands don't suffer and it never beats manual clicking, but not annoyingly slow. My default: a held button repeats ~4 times/second (rather than the ~10+/s a fast manual clicker reaches), accessible via keyboard hold too, and it respects the existing Reduce Motion/click-particle settings.
+- [ ] U12: Hub: clicking "All games" (the back link from any game) should reload the hub's data so new achievements/saves show without a manual refresh. (Likely cause: the browser's back/forward cache or the service worker serving the old hub state — fix with a `pageshow` re-fetch on the hub.)
+- [ ] U13 **[needs your input, FOR-YOU Q9]**: Hub: collapsible title cards so a player can see just the picture, name and current-rating stars, without the walls of text, the review widget and "give us feedback" in the way.
+- [ ] U14 **[needs your input, FOR-YOU Q10]**: Split each game into separately-loaded "screens" (research tree, achievements, changelog, settings, tutorial…) so startup isn't loading everything and the games feel less laggy. Plan: measure first — per-game boot time and initial DOM size — then start with the heaviest, and share the mechanism with U4's opening screens.
+- [x] U15: Rate every game's "how finished it feels" 1-5 and let that set ideas-sheet list lengths. **Done 2026-09-26 — see `planning/GAME-COMPLETENESS-RATINGS.md`** (first ratings, the 30/25/20/15/5 mapping, and the fallback 30/20/10/5/2 mapping). Re-rate every time a new ideas sheet is generated.
 
 ---
 
