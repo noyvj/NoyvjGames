@@ -90,6 +90,15 @@ POLICIES = {
         "effect_per_level": 6.0,
     },
 }
+# I29: cross-region learning. Bringing any region to Thriving once teaches the
+# player's institutions something that carries over: every region started after
+# that gets LEARNING_INTEGRATION_BONUS faster integration, permanently. Kept per
+# browser (like the personal best, deliberately not part of a save code), and
+# only for regions that BEGIN after the unlock, so the region that earned it
+# doesn't double-dip.
+LEARNING_STORAGE_KEY = "drift_cross_region_learning_v1"
+LEARNING_INTEGRATION_BONUS = 0.10
+
 POLICY_BASE_COST = 60.0
 POLICY_MAX_LEVEL = 3
 
@@ -232,6 +241,9 @@ class RegionState:
         self.capacity = {t: 0.0 for t in CAPACITY_TYPES}
         # I3: level (0..POLICY_MAX_LEVEL) of each policy lever.
         self.policy_level = {p: 0 for p in POLICIES}
+        # I29: whether lessons from an earlier Thriving region apply here,
+        # fixed when the region begins.
+        self.learning_active = cross_region_learning
         self.background_severity = 0.0
         self.total_arrivals = 0.0
         self.arrivals_log = []
@@ -395,7 +407,7 @@ class RegionState:
         fast as its services capacity allows, regardless of funds."""
         throughput = (
             self.capacity["services"] * INTEGRATION_RATE_PER_SERVICES_UNIT
-            * (1.0 + self.policy_effect("language_access"))
+            * (1.0 + self.policy_effect("language_access") + (LEARNING_INTEGRATION_BONUS if self.learning_active else 0.0))
         )
         return min(self.pending_population(), throughput)
 
@@ -623,6 +635,25 @@ class RegionState:
         return True
 
 
+def _load_cross_region_learning():
+    """I29: reads the per-browser flag. Same lazy-import and broad-except
+    posture as the personal best's storage helpers further down (defined
+    after this point, hence the small standalone reader): storage can be
+    refused outright in some browsers, and this is a nice-to-have."""
+    try:
+        import js  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return False
+    storage = getattr(js, "localStorage", None)
+    if storage is None:
+        return False
+    try:
+        return storage.getItem(LEARNING_STORAGE_KEY) == "1"
+    except Exception:  # noqa: BLE001
+        return False
+
+
+cross_region_learning = _load_cross_region_learning()
 region = RegionState()
 coda_visible = False
 
@@ -1732,6 +1763,36 @@ def _maybe_update_personal_best():
         _write_local_storage_item(PERSONAL_BEST_STORAGE_KEY, json.dumps(personal_best))
 
 
+def _maybe_record_learning():
+    """I29: once any region has reached Thriving, remember it for every
+    region that begins afterwards."""
+    global cross_region_learning
+    if cross_region_learning or region.thriving_round is None:
+        return
+    cross_region_learning = True
+    _write_local_storage_item(LEARNING_STORAGE_KEY, "1")
+
+
+def render_learning():
+    element = document.getElementById("learning-display")
+    if element is None:
+        return
+    if region.learning_active:
+        element.innerText = (
+            f"Lessons from an earlier thriving region: +{LEARNING_INTEGRATION_BONUS * 100:.0f}% faster integration here."
+        )
+    elif cross_region_learning:
+        element.innerText = (
+            f"Thriving reached: every region you start from now on begins with "
+            f"+{LEARNING_INTEGRATION_BONUS * 100:.0f}% faster integration."
+        )
+    else:
+        element.innerText = (
+            f"Bring any region to Thriving once and every future region starts with "
+            f"+{LEARNING_INTEGRATION_BONUS * 100:.0f}% faster integration."
+        )
+
+
 def render_personal_best():
     element = document.getElementById("personal-best-display")
     if element is None:
@@ -1742,6 +1803,8 @@ def render_personal_best():
 def render():
     render_info_page()
     render_policies()
+    _maybe_record_learning()
+    render_learning()
     update_achievements_display()
     _maybe_update_personal_best()
     render_personal_best()
@@ -2168,6 +2231,7 @@ def get_state():
         "coda_legacy_choice": region.coda_legacy_choice,
         "crisis_start_enabled": region.crisis_start_enabled,
         **({"policy_level": dict(region.policy_level)} if any(region.policy_level.values()) else {}),
+        **({"learning_active": True} if region.learning_active else {}),
         "coda_visible": coda_visible,
         "info_page_open": info_page_open,
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
@@ -2255,6 +2319,8 @@ def load_state(data):
     if saved_choice in CODA_LEGACY_CHOICES or saved_choice is None:
         region.coda_legacy_choice = saved_choice
     region.crisis_start_enabled = bool(data.get("crisis_start_enabled", region.crisis_start_enabled))
+    # I29: a loaded region keeps whatever it began with; a save without the key began without it.
+    region.learning_active = data.get("learning_active") is True
     region.policy_level = {p: 0 for p in POLICIES}
     saved_policies = data.get("policy_level")
     if isinstance(saved_policies, dict):

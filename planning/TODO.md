@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 720/769 items checked off (93.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 721/769 items checked off (93.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -695,7 +695,7 @@ Every idea in this section was accepted, no exceptions.
 - [x] I26: Let the comfortably-ahead dimension callout name the specific sub-score that's ahead.
 - [x] I27: A "capacity investment ROI" dashboard — exactly how much each dollar invested has returned in integration contribution.
 - [x] I28: A tooltip explaining exactly what triggers the strain-level consequence descriptions.
-- [ ] I29: A "cross-region learning" mechanic — reaching Thriving once unlocks a small permanent efficiency bonus for any future region managed (built independently per Z3's resolution).
+- [x] I29: A "cross-region learning" mechanic — reaching Thriving once unlocks a small permanent efficiency bonus for any future region managed (built independently per Z3's resolution).
 - [x] I30: A small "rounds until next capacity milestone" estimate, based on current investment pace.
 
 ---

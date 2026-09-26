@@ -65,6 +65,7 @@ ELEMENT_IDS = [
     "housing-name",
     "housing-count",
     "housing-invest-button",
+    "learning-display",
     "policy-credentialing-name",
     "policy-credentialing-button",
     "policy-language-access-name",

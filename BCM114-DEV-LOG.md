@@ -680,3 +680,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** drift
 **Did:** Added three named institutional policy levers (credentialing, language access, community sponsorship), each purchasable up to three levels for a small permanent effect on income, integration speed and strain.
 **Result:** 303 → 316 tests passing, flake8 clean; verified live.
+
+### 2026-09-26 (Drift: cross-region learning, I29)
+**Game:** drift
+**Did:** Reaching Thriving once now unlocks a permanent +10% integration speed for every region begun afterwards, remembered per browser; the region that earned it does not get it.
+**Result:** 316 → 329 tests passing, flake8 clean; verified live.
