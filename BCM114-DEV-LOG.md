@@ -835,3 +835,9 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** sol
 **Did:** Added a captain's log to SOL: first arrivals and earned achievements become a running story line and a collapsible log, controlled by the existing Story pill, saved as an optional validated list.
 **Result:** 702 SOL tests pass (8 new).
+
+### 2026-09-26 (Loop H25b + H29b: rich visual maps)
+**Game:** loop
+**Did:** Built by a delegated agent inside `games/loop/` only, reviewed and committed by the log owner. Two opt-in toggles beside the simple H25a and H29a displays: a hub-and-spoke SVG of the trade network (line thickness and node size scale with real units per cycle; flows sum exactly to `imported_supply()` and `internal_circular_supply()`) and a diamond of the four supply-chain stages with three return lanes (repair, reuse, recycle) and import/export arrows. Animated flow direction respects reduced motion (OS and the in-game setting), arrowheads keep direction readable without motion, nodes and flows are keyboard-focusable with aria labels, tooltips come from a new `rich-maps.js`, colours are CSS variables re-pointed for the light theme, and below 900px or without SVG the simple version stays with a visible note. Choice stored per browser in localStorage, never in the save.
+**Result:** 283 -> 307 Loop tests (`tests/test_rich_maps.py`), flake8 clean, checked live at 1280px and 600px, light theme and reduced motion. Known limits from the agent: SVG text does not follow the Settings text scale, not checked in Safari, tooltip/focus verified with dispatched events rather than a real hover session.
+

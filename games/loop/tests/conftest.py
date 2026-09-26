@@ -117,6 +117,17 @@ ELEMENT_IDS = [
     "overseas-trade-count",
     "overseas-trade-invest-button",
     "network-map-display",
+    # H25b/H29b: opt-in rich SVG maps.
+    "trade-network",
+    "network-map-panel",
+    "trade-visual-toggle-button",
+    "trade-visual",
+    "trade-visual-body",
+    "trade-visual-unsupported",
+    "supply-visual-toggle-button",
+    "supply-visual",
+    "supply-visual-body",
+    "supply-visual-unsupported",
 ]
 
 

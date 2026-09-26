@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-26",
+    "entry": "Optional visual maps for desktop: a Visual network view for your trade partners and a Visual supply chain view for the whole loop, with line thickness and node size scaled to the real units per cycle, animated flow direction, and hover or keyboard details. Smaller screens keep the simple version (H25b, H29b)."
+  },
+  {
+    "date": "2026-09-26",
     "entry": "The traced unit is now a named product (Nova the phone, Juniper the jacket, Oak the chair) with a short story for every step of its journey and a count of its lives (H7)."
   },
   {

@@ -1538,3 +1538,147 @@ html[data-reduced-motion="true"] *::after {
 
 /* H21: material passport. */
 .passport-list { margin: 0.4rem 0 0; padding-left: 1.1rem; font-size: 0.8rem; }
+
+/* ---- H25b/H29b: opt-in rich SVG trade network + circular supply chain map ----
+   The simple versions (route emoji + text line, and the text supply map)
+   stay the default everywhere. The visual view is a per-browser toggle:
+   - >= 900px: the panel breaks out of the 480px game column (centred on the
+     viewport) and replaces the small route emoji / <pre> text map;
+   - < 900px (or no SVG support): the drawing is not shown at all, a visible
+     note says why, and the simple version stays in use.
+   Colours are CSS variables so the light theme only re-points a few values;
+   every flow also carries a text label/tooltip, so hue is never the only cue.
+   Animation is switched off by prefers-reduced-motion and by the in-game
+   Settings checkbox (html[data-reduced-motion="true"]); arrowheads keep the
+   direction readable without motion. */
+.rich-map-controls { margin-top: 0.5rem; }
+.rich-map-panel {
+  --rm-ink: #e8e9f0;
+  --rm-muted: #a4a9c0;
+  --rm-node-fill: rgba(20, 24, 42, 0.92);
+  --rm-panel: rgba(16, 19, 34, 0.98);
+  --rm-panel-border: rgba(140, 160, 255, 0.28);
+  --rm-idle: #6c7290;
+  --rm-dash: rgba(255, 255, 255, 0.9);
+  --rm-focus: #ffd479;
+  --rf-extract: #e0674c;
+  --rf-goods: #8a8fa6;
+  --rf-repair: #e69f00;
+  --rf-reuse: #cc79a7;
+  --rf-recycle: #2fb384;
+  --rf-internal: #2fb384;
+  --rf-trade: #4c8ed8;
+  --rf-export: #a06cd5;
+  position: relative;
+  margin-top: 0.6rem;
+  padding: 0.75rem;
+  color: var(--rm-ink);
+  background: var(--rm-panel);
+  border: 1px solid var(--rm-panel-border);
+  border-radius: 12px;
+}
+.rich-map-panel[hidden], .rich-tooltip[hidden], .rich-map-note[hidden] { display: none; }
+.rich-map-note { margin: 0.2rem 0; font-size: 0.82rem; color: var(--rm-muted); }
+.rich-map-note--narrow { display: none; }
+.rich-caption { margin: 0 0 0.4rem; font-size: 0.85rem; }
+.rich-svg { display: block; width: 100%; height: auto; }
+.rich-legend { list-style: none; margin: 0.5rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.3rem 1.1rem; font-size: 0.78rem; }
+.rich-legend li { display: inline-flex; align-items: center; }
+.rich-legend-note { margin: 0.4rem 0 0; font-size: 0.75rem; color: var(--rm-muted); }
+.rich-swatch { display: inline-block; width: 1.5rem; height: 0.5rem; margin-right: 0.4rem; border-radius: 3px; background: var(--rm-idle); }
+.rich-swatch--extract { background: var(--rf-extract); }
+.rich-swatch--goods { background: var(--rf-goods); }
+.rich-swatch--repair { background: var(--rf-repair); }
+.rich-swatch--reuse { background: var(--rf-reuse); }
+.rich-swatch--recycle { background: var(--rf-recycle); }
+.rich-swatch--internal { background: var(--rf-internal); }
+.rich-swatch--trade { background: var(--rf-trade); }
+.rich-swatch--export { background: var(--rf-export); }
+
+/* Flows. */
+.rich-hit { cursor: default; }
+.rich-hit:focus { outline: none; }
+.rich-hit:focus-visible { filter: drop-shadow(0 0 5px var(--rm-focus)); }
+.rich-flow .rf-hit { fill: none; stroke: transparent; stroke-width: 22; pointer-events: stroke; }
+.rich-flow .rf-base { fill: none; stroke: var(--rm-idle); stroke-linecap: round; opacity: 0.8; }
+.rich-flow:hover .rf-base, .rich-flow:focus-visible .rf-base { opacity: 1; }
+.rich-flow .rf-arrow { fill: var(--rm-ink); opacity: 0.9; }
+.rich-flow .rf-dash {
+  fill: none; stroke: var(--rm-dash); stroke-width: 2.5; stroke-linecap: round;
+  stroke-dasharray: 2 14; pointer-events: none;
+  animation: rich-flow-move 1.1s linear infinite;
+}
+@keyframes rich-flow-move { to { stroke-dashoffset: -16; } }
+.rf--idle .rf-base { stroke-dasharray: 3 7; opacity: 0.55; }
+.rf--extract .rf-base { stroke: var(--rf-extract); }
+.rf--goods .rf-base { stroke: var(--rf-goods); }
+.rf--repair .rf-base { stroke: var(--rf-repair); }
+.rf--reuse .rf-base { stroke: var(--rf-reuse); }
+.rf--recycle .rf-base { stroke: var(--rf-recycle); }
+.rf--internal .rf-base { stroke: var(--rf-internal); }
+.rf--trade .rf-base { stroke: var(--rf-trade); }
+.rf--export .rf-base { stroke: var(--rf-export); }
+.rf--idle.rf--extract .rf-base, .rf--idle.rf--goods .rf-base, .rf--idle.rf--repair .rf-base,
+.rf--idle.rf--reuse .rf-base, .rf--idle.rf--recycle .rf-base, .rf--idle.rf--internal .rf-base,
+.rf--idle.rf--trade .rf-base, .rf--idle.rf--export .rf-base { stroke: var(--rm-idle); }
+
+/* Nodes. */
+.rn-shape { fill: var(--rm-node-fill); stroke: var(--rm-idle); stroke-width: 3; }
+.rich-node:hover .rn-shape, .rich-node:focus-visible .rn-shape { stroke-width: 5; }
+.rn--extract .rn-shape { stroke: var(--rf-extract); }
+.rn--trade .rn-shape { stroke: var(--rf-trade); }
+.rn--internal .rn-shape { stroke: var(--rf-internal); }
+.rn--export .rn-shape { stroke: var(--rf-export); }
+.rn--hub .rn-shape, .rn--stage .rn-shape { stroke: var(--rf-goods); }
+.rn-icon { font-size: 22px; }
+.rn-label { font-size: 14px; font-weight: 600; fill: var(--rm-ink); }
+.rn-value { font-size: 12.5px; fill: var(--rm-muted); }
+.rich-lane-label { font-size: 13px; font-weight: 600; fill: var(--rm-ink); paint-order: stroke; stroke: var(--rm-panel); stroke-width: 4px; }
+
+/* Hover/focus tooltip (positioned by rich-maps.js). */
+.rich-tooltip {
+  position: absolute; z-index: 5; max-width: 260px; padding: 0.4rem 0.6rem;
+  font-size: 0.8rem; line-height: 1.35; pointer-events: none;
+  color: var(--rm-ink); background: var(--rm-panel);
+  border: 1px solid var(--rm-focus); border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="light"] .rich-map-panel {
+  --rm-ink: #1b2033;
+  --rm-muted: #4a516b;
+  --rm-node-fill: rgba(255, 255, 255, 0.96);
+  --rm-panel: rgba(250, 252, 255, 0.99);
+  --rm-panel-border: rgba(70, 95, 170, 0.3);
+  --rm-idle: #8a90a8;
+  --rm-dash: rgba(255, 255, 255, 0.95);
+  --rm-focus: #b07800;
+  --rf-goods: #6f7690;
+  --rf-repair: #c47f00;
+  --rf-recycle: #1f8a63;
+  --rf-internal: #1f8a63;
+  --rf-trade: #2f6fbf;
+  --rf-export: #7d4fb8;
+}
+html[data-theme="light"] .rich-tooltip { box-shadow: 0 6px 18px rgba(40, 55, 110, 0.25); }
+
+/* No motion: hide the moving dashes (the arrowheads still show direction). */
+@media (prefers-reduced-motion: reduce) {
+  .rich-flow .rf-dash { animation: none; display: none; }
+}
+html[data-reduced-motion="true"] .rich-flow .rf-dash { animation: none; display: none; }
+
+@media (min-width: 900px) {
+  .rich-map-panel {
+    left: 50%;
+    width: min(860px, 94vw);
+    transform: translateX(-50%);
+    padding: 1rem 1.25rem;
+  }
+  #trade-network.rich-trade-on .trade-route-visual,
+  #network-map-panel.rich-chain-on .network-map { display: none; }
+}
+@media (max-width: 899px) {
+  .rich-map-note--narrow { display: block; }
+  .rich-map-panel .rich-map-body { display: none; }
+}

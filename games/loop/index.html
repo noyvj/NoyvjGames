@@ -17,6 +17,7 @@
 <script src="../../shared/mobile-hud.js"></script>
 <script src="../../shared/confirm-dialog.js"></script>
 <script src="settings.js"></script>
+<script src="rich-maps.js"></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -288,6 +289,15 @@
         <div class="trade-route-hub trade-route-hub--partner">🌐</div>
       </div>
       <p id="trade-network-display" class="comparison-message">Importing 0 units/cycle from the trade network; exporting 0 units/cycle of surplus this cycle.</p>
+      <div class="rich-map-controls">
+        <button id="trade-visual-toggle-button" class="secondary rich-toggle" type="button" aria-pressed="false" aria-controls="trade-visual">🎨 Show visual network view</button>
+      </div>
+      <div id="trade-visual" class="rich-map-panel" hidden>
+        <p class="rich-map-note rich-map-note--narrow" role="note">The visual network view needs a wider screen (900px or more), so the simple version above stays in use on this screen.</p>
+        <p id="trade-visual-unsupported" class="rich-map-note" role="note" hidden>This browser can't draw the visual network view, so the simple version stays in use.</p>
+        <div id="trade-visual-body" class="rich-map-body"></div>
+        <div class="rich-tooltip" role="tooltip" hidden></div>
+      </div>
       <div class="invest-row invest-row--trade">
         <span class="invest-name">🌐 Trade Link</span>
         <span id="trade-link-count" class="invest-count">0</span>
@@ -309,7 +319,17 @@
         <button id="overseas-trade-invest-button" class="secondary">Overseas Consortium (90)</button>
       </div>
       <!-- H25a/H29a: simple text map of the internal loop plus partners. -->
-      <details class="info-toggle" id="network-map-panel"><summary>🗺️ Supply map</summary><pre id="network-map-display" class="network-map"></pre></details>
+      <details class="info-toggle" id="network-map-panel"><summary>🗺️ Supply map</summary><pre id="network-map-display" class="network-map"></pre>
+      <div class="rich-map-controls">
+        <button id="supply-visual-toggle-button" class="secondary rich-toggle" type="button" aria-pressed="false" aria-controls="supply-visual">🎨 Show visual supply chain view</button>
+      </div>
+      <div id="supply-visual" class="rich-map-panel" hidden>
+        <p class="rich-map-note rich-map-note--narrow" role="note">The visual supply chain view needs a wider screen (900px or more), so the simple version above stays in use on this screen.</p>
+        <p id="supply-visual-unsupported" class="rich-map-note" role="note" hidden>This browser can't draw the visual supply chain view, so the simple version stays in use.</p>
+        <div id="supply-visual-body" class="rich-map-body"></div>
+        <div class="rich-tooltip" role="tooltip" hidden></div>
+      </div>
+      </details>
     </div>
 
     <button id="advance-cycle-button" class="primary">Advance Cycle</button>
