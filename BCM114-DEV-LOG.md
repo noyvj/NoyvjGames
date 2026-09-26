@@ -751,6 +751,11 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Did:** Added a one-way "Connect a regional grid" switch, the lighter multi-grid mode (same shape as Tide's D3 sister settlement): the regional grid has no plants of its own, just its own demand (0.35x this grid's, growing automatically alongside it). Each round it's served first from whatever main-grid surplus capacity storage-arbitrage charging didn't already claim (no double-counting the same idle capacity), earning a little revenue; any demand still unmet costs shared funds instead.
 **Result:** 360 -> 370 Grid tests pass (10 new), flake8 clean; live-checked via a standalone local server (the shared dev-server port was already in use) -- connecting with 300 capacity vs. 100 demand shared exactly the expected 35 units for a +35 funds effect, no console errors.
 
+### 2026-09-26 (Herd F10: community trend arrow)
+**Game:** herd
+**Did:** The shared stats endpoint (Z1) only ever returns a live snapshot, no history, so a real backend-driven trend wasn't possible cheaply. Instead, `window.herdCompare()` now remembers this browser's last "lower than X%" reading in localStorage and compares the new one against it, showing a shape-coded ▲/▼/▶ arrow (never color-only) with a tooltip. First-ever check in a browser shows no arrow.
+**Result:** Pure JS change inside F7's existing inline script; 220/220 Herd tests unaffected. Live-verified via mocked fetch across three sequential percentiles, confirming correct arrow direction, stored value, and tooltip each time.
+
 ### 2026-09-26 (Thaw G7: Climate Scientist real-data panel)
 **Game:** thaw
 **Did:** Added an optional "Climate Scientist" panel showing a real chart of NOAA's actual global atmospheric methane growth rate, 1984-2025 (live-checked directly against NOAA's own page, not recalled from memory), alongside the in-game graph rather than overlaid onto it -- game rounds have no real calendar-time axis to align against. States plainly that this is the total real-world growth from every source (not permafrost-only), so it doesn't overclaim what the game's own feedback-loop mechanic represents.

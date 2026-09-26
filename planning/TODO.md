@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 736/769 items checked off (95.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 737/769 items checked off (95.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -561,7 +561,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] F7: A "farm cooperative" comparison — aggregate stats on community-wide methane-per-unit avoided *(needs Z1 for a first pass — you flagged this as feeling especially important but possibly better suited to a fuller build once the multiplayer update lands; ship the Z1-backed version now, expand later)*.
 - [x] F8: A small "record decoupling ratio" marker on the coupling gauge, like Grid's best-round marker.
 - [x] F9: A proper multi-season weather/feed-cost variation layer, adding light unpredictability to the investment-return math.
-- [ ] F10: Let the community stat show a small trend arrow if the backend can support it cheaply *(same F7/Z1 caveat above)*.
+- [x] F10: Let the community stat show a small trend arrow if the backend can support it cheaply *(same F7/Z1 caveat above)* — see `games/herd/CLAUDE.md`.
 - [x] F11: A "sustainable certification" milestone — a sustained low coupling ratio for N rounds unlocks a permanent price premium.
 - [x] F12: A tooltip on the Plant-Based Pivot's confirm dialog stating the exact income tradeoff percentage.
 - [x] F13: A "supply chain" expansion — invest downstream (processing, distribution efficiency) as a new income lever distinct from herd growth.
