@@ -89,6 +89,8 @@ From the completion-verification audit's questions (all answered 2026-09-21):
 
 **Why:** account-synced settings (Y31) added a `settings_json` column and two endpoints (`/users/me/settings`). The site works without them (signed-in players just don't get synced preferences yet), but they only go live when the FastAPI Cloud app is redeployed. The column is added automatically at startup (`patch_schema()`), so there is nothing to migrate by hand.
 
+**What this deploy also turns on:** the admin token lock (U8), mark-report-done (U6), the test-data flag and Accounts panel (U7), and the optional account email (U9). Until both tokens from action item 2 are set, the admin page's data stays locked (fail closed), so set them first or right after. To mark your own real accounts vs test ones, open `admin.html`, unlock it, and tick **Test** on the fake accounts in the Accounts panel.
+
 **Steps:** from the repo folder run `python3 -m fastapi cloud deploy` (or however you usually deploy), then tell me it's done. I'll do a live check that `GET /users/me/settings` answers. The upcoming admin-password and test-data work (U6-U9) will need one more deploy later, so batching them is fine.
 
 ---

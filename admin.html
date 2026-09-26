@@ -201,6 +201,20 @@
     </table>
   </details>
 
+  <details class="panel" id="panel-accounts" open>
+    <summary><h2>Accounts <span style="opacity:0.5; font-weight:400;">(admin only)</span></h2></summary>
+    <p class="status-line">Every account with its optional email (used only to check a password-reset request by hand) and save count. Tick <strong>Test</strong> on accounts that aren't real players: their saves drop out of the counts here (while "Hide test data" is on) and out of the public stats. Accounts named <code>aitest…</code> are marked automatically.</p>
+    <div class="filter-row">
+      <label><input type="checkbox" id="hide-test" checked> Hide test data</label>
+      <button type="button" class="refresh-button" id="accounts-refresh">Refresh</button>
+    </div>
+    <p class="status-line" id="accounts-status">Loading…</p>
+    <table id="accounts-table">
+      <thead><tr><th>Username</th><th>Email</th><th>Saves</th><th>Created</th><th>Test</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </details>
+
   <details class="panel" id="panel-reports" open>
     <summary><h2>French Answer Reports <span style="opacity:0.5; font-weight:400;">(Le Champ de Mots)</span></h2></summary>
     <p class="status-line">Every "I think this should count" report ever submitted. Triage one by hand (accept it into the catalog's <code>accepted_fr</code>/<code>accepted_en</code>, or reject it), then press <strong>Mark done</strong>: it moves out of the Open list but stays under Done as a historical record, and you can reopen it.</p>
@@ -431,7 +445,7 @@ async function loadAdminStats() {
   // without it -- a fetch failure here shouldn't blank out ratings,
   // feedback, or reports.
   try {
-    return await adminFetchJson(`${API_BASE}/admin/stats`);
+    return await adminFetchJson(`${API_BASE}/admin/stats?hide_test=${hideTest()}`);
   } catch (err) {
     if (err instanceof AdminAuthError) { showLogin(err.message); return null; }
     console.error("loadAdminStats failed:", err);
@@ -439,8 +453,37 @@ async function loadAdminStats() {
   }
 }
 
+function hideTest() {
+  return document.getElementById("hide-test").checked;
+}
+
+async function loadAccounts() {
+  const status = document.getElementById("accounts-status");
+  const tbody = document.querySelector("#accounts-table tbody");
+  let rows;
+  try {
+    rows = await adminFetchJson(`${API_BASE}/admin/users?include_test=${!hideTest()}`);
+  } catch (err) {
+    if (err instanceof AdminAuthError) { showLogin(err.message); return; }
+    console.error("loadAccounts failed:", err);
+    status.textContent = "Couldn't load accounts (the backend may not be redeployed yet).";
+    return;
+  }
+  const testCount = rows.filter((r) => r.is_test).length;
+  status.textContent = `${rows.length} accounts shown${hideTest() ? " (test accounts hidden)" : `, ${testCount} marked test`}.`;
+  tbody.innerHTML = rows.length ? rows.map((r) => `
+    <tr>
+      <td><code>${escapeHtml(r.username)}</code></td>
+      <td>${escapeHtml(r.email) || "—"}</td>
+      <td>${r.save_count}</td>
+      <td>${formatWhen(r.created_at)}</td>
+      <td><input type="checkbox" class="test-flag" data-id="${escapeHtml(r.id)}" ${r.is_test ? "checked" : ""} aria-label="Mark ${escapeHtml(r.username)} as a test account"></td>
+    </tr>`).join("") : `<tr class="empty-row"><td colspan="5">No accounts to show.</td></tr>`;
+}
+
 async function loadAll() {
   document.getElementById("overview-status").textContent = "Loading…";
+  loadAccounts();
   const [ratingsSummary, feedbackCount, reportsCount, adminStats] = await Promise.all([
     loadRatings(),
     loadFeedback(),
@@ -498,6 +541,24 @@ document.querySelector("#reports-table tbody").addEventListener("click", (event)
   if (button) setReportResolved(button.dataset.id, button.dataset.resolved === "true");
 });
 document.getElementById("reports-refresh").addEventListener("click", loadAll);
+document.getElementById("accounts-refresh").addEventListener("click", loadAll);
+try { document.getElementById("hide-test").checked = localStorage.getItem("admin-hide-test") !== "false"; } catch (e) { /* default on */ }
+document.getElementById("hide-test").addEventListener("change", () => {
+  try { localStorage.setItem("admin-hide-test", String(hideTest())); } catch (e) { /* non-fatal */ }
+  loadAll();
+});
+document.querySelector("#accounts-table tbody").addEventListener("change", async (event) => {
+  const box = event.target.closest(".test-flag");
+  if (!box) return;
+  const res = await fetch(`${API_BASE}/admin/users/${encodeURIComponent(box.dataset.id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", "X-Admin-Token": getAdminToken() },
+    body: JSON.stringify({ is_test: box.checked }),
+  });
+  if (res.status === 401 || res.status === 503) { setAdminToken(""); showLogin("That token wasn't accepted. Try again."); return; }
+  if (!res.ok) { box.checked = !box.checked; return; }
+  loadAll();
+});
 
 document.getElementById("admin-login-form").addEventListener("submit", (event) => {
   event.preventDefault();

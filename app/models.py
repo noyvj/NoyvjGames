@@ -67,6 +67,13 @@ class User(Base):
     # clients treat as "keep whatever this device has". Only main.py's
     # whitelist validation ever writes it, so it never holds anything else.
     settings_json = Column(Text, nullable=True)
+    # U9: optional email, used only so the site owner can verify a password-
+    # reset request by hand. Visible to the admin, never to other players and
+    # never in any public stat. NULL = none given.
+    email = Column(String, nullable=True)
+    # U7: marks an account (and, via user_id, its saves) as test data, hidden
+    # from the admin view by default and excluded from the public stats.
+    is_test = Column(Boolean, nullable=False, default=False, server_default=false())
 
 
 class AuthSession(Base):

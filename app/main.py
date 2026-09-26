@@ -2,6 +2,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import secrets
 import threading
 import time
@@ -10,8 +11,8 @@ from typing import List, Optional
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, ConfigDict, Field, model_validator
-from sqlalchemy import func
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, model_validator
+from sqlalchemy import func, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -380,13 +381,22 @@ def _username_exists(db: Session, username: str) -> bool:
     return db.query(User).filter(User.username == username).first() is not None
 
 
+AI_TEST_USERNAME_PREFIX = "aitest"
+
+
 @app.post("/auth/signup", response_model=AuthOut)
 def signup(payload: AuthIn, db: Session = Depends(get_db)):
     username = _normalize_username(payload.username)
     if _username_exists(db, username):
         raise HTTPException(status_code=409, detail="Username already taken")
 
-    user = User(username=username, password_hash=_hash_password(payload.password))
+    # U7: the dedicated AI testing accounts are recognised by name, so the AIs'
+    # test signups never count as real data without anyone having to flag them.
+    user = User(
+        username=username,
+        password_hash=_hash_password(payload.password),
+        is_test=username.startswith(AI_TEST_USERNAME_PREFIX),
+    )
     db.add(user)
     try:
         db.commit()
@@ -667,14 +677,123 @@ class AdminStatsOut(BaseModel):
 
 
 @app.get("/admin/stats", response_model=AdminStatsOut)
-def admin_stats(response: Response, _admin: None = Depends(require_admin), db: Session = Depends(get_db)):
+def admin_stats(
+    response: Response,
+    hide_test: bool = True,
+    _admin: None = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """U7: test accounts and their saves are left out by default."""
     response.headers["Cache-Control"] = "no-store"
-    total_users = db.query(func.count(User.id)).scalar() or 0
-    total_saves = db.query(func.count(Save.id)).scalar() or 0
-    saves_by_game = dict(
-        db.query(Save.game_id, func.count(Save.id)).group_by(Save.game_id).all()
-    )
+    users_query = db.query(func.count(User.id))
+    saves_query = db.query(func.count(Save.id))
+    by_game_query = db.query(Save.game_id, func.count(Save.id))
+    if hide_test:
+        users_query = users_query.filter(User.is_test.is_(False))
+        not_test = or_(Save.user_id.is_(None), ~Save.user_id.in_(_test_user_ids(db)))
+        saves_query = saves_query.filter(not_test)
+        by_game_query = by_game_query.filter(not_test)
+    total_users = users_query.scalar() or 0
+    total_saves = saves_query.scalar() or 0
+    saves_by_game = dict(by_game_query.group_by(Save.game_id).all())
     return AdminStatsOut(total_users=total_users, total_saves=total_saves, saves_by_game=saves_by_game)
+
+
+# --- U9: optional account email ---
+EMAIL_MAX_LENGTH = 254
+_EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+class EmailIn(BaseModel):
+    email: Optional[str] = None
+
+
+@app.get("/users/me/email")
+def get_my_email(response: Response, current_user: User = Depends(get_current_user)):
+    response.headers["Cache-Control"] = "no-store"
+    return {"email": current_user.email}
+
+
+@app.put("/users/me/email")
+def put_my_email(
+    body: EmailIn,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Add, change or remove (null or empty) this account's email."""
+    response.headers["Cache-Control"] = "no-store"
+    value = (body.email or "").strip().lower()
+    if value:
+        if len(value) > EMAIL_MAX_LENGTH or not _EMAIL_PATTERN.match(value):
+            raise HTTPException(status_code=422, detail="That doesn't look like an email address")
+    current_user.email = value or None
+    db.commit()
+    return {"email": current_user.email}
+
+
+# --- U7: admin account list + test-data flag ---
+class AdminUserOut(BaseModel):
+    id: str
+    username: str
+    email: Optional[str]
+    is_test: StrictBool
+    created_at: Optional[datetime]
+    save_count: int
+
+
+class UserTestFlagIn(BaseModel):
+    is_test: StrictBool
+
+
+@app.get("/admin/users", response_model=List[AdminUserOut])
+def admin_list_users(
+    response: Response,
+    include_test: bool = True,
+    _admin: None = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Every account, newest first, with its email (the admin needs it to
+    verify reset requests) and save count. Admin-token only."""
+    response.headers["Cache-Control"] = "no-store"
+    counts = dict(db.query(Save.user_id, func.count(Save.id)).filter(Save.user_id.isnot(None)).group_by(Save.user_id).all())
+    query = db.query(User)
+    if not include_test:
+        query = query.filter(User.is_test.is_(False))
+    users = query.order_by(User.created_at.desc()).all()
+    return [
+        AdminUserOut(
+            id=u.id, username=u.username, email=u.email, is_test=bool(u.is_test),
+            created_at=u.created_at, save_count=counts.get(u.id, 0),
+        )
+        for u in users
+    ]
+
+
+@app.patch("/admin/users/{user_id}", response_model=AdminUserOut)
+def admin_flag_user(
+    user_id: str,
+    body: UserTestFlagIn,
+    response: Response,
+    _admin: None = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    response.headers["Cache-Control"] = "no-store"
+    user = db.query(User).filter(User.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="Account not found")
+    user.is_test = body.is_test
+    db.commit()
+    stats.cache_clear()  # the public aggregates must not keep counting a now-flagged account
+    count = db.query(func.count(Save.id)).filter(Save.user_id == user.id).scalar() or 0
+    return AdminUserOut(
+        id=user.id, username=user.username, email=user.email, is_test=bool(user.is_test),
+        created_at=user.created_at, save_count=count,
+    )
+
+
+def _test_user_ids(db: Session):
+    return db.query(User.id).filter(User.is_test.is_(True))
 
 
 # --- Cross-game aggregate stats (TODO.md Z1) ---
@@ -696,6 +815,7 @@ def _game_saves(db: Session, game_id: str) -> list:
     rows = (
         db.query(Save.save_data)
         .filter(Save.game_id == game_id)
+        .filter(or_(Save.user_id.is_(None), ~Save.user_id.in_(_test_user_ids(db))))
         .order_by(Save.updated_at.desc())
         .limit(stats.MAX_SAVES_SCANNED)
         .all()

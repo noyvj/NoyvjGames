@@ -705,6 +705,42 @@ function showSignedOut() {
   maybeShowClaimSaveNudge();
 }
 
+// U9: the optional account email. Private to the account and the admin;
+// stored and validated server-side (GET/PUT /users/me/email).
+async function loadMyEmail() {
+  const input = document.getElementById("account-email-input");
+  if (!input) return;
+  try {
+    const res = await fetch(`${RATINGS_API_BASE}/users/me/email`, { headers: hubAuthHeaders(), cache: "no-store" });
+    if (res.ok) input.value = (await res.json()).email || "";
+  } catch (err) { /* offline or not deployed yet: leave the field empty */ }
+}
+
+async function saveMyEmail(value) {
+  const status = document.getElementById("account-email-status");
+  const input = document.getElementById("account-email-input");
+  status.textContent = "Saving…";
+  try {
+    const res = await fetch(`${RATINGS_API_BASE}/users/me/email`, {
+      method: "PUT",
+      headers: { ...hubAuthHeaders(), "Content-Type": "application/json" },
+      body: JSON.stringify({ email: value }),
+    });
+    if (res.status === 422) { status.textContent = "That doesn't look like an email address."; return; }
+    if (!res.ok) { status.textContent = "Couldn't save just now — try again later."; return; }
+    const saved = (await res.json()).email;
+    input.value = saved || "";
+    status.textContent = saved ? "Saved." : "Email removed.";
+  } catch (err) {
+    status.textContent = "Couldn't save just now — try again later.";
+  }
+}
+
+document.getElementById("account-email-save")?.addEventListener("click", () => {
+  saveMyEmail(document.getElementById("account-email-input").value);
+});
+document.getElementById("account-email-remove")?.addEventListener("click", () => saveMyEmail(""));
+
 function showSignedIn(username) {
   accountSignedOut.hidden = true;
   accountSignedIn.hidden = false;
@@ -717,6 +753,7 @@ function showSignedIn(username) {
     if (since) memberSince.textContent = `Member since ${since}`;
   }
   renderEventBadges(null);
+  loadMyEmail();
   loadMySaves();
   loadAchievementsDashboard();
   loadContinuePlaying();

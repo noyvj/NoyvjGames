@@ -89,6 +89,15 @@
     <div id="account-signed-in" hidden>
       <p id="account-username-display" class="account-username-display"></p>
       <p id="account-member-since" class="account-password-hint" hidden></p>
+      <div id="account-email-block" class="account-email-block">
+        <label for="account-email-input" class="account-password-hint">Email (optional). Only used so the site owner can check a password-reset request really comes from you. Never shown to other players.</label>
+        <div class="account-row">
+          <input id="account-email-input" type="text" inputmode="email" placeholder="you@example.com" autocomplete="email">
+          <button type="button" id="account-email-save" class="secondary">Save</button>
+          <button type="button" id="account-email-remove" class="secondary">Remove</button>
+        </div>
+        <p id="account-email-status" class="account-password-hint" role="status"></p>
+      </div>
       <button type="button" id="account-signout-button" class="account-link-button">Sign out</button>
       <div id="account-event-badges" class="achievements-dashboard" hidden></div>
       <div id="account-my-saves"></div>

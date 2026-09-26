@@ -1661,3 +1661,7 @@ html[data-theme="light"] .star { color: #b9c1d8; }
 html[data-theme="light"] .star.selected { color: #c48a00; }
 .theme-toggle { background: transparent; border: 1px solid rgba(140, 160, 255, 0.3); border-radius: 999px;
   color: inherit; font: inherit; font-size: 0.85rem; padding: 0.25rem 0.8rem; cursor: pointer; }
+
+/* U9: the optional email block in the hub account panel. */
+.account-email-block { margin: 0.8rem 0; }
+.account-email-block .account-row { margin-top: 0.4rem; }
