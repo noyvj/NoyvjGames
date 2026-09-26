@@ -85,6 +85,12 @@ From the completion-verification audit's questions (all answered 2026-09-21):
 - **UI decluttering, Canopy/Le Champ de Mots** (was Q15): you agree, no change. Recorded in `planning/TODO.md` V-AB-6.
 - **Continuum K9 / Warframe X23** (was part of Q16): both kept as their own separate items, no folding/moving.
 
+### 3. Redeploy the backend (small, whenever convenient)
+
+**Why:** account-synced settings (Y31) added a `settings_json` column and two endpoints (`/users/me/settings`). The site works without them (signed-in players just don't get synced preferences yet), but they only go live when the FastAPI Cloud app is redeployed. The column is added automatically at startup (`patch_schema()`), so there is nothing to migrate by hand.
+
+**Steps:** from the repo folder run `python3 -m fastapi cloud deploy` (or however you usually deploy), then tell me it's done. I'll do a live check that `GET /users/me/settings` answers. The upcoming admin-password and test-data work (U6-U9) will need one more deploy later, so batching them is fine.
+
 ---
 
 ## Answered 2026-09-26 — folded into `planning/TODO.md` section U (nothing further needed from you)

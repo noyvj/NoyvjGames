@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Text, JSON, Boolean, Column, DateTime, ForeignKey, Integer, String, func
 
 from database import Base
 
@@ -62,6 +62,11 @@ class User(Base):
     username = Column(String, unique=True, nullable=False, index=True)
     password_hash = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    # Y31: this account's site-wide preferences (theme, text scale, reduced
+    # motion) as a JSON string. Nullable: NULL means "never synced", which
+    # clients treat as "keep whatever this device has". Only main.py's
+    # whitelist validation ever writes it, so it never holds anything else.
+    settings_json = Column(Text, nullable=True)
 
 
 class AuthSession(Base):

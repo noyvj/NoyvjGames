@@ -1,4 +1,5 @@
 import hashlib
+import json
 import logging
 import os
 import secrets
@@ -429,6 +430,76 @@ def claim_save(save_code: str, current_user: User = Depends(get_current_user), d
 def list_my_saves(response: Response, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     response.headers["Cache-Control"] = "no-store"
     return db.query(Save).filter(Save.user_id == current_user.id).order_by(Save.updated_at.desc()).all()
+
+
+# --- Y31: account-synced site-wide settings ---
+# Only these keys, with these exact value shapes, are ever stored, so the
+# column can't become a dumping ground. Anything else in a request is
+# ignored, and an out-of-range or wrong-typed value rejects the whole request.
+SETTINGS_TEXT_SCALE_MIN = 0.85
+SETTINGS_TEXT_SCALE_MAX = 1.5
+
+
+def _validate_settings(payload: dict) -> dict:
+    clean: dict = {}
+    if "theme" in payload:
+        if payload["theme"] not in ("light", "dark"):
+            raise HTTPException(status_code=422, detail="theme must be 'light' or 'dark'")
+        clean["theme"] = payload["theme"]
+    if "text_scale" in payload:
+        value = payload["text_scale"]
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not (
+            SETTINGS_TEXT_SCALE_MIN <= value <= SETTINGS_TEXT_SCALE_MAX
+        ):
+            raise HTTPException(
+                status_code=422,
+                detail=f"text_scale must be a number from {SETTINGS_TEXT_SCALE_MIN} to {SETTINGS_TEXT_SCALE_MAX}",
+            )
+        clean["text_scale"] = float(value)
+    if "reduced_motion" in payload:
+        if not isinstance(payload["reduced_motion"], bool):
+            raise HTTPException(status_code=422, detail="reduced_motion must be true or false")
+        clean["reduced_motion"] = payload["reduced_motion"]
+    return clean
+
+
+def _stored_settings(user: User) -> dict:
+    """The saved settings, re-validated on the way out so a hand-edited row
+    can never hand a client something outside the whitelist."""
+    if not user.settings_json:
+        return {}
+    try:
+        data = json.loads(user.settings_json)
+    except (ValueError, TypeError):
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    try:
+        return _validate_settings(data)
+    except HTTPException:
+        return {}
+
+
+@app.get("/users/me/settings")
+def get_my_settings(response: Response, current_user: User = Depends(get_current_user)):
+    response.headers["Cache-Control"] = "no-store"
+    return {"settings": _stored_settings(current_user)}
+
+
+@app.put("/users/me/settings")
+def put_my_settings(
+    payload: dict,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Merges the given keys into this account's stored settings (a client
+    that only changed the theme sends only the theme)."""
+    response.headers["Cache-Control"] = "no-store"
+    merged = {**_stored_settings(current_user), **_validate_settings(payload)}
+    current_user.settings_json = json.dumps(merged)
+    db.commit()
+    return {"settings": merged}
 
 
 # --- Site-wide feedback (ACCOUNTS-AND-FEEDBACK-DESIGN.md) ---

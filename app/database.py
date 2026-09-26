@@ -77,6 +77,8 @@ def patch_schema():
         # ACCOUNTS-AND-FEEDBACK-DESIGN.md: saves predates users, so the
         # link between them is a patched-in column, not a fresh table.
         "ALTER TABLE saves ADD COLUMN IF NOT EXISTS user_id VARCHAR REFERENCES users(id)",
+        # Y31: per-account synced site-wide preferences.
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS settings_json TEXT",
     ]
     with engine.begin() as conn:
         for statement in statements:

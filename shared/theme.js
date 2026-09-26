@@ -40,10 +40,14 @@
     current = theme;
     try { localStorage.setItem(KEY, theme); } catch (err) { /* convenience only */ }
     apply();
+    document.dispatchEvent(new CustomEvent("noyvj-theme-change", { detail: { theme, fromSync: Boolean(set.fromSync) } }));
   }
   window.NoyvjTheme = {
     get: () => current,
     set,
+    // Used by shared/site-settings.js: applies an account-synced theme
+    // without echoing it straight back to the server.
+    setFromSync(theme) { set.fromSync = true; try { set(theme); } finally { set.fromSync = false; } },
     toggle: () => set(current === "light" ? "dark" : "light"),
   };
   apply();
