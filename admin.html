@@ -47,10 +47,30 @@
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
   }
   .panel h2 {
-    margin: 0 0 1rem;
+    margin: 0;
     font-size: 1.1rem;
     letter-spacing: 0.03em;
+    display: inline;
   }
+  /* U5: each panel collapses; the arrow is the only affordance needed. */
+  .panel > summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0;
+  }
+  .panel > summary::-webkit-details-marker { display: none; }
+  .panel > summary::before {
+    content: "\25B8";
+    opacity: 0.6;
+    transition: transform 0.15s ease;
+  }
+  .panel[open] > summary { margin-bottom: 1rem; }
+  .panel[open] > summary::before { transform: rotate(90deg); }
+  .panel > summary:focus-visible { outline: 2px solid rgba(140, 190, 255, 0.85); outline-offset: 3px; border-radius: 6px; }
+  .collapse-controls { display: flex; gap: 0.5rem; margin: 0 0 1rem; }
   .stat-row {
     display: flex;
     flex-wrap: wrap;
@@ -141,31 +161,35 @@
 <main id="main-content" tabindex="-1">
   <h1>SITE ADMIN</h1>
   <p id="subtitle">Ratings, feedback, and French answer reports — pulled live from the existing public read endpoints, nothing new exposed.</p>
+  <div class="collapse-controls">
+    <button type="button" class="refresh-button" id="expand-all">Expand all</button>
+    <button type="button" class="refresh-button" id="collapse-all">Collapse all</button>
+  </div>
 
-  <section class="panel">
-    <h2>Overview</h2>
+  <details class="panel" id="panel-overview" open>
+    <summary><h2>Overview</h2></summary>
     <p class="status-line" id="overview-status">Loading…</p>
     <div class="stat-row" id="overview-stats"></div>
     <p class="status-line" id="overview-saves-by-game"></p>
-  </section>
+  </details>
 
-  <section class="panel">
-    <h2>Ratings &amp; Reviews</h2>
+  <details class="panel" id="panel-ratings" open>
+    <summary><h2>Ratings &amp; Reviews</h2></summary>
     <p class="status-line" id="ratings-status">Loading…</p>
     <div id="ratings-body"></div>
-  </section>
+  </details>
 
-  <section class="panel">
-    <h2>Site Feedback</h2>
+  <details class="panel" id="panel-feedback" open>
+    <summary><h2>Site Feedback</h2></summary>
     <p class="status-line" id="feedback-status">Loading…</p>
     <table id="feedback-table">
       <thead><tr><th>Game</th><th>Rating</th><th>Comment</th><th>When</th></tr></thead>
       <tbody></tbody>
     </table>
-  </section>
+  </details>
 
-  <section class="panel">
-    <h2>French Answer Reports <span style="opacity:0.5; font-weight:400;">(Le Champ de Mots)</span></h2>
+  <details class="panel" id="panel-reports" open>
+    <summary><h2>French Answer Reports <span style="opacity:0.5; font-weight:400;">(Le Champ de Mots)</span></h2></summary>
     <p class="status-line">Every "I think this should count" report ever submitted. There's no resolved/unresolved flag in the backend (§14.4's deliberate no-admin-UI decision) — once you've triaged one (accepted into the catalog's <code>accepted_fr</code>/<code>accepted_en</code>, or rejected), it stays in this list as a historical record; it doesn't disappear.</p>
     <div class="filter-row">
       <input type="text" id="reports-filter" placeholder="Filter by item id or text…">
@@ -176,7 +200,7 @@
       <thead><tr><th>Item</th><th>Submitted</th><th>Marked correct</th><th>Topic</th><th>When</th></tr></thead>
       <tbody></tbody>
     </table>
-  </section>
+  </details>
 </main>
 
 <script>
@@ -380,6 +404,23 @@ async function loadAll() {
     savesByGameEl.textContent = "";
   }
 }
+
+// U5: remember each panel's open/closed state on this device.
+(function () {
+  const panels = Array.from(document.querySelectorAll("details.panel"));
+  const key = (panel) => "admin-panel-open:" + panel.id;
+  panels.forEach((panel) => {
+    try {
+      const saved = localStorage.getItem(key(panel));
+      if (saved !== null) panel.open = saved === "true";
+    } catch (e) { /* storage unavailable: keep the default (open) */ }
+    panel.addEventListener("toggle", () => {
+      try { localStorage.setItem(key(panel), String(panel.open)); } catch (e) { /* non-fatal */ }
+    });
+  });
+  document.getElementById("expand-all").addEventListener("click", () => panels.forEach((p) => { p.open = true; }));
+  document.getElementById("collapse-all").addEventListener("click", () => panels.forEach((p) => { p.open = false; }));
+})();
 
 document.getElementById("reports-filter").addEventListener("input", renderReports);
 document.getElementById("reports-refresh").addEventListener("click", loadAll);
