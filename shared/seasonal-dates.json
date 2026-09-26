@@ -1,0 +1,35 @@
+{
+  "read": "2026-09-27",
+  "note": "Gregorian dates of holidays that move around the calendar, read from the linked Wikipedia tables on the read date. Years the tables did not cover are simply absent: an event with no date for a year is never active that year.",
+  "hanukkah": {
+    "source": "https://en.wikipedia.org/wiki/Hanukkah",
+    "note": "Listed as sunset on the first date to nightfall on the last; the first date is the evening before the first full day.",
+    "years": {
+      "2026": ["2026-12-04", "2026-12-12"],
+      "2027": ["2027-12-24", "2028-01-01"],
+      "2028": ["2028-12-12", "2028-12-20"]
+    }
+  },
+  "lunar_new_year": {
+    "source": "https://en.wikipedia.org/wiki/Chinese_New_Year",
+    "note": "First day of the first Chinese lunisolar month.",
+    "years": {
+      "2026": "2026-02-17",
+      "2027": "2027-02-06",
+      "2028": "2028-01-26",
+      "2029": "2029-02-13",
+      "2030": "2030-02-03",
+      "2031": "2031-01-23",
+      "2032": "2032-02-11"
+    }
+  },
+  "diwali": {
+    "source": "https://en.wikipedia.org/wiki/Diwali",
+    "note": "Main day (Lakshmi Puja) as listed.",
+    "years": {
+      "2026": "2026-11-08",
+      "2027": "2027-10-29",
+      "2028": "2028-10-17"
+    }
+  }
+}
