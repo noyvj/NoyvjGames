@@ -285,3 +285,8 @@ The clearest cross-cutting infra lesson from this pass: three separate games' au
 **Area:** all 12 games (measurement only, no code changed)
 **Did:** Measured, per game in the browser pane: time to a playable game, initial DOM node count, and steady-state cost of a render/tick call. Boot is 1.1-2.1s everywhere (warm cache; the cold-visit cost is the shared Pyodide download), DOM is 280-1532 nodes. The two real outliers are Continuum `render()` at 18ms and Le Champ de Mots `render()` at 34ms, both over a frame; every other game is 1.5-5ms per call.
 **Result:** U14 stays open with a concrete plan: render only the active screen in Le Champ de Mots, skip hidden panels in Continuum, re-measure until both are under about 8ms. Numbers are recorded on the U14 line in `planning/TODO.md`.
+
+### 2026-09-26 (Site-wide: opening-screen personalisation, U4b)
+**Area:** `shared/opening-screen.js`, all 12 games' include line
+**Did:** Per-game taglines (`data-tagline`, all 12 written), a note under Continue from the latest save ("Slot 2 · 3 h ago" when signed in, "Saved 3 h ago" for a stored code; silent on failure), and for Le Champ de Mots a "pick a look" step after New Game (the four visual styles via `ChampDeMotsVisualStyle`, applied live, with the "change this later in Settings" note, desktop widths only) before the tutorial offer.
+**Result:** Verified live on Le Champ de Mots: tagline shown, New Game showed the style step, choosing Cartoon applied it, Confirm led to the tutorial offer, zero unexpected console errors.

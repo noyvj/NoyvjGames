@@ -25,14 +25,20 @@
  *     auto-start on first visit.
  *   - Adding "#play" to the URL skips the screen (choice "continue"), which
  *     keeps deep links and automated checks working.
- * Visual-set picker: only games that already have a style switcher (Le Champ
- * de Mots) will get that step, added per game later; dark/light lives in
- * general Settings (Y11).
+ * Personalisation (U4b): data-tagline sets the line under the title; Continue
+ * shows when (and which slot) the latest save was made; and a game that has a
+ * visual-set switcher (today only Le Champ de Mots, via
+ * window.ChampDeMotsVisualStyle, desktop widths only) gets a "pick a look"
+ * step after New Game, with the live example being the page itself and a
+ * "you can change this later in Settings" note. Dark/light lives in general
+ * Settings (Y11).
  */
 (function () {
   const SCRIPT = document.currentScript;
   const GAME_ID = SCRIPT && SCRIPT.dataset.gameId;
   const GAME_NAME = (SCRIPT && SCRIPT.dataset.gameName) || GAME_ID;
+  const TAGLINE = (SCRIPT && SCRIPT.dataset.tagline) || "Welcome. Pick up where you left off, or start fresh.";
+  const API_BASE = "https://noyvjgames.fastapicloud.dev";
   if (!GAME_ID) {
     console.error("opening-screen.js: missing required data-game-id attribute on its <script> tag");
     return;
@@ -91,6 +97,10 @@
       #opening-screen .opening-primary {
         background: rgba(140, 160, 255, 0.28); border-color: rgba(170, 190, 255, 0.6); font-weight: 600;
       }
+      #opening-screen .opening-continue-note { display: block; font-size: 0.75rem; font-weight: 400; opacity: 0.75; }
+      #opening-screen .opening-continue-note:empty { display: none; }
+      #opening-screen .opening-style-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.6rem; }
+      #opening-screen .opening-style-buttons button[aria-pressed="true"] { border-color: #a9c3ff; background: rgba(140, 160, 255, 0.3); }
       #opening-screen .opening-row { display: flex; gap: 0.5rem; }
       #opening-screen .opening-row > * { flex: 1 1 0; }
       #opening-screen .opening-back { font-size: 0.85rem; opacity: 0.7; margin-top: 0.4rem; }
@@ -125,9 +135,9 @@
     root.innerHTML = `
       <div class="opening-card">
         <h1></h1>
-        <p class="opening-sub">Welcome. Pick up where you left off, or start fresh.</p>
+        <p class="opening-sub opening-tagline"></p>
         <div class="opening-menu">
-          <button type="button" class="opening-primary" data-action="continue" hidden>Continue</button>
+          <button type="button" class="opening-primary" data-action="continue" hidden>Continue<small class="opening-continue-note"></small></button>
           <button type="button" class="opening-primary" data-action="new">New Game</button>
           <button type="button" data-action="saves">Saves</button>
           <div class="opening-row">
@@ -135,6 +145,11 @@
             <button type="button" data-action="info" hidden>Info</button>
             <a class="opening-button" data-action="feedback" target="_blank" rel="noopener" href="../../index.html#site-feedback-section">Feedback</a>
           </div>
+        </div>
+        <div class="opening-style" hidden>
+          <p class="opening-sub">Pick a look for your farm. You can change this any time in Settings.</p>
+          <div class="opening-style-buttons"></div>
+          <button type="button" class="opening-primary" data-action="style-confirm">Confirm</button>
         </div>
         <div class="opening-tutorial" hidden>
           <p class="opening-sub">Want a quick tutorial first?</p>
@@ -144,6 +159,7 @@
         <p class="opening-status" role="status" hidden></p>
       </div>`;
     root.querySelector("h1").textContent = GAME_NAME;
+    root.querySelector(".opening-tagline").textContent = TAGLINE;
     return root;
   }
 
@@ -177,18 +193,84 @@
     close(root);
   }
 
+  function timeAgo(iso) {
+    if (!iso) return "";
+    const seconds = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+    if (seconds < 90) return "just now";
+    if (seconds < 5400) return `${Math.round(seconds / 60)} min ago`;
+    if (seconds < 129600) return `${Math.round(seconds / 3600)} h ago`;
+    return `${Math.round(seconds / 86400)} d ago`;
+  }
+
+  // U4b: "Slot 2 · 3 h ago" under Continue. Best effort, silent on any failure.
+  async function fillContinueNote(root) {
+    const note = root.querySelector(".opening-continue-note");
+    try {
+      let text = "";
+      if (signedIn()) {
+        const token = lsGet(TOKEN_KEY);
+        const res = await fetch(`${API_BASE}/users/me/saves`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+        if (!res.ok) return;
+        const mine = (await res.json()).filter((r) => r.game_id === GAME_ID)
+          .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at));
+        if (!mine.length) return;
+        text = `${mine[0].slot ? "Slot " + mine[0].slot + " · " : ""}${timeAgo(mine[0].updated_at || mine[0].created_at)}`;
+      } else if (storedCode()) {
+        const res = await fetch(`${API_BASE}/saves/${encodeURIComponent(storedCode())}`, { cache: "no-store" });
+        if (!res.ok) return;
+        const body = await res.json();
+        text = `Saved ${timeAgo(body.updated_at || body.created_at)}`;
+      }
+      note.textContent = text;
+    } catch (err) { /* offline or not deployed yet: leave the note empty */ }
+  }
+
+  const STYLE_LABELS = { highdef: "High-def", lowpoly: "Low-poly", textbased: "Text-based", cartoon: "Cartoon" };
+
+  function showStyleStep(root) {
+    const picker = window.ChampDeMotsVisualStyle;
+    const wide = window.matchMedia && window.matchMedia("(min-width: 768px)").matches;
+    if (!picker || !wide) return false;
+    const box = root.querySelector(".opening-style-buttons");
+    box.innerHTML = "";
+    const current = document.documentElement.getAttribute("data-visual-style") || picker.DEFAULT_STYLE;
+    picker.STYLES.forEach((name) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = STYLE_LABELS[name] || name;
+      button.setAttribute("aria-pressed", String(name === current));
+      button.addEventListener("click", () => {
+        picker.applyStyle(name);
+        box.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
+      });
+      box.appendChild(button);
+    });
+    root.querySelector(".opening-style").hidden = false;
+    return true;
+  }
+
+  function afterNewGame(root) {
+    root.querySelector(".opening-menu").hidden = true;
+    if (showStyleStep(root)) return;
+    showTutorialOffer(root);
+  }
+
+  function showTutorialOffer(root) {
+    root.querySelector(".opening-style").hidden = true;
+    if (window.GameTutorial) {
+      root.querySelector(".opening-tutorial").hidden = false;
+      root.querySelector('[data-action="tutorial-yes"]').focus();
+    } else {
+      close(root);
+    }
+  }
+
   function askNewGame(root) {
     const code = storedCode();
     const go = () => {
       resolveChoice("new");
       if (code) lsRemove(SAVE_KEY);
-      root.querySelector(".opening-menu").hidden = true;
-      if (window.GameTutorial) {
-        root.querySelector(".opening-tutorial").hidden = false;
-        root.querySelector('[data-action="tutorial-yes"]').focus();
-      } else {
-        close(root);
-      }
+      afterNewGame(root);
     };
     if (code && window.ConfirmDialog) {
       window.ConfirmDialog.ask({
@@ -244,6 +326,8 @@
         clickIfPresent(id);
       });
     }
+    q("style-confirm").addEventListener("click", () => showTutorialOffer(root));
+    if (hasSave()) fillContinueNote(root);
     q("tutorial-yes").addEventListener("click", () => startTutorial(root));
     q("tutorial-no").addEventListener("click", () => close(root));
     const first = root.querySelector("button:not([hidden])");
