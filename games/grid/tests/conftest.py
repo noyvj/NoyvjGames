@@ -43,6 +43,8 @@ ELEMENT_IDS = [
     "shadow-verdict",
     "shadow-table",
     "renewable-blurb",
+    "regional-grid-connect-button",
+    "regional-grid-display",
     "advance-round-button",
     "info-page-toggle-button",
     "info-page-panel",

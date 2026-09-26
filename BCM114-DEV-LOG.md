@@ -740,3 +740,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** drift
 **Did:** Added a second, neighbouring district to Drift alongside the main region: different start (30 housing, no services, 100 funds, higher pressure), own investments, advanced every round, plus the I7 support link (a calm, funded main region can send 40 funds; a neighbour in critical strain spills 4 extra arrivals a round into the main region). Saved only once opened, fully validated on load.
 **Result:** 354 Drift tests pass (12 new); live-checked open/advance/invest through the real buttons with no new console errors.
+
+### 2026-09-26 (Grid C3: regional grid)
+**Game:** grid
+**Did:** Added a one-way "Connect a regional grid" switch, the lighter multi-grid mode (same shape as Tide's D3 sister settlement): the regional grid has no plants of its own, just its own demand (0.35x this grid's, growing automatically alongside it). Each round it's served first from whatever main-grid surplus capacity storage-arbitrage charging didn't already claim (no double-counting the same idle capacity), earning a little revenue; any demand still unmet costs shared funds instead.
+**Result:** 360 -> 370 Grid tests pass (10 new), flake8 clean; live-checked via a standalone local server (the shared dev-server port was already in use) -- connecting with 300 capacity vs. 100 demand shared exactly the expected 35 units for a +35 funds effect, no console errors.

@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 734/769 items checked off (95.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 735/769 items checked off (95.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -438,7 +438,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 
 - [x] C1: A genuine "grid operator career" meta-progression — persistent stats/unlocks across multiple runs (Aftermath-style skill tree), since Grid currently resets fully each session (built independently per Z3's resolution).
 - [x] C2: Let the breakdown-risk badge show the exact percentage chance, not just a badge.
-- [ ] C3: A regional/multi-grid mode — manage two interconnected grids, sharing surplus capacity between them.
+- [x] C3: A regional/multi-grid mode — manage two interconnected grids, sharing surplus capacity between them. Built as the lighter version (same shape as Tide's D3 sister settlement): a one-way "Connect a regional grid" switch that has no plants of its own, just its own demand, served first from whatever main-grid surplus capacity storage-arbitrage didn't already claim, with any remainder costing shared funds. See `games/grid/CLAUDE.md`.
 - [x] C4: A tooltip explaining exactly what "aging" does numerically on hover over any plant's wear percentage.
 - [x] C5: A "grid operator report" — extend the existing Run Summary with a letter-grade/tier ranking against the real-world benchmark line.
 - [x] C6: Let the plant-mix bar chart animate bars growing/shrinking on change, rather than snapping instantly.

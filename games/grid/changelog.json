@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-09-26",
+      "entry": "Regional grid: connect a smaller neighbouring grid that leans on your own spare capacity instead of building its own plants (C3)."
+    },
+    {
+      "date": "2026-09-26",
       "entry": "Shadow grid: pick a different starting scenario and a non-interactive twin grid copies every build and retire you make, with a side-by-side comparison (C21)."
     },
     {

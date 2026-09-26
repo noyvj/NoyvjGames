@@ -22,6 +22,19 @@ DEMAND_GROWTH_PER_ROUND = 10
 REVENUE_PER_UNIT_MET = 2
 REFUND_FRACTION = 0.5
 
+# C3: the regional grid's own demand as a fraction of this grid's demand --
+# grows automatically alongside it, no separate growth model needed. It has
+# no plants of its own; it leans on this grid's spare capacity instead.
+REGIONAL_DEMAND_FRACTION = 0.35
+# Selling spare capacity into the regional grid earns less than meeting
+# your own demand -- it's surplus that would otherwise go to waste, not a
+# second market at full price.
+REGIONAL_REVENUE_PER_UNIT_SHARED = 1
+# Whatever regional demand your surplus doesn't cover falls back to buying
+# power in for it, at a real cost -- the connection is a real decision,
+# not a pure bonus.
+REGIONAL_SHORTFALL_COST_PER_UNIT = 3
+
 # Order matters for rendering — cheapest/dirtiest first, mirroring the
 # real-world build order the game wants players to eventually move away
 # from.
@@ -394,6 +407,14 @@ class GridState:
         self.steeper_demand_growth_enabled = False
         # C4 -- opt-in weather-variability hard mode, off by default.
         self.weather_variability_enabled = False
+        # C3 -- optional interconnected regional grid, a lighter multi-grid
+        # mode than a fully independent second grid to manage (same "shares
+        # a resource with its own separate exposure" shape as Tide's D3
+        # sister settlement). One-way once connected, like that toggle.
+        self.regional_grid_connected = False
+        self.regional_grid_total_shared = 0.0
+        self.regional_grid_total_shortfall_cost = 0.0
+        self.regional_grid_total_revenue = 0.0
         # C13 -- which starting scenario was applied (see SCENARIOS).
         self.scenario = "standard"
         # TODO-C7 -- demand-response investment level (see constants above).
@@ -463,6 +484,41 @@ class GridState:
         self.arbitrage_revenue_total += revenue
         self.last_arbitrage = {"mode": "discharge", "units": sold, "revenue": revenue}
         return revenue
+
+    def connect_regional_grid(self):
+        """C3: one-way, like Tide's D3 sister-settlement switch -- its
+        history becomes part of this run, so it can't be turned back off."""
+        self.regional_grid_connected = True
+
+    def _advance_regional_grid(self, available_surplus):
+        """C3: called from advance_round() with whatever main-grid surplus
+        capacity this round's arbitrage charging didn't already claim. A
+        lighter multi-grid mode: the regional grid has no plants of its own
+        to build or retire, just its own demand (a fixed fraction of this
+        grid's, so it grows on its own). Surplus capacity you already own
+        serves it for a little revenue; whatever it still needs falls back
+        to buying power in for it, at shared funds' expense. Never touches
+        this grid's own emissions/disruption math."""
+        regional_demand = self.demand * REGIONAL_DEMAND_FRACTION
+        shared = min(available_surplus, regional_demand)
+        shortfall = regional_demand - shared
+        revenue = shared * REGIONAL_REVENUE_PER_UNIT_SHARED
+        shortfall_cost = shortfall * REGIONAL_SHORTFALL_COST_PER_UNIT
+        self.funds = max(0.0, self.funds - shortfall_cost)
+        self.regional_grid_total_shared += shared
+        self.regional_grid_total_shortfall_cost += shortfall_cost
+        self.regional_grid_total_revenue += revenue
+        return revenue
+
+    def regional_grid_readout_text(self):
+        if not self.regional_grid_connected:
+            return ""
+        net = self.regional_grid_total_revenue - self.regional_grid_total_shortfall_cost
+        sign = "+" if net >= 0 else "-"
+        return (
+            f"Regional grid: {self.regional_grid_total_shared:.0f} units of spare capacity "
+            f"shared so far, net {sign}{abs(net):.0f} funds effect."
+        )
 
     def _update_emergency(self):
         """C27: called at the end of advance_round() (demand already grown)."""
@@ -762,6 +818,21 @@ class GridState:
         revenue = met_demand * REVENUE_PER_UNIT_MET
         # C9: optional storage arbitrage on top of ordinary revenue.
         revenue += self._run_arbitrage(effective_capacity)
+
+        # C3: the regional grid (if connected) gets first claim on whatever
+        # surplus capacity arbitrage charging didn't already use this round
+        # -- reads _run_arbitrage's own record of what it took, rather than
+        # recomputing a second independent guess, so the same idle capacity
+        # is never counted for both.
+        if self.regional_grid_connected:
+            raw_surplus = max(0.0, effective_capacity - self.demand)
+            claimed_by_arbitrage = (
+                self.last_arbitrage["units"]
+                if self.last_arbitrage and self.last_arbitrage["mode"] == "charge"
+                else 0.0
+            )
+            available_surplus = max(0.0, raw_surplus - claimed_by_arbitrage)
+            revenue += self._advance_regional_grid(available_surplus)
 
         # TODO-C17: narrate this round's weather effect on renewable
         # output, using the nameplate/actual figures
@@ -2021,6 +2092,7 @@ def wear_tooltip(plant_type):
 def render():
     render_info_page()
     render_shadow()
+    render_regional_grid()
     update_achievements_display()
     update_changelog_display()
     update_weather_log_display()
@@ -2783,6 +2855,27 @@ def on_shadow_change(event=None):
     render()
 
 
+def render_regional_grid():
+    button = document.getElementById("regional-grid-connect-button")
+    display = document.getElementById("regional-grid-display")
+    if state.regional_grid_connected:
+        button.innerText = "Regional grid: connected"
+        button.disabled = True
+        display.hidden = False
+        display.innerText = state.regional_grid_readout_text()
+    else:
+        button.innerText = "Connect a regional grid"
+        button.disabled = False
+        display.hidden = True
+
+
+def on_connect_regional_grid(event=None):
+    if state.regional_grid_connected:
+        return
+    state.connect_regional_grid()
+    render()
+
+
 def on_advance_round(event=None):
     state.advance_round()
     _check_renewable_milestone()
@@ -2836,6 +2929,16 @@ def get_state():
         "lifetime_disruption_spend": state.lifetime_disruption_spend,
         "steeper_demand_growth_enabled": state.steeper_demand_growth_enabled,
         "weather_variability_enabled": state.weather_variability_enabled,
+        **(
+            {
+                "regional_grid": {
+                    "total_shared": state.regional_grid_total_shared,
+                    "total_shortfall_cost": state.regional_grid_total_shortfall_cost,
+                    "total_revenue": state.regional_grid_total_revenue,
+                }
+            }
+            if state.regional_grid_connected else {}
+        ),
         "scenario": state.scenario,
         **(
             {"shadow": {"scenario": shadow_scenario, "actions": [dict(a) for a in shadow_actions]}}
@@ -2885,6 +2988,18 @@ def _as_int(value, default, minimum=0, maximum=None):
     if maximum is not None and value > maximum:
         return maximum
     return value
+
+
+def _as_finite_nonneg_float(value, default):
+    """Same spirit as _as_int, for a plain non-negative float total (C3's
+    regional-grid running totals): bool/non-numeric/NaN/inf all fall back
+    to the default, and a negative value is floored at 0."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return default
+    value = float(value)
+    if value != value or value in (float("inf"), float("-inf")):
+        return default
+    return max(0.0, value)
 
 
 def _load_shadow(data):
@@ -2945,6 +3060,26 @@ def _load_round3_fields(data):
             if isinstance(interval, int) and not isinstance(interval, bool) and interval in MAINTENANCE_SCHEDULE_OPTIONS:
                 state.maintenance_schedule[plant_type] = interval
     _load_arbitrage_and_emergency(data)
+
+
+def _load_regional_grid(data):
+    """C3: `regional_grid` is only ever present in a save when the switch
+    was on (get_state()'s own convention, matching the C21 `shadow` field
+    right above it) -- its absence means "never connected", not "reset to
+    off", so a save from before this connected the grid stays connected."""
+    payload = data.get("regional_grid")
+    if not isinstance(payload, dict):
+        return
+    state.regional_grid_connected = True
+    state.regional_grid_total_shared = _as_finite_nonneg_float(
+        payload.get("total_shared"), state.regional_grid_total_shared
+    )
+    state.regional_grid_total_shortfall_cost = _as_finite_nonneg_float(
+        payload.get("total_shortfall_cost"), state.regional_grid_total_shortfall_cost
+    )
+    state.regional_grid_total_revenue = _as_finite_nonneg_float(
+        payload.get("total_revenue"), state.regional_grid_total_revenue
+    )
 
 
 def _load_career(data):
@@ -3014,6 +3149,7 @@ def load_state(data):
     state.weather_variability_enabled = data.get(
         "weather_variability_enabled", state.weather_variability_enabled
     )
+    _load_regional_grid(data)
     saved_scenario = data.get("scenario", state.scenario)
     state.scenario = saved_scenario if saved_scenario in SCENARIOS else "standard"
     _load_shadow(data)
@@ -3053,6 +3189,9 @@ def setup():
             "change", create_proxy(_make_maintenance_schedule_handler(plant_type))
         )
     document.getElementById("shadow-select").addEventListener("change", create_proxy(on_shadow_change))
+    document.getElementById("regional-grid-connect-button").addEventListener(
+        "click", create_proxy(on_connect_regional_grid)
+    )
     document.getElementById("advance-round-button").addEventListener(
         "click", create_proxy(on_advance_round)
     )
