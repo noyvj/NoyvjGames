@@ -595,3 +595,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Thaw
 **Did:** Added a framing toggle that reads the same three regions either as "my region's choices" or as a global aggregate (average warming, regions melting, average degrees saved). Presentation only, Region D excluded.
 **Result:** 216 → 226 tests passing, flake8 clean; verified live, zero console errors.
+
+### 2026-09-26 (Thaw: climate archive, G23)
+**Game:** Thaw
+**Did:** Added a persistent per-browser "climate archive": each of Regions A, B and C keeps a best-ever record (degrees saved, furthest round, peak dampening) across sessions in localStorage, shown in a toggle panel. Validated on every read, never part of the save code.
+**Result:** 226 → 237 tests passing, flake8 clean; verified live across a page reload, zero console errors.

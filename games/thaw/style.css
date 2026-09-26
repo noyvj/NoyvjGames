@@ -1071,3 +1071,18 @@ html[data-reduced-motion="true"] *::after {
 .forecast-record[hidden] {
   display: none;
 }
+
+/* G23: the climate archive panel. */
+.archive-panel[hidden] {
+  display: none;
+}
+
+.archive-toggle {
+  margin: 0.3rem 0;
+  font-size: 0.8rem;
+}
+
+.archive-row {
+  margin: 0.2rem 0;
+  font-size: 0.85rem;
+}
