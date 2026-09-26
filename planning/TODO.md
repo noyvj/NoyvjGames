@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 761/784 items checked off (97.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 761/781 items checked off (97.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -925,10 +925,7 @@ A "yes" here means "worth a groundwork plan" (a new `planning/<game>-plan.md`, p
 - [ ] W1-drift: Drift story mode (extend the existing vignettes into a running thread).
 - [ ] W1-sol: SOL story mode, deeper (grow the A25 captain's log into chapters and per-world beats).
 
-*W2. "More games could benefit from real-life examples."* A small "In the real world" element attached to the mechanic it illustrates, with a sourced, dated real example or figure, the source named, and a link to the page it was read from.
-- [ ] W2-sol: SOL real-life examples (real asteroid-mining missions, real solar-system exploration facts).
-- [ ] W2-trade-empire: Trade Empire real-life examples (real trade routes and market mechanics).
-- [ ] W2-champ-de-mots: Le Champ de Mots real-life examples (real French-speaking places, institutions and everyday usage).
+*W2. "More games could benefit from real-life examples."* (SOL, Trade Empire and Le Champ de Mots were dropped from this list at the user's direction: real-world ties do not suit them.) A small "In the real world" element attached to the mechanic it illustrates, with a sourced, dated real example or figure, the source named, and a link to the page it was read from.
 - [ ] W2-continuum: Continuum real-life examples (real cities and civilisations behind each era's mechanics).
 - [ ] W2-aftermath: Aftermath real-life examples (real disaster recoveries and what worked).
 - [ ] W2-drift: Drift real-life examples (real resettlement programs and their documented outcomes).
