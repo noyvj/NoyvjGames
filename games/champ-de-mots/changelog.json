@@ -1,27 +1,102 @@
 [
-  { "date": "2026-09-26", "entry": "New Grammar deep-dive button on grammar questions: the full rule, every example, the look-alikes it is easy to mix up with, and where that plot stands, all in one place." },
-  { "date": "2026-09-26", "entry": "New Weak-spot drill in the Review tab, built only from what the game has flagged as shaky (known mix-ups first, then your lowest-growth topics). Also, the first correct Review answer for a plot each day now counts as watering it." },
-  { "date": "2026-09-26", "entry": "New Exam cram in the Review tab: pick a range of weeks and get a dense session of up to 60 items from just those weeks, weakest material first." },
-  { "date": "2026-09-26", "entry": "New personal phrasebook: star any question while you practise to keep that item in your own list, whatever row it belongs to, and practise just those items on their own." },
-  { "date": "2026-09-26", "entry": "New Study calendar: a monthly view marking each real day you answered questions, with a small count. It only shows what you did, with no counters to keep alive." },
-  { "date": "2026-09-22", "entry": "A small gold \"Perfect this session\" badge now appears on a row once every plot in it has been answered correctly this session, with no misses along the way." },
-  { "date": "2026-09-22", "entry": "Achievements now show \"Earned by N% of players\" once enough real save data exists for that achievement (site-wide goal, Z1/Z27b)." },
-  { "date": "2026-09-22", "entry": "Added a keyboard-shortcuts help overlay: press ? to see it, Esc to close it or whichever panel is open (site-wide goal, Z4)." },
-  { "date": "2026-09-22", "entry": "New \"My Reports\" panel: a small dated feed confirming every correctness or pronunciation report you've sent, from any practice mode (site-wide goal, Z11)." },
-  { "date": "2026-09-21", "entry": "Settings panel: added a \"Reset to Default\" button that resets the visual style back to High-def in one click (site-wide goal, folded from A26)." },
-  { "date": "2026-09-21", "entry": "New Mixed Review Marathon in the Review tab: a long session of up to 40 due plots from anywhere on the farm, most overdue first." },
-  { "date": "2026-09-21", "entry": "A batch of small progress and practice details: an opt-in Study buddy that suggests a daily review length, a Farm health section and a scheduling explainer under the Progress dashboard, a plots-automated bar, hover text for row catch-up and automated-plot review countdowns, colour-independent plot borders by topic type, weeds plots that name their look-alike, running accuracy lines for the gender drill and for Sure / Not sure confidence, and a sound legend in liaison practice." },
-  { "date": "2026-09-21", "entry": "First-run look picker: the first time you open the game on a desktop you can choose High-def, Low-poly, Text-based or Cartoon (or skip for High-def), and change it later in Settings. They are restyles of the same game, not separate artwork." },
-  { "date": "2026-09-21", "entry": "Practice now counts: the four arcade minigames, the gender drill, liaison practice, proficiency tests and bonus sentences all feed a new Practice score at the top of the farm, with per-mode accuracy on the progress dashboard (capped per day so it can't be farmed, and it never changes your watering schedule)." },
-  { "date": "2026-09-20", "entry": "Row-unlock pacing removed: every week is now open from day one, so joining partway through the real course no longer locks you out of content your classmates already covered." },
-  { "date": "2026-09-19", "entry": "Visual-style switcher added: choose High-def, Low-poly, Text-based, or Cartoon chrome and palette, changeable any time in Settings." },
-  { "date": "2026-09-19", "entry": "Achievements retrofitted into the hub-wide framework: a static catalog, unlock toast, and hub dashboard link (unlock conditions unchanged)." },
-  { "date": "2026-09-14", "entry": "Four arcade minigames added: Greetings & Basics Blitz, Verb Racer, Boutique Dash, and Café Rush — timed, scored alternatives to the calm farm loop, each gated to its own row range." },
-  { "date": "2026-09-14", "entry": "Report buttons extended to Review, Proficiency, and Bonus sections; typed-answer boxes now clear between questions." },
-  { "date": "2026-09-14", "entry": "Pronunciation-risk report button added for known mispronunciation traps." },
-  { "date": "2026-09-13", "entry": "Achievements added: two tiers tracking total plots automated and full weeks fully automated." },
-  { "date": "2026-09-13", "entry": "\"Weeds\" mix-up state, a personal error-pattern digest, a gender-tagging drill, and a liaison/elision practice quiz added." },
-  { "date": "2026-09-13", "entry": "Combo bonus, self-rated confidence, deliberate interleaving, adaptive distractor difficulty, a cultural notes toggle, and a progress dashboard added." },
-  { "date": "2026-09-13", "entry": "Slideshow cross-check merge: 9 new topics and 75 new items added from the teacher's own lecture slides." },
-  { "date": "2026-09-05", "entry": "Core farm launched: the 23-week FREN151 to FREN152 syllabus catalog, spaced-repetition plant growth, a runtime question generator, and save-code support; then grading engine v2 (STRICT/LENIENT tiers), a \"flag as correct\" report button, a failure feedback blurb, a Review tab, weekly proficiency tests, and bonus sentence-building sections; then site-wide space theme visual pass." }
+  {
+    "date": "2026-09-26",
+    "entry": "Quick water: a 💧 button next to Water next that starts a one-question session on your most overdue plot, for a very short study break. A correct answer waters the plot like any review, and every quick water counts toward your practice score and study days (L29)."
+  },
+  {
+    "date": "2026-09-26",
+    "entry": "New Grammar deep-dive button on grammar questions: the full rule, every example, the look-alikes it is easy to mix up with, and where that plot stands, all in one place."
+  },
+  {
+    "date": "2026-09-26",
+    "entry": "New Weak-spot drill in the Review tab, built only from what the game has flagged as shaky (known mix-ups first, then your lowest-growth topics). Also, the first correct Review answer for a plot each day now counts as watering it."
+  },
+  {
+    "date": "2026-09-26",
+    "entry": "New Exam cram in the Review tab: pick a range of weeks and get a dense session of up to 60 items from just those weeks, weakest material first."
+  },
+  {
+    "date": "2026-09-26",
+    "entry": "New personal phrasebook: star any question while you practise to keep that item in your own list, whatever row it belongs to, and practise just those items on their own."
+  },
+  {
+    "date": "2026-09-26",
+    "entry": "New Study calendar: a monthly view marking each real day you answered questions, with a small count. It only shows what you did, with no counters to keep alive."
+  },
+  {
+    "date": "2026-09-22",
+    "entry": "A small gold \"Perfect this session\" badge now appears on a row once every plot in it has been answered correctly this session, with no misses along the way."
+  },
+  {
+    "date": "2026-09-22",
+    "entry": "Achievements now show \"Earned by N% of players\" once enough real save data exists for that achievement (site-wide goal, Z1/Z27b)."
+  },
+  {
+    "date": "2026-09-22",
+    "entry": "Added a keyboard-shortcuts help overlay: press ? to see it, Esc to close it or whichever panel is open (site-wide goal, Z4)."
+  },
+  {
+    "date": "2026-09-22",
+    "entry": "New \"My Reports\" panel: a small dated feed confirming every correctness or pronunciation report you've sent, from any practice mode (site-wide goal, Z11)."
+  },
+  {
+    "date": "2026-09-21",
+    "entry": "Settings panel: added a \"Reset to Default\" button that resets the visual style back to High-def in one click (site-wide goal, folded from A26)."
+  },
+  {
+    "date": "2026-09-21",
+    "entry": "New Mixed Review Marathon in the Review tab: a long session of up to 40 due plots from anywhere on the farm, most overdue first."
+  },
+  {
+    "date": "2026-09-21",
+    "entry": "A batch of small progress and practice details: an opt-in Study buddy that suggests a daily review length, a Farm health section and a scheduling explainer under the Progress dashboard, a plots-automated bar, hover text for row catch-up and automated-plot review countdowns, colour-independent plot borders by topic type, weeds plots that name their look-alike, running accuracy lines for the gender drill and for Sure / Not sure confidence, and a sound legend in liaison practice."
+  },
+  {
+    "date": "2026-09-21",
+    "entry": "First-run look picker: the first time you open the game on a desktop you can choose High-def, Low-poly, Text-based or Cartoon (or skip for High-def), and change it later in Settings. They are restyles of the same game, not separate artwork."
+  },
+  {
+    "date": "2026-09-21",
+    "entry": "Practice now counts: the four arcade minigames, the gender drill, liaison practice, proficiency tests and bonus sentences all feed a new Practice score at the top of the farm, with per-mode accuracy on the progress dashboard (capped per day so it can't be farmed, and it never changes your watering schedule)."
+  },
+  {
+    "date": "2026-09-20",
+    "entry": "Row-unlock pacing removed: every week is now open from day one, so joining partway through the real course no longer locks you out of content your classmates already covered."
+  },
+  {
+    "date": "2026-09-19",
+    "entry": "Visual-style switcher added: choose High-def, Low-poly, Text-based, or Cartoon chrome and palette, changeable any time in Settings."
+  },
+  {
+    "date": "2026-09-19",
+    "entry": "Achievements retrofitted into the hub-wide framework: a static catalog, unlock toast, and hub dashboard link (unlock conditions unchanged)."
+  },
+  {
+    "date": "2026-09-14",
+    "entry": "Four arcade minigames added: Greetings & Basics Blitz, Verb Racer, Boutique Dash, and Café Rush — timed, scored alternatives to the calm farm loop, each gated to its own row range."
+  },
+  {
+    "date": "2026-09-14",
+    "entry": "Report buttons extended to Review, Proficiency, and Bonus sections; typed-answer boxes now clear between questions."
+  },
+  {
+    "date": "2026-09-14",
+    "entry": "Pronunciation-risk report button added for known mispronunciation traps."
+  },
+  {
+    "date": "2026-09-13",
+    "entry": "Achievements added: two tiers tracking total plots automated and full weeks fully automated."
+  },
+  {
+    "date": "2026-09-13",
+    "entry": "\"Weeds\" mix-up state, a personal error-pattern digest, a gender-tagging drill, and a liaison/elision practice quiz added."
+  },
+  {
+    "date": "2026-09-13",
+    "entry": "Combo bonus, self-rated confidence, deliberate interleaving, adaptive distractor difficulty, a cultural notes toggle, and a progress dashboard added."
+  },
+  {
+    "date": "2026-09-13",
+    "entry": "Slideshow cross-check merge: 9 new topics and 75 new items added from the teacher's own lecture slides; core farm launched: the 23-week FREN151 to FREN152 syllabus catalog, spaced-repetition plant growth, a runtime question generator, and save-code support; then grading engine v2 (STRICT/LENIENT tiers), a \"flag as correct\" report button, a failure feedback blurb, a Review tab, weekly proficiency tests, and bonus sentence-building sections; then site-wide space theme visual pass."
+  }
 ]

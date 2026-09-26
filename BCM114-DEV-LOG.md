@@ -800,3 +800,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** aftermath
 **Did:** Extended the E17a scenario pack with four real places. The mapping is a simplified, stated approximation of each place's best-known hazards, balanced against the classic run's total damage.
 **Result:** 317 Aftermath tests pass.
+
+### 2026-09-26 (Le Champ L29: quick water)
+**Game:** champ-de-mots
+**Did:** Added a one-question 'quick water' session on the most overdue plot, built on the existing review machinery, with a new practice-ledger mode so it visibly counts toward the practice score and study streak.
+**Result:** 680 Champ tests pass (8 new); live-checked the button starts a 1-of-1 session on a real plot.

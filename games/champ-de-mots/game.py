@@ -2009,6 +2009,7 @@ PRACTICE_MODES = {
     "racer": "Verb Racer",
     "boutique": "Boutique Dash",
     "cafe": "Café Rush",
+    "quick": "Quick water",
     "gender": "Gender drill (le/la)",
     "liaison": "Liaison practice",
     "proficiency": "Proficiency tests",
@@ -4022,6 +4023,18 @@ def marathon_candidates(farm=None, day=None):
     return (watered + never)[:MARATHON_COUNT]
 
 
+# L29 -- "quick water": the lightest possible session, ONE question on the
+# single most overdue plot, for a very short study break. It is an ordinary
+# review under the hood (a correct answer waters the plot exactly as any Review
+# does), and every answer also lands in the practice ledger as "quick", so it
+# always visibly counts toward the headline practice score and the study streak.
+QUICK_WATER_MODE = "quick"
+QUICK_WATER_EMPTY_MESSAGE = (
+    "Nothing is due for a quick water right now. Come back once a plot is ready "
+    "for water, or use a Random Word or Grammar Review."
+)
+
+
 # L3: weak-spot drill -- a session built only from what the game already
 # flags as shaky: plots sitting in the weeds (known mix-ups the error-pattern
 # digest classifies) and the touched plots of the dashboard's weakest topics.
@@ -4211,7 +4224,8 @@ def _review_variant_for(plot, mode):
     roll among just those; otherwise (word review, or a grammar plot that
     can't offer one) let generate_question() pick from its full pool."""
     if mode != "grammar" and not (
-        mode in (MARATHON_MODE, PHRASEBOOK_MODE, CRAM_MODE, WEAK_SPOT_MODE) and plot.topic_type == "grammar"
+        mode in (MARATHON_MODE, PHRASEBOOK_MODE, CRAM_MODE, WEAK_SPOT_MODE, QUICK_WATER_MODE)
+        and plot.topic_type == "grammar"
     ):
         return None
     preferred = [v for v in variants_for(plot) if v in GRAMMAR_REVIEW_PREFERRED_VARIANTS]
@@ -4265,6 +4279,11 @@ def start_review(mode, event=None):
         queue = list(phrasebook)
         REVIEW_RNG.shuffle(queue)
         review_queue = queue[:PHRASEBOOK_SESSION_MAX]
+    elif mode == QUICK_WATER_MODE:
+        # L29: just the one most overdue plot (marathon_candidates() is already
+        # ordered most overdue first, watered plots before never-watered ones).
+        review_mode = mode
+        review_queue = [p.plot_id for p in marathon_candidates()[:1]]
     elif mode == MARATHON_MODE:
         # Ignores the count and minimum-stage controls on purpose: the point
         # is "everything that's due", ordered by how overdue it is.
@@ -4298,6 +4317,8 @@ def submit_review_answer(given):
     review_score["total"] += 1
     if review_question.get("variant") == V_GENDER_TAG:
         record_practice("gender", review_result)  # also counts the study day
+    elif review_mode == QUICK_WATER_MODE:
+        record_practice("quick", review_result)  # L29; also counts the study day
     else:
         note_study_answer()
     if review_result:
@@ -4408,6 +4429,11 @@ def on_start_marathon_review(event=None):
     start_review(MARATHON_MODE)
 
 
+def on_quick_water(event=None):
+    """L29: one-click, one-question session on the most overdue plot."""
+    start_review(QUICK_WATER_MODE)
+
+
 def _make_review_choice_handler(choice):
     def handler(event=None):
         submit_review_answer(choice)
@@ -4456,6 +4482,7 @@ def render_review():
             empty_message.hidden = False
             empty_message.innerText = (
                 MARATHON_EMPTY_MESSAGE if review_mode == MARATHON_MODE
+                else QUICK_WATER_EMPTY_MESSAGE if review_mode == QUICK_WATER_MODE
                 else PHRASEBOOK_EMPTY_MESSAGE if review_mode == PHRASEBOOK_MODE
                 else WEAK_SPOT_EMPTY_MESSAGE if review_mode == WEAK_SPOT_MODE
                 else REVIEW_EMPTY_MESSAGE
@@ -5543,6 +5570,7 @@ def setup():
     _element("review-grammar-button").addEventListener(
         "click", create_proxy(on_start_grammar_review)
     )
+    _element("quick-water-button").addEventListener("click", create_proxy(on_quick_water))
     _element("review-marathon-button").addEventListener(
         "click", create_proxy(on_start_marathon_review)
     )
