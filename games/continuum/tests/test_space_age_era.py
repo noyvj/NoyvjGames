@@ -181,11 +181,10 @@ def test_a_fresh_settlement_starts_with_zero_architects_and_habitat_rings():
     assert state.buildings["habitat_rings"] == 0
 
 
-def test_space_is_the_true_last_era():
-    """The one thing this milestone has to get right that no prior one
-    did: Space Age is genuinely sim.ERA_ORDER's last entry, not just "the
-    next era this build hasn't shipped yet." """
-    assert sim.ERA_ORDER[-1] == "space"
+def test_space_is_the_seventh_era_and_the_relay_age_now_follows_it():
+    """Space Age was written as the arc's true end; R2-K26 (the user asked
+    for more eras rather than an epilogue) appended the Relay Age after it."""
+    assert sim.ERA_ORDER[-2:] == ["space", "relay"]
     assert sim.ERA_LABEL["space"] == "Space Age"
     assert "space" in sim.IMPLEMENTED_ERAS
 
@@ -541,9 +540,10 @@ def test_space_tiers_are_the_next_two_global_tiers_after_digital():
     assert research.era_tiers("space") == [13, 14]
 
 
-def test_space_is_the_final_era_in_the_tier_map():
+def test_space_owns_tiers_thirteen_and_fourteen_in_the_tier_map():
     assert research.tier_era(14) == "space"
-    assert research.TOTAL_TIERS == 14
+    assert research.tier_era(15) == "relay"
+    assert research.TOTAL_TIERS == 16
 
 
 def test_the_shipped_tree_still_validates_with_space_content():
@@ -580,16 +580,9 @@ def test_next_era_for_digital_is_space():
     assert transition.next_era_for("digital") == "space"
 
 
-def test_next_era_for_space_is_none_and_this_is_the_true_end_of_the_arc():
-    """Unlike every prior era's absence from TRANSITION_REQUIREMENTS (which
-    meant "not shipped yet"), Space Age's absence means something
-    genuinely different: it is sim.ERA_ORDER's actual last entry. Both
-    reasons produce the same `None`, which is the behaviour under test --
-    but this is the first time in the game's history that it's true for
-    the second reason rather than the first."""
-    assert transition.next_era_for("space") is None
-    assert "space" not in transition.TRANSITION_REQUIREMENTS
-    assert sim.era_index("space") == len(sim.ERA_ORDER) - 1
+def test_next_era_for_space_is_now_the_relay_age():
+    assert transition.next_era_for("space") == "relay"
+    assert "space" in transition.TRANSITION_REQUIREMENTS
 
 
 # --- end-to-end: driving the sixth and final transition through game.py ----
@@ -650,23 +643,16 @@ def test_after_transitioning_the_log_shows_all_six_transition_beats(game_env):
     assert transition_rows[5].text == transition.TRANSITION_BEATS[("digital", "space")]
 
 
-def test_after_transitioning_to_space_age_the_advance_era_button_reports_the_true_end_of_the_arc(game_env):
-    """The behaviour under test here is IDENTICAL to every prior era's
-    "nothing more to reach" moment -- the same status text, the same
-    disabled button -- but for the first time it's genuinely true rather
-    than provisionally true: there is no Milestone 14 that will one day
-    give Space Age a real transition the way this milestone just did for
-    Digital. transition.next_era_for()/missing_requirements() need no new
-    code to get this right, since a missing TRANSITION_REQUIREMENTS entry
-    already meant "nothing more to reach" either way -- this test is what
-    actually exercises that fallback path for a true ending for the first
-    time."""
+def test_after_transitioning_to_space_age_the_advance_era_button_now_targets_relay(game_env):
+    """Space Age no longer ends the arc (R2-K26): the button is disabled
+    (a fresh Space Age settlement is nowhere near 250 people) but names the
+    Relay Age as the next destination. The "nothing more to reach" fallback
+    is now exercised at the Relay Age instead -- see test_relay_era.py."""
     push_to_space(game_env)
     game_env.module.render()
 
     assert game_env.elements["advance-era-button"].disabled is True
-    assert "Nothing more" in game_env.elements["era-progress-status-display"].innerText
-    assert game_env.elements["advance-era-button"].innerText == "—"
+    assert "Relay Age" in game_env.elements["era-progress-status-display"].innerText
 
 
 def test_a_second_click_after_transitioning_to_space_does_nothing(game_env):

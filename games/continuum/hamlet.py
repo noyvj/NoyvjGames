@@ -47,7 +47,7 @@ import math
 import sim
 
 RING_RADIUS = 3.6
-SLOT_COUNT = 16
+SLOT_COUNT = 18  # 16 stations through Space Age; the Relay Age fills slot 16 (slot 17 stays open)
 
 # id, era it appears in, role, building, 3D shape key, ring slot.
 #
@@ -72,6 +72,7 @@ _STATION_ROWS = (
     ("planners", "digital", "planners", None, "planners", 13),
     ("transit", "digital", None, "transit_hubs", "transit", 15),
     ("rings", "space", "architects", "habitat_rings", "rings", 14),
+    ("relay", "relay", "wayfinders", "relay_stations", "relay", 16),
 )
 
 TOWN_ID = "town_centre"

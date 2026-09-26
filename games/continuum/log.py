@@ -57,7 +57,7 @@ import narrative_log
 import sustainability
 
 # --- population thresholds ----------------------------------------------
-POPULATION_MILESTONES = [10, 15, 25, 40, 60, 100, 150]
+POPULATION_MILESTONES = [10, 15, 25, 40, 60, 100, 150, 250]
 
 POPULATION_MILESTONE_TEXT = {
     10: "The settlement has grown past ten. Faces that used to be familiar to everyone now need introducing.",
@@ -73,6 +73,10 @@ POPULATION_MILESTONE_TEXT = {
     # this table needs: the settlement that crosses it is, by the time it
     # does, already off-world.
     150: "One hundred fifty. Long before any of this left the ground, that was already the number past which no one person could hold everyone else in mind at once.",
+    # R2-K26 -- the Relay Age's own threshold: past this, one ring habitat is
+    # no longer the whole settlement, and the people beyond it live at the
+    # end of a supply line.
+    250: "Two hundred fifty. No single ring holds that many; some of them live at the end of a link now, and depend on it.",
 }
 
 # --- livability shifts (the diegetic feedback seam) ----------------------

@@ -178,6 +178,16 @@ def season_report_message(report):
             "the rest live somewhere the design doesn't really work for them."
         )
 
+    # Relay Age+ (R2-K26): the holdings' supply line. Narrated only when a
+    # holding exists and the last delivery fell short, the same "only
+    # narrate a real gap" discipline as the canal/public-works/ring lines.
+    if report.get("holdings_residents", 0) > 0 and report.get("outlying_served", 1.0) < 1.0:
+        served_pct = report["outlying_served"] * 100
+        parts.append(
+            f"The holdings received only {served_pct:.0f}% of the supplies they need — "
+            "their share of the new land dries up with it, and the gap between how the "
+            "core lives and how they do counts against the score."
+        )
     return " ".join(parts)
 
 
@@ -805,7 +815,7 @@ def update_summary_panel():
             f"({sustainability.score_label(data['peak_score'], sustainability.is_hard_mode(state))}).",
         )
     if data["journey_complete"]:
-        _summary_stat_row(panel, "This settlement has carried its story all the way to the Space Age.")
+        _summary_stat_row(panel, f"This settlement has carried its story all the way to the {sim.ERA_LABEL[sim.ERA_ORDER[-1]]}.")
     if data["has_revisited"]:
         _summary_stat_row(panel, "You've looked back at least once during this playthrough.")
     _summary_stat_row(panel, f"Achievements earned: {len(achievement_ids_earned())} of {len(ACHIEVEMENTS)}.")
@@ -1423,6 +1433,11 @@ def _nobody_exposed():
     return report.get("public_works", 0) > 0 and report.get("public_works_coverage_ratio", 0.0) >= 1.0
 
 
+def _well_supplied_holdings():
+    report = state.last_report or {}
+    return report.get("holdings_residents", 0) > 0 and report.get("outlying_served", 0.0) >= 1.0
+
+
 def _well_designed_rings():
     report = state.last_report or {}
     return report.get("habitat_rings", 0) > 0 and report.get("habitat_layout_ratio", 0.0) >= 1.0
@@ -1437,6 +1452,7 @@ ACHIEVEMENT_CHECKS = {
     "reached_industrial": lambda: _era_reached("industrial"),
     "reached_digital": lambda: _era_reached("digital"),
     "reached_space": lambda: _era_reached("space"),
+    "reached_relay": lambda: _era_reached("relay"),
     "thriving_once": _ever_thriving,
     "phoenix_settlement": _ever_recovered_from_collapse,
     "provision_specialist": lambda: _earned_affinity("provision") >= BRANCH_SPECIALIST_THRESHOLD,
@@ -1453,6 +1469,7 @@ ACHIEVEMENT_CHECKS = {
     "full_coordination": _full_coordination,
     "nobody_exposed": _nobody_exposed,
     "well_designed_rings": _well_designed_rings,
+    "well_supplied_holdings": _well_supplied_holdings,
     "a_real_city": lambda: state.population >= A_REAL_CITY_POPULATION,
     "looking_back": lambda: campaign.has_revisited,
 }
@@ -1712,6 +1729,21 @@ def render_info_page():
     """
     info_page.render(info_content.era_info_page(state.era), info_page_open)
     _render_info_page_report()
+    render_real_world()
+
+
+def render_real_world():
+    """W2-continuum: the collapsible "In the real world" note. Purely
+    presentational (reads only state.era, changes no game number)."""
+    box = document.getElementById("real-world-note")
+    example = info_content.real_world_example(state.era)
+    box.hidden = example is None
+    if example is None:
+        return
+    document.getElementById("real-world-text").innerText = f"In the real world: {example['title']}. {example['text']}"
+    link = document.getElementById("real-world-source")
+    link.innerText = f"Source: {example['source']} (read {info_content.REAL_WORLD_READ_DATE})"
+    link.href = example["url"]
 
 
 def on_toggle_info_page(event=None):
@@ -1928,7 +1960,7 @@ def render_research():
     """The research panel, rebuilt from the tree each render.
 
     Node rows are built in code rather than written into index.html: the
-    tree runs to fourteen tiers across seven eras, so static markup for it
+    tree runs to sixteen tiers across eight eras, so static markup for it
     would be unmaintainable long before the Space Age. Locked nodes are
     listed too, with the reason they're locked — a tree the player can't
     see the shape of isn't a tree.
@@ -2648,7 +2680,7 @@ def render_hamlet(effects=None):
 # ===========================================================================
 SEASON_SECONDS = {
     "tribal": 10.0, "agrarian": 10.0, "classical": 12.0, "medieval": 12.0,
-    "industrial": 14.0, "digital": 16.0, "space": 18.0,
+    "industrial": 14.0, "digital": 16.0, "space": 18.0, "relay": 20.0,
 }
 SPEEDS = (0, 1, 2, 4)
 MAX_SEASONS_PER_TICK = 2  # a stalled frame must never fire a burst of seasons

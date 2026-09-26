@@ -155,22 +155,34 @@ TRANSITION_REQUIREMENTS = {
         "min_tier": research.era_tiers("digital")[-1],
         "min_score_label": "Strained",
     },
-    # Space Age intentionally has NO entry here -- it is the true, permanent
-    # end of sim.ERA_ORDER, not merely "the next era hasn't shipped yet" the
-    # way every earlier era's absence from this table was. next_era_for()
-    # and missing_requirements() below already treat a missing entry as
-    # "nothing more to reach" regardless of which of those two reasons is
-    # why it's missing, so no new code was needed to make that distinction
-    # real -- see CLAUDE.md's Milestone 13 build notes and
-    # tests/test_space_age_era.py's own end-to-end test for the first time
-    # this fallback path is exercised for a genuinely true ending.
+    # R2-K26 -- the seventh transition, Space Age -> Relay Age. Same three-
+    # part shape a seventh time. Space Age was originally written as the
+    # arc's true end; the user asked (2026-09-26) for more eras instead of
+    # an epilogue, so that entry now leads somewhere and the "nothing more
+    # to reach" fallback belongs to the Relay Age (the current last era).
+    "space": {
+        "to_era": "relay",
+        # log.POPULATION_MILESTONES' newest entry: 250, where a single ring
+        # habitat is no longer enough people to be one place.
+        "min_population": 250,
+        # The late Space Age research tier has to be UNLOCKED (two tier-13
+        # nodes researched) -- same soft-bar spirit as every prior era.
+        "min_tier": research.era_tiers("space")[-1],
+        "min_score_label": "Strained",
+    },
+    # The Relay Age intentionally has NO entry here -- it is, for now, the
+    # end of sim.ERA_ORDER. next_era_for() and missing_requirements() below
+    # treat a missing entry as "nothing more to reach" whether the reason is
+    # "this is the last era" or "the next one hasn't shipped yet", so the
+    # arc can be extended again by adding an entry here (see CLAUDE.md's
+    # "R2-K26" section for what a ninth era would have to add).
 }
 
 
 def next_era_for(current_era):
     """The era `current_era` would transition into next, or None if this
     build has no transition defined from there yet (including the true
-    end of the arc, Space Age, which never gets an entry)."""
+    end of the arc, the Relay Age for now, which has no entry)."""
     requirement = TRANSITION_REQUIREMENTS.get(current_era)
     return requirement["to_era"] if requirement else None
 
@@ -305,6 +317,23 @@ TRANSITION_BEATS = {
         "design into. Somebody is going to have to now."
     ),
 }
+
+
+TRANSITION_BEATS[("space", "relay")] = (
+    "The rings held. Nobody planned what happened next, only that it kept "
+    "happening: a ring that was full started to feel like a town that was "
+    "full, and the people who wanted room went looking for it. The first "
+    "holding was a surface outpost a short haul from the old settlement, "
+    "and the second an orbital platform, and each of them was only as real "
+    "as the line that kept it supplied. That is what the new stations are "
+    "for. They carry nothing that grows there; they carry what home "
+    "banked, out along a link that has to be crewed, scheduled and paid "
+    "for every season it is meant to exist. It was easy to make the first "
+    "holding grand and the link to it thin. Whether the region that comes "
+    "next is one place with outposts or a set of places that answer to "
+    "each other is going to be decided in what gets sent, and what "
+    "doesn't."
+)
 
 
 def beat_text(from_era, to_era):

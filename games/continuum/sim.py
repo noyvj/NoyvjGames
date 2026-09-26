@@ -66,6 +66,20 @@ Space Age on, not as a bolt-on penalty/bonus function the way every prior
 era's adjustment was. This is the game's first era-specific mechanic to
 live in `livability()`/`equity()`'s own shared plumbing rather than beside
 it.
+
+The Relay Age (R2-K26, the eighth era) is the first era after that "final"
+one, and it changes the shape a THIRD way: it is the game's first REGIONAL
+mechanic. Space Age's habitat rings are one site; the Relay Age links that
+site to a ring of outlying holdings (surface hinterland, orbital platforms,
+the first off-world footholds) through Relay Stations and the Wayfinders who
+run them. The holdings' residents are part of the population, but they live
+at the far end of a supply line: what Relay Stations move is banked trade
+`surplus` (the stock that has, until now, only ever been an equity risk if
+hoarded), out to the holdings, every season. A holding that is kept supplied
+opens up new sustainable land yield for the whole settlement; one that is
+not leaves the network worse off than not expanding at all. See
+`CityState.holdings_residents()` and the "regional relay network" comment
+block below, and CLAUDE.md's "R2-K26: the eighth era (Relay Age)" section.
 """
 
 # --- eras -------------------------------------------------------------
@@ -81,6 +95,7 @@ ERA_ORDER = [
     "industrial",
     "digital",
     "space",
+    "relay",
 ]
 
 ERA_LABEL = {
@@ -91,13 +106,16 @@ ERA_LABEL = {
     "industrial": "Industrial",
     "digital": "Digital",
     "space": "Space Age",
+    "relay": "Relay Age",
 }
 
 # Eras with real content behind them. Phase 2/3 append as each is built.
 # Nothing reads this yet — it exists so that the moment a second era ships,
 # "which eras are playable" has one answer rather than being inferred from
 # whichever table happens to have an entry.
-IMPLEMENTED_ERAS = ["tribal", "agrarian", "classical", "medieval", "industrial", "digital", "space"]
+IMPLEMENTED_ERAS = [
+    "tribal", "agrarian", "classical", "medieval", "industrial", "digital", "space", "relay",
+]
 
 FIRST_ERA = ERA_ORDER[0]
 
@@ -130,6 +148,7 @@ ERA_ROLES = {
     "industrial": ["factory_workers"],
     "digital": ["planners"],
     "space": ["architects"],
+    "relay": ["wayfinders"],
 }
 
 ERA_BUILDINGS = {
@@ -140,6 +159,7 @@ ERA_BUILDINGS = {
     "industrial": ["sanitation_works"],
     "digital": ["transit_hubs"],
     "space": ["habitat_rings"],
+    "relay": ["relay_stations"],
 }
 
 ROLES = [role for era in ERA_ORDER for role in ERA_ROLES.get(era, [])]
@@ -174,6 +194,7 @@ ROLE_LABEL = {
     "factory_workers": "Factory Workers",
     "planners": "Urban Planners",
     "architects": "Habitat Architects",
+    "wayfinders": "Wayfinders",
 }
 
 ROLE_BLURB = {
@@ -212,6 +233,15 @@ ROLE_BLURB = {
         "is no unmanaged sprawl to fall back into instead — only however "
         "well or badly this ring was laid out."
     ),
+    "wayfinders": (
+        "Carry the settlement's banked surplus out along the relay links to "
+        "the outlying holdings — routes, schedules, hauling, resupply. Like "
+        "Habitat Architects they produce nothing at home, but here the "
+        "worker and the building are two halves of one throughput: "
+        "Wayfinders supply the hauling, Relay Stations set how much can "
+        "move at all, and the holdings only get as much as the smaller of "
+        "the two."
+    ),
 }
 
 ROLE_EMOJI = {
@@ -225,6 +255,7 @@ ROLE_EMOJI = {
     "factory_workers": "🏭",
     "planners": "🗺️",
     "architects": "🛰️",
+    "wayfinders": "🧭",
 }
 
 BUILDING_LABEL = {
@@ -238,6 +269,7 @@ BUILDING_LABEL = {
     "sanitation_works": "Sanitation Works",
     "transit_hubs": "Transit Hubs",
     "habitat_rings": "Habitat Rings",
+    "relay_stations": "Relay Stations",
 }
 
 BUILDING_BLURB = {
@@ -276,6 +308,14 @@ BUILDING_BLURB = {
         "layout to matter less. Holds people the moment it's built; only "
         "Habitat Architects determine whether it actually serves them."
     ),
+    "relay_stations": (
+        "A link out to a holding beyond the settlement — surface outpost, "
+        "orbital platform or first footing off-world — that houses a few "
+        "more people and opens up land the core doesn't have. It is also a "
+        "promise: those residents can only be kept supplied with surplus "
+        "sent from home, and Wayfinders have to carry it. A relay whose "
+        "holding goes unsupplied is worse than no relay at all."
+    ),
 }
 
 BUILDING_EMOJI = {
@@ -289,6 +329,7 @@ BUILDING_EMOJI = {
     "sanitation_works": "🏗️",
     "transit_hubs": "🚉",
     "habitat_rings": "🛞",
+    "relay_stations": "📡",
 }
 
 BUILDING_COST = {  # in materials
@@ -302,6 +343,7 @@ BUILDING_COST = {  # in materials
     "sanitation_works": 45.0,
     "transit_hubs": 55.0,
     "habitat_rings": 70.0,
+    "relay_stations": 85.0,
 }
 
 SHELTER_CAPACITY = 4  # people housed per shelter
@@ -329,6 +371,7 @@ START_BUILDINGS = {
     "sanitation_works": 0,
     "transit_hubs": 0,
     "habitat_rings": 0,
+    "relay_stations": 0,
 }
 START_ALLOCATION = {
     "foragers": 3,
@@ -341,6 +384,7 @@ START_ALLOCATION = {
     "factory_workers": 0,
     "planners": 0,
     "architects": 0,
+    "wayfinders": 0,
 }
 # START_ALLOCATION always assigns exactly 5 workers (3 foragers + 2
 # gatherers) -- every SCENARIOS["population"] below is deliberately kept
@@ -587,6 +631,38 @@ SPRAWL_EXTRACTION_PENALTY_WEIGHT = 0.5
 RING_CAPACITY_PER_BUILDING = 30.0  # people one FULLY-architected ring can serve well
 ARCHITECTS_PER_RING = 3  # architects needed to fully realise one ring's layout
 
+# --- regional relay network (Relay Age+) ------------------------------
+# The eighth era (R2-K26). Grounded in the sources listed in
+# info_content.py's "relay" entry: the UN's own SDG 11 target 11.a (positive
+# links between urban, peri-urban and rural areas through regional
+# development planning), the economic-geography idea of a core and a
+# periphery (peripheral regions supplying the core, or depending on it), and
+# NASA's real Commercial Resupply Services model for keeping an outpost
+# alive by regular cargo flights. It is deliberately a THIRD shape: not a
+# lagged growth-side stock like pollution/sprawl, and not a fourth basic
+# provision like Space Age's habitat usability, but the first mechanic that
+# treats the settlement as a NETWORK -- a core plus holdings -- and scores
+# whether the two are treated fairly.
+#
+#   - Each Relay Station houses HOLDING_RESIDENTS_PER_RELAY people in a
+#     holding at the far end of its link (they count toward `population` and
+#     the settlement's housing) and, while that holding is kept supplied,
+#     opens RELAY_LAND_YIELD of extra sustainable land yield for the whole
+#     settlement (new land is what regional expansion is FOR).
+#   - What a relay moves is banked `surplus`: every season each holding
+#     resident needs OUTLYING_SUPPLY_PER_RESIDENT of it. It can only be
+#     carried as fast as Wayfinders haul it (WAYFINDER_CARRY each) AND as fast
+#     as the stations allow (RELAY_THROUGHPUT each) -- the smaller of the two,
+#     and never more than the surplus actually in store.
+#   - `outlying_served` (0..1, a lagged stock like land_health) is the share
+#     of that need last season's delivery met. It scales the land bonus above
+#     and, in sustainability.py, drives an inter-site equity gap.
+HOLDING_RESIDENTS_PER_RELAY = 6
+RELAY_LAND_YIELD = 6.0
+OUTLYING_SUPPLY_PER_RESIDENT = 1.0
+WAYFINDER_CARRY = 2.0
+RELAY_THROUGHPUT = 9.0
+
 # Tools multiply every gathering yield, capped at one tool per person —
 # a settlement can't get more out of the land by hoarding axes nobody holds.
 TOOL_EFFECT = 0.5
@@ -663,6 +739,10 @@ NEUTRAL_EFFECTS = {
     # habitat_capacity() below), the same capacity-multiplier shape as
     # public_works_bonus/sanitation_bonus/transit_bonus above.
     "habitat_layout_bonus": 0.0,
+    # Relay Age (R2-K26) -- additive multiplier on each Relay Station's
+    # throughput ceiling (see relay_throughput() below), the same capacity-
+    # multiplier shape as the *_bonus keys above.
+    "relay_bonus": 0.0,
 }
 
 
@@ -737,6 +817,12 @@ class CityState:
         # both because nothing produces it yet and because the season
         # loop's own era guard forces it there defensively.
         self.sprawl = 0.0
+        # Relay Age+ (R2-K26): 0..1, the share of the holdings' supply need
+        # the last season's relay delivery actually met -- a lagged stock,
+        # same position in the season loop as land_health/pollution/sprawl
+        # (this season's land yield reads LAST season's value). 1.0 means
+        # "nothing wrong" (also the value with no holdings at all).
+        self.outlying_served = 1.0
         # Last-season signals the sustainability score reads. Seeded so the
         # score is meaningful on season 1, before any season has run.
         self.fed_fraction = 1.0
@@ -838,7 +924,11 @@ class CityState:
     # --- capacities -----------------------------------------------------
     def housing_capacity(self, effects=None):
         effects = effects_or_neutral(effects)
-        return self.buildings["shelter"] * SHELTER_CAPACITY + effects["housing_bonus"]
+        capacity = self.buildings["shelter"] * SHELTER_CAPACITY + effects["housing_bonus"]
+        if era_index(self.era) >= era_index("relay"):
+            # Each relay's holding houses its own residents (R2-K26).
+            capacity += self.buildings["relay_stations"] * HOLDING_RESIDENTS_PER_RELAY
+        return capacity
 
     def food_storage_capacity(self, effects=None):
         effects = effects_or_neutral(effects)
@@ -861,7 +951,34 @@ class CityState:
 
     def sustainable_yield(self, effects=None):
         effects = effects_or_neutral(effects)
-        return LAND_SUSTAINABLE_YIELD * effects["regen_mult"]
+        return (LAND_SUSTAINABLE_YIELD + self.relay_land_yield()) * effects["regen_mult"]
+
+    def relay_land_yield(self):
+        """Extra sustainable land yield the outlying holdings open up
+        (Relay Age+), scaled by how well they were supplied last season --
+        an unsupplied holding contributes nothing, which is what makes an
+        over-extended network worse than not expanding."""
+        if era_index(self.era) < era_index("relay"):
+            return 0.0
+        return self.buildings["relay_stations"] * RELAY_LAND_YIELD * max(0.0, min(1.0, self.outlying_served))
+
+    def holdings_residents(self):
+        """People living in the outlying holdings (Relay Age+): each relay
+        holds up to HOLDING_RESIDENTS_PER_RELAY of them, out of the whole
+        population. Zero before the Relay Age."""
+        if era_index(self.era) < era_index("relay"):
+            return 0
+        return min(self.population, self.buildings["relay_stations"] * HOLDING_RESIDENTS_PER_RELAY)
+
+    def relay_throughput(self, effects=None):
+        """Surplus the network can move per season: the smaller of what
+        Wayfinders can haul and what the stations' ceiling allows."""
+        if era_index(self.era) < era_index("relay"):
+            return 0.0
+        effects = effects_or_neutral(effects)
+        hauling = self.allocation["wayfinders"] * WAYFINDER_CARRY
+        ceiling = self.buildings["relay_stations"] * RELAY_THROUGHPUT * (1.0 + effects["relay_bonus"])
+        return max(0.0, min(hauling, ceiling))
 
     def public_works_coverage(self, effects=None):
         """How many people Public Works can meaningfully protect against a
@@ -1200,6 +1317,27 @@ class CityState:
         else:
             self.sprawl = 0.0
 
+        # 8d. Relay supply (Relay Age+) -- what the relay links carry out to
+        # the holdings this season. Updated last, the same lagged-stock
+        # position pollution/sprawl use: this season's land yield (step 8)
+        # already read LAST season's `outlying_served`. Draws banked
+        # `surplus`, the stock Agrarian's spoilage step feeds, so the very
+        # thing that used to be only an equity risk if hoarded is now what
+        # keeps the holdings alive. Forced to 1.0 ("no problem") before the
+        # Relay Age or with no holdings, the same defensive era-gate
+        # discipline every earlier mechanic uses.
+        relay_delivered = 0.0
+        outlying_needed = 0.0
+        if era_index(self.era) >= era_index("relay") and self.holdings_residents() > 0:
+            outlying_needed = self.holdings_residents() * OUTLYING_SUPPLY_PER_RESIDENT
+            relay_delivered = min(
+                outlying_needed, self.relay_throughput(effects), self.resources["surplus"]
+            )
+            self.resources["surplus"] -= relay_delivered
+            self.outlying_served = max(0.0, min(1.0, relay_delivered / outlying_needed))
+        else:
+            self.outlying_served = 1.0
+
         self.season += 1
 
         if deaths > 0 or fed_fraction < 1.0:
@@ -1252,6 +1390,11 @@ class CityState:
             "sprawl": self.sprawl,
             "habitat_rings": self.buildings["habitat_rings"],
             "habitat_layout_ratio": habitat_layout_ratio,
+            "relay_stations": self.buildings["relay_stations"],
+            "holdings_residents": self.holdings_residents(),
+            "relay_needed": outlying_needed,
+            "relay_delivered": relay_delivered,
+            "outlying_served": self.outlying_served,
         }
         self.last_report = report
         return report

@@ -1575,3 +1575,21 @@ kbd { border: 1px solid rgba(201, 147, 84, 0.5); border-radius: 4px; padding: 0 
 @media (prefers-reduced-motion: no-preference) {
   .hamlet-main, .hamlet-mini { transition: background 0.12s ease, border-color 0.12s ease; }
 }
+
+/* W2-continuum: collapsible "In the real world" note. */
+.real-world-note {
+  margin: 0.75rem 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(201, 147, 84, 0.3);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.real-world-note[hidden] { display: none; }
+.real-world-note > summary { cursor: pointer; font-weight: 600; }
+.real-world-text { margin: 0.5rem 0 0.25rem; }
+.real-world-source { font-size: 0.8rem; }
+html[data-theme="light"] .real-world-note {
+  border-color: rgba(150, 100, 40, 0.4);
+  background: rgba(255, 255, 255, 0.6);
+}

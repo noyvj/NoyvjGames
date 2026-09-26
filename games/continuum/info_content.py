@@ -7,8 +7,8 @@ in this same directory — reference material to draw from, not text to dump
 wholesale into the game, same rule the climate quartet's research docs
 followed.
 
-All seven eras now have real entries, matching `sim.IMPLEMENTED_ERAS` —
-"space" (Milestone 13) is the last one Phase 3 needed to add. Nothing else
+All eight eras now have real entries, matching `sim.IMPLEMENTED_ERAS` —
+"space" (Milestone 13) closed Phase 3 and "relay" (R2-K26) extends it. Nothing else
 in this file needed to change to add it; `era_info_page()` already handled
 an era with no entry yet, the same forward-compatible fallback every prior
 era's addition relied on too.
@@ -619,7 +619,200 @@ ERA_INFO_PAGE = {
             },
         ],
     },
+    "relay": {
+        "framing": (
+            "The Relay Age is the era the game invented rather than "
+            "inherited, so it is grounded in three real ideas instead of "
+            "one historical episode. The UN's own SDG 11 includes a target "
+            "(11.a) about \"positive economic, social and environmental "
+            "links between urban, peri-urban and rural areas\" through "
+            "regional development planning: a good city was never only the "
+            "city. Economic geography has a name for the risk in that: a "
+            "core and a periphery, where certain areas become rich and "
+            "industrialised while others remain poor and resource-"
+            "dependent, and peripheral regions tend to supply the core "
+            "rather than share in it. And off Earth, real programmes "
+            "already run on supply lines: NASA's Commercial Resupply "
+            "Services exist to deliver cargo and supplies to the "
+            "International Space Station on commercially operated "
+            "spacecraft, and the Lunar Gateway was designed as a staging "
+            "point in orbit around the Moon. The game's eighth era asks "
+            "what happens when a settlement stops being one place."
+        ),
+        "mechanic_tie_in": (
+            "Relay Stations and Wayfinders are that supply line. Each "
+            "station links the settlement to a holding: a few more people "
+            "housed, and more sustainable land yield opened up, for as "
+            "long as the holding is kept supplied. What the link carries "
+            "is banked surplus, the stock that has existed since the "
+            "Agrarian era and used to be only a hoarding risk; Wayfinders "
+            "supply the hauling and the stations set the ceiling, so the "
+            "holdings get the smaller of the two. If the supply falls "
+            "short, the land bonus shrinks and the score's equity term "
+            "charges the gap between how well the core lives and how well "
+            "the holdings do, so expanding without the means to sustain "
+            "the far end is worse than not expanding. This is not another "
+            "pollution or sprawl stock and not a fifth basic provision: it "
+            "is the first mechanic in the game that scores the settlement "
+            "as a network."
+        ),
+        "sources": [
+            {
+                "label": "UN DESA — Goal 11 (Sustainable cities and communities)",
+                "url": "https://sdgs.un.org/goals/goal11",
+                "note": (
+                    "The official goal page; target 11.a is the real-world "
+                    "framing for treating the region, not the single city, "
+                    "as the thing to plan and sustain."
+                ),
+            },
+            {
+                "label": "Wikipedia — Core–periphery structure",
+                "url": "https://en.wikipedia.org/wiki/Core%E2%80%93periphery_structure",
+                "note": (
+                    "Defines the economic-geography idea behind the "
+                    "inter-site equity gap: some areas become rich and "
+                    "industrialised while others stay resource-dependent, "
+                    "and peripheral regions tend to supply the core."
+                ),
+            },
+            {
+                "label": "Wikipedia — Commercial Resupply Services",
+                "url": "https://en.wikipedia.org/wiki/Commercial_Resupply_Services",
+                "note": (
+                    "NASA's real model for keeping an outpost alive: a "
+                    "series of commercial flights delivering cargo and "
+                    "supplies to the International Space Station, the "
+                    "basis for what Relay Stations and Wayfinders do."
+                ),
+            },
+            {
+                "label": "Wikipedia — Lunar Gateway",
+                "url": "https://en.wikipedia.org/wiki/Lunar_Gateway",
+                "note": (
+                    "A real off-world staging-point design: a modular "
+                    "station planned for a near-rectilinear halo orbit "
+                    "around the Moon, intended as somewhere crews and "
+                    "landers meet. The article describes it as planned "
+                    "and, in its own wording, one that would have been "
+                    "built, so it is cited as a design, not a fixture."
+                ),
+            },
+        ],
+    },
 }
+
+# --- W2-continuum: sourced "In the real world" examples --------------------
+# One real example per era, shown in a collapsible <details> that changes no
+# game number. HARD RULE: every fact below was read from the live page named
+# in `url` on READ_DATE with the WebFetch tool while writing this, never
+# recalled from memory; `text` restates only what that page says. The
+# `source` label and the link are shown to the player as "Source: <source>
+# (read <date>)". Wikipedia and NASA pages only: the UNESCO pages first
+# tried for the early eras refused the fetch (HTTP 403), so they were not
+# used and nothing from them is quoted.
+REAL_WORLD_READ_DATE = "2026-09-27"
+REAL_WORLD_EXAMPLES = {
+    "tribal": {
+        "title": "Göbekli Tepe, a monumental site built before farming",
+        "text": (
+            "Göbekli Tepe is a Neolithic archaeological site in Upper Mesopotamia, in modern-day "
+            "Turkey, inhabited from around 9500 BCE to at least 8000 BCE, during the Pre-Pottery "
+            "Neolithic. Its inhabitants were hunter-gatherers who supplemented their diet with "
+            "early forms of domesticated cereal."
+        ),
+        "source": "Wikipedia, Göbekli Tepe",
+        "url": "https://en.wikipedia.org/wiki/G%C3%B6bekli_Tepe",
+    },
+    "agrarian": {
+        "title": "Çatalhöyük, an early farming town",
+        "text": (
+            "The settlement existed from around 7500 BC to 5600 BC and flourished around 7000 BC. "
+            "Between 600 and 800 people would have lived at Çatalhöyük East in an average year of "
+            "its Middle phase, in mudbrick houses crammed together with no footpaths or streets "
+            "between them, and its people cultivated domesticated wheat and peas."
+        ),
+        "source": "Wikipedia, Çatalhöyük",
+        "url": "https://en.wikipedia.org/wiki/%C3%87atalh%C3%B6y%C3%BCk",
+    },
+    "classical": {
+        "title": "Uruk's canals and temple records",
+        "text": (
+            "At its peak around 3100 BC Uruk may have had up to 50,000 residents, with 80,000 to "
+            "90,000 more in its environs, making it the largest urban area in the world at the "
+            "time. A canal system described as \"Venice in the desert\" connected it with maritime "
+            "trade on the Euphrates and the surrounding agricultural belt, and proto-cuneiform "
+            "tablets found there record administrative activity such as ration distribution and "
+            "trade."
+        ),
+        "source": "Wikipedia, Uruk",
+        "url": "https://en.wikipedia.org/wiki/Uruk",
+    },
+    "medieval": {
+        "title": "The guilds of Florence",
+        "text": (
+            "The guilds of Florence comprised seven major guilds (the Arti Maggiori), five middle "
+            "guilds and nine minor guilds. Six of the nine Priori of the city's Signoria were "
+            "selected from the major guilds and two by the minor guilds, and the page credits the "
+            "guilds' rigorous quality control and political role as formative influences in the "
+            "history of Florence."
+        ),
+        "source": "Wikipedia, Guilds of Florence",
+        "url": "https://en.wikipedia.org/wiki/Guilds_of_Florence",
+    },
+    "industrial": {
+        "title": "London's Great Stink and Bazalgette's sewers",
+        "text": (
+            "The Great Stink was an event in central London in July and August 1858 in which hot "
+            "weather worsened the smell of untreated human waste and industrial effluent on the "
+            "banks of the Thames. The authorities accepted the civil engineer Joseph Bazalgette's "
+            "proposal to move the effluent eastwards along interconnecting sewers to outfalls "
+            "beyond the metropolitan area, and his work brought an end to the cholera outbreaks."
+        ),
+        "source": "Wikipedia, Great Stink",
+        "url": "https://en.wikipedia.org/wiki/Great_Stink",
+    },
+    "digital": {
+        "title": "Curitiba's planned transit and limits on sprawl",
+        "text": (
+            "Curitiba has a planned transportation system that includes lanes on major streets "
+            "devoted to a bus rapid transit system. Its Master Plan, adopted in 1968, brought "
+            "strict controls on urban sprawl, reduced downtown traffic, preservation of the "
+            "Historic Sector and an affordable public transit system, and the page calls the city "
+            "one of the world's best examples of urban planning."
+        ),
+        "source": "Wikipedia, Curitiba",
+        "url": "https://en.wikipedia.org/wiki/Curitiba",
+    },
+    "space": {
+        "title": "The International Space Station",
+        "text": (
+            "The International Space Station has maintained a continuous human presence for "
+            "twenty-five years. Orbiting 250 miles above Earth at 17,500 miles per hour, it has "
+            "hosted nearly 300 astronauts from across the globe and carried out thousands of "
+            "experiments, yielding advances in medicine, materials science and climate research."
+        ),
+        "source": "NASA, International Space Station",
+        "url": "https://www.nasa.gov/international-space-station/",
+    },
+    "relay": {
+        "title": "NASA's Commercial Resupply Services",
+        "text": (
+            "Commercial Resupply Services (CRS) are a series of flights awarded by NASA for the "
+            "delivery of cargo and supplies to the International Space Station on commercially "
+            "operated spacecraft. The page describes multiple contractors using different "
+            "spacecraft, including SpaceX's Dragon and Northrop Grumman's Cygnus."
+        ),
+        "source": "Wikipedia, Commercial Resupply Services",
+        "url": "https://en.wikipedia.org/wiki/Commercial_Resupply_Services",
+    },
+}
+
+
+def real_world_example(era):
+    """The sourced example for `era`, or None for an era without one."""
+    return REAL_WORLD_EXAMPLES.get(era)
+
 
 # Shown for an era with no entry above yet. Kept intentionally sparse — an
 # empty source list rather than invented placeholder links — so the panel

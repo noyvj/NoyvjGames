@@ -8,8 +8,8 @@ deliberately few, and exist to prove the engine end to end.
 
 ## The tier structure (the proposal the doc asks for)
 
-One continuous tree spanning all seven eras, cut into **two tiers per era**
-— an early and a late layer — for **14 tiers total**. Tier numbers are
+One continuous tree spanning all eight eras, cut into **two tiers per era**
+— an early and a late layer — for **16 tiers total**. Tier numbers are
 global and ascending, so "tier 7" means one thing forever and a node never
 has to be renumbered when a later era is written.
 
@@ -1017,6 +1017,108 @@ NODE_LIST = [
             "whole history."
         ),
     ),
+    # --- Relay Age, early (R2-K26) --- Three nodes, one per branch, each
+    # chaining a prerequisite back into the LATE Space Age tier (tier 14) of
+    # the same branch -- the same "early tier of a new era chains to the late
+    # tier of the one before it" pattern every earlier era used, now across a
+    # seventh era boundary. Their effects are about the relay network
+    # (throughput, surplus, and the equity of the holdings), not a new growth
+    # stock.
+    ResearchNode(
+        "relay_route_surveying",
+        "Relay Route Surveying",
+        era="relay",
+        tier=era_tiers("relay")[0],
+        branch="craft",
+        cost=210.0,
+        prerequisites=("space_syntax_planning",),
+        effects={"relay_bonus": 0.25},
+        blurb=(
+            "Space Syntax Planning read how a layout shapes the people inside it; this reads the "
+            "same thing one scale up, at the level of the routes between places. Where a link "
+            "runs, and how often anything moves along it, decides whether a holding at the far "
+            "end is a settlement or an afterthought."
+        ),
+    ),
+    ResearchNode(
+        "regional_surplus_exchange",
+        "Regional Surplus Exchange",
+        era="relay",
+        tier=era_tiers("relay")[0],
+        branch="provision",
+        cost=210.0,
+        prerequisites=("full_cycle_reclamation",),
+        effects={"surplus_conversion_bonus": 0.2, "food_yield_mult": 0.1},
+        blurb=(
+            "Full-Cycle Reclamation stopped anything leaving the loop; this opens the loop to a "
+            "region. A standing arrangement to bank what one site over-produces so another can "
+            "draw on it - the oldest idea in the tree, surplus, put to work across distance."
+        ),
+    ),
+    ResearchNode(
+        "regional_compact",
+        "Regional Compact",
+        era="relay",
+        tier=era_tiers("relay")[0],
+        branch="community",
+        cost=225.0,
+        prerequisites=("off_world_founding_charter",),
+        min_affinity={"community": 13},
+        effects={"equity_bonus": 0.1, "relay_bonus": 0.1},
+        blurb=(
+            "Every charter so far governed one place. This one governs the relationship between "
+            "places: what the core owes the holdings that were founded from it, and what they owe "
+            "back. Only reachable by a settlement that kept investing in community across every "
+            "era it has lived through."
+        ),
+    ),
+    # --- Relay Age, late ---
+    ResearchNode(
+        "autonomous_hauling",
+        "Autonomous Hauling",
+        era="relay",
+        tier=era_tiers("relay")[1],
+        branch="craft",
+        cost=250.0,
+        prerequisites=("relay_route_surveying",),
+        effects={"relay_bonus": 0.3, "tool_yield_mult": 0.1},
+        blurb=(
+            "Relay Route Surveying decided where the links run; this puts machines on them, so "
+            "that carrying a season's supplies to a holding stops depending on how many people "
+            "the core can spare to do it."
+        ),
+    ),
+    ResearchNode(
+        "closed_supply_loops",
+        "Closed Supply Loops",
+        era="relay",
+        tier=era_tiers("relay")[1],
+        branch="provision",
+        cost=250.0,
+        prerequisites=("regional_surplus_exchange",),
+        effects={"surplus_conversion_bonus": 0.2, "extraction_efficiency": -0.15},
+        blurb=(
+            "The holdings stop being a place the core sends things to and start being part of the "
+            "loop: what they grow and reclaim comes back along the same links. A region that needs "
+            "less from any one place is a region that leans less on the land at home."
+        ),
+    ),
+    ResearchNode(
+        "federated_holdings_charter",
+        "Federated Holdings Charter",
+        era="relay",
+        tier=era_tiers("relay")[1],
+        branch="community",
+        cost=270.0,
+        prerequisites=("regional_compact",),
+        min_affinity={"community": 14},
+        effects={"equity_bonus": 0.1, "resilience_bonus": 0.1},
+        blurb=(
+            "The Regional Compact settled what the core owes; this gives the holdings a standing "
+            "voice in deciding it. The last charter in the tree, and, like Elders' Council at the "
+            "very start of it, a group of people deciding that being counted is not optional."
+        ),
+    ),
     # --- K21b: late-tier expansion (Milestone 25) --- Nine extra nodes, one or
     # two per era from Agrarian on, all in each era's LATE tier (early tiers
     # stay at exactly three nodes, one per branch, which several era tests
@@ -1151,6 +1253,7 @@ EFFECT_LABELS = {
     "sprawl_output_mult": ("sprawl from growth", "pct"),
     "transit_bonus": ("transit hub absorption", "pct"),
     "habitat_layout_bonus": ("habitat layout quality", "pct"),
+    "relay_bonus": ("relay throughput", "pct"),
 }
 
 

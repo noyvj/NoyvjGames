@@ -90,7 +90,7 @@ def test_ready_once_every_requirement_is_met():
 
 def test_an_era_with_no_table_entry_reports_nothing_more_to_reach():
     campaign = fresh_campaign()
-    campaign.state.era = "space"  # no transition defined from here
+    campaign.state.era = sim.ERA_ORDER[-1]  # the last era: no transition defined from here
     reasons = transition.missing_requirements(campaign.state, campaign.tree, campaign.tree.effects())
     assert reasons == ["Nothing more to reach from here yet."]
     assert transition.transition_ready(campaign.state, campaign.tree, campaign.tree.effects()) is False
@@ -171,7 +171,7 @@ def test_beat_text_falls_back_to_a_generic_line_for_an_undefined_pair():
     undefined pair (there is no real "next" era beyond the true end of the
     arc) rather than "the next era's transition hasn't been written yet,"
     which stopped being true the moment every era shipped real content."""
-    text = transition.beat_text("space", "beyond")
+    text = transition.beat_text("relay", "beyond")
     assert text == "The settlement has crossed into the beyond era."
 
 

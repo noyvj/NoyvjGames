@@ -313,7 +313,7 @@ def test_every_shipped_node_is_reachable_from_an_empty_tree(game_env):
     in the file. Built with current_era="space" so era-gating itself
     doesn't hide any node from this check — era-gating is exercised
     separately (see test_era_gates_nodes_...)."""
-    tree = research.build_tree(current_era="space")
+    tree = research.build_tree(current_era=sim.ERA_ORDER[-1])
     resources = {"knowledge": 10_000.0}
 
     for _ in range(len(tree.nodes)):

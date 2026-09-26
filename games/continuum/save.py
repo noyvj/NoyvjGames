@@ -75,6 +75,7 @@ CITY_FIELDS = [
     "land_health",
     "pollution",
     "sprawl",
+    "outlying_served",  # Relay Age (R2-K26): 0..1, absent in older saves -> 1.0
     "fed_fraction",
     "last_extraction",
     "last_sustainable_yield",
@@ -144,6 +145,7 @@ NUMERIC_FIELD_BOUNDS = {
     "land_health": (sim.MIN_LAND_HEALTH, 1.0, False),
     "pollution": (0.0, 1.0, False),
     "sprawl": (0.0, 1.0, False),
+    "outlying_served": (0.0, 1.0, False),
     "fed_fraction": (0.0, 1.0, False),
     "last_extraction": (0.0, None, False),
     "last_sustainable_yield": (0.0, None, False),

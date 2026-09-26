@@ -57,7 +57,7 @@ def test_stations_grow_with_the_era_and_keep_a_stable_order():
         assert ids[0] == hamlet.TOWN_ID
         assert len(ids) > len(previous)
         previous = ids
-    assert len(hamlet.stations_for_era("space")) == len(hamlet.STATIONS)
+    assert len(hamlet.stations_for_era(sim.ERA_ORDER[-1])) == len(hamlet.STATIONS)
 
 
 def test_flat_percent_keeps_every_station_inside_the_stage():
@@ -341,7 +341,7 @@ def test_a_new_era_adds_its_stations(hamlet_env):
     hamlet_env.module.render()
     ids = [c.attributes["data-station"] for c in e["hamlet-chips"].children]
     assert "farm" in ids and len(ids) == 8
-    hamlet_env.state.era = "space"
+    hamlet_env.state.era = sim.ERA_ORDER[-1]
     hamlet_env.module.render()
     assert len(e["hamlet-chips"].children) == len(hamlet.STATIONS)
     assert "hamlet-rings-build" in e

@@ -57,6 +57,10 @@ def visual_state(state, effects):
         Age and Medieval+ respectively — None before their era (rather
         than 0.0) so a scene builder can tell "not applicable yet" apart
         from "applicable and currently zero coverage".
+      - holdings_residents / holdings_served_ratio: the Relay Age's (R2-K26)
+        outlying holdings -- how many people live at the end of a relay
+        link, and how much of their supply need last season met (None
+        before the Relay Age or with no holdings built yet).
       - score / score_label / weakest_component: the sustainability
         headline, for a scene that wants to tint lighting/mood by how the
         settlement is actually doing, not just how big it is. score_label
@@ -79,6 +83,10 @@ def visual_state(state, effects):
     if era_at_least("space") and state.population > 0:
         habitat_layout_ratio = min(1.0, state.habitat_capacity(effects) / state.population)
 
+    holdings_served_ratio = None
+    if era_at_least("relay") and state.holdings_residents() > 0:
+        holdings_served_ratio = state.outlying_served
+
     public_works_coverage_ratio = None
     if era_at_least("medieval") and state.population > 0:
         public_works_coverage_ratio = min(
@@ -98,6 +106,8 @@ def visual_state(state, effects):
         "sprawl": state.sprawl,
         "habitat_layout_ratio": habitat_layout_ratio,
         "public_works_coverage_ratio": public_works_coverage_ratio,
+        "holdings_residents": state.holdings_residents(),
+        "holdings_served_ratio": holdings_served_ratio,
         "score": score_value,
         "score_label": sustainability.score_label(score_value, sustainability.is_hard_mode(state)),
         "weakest_component": sustainability.weakest_component(state, effects),

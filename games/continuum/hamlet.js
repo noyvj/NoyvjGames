@@ -131,6 +131,10 @@
         g.add(at(H.ring(0.58, 0.07, 0x6fd7d0), 0, 0.8, 0));
         g.add(at(H.cylinder(0.07, 0.07, 0.6, 0x8890c8, 6), 0, 0.36, 0));
         break;
+      case "relay":
+        g.add(at(H.buildRelayPylon(0x9fb0bd), 0, 0.06, 0));
+        g.add(at(H.buildMound(0x6fd7d0), 0.5, 0.06, 0.2));
+        break;
       default:
         g.add(at(H.box(0.6, 0.5, 0.6, 0x999999), 0, 0.31, 0));
     }

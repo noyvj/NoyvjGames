@@ -137,7 +137,7 @@ def test_tampered_save_fields_load_safely():
     other = save.Campaign()
     assert other.load_dict(data)
     assert other.state.challenge["active"] is None
-    assert other.state.trajectory == [[1.0, 6.0, 5.0, 100.0]]
+    assert other.state.trajectory == [[1.0, float(len(sim.ERA_ORDER) - 1), 5.0, 100.0]]
     assert other.state.calm_streak == 0
 
 

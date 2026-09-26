@@ -286,6 +286,21 @@
     return group;
   }
 
+  // R2-K26 (the Relay Age): a Relay Station -- a slim pylon with a tilted
+  // dish and a glowing beacon on top, the one shape every relay in the scene
+  // and in the Hamlet view is built from.
+  function buildRelayPylon(hex) {
+    const group = new THREE.Group();
+    const mast = cylinder(0.05, 0.09, 1.0, hex, 6);
+    const dish = coneRoof(0.24, 0.16, 0xd8e4ff, 8);
+    dish.rotation.x = Math.PI; // open side up, like a receiving dish
+    dish.position.y = 1.0;
+    const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), toonMaterial(0xffd27a));
+    beacon.position.y = 1.2;
+    group.add(mast, dish, beacon);
+    return group;
+  }
+
   // --- ground plane, sky/lighting -------------------------------------
 
   function buildGround(hex, radius) {
@@ -555,6 +570,67 @@
     return group;
   }
 
+  // R2-K26: the Relay Age. The core keeps the Space Age silhouette (spires and
+  // habitat rings) and grows a ring of outlying holdings around it, each with
+  // a relay pylon, a low dome for its residents, and a link back to the core
+  // drawn as a row of flat plates. A holding that was NOT fully supplied
+  // last season has a BROKEN link -- plates missing from the outer end in
+  // proportion to the shortfall -- so the state is legible by shape, not by
+  // colour alone (same rule the rest of the game's status cues follow).
+  function buildRelayScene(vs) {
+    const group = new THREE.Group();
+    group.add(buildGround(0x5d6d76, 4.6));
+
+    const spireCount = settlementScale(vs, 2, 12, 6);
+    ringLayout(spireCount, 0.9, 0.35).forEach(function (pos, i) {
+      const spire = buildSpire(0x8890c8, 0.8 + (i % 3) * 0.3);
+      spire.position.set(pos[0], 0, pos[1]);
+      group.add(spire);
+    });
+    const habitatCount = Math.min(2, vs.buildings.habitat_rings || 0);
+    for (let i = 0; i < habitatCount; i++) {
+      const habitatRing = ring(0.8 + i * 0.4, 0.05, 0x6fd7d0);
+      habitatRing.position.y = 0.95 + i * 0.3;
+      group.add(habitatRing);
+    }
+
+    const relayCount = Math.min(6, vs.buildings.relay_stations || 0);
+    const served = vs.holdings_served_ratio == null ? 1.0 : vs.holdings_served_ratio;
+    const PLATES = 6;
+    const litPlates = Math.ceil(Math.max(0, Math.min(1, served)) * PLATES - 1e-9);
+    for (let i = 0; i < relayCount; i++) {
+      const angle = (i / 6) * Math.PI * 2 + 0.5;
+      const dx = Math.cos(angle);
+      const dz = Math.sin(angle);
+      const pylon = buildRelayPylon(0x9fb0bd);
+      pylon.position.set(dx * 3.1, 0, dz * 3.1);
+      group.add(pylon);
+      const dome = buildMound(0x6fd7d0);
+      dome.scale.set(1.6, 1.3, 1.6);
+      dome.position.set(dx * 3.6, 0, dz * 3.6);
+      group.add(dome);
+      for (let k = 0; k < litPlates; k++) {
+        const t = 1.7 + (k / PLATES) * 1.3;
+        const plate = flatPlot(0.14, 0.09, 0xe6d9a8, 0.03);
+        plate.position.set(dx * t, 0, dz * t);
+        plate.rotation.y = -angle;
+        group.add(plate);
+      }
+    }
+    if (relayCount >= 3) {
+      // First off-world foothold: an orbital platform hanging over the site.
+      const platform = new THREE.Group();
+      platform.add(ring(0.55, 0.05, 0xd8e4ff));
+      const hub = box(0.3, 0.16, 0.3, 0x8890c8);
+      hub.position.y = -0.08;
+      platform.add(hub);
+      platform.position.set(-1.6, 2.2, -1.2);
+      group.add(platform);
+    }
+    setupLighting(group, 0xa8c0d8, 0x26303a, vs.season);
+    return group;
+  }
+
   const ERA_BUILDERS = {
     tribal: buildTribalScene,
     agrarian: buildAgrarianScene,
@@ -563,6 +639,7 @@
     industrial: buildIndustrialScene,
     digital: buildDigitalScene,
     space: buildSpaceScene,
+    relay: buildRelayScene,
   };
 
   function lerpColor(fromHex, toHex, t) {
@@ -959,7 +1036,7 @@
       buildHut: buildHut, buildHouse: buildHouse, buildCampfire: buildCampfire,
       buildMound: buildMound, buildChimneyFactory: buildChimneyFactory,
       buildSanitationWorks: buildSanitationWorks, buildGlassTower: buildGlassTower,
-      buildSpire: buildSpire, toonMaterial: toonMaterial, lerpColor: lerpColor,
+      buildSpire: buildSpire, buildRelayPylon: buildRelayPylon, toonMaterial: toonMaterial, lerpColor: lerpColor,
     },
   };
 })();

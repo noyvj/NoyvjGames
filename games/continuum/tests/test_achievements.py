@@ -34,6 +34,7 @@ from .test_space_age_era import (
     push_to_medieval,
     push_to_space,
 )
+from .test_relay_era import push_to_relay
 
 
 def _research_everything(tree, resources):
@@ -171,7 +172,7 @@ def test_provision_community_craft_specialists_and_root_and_branch(game_env):
     earned_before = set(game_env.module.achievement_ids_earned())
     assert not {"provision_specialist", "community_specialist", "craft_specialist", "root_and_branch"} & earned_before
 
-    push_to_space(game_env)
+    push_to_relay(game_env)
     _research_everything(tree, state.resources)
 
     earned = set(game_env.module.achievement_ids_earned())

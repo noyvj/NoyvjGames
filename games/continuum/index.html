@@ -181,6 +181,14 @@
       </details>
     </div>
 
+    <!-- W2-continuum: a sourced real-world example for the current era.
+         Collapsed by default, changes no game number. -->
+    <details id="real-world-note" class="real-world-note" hidden>
+      <summary>🌍 In the real world</summary>
+      <p id="real-world-text" class="real-world-text"></p>
+      <a id="real-world-source" class="real-world-source" href="#" target="_blank" rel="noopener noreferrer"></a>
+    </details>
+
     <button id="info-page-toggle-button" class="secondary info-page-toggle" type="button">Loading...</button>
     <div id="info-page-panel" class="section" hidden>
       <p id="info-page-framing" class="info-page-framing"></p>
@@ -368,8 +376,8 @@
         <div class="research-tree-branch research-tree-branch--craft"><span class="research-tree-node"></span></div>
       </div>
       <p id="research-status-display" class="status-line">Knowledge: 0.0</p>
-      <p id="research-completion-display" class="status-line" title="Discoveries researched out of every node in the whole tree, all seven eras.">Tree: 0%</p>
-      <p class="row-blurb">One tree, fourteen tiers, seven eras. What you lean into now changes what opens later.
+      <p id="research-completion-display" class="status-line" title="Discoveries researched out of every node in the whole tree, all eight eras.">Tree: 0%</p>
+      <p class="row-blurb">One tree, sixteen tiers, eight eras. What you lean into now changes what opens later.
         <details class="info-toggle"><summary>i</summary><p>A tier only opens once two nodes in the tier below it are researched — you don't need everything in a tier, just enough to prove the ground beneath it. Some nodes also require a minimum number of discoveries already made in one branch, so leaning into a branch early can open or close doors many tiers later.</p></details>
       </p>
       <!-- Milestone 17 (K14): filters the rows below by name/blurb/branch. -->
@@ -536,7 +544,7 @@
     const CONTINUUM_TUTORIAL_STEPS = [
       {
         title: "Welcome to Continuum",
-        text: "You're growing a single settlement across seven eras, from a tribal community toward a space-age civilization. This walkthrough covers the systems you have right now — skip it any time, and reopen it later from the Tutorial button up top.",
+        text: "You're growing a single settlement across eight eras, from a tribal community to a region reaching off-world. This walkthrough covers the systems you have right now — skip it any time, and reopen it later from the Tutorial button up top.",
       },
       {
         selector: "#scenario-select",
@@ -556,7 +564,7 @@
       {
         selector: "#work",
         title: "Assign Work",
-        text: "Move people between roles with the +/- buttons. Foragers bring in food, Gatherers bring in materials, Crafters turn materials into tools, and Keepers produce knowledge — the one currency that funds research across all seven eras.",
+        text: "Move people between roles with the +/- buttons. Foragers bring in food, Gatherers bring in materials, Crafters turn materials into tools, and Keepers produce knowledge — the one currency that funds research across all eight eras.",
       },
       {
         selector: "#buildings",
@@ -571,7 +579,7 @@
       {
         selector: "#research",
         title: "Research Tree",
-        text: "One tree spans all seven eras, fourteen tiers deep across three branches — provision, community, and craft. Spend knowledge to study a node; a tier opens once enough of the tier below it is researched. Early choices echo later: leaning into a branch can open or close doors many tiers on.",
+        text: "One tree spans all eight eras, sixteen tiers deep across three branches — provision, community, and craft. Spend knowledge to study a node; a tier opens once enough of the tier below it is researched. Early choices echo later: leaning into a branch can open or close doors many tiers on.",
       },
       {
         selector: "#speed-controls",
@@ -610,7 +618,7 @@
       },
       {
         title: "You're ready",
-        text: "Assign work, build, research, and keep an eye on the sustainability score — then advance the season and see how it all played out. Carry this settlement all the way to the Space Age, but grow something worth living in. Good luck.",
+        text: "Assign work, build, research, and keep an eye on the sustainability score — then advance the season and see how it all played out. Carry this settlement as far as it will go, into the Relay Age and beyond, but grow something worth living in. Good luck.",
       },
     ];
 
@@ -715,7 +723,7 @@
   -->
   <script src="../../shared/hub-auth.js"></script>
   <script src="../../shared/save-widget.js" data-game-id="continuum"></script>
-  <script src="../../shared/opening-screen.js" data-game-id="continuum" data-tagline="Grow one settlement from a tribe to a space-age civilization." data-game-name="Continuum"></script>
+  <script src="../../shared/opening-screen.js" data-game-id="continuum" data-tagline="Grow one settlement from a tribe to a region reaching off-world." data-game-name="Continuum"></script>
   <script src="../../shared/story-toggle.js" data-game-id="continuum" data-story-selectors="#log"></script>
   <script src="../../shared/last-played.js" data-game-id="continuum"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="continuum"></script>

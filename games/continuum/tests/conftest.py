@@ -70,6 +70,9 @@ ELEMENT_IDS = [
     "info-page-sources",
     # Z16 audit — info-panel "report an issue" button
     "info-page-report-button",
+    "real-world-note",  # W2-continuum
+    "real-world-text",
+    "real-world-source",
     # Milestone 6 — the ongoing log (rows are created at runtime)
     "log-status-display",
     "log-list",

@@ -141,6 +141,9 @@ def dashboard(state, effects, researched=None):
         pressures.append(("Sprawl", _num(state.sprawl * 100, "{:.0f}%")))
     if era_i >= sim.era_index("space"):
         pressures.append(("Habitat layout", _num(float(report.get("habitat_layout_ratio", 0.0)) * 100, "{:.0f}%")))
+    if era_i >= sim.era_index("relay"):
+        pressures.append(("Holdings' residents", str(state.holdings_residents())))
+        pressures.append(("Holdings supplied", _num(float(report.get("outlying_served", 1.0)) * 100, "{:.0f}%")))
     if pressures:
         sections.append({"title": "Era pressures", "rows": pressures})
     if researched is not None:
@@ -161,6 +164,7 @@ GLYPH_SHAPES = {
     "sanitation_works": "ring",
     "transit_hubs": "hex",
     "habitat_rings": "double_ring",
+    "relay_stations": "chevron",
 }
 
 DISTRICT_W = 70
@@ -202,6 +206,11 @@ def _glyph(shape, cx, cy):
             for k in range(6)
         )
         return f'<polygon points="{pts}" class="map-glyph"/>'
+    if shape == "chevron":
+        return (
+            f'<path d="M{cx - r:.1f},{cy - r:.1f} L{cx + r:.1f},{cy:.1f} L{cx - r:.1f},{cy + r:.1f}" '
+            f'class="map-glyph map-glyph--line"/>'
+        )
     # double_ring
     return (
         f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r}" class="map-glyph map-glyph--hollow"/>'

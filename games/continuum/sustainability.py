@@ -72,6 +72,13 @@ resilience. See the Milestone 13 build notes in CLAUDE.md for the full
 reasoning, including why this is genuinely not a seventh copy of Industrial/
 Digital's growth-side stock mechanic.
 
+The Relay Age (R2-K26) is a third shape again. It adds no fourth provision
+and no growth stock: instead `equity()` gains a term that compares the
+outlying HOLDINGS with the core -- the first place the score looks at the
+settlement as a network rather than as one place. A holding whose supply
+line delivers less than the core enjoys costs equity by the gap; a network
+that is fair to its holdings costs nothing. See `_regional_gap_penalty()`.
+
 The four are weighted equally. That is a judgement call, not a finding;
 `COMPONENT_WEIGHTS` is the single place to revisit it.
 """
@@ -266,6 +273,32 @@ def _urban_sprawl_penalty(state):
     return _clamp(state.sprawl) * URBAN_SPRAWL_PENALTY_WEIGHT * _penalty_multiplier(state)
 
 
+# --- Relay Age+ : the core/holdings equity gap (R2-K26) ------------------
+# continuum-real-world-sources.md-style grounding lives in info_content.py's
+# "relay" entry (the core-periphery idea in economic geography: peripheral
+# regions supplying, or depending on, a core; and the UN's SDG 11 target 11.a
+# on links between urban, peri-urban and rural areas). This is an EQUITY
+# question in this file's own terms -- some people better served than
+# others -- but measured BETWEEN sites rather than within one: the holdings'
+# `outlying_served` (how much of their supply need last season's relay
+# delivery met) is compared with how well the core provides for itself.
+REGIONAL_GAP_PENALTY_WEIGHT = 0.5  # share of the core-vs-holdings gap knocked off equity
+
+
+def _regional_gap_penalty(state, core_equity):
+    """0..REGIONAL_GAP_PENALTY_WEIGHT -- zero before the Relay Age, zero
+    with no holdings, and zero whenever the holdings are served at least as
+    well as the core. `outlying_served` is already a 0..1 ratio, so no
+    per-capita division is needed to keep it scale-neutral."""
+    if sim.era_index(state.era) < sim.era_index("relay"):
+        return 0.0
+    if state.holdings_residents() <= 0:
+        return 0.0
+    served = _clamp(getattr(state, "outlying_served", 1.0))
+    gap = max(0.0, core_equity - served)
+    return gap * REGIONAL_GAP_PENALTY_WEIGHT * _penalty_multiplier(state)
+
+
 def equity(state, effects=None):
     """Bounded by the least-met need, then penalised for lopsidedness (and,
     from the Agrarian era on, for hoarding surplus per capita; from the
@@ -286,7 +319,13 @@ def equity(state, effects=None):
     base = worst * (1.0 - EQUITY_SPREAD_PENALTY * spread)
     base -= _surplus_hoarding_penalty(state)
     base -= _urban_sprawl_penalty(state)
-    return _clamp(base + effects["equity_bonus"])
+    # The regional gap is applied AFTER the research bonus on purpose: by the
+    # Relay Age the tree's accumulated equity_bonus is large enough to
+    # saturate the component on its own, and a term applied before it would
+    # be washed out -- the core's equity is what the holdings are measured
+    # against, bonuses included.
+    core = _clamp(base + effects["equity_bonus"])
+    return _clamp(core - _regional_gap_penalty(state, core))
 
 
 def balance(state, effects=None):

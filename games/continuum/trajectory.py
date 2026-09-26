@@ -35,8 +35,8 @@ not a measurement:
 - Medieval: c. 1500 (1.2).
 - Industrial: c. 1870 (1.9), the middle of the industrialising century.
 - Digital: c. 2000 (13.0).
-- Space Age: there is no data. Held at the 2000 level and labelled as such;
-  it is deliberately not extrapolated.
+- Space Age and Relay Age: there is no data. Held at the 2000 level and
+  labelled as such; deliberately not extrapolated.
 """
 
 import math
@@ -53,13 +53,14 @@ REFERENCE = {
     "industrial": ("c. 1870", 1.9, True),
     "digital": ("c. 2000", 13.0, True),
     "space": ("no data - held at the 2000 level", 13.0, False),
+    "relay": ("no data - held at the 2000 level", 13.0, False),
 }
 
 SOURCE_NOTE = (
     "Reference line: world GDP per person, Maddison Project Database long-run "
     "estimates (1990 international dollars, rounded), shown as a multiple of "
     "the year-1 CE level. Tribal is an assumption (no data that early) and "
-    "Space Age has no data at all, so it is held at the 2000 level rather than "
+    "Space Age and Relay Age have no data at all, so they are held at the 2000 level rather than "
     "extrapolated. Your line is output per person (food, materials, tools and "
     "knowledge) divided by what one person eats in a season - it is not money, "
     "so compare the shape of the two lines, not their height."
