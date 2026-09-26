@@ -58,6 +58,7 @@ blitz_tick = minigames.blitz_tick
 racer_tick = minigames.racer_tick
 boutique_tick = minigames.boutique_tick
 cafe_tick = minigames.cafe_tick
+sprint_tick = minigames.sprint_tick
 
 CATALOG_FILENAME = "fren_combined_catalog.json"
 SUPPLEMENTARY_NOTES_FILENAME = "fren_supplementary_notes.json"
@@ -2006,6 +2007,7 @@ cultural_notes_open = False
 
 PRACTICE_MODES = {
     "blitz": "Greetings & Basics Blitz",
+    "sprint": "Passé Composé Sprint",
     "racer": "Verb Racer",
     "boutique": "Boutique Dash",
     "cafe": "Café Rush",

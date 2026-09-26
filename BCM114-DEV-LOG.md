@@ -820,3 +820,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** champ-de-mots
 **Did:** Added a listening practice mode using browser speech synthesis (no audio files): hear a French sentence, pick its meaning, replay slower, counted in the practice ledger. It degrades to a plain message when the browser has no voices.
 **Result:** 710 Champ tests pass (8 new); live-checked the sentence is spoken on the first question and answering shows the French and English.
+
+### 2026-09-26 (Le Champ L1: Passé Composé Sprint)
+**Game:** champ-de-mots
+**Did:** Added the fifth arcade minigame: a 60-second, three-lives rapid-fire on passé composé blank and conjugation prompts, gated to rows 21-23 and counted in the practice ledger.
+**Result:** 728 Champ tests pass (18 new); live-checked the toggle, start and a real passé composé prompt with four choices.

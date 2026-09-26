@@ -50,6 +50,7 @@
       <button id="racer-toggle-button" class="secondary" type="button">🏁 Verb Racer</button>
       <button id="boutique-toggle-button" class="secondary" type="button">👗 Boutique Dash</button>
       <button id="cafe-toggle-button" class="secondary" type="button">☕ Café Rush</button>
+      <button id="sprint-toggle-button" class="secondary" type="button">⏪ Passé Composé Sprint</button>
       <!-- planning/TODO.md's visual-style switcher: low-poly / text-based /
            cartoon / high-def, chosen on first load (a sensible default,
            applied automatically) and changeable here afterward. Plain JS,
@@ -148,6 +149,27 @@
       <div id="blitz-choices" class="practice-choices"></div>
       <p id="blitz-feedback" class="practice-feedback"></p>
       <button id="blitz-close-button" class="secondary practice-close">Close</button>
+    </div>
+
+    <div id="sprint-panel" class="minigame-panel" hidden>
+      <h2>Passé Composé Sprint</h2>
+      <p class="status-line status-line--muted">60 seconds, 3 lives. A steady stream of fill-in-the-blank and conjugation questions on the passé composé (rows 21-23) — answer fast, build a combo, and see your score before the clock runs out.</p>
+      <p id="sprint-lock-message" class="minigame-lock-message" hidden></p>
+      <div class="minigame-stats">
+        <span id="sprint-time-display" class="minigame-stat minigame-stat--timer"></span>
+        <span id="sprint-lives-display" class="minigame-stat"></span>
+        <span id="sprint-score-display" class="minigame-stat"></span>
+        <span id="sprint-combo-display" class="minigame-stat minigame-stat--combo"></span>
+      </div>
+      <button id="sprint-start-button" class="secondary">Start (60s)</button>
+      <p id="sprint-summary" class="minigame-summary" hidden></p>
+      <div class="minigame-prompt-card">
+        <p id="sprint-context" class="practice-context"></p>
+        <p id="sprint-prompt" class="practice-prompt"></p>
+      </div>
+      <div id="sprint-choices" class="practice-choices"></div>
+      <p id="sprint-feedback" class="practice-feedback"></p>
+      <button id="sprint-close-button" class="secondary practice-close">Close</button>
     </div>
 
     <div id="racer-panel" class="minigame-panel" hidden>
@@ -686,6 +708,8 @@
       setInterval(() => {
         const blitzTick = pyodide.globals.get("blitz_tick");
         if (blitzTick) blitzTick();
+        const sprintTick = pyodide.globals.get("sprint_tick");
+        if (sprintTick) sprintTick();
         const racerTick = pyodide.globals.get("racer_tick");
         if (racerTick) racerTick();
         const boutiqueTick = pyodide.globals.get("boutique_tick");
@@ -759,6 +783,7 @@
         { toggle: "racer-toggle-button", panel: "racer-panel" },
         { toggle: "boutique-toggle-button", panel: "boutique-panel" },
         { toggle: "cafe-toggle-button", panel: "cafe-panel" },
+        { toggle: "sprint-toggle-button", panel: "sprint-panel" },
         { toggle: "liaison-toggle-button", panel: "liaison-panel" },
         { toggle: "review-toggle-button", panel: "review-panel" },
         { toggle: "cultural-notes-toggle-button", panel: "cultural-notes-panel" },

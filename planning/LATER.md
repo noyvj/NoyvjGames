@@ -106,3 +106,8 @@ Several items across the ideas file got parked specifically pending this — you
 ### Warframe Build Tracker (Section X, now tracked in `planning/TODO.md`'s own X section, not a separate local file)
 
 - **Riven disposition reference column**, round 2 — "maybe much later, right now is a crafting and resource tracker," per your answer.
+
+### Le Champ de Mots (added 2026-09-26, from L1/L9)
+
+- **Story quiz game (from your L1 "song lyrics or open-source short story" pitch)**: a reading game that shows a short open-licence French text (public-domain fairy tales are the obvious source) and quizzes on it. Not built: the song-lyrics half cannot be done (lyrics are copyrighted and the site has no audio licence), and a story game needs someone to choose texts whose vocabulary matches the unlocked weeks, which is a content decision more than a coding one. The listening mode (L9) and Passé Composé Sprint (L1) cover the practical parts. Revisit if you want to pick texts.
+

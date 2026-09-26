@@ -185,6 +185,7 @@ def render():
     render_racer()
     render_boutique()
     render_cafe()
+    render_sprint()
 
 
 def setup():
@@ -198,6 +199,7 @@ def setup():
     _setup_racer()
     _setup_boutique()
     _setup_cafe()
+    _setup_sprint()
 
 
 # ===========================================================================
@@ -1643,3 +1645,288 @@ def _setup_cafe():
     _element("cafe-toggle-button").addEventListener("click", create_proxy(on_toggle_cafe))
     _element("cafe-start-button").addEventListener("click", create_proxy(start_cafe))
     _element("cafe-close-button").addEventListener("click", create_proxy(close_cafe))
+
+
+# ===========================================================================
+# L1 -- "Passé Composé Sprint" (sequence 21-23): the fifth arcade minigame
+# ===========================================================================
+#
+# Every sequence already has an arcade home (Blitz 1-11, Racer 12-15,
+# Boutique 16-18, Cafe Rush 19-23), so this one is not a new range but a new
+# shape for the hardest stretch: the same 60-second, three-lives, combo-
+# multiplier rapid-fire as Blitz, but drawing ONLY on the passe compose
+# grammar topics (regular avoir verbs, time-marker adverbs, irregular
+# participles, etre verbs, reflexives) and only their fill-in-the-blank and
+# conjugation-swap prompts, so it drills the tense rather than vocabulary.
+# Built as a deliberate parallel of the Blitz block above: same lock rule (the
+# whole range must be unlocked), same JS-driven one-second tick, same "only
+# rebuild the buttons when the question changed" render guard. Every answer
+# feeds the practice ledger as "sprint", so it visibly counts toward the
+# headline practice score like every other minigame (the Z-extra principle).
+
+SPRINT_LO, SPRINT_HI = 21, 23
+SPRINT_DURATION_SECONDS = 60
+SPRINT_STARTING_LIVES = 3
+SPRINT_BASE_POINTS = 10
+SPRINT_COMBO_STEP = 3  # every N correct-in-a-row raises the multiplier once
+SPRINT_COMBO_BONUS_PER_STEP = 0.5
+SPRINT_MAX_COMBO_STEPS = 4  # multiplier caps at 1 + 4*0.5 = 3.0x
+
+SPRINT_VARIANTS = {VARIANT_BLANK_WORD, VARIANT_CONJUGATION_SWAP}
+
+SPRINT_END_TIME = "time"
+SPRINT_END_LIVES = "lives"
+
+sprint_open = False  # panel toggled open, independent of a live run
+sprint_active = False  # a 60s run is currently in progress
+sprint_score = 0
+sprint_best_score = 0  # best across runs *this page load* -- session-only
+sprint_lives = SPRINT_STARTING_LIVES
+sprint_combo = 0
+sprint_time_remaining = SPRINT_DURATION_SECONDS
+sprint_question = None
+sprint_end_reason = None  # None | SPRINT_END_TIME | SPRINT_END_LIVES
+sprint_choice_proxies = []
+SPRINT_RNG = random.Random()
+
+
+def _destroy_sprint_choice_proxies():
+    for proxy in sprint_choice_proxies:
+        proxy.destroy()
+    sprint_choice_proxies.clear()
+
+
+def sprint_available():
+    """Deliberately cheap: it does *not* force the full candidate-pool scan
+    below. Measured cost of doing so: calling variants_for() (cold cache)
+    across every one of range 1-11's ~500 plots on *every* passive render()
+    -- including render() calls this test suite's own game_env fixture
+    triggers on every single test's module load -- turned into a real
+    slowdown (roughly 6x the whole suite's runtime) for a button's disabled
+    state that only ever needs a yes/no. Rows 1-11 realistically always
+    offer at least one translate-capable vocab plot, so the row-unlock
+    check alone is a safe, fast proxy for "is there anything to play" --
+    the real candidate list is still computed (once, then cached) the
+    moment a round actually starts, in _sprint_candidate_plots() below."""
+    return _range_fully_unlocked(SPRINT_LO, SPRINT_HI)
+
+
+def sprint_lock_reason():
+    return None if _range_fully_unlocked(SPRINT_LO, SPRINT_HI) else _lock_reason(SPRINT_HI)
+
+
+_sprint_candidates_cache = None
+
+
+def _sprint_candidate_plots():
+    """Computed once per session (this module's own lifetime -- a fresh
+    farm/fresh module in the test harness naturally gets a fresh cache) and
+    memoized, since the *set* of plots capable of a translate variant is an
+    intrinsic catalog property that doesn't change as the farm grows (see
+    sprint_available()'s note on why this must stay lazy, never eager)."""
+    global _sprint_candidates_cache
+    if _sprint_candidates_cache is None:
+        _sprint_candidates_cache = [
+            p
+            for p in _unlocked_range_plots(SPRINT_LO, SPRINT_HI)
+            if p.topic_id in CAFE_PASSE_COMPOSE_TOPIC_IDS and any(v in SPRINT_VARIANTS for v in _variants_for(p))
+        ]
+    return _sprint_candidates_cache
+
+
+def _sprint_multiplier(combo):
+    steps = min(combo // SPRINT_COMBO_STEP, SPRINT_MAX_COMBO_STEPS)
+    return 1.0 + steps * SPRINT_COMBO_BONUS_PER_STEP
+
+
+def _roll_sprint_question():
+    global sprint_question
+    candidates = _sprint_candidate_plots()
+    plot = SPRINT_RNG.choice(candidates)
+    variants = [v for v in _variants_for(plot) if v in SPRINT_VARIANTS]
+    variant = SPRINT_RNG.choice(variants)
+    sprint_question = _generate_question(plot, SPRINT_RNG, variant=variant)
+
+
+def start_sprint(event=None):
+    global sprint_active, sprint_score, sprint_lives, sprint_combo
+    global sprint_time_remaining, sprint_end_reason, sprint_open
+
+    # sprint_available() is a cheap row-unlock-only proxy (see its own
+    # docstring); the real candidate pool is only actually computed here,
+    # so this is also where an edge case with genuinely zero eligible plots
+    # (never observed in practice, but not provably impossible) is caught
+    # rather than crashing on SPRINT_RNG.choice([]).
+    if not sprint_available() or not _sprint_candidate_plots():
+        return None
+    sprint_open = True
+    sprint_active = True
+    sprint_score = 0
+    sprint_lives = SPRINT_STARTING_LIVES
+    sprint_combo = 0
+    sprint_time_remaining = SPRINT_DURATION_SECONDS
+    sprint_end_reason = None
+    _roll_sprint_question()
+    render()
+    return sprint_question
+
+
+def _end_sprint(reason):
+    global sprint_active, sprint_end_reason, sprint_best_score, sprint_question
+    sprint_active = False
+    sprint_end_reason = reason
+    sprint_best_score = max(sprint_best_score, sprint_score)
+    sprint_question = None
+
+
+def submit_sprint_choice(given):
+    global sprint_score, sprint_combo, sprint_lives
+
+    if not sprint_active or sprint_question is None:
+        return None
+    correct = given == sprint_question["answer"]
+    _record("sprint", correct)
+    if correct:
+        sprint_combo += 1
+        sprint_score += round(SPRINT_BASE_POINTS * _sprint_multiplier(sprint_combo))
+    else:
+        sprint_combo = 0
+        sprint_lives -= 1
+    if sprint_lives <= 0:
+        _end_sprint(SPRINT_END_LIVES)
+    else:
+        _roll_sprint_question()
+    render()
+    return correct
+
+
+def sprint_tick(event=None):
+    """JS-driven countdown tick -- see the module docstring's "the timer is
+    JS-driven, not a Python clock" note. Called once per second from
+    index.html's own setInterval while the Sprint panel is open; a no-op
+    whenever a run isn't actually active, so JS doesn't need to know that
+    state itself."""
+    global sprint_time_remaining
+    if not sprint_active:
+        return None
+    sprint_time_remaining -= 1
+    if sprint_time_remaining <= 0:
+        sprint_time_remaining = 0
+        _end_sprint(SPRINT_END_TIME)
+    render()
+    return sprint_time_remaining
+
+
+def close_sprint(event=None):
+    global sprint_open, sprint_active, sprint_question, sprint_end_reason
+    sprint_open = False
+    sprint_active = False
+    sprint_question = None
+    sprint_end_reason = None
+    render()
+
+
+def on_toggle_sprint(event=None):
+    global sprint_open
+    if sprint_open:
+        close_sprint()
+    else:
+        sprint_open = True
+        render()
+
+
+def _make_sprint_choice_handler(choice):
+    def handler(event=None):
+        submit_sprint_choice(choice)
+    return handler
+
+
+SPRINT_SUMMARY_MESSAGE = "Time's up! Score: {score} (best this session: {best})."
+SPRINT_LIVES_MESSAGE = "Out of lives for this round. Score: {score} (best this session: {best})."
+
+
+_sprint_rendered_question = None  # identity tracker -- see the note below
+
+
+def render_sprint():
+    global _sprint_rendered_question
+
+    toggle = _element("sprint-toggle-button")
+    panel = _element("sprint-panel")
+    choices_box = _element("sprint-choices")
+
+    available = sprint_available()
+    toggle.disabled = not sprint_open and not available
+    toggle.innerText = "Close Sprint" if sprint_open else "⏪ Passé Composé Sprint"
+
+    if not sprint_open:
+        panel.hidden = True
+        _destroy_sprint_choice_proxies()
+        choices_box.innerHTML = ""
+        _sprint_rendered_question = None
+        return
+
+    panel.hidden = False
+    lock_message = _element("sprint-lock-message")
+    reason = sprint_lock_reason()
+    lock_message.hidden = reason is None
+    lock_message.innerText = reason or ""
+
+    start_button = _element("sprint-start-button")
+    summary = _element("sprint-summary")
+
+    _element("sprint-time-display").innerText = f"{sprint_time_remaining}s"
+    _element("sprint-lives-display").innerText = "❤" * max(sprint_lives, 0) or "0 lives"
+    _element("sprint-score-display").innerText = f"Score: {sprint_score}"
+    _element("sprint-combo-display").innerText = (
+        f"Combo x{_sprint_multiplier(sprint_combo):.1f}" if sprint_combo >= SPRINT_COMBO_STEP else ""
+    )
+
+    if not sprint_active:
+        _destroy_sprint_choice_proxies()
+        choices_box.innerHTML = ""
+        _sprint_rendered_question = None
+        _element("sprint-context").innerText = ""
+        _element("sprint-prompt").innerText = ""
+        _element("sprint-feedback").innerText = ""
+        start_button.hidden = reason is not None
+        start_button.innerText = "Play again" if sprint_end_reason is not None else "Start (60s)"
+        summary.hidden = sprint_end_reason is None
+        if sprint_end_reason == SPRINT_END_TIME:
+            summary.innerText = SPRINT_SUMMARY_MESSAGE.format(score=sprint_score, best=sprint_best_score)
+        elif sprint_end_reason == SPRINT_END_LIVES:
+            summary.innerText = SPRINT_LIVES_MESSAGE.format(score=sprint_score, best=sprint_best_score)
+        return
+
+    start_button.hidden = True
+    summary.hidden = True
+
+    # The choice buttons (and their click proxies) are only rebuilt when the
+    # question itself actually changed. sprint_tick() re-renders once a
+    # second purely to refresh the timer display -- destroying and
+    # recreating live buttons/proxies on every one of those ticks (found
+    # live in a real browser: an in-flight click could land on a button
+    # that had just been replaced, or a proxy that had just been destroyed)
+    # is exactly the kind of flakiness a fast-paced game can least afford.
+    if sprint_question is not _sprint_rendered_question:
+        _destroy_sprint_choice_proxies()
+        _element("sprint-context").innerText = sprint_question["context"]
+        _element("sprint-prompt").innerText = sprint_question["prompt"]
+        _element("sprint-feedback").innerText = ""
+        choices_box.innerHTML = ""
+        for index, choice in enumerate(sprint_question["choices"]):
+            button = document.createElement("button")
+            button.id = f"sprint-choice-{index}"
+            button.innerText = choice
+            button.className = "choice"
+            proxy = create_proxy(_make_sprint_choice_handler(choice))
+            button.addEventListener("click", proxy)
+            sprint_choice_proxies.append(proxy)
+            choices_box.appendChild(button)
+        _sprint_rendered_question = sprint_question
+
+
+def _setup_sprint():
+    _element("sprint-toggle-button").addEventListener("click", create_proxy(on_toggle_sprint))
+    _element("sprint-start-button").addEventListener("click", create_proxy(start_sprint))
+    _element("sprint-close-button").addEventListener("click", create_proxy(close_sprint))
