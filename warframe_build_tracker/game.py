@@ -31,7 +31,7 @@ WIKI_BASE = "https://wiki.warframe.com/w/"
 # "the day the maintainer last hand-edited MANUFACTURING_RECIPES /
 # RESOURCE_LOCATIONS / DEFAULT_PARTS". Bump this ISO date whenever you do --
 # see README.md "Updating the requested parts".
-DATA_UPDATED = "2026-09-20"
+DATA_UPDATED = "2026-09-26"
 
 # X: a resource whose total requirement across the whole build list is at
 # least this many units gets a small "grindy" flag. One place to tune it.
@@ -104,6 +104,46 @@ MANUFACTURING_RECIPES = {
     "Vermisplicer Chamber": {"Benign Infested Tumor": 25, "Dendrite Blastoma": 10, "Ganglion": 15, "Tempered Bapholite": 20},
     "Haymaker Grip": {"Goblite Tears": 5, "Recaster Neural Relay": 10, "Scrap": 20, "Travocyte Alloy": 30},
     "Splat Loader": {"Auroxium Alloy": 40, "Scrap": 20, "Star Amarast": 10, "Synathid Ecosynth Analyzer": 5},
+}
+
+# Refinery / Foundry recipes for the resources that are refined from a raw
+# material rather than picked up directly. Read from each resource's own
+# Manufacturing Requirements on the Warframe Wiki (2026-09-26). "output" is
+# how many you get per craft, "credits" the per-craft cost, and "primary" is
+# the raw material that maps 1:1 onto the output (the "raw" bucket in this
+# tracker is a count of that precursor). Ingredient quantities are per craft.
+# Like every recipe here this is hand-copied data: check the in-game Foundry if
+# a number ever looks off, and bump DATA_UPDATED when you edit it.
+REFINERY_RECIPES = {
+    "Adramal Alloy": {"output": 20, "credits": 1000, "primary": "Adramalium",
+                      "ingredients": {"Adramalium": 20, "Travoride": 20, "Plastids": 600, "Lucent Teroglobe": 15}},
+    "Auroxium Alloy": {"output": 20, "credits": 1000, "primary": "Auron",
+                       "ingredients": {"Auron": 20, "Oxium": 600, "Morphics": 5}},
+    "Axidrol Alloy": {"output": 20, "credits": 1000, "primary": "Axidite",
+                      "ingredients": {"Axidite": 20, "Ferrite": 500, "Rubedo": 100}},
+    "Coprite Alloy": {"output": 20, "credits": 1000, "primary": "Coprun",
+                      "ingredients": {"Coprun": 20, "Ferrite": 400, "Rubedo": 50}},
+    "Esher Devar": {"output": 10, "credits": 1000, "primary": "Devar", "ingredients": {"Devar": 10}},
+    "Fersteel Alloy": {"output": 20, "credits": 1000, "primary": "Ferros",
+                       "ingredients": {"Ferros": 20, "Plastids": 400, "Rubedo": 200}},
+    "Goblite Tears": {"output": 10, "credits": 2500, "primary": "Goblite", "ingredients": {"Goblite": 10}},
+    "Heart Nyth": {"output": 3, "credits": 10000, "primary": "Nyth", "ingredients": {"Nyth": 3}},
+    "Hespazym Alloy": {"output": 20, "credits": 1000, "primary": "Hesperon",
+                       "ingredients": {"Hesperon": 20, "Plastids": 300, "Morphics": 2}},
+    "Marquise Thyst": {"output": 3, "credits": 10000, "primary": "Thyst", "ingredients": {"Thyst": 3}},
+    "Marquise Veridos": {"output": 10, "credits": 2500, "primary": "Veridos", "ingredients": {"Veridos": 10}},
+    "Pyrotic Alloy": {"output": 20, "credits": 1000, "primary": "Pyrol",
+                      "ingredients": {"Pyrol": 20, "Cryotic": 200, "Rubedo": 50}},
+    "Radiant Zodian": {"output": 3, "credits": 10000, "primary": "Zodian", "ingredients": {"Zodian": 3}},
+    "Star Amarast": {"output": 6, "credits": 5000, "primary": "Amarast", "ingredients": {"Amarast": 6}},
+    "Star Crimzian": {"output": 6, "credits": 5000, "primary": "Crimzian", "ingredients": {"Crimzian": 6}},
+    "Tear Azurite": {"output": 10, "credits": 1000, "primary": "Azurite", "ingredients": {"Azurite": 10}},
+    "Tempered Bapholite": {"output": 20, "credits": 1000, "primary": "Bapholite",
+                           "ingredients": {"Bapholite": 20, "Pyrol": 20, "Nano Spores": 1600, "Lucent Teroglobe": 15}},
+    "Travocyte Alloy": {"output": 20, "credits": 1000, "primary": "Travoride",
+                        "ingredients": {"Travoride": 20, "Salvage": 500, "Plastids": 100}},
+    "Venerdo Alloy": {"output": 20, "credits": 1000, "primary": "Venerol",
+                      "ingredients": {"Venerol": 20, "Rubedo": 300, "Gallium": 2}},
 }
 
 # Where each resource is actually found, hand-researched the same way as
@@ -365,6 +405,51 @@ def resource_usage(resource):
     return usage
 
 
+def refinery_plan(resource, short, raw_have=0):
+    """What refining `short` units of a refined resource takes, or None when it
+    is not a refined resource or nothing is short. The number of Foundry crafts
+    is the shortfall rounded up to whole crafts (`output` per craft). Every
+    other ingredient scales with the crafts; the raw precursor you already hold
+    (`raw_have`) is subtracted from the primary material to gather (never below
+    zero). Credits are reported separately, like everywhere else in the tracker."""
+    recipe = REFINERY_RECIPES.get(resource)
+    if recipe is None or short <= 0:
+        return None
+    crafts = -(-int(short) // recipe["output"])
+    ingredients = {}
+    for name, qty in recipe["ingredients"].items():
+        needed = qty * crafts
+        if name == recipe["primary"]:
+            needed = max(0, needed - max(0, int(raw_have)))
+        if needed:
+            ingredients[name] = needed
+    return {
+        "crafts": crafts,
+        "produces": crafts * recipe["output"],
+        "credits": recipe["credits"] * crafts,
+        "primary": recipe["primary"],
+        "ingredients": ingredients,
+    }
+
+
+def refinery_totals(resources):
+    """Everything to gather to refine every resource that is still short: a
+    dict of material -> quantity (credits under "Credits"), summed over the
+    rows' own refinery plans."""
+    totals = {}
+    credits = 0
+    for row in resources:
+        plan = row.get("refinery")
+        if not plan:
+            continue
+        credits += plan["credits"]
+        for name, qty in plan["ingredients"].items():
+            totals[name] = totals.get(name, 0) + qty
+    if credits:
+        totals["Credits"] = credits
+    return totals
+
+
 def has_enough_for_one(ingredients, inventory):
     """Whether the inventory (built + raw, pooled the same way the resource
     checklist pools them) covers a single craft of `ingredients`. Credits
@@ -560,6 +645,7 @@ def calculate():
             "used_in": resource_usage(resource),
             "location": RESOURCE_LOCATIONS.get(resource, "Unknown -- not yet researched"),
             "grindy": needed >= GRINDY_THRESHOLD,
+            "refinery": refinery_plan(resource, remaining_after_built, raw_have),
         })
 
     return component_status, resource_rows
@@ -1065,6 +1151,18 @@ def _render_resource_table(resources):
             ul.appendChild(li)
         used_in.appendChild(ul)
         name_cell.appendChild(used_in)
+        if resource.get("refinery"):
+            plan = resource["refinery"]
+            refine = _el("details", class_="used-in refinery")
+            refine.appendChild(_el("summary", text=(
+                f"refine: {plan['crafts']} craft(s) → {plan['produces']} {resource['name']}"
+            )))
+            ul = _el("ul")
+            for material, qty in plan["ingredients"].items():
+                ul.appendChild(_el("li", text=f"{material} ×{qty}"))
+            ul.appendChild(_el("li", text=f"Credits ×{plan['credits']}"))
+            refine.appendChild(ul)
+            name_cell.appendChild(refine)
         row.appendChild(name_cell)
 
         needed_cell = _el("td", text=str(resource["needed"]))
@@ -1110,6 +1208,14 @@ def _render_summary(components, resources):
             f"{ready_now} part(s) are ready to build right now."
         )
     document.getElementById("summary").textContent = text
+    totals = refinery_totals(resources)
+    refinery_box = document.getElementById("refinery-summary")
+    refinery_box.hidden = not totals
+    refinery_box.textContent = (
+        "To refine everything you are short on: "
+        + ", ".join(f"{name} ×{qty}" for name, qty in sorted(totals.items()))
+        + "."
+    ) if totals else ""
 
 
 def _sync_controls():

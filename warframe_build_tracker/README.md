@@ -189,3 +189,8 @@ in `game.py`, bump `DATA_UPDATED`, then just reload the page — no restart, no 
 ## Phone layout
 
 Below 640px the parts and resources tables stop scrolling sideways: each row reflows into a small card (name on top, Need/Have/Still need/Wiki/Build in a three-column grid) with the column header repeated as a label above every value. Pure CSS over the rows `game.py` already renders.
+
+## Refinery breakdown
+
+Nineteen tracked resources are refined in the Foundry from a raw material (the alloys, Devar/Goblite/Amarast-style gems, Nyth, Thyst and so on). `REFINERY_RECIPES` in `game.py` holds each one's Foundry recipe (output per craft, credits, ingredients), read from that resource's Manufacturing Requirements on the Warframe Wiki on 2026-09-26. For every refined resource you are still short on, its row gets a "refine" line: the number of whole crafts, and what to gather for them. The raw precursor you already hold in the **Raw have** column is subtracted from the primary material to gather. The "What I still need" section adds one combined line for everything. It is copied data: if a number ever looks off, check the in-game Foundry and edit it, then bump `DATA_UPDATED`.
+

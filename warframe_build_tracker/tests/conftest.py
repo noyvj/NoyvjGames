@@ -15,6 +15,7 @@ ELEMENT_IDS = [
     "component-progress",
     "progress-bar",
     "summary",
+    "refinery-summary",
     "status-message",
     "reset-button",
     "toast",
