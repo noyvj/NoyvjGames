@@ -75,6 +75,8 @@ ELEMENT_IDS = [
     "archive-row-a",
     "archive-row-b",
     "archive-row-c",
+    "shared-research-progress",
+    "shared-research-story",
     "framing-toggle-button",
     "framing-summary",
     "forecast-input",

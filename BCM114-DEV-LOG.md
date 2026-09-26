@@ -600,3 +600,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Thaw
 **Did:** Added a persistent per-browser "climate archive": each of Regions A, B and C keeps a best-ever record (degrees saved, furthest round, peak dampening) across sessions in localStorage, shown in a toggle panel. Validated on every read, never part of the save code.
 **Result:** 226 → 237 tests passing, flake8 clean; verified live across a page reload, zero console errors.
+
+### 2026-09-26 (Thaw: four regions, one story, G17)
+**Game:** Thaw
+**Did:** Added a shared-research narrative thread: Monitoring units across Regions A-C feed one research station whose story advances in chapters at 3, 8 and 15 units, ending with Region D as the control every paper cites. Derived from live state, no new save data, no effect on mechanics.
+**Result:** 237 → 247 tests passing, flake8 clean; verified live, zero console errors.

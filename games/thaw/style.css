@@ -1086,3 +1086,14 @@ html[data-reduced-motion="true"] *::after {
   margin: 0.2rem 0;
   font-size: 0.85rem;
 }
+
+/* G17: the shared-research story thread. */
+.shared-research-story {
+  margin: 0.4rem 0 0;
+  padding-left: 1.2rem;
+  font-size: 0.85rem;
+}
+
+.shared-research-story li {
+  margin-bottom: 0.4rem;
+}

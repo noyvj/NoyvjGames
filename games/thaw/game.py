@@ -984,6 +984,68 @@ def on_toggle_info_page(event=None):
 
 
 # ===========================================================================
+# G17: "four regions, one story". A light narrative thread tying the four
+# regions together through one shared research station: every Monitoring &
+# Response unit funded in Regions A, B or C feeds a common pool of
+# observations, and as the pool grows the story advances a chapter. Region D
+# (the unmanaged what-if) contributes nothing but is written into the final
+# chapter as the control every paper cites. Derived entirely from live
+# capacity -- no state of its own, nothing to save -- and it never feeds
+# back into any region's mechanics, so the four stay independent.
+# ===========================================================================
+SHARED_RESEARCH_CHAPTERS = (  # (units needed, title, text), ascending
+    (
+        0,
+        "The shared station",
+        "Four regions, one research station. Every Monitoring & Response unit any "
+        "region funds adds to a common pool of observations.",
+    ),
+    (
+        3,
+        "Chapter 1 \u2014 The network hums",
+        "With a few monitors reporting in, the station can line the regions up "
+        "side by side: permafrost thaw in one place turns out to rhyme with the others.",
+    ),
+    (
+        8,
+        "Chapter 2 \u2014 The joint paper",
+        "Enough shared data to publish. The paper shows the same feedback loop at work "
+        "in every region, and that early, steady investment blunts it in each one.",
+    ),
+    (
+        15,
+        "Chapter 3 \u2014 A shared warning system",
+        "The network becomes an early-warning system. Region D, the one region nobody "
+        "funded, is the control every paper cites: proof of what the others avoided.",
+    ),
+)
+
+
+def shared_research_units():
+    """Total Monitoring & Response capacity across the three managed regions."""
+    return sum(r.capacity["monitor"] for r in (region, region_b, region_c))
+
+
+def shared_research_chapters_reached():
+    units = shared_research_units()
+    return [c for c in SHARED_RESEARCH_CHAPTERS if units >= c[0]]
+
+
+def render_shared_research():
+    units = shared_research_units()
+    reached = shared_research_chapters_reached()
+    upcoming = [c for c in SHARED_RESEARCH_CHAPTERS if c[0] > units]
+    if upcoming:
+        progress = f"Shared observations: {units} monitoring units (next chapter at {upcoming[0][0]})."
+    else:
+        progress = f"Shared observations: {units} monitoring units \u2014 every chapter unlocked."
+    document.getElementById("shared-research-progress").innerText = progress
+    document.getElementById("shared-research-story").innerHTML = "".join(
+        f"<li><strong>{title}</strong> {text}</li>" for _, title, text in reached
+    )
+
+
+# ===========================================================================
 # G29: the "global vs. regional" framing toggle. The same three regions and
 # the same numbers, reframed: "regional" reads them as the player's own
 # region's choices; "global" reads Regions A-C together as one aggregate
@@ -1778,6 +1840,7 @@ def render():
     _render_policy_stance()
     _render_forecast()
     _render_framing()
+    render_shared_research()
     document.getElementById("rise-rate-display").innerText = (
         f"Current warming rate: {region.current_rise_rate():.2f}°/round"
     )
