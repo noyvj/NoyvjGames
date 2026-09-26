@@ -316,3 +316,8 @@ The clearest cross-cutting infra lesson from this pass: three separate games' au
 **Did:** Populated `REFINERY_RECIPES` for the 19 refined resources from the Warframe Wiki's own Manufacturing Requirements pages (fetched live, not recalled from memory), and added `refinery_plan()` / `refinery_totals()`: whole crafts needed for the shortfall, every ingredient scaled to those crafts, the raw precursor on hand subtracted from the primary material only. Each short refined resource's row shows a collapsible refine line and the summary shows the combined gather list. The main need calculation is unchanged (alloys are still the tracked requirement), so the existing numbers and saves are untouched. `DATA_UPDATED` bumped.
 **Result:** 89 -> 98 tracker tests; live-checked against the real migrated state (for example 44 Pyrotic Alloy crafts, 880 Pyrol, no console errors).
 
+### 2026-09-26 (Warframe tracker: route planner and rare flag)
+**Area:** `warframe_build_tracker/game.py`, `index.html`, `style.css`, `README.md`
+**Did:** Two small tracker features built on the free-text location data already curated. The route planner (`location_places()`, `route_suggestions()`, `route_text()`) ranks places by how many short resources they cover, then units short. The rarity flag (`resource_rarity()`) marks single-source or gated resources as rare and resources dropping in five or more places as common; refined resources take no rarity of their own. No new external data, and the flag says plainly it is a heuristic.
+**Result:** 89 -> 110 tracker tests; live-checked against the real migrated state (Orb Vallis is the best single stop, covering 11 short resources).
+

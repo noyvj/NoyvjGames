@@ -104,6 +104,18 @@ section {
   font-size: 13px;
 }
 
+.rare-flag {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border: 1px solid #c9a227;
+  border-radius: 99px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: #e6c14b;
+}
+html[data-theme="light"] .rare-flag { color: #7a5c00; border-color: #a5820c; }
+
 .progress {
   height: 8px;
   margin: 0 0 16px;

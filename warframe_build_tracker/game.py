@@ -19,6 +19,7 @@ into this file).
 
 import copy
 import json
+import re
 from datetime import date
 
 from js import confirm, document
@@ -574,6 +575,80 @@ def arrange_components(components, sort_mode="category", query="", hide_complete
     return rows  # list.sort is stable, so ties keep the fixed order
 
 
+# Route planner: the places a resource's location text can name. The text is
+# free-form (straight from each Wiki infobox), so places are found by name after
+# removing "(...)" asides, which only ever restate the open world's planet
+# ("Plains of Eidolon (Earth)"). Resources refined from another material name no
+# place and are left out of the planner (they are farmed at their precursor).
+ROUTE_PLACES = [
+    "Plains of Eidolon", "Orb Vallis", "Cambion Drift", "Kuva Fortress", "Mercury", "Venus", "Earth", "Lua",
+    "Mars", "Phobos", "Ceres", "Jupiter", "Europa", "Saturn", "Uranus", "Neptune", "Pluto", "Sedna",
+    "Eris", "Deimos", "Void",
+]
+
+
+def location_places(location_text):
+    """The places a resource's location text names, in ROUTE_PLACES order."""
+    if not location_text or location_text.startswith("Refined from"):
+        return []
+    text = re.sub(r"\([^)]*\)", "", location_text).split(" -- ")[0]
+    return [place for place in ROUTE_PLACES if place in text]
+
+
+def route_suggestions(resources, top=3):
+    """Which single places would cover the most resources you are still short
+    on, best first (most resources, then most units short, then name). Each item
+    is {"place", "resources": [names], "units"}."""
+    by_place = {}
+    for row in resources:
+        if row["built_short"] <= 0:
+            continue
+        for place in location_places(row["location"]):
+            entry = by_place.setdefault(place, {"place": place, "resources": [], "units": 0})
+            entry["resources"].append(row["name"])
+            entry["units"] += row["built_short"]
+    ranked = sorted(by_place.values(), key=lambda e: (-len(e["resources"]), -e["units"], e["place"]))
+    return ranked[:top]
+
+
+def route_text(resources):
+    picks = route_suggestions(resources)
+    if not picks:
+        return ""
+    best = picks[0]
+    names = ", ".join(best["resources"][:6]) + (" and more" if len(best["resources"]) > 6 else "")
+    text = f"Best single stop to farm next: {best['place']}, covering {len(best['resources'])} short resource(s) ({names})."
+    if len(picks) > 1:
+        text += " Then: " + "; ".join(f"{p['place']} ({len(p['resources'])})" for p in picks[1:]) + "."
+    return text
+
+
+# Resource value heuristic. There is no price or drop-rate data here, so rarity
+# is judged from what the location text does say: how many places the resource
+# drops (five or more is common), and phrases that mark a gated or one-off
+# source (a heist reward, a bounty reward, a fish part, a specific enemy). It is
+# a prioritising hint, not a market value: "rare" means hard to come by for this
+# list, not that it sells for much.
+COMMON_MIN_PLACES = 5
+RARE_SOURCE_MARKERS = ("Heist reward", "bounty reward", "fish part", "Enrichment Lab", "Temple of Profit", "Spaceport enemies")
+
+
+def resource_rarity(location_text):
+    """"common", "uncommon" or "rare" for a resource's location text, or
+    "refined" for one refined from another material (its rarity is its
+    precursor's)."""
+    if not location_text or location_text.startswith("Refined from"):
+        return "refined"
+    if any(marker in location_text for marker in RARE_SOURCE_MARKERS):
+        return "rare"
+    places = len(location_places(location_text))
+    if places >= COMMON_MIN_PLACES:
+        return "common"
+    if places <= 1:
+        return "rare"
+    return "uncommon"
+
+
 def shopping_list_text(resources):
     """Plain-text list of exactly what's still needed (built/refined stock
     is what satisfies a requirement, same as the resource checklist)."""
@@ -646,6 +721,7 @@ def calculate():
             "location": RESOURCE_LOCATIONS.get(resource, "Unknown -- not yet researched"),
             "grindy": needed >= GRINDY_THRESHOLD,
             "refinery": refinery_plan(resource, remaining_after_built, raw_have),
+            "rarity": resource_rarity(RESOURCE_LOCATIONS.get(resource, "")),
         })
 
     return component_status, resource_rows
@@ -1127,6 +1203,8 @@ def _render_resource_table(resources):
             f"<strong>{resource['name']}</strong>"
             + (' <span class="grindy-flag" title="Large total requirement across your build list">grindy</span>'
                if resource["grindy"] and not resource["complete"] else "")
+            + (' <span class="rare-flag" title="Hard to come by: a single place or a gated source. Do not spend it on things outside this list.">rare</span>'
+               if resource["rarity"] == "rare" else "")
         )
         copy_btn = _el("button", class_="copy-btn secondary", type="button", text="Copy",
                        aria_label=f"Copy resource name {resource['name']}", title="Copy resource name")
@@ -1208,6 +1286,10 @@ def _render_summary(components, resources):
             f"{ready_now} part(s) are ready to build right now."
         )
     document.getElementById("summary").textContent = text
+    route_box = document.getElementById("route-planner")
+    route = route_text(resources)
+    route_box.hidden = not route
+    route_box.textContent = route
     totals = refinery_totals(resources)
     refinery_box = document.getElementById("refinery-summary")
     refinery_box.hidden = not totals

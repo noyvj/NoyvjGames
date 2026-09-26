@@ -194,3 +194,8 @@ Below 640px the parts and resources tables stop scrolling sideways: each row ref
 
 Nineteen tracked resources are refined in the Foundry from a raw material (the alloys, Devar/Goblite/Amarast-style gems, Nyth, Thyst and so on). `REFINERY_RECIPES` in `game.py` holds each one's Foundry recipe (output per craft, credits, ingredients), read from that resource's Manufacturing Requirements on the Warframe Wiki on 2026-09-26. For every refined resource you are still short on, its row gets a "refine" line: the number of whole crafts, and what to gather for them. The raw precursor you already hold in the **Raw have** column is subtracted from the primary material to gather. The "What I still need" section adds one combined line for everything. It is copied data: if a number ever looks off, check the in-game Foundry and edit it, then bump `DATA_UPDATED`.
 
+## Route planner and rare flags
+
+- **Farming route planner:** under "What I still need", one line names the single place that would cover the most resources you are still short on (with the runners-up). Places are read from each resource's location text (`ROUTE_PLACES`, `location_places()`); resources refined from another material name no place and are left out.
+- **Rare flag:** a small "rare" tag on resources that are hard to come by for this list. There is no price or drop-rate data, so `resource_rarity()` judges from the location text: found in five or more places is common, a single place or a gated source (heist, bounty, fish part, a specific enemy) is rare. It is a prioritising hint, not a market value.
+

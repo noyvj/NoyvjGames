@@ -16,6 +16,7 @@ ELEMENT_IDS = [
     "progress-bar",
     "summary",
     "refinery-summary",
+    "route-planner",
     "status-message",
     "reset-button",
     "toast",
