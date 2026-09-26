@@ -1,0 +1,115 @@
+{
+  "title": "Wren Hollow",
+  "chapters": [
+    {
+      "id": "begin",
+      "title": "Wren Hollow",
+      "text": "The village council gives you the stewardship of the hollow: a patch of standing forest cut into plots, and a ledger with more questions than answers. Everyone agrees the trees are worth something. Nobody agrees on what, or how quickly."
+    },
+    {
+      "id": "first_clear",
+      "title": "The first cut",
+      "text": "The first plot comes down and the money arrives the same afternoon. It pays the bills and quiets the doubters, and it leaves a bare patch of ground you will pass every morning."
+    },
+    {
+      "id": "first_replant",
+      "title": "Something in the ground",
+      "text": "You put saplings into the bare plot, more out of stubbornness than strategy. Nothing looks different yet, but the soil is no longer just waiting."
+    },
+    {
+      "id": "quick_money",
+      "title": "A thousand in the ledger",
+      "text": "The harvest income crosses a thousand, and the village hall gets its new roof. It is hard to argue with a roof, and you notice that nobody asks how the forest is doing."
+    },
+    {
+      "id": "resourceful_extractor",
+      "title": "The habit forms",
+      "text": "By the fifteenth cut, clearing has stopped feeling like a decision and started feeling like a routine. The saw is quick, the numbers are steady, and the horizon of the forest has quietly moved back."
+    },
+    {
+      "id": "soil_scarred",
+      "title": "Ground that remembers",
+      "text": "You have cleared the same plot five times, and each time it gave a little less. The soil keeps a record of everything asked of it, even when the ledger does not."
+    },
+    {
+      "id": "generous_host",
+      "title": "Yes, of course",
+      "text": "Ten times now, a neighbour has asked for something from the hollow and ten times you have said yes. It has made you well liked, and it has made the forest a little smaller for each favour."
+    },
+    {
+      "id": "principled_refusal",
+      "title": "Ten noes",
+      "text": "You have turned down ten requests, each with the same steady explanation. Some neighbours grumble at the gate, but a few start to say that they at least know where you stand."
+    },
+    {
+      "id": "rebuilt_trust",
+      "title": "Talking again",
+      "text": "There was a season when hardly anyone in the village would meet your eye. Slowly, through small kept promises, the greetings return, and the council asks for your opinion again."
+    },
+    {
+      "id": "standing_tall",
+      "title": "One tree that stayed",
+      "text": "One plot has grown all the way to maturity without a saw near it. Standing under it, you can tell the difference between a forest that is being used and a forest that is simply allowed to be."
+    },
+    {
+      "id": "first_recovery",
+      "title": "The bare plot is green",
+      "text": "The plot you replanted is fully back. It took longer than the cutting did, and it is a little different from what stood there before, but it is unmistakably a forest again."
+    },
+    {
+      "id": "wildlife_returns",
+      "title": "Something in the branches",
+      "text": "You catch movement in the canopy, and then the unmistakable sound of a wren. Wherever the trees have had time to settle, other things have started to move in."
+    },
+    {
+      "id": "true_conservationist",
+      "title": "Not a single stump",
+      "text": "The hollow is worth three hundred and you have not cleared a single plot to get there. It is a slower kind of pride than a full ledger, but a steadier one."
+    },
+    {
+      "id": "thriving_forest",
+      "title": "A busier forest",
+      "text": "Across the hollow, the small signs of life add up: droppings on the paths, nests in old forks, tracks in the mud after rain. The forest has stopped being scenery and started being a neighbourhood."
+    },
+    {
+      "id": "standing_fortune",
+      "title": "A forest worth a thousand",
+      "text": "The trees themselves are now worth a thousand, without a single one of them being sold. The value was there all along, and it grew every season you left it alone."
+    },
+    {
+      "id": "community_ally",
+      "title": "The whole village behind you",
+      "text": "Relations with the village reach their peak. People stop you on the road to ask how the hollow is doing, and this time they clearly mean it."
+    },
+    {
+      "id": "biodiversity_haven",
+      "title": "Ten plots alive",
+      "text": "Wildlife now moves through ten plots at once. Tracks cross where you used to draw plot boundaries, and the animals ignore the grid entirely."
+    },
+    {
+      "id": "balanced_ledger",
+      "title": "Both columns full",
+      "text": "There are five hundred in the income column and five hundred in the standing forest. The old argument between spending and keeping turns out to have a middle path, if you are patient with it."
+    },
+    {
+      "id": "old_growth_grove",
+      "title": "Five old giants",
+      "text": "Five plots stand at full maturity together, the tallest thing for miles. Their crowns have started to touch, and the light on the forest floor turns green and slow."
+    },
+    {
+      "id": "every_stage_at_once",
+      "title": "The whole life cycle",
+      "text": "Walking the hollow, you can point out a bare plot, a seedling patch, a preserved stand and a fully recovered one all within sight of each other. It is a forest in every stage of its life, and every stage has a reason."
+    },
+    {
+      "id": "second_growth",
+      "title": "The Highland Grove",
+      "text": "The council opens the Highland Grove above the hollow, a second stretch of forest that is now yours to look after. It is a chance to apply everything you learned the slow way."
+    },
+    {
+      "id": "flourishing_canopy",
+      "title": "The canopy closes",
+      "text": "Every plot is either standing or well on its way back, with nothing bare left to mend. Looking up from the path, you cannot find a gap in the leaves, and for the first time you are not looking for one."
+    }
+  ]
+}

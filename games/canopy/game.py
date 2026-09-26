@@ -2351,6 +2351,22 @@ def show_achievement_toast(message):
     setTimeout(holder[0], ACHIEVEMENT_TOAST_DURATION_MS)
 
 
+def _story_reach_all(earned_ids):
+    """W1: unlocks the story chapter for every earned achievement (and the
+    opening one) via the shared story-chapters.js. Idempotent and silent: no
+    story script, or a chapter id it does not know, simply does nothing."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    story = getattr(window, "NoyvjStory", None)
+    if story is None:
+        return
+    story.reach("begin")
+    for achievement_id in sorted(earned_ids):
+        story.reach(achievement_id)
+
+
 def _sync_earned_and_toast():
     """Diffs the live earned set against the last-seen snapshot; anything
     newly present gets a toast (batched into one message if several land
@@ -2358,6 +2374,7 @@ def _sync_earned_and_toast():
     a big tick)."""
     global _previously_earned_ids
     current = _earned_snapshot()
+    _story_reach_all(current)
     newly_earned_ids = current - _previously_earned_ids
     _previously_earned_ids = current
     if not newly_earned_ids:
@@ -3315,6 +3332,7 @@ def load_state(data):
     # calls _sync_earned_and_toast(), so a loaded save's already-earned
     # achievements don't all fire toasts on load.
     _previously_earned_ids = _earned_snapshot()
+    _story_reach_all(_previously_earned_ids)  # W1: a loaded save's earned chapters come back too
 
     render()
     return True

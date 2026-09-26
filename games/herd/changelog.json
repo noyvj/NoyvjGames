@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-26",
+    "entry": "Story mode: the Marlow Farm story. A short chapter is added to a collapsible Story panel for each achievement you earn, from the first calf to a century farm. It is optional, follows the existing Story on/off pill, and never changes your save (W1)."
+  },
+  {
+    "date": "2026-09-26",
     "entry": "Community leaderboard: an opt-in 'best decoupling gap' board ranked by your score minus what pure growth would have scored (F21)."
   },
   {

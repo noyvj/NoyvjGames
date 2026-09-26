@@ -1,0 +1,105 @@
+{
+  "title": "The Marlow Farm",
+  "chapters": [
+    {
+      "id": "begin",
+      "title": "The Marlow Farm",
+      "text": "Your grandmother's ledger sits open on the kitchen table: a small herd, a fair pasture, and a handwritten note that says the farm has always found a way. The morning is clear, the barn is quiet, and the first decision is yours."
+    },
+    {
+      "id": "first_herd",
+      "title": "One more calf",
+      "text": "The herd grows by a single calf, and the whole barn seems to notice. It is a small change in a small number, but it is the first time the farm has been bigger than you found it."
+    },
+    {
+      "id": "growing_operation",
+      "title": "Ten head",
+      "text": "Ten animals now, and the feed bill has learned to argue back. The pasture looks full and the income is steady, though on some mornings a faint haze hangs low over the fence line."
+    },
+    {
+      "id": "first_decoupling",
+      "title": "A different kind of investment",
+      "text": "You spend money on something that does not make the herd any bigger. The vet approves, your neighbour raises an eyebrow, and the ledger records it as an expense that might turn out to be an idea."
+    },
+    {
+      "id": "plant_pioneer",
+      "title": "The first field of something else",
+      "text": "A corner of the farm goes over to plant-based production, and the first crop is a small one. It sells for a little less per unit, but it does not put anything into the air the way a herd does."
+    },
+    {
+      "id": "major_operation",
+      "title": "Twenty-five head",
+      "text": "At twenty-five animals the farm runs like a proper operation, with early starts, a full barn, and real weight in the market. The size is impressive, and the haze over the ridge is hard to miss."
+    },
+    {
+      "id": "all_three_measures",
+      "title": "The full toolkit",
+      "text": "Feed additives, a herd cap and a capture system are all working on the farm now. Each fixes a piece of the problem, and together they start to look like a plan."
+    },
+    {
+      "id": "quarter_decoupled",
+      "title": "A quarter cleaner",
+      "text": "The methane per animal has dropped by a quarter against where you began. Nothing dramatic has changed, but the sensor on the barn roof reads lower, and you check it twice."
+    },
+    {
+      "id": "half_plant_based",
+      "title": "Half the farm, a different farm",
+      "text": "Nearly a third of what the farm produces now comes from plants rather than livestock. Walking the fields, you can see the change in the land before you can see it in the numbers."
+    },
+    {
+      "id": "half_decoupled",
+      "title": "Halfway there",
+      "text": "You have cut the emissions per animal in half, and the herd is no smaller for it. The lesson that felt like an argument a few years ago now feels like ordinary good management."
+    },
+    {
+      "id": "clean_operator",
+      "title": "No trouble from the regulators",
+      "text": "Fifteen rounds in, and the pressure from the market and the regulators never rose above a murmur. It is a quiet sort of reward, but the kind that lets you plan instead of react."
+    },
+    {
+      "id": "outperforming_baseline",
+      "title": "Ahead of the pure-growth farm",
+      "text": "Set beside a farm of the same size that only ever grew, yours comes out ahead. Same number of animals, better results, and a very different feeling walking the pasture."
+    },
+    {
+      "id": "sustainably_certified",
+      "title": "The certificate on the wall",
+      "text": "The certification arrives in the post, and it means a permanent premium on what you sell. You hang it in the barn next to your grandmother's photograph, and it seems to belong there."
+    },
+    {
+      "id": "max_plant_pivot",
+      "title": "Pivot complete",
+      "text": "The plant-based side of the farm is now as large as it is going to get, and it works. Livestock and crops share the land, and neither feels like an apology for the other."
+    },
+    {
+      "id": "decoupling_dividend",
+      "title": "The dividend",
+      "text": "The gap between your farm and a pure-growth one is now fifty points wide. Restraint and skill together have paid out more than sheer size ever did."
+    },
+    {
+      "id": "real_world_match",
+      "title": "Matching what real farms have done",
+      "text": "Your methane intensity is down by roughly what farms in the real world have documented achieving. It is a reminder that this was never just a game about a made-up farm."
+    },
+    {
+      "id": "fully_decoupled",
+      "title": "Almost no haze",
+      "text": "Your emissions per animal have fallen by nine tenths from where they began. The morning air over the pasture looks the way your grandmother said it used to."
+    },
+    {
+      "id": "long_haul",
+      "title": "Twenty-five rounds",
+      "text": "You have farmed through twenty-five rounds now, through good years and thin ones. The farm looks less like a project and more like a life."
+    },
+    {
+      "id": "score_400",
+      "title": "A thriving farm",
+      "text": "The score reaches four hundred, and it comes from growth and low emissions together rather than from either alone. This is the argument your grandmother's ledger was making all along."
+    },
+    {
+      "id": "century_farm",
+      "title": "A century farm",
+      "text": "Fifty rounds in, the Marlow farm has outlasted every plan made for it. Whoever farms it next will inherit a working farm and a way of running it, and that is the best thing a family farm can hand down."
+    }
+  ]
+}

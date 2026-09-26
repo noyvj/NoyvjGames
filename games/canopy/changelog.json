@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-09-26",
+      "entry": "Story mode: the Wren Hollow story. A short chapter is added to a collapsible Story panel for each achievement you earn, from the first cut to a closed canopy. It is optional, follows the existing Story on/off pill, and never changes your save (W1)."
+    },
+    {
+      "date": "2026-09-26",
       "entry": "Wetland Forest: a third region unlocked at 5000 standing forest value. It grows 25% faster than the main forest, but a flood sweeps it every 50 ticks — young plots lose 30% of their value, mature ones 10%, replanting plots get silted back — with a 10-tick warning so you can harvest ahead of the water (B1)."
     },
     {

@@ -1348,6 +1348,7 @@ _achievements_seen_ids = set()
 def _seed_achievement_toast_baseline():
     global _achievements_seen_ids
     _achievements_seen_ids = set(achievement_ids_earned())
+    _story_reach_all(_achievements_seen_ids)  # W1: a loaded save's earned chapters come back too
 
 
 def _display_achievement_toast(message):
@@ -1366,6 +1367,22 @@ def _display_achievement_toast(message):
     setTimeout(proxy, 4000)
 
 
+def _story_reach_all(earned_ids):
+    """W1: unlocks the story chapter for every earned achievement (and the
+    opening one) via the shared story-chapters.js. Idempotent and silent: no
+    story script, or a chapter id it does not know, simply does nothing."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    story = getattr(window, "NoyvjStory", None)
+    if story is None:
+        return
+    story.reach("begin")
+    for achievement_id in sorted(earned_ids):
+        story.reach(achievement_id)
+
+
 def _check_new_achievements_for_toast():
     """Called after every player action that could change earned status
     (grow/invest/advance round) — never from render() itself, since
@@ -1374,6 +1391,7 @@ def _check_new_achievements_for_toast():
     for all of them at once (see _seed_achievement_toast_baseline)."""
     global _achievements_seen_ids
     earned_now = set(achievement_ids_earned())
+    _story_reach_all(earned_now)
     newly = earned_now - _achievements_seen_ids
     if newly:
         by_id = {entry["id"]: entry for entry in ACHIEVEMENTS}

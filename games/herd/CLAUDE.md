@@ -666,3 +666,8 @@ An Aftermath-style meta-progression, built independently and tied to F23. Once a
 
 ## Decoupling leaderboard (F21, 2026-09-26)
 After each round `_report_decoupling_gap()` sends `score() - counterfactual_score()` (only when positive) and the round to `window.NoyvjLeaderboard` (shared/leaderboard.js, mounted above the feedback prompt); it submits only for a signed-in, opted-in player and remembers the personal best. Backend board `herd/decoupling_gap`. Tests: `tests/test_leaderboard_report.py` (3).
+
+
+## Story mode (W1, 2026-09-26)
+
+A light narrative thread, "The Marlow Farm", built on the shared `shared/story-chapters.js` (Grid was the reference integration; that file is not edited per game). `story.json` holds an opening chapter `begin` plus exactly one chapter per achievement id in `achievements.json`, in story order from early to late game, about the family farm across generations. `_story_reach_all(earned_ids)` in `game.py` calls `window.NoyvjStory.reach()` for `begin` and every earned id, from the achievement check (`_check_new_achievements_for_toast`) and from the load/baseline path, so a loaded save brings its chapters back. It is idempotent and silent when the script is missing. Progress lives in `localStorage["story-chapters:herd"]`, never in the save. `#story-chapters` is appended to the existing `story-toggle.js` selectors, so the Story on/off pill hides it. Tests: `tests/test_story_chapters.py` (7).

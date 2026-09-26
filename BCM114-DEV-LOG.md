@@ -872,3 +872,9 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** aftermath
 **Did:** Added an In the real world note to Aftermath: one sourced, dated real recovery per shock type (flood, heat wave, storm, supply chain, power failure, civil unrest), linked to its source, changing no numbers.
 **Result:** 322 Aftermath tests pass (5 new).
+
+### 2026-09-26 (Story mode for Canopy and Herd, W1)
+**Game:** canopy, herd
+**Did:** Built by a delegated agent inside those two folders and committed by the log owner, on the shared `story-chapters.js` pattern. Canopy gets 'Wren Hollow' (22 chapters: an opening plus one per achievement, written so each stands alone because some achievements exclude each other) and Herd gets 'The Marlow Farm' (20 chapters following the family-farm and decoupling arc; the real-world-match chapter quotes no number). Hooks run from the existing achievement checks and the load path, are silent without the script, and add nothing to either save. `#story-chapters` joined each game's story-toggle selectors. Herd's succession does not rewind the story because progress lives in localStorage.
+**Result:** Canopy 381 -> 388 tests, Herd 223 -> 230, flake8 clean, checked live (panel, saved-game restore, Story pill, no console errors).
+
