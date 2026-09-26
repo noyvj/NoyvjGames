@@ -3480,6 +3480,13 @@ def render_practice():
     # retires its predecessors before anything new can replace it.
     _destroy_practice_choice_proxies()
 
+    # L24: a static watering-can cursor over the farm while a plot is open.
+    farm_el = _element("farm")
+    if practice_open and current_question is not None:
+        farm_el.classList.add("farm--watering")
+    else:
+        farm_el.classList.remove("farm--watering")
+
     if not practice_open or current_question is None:
         panel.hidden = True
         choices_box.innerHTML = ""

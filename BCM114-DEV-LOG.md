@@ -550,3 +550,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Le Champ de Mots
 **Did:** Added a Weak-spot drill (a session built only from flagged material: weeds first, then the lowest-growth topics' shaky plots, capped at 20, gentle empty state) and made the first correct Review answer for a plot each in-game day count as a real watering, reversing Milestone 11's "Review never grows a plant" rule at the user's request (repeat answers the same day stay a nudge, so it can't outpace one watering a day; wrong answers still touch nothing). Two tests pinning the old rule were rewritten.
 **Result:** 651 → 660 tests passing (one pre-existing nondeterministic skip), flake8 clean; verified live.
+
+### 2026-09-26 (Le Champ de Mots: watering-can cursor, L24)
+**Game:** Le Champ de Mots
+**Did:** While a plot is open for watering, hovering the farm's plots shows a small watering-can cursor (static SVG data-URI cursor with a pointer fallback). Built static rather than animated because the game's tested calm-farm rule forbids animation and timers.
+**Result:** 660 → 662 tests passing; verified live via computed styles.

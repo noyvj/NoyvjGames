@@ -1500,3 +1500,9 @@ button:disabled {
 /* L25 exam cram */
 .review-cram-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.6rem; margin: 0.4rem 0; }
 .review-cram-row select { max-width: 16rem; }
+
+/* L24: while a plot is open for watering, hovering the farm shows a watering
+   can. A static cursor, not an animation -- the farm stays calm (Milestone 7). */
+.farm--watering .plot:not(:disabled) {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M6 14h14v10H6z' fill='%2389c4e8' stroke='%23334' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M20 17l7-5M6 16c-4 0-4 6 0 6' fill='none' stroke='%23334' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='28' cy='17' r='1.6' fill='%233b8fd6'/%3E%3Ccircle cx='29' cy='22' r='1.6' fill='%233b8fd6'/%3E%3Ccircle cx='26' cy='26' r='1.6' fill='%233b8fd6'/%3E%3C/svg%3E") 28 12, pointer;
+}
