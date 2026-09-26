@@ -81,13 +81,8 @@ Several items across the ideas file got parked specifically pending this — you
 
 - **B5, round 2**: comparing the forest's standing value against the site aggregate average — you want "a full multiplayer pass soon" first.
 
-### Grid
-
-- **C21, round 2**: the "grid twin" split-view comparison mode (run two strategies side by side) — you left this as a judgment call on whether it's too much for a player; needs a real scoping conversation.
-
 ### Tide
 
-- **D3, round 2**: a multi-settlement mode (manage two coastal settlements at once) — same judgment-call-on-complexity reasoning as Grid's C21 above.
 - **D25, round 2**: the "shared coastline" cooperative-framing community stat — explicitly saved for the multiplayer update.
 
 ### Aftermath

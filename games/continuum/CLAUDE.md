@@ -605,6 +605,8 @@ Test count 523 -> 562, each group verified live under Pyodide (zero console erro
 4. Real-world grounding: comfortable with a regional-inequality/secondary-city angle (UN-Habitat-style sources), an off-world/space-habitat-network angle, or would you rather this era stay closer to Earth and skip the space-diaspora framing entirely?
 5. Once this is answered, should building it follow the same "read the milestone table, then repeat the Phase-3 per-era pattern" process every prior era used, or do you want a dedicated milestone breakout first (matching how Phase 1-2's own groundwork was scoped before Phase 3's repeat-per-era loop began)?
 
+**Answers received 2026-09-26 (user):** (1) theme — a *regional* expansion that grows into off-world, since that leaves the most room for further eras, rather than a purely space-diaspora framing (so "Diaspora" is a working name only); (2) the "two districts vs. a second full site" question was mis-posed — ignore it and treat the second-site shape above as the working design; (3) what Relay Stations move between sites is left to the implementer; (4) real-world grounding is left to the implementer (whichever verifiable sources fit best); (5) build via the same repeat-the-Phase-3-per-era pattern. `planning/TODO.md`'s R2-K26 is the live build item.
+
 ## Deferred items (not now, flagged for later)
 
 - **Site-wide leaderboard** — deferred as its own project (achievements themselves shipped in Milestone 15 and now have a hub-wide dashboard).
