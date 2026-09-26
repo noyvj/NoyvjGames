@@ -1117,7 +1117,7 @@ class Ship:
             # there's nothing to sell or deliver on arrival -- just dock.
             global cross_system_units, disruptions_suffered, insurance_payouts
             efficiency = 1.0 + (AUTO_EFFICIENCY_BONUS if self.automated and "auto_efficiency" in unlocked_research else 0.0)
-            profit = int(round(qty * current_sell_price(good) * diplomacy_multiplier() * efficiency))
+            profit = int(round(qty * current_sell_price(good) * diplomacy_multiplier() * legacy_sale_multiplier() * efficiency))
             if route_hazards_enabled and hazard_rng.random() < ROUTE_HAZARD_CHANCE:
                 # J11 -- a route disruption: the cargo is lost, nothing is
                 # delivered or sold. Insurance pays a share of what the
@@ -1392,6 +1392,60 @@ ENDGAME_BACKGROUND_REVENUE_PER_WORLD = 0.4
 
 endgame_reached = False
 ticks_since_endgame = 0
+
+# J21 -- "trade empire legacy": once the endgame is reached, the player may
+# found a NEW corporation. The world resets to a fresh start, but each
+# founding permanently raises a small legacy bonus (built independently of
+# any shared meta-progression module, per Z3's resolution). It rides the
+# save file (so it travels with the account's save), never localStorage.
+LEGACY_MAX_LEVEL = 5
+LEGACY_STARTING_CREDITS = 150  # extra starting credits per legacy level
+LEGACY_SALE_BONUS = 0.02  # +2% on every sale per legacy level (max +10%)
+legacy_level = 0
+legacy_achievements = []  # ids earned by earlier corporations, carried over
+_fresh_state = None  # get_state() of a brand-new game, captured before setup()
+
+
+def legacy_sale_multiplier():
+    return 1.0 + LEGACY_SALE_BONUS * legacy_level
+
+
+def legacy_starting_credits(level=None):
+    return LEGACY_STARTING_CREDITS * (legacy_level if level is None else level)
+
+
+def can_found_new_corporation():
+    return endgame_reached and legacy_level < LEGACY_MAX_LEVEL and _fresh_state is not None
+
+
+def legacy_summary_text():
+    if legacy_level <= 0:
+        return "Legacy: none yet — reach the endgame to found a new corporation with a permanent bonus."
+    return (
+        f"Legacy level {legacy_level}/{LEGACY_MAX_LEVEL}: +{legacy_starting_credits():,} starting credits "
+        f"and +{round((legacy_sale_multiplier() - 1.0) * 100)}% on every sale."
+    )
+
+
+def found_new_corporation():
+    """Reset to a fresh corporation, keep and raise the legacy. Returns False
+    when the endgame hasn't been reached or the legacy is already maxed."""
+    global legacy_level, legacy_achievements, total_profit, max_profit_ever, _previously_earned_ids
+    if not can_found_new_corporation():
+        return False
+    order = {entry["id"]: i for i, entry in enumerate(ACHIEVEMENTS)}
+    carried = sorted(set(legacy_achievements) | set(achievement_ids_earned()), key=lambda a: order.get(a, 10**6))
+    new_level = legacy_level + 1
+    load_state(json.loads(json.dumps(_fresh_state)))
+    legacy_achievements = carried
+    # Baseline BEFORE raising the level: the carried achievements must not
+    # all toast again, but the new "new_corporation" one should.
+    _previously_earned_ids = _earned_snapshot()
+    legacy_level = new_level
+    total_profit += legacy_starting_credits()
+    max_profit_ever = max(max_profit_ever, total_profit)
+    render()
+    return True
 
 
 def endgame_criteria_met():
@@ -1899,6 +1953,7 @@ def render_endgame():
     panel = document.getElementById("endgame-panel")
     panel.hidden = not endgame_reached
     if not endgame_reached:
+        document.getElementById("found-new-corporation-button").hidden = True
         return
     worlds = background_world_count()
     document.getElementById("endgame-message-display").innerText = (
@@ -1911,6 +1966,8 @@ def render_endgame():
         f"quietly among themselves — {background_revenue_this_tick()} credits/tick "
         f"in background revenue."
     )
+    document.getElementById("legacy-display").innerText = legacy_summary_text()
+    document.getElementById("found-new-corporation-button").hidden = not can_found_new_corporation()
     render_endgame_galaxy(worlds)
 
 
@@ -2184,6 +2241,7 @@ ACHIEVEMENT_CHECKS = {
     "diversified_trader": lambda: HOME_SYSTEM_GOODS <= goods_sold_ever,
     "market_recovery": _market_recovered_from_a_crash,
     "endgame_reached": lambda: endgame_reached,
+    "new_corporation": lambda: legacy_level >= 1,
     "background_galaxy_maxed": lambda: background_world_count() >= ENDGAME_BACKGROUND_WORLD_CAP,
 }
 
@@ -2202,7 +2260,11 @@ def achievement_ids_earned():
     value that rides the existing save/sync mechanism via get_state()'s
     "achievements_earned" field. Always recomputed, never itself a save
     input."""
-    return [entry["id"] for entry in ACHIEVEMENTS if ACHIEVEMENT_CHECKS[entry["id"]]()]
+    return [
+        entry["id"]
+        for entry in ACHIEVEMENTS
+        if entry["id"] in legacy_achievements or ACHIEVEMENT_CHECKS[entry["id"]]()
+    ]
 
 
 def achievements_summary():
@@ -2511,6 +2573,7 @@ def update_summary_display():
         f"Colonies developed: {developed}/{len(colony_states)}",
         f"Achievements: {len(achievement_ids_earned())}/{len(ACHIEVEMENTS)}",
         "Status: full-scale endgame reached" if endgame_reached else "Status: still building",
+        legacy_summary_text(),
     ]
 
     panel.innerHTML = ""
@@ -2660,7 +2723,7 @@ def _make_depart_handler(ship_id, destination):
     return handler
 
 
-def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm):
+def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm, allow_skip=True):
     """Routes a guarded action through the shared shared/confirm-dialog.js
     widget when it's available, or runs the action immediately when it
     isn't -- same lazy `from js import window`/getattr-default shape as
@@ -2680,11 +2743,30 @@ def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm):
     if confirm_dialog is None:
         on_confirm()
         return
-    confirm_dialog.ask(
-        id=action_id,
-        message=message,
-        confirmLabel=confirm_label,
-        onConfirm=create_proxy(on_confirm),
+    options = {
+        "id": action_id,
+        "message": message,
+        "confirmLabel": confirm_label,
+        "onConfirm": create_proxy(on_confirm),
+    }
+    if not allow_skip:
+        options["allowSkip"] = False  # only sent when needed (see shared/confirm-dialog.js)
+    confirm_dialog.ask(**options)
+
+
+def on_found_new_corporation(event=None):
+    if not can_found_new_corporation():
+        return
+    next_level = legacy_level + 1
+    _confirm_dialog_ask(
+        "found-new-corporation",
+        "Found a new corporation? Your fleet, colonies, research and credits reset to a fresh start. "
+        f"You keep your achievements and gain permanent Legacy level {next_level}: "
+        f"+{legacy_starting_credits(next_level):,} starting credits and "
+        f"+{round(LEGACY_SALE_BONUS * next_level * 100)}% on every sale.",
+        "Found a new corporation",
+        found_new_corporation,
+        allow_skip=False,
     )
 
 
@@ -2952,6 +3034,9 @@ def get_state():
         "cross_system_units": cross_system_units,
         "trade_posts": list(trade_posts),
         "stockpile": {good: units for good, units in stockpile.items() if units},
+        # J21 -- only written once a new corporation has been founded, so a
+        # first-run save is unchanged.
+        **({"legacy": {"level": legacy_level, "achievements": list(legacy_achievements)}} if legacy_level else {}),
         "route_hazards": {
             "hazards": route_hazards_enabled,
             "insurance": route_insurance_enabled,
@@ -2978,6 +3063,7 @@ def load_state(data):
     global _previously_earned_ids
     global seasonal_demand_enabled, season_ticks, cross_system_units
     global route_hazards_enabled, route_insurance_enabled, disruptions_suffered, insurance_payouts, premiums_paid
+    global legacy_level, legacy_achievements
 
     stockpile_raw = data.get("stockpile")
     for good in stockpile:
@@ -3016,6 +3102,28 @@ def load_state(data):
         seasonal_demand_enabled, season_ticks = False, 0
 
     unlocked_research = set(data.get("unlocked_research", unlocked_research))
+
+    # A save that hasn't unlocked an expansion must not keep that expansion's
+    # colonies from whatever was running before (loading an earlier save, or
+    # J21's fresh start after a late-game corporation).
+    if not galaxy_expansion_unlocked():
+        for colony_id in EXPANSION_COLONIES:
+            colony_states.pop(colony_id, None)
+    if not outer_reaches_unlocked():
+        for colony_id in RIFT_COLONIES:
+            colony_states.pop(colony_id, None)
+
+    legacy_raw = data.get("legacy")
+    legacy_level = 0
+    legacy_achievements = []
+    if isinstance(legacy_raw, dict):
+        level = legacy_raw.get("level")
+        if isinstance(level, int) and not isinstance(level, bool):
+            legacy_level = max(0, min(LEGACY_MAX_LEVEL, level))
+        known = {entry["id"] for entry in ACHIEVEMENTS}
+        raw_ids = legacy_raw.get("achievements")
+        if legacy_level and isinstance(raw_ids, list):
+            legacy_achievements = [a for a in dict.fromkeys(raw_ids) if isinstance(a, str) and a in known]
 
     if galaxy_expansion_unlocked():
         for colony_id in EXPANSION_COLONIES:
@@ -3176,6 +3284,9 @@ def setup():
     document.getElementById("summary-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_summary)
     )
+    document.getElementById("found-new-corporation-button").addEventListener(
+        "click", create_proxy(on_found_new_corporation)
+    )
     # Explicit, not just relying on index.html's `hidden` attribute -- the
     # toast element is only otherwise touched by show_achievement_toast()/
     # its own hide callback (unlike every *panel*, which gets its `hidden`
@@ -3197,4 +3308,5 @@ def setup():
     _previously_earned_ids = _earned_snapshot()
 
 
+_fresh_state = json.loads(json.dumps(get_state()))
 setup()

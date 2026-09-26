@@ -91,6 +91,11 @@
       "description": "Reach the fully-automated, multi-system endgame state."
     },
     {
+      "id": "new_corporation",
+      "label": "A New Beginning",
+      "description": "Reach the endgame, then found a new corporation with a permanent legacy bonus."
+    },
+    {
       "id": "background_galaxy_maxed",
       "label": "A Thousand Quiet Ledgers",
       "description": "Grow the endgame's background galaxy to its full size."

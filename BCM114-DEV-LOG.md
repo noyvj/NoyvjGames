@@ -560,3 +560,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Le Champ de Mots
 **Did:** Added an optional "Grammar deep-dive" on grammar questions: the full rule, every example, the look-alikes it is easy to mix up with and where the plot stands, derived entirely from catalog data and existing helpers (no hand-written per-topic text), collapsed by default and never touching SRS state.
 **Result:** 662 → 668 tests passing, flake8 clean; verified live, including computed colours in all four visual styles.
+
+### 2026-09-26 (Trade Empire: legacy meta-progression, J21)
+**Game:** Trade Empire
+**Did:** Added the "trade empire legacy": after the endgame you can found a new corporation (confirm-gated, no "don't ask again"). The world resets to a fresh start, a permanent legacy level rises (max 5: +150 starting credits and +2% on every sale per level), earned achievements carry over, and a new "A New Beginning" achievement is earned. The legacy rides the save (validated on load). Supporting fixes: `load_state()` now prunes expansion colonies a loaded save hasn't unlocked (it only ever added them), and the shared confirm dialog gained an optional `allowSkip`.
+**Result:** 353 → 367 tests passing, flake8 clean; verified live through the real confirm dialog, zero console errors.

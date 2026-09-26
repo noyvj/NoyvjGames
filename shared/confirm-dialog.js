@@ -19,6 +19,8 @@
  *       message: "Retire the last Coal Plant? You can't undo this.",
  *       confirmLabel: "Retire it",   // optional, defaults to "Confirm"
  *       cancelLabel: "Cancel",       // optional
+ *       allowSkip: true,             // optional; false hides "don't ask
+ *                                    // again" for a destructive action
  *       onConfirm: () => pythonHandler(),
  *     });
  *   });
@@ -176,7 +178,7 @@
       if (event.target === overlay) close(); // click on the dim backdrop
     });
     confirmButton.addEventListener("click", () => {
-      if (pendingId && skipCheckbox.checked) {
+      if (pendingId && skipCheckbox.checked && !skipCheckbox.closest('#confirm-dialog-skip-row').hidden) {
         localStorage.setItem(STORAGE_PREFIX + pendingId, "true");
       }
       const onConfirm = pendingOnConfirm;
@@ -186,12 +188,16 @@
   }
 
   window.ConfirmDialog = {
-    ask({ id, message, confirmLabel, cancelLabel, onConfirm }) {
+    // `allowSkip: false` (default true) hides the "don't ask again" checkbox
+    // and ignores any stored skip flag for this id -- for a rare, destructive
+    // action (e.g. Trade Empire's "found a new corporation" reset) that must
+    // always be confirmed.
+    ask({ id, message, confirmLabel, cancelLabel, onConfirm, allowSkip = true }) {
       if (!id) {
         console.error("ConfirmDialog.ask() requires a unique `id`");
         return;
       }
-      if (localStorage.getItem(STORAGE_PREFIX + id) === "true") {
+      if (allowSkip && localStorage.getItem(STORAGE_PREFIX + id) === "true") {
         if (onConfirm) onConfirm();
         return;
       }
@@ -202,6 +208,8 @@
       confirmButton.textContent = confirmLabel || "Confirm";
       cancelButton.textContent = cancelLabel || "Cancel";
       skipCheckbox.checked = false;
+      const skipRow = overlay.querySelector("#confirm-dialog-skip-row");
+      if (skipRow) skipRow.hidden = !allowSkip;
       overlay.hidden = false;
     },
 

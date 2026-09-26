@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 670/767 items checked off (87.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 671/767 items checked off (87.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -721,7 +721,7 @@ Every idea in this section was accepted, no exceptions.
 - [x] J18: A tooltip on the automate button reminding the player automation is a one-time, non-reversible choice per ship.
 - [x] J19: A "colony rebellion/loyalty" mechanic — chronically under-served colonies occasionally demand a one-time concession.
 - [x] J20: Let the market-crashed styling include a small recovery-ETA estimate in its tooltip.
-- [ ] J21: A "trade empire legacy" meta-progression — a fresh game starts with a small permanent bonus once the endgame state is reached (built independently per Z3's resolution).
+- [x] J21: A "trade empire legacy" meta-progression — a fresh game starts with a small permanent bonus once the endgame state is reached (built independently per Z3's resolution). **Done 2026-09-26** — see `games/trade-empire/CLAUDE.md`'s J21 section.
 - [x] J22: A small particle/spark effect on a successful high-value sale.
 - [x] J23: A "diplomatic relations" layer between the home system and Kepler Cluster — sustained trade volume unlocks a small permanent efficiency bonus.
 - [x] J24: Let the colony detail sparkline show a small "needs met %" summary number alongside the graph.

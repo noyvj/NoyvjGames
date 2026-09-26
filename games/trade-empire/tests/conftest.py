@@ -48,6 +48,8 @@ ELEMENT_IDS = [
     "endgame-message-display",
     "endgame-worlds-display",
     "endgame-galaxy-canvas",
+    "legacy-display",
+    "found-new-corporation-button",
     "achievements-toggle-button",
     "achievements-panel",
     "achievement-toast",
