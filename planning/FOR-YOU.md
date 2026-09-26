@@ -68,6 +68,14 @@ I'll drop all of that into the ad bar and it goes live everywhere on the site at
 
 `planning/MULTIPLAYER-SCOPING.md` covers what the site already has, what each parked multiplayer item needs, four levels of multiplayer and the smallest sensible phases. The decisions that are yours (details in section 6 of that file): (1) any level above aggregate and opt-in boards this round? (2) if async ghosts: may a run summary appear under your public username, or must ghosts be anonymous? (3) if two-player turn-based games: friend-only invite links (recommended) or open matchmaking? (4) accept client-trusted scores, or verify by replaying deterministic games? (5) who moderates besides you? Until you answer, I only build the aggregate and opt-in features (boards, pools, community stats).
 
+### 6. Questions from the new game plans (all have a recommendation; "go with your recommendation" is a fine answer)
+
+1. **Undersleep, Q6:** your answer read as the framing instruction ("a game you add personal touches to"), but the question was whether a one-time "this is not medical advice" acknowledgement screen at first launch is too heavy. I recommend no gate, just a permanent footer line. OK?
+2. **Undersleep:** should the optional check-in start hidden ("Just play") at first run? I recommend hidden. Should journal sync ever go to the cloud? I recommend on-device only with manual export and import.
+3. **Lighthouse:** should nobody ever die on screen (my plan), or do you want a ship truly lost once a year for weight?
+4. **Pocket Bazaar:** is any clock banned outright (my plan counts customer patience in beats, not seconds), or could an optional real-time mode exist later?
+5. **Signal:** once timings are known, which bigger boards (Wide 13x13, Big Sky 15x15) should also become daily modes?
+
 ---
 
 ## Answered — building now (no further input needed, listed so you can see what your answers turned into)

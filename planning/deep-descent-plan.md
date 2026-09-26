@@ -4,6 +4,23 @@
 
 **Shared baseline: see `overclock-plan.md` section 4 (full checklist) and section 5 (hub integration).** Apply it with slug `deep-descent`. This file lists only what is genre-specific.
 
+## Decisions (2026-09-27, from Round 3 answers)
+Source: `IMPROVEMENT-IDEAS-ROUND-3.md` Part 4, section U: "1-5. refer to S, i am not personally touching a rouguelike. you got this, i believe." There were no separate open questions in this plan to record answers against; the five questions in section 2 below are delegated to me, and the Overclock decisions (space theme, unlocks-only meta, ~15-minute runs, story text off by default behind the shared toggle) are the reference answers.
+
+**Build order.** Deep Descent is built **after Overclock and Last Line**. It reuses their baseline without change: `overclock-plan.md` sections 4 and 5 (shared checklist and hub integration), the seeded `rng.py` and run/meta state shape from Overclock, and the fake-DOM test harness, perf-test pattern and opt-in leaderboard wiring proven in Last Line (`app/leaderboards.py`, `shared/leaderboard.js`). By then the baseline milestones (skeleton, save, settings, content pipeline, achievements, kit, hub) should be copy-and-adapt work rather than new design.
+
+**What remains to decide (not decided here, and not blocking earlier games):**
+1. The hook, distinct from Overclock's Reactor Ring (a rotating ring, heat, no deck). Candidate directions to choose between when the game is next: light and darkness (a light source that shrinks as you descend), a rising hazard chasing you down, or floors that remember previous runs.
+2. Grid-step turn-based (assumed, classic roguelike) versus room-to-room nodes. Nodes would overlap Overclock's sector map, so grid-step is the recommendation.
+3. Fog of war and line of sight: affects generation and rendering cost; decide with the hook.
+4. Meta-progression: Overclock's rule (unlocks only) is the default proposal.
+5. The overlap check: both are permadeath runs; the difference to protect is turn-based grid exploration with a tactile ASCII look versus Overclock's sequencing-puzzle combat.
+6. Combat rules, loot system and class choice.
+7. Theme (not space, to keep the hub varied; dungeon or something else).
+Scheduling note: given the user's stated dislike of the genre, when to build this relative to other games is a scheduling call for the user, not a design question.
+
+The milestone tables below stay valid as the baseline; the "after the gimmick" set in section 5 is still blocked on item 1 above.
+
 ## 1. Pitch and genre shape
 Roguelite dungeon-crawler: procedurally generated floors, permadeath runs, loot and ability pickups that change each attempt's build. Exploration-and-combat fun; replayability comes from randomization alone. Fun-first; no BCM tag. Turn-based on a tile grid is the assumed shape (consistent with the user's note that real-time is a poor fit for how games load), but movement/combat rules are undecided.
 

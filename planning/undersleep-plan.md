@@ -4,15 +4,76 @@ Status: PLAN ONLY. No `games/undersleep/` folder exists yet. Becomes the seed fo
 User answer (round 2, M4): "yes, i like this idea. there is a lot that can be done to make this more and better and it could also be made somewhat like a life tracker too."
 Taste rule: fun first, not teaching. The original pitch's "teaches the cost of sleep debt" framing is dropped; the mechanic just punishes ignoring rhythm, and the game is funny about it. **No medical claims anywhere.**
 
+**Shared baseline:** `overclock-plan.md` section 4 (full checklist) and section 5 (hub integration) apply with slug `undersleep`; the "Shared infrastructure checklist" below lists what is specific to this game.
+
+## Decisions (2026-09-27, from Round 3 answers)
+Source: `IMPROVEMENT-IDEAS-ROUND-3.md` Part 4, section Q. Where these contradict text further down, this section wins and the affected text below has been revised or marked.
+
+| # | Question | Decision |
+|---|----------|----------|
+| 1, 2 | Journal cloud sync, and whether it is acceptable in the database | **Deferred.** The user asked to see the answer to Q6 first. **Recommendation: the check-in data stays on-device only, with manual export/import.** Reason: a save code is a bearer secret (anyone who has the code can load that save), and any cloud copy of personal check-in data would need per-account client-side encryption (a passphrase-derived key, with the consequence that a forgotten passphrase means lost data). That is a lot of machinery for an optional layer. Until the user decides, the plan ships no sync: the sync milestone is removed from the build order and the `sync_journal` setting is dropped. |
+| 3 | Tracker hidden at first run? | **Pending the user's answer** (they did not understand the question). Plain version: "when someone opens the game for the first time, do they see the optional check-in feature straight away, or is it tucked away in Settings until they switch it on?" **Recommendation: hidden by default** ("Just play"). Everything below assumes hidden. |
+| 4 | Tone | **Cozy and "Unpacking"-esque, not deadpan-absurd.** See "Tone" below. |
+| 5 | One character or a roster | **Multiple characters**, plus a **story mode in which several characters' stories interconnect.** See "Cast and story mode" below. |
+| 6 | Journal gate / framing | The answer reads as a framing instruction: **frame the game as one you add personal touches to, so a character feels like you, NOT as a journal or tracker.** (The question actually asked about a one-time "not medical advice" acknowledge gate; the answer did not address that. Recommendation for the gate: no modal gate; keep the persistent footer line. Flagged in the report as a small open point.) |
+| 7 | Extra journal tags | **None.** Keep only the plan's default tags (stress, exercise, caffeine, screen-late). |
+| 8 | Story mode | **Yes, built out:** the player chooses a preset that represents "them" and still plays other characters around it. |
+
+### Framing: a game you add personal touches to (replaces "journal / life tracker")
+- Layer B is renamed **"Make it you"**. Its main feature is **personal touches**: name, portrait pieces, a preset that starts from your real-feeling habits (a lark, an owl, a homebody, a planner), a home you decorate with objects that matter to you, favourite meal, a pet, a comfort item, a usual wake time you set by hand. The point is that the character on screen feels like you.
+- The optional **check-in** (the old journal: bedtime, wake time, quality, mood, energy, the default tags) survives only as a small, hidden-by-default add-on inside "Make it you", one of several ways to tune your character ("Your character woke up a bit like you did"). It is not a diary, has no charts framed as insight, and is never the headline of the game.
+- **UI strings must not say "journal", "tracker", "log your sleep" or "life tracker".** Use "check-in" and "personal touches". Add these words to the copy lint. The achievement previously named "Dear Diary" becomes "Personal Touch"; journal achievements are renamed accordingly.
+- All existing privacy rules stay (local by default, separate storage key, export and delete, no medical language, no reminders). The privacy section below still applies to the check-in data; where it says "Journal", read "check-in data".
+
+### Tone: cozy, "Unpacking"-esque
+What this means here (borrowing the feel, not the assets): a quiet, tactile, warm game where the **home scene tells the story**. Objects appear as you unlock and place them, each one a small piece of who the character is. Captions are short and gentle. The old deadpan narrator ("The Body Clock has notes") becomes a soft margin-note voice that is kind and a little funny, never sarcastic, and never comments on the player's real data. "Bad days" are cozy comedy (a blanket fort, a cold cup of tea), not deadpan jokes about failure. The debrief is a small illustrated scene of the day, not a receipt. Rework the ~40 events and the debrief copy to this tone (they were written as deadpan). Calm palette, gentle transitions, ambient background stays slow and static under reduce motion.
+
+### Cast and story mode
+- **Roster:** a cast of characters, each with their own chronotype, energy ceiling, block preferences, home scene and weekly life. Launch cast: five authored characters plus the player's own "You" character.
+- **Roles and presets.** Story threads are authored against **roles**, not names: a Planner (impulsive, high energy, keeps making plans), a Homebody (low energy, shut-in), a Night Worker, an Early Riser, a Neighbour. At the start of story mode the player picks a **preset** that represents "them"; that character fills one role and becomes the **anchor**. The authored cast fills the other roles. Launch supports three anchor presets (Homebody, Planner, Night Owl); the others come later because each anchor needs its own bound story text.
+- **Play pattern:** the game revolves around the anchor. Most days are the anchor's; every so often story mode hands you another character's day, chosen by the story's own thread state (deterministic, not random), so you are "doing a bunch of characters" but always coming back to yours.
+- **How stories interconnect (threads).** A thread is a short authored arc (4 to 8 beats) across 2 or 3 characters. Four link types:
+  1. **Invitation:** the Planner makes a plan, and it appears as a fixed-time block in the Homebody's next schedule. Accept, decline or negotiate; each has a different cost and a different effect on the relationship value between them.
+  2. **Ripple:** a choice on one character's day changes the state of another's (cancelling late leaves the other tired the next morning).
+  3. **Shared object:** something passes between characters (a borrowed jacket, a plant, a dog).
+  4. **Both sides:** the same evening is replayed from the other character's side, with a small "meanwhile" debrief showing what your choices did to them.
+- Example arc: the high-energy character keeps making plans; while you play the low-energy shut-in you decide how many to accept, and later when you play the Planner you see what a cancelled plan looked like from their side, and the game gently rewards finding a compromise (a short walk instead of the big night out).
+- **Authoring rule:** every thread must read correctly from both sides, and the text must work when "you" are the anchor or a supporting character (use `{you}` / `{name}` tokens, third-person captions). Content cost is real: cap launch at 4 threads.
+- Story mode's relationship values and thread progress are part of the save; sandbox and challenge modes ignore them.
+
+### Data model changes
+```json
+{
+  "schema": 2,
+  "game": {
+    "mode": "story",
+    "anchor_id": "you",
+    "characters": {
+      "you":  {"name": "", "preset": "homebody", "chronotype": "neither", "traits": [], "meters": {}, "sleep_debt": 0.0, "phase_shift_min": 0, "recent_schedules": [], "home": {"placed": []}},
+      "juno": {"...same shape...": 0}
+    },
+    "active_id": "you",
+    "story": {"threads": {"borrowed-jacket": {"beat": 0, "flags": {}}}, "bonds": {"you|juno": 0}, "next_handoff": null},
+    "currency": {"output": 0, "goodwill": 0}, "unlocks": [], "legacy": 0, "event_flags": {}
+  },
+  "you": {"personal_touches": {"favourites": [], "usual_wake": null, "pet": null}},
+  "settings": {"text_scale": 1, "reduce_motion": false, "story_text": true, "checkin_enabled": false, "mirror_mode": false, "rhythm_import": false}
+}
+```
+The check-in data stays in its own separate key (`undersleep_checkin_v1`, renamed from `undersleep_journal_v1`) and is never part of `get_state()` (no sync until the user decides, see the table). `schema` moves to 2 because the game state is per-character; a v1 migration wraps the single-character state as `characters.you`.
+
+### Milestones
+The build order at the bottom of this file is **replaced** by the revised table there (multiple characters and story mode moved ahead of the check-in layer; sync removed).
+
 ## One-line pitch
-Run one slightly overcommitted person's day: slot work, food, friends and naps into a schedule while their body clock quietly judges you, and optionally let the game mirror your own real sleep and mood.
+Run one slightly overcommitted person's day (and, in story mode, the days of the people around them): slot work, food, friends and naps into a schedule while a gentle body clock keeps time, in a cozy home you make feel like yours.
 
 ## Concept
 You manage a small character (name, chronotype, a few quirks) across repeating days. Each day you drag **schedule blocks** onto a 24-hour ring. A hidden-then-revealed **circadian curve** decides how good each hour is for each activity: focus work at a low-alertness hour pays little; the same block at the peak pays a lot. Consistency is rewarded: the curve *entrains* (shifts toward) whatever times you keep repeating, and jet-lag-style chaos is punished by drift, not by a lecture. Money/points come from productive blocks; the game is about squeezing value out of a finite body.
 
 Two layers, deliberately separable:
 - **Layer A — The Game.** Fully self-contained sim. Playable forever without ever typing a real fact about yourself.
-- **Layer B — The Journal (optional life tracker).** A 10-second daily check-in for *your* sleep, mood and energy. The game can reflect it (cosmetically and via one opt-in modifier) but never depends on it.
+- **Layer B — Make it you (REVISED 2026-09-27; formerly "The Journal / life tracker").** Personal touches that make a character feel like you, plus a small optional, hidden-by-default check-in (10 seconds: sleep, mood, energy). The game can reflect it (cosmetically and via one opt-in modifier) but never depends on it. It is not framed as a journal or tracker.
 
 ## Stack
 - Default Pyodide Python (root convention): sim logic in `game.py`, plain HTML/CSS, no build step, run via `python -m http.server`.
@@ -49,7 +110,7 @@ Two layers, deliberately separable:
 Work, Deep Work, Meeting (Focus-hungry, needs fixed slot), Sleep, Nap (20/90 min), Meal, Exercise, Friends, Hobby, Errands, Commute, Doomscroll (tempting, restores Mood a bit, steals Energy; mildly funny), Sunlight walk. Blocks have duration, energy cost, mood delta, focus requirement, and a **best-hours tag** that the curve preview highlights.
 
 ### Events (~40 at launch, weighted by day/state)
-Noisy neighbour, coffee spill, surprise deadline, friend cancels, great idea at 2 a.m., power cut, dog wants out, timezone-hopping colleague, unexpected sunshine. Each: text + 2 choices with trade-offs; a few are chained (a Tuesday problem returns on Friday). Humour in the text; a "personality" narrator ("The Body Clock") comments in short deadpan lines.
+Noisy neighbour, coffee spill, surprise deadline, friend cancels, great idea at 2 a.m., power cut, dog wants out, timezone-hopping colleague, unexpected sunshine. Each: text + 2 choices with trade-offs; a few are chained (a Tuesday problem returns on Friday). Humour in the text; a gentle margin-note narrator ("The Body Clock", REVISED to a cozy, kind voice per the Decisions section) comments in short lines.
 
 ### Progression / unlocks
 - Currency: **Output** (from productive blocks) and **Goodwill** (from social/mood).
@@ -58,7 +119,8 @@ Noisy neighbour, coffee spill, surprise deadline, friend cancels, great idea at 
 - Modes: Story (light arc, toggleable per user's Z11 answer), Sandbox (no fail), Challenge (shift-work week, jet-lag trip).
 - No hard fail; low meters produce "Rough Day" penalties (halved output) not game over.
 
-## Layer B: the Journal (optional life tracker)
+## Layer B: Make it you (the optional check-in; formerly "the Journal")
+Terminology note: per the Decisions section, read "Journal" below as "check-in data" and never use "journal" or "tracker" in player-facing text. Cloud sync in this section is deferred and not planned.
 
 ### What it is
 A separate tab. Daily check-in in 3-4 taps:
@@ -83,6 +145,8 @@ Explicitly **not** done: advice, scores of "how well you sleep," targets, compar
 | Storage | server-first vs local-first | Local-first, sync opt-in |
 
 ## Privacy and ethics
+Note (2026-09-27): cloud sync of check-in data is deferred; the sync/consent bullets below describe the design that would be needed if the user reopens it. Until then only local storage and export/import exist.
+
 - **Local by default:** journal lives in `localStorage`/IndexedDB under `undersleep_journal_v1`, never sent anywhere unless the player turns on "Sync my journal".
 - **Separate consent:** the save widget's normal game sync does **not** include the journal. A second toggle ("Include my journal in my account save") is off by default, with plain-language text about what is stored (dates, times, 1-5 values, notes) and that it's stored on the hub's server database.
 - **Data minimisation:** free-text notes are optional and can be excluded from sync even when the rest syncs; no location, no device data, no health API integrations.
@@ -95,9 +159,11 @@ Explicitly **not** done: advice, scores of "how well you sleep," targets, compar
 ## Separability
 - Two modules, two storage keys, two settings groups. `game.py` exports `get_state()`; `journal.py` exports `get_journal()`. Neither imports the other; a thin `bridge.py` (only loaded if "Mirror mode" is on) reads summary stats from the journal and calls documented setters on the game (`seed_chronotype`, `set_rhythm_bonus`).
 - A tests rule: the whole game test suite must pass with the bridge and journal modules **deleted** from the import path.
-- First-run asks: "Just play" (journal hidden until enabled in Settings) vs "Play and keep a journal." Default is Just play.
+- First-run: the check-in is hidden until enabled in Settings ("Just play" is the default; still pending the user's confirmation, see Decisions). No first-run question about journals.
 
 ## Data model
+SUPERSEDED in part: the per-character `schema: 2` shape and the renamed check-in key are in the Decisions section; the block below is the original single-character schema 1 and remains valid for one character's fields.
+
 ```json
 {
   "schema": 1,
@@ -147,7 +213,7 @@ Rule: the journal is included in `get_state()` for the save widget **only** when
 11. Home Improvement — buy all home upgrades.
 12. Legacy — retire a character.
 13. Event Collector — see 25 distinct events.
-14. Dear Diary (journal) — first check-in; Week of Entries, and Data Owner (export once). All journal achievements are awarded for using the tool, never for the values logged.
+14. Personal Touch (renamed from "Dear Diary") — first check-in or first personal touch placed; Made It Mine (customise name, portrait and three home objects); Data Owner (export once). Add story achievements: Good Neighbour (accept a plan from the Planner), Compromise (resolve a thread with the compromise ending), Both Sides (finish a thread from both characters). All check-in achievements are awarded for using the tool, never for the values logged.
 Follows `ACHIEVEMENTS-SYSTEM-DESIGN.md`; journal achievements are counted separately so a Just-play user can still reach 100% of the game set.
 
 ## Testing approach
@@ -158,20 +224,24 @@ Follows `ACHIEVEMENTS-SYSTEM-DESIGN.md`; journal achievements are counted separa
 - Live checks via `hub-dev-server`: ring drag and keyboard placement, 360px mobile, reduce motion, offline load.
 
 ## Milestones
+REVISED 2026-09-27 (cozy tone, multiple characters and story mode, personal-touches framing, no sync). Milestones 1-7 ship a complete single-character game; 8-9 add the cast and story mode; 10-11 add personal touches and the optional check-in.
+
 | # | Milestone | Content | Status |
 |---|-----------|---------|--------|
 | 1 | Circadian sim core | Curve function, meters, day step, sleep debt; text-only harness playable in tests | Not started |
 | 2 | Schedule ring UI | 24-hour SVG ring, block placement (drag + keyboard), curve overlay, Run Day and debrief | Not started |
 | 3 | Rhythm + entrainment | Rhythm meter, phase shift, chronotypes, multiplier feedback and visible curve change | Not started |
-| 4 | Events + personality | ~40 events, narrator lines, chained events, rough-day handling | Not started |
-| 5 | Progression | Currencies, unlocks, home upgrades, workplaces, seasons, retire/legacy | Not started |
-| 6 | Save + settings + standard kit | Save widget, `settings.js`, changelog, tutorial, mobile dock/HUD, info page, confirm dialogs | Not started |
-| 7 | Achievements | 14 achievements, panel and toast | Not started |
-| 8 | Journal (local only) | Quick-log UI, backfill, charts, export/delete, pause, not-medical notice; zero game coupling yet | Not started |
-| 9 | Bridge + opt-in sync | Mirror mode, capped Rhythm import, callback lines, journal sync consent flow, separability tests | Not started |
-| 10 | Polish + hub integration | Modes (Story/Sandbox/Challenge), copy lint, colorblind audit, title card, manifests, dev-log, tag | Not started |
+| 4 | Cozy events | ~40 events written in the cozy tone, soft margin-note voice, chained events, rough-day handling | Not started |
+| 5 | Progression + home scene | Currencies, unlocks, home objects placed in the room scene (environment storytelling), workplaces, seasons | Not started |
+| 6 | Standard kit | Save widget, `settings.js`, changelog, tutorial, mobile dock/HUD, info page, confirm dialogs, achievements v1 | Not started |
+| 7 | Single-character ship | Sandbox and challenge modes, copy lint (incl. the journal/tracker ban), colorblind audit, hub integration. **First complete, playable game** | Not started |
+| 8 | Roster | Schema 2 with per-character state and migration, character switching, 5 authored characters, per-character home scenes | Not started |
+| 9 | Story mode | Anchor preset choice (3 presets), roles, thread engine (invitation, ripple, shared object, both sides), 4 launch threads, hand-off rules, bond values, story achievements, story toggle wiring | Not started |
+| 10 | Make it you | Personal touches (name, portrait, home objects, favourites, pet, usual wake), preset customisation, "Personal Touch" achievements | Not started |
+| 11 | Check-in (optional, hidden by default) | Quick check-in, backfill, default tags only, export/delete, pause, not-medical footer, mirror mode and capped Rhythm import behind toggles, separability tests. No sync | Not started |
+| 12 | Polish + hub update | Thread balance, more threads, copy lint pass, colorblind and 375px audit, dev logs, tag | Not started |
 
-Commit + tag each: `git tag undersleep-milestone-0N`. Milestones 1-7 ship a complete game with no tracker; 8-9 are an add-on that can be cut without touching the rest.
+Commit + tag each: `git tag undersleep-milestone-0N`. Milestones 11 is fully cuttable without touching the rest. Cloud sync of check-in data is not in the plan until the user decides (see Decisions).
 
 ## Risks
 - **Tracker scope creep** into a real health app. Mitigation: hard caps above (3-tap log, no interpretation), milestones 8-9 fully cuttable.
@@ -182,11 +252,8 @@ Commit + tag each: `git tag undersleep-milestone-0N`. Milestones 1-7 ship a comp
 - **Nagging/guilt** loops for real users. Mitigation: no streak on journal, no reminders, blanks are neutral.
 
 ## Open questions for the user
-1. Journal cloud sync: allow it at all (via existing save system, separate opt-in), or keep the journal strictly local plus manual export/import?
-2. If sync is allowed, are you comfortable with that data in the Neon database given it is more personal than game saves? (Would you want it encrypted client-side with a passphrase?)
-3. Should the game start with the tracker hidden ("Just play" default, recommended) or present at first run?
-4. Tone: deadpan-absurd (recommended) or warmer/cozy?
-5. Character: one persistent character, or a roster with "retire and inherit"?
-6. Is a hard "Not medical advice" gate at first Journal open (one-time acknowledge) acceptable, or too heavy?
-7. Any real-life tags you specifically want (caffeine, exercise, screen-late...) or leave to my defaults?
-8. Story mode: a light arc (new job, new city) or sandbox only at launch?
+Answered in Round 3 (see Decisions): tone (cozy), roster (multiple characters), story mode (yes, anchored on a chosen preset), framing (personal touches, not a journal), tags (defaults only).
+Still open:
+1. Should the check-in start hidden (recommended) or visible at first run? The user did not understand the question; the plain-language version is in Decisions.
+2. Check-in cloud sync: deferred. Recommendation: on-device only plus manual export/import (a save code is a bearer secret; any cloud copy would need per-account encryption). Needs a yes/no from the user if they want sync reopened.
+3. The old Q6 (a one-time "not medical advice" acknowledge gate) was not directly answered. Recommendation: no gate, a permanent footer line.
