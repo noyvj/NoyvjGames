@@ -214,6 +214,16 @@ SECTOR_COMPARISONS = [
 # the bonus at a time -- not a friction point worth gating further.
 WASTE_STREAM_SPECIALIZATION_BONUS = 0.25
 
+# H3: supply chain redesign -- a late-game layer that only opens once the loop
+# has closed at least once. Each measure can then be "redesigned" up to
+# REDESIGN_MAX_LEVEL times: every level is a funds purchase (cost grows with the
+# level) that makes that measure's supply count REDESIGN_SUPPLY_BONUS higher for
+# good. Small on purpose ("a small efficiency bonus"), and it stacks additively
+# with the H9 focus rather than compounding with it.
+REDESIGN_BASE_COST = 120
+REDESIGN_MAX_LEVEL = 3
+REDESIGN_SUPPLY_BONUS = 0.05
+
 # H13: an opt-in harder variant, selectable only before the chain has
 # produced anything (see ChainState.set_challenge_mode()) -- multiplies
 # both internal and imported circular supply down, so closing the loop
@@ -306,6 +316,8 @@ class ChainState:
         # H9: the one circularity measure currently carrying the specialization
         # bonus (None = no emphasis).
         self.waste_focus = None
+        # H3: redesign level per measure (0..REDESIGN_MAX_LEVEL).
+        self.redesign_level = {m: 0 for m in CIRCULARITY_INVESTMENTS}
 
     def can_choose_mode(self):
         """H13/H23: the modes change the rules of the whole chain, so they
@@ -335,7 +347,28 @@ class ChainState:
     def measure_multiplier(self, measure):
         """H9: the focused measure's supply counts WASTE_STREAM_SPECIALIZATION_BONUS
         higher; the other two stay at their base rate."""
-        return 1.0 + WASTE_STREAM_SPECIALIZATION_BONUS if self.waste_focus == measure else 1.0
+        focus = WASTE_STREAM_SPECIALIZATION_BONUS if self.waste_focus == measure else 0.0
+        return 1.0 + focus + REDESIGN_SUPPLY_BONUS * self.redesign_level.get(measure, 0)
+
+    def redesign_unlocked(self):
+        """H3: opens once the loop has closed at least once."""
+        return self.first_loop_closed_cycle is not None
+
+    def redesign_cost(self, measure):
+        return REDESIGN_BASE_COST * (self.redesign_level[measure] + 1)
+
+    def redesign(self, measure):
+        if measure not in self.redesign_level or not self.redesign_unlocked():
+            return False
+        if self.redesign_level[measure] >= REDESIGN_MAX_LEVEL:
+            return False
+        cost = self.redesign_cost(measure)
+        if self.funds < cost:
+            return False
+        self.funds -= cost
+        self.redesign_level[measure] += 1
+        self.lifetime_investment_spend += cost
+        return True
 
     def set_waste_focus(self, measure):
         """Freely switchable and free (the trade-off is structural: only one
@@ -1576,6 +1609,18 @@ def render():
             * chain.supply_multiplier() * chain.measure_multiplier(measure)
         )
         focus_note = " · focus +25%" if chain.waste_focus == measure else ""
+        if chain.redesign_level[measure]:
+            focus_note += f" · redesign +{round(REDESIGN_SUPPLY_BONUS * chain.redesign_level[measure] * 100)}%"
+        redesign_button = document.getElementById(f"redesign-{measure}-button")
+        if chain.redesign_level[measure] >= REDESIGN_MAX_LEVEL:
+            redesign_button.innerText = "Redesigned (max)"
+            redesign_button.disabled = True
+        elif not chain.redesign_unlocked():
+            redesign_button.innerText = "Redesign (unlocks once the loop closes)"
+            redesign_button.disabled = True
+        else:
+            redesign_button.innerText = f"Redesign ({chain.redesign_cost(measure)})"
+            redesign_button.disabled = chain.funds < chain.redesign_cost(measure)
         document.getElementById(f"{measure}-stats").innerText = (
             f"{cost_per_unit:.1f} funds/unit · supplying {contribution:.0f}/cycle{focus_note}"
         )
@@ -1760,6 +1805,12 @@ def _make_goods_category_handler(category):
     return handler
 
 
+def _make_redesign_handler(measure):
+    def handler(event=None):
+        _run_action(lambda: chain.redesign(measure))
+    return handler
+
+
 def _make_focus_handler(measure):
     def handler(event=None):
         def _do_focus():
@@ -1898,6 +1949,8 @@ def get_state():
         state["zero_waste"] = True
     if chain.waste_focus is not None:
         state["waste_focus"] = chain.waste_focus
+    if any(chain.redesign_level.values()):
+        state["redesign_level"] = dict(chain.redesign_level)
     return state
 
 
@@ -1946,6 +1999,13 @@ def load_state(data):
     chain.zero_waste = data.get("zero_waste") is True
     saved_focus = data.get("waste_focus")
     chain.waste_focus = saved_focus if isinstance(saved_focus, str) and saved_focus in CIRCULARITY_INVESTMENTS else None
+    chain.redesign_level = {m: 0 for m in CIRCULARITY_INVESTMENTS}
+    saved_redesign = data.get("redesign_level")
+    if isinstance(saved_redesign, dict):
+        for m in CIRCULARITY_INVESTMENTS:
+            level = saved_redesign.get(m)
+            if isinstance(level, int) and not isinstance(level, bool) and 0 <= level <= REDESIGN_MAX_LEVEL:
+                chain.redesign_level[m] = level
     chain.lifetime_investment_spend = data.get("lifetime_investment_spend", 0.0)
     chain.lifetime_export_revenue = data.get("lifetime_export_revenue", 0.0)
     chain.closed_loop_streak = data.get("closed_loop_streak", 0)
@@ -1996,6 +2056,9 @@ def setup():
     for measure in CIRCULARITY_INVESTMENTS:
         document.getElementById(f"focus-{measure}-button").addEventListener(
             "click", create_proxy(_make_focus_handler(measure))
+        )
+        document.getElementById(f"redesign-{measure}-button").addEventListener(
+            "click", create_proxy(_make_redesign_handler(measure))
         )
     for which in ("challenge", "zero-waste"):
         document.getElementById(f"{which}-mode-button").addEventListener(

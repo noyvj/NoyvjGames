@@ -655,3 +655,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** loop
 **Did:** Added a scorecard comparing the player's lifetime circular share against the overall real-world figure and all four sector benchmarks at once, each as a verdict (above/below/level with a shape symbol) plus two bars.
 **Result:** 228 → 236 tests passing, flake8 clean; verified live, zero new console errors.
+
+### 2026-09-26 (Loop: supply chain redesign, H3)
+**Game:** loop
+**Did:** Added a late-game redesign layer, unlocked by the first closed loop: each circularity measure can be redesigned up to three times for a permanent +5% supply per level, stacking additively with the waste-stream focus.
+**Result:** 236 → 249 tests passing, flake8 clean.
