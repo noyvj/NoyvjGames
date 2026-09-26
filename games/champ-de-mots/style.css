@@ -1216,6 +1216,7 @@ button:disabled {
    would be nearly invisible on the now-cream panel background. */
 #review-summary,
 #proficiency-summary,
+#placement-summary,
 #bonus-summary {
   padding: 0.55rem 0.75rem;
   border-radius: 8px;

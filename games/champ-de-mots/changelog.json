@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-26",
+    "entry": "Placement test: a 🎯 button (and a hint on a brand-new farm) offers an opt-in test that samples the course in six stretches, easiest first, and stops when a stretch gets hard. You then see exactly what would change (\"You will start at week N; X plots move to Sprout\") and choose Apply or Cancel. Only untouched plots are ever raised, to a modest Sprout with a real due date within a week; nothing already grown is lowered, and answers count toward your practice score (L4b)."
+  },
+  {
+    "date": "2026-09-26",
     "entry": "Passé Composé Sprint: a fifth arcade minigame, a 60-second, three-lives, combo rapid-fire of fill-in-the-blank and conjugation questions on the passé composé (rows 21-23). It counts toward your practice score like the other four (L1)."
   },
   {
@@ -93,10 +97,6 @@
   },
   {
     "date": "2026-09-14",
-    "entry": "Report buttons extended to Review, Proficiency, and Bonus sections; typed-answer boxes now clear between questions."
-  },
-  {
-    "date": "2026-09-14",
-    "entry": "Pronunciation-risk report button added for known mispronunciation traps; achievements added: two tiers tracking total plots automated and full weeks fully automated; \"Weeds\" mix-up state, a personal error-pattern digest, a gender-tagging drill, and a liaison/elision practice quiz added; combo bonus, self-rated confidence, deliberate interleaving, adaptive distractor difficulty, a cultural notes toggle, and a progress dashboard added; slideshow cross-check merge: 9 new topics and 75 new items added from the teacher's own lecture slides; core farm launched: the 23-week FREN151 to FREN152 syllabus catalog, spaced-repetition plant growth, a runtime question generator, and save-code support; then grading engine v2 (STRICT/LENIENT tiers), a \"flag as correct\" report button, a failure feedback blurb, a Review tab, weekly proficiency tests, and bonus sentence-building sections; then site-wide space theme visual pass."
+    "entry": "Pronunciation-risk report button added for known mispronunciation traps; achievements added: two tiers tracking total plots automated and full weeks fully automated; \"Weeds\" mix-up state, a personal error-pattern digest, a gender-tagging drill, and a liaison/elision practice quiz added; combo bonus, self-rated confidence, deliberate interleaving, adaptive distractor difficulty, a cultural notes toggle, and a progress dashboard added; slideshow cross-check merge: 9 new topics and 75 new items added from the teacher's own lecture slides; core farm launched: the 23-week FREN151 to FREN152 syllabus catalog, spaced-repetition plant growth, a runtime question generator, and save-code support; then grading engine v2 (STRICT/LENIENT tiers), a \"flag as correct\" report button, a failure feedback blurb, a Review tab, weekly proficiency tests, and bonus sentence-building sections; then site-wide space theme visual pass; also report buttons extended to Review, Proficiency, and Bonus sections, and typed-answer boxes now clear between questions."
   }
 ]

@@ -278,8 +278,10 @@
         <button id="sentence-builder-button" class="secondary" title="Build French sentences from word tiles, from any week you have unlocked. Open it any time.">🧩 Sentence builder</button>
         <button id="conversation-button" class="secondary" title="A short scripted exchange: pick the French line that fits each turn. Opens once the weeks whose phrases it uses are unlocked.">💬 Conversation</button>
         <button id="listening-button" class="secondary" title="Hear a French sentence read aloud and pick what it means. Uses your browser's own voices, so it needs speech synthesis.">🎧 Listening</button>
+        <button id="placement-button" class="secondary" title="Already know some French? Take a short mixed test that samples every stretch of the course and lets you skip the weeks you know. Opt-in; it never lowers or removes anything you have grown.">🎯 Placement test</button>
         <button id="next-day-button" class="secondary">Next day</button>
       </div>
+      <p id="placement-hint" class="status-line status-line--muted" hidden></p>
       <label class="accent-toggle">
         <input type="checkbox" id="accent-toggle-checkbox" checked>
         Check my accents (é, è, ç...) — turn off for accent-insensitive typing
@@ -439,6 +441,34 @@
       </div>
       <p id="listening-summary" class="practice-feedback" hidden></p>
       <button id="listening-close-button" class="secondary practice-close">Close</button>
+    </div>
+
+    <!-- L4b: placement test. Intro, then a mixed ladder of questions, then a
+         confirm-before-applying summary (Apply / Cancel). Never lowers anything. -->
+    <div id="placement-panel" class="section practice" hidden>
+      <div class="panel-hero panel-hero--proficiency" aria-hidden="true">🎯</div>
+      <p id="placement-intro" class="practice-instruction" hidden></p>
+      <button id="placement-start-button" class="primary" type="button" hidden>Start the placement test</button>
+      <div id="placement-card" class="question-card" hidden>
+        <p id="placement-progress" class="practice-context"></p>
+        <p id="placement-context" class="practice-context"></p>
+        <p id="placement-instruction" class="practice-instruction"></p>
+        <p id="placement-prompt" class="practice-prompt"></p>
+        <p id="placement-note" class="practice-note" hidden></p>
+        <div id="placement-choices" class="practice-choices"></div>
+        <input id="placement-answer-input" class="practice-input" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Type your answer" hidden>
+        <button id="placement-submit-button" class="secondary" hidden>Check</button>
+        <p id="placement-feedback" class="practice-feedback"></p>
+        <button id="placement-next-button" class="secondary" hidden>Next</button>
+      </div>
+      <p id="placement-summary" class="status-line" hidden></p>
+      <div id="placement-bands" class="proficiency-topic-breakdown" hidden></div>
+      <p id="placement-plan" class="practice-feedback" hidden></p>
+      <p id="placement-status" class="practice-feedback" hidden></p>
+      <button id="placement-apply-button" class="primary" type="button" hidden>Apply</button>
+      <button id="placement-retry-button" class="secondary" type="button" hidden>Take it again</button>
+      <button id="placement-cancel-button" class="secondary" type="button" hidden>Cancel</button>
+      <button id="placement-close-button" class="secondary practice-close">Close</button>
     </div>
 
     <div id="conversation-panel" class="section practice" hidden>
