@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-09-26",
+    "entry": "Two optional start modes: a Circular design challenge (all circular supply counts at 65%) and a Zero-waste challenge (keep lifetime extraction under 150 units), picked before the first cycle (H13, H23)."
+  },
+  {
     "date": "2026-09-22",
     "entry": "Achievement cards now show \"Earned by N% of players\" once enough real save data exists for that achievement (site-wide goal, Z1/Z27b)."
   },
@@ -41,7 +45,7 @@
   },
   {
     "date": "2026-09-19",
-    "entry": "Added a settings panel (text size + reduced motion) and completed a colorblind-safety audit \u2014 the linear-chain brown vs. closed-loop green flow particle is already redundantly coded via text and arrow brightness, no change needed."
+    "entry": "Added a settings panel (text size + reduced motion) and completed a colorblind-safety audit — the linear-chain brown vs. closed-loop green flow particle is already redundantly coded via text and arrow brightness, no change needed."
   },
   {
     "date": "2026-09-15",

@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 681/767 items checked off (88.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 683/767 items checked off (89.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -639,7 +639,7 @@ Every idea in this section was accepted. **You also flagged a real cross-cutting
 - [x] H10: A tooltip on the "time to close the loop" projection clarifying it's an estimate, not a guarantee.
 - [ ] H11: A "regional recycling network" — a shared community pool where excess recovered material could represent value for others (stretch — needs real backend support).
 - [x] H12: Let the score breakdown show a small pie chart of score sources.
-- [ ] H13: A "circular design challenge" scenario mode — start with a deliberately hard-to-close chain as an opt-in harder variant.
+- [x] H13: A "circular design challenge" scenario mode — start with a deliberately hard-to-close chain as an opt-in harder variant.
 - [x] H14: A small badge for trying all available goods-flavor sets across different sessions.
 - [x] H15: A "loop efficiency audit" panel — a periodic optional deep-dive showing exactly where supply is wasted, with actionable suggestions.
 - [x] H16: Let the first-time-closed-loop banner include the exact cycle number it happened on.
@@ -649,7 +649,7 @@ Every idea in this section was accepted. **You also flagged a real cross-cutting
 - [x] H20: Let the alternate vignette phrasings rotate randomly among a fraction-bucket's options, for variety on repeat sessions.
 - [ ] H21: A "material passport" mechanic — track a piece of material's full journey as a literal traceable object.
 - [x] H22: A tooltip explaining the hard-ceiling note with its exact multiplier value inline.
-- [ ] H23: A "zero-waste challenge" mode — a stricter variant where the extraction meter must stay below a hard cap.
+- [x] H23: A "zero-waste challenge" mode — a stricter variant where the extraction meter must stay below a hard cap.
 - [x] H24: A small running count of "cycles since last new extraction," visible once circularity is high.
 - [x] H25a: A "trade network visualization" upgrade — a small diagram showing both trade partners and the internal loop simultaneously, in a simple/text version that works everywhere.
 - [ ] H25b: A richer visual version of H25a, notably better on desktop specifically, per your note above.

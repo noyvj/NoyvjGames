@@ -79,9 +79,16 @@
         <button id="goods-category-clothing-button" class="secondary goods-category-button">👕 Clothing</button>
         <button id="goods-category-furniture-button" class="secondary goods-category-button">🪑 Furniture</button>
       </div>
+      <p class="meter-label">Optional modes (pick before the first cycle)</p>
+      <div class="goods-category-buttons">
+        <button id="challenge-mode-button" class="secondary goods-category-button" type="button" title="A deliberately hard-to-close chain: all circular supply counts at 65%.">Circular design challenge</button>
+        <button id="zero-waste-mode-button" class="secondary goods-category-button" type="button" title="A soft challenge: keep lifetime extraction under 150 units. Going over never blocks play.">Zero-waste challenge</button>
+      </div>
       <!-- H27: a deterministic weekly featured category (no backend). -->
       <p id="featured-goods-display" class="comparison-message"></p>
     </div>
+
+    <p id="mode-status" class="comparison-message" hidden></p>
 
     <!-- H4: cosmetic-only relabel once a chain is running (the picker above hides
          after the first cycle). Never counts toward "categories tried". -->

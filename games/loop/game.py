@@ -300,18 +300,46 @@ class ChainState:
         self.lifetime_export_revenue = 0.0
         self.closed_loop_streak = 0
         self.best_closed_loop_streak = 0
+        # H13/H23: opt-in start-of-chain modes (see can_choose_mode()).
+        self.challenge_mode = False
+        self.zero_waste = False
+
+    def can_choose_mode(self):
+        """H13/H23: the modes change the rules of the whole chain, so they
+        can only be picked before anything has been produced."""
+        return self.total_produced == 0 and self.cycle_number == 1
+
+    def set_challenge_mode(self, on):
+        if not self.can_choose_mode():
+            return False
+        self.challenge_mode = bool(on)
+        return True
+
+    def set_zero_waste(self, on):
+        if not self.can_choose_mode():
+            return False
+        self.zero_waste = bool(on)
+        return True
+
+    def supply_multiplier(self):
+        return CHALLENGE_MODE_SUPPLY_MULTIPLIER if self.challenge_mode else 1.0
+
+    def zero_waste_holding(self):
+        """H23: still within the extraction cap. Soft by design: going over
+        ends the challenge's own bragging rights, never blocks play."""
+        return self.total_extracted <= ZERO_WASTE_EXTRACTION_CAP
 
     def internal_circular_supply(self):
         """Units of this cycle's production target met by repair/reuse/
         recycling instead of new extraction — the chain's own capacity,
         before anything crossing in from the trade network."""
-        return sum(
+        return self.supply_multiplier() * sum(
             self.circularity_investment[c] * CIRCULARITY_INVESTMENTS[c]["supply_per_unit"]
             for c in CIRCULARITY_INVESTMENTS
         )
 
     def imported_supply(self):
-        return (
+        return self.supply_multiplier() * (
             self.trade_link_investment * IMPORT_SUPPLY_PER_UNIT
             + self.regional_trade_investment * REGIONAL_IMPORT_SUPPLY_PER_UNIT
             + self.overseas_trade_investment * OVERSEAS_IMPORT_SUPPLY_PER_UNIT
@@ -1336,6 +1364,23 @@ def render():
         else:
             button.classList.remove("selected")
 
+    # H13/H23: the two opt-in modes live in the picker (so they vanish with
+    # it after the first cycle); their status line stays visible.
+    for which, active in (("challenge", chain.challenge_mode), ("zero-waste", chain.zero_waste)):
+        mode_button = document.getElementById(f"{which}-mode-button")
+        if active:
+            mode_button.classList.add("selected")
+        else:
+            mode_button.classList.remove("selected")
+        mode_button.innerText = (
+            ("\u2713 " if active else "")
+            + ("Circular design challenge" if which == "challenge" else "Zero-waste challenge")
+        )
+    mode_text = mode_status_text()
+    mode_el = document.getElementById("mode-status")
+    mode_el.innerText = mode_text
+    mode_el.hidden = mode_text == ""
+
     # H4: relabel panel only once the picker itself is gone.
     document.getElementById("relabel-goods-panel").hidden = not picker.hidden
     for key in GOODS_CATEGORIES:
@@ -1638,6 +1683,40 @@ def _make_goods_category_handler(category):
     return handler
 
 
+def mode_status_text():
+    """H13/H23: one line describing the modes in force, or '' for none."""
+    parts = []
+    if chain.challenge_mode:
+        parts.append(
+            f"Circular design challenge: all circular supply counts at "
+            f"{CHALLENGE_MODE_SUPPLY_MULTIPLIER * 100:.0f}%, so closing the loop takes more investment."
+        )
+    if chain.zero_waste:
+        used = chain.total_extracted
+        if chain.zero_waste_holding():
+            parts.append(
+                f"Zero-waste challenge: {used:.0f} of {ZERO_WASTE_EXTRACTION_CAP:.0f} units extracted "
+                f"\u2014 still under the cap."
+            )
+        else:
+            parts.append(
+                f"Zero-waste challenge missed: {used:.0f} units extracted, over the "
+                f"{ZERO_WASTE_EXTRACTION_CAP:.0f} cap. Play carries on."
+            )
+    return " ".join(parts)
+
+
+def _make_mode_handler(which):
+    def handler(event=None):
+        def _do_toggle():
+            if which == "challenge":
+                chain.set_challenge_mode(not chain.challenge_mode)
+            else:
+                chain.set_zero_waste(not chain.zero_waste)
+        _run_action(_do_toggle)
+    return handler
+
+
 def supply_after_minus(supply_before):
     return chain.imported_supply() + chain.exportable_surplus() - supply_before
 
@@ -1698,7 +1777,7 @@ def get_state():
     deliberately survive a "Start New Chain" reset. `achievements_earned`
     is always freshly recomputed and never read back by load_state()
     (ACHIEVEMENTS-SYSTEM-DESIGN.md §1)."""
-    return {
+    state = {
         "cycle_number": chain.cycle_number,
         "funds": chain.funds,
         "total_extracted": chain.total_extracted,
@@ -1726,6 +1805,12 @@ def get_state():
         "goods_categories_tried": sorted(goods_categories_tried),
         "achievements_earned": achievement_ids_earned(),
     }
+    # H13/H23: written only when a mode is on, so older/default saves are unchanged.
+    if chain.challenge_mode:
+        state["challenge_mode"] = True
+    if chain.zero_waste:
+        state["zero_waste"] = True
+    return state
 
 
 def load_state(data):
@@ -1768,6 +1853,9 @@ def load_state(data):
     chain.first_loop_closed_cycle = data.get("first_loop_closed_cycle", None)
     regional_hint_seen = bool(data.get("regional_hint_seen", False))
     chain.goods_category = data.get("goods_category", DEFAULT_GOODS_CATEGORY)
+    # H13/H23: strictly booleans; anything else loads as off.
+    chain.challenge_mode = data.get("challenge_mode") is True
+    chain.zero_waste = data.get("zero_waste") is True
     chain.lifetime_investment_spend = data.get("lifetime_investment_spend", 0.0)
     chain.lifetime_export_revenue = data.get("lifetime_export_revenue", 0.0)
     chain.closed_loop_streak = data.get("closed_loop_streak", 0)
@@ -1814,6 +1902,10 @@ def setup():
     for category in GOODS_CATEGORIES:
         document.getElementById(f"goods-category-{category}-button").addEventListener(
             "click", create_proxy(_make_goods_category_handler(category))
+        )
+    for which in ("challenge", "zero-waste"):
+        document.getElementById(f"{which}-mode-button").addEventListener(
+            "click", create_proxy(_make_mode_handler("challenge" if which == "challenge" else "zero"))
         )
     document.getElementById("info-page-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_info_page)

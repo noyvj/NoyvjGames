@@ -634,3 +634,12 @@ currently open, reusing each panel's own open/close logic. The various
 map) aren't in the list -- they're native browser disclosures with their
 own `<summary>` click affordance, not the toggle-button pattern the
 shared helper targets.
+
+## Circular design challenge and Zero-waste challenge (H13/H23, 2026-09-26)
+
+Two opt-in modes, picked in the start-of-chain picker before the first cycle (`ChainState.can_choose_mode()`: nothing produced yet, then locked for that chain; "Start New Chain" resets them). They were previously only constants plus a comment; this builds the real toggles the Z27 audit note above said were missing.
+
+- **Circular design challenge (H13):** `challenge_mode` multiplies both internal and imported circular supply by `CHALLENGE_MODE_SUPPLY_MULTIPLIER` (0.65) via `supply_multiplier()`, so closing the loop needs roughly 1.5x the investment. It only changes supply, so it slows every circularity achievement rather than making any impossible, and it can be avoided by simply not picking it.
+- **Zero-waste challenge (H23):** `zero_waste` tracks lifetime extraction against `ZERO_WASTE_EXTRACTION_CAP` (150). It is soft by hub convention: going over is reported ("missed, play carries on") and never blocks anything.
+- The two combine. A status line under the picker (kept visible after the picker hides) shows what is in force and the running extraction count.
+- Save: `challenge_mode` and `zero_waste` are written only when on and read back strictly as booleans (anything else loads as off). 201 -> 215 tests (`tests/test_start_modes.py`); verified live, zero console errors.

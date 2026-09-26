@@ -615,3 +615,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Thaw
 **Did:** Added a one-way tipping cascade (A to B, B to C): a 25% deterministic pseudo-random chance, when a region first melts, that the next region takes a one-time 0.5 degree bump that intervention could not have prevented. Region A and Region D are never hit, so D still matches A's counterfactual.
 **Result:** 262 → 274 tests passing, flake8 clean; verified live, zero console errors.
+
+### 2026-09-26 (Loop: circular design challenge and zero-waste challenge, H13 + H23)
+**Game:** Loop
+**Did:** Built the two opt-in start modes that previously existed only as constants: a harder chain (all circular supply at 65%) and a soft zero-waste challenge (stay under 150 units of lifetime extraction, never a fail state). Picked before the first cycle, combinable, reset by Start New Chain.
+**Result:** 201 → 215 tests passing, flake8 clean; verified live, zero console errors.
