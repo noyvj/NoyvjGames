@@ -230,3 +230,8 @@ The clearest cross-cutting infra lesson from this pass: three separate games' au
 **Touched:** `admin.html`, `planning/TODO.md`
 **Did:** Each of the admin page's four panels (Overview, Ratings & Reviews, Site Feedback, French Answer Reports) is now a `<details>` that remembers its open/closed state per device in `localStorage`, plus Expand all / Collapse all buttons. "Mark as done" for reports (U6) was deliberately NOT built yet: it needs a write endpoint, and shipping that before the admin password/token (U8, awaiting the user's answers in FOR-YOU Q6) would let anyone hide reports.
 **Result:** Verified live: toggling one panel persisted its state, Collapse all / Expand all worked, no console errors. Pure HTML/JS, no Python touched.
+
+### 2026-09-26 (Hub: compact title cards, U13)
+**Area:** Hub shell (`script.js`, `style.css`)
+**Did:** Title cards are now compact by default (picture, name, rating stars and summary only). A "Show details" button on each card, or a "Show full cards / Compact cards" toggle in the filter bar, brings back the blurb, tags, badges, comment box and share button. The choice is remembered on this device (`hub_cards_compact`); clicking the picture or name still opens the game in either mode. Pure JS/CSS, no card markup changed.
+**Result:** Verified live: compact card 378px tall vs 626px expanded, toggles and persistence work, zero console errors.

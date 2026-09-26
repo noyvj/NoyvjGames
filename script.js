@@ -275,6 +275,60 @@ function lsSet(key, value) {
   try { localStorage.setItem(key, value); } catch (err) { /* convenience only */ }
 }
 
+// U13: collapsible title cards. Compact by default (picture, name, rating
+// stars and summary only); "Show details" on a card, or the filter bar's
+// toggle for all of them, brings back the blurb, tags, badges, comment box
+// and share button. The choice is remembered on this device. The card's
+// link, name and picture still open the game in either mode.
+const CARDS_COMPACT_KEY = "hub_cards_compact";
+let cardsCompact = lsGet(CARDS_COMPACT_KEY) !== "0";
+
+function refreshCardDetailToggles() {
+  if (gameGrid) gameGrid.classList.toggle("game-grid--compact", cardsCompact);
+  allTitleCards.forEach((card) => {
+    const button = card.querySelector(".title-card-expand");
+    if (!button) return;
+    const expanded = !cardsCompact || card.classList.contains("is-expanded");
+    button.textContent = expanded && cardsCompact ? "Hide details" : "Show details";
+    button.setAttribute("aria-expanded", String(expanded));
+    button.hidden = !cardsCompact;
+  });
+  const globalToggle = document.getElementById("cards-compact-toggle");
+  if (globalToggle) {
+    globalToggle.textContent = cardsCompact ? "Show full cards" : "Compact cards";
+    globalToggle.setAttribute("aria-pressed", String(cardsCompact));
+  }
+}
+
+allTitleCards.forEach((card) => {
+  const widget = card.querySelector(".review-widget");
+  if (!widget) return;
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "title-card-expand";
+  button.addEventListener("click", () => {
+    card.classList.toggle("is-expanded");
+    refreshCardDetailToggles();
+  });
+  card.insertBefore(button, widget);
+});
+
+const filterBarForCards = document.getElementById("game-filter-bar");
+if (filterBarForCards) {
+  const globalToggle = document.createElement("button");
+  globalToggle.type = "button";
+  globalToggle.id = "cards-compact-toggle";
+  globalToggle.className = "cards-compact-toggle";
+  globalToggle.addEventListener("click", () => {
+    cardsCompact = !cardsCompact;
+    lsSet(CARDS_COMPACT_KEY, cardsCompact ? "1" : "0");
+    allTitleCards.forEach((card) => card.classList.remove("is-expanded"));
+    refreshCardDetailToggles();
+  });
+  filterBarForCards.appendChild(globalToggle);
+}
+refreshCardDetailToggles();
+
 // Y4: live game count, derived from the cards actually on the page so it
 // can never drift from what a visitor can see.
 const hubGameCount = document.getElementById("hub-game-count");

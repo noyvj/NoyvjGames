@@ -1560,3 +1560,38 @@ button.secondary:disabled {
 .achievements-bar-label a { color: inherit; text-decoration: underline; text-decoration-color: rgba(140, 190, 255, 0.5); }
 .achievements-bar-label a:hover { text-decoration-color: rgba(140, 190, 255, 1); }
 .ach-controls[hidden], .ach-jump[hidden] { display: none; }
+
+/* U13: compact title cards. Only the picture, name, rating stars and rating
+   summary stay; everything wordy hides until "Show details". */
+.game-grid--compact .title-card:not(.is-expanded) .title-card-blurb,
+.game-grid--compact .title-card:not(.is-expanded) .title-card-tags,
+.game-grid--compact .title-card:not(.is-expanded) .title-card-updated,
+.game-grid--compact .title-card:not(.is-expanded) .title-card-last-played,
+.game-grid--compact .title-card:not(.is-expanded) .title-card-match-note,
+.game-grid--compact .title-card:not(.is-expanded) .title-card-sortnote,
+.game-grid--compact .title-card:not(.is-expanded) .title-card-share,
+.game-grid--compact .title-card:not(.is-expanded) .comment-box,
+.game-grid--compact .title-card:not(.is-expanded) .comment-submit {
+  display: none;
+}
+
+.title-card-expand,
+.cards-compact-toggle {
+  background: transparent;
+  border: 1px solid rgba(140, 160, 255, 0.25);
+  border-radius: 999px;
+  color: inherit;
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.8rem;
+  cursor: pointer;
+}
+
+.title-card-expand {
+  margin: 0 1.4rem 0.6rem;
+  align-self: flex-start;
+}
+
+.title-card-expand[hidden] {
+  display: none;
+}
