@@ -32,7 +32,7 @@ allowed_origins = os.environ.get("ALLOWED_ORIGINS", DEFAULT_ORIGINS).split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_methods=["GET", "POST", "PUT"],
+    allow_methods=["GET", "POST", "PUT", "PATCH"],
     allow_headers=["*"],
 )
 
@@ -206,6 +206,31 @@ class AnswerReportOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+# --- U8: admin access ---
+# Admin-only endpoints need an `X-Admin-Token` header matching one of two
+# server environment variables: ADMIN_TOKEN (the site owner's password) or
+# AI_ADMIN_TOKEN (a separate, independently revocable token for the AI
+# sessions that build the site). Fail closed: with neither variable set the
+# endpoints answer 503 rather than being open, so a deploy that lands before
+# the tokens are configured locks the admin data instead of exposing it.
+# Read at request time (not import time) so setting or revoking a variable
+# takes effect on the next request/redeploy without code changes.
+ADMIN_TOKEN_ENV_VARS = ("ADMIN_TOKEN", "AI_ADMIN_TOKEN")
+
+
+def require_admin(x_admin_token: Optional[str] = Header(default=None)) -> None:
+    configured = [os.environ.get(name, "") for name in ADMIN_TOKEN_ENV_VARS]
+    configured = [value for value in configured if value]
+    if not configured:
+        raise HTTPException(status_code=503, detail="Admin access is not configured on this server")
+    supplied = x_admin_token or ""
+    # compare_digest on every configured token (no early exit) keeps the
+    # timing independent of which one, if any, matched.
+    matches = [secrets.compare_digest(supplied.encode(), value.encode()) for value in configured]
+    if not supplied or not any(matches):
+        raise HTTPException(status_code=401, detail="Admin token required")
+
+
 @app.post("/answer-reports", response_model=AnswerReportOut)
 def create_answer_report(payload: AnswerReportIn, db: Session = Depends(get_db)):
     row = AnswerReport(
@@ -224,6 +249,7 @@ def create_answer_report(payload: AnswerReportIn, db: Session = Depends(get_db))
 @app.get("/answer-reports", response_model=List[AnswerReportOut])
 def list_answer_reports(
     response: Response,
+    _admin: None = Depends(require_admin),
     game_id: Optional[str] = None,
     topic_type: Optional[str] = None,
     item_id: Optional[str] = None,
@@ -612,7 +638,7 @@ class AdminStatsOut(BaseModel):
 
 
 @app.get("/admin/stats", response_model=AdminStatsOut)
-def admin_stats(response: Response, db: Session = Depends(get_db)):
+def admin_stats(response: Response, _admin: None = Depends(require_admin), db: Session = Depends(get_db)):
     response.headers["Cache-Control"] = "no-store"
     total_users = db.query(func.count(User.id)).scalar() or 0
     total_saves = db.query(func.count(Save.id)).scalar() or 0

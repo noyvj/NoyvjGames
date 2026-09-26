@@ -4,16 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Site Admin</title>
-<!-- Deliberately not linked from the hub nav or listed anywhere -- reachable
-     only by knowing this URL. Every endpoint it calls (GET /ratings/{slug},
-     GET /feedback, GET /answer-reports) is already a public, unauthenticated
-     read on the backend (see app/main.py) -- this page adds no new data
-     exposure, it just aggregates what anyone could already curl individually
-     into one readable view. -->
+<!-- Deliberately not linked from the hub nav or listed anywhere. U8: the
+     admin data itself (GET /admin/stats, GET /answer-reports, and the
+     account/test-data endpoints) now needs an X-Admin-Token that matches the
+     server's ADMIN_TOKEN (the owner) or AI_ADMIN_TOKEN (the AI sessions). This
+     page asks for it in a password box and keeps it only in this tab's
+     sessionStorage. The ratings and feedback reads it also shows are public on
+     the backend anyway (the hub displays them). -->
 <link rel="icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="shared/space-bg.css">
 <style>
   * { box-sizing: border-box; }
+  body.locked details.panel { display: none; }
+  #admin-login form { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  #admin-login input { flex: 1 1 14rem; padding: 0.5rem 0.7rem; font: inherit; border-radius: 8px;
+    border: 1px solid rgba(140, 160, 255, 0.3); background: rgba(5, 6, 13, 0.55); color: inherit; }
   body {
     margin: 0;
     min-height: 100vh;
@@ -159,6 +164,14 @@
 <div class="space-bg" aria-hidden="true"><div class="space-bg-nebula"></div><div class="space-bg-stars-bright"></div></div>
 
 <main id="main-content" tabindex="-1">
+  <section id="admin-login" class="panel" hidden>
+    <h2 style="margin-top:0">Admin password</h2>
+    <p class="status-line" id="admin-login-status">Enter the admin token to view this page's data.</p>
+    <form id="admin-login-form" autocomplete="off">
+      <input type="password" id="admin-token-input" placeholder="Admin token" aria-label="Admin token" autocomplete="off">
+      <button type="submit" class="refresh-button">Unlock</button>
+    </form>
+  </section>
   <h1>SITE ADMIN</h1>
   <p id="subtitle">Ratings, feedback, and French answer reports — pulled live from the existing public read endpoints, nothing new exposed.</p>
   <div class="collapse-controls">
@@ -233,6 +246,35 @@ function formatWhen(iso) {
 
 async function fetchJson(url) {
   const res = await fetch(url);
+  if (!res.ok) throw new Error(`${url} -> status ${res.status}`);
+  return res.json();
+}
+
+// U8: the token lives only in this tab's sessionStorage.
+const ADMIN_TOKEN_KEY = "admin-token";
+function getAdminToken() {
+  try { return sessionStorage.getItem(ADMIN_TOKEN_KEY) || ""; } catch (e) { return ""; }
+}
+function setAdminToken(value) {
+  try {
+    if (value) sessionStorage.setItem(ADMIN_TOKEN_KEY, value);
+    else sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+  } catch (e) { /* storage unavailable: the token just won't persist across reloads */ }
+}
+class AdminAuthError extends Error {}
+function showLogin(message) {
+  document.body.classList.add("locked");
+  document.getElementById("admin-login").hidden = false;
+  if (message) document.getElementById("admin-login-status").textContent = message;
+}
+async function adminFetchJson(url) {
+  const res = await fetch(url, { headers: { "X-Admin-Token": getAdminToken() } });
+  if (res.status === 401 || res.status === 503) {
+    setAdminToken("");
+    throw new AdminAuthError(res.status === 503
+      ? "Admin access isn't configured on the server yet."
+      : "That token wasn't accepted. Try again.");
+  }
   if (!res.ok) throw new Error(`${url} -> status ${res.status}`);
   return res.json();
 }
@@ -342,8 +384,9 @@ function renderReports() {
 async function loadReports() {
   const status = document.getElementById("reports-status");
   try {
-    allReports = await fetchJson(`${API_BASE}/answer-reports?game_id=champ-de-mots`);
+    allReports = await adminFetchJson(`${API_BASE}/answer-reports?game_id=champ-de-mots`);
   } catch (err) {
+    if (err instanceof AdminAuthError) { showLogin(err.message); return 0; }
     console.error("loadReports failed:", err);
     status.textContent = "Failed to load reports — check the console.";
     return 0;
@@ -363,8 +406,9 @@ async function loadAdminStats() {
   // without it -- a fetch failure here shouldn't blank out ratings,
   // feedback, or reports.
   try {
-    return await fetchJson(`${API_BASE}/admin/stats`);
+    return await adminFetchJson(`${API_BASE}/admin/stats`);
   } catch (err) {
+    if (err instanceof AdminAuthError) { showLogin(err.message); return null; }
     console.error("loadAdminStats failed:", err);
     return null;
   }
@@ -425,7 +469,23 @@ async function loadAll() {
 document.getElementById("reports-filter").addEventListener("input", renderReports);
 document.getElementById("reports-refresh").addEventListener("click", loadAll);
 
-loadAll();
+document.getElementById("admin-login-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const input = document.getElementById("admin-token-input");
+  const value = input.value.trim();
+  input.value = "";
+  if (!value) return;
+  setAdminToken(value);
+  document.body.classList.remove("locked");
+  document.getElementById("admin-login").hidden = true;
+  loadAll();
+});
+
+if (getAdminToken()) {
+  loadAll();
+} else {
+  showLogin("Enter the admin token to view this page's data.");
+}
 </script>
 </body>
 </html>

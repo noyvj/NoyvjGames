@@ -16,7 +16,7 @@ client = TestClient(app)
 
 
 def _stats():
-    resp = client.get("/admin/stats")
+    resp = client.get("/admin/stats", headers={"X-Admin-Token": "test-admin-token"})
     assert resp.status_code == 200
     return resp.json()
 

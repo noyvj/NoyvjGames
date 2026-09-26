@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 from main import app
 
 client = TestClient(app)
+ADMIN = {"X-Admin-Token": "test-admin-token"}
 
 
 def _report(**overrides):
@@ -101,7 +102,7 @@ def test_list_answer_reports_returns_newest_first():
     client.post("/answer-reports", json=_report(item_id="report-order-a"))
     client.post("/answer-reports", json=_report(item_id="report-order-b"))
 
-    resp = client.get("/answer-reports")
+    resp = client.get("/answer-reports", headers=ADMIN)
     assert resp.status_code == 200
     created_ats = [row["created_at"] for row in resp.json()]
     assert created_ats == sorted(created_ats, reverse=True)
@@ -111,7 +112,7 @@ def test_list_answer_reports_filters_by_game_id():
     client.post("/answer-reports", json=_report(item_id="filter-game-a", game_id="champ-de-mots"))
     client.post("/answer-reports", json=_report(item_id="filter-game-b", game_id="some-other-game"))
 
-    resp = client.get("/answer-reports", params={"game_id": "some-other-game"})
+    resp = client.get("/answer-reports", params={"game_id": "some-other-game"}, headers=ADMIN)
     assert resp.status_code == 200
     assert all(row["game_id"] == "some-other-game" for row in resp.json())
     assert any(row["item_id"] == "filter-game-b" for row in resp.json())
@@ -122,7 +123,7 @@ def test_list_answer_reports_filters_by_topic_type():
     client.post("/answer-reports", json=_report(item_id="filter-topic-a", topic_type="grammar"))
     client.post("/answer-reports", json=_report(item_id="filter-topic-b", topic_type="vocab"))
 
-    resp = client.get("/answer-reports", params={"topic_type": "vocab"})
+    resp = client.get("/answer-reports", params={"topic_type": "vocab"}, headers=ADMIN)
     assert resp.status_code == 200
     assert all(row["topic_type"] == "vocab" for row in resp.json())
     assert any(row["item_id"] == "filter-topic-b" for row in resp.json())
@@ -133,7 +134,7 @@ def test_list_answer_reports_filters_by_item_id():
     client.post("/answer-reports", json=_report(item_id="filter-item-unique-1"))
     client.post("/answer-reports", json=_report(item_id="filter-item-unique-2"))
 
-    resp = client.get("/answer-reports", params={"item_id": "filter-item-unique-1"})
+    resp = client.get("/answer-reports", params={"item_id": "filter-item-unique-1"}, headers=ADMIN)
     assert resp.status_code == 200
     rows = resp.json()
     assert rows
@@ -151,7 +152,7 @@ def test_list_answer_reports_combines_filters():
     )
 
     resp = client.get(
-        "/answer-reports", params={"game_id": "champ-de-mots", "topic_type": "grammar"}
+        "/answer-reports", params={"game_id": "champ-de-mots", "topic_type": "grammar"}, headers=ADMIN
     )
     ids = [row["item_id"] for row in resp.json()]
     assert "combo-a" in ids
