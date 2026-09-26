@@ -61,6 +61,25 @@ CAPACITY_PER_INVESTMENT = {
     "infrastructure": 6.0,
 }
 
+# I1 (planning/TODO.md "Per-game: Drift"): a second receiving region, a
+# neighbouring district with a different starting profile -- plenty of
+# housing already but no integration services, little money, and a higher
+# background pressure -- that the player runs alongside the main region
+# (opens after NEIGHBOR_MIN_ROUND rounds, so the core loop comes first).
+# I7 links the two: a well-prepared main region can send funds to the
+# neighbour (NEIGHBOR_SUPPORT_AMOUNT each time, only while its own strain is
+# below "strained" and it keeps a NEIGHBOR_SUPPORT_RESERVE cushion), and it
+# has a reason to: a neighbour left in critical strain pushes
+# NEIGHBOR_SPILLOVER_ARRIVALS extra people per round on into the main region.
+NEIGHBOR_MIN_ROUND = 3
+NEIGHBOR_START_FUNDS = 100.0
+NEIGHBOR_START_HOUSING = 30.0
+NEIGHBOR_START_ARRIVALS = 20.0
+NEIGHBOR_START_SEVERITY = 3.0
+NEIGHBOR_SUPPORT_AMOUNT = 40.0
+NEIGHBOR_SUPPORT_RESERVE = 60.0
+NEIGHBOR_SPILLOVER_ARRIVALS = 4.0
+
 # I3: the policy toolkit -- three named, real-world-grounded institutional
 # levers, offered beside (not instead of) the abstract housing/services/
 # infrastructure split. Each can be strengthened POLICY_MAX_LEVEL times for a
@@ -359,6 +378,10 @@ class RegionState:
         # I15: opt-in already-strained starting state; only togglable
         # before any round is played.
         self.crisis_start_enabled = False
+        # I1/I7: people pushed on from a neighbouring region in critical
+        # strain. Derived each round from the neighbour's state (see
+        # _sync_spillover), never saved.
+        self.spillover_arrivals = 0.0
 
     def total_capacity(self):
         return sum(self.capacity[t] for t in CAPACITY_TYPES)
@@ -398,7 +421,7 @@ class RegionState:
         base = BASE_ARRIVALS_PER_ROUND + self.background_severity * ARRIVALS_PER_SEVERITY_POINT
         if self.second_wave_status == "active":
             base *= SECOND_WAVE_ARRIVALS_MULTIPLIER
-        return base
+        return base + self.spillover_arrivals
 
     def strain_fraction(self):
         """0..1 — the share of the region's arrived population that
@@ -718,6 +741,77 @@ def _load_cross_region_learning():
 
 cross_region_learning = _load_cross_region_learning()
 region = RegionState()
+
+# I1/I7: the optional neighbouring region (None until opened) and how much
+# support the main region has sent it.
+neighbor = None
+neighbor_support_sent = 0.0
+
+
+def neighbor_available():
+    return neighbor is not None or region.round_number >= NEIGHBOR_MIN_ROUND
+
+
+def _new_neighbor_region():
+    """A fresh neighbouring region: housing-rich but with no integration
+    services, little money and a higher background pressure. Its own second
+    wave and cross-region learning are switched off so it stays a simple
+    second dial, not a second copy of every system."""
+    other = RegionState()
+    other.funds = NEIGHBOR_START_FUNDS
+    other.capacity["housing"] = NEIGHBOR_START_HOUSING
+    other.total_arrivals = NEIGHBOR_START_ARRIVALS
+    other.background_severity = NEIGHBOR_START_SEVERITY
+    other.learning_active = False
+    other.second_wave_status = "done"
+    other.second_wave_result = "held"
+    return other
+
+
+def open_neighbor():
+    global neighbor
+    if neighbor is not None or region.round_number < NEIGHBOR_MIN_ROUND:
+        return False
+    neighbor = _new_neighbor_region()
+    _sync_spillover()
+    return True
+
+
+def invest_neighbor(capacity_type):
+    if neighbor is None or capacity_type not in CAPACITY_TYPES:
+        return False
+    return neighbor.invest(capacity_type)
+
+
+def main_region_well_prepared():
+    """I7: the main region can spare help only while it is not strained and
+    would still hold a reserve after sending it."""
+    return (
+        region.strain_fraction() < STRAIN_LEVEL_THRESHOLDS[1][0]
+        and region.funds >= NEIGHBOR_SUPPORT_AMOUNT + NEIGHBOR_SUPPORT_RESERVE
+    )
+
+
+def support_neighbor():
+    global neighbor_support_sent
+    if neighbor is None or not main_region_well_prepared():
+        return False
+    region.funds -= NEIGHBOR_SUPPORT_AMOUNT
+    neighbor.funds += NEIGHBOR_SUPPORT_AMOUNT
+    neighbor_support_sent += NEIGHBOR_SUPPORT_AMOUNT
+    return True
+
+
+def neighbor_spillover():
+    if neighbor is not None and neighbor.strain_fraction() >= STRAIN_LEVEL_THRESHOLDS[2][0]:
+        return NEIGHBOR_SPILLOVER_ARRIVALS
+    return 0.0
+
+
+def _sync_spillover():
+    region.spillover_arrivals = neighbor_spillover()
+
+
 coda_visible = False
 
 
@@ -1864,7 +1958,9 @@ def render_personal_best():
 
 
 def render():
+    _sync_spillover()
     render_info_page()
+    render_neighbor()
     render_policies()
     render_second_wave()
     _maybe_record_learning()
@@ -2138,7 +2234,10 @@ def render():
 
 
 def on_advance_round(event=None):
+    _sync_spillover()
     region.advance_round()
+    if neighbor is not None:
+        neighbor.advance_round()
     render()
     _check_new_achievements_for_toast()
 
@@ -2165,6 +2264,65 @@ def render_policies():
         else:
             button.innerText = f"Fund ({region.policy_cost(policy):.0f})"
             button.disabled = region.funds < region.policy_cost(policy)
+
+
+def neighbor_message():
+    if neighbor is None:
+        return (
+            "A neighbouring district has plenty of housing but no integration services, little money and a "
+            "higher background pressure. Open it to run both regions side by side."
+        )
+    text = (
+        f"Neighbouring district, round {neighbor.round_number}: funds {neighbor.funds:.0f}, "
+        f"capacity {neighbor.total_capacity():.0f}, strain {neighbor.strain_fraction() * 100:.0f}% "
+        f"({neighbor.strain_level()}), integrated {neighbor.integrated_population:.0f} of "
+        f"{neighbor.total_arrivals:.0f} arrivals, wellbeing {neighbor.wellbeing_score():.0f}."
+    )
+    if neighbor_spillover():
+        text += (
+            f" Its strain is critical, so {NEIGHBOR_SPILLOVER_ARRIVALS:.0f} extra people a round are "
+            "reaching your region."
+        )
+    if neighbor_support_sent:
+        text += f" You have sent it {neighbor_support_sent:.0f} funds so far."
+    return text
+
+
+def render_neighbor():
+    panel = document.getElementById("neighbor-panel")
+    available = neighbor_available()
+    panel.hidden = not available
+    if not available:
+        return
+    document.getElementById("neighbor-display").innerText = neighbor_message()
+    open_button = document.getElementById("neighbor-open-button")
+    open_button.hidden = neighbor is not None
+    for capacity_type in CAPACITY_TYPES:
+        button = document.getElementById(f"neighbor-{capacity_type}-button")
+        button.hidden = neighbor is None
+        button.innerText = f"{CAPACITY_LABEL[capacity_type]} ({INVEST_COST[capacity_type]:.0f})"
+        button.disabled = neighbor is None or neighbor.funds < INVEST_COST[capacity_type]
+    support_button = document.getElementById("neighbor-support-button")
+    support_button.hidden = neighbor is None
+    support_button.innerText = f"Send support ({NEIGHBOR_SUPPORT_AMOUNT:.0f})"
+    support_button.disabled = not main_region_well_prepared()
+
+
+def on_open_neighbor(event=None):
+    open_neighbor()
+    render()
+
+
+def on_support_neighbor(event=None):
+    support_neighbor()
+    render()
+
+
+def _make_neighbor_invest_handler(capacity_type):
+    def handler(event=None):
+        invest_neighbor(capacity_type)
+        render()
+    return handler
 
 
 def _make_policy_handler(policy):
@@ -2270,6 +2428,58 @@ def _make_legacy_handler(choice):
 # graceful-degradation contract as capacity's per-key merge above. This
 # mirrors the exact fix Tide's load_state() needed for the identical bug
 # shape (see BCM114-DEV-LOG.md 2026-09-02).
+def _neighbor_state_fields():
+    """I1/I7: the neighbouring region, written only once it has been opened."""
+    if neighbor is None:
+        return {}
+    return {"neighbor": {
+        "round_number": neighbor.round_number,
+        "funds": neighbor.funds,
+        "capacity": dict(neighbor.capacity),
+        "background_severity": neighbor.background_severity,
+        "total_arrivals": neighbor.total_arrivals,
+        "integrated_population": neighbor.integrated_population,
+        "strain_sum": neighbor._strain_sum,
+        "strain_count": neighbor._strain_count,
+        "cumulative_services_investment": neighbor.cumulative_services_investment,
+        "cumulative_integration_contribution": neighbor.cumulative_integration_contribution,
+        "support_sent": neighbor_support_sent,
+    }}
+
+
+def _finite_number(value, default, low=0.0):
+    """A finite non-bool number >= low, else default."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return default
+    if value != value or value in (float("inf"), float("-inf")):
+        return default
+    return max(low, float(value))
+
+
+def _load_neighbor(saved):
+    global neighbor, neighbor_support_sent
+    if not isinstance(saved, dict):
+        neighbor = None
+        neighbor_support_sent = 0.0
+        return
+    other = _new_neighbor_region()
+    other.round_number = int(_finite_number(saved.get("round_number"), 1, 1))
+    other.funds = _finite_number(saved.get("funds"), other.funds)
+    saved_capacity = saved.get("capacity")
+    if isinstance(saved_capacity, dict):
+        for capacity_type in CAPACITY_TYPES:
+            other.capacity[capacity_type] = _finite_number(saved_capacity.get(capacity_type), other.capacity[capacity_type])
+    other.background_severity = _finite_number(saved.get("background_severity"), other.background_severity)
+    other.total_arrivals = _finite_number(saved.get("total_arrivals"), other.total_arrivals)
+    other.integrated_population = min(other.total_arrivals, _finite_number(saved.get("integrated_population"), 0.0))
+    other._strain_count = int(_finite_number(saved.get("strain_count"), 0))
+    other._strain_sum = min(float(other._strain_count), _finite_number(saved.get("strain_sum"), 0.0))
+    other.cumulative_services_investment = _finite_number(saved.get("cumulative_services_investment"), 0.0)
+    other.cumulative_integration_contribution = _finite_number(saved.get("cumulative_integration_contribution"), 0.0)
+    neighbor = other
+    neighbor_support_sent = _finite_number(saved.get("support_sent"), 0.0)
+
+
 def get_state():
     return {
         "round_number": region.round_number,
@@ -2312,6 +2522,7 @@ def get_state():
             }}
             if region.second_wave_status is not None else {}
         ),
+        **_neighbor_state_fields(),
         "coda_visible": coda_visible,
         "info_page_open": info_page_open,
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
@@ -2428,6 +2639,7 @@ def load_state(data):
             level = saved_policies.get(p)
             if isinstance(level, int) and not isinstance(level, bool) and 0 <= level <= POLICY_MAX_LEVEL:
                 region.policy_level[p] = level
+    _load_neighbor(data.get("neighbor"))
     name_input = document.getElementById("region-name-input")
     name_input.value = region.region_name
     coda_visible = data.get("coda_visible", coda_visible)
@@ -2477,6 +2689,12 @@ def setup():
         "click", create_proxy(on_toggle_crisis_start)
     )
     document.getElementById("realloc-button").addEventListener("click", create_proxy(on_reallocate))
+    document.getElementById("neighbor-open-button").addEventListener("click", create_proxy(on_open_neighbor))
+    document.getElementById("neighbor-support-button").addEventListener("click", create_proxy(on_support_neighbor))
+    for capacity_type in CAPACITY_TYPES:
+        document.getElementById(f"neighbor-{capacity_type}-button").addEventListener(
+            "click", create_proxy(_make_neighbor_invest_handler(capacity_type))
+        )
     document.getElementById("region-name-input").addEventListener(
         "change", create_proxy(on_region_name_input)
     )

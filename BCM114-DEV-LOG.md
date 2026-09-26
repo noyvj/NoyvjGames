@@ -735,3 +735,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** herd
 **Did:** Added a satellite farm to Herd: opens at main herd 6 for 40 funds, own dirtier coupling ratio (1.2), 10-animal limit and barn-retrofit lever, plus the network effect where the main farm's decoupling beyond 40% offsets up to half of the satellite's emissions. Wired into methane, income, the regional cap, the counterfactual, saves (keys only once opened) and a new panel.
 **Result:** 220 Herd tests pass (12 new); live-checked open/grow/retrofit through the real buttons, no new console errors.
+
+### 2026-09-26 (Drift I1/I7: neighbouring district)
+**Game:** drift
+**Did:** Added a second, neighbouring district to Drift alongside the main region: different start (30 housing, no services, 100 funds, higher pressure), own investments, advanced every round, plus the I7 support link (a calm, funded main region can send 40 funds; a neighbour in critical strain spills 4 extra arrivals a round into the main region). Saved only once opened, fully validated on load.
+**Result:** 354 Drift tests pass (12 new); live-checked open/advance/invest through the real buttons with no new console errors.
