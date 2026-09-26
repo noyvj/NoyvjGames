@@ -585,3 +585,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Thaw
 **Did:** Added restoration: after 3 rounds of investment alone holding a melting region's feedback loop under 1.3x, each Preservation unit pulls a little melt-driven warming back each round (capped, never below the melt threshold, never outrunning the background rise). Temporary rescue boosts don't count.
 **Result:** 187 → 202 tests passing, flake8 clean; verified live, zero console errors.
+
+### 2026-09-26 (Thaw: forecast mini-game, G27)
+**Game:** Thaw
+**Did:** Added the optional "thaw forecast": lock in a guess of Region A's next-round temperature, get scored on Advance, and earn a cosmetic Forecaster title from the running hit rate. No mechanic reads it.
+**Result:** 202 → 216 tests passing, flake8 clean; verified live, zero console errors.

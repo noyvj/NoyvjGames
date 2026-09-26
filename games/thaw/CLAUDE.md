@@ -564,3 +564,11 @@ The late-game payoff for a region whose feedback loop is contained. A melting re
 - The streak is judged on `_investment_acceleration_factor()` (investment dampening only), so a temporary emergency rescue never counts as "stabilized". Losing control (acceleration back above 1.3x) resets the streak; restored degrees stay counted.
 - Stats: `stabilized_rounds` and `restored_total`; a per-region status line ("Restoration under way / paused, N degrees pulled back") appears only once relevant, and the first restoring round is logged in the scientist's log.
 - Save: both fields written only when nonzero; validated on load (int in range, finite non-negative float, never a bool). 187 -> 202 tests (`tests/test_restoration.py`); verified live, zero console errors.
+
+## Thaw forecast mini-game (G27, 2026-09-26)
+
+Before advancing, the player may lock in a guess of Region A's temperature after the coming round; on Advance it is scored against the real figure (within `FORECAST_TOLERANCE`, 0.2 degrees, is a hit) and the guess clears. The reward is purely cosmetic: a running record and a title (Apprentice, Seasoned at 5+ forecasts and 50%, Master at 10+ and 75%). Nothing in any mechanic reads it. The game is deterministic, so a careful player can hit every forecast from the displayed warming rate, which is deliberate: the mini-game exists to make that number worth reading (restoration and rescue make the arithmetic less obvious).
+
+- Module-level `forecast_guess`/`forecast_total`/`forecast_hits`/`forecast_last`; `lock_forecast()` rejects blank, non-numeric, non-finite and out-of-range (-100..1000) input; `resolve_forecast()` runs right after Region A advances.
+- Save: a `forecast` dict (`total`, `hits`) written only once one has been scored, validated on load (non-negative ints, hits never above total, bools rejected); the locked guess and last result are per-session and reset on load.
+- 202 -> 216 tests (`tests/test_forecast.py`); verified live, zero console errors.

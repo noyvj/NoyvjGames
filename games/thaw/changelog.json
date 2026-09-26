@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-26",
+    "entry": "Thaw forecast mini-game: optionally lock in a guess of Region A's temperature before each round and earn a Forecaster title for accuracy (G27)."
+  },
+  {
+    "date": "2026-09-26",
     "entry": "Permafrost restoration: once investment has held a melting region's feedback loop down for 3 rounds in a row, each Preservation unit starts pulling melt-driven warming back (G15)."
   },
   {

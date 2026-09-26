@@ -1048,3 +1048,26 @@ html[data-reduced-motion="true"] *::after {
   flex: 1 1 8rem;
   font-size: 0.8rem;
 }
+
+/* G27: the optional thaw-forecast mini-game. */
+.forecast-row {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.forecast-row input {
+  flex: 1 1 6rem;
+  min-width: 0;
+  padding: 0.35rem 0.5rem;
+  font: inherit;
+}
+
+.forecast-row button.secondary {
+  flex: 0 0 auto;
+  font-size: 0.8rem;
+}
+
+.forecast-record[hidden] {
+  display: none;
+}

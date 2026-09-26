@@ -135,6 +135,16 @@
       </details>
     </div>
 
+    <div id="forecast" class="section forecast">
+      <p class="meter-label">Thaw forecast (optional)</p>
+      <div class="forecast-row">
+        <input id="forecast-input" type="number" step="0.1" inputmode="decimal" placeholder="e.g. 3.0" aria-label="Forecast Region A temperature after the next round">
+        <button id="forecast-lock-button" class="secondary" type="button">Lock in forecast</button>
+      </div>
+      <p id="forecast-status" class="comparison-message"></p>
+      <p id="forecast-record" class="comparison-message" hidden></p>
+    </div>
+
     <div id="policy-stance" class="section policy-stance">
       <p class="meter-label">Starting policy stance (Region A, optional)</p>
       <div class="policy-stance-buttons">

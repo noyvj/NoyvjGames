@@ -984,6 +984,101 @@ def on_toggle_info_page(event=None):
 
 
 # ===========================================================================
+# G27: the "thaw forecast" mini-game. Before advancing, the player may lock
+# in a guess of Region A's temperature after the coming round; on advance
+# the guess is scored against the real number. Purely cosmetic: a running
+# record and a title, no effect on any mechanic. The game is deterministic,
+# so a careful player can hit every forecast from the displayed warming
+# rate alone -- deliberately, since the point is engaging with that number
+# (restoration and rescue make the arithmetic a little less obvious).
+# ===========================================================================
+FORECAST_TOLERANCE = 0.2
+FORECAST_MIN = -100.0
+FORECAST_MAX = 1000.0
+FORECAST_TITLES = (  # (min attempts, min hit rate, title), best first
+    (10, 0.75, "Master Forecaster"),
+    (5, 0.5, "Seasoned Forecaster"),
+    (1, 0.0, "Apprentice Forecaster"),
+)
+
+forecast_guess = None      # the locked-in guess for the coming round, or None
+forecast_total = 0         # forecasts ever scored
+forecast_hits = 0          # of those, how many landed within FORECAST_TOLERANCE
+forecast_last = None       # (guess, actual, hit) from the most recent scoring, transient
+
+
+def forecast_title():
+    if forecast_total <= 0:
+        return None
+    rate = forecast_hits / forecast_total
+    for min_attempts, min_rate, title in FORECAST_TITLES:
+        if forecast_total >= min_attempts and rate >= min_rate:
+            return title
+    return None
+
+
+def lock_forecast(raw):
+    """Parses and stores a guess. Returns True if it was accepted."""
+    global forecast_guess
+    try:
+        value = float(str(raw).strip())
+    except (TypeError, ValueError):
+        return False
+    if not math.isfinite(value) or not (FORECAST_MIN <= value <= FORECAST_MAX):
+        return False
+    forecast_guess = value
+    return True
+
+
+def resolve_forecast():
+    """Scores a locked-in guess against Region A's temperature now (call
+    right after the region has advanced). No guess, no-op."""
+    global forecast_guess, forecast_total, forecast_hits, forecast_last
+    if forecast_guess is None:
+        return
+    actual = region.temperature
+    hit = abs(actual - forecast_guess) <= FORECAST_TOLERANCE
+    forecast_total += 1
+    if hit:
+        forecast_hits += 1
+    forecast_last = (forecast_guess, actual, hit)
+    forecast_guess = None
+
+
+def _render_forecast():
+    status = document.getElementById("forecast-status")
+    record = document.getElementById("forecast-record")
+    if forecast_guess is not None:
+        status.innerText = f"Forecast locked in: +{forecast_guess:.1f}\u00b0 after the next round."
+    elif forecast_last is not None:
+        guess, actual, hit = forecast_last
+        verdict = "Nailed it" if hit else "Not quite"
+        status.innerText = (
+            f"{verdict} \u2014 you forecast +{guess:.1f}\u00b0, the real figure was +{actual:.1f}\u00b0."
+        )
+    else:
+        status.innerText = (
+            f"Optional: forecast Region A's temperature after the next round "
+            f"(within {FORECAST_TOLERANCE}\u00b0 counts)."
+        )
+    title = forecast_title()
+    if title is None:
+        record.innerText = ""
+        record.hidden = True
+    else:
+        record.innerText = f"{title} \u2014 {forecast_hits} of {forecast_total} forecasts on target."
+        record.hidden = False
+    document.getElementById("forecast-lock-button").innerText = (
+        "Change forecast" if forecast_guess is not None else "Lock in forecast"
+    )
+
+
+def on_lock_forecast(event=None):
+    if lock_forecast(document.getElementById("forecast-input").value):
+        render()
+
+
+# ===========================================================================
 # Achievements (ACHIEVEMENTS-SYSTEM-DESIGN.md) — following SOL's reference
 # integration, as also built out for Canopy/Grid/Continuum. Every
 # achievement's earned status is a pure function of state that already
@@ -1541,6 +1636,7 @@ def render():
     _render_rescue("", region)
     _render_restoration("", region)
     _render_policy_stance()
+    _render_forecast()
     document.getElementById("rise-rate-display").innerText = (
         f"Current warming rate: {region.current_rise_rate():.2f}°/round"
     )
@@ -1783,6 +1879,7 @@ def on_toggle_worst_case_region(event=None):
 
 def on_advance_round(event=None):
     region.advance_round()
+    resolve_forecast()
     for r in SECONDARY_REGIONS.values():
         r.advance_round()
     _auto_play_worst_case_region()
@@ -1956,7 +2053,7 @@ def get_state():
     "achievements_earned" is a write-only projection
     (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always freshly recomputed here,
     never read back in load_state()."""
-    return {
+    state = {
         "region": _region_state_dict(region),
         "region_b": _region_state_dict(region_b),
         "region_c": _region_state_dict(region_c),
@@ -1968,6 +2065,10 @@ def get_state():
         "science_log": [dict(entry) for entry in science_log],
         "achievements_earned": achievement_ids_earned(),
     }
+    # G27: the forecast record is written only once a forecast has been scored.
+    if forecast_total > 0:
+        state["forecast"] = {"total": forecast_total, "hits": forecast_hits}
+    return state
 
 
 def load_state(data):
@@ -1983,7 +2084,7 @@ def load_state(data):
     untouched instead of crashing, same reasoning as every other
     per-field fallback in _apply_region_state()."""
     global info_page_open, worst_case_region_revealed, preset_used_ever
-    global worst_case_intro_seen
+    global worst_case_intro_seen, forecast_guess, forecast_total, forecast_hits, forecast_last
     if not isinstance(data, dict):
         return False
     region_data = data.get("region")
@@ -2004,6 +2105,23 @@ def load_state(data):
     )
     preset_used_ever = data.get("preset_used_ever", preset_used_ever)
     worst_case_intro_seen = data.get("worst_case_intro_seen", worst_case_intro_seen)
+    # G27: validated -- non-negative ints with hits never above total; the
+    # locked-in guess and last result are per-session and reset on load.
+    forecast_guess = None
+    forecast_last = None
+    forecast_total = 0
+    forecast_hits = 0
+    saved_forecast = data.get("forecast")
+    if isinstance(saved_forecast, dict):
+        total = saved_forecast.get("total")
+        hits = saved_forecast.get("hits")
+        if (
+            isinstance(total, int) and not isinstance(total, bool)
+            and isinstance(hits, int) and not isinstance(hits, bool)
+            and 0 <= hits <= total <= 1000000
+        ):
+            forecast_total = total
+            forecast_hits = hits
     saved_log = data.get("science_log")
     if isinstance(saved_log, list):
         science_log[:] = [
@@ -2020,6 +2138,9 @@ def load_state(data):
 
 
 def setup():
+    document.getElementById("forecast-lock-button").addEventListener(
+        "click", create_proxy(on_lock_forecast)
+    )
     for key in POLICY_STANCES:
         document.getElementById(f"policy-stance-{key}-button").addEventListener(
             "click", create_proxy(_make_policy_stance_handler(key))
