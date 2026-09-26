@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-09-27",
+      "entry": "Light theme polish: Canopy now has a proper light look. The readouts, plot tile edges, selection and flood outlines, info buttons, switch lights and session graphs were re-coloured so they stay readable on a light page, and the Light/Dark control moved from a floating pill into the Settings panel. The dark theme looks exactly as before and no save or game number changed."
+    },
+    {
+      "date": "2026-09-27",
       "entry": "In the real world: a collapsible note beside the forest pairs what you just did with one sourced real example. Clearing shows global forest-loss figures, replanting the Atlantic Forest Restoration Pact, wildlife how regrown forest recovers, a mature plot forest carbon sinks, and a community request Nepal's community forestry or Africa's Great Green Wall. Each names its source and links to it, and it never changes your forest or save (W2)."
     },
     {

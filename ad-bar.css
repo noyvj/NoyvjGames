@@ -60,3 +60,9 @@ html[data-theme="light"] .ad-bar {
   background: #e6ebf8;
   border-top-color: #c3cbe6;
 }
+
+/* Light theme: the label's 0.5 opacity measured 3.06:1 on the light ad bar
+   (Y11b contrast scan), so it is raised to a legible level there. */
+html[data-theme="light"] .ad-bar-label {
+  opacity: 0.75;
+}

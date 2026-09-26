@@ -164,6 +164,7 @@
         font-size: 0.75rem;
         margin-right: 0.35rem;
       }
+      html[data-theme="light"] #howto-panel .howto-step-number { opacity: 0.8; }
     `;
     document.head.appendChild(style);
   }

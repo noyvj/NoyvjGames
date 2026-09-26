@@ -1629,3 +1629,128 @@ html[data-season="winter"] .ambient-bg { filter: hue-rotate(35deg) saturate(0.55
   margin: 0;
   font-size: 0.9rem;
 }
+
+/* ============================================================
+   Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
+   restyles the shared chrome (panels, buttons, inputs, HUD readouts);
+   these rules cover Canopy's own colours a contrast scan flagged, or that
+   vanish on a light panel: the recessed dark readouts and nameplates, the
+   plot-tile borders/selection/focus/hover/flood/mature rings and the
+   floating "+X" pop (all picked for a dark page), the (i) info toggle, the
+   feedback "selected" chip, the LED on every switch, faint low-opacity
+   captions, and the session-summary graph lines. Every rule is under
+   html[data-theme="light"], so the default dark theme is untouched. Colours
+   only: layout, icons and the redundant pattern/icon channel per plot state
+   (B9) are unchanged. Plot fill colours themselves (game.py's inline
+   gradient) are deliberately left alone: they carry the state, and each tile
+   still has its pattern overlay and its icon. */
+html[data-theme="light"] .hub-back-link { opacity: 1; color: #3a4468; }
+
+/* Recessed readouts and mounted nameplates: light, with a visible edge. */
+html[data-theme="light"] .income-display,
+html[data-theme="light"] .selected-plot-state,
+html[data-theme="light"] .state-breakdown,
+html[data-theme="light"] .community-relations {
+  background: linear-gradient(180deg, #ffffff, #edf4ee);
+  color: #1b2033;
+  border-color: rgba(50, 90, 70, 0.4);
+  box-shadow: inset 0 1px 3px rgba(40, 70, 50, 0.16);
+}
+html[data-theme="light"] .state-breakdown,
+html[data-theme="light"] .community-relations { opacity: 0.92; }
+html[data-theme="light"] .legend-item,
+html[data-theme="light"] .feedback-question {
+  background: linear-gradient(180deg, #ffffff, #eaf0fb);
+  border-color: rgba(70, 95, 170, 0.32);
+  box-shadow: inset 0 1px 0 #ffffff, 0 1px 2px rgba(40, 55, 110, 0.15);
+}
+html[data-theme="light"] #legend-panel { border-left-color: #1f9d96; }
+html[data-theme="light"] .legend-swatch { border-color: rgba(30, 50, 40, 0.45); }
+html[data-theme="light"] .forest-visual {
+  border-color: rgba(70, 95, 170, 0.25);
+  box-shadow: 0 4px 14px rgba(40, 55, 110, 0.15);
+}
+html[data-theme="light"] .real-world-note {
+  border-color: rgba(70, 95, 170, 0.32);
+  background: rgba(255, 255, 255, 0.6);
+}
+html[data-theme="light"] .section.stakeholder-panel {
+  background: linear-gradient(165deg, #fff6e0, #ffeccc);
+  border-color: rgba(176, 120, 20, 0.55);
+  box-shadow: 0 6px 20px rgba(120, 80, 10, 0.15);
+}
+
+/* Plot tiles: a visible edge on a light panel, and dark selection/focus/
+   hover/flood/mature rings (the dark-theme ones are pale and vanish). */
+/* Edge >= 3:1 against the panel even for the light-green fills (which are only ~2:1). */
+html[data-theme="light"] .plot-tile { border-color: rgba(30, 50, 40, 0.7); }
+html[data-theme="light"] .plot-tile.plot-selected { outline-color: #1b2033; }
+html[data-theme="light"] .plot-tile.plot-fully-mature {
+  box-shadow: 0 0 0 2px #a8740a, inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+html[data-theme="light"] .plot-tile.plot-last-hovered {
+  box-shadow: 0 0 0 2px rgba(42, 75, 160, 0.6), 0 0 10px rgba(42, 75, 160, 0.35);
+}
+/* Flood warning: dark-blue dashes over a white inner ring, so they read on
+   every tile fill from tan to dark green (the pale-blue original does not). */
+html[data-theme="light"] .plot-tile.plot-flood-risk {
+  outline-color: #0d47a1;
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.9);
+}
+html[data-theme="light"] .value-pop {
+  color: #0b3d12;
+  text-shadow: 0 0 2px #ffffff, 0 0 3px #ffffff, 0 0 5px #ffffff;
+}
+
+/* Switches: the LED is a real state indicator, so it needs 3:1 on the light
+   button face; the "selected" feedback chip was dark-green with dark text. */
+html[data-theme="light"] button.secondary::after {
+  background: #1d8a3a;
+  box-shadow: 0 0 5px 1px rgba(29, 138, 58, 0.45);
+}
+html[data-theme="light"] button.secondary:disabled::after { background: #6b7280; box-shadow: none; }
+html[data-theme="light"] .feedback-buttons .secondary.selected {
+  background: linear-gradient(135deg, #c9ecca, #a9dcac);
+  border-color: #2e7d32;
+  color: #0f3d14;
+  box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.35);
+}
+html[data-theme="light"] .grid-size-label { opacity: 1; }
+html[data-theme="light"] .grid-size-label select {
+  background: #ffffff; color: #1b2033; border-color: rgba(70, 95, 170, 0.35);
+}
+
+/* (i) info toggle: pale-on-pale in the original. */
+html[data-theme="light"] .info-toggle summary {
+  background: rgba(70, 95, 170, 0.12);
+  border-color: rgba(70, 95, 170, 0.5);
+  color: #2a4ba0;
+}
+html[data-theme="light"] .info-toggle summary:hover,
+html[data-theme="light"] .info-toggle[open] summary { background: rgba(70, 95, 170, 0.26); }
+
+/* Faint captions: low opacity is fine on a dark panel, too faint on white. */
+html[data-theme="light"] .achievement-card-progress,
+html[data-theme="light"] .achievement-earn-rate,
+html[data-theme="light"] .changelog-entry-date,
+html[data-theme="light"] .session-summary-share-label,
+html[data-theme="light"] .session-summary-copy-status,
+html[data-theme="light"] .session-summary-playstyle-label { opacity: 0.85; }
+html[data-theme="light"] #howto-panel .howto-step-number { opacity: 0.9; } /* tutorial.js injects it at 0.5 */
+html[data-theme="light"] .achievement-card.achievement-card--earned {
+  background: linear-gradient(135deg, #e2f4e3, #f4fbf4);
+  border-color: rgba(46, 125, 50, 0.6);
+  box-shadow: 0 0 8px rgba(46, 125, 50, 0.2);
+}
+html[data-theme="light"] .playstyle-comparison-table th,
+html[data-theme="light"] .playstyle-comparison-table td { border-bottom-color: rgba(70, 95, 170, 0.28); }
+
+/* Session-summary graph lines: the bright greens/ambers/blues picked for a
+   dark card are under 3:1 on white. CSS beats the polyline's stroke
+   attribute, so game.py's palette (and the dark theme) stay as they are. */
+html[data-theme="light"] .session-sparkline polyline[stroke="#4caf50"] { stroke: #2e7d32; }
+html[data-theme="light"] .session-sparkline polyline[stroke="#e8a33d"] { stroke: #a15c00; }
+html[data-theme="light"] .session-sparkline polyline[stroke="#66b2e8"] { stroke: #1565c0; }
+
+/* Settings panel: the theme control (moved here from the floating pill). */
+.settings-row #theme-toggle { flex: 0 0 auto; padding: 0.4rem 1.3rem 0.4rem 0.8rem; }

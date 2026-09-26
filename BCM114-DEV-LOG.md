@@ -904,3 +904,9 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** herd
 **Did:** Made Herd's title-line sentence react to the session (pressure building, half decoupled, certified), display only.
 **Result:** 235 Herd tests pass (5 new).
+
+### 2026-09-27 (Canopy light-theme polish, Y11b part)
+**Game:** canopy (plus two shared CSS fixes)
+**Did:** Built by a delegated agent inside `games/canopy/`, committed by the log owner. A computed-style WCAG contrast scan of the light theme across fresh and built-up states, Highland Grove and Wetland Forest, a pending request, every panel, the tooltip and toast. Findings before: recessed readouts 2.9:1, the info toggle 1.2:1, the selected feedback chip 1.3:1, the floating +X pop 2.1 to 2.6:1, how-to numbers 3.2:1, and non-text colours (tile edges, selection/flood/mature/hover rings, the button LED, session graph strokes). Fixed with light-only rules appended to `style.css` (dark untouched, plot fills left alone since fills carry state). Canopy's Settings panel now hosts the theme control (`shared/theme.js` labels it) and the floating pill is retired for Canopy. Two shared findings fixed by the log owner: `.ad-bar-label` (3.06:1 on the light ad bar, now opacity 0.75 in light) and the shared tutorial's how-to step number (now 0.8 in light). Not fixed: the shared `.section` light border rule can override per-game accent left borders set by class (Canopy's legend was restored locally); changing it risks mismatched borders elsewhere.
+**Result:** Canopy 395 -> 402 tests, flake8 clean, computed-style evidence only (screenshots were unusable), so a human look at the tile edges against light-green fills is still worth doing.
+
