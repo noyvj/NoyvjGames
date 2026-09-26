@@ -6,6 +6,8 @@ Things deliberately deferred — either you said "later"/"maybe," or an item nee
 
 ## Standing question: what can you actually do with audio?
 
+**Round 3 answer (2026-09-27): audio is not something we will consider anytime soon. Ask again around round 6.** Every item below stays parked until then.
+
 Several items across the ideas file got parked specifically pending this — you said you're skeptical of the audio suggestions because you're not sure what's realistically possible, and asked me to explain before revisiting any of them. Short answer up front, full discussion whenever you want to pick this up: browser-side audio in this stack would mean the Web Audio API (or plain `<audio>` tags) triggered from JS — Pyodide/Python itself can't play sound directly, so any audio cue would be a small JS hook the Python side calls into, the same "Python owns state, JS owns the one external thing it needs" pattern the save widget and the report-button sender already use. Simple UI cues (a click blip, a chime on a milestone) are genuinely easy — either a tiny synthesized tone via Web Audio (no asset files needed at all) or a couple of short royalty-free sound files dropped into each game's folder. A full ambient music bed per era/game is a bigger, different kind of task (finding/licensing longer tracks, a volume/mute control, probably more worth doing once, shared, rather than per-game). Worth a real conversation on scope before touching any of these:
 
 - **A5** (SOL): light click/coin-drop sound effect.
@@ -110,4 +112,12 @@ Several items across the ideas file got parked specifically pending this — you
 ### Le Champ de Mots (added 2026-09-26, from L1/L9)
 
 - **Story quiz game (from your L1 "song lyrics or open-source short story" pitch)**: a reading game that shows a short open-licence French text (public-domain fairy tales are the obvious source) and quizzes on it. Not built: the song-lyrics half cannot be done (lyrics are copyrighted and the site has no audio licence), and a story game needs someone to choose texts whose vocabulary matches the unlocked weeks, which is a content decision more than a coding one. The listening mode (L9) and Passé Composé Sprint (L1) cover the practical parts. Revisit if you want to pick texts.
+
+### Parked by Round 3 answers (2026-09-27)
+
+- **Warframe tracker X-9 (Round 3 X)**: an arcane/mod inventory tracker driven by the import (duplicates, unranked mods worth ranking, trade-or-fuse suggestions). You said "later".
+- **Thaw G25, round 2**: the "counterfactual world tour" previewing Region D's trajectory on the other regions' starting conditions. Round 3 answer: "later".
+- **Warframe tracker riven disposition column**: Round 3 answer: ask again around round 6.
+- **Contraption (M8, round 2)**: a physics sandbox needs a JavaScript physics engine such as Matter.js. Round 3 answer: "later for now, explain more"; the explanation is in `planning/FOR-YOU.md` item 4.
+- **Silk Road (M2, round 2)**: Round 3 answer: no (marked dropped, kept here only as a record).
 
