@@ -1487,3 +1487,12 @@ button:disabled {
 .calendar-panel { color: #33291f; }
 .calendar-panel .calendar-weekday, .calendar-panel .calendar-month-label { color: inherit; }
 .calendar-note { font-size: 0.75rem; opacity: 0.8; margin: 0.6rem 0 0; color: inherit; }
+
+/* L19 phrasebook */
+.phrasebook-panel { color: #33291f; }
+.phrasebook-panel[hidden] { display: none; }
+.phrasebook-list { margin-top: 0.6rem; }
+.phrasebook-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding: 0.35rem 0; border-top: 1px solid rgba(128, 128, 128, 0.3); }
+.phrasebook-text { font-size: 0.9rem; overflow-wrap: anywhere; }
+.phrasebook-remove { width: auto; flex: 0 0 auto; padding: 0.3rem 0.7rem; font-size: 0.78rem; }
+.practice-bookmark { width: auto; }

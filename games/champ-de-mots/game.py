@@ -2394,6 +2394,142 @@ def render_calendar():
     _element("calendar-summary").innerText = summary
 
 
+# ===========================================================================
+# L19: a personal phrasebook -- bookmark any plot into a custom list that
+# cuts across the syllabus rows, and practise just that list. Saved as a list
+# of plot ids (validated against the real farm on load), newest last.
+# ===========================================================================
+PHRASEBOOK_LIMIT = 200
+PHRASEBOOK_SESSION_MAX = 40
+PHRASEBOOK_MODE = "phrasebook"
+PHRASEBOOK_EMPTY_MESSAGE = "Your phrasebook is empty. Use the star while you practise to save an item here."
+phrasebook = []
+phrasebook_open = False
+phrasebook_proxies = []
+
+
+def in_phrasebook(plot_id):
+    return plot_id in phrasebook
+
+
+def toggle_phrasebook(plot_id):
+    """Add or remove `plot_id`; returns True if it is now in the phrasebook."""
+    if plot_id not in state.plots_by_id:
+        return False
+    if plot_id in phrasebook:
+        phrasebook.remove(plot_id)
+        return False
+    if len(phrasebook) >= PHRASEBOOK_LIMIT:
+        return False
+    phrasebook.append(plot_id)
+    return True
+
+
+def _validated_phrasebook(raw):
+    if not isinstance(raw, list):
+        return []
+    clean = []
+    for plot_id in raw:
+        if isinstance(plot_id, str) and plot_id in state.plots_by_id and plot_id not in clean:
+            clean.append(plot_id)
+    return clean[:PHRASEBOOK_LIMIT]
+
+
+def phrasebook_entry_text(plot):
+    """One readable line for a saved plot: the French and its meaning."""
+    if plot.topic_type == "grammar":
+        return f"{plot.label}: {plot.rule}" if plot.rule else str(plot.label)
+    return f"{plot.label} \u2014 {plot.items[0]['en']}"
+
+
+def _destroy_phrasebook_proxies():
+    for proxy in phrasebook_proxies:
+        proxy.destroy()
+    phrasebook_proxies.clear()
+
+
+def _make_phrasebook_remove_handler(plot_id):
+    def handler(event=None):
+        if plot_id in phrasebook:
+            phrasebook.remove(plot_id)
+        render()
+    return handler
+
+
+def on_toggle_phrasebook_panel(event=None):
+    global phrasebook_open
+    phrasebook_open = not phrasebook_open
+    render()
+
+
+def on_bookmark_practice(event=None):
+    if current_question is not None:
+        toggle_phrasebook(current_question["plot_id"])
+        render()
+
+
+def on_bookmark_review(event=None):
+    if review_question is not None:
+        toggle_phrasebook(review_question["plot_id"])
+        render()
+
+
+def on_start_phrasebook_review(event=None):
+    start_review(PHRASEBOOK_MODE)
+
+
+def _render_bookmark_button(button_id, question):
+    button = _element(button_id)
+    if question is None:
+        button.hidden = True
+        return
+    button.hidden = False
+    saved = in_phrasebook(question["plot_id"])
+    button.innerText = "\u2605 In your phrasebook (remove)" if saved else "\u2606 Save to phrasebook"
+    button.setAttribute("aria-pressed", "true" if saved else "false")
+
+
+def render_phrasebook():
+    _render_bookmark_button("practice-bookmark-button", current_question if practice_open else None)
+    _render_bookmark_button("review-bookmark-button", review_question if review_mode is not None else None)
+    _destroy_phrasebook_proxies()
+    toggle = _element("phrasebook-toggle-button")
+    toggle.innerText = (
+        "Hide phrasebook" if phrasebook_open else f"\U0001F4D2 My phrasebook ({len(phrasebook)})"
+    )
+    panel = _element("phrasebook-panel")
+    panel.hidden = not phrasebook_open
+    if not phrasebook_open:
+        return
+    listing = _element("phrasebook-list")
+    listing.innerHTML = ""
+    _element("phrasebook-practice-button").disabled = not phrasebook
+    if not phrasebook:
+        empty = document.createElement("p")
+        empty.className = "row-blurb"
+        empty.innerText = PHRASEBOOK_EMPTY_MESSAGE
+        listing.appendChild(empty)
+        return
+    for plot_id in phrasebook:
+        plot = state.plots_by_id[plot_id]
+        row = document.createElement("div")
+        row.className = "phrasebook-row"
+        text = document.createElement("span")
+        text.className = "phrasebook-text"
+        text.innerText = phrasebook_entry_text(plot)
+        remove = document.createElement("button")
+        remove.className = "secondary phrasebook-remove"
+        remove.type = "button"
+        remove.innerText = "Remove"
+        remove.setAttribute("aria-label", f"Remove {plot.label} from your phrasebook")
+        proxy = create_proxy(_make_phrasebook_remove_handler(plot_id))
+        phrasebook_proxies.append(proxy)
+        remove.addEventListener("click", proxy)
+        row.appendChild(text)
+        row.appendChild(remove)
+        listing.appendChild(row)
+
+
 def on_toggle_dashboard(event=None):
     global dashboard_open
     dashboard_open = not dashboard_open
@@ -3460,6 +3596,7 @@ def render_practice():
 
 def render():
     render_calendar()
+    render_phrasebook()
     render_farm()
     render_status()
     render_practice()
@@ -3868,7 +4005,7 @@ def _review_variant_for(plot, mode):
     conjugation prompts"): if the plot can produce one of those variants,
     roll among just those; otherwise (word review, or a grammar plot that
     can't offer one) let generate_question() pick from its full pool."""
-    if mode != "grammar" and not (mode == MARATHON_MODE and plot.topic_type == "grammar"):
+    if mode != "grammar" and not (mode in (MARATHON_MODE, PHRASEBOOK_MODE) and plot.topic_type == "grammar"):
         return None
     preferred = [v for v in variants_for(plot) if v in GRAMMAR_REVIEW_PREFERRED_VARIANTS]
     return QUESTION_RNG.choice(preferred) if preferred else None
@@ -3902,7 +4039,13 @@ def start_review(mode, event=None):
     own in-page controls (§14.4: both configurable, not fixed)."""
     global review_mode, review_queue, review_index, review_score
 
-    if mode == MARATHON_MODE:
+    if mode == PHRASEBOOK_MODE:
+        # L19: just the saved items, shuffled, whatever their stage or row.
+        review_mode = mode
+        queue = list(phrasebook)
+        REVIEW_RNG.shuffle(queue)
+        review_queue = queue[:PHRASEBOOK_SESSION_MAX]
+    elif mode == MARATHON_MODE:
         # Ignores the count and minimum-stage controls on purpose: the point
         # is "everything that's due", ordered by how overdue it is.
         review_mode = mode
@@ -4091,7 +4234,11 @@ def render_review():
             # Session started, but nothing matched the filters.
             panel.hidden = True
             empty_message.hidden = False
-            empty_message.innerText = MARATHON_EMPTY_MESSAGE if review_mode == MARATHON_MODE else REVIEW_EMPTY_MESSAGE
+            empty_message.innerText = (
+                MARATHON_EMPTY_MESSAGE if review_mode == MARATHON_MODE
+                else PHRASEBOOK_EMPTY_MESSAGE if review_mode == PHRASEBOOK_MODE
+                else REVIEW_EMPTY_MESSAGE
+            )
             summary.hidden = True
             return
         # Queue exhausted -- show the score, nothing else.
@@ -5161,6 +5308,10 @@ def setup():
         "click", create_proxy(on_toggle_dashboard)
     )
     _element("calendar-toggle-button").addEventListener("click", create_proxy(on_toggle_calendar))
+    _element("phrasebook-toggle-button").addEventListener("click", create_proxy(on_toggle_phrasebook_panel))
+    _element("phrasebook-practice-button").addEventListener("click", create_proxy(on_start_phrasebook_review))
+    _element("practice-bookmark-button").addEventListener("click", create_proxy(on_bookmark_practice))
+    _element("review-bookmark-button").addEventListener("click", create_proxy(on_bookmark_review))
     _element("calendar-prev-button").addEventListener("click", create_proxy(on_calendar_prev))
     _element("calendar-next-button").addEventListener("click", create_proxy(on_calendar_next))
     _element("review-word-button").addEventListener("click", create_proxy(on_start_word_review))
@@ -5346,6 +5497,8 @@ def get_state():
         # L7a -- real calendar days with study activity; only written once
         # something has been studied, like practice_ledger above.
         **({"study_days": dict(study_days)} if study_days else {}),
+        # L19 -- saved phrasebook plot ids, only once something is saved.
+        **({"phrasebook": list(phrasebook)} if phrasebook else {}),
     }
 
 
@@ -5365,7 +5518,7 @@ def _is_valid_report_log_entry(entry):
 
 
 def load_state(data):
-    global error_pattern_counts, practice_ledger, study_buddy_enabled, report_log, study_days
+    global error_pattern_counts, practice_ledger, study_buddy_enabled, report_log, study_days, phrasebook
 
     study_buddy_enabled = data.get("study_buddy") is True
 
@@ -5375,6 +5528,7 @@ def load_state(data):
     error_pattern_counts = dict(data.get("error_patterns") or {})
     practice_ledger = _validated_practice_ledger(data.get("practice_ledger"))
     study_days = _validated_study_days(data.get("study_days"))
+    phrasebook = _validated_phrasebook(data.get("phrasebook"))
     # Z11 "My Reports" -- an old save predating this feature simply has no
     # "report_log" key, which sanitize() already treats as "empty list",
     # the same forward-compatibility standard every other per-game field

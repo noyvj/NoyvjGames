@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 637/741 items checked off (86.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 639/741 items checked off (86.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -775,7 +775,7 @@ Every idea in this section was accepted, no exceptions.
 - [x] L16: A small visual distinction (border color or icon) between vocab/grammar/phrase/phonetic plot types on the farm grid itself.
 - [x] L17 **(you called this "very important"):** A "mixed review marathon" mode — a long-form session pulling due plots from across the entire farm regardless of row.
 - [x] L18: Let the weeds mix-up state show a small note naming exactly which other item it's being confused with.
-- [ ] L19: A "personal phrasebook" — bookmark specific items into a custom cross-cutting list, independent of the syllabus row structure.
+- [x] L19: A "personal phrasebook" — bookmark specific items into a custom cross-cutting list, independent of the syllabus row structure. **Done 2026-09-26** — see `games/champ-de-mots/CLAUDE.md`'s L19 section.
 - [x] L20: A small "catch-up progress" readout for already-unlocked rows, distinguishing "reviewed since unlocking" from "never yet watered." *(Note: since L4 above removes row-gating entirely, re-scope this as covering however "already unlocked" ends up being defined post-L4 — likely "every row.")*
 - [x] L22: Let the cultural-notes toggle show a small "new note available" indicator when a freshly-unlocked row has cultural context worth reading. **Dropped (user, 2026-09-26):** L4a removed row-gating so "freshly unlocked" no longer exists, and a badge would only add clutter — nothing to build.
 - [x] L23: A "spaced repetition transparency" panel — an optional, fully explained view of exactly how the SM-2-style scheduling works.

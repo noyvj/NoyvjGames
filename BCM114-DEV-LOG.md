@@ -535,3 +535,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Le Champ de Mots
 **Did:** Added a real calendar-day tracker (which real dates had study activity, from a JS date hook since `game.py` may not use a clock) recorded once per answered question across the main panel, Review and every practice mode, saved and validated, plus a "Study calendar" panel: a Monday-first month view with month navigation, studied days marked by a heavier border and a visible count (not colour alone), today outlined, and a gentle no-counter summary. Caught a legibility bug by looking at it (near-invisible text on the cream panel) and themed it across all four visual styles.
 **Result:** 621 → 633 tests passing, flake8 clean; verified live with the real browser date and computed colours in all four styles.
+
+### 2026-09-26 (Le Champ de Mots: personal phrasebook, L19)
+**Game:** Le Champ de Mots
+**Did:** Added a personal phrasebook: a star button while practising (main panel and Review) saves the item to a custom list that ignores the row structure; a panel lists each saved item with its meaning and a Remove button, and "Practice my phrasebook" runs a Review session over only those items through a new phrasebook mode reusing all the Review machinery. Saved as validated plot ids (200 max, session cap 40).
+**Result:** 633 → 643 tests passing, flake8 clean; verified live by starring three real plots and running a "1 of 3" session, zero console errors.

@@ -31,6 +31,7 @@
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
       <button id="dashboard-toggle-button" class="secondary" type="button">📊 Progress dashboard</button>
       <button id="calendar-toggle-button" class="secondary" type="button">🗓️ Study calendar</button>
+      <button id="phrasebook-toggle-button" class="secondary" type="button">📒 My phrasebook (0)</button>
       <button id="liaison-toggle-button" class="secondary" type="button">🗣️ Liaison practice</button>
       <button id="achievements-toggle-button" class="secondary" type="button">🏆 Achievements</button>
       <!-- "What's New" changelog panel (site-wide goal, planning/TODO.md,
@@ -96,6 +97,13 @@
       </div>
     </div>
     <div id="dashboard-panel" class="dashboard-panel" hidden></div>
+    <!-- L19: items you starred while practising, practisable as their own set. -->
+    <div id="phrasebook-panel" class="dashboard-panel phrasebook-panel" hidden>
+      <p class="dashboard-heading">My phrasebook</p>
+      <p class="calendar-note">Star any question while you practise to keep that item here, whatever row it lives in. It is saved with your farm.</p>
+      <button id="phrasebook-practice-button" class="secondary" type="button" disabled>Practice my phrasebook</button>
+      <div id="phrasebook-list" class="phrasebook-list"></div>
+    </div>
     <!-- L7b: which real calendar days you studied. Only ever shows what you did; no counters to keep alive. -->
     <div id="calendar-panel" class="dashboard-panel calendar-panel" hidden>
       <p class="dashboard-heading">Study calendar</p>
@@ -282,6 +290,7 @@
       <p id="practice-pronunciation-note" class="practice-note" hidden></p>
       <button id="practice-pronunciation-report-button" class="secondary practice-report" hidden>🔊 Report a pronunciation concern</button>
       <details class="info-toggle"><summary>i</summary><p>Separate from the "should count" report above — this one's for the French text itself, not your answer. If you think a word or phrase here is a common mispronunciation trap (or is just wrong), flag it and it'll be checked by hand.</p></details>
+      <button id="practice-bookmark-button" class="secondary practice-bookmark" type="button" aria-pressed="false" hidden>☆ Save to phrasebook</button>
       <button id="practice-close-button" class="secondary practice-close">Close</button>
     </div>
 
@@ -326,6 +335,7 @@
         <input id="review-answer-input" class="practice-input" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Type your answer" hidden>
         <button id="review-submit-button" class="secondary" hidden>Check</button>
         <p id="review-feedback" class="practice-feedback"></p>
+        <button id="review-bookmark-button" class="secondary practice-bookmark" type="button" aria-pressed="false" hidden>☆ Save to phrasebook</button>
         <button id="review-report-button" class="secondary practice-report" hidden>I think this should count</button>
         <button id="review-pronunciation-report-button" class="secondary practice-report" hidden>🔊 Report a pronunciation concern</button>
         <p id="review-summary" class="status-line" hidden></p>
@@ -654,6 +664,7 @@
         { toggle: "settings-toggle-button", panel: "settings-panel" },
         { toggle: "dashboard-toggle-button", panel: "dashboard-panel" },
         { toggle: "calendar-toggle-button", panel: "calendar-panel" },
+        { toggle: "phrasebook-toggle-button", panel: "phrasebook-panel" },
         { toggle: "achievements-toggle-button", panel: "achievements-panel" },
         { toggle: "changelog-toggle-button", panel: "changelog-panel" },
         { toggle: "report-log-toggle-button", panel: "report-log-panel" },

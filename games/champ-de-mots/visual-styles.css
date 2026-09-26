@@ -596,3 +596,9 @@ html[data-visual-style="cartoon"] .plot {
 html[data-visual-style="lowpoly"] .calendar-panel { color: #eef3f6; }
 html[data-visual-style="textbased"] .calendar-panel { color: #b9f5c9; }
 html[data-visual-style="cartoon"] .calendar-panel { color: #f5eaff; }
+
+/* L19: the phrasebook panel inherits its text colour, so each alternate
+   theme's dark .dashboard-panel needs that theme's own light text. */
+html[data-visual-style="lowpoly"] .phrasebook-panel { color: #eef3f6; }
+html[data-visual-style="textbased"] .phrasebook-panel { color: #b9f5c9; }
+html[data-visual-style="cartoon"] .phrasebook-panel { color: #f5eaff; }
