@@ -64,6 +64,10 @@ I'll drop all of that into the ad bar and it goes live everywhere on the site at
 5. **Loop H16:** an optional "supply chain disruption" random event, opt-in as an advanced mode, kept apart from the deterministic core lesson. now, later or drop?
 6. **Contraption (round 2 M8):** a physics puzzle sandbox (drag parts, watch them collide). It needs a JavaScript physics engine such as Matter.js, which means shipping a library and writing the game in JavaScript rather than Python, a much bigger stack decision than a normal new game. It stays parked as you said; tell me if you ever want it costed properly.
 
+### 5. Multiplayer: five decisions (the scoping document is written)
+
+`planning/MULTIPLAYER-SCOPING.md` covers what the site already has, what each parked multiplayer item needs, four levels of multiplayer and the smallest sensible phases. The decisions that are yours (details in section 6 of that file): (1) any level above aggregate and opt-in boards this round? (2) if async ghosts: may a run summary appear under your public username, or must ghosts be anonymous? (3) if two-player turn-based games: friend-only invite links (recommended) or open matchmaking? (4) accept client-trusted scores, or verify by replaying deterministic games? (5) who moderates besides you? Until you answer, I only build the aggregate and opt-in features (boards, pools, community stats).
+
 ---
 
 ## Answered — building now (no further input needed, listed so you can see what your answers turned into)
