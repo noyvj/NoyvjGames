@@ -3920,6 +3920,57 @@ def marathon_candidates(farm=None, day=None):
     return (watered + never)[:MARATHON_COUNT]
 
 
+# L25: exam cram -- a dense session over a chosen range of weeks (say, the
+# chapters an exam covers), weakest material first, whatever its schedule.
+CRAM_MODE = "cram"
+CRAM_SESSION_MAX = 60
+
+
+def cram_range(first, last):
+    """(low, high) week sequence numbers, in order, clamped to the farm."""
+    sequences = [row.sequence for row in state.rows]
+    low_bound, high_bound = min(sequences), max(sequences)
+    try:
+        a, b = int(first), int(last)
+    except (TypeError, ValueError):
+        a, b = low_bound, high_bound
+    a, b = max(low_bound, min(high_bound, a)), max(low_bound, min(high_bound, b))
+    return (a, b) if a <= b else (b, a)
+
+
+def cram_candidates(first, last, farm=None):
+    """Every plot in weeks first..last, weakest (lowest stage, lowest ease)
+    first, capped at CRAM_SESSION_MAX, then interleaved by stage so the
+    session doesn't run as one blocked stretch of a single stage."""
+    farm = state if farm is None else farm
+    low, high = cram_range(first, last)
+    pool = [p for p in farm.plots if low <= p.sequence <= high]
+    # Shuffle first so the stable sort below breaks ties at random: on a fresh
+    # farm everything is a Seed at default ease, and a plot-id tie-break would
+    # fill the whole cap from the earliest weeks of the range.
+    REVIEW_RNG.shuffle(pool)
+    pool.sort(key=lambda p: (STAGE_RANK[p.stage], p.ease_factor))
+    return _interleave_by_stage(pool[:CRAM_SESSION_MAX], REVIEW_RNG)
+
+
+def _populate_cram_selects():
+    for select_id, default_last in (("review-cram-from-select", False), ("review-cram-to-select", True)):
+        select = _element(select_id)
+        select.innerHTML = ""
+        rows = state.rows
+        for row in rows:
+            option = document.createElement("option")
+            option.value = str(row.sequence)
+            title = f": {row.chapter_title}" if row.chapter_title else ""
+            option.innerText = f"Week {row.sequence}{title}"
+            select.appendChild(option)
+        select.value = str(rows[-1].sequence if default_last else rows[0].sequence)
+
+
+def on_start_cram_review(event=None):
+    start_review(CRAM_MODE)
+
+
 REVIEW_SUMMARY_MESSAGE = "Review complete — {correct}/{total} correct."
 REVIEW_EMPTY_MESSAGE = (
     "Nothing matches those filters yet — try a lower minimum stage, "
@@ -4005,7 +4056,7 @@ def _review_variant_for(plot, mode):
     conjugation prompts"): if the plot can produce one of those variants,
     roll among just those; otherwise (word review, or a grammar plot that
     can't offer one) let generate_question() pick from its full pool."""
-    if mode != "grammar" and not (mode in (MARATHON_MODE, PHRASEBOOK_MODE) and plot.topic_type == "grammar"):
+    if mode != "grammar" and not (mode in (MARATHON_MODE, PHRASEBOOK_MODE, CRAM_MODE) and plot.topic_type == "grammar"):
         return None
     preferred = [v for v in variants_for(plot) if v in GRAMMAR_REVIEW_PREFERRED_VARIANTS]
     return QUESTION_RNG.choice(preferred) if preferred else None
@@ -4039,7 +4090,15 @@ def start_review(mode, event=None):
     own in-page controls (§14.4: both configurable, not fixed)."""
     global review_mode, review_queue, review_index, review_score
 
-    if mode == PHRASEBOOK_MODE:
+    if mode == CRAM_MODE:
+        review_mode = mode
+        review_queue = [
+            p.plot_id
+            for p in cram_candidates(
+                _element("review-cram-from-select").value, _element("review-cram-to-select").value
+            )
+        ]
+    elif mode == PHRASEBOOK_MODE:
         # L19: just the saved items, shuffled, whatever their stage or row.
         review_mode = mode
         queue = list(phrasebook)
@@ -5308,6 +5367,8 @@ def setup():
         "click", create_proxy(on_toggle_dashboard)
     )
     _element("calendar-toggle-button").addEventListener("click", create_proxy(on_toggle_calendar))
+    _populate_cram_selects()
+    _element("review-cram-button").addEventListener("click", create_proxy(on_start_cram_review))
     _element("phrasebook-toggle-button").addEventListener("click", create_proxy(on_toggle_phrasebook_panel))
     _element("phrasebook-practice-button").addEventListener("click", create_proxy(on_start_phrasebook_review))
     _element("practice-bookmark-button").addEventListener("click", create_proxy(on_bookmark_practice))

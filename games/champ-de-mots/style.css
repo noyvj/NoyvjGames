@@ -1496,3 +1496,7 @@ button:disabled {
 .phrasebook-text { font-size: 0.9rem; overflow-wrap: anywhere; }
 .phrasebook-remove { width: auto; flex: 0 0 auto; padding: 0.3rem 0.7rem; font-size: 0.78rem; }
 .practice-bookmark { width: auto; }
+
+/* L25 exam cram */
+.review-cram-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.6rem; margin: 0.4rem 0; }
+.review-cram-row select { max-width: 16rem; }

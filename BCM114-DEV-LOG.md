@@ -540,3 +540,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Le Champ de Mots
 **Did:** Added a personal phrasebook: a star button while practising (main panel and Review) saves the item to a custom list that ignores the row structure; a panel lists each saved item with its meaning and a Remove button, and "Practice my phrasebook" runs a Review session over only those items through a new phrasebook mode reusing all the Review machinery. Saved as validated plot ids (200 max, session cap 40).
 **Result:** 633 → 643 tests passing, flake8 clean; verified live by starring three real plots and running a "1 of 3" session, zero console errors.
+
+### 2026-09-26 (Le Champ de Mots: exam cram, L25)
+**Game:** Le Champ de Mots
+**Did:** Added an Exam cram mode to the Review tab: pick a range of weeks and get a dense session (up to 60 items, weakest first, ties sampled across the range, interleaved by stage) via a new cram mode reusing the Review machinery; it ignores schedules and the count/stage controls but answers still only nudge, never grow a stage.
+**Result:** 643 → 651 tests passing, flake8 clean; verified live (weeks 3-5 gave a "1 of 60" session inside the range), zero console errors.

@@ -806,7 +806,7 @@ Every idea in this section was accepted, no exceptions.
 - [x] L22: Let the cultural-notes toggle show a small "new note available" indicator when a freshly-unlocked row has cultural context worth reading. **Dropped (user, 2026-09-26):** L4a removed row-gating so "freshly unlocked" no longer exists, and a badge would only add clutter — nothing to build.
 - [x] L23: A "spaced repetition transparency" panel — an optional, fully explained view of exactly how the SM-2-style scheduling works.
 - [ ] L24: A small animated watering-can cursor/effect when actively watering a plot.
-- [ ] L25: A "review before the exam" cram mode — a dedicated denser review session covering everything from a chosen chapter range.
+- [x] L25: A "review before the exam" cram mode — a dedicated denser review session covering everything from a chosen chapter range. **Done 2026-09-26** — see `games/champ-de-mots/CLAUDE.md`'s L25 section.
 - [x] L26: Let the liaison/elision quiz show a small phonetic-symbol legend.
 - [x] L27: A "farm-wide health" summary visualization — a single glanceable chart of the whole farm's mastery distribution.
 - [x] L28: A small badge/icon for perfectly answering a full row's worth of plots in one sitting. Read "one sitting" as this session specifically — a session-only badge (not a permanent achievement), spoiled the moment any wrong answer lands in that row this session. See `games/champ-de-mots/CLAUDE.md`.
