@@ -1649,3 +1649,8 @@ html[data-reduced-motion="true"] *::after {
   text-align: left;
   white-space: normal;
 }
+
+/* C21: the shadow grid comparison table. */
+.shadow-table { display: grid; gap: 0.2rem; margin: 0.4rem 0; }
+.shadow-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 0.4rem; font-size: 0.8rem; }
+.shadow-row--head { font-weight: 600; }

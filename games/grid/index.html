@@ -171,6 +171,17 @@
       <div id="trend-graph"></div>
       <p id="trend-graph-message" class="comparison-message">Not enough rounds yet to show an emissions/cost trend.</p>
       <p id="global-comparison-message" class="comparison-message">Not enough rounds yet to compare against the global average.</p>
+      <!-- C21: the shadow grid: a non-interactive twin on a different starting scenario that copies your moves. -->
+      <p class="meter-label">Shadow grid (compare your choices from a different start)</p>
+      <select id="shadow-select" aria-label="Shadow grid starting scenario">
+        <option value="off">Off</option>
+        <option value="standard">Standard start</option>
+        <option value="coal_legacy">Coal-heavy legacy grid</option>
+        <option value="greenfield">Greenfield renewable-first</option>
+        <option value="emergency">Emergency response</option>
+      </select>
+      <p id="shadow-verdict" class="comparison-message"></p>
+      <div id="shadow-table" class="shadow-table"></div>
       <p id="renewable-blurb" class="comparison-message" hidden></p>
     </div>
 

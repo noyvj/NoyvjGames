@@ -499,3 +499,7 @@ differentiated emissions/global/cost lines with correct hoverable
 `<title>` tooltips, and the global-comparison message correctly read
 "Your grid has emitted 720 vs. an estimated 329 ... you're behind the
 curve." Zero console errors.
+
+## Shadow grid (C21, 2026-09-26)
+
+The lighter 'grid twin': a second, NON-interactive grid that mirrors your build and retire choices onto a different starting scenario (Standard, Coal-heavy legacy, Greenfield or Emergency), so the two outcomes can be compared side by side. It is derived, not simulated live: your successful builds and retires are logged with their round (`shadow_actions`, capped at `SHADOW_MAX_ACTIONS` 400) while the shadow is on, and `replay_shadow()` replays them round by round on a fresh grid with its own fixed random stream (`SHADOW_SEED`), so it is reproducible, cannot affect your grid, and needs only the scenario name plus the action log to save. A mirrored move the twin cannot afford is skipped and counted in the verdict line. A table shows score, funds, clean share of capacity and emissions avoided for you and the twin. It sits in the trend section beside the C15 global comparison. Save: `shadow` written only when on; on load the scenario must be a known one and every action is validated (round int >= 1, kind build or retire, known plant type). 344 -> 360 tests (`tests/test_shadow_grid.py`); verified live.

@@ -710,3 +710,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** aftermath
 **Did:** Added a five-lesson guided curriculum (survive, resilience first, growth pays, balance, the coastal test) with a goal per run, judged in order when a run pays out and kept per browser.
 **Result:** 299 → 311 tests passing, flake8 clean; verified live.
+
+### 2026-09-26 (Grid: shadow grid comparison, C21)
+**Game:** grid
+**Did:** Added a shadow grid: a non-interactive twin on a chosen different starting scenario that copies your builds and retires (replayed deterministically from a log), with a side-by-side table and verdict; saved only when on and validated.
+**Result:** 344 → 360 tests passing, flake8 clean; verified live.
