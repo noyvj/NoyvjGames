@@ -193,6 +193,7 @@ def land_health_message(land_health):
 # --- render ------------------------------------------------------------
 def render():
     effects = current_effects()
+    render_clock()
 
     document.getElementById("era-display").innerText = f"{sim.ERA_LABEL[state.era]} era"
     document.getElementById("season-display").innerText = f"Season {state.season}"
@@ -2117,6 +2118,91 @@ def _make_research_handler(node_id):
     return handler
 
 
+# ===========================================================================
+# U1: tick-based play. Seasons now pass on their own instead of waiting for an
+# Advance Season button (which is gone). The pace is real time: a season takes
+# SEASON_SECONDS[era] seconds at 1x (slower in later eras, which have more to
+# weigh), divided by the chosen speed. Deliberately conservative:
+#   - a settlement (and every load) starts PAUSED, so nothing happens before
+#     you have read anything; speed is never saved;
+#   - the clock only runs while the page is open and visible (index.html's
+#     ticker skips hidden tabs and clamps each step), so nothing piles up
+#     while you are away, matching the hub's no-idle-timer stance;
+#   - it never runs during a Look Back (a revisit is a frozen view).
+# `on_advance_season()` remains the one place a season actually happens.
+# ===========================================================================
+SEASON_SECONDS = {
+    "tribal": 10.0, "agrarian": 10.0, "classical": 12.0, "medieval": 12.0,
+    "industrial": 14.0, "digital": 16.0, "space": 18.0,
+}
+SPEEDS = (0, 1, 2, 4)
+MAX_SEASONS_PER_TICK = 2  # a stalled frame must never fire a burst of seasons
+
+sim_speed = 0
+season_progress = 0.0  # real seconds banked toward the next season, at 1x
+
+
+def season_length():
+    return SEASON_SECONDS.get(state.era, 10.0)
+
+
+def set_speed(speed):
+    global sim_speed
+    if speed not in SPEEDS:
+        return False
+    sim_speed = speed
+    render_clock()
+    return True
+
+
+def tick_clock(dt):
+    """Advances the clock by `dt` real seconds. Returns how many seasons
+    passed (0 while paused, in a Look Back, or for a bad `dt`)."""
+    global season_progress
+    if sim_speed == 0 or campaign.revisiting:
+        return 0
+    if not isinstance(dt, (int, float)) or isinstance(dt, bool) or dt != dt or dt <= 0:
+        return 0
+    season_progress += min(float(dt), 1.0) * sim_speed
+    passed = 0
+    while season_progress >= season_length() and passed < MAX_SEASONS_PER_TICK:
+        season_progress -= season_length()
+        on_advance_season()
+        passed += 1
+    if passed == MAX_SEASONS_PER_TICK and season_progress >= season_length():
+        season_progress = 0.0
+    render_clock()
+    return passed
+
+
+def render_clock():
+    labels = {0: "pause", 1: "1x", 2: "2x", 4: "4x"}
+    for speed, key in labels.items():
+        button = document.getElementById(f"speed-{key}-button")
+        active = speed == sim_speed
+        if active:
+            button.classList.add("selected")
+        else:
+            button.classList.remove("selected")
+        button.setAttribute("aria-pressed", "true" if active else "false")
+    fraction = min(1.0, season_progress / season_length())
+    document.getElementById("season-progress-fill").style.width = f"{fraction * 100:.0f}%"
+    if campaign.revisiting:
+        text = "Looking back \u2014 time is held while you view a past era."
+    elif sim_speed == 0:
+        text = "Paused \u2014 choose 1x, 2x or 4x to let seasons pass."
+    else:
+        remaining = max(0.0, (season_length() - season_progress) / sim_speed)
+        text = f"Running at {sim_speed}x \u2014 next season in {remaining:.0f}s."
+    document.getElementById("season-clock-display").innerText = text
+
+
+def _make_speed_handler(speed):
+    def handler(event=None):
+        set_speed(speed)
+    return handler
+
+
 def on_advance_season(event=None):
     effects = current_effects()
     report = state.advance_season(effects)
@@ -2187,9 +2273,10 @@ def setup():
     # themselves now (Milestone 8) — those rows are rebuilt every render, the
     # same as the research panel's Study buttons already were, so wiring them
     # here would just be wiring buttons that don't exist yet.
-    document.getElementById("advance-season-button").addEventListener(
-        "click", create_proxy(on_advance_season)
-    )
+    for speed, key in ((0, "pause"), (1, "1x"), (2, "2x"), (4, "4x")):
+        document.getElementById(f"speed-{key}-button").addEventListener(
+            "click", create_proxy(_make_speed_handler(speed))
+        )
     document.getElementById("info-page-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_info_page)
     )

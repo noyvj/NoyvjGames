@@ -630,3 +630,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Canopy
 **Did:** Added a narrated "Example playthrough" panel demonstrating a strong preserve/clear balance in five steps. The numbers are worked out from the game's own constants (10 plots, 120 ticks: never clear ~4830, clear early ~574, balanced ~4372), not hand-typed, and it never touches live state.
 **Result:** 356 → 365 tests passing, flake8 clean; verified live, zero console errors.
+
+### 2026-09-26 (Continuum: tick-based play, U1)
+**Game:** Continuum
+**Did:** Replaced the Advance Season button with real-time play: Pause/1x/2x/4x controls and a season progress bar near the top of the page, about 10 real seconds per season in early eras and slower in later ones, every settlement starting paused, and time running only while the page is open and visible (hidden tabs never tick, each step is clamped so nothing fast-forwards). The clock holds during a Look Back, the tutorial's Advance step became a "Time" step, mobile docks the controls, and P pauses/resumes.
+**Result:** 587 → 601 tests passing, flake8 unchanged (two pre-existing warnings), verified live including the hidden-tab case, zero new console errors.

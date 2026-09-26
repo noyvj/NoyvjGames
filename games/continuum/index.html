@@ -195,6 +195,18 @@
       <button id="info-page-report-button" class="secondary" type="button" hidden>Report an issue with this info</button>
     </div>
 
+    <!-- U1: seasons pass on their own; these controls set the pace. Starts paused. -->
+    <div id="speed-controls" class="section speed-controls">
+      <div class="speed-buttons" role="group" aria-label="Game speed">
+        <button id="speed-pause-button" class="secondary speed-button" type="button">&#9208; Pause</button>
+        <button id="speed-1x-button" class="secondary speed-button" type="button">1x</button>
+        <button id="speed-2x-button" class="secondary speed-button" type="button">2x</button>
+        <button id="speed-4x-button" class="secondary speed-button" type="button">4x</button>
+      </div>
+      <div class="meter"><div id="season-progress-fill" class="meter-fill meter-fill--season"></div></div>
+      <p id="season-clock-display" class="status-line">Paused.</p>
+    </div>
+
     <div id="status" class="section">
       <!--
         Phase 5 (see CLAUDE.md's "Core system 7" and Phase 5 build notes):
@@ -384,7 +396,6 @@
       <button id="exit-revisit-button" class="secondary" hidden>Return to the present</button>
     </div>
 
-    <button id="advance-season-button" class="primary">Advance Season</button>
   </div>
 
   <div class="ad-bar ad-bar--bottom">
@@ -481,9 +492,10 @@
       const panel = document.getElementById("shortcuts-panel");
       if (event.key === "?") { panel.hidden = !panel.hidden; return; }
       if (event.key === "Escape") { panel.hidden = true; return; }
-      if (event.key === "n" || event.key === "N") {
-        const b = document.getElementById("advance-season-button");
-        if (b) b.click();
+      if (event.key === "p" || event.key === "P") {
+        // U1: pause / resume (resume at 1x).
+        const paused = document.getElementById("speed-pause-button").getAttribute("aria-pressed") === "true";
+        document.getElementById(paused ? "speed-1x-button" : "speed-pause-button").click();
         return;
       }
       const presets = { "1": "overview", "2": "closeup", "3": "aerial", "4": "isometric" };
@@ -539,9 +551,9 @@
         text: "One tree spans all seven eras, fourteen tiers deep across three branches — provision, community, and craft. Spend knowledge to study a node; a tier opens once enough of the tier below it is researched. Early choices echo later: leaning into a branch can open or close doors many tiers on.",
       },
       {
-        selector: "#advance-season-button",
-        title: "Advance Season",
-        text: "This runs the whole loop at once — your workers produce, your people eat, the land responds to how hard you pushed it, and population grows if there's food and shelter to spare. Watch the panels above after each press to see how it landed.",
+        selector: "#speed-controls",
+        title: "Time",
+        text: "Seasons pass on their own, and the game starts paused so you can read everything first. Press 1x, 2x or 4x to let time run, or Pause any time (or press P). Each season your workers produce, your people eat, the land responds to how hard you pushed it, and population grows if there's food and shelter to spare. Time only runs while this page is open.",
       },
       {
         selector: "#info-page-toggle-button",
@@ -646,7 +658,20 @@
         // the way back up to #status to read the season report. Docking
         // Advance Season mirrors Grid's own #advance-round-button judgment
         // call exactly.
-        MobileDock.init("#advance-season-button");
+        MobileDock.init("#speed-controls");
+      }
+      // U1: the season clock. Real-time, only while the page is visible; each
+      // step is clamped inside game.py's tick_clock() so a throttled or
+      // just-woken tab never fast-forwards.
+      {
+        const tick = pyodide.globals.get("tick_clock");
+        let last = performance.now();
+        setInterval(() => {
+          const now = performance.now();
+          const dt = (now - last) / 1000;
+          last = now;
+          if (document.visibilityState === "visible") tick(dt);
+        }, 250);
       }
       // Phase 5: attempt the 3D layer last, after the real 2D game is
       // fully up and playable. ContinuumVisual.init() is fully

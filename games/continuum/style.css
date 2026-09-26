@@ -1235,7 +1235,7 @@ button.primary:disabled::after {
    z-index 100); z-index 150 keeps it above the ad bar and below the save
    widget's fixed UI (z-index 9999). */
 @media (max-width: 640px) {
-  #advance-season-button.mobile-docked {
+  #speed-controls.mobile-docked {
     position: fixed;
     left: 1rem;
     right: 1rem;
@@ -1362,3 +1362,9 @@ kbd { border: 1px solid rgba(201, 147, 84, 0.5); border-radius: 4px; padding: 0 
 .archive-line { margin: 0.1rem 0; font-size: 0.82rem; }
 .archive-line--head { font-weight: 600; font-size: 0.9rem; }
 .archive-date { opacity: 0.7; font-size: 0.75rem; }
+
+/* U1: the speed controls and season clock. */
+.speed-buttons { display: flex; gap: 0.4rem; margin-bottom: 0.5rem; }
+.speed-buttons .speed-button { flex: 1 1 0; }
+.speed-button.selected { outline: 2px solid #c99354; }
+.meter-fill--season { background: linear-gradient(90deg, #8c6a3c, #c99354); width: 0; transition: width 0.25s linear; }

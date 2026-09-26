@@ -39,7 +39,12 @@ ELEMENT_IDS = [
     "land-health-display",
     "land-health-bar",
     "season-report-display",
-    "advance-season-button",
+    "speed-pause-button",
+    "speed-1x-button",
+    "speed-2x-button",
+    "speed-4x-button",
+    "season-progress-fill",
+    "season-clock-display",
     # Milestone 2 — sustainability score panel
     "score-display",
     "score-bar",
@@ -171,8 +176,9 @@ class GameEnv:
         self.elements[f"{building}-build-button"].dispatch("click", None)
 
     def advance_season(self, count=1):
+        # U1: seasons pass on a clock now; tests step the season directly.
         for _ in range(count):
-            self.elements["advance-season-button"].dispatch("click", None)
+            self.module.on_advance_season()
 
     def toggle_views(self):
         self.elements["views-toggle-button"].dispatch("click", None)
