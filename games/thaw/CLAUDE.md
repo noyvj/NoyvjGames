@@ -556,3 +556,11 @@ An optional, once-only framing for Region A, chosen before round 1 (and before a
 - A stance is not an investment: it doesn't earn `first_intervention`, and the pre-emptive-investment callout now requires real preserve/monitor capacity (it used to key off any nonzero dampening). With nothing invested, `intervention_feedback_message()` says the head start comes from the policy stance.
 - Save: only the key is written (and only when set); the dampening is re-derived on load, and an unknown or wrong-typed key loads as no stance. Locked once round 1 passes or anything is invested.
 - 172 -> 187 tests (`tests/test_policy_stance.py`); verified live, zero console errors.
+
+## Permafrost restoration (G15, 2026-09-26)
+
+The late-game payoff for a region whose feedback loop is contained. A melting region that holds its acceleration at or under `RESTORATION_MAX_ACCELERATION` (1.3x) for `RESTORATION_STREAK_ROUNDS` (3) consecutive rounds starts restoration: each round, every Preservation unit pulls back `RESTORATION_PER_PRESERVE_UNIT` (0.05) degrees of melt-driven warming, up to `RESTORATION_MAX_PER_ROUND` (0.5), and never below the melt threshold. It removes real accumulated temperature but can't outrun the fixed background rise, so it slows the climb rather than reversing it (which fits "reverses some melt", and keeps the game's "background warming is outside your control" rule intact).
+
+- The streak is judged on `_investment_acceleration_factor()` (investment dampening only), so a temporary emergency rescue never counts as "stabilized". Losing control (acceleration back above 1.3x) resets the streak; restored degrees stay counted.
+- Stats: `stabilized_rounds` and `restored_total`; a per-region status line ("Restoration under way / paused, N degrees pulled back") appears only once relevant, and the first restoring round is logged in the scientist's log.
+- Save: both fields written only when nonzero; validated on load (int in range, finite non-negative float, never a bool). 187 -> 202 tests (`tests/test_restoration.py`); verified live, zero console errors.

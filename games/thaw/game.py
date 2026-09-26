@@ -8,6 +8,7 @@ loop (the entire point of this game) lands in Milestone 2.
 """
 
 import json
+import math
 
 import info_page
 import narrative_log
@@ -78,6 +79,18 @@ MAX_FEEDBACK_DAMPENING = 0.85
 # for a fixed number of rounds, buying a stricken region breathing room
 # but never a permanent fix: once it lapses, only real preserve/monitor
 # investment keeps the feedback loop in check.
+# G15: permafrost restoration. Once a melting region has held the feedback
+# loop under RESTORATION_MAX_ACCELERATION on investment alone (a temporary
+# rescue boost doesn't count) for RESTORATION_STREAK_ROUNDS rounds in a row,
+# every Preservation unit starts pulling melt-driven warming back each
+# round, up to RESTORATION_MAX_PER_ROUND. It removes real accumulated
+# temperature but never outruns the fixed background rise, so it slows the
+# climb rather than reversing it -- "some melt", per the design note.
+RESTORATION_MAX_ACCELERATION = 1.3
+RESTORATION_STREAK_ROUNDS = 3
+RESTORATION_PER_PRESERVE_UNIT = 0.05
+RESTORATION_MAX_PER_ROUND = 0.5
+
 # G13: the optional starting policy stance for Region A -- a real-world-
 # inspired framing chosen once, before the first round is played, that
 # subtly weights the region's starting position. Each stance trades a
@@ -196,6 +209,42 @@ class RegionState:
         # baseline dampening it grants (derived from the key, never saved).
         self.policy_stance = None
         self.policy_dampening = 0.0
+        # G15: consecutive rounds the loop has been held down by investment
+        # alone, and the running total of warming pulled back so far.
+        self.stabilized_rounds = 0
+        self.restored_total = 0.0
+
+    def restoration_active(self):
+        return self.stabilized_rounds >= RESTORATION_STREAK_ROUNDS and self.is_melting()
+
+    def _investment_acceleration_factor(self):
+        """acceleration_factor() as it would read on investment dampening
+        alone, so a temporary rescue can't count toward stabilization."""
+        excess = max(0.0, self.temperature - MELT_THRESHOLD)
+        bonus = excess * FEEDBACK_RATE_PER_DEGREE_OVER * (1 - self.feedback_dampening_fraction())
+        return (BASE_TEMP_RISE_PER_ROUND + bonus) / BASE_TEMP_RISE_PER_ROUND
+
+    def _apply_restoration(self):
+        """Advances the stabilization streak and, once it has held long
+        enough, pulls some melt-driven warming back. Called once per
+        advance_round(), after that round's warming has landed."""
+        if self.is_melting() and self._investment_acceleration_factor() <= RESTORATION_MAX_ACCELERATION:
+            self.stabilized_rounds += 1
+        else:
+            self.stabilized_rounds = 0
+        if not self.restoration_active():
+            return
+        amount = min(
+            self.capacity["preserve"] * RESTORATION_PER_PRESERVE_UNIT,
+            RESTORATION_MAX_PER_ROUND,
+            self.temperature - MELT_THRESHOLD,
+        )
+        if amount <= 0:
+            return
+        if self.stabilized_rounds == RESTORATION_STREAK_ROUNDS:
+            self.round_events.append("restoration")
+        self.temperature -= amount
+        self.restored_total += amount
 
     def can_choose_policy_stance(self):
         """G13: only once, and only before the first round is played or
@@ -372,6 +421,8 @@ class RegionState:
         else:
             self.rounds_since_tipping_event += 1
 
+        self._apply_restoration()
+
         counterfactual_excess = max(0.0, self.counterfactual_temperature - MELT_THRESHOLD)
         counterfactual_rate = BASE_TEMP_RISE_PER_ROUND + (
             counterfactual_excess * FEEDBACK_RATE_PER_DEGREE_OVER
@@ -487,6 +538,7 @@ _EVENT_TEXT = {
     "critical": "the feedback loop went critical ({accel:.1f}x background warming).",
     "milestone_delay": "intervention delayed reaching +{milestone:.0f}\u00b0 warming.",
     "preempt": "pre-emptive protection ({damp:.0f}% dampening) was already in place when melt began.",
+    "restoration": "the feedback loop held steady long enough for restoration to begin pulling warming back.",
 }
 
 
@@ -765,6 +817,27 @@ def _render_policy_stance():
         display.innerText = "No starting policy stance was chosen for this region."
 
 
+def _render_restoration(prefix, r):
+    """G15: a status line that only appears once restoration is running or
+    has ever reversed something, so a stable region carries no clutter."""
+    element = document.getElementById(f"{prefix}restoration-status")
+    if r.restoration_active():
+        element.innerText = (
+            f"\U0001F331 Restoration under way \u2014 {r.restored_total:.1f}\u00b0 of melt-driven "
+            f"warming pulled back so far."
+        )
+        element.hidden = False
+    elif r.restored_total > 0:
+        element.innerText = (
+            f"Restoration paused \u2014 {r.restored_total:.1f}\u00b0 pulled back so far; "
+            f"it resumes once the feedback loop is held down again."
+        )
+        element.hidden = False
+    else:
+        element.innerText = ""
+        element.hidden = True
+
+
 def _render_rescue(prefix, r):
     """G21: shows the rescue button only while it is a live option (critical
     and unspent), and the status line only when there is something to say,
@@ -804,6 +877,7 @@ def render_secondary_region(prefix, r):
     document.getElementById(f"{prefix}-acceleration-display").innerText = r.acceleration_message()
     document.getElementById(f"{prefix}-trajectory-display").innerText = r.trajectory_message()
     _render_rescue(f"{prefix}-", r)
+    _render_restoration(f"{prefix}-", r)
 
     status = _melt_status_label(r)
     melt_status_el = document.getElementById(f"{prefix}-melt-status-display")
@@ -1465,6 +1539,7 @@ def render():
         cap_note_el.hidden = True
     _render_trend("temperature-trend", region)
     _render_rescue("", region)
+    _render_restoration("", region)
     _render_policy_stance()
     document.getElementById("rise-rate-display").innerText = (
         f"Current warming rate: {region.current_rise_rate():.2f}°/round"
@@ -1764,6 +1839,10 @@ def _region_state_dict(r):
     # load, so retuning a stance can never leave a stale number in a save.
     if r.policy_stance is not None:
         data["policy_stance"] = r.policy_stance
+    # G15: likewise written only once restoration has actually started.
+    if r.stabilized_rounds or r.restored_total:
+        data["stabilized_rounds"] = r.stabilized_rounds
+        data["restored_total"] = r.restored_total
     return data
 
 
@@ -1843,6 +1922,21 @@ def _apply_region_state(r, data):
         r.rescue_rounds_left = saved_rescue_rounds
     if r.rescue_rounds_left > 0:
         r.rescue_used = True
+    saved_streak = data.get("stabilized_rounds")
+    if isinstance(saved_streak, int) and not isinstance(saved_streak, bool) and 0 <= saved_streak <= 100000:
+        r.stabilized_rounds = saved_streak
+    else:
+        r.stabilized_rounds = 0
+    saved_restored = data.get("restored_total")
+    if (
+        isinstance(saved_restored, (int, float))
+        and not isinstance(saved_restored, bool)
+        and math.isfinite(saved_restored)
+        and 0 <= saved_restored <= 1000000
+    ):
+        r.restored_total = float(saved_restored)
+    else:
+        r.restored_total = 0.0
     saved_stance = data.get("policy_stance")
     if isinstance(saved_stance, str) and saved_stance in POLICY_STANCES:
         r.policy_stance = saved_stance

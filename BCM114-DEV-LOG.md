@@ -580,3 +580,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Thaw
 **Did:** Added an optional starting policy stance for Region A (Growth-led, Balanced, Mitigation-led): a once-only, modest trade between starting funds and a permanent dampening head start. It doesn't count as an investment for achievements or the pre-emptive-investment praise.
 **Result:** 172 → 187 tests passing, flake8 clean; verified live, zero console errors.
+
+### 2026-09-26 (Thaw: permafrost restoration, G15)
+**Game:** Thaw
+**Did:** Added restoration: after 3 rounds of investment alone holding a melting region's feedback loop under 1.3x, each Preservation unit pulls a little melt-driven warming back each round (capped, never below the melt threshold, never outrunning the background rise). Temporary rescue boosts don't count.
+**Result:** 187 → 202 tests passing, flake8 clean; verified live, zero console errors.

@@ -69,6 +69,7 @@ ELEMENT_IDS = [
     "d-melt-status-display",
     "rescue-button",
     "rescue-status",
+    "restoration-status",
     "policy-stance-growth-button",
     "policy-stance-balanced-button",
     "policy-stance-mitigation-button",
@@ -80,6 +81,7 @@ for _category in CATEGORIES:
 for _prefix in ("b", "c"):
     ELEMENT_IDS += [
         f"{_prefix}-region-card",
+        f"{_prefix}-restoration-status",
         f"{_prefix}-rescue-button",
         f"{_prefix}-rescue-status",
         f"{_prefix}-graph",
