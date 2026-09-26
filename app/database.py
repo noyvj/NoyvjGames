@@ -79,6 +79,9 @@ def patch_schema():
         "ALTER TABLE saves ADD COLUMN IF NOT EXISTS user_id VARCHAR REFERENCES users(id)",
         # Y31: per-account synced site-wide preferences.
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS settings_json TEXT",
+        # U3: numbered save slots for signed-in accounts.
+        "ALTER TABLE saves ADD COLUMN IF NOT EXISTS slot INTEGER",
+        "ALTER TABLE saves ADD COLUMN IF NOT EXISTS slot_name VARCHAR",
         # U9/U7: optional email, and the test-data flag.
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_test BOOLEAN NOT NULL DEFAULT FALSE",

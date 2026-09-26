@@ -40,6 +40,10 @@ class Save(Base):
     # Nullable: a save starts anonymous and only gets a user_id if/when its
     # code is claimed via POST /saves/{save_code}/claim after sign-in.
     user_id = Column(String, ForeignKey("users.id"), nullable=True, index=True)
+    # U3: signed-in accounts get up to SAVE_SLOTS_PER_GAME numbered slots per
+    # game. NULL slot = an anonymous save, or a claimed one not yet slotted.
+    slot = Column(Integer, nullable=True)
+    slot_name = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 

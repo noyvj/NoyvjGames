@@ -106,6 +106,16 @@
     const style = document.createElement("style");
     style.id = "save-widget-styles";
     style.textContent = `
+      .save-widget-slots { display: grid; gap: 0.35rem; margin: 0.4rem 0; }
+      .save-widget-slot { display: flex; gap: 0.3rem; align-items: center; font-size: 0.72rem; }
+      .save-widget-slot-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .save-widget-slot button { flex: 0 0 auto; font-size: 0.7rem; padding: 0.2rem 0.45rem; cursor: pointer; }
+      .save-widget-chooser { position: fixed; inset: 0; z-index: 10001; display: flex; align-items: center; justify-content: center;
+        background: rgba(6, 7, 12, 0.72); padding: 1rem; }
+      .save-widget-chooser-card { width: min(22rem, 100%); background: #171a29; color: #eaeaf0; border: 1px solid rgba(140,160,255,0.3);
+        border-radius: 14px; padding: 1rem; display: grid; gap: 0.5rem; }
+      .save-widget-chooser-card button { padding: 0.55rem; font: inherit; cursor: pointer; }
+      html[data-theme="light"] .save-widget-chooser-card { background: #ffffff; color: #1b2033; }
       #save-widget {
         position: fixed;
         bottom: 12px;
@@ -235,6 +245,7 @@
       <button type="button" class="save-widget-copy-button save-widget-link" hidden>Copy code</button>
       <button type="button" class="save-widget-claim-button save-widget-link" hidden>Claim this save to your account</button>
       <button type="button" class="save-widget-new-button save-widget-link" hidden>Start a new save (forget this code)</button>
+      <div class="save-widget-slots" hidden></div>
       <input type="text" class="save-widget-load-input" placeholder="XXXX-XXXX" maxlength="9" autocomplete="off">
       <button type="button" class="save-widget-load-button">Load</button>
       <p class="save-widget-status"></p>
@@ -352,6 +363,8 @@
     }
     localStorage.setItem(STORAGE_KEY, mostRecent.save_code);
     showActiveCode(mostRecent.save_code);
+    // U3: the autoloaded save's slot becomes the active, already-confirmed one.
+    if (mostRecent.slot) setActiveSlot(mostRecent.slot, true);
     // This came from GET /users/me/saves -- the account's own saves list --
     // so it's already claimed to this account. Offering to claim it again
     // would be redundant (and confusing) even though it's a harmless no-op.
@@ -361,7 +374,9 @@
   }
 
   (async () => {
-    if (await tryAutoLoadFromAccount()) return;
+    const loaded = await tryAutoLoadFromAccount();
+    if (slotMode()) refreshSlots();
+    if (loaded) return;
     const existingCode = localStorage.getItem(STORAGE_KEY);
     if (existingCode) showActiveCode(existingCode);
   })();
@@ -475,6 +490,187 @@
     }
   }
 
+  // U3: numbered save slots for signed-in accounts (3 per game). Anonymous
+  // players are untouched and keep the single save code. Signed in, "Save
+  // Progress" writes to the active slot; the first save of a visit into a slot
+  // that already holds something asks which slot to use (overwrite, use an
+  // empty one, or cancel), so a fresh start can never silently replace an
+  // older save. Autosave only writes to a slot the player has already
+  // confirmed this visit.
+  const SLOT_COUNT = 3;
+  const ACTIVE_SLOT_KEY = `activeslot:${GAME_ID}`;
+  const slotsEl = root.querySelector(".save-widget-slots");
+  let slotRows = {};
+  let activeSlot = parseInt(localStorage.getItem(ACTIVE_SLOT_KEY), 10) || null;
+  let slotConfirmed = false;
+
+  function slotMode() {
+    return Boolean(localStorage.getItem(HUB_AUTH_TOKEN_KEY));
+  }
+  function setActiveSlot(n, confirmed) {
+    activeSlot = n;
+    slotConfirmed = Boolean(confirmed);
+    try { localStorage.setItem(ACTIVE_SLOT_KEY, String(n)); } catch (e) { /* convenience only */ }
+  }
+  function timeAgo(iso) {
+    if (!iso) return "";
+    const seconds = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+    if (seconds < 90) return "just now";
+    if (seconds < 5400) return `${Math.round(seconds / 60)} min ago`;
+    if (seconds < 129600) return `${Math.round(seconds / 3600)} h ago`;
+    return `${Math.round(seconds / 86400)} d ago`;
+  }
+
+  async function refreshSlots() {
+    if (!slotMode()) {
+      slotsEl.hidden = true;
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/users/me/saves`, { headers: hubAuthHeaders(), cache: "no-store" });
+      if (!res.ok) return;
+      const saves = (await res.json()).filter((r) => r.game_id === GAME_ID && r.slot);
+      slotRows = {};
+      saves.forEach((r) => { slotRows[r.slot] = r; });
+    } catch (err) {
+      return;
+    }
+    renderSlots();
+  }
+
+  function renderSlots() {
+    slotsEl.innerHTML = "";
+    for (let n = 1; n <= SLOT_COUNT; n++) {
+      const row = slotRows[n];
+      const line = document.createElement("div");
+      line.className = "save-widget-slot";
+      const label = document.createElement("span");
+      label.className = "save-widget-slot-label";
+      label.textContent = row
+        ? `${n}${activeSlot === n ? " ●" : ""} ${row.slot_name || "Save " + n} · ${timeAgo(row.updated_at || row.created_at)}`
+        : `${n}${activeSlot === n ? " ●" : ""} Empty`;
+      line.appendChild(label);
+      if (row) {
+        const load = document.createElement("button");
+        load.type = "button";
+        load.textContent = "Load";
+        load.addEventListener("click", () => slotLoad(n));
+        line.appendChild(load);
+      }
+      const save = document.createElement("button");
+      save.type = "button";
+      save.textContent = "Save here";
+      save.addEventListener("click", async () => {
+        statusEl.textContent = "Saving...";
+        const ok = await slotSave(n);
+        statusEl.textContent = ok ? `Saved to slot ${n}!` : "Save failed — try again.";
+      });
+      line.appendChild(save);
+      slotsEl.appendChild(line);
+    }
+    slotsEl.hidden = false;
+  }
+
+  async function slotSave(n) {
+    const state = readGameState();
+    if (state === null) { statusEl.textContent = "Still loading — try again in a moment."; return false; }
+    if (state === undefined) { statusEl.textContent = "This game hasn't wired up saving yet."; return false; }
+    try {
+      const res = await fetchWithRetry(
+        `${API_BASE}/users/me/saves/${encodeURIComponent(GAME_ID)}/slots/${n}`,
+        {
+          method: "PUT",
+          headers: Object.assign({ "Content-Type": "application/json" }, hubAuthHeaders()),
+          body: JSON.stringify({ save_data: state }, undefinedToNull),
+        }
+      );
+      if (!res.ok) throw new Error(`status ${res.status}`);
+      const body = await res.json();
+      slotRows[n] = body;
+      setActiveSlot(n, true);
+      try { localStorage.setItem(STORAGE_KEY, body.save_code); } catch (e) { /* convenience only */ }
+      showActiveCode(body.save_code);
+      renderSlots();
+      return true;
+    } catch (err) {
+      console.error(`${GAME_ID} save-widget: slot save failed`, err);
+      return false;
+    }
+  }
+
+  async function slotLoad(n) {
+    const row = slotRows[n];
+    if (!row) return;
+    if (!window.pyodide) { statusEl.textContent = "Still loading — try again in a moment."; return; }
+    const loadState = window.pyodide.globals.get("load_state");
+    if (!loadState) { statusEl.textContent = "This game hasn't wired up loading yet."; return; }
+    try {
+      loadState(window.pyodide.toPy(row.save_data));
+      setActiveSlot(n, true);
+      try { localStorage.setItem(STORAGE_KEY, row.save_code); } catch (e) { /* convenience only */ }
+      showActiveCode(row.save_code);
+      renderSlots();
+      statusEl.textContent = `Loaded slot ${n}!`;
+    } catch (err) {
+      console.error(`${GAME_ID} save-widget: slot load failed`, err);
+      statusEl.textContent = "Load failed — try again.";
+    }
+  }
+
+  // Resolves to a slot number, or null if the player cancelled.
+  function chooseSlot() {
+    return new Promise((resolve) => {
+      const overlay = document.createElement("div");
+      overlay.className = "save-widget-chooser";
+      const card = document.createElement("div");
+      card.className = "save-widget-chooser-card";
+      card.setAttribute("role", "dialog");
+      card.setAttribute("aria-modal", "true");
+      const heading = document.createElement("p");
+      heading.textContent = "Your account already has saves for this game. Where should this one go?";
+      card.appendChild(heading);
+      const done = (value) => { overlay.remove(); resolve(value); };
+      for (let n = 1; n <= SLOT_COUNT; n++) {
+        const row = slotRows[n];
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = row ? `Overwrite slot ${n}: ${row.slot_name || "Save " + n} (${timeAgo(row.updated_at || row.created_at)})` : `Save to empty slot ${n}`;
+        button.addEventListener("click", () => done(n));
+        card.appendChild(button);
+      }
+      const cancel = document.createElement("button");
+      cancel.type = "button";
+      cancel.textContent = "Cancel";
+      cancel.addEventListener("click", () => done(null));
+      card.appendChild(cancel);
+      overlay.appendChild(card);
+      document.body.appendChild(overlay);
+      card.querySelector("button").focus();
+    });
+  }
+
+  // The save-button / autosave path when signed in. Returns true/false, or
+  // null when the player cancelled the chooser.
+  async function doSlotSave(silent) {
+    await refreshSlots();
+    let target = activeSlot;
+    if (silent) {
+      // Autosave never asks and never touches a slot the player hasn't confirmed this visit.
+      if (!target || !slotConfirmed) return false;
+      return slotSave(target);
+    }
+    const occupied = Object.keys(slotRows).length > 0;
+    if (!target || (slotRows[target] && !slotConfirmed)) {
+      if (!occupied) {
+        target = 1;
+      } else {
+        target = await chooseSlot();
+        if (target === null) return null;
+      }
+    }
+    return slotSave(target);
+  }
+
   // Core save logic (Z25b refactor) -- the ONE code path that actually talks
   // to the save endpoint, shared by the manual "Save Progress" button below
   // and the opt-in autosave timer further down, so autosave can't drift out
@@ -483,7 +679,8 @@
   // text, button disabling) to the caller, since the two call sites want
   // different feedback (a disabled "Saving..." button vs. a silent
   // unattended timer tick).
-  async function doSave(onRetrying) {
+  async function doSave(onRetrying, silent) {
+    if (slotMode()) return doSlotSave(Boolean(silent));
     const state = readGameState();
     if (state === null) {
       statusEl.textContent = "Still loading — try again in a moment.";
@@ -522,7 +719,7 @@
     saveButton.disabled = true;
     saveButton.textContent = "Saving...";
     const ok = await doSave(() => (statusEl.textContent = "Saving... (retrying)"));
-    statusEl.textContent = ok ? "Saved!" : "Save failed — try again.";
+    statusEl.textContent = ok === null ? "" : ok ? "Saved!" : "Save failed — try again.";
     saveButton.disabled = false;
     saveButton.textContent = "Save Progress";
   });
@@ -573,7 +770,7 @@
     // and remains the reliable fallback. Only a SUCCESSFUL autosave gets
     // any player-visible feedback, briefly, then reverts.
     const previousStatus = statusEl.textContent;
-    const ok = await doSave();
+    const ok = await doSave(undefined, true);
     if (!ok) return;
     statusEl.textContent = "Autosaved";
     setTimeout(() => {

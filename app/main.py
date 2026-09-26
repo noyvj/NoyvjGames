@@ -113,9 +113,15 @@ class SaveUpdate(BaseModel):
     save_data: dict
 
 
+SAVE_SLOTS_PER_GAME = 3
+SLOT_NAME_MAX_LENGTH = 40
+
+
 class SaveOut(BaseModel):
     save_code: str
     game_id: str
+    slot: Optional[int] = None
+    slot_name: Optional[str] = None
     save_data: dict
     created_at: datetime
     updated_at: Optional[datetime]
@@ -474,6 +480,17 @@ def claim_save(save_code: str, current_user: User = Depends(get_current_user), d
     # save by signing up" invariant is promising *not* to allow.
     if row.user_id is not None and row.user_id != current_user.id:
         raise HTTPException(status_code=409, detail="This save is already claimed by another account")
+    if row.user_id is None:
+        # U3: a newly claimed save takes the first free slot for its game.
+        # With all slots taken it is refused rather than silently dropped
+        # into a slot-less limbo; the player picks a slot to overwrite instead.
+        _ensure_slots(db, current_user.id)
+        taken = _taken_slots(db, current_user.id, row.game_id)
+        free = [n for n in range(1, SAVE_SLOTS_PER_GAME + 1) if n not in taken]
+        if not free:
+            raise HTTPException(status_code=409, detail="All save slots for this game are full")
+        row.slot = free[0]
+        row.slot_name = f"Save {free[0]}"
     row.user_id = current_user.id
     db.commit()
     db.refresh(row)
@@ -491,10 +508,96 @@ def claim_save(save_code: str, current_user: User = Depends(get_current_user), d
 # ownership check to GET/PUT themselves (which would end anonymous sharing
 # of a claimed save's code entirely) — worth deciding deliberately, not
 # guessing.
+def _taken_slots(db: Session, user_id: str, game_id: str) -> set:
+    rows = db.query(Save.slot).filter(Save.user_id == user_id, Save.game_id == game_id, Save.slot.isnot(None)).all()
+    return {r[0] for r in rows}
+
+
+def _ensure_slots(db: Session, user_id: str) -> None:
+    """U3 migration, done lazily per account: claimed saves from before slots
+    existed have no slot. Per game, the most recently updated becomes slot 1
+    (the account's existing save keeps its place, nothing lost), the next
+    ones fill slots 2 and 3, and any beyond that stay slot-less but are
+    still listed."""
+    unslotted = (
+        db.query(Save)
+        .filter(Save.user_id == user_id, Save.slot.is_(None))
+        .order_by(Save.updated_at.desc())
+        .all()
+    )
+    if not unslotted:
+        return
+    changed = False
+    for row in unslotted:
+        taken = _taken_slots(db, user_id, row.game_id)
+        free = [n for n in range(1, SAVE_SLOTS_PER_GAME + 1) if n not in taken]
+        if not free:
+            continue
+        row.slot = free[0]
+        row.slot_name = row.slot_name or f"Save {free[0]}"
+        db.flush()
+        changed = True
+    if changed:
+        db.commit()
+
+
 @app.get("/users/me/saves", response_model=List[SaveOut])
 def list_my_saves(response: Response, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     response.headers["Cache-Control"] = "no-store"
+    _ensure_slots(db, current_user.id)
     return db.query(Save).filter(Save.user_id == current_user.id).order_by(Save.updated_at.desc()).all()
+
+
+class SlotSaveIn(BaseModel):
+    save_data: dict
+    name: Optional[str] = None
+
+
+@app.put("/users/me/saves/{game_id}/slots/{slot}", response_model=SaveOut)
+def put_slot_save(
+    game_id: str,
+    slot: int,
+    payload: SlotSaveIn,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """U3: write this account's save for `game_id` into slot 1-3, creating it
+    the first time and overwriting it after. The name is optional and only
+    changes when given."""
+    response.headers["Cache-Control"] = "no-store"
+    if not 1 <= slot <= SAVE_SLOTS_PER_GAME:
+        raise HTTPException(status_code=422, detail=f"slot must be from 1 to {SAVE_SLOTS_PER_GAME}")
+    name = None
+    if payload.name is not None:
+        name = payload.name.strip()[:SLOT_NAME_MAX_LENGTH] or None
+    _ensure_slots(db, current_user.id)
+    row = (
+        db.query(Save)
+        .filter(Save.user_id == current_user.id, Save.game_id == game_id, Save.slot == slot)
+        .first()
+    )
+    if row is not None:
+        row.save_data = payload.save_data
+        if name:
+            row.slot_name = name
+        db.commit()
+        db.refresh(row)
+        return row
+    for _ in range(SAVE_CODE_GENERATION_ATTEMPTS):
+        row = Save(
+            save_code=_generate_save_code(), game_id=game_id, save_data=payload.save_data,
+            user_id=current_user.id, slot=slot, slot_name=name or f"Save {slot}",
+        )
+        db.add(row)
+        try:
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+            continue
+        db.refresh(row)
+        return row
+    raise HTTPException(status_code=500, detail="Could not generate a unique save code — try again")
 
 
 # --- Y31: account-synced site-wide settings ---
