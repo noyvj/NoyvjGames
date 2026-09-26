@@ -309,6 +309,12 @@
   async function tryAutoLoadFromAccount() {
     const token = localStorage.getItem(HUB_AUTH_TOKEN_KEY);
     if (!token) return false;
+    // U4: with an opening screen present, wait for the player's choice. A
+    // "New Game" must never be overwritten by the account's latest save.
+    if (window.NoyvjOpeningScreen && window.NoyvjOpeningScreen.choice) {
+      const chosen = await window.NoyvjOpeningScreen.choice;
+      if (chosen === "new") return false;
+    }
     let saves;
     try {
       const res = await fetchWithRetry(`${API_BASE}/users/me/saves`, { headers: hubAuthHeaders() });

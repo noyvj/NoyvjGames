@@ -439,7 +439,9 @@
         gameId = options.gameId;
         injectStyles();
         wireChrome(options);
-        if (!hasSeen() && steps.length) {
+        // U4: when an opening screen is present the tutorial is offered
+        // from its "New Game" step instead of auto-starting on first visit.
+        if (!window.__openingScreenOwnsTutorial && !hasSeen() && steps.length) {
           window.setTimeout(start, 500);
         }
       },
