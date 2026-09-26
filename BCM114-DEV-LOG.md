@@ -846,3 +846,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** grid
 **Did:** Added a story to Grid using the new shared story-chapters.js: 18 authored chapters keyed to the achievements, shown in a collapsible Story panel with the existing Story on/off pill. Save format untouched.
 **Result:** 386 Grid tests pass (6 new); live-checked chapters unlock in story order and the console is clean.
+
+### 2026-09-26 (SOL W1: deeper story beats)
+**Game:** sol
+**Did:** Extended SOL's captain's log with longer beats for each world finished, the first trade route and the first prestige, all shown by the same Story panel and validated on load.
+**Result:** 705 SOL tests pass (3 new).

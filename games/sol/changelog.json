@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-09-26",
+      "entry": "Deeper story: the captain's log now also records each world you finish terraforming, your first trade route and your first prestige as longer story beats, alongside first arrivals and achievements (W1)."
+    },
+    {
+      "date": "2026-09-26",
       "entry": "Captain's log: a running story line under the title (latest entry) plus a collapsible log, recording your first arrival at each world and every achievement you earn. The existing Story pill turns it on and off (A25)."
     },
     {

@@ -85,3 +85,37 @@ def test_saved_only_when_non_empty_and_validated_on_load(game_env):
     assert m.story_log == []
     m.load_state({k: v for k, v in state.items() if k != "story_log"})
     assert m.story_log == []
+
+
+def test_deeper_beats_for_terraforming_the_first_route_and_prestige(game_env):
+    m = game_env.module
+    m.story_log.clear()
+    assert m._note_story_beats() is False
+    m.planet_state["Mars"]["terraform_progress"] = m.TERRAFORM_MAX
+    assert m._note_story_beats() is True
+    assert m.story_log == ["terraform:Mars"]
+    assert m._note_story_beats() is False  # idempotent
+    m.planet_state["Earth"]["trade_routes"]["Mars"] = 1
+    m.prestige_level = 1
+    m._note_story_beats()
+    assert m.story_log == ["terraform:Mars", "route:first", "prestige:1"]
+    assert [len(line) > 60 for line in m.story_log_lines()] == [True, True, True]
+
+
+def test_every_world_has_a_terraform_line_and_they_show_on_the_tick_check(game_env):
+    m = game_env.module
+    assert set(m.STORY_TERRAFORM_LINES) == set(m.PLANETS)
+    m.story_log.clear()
+    m.planet_state["Moon"]["terraform_progress"] = m.TERRAFORM_MAX
+    m._check_new_achievements_for_toast()
+    assert "terraform:Moon" in m.story_log
+    assert m.STORY_TERRAFORM_LINES["Moon"] in m.story_log_lines()
+
+
+def test_beat_ids_survive_a_save_round_trip(game_env):
+    m = game_env.module
+    m.story_log[:] = ["arrive:Earth", "terraform:Mars", "route:first", "prestige:1", "terraform:Krypton", "prestige:2"]
+    state = m.get_state()
+    m.story_log.clear()
+    m.load_state(state)
+    assert m.story_log == ["arrive:Earth", "terraform:Mars", "route:first", "prestige:1"]

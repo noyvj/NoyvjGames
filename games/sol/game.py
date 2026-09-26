@@ -1426,6 +1426,8 @@ def _check_new_achievements_for_toast():
     above for why a load must never diff against a stale/empty baseline."""
     global _achievements_seen_ids
     _note_full_completion()
+    if _note_story_beats():
+        render_story_log()
     earned_now = set(achievement_ids_earned())
     newly = earned_now - _achievements_seen_ids
     if newly:
@@ -1463,6 +1465,21 @@ STORY_ARRIVAL_LINES = {
     "JupiterMoons": "Jupiter's moons: a small system inside the system, with a giant for a neighbour.",
     "SaturnMoons": "Saturn's moons: rings overhead, and one more world that needs a plan.",
 }
+# W1-sol: the deeper story. Longer beats for the things that mark a run's arc,
+# noted by _note_story_beats() (called every tick from the achievement check):
+# each world finished terraforming, the first trade route, and each prestige.
+STORY_TERRAFORM_LINES = {
+    "Earth": "Earth is finished. The oceans hold, the air is clean, and the pile of iron you started with is now a planet that looks after itself. It only took the whole rest of the system to get here.",
+    "Mars": "Mars is green at the edges. The first rain in four billion years is only a drizzle, but the crews stand out in it anyway, and no one mentions the cost.",
+    "Moon": "The Moon has an atmosphere now, thin and borrowed, and a horizon that finally looks lived in. From Earth it is a little brighter at night.",
+    "Venus": "Venus has cooled. The furnace that scared everyone off is a warm, cloudy world with rivers where nobody expected them, and the patience paid off exactly as slowly as promised.",
+    "AsteroidBelt": "The Belt is not a wasteland any more. Its rock is worked, its habitats are lit and its people are numerous enough to have opinions about the rest of the system.",
+    "Pluto": "Pluto is warm enough to stand on without a second thought. At the far edge of everything, someone has hung a light in a window.",
+    "JupiterMoons": "Jupiter's moons are a system of their own now, with cities under the ice and harbours in the shadow of a giant that does not seem to mind.",
+    "SaturnMoons": "Saturn's moons are settled. The rings hang overhead like a promise kept, and the last world on the list has a name and a home in it.",
+}
+STORY_ROUTE_LINE = "The first trade route runs. A world that only ever produced one thing now has a customer, and the ledger stops being a private matter between you and the ground."
+STORY_PRESTIGE_LINE = "You start again, but not from nothing. The routes are gone and the machines are dust, and yet you remember exactly what worked, and the new run begins with that instead of hope."
 story_log = []
 
 
@@ -1480,6 +1497,12 @@ def story_line(entry_id):
     kind, _, key = entry_id.partition(":")
     if kind == "arrive":
         return STORY_ARRIVAL_LINES.get(key)
+    if kind == "terraform":
+        return STORY_TERRAFORM_LINES.get(key)
+    if entry_id == "route:first":
+        return STORY_ROUTE_LINE
+    if kind == "prestige" and key == "1":
+        return STORY_PRESTIGE_LINE
     if kind == "ach":
         for entry in ACHIEVEMENTS:
             if entry["id"] == key:
@@ -1490,6 +1513,24 @@ def story_line(entry_id):
 def story_log_lines():
     """Every log line, oldest first (unknown ids skipped)."""
     return [line for line in (story_line(e) for e in story_log) if line]
+
+
+def _note_story_beats():
+    """Notes the longer beats (idempotent): a finished world, the first trade
+    route, the first prestige."""
+    changed = False
+    for planet, planet_data in planet_state.items():
+        if planet_data["terraform_progress"] >= TERRAFORM_MAX:
+            changed = story_note(f"terraform:{planet}") or changed
+    if _total_trade_routes_built_now():
+        changed = story_note("route:first") or changed
+    if prestige_level >= 1:
+        changed = story_note("prestige:1") or changed
+    return changed
+
+
+def _total_trade_routes_built_now():
+    return sum(sum(data["trade_routes"].values()) for data in planet_state.values()) > 0
 
 
 def render_story_log():
