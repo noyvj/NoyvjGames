@@ -130,6 +130,29 @@ POULTRY_MEASURES = {
     "biofilter": {"cost": 15, "ratio_reduction": 0.05, "label": "Ventilation Biofilters", "icon": "\U0001F4A8"},
 }
 
+# F1 -- satellite farm ("regional herd network"): a second, smaller, older
+# farm the player can open once the main farm is established. It has its own
+# coupling ratio (older barns, so it starts dirtier than the main farm), its
+# own retrofit lever and a hard size limit. The network effect: the main
+# farm's decoupling beyond SATELLITE_OFFSET_FLOOR spills over as shared
+# know-how and equipment, cutting the satellite's emissions by
+# SATELLITE_OFFSET_RATE per point of that surplus (capped at
+# SATELLITE_MAX_OFFSET) -- so investing at home also cleans up the network.
+SATELLITE_MIN_MAIN_HERD = 6
+SATELLITE_OPEN_COST = 40
+SATELLITE_MAX_SIZE = 10
+SATELLITE_GROW_COST = 15
+SATELLITE_GROW_SLOPE = 1.5
+SATELLITE_INCOME_PER_UNIT = 4.0
+SATELLITE_BASE_RATIO = 1.2
+MIN_SATELLITE_RATIO = 0.15
+SATELLITE_RETROFIT_COST = 14
+SATELLITE_RETROFIT_REDUCTION = 0.08
+SATELLITE_MAX_RETROFITS = 8
+SATELLITE_OFFSET_FLOOR = 0.4
+SATELLITE_OFFSET_RATE = 1.0
+SATELLITE_MAX_OFFSET = 0.5
+
 # F5 -- generational genetics: a slow-burn fourth lever. Each investment
 # takes GENETICS_MATURE_ROUNDS rounds to breed through, then permanently
 # lowers the ratio.
@@ -244,6 +267,65 @@ class FarmState:
         self.policy_offer_pending = False
         self.subsidy_rounds_left = 0
 
+        # F1 satellite farm.
+        self.satellite_open = False
+        self.satellite_size = 0
+        self.satellite_retrofits = 0
+
+    # ---- F1 satellite farm ----
+    def satellite_available(self):
+        return self.satellite_open or self.herd_size >= SATELLITE_MIN_MAIN_HERD
+
+    def satellite_own_ratio(self):
+        """The satellite's ratio from its own retrofits alone."""
+        reduction = self.satellite_retrofits * SATELLITE_RETROFIT_REDUCTION
+        return max(MIN_SATELLITE_RATIO, SATELLITE_BASE_RATIO - reduction)
+
+    def satellite_offset_fraction(self):
+        """Share of the satellite's emissions the main farm's surplus
+        decoupling cancels out: zero until the main farm is decoupled past
+        SATELLITE_OFFSET_FLOOR, then growing with the surplus up to
+        SATELLITE_MAX_OFFSET."""
+        surplus = max(0.0, self.decoupled_fraction() - SATELLITE_OFFSET_FLOOR)
+        return min(SATELLITE_MAX_OFFSET, surplus * SATELLITE_OFFSET_RATE)
+
+    def satellite_coupling_ratio(self):
+        return max(MIN_SATELLITE_RATIO, self.satellite_own_ratio() * (1 - self.satellite_offset_fraction()))
+
+    def satellite_grow_cost(self):
+        return SATELLITE_GROW_COST + self.satellite_size * SATELLITE_GROW_SLOPE
+
+    def open_satellite(self):
+        if self.satellite_open or self.herd_size < SATELLITE_MIN_MAIN_HERD or self.funds < SATELLITE_OPEN_COST:
+            return False
+        self.funds -= SATELLITE_OPEN_COST
+        self.satellite_open = True
+        return True
+
+    def grow_satellite(self):
+        cost = self.satellite_grow_cost()
+        if (
+            not self.satellite_open or self.satellite_size >= SATELLITE_MAX_SIZE
+            or self.funds < cost or self.cap_blocks_growth(satellite=1)
+        ):
+            return False
+        self.funds -= cost
+        self.satellite_size += 1
+        return True
+
+    def retrofit_satellite(self):
+        if (
+            not self.satellite_open or self.satellite_retrofits >= SATELLITE_MAX_RETROFITS
+            or self.funds < SATELLITE_RETROFIT_COST
+        ):
+            return False
+        self.funds -= SATELLITE_RETROFIT_COST
+        self.satellite_retrofits += 1
+        return True
+
+    def satellite_net_income(self):
+        return self.satellite_size * SATELLITE_INCOME_PER_UNIT
+
     # ---- F27 policy advisor ----
     def decoupling_cost(self, measure):
         cost = DECOUPLING_MEASURES[measure]["cost"]
@@ -349,12 +431,13 @@ class FarmState:
         return self.herd_size * surplus * BIOGAS_SALE_PER_UNIT
 
     # ---- F19 regional cap ----
-    def cap_blocks_growth(self, herd=0, poultry=0):
+    def cap_blocks_growth(self, herd=0, poultry=0, satellite=0):
         if not self.regional_cap_enabled:
             return False
         projected = (
             (self.herd_size + herd) * self.coupling_ratio()
             + (self.poultry_size + poultry) * self.poultry_coupling_ratio()
+            + (self.satellite_size + satellite) * self.satellite_coupling_ratio()
         )
         return projected > REGIONAL_CAP + 1e-9
 
@@ -399,7 +482,11 @@ class FarmState:
         return 1 - (self.coupling_ratio() / BASE_COUPLING_RATIO)
 
     def methane_this_round(self):
-        return self.herd_size * self.coupling_ratio() + self.poultry_size * self.poultry_coupling_ratio()
+        return (
+            self.herd_size * self.coupling_ratio()
+            + self.poultry_size * self.poultry_coupling_ratio()
+            + self.satellite_size * self.satellite_coupling_ratio()
+        )
 
     def grow_herd_cost(self):
         """F6 — a rising growth-cost curve: the very first unit still
@@ -447,7 +534,7 @@ class FarmState:
         raw_income = (
             self.herd_size * HERD_INCOME_PER_UNIT * income_multiplier
             * self.certification_multiplier() * self.welfare_multiplier()
-            + self.poultry_net_income()
+            + self.poultry_net_income() + self.satellite_net_income()
         ) * self.supply_chain_multiplier() * season
         pressure = self.pressure_fraction()
         self.funds += raw_income * (1 - pressure) + self.biogas_sales()
@@ -459,9 +546,14 @@ class FarmState:
         # decoupling/pivot spend, so the comparison isolates whether that
         # spend paid for itself.
         counterfactual_pressure = self.counterfactual_pressure_fraction()
-        counterfactual_raw_income = (self.herd_size * HERD_INCOME_PER_UNIT + self.poultry_net_income()) * season
+        counterfactual_raw_income = (
+            self.herd_size * HERD_INCOME_PER_UNIT + self.poultry_net_income() + self.satellite_net_income()
+        ) * season
         self.counterfactual_funds += counterfactual_raw_income * (1 - counterfactual_pressure)
-        self.counterfactual_methane += self.herd_size * BASE_COUPLING_RATIO + self.poultry_size * POULTRY_BASE_RATIO
+        self.counterfactual_methane += (
+            self.herd_size * BASE_COUPLING_RATIO + self.poultry_size * POULTRY_BASE_RATIO
+            + self.satellite_size * SATELLITE_BASE_RATIO
+        )
 
         # F5 -- breeding matures; F27 -- subsidy runs down and a new offer
         # arrives every POLICY_EVENT_INTERVAL rounds.
@@ -1570,6 +1662,7 @@ def render_extras():
     document.getElementById("policy-panel").hidden = not farm.policy_offer_pending
     document.getElementById("policy-display").innerText = policy_message()
     render_succession()
+    render_satellite()
 
     # F23 poultry
     unlocked = farm.poultry_unlocked()
@@ -1588,6 +1681,56 @@ def render_extras():
             b = document.getElementById(f"{measure}-invest-button")
             b.innerText = f"{spec['label']} ({spec['cost']})"
             b.disabled = farm.funds < spec["cost"]
+
+
+def satellite_message():
+    if not farm.satellite_open:
+        return (
+            f"Open a smaller satellite farm for {SATELLITE_OPEN_COST} funds. It starts dirtier than your main farm "
+            f"({SATELLITE_BASE_RATIO:.2f} methane per animal), but decoupling your main farm past "
+            f"{round(SATELLITE_OFFSET_FLOOR * 100)}% starts cutting its emissions too."
+        )
+    offset = round(farm.satellite_offset_fraction() * 100)
+    return (
+        f"Satellite herd: {farm.satellite_size} of {SATELLITE_MAX_SIZE} animals. Emissions "
+        f"{farm.satellite_coupling_ratio():.2f} methane per animal per round "
+        f"(its own retrofits give {farm.satellite_own_ratio():.2f}; main-farm surplus offsets {offset}%). "
+        f"Retrofits {farm.satellite_retrofits}/{SATELLITE_MAX_RETROFITS}."
+    )
+
+
+def render_satellite():
+    panel = document.getElementById("satellite-panel")
+    available = farm.satellite_available()
+    panel.hidden = not available
+    if not available:
+        return
+    document.getElementById("satellite-display").innerText = satellite_message()
+    open_button = document.getElementById("satellite-open-button")
+    grow_button = document.getElementById("satellite-grow-button")
+    retrofit_button = document.getElementById("satellite-retrofit-button")
+    open_button.hidden = farm.satellite_open
+    grow_button.hidden = not farm.satellite_open
+    retrofit_button.hidden = not farm.satellite_open
+    open_button.innerText = f"Open Satellite Farm ({SATELLITE_OPEN_COST})"
+    open_button.disabled = farm.funds < SATELLITE_OPEN_COST
+    grow_cost = farm.satellite_grow_cost()
+    grow_button.innerText = f"Grow Satellite Herd ({grow_cost:.1f})"
+    grow_button.disabled = (
+        farm.funds < grow_cost or farm.satellite_size >= SATELLITE_MAX_SIZE or farm.cap_blocks_growth(satellite=1)
+    )
+    retrofit_button.innerText = f"Retrofit Barns ({SATELLITE_RETROFIT_COST})"
+    retrofit_button.disabled = (
+        farm.funds < SATELLITE_RETROFIT_COST or farm.satellite_retrofits >= SATELLITE_MAX_RETROFITS
+    )
+
+
+def _make_satellite_handler(action, button_id):
+    def handler(event=None):
+        if getattr(farm, action)():
+            _pulse(button_id)
+        render()
+    return handler
 
 
 def on_grow_poultry(event=None):
@@ -1991,6 +2134,11 @@ def get_state():
         "subsidy_rounds_left": farm.subsidy_rounds_left,
         "achievements_earned": achievement_ids_earned(),
     }
+    # F1: satellite state only once the satellite has been opened.
+    if farm.satellite_open:
+        state["satellite_open"] = True
+        state["satellite_size"] = farm.satellite_size
+        state["satellite_retrofits"] = farm.satellite_retrofits
     # F25: succession state is written only once a handover has happened or
     # points/perks exist, so an ordinary save is unchanged.
     if generation > 1:
@@ -2074,6 +2222,11 @@ def load_state(data):
     if isinstance(saved_poultry, dict):
         for m in POULTRY_MEASURES:
             farm.poultry_investment[m] = _safe_int(saved_poultry.get(m), 0)
+    farm.satellite_open = data.get("satellite_open") is True
+    farm.satellite_size = min(SATELLITE_MAX_SIZE, _safe_int(data.get("satellite_size"), 0)) if farm.satellite_open else 0
+    farm.satellite_retrofits = (
+        min(SATELLITE_MAX_RETROFITS, _safe_int(data.get("satellite_retrofits"), 0)) if farm.satellite_open else 0
+    )
     farm.genetics_active = _safe_int(data.get("genetics_active"), 0)
     pending = data.get("genetics_pending")
     farm.genetics_pending = (
@@ -2140,6 +2293,14 @@ def setup():
         ("policy-cash-button", on_policy_cash),
     ):
         document.getElementById(element_id).addEventListener("click", create_proxy(handler))
+    for element_id, action in (
+        ("satellite-open-button", "open_satellite"),
+        ("satellite-grow-button", "grow_satellite"),
+        ("satellite-retrofit-button", "retrofit_satellite"),
+    ):
+        document.getElementById(element_id).addEventListener(
+            "click", create_proxy(_make_satellite_handler(action, element_id))
+        )
     for measure in POULTRY_MEASURES:
         document.getElementById(f"{measure}-invest-button").addEventListener(
             "click", create_proxy(_make_poultry_handler(measure))

@@ -730,3 +730,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** canopy
 **Did:** Added a third, flood-prone region to Canopy: own 3x4 grid, income and Clear/Replant, unlocked at 5000 standing forest value (higher than Highland Grove's 2000). Growth is 25% faster than the main forest, and a 50-tick flood timer strips 30% of young plots' value and 10% of mature ones, silts replanting plots, and gives a 10-tick warning (status line plus dashed outline on at-risk plots) so the player can harvest ahead. New wetland_* save keys are written only after unlock and fully validated on load.
 **Result:** 381 Canopy tests pass (16 new); live-checked with the wetland force-unlocked: section renders 12 tiles, warning text and risk outlines appear at the warning threshold, no new console errors.
+
+### 2026-09-26 (Herd F1: satellite farm)
+**Game:** herd
+**Did:** Added a satellite farm to Herd: opens at main herd 6 for 40 funds, own dirtier coupling ratio (1.2), 10-animal limit and barn-retrofit lever, plus the network effect where the main farm's decoupling beyond 40% offsets up to half of the satellite's emissions. Wired into methane, income, the regional cap, the counterfactual, saves (keys only once opened) and a new panel.
+**Result:** 220 Herd tests pass (12 new); live-checked open/grow/retrofit through the real buttons, no new console errors.

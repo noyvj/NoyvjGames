@@ -81,6 +81,8 @@ ELEMENT_IDS = [
     "supply-chain-invest-button", "variation-checkbox", "cap-checkbox", "cap-display",
     "policy-panel", "policy-display", "policy-subsidy-button", "policy-cash-button",
     "poultry-panel", "poultry-display", "poultry-grow-button",
+    "satellite-panel", "satellite-display", "satellite-open-button",
+    "satellite-grow-button", "satellite-retrofit-button",
     "succession-panel", "succession-display", "succession-button",
     "perk-family-savings-button", "perk-heritage-flock-button", "perk-mentor-methods-button",
     "litter-count", "litter-invest-button", "biofilter-count", "biofilter-invest-button",
