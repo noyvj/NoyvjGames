@@ -555,3 +555,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Le Champ de Mots
 **Did:** While a plot is open for watering, hovering the farm's plots shows a small watering-can cursor (static SVG data-URI cursor with a pointer fallback). Built static rather than animated because the game's tested calm-farm rule forbids animation and timers.
 **Result:** 660 → 662 tests passing; verified live via computed styles.
+
+### 2026-09-26 (Le Champ de Mots: grammar deep-dive, L15)
+**Game:** Le Champ de Mots
+**Did:** Added an optional "Grammar deep-dive" on grammar questions: the full rule, every example, the look-alikes it is easy to mix up with and where the plot stands, derived entirely from catalog data and existing helpers (no hand-written per-topic text), collapsed by default and never touching SRS state.
+**Result:** 662 → 668 tests passing, flake8 clean; verified live, including computed colours in all four visual styles.

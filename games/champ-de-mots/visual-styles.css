@@ -602,3 +602,9 @@ html[data-visual-style="cartoon"] .calendar-panel { color: #f5eaff; }
 html[data-visual-style="lowpoly"] .phrasebook-panel { color: #eef3f6; }
 html[data-visual-style="textbased"] .phrasebook-panel { color: #b9f5c9; }
 html[data-visual-style="cartoon"] .phrasebook-panel { color: #f5eaff; }
+
+/* L15: the deep-dive panel sets its own dark text for the default theme's
+   light card; the dark alternate themes need their own light text on a dark card. */
+html[data-visual-style="lowpoly"] .practice-deepdive { color: #eef3f6; background: rgba(0, 0, 0, 0.25); }
+html[data-visual-style="textbased"] .practice-deepdive { color: #b9f5c9; background: #0a0f12; }
+html[data-visual-style="cartoon"] .practice-deepdive { color: #f5eaff; background: rgba(58, 24, 104, 0.6); }

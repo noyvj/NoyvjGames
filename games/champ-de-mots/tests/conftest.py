@@ -49,6 +49,8 @@ ELEMENT_IDS = [
     "phrasebook-list",
     "phrasebook-practice-button",
     "practice-bookmark-button",
+    "practice-deepdive-button",
+    "practice-deepdive",
     "review-bookmark-button",
     "calendar-panel",
     "calendar-prev-button",

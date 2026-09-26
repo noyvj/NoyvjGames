@@ -2530,6 +2530,77 @@ def render_phrasebook():
         listing.appendChild(row)
 
 
+# ===========================================================================
+# L15: an optional grammar deep-dive for grammar plots -- everything the game
+# already knows about a topic, gathered in one place beyond the terse
+# in-practice rule. Derived entirely from catalog data and existing helpers
+# (no hand-written text to drift): the full rule, every example, the known
+# look-alikes it is easy to mix up with, and where the plot stands.
+# ===========================================================================
+DEEP_DIVE_NO_RULE = "This topic has no written rule yet; the examples below are the pattern."
+deepdive_open = False
+
+
+def grammar_deep_dive(plot):
+    """Plain data for the deep-dive panel, or None for a non-grammar plot."""
+    if plot is None or plot.topic_type != "grammar":
+        return None
+    due = ""
+    if plot.next_due is not None:
+        days = plot.next_due - state.current_day
+        due = "due now" if days <= 0 else f"next due in {days} day{'s' if days != 1 else ''}"
+    return {
+        "title": plot.topic_title,
+        "rule": plot.rule or DEEP_DIVE_NO_RULE,
+        "has_rule": bool(plot.rule),
+        "examples": [(item["fr"], item["en"]) for item in plot.items],
+        "confusions": weeds_confusions_for(plot),
+        "stage": STAGE_LABEL[plot.stage],
+        "due": due,
+    }
+
+
+def on_toggle_deepdive(event=None):
+    global deepdive_open
+    deepdive_open = not deepdive_open
+    render_deepdive()
+
+
+def render_deepdive():
+    toggle = _element("practice-deepdive-button")
+    panel = _element("practice-deepdive")
+    plot = state.plots_by_id.get(current_question["plot_id"]) if practice_open and current_question else None
+    data = grammar_deep_dive(plot)
+    if data is None:
+        toggle.hidden = True
+        panel.hidden = True
+        return
+    toggle.hidden = False
+    toggle.innerText = "Hide grammar deep-dive" if deepdive_open else "\U0001F4D8 Grammar deep-dive"
+    toggle.setAttribute("aria-expanded", "true" if deepdive_open else "false")
+    panel.hidden = not deepdive_open
+    if not deepdive_open:
+        return
+    panel.innerHTML = ""
+
+    def line(class_name, text):
+        node = document.createElement("p")
+        node.className = class_name
+        node.innerText = text
+        panel.appendChild(node)
+
+    line("deepdive-title", data["title"])
+    line("deepdive-rule", data["rule"])
+    line("deepdive-heading", "Examples")
+    for fr, en in data["examples"]:
+        line("deepdive-example", f"{fr} \u2014 {en}")
+    if data["confusions"]:
+        line("deepdive-heading", "Easy to mix up with")
+        line("deepdive-confusions", ", ".join(f"\u201c{c}\u201d" for c in data["confusions"]))
+    status = data["stage"] + (f" \u00b7 {data['due']}" if data["due"] else "")
+    line("deepdive-status", "Where this plot stands: " + status)
+
+
 def on_toggle_dashboard(event=None):
     global dashboard_open
     dashboard_open = not dashboard_open
@@ -3602,6 +3673,7 @@ def render_practice():
 
 
 def render():
+    render_deepdive()
     render_calendar()
     render_phrasebook()
     render_farm()
@@ -3624,7 +3696,7 @@ def render():
 
 def open_practice(plot_id, variant=None):
     """Water a plot: roll a fresh question for it (§5) and show the panel."""
-    global current_question, current_result, current_submitted_answer, practice_open, report_sent, pronunciation_report_sent, current_confidence
+    global current_question, current_result, current_submitted_answer, practice_open, report_sent, pronunciation_report_sent, current_confidence, deepdive_open
 
     plot = state.plots_by_id.get(plot_id)
     if plot is None or not state.is_row_unlocked(plot.sequence):
@@ -3640,6 +3712,7 @@ def open_practice(plot_id, variant=None):
     report_sent = False
     pronunciation_report_sent = False
     practice_open = True
+    deepdive_open = False
     _element("practice-answer-input").value = ""
     render()
     return current_question
@@ -3699,7 +3772,7 @@ def submit_answer(given):
 
 
 def close_practice(event=None):
-    global current_question, current_result, current_submitted_answer, practice_open, report_sent, pronunciation_report_sent, current_confidence
+    global current_question, current_result, current_submitted_answer, practice_open, report_sent, pronunciation_report_sent, current_confidence, deepdive_open
 
     current_question = None
     current_result = None
@@ -3708,6 +3781,7 @@ def close_practice(event=None):
     report_sent = False
     pronunciation_report_sent = False
     practice_open = False
+    deepdive_open = False
     render()
 
 
@@ -5435,6 +5509,7 @@ def setup():
     )
     _element("calendar-toggle-button").addEventListener("click", create_proxy(on_toggle_calendar))
     _populate_cram_selects()
+    _element("practice-deepdive-button").addEventListener("click", create_proxy(on_toggle_deepdive))
     _element("review-cram-button").addEventListener("click", create_proxy(on_start_cram_review))
     _element("review-weakspots-button").addEventListener("click", create_proxy(on_start_weak_spot_review))
     _element("phrasebook-toggle-button").addEventListener("click", create_proxy(on_toggle_phrasebook_panel))
