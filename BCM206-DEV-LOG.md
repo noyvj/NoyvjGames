@@ -341,3 +341,8 @@ The clearest cross-cutting infra lesson from this pass: three separate games' au
 **Did:** Checked the real API first: v1 is gone, v2 works, only 9 of the 65 resources (the refined gems) and none of the 33 parts are listed, and it sends no CORS headers, so a browser cannot call it. Built a small backend proxy instead: whitelisted slugs only, ten-minute cache, spaced upstream calls, lowest online (else any) visible sell price, no trader data passed on, every failure returns no price. The tracker fetches it after loading and shows a price badge on the tradeable rows plus a platinum total for what is short (`set_market_prices()`, UI-only, never saved). Also listed the newer backend modules in `pyproject.toml`'s `py-modules`.
 **Result:** 7 new backend tests (155 total) and 5 tracker tests (137 total); live-checked with injected prices. Goes live with the next backend deploy (FOR-YOU 2).
 
+### 2026-09-26 (Site-wide: "practice must visibly count" rule)
+**Area:** root `CLAUDE.md`
+**Did:** Wrote the Z-extra design principle down as a standing per-game convention: any minigame, drill or practice mode must feed a measured top-level progress stat the player can see, with Le Champ de Mots' `record_practice()` ledger named as the reference. It is forward-looking guidance rather than a retrofit; all five Le Champ modes added tonight (quick water, sentence builder, conversation, listening, Passé Composé Sprint) were built to it.
+**Result:** documentation only.
+

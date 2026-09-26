@@ -81,6 +81,7 @@ Before ending any session where code or content changed, append one dated entry 
 - Each game keeps its own `CLAUDE.md` with concept, constraints, and a numbered milestone table — same format as SOL's.
 - Commit + tag per milestone: `git commit -m "Milestone N: <name>"` then `git tag <game-slug>-milestone-0N`.
 - Update each game's milestone Status column as work happens, so context here always reflects real state.
+- **Every practice or minigame action must visibly count.** Any minigame, drill or practice mode added to any game has to feed a measured top-level progress stat the player can see (a practice score, a watering or study count, a plot's growth, an achievement counter), so playing it always visibly counts toward something. Le Champ de Mots' `record_practice(mode, correct)` and its `PRACTICE_MODES` ledger is the reference: adding a mode there is one line and the headline score and dashboard pick it up. Never ship a practice mode whose results vanish when it closes.
 
 ## Current games
 | Slug | Name | Status |
