@@ -610,3 +610,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Thaw
 **Did:** Added a shared carbon bank: each of Regions A-C with Preservation in place that holds warming under 1.2x banks a credit per round, and 10 credits fund a one-time +120 grant to a chosen region. Rescue boosts can't farm it; Region D is excluded.
 **Result:** 247 → 262 tests passing, flake8 clean; verified live, zero console errors.
+
+### 2026-09-26 (Thaw: tipping cascade, G5)
+**Game:** Thaw
+**Did:** Added a one-way tipping cascade (A to B, B to C): a 25% deterministic pseudo-random chance, when a region first melts, that the next region takes a one-time 0.5 degree bump that intervention could not have prevented. Region A and Region D are never hit, so D still matches A's counterfactual.
+**Result:** 262 → 274 tests passing, flake8 clean; verified live, zero console errors.

@@ -538,6 +538,7 @@ _EVENT_TEXT = {
     "critical": "the feedback loop went critical ({accel:.1f}x background warming).",
     "milestone_delay": "intervention delayed reaching +{milestone:.0f}\u00b0 warming.",
     "preempt": "pre-emptive protection ({damp:.0f}% dampening) was already in place when melt began.",
+    "cascade": "a tipping cascade from the neighboring region added {bump:.1f}\u00b0 of warming.",
     "restoration": "the feedback loop held steady long enough for restoration to begin pulling warming back.",
 }
 
@@ -550,6 +551,7 @@ def _record_round_events():
                 accel=r.acceleration_factor(),
                 milestone=SECOND_WARMING_MILESTONE,
                 damp=(r.dampening_at_melt_start or 0.0) * 100,
+                bump=CASCADE_BUMP,
             )
             science_log.append({"region": label, "round": r.round_number - 1, "text": text})
     narrative_log.cap_entries(science_log, SCIENCE_LOG_MAX)
@@ -981,6 +983,45 @@ def on_toggle_info_page(event=None):
     global info_page_open
     info_page_open = info_page.toggle(info_page_open)
     render_info_page()
+
+
+# ===========================================================================
+# G5: the tipping cascade. When Region A or Region B tips into melt, there is
+# a small chance the shock spreads down the chain (A to B, B to C) as a
+# one-time CASCADE_BUMP of warming. The game has no random number source
+# (every round is reproducible), so the "chance" is a fixed pseudo-random
+# roll derived from the round and source region: the same run always
+# cascades the same way, but a player cannot predict or reroll it. The bump
+# lands on both the receiving region's temperature and its own
+# counterfactual, because no intervention could have prevented it (so
+# "degrees saved" is unaffected). The chain is deliberately one-way and
+# never reaches Region A or Region D, keeping D identical to A's
+# counterfactual.
+# ===========================================================================
+CASCADE_CHANCE = 0.25
+CASCADE_BUMP = 0.5
+
+
+def cascade_roll(source_label, round_number):
+    """A deterministic roll in [0, 1) for one (source region, round) pair."""
+    mixed = (round_number * 2654435761 + ord(source_label) * 40503) % (2 ** 32)
+    return (mixed % 1000) / 1000.0
+
+
+def apply_tipping_cascades():
+    """Called once per Advance Round after every region has advanced. A
+    source region that started melting this very round may cascade onto
+    the next region in the chain."""
+    for label, source, target in (("A", region, region_b), ("B", region_b, region_c)):
+        if "melt" not in source.round_events:
+            continue
+        if cascade_roll(label, source.round_number - 1) >= CASCADE_CHANCE:
+            continue
+        target.temperature += CASCADE_BUMP
+        target.counterfactual_temperature += CASCADE_BUMP
+        if target.temperature_history:
+            target.temperature_history[-1] += CASCADE_BUMP
+        target.round_events.append("cascade")
 
 
 # ===========================================================================
@@ -2150,6 +2191,7 @@ def on_advance_round(event=None):
     resolve_forecast()
     for r in SECONDARY_REGIONS.values():
         r.advance_round()
+    apply_tipping_cascades()
     bank_carbon_credits()
     _auto_play_worst_case_region()
     _record_round_events()

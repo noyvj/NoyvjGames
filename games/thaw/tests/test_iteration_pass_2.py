@@ -29,8 +29,10 @@ def test_advance_round_advances_all_three_regions_together(game_env):
 def test_regions_diverge_with_different_strategies(game_env):
     # Region B invests nothing (fastest warming); Region C invests
     # heavily in preservation (slowest). Same background trajectory,
-    # different outcomes — the whole point of the comparison.
-    for _ in range(3):
+    # different outcomes — the whole point of the comparison. Eight units
+    # (not three) so the gap comfortably survives a G5 tipping cascade from
+    # Region B landing on Region C along the way.
+    for _ in range(8):
         game_env.invest_secondary("c", "preserve")
     for _ in range(15):
         game_env.advance_round()
