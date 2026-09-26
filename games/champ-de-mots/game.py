@@ -2012,6 +2012,7 @@ PRACTICE_MODES = {
     "quick": "Quick water",
     "builder": "Sentence builder",
     "conversation": "Conversation simulator",
+    "listening": "Listening practice",
     "gender": "Gender drill (le/la)",
     "liaison": "Liaison practice",
     "proficiency": "Proficiency tests",
@@ -3708,6 +3709,7 @@ def render():
     render_bonus()
     render_builder()
     render_conversation()
+    render_listening()
     render_cultural_notes()
     render_dashboard()
     render_liaison_drill()
@@ -5695,6 +5697,199 @@ def _make_conversation_handler(index):
     return handler
 
 
+# ===========================================================================
+# L9 -- listening comprehension. The browser's own speech synthesis reads a
+# French sentence aloud (no audio files, no network) and you pick what it
+# means from three English options. Sentences are the bonus sentences of the
+# unlocked weeks, so it never previews a locked week. It needs a browser with
+# speech synthesis (the page's `champSpeak` hook); without one the panel says so
+# instead of starting. Answers land in the practice ledger as "listening".
+# ===========================================================================
+LISTENING_SESSION_LENGTH = 8
+LISTENING_RNG = random.Random()
+LISTENING_UNAVAILABLE_MESSAGE = (
+    "Your browser has no speech voices available, so listening practice cannot start here."
+)
+LISTENING_EMPTY_MESSAGE = "No sentences are unlocked yet. Each unlocked week brings its own sentence."
+LISTENING_CORRECT = "Yes, that is what it says."
+LISTENING_INCORRECT = "Not quite. It says: {fr} ({en})"
+LISTENING_SUMMARY = "Listening practice complete: {correct}/{total} understood."
+
+listening_active = False
+listening_available = True
+listening_queue = []
+listening_index = 0
+listening_choices = []
+listening_result = None
+listening_score = {"correct": 0, "total": 0}
+listening_proxies = []
+
+
+def _destroy_listening_proxies():
+    for proxy in listening_proxies:
+        proxy.destroy()
+    listening_proxies.clear()
+
+
+def speech_available():
+    """Whether the page can speak French (its `champSpeak` hook exists and the
+    browser reports speech synthesis)."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return False
+    return getattr(window, "champSpeak", None) is not None and bool(getattr(window, "champSpeechAvailable", lambda: False)())
+
+
+def speak_french(text, slow=False):
+    """Reads `text` aloud; False when the page cannot speak."""
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return False
+    hook = getattr(window, "champSpeak", None)
+    if hook is None:
+        return False
+    hook(str(text), bool(slow))
+    return True
+
+
+def _begin_listening_question(speak=True):
+    global listening_choices, listening_result
+    listening_result = None
+    if listening_index >= len(listening_queue):
+        listening_choices = []
+        return
+    sentence = listening_queue[listening_index]
+    others = [s["en"] for s in builder_sentences() if s["en"] != sentence["en"]]
+    LISTENING_RNG.shuffle(others)
+    choices = [sentence["en"]] + others[:2]
+    LISTENING_RNG.shuffle(choices)
+    listening_choices = choices
+    if speak:
+        speak_french(sentence["fr"])
+
+
+def start_listening(event=None):
+    global listening_active, listening_available, listening_queue, listening_index, listening_score
+    listening_active = True
+    listening_available = speech_available()
+    listening_index = 0
+    listening_score = {"correct": 0, "total": 0}
+    sentences = builder_sentences()
+    LISTENING_RNG.shuffle(sentences)
+    listening_queue = sentences[:LISTENING_SESSION_LENGTH] if listening_available else []
+    _begin_listening_question()
+    render()
+    return listening_queue
+
+
+def replay_listening(slow=False):
+    if not listening_active or listening_index >= len(listening_queue):
+        return False
+    return speak_french(listening_queue[listening_index]["fr"], slow=slow)
+
+
+def on_listening_play(event=None):
+    replay_listening(False)
+
+
+def on_listening_slow(event=None):
+    replay_listening(True)
+
+
+def pick_listening_answer(index):
+    global listening_result
+    if not listening_active or listening_result is not None or listening_index >= len(listening_queue):
+        return None
+    if not (0 <= index < len(listening_choices)):
+        return None
+    sentence = listening_queue[listening_index]
+    listening_result = listening_choices[index] == sentence["en"]
+    listening_score["total"] += 1
+    if listening_result:
+        listening_score["correct"] += 1
+    record_practice("listening", listening_result)
+    render()
+    return listening_result
+
+
+def next_listening_question(event=None):
+    global listening_index
+    if not listening_active or listening_result is None:
+        return None
+    listening_index += 1
+    _begin_listening_question()
+    render()
+    return listening_index < len(listening_queue)
+
+
+def close_listening(event=None):
+    global listening_active, listening_queue, listening_index, listening_choices, listening_result
+    listening_active = False
+    listening_queue = []
+    listening_index = 0
+    listening_choices = []
+    listening_result = None
+    render()
+
+
+def _make_listening_handler(index):
+    def handler(event=None):
+        pick_listening_answer(index)
+    return handler
+
+
+def render_listening():
+    panel = _element("listening-panel")
+    choices_box = _element("listening-choices")
+    _destroy_listening_proxies()
+    choices_box.innerHTML = ""
+    if not listening_active:
+        panel.hidden = True
+        return
+    panel.hidden = False
+    empty = _element("listening-empty-message")
+    summary = _element("listening-summary")
+    card = _element("listening-card")
+    if not listening_queue:
+        empty.hidden = False
+        empty.innerText = LISTENING_EMPTY_MESSAGE if listening_available else LISTENING_UNAVAILABLE_MESSAGE
+        summary.hidden = True
+        card.hidden = True
+        _element("listening-progress").innerText = ""
+        return
+    empty.hidden = True
+    if listening_index >= len(listening_queue):
+        card.hidden = True
+        summary.hidden = False
+        summary.innerText = LISTENING_SUMMARY.format(**listening_score)
+        _element("listening-progress").innerText = ""
+        return
+    card.hidden = False
+    summary.hidden = True
+    sentence = listening_queue[listening_index]
+    _element("listening-progress").innerText = f"Sentence {listening_index + 1} of {len(listening_queue)}"
+    for index, choice in enumerate(listening_choices):
+        button = document.createElement("button")
+        button.id = f"listening-choice-{index}"
+        button.className = "secondary"
+        button.innerText = choice
+        button.disabled = listening_result is not None
+        proxy = create_proxy(_make_listening_handler(index))
+        button.addEventListener("click", proxy)
+        listening_proxies.append(proxy)
+        choices_box.appendChild(button)
+    feedback = _element("listening-feedback")
+    if listening_result is None:
+        feedback.innerText = ""
+    else:
+        feedback.innerText = LISTENING_CORRECT if listening_result else LISTENING_INCORRECT.format(
+            fr=sentence["fr"], en=sentence["en"]
+        )
+    _element("listening-next-button").hidden = listening_result is None
+
+
 def render_conversation():
     panel = _element("conversation-panel")
     choices_box = _element("conversation-choices")
@@ -6036,6 +6231,11 @@ def setup():
     _element("quick-water-button").addEventListener("click", create_proxy(on_quick_water))
     _element("sentence-builder-button").addEventListener("click", create_proxy(start_sentence_builder))
     _element("conversation-button").addEventListener("click", create_proxy(start_conversation))
+    _element("listening-button").addEventListener("click", create_proxy(start_listening))
+    _element("listening-play-button").addEventListener("click", create_proxy(on_listening_play))
+    _element("listening-slow-button").addEventListener("click", create_proxy(on_listening_slow))
+    _element("listening-next-button").addEventListener("click", create_proxy(next_listening_question))
+    _element("listening-close-button").addEventListener("click", create_proxy(close_listening))
     _element("conversation-next-button").addEventListener("click", create_proxy(next_conversation_turn))
     _element("conversation-close-button").addEventListener("click", create_proxy(close_conversation))
     _element("builder-undo-button").addEventListener("click", create_proxy(undo_builder_tile))

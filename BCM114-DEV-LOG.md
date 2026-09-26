@@ -815,3 +815,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** champ-de-mots
 **Did:** Added a conversation simulator with six scripted dialogues built from catalog phrases, unlock-gated by the weeks they use and counted in the practice ledger.
 **Result:** 702 Champ tests pass (11 new); live-checked a dialogue opens, options shuffle and feedback shows.
+
+### 2026-09-26 (Le Champ L9: listening comprehension)
+**Game:** champ-de-mots
+**Did:** Added a listening practice mode using browser speech synthesis (no audio files): hear a French sentence, pick its meaning, replay slower, counted in the practice ledger. It degrades to a plain message when the browser has no voices.
+**Result:** 710 Champ tests pass (8 new); live-checked the sentence is spoken on the first question and answering shows the French and English.

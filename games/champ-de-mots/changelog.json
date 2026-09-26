@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-26",
+    "entry": "Listening practice: a 🎧 button reads a French sentence aloud with your browser's own voices (Play, Slower) and you pick what it means from three English options. It draws on the sentences of every unlocked week and counts toward your practice score (L9)."
+  },
+  {
+    "date": "2026-09-26",
     "entry": "Conversation simulator: a 💬 button opens a short scripted exchange (meeting someone, getting to know you, asking the way, shopping, a restaurant, time and dates). You pick the French line that fits each turn, from phrases in the course, and a dialogue opens once the weeks it uses are unlocked. Each turn counts toward your practice score (L5)."
   },
   {
@@ -93,10 +97,6 @@
   },
   {
     "date": "2026-09-13",
-    "entry": "Achievements added: two tiers tracking total plots automated and full weeks fully automated."
-  },
-  {
-    "date": "2026-09-13",
-    "entry": "\"Weeds\" mix-up state, a personal error-pattern digest, a gender-tagging drill, and a liaison/elision practice quiz added; combo bonus, self-rated confidence, deliberate interleaving, adaptive distractor difficulty, a cultural notes toggle, and a progress dashboard added; slideshow cross-check merge: 9 new topics and 75 new items added from the teacher's own lecture slides; core farm launched: the 23-week FREN151 to FREN152 syllabus catalog, spaced-repetition plant growth, a runtime question generator, and save-code support; then grading engine v2 (STRICT/LENIENT tiers), a \"flag as correct\" report button, a failure feedback blurb, a Review tab, weekly proficiency tests, and bonus sentence-building sections; then site-wide space theme visual pass."
+    "entry": "Achievements added: two tiers tracking total plots automated and full weeks fully automated; \"Weeds\" mix-up state, a personal error-pattern digest, a gender-tagging drill, and a liaison/elision practice quiz added; combo bonus, self-rated confidence, deliberate interleaving, adaptive distractor difficulty, a cultural notes toggle, and a progress dashboard added; slideshow cross-check merge: 9 new topics and 75 new items added from the teacher's own lecture slides; core farm launched: the 23-week FREN151 to FREN152 syllabus catalog, spaced-repetition plant growth, a runtime question generator, and save-code support; then grading engine v2 (STRICT/LENIENT tiers), a \"flag as correct\" report button, a failure feedback blurb, a Review tab, weekly proficiency tests, and bonus sentence-building sections; then site-wide space theme visual pass."
   }
 ]

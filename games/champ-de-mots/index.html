@@ -255,6 +255,7 @@
         <button id="quick-water-button" class="secondary" title="One question on your most overdue plot: the quickest way to water something during a short break.">💧 Quick water</button>
         <button id="sentence-builder-button" class="secondary" title="Build French sentences from word tiles, from any week you have unlocked. Open it any time.">🧩 Sentence builder</button>
         <button id="conversation-button" class="secondary" title="A short scripted exchange: pick the French line that fits each turn. Opens once the weeks whose phrases it uses are unlocked.">💬 Conversation</button>
+        <button id="listening-button" class="secondary" title="Hear a French sentence read aloud and pick what it means. Uses your browser's own voices, so it needs speech synthesis.">🎧 Listening</button>
         <button id="next-day-button" class="secondary">Next day</button>
       </div>
       <label class="accent-toggle">
@@ -402,6 +403,22 @@
       <button id="liaison-close-button" class="secondary practice-close">Close</button>
     </div>
 
+    <div id="listening-panel" class="section practice" hidden>
+      <div class="panel-hero panel-hero--bonus" aria-hidden="true">🎧</div>
+      <p id="listening-progress" class="practice-context"></p>
+      <p id="listening-empty-message" class="status-line status-line--muted" hidden></p>
+      <div id="listening-card" class="question-card">
+        <p class="practice-instruction">Listen, then pick what it means.</p>
+        <button id="listening-play-button" class="secondary" type="button">🔊 Play</button>
+        <button id="listening-slow-button" class="secondary" type="button">🐢 Slower</button>
+        <div id="listening-choices" class="bonus-tile-row"></div>
+        <p id="listening-feedback" class="practice-feedback"></p>
+        <button id="listening-next-button" class="secondary" hidden>Next</button>
+      </div>
+      <p id="listening-summary" class="practice-feedback" hidden></p>
+      <button id="listening-close-button" class="secondary practice-close">Close</button>
+    </div>
+
     <div id="conversation-panel" class="section practice" hidden>
       <div class="panel-hero panel-hero--bonus" aria-hidden="true">💬</div>
       <p id="conversation-title" class="practice-instruction"></p>
@@ -507,6 +524,22 @@
   <script>
     // L7a: the real calendar date (device-local, YYYY-MM-DD) for the study
     // calendar. game.py may not touch a clock itself, so it asks here.
+    // L9: French speech via the browser's own voices; no audio files.
+    window.champSpeechAvailable = function () {
+      return "speechSynthesis" in window && typeof SpeechSynthesisUtterance === "function";
+    };
+    window.champSpeak = function (text, slow) {
+      if (!window.champSpeechAvailable()) return;
+      try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(String(text));
+        utterance.lang = "fr-FR";
+        const voice = window.speechSynthesis.getVoices().find((v) => (v.lang || "").toLowerCase().startsWith("fr"));
+        if (voice) utterance.voice = voice;
+        utterance.rate = slow ? 0.6 : 0.9;
+        window.speechSynthesis.speak(utterance);
+      } catch (e) { /* speech is a nicety; never break the game */ }
+    };
     window.studyToday = function () {
       const d = new Date();
       const pad = (n) => String(n).padStart(2, "0");
