@@ -1527,3 +1527,11 @@ html[data-reduced-motion="true"] *::after {
 /* H9: waste-stream focus buttons. */
 .focus-button { margin-top: 0.3rem; font-size: 0.75rem; }
 .focus-button--on { outline: 2px solid #4c9c6e; }
+
+/* H19: circularity scorecard. */
+.scorecard-list { display: grid; gap: 0.5rem; margin: 0.5rem 0; }
+.scorecard-text { margin: 0 0 0.2rem; font-size: 0.8rem; }
+.scorecard-bars { display: grid; gap: 2px; }
+.scorecard-bar { height: 6px; border-radius: 3px; }
+.scorecard-bar--mine { background: #4c9c6e; }
+.scorecard-bar--benchmark { background: #8a8fa6; opacity: 0.7; }

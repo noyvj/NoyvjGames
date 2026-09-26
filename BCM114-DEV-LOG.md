@@ -650,3 +650,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** loop
 **Did:** Added an optional, free, switchable focus on one circularity measure (repair, reuse or recycle) that makes its supply count 25% higher; one focus at a time, stacks with the design-challenge multiplier, saved only when set.
 **Result:** 215 → 228 tests passing, flake8 clean; verified live, zero new console errors.
+
+### 2026-09-26 (Loop: circularity scorecard, H19)
+**Game:** loop
+**Did:** Added a scorecard comparing the player's lifetime circular share against the overall real-world figure and all four sector benchmarks at once, each as a verdict (above/below/level with a shape symbol) plus two bars.
+**Result:** 228 → 236 tests passing, flake8 clean; verified live, zero new console errors.

@@ -197,6 +197,9 @@
           <p id="loop-projection-display" class="comparison-message" title="This is an estimate extrapolated from your recent trend, not a guarantee -- buying more or fewer investments changes it immediately.">Not enough cycles yet to project when the loop might close.</p>
           <p id="real-world-comparison-display" class="comparison-message">Your chain is running at 0% circular, versus a roughly 7% estimated real-world average today (a ballpark figure, not a precise benchmark).</p>
           <p id="sector-comparison-display" class="comparison-message">For context, your circular share is also below several real-world sector estimates (ballpark figures, not precise benchmarks).</p>
+          <!-- H19: the same shares as a scorecard, every benchmark at once: a verdict line
+               (with a shape, not just colour) and two bars, yours then the benchmark. -->
+          <div id="scorecard-list" class="scorecard-list" aria-label="Circularity scorecard against real-world benchmarks"></div>
           <!-- H5: live cross-player comparison against the shared aggregate-stats
                endpoint (planning/TODO.md Z1) -- distinct from the two static
                ballpark real-world/sector comparisons above. Filled in by the

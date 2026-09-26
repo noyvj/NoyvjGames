@@ -564,6 +564,56 @@ def sector_comparison_message(lifetime_fraction):
     return "For context, your circular share is also " + "; ".join(clauses) + " (again, ballpark figures, not precise benchmarks)."
 
 
+def scorecard_rows(lifetime_fraction):
+    """H19: the player's lifetime circular share against EVERY benchmark at
+    once (the overall real-world figure plus each sector), as plain data:
+    label, the benchmark, the signed gap in percentage points and a text
+    verdict. Same hedge as the two single-line comparisons above: ballparks,
+    not a precise dataset."""
+    rows = []
+    entries = [("overall real-world average", REAL_WORLD_CIRCULARITY_BENCHMARK)] + list(SECTOR_COMPARISONS)
+    for label, rate in entries:
+        gap = (lifetime_fraction - rate) * 100
+        if abs(gap) < 0.5:
+            verdict = "level with"
+            symbol = "\u25C6"
+        elif gap > 0:
+            verdict = f"{gap:.0f} points above"
+            symbol = "\u25B2"
+        else:
+            verdict = f"{-gap:.0f} points below"
+            symbol = "\u25BC"
+        rows.append({
+            "label": label, "benchmark": rate, "gap_points": gap, "verdict": verdict, "symbol": symbol,
+            "mine_width": min(100.0, lifetime_fraction * 100), "benchmark_width": min(100.0, rate * 100),
+        })
+    return rows
+
+
+def render_scorecard():
+    container = document.getElementById("scorecard-list")
+    container.innerHTML = ""
+    for row in scorecard_rows(chain.lifetime_circular_fraction()):
+        line = document.createElement("div")
+        line.className = "scorecard-row"
+        text = document.createElement("p")
+        text.className = "scorecard-text"
+        text.innerText = f"{row['symbol']} {row['verdict']} the ~{row['benchmark'] * 100:.0f}% for {row['label']}"
+        line.appendChild(text)
+        bars = document.createElement("div")
+        bars.className = "scorecard-bars"
+        mine = document.createElement("div")
+        mine.className = "scorecard-bar scorecard-bar--mine"
+        mine.style.width = f"{row['mine_width']:.0f}%"
+        bench = document.createElement("div")
+        bench.className = "scorecard-bar scorecard-bar--benchmark"
+        bench.style.width = f"{row['benchmark_width']:.0f}%"
+        bars.appendChild(mine)
+        bars.appendChild(bench)
+        line.appendChild(bars)
+        container.appendChild(line)
+
+
 def _request_community_comparison():
     """H5: asks the page's optional JS hook (window.loopCompare, see
     index.html) to fill #community-comparison-display with a real
@@ -1486,6 +1536,7 @@ def render():
     document.getElementById("sector-comparison-display").innerText = (
         sector_comparison_message(chain.lifetime_circular_fraction())
     )
+    render_scorecard()
     # H5: live cross-player comparison, distinct from the two static
     # real-world/sector comparisons just above -- see
     # _request_community_comparison()'s own docstring.

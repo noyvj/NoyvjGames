@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 714/769 items checked off (92.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 715/769 items checked off (93.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -646,7 +646,7 @@ Every idea in this section was accepted. **You also flagged a real cross-cutting
 - [x] H16: Let the first-time-closed-loop banner include the exact cycle number it happened on.
 - [ ] H17: A "consumer behavior" mechanic — invest in demand-side changes (encouraging reuse/repair culture) distinct from supply-side investment.
 - [x] H18: A small glow on the loop-ring visualization's node currently receiving the most investment.
-- [ ] H19: A "circular economy scorecard" comparing the player's achieved circularity against several real-world sector benchmarks simultaneously (extends the existing single comparison).
+- [x] H19: A "circular economy scorecard" comparing the player's achieved circularity against several real-world sector benchmarks simultaneously (extends the existing single comparison).
 - [x] H20: Let the alternate vignette phrasings rotate randomly among a fraction-bucket's options, for variety on repeat sessions.
 - [ ] H21: A "material passport" mechanic — track a piece of material's full journey as a literal traceable object.
 - [x] H22: A tooltip explaining the hard-ceiling note with its exact multiplier value inline.

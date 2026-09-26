@@ -66,6 +66,7 @@ ELEMENT_IDS = [
     "changelog-panel",
     "loop-closed-banner",
     "goods-category-picker",
+    "scorecard-list",
     "focus-repair-button",
     "focus-reuse-button",
     "focus-recycle-button",
