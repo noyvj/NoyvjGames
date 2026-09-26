@@ -780,3 +780,18 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** herd
 **Did:** Added the F21 hook: each round's decoupling gap goes to the shared opt-in leaderboard widget.
 **Result:** 223 Herd tests pass (3 new).
+
+### 2026-09-26 (Aftermath E9: community resilience index)
+**Game:** aftermath
+**Did:** Added a write-only skill_tree_strength number to the save and a shared community-index line that shows the average across players.
+**Result:** 315 Aftermath tests pass.
+
+### 2026-09-26 (Drift I17: community capacity index)
+**Game:** drift
+**Did:** Added a write-only wellbeing_score to the save and a shared community-index line showing the average across players.
+**Result:** 356 Drift tests pass (2 new).
+
+### 2026-09-26 (Tide D9: community seawall pace)
+**Game:** tide
+**Did:** Added a derived tier_first_season save field and a shared community-index line showing the median season other players reached each seawall tier.
+**Result:** 268 Tide tests pass (3 new).

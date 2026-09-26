@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 741/769 items checked off (96.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 744/769 items checked off (96.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -482,7 +482,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] D6: Let the fish-yield crash warning banner include a suggested action (invest in acidity reduction), not just the warning.
 - [x] D7: A "delayed consequence" visualization — a timeline graph showing today's acidity choices against the eventual fish-yield impact several seasons later.
 - [x] D8: A small tide-level indicator showing the current season's high/low tide relative to the coastline tiles.
-- [ ] D9: A community seawall-design comparison — aggregate stats on which adaptation-tier combination other players reach fastest *(needs Z1)*.
+- [x] D9: A community seawall-design comparison — aggregate stats on which adaptation-tier combination other players reach fastest *(needs Z1)*.
 - [x] D10: Let the acidity/fish-yield mini-graph show a dashed reference line at the historical average, like Thaw's melt-threshold gridline.
 - [x] D11: A "coastal economy diversification" mechanic — a third income source (tourism, aquaculture) as a hedge against acidity-driven fish crashes.
 - [x] D13: A "storm season" event layer — periodic acute weather events (distinct from the slow background sea-level rise) testing whether adaptation infrastructure holds under immediate shock.
@@ -521,7 +521,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] E6: Let the extended-run mode show its exact new event count in the toggle's own label.
 - [x] E7: A proper difficulty-scaling curve across many runs — event severity variation could also scale with total lifetime runs played.
 - [x] E8: A one-time tooltip the first time a run scores negative, reassuring the player the skill tree persists regardless.
-- [ ] E9: A "community resilience index" — an aggregate stat showing average skill-tree strength across all players *(needs Z1)* — **you flagged this for a fuller build-out once the multiplayer update and "holiday events" (see Z23) land**, so treat the Z1-dependent version here as a first pass, not the final shape.
+- [x] E9: A "community resilience index" — an aggregate stat showing average skill-tree strength across all players *(needs Z1)* — **you flagged this for a fuller build-out once the multiplayer update and "holiday events" (see Z23) land**, so treat the Z1-dependent version here as a first pass, not the final shape.
 - [x] E10: Let the toughest-run-yet comparison show the specific event sequence that made it toughest, not just the score.
 - [x] E12: A small badge on the settlement art for reaching a "toughest run" personal best, not just per-skill badges.
 - [x] E13: A proper narrative epilogue at the end of an extended run, in Continuum's era-transition-beat spirit, scaled to Aftermath's shorter format.
@@ -683,7 +683,7 @@ Every idea in this section was accepted, no exceptions.
 - [x] I14: Label the target marker on wellbeing gauges with the exact threshold number.
 - [x] I15: A "crisis-to-recovery" narrative mode — an opt-in harder start (already-strained region) demonstrating the "not too late" message from a bad starting position.
 - [x] I16: A small badge for reaching Model Region tier via a from-behind recovery, distinct from steady management.
-- [ ] I17: A "community capacity index" — aggregate stat showing average regional wellbeing across all players *(needs Z1)*.
+- [x] I17: A "community capacity index" — aggregate stat showing average regional wellbeing across all players *(needs Z1)*.
 - [x] I18: Let the free-text tone/framing feedback field show a short explanatory placeholder.
 - [x] I19: A "resource reallocation" mid-run mechanic — shift already-committed capacity between housing/services/infrastructure at a small cost.
 - [x] I20: A one-time callout the first time the arrival-dot stream's density visibly changes due to a difficulty toggle. Attribution is structural: a baseline dot count is captured the moment the Accelerated Severity toggle is first switched on, so the callout can only ever fire for a player who's used the toggle, never from ordinary background growth alone. See `games/drift/CLAUDE.md`.

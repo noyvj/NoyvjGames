@@ -2421,6 +2421,19 @@ def on_set_baseline(event=None):
 # extra conversion is needed. load_state() is the exact inverse, then
 # calls render() (Tide's full-render function) so the UI reflects the
 # loaded state immediately.
+def _tier_first_season_field():
+    """D9: the season each adaptation tier was first active, for the tiers this
+    settlement has reached (t1 = sandbag berms, ...). A write-only number
+    group for the community seawall comparison; never read back."""
+    first = {}
+    for tier_index in range(1, len(ADAPTATION_TIERS)):
+        for i, tier in enumerate(state.tier_log):
+            if tier >= tier_index:
+                first[f"t{tier_index}"] = i + 1
+                break
+    return {"tier_first_season": first} if first else {}
+
+
 def get_state():
     return {
         "season": state.season,
@@ -2453,6 +2466,7 @@ def get_state():
         "max_funds_ever": state.max_funds_ever,
         "fortified_in_time_earned": state.fortified_in_time_earned,
         "tier_log": copy.deepcopy(state.tier_log),
+        **_tier_first_season_field(),
         "hard_lag_note_seen": state.hard_lag_note_seen,
         "fish_crash_open": state.fish_crash_open,
         "recovery_celebrated_season": state.recovery_celebrated_season,

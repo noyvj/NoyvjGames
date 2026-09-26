@@ -2483,6 +2483,9 @@ def get_state():
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back by load_state() below.
         "achievements_earned": achievement_ids_earned(),
+        # E9: a write-only number for the community resilience index (how many
+        # resilience skills this player's tree has unlocked); never read back.
+        "skill_tree_strength": skill_tree_strength(),
     }
 
 

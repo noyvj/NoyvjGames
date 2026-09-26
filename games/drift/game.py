@@ -2525,6 +2525,8 @@ def get_state():
         **_neighbor_state_fields(),
         "coda_visible": coda_visible,
         "info_page_open": info_page_open,
+        # I17: a write-only number for the community capacity index; never read back.
+        "wellbeing_score": region.wellbeing_score(),
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),

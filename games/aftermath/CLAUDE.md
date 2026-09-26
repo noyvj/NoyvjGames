@@ -701,3 +701,6 @@ A guided sequence of five lessons (`CURRICULUM`), each a run with one specific g
 
 ## Hardest-schedule leaderboard (E23, 2026-09-26)
 When a run completes with resources left, `_report_hardest_schedule()` sends its `average_severity(event_log)` (rounded to 3 places) and `run N` to `window.NoyvjLeaderboard` (shared/leaderboard.js, mounted under the legacy history panel), which submits only for a signed-in, opted-in player and remembers the personal best. Run 1 is always exactly 1.00x so only later, harsher runs can climb. Backend board `aftermath/hardest_schedule`. Tests: `tests/test_leaderboard_report.py` (3).
+
+## Community resilience index (E9, 2026-09-26)
+`get_state()` gains a write-only `skill_tree_strength` (`skill_tree_strength()`, never read back; the save-system test pins the key set), whitelisted in `app/stats.py`. `shared/community-index.js` (a data-template script under the legacy history panel) reads `/stats/games/aftermath` and shows mean and median across players, hidden when there are too few saves. Needs the next backend deploy for the whitelist. Test in `tests/test_leaderboard_report.py`.

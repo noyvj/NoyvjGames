@@ -172,3 +172,14 @@ def test_cache_serves_repeat_reads_until_cleared():
     assert client.get("/stats/games/grid").json()["save_count"] == 3  # cached
     stats.cache_clear()
     assert client.get("/stats/games/grid").json()["save_count"] == 4
+
+
+def test_community_index_fields_are_whitelisted():
+    """E9 / I17 / D9: the numeric fields behind the community index lines."""
+    import stats
+    assert "skill_tree_strength" in stats.STATS_FIELDS["aftermath"]
+    assert "wellbeing_score" in stats.STATS_FIELDS["drift"]
+    for tier in ("t1", "t2", "t3", "t4"):
+        assert f"tier_first_season.{tier}" in stats.STATS_FIELDS["tide"]
+    saves = [{"tier_first_season": {"t1": s}} for s in (4, 6, 8)]
+    assert stats.field_values(saves, "tier_first_season.t1") == [4.0, 6.0, 8.0]

@@ -60,10 +60,11 @@ STATS_FIELDS: dict[str, tuple[str, ...]] = {
     "tide": (
         "season", "funds", "acidity", "sea_level", "cumulative_damage",
         "max_funds_ever", "min_fish_yield_ever", "max_acidity_ever",
+        "tier_first_season.t1", "tier_first_season.t2", "tier_first_season.t3", "tier_first_season.t4",
     ),
     "aftermath": (
         "run_number", "event_index", "resources", "resilience_capacity",
-        "growth_capacity", "damage_taken",
+        "growth_capacity", "damage_taken", "skill_tree_strength",
     ),
     "herd": (
         "round_number", "funds", "herd_size", "methane",
@@ -82,7 +83,7 @@ STATS_FIELDS: dict[str, tuple[str, ...]] = {
     "drift": (
         "round_number", "funds", "total_arrivals", "integrated_population",
         "best_stable_streak", "cumulative_services_investment",
-        "cumulative_integration_contribution",
+        "cumulative_integration_contribution", "wellbeing_score",
     ),
     "trade-empire": (
         "total_profit", "research_points", "total_sales_count",

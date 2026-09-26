@@ -48,3 +48,13 @@ def test_missing_widget_is_harmless(game_env):
     game_env.run.resources = 10 ** 9
     _finish_run(game_env)
     assert game_env.run.is_complete()
+
+
+def test_state_carries_the_write_only_skill_strength_number(game_env):
+    """E9: the community resilience index reads this from saves; it is never loaded back."""
+    m = game_env.module
+    state = m.get_state()
+    assert state["skill_tree_strength"] == m.skill_tree_strength() == 0
+    m.skill_tree.unlocked.add(next(iter(m.SKILLS)))
+    assert m.get_state()["skill_tree_strength"] == 1
+    m.load_state(state)  # extra key is ignored, load still works

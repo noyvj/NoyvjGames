@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-09-26",
+      "entry": "Community seawall comparison: a line showing the median season other players first reached each seawall tier (sandbag berms, seawalls, reinforced seawalls, storm-surge barriers), shown only for tiers with enough data (D9)."
+    },
+    {
+      "date": "2026-09-26",
       "entry": "Sister settlement: add a second, lower-lying coastal settlement that shares your funds and seawall tier but faces the sea harder (D3)."
     },
     {

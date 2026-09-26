@@ -21,6 +21,7 @@ def test_get_state_includes_every_expected_key(game_env):
         "event_log",
         "extended",  # E18: optional extended-run mode
         "achievements_earned",
+        "skill_tree_strength",
     }
 
 
