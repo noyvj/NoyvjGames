@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-26",
+    "entry": "Farm succession: a certified farm can be handed to the next generation for legacy points that buy permanent perks, including a Heritage Flock that keeps poultry available from round 1 (F25)."
+  },
+  {
+    "date": "2026-09-26",
     "entry": "New achievement, Sustainably Certified, for earning the permanent sustainable-certification price premium. It replaces the separate one-off pop-up that used to announce that moment."
   },
   {
@@ -49,7 +53,7 @@
   },
   {
     "date": "2026-09-21",
-    "entry": "F8: a small diamond marker on the coupling gauge showing the best (lowest) decoupling ratio this browser has ever reached across sessions, plus a matching \"Best ever\" label \u2014 persisted via localStorage, separate from the gauge's own live reading."
+    "entry": "F8: a small diamond marker on the coupling gauge showing the best (lowest) decoupling ratio this browser has ever reached across sessions, plus a matching \"Best ever\" label — persisted via localStorage, separate from the gauge's own live reading."
   },
   {
     "date": "2026-09-20",
@@ -61,7 +65,7 @@
   },
   {
     "date": "2026-09-19",
-    "entry": "Added a settings panel (text size + reduced motion) and completed a colorblind-safety audit \u2014 the coupling gauge was already redundantly coded (length + text labels), no change needed."
+    "entry": "Added a settings panel (text size + reduced motion) and completed a colorblind-safety audit — the coupling gauge was already redundantly coded (length + text labels), no change needed."
   },
   {
     "date": "2026-09-15",

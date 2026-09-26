@@ -620,3 +620,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Loop
 **Did:** Built the two opt-in start modes that previously existed only as constants: a harder chain (all circular supply at 65%) and a soft zero-waste challenge (stay under 150 units of lifetime extraction, never a fail state). Picked before the first cycle, combinable, reset by Start New Chain.
 **Result:** 201 → 215 tests passing, flake8 clean; verified live, zero console errors.
+
+### 2026-09-26 (Herd: farm succession, F25)
+**Game:** Herd
+**Did:** Added farm succession: a certified farm can be handed to the next generation (confirm-gated), restarting the farm and earning legacy points (a bonus for a poultry flock, tying it to F23) that buy permanent perks: Family Savings, Heritage Flock (poultry from round 1) and Mentor's Methods.
+**Result:** 194 → 208 tests passing, flake8 clean; verified live through the real confirm dialog, zero console errors.

@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 683/767 items checked off (89.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 684/767 items checked off (89.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -574,7 +574,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] F22: Let the min/max range labels behind the coupling gauge flash when a new session-best is set.
 - [x] F23 **(you called this "the next big thing this game needs"):** A "second herd type" — a genuinely different animal (poultry, aquaculture) with its own coupling curve, **unlocked via prestige**, each type with its own needs and decoupling levers, per your framing.
 - [x] F24: A tooltip explaining exactly what the ambient haze overlay's intensity represents.
-- [ ] F25: A "farm succession" meta-progression, Aftermath-style (built independently per Z3's resolution) — **explicitly tie this to F23**, per your note that they work well together (e.g. succession unlocking or feeding into new animal types).
+- [x] F25: A "farm succession" meta-progression, Aftermath-style (built independently per Z3's resolution) — **explicitly tie this to F23**, per your note that they work well together (e.g. succession unlocking or feeding into new animal types).
 - [x] F26: A small icon distinguishing the three original decoupling measures (feed/caps/capture) from the plant-based pivot in any summary list.
 - [x] F27: A "policy advisor" event — periodically offers a choice between a subsidy for decoupling investment or a flat cash bonus.
 - [x] F28: Let the worked numeric example in the tutorial be revisitable from the How to Play panel directly.

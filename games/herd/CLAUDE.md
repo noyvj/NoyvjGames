@@ -648,3 +648,12 @@ times correctly grew the "You" bar to 30%. Zero console errors.
 ## Callout-to-achievement audit (Z-extra, 2026-09-26)
 
 Of Herd's four one-time milestone toasts (`_MILESTONE_CALLOUT_MESSAGES`), only `certified` was a pure "you did a thing once" celebration with no achievement behind it, so it became the **Sustainably Certified** achievement (`ACHIEVEMENT_CHECKS["sustainably_certified"]` reads `farm.certified`) and its toast, the `newly_certified` bookkeeping and the message were removed. The other three stay on purpose: `half_decoupled` is F4's "what does decoupled mean" explainer (a separately requested teaching moment, even though the Half Decoupled achievement fires alongside it), and `pressure` / `methane_penalty` are gameplay warnings, not celebrations. 191 -> 194 tests green.
+
+## Farm succession (F25, 2026-09-26)
+
+An Aftermath-style meta-progression, built independently and tied to F23. Once a farm is sustainably certified it can be handed to the next generation (confirm dialog, no "don't ask again" since it wipes the farm): `hand_over_farm()` restarts the farm from scratch, raises `generation`, and awards legacy points, 1 base plus 1 if the outgoing farm raised a poultry flock of 3 or more (`handover_points()`, the F23 tie-in). Points buy permanent perks (`LEGACY_PERKS`): Family Savings (1 pt, up to 3 levels, +75 starting funds each, counterfactual funds raised equally so "saved vs baseline" stays fair), Heritage Flock (2 pt, poultry available from round 1 without certification, via `poultry_unlocked()`), Mentor's Methods (2 pt, one free Feed Additives unit every generation). A perk takes effect immediately on the current farm and on every later generation.
+
+- `generation`, `legacy_points` and `legacy_perks` are module-level, deliberately outside `farm`, so replacing `farm` on handover never touches them (same shape as Loop's `chains_completed_count`).
+- Save: the three fields are written only when non-default, and validated on load (ints only, unknown perk names dropped, levels clamped to each perk's max).
+- Known trade-off (same as SOL's prestige): achievements derived from live farm state (e.g. sustainably certified) reset with the farm.
+- Panel `#succession-panel` is hidden until certified, or a generation/points/perk exists. 194 -> 208 tests (`tests/test_succession.py`); verified live through the real confirm dialog, zero console errors.

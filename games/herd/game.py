@@ -265,7 +265,9 @@ class FarmState:
 
     # ---- F23 poultry ----
     def poultry_unlocked(self):
-        return self.certified
+        # F25: a heritage flock (legacy perk) carries the unlock to every
+        # later generation without needing to re-earn certification.
+        return self.certified or legacy_perks.get("heritage_flock", 0) > 0
 
     def poultry_coupling_ratio(self):
         reduction = sum(
@@ -1567,6 +1569,8 @@ def render_extras():
     # F27 policy advisor
     document.getElementById("policy-panel").hidden = not farm.policy_offer_pending
     document.getElementById("policy-display").innerText = policy_message()
+    render_succession()
+
     # F23 poultry
     unlocked = farm.poultry_unlocked()
     document.getElementById("poultry-panel").hidden = not unlocked
@@ -1756,7 +1760,7 @@ def _make_decoupling_handler(measure):
     return handler
 
 
-def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm):
+def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm, allow_skip=True):
     """Routes a guarded action through the shared shared/confirm-dialog.js
     widget when it's available, or runs the action immediately when it
     isn't -- same lazy `from js import window`/getattr-default shape as
@@ -1777,12 +1781,143 @@ def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm):
     if confirm_dialog is None:
         on_confirm()
         return
+    kwargs = {}
+    if not allow_skip:
+        kwargs["allowSkip"] = False
     confirm_dialog.ask(
         id=action_id,
         message=message,
         confirmLabel=confirm_label,
         onConfirm=create_proxy(on_confirm),
+        **kwargs,
     )
+
+
+# ===========================================================================
+# F25: farm succession -- an Aftermath-style meta-progression, built
+# independently. A certified farm can be handed to the next generation: the
+# farm restarts from scratch, the generation counter rises and the outgoing
+# farm earns legacy points, which buy permanent perks. Tied to F23: raising a
+# poultry flock feeds the handover, and the Heritage Flock perk carries the
+# poultry unlock into every later generation. Deliberately module-level (like
+# `chains_completed_count` in Loop): a reset of `farm` must never touch it.
+# ===========================================================================
+SUCCESSION_BASE_POINTS = 1
+SUCCESSION_FLOCK_BONUS_POINTS = 1
+SUCCESSION_FLOCK_MIN_SIZE = 3
+LEGACY_PERKS = {
+    "family_savings": {"label": "Family Savings", "cost": 1, "max": 3,
+                       "blurb": "+75 starting funds per level, every generation."},
+    "heritage_flock": {"label": "Heritage Flock", "cost": 2, "max": 1,
+                       "blurb": "The poultry flock is available from round 1, no certification needed."},
+    "mentor_methods": {"label": "Mentor's Methods", "cost": 2, "max": 1,
+                       "blurb": "Every generation starts with one Feed Additives unit already in place."},
+}
+FAMILY_SAVINGS_FUNDS = 75
+
+generation = 1
+legacy_points = 0
+legacy_perks = {}
+
+
+def can_hand_over():
+    return farm.certified
+
+
+def handover_points():
+    """Points the current farm would earn on handover."""
+    points = SUCCESSION_BASE_POINTS
+    if farm.poultry_size >= SUCCESSION_FLOCK_MIN_SIZE:
+        points += SUCCESSION_FLOCK_BONUS_POINTS
+    return points
+
+
+def _apply_perk_to_farm(name):
+    """One level of a perk's effect on the CURRENT farm (used both when a perk
+    is bought and when a new generation starts)."""
+    if name == "family_savings":
+        farm.funds += FAMILY_SAVINGS_FUNDS
+        farm.counterfactual_funds += FAMILY_SAVINGS_FUNDS
+    elif name == "mentor_methods":
+        farm.decoupling_investment["feed"] += 1
+
+
+def buy_legacy_perk(name):
+    spec = LEGACY_PERKS.get(name)
+    if spec is None:
+        return False
+    level = legacy_perks.get(name, 0)
+    global legacy_points
+    if level >= spec["max"] or legacy_points < spec["cost"]:
+        return False
+    legacy_points -= spec["cost"]
+    legacy_perks[name] = level + 1
+    _apply_perk_to_farm(name)
+    return True
+
+
+def hand_over_farm():
+    """Awards points, starts the next generation on a fresh farm and applies
+    every perk owned so far. Returns the points earned, or None if the farm
+    can't be handed over yet."""
+    global farm, generation, legacy_points
+    if not can_hand_over():
+        return None
+    earned = handover_points()
+    legacy_points += earned
+    generation += 1
+    farm = FarmState()
+    for name, level in legacy_perks.items():
+        for _ in range(level):
+            _apply_perk_to_farm(name)
+    return earned
+
+
+def render_succession():
+    panel = document.getElementById("succession-panel")
+    visible = farm.certified or generation > 1 or legacy_points > 0 or bool(legacy_perks)
+    panel.hidden = not visible
+    if not visible:
+        return
+    status = f"Generation {generation}. Legacy points: {legacy_points}."
+    if can_hand_over():
+        status += f" Handing over now would earn {handover_points()} point(s)."
+    else:
+        status += " Earn sustainable certification to be able to hand the farm down."
+    document.getElementById("succession-display").innerText = status
+    hand_button = document.getElementById("succession-button")
+    hand_button.disabled = not can_hand_over()
+    for name, spec in LEGACY_PERKS.items():
+        level = legacy_perks.get(name, 0)
+        button = document.getElementById(f"perk-{name.replace('_', '-')}-button")
+        button.innerText = f"{spec['label']} ({level}/{spec['max']}) \u2014 {spec['cost']} pt"
+        button.title = spec["blurb"]
+        button.disabled = level >= spec["max"] or legacy_points < spec["cost"]
+
+
+def on_hand_over_farm(event=None):
+    def do_handover():
+        if hand_over_farm() is not None:
+            render()
+            _check_new_achievements_for_toast()
+
+    _confirm_dialog_ask(
+        action_id="herd-succession",
+        message=(
+            f"Hand the farm to the next generation? The farm restarts from scratch and you earn "
+            f"{handover_points()} legacy point(s) to spend on permanent perks."
+        ),
+        confirm_label="Hand over",
+        on_confirm=do_handover,
+        allow_skip=False,
+    )
+
+
+def _make_perk_handler(name):
+    def handler(event=None):
+        if buy_legacy_perk(name):
+            render()
+    return handler
 
 
 def on_invest_plant_pivot(event=None):
@@ -1829,7 +1964,7 @@ def on_advance_round(event=None):
 # serialize_state() docstring. info_page_open is deliberately excluded —
 # it's a cosmetic panel toggle, not tracked game progress.
 def get_state():
-    return {
+    state = {
         "round_number": farm.round_number,
         "funds": farm.funds,
         "herd_size": farm.herd_size,
@@ -1856,6 +1991,15 @@ def get_state():
         "subsidy_rounds_left": farm.subsidy_rounds_left,
         "achievements_earned": achievement_ids_earned(),
     }
+    # F25: succession state is written only once a handover has happened or
+    # points/perks exist, so an ordinary save is unchanged.
+    if generation > 1:
+        state["generation"] = generation
+    if legacy_points > 0:
+        state["legacy_points"] = legacy_points
+    if legacy_perks:
+        state["legacy_perks"] = dict(legacy_perks)
+    return state
 
 
 def _safe_int(value, default):
@@ -1911,6 +2055,18 @@ def load_state(data):
     )
     farm.certification_streak = data.get("certification_streak", 0)
     farm.certified = bool(data.get("certified", False))
+    # F25: succession state, validated (ints only; perk names must exist and
+    # levels are clamped to each perk's own maximum).
+    global generation, legacy_points, legacy_perks
+    generation = max(1, _safe_int(data.get("generation"), 1))
+    legacy_points = _safe_int(data.get("legacy_points"), 0)
+    legacy_perks = {}
+    saved_perks = data.get("legacy_perks")
+    if isinstance(saved_perks, dict):
+        for name, spec in LEGACY_PERKS.items():
+            level = min(spec["max"], _safe_int(saved_perks.get(name), 0))
+            if level > 0:
+                legacy_perks[name] = level
     # Round-3 fields: every one validated and defaulted (older saves lack them).
     farm.poultry_size = _safe_int(data.get("poultry_size"), 0)
     farm.poultry_investment = {m: 0 for m in POULTRY_MEASURES}
@@ -1972,6 +2128,10 @@ def setup():
     )
     for element_id, handler in (
         ("poultry-grow-button", on_grow_poultry),
+        ("succession-button", on_hand_over_farm),
+        ("perk-family-savings-button", _make_perk_handler("family_savings")),
+        ("perk-heritage-flock-button", _make_perk_handler("heritage_flock")),
+        ("perk-mentor-methods-button", _make_perk_handler("mentor_methods")),
         ("genetics-invest-button", on_invest_genetics),
         ("supply-chain-invest-button", on_invest_supply_chain),
         ("variation-checkbox", on_toggle_variation),
