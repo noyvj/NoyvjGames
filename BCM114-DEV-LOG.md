@@ -675,3 +675,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** loop
 **Did:** Turned the passport's traced unit into a named product per goods category with a category-specific sentence for each step of its journey and a running count of its lives.
 **Result:** 276 → 283 tests passing, flake8 clean; verified live with six cycles.
+
+### 2026-09-26 (Drift: policy toolkit, I3)
+**Game:** drift
+**Did:** Added three named institutional policy levers (credentialing, language access, community sponsorship), each purchasable up to three levels for a small permanent effect on income, integration speed and strain.
+**Result:** 303 → 316 tests passing, flake8 clean; verified live.

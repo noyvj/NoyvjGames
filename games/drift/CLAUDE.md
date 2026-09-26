@@ -356,3 +356,7 @@ case). `flake8` clean. Verified live under Pyodide (`hub-dev-server`):
 toggling on captured baseline 2, advancing 6 rounds moved the dot count
 to 5 and the callout appeared with the exact expected text, styled
 correctly, zero console errors.
+
+## Policy toolkit (I3, 2026-09-26)
+
+Three named, real-world-grounded institutional levers beside the abstract housing/services/infrastructure split (`POLICIES`, `POLICY_BASE_COST` 60 times the next level, `POLICY_MAX_LEVEL` 3): **Streamlined Credentialing** (+15% per level on the funds integrated people contribute back, via `integration_contribution()`), **Language-Access Funding** (+15% per level on integration throughput, via `integration_this_round()`), and **Community Sponsorship** (+6 effective capacity per level against strain, via `strain_fraction()`, which can never go below zero). Small, permanent and specific; capacity investments are untouched. `RegionState.policy_level`, `policy_effect()`, `policy_cost()`, `invest_policy()`; three buttons show level, next cost or 'Maxed'. Save: `policy_level` only when any level is above zero, validated per policy (int 0..3, unknown keys ignored). 303 -> 316 tests (`tests/test_policies.py`); verified live.

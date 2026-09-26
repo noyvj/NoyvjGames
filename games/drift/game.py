@@ -61,6 +61,38 @@ CAPACITY_PER_INVESTMENT = {
     "infrastructure": 6.0,
 }
 
+# I3: the policy toolkit -- three named, real-world-grounded institutional
+# levers, offered beside (not instead of) the abstract housing/services/
+# infrastructure split. Each can be strengthened POLICY_MAX_LEVEL times for a
+# growing price; the effects are small, permanent and specific:
+#   credentialing   -- streamlined recognition of foreign qualifications puts
+#                      arrivals' skills to work sooner: integrated people
+#                      contribute more funds back each round.
+#   language_access -- funded language classes and interpreters let services
+#                      reach people faster: higher integration throughput.
+#   sponsorship     -- community and private sponsorship networks absorb part of
+#                      the load informally: extra effective capacity against
+#                      strain.
+POLICIES = {
+    "credentialing": {
+        "label": "Streamlined Credentialing", "icon": "\U0001F4DC",
+        "blurb": "+15% funds contributed back by integrated people, per level.",
+        "effect_per_level": 0.15,
+    },
+    "language_access": {
+        "label": "Language-Access Funding", "icon": "\U0001F5E3\uFE0F",
+        "blurb": "+15% integration throughput, per level.",
+        "effect_per_level": 0.15,
+    },
+    "sponsorship": {
+        "label": "Community Sponsorship", "icon": "\U0001F91D",
+        "blurb": "+6 effective capacity against strain, per level.",
+        "effect_per_level": 6.0,
+    },
+}
+POLICY_BASE_COST = 60.0
+POLICY_MAX_LEVEL = 3
+
 # Displacement pressure: background climate severity rises steadily and
 # largely outside the player's control (mirrors Thaw's background
 # trajectory), and arrivals each round scale with it. This is the
@@ -198,6 +230,8 @@ class RegionState:
         self.round_number = 1
         self.funds = STARTING_FUNDS
         self.capacity = {t: 0.0 for t in CAPACITY_TYPES}
+        # I3: level (0..POLICY_MAX_LEVEL) of each policy lever.
+        self.policy_level = {p: 0 for p in POLICIES}
         self.background_severity = 0.0
         self.total_arrivals = 0.0
         self.arrivals_log = []
@@ -298,6 +332,24 @@ class RegionState:
     def total_capacity(self):
         return sum(self.capacity[t] for t in CAPACITY_TYPES)
 
+    def policy_effect(self, policy):
+        """The summed effect of a policy at its current level (a fraction for
+        the two multiplier policies, capacity units for sponsorship)."""
+        return POLICIES[policy]["effect_per_level"] * self.policy_level[policy]
+
+    def policy_cost(self, policy):
+        return POLICY_BASE_COST * (self.policy_level[policy] + 1)
+
+    def invest_policy(self, policy):
+        if policy not in POLICIES or self.policy_level[policy] >= POLICY_MAX_LEVEL:
+            return False
+        cost = self.policy_cost(policy)
+        if self.funds < cost:
+            return False
+        self.funds -= cost
+        self.policy_level[policy] += 1
+        return True
+
     def invest(self, capacity_type):
         cost = INVEST_COST[capacity_type]
         if self.funds < cost:
@@ -321,7 +373,7 @@ class RegionState:
         outrun capacity."""
         if self.total_arrivals <= 0:
             return 0.0
-        shortfall = max(0.0, self.total_arrivals - self.total_capacity())
+        shortfall = max(0.0, self.total_arrivals - self.total_capacity() - self.policy_effect("sponsorship"))
         return min(1.0, shortfall / self.total_arrivals)
 
     def strain_level(self):
@@ -341,7 +393,10 @@ class RegionState:
         by services throughput and by how many people are actually
         waiting — this cap is the lag: a region can only integrate as
         fast as its services capacity allows, regardless of funds."""
-        throughput = self.capacity["services"] * INTEGRATION_RATE_PER_SERVICES_UNIT
+        throughput = (
+            self.capacity["services"] * INTEGRATION_RATE_PER_SERVICES_UNIT
+            * (1.0 + self.policy_effect("language_access"))
+        )
         return min(self.pending_population(), throughput)
 
     def integration_contribution(self):
@@ -349,7 +404,10 @@ class RegionState:
         net-positive core of the hope angle: integration isn't a
         permanent drain, it eventually pays for the services investment
         that enabled it and keeps paying after that."""
-        return self.integrated_population * INTEGRATION_CONTRIBUTION_PER_PERSON
+        return (
+            self.integrated_population * INTEGRATION_CONTRIBUTION_PER_PERSON
+            * (1.0 + self.policy_effect("credentialing"))
+        )
 
     def has_crossed_to_net_positive(self):
         """Iteration Pass 3: once integrated arrivals' contributions have
@@ -1683,6 +1741,7 @@ def render_personal_best():
 
 def render():
     render_info_page()
+    render_policies()
     update_achievements_display()
     _maybe_update_personal_best()
     render_personal_best()
@@ -1957,6 +2016,29 @@ def on_advance_round(event=None):
     _check_new_achievements_for_toast()
 
 
+def render_policies():
+    for policy, spec in POLICIES.items():
+        level = region.policy_level[policy]
+        document.getElementById(f"policy-{policy.replace('_', '-')}-name").innerText = (
+            f"{spec['icon']} {spec['label']} ({level}/{POLICY_MAX_LEVEL})"
+        )
+        button = document.getElementById(f"policy-{policy.replace('_', '-')}-button")
+        if level >= POLICY_MAX_LEVEL:
+            button.innerText = "Maxed"
+            button.disabled = True
+        else:
+            button.innerText = f"Fund ({region.policy_cost(policy):.0f})"
+            button.disabled = region.funds < region.policy_cost(policy)
+
+
+def _make_policy_handler(policy):
+    def handler(event=None):
+        region.invest_policy(policy)
+        render()
+        _check_new_achievements_for_toast()
+    return handler
+
+
 def _make_invest_handler(capacity_type):
     def handler(event=None):
         region.invest(capacity_type)
@@ -2085,6 +2167,7 @@ def get_state():
         "region_name": region.region_name,
         "coda_legacy_choice": region.coda_legacy_choice,
         "crisis_start_enabled": region.crisis_start_enabled,
+        **({"policy_level": dict(region.policy_level)} if any(region.policy_level.values()) else {}),
         "coda_visible": coda_visible,
         "info_page_open": info_page_open,
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
@@ -2172,6 +2255,13 @@ def load_state(data):
     if saved_choice in CODA_LEGACY_CHOICES or saved_choice is None:
         region.coda_legacy_choice = saved_choice
     region.crisis_start_enabled = bool(data.get("crisis_start_enabled", region.crisis_start_enabled))
+    region.policy_level = {p: 0 for p in POLICIES}
+    saved_policies = data.get("policy_level")
+    if isinstance(saved_policies, dict):
+        for p in POLICIES:
+            level = saved_policies.get(p)
+            if isinstance(level, int) and not isinstance(level, bool) and 0 <= level <= POLICY_MAX_LEVEL:
+                region.policy_level[p] = level
     name_input = document.getElementById("region-name-input")
     name_input.value = region.region_name
     coda_visible = data.get("coda_visible", coda_visible)
@@ -2197,6 +2287,10 @@ def setup():
     for capacity_type in CAPACITY_TYPES:
         document.getElementById(f"{capacity_type}-invest-button").addEventListener(
             "click", create_proxy(_make_invest_handler(capacity_type))
+        )
+    for policy in POLICIES:
+        document.getElementById(f"policy-{policy.replace('_', '-')}-button").addEventListener(
+            "click", create_proxy(_make_policy_handler(policy))
         )
     document.getElementById("coda-button").addEventListener(
         "click", create_proxy(on_toggle_coda)
