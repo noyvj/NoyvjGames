@@ -3,7 +3,9 @@
 
 def test_four_scenarios_with_classic_as_default(game_env):
     m = game_env.module
-    assert set(m.SCENARIOS) == {"classic", "coastal", "inland", "urban"}
+    assert set(m.SCENARIOS) == {
+        "classic", "coastal", "inland", "urban", "san_francisco", "houston", "phoenix", "chicago",
+    }
     assert m.DEFAULT_SCENARIO == "classic"
     assert m.run.scenario == "classic" and m.run.schedule is m.EVENT_SCHEDULE
 
@@ -34,7 +36,7 @@ def test_scenarios_differ_in_their_hazard_mix(game_env):
     assert count("inland", "heatwave") > count("classic", "heatwave")
     assert count("urban", "infrastructure_failure") > count("classic", "infrastructure_failure")
     assert count("urban", "civil_unrest") > count("classic", "civil_unrest")
-    assert len({tuple(s["schedule"]) for s in m.SCENARIOS.values()}) == 4
+    assert len({tuple(s["schedule"]) for s in m.SCENARIOS.values()}) == len(m.SCENARIOS)
 
 
 def test_a_run_follows_its_scenarios_schedule(game_env):
@@ -122,3 +124,26 @@ def test_load_rejects_bad_scenario_values(game_env):
         data["scenario"] = bad
         m.load_state(data)
         assert m.run.scenario == "classic"
+
+
+def test_named_places_match_their_best_known_hazards(game_env):
+    """E17b: San Francisco skews to infrastructure and heat with no storms;
+    Houston is storm and flood heavy; Phoenix is heat heavy."""
+    m = game_env.module
+    sf = m.SCENARIOS["san_francisco"]["schedule"]
+    assert sf.count("infrastructure_failure") >= 3 and "storm" not in sf
+    houston = m.SCENARIOS["houston"]["schedule"]
+    assert houston.count("storm") + houston.count("flood") >= 4
+    assert m.SCENARIOS["phoenix"]["schedule"].count("heatwave") >= 3
+
+
+def test_named_places_can_be_started_and_saved(game_env):
+    m = game_env.module
+    for name in ("san_francisco", "houston", "phoenix", "chicago"):
+        r = m.RunState(scenario=name)
+        assert r.scenario == name and len(r.schedule) == 7
+    m.run = m.RunState(scenario="houston")
+    state = m.get_state()
+    assert state["scenario"] == "houston"
+    m.load_state(state)
+    assert m.run.scenario == "houston"

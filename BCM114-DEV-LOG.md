@@ -795,3 +795,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** tide
 **Did:** Added a derived tier_first_season save field and a shared community-index line showing the median season other players reached each seawall tier.
 **Result:** 268 Tide tests pass (3 new).
+
+### 2026-09-26 (Aftermath E17b: named real locations)
+**Game:** aftermath
+**Did:** Extended the E17a scenario pack with four real places. The mapping is a simplified, stated approximation of each place's best-known hazards, balanced against the classic run's total damage.
+**Result:** 317 Aftermath tests pass.

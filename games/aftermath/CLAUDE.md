@@ -704,3 +704,6 @@ When a run completes with resources left, `_report_hardest_schedule()` sends its
 
 ## Community resilience index (E9, 2026-09-26)
 `get_state()` gains a write-only `skill_tree_strength` (`skill_tree_strength()`, never read back; the save-system test pins the key set), whitelisted in `app/stats.py`. `shared/community-index.js` (a data-template script under the legacy history panel) reads `/stats/games/aftermath` and shows mean and median across players, hidden when there are too few saves. Needs the next backend deploy for the whitelist. Test in `tests/test_leaderboard_report.py`.
+
+## Named real locations (E17b, 2026-09-26)
+Four more `SCENARIOS` entries under a 'Real places (simplified)' group in the selector: San Francisco (three infrastructure failures, two heatwaves, one flood, no storm: earthquake and wildfire mapped onto infrastructure and heat), Houston (two storms, two floods), Phoenix (three heatwaves) and Chicago (two storms, heat, flood). The game has only six event types, so each is a deliberate simplification and the blurbs say so. Same rules as E17a (7 events, total base damage 245 to 283 vs classic 265, within 12%); nothing else changed, saves and validation reuse the `scenario` key. Tests added to `tests/test_scenarios.py` (315 -> 317).

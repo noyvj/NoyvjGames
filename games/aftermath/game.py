@@ -73,6 +73,31 @@ SCENARIOS = {
         "blurb": "Dense systems: failing infrastructure, strained supply and social unrest.",
         "schedule": ["infrastructure_failure", "supply_chain", "civil_unrest", "heatwave", "infrastructure_failure", "flood", "civil_unrest"],
     },
+    # E17b: named real places. The game only has six event types, so each
+    # place is a deliberately simplified mapping of its best-known hazards
+    # onto them (e.g. earthquake and wildfire damage read as infrastructure
+    # failure and heat; winter storms count as storms), not a forecast. Same
+    # rules as above: 7 events, total base damage within ~12% of Classic.
+    "san_francisco": {
+        "label": "San Francisco",
+        "blurb": "Earthquake and wildfire risk (infrastructure failure, fire-season heat, supply breaks), atmospheric-river flooding, and almost no hurricanes or snow.",
+        "schedule": ["infrastructure_failure", "heatwave", "infrastructure_failure", "supply_chain", "heatwave", "infrastructure_failure", "flood"],
+    },
+    "houston": {
+        "label": "Houston",
+        "blurb": "Hurricanes and flooding first, then heat and strained infrastructure.",
+        "schedule": ["storm", "flood", "storm", "flood", "heatwave", "infrastructure_failure", "supply_chain"],
+    },
+    "phoenix": {
+        "label": "Phoenix",
+        "blurb": "Extreme desert heat that wears down power and supply, with rare but sharp flash floods.",
+        "schedule": ["heatwave", "infrastructure_failure", "heatwave", "supply_chain", "heatwave", "flood", "civil_unrest"],
+    },
+    "chicago": {
+        "label": "Chicago",
+        "blurb": "Severe storms and winter storms, summer heat, flooding and a stressed supply network.",
+        "schedule": ["storm", "heatwave", "infrastructure_failure", "flood", "storm", "supply_chain", "civil_unrest"],
+    },
 }
 DEFAULT_SCENARIO = "classic"
 
