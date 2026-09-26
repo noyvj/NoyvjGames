@@ -1681,6 +1681,7 @@ def render_extras():
     document.getElementById("policy-display").innerText = policy_message()
     render_succession()
     render_satellite()
+    document.getElementById("tagline-display").innerText = tagline_message()
 
     # F23 poultry
     unlocked = farm.poultry_unlocked()
@@ -1749,6 +1750,26 @@ def _make_satellite_handler(action, button_id):
             _pulse(button_id)
         render()
     return handler
+
+
+# R-23: the sentence under the title reacts to how the session is going.
+TAGLINE_DEFAULT = "Grow a farm. Herd size and methane emissions are coupled by default — decoupling them takes deliberate investment."
+TAGLINE_PRESSURE = "Methane is building, and the market is starting to push back. Growth is beginning to cost more than it earns."
+TAGLINE_HALF = "Half the coupling is gone: the same herd now emits far less. Keep going, or start to diversify."
+TAGLINE_CERTIFIED = "A certified farm. Growing the herd and cutting methane are no longer pulling against each other."
+
+
+def tagline_message():
+    """One sentence for the current state, in priority order: certified,
+    then decoupled by half or more, then methane pressure past the callout
+    level, else the opening line."""
+    if farm.certified:
+        return TAGLINE_CERTIFIED
+    if farm.decoupled_fraction() >= HALF_DECOUPLED_CALLOUT_THRESHOLD:
+        return TAGLINE_HALF
+    if farm.pressure_fraction() >= PRESSURE_CALLOUT_THRESHOLD:
+        return TAGLINE_PRESSURE
+    return TAGLINE_DEFAULT
 
 
 def on_grow_poultry(event=None):
