@@ -1500,3 +1500,44 @@ html[data-reduced-motion="true"] *::after {
 
 /* E19: the resilience curriculum line. */
 .curriculum-display { border-left: 3px solid #c99354; padding-left: 0.6rem; }
+
+/* ============================================================
+   Y11b light-theme polish (2026-09-27). Light-only rules from a
+   computed-style WCAG contrast scan of the light theme. Dark is
+   untouched. Findings: the four status-line "dark glass" pills
+   (`#resources-display` etc., ID-specific so the shared light layer could
+   not reach them) kept a near-black fill under the light theme's dark
+   text (2.4:1), the primary button's white label sat on a mid-brown
+   gradient (4.2:1), the three event-category identity colours (weather
+   blue, non-weather amber, social violet) were pale hues chosen for a dark
+   background, and the dimmed opacity-.6 skill blurbs fell under 4.5:1. The
+   hues are kept, only their lightness is deepened, so the category cue
+   (hue plus the label text beside it) still holds.
+   ============================================================ */
+html[data-theme="light"] .hub-back-link { opacity: 1; color: #2a4ba0; }
+html[data-theme="light"] .meter-label { opacity: 1; }
+html[data-theme="light"] .info-toggle summary {
+  color: #2a4ba0; background: rgba(70, 95, 170, 0.14); border-color: rgba(70, 95, 170, 0.45);
+}
+html[data-theme="light"] #resources-display,
+html[data-theme="light"] #resilience-display,
+html[data-theme="light"] #growth-display,
+html[data-theme="light"] #knowledge-points-display {
+  color: #1b2033;
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(70, 95, 170, 0.3);
+  box-shadow: inset 0 1px 3px rgba(40, 55, 110, 0.12);
+}
+html[data-theme="light"] button.primary { background: linear-gradient(135deg, #9c5a3a, #7a4127); color: #ffffff; }
+html[data-theme="light"] .skill-practice,
+html[data-theme="light"] .legacy-display,
+html[data-theme="light"] .achievement-card-progress,
+html[data-theme="light"] .achievement-earn-rate,
+html[data-theme="light"] .changelog-entry-date,
+html[data-theme="light"] #howto-panel .howto-step-number { opacity: 1; color: #46507a; }
+html[data-theme="light"] .event-category--weather { color: #174f86; text-shadow: none; }
+html[data-theme="light"] .event-category--non-weather { color: #6e4600; text-shadow: none; }
+html[data-theme="light"] .event-category--social { color: #6d2f8c; text-shadow: none; }
+html[data-theme="light"] .past-run-event { opacity: 1; }
+html[data-theme="light"] .severity--mild { opacity: 0.85; }
+html[data-theme="light"] .feedback-buttons .secondary.selected { color: #ffffff; }

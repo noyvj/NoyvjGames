@@ -1402,3 +1402,30 @@ html[data-reduced-motion="true"] *::after {
 .foresight-display:empty {
   display: none;
 }
+
+/* ============================================================
+   Y11b light-theme polish (2026-09-27). Light-only rules from a
+   computed-style WCAG contrast scan of the light theme (fresh game, 46
+   seasons of investing, every panel open). Dark is untouched. The
+   dimmed-text classes (opacity .5-.7 over dark text) fell under 4.5:1 on
+   the pale panels, the earned-achievement teal and the pale info "i"
+   were built for a dark background, and the selected feedback button kept
+   dark text on its dark-green fill. The coastline tiles themselves were
+   scanned too (land 4.5:1 and flooded 6.1:1 against the pale panel) and
+   need no change; only the grid edge, invisible on light, gets a border.
+   ============================================================ */
+html[data-theme="light"] .hub-back-link { opacity: 1; color: #2a4ba0; }
+html[data-theme="light"] .meter-label { opacity: 1; }
+html[data-theme="light"] .info-toggle summary {
+  color: #2a4ba0; background: rgba(70, 95, 170, 0.14); border-color: rgba(70, 95, 170, 0.45);
+}
+html[data-theme="light"] .achievement-card--earned .achievement-card-label { color: #0b6b62; text-shadow: none; }
+html[data-theme="light"] .achievement-card-description,
+html[data-theme="light"] .achievement-card-progress,
+html[data-theme="light"] .achievement-earn-rate,
+html[data-theme="light"] .changelog-entry-date,
+html[data-theme="light"] #howto-panel .howto-step-number { opacity: 1; color: #46507a; }
+html[data-theme="light"] .feedback-buttons .secondary.selected { color: #ffffff; }
+html[data-theme="light"] .coastline-grid,
+html[data-theme="light"] .coastline-scene { border-color: rgba(70, 95, 170, 0.4); box-shadow: 0 6px 18px rgba(40, 55, 110, 0.16); }
+html[data-theme="light"] .fish-warning-banner { color: #5c3d00; }

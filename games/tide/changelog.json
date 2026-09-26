@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-09-27",
+      "entry": "Light theme polish: dimmed captions, the pale info bubble, the earned-achievement teal, the fishing warning banner and the selected feedback button were darkened for readable contrast on the light theme, and the coastline grid gets a visible edge. The land and flooded tiles themselves already passed. Dark mode is unchanged (Y11b)."
+    },
+    {
       "date": "2026-09-26",
       "entry": "Community seawall comparison: a line showing the median season other players first reached each seawall tier (sandbag berms, seawalls, reinforced seawalls, storm-surge barriers), shown only for tiers with enough data (D9)."
     },

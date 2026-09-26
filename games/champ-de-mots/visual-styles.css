@@ -158,6 +158,67 @@
 }
 
 /* ============================================================
+   Y11b LIGHT THEME (2026-09-27), part 1: the default "high-def" look plus
+   the pieces every style shares. Every rule is under html[data-theme="light"],
+   so the dark theme is untouched. Placed BEFORE the three alternate-style
+   blocks on purpose: those blocks (same specificity, later in the file) keep
+   winning wherever they set the same property, and each style's own light
+   variant (part 2, the very end of this file, one attribute more specific)
+   then re-skins it for light. Found by a computed-style WCAG contrast scan of
+   all four styles: the farm rows and arcade minigame panels stayed dark glass
+   under the light theme's dark text, and the pale slate text used for taglines,
+   chapters and captions was chosen for a dark page.
+   ============================================================ */
+html[data-theme="light"] .row,
+html[data-theme="light"] .minigame-panel,
+html[data-theme="light"] .minigame-prompt-card {
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.85), rgba(240, 244, 255, 0.9));
+  border-color: rgba(70, 95, 170, 0.22);
+  box-shadow: 0 4px 14px rgba(40, 55, 110, 0.1);
+  color: #1b2033;
+}
+html[data-theme="light"] .row--locked { background: rgba(232, 236, 248, 0.75); box-shadow: none; }
+html[data-theme="light"] .minigame-stat,
+html[data-theme="light"] .minigame-summary,
+html[data-theme="light"] .shop-rush-order { color: #1b2033; background: rgba(70, 95, 170, 0.1); border-color: rgba(70, 95, 170, 0.28); }
+html[data-theme="light"] .shop-rush-order { background: transparent; border-color: transparent; }
+html[data-theme="light"] .minigame-stat--timer { color: #8a5a00; }
+html[data-theme="light"] .minigame-stat--timer.minigame-stat--urgent { color: #a3361c; }
+html[data-theme="light"] .minigame-stat--combo { color: #1a6b41; }
+html[data-theme="light"] .shop-rush-patience-bar { background: rgba(70, 95, 170, 0.22); }
+html[data-theme="light"] .shop-rush-patience-fill { background: linear-gradient(90deg, #2f7f2f, #b07800); }
+html[data-theme="light"] .shop-rush-patience-fill.shop-rush-patience-fill--low { background: linear-gradient(90deg, #b07800, #b3321a); }
+html[data-theme="light"] .racer-finish-line { background: repeating-linear-gradient(to bottom, #1b2033 0 6px, transparent 6px 12px); }
+html[data-theme="light"] .hub-back-link { opacity: 1; color: #2a4ba0; }
+html[data-theme="light"] .info-toggle summary {
+  color: #2a4ba0; background: rgba(70, 95, 170, 0.14); border-color: rgba(70, 95, 170, 0.45);
+}
+html[data-theme="light"] .tagline,
+html[data-theme="light"] .legend,
+html[data-theme="light"] .accent-toggle,
+html[data-theme="light"] .row-chapter,
+html[data-theme="light"] .row-lock,
+html[data-theme="light"] .status-line--muted,
+html[data-theme="light"] .settings-label,
+html[data-theme="light"] .settings-note,
+html[data-theme="light"] .minigame-lock-message,
+html[data-theme="light"] .review-setting,
+html[data-theme="light"] .row-blurb,
+html[data-theme="light"] .practice-instruction,
+html[data-theme="light"] .practice-blurb-line,
+html[data-theme="light"] .practice-confidence-label,
+html[data-theme="light"] .dashboard-heading,
+html[data-theme="light"] .achievement-heading,
+html[data-theme="light"] .achievement-next,
+html[data-theme="light"] .achievement-earn-rate,
+html[data-theme="light"] #howto-panel .howto-step-number { color: #4a3d2a; opacity: 1; }
+html[data-theme="light"] .row-due,
+html[data-theme="light"] .status-line--due,
+html[data-theme="light"] .practice-feedback { color: #1f6b2a; }
+html[data-theme="light"] .row-perfect-badge { color: #8a5a00; }
+html[data-theme="light"] .stage-summary { color: #1b2033; }
+
+/* ============================================================
    LOW-POLY -- flat, geometric colour blocks. No blur, no gradients,
    no soft glow: everything reads as a hard-edged flat shape with a
    faceted accent or two, which is the honest ceiling of what CSS
@@ -608,3 +669,89 @@ html[data-visual-style="cartoon"] .phrasebook-panel { color: #f5eaff; }
 html[data-visual-style="lowpoly"] .practice-deepdive { color: #eef3f6; background: rgba(0, 0, 0, 0.25); }
 html[data-visual-style="textbased"] .practice-deepdive { color: #b9f5c9; background: #0a0f12; }
 html[data-visual-style="cartoon"] .practice-deepdive { color: #f5eaff; background: rgba(58, 24, 104, 0.6); }
+
+
+/* ============================================================
+   Y11b LIGHT THEME, part 2: a light variant of each alternate style. The
+   dark-mode versions of these styles paint dark panels and lean on the
+   page's light text; under the light theme the page text is dark, which left
+   near-invisible dark-on-dark text (1.0-1.4:1 in the scan). Rather than a
+   half-dark hybrid, each style gets a genuine light palette that keeps its
+   own character: low-poly stays flat, hard-edged and faceted (pale steel and
+   gold), text-based stays monospace and rule-drawn (paper with terminal
+   green ink), cartoon stays thick-bordered with hard offset shadows (cream
+   with violet ink and pink shadow). Structure, fonts, borders and shadow
+   shapes are untouched; only colours change. One attribute more specific
+   than the dark blocks above, so these win only when the light theme is on.
+   ============================================================ */
+html[data-theme="light"][data-visual-style="lowpoly"] body { background: #e4e9ee; }
+html[data-theme="light"][data-visual-style="lowpoly"] h1 { color: #8a5a00; }
+html[data-theme="light"][data-visual-style="lowpoly"] .context-blurb { background: #f1f5f8; color: #1f2a33; border-left-color: #2f7a49; }
+html[data-theme="light"][data-visual-style="lowpoly"] .section,
+html[data-theme="light"][data-visual-style="lowpoly"] .dashboard-panel,
+html[data-theme="light"][data-visual-style="lowpoly"] .minigame-panel,
+html[data-theme="light"][data-visual-style="lowpoly"] .row,
+html[data-theme="light"][data-visual-style="lowpoly"] .question-card,
+html[data-theme="light"][data-visual-style="lowpoly"] .minigame-prompt-card {
+  background: #f6f9fb; border-color: #9fb3c4; color: #1f2a33; box-shadow: 6px 6px 0 rgba(31, 42, 51, 0.16);
+}
+html[data-theme="light"][data-visual-style="lowpoly"] .row--locked { background: #e9eef2; box-shadow: none; }
+html[data-theme="light"][data-visual-style="lowpoly"] .changelog-row,
+html[data-theme="light"][data-visual-style="lowpoly"] .report-log-row,
+html[data-theme="light"][data-visual-style="lowpoly"] .calendar-panel,
+html[data-theme="light"][data-visual-style="lowpoly"] .phrasebook-panel { color: #1f2a33; }
+html[data-theme="light"][data-visual-style="lowpoly"] .practice-deepdive { color: #1f2a33; background: #eef3f6; }
+html[data-theme="light"][data-visual-style="lowpoly"] .secondary { background: #c9d6e0; border-color: #7d93a6; color: #1f2a33; }
+html[data-theme="light"][data-visual-style="lowpoly"] .primary { background: #2f7a49; border-color: #1f5a34; color: #ffffff; }
+html[data-theme="light"][data-visual-style="lowpoly"] .row-chapter,
+html[data-theme="light"][data-visual-style="lowpoly"] .tagline,
+html[data-theme="light"][data-visual-style="lowpoly"] .legend,
+html[data-theme="light"][data-visual-style="lowpoly"] .status-line--muted { color: #3d4f5e; }
+
+html[data-theme="light"][data-visual-style="textbased"] body { background: #f2f5f0; color: #14261a; }
+html[data-theme="light"][data-visual-style="textbased"] h1 { color: #0d5c26; }
+html[data-theme="light"][data-visual-style="textbased"] .context-blurb { background: #fbfdf9; color: #14261a; border-left-color: #4c6353; }
+html[data-theme="light"][data-visual-style="textbased"] .section,
+html[data-theme="light"][data-visual-style="textbased"] .dashboard-panel,
+html[data-theme="light"][data-visual-style="textbased"] .minigame-panel,
+html[data-theme="light"][data-visual-style="textbased"] .row,
+html[data-theme="light"][data-visual-style="textbased"] .question-card,
+html[data-theme="light"][data-visual-style="textbased"] .minigame-prompt-card { background: #fbfdf9; border-color: #8fa896; color: #14261a; }
+html[data-theme="light"][data-visual-style="textbased"] .row--locked { background: #eef2ec; }
+html[data-theme="light"][data-visual-style="textbased"] .changelog-row,
+html[data-theme="light"][data-visual-style="textbased"] .report-log-row,
+html[data-theme="light"][data-visual-style="textbased"] .calendar-panel,
+html[data-theme="light"][data-visual-style="textbased"] .phrasebook-panel { color: #0a3a18; }
+html[data-theme="light"][data-visual-style="textbased"] .practice-deepdive { color: #0a3a18; background: #fbfdf9; }
+html[data-theme="light"][data-visual-style="textbased"] .primary,
+html[data-theme="light"][data-visual-style="textbased"] .secondary,
+html[data-theme="light"][data-visual-style="textbased"] .choice,
+html[data-theme="light"][data-visual-style="textbased"] .practice-input { background: #fbfdf9; border-color: #4c6353; color: #0d4a20; }
+html[data-theme="light"][data-visual-style="textbased"] .choice--answer { background: #d8f0dd; border-color: #0d5c26; color: #0a3a18; }
+html[data-theme="light"][data-visual-style="textbased"] .status-line--due,
+html[data-theme="light"][data-visual-style="textbased"] .row-due,
+html[data-theme="light"][data-visual-style="textbased"] .stage-summary { color: #0d5c26; border-color: #4c6353; }
+html[data-theme="light"][data-visual-style="textbased"] .stage-summary { border-color: transparent; }
+
+html[data-theme="light"][data-visual-style="cartoon"] body { background: #fff3c4; }
+html[data-theme="light"][data-visual-style="cartoon"] h1 { color: #5b1a8f; text-shadow: 3px 3px 0 #ffb3d5; }
+html[data-theme="light"][data-visual-style="cartoon"] .context-blurb { background: #fff9dc; color: #2a1050; border-left-color: #7b3fc4; }
+html[data-theme="light"][data-visual-style="cartoon"] .section,
+html[data-theme="light"][data-visual-style="cartoon"] .dashboard-panel,
+html[data-theme="light"][data-visual-style="cartoon"] .minigame-panel,
+html[data-theme="light"][data-visual-style="cartoon"] .row,
+html[data-theme="light"][data-visual-style="cartoon"] .question-card,
+html[data-theme="light"][data-visual-style="cartoon"] .minigame-prompt-card { background: #fff9e0; border-color: #7b3fc4; color: #2a1050; box-shadow: 6px 6px 0 #ff8fc0; }
+html[data-theme="light"][data-visual-style="cartoon"] .row--locked { background: #f3ebd0; box-shadow: none; }
+html[data-theme="light"][data-visual-style="cartoon"] .changelog-row,
+html[data-theme="light"][data-visual-style="cartoon"] .report-log-row,
+html[data-theme="light"][data-visual-style="cartoon"] .calendar-panel,
+html[data-theme="light"][data-visual-style="cartoon"] .phrasebook-panel { color: #2a1050; }
+html[data-theme="light"][data-visual-style="cartoon"] .practice-deepdive { color: #2a1050; background: #fff1f7; }
+html[data-theme="light"][data-visual-style="cartoon"] .primary { color: #123a1a; }
+html[data-theme="light"][data-visual-style="cartoon"] .panel-hero { border-color: #7b3fc4; box-shadow: 4px 4px 0 #ff8fc0; }
+html[data-theme="light"][data-visual-style="cartoon"] .practice-input { background: #ffffff; border-color: #7b3fc4; color: #2a1050; }
+html[data-theme="light"][data-visual-style="cartoon"] .row-chapter,
+html[data-theme="light"][data-visual-style="cartoon"] .tagline,
+html[data-theme="light"][data-visual-style="cartoon"] .legend,
+html[data-theme="light"][data-visual-style="cartoon"] .status-line--muted { color: #4a2a78; }

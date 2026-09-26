@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="../../shared/space-bg.css">
 <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="../../shared/theme-light-games.css">
-  <script src="../../shared/theme.js" data-floating-toggle></script>
+  <script src="../../shared/theme.js"></script>
   <script src="../../shared/site-settings.js" data-game-id="sol"></script>
 <link rel="stylesheet" href="../../ad-bar.css">
 <link rel="manifest" href="../../manifest.json">
@@ -54,6 +54,14 @@
           <button id="text-size-reset-button" class="secondary" type="button" aria-label="Reset text size">A</button>
           <button id="text-size-increase-button" class="secondary" type="button" aria-label="Increase text size">A+</button>
         </div>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label">Colour theme</span>
+        <!-- Y11b(d): the light/dark switch lives here instead of the floating pill.
+             shared/theme.js wires any #theme-toggle button (click + label + aria-pressed),
+             so there is deliberately no click handler in settings.js; the script tag above
+             omits data-floating-toggle so the pill is no longer created. -->
+        <button id="theme-toggle" class="secondary theme-toggle" type="button"></button>
       </div>
       <div class="settings-row">
         <label class="settings-checkbox-label" for="reduced-motion-checkbox">

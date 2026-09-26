@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-09-27",
+      "entry": "Light theme polish, and the light/dark switch now lives in Settings (\"Colour theme\") instead of a floating pill. Research nodes, Governor priority buttons, prestige and status greens, amber warnings and dimmed captions were darkened for readable contrast on the light theme. Dark mode is unchanged (Y11b)."
+    },
+    {
       "date": "2026-09-26",
       "entry": "Deeper story: the captain's log now also records each world you finish terraforming, your first trade route and your first prestige as longer story beats, alongside first arrivals and achievements (W1)."
     },

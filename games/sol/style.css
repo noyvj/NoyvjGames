@@ -1765,3 +1765,68 @@ html[data-reduced-motion="true"] .floater { display: none; }
   padding-left: 1.2rem;
   font-size: 0.85rem;
 }
+
+/* ============================================================
+   Y11b light-theme polish (2026-09-27). Light-only rules from a
+   computed-style WCAG contrast scan of the light theme (fresh game, the
+   Research, Governor, Overview, Settings and What's New panels open).
+   Dark is untouched. Findings: pale accent text (research status green,
+   ecology/reset amber, prestige/epilogue/report greens, spark floaters)
+   picked for a dark panel, dimmed opacity-.4-.7 captions, locked and
+   researched research nodes dimmed to .5-.65 (2.1-3.7:1), the Governor
+   priority buttons (`button.priority-option`, ID-free but not in the
+   shared layer) keeping light text on a translucent-dark fill, and the
+   pale info "i". Hues are kept, only lightness is deepened, and locked
+   research stays distinguishable by its "Locked" label as before.
+   ============================================================ */
+html[data-theme="light"] .hub-back-link { opacity: 1; color: #2a4ba0; }
+html[data-theme="light"] .info-toggle summary {
+  color: #2a4ba0; background: rgba(70, 95, 170, 0.14); border-color: rgba(70, 95, 170, 0.45);
+}
+html[data-theme="light"] #research-status,
+html[data-theme="light"] .win-banner-heading,
+html[data-theme="light"] .governor-report-card-efficiency,
+html[data-theme="light"] .copy-share-card-status,
+html[data-theme="light"] #prestige-button,
+html[data-theme="light"] .prestige-badge,
+html[data-theme="light"] .prestige-bonus-tag,
+html[data-theme="light"] .prestige-tree-points,
+html[data-theme="light"] .epilogue-heading,
+html[data-theme="light"] .achievement-card--earned .achievement-card-label { color: #1a6b41; text-shadow: none; }
+html[data-theme="light"] .ecology-status,
+html[data-theme="light"] .reset-world-button { color: #8a5a00; }
+html[data-theme="light"] .floater--spark { color: #8a5a00; text-shadow: none; }
+html[data-theme="light"] .research-tree-node--locked,
+html[data-theme="light"] .research-node--locked,
+html[data-theme="light"] .research-node--researched { opacity: 0.85; }
+html[data-theme="light"] .research-tree-node-status,
+html[data-theme="light"] .research-tree-node-unlocks,
+html[data-theme="light"] .research-node-detail,
+html[data-theme="light"] .resource-label,
+html[data-theme="light"] .ecology-label,
+html[data-theme="light"] #research-label,
+html[data-theme="light"] #governor-label,
+html[data-theme="light"] #travel-label,
+html[data-theme="light"] .achievement-card-progress,
+html[data-theme="light"] .achievement-earn-rate,
+html[data-theme="light"] .changelog-entry-date,
+html[data-theme="light"] #howto-panel .howto-step-number { opacity: 1; color: #46507a; }
+html[data-theme="light"] button.priority-option {
+  background: linear-gradient(135deg, #dbe4fb, #c6d3f5); color: #1b2033; border-color: rgba(70, 95, 170, 0.3);
+}
+html[data-theme="light"] button.priority-option.selected {
+  background: linear-gradient(135deg, #4a6cb5, #2c4370); color: #ffffff; border-color: #2c4370;
+}
+html[data-theme="light"] button.priority-option::after { background: rgba(70, 95, 170, 0.35); }
+html[data-theme="light"] button.priority-option.selected::after { background: #56e07a; box-shadow: 0 0 6px 1px rgba(86, 224, 122, 0.85); }
+html[data-theme="light"] .stats-panel-heading,
+html[data-theme="light"] .build-plan-empty,
+html[data-theme="light"] .build-plan-row--done .build-plan-text,
+html[data-theme="light"] .overview-bar-label,
+html[data-theme="light"] .overview-actions-label,
+html[data-theme="light"] .travel-progress,
+html[data-theme="light"] .cross-summary-label,
+html[data-theme="light"] .stats-extra-hint { opacity: 1; color: #46507a; }
+html[data-theme="light"] button.secondary.mini-button.selected {
+  background: linear-gradient(135deg, #2f6b4d, #1e4733); color: #ffffff; border-color: rgba(127, 214, 163, 0.5);
+}
