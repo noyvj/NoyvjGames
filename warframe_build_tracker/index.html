@@ -22,6 +22,7 @@
       <p class="subtitle">Zaws • Kitguns • Amps</p>
     </div>
     <div class="actions">
+      <button id="shortcut-help-button" class="secondary" type="button" title="Keyboard shortcuts (?)" aria-label="Show keyboard shortcuts">? Shortcuts</button>
       <button id="reset-button" class="secondary">Reset inventory</button>
     </div>
   </header>
@@ -84,6 +85,21 @@
   <p id="status-message" class="sync" aria-live="polite"></p>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
+  <section id="week-section" aria-label="This week">
+    <div class="section-head">
+      <h2>This week</h2>
+      <span>Pin up to three builds to keep them here.</span>
+    </div>
+    <div id="week-pins"></div>
+    <div class="inline-form">
+      <input id="week-pin-input" type="text" list="build-names-list" maxlength="40" placeholder="Part or combo name" aria-label="Part or combo to pin">
+      <button type="button" id="week-pin-button" class="secondary">Pin / unpin</button>
+    </div>
+    <p id="week-message" class="sync" aria-live="polite"></p>
+    <div id="recent-completed" class="recent-strip" hidden></div>
+  </section>
+  <datalist id="build-names-list"></datalist>
+
   <section>
     <div class="section-head">
       <h2>1. Component checklist</h2>
@@ -103,6 +119,9 @@
           <option value="name">Name (A-Z)</option>
           <option value="remaining">Most still needed</option>
         </select>
+      </label>
+      <label class="toolbar-field">Tag
+        <select id="tag-filter-select"><option value="">All tags</option></select>
       </label>
       <label class="toolbar-check">
         <input id="hide-complete-toggle" type="checkbox"> Archive completed parts
@@ -152,6 +171,15 @@
     <p id="syndicate-summary" class="sync" hidden></p>
     <p id="market-summary" class="sync" hidden></p>
     <p id="refinery-summary" class="sync" hidden></p>
+    <p id="budget-summary" class="sync" hidden></p>
+    <div class="inline-form budget-form">
+      <label class="toolbar-field">Credits on hand (0 = not entered)
+        <input id="budget-credits-input" type="number" min="0" placeholder="0">
+      </label>
+      <label class="toolbar-field">Endo on hand (manual)
+        <input id="budget-endo-input" type="number" min="0" placeholder="0">
+      </label>
+    </div>
     <details class="shopping">
       <summary>Build comparison: which combos are closest</summary>
       <p class="sync">Named builds ranked by how close you are to having every part. The Wiki names only one combo ("177", an Amp); add the ones you care about.</p>
@@ -169,12 +197,178 @@
       <p id="farm-log-text" class="sync"></p>
       <button type="button" id="clear-farm-log-button" class="secondary">Clear log</button>
     </details>
-    <details class="shopping">
+    <details class="shopping" id="shopping-details">
       <summary>Shopping list (copyable)</summary>
       <textarea id="shopping-text" readonly rows="8" aria-label="Shopping list"></textarea>
       <button type="button" id="copy-shopping-button" class="secondary">Copy list</button>
     </details>
+    <details class="shopping">
+      <summary>Wishlist for clan chat (copyable)</summary>
+      <textarea id="wishlist-text" readonly rows="4" aria-label="Wishlist text"></textarea>
+      <button type="button" id="copy-wishlist-button" class="secondary">Copy wishlist</button>
+    </details>
   </section>
+
+  <section id="tools-section">
+    <h2>4. Planner tools</h2>
+    <div class="tab-strip" role="tablist" aria-label="Planner tools">
+      <button type="button" role="tab" id="tab-btn-timers" class="tab-btn selected" aria-selected="true">Foundry timers</button>
+      <button type="button" role="tab" id="tab-btn-mastery" class="tab-btn" aria-selected="false">Mastery</button>
+      <button type="button" role="tab" id="tab-btn-trader" class="tab-btn" aria-selected="false">Trader</button>
+      <button type="button" role="tab" id="tab-btn-dailies" class="tab-btn" aria-selected="false">Daily / weekly</button>
+      <button type="button" role="tab" id="tab-btn-history" class="tab-btn" aria-selected="false">History</button>
+      <button type="button" role="tab" id="tab-btn-goals" class="tab-btn" aria-selected="false">Long-term goals</button>
+      <button type="button" role="tab" id="tab-btn-share" class="tab-btn" aria-selected="false">Share goals</button>
+      <button type="button" role="tab" id="tab-btn-tags" class="tab-btn" aria-selected="false">Colour tags</button>
+      <button type="button" role="tab" id="tab-btn-notes" class="tab-btn" aria-selected="false">Loadout notes</button>
+      <button type="button" role="tab" id="tab-btn-log" class="tab-btn" aria-selected="false">My edits</button>
+    </div>
+
+    <div id="tab-timers" class="tab-panel" role="tabpanel">
+      <p class="sync">Note when a Foundry craft started and how long it takes (or when it will be ready). Times are shown in your local time. Nothing is read from the game.</p>
+      <div class="inline-form">
+        <input id="timer-name-input" type="text" maxlength="30" placeholder="Craft name" aria-label="Craft name">
+        <label class="toolbar-field">Started
+          <input id="timer-start-input" type="datetime-local">
+        </label>
+        <label class="toolbar-field">Duration
+          <input id="timer-duration-input" type="text" placeholder="12h, 1d 2h, 90m">
+        </label>
+        <label class="toolbar-field">or ready at
+          <input id="timer-ready-input" type="datetime-local">
+        </label>
+      </div>
+      <div class="inline-form">
+        <label class="toolbar-check"><input id="timer-notify-check" type="checkbox"> Notify me when it is ready</label>
+        <button type="button" id="timer-add-button" class="secondary">Add timer</button>
+        <button type="button" id="timer-notify-button" class="secondary" hidden>Enable notifications</button>
+      </div>
+      <p id="timer-message" class="sync" aria-live="polite"></p>
+      <p id="timer-hint" class="sync"></p>
+      <div id="timer-list"></div>
+    </div>
+
+    <div id="tab-mastery" class="tab-panel" role="tabpanel" hidden>
+      <p class="sync">A checklist of the weapons and frames you plan to rank. Tick an item once it is fully ranked. Weapons give 3,000 mastery points, Warframes, companions and archwings 6,000; total points for rank N are 2,500 x N squared (<a href="https://wiki.warframe.com/w/Mastery_Rank" target="_blank" rel="noopener">Warframe Wiki, Mastery Rank</a>, read 2026-09-27). The Wiki page does not list every item, so add your own.</p>
+      <label class="toolbar-field">Mastery points already earned before this list (from your in-game profile)
+        <input id="mastery-base-input" type="number" min="0" placeholder="0">
+      </label>
+      <p id="mastery-summary" class="sync mastery-summary"></p>
+      <div class="inline-form">
+        <input id="mastery-name-input" type="text" maxlength="40" placeholder="Item name" aria-label="Item name">
+        <select id="mastery-type-select" aria-label="Item type">
+          <option value="weapon">Weapon (3,000 points)</option>
+          <option value="frame">Warframe, companion or archwing (6,000 points)</option>
+        </select>
+        <button type="button" id="mastery-add-button" class="secondary">Add item</button>
+      </div>
+      <p id="mastery-message" class="sync" aria-live="polite"></p>
+      <div id="mastery-list"></div>
+    </div>
+
+    <div id="tab-trader" class="tab-panel" role="tabpanel" hidden>
+      <p class="sync">Enter a date Baro Ki'Teer arrived (or is due) and the tracker counts his two-week cycle from it (<a href="https://wiki.warframe.com/w/Baro_Ki'Teer" target="_blank" rel="noopener">Warframe Wiki, Baro Ki'Teer</a>, read 2026-09-27: he makes appearances every two weeks and trades for up to 48 hours).</p>
+      <label class="toolbar-field">A date Baro arrived
+        <input id="trader-date-input" type="date">
+      </label>
+      <p id="trader-reminder" class="sync trader-reminder"></p>
+      <div class="inline-form">
+        <input id="trader-item-input" type="text" maxlength="40" placeholder="Something you are watching for" aria-label="Item to watch for">
+        <button type="button" id="trader-add-button" class="secondary">Add to watch list</button>
+      </div>
+      <p id="trader-message" class="sync" aria-live="polite"></p>
+      <div id="trader-list"></div>
+    </div>
+
+    <div id="tab-dailies" class="tab-panel" role="tabpanel" hidden>
+      <p class="sync">Your own daily and weekly tasks. Ticks clear on their own at the reset: daily at 0:00 UTC, weekly every Monday at 0:00 UTC (<a href="https://wiki.warframe.com/w/Daily_Reset" target="_blank" rel="noopener">Warframe Wiki, reset times</a>, read 2026-09-27).</p>
+      <p id="checklist-reset-info" class="sync"></p>
+      <div class="inline-form">
+        <input id="checklist-name-input" type="text" maxlength="40" placeholder="Task" aria-label="Task name">
+        <select id="checklist-kind-select" aria-label="Daily or weekly">
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+        </select>
+        <button type="button" id="checklist-add-button" class="secondary">Add task</button>
+      </div>
+      <p id="checklist-message" class="sync" aria-live="polite"></p>
+      <h3>Daily</h3>
+      <div id="checklist-daily"></div>
+      <h3>Weekly</h3>
+      <div id="checklist-weekly"></div>
+    </div>
+
+    <div id="tab-history" class="tab-panel" role="tabpanel" hidden>
+      <p class="sync">Completion percentage of your parts. A snapshot is taken each time you import an inventory, and on demand. The last 60 are kept.</p>
+      <div class="inline-form">
+        <button type="button" id="history-snapshot-button" class="secondary">Snapshot now</button>
+        <button type="button" id="history-clear-button" class="secondary">Clear history</button>
+      </div>
+      <div id="history-chart"></div>
+      <p id="history-summary" class="sync"></p>
+    </div>
+
+    <div id="tab-goals" class="tab-panel" role="tabpanel" hidden>
+      <p class="sync">Aspirational items. They stay out of the shopping list and the wishlist.</p>
+      <div class="inline-form">
+        <input id="goal-input" type="text" maxlength="60" placeholder="A long-term goal" aria-label="Long-term goal">
+        <button type="button" id="goal-add-button" class="secondary">Add goal</button>
+      </div>
+      <p id="goal-message" class="sync" aria-live="polite"></p>
+      <div id="goal-list"></div>
+    </div>
+
+    <div id="tab-share" class="tab-panel" role="tabpanel" hidden>
+      <p class="sync">Your goals code holds only your unfinished parts and the resources you are short on: no notes, names or accounts. Send it to a friend; paste theirs below to see who can help farm what.</p>
+      <textarea id="share-export-text" readonly rows="3" aria-label="Your goals code"></textarea>
+      <button type="button" id="share-copy-button" class="secondary">Copy code</button>
+      <textarea id="share-import-input" rows="3" placeholder="Paste a friend's code (starts with WFG1.)" aria-label="Friend's goals code"></textarea>
+      <button type="button" id="share-import-button" class="secondary">Compare</button>
+      <pre id="share-result" class="sync" aria-live="polite"></pre>
+    </div>
+
+    <div id="tab-tags" class="tab-panel" role="tabpanel" hidden>
+      <p class="sync">Tag builds with a coloured label (a name is always shown too) and filter the part list by tag above. Each part row also has its own tag picker.</p>
+      <div id="tag-legend" class="tag-legend"></div>
+      <div class="inline-form">
+        <input id="tag-label-input" type="text" maxlength="16" placeholder="New label" aria-label="Label name">
+        <button type="button" id="tag-add-label-button" class="secondary">Add label</button>
+        <button type="button" id="tag-remove-label-button" class="secondary">Remove label</button>
+      </div>
+      <div class="inline-form">
+        <input id="tag-name-input" type="text" list="build-names-list" maxlength="40" placeholder="Part or combo" aria-label="Build to tag">
+        <select id="tag-assign-select" aria-label="Label to apply"></select>
+        <button type="button" id="tag-assign-button" class="secondary">Apply</button>
+        <button type="button" id="tag-clear-button" class="secondary">Clear tag</button>
+      </div>
+      <p id="tag-message" class="sync" aria-live="polite"></p>
+    </div>
+
+    <div id="tab-notes" class="tab-panel" role="tabpanel" hidden>
+      <p class="sync">Your own mod list and playstyle notes for a finished build (up to 600 characters each).</p>
+      <input id="loadout-name-input" type="text" list="build-names-list" maxlength="40" placeholder="Finished part or combo" aria-label="Finished build">
+      <textarea id="loadout-mods-input" rows="3" maxlength="600" placeholder="Mods" aria-label="Mod list"></textarea>
+      <textarea id="loadout-play-input" rows="3" maxlength="600" placeholder="Playstyle" aria-label="Playstyle notes"></textarea>
+      <button type="button" id="loadout-save-button" class="secondary">Save notes</button>
+      <p id="loadout-message" class="sync" aria-live="polite"></p>
+      <div id="loadout-list"></div>
+    </div>
+
+    <div id="tab-log" class="tab-panel" role="tabpanel" hidden>
+      <p class="sync">A count of your own edits. In the resource table a small marker shows whether each count was typed by hand or set by an import.</p>
+      <p id="edit-log-text" class="sync"></p>
+      <button type="button" id="clear-edit-log-button" class="secondary">Clear edit log</button>
+    </div>
+  </section>
+</div>
+
+<div id="shortcut-overlay" class="shortcut-overlay" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts" hidden>
+  <div class="shortcut-box">
+    <h2>Keyboard shortcuts</h2>
+    <div id="shortcut-list"></div>
+    <p class="sync">Shortcuts are off while you are typing in a box and when Ctrl, Cmd or Alt is held.</p>
+    <button type="button" id="shortcut-close-button" class="secondary">Close</button>
+  </div>
 </div>
 
 <script>

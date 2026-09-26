@@ -46,6 +46,8 @@ class FakeElement:
         self._innerHTML = ""
         self.value = ""
         self.disabled = False
+        self.checked = False
+        self.open = False
         self.hidden = False
         self.className = ""
         self.classList = FakeClassList(self)
@@ -107,10 +109,39 @@ class FakeElement:
         for handler in list(self._listeners.get(event_name, [])):
             handler(event)
 
+    def focus(self):
+        self.focused = True
+
+    def scrollIntoView(self):  # noqa: N802 -- matches the DOM API name
+        self.scrolled = True
+
+
+class FakeKeyEvent:
+    """A keydown event: key, modifiers and a target element tag."""
+
+    def __init__(self, key, tag="BODY", ctrl=False, meta=False, alt=False):
+        self.key = key
+        self.ctrlKey = ctrl
+        self.metaKey = meta
+        self.altKey = alt
+        self.target = type("Target", (), {"tagName": tag, "isContentEditable": False})()
+        self.default_prevented = False
+
+    def preventDefault(self):  # noqa: N802 -- matches the DOM API name
+        self.default_prevented = True
+
 
 class FakeDocument:
     def __init__(self, elements):
         self._elements = elements
+        self._listeners = {}
+
+    def addEventListener(self, event_name, handler):  # noqa: N802 -- matches the DOM API name
+        self._listeners.setdefault(event_name, []).append(handler)
+
+    def dispatch(self, event_name, event=None):
+        for handler in list(self._listeners.get(event_name, [])):
+            handler(event)
 
     def getElementById(self, id_):
         return self._elements[id_]

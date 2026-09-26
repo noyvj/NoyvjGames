@@ -17,10 +17,12 @@ step needed at all: the data is just always current, since it's baked
 into this file).
 """
 
+import base64
 import copy
 import json
+import math
 import re
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from js import confirm, document
 from pyodide.ffi import create_proxy
@@ -585,6 +587,24 @@ state = {
     "blueprints": {},
     # Player-defined combos for the build comparison: [{"name", "parts"}].
     "combos": [],
+    # Batch A planner features (2026-09-27). Every key below is written by
+    # get_state() only when non-default and fully validated by load_state();
+    # see _extra_state()/_load_extra_state().
+    "pins": [],
+    "timers": [],
+    "budget": {"credits": 0, "endo": 0},
+    "mastery": {"base": 0, "items": []},
+    "completed": [],
+    "trader": {"last": "", "watch": []},
+    "enough": [],
+    "tag_labels": [],
+    "tags": {},
+    "goals": [],
+    "history": [],
+    "checklist": {"items": [], "ticks": {"daily": {"stamp": "", "done": []}, "weekly": {"stamp": "", "done": []}}},
+    "loadouts": {},
+    "inv_source": {},
+    "edit_log": [],
 }
 
 FARM_LOG_MAX = 300
@@ -594,6 +614,10 @@ _LOG_TIME_RE = re.compile(r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$")
 # this session.
 _search = {"text": ""}
 _visited_wiki = set()
+# UI-only: the colour-tag filter, the open tools tab, and the last-rendered
+# signature the minute tick compares against.
+_filters = {"tag": ""}
+_ui = {"tab": "timers", "sig": None}
 
 
 def _now_stamp():
@@ -699,16 +723,17 @@ def category_progress(components):
     return out
 
 
-def arrange_components(components, sort_mode="category", query="", hide_complete=False):
+def arrange_components(components, sort_mode="category", query="", hide_complete=False, tag=""):
     """Filters (search text, hide-completed) and orders the component list.
     "category" keeps the fixed DEFAULT_PARTS order; "priority" ranks by
     closest-to-buildable (fewest resources short for one craft, finished
-    parts last)."""
+    parts last). `tag` keeps only parts carrying that colour-tag label."""
     query = (query or "").strip().lower()
     rows = [
         p for p in components
         if (not hide_complete or not p["complete"])
         and (not query or query in p["name"].lower())
+        and (not tag or state["tags"].get(p["name"]) == tag)
     ]
     if sort_mode == "priority":
         rows.sort(key=lambda p: (p["complete"], len(p["missing"]), sum(p["missing"].values())))
@@ -910,6 +935,7 @@ def add_combo(name, part_names):
 def remove_combo(name):
     before = len(state["combos"])
     state["combos"] = [c for c in state["combos"] if c["name"] != name]
+    _prune_build_refs()
     return len(state["combos"]) != before
 
 
@@ -1032,6 +1058,7 @@ def calculate():
             "refinery": refinery_plan(resource, remaining_after_built, raw_have),
             "rarity": resource_rarity(RESOURCE_LOCATIONS.get(resource, "")),
             "market_price": _market["prices"].get(resource),
+            "enough": resource in state["enough"],
         })
 
     return component_status, resource_rows
@@ -1046,6 +1073,7 @@ def get_state():
         **({"farm_log": [dict(e) for e in state["farm_log"]]} if state["farm_log"] else {}),
         **({"blueprints": dict(state["blueprints"])} if state["blueprints"] else {}),
         **({"combos": [{"name": c["name"], "parts": list(c["parts"])} for c in state["combos"]]} if state["combos"] else {}),
+        **_extra_state(),
     }
 
 
@@ -1105,6 +1133,7 @@ def load_state(data):
                 and not any(c["name"].lower() == name.lower() for c in all_combos())
             ):
                 state["combos"].append({"name": name, "parts": list(parts)})
+    _load_extra_state(data)
     saved_blueprints = data.get("blueprints")
     state["blueprints"] = (
         {name: value for name, value in saved_blueprints.items() if name in SYNDICATE_SOURCES and isinstance(value, bool)}
@@ -1178,10 +1207,13 @@ def import_last_data(json_text):
             log_gain(resource_name, int(inv.get("raw", 0)) + int(inv.get("built", 0)),
                      int(inv.get("raw", 0)) + counts_by_key[match_key])
             inv["built"] = counts_by_key[match_key]
+            set_source(resource_name, "import")
             matched.append(resource_name)
         else:
             unmatched.append(resource_name)
 
+    note_edit("import")
+    take_snapshot()
     render()
 
     total = len(matched) + len(unmatched)
@@ -1189,6 +1221,1132 @@ def import_last_data(json_text):
     if unmatched:
         summary += " Not found in the file (fill in manually): " + ", ".join(sorted(unmatched)) + "."
     return summary
+
+
+# ---------------------------------------------------------------------------
+# Batch A planner features (2026-09-27). All UI-additive: none of these change
+# calculate()'s need numbers. Each keeps its own state key, written by
+# get_state() only when non-default and validated key-by-key in load_state().
+# ---------------------------------------------------------------------------
+
+def _now_ms():
+    """Current UTC time in epoch milliseconds. One place, so tests can swap it."""
+    return int(datetime.now(timezone.utc).timestamp() * 1000)
+
+
+def _now_utc():
+    """Current UTC datetime. One place, so tests can swap it for a fixed clock."""
+    return datetime.now(timezone.utc)
+
+
+def _is_int(value):
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+def _str_in(value, container):
+    """`value in container`, but False (not a TypeError) for unhashable junk from a bad save."""
+    return isinstance(value, str) and value in container
+
+
+def _clean(value, limit):
+    return str(value if value is not None else "").strip()[:limit]
+
+
+_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def _valid_date(text):
+    if not isinstance(text, str) or not _DATE_RE.match(text):
+        return False
+    try:
+        date.fromisoformat(text)
+    except ValueError:
+        return False
+    return True
+
+
+def build_names():
+    """Every name that counts as a "build" for pins/tags/notes: the requested
+    parts followed by the named and custom combos."""
+    return list(RECIPES) + [c["name"] for c in all_combos()]
+
+
+def resolve_build(text):
+    """The canonical build name for typed text (case-insensitive exact match),
+    or None."""
+    wanted = str(text or "").strip().lower()
+    for name in build_names():
+        if name.lower() == wanted and wanted:
+            return name
+    return None
+
+
+def _prune_build_refs():
+    """Drops pins/tags/notes/completions that point at a build that no longer
+    exists (a removed custom combo)."""
+    names = set(build_names())
+    state["pins"] = [n for n in state["pins"] if n in names]
+    state["tags"] = {n: v for n, v in state["tags"].items() if n in names}
+    state["loadouts"] = {n: v for n, v in state["loadouts"].items() if n in names}
+    state["completed"] = [e for e in state["completed"] if e["n"] in names]
+
+
+# --- 12. Own-edits changelog + edited-vs-imported markers ----------------
+
+EDIT_LOG_MAX = 200
+EDIT_PHRASES = {
+    "build": ("added", "build", "builds"),
+    "resource": ("edited", "resource count", "resource counts"),
+    "combo": ("added", "combo", "combos"),
+    "goal": ("added", "goal", "goals"),
+    "timer": ("added", "timer", "timers"),
+    "import": ("ran", "import", "imports"),
+}
+SOURCE_MARKS = {"hand": "typed", "import": "import"}
+
+
+def note_edit(kind, count=1):
+    """Records one of the player's own edits ("added 3 builds today"). Same
+    minute + same kind merge into one entry; the log is capped."""
+    if kind not in EDIT_PHRASES or count <= 0:
+        return False
+    stamp = _now_stamp()
+    log = state["edit_log"]
+    if log and log[-1]["k"] == kind and log[-1]["t"] == stamp:
+        log[-1]["d"] += count
+    else:
+        log.append({"t": stamp, "k": kind, "d": count})
+    del log[:-EDIT_LOG_MAX]
+    return True
+
+
+def edit_phrase(kind, count):
+    verb, one, many = EDIT_PHRASES[kind]
+    return f"{verb} {count} {one if count == 1 else many}"
+
+
+def edit_log_summary(today=None):
+    today_prefix = (today or _now_stamp())[:10]
+    summary = {"today": {}, "all": {}}
+    for entry in state["edit_log"]:
+        summary["all"][entry["k"]] = summary["all"].get(entry["k"], 0) + entry["d"]
+        if entry["t"].startswith(today_prefix):
+            summary["today"][entry["k"]] = summary["today"].get(entry["k"], 0) + entry["d"]
+    return summary
+
+
+def edit_log_text():
+    if not state["edit_log"]:
+        return "Nothing yet. Your own edits (builds, resource counts, combos, goals, timers, imports) are counted here."
+    summary = edit_log_summary()
+
+    def phrase(totals):
+        return ", ".join(edit_phrase(k, totals[k]) for k in EDIT_PHRASES if k in totals) or "nothing"
+
+    return f"Today: {phrase(summary['today'])}. In the whole log: {phrase(summary['all'])}."
+
+
+def set_source(resource, source):
+    """Remembers whether a resource's count was typed by hand or set by an import."""
+    if resource in RESOURCE_LOCATIONS and source in SOURCE_MARKS:
+        state["inv_source"][resource] = source
+
+
+# --- 1. "This week" pins ---------------------------------------------------
+
+PIN_MAX = 3
+
+
+def toggle_pin(text):
+    """Pins or unpins a build (part or combo). Returns (ok, message)."""
+    name = resolve_build(text)
+    if name is None:
+        return False, "That is not a part or combo name."
+    if name in state["pins"]:
+        state["pins"].remove(name)
+        return True, f"Unpinned {name}."
+    if len(state["pins"]) >= PIN_MAX:
+        return False, f"You can pin up to {PIN_MAX} builds. Unpin one first."
+    state["pins"].append(name)
+    return True, f"Pinned {name} to this week."
+
+
+def pin_status(components):
+    """One dict per pinned build: name, kind, and a one-line status."""
+    by_name = {c["name"]: c for c in components}
+    out = []
+    for name in state["pins"]:
+        part = by_name.get(name)
+        if part is not None:
+            if part["complete"]:
+                status = f"done ({part['owned']}/{part['target']})"
+            else:
+                status = f"{part['owned']}/{part['target']} built"
+                if part["can_build"]:
+                    status += ", ready to build"
+                elif part["missing"]:
+                    status += f", short {len(part['missing'])} resource(s)"
+            out.append({"name": name, "kind": "part", "status": status})
+            continue
+        combo = next((c for c in all_combos() if c["name"] == name), None)
+        if combo is None:
+            continue
+        row = combo_progress(combo, components)
+        if row["complete"]:
+            status = "done (all parts built)"
+        else:
+            status = f"{len(row['built'])}/{len(combo['parts'])} parts built"
+            if row["units_short"]:
+                status += f", short {row['units_short']} resource units for the rest"
+        out.append({"name": name, "kind": "combo", "status": status})
+    return out
+
+
+# --- 5. Recently completed -----------------------------------------------
+
+COMPLETED_MAX = 5
+
+
+def completion_snapshot():
+    """Names of every build that is finished right now: complete parts and
+    combos whose parts are all built."""
+    comps, _ = calculate()
+    done = {c["name"] for c in comps if c["complete"]}
+    for row in compare_combos(comps):
+        if row["complete"]:
+            done.add(row["combo"]["name"])
+    return done
+
+
+def record_completions(before):
+    """Adds every build that became finished since `before` (a
+    completion_snapshot()) to the recently-completed strip, dated today (UTC)."""
+    added = sorted(completion_snapshot() - set(before))
+    for name in added:
+        state["completed"] = [e for e in state["completed"] if e["n"] != name]
+        state["completed"].append({"n": name, "d": _now_stamp()[:10]})
+    del state["completed"][:-COMPLETED_MAX]
+    return added
+
+
+# --- 2. Foundry timers --------------------------------------------------
+
+TIMER_MAX = 20
+TIMER_NAME_MAX = 30
+TIMER_MIN_MS = int(datetime(2020, 1, 1, tzinfo=timezone.utc).timestamp() * 1000)
+TIMER_MAX_MS = int(datetime(2100, 1, 1, tzinfo=timezone.utc).timestamp() * 1000)
+TIMER_MAX_DURATION_MIN = 90 * 24 * 60
+_DURATION_RE = re.compile(r"(\d+(?:\.\d+)?)\s*([dhm])")
+_DURATION_FULL_RE = re.compile(r"(?:\d+(?:\.\d+)?\s*[dhm]\s*)+")
+_BROWSER_TIMEOUT_MAX_MS = 2 ** 31 - 1
+
+
+def parse_duration_minutes(text):
+    """"12h", "1d 2h 30m", "90m" or a bare number of hours -> whole minutes, or
+    None when it is not a duration between one minute and 90 days."""
+    text = str(text or "").strip().lower()
+    if not text:
+        return None
+    if re.fullmatch(r"\d+(?:\.\d+)?", text):
+        minutes = float(text) * 60
+    elif _DURATION_FULL_RE.fullmatch(text):
+        unit = {"d": 1440, "h": 60, "m": 1}
+        minutes = sum(float(qty) * unit[u] for qty, u in _DURATION_RE.findall(text))
+    else:
+        return None
+    minutes = round(minutes)
+    return minutes if 1 <= minutes <= TIMER_MAX_DURATION_MIN else None
+
+
+def parse_local_datetime(text):
+    """A datetime-local value ("2026-09-27T18:30") in the browser's own time
+    zone -> epoch ms, or None. Outside a browser (tests) it reads it as UTC."""
+    text = str(text or "").strip()
+    if not text:
+        return None
+    try:
+        from js import Date  # noqa: PLC0415 -- Pyodide-only
+    except ImportError:
+        try:
+            parsed = datetime.fromisoformat(text)
+        except ValueError:
+            return None
+        return int(parsed.replace(tzinfo=timezone.utc).timestamp() * 1000)
+    ms = Date.new(text).getTime()
+    if ms != ms:  # NaN
+        return None
+    return int(ms)
+
+
+def format_local_time(ms):
+    """A timestamp in the viewer's local time, or UTC text outside a browser."""
+    try:
+        from js import Date  # noqa: PLC0415 -- Pyodide-only
+    except ImportError:
+        return datetime.fromtimestamp(ms / 1000, timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    return str(Date.new(ms).toLocaleString())
+
+
+def format_remaining(diff_ms):
+    """"ready now" or "in 2h 5m" / "in 3d 4h" for a millisecond difference."""
+    if diff_ms <= 0:
+        return "ready now"
+    minutes = -(-diff_ms // 60000)
+    days, rest = divmod(minutes, 1440)
+    hours, mins = divmod(rest, 60)
+    if days:
+        return f"in {days}d {hours}h"
+    if hours:
+        return f"in {hours}h {mins}m"
+    return f"in {mins}m"
+
+
+def add_timer(name, start_ms=None, duration_min=None, ready_ms=None, notify=False):
+    """Adds a foundry-timer note from either a start time + duration or a
+    ready-at time. Times are epoch ms. Returns (ok, message)."""
+    name = _clean(name, TIMER_NAME_MAX)
+    if not name:
+        return False, "Give the craft a name."
+    if ready_ms is None:
+        if start_ms is None or duration_min is None:
+            return False, "Enter a start time and a duration (for example 12h), or a ready-at time."
+        ready_ms = start_ms + duration_min * 60000
+    if not _is_int(ready_ms) or not TIMER_MIN_MS <= ready_ms <= TIMER_MAX_MS:
+        return False, "That time is not valid."
+    if len(state["timers"]) >= TIMER_MAX:
+        return False, f"You can keep up to {TIMER_MAX} timers. Remove one first."
+    state["timers"].append({"n": name, "ms": int(ready_ms), "notify": bool(notify)})
+    state["timers"].sort(key=lambda t: (t["ms"], t["n"].lower()))
+    return True, f"Added {name}."
+
+
+def remove_timer(index):
+    if 0 <= index < len(state["timers"]):
+        del state["timers"][index]
+        return True
+    return False
+
+
+def timer_line(timer, now_ms=None):
+    now_ms = _now_ms() if now_ms is None else now_ms
+    return f"{timer['n']}: ready at {format_local_time(timer['ms'])} ({format_remaining(timer['ms'] - now_ms)})"
+
+
+def notification_permission():
+    """"granted"/"denied"/"default", or None when the browser has no Notification API."""
+    try:
+        from js import Notification  # noqa: PLC0415 -- Pyodide-only
+        return str(Notification.permission)
+    except Exception:  # noqa: BLE001 -- unsupported: degrade silently
+        return None
+
+
+def request_notification_permission():
+    """Asks the browser for notification permission. Only ever called from an
+    explicit button click. Returns False when the browser cannot do it."""
+    try:
+        from js import Notification  # noqa: PLC0415 -- Pyodide-only
+        Notification.requestPermission()
+        return True
+    except Exception:  # noqa: BLE001 -- unsupported: degrade silently
+        return False
+
+
+_notify_state = {"handles": [], "proxies": []}
+
+
+def schedule_notifications(now_ms=None):
+    """(Re)schedules a browser notification for every future timer flagged
+    "notify", but only when permission is already granted. It fires only
+    while this page stays open. Silent no-op when unsupported. Returns how
+    many were scheduled."""
+    for handle in _notify_state["handles"]:
+        try:
+            from js import clearTimeout  # noqa: PLC0415 -- Pyodide-only
+            clearTimeout(handle)
+        except Exception:  # noqa: BLE001, S110
+            pass
+    for proxy in _notify_state["proxies"]:
+        proxy.destroy()
+    _notify_state["handles"], _notify_state["proxies"] = [], []
+    if notification_permission() != "granted":
+        return 0
+    now_ms = _now_ms() if now_ms is None else now_ms
+    count = 0
+    for timer in state["timers"]:
+        delay = timer["ms"] - now_ms
+        if not timer["notify"] or not 0 < delay <= _BROWSER_TIMEOUT_MAX_MS:
+            continue
+
+        def fire(name=timer["n"]):
+            try:
+                from js import Notification, Object  # noqa: PLC0415 -- Pyodide-only
+                from pyodide.ffi import to_js  # noqa: PLC0415 -- Pyodide-only
+                Notification.new("Foundry craft ready", to_js({"body": f"{name} is ready."}, dict_converter=Object.fromEntries))
+            except Exception:  # noqa: BLE001, S110 -- unsupported: degrade silently
+                pass
+
+        try:
+            from js import setTimeout  # noqa: PLC0415 -- Pyodide-only
+            proxy = create_proxy(fire)
+            _notify_state["proxies"].append(proxy)
+            _notify_state["handles"].append(setTimeout(proxy, delay))
+            count += 1
+        except Exception:  # noqa: BLE001, S110
+            pass
+    return count
+
+
+# --- 3. Credits and endo budget -----------------------------------------
+
+BUDGET_MAX = 10 ** 10
+
+
+def budget_status(resources):
+    """How the refinery plan sits against the credits on hand. `resources` are
+    the resource rows still being planned. Credits on hand of 0 means "not
+    entered". Endo is a manually entered figure only: no tracked recipe uses it."""
+    totals = refinery_totals(resources)
+    needed = totals.get("Credits", 0)
+    materials = {k: v for k, v in totals.items() if k != "Credits"}
+    have = state["budget"]["credits"]
+    entered = have > 0
+    short = max(0, needed - have) if entered else 0
+    credit_limited = entered and short > 0
+    farm_limited = bool(materials)
+    if credit_limited and farm_limited:
+        limit = "both"
+    elif credit_limited:
+        limit = "credits"
+    elif farm_limited:
+        limit = "farming"
+    elif needed and not entered:
+        limit = "unknown"
+    else:
+        limit = "none"
+    return {"needed": needed, "have": have, "entered": entered, "short": short,
+            "materials": materials, "limit": limit, "endo": state["budget"]["endo"]}
+
+
+def budget_text(resources):
+    status = budget_status(resources)
+    if not status["needed"] and not status["materials"] and not status["endo"] and not status["entered"]:
+        return ""
+    parts = []
+    if status["needed"]:
+        line = f"Credits for the refinery plan: {status['needed']:,}"
+        line += f" (you have {status['have']:,})." if status["entered"] else " (enter your credits on hand to compare)."
+        parts.append(line)
+    elif status["entered"]:
+        parts.append(f"Credits on hand: {status['have']:,} (the refinery plan needs none right now).")
+    parts.append({
+        "credits": f"Credit-limited: short {status['short']:,} credits; the materials are not the bottleneck.",
+        "farming": "Farm-limited: the credits cover it, the raw materials still have to be gathered.",
+        "both": f"Credit-limited and farm-limited: short {status['short']:,} credits and materials still to gather.",
+        "none": "Nothing is holding up refining right now.",
+        "unknown": "Enter credits on hand to see whether credits or farming limits the plan.",
+    }[status["limit"]])
+    if status["endo"]:
+        parts.append(f"Endo on hand: {status['endo']:,} (typed by you; no live data, and no tracked recipe uses it).")
+    return " ".join(parts)
+
+
+# --- 4. Mastery-rank checklist ------------------------------------------
+
+# Read from the Warframe Wiki's Mastery Rank page on 2026-09-27
+# (https://wiki.warframe.com/w/Mastery_Rank): weapons (incl. kitgun chambers,
+# zaw strikes, amp prisms) give 100 mastery points per rank up to rank 30, so
+# 3,000; Warframes, companions, archwings, K-Drives, Plexus and Necramechs give
+# 200 per rank, so 6,000. The total mastery points needed for rank N is
+# 2,500 x N squared (the page's own formula and table).
+MASTERY_ITEM_XP = {"weapon": 3000, "frame": 6000}
+MASTERY_ITEM_LABELS = {
+    "weapon": "Weapon (3,000 points)",
+    "frame": "Warframe, companion or archwing (6,000 points)",
+}
+MASTERY_MAX_RANK = 30
+MASTERY_ITEM_MAX = 200
+MASTERY_NAME_MAX = 40
+MASTERY_BASE_MAX = 10 ** 7
+
+
+def mastery_points_for_rank(rank):
+    """Total mastery points needed to reach `rank` (rank 1 to 30)."""
+    return 2500 * rank * rank
+
+
+def mastery_rank_for_points(points):
+    return min(MASTERY_MAX_RANK, math.isqrt(max(0, points) // 2500))
+
+
+def mastery_total():
+    m = state["mastery"]
+    return m["base"] + sum(MASTERY_ITEM_XP[i["t"]] for i in m["items"] if i["done"])
+
+
+def mastery_status():
+    """Current rank, points to the next one, and how many items that is."""
+    m = state["mastery"]
+    total = mastery_total()
+    rank = mastery_rank_for_points(total)
+    status = {"total": total, "rank": rank, "next_rank": None, "needed": 0, "weapons": 0, "frames": 0, "from_list": None}
+    if rank >= MASTERY_MAX_RANK:
+        return status
+    target = mastery_points_for_rank(rank + 1)
+    needed = target - total
+    status.update(next_rank=rank + 1, needed=needed, weapons=-(-needed // 3000), frames=-(-needed // 6000))
+    gained, count = 0, 0
+    for item in m["items"]:
+        if item["done"]:
+            continue
+        gained += MASTERY_ITEM_XP[item["t"]]
+        count += 1
+        if gained >= needed:
+            status["from_list"] = count
+            break
+    return status
+
+
+def mastery_text():
+    status = mastery_status()
+    line = f"{status['total']:,} mastery points: Mastery Rank {status['rank']}."
+    if status["next_rank"] is None:
+        return line + " Rank 30 reached; the Wiki gives a separate formula for Legendary ranks."
+    line += (f" {status['needed']:,} points to rank {status['next_rank']}: about {status['weapons']} weapon(s) "
+             f"or {status['frames']} frame(s).")
+    if status["from_list"] is not None:
+        line += f" Ticking the next {status['from_list']} item(s) on your list gets you there."
+    elif state["mastery"]["items"]:
+        line += " Your list alone does not reach it yet: add more items."
+    return line
+
+
+def add_mastery_item(name, kind):
+    name = _clean(name, MASTERY_NAME_MAX)
+    if not name:
+        return False, "Give the item a name."
+    if kind not in MASTERY_ITEM_XP:
+        return False, "Pick weapon or frame."
+    items = state["mastery"]["items"]
+    if len(items) >= MASTERY_ITEM_MAX:
+        return False, f"That is the maximum of {MASTERY_ITEM_MAX} items."
+    if any(i["n"].lower() == name.lower() for i in items):
+        return False, "That item is already on the list."
+    items.append({"n": name, "t": kind, "done": False})
+    return True, f"Added {name}."
+
+
+# --- 6. Trader schedule -------------------------------------------------
+
+# Baro Ki'Teer: "he makes appearances every two weeks, and is only available
+# for trading for up to 48 hours" (https://wiki.warframe.com/w/Baro_Ki'Teer,
+# read 2026-09-27).
+BARO_INTERVAL_DAYS = 14
+BARO_STAY_DAYS = 2
+WATCH_MAX = 30
+WATCH_TEXT_MAX = 40
+
+
+def baro_reminder(today=None):
+    """Where Baro is in his two-week cycle, from an arrival date the player
+    entered: {"state": "today"|"here"|"waiting"|"future", "days": N, "date": iso}
+    or None when no date is entered."""
+    last = state["trader"]["last"]
+    if not _valid_date(last):
+        return None
+    today = today or _now_utc().date()
+    arrival = date.fromisoformat(last)
+    delta = (today - arrival).days
+    if delta < 0:
+        return {"state": "future", "days": -delta, "date": arrival.isoformat()}
+    since = delta % BARO_INTERVAL_DAYS
+    if since == 0:
+        return {"state": "today", "days": 0, "date": today.isoformat()}
+    if since < BARO_STAY_DAYS:
+        return {"state": "here", "days": 0, "date": (today - timedelta(days=since)).isoformat()}
+    days = BARO_INTERVAL_DAYS - since
+    return {"state": "waiting", "days": days, "date": (today + timedelta(days=days)).isoformat()}
+
+
+def baro_text(today=None):
+    info = baro_reminder(today)
+    if info is None:
+        return "Enter a date Baro arrived (or is due) to see a countdown."
+    days = info["days"]
+    if info["state"] == "today":
+        return "Baro is due today (he stays up to 48 hours)."
+    if info["state"] == "here":
+        return f"Baro arrived on {info['date']} and may still be here (he stays up to 48 hours)."
+    unit = "day" if days == 1 else "days"
+    return f"Baro is due back in {days} {unit} ({info['date']})."
+
+
+def add_watch(text):
+    text = _clean(text, WATCH_TEXT_MAX)
+    if not text:
+        return False, "Type what you are watching for."
+    if len(state["trader"]["watch"]) >= WATCH_MAX:
+        return False, f"That is the maximum of {WATCH_MAX} items."
+    if any(w.lower() == text.lower() for w in state["trader"]["watch"]):
+        return False, "You are already watching for that."
+    state["trader"]["watch"].append(text)
+    return True, f"Watching for {text}."
+
+
+# --- 8. Per-resource "I have enough" ------------------------------------
+
+def set_enough(resource, flag):
+    if resource not in RESOURCE_LOCATIONS:
+        return False
+    if flag and resource not in state["enough"]:
+        state["enough"].append(resource)
+        state["enough"].sort()
+    elif not flag and resource in state["enough"]:
+        state["enough"].remove(resource)
+    return True
+
+
+def active_rows(resources):
+    """The resource rows that still count as needs: those the player has not
+    marked "I have enough"."""
+    return [r for r in resources if not r.get("enough")]
+
+
+def display_components(components):
+    """Components with resources marked "have enough" dropped from their
+    missing lists, for display only (calculate()'s numbers are untouched)."""
+    enough = set(state["enough"])
+    if not enough:
+        return components
+    return [dict(c, missing={k: v for k, v in c["missing"].items() if k not in enough}) for c in components]
+
+
+# --- 9. Colour tags -----------------------------------------------------
+
+PRESET_TAGS = ("daily driver", "fun", "sell")
+TAG_LABEL_MAX = 16
+TAG_CUSTOM_MAX = 8
+TAG_COLORS = ["#4c8dff", "#e6a23c", "#4caf7d", "#c678dd", "#e06c75", "#2bb5c7", "#b8942d", "#8a94a6", "#d96ba0", "#7a9c3a", "#a0724a"]
+
+
+def tag_labels():
+    return list(PRESET_TAGS) + list(state["tag_labels"])
+
+
+def tag_color(label):
+    labels = tag_labels()
+    return TAG_COLORS[labels.index(label) % len(TAG_COLORS)] if label in labels else "#8a94a6"
+
+
+def resolve_tag(text):
+    wanted = str(text or "").strip().lower()
+    for label in tag_labels():
+        if label.lower() == wanted and wanted:
+            return label
+    return None
+
+
+def add_tag_label(text):
+    text = _clean(text, TAG_LABEL_MAX)
+    if not text:
+        return False, "Type a short label."
+    if resolve_tag(text) is not None:
+        return False, "That label already exists."
+    if len(state["tag_labels"]) >= TAG_CUSTOM_MAX:
+        return False, f"You can add up to {TAG_CUSTOM_MAX} of your own labels."
+    state["tag_labels"].append(text)
+    return True, f"Added label {text}."
+
+
+def remove_tag_label(text):
+    label = resolve_tag(text)
+    if label is None or label in PRESET_TAGS:
+        return False, "Only labels you added yourself can be removed."
+    state["tag_labels"].remove(label)
+    state["tags"] = {n: v for n, v in state["tags"].items() if v != label}
+    return True, f"Removed label {label}."
+
+
+def assign_tag(build, label):
+    """Tags a build (part or combo) with a label; an empty label clears it."""
+    name = resolve_build(build)
+    if name is None:
+        return False, "That is not a part or combo name."
+    if not str(label or "").strip():
+        state["tags"].pop(name, None)
+        return True, f"Cleared the tag on {name}."
+    resolved = resolve_tag(label)
+    if resolved is None:
+        return False, "Unknown label. Add it first."
+    state["tags"][name] = resolved
+    return True, f"Tagged {name} as {resolved}."
+
+
+# --- 10. Long-term goals ------------------------------------------------
+
+GOAL_MAX = 30
+GOAL_TEXT_MAX = 60
+
+
+def add_goal(text):
+    text = _clean(text, GOAL_TEXT_MAX)
+    if not text:
+        return False, "Type a goal."
+    if len(state["goals"]) >= GOAL_MAX:
+        return False, f"That is the maximum of {GOAL_MAX} goals."
+    if any(g["text"].lower() == text.lower() for g in state["goals"]):
+        return False, "That goal is already on the list."
+    state["goals"].append({"text": text, "done": False})
+    return True, f"Added goal: {text}."
+
+
+# --- 14. Progress history -----------------------------------------------
+
+HISTORY_MAX = 60
+
+
+def completion_percent(components):
+    total = len(components)
+    return round(sum(1 for c in components if c["complete"]) / total * 100) if total else 0
+
+
+def take_snapshot(components=None):
+    """Records the current completion percentage (newest last, capped at 60).
+    A second snapshot in the same minute replaces the first."""
+    if components is None:
+        components, _ = calculate()
+    entry = {"t": _now_stamp(), "p": completion_percent(components)}
+    history = state["history"]
+    if history and history[-1]["t"] == entry["t"]:
+        history[-1] = entry
+    else:
+        history.append(entry)
+    del history[:-HISTORY_MAX]
+    return entry
+
+
+def history_summary(history=None):
+    history = state["history"] if history is None else history
+    if not history:
+        return "No snapshots yet. One is taken each time you import, or press Snapshot now."
+    first, last = history[0], history[-1]
+    if len(history) == 1:
+        return f"1 snapshot: {last['p']}% of parts complete on {last['t']}."
+    delta = last["p"] - first["p"]
+    trend = f"up {delta} points" if delta > 0 else (f"down {-delta} points" if delta < 0 else "unchanged")
+    return (f"{len(history)} snapshots: from {first['p']}% on {first['t']} to {last['p']}% on {last['t']} ({trend}).")
+
+
+def history_chart_svg(history=None):
+    """A small inline SVG line chart of completion percentage, with an
+    accessible label. Empty string when there is nothing to draw."""
+    history = state["history"] if history is None else history
+    if not history:
+        return ""
+    width, height, pad = 320, 120, 14
+    n = len(history)
+    points = []
+    for i, entry in enumerate(history):
+        x = pad + (width - 2 * pad) * (i / (n - 1) if n > 1 else 0.5)
+        y = height - pad - (height - 2 * pad) * entry["p"] / 100
+        points.append((round(x, 1), round(y, 1)))
+    poly = " ".join(f"{x},{y}" for x, y in points)
+    dots = "".join(f'<circle class="hist-dot" cx="{x}" cy="{y}" r="2.5"></circle>' for x, y in points)
+    return (
+        f'<svg class="hist-chart" viewBox="0 0 {width} {height}" role="img" aria-label="{history_summary(history)}">'
+        f'<line class="hist-axis" x1="{pad}" y1="{height - pad}" x2="{width - pad}" y2="{height - pad}"></line>'
+        f'<line class="hist-axis" x1="{pad}" y1="{pad}" x2="{pad}" y2="{height - pad}"></line>'
+        f'<text class="hist-label" x="{pad + 3}" y="{pad + 8}">100%</text>'
+        f'<text class="hist-label" x="{pad + 3}" y="{height - pad - 3}">0%</text>'
+        f'<polyline class="hist-line" points="{poly}"></polyline>{dots}</svg>'
+    )
+
+
+# --- 13. Daily / weekly checklist ---------------------------------------
+
+# Reset times from the Warframe Wiki's reset page (https://wiki.warframe.com/w/Daily_Reset,
+# read 2026-09-27): the daily reset is at 0:00 UTC, the weekly reset every
+# Monday at 0:00 UTC.
+CHECK_KINDS = ("daily", "weekly")
+CHECK_MAX = 30
+CHECK_NAME_MAX = 40
+
+
+def period_stamps(now=None):
+    """The current daily and weekly period stamps (UTC): today's date, and the
+    date of the Monday that started this week."""
+    now = now or _now_utc()
+    today = now.date()
+    return {"daily": today.isoformat(), "weekly": (today - timedelta(days=today.weekday())).isoformat()}
+
+
+def roll_checklist(now=None):
+    """Clears the ticks of any period that has reset since they were saved.
+    Returns True when something was cleared or restamped."""
+    stamps = period_stamps(now)
+    changed = False
+    for kind in CHECK_KINDS:
+        ticks = state["checklist"]["ticks"][kind]
+        if ticks["stamp"] != stamps[kind]:
+            ticks["stamp"] = stamps[kind]
+            ticks["done"] = []
+            changed = True
+    return changed
+
+
+def next_reset(kind, now=None):
+    """The UTC datetime of the next daily or weekly reset."""
+    now = now or _now_utc()
+    midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    if kind == "daily":
+        return midnight + timedelta(days=1)
+    return midnight + timedelta(days=7 - now.weekday())
+
+
+def add_check_item(name, kind):
+    name = _clean(name, CHECK_NAME_MAX)
+    if not name:
+        return False, "Give the task a name."
+    if kind not in CHECK_KINDS:
+        return False, "Pick daily or weekly."
+    items = state["checklist"]["items"]
+    if len(items) >= CHECK_MAX:
+        return False, f"That is the maximum of {CHECK_MAX} tasks."
+    if any(i["n"].lower() == name.lower() and i["k"] == kind for i in items):
+        return False, "That task is already on the list."
+    items.append({"n": name, "k": kind})
+    return True, f"Added {kind} task {name}."
+
+
+def toggle_check(name, kind, now=None):
+    roll_checklist(now)
+    ticks = state["checklist"]["ticks"][kind]
+    if not any(i["n"] == name and i["k"] == kind for i in state["checklist"]["items"]):
+        return False
+    if name in ticks["done"]:
+        ticks["done"].remove(name)
+    else:
+        ticks["done"].append(name)
+    return True
+
+
+def remove_check_item(name, kind):
+    cl = state["checklist"]
+    before = len(cl["items"])
+    cl["items"] = [i for i in cl["items"] if not (i["n"] == name and i["k"] == kind)]
+    cl["ticks"][kind]["done"] = [n for n in cl["ticks"][kind]["done"] if n != name]
+    return len(cl["items"]) != before
+
+
+def check_reset_text(now=None):
+    now = now or _now_utc()
+    parts = []
+    for kind, label in (("daily", "Daily reset"), ("weekly", "Weekly reset")):
+        diff = int((next_reset(kind, now) - now).total_seconds() * 1000)
+        parts.append(f"{label} {format_remaining(diff)}")
+    return " · ".join(parts) + " (0:00 UTC daily; Monday 0:00 UTC weekly)."
+
+
+# --- 16. Build-loadout notes --------------------------------------------
+
+LOADOUT_MAX = 600
+
+
+def set_loadout(build, mods, play):
+    """Attaches the player's own mod list and playstyle notes to a finished
+    build. Empty notes remove the entry. Returns (ok, message)."""
+    name = resolve_build(build)
+    if name is None:
+        return False, "That is not a part or combo name."
+    mods, play = _clean(mods, LOADOUT_MAX), _clean(play, LOADOUT_MAX)
+    if not mods and not play:
+        state["loadouts"].pop(name, None)
+        return True, f"Cleared the notes on {name}."
+    if name not in completion_snapshot() and name not in {e["n"] for e in state["completed"]}:
+        return False, f"{name} is not finished yet. Notes attach to finished builds."
+    state["loadouts"][name] = {"mods": mods, "play": play}
+    return True, f"Saved notes for {name}."
+
+
+# --- 7. Wishlist text and 15. Shared goals code -------------------------
+
+GOALS_CODE_PREFIX = "WFG1."
+GOALS_CODE_MAX_LEN = 8000
+GOALS_MAX_BUILDS = 60
+GOALS_MAX_NEEDS = 80
+GOALS_MAX_QTY = 10 ** 7
+_CODE_BODY_RE = re.compile(r"^[A-Za-z0-9_-]+$")
+
+
+def wishlist_data(components, resources):
+    """(builds, needs): parts still to build as (name, remaining) with pinned
+    ones first, and resources still short (not marked "have enough") as
+    (name, short)."""
+    builds = [(c["name"], c["remaining"]) for c in components if c["remaining"] > 0]
+    builds.sort(key=lambda b: 0 if b[0] in state["pins"] else 1)
+    needs = [(r["name"], r["built_short"]) for r in active_rows(resources) if r["built_short"] > 0]
+    return builds, needs
+
+
+def wishlist_text(components, resources):
+    builds, needs = wishlist_data(components, resources)
+    if not builds and not needs:
+        return "Nothing on my wishlist: every requirement is covered."
+    lines = []
+    if builds:
+        lines.append("Building: " + ", ".join(f"{n} x{q}" for n, q in builds))
+    if needs:
+        lines.append("Need: " + ", ".join(f"{n} x{q}" for n, q in needs))
+    return "\n".join(lines)
+
+
+def export_goals_code(components, resources):
+    """A short shareable code: base64 (URL-safe, unpadded) of a compact JSON
+    holding only the wishlist's builds and needs. No notes, no usernames."""
+    builds, needs = wishlist_data(components, resources)
+    payload = {"v": 1, "b": [[n, q] for n, q in builds], "n": [[n, q] for n, q in needs]}
+    raw = json.dumps(payload, separators=(",", ":")).encode("utf-8")
+    return GOALS_CODE_PREFIX + base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
+
+
+def _valid_pairs(value, known, limit):
+    if not isinstance(value, list) or len(value) > limit:
+        return None
+    out, seen = [], set()
+    for entry in value:
+        if not isinstance(entry, list) or len(entry) != 2:
+            return None
+        name, qty = entry
+        if not isinstance(name, str) or name not in known or name in seen:
+            return None
+        if not _is_int(qty) or not 1 <= qty <= GOALS_MAX_QTY:
+            return None
+        seen.add(name)
+        out.append((name, qty))
+    return out
+
+
+def parse_goals_code(text):
+    """Strictly validates a pasted goals code. Returns (data, error): data is
+    {"builds": [(name, qty)], "needs": [(name, qty)]} or None with a message."""
+    text = str(text or "").strip()
+    if not text.startswith(GOALS_CODE_PREFIX):
+        return None, "That is not a goals code (it should start with WFG1.)."
+    body = text[len(GOALS_CODE_PREFIX):]
+    if len(text) > GOALS_CODE_MAX_LEN or not body or not _CODE_BODY_RE.match(body):
+        return None, "That code has invalid characters or is too long."
+    try:
+        raw = base64.urlsafe_b64decode(body + "=" * (-len(body) % 4))
+        data = json.loads(raw.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return None, "That code could not be decoded."
+    if not isinstance(data, dict) or set(data) != {"v", "b", "n"} or data["v"] != 1 or not _is_int(data["v"]):
+        return None, "That code is not in the expected format."
+    builds = _valid_pairs(data["b"], set(RECIPES), GOALS_MAX_BUILDS)
+    needs = _valid_pairs(data["n"], set(RESOURCE_LOCATIONS), GOALS_MAX_NEEDS)
+    if builds is None or needs is None:
+        return None, "That code holds entries this tracker does not recognise."
+    return {"builds": builds, "needs": needs}, ""
+
+
+def goals_comparison_text(friend, resources):
+    """Who can help farm what: the friend's needs you have spare of, and the
+    needs you both still have. `resources` are this player's calculated rows."""
+    mine = {r["name"]: r for r in resources}
+    can_give, shared = [], []
+    for name, qty in friend["needs"]:
+        inv = state["inventory"].get(name, {})
+        have = int(inv.get("built", 0)) + int(inv.get("raw", 0))
+        row = mine.get(name)
+        spare = max(0, have - (row["needed"] if row else 0))
+        if spare > 0:
+            can_give.append(f"{name} (they need {qty}, you have {spare} spare)")
+        if row and row["built_short"] > 0 and not row.get("enough"):
+            shared.append(f"{name} (they need {qty}, you are short {row['built_short']})")
+    lines = [f"Their list: {len(friend['builds'])} build(s), {len(friend['needs'])} resource need(s)."]
+    lines.append("You could cover: " + ("; ".join(can_give) if can_give else "nothing from your current stock") + ".")
+    lines.append("You both still need: " + ("; ".join(shared) if shared else "no shared shortfalls") + " (farm these together).")
+    return "\n".join(lines)
+
+
+# --- Save/load for the batch A keys --------------------------------------
+
+def _extra_state():
+    """The batch A keys, each present only when non-default."""
+    out = {}
+    if state["pins"]:
+        out["pins"] = list(state["pins"])
+    if state["timers"]:
+        out["timers"] = [dict(t) for t in state["timers"]]
+    if state["budget"]["credits"] or state["budget"]["endo"]:
+        out["budget"] = dict(state["budget"])
+    m = state["mastery"]
+    if m["base"] or m["items"]:
+        out["mastery"] = {"base": m["base"], "items": [dict(i) for i in m["items"]]}
+    if state["completed"]:
+        out["completed"] = [dict(e) for e in state["completed"]]
+    if state["trader"]["last"] or state["trader"]["watch"]:
+        out["trader"] = {"last": state["trader"]["last"], "watch": list(state["trader"]["watch"])}
+    if state["enough"]:
+        out["enough"] = list(state["enough"])
+    if state["tag_labels"]:
+        out["tag_labels"] = list(state["tag_labels"])
+    if state["tags"]:
+        out["tags"] = dict(state["tags"])
+    if state["goals"]:
+        out["goals"] = [dict(g) for g in state["goals"]]
+    if state["history"]:
+        out["history"] = [dict(h) for h in state["history"]]
+    cl = state["checklist"]
+    if cl["items"]:
+        out["checklist"] = {
+            "items": [dict(i) for i in cl["items"]],
+            "ticks": {k: {"stamp": cl["ticks"][k]["stamp"], "done": list(cl["ticks"][k]["done"])} for k in CHECK_KINDS},
+        }
+    if state["loadouts"]:
+        out["loadouts"] = {n: dict(v) for n, v in state["loadouts"].items()}
+    if state["inv_source"]:
+        out["inv_source"] = dict(state["inv_source"])
+    if state["edit_log"]:
+        out["edit_log"] = [dict(e) for e in state["edit_log"]]
+    return out
+
+
+def _dict_entries(value):
+    return [e for e in value if isinstance(e, dict)] if isinstance(value, list) else []
+
+
+def _load_extra_state(data):
+    """Validates and installs the batch A keys: wrong types, bad bounds and
+    unknown ids are dropped, missing keys fall back to their defaults. Must run
+    after the combos are loaded (pins/tags/notes may name a combo)."""
+    names = set(build_names())
+
+    pins = data.get("pins")
+    state["pins"] = []
+    if isinstance(pins, list):
+        for name in pins:
+            if isinstance(name, str) and name in names and name not in state["pins"] and len(state["pins"]) < PIN_MAX:
+                state["pins"].append(name)
+
+    state["timers"] = []
+    for entry in _dict_entries(data.get("timers"))[:TIMER_MAX]:
+        name = entry.get("n")
+        ms = entry.get("ms")
+        if (isinstance(name, str) and name.strip() and _is_int(ms) and TIMER_MIN_MS <= ms <= TIMER_MAX_MS
+                and isinstance(entry.get("notify"), bool)):
+            state["timers"].append({"n": name.strip()[:TIMER_NAME_MAX], "ms": ms, "notify": entry["notify"]})
+    state["timers"].sort(key=lambda t: (t["ms"], t["n"].lower()))
+
+    budget = data.get("budget")
+    state["budget"] = {"credits": 0, "endo": 0}
+    if isinstance(budget, dict):
+        for key in ("credits", "endo"):
+            value = budget.get(key)
+            if _is_int(value) and 0 <= value <= BUDGET_MAX:
+                state["budget"][key] = value
+
+    mastery = data.get("mastery")
+    state["mastery"] = {"base": 0, "items": []}
+    if isinstance(mastery, dict):
+        base = mastery.get("base")
+        if _is_int(base) and 0 <= base <= MASTERY_BASE_MAX:
+            state["mastery"]["base"] = base
+        for entry in _dict_entries(mastery.get("items"))[:MASTERY_ITEM_MAX]:
+            name = entry.get("n")
+            if (isinstance(name, str) and name.strip() and _str_in(entry.get("t"), MASTERY_ITEM_XP)
+                    and isinstance(entry.get("done"), bool)
+                    and not any(i["n"].lower() == name.strip()[:MASTERY_NAME_MAX].lower() for i in state["mastery"]["items"])):
+                state["mastery"]["items"].append({"n": name.strip()[:MASTERY_NAME_MAX], "t": entry["t"], "done": entry["done"]})
+
+    state["completed"] = []
+    for entry in _dict_entries(data.get("completed")):
+        if _str_in(entry.get("n"), names) and _valid_date(entry.get("d")):
+            state["completed"].append({"n": entry["n"], "d": entry["d"]})
+    del state["completed"][:-COMPLETED_MAX]
+
+    trader = data.get("trader")
+    state["trader"] = {"last": "", "watch": []}
+    if isinstance(trader, dict):
+        if _valid_date(trader.get("last")):
+            state["trader"]["last"] = trader["last"]
+        watch = trader.get("watch")
+        for text in watch if isinstance(watch, list) else []:
+            text = text.strip()[:WATCH_TEXT_MAX] if isinstance(text, str) else ""
+            if (text and len(state["trader"]["watch"]) < WATCH_MAX
+                    and not any(w.lower() == text.lower() for w in state["trader"]["watch"])):
+                state["trader"]["watch"].append(text)
+
+    enough = data.get("enough")
+    state["enough"] = sorted({n for n in enough if isinstance(n, str) and n in RESOURCE_LOCATIONS}) if isinstance(enough, list) else []
+
+    state["tag_labels"] = []
+    labels = data.get("tag_labels")
+    for text in labels if isinstance(labels, list) else []:
+        text = text.strip()[:TAG_LABEL_MAX] if isinstance(text, str) else ""
+        if text and len(state["tag_labels"]) < TAG_CUSTOM_MAX and resolve_tag(text) is None:
+            state["tag_labels"].append(text)
+    tags = data.get("tags")
+    state["tags"] = {
+        n: resolve_tag(label) for n, label in tags.items()
+        if isinstance(n, str) and n in names and isinstance(label, str) and resolve_tag(label) is not None
+    } if isinstance(tags, dict) else {}
+
+    state["goals"] = []
+    for entry in _dict_entries(data.get("goals"))[:GOAL_MAX]:
+        text = entry.get("text")
+        if isinstance(text, str) and text.strip() and isinstance(entry.get("done"), bool):
+            state["goals"].append({"text": text.strip()[:GOAL_TEXT_MAX], "done": entry["done"]})
+
+    state["history"] = []
+    for entry in _dict_entries(data.get("history")):
+        if (isinstance(entry.get("t"), str) and _LOG_TIME_RE.match(entry["t"])
+                and _is_int(entry.get("p")) and 0 <= entry["p"] <= 100):
+            state["history"].append({"t": entry["t"], "p": entry["p"]})
+    del state["history"][:-HISTORY_MAX]
+
+    checklist = data.get("checklist")
+    state["checklist"] = {"items": [], "ticks": {k: {"stamp": "", "done": []} for k in CHECK_KINDS}}
+    if isinstance(checklist, dict):
+        for entry in _dict_entries(checklist.get("items"))[:CHECK_MAX]:
+            name, kind = entry.get("n"), entry.get("k")
+            if (isinstance(name, str) and name.strip() and kind in CHECK_KINDS
+                    and not any(i["n"].lower() == name.strip()[:CHECK_NAME_MAX].lower() and i["k"] == kind
+                                for i in state["checklist"]["items"])):
+                state["checklist"]["items"].append({"n": name.strip()[:CHECK_NAME_MAX], "k": kind})
+        ticks = checklist.get("ticks")
+        if isinstance(ticks, dict):
+            for kind in CHECK_KINDS:
+                entry = ticks.get(kind)
+                if not isinstance(entry, dict):
+                    continue
+                kind_names = {i["n"] for i in state["checklist"]["items"] if i["k"] == kind}
+                if _valid_date(entry.get("stamp")):
+                    state["checklist"]["ticks"][kind]["stamp"] = entry["stamp"]
+                    done = entry.get("done")
+                    state["checklist"]["ticks"][kind]["done"] = sorted(
+                        {n for n in done if isinstance(n, str) and n in kind_names}) if isinstance(done, list) else []
+
+    state["loadouts"] = {}
+    loadouts = data.get("loadouts")
+    if isinstance(loadouts, dict):
+        for name, entry in list(loadouts.items())[:len(names)]:
+            if isinstance(name, str) and name in names and isinstance(entry, dict):
+                mods, play = entry.get("mods"), entry.get("play")
+                if isinstance(mods, str) and isinstance(play, str) and (mods.strip() or play.strip()):
+                    state["loadouts"][name] = {"mods": mods.strip()[:LOADOUT_MAX], "play": play.strip()[:LOADOUT_MAX]}
+
+    sources = data.get("inv_source")
+    state["inv_source"] = {
+        n: v for n, v in sources.items() if isinstance(n, str) and n in RESOURCE_LOCATIONS and _str_in(v, SOURCE_MARKS)
+    } if isinstance(sources, dict) else {}
+
+    state["edit_log"] = []
+    for entry in _dict_entries(data.get("edit_log")):
+        if (isinstance(entry.get("t"), str) and _LOG_TIME_RE.match(entry["t"]) and _str_in(entry.get("k"), EDIT_PHRASES)
+                and _is_int(entry.get("d")) and 1 <= entry["d"] <= 100000):
+            state["edit_log"].append({"t": entry["t"], "k": entry["k"], "d": entry["d"]})
+    del state["edit_log"][:-EDIT_LOG_MAX]
 
 
 # --- Rendering -------------------------------------------------------
@@ -1318,8 +2476,13 @@ def _make_part_change_handler(name, target_input, owned_input):
         target = max(0, int(target_input.value or 0))
         owned = max(0, min(target, int(owned_input.value or 0)))
         part = state["parts"].setdefault(name, {})
+        before = completion_snapshot()
+        gained = owned - int(part.get("owned", 0))
         part["target"] = target
         part["owned"] = owned
+        if gained > 0:
+            note_edit("build", gained)
+        record_completions(before)
         render()
 
     return handler
@@ -1330,6 +2493,9 @@ def _make_resource_change_handler(name, raw_input, built_input):
         raw = max(0, int(raw_input.value or 0))
         built = max(0, int(built_input.value or 0))
         inv = state["inventory"].setdefault(name, {})
+        if raw != int(inv.get("raw", 0)) or built != int(inv.get("built", 0)):
+            note_edit("resource")
+            set_source(name, "hand")
         log_gain(name, int(inv.get("raw", 0)) + int(inv.get("built", 0)), raw + built)
         inv["raw"] = raw
         inv["built"] = built
@@ -1369,9 +2535,12 @@ def _make_build_handler(name):
             inv["built"] = built - take_built
             inv["raw"] = raw - take_raw
 
+        before = completion_snapshot()
         part = state["parts"].setdefault(name, {})
         target = int(part.get("target", 0))
         part["owned"] = min(target, int(part.get("owned", 0)) + 1) if target else int(part.get("owned", 0)) + 1
+        note_edit("build")
+        record_completions(before)
         document.getElementById("status-message").textContent = f"Built {name}."
         _toast(f"Built! {name}")
         render()
@@ -1404,7 +2573,7 @@ def _render_component_table(components):
     last_category = None
     prefs = state["prefs"]
     sort_mode = prefs["sort"]
-    rows = arrange_components(components, sort_mode, _search["text"], prefs["hide_complete"])
+    rows = arrange_components(components, sort_mode, _search["text"], prefs["hide_complete"], _filters["tag"])
 
     if not rows:
         empty = _el("tr", class_="empty-row")
@@ -1454,6 +2623,7 @@ def _render_component_table(components):
         note_box.addEventListener("change", note_proxy)
         _active_proxies.append(note_proxy)
         name_cell.appendChild(note_details)
+        name_cell.appendChild(_build_controls(part["name"]))
         row.appendChild(name_cell)
 
         target_cell = _el("td")
@@ -1552,6 +2722,8 @@ def _render_resource_table(resources):
 
     for resource in resources:
         row_class = "complete" if resource["complete"] else ""
+        if resource["enough"]:
+            row_class = (row_class + " enough").strip()
         row = _el("tr", class_=row_class, **{"data-resource": resource["name"]})
 
         name_cell = _el("td")
@@ -1570,6 +2742,16 @@ def _render_resource_table(resources):
         copy_btn.addEventListener("click", copy_proxy)
         _active_proxies.append(copy_proxy)
         name_cell.appendChild(copy_btn)
+        enough_row = _el("label", class_="enough-row")
+        enough_box = _el("input", type="checkbox", class_="enough-input",
+                         aria_label=f"I have enough {resource['name']}")
+        enough_box.checked = resource["enough"]
+        enough_row.appendChild(enough_box)
+        enough_row.appendChild(_el("span", text=" I have enough (stop counting it as a need)"))
+        name_cell.appendChild(enough_row)
+        enough_proxy = create_proxy(_make_enough_handler(resource["name"], enough_box))
+        enough_box.addEventListener("change", enough_proxy)
+        _active_proxies.append(enough_proxy)
         loc_icon = location_icon(resource["location"])
         name_cell.appendChild(
             _el("div", class_="resource-location", text=f"{loc_icon} {resource['location']}")
@@ -1624,6 +2806,12 @@ def _render_resource_table(resources):
         built_input = _el("input", type="number", min="0", class_="built-input")
         built_input.value = str(resource["built_have"])
         built_cell.appendChild(built_input)
+        src = state["inv_source"].get(resource["name"])
+        if src:
+            built_cell.appendChild(_el(
+                "span", class_=f"src-marker src-{src}", text=SOURCE_MARKS[src],
+                title=("Typed by hand" if src == "hand" else "Set by an inventory import"),
+            ))
         row.appendChild(built_cell)
 
         raw_cell = _el("td")
@@ -1647,7 +2835,8 @@ def _render_resource_table(resources):
         _active_proxies.append(change_proxy)
 
 
-def _render_summary(components, resources):
+def _render_summary(components, all_resources):
+    resources = active_rows(all_resources)  # resources marked "I have enough" stop counting as needs
     parts_left = sum(1 for p in components if not p["complete"])
     resources_short = sum(1 for r in resources if not r["complete"])
     ready_now = sum(1 for p in components if p["can_build"])
@@ -1680,6 +2869,10 @@ def _render_summary(components, resources):
         + ", ".join(f"{name} ×{qty}" for name, qty in sorted(totals.items()))
         + "."
     ) if totals else ""
+    budget_box = _by_id("budget-summary")
+    budget = budget_text(resources)
+    budget_box.hidden = not budget
+    budget_box.textContent = budget
 
 
 def _sync_controls():
@@ -1691,19 +2884,658 @@ def _sync_controls():
 def render():
     _destroy_active_proxies()
     components, resources = calculate()
+    shown = display_components(components)
     _sync_controls()
-    _render_dashboard(components)
-    _render_component_table(components)
+    _render_dashboard(shown)
+    _render_component_table(shown)
     _render_resource_table(resources)
     _render_summary(components, resources)
-    document.getElementById("shopping-text").value = shopping_list_text(resources)
+    _render_tools(components, resources)
+    document.getElementById("shopping-text").value = shopping_list_text(active_rows(resources))
     document.getElementById("farm-log-text").textContent = farm_log_text()
     document.getElementById("combo-compare").textContent = combos_text(components)
+
+
+# --- Batch A UI ----------------------------------------------------------
+
+TAB_KEYS = ("timers", "mastery", "trader", "dailies", "history", "goals", "share", "tags", "notes", "log")
+
+
+def _by_id(element_id):
+    return document.getElementById(element_id)
+
+
+def _button(text, handler, aria=None, class_="secondary mini-btn"):
+    """A small button whose click handler is destroyed with the next render()."""
+    attrs = {"type": "button", "class_": class_, "text": text}
+    if aria:
+        attrs["aria_label"] = aria
+    btn = _el("button", **attrs)
+    proxy = create_proxy(handler)
+    btn.addEventListener("click", proxy)
+    _active_proxies.append(proxy)
+    return btn
+
+
+def _mini_row(text, buttons=(), class_=""):
+    row = _el("div", class_=("mini-row " + class_).strip())
+    row.appendChild(_el("span", class_="mini-text", text=text))
+    for btn in buttons:
+        row.appendChild(btn)
+    return row
+
+
+def _fill(container_id, rows, empty_text=""):
+    box = _by_id(container_id)
+    box.innerHTML = ""
+    for row in rows:
+        box.appendChild(row)
+    if not rows and empty_text:
+        box.appendChild(_el("p", class_="sync", text=empty_text))
+    return box
+
+
+def _say(message_id, message):
+    _by_id(message_id).textContent = message
+
+
+def _tag_pill(label):
+    pill = _el("span", class_="build-tag", text=label)
+    pill.style.borderLeftColor = tag_color(label)
+    return pill
+
+
+def _make_enough_handler(name, box):
+    def handler(_event):
+        set_enough(name, bool(box.checked))
+        render()
+
+    return handler
+
+
+def _make_pin_handler(name):
+    def handler(_event):
+        ok, message = toggle_pin(name)
+        _say("week-message", message)
+        if not ok:
+            _say("status-message", message)
+        render()
+
+    return handler
+
+
+def _make_tag_select_handler(name, select):
+    def handler(_event):
+        ok, message = assign_tag(name, str(select.value or ""))
+        _say("tag-message", message)
+        render()
+
+    return handler
+
+
+def _build_controls(name):
+    """The per-part pin star and colour-tag picker shown under a part's note."""
+    wrap = _el("div", class_="build-controls")
+    pinned = name in state["pins"]
+    star = _el("button", type="button", class_="pin-btn secondary", text="★ pinned" if pinned else "☆ pin",
+               aria_label=f"{'Unpin' if pinned else 'Pin'} {name} {'from' if pinned else 'to'} this week",
+               aria_pressed="true" if pinned else "false")
+    proxy = create_proxy(_make_pin_handler(name))
+    star.addEventListener("click", proxy)
+    _active_proxies.append(proxy)
+    wrap.appendChild(star)
+    select = _el("select", class_="tag-select", aria_label=f"Colour tag for {name}")
+    none = _el("option", value="", text="no tag")
+    select.appendChild(none)
+    for label in tag_labels():
+        select.appendChild(_el("option", value=label, text=label))
+    select.value = state["tags"].get(name, "")
+    proxy = create_proxy(_make_tag_select_handler(name, select))
+    select.addEventListener("change", proxy)
+    _active_proxies.append(proxy)
+    wrap.appendChild(select)
+    if name in state["tags"]:
+        wrap.appendChild(_tag_pill(state["tags"][name]))
+    return wrap
+
+
+def _render_names_list():
+    box = _by_id("build-names-list")
+    box.innerHTML = ""
+    for name in build_names():
+        box.appendChild(_el("option", value=name))
+
+
+def _render_tag_filter():
+    select = _by_id("tag-filter-select")
+    select.innerHTML = ""
+    select.appendChild(_el("option", value="", text="All tags"))
+    for label in tag_labels():
+        select.appendChild(_el("option", value=label, text=label))
+    if _filters["tag"] not in tag_labels():
+        _filters["tag"] = ""
+    select.value = _filters["tag"]
+    assign = _by_id("tag-assign-select")
+    assign.innerHTML = ""
+    for label in tag_labels():
+        assign.appendChild(_el("option", value=label, text=label))
+
+
+def _render_week(components):
+    rows = []
+    for item in pin_status(components):
+        row = _el("div", class_="pin-card")
+        row.appendChild(_el("strong", text=item["name"]))
+        row.appendChild(_el("span", class_="tag", text=item["kind"]))
+        row.appendChild(_el("span", class_="pin-status", text=item["status"]))
+        if item["name"] in state["tags"]:
+            row.appendChild(_tag_pill(state["tags"][item["name"]]))
+        row.appendChild(_button("Unpin", _make_pin_handler(item["name"]), aria=f"Unpin {item['name']}"))
+        rows.append(row)
+    _fill("week-pins", rows, f"Nothing pinned. Star up to {PIN_MAX} builds (parts above, or type a part or combo name) to keep them here.")
+    strip = _by_id("recent-completed")
+    strip.innerHTML = ""
+    strip.hidden = not state["completed"]
+    if state["completed"]:
+        strip.appendChild(_el("strong", text="Recently completed: "))
+        for entry in reversed(state["completed"]):
+            text = f"{entry['n']} ({entry['d']})"
+            if entry["n"] in state["loadouts"]:
+                text += " · notes"
+            strip.appendChild(_el("span", class_="recent-chip", text=text))
+
+
+def _render_timers():
+    now = _now_ms()
+    rows = []
+    for index, timer in enumerate(state["timers"]):
+        ready = timer["ms"] <= now
+        rows.append(_mini_row(
+            timer_line(timer, now) + (" · notify on" if timer["notify"] else ""),
+            [_button("Remove", _make_timer_remove_handler(index), aria=f"Remove timer {timer['n']}")],
+            class_="timer-ready" if ready else "",
+        ))
+    _fill("timer-list", rows, "No craft timers yet.")
+    permission = notification_permission()
+    if permission is None:
+        hint = "This browser has no notification support; timers still show their ready-at time."
+    elif permission == "granted":
+        hint = "Notifications are allowed. They only fire while this page stays open."
+    elif permission == "denied":
+        hint = "Notifications are blocked in this browser; timers still show their ready-at time."
+    else:
+        hint = "Press Enable notifications to allow a reminder while this page is open."
+    _by_id("timer-hint").textContent = hint
+    _by_id("timer-notify-button").hidden = permission in (None, "granted", "denied")
+    schedule_notifications(now)
+
+
+def _make_timer_remove_handler(index):
+    def handler(_event):
+        remove_timer(index)
+        render()
+
+    return handler
+
+
+def _render_mastery():
+    m = state["mastery"]
+    _by_id("mastery-base-input").value = str(m["base"])
+    _by_id("mastery-summary").textContent = mastery_text()
+    rows = []
+    for index, item in enumerate(m["items"]):
+        row = _el("div", class_="mini-row")
+        label = _el("label", class_="mini-text")
+        box = _el("input", type="checkbox", class_="mastery-input", aria_label=f"Ranked {item['n']}")
+        box.checked = item["done"]
+        label.appendChild(box)
+        label.appendChild(_el("span", text=f" {item['n']} ({MASTERY_ITEM_XP[item['t']]:,} points)"))
+        row.appendChild(label)
+        proxy = create_proxy(_make_mastery_tick_handler(index, box))
+        box.addEventListener("change", proxy)
+        _active_proxies.append(proxy)
+        row.appendChild(_button("Remove", _make_mastery_remove_handler(index), aria=f"Remove {item['n']}"))
+        rows.append(row)
+    _fill("mastery-list", rows, "No items yet. Add the weapons and frames you plan to rank.")
+
+
+def _make_mastery_tick_handler(index, box):
+    def handler(_event):
+        state["mastery"]["items"][index]["done"] = bool(box.checked)
+        render()
+
+    return handler
+
+
+def _make_mastery_remove_handler(index):
+    def handler(_event):
+        del state["mastery"]["items"][index]
+        render()
+
+    return handler
+
+
+def _render_trader():
+    _by_id("trader-date-input").value = state["trader"]["last"]
+    _by_id("trader-reminder").textContent = baro_text()
+    rows = [
+        _mini_row(text, [_button("Remove", _make_watch_remove_handler(i), aria=f"Stop watching for {text}")])
+        for i, text in enumerate(state["trader"]["watch"])
+    ]
+    _fill("trader-list", rows, "Nothing on the watch list yet.")
+
+
+def _make_watch_remove_handler(index):
+    def handler(_event):
+        del state["trader"]["watch"][index]
+        render()
+
+    return handler
+
+
+def _render_checklist():
+    roll_checklist()
+    _by_id("checklist-reset-info").textContent = check_reset_text()
+    for kind in CHECK_KINDS:
+        rows = []
+        for item in [i for i in state["checklist"]["items"] if i["k"] == kind]:
+            row = _el("div", class_="mini-row")
+            label = _el("label", class_="mini-text")
+            box = _el("input", type="checkbox", class_="check-input", aria_label=f"{kind} task {item['n']}")
+            box.checked = item["n"] in state["checklist"]["ticks"][kind]["done"]
+            label.appendChild(box)
+            label.appendChild(_el("span", text=f" {item['n']}"))
+            row.appendChild(label)
+            proxy = create_proxy(_make_check_tick_handler(item["n"], kind))
+            box.addEventListener("change", proxy)
+            _active_proxies.append(proxy)
+            row.appendChild(_button("Remove", _make_check_remove_handler(item["n"], kind), aria=f"Remove {item['n']}"))
+            rows.append(row)
+        _fill(f"checklist-{kind}", rows, f"No {kind} tasks yet.")
+
+
+def _make_check_tick_handler(name, kind):
+    def handler(_event):
+        toggle_check(name, kind)
+        render()
+
+    return handler
+
+
+def _make_check_remove_handler(name, kind):
+    def handler(_event):
+        remove_check_item(name, kind)
+        render()
+
+    return handler
+
+
+def _render_history():
+    _by_id("history-chart").innerHTML = history_chart_svg()
+    _by_id("history-summary").textContent = history_summary()
+
+
+def _render_goals():
+    rows = []
+    for index, goal in enumerate(state["goals"]):
+        row = _el("div", class_="mini-row")
+        label = _el("label", class_="mini-text" + (" goal-done" if goal["done"] else ""))
+        box = _el("input", type="checkbox", class_="goal-input", aria_label=f"Goal done: {goal['text']}")
+        box.checked = goal["done"]
+        label.appendChild(box)
+        label.appendChild(_el("span", text=f" {goal['text']}"))
+        row.appendChild(label)
+        proxy = create_proxy(_make_goal_tick_handler(index, box))
+        box.addEventListener("change", proxy)
+        _active_proxies.append(proxy)
+        row.appendChild(_button("Remove", _make_goal_remove_handler(index), aria=f"Remove goal {goal['text']}"))
+        rows.append(row)
+    _fill("goal-list", rows, "No long-term goals yet. These stay out of your shopping list.")
+
+
+def _make_goal_tick_handler(index, box):
+    def handler(_event):
+        state["goals"][index]["done"] = bool(box.checked)
+        render()
+
+    return handler
+
+
+def _make_goal_remove_handler(index):
+    def handler(_event):
+        del state["goals"][index]
+        render()
+
+    return handler
+
+
+def _render_tags_panel():
+    legend = _by_id("tag-legend")
+    legend.innerHTML = ""
+    for label in tag_labels():
+        count = sum(1 for v in state["tags"].values() if v == label)
+        pill = _tag_pill(label)
+        pill.textContent = f"{label} ({count})"
+        legend.appendChild(pill)
+
+
+def _render_loadouts():
+    rows = []
+    for name, entry in sorted(state["loadouts"].items()):
+        row = _el("div", class_="loadout-card")
+        row.appendChild(_el("strong", text=name))
+        if entry["mods"]:
+            row.appendChild(_el("div", class_="loadout-line", text="Mods: " + entry["mods"]))
+        if entry["play"]:
+            row.appendChild(_el("div", class_="loadout-line", text="Playstyle: " + entry["play"]))
+        row.appendChild(_button("Remove", _make_loadout_remove_handler(name), aria=f"Remove notes for {name}"))
+        rows.append(row)
+    _fill("loadout-list", rows, "No notes yet. Notes attach to finished builds.")
+
+
+def _make_loadout_remove_handler(name):
+    def handler(_event):
+        state["loadouts"].pop(name, None)
+        render()
+
+    return handler
+
+
+def _render_share(components, resources):
+    _by_id("share-export-text").value = export_goals_code(components, resources)
+    _by_id("wishlist-text").value = wishlist_text(components, resources)
+
+
+def _select_tab(key):
+    if key not in TAB_KEYS:
+        return
+    _ui["tab"] = key
+    for k in TAB_KEYS:
+        panel = _by_id(f"tab-{k}")
+        button = _by_id(f"tab-btn-{k}")
+        panel.hidden = k != key
+        button.className = "tab-btn selected" if k == key else "tab-btn"
+        button.setAttribute("aria-selected", "true" if k == key else "false")
+
+
+def _render_tools(components, resources):
+    _render_names_list()
+    _render_tag_filter()
+    _render_week(components)
+    _render_timers()
+    _render_mastery()
+    _render_trader()
+    _render_checklist()
+    _render_history()
+    _render_goals()
+    _render_tags_panel()
+    _render_loadouts()
+    _render_share(components, resources)
+    _by_id("edit-log-text").textContent = edit_log_text()
+    _by_id("budget-credits-input").value = str(state["budget"]["credits"]) if state["budget"]["credits"] else ""
+    _by_id("budget-endo-input").value = str(state["budget"]["endo"]) if state["budget"]["endo"] else ""
+    _ui["sig"] = _tick_signature()
+
+
+def _tick_signature():
+    """What the minute tick watches: the two reset periods and which timers are
+    ready. A change means the visible text is stale and worth a re-render."""
+    now = _now_ms()
+    stamps = period_stamps()
+    return (stamps["daily"], stamps["weekly"], tuple(t["ms"] <= now for t in state["timers"]))
+
+
+def tick_minute():
+    """Called once a minute: re-renders only if a reset passed or a timer just
+    became ready, so typing in a box is never interrupted for nothing."""
+    if _tick_signature() != _ui["sig"]:
+        render()
+        return True
+    return False
+
+
+# --- Batch A event handlers ----------------------------------------------
+
+def _int_input(element_id, limit):
+    text = str(_by_id(element_id).value or "").strip()
+    if not text:
+        return 0
+    try:
+        return max(0, min(limit, int(float(text))))
+    except (ValueError, OverflowError):
+        return 0
+
+
+def _on_pin_add(_event=None):
+    _ok, message = toggle_pin(_by_id("week-pin-input").value)
+    _say("week-message", message)
+    if _ok:
+        _by_id("week-pin-input").value = ""
+    render()
+
+
+def _on_timer_add(_event=None):
+    start = parse_local_datetime(_by_id("timer-start-input").value)
+    ready = parse_local_datetime(_by_id("timer-ready-input").value)
+    duration = parse_duration_minutes(_by_id("timer-duration-input").value)
+    if ready is None and str(_by_id("timer-ready-input").value or "").strip():
+        _say("timer-message", "That ready-at time is not valid.")
+        return
+    if ready is None and str(_by_id("timer-duration-input").value or "").strip() and duration is None:
+        _say("timer-message", "Duration should look like 12h, 1d 2h or 90m.")
+        return
+    ok, message = add_timer(_by_id("timer-name-input").value, start, duration, ready,
+                            bool(_by_id("timer-notify-check").checked))
+    _say("timer-message", message)
+    if ok:
+        note_edit("timer")
+        for element_id in ("timer-name-input", "timer-start-input", "timer-duration-input", "timer-ready-input"):
+            _by_id(element_id).value = ""
+    render()
+
+
+def _on_timer_notify(_event=None):
+    if not request_notification_permission():
+        _say("timer-message", "This browser cannot show notifications.")
+    else:
+        _say("timer-message", "Asked the browser for permission. Choose Allow in its prompt.")
+    render()
+
+
+def _on_budget(_event=None):
+    state["budget"]["credits"] = _int_input("budget-credits-input", BUDGET_MAX)
+    state["budget"]["endo"] = _int_input("budget-endo-input", BUDGET_MAX)
+    render()
+
+
+def _on_mastery_base(_event=None):
+    state["mastery"]["base"] = _int_input("mastery-base-input", MASTERY_BASE_MAX)
+    render()
+
+
+def _on_mastery_add(_event=None):
+    ok, message = add_mastery_item(_by_id("mastery-name-input").value, str(_by_id("mastery-type-select").value))
+    _say("mastery-message", message)
+    if ok:
+        _by_id("mastery-name-input").value = ""
+    render()
+
+
+def _on_trader_date(_event=None):
+    text = str(_by_id("trader-date-input").value or "").strip()
+    state["trader"]["last"] = text if _valid_date(text) else ""
+    render()
+
+
+def _on_trader_add(_event=None):
+    ok, message = add_watch(_by_id("trader-item-input").value)
+    _say("trader-message", message)
+    if ok:
+        _by_id("trader-item-input").value = ""
+    render()
+
+
+def _on_check_add(_event=None):
+    ok, message = add_check_item(_by_id("checklist-name-input").value, str(_by_id("checklist-kind-select").value))
+    _say("checklist-message", message)
+    if ok:
+        _by_id("checklist-name-input").value = ""
+    render()
+
+
+def _on_snapshot(_event=None):
+    take_snapshot()
+    render()
+
+
+def _on_clear_history(_event=None):
+    state["history"] = []
+    render()
+
+
+def _on_goal_add(_event=None):
+    ok, message = add_goal(_by_id("goal-input").value)
+    _say("goal-message", message)
+    if ok:
+        note_edit("goal")
+        _by_id("goal-input").value = ""
+    render()
+
+
+def _on_tag_add_label(_event=None):
+    ok, message = add_tag_label(_by_id("tag-label-input").value)
+    _say("tag-message", message)
+    if ok:
+        _by_id("tag-label-input").value = ""
+    render()
+
+
+def _on_tag_remove_label(_event=None):
+    _ok, message = remove_tag_label(_by_id("tag-label-input").value)
+    _say("tag-message", message)
+    render()
+
+
+def _on_tag_assign(_event=None):
+    ok, message = assign_tag(_by_id("tag-name-input").value, str(_by_id("tag-assign-select").value))
+    _say("tag-message", message)
+    if ok:
+        _by_id("tag-name-input").value = ""
+    render()
+
+
+def _on_tag_clear(_event=None):
+    _ok, message = assign_tag(_by_id("tag-name-input").value, "")
+    _say("tag-message", message)
+    render()
+
+
+def _on_tag_filter(_event=None):
+    _filters["tag"] = str(_by_id("tag-filter-select").value or "")
+    render()
+
+
+def _on_loadout_save(_event=None):
+    ok, message = set_loadout(_by_id("loadout-name-input").value, _by_id("loadout-mods-input").value,
+                              _by_id("loadout-play-input").value)
+    _say("loadout-message", message)
+    if ok:
+        for element_id in ("loadout-name-input", "loadout-mods-input", "loadout-play-input"):
+            _by_id(element_id).value = ""
+    render()
+
+
+def _on_share_import(_event=None):
+    data, error = parse_goals_code(_by_id("share-import-input").value)
+    if data is None:
+        _say("share-result", error)
+        return
+    _components, resources = calculate()
+    _say("share-result", goals_comparison_text(data, resources))
+
+
+def _on_clear_edit_log(_event=None):
+    state["edit_log"] = []
+    render()
+
+
+def _make_tab_handler(key):
+    def handler(_event):
+        _select_tab(key)
+
+    return handler
+
+
+SHORTCUTS = (
+    ("/", "Focus the part search box"),
+    ("h", "Toggle Archive completed parts"),
+    ("s", "Open the shopping list"),
+    ("?", "Show or hide this cheat sheet"),
+    ("Esc", "Close this cheat sheet"),
+)
+
+
+def _on_keydown(event):
+    """Plain single-key shortcuts. Ignored while typing in a field and while
+    Ctrl/Cmd/Alt is held, so browser and save-widget shortcuts are untouched."""
+    key = str(getattr(event, "key", "") or "")
+    if getattr(event, "ctrlKey", False) or getattr(event, "metaKey", False) or getattr(event, "altKey", False):
+        return False
+    target = getattr(event, "target", None)
+    editable = str(getattr(target, "tagName", "") or "").upper() in ("INPUT", "TEXTAREA", "SELECT") or bool(
+        getattr(target, "isContentEditable", False))
+    overlay = _by_id("shortcut-overlay")
+    if key == "Escape":
+        if overlay.hidden:
+            return False
+        overlay.hidden = True
+        event.preventDefault()
+        return True
+    if editable:
+        return False
+    if key == "?":
+        overlay.hidden = not overlay.hidden
+    elif key == "/":
+        _by_id("search-input").focus()
+    elif key in ("h", "H"):
+        state["prefs"]["hide_complete"] = not state["prefs"]["hide_complete"]
+        render()
+    elif key in ("s", "S"):
+        details = _by_id("shopping-details")
+        details.open = True
+        try:
+            details.scrollIntoView()
+        except Exception:  # noqa: BLE001, S110 -- no scrolling support: opening it is enough
+            pass
+    else:
+        return False
+    event.preventDefault()
+    return True
+
+
+def _on_help_button(_event=None):
+    overlay = _by_id("shortcut-overlay")
+    overlay.hidden = not overlay.hidden
+
+
+def _on_close_help(_event=None):
+    _by_id("shortcut-overlay").hidden = True
+
+
+def _render_shortcuts():
+    box = _by_id("shortcut-list")
+    box.innerHTML = ""
+    for key, text in SHORTCUTS:
+        row = _el("div", class_="shortcut-row")
+        row.appendChild(_el("kbd", text=key))
+        row.appendChild(_el("span", text=" " + text))
+        box.appendChild(row)
 
 
 def _do_reset():
     state["parts"] = {name: {"target": qty, "owned": 0} for name, qty in DEFAULT_PARTS}
     state["inventory"] = {}
+    state["inv_source"] = {}
     document.getElementById("status-message").textContent = "Inventory reset."
     _toast("Inventory reset to zero.")
     render()
@@ -1715,6 +3547,7 @@ def _on_add_combo(_event=None):
     ok, message = add_combo(name, parts)
     document.getElementById("combo-message").textContent = message
     if ok:
+        note_edit("combo")
         document.getElementById("combo-name-input").value = ""
         document.getElementById("combo-parts-input").value = ""
     render()
@@ -1773,6 +3606,43 @@ def setup():
     wire("combo-remove-button", "click", _on_remove_combo)
     wire("copy-shopping-button", "click",
          _make_copy_handler(lambda: document.getElementById("shopping-text").value, "shopping list"))
+    wire("copy-wishlist-button", "click",
+         _make_copy_handler(lambda: document.getElementById("wishlist-text").value, "wishlist"))
+    wire("share-copy-button", "click",
+         _make_copy_handler(lambda: document.getElementById("share-export-text").value, "goals code"))
+    wire("week-pin-button", "click", _on_pin_add)
+    wire("timer-add-button", "click", _on_timer_add)
+    wire("timer-notify-button", "click", _on_timer_notify)
+    wire("budget-credits-input", "change", _on_budget)
+    wire("budget-endo-input", "change", _on_budget)
+    wire("mastery-base-input", "change", _on_mastery_base)
+    wire("mastery-add-button", "click", _on_mastery_add)
+    wire("trader-date-input", "change", _on_trader_date)
+    wire("trader-add-button", "click", _on_trader_add)
+    wire("checklist-add-button", "click", _on_check_add)
+    wire("history-snapshot-button", "click", _on_snapshot)
+    wire("history-clear-button", "click", _on_clear_history)
+    wire("goal-add-button", "click", _on_goal_add)
+    wire("tag-add-label-button", "click", _on_tag_add_label)
+    wire("tag-remove-label-button", "click", _on_tag_remove_label)
+    wire("tag-assign-button", "click", _on_tag_assign)
+    wire("tag-clear-button", "click", _on_tag_clear)
+    wire("tag-filter-select", "change", _on_tag_filter)
+    wire("loadout-save-button", "click", _on_loadout_save)
+    wire("share-import-button", "click", _on_share_import)
+    wire("clear-edit-log-button", "click", _on_clear_edit_log)
+    wire("shortcut-help-button", "click", _on_help_button)
+    wire("shortcut-close-button", "click", _on_close_help)
+    for key in TAB_KEYS:
+        wire(f"tab-btn-{key}", "click", _make_tab_handler(key))
+    document.addEventListener("keydown", create_proxy(_on_keydown))
+    _render_shortcuts()
+    _select_tab(_ui["tab"])
+    try:
+        from js import setInterval  # noqa: PLC0415 -- Pyodide-only
+        setInterval(create_proxy(tick_minute), 60000)
+    except ImportError:
+        pass  # no timer API (tests)
     render()
 
 
