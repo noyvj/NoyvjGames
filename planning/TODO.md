@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 738/769 items checked off (96.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 741/769 items checked off (96.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -393,7 +393,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] A26 → folded into Z (see "Games" section above): "reset settings to default" button, site-wide.
 - [x] A27: A proper end-game "epilogue" screen once every planet is 100% terraformed, beyond the current banner.
 - [x] A28: Let the Sky City info-toggle state the exact Mars-material cost ratio.
-- [ ] A29: A community leaderboard for fastest full completion, opt-in *(needs Z1)*.
+- [x] A29: A community leaderboard for fastest full completion, opt-in *(needs Z1)*.
 - [x] A30: A small animated icon transition when a building finishes constructing.
 
 ---
@@ -534,7 +534,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] E19: A proper "resilience curriculum" mode — a guided sequence of runs with specific goals each time.
 - [x] E20: A tooltip explaining exactly how skill-tree strength affects severity variation.
 - [x] E22: Let the reset-skill-tree two-click confirm show exactly how many knowledge points will be refunded before the second click.
-- [ ] E23: A community "hardest schedule survived" leaderboard, since severity variation means no two hard runs are identical *(needs Z1)*.
+- [x] E23: A community "hardest schedule survived" leaderboard, since severity variation means no two hard runs are identical *(needs Z1)*.
 - [x] E24: A small icon per event category (weather/non-weather/social) in the Review Past Runs list itself, not just the live event display.
 - [x] E25: A proper "settlement identity" customization — name the settlement once, carried across all runs.
 - [x] E26: Let the export/import progress code show a short human-readable summary of its contents before copying.
@@ -571,7 +571,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] F17: A "farm tour" narrative mode — periodic short flavor vignettes reacting to the farm's current coupling ratio.
 - [x] F18: Let the investment consequence preview show numbers with a small before/after arrow.
 - [x] F19: A "regional methane cap" scenario mode — an opt-in harder variant with a hard regulatory cap forcing decoupling.
-- [ ] F21: A community "decoupling leaderboard" by best score-vs-baseline gap *(same F7/Z1 caveat above)*.
+- [x] F21: A community "decoupling leaderboard" by best score-vs-baseline gap *(same F7/Z1 caveat above)*.
 - [x] F22: Let the min/max range labels behind the coupling gauge flash when a new session-best is set.
 - [x] F23 **(you called this "the next big thing this game needs"):** A "second herd type" — a genuinely different animal (poultry, aquaculture) with its own coupling curve, **unlocked via prestige**, each type with its own needs and decoupling levers, per your framing.
 - [x] F24: A tooltip explaining exactly what the ambient haze overlay's intensity represents.

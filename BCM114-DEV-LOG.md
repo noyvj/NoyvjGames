@@ -765,3 +765,18 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** thaw
 **Did:** Added an opt-in long-game mode to Thaw: a toggle available only before round 1 that scales background warming, melt feedback, counterfactual and restoration to 40% and Output income to 60%, so the full trajectory takes ~2.5x as many rounds. One module flag covers all four regions; saved only when on.
 **Result:** 290 Thaw tests pass (8 new); live-checked the toggle, the lock after the first round and the 0.4 degree first round, no console errors.
+
+### 2026-09-26 (SOL A29: fastest-completion leaderboard)
+**Game:** sol
+**Did:** Recorded the tick at which SOL's whole system was first terraformed and fed it to the new shared opt-in leaderboard widget, mounted in the Stats panel. Saved as a single optional key with strict validation.
+**Result:** 687 -> 694 SOL tests; the widget was live-checked against a mocked backend (entries render as text, opt-in PUT and opt-out DELETE fire, no console errors).
+
+### 2026-09-26 (Aftermath E23: hardest-schedule leaderboard)
+**Game:** aftermath
+**Did:** Added the E23 hook: a survived run reports its average event severity to the shared opt-in leaderboard widget (mounted on the page).
+**Result:** 314 Aftermath tests pass (3 new).
+
+### 2026-09-26 (Herd F21: decoupling leaderboard)
+**Game:** herd
+**Did:** Added the F21 hook: each round's decoupling gap goes to the shared opt-in leaderboard widget.
+**Result:** 223 Herd tests pass (3 new).

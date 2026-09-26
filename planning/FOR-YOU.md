@@ -28,6 +28,14 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 
 I'll drop all of that into the ad bar and it goes live everywhere on the site at once, since it's a shared partial.
 
+### 2. Redeploy the backend (community leaderboards)
+
+**Why:** the opt-in leaderboards (SOL fastest completion, Aftermath hardest schedule, Herd decoupling gap) added new backend endpoints (`/leaderboards/...`) and a new database table. Until the backend is redeployed the boards just show "unavailable" in-game; nothing breaks. More items in this batch may add further backend fields (see the community-stat items in `planning/TODO.md`), so it is fine to redeploy once at the end of the night.
+
+**Steps:** the same redeploy you did before (from the repo's `app/` folder with the FastAPI Cloud CLI). No new environment variables. The new table is created automatically on startup.
+
+**What to tell me:** just "redeployed", and I will live-check `GET /leaderboards/sol/fastest_completion` returns 200.
+
 ---
 
 ## Answered — building now (no further input needed, listed so you can see what your answers turned into)

@@ -515,6 +515,12 @@ _ecology_zero_seen = set()
 # ("how much simulated play-time did this take", not "how much real time
 # has passed since first opening the page").
 total_ticks = 0
+# A29: the total_ticks reading the first time every world was terraformed
+# (None until then). Kept for life, like the other lifetime counters, so a
+# later reset can't erase it. It is the score for the opt-in community
+# "fastest full completion" leaderboard (shared/leaderboard.js).
+full_system_completed_tick = None
+_leaderboard_reported = False
 total_manual_clicks = 0
 lifetime_resources_mined_by_click = 0.0
 lifetime_resources_generated_by_automation = 0.0
@@ -1387,12 +1393,39 @@ def _display_toast(message):
     setTimeout(proxy, 4000)
 
 
+def _report_full_completion():
+    """A29: hands the completion time to the shared leaderboard widget, which
+    only submits when this player has opted in and is signed in. Reported once
+    per page load; the server keeps just the best score anyway."""
+    global _leaderboard_reported
+    if full_system_completed_tick is None or _leaderboard_reported:
+        return
+    _leaderboard_reported = True
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    board = getattr(window, "NoyvjLeaderboard", None)
+    if board is None:
+        return
+    seconds = full_system_completed_tick * (TICK_INTERVAL_MS / 1000)
+    board.report("sol", "fastest_completion", seconds, f"prestige {prestige_level}")
+
+
+def _note_full_completion():
+    global full_system_completed_tick
+    if full_system_completed_tick is None and _terraformed_planet_count() >= len(PLANETS):
+        full_system_completed_tick = total_ticks
+    _report_full_completion()
+
+
 def _check_new_achievements_for_toast():
     """Called every tick(): compares the live earned set against the last
     snapshot, and pops a toast for anything newly earned since then. Never
     called from _full_render() itself -- see _seed_achievement_toast_baseline
     above for why a load must never diff against a stale/empty baseline."""
     global _achievements_seen_ids
+    _note_full_completion()
     earned_now = set(achievement_ids_earned())
     newly = earned_now - _achievements_seen_ids
     if newly:
@@ -3368,6 +3401,7 @@ def serialize_state():
         # none of them are touched by a world reset (A18) or reset by
         # prestige (A1) except any_generator_ever_built -- see _prestige().
         "total_ticks": total_ticks,
+        **({"full_system_completed_tick": full_system_completed_tick} if full_system_completed_tick is not None else {}),
         "total_manual_clicks": total_manual_clicks,
         "lifetime_resources_mined_by_click": lifetime_resources_mined_by_click,
         "lifetime_resources_generated_by_automation": lifetime_resources_generated_by_automation,
@@ -3493,6 +3527,15 @@ def _load_session_additions(data):
     an old save (or a hand-edited one) can never crash the load."""
     global prestige_points_earned, prestige_nodes, ng_challenge_active, sandbox_mode
     global close_call_hit, back_from_brink_hit, _departure_snapshots
+    global full_system_completed_tick, _leaderboard_reported
+
+    saved_completion = data.get("full_system_completed_tick")
+    full_system_completed_tick = (
+        saved_completion
+        if isinstance(saved_completion, int) and not isinstance(saved_completion, bool) and saved_completion >= 0
+        else None
+    )
+    _leaderboard_reported = False
 
     # Legacy saves: prestige_level existed before points did, and each
     # prestige is worth 1 point, so an old save's points equal its level.

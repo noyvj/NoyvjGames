@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-26",
+    "entry": "Community leaderboard: an opt-in 'best decoupling gap' board ranked by your score minus what pure growth would have scored (F21)."
+  },
+  {
+    "date": "2026-09-26",
     "entry": "The community comparison now shows a small trend arrow (▲/▼/▶) against your own last check, remembered on this device — no backend change needed (F10)."
   },
   {

@@ -19,9 +19,9 @@ from typing import Optional
 # order: "asc" = lower is better (fastest time), "desc" = higher is better.
 # low/high: the accepted score range; anything outside is rejected.
 BOARDS: dict[tuple[str, str], dict] = {
-    # SOL: total ticks played when the whole system is first terraformed.
+    # SOL: simulated seconds of play when the whole system is first terraformed.
     ("sol", "fastest_completion"): {
-        "order": "asc", "low": 1.0, "high": 100_000_000.0, "label": "Fastest full completion (ticks)",
+        "order": "asc", "low": 1.0, "high": 100_000_000.0, "label": "Fastest full completion (simulated seconds)",
     },
     # Aftermath: the average event severity of a run that ended with resources left.
     ("aftermath", "hardest_schedule"): {

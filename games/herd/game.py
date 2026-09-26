@@ -2088,8 +2088,25 @@ def on_invest_plant_pivot(event=None):
     )
 
 
+def _report_decoupling_gap():
+    """F21: the decoupling gap (score minus the pure-growth counterfactual's
+    score) goes to the shared opt-in leaderboard widget, which only submits
+    for an opted-in, signed-in player and remembers the personal best."""
+    gap = farm.score() - farm.counterfactual_score()
+    if gap <= 0:
+        return
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    board = getattr(window, "NoyvjLeaderboard", None)
+    if board is not None:
+        board.report("herd", "decoupling_gap", round(gap, 1), f"round {farm.round_number}")
+
+
 def on_advance_round(event=None):
     farm.advance_round()
+    _report_decoupling_gap()
     render()
     _check_milestone_callout()
     _check_new_achievements_for_toast()

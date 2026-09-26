@@ -780,6 +780,7 @@ class RunState:
                 save_run_log_history(run_log_history)
                 highest_awarded_run = self.run_number
                 save_highest_awarded_run(highest_awarded_run)
+                _report_hardest_schedule(self)  # E23
 
                 # Playstyle achievements -- only recorded the first time a
                 # given run_number genuinely completes (same guard as the
@@ -1733,6 +1734,25 @@ def average_severity(event_log):
     if not event_log:
         return 1.0
     return sum(e.get("severity", 1.0) for e in event_log) / len(event_log)
+
+
+def _report_hardest_schedule(run_state):
+    """E23: a run that ended with resources left feeds its average event
+    severity to the shared opt-in leaderboard widget (which only submits for
+    an opted-in, signed-in player and remembers the personal best). Run 1 is
+    always exactly 1.00x, so only the harsher later runs can climb the board."""
+    if run_state.resources <= 0 or not run_state.event_log:
+        return
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    board = getattr(window, "NoyvjLeaderboard", None)
+    if board is not None:
+        board.report(
+            "aftermath", "hardest_schedule", round(average_severity(run_state.event_log), 3),
+            f"run {run_state.run_number}",
+        )
 
 
 def toughest_survived_run_badge_earned():

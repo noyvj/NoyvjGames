@@ -83,6 +83,7 @@
         <button id="compare-run-button" class="secondary" type="button">Compare my run</button>
         <div id="compare-run-results" class="compare-run-results"></div>
       </details>
+      <div id="leaderboard-mount"></div>
       <details class="stats-extra">
         <summary>Export / import lifetime stats</summary>
         <p class="stats-extra-hint">A portable code for your lifetime counters, for moving them to another browser. Importing only ever raises a counter, never lowers it.</p>
@@ -1271,6 +1272,7 @@
   <script src="../../shared/last-played.js" data-game-id="sol"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="sol"></script>
   <script src="../../shared/achievement-stats.js" data-game-id="sol"></script>
+  <script src="../../shared/leaderboard.js" data-game-id="sol" data-board="fastest_completion" data-order="asc" data-title="fastest full completion" data-unit="s" data-mount="#leaderboard-mount"></script>
   <!-- Z4 (site-wide goal): "?" shows a keyboard-shortcuts help overlay,
        Esc closes whichever panel is open. See shared/keyboard-shortcuts.js. -->
   <script src="../../shared/keyboard-shortcuts.js"></script>

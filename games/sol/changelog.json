@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-09-26",
+      "entry": "Community leaderboard: an opt-in 'fastest full completion' board in the Stats panel, ranked by the simulated time it took to terraform every world. Nothing is shared unless you tick the box while signed in (A29)."
+    },
+    {
+      "date": "2026-09-26",
       "entry": "Research is now a real tree: about 20 nodes per level that split and rejoin, ending at Near Bodies and then Far Bodies, most with a small bonus (yield, cheaper miners, cheaper trade routes). Existing research progress converts to nodes (U10)."
     },
     {
