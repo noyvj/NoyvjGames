@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 752/769 items checked off (97.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 753/769 items checked off (97.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -876,7 +876,7 @@ A "yes" here means "worth a groundwork plan" (a new `planning/<game>-plan.md`, p
 - [x] A small percentage-complete readout for the whole 33-part list.
 - [x] A mobile-friendly layout pass.
 - [x] A small "copy resource name" button next to each resource.
-- [ ] A market-price reference (Warframe.market or similar) integration.
+- [x] A market-price reference (Warframe.market or similar) integration. **Done 2026-09-26:** a backend proxy to Warframe.market (only the 9 refined gems are listed there) with price badges and a platinum total (see README).
 - [x] An "archive completed parts" toggle to hide fully-built parts, **plus a search/sort system**, per your own addition, to make things easier to find.
 - [x] A "session farming log" (resource-inventory deltas over time) — makes a lot more sense once X-b's import exists, since manual entry alone makes deltas unreliable to track meaningfully. **Done 2026-09-26:** a collapsible log of gains (typed or imported), saved with your progress (see README).
 

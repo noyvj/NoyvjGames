@@ -107,6 +107,9 @@ section {
 .part-tip { margin-top: 2px; font-size: 12px; color: #9ba1af; }
 html[data-theme="light"] .part-tip { color: #4a5270; }
 
+.market-price { margin-left: 6px; font-size: 11px; color: #7fd1a8; }
+html[data-theme="light"] .market-price { color: #1f6a47; }
+
 .rare-flag {
   margin-left: 6px;
   padding: 1px 6px;

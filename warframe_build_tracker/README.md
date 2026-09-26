@@ -213,3 +213,7 @@ None of the 65 tracked resources are Void Relic gated, but every refined resourc
 - **What built parts become:** `KNOWN_COMBOS` holds named builds. The Wiki names exactly one, the "177" Amp (Raplak Prism, Propa Scaffold, Certus Brace); its Zaw and Kitgun pages name no popular combination, so none is invented. **My combos** (name plus comma-separated parts) adds your own, saved with your progress.
 - **Build comparison:** the collapsible "Build comparison" ranks every combo by how close it is: parts already built, which are still to build, and how many resource units those are short for one craft each. Finished combos sort last.
 
+## Market prices
+
+Nine tracked resources (the refined gems: Tear Azurite, Star Amarast, Star Crimzian, Marquise Thyst/Veridos, Esher Devar, Goblite Tears, Heart Nyth, Radiant Zodian) are tradeable on Warframe.market; the alloys, plain resources and the zaw/kitgun/amp parts are not. Warframe.market's API sends no CORS headers, so the page cannot call it directly: the site's backend does (`app/market.py`, `GET /market/prices`, a fixed whitelist of slugs, cached ten minutes, spaced requests, any failure just means no price). Each tradeable resource row shows its lowest online sell price, and "What I still need" totals the platinum to buy everything you are short on. If the backend is unreachable the page simply shows no prices.
+

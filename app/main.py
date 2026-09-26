@@ -17,6 +17,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 import leaderboards
+import market
 import stats
 from database import Base, engine, get_db, patch_schema
 from models import AnswerReport, AuthSession, Feedback, LeaderboardEntry, PageView, Rating, Save, User
@@ -1129,6 +1130,14 @@ def remove_leaderboard_entry(
     )
     db.commit()
     return {"removed": bool(removed)}
+
+
+@app.get("/market/prices")
+def market_prices(response: Response):
+    """Lowest online sell price (platinum) for the tracker's tradeable
+    resources, cached for ten minutes (see market.py)."""
+    response.headers["Cache-Control"] = "public, max-age=300"
+    return {"prices": market.all_prices()}
 
 
 @app.post("/stats/pageview")

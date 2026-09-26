@@ -18,6 +18,7 @@ ELEMENT_IDS = [
     "refinery-summary",
     "route-planner",
     "syndicate-summary",
+    "market-summary",
     "farm-log-text",
     "combo-compare",
     "combo-name-input",

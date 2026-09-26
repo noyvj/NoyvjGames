@@ -793,6 +793,58 @@ def resource_rarity(location_text):
     return "uncommon"
 
 
+# Market prices (Warframe.market, via the site's own backend because that API
+# sends no CORS headers). Only the refined gems are tradeable there; the plain
+# resources, alloys and the zaw/kitgun/amp parts are not. UI-only, never saved.
+_market = {"prices": {}}
+
+
+def market_slug(resource):
+    return "_".join(re.findall(r"[a-z0-9]+", resource.lower()))
+
+
+def set_market_prices(json_text):
+    """Called by index.html with the backend's /market/prices JSON text. Keeps
+    only whole-number-or-decimal positive prices for known resources; anything
+    else is ignored. Returns how many resources now have a price."""
+    try:
+        data = json.loads(json_text)
+    except (ValueError, TypeError):
+        return 0
+    prices = data.get("prices") if isinstance(data, dict) else None
+    _market["prices"] = {}
+    if isinstance(prices, dict):
+        for resource in RESOURCE_LOCATIONS:
+            entry = prices.get(market_slug(resource))
+            value = entry.get("lowest_sell") if isinstance(entry, dict) else None
+            if isinstance(value, (int, float)) and not isinstance(value, bool) and value > 0:
+                _market["prices"][resource] = value
+    render()
+    return len(_market["prices"])
+
+
+def market_value_short(resources):
+    """(total platinum, resources counted) for the tradeable resources you are
+    still short on, at the lowest online sell price each."""
+    total, counted = 0, 0
+    for row in resources:
+        price = _market["prices"].get(row["name"])
+        if price and row["built_short"] > 0:
+            total += price * row["built_short"]
+            counted += 1
+    return total, counted
+
+
+def market_text(resources):
+    total, counted = market_value_short(resources)
+    if not counted:
+        return ""
+    return (
+        f"Buying what you are short on for the {counted} tradeable resource(s) would cost about {total:,.0f} "
+        "platinum at today's lowest online sell prices (Warframe.market; prices refresh every few minutes)."
+    )
+
+
 def blueprint_owned(resource, inventory=None):
     """Whether this refined resource's blueprint counts as bought. An explicit
     tick (state["blueprints"]) wins; otherwise holding any of the refined
@@ -979,6 +1031,7 @@ def calculate():
             "grindy": needed >= GRINDY_THRESHOLD,
             "refinery": refinery_plan(resource, remaining_after_built, raw_have),
             "rarity": resource_rarity(RESOURCE_LOCATIONS.get(resource, "")),
+            "market_price": _market["prices"].get(resource),
         })
 
     return component_status, resource_rows
@@ -1508,6 +1561,8 @@ def _render_resource_table(resources):
                if resource["grindy"] and not resource["complete"] else "")
             + (' <span class="rare-flag" title="Hard to come by: a single place or a gated source. Do not spend it on things outside this list.">rare</span>'
                if resource["rarity"] == "rare" else "")
+            + (f' <span class="market-price" title="Lowest online sell price on Warframe.market">~{resource["market_price"]:g} plat each</span>'
+               if resource.get("market_price") else "")
         )
         copy_btn = _el("button", class_="copy-btn secondary", type="button", text="Copy",
                        aria_label=f"Copy resource name {resource['name']}", title="Copy resource name")
@@ -1605,6 +1660,10 @@ def _render_summary(components, resources):
             f"{ready_now} part(s) are ready to build right now."
         )
     document.getElementById("summary").textContent = text
+    market_box = document.getElementById("market-summary")
+    market = market_text(resources)
+    market_box.hidden = not market
+    market_box.textContent = market
     syndicate_box = document.getElementById("syndicate-summary")
     syndicate = syndicate_text(resources)
     syndicate_box.hidden = not syndicate

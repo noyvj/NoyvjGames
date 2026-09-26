@@ -336,3 +336,8 @@ The clearest cross-cutting infra lesson from this pass: three separate games' au
 **Did:** `PART_NOTES` (one wiki-sourced line for each of the 33 parts, fetched from the Amp/Zaw/Kitgun pages), `KNOWN_COMBOS` (only "177", the one combination the Wiki names; no community meta was invented for Zaw or Kitgun) plus a validated custom-combo list, and `compare_combos()` ranking by parts still to build then resource units short. Custom combos save as an optional `combos` key, validated on load (known parts, 1 to 5 unique, unique names, capped at 20). Added a question to FOR-YOU asking which meta combos the user wants pre-loaded.
 **Result:** 124 -> 132 tracker tests; live-checked (33 tips render, saving a custom combo updates the ranking).
 
+### 2026-09-26 (Warframe tracker: market price reference)
+**Area:** `app/market.py`, `app/main.py` (`GET /market/prices`), `warframe_build_tracker/`
+**Did:** Checked the real API first: v1 is gone, v2 works, only 9 of the 65 resources (the refined gems) and none of the 33 parts are listed, and it sends no CORS headers, so a browser cannot call it. Built a small backend proxy instead: whitelisted slugs only, ten-minute cache, spaced upstream calls, lowest online (else any) visible sell price, no trader data passed on, every failure returns no price. The tracker fetches it after loading and shows a price badge on the tradeable rows plus a platinum total for what is short (`set_market_prices()`, UI-only, never saved). Also listed the newer backend modules in `pyproject.toml`'s `py-modules`.
+**Result:** 7 new backend tests (155 total) and 5 tracker tests (137 total); live-checked with injected prices. Goes live with the next backend deploy (FOR-YOU 2).
+

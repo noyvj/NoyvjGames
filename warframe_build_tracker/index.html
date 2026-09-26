@@ -150,6 +150,7 @@
     <div id="summary"></div>
     <p id="route-planner" class="sync" hidden></p>
     <p id="syndicate-summary" class="sync" hidden></p>
+    <p id="market-summary" class="sync" hidden></p>
     <p id="refinery-summary" class="sync" hidden></p>
     <details class="shopping">
       <summary>Build comparison: which combos are closest</summary>
@@ -182,6 +183,12 @@
     window.pyodide = pyodide; // exposed for the save/load bridge below
     const code = await (await fetch("game.py")).text();
     await pyodide.runPythonAsync(code);
+    // Market price reference: fetched from the site's own backend (which asks
+    // Warframe.market), best effort. Any failure just leaves prices off.
+    try {
+      const response = await fetch("https://noyvjgames.fastapicloud.dev/market/prices");
+      if (response.ok) pyodide.globals.get("set_market_prices")(await response.text());
+    } catch (e) { /* no prices, no problem */ }
   }
   main();
 </script>
