@@ -487,10 +487,8 @@ class FarmState:
             self.certification_streak += 1
         else:
             self.certification_streak = 0
-        newly_certified = False
         if not self.certified and self.certification_streak >= CERTIFICATION_ROUNDS_REQUIRED:
             self.certified = True
-            newly_certified = True
 
         # F5/F11/F17 — one-time nudge callouts, checked in a fixed
         # priority order so at most one fires per round (the shared
@@ -507,8 +505,6 @@ class FarmState:
         ):
             self.seen_methane_penalty_nudge = True
             self.just_hit_callout = "methane_penalty"
-        if newly_certified and self.just_hit_callout is None:
-            self.just_hit_callout = "certified"
 
     def score(self):
         """Profitability weighted against sustained emissions — rewards
@@ -1093,6 +1089,7 @@ ACHIEVEMENT_CHECKS = {
     "quarter_decoupled": lambda: farm.decoupled_fraction() >= 0.25,
     "half_decoupled": lambda: farm.decoupled_fraction() >= 0.5,
     "fully_decoupled": lambda: farm.decoupled_fraction() >= 0.9,
+    "sustainably_certified": lambda: farm.certified,
     "plant_pioneer": lambda: farm.plant_pivot_investment >= 1,
     "half_plant_based": lambda: farm.plant_based_fraction() >= 0.3,
     "max_plant_pivot": lambda: farm.plant_based_fraction() >= MAX_PLANT_BASED_FRACTION,
@@ -1310,11 +1307,6 @@ _MILESTONE_CALLOUT_MESSAGES = {
     "pressure": (
         "Market/regulatory pressure just crossed 25% income loss — sustained methane is now "
         "visibly eating into your income."
-    ),
-    "certified": (
-        "Sustainable certification earned! Holding a low coupling ratio for "
-        f"{CERTIFICATION_ROUNDS_REQUIRED} rounds unlocks a permanent "
-        f"+{CERTIFICATION_PRICE_PREMIUM * 100:.0f}% price premium on your output."
     ),
     "methane_penalty": (
         "Your accumulated methane is now cutting a real chunk out of your score — decoupling "

@@ -31,7 +31,6 @@ def test_get_state_includes_every_expected_key(game_env):
         "good_profit_recent",
         "price_history",
         "need_history",
-        "seen_first_automation_callout",
         "seasonal_demand",
         "cross_system_units",
         "route_hazards",

@@ -8,6 +8,7 @@
     { "id": "quarter_decoupled", "label": "Quarter Decoupled", "description": "Cut your emissions-per-herd-unit ratio to at least 25% below baseline." },
     { "id": "half_decoupled", "label": "Half Decoupled", "description": "Cut your emissions-per-herd-unit ratio to at least 50% below baseline." },
     { "id": "fully_decoupled", "label": "Nearly Fully Decoupled", "description": "Cut your emissions-per-herd-unit ratio to at least 90% below baseline." },
+    { "id": "sustainably_certified", "label": "Sustainably Certified", "description": "Hold a low coupling ratio for long enough to earn the permanent sustainable-certification price premium." },
     { "id": "plant_pioneer", "label": "Plant Pioneer", "description": "Make your first Plant-Based Pivot investment." },
     { "id": "half_plant_based", "label": "Half the Farm", "description": "Shift at least 30% of output to plant-based production." },
     { "id": "max_plant_pivot", "label": "Pivot Complete", "description": "Shift the maximum possible 60% of output to plant-based production." },

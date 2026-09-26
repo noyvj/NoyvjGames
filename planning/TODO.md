@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 648/767 items checked off (84.5%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 649/767 items checked off (84.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -265,45 +265,19 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
   - [x] Trade Empire
   - [x] Continuum
   - [x] Le Champ de Mots
-- [ ] Z-extra (folded from C16's answer): audit one-time toast/banner callouts (first-X, milestone-crossed, etc.) and convert the ones that are really just "you did a thing once" into achievements instead of bespoke UI — "these should all be built into achievements and stop doing callouts since it will be announced through achievement gains" was Grid's own C16 answer; audit case by case, not a blanket removal:
-  - [ ] SOL
-  - [ ] Canopy
-  - [ ] Grid (originating case — C16's "first battery built" callout)
-  - [ ] Tide (D12, D17 callouts)
-  - [ ] Aftermath (E17-era callouts)
-  - [ ] Herd
-  - [ ] Thaw
-  - [ ] Loop
-  - [ ] Drift (I10, I26 callouts)
-  - [ ] Trade Empire (J28's callout, see per-game section)
-  - [ ] Continuum
-  - [ ] Le Champ de Mots
-- [x] Z-extra (folded from A26): a "reset settings to default" button inside every game's settings panel — SOL's A26 flagged this as a site-wide pattern, not SOL-only:
-  - [x] SOL
-  - [x] Canopy
-  - [x] Grid
-  - [x] Tide
-  - [x] Aftermath
-  - [x] Herd
-  - [x] Thaw
-  - [x] Loop
-  - [x] Drift
-  - [x] Trade Empire
-  - [x] Continuum
-  - [x] Le Champ de Mots
-- [x] Z-extra (folded from A10): an achievement-progress bar (X/N) visible in every game's toolbar itself, not only after opening the achievements panel — SOL's A10 flagged this as a site-wide pattern. Audited all 12 games directly (not assumed): every one already sets its `#achievements-toggle-button`'s `innerText` to `"🏆 Achievements (N/M)"` inside `update_achievements_display()`/`render_achievements()`, and that function is already called from the main render loop (not only the toggle handler) in every game — so the live count is already visible in the toolbar before the panel is ever opened, everywhere. No code changes were needed anywhere; each game's own CLAUDE.md got a short confirming note:
-  - [x] SOL
-  - [x] Canopy
-  - [x] Grid
-  - [x] Tide
-  - [x] Aftermath
-  - [x] Herd
-  - [x] Thaw
-  - [x] Loop
-  - [x] Drift
-  - [x] Trade Empire
-  - [x] Continuum
-  - [x] Le Champ de Mots
+- [x] Z-extra (folded from C16's answer): audit one-time toast/banner callouts (first-X, milestone-crossed, etc.) and convert the ones that are really just "you did a thing once" into achievements instead of bespoke UI — "these should all be built into achievements and stop doing callouts since it will be announced through achievement gains" was Grid's own C16 answer; audit case by case, not a blanket removal. **Done 2026-09-26** (read-only survey of all 12 games, then per-case decisions): a callout was removed/converted only where it was a pure celebration; ones that teach a concept, warn about gameplay, or are persistent narrative/log lines were kept on purpose.
+  - [x] SOL — clean, no bespoke first-X callouts (grep hits were achievement predicates only)
+  - [x] Canopy — clean (per-plot maturity feedback is recurring, not one-off)
+  - [x] Grid (originating case) — already converted: `first_storage` "Stored Power" achievement (R2-C16); the retire/maintain callouts are mechanic explainers, kept
+  - [x] Tide (D12, D17 callouts) — kept: D12 is a persistent stat readout, and the D17/D23 first-flood/recovery lines are chronicle-ticker history entries (narration, not toasts); the achievements `first_flood`/fish-recovery also exist
+  - [x] Aftermath (E17-era callouts) — kept: the harsh-variation and negative-run callouts are one-time explanatory tips (E8/E28, separately requested teaching moments), not celebrations; E17 scenario packs aren't built
+  - [x] Herd — converted: the `certified` toast became the new **Sustainably Certified** achievement; `half_decoupled` (F4 explainer), `pressure` and `methane_penalty` (gameplay warnings) kept
+  - [x] Thaw — kept: the Region D reveal intro (G30) is an explainer, not a celebration
+  - [x] Loop — kept: the loop-closed banner is the game's climax and carries the cycle number the user asked for (H16); the user already accepted keeping it (V-E-5) with the achievement toast sequenced after it
+  - [x] Drift (I10, I26 callouts) — kept: the turning-point and thriving lines are persistent narrative readouts (with a persistent badge, I19), not one-off toasts; the arrival-density callout (I20) is an explainer
+  - [x] Trade Empire (J28's callout) — converted: the "first automated ship" toast duplicated the `first_automation` achievement and was removed with its saved flag
+  - [x] Continuum — clean
+  - [x] Le Champ de Mots — clean (L28's session badge is a separate, user-requested feature)
 - [ ] Z-extra (folded from Z11, "let players pick to do a story mode in each game or turn off the story elements"): audit which games carry narrative/flavor-text framing and add an opt-out toggle where relevant:
   - [ ] SOL (flavor text/milestone framing)
   - [ ] Canopy

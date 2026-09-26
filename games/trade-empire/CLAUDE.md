@@ -675,3 +675,8 @@ toggles, and every always-visible galaxy-content section (Research,
 Market, Colonies, the ship panels) aren't in the list -- none has a
 single player-clicked toggle button a generic Esc handler could safely
 reuse to close it.
+
+
+## Callout-to-achievement audit (Z-extra / J28, 2026-09-26)
+
+J28's "first automated ship" one-off notice toast duplicated the `first_automation` achievement exactly, so it was removed together with its persisted `seen_first_automation_callout` flag (old saves that still carry the key simply ignore it). The achievement toast is now the only announcement. 352 -> 353 tests green.

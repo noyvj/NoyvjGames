@@ -643,3 +643,8 @@ touched by this change). `flake8` clean. Live-verified via the shared
 `hub-dev-server`: a fresh farm showed the chart at 0% vs. the 42%
 reference bar; growing the herd and investing in Capture Systems three
 times correctly grew the "You" bar to 30%. Zero console errors.
+
+
+## Callout-to-achievement audit (Z-extra, 2026-09-26)
+
+Of Herd's four one-time milestone toasts (`_MILESTONE_CALLOUT_MESSAGES`), only `certified` was a pure "you did a thing once" celebration with no achievement behind it, so it became the **Sustainably Certified** achievement (`ACHIEVEMENT_CHECKS["sustainably_certified"]` reads `farm.certified`) and its toast, the `newly_certified` bookkeeping and the message were removed. The other three stay on purpose: `half_decoupled` is F4's "what does decoupled mean" explainer (a separately requested teaching moment, even though the Half Decoupled achievement fires alongside it), and `pressure` / `methane_penalty` are gameplay warnings, not celebrations. 191 -> 194 tests green.

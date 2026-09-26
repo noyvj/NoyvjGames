@@ -93,6 +93,18 @@ def test_first_automation_earned_on_automating_any_ship(game_env):
     assert "first_automation" in module.achievement_ids_earned()
 
 
+def test_automating_a_ship_shows_no_bespoke_first_time_toast(game_env):
+    """J28 / the Z-extra callout audit: the first automated ship is announced
+    by the `first_automation` achievement, not by a separate one-off notice
+    (that duplicate callout, and its persisted flag, were removed)."""
+    module = game_env.module
+    module.total_profit = 1000
+    module.automate_ship("1")
+    toast = game_env.elements["notice-toast"]
+    assert not toast.innerText
+    assert not hasattr(module, "seen_first_automation_callout")
+
+
 def test_automation_slots_maxed_requires_every_unlocked_slot_filled(game_env):
     module = game_env.module
     module.total_profit = 1000

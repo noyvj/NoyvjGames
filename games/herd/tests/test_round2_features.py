@@ -44,7 +44,11 @@ def test_certification_earned_after_sustained_low_ratio(game_env):
     assert not farm.certified
     farm.advance_round()
     assert farm.certified
-    assert farm.just_hit_callout in ("certified", "half_decoupled")
+    # The certification moment is announced by an achievement now, not a
+    # bespoke one-off toast (Z-extra callout audit); the callout slot can
+    # still hold the separate F4 "decoupled" explainer.
+    assert farm.just_hit_callout != "certified"
+    assert "sustainably_certified" in module.achievement_ids_earned()
     assert farm.certification_multiplier() == 1 + module.CERTIFICATION_PRICE_PREMIUM
 
 

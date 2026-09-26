@@ -1216,18 +1216,12 @@ def automation_slots_available():
 
 
 def automate_ship(ship_id):
-    global total_profit, seen_first_automation_callout
+    global total_profit
     ship = ships[ship_id]
     if not ship.purchased or ship.automated or not automation_slots_available() or total_profit < AUTOMATION_COST:
         return False
     total_profit -= AUTOMATION_COST
     ship.automated = True
-    if not seen_first_automation_callout:
-        seen_first_automation_callout = True
-        show_notice_toast(
-            "🚀 First automated ship! It'll load and depart on its own from here — "
-            "automate more ships to scale the whole fleet up."
-        )
     return True
 
 
@@ -2317,7 +2311,6 @@ def show_notice_toast(message):
 # J17 — a one-time callout the first time any ship is automated,
 # persisted so it never re-fires after being loaded from a save that
 # already has an automated ship on it.
-seen_first_automation_callout = False
 
 
 def _sync_earned_and_toast():
@@ -2955,7 +2948,6 @@ def get_state():
         "good_profit_recent": {g: list(v) for g, v in good_profit_recent.items()},
         "price_history": {good: list(values) for good, values in price_history.items()},
         "need_history": {colony_id: list(values) for colony_id, values in need_history.items()},
-        "seen_first_automation_callout": seen_first_automation_callout,
         "seasonal_demand": {"enabled": seasonal_demand_enabled, "ticks": season_ticks},
         "cross_system_units": cross_system_units,
         "trade_posts": list(trade_posts),
@@ -2983,7 +2975,7 @@ def load_state(data):
     global total_profit, sale_log, research_points, unlocked_research
     global fleet_priority_enabled, endgame_reached, ticks_since_endgame
     global total_sales_count, max_profit_ever, goods_sold_ever, ever_repositioned
-    global _previously_earned_ids, seen_first_automation_callout
+    global _previously_earned_ids
     global seasonal_demand_enabled, season_ticks, cross_system_units
     global route_hazards_enabled, route_insurance_enabled, disruptions_suffered, insurance_payouts, premiums_paid
 
@@ -3100,9 +3092,6 @@ def load_state(data):
         price_history[good] = list(values)
     for colony_id, values in data.get("need_history", {}).items():
         need_history[colony_id] = list(values)
-    seen_first_automation_callout = data.get(
-        "seen_first_automation_callout", seen_first_automation_callout
-    )
     # Belt-and-suspenders backfill, same idea as Canopy's community_
     # relations_min_ever: an old save predating this field can't have
     # recorded it, but the restored total_profit is itself a valid lower
