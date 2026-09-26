@@ -194,6 +194,17 @@
       <button id="new-run-button" class="primary" hidden>Start New Run</button>
       <!-- E18: optional extended-run mode -- only relevant before
            starting a run, so it's hidden/shown alongside #new-run-button. -->
+      <!-- E17a: climate scenario pack -- pick which kind of place this run's shocks are drawn from. -->
+      <label id="scenario-wrapper" class="extended-run-toggle-wrapper">
+        Scenario
+        <select id="scenario-select" aria-label="Climate scenario">
+          <option value="classic">Classic mix</option>
+          <option value="coastal">Coastal</option>
+          <option value="inland">Inland</option>
+          <option value="urban">Urban</option>
+        </select>
+        <span id="scenario-blurb" class="scenario-blurb"></span>
+      </label>
       <label id="extended-run-toggle-wrapper" class="extended-run-toggle-wrapper" hidden>
         <input type="checkbox" id="extended-run-toggle">
         <span id="extended-run-toggle-label">Extended Run (double-length schedule)</span>

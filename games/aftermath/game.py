@@ -45,6 +45,37 @@ EVENT_SCHEDULE = [
     "flood", "heatwave", "supply_chain", "storm", "infrastructure_failure", "flood", "civil_unrest",
 ]
 
+# E17a: climate scenario pack -- alternate event schedules grounded in the
+# hazards different kinds of place actually face, chosen when a run starts.
+# Every schedule keeps the length at 7 and a total base damage within roughly
+# 10% of the classic run's 265 (the classic schedule is a mix of all three
+# kinds), so the fixed damage-vs-starting-resources balance the skill-tree
+# tests are tuned against still holds; only WHICH shocks arrive, and in what
+# order, changes. "classic" is the original schedule and the default.
+SCENARIOS = {
+    "classic": {
+        "label": "Classic mix",
+        "blurb": "The original run: a bit of everything.",
+        "schedule": EVENT_SCHEDULE,
+    },
+    "coastal": {
+        "label": "Coastal",
+        "blurb": "Storm surge and flooding dominate; less of the inland grind.",
+        "schedule": ["flood", "storm", "heatwave", "flood", "supply_chain", "storm", "civil_unrest"],
+    },
+    "inland": {
+        "label": "Inland",
+        "blurb": "Long heat and broken supply lines rather than water.",
+        "schedule": ["heatwave", "supply_chain", "infrastructure_failure", "heatwave", "storm", "flood", "civil_unrest"],
+    },
+    "urban": {
+        "label": "Urban",
+        "blurb": "Dense systems: failing infrastructure, strained supply and social unrest.",
+        "schedule": ["infrastructure_failure", "supply_chain", "civil_unrest", "heatwave", "infrastructure_failure", "flood", "civil_unrest"],
+    },
+}
+DEFAULT_SCENARIO = "classic"
+
 EVENT_LABEL = {
     "flood": "Flood",
     "heatwave": "Heatwave",
@@ -458,7 +489,7 @@ def category_mitigation_bonus(event_type):
 
 
 class RunState:
-    def __init__(self, run_number=1, extended=False):
+    def __init__(self, run_number=1, extended=False, scenario=DEFAULT_SCENARIO):
         """Reads current skill-tree bonuses at creation time — a new run
         starts a little more capable than the last, per unlocked skills.
 
@@ -472,7 +503,11 @@ class RunState:
         list."""
         self.run_number = run_number
         self.extended = extended
-        self.schedule = EVENT_SCHEDULE * 2 if extended else EVENT_SCHEDULE
+        # E17a: which scenario's schedule this run follows (unknown names
+        # fall back to the classic mix).
+        self.scenario = scenario if isinstance(scenario, str) and scenario in SCENARIOS else DEFAULT_SCENARIO
+        base_schedule = SCENARIOS[self.scenario]["schedule"]
+        self.schedule = base_schedule * 2 if extended else base_schedule
         self.event_index = 0
         self.resources = STARTING_RESOURCES + starting_resources_bonus()
         self.resilience_capacity = starting_resilience_bonus()
@@ -1986,6 +2021,14 @@ def render():
 
     document.getElementById("new-run-button").hidden = not run.is_complete()
     document.getElementById("extended-run-toggle-wrapper").hidden = not run.is_complete()
+    # E17a: the scenario can be picked before a run's first event or between runs.
+    document.getElementById("scenario-wrapper").hidden = not (run.is_complete() or run.event_index == 0)
+    scenario_select = document.getElementById("scenario-select")
+    if run.event_index == 0 and not run.is_complete():
+        scenario_select.value = run.scenario
+    document.getElementById("scenario-blurb").innerText = SCENARIOS[
+        scenario_select.value if scenario_select.value in SCENARIOS else run.scenario
+    ]["blurb"]
     document.getElementById("progress-comparison-display").innerText = progress_message(
         progress_comparison()
     )
@@ -2079,6 +2122,17 @@ def on_resolve_event(event=None):
     _check_new_achievements_for_toast()
 
 
+def on_scenario_change(event=None):
+    """E17a: picking a scenario before the current run's first event swaps its
+    schedule immediately; between runs it is read by start_new_run(); once a
+    run is underway the choice can no longer change it."""
+    global run
+    value = document.getElementById("scenario-select").value
+    if value in SCENARIOS and run.event_index == 0 and not run.is_complete():
+        run = RunState(run_number=run.run_number, extended=run.extended, scenario=value)
+    render()
+
+
 def start_new_run(event=None):
     """Starts a fresh run, reading current skill-tree bonuses — each run
     begins a little more capable than the last, per unlocked skills.
@@ -2103,7 +2157,8 @@ def start_new_run(event=None):
     callout_message = ""
     last_knowledge_preview = None
     extended = document.getElementById("extended-run-toggle").checked
-    run = RunState(run_number=max(run.run_number, highest_awarded_run) + 1, extended=extended)
+    scenario = document.getElementById("scenario-select").value
+    run = RunState(run_number=max(run.run_number, highest_awarded_run) + 1, extended=extended, scenario=scenario)
     render()
     _check_new_achievements_for_toast()
 
@@ -2145,6 +2200,7 @@ def get_state():
         # predates the field, rather than the KeyError every other key
         # here deliberately gets.
         "extended": run.extended,
+        **({"scenario": run.scenario} if run.scenario != DEFAULT_SCENARIO else {}),
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back by load_state() below.
         "achievements_earned": achievement_ids_earned(),
@@ -2170,7 +2226,11 @@ def load_state(data):
     # data.get(...) rather than data["extended"] -- see get_state()'s
     # comment on this one field: it postdates this save contract, and an
     # older save code simply never was an extended run.
-    run = RunState(run_number=data["run_number"], extended=data.get("extended", False))
+    saved_scenario = data.get("scenario")
+    run = RunState(
+        run_number=data["run_number"], extended=data.get("extended", False),
+        scenario=saved_scenario if isinstance(saved_scenario, str) else DEFAULT_SCENARIO,
+    )
     run.event_index = data["event_index"]
     run.resources = data["resources"]
     run.resilience_capacity = data["resilience_capacity"]
@@ -2219,6 +2279,7 @@ def setup():
     document.getElementById("resolve-event-button").addEventListener(
         "click", create_proxy(on_resolve_event)
     )
+    document.getElementById("scenario-select").addEventListener("change", create_proxy(on_scenario_change))
     document.getElementById("new-run-button").addEventListener(
         "click", create_proxy(start_new_run)
     )

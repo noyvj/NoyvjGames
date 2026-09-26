@@ -690,3 +690,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** drift
 **Did:** Added a once-per-region second wave of arrivals (double for five rounds) after the first arrivals mostly integrate, announced a round ahead and ending in a held/strained verdict; saved and validated.
 **Result:** 329 → 342 tests passing, flake8 clean; verified live.
+
+### 2026-09-26 (Aftermath: climate scenario pack, E17a)
+**Game:** aftermath
+**Did:** Added Coastal, Inland and Urban event schedules alongside the Classic mix, chosen before a run starts, each 7 events with total damage close to the classic run so balance holds; saved and validated.
+**Result:** 257 → 271 tests passing, flake8 clean; verified live.

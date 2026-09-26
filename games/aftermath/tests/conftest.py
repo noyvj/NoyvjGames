@@ -83,6 +83,9 @@ ELEMENT_IDS = [
     # E17: "toughest run yet" comparison.
     "toughest-run-display",
     # E18: optional extended-run mode toggle.
+    "scenario-select",
+    "scenario-wrapper",
+    "scenario-blurb",
     "extended-run-toggle",
     "extended-run-toggle-wrapper",
     # E20: live knowledge-points-if-the-run-ended-now preview.
