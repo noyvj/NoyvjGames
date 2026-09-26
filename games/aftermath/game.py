@@ -329,6 +329,43 @@ def save_legacy_events(events):
     localStorage.setItem(LEGACY_STORAGE_KEY, json.dumps(sorted(events)))
 
 
+# E29: societal memory. A settlement that comes through a run in ruins does
+# not forget: the category of shock that did the most damage in that run
+# leaves a permanent, unique defence (the memory of what went wrong). It is
+# not a purchase and cannot be bought otherwise: a non-weather category
+# (supply chain, infrastructure) has no specialization in the skill tree at
+# all, so its memory is the only dedicated protection it can ever get and is
+# the strongest; a weather or social memory is smaller because the tree already
+# offers those. Kept per browser like the skill tree, and only formed by a run
+# that ends at or below VERY_BAD_RUN_SCORE, so a rough-but-alive run never
+# triggers it.
+SOCIETAL_MEMORY_STORAGE_KEY = "aftermath_societal_memory_v1"
+VERY_BAD_RUN_SCORE = 10.0
+SOCIETAL_MEMORY_BONUS = {"weather": 0.15, "social": 0.15, "non-weather": 0.25}
+SOCIETAL_MEMORY_LABEL = {
+    "weather": "the weather that broke it",
+    "social": "the unrest that broke it",
+    "non-weather": "the systems failure that broke it",
+}
+
+
+def load_societal_memory():
+    raw = localStorage.getItem(SOCIETAL_MEMORY_STORAGE_KEY)
+    if not raw:
+        return set()
+    try:
+        data = json.loads(raw)
+    except ValueError:
+        return set()
+    if not isinstance(data, list):
+        return set()
+    return {c for c in data if isinstance(c, str) and c in SOCIETAL_MEMORY_BONUS}
+
+
+def save_societal_memory(categories):
+    localStorage.setItem(SOCIETAL_MEMORY_STORAGE_KEY, json.dumps(sorted(categories)))
+
+
 def load_run_history():
     raw = localStorage.getItem(RUN_HISTORY_STORAGE_KEY)
     if not raw:
@@ -481,11 +518,39 @@ CATEGORY_DAMAGE_BONUS = {
 
 def category_mitigation_bonus(event_type):
     category = EVENT_CATEGORY.get(event_type)
-    return sum(
+    bonus = sum(
         amount
         for skill_id, (cat, amount) in CATEGORY_DAMAGE_BONUS.items()
         if cat == category and skill_id in skill_tree.unlocked
     )
+    if category in societal_memory:
+        bonus += SOCIETAL_MEMORY_BONUS[category]  # E29
+    return bonus
+
+
+def worst_damage_category(event_log):
+    """E29: the event category that did the most total damage in a run."""
+    totals = {}
+    for entry in event_log:
+        category = EVENT_CATEGORY.get(entry["type"])
+        if category:
+            totals[category] = totals.get(category, 0.0) + entry["damage"]
+    if not totals:
+        return None
+    return max(sorted(totals), key=lambda c: totals[c])
+
+
+def record_societal_memory(event_log, score):
+    """E29: called once when a run completes and pays out. Returns the newly
+    remembered category, or None (not a ruinous run, or already remembered)."""
+    if score > VERY_BAD_RUN_SCORE:
+        return None
+    category = worst_damage_category(event_log)
+    if category is None or category in societal_memory:
+        return None
+    societal_memory.add(category)
+    save_societal_memory(societal_memory)
+    return category
 
 
 class RunState:
@@ -590,6 +655,8 @@ class RunState:
                 skill_tree.save()
                 run_history.append(self.run_score())
                 save_run_history(run_history)
+                global memory_just_formed
+                memory_just_formed = record_societal_memory(self.event_log, self.run_score())  # E29
                 legacy_events.update(entry["type"] for entry in self.event_log)
                 save_legacy_events(legacy_events)
                 # E4: build out the legacy system beyond its original
@@ -733,6 +800,8 @@ class SkillTreeState:
 skill_tree = SkillTreeState.load()
 run_history = load_run_history()
 legacy_events = load_legacy_events()
+societal_memory = load_societal_memory()  # E29
+memory_just_formed = None  # E29: the category remembered by the run that just completed, for one callout
 legacy_event_counts = load_legacy_event_counts()
 run_log_history = load_run_log_history()
 highest_awarded_run = load_highest_awarded_run()
@@ -1050,6 +1119,24 @@ def _request_achievement_stats():
     hook = getattr(window, "applyAchievementStats", None)
     if hook is not None:
         hook()
+
+
+def societal_memory_message():
+    """E29: what the settlement remembers, plus a one-time note the round a
+    memory forms."""
+    global memory_just_formed
+    parts = []
+    if memory_just_formed:
+        bonus = round(SOCIETAL_MEMORY_BONUS[memory_just_formed] * 100)
+        parts.append(
+            f"That run left a mark: your settlement will remember {SOCIETAL_MEMORY_LABEL[memory_just_formed]} "
+            f"and take {bonus}% less damage from that kind of shock from now on."
+        )
+        memory_just_formed = None
+    if societal_memory:
+        remembered = ", ".join(sorted(societal_memory))
+        parts.append(f"Societal memory: {remembered} shocks (permanent protection earned the hard way).")
+    return " ".join(parts)
 
 
 def legacy_message():
@@ -1885,6 +1972,7 @@ def render():
     render_past_runs_panel()
     update_changelog_display()
     document.getElementById("legacy-display").innerText = legacy_message()
+    document.getElementById("societal-memory-display").innerText = societal_memory_message()
     document.getElementById("resources-display").innerText = f"Resources: {run.resources:.0f}"
     document.getElementById("resilience-display").innerText = f"Resilience: {run.resilience_capacity}"
     document.getElementById("growth-display").innerText = (

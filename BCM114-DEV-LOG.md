@@ -695,3 +695,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** aftermath
 **Did:** Added Coastal, Inland and Urban event schedules alongside the Classic mix, chosen before a run starts, each 7 events with total damage close to the classic run so balance holds; saved and validated.
 **Result:** 257 → 271 tests passing, flake8 clean; verified live.
+
+### 2026-09-26 (Aftermath: societal memory, E29)
+**Game:** aftermath
+**Did:** Added societal memory: a run ending at or below 10 resources leaves a permanent protection against the shock category that hurt most (25% for non-weather, which the skill tree cannot protect against, 15% for weather and social), announced once and remembered per browser.
+**Result:** 271 → 286 tests passing, flake8 clean; verified live.

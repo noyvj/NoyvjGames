@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 723/769 items checked off (94.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 724/769 items checked off (94.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -540,7 +540,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] E26: Let the export/import progress code show a short human-readable summary of its contents before copying.
 - [ ] E27: A "resilience mentor" onboarding mode — an optional guided first run with inline suggestions, distinct from the standard tutorial.
 - [x] E28: A one-time callout the first time severity variation swings notably harsher due to skill-tree strength, explaining why.
-- [ ] E29: A "societal memory" system — a very bad past-run outcome permanently unlocks a unique defensive skill not otherwise available.
+- [x] E29: A "societal memory" system — a very bad past-run outcome permanently unlocks a unique defensive skill not otherwise available.
 - [x] E30a: A small "X runs until next skill affordable" estimate next to a locked skill's cost, based on average knowledge-point earn rate.
 - [x] E30b: A "pin" feature so the player can mark specific skills they're saving toward and have E30a's estimate tracked for exactly those, per your addition.
 
