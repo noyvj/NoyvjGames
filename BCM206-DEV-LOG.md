@@ -326,3 +326,8 @@ The clearest cross-cutting infra lesson from this pass: three separate games' au
 **Did:** Added the resource-inventory delta log the TODO said made sense once the import existed: `log_gain()` is called from the resource-count handler and from `import_last_data()`, only for increases, merging same-minute gains and capping at 300 entries. A collapsible panel summarises today's and overall gains and lists the latest. Saved as an optional `farm_log` key (only when non-empty) and fully validated on load (timestamp format, known resource, positive int).
 **Result:** 110 -> 118 tracker tests; live-checked by editing a count on the real page.
 
+### 2026-09-26 (Warframe tracker: Syndicate standing layer)
+**Area:** `warframe_build_tracker/game.py`, `index.html`, `README.md`
+**Did:** Built the standing-gated source layer that replaced the originally pitched Void Relic idea: `SYNDICATE_SOURCES` (vendor, faction, standing, rank for all 19 refined resources, fetched from the Warframe Wiki pages, one page discrepancy noted in the data comment), a per-row blueprint line with an owned checkbox (`blueprint_owned()`: explicit tick wins, else holding stock counts), and `standing_needed()` / `syndicate_text()` totalling standing still to earn per faction. Saved as an optional `blueprints` dict, validated on load (known resource, real booleans only).
+**Result:** 118 -> 124 tracker tests; live-checked on the real state (13 blueprint rows, 7,500 Ostron standing still to earn).
+

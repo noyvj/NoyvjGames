@@ -147,6 +147,34 @@ REFINERY_RECIPES = {
                       "ingredients": {"Venerol": 20, "Rubedo": 300, "Gallium": 2}},
 }
 
+# Syndicate layer: the refined resources cannot be made until you own the
+# reusable Foundry blueprint, and every one of those blueprints is bought with
+# Syndicate standing (the tracker's 65 resources have no Void Relic sources).
+# Read from each resource's own Wiki page on 2026-09-26. "standing" is the cost,
+# "rank" the rank needed with that faction. The Wiki page for Auroxium Alloy
+# lists 7,500 in its text and 7,000 in its infobox; the higher figure is used.
+SYNDICATE_SOURCES = {
+    "Adramal Alloy": {"faction": "Entrati", "vendor": "Otak", "standing": 1000, "rank": "Neutral"},
+    "Auroxium Alloy": {"faction": "Ostron", "vendor": "Old Man Suumbaat", "standing": 7500, "rank": "Trusted"},
+    "Axidrol Alloy": {"faction": "Solaris United", "vendor": "Smokefinger", "standing": 1000, "rank": "Neutral"},
+    "Coprite Alloy": {"faction": "Ostron", "vendor": "Old Man Suumbaat", "standing": 2500, "rank": "Offworlder"},
+    "Esher Devar": {"faction": "Ostron", "vendor": "Old Man Suumbaat", "standing": 2500, "rank": "Offworlder"},
+    "Fersteel Alloy": {"faction": "Ostron", "vendor": "Old Man Suumbaat", "standing": 5000, "rank": "Visitor"},
+    "Goblite Tears": {"faction": "Solaris United", "vendor": "Smokefinger", "standing": 2000, "rank": "Outworlder"},
+    "Heart Nyth": {"faction": "Ostron", "vendor": "Old Man Suumbaat", "standing": 10000, "rank": "Surah"},
+    "Hespazym Alloy": {"faction": "Solaris United", "vendor": "Smokefinger", "standing": 4000, "rank": "Rapscallion"},
+    "Marquise Thyst": {"faction": "Solaris United", "vendor": "Smokefinger", "standing": 12000, "rank": "Cove"},
+    "Marquise Veridos": {"faction": "Ostron", "vendor": "Old Man Suumbaat", "standing": 5000, "rank": "Visitor"},
+    "Pyrotic Alloy": {"faction": "Ostron", "vendor": "Old Man Suumbaat", "standing": 500, "rank": "Neutral"},
+    "Radiant Zodian": {"faction": "Solaris United", "vendor": "Smokefinger", "standing": 8000, "rank": "Doer"},
+    "Star Amarast": {"faction": "Solaris United", "vendor": "Smokefinger", "standing": 4000, "rank": "Rapscallion"},
+    "Star Crimzian": {"faction": "Ostron", "vendor": "Old Man Suumbaat", "standing": 7500, "rank": "Trusted"},
+    "Tear Azurite": {"faction": "Ostron", "vendor": "Old Man Suumbaat", "standing": 500, "rank": "Neutral"},
+    "Tempered Bapholite": {"faction": "Entrati", "vendor": "Otak", "standing": 1000, "rank": "Neutral"},
+    "Travocyte Alloy": {"faction": "Solaris United", "vendor": "Smokefinger", "standing": 1000, "rank": "Neutral"},
+    "Venerdo Alloy": {"faction": "Solaris United", "vendor": "Smokefinger", "standing": 2000, "rank": "Outworlder"},
+}
+
 # Where each resource is actually found, hand-researched the same way as
 # MANUFACTURING_RECIPES above. Most entries are a planet/location string
 # straight off the resource's own infobox. A handful of resources aren't
@@ -499,6 +527,9 @@ state = {
     # Session farming log: every increase in a resource's total on hand
     # (typed in, or found by an import), newest last. See log_gain().
     "farm_log": [],
+    # Refined-resource name -> True/False when the player ticked "blueprint
+    # owned" themselves (see blueprint_owned()).
+    "blueprints": {},
 }
 
 FARM_LOG_MAX = 300
@@ -707,6 +738,38 @@ def resource_rarity(location_text):
     return "uncommon"
 
 
+def blueprint_owned(resource, inventory=None):
+    """Whether this refined resource's blueprint counts as bought. An explicit
+    tick (state["blueprints"]) wins; otherwise holding any of the refined
+    resource is taken as proof you can already make it."""
+    explicit = state["blueprints"].get(resource)
+    if isinstance(explicit, bool):
+        return explicit
+    inv = (inventory if inventory is not None else state["inventory"]).get(resource, {})
+    return int(inv.get("built", 0)) > 0
+
+
+def standing_needed(resources):
+    """Standing still to earn per faction for the blueprints of refined
+    resources you are short on and do not own yet: {faction: standing}."""
+    totals = {}
+    for row in resources:
+        source = SYNDICATE_SOURCES.get(row["name"])
+        if not source or row["built_short"] <= 0 or blueprint_owned(row["name"]):
+            continue
+        totals[source["faction"]] = totals.get(source["faction"], 0) + source["standing"]
+    return totals
+
+
+def syndicate_text(resources):
+    totals = standing_needed(resources)
+    if not totals:
+        return ""
+    return "Blueprint standing still to earn: " + " · ".join(
+        f"{faction} {standing:,}" for faction, standing in sorted(totals.items())
+    ) + "."
+
+
 def shopping_list_text(resources):
     """Plain-text list of exactly what's still needed (built/refined stock
     is what satisfies a requirement, same as the resource checklist)."""
@@ -792,6 +855,7 @@ def get_state():
         "notes": dict(state["notes"]),
         "prefs": dict(state["prefs"]),
         **({"farm_log": [dict(e) for e in state["farm_log"]]} if state["farm_log"] else {}),
+        **({"blueprints": dict(state["blueprints"])} if state["blueprints"] else {}),
     }
 
 
@@ -837,6 +901,11 @@ def load_state(data):
             ):
                 state["farm_log"].append({"t": entry["t"], "r": entry["r"], "d": entry["d"]})
         del state["farm_log"][:-FARM_LOG_MAX]
+    saved_blueprints = data.get("blueprints")
+    state["blueprints"] = (
+        {name: value for name, value in saved_blueprints.items() if name in SYNDICATE_SOURCES and isinstance(value, bool)}
+        if isinstance(saved_blueprints, dict) else {}
+    )
     saved_prefs = data.get("prefs")
     if isinstance(saved_prefs, dict):
         if saved_prefs.get("sort") in SORT_MODES:
@@ -1060,6 +1129,14 @@ def _make_resource_change_handler(name, raw_input, built_input):
         log_gain(name, int(inv.get("raw", 0)) + int(inv.get("built", 0)), raw + built)
         inv["raw"] = raw
         inv["built"] = built
+        render()
+
+    return handler
+
+
+def _make_blueprint_handler(name, box):
+    def handler(_event):
+        state["blueprints"][name] = bool(box.checked)
         render()
 
     return handler
@@ -1302,6 +1379,22 @@ def _render_resource_table(resources):
             ul.appendChild(li)
         used_in.appendChild(ul)
         name_cell.appendChild(used_in)
+        source = SYNDICATE_SOURCES.get(resource["name"])
+        if source:
+            owned = blueprint_owned(resource["name"])
+            bp_row = _el("label", class_="blueprint-row")
+            bp_box = _el("input", type="checkbox", class_="blueprint-input",
+                         aria_label=f"Blueprint owned for {resource['name']}")
+            bp_box.checked = owned
+            bp_row.appendChild(bp_box)
+            bp_row.appendChild(_el("span", text=(
+                f" blueprint: {source['vendor']} ({source['faction']}), {source['standing']:,} standing, rank {source['rank']}"
+                + (" (owned)" if owned else "")
+            )))
+            name_cell.appendChild(bp_row)
+            bp_proxy = create_proxy(_make_blueprint_handler(resource["name"], bp_box))
+            bp_box.addEventListener("change", bp_proxy)
+            _active_proxies.append(bp_proxy)
         if resource.get("refinery"):
             plan = resource["refinery"]
             refine = _el("details", class_="used-in refinery")
@@ -1359,6 +1452,10 @@ def _render_summary(components, resources):
             f"{ready_now} part(s) are ready to build right now."
         )
     document.getElementById("summary").textContent = text
+    syndicate_box = document.getElementById("syndicate-summary")
+    syndicate = syndicate_text(resources)
+    syndicate_box.hidden = not syndicate
+    syndicate_box.textContent = syndicate
     route_box = document.getElementById("route-planner")
     route = route_text(resources)
     route_box.hidden = not route

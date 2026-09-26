@@ -203,3 +203,7 @@ Nineteen tracked resources are refined in the Foundry from a raw material (the a
 
 Under "What I still need", a collapsible **Farming log** records every time a resource's total on hand goes up, either because you typed a bigger number or because an import found more (`log_gain()`). Decreases are not logged: spending on a build or fixing a typo is not farming. It shows what you gained today and overall (top five) and the latest entries, keeps the newest 300, saves with your progress (`farm_log`, validated on load) and can be cleared with one button. Times are UTC.
 
+## Syndicate standing layer
+
+None of the 65 tracked resources are Void Relic gated, but every refined resource needs a reusable Foundry blueprint bought with Syndicate standing (Ostron's Old Man Suumbaat, Solaris United's Smokefinger, the Entrati's Otak). `SYNDICATE_SOURCES` records the vendor, faction, standing cost and rank for each of the 19, read from each Wiki page on 2026-09-26 (Auroxium Alloy's page shows both 7,500 and 7,000; the higher one is used). Each refined resource row shows its blueprint source with an "owned" tick (ticked automatically if you already hold some of the resource; your own tick or untick wins), and "What I still need" totals the standing you still have to earn per faction for blueprints you do not own yet.
+
