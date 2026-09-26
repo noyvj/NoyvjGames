@@ -1,0 +1,115 @@
+{
+  "title": "The Workshop on Mill Lane",
+  "chapters": [
+    {
+      "id": "begin",
+      "title": "The Workshop on Mill Lane",
+      "text": "You take over a small workshop that makes things the way most makers still do: dig it up, build it, sell it, bin it. The bins behind the back door are fuller than the shelves in front, and you start to wonder whether it has to work that way."
+    },
+    {
+      "id": "first_fix",
+      "title": "The first repair",
+      "text": "A customer brings back something that stopped working, and this time you mend it instead of replacing it. It is a small thing, but it goes out the door again, and for once nothing goes into the bin."
+    },
+    {
+      "id": "full_toolkit",
+      "title": "A full toolkit",
+      "text": "Repair, reuse and recycling now all have a corner of the workshop. Each does a different job, and you start to see that they work best together, one catching what the others let fall."
+    },
+    {
+      "id": "trade_partner",
+      "title": "A neighbour with a van",
+      "text": "A local trade link opens up, and your leftovers now have somewhere to go. What was a cost to you is exactly what someone down the lane has been looking for."
+    },
+    {
+      "id": "dual_sourcing",
+      "title": "Two ways to sell",
+      "text": "With the local link and a regional distributor both in place, the workshop no longer depends on one road out. Some weeks the local trade is quiet and the distributor is busy, and it pays to have both."
+    },
+    {
+      "id": "capital_committed",
+      "title": "Money on the bench",
+      "text": "You add up what has gone into repair benches, sorting bays and trade links, and it is more than you expected. It does not feel like a gamble any more, more like tooling for the kind of workshop you want to run."
+    },
+    {
+      "id": "quarter_loop",
+      "title": "A quarter of the way round",
+      "text": "A quarter of what you make now comes from material that was already in circulation. It is still mostly a straight line, but you can see the first curve in it."
+    },
+    {
+      "id": "half_loop",
+      "title": "Half and half",
+      "text": "Half the workshop's supply is coming back around instead of being dug up new. The delivery driver notices the raw-material orders getting smaller, and mentions it."
+    },
+    {
+      "id": "first_export",
+      "title": "Selling the surplus",
+      "text": "For the first time you have more circular supply than you can use, and someone else pays for it. The surplus stops being a problem to store and becomes something the workshop earns from."
+    },
+    {
+      "id": "trade_surplus_500",
+      "title": "A steady trade",
+      "text": "The surplus you send out has added up to a real sum. Other workshops now plan around what you can supply, and you start to see the whole trade network as one larger loop."
+    },
+    {
+      "id": "lifetime_majority",
+      "title": "The habit sets in",
+      "text": "Looking back over many cycles, most of what you have made was never dug up new. It stopped being a good month and became how the workshop runs."
+    },
+    {
+      "id": "three_quarter_loop",
+      "title": "Three quarters closed",
+      "text": "Three quarters of a cycle's supply now comes from within the loop. The last quarter is the hardest, because it is the awkward material nobody planned for."
+    },
+    {
+      "id": "beyond_benchmark",
+      "title": "Ahead of the benchmark",
+      "text": "You check your lifetime figures against the real-world circularity benchmark the game uses, and you are ahead of it. That is a fair result from a small workshop and a lot of careful decisions, and it shows the benchmark can be beaten."
+    },
+    {
+      "id": "goods_explorer",
+      "title": "A second kind of goods",
+      "text": "You start a chain in a different category, and find the same ideas apply. Electronics, clothing and furniture wear out in different ways, but each of them can be mended, reused or broken back down."
+    },
+    {
+      "id": "goods_collector",
+      "title": "Every shelf in the shop",
+      "text": "You have now tried electronics, clothing and furniture. Each taught you something the others did not, and you keep the notes pinned above the bench."
+    },
+    {
+      "id": "serial_redesigner",
+      "title": "Starting again, better",
+      "text": "You clear the board and begin a fresh chain, this time with everything you learned from the last. Redesigning is not a one-off job, and each new design starts from what the previous one taught."
+    },
+    {
+      "id": "loop_closed",
+      "title": "Full circle",
+      "text": "For one whole cycle, nothing new is dug up. Everything the workshop needs comes back around from things already made, and the bin behind the door stays empty."
+    },
+    {
+      "id": "streak_5",
+      "title": "Five in a row",
+      "text": "The loop stays closed for five cycles running. A single closed cycle could be luck, but five in a row starts to look like a design that works."
+    },
+    {
+      "id": "clean_hands",
+      "title": "Clean hands",
+      "text": "Ten cycles have passed and the workshop has never once needed to dig up new material. The habit that began with one repaired item now runs the whole business."
+    },
+    {
+      "id": "streak_10",
+      "title": "An unbroken circle",
+      "text": "Ten cycles in a row with the loop fully closed. Other makers stop by to look at how it is set up, and you are glad to show them."
+    },
+    {
+      "id": "score_pragmatist",
+      "title": "It pays, too",
+      "text": "The accounts tell the same story as the bins: a mostly circular workshop can also be a profitable one. It is an argument you no longer need to make out loud."
+    },
+    {
+      "id": "score_master",
+      "title": "A systems thinker",
+      "text": "You have run a workshop that is almost entirely circular for a long stretch, and still done well by every measure the game keeps. What began as fixing one broken item has turned into a way of designing everything, from the raw material to the last bit of scrap."
+    }
+  ]
+}

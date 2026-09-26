@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-26",
+    "entry": "Story mode: a short story about a small workshop growing into a circular economy, with a chapter that unlocks alongside each achievement. A Story panel below the title shows the chapters you have reached; the existing Story on/off pill hides it, and it never changes any number or your save (W1)."
+  },
+  {
+    "date": "2026-09-26",
     "entry": "Optional visual maps for desktop: a Visual network view for your trade partners and a Visual supply chain view for the whole loop, with line thickness and node size scaled to the real units per cycle, animated flow direction, and hover or keyboard details. Smaller screens keep the simple version (H25b, H29b)."
   },
   {
