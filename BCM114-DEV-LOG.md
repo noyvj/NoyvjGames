@@ -625,3 +625,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Herd
 **Did:** Added farm succession: a certified farm can be handed to the next generation (confirm-gated), restarting the farm and earning legacy points (a bonus for a poultry flock, tying it to F23) that buy permanent perks: Family Savings, Heritage Flock (poultry from round 1) and Mentor's Methods.
 **Result:** 194 → 208 tests passing, flake8 clean; verified live through the real confirm dialog, zero console errors.
+
+### 2026-09-26 (Canopy: guided example playthrough, B29)
+**Game:** Canopy
+**Did:** Added a narrated "Example playthrough" panel demonstrating a strong preserve/clear balance in five steps. The numbers are worked out from the game's own constants (10 plots, 120 ticks: never clear ~4830, clear early ~574, balanced ~4372), not hand-typed, and it never touches live state.
+**Result:** 356 → 365 tests passing, flake8 clean; verified live, zero console errors.

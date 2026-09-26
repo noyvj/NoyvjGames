@@ -2281,6 +2281,122 @@ def update_changelog_display():
         panel.appendChild(row)
 
 
+# ===========================================================================
+# B29: a guided, narrated example of a strong preserve/clear balance. Every
+# number is computed from the game's own constants by `example_playthrough()`
+# (never hand-typed), using the base rules only (no seasons, legacy, grants or
+# specializations), so it stays correct if a constant is retuned. It compares
+# three ways of running the same 10 plots over the same 120 ticks.
+# ===========================================================================
+EXAMPLE_PLOTS = 10
+EXAMPLE_TICKS = 120
+EXAMPLE_HARVESTED_PLOTS = 2
+
+
+def _example_growth(ticks, clear_count=0):
+    """Value a plot gains over `ticks` accruing ticks at a given soil quality."""
+    productivity = max(MIN_PRODUCTIVITY_MULTIPLIER, 1 - DEGRADE_PER_CLEAR * clear_count)
+    return sum(BASE_ACCRUAL * productivity * (1 + t * GROWTH_PER_TICK) for t in range(1, ticks + 1))
+
+
+def _example_clearing_plot_total(period, horizon):
+    """One plot cleared and replanted the moment it has accrued `period` ticks."""
+    total, clock, clears = 0.0, 0, 0
+    while clock + period <= horizon:
+        total += _example_growth(period, clears)
+        clock += period + RECOVERY_TICKS
+        clears += 1
+    accruing_left = max(0, horizon - clock)
+    return total + _example_growth(accruing_left, clears), clears
+
+
+def example_playthrough():
+    """The narrated steps: a list of (title, text)."""
+    patient_plot = _example_growth(EXAMPLE_TICKS)
+    quick_plot, quick_clears = _example_clearing_plot_total(MATURITY_TICKS // 6, EXAMPLE_TICKS)
+    kept = EXAMPLE_PLOTS - EXAMPLE_HARVESTED_PLOTS
+    harvest_at = MATURITY_TICKS
+    harvested_plot, _ = _example_clearing_plot_total(harvest_at, EXAMPLE_TICKS)
+    balanced = kept * patient_plot + EXAMPLE_HARVESTED_PLOTS * harvested_plot
+    quick_all = EXAMPLE_PLOTS * quick_plot
+    never_clear = EXAMPLE_PLOTS * patient_plot
+    return [
+        (
+            "1. Patience compounds",
+            f"A plot left standing earns more each tick than the tick before: after 10 ticks it holds "
+            f"{_example_growth(10):.0f}, after {MATURITY_TICKS} it holds {_example_growth(MATURITY_TICKS):.0f}, "
+            f"after {EXAMPLE_TICKS} it holds {patient_plot:.0f}. Value grows faster than time, so the last "
+            f"stretch of waiting is the best-paid.",
+        ),
+        (
+            "2. Clearing is expensive",
+            f"Clearing cashes a plot out, but it then sits bare and replanting for {RECOVERY_TICKS} ticks "
+            f"earning nothing, and its soil permanently loses {DEGRADE_PER_CLEAR * 100:.0f}% productivity "
+            f"per clear (never below {MIN_PRODUCTIVITY_MULTIPLIER * 100:.0f}%), and its wildlife is gone.",
+        ),
+        (
+            "3. Clearing early backfires",
+            f"Clearing every plot every {MATURITY_TICKS // 6} ticks makes {quick_clears} clears per plot and "
+            f"totals about {quick_all:.0f} across {EXAMPLE_PLOTS} plots over {EXAMPLE_TICKS} ticks, "
+            f"far less than not clearing at all ({never_clear:.0f}).",
+        ),
+        (
+            "4. The balanced run",
+            f"Keep {kept} plots standing the whole time and harvest just {EXAMPLE_HARVESTED_PLOTS} once each "
+            f"they reach maturity (about tick {harvest_at}), then replant. That totals about {balanced:.0f}: "
+            f"nearly all the value of never clearing, with cash in hand at the midpoint to spend on "
+            f"community requests and specializations, and most of the forest still growing.",
+        ),
+        (
+            "5. What to copy",
+            "Preserve most plots, harvest a few at maturity rather than early, replant straight away, and "
+            "spend the cash on the things that reward a standing forest. Clear the same plot repeatedly and "
+            "its soil, not the market, becomes the limit.",
+        ),
+    ]
+
+
+example_open = False
+
+
+def on_toggle_example(event=None):
+    global example_open
+    example_open = not example_open
+    update_example_display()
+
+
+def update_example_display():
+    toggle = document.getElementById("example-toggle-button")
+    panel = document.getElementById("example-panel")
+    if toggle is None or panel is None:
+        return
+    toggle.innerText = "Hide example playthrough" if example_open else "\U0001F4D6 Example playthrough"
+    panel.hidden = not example_open
+    if not example_open:
+        return
+    panel.innerHTML = ""
+    intro = document.createElement("p")
+    intro.className = "example-intro"
+    intro.innerText = (
+        f"A guided example of a strong preserve/clear balance: {EXAMPLE_PLOTS} plots over "
+        f"{EXAMPLE_TICKS} ticks, base rules only (no seasons or bonuses). Numbers are worked out from "
+        f"the game's own settings."
+    )
+    panel.appendChild(intro)
+    for title, text in example_playthrough():
+        row = document.createElement("div")
+        row.className = "example-step"
+        heading = document.createElement("p")
+        heading.className = "example-step-title"
+        heading.innerText = title
+        row.appendChild(heading)
+        body = document.createElement("p")
+        body.className = "example-step-text"
+        body.innerText = text
+        row.appendChild(body)
+        panel.appendChild(row)
+
+
 # Info Page — optional, player-triggered supplement (never forced
 # mid-session). Framing is written fresh, not copied from any source;
 # sources are the curated real-world backing for the game's mechanics.
@@ -2905,6 +3021,9 @@ def setup():
     )
     document.getElementById("changelog-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_changelog)
+    )
+    document.getElementById("example-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_example)
     )
     document.getElementById("reset-session-button").addEventListener(
         "click", create_proxy(on_reset_session)

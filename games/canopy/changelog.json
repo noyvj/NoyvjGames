@@ -1,20 +1,72 @@
 {
   "changelog": [
-    {"date": "2026-09-22", "entry": "Achievement cards now show \"Earned by N% of players\" once enough real save data exists for that achievement (site-wide goal, Z1/Z27b)."},
-    {"date": "2026-09-22", "entry": "Added a keyboard-shortcuts help overlay: press ? to see it, Esc to close it or whichever panel is open (site-wide goal, Z4)."},
-    {"date": "2026-09-21", "entry": "Settings panel: added a \"Reset to Default\" button that resets text size and reduce-motion back to their defaults in one click (site-wide goal, folded from A26)."},
-    {"date": "2026-09-21", "entry": "Session Summary is now print-friendly: printing the page (e.g. Ctrl/Cmd+P) while it's open hides the site chrome and renders the summary in clean dark-on-white, instead of the site's usual dark theme and UI."},
-    {"date": "2026-09-21", "entry": "Highland Grove now has its own distinct rates: soil degrades 50% faster per clear and standing value compounds 25% slower than the main forest, reflecting a harsher high-altitude ecosystem."},
-    {"date": "2026-09-21", "entry": "Round-2 pass, remaining items: reforestation partner (faster replant recovery for a permanent value share), a legacy forest bonus carried into the next session from the last one's standing value, a seasonal growth cycle, and the shared personal-best badge flash (also rolled out to Tide and Thaw)."},
-    {"date": "2026-09-20", "entry": "Round-2 pass: Small 4x4 grid, Forest ranger difficulty, forest history + wildlife log, playstyle badge, report-card graphs, veteran and adopted plots, specialist plots, replanting grants, Highland unlock progress bar, biodiversity rate, and an opt-in community comparison."},
-    {"date": "2026-09-20", "entry": "Onboarding-tooltip coverage audit completed — legend and stakeholder info-icons plus per-plot tooltips already cover every non-obvious mechanic, no gap found."},
-    {"date": "2026-09-19", "entry": "Settings panel added: text size (A-/A/A+) and a reduce-motion toggle, both persisted per-browser."},
-    {"date": "2026-09-05", "entry": "Space theme visual pass: starfield background, glass panels, gradient buttons, gradient-glow title."},
-    {"date": "2026-09-02", "entry": "Code-quality audit: fixed a create_proxy memory leak in the plot-grid render loop and a stale stakeholder-request bug that could hand out a free relations bonus."},
-    {"date": "2026-08-22", "entry": "Pass 3 (fun/teaching balance): re-paced stakeholder tension and the biodiversity payoff closer together to close an early idle stretch."},
-    {"date": "2026-08-18", "entry": "Info Page added with curated real-world sources on deforestation and carbon sinks."},
-    {"date": "2026-08-18", "entry": "Pass 2: biodiversity sub-meter (wildlife icons on mature plots) and stakeholder-tension decision events."},
-    {"date": "2026-08-11", "entry": "Pass 1: continuous plot-maturity color gradient, recovery-milestone flash, and a real-world context blurb."},
-    {"date": "2026-08-01", "entry": "All 7 milestones complete: plot grid, passive value accrual, clearing + soil degradation, replant recovery, comparison scoring, feedback prompt, visual pass + hub integration."}
+    {
+      "date": "2026-09-26",
+      "entry": "Example playthrough: a narrated, worked-out example of a strong preserve/clear balance, with every number calculated from the game's own settings (B29)."
+    },
+    {
+      "date": "2026-09-22",
+      "entry": "Achievement cards now show \"Earned by N% of players\" once enough real save data exists for that achievement (site-wide goal, Z1/Z27b)."
+    },
+    {
+      "date": "2026-09-22",
+      "entry": "Added a keyboard-shortcuts help overlay: press ? to see it, Esc to close it or whichever panel is open (site-wide goal, Z4)."
+    },
+    {
+      "date": "2026-09-21",
+      "entry": "Settings panel: added a \"Reset to Default\" button that resets text size and reduce-motion back to their defaults in one click (site-wide goal, folded from A26)."
+    },
+    {
+      "date": "2026-09-21",
+      "entry": "Session Summary is now print-friendly: printing the page (e.g. Ctrl/Cmd+P) while it's open hides the site chrome and renders the summary in clean dark-on-white, instead of the site's usual dark theme and UI."
+    },
+    {
+      "date": "2026-09-21",
+      "entry": "Highland Grove now has its own distinct rates: soil degrades 50% faster per clear and standing value compounds 25% slower than the main forest, reflecting a harsher high-altitude ecosystem."
+    },
+    {
+      "date": "2026-09-21",
+      "entry": "Round-2 pass, remaining items: reforestation partner (faster replant recovery for a permanent value share), a legacy forest bonus carried into the next session from the last one's standing value, a seasonal growth cycle, and the shared personal-best badge flash (also rolled out to Tide and Thaw)."
+    },
+    {
+      "date": "2026-09-20",
+      "entry": "Round-2 pass: Small 4x4 grid, Forest ranger difficulty, forest history + wildlife log, playstyle badge, report-card graphs, veteran and adopted plots, specialist plots, replanting grants, Highland unlock progress bar, biodiversity rate, and an opt-in community comparison."
+    },
+    {
+      "date": "2026-09-20",
+      "entry": "Onboarding-tooltip coverage audit completed — legend and stakeholder info-icons plus per-plot tooltips already cover every non-obvious mechanic, no gap found."
+    },
+    {
+      "date": "2026-09-19",
+      "entry": "Settings panel added: text size (A-/A/A+) and a reduce-motion toggle, both persisted per-browser."
+    },
+    {
+      "date": "2026-09-05",
+      "entry": "Space theme visual pass: starfield background, glass panels, gradient buttons, gradient-glow title."
+    },
+    {
+      "date": "2026-09-02",
+      "entry": "Code-quality audit: fixed a create_proxy memory leak in the plot-grid render loop and a stale stakeholder-request bug that could hand out a free relations bonus."
+    },
+    {
+      "date": "2026-08-22",
+      "entry": "Pass 3 (fun/teaching balance): re-paced stakeholder tension and the biodiversity payoff closer together to close an early idle stretch."
+    },
+    {
+      "date": "2026-08-18",
+      "entry": "Info Page added with curated real-world sources on deforestation and carbon sinks."
+    },
+    {
+      "date": "2026-08-18",
+      "entry": "Pass 2: biodiversity sub-meter (wildlife icons on mature plots) and stakeholder-tension decision events."
+    },
+    {
+      "date": "2026-08-11",
+      "entry": "Pass 1: continuous plot-maturity color gradient, recovery-milestone flash, and a real-world context blurb."
+    },
+    {
+      "date": "2026-08-01",
+      "entry": "All 7 milestones complete: plot grid, passive value accrual, clearing + soil degradation, replant recovery, comparison scoring, feedback prompt, visual pass + hub integration."
+    }
   ]
 }

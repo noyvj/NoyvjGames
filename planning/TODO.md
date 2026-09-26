@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 684/767 items checked off (89.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 685/767 items checked off (89.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -426,7 +426,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] B26: A subtle highlight/glow on whichever plot the mouse last hovered, for easier tracking on the larger grid.
 - [x] B27: An "adopt a plot" personal-goal feature — mark one plot as a long-term project with its own mini-history.
 - [x] B28: Let the Session Summary's counterfactual line also state the percentage difference, not just the absolute value.
-- [ ] B29: A guided "best strategy" AI-narrated example playthrough demonstrating a strong preserve/clear balance.
+- [x] B29: A guided "best strategy" AI-narrated example playthrough demonstrating a strong preserve/clear balance.
 - [x] B30: A small monthly/seasonal color-palette shift on the forest background art, purely decorative.
 
 **Deferred to `LATER.md`** (your answer): B5 — comparing your forest's standing value against the site aggregate average — parked pending "a full multiplayer pass soon," distinct from B19 above (which only needs Z1, not multiplayer, and is accepted).

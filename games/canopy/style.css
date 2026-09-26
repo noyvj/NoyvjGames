@@ -1567,3 +1567,28 @@ html[data-season="autumn"] .ambient-bg { filter: hue-rotate(-50deg) saturate(1.1
 html[data-season="winter"] .ambient-bg { filter: hue-rotate(35deg) saturate(0.55) brightness(1.05); }
 
 .community-forest-result { white-space: pre-line; font-size: 0.85rem; margin-top: 0.5rem; }
+
+/* B29: the guided example playthrough panel. */
+.example-panel[hidden] {
+  display: none;
+}
+
+.example-intro {
+  margin: 0 0 0.6rem;
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+.example-step {
+  margin-bottom: 0.7rem;
+}
+
+.example-step-title {
+  margin: 0 0 0.2rem;
+  font-weight: 600;
+}
+
+.example-step-text {
+  margin: 0;
+  font-size: 0.9rem;
+}

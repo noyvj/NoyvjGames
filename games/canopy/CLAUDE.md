@@ -552,3 +552,7 @@ currently open, reusing each panel's own open/close logic. The
 stakeholder-request panel and the adopted-plot readout aren't in the list
 -- both are shown/hidden by game state, not a player-clicked toggle
 button, so there's no toggle to reuse for a generic Esc close.
+
+## Guided example playthrough (B29, 2026-09-26)
+
+A "Example playthrough" toolbar button opens a narrated five-step panel showing a strong preserve/clear balance: patience compounds, clearing costs downtime and soil, clearing early backfires, the balanced run (keep 8 of 10 plots standing, harvest 2 at maturity, replant), and what to copy. It is "AI-narrated" in the sense of a worked example, not a replayed session: every number comes from `example_playthrough()`, which computes it from the game's own constants (`BASE_ACCRUAL`, `GROWTH_PER_TICK`, `DEGRADE_PER_CLEAR`, `MIN_PRODUCTIVITY_MULTIPLIER`, `RECOVERY_TICKS`, `MATURITY_TICKS`) using base rules only (no seasons, legacy, grants or specializations), so it stays correct if a constant is retuned and never reads or changes live state. At current settings, over 10 plots and 120 ticks: never clearing about 4830, clearing every 10 ticks about 574, and the balanced run about 4372. Built as a static hidden-until-opened panel (same idiom as What's New) and registered with the shared `?`/Esc shortcuts. 356 -> 365 tests (`tests/test_example_playthrough.py`); verified live, zero console errors.

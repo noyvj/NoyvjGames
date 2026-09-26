@@ -53,6 +53,8 @@ ELEMENT_IDS = [
     # "What's New" changelog panel (site-wide goal, origin K16)
     "changelog-toggle-button",
     "changelog-panel",
+    "example-toggle-button",
+    "example-panel",
     "reset-session-button",
     "grid-size-select",
     "difficulty-select",

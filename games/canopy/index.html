@@ -32,6 +32,7 @@
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
       <button id="achievements-toggle-button" class="secondary" type="button">Loading...</button>
       <button id="changelog-toggle-button" class="secondary" type="button">📋 What's New</button>
+      <button id="example-toggle-button" class="secondary" type="button">📖 Example playthrough</button>
       <!-- B1/B6/B18/B20: a player-triggered recap (stats, a sparkline of
            income vs. standing value over the session, a closing
            counterfactual line, and a shareable text snippet) -- same
@@ -93,6 +94,7 @@
          full duplicate of the dev logs. Same hidden-until-opened .section idiom as
          achievements/settings above. -->
     <div id="changelog-panel" class="section changelog-panel" hidden></div>
+    <div id="example-panel" class="section example-panel" hidden></div>
     <div id="session-summary-panel" class="section session-summary-panel print-summary" hidden>
       <p id="session-summary-counterfactual" class="session-summary-counterfactual"></p>
       <div id="session-summary-sparkline" class="session-summary-sparkline"></div>
@@ -660,6 +662,7 @@
         { toggle: "settings-toggle-button", panel: "settings-panel" },
         { toggle: "achievements-toggle-button", panel: "achievements-panel" },
         { toggle: "changelog-toggle-button", panel: "changelog-panel" },
+        { toggle: "example-toggle-button", panel: "example-panel" },
         { toggle: "session-summary-toggle-button", panel: "session-summary-panel" },
         { toggle: "info-page-toggle-button", panel: "info-page-panel" },
       ],
