@@ -47,7 +47,18 @@
     toggle: () => set(current === "light" ? "dark" : "light"),
   };
   apply();
+  // Games have no shared nav, so a script tag with data-floating-toggle gets
+  // a small fixed pill (bottom-left, above the story toggle).
+  const script = document.currentScript;
+  const wantsFloating = Boolean(script && script.hasAttribute("data-floating-toggle"));
   document.addEventListener("DOMContentLoaded", () => {
+    if (wantsFloating) {
+      const pill = document.createElement("button");
+      pill.type = "button";
+      pill.id = "theme-toggle-floating";
+      pill.className = "theme-toggle";
+      document.body.appendChild(pill);
+    }
     refreshToggles();
     document.querySelectorAll("#theme-toggle, .theme-toggle").forEach((el) => {
       el.addEventListener("click", () => window.NoyvjTheme.toggle());

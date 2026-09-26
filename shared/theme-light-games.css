@@ -1,0 +1,157 @@
+/* Floating theme pill (created by shared/theme.js when data-floating-toggle is set). */
+#theme-toggle-floating {
+  position: fixed; left: 0.6rem; bottom: 7.4rem; z-index: 800;
+  font: inherit; font-size: 0.75rem; padding: 0.3rem 0.7rem; cursor: pointer;
+  color: inherit; background: rgba(20, 22, 36, 0.85);
+  border: 1px solid rgba(140, 160, 255, 0.3); border-radius: 999px;
+}
+/*
+ * Light theme for the games (Y11), shared by all 12. Every game's stylesheet
+ * grew from the same glass-panel pattern (a `body`, a `#game` shell, `.section`
+ * panels, `button.primary`/`.secondary`, `.context-blurb`), so one generic
+ * layer restyles the common chrome and each game keeps only its own
+ * game-specific tweaks in its own style.css. Loaded after the game's own
+ * stylesheet; every rule is under html[data-theme="light"], so with the dark
+ * theme (the default) it does nothing. Colours only: layout, spacing, text
+ * labels and icons are untouched, so every state cue and the colorblind-safety
+ * findings still hold.
+ */
+html[data-theme="light"] { background: #eef2fc; color-scheme: light; }
+html[data-theme="light"] body { color: #1b2033; }
+html[data-theme="light"] .ambient-bg,
+html[data-theme="light"] .space-bg { opacity: 0.2; }
+html[data-theme="light"] #game {
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.9), rgba(238, 243, 255, 0.92));
+  border-color: rgba(70, 95, 170, 0.22);
+  box-shadow: 0 10px 34px rgba(40, 55, 110, 0.14);
+}
+html[data-theme="light"] h1 {
+  background: linear-gradient(120deg, #1b2033 20%, #3b5fc0 55%, #1b2033 80%);
+  -webkit-background-clip: text; background-clip: text; text-shadow: none;
+}
+html[data-theme="light"] .section,
+html[data-theme="light"] .context-blurb,
+html[data-theme="light"] .region-card,
+html[data-theme="light"] .achievements-panel,
+html[data-theme="light"] .changelog-panel {
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.85), rgba(240, 244, 255, 0.9));
+  border-color: rgba(70, 95, 170, 0.2);
+  box-shadow: 0 6px 20px rgba(40, 55, 110, 0.1);
+}
+html[data-theme="light"] button.secondary,
+html[data-theme="light"] .secondary {
+  background: linear-gradient(135deg, #dbe4fb, #c6d3f5);
+  color: #1b2033;
+  border-color: rgba(70, 95, 170, 0.3);
+  box-shadow: none;
+}
+html[data-theme="light"] button.primary { color: #ffffff; }
+html[data-theme="light"] input[type="text"],
+html[data-theme="light"] input[type="number"],
+html[data-theme="light"] input[type="password"],
+html[data-theme="light"] select,
+html[data-theme="light"] textarea {
+  background: #ffffff; color: #1b2033; border-color: rgba(70, 95, 170, 0.35);
+}
+html[data-theme="light"] a { color: #2a4ba0; }
+html[data-theme="light"] :focus-visible { outline-color: #2a4ba0; }
+/* Shared widgets that draw their own dark panels. */
+html[data-theme="light"] #save-widget,
+html[data-theme="light"] .save-widget-body {
+  background: rgba(255, 255, 255, 0.96); color: #1b2033; border-color: rgba(70, 95, 170, 0.3);
+}
+html[data-theme="light"] #save-widget .save-widget-toggle,
+html[data-theme="light"] #save-widget button { color: #1b2033; }
+html[data-theme="light"] #story-toggle,
+html[data-theme="light"] #theme-toggle-floating {
+  background: rgba(255, 255, 255, 0.95); color: #1b2033; border-color: rgba(70, 95, 170, 0.3);
+}
+html[data-theme="light"] .ad-bar { background: #e6ebf8; border-top-color: #c3cbe6; }
+html[data-theme="light"] #opening-screen {
+  background: radial-gradient(ellipse at 50% 30%, #f6f8ff, #dfe6f7); color: #1b2033;
+}
+html[data-theme="light"] #opening-screen button,
+html[data-theme="light"] #opening-screen a.opening-button { background: rgba(70, 95, 170, 0.1); border-color: rgba(70, 95, 170, 0.35); }
+html[data-theme="light"] #opening-screen .opening-primary { background: rgba(70, 95, 170, 0.25); }
+html[data-theme="light"] #save-widget .save-widget-save-button,
+html[data-theme="light"] #save-widget .save-widget-load-button {
+  background: linear-gradient(135deg, #dbe4fb, #c6d3f5); color: #1b2033; border-color: rgba(70, 95, 170, 0.3);
+}
+html[data-theme="light"] #save-widget .save-widget-load-input {
+  background: #ffffff; color: #1b2033; border-color: rgba(70, 95, 170, 0.35);
+}
+html[data-theme="light"] .meter-label,
+html[data-theme="light"] .row-blurb { color: #3a4468; }
+html[data-theme="light"] .meter-label {
+  background: rgba(70, 95, 170, 0.12); border-color: rgba(70, 95, 170, 0.25);
+}
+/* Second pass (from a scan of every game for dark translucent surfaces). */
+html[data-theme="light"] .info-toggle,
+html[data-theme="light"] .info-toggle p,
+html[data-theme="light"] .achievement-card,
+html[data-theme="light"] .achievement-card--earned,
+html[data-theme="light"] .changelog-entry,
+html[data-theme="light"] .past-run-card,
+html[data-theme="light"] .run-summary-panel,
+html[data-theme="light"] .share-card,
+html[data-theme="light"] .ticker-history-list,
+html[data-theme="light"] .review-setting {
+  background: rgba(255, 255, 255, 0.75); color: #1b2033; border-color: rgba(70, 95, 170, 0.22);
+}
+html[data-theme="light"] .invest-name,
+html[data-theme="light"] .resource-label,
+html[data-theme="light"] .ecology-label,
+html[data-theme="light"] .cross-summary-label,
+html[data-theme="light"] #research-label,
+html[data-theme="light"] #governor-label,
+html[data-theme="light"] #travel-label,
+html[data-theme="light"] .era-line,
+html[data-theme="light"] .section-heading,
+html[data-theme="light"] .row-name,
+html[data-theme="light"] .resource-count,
+html[data-theme="light"] .ecology-percent,
+html[data-theme="light"] .practice-note,
+html[data-theme="light"] .practice-blurb,
+html[data-theme="light"] #research-progress {
+  background: rgba(70, 95, 170, 0.1); color: #1b2033;
+}
+html[data-theme="light"] .meter,
+html[data-theme="light"] .automated-meter { background: rgba(70, 95, 170, 0.18); }
+html[data-theme="light"] .feedback-comment,
+html[data-theme="light"] .progress-code-textarea,
+html[data-theme="light"] .stats-code-textarea,
+html[data-theme="light"] .build-plan-input,
+html[data-theme="light"] .practice-input,
+html[data-theme="light"] .settlement-name-input {
+  background: #ffffff; color: #1b2033; border-color: rgba(70, 95, 170, 0.35);
+}
+/* Third pass: HUD readouts and remaining dark chips. */
+html[data-theme="light"] .status-line,
+html[data-theme="light"] .invest-count,
+html[data-theme="light"] .pasture-herd-count,
+html[data-theme="light"] [id$="-display"]:not([class*="meter"]):not([class*="graph"]):not([class*="callout"]),
+html[data-theme="light"] .context-blurb,
+html[data-theme="light"] .research-tree-node,
+html[data-theme="light"] .governor-report-card,
+html[data-theme="light"] .overview-card,
+html[data-theme="light"] .prestige-node,
+html[data-theme="light"] .practice,
+html[data-theme="light"] .row--locked,
+html[data-theme="light"] .summary-era-row,
+html[data-theme="light"] .archive-entry,
+html[data-theme="light"] .forest-log-list,
+html[data-theme="light"] .stats-detail-body,
+html[data-theme="light"] .funds-breakdown-list {
+  background: rgba(255, 255, 255, 0.72); color: #1b2033;
+}
+html[data-theme="light"] .research-search-input,
+html[data-theme="light"] .time-of-day-select,
+html[data-theme="light"] .ship-name-input { background: #ffffff; color: #1b2033; }
+html[data-theme="light"] .mix-bar-track,
+html[data-theme="light"] .return-flow-track,
+html[data-theme="light"] .import-flow-track { background: rgba(70, 95, 170, 0.18); }
+/* Accent text picked for dark backgrounds gets a deeper shade on light. */
+html[data-theme="light"] #next-event-display { color: #1f5f96; }
+html[data-theme="light"] .gauge-tick-label { color: #2f7a4d; }
+html[data-theme="light"] .achievement-toast,
+html[data-theme="light"] .notice-toast { color: #ffffff; background: rgba(35, 60, 110, 0.95); }
