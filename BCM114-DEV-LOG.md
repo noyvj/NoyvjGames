@@ -645,3 +645,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Le Champ de Mots
 **Did:** Profiled each game's render sub-calls and found `render_farm()` rewrote five DOM properties on every plot cell every render. It now caches each cell's and row's last-written values and writes only what changed. Also corrected the earlier U14 measurement: a first pass over-counted first-call warm-up (Continuum's steady `render()` is 2.8ms, not 18ms).
 **Result:** 664 → 668 tests passing, flake8 clean; steady-state `render()` about 3.3ms. U14 closed as measure-then-fix: no game needs screen-splitting for speed.
+
+### 2026-09-26 (Loop: waste stream focus, H9)
+**Game:** loop
+**Did:** Added an optional, free, switchable focus on one circularity measure (repair, reuse or recycle) that makes its supply count 25% higher; one focus at a time, stacks with the design-challenge multiplier, saved only when set.
+**Result:** 215 → 228 tests passing, flake8 clean; verified live, zero new console errors.

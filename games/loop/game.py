@@ -303,6 +303,9 @@ class ChainState:
         # H13/H23: opt-in start-of-chain modes (see can_choose_mode()).
         self.challenge_mode = False
         self.zero_waste = False
+        # H9: the one circularity measure currently carrying the specialization
+        # bonus (None = no emphasis).
+        self.waste_focus = None
 
     def can_choose_mode(self):
         """H13/H23: the modes change the rules of the whole chain, so they
@@ -329,12 +332,25 @@ class ChainState:
         ends the challenge's own bragging rights, never blocks play."""
         return self.total_extracted <= ZERO_WASTE_EXTRACTION_CAP
 
+    def measure_multiplier(self, measure):
+        """H9: the focused measure's supply counts WASTE_STREAM_SPECIALIZATION_BONUS
+        higher; the other two stay at their base rate."""
+        return 1.0 + WASTE_STREAM_SPECIALIZATION_BONUS if self.waste_focus == measure else 1.0
+
+    def set_waste_focus(self, measure):
+        """Freely switchable and free (the trade-off is structural: only one
+        measure can carry the bonus at a time). None clears it."""
+        if measure is not None and not (isinstance(measure, str) and measure in CIRCULARITY_INVESTMENTS):
+            return False
+        self.waste_focus = measure
+        return True
+
     def internal_circular_supply(self):
         """Units of this cycle's production target met by repair/reuse/
         recycling instead of new extraction — the chain's own capacity,
         before anything crossing in from the trade network."""
         return self.supply_multiplier() * sum(
-            self.circularity_investment[c] * CIRCULARITY_INVESTMENTS[c]["supply_per_unit"]
+            self.circularity_investment[c] * CIRCULARITY_INVESTMENTS[c]["supply_per_unit"] * self.measure_multiplier(c)
             for c in CIRCULARITY_INVESTMENTS
         )
 
@@ -1504,10 +1520,20 @@ def render():
         # H4 + H15: cost-per-unit-of-supply, and each measure's running
         # supply contribution per cycle, next to its owned count.
         cost_per_unit = spec["cost"] / spec["supply_per_unit"]
-        contribution = chain.circularity_investment[measure] * spec["supply_per_unit"]
-        document.getElementById(f"{measure}-stats").innerText = (
-            f"{cost_per_unit:.1f} funds/unit · supplying {contribution:.0f}/cycle"
+        contribution = (
+            chain.circularity_investment[measure] * spec["supply_per_unit"]
+            * chain.supply_multiplier() * chain.measure_multiplier(measure)
         )
+        focus_note = " · focus +25%" if chain.waste_focus == measure else ""
+        document.getElementById(f"{measure}-stats").innerText = (
+            f"{cost_per_unit:.1f} funds/unit · supplying {contribution:.0f}/cycle{focus_note}"
+        )
+        focus_button = document.getElementById(f"focus-{measure}-button")
+        if chain.waste_focus == measure:
+            focus_button.classList.add("focus-button--on")
+        else:
+            focus_button.classList.remove("focus-button--on")
+        focus_button.innerText = "\u2605 Focused" if chain.waste_focus == measure else "Focus"
 
         # H5: highlight the decorative loop-ring nodes proportional to
         # real investment instead of leaving them purely static.
@@ -1683,6 +1709,15 @@ def _make_goods_category_handler(category):
     return handler
 
 
+def _make_focus_handler(measure):
+    def handler(event=None):
+        def _do_focus():
+            # Clicking the focused measure again clears the emphasis.
+            chain.set_waste_focus(None if chain.waste_focus == measure else measure)
+        _run_action(_do_focus)
+    return handler
+
+
 def mode_status_text():
     """H13/H23: one line describing the modes in force, or '' for none."""
     parts = []
@@ -1810,6 +1845,8 @@ def get_state():
         state["challenge_mode"] = True
     if chain.zero_waste:
         state["zero_waste"] = True
+    if chain.waste_focus is not None:
+        state["waste_focus"] = chain.waste_focus
     return state
 
 
@@ -1856,6 +1893,8 @@ def load_state(data):
     # H13/H23: strictly booleans; anything else loads as off.
     chain.challenge_mode = data.get("challenge_mode") is True
     chain.zero_waste = data.get("zero_waste") is True
+    saved_focus = data.get("waste_focus")
+    chain.waste_focus = saved_focus if isinstance(saved_focus, str) and saved_focus in CIRCULARITY_INVESTMENTS else None
     chain.lifetime_investment_spend = data.get("lifetime_investment_spend", 0.0)
     chain.lifetime_export_revenue = data.get("lifetime_export_revenue", 0.0)
     chain.closed_loop_streak = data.get("closed_loop_streak", 0)
@@ -1902,6 +1941,10 @@ def setup():
     for category in GOODS_CATEGORIES:
         document.getElementById(f"goods-category-{category}-button").addEventListener(
             "click", create_proxy(_make_goods_category_handler(category))
+        )
+    for measure in CIRCULARITY_INVESTMENTS:
+        document.getElementById(f"focus-{measure}-button").addEventListener(
+            "click", create_proxy(_make_focus_handler(measure))
         )
     for which in ("challenge", "zero-waste"):
         document.getElementById(f"{which}-mode-button").addEventListener(

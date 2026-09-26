@@ -643,3 +643,7 @@ Two opt-in modes, picked in the start-of-chain picker before the first cycle (`C
 - **Zero-waste challenge (H23):** `zero_waste` tracks lifetime extraction against `ZERO_WASTE_EXTRACTION_CAP` (150). It is soft by hub convention: going over is reported ("missed, play carries on") and never blocks anything.
 - The two combine. A status line under the picker (kept visible after the picker hides) shows what is in force and the running extraction count.
 - Save: `challenge_mode` and `zero_waste` are written only when on and read back strictly as booleans (anything else loads as off). 201 -> 215 tests (`tests/test_start_modes.py`); verified live, zero console errors.
+
+## Waste stream focus (H9, 2026-09-26)
+
+A free, switchable emphasis on ONE circularity measure: that measure's supply counts `WASTE_STREAM_SPECIALIZATION_BONUS` (25%) higher, the other two stay at base. The only trade-off is structural (one focus at a time), so there is no cost and no confirm. `ChainState.waste_focus` (None or a measure), `measure_multiplier()`, and `set_waste_focus()` (rejects unknown/non-string values); a Focus button on each measure toggles it (clicking the focused one clears it) and the stats line shows the boosted contribution and a '+25%' note. It stacks with the Circular design challenge multiplier. Save: `waste_focus` written only when set, validated on load. 215 -> 228 tests (`tests/test_waste_focus.py`); verified live (recycling 10/cycle became 12/cycle when focused, switching moved the boost).
