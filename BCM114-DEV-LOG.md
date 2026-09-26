@@ -635,3 +635,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Continuum
 **Did:** Replaced the Advance Season button with real-time play: Pause/1x/2x/4x controls and a season progress bar near the top of the page, about 10 real seconds per season in early eras and slower in later ones, every settlement starting paused, and time running only while the page is open and visible (hidden tabs never tick, each step is clamped so nothing fast-forwards). The clock holds during a Look Back, the tutorial's Advance step became a "Time" step, mobile docks the controls, and P pauses/resumes.
 **Result:** 587 → 601 tests passing, flake8 unchanged (two pre-existing warnings), verified live including the hidden-tab case, zero new console errors.
+
+### 2026-09-26 (SOL: research tree, U10)
+**Game:** SOL
+**Did:** Replaced the two flat "Fund Research" bars with a real research tree: two 20-node levels (Near Bodies, then Far Bodies) that split into branches and rejoin, ending at each level's final node, which unlocks the bodies. Costs vary per node but each level totals the old bar's cost (1000 and 5000 Iron). Most nodes carry a small bonus (yield, cheaper miners and recyclers, cheaper trade routes), wired into the existing yield and cost functions. Old saves convert without loss (completed levels become researched nodes; partial progress buys nodes in tree order and any leftover Iron is refunded). The Deep Research prestige perk now discounts node costs.
+**Result:** 680 → 687 tests passing (research tests rewritten for the tree), flake8 clean, verified live with zero new console errors.

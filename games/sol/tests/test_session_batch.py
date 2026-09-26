@@ -155,12 +155,13 @@ def test_head_start_grants_iron_after_prestige(game_env):
     assert game_env.earth["resource_count"] == 50.0
 
 
-def test_deep_research_adds_more_progress(game_env):
+def test_deep_research_discounts_research_nodes(game_env):
     m = game_env.module
     m.prestige_nodes.add("deep_research")
     game_env.earth["resource_count"] = 100
-    game_env.fund_research()
-    assert m.research_progress == 75.0
+    game_env.fund_research()  # buys the root node, 20 Iron / 1.5 rounded up
+    assert "survey" in m.researched_nodes
+    assert game_env.earth["resource_count"] == 100 - 14
 
 
 def test_governors_mandate_boosts_governed_worlds(game_env):

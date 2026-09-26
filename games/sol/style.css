@@ -1743,3 +1743,12 @@ button.secondary.mini-button.selected {
   .floater { display: none; }
 }
 html[data-reduced-motion="true"] .floater { display: none; }
+
+/* U10: research tree node list. */
+.research-node-list { display: grid; gap: 0.5rem; margin: 0.6rem 0; }
+.research-node { padding: 0.5rem 0.7rem; border: 1px solid rgba(140, 160, 255, 0.2); border-radius: 10px; }
+.research-node--researched { opacity: 0.65; border-color: rgba(120, 200, 140, 0.4); }
+.research-node--locked { opacity: 0.55; }
+.research-node-name { margin: 0 0 0.15rem; font-weight: 600; }
+.research-node-detail { margin: 0 0 0.35rem; font-size: 0.8rem; opacity: 0.85; }
+.research-node-button { width: 100%; }

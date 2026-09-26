@@ -389,15 +389,17 @@ def test_toast_does_not_repeat_for_an_already_earned_achievement(game_env):
 
 def test_toast_reports_multiple_simultaneous_unlocks_together(game_env):
     module = game_env.module
-    # Completing tier 2 in one on_fund_research() call earns both
+    # Completing tier 2 in one research_node() purchase earns both
     # "tier_two_cleared" and "solar_system_unlocked" (every Far Body
     # unlocks at once) in the same tick -- both should be named in one
     # toast rather than only the last one winning.
-    module.unlocked_bodies.update(["Moon", "Mars"])
-    module.completed_tiers = 1
-    module.research_progress = _tier(game_env, 1)["target"] - module.RESEARCH_FUND_COST
-    game_env.earth["resource_count"] = module.RESEARCH_FUND_COST
-    game_env.fund_research()
+    game_env.unlock_tier(1)
+    for node in module.RESEARCH_NODES:
+        if node["tier"] == 1 and node["id"] != "far_bodies":
+            module.researched_nodes.add(node["id"])
+    module._recompute_research()
+    game_env.earth["resource_count"] = 10_000
+    game_env.research_node("far_bodies")
     game_env.timers.tick_intervals(1)
     text = game_env.elements["achievement-toast-text"].innerText
     assert "achievements unlocked" in text

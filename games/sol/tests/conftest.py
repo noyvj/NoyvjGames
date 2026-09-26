@@ -27,7 +27,6 @@ INITIALLY_DISABLED_IDS = [
     "click-button",
     "buy-generator-button",
     "buy-recycler-button",
-    "fund-research-button",
     "travel-moon-button",
     "travel-mars-button",
     "travel-venus-button",
@@ -192,7 +191,7 @@ ELEMENT_IDS = [
     "research-progress",
     "research-bar",
     "research-status",
-    "fund-research-button",
+    "research-node-list",
     # Views
     "earth-view",
     "mars-view",
@@ -860,8 +859,28 @@ class GameEnv:
     def buy_sky_city(self, planet="JupiterMoons"):
         self.elements[_BUTTON_ID[planet]["buy_sky_city"]].dispatch("click", None)
 
+    def research_node(self, node_id):
+        """Buys one node the way the UI does (a click delegated from a node button)."""
+        self.panel_click("research-node-list", node=node_id)
+
     def fund_research(self):
-        self.elements["fund-research-button"].dispatch("click", None)
+        """U10 compatibility helper: buys the next available node in tree order
+        (the first one the player could buy right now), or does nothing if none
+        is affordable. Older tests called this once per 'Fund Research' click."""
+        m = self.module
+        for node in m.RESEARCH_NODES:
+            if m.research_node_status(node) == "available":
+                self.research_node(node["id"])
+                return
+
+    def unlock_tier(self, count):
+        """Researches every node of the first `count` levels for free (state setup)."""
+        m = self.module
+        for node in m.RESEARCH_NODES:
+            if node["tier"] < count:
+                m.researched_nodes.add(node["id"])
+        m._recompute_research()
+        m.unlocked_bodies.update(b for t in m.RESEARCH_TIERS[:count] for b in t["unlocks"])
 
     def set_priority(self, priority):
         self.elements[f"priority-{priority}-button"].dispatch("click", None)

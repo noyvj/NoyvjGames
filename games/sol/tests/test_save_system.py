@@ -14,6 +14,7 @@ def test_serialize_state_includes_every_expected_key(game_env):
         "planet_state",
         "research_progress",
         "completed_tiers",
+        "researched_nodes",
         "unlocked_bodies",
         "visited_bodies",
         "current_planet",
@@ -201,7 +202,8 @@ def test_deserialize_state_tolerates_a_save_missing_a_top_level_scalar(game_env)
     game_env.module.governor_priority = "ecology"
     game_env.module.governor_budget_pct = 75.0
     game_env.module.governor_tick_count = 3
-    game_env.module.on_fund_research(None)  # nudge research_progress off zero
+    game_env.earth["resource_count"] = 100
+    game_env.research_node("survey")  # nudge research_progress off zero
     full_snapshot = game_env.module.serialize_state()
 
     top_level_scalar_keys = [

@@ -216,15 +216,87 @@ for _gas_giant in GAS_GIANT_BODIES:
 # every one of them is built, so unlocking a body and it having a real
 # economy happen together now. See UNDEVELOPED_BODIES below for the
 # (now-empty) placeholder path that covered the gap while that was true.
-RESEARCH_TIERS = [
-    {"name": "Near Bodies", "target": 1000, "unlocks": ["Moon", "Mars"]},
+# U10: research is a real tree now, not a bar filled 50 Iron at a time. Each
+# LEVEL (Near Bodies, then Far Bodies) is a 20-node tree that splits into
+# branches and rejoins, ending at that level's own final node (researching it
+# is what unlocks the bodies). Node costs vary but every level adds up to the
+# total the old bars asked for (1000 and 5000 Iron), so the overall pace is
+# unchanged. Most nodes carry a small real bonus (effects, in percent):
+#   yield_pct           -- more of every resource, manual and automated
+#   machinery_discount  -- cheaper Auto-Miners and Recyclers
+#   route_discount      -- cheaper trade routes
+# Rows: (id, name, cost, requires, effects).
+_RESEARCH_LEVEL_ROWS = [
+    {
+        "name": "Near Bodies",
+        "unlocks": ["Moon", "Mars"],
+        "rows": [
+            ("survey", "Basic Survey", 20, [], {}),
+            ("better_picks", "Better Picks", 40, ["survey"], {"yield_pct": 1}),
+            ("ore_scanners", "Ore Scanners", 40, ["survey"], {"yield_pct": 1}),
+            ("pneumatic_drills", "Pneumatic Drills", 50, ["better_picks"], {"yield_pct": 2}),
+            ("smelter_design", "Smelter Design", 50, ["ore_scanners"], {"machinery_discount": 5}),
+            ("automation_basics", "Automation Basics", 60, ["pneumatic_drills", "smelter_design"], {"machinery_discount": 5}),
+            ("water_recycling", "Water Recycling", 40, ["survey"], {}),
+            ("soil_science", "Soil Science", 40, ["survey"], {}),
+            ("greenhouses", "Greenhouses", 50, ["water_recycling"], {"yield_pct": 1}),
+            ("closed_loop_air", "Closed-Loop Air", 50, ["soil_science", "greenhouses"], {}),
+            ("materials_lab", "Materials Lab", 50, ["survey"], {}),
+            ("composites", "Composites", 50, ["materials_lab"], {"machinery_discount": 5}),
+            ("lightweight_hulls", "Lightweight Hulls", 50, ["composites"], {}),
+            ("launch_theory", "Launch Theory", 50, ["automation_basics"], {}),
+            ("life_support_certification", "Life-Support Certification", 50, ["closed_loop_air"], {}),
+            ("heat_shields", "Heat Shields", 50, ["lightweight_hulls"], {}),
+            ("orbital_mechanics", "Orbital Mechanics", 60, ["launch_theory"], {"yield_pct": 1}),
+            ("guidance_systems", "Guidance Systems", 60, ["heat_shields", "life_support_certification"], {"yield_pct": 1}),
+            ("space_travel", "Space Travel", 70, ["orbital_mechanics", "guidance_systems"], {}),
+            ("near_bodies", "Near Bodies", 70, ["space_travel"], {}),
+        ],
+    },
     {
         "name": "Far Bodies",
-        "target": 5000,
         "unlocks": ["Venus", "AsteroidBelt", "Pluto", "JupiterMoons", "SaturnMoons"],
+        "rows": [
+            ("far_survey", "Far Survey", 100, ["near_bodies"], {}),
+            ("heat_resistant_alloys", "Heat-Resistant Alloys", 200, ["far_survey"], {"machinery_discount": 5}),
+            ("atmospheric_probes", "Atmospheric Probes", 220, ["far_survey"], {}),
+            ("belt_prospecting", "Belt Prospecting", 220, ["far_survey"], {"yield_pct": 1}),
+            ("mining_drones", "Mining Drones", 260, ["belt_prospecting"], {"yield_pct": 2}),
+            ("aerobraking", "Aerobraking", 240, ["heat_resistant_alloys", "atmospheric_probes"], {}),
+            ("deep_space_comms", "Deep-Space Comms", 200, ["far_survey"], {}),
+            ("radioisotope_power", "Radioisotope Power", 240, ["deep_space_comms"], {"yield_pct": 1}),
+            ("cryo_materials", "Cryo Materials", 240, ["far_survey"], {"machinery_discount": 5}),
+            ("ion_drives", "Ion Drives", 280, ["radioisotope_power", "cryo_materials"], {}),
+            ("fusion_research", "Fusion Research", 320, ["ion_drives"], {"yield_pct": 2}),
+            ("regolith_bricks", "Regolith Bricks", 200, ["far_survey"], {"route_discount": 5}),
+            ("radiation_shielding", "Radiation Shielding", 240, ["regolith_bricks"], {}),
+            ("closed_ecosystems", "Closed Ecosystems", 260, ["radiation_shielding"], {"yield_pct": 1}),
+            ("sky_habitats", "Sky Habitats", 300, ["closed_ecosystems"], {"route_discount": 5}),
+            ("long_haul_logistics", "Long-Haul Logistics", 300, ["aerobraking", "mining_drones"], {"route_discount": 5}),
+            ("autonomous_refineries", "Autonomous Refineries", 300, ["fusion_research", "sky_habitats"], {"yield_pct": 2}),
+            ("grand_navigation", "Grand Navigation", 340, ["long_haul_logistics", "ion_drives"], {}),
+            ("outer_system_charts", "Outer-System Charts", 340, ["autonomous_refineries", "grand_navigation"], {}),
+            ("far_bodies", "Far Bodies", 200, ["outer_system_charts"], {}),
+        ],
     },
 ]
-RESEARCH_FUND_COST = 50  # flat Iron per investment, same across every tier, not a scaling purchase
+
+RESEARCH_NODES = []
+RESEARCH_TIERS = []
+for _level_index, _level in enumerate(_RESEARCH_LEVEL_ROWS):
+    for _id, _name, _cost, _requires, _effects in _level["rows"]:
+        RESEARCH_NODES.append({
+            "id": _id, "name": _name, "cost": _cost, "requires": list(_requires),
+            "effects": dict(_effects), "tier": _level_index,
+        })
+    RESEARCH_TIERS.append({
+        "name": _level["name"],
+        "target": sum(row[2] for row in _level["rows"]),
+        "unlocks": list(_level["unlocks"]),
+        "final": _level["rows"][-1][0],  # the last row of a level is always its final node
+    })
+RESEARCH_NODE_BY_ID = {node["id"]: node for node in RESEARCH_NODES}
+RESEARCH_FUND_COST = 50  # legacy: the old flat per-click cost, kept for reference only
 
 # Bodies with no economy of their own yet — visiting any of these shows the
 # shared #away-view placeholder rather than a dedicated view. Empty as of
@@ -260,8 +332,9 @@ TRAVEL_BUTTON_ID = {
 }
 
 # --- global (non-planet) state ---
-research_progress = 0.0  # progress toward the current (next incomplete) tier
-completed_tiers = 0
+research_progress = 0.0  # Iron invested in the current level's researched nodes (derived, see _recompute_research())
+completed_tiers = 0      # derived from researched_nodes, kept as a variable for its many readers
+researched_nodes = set()
 unlocked_bodies = set()
 current_planet = "Earth"
 governor_priority = "balance"  # "growth" | "balance" | "ecology"
@@ -489,6 +562,129 @@ GOVERNOR_BUDGET_MIN = 0.0
 GOVERNOR_BUDGET_MAX = 100.0
 
 
+def research_effect(key):
+    """Summed effect of every researched node for `key`, as a fraction."""
+    return sum(RESEARCH_NODE_BY_ID[n]["effects"].get(key, 0) for n in researched_nodes) / 100.0
+
+
+def research_yield_multiplier():
+    return 1.0 + research_effect("yield_pct")
+
+
+def _yield_multiplier():
+    """Everything that scales resource yield: the prestige bonus and research."""
+    return prestige_multiplier() * research_yield_multiplier()
+
+
+def research_node_cost(node):
+    if _sandbox_active():
+        return 0
+    if prestige_has("deep_research"):
+        return math.ceil(node["cost"] / 1.5)
+    return node["cost"]
+
+
+def research_node_status(node):
+    """"researched", "available" (can be bought if affordable) or "locked"."""
+    if node["id"] in researched_nodes:
+        return "researched"
+    if node["tier"] > completed_tiers:
+        return "locked"
+    if all(req in researched_nodes for req in node["requires"]):
+        return "available"
+    return "locked"
+
+
+def _recompute_research():
+    """Derives completed_tiers and research_progress from researched_nodes."""
+    global completed_tiers, research_progress
+    done = 0
+    for tier in RESEARCH_TIERS:
+        if tier["final"] in researched_nodes:
+            done += 1
+        else:
+            break
+    completed_tiers = done
+    research_progress = float(sum(
+        node["cost"] for node in RESEARCH_NODES
+        if node["tier"] == done and node["id"] in researched_nodes
+    ))
+
+
+def _clean_researched_nodes(candidates):
+    """Only real nodes whose prerequisites (and earlier level) are also
+    present survive: a tampered or partial save can never grant a node the
+    tree wouldn't let you buy."""
+    wanted = {n for n in candidates if isinstance(n, str) and n in RESEARCH_NODE_BY_ID}
+    changed = True
+    while changed:
+        changed = False
+        for node_id in list(wanted):
+            node = RESEARCH_NODE_BY_ID[node_id]
+            prior_final = RESEARCH_TIERS[node["tier"] - 1]["final"] if node["tier"] > 0 else None
+            if any(req not in wanted for req in node["requires"]) or (prior_final and prior_final not in wanted):
+                wanted.discard(node_id)
+                changed = True
+    return wanted
+
+
+def _migrate_legacy_research(tiers_done, progress):
+    """A save from before the tree stored research as (completed tiers,
+    Iron progress in the current tier). Convert it without losing anything:
+    every node of a completed level, then as many of the current level's
+    nodes as the saved progress paid for, in tree order; any Iron left over
+    is returned. Returns (nodes, refund)."""
+    nodes = set()
+    for level in range(min(int(tiers_done), len(RESEARCH_TIERS))):
+        nodes.update(n["id"] for n in RESEARCH_NODES if n["tier"] == level)
+    remaining = float(progress) if isinstance(progress, (int, float)) and progress == progress else 0.0
+    level = min(int(tiers_done), len(RESEARCH_TIERS) - 1)
+    if int(tiers_done) < len(RESEARCH_TIERS):
+        for node in RESEARCH_NODES:
+            if node["tier"] != level:
+                continue
+            if node["id"] == RESEARCH_TIERS[level]["final"]:
+                continue  # never finish a level from a partial migration
+            if all(req in nodes or RESEARCH_NODE_BY_ID[req]["tier"] < level for req in node["requires"]) \
+                    and node["cost"] <= remaining:
+                nodes.add(node["id"])
+                remaining -= node["cost"]
+    return nodes, max(0.0, remaining)
+
+
+def research_node_action(node_id):
+    """Buys one node. Returns True if it was bought."""
+    global quick_start_hit, swift_expansion_hit, off_the_grid_hit
+    node = RESEARCH_NODE_BY_ID.get(node_id)
+    if node is None or research_node_status(node) != "available":
+        return False
+    earth = planet_state["Earth"]
+    cost = research_node_cost(node)
+    if earth["resource_count"] < cost:
+        return False
+    earth["resource_count"] -= cost
+    before = completed_tiers
+    researched_nodes.add(node_id)
+    _recompute_research()
+    if completed_tiers > before:
+        tier = RESEARCH_TIERS[before]
+        unlocked_bodies.update(tier["unlocks"])
+        update_travel_display()
+        update_all_cross_summaries()
+        # Second achievement wave (A2/A13) -- checked at the exact moment
+        # each level completes, since that's the one instant both "how many
+        # ticks has this playthrough taken" and "has a generator ever
+        # existed anywhere" are meaningful to compare against a fixed line.
+        if completed_tiers == 1:
+            if total_ticks <= QUICK_START_TICKS:
+                quick_start_hit = True
+            if not any_generator_ever_built:
+                off_the_grid_hit = True
+        if completed_tiers == len(RESEARCH_TIERS) and total_ticks <= SWIFT_EXPANSION_TICKS:
+            swift_expansion_hit = True
+    return True
+
+
 def current_tier():
     if completed_tiers < len(RESEARCH_TIERS):
         return RESEARCH_TIERS[completed_tiers]
@@ -532,7 +728,8 @@ def _dom_id(planet, suffix):
 
 
 def _machinery_discount():
-    return 0.9 if prestige_has("cheaper_machinery") else 1.0
+    base = 0.9 if prestige_has("cheaper_machinery") else 1.0
+    return base * (1.0 - research_effect("machinery_discount"))
 
 
 def generator_cost(planet):
@@ -560,7 +757,10 @@ def trade_route_cost(planet, destination):
         return 0
     cfg = PLANETS[planet]
     count = planet_state[planet]["trade_routes"].get(destination, 0)
-    return math.ceil(cfg["trade_route_base_cost"] * (cfg["trade_route_cost_growth"] ** count))
+    return math.ceil(
+        cfg["trade_route_base_cost"] * (cfg["trade_route_cost_growth"] ** count)
+        * (1.0 - research_effect("route_discount"))
+    )
 
 
 def sky_city_local_cost(planet):
@@ -745,7 +945,6 @@ def update_terraform_display(planet):
 
 def update_research_display():
     tier = current_tier()
-    button = document.getElementById("fund-research-button")
     status = document.getElementById("research-status")
     label = document.getElementById("research-label")
     progress_el = document.getElementById("research-progress")
@@ -755,17 +954,69 @@ def update_research_display():
         document.getElementById("research-bar").style.width = "100%"
         progress_el.innerText = "All Tiers Unlocked"
         status.innerText = "Every distance tier has been researched."
-        button.innerText = "All Tiers Unlocked"
-        button.disabled = True
+        update_research_node_list()
         return
 
-    label.innerText = f"Research — {tier['name']} Tier"
+    label.innerText = f"Research \u2014 {tier['name']} Tier"
     progress_pct = (research_progress / tier["target"]) * 100
     document.getElementById("research-bar").style.width = f"{progress_pct}%"
     progress_el.innerText = f"{math.floor(research_progress)} / {tier['target']}"
-    status.innerText = ""
-    button.innerText = f"Fund Research ({research_fund_cost()} Iron)"
-    button.disabled = False
+    status.innerText = "Each node costs Iron; splits in the tree rejoin, and the last node unlocks the bodies."
+    update_research_node_list()
+
+
+def _research_effect_text(node):
+    parts = []
+    effects = node["effects"]
+    if effects.get("yield_pct"):
+        parts.append(f"+{effects['yield_pct']}% yield")
+    if effects.get("machinery_discount"):
+        parts.append(f"miners {effects['machinery_discount']}% cheaper")
+    if effects.get("route_discount"):
+        parts.append(f"trade routes {effects['route_discount']}% cheaper")
+    if node["id"] == RESEARCH_TIERS[node["tier"]]["final"]:
+        parts.append("unlocks " + ", ".join(PLANET_DISPLAY_NAMES.get(b, b) for b in RESEARCH_TIERS[node["tier"]]["unlocks"]))
+    return ", ".join(parts) if parts else "a step on the path"
+
+
+def update_research_node_list():
+    """U10: the current level's nodes, one row each, in tree order."""
+    container = document.getElementById("research-node-list")
+    container.innerHTML = ""
+    tier_index = completed_tiers
+    if tier_index >= len(RESEARCH_TIERS):
+        return
+    earth_iron = planet_state["Earth"]["resource_count"]
+    for node in RESEARCH_NODES:
+        if node["tier"] != tier_index:
+            continue
+        status = research_node_status(node)
+        row = document.createElement("div")
+        row.className = f"research-node research-node--{status}"
+        title = document.createElement("p")
+        title.className = "research-node-name"
+        title.innerText = node["name"]
+        row.appendChild(title)
+        detail = document.createElement("p")
+        detail.className = "research-node-detail"
+        needs = [RESEARCH_NODE_BY_ID[r]["name"] for r in node["requires"] if r not in researched_nodes]
+        if status == "researched":
+            detail.innerText = "Researched \u2014 " + _research_effect_text(node)
+        elif status == "locked":
+            detail.innerText = "Needs: " + ", ".join(needs) + " \u2014 " + _research_effect_text(node)
+        else:
+            detail.innerText = _research_effect_text(node)
+        row.appendChild(detail)
+        if status != "researched":
+            cost = research_node_cost(node)
+            button = document.createElement("button")
+            button.type = "button"
+            button.className = "secondary research-node-button"
+            button.innerText = f"Research ({cost} Iron)"
+            button.setAttribute("data-node", node["id"])
+            button.disabled = status == "locked" or earth_iron < cost
+            row.appendChild(button)
+        container.appendChild(row)
 
 
 def update_research_tree_display():
@@ -1606,7 +1857,7 @@ def _mine(planet, event=None):
     # rule, there must always be a lever.
     global total_manual_clicks, lifetime_resources_mined_by_click, manual_labor_hit
     state = planet_state[planet]
-    gained = 1 * prestige_multiplier()
+    gained = 1 * _yield_multiplier()
     state["resource_count"] += gained
     total_manual_clicks += 1
     lifetime_resources_mined_by_click += gained
@@ -1866,38 +2117,14 @@ def on_saturn_moons_cycle_trade_destination(event):
     _cycle_trade_destination("SaturnMoons")
 
 
-def on_fund_research(event):
-    global research_progress, completed_tiers, quick_start_hit, swift_expansion_hit, off_the_grid_hit
-    button = document.getElementById("fund-research-button")
-    earth = planet_state["Earth"]
-    tier = current_tier()
-    cost = research_fund_cost()
-    if tier is not None and earth["resource_count"] >= cost:
-        earth["resource_count"] -= cost
-        gain = RESEARCH_FUND_COST * (1.5 if prestige_has("deep_research") else 1)
-        research_progress = min(research_progress + gain, tier["target"])
-        if research_progress >= tier["target"]:
-            unlocked_bodies.update(tier["unlocks"])
-            completed_tiers += 1
-            research_progress = 0.0
-            update_travel_display()
-            update_all_cross_summaries()
-            update_research_tree_display()
-            # Second achievement wave (A2/A13) -- checked at the exact
-            # moment each tier completes, since that's the one instant
-            # both "how many ticks has this playthrough taken" and
-            # "has a generator ever existed anywhere" are both meaningful
-            # to compare against a fixed line.
-            if completed_tiers == 1:
-                if total_ticks <= QUICK_START_TICKS:
-                    quick_start_hit = True
-                if not any_generator_ever_built:
-                    off_the_grid_hit = True
-            if completed_tiers == len(RESEARCH_TIERS) and total_ticks <= SWIFT_EXPANSION_TICKS:
-                swift_expansion_hit = True
+def on_research_node_click(event):
+    node_id = _target_attr(event, "data-node")
+    if not node_id:
+        return
+    if research_node_action(node_id):
         update_resource_display("Earth")
         update_research_display()
-    press_feedback(button)
+        update_research_tree_display()
 
 
 def on_priority_growth(event):
@@ -2842,7 +3069,7 @@ def on_prestige(event=None):
     next_bonus_pct = round(PRESTIGE_BONUS_PER_LEVEL * next_level * 100)
 
     def _do_prestige():
-        global prestige_level, research_progress, completed_tiers, unlocked_bodies, visited_bodies
+        global prestige_level, unlocked_bodies, visited_bodies
         global current_planet, governor_priority, governor_budget_pct, governor_tick_count
         global governor_purchase_count, any_generator_ever_built, prestige_points_earned, sandbox_mode
         global epilogue_open
@@ -2856,8 +3083,8 @@ def on_prestige(event=None):
         _departure_snapshots.clear()
         for planet in PLANETS:
             planet_state[planet] = _fresh_planet_state(planet)
-        research_progress = 0.0
-        completed_tiers = 0
+        researched_nodes.clear()
+        _recompute_research()
         unlocked_bodies = set()
         # Prestige is a genuine "run reset", not a lifetime wipe: visited_bodies
         # goes back to just Earth (matching a fresh planet_state, since nothing
@@ -2981,7 +3208,7 @@ def _simulate_planet(planet, incoming_trade_restore):
                 * sky_city_bonus
                 * (TICK_INTERVAL_MS / 1000)
                 * multiplier
-                * prestige_multiplier()
+                * _yield_multiplier()
                 * (1 + SPECIALIZATION_OUTPUT_BONUS if spec == "output" else 1)
                 * (1.2 if prestige_has("governors_mandate") and planet != current_planet else 1)
             )
@@ -3124,6 +3351,7 @@ def serialize_state():
         "planet_state": copy.deepcopy(planet_state),
         "research_progress": research_progress,
         "completed_tiers": completed_tiers,
+        "researched_nodes": sorted(researched_nodes),
         "unlocked_bodies": sorted(unlocked_bodies),
         "visited_bodies": sorted(visited_bodies),
         "current_planet": current_planet,
@@ -3167,7 +3395,7 @@ def serialize_state():
 
 
 def deserialize_state(data):
-    global research_progress, completed_tiers, unlocked_bodies, visited_bodies, current_planet
+    global unlocked_bodies, visited_bodies, current_planet
     global governor_priority, governor_budget_pct, governor_tick_count, governor_purchase_count
     global prestige_level, total_ticks, total_manual_clicks, lifetime_resources_mined_by_click
     global lifetime_resources_generated_by_automation, lifetime_generators_built
@@ -3205,8 +3433,22 @@ def deserialize_state(data):
             planet_state[planet].update(saved_planet_state)
         else:
             planet_state[planet] = saved_planet_state
-    research_progress = data.get("research_progress", research_progress)
-    completed_tiers = data.get("completed_tiers", completed_tiers)
+    # U10: research is a set of nodes now. A save from before the tree only
+    # has (completed_tiers, research_progress); convert it without losing
+    # anything, refunding any Iron the partial progress can't buy a node with.
+    saved_nodes = data.get("researched_nodes")
+    if isinstance(saved_nodes, list):
+        researched_nodes.clear()
+        researched_nodes.update(_clean_researched_nodes(saved_nodes))
+    else:
+        legacy_tiers = data.get("completed_tiers", 0)
+        legacy_tiers = legacy_tiers if isinstance(legacy_tiers, int) and not isinstance(legacy_tiers, bool) else 0
+        migrated, refund = _migrate_legacy_research(max(0, legacy_tiers), data.get("research_progress", 0.0))
+        researched_nodes.clear()
+        researched_nodes.update(_clean_researched_nodes(migrated))
+        if refund > 0:
+            planet_state["Earth"]["resource_count"] += refund
+    _recompute_research()
     unlocked_bodies = set(data.get("unlocked_bodies", unlocked_bodies))
     # A save made before this field existed simply has no key here, so this
     # falls back to whatever's already running (the module default,
@@ -3650,9 +3892,7 @@ def setup():
         "click", create_proxy(on_return_to_earth_from_saturn_moons)
     )
 
-    research_button = document.getElementById("fund-research-button")
-    research_button.disabled = False
-    research_button.addEventListener("click", create_proxy(on_fund_research))
+    document.getElementById("research-node-list").addEventListener("click", create_proxy(on_research_node_click))
 
     document.getElementById("priority-growth-button").addEventListener(
         "click", create_proxy(on_priority_growth)

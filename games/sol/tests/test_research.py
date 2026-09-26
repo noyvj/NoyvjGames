@@ -1,245 +1,357 @@
-"""Tests for the research system: funding progress toward sequential
-distance tiers (Milestone 4: Near Bodies v1; Milestone 9a: generalized to
-a tier sequence, adding a Far Bodies tier). Tiers are researched in order —
-completing one seamlessly advances to funding the next, with the button
-only truly disabling once every tier is exhausted."""
+"""Research (U10): a real tree per distance level instead of a bar filled 50
+Iron at a time. Level 1 (Near Bodies) and level 2 (Far Bodies) are 20-node
+trees that split and rejoin and end at the level's final node, which is what
+unlocks the bodies. Node costs vary but each level totals the old bar's cost."""
+
+import pytest
 
 
-def _tier(game_env, index):
-    return game_env.module.RESEARCH_TIERS[index]
+def _m(game_env):
+    return game_env.module
 
 
-def _complete_tier(game_env, index):
-    """Funds and completes tiers 0..index in sequence (in order, since
-    tiers must be researched sequentially)."""
-    for i in range(index + 1):
-        target = _tier(game_env, i)["target"]
-        game_env.earth["resource_count"] = target
-        clicks = target // game_env.module.RESEARCH_FUND_COST
-        for _ in range(clicks):
-            game_env.fund_research()
+def _buy_path(game_env, target_id):
+    """Buys every prerequisite of `target_id` (and it) for free-enough Iron."""
+    m = _m(game_env)
+    order = []
+
+    def visit(node_id):
+        if node_id in order or node_id in m.researched_nodes:
+            return
+        node = m.RESEARCH_NODE_BY_ID[node_id]
+        for req in node["requires"]:
+            visit(req)
+        order.append(node_id)
+
+    visit(target_id)
+    for node_id in order:
+        game_env.earth["resource_count"] = 10_000
+        game_env.research_node(node_id)
 
 
-# --- initial state -----------------------------------------------------
+def _complete_level(game_env, level):
+    m = _m(game_env)
+    for i in range(level + 1):
+        _buy_path(game_env, m.RESEARCH_TIERS[i]["final"])
 
-def test_research_starts_at_zero_progress(game_env):
-    assert game_env.module.research_progress == 0.0
+
+# --- shape of the data -------------------------------------------------
+
+def test_two_levels_of_twenty_nodes(game_env):
+    m = _m(game_env)
+    assert len(m.RESEARCH_TIERS) == 2
+    for level in range(2):
+        assert sum(1 for n in m.RESEARCH_NODES if n["tier"] == level) == 20
+
+
+def test_each_level_costs_the_same_total_as_the_old_bar(game_env):
+    m = _m(game_env)
+    assert m.RESEARCH_TIERS[0]["target"] == 1000
+    assert m.RESEARCH_TIERS[1]["target"] == 5000
+
+
+def test_level_names_and_unlocks(game_env):
+    m = _m(game_env)
+    assert m.RESEARCH_TIERS[0]["name"] == "Near Bodies"
+    assert set(m.RESEARCH_TIERS[0]["unlocks"]) == {"Moon", "Mars"}
+    assert m.RESEARCH_TIERS[1]["name"] == "Far Bodies"
+    assert set(m.RESEARCH_TIERS[1]["unlocks"]) == {"Venus", "AsteroidBelt", "Pluto", "JupiterMoons", "SaturnMoons"}
+
+
+def test_every_requirement_exists_and_the_graph_has_no_cycles(game_env):
+    m = _m(game_env)
+    for node in m.RESEARCH_NODES:
+        for req in node["requires"]:
+            assert req in m.RESEARCH_NODE_BY_ID
+    seen = set()
+    remaining = list(m.RESEARCH_NODES)
+    while remaining:
+        ready = [n for n in remaining if all(r in seen for r in n["requires"])]
+        assert ready, "cycle or unreachable node"
+        seen.update(n["id"] for n in ready)
+        remaining = [n for n in remaining if n["id"] not in seen]
+
+
+def test_the_tree_splits_and_rejoins(game_env):
+    m = _m(game_env)
+    for level in range(2):
+        nodes = [n for n in m.RESEARCH_NODES if n["tier"] == level]
+        assert any(len(n["requires"]) >= 2 for n in nodes), "no join in level %d" % level
+        children = {}
+        for n in nodes:
+            for r in n["requires"]:
+                children.setdefault(r, []).append(n["id"])
+        assert any(len(c) >= 2 for c in children.values()), "no split in level %d" % level
+
+
+def test_each_level_ends_at_its_final_node(game_env):
+    m = _m(game_env)
+    assert m.RESEARCH_TIERS[0]["final"] == "near_bodies"
+    assert m.RESEARCH_TIERS[1]["final"] == "far_bodies"
+    for level, tier in enumerate(m.RESEARCH_TIERS):
+        nodes = [n for n in m.RESEARCH_NODES if n["tier"] == level]
+        assert nodes[-1]["id"] == tier["final"]
+        others_requiring_final = [n for n in nodes if tier["final"] in n["requires"]]
+        assert others_requiring_final == []
+
+
+def test_costs_vary_within_a_level(game_env):
+    m = _m(game_env)
+    assert len({n["cost"] for n in m.RESEARCH_NODES if n["tier"] == 0}) > 1
+    assert len({n["cost"] for n in m.RESEARCH_NODES if n["tier"] == 1}) > 1
+
+
+def test_most_nodes_have_no_dead_ids_and_effect_keys_are_known(game_env):
+    m = _m(game_env)
+    for n in m.RESEARCH_NODES:
+        assert set(n["effects"]) <= {"yield_pct", "machinery_discount", "route_discount"}
+    assert any(n["effects"] for n in m.RESEARCH_NODES)
+
+
+# --- initial state and display -----------------------------------------
+
+def test_starts_with_nothing_researched(game_env):
+    m = _m(game_env)
+    assert m.researched_nodes == set() and m.completed_tiers == 0 and m.research_progress == 0.0
+    assert m.unlocked_bodies == set()
     assert game_env.elements["research-progress"].innerText == "0 / 1000"
-
-
-def test_nothing_unlocked_initially(game_env):
-    assert game_env.module.unlocked_bodies == set()
-
-
-def test_first_tier_is_near_bodies(game_env):
-    tier = _tier(game_env, 0)
-    assert tier["name"] == "Near Bodies"
-    assert tier["target"] == 1000
-    assert set(tier["unlocks"]) == {"Moon", "Mars"}
-
-
-def test_second_tier_is_far_bodies(game_env):
-    tier = _tier(game_env, 1)
-    assert tier["name"] == "Far Bodies"
-    assert set(tier["unlocks"]) == {"Venus", "AsteroidBelt", "Pluto", "JupiterMoons", "SaturnMoons"}
-
-
-def test_research_bar_starts_empty(game_env):
     assert game_env.elements["research-bar"].style.width == "0.0%"
-
-
-def test_research_status_empty_initially(game_env):
-    assert game_env.elements["research-status"].innerText == ""
-
-
-def test_research_label_shows_current_tier_name(game_env):
     assert "Near Bodies" in game_env.elements["research-label"].innerText
 
 
-def test_setup_configures_fund_button(game_env):
-    button = game_env.elements["fund-research-button"]
-    assert button.disabled is False
-    assert "50 Iron" in button.innerText
+def test_only_the_root_is_available_at_first(game_env):
+    m = _m(game_env)
+    available = [n["id"] for n in m.RESEARCH_NODES if m.research_node_status(n) == "available"]
+    assert available == ["survey"]
 
 
-def test_setup_registers_fund_listener(game_env):
-    button = game_env.elements["fund-research-button"]
-    assert "click" in button._listeners
-    assert len(button._listeners["click"]) == 1
+def test_level_two_is_locked_until_level_one_is_done(game_env):
+    m = _m(game_env)
+    assert m.research_node_status(m.RESEARCH_NODE_BY_ID["far_survey"]) == "locked"
 
 
-# --- funding: affordability -----------------------------------------------
+# --- buying nodes -------------------------------------------------------
 
-def test_cannot_afford_funding_does_nothing(game_env):
-    game_env.fund_research()
-    assert game_env.module.research_progress == 0.0
-    assert game_env.earth["resource_count"] == 0
-
-
-def test_funding_deducts_flat_iron_cost(game_env):
-    game_env.earth["resource_count"] = 50
-    game_env.fund_research()
-    assert game_env.earth["resource_count"] == 0
+def test_buying_a_node_spends_its_iron_and_marks_it(game_env):
+    m = _m(game_env)
+    game_env.earth["resource_count"] = 100
+    game_env.research_node("survey")
+    assert "survey" in m.researched_nodes
+    assert game_env.earth["resource_count"] == 100 - m.RESEARCH_NODE_BY_ID["survey"]["cost"]
+    assert m.research_progress == m.RESEARCH_NODE_BY_ID["survey"]["cost"]
 
 
-def test_funding_adds_flat_progress(game_env):
-    game_env.earth["resource_count"] = 50
-    game_env.fund_research()
-    assert game_env.module.research_progress == 50
+def test_cannot_buy_without_enough_iron(game_env):
+    m = _m(game_env)
+    game_env.earth["resource_count"] = 5
+    game_env.research_node("survey")
+    assert "survey" not in m.researched_nodes and game_env.earth["resource_count"] == 5
 
 
-def test_funding_cost_does_not_scale_between_purchases(game_env):
-    # Unlike buildings, research funding is a flat repeatable investment,
-    # not an escalating-cost purchase, and stays flat across every tier.
-    game_env.earth["resource_count"] = 200
-    game_env.fund_research()
-    game_env.fund_research()
-    game_env.fund_research()
-    button = game_env.elements["fund-research-button"]
-    assert "50 Iron" in button.innerText
-    assert game_env.earth["resource_count"] == 50
+def test_cannot_buy_a_locked_node_or_buy_twice_or_unknown(game_env):
+    m = _m(game_env)
+    game_env.earth["resource_count"] = 10_000
+    game_env.research_node("better_picks")  # needs survey first
+    assert "better_picks" not in m.researched_nodes
+    game_env.research_node("survey")
+    iron = game_env.earth["resource_count"]
+    game_env.research_node("survey")
+    assert game_env.earth["resource_count"] == iron
+    game_env.research_node("no_such_node")
+    game_env.panel_click("research-node-list")  # no data-node at all
+    assert m.researched_nodes == {"survey"}
 
 
-def test_repeated_funding_accumulates_progress(game_env):
-    game_env.earth["resource_count"] = 500
-    for _ in range(9):
-        game_env.fund_research()
-    assert game_env.module.research_progress == 450
-    assert game_env.earth["resource_count"] == 50
+def test_a_join_needs_every_parent(game_env):
+    m = _m(game_env)
+    _buy_path(game_env, "pneumatic_drills")
+    game_env.earth["resource_count"] = 10_000
+    game_env.research_node("automation_basics")  # also needs smelter_design
+    assert "automation_basics" not in m.researched_nodes
+    _buy_path(game_env, "smelter_design")
+    game_env.research_node("automation_basics")
+    assert "automation_basics" in m.researched_nodes
 
 
-def test_funding_updates_progress_display(game_env):
-    game_env.earth["resource_count"] = 50
-    game_env.fund_research()
-    assert game_env.elements["research-progress"].innerText == "50 / 1000"
-
-
-def test_funding_updates_bar_width(game_env):
-    game_env.earth["resource_count"] = 50
-    game_env.fund_research()
-    assert game_env.elements["research-bar"].style.width == "5.0%"
-
-
-def test_funding_button_gives_press_feedback_even_when_unaffordable(game_env):
-    button = game_env.elements["fund-research-button"]
-    game_env.fund_research()
-    assert button.classList.contains("pressed")
-    game_env.timers.flush()
-    assert not button.classList.contains("pressed")
-
-
-def test_funding_button_press_feedback_on_success(game_env):
-    button = game_env.elements["fund-research-button"]
-    game_env.earth["resource_count"] = 50
-    game_env.fund_research()
-    assert button.classList.contains("pressed")
-    game_env.timers.flush()
-    assert not button.classList.contains("pressed")
-
-
-# --- completing tier 1 (Near Bodies) ------------------------------------
-
-def test_reaching_target_unlocks_near_bodies(game_env):
-    _complete_tier(game_env, 0)
-    assert "Moon" in game_env.module.unlocked_bodies
-    assert "Mars" in game_env.module.unlocked_bodies
-
-
-def test_progress_clamps_at_target_not_overshooting(game_env):
-    game_env.module.research_progress = 980
-    game_env.earth["resource_count"] = 50
-    game_env.fund_research()
-    # Progress resets to 0 immediately upon completion (moving on to the
-    # next tier), so it never sits "overshot" at the old target either.
-    assert game_env.module.research_progress == 0.0
-
-
-def test_completing_tier_advances_completed_tiers_counter(game_env):
-    assert game_env.module.completed_tiers == 0
-    _complete_tier(game_env, 0)
-    assert game_env.module.completed_tiers == 1
-
-
-def test_completing_tier_1_immediately_shows_tier_2(game_env):
-    _complete_tier(game_env, 0)
+def test_finishing_the_final_node_unlocks_the_bodies(game_env):
+    m = _m(game_env)
+    _buy_path(game_env, "space_travel")
+    assert m.completed_tiers == 0 and m.unlocked_bodies == set()
+    game_env.earth["resource_count"] = 10_000
+    game_env.research_node("near_bodies")
+    assert m.completed_tiers == 1
+    assert {"Moon", "Mars"} <= m.unlocked_bodies
+    assert "far_survey" in [n["id"] for n in m.RESEARCH_NODES if m.research_node_status(n) == "available"]
     assert "Far Bodies" in game_env.elements["research-label"].innerText
-    assert game_env.elements["research-progress"].innerText == "0 / 5000"
 
 
-def test_fund_button_stays_active_after_completing_tier_1(game_env):
-    # Unlike the old single-tier design, finishing a tier seamlessly moves
-    # on to the next one — the button should NOT disable until every tier
-    # is exhausted.
-    _complete_tier(game_env, 0)
-    button = game_env.elements["fund-research-button"]
-    assert button.disabled is False
-    assert "50 Iron" in button.innerText
-
-
-def test_bar_resets_for_the_next_tier(game_env):
-    _complete_tier(game_env, 0)
-    assert game_env.elements["research-bar"].style.width == "0.0%"
-
-
-# --- completing tier 2 (Far Bodies) / all tiers done -----------------------
-
-def test_completing_both_tiers_unlocks_all_far_bodies(game_env):
-    _complete_tier(game_env, 1)
-    for body in ("Venus", "AsteroidBelt", "Pluto", "JupiterMoons", "SaturnMoons"):
-        assert body in game_env.module.unlocked_bodies
-
-
-def test_completing_all_tiers_shows_terminal_state(game_env):
-    _complete_tier(game_env, 1)
+def test_completing_everything_shows_the_terminal_state(game_env):
+    m = _m(game_env)
+    _complete_level(game_env, 1)
+    assert m.completed_tiers == 2
     assert game_env.elements["research-progress"].innerText == "All Tiers Unlocked"
-    assert game_env.elements["research-bar"].style.width == "100%"
-    button = game_env.elements["fund-research-button"]
-    assert button.disabled is True
-    assert button.innerText == "All Tiers Unlocked"
+    assert game_env.elements["research-node-list"].children == []
+    assert {"Venus", "Pluto", "SaturnMoons"} <= m.unlocked_bodies
 
 
-def test_completing_all_tiers_shows_terminal_status_message(game_env):
-    _complete_tier(game_env, 1)
-    assert "Every distance tier" in game_env.elements["research-status"].innerText
+def test_research_works_during_an_ecological_collapse(game_env):
+    m = _m(game_env)
+    m.planet_state["Earth"]["ecology_health"] = 0.0
+    game_env.earth["resource_count"] = 100
+    game_env.research_node("survey")
+    assert "survey" in m.researched_nodes
 
 
-# --- funding is a no-op once every tier is exhausted -----------------------
-
-def test_funding_after_all_tiers_done_does_not_spend_iron(game_env):
-    _complete_tier(game_env, 1)
-    game_env.earth["resource_count"] = 500
-    game_env.fund_research()
-    assert game_env.earth["resource_count"] == 500
-
-
-def test_funding_after_all_tiers_done_still_gives_press_feedback(game_env):
-    _complete_tier(game_env, 1)
-    game_env.earth["resource_count"] = 500
-    button = game_env.elements["fund-research-button"]
-    game_env.fund_research()
-    assert button.classList.contains("pressed")
+def test_node_list_renders_rows_with_buttons(game_env):
+    m = _m(game_env)
+    game_env.earth["resource_count"] = 100
+    m.update_research_display()
+    rows = game_env.elements["research-node-list"].children
+    assert len(rows) == 20
+    buttons = [c for row in rows for c in row.children if getattr(c, "className", "").endswith("research-node-button")]
+    assert len(buttons) == 20
+    survey_button = buttons[0]
+    assert survey_button.disabled is False
+    assert buttons[1].disabled is True  # locked
 
 
-# --- decoupled from ecology/automation --------------------------------
-
-def test_research_progress_unaffected_by_passive_ticks(game_env):
+def test_progress_bar_tracks_invested_iron(game_env):
     game_env.earth["resource_count"] = 1000
-    game_env.buy_generator()
-    game_env.timers.tick_intervals(50)
-    assert game_env.module.research_progress == 0.0
+    game_env.research_node("survey")
+    assert game_env.elements["research-progress"].innerText == "20 / 1000"
+    assert game_env.elements["research-bar"].style.width == "2.0%"
 
 
-def test_research_funding_does_not_touch_ecology(game_env):
-    game_env.earth["resource_count"] = 50
-    ecology_before = game_env.earth["ecology_health"]
-    game_env.fund_research()
-    assert game_env.earth["ecology_health"] == ecology_before
+# --- effects ------------------------------------------------------------
+
+def test_yield_nodes_raise_manual_and_automated_yield(game_env):
+    m = _m(game_env)
+    assert m.research_yield_multiplier() == 1.0
+    _buy_path(game_env, "pneumatic_drills")
+    expected = 1.0 + (1 + 2) / 100  # better_picks + pneumatic_drills
+    assert m.research_yield_multiplier() == pytest.approx(expected)
+    before = game_env.earth["resource_count"]
+    game_env.click()
+    assert game_env.earth["resource_count"] - before == pytest.approx(expected)
 
 
-def test_research_available_even_during_ecological_collapse(game_env):
-    # Funding spends banked Iron directly; it isn't automated production,
-    # so it shouldn't be gated by the ecology penalty/halt.
-    game_env.earth["ecology_health"] = 0.0
-    game_env.earth["resource_count"] = 50
-    game_env.fund_research()
-    assert game_env.module.research_progress == 50
+def test_machinery_discount_makes_miners_cheaper(game_env):
+    m = _m(game_env)
+    m.planet_state["Earth"]["generator_count"] = 10
+    m.planet_state["Earth"]["recycler_count"] = 10
+    full_gen, full_rec = m.generator_cost("Earth"), m.recycler_cost("Earth")
+    _buy_path(game_env, "smelter_design")
+    assert m.generator_cost("Earth") < full_gen
+    assert m.recycler_cost("Earth") < full_rec
+
+
+def test_route_discount_makes_routes_cheaper(game_env):
+    m = _m(game_env)
+    full = m.trade_route_cost("Earth", "Mars")
+    m.researched_nodes.update(["regolith_bricks"])
+    assert m.trade_route_cost("Earth", "Mars") < full
+
+
+def test_deep_research_perk_discounts_node_costs(game_env):
+    m = _m(game_env)
+    m.prestige_nodes.add("deep_research")
+    node = m.RESEARCH_NODE_BY_ID["survey"]
+    assert m.research_node_cost(node) == 14  # ceil(20 / 1.5)
+
+
+def test_sandbox_makes_nodes_free(game_env):
+    m = _m(game_env)
+    m._sandbox_active = lambda: True
+    game_env.earth["resource_count"] = 0
+    game_env.research_node("survey")
+    assert "survey" in m.researched_nodes
+
+
+# --- save / load / migration -------------------------------------------
+
+def test_save_round_trip_keeps_nodes(game_env):
+    m = _m(game_env)
+    _buy_path(game_env, "automation_basics")
+    data = m.serialize_state()
+    assert set(data["researched_nodes"]) == m.researched_nodes
+    m.researched_nodes.clear()
+    m._recompute_research()
+    m.deserialize_state(data)
+    assert "automation_basics" in m.researched_nodes and m.research_progress > 0
+
+
+def test_tampered_nodes_are_pruned_to_a_valid_tree(game_env):
+    m = _m(game_env)
+    data = m.serialize_state()
+    data["researched_nodes"] = ["automation_basics", "bogus", 7, None, "far_bodies", "far_survey"]
+    m.deserialize_state(data)
+    assert m.researched_nodes == set()  # every one was missing prerequisites or unknown
+    data["researched_nodes"] = ["survey", "better_picks", "better_picks", "orbital_mechanics"]
+    m.deserialize_state(data)
+    assert m.researched_nodes == {"survey", "better_picks"}
+
+
+def test_non_list_nodes_field_falls_back_to_the_legacy_path(game_env):
+    m = _m(game_env)
+    data = m.serialize_state()
+    data["researched_nodes"] = "survey"
+    data["completed_tiers"] = 0
+    data["research_progress"] = 0.0
+    m.deserialize_state(data)
+    assert m.researched_nodes == set()
+
+
+def test_legacy_save_with_a_completed_tier_keeps_it(game_env):
+    m = _m(game_env)
+    data = m.serialize_state()
+    del data["researched_nodes"]
+    data["completed_tiers"] = 1
+    data["research_progress"] = 0.0
+    data["unlocked_bodies"] = ["Moon", "Mars"]
+    m.deserialize_state(data)
+    assert m.completed_tiers == 1
+    assert all(n["id"] in m.researched_nodes for n in m.RESEARCH_NODES if n["tier"] == 0)
+    assert "far_survey" not in m.researched_nodes
+
+
+def test_legacy_partial_progress_becomes_nodes_and_refunds_the_rest(game_env):
+    m = _m(game_env)
+    data = m.serialize_state()
+    del data["researched_nodes"]
+    data["completed_tiers"] = 0
+    data["research_progress"] = 250.0
+    iron_before = data["planet_state"]["Earth"]["resource_count"]
+    m.deserialize_state(data)
+    spent = sum(m.RESEARCH_NODE_BY_ID[n]["cost"] for n in m.researched_nodes)
+    assert 0 < spent <= 250 and "near_bodies" not in m.researched_nodes
+    assert m.planet_state["Earth"]["resource_count"] == pytest.approx(iron_before + (250.0 - spent))
+    assert m.research_progress == spent
+
+
+def test_legacy_migration_never_finishes_a_level_from_partial_progress(game_env):
+    m = _m(game_env)
+    data = m.serialize_state()
+    del data["researched_nodes"]
+    data["completed_tiers"] = 0
+    data["research_progress"] = 999.0
+    m.deserialize_state(data)
+    assert m.completed_tiers == 0 and "near_bodies" not in m.researched_nodes
+
+
+def test_bad_legacy_values_are_harmless(game_env):
+    m = _m(game_env)
+    for bad in ("x", None, float("nan"), -5, True):
+        data = m.serialize_state()
+        del data["researched_nodes"]
+        data["completed_tiers"] = 0
+        data["research_progress"] = bad
+        m.deserialize_state(data)
+        assert m.researched_nodes == set()
+
+
+def test_prestige_clears_research(game_env):
+    m = _m(game_env)
+    _complete_level(game_env, 1)
+    m.researched_nodes.clear()
+    m._recompute_research()
+    assert m.completed_tiers == 0 and m.research_progress == 0.0
