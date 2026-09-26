@@ -42,6 +42,28 @@ I'll drop all of that into the ad bar and it goes live everywhere on the site at
 
 **Your answer:** list any combos you want built in (name plus the parts), or say "just my own box is fine".
 
+### 4. Answers to your Round 3 questions, plus five items I now explain (each needs one word from you)
+
+**You asked: how visible is all the information right now (usernames, passwords, saves)?** I checked the backend code. Plainly:
+- **Passwords** are never stored or sent back. Each is hashed with PBKDF2-SHA256 (600,000 rounds, a random salt per account) and no endpoint returns the hash.
+- **Usernames** are private except in two places: signing up tells you whether a name is already taken (so names can be probed one at a time), and a username shows next to a score only on a leaderboard you have opted into.
+- **Saves** are the main exposure. A save is stored as plain JSON in the database and **the save code is the only key**: anyone who has a code can read (and overwrite) that save with no login. A code is 8 characters from a 31-letter alphabet (about 850 billion possibilities), fine for game progress, not fine for anything personal. Saves you claim to an account are attached to it, but the code still works.
+- **Feedback comments** are public. The public list used to include an internal account id; I removed it tonight.
+- **Emails** (optional) are visible only to you in the admin page, never in any public output. **Ratings**, **aggregate stats** and **leaderboard entries** are public by design; stats hide any group smaller than 3.
+- **Sessions** (the login token) never expire on their own.
+- **Fixed tonight (goes live on the next backend deploy):** guessing passwords is now throttled per username and per address, guessing save codes is throttled per address, and the public feedback list no longer carries an account id.
+- **Still open, your call:** for Undersleep's personal data I recommend it stays on the device only (with manual export and import) and never goes in a save code or the cloud; a cloud version would need per-account encryption, which is a real project. Tell me if you want that project anyway.
+
+**Undersleep Q3, restated:** should the optional daily check-in part (the "add personal touches" layer) be hidden until the player turns it on ("Just play" is the default), or shown from the first launch? I recommend hidden by default.
+
+**Items you could not judge because I did not explain them (my labels; the ideas are from Round 1):**
+1. **Grid C6:** let a player save two scenarios and overlay their trend graphs for a side-by-side comparison. (Grid now has the shadow-grid twin, which covers part of this.) now, later or drop?
+2. **Tide D10:** show the acidity from three seasons ago right next to the current acidity, so the delayed link between cause and effect is visible as numbers. now, later or drop?
+3. **Aftermath E5:** add another event category beyond weather and non-weather (for example a heat-mortality event) for variety in the fixed seven-event schedule. now, later or drop?
+4. **Herd F4:** a second end-of-game feedback question about Herd's own lesson ("did decoupling feel like a real strategy, or a tax on growth?"), like Thaw's two-question pattern. now, later or drop?
+5. **Loop H16:** an optional "supply chain disruption" random event, opt-in as an advanced mode, kept apart from the deterministic core lesson. now, later or drop?
+6. **Contraption (round 2 M8):** a physics puzzle sandbox (drag parts, watch them collide). It needs a JavaScript physics engine such as Matter.js, which means shipping a library and writing the game in JavaScript rather than Python, a much bigger stack decision than a normal new game. It stays parked as you said; tell me if you ever want it costed properly.
+
 ---
 
 ## Answered — building now (no further input needed, listed so you can see what your answers turned into)
