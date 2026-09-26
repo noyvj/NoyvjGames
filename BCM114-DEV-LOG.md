@@ -665,3 +665,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** loop
 **Did:** Added a demand-side culture campaign: five levels, each cutting 4% off the material a cycle needs, which lowers new extraction and helps close the loop with less supply. Revenue is unchanged.
 **Result:** 249 → 263 tests passing, flake8 clean; verified live with H3, zero new console errors.
+
+### 2026-09-26 (Loop: material passport, H21)
+**Game:** loop
+**Did:** Added a collapsed Material passport panel that follows one traced unit of material through the chain each cycle (mined, repaired, reused, recycled or traded), drawn deterministically from the real supply mix, with a running tally.
+**Result:** 263 → 276 tests passing, flake8 clean.

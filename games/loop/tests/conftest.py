@@ -67,6 +67,8 @@ ELEMENT_IDS = [
     "loop-closed-banner",
     "goods-category-picker",
     "scorecard-list",
+    "passport-summary",
+    "passport-list",
     "culture-name",
     "culture-count",
     "culture-invest-button",

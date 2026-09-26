@@ -227,6 +227,23 @@ WASTE_STREAM_SPECIALIZATION_BONUS = 0.25
 # supply. Each level costs more than the last and is worth CULTURE_DEMAND_REDUCTION
 # of the production target's material need, up to CULTURE_MAX_LEVEL levels (a
 # ceiling well short of removing demand: people still buy things).
+# H21: the material passport -- one traced unit of material followed through
+# the chain as a literal object. Each cycle the unit is either newly mined or
+# recovered by one of the measures (or arrives by trade), chosen from the
+# chain's real supply mix by a fixed golden-ratio sequence (no randomness, so a
+# run is reproducible and the record matches the numbers). Capped so a long run
+# never grows the save without bound.
+PASSPORT_MAX_ENTRIES = 40
+PASSPORT_SOURCES = ("extraction", "repair", "reuse", "recycle", "trade")
+PASSPORT_SOURCE_LABEL = {
+    "extraction": "newly mined",
+    "repair": "kept in use by repair",
+    "reuse": "passed on by reuse",
+    "recycle": "recovered by recycling",
+    "trade": "brought in by trade",
+}
+_GOLDEN = 0.6180339887498949
+
 CULTURE_BASE_COST = 40
 CULTURE_MAX_LEVEL = 5
 CULTURE_DEMAND_REDUCTION = 0.04
@@ -331,6 +348,8 @@ class ChainState:
         self.redesign_level = {m: 0 for m in CIRCULARITY_INVESTMENTS}
         # H17: demand-side campaign level (0..CULTURE_MAX_LEVEL).
         self.culture_level = 0
+        # H21: [{"cycle": int, "source": one of PASSPORT_SOURCES}], oldest first.
+        self.passport = []
 
     def can_choose_mode(self):
         """H13/H23: the modes change the rules of the whole chain, so they
@@ -362,6 +381,41 @@ class ChainState:
         higher; the other two stay at their base rate."""
         focus = WASTE_STREAM_SPECIALIZATION_BONUS if self.waste_focus == measure else 0.0
         return 1.0 + focus + REDESIGN_SUPPLY_BONUS * self.redesign_level.get(measure, 0)
+
+    def passport_source(self):
+        """Where the traced unit comes from THIS cycle, drawn from the current
+        supply mix (call before the cycle counter advances)."""
+        need = self.material_need()
+        extraction = self.new_extraction_needed()
+        if need <= 0:
+            return "extraction"
+        shares = {"extraction": extraction / need}
+        circular = 1.0 - shares["extraction"]
+        parts = {
+            m: self.circularity_investment[m] * CIRCULARITY_INVESTMENTS[m]["supply_per_unit"] * self.measure_multiplier(m)
+            for m in CIRCULARITY_INVESTMENTS
+        }
+        parts["trade"] = self.imported_supply()
+        total = sum(parts.values())
+        for name in ("repair", "reuse", "recycle", "trade"):
+            shares[name] = circular * (parts[name] / total) if total > 0 else 0.0
+        point = (self.cycle_number * _GOLDEN) % 1.0
+        running = 0.0
+        for name in PASSPORT_SOURCES:
+            running += shares.get(name, 0.0)
+            if point < running:
+                return name
+        return "extraction" if shares["extraction"] > 0 else max(PASSPORT_SOURCES[1:], key=lambda n: shares.get(n, 0.0))
+
+    def passport_summary(self):
+        """Counts over the recorded journey: (mined, recovered, longest run of recoveries)."""
+        mined = sum(1 for e in self.passport if e["source"] == "extraction")
+        recovered = len(self.passport) - mined
+        longest = run = 0
+        for e in self.passport:
+            run = run + 1 if e["source"] != "extraction" else 0
+            longest = max(longest, run)
+        return mined, recovered, longest
 
     def material_need(self):
         """H17: units of material one cycle's production actually needs, after
@@ -544,6 +598,8 @@ class ChainState:
             self.best_closed_loop_streak = max(self.best_closed_loop_streak, self.closed_loop_streak)
         else:
             self.closed_loop_streak = 0
+        self.passport.append({"cycle": self.cycle_number, "source": self.passport_source()})
+        del self.passport[:-PASSPORT_MAX_ENTRIES]
         self.circular_fraction_log.append(self.circular_fraction_this_cycle())
         self.total_extracted += extraction
         self.total_produced += PRODUCTION_TARGET
@@ -1519,6 +1575,7 @@ def render():
         f"Each level trims {CULTURE_DEMAND_REDUCTION * 100:.0f}% off the material a cycle needs · "
         f"now {chain.material_need():.0f} of {PRODUCTION_TARGET:.0f} units"
     )
+    render_passport()
     mode_text = mode_status_text()
     mode_el = document.getElementById("mode-status")
     mode_el.innerText = mode_text
@@ -1849,6 +1906,26 @@ def _make_goods_category_handler(category):
     return handler
 
 
+def render_passport():
+    """H21: the traced unit's journey, newest first, plus a one-line tally."""
+    container = document.getElementById("passport-list")
+    container.innerHTML = ""
+    summary = document.getElementById("passport-summary")
+    if not chain.passport:
+        summary.innerText = f"Unit #1 of {current_goods_label()} hasn't started its journey yet: advance a cycle."
+        return
+    mined, recovered, longest = chain.passport_summary()
+    summary.innerText = (
+        f"Unit #1 of {current_goods_label()}: newly mined {mined} time(s), kept in the loop {recovered} time(s), "
+        f"longest unbroken run in the loop {longest} cycle(s)."
+    )
+    for entry in reversed(chain.passport[-8:]):
+        row = document.createElement("li")
+        row.className = "passport-entry"
+        row.innerText = f"Cycle {entry['cycle']}: {PASSPORT_SOURCE_LABEL[entry['source']]}"
+        container.appendChild(row)
+
+
 def on_invest_culture(event=None):
     _run_action(chain.invest_culture)
 
@@ -2001,6 +2078,8 @@ def get_state():
         state["redesign_level"] = dict(chain.redesign_level)
     if chain.culture_level:
         state["culture_level"] = chain.culture_level
+    if chain.passport:
+        state["passport"] = [dict(e) for e in chain.passport]
     return state
 
 
@@ -2055,6 +2134,18 @@ def load_state(data):
         if isinstance(saved_culture, int) and not isinstance(saved_culture, bool) and 0 <= saved_culture <= CULTURE_MAX_LEVEL
         else 0
     )
+    chain.passport = []
+    saved_passport = data.get("passport")
+    if isinstance(saved_passport, list):
+        for entry in saved_passport:
+            if (
+                isinstance(entry, dict)
+                and isinstance(entry.get("cycle"), int) and not isinstance(entry.get("cycle"), bool)
+                and entry["cycle"] >= 1
+                and isinstance(entry.get("source"), str) and entry["source"] in PASSPORT_SOURCES
+            ):
+                chain.passport.append({"cycle": entry["cycle"], "source": entry["source"]})
+        del chain.passport[:-PASSPORT_MAX_ENTRIES]
     chain.redesign_level = {m: 0 for m in CIRCULARITY_INVESTMENTS}
     saved_redesign = data.get("redesign_level")
     if isinstance(saved_redesign, dict):

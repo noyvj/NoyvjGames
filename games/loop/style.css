@@ -1535,3 +1535,6 @@ html[data-reduced-motion="true"] *::after {
 .scorecard-bar { height: 6px; border-radius: 3px; }
 .scorecard-bar--mine { background: #4c9c6e; }
 .scorecard-bar--benchmark { background: #8a8fa6; opacity: 0.7; }
+
+/* H21: material passport. */
+.passport-list { margin: 0.4rem 0 0; padding-left: 1.1rem; font-size: 0.8rem; }

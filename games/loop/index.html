@@ -257,6 +257,13 @@
         <button id="focus-recycle-button" class="secondary focus-button" type="button" aria-pressed="false" title="Waste stream focus: this measure's supply counts 25% higher. One focus at a time, free to switch.">Focus</button>
         <button id="redesign-recycle-button" class="secondary focus-button" type="button" disabled title="Supply chain redesign: a permanent +5% supply for this measure per level, up to 3. Unlocks once your loop has closed at least once.">Redesign</button>
       </div>
+      <details id="passport-panel" class="stats-detail-toggle">
+        <summary>🛂 Material passport</summary>
+        <div class="stats-detail-body">
+          <p id="passport-summary" class="comparison-message"></p>
+          <ul id="passport-list" class="passport-list"></ul>
+        </div>
+      </details>
       <!-- H17: a demand-side lever (fewer products needed), separate from the three supply-side measures above. -->
       <div class="invest-row invest-row--culture">
         <span id="culture-name" class="invest-name">🧭 Repair &amp; Reuse Culture</span>
