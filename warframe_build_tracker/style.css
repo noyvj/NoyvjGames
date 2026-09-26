@@ -296,6 +296,46 @@ a.visited-session { color: #9ba1af !important; text-decoration: line-through; te
   table { min-width: 780px; }
 }
 
+/* Phone layout (X, "a mobile-friendly layout pass"): below 640px the two wide
+   tables stop scrolling sideways and each row becomes a small card, with the
+   column header repeated beside every value via a pseudo-element label. Pure
+   CSS on top of the rows app.js already renders, so no markup changed. */
+@media (max-width: 640px) {
+  section { overflow-x: visible; }
+  table.parts, table.resources { min-width: 0; display: block; }
+  table.parts thead, table.resources thead { display: none; }
+  table.parts tbody, table.resources tbody { display: block; }
+  table.parts tr, table.resources tr {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #292e37;
+  }
+  table.parts tr.category-row, table.resources tr.category-row { display: block; padding: 8px 0 0; }
+  table.parts td, table.resources td { display: block; border: 0; padding: 2px 0; }
+  table.parts td:first-child, table.resources td:first-child { grid-column: 1 / -1; }
+  table.parts tr.category-row td, table.resources tr.category-row td { border-bottom: 1px solid #292e37; padding: 8px 0; }
+  table.parts td:not(:first-child)::before, table.resources td:not(:first-child)::before {
+    display: block;
+    color: #9ba1af;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  table.parts td:nth-child(2)::before { content: "Need"; }
+  table.parts td:nth-child(3)::before { content: "Have"; }
+  table.parts td:nth-child(4)::before { content: "Still need"; }
+  table.parts td:nth-child(5)::before { content: "Wiki"; }
+  table.parts td:nth-child(6)::before { content: "Build"; }
+  table.resources td:nth-child(2)::before { content: "Needed"; }
+  table.resources td:nth-child(3)::before { content: "Built / refined have"; }
+  table.resources td:nth-child(4)::before { content: "Raw have"; }
+  table.resources td:nth-child(5)::before { content: "Still need"; }
+  table.resources td:nth-child(6)::before { content: "Wiki"; }
+  table.parts input[type="number"], table.resources input[type="number"] { width: 100%; }
+}
+
 /* Light theme (X, "a dark/light toggle for the tracker's own UI"). A personal
    preference for this tool, driven by the same shared/theme.js the hub and
    games use, so the choice is remembered per device and follows the account. */

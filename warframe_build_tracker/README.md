@@ -185,3 +185,7 @@ once there's a real sample file to check it against.
 
 Edit `DEFAULT_PARTS` (and `MANUFACTURING_RECIPES` for the new part's recipe)
 in `game.py`, bump `DATA_UPDATED`, then just reload the page — no restart, no sync step.
+
+## Phone layout
+
+Below 640px the parts and resources tables stop scrolling sideways: each row reflows into a small card (name on top, Need/Have/Still need/Wiki/Build in a three-column grid) with the column header repeated as a label above every value. Pure CSS over the rows `game.py` already renders.

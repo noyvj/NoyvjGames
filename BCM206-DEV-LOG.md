@@ -290,3 +290,8 @@ The clearest cross-cutting infra lesson from this pass: three separate games' au
 **Area:** `shared/opening-screen.js`, all 12 games' include line
 **Did:** Per-game taglines (`data-tagline`, all 12 written), a note under Continue from the latest save ("Slot 2 · 3 h ago" when signed in, "Saved 3 h ago" for a stored code; silent on failure), and for Le Champ de Mots a "pick a look" step after New Game (the four visual styles via `ChampDeMotsVisualStyle`, applied live, with the "change this later in Settings" note, desktop widths only) before the tutorial offer.
 **Result:** Verified live on Le Champ de Mots: tagline shown, New Game showed the style step, choosing Cartoon applied it, Confirm led to the tutorial offer, zero unexpected console errors.
+
+### 2026-09-26 (Warframe tracker: phone layout)
+**Area:** `warframe_build_tracker/style.css`
+**Did:** At 375px the tracker's two wide tables only worked by scrolling sideways inside their section (780px min-width). Added a `@media (max-width: 640px)` block that turns each table row into a card: `thead` hidden, row becomes a three-column grid, the name spans the top, and Need/Have/Still need/Wiki/Build (Needed/Built-refined/Raw/Still need/Wiki for resources) get their column header back as a `::before` label. No markup or Python changed. New `tests/test_mobile_layout.py`.
+**Result:** Verified live at 375x812: no horizontal document scroll, both tables readable as cards, inputs full-width; 89 tracker tests passing.
