@@ -182,6 +182,16 @@
       </select>
       <p id="shadow-verdict" class="comparison-message"></p>
       <div id="shadow-table" class="shadow-table"></div>
+      <p class="meter-label">Real grid comparison (your mix against a real region's published mix)</p>
+      <select id="real-grid-select" aria-label="Real region to compare against">
+        <option value="off">Off</option>
+        <option value="us">United States (2025)</option>
+        <option value="de">Germany (2025)</option>
+        <option value="fr">France (2020)</option>
+      </select>
+      <p id="real-grid-verdict" class="comparison-message"></p>
+      <div id="real-grid-table" class="shadow-table"></div>
+      <p id="real-grid-source" class="comparison-message" hidden></p>
       <p id="renewable-blurb" class="comparison-message" hidden></p>
       <!-- C3: regional grid -- a lighter multi-grid mode, one-way like the sister-settlement pattern. -->
       <p class="meter-label">Regional grid (share your spare capacity)</p>

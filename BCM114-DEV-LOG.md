@@ -825,3 +825,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** champ-de-mots
 **Did:** Added the fifth arcade minigame: a 60-second, three-lives rapid-fire on passé composé blank and conjugation prompts, gated to rows 21-23 and counted in the practice ledger.
 **Result:** 728 Champ tests pass (18 new); live-checked the toggle, start and a real passé composé prompt with four choices.
+
+### 2026-09-26 (Grid C29: real grid comparison)
+**Game:** grid
+**Did:** Added a real-grid comparison: choose the US, Germany or France and compare your plant mix against that region's published generation mix, with per-source gaps, a verdict and the named source. Figures come from the EIA and Wikipedia tables, read on 2026-09-26; the panel notes capacity shares versus generation shares.
+**Result:** 370 Grid tests pass (10 new); live-checked the select, verdict, nine-row table and source text with no console errors.
