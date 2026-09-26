@@ -83,6 +83,8 @@ ELEMENT_IDS = [
     "carbon-bank-c-button",
     "shared-research-progress",
     "shared-research-story",
+    "long-game-toggle-button",
+    "long-game-display",
     "framing-toggle-button",
     "framing-summary",
     "forecast-input",

@@ -760,3 +760,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** thaw
 **Did:** Added an optional "Climate Scientist" panel showing a real chart of NOAA's actual global atmospheric methane growth rate, 1984-2025 (live-checked directly against NOAA's own page, not recalled from memory), alongside the in-game graph rather than overlaid onto it -- game rounds have no real calendar-time axis to align against. States plainly that this is the total real-world growth from every source (not permafrost-only), so it doesn't overclaim what the game's own feedback-loop mechanic represents.
 **Result:** 274 -> 282 Thaw tests pass (8 new), flake8 clean. Live verification caught a real bug (the first/last year label's centered text-anchor pushed it past the chart's own edge) and fixed it (an inline `style` attribute, the one thing that reliably beats a CSS class rule for this property) before shipping -- confirmed both via a new regression test and directly in the live DOM. Zero console errors beyond the pre-existing, unrelated ServiceWorker quirk.
+
+### 2026-09-26 (Thaw G9: long game mode)
+**Game:** thaw
+**Did:** Added an opt-in long-game mode to Thaw: a toggle available only before round 1 that scales background warming, melt feedback, counterfactual and restoration to 40% and Output income to 60%, so the full trajectory takes ~2.5x as many rounds. One module flag covers all four regions; saved only when on.
+**Result:** 290 Thaw tests pass (8 new); live-checked the toggle, the lock after the first round and the 0.4 degree first round, no console errors.

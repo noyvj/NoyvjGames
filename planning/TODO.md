@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 737/769 items checked off (95.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 738/769 items checked off (96.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -596,7 +596,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] G6: Label the melt-threshold gridline with its exact temperature value, not just a dashed line.
 - [x] G7: A "climate scientist" info-mode — an optional deeper data view showing real-world methane-release curves alongside the in-game graph. Built as a toggle+panel showing NOAA's real annual global atmospheric methane growth rate, 1984-2025 (live-checked against NOAA's own page rather than recalled from memory) — stated plainly as the total real-world growth from every source, not a permafrost-only figure. See `games/thaw/CLAUDE.md`.
 - [x] G8: A small distinct color-independent icon on the critical melt-status tier, reinforcing its text label with a shape cue.
-- [ ] G9: A "long game" mode — significantly extend session length for players who want the full long-run trajectory.
+- [x] G9: A "long game" mode — significantly extend session length for players who want the full long-run trajectory.
 - [x] G10: Let the next-round preview tooltip show all three regions' previews simultaneously in one combined tooltip.
 - [x] G11: A community "average acceleration factor" comparison, reinforcing the hope-angle message that intervention is common and effective *(needs Z1)*.
 - [x] G12: A one-time callout the very first time `dampening_at_melt_start` is nonzero, praising the pre-emptive investment.

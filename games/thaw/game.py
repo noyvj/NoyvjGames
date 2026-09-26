@@ -54,6 +54,17 @@ BASE_TEMP_RISE_PER_ROUND = 1.0
 MELT_THRESHOLD = 10.0
 FEEDBACK_RATE_PER_DEGREE_OVER = 0.15
 
+# G9: the optional "long game" mode. Chosen once, before any round is
+# played, it stretches the whole trajectory: the background rise, the melt
+# feedback and the restoration pull-back all run at LONG_GAME_WARMING_SCALE
+# of their normal speed, while Output income runs at LONG_GAME_INCOME_SCALE,
+# so reaching the same milestones takes roughly two and a half times as many
+# rounds. Income is cut by less than warming, so a longer game is also a
+# slightly gentler one per degree of warming. Off by default; the flag lives
+# in the module (`long_game`, below) because it applies to every region.
+LONG_GAME_WARMING_SCALE = 0.4
+LONG_GAME_INCOME_SCALE = 0.6
+
 # G3/G10: a second, further warming milestone past the initial melt
 # threshold. Crossing +10.0 is "the tipping point" (Pass 1's flash);
 # crossing this second, higher milestone while accelerating hard is what
@@ -126,6 +137,22 @@ RESCUE_COST = 200.0
 RESCUE_DURATION_ROUNDS = 5
 RESCUE_DAMPENING_BONUS = 0.5
 RESCUE_MAX_DAMPENING = 0.95
+
+
+long_game = False
+
+
+def warming_scale():
+    return LONG_GAME_WARMING_SCALE if long_game else 1.0
+
+
+def output_income_per_unit():
+    return OUTPUT_INCOME_PER_UNIT * (LONG_GAME_INCOME_SCALE if long_game else 1.0)
+
+
+def base_rise_per_round():
+    """The background warming rate this round (scaled in the long game)."""
+    return BASE_TEMP_RISE_PER_ROUND * warming_scale()
 
 
 class RegionState:
@@ -221,8 +248,8 @@ class RegionState:
         """acceleration_factor() as it would read on investment dampening
         alone, so a temporary rescue can't count toward stabilization."""
         excess = max(0.0, self.temperature - MELT_THRESHOLD)
-        bonus = excess * FEEDBACK_RATE_PER_DEGREE_OVER * (1 - self.feedback_dampening_fraction())
-        return (BASE_TEMP_RISE_PER_ROUND + bonus) / BASE_TEMP_RISE_PER_ROUND
+        bonus = excess * FEEDBACK_RATE_PER_DEGREE_OVER * warming_scale() * (1 - self.feedback_dampening_fraction())
+        return (base_rise_per_round() + bonus) / base_rise_per_round()
 
     def _apply_restoration(self):
         """Advances the stabilization streak and, once it has held long
@@ -235,8 +262,8 @@ class RegionState:
         if not self.restoration_active():
             return
         amount = min(
-            self.capacity["preserve"] * RESTORATION_PER_PRESERVE_UNIT,
-            RESTORATION_MAX_PER_ROUND,
+            self.capacity["preserve"] * RESTORATION_PER_PRESERVE_UNIT * warming_scale(),
+            RESTORATION_MAX_PER_ROUND * warming_scale(),
             self.temperature - MELT_THRESHOLD,
         )
         if amount <= 0:
@@ -371,11 +398,11 @@ class RegionState:
         how far past it the temperature has climbed. Intervention
         investment dampens this, never the background rise itself."""
         excess = max(0.0, self.temperature - MELT_THRESHOLD)
-        raw_bonus = excess * FEEDBACK_RATE_PER_DEGREE_OVER
+        raw_bonus = excess * FEEDBACK_RATE_PER_DEGREE_OVER * warming_scale()
         return raw_bonus * (1 - self.effective_dampening_fraction())
 
     def current_rise_rate(self):
-        return BASE_TEMP_RISE_PER_ROUND + self.feedback_bonus()
+        return base_rise_per_round() + self.feedback_bonus()
 
     def _record_acceleration_sample(self):
         """G11: folds this round's acceleration_factor() into the running
@@ -392,7 +419,7 @@ class RegionState:
         ) / self.acceleration_samples
 
     def advance_round(self):
-        self.funds += self.capacity["output"] * OUTPUT_INCOME_PER_UNIT
+        self.funds += self.capacity["output"] * output_income_per_unit()
         current_round = self.round_number
         self.round_events = []
         was_critical = self.is_critical()
@@ -424,8 +451,8 @@ class RegionState:
         self._apply_restoration()
 
         counterfactual_excess = max(0.0, self.counterfactual_temperature - MELT_THRESHOLD)
-        counterfactual_rate = BASE_TEMP_RISE_PER_ROUND + (
-            counterfactual_excess * FEEDBACK_RATE_PER_DEGREE_OVER
+        counterfactual_rate = base_rise_per_round() + (
+            counterfactual_excess * FEEDBACK_RATE_PER_DEGREE_OVER * warming_scale()
         )
         self.counterfactual_temperature += counterfactual_rate
 
@@ -468,7 +495,7 @@ class RegionState:
     def acceleration_factor(self):
         """How many times faster than the background baseline warming is
         rising right now — 1.0x when stable, growing once melt kicks in."""
-        return self.current_rise_rate() / BASE_TEMP_RISE_PER_ROUND
+        return self.current_rise_rate() / base_rise_per_round()
 
     def acceleration_message(self):
         if not self.is_melting():
@@ -1185,6 +1212,47 @@ def _render_framing():
 def on_toggle_framing(event=None):
     global framing
     framing = "global" if framing == "regional" else "regional"
+    render()
+
+
+# ===========================================================================
+# G9: the long-game toggle. Only available before any region has played a
+# round, since switching mid-run would change the meaning of every number
+# already on screen.
+# ===========================================================================
+def can_toggle_long_game():
+    return all(r.round_number == 1 for r in (region, region_b, region_c, region_d))
+
+
+def set_long_game(enabled):
+    global long_game
+    if not can_toggle_long_game():
+        return False
+    long_game = bool(enabled)
+    return True
+
+
+def long_game_text():
+    if long_game:
+        return (
+            f"Long game is on: warming runs at {LONG_GAME_WARMING_SCALE * 100:.0f}% speed and Output pays "
+            f"{LONG_GAME_INCOME_SCALE * 100:.0f}% as much, so the full trajectory takes about "
+            f"{1 / LONG_GAME_WARMING_SCALE:.1f}x as many rounds."
+        )
+    return "Standard game. A long game stretches the whole trajectory over roughly two and a half times as many rounds."
+
+
+def _render_long_game():
+    button = document.getElementById("long-game-toggle-button")
+    button.innerText = "Long game: on" if long_game else "Long game: off"
+    button.disabled = not can_toggle_long_game()
+    document.getElementById("long-game-display").innerText = long_game_text() + (
+        "" if can_toggle_long_game() else " (Locked once the first round has been played.)"
+    )
+
+
+def on_toggle_long_game(event=None):
+    set_long_game(not long_game)
     render()
 
 
@@ -2064,6 +2132,7 @@ def render():
     _render_policy_stance()
     _render_forecast()
     _render_framing()
+    _render_long_game()
     render_shared_research()
     render_carbon_bank()
     document.getElementById("rise-rate-display").innerText = (
@@ -2177,7 +2246,7 @@ def render():
     # G12: a small inline forecast of each investment's effect, so a
     # player can see what a click would do before making it rather than
     # inferring it from the constants tables in How to Play.
-    document.getElementById("output-forecast").innerText = f"+{OUTPUT_INCOME_PER_UNIT} funds/round"
+    document.getElementById("output-forecast").innerText = f"+{output_income_per_unit():g} funds/round"
     document.getElementById("preserve-forecast").innerText = (
         f"+{DAMPENING_PER_PRESERVE_UNIT * 100:.0f}% dampening"
     )
@@ -2508,6 +2577,9 @@ def get_state():
     # G29: only the non-default framing is written.
     if framing != "regional":
         state["framing"] = framing
+    # G9: only written when the long game is on.
+    if long_game:
+        state["long_game"] = True
     return state
 
 
@@ -2525,9 +2597,10 @@ def load_state(data):
     per-field fallback in _apply_region_state()."""
     global info_page_open, worst_case_region_revealed, preset_used_ever
     global worst_case_intro_seen, forecast_guess, forecast_total, forecast_hits, forecast_last
-    global framing, carbon_bank
+    global framing, carbon_bank, long_game
     if not isinstance(data, dict):
         return False
+    long_game = data.get("long_game") is True
     region_data = data.get("region")
     if isinstance(region_data, dict):
         _apply_region_state(region, region_data)
@@ -2592,6 +2665,9 @@ def setup():
         )
     document.getElementById("archive-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_archive)
+    )
+    document.getElementById("long-game-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_long_game)
     )
     document.getElementById("framing-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_framing)
