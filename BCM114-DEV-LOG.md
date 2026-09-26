@@ -810,3 +810,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** champ-de-mots
 **Did:** Added a standalone sentence builder (English prompt, French word tiles, undo, summary) over the bonus sentences of every unlocked week, available at any time and counted in the practice ledger.
 **Result:** 691 Champ tests pass (11 new); live-checked the panel opens with a shuffled sentence and tiles place.
+
+### 2026-09-26 (Le Champ L5: conversation simulator)
+**Game:** champ-de-mots
+**Did:** Added a conversation simulator with six scripted dialogues built from catalog phrases, unlock-gated by the weeks they use and counted in the practice ledger.
+**Result:** 702 Champ tests pass (11 new); live-checked a dialogue opens, options shuffle and feedback shows.

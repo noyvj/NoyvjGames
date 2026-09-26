@@ -254,6 +254,7 @@
         <button id="water-next-button" class="primary">Loading...</button>
         <button id="quick-water-button" class="secondary" title="One question on your most overdue plot: the quickest way to water something during a short break.">💧 Quick water</button>
         <button id="sentence-builder-button" class="secondary" title="Build French sentences from word tiles, from any week you have unlocked. Open it any time.">🧩 Sentence builder</button>
+        <button id="conversation-button" class="secondary" title="A short scripted exchange: pick the French line that fits each turn. Opens once the weeks whose phrases it uses are unlocked.">💬 Conversation</button>
         <button id="next-day-button" class="secondary">Next day</button>
       </div>
       <label class="accent-toggle">
@@ -399,6 +400,22 @@
       <p id="liaison-summary" class="status-line" hidden></p>
       <button id="liaison-next-button" class="secondary" hidden>Next</button>
       <button id="liaison-close-button" class="secondary practice-close">Close</button>
+    </div>
+
+    <div id="conversation-panel" class="section practice" hidden>
+      <div class="panel-hero panel-hero--bonus" aria-hidden="true">💬</div>
+      <p id="conversation-title" class="practice-instruction"></p>
+      <p id="conversation-progress" class="practice-context"></p>
+      <p id="conversation-empty-message" class="status-line status-line--muted" hidden></p>
+      <div id="conversation-card" class="question-card">
+        <p id="conversation-line" class="practice-prompt"></p>
+        <p id="conversation-gloss" class="practice-context"></p>
+        <div id="conversation-choices" class="bonus-tile-row"></div>
+        <p id="conversation-feedback" class="practice-feedback"></p>
+        <button id="conversation-next-button" class="secondary" hidden>Next</button>
+      </div>
+      <p id="conversation-summary" class="practice-feedback" hidden></p>
+      <button id="conversation-close-button" class="secondary practice-close">Close</button>
     </div>
 
     <div id="builder-panel" class="section practice" hidden>
