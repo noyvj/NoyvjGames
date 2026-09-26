@@ -1878,6 +1878,8 @@ def build_farm():
     farm = _element("farm")
     farm.innerHTML = ""
     plot_cells.clear()
+    _farm_cell_cache.clear()
+    _farm_row_cache.clear()
 
     for row in state.rows:
         row_element = document.createElement("div")
@@ -3423,39 +3425,58 @@ def _plot_title(plot):
     return " · ".join(parts)
 
 
+# U14: render_farm() used to rewrite five DOM properties on every plot cell on
+# every render (about 20ms, the single biggest cost in this game). Each cell's
+# and row's last-written values are remembered here and a property is only
+# written when it actually changed; a rebuilt grid clears both caches.
+_farm_cell_cache = {}
+_farm_row_cache = {}
+
+
 def render_farm():
     for plot in state.plots:
         cell = plot_cells.get(plot.plot_id)
         if cell is None:
             continue
-        cell.className = _plot_classes(plot)
-        cell.innerText = STAGE_ICON[plot.stage]
+        classes = _plot_classes(plot)
+        icon = STAGE_ICON[plot.stage]
         title = _plot_title(plot)
+        disabled = not state.is_row_unlocked(plot.sequence)
+        values = (classes, icon, title, disabled)
+        if _farm_cell_cache.get(plot.plot_id) == values:
+            continue
+        _farm_cell_cache[plot.plot_id] = values
+        cell.className = classes
+        cell.innerText = icon
         cell.title = title
         # The sprite carries the meaning visually; screen readers get the same
         # sentence the tooltip does.
         cell.setAttribute("aria-label", title)
-        cell.disabled = not state.is_row_unlocked(plot.sequence)
+        cell.disabled = disabled
 
     for row in state.rows:
         plots = state.row_plots(row.sequence)
         grown = sum(1 for p in plots if p.stage != STAGE_SEED)
-        _element(f"row-progress-{row.sequence}").innerText = f"{grown}/{len(plots)}"
         # L20 -- separate "watered at least once" from "never watered yet"
         # (a wrong answer counts as watered but leaves the plot a seed, so
         # the grown/total number above can understate real catch-up).
         watered = sum(1 for p in plots if p.last_reviewed is not None)
+        unlocked = state.is_row_unlocked(row.sequence)
+        row_due = sum(1 for p in plots if is_due(p, state.current_day)) if unlocked else 0
+        badge_hidden = row.sequence not in row_session_perfect_badge
+        row_values = (grown, len(plots), watered, unlocked, row_due, badge_hidden)
+        if _farm_row_cache.get(row.sequence) == row_values:
+            continue
+        _farm_row_cache[row.sequence] = row_values
+
+        _element(f"row-progress-{row.sequence}").innerText = f"{grown}/{len(plots)}"
         _element(f"row-progress-{row.sequence}").title = (
             f"{watered} of {len(plots)} plots watered at least once, {len(plots) - watered} never watered yet"
         )
-        unlocked = state.is_row_unlocked(row.sequence)
         _element(f"row-lock-{row.sequence}").hidden = unlocked
         _element(f"row-{row.sequence}").className = "row" if unlocked else "row row--locked"
-        _element(f"row-perfect-badge-{row.sequence}").hidden = (
-            row.sequence not in row_session_perfect_badge
-        )
+        _element(f"row-perfect-badge-{row.sequence}").hidden = badge_hidden
 
-        row_due = sum(1 for p in plots if is_due(p, state.current_day)) if unlocked else 0
         due_element = _element(f"row-due-{row.sequence}")
         due_element.hidden = not row_due
         due_element.innerText = ROW_DUE_NOTE.format(count=row_due) if row_due else ""

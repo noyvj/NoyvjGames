@@ -640,3 +640,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** SOL
 **Did:** Replaced the two flat "Fund Research" bars with a real research tree: two 20-node levels (Near Bodies, then Far Bodies) that split into branches and rejoin, ending at each level's final node, which unlocks the bodies. Costs vary per node but each level totals the old bar's cost (1000 and 5000 Iron). Most nodes carry a small bonus (yield, cheaper miners and recyclers, cheaper trade routes), wired into the existing yield and cost functions. Old saves convert without loss (completed levels become researched nodes; partial progress buys nodes in tree order and any leftover Iron is refunded). The Deep Research prestige perk now discounts node costs.
 **Result:** 680 → 687 tests passing (research tests rewritten for the tree), flake8 clean, verified live with zero new console errors.
+
+### 2026-09-26 (Le Champ de Mots: farm render cache, U14)
+**Game:** Le Champ de Mots
+**Did:** Profiled each game's render sub-calls and found `render_farm()` rewrote five DOM properties on every plot cell every render. It now caches each cell's and row's last-written values and writes only what changed. Also corrected the earlier U14 measurement: a first pass over-counted first-call warm-up (Continuum's steady `render()` is 2.8ms, not 18ms).
+**Result:** 664 → 668 tests passing, flake8 clean; steady-state `render()` about 3.3ms. U14 closed as measure-then-fix: no game needs screen-splitting for speed.
