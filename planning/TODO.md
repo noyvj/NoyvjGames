@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 33/109 items checked off (30.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 34/109 items checked off (31.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Only the sections you have answered so far are here: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -82,7 +82,7 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 
 ## N. Seasonal events (redo the list around real big dates)
 
-- [ ] N-1: Redo Round 3 section N with real big-date events per your comment (Christmas, Halloween, New Year, Easter, Hanukkah, Thanksgiving, 4th of July, Valentine's Day, more, internationally inclusive), each finishable in about 15 minutes, with a temporary date-tied stand-in for games with no natural fit.
+- [x] N-1: Redo Round 3 section N with real big-date events per your comment (Christmas, Halloween, New Year, Easter, Hanukkah, Thanksgiving, 4th of July, Valentine's Day, more, internationally inclusive), each finishable in about 15 minutes, with a temporary date-tied stand-in for games with no natural fit.
 - [ ] N-2: Build the groundwork (W-4) and the first event end to end on one game.
 - [ ] N-3: In the next round's M section, list games that could easily host a mode fitting each big event.
 

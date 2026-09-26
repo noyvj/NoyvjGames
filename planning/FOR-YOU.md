@@ -76,6 +76,10 @@ I'll drop all of that into the ad bar and it goes live everywhere on the site at
 4. **Pocket Bazaar:** is any clock banned outright (my plan counts customer patience in beats, not seconds), or could an optional real-time mode exist later?
 5. **Signal:** once timings are known, which bigger boards (Wide 13x13, Big Sky 15x15) should also become daily modes?
 
+### 7. Seasonal events: react to the redone list
+
+`planning/SEASONAL-EVENTS.md` redoes Round 3 section N around real big dates (Christmas, Halloween, New Year, Easter, Hanukkah, Thanksgiving, 4th of July, Valentine's, Lunar New Year, Diwali), each a 15-minute task on a host game with a temporary stand-in where no game fits. The date engine is built and tested. Three questions: (1) is the host-game mapping acceptable? (2) which American-centric dates (4th of July, Thanksgiving) do you keep, replace with inclusive ones, or drop? (3) should badges show only in the game, or also on the hub next to account achievements (I recommend both)?
+
 ---
 
 ## Answered — building now (no further input needed, listed so you can see what your answers turned into)
