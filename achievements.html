@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Achievements — NoyvjGames</title>
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="shared/space-bg.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#achievements-main">Skip to content</a>
+  <div class="space-bg" aria-hidden="true"><div class="space-bg-nebula"></div><div class="space-bg-stars-bright"></div></div>
+  <header id="hub-header">
+    <nav class="hub-nav">
+      <a href="index.html">&larr; Back to NoyvjGames</a>
+      <a href="whats-new.html">What's New</a>
+      <a href="roadmap.html">Roadmap</a>
+      <a href="sources.html">Sources &amp; Credits</a>
+      <a href="index.html#site-feedback-section">Feedback / Report a Bug</a>
+    </nav>
+    <h1>Achievements</h1>
+    <p id="hub-tagline">Every achievement in every game, in one place. Sign in on the hub to see which ones you've earned.</p>
+  </header>
+
+  <main id="achievements-main" tabindex="-1" class="whats-new-main ach-main">
+    <p id="ach-summary" class="ach-summary" role="status">Loading achievements&hellip;</p>
+
+    <div id="ach-controls" class="ach-controls" hidden>
+      <span class="ach-controls-label">Show:</span>
+      <button type="button" class="secondary ach-filter-button ach-filter-button--active" data-filter="all" aria-pressed="true">All</button>
+      <button type="button" class="secondary ach-filter-button" data-filter="earned" aria-pressed="false">Earned</button>
+      <button type="button" class="secondary ach-filter-button" data-filter="unearned" aria-pressed="false">Not yet earned</button>
+    </div>
+
+    <nav id="ach-jump" class="ach-jump" aria-label="Jump to a game" hidden></nav>
+    <div id="ach-games"></div>
+  </main>
+
+  <script src="shared/hub-auth.js"></script>
+  <script>
+    (function () {
+      const API_BASE = "https://noyvjgames.fastapicloud.dev";
+      const FALLBACK_IDS = ["sol", "canopy", "grid", "tide", "aftermath", "herd", "thaw", "loop", "drift", "trade-empire", "continuum", "champ-de-mots"];
+      const NAMES = {
+        sol: "SOL", canopy: "Canopy", grid: "Grid", tide: "Tide", aftermath: "Aftermath", herd: "Herd",
+        thaw: "Thaw", loop: "Loop", drift: "Drift", "trade-empire": "Trade Empire",
+        continuum: "Continuum", "champ-de-mots": "Le Champ de Mots",
+      };
+
+      const summaryEl = document.getElementById("ach-summary");
+      const controlsEl = document.getElementById("ach-controls");
+      const jumpEl = document.getElementById("ach-jump");
+      const gamesEl = document.getElementById("ach-games");
+      let signedIn = false;
+      let filter = "all";
+
+      function el(tag, className, text) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text !== undefined) node.textContent = text;
+        return node;
+      }
+
+      async function fetchJson(url, options) {
+        try {
+          const res = await fetch(url, options);
+          return res.ok ? await res.json() : null;
+        } catch (e) {
+          return null;
+        }
+      }
+
+      async function loadGameIds() {
+        const manifest = await fetchJson("game-manifest.json");
+        const ids = manifest && Array.isArray(manifest.achievements)
+          ? manifest.achievements.filter((s) => typeof s === "string" && /^[a-z0-9-]+$/.test(s))
+          : [];
+        const list = ids.length ? ids : FALLBACK_IDS;
+        // Keep the hub's own listing order rather than the manifest's alphabetical one.
+        return FALLBACK_IDS.filter((id) => list.includes(id)).concat(list.filter((id) => !FALLBACK_IDS.includes(id)));
+      }
+
+      // Earned ids per game from the signed-in account's most recent save of each game.
+      async function loadEarned() {
+        if (typeof hubGetBearerToken !== "function" || !hubGetBearerToken()) return null;
+        const saves = await fetchJson(`${API_BASE}/users/me/saves`, { headers: hubAuthHeaders() });
+        if (!Array.isArray(saves)) return null;
+        const earned = {};
+        saves.forEach((save) => {
+          const list = save && save.save_data && Array.isArray(save.save_data.achievements_earned) ? save.save_data.achievements_earned : null;
+          if (!list) return;
+          const time = new Date(save.updated_at || save.created_at).getTime() || 0;
+          const prev = earned[save.game_id];
+          if (!prev || time > prev.time) earned[save.game_id] = { time, ids: new Set(list) };
+        });
+        return earned;
+      }
+
+      function applyFilter() {
+        document.querySelectorAll(".ach-item").forEach((item) => {
+          const isEarned = item.dataset.earned === "true";
+          item.hidden = (filter === "earned" && !isEarned) || (filter === "unearned" && isEarned);
+        });
+        document.querySelectorAll(".ach-game").forEach((section) => {
+          const anyVisible = section.querySelector(".ach-item:not([hidden])");
+          section.hidden = !anyVisible;
+        });
+        document.querySelectorAll(".ach-filter-button").forEach((button) => {
+          const active = button.dataset.filter === filter;
+          button.classList.toggle("ach-filter-button--active", active);
+          button.setAttribute("aria-pressed", active ? "true" : "false");
+        });
+      }
+
+      function renderGame(gameId, catalog, earnedInfo, rarity) {
+        const list = catalog.achievements;
+        const earnedSet = earnedInfo ? earnedInfo.ids : null;
+        const earnedCount = earnedSet ? list.filter((a) => earnedSet.has(a.id)).length : 0;
+        const name = NAMES[gameId] || gameId;
+
+        const section = el("details", "ach-game");
+        section.id = gameId;
+        section.open = true;
+        const summary = el("summary", "ach-game-summary");
+        summary.appendChild(el("span", "ach-game-name", name));
+        summary.appendChild(el("span", "ach-game-count", signedIn ? `${earnedCount} of ${list.length} earned` : `${list.length} achievements`));
+        section.appendChild(summary);
+
+        const play = el("a", "ach-game-link", `Play ${name} →`);
+        play.href = `games/${gameId}/index.html`;
+        section.appendChild(play);
+
+        const ul = el("ul", "ach-list");
+        list.forEach((a) => {
+          const isEarned = !!(earnedSet && earnedSet.has(a.id));
+          const li = el("li", "ach-item" + (isEarned ? " ach-item--earned" : ""));
+          li.dataset.earned = String(isEarned);
+          if (signedIn) {
+            li.appendChild(el("span", "ach-item-status", isEarned ? "✓ Earned" : "○ Not yet"));
+          }
+          li.appendChild(el("span", "ach-item-label", a.label));
+          li.appendChild(el("span", "ach-item-desc", a.description));
+          const stat = rarity && rarity[a.id];
+          if (stat && typeof stat.earned_pct === "number") {
+            li.appendChild(el("span", "ach-item-rarity", `Earned by ${stat.earned_pct}% of players`));
+          }
+          ul.appendChild(li);
+        });
+        section.appendChild(ul);
+        gamesEl.appendChild(section);
+        return { earnedCount, total: list.length };
+      }
+
+      async function main() {
+        const ids = await loadGameIds();
+        const [earned, catalogs, stats] = await Promise.all([
+          loadEarned(),
+          Promise.all(ids.map((id) => fetchJson(`games/${id}/achievements.json`))),
+          Promise.all(ids.map((id) => fetchJson(`${API_BASE}/stats/games/${id}`))),
+        ]);
+        signedIn = earned !== null;
+
+        let totalEarned = 0;
+        let totalAll = 0;
+        let games = 0;
+        ids.forEach((id, i) => {
+          const catalog = catalogs[i];
+          if (!catalog || !Array.isArray(catalog.achievements) || !catalog.achievements.length) return;
+          const rarity = stats[i] && stats[i].achievements && !stats[i].suppressed ? stats[i].achievements : null;
+          const result = renderGame(id, catalog, earned ? earned[id] : null, rarity);
+          totalEarned += result.earnedCount;
+          totalAll += result.total;
+          games += 1;
+          const chip = el("a", "ach-jump-chip", NAMES[id] || id);
+          chip.href = `#${id}`;
+          jumpEl.appendChild(chip);
+        });
+
+        if (!games) {
+          summaryEl.textContent = "Couldn't load the achievement lists right now — try again in a moment.";
+          return;
+        }
+        jumpEl.hidden = false;
+        if (signedIn) {
+          summaryEl.textContent = `You've earned ${totalEarned} of ${totalAll} achievements across ${games} games.`;
+          controlsEl.hidden = false;
+          controlsEl.querySelectorAll(".ach-filter-button").forEach((button) => {
+            button.addEventListener("click", () => {
+              filter = button.dataset.filter;
+              applyFilter();
+            });
+          });
+        } else {
+          summaryEl.textContent = "";
+          summaryEl.append(`${totalAll} achievements across ${games} games. `);
+          const link = el("a", "", "Sign in on the hub");
+          link.href = "index.html#account-section";
+          summaryEl.appendChild(link);
+          summaryEl.append(" to see which ones you've earned.");
+        }
+        if (location.hash) {
+          const target = document.getElementById(location.hash.slice(1));
+          if (target) target.scrollIntoView();
+        }
+      }
+
+      main();
+    })();
+  </script>
+</body>
+</html>

@@ -826,12 +826,21 @@ function renderEventBadges(saves) {
 
 const accountAchievementsDashboard = document.getElementById("account-achievements-dashboard");
 
-function renderProgressBar(container, label, earned, total) {
+function renderProgressBar(container, label, earned, total, listHref) {
   const row = document.createElement("div");
   row.className = "achievements-bar-row";
   const labelEl = document.createElement("p");
   labelEl.className = "achievements-bar-label";
-  labelEl.textContent = `${label}: ${earned}/${total}`;
+  if (listHref) {
+    // Links to the full per-game list on achievements.html.
+    const link = document.createElement("a");
+    link.href = listHref;
+    link.textContent = `${label}: ${earned}/${total}`;
+    link.title = `See every ${label} achievement`;
+    labelEl.appendChild(link);
+  } else {
+    labelEl.textContent = `${label}: ${earned}/${total}`;
+  }
   const track = document.createElement("div");
   track.className = "achievements-bar-track";
   // Y26: exact fraction on hover (and to assistive tech), not just bar width.
@@ -980,7 +989,8 @@ async function loadAchievementsDashboard() {
         perGameDetails,
         GAME_DISPLAY_NAMES[gameId] || gameId,
         earned,
-        total
+        total,
+        `achievements.html#${gameId}`
       );
       totalEarned += earned;
       totalPossible += total;
@@ -999,7 +1009,7 @@ async function loadAchievementsDashboard() {
     divider.className = "achievements-dashboard-overall-label";
     divider.textContent = "Overall";
     accountAchievementsDashboard.appendChild(divider);
-    renderProgressBar(accountAchievementsDashboard, "All games", totalEarned, totalPossible);
+    renderProgressBar(accountAchievementsDashboard, "All games", totalEarned, totalPossible, "achievements.html");
 
     perGameSummary.textContent = `Per-game breakdown (${gamesRendered} games)`;
     accountAchievementsDashboard.appendChild(perGameDetails);

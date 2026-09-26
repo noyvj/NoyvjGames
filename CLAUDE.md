@@ -11,6 +11,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
   manifest.json       <- PWA manifest
   sw.js               <- service worker, stale-while-revalidate (serves cache instantly, refreshes it in the background every request)
   ad-bar.css           <- shared ad bar partial (hub + every game page)
+  achievements.html    <- public list of every achievement in every game (earned ticks + filter when signed in), reads each games/<slug>/achievements.json live
   whats-new.html       <- public "what shipped" feed, parsed live from the two dev logs below — no build step
   admin.html           <- unlisted aggregate stats page (ratings/feedback/reports/accounts/saves) — not linked from hub nav, direct-URL only
   roadmap.html         <- public roadmap: parses CLAUDE.md's own "Current games"/"Site-level milestones" tables live, paired with real per-game commit counts
