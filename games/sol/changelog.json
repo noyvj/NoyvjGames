@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-09-27",
+      "entry": "Stats: a personal-best 'Fastest full playthrough' (measured per run, kept for life). The welcome-back line now also reports machines built and hand-mined loads since your last visit (R-9, R-10)."
+    },
+    {
+      "date": "2026-09-27",
       "entry": "Light theme polish, and the light/dark switch now lives in Settings (\"Colour theme\") instead of a floating pill. Research nodes, Governor priority buttons, prestige and status greens, amber warnings and dimmed captions were darkened for readable contrast on the light theme. Dark mode is unchanged (Y11b)."
     },
     {

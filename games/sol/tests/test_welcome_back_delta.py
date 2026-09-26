@@ -23,7 +23,7 @@ def test_first_ever_load_falls_back_to_the_static_snapshot(game_env):
 
     # The snapshot is stored after this first load, ready to diff next time.
     stored = json.loads(game_env.local_storage.getItem(module.WELCOME_BACK_SNAPSHOT_STORAGE_KEY))
-    assert stored == {"worlds_visited": 1, "achievements_earned": 0}
+    assert stored == {"worlds_visited": 1, "achievements_earned": 0, "machines_built": 0, "manual_clicks": 0}
 
 
 def test_genuine_positive_delta_shown_on_a_later_load(game_env):
@@ -75,7 +75,7 @@ def test_stored_snapshot_updates_correctly_across_two_consecutive_loads(game_env
     module = game_env.module
     module.load_state(module.get_state())
     first_stored = json.loads(game_env.local_storage.getItem(module.WELCOME_BACK_SNAPSHOT_STORAGE_KEY))
-    assert first_stored == {"worlds_visited": 1, "achievements_earned": 0}
+    assert first_stored == {"worlds_visited": 1, "achievements_earned": 0, "machines_built": 0, "manual_clicks": 0}
 
     game_env.click()
     module.unlocked_bodies.add("Mars")
@@ -96,3 +96,52 @@ def test_load_welcome_back_snapshot_defaults_on_malformed_storage(game_env):
 def test_welcome_back_snapshot_is_not_part_of_get_state(game_env):
     module = game_env.module
     assert "welcome_back" not in json.dumps(module.get_state()).lower()
+
+
+def test_r9_machines_and_clicks_show_in_the_delta(game_env):
+    """R-9: the welcome-back line also reports machines built and hand-mined loads."""
+    module = game_env.module
+    game_env.local_storage.setItem(
+        module.WELCOME_BACK_SNAPSHOT_STORAGE_KEY,
+        json.dumps({"worlds_visited": 1, "achievements_earned": 0, "machines_built": 2, "manual_clicks": 10}),
+    )
+    module.lifetime_generators_built = 7
+    module.total_manual_clicks = 55
+    module._show_welcome_back_toast()
+    text = game_env.elements["achievement-toast-text"].innerText
+    assert "+5 machine(s) built" in text and "+45 hand-mined load(s)" in text and "since you were last here" in text
+
+
+def test_r9_an_old_snapshot_without_the_new_fields_still_works(game_env):
+    module = game_env.module
+    game_env.local_storage.setItem(
+        module.WELCOME_BACK_SNAPSHOT_STORAGE_KEY, json.dumps({"worlds_visited": 1, "achievements_earned": 0})
+    )
+    module.lifetime_generators_built = 3
+    module._show_welcome_back_toast()
+    text = game_env.elements["achievement-toast-text"].innerText
+    assert "machine(s)" not in text
+    stored = json.loads(game_env.local_storage.getItem(module.WELCOME_BACK_SNAPSHOT_STORAGE_KEY))
+    assert stored["machines_built"] == 3
+
+
+def test_r9_a_lower_machine_count_never_shows_a_negative(game_env):
+    module = game_env.module
+    game_env.local_storage.setItem(
+        module.WELCOME_BACK_SNAPSHOT_STORAGE_KEY,
+        json.dumps({"worlds_visited": 1, "achievements_earned": 0, "machines_built": 9, "manual_clicks": 0}),
+    )
+    module.lifetime_generators_built = 2
+    module._show_welcome_back_toast()
+    text = game_env.elements["achievement-toast-text"].innerText
+    assert "since you were last here" not in text and "-" not in text.split("Welcome back")[1][:4]
+
+
+def test_r9_junk_snapshot_values_are_ignored(game_env):
+    module = game_env.module
+    game_env.local_storage.setItem(
+        module.WELCOME_BACK_SNAPSHOT_STORAGE_KEY,
+        json.dumps({"worlds_visited": 1, "achievements_earned": 0, "machines_built": True, "manual_clicks": "x"}),
+    )
+    snapshot = module._load_welcome_back_snapshot()
+    assert snapshot["machines_built"] is None and snapshot["manual_clicks"] is None

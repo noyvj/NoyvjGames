@@ -521,6 +521,13 @@ total_ticks = 0
 # "fastest full completion" leaderboard (shared/leaderboard.js).
 full_system_completed_tick = None
 _leaderboard_reported = False
+# R-10: the fastest full playthrough, per RUN. `run_start_tick` is the
+# total_ticks reading when this run began (0 at the start, reset by each
+# prestige); `run_completed` marks that this run's completion has been
+# recorded; `best_run_ticks` is the shortest completed run so far, kept for life.
+run_start_tick = 0
+run_completed = False
+best_run_ticks = None
 total_manual_clicks = 0
 lifetime_resources_mined_by_click = 0.0
 lifetime_resources_generated_by_automation = 0.0
@@ -1413,10 +1420,22 @@ def _report_full_completion():
 
 
 def _note_full_completion():
-    global full_system_completed_tick
-    if full_system_completed_tick is None and _terraformed_planet_count() >= len(PLANETS):
+    global full_system_completed_tick, run_completed, best_run_ticks
+    finished = _terraformed_planet_count() >= len(PLANETS)
+    if full_system_completed_tick is None and finished:
         full_system_completed_tick = total_ticks
+    if finished and not run_completed:
+        run_completed = True
+        duration = max(0, total_ticks - run_start_tick)
+        best_run_ticks = duration if best_run_ticks is None else min(best_run_ticks, duration)
     _report_full_completion()
+
+
+def best_run_text():
+    """R-10: the personal-best playthrough line for the stats panel."""
+    if best_run_ticks is None:
+        return "not yet (terraform every world to set it)"
+    return _format_duration(best_run_ticks * (TICK_INTERVAL_MS / 1000))
 
 
 def _check_new_achievements_for_toast():
@@ -1895,6 +1914,7 @@ def update_stats_panel_display():
         ("Worlds visited", f"{len(visited_bodies)}/{len(PLANETS)}"),
         ("Achievements earned", f"{len(achievement_ids_earned())}/{len(ACHIEVEMENTS)}"),
         ("Prestige level", str(prestige_level)),
+        ("Fastest full playthrough", best_run_text()),
     ]
     for label, value in stat_lines:
         row = document.createElement("p")
@@ -3218,9 +3238,11 @@ def on_prestige(event=None):
         global prestige_level, unlocked_bodies, visited_bodies
         global current_planet, governor_priority, governor_budget_pct, governor_tick_count
         global governor_purchase_count, any_generator_ever_built, prestige_points_earned, sandbox_mode
-        global epilogue_open
+        global epilogue_open, run_start_tick, run_completed
 
         prestige_level = next_level
+        run_start_tick = total_ticks  # R-10: a new run starts its own clock
+        run_completed = False
         # A1/A3: 1 tree point per prestige, +1 if the New Game+ Challenge was on.
         prestige_points_earned += 1 + (1 if _challenge_on() else 0)
         sandbox_mode = False
@@ -3516,6 +3538,9 @@ def serialize_state():
         # prestige (A1) except any_generator_ever_built -- see _prestige().
         "total_ticks": total_ticks,
         **({"full_system_completed_tick": full_system_completed_tick} if full_system_completed_tick is not None else {}),
+        **({"run_start_tick": run_start_tick} if run_start_tick else {}),
+        **({"run_completed": True} if run_completed else {}),
+        **({"best_run_ticks": best_run_ticks} if best_run_ticks is not None else {}),
         "total_manual_clicks": total_manual_clicks,
         "lifetime_resources_mined_by_click": lifetime_resources_mined_by_click,
         "lifetime_resources_generated_by_automation": lifetime_resources_generated_by_automation,
@@ -3643,6 +3668,14 @@ def _load_session_additions(data):
     global prestige_points_earned, prestige_nodes, ng_challenge_active, sandbox_mode
     global close_call_hit, back_from_brink_hit, _departure_snapshots
     global full_system_completed_tick, _leaderboard_reported
+    global run_start_tick, run_completed, best_run_ticks
+
+    def _tick_count(value):
+        return value if isinstance(value, int) and not isinstance(value, bool) and 0 <= value < 10 ** 12 else None
+
+    run_start_tick = _tick_count(data.get("run_start_tick")) or 0
+    run_completed = data.get("run_completed") is True
+    best_run_ticks = _tick_count(data.get("best_run_ticks"))
 
     saved_story = data.get("story_log")
     story_log.clear()
@@ -3749,10 +3782,16 @@ def _load_welcome_back_snapshot():
         return None
     try:
         data = json.loads(raw)
-        return {
+        snapshot = {
             "worlds_visited": int(data["worlds_visited"]),
             "achievements_earned": int(data["achievements_earned"]),
         }
+        # R-9: machines built and hand-mined clicks were added later; an older
+        # snapshot simply lacks them (None = nothing to diff against).
+        for key in ("machines_built", "manual_clicks"):
+            value = data.get(key)
+            snapshot[key] = int(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else None
+        return snapshot
     except (ValueError, TypeError, KeyError):
         return None
 
@@ -3760,7 +3799,12 @@ def _load_welcome_back_snapshot():
 def _save_welcome_back_snapshot(worlds_visited, achievements_earned):
     _write_local_storage_item(
         WELCOME_BACK_SNAPSHOT_STORAGE_KEY,
-        json.dumps({"worlds_visited": worlds_visited, "achievements_earned": achievements_earned}),
+        json.dumps({
+            "worlds_visited": worlds_visited,
+            "achievements_earned": achievements_earned,
+            "machines_built": int(lifetime_generators_built),
+            "manual_clicks": int(total_manual_clicks),
+        }),
     )
 
 
@@ -3795,11 +3839,25 @@ def _show_welcome_back_toast():
     if previous is not None:
         delta_worlds = worlds - previous["worlds_visited"]
         delta_achievements = earned - previous["achievements_earned"]
-        if delta_worlds >= 0 and delta_achievements >= 0 and (delta_worlds > 0 or delta_achievements > 0):
+        delta_machines = (
+            int(lifetime_generators_built) - previous["machines_built"] if previous.get("machines_built") is not None else 0
+        )
+        delta_clicks = (
+            int(total_manual_clicks) - previous["manual_clicks"] if previous.get("manual_clicks") is not None else 0
+        )
+        if (
+            delta_worlds >= 0 and delta_achievements >= 0 and delta_machines >= 0 and delta_clicks >= 0
+            and (delta_worlds > 0 or delta_achievements > 0 or delta_machines > 0 or delta_clicks > 0)
+        ):
             message = (
                 f"👋 Welcome back! +{delta_worlds} world(s) visited, "
-                f"+{delta_achievements} achievement(s) since you were last here."
+                f"+{delta_achievements} achievement(s)"
             )
+            if delta_machines > 0:
+                message += f", +{delta_machines} machine(s) built"
+            if delta_clicks > 0:
+                message += f", +{delta_clicks} hand-mined load(s)"
+            message += " since you were last here."
 
     if message is None:
         message = (
