@@ -69,6 +69,10 @@ ELEMENT_IDS = [
     "d-melt-status-display",
     "rescue-button",
     "rescue-status",
+    "policy-stance-growth-button",
+    "policy-stance-balanced-button",
+    "policy-stance-mitigation-button",
+    "policy-stance-display",
 ]
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-name", f"{_category}-count", f"{_category}-invest-button"]

@@ -575,3 +575,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Game:** Thaw
 **Did:** Added a once-per-region emergency rescue for a region that has tipped into critical: 200 funds buys 5 rounds of extra feedback dampening (past the normal 85% investment cap). It is a temporary lever, not a fix, and it never counts toward the permanent-dampening achievements.
 **Result:** 156 → 172 tests passing, flake8 clean; verified live on Regions A and B, zero console errors.
+
+### 2026-09-26 (Thaw: policy stance, G13)
+**Game:** Thaw
+**Did:** Added an optional starting policy stance for Region A (Growth-led, Balanced, Mitigation-led): a once-only, modest trade between starting funds and a permanent dampening head start. It doesn't count as an investment for achievements or the pre-emptive-investment praise.
+**Result:** 172 → 187 tests passing, flake8 clean; verified live, zero console errors.

@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-09-26",
+    "entry": "Optional starting policy stance for Region A: pick Growth-led, Balanced or Mitigation-led before round 1 to trade a little starting funds against a small permanent dampening head start (G13)."
+  },
+  {
+    "date": "2026-09-26",
     "entry": "Region rescue: once per region, when it tips into the critical tier, you can pay 200 funds for an emergency rescue that sharply dampens the feedback loop for 5 rounds (G21)."
   },
   {

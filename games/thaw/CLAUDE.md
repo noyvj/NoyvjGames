@@ -547,3 +547,12 @@ A last-resort lever for a region that has tipped into the critical tier (melting
 - UI: an "Emergency rescue" button and status line in Region A, B and C (Region D is auto-played and has none). The button is shown only while the region is critical and the rescue unspent, and disabled until funds cover the cost; the status line is hidden on a stable region.
 - Save: `rescue_used` and `rescue_rounds_left` are written only once a rescue has been used (older saves and untouched regions are byte-identical), and validated on load (a bool, an int in 0..5, never a bool-as-int; an active countdown implies used).
 - 156 -> 172 tests (`tests/test_region_rescue.py`); verified live: the button appears disabled or enabled by funds, a click spends 200 and the warming rate drops from 1.85 to 1.52 then counts down, zero console errors.
+
+## Starting policy stance (G13, 2026-09-26)
+
+An optional, once-only framing for Region A, chosen before round 1 (and before anything is invested): Growth-led (+100 starting funds), Balanced (+40 funds, +3% dampening) or Mitigation-led (+6% dampening). Deliberately modest and roughly value-equivalent, so no stance is clearly best ("subtly weighting starting dampening"). Region B/C already express strategies through presets and Region D is the unmanaged baseline, so only Region A gets one.
+
+- `POLICY_STANCES` holds the table; `RegionState.policy_stance` (key or None) and `policy_dampening` (derived from the key) add into `feedback_dampening_fraction()` and so obey `MAX_FEEDBACK_DAMPENING`.
+- A stance is not an investment: it doesn't earn `first_intervention`, and the pre-emptive-investment callout now requires real preserve/monitor capacity (it used to key off any nonzero dampening). With nothing invested, `intervention_feedback_message()` says the head start comes from the policy stance.
+- Save: only the key is written (and only when set); the dampening is re-derived on load, and an unknown or wrong-typed key loads as no stance. Locked once round 1 passes or anything is invested.
+- 172 -> 187 tests (`tests/test_policy_stance.py`); verified live, zero console errors.

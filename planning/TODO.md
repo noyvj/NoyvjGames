@@ -1,6 +1,6 @@
 # Site-Wide TODO
 
-**Progress: 673/767 items checked off (87.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
+**Progress: 674/767 items checked off (87.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land. The count is high because every cross-game rollout item (Z section) is broken into one checkbox per game — see the note at the top of that section. `TODO.md` is the working title on purpose — the user will rename it once the original `planning/TODO.md` is fully finished, so the two never collide.
 
 Built from your labeled answers in `planning/IMPROVEMENT-IDEAS-ROUND-2.md` (30 ideas per section this round, up from 20 in round 1 — sections A-L per game, M new-game concepts, Z cross-game, Y hub-shell, X the Warframe tracker). Same rules as round 1's `TODO.md`: "yes" items land here, "later"/genuinely-parked items go to `LATER.md`, open questions only you can answer go to `FOR-YOU.md`, "no" answers are dropped entirely (not carried anywhere). Section X (the Warframe tracker) originally routed to its own local `warframe_build_tracker/TODO.md` — as of 2026-09-20 that file has been deleted and everything moved into the **X** section here instead, at your request.
 
@@ -599,7 +599,7 @@ Order: **Z. Games** (cross-game) → **Y. Home** (hub shell) → per-game sectio
 - [x] G10: Let the next-round preview tooltip show all three regions' previews simultaneously in one combined tooltip.
 - [x] G11: A community "average acceleration factor" comparison, reinforcing the hope-angle message that intervention is common and effective *(needs Z1)*.
 - [x] G12: A one-time callout the very first time `dampening_at_melt_start` is nonzero, praising the pre-emptive investment.
-- [ ] G13: A "policy simulation" branch — choose a real-world-inspired regional policy stance at game start, subtly weighting starting dampening.
+- [x] G13: A "policy simulation" branch — choose a real-world-inspired regional policy stance at game start, subtly weighting starting dampening.
 - [x] G14: Let the preset strategies show a small preview of the resulting investment split before committing.
 - [ ] G15: A "permafrost restoration" late-game mechanic — once a region stabilizes, sustained investment slowly reverses some melt.
 - [x] G16: A small trend arrow next to each region's temperature readout, showing faster/slower rise than last round.

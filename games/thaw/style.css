@@ -1035,3 +1035,16 @@ html[data-reduced-motion="true"] *::after {
   font-size: 0.8rem;
   opacity: 0.85;
 }
+
+/* G13: the optional starting policy stance picker. */
+.policy-stance-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.policy-stance-buttons button.secondary {
+  flex: 1 1 8rem;
+  font-size: 0.8rem;
+}

@@ -78,6 +78,37 @@ MAX_FEEDBACK_DAMPENING = 0.85
 # for a fixed number of rounds, buying a stricken region breathing room
 # but never a permanent fix: once it lapses, only real preserve/monitor
 # investment keeps the feedback loop in check.
+# G13: the optional starting policy stance for Region A -- a real-world-
+# inspired framing chosen once, before the first round is played, that
+# subtly weights the region's starting position. Each stance trades a
+# little starting funds against a little permanent baseline dampening;
+# none is a clearly best pick. `dampening` counts toward the region's
+# feedback dampening exactly like investment does (so it is subject to
+# MAX_FEEDBACK_DAMPENING), but never counts as an investment: it doesn't
+# earn the "first intervention" achievement or the pre-emptive-investment
+# praise. Region B/C already model strategies through their presets, and
+# Region D is the deliberately-unmanaged baseline, so only A gets a stance.
+POLICY_STANCES = {
+    "growth": {
+        "label": "Growth-led (stated policies)",
+        "blurb": "Bank on the economy first: +100 starting funds, no head start on dampening.",
+        "funds": 100.0,
+        "dampening": 0.0,
+    },
+    "balanced": {
+        "label": "Balanced (transition pathway)",
+        "blurb": "A middle path: +40 starting funds and a 3% permafrost-protection head start.",
+        "funds": 40.0,
+        "dampening": 0.03,
+    },
+    "mitigation": {
+        "label": "Mitigation-led (Paris-aligned)",
+        "blurb": "Protect the peat from day one: a 6% permafrost-protection head start, no extra funds.",
+        "funds": 0.0,
+        "dampening": 0.06,
+    },
+}
+
 RESCUE_COST = 200.0
 RESCUE_DURATION_ROUNDS = 5
 RESCUE_DAMPENING_BONUS = 0.5
@@ -161,6 +192,28 @@ class RegionState:
         # the boost's remaining rounds; `rescue_used` stays true afterwards.
         self.rescue_used = False
         self.rescue_rounds_left = 0
+        # G13: the chosen POLICY_STANCES key (None until chosen) and the
+        # baseline dampening it grants (derived from the key, never saved).
+        self.policy_stance = None
+        self.policy_dampening = 0.0
+
+    def can_choose_policy_stance(self):
+        """G13: only once, and only before the first round is played or
+        anything is invested -- a starting stance, not a mid-game lever."""
+        return (
+            self.policy_stance is None
+            and self.round_number == 1
+            and sum(self.capacity.values()) == 0
+        )
+
+    def choose_policy_stance(self, key):
+        if key not in POLICY_STANCES or not self.can_choose_policy_stance():
+            return False
+        stance = POLICY_STANCES[key]
+        self.policy_stance = key
+        self.policy_dampening = stance["dampening"]
+        self.funds += stance["funds"]
+        return True
 
     def is_critical(self):
         return self.is_melting() and self.acceleration_factor() >= CRITICAL_ACCELERATION_FACTOR
@@ -196,6 +249,7 @@ class RegionState:
         total = (
             self.capacity["preserve"] * DAMPENING_PER_PRESERVE_UNIT
             + self.capacity["monitor"] * DAMPENING_PER_MONITOR_UNIT
+            + self.policy_dampening
         )
         return min(MAX_FEEDBACK_DAMPENING, total)
 
@@ -246,6 +300,11 @@ class RegionState:
         if dampening <= 0.0:
             return "No preservation or monitoring investment yet — a future melt would hit at full force."
         pct = dampening * 100
+        if self.capacity["preserve"] + self.capacity["monitor"] == 0:
+            return (
+                f"Your policy stance is already dampening the feedback loop by {pct:.0f}% "
+                f"\u2014 a head start, before any preservation or monitoring investment."
+            )
         if dampening < 0.3:
             tier = "\U0001F331 a modest start"
         elif dampening < 0.6:
@@ -301,7 +360,7 @@ class RegionState:
             # started" rather than just "is it in place right now."
             self.dampening_at_melt_start = self.feedback_dampening_fraction()
             self.round_events.append("melt")
-            if self.dampening_at_melt_start > 0:
+            if self.capacity["preserve"] + self.capacity["monitor"] > 0:
                 self.just_preempted_melt = True
                 self.round_events.append("preempt")
         if not was_critical and self.is_critical():
@@ -681,6 +740,29 @@ def _rescue_status_text(r):
             return f"Critical \u2014 an emergency rescue ({RESCUE_COST:.0f} funds) is available, once."
         return f"Critical \u2014 an emergency rescue costs {RESCUE_COST:.0f} funds (you have {r.funds:.0f})."
     return ""
+
+
+def _render_policy_stance():
+    """G13: three stance buttons (disabled once the starting choice is made
+    or the game has moved past round 1) plus a one-line readout."""
+    can_choose = region.can_choose_policy_stance()
+    for key, stance in POLICY_STANCES.items():
+        button = document.getElementById(f"policy-stance-{key}-button")
+        chosen = region.policy_stance == key
+        button.innerText = ("\u2713 " if chosen else "") + stance["label"]
+        button.title = stance["blurb"]
+        button.disabled = not can_choose
+    display = document.getElementById("policy-stance-display")
+    if region.policy_stance is not None:
+        stance = POLICY_STANCES[region.policy_stance]
+        display.innerText = f"Policy stance: {stance['label']}. {stance['blurb']}"
+    elif can_choose:
+        display.innerText = (
+            "Optional: pick a starting policy stance before round 1. It is a permanent, "
+            "modest weighting \u2014 none is clearly best."
+        )
+    else:
+        display.innerText = "No starting policy stance was chosen for this region."
 
 
 def _render_rescue(prefix, r):
@@ -1383,6 +1465,7 @@ def render():
         cap_note_el.hidden = True
     _render_trend("temperature-trend", region)
     _render_rescue("", region)
+    _render_policy_stance()
     document.getElementById("rise-rate-display").innerText = (
         f"Current warming rate: {region.current_rise_rate():.2f}°/round"
     )
@@ -1574,6 +1657,14 @@ def _make_secondary_invest_handler(prefix, category):
     return handler
 
 
+def _make_policy_stance_handler(key):
+    def handler(event=None):
+        if region.choose_policy_stance(key):
+            render()
+            _check_new_achievements_for_toast()
+    return handler
+
+
 def _make_rescue_handler(prefix):
     """G21: prefix "" is Region A, "b"/"c" the secondary regions."""
     def handler(event=None):
@@ -1669,6 +1760,10 @@ def _region_state_dict(r):
     if r.rescue_used:
         data["rescue_used"] = True
         data["rescue_rounds_left"] = r.rescue_rounds_left
+    # G13: only the key is saved; the dampening it grants is re-derived on
+    # load, so retuning a stance can never leave a stale number in a save.
+    if r.policy_stance is not None:
+        data["policy_stance"] = r.policy_stance
     return data
 
 
@@ -1748,6 +1843,13 @@ def _apply_region_state(r, data):
         r.rescue_rounds_left = saved_rescue_rounds
     if r.rescue_rounds_left > 0:
         r.rescue_used = True
+    saved_stance = data.get("policy_stance")
+    if isinstance(saved_stance, str) and saved_stance in POLICY_STANCES:
+        r.policy_stance = saved_stance
+        r.policy_dampening = POLICY_STANCES[saved_stance]["dampening"]
+    else:
+        r.policy_stance = None
+        r.policy_dampening = 0.0
 
 
 def get_state():
@@ -1824,6 +1926,10 @@ def load_state(data):
 
 
 def setup():
+    for key in POLICY_STANCES:
+        document.getElementById(f"policy-stance-{key}-button").addEventListener(
+            "click", create_proxy(_make_policy_stance_handler(key))
+        )
     document.getElementById("rescue-button").addEventListener(
         "click", create_proxy(_make_rescue_handler(""))
     )
