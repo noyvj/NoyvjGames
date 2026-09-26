@@ -346,3 +346,8 @@ The clearest cross-cutting infra lesson from this pass: three separate games' au
 **Did:** Wrote the Z-extra design principle down as a standing per-game convention: any minigame, drill or practice mode must feed a measured top-level progress stat the player can see, with Le Champ de Mots' `record_practice()` ledger named as the reference. It is forward-looking guidance rather than a retrofit; all five Le Champ modes added tonight (quick water, sentence builder, conversation, listening, Passé Composé Sprint) were built to it.
 **Result:** documentation only.
 
+### 2026-09-27 (Site-wide: shared community pools)
+**Area:** `app/pools.py`, `app/models.py` (`pool_days`), `app/main.py` (`GET/POST /pools/{game}/{pool}`), `shared/community-pool.js`
+**Did:** A generic anonymous counter for community features: one row per (game, pool, UTC day) holding a total and a contribution count, no account or address stored. Every request is capped per pool (`POOLS[...]['max_per_request']`) and rate limited per client in-process (120 an hour); `GET` returns today's total, all-time total, best day and the last seven days. Adding a pool is one dict entry. `shared/community-pool.js` batches adds (one request per 20 s, flush when the page hides) and fills a display line from a template. First user: Loop's regional recycling pool (H11); the planned Canopy daily community plot (Round 3 GB19) reuses it.
+**Result:** 8 new backend tests (163 total). Goes live with the next backend deploy; until then the display just stays hidden.
+

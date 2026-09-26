@@ -375,6 +375,12 @@ class ChainState:
         # their entire point is to measure things *across* resets).
         self.lifetime_investment_spend = 0.0
         self.lifetime_export_revenue = 0.0
+        # H11: opt-in donation of the cycle's surplus to the shared regional
+        # recycling pool instead of selling it. `last_donation` is the units
+        # given in the most recent cycle (transient, never saved).
+        self.donate_surplus = False
+        self.lifetime_pool_donated = 0.0
+        self.last_donation = 0.0
         self.closed_loop_streak = 0
         self.best_closed_loop_streak = 0
         # H13/H23: opt-in start-of-chain modes (see can_choose_mode()).
@@ -625,7 +631,15 @@ class ChainState:
         extraction = self.new_extraction_needed()
         cost = extraction * EXTRACTION_COST_PER_UNIT * self.extraction_cost_multiplier()
         revenue = PRODUCTION_TARGET * SALE_PRICE_PER_UNIT
-        export_revenue = self.exportable_surplus() * EXPORT_PRICE_PER_UNIT
+        surplus = self.exportable_surplus()
+        if self.donate_surplus and surplus > 0:
+            # H11: the surplus goes to the regional pool, not to market.
+            export_revenue = 0.0
+            self.last_donation = surplus
+            self.lifetime_pool_donated += surplus
+        else:
+            export_revenue = surplus * EXPORT_PRICE_PER_UNIT
+            self.last_donation = 0.0
         self.funds += revenue - cost + export_revenue
         self.lifetime_export_revenue += export_revenue
         # H19: closed-loop streak -- sticky best-ever value, same shape as
@@ -2318,6 +2332,7 @@ def render():
     )
     document.getElementById("network-map-display").innerText = network_map_text()
     render_visual_views()
+    render_pool_donation()
 
     document.getElementById("trade-network-display").innerText = (
         f"Importing {chain.imported_supply():.0f} units/cycle from the trade network; "
@@ -2325,8 +2340,47 @@ def render():
     )
 
 
+def _report_pool_donation():
+    """H11: hands this cycle's donated units to the shared community-pool
+    client (batched and rate limited there). Silent without the script."""
+    if chain.last_donation <= 0:
+        return
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return
+    pool = getattr(window, "NoyvjPool", None)
+    if pool is not None:
+        pool.add("loop", "recovered_units", float(chain.last_donation))
+
+
+def pool_donation_text():
+    if chain.donate_surplus:
+        return (
+            f"Donating surplus to the regional pool instead of selling it. You have given "
+            f"{chain.lifetime_pool_donated:.0f} units so far."
+        )
+    return (
+        "Surplus supply is sold outward for funds. Donate it instead and it joins the regional "
+        "recycling pool that every player shares (you forgo the sale price)."
+    )
+
+
+def render_pool_donation():
+    button = document.getElementById("pool-donate-button")
+    button.innerText = "Surplus donation: on" if chain.donate_surplus else "Surplus donation: off"
+    button.setAttribute("aria-pressed", "true" if chain.donate_surplus else "false")
+    document.getElementById("pool-donate-status").innerText = pool_donation_text()
+
+
+def on_toggle_pool_donation(event=None):
+    chain.donate_surplus = not chain.donate_surplus
+    render()
+
+
 def on_advance_cycle(event=None):
     _run_action(chain.advance_cycle)
+    _report_pool_donation()
 
 
 def _make_circularity_handler(measure):
@@ -2613,6 +2667,8 @@ def get_state():
         "goods_category": chain.goods_category,
         "lifetime_investment_spend": chain.lifetime_investment_spend,
         "lifetime_export_revenue": chain.lifetime_export_revenue,
+        **({"donate_surplus": True} if chain.donate_surplus else {}),
+        **({"lifetime_pool_donated": chain.lifetime_pool_donated} if chain.lifetime_pool_donated > 0 else {}),
         "closed_loop_streak": chain.closed_loop_streak,
         "best_closed_loop_streak": chain.best_closed_loop_streak,
         "chains_completed_count": chains_completed_count,
@@ -2707,6 +2763,14 @@ def load_state(data):
                 chain.redesign_level[m] = level
     chain.lifetime_investment_spend = data.get("lifetime_investment_spend", 0.0)
     chain.lifetime_export_revenue = data.get("lifetime_export_revenue", 0.0)
+    chain.donate_surplus = data.get("donate_surplus") is True
+    donated = data.get("lifetime_pool_donated")
+    chain.lifetime_pool_donated = (
+        float(donated)
+        if isinstance(donated, (int, float)) and not isinstance(donated, bool) and donated == donated and 0 <= donated < 1e12
+        else 0.0
+    )
+    chain.last_donation = 0.0
     chain.closed_loop_streak = data.get("closed_loop_streak", 0)
     chain.best_closed_loop_streak = data.get("best_closed_loop_streak", 0)
 
@@ -2732,6 +2796,7 @@ def setup():
     document.getElementById("achievement-toast").hidden = True
     document.getElementById("loop-closed-banner").hidden = True
 
+    document.getElementById("pool-donate-button").addEventListener("click", create_proxy(on_toggle_pool_donation))
     document.getElementById("advance-cycle-button").addEventListener(
         "click", create_proxy(on_advance_cycle)
     )

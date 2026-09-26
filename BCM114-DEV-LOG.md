@@ -888,3 +888,8 @@ Added readability and feedback features to Thaw without adding screen clutter: t
 **Did:** Built by a delegated agent inside those two folders, committed by the log owner, on the shared `story-chapters.js` pattern. Trade Empire gets a 25-chapter trader's story (an opening, one chapter per achievement, plus two extra beats for researching the Rift Colonies and the Umbral Deep, so those clusters have a chapter). Le Champ de Mots gets 11 chapters (an opening plus one per tiered achievement) as a gentle village-farm story; tests scan the text so it never uses streak, wilting or 'behind' language, matching the game's no-guilt stance. Le Champ also gains its first `story-toggle.js` include. Hooks ride the existing achievement toast checks and load paths, are idempotent and silent without the script, and add no save keys.
 **Result:** Trade Empire 451 -> 458 tests, Le Champ 750 -> 758, flake8 clean, checked live (panels show the right chapters, the Story pill hides them, no console errors). Known: Trade Empire's opening-chapter hook test is weak in the harness, and a saved-game restore was covered by unit tests rather than a live reload.
 
+
+### 2026-09-26 (Loop H11: regional recycling pool)
+**Game:** loop
+**Did:** Added an opt-in surplus donation to Loop: give the supply you would have sold to a shared regional pool, see the pool's total, today and best day. The pool is display only and the save gains two optional validated keys.
+**Result:** 324 Loop tests pass (8 new); live-checked against a mocked pool backend.

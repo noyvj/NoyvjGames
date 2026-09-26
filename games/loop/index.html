@@ -332,6 +332,15 @@
       </details>
     </div>
 
+    <div id="pool-section" class="section">
+      <p class="meter-label">Regional recycling pool
+        <details class="info-toggle"><summary>i</summary><p>An optional shared pool that every player adds to. Turn donation on and the surplus supply you would otherwise sell outward is given to the pool instead, so you forgo that sale income. Nothing about you is shared, only the running total of units.</p></details>
+      </p>
+      <button id="pool-donate-button" class="secondary" type="button" aria-pressed="false">Surplus donation: off</button>
+      <p id="pool-donate-status" class="comparison-message"></p>
+      <p id="pool-display" class="comparison-message" hidden></p>
+    </div>
+
     <button id="advance-cycle-button" class="primary">Advance Cycle</button>
 
     <div id="feedback-prompt" class="section">
@@ -475,6 +484,7 @@
   <script src="../../shared/opening-screen.js" data-game-id="loop" data-tagline="Close a straight supply chain into a loop." data-game-name="Loop"></script>
   <script src="../../shared/story-toggle.js" data-game-id="loop" data-story-selectors="#vignette, #story-chapters"></script>
   <script src="../../shared/story-chapters.js" data-game-id="loop" data-story="story.json"></script>
+  <script src="../../shared/community-pool.js" data-game-id="loop" data-pool="recovered_units" data-target="#pool-display" data-template="The regional pool has recycled {total} units in all, {today} today (best day so far: {best})."></script>
   <script src="../../shared/last-played.js" data-game-id="loop"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="loop"></script>
   <script src="../../shared/achievement-stats.js" data-game-id="loop"></script>
