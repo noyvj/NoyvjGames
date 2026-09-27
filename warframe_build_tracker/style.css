@@ -412,6 +412,29 @@ kbd { display: inline-block; min-width: 26px; padding: 1px 7px; text-align: cent
 }
 
 
+/* Batch B planners (2026-09-27): "5. Deeper planners". Their light-theme rules are at the very end of the
+   file, scoped html[data-theme="light"] like the batch A ones. */
+#adv-section input[type="text"], #adv-section input[type="number"], #adv-section select, #adv-section .toolbar-field select {
+  padding: 7px 9px; background: #101217; color: #f2f3f5; border: 1px solid #3a404b;
+  border-radius: 6px; font: inherit; font-size: 13px;
+}
+#adv-section h3 { margin: 14px 0 6px; font-size: 15px; }
+.adv-text { white-space: pre-wrap; margin: 8px 0; font-family: inherit; }
+.adv-line { margin: 4px 0; }
+.adv-card { padding: 8px 10px; margin: 8px 0; border: 1px solid #3a404b; border-left: 4px solid #4c8dff; border-radius: 8px; font-size: 13px; }
+.adv-links { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 4px; font-size: 12px; }
+.adv-links a, .adv-card > a { color: #8fb3ff; }
+.resource-tip { margin-top: 3px; font-size: 11px; color: #8e96a5; }
+input.craft-have-input { width: 90px; }
+
+@media (max-width: 640px) {
+  #adv-section input[type="text"], #adv-section input[type="number"], #adv-section select { width: 100%; min-width: 0; }
+  #adv-section .tab-strip button.tab-btn { flex: 1 1 auto; }
+  .adv-card .mini-row { flex-direction: column; align-items: flex-start; }
+  input.craft-have-input { width: 100%; }
+}
+
+
 /* Light theme (X, "a dark/light toggle for the tracker's own UI"). A personal
    preference for this tool, driven by the same shared/theme.js the hub and
    games use, so the choice is remembered per device and follows the account. */
@@ -481,3 +504,13 @@ html[data-theme="light"] .hist-dot { fill: #1f6a47; }
 html[data-theme="light"] .hist-axis { stroke: #8a92a8; }
 html[data-theme="light"] .shortcut-box { background: #ffffff; border-color: #b9c0d4; color: #1b2033; }
 html[data-theme="light"] kbd { background: #eef1f8; border-color: #b9c0d4; color: #1b2033; }
+
+/* Batch B planners: light theme. */
+html[data-theme="light"] #adv-section input[type="text"], html[data-theme="light"] #adv-section input[type="number"],
+html[data-theme="light"] #adv-section select, html[data-theme="light"] #adv-section .toolbar-field select {
+  background: #ffffff; color: #1b2033; border-color: #b9c0d4;
+}
+html[data-theme="light"] .adv-card { border-color: #b9c0d4; border-left-color: #1c4fa8; color: #2a3048; }
+html[data-theme="light"] .adv-links a, html[data-theme="light"] .adv-card > a { color: #1c4fa8; }
+html[data-theme="light"] .resource-tip { color: #555c72; }
+html[data-theme="light"] .adv-text, html[data-theme="light"] .adv-line { color: #2a3048; }

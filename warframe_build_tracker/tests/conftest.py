@@ -8,6 +8,8 @@ import pytest
 from .fakes import FakeConfirm, FakeDocument, FakeElement, FakeNavigator, FakeTimers, create_proxy
 
 GAME_PY = Path(__file__).resolve().parent.parent / "game.py"
+# game.py imports the batch B modules (wf_*.py), which index.html writes into Pyodide's file system.
+sys.path.insert(0, str(GAME_PY.parent))
 
 ELEMENT_IDS = [
     "components-body",
@@ -118,11 +120,35 @@ ELEMENT_IDS = [
     "shortcut-overlay",
     "shortcut-list",
     "shortcut-close-button",
+    "adv-section",
+    "meta-select", "meta-bar", "meta-text",
+    "session-text",
+    "relic-source", "relic-want-input", "relic-want-add-button", "relic-want-remove-button",
+    "relic-owned-name-input", "relic-owned-count-input", "relic-owned-set-button",
+    "relic-custom-name-input", "relic-custom-parts-input", "relic-custom-unvaulted-check",
+    "relic-custom-add-button", "relic-custom-remove-button", "relic-message", "relic-plan",
+    "relic-part-list", "relic-name-list",
+    "craft-import-note", "craft-name-input", "craft-kind-select", "craft-add-button",
+    "craft-need-item-input", "craft-need-name-input", "craft-need-qty-input", "craft-need-add-button",
+    "craft-message", "craft-list", "craft-name-list",
+    "forma-build-input", "forma-current-input", "forma-wanted-input", "forma-add-button",
+    "forma-have-input", "forma-used-input", "forma-message", "forma-total", "forma-note",
+    "forma-list", "forma-target-list",
+    "pet-facts", "pet-name-input", "pet-kind-select", "pet-imprints-input", "pet-mods-input",
+    "pet-note-input", "pet-add-button", "pet-message", "pet-list",
+    "diff-text", "audit-list",
+    "ready-score", "ready-breakdown", "ready-mod-name-input", "ready-mod-rank-input",
+    "ready-mod-max-input", "ready-mod-add-button", "ready-message", "ready-mod-list",
+    "tips-summary", "tips-list",
 ]
 
 # The planner-tools tabs: one button and one panel each.
 for _key in ("timers", "mastery", "trader", "dailies", "history", "goals", "share", "tags", "notes", "log"):
     ELEMENT_IDS += [f"tab-btn-{_key}", f"tab-{_key}"]
+
+# The batch B "Deeper planners" tabs.
+for _key in ("meta", "session", "relics", "crafts", "forma", "pets", "diff", "audit", "ready", "tips"):
+    ELEMENT_IDS += [f"adv-btn-{_key}", f"adv-{_key}"]
 
 
 class GameEnv:

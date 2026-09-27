@@ -360,6 +360,157 @@
       <button type="button" id="clear-edit-log-button" class="secondary">Clear edit log</button>
     </div>
   </section>
+
+  <section id="adv-section" aria-label="Deeper planners">
+    <h2>5. Deeper planners</h2>
+    <div class="tab-strip" role="tablist" aria-label="Deeper planners">
+      <button type="button" role="tab" id="adv-btn-meta" class="tab-btn selected" aria-selected="true">Meta build</button>
+      <button type="button" role="tab" id="adv-btn-session" class="tab-btn" aria-selected="false">Farm session</button>
+      <button type="button" role="tab" id="adv-btn-relics" class="tab-btn" aria-selected="false">Void relics</button>
+      <button type="button" role="tab" id="adv-btn-crafts" class="tab-btn" aria-selected="false">Crafting</button>
+      <button type="button" role="tab" id="adv-btn-forma" class="tab-btn" aria-selected="false">Forma</button>
+      <button type="button" role="tab" id="adv-btn-pets" class="tab-btn" aria-selected="false">Pets</button>
+      <button type="button" role="tab" id="adv-btn-diff" class="tab-btn" aria-selected="false">Since last import</button>
+      <button type="button" role="tab" id="adv-btn-audit" class="tab-btn" aria-selected="false">Waste audit</button>
+      <button type="button" role="tab" id="adv-btn-ready" class="tab-btn" aria-selected="false">Readiness</button>
+      <button type="button" role="tab" id="adv-btn-tips" class="tab-btn" aria-selected="false">Farming tips</button>
+    </div>
+
+    <div id="adv-meta" class="tab-panel" role="tabpanel">
+      <p class="sync">Pick a named build and see its whole chain as one plan: the parts still to farm, the resources they still need against your built stock, the refinery crafts and credits, and one completion bar. The Wiki's Amp page names one community build ("177"); add your own in the Build comparison box above.</p>
+      <label class="toolbar-field">Build
+        <select id="meta-select" aria-label="Build to plan"></select>
+      </label>
+      <div id="meta-bar"></div>
+      <pre id="meta-text" class="sync adv-text" aria-live="polite"></pre>
+    </div>
+
+    <div id="adv-session" class="tab-panel" role="tabpanel" hidden>
+      <p class="sync">A suggested farming session for everything you are still short on: up to three places, in order, each adding the most resources not yet covered. Coverage counts where the resources drop; it is not a run count.</p>
+      <pre id="session-text" class="sync adv-text" aria-live="polite"></pre>
+    </div>
+
+    <div id="adv-relics" class="tab-panel" role="tabpanel" hidden>
+      <p class="sync">This tracker's own parts are not relic drops, so this is a manual planner for prime parts. Add a prime part you want; it lists the relics that carry it, which are unvaulted, how many you own (typed by you) and an order to open or farm them.</p>
+      <p id="relic-source" class="sync"></p>
+      <div class="inline-form">
+        <input id="relic-want-input" type="text" list="relic-part-list" maxlength="40" placeholder="Prime part, e.g. Braton Prime Barrel" aria-label="Prime part you want">
+        <button type="button" id="relic-want-add-button" class="secondary">Add part</button>
+        <button type="button" id="relic-want-remove-button" class="secondary">Remove part</button>
+      </div>
+      <div class="inline-form">
+        <input id="relic-owned-name-input" type="text" list="relic-name-list" maxlength="20" placeholder="Relic, e.g. Lith A13" aria-label="Relic you own">
+        <input id="relic-owned-count-input" type="number" min="0" max="9999" placeholder="How many" aria-label="How many of that relic you own">
+        <button type="button" id="relic-owned-set-button" class="secondary">Set owned</button>
+      </div>
+      <div class="inline-form">
+        <input id="relic-custom-name-input" type="text" maxlength="20" placeholder="Add a relic manually, e.g. Neo O1" aria-label="Relic name to add">
+        <input id="relic-custom-parts-input" type="text" placeholder="Parts it carries, comma separated" aria-label="Parts the relic carries, comma separated">
+        <label class="toolbar-check"><input id="relic-custom-unvaulted-check" type="checkbox" checked> Unvaulted</label>
+        <button type="button" id="relic-custom-add-button" class="secondary">Add relic</button>
+        <button type="button" id="relic-custom-remove-button" class="secondary">Remove my relic</button>
+      </div>
+      <p id="relic-message" class="sync" aria-live="polite"></p>
+      <div id="relic-plan"></div>
+      <datalist id="relic-part-list"></datalist>
+      <datalist id="relic-name-list"></datalist>
+    </div>
+
+    <div id="adv-crafts" class="tab-panel" role="tabpanel" hidden>
+      <p class="sync">A manual list of weapons, warframes and companions you are crafting, with their components. A component named like one of the tracker's resources reads its count from your inventory; others use a count you type. An imported lastData.dat can mark an item as owned when its name matches an owned item's game path; weapons often do not, so tick those yourself.</p>
+      <p id="craft-import-note" class="sync"></p>
+      <div class="inline-form">
+        <input id="craft-name-input" type="text" maxlength="40" placeholder="Item, e.g. Excalibur Prime" aria-label="Item to craft">
+        <select id="craft-kind-select" aria-label="Item type">
+          <option value="weapon">Weapon</option>
+          <option value="warframe">Warframe</option>
+          <option value="companion">Companion</option>
+        </select>
+        <button type="button" id="craft-add-button" class="secondary">Add item</button>
+      </div>
+      <div class="inline-form">
+        <input id="craft-need-item-input" type="text" list="craft-name-list" maxlength="40" placeholder="Item to add a component to" aria-label="Item to add a component to">
+        <input id="craft-need-name-input" type="text" maxlength="40" placeholder="Component, e.g. Neuroptics" aria-label="Component name">
+        <input id="craft-need-qty-input" type="number" min="1" placeholder="How many" aria-label="How many of the component">
+        <button type="button" id="craft-need-add-button" class="secondary">Add component</button>
+      </div>
+      <p id="craft-message" class="sync" aria-live="polite"></p>
+      <div id="craft-list"></div>
+      <datalist id="craft-name-list"></datalist>
+    </div>
+
+    <div id="adv-forma" class="tab-panel" role="tabpanel" hidden>
+      <p class="sync">Plan the Forma for a build: type its current slot polarities and the ones you want (madurai, vazarin, naramon, zenurik, unairu, penjaga, umbra, any, or - for an empty slot). Each slot that differs needs one Forma. The total runs across every active plan.</p>
+      <div class="inline-form">
+        <input id="forma-build-input" type="text" list="forma-target-list" maxlength="40" placeholder="Part, combo or crafting item" aria-label="Build to plan Forma for">
+        <input id="forma-current-input" type="text" placeholder="Current: madurai, -, vazarin" aria-label="Current slot polarities, comma separated">
+        <input id="forma-wanted-input" type="text" placeholder="Wanted: madurai, naramon, vazarin" aria-label="Wanted slot polarities, comma separated">
+        <button type="button" id="forma-add-button" class="secondary">Save plan</button>
+      </div>
+      <div class="inline-form">
+        <label class="toolbar-field">Forma you hold
+          <input id="forma-have-input" type="number" min="0" placeholder="0">
+        </label>
+        <label class="toolbar-field">Forma already used (for the readiness score)
+          <input id="forma-used-input" type="number" min="0" placeholder="0">
+        </label>
+      </div>
+      <p id="forma-message" class="sync" aria-live="polite"></p>
+      <p id="forma-total" class="sync mastery-summary"></p>
+      <p id="forma-note" class="sync"></p>
+      <div id="forma-list"></div>
+      <datalist id="forma-target-list"></datalist>
+    </div>
+
+    <div id="adv-pets" class="tab-panel" role="tabpanel" hidden>
+      <p class="sync">A manual log of your kubrow and kavat: how many imprints you have made and the mods you use. Nothing here is read from an import.</p>
+      <div id="pet-facts" class="sync"></div>
+      <div class="inline-form">
+        <input id="pet-name-input" type="text" maxlength="30" placeholder="Pet name" aria-label="Pet name">
+        <select id="pet-kind-select" aria-label="Kubrow or kavat">
+          <option value="kubrow">Kubrow</option>
+          <option value="kavat">Kavat</option>
+        </select>
+        <input id="pet-imprints-input" type="number" min="0" max="9" placeholder="Imprints made" aria-label="Imprints made">
+      </div>
+      <div class="inline-form">
+        <input id="pet-mods-input" type="text" maxlength="200" placeholder="Mods" aria-label="Pet mods">
+        <input id="pet-note-input" type="text" maxlength="200" placeholder="Breeding note" aria-label="Breeding note">
+        <button type="button" id="pet-add-button" class="secondary">Log pet</button>
+      </div>
+      <p id="pet-message" class="sync" aria-live="polite"></p>
+      <div id="pet-list"></div>
+    </div>
+
+    <div id="adv-diff" class="tab-panel" role="tabpanel" hidden>
+      <p class="sync">The tracker keeps the resource counts from your last two imports and shows what is new, what ticked forward and what was spent.</p>
+      <pre id="diff-text" class="sync adv-text" aria-live="polite"></pre>
+    </div>
+
+    <div id="adv-audit" class="tab-panel" role="tabpanel" hidden>
+      <p class="sync">Hints, not verdicts: resources you hold far more of than the unfinished builds need, raw stock you could refine, and blueprints for refined resources nothing needs any more.</p>
+      <div id="audit-list"></div>
+    </div>
+
+    <div id="adv-ready" class="tab-panel" role="tabpanel" hidden>
+      <p class="sync">A playful personal benchmark out of 100: owned parts, Forma you say you have used (Forma tab) and the mod ranks you type here. It is not a game figure.</p>
+      <p id="ready-score" class="sync mastery-summary"></p>
+      <div id="ready-breakdown"></div>
+      <div class="inline-form">
+        <input id="ready-mod-name-input" type="text" maxlength="30" placeholder="Mod name" aria-label="Mod name">
+        <input id="ready-mod-rank-input" type="number" min="0" placeholder="Rank" aria-label="Current mod rank">
+        <input id="ready-mod-max-input" type="number" min="1" placeholder="Max rank" aria-label="Max mod rank">
+        <button type="button" id="ready-mod-add-button" class="secondary">Add or update mod</button>
+      </div>
+      <p id="ready-message" class="sync" aria-live="polite"></p>
+      <div id="ready-mod-list"></div>
+    </div>
+
+    <div id="adv-tips" class="tab-panel" role="tabpanel" hidden>
+      <p id="tips-summary" class="sync"></p>
+      <div id="tips-list"></div>
+    </div>
+  </section>
 </div>
 
 <div id="shortcut-overlay" class="shortcut-overlay" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts" hidden>
@@ -375,7 +526,17 @@
   async function main() {
     const pyodide = await loadPyodide();
     window.pyodide = pyodide; // exposed for the save/load bridge below
-    const code = await (await fetch("game.py")).text();
+    // Batch B logic lives in small Python modules (same fetch-then-writeFile pattern as
+    // games/continuum's ENGINE_MODULES) so game.py stays manageable. They are written into
+    // Pyodide's virtual file system before game.py runs, so `import wf_ui` etc. resolve.
+    const WF_MODULES = ["wf_util.py", "wf_tips.py", "wf_relics.py", "wf_crafting.py", "wf_forma.py",
+      "wf_plans.py", "wf_insight.py", "wf_store.py", "wf_ui.py"];
+    const cacheBust = "?v=" + Date.now();
+    for (const name of WF_MODULES) {
+      const source = await (await fetch(name + cacheBust)).text();
+      pyodide.FS.writeFile(name, source, { encoding: "utf8" });
+    }
+    const code = await (await fetch("game.py" + cacheBust)).text();
     await pyodide.runPythonAsync(code);
     // Market price reference: fetched from the site's own backend (which asks
     // Warframe.market), best effort. Any failure just leaves prices off.

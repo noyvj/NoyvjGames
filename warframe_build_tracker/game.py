@@ -23,7 +23,11 @@ import json
 import math
 import re
 from datetime import date, datetime, timedelta, timezone
+from types import SimpleNamespace
 
+import wf_store
+import wf_tips
+import wf_ui
 from js import confirm, document
 from pyodide.ffi import create_proxy
 
@@ -605,6 +609,9 @@ state = {
     "loadouts": {},
     "inv_source": {},
     "edit_log": [],
+    # Batch B planners (2026-09-27): relics, crafts, pets, forma, imports, readiness. Defaults, export
+    # (only when non-default) and validation all live in wf_store.py; see also wf_ui.py.
+    **wf_store.default_state(),
 }
 
 FARM_LOG_MAX = 300
@@ -1134,6 +1141,7 @@ def load_state(data):
             ):
                 state["combos"].append({"name": name, "parts": list(parts)})
     _load_extra_state(data)
+    wf_store.load(state, data, build_names(), RESOURCE_LOCATIONS)
     saved_blueprints = data.get("blueprints")
     state["blueprints"] = (
         {name: value for name, value in saved_blueprints.items() if name in SYNDICATE_SOURCES and isinstance(value, bool)}
@@ -1201,6 +1209,7 @@ def import_last_data(json_text):
 
     matched = []
     unmatched = []
+    imported_counts = {}
     for match_key, resource_name in _RESOURCE_MATCH_KEYS.items():
         if match_key in counts_by_key:
             inv = state["inventory"].setdefault(resource_name, {"raw": 0, "built": 0})
@@ -1208,19 +1217,21 @@ def import_last_data(json_text):
                      int(inv.get("raw", 0)) + counts_by_key[match_key])
             inv["built"] = counts_by_key[match_key]
             set_source(resource_name, "import")
+            imported_counts[resource_name] = counts_by_key[match_key]
             matched.append(resource_name)
         else:
             unmatched.append(resource_name)
 
     note_edit("import")
     take_snapshot()
+    extra = _planner.after_import(data, imported_counts) if _planner is not None else ""
     render()
 
     total = len(matched) + len(unmatched)
     summary = f"Imported {len(matched)}/{total} resources' built counts from your file."
     if unmatched:
         summary += " Not found in the file (fill in manually): " + ", ".join(sorted(unmatched)) + "."
-    return summary
+    return summary + extra
 
 
 # ---------------------------------------------------------------------------
@@ -1289,6 +1300,7 @@ def _prune_build_refs():
     state["tags"] = {n: v for n, v in state["tags"].items() if n in names}
     state["loadouts"] = {n: v for n, v in state["loadouts"].items() if n in names}
     state["completed"] = [e for e in state["completed"] if e["n"] in names]
+    wf_store.prune(state, names)
 
 
 # --- 12. Own-edits changelog + edited-vs-imported markers ----------------
@@ -2209,6 +2221,7 @@ def _extra_state():
         out["inv_source"] = dict(state["inv_source"])
     if state["edit_log"]:
         out["edit_log"] = [dict(e) for e in state["edit_log"]]
+    out.update(wf_store.export(state))
     return out
 
 
@@ -2756,6 +2769,9 @@ def _render_resource_table(resources):
         name_cell.appendChild(
             _el("div", class_="resource-location", text=f"{loc_icon} {resource['location']}")
         )
+        tip_text = wf_tips.tip_line(resource["name"])
+        if tip_text:
+            name_cell.appendChild(_el("div", class_="resource-tip", text=tip_text))
         used_in = _el("details", class_="used-in")
         summary = _el("summary", text=(
             f"used in ({len(resource['used_in'])}) · "
@@ -2891,6 +2907,8 @@ def render():
     _render_resource_table(resources)
     _render_summary(components, resources)
     _render_tools(components, resources)
+    if _planner is not None:
+        _planner.render(components, resources)
     document.getElementById("shopping-text").value = shopping_list_text(active_rows(resources))
     document.getElementById("farm-log-text").textContent = farm_log_text()
     document.getElementById("combo-compare").textContent = combos_text(components)
@@ -3592,7 +3610,28 @@ def _on_hide_complete(_event=None):
     render()
 
 
+_planner = None
+
+
+def _make_planner():
+    """Builds the batch B planner (wf_ui.Planner) with everything it needs handed over in one object,
+    so wf_ui never imports this file. Clock helpers go through lambdas so tests can still swap them."""
+    ctx = SimpleNamespace(
+        document=document, create_proxy=create_proxy, state=state, el=_el, button=_button, mini_row=_mini_row,
+        fill=_fill, say=_say, by_id=_by_id, active_proxies=_active_proxies, calculate=lambda: calculate(),
+        render=lambda: render(), active_rows=active_rows, all_combos=all_combos, part_category=PART_CATEGORY,
+        recipes=RECIPES, refinery_plan=refinery_plan, refinery_recipes=REFINERY_RECIPES,
+        location_places=location_places, resource_names=list(RESOURCE_LOCATIONS),
+        blueprint_owned=lambda name: blueprint_owned(name), resource_usage=resource_usage,
+        build_names=build_names, add_timer=lambda *a, **k: add_timer(*a, **k),
+        now_ms=lambda: _now_ms(), now_stamp=lambda: _now_stamp(),
+    )
+    return wf_ui.Planner(ctx)
+
+
 def setup():
+    global _planner
+
     def wire(element_id, event, handler):
         proxy = create_proxy(handler)
         document.getElementById(element_id).addEventListener(event, proxy)
@@ -3638,6 +3677,8 @@ def setup():
     document.addEventListener("keydown", create_proxy(_on_keydown))
     _render_shortcuts()
     _select_tab(_ui["tab"])
+    _planner = _make_planner()
+    _planner.setup()
     try:
         from js import setInterval  # noqa: PLC0415 -- Pyodide-only
         setInterval(create_proxy(tick_minute), 60000)

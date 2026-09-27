@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 49/109 items checked off (45.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 59/109 items checked off (54.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Only the sections you have answered so far are here: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -140,32 +140,32 @@ Decisions: the tower sits in a living hedge-maze that overgrows and dies to make
 
 ## X. Warframe Build Tracker (your answers; "no" items dropped: 12 plat value, 16 lucky drop counter, 30 export/restore)
 
-- [ ] X-1: Meta build planner (one plan, one completion bar).
+- [x] X-1: Meta build planner (one plan, one completion bar).
 - [x] X-2: "This week" pin of up to three builds.
-- [ ] X-3: Weapon/warframe/companion crafting tracker with the import marking owned items.
+- [x] X-3: Weapon/warframe/companion crafting tracker with the import marking owned items.
 - [x] X-4: Foundry timer notes with "ready at" and optional notification.
-- [ ] X-5: Void relic planner, including which relics carry the missing parts, which are unvaulted, and how to get them.
+- [x] X-5: Void relic planner, including which relics carry the missing parts, which are unvaulted, and how to get them.
 - [x] X-6: Credits and endo budget line per plan.
-- [ ] X-7: Drop-source optimizer for a whole wishlist (farming session suggestions).
+- [x] X-7: Drop-source optimizer for a whole wishlist (farming session suggestions).
 - [x] X-8: Mastery-rank checklist.
 - [x] X-10: "Recently completed" strip.
-- [ ] X-11: Forma planner, with about three suggested-build links to Overframe per item.
+- [x] X-11: Forma planner, with about three suggested-build links to Overframe per item.
 - [x] X-13: Trader schedule tab (Baro countdown from an entered date).
 - [x] X-14: Copy wishlist as text.
 - [x] X-15: Progress history chart from import snapshots.
 - [x] X-17: Shared goals code for a friend.
 - [x] X-18: Per-resource "I have enough" toggle.
-- [ ] X-19: Companion breeding/imprint planner (or manual log).
-- [ ] X-20: Per-resource farming tips written from research, not by hand.
+- [x] X-19: Companion breeding/imprint planner (or manual log).
+- [x] X-20: Per-resource farming tips written from research, not by hand.
 - [x] X-21: Build-loadout notes.
 - [x] X-22: Colour tag per build with filter (and fold in the related tagging ideas).
-- [ ] X-23: "What changed since my last import" diff view.
+- [x] X-23: "What changed since my last import" diff view.
 - [x] X-24: Long-term goals list.
 - [x] X-25: Daily/weekly checklist tab with reset times.
 - [x] X-26: Keyboard shortcuts with a "?" cheat sheet.
-- [ ] X-27: "Am I wasting anything?" audit.
+- [x] X-27: "Am I wasting anything?" audit.
 - [x] X-28: Own-edits changelog, plus an "edited vs imported" visual difference so people can tick things off without a full import.
-- [ ] X-29: Endgame readiness score.
+- [x] X-29: Endgame readiness score.
 - (X-9 arcane/mod inventory tracker: "later", parked in `planning/LATER.md`.)
 
 ---
