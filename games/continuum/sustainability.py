@@ -118,6 +118,7 @@ def _penalty_multiplier(state):
     difficulty toggle for doing the sustainable thing."""
     return HARD_MODE_PENALTY_MULTIPLIER if is_hard_mode(state) else 1.0
 
+
 COMPONENT_LABEL = {
     "livability": "Livability",
     "equity": "Equity",
@@ -245,7 +246,6 @@ def _surplus_hoarding_penalty(state):
     per_capita = state.resources.get("surplus", 0.0) / state.population
     pressure = _clamp(per_capita / SURPLUS_FAIR_SHARE)
     return pressure * SURPLUS_HOARDING_PENALTY_WEIGHT * _penalty_multiplier(state)
-
 
 
 # --- Digital+ : urban sprawl's equity cost (Milestone 12) ----------------

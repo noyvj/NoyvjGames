@@ -97,6 +97,9 @@ section {
   align-items: center;
   gap: 14px;
 }
+/* Audit fix 2026-09-27: this display:flex was beating the browser's default
+   [hidden] { display: none }, so "Sign Out" showed even while signed out. */
+#account-signed-in[hidden] { display: none !important; }
 #account-signed-in p { margin: 0; color: #cdd1da; }
 
 .section-head > span {

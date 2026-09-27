@@ -73,7 +73,7 @@ def test_make_record_from_a_campaign():
     rec = archive.make_record(c, 3, "2026-09-21")
     assert rec["era"] == "tribal" and rec["hard_mode"] is True and rec["achievements"] == 3
     lines = archive.card_lines(rec)
-    assert lines[0].startswith("Tribal era") and any("Hard Mode" in l for l in lines)
+    assert lines[0].startswith("Tribal era") and any("Hard Mode" in line for line in lines)
 
 
 class FakeStorage:
@@ -107,6 +107,7 @@ def _open(env):
 
 def _panel_ids(env):
     ids = []
+
     def walk(el):
         for ch in el.children:
             if getattr(ch, "id", None):

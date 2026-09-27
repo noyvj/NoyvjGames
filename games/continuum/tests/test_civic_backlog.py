@@ -1,7 +1,6 @@
 """K11 civic challenges, K19/K13/K25/K8 trajectory + reference line,
 K2/K10/K21a small readouts, K21b research-tree expansion (Milestone 25)."""
 
-import copy
 import json
 import math
 
@@ -9,6 +8,7 @@ import challenges
 import research
 import save
 import sim
+import summary
 import sustainability
 import trajectory
 
@@ -258,7 +258,6 @@ def test_new_nodes_do_not_break_the_score_bound():
 
 
 # --- K12 / K23 / K6 / K17 / K7 -----------------------------------------------
-import summary
 
 
 def test_every_effect_key_has_a_label_and_describe_effects_reads_numbers():
@@ -274,6 +273,7 @@ def test_research_rows_show_effects_and_locked_rows_show_an_estimate(game_env):
     locked = game_env.elements["research-locked-list"].children
     assert locked
     texts = []
+
     def walk(el):
         texts.append(el.innerText)
         for c in el.children:

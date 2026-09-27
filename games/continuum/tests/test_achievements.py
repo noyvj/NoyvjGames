@@ -22,7 +22,6 @@ This is called out explicitly rather than silently treated as equivalent
 to a full playthrough.
 """
 
-import research
 import sim
 import sustainability
 

@@ -191,7 +191,7 @@ def test_agrarian_nodes_become_reachable_once_the_era_is_reached():
         for node in available:
             tree.research(node.node_id, resources)
     for node_id in ("plow_and_furrow", "seed_selection", "communal_granaries",
-                     "irrigation_channels", "crop_rotation", "market_custom"):
+                    "irrigation_channels", "crop_rotation", "market_custom"):
         assert node_id in tree.researched
 
 

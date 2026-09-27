@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 14;
+const SW_VERSION = 15;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -31,9 +31,7 @@ const PRECACHE_URLS = [
   "games/sol/style.css",
   "games/sol/game.py",
   // Climate quartet + Info Page games (added when the precache list was
-  // discovered to have never been extended past SOL) -- Trade Empire and
-  // Continuum are excluded since neither is hub-linked yet, so no ordinary
-  // player traffic reaches them.
+  // discovered to have never been extended past SOL).
   "games/canopy/index.html",
   "games/canopy/style.css",
   "games/canopy/game.py",
@@ -65,6 +63,17 @@ const PRECACHE_URLS = [
   "games/signal/style.css",
   "games/signal/game.py",
   "games/signal/app.js",
+  // Audit fix 2026-09-27: Trade Empire is hub-linked and has been for a while
+  // (see CLAUDE.md's Current games table) -- both were mistakenly left off
+  // this list under a stale "not hub-linked yet" comment. Trade Empire has the
+  // same single-engine-file shape as every game above; Continuum only gets its
+  // shell precached, not its 18 separately-loaded engine modules, so this list
+  // doesn't need constant upkeep as that game grows.
+  "games/trade-empire/index.html",
+  "games/trade-empire/style.css",
+  "games/trade-empire/game.py",
+  "games/continuum/index.html",
+  "games/continuum/style.css",
 ];
 
 self.addEventListener("install", (event) => {

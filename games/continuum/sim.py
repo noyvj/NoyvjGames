@@ -477,6 +477,7 @@ def scenario_config(scenario_id):
     `era` handling already holds itself to."""
     return SCENARIOS.get(scenario_id, SCENARIOS[DEFAULT_SCENARIO])
 
+
 # --- production and consumption ---------------------------------------
 FOOD_PER_FORAGER = 3.0
 # Notably higher than foraging -- the real productivity jump settled

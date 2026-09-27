@@ -14,7 +14,6 @@ import pytest
 
 import research
 import sim
-import sim
 import sustainability
 
 

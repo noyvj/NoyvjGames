@@ -169,6 +169,18 @@
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
   </div>
 
+  <!-- Audit fix 2026-09-27: hub-auth.js/save-widget.js/opening-screen.js must load
+       BEFORE the inline tutorial-init script below. opening-screen.js sets
+       window.__openingScreenOwnsTutorial synchronously at parse time, and
+       GameTutorial.init() reads that flag synchronously too -- every other game
+       calls init() from inside an async Pyodide-boot function, so it naturally
+       runs after this block regardless of where it sits in the HTML, but Signal's
+       engine-free tutorial wiring runs immediately, so the order here has to be
+       real. Moving these three up (out of their old spot after app.js) is the fix;
+       nothing here depends on app.js or the inline block running first. -->
+  <script src="../../shared/hub-auth.js"></script>
+  <script src="../../shared/save-widget.js" data-game-id="signal"></script>
+  <script src="../../shared/opening-screen.js" data-game-id="signal" data-tagline="A daily radio-room deduction puzzle. Find the hidden transmitters." data-game-name="Signal"></script>
   <script>
     // The tutorial needs only static shell elements, so it is wired up right away (no engine needed).
     const SIGNAL_TUTORIAL_STEPS = [
@@ -181,9 +193,6 @@
     if (window.MobileDock) MobileDock.init("#action-bar");
   </script>
   <script src="app.js"></script>
-  <script src="../../shared/hub-auth.js"></script>
-  <script src="../../shared/save-widget.js" data-game-id="signal"></script>
-  <script src="../../shared/opening-screen.js" data-game-id="signal" data-tagline="A daily radio-room deduction puzzle. Find the hidden transmitters." data-game-name="Signal"></script>
   <script src="../../shared/last-played.js" data-game-id="signal"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="signal"></script>
   <script src="../../shared/achievement-stats.js" data-game-id="signal"></script>

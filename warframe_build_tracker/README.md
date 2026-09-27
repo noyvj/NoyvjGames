@@ -175,7 +175,7 @@ what you have available to refine.
 
 ## What's next
 
-See the hub's `planning/TODO2.md`, "X. Warframe Build Tracker" section, for
+See the hub's `planning/TODO.md`, "X. Warframe Build Tracker" section, for
 the full open-items list — including the recursive-refinery-expansion idea
 this tracker's `flatten_recipe()` already supports without needing any
 code change, and refining the real-inventory-import matching logic above

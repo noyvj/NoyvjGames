@@ -5,7 +5,7 @@ disk, single-machine only) into the same Python-via-Pyodide, no-build-step
 stack every hub game already uses, so it can reuse the hub's existing
 account/save-code system (shared/hub-auth.js + shared/save-widget.js,
 unmodified) for real multi-user, account-based saves instead of a single
-local JSON file. See planning/TODO2.md's "X. Warframe Build Tracker"
+local JSON file. See planning/TODO.md's "X. Warframe Build Tracker"
 section and this repo's root CLAUDE.md for the save-widget contract this
 file implements (get_state()/load_state()).
 
@@ -451,7 +451,7 @@ def flatten_recipe(item_name, multiplier, out=None, stack=None):
     expanded; otherwise it remains a direct inventory resource. None of the
     resources in MANUFACTURING_RECIPES above currently have their own
     recipe entry here (the raw ores/gems/alloys they need would be a
-    second research pass -- see README.md/TODO2.md's X section), so this
+    second research pass -- see README.md/TODO.md's X section), so this
     stays ready for that without needing any change when it's added."""
     if out is None:
         out = {}
@@ -1158,7 +1158,7 @@ def load_state(data):
 
 
 def import_last_data(json_text):
-    """X-b (planning/TODO2.md): best-effort import of a real Warframe
+    """X-b (planning/TODO.md): best-effort import of a real Warframe
     inventory snapshot -- either a plain inventory.json or a decrypted
     lastData.dat (index.html's own script handles the AES-CBC decryption
     before calling this; by the time json_text reaches here it's always

@@ -362,7 +362,7 @@ def flow_links(state, report):
         if any(s == f"res:{res}" or t == f"res:{res}" for s, t, _ in links):
             labels[f"res:{res}"] = f"{RESOURCE_LABEL[res]} {produced[res]:.1f}"
     # a resource with output but no workers to attribute it to still shows
-    return [l for l in links if l[2] > 0], labels
+    return [link for link in links if link[2] > 0], labels
 
 
 NODE_W = 100
@@ -421,7 +421,7 @@ def flow_svg(state, report):
     out_off = {n: 0.0 for n in pos}
     in_off = {n: 0.0 for n in pos}
     ribbons = []
-    for s, t, v in sorted(links, key=lambda l: (list(pos).index(l[0]), list(pos).index(l[1]))):
+    for s, t, v in sorted(links, key=lambda link: (list(pos).index(link[0]), list(pos).index(link[1]))):
         h = v * scale
         sx, sy, _ = pos[s]
         tx, ty, _ = pos[t]

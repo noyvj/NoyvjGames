@@ -90,5 +90,8 @@ def test_settings_js_uses_its_own_storage_keys_and_stays_out_of_the_save():
 
 
 def test_favicon_is_a_valid_small_svg():
-    svg = (GAME_DIR / "favicon-signal.svg").read_text(encoding="utf-8")
+    # Z30 convention (see root CLAUDE.md): every game's favicon lives at the
+    # repo-root icons/ folder, not inside the game's own directory -- the hub
+    # registration step moved this file there after it was first built here.
+    svg = (GAME_DIR.parent.parent / "icons" / "favicon-signal.svg").read_text(encoding="utf-8")
     assert svg.startswith("<svg") and svg.strip().endswith("</svg>") and len(svg) < 2000

@@ -172,7 +172,7 @@ alternate vignette phrasings per fraction bucket (H14); a first-time-
 closed-loop celebratory banner (H3); and reactive visual pulses on the
 funds display (export revenue) and trade-network display (H12/H18).
 
-**Achievements:** 20 achievements (`achievements.json`) covering every
+**Achievements:** 21 achievements (`achievements.json`) covering every
 circularity/trade/streak/score/reset/goods-category system above, an
 in-game panel + toggle button, an unlock toast, and a link to the
 hub-wide achievements dashboard — same pattern as SOL's reference
