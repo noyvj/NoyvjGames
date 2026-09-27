@@ -333,13 +333,13 @@ class ColonyState:
         base = MIN_OUTPUT_MULTIPLIER + satisfaction * (MAX_OUTPUT_MULTIPLIER - MIN_OUTPUT_MULTIPLIER)
         if self.is_developed():
             base *= 1 + SPECIALIZATION[self.id]["output_bonus"]
-        return base
+        return base * founding_output_multiplier(self.id)
 
     def cargo_capacity(self):
         return round(CARGO_CAPACITY * self.output_multiplier())
 
     def decay(self):
-        decay_rate = NEED_DECAY_PER_TICK
+        decay_rate = NEED_DECAY_PER_TICK * charter_decay_multiplier(self.id)
         if self.is_developed():
             decay_rate *= SPECIALIZATION[self.id]["decay_multiplier"]
         self.need_satisfaction = max(0.0, self.need_satisfaction - decay_rate)
@@ -374,7 +374,7 @@ class ColonyState:
 
     def add_development(self, units):
         self.cumulative_delivered += units
-        if self.cumulative_delivered >= DEVELOPMENT_THRESHOLD and self.development_level < 2:
+        if self.cumulative_delivered >= development_threshold() and self.development_level < 2:
             self.development_level = 2
 
     def deliver(self, qty):
@@ -750,7 +750,7 @@ def current_sell_price(good):
 def apply_market_sale(good, qty):
     decay = MARKET_PRICE_DECAY_PER_UNIT_SOLD * (
         MARKET_INSIGHT_2_DECAY_MULTIPLIER if "market_insight_2" in unlocked_research else 1.0
-    )
+    ) * (HARD_CHARTER_SATURATION_MULTIPLIER if hard_charter_active else 1.0)
     market_multiplier[good] = max(MIN_PRICE_MULTIPLIER, market_multiplier[good] - qty * decay)
     if market_multiplier[good] < MARKET_CRASH_THRESHOLD:
         market_crash_ever[good] = True
@@ -809,7 +809,7 @@ def recover_market():
     for good in market_multiplier:
         recovery = MARKET_PRICE_RECOVERY_PER_TICK * (
             MARKET_INSIGHT_RECOVERY_MULTIPLIER if "market_insight" in unlocked_research else 1.0
-        )
+        ) * (AUTO_BALANCERS_RECOVERY_MULTIPLIER if charter_perk("auto_balancers") else 1.0)
         market_multiplier[good] = min(MAX_PRICE_MULTIPLIER, market_multiplier[good] + recovery)
 
 
@@ -1137,7 +1137,8 @@ class Ship:
         self.cargo_good = ALL_COLONIES[self.location]["produces"]
         self.cargo_qty = max(
             1,
-            round(colony_states[self.location].cargo_capacity() * fleet_cargo_multiplier() * archetype_for(self)["cargo"]),
+            round(colony_states[self.location].cargo_capacity() * fleet_cargo_multiplier() * archetype_for(self)["cargo"])
+            + (CHARTER_CARGO_BONUS if charter_perk("surveyed_lanes") else 0),
         )
         return True
 
@@ -1296,9 +1297,9 @@ def automation_slots_available():
 def automate_ship(ship_id):
     global total_profit
     ship = ships[ship_id]
-    if not ship.purchased or ship.automated or not automation_slots_available() or total_profit < AUTOMATION_COST:
+    if not ship.purchased or ship.automated or not automation_slots_available() or total_profit < automation_cost():
         return False
-    total_profit -= AUTOMATION_COST
+    total_profit -= automation_cost()
     ship.automated = True
     return True
 
@@ -1339,7 +1340,7 @@ def can_build_trade_post():
     return (
         automation_is_maxed()
         and next_trade_post_system() is not None
-        and total_profit >= TRADE_POST_COST
+        and total_profit >= trade_post_cost()
     )
 
 
@@ -1347,13 +1348,13 @@ def build_trade_post():
     global total_profit
     if not can_build_trade_post():
         return False
-    total_profit -= TRADE_POST_COST
+    total_profit -= trade_post_cost()
     trade_posts.append(next_trade_post_system())
     return True
 
 
 def trade_post_income_per_tick():
-    return len(trade_posts) * TRADE_POST_INCOME_PER_TICK
+    return len(trade_posts) * trade_post_income_each()
 
 
 # J7 -- colony investment: spend credits to push an undeveloped colony
@@ -1382,14 +1383,14 @@ def grant_concession(colony_id):
 def can_invest_in_colony(colony_id):
     if colony_id not in active_colony_ids() or colony_id not in colony_states:
         return False
-    return not colony_states[colony_id].is_developed() and total_profit >= COLONY_INVEST_COST
+    return not colony_states[colony_id].is_developed() and total_profit >= colony_invest_cost()
 
 
 def invest_in_colony(colony_id):
     global total_profit
     if not can_invest_in_colony(colony_id):
         return False
-    total_profit -= COLONY_INVEST_COST
+    total_profit -= colony_invest_cost()
     colony_states[colony_id].add_development(COLONY_INVEST_UNITS)
     return True
 
@@ -1494,8 +1495,10 @@ guild_completed = 0
 guild_failed = 0
 
 
-def _guild_clear(cooldown=GUILD_COOLDOWN_TICKS):
+def _guild_clear(cooldown=None):
     global guild_state, guild_cooldown
+    if cooldown is None:
+        cooldown = guild_cooldown_ticks()
     guild_state = "none"
     guild_cooldown = cooldown
     guild_contract.update({"good": None, "destination": None, "units": 0, "delivered": 0, "ticks_left": 0, "reward": 0})
@@ -1520,7 +1523,7 @@ def guild_make_offer():
         "units": units,
         "delivered": 0,
         "ticks_left": GUILD_OFFER_LAPSE_TICKS,
-        "reward": int(round(units * current_sell_price(good) * GUILD_REWARD_MULTIPLIER)),
+        "reward": int(round(units * current_sell_price(good) * guild_reward_multiplier())),
     })
     guild_state = "offered"
     return True
@@ -1630,37 +1633,389 @@ def legacy_starting_credits(level=None):
 
 
 def can_found_new_corporation():
-    return endgame_reached and legacy_level < LEGACY_MAX_LEVEL and _fresh_state is not None
+    # O-1: renewal is no longer capped (the legacy BONUS still is, at
+    # LEGACY_MAX_LEVEL); the charter tree and ledger keep growing.
+    return endgame_reached and _fresh_state is not None
 
 
 def legacy_summary_text():
     if legacy_level <= 0:
-        return "Legacy: none yet — reach the endgame to found a new corporation with a permanent bonus."
+        return "Legacy: none yet — reach the endgame to renew the charter with a permanent bonus."
+    maxed = " (maxed)" if legacy_level >= LEGACY_MAX_LEVEL else ""
     return (
-        f"Legacy level {legacy_level}/{LEGACY_MAX_LEVEL}: +{legacy_starting_credits():,} starting credits "
+        f"Legacy level {legacy_level}/{LEGACY_MAX_LEVEL}{maxed}: +{legacy_starting_credits():,} starting credits "
         f"and +{round((legacy_sale_multiplier() - 1.0) * 100)}% on every sale."
     )
 
 
 def found_new_corporation():
-    """Reset to a fresh corporation, keep and raise the legacy. Returns False
-    when the endgame hasn't been reached or the legacy is already maxed."""
+    """Renew the charter: reset to a fresh corporation, raise the legacy (to
+    its cap), earn charter points, keep the perk tree, the ledger and the
+    achievements, and roll new founding conditions. Returns False when the
+    endgame hasn't been reached."""
     global legacy_level, legacy_achievements, total_profit, max_profit_ever, _previously_earned_ids
+    global charters_completed, charter_points_earned, charter_perks, hard_charter_active, hard_charter_next
+    global ledger_units_moved, ledger_routes_established, ledger_hard_completed, ledger_routes_seen
     if not can_found_new_corporation():
         return False
     order = {entry["id"]: i for i, entry in enumerate(ACHIEVEMENTS)}
     carried = sorted(set(legacy_achievements) | set(achievement_ids_earned()), key=lambda a: order.get(a, 10**6))
-    new_level = legacy_level + 1
+    new_level = min(LEGACY_MAX_LEVEL, legacy_level + 1)
+    keep = {
+        "completed": charters_completed,
+        "points": charter_points_earned + charter_points_for_next_renewal(),
+        "perks": set(charter_perks),
+        "hard_done": ledger_hard_completed,
+        "units": ledger_units_moved,
+        "routes": ledger_routes_established,
+    }
+    finishing_hard = hard_charter_active
+    begin_hard = hard_charter_next and hard_charter_unlocked()
     load_state(json.loads(json.dumps(_fresh_state)))
     legacy_achievements = carried
-    # Baseline BEFORE raising the level: the carried achievements must not
-    # all toast again, but the new "new_corporation" one should.
+    charter_perks = keep["perks"]
+    charter_points_earned = keep["points"]
+    charters_completed = keep["completed"]
+    ledger_hard_completed = keep["hard_done"]
+    ledger_units_moved, ledger_routes_established = keep["units"], keep["routes"]
+    ledger_routes_seen = set()
+    _guild_clear(guild_first_offer_ticks())  # Guild Standing shortens the first wait
+    # Baseline BEFORE the renewal is counted: the carried achievements must
+    # not all toast again, but the ones this renewal earns should.
     _previously_earned_ids = _earned_snapshot()
     legacy_level = new_level
+    charters_completed = min(CHARTER_COUNT_MAX, keep["completed"] + 1)
+    if finishing_hard:
+        ledger_hard_completed = min(CHARTER_COUNT_MAX, keep["hard_done"] + 1)
+    hard_charter_active = begin_hard
+    hard_charter_next = False
     total_profit += legacy_starting_credits()
     max_profit_ever = max(max_profit_ever, total_profit)
+    apply_founding_conditions()
     render()
     return True
+
+
+# ---------------------------------------------------------------------------
+# O-1..O-4 -- "Renew the Charter". J21's legacy (above) stays exactly as it
+# was shipped: it is the flat, capped baseline (starting credits + a small
+# sale bonus, five levels). What O-1 adds on top is a small permanent
+# skill tree of "charter perks" bought with CHARTER POINTS, which a
+# renewal earns. The legacy level counts renewals up to its cap of 5; the
+# renewal count itself (charters_completed) keeps going, so the tree and
+# the ledger stay meaningful long after the flat legacy is maxed. A save
+# from before this feature that already has legacy level N is migrated on
+# load as N completed charters with N x CHARTER_POINTS_PER_RENEWAL points
+# (see load_state()), so nobody who already renewed loses progress.
+#
+# Everything here is opt-in: a player who never renews has no charter
+# state at all, no founding conditions, and unchanged balance.
+# ---------------------------------------------------------------------------
+CHARTER_POINTS_PER_RENEWAL = 2
+HARD_CHARTER_BONUS_POINTS = 1  # extra point for finishing a harder charter
+CHARTER_BRANCHES = {
+    "routes": "Routes",
+    "automation": "Automation",
+    "colonies": "Colonies",
+    "reputation": "Reputation",
+}
+# Each perk is small, bought once, and is either a flat convenience or a
+# modest multiplier on something that already exists; nothing here is a
+# raw sale-price bonus (that is what the legacy level is for), and costs
+# scale by tier (1 / 2 / 3 points). "founding" perks also take effect the
+# moment a renewal begins a new charter (and immediately when bought).
+CHARTER_PERKS = {
+    # Routes
+    "surveyed_lanes": {
+        "branch": "routes", "cost": 1, "label": "Surveyed Lanes", "requires": (),
+        "description": "+1 unit of cargo on every load.",
+    },
+    "waystation_network": {
+        "branch": "routes", "cost": 2, "label": "Waystation Network", "requires": ("surveyed_lanes",),
+        "description": "Trade posts cost 25% less and pay +1 credit per tick.",
+    },
+    "standing_convoy": {
+        "branch": "routes", "cost": 3, "label": "Standing Convoy", "founding": True,
+        "requires": ("waystation_network", "standing_orders"),
+        "description": "Ship 1 begins every charter already automated, free of charge.",
+    },
+    # Automation
+    "standing_orders": {
+        "branch": "automation", "cost": 1, "label": "Standing Orders", "requires": (),
+        "description": "Automating a ship costs 20% less.",
+    },
+    "lab_automation": {
+        "branch": "automation", "cost": 2, "label": "Lab Automation", "requires": ("standing_orders",),
+        "description": "Research points accrue 20% faster.",
+    },
+    "auto_balancers": {
+        "branch": "automation", "cost": 3, "label": "Auto-balancers", "requires": ("lab_automation",),
+        "description": "Sold-down prices recover 20% faster.",
+    },
+    # Colonies
+    "frontier_grants": {
+        "branch": "colonies", "cost": 1, "label": "Frontier Grants", "requires": (),
+        "description": "Investing in a colony costs 45 credits instead of 60.",
+    },
+    "settler_guilds": {
+        "branch": "colonies", "cost": 2, "label": "Settler Guilds", "requires": ("frontier_grants",),
+        "description": "Colony needs decay 10% slower.",
+    },
+    "charter_colonies": {
+        "branch": "colonies", "cost": 3, "label": "Charter Colonies", "requires": ("settler_guilds",),
+        "description": "Colonies reach Level 2 after 85 units delivered instead of 100.",
+    },
+    # Reputation
+    "guild_standing": {
+        "branch": "reputation", "cost": 1, "label": "Guild Standing", "requires": (),
+        "description": "The Trade Guild's first offer comes after 15 ticks instead of 40, and it pauses 45 instead of 60 between contracts.",
+    },
+    "colonial_goodwill": {
+        "branch": "reputation", "cost": 2, "label": "Colonial Goodwill", "founding": True,
+        "requires": ("guild_standing",),
+        "description": "Home colonies begin each charter with +10% need satisfaction.",
+    },
+    "trusted_name": {
+        "branch": "reputation", "cost": 3, "label": "Trusted Name", "requires": ("colonial_goodwill",),
+        "description": "Trade Guild contracts pay a 15% larger bonus.",
+    },
+}
+CHARTER_CARGO_BONUS = 1
+WAYSTATION_COST_MULTIPLIER = 0.75
+WAYSTATION_INCOME_BONUS = 1
+STANDING_ORDERS_COST_MULTIPLIER = 0.8
+LAB_AUTOMATION_RESEARCH_MULTIPLIER = 1.2
+AUTO_BALANCERS_RECOVERY_MULTIPLIER = 1.2
+FRONTIER_GRANTS_INVEST_COST = 45
+SETTLER_GUILDS_DECAY_MULTIPLIER = 0.9
+CHARTER_COLONIES_DEVELOPMENT_THRESHOLD = 85.0
+GUILD_STANDING_FIRST_OFFER_TICKS = 15
+GUILD_STANDING_COOLDOWN_TICKS = 45
+COLONIAL_GOODWILL_START_BONUS = 0.1
+TRUSTED_NAME_REWARD_MULTIPLIER = 1.15
+
+# O-4 -- the opt-in harder charter (SOL's New Game+ Challenge shape: a
+# tougher run, not a bonus-boosted easier one). Faster market saturation
+# and quicker-fading colony needs; the reward is one extra charter point.
+HARD_CHARTER_SATURATION_MULTIPLIER = 1.5
+HARD_CHARTER_DECAY_MULTIPLIER = 1.35
+
+# O-2 -- founding conditions: from the second charter on, a saved seed picks
+# which two home colonies start thriving and connected (ships 1 and 2 begin
+# docked at them) and what each specialises in; every other home colony
+# begins stretched, so the first logistics bottleneck moves around.
+FOUNDING_THRIVING_NEED = 0.8
+FOUNDING_STRETCHED_NEED = 0.35
+FOUNDING_FOCI = {
+    "bulk": {"label": "Bulk exporter", "output": 1.15, "decay": 1.0},
+    "steady": {"label": "Steady settlement", "output": 1.0, "decay": 0.7},
+}
+FOUNDING_SEED_MAX = 2**31 - 1
+founding_seed = 0  # 0 = the standard first charter
+charter_rng = random.Random()  # tests replace it with a seeded one
+
+LEDGER_MAX = 10_000_000_000
+CHARTER_COUNT_MAX = 100_000
+CHARTER_VETERAN_COUNT = 3  # renewals for the Charter Veteran achievement
+
+charters_completed = 0
+charter_points_earned = 0
+charter_perks = set()
+hard_charter_active = False  # this charter was begun as a harder charter
+hard_charter_next = False  # the player's pending choice for the next renewal
+# O-3 -- lifetime ledger. Totals persist across renewals (found_new_corporation
+# carries them over the reset); ledger_routes_seen is the current charter's
+# set of distinct routes, so a route counts once per charter.
+ledger_units_moved = 0
+ledger_routes_established = 0
+ledger_hard_completed = 0
+ledger_routes_seen = set()
+
+
+def charter_perk(perk_id):
+    return perk_id in charter_perks
+
+
+def charter_points_spent():
+    return sum(CHARTER_PERKS[perk_id]["cost"] for perk_id in charter_perks)
+
+
+def charter_points_available():
+    return charter_points_earned - charter_points_spent()
+
+
+def charter_perk_missing_requirements(perk_id):
+    return [r for r in CHARTER_PERKS[perk_id]["requires"] if r not in charter_perks]
+
+
+def can_buy_charter_perk(perk_id):
+    if not isinstance(perk_id, str) or perk_id not in CHARTER_PERKS or perk_id in charter_perks:
+        return False
+    if charter_perk_missing_requirements(perk_id):
+        return False
+    return charter_points_available() >= CHARTER_PERKS[perk_id]["cost"]
+
+
+def buy_charter_perk(perk_id):
+    if not can_buy_charter_perk(perk_id):
+        return False
+    charter_perks.add(perk_id)
+    _apply_founding_perk(perk_id)
+    return True
+
+
+def _apply_founding_perk(perk_id):
+    """Founding perks act on the world once (at a renewal, or the moment they
+    are bought). Everything else is a live modifier read where it applies."""
+    if perk_id == "standing_convoy":
+        ship = ships["1"]
+        if ship.purchased and not ship.automated and automation_slots_available():
+            ship.automated = True
+    elif perk_id == "colonial_goodwill":
+        for colony_id in COLONIES:
+            state = colony_states.get(colony_id)
+            if state is not None:
+                state.need_satisfaction = min(1.0, state.need_satisfaction + COLONIAL_GOODWILL_START_BONUS)
+
+
+# --- perk-aware values (each equals its plain constant when no perk applies) ---
+def automation_cost():
+    if charter_perk("standing_orders"):
+        return int(round(AUTOMATION_COST * STANDING_ORDERS_COST_MULTIPLIER))
+    return AUTOMATION_COST
+
+
+def colony_invest_cost():
+    return FRONTIER_GRANTS_INVEST_COST if charter_perk("frontier_grants") else COLONY_INVEST_COST
+
+
+def trade_post_cost():
+    if charter_perk("waystation_network"):
+        return int(round(TRADE_POST_COST * WAYSTATION_COST_MULTIPLIER))
+    return TRADE_POST_COST
+
+
+def trade_post_income_each():
+    return TRADE_POST_INCOME_PER_TICK + (WAYSTATION_INCOME_BONUS if charter_perk("waystation_network") else 0)
+
+
+def development_threshold():
+    return CHARTER_COLONIES_DEVELOPMENT_THRESHOLD if charter_perk("charter_colonies") else DEVELOPMENT_THRESHOLD
+
+
+def guild_first_offer_ticks():
+    return GUILD_STANDING_FIRST_OFFER_TICKS if charter_perk("guild_standing") else GUILD_FIRST_OFFER_TICKS
+
+
+def guild_cooldown_ticks():
+    return GUILD_STANDING_COOLDOWN_TICKS if charter_perk("guild_standing") else GUILD_COOLDOWN_TICKS
+
+
+def guild_reward_multiplier():
+    return GUILD_REWARD_MULTIPLIER * (TRUSTED_NAME_REWARD_MULTIPLIER if charter_perk("trusted_name") else 1.0)
+
+
+def founding_from_seed(seed):
+    """Deterministic founding conditions for a saved seed: the two home
+    colonies that start thriving and connected, and each one's focus."""
+    rng = random.Random(seed)
+    order = list(COLONIES)
+    pair = sorted(rng.sample(order, 2), key=order.index)
+    foci = {colony_id: rng.choice(list(FOUNDING_FOCI)) for colony_id in pair}
+    return {"pair": pair, "foci": foci}
+
+
+def founding_focus(colony_id):
+    """The founding focus key for a colony in the current charter, or None."""
+    if not founding_seed:
+        return None
+    return founding_from_seed(founding_seed)["foci"].get(colony_id)
+
+
+def founding_output_multiplier(colony_id):
+    focus = founding_focus(colony_id)
+    return FOUNDING_FOCI[focus]["output"] if focus else 1.0
+
+
+def charter_decay_multiplier(colony_id):
+    """Everything that scales how fast a colony's need fades, in one place."""
+    multiplier = 1.0
+    if hard_charter_active:
+        multiplier *= HARD_CHARTER_DECAY_MULTIPLIER
+    if charter_perk("settler_guilds"):
+        multiplier *= SETTLER_GUILDS_DECAY_MULTIPLIER
+    focus = founding_focus(colony_id)
+    if focus:
+        multiplier *= FOUNDING_FOCI[focus]["decay"]
+    return multiplier
+
+
+def apply_founding_conditions():
+    """Called once, right after a renewal reset: rolls a fresh seed, sets the
+    thriving pair against the stretched rest, docks ships 1 and 2 at the pair
+    and applies any founding perks."""
+    global founding_seed
+    founding_seed = charter_rng.randrange(1, FOUNDING_SEED_MAX + 1)
+    info = founding_from_seed(founding_seed)
+    for colony_id in COLONIES:
+        state = colony_states.get(colony_id)
+        if state is not None:
+            state.need_satisfaction = FOUNDING_THRIVING_NEED if colony_id in info["pair"] else FOUNDING_STRETCHED_NEED
+    ships["1"].location = info["pair"][0]
+    ships["2"].location = info["pair"][1]
+    for perk_id in sorted(charter_perks):
+        if CHARTER_PERKS[perk_id].get("founding"):
+            _apply_founding_perk(perk_id)
+
+
+def founding_summary_text():
+    if not founding_seed:
+        return "Founding conditions: the standard opening. From your second charter on, each one starts differently."
+    info = founding_from_seed(founding_seed)
+    a, b = info["pair"]
+    parts = ", ".join(
+        f"{ALL_COLONIES[cid]['name']} is a {FOUNDING_FOCI[info['foci'][cid]]['label'].lower()}" for cid in info["pair"]
+    )
+    return (
+        f"Founding conditions: {ALL_COLONIES[a]['name']} and {ALL_COLONIES[b]['name']} start thriving and connected "
+        f"(Ships 1 and 2 begin docked there); {parts}. The other home colonies start stretched."
+    )
+
+
+def hard_charter_unlocked():
+    """Available from the first endgame onward, never before it."""
+    return endgame_reached or charters_completed > 0
+
+
+def set_hard_charter_next(enabled):
+    global hard_charter_next
+    if not hard_charter_unlocked():
+        return False
+    hard_charter_next = bool(enabled)
+    return True
+
+
+def charter_points_for_next_renewal():
+    return CHARTER_POINTS_PER_RENEWAL + (HARD_CHARTER_BONUS_POINTS if hard_charter_active else 0)
+
+
+def ledger_record_sale(qty, route_key):
+    """O-3: called for every completed, undisrupted delivery."""
+    global ledger_units_moved, ledger_routes_established
+    ledger_units_moved = min(LEDGER_MAX, ledger_units_moved + max(0, int(qty)))
+    if route_key and route_key not in ledger_routes_seen:
+        ledger_routes_seen.add(route_key)
+        ledger_routes_established = min(LEDGER_MAX, ledger_routes_established + 1)
+
+
+def charter_summary_text():
+    if not charters_completed and not charter_perks:
+        return "Charter: not yet renewed."
+    hard = " (harder charter)" if hard_charter_active else ""
+    return (
+        f"Charter: {charters_completed} renewed, {charter_points_available()} charter points to spend, "
+        f"{len(charter_perks)}/{len(CHARTER_PERKS)} perks{hard}."
+    )
 
 
 def endgame_criteria_met():
@@ -1773,15 +2128,15 @@ def render_ship(ship):
     automate_button.hidden = False
     # J18 — automation is a one-time, permanent choice per ship.
     automate_button.title = (
-        f"Automating costs {AUTOMATION_COST} credits and is permanent: "
+        f"Automating costs {automation_cost()} credits and is permanent: "
         "there is no way to de-automate a ship afterward."
     )
     if ship.automated:
         automate_button.innerText = "Automated"
         automate_button.disabled = True
     else:
-        automate_button.innerText = f"Automate ({AUTOMATION_COST})"
-        automate_button.disabled = not automation_slots_available() or total_profit < AUTOMATION_COST
+        automate_button.innerText = f"Automate ({automation_cost()})"
+        automate_button.disabled = not automation_slots_available() or total_profit < automation_cost()
 
 
 def render_colony(colony_id):
@@ -1820,7 +2175,7 @@ def render_colony(colony_id):
         dev_el.innerText = f"Development: Level 2 — {spec['name']} ({spec['description']})"
     else:
         dev_el.innerText = (
-            f"Development: Level 1 ({state.cumulative_delivered:.0f}/{DEVELOPMENT_THRESHOLD:.0f} "
+            f"Development: Level 1 ({state.cumulative_delivered:.0f}/{development_threshold():.0f} "
             f"{GOOD_LABEL[colony['needs']]} delivered to develop further)"
         )
     demand_el = document.getElementById(f"colony-{colony_id}-demand-display")
@@ -1840,11 +2195,11 @@ def render_colony(colony_id):
     invest_button = document.getElementById(f"colony-{colony_id}-invest-button")
     if invest_button is not None:
         invest_button.hidden = state.is_developed()
-        invest_button.innerText = f"Invest ({COLONY_INVEST_COST})"
+        invest_button.innerText = f"Invest ({colony_invest_cost()})"
         invest_button.disabled = not can_invest_in_colony(colony_id)
         invest_button.title = (
-            f"Spend {COLONY_INVEST_COST} credits to add {COLONY_INVEST_UNITS} units of development progress "
-            f"({COLONY_INVEST_UNITS / DEVELOPMENT_THRESHOLD * 100:.0f}% of Level 2)."
+            f"Spend {colony_invest_cost()} credits to add {COLONY_INVEST_UNITS} units of development progress "
+            f"({COLONY_INVEST_UNITS / development_threshold() * 100:.0f}% of Level 2)."
         )
 
 
@@ -1987,10 +2342,10 @@ def render_trade_post():
     if not show:
         return
     target = next_trade_post_system()
-    button.innerText = f"Establish trade post ({TRADE_POST_COST})" if target else "All trade posts established"
+    button.innerText = f"Establish trade post ({trade_post_cost()})" if target else "All trade posts established"
     button.disabled = not can_build_trade_post()
     button.title = (
-        f"Build a post in the {target}: +{TRADE_POST_INCOME_PER_TICK} credits per tick, no ship needed."
+        f"Build a post in the {target}: +{trade_post_income_each()} credits per tick, no ship needed."
         if target else "Every reachable system already has a trade post."
     )
     posts = ", ".join(trade_posts) if trade_posts else "none yet"
@@ -2171,6 +2526,7 @@ def render_endgame():
     panel.hidden = not endgame_reached
     if not endgame_reached:
         document.getElementById("found-new-corporation-button").hidden = True
+        document.getElementById("hard-charter-toggle-button").hidden = True
         return
     worlds = background_world_count()
     document.getElementById("endgame-message-display").innerText = (
@@ -2185,6 +2541,7 @@ def render_endgame():
     )
     document.getElementById("legacy-display").innerText = legacy_summary_text()
     document.getElementById("found-new-corporation-button").hidden = not can_found_new_corporation()
+    _render_renewal_options()
     render_endgame_galaxy(worlds)
 
 
@@ -2459,6 +2816,10 @@ ACHIEVEMENT_CHECKS = {
     "market_recovery": _market_recovered_from_a_crash,
     "endgame_reached": lambda: endgame_reached,
     "new_corporation": lambda: legacy_level >= 1,
+    # O-1/O-4: derived from state that survives a renewal, so nothing needs carrying.
+    "charter_perk": lambda: len(charter_perks) >= 1,
+    "charter_veteran": lambda: charters_completed >= CHARTER_VETERAN_COUNT,
+    "hard_charter_done": lambda: ledger_hard_completed >= 1,
     "guild_partner": lambda: guild_completed >= 1,
     "guild_favorite": lambda: guild_completed >= 5,
     "background_galaxy_maxed": lambda: background_world_count() >= ENDGAME_BACKGROUND_WORLD_CAP,
@@ -2471,6 +2832,7 @@ ACHIEVEMENT_PROGRESS = {
     "profit_100k": lambda: (int(max_profit_ever), PROFIT_100K_THRESHOLD),
     "diversified_trader": lambda: (len(HOME_SYSTEM_GOODS & goods_sold_ever), len(HOME_SYSTEM_GOODS)),
     "background_galaxy_maxed": lambda: (background_world_count(), ENDGAME_BACKGROUND_WORLD_CAP),
+    "charter_veteran": lambda: (min(charters_completed, CHARTER_VETERAN_COUNT), CHARTER_VETERAN_COUNT),
 }
 
 
@@ -2817,6 +3179,7 @@ def update_summary_display():
         f"Achievements: {len(achievement_ids_earned())}/{len(ACHIEVEMENTS)}",
         "Status: full-scale endgame reached" if endgame_reached else "Status: still building",
         legacy_summary_text(),
+        charter_summary_text(),
     ]
 
     panel.innerHTML = ""
@@ -2856,6 +3219,123 @@ def update_summary_display():
             p.className = "summary-line"
             p.innerText = line
             panel.appendChild(p)
+
+
+# ===========================================================================
+# O-1/O-3/O-4 -- the Charter panel: the perk tree, the lifetime ledger and the
+# renewal options. Static markup in index.html (the buy buttons keep keyboard
+# focus across the once-a-second render); filled in here.
+# ===========================================================================
+charter_open = False
+
+
+def _render_renewal_options():
+    """The renewal preview and the harder-charter toggle, in the endgame panel."""
+    gain = charter_points_for_next_renewal()
+    preview = document.getElementById("charter-renew-preview-display")
+    toggle = document.getElementById("hard-charter-toggle-button")
+    if preview is not None:
+        text = f"Renewing earns {gain} charter points."
+        if hard_charter_next:
+            text += " The next charter will be a harder one."
+        preview.innerText = text
+    if toggle is not None:
+        toggle.hidden = not (hard_charter_unlocked() and can_found_new_corporation())
+        toggle.innerText = f"Harder charter: {'on' if hard_charter_next else 'off'}"
+        toggle.setAttribute("aria-pressed", "true" if hard_charter_next else "false")
+
+
+def on_toggle_hard_charter(event=None):
+    if set_hard_charter_next(not hard_charter_next):
+        render()
+
+
+def on_toggle_charter(event=None):
+    global charter_open
+    charter_open = not charter_open
+    update_charter_display()
+
+
+def charter_perk_status_text(perk_id):
+    perk = CHARTER_PERKS[perk_id]
+    text = f"{perk['label']} ({perk['cost']} pt) — {perk['description']}"
+    if perk_id in charter_perks:
+        return text + " Owned."
+    missing = charter_perk_missing_requirements(perk_id)
+    if missing:
+        return text + " (requires " + " and ".join(CHARTER_PERKS[m]["label"] for m in missing) + ")"
+    return text
+
+
+def update_charter_display():
+    toggle = document.getElementById("charter-toggle-button")
+    panel = document.getElementById("charter-panel")
+    if toggle is None or panel is None:
+        return
+    suffix = " (harder)" if hard_charter_active else ""
+    toggle.innerText = ("Hide Charter" if charter_open else "\U0001F4DC Charter") + suffix
+    toggle.setAttribute("aria-expanded", "true" if charter_open else "false")
+    panel.hidden = not charter_open
+    if not charter_open:
+        return
+
+    def put(element_id, text):
+        element = document.getElementById(element_id)
+        if element is not None:
+            element.innerText = text
+
+    hard_note = " This is a harder charter: markets saturate faster and colony needs fade sooner." if hard_charter_active else ""
+    put(
+        "charter-points-display",
+        f"Charter points: {charter_points_available()} to spend ({charter_points_earned} earned). "
+        f"Renewing the charter earns {charter_points_for_next_renewal()} more." + hard_note,
+    )
+    put("charter-founding-display", founding_summary_text())
+    for perk_id, perk in CHARTER_PERKS.items():
+        put(f"charter-perk-{perk_id}-status", charter_perk_status_text(perk_id))
+        button = document.getElementById(f"charter-perk-{perk_id}-buy-button")
+        if button is None:
+            continue
+        owned = perk_id in charter_perks
+        button.innerText = "Owned" if owned else f"Buy ({perk['cost']})"
+        button.disabled = owned or not can_buy_charter_perk(perk_id)
+        button.setAttribute("aria-label", f"Buy charter perk {perk['label']} for {perk['cost']} charter points")
+        if owned:
+            button.title = "Already owned."
+        else:
+            missing = charter_perk_missing_requirements(perk_id)
+            if missing:
+                button.title = "Still needed: " + " and ".join(CHARTER_PERKS[m]["label"] for m in missing)
+            elif charter_points_available() < perk["cost"]:
+                button.title = f"Needs {perk['cost'] - charter_points_available()} more charter point(s)."
+            else:
+                button.title = "Ready to buy."
+    put("ledger-units-display", f"Goods moved: {ledger_units_moved:,} units delivered across every charter.")
+    put(
+        "ledger-routes-display",
+        f"Routes established: {ledger_routes_established:,} in total ({len(ledger_routes_seen)} in this charter).",
+    )
+    put("ledger-charters-display", f"Charters completed: {charters_completed:,}.")
+    put("ledger-hard-display", f"Harder charters completed: {ledger_hard_completed:,}.")
+
+
+def _make_charter_perk_handler(perk_id):
+    def do_buy():
+        buy_charter_perk(perk_id)
+        render()
+
+    def handler(event=None):
+        if not can_buy_charter_perk(perk_id):
+            return
+        perk = CHARTER_PERKS[perk_id]
+        _confirm_dialog_ask(
+            f"trade-empire-charter-perk-{perk_id}",
+            f"Buy the {perk['label']} perk for {perk['cost']} charter points? {perk['description']} "
+            "It is permanent and carries into every later charter.",
+            "Buy perk",
+            do_buy,
+        )
+    return handler
 
 
 def render():
@@ -2902,6 +3382,7 @@ def render():
     update_achievements_display()
     _sync_earned_and_toast()
     update_summary_display()
+    update_charter_display()
 
 
 def _make_load_handler(ship_id):
@@ -3006,14 +3487,21 @@ def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm, allow_ski
 def on_found_new_corporation(event=None):
     if not can_found_new_corporation():
         return
-    next_level = legacy_level + 1
+    next_level = min(LEGACY_MAX_LEVEL, legacy_level + 1)
+    legacy_line = (
+        f"You gain permanent Legacy level {next_level}: "
+        f"+{legacy_starting_credits(next_level):,} starting credits and "
+        f"+{round(LEGACY_SALE_BONUS * next_level * 100)}% on every sale. "
+        if legacy_level < LEGACY_MAX_LEVEL
+        else "Your Legacy bonus is already at its maximum. "
+    )
+    hard_line = " The next charter will be a harder one." if hard_charter_next else ""
     _confirm_dialog_ask(
         "found-new-corporation",
-        "Found a new corporation? Your fleet, colonies, research and credits reset to a fresh start. "
-        f"You keep your achievements and gain permanent Legacy level {next_level}: "
-        f"+{legacy_starting_credits(next_level):,} starting credits and "
-        f"+{round(LEGACY_SALE_BONUS * next_level * 100)}% on every sale.",
-        "Found a new corporation",
+        "Renew the Charter? Your fleet, colonies, research and credits reset to a fresh start with new founding "
+        f"conditions. You keep your achievements, charter perks and lifetime ledger, and earn "
+        f"{charter_points_for_next_renewal()} charter points. " + legacy_line.rstrip() + hard_line,
+        "Renew the Charter",
         found_new_corporation,
         allow_skip=False,
     )
@@ -3036,7 +3524,7 @@ def _make_automate_handler(ship_id):
         _confirm_dialog_ask(
             action_id=f"trade-empire-automate-ship-{ship_id}",
             message=(
-                f"Automate this ship for {AUTOMATION_COST} credits? "
+                f"Automate this ship for {automation_cost()} credits? "
                 "This is permanent -- there's no way to de-automate it "
                 "afterward."
             ),
@@ -3131,7 +3619,7 @@ def _spark_burst_high_value_sale():
 
 def tick(event=None):
     global total_profit, research_points, total_sales_count, max_profit_ever, season_ticks, premiums_paid
-    research_points += RESEARCH_PER_TICK
+    research_points += RESEARCH_PER_TICK * (LAB_AUTOMATION_RESEARCH_MULTIPLIER if charter_perk("lab_automation") else 1.0)
     if seasonal_demand_enabled:
         season_ticks += 1
     for ship in ships.values():
@@ -3156,6 +3644,7 @@ def tick(event=None):
             sale_log.append(sell_summary(good, qty, profit, ship.location))
             del sale_log[:-SALE_LOG_MAX_ENTRIES]
             guild_record_delivery(good, ship.location, qty)
+            ledger_record_sale(qty, ship.route_key)
             apply_market_sale(good, qty)
             if profit >= SALE_SPARK_THRESHOLD:
                 _spark_burst_high_value_sale()
@@ -3288,6 +3777,36 @@ def get_state():
         # J21 -- only written once a new corporation has been founded, so a
         # first-run save is unchanged.
         **({"legacy": {"level": legacy_level, "achievements": list(legacy_achievements)}} if legacy_level else {}),
+        # O-3 -- the lifetime ledger, only written once anything has been moved.
+        **(
+            {
+                "ledger": {
+                    "units": ledger_units_moved,
+                    "routes": ledger_routes_established,
+                    "hard_completed": ledger_hard_completed,
+                    "routes_seen": sorted(sorted(key) for key in ledger_routes_seen),
+                }
+            }
+            if ledger_units_moved or ledger_routes_established or ledger_hard_completed or ledger_routes_seen
+            else {}
+        ),
+        # O-1/O-2/O-4 -- charter tree, points and founding seed; only written
+        # once a charter has been renewed (or a harder charter is queued).
+        **(
+            {
+                "charter": {
+                    "completed": charters_completed,
+                    "points": charter_points_earned,
+                    "perks": sorted(charter_perks),
+                    "seed": founding_seed,
+                    "hard": hard_charter_active,
+                    "hard_next": hard_charter_next,
+                }
+            }
+            if charters_completed or charter_points_earned or charter_perks or founding_seed
+            or hard_charter_active or hard_charter_next
+            else {}
+        ),
         # J3 -- only written once the guild has done anything at all.
         **(
             {"guild": {"state": guild_state, **guild_contract, "completed": guild_completed, "failed": guild_failed}}
@@ -3311,7 +3830,7 @@ def _load_guild(raw):
     """Restore the guild from an untrusted save value; anything malformed or
     referring to a colony that isn't reachable falls back to 'none'."""
     global guild_completed, guild_failed
-    _guild_clear(GUILD_FIRST_OFFER_TICKS)
+    _guild_clear(guild_first_offer_ticks())
     guild_completed = guild_failed = 0
     if not isinstance(raw, dict):
         return
@@ -3344,6 +3863,70 @@ def _load_guild(raw):
         "good": good, "destination": destination, "units": units,
         "delivered": delivered, "ticks_left": ticks_left, "reward": reward,
     })
+
+
+def _saved_int(value, low, high, default=0):
+    """A save's whole number, or `default` if it isn't a real int (never bool) in range."""
+    if isinstance(value, bool) or not isinstance(value, int) or not low <= value <= high:
+        return default
+    return value
+
+
+def _load_charter(charter_raw, ledger_raw):
+    """Restore the charter tree, founding seed, hard-charter flags and the
+    lifetime ledger from untrusted save values. Anything missing or malformed
+    falls back to its default; a save from before O-1 that carries a J21
+    legacy level is migrated as that many completed charters."""
+    global charters_completed, charter_points_earned, charter_perks, founding_seed
+    global hard_charter_active, hard_charter_next
+    global ledger_units_moved, ledger_routes_established, ledger_hard_completed, ledger_routes_seen
+    charters_completed = charter_points_earned = founding_seed = 0
+    charter_perks = set()
+    hard_charter_active = hard_charter_next = False
+    ledger_units_moved = ledger_routes_established = ledger_hard_completed = 0
+    ledger_routes_seen = set()
+
+    if isinstance(charter_raw, dict):
+        charters_completed = _saved_int(charter_raw.get("completed"), 0, CHARTER_COUNT_MAX)
+        charter_points_earned = _saved_int(charter_raw.get("points"), 0, CHARTER_COUNT_MAX * 10)
+        founding_seed = _saved_int(charter_raw.get("seed"), 0, FOUNDING_SEED_MAX)
+        raw_perks = charter_raw.get("perks")
+        if isinstance(raw_perks, list):
+            # Known string ids only (type-checked before the membership test so
+            # an unhashable or non-string entry can't crash it), then drop any
+            # perk whose prerequisites aren't also present.
+            wanted = {p for p in raw_perks if isinstance(p, str) and p in CHARTER_PERKS}
+            changed = True
+            while changed:
+                changed = False
+                for perk_id in sorted(wanted):
+                    if any(r not in wanted for r in CHARTER_PERKS[perk_id]["requires"]):
+                        wanted.discard(perk_id)
+                        changed = True
+            charter_perks = wanted
+            if charter_points_spent() > charter_points_earned:
+                charter_perks = set()  # a save can't own more than it earned
+        hard_charter_active = charter_raw.get("hard") is True and charters_completed >= 1
+        hard_charter_next = charter_raw.get("hard_next") is True
+    elif legacy_level > 0:
+        charters_completed = legacy_level
+        charter_points_earned = CHARTER_POINTS_PER_RENEWAL * legacy_level
+    if charters_completed == 0:
+        founding_seed = 0
+
+    if isinstance(ledger_raw, dict):
+        ledger_units_moved = _saved_int(ledger_raw.get("units"), 0, LEDGER_MAX)
+        ledger_routes_established = _saved_int(ledger_raw.get("routes"), 0, LEDGER_MAX)
+        ledger_hard_completed = _saved_int(ledger_raw.get("hard_completed"), 0, CHARTER_COUNT_MAX)
+        seen_raw = ledger_raw.get("routes_seen")
+        if isinstance(seen_raw, list):
+            for pair in seen_raw[:100]:
+                if (
+                    isinstance(pair, list) and len(pair) == 2
+                    and all(isinstance(c, str) and c in ALL_COLONIES for c in pair)
+                    and pair[0] != pair[1]
+                ):
+                    ledger_routes_seen.add(frozenset(pair))
 
 
 def _saved_float(value, low, high, default):
@@ -3428,7 +4011,6 @@ def load_state(data):
         for colony_id in DEEP_COLONIES:
             colony_states.pop(colony_id, None)
 
-    _load_guild(data.get("guild"))
     legacy_raw = data.get("legacy")
     legacy_level = 0
     legacy_achievements = []
@@ -3440,6 +4022,8 @@ def load_state(data):
         raw_ids = legacy_raw.get("achievements")
         if legacy_level and isinstance(raw_ids, list):
             legacy_achievements = [a for a in dict.fromkeys(raw_ids) if isinstance(a, str) and a in known]
+    _load_charter(data.get("charter"), data.get("ledger"))
+    _load_guild(data.get("guild"))  # after the charter: Guild Standing shortens the first wait
 
     if galaxy_expansion_unlocked():
         for colony_id in EXPANSION_COLONIES:
@@ -3636,6 +4220,14 @@ def setup():
     document.getElementById("found-new-corporation-button").addEventListener(
         "click", create_proxy(on_found_new_corporation)
     )
+    document.getElementById("hard-charter-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_hard_charter)
+    )
+    document.getElementById("charter-toggle-button").addEventListener("click", create_proxy(on_toggle_charter))
+    for perk_id in CHARTER_PERKS:
+        document.getElementById(f"charter-perk-{perk_id}-buy-button").addEventListener(
+            "click", create_proxy(_make_charter_perk_handler(perk_id))
+        )
     # Explicit, not just relying on index.html's `hidden` attribute -- the
     # toast element is only otherwise touched by show_achievement_toast()/
     # its own hide callback (unlike every *panel*, which gets its `hidden`

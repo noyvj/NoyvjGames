@@ -47,16 +47,19 @@ def test_founding_resets_the_world_but_keeps_and_raises_the_legacy(game_env):
     assert module.ships["1"].automated is False
 
 
-def test_legacy_stacks_to_the_cap_then_stops(game_env):
+def test_legacy_stacks_to_the_cap_then_the_bonus_stops_but_renewal_continues(game_env):
+    # O-1: the flat legacy bonus is still capped at LEGACY_MAX_LEVEL, but the
+    # charter can be renewed indefinitely (the perk tree and ledger keep growing).
     module = game_env.module
     for expected in range(1, module.LEGACY_MAX_LEVEL + 1):
         _endgame(module)
         assert module.found_new_corporation() is True
         assert module.legacy_level == expected
     _endgame(module)
-    assert module.can_found_new_corporation() is False
-    assert module.found_new_corporation() is False
+    assert module.can_found_new_corporation() is True
+    assert module.found_new_corporation() is True
     assert module.legacy_level == module.LEGACY_MAX_LEVEL
+    assert module.charters_completed == module.LEGACY_MAX_LEVEL + 1
 
 
 def test_the_sale_bonus_scales_with_the_level(game_env):

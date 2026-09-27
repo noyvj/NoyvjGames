@@ -122,6 +122,21 @@
       "text": "You close the books on the old company and found a new one, keeping only a legacy behind you: a little more starting capital and a slightly better name on every sale. One ship, one route, and this time you know how it goes."
     },
     {
+      "id": "charter_perk",
+      "title": "A line in the charter",
+      "text": "Renewing the charter earns charter points, and you spend the first of them on something small and permanent: one line written into every charter to come. It is not much. It is yours, and it will still be there when the world resets."
+    },
+    {
+      "id": "charter_veteran",
+      "title": "Three charters deep",
+      "text": "Three times now you have closed the books at the top of the galaxy and opened them again at the bottom. The clerks stop asking questions. Each opening is a little different, and each time you know a little better where the first bottleneck will be."
+    },
+    {
+      "id": "hard_charter_done",
+      "title": "Against the grain",
+      "text": "You chose the harder charter: prices that sag faster, colonies that ask for more sooner. And you still carried it to the end. Nobody hands out a medal for that, but the ledger remembers, and so do you."
+    },
+    {
       "id": "background_galaxy_maxed",
       "title": "A thousand quiet ledgers",
       "text": "Beyond the routes you fly yourself, a whole background galaxy of worlds has grown to its full size, each one sending a small, steady trickle of revenue your way. You will never visit most of them, but every one of them is, quietly, part of the company."

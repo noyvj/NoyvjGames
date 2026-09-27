@@ -58,6 +58,16 @@ ELEMENT_IDS = [
     "guild-accept-button",
     "guild-decline-button",
     "found-new-corporation-button",
+    "hard-charter-toggle-button",
+    "charter-renew-preview-display",
+    "charter-toggle-button",
+    "charter-panel",
+    "charter-points-display",
+    "charter-founding-display",
+    "ledger-units-display",
+    "ledger-routes-display",
+    "ledger-charters-display",
+    "ledger-hard-display",
     "achievements-toggle-button",
     "achievements-panel",
     "achievement-toast",
@@ -73,6 +83,15 @@ for _node_id in (
     "auto_efficiency", "auto_efficiency_2", "market_insight", "market_insight_2",
 ):
     ELEMENT_IDS += [f"research-{_node_id}-status", f"research-{_node_id}-unlock-button"]
+# O-1 -- the twelve charter perks.
+CHARTER_PERK_IDS = [
+    "surveyed_lanes", "waystation_network", "standing_convoy",
+    "standing_orders", "lab_automation", "auto_balancers",
+    "frontier_grants", "settler_guilds", "charter_colonies",
+    "guild_standing", "colonial_goodwill", "trusted_name",
+]
+for _perk_id in CHARTER_PERK_IDS:
+    ELEMENT_IDS += [f"charter-perk-{_perk_id}-status", f"charter-perk-{_perk_id}-buy-button"]
 for _colony_id in ALL_COLONY_IDS:
     ELEMENT_IDS += [
         f"colony-{_colony_id}-name",
@@ -145,6 +164,9 @@ class GameEnv:
 
     def toggle_changelog(self):
         self.elements["changelog-toggle-button"].dispatch("click", None)
+
+    def toggle_charter(self):
+        self.elements["charter-toggle-button"].dispatch("click", None)
 
     def toggle_summary(self):
         self.elements["summary-toggle-button"].dispatch("click", None)

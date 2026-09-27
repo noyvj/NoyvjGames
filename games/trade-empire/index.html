@@ -35,6 +35,7 @@
       <button id="achievements-toggle-button" class="secondary" type="button">🏆 Achievements</button>
       <button id="changelog-toggle-button" class="secondary" type="button">📋 What's New</button>
       <button id="summary-toggle-button" class="secondary" type="button">📊 Summary</button>
+      <button id="charter-toggle-button" class="secondary" type="button" aria-controls="charter-panel" aria-expanded="false">📜 Charter</button>
       <!-- Site-wide settings panel (TODO.md origin A9): text-scale +
            reduce-motion. Deliberately independent of Pyodide/game.py
            entirely -- see settings.js -- same pattern Continuum's Phase
@@ -68,6 +69,87 @@
     </div>
     <div id="achievement-toast" class="achievement-toast" hidden></div>
     <div id="summary-panel" class="section summary-panel" hidden></div>
+    <!-- O-1/O-3: the charter panel -- the permanent perk tree (bought with
+         charter points earned by renewing) and the lifetime ledger. Static
+         markup, filled in by game.py's update_charter_display(), so the buy
+         buttons keep keyboard focus across the once-a-second re-render. -->
+    <div id="charter-panel" class="section charter-panel" hidden>
+      <p class="panel-label">Charter perks
+        <details class="info-toggle"><summary>i</summary><p>Every time you renew the charter you earn charter points. Spend them here on small, permanent perks that carry into every later charter. Each perk is bought once, deeper perks in a branch need the one before it, and the cost rises with each tier. They are modest tweaks, not stacking multipliers.</p></details>
+      </p>
+      <p id="charter-points-display" class="research-points" aria-live="polite"></p>
+      <p id="charter-founding-display" class="map-caption"></p>
+      <div class="charter-tree">
+        <div class="charter-branch" role="group" aria-label="Routes perks">
+          <p class="charter-branch-title">Routes</p>
+          <div class="research-row charter-perk-row">
+            <span id="charter-perk-surveyed_lanes-status" class="research-status">Loading...</span>
+            <button id="charter-perk-surveyed_lanes-buy-button" class="secondary" type="button" disabled>Loading...</button>
+          </div>
+          <div class="research-row charter-perk-row">
+            <span id="charter-perk-waystation_network-status" class="research-status">Loading...</span>
+            <button id="charter-perk-waystation_network-buy-button" class="secondary" type="button" disabled>Loading...</button>
+          </div>
+          <div class="research-row charter-perk-row">
+            <span id="charter-perk-standing_convoy-status" class="research-status">Loading...</span>
+            <button id="charter-perk-standing_convoy-buy-button" class="secondary" type="button" disabled>Loading...</button>
+          </div>
+        </div>
+        <div class="charter-branch" role="group" aria-label="Automation perks">
+          <p class="charter-branch-title">Automation</p>
+          <div class="research-row charter-perk-row">
+            <span id="charter-perk-standing_orders-status" class="research-status">Loading...</span>
+            <button id="charter-perk-standing_orders-buy-button" class="secondary" type="button" disabled>Loading...</button>
+          </div>
+          <div class="research-row charter-perk-row">
+            <span id="charter-perk-lab_automation-status" class="research-status">Loading...</span>
+            <button id="charter-perk-lab_automation-buy-button" class="secondary" type="button" disabled>Loading...</button>
+          </div>
+          <div class="research-row charter-perk-row">
+            <span id="charter-perk-auto_balancers-status" class="research-status">Loading...</span>
+            <button id="charter-perk-auto_balancers-buy-button" class="secondary" type="button" disabled>Loading...</button>
+          </div>
+        </div>
+        <div class="charter-branch" role="group" aria-label="Colonies perks">
+          <p class="charter-branch-title">Colonies</p>
+          <div class="research-row charter-perk-row">
+            <span id="charter-perk-frontier_grants-status" class="research-status">Loading...</span>
+            <button id="charter-perk-frontier_grants-buy-button" class="secondary" type="button" disabled>Loading...</button>
+          </div>
+          <div class="research-row charter-perk-row">
+            <span id="charter-perk-settler_guilds-status" class="research-status">Loading...</span>
+            <button id="charter-perk-settler_guilds-buy-button" class="secondary" type="button" disabled>Loading...</button>
+          </div>
+          <div class="research-row charter-perk-row">
+            <span id="charter-perk-charter_colonies-status" class="research-status">Loading...</span>
+            <button id="charter-perk-charter_colonies-buy-button" class="secondary" type="button" disabled>Loading...</button>
+          </div>
+        </div>
+        <div class="charter-branch" role="group" aria-label="Reputation perks">
+          <p class="charter-branch-title">Reputation</p>
+          <div class="research-row charter-perk-row">
+            <span id="charter-perk-guild_standing-status" class="research-status">Loading...</span>
+            <button id="charter-perk-guild_standing-buy-button" class="secondary" type="button" disabled>Loading...</button>
+          </div>
+          <div class="research-row charter-perk-row">
+            <span id="charter-perk-colonial_goodwill-status" class="research-status">Loading...</span>
+            <button id="charter-perk-colonial_goodwill-buy-button" class="secondary" type="button" disabled>Loading...</button>
+          </div>
+          <div class="research-row charter-perk-row">
+            <span id="charter-perk-trusted_name-status" class="research-status">Loading...</span>
+            <button id="charter-perk-trusted_name-buy-button" class="secondary" type="button" disabled>Loading...</button>
+          </div>
+        </div>
+      </div>
+      <p class="panel-label charter-ledger-heading">Lifetime ledger</p>
+      <p class="map-caption">Totals across every charter on this save. They are never reset by a renewal.</p>
+      <ul class="charter-ledger">
+        <li id="ledger-units-display"></li>
+        <li id="ledger-routes-display"></li>
+        <li id="ledger-charters-display"></li>
+        <li id="ledger-hard-display"></li>
+      </ul>
+    </div>
     <div id="notice-toast" class="notice-toast" hidden></div>
 
     <p class="tagline">Working title. Four ships to start (two more purchasable), five colonies, two need-cycles — a lot more to keep an eye on by hand.</p>
@@ -80,7 +162,11 @@
       <canvas id="endgame-galaxy-canvas" width="140" height="140" class="endgame-galaxy-canvas"></canvas>
       <!-- J21: found a new corporation for a permanent legacy bonus. -->
       <p id="legacy-display" class="endgame-worlds"></p>
-      <button id="found-new-corporation-button" class="secondary" type="button" hidden title="Reset to a fresh start and permanently raise your legacy bonus.">🏛️ Found a new corporation</button>
+      <p id="charter-renew-preview-display" class="map-caption"></p>
+      <div class="controls">
+        <button id="hard-charter-toggle-button" class="secondary" type="button" hidden aria-pressed="false" title="Opt in to a tougher next charter: markets saturate faster and colony needs fade sooner. Finishing it earns one extra charter point.">Harder charter: off</button>
+        <button id="found-new-corporation-button" class="secondary" type="button" hidden title="Reset to a fresh start, earn charter points and permanently raise your legacy bonus.">🏛️ Renew the Charter</button>
+      </div>
     </div>
 
     <!-- J3: the Trade Guild's occasional bulk contracts (optional, no penalty). -->
@@ -826,7 +912,7 @@
       {
         selector: "#endgame-panel",
         title: "Reaching full scale",
-        text: "Max out your automation slots, switch Fleet Priority on, and unlock Galaxy Expansion, and you'll reach the endgame state: a background galaxy of worlds that grows on its own and trickles in extra passive revenue. The economy keeps running afterward — there's no hard stop.",
+        text: "Max out your automation slots, switch Fleet Priority on, and unlock Galaxy Expansion, and you'll reach the endgame state: a background galaxy of worlds that grows on its own and trickles in extra passive revenue. The economy keeps running afterward — there's no hard stop. When you're ready you can renew the charter: it resets the world for charter points that buy permanent perks, and opens the optional harder charter.",
       },
       {
         title: "You're ready to trade",
@@ -888,6 +974,7 @@
         { toggle: "changelog-toggle-button", panel: "changelog-panel" },
         { toggle: "settings-toggle-button", panel: "settings-panel" },
         { toggle: "summary-toggle-button", panel: "summary-panel" },
+        { toggle: "charter-toggle-button", panel: "charter-panel" },
       ],
     });
   </script>

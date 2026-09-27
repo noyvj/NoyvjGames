@@ -93,7 +93,22 @@
     {
       "id": "new_corporation",
       "label": "A New Beginning",
-      "description": "Reach the endgame, then found a new corporation with a permanent legacy bonus."
+      "description": "Reach the endgame, then renew the charter with a permanent legacy bonus."
+    },
+    {
+      "id": "charter_perk",
+      "label": "Charter Perk",
+      "description": "Spend charter points on your first perk in the charter tree."
+    },
+    {
+      "id": "charter_veteran",
+      "label": "Charter Veteran",
+      "description": "Renew the charter three times."
+    },
+    {
+      "id": "hard_charter_done",
+      "label": "Against the Grain",
+      "description": "Renew the charter after finishing a harder charter."
     },
     {
       "id": "guild_partner",

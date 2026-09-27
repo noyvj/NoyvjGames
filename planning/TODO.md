@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 34/109 items checked off (31.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 38/109 items checked off (34.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Only the sections you have answered so far are here: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -91,10 +91,10 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 ## O. Replayability follow-up
 
 **Trade Empire**
-- [ ] O-1: Charter renewal at the endgame, with inherited advantages chosen through a research tree instead of picking a single one (per your note; supersedes the one-node idea).
-- [ ] O-2: Founding-conditions variety on renewal.
-- [ ] O-3: Lifetime ledger that survives renewals.
-- [ ] O-4: Opt-in harder charter after the first endgame.
+- [x] O-1: Charter renewal at the endgame, with inherited advantages chosen through a research tree instead of picking a single one (per your note; supersedes the one-node idea).
+- [x] O-2: Founding-conditions variety on renewal.
+- [x] O-3: Lifetime ledger that survives renewals.
+- [x] O-4: Opt-in harder charter after the first endgame.
 
 **Continuum**
 - [ ] O-5: "Found a New Settlement" control (confirm-gated, archives the current one).

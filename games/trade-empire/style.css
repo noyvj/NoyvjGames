@@ -1676,6 +1676,17 @@ button.secondary:disabled::after {
 .colony-demand { margin: 4px 0; font-size: 0.85em; }
 .concede-button { margin: 2px 0 8px; }
 
+/* O-1/O-3 charter panel: the perk tree (reuses .research-row) and the lifetime ledger */
+.charter-panel { text-align: left; }
+.charter-tree { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.75rem; margin: 0.5rem 0 0.75rem; }
+.charter-branch { border: 1px solid rgba(140, 160, 255, 0.18); border-radius: 8px; padding: 0.5rem 0.6rem; }
+.charter-branch-title { margin: 0 0 0.4rem; font-size: 0.85rem; font-weight: 600; color: #7fc4d6; }
+.charter-perk-row { align-items: flex-start; }
+.charter-ledger-heading { margin-top: 0.75rem; }
+.charter-ledger { margin: 0.4rem 0 0; padding-left: 1.1rem; font-size: 0.85rem; line-height: 1.5; }
+#endgame-panel .controls { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+#endgame-panel .controls button.secondary { width: auto; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game,
@@ -1718,3 +1729,6 @@ html[data-theme="light"] .ship-name-input { background: #ffffff; color: #1b2033;
 html[data-theme="light"] .ship-name-input::placeholder { color: rgba(27, 32, 51, 0.55); }
 html[data-theme="light"] .map-canvas,
 html[data-theme="light"] .endgame-galaxy-canvas { background: #0b0d18; }
+html[data-theme="light"] .charter-branch { border-color: rgba(70, 95, 170, 0.35); }
+html[data-theme="light"] .charter-branch-title { color: #1d6f85; }
+html[data-theme="light"] .charter-ledger { color: #1b2033; }

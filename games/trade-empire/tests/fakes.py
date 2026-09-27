@@ -157,6 +157,12 @@ class FakeElement:
                 pass
             self._parent = None
 
+    def setAttribute(self, name, value):
+        """Records aria-* and other attributes (O-1 charter panel sets aria-pressed/expanded/label)."""
+        if not hasattr(self, "attributes"):
+            self.attributes = {}
+        self.attributes[name] = value
+
     def addEventListener(self, event_name, handler):
         self._listeners.setdefault(event_name, []).append(handler)
 
