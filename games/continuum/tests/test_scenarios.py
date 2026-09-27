@@ -108,6 +108,8 @@ def test_restore_city_ignores_a_non_boolean_hard_mode_value():
 
 def test_scenario_buttons_start_unlocked_with_standard_selected(game_env):
     for scenario_id in sim.SCENARIOS:
+        if scenario_id == "refuge":
+            continue  # O-8: locked until the Space Age has been reached (test_founding.py)
         button = game_env.elements[f"scenario-{scenario_id}-button"]
         assert button.disabled is False
         assert button.classList.contains("selected") == (scenario_id == "standard")

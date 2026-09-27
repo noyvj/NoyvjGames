@@ -64,6 +64,7 @@
         font-family: system-ui, -apple-system, sans-serif;
       }
       #confirm-dialog-overlay[hidden] { display: none !important; }
+      #confirm-dialog-skip-row[hidden] { display: none !important; }
       #confirm-dialog-box {
         background: #14161f;
         border: 1px solid rgba(140, 160, 255, 0.18);

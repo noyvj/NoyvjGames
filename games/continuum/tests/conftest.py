@@ -108,7 +108,11 @@ ELEMENT_IDS = [
     "scenario-standard-button",
     "scenario-frontier-button",
     "scenario-fertile-button",
+    "scenario-refuge-button",  # O-8
     "scenario-select-note",
+    "found-settlement-button",  # O-5
+    "found-settlement-status",
+    "legacy-display",  # O-7
     # K18 — opt-in hard-mode toggle.
     "hard-mode-toggle-button",
     # K2/K8/K10/K21a readouts, K11 civic challenges, K19/K13/K25 charts.

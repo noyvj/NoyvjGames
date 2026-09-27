@@ -438,8 +438,35 @@ SCENARIOS = {
         "tools": 3.0,
         "land_health": 1.0,
     },
+    # O-8: a fourth opening, offered only to a player who has already
+    # reached the Space Age (or later) once -- see REFUGE_UNLOCK_ERA and
+    # game.py's `refuge_unlocked()`. Deliberately a different SHAPE from the
+    # three above, not just a harder or easier dial: the other three vary
+    # how much you start with, this one varies what you start with. A
+    # crowd of people and the memory of how things are done (`knowledge`,
+    # the elders), but worked-out land, thin stores and not enough roofs.
+    # The pressure is inverted from Harsh Frontier (too few hands): here
+    # there are too many mouths for the land, so the first job is to put
+    # the crowd to work and let the ground recover before asking more of it.
+    "refuge": {
+        "label": "Refuge Start",
+        "blurb": (
+            "A larger, older group arrives with the elders' memory but on worn land: "
+            "twice the mouths, thin stores and too few roofs. Recover the ground before you grow."
+        ),
+        "population": 12,
+        "food": 26.0,
+        "materials": 16.0,
+        "tools": 1.0,
+        "land_health": 0.6,
+        "knowledge": 6.0,
+    },
 }
 DEFAULT_SCENARIO = "standard"
+# O-8: the era a player must have reached (in any settlement, ever) to be
+# offered the Refuge Start. Gated in game.py's UI, not in the engine:
+# `CityState(scenario="refuge")` always works, so a save carrying it loads.
+REFUGE_UNLOCK_ERA = "space"
 
 
 def scenario_config(scenario_id):
@@ -799,7 +826,9 @@ class CityState:
             "food": config["food"],
             "materials": config["materials"],
             "tools": config["tools"],
-            "knowledge": START_KNOWLEDGE,
+            # O-8: an optional per-scenario key (only Refuge sets it); every
+            # other scenario keeps the old START_KNOWLEDGE, byte for byte.
+            "knowledge": config.get("knowledge", START_KNOWLEDGE),
             "surplus": START_SURPLUS,
         }
         self.allocation = dict(START_ALLOCATION)

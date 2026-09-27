@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 64/109 items checked off (58.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 68/109 items checked off (62.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Only the sections you have answered so far are here: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -97,10 +97,10 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 - [x] O-4: Opt-in harder charter after the first endgame.
 
 **Continuum**
-- [ ] O-5: "Found a New Settlement" control (confirm-gated, archives the current one).
-- [ ] O-6: A "Found a new settlement" button beside each archived entry.
-- [ ] O-7: Founder's legacy carryover.
-- [ ] O-8: A fourth starting scenario unlocked after reaching Space Age once.
+- [x] O-5: "Found a New Settlement" control (confirm-gated, archives the current one).
+- [x] O-6: A "Found a new settlement" button beside each archived entry.
+- [x] O-7: Founder's legacy carryover.
+- [x] O-8: A fourth starting scenario unlocked after reaching Space Age once.
 
 ---
 

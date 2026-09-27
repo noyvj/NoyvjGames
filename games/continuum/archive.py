@@ -135,6 +135,18 @@ def remove_record(records, index):
     return records[:index] + records[index + 1:]
 
 
+_SAME_KEYS = ("era", "seasons", "peak_population", "peak_score", "rank", "scenario", "hard_mode", "achievements")
+
+
+def same_settlement(a, b):
+    """True when two records describe the same settlement in the same state
+    (everything but the filing date and the picture), so filing it twice in
+    a row does not add a duplicate."""
+    if not isinstance(a, dict) or not isinstance(b, dict):
+        return False
+    return all(a.get(key) == b.get(key) for key in _SAME_KEYS)
+
+
 def serialize(records):
     return json.dumps(clean_records(records))
 

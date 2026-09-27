@@ -1156,6 +1156,22 @@ button.primary:disabled::after {
   color: #e0917c;
 }
 
+/* O-5/O-7/O-8 — found a new settlement, the founder's legacy line and the
+   locked/unlocked Refuge scenario button. */
+.found-settlement {
+  margin-top: 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid rgba(140, 160, 255, 0.14);
+}
+
+.legacy-display {
+  color: #e0b374;
+}
+
+.legacy-display[hidden] {
+  display: none;
+}
+
 /* K13 — the 3D-scene snapshot-export button. Same row/visibility gating
    as .visual-mode-toggle/.camera-preset-buttons (render3d.js shows/hides
    it alongside them), styled as an ordinary secondary button since it's
@@ -1782,3 +1798,5 @@ html[data-theme="light"] .hamlet-town-panel {
 }
 html[data-theme="light"] .hamlet-town-heading { color: #7a4a12; }
 html[data-theme="light"] .hamlet-town-dim { opacity: 0.85; }
+html[data-theme="light"] .found-settlement { border-top-color: rgba(40, 55, 110, 0.25); }
+html[data-theme="light"] .legacy-display { color: #7a4a12; }

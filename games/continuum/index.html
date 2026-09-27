@@ -169,6 +169,8 @@
         <button id="scenario-standard-button" class="secondary scenario-button" type="button" title="The settlement as designed — no thumb on the scale.">Standard Start</button>
         <button id="scenario-frontier-button" class="secondary scenario-button" type="button" title="Fewer hands, thinner stores, and land that's already been worked hard. A tougher opening.">Harsh Frontier</button>
         <button id="scenario-fertile-button" class="secondary scenario-button" type="button" title="A generous opening: more people, deeper stores, and land at full health.">Fertile Valley</button>
+        <!-- O-8: unlocked once any settlement has reached the Space Age (game.py's refuge_unlocked()). -->
+        <button id="scenario-refuge-button" class="secondary scenario-button" type="button" title="Locked: reach the Space Age in any settlement to unlock this opening.">🔒 Refuge Start</button>
       </div>
       <p id="scenario-select-note" class="row-blurb">Loading...</p>
       <div class="settings-row">
@@ -186,6 +188,12 @@
         <p id="consulting-status-display" class="row-blurb"></p>
         <button id="consulting-abandon-button" class="secondary" type="button" hidden>Abandon this case (fresh start)</button>
       </details>
+      <!-- O-5/O-7: found a new settlement (files the current one in the archive first) and the founder's legacy it inherits. -->
+      <div class="found-settlement">
+        <button id="found-settlement-button" class="secondary" type="button" aria-label="Found a new settlement. Files the current settlement in the archive first, then starts a brand-new one." title="File this settlement in the archive, then start a brand-new one (scenario picker, Hard Mode and consulting open again).">🏕 Found a New Settlement</button>
+        <p id="found-settlement-status" class="row-blurb" role="status" aria-live="polite"></p>
+        <p id="legacy-display" class="row-blurb legacy-display" hidden></p>
+      </div>
     </div>
 
     <!-- W2-continuum: a sourced real-world example for the current era.
@@ -546,7 +554,7 @@
     // Each engine module is written into Pyodide's virtual filesystem (the
     // working directory, which is on sys.path) before game.py runs and
     // imports them. Still no build step — just more than one fetch.
-    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py", "minutes.py", "hamlet.py"];
+    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py", "founding.py", "minutes.py", "hamlet.py"];
 
     const CONTINUUM_TUTORIAL_STEPS = [
       {

@@ -40,6 +40,7 @@ if _HERE not in sys.path:
 import archive  # noqa: E402
 import challenges  # noqa: E402
 import consulting  # noqa: E402
+import founding  # noqa: E402
 import hamlet  # noqa: E402
 import info_content  # noqa: E402
 import info_page  # noqa: E402
@@ -262,6 +263,7 @@ def render():
     update_summary_panel()
     update_views_panel(effects)
     update_consulting_display()
+    update_found_display()
     render_insights(effects)
     render_hamlet(effects)
     _notify_visual_layer()
@@ -327,9 +329,20 @@ def _scenario_locked():
     return state.season > 1 or consulting.get(campaign.ui) is not None
 
 
+def refuge_unlocked():
+    """O-8: the Refuge Start is offered once any settlement, ever, has
+    reached the Space Age (live achievements plus the ones carried over from
+    earlier settlements, or an archived settlement that got that far)."""
+    return founding.refuge_unlocked(achievement_ids_earned(), archive_load())
+
+
+def _scenario_available(scenario_id):
+    return scenario_id != "refuge" or refuge_unlocked()
+
+
 def _make_select_scenario_handler(scenario_id):
     def handler(event=None):
-        if _scenario_locked() or scenario_id not in sim.SCENARIOS:
+        if _scenario_locked() or scenario_id not in sim.SCENARIOS or not _scenario_available(scenario_id):
             return
         config = sim.scenario_config(scenario_id)
         # Mutated in place, the same "restore into the existing object"
@@ -343,6 +356,9 @@ def _make_select_scenario_handler(scenario_id):
         state.resources["food"] = config["food"]
         state.resources["materials"] = config["materials"]
         state.resources["tools"] = config["tools"]
+        # O-8: only the Refuge Start sets its own knowledge; picking any other
+        # scenario (or switching back) puts the standard opening figure back.
+        state.resources["knowledge"] = config.get("knowledge", sim.START_KNOWLEDGE)
         state.land_health = config["land_health"]
         state.clamp_allocation()
         # Re-baseline the log's own "have we already reported this" state
@@ -406,8 +422,20 @@ def update_scenario_display():
     )
     for scenario_id in sim.SCENARIOS:
         button = document.getElementById(f"scenario-{scenario_id}-button")
-        button.disabled = locked
+        available = _scenario_available(scenario_id)
+        button.disabled = locked or not available
         button.classList.toggle("selected", state.scenario == scenario_id)
+        if scenario_id == "refuge":
+            label = sim.SCENARIOS[scenario_id]["label"]
+            button.innerText = label if available else f"🔒 {label}"
+            hint = sim.SCENARIOS[scenario_id]["blurb"]
+            button.title = hint if available else (
+                f"Locked: reach the {sim.ERA_LABEL[sim.REFUGE_UNLOCK_ERA]} in any settlement to unlock this opening."
+            )
+            button.setAttribute(
+                "aria-label",
+                f"{label}, available" if available else f"{label}, locked until you reach the {sim.ERA_LABEL[sim.REFUGE_UNLOCK_ERA]}",
+            )
 
 
 def update_hard_mode_display():
@@ -561,6 +589,15 @@ def _archive_button(parent, button_id, text, handler):
     return button
 
 
+def _found_button(parent, button_id):
+    """O-6: a "Found a new settlement" button, the archive as a jumping-off
+    point. Same confirm-gated action as the scenario panel's own button."""
+    button = _archive_button(parent, button_id, "Found a new settlement", on_found_new_settlement)
+    button.disabled = campaign.revisiting is not None
+    button.setAttribute("aria-label", "Found a new settlement (files the current settlement in the archive first)")
+    return button
+
+
 def _render_archive_section(panel):
     """Appends the archive gallery + card buttons to the summary panel."""
     for proxy in _archive_proxies:
@@ -583,6 +620,7 @@ def _render_archive_section(panel):
     actions.className = "archive-actions"
     _archive_button(actions, "archive-add-button", "Add this settlement to the archive", on_archive_current)
     _archive_button(actions, "archive-card-current-button", "Download a shareable card", on_card_current)
+    _found_button(actions, "archive-found-button")
     panel.appendChild(actions)
 
     gallery = document.createElement("div")
@@ -613,6 +651,7 @@ def _render_archive_section(panel):
         buttons.className = "archive-actions"
         _archive_button(buttons, f"archive-card-{index}-button", "Card", _make_card_handler(index))
         _archive_button(buttons, f"archive-delete-{index}-button", "Delete", _make_archive_delete_handler(index))
+        _found_button(buttons, f"archive-found-{index}-button")
         card.appendChild(buttons)
         gallery.appendChild(card)
     panel.appendChild(gallery)
@@ -626,6 +665,151 @@ def _render_archive_section(panel):
             on_archive_clear,
         )
         panel.appendChild(clear_wrap)
+
+
+# ===========================================================================
+# O-5/O-6/O-7: "Found a New Settlement". The front door back to the scenario
+# picker (K12), hard mode (K18) and consulting mode (K22): a confirm-gated
+# action that FIRST files the current settlement in the archive (unless it is
+# already filed, or has nothing in it), and only then resets the campaign in
+# place (founding.found_new). If the archive write fails the whole thing is
+# refused, so a settlement that has not been archived is never thrown away.
+# The new settlement inherits one small founder's legacy (founding.py), from
+# the settlement just filed, and nothing else.
+# ===========================================================================
+found_status = ""
+
+
+def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm):
+    """Same helper shape as SOL's: the shared ConfirmDialog when present, else
+    (pytest's fake `js`, or a page without confirm-dialog.js) confirm at once."""
+    window = _js_window()
+    confirm_dialog = getattr(window, "ConfirmDialog", None) if window is not None else None
+    if confirm_dialog is None:
+        on_confirm()
+        return
+    confirm_dialog.ask(
+        id=action_id,
+        message=message,
+        confirmLabel=confirm_label,
+        allowSkip=False,
+        onConfirm=create_proxy(on_confirm),
+    )
+
+
+def _departing_is_inherited_only():
+    """True when the settlement being left is an unplayed-beyond-its-start
+    consulting case: its era was handed over, not reached, so it earns no
+    legacy (the same fairness rule the era achievements follow)."""
+    case = consulting.get(campaign.ui)
+    if case is None:
+        return False
+    return sim.era_index(campaign.furthest_era) <= sim.era_index(consulting.CASES[case["case"]]["era"])
+
+
+def pending_legacy():
+    """The legacy entry the NEXT settlement would inherit, or None: from the
+    current settlement (which founding archives first), or, when there is
+    nothing worth archiving, from the newest archived settlement."""
+    if founding.is_pristine(campaign):
+        records = archive_load()
+        record = records[-1] if records else None
+    elif _departing_is_inherited_only():
+        record = None
+    else:
+        record = current_record()
+    return founding.make_legacy(record)
+
+
+def _archive_departing():
+    """Files the current settlement unless it is empty or already filed.
+    True only when it is safe to leave it behind."""
+    if founding.is_pristine(campaign):
+        return True
+    record = current_record(archive.clean_thumbnail(_capture_image(320, 0.7)))
+    if record is None:
+        return False
+    records = archive_load()
+    if records and archive.same_settlement(records[-1], record):
+        return True
+    return archive_store(archive.add_record(records, record))
+
+
+def found_new_settlement():
+    """Archive, then reset. Returns True when a new settlement was founded."""
+    global found_status, sim_speed, season_progress, _last_tick, _archive_confirm_clear
+    if campaign.revisiting is not None:
+        found_status = "Return to the present before founding a new settlement."
+        render()
+        return False
+    legacy_entry = pending_legacy()
+    if not _archive_departing():
+        found_status = (
+            "The current settlement could not be filed in the archive (browser storage is "
+            "unavailable), so nothing was changed."
+        )
+        render()
+        return False
+    earned = achievement_ids_earned()
+    if not founding.found_new(campaign, chronicle, legacy_entry, earned):
+        found_status = "A new settlement could not be founded, so nothing was changed."
+        render()
+        return False
+    sim_speed = 0
+    season_progress = 0.0
+    _last_tick = time.time()
+    _archive_confirm_clear = False
+    found_status = (
+        "A new settlement is founded. The old one is filed in the archive. Pick a starting "
+        "scenario, Hard Mode or a consulting case, then press 1x to begin."
+    )
+    render()
+    _seed_achievement_toast_baseline()
+    return True
+
+
+def _found_confirm_message():
+    parts = [
+        "Found a new settlement? The current one is filed in your archive first, then a brand-new "
+        "Tribal-era settlement begins, paused, with the scenario picker, Hard Mode and consulting "
+        "cases open again."
+    ]
+    entry = pending_legacy()
+    if entry is not None:
+        legacy = founding.LEGACIES[entry["id"]]
+        parts.append(
+            f"It inherits one founder's legacy: {legacy['label']} ({founding.bonus_text(entry)}), "
+            f"from a {sim.ERA_LABEL[entry['from_era']]}-era settlement."
+        )
+    else:
+        parts.append("There is no founder's legacy to inherit yet.")
+    return " ".join(parts)
+
+
+def on_found_new_settlement(event=None):
+    if campaign.revisiting is not None:
+        global found_status
+        found_status = "Return to the present before founding a new settlement."
+        update_found_display()
+        return
+    _confirm_dialog_ask(
+        "continuum-found-settlement",
+        _found_confirm_message(),
+        "Found a new settlement",
+        found_new_settlement,
+    )
+
+
+def update_found_display():
+    button = document.getElementById("found-settlement-button")
+    button.disabled = campaign.revisiting is not None
+    document.getElementById("found-settlement-status").innerText = found_status
+    legacy_line = document.getElementById("legacy-display")
+    text = founding.status_text(
+        founding.get_legacy(campaign.ui), consulting.get(campaign.ui) is not None
+    )
+    legacy_line.innerText = text
+    legacy_line.hidden = not text
 
 
 # --- K15 founder's log + K29 time played --------------------------------
@@ -1491,7 +1675,10 @@ def achievement_ids_earned():
     value that rides the existing save/sync mechanism via get_state()'s
     "achievements_earned" field. Always recomputed, never itself a save
     input (see get_state() below)."""
-    return [entry["id"] for entry in ACHIEVEMENTS if ACHIEVEMENT_CHECKS[entry["id"]]()]
+    # O-5: badges earned in an earlier settlement (kept in campaign.ui by
+    # founding.found_new) stay earned; the live checks add this settlement's.
+    before = set(founding.earned_before(campaign.ui, [entry["id"] for entry in ACHIEVEMENTS]))
+    return [entry["id"] for entry in ACHIEVEMENTS if entry["id"] in before or ACHIEVEMENT_CHECKS[entry["id"]]()]
 
 
 def achievements_summary():
@@ -2751,7 +2938,18 @@ def _make_speed_handler(speed):
 
 
 def on_advance_season(event=None):
+    global found_status
     effects = current_effects()
+    # O-7: a pending founder's legacy arrives with the opening season, once.
+    delivered = founding.apply_legacy(campaign, consulting.get(campaign.ui) is not None)
+    if delivered is not None:
+        legacy = founding.LEGACIES[delivered["id"]]
+        chronicle.log_challenge(
+            state.season,
+            state.era,
+            f"Founder's legacy arrives: {legacy['label']} ({founding.bonus_text(delivered)}). {legacy['blurb']}",
+        )
+    found_status = ""
     report = state.advance_season(effects)
     state.record_score(sustainability.score(state, effects))
     trajectory.record(state, report, sustainability.livability(state, effects) * 100.0)
@@ -2893,6 +3091,9 @@ def setup():
         )
     document.getElementById("consulting-abandon-button").addEventListener(
         "click", create_proxy(on_consulting_abandon)
+    )
+    document.getElementById("found-settlement-button").addEventListener(
+        "click", create_proxy(on_found_new_settlement)
     )
     # Belt-and-suspenders: the toast starts hidden via the static `hidden`
     # attribute in index.html, but every other stateful element in this
