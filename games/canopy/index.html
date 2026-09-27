@@ -36,6 +36,8 @@
       <button id="achievements-toggle-button" class="secondary" type="button">Loading...</button>
       <button id="changelog-toggle-button" class="secondary" type="button">📋 What's New</button>
       <button id="example-toggle-button" class="secondary" type="button">📖 Example playthrough</button>
+      <!-- GB-28: Forest Almanac, a checklist of what you have found (trees, wildlife, rare wildlife, hidden structures, seasons). -->
+      <button id="almanac-toggle-button" class="secondary" type="button">📚 Almanac</button>
       <!-- B1/B6/B18/B20: a player-triggered recap (stats, a sparkline of
            income vs. standing value over the session, a closing
            counterfactual line, and a shareable text snippet) -- same
@@ -104,6 +106,7 @@
          achievements/settings above. -->
     <div id="changelog-panel" class="section changelog-panel" hidden></div>
     <div id="example-panel" class="section example-panel" hidden></div>
+    <div id="almanac-panel" class="section almanac-panel" hidden></div>
     <div id="session-summary-panel" class="section session-summary-panel print-summary" hidden>
       <p id="session-summary-counterfactual" class="session-summary-counterfactual"></p>
       <div id="session-summary-sparkline" class="session-summary-sparkline"></div>
@@ -156,7 +159,7 @@
 
     <p class="tagline">A forest region. Clear it for quick income, or leave it standing and let its value compound.</p>
 
-    <div class="forest-visual" aria-hidden="true">
+    <div id="forest-visual" class="forest-visual" aria-hidden="true">
       <div class="forest-visual-glow"></div>
       <div class="forest-visual-sky"></div>
       <div class="forest-visual-sun"></div>
@@ -178,6 +181,12 @@
       <ul id="info-page-sources" class="info-page-sources"></ul>
     </div>
 
+    <!-- GB-23/GB-30: the season indicator (season and ticks to the next, rain or drought, and the Perfect Season flame counter); text set by game.py's render_season_indicator(). -->
+    <p id="season-indicator" class="season-indicator" role="status">
+      <span id="season-text" class="season-text"></span>
+      <span id="weather-text" class="weather-text" hidden></span>
+      <span id="perfect-streak-text" class="perfect-streak-text" tabindex="0"></span>
+    </p>
     <div id="plot-grid" class="plot-grid"></div>
     <div id="plot-tooltip" class="plot-tooltip" hidden></div>
 
@@ -198,6 +207,8 @@
       <div id="stats" class="section">
         <p id="income-display" class="income-display">Harvested income: 0.0</p>
         <p id="standing-value-display" class="income-display">Standing forest value: 0.0</p>
+        <!-- GB-22 / GB-14: the standing-value tier title (Seedling, Grove, Woodland, Old-Growth) and the forest's name; hidden until there is one. -->
+        <p id="forest-title-display" class="income-display forest-title-display" hidden></p>
         <p id="biodiversity-display" class="income-display">Biodiversity: 0.0</p>
         <p id="comparison-message" class="comparison-message">Nothing harvested or grown yet — clear a plot for quick income, or leave one standing to watch its value compound.</p>
         <p id="state-breakdown-display" class="state-breakdown">36 preserved · 0 bare · 0 replanting · 0 recovered</p>
@@ -251,7 +262,20 @@
         <button id="clear-button" class="secondary" disabled>Loading...</button>
         <button id="replant-button" class="secondary" disabled>Loading...</button>
         <button id="adopt-plot-button" class="secondary" type="button" disabled title="Mark the selected plot as a long-term personal project with its own mini-history">⭐ Adopt plot</button>
+        <!-- GB-4: a short growth boost on one plot, then a 20-tick cooldown. Press T over a plot, or select one and use this button. -->
+        <button id="tend-button" class="secondary" type="button" disabled title="Tend: a short growth boost on the selected plot (or press T while hovering one), then a 20-tick cooldown">🌿 Tend (T)</button>
+        <!-- GB-18: appears for a few seconds after a Clear (not in Forest ranger difficulty). -->
+        <button id="undo-clear-button" class="secondary undo-chip" type="button" hidden>↩ Undo clear</button>
       </div>
+      <p id="tend-status" class="tend-status" aria-live="polite"></p>
+      <!-- GB-14: name your forest, and nickname the adopted plot; the forest log narrates both. -->
+      <details class="names-details">
+        <summary>✏️ Name your forest</summary>
+        <label class="names-label" for="forest-name-input">Forest name</label>
+        <input id="forest-name-input" class="names-input" type="text" maxlength="24" autocomplete="off" placeholder="e.g. Wren Hollow">
+        <label class="names-label" for="plot-nickname-input">Adopted plot nickname</label>
+        <input id="plot-nickname-input" class="names-input" type="text" maxlength="20" autocomplete="off" placeholder="Adopt a plot first" disabled>
+      </details>
       <!-- B21: shown only when the selected plot has stood long enough to specialize (one-time, permanent choice). -->
       <div id="specialist-row" class="action-buttons" hidden>
         <button id="specialize-economic-button" class="secondary" type="button" title="Permanent: this plot's standing value grows 25% faster">💰 Specialize: economic</button>
@@ -571,6 +595,38 @@
         if (tile) tile.focus();
       });
 
+      // GB-4/GB-2/GB-18 hotkeys: T tends the plot under the pointer (or the
+      // last focused one, else the selected plot), G catches a golden
+      // seedling wherever it is, U undoes the last clear. Python does the
+      // work; this only routes the key. Ignored while typing in a field.
+      let hoveredPlotIndex = null;
+      plotGrid.addEventListener("mouseover", (e) => {
+        const m = e.target && e.target.id && e.target.id.match(/^plot-(\d+)$/);
+        if (m) hoveredPlotIndex = parseInt(m[1], 10);
+      });
+      plotGrid.addEventListener("focusin", (e) => {
+        const m = e.target && e.target.id && e.target.id.match(/^plot-(\d+)$/);
+        if (m) hoveredPlotIndex = parseInt(m[1], 10);
+      });
+      plotGrid.addEventListener("mouseleave", () => { hoveredPlotIndex = null; });
+      document.addEventListener("keydown", (e) => {
+        const key = e.key && e.key.toLowerCase();
+        if (key !== "t" && key !== "g" && key !== "u") return;
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        const tag = (e.target && e.target.tagName) || "";
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (e.target && e.target.isContentEditable)) return;
+        if (key === "t") {
+          const fn = pyodide.globals.get("tend_plot");
+          if (fn) fn(hoveredPlotIndex);
+        } else if (key === "g") {
+          const fn = pyodide.globals.get("collect_golden_seedling");
+          if (fn) fn();
+        } else {
+          const fn = pyodide.globals.get("undo_last_clear");
+          if (fn) fn();
+        }
+      });
+
       // B26: keep a subtle glow on whichever plot the pointer/focus last
       // touched. render_grid() rebuilds every tile each tick, so remember
       // the tile id and re-apply after each rebuild (a childList observer;
@@ -703,10 +759,16 @@
         { toggle: "achievements-toggle-button", panel: "achievements-panel" },
         { toggle: "changelog-toggle-button", panel: "changelog-panel" },
         { toggle: "example-toggle-button", panel: "example-panel" },
+        { toggle: "almanac-toggle-button", panel: "almanac-panel" },
         { toggle: "session-summary-toggle-button", panel: "session-summary-panel" },
         { toggle: "info-page-toggle-button", panel: "info-page-panel" },
       ],
-      extra: ["N — jump to the plot a pending stakeholder request names"],
+      extra: [
+        "N — jump to the plot a pending stakeholder request names",
+        "T — tend the plot under the pointer (or the selected plot)",
+        "G — catch a golden seedling",
+        "U — undo the last clear (just after clearing)",
+      ],
     });
   </script>
   <script>

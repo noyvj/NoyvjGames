@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-09-27",
+      "entry": "Canopy gamified batch: golden seedlings to catch (or press G), a Tend action (T) with a cooldown, a hidden Heart Tree for the curious, name your forest and nickname an adopted plot, a short Undo after Clear (not in Forest ranger), rare wildlife with conditions (a ghost stag at late-autumn dusk, a wary fox), forest tiers (Seedling, Grove, Woodland, Old-Growth) with three new achievements, rain and drought on the season indicator, chain-bloom leaf ripples, a Forest Almanac, and a Perfect Season flame streak."
+    },
+    {
+      "date": "2026-09-27",
       "entry": "Light theme polish: Canopy now has a proper light look. The readouts, plot tile edges, selection and flood outlines, info buttons, switch lights and session graphs were re-coloured so they stay readable on a light page, and the Light/Dark control moved from a floating pill into the Settings panel. The dark theme looks exactly as before and no save or game number changed."
     },
     {

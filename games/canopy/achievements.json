@@ -104,6 +104,21 @@
       "id": "second_growth",
       "label": "Second Growth",
       "description": "Unlock the Highland Grove, a second forest region."
+    },
+    {
+      "id": "tier_grove",
+      "label": "Grove Keeper",
+      "description": "Grow your forest into a Grove: reach a standing forest value of 2,500 (the second tier, after Seedling at 1,000)."
+    },
+    {
+      "id": "tier_woodland",
+      "label": "Woodland Warden",
+      "description": "Grow your forest into a Woodland: reach a standing forest value of 5,000."
+    },
+    {
+      "id": "tier_old_growth_steward",
+      "label": "Old-Growth Steward",
+      "description": "Grow your forest into an Old-Growth forest: reach a standing forest value of 10,000."
     }
   ]
 }

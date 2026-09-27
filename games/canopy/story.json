@@ -110,6 +110,21 @@
       "id": "flourishing_canopy",
       "title": "The canopy closes",
       "text": "Every plot is either standing or well on its way back, with nothing bare left to mend. Looking up from the path, you cannot find a gap in the leaves, and for the first time you are not looking for one."
+    },
+    {
+      "id": "tier_grove",
+      "title": "A grove, not a patch",
+      "text": "Somewhere in the last few seasons the plots stopped being separate. Walking the path now, you pass from shade to shade without noticing the joins, and the children have started calling it the grove. You let them."
+    },
+    {
+      "id": "tier_woodland",
+      "title": "Woodland",
+      "text": "The council clerk asks what to write on the map, because \"the plots\" no longer covers it. You suggest a word older than the ledger. She writes it in ink, and it looks right there, as if it had always been waiting."
+    },
+    {
+      "id": "tier_old_growth_steward",
+      "title": "What the old trees keep",
+      "text": "On a still evening you stand under trunks that were saplings when you took the ledger, and will be here long after your handwriting fades. You are not the owner of this place, you realise. You are the one who was trusted to stay."
     }
   ]
 }

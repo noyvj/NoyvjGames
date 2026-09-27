@@ -1631,6 +1631,243 @@ html[data-season="winter"] .ambient-bg { filter: hue-rotate(35deg) saturate(0.55
 }
 
 /* ============================================================
+   GB batch 1 (planning/IMPROVEMENT-IDEAS-ROUND-3.md section GB):
+   season indicator with weather and the Perfect Season flame (GB-23/30),
+   golden seedling (GB-2), Tend (GB-4), Heart Tree (GB-8), undo chip
+   (GB-18), ghost stag (GB-20), tier title and forest pulse (GB-22),
+   chain bloom (GB-27), Forest Almanac (GB-28), name fields (GB-14).
+   Every animation has a prefers-reduced-motion rule below, and the
+   manual data-reduced-motion switch already collapses them all. */
+.season-indicator {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1rem;
+  margin: 0 0 0.6rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  background: rgba(4, 8, 5, 0.45);
+}
+.season-indicator .weather-text[hidden] { display: none; }
+.weather-text, .perfect-streak-text { font-weight: 600; }
+.perfect-streak-text { cursor: help; }
+.perfect-streak-text.just-improved,
+.forest-title-display.just-improved {
+  color: #e0c24c;
+  animation: gb-pulse 1.8s ease-out;
+}
+@keyframes gb-pulse {
+  0% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+.forest-title-display[hidden] { display: none; }
+.forest-title-display { font-weight: 700; }
+
+/* GB-23: rain shimmers over the grid, drought tints the tiles, and the last
+   ticks of autumn (where the ghost stag walks) are night-tinted. */
+.plot-grid { position: relative; }
+.plot-grid--rain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 8px;
+  background: repeating-linear-gradient(105deg, rgba(160, 205, 255, 0) 0 9px, rgba(160, 205, 255, 0.22) 9px 11px);
+  background-size: 22px 22px;
+  animation: gb-rain-shimmer 0.9s linear infinite;
+}
+@keyframes gb-rain-shimmer {
+  from { background-position: 0 0; }
+  to { background-position: -22px 22px; }
+}
+.plot-grid--drought .plot-tile,
+.plot-grid--drought .plot-tile:active { filter: sepia(0.55) saturate(0.85) brightness(0.95); }
+.plot-grid--dusk {
+  border-radius: 8px;
+  box-shadow: inset 0 0 40px 8px rgba(18, 20, 70, 0.6);
+}
+.plot-grid--dusk .plot-tile { filter: brightness(0.78) saturate(0.9); }
+
+/* GB-2: the golden seedling: a glowing outline and a sparkle, so it never
+   relies on motion or hue alone. */
+.plot-tile.plot-golden-seedling {
+  outline: 2px solid #ffd54a;
+  outline-offset: -2px;
+  box-shadow: 0 0 10px 3px rgba(255, 213, 74, 0.75);
+}
+.golden-seedling-mark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  pointer-events: none;
+  z-index: 4;
+  filter: drop-shadow(0 0 4px #ffd54a) drop-shadow(0 0 8px #ffb300);
+  animation: gb-golden-bob 0.9s ease-in-out infinite;
+}
+@keyframes gb-golden-bob {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-3px) scale(1.12); }
+}
+
+/* GB-4: a tended plot brightens and carries a small leaf mark. */
+.plot-tile.plot-tended { filter: brightness(1.18) saturate(1.15); }
+.tend-mark {
+  position: absolute;
+  bottom: 1px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.62rem;
+  line-height: 1;
+  pointer-events: none;
+}
+.tend-status { margin: 0.4rem 0 0; font-size: 0.8rem; opacity: 0.85; }
+
+/* GB-8: the Heart Tree: a glowing ancient tree with a permanent aura. There is
+   no legend entry for it on purpose. */
+.plot-tile.plot-heart-tree {
+  z-index: 2;
+  font-size: 1.35rem;
+  box-shadow: 0 0 0 2px #ffe08a, 0 0 14px 5px rgba(120, 255, 170, 0.85), inset 0 0 12px rgba(255, 255, 200, 0.6);
+}
+.heart-tree-aura {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(170, 255, 190, 0.5) 0, rgba(170, 255, 190, 0) 70%);
+  pointer-events: none;
+  animation: gb-heart-pulse 3s ease-in-out infinite;
+}
+@keyframes gb-heart-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+.heart-tree-mark {
+  position: absolute;
+  top: 1px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6rem;
+  line-height: 1;
+  pointer-events: none;
+}
+.plot-tile.plot-heart-aura { filter: brightness(1.07); }
+
+/* GB-20: the ghost stag, only in the night-tinted late-autumn ticks. */
+.plot-tile.plot-ghost-stag .ghost-stag-mark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  opacity: 0.6;
+  pointer-events: none;
+  filter: grayscale(0.5) drop-shadow(0 0 6px #bcd4ff);
+  animation: gb-ghost-fade 3s ease-in-out infinite;
+}
+@keyframes gb-ghost-fade {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.75; }
+}
+
+/* GB-18: the undo chip. */
+.undo-chip { border-color: rgba(232, 163, 61, 0.7); }
+.undo-chip[hidden] { display: none; }
+
+/* GB-22: a brief light pulse over the forest backdrop at each tier. */
+.forest-visual.forest-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 60%, rgba(255, 244, 190, 0.85), rgba(255, 244, 190, 0) 70%);
+  animation: gb-forest-flush 1.8s ease-out forwards;
+}
+@keyframes gb-forest-flush {
+  0% { opacity: 0; }
+  25% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* GB-27: chain bloom: leaf bursts that ripple in rank order, each larger and
+   later than the last. Juice only. */
+.plot-chain-bloom .leaf-burst {
+  animation-name: leaf-burst-fly-late;
+  animation-duration: 1000ms;
+  animation-fill-mode: both;
+  filter: drop-shadow(0 0 3px rgba(255, 244, 150, 0.8));
+}
+@keyframes leaf-burst-fly-late {
+  0% { opacity: 0; transform: translate(0, 0) rotate(0deg) scale(0.6); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--lx), var(--ly)) rotate(200deg) scale(1.3); }
+}
+.plot-chain-bloom-0 .leaf-burst { animation-delay: 0ms; font-size: 0.8rem; }
+.plot-chain-bloom-1 .leaf-burst { animation-delay: 110ms; font-size: 0.95rem; }
+.plot-chain-bloom-2 .leaf-burst { animation-delay: 220ms; font-size: 1.1rem; }
+.plot-chain-bloom-3 .leaf-burst { animation-delay: 330ms; font-size: 1.25rem; }
+.plot-chain-bloom-4 .leaf-burst { animation-delay: 440ms; font-size: 1.4rem; }
+.plot-chain-bloom-5 .leaf-burst { animation-delay: 550ms; font-size: 1.55rem; }
+.plot-chain-bloom-6 .leaf-burst { animation-delay: 660ms; font-size: 1.7rem; }
+.plot-chain-bloom-7 .leaf-burst { animation-delay: 770ms; font-size: 1.85rem; }
+
+/* GB-14: the name fields. */
+.names-details { margin-top: 0.6rem; }
+.names-details > summary { cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+.names-label { display: block; margin-top: 0.4rem; font-size: 0.75rem; opacity: 0.85; }
+.names-input {
+  display: block;
+  width: 100%;
+  max-width: 18rem;
+  margin-top: 0.15rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid rgba(140, 160, 255, 0.3);
+  background: rgba(0, 0, 0, 0.25);
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+}
+.names-input:disabled { opacity: 0.55; }
+
+/* GB-28: the Forest Almanac. */
+.almanac-panel[hidden] { display: none; }
+.almanac-title { margin: 0 0 0.6rem; font-size: 1.05rem; }
+.almanac-heading { margin: 0.8rem 0 0.3rem; font-size: 0.9rem; opacity: 0.9; }
+.almanac-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.almanac-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.85rem;
+}
+.almanac-item--found {
+  border-color: rgba(159, 224, 171, 0.45);
+  background: linear-gradient(135deg, rgba(46, 125, 50, 0.22), rgba(46, 125, 50, 0.06));
+}
+.almanac-silhouette { filter: brightness(0) opacity(0.55); }
+.almanac-note { margin: 0.6rem 0 0; font-size: 0.8rem; opacity: 0.85; }
+
+@media (prefers-reduced-motion: reduce) {
+  .plot-grid--rain::after,
+  .golden-seedling-mark,
+  .heart-tree-aura,
+  .plot-tile.plot-ghost-stag .ghost-stag-mark,
+  .perfect-streak-text.just-improved,
+  .forest-title-display.just-improved { animation: none; }
+  .forest-visual.forest-pulse::after { animation: none; opacity: 0.35; }
+  .plot-chain-bloom .leaf-burst { animation: none; opacity: 0; }
+}
+
+/* ============================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the shared chrome (panels, buttons, inputs, HUD readouts);
    these rules cover Canopy's own colours a contrast scan flagged, or that
@@ -1754,3 +1991,32 @@ html[data-theme="light"] .session-sparkline polyline[stroke="#66b2e8"] { stroke:
 
 /* Settings panel: the theme control (moved here from the floating pill). */
 .settings-row #theme-toggle { flex: 0 0 auto; padding: 0.4rem 1.3rem 0.4rem 0.8rem; }
+
+/* GB batch 1 (light theme): the new readouts and marks. */
+html[data-theme="light"] .season-indicator {
+  background: linear-gradient(180deg, #ffffff, #edf4ee);
+  color: #1b2033;
+  border-color: rgba(50, 90, 70, 0.4);
+}
+html[data-theme="light"] .perfect-streak-text.just-improved,
+html[data-theme="light"] .forest-title-display.just-improved { color: #8a5a00; }
+html[data-theme="light"] .plot-tile.plot-golden-seedling {
+  outline-color: #8a5a00;
+  box-shadow: 0 0 8px 2px rgba(180, 120, 0, 0.7);
+}
+html[data-theme="light"] .plot-tile.plot-heart-tree {
+  box-shadow: 0 0 0 2px #8a5a00, 0 0 12px 4px rgba(30, 140, 80, 0.7), inset 0 0 10px rgba(255, 255, 200, 0.6);
+}
+html[data-theme="light"] .plot-grid--dusk { box-shadow: inset 0 0 40px 8px rgba(18, 20, 70, 0.45); }
+html[data-theme="light"] .undo-chip { border-color: #a15c00; }
+html[data-theme="light"] .names-input {
+  background: #ffffff;
+  color: #1b2033;
+  border-color: rgba(70, 95, 170, 0.45);
+}
+html[data-theme="light"] .almanac-item { border-color: rgba(70, 95, 170, 0.35); background: rgba(255, 255, 255, 0.7); }
+html[data-theme="light"] .almanac-item--found {
+  border-color: rgba(46, 125, 50, 0.6);
+  background: linear-gradient(135deg, #e2f4e3, #f4fbf4);
+}
+html[data-theme="light"] .almanac-silhouette { filter: brightness(0) opacity(0.7); }

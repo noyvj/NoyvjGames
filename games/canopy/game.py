@@ -282,6 +282,10 @@ class Plot:
         # done with a reforestation partner (cleared back to 0.0 on the
         # next clear() -- see that method).
         self.partner_share = 0.0
+        # GB-4: ticks of Tend growth boost left (0 = not tended). Only one
+        # plot is tended at a time; saved as the top-level "tend" key, never
+        # per plot, so the plot dict shape stays unchanged.
+        self.tend_ticks_left = 0
 
     def can_specialize(self):
         return (
@@ -331,6 +335,10 @@ class Plot:
             delta *= WETLAND_GROWTH_MULTIPLIER
         delta *= current_season_multiplier()  # B17
         delta *= current_legacy_multiplier()  # B15
+        delta *= current_weather_multiplier()  # GB-23: rain / drought episodes
+        delta *= current_perfect_streak_multiplier()  # GB-30: Perfect Season flame
+        if self.tend_ticks_left > 0:  # GB-4: a Tended plot grows faster for a few ticks
+            delta *= TEND_GROWTH_MULTIPLIER
         if self.specialization == SPECIALIZATION_ECONOMIC:
             delta *= SPECIALIST_ECONOMIC_VALUE_MULTIPLIER
         if self.partner_share:  # B11: partner's cut comes off the top, permanently
@@ -359,6 +367,7 @@ class Plot:
         self.biodiversity = 0.0
         self.specialization = None
         self.partner_share = 0.0  # B11: a partnership is only good for one planting
+        self.tend_ticks_left = 0  # GB-4: a cleared plot is no longer being tended
         return payout
 
     def replant(self, partner=False):
@@ -541,6 +550,93 @@ wetland_flood_value_lost = 0.0
 _wetland_plot_click_proxies = {}
 
 
+# ===========================================================================
+# GB batch 1 (planning/IMPROVEMENT-IDEAS-ROUND-3.md section GB): golden
+# seedling (GB-2), Tend (GB-4), Heart Tree (GB-8), names (GB-14), undo
+# (GB-18), rare wildlife (GB-20), standing-value tiers (GB-22), weather
+# (GB-23), chain bloom (GB-27), Forest Almanac (GB-28), Perfect Season
+# (GB-30). Constants and state live here; the behaviour is in the "GB batch 1"
+# section just above render().
+#
+# Rules kept from the rest of the game: no RNG (a small hash of forest_tick
+# stands in wherever a "random" pick is wanted, so runs and tests stay
+# deterministic); anything timed rides the 1-second tick (the golden seedling, Tend and the undo
+# chip); the only setTimeouts are the brief pulse/flash clean-ups; new
+# save keys are written only when non-default and validated on load.
+# ===========================================================================
+GOLDEN_SEEDLING_TICKS = 4  # GB-2: it stays for about 4 seconds (one tick = 1 s)
+GOLDEN_SEEDLING_RECOVERY_TICKS = 4  # recovery progress banked on a click
+GOLDEN_SEEDLING_MIN_GAP = 20  # ticks between one seedling and the next...
+GOLDEN_SEEDLING_GAP_SPREAD = 25  # ...plus up to this many more (hash-picked)
+
+TEND_DURATION_TICKS = 5  # GB-4
+TEND_COOLDOWN_TICKS = 20
+TEND_GROWTH_MULTIPLIER = 1.5  # economic accrual on the tended plot; replanting plots recover an extra tick per tick
+
+HEART_TREE_MIN_MATURE_NEIGHBOURS = 7  # GB-8: of the 8 plots around a centre plot
+HEART_TREE_AURA_BONUS = 0.10  # extra standing-value growth on the 8 plots around the Heart Tree
+
+FOREST_NAME_MAX = 24  # GB-14
+NICKNAME_MAX = 20
+
+UNDO_WINDOW_TICKS = 3  # GB-18: the chip survives 3 full ticks (3 to 4 seconds at 1 tick/s)
+
+BIODIVERSITY_FULL_SCORE = 2.0  # GB-20: "100% biodiversity" for one plot (100 ticks of base accrual)
+RARE_STAG_MIN_FRACTION = 0.9
+DUSK_TICKS_IN_AUTUMN = 10  # the last 10 ticks of autumn are the night-tinted ones
+RARE_FOX_DECLINED_REQUESTS = 3
+RARE_WILDLIFE = [
+    ("ghost_stag", "\U0001F98C", "ghost stag", "Only at night-tinted late-autumn ticks, on a plot at 90%+ biodiversity."),
+    ("wary_fox", "\U0001F98A", "wary fox", "Comes out once you have declined three requests to clear."),
+]
+
+STANDING_TIERS = [(1000.0, "Seedling"), (2500.0, "Grove"), (5000.0, "Woodland"), (10000.0, "Old-Growth")]  # GB-22
+TIER_ACHIEVEMENT_THRESHOLDS = {"tier_grove": 2500.0, "tier_woodland": 5000.0, "tier_old_growth_steward": 10000.0}
+FOREST_PULSE_MS = 1800
+
+WEATHER_BLOCK_TICKS = 32  # GB-23: at most one episode starts per block
+WEATHER_DURATION_TICKS = 8
+WEATHER_FIRST_TICK = 24  # a fresh forest gets a calm opening
+WEATHER_EPISODE_PERCENT = 55  # chance a given block has an episode
+WEATHER_RAIN_MULTIPLIER = 1.15
+WEATHER_DROUGHT_MULTIPLIER = 0.85
+WEATHER_SEASON_KIND = {"spring": "rain", "summer": "drought", "autumn": "rain", "winter": None}
+WEATHER_LABEL = {"rain": "Rain", "drought": "Drought"}
+WEATHER_ICON = {"rain": "\u2614", "drought": "\U0001F3DC\ufe0f"}
+
+CHAIN_BLOOM_WINDOW_TICKS = 3  # GB-27
+CHAIN_BLOOM_MIN_PLOTS = 3
+CHAIN_BLOOM_MAX_RANK = 7
+
+PERFECT_SEASON_MIN_RELATIONS = 30  # GB-30
+PERFECT_STREAK_BONUS_PER_SEASON = 0.02
+PERFECT_STREAK_MAX_BONUS_SEASONS = 5
+
+# Saved state (each written only when non-default).
+forest_name = ""
+adopted_plot_nickname = ""
+heart_tree_index = None
+rare_wildlife_found = []
+peak_standing_value = 0.0
+milestone_tier = 0
+tend_cooldown_ticks = 0
+perfect_streak = 0
+season_cleared = False  # a main-forest Clear happened this season
+season_min_relations = None  # lowest community relations seen this season
+
+# Ephemeral state (never saved): timers and one-shot render hints.
+golden_seedling = None  # {"plot": index, "ticks_left": n} or None
+_golden_next_tick = GOLDEN_SEEDLING_MIN_GAP
+_tend_message = ""
+_undo_snapshot = None
+_recent_matures = []  # (forest_tick, plot index) for chain bloom
+_pending_bloom = {}  # plot index -> ripple rank, consumed by the next render_grid()
+_pending_golden_bursts = set()  # plot indices, consumed by the next render_grid()
+_forest_pulse_gen = 0
+almanac_open = False
+_gb_toast_queue = []  # GB toasts waiting for the next render
+
+
 # B2 (planning/TODO.md "Per-game: Canopy"): a "reset session" option, folded
 # together with B13's grid-size variant since both mean "rebuild the whole
 # session from scratch" -- offering them as two separate controls would just
@@ -623,6 +719,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None):
     forest_log = []
     forest_tick = 0
     adopted_plot_index = None
+    _reset_gb_state()
 
     for proxy in _highland_plot_click_proxies.values():
         proxy.destroy()
@@ -720,7 +817,7 @@ def _most_established_plot_index():
     """The standing plot with the highest accrued value — the one a
     stakeholder request targets, since it's the one with the most at
     stake for both sides of the decision."""
-    candidates = [p for p in plots if p.state in ACCRUING_STATES and p.value > 0]
+    candidates = [p for p in plots if p.state in ACCRUING_STATES and p.value > 0 and p.index != heart_tree_index]
     if not candidates:
         return None
     return max(candidates, key=lambda p: p.value).index
@@ -819,11 +916,12 @@ def _note_community_relations_change():
     low at some point, not just where they sit right now."""
     global community_relations_min_ever
     community_relations_min_ever = min(community_relations_min_ever, community_relations)
+    _note_season_relations()  # GB-30
 
 
 def grant_stakeholder_request(event=None):
     global pending_stakeholder_request, community_relations, total_income
-    global stakeholder_grants_count, total_replants
+    global stakeholder_grants_count, total_replants, season_cleared
     if pending_stakeholder_request is None:
         return False
     if not _stakeholder_target_is_still_standing():
@@ -857,9 +955,10 @@ def grant_stakeholder_request(event=None):
         payout = plot.clear()
         if payout is not None:
             total_income += payout
+            season_cleared = True  # GB-30: a granted clear still cuts standing value
             _log_event(
                 "clear",
-                f"Granted the community's request: cleared {plot_coordinate_label(plot.index)} for {payout:.1f} income",
+                f"Granted the community's request: cleared {_plot_ref(plot.index)} for {payout:.1f} income",
                 plot.index,
             )
         community_relations = min(100, community_relations + STAKEHOLDER_GRANT_RELATIONS_DELTA)
@@ -889,13 +988,22 @@ def decline_stakeholder_request(event=None):
         # the plot survived one more request without ever being cleared.
         idx = pending_stakeholder_request["plot_index"]
         plots[idx].requests_survived += 1
-        _log_event("preserve", f"Declined a request to clear {plot_coordinate_label(idx)}: kept it standing", idx)
+        if idx == adopted_plot_index and adopted_plot_nickname:
+            # GB-14: the adopted, nicknamed plot gets narrated ("Old Bramble survived a third clearing request").
+            _log_event(
+                "preserve",
+                f"{adopted_plot_nickname} survived {_ordinal_word(plots[idx].requests_survived)} clearing request",
+                idx,
+            )
+        else:
+            _log_event("preserve", f"Declined a request to clear {plot_coordinate_label(idx)}: kept it standing", idx)
     # Declining a positive-trade-off incentive costs nothing -- turning down
     # a gift isn't the same as refusing the community's ask for the plot
     # itself, so there's no relations penalty for this kind.
     _note_community_relations_change()
     stakeholder_declines_count += 1
     pending_stakeholder_request = None
+    _check_rare_wildlife()  # GB-20: the wary fox turns up after three refusals
     render()
     return True
 
@@ -994,6 +1102,8 @@ def _plot_tooltip_text(plot):
         label += f" · {SPECIALIZATION_LABEL[plot.specialization]} specialist"
     if plot.index == adopted_plot_index:
         label += " · adopted"
+        if adopted_plot_nickname:
+            label += f" as {adopted_plot_nickname}"
     return label
 
 
@@ -1037,6 +1147,8 @@ def render_grid():
     # suite has no CSS engine to catch a purely visual layout bug like
     # this one.
     grid_el.style.gridTemplateColumns = f"repeat({GRID_COLS}, 1fr)"
+    heart_aura = _heart_tree_aura()
+    stag_plot = _ghost_stag_plot_index() if "ghost_stag" in rare_wildlife_found else None
     for plot in plots:
         tile = document.createElement("button")
         tile.id = _plot_tile_id(plot.index)
@@ -1061,15 +1173,40 @@ def render_grid():
         if plot.index == adopted_plot_index:
             tile.className += " plot-adopted"
             tile.appendChild(_make_tile_mark("adopted-mark", "\u2B50"))
-        if plot.index in _pending_mature_bursts:
+        bloom_rank = _pending_bloom.pop(plot.index, None)  # GB-27: one-shot, ripples in rank order
+        golden_burst = plot.index in _pending_golden_bursts  # GB-2: reuses the B4 burst
+        _pending_golden_bursts.discard(plot.index)
+        if plot.index in _pending_mature_bursts or bloom_rank is not None or golden_burst:
             tile.className += " plot-mature-burst"
+            if bloom_rank is not None:
+                tile.className += f" plot-chain-bloom plot-chain-bloom-{bloom_rank}"
             for n in range(LEAF_BURST_COUNT):
                 leaf = _make_tile_mark("leaf-burst", "\U0001F343")
                 leaf.className = f"leaf-burst leaf-burst--{n}"
                 tile.appendChild(leaf)
+        if plot.tend_ticks_left > 0:  # GB-4
+            tile.className += " plot-tended"
+            tile.appendChild(_make_tile_mark("tend-mark", "\U0001F33F"))
+        if plot.index == heart_tree_index:  # GB-8: no legend entry, no hint
+            tile.className += " plot-heart-tree"
+            tile.appendChild(_make_tile_mark("heart-tree-aura", ""))
+            tile.appendChild(_make_tile_mark("heart-tree-mark", "\U0001F49A"))
+        elif plot.index in heart_aura:
+            tile.className += " plot-heart-aura"
+        if golden_seedling is not None and golden_seedling["plot"] == plot.index:  # GB-2
+            tile.className += " plot-golden-seedling"
+            tile.appendChild(_make_tile_mark("golden-seedling-mark", "\u2728\U0001F331"))
+        if plot.index == stag_plot:  # GB-20
+            tile.className += " plot-ghost-stag"
+            tile.appendChild(_make_tile_mark("ghost-stag-mark", "\U0001F98C"))
         tile.style.backgroundColor = plot_display_color(plot)
-        tile.setAttribute("data-tooltip", _plot_tooltip_text(plot))
-        tile.setAttribute("aria-label", _plot_tooltip_text(plot))
+        tooltip = _plot_tooltip_text(plot)
+        if golden_seedling is not None and golden_seedling["plot"] == plot.index:
+            tooltip += " \u00b7 golden seedling: click it now for a burst of recovery"
+        if plot.tend_ticks_left > 0:
+            tooltip += f" \u00b7 tended ({plot.tend_ticks_left} ticks left)"
+        tile.setAttribute("data-tooltip", tooltip)
+        tile.setAttribute("aria-label", tooltip)
         # B17: a brief floating "+X" pop the tick this plot's standing
         # value actually rose, computed by tick() and consumed here once.
         pop_delta = _pending_value_pops.pop(plot.index, None)
@@ -1110,7 +1247,7 @@ def render_panel():
     soil_el.hidden = False
     soil_el.innerText = f"Soil {round(plot.productivity_multiplier() * 100)}% ?"
     soil_el.title = soil_hint_text(plot)
-    clear_button.disabled = "clear" not in VALID_ACTIONS[plot.state]
+    clear_button.disabled = "clear" not in VALID_ACTIONS[plot.state] or plot.index == heart_tree_index
     replant_button.disabled = "replant" not in VALID_ACTIONS[plot.state]
 
 
@@ -1769,7 +1906,10 @@ def _ideal_accrual_for_ticks(n):
     total = 0.0
     for j in range(1, n + 1):
         season = SEASONS[((start_tick + j) // SEASON_CYCLE_TICKS) % len(SEASONS)]
-        total += BASE_ACCRUAL * (1 + j * GROWTH_PER_TICK) * SEASON_GROWTH_MULTIPLIER[season]
+        total += (
+            BASE_ACCRUAL * (1 + j * GROWTH_PER_TICK) * SEASON_GROWTH_MULTIPLIER[season]
+            * weather_multiplier_at(start_tick + j)  # GB-23: the same rain/drought the real forest saw
+        )
     return total * current_legacy_multiplier()
 
 
@@ -1868,7 +2008,7 @@ def share_snippet():
     counts = state_breakdown()
     standing_plots = counts[PRESERVED] + counts[RECOVERED]
     return (
-        f"\U0001F332 Canopy — my forest so far: {standing_value:.1f} standing value, "
+        f"\U0001F332 Canopy — {forest_name or 'my forest'} so far: {standing_value:.1f} standing value, "
         f"{total_income:.1f} harvested, {total_biodiversity():.1f} biodiversity. "
         f"{standing_plots}/{len(plots)} plots still standing."
     )
@@ -2256,6 +2396,12 @@ ACHIEVEMENT_CHECKS = {
     # extra threshold needed, `highland_unlocked` already is the pure,
     # already-derived boolean this pattern wants.
     "second_growth": lambda: highland_unlocked,
+    # GB-22: the standing-value tiers above 1,000 (which standing_fortune
+    # already covers). Read off the best value reached, so a later clear
+    # cannot un-earn a tier the forest already grew into.
+    "tier_grove": lambda: _peak_now() >= TIER_ACHIEVEMENT_THRESHOLDS["tier_grove"],
+    "tier_woodland": lambda: _peak_now() >= TIER_ACHIEVEMENT_THRESHOLDS["tier_woodland"],
+    "tier_old_growth_steward": lambda: _peak_now() >= TIER_ACHIEVEMENT_THRESHOLDS["tier_old_growth_steward"],
 }
 
 # Progress readouts, only for achievements with a natural numeric scale-up
@@ -2274,6 +2420,9 @@ ACHIEVEMENT_PROGRESS = {
     "soil_scarred": lambda: (_max_clear_count(), SOIL_SCARRED_CLEAR_COUNT),
     "generous_host": lambda: (stakeholder_grants_count, GENEROUS_HOST_GRANT_COUNT),
     "principled_refusal": lambda: (stakeholder_declines_count, PRINCIPLED_REFUSAL_DECLINE_COUNT),
+    "tier_grove": lambda: (int(min(_peak_now(), 2500.0)), 2500),
+    "tier_woodland": lambda: (int(min(_peak_now(), 5000.0)), 5000),
+    "tier_old_growth_steward": lambda: (int(min(_peak_now(), 10000.0)), 10000),
 }
 
 
@@ -2377,17 +2526,17 @@ def _sync_earned_and_toast():
     _story_reach_all(current)
     newly_earned_ids = current - _previously_earned_ids
     _previously_earned_ids = current
-    if not newly_earned_ids:
-        return
     newly_earned = [entry for entry in ACHIEVEMENTS if entry["id"] in newly_earned_ids]
-    if not newly_earned:
-        return
+    messages = []
     if len(newly_earned) == 1:
-        message = f"\U0001F3C6 Achievement unlocked: {newly_earned[0]['label']}"
-    else:
+        messages.append(f"\U0001F3C6 Achievement unlocked: {newly_earned[0]['label']}")
+    elif newly_earned:
         labels = ", ".join(entry["label"] for entry in newly_earned)
-        message = f"\U0001F3C6 {len(newly_earned)} achievements unlocked: {labels}"
-    show_achievement_toast(message)
+        messages.append(f"\U0001F3C6 {len(newly_earned)} achievements unlocked: {labels}")
+    messages.extend(_gb_toast_queue)  # GB batch 1: discoveries, tiers, seasons
+    del _gb_toast_queue[:]
+    if messages:
+        show_achievement_toast("  \u00b7  ".join(messages))
 
 
 def on_toggle_achievements(event=None):
@@ -2778,7 +2927,7 @@ def forest_log_lines(limit=FOREST_LOG_DISPLAY_LIMIT, kinds=None, plot_index=None
 def on_adopt_plot(event=None):
     """Toggles adoption of the selected main-forest plot as a personal
     long-term project. One adopted plot at a time."""
-    global adopted_plot_index
+    global adopted_plot_index, adopted_plot_nickname
     if selected_index is None:
         return False
     if adopted_plot_index == selected_index:
@@ -2786,6 +2935,8 @@ def on_adopt_plot(event=None):
     else:
         adopted_plot_index = selected_index
         _log_event("adopt", f"Adopted {plot_coordinate_label(selected_index)} as a long-term project", selected_index)
+    adopted_plot_nickname = ""  # GB-14: a nickname belongs to one adoption
+    _sync_name_inputs()
     render()
     return True
 
@@ -2840,8 +2991,9 @@ def render_adopt_panel():
     panel.hidden = False
     plot = plots[adopted_plot_index]
     history = forest_log_lines(limit=8, plot_index=adopted_plot_index)
+    nickname_part = f' "{adopted_plot_nickname}"' if adopted_plot_nickname else ""
     panel.innerText = (
-        f"Adopted plot {plot_coordinate_label(adopted_plot_index)}: {STATE_LABEL[plot.state]}, "
+        f"Adopted plot {plot_coordinate_label(adopted_plot_index)}{nickname_part}: {STATE_LABEL[plot.state]}, "
         f"value {plot.value:.1f}, cleared {plot.clear_count}x, soil {round(plot.productivity_multiplier() * 100)}%."
         + (" History: " + " | ".join(history) if history else "")
     )
@@ -2931,12 +3083,17 @@ def render_forest_log_panels():
             "Species seen ({}/{}): ".format(len(seen), len(WILDLIFE_SPECIES))
             + (" ".join(f"{icon} {name}" for icon, name in seen) if seen else "none yet")
         )
-        lines = forest_log_lines(kinds={"wildlife"})
-        wildlife_el.innerText = head + ("\n" + "\n".join(lines) if lines else "")
+        rare_head = "\nRare sightings ({}/{}): ".format(len(rare_wildlife_found), len(RARE_WILDLIFE)) + (
+            " ".join(f"{_rare_entry(r)[1]} {_rare_entry(r)[2]}" for r in rare_wildlife_found)
+            if rare_wildlife_found else "none yet"
+        )
+        lines = forest_log_lines(kinds={"wildlife", "rare", "discovery"})  # GB-20/GB-8: rare finds live here too
+        wildlife_el.innerText = head + rare_head + ("\n" + "\n".join(lines) if lines else "")
     history_el = document.getElementById("forest-history-list")
     if history_el is not None:
         lines = forest_log_lines()
-        history_el.innerText = "\n".join(lines) if lines else "No decisions yet: clear, replant, or decline a request to start the log."
+        story_line = f"The story of {forest_name}\n" if forest_name else ""  # GB-14
+        history_el.innerText = story_line + ("\n".join(lines) if lines else "No decisions yet: clear, replant, or decline a request to start the log.")
 
 
 def on_copy_badge_source(event=None):
@@ -2993,6 +3150,8 @@ REAL_WORLD_LOG_TOPICS = {
     "preserve": "wildlife",
     "recovered": "wildlife",
     "mature": "carbon",
+    "rare": "wildlife",
+    "discovery": "wildlife",
 }
 REAL_WORLD_EXAMPLES = {
     "forest_loss": {
@@ -3052,6 +3211,946 @@ def render_real_world():
     link.href = example["url"]
 
 
+# ===========================================================================
+# GB batch 1 -- behaviour (constants/state are declared near the top of the
+# file, above reset_session()). See planning/IMPROVEMENT-IDEAS-ROUND-3.md
+# section GB for the wording of each idea.
+# ===========================================================================
+
+
+def _el(element_id):
+    """getElementById that tolerates a page/test DOM without the element (a
+    real browser returns None, the fake test DOM raises KeyError)."""
+    try:
+        return document.getElementById(element_id)
+    except KeyError:
+        return None
+
+
+def _gb_hash(*parts):
+    """A small deterministic integer hash, standing in for randomness (this
+    game deliberately has no RNG, so runs and tests are repeatable)."""
+    h = 2166136261
+    for part in parts:
+        h = ((h ^ (int(part) & 0xFFFFFFFF)) * 16777619) & 0xFFFFFFFF
+    h ^= h >> 15
+    h = (h * 2246822519) & 0xFFFFFFFF
+    h ^= h >> 13
+    return h
+
+
+def _gb_toast(message):
+    """Queues a GB toast; the next render shows it (joined with any achievement
+    toast that lands in the same render, so neither hides the other)."""
+    _gb_toast_queue.append(message)
+
+
+def _timed_callback(callback, delay_ms):
+    """setTimeout for a one-shot callback whose proxy destroys itself after
+    firing (never destroy a still-pending proxy, see show_achievement_toast)."""
+    holder = []
+
+    def _run():
+        try:
+            callback()
+        finally:
+            holder[0].destroy()
+
+    holder.append(create_proxy(_run))
+    setTimeout(holder[0], delay_ms)
+
+
+def _plot_ref(index):
+    """How the log and readouts name a main-forest plot: its coordinate, or
+    the adopted plot's nickname (GB-14) with the coordinate in brackets."""
+    label = plot_coordinate_label(index)
+    if index == adopted_plot_index and adopted_plot_nickname:
+        return f"{adopted_plot_nickname} ({label})"
+    return label
+
+
+def _forest_display_name():
+    return forest_name or "The forest"
+
+
+def _ordinal_word(n):
+    return {1: "a first", 2: "a second", 3: "a third"}.get(n, f"{n}th")
+
+
+def _neighbour_indices(index):
+    """The up-to-8 main-forest plots touching `index` (sides and corners)."""
+    row, col = divmod(index, GRID_COLS)
+    found = []
+    for d_row in (-1, 0, 1):
+        for d_col in (-1, 0, 1):
+            if d_row == 0 and d_col == 0:
+                continue
+            r, c = row + d_row, col + d_col
+            if 0 <= r < GRID_ROWS and 0 <= c < GRID_COLS:
+                found.append(r * GRID_COLS + c)
+    return found
+
+
+# --- GB-23: weather ---------------------------------------------------------
+
+def _season_at(tick):
+    return SEASONS[(tick // SEASON_CYCLE_TICKS) % len(SEASONS)]
+
+
+def _weather_episode(tick):
+    """(kind, start_tick) of the rain/drought episode covering `tick`, or
+    None. A pure function of the tick, so it needs no saved state and the
+    counterfactual can price it in. Rain comes in spring and autumn, drought in
+    summer, nothing in winter; at most one episode starts per block."""
+    block = tick // WEATHER_BLOCK_TICKS
+    for b in (block - 1, block):
+        if b < 0 or _gb_hash(b, 23) % 100 >= WEATHER_EPISODE_PERCENT:
+            continue
+        start = b * WEATHER_BLOCK_TICKS + _gb_hash(b, 11) % (WEATHER_BLOCK_TICKS - 4)
+        if start < WEATHER_FIRST_TICK or not (start <= tick < start + WEATHER_DURATION_TICKS):
+            continue
+        kind = WEATHER_SEASON_KIND[_season_at(start)]
+        if kind:
+            return kind, start
+    return None
+
+
+def weather_at(tick):
+    episode = _weather_episode(tick)
+    return episode[0] if episode else None
+
+
+def weather_multiplier_at(tick):
+    kind = weather_at(tick)
+    if kind == "rain":
+        return WEATHER_RAIN_MULTIPLIER
+    if kind == "drought":
+        return WEATHER_DROUGHT_MULTIPLIER
+    return 1.0
+
+
+def current_weather_multiplier():
+    return weather_multiplier_at(forest_tick)
+
+
+def weather_ticks_left():
+    episode = _weather_episode(forest_tick)
+    return episode[1] + WEATHER_DURATION_TICKS - forest_tick if episode else 0
+
+
+# --- GB-30: Perfect Season streak ---------------------------------------------
+
+def current_perfect_streak_multiplier():
+    return 1.0 + PERFECT_STREAK_BONUS_PER_SEASON * min(perfect_streak, PERFECT_STREAK_MAX_BONUS_SEASONS)
+
+
+def _note_season_relations():
+    global season_min_relations
+    if season_min_relations is None:
+        season_min_relations = community_relations
+    else:
+        season_min_relations = min(season_min_relations, community_relations)
+
+
+def perfect_season_status():
+    """(on_track, reason): whether this season is still perfect so far. A
+    season is perfect when no main-forest plot was cleared (nothing turned BARE
+    and cut your standing value) and community trust never sank below
+    PERFECT_SEASON_MIN_RELATIONS (a run of refusals you would come to regret)."""
+    if season_cleared:
+        return False, "a plot was cleared this season"
+    low = season_min_relations if season_min_relations is not None else community_relations
+    if low < PERFECT_SEASON_MIN_RELATIONS:
+        return False, f"community trust dipped below {PERFECT_SEASON_MIN_RELATIONS}"
+    return True, ""
+
+
+def _end_season():
+    """Called on the first tick of each new season: scores the season that just
+    ended, then starts a fresh one."""
+    global perfect_streak, season_cleared, season_min_relations
+    _note_season_relations()
+    on_track, reason = perfect_season_status()
+    ended = SEASON_LABEL[_season_at(forest_tick - 1)]
+    if on_track:
+        perfect_streak += 1
+        _log_event(
+            "season",
+            f"Perfect Season: {ended} ended with every plot standing and the village's trust intact "
+            f"(streak {perfect_streak})",
+        )
+        if perfect_streak in (1, 3, 5):
+            bonus = round(min(perfect_streak, PERFECT_STREAK_MAX_BONUS_SEASONS) * PERFECT_STREAK_BONUS_PER_SEASON * 100)
+            _gb_toast(f"\U0001F525 Perfect Season x{perfect_streak}: +{bonus}% growth")
+        _flash_element("perfect-streak-text")
+    else:
+        if perfect_streak > 0:
+            _log_event("season", f"{ended} broke a {perfect_streak}-season Perfect Season streak: {reason}")
+        perfect_streak = 0
+    season_cleared = False
+    season_min_relations = community_relations
+
+
+def _flash_element(element_id):
+    """Reuses the shared .just-improved pulse (personal-best flash pattern)."""
+    element = _el(element_id)
+    if element is None:
+        return
+    element.classList.add("just-improved")
+
+    def _unflash():
+        el = _el(element_id)
+        if el is not None:
+            el.classList.remove("just-improved")
+
+    _timed_callback(_unflash, PERSONAL_BEST_BADGE_MS)
+
+
+def render_season_indicator():
+    season = current_season()
+    next_season = SEASONS[(SEASONS.index(season) + 1) % len(SEASONS)]
+    season_el = _el("season-text")
+    if season_el is not None:
+        season_el.innerText = (
+            f"{SEASON_ICON[season]} {SEASON_LABEL[season]} "
+            f"· {ticks_until_next_season()} ticks to {SEASON_LABEL[next_season]}"
+        )
+    weather = weather_at(forest_tick)
+    weather_el = _el("weather-text")
+    if weather_el is not None:
+        if weather is None:
+            weather_el.hidden = True
+            weather_el.innerText = ""
+        else:
+            change = round((weather_multiplier_at(forest_tick) - 1) * 100)
+            weather_el.hidden = False
+            weather_el.innerText = (
+                f"{WEATHER_ICON[weather]} {WEATHER_LABEL[weather]}: growth {change:+d}% "
+                f"· {weather_ticks_left()} ticks left"
+            )
+    on_track, reason = perfect_season_status()
+    streak_el = _el("perfect-streak-text")
+    if streak_el is not None:
+        bonus = round((current_perfect_streak_multiplier() - 1) * 100)
+        streak_el.innerText = f"\U0001F525 Perfect Season streak: {perfect_streak}" + (f" (+{bonus}% growth)" if bonus else "")
+        status = "on track this season" if on_track else f"broken this season ({reason})"
+        streak_el.title = (
+            "End a season without clearing any plot and without community trust sinking below "
+            f"{PERFECT_SEASON_MIN_RELATIONS} to add a flame: +{round(PERFECT_STREAK_BONUS_PER_SEASON * 100)}% growth each, "
+            f"up to +{round(PERFECT_STREAK_BONUS_PER_SEASON * PERFECT_STREAK_MAX_BONUS_SEASONS * 100)}%. "
+            f"This season: {status}."
+        )
+        streak_el.setAttribute("aria-label", f"Perfect Season streak {perfect_streak}. {streak_el.title}")
+    grid = _el("plot-grid")
+    if grid is not None:
+        for kind in ("rain", "drought"):
+            if kind == weather:
+                grid.classList.add(f"plot-grid--{kind}")
+            else:
+                grid.classList.remove(f"plot-grid--{kind}")
+        if is_dusk_window():
+            grid.classList.add("plot-grid--dusk")
+        else:
+            grid.classList.remove("plot-grid--dusk")
+
+
+# --- GB-2: golden seedling ------------------------------------------------------
+
+def _schedule_golden_seedling():
+    global _golden_next_tick
+    _golden_next_tick = forest_tick + GOLDEN_SEEDLING_MIN_GAP + _gb_hash(forest_tick, 3) % GOLDEN_SEEDLING_GAP_SPREAD
+
+
+def _advance_golden_seedling():
+    global golden_seedling
+    if golden_seedling is not None:
+        golden_seedling["ticks_left"] -= 1
+        if golden_seedling["ticks_left"] <= 0 or plots[golden_seedling["plot"]].state not in (BARE, REPLANTING):
+            golden_seedling = None
+            _schedule_golden_seedling()
+        return
+    if forest_tick < _golden_next_tick:
+        return
+    candidates = [p.index for p in plots if p.state in (BARE, REPLANTING)]
+    if not candidates:
+        return  # nothing to grow on; try again next tick
+    golden_seedling = {
+        "plot": candidates[_gb_hash(forest_tick, 5) % len(candidates)],
+        "ticks_left": GOLDEN_SEEDLING_TICKS,
+    }
+
+
+def collect_golden_seedling(index=None):
+    """Banks a burst of recovery on the plot the golden seedling sits on (a
+    bare plot is replanted first). `index` lets a tile click say which plot it
+    was; the "G" key passes nothing. Returns True on a real collect."""
+    global golden_seedling, total_replants, total_recoveries
+    if golden_seedling is None or (index is not None and index != golden_seedling["plot"]):
+        return False
+    plot = plots[golden_seedling["plot"]]
+    golden_seedling = None
+    _schedule_golden_seedling()
+    if plot.state == BARE and plot.replant():
+        total_replants += 1
+        _log_event("replant", f"A golden seedling sprouted on {_plot_ref(plot.index)}", plot.index)
+    if plot.state == REPLANTING:
+        for _ in range(GOLDEN_SEEDLING_RECOVERY_TICKS):
+            if plot.advance_recovery():
+                total_recoveries += 1
+                _log_event("recovered", f"{_plot_ref(plot.index)} finished recovering", plot.index)
+                break
+    _pending_golden_bursts.add(plot.index)
+    _log_event("golden", f"Caught a golden seedling on {_plot_ref(plot.index)}", plot.index)
+    return True
+
+
+# --- GB-4: Tend ---------------------------------------------------------------------
+
+def _tended_plot():
+    for plot in plots:
+        if plot.tend_ticks_left > 0:
+            return plot
+    return None
+
+
+def _tendable(plot):
+    return plot.state in ACCRUING_STATES or plot.state == REPLANTING
+
+
+def tend_status_text():
+    tended = _tended_plot()
+    if tended is not None:
+        return f"Tending {_plot_ref(tended.index)}: {tended.tend_ticks_left} more ticks of faster growth."
+    if tend_cooldown_ticks > 0:
+        return f"Tend is recharging: {tend_cooldown_ticks} ticks."
+    return _tend_message or "Tend is ready: hover a plot and press T, or select one and press Tend."
+
+
+def tend_plot(index=None):
+    """GB-4: a short growth boost (TEND_GROWTH_MULTIPLIER for
+    TEND_DURATION_TICKS ticks; a replanting plot recovers an extra tick per
+    tick) on one plot, then a TEND_COOLDOWN_TICKS cooldown. `index` is the
+    hovered plot (the "T" key); without one it uses the selected plot."""
+    global _tend_message
+    if index is None:
+        index = selected_index
+    if isinstance(index, bool) or not isinstance(index, (int, float)) or index != index:
+        index = None
+    else:
+        index = int(index)
+    if index is None or not (0 <= index < len(plots)):
+        _tend_message = "Hover or select a plot first."
+        render_tend_panel()
+        return False
+    plot = plots[index]
+    if _tended_plot() is not None or tend_cooldown_ticks > 0:
+        _tend_message = ""
+        render_tend_panel()
+        return False
+    if not _tendable(plot):
+        _tend_message = "A bare plot has nothing to tend yet: replant it first."
+        render_tend_panel()
+        return False
+    plot.tend_ticks_left = TEND_DURATION_TICKS
+    _tend_message = ""
+    _log_event("tend", f"Tended {_plot_ref(index)}", index)
+    render()
+    return True
+
+
+def on_tend(event=None):
+    tend_plot()
+
+
+def _advance_tend():
+    global tend_cooldown_ticks
+    active = False
+    for plot in plots:
+        if plot.tend_ticks_left > 0:
+            active = True
+            plot.tend_ticks_left -= 1
+            if plot.tend_ticks_left == 0:
+                tend_cooldown_ticks = TEND_COOLDOWN_TICKS
+    if not active and tend_cooldown_ticks > 0:
+        tend_cooldown_ticks -= 1
+
+
+def render_tend_panel():
+    button = _el("tend-button")
+    status = _el("tend-status")
+    if status is not None:
+        status.innerText = tend_status_text()
+    if button is None:
+        return
+    plot = plots[selected_index] if selected_index is not None else None
+    busy = _tended_plot() is not None or tend_cooldown_ticks > 0
+    button.disabled = busy or plot is None or not _tendable(plot)
+    if _tended_plot() is not None:
+        button.innerText = "\U0001F33F Tending..."
+    elif tend_cooldown_ticks > 0:
+        button.innerText = f"\U0001F33F Tend ({tend_cooldown_ticks})"
+    else:
+        button.innerText = "\U0001F33F Tend (T)"
+
+
+# --- GB-8: the Heart Tree ------------------------------------------------------------
+
+def _mature_neighbour_count(index):
+    return sum(
+        1
+        for n in _neighbour_indices(index)
+        if plots[n].state in ACCRUING_STATES and plots[n].maturity_fraction() >= 1.0
+    )
+
+
+def _find_heart_tree_centre():
+    for plot in plots:
+        if plot.state in ACCRUING_STATES and len(_neighbour_indices(plot.index)) == 8:
+            if _mature_neighbour_count(plot.index) >= HEART_TREE_MIN_MATURE_NEIGHBOURS:
+                return plot.index
+    return None
+
+
+def _check_heart_tree():
+    """A standing plot ringed by HEART_TREE_MIN_MATURE_NEIGHBOURS fully mature
+    plots (of its 8 neighbours) grows the Heart Tree. There is no hint of this
+    anywhere in the UI; finding it is the reward."""
+    global heart_tree_index, pending_stakeholder_request
+    if heart_tree_index is not None:
+        return
+    centre = _find_heart_tree_centre()
+    if centre is None:
+        return
+    heart_tree_index = centre
+    if (
+        pending_stakeholder_request is not None
+        and pending_stakeholder_request["plot_index"] == centre
+        and pending_stakeholder_request.get("kind", STAKEHOLDER_KIND_CLEAR) == STAKEHOLDER_KIND_CLEAR
+    ):
+        pending_stakeholder_request = None  # nobody asks to fell the Heart Tree
+    _log_event(
+        "discovery",
+        f"\U0001F333 The Heart Tree woke at {_plot_ref(centre)}: the ring of old trees around it gave it a "
+        "place to grow. It will not be felled, and the plots around it thrive.",
+        centre,
+    )
+    _gb_toast("\U0001F333 The forest has grown something ancient. The Heart Tree is awake.")
+
+
+def _heart_tree_aura():
+    if heart_tree_index is None:
+        return frozenset()
+    return frozenset(_neighbour_indices(heart_tree_index))
+
+
+# --- GB-14: names ----------------------------------------------------------------------
+
+def _clean_name(value, limit):
+    if not isinstance(value, str):
+        return ""
+    printable = "".join(ch for ch in value if ch.isprintable())
+    return " ".join(printable.split())[:limit]
+
+
+def set_forest_name(value):
+    global forest_name
+    cleaned = _clean_name(value, FOREST_NAME_MAX)
+    if cleaned == forest_name:
+        return False
+    forest_name = cleaned
+    if cleaned:
+        _log_event("name", f"The forest was named {cleaned}")
+    render()
+    return True
+
+
+def set_plot_nickname(value):
+    """Nicknames the adopted plot (B27); ignored when no plot is adopted."""
+    global adopted_plot_nickname
+    if adopted_plot_index is None:
+        return False
+    cleaned = _clean_name(value, NICKNAME_MAX)
+    if cleaned == adopted_plot_nickname:
+        return False
+    adopted_plot_nickname = cleaned
+    if cleaned:
+        _log_event(
+            "name",
+            f"{plot_coordinate_label(adopted_plot_index)} is now known as {cleaned}",
+            adopted_plot_index,
+        )
+    render()
+    return True
+
+
+def _event_value(event):
+    return getattr(getattr(event, "target", None), "value", "")
+
+
+def on_forest_name_change(event=None):
+    set_forest_name(_event_value(event))
+
+
+def on_plot_nickname_change(event=None):
+    set_plot_nickname(_event_value(event))
+
+
+def _sync_name_inputs():
+    """Writes the saved names back into the two text fields (only on load,
+    reset and adopt/release, never every render, so typing is never clobbered)."""
+    forest_input = _el("forest-name-input")
+    if forest_input is not None:
+        forest_input.value = forest_name
+    nickname_input = _el("plot-nickname-input")
+    if nickname_input is not None:
+        nickname_input.value = adopted_plot_nickname
+        nickname_input.disabled = adopted_plot_index is None
+
+
+# --- GB-18: undo a clear -------------------------------------------------------------------
+
+def _arm_undo(plot_index, before_fields, payout, log_entry, season_cleared_before, best_income_before):
+    global _undo_snapshot
+    if current_difficulty == DIFFICULTY_RANGER:
+        _undo_snapshot = None
+        return
+    _undo_snapshot = {
+        "plot": plot_index,
+        "fields": before_fields,
+        "payout": payout,
+        "clear_count_after": plots[plot_index].clear_count,
+        "log_entry": log_entry,
+        "season_cleared_before": season_cleared_before,
+        "best_income_before": best_income_before,
+        "ticks_left": UNDO_WINDOW_TICKS,
+    }
+
+
+def _advance_undo():
+    """Counts the undo window down one tick; the chip is gone the tick after it hits 0."""
+    global _undo_snapshot
+    if _undo_snapshot is None:
+        return
+    if _undo_snapshot["ticks_left"] <= 0:
+        _undo_snapshot = None
+    else:
+        _undo_snapshot["ticks_left"] -= 1
+
+
+def undo_last_clear(event=None):
+    """Restores the plot cleared in the last UNDO_WINDOW_MS (not in Ranger
+    difficulty). Only valid while that plot is still bare from that clear."""
+    global _undo_snapshot, total_income, season_cleared
+    snapshot = _undo_snapshot
+    if snapshot is None:
+        return False
+    _undo_snapshot = None
+    plot = plots[snapshot["plot"]]
+    if plot.state != BARE or plot.clear_count != snapshot["clear_count_after"]:
+        render_undo_chip()
+        return False
+    plot.__dict__.update(snapshot["fields"])
+    if personal_best["income"] <= total_income + 1e-9 and personal_best["income"] > snapshot["best_income_before"]:
+        # The undone payout had just set the income record: take the record back too.
+        personal_best["income"] = snapshot["best_income_before"]
+        _write_local_storage_item(PERSONAL_BEST_STORAGE_KEY, json.dumps(personal_best))
+    total_income = max(0.0, total_income - snapshot["payout"])
+    season_cleared = snapshot["season_cleared_before"]
+    if snapshot["log_entry"] in forest_log:
+        forest_log.remove(snapshot["log_entry"])
+    _log_event("preserve", f"Took back the clear: {_plot_ref(plot.index)} is standing again", plot.index)
+    render()
+    return True
+
+
+def render_undo_chip():
+    chip = _el("undo-clear-button")
+    if chip is None:
+        return
+    if _undo_snapshot is None:
+        chip.hidden = True
+        return
+    label = _plot_ref(_undo_snapshot["plot"])
+    chip.hidden = False
+    seconds = max(1, _undo_snapshot["ticks_left"])
+    chip.innerText = f"\u21a9 Undo clear ({label}, {seconds}s)"
+    chip.setAttribute("aria-label", f"Undo clearing {label}. About {seconds} seconds left.")
+
+
+# --- GB-20: rare wildlife ------------------------------------------------------------------------
+
+def is_dusk_window(tick=None):
+    """The night-tinted late-autumn ticks: the last DUSK_TICKS_IN_AUTUMN of autumn."""
+    tick = forest_tick if tick is None else tick
+    return _season_at(tick) == "autumn" and tick % SEASON_CYCLE_TICKS >= SEASON_CYCLE_TICKS - DUSK_TICKS_IN_AUTUMN
+
+
+def biodiversity_fraction(plot):
+    return min(1.0, plot.biodiversity / BIODIVERSITY_FULL_SCORE)
+
+
+def _ghost_stag_plot_index():
+    """The plot the ghost stag would be standing on right now, or None."""
+    if not is_dusk_window():
+        return None
+    for plot in plots:
+        if plot.state in ACCRUING_STATES and biodiversity_fraction(plot) >= RARE_STAG_MIN_FRACTION:
+            return plot.index
+    return None
+
+
+def declined_clear_requests_total():
+    """Every declined clear request across the forest (each bumps its plot's
+    requests_survived, which never resets)."""
+    return sum(plot.requests_survived for plot in plots)
+
+
+def _rare_entry(rare_id):
+    for entry in RARE_WILDLIFE:
+        if entry[0] == rare_id:
+            return entry
+    return None
+
+
+def _found_rare(rare_id, plot_index=None):
+    icon, name = _rare_entry(rare_id)[1:3]
+    rare_wildlife_found.append(rare_id)
+    if rare_id == "ghost_stag":
+        text = f"{icon} A ghost stag stepped out of the dusk at {_plot_ref(plot_index)} and was gone by morning"
+    else:
+        text = f"{icon} A wary fox watched from the treeline, drawn by a forest that keeps its ground"
+    _log_event("rare", text, plot_index)
+    _gb_toast(f"{icon} Rare sighting: {name}. It has been added to your wildlife log.")
+
+
+def _check_rare_wildlife():
+    if "ghost_stag" not in rare_wildlife_found:
+        stag_plot = _ghost_stag_plot_index()
+        if stag_plot is not None:
+            _found_rare("ghost_stag", stag_plot)
+    if "wary_fox" not in rare_wildlife_found and declined_clear_requests_total() >= RARE_FOX_DECLINED_REQUESTS:
+        _found_rare("wary_fox")
+
+
+# --- GB-22: standing value tiers --------------------------------------------------------------------
+
+def forest_title():
+    return STANDING_TIERS[milestone_tier - 1][1] if milestone_tier > 0 else ""
+
+
+def _peak_now():
+    return max(peak_standing_value, standing_forest_value())
+
+
+def _tiers_reached_for(peak):
+    return sum(1 for threshold, _title in STANDING_TIERS if peak >= threshold)
+
+
+def _check_milestones(celebrate=True):
+    """Tracks the best standing value this session and celebrates each tier
+    (1k Seedling, 2.5k Grove, 5k Woodland, 10k Old-Growth) once."""
+    global peak_standing_value, milestone_tier
+    peak_standing_value = _peak_now()
+    reached = _tiers_reached_for(peak_standing_value)
+    if reached <= milestone_tier:
+        return
+    old = milestone_tier
+    milestone_tier = reached
+    for i in range(old, reached):
+        threshold, title = STANDING_TIERS[i]
+        _log_event("milestone", f"{_forest_display_name()} grew into a {title} forest ({threshold:,.0f} standing value)")
+    if celebrate:
+        threshold, title = STANDING_TIERS[reached - 1]
+        _gb_toast(f"\U0001F332 {_forest_display_name()} is now a {title} forest ({threshold:,.0f} standing value)")
+        _flash_forest_pulse()
+
+
+def _flash_forest_pulse():
+    """The brief light pulse: the forest backdrop flushes and the title flashes
+    (the shared personal-best .just-improved pattern)."""
+    global _forest_pulse_gen
+    visual = _el("forest-visual")
+    if visual is not None:
+        visual.classList.add("forest-pulse")
+        _forest_pulse_gen += 1
+        gen = _forest_pulse_gen
+
+        def _unpulse():
+            el = _el("forest-visual")
+            if el is not None and gen == _forest_pulse_gen:
+                el.classList.remove("forest-pulse")
+
+        _timed_callback(_unpulse, FOREST_PULSE_MS)
+    _flash_element("forest-title-display")
+
+
+def render_forest_title():
+    element = _el("forest-title-display")
+    if element is None:
+        return
+    title = forest_title()
+    element.hidden = not (title or forest_name)
+    label = f"{forest_name}, " if forest_name else ""
+    element.innerText = f"Forest: {label}{title} tier" if title else f"Forest: {forest_name}"
+
+
+# --- GB-27: chain bloom -------------------------------------------------------------------------------------
+
+def _register_chain_bloom(new_indices):
+    """Plots reaching full maturity within CHAIN_BLOOM_WINDOW_TICKS of each
+    other ripple their leaf bursts across the grid in order, each one bigger
+    and later than the last (juice only: it changes no number)."""
+    global _recent_matures
+    _recent_matures = [(t, i) for t, i in _recent_matures if forest_tick - t < CHAIN_BLOOM_WINDOW_TICKS]
+    _recent_matures.extend((forest_tick, i) for i in sorted(new_indices))
+    if len(_recent_matures) < CHAIN_BLOOM_MIN_PLOTS:
+        return
+    for position, (_tick, index) in enumerate(_recent_matures):
+        _pending_bloom[index] = min(position, CHAIN_BLOOM_MAX_RANK)
+
+
+# --- GB-28: Forest Almanac ------------------------------------------------------------------------------------
+
+ALMANAC_TREES = [
+    ("evergreen", "\U0001F332", "Evergreen stand", lambda: True),
+    ("seedling", "\U0001F331", "Replanted seedling", lambda: total_replants >= 1),
+    ("deciduous", "\U0001F333", "Recovered woodland", lambda: total_recoveries >= 1),
+    ("crown", "\U0001F451", "Old-growth crown", lambda: any(p.mature_celebrated for p in plots)),
+]
+
+
+def almanac_sections():
+    """The Almanac as data: [(title, [(icon, name, found, hint), ...])]. Trees
+    and wildlife show a silhouette until found; rare wildlife and hidden
+    structures show '???' as their name."""
+    seen_names = {name for _icon, name in species_seen()}
+    trees = [(icon, name, bool(cond()), "") for _id, icon, name, cond in ALMANAC_TREES]
+    wildlife = [(icon, name, name in seen_names, "") for icon, name in WILDLIFE_SPECIES]
+    rare = [(icon, name, rid in rare_wildlife_found, hint) for rid, icon, name, hint in RARE_WILDLIFE]
+    structures = [("\U0001F333", "Heart Tree", heart_tree_index is not None, "")]
+    return [
+        ("Trees planted", trees),
+        ("Wildlife seen", wildlife),
+        ("Rare wildlife", rare),
+        ("Hidden structures", structures),
+    ]
+
+
+def seasons_survived():
+    return forest_tick // SEASON_CYCLE_TICKS
+
+
+def almanac_found_total():
+    found = total = 0
+    for _title, entries in almanac_sections():
+        total += len(entries)
+        found += sum(1 for entry in entries if entry[2])
+    return found, total
+
+
+def on_toggle_almanac(event=None):
+    global almanac_open
+    almanac_open = not almanac_open
+    render_almanac()
+
+
+def render_almanac():
+    toggle = _el("almanac-toggle-button")
+    panel = _el("almanac-panel")
+    if toggle is None or panel is None:
+        return
+    found, total = almanac_found_total()
+    toggle.innerText = f"Hide Almanac ({found}/{total})" if almanac_open else f"\U0001F4DA Almanac ({found}/{total})"
+    panel.hidden = not almanac_open
+    if not almanac_open:
+        return
+    panel.innerHTML = ""
+    title = document.createElement("h2")
+    title.className = "almanac-title"
+    title.innerText = f"Forest Almanac: {forest_name}" if forest_name else "Forest Almanac"
+    panel.appendChild(title)
+
+    for section_title, entries in almanac_sections():
+        heading = document.createElement("h3")
+        heading.className = "almanac-heading"
+        heading.innerText = f"{section_title} ({sum(1 for e in entries if e[2])}/{len(entries)})"
+        panel.appendChild(heading)
+        row = document.createElement("ul")
+        row.className = "almanac-list"
+        for icon, name, is_found, _hint in entries:
+            item = document.createElement("li")
+            item.className = "almanac-item almanac-item--found" if is_found else "almanac-item almanac-item--unfound"
+            shown = name if is_found else "???"
+            item.setAttribute("aria-label", f"{name}: found" if is_found else f"{section_title}: not yet found")
+            glyph = document.createElement("span")
+            glyph.className = "almanac-icon" if is_found else "almanac-icon almanac-silhouette"
+            glyph.setAttribute("aria-hidden", "true")
+            # Hidden structures give away nothing before they are found: no silhouette either.
+            glyph.innerText = "" if (section_title == "Hidden structures" and not is_found) else icon
+            item.appendChild(glyph)
+            text = document.createElement("span")
+            text.className = "almanac-name"
+            text.innerText = shown
+            item.appendChild(text)
+            row.appendChild(item)
+        panel.appendChild(row)
+
+    seasons_heading = document.createElement("h3")
+    seasons_heading.className = "almanac-heading"
+    seasons_heading.innerText = f"Seasons survived: {seasons_survived()}"
+    panel.appendChild(seasons_heading)
+    seasons_row = document.createElement("ul")
+    seasons_row.className = "almanac-list"
+    for k, season in enumerate(SEASONS):
+        done = seasons_survived() > k
+        item = document.createElement("li")
+        item.className = "almanac-item almanac-item--found" if done else "almanac-item almanac-item--unfound"
+        item.setAttribute("aria-label", f"{SEASON_LABEL[season]}: {'lived through' if done else 'not yet lived through'}")
+        glyph = document.createElement("span")
+        glyph.className = "almanac-icon" if done else "almanac-icon almanac-silhouette"
+        glyph.setAttribute("aria-hidden", "true")
+        glyph.innerText = SEASON_ICON[season]
+        item.appendChild(glyph)
+        text = document.createElement("span")
+        text.className = "almanac-name"
+        text.innerText = SEASON_LABEL[season] if done else "???"
+        item.appendChild(text)
+        seasons_row.appendChild(item)
+    panel.appendChild(seasons_row)
+    streak_line = document.createElement("p")
+    streak_line.className = "almanac-note"
+    streak_line.innerText = f"Perfect Season streak: {perfect_streak}"
+    panel.appendChild(streak_line)
+
+
+# --- per-tick hook and state -------------------------------------------------------------------------------------------
+
+def _gb_after_tick():
+    """Everything GB does at the end of a tick (after accrual and requests)."""
+    _advance_tend()
+    _advance_golden_seedling()
+    _advance_undo()
+    _note_season_relations()
+    _check_rare_wildlife()
+    _check_heart_tree()
+    _check_milestones()
+
+
+def _reset_gb_state():
+    global forest_name, adopted_plot_nickname, heart_tree_index, rare_wildlife_found
+    global peak_standing_value, milestone_tier, tend_cooldown_ticks, perfect_streak
+    global season_cleared, season_min_relations
+    global golden_seedling, _tend_message, _undo_snapshot
+    global _recent_matures, _golden_next_tick
+    del _gb_toast_queue[:]
+    forest_name = ""
+    adopted_plot_nickname = ""
+    heart_tree_index = None
+    rare_wildlife_found = []
+    peak_standing_value = 0.0
+    milestone_tier = 0
+    tend_cooldown_ticks = 0
+    perfect_streak = 0
+    season_cleared = False
+    season_min_relations = None
+    golden_seedling = None
+    _golden_next_tick = GOLDEN_SEEDLING_MIN_GAP
+    _tend_message = ""
+    _undo_snapshot = None
+    _recent_matures = []
+    _pending_bloom.clear()
+    _pending_golden_bursts.clear()
+    _sync_name_inputs()
+
+
+def _gb_state_fields():
+    """The GB save keys, each written only when it differs from a fresh game."""
+    out = {}
+    if forest_name:
+        out["forest_name"] = forest_name
+    if adopted_plot_nickname and adopted_plot_index is not None:
+        out["adopted_plot_nickname"] = adopted_plot_nickname
+    if heart_tree_index is not None:
+        out["heart_tree_index"] = heart_tree_index
+    if rare_wildlife_found:
+        out["rare_wildlife_found"] = list(rare_wildlife_found)
+    if peak_standing_value > 0:
+        out["peak_standing_value"] = peak_standing_value
+    if milestone_tier > 0:
+        out["milestone_tier"] = milestone_tier
+    tended = _tended_plot()
+    if tended is not None:
+        out["tend"] = {"plot": tended.index, "ticks_left": tended.tend_ticks_left}
+    if tend_cooldown_ticks > 0:
+        out["tend_cooldown_ticks"] = tend_cooldown_ticks
+    low = season_min_relations
+    if perfect_streak > 0 or season_cleared or (low is not None and low < PERFECT_SEASON_MIN_RELATIONS):
+        out["perfect_season"] = {
+            "streak": perfect_streak,
+            "cleared": season_cleared,
+            "min_relations": low if low is not None else community_relations,
+        }
+    return out
+
+
+def _load_gb_state(data):
+    """Validates and applies the GB save keys; anything missing or malformed
+    falls back to the fresh-game value (a save is authoritative, so a live
+    session's names/discoveries must not leak into a save that lacks them)."""
+    global forest_name, adopted_plot_nickname, heart_tree_index
+    global peak_standing_value, milestone_tier, tend_cooldown_ticks, perfect_streak
+    global season_cleared, season_min_relations
+
+    _reset_gb_state()
+    for plot in plots:
+        plot.tend_ticks_left = 0
+    _schedule_golden_seedling()
+
+    forest_name = _clean_name(data.get("forest_name"), FOREST_NAME_MAX)
+    if adopted_plot_index is not None:
+        adopted_plot_nickname = _clean_name(data.get("adopted_plot_nickname"), NICKNAME_MAX)
+
+    saved_heart = data.get("heart_tree_index")
+    if (
+        isinstance(saved_heart, int) and not isinstance(saved_heart, bool)
+        and 0 <= saved_heart < len(plots) and len(_neighbour_indices(saved_heart)) == 8
+    ):
+        heart_tree_index = saved_heart
+
+    saved_rare = data.get("rare_wildlife_found")
+    if isinstance(saved_rare, list):
+        valid_ids = [entry[0] for entry in RARE_WILDLIFE]
+        for rare_id in saved_rare:
+            if isinstance(rare_id, str) and rare_id in valid_ids and rare_id not in rare_wildlife_found:
+                rare_wildlife_found.append(rare_id)
+
+    peak_standing_value = _number_or(data.get("peak_standing_value"), 0.0)
+    peak_standing_value = max(peak_standing_value, standing_forest_value())
+    tiers_now = _tiers_reached_for(peak_standing_value)
+    if "milestone_tier" in data:
+        milestone_tier = int(_number_or(data.get("milestone_tier"), 0, 0, len(STANDING_TIERS)))
+        milestone_tier = min(milestone_tier, tiers_now)
+    else:
+        milestone_tier = tiers_now  # an older save: no celebration for what it already had
+
+    saved_tend = data.get("tend")
+    if isinstance(saved_tend, dict):
+        tend_index = saved_tend.get("plot")
+        if isinstance(tend_index, int) and not isinstance(tend_index, bool) and 0 <= tend_index < len(plots):
+            left = int(_number_or(saved_tend.get("ticks_left"), 0, 0, TEND_DURATION_TICKS))
+            if left > 0 and _tendable(plots[tend_index]):
+                plots[tend_index].tend_ticks_left = left
+    tend_cooldown_ticks = int(_number_or(data.get("tend_cooldown_ticks"), 0, 0, TEND_COOLDOWN_TICKS))
+
+    saved_perfect = data.get("perfect_season")
+    if isinstance(saved_perfect, dict):
+        perfect_streak = int(_number_or(saved_perfect.get("streak"), 0, 0, 9999))
+        season_cleared = saved_perfect.get("cleared") is True
+        low = _number_or(saved_perfect.get("min_relations"), None, 0, 100)
+        season_min_relations = int(low) if low is not None else None
+    _sync_name_inputs()
+
+
 def render():
     render_info_page()
     render_grid()
@@ -3063,6 +4162,11 @@ def render():
     render_reset_button()
     render_adopt_panel()
     render_specialist_panel()
+    render_season_indicator()
+    render_forest_title()
+    render_tend_panel()
+    render_undo_chip()
+    render_almanac()
     render_session_summary()
     render_highland_section()
     render_wetland_section()
@@ -3079,18 +4183,28 @@ def _make_select_handler(index):
 
 def select_plot(index):
     global selected_index
+    if golden_seedling is not None and golden_seedling["plot"] == index:
+        collect_golden_seedling(index)  # GB-2: clicking the plot the seedling sits on catches it
     selected_index = index
     render()
 
 
 def on_clear(event=None):
-    global total_income
+    global total_income, season_cleared
     if selected_index is None:
         return
-    payout = plots[selected_index].clear()
+    if selected_index == heart_tree_index:
+        return  # GB-8: the Heart Tree is never felled
+    plot = plots[selected_index]
+    before_fields = dict(plot.__dict__)
+    best_income_before = personal_best["income"]
+    payout = plot.clear()
     if payout is not None:
         total_income += payout
-        _log_event("clear", f"Cleared {plot_coordinate_label(selected_index)} for {payout:.1f} income", selected_index)
+        _log_event("clear", f"Cleared {_plot_ref(selected_index)} for {payout:.1f} income", selected_index)
+        was_cleared = season_cleared
+        season_cleared = True  # GB-30
+        _arm_undo(selected_index, before_fields, payout, forest_log[-1], was_cleared, best_income_before)  # GB-18
     render()
 
 
@@ -3100,26 +4214,41 @@ def on_replant(event=None):
         return
     if plots[selected_index].replant():
         total_replants += 1
-        _log_event("replant", f"Replanted {plot_coordinate_label(selected_index)}", selected_index)
+        _log_event("replant", f"Replanted {_plot_ref(selected_index)}", selected_index)
     render()
 
 
+def _note_recovery(plot):
+    global total_recoveries
+    total_recoveries += 1
+    _log_event("recovered", f"{_plot_ref(plot.index)} finished recovering", plot.index)
+
+
 def tick(event=None):
-    global pending_stakeholder_request, total_recoveries, _session_ticks, forest_tick
+    global pending_stakeholder_request, _session_ticks, forest_tick
     _session_ticks += 1
     forest_tick += 1
+    if forest_tick % SEASON_CYCLE_TICKS == 0:
+        _end_season()  # GB-30: score the season that just ended
     _pending_value_pops.clear()
     _pending_mature_bursts.clear()
+    aura = _heart_tree_aura()  # GB-8
+    newly_mature = []
     for plot in plots:
         delta = plot.accrue_tick()
+        if delta > 0 and plot.index in aura:
+            bonus = delta * HEART_TREE_AURA_BONUS
+            plot.value += bonus
+            delta += bonus
         if delta >= VALUE_POP_MIN_DELTA:
             _pending_value_pops[plot.index] = delta
         if plot.advance_recovery():
-            total_recoveries += 1
-            _log_event("recovered", f"{plot_coordinate_label(plot.index)} finished recovering", plot.index)
+            _note_recovery(plot)
+        elif plot.tend_ticks_left > 0 and plot.state == REPLANTING and plot.advance_recovery():
+            _note_recovery(plot)  # GB-4: a tended replanting plot recovers an extra tick per tick
         if plot.has_wildlife() and plot.index not in plots_with_wildlife_ever:
             icon, name = wildlife_species_for_plot(plot.index)
-            _log_event("wildlife", f"{icon} A {name} appeared at {plot_coordinate_label(plot.index)}", plot.index)
+            _log_event("wildlife", f"{icon} A {name} appeared at {_plot_ref(plot.index)}", plot.index)
         if plot.has_wildlife():
             plots_with_wildlife_ever.add(plot.index)
         if (
@@ -3129,7 +4258,10 @@ def tick(event=None):
         ):
             plot.mature_celebrated = True
             _pending_mature_bursts.add(plot.index)
-            _log_event("mature", f"{plot_coordinate_label(plot.index)} reached full maturity", plot.index)
+            newly_mature.append(plot.index)
+            _log_event("mature", f"{_plot_ref(plot.index)} reached full maturity", plot.index)
+    if newly_mature:
+        _register_chain_bloom(newly_mature)  # GB-27
     if pending_stakeholder_request is not None and not _stakeholder_target_is_still_standing():
         # The requested plot was cleared/replanted directly (see the
         # grant/decline guard above) — drop the now-stale request so a new
@@ -3138,6 +4270,7 @@ def tick(event=None):
         # (meaningless) request still pending.
         pending_stakeholder_request = None
     maybe_trigger_stakeholder_request()
+    _gb_after_tick()  # GB-2/4/8/20/22/30: timers, discoveries and tiers
     # B6: sampled *after* this tick's accrual/payout effects above, so each
     # point reflects the state the player actually saw land this tick,
     # not the stale pre-tick value.
@@ -3272,6 +4405,7 @@ def get_state():
         # freshly recomputed here, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),
         **_wetland_state_fields(),
+        **_gb_state_fields(),
     }
 
 
@@ -3413,6 +4547,7 @@ def load_state(data):
     # the toast-diffing baseline must be reset here, before render() below
     # calls _sync_earned_and_toast(), so a loaded save's already-earned
     # achievements don't all fire toasts on load.
+    _load_gb_state(data)  # GB batch 1: names, discoveries, tiers, tend, streak (validated)
     _previously_earned_ids = _earned_snapshot()
     _story_reach_all(_previously_earned_ids)  # W1: a loaded save's earned chapters come back too
 
@@ -3481,6 +4616,17 @@ def setup():
     document.getElementById("wetland-clear-button").addEventListener(
         "click", create_proxy(on_wetland_clear)
     )
+    # GB batch 1: optional elements (a page or test DOM without them just skips the wiring).
+    for element_id, event_name, handler in (
+        ("tend-button", "click", on_tend),
+        ("undo-clear-button", "click", undo_last_clear),
+        ("almanac-toggle-button", "click", on_toggle_almanac),
+        ("forest-name-input", "change", on_forest_name_change),
+        ("plot-nickname-input", "change", on_plot_nickname_change),
+    ):
+        element = _el(element_id)
+        if element is not None:
+            element.addEventListener(event_name, create_proxy(handler))
     document.getElementById("wetland-replant-button").addEventListener(
         "click", create_proxy(on_wetland_replant)
     )

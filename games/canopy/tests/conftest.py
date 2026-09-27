@@ -102,6 +102,20 @@ ELEMENT_IDS = [
     "wetland-selected-plot-state",
     "wetland-clear-button",
     "wetland-replant-button",
+    # GB batch 1: season indicator, tier title, Tend, undo, names, Almanac
+    "season-indicator",
+    "season-text",
+    "weather-text",
+    "perfect-streak-text",
+    "forest-visual",
+    "forest-title-display",
+    "tend-button",
+    "tend-status",
+    "undo-clear-button",
+    "forest-name-input",
+    "plot-nickname-input",
+    "almanac-toggle-button",
+    "almanac-panel",
 ]
 
 # Buttons that carry the `disabled` attribute in index.html's initial markup
@@ -116,6 +130,8 @@ INITIALLY_DISABLED_IDS = [
     "highland-replant-button",
     "wetland-clear-button",
     "wetland-replant-button",
+    "tend-button",
+    "plot-nickname-input",
 ]
 
 
@@ -166,6 +182,9 @@ class GameEnv:
 
     def toggle_changelog(self):
         self.elements["changelog-toggle-button"].dispatch("click", None)
+
+    def toggle_almanac(self):
+        self.elements["almanac-toggle-button"].dispatch("click", None)
 
     def toggle_session_summary(self):
         self.elements["session-summary-toggle-button"].dispatch("click", None)
