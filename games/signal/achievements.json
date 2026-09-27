@@ -1,0 +1,94 @@
+{
+  "achievements": [
+    {
+      "id": "first_contact",
+      "label": "First Contact",
+      "description": "Finish any puzzle, win or lose."
+    },
+    {
+      "id": "clean_signal",
+      "label": "Clean Signal",
+      "description": "Win using no more pings than the puzzle's par."
+    },
+    {
+      "id": "under_par",
+      "label": "Under Par",
+      "description": "Win using fewer pings than par."
+    },
+    {
+      "id": "lucky_guess",
+      "label": "Lucky Guess",
+      "description": "Commit the right answer with 4 or more pings unused."
+    },
+    {
+      "id": "three_in_a_row",
+      "label": "Three in a Row",
+      "description": "Win the daily puzzle 3 days running in one mode."
+    },
+    {
+      "id": "week_on_air",
+      "label": "Week on Air",
+      "description": "Win the daily puzzle 7 days running in one mode."
+    },
+    {
+      "id": "month_on_air",
+      "label": "Month on Air",
+      "description": "Win the daily puzzle 30 days running in one mode."
+    },
+    {
+      "id": "hard_copy",
+      "label": "Hard Copy",
+      "description": "Win a Hard puzzle."
+    },
+    {
+      "id": "both_bands",
+      "label": "Both Bands",
+      "description": "Win the Easy and Hard daily puzzles on the same UTC day."
+    },
+    {
+      "id": "last_gasp",
+      "label": "Last Gasp",
+      "description": "Win using your final ping."
+    },
+    {
+      "id": "static",
+      "label": "Static",
+      "description": "Lose a puzzle. Everyone loses one."
+    },
+    {
+      "id": "archivist",
+      "label": "Archivist",
+      "description": "Finish 10 archive puzzles."
+    },
+    {
+      "id": "overlap",
+      "label": "Overlap",
+      "description": "Ping a tile whose reading is stronger than any single transmitter can give."
+    },
+    {
+      "id": "silent_night",
+      "label": "Silent Night",
+      "description": "Get three zero readings in one puzzle."
+    },
+    {
+      "id": "show_off",
+      "label": "Show Off",
+      "description": "Share a result."
+    },
+    {
+      "id": "puzzle_100",
+      "label": "Puzzle #100",
+      "description": "Finish the daily puzzle numbered 100 or later."
+    },
+    {
+      "id": "dial_practice",
+      "label": "Dial It In",
+      "description": "Finish 5 practice puzzles."
+    },
+    {
+      "id": "wide_open",
+      "label": "Wide Open",
+      "description": "Win a Wide or Big Sky puzzle."
+    }
+  ]
+}

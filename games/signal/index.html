@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signal</title>
+<link rel="icon" type="image/svg+xml" href="../../icons/favicon-signal.svg">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../../shared/theme-light-games.css">
+<script src="../../shared/theme.js" data-floating-toggle></script>
+<script src="../../shared/site-settings.js" data-game-id="signal"></script>
+<link rel="stylesheet" href="../../ad-bar.css">
+<link rel="manifest" href="../../manifest.json">
+<script src="../../shared/tutorial.js"></script>
+<script src="../../shared/mobile-dock.js"></script>
+<script src="../../shared/confirm-dialog.js"></script>
+<script src="settings.js"></script>
+<!-- AdSense: placeholder client ID until application is approved -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+<!-- Pyodide is deliberately NOT loaded here: app.js injects it after first paint (or on the first tap/key),
+     so this static shell is readable and tappable long before the engine (game.py) is warm. -->
+</head>
+<body>
+  <div id="game">
+    <a href="../../index.html" class="hub-back-link">&larr; All games</a>
+    <h1>Signal</h1>
+    <p class="tagline">Hidden transmitters. One number per ping. Find them all before the tape runs out.</p>
+
+    <div class="game-toolbar">
+      <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
+      <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
+      <button id="archive-toggle-button" class="secondary" type="button">🗓️ Archive</button>
+      <button id="stats-toggle-button" class="secondary" type="button">📊 Stats</button>
+      <button id="achievements-toggle-button" class="secondary" type="button">🏆 Achievements</button>
+      <button id="changelog-toggle-button" class="secondary" type="button">📋 What's New</button>
+      <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
+      <button id="info-page-toggle-button" class="secondary" type="button">ℹ️ About Signal</button>
+    </div>
+
+    <div id="howto-panel" class="section" hidden></div>
+
+    <div id="archive-panel" class="section" hidden>
+      <h2 class="panel-heading">Archive</h2>
+      <p class="panel-note">Every past puzzle since launch is playable. Archive results never touch your streak: a puzzle is a daily only if your first ping lands on its own UTC date. <strong>·</strong> not played <strong>…</strong> in progress <strong>✔</strong> won <strong>✖</strong> lost.</p>
+      <div class="calendar-head">
+        <button id="cal-prev-button" class="secondary" type="button" aria-label="Previous month">◀</button>
+        <strong id="cal-title" aria-live="polite"></strong>
+        <button id="cal-next-button" class="secondary" type="button" aria-label="Next month">▶</button>
+      </div>
+      <div id="calendar-grid" class="calendar-grid"></div>
+    </div>
+
+    <div id="stats-panel" class="section" hidden></div>
+    <div id="achievements-panel" class="section" hidden></div>
+    <div id="changelog-panel" class="section" hidden></div>
+
+    <div id="settings-panel" class="section" hidden>
+      <h2 class="panel-heading">Settings</h2>
+      <div class="settings-row">
+        <span>Text size</span>
+        <div class="text-size-control" role="group" aria-label="Text size">
+          <button id="text-size-decrease-button" class="secondary" type="button" aria-label="Decrease text size">A−</button>
+          <button id="text-size-reset-button" class="secondary" type="button" aria-label="Reset text size">A</button>
+          <button id="text-size-increase-button" class="secondary" type="button" aria-label="Increase text size">A+</button>
+        </div>
+      </div>
+      <div class="settings-row"><label><input type="checkbox" id="reduced-motion-checkbox"> Reduce motion (stops the pulsing reveal)</label></div>
+      <div class="settings-row"><label><input type="checkbox" id="high-contrast-checkbox"> High contrast</label></div>
+      <div class="settings-row"><button id="theme-setting-button" class="secondary" type="button">Toggle light / dark theme</button></div>
+      <div class="settings-row"><label><input type="checkbox" id="assist-checkbox" checked> Easy mode: hatch tiles the readings have ruled out</label></div>
+      <div class="settings-row"><label><input type="checkbox" id="ascii-checkbox"> Share as plain text (. : + #) instead of block glyphs</label></div>
+      <div class="settings-row">
+        <button id="display-reset-button" class="secondary" type="button">Reset display settings</button>
+        <button id="reset-progress-button" class="secondary" type="button">Reset all Signal progress</button>
+      </div>
+      <p id="diagnostics-line" class="panel-note"></p>
+    </div>
+
+    <div id="info-page-panel" class="section" hidden>
+      <h2 class="panel-heading">About Signal</h2>
+      <p>Signal is a small daily deduction puzzle set in a retro radio room. Everyone gets the same board each UTC day. It teaches nothing and needs no account.</p>
+      <ul class="info-list">
+        <li>Every puzzle is generated from its date, offline, and checked by a solver so there is always a way to find the answer within your pings.</li>
+        <li>Par is how many pings a greedy solver needed. It is an upper bound on the true minimum, so beating it is possible.</li>
+        <li>The signal rule is invented for this game: a transmitter's strength at a tile is max(0, radius minus the Manhattan distance). It is not a model of real radio propagation.</li>
+        <li>Streaks count wins on the daily puzzle only. Archive and practice never touch them.</li>
+        <li>The leaderboard, if you opt in, shows your longest daily streak. Scores are reported by your browser, so it is a friendly board, not an anti-cheat one.</li>
+        <li>Puzzles are generated in your browser by Python running in WebAssembly (Pyodide). The board draws instantly; the first ping of a cold visit waits for that engine to finish loading.</li>
+      </ul>
+    </div>
+
+    <div id="achievement-toast" class="achievement-toast" hidden role="status"><p id="achievement-toast-text"></p></div>
+
+    <div id="session-bar" class="section">
+      <p id="session-line" class="session-line">Signal</p>
+      <div id="mode-tabs" class="segmented" role="group" aria-label="Puzzle">
+        <button type="button" data-mode-tab="easy" aria-pressed="true">Easy</button>
+        <button type="button" data-mode-tab="hard" aria-pressed="false">Hard</button>
+        <button type="button" data-mode-tab="archive" aria-pressed="false">Archive</button>
+        <button type="button" data-mode-tab="practice" aria-pressed="false">Practice</button>
+      </div>
+      <div id="practice-controls" class="practice-controls" hidden>
+        <label for="practice-preset">Preset</label>
+        <select id="practice-preset">
+          <option value="easy">Easy 9x9 (2)</option>
+          <option value="hard">Hard 9x9 (4)</option>
+          <option value="wide">Wide 13x13 (4)</option>
+          <option value="bigsky">Big Sky 15x15 (5)</option>
+        </select>
+        <button id="practice-new-button" class="secondary" type="button">New puzzle</button>
+        <input id="practice-code" type="text" maxlength="12" placeholder="P-XXXXXX" aria-label="Practice code" autocomplete="off" spellcheck="false">
+        <button id="practice-load-button" class="secondary" type="button">Load code</button>
+      </div>
+      <p id="warm-line" class="warm-line" role="status">Receiver warming up...</p>
+
+      <div class="status-row">
+        <span id="pings-display" class="ping-dots" aria-label="Pings left"></span>
+        <span id="pings-text">Pings: -</span>
+        <span id="par-text">Par: -</span>
+        <span id="marks-text">Markers: 0</span>
+        <button id="tool-toggle-button" class="secondary tool-toggle" type="button" aria-pressed="false" title="Tap tiles to ping, or switch to marking your suspects (Space also marks)">Tool: Ping</button>
+      </div>
+    </div>
+
+    <div class="board-wrap"><div id="board" class="board" role="group" aria-label="Signal board"></div></div>
+    <p id="message-line" class="message-line" role="status" aria-live="polite">Tap a tile to ping it.</p>
+
+    <div id="waterfall-section">
+      <p class="panel-note" style="margin:0">Readings, in the order pinged:</p>
+      <div id="waterfall" class="waterfall" aria-label="Readings in order"></div>
+    </div>
+
+    <div id="action-bar" class="action-bar">
+      <button id="commit-button" class="primary" type="button" disabled>Commit answer</button>
+      <button id="clear-marks-button" class="secondary" type="button">Clear markers</button>
+      <button id="give-up-button" class="secondary" type="button">Give up</button>
+    </div>
+
+    <div id="result-panel" class="section result-panel" hidden>
+      <p id="result-title" class="result-title"></p>
+      <p id="result-detail" class="panel-note"></p>
+      <pre id="share-preview" class="share-preview" hidden></pre>
+      <button id="share-button" class="primary" type="button">Copy result</button>
+      <p id="next-line" class="next-line"></p>
+    </div>
+
+    <div id="leaderboard-mount"></div>
+
+    <div class="section">
+      <p class="panel-note" style="margin:0 0 0.3rem">Was Signal fun?</p>
+      <div class="feedback-row">
+        <button id="feedback-yes-button" class="secondary" type="button">Yes</button>
+        <button id="feedback-no-button" class="secondary" type="button">No</button>
+        <textarea id="feedback-comment" rows="2" placeholder="Optional comment" aria-label="Optional feedback comment"></textarea>
+        <button id="feedback-submit-button" class="secondary" type="button" disabled>Submit feedback</button>
+      </div>
+      <p id="feedback-status" class="panel-note" role="status"></p>
+    </div>
+  </div>
+
+  <div class="ad-bar ad-bar--bottom">
+    <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>
+    <span class="ad-bar-label ad-bar-label-short">Ad</span>
+    <!-- Google AdSense manual display ad unit -->
+    <ins class="adsbygoogle"
+         style="display:block; width:320px; height:50px;"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="XXXXXXXXXX"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <script>
+    // The tutorial needs only static shell elements, so it is wired up right away (no engine needed).
+    const SIGNAL_TUTORIAL_STEPS = [
+      { title: "Ping a tile", selector: "#board", text: "Somewhere on this grid, hidden transmitters are broadcasting. Tap a tile to ping it (or move with the arrow keys and press Enter). Each ping spends one from your budget." },
+      { title: "Read the number", selector: "#waterfall-section", text: "A ping returns ONE number: the summed signal of every transmitter at that tile. A single transmitter gives radius minus distance (nothing beyond it), so 5 could be one close transmitter or several far ones. Number, bar glyph and fill height all say the same thing." },
+      { title: "Mark your suspects", selector: "#tool-toggle-button", text: "Switch the tool to Mark (or press Space on a tile) to drop a diamond where you think a transmitter is. Nothing broadcasts from the outer ring. You need exactly one marker per transmitter." },
+      { title: "Commit", selector: "#commit-button", text: "When your markers match the transmitter count, commit. Every transmitter must be exactly right to win. Fewer pings than par is the boast. Then share a spoiler-free result." },
+    ];
+    if (window.GameTutorial) GameTutorial.init(SIGNAL_TUTORIAL_STEPS, { gameId: "signal" });
+    if (window.MobileDock) MobileDock.init("#action-bar");
+  </script>
+  <script src="app.js"></script>
+  <script src="../../shared/hub-auth.js"></script>
+  <script src="../../shared/save-widget.js" data-game-id="signal"></script>
+  <script src="../../shared/opening-screen.js" data-game-id="signal" data-tagline="A daily radio-room deduction puzzle. Find the hidden transmitters." data-game-name="Signal"></script>
+  <script src="../../shared/last-played.js" data-game-id="signal"></script>
+  <script src="../../shared/whats-new-banner.js" data-game-id="signal"></script>
+  <script src="../../shared/achievement-stats.js" data-game-id="signal"></script>
+  <script src="../../shared/leaderboard.js" data-game-id="signal" data-board="best_streak" data-order="desc" data-title="longest daily streak" data-unit="days" data-mount="#leaderboard-mount"></script>
+  <script src="../../shared/keyboard-shortcuts.js"></script>
+  <script>
+    window.KeyboardShortcuts.init({
+      panels: [
+        { toggle: "howto-toggle-button", panel: "howto-panel" },
+        { toggle: "archive-toggle-button", panel: "archive-panel" },
+        { toggle: "stats-toggle-button", panel: "stats-panel" },
+        { toggle: "achievements-toggle-button", panel: "achievements-panel" },
+        { toggle: "changelog-toggle-button", panel: "changelog-panel" },
+        { toggle: "settings-toggle-button", panel: "settings-panel" },
+        { toggle: "info-page-toggle-button", panel: "info-page-panel" },
+      ],
+      extra: [
+        "Arrow keys — move the cursor on the board",
+        "Enter — use the current tool on the cursor tile (ping or mark)",
+        "Space — mark or unmark the cursor tile",
+        "A letter then a number (for example D4) — jump the cursor to that tile",
+      ],
+    });
+  </script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../../sw.js");
+    }
+  </script>
+</body>
+</html>
