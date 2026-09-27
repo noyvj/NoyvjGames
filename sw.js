@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 13;
+const SW_VERSION = 14;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -61,6 +61,10 @@ const PRECACHE_URLS = [
   "games/champ-de-mots/index.html",
   "games/champ-de-mots/style.css",
   "games/champ-de-mots/game.py",
+  "games/signal/index.html",
+  "games/signal/style.css",
+  "games/signal/game.py",
+  "games/signal/app.js",
 ];
 
 self.addEventListener("install", (event) => {

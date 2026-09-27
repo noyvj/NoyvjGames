@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 59/109 items checked off (54.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 64/109 items checked off (58.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Only the sections you have answered so far are here: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -108,11 +108,11 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 
 Decisions from your answers: theme retro radio-room; UTC daily reset with an archive so past puzzles can be played; a non-daily endless practice mode; launch date not tied to a special day; Option A "Triangulate" with some bigger-board modes. Python vs JS: you want Python as far as possible but would not make the call, so it is my call: Pyodide with an instant HTML shell and a lazy engine load so the first paint is immediate.
 
-- [ ] P-1: Build Signal to the plan's milestones with these decisions (one checkbox per milestone below).
-- [ ] P-1a: Engine, daily seed, archive of past puzzles.
-- [ ] P-1b: UI, retro radio-room theme, share text.
-- [ ] P-1c: Endless practice and bigger-board modes.
-- [ ] P-1d: Achievements, settings, tests, hub card, changelog.
+- [x] P-1: Build Signal to the plan's milestones with these decisions (one checkbox per milestone below).
+- [x] P-1a: Engine, daily seed, archive of past puzzles.
+- [x] P-1b: UI, retro radio-room theme, share text.
+- [x] P-1c: Endless practice and bigger-board modes.
+- [x] P-1d: Achievements, settings, tests, hub card, changelog.
 
 ## Q. Undersleep (plan in `planning/undersleep-plan.md`)
 

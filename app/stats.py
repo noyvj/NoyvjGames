@@ -95,6 +95,10 @@ STATS_FIELDS: dict[str, tuple[str, ...]] = {
         "current_state.city.sprawl", "current_state.city.fed_fraction",
     ),
     "champ-de-mots": ("current_day",),
+    "signal": (
+        "stats.easy.best_streak", "stats.hard.best_streak",
+        "stats.easy.played", "stats.hard.played",
+    ),
 }
 
 

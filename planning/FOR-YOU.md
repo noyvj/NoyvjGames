@@ -30,7 +30,7 @@ I'll drop all of that into the ad bar and it goes live everywhere on the site at
 
 ### 2. Redeploy the backend (community leaderboards)
 
-**Why:** several features added new backend pieces: the opt-in leaderboards (SOL fastest completion, Aftermath hardest schedule, Herd decoupling gap: `/leaderboards/...` plus a new table), the extra community-index stat fields (Aftermath, Drift, Tide) the Warframe market price proxy (`/market/prices`) and the shared community pools (`/pools/...`). Until the backend is redeployed the boards just show "unavailable" in-game; nothing breaks. More items in this batch may add further backend fields (see the community-stat items in `planning/TODO.md`), so it is fine to redeploy once at the end of the night.
+**Why:** several features added new backend pieces: the opt-in leaderboards (SOL fastest completion, Aftermath hardest schedule, Herd decoupling gap, Signal longest daily streak: `/leaderboards/...` plus a new table), the extra community-index stat fields (Aftermath, Drift, Tide) the Warframe market price proxy (`/market/prices`) and the shared community pools (`/pools/...`). Until the backend is redeployed the boards just show "unavailable" in-game; nothing breaks. More items in this batch may add further backend fields (see the community-stat items in `planning/TODO.md`), so it is fine to redeploy once at the end of the night.
 
 **Steps:** the same redeploy you did before (from the repo's `app/` folder with the FastAPI Cloud CLI). No new environment variables. The new table is created automatically on startup.
 
@@ -74,7 +74,7 @@ I'll drop all of that into the ad bar and it goes live everywhere on the site at
 2. **Undersleep:** should the optional check-in start hidden ("Just play") at first run? I recommend hidden. Should journal sync ever go to the cloud? I recommend on-device only with manual export and import.
 3. **Lighthouse:** should nobody ever die on screen (my plan), or do you want a ship truly lost once a year for weight?
 4. **Pocket Bazaar:** is any clock banned outright (my plan counts customer patience in beats, not seconds), or could an optional real-time mode exist later?
-5. **Signal:** once timings are known, which bigger boards (Wide 13x13, Big Sky 15x15) should also become daily modes?
+5. **Signal (built):** which bigger boards should also become daily modes? Measured in Pyodide on desktop (average / worst): Wide 13x13 98 ms / 274 ms, Big Sky 15x15 334 ms / 783 ms; a phone is unmeasured, so both stay practice-only for now. Also: the roughly 40 flavour lines in `games/signal/game.py` (`_LINES`) are a first draft for your tone veto, and the release day `EPOCH` (2026-09-27, in `game.py` and `app.js`) is the date daily puzzle #1 counts from.
 
 ### 7. Seasonal events: react to the redone list
 

@@ -23,6 +23,10 @@ BOARDS: dict[tuple[str, str], dict] = {
     ("sol", "fastest_completion"): {
         "order": "asc", "low": 1.0, "high": 100_000_000.0, "label": "Fastest full completion (simulated seconds)",
     },
+    # Signal: the longest run of consecutive daily puzzles solved.
+    ("signal", "best_streak"): {
+        "order": "desc", "low": 1.0, "high": 100_000.0, "label": "Longest daily streak (days)",
+    },
     # Aftermath: the average event severity of a run that ended with resources left.
     ("aftermath", "hardest_schedule"): {
         "order": "desc", "low": 0.1, "high": 10.0, "label": "Hardest schedule survived (average severity)",

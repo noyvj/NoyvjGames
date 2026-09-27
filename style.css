@@ -602,6 +602,23 @@ body {
   background: radial-gradient(60% 60% at 40% 35%, rgba(190, 255, 245, 0.35), transparent 70%);
 }
 
+/* Signal: concentric amber arcs around a dot on a dark green ground, the
+   same glyph as the game's own favicon. */
+.title-card-thumb--signal {
+  --thumb-glow: #ffb347;
+  background: linear-gradient(160deg, #14211c 0%, #0d1512 100%);
+}
+.title-card-thumb--signal::before {
+  inset: 50% auto auto 50%;
+  width: 92px;
+  height: 92px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 3px solid rgba(255, 179, 71, 0.45);
+  box-shadow: 0 0 0 14px rgba(255, 179, 71, 0.18), 0 0 0 28px rgba(255, 179, 71, 0.08);
+  background: radial-gradient(circle, #ffb347 0 7px, transparent 8px);
+}
+
 /* Trade Empire: a miniature version of the in-game trade map itself —
    route lines connecting colony nodes (the same NODE_COLOR blue used by
    game.py's render_map()) with one gold dot standing in for an automated

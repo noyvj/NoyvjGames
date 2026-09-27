@@ -1,114 +1,121 @@
 {
   "games": {
     "aftermath": {
-      "commit_count": 38,
-      "last_updated": "2026-09-20",
+      "commit_count": 75,
+      "last_updated": "2026-09-27",
       "recent_commits": [
-        "Aftermath CLAUDE.md: document onboarding-tooltip audit (A14)",
-        "Aftermath: add per-game \"What's New\" changelog panel (K16)",
-        "Aftermath: per-game settings panel (text-scale + reduced motion)"
+        "Light-theme polish for Le Champ, Tide, Trade Empire, Aftermath and SOL (Y11b)",
+        "Aftermath W2: sourced real-world examples per shock type",
+        "Aftermath E17b: named real-place scenarios"
       ]
     },
     "canopy": {
-      "commit_count": 47,
-      "last_updated": "2026-09-20",
+      "commit_count": 83,
+      "last_updated": "2026-09-27",
       "recent_commits": [
-        "Canopy: add \"What's New\" in-game changelog panel (K16)",
-        "Canopy CLAUDE.md: document onboarding-tooltip audit (A14)",
-        "Canopy: add consolidated settings panel (text-scale + reduced-motion)"
+        "Canopy gamified batch 1: golden seedling, Tend, Heart Tree, naming, undo, rare wildlife, tiers, weather, chain bloom, almanac, Perfect Season",
+        "Canopy light-theme contrast polish; shared ad-bar label and tutorial step number",
+        "Canopy and Drift W2: sourced real-world examples"
       ]
     },
     "champ-de-mots": {
-      "commit_count": 55,
-      "last_updated": "2026-09-20",
+      "commit_count": 107,
+      "last_updated": "2026-09-27",
       "recent_commits": [
-        "Le Champ de Mots CLAUDE.md + dev log: document the K16 changelog panel",
-        "Le Champ de Mots: add \"What's New\" in-game changelog panel (K16)",
-        "Le Champ de Mots: onboarding-tooltip audit (A14) \u2014 no change needed"
+        "Light-theme polish for Le Champ, Tide, Trade Empire, Aftermath and SOL (Y11b)",
+        "Trade Empire and Le Champ W1: story modes; shared community-pool.js",
+        "Le Champ L4b: opt-in placement test"
       ]
     },
     "continuum": {
-      "commit_count": 38,
-      "last_updated": "2026-09-20",
+      "commit_count": 75,
+      "last_updated": "2026-09-27",
       "recent_commits": [
-        "Continuum: add in-game \"What's New\" changelog panel (K16)",
-        "Continuum CLAUDE.md: document onboarding-tooltip audit (A14)",
-        "Continuum: onboarding-tooltip audit \u2014 3D drag-to-rotate hint"
+        "Continuum light-theme polish (Y11b): Settings theme control, themed 3D scene, contrast fixes; banner button",
+        "Continuum: eighth era (Relay Age) and per-era real-world examples",
+        "Continuum U2: optional Hamlet view with clickable in-scene buildings"
       ]
     },
     "drift": {
-      "commit_count": 51,
-      "last_updated": "2026-09-20",
+      "commit_count": 83,
+      "last_updated": "2026-09-27",
       "recent_commits": [
-        "Drift CLAUDE.md: document onboarding-tooltip audit (A14)",
-        "Drift CLAUDE.md: document the What's New changelog panel (K16)",
-        "Drift: add in-game \"What's New\" changelog panel (K16)"
+        "Canopy and Drift W2: sourced real-world examples",
+        "Loop and Drift W1: story modes via shared story-chapters.js",
+        "Community index lines: Aftermath E9, Drift I17, Tide D9"
       ]
     },
     "grid": {
-      "commit_count": 49,
-      "last_updated": "2026-09-20",
+      "commit_count": 78,
+      "last_updated": "2026-09-26",
       "recent_commits": [
-        "Grid: add in-game \"What's New\" changelog panel",
-        "Grid: add Retire-button tooltip (onboarding-tooltip audit, A14)",
-        "Grid CLAUDE.md: document C14 confirm-dialog integration + shared-file bug fix"
+        "Grid W1: Kestrel Valley story mode; shared story-chapters.js",
+        "Grid C29: real grid comparison against published regional mixes",
+        "Grid C3: regional grid, a lighter multi-grid mode"
       ]
     },
     "herd": {
-      "commit_count": 39,
-      "last_updated": "2026-09-20",
+      "commit_count": 69,
+      "last_updated": "2026-09-27",
       "recent_commits": [
-        "Herd CLAUDE.md: document onboarding-tooltip audit (A14)",
-        "Herd: add per-game \"What's New\" changelog panel (K16)",
-        "Herd CLAUDE.md: document F16 confirm-dialog integration"
+        "Herd R-23: reactive tagline",
+        "Canopy and Herd W1: story modes via shared story-chapters.js",
+        "Community leaderboards: shared widget + SOL A29, Aftermath E23, Herd F21"
       ]
     },
     "loop": {
-      "commit_count": 36,
-      "last_updated": "2026-09-20",
+      "commit_count": 69,
+      "last_updated": "2026-09-27",
       "recent_commits": [
-        "Loop: add per-game \"What's New\" changelog panel (K16)",
-        "Loop: add trade-partner tooltip coverage (onboarding-tooltip audit)",
-        "Loop: per-game settings panel (text-scale + reduced motion)"
+        "Loop H11: opt-in regional recycling pool donation",
+        "Loop and Drift W1: story modes via shared story-chapters.js",
+        "Loop H25b/H29b: rich visual trade network and supply-chain maps"
+      ]
+    },
+    "signal": {
+      "commit_count": 1,
+      "last_updated": "2026-09-27",
+      "recent_commits": [
+        "Signal: daily deduction puzzle game (10 milestones, 190 tests)"
       ]
     },
     "sol": {
-      "commit_count": 43,
-      "last_updated": "2026-09-20",
+      "commit_count": 72,
+      "last_updated": "2026-09-27",
       "recent_commits": [
-        "SOL CLAUDE.md: document the What's New changelog panel (K16)",
-        "SOL: add \"What's New\" in-game changelog panel (K16)",
-        "SOL: add Sky City info-toggle (onboarding-tooltip coverage check)"
+        "SOL R-9/R-10: welcome-back machine and click delta, personal-best playthrough",
+        "Light-theme polish for Le Champ, Tide, Trade Empire, Aftermath and SOL (Y11b)",
+        "SOL W1: deeper captain's log story beats"
       ]
     },
     "thaw": {
-      "commit_count": 36,
-      "last_updated": "2026-09-20",
+      "commit_count": 74,
+      "last_updated": "2026-09-26",
       "recent_commits": [
-        "Thaw: onboarding-tooltip audit (A14) \u2014 add preset-button tooltip",
-        "Thaw: add per-game \"What's New\" changelog panel (K16)",
-        "Thaw: per-game settings panel (text-scale + reduced motion)"
+        "Thaw G9: long game mode",
+        "Thaw G7: Climate Scientist panel with real NOAA methane data",
+        "U4b: opening screen taglines, Continue save note, Le Champ style-picker step"
       ]
     },
     "tide": {
-      "commit_count": 34,
-      "last_updated": "2026-09-20",
+      "commit_count": 67,
+      "last_updated": "2026-09-27",
       "recent_commits": [
-        "Tide: add in-game \"What's New\" changelog panel",
-        "Tide: explain output-mix trade-off (onboarding-tooltip audit, A14)",
-        "Tide: add consolidated settings panel (text-scale + reduced-motion)"
+        "Tide R-19: top-tier seawall glint",
+        "Light-theme polish for Le Champ, Tide, Trade Empire, Aftermath and SOL (Y11b)",
+        "Community index lines: Aftermath E9, Drift I17, Tide D9"
       ]
     },
     "trade-empire": {
-      "commit_count": 36,
-      "last_updated": "2026-09-20",
+      "commit_count": 80,
+      "last_updated": "2026-09-27",
       "recent_commits": [
-        "Trade Empire: onboarding-tooltip audit (A14) \u2014 fix lost research-prereq hint",
-        "Trade Empire CLAUDE.md: document the What's New changelog panel (K16)",
-        "Trade Empire: add in-game \"What's New\" changelog panel (K16)"
+        "Trade Empire: charter renewal, perk tree, lifetime ledger, harder charter (O-1..O-4)",
+        "Light-theme polish for Le Champ, Tide, Trade Empire, Aftermath and SOL (Y11b)",
+        "Trade Empire and Le Champ W1: story modes; shared community-pool.js"
       ]
     }
   },
-  "generated_at": "2026-09-20",
-  "total_commits": 554
+  "generated_at": "2026-09-27",
+  "total_commits": 960
 }
