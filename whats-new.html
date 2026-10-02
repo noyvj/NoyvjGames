@@ -58,6 +58,8 @@
         const dateMatch = block.match(/^### (\d{4}-\d{2}-\d{2})/);
         const didMatch = block.match(/\*\*Did:\*\*\s*([\s\S]*?)(?:\n\*\*|\n---|\n##|$)/);
         if (!dateMatch || !didMatch) return;
+        // Warframe tracker work is kept off the public feed (checked against the whole entry, not just the trimmed summary).
+        if (/warframe/i.test(block.split("\n")[0])) return;
         const gameMatch = block.match(/\*\*Game:\*\*\s*(.+)/);
         const oneLine = didMatch[1].replace(/\s+/g, " ").trim();
         entries.push({
@@ -128,7 +130,7 @@
       try {
         const results = await Promise.all(
           LOG_SOURCES.map(async (source) => {
-            const res = await fetch(source.path);
+            const res = await fetch(source.path, { cache: "no-cache" });
             if (!res.ok) throw new Error(`status ${res.status}`);
             const text = await res.text();
             return parseLogEntries(text, source.label);

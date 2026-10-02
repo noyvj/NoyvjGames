@@ -48,10 +48,11 @@ def last_updated(slug: str):
 
 
 def recent_commit_subjects(slug: str):
-    out = run_git(
-        ["log", f"-{RECENT_COMMITS_PER_GAME}", "--format=%s", "--", f"games/{slug}/"]
-    )
-    return [line for line in out.split("\n") if line] if out else []
+    out = run_git(["log", "--format=%s", "--", f"games/{slug}/"])
+    lines = [line for line in out.split("\n") if line] if out else []
+    # Warframe tracker work is deliberately kept off the public roadmap.
+    lines = [line for line in lines if "warframe" not in line.lower()]
+    return lines[:RECENT_COMMITS_PER_GAME]
 
 
 def main() -> None:

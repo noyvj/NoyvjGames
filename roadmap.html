@@ -166,11 +166,11 @@
     async function loadRoadmap() {
       try {
         const [claudeMdText, roadmapData] = await Promise.all([
-          fetch(CLAUDE_MD_PATH).then((r) => {
+          fetch(CLAUDE_MD_PATH, { cache: "no-cache" }).then((r) => {
             if (!r.ok) throw new Error(`CLAUDE.md status ${r.status}`);
             return r.text();
           }),
-          fetch(ROADMAP_DATA_PATH)
+          fetch(ROADMAP_DATA_PATH, { cache: "no-cache" })
             .then((r) => (r.ok ? r.json() : null))
             .catch(() => null),
         ]);

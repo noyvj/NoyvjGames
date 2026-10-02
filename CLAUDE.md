@@ -120,7 +120,7 @@ Before ending any session where code or content changed, append one dated entry 
 | 15 | Public pages: What's New feed and Roadmap (both built live from the repo's own logs and docs), plus a cross-game real-world sources page | Done |
 | 16 | Admin and security: password-protected admin page with a separate revocable AI token, mark-as-done for French answer reports, test-data flag, optional account email, login and save-code throttling, backend hardening after a data-visibility review | Done |
 | 17 | Opt-in community leaderboards (SOL, Aftermath, Herd, Signal), shared community pools, and community-index lines in the games | Done — see `planning/MULTIPLAYER-SCOPING.md` |
-| 18 | Signal added as the 13th game; Warframe Build Resource Tracker built as a separate tool in the repo with light theme, phone layout and planner features | Done |
+| 18 | Signal added as the 13th game (daily deduction puzzle with archive, endless practice and an opt-in streak leaderboard) | Done |
 | 19 | Seasonal events (date engine built) and further multiplayer levels beyond aggregate and opt-in boards | In progress — see `planning/SEASONAL-EVENTS.md` |
 | 20 | AdSense monetisation (ad bar already built with placeholder IDs, waiting on the account application) | In progress — see `planning/FOR-YOU.md` |
 

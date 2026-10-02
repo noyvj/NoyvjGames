@@ -31,9 +31,9 @@
       "commit_count": 77,
       "last_updated": "2026-09-27",
       "recent_commits": [
-        "Fix the 2026-09-27 audit findings: Signal, Warframe tracker, sw.js precache, doc drift, Continuum flake8",
         "Continuum: found a new settlement, founder's legacy, Refuge Start (O-5..O-8)",
-        "Continuum light-theme polish (Y11b): Settings theme control, themed 3D scene, contrast fixes; banner button"
+        "Continuum light-theme polish (Y11b): Settings theme control, themed 3D scene, contrast fixes; banner button",
+        "Continuum: eighth era (Relay Age) and per-era real-world examples"
       ]
     },
     "drift": {
@@ -58,25 +58,24 @@
       "commit_count": 70,
       "last_updated": "2026-09-27",
       "recent_commits": [
-        "Fix the 2026-09-27 audit findings: Signal, Warframe tracker, sw.js precache, doc drift, Continuum flake8",
         "Herd R-23: reactive tagline",
-        "Canopy and Herd W1: story modes via shared story-chapters.js"
+        "Canopy and Herd W1: story modes via shared story-chapters.js",
+        "Community leaderboards: shared widget + SOL A29, Aftermath E23, Herd F21"
       ]
     },
     "loop": {
       "commit_count": 70,
       "last_updated": "2026-09-27",
       "recent_commits": [
-        "Fix the 2026-09-27 audit findings: Signal, Warframe tracker, sw.js precache, doc drift, Continuum flake8",
         "Loop H11: opt-in regional recycling pool donation",
-        "Loop and Drift W1: story modes via shared story-chapters.js"
+        "Loop and Drift W1: story modes via shared story-chapters.js",
+        "Loop H25b/H29b: rich visual trade network and supply-chain maps"
       ]
     },
     "signal": {
       "commit_count": 2,
       "last_updated": "2026-09-27",
       "recent_commits": [
-        "Fix the 2026-09-27 audit findings: Signal, Warframe tracker, sw.js precache, doc drift, Continuum flake8",
         "Signal: daily deduction puzzle game (10 milestones, 190 tests)"
       ]
     },
@@ -117,6 +116,6 @@
       ]
     }
   },
-  "generated_at": "2026-09-27",
-  "total_commits": 971
+  "generated_at": "2026-10-02",
+  "total_commits": 974
 }
