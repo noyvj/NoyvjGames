@@ -34,7 +34,7 @@ I'll drop all of that into the ad bar and it goes live everywhere on the site at
 
 **But:** during the 2026-09-27 audit (`planning/AUDIT-260927.md`, finding C1) I checked the real production API directly and it's already serving all of this — including `/leaderboards/signal/best_streak` with the exact label text I only wrote into `app/leaderboards.py` a few hours into that same session. I don't know how or when this got deployed (no `git push` happened, and I don't see deploy tooling in the repo), so I'm leaving this entry here rather than silently deleting it.
 
-**What to tell me:** just a one-word "yes it's deployed" (or "no, that's a fluke, please leave this open") and I'll update `CLAUDE.md` milestone 6 and remove this entry for good.
+**What to tell me:** just a one-word "yes it's deployed" (or "no, that's a fluke, please leave this open") and I'll update `CLAUDE.md`'s accounts milestone and remove this entry for good.
 
 ### 3. Which Warframe "meta" combos should the tracker pre-load?
 
