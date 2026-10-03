@@ -1,7 +1,9 @@
 import logging
 import os
+import time
 
 from sqlalchemy import create_engine, text
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -96,3 +98,28 @@ def patch_schema():
             except Exception:
                 logger.exception("patch_schema() failed on statement: %s", statement)
                 raise
+
+
+def init_schema() -> bool:
+    """Create missing tables and apply the schema patch. Returns False, instead
+    of raising, when the database cannot be reached (a DNS failure, a sleeping
+    or unreachable Neon endpoint): the API should still boot so deployments
+    pass their health check, and the retry loop below finishes the setup once
+    the database is back. Any other error (a bad statement, a permissions
+    problem) still propagates and crashes startup loudly, as before.
+    """
+    try:
+        Base.metadata.create_all(bind=engine)
+        patch_schema()
+    except OperationalError:
+        logger.exception("Database unreachable during schema setup; starting anyway and retrying")
+        return False
+    return True
+
+
+def retry_schema_until_ready(first_delay: float = 5.0, max_delay: float = 60.0, sleep=time.sleep) -> None:
+    delay = first_delay
+    while not init_schema():
+        sleep(delay)
+        delay = min(delay * 2, max_delay)
+    logger.info("Database schema ready")

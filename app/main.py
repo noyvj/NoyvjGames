@@ -21,13 +21,13 @@ import market
 import pools
 import stats
 from throttle import FailureLimiter
-from database import Base, engine, get_db, patch_schema
+from database import get_db, init_schema, retry_schema_until_ready
 from models import AnswerReport, AuthSession, Feedback, LeaderboardEntry, PageView, PoolDay, Rating, Save, User
 
 logger = logging.getLogger(__name__)
 
-Base.metadata.create_all(bind=engine)
-patch_schema()
+if not init_schema():
+    threading.Thread(target=retry_schema_until_ready, daemon=True).start()
 
 app = FastAPI(title="CodingIsANoyvj ratings API")
 

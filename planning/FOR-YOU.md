@@ -11,11 +11,11 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 
 ## Action items
 
-### 0. Check the backend: it returned 404 for every route on 4 October
+### 0. Redeploy the backend (it crashes at startup; fix is committed)
 
-**Why:** when I tested on 2026-10-04 (about 01:40 AEST), every route on `https://noyvjgames.fastapicloud.dev` (`/`, `/ratings/sol`, `/stats/games`, `/docs`) returned an empty 404 from Cloudflare, so ratings, saves, accounts and stats would all fail on the live site. It was answering correctly on 26 September. I cannot see your FastAPI Cloud account, so I do not know whether the app was paused, stopped by the free tier, or lost its deployment.
+**Why:** on 2026-10-04 every route returned 404 and the last deployment would not verify. The deploy logs show the app crashing at startup because the FastAPI Cloud container could not resolve the Neon hostname ("Temporary failure in name resolution"). Neon is fine (its hostname resolves and port 5432 answers from outside). The fix is committed: the API now starts even when the database is unreachable and retries the schema setup in the background.
 
-**Steps:** open the FastAPI Cloud dashboard and check the app's status. If it is stopped or missing, redeploy from the `app/` folder with `python3 -m fastapi cloud deploy`, then tell me and I will re-test the routes.
+**Steps:** from the `app/` folder run `python3 -m fastapi cloud deploy`. When it finishes, open `https://noyvjgames.fastapicloud.dev/docs`; it should load. If ratings still fail after that, the container's DNS problem is still happening: check `DATABASE_URL` in the FastAPI Cloud environment settings against the connection string in the Neon dashboard (same host, `-pooler` endpoint), check the FastAPI Cloud status page, and send me the new logs.
 
 ### 1. Apply for Google AdSense
 
