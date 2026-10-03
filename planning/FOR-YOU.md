@@ -11,6 +11,12 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 
 ## Action items
 
+### 0. Check the backend: it returned 404 for every route on 4 October
+
+**Why:** when I tested on 2026-10-04 (about 01:40 AEST), every route on `https://noyvjgames.fastapicloud.dev` (`/`, `/ratings/sol`, `/stats/games`, `/docs`) returned an empty 404 from Cloudflare, so ratings, saves, accounts and stats would all fail on the live site. It was answering correctly on 26 September. I cannot see your FastAPI Cloud account, so I do not know whether the app was paused, stopped by the free tier, or lost its deployment.
+
+**Steps:** open the FastAPI Cloud dashboard and check the app's status. If it is stopped or missing, redeploy from the `app/` folder with `python3 -m fastapi cloud deploy`, then tell me and I will re-test the routes.
+
 ### 1. Apply for Google AdSense
 
 **Why:** `planning/pwa-and-ads-setup.md`'s ad bar is already built and labeled everywhere on the site, wired up with placeholder IDs (`ca-pub-XXXXXXXXXXXXXXXX`) waiting for the real ones. The only blocker is the application itself, which needs your own Google account — I can't submit it for you.
