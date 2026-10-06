@@ -1,0 +1,60 @@
+{
+  "windows": [
+    ["howto-panel", "howto-toggle-button", "How to Play"],
+    ["achievements-panel", "achievements-toggle-button", "Achievements"],
+    ["changelog-panel", "changelog-toggle-button", "What's New"],
+    ["settings-panel", "settings-toggle-button", "Settings"],
+    ["info-page-panel", "info-page-toggle-button", "The Real Story"],
+    ["coda-section", "coda-button", "Long-Horizon Outcomes"]
+  ],
+  "toolbar": {
+    "icons": [
+      ["achievements-toggle-button", "🏆"],
+      ["howto-toggle-button", "📖"],
+      ["settings-toggle-button", "⚙️"]
+    ],
+    "menu": [
+      {"heading": "Game", "ids": ["accelerated-severity-toggle-button", "crisis-start-toggle-button"]},
+      {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button"]},
+      {"heading": "Records", "ids": ["changelog-toggle-button"]}
+    ]
+  },
+  "composites": [
+    {
+      "id": "pc-about-panel",
+      "title": "About Drift",
+      "members": [".tagline", ".context-blurb", "#community-index"],
+      "group": "Help",
+      "label": "ℹ️ About Drift"
+    },
+    {
+      "id": "pc-feedback-panel",
+      "title": "Feedback",
+      "members": ["#feedback-prompt"],
+      "group": "Help",
+      "label": "💬 Send feedback"
+    }
+  ],
+  "adopt": [],
+  "zones": {
+    "topbar": [".hub-back-link", "h1", ".game-toolbar"],
+    "stagebar": [],
+    "stage": [".region-visual", "#status", "#pressure", "#integration", "#wellbeing"],
+    "side": ["#advance-round-button", "#coda-button", "#capacity", "#neighbor-panel", "#capacity-tools"],
+    "hidden": ["#round-display", "#funds-display", "#total-capacity-display"]
+  },
+  "readouts": [
+    ["#round-display", "🔁", ""],
+    ["#funds-display", "💰", "Funds"],
+    ["#total-capacity-display", "🏘️", "Capacity"],
+    ["#strain-display", "📉", "Strain"],
+    ["#pending-display", "⏳", "Pending"],
+    ["#wellbeing-display", "⭐", "Wellbeing"]
+  ],
+  "side_label": "Investments and decisions",
+  "hints": [
+    ["?", "All shortcuts"],
+    ["Esc", "Menu / close window"]
+  ],
+  "notify": null
+}

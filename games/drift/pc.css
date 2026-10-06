@@ -1,0 +1,97 @@
+/* Drift, Desktop boot (pc.html only). Everything is scoped to the pc layout, so the Classic page is
+   untouched. Layout: top bar, readout chips, the region skyline as a banner over three dashboard
+   columns (displacement pressure and status, integration, wellbeing) as the stage, and the per-turn
+   decisions in a right-hand column that scrolls on its own with Advance Round pinned at the top.
+   Windows come from shared/pc-shell.css. */
+
+html[data-layout="pc"] #game { padding-bottom: 0.4rem; }
+html[data-layout="pc"] body { padding-bottom: 0; }
+html[data-layout="pc"] .ambient-bg { overflow: hidden; }
+
+/* --- top bar -------------------------------------------------------------------------------- */
+#pc-topbar { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "title tools story"; padding-right: 7.5rem; }
+#pc-topbar > .game-toolbar { gap: 0.4rem; justify-content: flex-end; }
+/* The Story panel (shared/story-chapters.js) is inserted after the h1 once its file loads. Closed it is a
+   small pill in the top bar; open it floats over the game like a window. */
+#pc-topbar > #story-chapters { grid-area: story; margin: 0; padding: 0.35rem 0.7rem; font-size: 0.8rem; }
+#pc-topbar > #story-chapters[open] {
+  position: fixed;
+  top: 3.4rem;
+  right: 1rem;
+  z-index: 700;
+  width: min(26rem, 92vw);
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--pc-window-bg, #16151d);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+}
+html[data-theme="light"] #pc-topbar > #story-chapters[open] { background: #fbf6ec; color: #1b1710; }
+html[data-layout="pc"] #theme-toggle-floating { top: 0.7rem !important; bottom: auto !important; left: auto !important; right: 1rem !important; }
+#pc-readouts { padding: 0 0.1rem; }
+.pc-readout-value { font-variant-numeric: tabular-nums; }
+
+/* --- body: stage + side column -------------------------------------------------------------- */
+#pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(19rem, 27vw, 28rem); }
+
+/* Stage: the skyline as a banner, then pressure (with the status block under it), integration and
+   wellbeing as three columns, each scrolling on its own if the window is too short for it. */
+#pc-stagebar:empty { display: none; }
+#pc-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1.25fr) minmax(0, 1fr) auto;
+  gap: 0.6rem;
+}
+#pc-stage > * { margin: 0; min-width: 0; }
+#pc-stage > .region-visual { grid-column: 1 / -1; grid-row: 1; height: 96px; }
+#pc-stage > #pressure { grid-column: 1; grid-row: 2; overflow-y: auto; min-height: 0; }
+#pc-stage > #status { grid-column: 1; grid-row: 3; overflow-y: auto; min-height: 0; }
+#pc-stage > #integration { grid-column: 2; grid-row: 2 / 4; overflow-y: auto; min-height: 0; }
+#pc-stage > #wellbeing { grid-column: 3; grid-row: 2 / 4; overflow-y: auto; min-height: 0; }
+#pc-stage > #pc-hintbar { grid-column: 1 / -1; grid-row: 4; }
+#pc-stage > .section { padding: 0.7rem 0.85rem; }
+/* The skyline stays centred and its buildings keep a sensible width, instead of one block stretching the
+   whole banner while only a few are revealed. */
+#pc-stage > .region-visual .region-visual-skyline { height: 80px; justify-content: center; }
+#pc-stage > .region-visual .region-visual-building { flex: 0 1 8rem; }
+
+/* The numbers the chips already show do not need a second line in the status block. */
+#status > #region-name-row, #status .region-name-row { margin-top: 0.4rem; }
+
+/* The classic mobile pieces have no place on the Desktop boot. */
+html[data-layout="pc"] .mobile-hud, html[data-layout="pc"] #mobile-hud, html[data-layout="pc"] #mobile-hud-bar { display: none !important; }
+
+/* --- side column: decisions, scrolling on their own ----------------------------------------- */
+#pc-side {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0 0.25rem 3rem 0; /* clear of the collapsed Save / Load widget */
+}
+#pc-side > * { margin: 0; flex: 0 0 auto; }
+#pc-side > #advance-round-button { position: sticky; top: 0; z-index: 5; width: 100%; padding: 0.9rem; font-size: 1.05rem; }
+#pc-side > #coda-button { width: 100%; }
+#pc-side > .section { padding: 0.6rem 0.8rem; }
+
+/* Smaller desktop windows (about 1024px wide or 700px tall). */
+@media (max-width: 1280px) {
+  #pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) 17rem; gap: 0.6rem; }
+  #pc-stage { gap: 0.5rem; }
+  #pc-stage > .section { padding: 0.5rem 0.6rem; }
+  #pc-stage .status-line, #pc-stage .comparison-message { font-size: 0.8rem; }
+  #pc-side .invest-name { font-size: 0.8rem; }
+  .pc-readout { padding: 0.25rem 0.55rem; font-size: 0.8rem; }
+}
+@media (max-height: 780px) {
+  #pc-stage > .region-visual { height: 54px; }
+  #pc-stage > .region-visual .region-visual-skyline { height: 46px; }
+}
+
+/* Themes. */
+html[data-theme="light"] #pc-hintbar { opacity: 1; }
+.pc-window-frame a { color: #9fc4ff; }
+html[data-theme="light"] .pc-window-frame a { color: #1d4f9e; }
+html[data-theme="light"] .pc-toast { background: #fbf6ec; border-color: rgba(122, 74, 18, 0.4); color: #1b1710; }
