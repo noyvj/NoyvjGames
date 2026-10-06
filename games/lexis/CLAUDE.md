@@ -27,6 +27,7 @@ Python via Pyodide, engine modules with no DOM (the Signal pattern: a thin view 
 - `scenes.py`: the ordered Pulse curriculum, generated from the real world.
 - `deduce.py`: every reading of the language (3 number rules x 5^5 word meanings), which still fit the scenes, and whether they all behave the same on every sentence the language can form.
 - `notebook.py`: `Notebook` and `LexisState` (the save: notebook, scenes seen, what the player has said).
+- `compound.py`, `compound_scenes.py`, `deduce_compound.py`: rung 2, the Compound language. A glyph is a root then a size (opaque letters: k water, m grain, t fire; o small, u big); the world is a tray; four scenes settle all six glyphs although two are never shown; the checker enumerates every assignment of five meanings to five letters (repeats allowed) in both slot orders.
 - `game.py`: the one entry point, `handle(json) -> json` (open, next_scene, write, confirm, speak, reset) plus `get_state()` / `load_state()` for the save widget (load merges, never replaces). 47 tests.
 
 ## Milestones
@@ -34,8 +35,8 @@ Python via Pyodide, engine modules with no DOM (the Signal pattern: a thin view 
 |---|---|---|
 | 1 | Engine core: language definition format, the Pulse language, parser, world, scenes, deducibility checker, notebook and save state; 47 tests, with the `handle(json)` entry point | **DONE** (2026-10-06, untagged) |
 | 2 | Notebook UI, sentence builder, first scene and dialogue playable (static shell + Pyodide engine, `handle(json)`): `index.html`, `style.css`, `app.js` (glue only; a temporary localStorage save until milestone 5); 52 tests | **DONE** (2026-10-06, untagged) |
-| 3 | Deducibility checker extended to the compound-glyph language; fix any ambiguous word it finds | not started |
-| 4 | Rung 2: compound glyphs (every part of a sign means something), glyph stroke grammar to SVG | not started |
+| 3 | Rung 2 data and the deducibility checker for it: the Compound language (`compound.py`, `compound_scenes.py`, `deduce_compound.py`); 70 tests. The checker allows repeated meanings (no bijection assumption), which is what makes it honest | **DONE** (2026-10-07, untagged) |
+| 4 | Rung 2 in the view: component stroke grammar drawn as SVG, the tray and its scenes, sentence builder for glyphs, `handle` actions for rung 2 | not started |
 | 5 | Save widget, achievements, tutorial, opening screen, hub registration | not started |
 | 6 | Rung 3: the bridge language (plural, negation, question markers; borrows from rungs 1 and 2) | not started |
 | 7 | Story spine and ending; Info page with real-linguistics sources read live | not started |
