@@ -2,7 +2,7 @@
    handle() returns and forwards what the player does. No game logic lives here. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["lang.py", "pulse.py", "parse.py", "world.py", "scenes.py", "deduce.py", "notebook.py", "compound.py", "compound_scenes.py", "deduce_compound.py", "glyphs.py", "achievements.py"];
+  var ENGINE_MODULES = ["lang.py", "pulse.py", "parse.py", "world.py", "scenes.py", "deduce.py", "notebook.py", "compound.py", "compound_scenes.py", "deduce_compound.py", "glyphs.py", "achievements.py", "bridge.py", "bridge_scenes.py", "deduce_bridge.py"];
   var STORE_KEY = "lexis:state";
   var TOKEN_LEN = 4;
   var MAX_OUT = 40;

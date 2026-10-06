@@ -40,7 +40,7 @@ Python via Pyodide, engine modules with no DOM (the Signal pattern: a thin view 
 | 3 | Rung 2 data and the deducibility checker for it: the Compound language (`compound.py`, `compound_scenes.py`, `deduce_compound.py`); 70 tests. The checker allows repeated meanings (no bijection assumption), which is what makes it honest | **DONE** (2026-10-07, untagged) |
 | 4 | Rung 2 in the view: component strokes drawn as SVG (`glyphs.py`), planet tabs, the tray and its scenes, a sign builder, a per-planet notebook, contact goals that unlock planet 2 (`handle` takes `planet`); 79 tests | **DONE** (2026-10-07, untagged) |
 | 5 | Save widget, achievements (10, manifest + `achievements_earned`), tutorial, opening screen; hub registration deliberately MOVED to milestone 8 so a half-built game is not listed publicly; 85 tests | **DONE** (2026-10-07, untagged) |
-| 6 | Rung 3: the bridge language (plural, negation, question markers; borrows from rungs 1 and 2) | not started |
+| 6 | Rung 3: the Bridge language (plural, negation, question markers; borrows nouns from rung 2 and binary numbers from rung 1). ENGINE DONE 2026-10-07 (`bridge.py`, `bridge_scenes.py`, `deduce_bridge.py`, 101 tests); view, planet tab and contact goal still to do | **IN PROGRESS** |
 | 7 | Story spine and ending; Info page with real-linguistics sources read live | not started |
 | 8 | Hub registration (card, thumbnail, favicon, hub lists, offline cache), polish, accessibility pass (non-colour cues, keyboard, reduced motion), light theme, Info page, Desktop boot | not started |
 
