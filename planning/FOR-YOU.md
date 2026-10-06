@@ -35,7 +35,7 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 
 **Why:** you asked whether a puzzle game like The Message from Deep Space or Chants of Sennaar can be built. Yes, and it fits the Python engine stack well. The plan is `planning/lexis-plan.md` (working title "Lexis"). I do not reliably know "The Message from Deep Space", so question 1 matters most.
 
-**Steps:** answer the six questions at the end of that file (each has a recommendation; "go with your recommendations" is fine). Nothing is built until you do.
+**Answered so far (2026-10-06):** you love the puzzle and deduction, with story as the thing that pulls you forward, and the setting is sci-fi. **Still open:** scope (how big: one language, three, or five), story weight, how generous hints are, and whether it goes ahead of the Desktop conversions. Each has a recommendation in the plan; "go with your recommendations" is fine. Nothing is built until you answer.
 
 ### 1. Apply for Google AdSense
 

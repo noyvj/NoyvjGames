@@ -59,9 +59,17 @@ You arrive somewhere nobody will explain; learn each local language by watching 
 - **Pyodide first load** is a few seconds; use the Signal pattern (static shell, instant first paint, engine after).
 - **Originality.** Use no real language's vocabulary and nothing from either reference game's content; the mechanic (deduce meaning from context) is not ownable, the specific languages and art are ours.
 
-## 9. Questions for the user (each has a recommendation)
-1. **What do you love about those two games?** Recommended reading of it: the "aha" of deducing meaning from context and the notebook, more than a particular story. Is it the notebook, the alien-signal mystery, the world exploration, or the story?
-2. **Setting.** Recommended: sci-fi "something arrives and has to be understood" if you like the deep-space angle, or a small walled district town if you prefer cosy. Which?
+## 9. Answers so far and questions still open
+
+**Answered 2026-10-06:**
+1. *What do you love about those games?* The puzzle and deduction. The story matters because it is what pulls you forward (it is the "gamification": each solved language opens the next beat), not because it is the point. So the story is a spine that rewards progress, not a long narrative.
+2. *Setting:* sci-fi. Working premise: a message arrives from deep space and the player is the person who has to understand it (an original premise; no content from either reference game).
+
+**Still open (each has a recommendation):**
+
+## 10. Questions (the first two are answered above; 3 to 6 remain)
+1. (answered) **What do you love about those two games?** Recommended reading of it: the "aha" of deducing meaning from context and the notebook, more than a particular story. Is it the notebook, the alien-signal mystery, the world exploration, or the story?
+2. (answered: sci-fi) **Setting.** Recommended: sci-fi "something arrives and has to be understood" if you like the deep-space angle, or a small walled district town if you prefer cosy. Which?
 3. **Scope.** Small, Recommended (three districts), or Large?
 4. **Story or pure puzzle?** Recommended: a light story spine, not a heavy narrative.
 5. **How generous are hints?** Recommended: in-world "ask someone to repeat it slowly", no answer-giving hint button.
