@@ -286,7 +286,7 @@
     if ((zones.side || []).length) {
       const side = mk("pc-side");
       side.setAttribute("role", "complementary");
-      side.setAttribute("aria-label", "Readouts and log");
+      side.setAttribute("aria-label", window.NOYVJ_PC_SIDE_LABEL || "Details");
       body.append(side);
       body.classList.add("pc-has-side");
       targets.push(["side", side]);
@@ -301,8 +301,7 @@
     game.appendChild(hidden);
     for (const [zone, el] of targets) {
       for (const selector of zones[zone] || []) {
-        const node = game.querySelector(selector);
-        if (node) el.appendChild(node);
+        game.querySelectorAll(selector).forEach((node) => { if (!el.contains(node)) el.appendChild(node); });
       }
     }
     // [node selector, destination selector]: the node is moved to the start of the destination.
@@ -323,9 +322,8 @@
       panel.id = spec.id;
       panel.className = "section pc-composite";
       panel.hidden = true;
-      for (const selector of spec.members) {
-        const node = game.querySelector(selector);
-        if (node) panel.appendChild(node);
+        for (const selector of spec.members) {
+        game.querySelectorAll(selector).forEach((node) => panel.appendChild(node));
       }
       game.appendChild(panel);
       wrap({ panel: spec.id, toggle: null, title: spec.title });
@@ -361,6 +359,46 @@
       e.__pcMenuOpened = true; // consumed: do not also open the Menu
       e.stopPropagation();
     }, true);
+  }
+
+  // A strip of readout chips under the top bar, for games whose numbers live in ordinary text
+  // lines: each chip mirrors one original element (which keeps updating by id, moved out of the
+  // layout), so no game code is involved. window.NOYVJ_PC_READOUTS = [[selector, icon, label], ...].
+  function buildReadouts() {
+    const list = window.NOYVJ_PC_READOUTS;
+    const topbar = document.getElementById("pc-topbar");
+    if (!list || !list.length || !topbar) return;
+    const strip = document.createElement("div");
+    strip.id = "pc-readouts";
+    strip.setAttribute("role", "group");
+    strip.setAttribute("aria-label", "Readouts");
+    for (const [selector, icon, label] of list) {
+      const source = document.querySelector(selector);
+      if (!source) continue;
+      const chip = document.createElement("span");
+      chip.className = "pc-readout";
+      const i = document.createElement("span");
+      i.className = "pc-readout-icon";
+      i.textContent = icon;
+      i.setAttribute("aria-hidden", "true");
+      const name = document.createElement("span");
+      name.className = "pc-readout-label";
+      name.textContent = label;
+      const value = document.createElement("span");
+      value.className = "pc-readout-value";
+      chip.append(i, name, value);
+      const sync = () => {
+        const text = source.textContent.replace(/\s+/g, " ").trim();
+        // "Funds: 300" shows as 300 next to its label; a line without a colon is shown whole.
+        const at = text.indexOf(":");
+        value.textContent = at !== -1 && at < 24 ? text.slice(at + 1).trim() : text;
+        chip.title = text;
+      };
+      sync();
+      new MutationObserver(sync).observe(source, { childList: true, characterData: true, subtree: true });
+      strip.appendChild(chip);
+    }
+    topbar.after(strip);
   }
 
   // A thin bar of the hotkeys that work in this game: window.NOYVJ_PC_HINTS = [["P", "Pause"], ...].
@@ -446,6 +484,7 @@
     specs.forEach(wrap);
     buildComposites();
     buildToolbar();
+    buildReadouts();
     startDropdowns();
     addHintBar();
     homeStoryToggle();

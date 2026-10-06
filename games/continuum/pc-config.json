@@ -1,0 +1,175 @@
+{
+  "windows": [
+    [
+      "howto-panel",
+      "howto-toggle-button",
+      "How to Play"
+    ],
+    [
+      "shortcuts-panel",
+      null,
+      "Keyboard shortcuts"
+    ],
+    [
+      "achievements-panel",
+      "achievements-toggle-button",
+      "Achievements"
+    ],
+    [
+      "changelog-panel",
+      "changelog-toggle-button",
+      "What's New"
+    ],
+    [
+      "summary-panel",
+      "summary-toggle-button",
+      "Civilization Summary"
+    ],
+    [
+      "views-panel",
+      "views-toggle-button",
+      "City Views"
+    ],
+    [
+      "founders-panel",
+      "founders-toggle-button",
+      "Founder's Log"
+    ],
+    [
+      "minutes-panel",
+      "minutes-toggle-button",
+      "Council Minutes"
+    ],
+    [
+      "settings-panel",
+      "settings-toggle-button",
+      "Settings"
+    ],
+    [
+      "info-page-panel",
+      "info-page-toggle-button",
+      "In the real world"
+    ]
+  ],
+  "toolbar": {
+    "icons": [
+      [
+        "achievements-toggle-button",
+        "🏆"
+      ],
+      [
+        "views-toggle-button",
+        "📊"
+      ],
+      [
+        "settings-toggle-button",
+        "⚙️"
+      ]
+    ],
+    "menu": [
+      {
+        "heading": "Game",
+        "ids": []
+      },
+      {
+        "heading": "Help",
+        "ids": [
+          "tutorial-restart-button",
+          "howto-toggle-button",
+          "info-page-toggle-button"
+        ]
+      },
+      {
+        "heading": "Records",
+        "ids": [
+          "changelog-toggle-button",
+          "summary-toggle-button",
+          "founders-toggle-button",
+          "minutes-toggle-button"
+        ]
+      },
+      {
+        "heading": "Scene",
+        "ids": [
+          "visual-mode-toggle-button",
+          "visual-snapshot-button"
+        ]
+      }
+    ]
+  },
+  "composites": [
+    {
+      "id": "pc-setup-panel",
+      "title": "Starting scenario",
+      "members": [
+        "#scenario-select"
+      ],
+      "group": "Game",
+      "label": "🏕 Starting scenario"
+    },
+    {
+      "id": "pc-log-panel",
+      "title": "Log and looking back",
+      "members": [
+        "#log",
+        "#revisit"
+      ],
+      "group": "Records",
+      "label": "📜 Log and looking back"
+    },
+    {
+      "id": "pc-community-panel",
+      "title": "Community",
+      "members": [
+        ".community-details"
+      ],
+      "group": "Records",
+      "label": "🌍 Community"
+    }
+  ],
+  "adopt": [
+    [
+      "#real-world-note",
+      "#info-page-panel"
+    ]
+  ],
+  "hints": [
+    [
+      "P",
+      "Pause / resume"
+    ],
+    [
+      "1–4",
+      "Camera"
+    ],
+    [
+      "?",
+      "All shortcuts"
+    ],
+    [
+      "Esc",
+      "Menu / close window"
+    ]
+  ],
+  "notify": {
+    "list": "#log-list"
+  },
+  "zones": {
+    "topbar": [
+      ".hub-back-link",
+      "h1",
+      ".game-toolbar",
+      "#speed-controls"
+    ],
+    "stagebar": [
+      "#camera-preset-buttons"
+    ],
+    "stage": [
+      "#visual-stage"
+    ],
+    "hidden": [
+      "#status",
+      "#sustainability"
+    ]
+  }
+}

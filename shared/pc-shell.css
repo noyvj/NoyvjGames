@@ -159,3 +159,53 @@ html[data-theme="light"] .pc-toast { color: #1b1710; }
 .pc-window-frame.pc-window-moved { transform: none; animation: none; }
 .pc-window-bar { cursor: grab; touch-action: none; user-select: none; }
 .pc-window-bar.pc-dragging { cursor: grabbing; }
+
+/* --- generic Desktop frame (a game's pc.css refines it) ----------------------------------- */
+html[data-layout="pc"], html[data-layout="pc"] body { height: 100%; overflow: hidden; }
+html[data-layout="pc"] body { display: block; }
+html[data-layout="pc"] #game {
+  max-width: none;
+  width: 100%;
+  height: calc(100vh - 44px); /* leaves the ad bar its strip */
+  margin: 0;
+  padding: 0.6rem 1rem 0.5rem;
+  border: 0;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  overflow: hidden;
+  background: transparent;
+  backdrop-filter: none;
+}
+#pc-topbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "title tools clock";
+  align-items: center;
+  gap: 0.4rem 1rem;
+}
+#pc-topbar > .hub-back-link { grid-area: title; justify-self: start; align-self: start; font-size: 0.8rem; }
+#pc-topbar > h1 { grid-area: title; margin: 1rem 0 0; font-size: 1.5rem; line-height: 1; }
+#pc-topbar > .game-toolbar { grid-area: tools; justify-content: flex-start; margin: 0; gap: 0.3rem; flex-wrap: wrap; }
+#pc-topbar > .game-toolbar:empty { display: none; }
+#pc-topbar > #speed-controls { grid-area: clock; margin: 0; }
+#pc-body { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.8rem; }
+#pc-stage { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 0.4rem; position: relative; }
+
+/* Readout chips (shell-built from ordinary text lines). */
+#pc-readouts { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.pc-readout {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--pc-window-line, rgba(140, 160, 255, 0.35));
+  background: rgba(14, 16, 28, 0.7);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.pc-readout-label { font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.7; }
+.pc-readout-value { font-weight: 700; }
+html[data-theme="light"] .pc-readout { background: rgba(255, 255, 255, 0.85); }
