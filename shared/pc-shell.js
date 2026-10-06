@@ -494,7 +494,7 @@
     // "nothing was open".
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape" || open.length || e.__pcMenuOpened) return;
-      const blockers = "#opening-screen, .confirm-dialog-overlay, #tutorial-card, #hamlet-town-panel:not([hidden]), #kb-shortcuts-panel:not([hidden])";
+      const blockers = "#opening-screen, #confirm-dialog-overlay:not([hidden]), .confirm-dialog-overlay, #tutorial-card, #hamlet-town-panel:not([hidden]), #kb-shortcuts-panel:not([hidden])";
       const shown = [...document.querySelectorAll(blockers)].some((n) => n.getBoundingClientRect().width > 0);
       const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || "");
       if (shown || typing) return;
@@ -505,7 +505,7 @@
       if (e.key !== "Escape" || !open.length || e.__pcMenuOpened) return;
       const inner = document.getElementById("hamlet-town-panel");
       if (inner && !inner.hidden) return; // the game's own Esc handling comes first
-      if (document.querySelector("#opening-screen, .confirm-dialog-overlay")) return;
+      if (document.querySelector("#opening-screen, #confirm-dialog-overlay:not([hidden]), .confirm-dialog-overlay")) return;
       e.preventDefault();
       closeFrame(open[open.length - 1]);
     });

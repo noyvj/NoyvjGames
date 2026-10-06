@@ -113,40 +113,66 @@ def test_value_pop_size_class_scales_with_magnitude(game_env):
 
 # --- B24 ------------------------------------------------------------------
 
-def test_reset_is_immediate_when_nothing_is_at_stake(game_env):
-    m = game_env.module
+def test_reset_is_immediate_when_nothing_is_at_stake(game_env, fake_confirm_dialog):
     game_env.elements["reset-session-button"].dispatch("click", None)
-    assert m._reset_confirm_armed is False
+    assert fake_confirm_dialog.asks == []
 
 
-def test_reset_asks_first_and_names_what_is_given_up(game_env):
+def test_reset_asks_first_and_names_what_is_given_up(game_env, fake_confirm_dialog):
     m = game_env.module
     game_env.tick(5)
     standing = m.standing_forest_value()
     game_env.elements["reset-session-button"].dispatch("click", None)
-    assert m._reset_confirm_armed is True
-    assert f"{standing:.1f}" in game_env.elements["reset-session-button"].innerText
+    assert len(fake_confirm_dialog.asks) == 1
+    ask = fake_confirm_dialog.asks[0]
+    assert f"{standing:.1f}" in ask["message"]
+    assert ask["allowSkip"] is False
     assert m.standing_forest_value() == standing  # not reset yet
 
 
-def test_second_click_confirms_reset(game_env):
+def test_confirming_the_dialog_resets_the_session(game_env, fake_confirm_dialog):
+    """UX-4: one clear flow -- press Reset Session, confirm in the dialog."""
     m = game_env.module
     game_env.tick(5)
+    assert m.standing_forest_value() > 0
     game_env.elements["reset-session-button"].dispatch("click", None)
-    game_env.elements["reset-session-button"].dispatch("click", None)
+    assert m.standing_forest_value() > 0  # nothing happens until the dialog is confirmed
+    fake_confirm_dialog.confirm()
     assert m.standing_forest_value() == 0.0
-    assert m._reset_confirm_armed is False
     assert "Reset Session" in game_env.elements["reset-session-button"].innerText
 
 
-def test_confirm_disarms_after_window(game_env):
+def test_cancelling_the_dialog_keeps_the_session(game_env, fake_confirm_dialog):
     m = game_env.module
     game_env.tick(5)
+    standing = m.standing_forest_value()
     game_env.elements["reset-session-button"].dispatch("click", None)
-    assert m._reset_confirm_armed
-    game_env.timers.flush()
-    assert m._reset_confirm_armed is False
-    assert m.standing_forest_value() > 0
+    fake_confirm_dialog.cancel()
+    game_env.tick(1)
+    assert m.standing_forest_value() >= standing
+
+
+def test_reset_button_label_never_changes_while_asking(game_env, fake_confirm_dialog):
+    """The old two-step relabelled the button; the toolbar label must stay put."""
+    game_env.tick(5)
+    button = game_env.elements["reset-session-button"]
+    button.dispatch("click", None)
+    game_env.tick(2)
+    assert "Reset Session" in button.innerText
+    assert "Confirm" not in button.innerText
+
+
+def test_reset_session_after_loading_a_save_still_resets(game_env, fake_confirm_dialog):
+    """UX-4 scenario: a loaded save (the account had saves) must not stop the reset."""
+    m = game_env.module
+    game_env.tick(8)
+    state = m.get_state()
+    game_env.tick(3)
+    m.load_state(state)
+    game_env.elements["reset-session-button"].dispatch("click", None)
+    fake_confirm_dialog.confirm()
+    assert m.standing_forest_value() == 0.0
+    assert m.total_income == 0.0
 
 
 # --- B28 ------------------------------------------------------------------

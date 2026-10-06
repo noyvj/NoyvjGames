@@ -211,12 +211,9 @@ class GameEnv:
         self.elements["highland-replant-button"].dispatch("click", None)
 
     def reset_session(self):
-        """Clicks Reset Session; if B24's confirm step armed instead of
-        resetting (something was at stake), clicks once more to confirm."""
-        button = self.elements["reset-session-button"]
-        button.dispatch("click", None)
-        if self.module._reset_confirm_armed:
-            button.dispatch("click", None)
+        """Clicks Reset Session. The harness has no shared ConfirmDialog, so
+        (like every game's confirm helper) the reset happens at once."""
+        self.elements["reset-session-button"].dispatch("click", None)
 
     def change_difficulty(self, value):
         select = self.elements["difficulty-select"]
@@ -298,3 +295,33 @@ def game_env():
     yield GameEnv(module, elements, timers, local_storage)
 
     _remove_pyodide_fakes()
+
+
+class FakeConfirmDialog:
+    """Stands in for shared/confirm-dialog.js's window.ConfirmDialog: records
+    each ask() and lets a test press Confirm or Cancel."""
+
+    def __init__(self):
+        self.asks = []
+
+    def ask(self, id=None, message=None, confirmLabel=None, allowSkip=True, onConfirm=None, **_):
+        self.asks.append({
+            "id": id, "message": message, "confirmLabel": confirmLabel,
+            "allowSkip": allowSkip, "onConfirm": onConfirm,
+        })
+
+    def confirm(self):
+        ask = self.asks.pop()
+        ask["onConfirm"]()
+
+    def cancel(self):
+        self.asks.pop()
+
+
+@pytest.fixture
+def fake_confirm_dialog(game_env):
+    """Installs a fake window.ConfirmDialog into the fake `js` module (game.py
+    reads it lazily with `from js import window`)."""
+    dialog = FakeConfirmDialog()
+    sys.modules["js"].window = types.SimpleNamespace(ConfirmDialog=dialog)
+    return dialog

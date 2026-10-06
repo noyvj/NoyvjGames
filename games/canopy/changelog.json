@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-07",
+      "entry": "Fixes from player reports: on a phone the action buttons now sit in one compact row at the bottom (a ... button unfolds the tend hint and forest name) so the forest grid is no longer buried under pinned panels; the arrow keys move between plots again and keep their place from one second to the next; Reset Session now opens a clear Cancel / Reset session dialog (Esc cancels) instead of needing a quick second press; and on the Desktop layout the side column fits without scrolling, with the forest summary, the forest picture and Name your forest moved into the Menu."
+    },
+    {
       "date": "2026-10-06",
       "entry": "Canopy now has a Desktop layout for wide windows with a mouse: the forest grid fills the window, the actions for the selected plot and any community request sit beside it, income, standing value, biodiversity and relations are chips along the top, and the Almanac, achievements, session summary, settings and the Highland and Wetland regions open as windows (press Esc for the menu). Same saves as the Classic layout, and you can switch from the menu or the opening screen."
     },

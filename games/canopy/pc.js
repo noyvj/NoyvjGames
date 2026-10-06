@@ -25,7 +25,7 @@ window.CANOPY_PC_TUTORIAL_STEPS = [
   {
     selector: "#pc-readouts",
     title: "Income vs Standing Value",
-    text: "Two numbers matter most: harvested income (banked from clearing) and standing forest value (what is still growing). Biodiversity and community relations sit beside them. The message under the plot actions compares income and value in plain words.",
+    text: "Two numbers matter most: harvested income (banked from clearing) and standing forest value (what is still growing). Biodiversity and community relations sit beside them. The Forest summary window (Menu) compares income and value in plain words.",
   },
   {
     selector: "#pc-side",
@@ -35,7 +35,7 @@ window.CANOPY_PC_TUTORIAL_STEPS = [
   {
     selector: "#pc-menu-button",
     title: "Icons and the Menu",
-    text: "The four icons are Achievements, the Forest Almanac, the Session Summary (income vs standing value, a report card and a shareable recap) and Settings. The Menu (or Escape, when nothing else is open) holds the rest: Reset Session, grid size and difficulty, the Highland Grove and Wetland Forest regions you unlock as your forest grows, How to Play, the real-world note and story, the example playthrough, What's New and feedback. Everything opens as a window over the forest, and Escape closes the top one.",
+    text: "The four icons are Achievements, the Forest Almanac, the Session Summary (income vs standing value, a report card and a shareable recap) and Settings. The Menu (or Escape, when nothing else is open) holds the rest: Reset Session, Name your forest, the Forest summary, grid size and difficulty, the Highland Grove and Wetland Forest regions you unlock as your forest grows, How to Play, the real-world note and story, the example playthrough, What's New and feedback. Everything opens as a window over the forest, and Escape closes the top one.",
   },
   {
     title: "You're ready",
@@ -61,4 +61,15 @@ window.CANOPY_PC_TUTORIAL_STEPS = [
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
+})();
+
+/* "Name your forest" is a window in this layout: it opens already unfolded (the <details> is only
+   a fold on the Classic page). */
+(function () {
+  function unfold() {
+    const names = document.querySelector(".names-details");
+    if (names) names.open = true;
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(unfold, 0));
+  else setTimeout(unfold, 0);
 })();

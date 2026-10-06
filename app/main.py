@@ -631,6 +631,9 @@ def put_slot_save(
         row.save_data = payload.save_data
         if name:
             row.slot_name = name
+        # Saving identical data changes no column, so onupdate would not fire and "latest save" could pick
+        # the wrong slot: bump the timestamp explicitly.
+        row.updated_at = func.now()
         db.commit()
         db.refresh(row)
         return row

@@ -8,7 +8,8 @@ html[data-layout="pc"] #pc-topbar { grid-template-columns: auto minmax(0, 1fr); 
 html[data-layout="pc"] #pc-topbar > .game-toolbar { justify-content: flex-end; }
 
 /* The page's mobile pieces have no place in the full-window layout. */
-html[data-layout="pc"] .mobile-hud, html[data-layout="pc"] #mobile-hud-bar, html[data-layout="pc"] #mobile-info-dock { display: none !important; }
+html[data-layout="pc"] .mobile-hud, html[data-layout="pc"] #mobile-hud-bar, html[data-layout="pc"] #mobile-info-dock,
+html[data-layout="pc"] #action-dock-more { display: none !important; }
 
 /* --- body: the plot grid as the stage, side column for what you act on -------------------- */
 #pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(19rem, 27vw, 27rem); }
@@ -37,15 +38,38 @@ html[data-layout="pc"] .mobile-hud, html[data-layout="pc"] #mobile-hud-bar, html
 #pc-stage > #legend-panel { margin: 0; padding: 0.4rem 0.8rem; justify-content: center; }
 
 /* --- side column --------------------------------------------------------------------------- */
-#pc-side { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; padding-right: 0.2rem; }
+/* UX-5 (2026-10-07): the column held the action panel, the request, the forest stats and the
+   decorative forest strip, and scrolled at 1024x700 (and with a request or specialist choice
+   showing, even taller screens). It now holds only what you act on, compacted: the actions as
+   icon-beside-label tiles in two columns, the request without its decorative roofs. The forest
+   summary (Menu > Forest summary), the forest strip (About this forest) and Name your forest
+   (Menu) are windows. */
+#pc-side { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; padding-right: 0.2rem; }
 #pc-side > * { margin: 0; flex: 0 0 auto; }
-#pc-side > #action-panel { order: 1; }
-#pc-side > #stakeholder-panel { order: 2; }
-#pc-side > #stats { order: 3; }
-#pc-side > #forest-visual { order: 4; height: 70px; }
-#pc-side .action-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
-#pc-side .action-buttons button { width: 100%; margin: 0; }
-#pc-side #stats p { margin: 0 0 0.35rem; }
+#pc-side > #action-panel { order: 1; padding: 0.6rem 0.7rem; }
+#pc-side > #stakeholder-panel { order: 2; padding: 0.6rem 0.7rem; }
+#pc-side .action-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 0.35rem; }
+#pc-side .action-buttons button.secondary {
+  width: 100%; margin: 0; flex-direction: row; justify-content: center; gap: 0.35rem;
+  padding: 0.4rem 0.4rem; font-size: 0.85rem; white-space: nowrap; overflow-wrap: normal;
+}
+#pc-side .action-buttons button.secondary::before { font-size: 1rem; }
+#pc-side .action-buttons button.secondary::after { display: none; }
+#pc-side #action-panel .selected-plot-state { display: block; margin: 0 0 0.4rem; padding: 0.25rem 0.7rem; font-size: 0.85rem; }
+#pc-side #undo-clear-button { grid-column: 1 / -1; }
+#pc-side #specialist-row { grid-template-columns: 1fr; margin-top: 0.35rem; }
+#pc-side .tend-status { margin: 0.35rem 0 0; font-size: 0.75rem; line-height: 1.3; }
+#pc-side .tend-status:empty { display: none; }
+#pc-side .adopted-plot-panel { margin: 0.35rem 0 0; font-size: 0.8rem; }
+#pc-side #stakeholder-panel .settlement-visual,
+#pc-side #stakeholder-panel .stakeholder-shortcut-hint { display: none; } /* the hotkey bar already says N */
+#pc-side #stakeholder-panel .stakeholder-message { margin: 0 0 0.35rem; font-size: 0.85rem; }
+#pc-side #stakeholder-panel .info-toggle { margin-bottom: 0.35rem; }
+
+/* The windows that took over from the side column's lower half. */
+#pc-stats-panel #stats { margin: 0; border-left: 0; padding: 0; background: none; box-shadow: none; }
+#pc-stats-panel #stats p { margin: 0 0 0.45rem; }
+#pc-about-panel #forest-visual { height: 70px; }
 
 /* Windows holding several sections: they sit flat inside the window. */
 .pc-composite > * { margin-bottom: 0.9rem; }

@@ -662,7 +662,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None):
     global stakeholder_grants_count, stakeholder_declines_count, community_relations_min_ever
     global _previously_earned_ids, _session_ticks
     global highland_unlocked, highland_plots, highland_selected_index, highland_income
-    global _highland_plot_click_proxies, _reset_confirm_armed
+    global _highland_plot_click_proxies
     global wetland_unlocked, wetland_plots, wetland_selected_index, wetland_income
     global wetland_flood_countdown, wetland_floods_survived, wetland_flood_value_lost
     global _wetland_plot_click_proxies
@@ -681,7 +681,6 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None):
 
     _personal_best_flashed["standing_value"] = False
     _personal_best_flashed["income"] = False
-    _reset_confirm_armed = False
     if difficulty is not None:
         if difficulty not in DEGRADE_PER_CLEAR_BY_DIFFICULTY:
             return False
@@ -745,53 +744,69 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None):
     return True
 
 
-# B24: Reset Session now asks first, but only when there is something to
-# lose. The first click arms the button and shows exactly what is being
-# given up (the current standing value); a second click within
-# RESET_CONFIRM_WINDOW_MS confirms. A session with nothing standing worth
-# keeping (no standing value, no income) resets immediately, since there is
-# nothing to confirm. Never persisted: a stale armed flag across a save/load
-# would be a trap.
-RESET_CONFIRM_WINDOW_MS = 5000
-_reset_confirm_armed = False
-_reset_confirm_token = 0
+# B24: Reset Session asks first, but only when there is something to lose, and
+# names exactly what is being given up (the current standing value and income).
+# A session with nothing standing worth keeping resets immediately.
+#
+# UX-4 (2026-10-07): the confirmation used to be a "press the button twice
+# within 5 seconds" two-step that only relabelled the toolbar button. Players
+# reported that Reset Session "does nothing": the first press changes nothing
+# but a long label on a button that can be scrolled off-screen on a phone, and
+# on the Desktop boot the button lives in the Menu, which closes after the
+# first press, so the second press never happened. It now uses the shared
+# ConfirmDialog (a modal with Cancel / Reset session buttons), which works the
+# same on both boots and cannot be missed. Where ConfirmDialog is not available
+# (the pytest fake-DOM harness, or a page without confirm-dialog.js) the reset
+# happens at once, same fall-through every other game's helper has.
+RESET_CONFIRM_ID = "canopy-reset-session"
 
 
-def reset_confirm_label():
+def reset_confirm_message():
     return (
-        f"Confirm reset? Gives up {standing_forest_value():.1f} standing value"
-        f" and {total_income:.1f} income"
+        f"Reset this session? You will give up {standing_forest_value():.1f} standing value"
+        f" and {total_income:.1f} income. Saves you have already made are not touched."
+    )
+
+
+def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm):
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        on_confirm()
+        return
+    confirm_dialog = getattr(window, "ConfirmDialog", None)
+    if confirm_dialog is None:
+        on_confirm()
+        return
+    confirm_dialog.ask(
+        id=action_id,
+        message=message,
+        confirmLabel=confirm_label,
+        allowSkip=False,
+        onConfirm=create_proxy(lambda: on_confirm()),
     )
 
 
 def render_reset_button():
+    """Kept so render() keeps the toolbar label constant (older builds relabelled
+    the button while a two-step confirm was armed)."""
     button = document.getElementById("reset-session-button")
     if button is None:
         return
-    button.innerText = reset_confirm_label() if _reset_confirm_armed else "\U0001F504 Reset Session"
-
-
-def _disarm_reset_confirm(token):
-    global _reset_confirm_armed
-    if token == _reset_confirm_token and _reset_confirm_armed:
-        _reset_confirm_armed = False
-        render_reset_button()
+    if button.innerText != "\U0001F504 Reset Session":
+        button.innerText = "\U0001F504 Reset Session"
 
 
 def on_reset_session(event=None):
-    global _reset_confirm_armed, _reset_confirm_token
-    if _reset_confirm_armed:
-        _reset_confirm_armed = False
-        reset_session()
-        return
     if standing_forest_value() <= 0 and total_income <= 0:
         reset_session()
         return
-    _reset_confirm_armed = True
-    _reset_confirm_token += 1
-    token = _reset_confirm_token
-    setTimeout(create_proxy(lambda: _disarm_reset_confirm(token)), RESET_CONFIRM_WINDOW_MS)
-    render_reset_button()
+    _confirm_dialog_ask(
+        RESET_CONFIRM_ID,
+        reset_confirm_message(),
+        "Reset session",
+        reset_session,
+    )
 
 
 def on_difficulty_change(event=None):

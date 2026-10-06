@@ -1124,27 +1124,89 @@ button.secondary:disabled::after {
    change is needed for this to work correctly. Desktop is
    unaffected; this only applies below the mobile breakpoint. */
 @media (max-width: 640px) {
+  /* UX-1 (2026-10-07): on a phone the pinned pieces (sticky HUD, this dock, the
+     stats pill, the Story pill, the save widget, the ad bar) used to cover 40-50%
+     of the screen: the dock was ~226px tall (state line, four stacked
+     icon-over-label tiles that wrapped, hint text, "Name your forest"), and the
+     Stats pill sat underneath it. The dock is now one state line plus ONE row of
+     compact buttons (~84px); the rarely used extras (tend hint, forest name,
+     adopted-plot line, soil hint) fold behind the "..." button. Script in
+     index.html publishes the dock's real height as --action-dock-h so the pills
+     and the bottom padding follow it. */
   #action-panel {
     position: fixed;
-    left: 1rem;
-    right: 1rem;
+    left: 0.5rem;
+    right: 0.5rem;
     bottom: 50px; /* sits directly above the fixed ad-bar */
     z-index: 150; /* above the ad-bar (100), below the save widget (9999) */
     max-width: 480px;
     margin: 0 auto;
+    padding: 0.4rem 0.5rem 0.45rem;
+    max-height: 42vh;
+    overflow-y: auto;
     box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.03);
   }
+  #action-panel .selected-plot-state {
+    display: block;
+    margin: 0 0 0.35rem;
+    padding: 0.2rem 2.2rem 0.2rem 0.6rem;
+    font-size: 0.78rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #action-panel .action-buttons { flex-wrap: nowrap; gap: 0.3rem; }
+  #action-panel .action-buttons button.secondary {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0.3rem 0.1rem 0.35rem;
+    gap: 0.1rem;
+    font-size: 0.7rem;
+    overflow-wrap: normal;
+  }
+  #action-panel .action-buttons button.secondary::before { font-size: 1rem; }
+  #action-panel .action-buttons button.secondary::after { display: none; }
+  #action-panel #specialist-row { flex-wrap: wrap; margin-top: 0.35rem; }
+  #action-panel #specialist-row button.secondary { flex: 1 1 8rem; padding: 0.35rem 0.3rem; }
+  /* Folded extras: shown only when the "..." button has expanded the dock. */
+  #action-panel.mobile-docked:not(.action-dock--expanded) #tend-status,
+  #action-panel.mobile-docked:not(.action-dock--expanded) .names-details,
+  #action-panel.mobile-docked:not(.action-dock--expanded) #soil-hint,
+  #action-panel.mobile-docked:not(.action-dock--expanded) #adopted-plot-panel {
+    display: none;
+  }
+  #action-panel.mobile-docked.action-dock--expanded { max-height: 55vh; }
+  #action-panel.mobile-docked .action-dock-more {
+    display: block;
+    position: absolute;
+    top: 0.4rem;
+    right: 0.5rem;
+    width: 1.9rem;
+    height: 1.7rem;
+    padding: 0;
+    flex: none;
+  }
+  #action-panel.mobile-docked .action-dock-more::before,
+  #action-panel.mobile-docked .action-dock-more::after { display: none; }
 
-  /* Reserve room at the bottom of the scrollable page so the last
-     real content (feedback prompt) never ends up hidden behind the
-     now-floating action panel + ad bar. Widened to 268px (from an
-     original 216px) once #mobile-info-dock (below) started stacking a
-     second docked sheet above this one -- see that rule's own comment. */
+  /* Reserve room at the bottom of the scrollable page so the last real content
+     never ends up hidden behind the floating dock + pills + ad bar. */
   /* html body outranks ad-bar.css's plain body rule (V-AB-2) */
   html body {
-    padding-bottom: 268px;
+    padding-bottom: calc(var(--action-dock-h, 90px) + 50px + 48px);
   }
+
+  /* The Story pill (shared/story-toggle.js) used to sit on top of the dock at
+     bottom 4.4rem; park it in the left corner just above the dock instead. */
+  html body #story-toggle {
+    bottom: calc(var(--action-dock-h, 90px) + 50px + 6px);
+    left: 0.5rem;
+  }
+  /* The collapsed Save / Load pill (shared/save-widget.js) overlapped the top of
+     the dock by a few px: tuck it fully inside the ad bar's height. */
+  html body #save-widget.collapsed { bottom: 3px; }
 }
+.action-dock-more { display: none; }
 
 /* ============================================================
    Mobile docked stats + legend (B15, planning/TODO.md). Same
@@ -1165,24 +1227,27 @@ button.secondary:disabled::after {
 @media (max-width: 640px) {
   #mobile-info-dock.mobile-docked {
     position: fixed;
-    left: 1rem;
-    right: 1rem;
-    /* Stacked directly above the action-panel dock (bottom: 50px there).
-       138px clears its own dock's typical height (roughly one text line
-       + two buttons + padding) with a small gap; both are measured
-       against the same ad-bar-relative baseline as #action-panel's own
-       comment documents. */
-    bottom: 138px;
+    left: 4.5rem; /* clear of the Story pill in the left corner (UX-1) */
+    right: 0.5rem;
+    /* Stacked directly above the action-panel dock: its real height is
+       published as --action-dock-h by index.html (UX-1; this used to be a fixed
+       138px that sat BEHIND a taller dock, so the toggle could not be tapped). */
+    bottom: calc(var(--action-dock-h, 90px) + 50px + 6px);
     z-index: 149; /* just below #action-panel's dock (150) */
     max-width: 480px;
-    margin: 0 auto;
+    margin: 0 0 0 auto;
     display: flex;
     flex-direction: column;
+    align-items: flex-end;
     gap: 0.5rem;
   }
 
   #mobile-info-dock.mobile-docked .mobile-info-dock-toggle {
     display: block;
+    flex: none;
+    width: auto;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.75rem;
     text-align: center;
     box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.03);
   }
@@ -1198,6 +1263,8 @@ button.secondary:disabled::after {
   #mobile-info-dock.mobile-docked.mobile-info-dock--expanded {
     max-height: 46vh;
     overflow-y: auto;
+    left: 0.5rem;
+    align-items: stretch;
   }
 
   #mobile-info-dock.mobile-docked.mobile-info-dock--expanded #stats,

@@ -31,6 +31,13 @@
       "label": "🌲 Grid size and difficulty"
     },
     {
+      "id": "pc-name-panel",
+      "title": "Name your forest",
+      "members": [".names-details"],
+      "group": "Game",
+      "label": "✏️ Name your forest"
+    },
+    {
       "id": "pc-regions-panel",
       "title": "Highland Grove and Wetland Forest",
       "members": ["#highland-lock-banner", "#highland-unlock-progress", "#highland-section", "#wetland-lock-banner", "#wetland-unlock-progress", "#wetland-section"],
@@ -40,7 +47,7 @@
     {
       "id": "pc-about-panel",
       "title": "About this forest",
-      "members": [".tagline", ".context-blurb", "#real-world-note"],
+      "members": [".tagline", ".context-blurb", "#real-world-note", "#forest-visual"],
       "group": "Help",
       "label": "🌍 In the real world and story"
     },
@@ -50,6 +57,13 @@
       "members": ["#feedback-prompt"],
       "group": "Help",
       "label": "💬 Share your feedback"
+    },
+    {
+      "id": "pc-stats-panel",
+      "title": "Forest summary",
+      "members": ["#stats"],
+      "group": "Records",
+      "label": "📈 Forest summary"
     }
   ],
   "adopt": [],
@@ -57,7 +71,7 @@
     "topbar": [".hub-back-link", "h1", ".game-toolbar"],
     "stagebar": ["#season-indicator"],
     "stage": ["#plot-grid", "#plot-tooltip", "#legend-panel"],
-    "side": ["#forest-visual", "#action-panel", "#stakeholder-panel", "#stats"],
+    "side": ["#action-panel", "#stakeholder-panel"],
     "hidden": ["#income-display", "#standing-value-display", "#biodiversity-display", "#community-relations-display", "#mobile-info-dock-toggle"]
   },
   "readouts": [

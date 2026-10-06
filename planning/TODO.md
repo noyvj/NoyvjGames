@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 111/784 items checked off (14.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 118/784 items checked off (15.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -954,14 +954,14 @@ Classic stays the default boot (`index.html`); Desktop is a second boot (`pc.htm
 
 ## UX. User-reported problems (2026-10-07, in the user's own words where short; fixing now with agents, one owner per file set)
 
-- [ ] UX-1: Canopy on mobile: the pinned bars (HUD, action dock, save widget, floating pills) cover nearly the whole screen and make it hard to play. Cap what is pinned, make it collapsible or smaller, and check at 360 and 390px wide. (`games/canopy/`)
-- [ ] UX-2: Multiple saves are not working (three slots per account, the shared save widget). Reproduce, find the cause, fix, add a test. (`shared/save-widget.js`)
-- [ ] UX-3: Canopy "Move between plots" (arrow keys) does not work on desktop. (`games/canopy/`)
-- [ ] UX-4: Canopy "Reset Session" does nothing, at least with two saves saved. (`games/canopy/`, may involve the shared save widget)
-- [ ] UX-5: Canopy's desktop side column has too much scrolling. Tighten it so the common actions fit without scrolling at 1440x900 and 1024x700. (`games/canopy/`)
-- [ ] UX-6: With multiple saves, the bars (opening screen or save widget) go off-screen when there is a save to load. (`shared/opening-screen.js`, `shared/save-widget.js`)
+- [x] UX-1: Canopy on mobile: the pinned bars (HUD, action dock, save widget, floating pills) cover nearly the whole screen and make it hard to play. Cap what is pinned, make it collapsible or smaller, and check at 360 and 390px wide. (`games/canopy/`)
+- [x] UX-2: Multiple saves are not working (three slots per account, the shared save widget). Reproduce, find the cause, fix, add a test. (`shared/save-widget.js`)
+- [x] UX-3: Canopy "Move between plots" (arrow keys) does not work on desktop. (`games/canopy/`)
+- [x] UX-4: Canopy "Reset Session" does nothing, at least with two saves saved. (`games/canopy/`, may involve the shared save widget)
+- [x] UX-5: Canopy's desktop side column has too much scrolling. Tighten it so the common actions fit without scrolling at 1440x900 and 1024x700. (`games/canopy/`)
+- [x] UX-6: With multiple saves, the bars (opening screen or save widget) go off-screen when there is a save to load. (`shared/opening-screen.js`, `shared/save-widget.js`)
 - [x] UX-7: Make "Your saves" on the hub collapsible (remember the choice). (hub `index.html`, `script.js`, `style.css`)
-- [ ] UX-8: Every game gets a way back to its own main page (the opening screen: Continue, New Game, Saves, Settings), and that main page gets a way to the hub. (`shared/opening-screen.js`, one shared control)
+- [x] UX-8: Every game gets a way back to its own main page (the opening screen: Continue, New Game, Saves, Settings), and that main page gets a way to the hub. (`shared/opening-screen.js`, one shared control)
 - [x] UX-9: Feedback entries get a "this is a test, hide it" toggle in admin, like accounts have, so test feedback can be hidden without going into the backend. (`admin.html`, `app/`)
 
 ## Closing tasks
