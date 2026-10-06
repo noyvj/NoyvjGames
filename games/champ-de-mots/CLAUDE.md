@@ -976,3 +976,7 @@ Built: L-9 exam planner, L-28 header exam countdown, L-24 farm filter and sort, 
 - **Accent bar (L-20).** Built once from `ACCENT_BARS` (six typed boxes), keys out of the tab order but named for screen readers, `mousedown` cancelled so a phone keeps its keyboard; dims while the accent check is off. `accent_sensitive_now()` is the hook a hardcore mode would override.
 - **Save keys added:** `exam_plan` {date, minutes} only when a date is set (validated: real date, int minutes clamped and snapped, bools/strings dropped). Nothing else is saved.
 - Tests: `test_exam_planner.py` (21), `test_farm_filter_sort.py` (15), `test_accent_bar.py` (10); suite 761 -> 808.
+
+### Player titles (L-26, 2026-10-07)
+`PLAYER_TITLES` (Apprenti 0, Jardinier 25, Fermier 150, Maître de Ferme 600 practice points) and `player_title()` / `player_title_text()` in `game.py` derive a title from `practice_score()`; `render_practice_score()` writes it to `#player-title-display` (a second line in the practice tile, a "Title" chip on the Desktop page). Nothing is saved (no new save key), SRS is untouched, the top title needs 600 of the 1,400 points the capped ledger can reach. Not done from the item: showing the title "on shared cards" (no shared card exists in this game yet; add it when the weekly recap card, L-21, is built). Tests: `tests/test_player_titles.py`.
+

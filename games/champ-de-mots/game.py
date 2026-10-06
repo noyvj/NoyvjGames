@@ -2114,8 +2114,36 @@ def gender_drill_accuracy_text():
     return f"Gender drill so far: {entry['correct']}/{entry['total']} right ({percent}%)"
 
 
+# L-26 -- player titles that rise with the practice score (derived, never saved).
+# The top title needs 600 of the 1,400 points the capped ledger can reach, so
+# it stays comfortably reachable.
+PLAYER_TITLES = ((0, "Apprenti"), (25, "Jardinier"), (150, "Fermier"), (600, "Maître de Ferme"))
+
+
+def player_title(score=None):
+    """(current title, next title or None, points needed for it or None)."""
+    if score is None:
+        score = practice_score()
+    index = 0
+    for i, (needed, _name) in enumerate(PLAYER_TITLES):
+        if score >= needed:
+            index = i
+    name = PLAYER_TITLES[index][1]
+    if index + 1 < len(PLAYER_TITLES):
+        return name, PLAYER_TITLES[index + 1][1], PLAYER_TITLES[index + 1][0]
+    return name, None, None
+
+
+def player_title_text(score=None):
+    name, next_name, next_at = player_title(score)
+    if next_name is None:
+        return f"Title: {name}"
+    return f"Title: {name} (next: {next_name} at {next_at})"
+
+
 def render_practice_score():
     _element("practice-score-display").innerText = f"Practice score: {practice_score()}"
+    _element("player-title-display").innerText = player_title_text()
 
 
 def _validated_practice_ledger(raw):

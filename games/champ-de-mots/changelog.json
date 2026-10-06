@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-07",
+    "entry": "Player titles: your practice score now earns a title shown under it, Apprenti, then Jardinier at 25 points, Fermier at 150 and Maître de Ferme at 600, with the next one named. It is worked out from the score you already have, nothing new is saved, and it never changes how plots are scheduled."
+  },
+  {
+    "date": "2026-10-07",
     "entry": "Study tools: an Exam planner (enter your exam date and a what-if number of minutes a day to see roughly how much of the farm would be Automated by then, plus the smallest daily effort that reaches 80%), a header countdown chip that only appears once a date is set, a Show and Sort control above the farm (due today, weeds, never watered, by type; weakest or most overdue first), and an accent bar (é è ç œ and more) under every typed-answer box that dims while the accent check is off. None of these changes any plot's schedule (L-9, L-28, L-24, L-20)."
   },
   {

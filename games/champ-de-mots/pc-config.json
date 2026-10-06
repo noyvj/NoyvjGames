@@ -247,6 +247,11 @@
       "Practice score"
     ],
     [
+      "#player-title-display",
+      "🏅",
+      "Title"
+    ],
+    [
       "#exam-countdown-display",
       "⏳",
       ""

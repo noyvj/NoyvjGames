@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 107/774 items checked off (13.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 108/774 items checked off (14.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -786,7 +786,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] L-23: Add a Le Champ de Mots scarecrow mascot with a few discrete (non-eased) reaction poses for combos and weeds, with outfits unlocked by achievements; toggleable. (you approved 2026-10-07 an explicit exception to Le Champ de Mots' no-animation/no-timer tests: update the test and the CLAUDE.md rule when building, keep it toggleable and reduced-motion safe)
 - [x] L-24: Add a filter and sort control to the Le Champ de Mots farm grid: weakest first, due today, by type.
 - [ ] L-25: Add an opt-in hardcore mode to Le Champ de Mots: strict grading everywhere, no hints, no multiple-choice fallback, with an achievement for a whole week completed under it; keep it optional and hinted.
-- [ ] L-26: Add Le Champ de Mots player titles (Apprenti, Jardinier, Fermier, Maitre de Ferme) rising with the practice ledger, shown in the header and on shared cards.
+- [x] L-26: Add Le Champ de Mots player titles (Apprenti, Jardinier, Fermier, Maitre de Ferme) rising with the practice ledger, shown in the header and on shared cards.
 - [ ] L-27: Add a session highlight reel to Le Champ de Mots results screens: best combo, quickest answer and toughest word beaten.
 - [x] L-28: Add a Le Champ de Mots header exam-countdown widget: days to the entered exam date plus projected coverage, hidden when no date is set. (needs L-9 (exam date and projection))
 - [ ] L-29: Add a weak-items export to Le Champ de Mots: download flagged items as a CSV or Anki-compatible deck.
