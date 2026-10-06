@@ -1,0 +1,219 @@
+{
+  "windows": [
+    [
+      "howto-panel",
+      "howto-toggle-button",
+      "How to Play"
+    ],
+    [
+      "achievements-panel",
+      "achievements-toggle-button",
+      "Achievements"
+    ],
+    [
+      "changelog-panel",
+      "changelog-toggle-button",
+      "What's New"
+    ],
+    [
+      "summary-panel",
+      "summary-toggle-button",
+      "Run Summary"
+    ],
+    [
+      "weather-log-panel",
+      "weather-log-toggle-button",
+      "Weather Log"
+    ],
+    [
+      "career-panel",
+      "career-toggle-button",
+      "Grid Operator Career"
+    ],
+    [
+      "settings-panel",
+      "settings-toggle-button",
+      "Settings"
+    ],
+    [
+      "info-page-panel",
+      "info-page-toggle-button",
+      "In the real world"
+    ]
+  ],
+  "toolbar": {
+    "icons": [
+      [
+        "achievements-toggle-button",
+        "🏆"
+      ],
+      [
+        "summary-toggle-button",
+        "📊"
+      ],
+      [
+        "settings-toggle-button",
+        "⚙️"
+      ]
+    ],
+    "menu": [
+      {
+        "heading": "Game",
+        "ids": [
+          "steeper-demand-toggle-button",
+          "weather-variability-toggle-button",
+          "scenario-toggle-button",
+          "career-toggle-button"
+        ]
+      },
+      {
+        "heading": "Help",
+        "ids": [
+          "tutorial-restart-button",
+          "howto-toggle-button",
+          "info-page-toggle-button"
+        ]
+      },
+      {
+        "heading": "Records",
+        "ids": [
+          "changelog-toggle-button",
+          "weather-log-toggle-button"
+        ]
+      }
+    ]
+  },
+  "composites": [
+    {
+      "id": "pc-compare-panel",
+      "title": "Compare and connect",
+      "members": [
+        ".meter-label:has(+ #shadow-select)",
+        "#shadow-select",
+        "#shadow-verdict",
+        "#shadow-table",
+        ".meter-label:has(+ #real-grid-select)",
+        "#real-grid-select",
+        "#real-grid-verdict",
+        "#real-grid-table",
+        "#real-grid-source",
+        ".meter-label:has(+ #regional-grid-connect-button)",
+        "#regional-grid-connect-button",
+        ".info-toggle:has(+ #regional-grid-display)",
+        "#regional-grid-display"
+      ],
+      "group": "Game",
+      "label": "🔀 Compare and connect"
+    },
+    {
+      "id": "pc-about-panel",
+      "title": "About Grid",
+      "members": [
+        ".tagline",
+        ".context-blurb"
+      ],
+      "group": "Help",
+      "label": "ℹ️ About Grid"
+    },
+    {
+      "id": "pc-feedback-panel",
+      "title": "Feedback",
+      "members": [
+        "#feedback-prompt"
+      ],
+      "group": "Help",
+      "label": "💬 Feedback"
+    }
+  ],
+  "readouts": [
+    [
+      "#round-display",
+      "🔁",
+      ""
+    ],
+    [
+      "#demand-display",
+      "📈",
+      "Demand"
+    ],
+    [
+      "#funds-display",
+      "💰",
+      "Funds"
+    ],
+    [
+      "#capacity-display",
+      "⚡",
+      "Capacity"
+    ],
+    [
+      "#emissions-display",
+      "🏭",
+      "Emissions"
+    ],
+    [
+      "#fossil-share-display",
+      "🛢️",
+      "Fossil share"
+    ]
+  ],
+  "side_label": "Decisions and status",
+  "hints": [
+    [
+      "?",
+      "All shortcuts"
+    ],
+    [
+      "Esc",
+      "Menu / close window"
+    ]
+  ],
+  "notify": null,
+  "zones": {
+    "topbar": [
+      ".hub-back-link",
+      "h1",
+      ".game-toolbar:has(#tutorial-restart-button)"
+    ],
+    "stagebar": [],
+    "stage": [
+      ".grid-visual",
+      "#plants",
+      "#plant-mix"
+    ],
+    "side": [
+      "#advance-round-button",
+      "#renewable-milestone-callout",
+      "#emergency-status-display",
+      "#policy-lever-banner",
+      "#active-policy-display",
+      "#demand-response-level-display",
+      "#demand-response-button",
+      "#disruption-risk-display",
+      ".meter:has(> #emissions-bar)",
+      "#event-display",
+      "#aging-event-display",
+      "#streak-display",
+      "#score-display",
+      ".info-toggle:has(+ .meter > #score-bar)",
+      ".meter:has(> #score-bar)",
+      "#trend-display",
+      "#renewable-blurb",
+      ".meter-label:has(+ #trend-graph)",
+      "#trend-graph",
+      "#trend-graph-message",
+      "#global-comparison-message",
+      ".funds-breakdown-toggle"
+    ],
+    "hidden": [
+      ".game-toolbar:has(#career-toggle-button)",
+      "#round-display",
+      "#demand-display",
+      "#funds-display",
+      "#capacity-display",
+      "#emissions-display",
+      "#fossil-share-display",
+      "#status"
+    ]
+  }
+}

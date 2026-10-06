@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 18;
+const SW_VERSION = 19;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -86,6 +86,9 @@ const PRECACHE_URLS = [
   "games/tide/pc.html",
   "games/tide/pc.css",
   "games/tide/pc.js",
+  "games/grid/pc.html",
+  "games/grid/pc.css",
+  "games/grid/pc.js",
 ];
 
 self.addEventListener("install", (event) => {

@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-06",
+      "entry": "Desktop layout: on a wide window with a mouse you can now play Grid in a full-window layout, with your numbers as chips across the top, one row per plant type, and Advance Round, risk, trends and your score in a side column. Everything else (compare grids, career, achievements, settings) opens as a window from the Menu. Your saves work in both layouts, and Classic is still there."
+    },
+    {
       "date": "2026-09-26",
       "entry": "Story mode: a running story about a small valley utility, told in 18 short chapters that unlock as you earn each achievement. The new Story pill hides it (W1)."
     },

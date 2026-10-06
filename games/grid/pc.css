@@ -1,0 +1,119 @@
+/* Grid, Desktop boot (pc.html only). Everything is scoped to the pc layout, so the Classic page is
+   untouched. Layout: top bar, readout chips, the plant board as the stage (one compact row per plant
+   type), and a side column of per-turn decisions and status that scrolls on its own. Windows come
+   from shared/pc-shell.css. */
+
+html[data-layout="pc"] #game { padding-bottom: 0.4rem; }
+
+/* --- top bar -------------------------------------------------------------------------------- */
+#pc-topbar { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "title tools story"; }
+#pc-topbar > .game-toolbar { gap: 0.4rem; }
+/* The Story panel (shared/story-chapters.js) is inserted after the h1 once its file loads. Closed it
+   is a small pill in the top bar; open it floats over the board so the layout does not jump. */
+#pc-topbar > #story-chapters { grid-area: story; margin: 0; padding: 0.35rem 0.7rem; font-size: 0.8rem; }
+#pc-topbar > #story-chapters[open] {
+  position: fixed;
+  top: 3.4rem;
+  right: 1rem;
+  z-index: 700;
+  width: min(26rem, 92vw);
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--pc-window-bg, #16151d);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+}
+html[data-theme="light"] #pc-topbar > #story-chapters[open] { background: #fbf6ec; color: #1b1710; }
+
+/* --- body: stage + side --------------------------------------------------------------------- */
+#pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(19rem, 28vw, 27rem); }
+#pc-stage { overflow-y: auto; padding-right: 0.2rem; gap: 0.5rem; }
+#pc-stage > * { flex: 0 0 auto; margin: 0; }
+#pc-stage > .grid-visual { height: 44px; }
+#pc-stage > .grid-visual .grid-visual-pylon { transform: scaleY(0.7); transform-origin: bottom; }
+#pc-side { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; padding: 0 0.3rem 0.4rem 0; }
+#pc-side > * { margin: 0; flex: 0 0 auto; }
+#pc-side > #advance-round-button { position: sticky; top: 0; z-index: 5; width: 100%; padding: 0.9rem; font-size: 1.05rem; }
+#pc-side .status-line, #pc-side .event-display, #pc-side .comparison-message { margin: 0; }
+#pc-side .meter { margin: 0; }
+#pc-side .info-toggle { margin: 0; }
+
+/* --- the plant board: one compact row per plant type ----------------------------------------- */
+html[data-layout="pc"] #plants {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.5rem;
+  padding: 0.5rem 0.8rem;
+  margin: 0;
+}
+#plants > p:not(.meter-label):not(.callout) { display: none; }
+#plants > .meter-label, #plants > .info-toggle { margin: 0; }
+#plants > .meter-label { padding: 0.15rem 0.6rem; }
+#plants > .callout, #plants > .plant-row { flex: 1 1 100%; margin: 0; }
+#plants > .plant-row {
+  display: grid;
+  grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4rem 0.8rem;
+  padding: 0.3rem 0;
+}
+#plants .plant-row-top { min-width: 0; gap: 0.5rem; }
+#plants .plant-icon { transform: scale(0.85); transform-origin: left center; margin-right: -0.3rem; }
+#plants .plant-row-top .plant-name { padding: 0.2rem 0.6rem; }
+#plants .plant-row-actions { flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+#plants .plant-row-actions button.secondary {
+  flex: 0 1 auto;
+  min-width: 6.8rem;
+  flex-direction: row;
+  justify-content: center;
+  padding: 0.35rem 0.8rem 0.35rem 0.6rem;
+  gap: 0.35rem;
+}
+#plants .plant-row-actions button.secondary::before { font-size: 0.95rem; }
+#plants .maintenance-schedule-label { flex: 0 0 auto; margin-left: auto; }
+#plants .arbitrage-controls { flex: 1 1 100%; }
+html[data-layout="pc"] #plant-mix { margin: 0; padding: 0.5rem 0.8rem; }
+#plant-mix > .meter-label, #plant-mix > .info-toggle { margin: 0; }
+#plant-mix .mix-breakdown-toggle { margin-top: 0.3rem; }
+
+/* The classic mobile pieces have no place on the Desktop boot. */
+html[data-layout="pc"] #mobile-hud-bar, html[data-layout="pc"] .mobile-hud { display: none !important; }
+
+/* The plant board takes the spare height, spreading its rows out a little. */
+#pc-stage > #plants { flex: 1 1 auto; align-content: space-around; }
+
+/* Side column: the trend graph sits with the other per-round feedback, and the funds breakdown
+   (a bare "i" disclosure in Classic, next to the Funds line) gets a text label here because the
+   Funds line itself is now a chip up top. */
+#pc-side > .meter-label { padding: 0.15rem 0.6rem; font-size: 0.75rem; }
+#pc-side > #trend-graph { max-width: 100%; }
+#pc-side > #trend-graph svg { width: 100%; height: auto; max-height: 11rem; }
+#pc-side > .funds-breakdown-toggle summary { width: auto; height: auto; border-radius: 8px; padding: 0.25rem 0.7rem; font-size: 0; }
+#pc-side > .funds-breakdown-toggle summary::after { content: "Funds breakdown"; font-size: 0.8rem; font-style: normal; }
+
+/* The floating light/dark toggle (shared/theme.js) normally sits bottom-left over the board; here it
+   takes the top-right corner, with room reserved for it in the top bar. */
+#pc-topbar { padding-right: 7.5rem; }
+html[data-layout="pc"] #theme-toggle-floating { top: 0.7rem !important; bottom: auto !important; left: auto !important; right: 1rem !important; }
+
+/* Smaller desktop windows (about 1024px wide or 700px tall): tighter rows so the whole board fits
+   without scrolling the stage, and the side column gives a little room back. */
+@media (max-width: 1280px) {
+  #pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) 18rem; gap: 0.6rem; }
+  #plants > .plant-row { grid-template-columns: 12.5rem minmax(0, 1fr); gap: 0.4rem 0.5rem; }
+  #plants .plant-row-actions button.secondary { min-width: 5.6rem; padding: 0.3rem 0.5rem 0.3rem 0.4rem; font-size: 0.76rem; }
+  #plants .maintenance-schedule-label { font-size: 0; gap: 0; }
+  #plants .maintenance-schedule-label::before { content: "Auto:"; font-size: 0.72rem; margin-right: 0.3rem; }
+  #plants .maintenance-schedule-select { font-size: 0.72rem; max-width: 7.5rem; }
+}
+@media (max-height: 780px) {
+  #pc-stage > .grid-visual { display: none; }
+  #pc-stage > #plants { padding-top: 0.3rem; padding-bottom: 0.3rem; }
+  #plants > .plant-row { padding: 0.1rem 0; }
+}
+
+/* ad-bar.css reserves room for the ad strip with body padding, but this layout already leaves the strip
+   free (#game is 100vh minus it), so the extra padding only made the body scrollable by 22px, and the
+   tutorial's scroll-into-view then nudged the whole (otherwise fixed) layout upwards. */
+html[data-layout="pc"] body { padding-bottom: 0; }
+html[data-layout="pc"] .ambient-bg { overflow: hidden; }

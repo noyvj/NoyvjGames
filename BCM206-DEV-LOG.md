@@ -481,3 +481,8 @@ The clearest cross-cutting infra lesson from this pass: three separate games' au
 **Area:** `sw.js`, `shared/pc-shell.js`
 **Did:** Added the Canopy and Tide Desktop files to the service worker's precache (worker version 18). The shell's Escape handling now treats the shared "?" shortcuts overlay as a blocker, as the Tide agent proposed, so Escape closes the overlay instead of also opening the Menu.
 **Result:** Shared 52 tests pass.
+
+### 2026-10-06 (Site-wide: Grid offline cache entries)
+**Area:** `sw.js`
+**Did:** Added the Grid Desktop files to the service worker precache (worker version 19).
+**Result:** Shared 52 tests pass.
