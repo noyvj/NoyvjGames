@@ -173,6 +173,43 @@ def interpret(text):
     return "", t  # a comment with no clear verdict
 
 
+def parse_for_you():
+    """The open entries of planning/FOR-YOU.md as one section of questions for the owner: each `### ` heading
+    under "Action items" becomes an item (its number or letter id is kept, e.g. "0d"), text = the heading in
+    bold plus the paragraphs joined. Entries that mention the Warframe tracker are left out, like everywhere
+    else on the public page data."""
+    path = PLANNING / "FOR-YOU.md"
+    if not path.exists():
+        return None
+    lines = path.read_text(encoding="utf-8").splitlines()
+    items, current = [], None
+    in_actions = False
+    for line in lines:
+        if line.startswith("## "):
+            in_actions = line.startswith("## Action items")
+            current = None
+            continue
+        if not in_actions:
+            continue
+        heading = re.match(r"^### (\w+)\.\s+(.*)$", line)
+        if heading:
+            current = {"n": heading.group(1), "title": heading.group(2).strip(), "body": []}
+            items.append(current)
+        elif current is not None and line.strip():
+            current["body"].append(line.strip())
+    out = []
+    for entry in items:
+        text = f"**{entry['title']}** " + " ".join(entry["body"])
+        # "the Warframe tracker" becomes "the tracker"; any other mention drops the item.
+        text = re.sub(r"(?i)warframe(?: build)?(?: resource)? tracker", "tracker", text)
+        if "warframe" in text.lower():
+            continue
+        out.append({"n": entry["n"], "text": text, "answered": False})
+    if not out:
+        return None
+    return {"code": "FY", "title": "Open questions from me", "vocab": "recommend", "items": out}
+
+
 def main():
     rounds_out = []
     answers_out = {}
@@ -196,6 +233,10 @@ def main():
         rounds_out.append({"id": spec["id"], "title": spec["title"], "sections": sections})
         answers_out[spec["id"]] = round_answers
 
+    fy = parse_for_you()
+    if fy:
+        rounds_out.insert(0, {"id": "for-you", "title": "For you", "sections": [fy]})
+        answers_out["for-you"] = {}
     (ROOT / "ideas-data.json").write_text(
         json.dumps({"rounds": rounds_out}, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     (ROOT / "ideas-answers.local.json").write_text(

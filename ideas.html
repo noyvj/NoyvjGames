@@ -70,6 +70,7 @@
   .chip.doc { color: var(--yes); }
   .group-note { background: var(--panel-2); border-radius: 8px; padding: 0.5rem 0.7rem; margin: 0 0 0.7rem; font-size: 0.85rem; color: var(--muted); }
   .text { margin: 0.35rem 0 0.7rem; }
+  .item .text strong:first-child { color: var(--accent); }
   .text code { background: var(--panel-2); padding: 0 0.25rem; border-radius: 4px; font-size: 0.9em; }
   .choices { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; }
   .choices button[aria-pressed="true"] { color: #fff; border-color: transparent; font-weight: 600; }
@@ -167,9 +168,11 @@
   const section = () => round().sections.find((s) => s.code === ui.section) || round().sections[0];
   const labels = (sec) => (sec.vocab === "decide"
     ? [["yes", "Now"], ["later", "Later"], ["no", "Drop"]]
-    : [["yes", "Yes"], ["later", "Later"], ["no", "No"]]);
+    : sec.vocab === "recommend"
+      ? [["yes", "Go with the recommendation"], ["later", "Later"], ["no", "Not that"]]
+      : [["yes", "Yes"], ["later", "Later"], ["no", "No"]]);
   const words = (sec) => (sec.vocab === "decide" ? { yes: "now", later: "later", no: "drop" } : { yes: "yes", later: "later", no: "no" });
-  const isQuestions = (sec) => /open questions/i.test(sec.title);
+  const isQuestions = (sec) => /open questions/i.test(sec.title) || sec.vocab === "recommend";
 
   function mineFor(code, n) { return ((mine[ui.round] || {})[code] || {})[n]; }
   function baseFor(code, n) { return ((baseline[ui.round] || {})[code] || {})[n]; }
@@ -455,7 +458,7 @@
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     const t = e.target;
     if (!t.classList || !t.classList.contains("item")) return;
-    const sec = section(), n = Number(t.dataset.n), item = sec.items.find((i) => i.n === n);
+    const sec = section(), item = sec.items.find((i) => String(i.n) === t.dataset.n);
     const k = e.key.toLowerCase();
     const map = { y: "yes", l: "later", n: "no" };
     if (map[k]) { e.preventDefault(); choose(sec, item, map[k]); focusSibling(t, 1); }
@@ -469,6 +472,7 @@
     const rs = $("round-select");
     for (const r of data.rounds) { const o = document.createElement("option"); o.value = r.id; o.textContent = r.title; rs.appendChild(o); }
     if (!data.rounds.some((r) => r.id === ui.round)) ui.round = data.rounds[0].id;
+    if (!lsGet(UI_KEY) && data.rounds[0].id === "for-you") ui.round = "for-you";
     rs.value = ui.round;
     rs.addEventListener("change", () => { ui.round = rs.value; ui.section = ""; touched.clear(); pickSection(); saveUi(); render(); });
     $("filter-select").value = ui.filter;

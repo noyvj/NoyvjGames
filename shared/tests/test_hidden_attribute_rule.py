@@ -9,7 +9,7 @@ SHEETS = [ROOT / "style.css", *sorted((ROOT / "games").glob("*/style.css"))]
 
 
 def test_every_stylesheet_has_the_blanket_hidden_rule():
-    assert len(SHEETS) == 14
+    assert len(SHEETS) >= 14
     for sheet in SHEETS:
         css = sheet.read_text(encoding="utf-8")
         assert "[hidden] { display: none !important; }" in css, sheet

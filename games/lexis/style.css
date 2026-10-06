@@ -44,3 +44,6 @@ button[disabled] { opacity: 0.5; cursor: default; }
 .reaction { min-height: 1.5rem; font-weight: 600; }
 @media (prefers-reduced-motion: no-preference) { .lamp.lit { transition: background 0.2s, box-shadow 0.2s; } }
 @media (max-width: 420px) { #game { padding: 0.7rem 0.7rem 2.5rem; } }
+
+/* Site-wide: a bare `display:` rule must never defeat the HTML hidden attribute. */
+[hidden] { display: none !important; }
