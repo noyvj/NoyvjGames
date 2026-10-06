@@ -42,9 +42,9 @@ window.CONTINUUM_PC_TUTORIAL_STEPS = [
     text: "A running record of what's happened, in the settlement's own voice. Read it or don't; nothing here is required.",
   },
   {
-    selector: "#achievements-toggle-button",
-    title: "Windows",
-    text: "Achievements, What's New, the Civilization Summary, City Views, the Founder's Log, Council Minutes and Settings open as windows over the scene. Press Escape to close the top one.",
+    selector: "#pc-menu-button",
+    title: "Icons and the Menu",
+    text: "The three icons are Achievements, City Views and Settings. The Menu (or Escape, when nothing else is open) holds the rest: the tutorial, How to Play, What's New, the Civilization Summary, the Founder's Log, Council Minutes, fullscreen and the Classic layout. Everything opens as a window over the scene, and Escape closes the top one.",
   },
   {
     title: "You're ready",

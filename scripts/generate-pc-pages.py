@@ -42,17 +42,29 @@ PC_GAMES = {
             ("settings-panel", "settings-toggle-button", "Settings"),
             ("info-page-panel", "info-page-toggle-button", "In the real world"),
         ],
+        # The toolbar is condensed: a few icon buttons for what is used during play, everything
+        # else in one Menu window (also Escape). Each id must exist in index.html.
+        "toolbar": {
+            "icons": [["achievements-toggle-button", "\U0001F3C6"], ["views-toggle-button", "\U0001F4CA"],
+                      ["settings-toggle-button", "\u2699\ufe0f"]],
+            "menu": [
+                {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button"]},
+                {"heading": "Records", "ids": ["changelog-toggle-button", "summary-toggle-button",
+                                               "founders-toggle-button", "minutes-toggle-button"]},
+                {"heading": "Scene", "ids": ["visual-mode-toggle-button", "visual-snapshot-button"]},
+            ],
+        },
         # Hotkeys that really exist in this game (shown in a bar under the scene).
-        "hints": [["P", "Pause / resume"], ["1\u20134", "Camera"], ["?", "All shortcuts"], ["Esc", "Close window"]],
+        "hints": [["P", "Pause / resume"], ["1\u20134", "Camera"], ["?", "All shortcuts"], ["Esc", "Menu / close window"]],
         # Entries added to this list are announced as small notifications over the scene.
         "notify": {"list": "#log-list"},
         # Existing elements moved (not copied) into the desktop frame, in this order.
         "zones": {
             "topbar": [".hub-back-link", "h1", ".game-toolbar", "#speed-controls"],
-            "stagebar": ["#visual-mode-toggle-button", "#visual-snapshot-button", "#camera-preset-buttons"],
+            "stagebar": ["#camera-preset-buttons"],
             "stage": ["#visual-stage"],
-            "side": ["#status", "#sustainability", "#scenario-select", "#log", "#revisit", ".community-details",
-                     "#info-page-toggle-button", "#real-world-note"],
+            "side": ["#status", "#sustainability", "#log", "#revisit", ".community-details",
+                     "#info-page-toggle-button", "#real-world-note", "#scenario-select"],
         },
     },
 }
@@ -72,9 +84,10 @@ def build(slug, cfg):
     zones = json.dumps(cfg.get("zones", {}), ensure_ascii=False)
     hints = json.dumps(cfg.get("hints", []), ensure_ascii=False)
     notify = json.dumps(cfg.get("notify"), ensure_ascii=False)
+    toolbar = json.dumps(cfg.get("toolbar"), ensure_ascii=False)
     inject = (f'\n<script>window.NOYVJ_LAYOUT = "pc"; window.NOYVJ_PC_WINDOWS = {windows}; '
               f'window.NOYVJ_PC_ZONES = {zones}; window.NOYVJ_PC_HINTS = {hints}; '
-              f'window.NOYVJ_PC_NOTIFY = {notify};</script>')
+              f'window.NOYVJ_PC_NOTIFY = {notify}; window.NOYVJ_PC_TOOLBAR = {toolbar};</script>')
     if (ROOT / "games" / slug / "pc.js").exists():
         inject += '\n<script src="pc.js"></script>'
     out = out[: anchor.end()] + inject + out[anchor.end():]

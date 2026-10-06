@@ -92,7 +92,7 @@ def test_tutorial_steps_for_the_desktop_boot_only_point_at_things_that_exist_the
     selectors = re.findall(r'selector:\s*"([^"]+)"', js)
     assert selectors
     page_ids = _ids(DESKTOP)
-    zone_ids = {"pc-stagebar", "pc-stage", "pc-side", "pc-topbar", "pc-body"}   # built by shared/pc-shell.js
+    zone_ids = {"pc-stagebar", "pc-stage", "pc-side", "pc-topbar", "pc-body", "pc-menu-button"}   # built by shared/pc-shell.js
     for selector in selectors:
         assert selector.startswith("#")
         assert selector[1:] in page_ids | zone_ids, selector
@@ -114,3 +114,18 @@ def test_hotkey_hints_only_name_shortcuts_the_game_really_has():
 def test_notifications_watch_a_list_that_exists_on_both_pages():
     selector = re.search(r'window\.NOYVJ_PC_NOTIFY = \{"list": "#([^"]+)"\}', DESKTOP).group(1)
     assert selector in _ids(CLASSIC) and selector in _ids(DESKTOP)
+
+
+def test_every_condensed_toolbar_button_exists_on_both_pages():
+    import json
+    cfg = json.loads(re.search(r"window\.NOYVJ_PC_TOOLBAR = (\{.*?\});", DESKTOP).group(1))
+    ids = [i for i, _emoji in cfg["icons"]] + [i for group in cfg["menu"] for i in group["ids"]]
+    assert ids
+    for name, html in (("index.html", CLASSIC), ("pc.html", DESKTOP)):
+        missing = [i for i in ids if i not in _ids(html)]
+        assert not missing, f"{name} lacks toolbar ids: {missing}"
+    # Nothing that used to be in the toolbar may be silently dropped.
+    toolbar = CLASSIC[CLASSIC.index('class="game-toolbar"'):]
+    toolbar = toolbar[:toolbar.index("</div>")]
+    for button_id in re.findall(r'<button id="([^"]+)"', toolbar):
+        assert button_id in ids, f"{button_id} is in the Classic toolbar but neither an icon nor in the menu"

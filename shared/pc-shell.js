@@ -72,30 +72,107 @@
     sync(frame);
   }
 
-  function addToolbarControls() {
+  // The toolbar of a dozen text buttons is condensed into a few icon buttons for what is used
+  // during play, plus one Menu window (also opened with Escape when nothing else is open) that
+  // holds the rest. Every original button keeps its node and handlers: the icons forward clicks
+  // to them, and the menu holds the real buttons, so labels like "Hide Achievements" stay live.
+  // window.NOYVJ_PC_TOOLBAR = { icons: [[buttonId, emoji], ...],
+  //                             menu: [{ heading, ids: [buttonId, ...] }, ...] }
+  const stripIcon = (text) => text.replace(/^[^\p{L}\p{N}]+/u, "").trim();
+
+  function menuGroup(heading) {
+    const group = document.createElement("div");
+    group.className = "pc-menu-group";
+    const h = document.createElement("h3");
+    h.textContent = heading;
+    group.appendChild(h);
+    return group;
+  }
+
+  function buildToolbar() {
+    const cfg = window.NOYVJ_PC_TOOLBAR;
     const toolbar = document.querySelector(".game-toolbar");
-    if (!toolbar) return;
+    const game = document.getElementById("game");
+    if (!cfg || !toolbar || !game) return;
+
+    // Icon buttons: proxies that keep the original (hidden) button as the source of truth.
+    const source = document.createElement("div");
+    source.id = "pc-toolbar-source";
+    source.hidden = true;
+    game.appendChild(source);
+    for (const [id, emoji] of cfg.icons || []) {
+      const original = document.getElementById(id);
+      if (!original) continue;
+      source.appendChild(original);
+      const proxy = document.createElement("button");
+      proxy.type = "button";
+      proxy.className = "secondary pc-icon-button";
+      proxy.textContent = emoji;
+      const sync = () => {
+        const name = stripIcon(original.textContent);
+        proxy.title = name;
+        proxy.setAttribute("aria-label", name);
+      };
+      sync();
+      new MutationObserver(sync).observe(original, { childList: true, characterData: true, subtree: true });
+      proxy.addEventListener("click", () => original.click());
+      toolbar.appendChild(proxy);
+    }
+
+    // The menu window: grouped real buttons, plus the shell's own Display controls.
+    const panel = document.createElement("div");
+    panel.id = "pc-menu-panel";
+    panel.className = "section";
+    panel.hidden = true;
+    for (const spec of cfg.menu || []) {
+      const group = menuGroup(spec.heading);
+      for (const id of spec.ids) {
+        const node = document.getElementById(id) || document.querySelector("#" + CSS.escape(id));
+        if (node) group.appendChild(node);
+      }
+      panel.appendChild(group);
+    }
+    const display = menuGroup("Display");
+    display.id = "pc-menu-display";
     const full = document.createElement("button");
     full.type = "button";
-    full.className = "secondary pc-toolbar-button";
+    full.className = "secondary";
     full.id = "pc-fullscreen-button";
-    full.textContent = "⛶ Fullscreen";
+    full.textContent = "\u26F6 Fullscreen";
     full.title = "Toggle fullscreen (F11 also works)";
     full.addEventListener("click", () => {
       if (document.fullscreenElement) document.exitFullscreen();
       else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
     });
-    toolbar.appendChild(full);
+    display.appendChild(full);
     if (window.NoyvjLayout) {
       const classic = document.createElement("button");
       classic.type = "button";
-      classic.className = "secondary pc-toolbar-button";
+      classic.className = "secondary";
       classic.id = "pc-classic-button";
       classic.textContent = "Classic layout";
       classic.title = "Switch to the Classic layout (your save carries over)";
       classic.addEventListener("click", () => window.NoyvjLayout.switchTo("classic"));
-      toolbar.appendChild(classic);
+      display.appendChild(classic);
     }
+    panel.appendChild(display);
+    // Choosing anything in the menu closes it (after that button's own handler has run).
+    panel.addEventListener("click", (e) => {
+      if (e.target.closest("button")) setTimeout(() => { panel.hidden = true; }, 0);
+    });
+    game.appendChild(panel);
+    wrap({ panel: "pc-menu-panel", toggle: null, title: "Menu" });
+    panel.parentNode.classList.add("pc-menu-frame");
+
+    const menuButton = document.createElement("button");
+    menuButton.type = "button";
+    menuButton.id = "pc-menu-button";
+    menuButton.className = "secondary pc-icon-button";
+    menuButton.textContent = "\u2630";
+    menuButton.title = "Menu (Esc)";
+    menuButton.setAttribute("aria-label", "Menu");
+    menuButton.addEventListener("click", () => { panel.hidden = !panel.hidden; });
+    toolbar.appendChild(menuButton);
   }
 
   // Moves (never copies) existing elements into a frame: a top bar, then a body with a
@@ -143,15 +220,15 @@
   }
 
   // The floating "Story: on/off" pill (shared/story-toggle.js) would sit on the scene; the
-  // Desktop boot keeps it in the toolbar instead. It is created after load, so wait for it.
+  // Desktop boot keeps it in the menu's Display group instead. It is created after load.
   function homeStoryToggle() {
-    const toolbar = document.querySelector(".game-toolbar");
-    if (!toolbar) return;
+    const group = document.getElementById("pc-menu-display");
+    if (!group) return;
     const move = () => {
       const pill = document.getElementById("story-toggle");
       if (!pill) return false;
-      pill.classList.add("secondary", "pc-toolbar-button");
-      toolbar.appendChild(pill);
+      pill.classList.add("secondary", "pc-menu-story");
+      group.appendChild(pill);
       return true;
     };
     if (move()) return;
@@ -205,12 +282,24 @@
     backdrop.addEventListener("click", () => { if (open.length) closeFrame(open[open.length - 1]); });
     document.body.appendChild(backdrop);
     specs.forEach(wrap);
-    addToolbarControls();
+    buildToolbar();
     addHintBar();
     homeStoryToggle();
     startNotifications();
+    // Escape with nothing else open opens the menu, as in a PC game. Decided in the capture phase
+    // so the game's own Escape handling (closing the Town panel or shortcuts) is not mistaken for
+    // "nothing was open".
     document.addEventListener("keydown", (e) => {
-      if (e.key !== "Escape" || !open.length) return;
+      if (e.key !== "Escape" || open.length) return;
+      const blockers = "#opening-screen, .confirm-dialog-overlay, #tutorial-card, #hamlet-town-panel:not([hidden])";
+      const shown = [...document.querySelectorAll(blockers)].some((n) => n.getBoundingClientRect().width > 0);
+      const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || "");
+      if (shown || typing) return;
+      const menu = document.getElementById("pc-menu-panel");
+      if (menu) { e.preventDefault(); e.__pcMenuOpened = true; menu.hidden = false; }
+    }, true);
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape" || !open.length || e.__pcMenuOpened) return;
       const inner = document.getElementById("hamlet-town-panel");
       if (inner && !inner.hidden) return; // the game's own Esc handling comes first
       if (document.querySelector("#opening-screen, .confirm-dialog-overlay")) return;

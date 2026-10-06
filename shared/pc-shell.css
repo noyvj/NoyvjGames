@@ -117,5 +117,40 @@ html[data-theme="light"] .pc-toast { color: #1b1710; }
   @keyframes pc-toast-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 }
 
-/* The story pill, once moved into the toolbar, stops floating. */
-#story-toggle.pc-toolbar-button { position: static; }
+/* The story pill (shared/story-toggle.js floats it bottom-left), once moved into the menu. */
+#story-toggle.pc-menu-story {
+  position: static;
+  width: 100%;
+  margin: 0;
+  text-align: left;
+  border-radius: 10px;
+  padding: 0.5rem 0.6rem;
+  font-size: inherit;
+}
+
+/* Icon buttons in the condensed toolbar, and the Menu window. */
+.pc-icon-button {
+  flex: 0 0 2.3rem !important;
+  width: 2.3rem;
+  min-width: 2.3rem;
+  height: 2.3rem;
+  padding: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem !important;
+  line-height: 1;
+}
+.pc-window-frame.pc-menu-frame { width: min(380px, 92vw); }
+#pc-menu-panel { padding: 0.6rem 1rem 1rem; display: grid; gap: 0.9rem; }
+.pc-menu-group { display: grid; gap: 0.35rem; }
+.pc-menu-group:not(:has(button:not([hidden]))) { display: none; }
+.pc-menu-group h3 {
+  margin: 0 0 0.1rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+.pc-menu-group button { width: 100%; text-align: left; margin: 0; }
+#pc-toolbar-source { display: none; }

@@ -71,3 +71,16 @@ html[data-layout="pc"] .mobile-hud, html[data-layout="pc"] #mobile-hud { display
   html[data-layout="pc"] .hamlet-chip { font-size: 0.7rem; }
   html[data-layout="pc"] .hamlet-chip .hamlet-main { padding: 0.12rem 0.3rem; }
 }
+
+/* The scene's "sky" is plain CSS behind a transparent canvas (render3d.js). The Classic view's
+   near-black (#14101c) is a hard cut against the warm dawn page, so on the Desktop boot the dark
+   theme gets a dusk sky that carries the page's own navy-to-amber gradient into the scene. */
+html[data-layout="pc"]:not([data-theme="light"]) #pc-stage .visual3d-container,
+html[data-layout="pc"]:not([data-theme="light"]) #pc-stage .visual-stage {
+  background: linear-gradient(180deg, #2b3566 0%, #574a7c 36%, #a8736c 70%, #d9a164 100%);
+}
+
+/* The page's dawn skyline is built from near-black blocks (shared/ambient-bg.css). Behind a
+   full-window layout they poke out under the stage as black bars, so on the Desktop boot they
+   are softened into faint shapes. */
+html[data-layout="pc"] .ambient-bg--dawn .ambient-bg-blobs { opacity: 0.25; }
