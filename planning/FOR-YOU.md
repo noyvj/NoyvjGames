@@ -21,7 +21,7 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 
 **Why:** `admin.html`, `ideas.html` and the Warframe tracker now check that you are signed in as `noyvj`, using a new `GET /users/me` endpoint. Until the backend is redeployed those three pages show "The server cannot check accounts yet" and will not open (the public hub and games are unaffected).
 
-**Steps:** from the `app/` folder run `python3 -m fastapi cloud deploy`, then open `ideas.html` and sign in as `noyvj` in the card that appears. Tell me once it works and I will remove this entry.
+**Steps:** from the `app/` folder run `python3 -m fastapi cloud deploy`, then open `ideas.html` or `admin.html` and sign in as `noyvj` in the card that appears. The admin page no longer asks for the separate admin token: signing in as `noyvj` is enough (the backend accepts that account as admin; `AI_ADMIN_TOKEN` still works for the AI sessions). Tell me once it works and I will remove this entry.
 
 ### 1. Apply for Google AdSense
 

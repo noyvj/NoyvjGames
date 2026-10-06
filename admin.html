@@ -6,13 +6,13 @@
 <meta name="robots" content="noindex, nofollow">
 <script src="shared/owner-gate.js"></script>
 <title>Site Admin</title>
-<!-- Deliberately not linked from the hub nav or listed anywhere. U8: the
-     admin data itself (GET /admin/stats, GET /answer-reports, and the
-     account/test-data endpoints) now needs an X-Admin-Token that matches the
-     server's ADMIN_TOKEN (the owner) or AI_ADMIN_TOKEN (the AI sessions). This
-     page asks for it in a password box and keeps it only in this tab's
-     sessionStorage. The ratings and feedback reads it also shows are public on
-     the backend anyway (the hub displays them). -->
+<!-- Deliberately not linked from the hub nav or listed anywhere. The admin data
+     (GET /admin/stats, GET /answer-reports, the account/test-data endpoints) is
+     authorised by the owner account's own sign-in: shared/owner-gate.js hides the
+     page unless you are signed in as "noyvj", and the same bearer token is sent to
+     the backend, which accepts it as admin only for that account. The AI sessions
+     use the separate AI_ADMIN_TOKEN directly against the API. The ratings and
+     feedback reads shown here are public on the backend anyway. -->
 <link rel="icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="shared/space-bg.css">
 <style>
@@ -167,12 +167,8 @@
 
 <main id="main-content" tabindex="-1">
   <section id="admin-login" class="panel" hidden>
-    <h2 style="margin-top:0">Admin password</h2>
-    <p class="status-line" id="admin-login-status">Enter the admin token to view this page's data.</p>
-    <form id="admin-login-form" autocomplete="off">
-      <input type="password" id="admin-token-input" placeholder="Admin token" aria-label="Admin token" autocomplete="off">
-      <button type="submit" class="refresh-button">Unlock</button>
-    </form>
+    <h2 style="margin-top:0">Admin access</h2>
+    <p class="status-line" id="admin-login-status">Sign in as the owner account to view this page's data.</p>
   </section>
   <h1>SITE ADMIN</h1>
   <p id="subtitle">Ratings, feedback, and French answer reports — pulled live from the existing public read endpoints, nothing new exposed.</p>
@@ -271,16 +267,12 @@ async function fetchJson(url) {
   return res.json();
 }
 
-// U8: the token lives only in this tab's sessionStorage.
-const ADMIN_TOKEN_KEY = "admin-token";
-function getAdminToken() {
-  try { return sessionStorage.getItem(ADMIN_TOKEN_KEY) || ""; } catch (e) { return ""; }
-}
-function setAdminToken(value) {
-  try {
-    if (value) sessionStorage.setItem(ADMIN_TOKEN_KEY, value);
-    else sessionStorage.removeItem(ADMIN_TOKEN_KEY);
-  } catch (e) { /* storage unavailable: the token just won't persist across reloads */ }
+// The owner account's own sign-in is the credential (same hub token the gate in
+// shared/owner-gate.js verified); no separate admin password.
+function adminHeaders() {
+  let token = "";
+  try { token = localStorage.getItem("hub_bearer_token") || ""; } catch (e) { /* storage unavailable */ }
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 class AdminAuthError extends Error {}
 function showLogin(message) {
@@ -289,12 +281,11 @@ function showLogin(message) {
   if (message) document.getElementById("admin-login-status").textContent = message;
 }
 async function adminFetchJson(url) {
-  const res = await fetch(url, { headers: { "X-Admin-Token": getAdminToken() } });
+  const res = await fetch(url, { headers: adminHeaders() });
   if (res.status === 401 || res.status === 503) {
-    setAdminToken("");
     throw new AdminAuthError(res.status === 503
       ? "Admin access isn't configured on the server yet."
-      : "That token wasn't accepted. Try again.");
+      : "This account isn't accepted as admin. Sign in as the owner account.");
   }
   if (!res.ok) throw new Error(`${url} -> status ${res.status}`);
   return res.json();
@@ -409,10 +400,10 @@ function renderReports() {
 async function setReportResolved(id, resolved) {
   const res = await fetch(`${API_BASE}/answer-reports/${encodeURIComponent(id)}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json", "X-Admin-Token": getAdminToken() },
+    headers: { "Content-Type": "application/json", ...adminHeaders() },
     body: JSON.stringify({ resolved }),
   });
-  if (res.status === 401 || res.status === 503) { setAdminToken(""); showLogin("That token wasn't accepted. Try again."); return; }
+  if (res.status === 401 || res.status === 503) { showLogin("This account isn't accepted as admin. Sign in as the owner account."); return; }
   if (!res.ok) { document.getElementById("reports-status").textContent = "Couldn't update that report."; return; }
   const updated = await res.json();
   const index = allReports.findIndex((r) => r.id === id);
@@ -554,31 +545,15 @@ document.querySelector("#accounts-table tbody").addEventListener("change", async
   if (!box) return;
   const res = await fetch(`${API_BASE}/admin/users/${encodeURIComponent(box.dataset.id)}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json", "X-Admin-Token": getAdminToken() },
+    headers: { "Content-Type": "application/json", ...adminHeaders() },
     body: JSON.stringify({ is_test: box.checked }),
   });
-  if (res.status === 401 || res.status === 503) { setAdminToken(""); showLogin("That token wasn't accepted. Try again."); return; }
+  if (res.status === 401 || res.status === 503) { showLogin("This account isn't accepted as admin. Sign in as the owner account."); return; }
   if (!res.ok) { box.checked = !box.checked; return; }
   loadAll();
 });
 
-document.getElementById("admin-login-form").addEventListener("submit", (event) => {
-  event.preventDefault();
-  const input = document.getElementById("admin-token-input");
-  const value = input.value.trim();
-  input.value = "";
-  if (!value) return;
-  setAdminToken(value);
-  document.body.classList.remove("locked");
-  document.getElementById("admin-login").hidden = true;
-  loadAll();
-});
-
-if (getAdminToken()) {
-  loadAll();
-} else {
-  showLogin("Enter the admin token to view this page's data.");
-}
+loadAll();
 </script>
 </body>
 </html>

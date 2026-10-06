@@ -238,8 +238,22 @@ class ReportResolveIn(BaseModel):
 # takes effect on the next request/redeploy without code changes.
 ADMIN_TOKEN_ENV_VARS = ("ADMIN_TOKEN", "AI_ADMIN_TOKEN")
 
+# The site owner's own account also counts as admin: signed in as this user,
+# admin.html needs no separate password. Usernames are stored lowercased and
+# unique (see _normalize_username), so only this exact account matches. The
+# AI sessions keep using AI_ADMIN_TOKEN, which stays independently revocable.
+OWNER_USERNAME = "noyvj"
 
-def require_admin(x_admin_token: Optional[str] = Header(default=None)) -> None:
+
+def require_admin(
+    x_admin_token: Optional[str] = Header(default=None),
+    authorization: Optional[str] = Header(default=None),
+    db: Session = Depends(get_db),
+) -> None:
+    if authorization:
+        user = get_current_user_optional(authorization, db)
+        if user is not None and user.username == OWNER_USERNAME:
+            return
     configured = [os.environ.get(name, "") for name in ADMIN_TOKEN_ENV_VARS]
     configured = [value for value in configured if value]
     if not configured:

