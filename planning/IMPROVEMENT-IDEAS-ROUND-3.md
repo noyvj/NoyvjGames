@@ -1073,860 +1073,844 @@ Nothing here is new; these are the items you (or I) deferred earlier. Each one n
 Everything above, pre-titled and pre-numbered so you never have to write out a `## <SECTION>` header or an item number yourself. Just type after the number — "yes", "no", "later", or a word plus a short note — and leave anything you're not ready for blank. Same rules as always: "yes" builds it, "no" drops it, "later" parks it. For Part 4's own N/O/P/Q/S/T/U sections (the folded-in seasonal-events, replayability, and new-game-groundwork content), the same words apply, except "later" and "drop" for the new-game open questions (P/Q/S/T/U) just mean "leave that specific design fork undecided a while longer" rather than dropping the whole game, since those five games are already approved.
 
 ### GB — Canopy (gamified)
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+1. yes
+2. yes
+3. i do not like rouguelikes but i feel this could be a good gamemode. build it but do not expect input from me on it
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes this sounds great
+10. yes, maybe this can connect to be loved skill tree style progression in the future
+11. yes, i feel this should be implemented in most games that arent turn based as well as a pause
+12. this could be a 1v1 gamemode maybe
+13. yes but not in the base game. either a new level indroducing new mechanic thing or gamemode. maybe we can start having a lavel select where every 5 levels its either one of the gamemodes or a new mechanic. i feel level select could be good for many of these games that are getting really complex 
+14. yes
+15. yes, same feedback as 13
+16. yes this would be a great story level
+17. yes
+18. yes
+19. yes but maybe make it a team effort, every day the amount the game is played or whatever helps water one big community plot accross all users with a "best day" shared and user investment leaderboard
+20. yes
+21. yes
+22. yes but also maybe make these achievements if they arent already
+23. yes
+24. yes
+25. yes
+26. yes but build it into a skill tree
+27. yes
+28. yes
+29. yes
+30. yes
 
 ### GC — Grid (gamified)
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+1. yes — I like the idea but I don’t like roguelikes or deck builders so in the future try to avoid those.
+2. no — Instead maybe an upgrade tree?
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes — Maybe a part of the skill tree on meteorology or similar. It’s realistic and would make some sense.
+12. yes
+13. later — Unsure what this means. Feel free to bring it up again later with more detail.
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. later — I like the idea but also want the games easy to 100% so I am debating it.
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes — Do we have a friend system yet?
+30. no
 
 ### GD — Tide (gamified)
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+1. no
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes — I do like completionist/collector aspects of games, give more suggestions like this.
+10. yes
+11. yes
+12. yes
+13. yes — You can maybe also add a fish collection for collectors players
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. no
+30. yes
 
 ### GE — Aftermath (gamified)
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+1. no
+2. no
+3. yes
+4. yes
+5. no
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes — Make screen shake toggleable for senators players
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
 
 ### GF — Herd (gamified)
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+1. no
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes — As an optional gamemode
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes — Breeds in general could be a good collector thing in this game.
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
 
 ### GG — Thaw (gamified)
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+1. no
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes — Toggleable
+13. yes
+14. yes
+15. yes — Maybe a snow hare. Foxes and bunnies are both cute so maybe have them argue a bit.
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
 
 ### GH — Loop (gamified)
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+1. no
+2. no
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. no
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
 
 ### GI — Drift (gamified)
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+1. yes
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. later — Again with difficulty to 100%
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
 
 ### A — SOL
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
-31. 
+1. no
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
+31. yes
 
 ### B — Canopy
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
-31. 
+1. yes
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes — Should be for all games
+8. yes — Should be for all games
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes — Make sure you remember no generated images though
+18. later — Still no audio
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
+31. yes
 
 ### C — Grid
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
-31. 
+1. yes
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
+31. yes
 
 ### D — Tide
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
-31. 
+1. yes
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes — For all games
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
+31. yes
 
 ### E — Aftermath
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
-31. 
+1. yes
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
+31. yes
 
 ### F — Herd
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
-31. 
+1. yes
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes — For other games too
+27. yes
+28. yes
+29. yes
+30. yes
+31. yes
 
 ### G — Thaw
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
-31. 
+1. yes
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes — Also give a Kelvin option
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
+31. yes
 
 ### H — Loop
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
-31. 
+1. yes
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes — For all games
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
+31. yes
 
 ### I — Drift
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
-31. 
+1. yes
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
+31. yes
 
 ### J — Trade Empire
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
-31. 
+1. no
+2. no
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes
+15. later — Maybe later we can do something like the climate ones but not now.
+16. later — See above
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
+31. yes
 
 ### K — Continuum
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
-31. 
+1. yes — Maybe more a governed system? This isn’t a coding lesson but I do like the idea
+2. yes
+3. later — Maybe but not a deck
+4. yes
+5. yes — We are going to have to figure out how to space these better for this. Maybe when time goes on the layout changes because a grid would be easier to fit everything later on when there are too many buildings for the circle method
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. later — Audio still is a later
+23. yes
+24. yes
+25. no
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
+31. yes
 
 ### L — Le Champ de Mots
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
-31. 
+1. yes
+2. yes
+3. yes — As another mini game
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
+31. yes
 
 ### M — New Game Ideas
-1. 
-2. 
-3. 
-4. 
-5. 
+1. yes 
+2. yes but maybe make it feel like it is about to become a horror game at any minute even though it never does
+3. no, i don't really like rouguelikes or card game styles
+4. yes, i always loved these but they had the stupid energy limits and microtransactions. 
+5. yes 
 
 ### N — Seasonal/Real-World-Date Events
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
+1. okay just commenting on all these at once because I have the same issue with all but the one that is my example. For "events" I am thinking "times people would be like 'oh! holloween is here maybe this site has an event' not 'let me check if its some random awareness day'" so stuff like christmas, holloween, new years, easter, hanaka, thanksgiving, 4th of july, valentines day, and other big events (I'm still debating on the american-centric ones to be more internationally inclusive). Also, I want these to be easy things to do within 15 mins of starting the game, making the players not have to fully dedicate an hour or more but enough to give a taste that makes them get to know the game neough to maybe come back if they like it. If no games match the theme make a temporary "not really related but tied to the date range" event to stand in then in the next M section give games that could easily have a mode that fits this well.
+11. yes build the groundwork and redo this list based on previous comment
 
 ### O — Replayability follow-up (Trade Empire + Continuum)
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
+1. yes but maybe instead of picking one do a reasearch tree
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
 
 ### P — Signal — open questions
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
+1. i want to try to stick to python as much as physically possible but i understand that a lot of my work is moving away for that as it does not work well with what I am looking for. i personally am unwilling to make this call because debating between user experence and my extreme hate for js is not going well. 
+2. yes that works
+3. yes but also archive the backlog so people can play past rounds
+4. yes
+5. i don't think so
+6. A works for me, maybe have some modes with a bigger board
 
 ### Q — Undersleep — open questions
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
+1. read answer to Q6 then ask me this if needed
+2. read answer to Q6 then ask me this if needed. also, can you tell me how visible all information is right now? (usernames, passwords, saves, etc)
+3. don't know what you mean
+4. i think cozy would fit the vibe better. I am thinking "unpacking'-esque
+5. multiple characters can be fun. could also make a story mode where you are doing a bunch of characters and randomly the "stories" somehow interconnect. like you are playing a shut-in/low energy character and a impulsive/high energy character and while on the low energy character the high energy one keeps trying to make plans and stuff. this has turned into more of a schedule and energy management game then i think it was actually intended but i am liking it
+6. hard frame it as a game that you can "add personal touches to" to "make it feel like the character is you" rather than really a journal 
+7. no
+8. read Q5 rant haha, i am definitly building out a more story-mode type thing. let the player choose a preset that represents "them" and then outside characters they still have to play sometimes but it revolves around the one player picked character
 
 ### S — Overclock — open questions
-1. 
-2. 
-3. 
-4. 
-5. 
+1. space, i want to save cult for a game i actually like
+2-5. i do not like rouguelikes so you are fully on your own with this one, do whatever and have fun. i will approve all ideas for this automatically because I have no clue but feel at least one is important for saying i am trying all the genres I can. 
 
 ### T — Last Line — open questions
-1. 
-2. 
-3. 
-4. 
-5. 
+1. maybe the tower is in the middle of a "living hedgemaze" that overgrows and dies to make a somewhat new route every time instead of just lengthening the path
+2. seeded probably, especially with the gimic the map building will be the hardest part of this. seeded sounds best from what I can tell but since you are building it I will let you make the final call of what is possible
+3. turn based. give the player time to reassess the map and set defences before a new wave
+4. both
+5. might as well build out leaderboards generally but let them be opt-in
 
 ### U — Deep Descent — open questions
-1. 
-2. 
-3. 
-4. 
-5. 
+1-5. refer to S, i am not personally touching a rouguelike. you got this, i believe
 
 ### Z — Games (cross-game patterns)
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+1. yes
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes but make sure the challenges can be done within 1-2 hours
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes — The save section is somewhat bloated and I feel it should more just be in a top corner that’s less locked so it doesn’t accidentally get in the way ever. Maybe start auto-collapsed
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes — But let it be toggleable
+29. yes
+30. yes
 
 ### Y — Home (the hub shell)
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+1. yes
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes — Opt in show your username linking to profile.
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes — Maybe we can have settings include keybindings so people can change them if needed
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes — In the home pages of the games
+30. yes
 
 ### X — Warframe Build Tracker
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+1. yes
+2. yes
+3. yes
+4. yes
+5. yes and what relics you could get (unvaulted) and how to get them to get the missing parts
+6. yes
+7. yes
+8. yes
+9. later
+10. yes
+11. yes, maybe link to overframe for ~3 "suggested builds" per thing
+12. no
+13. yes
+14. yes
+15. yes
+16. no
+17. yes
+18. yes
+19. yes
+20. see if you can do it not written by me, try to do it fully from research
+21. yes
+22. yes and subsume 
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes also a "editied vs imported" visual difference so people can check stuff off as they do it without having to fully import
+29. yes
+30. not needed
 
 ### R — Returning Later
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
-31. 
-32. 
-33. 
-34. 
-35. 
-36. 
-37. 
-38. 
-39. 
+1. no, audio is not something we will be considering anytime soon, check again in lets ay round 6
+2. refer to 1
+3. refer to 1
+4. refer to 1
+5. refer to 1
+6. refer to 1
+7. refer to 1
+8. refer to 1
+9. yes
+10. yes
+11. yes
+12. keep it
+13. yes
+14. keep it
+15. you did not explain what c6 is here
+16. okay
+17. okay
+18. you did not explain what D10 is here
+19. yes
+20. you did not explain what e5 is here
+21. you did not explain what f21 is here
+22. yes
+23. yes
+24. no
+25. you did not explain what h16 is here
+26. no
+27. yes
+28. i said for you to pick, you pick. i am thinking maybe late-game or something
+29. same answer as 28
+30. yes
+31. yes
+32. later
+33. yes
+34. ask later, maybe round 6
+35. okay
+36. okay
+37. just mark it as no
+38. what? later for now, explain more there
+39. yes
 

@@ -588,291 +588,291 @@ Five brand-new concepts this round — not features for an existing game, pitche
 
 ## B
 1. yes
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+2. yes
+3. yes
+4. yes
+5. later, I want to do a full multiplayer pass soon
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
 
 ## C
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+1. yes
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes
+15. depends on my responce on Z? this may also relate to my multiplayer comment on many other ideas
+16. maybe these should all be built into achievements and stop doing callouts since it will be announced through achievemnt gains
+17. yes
+18. yes
+19. yes
+20. yes
+21. maybe, ill let you make the call if this is too much on a player
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
 
 ## D
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+1. yes
+2. yes
+3. maybe, ill let you decide if thats too much on the player
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. maybe tie this into acievement pop-ups instead
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. save this for multiplayer update
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
 
 ## E
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+1. yes
+2. yes
+3. yes, this will add a bunch of new nodes with important decisions
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes, maybe build it out more in the multiplayer update and "holiday events"
+10. yes
+11. maybe wait for multiplayer for this
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes, maybe choosing real-life locations too. like if you pick San Francisco the concern of earthquakes and fire is high but snow or hurricanes is non-existent. 
+18. yes
+19. yes
+20. yes
+21. no
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes and maybe be able to pin certain things they want to buy so that number is tracked
 
 ## F
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+1. yes
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes, this feels very important but maybe makes more sense to happen during a multiplayer update
+8. yes
+9. yes
+10. yes but refer to F7 comment
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes but maybe this can be just an achievemnt pop-up
+21. yes but refer to F7 comment
+22. yes
+23. yes, i believe this is the next big thing this game needs. sepertating between animal types and prestege unlocking new animals that have their own needs and ways to fix the issues
+24. yes
+25. yes but I think 23 works very well into this
+26. yes
+27. yes
+28. yes
+29. is this realistic? like is there real-world examples of this? if so, yes. otherwise, no.
+30. yes
 
 ## G
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+1. I do not think we need this many regions running
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. no but maybe later
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
 
 ## H
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+1. yes
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes, i feel visual design could be a big thing for this game. even if some visual options can only be availble on desktop play. have a simple and visual version to seperate the two so you can still play without the big visual screen but it is a much better experience on desktop
+26. yes
+27. yes
+28. yes
+29. yes, refer to H25
+30. yes
 
 ## I
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+1. yes
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes
 
 ## J
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+1. yes
+2. yes
+3. yes
+4. yes
+5. yes
+6. yes
+7. yes
+8. yes
+9. yes
+10. yes
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes, i do love extensive reseach trees
+16. yes
+17. yes
+18. yes
+19. yes
+20. yes
+21. yes
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes but this should be achievemnt pop-ups, no?
+29. yes
+30. yes
 
 ## K
 1. yes
@@ -907,36 +907,36 @@ Five brand-new concepts this round — not features for an existing game, pitche
 30. this could be good but may also be confusing. i do want to work into multiplayer in as many of the games as possible soon, it may be the next big development after this set. put is as later for now.
 
 ## L
-1. yes
-2. 
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
+1. yes, also can we make a game based on music or reading where it links to a spotify song and then has a quiz off the words or links to and open source short story then has a quiz on that? also practice through games should show progress on respective topics within the site wether its watering or some other completion stat, it should impact the player score
+2. yes
+3. yes, also I feel practice things such as review should water the plots if that topic had not been watered that day
+4. no, actually i feel they should all be unlocked in case someone joins the game a few weeks into the game. there also should be a general placement test that can skip past some of the time.
+5. yes
+6. yes
+7. yes, we will need to actually set up a day tracker if that is the case because last i check the player just moves to the next day whenever
+8. yes
+9. audio based things are still difficult but I feel like my music minigame suggestion from L1 could help with this
+10. yes but make sure everything gives "progress" to something mesured at the top so it feels like something is getting done
+11. yes
+12. yes
+13. yes
+14. yes
+15. yes
+16. yes
+17. yes, this is very important
+18. yes
+19. yes
+20. yes
+21. audio is still an issue we are not dealing with yet
+22. yes
+23. yes
+24. yes
+25. yes
+26. yes
+27. yes
+28. yes
+29. yes
+30. yes but this should be site-wide, no?
 
 ## M
 1. feels a bit too teaching, i want to focus on fun not learning with these new games unless it is specifically for a class
@@ -944,6 +944,11 @@ Five brand-new concepts this round — not features for an existing game, pitche
 3. may as well try it, it seems very simple but that can be good
 4. yes, i like this idea. there is a lot that can be done to make this more and better and it could also be made somewhat like a life tracker too.
 5. i like it but again with these being too informative. 
+6. yes, lets figure out some kind of gimic that makes this game special. for the inital todo list of this have it just setting up the game (eg save syatem, settings panel, and all the other things evey game has) then we can talk specifics in the next ideas round. I am thinking  either space themed or cult since those both are interesting gimics to me.
+7. yes, same as 6 for comments on it. 
+8. I like the idea but it sounds difficult for css and ai made gameplay. if you think it is possible yes otheriwse, it doesnt feel possible.
+9. I like it but with how we are loading these games, time based things aren't very possible and audio is hard too. 
+10. yes, same as 6 for comments. 
 
 ## Z
 1. yes
