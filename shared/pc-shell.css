@@ -209,3 +209,6 @@ html[data-layout="pc"] #game {
 .pc-readout-label { font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.7; }
 .pc-readout-value { font-weight: 700; }
 html[data-theme="light"] .pc-readout { background: rgba(255, 255, 255, 0.85); }
+
+/* Notifications in the light theme (the window variables are only defined on windows, so a toast fell back to dark under dark text). */
+html[data-theme="light"] .pc-toast { --pc-window-bg: #fbf6ec; --pc-window-line: rgba(122, 74, 18, 0.4); color: #1b1710; }

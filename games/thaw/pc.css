@@ -1,0 +1,95 @@
+/* Thaw, Desktop boot (pc.html only). Everything is scoped to the pc layout, so the Classic page is
+   untouched. Layout: top bar, readout chips, the permafrost scene over Region A's status and graph
+   beside the Region B / C comparison as the stage, and the per-turn decisions in a right-hand column
+   that scrolls on its own with Advance Round pinned at the top. Windows come from shared/pc-shell.css. */
+
+html[data-layout="pc"] #game { padding-bottom: 0.4rem; }
+html[data-layout="pc"] body { padding-bottom: 0; }
+html[data-layout="pc"] .ambient-bg { overflow: hidden; }
+
+/* --- top bar -------------------------------------------------------------------------------- */
+#pc-topbar { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "title tools"; padding-right: 7.5rem; }
+#pc-topbar > h1 { font-size: 1.5rem; }
+#pc-topbar > .game-toolbar { justify-content: flex-end; }
+html[data-layout="pc"] #theme-toggle-floating { top: 0.7rem !important; bottom: auto !important; left: auto !important; right: 1rem !important; }
+#pc-readouts { padding: 0 0.1rem; }
+.pc-readout-value { font-variant-numeric: tabular-nums; }
+
+/* --- body: stage + side column -------------------------------------------------------------- */
+#pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(19rem, 27vw, 28rem); }
+
+/* Stage: the permafrost scene as a banner, Region A's status on the left, the B / C comparison on the
+   right, each column scrolling on its own if a window is too short for it. */
+#pc-stagebar:empty { display: none; }
+#pc-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 0.6rem;
+}
+#pc-stage > * { margin: 0; min-width: 0; }
+#pc-stage > .permafrost-scene { grid-column: 1 / -1; grid-row: 1; height: 64px; }
+#pc-stage > #status { grid-column: 1; grid-row: 2; overflow-y: auto; min-height: 0; padding: 0.7rem 0.9rem; }
+#pc-stage > #region-comparison { grid-column: 2; grid-row: 2; overflow-y: auto; min-height: 0; padding: 0.7rem 0.9rem; }
+#pc-stage > #pc-hintbar { grid-column: 1 / -1; grid-row: 3; }
+
+/* --- side column: decisions, scrolling on their own ----------------------------------------- */
+#pc-side {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0 0.25rem 3rem 0; /* clear of the collapsed Save / Load widget */
+}
+#pc-side > * { margin: 0; flex: 0 0 auto; }
+#pc-side > #advance-round-button { position: sticky; top: 0; z-index: 5; width: 100%; padding: 0.9rem; font-size: 1.05rem; }
+#pc-side > .section { padding: 0.6rem 0.8rem; }
+
+/* Region A's status block, tightened: the lines are chips, so let them pack. */
+#status > * { margin-top: 0; }
+#status .mini-temp-graph { margin: 0.4rem 0; }
+#status .mini-temp-graph-svg { height: auto; max-height: 7rem; }
+#region-comparison .mini-temp-graph-svg { height: auto; max-height: 5.5rem; }
+#region-comparison .region-card .region-flavor { font-size: 0.78rem; }
+#region-comparison .region-comparison-row { gap: 0.6rem; }
+
+/* The classic mobile pieces have no place on the Desktop boot. */
+html[data-layout="pc"] .mobile-hud, html[data-layout="pc"] #mobile-hud, html[data-layout="pc"] #mobile-hud-bar { display: none !important; }
+
+/* Region cards, tightened so a card's graph, stats and buttons fit without much scrolling. */
+#region-comparison > .meter-label { margin: 0 0 0.4rem; }
+#region-comparison .region-card { padding: 0.5rem 0.6rem; }
+#region-comparison .region-card .region-stat { margin: 0 0 0.2rem; padding: 0.2rem 0.55rem; font-size: 0.78rem; }
+#region-comparison .region-card .region-melt-status { margin: 0 0 0.3rem; }
+#region-comparison .region-card .region-flavor { margin: 0 0 0.3rem; }
+#region-comparison .region-card .mini-temp-graph { margin: 0.2rem 0; }
+#region-comparison .region-preset-buttons { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.4rem; }
+#region-comparison .region-strategy-label-input { margin-top: 0.4rem; }
+#region-comparison > .comparison-message { margin: 0.5rem 0 0; font-size: 0.8rem; }
+
+/* Smaller desktop windows (about 1024px wide or 700px tall). */
+@media (max-width: 1280px) {
+  #pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) 18rem; gap: 0.6rem; }
+  #pc-stage { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 0.5rem; }
+  #pc-stage > #status, #pc-stage > #region-comparison { padding: 0.5rem 0.6rem; }
+  #status .status-line, #status .comparison-message { font-size: 0.8rem; }
+  #status .status-line { padding: 0.2rem 0.5rem; }
+  #pc-side .invest-name { font-size: 0.8rem; }
+}
+@media (max-height: 780px) {
+  #pc-stage > .permafrost-scene { display: none; }
+  #pc-stage { grid-template-rows: minmax(0, 1fr) auto; }
+  #pc-stage > #status, #pc-stage > #region-comparison { grid-row: 1; }
+  #pc-stage > #pc-hintbar { grid-row: 2; }
+  #pc-stage .region-flavor { display: none; }
+}
+
+/* Themes. */
+html[data-theme="light"] #pc-hintbar { opacity: 1; }
+.pc-window-frame a { color: #9fc4ff; }
+html[data-theme="light"] .pc-window-frame a { color: #1d4f9e; }
+/* The shell's notification card takes its background from a variable only windows define, so in the
+   light theme it fell back to the dark default under dark text. */
+html[data-theme="light"] .pc-toast { background: #fbf6ec; border-color: rgba(122, 74, 18, 0.4); color: #1b1710; }

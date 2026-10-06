@@ -501,3 +501,8 @@ The clearest cross-cutting infra lesson from this pass: three separate games' au
 **Area:** `sw.js`
 **Did:** Added the Herd Desktop files to the service worker precache (worker version 20).
 **Result:** Shared tests pass.
+
+### 2026-10-07 (Site-wide: Thaw offline cache, light-theme notifications)
+**Area:** `sw.js`, `shared/pc-shell.css`
+**Did:** Added the Thaw Desktop files to the service worker precache (worker version 21). Notification cards now define their own light-theme background and border, because the variables they used were only defined on windows.
+**Result:** Shared tests pass.

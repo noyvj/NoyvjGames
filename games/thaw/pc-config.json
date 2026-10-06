@@ -1,0 +1,89 @@
+{
+  "windows": [
+    ["howto-panel", "howto-toggle-button", "How to Play"],
+    ["achievements-panel", "achievements-toggle-button", "Achievements"],
+    ["changelog-panel", "changelog-toggle-button", "What's New"],
+    ["community-compare-panel", "community-compare-toggle-button", "Community Comparison"],
+    ["climate-scientist-panel", "climate-scientist-toggle-button", "Climate Scientist"],
+    ["settings-panel", "settings-toggle-button", "Settings"],
+    ["info-page-panel", "info-page-toggle-button", "The Real Story"]
+  ],
+  "toolbar": {
+    "icons": [
+      ["achievements-toggle-button", "🏆"],
+      ["climate-scientist-toggle-button", "🔬"],
+      ["settings-toggle-button", "⚙️"]
+    ],
+    "menu": [
+      {"heading": "Game", "ids": []},
+      {"heading": "Details", "ids": []},
+      {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button", "info-page-toggle-button"]},
+      {"heading": "Records", "ids": ["community-compare-toggle-button", "changelog-toggle-button"]}
+    ]
+  },
+  "composites": [
+    {
+      "id": "pc-archive-panel",
+      "title": "Climate archive and scientist's log",
+      "members": ["#personal-best-display", "#archive-toggle-button", "#archive-panel", "#science-log-details"],
+      "group": "Records",
+      "label": "📓 Archive and scientist's log"
+    },
+    {
+      "id": "pc-story-panel",
+      "title": "Four regions, one story",
+      "members": ["#shared-research"],
+      "group": "Details",
+      "label": "🧊 Four regions, one story"
+    },
+    {
+      "id": "pc-worst-panel",
+      "title": "Region D: the worst case",
+      "members": ["#worst-case-section"],
+      "group": "Details",
+      "label": "☠️ Region D: the worst case"
+    },
+    {
+      "id": "pc-options-panel",
+      "title": "Game options",
+      "members": ["#long-game", "#framing"],
+      "group": "Game",
+      "label": "🎚 Long game and framing"
+    },
+    {
+      "id": "pc-about-panel",
+      "title": "About Thaw",
+      "members": [".tagline", ".context-blurb"],
+      "group": "Help",
+      "label": "ℹ️ About Thaw"
+    },
+    {
+      "id": "pc-feedback-panel",
+      "title": "Feedback",
+      "members": ["#feedback-prompt"],
+      "group": "Help",
+      "label": "💬 Send feedback"
+    }
+  ],
+  "adopt": [],
+  "zones": {
+    "topbar": [".hub-back-link", "h1", ".game-toolbar"],
+    "stagebar": [],
+    "stage": [".permafrost-scene", "#status", "#region-comparison"],
+    "side": ["#advance-round-button", "#investments", "#carbon-bank", "#forecast", "#policy-stance"],
+    "hidden": ["#round-display", "#funds-display"]
+  },
+  "readouts": [
+    ["#round-display", "🔁", ""],
+    ["#funds-display", "💰", "Funds"],
+    ["#temperature-display", "🌡️", "Temperature"],
+    ["#b-temperature-display", "🅱️", "Region B"],
+    ["#c-temperature-display", "🅲", "Region C"]
+  ],
+  "side_label": "Investments and decisions",
+  "hints": [
+    ["?", "All shortcuts"],
+    ["Esc", "Menu / close window"]
+  ],
+  "notify": {"list": "#science-log-list"}
+}
