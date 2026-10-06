@@ -2,8 +2,9 @@
    handle() returns and forwards what the player does. No game logic lives here. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["lang.py", "pulse.py", "parse.py", "world.py", "scenes.py", "deduce.py", "notebook.py", "compound.py", "compound_scenes.py", "deduce_compound.py", "glyphs.py", "achievements.py", "bridge.py", "bridge_scenes.py", "deduce_bridge.py"];
+  var ENGINE_MODULES = ["lang.py", "pulse.py", "parse.py", "world.py", "scenes.py", "deduce.py", "notebook.py", "compound.py", "compound_scenes.py", "deduce_compound.py", "glyphs.py", "achievements.py", "bridge.py", "bridge_scenes.py", "deduce_bridge.py", "story.py", "report.py", "info.py"];
   var STORE_KEY = "lexis:state";
+  var BRIEF_KEY = "lexis:brief-seen";
   var TOKEN_LEN = 4;
   var MAX_OUT = 40;
 
@@ -462,8 +463,120 @@
     knownEarned = earnedNow;
   }
 
+
+  // ---- story, contact report and the About page ------------------------------------------------
+  function el(tag, text, className) {
+    var node = document.createElement(tag);
+    if (text !== undefined) node.textContent = text;
+    if (className) node.className = className;
+    return node;
+  }
+  function storyEntry(entry) {
+    var wrap = el("article", undefined, "log-entry");
+    wrap.appendChild(el("h3", entry.title));
+    entry.lines.forEach(function (line) {
+      var p = el("p", undefined, "log-line");
+      p.appendChild(el("strong", line.speaker + ": "));
+      p.appendChild(document.createTextNode(line.text));
+      wrap.appendChild(p);
+    });
+    return wrap;
+  }
+  var knownBeats = null;
+  function showToast(text) {
+    var toast = $("toast");
+    toast.textContent = toast.textContent ? toast.textContent + " " + text : text;
+    setTimeout(function () { if (toast.textContent.indexOf(text) !== -1) toast.textContent = ""; }, 6000);
+  }
+  function renderStory() {
+    var holder = $("crew-log-entries");
+    holder.textContent = "";
+    var story = view.story || { beats: [] };
+    story.beats.forEach(function (beat) { holder.appendChild(storyEntry(beat)); });
+    if (story.brief) holder.appendChild(storyEntry(story.brief));    // the oldest entry sits last
+    var count = story.beats.length;
+    if (knownBeats !== null && count > knownBeats) showToast("New crew log entry: " + story.beats[0].title + ".");
+    knownBeats = count;
+  }
+
+  var knownReport = null;
+  function reportPlanet(p) {
+    var wrap = el("section", undefined, "report-planet");
+    wrap.appendChild(el("h3", p.name));
+    var list = el("ul");
+    p.learned.forEach(function (line) { list.appendChild(el("li", line)); });
+    wrap.appendChild(list);
+    wrap.appendChild(el("p", "Transmissions you needed: " + p.transmissions + " of " + p.transmissions_total +
+      ". Messages you sent: " + p.sent + ". Notebook entries right: " + p.right + " of the " + p.written + " you wrote.", "note"));
+    return wrap;
+  }
+  function renderReport() {
+    var report = view.report;
+    var button = $("report-toggle-button");
+    button.hidden = !report;
+    if (!report) { $("report-panel").hidden = true; $("report-body").textContent = ""; knownReport = false; return; }
+    var body = $("report-body");
+    body.textContent = "";
+    report.planets.forEach(function (p) { body.appendChild(reportPlanet(p)); });
+    var t = report.totals;
+    body.appendChild(el("p", "In all: " + t.transmissions + " transmissions received, " + t.sent + " messages sent, and " +
+      t.right + " of your " + t.written + " notebook entries were right.", "report-total"));
+    body.appendChild(el("h3", "Achievements earned: " + report.achievements.length + " of " + report.achievements_total));
+    var ul = el("ul");
+    report.achievements.forEach(function (a) { ul.appendChild(el("li", a.label + ": " + a.description)); });
+    body.appendChild(ul);
+    if (knownReport === false) {      // first contact with planet 3 in this session: show it
+      $("report-panel").hidden = false;
+      setToggleState("report-toggle-button", "report-panel");
+    }
+    knownReport = true;
+  }
+
+  function renderInfo() {
+    var info = view.info;
+    if (!info) return;
+    $("info-page-framing").textContent = info.framing;
+    var list = $("info-page-sources");
+    list.textContent = "";
+    info.facts.forEach(function (fact) {
+      var item = el("li", undefined, "info-page-source");
+      if (fact.locked) {
+        item.appendChild(el("strong", "Locked"));
+        item.appendChild(el("p", "Make contact with planet " + ({ pulse: 1, compound: 2, bridge: 3 })[fact.unlock] + " to read this one.", "info-page-source-note"));
+        list.appendChild(item);
+        return;
+      }
+      item.appendChild(el("strong", fact.heading));
+      item.appendChild(el("p", fact.fact, "info-page-framing"));
+      item.appendChild(el("p", fact.tie_in, "info-page-tie-in"));
+      var link = el("a", fact.source.title);
+      link.href = fact.source.url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      var src = el("p", undefined, "info-page-source-note");
+      src.appendChild(document.createTextNode("Source: "));
+      src.appendChild(link);
+      src.appendChild(document.createTextNode(", " + fact.source.publisher + ". Read on " + fact.source.date_read + "."));
+      item.appendChild(src);
+      list.appendChild(item);
+    });
+  }
+
+  function setToggleState(buttonId, panelId) {
+    $(buttonId).setAttribute("aria-expanded", String(!$(panelId).hidden));
+  }
+  function wirePanelToggle(buttonId, panelId) {
+    $(buttonId).addEventListener("click", function () {
+      $(panelId).hidden = !$(panelId).hidden;
+      setToggleState(buttonId, panelId);
+    });
+  }
+
   function render() {
     renderAchievements();
+    renderStory();
+    renderReport();
+    renderInfo();
     renderTabs();
     if (currentPlanet === "bridge") { renderBridge(); return; }
     if (currentPlanet === "compound") { renderCompound(); return; }
@@ -550,6 +663,10 @@
     { selector: "#transmissions-panel", title: "Watch what happens", text: "Each transmission is a signal and what the station did when it arrived. Compare them: what stays the same, and what changes?" },
     { selector: "#notebook-panel", title: "Write your guesses", text: "Write what you think each group of marks means. Nothing here is marked right or wrong. Ticking entries and pressing Check tells you how many are right, never which." },
     { selector: "#transmit-panel", title: "Answer", text: "Build a signal and send it. The station answers in its own terms, and when it cannot understand you, it says why." },
+    { selector: "#tab-compound", title: "Planet 2", text: "When planet 1 answers, a second world comes into range. Its signs are built from parts, so learning the parts lets you read signs nobody showed you." },
+    { selector: "#tab-bridge", title: "Planet 3", text: "The third world builds on the first two: things you learned on planet 2, numbers from planet 1, and a few new marks that change what a message does. Contact here needs a particular result on its counter, and the crew tells you which." },
+    { selector: "#crew-log-toggle-button", title: "Crew log", text: "Each contact adds an entry from the crew, newest first, with the mission brief at the bottom. The story never says what a sign means. The Story button, bottom left, hides it." },
+    { selector: "#info-page-toggle-button", title: "About Lexis", text: "Real-world facts behind the game, each with its source named and the date it was read. After you reach planet 3, a Contact report also appears, telling you which of your notebook entries were right." },
     { title: "You are ready", text: "Every word can be worked out from what you are shown. Take your time." },
   ];
 
@@ -560,6 +677,9 @@
       var panel = $("achievements-panel");
       panel.hidden = !panel.hidden;
     });
+    wirePanelToggle("crew-log-toggle-button", "crew-log-panel");
+    wirePanelToggle("report-toggle-button", "report-panel");
+    wirePanelToggle("info-page-toggle-button", "info-page-panel");
     // The save widget loads a save directly into the engine; this redraws the page afterwards.
     window.lexisRefresh = function () { if (engine) send({ action: "open" }); };
     $("next-scene-button").addEventListener("click", function () { send({ action: "next_scene" }); });
@@ -605,6 +725,11 @@
     $("engine-status").textContent = "";
     setBusy(false);
     send({ action: "open" });
+    if (lsGet(BRIEF_KEY) === null) {      // the mission brief opens by itself the first time only
+      $("crew-log-panel").hidden = false;
+      setToggleState("crew-log-toggle-button", "crew-log-panel");
+      lsSet(BRIEF_KEY, "seen");
+    }
     if (window.GameTutorial) window.GameTutorial.init(TUTORIAL_STEPS, { gameId: "lexis" });
   }
 

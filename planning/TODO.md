@@ -927,7 +927,7 @@ Classic stays the default boot (`index.html`); Desktop is a second boot (`pc.htm
 - [x] LX-6: Milestone 5, achievements, save widget, tutorial and opening screen.
 - [x] LX-6b: Your answers 2026-10-07: go with the recommendations (hints are in-world, such as asking someone to repeat slowly, with no answer-giving button; working title stays Lexis). Noy2 continues Lexis this round.
 - [x] LX-7: Milestone 6, the bridge language (rung 3: plural, negation, question markers).
-- [ ] LX-8: Milestone 7, story spine and ending, Info page with real-linguistics sources read live.
+- [x] LX-8: Milestone 7, story spine and ending, Info page with real-linguistics sources read live.
 - [ ] LX-9: Milestone 8, hub registration (card, thumbnail, favicon, offline cache), polish, accessibility pass, light theme, Desktop boot.
 
 ## CH. Chronicle (history game built from expandable sets; plan `planning/chronicle-plan.md`)

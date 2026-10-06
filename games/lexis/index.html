@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lexis</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../../shared/info-page.css">
 <!-- Pyodide is loaded by app.js after first paint, so this shell is readable before the engine is warm. -->
 </head>
 <body>
@@ -15,7 +16,25 @@
   <div class="game-toolbar">
     <button id="tutorial-restart-button" type="button">Tutorial</button>
     <button id="achievements-toggle-button" type="button">Achievements</button>
+    <button id="crew-log-toggle-button" type="button" aria-expanded="false" aria-controls="crew-log-panel">Crew log</button>
+    <button id="report-toggle-button" type="button" aria-expanded="false" aria-controls="report-panel" hidden>Contact report</button>
+    <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About Lexis</button>
   </div>
+  <section id="crew-log-panel" class="panel" hidden aria-labelledby="crew-log-heading">
+    <h2 id="crew-log-heading">Crew log</h2>
+    <p class="note">What the crew says as each world answers. Newest first. The story never tells you what a sign means.</p>
+    <div id="crew-log-entries"></div>
+  </section>
+  <section id="report-panel" class="panel" hidden aria-labelledby="report-heading">
+    <h2 id="report-heading">Contact report</h2>
+    <p class="note">The one place Lexis says what each sign really meant and which of your notebook entries were right. It stays here for you to read any time.</p>
+    <div id="report-body"></div>
+  </section>
+  <section id="info-page-panel" class="panel" hidden aria-labelledby="info-page-heading">
+    <h2 id="info-page-heading">About Lexis</h2>
+    <p id="info-page-framing" class="info-page-framing"></p>
+    <ul id="info-page-sources" class="info-page-sources"></ul>
+  </section>
   <section id="achievements-panel" class="panel" hidden aria-labelledby="ach-heading">
     <h2 id="ach-heading">Achievements</h2>
     <ul id="achievements-list" class="ach-list"></ul>
@@ -153,6 +172,7 @@
 <script src="../../shared/hub-auth.js"></script>
 <script src="../../shared/save-widget.js" data-game-id="lexis"></script>
 <script src="../../shared/opening-screen.js" data-game-id="lexis" data-game-name="Lexis" data-tagline="A message arrives from deep space. Work out what it says."></script>
+<script src="../../shared/story-toggle.js" data-game-id="lexis" data-story-selectors="#crew-log-panel, #crew-log-toggle-button"></script>
 <script src="app.js"></script>
 </body>
 </html>

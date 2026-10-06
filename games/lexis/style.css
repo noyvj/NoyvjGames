@@ -72,3 +72,17 @@ button[disabled] { opacity: 0.5; cursor: default; }
 .glyph.marker { border-style: dashed; }
 .message { display: inline-flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
 .scene .reply { margin-top: 0.3rem; font-style: italic; color: var(--text); }
+
+/* Crew log, contact report: text blocks, kept readable and never colour-coded. */
+.log-entry { border-top: 1px solid var(--line); padding-top: 0.5rem; margin-top: 0.6rem; }
+.log-entry:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+.log-entry h3, .report-planet h3 { margin: 0 0 0.3rem; font-size: 0.95rem; }
+.log-line { margin: 0.25rem 0; }
+.report-planet { border-top: 1px solid var(--line); padding-top: 0.5rem; margin-top: 0.6rem; }
+.report-planet:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+.report-planet ul, #report-body ul { margin: 0.3rem 0; padding-left: 1.2rem; }
+.report-total { font-weight: 600; }
+#info-page-sources { list-style: none; padding-left: 0; }
+.info-page-source { border-top: 1px solid var(--line); padding-top: 0.5rem; margin-top: 0.6rem; }
+.info-page-source:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+.info-page-source a { color: var(--accent); }

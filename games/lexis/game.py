@@ -29,6 +29,9 @@ import achievements
 import deduce
 import deduce_bridge
 import deduce_compound
+import info
+import report
+import story
 from bridge import MARKERS, Stock, describe_stock
 from bridge_scenes import bridge_scenes
 from compound import COMPONENTS, Tray, all_valid_glyphs, describe_tray
@@ -181,10 +184,24 @@ def _bridge_view():
     }
 
 
+def _extras():
+    """Story, info and the contact report ride on every view. All three are derived from the contact flags
+    and the state, never stored."""
+    return {
+        "story": story.view(state.contact),
+        "info": info.view(state.contact),
+        "report": report.build(state, achievements.view(state, station, tray),
+                               {"pulse": len(SCENES), "compound": len(CSCENES), "bridge": len(BSCENES)}),
+    }
+
+
 def _view(planet):
     if planet == "bridge":
-        return _bridge_view()
-    return _compound_view() if planet == "compound" else _pulse_view()
+        view = _bridge_view()
+    else:
+        view = _compound_view() if planet == "compound" else _pulse_view()
+    view.update(_extras())
+    return view
 
 
 def _compound_truth(letter):
@@ -256,7 +273,7 @@ def handle(request_json):
                 state.flags["understood"] = True
             else:
                 state.flags["misunderstood"] = True
-            view = _bridge_view()
+            view = _view("bridge")
             view["reaction"] = {"understood": reaction.understood, "text": reaction.text, "reason": reaction.reason,
                                 "reply": reaction.reply}
             return json.dumps(view)
@@ -275,7 +292,7 @@ def handle(request_json):
                     state.flags["understood_unseen"] = True
             else:
                 state.flags["misunderstood"] = True
-            view = _compound_view()
+            view = _view("compound")
         else:
             marks = str(request.get("marks", ""))
             reaction = react(marks, station, LANGUAGE)
@@ -291,7 +308,7 @@ def handle(request_json):
                     state.flags["all_lamps"] = True
             else:
                 state.flags["misunderstood"] = True
-            view = _pulse_view()
+            view = _view("pulse")
         view["reaction"] = {"understood": reaction.understood, "text": reaction.text, "reason": reaction.reason}
         return json.dumps(view)
     elif action == "reset":
