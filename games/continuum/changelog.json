@@ -1,7 +1,7 @@
 [
   {
     "date": "2026-10-06",
-    "entry": "Desktop layout (first version): on a wide window with a mouse you can now choose \"Switch to Desktop layout\" on the opening screen. It fills the whole window instead of a narrow column: a top bar with the toolbar and the clock, the settlement scene as the main stage with buildings you click to assign workers, build and research, and the readouts, sustainability score and log in a side column. Achievements, What's New, Settings, the Civilization Summary and the other panels open as windows you close with Escape, there is a Fullscreen button, and the tutorial is rewritten for this layout. Your saves are shared with the Classic layout, which is unchanged and one click away (\"Classic layout\")."
+    "entry": "Desktop layout (first version): on a wide window with a mouse you can choose \"Switch to Desktop layout\" on the opening screen. It fills the whole window instead of a narrow column. The settlement scene is the whole game: chips along its top show people, food, materials, tools, knowledge and sustainability, and each opens a dropdown with what it will do next season (for example \"+1 person per season\", or food gathered, eaten and spoiled). Buildings in the scene are the controls for assigning workers, building and research. A few icons (Achievements, City Views, Settings) and a Menu (also Escape) hold everything else, and the log, scenario picker, Look back and Community open as windows over the scene. New log entries pop up briefly, there is a Fullscreen button and a hotkey bar, and the tutorial is rewritten for this layout. Your saves are shared with the Classic layout, which is unchanged and one click away (\"Classic layout\" in the Menu)."
   },
   {
     "date": "2026-09-27",

@@ -206,7 +206,9 @@ def _materials_lines(view):
 def _tools_lines(view):
     out = [_per_season(view["delta"])]
     if view["delta"] <= -_EPSILON:
-        out.append("Tools wear out faster than they are made")
+        out.append(
+            f"Tools wear out by {sim.TOOL_DECAY_RATE * 100:.0f}% each season; Crafters make new ones"
+        )
     return out
 
 
