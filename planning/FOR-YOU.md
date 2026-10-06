@@ -25,11 +25,11 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 
 **Steps:** from the `app/` folder run `python3 -m fastapi cloud deploy`, then open `ideas.html` or `admin.html` and sign in as `noyvj` in the card that appears. The admin page no longer asks for the separate admin token: signing in as `noyvj` is enough (the backend accepts that account as admin; `AI_ADMIN_TOKEN` still works for the AI sessions). Tell me once it works and I will remove this entry.
 
-### 0c. PC version of every game: two questions left, one about Continuum's deadline
+### 0c. PC version of every game: status and the questions that are still open
 
-**Why:** your first three answers are folded into `planning/PC-VERSION-PLAN.md` (layout and feel only; separate Classic and Desktop boots with shared saves; Continuum first and alone, with nothing else touched until its deadline around 2026-10-20). Section 8 lists what is still open. The one that affects the next two weeks: which parts of Continuum does the class marking actually need finished? I will fit any Desktop-boot work around those instead of competing with them.
+**Where it is:** Continuum's Desktop layout is built (HUD chips with trend dropdowns, Menu, draggable windows). You approved converting the other games; background agents are doing Tide, Grid and Canopy first from `planning/PC-GAME-CONVERSION-GUIDE.md`. Open items from `planning/PC-VERSION-PLAN.md` section 8 (each has a recommendation, "go with your recommendations" is fine): the second-game order (now moot, three at once), the visual identity per game (keep the shared frame, add per-game accents over time), controller support (not yet), mobile stays as is, and audio (parked, raised every ideas round).
 
-**Steps:** reply with what the Continuum submission must contain (or "nothing new, polish only"), and "go with your recommendations" for items 4 to 7 of section 8 if you agree.
+**Nothing needs doing from you** except looking at each converted game when it lands and saying what feels wrong.
 
 ### 1. Apply for Google AdSense
 

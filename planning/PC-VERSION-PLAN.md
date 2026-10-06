@@ -1,6 +1,6 @@
 # PC version of every game: plan and discussion
 
-Status: **plan revised 2026-10-06 after the user's first three answers; nothing built.** The user asked for "a huge update to all games, building them out more like PC games than browser games", while keeping the current version available. Answers so far (section 8): layout and feel only, no downloadable app; the two layouts are separate "boots" chosen before entering a game, with shared saves; audio stays off but is raised again in every ideas round; **Continuum is the only game that gets any of this work for the next two weeks** because it is due for class.
+Status: **plan revised 2026-10-06 after the user's first three answers; nothing built.** The user asked for "a huge update to all games, building them out more like PC games than browser games", while keeping the current version available. Answers so far (section 8): layout and feel only, no downloadable app; the two layouts are separate "boots" chosen before entering a game, with shared saves; audio stays off but is raised again in every ideas round; Continuum was the pilot and class priority. **Update 2026-10-06 (later):** the user then asked to finish Continuum's windows (done: draggable, remembered positions) and "start on the others" using background agents, so other games are now being converted, one agent per game, from `planning/PC-GAME-CONVERSION-GUIDE.md`.
 
 ---
 
@@ -79,7 +79,7 @@ These groupings come from the current page structure; each game's real manifest 
 
 Sizes are relative effort: S, M, L, XL.
 
-**Schedule constraint (user, 2026-10-06):** Continuum is the flagship BCM114 Round 2 Digital Artefact and is due in about two weeks (around 2026-10-20). For that period it is the only game that gets any of this work, and the PC work only goes ahead if it does not compete with what the class needs. No other game is touched until Continuum's deadline has passed.
+**Schedule note (user, 2026-10-06):** Continuum is the flagship BCM114 Round 2 Digital Artefact, due around 2026-10-20, and its Classic page must stay safe. The user later approved converting the other games now (delegated agents, one per game, each limited to its own game folder; shared files stay with the main session). First batch: Tide, Grid, Canopy.
 
 | Phase | What | Size |
 |---|---|---|
