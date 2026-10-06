@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 16;
+const SW_VERSION = 17;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -88,7 +88,11 @@ self.addEventListener("install", (event) => {
   // alone doesn't help a player who never fully closes their browser.
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
+    // cache: "reload" skips the browser's own HTTP cache, so a deploy can never precache a
+    // copy GitHub Pages' max-age=600 would otherwise have kept for up to ten minutes.
+    caches.open(CACHE_NAME).then((cache) =>
+      cache.addAll(PRECACHE_URLS.map((url) => new Request(url, { cache: "reload" })))
+    )
   );
 });
 
@@ -102,7 +106,8 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// Same-origin requests are NETWORK-FIRST: try the network (bounded by a
+// Same-origin requests are NETWORK-FIRST (and bypass the browser's own HTTP cache, see the
+// fetch below): try the network (bounded by a
 // timeout), refresh the cache with any good response, and fall back to the
 // cached copy only when offline / slow / erroring. This is what fixes the
 // old "reload twice after a deploy" trap -- the previous stale-while-
@@ -133,7 +138,11 @@ self.addEventListener("fetch", (event) => {
   if (sameOrigin) {
     event.respondWith(
       caches.open(CACHE_NAME).then((cache) => {
-        const fromNetwork = fetch(request).then((response) => {
+        // cache: "no-cache" = always revalidate with the server (a cheap 304 when nothing
+        // changed). Without it the browser's HTTP cache answered first: GitHub Pages sends
+        // max-age=600, so a fresh deploy could stay invisible for ten minutes even though this
+        // worker is "network-first" (and a local dev server's heuristic caching did the same).
+        const fromNetwork = fetch(request, { cache: "no-cache" }).then((response) => {
           if (cacheable(response)) cache.put(request, response.clone());
           return response;
         });
