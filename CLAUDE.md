@@ -34,6 +34,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
     database.py
     models.py
     pyproject.toml     <- dependency manifest; scoped as FastAPI Cloud's Application Directory
+    (deploys: FastAPI Cloud redeploys automatically within about 5 minutes of a `git push` to GitHub, per the user 2026-10-07; there is no separate deploy step)
     tests/             <- backend pytest suite (sqlite, never touches the real Neon database)
   /games
     /sol

@@ -126,3 +126,14 @@ Several items across the ideas file got parked specifically pending this — you
 
 - **Grid GC13: rolling-blackout gamble button.** You said you were unsure what it meant. In plain terms: in a round where Grid is short on capacity you would get a button that deliberately causes a controlled blackout. That caps how much the shortfall costs you, but it has a 30% chance of also costing public trust. It is a "take a smaller sure loss, or risk a bigger hit" choice. Left parked until you say whether you want it; I will bring it up again with a mock-up in the next ideas round.
 - **Grid GC23: hidden achievements shown as "???".** You like it but want every game easy to 100%. Parked while you decide. Middle option if you want it: show the hidden ones as "???" with a one-line hint once you are within one step of earning them, so none is a surprise you cannot find.
+
+
+## Parked from your Round 3 answers (2026-10-07)
+
+- **Round 3 B-18 (Canopy (regular ideas; the gamified batch is section GB above))**: Canopy B-18 ambient soundscape toggle (wind, biodiversity birds, spring rain via Web Audio): owner said later with "Still no audio"; keep parked, do not build unless the owner lifts the no-audio decision.
+- **Round 3 GI-17 (Drift)**: Drift speedrun achievements (Thriving by round 20, Model Region on Crisis Start, Never reallocate, Only services before round 10): parked because the owner said they push 100% too hard; bring back with easier or tiered targets.
+- **Round 3 J-15 (Trade Empire)**: Terraforming Bridge: redeeming a SOL prestige code in Trade Empire for a cosmetic plus small perk. Owner: 'Maybe later we can do something like the climate ones but not now.' Bring it up again once cross-game ties are decided.
+- **Round 3 J-16 (Trade Empire)**: 'Visitor from SOL' log line when a SOL code is redeemed in Trade Empire; parked together with J-15 (owner: see above).
+- **Round 3 K-3 (Continuum)**: K-3 (Continuum): era-specific crisis events (drought, plague, market crash, fire, grid outage, solar storm) with pre-chosen mitigation policies; owner said 'maybe, but not a deck', so bring back only as a scheduled-crisis or preparedness-slot version with no deck or random hand.
+- **Round 3 K-22 (Continuum)**: K-22 (Continuum): per-era ambient soundscapes (opt-in, own volume slider, muted by default). Owner said audio is still a later; revisit with the other parked audio items (K4, K11).
+- **Round 3 Z-26 (cross-game)**: a tiny dormant shared quiet-mode helper (muted until first tap, one corner switch) that renders nothing until a game adds audio. You said park it (2026-10-07) while audio stays parked; raise audio again every ideas round.

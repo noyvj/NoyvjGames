@@ -1,6 +1,16 @@
 # Chronicle (working title): a history game built from expandable idea sets, groundwork plan
 
-Status: PLAN ONLY. No `games/chronicle/` folder exists. Written 2026-10-06 after the user asked: "can we build a history teaching game? somehow gamifying learning about big events or small nuances. ancient greece, wwii, history of food, american presidents, etc. this has a ton of places to expand to through idea sets."
+Status: PLAN ONLY, decisions recorded 2026-10-07 (see below). No `games/chronicle/` folder exists yet. Written 2026-10-06 after the user asked: "can we build a history teaching game? somehow gamifying learning about big events or small nuances. ancient greece, wwii, history of food, american presidents, etc. this has a ton of places to expand to through idea sets."
+
+## Decisions (the user, 2026-10-07)
+
+- **Audience:** the user and general players, not a classroom product.
+- **Core mechanic first:** the timeline builder, then the cause web.
+- **First set: American presidents** (not the history of food as originally recommended). The structured terms/elections/events data proves the format at scale; every characterisation needs sources and the set must stay balanced and non-partisan.
+- **Content:** the assistant writes the sets (the user does not hand-write claims), and **every claim links three reputable sources**. The user asked for a **report feature** so a player can flag a claim that looks wrong (same pattern as Le Champ de Mots' answer reports: a button on each claim, a backend table, a mark-as-done list on the admin page).
+- **Structure:** one game with a set picker, many sets.
+- **Order:** Noy2 finishes the first Lexis milestones this round; the Noyvj session builds Chronicle. This is for this round of the TODO only, not a permanent split.
+- Milestone 8 below therefore authors the presidents set first (three sources per claim, a review page, then the user's review); the history of food and Ancient Greece follow.
 
 ## 1. One-line pitch
 One game engine, many history "sets": each set is a data pack (Ancient Greece, the history of food, American presidents, WWII...) that the same game plays, so adding a topic is adding data, not code.
@@ -53,8 +63,8 @@ Further sets come from the same pipeline (the user's "ton of places to expand to
 | 5 | Myth or record, plus the Info page with sources shown for every claim |
 | 6 | Whose account? mechanic |
 | 7 | Review (spaced repetition) and decision points |
-| 8 | Set 1 authored in full (history of food) with the review page, then user review |
-| 9 | Set 2 (Ancient Greece), and the set picker |
+| 8 | Set 1 authored in full (American presidents, three sources per claim, a report-a-problem button on every claim) with the review page, then user review |
+| 9 | Set 2 (history of food), then Ancient Greece, and the set picker |
 | 10 | Polish, accessibility, Desktop boot |
 
 ## 8. Risks

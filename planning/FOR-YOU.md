@@ -17,33 +17,13 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 
 **Steps:** run the two `SELECT` previews, check the rows are test data (the date filter may also match real submissions from 5 Oct), then run the `DELETE`s. Tell me once done and I will remove this entry.
 
-### 0b. Redeploy the backend (needed before the owner-only pages open)
+### 0c. PC version of every game: send screenshots when all are done
 
-**Why:** `admin.html`, `ideas.html` and the Warframe tracker now check that you are signed in as `noyvj`, using a new `GET /users/me` endpoint. Until the backend is redeployed those three pages show "The server cannot check accounts yet" and will not open (the public hub and games are unaffected).
-
-**Also needed for answer syncing:** the ideas page now saves your answers to your account as you go (new `owner_notes` table and `/owner/notes/ideas-answers` routes), so I can read them without you exporting. Until the deploy it shows "Not synced: the backend needs its latest deploy" and your answers stay in the browser (Copy answers still works).
-
-**Steps:** from the `app/` folder run `python3 -m fastapi cloud deploy`, then open `ideas.html` or `admin.html` and sign in as `noyvj` in the card that appears. The admin page no longer asks for the separate admin token: signing in as `noyvj` is enough (the backend accepts that account as admin; `AI_ADMIN_TOKEN` still works for the AI sessions). Tell me once it works and I will remove this entry.
-
-### 0c. PC version of every game: status and the questions that are still open
-
-**Where it is:** Continuum's Desktop layout is built (HUD chips with trend dropdowns, Menu, draggable windows). You approved converting the other games; background agents are doing Tide, Grid and Canopy first from `planning/PC-GAME-CONVERSION-GUIDE.md`. Open items from `planning/PC-VERSION-PLAN.md` section 8 (each has a recommendation, "go with your recommendations" is fine): the second-game order (now moot, three at once), the visual identity per game (keep the shared frame, add per-game accents over time), controller support (not yet), mobile stays as is, and audio (parked, raised every ideas round).
-
-**Nothing needs doing from you** except looking at each converted game when it lands and saying what feels wrong.
-
-### 0d. Lexis (language-deduction puzzle game): decided so far, three small questions left
-
-**Decided (you, 2026-10-06):** deduction first with the story as the pull; sci-fi; start with the three-language size and grow toward five later; a ladder from bare two-symbol pulses up to compound glyphs where every part of the symbol means something. The plan is `planning/lexis-plan.md`, with the ladder in section 6b.
-
-**Still open (recommendations are in the plan; "go with your recommendations" is fine):** how generous hints are (recommended: in-world "ask someone to repeat it slowly", no answer-giving button), the title (the story is decided: a first-contact crew on a survey ship, you the communications officer, one planet per language; see the plan) (working title is "Lexis").
-
-### 0e. New game idea: a history game built from expandable "sets" (Ancient Greece, food, presidents, WWII...): six questions
-
-**Why:** you asked for a history-teaching game with many topic sets. The groundwork plan is `planning/chronicle-plan.md` (working title "Chronicle"): one engine, each set is a data pack, with a timeline builder, a cause web, a "whose account?" source-evaluation game, "myth or record", a collectible archive and spaced review. The hard part is accuracy, so every claim carries a source and a confidence level, tests fail on a claim without a source, and you review each set before it ships.
-
-**Steps:** answer the six questions at the end of the plan (each has a recommendation; "go with your recommendations" is fine). Nothing is built until you do.
+**Your answer (2026-10-07): later.** When every game has its Desktop layout (Le Champ de Mots and SOL are still waiting on your usage reset), I send screenshots of all of them and you give your input. Nothing needed from you until then. Controller support: not yet; audio stays parked.
 
 ### 1. Apply for Google AdSense
+
+**Your answer (2026-10-07): later.** Kept here so it is not forgotten.
 
 **Why:** `planning/pwa-and-ads-setup.md`'s ad bar is already built and labeled everywhere on the site, wired up with placeholder IDs (`ca-pub-XXXXXXXXXXXXXXXX`) waiting for the real ones. The only blocker is the application itself, which needs your own Google account — I can't submit it for you.
 
@@ -59,14 +39,6 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 - The exact `ads.txt` line, if AdSense gave you one.
 
 I'll drop all of that into the ad bar and it goes live everywhere on the site at once, since it's a shared partial.
-
-### 2. Redeploy the backend — looks like this may already be done?
-
-**Why this is still here:** several features added new backend pieces: the opt-in leaderboards (SOL fastest completion, Aftermath hardest schedule, Herd decoupling gap, Signal longest daily streak: `/leaderboards/...` plus a new table), the extra community-index stat fields (Aftermath, Drift, Tide), the Warframe market price proxy (`/market/prices`) and the shared community pools (`/pools/...`).
-
-**But:** during the 2026-09-27 audit (`planning/AUDIT-260927.md`, finding C1) I checked the real production API directly and it's already serving all of this — including `/leaderboards/signal/best_streak` with the exact label text I only wrote into `app/leaderboards.py` a few hours into that same session. I don't know how or when this got deployed (no `git push` happened, and I don't see deploy tooling in the repo), so I'm leaving this entry here rather than silently deleting it.
-
-**What to tell me:** just a one-word "yes it's deployed" (or "no, that's a fluke, please leave this open") and I'll update `CLAUDE.md`'s accounts milestone and remove this entry for good.
 
 ### 3. Which Warframe "meta" combos should the tracker pre-load?
 
@@ -96,17 +68,11 @@ I'll drop all of that into the ad bar and it goes live everywhere on the site at
 5. **Loop H16:** an optional "supply chain disruption" random event, opt-in as an advanced mode, kept apart from the deterministic core lesson. now, later or drop?
 6. **Contraption (round 2 M8):** a physics puzzle sandbox (drag parts, watch them collide). It needs a JavaScript physics engine such as Matter.js, which means shipping a library and writing the game in JavaScript rather than Python, a much bigger stack decision than a normal new game. It stays parked as you said; tell me if you ever want it costed properly.
 
-### 5. Multiplayer: five decisions (the scoping document is written)
+### 5. Multiplayer: one decision left (the rest are answered)
 
-`planning/MULTIPLAYER-SCOPING.md` covers what the site already has, what each parked multiplayer item needs, four levels of multiplayer and the smallest sensible phases. The decisions that are yours (details in section 6 of that file): (1) any level above aggregate and opt-in boards this round? (2) if async ghosts: may a run summary appear under your public username, or must ghosts be anonymous? (3) if two-player turn-based games: friend-only invite links (recommended) or open matchmaking? (4) accept client-trusted scores, or verify by replaying deterministic games? (5) who moderates besides you? Until you answer, I only build the aggregate and opt-in features (boards, pools, community stats).
+Answered 2026-10-07 and recorded in `planning/MULTIPLAYER-SCOPING.md`: (1) the level of multiplayer is my call; (2) any ghost or run summary is opt-in; (3) two-player games let the player choose friend-only or open, with friend-only recommended; (5) moderation is you for now, and me too if that is possible.
 
-### 6. Questions from the new game plans (all have a recommendation; "go with your recommendation" is a fine answer)
-
-1. **Undersleep, Q6:** your answer read as the framing instruction ("a game you add personal touches to"), but the question was whether a one-time "this is not medical advice" acknowledgement screen at first launch is too heavy. I recommend no gate, just a permanent footer line. OK?
-2. **Undersleep:** should the optional check-in start hidden ("Just play") at first run? I recommend hidden. Should journal sync ever go to the cloud? I recommend on-device only with manual export and import.
-3. **Lighthouse:** should nobody ever die on screen (my plan), or do you want a ship truly lost once a year for weight?
-4. **Pocket Bazaar:** is any clock banned outright (my plan counts customer patience in beats, not seconds), or could an optional real-time mode exist later?
-5. **Signal (built):** which bigger boards should also become daily modes? Measured in Pyodide on desktop (average / worst): Wide 13x13 98 ms / 274 ms, Big Sky 15x15 334 ms / 783 ms; a phone is unmeasured, so both stay practice-only for now. Also: the roughly 40 flavour lines in `games/signal/game.py` (`_LINES`) are a first draft for your tone veto, and the release day `EPOCH` (2026-09-27, in `game.py` and `app.js`) is the date daily puzzle #1 counts from.
+**Still open: (4) client-trusted scores or replay verification.** You said unsure. Plain version: today a score is whatever the player's browser sends, so a determined person can post a fake one. Replay verification means the server re-runs the game from its seed and the recorded moves to check the score, which only works for deterministic games (Signal, Last Line, a seeded Canopy forest) and costs real work. My recommendation: accept client-trusted scores for now (friendly boards), and add verification only for a game where cheating would matter. Say "go with that" or tell me otherwise.
 
 ### 7. Seasonal events: react to the redone list
 
