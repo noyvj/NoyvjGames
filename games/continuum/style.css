@@ -1614,6 +1614,76 @@ kbd { border: 1px solid rgba(201, 147, 84, 0.5); border-radius: 4px; padding: 0 
 /* Audit 2026-10-06 (S5): on phones keep the toast above the ad bar and the collapsed save widget. */
 @media (max-width: 600px) { .achievement-toast { bottom: 4.5rem; } }
 
+/* [k27 begin] */
+/* K-27 sparklines + K-16 "why did that change" explainer (City Views dashboard).
+   Nothing is encoded by colour alone: every sparkline carries its numbers in
+   its aria-label/title, every delta starts with an arrow and a sign, and every
+   waterfall line states its signed amount in text. All of it is inert until the
+   per-season stat history has at least two rows. */
+.views-dashboard--spark { grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); }
+.views-dashboard--spark .views-dash-row { align-items: center; position: relative; }
+.views-dash-name { flex: 1 1 auto; min-width: 0; }
+.views-dash-spark { flex: 0 0 auto; line-height: 0; }
+.spark { display: block; width: 60px; height: 16px; }
+.spark-line { fill: none; stroke: #e0b374; stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; }
+.spark-dot { fill: #f6d58f; }
+.views-dash-delta { flex: 0 0 auto; min-width: 3.8em; text-align: right; font-size: 0.72rem; opacity: 0.85; white-space: nowrap; }
+.views-dash-row--why { cursor: help; }
+.views-dash-row--why:focus-visible { outline: 2px solid #f6d58f; outline-offset: 1px; border-radius: 3px; }
+.why-pop {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  z-index: 40;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  background: rgba(22, 21, 29, 0.98);
+  border: 1px solid rgba(224, 179, 116, 0.55);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5);
+  color: #f2e8d6;
+  font-size: 0.74rem;
+  font-weight: 400;
+  text-align: left;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.views-dash-row--why:hover .why-pop,
+.views-dash-row--why:focus .why-pop,
+.views-dash-row--why:focus-within .why-pop { display: flex; }
+.why-title { font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.8; }
+.why-line { display: grid; grid-template-columns: minmax(5rem, 10rem) 1fr 4.4rem; align-items: center; gap: 0.4rem; }
+.why-line--net { border-top: 1px solid rgba(224, 179, 116, 0.35); padding-top: 0.2rem; font-weight: 600; }
+.why-name { overflow-wrap: anywhere; }
+.why-track { position: relative; display: block; height: 0.6rem; background: rgba(255, 255, 255, 0.1); border-radius: 3px; }
+.why-bar { position: absolute; top: 0; bottom: 0; border-radius: 3px; }
+.why-bar--up { background: #56b4e9; }
+.why-bar--down { background: repeating-linear-gradient(135deg, #e69f00 0 4px, #b87a00 4px 8px); }
+.why-bar--net { background: #d8cfe6; }
+.why-amount { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+html[data-theme="light"] .spark-line { stroke: #8a5208; }
+html[data-theme="light"] .spark-dot { fill: #5c3508; }
+html[data-theme="light"] .views-dash-row--why:focus-visible { outline-color: #1b2033; }
+html[data-theme="light"] .why-pop { background: rgba(255, 252, 244, 0.99); color: #2a1d0a; border-color: rgba(122, 74, 18, 0.55); box-shadow: 0 8px 20px rgba(40, 30, 10, 0.25); }
+html[data-theme="light"] .why-track { background: rgba(70, 95, 170, 0.14); }
+html[data-theme="light"] .why-line--net { border-top-color: rgba(122, 74, 18, 0.4); }
+html[data-theme="light"] .why-bar--up { background: #1f78b4; }
+html[data-theme="light"] .why-bar--down { background: repeating-linear-gradient(135deg, #b36b00 0 4px, #804a00 4px 8px); }
+html[data-theme="light"] .why-bar--net { background: #5b4b78; }
+
+/* [k27 end] */
+
+/* [k14 begin] */
+/* K-14 post-mortem report: plain text sections, opened from the Civilization Summary. */
+.postmortem-panel[hidden] { display: none; }
+.pm-line { font-size: 0.88rem; line-height: 1.45; }
+.pm-line--head { font-weight: 600; }
+.pm-decision { margin: 0.3rem 0 0.7rem; padding-left: 0.7rem; border-left: 3px solid rgba(224, 179, 116, 0.5); }
+html[data-theme="light"] .pm-decision { border-left-color: rgba(122, 74, 18, 0.55); }
+
+/* [k14 end] */
+
 /* ==========================================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the common chrome (page, #game shell, .section panels, buttons,

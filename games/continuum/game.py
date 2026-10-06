@@ -40,15 +40,18 @@ if _HERE not in sys.path:
 import archive  # noqa: E402
 import challenges  # noqa: E402
 import consulting  # noqa: E402
+import explain  # noqa: E402
 import founding  # noqa: E402
 import hamlet  # noqa: E402
 import info_content  # noqa: E402
 import info_page  # noqa: E402
 import minutes  # noqa: E402
+import postmortem  # noqa: E402
 import narrative_log  # noqa: E402
 import research  # noqa: E402
 import save  # noqa: E402
 import sim  # noqa: E402
+import statlog  # noqa: E402
 import summary  # noqa: E402
 import sustainability  # noqa: E402
 import trajectory  # noqa: E402
@@ -262,6 +265,7 @@ def render():
     update_scenario_display()
     update_hard_mode_display()
     update_summary_panel()
+    update_postmortem_panel()
     update_views_panel(effects)
     update_consulting_display()
     update_found_display()
@@ -948,6 +952,93 @@ def on_toggle_minutes(event=None):
     update_minutes_panel()
 
 
+# --- K-14 post-mortem ---------------------------------------------------
+# A report built on demand from the saved record (postmortem.py); opened from
+# a button inside the Civilization Summary and closed from its own button.
+# Session-only display state, never saved.
+postmortem_open = False
+_postmortem_proxies = []       # the panel's own Close button
+_postmortem_open_proxies = []  # the Open/Close button inside the Civilization Summary
+
+
+def on_toggle_postmortem(event=None):
+    global postmortem_open
+    postmortem_open = not postmortem_open
+    update_postmortem_panel()
+    update_summary_panel()  # its button's label follows
+
+
+def _postmortem_button(parent, button_id, text, proxies):
+    button = document.createElement("button")
+    button.id = button_id
+    button.className = "secondary"
+    button.innerText = text
+    proxy = create_proxy(on_toggle_postmortem)
+    proxies.append(proxy)
+    button.addEventListener("click", proxy)
+    parent.appendChild(button)
+    return button
+
+
+def _pm_text(parent, tag, css, text):
+    element = document.createElement(tag)
+    element.className = css
+    element.innerText = text
+    parent.appendChild(element)
+    return element
+
+
+def update_postmortem_panel():
+    panel = document.getElementById("postmortem-panel")
+    panel.hidden = not postmortem_open
+    if not postmortem_open:
+        return
+    for proxy in _postmortem_proxies:
+        proxy.destroy()
+    del _postmortem_proxies[:]
+    panel.innerHTML = ""
+    report = postmortem.build(campaign)
+    _pm_text(panel, "h2", "section-heading", "Post-mortem")
+    _pm_text(
+        panel, "p", "row-blurb",
+        "A look back at this settlement in the style of an engineering post-mortem, written from the "
+        "livability record, the per-season stats and your Council Minutes. The prompts are things to "
+        "think about, not verdicts.",
+    )
+    if not report["ready"]:
+        for note in report["notes"]:
+            _pm_text(panel, "p", "status-line pm-line", note)
+    else:
+        for title, key, empty in (
+            ("What went well", "went_well", "Nothing stood out yet."),
+            ("What went wrong", "went_wrong", "Nothing went badly wrong."),
+        ):
+            _pm_text(panel, "h3", "summary-eras-heading", title)
+            for line in report[key] or [empty]:
+                _pm_text(panel, "p", "status-line pm-line", line)
+        _pm_text(panel, "h3", "summary-eras-heading", "Root cause of the biggest livability drop")
+        block = report["root_cause"]
+        _pm_text(panel, "p", "status-line pm-line pm-line--head", block["headline"])
+        for line in block["lines"]:
+            _pm_text(panel, "p", "status-line pm-line", line)
+        _pm_text(panel, "h3", "summary-eras-heading", "Three decisions to redo")
+        if report["redo"]:
+            for item in report["redo"]:
+                row = document.createElement("div")
+                row.className = "pm-decision"
+                _pm_text(row, "p", "status-line pm-line pm-line--head", item["decision"])
+                _pm_text(row, "p", "row-blurb pm-line", f"{item['when']}. {item['hint']}")
+                panel.appendChild(row)
+        else:
+            _pm_text(panel, "p", "status-line pm-line", "None to show.")
+        for note in report["notes"]:
+            _pm_text(panel, "p", "row-blurb pm-line", note)
+    actions = document.createElement("div")
+    actions.className = "archive-actions"
+    _postmortem_button(actions, "postmortem-close-button", "Close post-mortem", _postmortem_proxies)
+    panel.appendChild(actions)
+
+
 def on_toggle_summary_panel(event=None):
     global summary_panel_open
     summary_panel_open = not summary_panel_open
@@ -979,6 +1070,19 @@ def update_summary_panel():
     panel.appendChild(statement)
     if data["rank"]:
         _summary_stat_row(panel, f"Efficiency rank: {data['rank']} city.")
+    # K-14: the post-mortem opens from here (its own proxy list, since the archive
+    # section below destroys every proxy in `_archive_proxies` each time it rebuilds).
+    for proxy in _postmortem_open_proxies:
+        proxy.destroy()
+    del _postmortem_open_proxies[:]
+    pm_actions = document.createElement("div")
+    pm_actions.className = "archive-actions"
+    _postmortem_button(
+        pm_actions, "postmortem-open-button",
+        "Close the post-mortem report" if postmortem_open else "Open a post-mortem report",
+        _postmortem_open_proxies,
+    )
+    panel.appendChild(pm_actions)
     _summary_stat_row(
         panel,
         f"Furthest era reached: {data['furthest_era_label']} "
@@ -1088,6 +1192,11 @@ def update_views_panel(effects=None):
         container = document.getElementById("views-dashboard")
         container.innerHTML = ""
         done, total, _percent = tree_completion()
+        # K-27/K-16: sparklines, deltas and the "why did that change" hover
+        # come from the per-season stat history. A Look Back shows a past
+        # snapshot, which that history does not describe, so they are left out.
+        history = statlog.rows(campaign.ui) if campaign.revisiting is None else []
+        container.className = "views-dashboard views-dashboard--spark" if history else "views-dashboard"
         for section in views.dashboard(state, effects, (done, total)):
             block = document.createElement("div")
             block.className = "views-dash-section"
@@ -1096,16 +1205,7 @@ def update_views_panel(effects=None):
             heading.innerText = section["title"]
             block.appendChild(heading)
             for label, value in section["rows"]:
-                row = document.createElement("p")
-                row.className = "views-dash-row"
-                name = document.createElement("span")
-                name.innerText = label
-                number = document.createElement("span")
-                number.className = "views-dash-value"
-                number.innerText = value
-                row.appendChild(name)
-                row.appendChild(number)
-                block.appendChild(row)
+                block.appendChild(_dashboard_row(label, value, history, effects))
             container.appendChild(block)
     elif views_tab == "map":
         document.getElementById("views-map-svg").innerHTML = views.civic_map_svg(state)
@@ -1113,6 +1213,81 @@ def update_views_panel(effects=None):
     else:
         document.getElementById("views-flow-svg").innerHTML = views.flow_svg(state, state.last_report)
         document.getElementById("views-flow-caption").innerText = views.flow_caption(state.last_report)
+
+
+def _dashboard_row(label, value, history, effects):
+    """One dashboard row: label, K-27 sparkline, value, K-16 delta + hover waterfall."""
+    row = document.createElement("p")
+    row.className = "views-dash-row"
+    name = document.createElement("span")
+    name.className = "views-dash-name"
+    name.innerText = label
+    row.appendChild(name)
+    key = views.spark_key(label)
+    if key and history:
+        kind_format = lambda v: statlog.format_value(key, v)  # noqa: E731
+        svg = views.sparkline_svg(statlog.series(history, key, views.SPARK_SEASONS), label, kind_format)
+        if svg:
+            spark = document.createElement("span")
+            spark.className = "views-dash-spark"
+            spark.innerHTML = svg
+            row.appendChild(spark)
+    number = document.createElement("span")
+    number.className = "views-dash-value"
+    number.innerText = value
+    row.appendChild(number)
+    if key and len(history) >= 2:
+        change = explain.delta(history, key)
+        if change is not None:
+            delta_text = statlog.format_delta(key, change)
+            chip = document.createElement("span")
+            chip.className = "views-dash-delta"
+            chip.innerText = delta_text
+            chip.setAttribute("title", "Change over the last completed season")
+            row.appendChild(chip)
+            explained = explain.explain(key, history, state.last_report, effects)
+            if explained is not None and explained["factors"]:
+                row.className = "views-dash-row views-dash-row--why"
+                row.setAttribute("tabindex", "0")
+                row.setAttribute("role", "group")
+                row.setAttribute(
+                    "aria-label",
+                    f"{label}: {value}. Last season {delta_text}. Why: " + "; ".join(explain.waterfall_lines(explained)),
+                )
+                row.appendChild(_why_popover(explained))
+    return row
+
+
+def _why_popover(explained):
+    """The K-16 small waterfall: a signed line and a floating bar per factor."""
+    pop = document.createElement("span")
+    pop.className = "why-pop"
+    pop.setAttribute("role", "tooltip")
+    title = document.createElement("span")
+    title.className = "why-title"
+    title.innerText = f"Why {explained['label'].lower()} changed last season"
+    pop.appendChild(title)
+    for step in explain.waterfall_geometry(explained):
+        line = document.createElement("span")
+        line.className = "why-line why-line--net" if step["kind"] == "net" else "why-line"
+        text = document.createElement("span")
+        text.className = "why-name"
+        text.innerText = step["label"]
+        track = document.createElement("span")
+        track.className = "why-track"
+        bar = document.createElement("span")
+        bar.className = f"why-bar why-bar--{step['kind']}"
+        bar.style.left = f"{step['left']}%"
+        bar.style.width = f"{step['width']}%"
+        track.appendChild(bar)
+        amount = document.createElement("span")
+        amount.className = "why-amount"
+        amount.innerText = explain.amount_text(step["amount"], explained["unit"])
+        line.appendChild(text)
+        line.appendChild(track)
+        line.appendChild(amount)
+        pop.appendChild(line)
+    return pop
 
 
 def tree_completion():
@@ -3102,6 +3277,9 @@ def on_advance_season(event=None):
     report = state.advance_season(effects)
     state.record_score(sustainability.score(state, effects))
     trajectory.record(state, report, sustainability.livability(state, effects) * 100.0)
+    if campaign.revisiting is None:
+        # K-27/K-16/K-18/K-14: one row of stats per completed season (statlog.py).
+        statlog.record(campaign.ui, state, effects, report, len(tree.researched))
     before = consulting.get(campaign.ui)
     after = consulting.step(campaign, effects)
     if after is not None and after["result"] and (before is None or before["result"] is None):
@@ -3219,6 +3397,11 @@ def setup():
         document.getElementById(f"views-tab-{_tab}-button").addEventListener(
             "click", create_proxy(_make_views_tab_handler(_tab))
         )
+    # K-14: a hidden twin of the in-panel buttons, so the Desktop window frame
+    # can close the post-mortem through the same handler (keeps one open flag).
+    document.getElementById("postmortem-toggle-button").addEventListener(
+        "click", create_proxy(on_toggle_postmortem)
+    )
     document.getElementById("founders-add-button").addEventListener(
         "click", create_proxy(on_add_founders_note)
     )

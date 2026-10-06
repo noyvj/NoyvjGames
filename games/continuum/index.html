@@ -87,6 +87,9 @@
     <!-- K5: the civilization summary report -- rows are built by
          game.py, see update_summary_panel(). -->
     <div id="summary-panel" class="section summary-panel" hidden></div>
+    <!-- K-14: the post-mortem report, opened from the Civilization Summary (postmortem.py). -->
+    <button id="postmortem-toggle-button" type="button" hidden>Post-mortem</button>
+    <div id="postmortem-panel" class="section postmortem-panel" hidden></div>
     <div id="views-panel" class="section views-panel" hidden>
       <h2 class="section-heading">City Views</h2>
       <div class="views-tabs" role="group" aria-label="City view">
@@ -555,7 +558,7 @@
     // Each engine module is written into Pyodide's virtual filesystem (the
     // working directory, which is on sys.path) before game.py runs and
     // imports them. Still no build step — just more than one fetch.
-    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py", "founding.py", "minutes.py", "hamlet.py", "forecast.py"];
+    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py", "founding.py", "minutes.py", "hamlet.py", "forecast.py", "statlog.py", "explain.py", "postmortem.py"];
 
     const CONTINUUM_TUTORIAL_STEPS = [
       {

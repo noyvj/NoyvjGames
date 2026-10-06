@@ -151,6 +151,97 @@ def dashboard(state, effects, researched=None):
     return sections
 
 
+# --- K-27: sparklines next to every dashboard stat ----------------------
+# Dashboard row label -> the `statlog` column it draws. Workforce and building
+# rows are keyed by their (era-specific) labels, added below from `sim`.
+SPARK_KEYS = {
+    "People": "population",
+    "Shelter capacity": "housing",
+    "Unassigned workers": "idle",
+    "Growth progress": "growth",
+    "Calm seasons in a row": "calm",
+    "Food": "food",
+    "Materials": "materials",
+    "Tools": "tools",
+    "Knowledge": "knowledge",
+    "Surplus": "surplus",
+    "Land health": "land",
+    "Taken last season": "extraction",
+    "Sustainable yield": "sust_yield",
+    "Score": "score",
+    "Livability": "livability",
+    "Equity": "equity",
+    "Resource balance": "balance",
+    "Resilience": "resilience",
+    "Food gathered": "food_gathered",
+    "Materials gathered": "materials_gathered",
+    "Tools made": "tools_made",
+    "Knowledge made": "knowledge_made",
+    "People fed": "fed_pct",
+    "Food spoiled": "spoiled",
+    "Canal staffing": "canal_staffing",
+    "Public works cover": "public_works",
+    "Pollution": "pollution",
+    "Sprawl": "sprawl",
+    "Habitat layout": "habitat_layout",
+    "Holdings' residents": "holdings_residents",
+    "Holdings supplied": "holdings_served",
+    "Discoveries": "researched",
+}
+for _role in sim.ROLES:
+    SPARK_KEYS[sim.ROLE_LABEL[_role]] = f"role_{_role}"
+for _building in sim.BUILDINGS:
+    SPARK_KEYS[sim.BUILDING_LABEL[_building]] = f"bld_{_building}"
+
+SPARK_SEASONS = 20
+SPARK_W = 60
+SPARK_H = 16
+
+
+def spark_key(label):
+    """The statlog column a dashboard row's sparkline draws, or None."""
+    return SPARK_KEYS.get(label)
+
+
+def sparkline_svg(values, label="", formatter=None, width=SPARK_W, height=SPARK_H):
+    """A tiny trend line as an SVG string; '' for fewer than two usable values.
+
+    The line is scaled to the window's own min and max, so it shows the SHAPE
+    of the last seasons, not the absolute size. Every sparkline carries its
+    numbers as text (an `aria-label` and a `<title>`: first, lowest, highest
+    and latest value), so nothing is conveyed by the line alone.
+    """
+    vals = [
+        float(v)
+        for v in (values or [])
+        if isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
+    ]
+    if len(vals) < 2:
+        return ""
+    fmt = formatter or (lambda v: f"{v:.1f}")
+    lo, hi = min(vals), max(vals)
+    span = hi - lo
+    pad = 2.0
+    n = len(vals)
+    points = []
+    for i, v in enumerate(vals):
+        x = pad + i * (width - 2 * pad) / (n - 1)
+        y = height / 2 if span <= 0 else pad + (1.0 - (v - lo) / span) * (height - 2 * pad)
+        points.append((x, y))
+    text = (
+        f"{label + ': ' if label else ''}last {n} seasons, from {fmt(vals[0])} to {fmt(vals[-1])} "
+        f"(lowest {fmt(lo)}, highest {fmt(hi)})"
+    )
+    poly = " ".join(f"{x:.1f},{y:.1f}" for x, y in points)
+    last_x, last_y = points[-1]
+    return (
+        f'<svg viewBox="0 0 {width} {height}" width="{width}" height="{height}" class="spark" role="img" '
+        f'aria-label="{text}"><title>{text}</title>'
+        f'<polyline points="{poly}" class="spark-line"/>'
+        f'<circle cx="{last_x:.1f}" cy="{last_y:.1f}" r="2" class="spark-dot"/></svg>'
+    )
+
+
 # --- K24: civic infrastructure map --------------------------------------
 # One glyph shape per building type, so the map never leans on colour.
 GLYPH_SHAPES = {

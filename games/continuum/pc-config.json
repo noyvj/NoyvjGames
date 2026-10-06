@@ -26,6 +26,11 @@
       "Civilization Summary"
     ],
     [
+      "postmortem-panel",
+      "postmortem-toggle-button",
+      "Post-mortem"
+    ],
+    [
       "views-panel",
       "views-toggle-button",
       "City Views"
