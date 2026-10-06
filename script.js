@@ -685,6 +685,8 @@ let signedInPillUsername = null;
 let accountSectionVisible = true;
 function updateSignedInPill(username) {
   signedInPillUsername = username;
+  // The "Owner only" nav dropdown (shared/owner-links.js) follows the sign-in state.
+  if (window.NoyvjOwnerLinks) window.NoyvjOwnerLinks.refresh();
   if (!signedInPill) return;
   if (username) signedInPill.textContent = `Signed in as ${username}`;
   signedInPill.hidden = !username || accountSectionVisible;
