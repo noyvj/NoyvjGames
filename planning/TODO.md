@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 99/774 items checked off (12.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 100/774 items checked off (12.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -911,7 +911,7 @@ Classic stays the default boot (`index.html`); Desktop is a second boot (`pc.htm
 - [x] PC-11: Loop Desktop.
 - [x] PC-12: Signal Desktop.
 - [x] PC-13: Trade Empire Desktop.
-- [ ] PC-14: Le Champ de Mots Desktop. Agent-built files are in the working tree, uncommitted, and the session was stopped mid-build (its 762 tests pass); needs a review pass and commit after the usage reset.
+- [x] PC-14: Le Champ de Mots Desktop (agent-built, reviewed, committed 084a60b; offline cache worker version 27).
 - [ ] PC-15: SOL Desktop. Same state as PC-14 (722 tests pass, uncommitted, stopped mid-build).
 - [ ] PC-16: When every game has its Desktop layout, send you screenshots of all of them (your answer 2026-10-07: later, screenshots first), then fix what you say feels wrong. Controller support: not yet; audio stays parked.
 
