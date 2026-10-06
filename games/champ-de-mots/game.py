@@ -14,6 +14,7 @@ plant, never removes it, and never produces a failure state.
 
 import calendar as _calendar
 import difflib
+import heapq
 import json
 import random
 import re
@@ -3401,6 +3402,140 @@ def render_changelog():
         panel.appendChild(line)
 
 
+# ===========================================================================
+# L-24: filter and sort for the farm grid
+# ===========================================================================
+#
+# A "show" filter hides the plots that do not match (and any week left with
+# nothing to show), and a "sort" re-orders the weeks and the plots inside each
+# week. Both are plain DOM moves on the grid build_farm() already made: cells
+# are re-appended in the new order (a real DOM append MOVES a node), so the
+# tab order always matches what the eye sees. Session-only, like the review
+# controls: nothing here reaches get_state(), and nothing changes any plot.
+# The order is applied when a control changes, when the day moves on, when a
+# save loads and at boot -- not after every answer, so a plot never slides out
+# from under the cursor mid-session. The filter, being a cheap hide/show, does
+# follow every repaint.
+FARM_FILTERS = {
+    "all": "All plots",
+    "due": "Due today",
+    "weeds": "In the weeds",
+    "unwatered": "Never watered",
+    "vocab": "Vocabulary",
+    "phrase": "Phrases",
+    "grammar": "Grammar",
+    "phonetic": "Phonetics",
+}
+FARM_SORTS = {
+    "syllabus": "Syllabus order",
+    "weakest": "Weakest first",
+    "overdue": "Most overdue first",
+    "type": "By type",
+}
+FARM_TYPE_ORDER = ["vocab", "phrase", "grammar", "phonetic"]
+farm_filter = "all"
+farm_sort = "syllabus"
+_farm_order_cache = None  # (sort, tuple of row sequences, tuple of per-row plot-id tuples)
+
+
+def plot_matches_filter(plot, key):
+    if key == "all" or key not in FARM_FILTERS:
+        return True
+    if key == "due":
+        return is_due(plot, state.current_day)
+    if key == "weeds":
+        return plot.in_weeds
+    if key == "unwatered":
+        return plot.last_reviewed is None
+    return plot.topic_type == key
+
+
+def _plot_sort_key(plot, key, position):
+    if key == "weakest":
+        return (STAGE_RANK[plot.stage], plot.ease_factor, position)
+    if key == "overdue":
+        if is_due(plot, state.current_day):
+            if plot.last_reviewed is not None and plot.next_due is not None:
+                return (0, plot.next_due, position)
+            return (1, 0, position)
+        return (2, 0, position)
+    if key == "type":
+        kind = plot.topic_type
+        return (FARM_TYPE_ORDER.index(kind) if kind in FARM_TYPE_ORDER else len(FARM_TYPE_ORDER), 0, position)
+    return (0, 0, position)
+
+
+def farm_row_order(key):
+    """[(sequence, [plot ids in display order])] for the chosen sort."""
+    rows = []
+    for index, row in enumerate(state.rows):
+        plots = state.row_plots(row.sequence)
+        ordered = sorted(
+            enumerate(plots), key=lambda pair: _plot_sort_key(pair[1], key, pair[0])
+        )
+        if key == "weakest":
+            row_key = (dashboard_row_mastery(row.sequence), index)
+        elif key == "overdue":
+            row_key = (-sum(1 for p in plots if is_due(p, state.current_day) and p.last_reviewed is not None), index)
+        else:
+            row_key = (0, index)
+        rows.append((row_key, row.sequence, [p.plot_id for _i, p in ordered]))
+    rows.sort(key=lambda entry: entry[0])
+    return [(sequence, ids) for _key, sequence, ids in rows]
+
+
+def apply_farm_arrangement(force=False):
+    """Re-order the weeks and each week's plots for the current sort."""
+    global _farm_order_cache
+    order = farm_row_order(farm_sort)
+    signature = (farm_sort, tuple((seq, tuple(ids)) for seq, ids in order))
+    if not force and signature == _farm_order_cache:
+        return False
+    _farm_order_cache = signature
+    farm = _element("farm")
+    for sequence, ids in order:
+        farm.appendChild(_element(f"row-{sequence}"))
+        container = _element(f"row-plots-{sequence}")
+        for plot_id in ids:
+            cell = plot_cells.get(plot_id)
+            if cell is not None:
+                container.appendChild(cell)
+    return True
+
+
+def set_farm_filter(key):
+    global farm_filter
+    farm_filter = key if key in FARM_FILTERS else "all"
+    _element("farm-filter-select").value = farm_filter
+    render()
+    return farm_filter
+
+
+def set_farm_sort(key):
+    global farm_sort
+    farm_sort = key if key in FARM_SORTS else "syllabus"
+    _element("farm-sort-select").value = farm_sort
+    apply_farm_arrangement(force=True)
+    render()
+    return farm_sort
+
+
+def on_farm_filter_change(event=None):
+    set_farm_filter(_element("farm-filter-select").value)
+
+
+def on_farm_sort_change(event=None):
+    set_farm_sort(_element("farm-sort-select").value)
+
+
+def farm_filter_count_text():
+    total = len(state.plots)
+    if farm_filter == "all":
+        return ""
+    shown = sum(1 for p in state.plots if plot_matches_filter(p, farm_filter))
+    return f"Showing {shown} of {total} plots"
+
+
 def _plot_classes(plot):
     classes = ["plot", f"plot--{plot.stage}"]
     # L16 -- a non-colour cue for the topic type (border style, see style.css).
@@ -3460,6 +3595,7 @@ _farm_row_cache = {}
 
 
 def render_farm():
+    row_shown = {}  # sequence -> how many of its plots pass the L-24 filter
     for plot in state.plots:
         cell = plot_cells.get(plot.plot_id)
         if cell is None:
@@ -3468,13 +3604,16 @@ def render_farm():
         icon = STAGE_ICON[plot.stage]
         title = _plot_title(plot)
         disabled = not state.is_row_unlocked(plot.sequence)
-        values = (classes, icon, title, disabled)
+        shown = plot_matches_filter(plot, farm_filter)
+        row_shown[plot.sequence] = row_shown.get(plot.sequence, 0) + (1 if shown else 0)
+        values = (classes, icon, title, disabled, shown)
         if _farm_cell_cache.get(plot.plot_id) == values:
             continue
         _farm_cell_cache[plot.plot_id] = values
         cell.className = classes
         cell.innerText = icon
         cell.title = title
+        cell.hidden = not shown
         # The sprite carries the meaning visually; screen readers get the same
         # sentence the tooltip does.
         cell.setAttribute("aria-label", title)
@@ -3490,10 +3629,12 @@ def render_farm():
         unlocked = state.is_row_unlocked(row.sequence)
         row_due = sum(1 for p in plots if is_due(p, state.current_day)) if unlocked else 0
         badge_hidden = row.sequence not in row_session_perfect_badge
-        row_values = (grown, len(plots), watered, unlocked, row_due, badge_hidden)
+        row_hidden = row_shown.get(row.sequence, 0) == 0
+        row_values = (grown, len(plots), watered, unlocked, row_due, badge_hidden, row_hidden)
         if _farm_row_cache.get(row.sequence) == row_values:
             continue
         _farm_row_cache[row.sequence] = row_values
+        _element(f"row-{row.sequence}").hidden = row_hidden
 
         _element(f"row-progress-{row.sequence}").innerText = f"{grown}/{len(plots)}"
         _element(f"row-progress-{row.sequence}").title = (
@@ -3565,6 +3706,7 @@ def render_status():
 
     render_practice_score()
     render_study_buddy()
+    _element("farm-filter-count").innerText = farm_filter_count_text()
 
     unlocked = sum(1 for r in state.rows if state.is_row_unlocked(r.sequence))
     _element("row-summary-display").innerText = f"{unlocked} of {len(state.rows)} rows open"
@@ -3739,6 +3881,8 @@ def render():
     render_achievements()
     render_changelog()
     render_report_log()
+    render_planner()
+    render_accent_bars()
     minigames.render()
 
 
@@ -4007,6 +4151,7 @@ def on_next_practice_plot(event=None):
 
 def on_next_day(event=None):
     state.advance_day()
+    apply_farm_arrangement()
     render()
 
 
@@ -6702,9 +6847,424 @@ def render_bonus():
         )
 
 
+# ===========================================================================
+# L-9 / L-28: exam-date planner and the header exam countdown
+# ===========================================================================
+#
+# The player enters an exam date and a what-if "minutes a day"; the planner
+# projects how many plots would be Automated by then, by replaying the REAL
+# scheduler (schedule_after_review) over lightweight copies of every plot's
+# current state, so the projection can never drift from what the game does.
+# It also suggests the minimum daily effort that reaches PLANNER_TARGET_PERCENT.
+#
+# Assumptions, all stated in the panel: the player advances the in-game day
+# once per real day; one answer takes STUDY_BUDDY_SECONDS_PER_REVIEW seconds;
+# reviews of already-planted plots come first (most overdue first), leftover
+# time plants new ones; and the "cautious" figure gets every
+# PLANNER_MISS_EVERY-th answer wrong (the "best case" gets none wrong).
+#
+# The date itself is a real calendar date, so the day arithmetic uses
+# calendar.timegm (Milestone 7 bans the standard date-time module here) and "today"
+# comes from study_today(). Saved as "exam_plan" only once a date is set.
+# This is a planning aid, not a drill: it never touches SRS state or the
+# practice ledger.
+PLANNER_MIN_MINUTES = 5
+PLANNER_MAX_MINUTES = 120
+PLANNER_STEP_MINUTES = 5
+PLANNER_DEFAULT_MINUTES = 15
+PLANNER_TARGET_PERCENT = 80
+PLANNER_MAX_DAYS = 400
+PLANNER_MISS_EVERY = 7
+
+exam_date = None  # "YYYY-MM-DD" or None
+exam_minutes = PLANNER_DEFAULT_MINUTES
+planner_open = False
+_planner_cache = {}
+
+
+def _day_number(iso):
+    """Whole days since 1970-01-01 for a valid 'YYYY-MM-DD', else None."""
+    parsed = _parse_iso_date(iso)
+    if parsed is None:
+        return None
+    return _calendar.timegm((parsed[0], parsed[1], parsed[2], 0, 0, 0)) // 86400
+
+
+def exam_days_left():
+    """Days from today to the exam date (0 = today, negative = passed), or
+    None when there is no date or no clock."""
+    if exam_date is None:
+        return None
+    today = _day_number(study_today())
+    target = _day_number(exam_date)
+    if today is None or target is None:
+        return None
+    return target - today
+
+
+def _clamp_minutes(value):
+    try:
+        minutes = int(value)
+    except (TypeError, ValueError):
+        return PLANNER_DEFAULT_MINUTES
+    minutes = max(PLANNER_MIN_MINUTES, min(PLANNER_MAX_MINUTES, minutes))
+    return round(minutes / PLANNER_STEP_MINUTES) * PLANNER_STEP_MINUTES
+
+
+class _SimPlot:
+    """Just the scheduling fields schedule_after_review() reads and writes."""
+
+    __slots__ = ("ease_factor", "interval_days", "last_reviewed", "next_due", "correct_streak", "stage")
+
+    def __init__(self, plot):
+        self.ease_factor = plot.ease_factor
+        self.interval_days = plot.interval_days
+        self.last_reviewed = plot.last_reviewed
+        self.next_due = plot.next_due
+        self.correct_streak = plot.correct_streak
+        self.stage = plot.stage
+
+
+def reviews_per_day(minutes):
+    return max(0, int(minutes * 60 // STUDY_BUDDY_SECONDS_PER_REVIEW))
+
+
+def simulate_harvest(days, minutes, miss_every=0):
+    """How many plots would be Automated after `days` days of `minutes` a
+    day, replaying the real scheduler on copies (no real plot is touched).
+    `miss_every` > 0 makes every n-th answer wrong. Returns
+    {"automated", "total", "percent"}."""
+    sims = [_SimPlot(plot) for plot in state.plots]
+    first_day = state.current_day
+    queue = [
+        (sim.next_due if isinstance(sim.next_due, int) else first_day, index)
+        for index, sim in enumerate(sims)
+        if sim.last_reviewed is not None
+    ]
+    heapq.heapify(queue)
+    unplanted = [index for index, sim in enumerate(sims) if sim.last_reviewed is None]
+    planted = 0
+    capacity = reviews_per_day(minutes)
+    answered = 0
+    for offset in range(max(0, min(days, PLANNER_MAX_DAYS))):
+        day = first_day + offset
+        room = capacity
+        while room and queue and queue[0][0] <= day:
+            _due, index = heapq.heappop(queue)
+            answered += 1
+            correct = not (miss_every and answered % miss_every == 0)
+            schedule_after_review(sims[index], correct, day)
+            heapq.heappush(queue, (sims[index].next_due, index))
+            room -= 1
+        while room and planted < len(unplanted):
+            index = unplanted[planted]
+            planted += 1
+            answered += 1
+            correct = not (miss_every and answered % miss_every == 0)
+            schedule_after_review(sims[index], correct, day)
+            heapq.heappush(queue, (sims[index].next_due, index))
+            room -= 1
+    automated = sum(1 for sim in sims if sim.stage == STAGE_AUTOMATED)
+    total = len(sims)
+    return {"automated": automated, "total": total, "percent": (100.0 * automated / total) if total else 0.0}
+
+
+def _farm_signature():
+    """A cheap fingerprint of every plot's scheduling state, so a cached
+    projection is reused until something that matters changes."""
+    return hash(
+        tuple((p.interval_days, p.next_due, p.correct_streak, p.last_reviewed, p.stage) for p in state.plots)
+    )
+
+
+def current_automated_percent():
+    total = len(state.plots)
+    return (100.0 * automated_plot_count() / total) if total else 0.0
+
+
+def planner_projection(minutes=None):
+    """{"days", "minutes", "cautious", "best", "current"} for the saved exam
+    date, or None when there is no usable date. Cached on the inputs."""
+    days = exam_days_left()
+    if days is None or days <= 0:
+        return None
+    minutes = exam_minutes if minutes is None else _clamp_minutes(minutes)
+    key = ("proj", exam_date, days, minutes, state.current_day, _farm_signature())
+    cached = _planner_cache.get(key)
+    if cached is not None:
+        return cached
+    result = {
+        "days": days,
+        "minutes": minutes,
+        "reviews": reviews_per_day(minutes),
+        "cautious": simulate_harvest(days, minutes, PLANNER_MISS_EVERY)["percent"],
+        "best": simulate_harvest(days, minutes, 0)["percent"],
+        "current": current_automated_percent(),
+    }
+    _planner_cache.clear()
+    _planner_cache[key] = result
+    return result
+
+
+def planner_minimum_minutes():
+    """The smallest daily effort (in PLANNER_STEP_MINUTES steps) whose
+    cautious projection reaches PLANNER_TARGET_PERCENT: ("already", None)
+    when the farm is there now, ("minutes", n), or ("unreachable", best
+    percent at the maximum effort). None when there is no usable date."""
+    days = exam_days_left()
+    if days is None or days <= 0:
+        return None
+    key = ("min", exam_date, days, state.current_day, _farm_signature())
+    cached = _planner_cache.get(key)
+    if cached is not None:
+        return cached
+    if current_automated_percent() >= PLANNER_TARGET_PERCENT:
+        result = ("already", None)
+    else:
+        steps = list(range(PLANNER_MIN_MINUTES, PLANNER_MAX_MINUTES + 1, PLANNER_STEP_MINUTES))
+
+        def reaches(minutes):
+            return simulate_harvest(days, minutes, PLANNER_MISS_EVERY)["percent"] >= PLANNER_TARGET_PERCENT
+
+        if not reaches(steps[-1]):
+            best = simulate_harvest(days, steps[-1], PLANNER_MISS_EVERY)["percent"]
+            result = ("unreachable", best)
+        else:
+            low, high = 0, len(steps) - 1
+            while low < high:
+                middle = (low + high) // 2
+                if reaches(steps[middle]):
+                    high = middle
+                else:
+                    low = middle + 1
+            result = ("minutes", steps[low])
+    _planner_cache[key] = result
+    return result
+
+
+def exam_countdown_text():
+    """The header chip: days to go plus the projected coverage at the saved
+    daily effort. Empty (so the chip hides) with no date, no clock, or a date
+    that has already passed."""
+    days = exam_days_left()
+    if days is None or days < 0:
+        return ""
+    if days == 0:
+        return "Exam today"
+    projection = planner_projection()
+    when = f"Exam in {days} day{'s' if days != 1 else ''}"
+    if projection is None:
+        return when
+    return f"{when} · about {projection['cautious']:.0f}% automated by then"
+
+
+def set_exam_date(value):
+    """Store (or clear, with an empty/invalid value) the exam date. Returns
+    True when a valid date is now set."""
+    global exam_date
+    text = str(value or "").strip()
+    exam_date = text if _parse_iso_date(text) is not None else None
+    _planner_cache.clear()
+    render()
+    return exam_date is not None
+
+
+def set_exam_minutes(value):
+    global exam_minutes
+    exam_minutes = _clamp_minutes(value)
+    render()
+    return exam_minutes
+
+
+def on_toggle_planner(event=None):
+    global planner_open
+    planner_open = not planner_open
+    render()
+
+
+def on_planner_date_change(event=None):
+    set_exam_date(_element("planner-date-input").value)
+
+
+def on_planner_minutes_change(event=None):
+    set_exam_minutes(_element("planner-minutes-input").value)
+
+
+def on_planner_clear(event=None):
+    _element("planner-date-input").value = ""
+    set_exam_date("")
+
+
+def _validated_exam_plan(raw):
+    """(date or None, minutes) from an untrusted save value."""
+    if not isinstance(raw, dict):
+        return None, PLANNER_DEFAULT_MINUTES
+    date = raw.get("date")
+    date = date if isinstance(date, str) and _parse_iso_date(date) is not None else None
+    minutes = raw.get("minutes")
+    if isinstance(minutes, bool) or not isinstance(minutes, int):
+        minutes = PLANNER_DEFAULT_MINUTES
+    return date, _clamp_minutes(minutes)
+
+
+def render_planner():
+    tile = _element("exam-countdown-tile")
+    text = exam_countdown_text()
+    _element("exam-countdown-display").innerText = text
+    tile.hidden = not text
+
+    toggle = _element("planner-toggle-button")
+    toggle.innerText = "Hide exam planner" if planner_open else "📅 Exam planner"
+    panel = _element("planner-panel")
+    panel.hidden = not planner_open
+    if not planner_open:
+        return
+    date_input = _element("planner-date-input")
+    date_input.value = exam_date or ""
+    minutes_input = _element("planner-minutes-input")
+    minutes_input.value = str(exam_minutes)
+    _element("planner-minutes-label").innerText = f"{exam_minutes} minutes a day"
+
+    days = exam_days_left()
+    summary, projection_line, suggestion = "", "", ""
+    if exam_date is None:
+        summary = "Pick your exam date to see what a few minutes a day adds up to."
+    elif days is None:
+        summary = "Today's date is not available here, so the countdown cannot be worked out."
+    elif days < 0:
+        summary = "That date has passed. Pick a new one, or clear it."
+    elif days == 0:
+        summary = "The exam is today. Whatever you have grown is what you take in."
+    else:
+        summary = f"{days} day{'s' if days != 1 else ''} to go (exam on {exam_date})."
+        projection = planner_projection()
+        projection_line = (
+            f"At {projection['minutes']} minutes a day (about {projection['reviews']} answers a day), "
+            f"roughly {projection['cautious']:.0f}% of the farm would be Automated by then, "
+            f"or up to {projection['best']:.0f}% if every answer were right. "
+            f"Right now: {projection['current']:.0f}%."
+        )
+        found = planner_minimum_minutes()
+        if found is not None:
+            kind, value = found
+            if kind == "already":
+                suggestion = f"The farm is already at {PLANNER_TARGET_PERCENT}% Automated or more. Keeping it watered is enough."
+            elif kind == "minutes":
+                suggestion = (
+                    f"To reach {PLANNER_TARGET_PERCENT}% Automated by then, aim for at least {value} "
+                    f"minute{'s' if value != 1 else ''} a day."
+                )
+            else:
+                suggestion = (
+                    f"{PLANNER_TARGET_PERCENT}% is out of reach in this time, even at {PLANNER_MAX_MINUTES} "
+                    f"minutes a day (best about {value:.0f}%). A mock exam over the weeks it covers is a better use of the time."
+                )
+    _element("planner-summary").innerText = summary
+    _element("planner-projection").innerText = projection_line
+    _element("planner-projection").hidden = not projection_line
+    _element("planner-suggestion").innerText = suggestion
+    _element("planner-suggestion").hidden = not suggestion
+
+
+# ===========================================================================
+# L-20: an on-screen accent bar beside every typed answer box
+# ===========================================================================
+#
+# One row of letter buttons (e with its accents, the cedilla, the oe ligature,
+# and so on) under each typed-answer box, so a phone or a keyboard without
+# French accents can still type an accent-checked answer. Pressing a key puts
+# the letter at the caret and keeps the box focused (mousedown is cancelled so
+# a phone keeps its keyboard up). The keys stay out of the tab order (a typist
+# already has the box) but carry names for a screen reader. A bar is shown
+# exactly when its box is shown, and it stays quietly dimmed while the accent
+# check is off ("accents optional"), working with the existing toggle rather
+# than replacing it. Built once at boot; nothing here is saved or timed.
+ACCENT_CHARS = [
+    ("é", "e acute"), ("è", "e grave"), ("ê", "e circumflex"), ("ë", "e diaeresis"),
+    ("à", "a grave"), ("â", "a circumflex"), ("î", "i circumflex"), ("ï", "i diaeresis"),
+    ("ô", "o circumflex"), ("ù", "u grave"), ("û", "u circumflex"), ("ü", "u diaeresis"),
+    ("ç", "c cedilla"), ("œ", "o e ligature"), ("æ", "a e ligature"), ("ÿ", "y diaeresis"),
+]
+ACCENT_BARS = {
+    "accent-bar-practice": "practice-answer-input",
+    "accent-bar-review": "review-answer-input",
+    "accent-bar-proficiency": "proficiency-answer-input",
+    "accent-bar-placement": "placement-answer-input",
+    "accent-bar-bonus-tile": "bonus-tile-answer-input",
+    "accent-bar-bonus-sentence": "bonus-sentence-answer-input",
+}
+ACCENT_BAR_OPTIONAL_NOTE = "Accents are optional right now (the accent check is off)."
+
+
+def accent_sensitive_now():
+    """Whether typed answers are being checked for accents right now."""
+    return ACCENT_SENSITIVE
+
+
+def insert_accent(input_id, char):
+    """Put `char` at the caret (replacing any selection) in the named box and
+    return the new text. With no caret information the letter goes on the end."""
+    box = _element(input_id)
+    value = str(box.value or "")
+    start = getattr(box, "selectionStart", None)
+    end = getattr(box, "selectionEnd", None)
+    if isinstance(start, bool) or not isinstance(start, int):
+        start = len(value)
+    if isinstance(end, bool) or not isinstance(end, int):
+        end = start
+    start = max(0, min(start, len(value)))
+    end = max(start, min(end, len(value)))
+    box.value = value[:start] + char + value[end:]
+    caret = start + len(char)
+    try:
+        box.setSelectionRange(caret, caret)
+        box.focus()
+    except Exception:
+        pass  # a missing caret API must never lose the letter
+    return box.value
+
+
+def _make_accent_handler(input_id, char):
+    def handler(event=None):
+        insert_accent(input_id, char)
+    return handler
+
+
+def _keep_input_focus(event=None):
+    if event is not None and hasattr(event, "preventDefault"):
+        event.preventDefault()
+
+
+def build_accent_bars():
+    for bar_id, input_id in ACCENT_BARS.items():
+        bar = _element(bar_id)
+        bar.innerHTML = ""
+        for char, name in ACCENT_CHARS:
+            key = document.createElement("button")
+            key.type = "button"
+            key.className = "secondary accent-key"
+            key.innerText = char
+            key.setAttribute("aria-label", f"{char}, {name}")
+            key.setAttribute("tabindex", "-1")
+            key.title = name
+            key.addEventListener("mousedown", create_proxy(_keep_input_focus))
+            key.addEventListener("click", create_proxy(_make_accent_handler(input_id, char)))
+            bar.appendChild(key)
+
+
+def render_accent_bars():
+    optional = not accent_sensitive_now()
+    for bar_id, input_id in ACCENT_BARS.items():
+        bar = _element(bar_id)
+        bar.hidden = bool(_element(input_id).hidden)
+        bar.className = "accent-bar accent-bar--optional" if optional else "accent-bar"
+        bar.title = ACCENT_BAR_OPTIONAL_NOTE if optional else ""
+
+
 def setup():
     build_farm()
     render_legend()
+    build_accent_bars()
     _element("practice-submit-button").addEventListener("click", create_proxy(on_submit_typed))
     _element("practice-answer-input").addEventListener("keydown", create_proxy(on_answer_keydown))
     _element("practice-close-button").addEventListener("click", create_proxy(close_practice))
@@ -6735,6 +7295,13 @@ def setup():
         "click", create_proxy(on_toggle_dashboard)
     )
     _element("calendar-toggle-button").addEventListener("click", create_proxy(on_toggle_calendar))
+    _element("farm-filter-select").addEventListener("change", create_proxy(on_farm_filter_change))
+    _element("farm-sort-select").addEventListener("change", create_proxy(on_farm_sort_change))
+    _element("planner-toggle-button").addEventListener("click", create_proxy(on_toggle_planner))
+    _element("planner-date-input").addEventListener("change", create_proxy(on_planner_date_change))
+    _element("planner-minutes-input").addEventListener("input", create_proxy(on_planner_minutes_change))
+    _element("planner-minutes-input").addEventListener("change", create_proxy(on_planner_minutes_change))
+    _element("planner-clear-button").addEventListener("click", create_proxy(on_planner_clear))
     _populate_cram_selects()
     _element("practice-deepdive-button").addEventListener("click", create_proxy(on_toggle_deepdive))
     _element("review-cram-button").addEventListener("click", create_proxy(on_start_cram_review))
@@ -6954,6 +7521,8 @@ def get_state():
         **({"phrasebook": list(phrasebook)} if phrasebook else {}),
         # L4b -- highest row the player was placed through, only once non-zero.
         **({"placement_through": placement_through} if placement_through else {}),
+        # L-9 -- the exam date and the what-if minutes, only once a date is set.
+        **({"exam_plan": {"date": exam_date, "minutes": exam_minutes}} if exam_date else {}),
     }
 
 
@@ -6974,7 +7543,7 @@ def _is_valid_report_log_entry(entry):
 
 def load_state(data):
     global error_pattern_counts, practice_ledger, study_buddy_enabled, report_log, study_days, phrasebook
-    global placement_through
+    global placement_through, exam_date, exam_minutes
 
     study_buddy_enabled = data.get("study_buddy") is True
 
@@ -6986,6 +7555,8 @@ def load_state(data):
     study_days = _validated_study_days(data.get("study_days"))
     phrasebook = _validated_phrasebook(data.get("phrasebook"))
     placement_through = _validated_placement_through(data.get("placement_through"))
+    exam_date, exam_minutes = _validated_exam_plan(data.get("exam_plan"))
+    _planner_cache.clear()
     # Z11 "My Reports" -- an old save predating this feature simply has no
     # "report_log" key, which sanitize() already treats as "empty list",
     # the same forward-compatibility standard every other per-game field
@@ -7014,6 +7585,7 @@ def load_state(data):
 
     # Any question on screen was generated against the farm that just got
     # replaced, so it is closed rather than answered into the new one.
+    apply_farm_arrangement()
     close_placement()
     close_practice()
     return True

@@ -654,9 +654,12 @@ html[data-visual-style="cartoon"] .plot {
    theme has a dark .dashboard-panel, so give it that theme's own light body
    text (same colours .changelog-row already uses) rather than the default
    theme's dark brown. */
-html[data-visual-style="lowpoly"] .calendar-panel { color: #eef3f6; }
-html[data-visual-style="textbased"] .calendar-panel { color: #b9f5c9; }
-html[data-visual-style="cartoon"] .calendar-panel { color: #f5eaff; }
+html[data-visual-style="lowpoly"] .calendar-panel,
+html[data-visual-style="lowpoly"] .planner-panel { color: #eef3f6; }
+html[data-visual-style="textbased"] .calendar-panel,
+html[data-visual-style="textbased"] .planner-panel { color: #b9f5c9; }
+html[data-visual-style="cartoon"] .calendar-panel,
+html[data-visual-style="cartoon"] .planner-panel { color: #f5eaff; }
 
 /* L19: the phrasebook panel inherits its text colour, so each alternate
    theme's dark .dashboard-panel needs that theme's own light text. */
@@ -699,6 +702,7 @@ html[data-theme="light"][data-visual-style="lowpoly"] .row--locked { background:
 html[data-theme="light"][data-visual-style="lowpoly"] .changelog-row,
 html[data-theme="light"][data-visual-style="lowpoly"] .report-log-row,
 html[data-theme="light"][data-visual-style="lowpoly"] .calendar-panel,
+html[data-theme="light"][data-visual-style="lowpoly"] .planner-panel,
 html[data-theme="light"][data-visual-style="lowpoly"] .phrasebook-panel { color: #1f2a33; }
 html[data-theme="light"][data-visual-style="lowpoly"] .practice-deepdive { color: #1f2a33; background: #eef3f6; }
 html[data-theme="light"][data-visual-style="lowpoly"] .secondary { background: #c9d6e0; border-color: #7d93a6; color: #1f2a33; }
@@ -721,6 +725,7 @@ html[data-theme="light"][data-visual-style="textbased"] .row--locked { backgroun
 html[data-theme="light"][data-visual-style="textbased"] .changelog-row,
 html[data-theme="light"][data-visual-style="textbased"] .report-log-row,
 html[data-theme="light"][data-visual-style="textbased"] .calendar-panel,
+html[data-theme="light"][data-visual-style="textbased"] .planner-panel,
 html[data-theme="light"][data-visual-style="textbased"] .phrasebook-panel { color: #0a3a18; }
 html[data-theme="light"][data-visual-style="textbased"] .practice-deepdive { color: #0a3a18; background: #fbfdf9; }
 html[data-theme="light"][data-visual-style="textbased"] .primary,
@@ -746,6 +751,7 @@ html[data-theme="light"][data-visual-style="cartoon"] .row--locked { background:
 html[data-theme="light"][data-visual-style="cartoon"] .changelog-row,
 html[data-theme="light"][data-visual-style="cartoon"] .report-log-row,
 html[data-theme="light"][data-visual-style="cartoon"] .calendar-panel,
+html[data-theme="light"][data-visual-style="cartoon"] .planner-panel,
 html[data-theme="light"][data-visual-style="cartoon"] .phrasebook-panel { color: #2a1050; }
 html[data-theme="light"][data-visual-style="cartoon"] .practice-deepdive { color: #2a1050; background: #fff1f7; }
 html[data-theme="light"][data-visual-style="cartoon"] .primary { color: #123a1a; }

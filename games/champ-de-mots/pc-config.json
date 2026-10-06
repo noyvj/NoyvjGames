@@ -16,6 +16,11 @@
       "Study calendar"
     ],
     [
+      "planner-panel",
+      "planner-toggle-button",
+      "Exam planner"
+    ],
+    [
       "phrasebook-panel",
       "phrasebook-toggle-button",
       "My phrasebook"
@@ -188,7 +193,8 @@
     ],
     "stagebar": [
       "#stage-summary-display",
-      "#automated-meter"
+      "#automated-meter",
+      "#farm-controls"
     ],
     "stage": [
       "#farm",
@@ -239,6 +245,11 @@
       "#practice-score-display",
       "🎯",
       "Practice score"
+    ],
+    [
+      "#exam-countdown-display",
+      "⏳",
+      ""
     ]
   ],
   "side_label": "Watering, study tools and practice games",

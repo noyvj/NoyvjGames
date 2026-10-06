@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 103/774 items checked off (13.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 107/774 items checked off (13.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -769,7 +769,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] L-6: Build a Le Champ de Mots daily mots croises: one procedurally generated mini-crossword or word-search per day from unlocked/learning words with a par time; counts to practice ledger.
 - [ ] L-7: Build Le Champ de Mots cloze stories: short generated paragraphs from mastered vocabulary with gaps to fill, ordered easy to hard; counts to practice score; supersedes the parked story-quiz entry in LATER.md.
 - [ ] L-8: Build a Le Champ de Mots mock-exam simulator: timed FREN151/152-style test over a chosen chapter range with predicted grade, per-topic breakdown and a 'fix these three things' list; counts to practice score.
-- [ ] L-9: Build a Le Champ de Mots exam-date planner: enter exam date, what-if slider (N minutes a day -> % plots Automated by then), projection from the real SRS state and a minimum-daily-effort suggestion.
+- [x] L-9: Build a Le Champ de Mots exam-date planner: enter exam date, what-if slider (N minutes a day -> % plots Automated by then), projection from the real SRS state and a minimum-daily-effort suggestion.
 - [ ] L-10: Build a Le Champ de Mots conjugation matrix puzzle: persons-by-tenses grid with blanked cells, timed, combos for completed rows/diagonals, added as a sixth minigame family entry counting to practice score.
 - [ ] L-11: Build a Le Champ de Mots farm layout sandbox: earned decor (scarecrows, fences, fountains) placeable freely around the plots, plus a screenshot-able farm card. (needs L-1 (decor source))
 - [ ] L-12: Build Le Champ de Mots classmate farm visits: share code to a read-only farm snapshot and a 'care package' of 5 tough words left for the owner; needs a backend snapshot table in app/; opt-in and safe. (needs backend snapshot table)
@@ -780,15 +780,15 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] L-17: Add a Le Champ de Mots 'golden plot' of the day: one random due plot highlighted, correct answer gives double practice score.
 - [ ] L-18: Add leech detection to Le Champ de Mots: an item failed many times in a row becomes a 'stubborn weed' with a mnemonic prompt, chunked re-teach card or hint to suspend for a while.
 - [ ] L-19: Add a once-per-session 'that was a slip' button to Le Champ de Mots that undoes a clearly keystroke-error typed answer without penalising the SRS interval.
-- [ ] L-20: Add an on-screen accent bar (é è ç œ etc.) beside every typed input in Le Champ de Mots, on phones and desktops, working with the existing accent strict/lenient toggle. (partly built: Accent strict/lenient toggle exists (index.html #accent-toggle-checkbox, game.py normalize_answer fold_accents).)
+- [x] L-20: Add an on-screen accent bar (é è ç œ etc.) beside every typed input in Le Champ de Mots, on phones and desktops, working with the existing accent strict/lenient toggle. (partly built: Accent strict/lenient toggle exists (index.html #accent-toggle-checkbox, game.py normalize_answer fold_accents).)
 - [ ] L-21: Add a Le Champ de Mots weekly recap card shown once a week: plots watered, best combo, new plots automated, hardest word, with a share image; non-guilt and easy to dismiss.
 - [ ] L-22: Add an optional Pomodoro study timer to Le Champ de Mots in the minigames-side file: crops visibly grow while it runs, small practice-score bonus on completion, penalty-free stop button. (you approved 2026-10-07 an explicit exception to Le Champ de Mots' no-animation/no-timer tests: update the test and the CLAUDE.md rule when building, keep it toggleable and reduced-motion safe)
 - [ ] L-23: Add a Le Champ de Mots scarecrow mascot with a few discrete (non-eased) reaction poses for combos and weeds, with outfits unlocked by achievements; toggleable. (you approved 2026-10-07 an explicit exception to Le Champ de Mots' no-animation/no-timer tests: update the test and the CLAUDE.md rule when building, keep it toggleable and reduced-motion safe)
-- [ ] L-24: Add a filter and sort control to the Le Champ de Mots farm grid: weakest first, due today, by type.
+- [x] L-24: Add a filter and sort control to the Le Champ de Mots farm grid: weakest first, due today, by type.
 - [ ] L-25: Add an opt-in hardcore mode to Le Champ de Mots: strict grading everywhere, no hints, no multiple-choice fallback, with an achievement for a whole week completed under it; keep it optional and hinted.
 - [ ] L-26: Add Le Champ de Mots player titles (Apprenti, Jardinier, Fermier, Maitre de Ferme) rising with the practice ledger, shown in the header and on shared cards.
 - [ ] L-27: Add a session highlight reel to Le Champ de Mots results screens: best combo, quickest answer and toughest word beaten.
-- [ ] L-28: Add a Le Champ de Mots header exam-countdown widget: days to the entered exam date plus projected coverage, hidden when no date is set. (needs L-9 (exam date and projection))
+- [x] L-28: Add a Le Champ de Mots header exam-countdown widget: days to the entered exam date plus projected coverage, hidden when no date is set. (needs L-9 (exam date and projection))
 - [ ] L-29: Add a weak-items export to Le Champ de Mots: download flagged items as a CSV or Anki-compatible deck.
 - [ ] L-30: Add rotating cosmetic seasonal farm sprites and weather (autumn leaves, snow) to Le Champ de Mots, tied to the real calendar or semester stage and toggled by the visual-style switcher. (needs W-4) (you approved 2026-10-07 an explicit exception to Le Champ de Mots' no-animation/no-timer tests: update the test and the CLAUDE.md rule when building, keep it toggleable and reduced-motion safe)
 - [ ] L-31: Restyle Le Champ de Mots achievement cards with warm farm-themed crop/harvest glyphs per earned badge, themed across High-def, Low-poly, Text-based and Cartoon styles, as a restyle not a rebuild.

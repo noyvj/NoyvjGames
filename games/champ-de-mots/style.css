@@ -1521,3 +1521,28 @@ button:disabled {
 /* Site-wide: a bare `display:` rule on a class must never defeat the HTML hidden attribute
    (playtest audit 2026-10-06, S2: Continuum, Aftermath, Drift, Champ de Mots, hub). */
 [hidden] { display: none !important; }
+
+/* L-9 / L-28: exam planner and the header exam countdown. Static: no motion. */
+.stat-tile--exam::before { content: "⏳"; }
+.stat-tile--exam[hidden] { display: none; }
+.planner-panel { color: #33291f; }
+.planner-panel[hidden] { display: none; }
+.planner-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.6rem 1rem; margin: 0.4rem 0; }
+.planner-field { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; }
+.planner-date { padding: 0.35rem 0.5rem; border: 1px solid #ded2ba; border-radius: 8px; background: #fdfbf5; color: #33291f; font: inherit; }
+.planner-slider { width: min(18rem, 70vw); }
+.planner-minutes-label { font-size: 0.85rem; font-weight: 600; }
+.planner-line { margin: 0.35rem 0; font-size: 0.88rem; line-height: 1.5; }
+.planner-line--suggestion { font-weight: 600; }
+
+/* L-24: farm filter and sort. */
+.farm-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.9rem; margin: 0.4rem 0 0.6rem; }
+.farm-control { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; }
+.farm-control select { padding: 0.3rem 0.5rem; font: inherit; border-radius: 8px; }
+.farm-filter-count { font-size: 0.8rem; opacity: 0.85; }
+
+/* L-20: the on-screen accent bar under each typed-answer box. */
+.accent-bar { display: flex; flex-wrap: wrap; gap: 0.25rem; margin: 0.3rem 0 0.5rem; }
+.accent-bar[hidden] { display: none; }
+.accent-key { width: auto; min-width: 2.1rem; padding: 0.3rem 0.45rem; font-size: 1rem; line-height: 1.1; }
+.accent-bar--optional { opacity: 0.6; }

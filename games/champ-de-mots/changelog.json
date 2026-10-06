@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-07",
+    "entry": "Study tools: an Exam planner (enter your exam date and a what-if number of minutes a day to see roughly how much of the farm would be Automated by then, plus the smallest daily effort that reaches 80%), a header countdown chip that only appears once a date is set, a Show and Sort control above the farm (due today, weeds, never watered, by type; weakest or most overdue first), and an accent bar (é è ç œ and more) under every typed-answer box that dims while the accent check is off. None of these changes any plot's schedule (L-9, L-28, L-24, L-20)."
+  },
+  {
+    "date": "2026-10-07",
     "entry": "Desktop layout: on a wide window with a mouse, the opening screen (and the Menu) now offers a Desktop version of the farm. The whole farm sits in one scrolling stage with your day, plots ready, growth and practice score as chips along the top, the watering and study buttons, the Review tab and the practice games in a column beside it, and every question, test and arcade game opens as a window over the farm that Escape closes. The Classic layout is unchanged, and your save works in both."
   },
   {

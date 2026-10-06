@@ -57,6 +57,7 @@ class FakeElement:
         # needed here).
         self.dataset = FakeStyle()
         self.children = []
+        self._parent = None
         self.attributes = {}
         self._listeners = {}
         if id_ is not None and registry is not None:
@@ -79,11 +80,26 @@ class FakeElement:
     @innerHTML.setter
     def innerHTML(self, value):
         self._innerHTML = value
+        for child in self.children:
+            child._parent = None
         self.children = []
 
     def appendChild(self, child):
+        # Real DOM semantics: appending a node that already has a parent MOVES it
+        # (the farm filter/sort re-orders existing rows and plot cells this way).
+        old = getattr(child, "_parent", None)
+        if old is not None and child in old.children:
+            old.children.remove(child)
         self.children.append(child)
+        child._parent = self
         return child
+
+    def focus(self, *args, **kwargs):
+        self.focused = True
+
+    def setSelectionRange(self, start, end):
+        self.selectionStart = start
+        self.selectionEnd = end
 
     def setAttribute(self, name, value):
         self.attributes[name] = value

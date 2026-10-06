@@ -231,3 +231,8 @@ html[data-theme="light"][data-visual-style="cartoon"] .pc-window-frame > div.min
 /* Pre-existing in Classic too: the dashboard's farm-health rows use the dark page's pale ink on the
    dashboard's cream card in the default look. Dark ink in the window. */
 html[data-visual-style="highdef"]:not([data-theme="light"]) .pc-window-frame .dashboard-health-row { color: #33291f; }
+
+/* L-28: the exam countdown chip hides itself while no exam date is set. */
+.pc-readout:has(.pc-readout-value:empty) { display: none; }
+/* L-24: the farm filter and sort sit in the stage bar. */
+#pc-stagebar > #farm-controls { margin: 0; }
