@@ -1,0 +1,260 @@
+{
+  "windows": [
+    [
+      "howto-panel",
+      "howto-toggle-button",
+      "How to Play"
+    ],
+    [
+      "dashboard-panel",
+      "dashboard-toggle-button",
+      "Progress dashboard"
+    ],
+    [
+      "calendar-panel",
+      "calendar-toggle-button",
+      "Study calendar"
+    ],
+    [
+      "phrasebook-panel",
+      "phrasebook-toggle-button",
+      "My phrasebook"
+    ],
+    [
+      "achievements-panel",
+      "achievements-toggle-button",
+      "Achievements"
+    ],
+    [
+      "changelog-panel",
+      "changelog-toggle-button",
+      "What's New"
+    ],
+    [
+      "report-log-panel",
+      "report-log-toggle-button",
+      "My Reports"
+    ],
+    [
+      "settings-panel",
+      "settings-toggle-button",
+      "Settings"
+    ],
+    [
+      "cultural-notes-panel",
+      "cultural-notes-toggle-button",
+      "Cultural notes"
+    ],
+    [
+      "practice-panel",
+      "practice-close-button",
+      "Water a plot"
+    ],
+    [
+      "review-panel",
+      "review-close-button",
+      "Review"
+    ],
+    [
+      "proficiency-panel",
+      "proficiency-close-button",
+      "Proficiency test"
+    ],
+    [
+      "bonus-panel",
+      "bonus-close-button",
+      "Bonus sentence"
+    ],
+    [
+      "placement-panel",
+      "placement-close-button",
+      "Placement test"
+    ],
+    [
+      "conversation-panel",
+      "conversation-close-button",
+      "Conversation"
+    ],
+    [
+      "builder-panel",
+      "builder-close-button",
+      "Sentence builder"
+    ],
+    [
+      "listening-panel",
+      "listening-close-button",
+      "Listening"
+    ],
+    [
+      "liaison-panel",
+      "liaison-toggle-button",
+      "Liaison practice"
+    ],
+    [
+      "blitz-panel",
+      "blitz-toggle-button",
+      "Greetings & Basics Blitz"
+    ],
+    [
+      "racer-panel",
+      "racer-toggle-button",
+      "Verb Racer"
+    ],
+    [
+      "boutique-panel",
+      "boutique-toggle-button",
+      "Boutique Dash"
+    ],
+    [
+      "cafe-panel",
+      "cafe-toggle-button",
+      "Café Rush"
+    ],
+    [
+      "sprint-panel",
+      "sprint-toggle-button",
+      "Passé Composé Sprint"
+    ]
+  ],
+  "toolbar": {
+    "icons": [
+      [
+        "dashboard-toggle-button",
+        "📊"
+      ],
+      [
+        "phrasebook-toggle-button",
+        "📒"
+      ],
+      [
+        "achievements-toggle-button",
+        "🏆"
+      ],
+      [
+        "settings-toggle-button",
+        "⚙️"
+      ]
+    ],
+    "menu": [
+      {
+        "heading": "Help",
+        "ids": [
+          "tutorial-restart-button",
+          "howto-toggle-button"
+        ]
+      },
+      {
+        "heading": "Records",
+        "ids": [
+          "calendar-toggle-button",
+          "changelog-toggle-button",
+          "report-log-toggle-button"
+        ]
+      }
+    ]
+  },
+  "composites": [
+    {
+      "id": "pc-about-panel",
+      "title": "About Le Champ de Mots",
+      "members": [
+        ".tagline",
+        ".context-blurb"
+      ],
+      "group": "Help",
+      "label": "🌾 About the farm and its story"
+    },
+    {
+      "id": "pc-srs-panel",
+      "title": "How reviews are scheduled",
+      "members": [
+        "#srs-explainer"
+      ],
+      "group": "Help",
+      "label": "🧮 How reviews are scheduled"
+    }
+  ],
+  "adopt": [
+    [
+      "#review-panel",
+      "#pc-body"
+    ]
+  ],
+  "zones": {
+    "topbar": [
+      ".hub-back-link",
+      "h1",
+      ".game-toolbar"
+    ],
+    "stagebar": [
+      "#stage-summary-display",
+      "#automated-meter"
+    ],
+    "stage": [
+      "#farm",
+      "#legend + details",
+      "#legend"
+    ],
+    "side": [
+      "#status > .controls",
+      "#placement-hint",
+      "#combo-display",
+      "#review-section",
+      "#liaison-toggle-button",
+      "#blitz-toggle-button",
+      "#racer-toggle-button",
+      "#boutique-toggle-button",
+      "#cafe-toggle-button",
+      "#sprint-toggle-button",
+      "#cultural-notes-toggle-button",
+      "details:has(+ #cultural-notes-panel)",
+      "#study-buddy-toggle-button",
+      "#study-buddy-display",
+      ".accent-toggle",
+      "#status > details.info-toggle",
+      "#pace-display"
+    ],
+    "hidden": [
+      "details:has(+ #cultural-notes-panel)",
+      "#status"
+    ]
+  },
+  "readouts": [
+    [
+      "#day-display",
+      "📅",
+      ""
+    ],
+    [
+      "#due-display",
+      "💧",
+      ""
+    ],
+    [
+      "#progress-display",
+      "🌱",
+      ""
+    ],
+    [
+      "#practice-score-display",
+      "🎯",
+      "Practice score"
+    ]
+  ],
+  "side_label": "Watering, study tools and practice games",
+  "hints": [
+    [
+      "Enter",
+      "Check a typed answer"
+    ],
+    [
+      "?",
+      "All shortcuts"
+    ],
+    [
+      "Esc",
+      "Menu / close window"
+    ]
+  ],
+  "notify": null
+}

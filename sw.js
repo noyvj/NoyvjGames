@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 26;
+const SW_VERSION = 27;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -110,6 +110,9 @@ const PRECACHE_URLS = [
   "games/trade-empire/pc.html",
   "games/trade-empire/pc.css",
   "games/trade-empire/pc.js",
+  "games/champ-de-mots/pc.html",
+  "games/champ-de-mots/pc.css",
+  "games/champ-de-mots/pc.js",
 ];
 
 self.addEventListener("install", (event) => {

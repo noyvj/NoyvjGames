@@ -1,0 +1,233 @@
+/* Le Champ de Mots, Desktop boot (pc.html only). Everything is scoped to the pc layout, so the Classic
+   page is untouched. Layout: top bar, readout chips (day, plots ready, growth, practice score), the farm
+   as the stage (rows tile into columns and the farm scrolls inside itself, never the page), and a side
+   column with the watering and study buttons, the Review tab and the practice-game launchers. Every
+   question flow (watering, review, proficiency tests, bonus sentences, the minigames...) is a window
+   over the farm; the info panels are windows opened from the icons or the Menu. Frame, chips and
+   windows come from shared/pc-shell.css. */
+
+html[data-layout="pc"] #game { padding-bottom: 0.4rem; }
+html[data-layout="pc"] body { padding-bottom: 0; } /* the ad bar's body padding would make the page scroll */
+html[data-layout="pc"] .ambient-bg { overflow: hidden; }
+html[data-layout="pc"] #theme-toggle-floating { top: 0.7rem !important; bottom: auto !important; left: auto !important; right: 1rem !important; }
+
+/* The classic mobile pieces have no place on the Desktop boot. */
+html[data-layout="pc"] .mobile-hud, html[data-layout="pc"] #mobile-hud, html[data-layout="pc"] #mobile-hud-bar { display: none !important; }
+
+/* --- top bar -------------------------------------------------------------------------------- */
+#pc-topbar { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "title tools"; padding-right: 7.5rem; }
+#pc-topbar > .game-toolbar { gap: 0.4rem; justify-content: flex-end; }
+#pc-readouts { padding: 0 0.1rem; }
+.pc-readout-value { font-variant-numeric: tabular-nums; }
+.pc-readout-label:empty { display: none; }
+.pc-readout { max-width: 100%; }
+
+/* --- body: the farm as the stage, a side column for what you do ------------------------------ */
+#pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(19rem, 27vw, 27rem); }
+#pc-stagebar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.8rem; }
+#pc-stagebar > * { margin: 0; flex: 0 0 auto; }
+#pc-stagebar > #stage-summary-display { padding: 0.3rem 0.8rem; font-size: 0.9rem; }
+#pc-stagebar > #automated-meter { width: min(12rem, 30%); height: 8px; }
+
+/* The farm: every row is open, so the rows tile into as many columns as the stage has room for and the
+   whole farm scrolls inside itself. */
+#pc-stage > #farm {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 26rem), 1fr));
+  align-content: start;
+  align-items: stretch;
+  gap: 0.5rem;
+  padding: 0.1rem 0.4rem 0.4rem 0;
+}
+#pc-stage > #farm > .row { margin: 0; min-width: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
+#pc-stage > #farm .row-head { margin-bottom: 0.3rem; gap: 0.2rem 0.5rem; }
+#pc-stage > #farm .row-chapter { flex: 1 1 8rem; }
+
+/* Legend and its "i" sit under the farm. */
+#pc-stage > #legend { order: 5; margin: 0; padding: 0.25rem 0.6rem; font-size: 0.72rem; line-height: 1.6; }
+#pc-stage > details.info-toggle { order: 6; margin: 0; }
+#pc-stage > #pc-hintbar { order: 7; }
+
+/* --- side column ------------------------------------------------------------------------------ */
+#pc-side {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-auto-rows: min-content;
+  align-content: start;
+  gap: 0.45rem;
+  padding: 0.5rem 0.5rem 3rem; /* clear of the collapsed Save / Load widget */
+}
+#pc-side > * { margin: 0; min-width: 0; }
+#pc-side > .controls, #pc-side > .section, #pc-side > p, #pc-side > label, #pc-side > details,
+#pc-side > #cultural-notes-toggle-button, #pc-side > #study-buddy-toggle-button { grid-column: 1 / -1; }
+
+/* Watering and study tools: a two-column set of action tiles with the watering button across the top. */
+#pc-side > .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin: 0; }
+#pc-side > .controls button { padding: 0.55rem 0.3rem 0.5rem; font-size: 0.8rem; flex: none; min-width: 0; }
+#pc-side > .controls button::before { font-size: 1.15rem; }
+#pc-side > .controls #water-next-button { grid-column: 1 / -1; font-size: 1rem; padding: 0.8rem 0.5rem; }
+#pc-side > .controls #water-next-button::before { font-size: 1.4rem; }
+#pc-side .status-line { margin: 0; }
+#pc-side > #pace-display { font-size: 0.75rem; }
+
+/* The practice-game launchers sit in two columns beneath the Review tab. */
+#pc-side > #liaison-toggle-button, #pc-side > #blitz-toggle-button, #pc-side > #racer-toggle-button,
+#pc-side > #boutique-toggle-button, #pc-side > #cafe-toggle-button, #pc-side > #sprint-toggle-button {
+  width: 100%;
+  min-height: 2.6rem;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+#pc-side > #cultural-notes-toggle-button, #pc-side > #study-buddy-toggle-button { font-size: 0.8rem; padding: 0.45rem 0.6rem; }
+#pc-side > .section.review-section { padding: 0.6rem 0.7rem; }
+#pc-side .review-section .status-line--muted { font-size: 0.75rem; margin-bottom: 0.4rem; }
+#pc-side > .accent-toggle { margin-top: 0.2rem; font-size: 0.75rem; }
+
+/* --- windows ------------------------------------------------------------------------------------ */
+/* The srs explainer is only un-hidden by the game while the dashboard is open; in its own window it is
+   always readable. */
+#pc-srs-panel #srs-explainer[hidden] { display: block !important; }
+.pc-composite > * { margin-bottom: 0.9rem; }
+.pc-window-frame .tagline { opacity: 0.9; }
+/* Question and arcade windows: a comfortable reading width for a prompt and its answer choices. */
+.pc-window-frame #practice-panel, .pc-window-frame #review-panel, .pc-window-frame #proficiency-panel,
+.pc-window-frame #bonus-panel, .pc-window-frame #placement-panel, .pc-window-frame #conversation-panel,
+.pc-window-frame #builder-panel, .pc-window-frame #listening-panel, .pc-window-frame #liaison-panel { padding: 1rem 1.2rem 1.2rem; }
+
+/* Smaller desktop windows (about 1024px wide or 700px tall). */
+@media (max-width: 1280px) {
+  #pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) 17rem; gap: 0.6rem; }
+  #pc-stage > #farm { grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); }
+  .pc-readout { padding: 0.25rem 0.55rem; font-size: 0.8rem; }
+}
+@media (max-height: 780px) {
+  #pc-stage > #legend { font-size: 0.68rem; line-height: 1.4; }
+  #pc-side > .controls #water-next-button { padding: 0.55rem 0.5rem; }
+}
+
+/* Themes. */
+html[data-theme="light"] #pc-hintbar { opacity: 1; }
+.pc-window-frame a { color: #9fc4ff; }
+html[data-theme="light"] .pc-window-frame a { color: #1d4f9e; }
+
+/* The page's dawn sky is pale behind the lower half of the window, and this game's loose text (title,
+   tally, legend, hotkey bar, notes) is pale ink meant for glass panels. In the dark theme the top bar,
+   the stage and the side column are therefore dark glass themselves, so nothing sits on bare sky. */
+html:not([data-theme="light"]) #pc-topbar,
+html:not([data-theme="light"]) #pc-stage,
+html:not([data-theme="light"]) #pc-side {
+  background: rgba(12, 14, 26, 0.66);
+  border: 1px solid rgba(140, 160, 255, 0.16);
+  border-radius: 14px;
+}
+html:not([data-theme="light"]) #pc-topbar { padding-top: 0.35rem; padding-bottom: 0.35rem; padding-left: 0.8rem; }
+#pc-stage { padding: 0.5rem 0.6rem 0.4rem; }
+
+/* The "i" disclosures keep to their own small size instead of becoming full-width bars. */
+#pc-side > details.info-toggle, #pc-stage > details.info-toggle,
+html[data-theme="light"] #pc-side > details.info-toggle, html[data-theme="light"] #pc-stage > details.info-toggle {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  justify-self: start;
+  margin: 0;
+  padding: 0;
+}
+/* The dawn hill behind the window bottom is softened (as in the other Desktop boots). */
+html[data-layout="pc"] .ambient-bg--champetre .ambient-bg-blobs { opacity: 0.3; }
+
+/* --- window panels keep their own paper -------------------------------------------------------------
+   The shell strips the background off a panel placed in a window (so most games' dark glass sits on the
+   window), but this game's question, arcade and dashboard panels are cream or style-specific cards with
+   dark ink chosen for that card. Their backgrounds are restored below, one rule per background rule in
+   style.css, minigames.css, visual-styles.css and the shared light theme, with the same selectors made
+   one step more specific for a panel that is a direct child of a window. (If a panel background in
+   those files changes, mirror it here.) */
+/* from style.css */
+.pc-window-frame > div.section {
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.78), rgba(14, 16, 28, 0.85));
+}
+/* from style.css */
+.pc-window-frame > div.practice {
+  background: linear-gradient(165deg, rgba(26, 31, 27, 0.8), rgba(14, 17, 14, 0.85));
+}
+/* from style.css */
+.pc-window-frame > div.practice {
+  background: linear-gradient(165deg, #fdfbf5, #f6f1e4);
+}
+/* from style.css */
+.pc-window-frame > div.cultural-notes-panel {
+  background: #fbf7ee;
+}
+/* from style.css */
+.pc-window-frame > div.dashboard-panel {
+  background: #fbf7ee;
+}
+/* from minigames.css */
+.pc-window-frame > div.minigame-panel {
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.78), rgba(14, 16, 28, 0.85));
+}
+/* from theme-light-games.css */
+html[data-theme="light"] .pc-window-frame > div.section,
+html[data-theme="light"] .pc-window-frame > div.achievements-panel,
+html[data-theme="light"] .pc-window-frame > div.changelog-panel {
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.85), rgba(240, 244, 255, 0.9));
+}
+/* from theme-light-games.css */
+html[data-theme="light"] .pc-window-frame > div.practice {
+  background: rgba(255, 255, 255, 0.72);
+}
+/* from visual-styles.css */
+html[data-theme="light"] .pc-window-frame > div.minigame-panel {
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.85), rgba(240, 244, 255, 0.9));
+}
+/* from visual-styles.css */
+html[data-visual-style="lowpoly"] .pc-window-frame > div.section,
+html[data-visual-style="lowpoly"] .pc-window-frame > div.dashboard-panel,
+html[data-visual-style="lowpoly"] .pc-window-frame > div.minigame-panel {
+  background: #22323d;
+}
+/* from visual-styles.css */
+html[data-visual-style="textbased"] .pc-window-frame > div.section,
+html[data-visual-style="textbased"] .pc-window-frame > div.dashboard-panel,
+html[data-visual-style="textbased"] .pc-window-frame > div.minigame-panel {
+  background: #0a0f12;
+}
+/* from visual-styles.css */
+html[data-visual-style="cartoon"] .pc-window-frame > div.section,
+html[data-visual-style="cartoon"] .pc-window-frame > div.dashboard-panel,
+html[data-visual-style="cartoon"] .pc-window-frame > div.minigame-panel {
+  background: #3a1868;
+}
+/* from visual-styles.css */
+html[data-theme="light"][data-visual-style="lowpoly"] .pc-window-frame > div.section,
+html[data-theme="light"][data-visual-style="lowpoly"] .pc-window-frame > div.dashboard-panel,
+html[data-theme="light"][data-visual-style="lowpoly"] .pc-window-frame > div.minigame-panel {
+  background: #f6f9fb;
+}
+/* from visual-styles.css */
+html[data-theme="light"][data-visual-style="textbased"] .pc-window-frame > div.section,
+html[data-theme="light"][data-visual-style="textbased"] .pc-window-frame > div.dashboard-panel,
+html[data-theme="light"][data-visual-style="textbased"] .pc-window-frame > div.minigame-panel {
+  background: #fbfdf9;
+}
+/* from visual-styles.css */
+html[data-theme="light"][data-visual-style="cartoon"] .pc-window-frame > div.section,
+html[data-theme="light"][data-visual-style="cartoon"] .pc-window-frame > div.dashboard-panel,
+html[data-theme="light"][data-visual-style="cartoon"] .pc-window-frame > div.minigame-panel {
+  background: #fff9e0;
+}
+
+.pc-window-frame > div.practice, .pc-window-frame > div.minigame-panel, .pc-window-frame > div.dashboard-panel,
+.pc-window-frame > div.section, .pc-window-frame > div.cultural-notes-panel { border-radius: 0 0 14px 14px; }
+
+/* Pre-existing in Classic too: the dashboard's farm-health rows use the dark page's pale ink on the
+   dashboard's cream card in the default look. Dark ink in the window. */
+html[data-visual-style="highdef"]:not([data-theme="light"]) .pc-window-frame .dashboard-health-row { color: #33291f; }

@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-10-07",
+    "entry": "Desktop layout: on a wide window with a mouse, the opening screen (and the Menu) now offers a Desktop version of the farm. The whole farm sits in one scrolling stage with your day, plots ready, growth and practice score as chips along the top, the watering and study buttons, the Review tab and the practice games in a column beside it, and every question, test and arcade game opens as a window over the farm that Escape closes. The Classic layout is unchanged, and your save works in both."
+  },
+  {
     "date": "2026-09-27",
     "entry": "Light theme polish for all four looks: the default, low-poly, text-based and cartoon styles each have their own light palette (pale steel and gold, paper with terminal-green ink, cream with violet ink and pink shadows), the farm rows and arcade panels no longer stay dark under the light theme, and small grey captions were darkened to stay readable. Dark mode is unchanged (Y11b)."
   },
