@@ -30,6 +30,7 @@
     frame.hidden = !shown;
     const at = open.indexOf(frame);
     if (shown && at === -1) {
+      placeFrame(frame);
       open.push(frame);
       lastOpener.set(frame, document.activeElement);
       const bar = frame.querySelector(".pc-window-close");
@@ -42,6 +43,80 @@
     open.forEach((f, i) => { f.style.zIndex = String(900 + i); });
     backdrop.hidden = open.length === 0;
     if (open.length) backdrop.style.zIndex = String(899 + open.length - 1);
+  }
+
+  // Window positions: dragging a window by its title bar moves it, and where you left it is
+  // remembered per game (this browser only). Double-click the title bar to centre it again.
+  // Keyboard and screen-reader use never needs dragging: windows open centred and stay usable.
+  const POS_KEY = "pc-window-pos:" + (location.pathname.split("/").slice(-2, -1)[0] || "game");
+  let positions = {};
+  try { positions = JSON.parse(localStorage.getItem(POS_KEY) || "{}") || {}; } catch (e) { positions = {}; }
+  const savePositions = () => { try { localStorage.setItem(POS_KEY, JSON.stringify(positions)); } catch (e) { /* convenience only */ } };
+
+  function clampToViewport(frame, left, top) {
+    const width = Math.min(frame.offsetWidth, window.innerWidth);
+    return [
+      Math.min(Math.max(0, left), Math.max(0, window.innerWidth - width)),
+      Math.min(Math.max(0, top), Math.max(0, window.innerHeight - 56)), // the title bar always stays reachable
+    ];
+  }
+
+  function placeFrame(frame) {
+    const saved = positions[frame._spec.panel];
+    if (!saved) { centreFrame(frame); return; }
+    const [left, top] = clampToViewport(frame, saved.left, saved.top);
+    frame.classList.add("pc-window-moved");
+    frame.style.left = left + "px";
+    frame.style.top = top + "px";
+  }
+
+  function centreFrame(frame) {
+    frame.classList.remove("pc-window-moved");
+    frame.style.left = "";
+    frame.style.top = "";
+  }
+
+  function makeDraggable(frame, bar) {
+    let drag = null;
+    bar.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0 || e.target.closest("button")) return;
+      const rect = frame.getBoundingClientRect();
+      drag = { dx: e.clientX - rect.left, dy: e.clientY - rect.top, id: e.pointerId };
+      try { bar.setPointerCapture(e.pointerId); } catch (err) { /* synthetic events have no active pointer */ }
+      bar.classList.add("pc-dragging");
+    });
+    bar.addEventListener("pointermove", (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      const [left, top] = clampToViewport(frame, e.clientX - drag.dx, e.clientY - drag.dy);
+      frame.classList.add("pc-window-moved");
+      frame.style.left = left + "px";
+      frame.style.top = top + "px";
+    });
+    const end = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      drag = null;
+      bar.classList.remove("pc-dragging");
+      const rect = frame.getBoundingClientRect();
+      positions[frame._spec.panel] = { left: Math.round(rect.left), top: Math.round(rect.top) };
+      savePositions();
+    };
+    bar.addEventListener("pointerup", end);
+    bar.addEventListener("pointercancel", end);
+    bar.addEventListener("dblclick", (e) => {
+      if (e.target.closest("button")) return;
+      delete positions[frame._spec.panel];
+      savePositions();
+      centreFrame(frame);
+    });
+    // A window clicked anywhere comes to the front.
+    frame.addEventListener("pointerdown", () => {
+      const at = open.indexOf(frame);
+      if (at !== -1 && at !== open.length - 1) {
+        open.splice(at, 1);
+        open.push(frame);
+        open.forEach((f, i) => { f.style.zIndex = String(900 + i); });
+      }
+    });
   }
 
   function wrap(spec) {
@@ -68,6 +143,7 @@
     frame._spec = spec;
     frame._panel = panel;
     close.addEventListener("click", () => closeFrame(frame));
+    makeDraggable(frame, bar);
     new MutationObserver(() => sync(frame)).observe(panel, { attributes: true, attributeFilter: ["hidden"] });
     sync(frame);
   }

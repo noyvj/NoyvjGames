@@ -154,3 +154,8 @@ html[data-theme="light"] .pc-toast { color: #1b1710; }
 }
 .pc-menu-group button { width: 100%; text-align: left; margin: 0; }
 #pc-toolbar-source { display: none; }
+
+/* Dragged windows sit at an explicit position instead of centred by a transform. */
+.pc-window-frame.pc-window-moved { transform: none; animation: none; }
+.pc-window-bar { cursor: grab; touch-action: none; user-select: none; }
+.pc-window-bar.pc-dragging { cursor: grabbing; }

@@ -19,3 +19,10 @@ def test_every_function_init_calls_is_defined():
 def test_the_shell_script_is_balanced():
     for open_char, close_char in ("{}", "()", "[]"):
         assert JS.count(open_char) == JS.count(close_char), (open_char, close_char)
+
+
+def test_dragged_windows_have_the_css_they_need():
+    css = (Path(__file__).resolve().parents[2] / "shared" / "pc-shell.css").read_text(encoding="utf-8")
+    assert ".pc-window-frame.pc-window-moved" in css and "transform: none" in css
+    assert "touch-action: none" in css
+    assert "placeFrame(frame)" in JS and "dblclick" in JS
