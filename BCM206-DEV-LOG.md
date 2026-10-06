@@ -516,3 +516,8 @@ The clearest cross-cutting infra lesson from this pass: three separate games' au
 **Area:** `sw.js`
 **Did:** Added the Drift Desktop files to the service worker precache (worker version 23).
 **Result:** Shared tests pass (the one Loop check fails only while the Loop agent's work is unfinished).
+
+### 2026-10-07 (Site-wide: Loop offline cache entries)
+**Area:** `sw.js`
+**Did:** Added the Loop Desktop files to the service worker precache (worker version 24).
+**Result:** Shared tests pass.

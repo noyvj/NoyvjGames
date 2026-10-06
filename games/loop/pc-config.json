@@ -1,0 +1,165 @@
+{
+  "windows": [
+    [
+      "howto-panel",
+      "howto-toggle-button",
+      "How to Play"
+    ],
+    [
+      "achievements-panel",
+      "achievements-toggle-button",
+      "Achievements"
+    ],
+    [
+      "changelog-panel",
+      "changelog-toggle-button",
+      "What's New"
+    ],
+    [
+      "settings-panel",
+      "settings-toggle-button",
+      "Settings"
+    ],
+    [
+      "info-page-panel",
+      "info-page-toggle-button",
+      "The Real Story"
+    ]
+  ],
+  "toolbar": {
+    "icons": [
+      [
+        "achievements-toggle-button",
+        "🏆"
+      ],
+      [
+        "howto-toggle-button",
+        "📖"
+      ],
+      [
+        "settings-toggle-button",
+        "⚙️"
+      ]
+    ],
+    "menu": [
+      {
+        "heading": "Game",
+        "ids": []
+      },
+      {
+        "heading": "Help",
+        "ids": [
+          "tutorial-restart-button",
+          "info-page-toggle-button"
+        ]
+      },
+      {
+        "heading": "Records",
+        "ids": [
+          "changelog-toggle-button"
+        ]
+      }
+    ]
+  },
+  "composites": [
+    {
+      "id": "pc-relabel-panel",
+      "title": "Relabel goods",
+      "members": [
+        "#relabel-goods-panel"
+      ],
+      "group": "Game",
+      "label": "🏷️ Relabel goods (cosmetic)"
+    },
+    {
+      "id": "pc-about-panel",
+      "title": "About Loop",
+      "members": [
+        ".tagline",
+        ".context-blurb"
+      ],
+      "group": "Help",
+      "label": "ℹ️ About Loop"
+    },
+    {
+      "id": "pc-feedback-panel",
+      "title": "Feedback",
+      "members": [
+        "#feedback-prompt"
+      ],
+      "group": "Help",
+      "label": "💬 Send feedback"
+    }
+  ],
+  "adopt": [],
+  "zones": {
+    "topbar": [
+      ".hub-back-link",
+      "h1",
+      ".game-toolbar",
+      ".story-chapters"
+    ],
+    "stagebar": [],
+    "stage": [
+      "#chain-flow-section",
+      "#status",
+      "#trade-network"
+    ],
+    "side": [
+      "#advance-cycle-button",
+      "#goods-category-picker",
+      "#mode-status",
+      "#circularity",
+      ".invest-row--trade, .invest-row--regional, #regional-hint",
+      "#pool-section"
+    ],
+    "hidden": [
+      "#cycle-display",
+      "#score-display"
+    ]
+  },
+  "readouts": [
+    [
+      "#cycle-display",
+      "🔁",
+      ""
+    ],
+    [
+      "#funds-display",
+      "💰",
+      "Funds"
+    ],
+    [
+      "#damage-display",
+      "🌋",
+      "Damage"
+    ],
+    [
+      "#circular-fraction-display",
+      "♻️",
+      "Circular now"
+    ],
+    [
+      "#lifetime-circular-display",
+      "📈",
+      "Lifetime"
+    ],
+    [
+      "#score-display",
+      "⭐",
+      "Score"
+    ]
+  ],
+  "side_label": "Investments and decisions",
+  "hints": [
+    [
+      "?",
+      "All shortcuts"
+    ],
+    [
+      "Esc",
+      "Menu / close window"
+    ]
+  ],
+  "notify": null
+}

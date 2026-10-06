@@ -1,0 +1,141 @@
+/* Loop, Desktop boot (pc.html only). Everything is scoped to the pc layout, so the Classic page is
+   untouched. Layout: top bar, readout chips (cycle, funds, damage, circular share, score), the supply
+   chain with the one-item vignette above the status meters and the trade network (with its optional
+   visual maps) as the stage, and the per-cycle decisions in a right-hand column that scrolls on its own
+   with Advance Cycle pinned at the top. Windows come from shared/pc-shell.css. */
+
+html[data-layout="pc"] #game { padding-bottom: 0.4rem; }
+html[data-layout="pc"] body { padding-bottom: 0; }
+html[data-layout="pc"] .ambient-bg { overflow: hidden; }
+
+/* --- top bar -------------------------------------------------------------------------------- */
+#pc-topbar { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "title tools story"; padding-right: 7.5rem; }
+#pc-topbar > h1 { font-size: 1.5rem; }
+#pc-topbar > .game-toolbar { justify-content: flex-end; }
+#pc-topbar > #story-chapters { grid-area: story; margin: 0; padding: 0.35rem 0.7rem; font-size: 0.8rem; }
+#pc-topbar > #story-chapters[open] {
+  position: fixed;
+  top: 3.4rem;
+  right: 1rem;
+  z-index: 700;
+  width: min(26rem, 92vw);
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--pc-window-bg, #16151d);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+}
+html[data-theme="light"] #pc-topbar > #story-chapters[open] { background: #fbf6ec; color: #1b1710; }
+html[data-layout="pc"] #theme-toggle-floating { top: 0.7rem !important; bottom: auto !important; left: auto !important; right: 1rem !important; }
+#pc-readouts { padding: 0 0.1rem; }
+.pc-readout-value { font-variant-numeric: tabular-nums; }
+
+/* --- body: stage + side column -------------------------------------------------------------- */
+#pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(21rem, 31vw, 32rem); }
+
+/* Stage: the chain (with the one-item vignette) as a banner across the top; the status meters on the
+   left and the trade network on the right, each column scrolling on its own if the window is short. */
+#pc-stagebar:empty { display: none; }
+#pc-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 0.6rem;
+}
+#pc-stage > * { margin: 0; min-width: 0; }
+#pc-stage > #chain-flow-section { grid-column: 1 / -1; grid-row: 1; padding: 0.7rem 0.9rem; }
+#pc-stage > #status { grid-column: 1; grid-row: 2; overflow-y: auto; min-height: 0; padding: 0.7rem 0.9rem; }
+#pc-stage > #trade-network { grid-column: 2; grid-row: 2; overflow-y: auto; min-height: 0; padding: 0.7rem 0.9rem; }
+#pc-stage > #pc-hintbar { grid-column: 1 / -1; grid-row: 3; }
+
+/* The chain banner: stages, message, the return / import rows and the vignette tightened to fit a
+   short strip. */
+#pc-stage > #chain-flow-section { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 0.8rem; align-content: start; }
+#chain-flow-section > * { grid-column: 1 / -1; margin: 0; }
+#chain-flow-section > .meter-label { margin: 0 0 0.3rem; }
+#chain-flow-section > .chain-flow { margin: 0.2rem 0; }
+#chain-flow-section > .comparison-message { margin: 0.3rem 0; }
+/* The two flow rows keep their reserved space (they fade in), so they share one line. */
+#chain-flow-section > .return-flow-row, #chain-flow-section > .import-flow-row { grid-column: auto; margin-top: 0.2rem; padding-top: 0.35rem; }
+#chain-flow-section > .vignette { margin-top: 0.5rem; }
+
+/* The Classic page breaks the rich maps out of its narrow column (centred, up to 860px); here the
+   column itself is the room, so they simply fill it. */
+@media (min-width: 900px) {
+  html[data-layout="pc"] .rich-map-panel { left: auto; width: auto; transform: none; padding: 0.75rem; }
+}
+
+/* "Supply map" and "Loop efficiency audit" are text disclosures that reuse the round "i" bubble style,
+   which squeezed their labels into a 1.1rem circle. */
+#network-map-panel > summary, #audit-panel > summary { width: auto; height: auto; border-radius: 8px; padding: 0.3rem 0.7rem; font-size: 0.8rem; }
+
+/* The status block's little extraction-site picture is decoration; keep it short. */
+#status .extraction-site { max-height: 4.5rem; overflow: hidden; }
+
+/* --- side column: decisions, scrolling on their own ----------------------------------------- */
+#pc-side {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0 0.25rem 3rem 0; /* clear of the collapsed Save / Load widget */
+}
+#pc-side > * { margin: 0; flex: 0 0 auto; }
+#pc-side > #advance-cycle-button { position: sticky; top: 0; z-index: 5; width: 100%; padding: 0.9rem; font-size: 1.05rem; }
+#pc-side > .section { padding: 0.6rem 0.8rem; }
+#pc-side > .invest-row { margin: 0; }
+#circularity .loop-ring { width: 120px; height: 120px; margin: 0.4rem auto 1.1rem; }
+
+/* The classic mobile pieces have no place on the Desktop boot. */
+html[data-layout="pc"] .mobile-hud, html[data-layout="pc"] #mobile-hud, html[data-layout="pc"] #mobile-hud-bar { display: none !important; }
+
+/* The achievement toast and the "Loop closed" banner are fixed overlays centred at the top of the
+   window, where they would sit over the top bar and the chips. On the Desktop boot they drop onto the
+   stage (clear of the controls and of the decisions column) and, being pointer-events: none already,
+   never block a click. */
+html[data-layout="pc"] .achievement-toast { top: 7.5rem; left: 1rem; right: calc(clamp(21rem, 31vw, 32rem) + 2rem); }
+html[data-layout="pc"] .loop-closed-banner { top: 11rem; left: 1rem; right: calc(clamp(21rem, 31vw, 32rem) + 2rem); }
+
+/* Smaller desktop windows (about 1024px wide or 700px tall). */
+@media (max-width: 1280px) {
+  #pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) 19rem; gap: 0.6rem; }
+  #pc-stage { gap: 0.5rem; }
+  #pc-stage > #status, #pc-stage > #trade-network { padding: 0.5rem 0.6rem; }
+  html[data-layout="pc"] .achievement-toast, html[data-layout="pc"] .loop-closed-banner { right: calc(19rem + 2rem); }
+}
+@media (max-width: 1180px) {
+  .pc-readout-label { display: none; }
+  #pc-readouts { gap: 0.3rem; }
+  .pc-readout { padding-left: 0.5rem; padding-right: 0.5rem; font-size: 0.78rem; }
+}
+
+/* The relabel window is only useful once a chain is running (its panel stays hidden until then). */
+#pc-relabel-panel:has(#relabel-goods-panel[hidden])::after { content: "Available once your first cycle has run."; display: block; padding: 1rem 1.1rem; opacity: 0.8; }
+#pc-relabel-panel { padding: 0.4rem 0.6rem; }
+
+/* Short windows (about 700px tall): the chain banner folds the vignette in beside the flow rows, the
+   decorative pictures shrink, and the stage gets the height back for the meters and the map. */
+@media (max-height: 780px) {
+  #chain-flow-section > .meter-label { display: none; }
+  #pc-stage > #chain-flow-section { grid-template-rows: auto auto auto auto; padding: 0.5rem 0.8rem; }
+  #chain-flow-section > .chain-flow { grid-row: 1; }
+  #chain-flow-section > #chain-flow-message { grid-column: 1; grid-row: 2; margin: 0.15rem 0; }
+  #chain-flow-section > .return-flow-row { grid-column: 1; grid-row: 3; }
+  #chain-flow-section > .import-flow-row { grid-column: 1; grid-row: 4; }
+  #chain-flow-section > .vignette { grid-column: 2; grid-row: 2 / span 3; margin-top: 0.2rem; align-self: stretch; }
+  #status .extraction-site { display: none; }
+  #circularity .loop-ring { width: 96px; height: 96px; margin: 0.3rem auto 0.9rem; }
+}
+
+/* Themes. */
+html[data-theme="light"] #pc-hintbar { opacity: 1; }
+/* The chain tiles and the vignette keep Classic's dark glass under dark text in the light theme (about
+   4:1 contrast); on the Desktop boot they get light glass instead. */
+html[data-theme="light"] #chain-flow-section .chain-stage { background: rgba(255, 255, 255, 0.78); border-color: rgba(70, 95, 170, 0.3); }
+html[data-theme="light"] #chain-flow-section .vignette { background: rgba(255, 255, 255, 0.6); }
+html[data-theme="light"] .pc-readout { color: #1b2233; }
+.pc-window-frame a { color: #9fc4ff; }
+html[data-theme="light"] .pc-window-frame a { color: #1d4f9e; }
+/* The shell's notification card takes its background from a variable only windows define. */
+html[data-theme="light"] .pc-toast { background: #fbf6ec; border-color: rgba(122, 74, 18, 0.4); color: #1b1710; }
