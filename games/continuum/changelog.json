@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-10-06",
+    "entry": "Desktop layout (first version): on a wide window with a mouse you can now choose \"Switch to Desktop layout\" on the opening screen. It fills the whole window instead of a narrow column: a top bar with the toolbar and the clock, the settlement scene as the main stage with buildings you click to assign workers, build and research, and the readouts, sustainability score and log in a side column. Achievements, What's New, Settings, the Civilization Summary and the other panels open as windows you close with Escape, there is a Fullscreen button, and the tutorial is rewritten for this layout. Your saves are shared with the Classic layout, which is unchanged and one click away (\"Classic layout\")."
+  },
+  {
     "date": "2026-09-27",
     "entry": "Found a New Settlement: a confirm-gated button files your current settlement in the archive and starts a fresh one, reopening the scenario picker, Hard Mode and consulting cases (also on each archive entry in the Civilization Summary). The new settlement inherits one small founder's legacy from the settlement you just filed: a single named gift, like Seed Stock or Recorded Lessons, chosen by the furthest era it reached, delivered once with your first season. And once you have reached the Space Age in any settlement, a fourth opening unlocks: the Refuge Start, a larger, older group on worn land with too few roofs."
   },

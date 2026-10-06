@@ -292,7 +292,10 @@
   try {
     const pref = localStorage.getItem(COLLAPSE_PREF_KEY);
     const narrow = window.matchMedia && window.matchMedia("(max-width: 600px)").matches;
-    if (pref === "true" || (pref === null && narrow)) root.classList.add("collapsed");
+    // The Desktop boot (window.NOYVJ_LAYOUT === "pc") keeps it tucked away too: the game
+    // fills the window and the widget would sit on top of the side column.
+    const desktopBoot = window.NOYVJ_LAYOUT === "pc";
+    if (pref === "true" || (pref === null && (narrow || desktopBoot))) root.classList.add("collapsed");
   } catch (e) { /* convenience only */ }
   toggleButton.addEventListener("click", () => {
     try { localStorage.setItem(COLLAPSE_PREF_KEY, String(root.classList.contains("collapsed"))); }

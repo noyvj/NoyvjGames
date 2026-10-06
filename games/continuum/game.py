@@ -2415,6 +2415,21 @@ def _hamlet_capable():
         return False
 
 
+def _pc_layout():
+    """True on the Desktop boot (pc.html sets window.NOYVJ_LAYOUT = "pc"
+    before anything else loads). There the Hamlet view is the way the game is
+    played, not an option: it starts on and its toggle is hidden. Without a
+    `window` (the test harness) it is False, so the Classic page and every
+    existing test behave exactly as before."""
+    window = _js_window()
+    if window is None:
+        return False
+    try:
+        return getattr(window, "NOYVJ_LAYOUT", None) == "pc"
+    except Exception:
+        return False
+
+
 def hamlet_active():
     return hamlet_on and _hamlet_capable()
 
@@ -2836,7 +2851,7 @@ def render_hamlet(effects=None):
     capable = _hamlet_capable()
     active = hamlet_on and capable
     toggle = document.getElementById("hamlet-toggle-button")
-    toggle.hidden = not capable
+    toggle.hidden = (not capable) or _pc_layout()
     toggle.innerText = f"🏘 Hamlet view: {'On' if hamlet_on else 'Off'}"
     toggle.setAttribute("aria-pressed", "true" if hamlet_on else "false")
     document.getElementById("game").classList.toggle("hamlet-on", active)
@@ -3028,7 +3043,7 @@ def setup():
     # U2: the optional Hamlet view. Preference is read once at load; the
     # toggle button itself is only shown on a desktop-class screen.
     global hamlet_on
-    hamlet_on = _hamlet_storage_get() == "on"
+    hamlet_on = _pc_layout() or _hamlet_storage_get() == "on"
     document.getElementById("hamlet-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_hamlet)
     )

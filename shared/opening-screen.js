@@ -140,6 +140,7 @@
           <button type="button" class="opening-primary" data-action="continue" hidden>Continue<small class="opening-continue-note"></small></button>
           <button type="button" class="opening-primary" data-action="new">New Game</button>
           <button type="button" data-action="saves">Saves</button>
+          <button type="button" data-action="layout" hidden></button>
           <div class="opening-row">
             <button type="button" data-action="settings" hidden>Settings</button>
             <button type="button" data-action="info" hidden>Info</button>
@@ -305,6 +306,18 @@
     if (document.getElementById("settings-toggle-button")) q("settings").hidden = false;
     if (document.getElementById("info-page-toggle-button")) q("info").hidden = false;
 
+    // PC version plan: a game with a Desktop boot (shared/layout-pref.js) offers the
+    // other boot here, before anything is played. Saves are shared, so it only costs
+    // a reload. Desktop is only offered on a wide window with a mouse-like pointer.
+    const layout = window.NoyvjLayout;
+    if (layout) {
+      const toPc = layout.current !== "pc";
+      if (!toPc || layout.capable()) {
+        q("layout").hidden = false;
+        q("layout").textContent = toPc ? "Switch to Desktop layout" : "Switch to Classic layout";
+        q("layout").addEventListener("click", () => layout.switchTo(toPc ? "pc" : "classic"));
+      }
+    }
     q("continue").addEventListener("click", () => doContinue(root));
     q("new").addEventListener("click", () => askNewGame(root));
     q("saves").addEventListener("click", () => {
