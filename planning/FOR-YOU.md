@@ -37,6 +37,12 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 
 **Still open (recommendations are in the plan; "go with your recommendations" is fine):** how generous hints are (recommended: in-world "ask someone to repeat it slowly", no answer-giving button), the title (the story is decided: a first-contact crew on a survey ship, you the communications officer, one planet per language; see the plan) (working title is "Lexis").
 
+### 0e. New game idea: a history game built from expandable "sets" (Ancient Greece, food, presidents, WWII...): six questions
+
+**Why:** you asked for a history-teaching game with many topic sets. The groundwork plan is `planning/chronicle-plan.md` (working title "Chronicle"): one engine, each set is a data pack, with a timeline builder, a cause web, a "whose account?" source-evaluation game, "myth or record", a collectible archive and spaced review. The hard part is accuracy, so every claim carries a source and a confidence level, tests fail on a claim without a source, and you review each set before it ships.
+
+**Steps:** answer the six questions at the end of the plan (each has a recommendation; "go with your recommendations" is fine). Nothing is built until you do.
+
 ### 1. Apply for Google AdSense
 
 **Why:** `planning/pwa-and-ads-setup.md`'s ad bar is already built and labeled everywhere on the site, wired up with placeholder IDs (`ca-pub-XXXXXXXXXXXXXXXX`) waiting for the real ones. The only blocker is the application itself, which needs your own Google account — I can't submit it for you.

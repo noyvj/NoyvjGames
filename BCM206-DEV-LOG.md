@@ -486,3 +486,8 @@ The clearest cross-cutting infra lesson from this pass: three separate games' au
 **Area:** `sw.js`
 **Did:** Added the Grid Desktop files to the service worker precache (worker version 19).
 **Result:** Shared 52 tests pass.
+
+### 2026-10-06 (Planning: a history game built from expandable sets)
+**Area:** `planning/chronicle-plan.md`, `planning/FOR-YOU.md`
+**Did:** The user asked for a history-teaching game with many topic sets (Ancient Greece, WWII, the history of food, American presidents). Wrote a groundwork plan ("Chronicle", working title): one engine plus data packs, mechanics that train understanding rather than recall (timeline builder, cause web, source evaluation, myth or record, decision points, a collectible archive, spaced review), an accuracy pipeline (every claim sourced and given a confidence level, tests that fail on unsourced or contradictory claims, a human review page before a set ships), a recommended set order (food, Ancient Greece, presidents, then WWII), ten milestones, risks and six questions.
+**Result:** Planning only; questions are FOR-YOU 0e. Nothing is built.
