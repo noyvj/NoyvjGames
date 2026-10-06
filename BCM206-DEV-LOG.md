@@ -476,3 +476,8 @@ The clearest cross-cutting infra lesson from this pass: three separate games' au
 **Area:** `planning/lexis-plan.md`, `planning/FOR-YOU.md`
 **Did:** The user asked whether a puzzle game in the style of Chants of Sennaar or The Message from Deep Space could be built. Wrote a groundwork plan ("Lexis", working title): observe signs in context, guess meanings in a notebook, test them by speaking sentences the world reacts to; a pure-Python conlang engine (lexicon, grammar, parser, responder) in the Signal pattern; glyphs drawn by code as SVG so the no-generated-images line holds; and a build-time deducibility checker that proves every word is the only consistent reading of the evidence shown so far, which is the genre's fairness problem. Three scope options, ten draft milestones, risks, and six questions for the user. The Message from Deep Space is not a game the author could place reliably, and the plan says so.
 **Result:** Planning only. Questions are FOR-YOU 0d; nothing is built.
+
+### 2026-10-06 (Site-wide: Canopy and Tide offline cache, Escape and the shared shortcuts overlay)
+**Area:** `sw.js`, `shared/pc-shell.js`
+**Did:** Added the Canopy and Tide Desktop files to the service worker's precache (worker version 18). The shell's Escape handling now treats the shared "?" shortcuts overlay as a blocker, as the Tide agent proposed, so Escape closes the overlay instead of also opening the Menu.
+**Result:** Shared 52 tests pass.

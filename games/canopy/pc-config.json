@@ -1,0 +1,80 @@
+{
+  "windows": [
+    ["howto-panel", "howto-toggle-button", "How to Play"],
+    ["achievements-panel", "achievements-toggle-button", "Achievements"],
+    ["changelog-panel", "changelog-toggle-button", "What's New"],
+    ["example-panel", "example-toggle-button", "Example playthrough"],
+    ["almanac-panel", "almanac-toggle-button", "Forest Almanac"],
+    ["session-summary-panel", "session-summary-toggle-button", "Session Summary"],
+    ["settings-panel", "settings-toggle-button", "Settings"],
+    ["info-page-panel", "info-page-toggle-button", "The Real Story"]
+  ],
+  "toolbar": {
+    "icons": [
+      ["achievements-toggle-button", "🏆"],
+      ["almanac-toggle-button", "📚"],
+      ["session-summary-toggle-button", "📊"],
+      ["settings-toggle-button", "⚙️"]
+    ],
+    "menu": [
+      {"heading": "Game", "ids": ["reset-session-button"]},
+      {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button", "example-toggle-button", "info-page-toggle-button"]},
+      {"heading": "Records", "ids": ["changelog-toggle-button"]}
+    ]
+  },
+  "composites": [
+    {
+      "id": "pc-setup-panel",
+      "title": "Forest setup",
+      "members": [".grid-size-label"],
+      "group": "Game",
+      "label": "🌲 Grid size and difficulty"
+    },
+    {
+      "id": "pc-regions-panel",
+      "title": "Highland Grove and Wetland Forest",
+      "members": ["#highland-lock-banner", "#highland-unlock-progress", "#highland-section", "#wetland-lock-banner", "#wetland-unlock-progress", "#wetland-section"],
+      "group": "Game",
+      "label": "⛰️ Highland and Wetland regions"
+    },
+    {
+      "id": "pc-about-panel",
+      "title": "About this forest",
+      "members": [".tagline", ".context-blurb", "#real-world-note"],
+      "group": "Help",
+      "label": "🌍 In the real world and story"
+    },
+    {
+      "id": "pc-feedback-panel",
+      "title": "Your feedback",
+      "members": ["#feedback-prompt"],
+      "group": "Help",
+      "label": "💬 Share your feedback"
+    }
+  ],
+  "adopt": [],
+  "zones": {
+    "topbar": [".hub-back-link", "h1", ".game-toolbar"],
+    "stagebar": ["#season-indicator"],
+    "stage": ["#plot-grid", "#plot-tooltip", "#legend-panel"],
+    "side": ["#forest-visual", "#action-panel", "#stakeholder-panel", "#stats"],
+    "hidden": ["#income-display", "#standing-value-display", "#biodiversity-display", "#community-relations-display", "#mobile-info-dock-toggle"]
+  },
+  "readouts": [
+    ["#income-display", "💰", "Income"],
+    ["#standing-value-display", "🌲", "Standing value"],
+    ["#biodiversity-display", "🦋", "Biodiversity"],
+    ["#community-relations-display", "🏘️", "Relations"]
+  ],
+  "side_label": "Plot actions and requests",
+  "hints": [
+    ["←↑↓→", "Move between plots"],
+    ["T", "Tend plot"],
+    ["G", "Golden seedling"],
+    ["U", "Undo clear"],
+    ["N", "Requested plot"],
+    ["?", "All shortcuts"],
+    ["Esc", "Menu / close window"]
+  ],
+  "notify": null
+}

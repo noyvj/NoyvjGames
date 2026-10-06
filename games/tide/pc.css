@@ -1,0 +1,120 @@
+/* Tide, Desktop boot (pc.html only). Everything is scoped to the pc layout, so the Classic page
+   is untouched. Layout: a top bar, a strip of readout chips (season, funds, acidity, fishing
+   yield, sea level, damage), the coastline as the stage with the live ticker under it, and the
+   investments + programmes in a right-hand column that scrolls on its own. The long status
+   section, sea-level detail and then-vs-now comparison are windows opened from the Menu.
+   Windows themselves come from shared/pc-shell.css. */
+
+/* --- top bar -------------------------------------------------------------------------------- */
+#pc-topbar { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "title tools"; }
+#pc-topbar > h1 { font-size: 1.5rem; }
+/* The second Classic toolbar row is emptied (its buttons live in the Menu), so it takes no room. */
+#pc-topbar > .game-toolbar:not(:has(button)) { display: none; }
+#pc-topbar > .game-toolbar { justify-content: flex-end; }
+
+#pc-readouts { padding: 0 0.1rem; }
+.pc-readout-value { font-variant-numeric: tabular-nums; }
+
+/* --- body: stage + side column -------------------------------------------------------------- */
+#pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(19rem, 27vw, 29rem); }
+
+/* Stage: scene strip, then the coastline filling the rest, then the live ticker. */
+#pc-stagebar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 1rem; }
+#pc-stagebar:empty { display: none; }
+#pc-stagebar > .sea-scenario-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.8rem;
+}
+#pc-stagebar > .sea-scenario-label select { margin: 0; max-width: 22rem; padding: 0.25rem 0.4rem; }
+
+#pc-stage > * { flex: 0 0 auto; margin: 0; }
+#pc-stage > .tide-scene { height: 72px; border-radius: 10px; }
+#pc-stage > .coastline-scene {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+#pc-stage > .coastline-scene .coastline-scene-sky { flex: 0 0 auto; height: 22px; }
+#pc-stage > .coastline-scene .coastline-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  grid-template-rows: repeat(6, minmax(0, 1fr));
+}
+#pc-stage > .coastline-scene .coastline-tile { aspect-ratio: auto; min-height: 0; }
+#pc-stage .coastline-tile.coastline-heritage { font-size: clamp(1rem, 2.4vw, 1.9rem); }
+
+#pc-stage > #ticker-log { line-height: 1.25; max-height: calc(4 * 1.25em); overflow-y: auto; padding-right: 0.3rem; }
+#pc-stage > #population-display:empty,
+#pc-stage > #foresight-display:empty { display: none; }
+#pc-stage > #population-display { font-size: 0.8rem; }
+#pc-hintbar { flex: 0 0 auto; padding-left: 8.5rem; } /* clear of the floating theme pill */
+html[data-layout="pc"] #theme-toggle-floating { bottom: 50px; left: 10px; }
+#pc-stage > .fish-warning-banner, #pc-stage > .fish-recovery-banner { margin: 0; }
+
+/* --- side column: decisions, scrolling on their own ----------------------------------------- */
+#pc-side {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-right: 0.25rem;
+  padding-bottom: 3rem; /* clear of the collapsed Save / Load widget */
+}
+#pc-side > * { margin: 0; flex: 0 0 auto; }
+/* The turn controls stay in view while the programmes scroll beneath them. */
+#pc-side > #actions-dock {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-bottom: 0.2rem;
+  background: #0f1220;
+  border-radius: 14px;
+}
+#pc-side > #actions-dock #investments { margin: 0; padding: 0.6rem 0.8rem; }
+#pc-side > #actions-dock .invest-row { padding: 0.35rem 0; }
+#pc-side > #actions-dock .output-mix-label { margin-bottom: 0.3rem; }
+#pc-side > #actions-dock #advance-season-button { width: 100%; margin: 0; }
+#pc-side > #adaptation-tier-progress { font-size: 0.8rem; padding: 0 0.2rem; }
+#pc-side > .section { padding: 0.6rem 0.8rem; }
+
+/* The classic mobile pieces have no place on the Desktop boot. */
+html[data-layout="pc"] .mobile-hud, html[data-layout="pc"] #mobile-hud { display: none !important; }
+
+/* Windows hold the sections the page used to stack: let them read as plain content. */
+.pc-window-frame .section { padding: 0.9rem 1.1rem; }
+.pc-window-frame #status > .meter,
+.pc-window-frame #sea-level-section > .meter { max-width: 28rem; }
+
+/* Smaller desktop windows. */
+@media (max-width: 1280px) {
+  #pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) 19rem; gap: 0.6rem; }
+}
+@media (max-height: 780px) {
+  #pc-stage > .tide-scene { height: 44px; }
+  #pc-stage > #ticker-log { max-height: calc(3 * 1.25em); }
+}
+
+/* --- themes --------------------------------------------------------------------------------- */
+/* Dark: the glass cards sit on the ocean backdrop; the sticky dock needs a solid ground so the
+   programmes scrolling beneath it never show through. */
+html[data-layout="pc"]:not([data-theme="light"]) #pc-side > #actions-dock { background: #11152a; }
+html[data-theme="light"] #pc-side > #actions-dock { background: #eef2f8; }
+html[data-theme="light"] .pc-readout { color: #1b2233; }
+html[data-theme="light"] .pc-readout-label { opacity: 0.85; }
+html[data-theme="light"] #pc-hintbar { opacity: 1; color: #2a3350; }
+html[data-theme="light"] #pc-stage > #ticker-log,
+html[data-theme="light"] #pc-stage > #population-display { color: #1b2233; opacity: 1; }
+
+/* The status window's "Delayed effects" caption labelled the live ticker, which now sits under the
+   coastline; with it gone the caption would hang over the history disclosure. */
+#pc-status-panel #status > .meter-label:has(+ .ticker-history-toggle) { display: none; }
+.pc-window-frame > #community-index { margin: 0; padding: 0 1.1rem 0.9rem; }

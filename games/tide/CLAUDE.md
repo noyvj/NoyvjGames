@@ -31,6 +31,7 @@ You run a coastal settlement, balancing fishing/industry output against ocean he
 | 5 | Hope-angle payoff | Clear before/after comparison showing early adaptation investment flattening the damage curve. Tests: comparison calculation across sample play logs | Done |
 | 6 | In-game feedback prompt | Piped to Neon backend per root conventions | Done |
 | 7 | Visual/UI pass + hub integration | | Done — all 7 milestones complete |
+| 8 | PC version: a Desktop boot (`pc.html`, generated from `index.html`) with a full-window dashboard layout, windows for the long sections, a Desktop tutorial and the layout switch on the opening screen | Done (2026-10-06; see `planning/PC-VERSION-PLAN.md`) |
 
 ## Iteration Notes — Pass 1 (implemented)
 
@@ -565,3 +566,14 @@ Method: a computed-style WCAG scan run in a real browser with the light theme on
 
 ## Endgame flourish (R-19, 2026-09-27)
 CSS only: `.coastline-seawall--t4` (the top tier) animates `tide-barrier-glint`, a slow inset shadow pulse that changes no tile state or colour, inside `@media (prefers-reduced-motion: no-preference)`; the existing in-game `html[data-reduced-motion="true"]` blanket rule collapses it too. Tests: `tests/test_barrier_flourish.py` (3; 271 -> 274).
+
+## Desktop boot (PC version, 2026-10-06)
+
+`games/tide/pc.html` is the Desktop boot: the same game over the same `game.py` and saves (same `game_id`), laid out for wide windows. **Never edit it by hand**: it is generated from `index.html` plus `pc-config.json` by `scripts/generate-pc-pages.py`. Per-game files: `pc-config.json` (what moves where), `pc.css` (layout, all under the pc layout), `pc.js` (`window.TIDE_PC_TUTORIAL_STEPS`, which `index.html` uses when present, plus a small Escape fix for the `?` list). `index.html` gained only the `layout-pref.js` tag and the `TIDE_PC_TUTORIAL_STEPS ||` fallback.
+
+- **Layout.** No page scroll. Top bar: back link, title, three icon buttons (Achievements, Session Summary, Settings) and the Menu (Esc). Under it a strip of readout chips mirroring the original lines (season, funds, acidity, fishing yield, sea level, damage), which keep updating by id. Stage: the sea-level scenario select above the coastline (it locks after season 1, so it stays visible and is called out in the Desktop tutorial), the fish warning/recovery banners, the decorative tide scene, the coastline grid filling the remaining height, then the live ticker (capped at four lines, scrolls), the population line and the hotkey hint bar. Right column (scrolls on its own): investments and Advance Season (sticky at the top), the next adaptation tier progress line, Coastal programmes, Settlement name and history.
+- **Windows from the Menu.** "Status, graphs and history" (the old `#status` section with the meters, graphs and full ticker history), "Sea level, damage and adaptation" (`#sea-level-section` plus the community line), "Coastline: then vs. now", and "Send feedback"; plus How to Play, What's New, Session Summary, Settings, Achievements and The Real Story as before. The Menu also holds the sister-settlement and harder-lag toggles and the tutorial.
+- **Notifications.** None: `#ticker-log` is one paragraph, not a list, so `notify` is null; the ticker is shown live under the coastline instead.
+- **Hotkeys.** Only `?` (shortcuts list) and Esc are real in Tide, so those are the only hints.
+- **Known limits.** The sea-level scenario control is only a visual hint that it is locked (greyed select) after the first season; the `?` overlay is the shared one, not a shell window (pc.js stops Escape from also opening the Menu); no game-specific notification stack; scripted play only (about 30 seasons in the Desktop layout), no full human playthrough. 274 tests unchanged.
+

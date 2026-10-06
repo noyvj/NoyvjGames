@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-06",
+      "entry": "Canopy now has a Desktop layout for wide windows with a mouse: the forest grid fills the window, the actions for the selected plot and any community request sit beside it, income, standing value, biodiversity and relations are chips along the top, and the Almanac, achievements, session summary, settings and the Highland and Wetland regions open as windows (press Esc for the menu). Same saves as the Classic layout, and you can switch from the menu or the opening screen."
+    },
+    {
       "date": "2026-09-27",
       "entry": "Canopy gamified batch: golden seedlings to catch (or press G), a Tend action (T) with a cooldown, a hidden Heart Tree for the curious, name your forest and nickname an adopted plot, a short Undo after Clear (not in Forest ranger), rare wildlife with conditions (a ghost stag at late-autumn dusk, a wary fox), forest tiers (Seedling, Grove, Woodland, Old-Growth) with three new achievements, rain and drought on the season indicator, chain-bloom leaf ripples, a Forest Almanac, and a Perfect Season flame streak."
     },

@@ -1,0 +1,59 @@
+/* Canopy, Desktop boot (pc.html only). Everything is scoped to the pc layout, so the Classic page is
+   untouched. The plot grid is the stage and fills the window; the action panel, any community request
+   and the forest summary sit in a side column; the numbers are chips under the top bar; everything
+   else (almanac, session summary, regions, feedback...) is a window opened from the icons or Menu.
+   Frame, chips and windows come from shared/pc-shell.css. */
+
+html[data-layout="pc"] #pc-topbar { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "title tools"; }
+html[data-layout="pc"] #pc-topbar > .game-toolbar { justify-content: flex-end; }
+
+/* The page's mobile pieces have no place in the full-window layout. */
+html[data-layout="pc"] .mobile-hud, html[data-layout="pc"] #mobile-hud-bar, html[data-layout="pc"] #mobile-info-dock { display: none !important; }
+
+/* --- body: the plot grid as the stage, side column for what you act on -------------------- */
+#pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(19rem, 27vw, 27rem); }
+#pc-stagebar > #season-indicator { margin: 0; display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; font-size: 0.85rem; }
+#pc-stagebar #season-indicator > span:empty { display: none; }
+
+/* The grid keeps its tiles square and scales with the window. The shape comes from the preset
+   (data-cols is set by the game): Small 4x4, Normal 6x6, Large 8 columns x 9 rows. */
+#pc-stage > #plot-grid {
+  --pc-cols: 6;
+  --pc-rows: 6;
+  flex: 1 1 0;
+  min-height: 0;
+  margin: 0 auto;
+  width: auto;
+  max-width: 100%;
+  aspect-ratio: var(--pc-cols) / var(--pc-rows);
+  align-self: center;
+  gap: clamp(2px, 0.4vh, 5px);
+  grid-auto-rows: 1fr;
+}
+#pc-stage > #plot-grid[data-cols="4"] { --pc-cols: 4; --pc-rows: 4; }
+#pc-stage > #plot-grid[data-cols="6"] { --pc-cols: 6; --pc-rows: 6; }
+#pc-stage > #plot-grid[data-cols="8"] { --pc-cols: 8; --pc-rows: 9; }
+#pc-stage > #plot-grid .plot-tile { aspect-ratio: auto; min-width: 0; min-height: 0; font-size: clamp(0.8rem, 2.4vh, 1.5rem); }
+#pc-stage > #legend-panel { margin: 0; padding: 0.4rem 0.8rem; justify-content: center; }
+
+/* --- side column --------------------------------------------------------------------------- */
+#pc-side { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; padding-right: 0.2rem; }
+#pc-side > * { margin: 0; flex: 0 0 auto; }
+#pc-side > #action-panel { order: 1; }
+#pc-side > #stakeholder-panel { order: 2; }
+#pc-side > #stats { order: 3; }
+#pc-side > #forest-visual { order: 4; height: 70px; }
+#pc-side .action-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+#pc-side .action-buttons button { width: 100%; margin: 0; }
+#pc-side #stats p { margin: 0 0 0.35rem; }
+
+/* Windows holding several sections: they sit flat inside the window. */
+.pc-composite > * { margin-bottom: 0.9rem; }
+.pc-composite .plot-grid { max-width: 22rem; margin-left: auto; margin-right: auto; }
+
+/* Keep the floating request badge clear of the top bar. */
+html[data-layout="pc"] .stakeholder-badge { top: 4rem; right: 1.2rem; }
+
+@media (max-width: 1280px) {
+  #pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) 17rem; gap: 0.6rem; }
+}

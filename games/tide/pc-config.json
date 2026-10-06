@@ -1,0 +1,191 @@
+{
+  "windows": [
+    [
+      "howto-panel",
+      "howto-toggle-button",
+      "How to Play"
+    ],
+    [
+      "achievements-panel",
+      "achievements-toggle-button",
+      "Achievements"
+    ],
+    [
+      "changelog-panel",
+      "changelog-toggle-button",
+      "What's New"
+    ],
+    [
+      "session-summary-panel",
+      "session-summary-toggle-button",
+      "Session Summary"
+    ],
+    [
+      "settings-panel",
+      "settings-toggle-button",
+      "Settings"
+    ],
+    [
+      "info-page-panel",
+      "info-page-toggle-button",
+      "The Real Story"
+    ]
+  ],
+  "toolbar": {
+    "icons": [
+      [
+        "achievements-toggle-button",
+        "🏆"
+      ],
+      [
+        "session-summary-toggle-button",
+        "📝"
+      ],
+      [
+        "settings-toggle-button",
+        "⚙️"
+      ]
+    ],
+    "menu": [
+      {
+        "heading": "Game",
+        "ids": [
+          "sister-enable-button",
+          "hard-lag-toggle-button"
+        ]
+      },
+      {
+        "heading": "Details",
+        "ids": []
+      },
+      {
+        "heading": "Help",
+        "ids": [
+          "tutorial-restart-button",
+          "howto-toggle-button",
+          "info-page-toggle-button"
+        ]
+      },
+      {
+        "heading": "Records",
+        "ids": [
+          "changelog-toggle-button"
+        ]
+      }
+    ]
+  },
+  "composites": [
+    {
+      "id": "pc-status-panel",
+      "title": "Status, graphs and history",
+      "members": [
+        "#status"
+      ],
+      "group": "Details",
+      "label": "📊 Status, graphs and history"
+    },
+    {
+      "id": "pc-sea-panel",
+      "title": "Sea level, damage and adaptation",
+      "members": [
+        "#sea-level-section",
+        "#community-index"
+      ],
+      "group": "Details",
+      "label": "🌊 Sea level, damage and adaptation"
+    },
+    {
+      "id": "pc-compare-panel",
+      "title": "Coastline: then vs. now",
+      "members": [
+        "#coastline-comparison"
+      ],
+      "group": "Details",
+      "label": "🗺 Coastline: then vs. now"
+    },
+    {
+      "id": "pc-feedback-panel",
+      "title": "Feedback",
+      "members": [
+        "#feedback-prompt"
+      ],
+      "group": "Help",
+      "label": "💬 Send feedback"
+    }
+  ],
+  "adopt": [],
+  "zones": {
+    "topbar": [
+      ".hub-back-link",
+      "h1",
+      ".game-toolbar"
+    ],
+    "stagebar": [
+      ".sea-scenario-label"
+    ],
+    "stage": [
+      "#fish-warning-banner",
+      "#fish-recovery-banner",
+      ".tide-scene",
+      ".coastline-scene",
+      "#ticker-log",
+      "#population-display",
+      "#foresight-display",
+      "#sister-display"
+    ],
+    "side": [
+      "#actions-dock",
+      "#adaptation-tier-progress",
+      "#programmes-section",
+      "#settlement-section"
+    ],
+    "hidden": [
+      ".tagline",
+      ".context-blurb"
+    ]
+  },
+  "readouts": [
+    [
+      "#season-display",
+      "📅",
+      ""
+    ],
+    [
+      "#funds-display",
+      "💰",
+      "Funds"
+    ],
+    [
+      "#acidity-display",
+      "🧪",
+      "Acidity"
+    ],
+    [
+      "#fish-yield-display",
+      "🐟",
+      "Fishing yield"
+    ],
+    [
+      "#sea-level-display",
+      "🌊",
+      "Sea level"
+    ],
+    [
+      "#damage-display",
+      "⚠️",
+      "Damage"
+    ]
+  ],
+  "side_label": "Investments and programmes",
+  "hints": [
+    [
+      "?",
+      "All shortcuts"
+    ],
+    [
+      "Esc",
+      "Menu / close window"
+    ]
+  ],
+  "notify": null
+}

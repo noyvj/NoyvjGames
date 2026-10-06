@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 17;
+const SW_VERSION = 18;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -80,6 +80,12 @@ const PRECACHE_URLS = [
   "games/continuum/pc.html",
   "games/continuum/pc.css",
   "games/continuum/pc.js",
+  "games/canopy/pc.html",
+  "games/canopy/pc.css",
+  "games/canopy/pc.js",
+  "games/tide/pc.html",
+  "games/tide/pc.css",
+  "games/tide/pc.js",
 ];
 
 self.addEventListener("install", (event) => {

@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-06",
+      "entry": "New Desktop layout for wide windows: a full-window view with the season, funds, acidity, fishing yield, sea level and damage as chips across the top, the coastline filling the screen with the live ticker under it, and your investments, Advance Season and coastal programmes in a column on the right. The status graphs, sea-level detail and then-vs-now coastline are windows opened from the Menu (Esc), and the sea-level scenario picker sits above the coastline. Pick it from the opening screen; your save carries over and the Classic layout is unchanged."
+    },
+    {
       "date": "2026-09-27",
       "entry": "A faint glint now travels along a coastline held by the top-tier storm-surge barriers (motion only; off for reduced motion) (R-19)."
     },
