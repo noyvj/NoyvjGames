@@ -70,3 +70,64 @@ def test_save_round_trip_merges_instead_of_replacing():
     assert len(view["scenes"]) == 1
     game.load_state(None)                       # garbage in never raises
     game.load_state({"station": {"lamps": "x"}})
+
+
+# --- planets and contact ---------------------------------------------------------------------------
+
+def test_planet_two_is_locked_until_planet_one_is_contacted():
+    assert "error" in call(action="open", planet="compound")
+    call(action="speak", marks=say_door("open"))
+    call(action="speak", marks=say_lamps(5))
+    view = call(action="open")
+    assert view["planets"]["pulse"]["contact"] is True and view["planets"]["compound"]["unlocked"] is True
+    assert call(action="open", planet="compound")["planet"] == "compound"
+
+
+def _contact_with_planet_one():
+    call(action="speak", marks=say_door("open"))
+    call(action="speak", marks=say_lamps(5))
+
+
+def test_unknown_planets_and_actions_are_errors_not_crashes():
+    assert "error" in call(action="open", planet="narnia")
+
+
+def test_the_compound_planet_plays_end_to_end():
+    _contact_with_planet_one()
+    view = call(action="open", planet="compound")
+    assert view["scenes"] == [] and view["components"].keys() == {"k", "m", "t", "o", "u"} and view["tray"] == []
+    for k in range(1, 5):
+        view = call(action="next_scene", planet="compound")
+        assert len(view["scenes"]) == k
+    assert view["settled"] is True and view["letters"] == ["k", "o", "m", "u", "t"]
+    bad = call(action="speak", planet="compound", glyph="ok")
+    assert not bad["reaction"]["understood"] and bad["reaction"]["reason"] == "order"
+    call(action="speak", planet="compound", glyph="ku")
+    assert call(action="open", planet="compound")["planets"]["compound"]["contact"] is False
+    done = call(action="speak", planet="compound", glyph="tu")
+    assert done["tray"] == ["big water", "big fire"] and done["planets"]["compound"]["contact"] is True
+
+
+def test_compound_notebook_is_separate_and_confirm_counts_only():
+    _contact_with_planet_one()
+    call(action="write", planet="compound", form="k", gloss="Water")
+    call(action="write", planet="compound", form="u", gloss="small")      # wrong
+    call(action="write", planet="compound", form="zz", gloss="ignored")
+    assert call(action="open", planet="compound")["notebook"] == {"k": "water", "u": "small"}
+    assert call(action="open")["notebook"] == {}                           # planet 1's notebook is untouched
+    assert call(action="confirm", planet="compound", forms=["k", "u"]) == {"right": 1, "chosen": 2}
+
+
+def test_save_round_trip_keeps_both_planets():
+    _contact_with_planet_one()
+    call(action="next_scene", planet="compound")
+    call(action="write", planet="compound", form="k", gloss="water")
+    call(action="speak", planet="compound", glyph="ku")
+    saved = json.loads(json.dumps(game.get_state()))
+    call(action="reset")
+    game.load_state(saved)
+    pulse_view = call(action="open")
+    comp = call(action="open", planet="compound")
+    assert pulse_view["planets"]["pulse"]["contact"] is True
+    assert comp["notebook"] == {"k": "water"} and len(comp["scenes"]) == 1 and comp["tray"] == ["big water"]
+    game.load_state({"tray": ["nonsense", "big nothing"], "compound": {"spoken": ["ku", "1"]}})   # garbage never raises

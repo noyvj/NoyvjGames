@@ -13,6 +13,13 @@
   <h1>Lexis</h1>
   <p class="tagline">You are the communications officer. Planet 1 is sending something. Work out what it means, then answer.</p>
 
+  <nav id="planet-tabs" class="planet-tabs" aria-label="Planets">
+    <button id="tab-pulse" type="button" aria-pressed="true">Planet 1</button>
+    <button id="tab-compound" type="button" aria-pressed="false" disabled>Planet 2 (not in range yet)</button>
+  </nav>
+  <p id="goal-line" class="note goal" aria-live="polite"></p>
+
+  <div id="planet-pulse">
   <section id="station-panel" class="panel" aria-labelledby="station-heading">
     <h2 id="station-heading">Planet 1: the quiet beacon</h2>
     <div class="station">
@@ -52,6 +59,42 @@
     <div id="token-buttons" class="token-buttons" aria-label="Groups you have seen"></div>
     <p id="reaction" class="reaction" aria-live="polite"></p>
   </section>
+
+  </div>
+
+  <div id="planet-compound" hidden>
+    <section class="panel" aria-labelledby="c-tray-heading">
+      <h2 id="c-tray-heading">Planet 2: the market world</h2>
+      <p class="note">A tray sits on the counter. Signs here are made of parts. Watch what arrives on the tray when a sign is sent.</p>
+      <div id="c-tray" class="tray" aria-live="polite"></div>
+      <p id="c-tray-text" class="station-text"></p>
+    </section>
+    <section class="panel" aria-labelledby="c-tx-heading">
+      <h2 id="c-tx-heading">Received transmissions</h2>
+      <ol id="c-scene-list" class="scene-list"></ol>
+      <button id="c-next-scene-button" type="button" class="primary">Receive next transmission</button>
+      <p id="c-scene-status" class="note" aria-live="polite"></p>
+    </section>
+    <section class="panel" aria-labelledby="c-nb-heading">
+      <h2 id="c-nb-heading">Notebook</h2>
+      <p class="note">Each part of a sign has its own meaning. Write what you think each part means. Nothing is marked; Check says how many ticked entries are right, not which.</p>
+      <ul id="c-notebook-list" class="notebook-list"></ul>
+      <button id="c-check-button" type="button">Check ticked entries</button>
+      <p id="c-check-result" class="note" aria-live="polite"></p>
+    </section>
+    <section class="panel" aria-labelledby="c-send-heading">
+      <h2 id="c-send-heading">Transmit</h2>
+      <p class="note">Build a sign from parts you have seen, then send it.</p>
+      <div id="c-outgoing" class="signal" aria-label="Your sign" aria-live="polite"></div>
+      <div id="c-part-buttons" class="token-buttons" aria-label="Parts you have seen"></div>
+      <div class="builder">
+        <button id="c-back-button" type="button">Back</button>
+        <button id="c-clear-button" type="button">Clear</button>
+        <button id="c-send-button" type="button" class="primary">Send</button>
+      </div>
+      <p id="c-reaction" class="reaction" aria-live="polite"></p>
+    </section>
+  </div>
 
   <p id="engine-status" class="note">Starting the station...</p>
 </div>

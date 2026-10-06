@@ -32,13 +32,14 @@ class Notebook:
         word = language.by_form(form)
         return word.meaning if word else None
 
-    def confirm(self, forms, language=PULSE):
+    def confirm(self, forms, language=PULSE, truth=None):
         """How many of the chosen entries are right. Entries that are empty or not chosen do not count and
-        are not revealed."""
+        are not revealed. `truth` (form -> true gloss or None) lets another language reuse the notebook."""
+        truth = truth or (lambda form: self.truth(form, language))
         right = 0
         for form in forms:
             guess = self.entries.get(form)
-            if guess is not None and guess == _norm(self.truth(form, language) or ""):
+            if guess is not None and guess == _norm(truth(form) or ""):
                 right += 1
         return right
 
@@ -60,17 +61,32 @@ class LexisState:
     notebook: Notebook = field(default_factory=Notebook)
     scenes_seen: int = 0
     spoken: list = field(default_factory=list)   # signals the player has sent, oldest first
+    # Rung 2 (the Compound language): its own notebook (by component letter), scenes seen and spoken glyphs.
+    compound_notebook: Notebook = field(default_factory=Notebook)
+    compound_scenes_seen: int = 0
+    compound_spoken: list = field(default_factory=list)
+    # Which planets the player has made contact with (the goal for each is in game.py).
+    contact: dict = field(default_factory=lambda: {"pulse": False, "compound": False})
 
     def see_next_scene(self, total):
         self.scenes_seen = min(self.scenes_seen + 1, total)
 
     def to_dict(self):
-        return {"version": 1, "notebook": self.notebook.to_dict(), "scenes_seen": self.scenes_seen,
-                "spoken": list(self.spoken)[-200:]}
+        return {"version": 2, "notebook": self.notebook.to_dict(), "scenes_seen": self.scenes_seen,
+                "spoken": list(self.spoken)[-200:],
+                "compound": {"notebook": self.compound_notebook.to_dict(), "scenes_seen": self.compound_scenes_seen,
+                             "spoken": list(self.compound_spoken)[-200:]},
+                "contact": dict(self.contact)}
 
     @staticmethod
     def from_dict(data):
         data = data or {}
         state = LexisState(Notebook.from_dict(data.get("notebook")), max(0, int(data.get("scenes_seen", 0))))
         state.spoken = [str(s) for s in data.get("spoken", []) if set(str(s)) <= set("01")][-200:]
+        comp = data.get("compound") or {}
+        state.compound_notebook = Notebook.from_dict(comp.get("notebook"))
+        state.compound_scenes_seen = max(0, int(comp.get("scenes_seen", 0)))
+        state.compound_spoken = [str(s) for s in comp.get("spoken", []) if str(s).isalpha()][-200:]
+        contact = data.get("contact") or {}
+        state.contact = {"pulse": bool(contact.get("pulse")), "compound": bool(contact.get("compound"))}
         return state
