@@ -23,11 +23,11 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 
 **Steps:** from the `app/` folder run `python3 -m fastapi cloud deploy`, then open `ideas.html` or `admin.html` and sign in as `noyvj` in the card that appears. The admin page no longer asks for the separate admin token: signing in as `noyvj` is enough (the backend accepts that account as admin; `AI_ADMIN_TOKEN` still works for the AI sessions). Tell me once it works and I will remove this entry.
 
-### 0c. PC version of every game: answer the eight decisions
+### 0c. PC version of every game: two questions left, one about Continuum's deadline
 
-**Why:** you asked for a PC-style version of all games (full-window layout, windows instead of a scrolling column, hotkeys, loading and menu flow) with the current version kept. The plan and the discussion are in `planning/PC-VERSION-PLAN.md`; nothing is built until the decisions in its section 8 are answered. The three that matter most: (1) does "PC version" mean the layout and feel change only, or also a downloadable app; (3) should audio be reopened for this; (4) is Canopy then Tide the right pilot.
+**Why:** your first three answers are folded into `planning/PC-VERSION-PLAN.md` (layout and feel only; separate Classic and Desktop boots with shared saves; Continuum first and alone, with nothing else touched until its deadline around 2026-10-20). Section 8 lists what is still open. The one that affects the next two weeks: which parts of Continuum does the class marking actually need finished? I will fit any Desktop-boot work around those instead of competing with them.
 
-**Steps:** read section 8 of that file and reply with answers (or "go with your recommendations").
+**Steps:** reply with what the Continuum submission must contain (or "nothing new, polish only"), and "go with your recommendations" for items 4 to 7 of section 8 if you agree.
 
 ### 1. Apply for Google AdSense
 

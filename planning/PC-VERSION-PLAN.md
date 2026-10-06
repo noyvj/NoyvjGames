@@ -1,6 +1,6 @@
 # PC version of every game: plan and discussion
 
-Status: **discussion draft, nothing built.** Written 2026-10-06 after the user asked for "a huge update to all games, building them out more like PC games than browser games", while keeping the current version available. The decisions in section 8 need answers before any build work is scheduled into `planning/TODO.md`.
+Status: **plan revised 2026-10-06 after the user's first three answers; nothing built.** The user asked for "a huge update to all games, building them out more like PC games than browser games", while keeping the current version available. Answers so far (section 8): layout and feel only, no downloadable app; the two layouts are separate "boots" chosen before entering a game, with shared saves; audio stays off but is raised again in every ideas round; **Continuum is the only game that gets any of this work for the next two weeks** because it is due for class.
 
 ---
 
@@ -14,6 +14,7 @@ What already exists and helps:
 - `shared/opening-screen.js` (New Game / Saves / Settings / Info / Feedback) is already a title-screen.
 - `shared/theme*.js`, `shared/site-settings.js` (account-synced theme, text scale, reduced motion), `shared/tutorial.js`, `shared/keyboard-shortcuts.js`, `shared/save-widget.js` are shared, so a PC shell can reuse them.
 - Continuum already has a Three.js scene and Le Champ de Mots a four-style visual switcher, so there is precedent for a richer "stage".
+- **Continuum's Hamlet view is the half-built version of this plan.** Today it is an in-page toggle (desktop-only, off by default, `#game.hamlet-on` widens the page to 1180px and puts the controls on buildings in the 3D scene as real buttons, with the ordinary panels hidden by CSS). Its recorded limits are exactly the ones a proper Desktop boot should fix: at about 1024px wide some chips overlap, and the guided tutorial points at `#work`, `#buildings` and `#research`, which are hidden in Hamlet mode. The plan is to grow it into Continuum's Desktop boot rather than start over.
 
 ## 2. What "PC game" means here
 
@@ -35,18 +36,18 @@ Things that deliberately do not change: Python owns state, saves and achievement
 
 ## 3. How it would work
 
-### 3.1 One switch, two layouts
-`html[data-layout="pc"]` or `"classic"`. The classic layout is today's page, untouched. Default is automatic: PC layout when the window is at least ~1100px wide with a fine pointer, classic otherwise. A "Layout: Desktop / Classic" choice in each game's settings (and synced with the account settings that already hold theme and text scale) overrides it. Phones and small windows never get the PC layout unless chosen.
+### 3.1 Two boots, chosen before the game loads
+Each game keeps its current page as the **Classic** boot (`games/<slug>/index.html`, untouched) and gains a **Desktop** boot (`games/<slug>/pc.html`). Both load the same `game.py` and engine modules and use the same `game_id`, so a save made in one opens in the other. The choice is made before entering, never mid-session:
+- the hub's game card and the game's opening screen each offer "Classic" and "Desktop" (Desktop only offered on wide windows with a fine pointer; phones and small windows only ever get Classic);
+- the pick is remembered per browser and later synced with the account settings that already hold theme and text scale;
+- switching later means going back to the opening screen or hub and picking the other; the save carries over, so it costs one reload, not a lost game.
 
-### 3.2 A shared shell instead of 13 rewrites
-New `shared/pc-shell.js` and `shared/pc-shell.css`, included once per game like `mobile-dock.js`. Each game ships a small layout manifest (a JSON block next to its `index.html`) that says which existing elements belong in which zone:
+Why this answers the loading concern: Python boots once per page load either way (a single page that rearranges itself never boots it twice), but separate entry pages mean the Classic page does not download any Desktop CSS or JS and vice versa, the Classic page cannot regress because nothing in it changes, and the Desktop page can be written for a wide window instead of undoing a 480px column with overrides. The heavy parts (Pyodide itself, `game.py`, the engine modules) are the same files at the same URLs, so the browser and service worker cache them once for both boots.
 
-```
-zones:   hud (top bar) | rail (left actions) | stage (centre) | details (right) | log (bottom/right)
-windows: { "achievements-panel": "Achievements", "changelog-panel": "What's New", "settings-panel": "Settings", ... }
-```
+### 3.2 A shared shell, not 13 rewrites
+New `shared/pc-shell.js` and `shared/pc-shell.css`, included only by the `pc.html` pages. A game's `pc.html` is a short page: the shell's frame (top bar, rail, stage, details, log, window layer, menu) with the game's own elements placed in it, plus the same script and Pyodide boot block as its `index.html`. Because `game.py` finds everything by id, the rule is **every id `game.py` looks up must exist in both pages**, and a shared test enforces it by parsing `game.py` and both HTML files. No mechanic, state or save-format change, so the existing suites keep applying.
 
-In PC layout the shell builds the frame and moves (reparents) the existing nodes into the zones, the same technique as `mobile-dock.js`. Because the nodes themselves are moved, not copied, `game.py` keeps finding them by id and all listeners survive. In classic layout the shell puts them back. No mechanic or id changes, so the existing test suites keep applying.
+Repeated markup (the toolbar, panels, boot script) is generated from one shared template where possible, so the two entry pages cannot drift for the same reasons as the duplicated per-game shells did before the shared components existed.
 
 ### 3.3 Windows
 Panels that are "open on demand" today (achievements, what's new, settings, summary, almanac, session summary, how-to-play, civilization summary, etc.) become windows managed by the shell: title bar, close button, Esc to close, focus trap while open, optionally movable and remembering their position. The existing `hidden` attribute toggling keeps working because the shell watches it. The blanket `[hidden] { display:none !important }` added in the 2026-10-06 audit is a prerequisite and is already in.
@@ -61,8 +62,8 @@ Most games have a thing the player actually looks at: Canopy's plot grid, Champ 
 - Polish layer (later): subtle transitions, number tick-ups, hover and press states, per-game accent theming.
 - Accessibility carries over: keyboard reachability, focus order that matches the visual zones, screen-reader names, reduced motion, colorblind-safe state encoding (the earlier audits are the bar).
 
-### 3.6 Packaging (optional, later)
-Static site stays the source of truth. If wanted later: install as a PWA in its own window (the manifest and service worker already exist, so `display: standalone`/`fullscreen` is a small step), and a wrapped desktop build (Tauri or Electron around the same files, Pyodide bundled for offline play) for itch.io or Steam. That is a distribution decision, not part of the layout work, and is not scheduled here.
+### 3.6 Packaging
+Out of scope by the user's answer: this is a layout and feel change on the website, not a downloadable app. (Installing the site as a PWA in its own window stays possible later without changing this plan.)
 
 ## 4. The games, grouped by what their PC layout centres on
 
@@ -78,44 +79,49 @@ These groupings come from the current page structure; each game's real manifest 
 
 Sizes are relative effort: S, M, L, XL.
 
+**Schedule constraint (user, 2026-10-06):** Continuum is the flagship BCM114 Round 2 Digital Artefact and is due in about two weeks (around 2026-10-20). For that period it is the only game that gets any of this work, and the PC work only goes ahead if it does not compete with what the class needs. No other game is touched until Continuum's deadline has passed.
+
 | Phase | What | Size |
 |---|---|---|
-| 0 | Decisions in section 8; capture current screenshots at 1920x1080 and 1440x900 as the "before" for the BCM evidence trail. | S |
-| 1 | **Shell spike on one game.** Build `pc-shell` (layout switch, zones, manifest loader, window manager, Esc menu, loading screen) against **Canopy**: biggest game, a clear stage (the plot grid), existing `mobile-dock`. Done when Canopy plays fully in PC layout with classic one toggle away and its 557 tests unchanged. | L |
-| 2 | **Prove the second archetype** on **Tide** (a dashboard game). If the manifest idea needs to change, this is where it shows. | M |
-| 3 | Shared PC features: unified hotkeys and hint bar, tooltips, notification stack, settings (layout, UI scale, fullscreen, effects), account sync of the layout choice. | L |
-| 4 | **Roll out by archetype**, board games first, then dashboards, then Signal: Le Champ de Mots, Trade Empire, Loop, SOL, Continuum; Grid, Aftermath, Herd, Thaw, Drift; Signal. One game per milestone, tagged like existing milestones. | XL (13 x M) |
-| 5 | Visual identity pass per game (accent, stage art, transitions); audio if approved. | L |
-| 6 | Optional: PWA fullscreen window, desktop wrapper, store pages. | decision first |
+| 0 | Decisions in section 8 (the first three are answered). Capture "before" screenshots of Continuum at 1920x1080 and 1440x900 for the evidence trail. | S |
+| 1 | **Continuum Desktop boot** (`games/continuum/pc.html`), built from the Hamlet view: shared shell frame, windows for the panels, fix the two known Hamlet limits (chip overlap at about 1024px, tutorial pointing at hidden panels), shared saves with Classic, boot choice on the opening screen. Done when Continuum plays fully in Desktop with Classic unchanged and its 765 tests green. Ships only if it is ready and safe before the deadline; otherwise it waits and Classic is what gets marked. | L |
+| 2 | **Extract the shell.** Move what Continuum proved into `shared/pc-shell.*` so a second game needs only a `pc.html`. | M |
+| 3 | **Second archetype, after the deadline:** Canopy (board) or Tide (dashboard), whichever the user prefers, to check the shell works for a game that was never designed for it. | M |
+| 4 | Shared PC features: unified hotkeys and hint bar, tooltips, notification stack, settings (UI scale, fullscreen, effects), hub-card boot picker, account sync of the choice. | L |
+| 5 | **Roll out by archetype**, one game per milestone, tagged like existing milestones: remaining board games, then dashboards, then Signal. | XL (12 x M) |
+| 6 | Visual identity pass per game (accent, stage art, transitions). Audio only if the user says yes (see decision 2). | L |
 
 ## 6. Testing and quality bar
 
 - Existing per-game suites stay green unchanged; if a PC change needs a test edit, that is a signal the change touched mechanics and should be rethought.
-- New shared tests: every id named in a game's manifest exists in its `index.html`; every zone/window referenced is known; classic layout restores the original DOM order.
+- New shared test: every id `game.py` looks up exists in both `index.html` and `pc.html` (the two boots cannot drift), and both pages use the same `game_id` so saves are shared.
 - Live checks per game at 1920x1080, 1440x900, 1280x720 and 1100px, in light and dark themes, with the audit hygiene sweep (hidden-but-visible elements, unnamed controls, overflow) as the gate.
 - Keyboard-only pass: every action reachable, focus never trapped, Esc always leaves.
 - Pyodide boot time measured before and after (the loading screen must not make it worse).
 
 ## 7. Risks
 
-- **Reparenting fragility.** Moving nodes works for `mobile-dock`, but some games re-render containers wholesale via `innerHTML`; any node the game destroys and recreates must be re-homed by the shell. The Canopy spike is meant to find these.
+- **Two pages that must stay in step.** `index.html` and `pc.html` both have to contain every id `game.py` uses. A shared parity test catches a missing id at once; shared markup comes from one template so the pages cannot drift quietly.
 - **Per-game CSS entanglement.** Each stylesheet is 1,100 to 2,000 lines written for a 480px column. The shell must scope its changes under `html[data-layout="pc"]` so classic is unaffected, and games will still need their own spacing and chart-size rules.
 - **Tutorial and tooltips.** `shared/tutorial.js` spotlights elements by selector and position; it must work when those elements are inside windows or zones.
 - **Scope.** This touches all 13 games. Mitigation: one shared shell, one game per milestone, classic always available so nothing blocks shipping.
-- **Audio expectation.** A PC feel without any sound will read as half done. The standing answer (planning/LATER.md) is "not now"; see decision 3.
+- **Audio expectation.** A PC feel without any sound can read as half done. The user's answer is "not yet"; it is raised again in every ideas round until they say yes.
 
-## 8. Decisions needed
+## 8. Decisions
 
-Each has a recommendation; "go with your recommendations" is a fine answer.
+Answered by the user on 2026-10-06:
 
-1. **What does "PC version" mean?** Recommended: the layout and feel change in section 2, same URL, same code, with the classic layout kept. Alternatives: also a downloadable desktop app (see 3.6), or a separate "PC edition" site. Which do you mean, or is it layout first and packaging later?
-2. **Automatic or manual?** Recommended: automatic PC layout on wide windows with a Settings override remembered on the account, so visiting on a laptop just looks like a PC game.
-3. **Audio.** Recommended: reopen it now for this project, starting with a shared, default-off sound system (muted by default, mute control in the in-game menu) and a few synthesized UI sounds with no asset files. This replaces the "ask around round 6" parking in `planning/LATER.md`. Or keep it parked and ship silent.
-4. **Pilot game.** Recommended: Canopy first, then Tide. Say if you would rather start with another game (Signal is the cheapest, Continuum the most spectacular).
-5. **Look.** Keep the current glass-panel style and refine it, or let each game get its own PC visual identity (more work, more PC-game-like)? Recommended: keep the shared frame, give each game its own accent and stage art over time.
-6. **Controller support.** Recommended: not in this pass; design hotkeys so it can be added later.
-7. **Distribution.** itch.io or Steam in the future, or just the website? Recommended: decide after phase 4; it does not change the layout work.
-8. **Mobile.** Recommended: unchanged and still first-class (its own dock and HUD), tested alongside every PC milestone.
+1. **What "PC version" means: layout and feel only.** No downloadable app. The two layouts are separate boots chosen before entering a game, with shared saves, so a player never loads both (section 3.1).
+2. **Audio: not yet, but keep asking.** It is raised again in every ideas document until the user says yes. Until then the plan assumes silence. (`planning/LATER.md` and `planning/TODO.md` now say this instead of "ask around round 6".)
+3. **Continuum comes first and alone.** It is the class deliverable, due in about two weeks, and already has the Hamlet view as a start; it is the pilot in place of Canopy. Nothing else is converted until after the deadline.
+
+Still open, each with a recommendation (a "go with your recommendations" covers them):
+
+4. **Second game after Continuum:** Canopy (a board, the biggest game) or Tide (a dashboard). Recommended: Tide first as the cheaper proof, then Canopy.
+5. **Look.** Keep the shared glass-panel frame and give each game its own accent and stage art over time, rather than a full per-game visual identity up front.
+6. **Controller support.** Not in this pass; hotkeys are designed so it can be added later.
+7. **Mobile.** Unchanged and still first-class with its own dock and HUD, tested alongside every Desktop milestone.
+8. **Does Continuum's Desktop boot belong in the next two weeks at all?** Recommended: only as a small, safe step (the Hamlet limits and a boot choice on the opening screen), and only after anything the class marking actually asks for. Please say which parts of Continuum the class needs finished, so the PC work is fitted around them rather than competing with them.
 
 ## 9. Not part of this plan
 

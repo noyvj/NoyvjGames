@@ -10,7 +10,7 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 
 ## Standing decisions from your Round 3 answers (apply everywhere)
 
-- **Audio:** not being considered; ask again around round 6 (R1-R8 all dropped for now).
+- **Audio:** not being considered yet (R1-R8 all dropped for now), but raise it again in every ideas document until the user says yes (user, 2026-10-06).
 - **Roguelikes and card games:** you do not like them, so anything in that genre (Canopy Expedition mode, Overclock) is built on my judgment without expecting your input, kept honest and fun rather than polished to your taste.
 - **Level select:** for games that are getting complex, add a level select where every 5 levels is either a game mode or a new mechanic; mechanics that do not belong in the base game (Canopy's poachers and storm fronts) live there.
 - **Fast-forward and pause:** wanted in most games that are not turn-based.
