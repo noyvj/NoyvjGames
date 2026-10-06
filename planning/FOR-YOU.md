@@ -11,11 +11,11 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 
 ## Action items
 
-### 0. Redeploy the backend (it crashes at startup; fix is committed)
+### 0. Clean up test rows my audit wrote to the live database
 
-**Why:** on 2026-10-04 every route returned 404 and the last deployment would not verify. The deploy logs show the app crashing at startup because the FastAPI Cloud container could not resolve the Neon hostname ("Temporary failure in name resolution"). Neon is fine (its hostname resolves and port 5432 answers from outside). The fix is committed: the API now starts even when the database is unreachable and retries the schema setup in the background.
+**Why:** during the 2026-10-06 playtest audit my random-click testing submitted some in-game feedback ("yes"/"no") rows and a few anonymous saves to production before I added a write-blocker. The API has no delete route, so only you can remove them (Neon SQL editor). Details and the exact SQL, with a preview query to run first, are at the bottom of `planning/AUDIT-261006.md`.
 
-**Steps:** from the `app/` folder run `python3 -m fastapi cloud deploy`. When it finishes, open `https://noyvjgames.fastapicloud.dev/docs`; it should load. If ratings still fail after that, the container's DNS problem is still happening: check `DATABASE_URL` in the FastAPI Cloud environment settings against the connection string in the Neon dashboard (same host, `-pooler` endpoint), check the FastAPI Cloud status page, and send me the new logs.
+**Steps:** run the two `SELECT` previews, check the rows are test data (the date filter may also match real submissions from 5 Oct), then run the `DELETE`s. Tell me once done and I will remove this entry.
 
 ### 1. Apply for Google AdSense
 
