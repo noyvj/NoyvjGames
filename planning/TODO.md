@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 108/774 items checked off (14.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 108/775 items checked off (13.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -792,6 +792,8 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] L-29: Add a weak-items export to Le Champ de Mots: download flagged items as a CSV or Anki-compatible deck.
 - [ ] L-30: Add rotating cosmetic seasonal farm sprites and weather (autumn leaves, snow) to Le Champ de Mots, tied to the real calendar or semester stage and toggled by the visual-style switcher. (needs W-4) (you approved 2026-10-07 an explicit exception to Le Champ de Mots' no-animation/no-timer tests: update the test and the CLAUDE.md rule when building, keep it toggleable and reduced-motion safe)
 - [ ] L-31: Restyle Le Champ de Mots achievement cards with warm farm-themed crop/harvest glyphs per earned badge, themed across High-def, Low-poly, Text-based and Cartoon styles, as a restyle not a rebuild.
+
+- [ ] LC-1: Fix the unreadable text in Le Champ de Mots: your report (2026-10-07) is "a lot of white on white text and dark on dark". Run a computed-style contrast scan (same method as the earlier light-theme passes) on both the Classic page and the Desktop page, in light and dark themes and in all four visual styles (High-def, Low-poly, Text-based, Cartoon), across the farm, every panel and window, the question flow, the five minigames, the dashboard, Settings and the opening screen; fix every text/background pair under WCAG AA 4.5:1 (3:1 for large text), then add a test that fails on a new pair. Start with the Desktop page's `pc.css` panel backgrounds and the dark-glass top bar and side column, which were written recently and have not been scanned. (Reported by you; no screenshots yet, so the scan finds the exact spots.)
 
 ## Z. Cross-game patterns (Round 3 answers, 2026-10-07)
 
