@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 68/109 items checked off (62.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 95/144 items checked off (66.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Only the sections you have answered so far are here: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -189,6 +189,60 @@ Dropped or parked: audio items R1-R8 (revisit round 6), R24 and R26 (Thaw/Drift 
 - [ ] R-33: Continuum peer-city ghost overlay (needs W-6 scoping).
 - [x] R-39: Write the multiplayer scoping document (= W-6).
 - [ ] R-clean: remove the stale `planning/LATER.md` entries for R16, R17, R35, R36 and the items now built.
+
+---
+
+## SW. Site work that landed after 2026-09-27 without a list entry (added 2026-10-07, all done)
+
+- [x] SW-1: Whole-site audit 2026-09-27 and its fixes (`planning/AUDIT-260927.md`; fixes `3392b49`, `eb0517d`).
+- [x] SW-2: Roadmap site-level milestones table rewritten to cover everything shipped; Roadmap and What's New revalidate on load and keep the Warframe tracker off public pages (`2c79355`, `920202f`).
+- [x] SW-3: Service worker revalidates same-origin requests and precaches past the HTTP cache, which fixed stale files after deploys (`ad35c59`).
+- [x] SW-4: Backend starts even when the database is unreachable and retries schema setup, after the 4 Oct outage where every route returned 404 (`2a8427e`).
+- [x] SW-5: Playtest audit 2026-10-06 and its fixes (`planning/AUDIT-261006.md`, `14980b8`): blanket `[hidden]` rule, collapsed save widget on phones, compact toggles, install banner after the survey.
+- [x] SW-6: Owner-only pages (admin, ideas, Warframe tracker) gated to the `noyvj` account through `GET /users/me`, plus the hub's "Owner only" nav dropdown (`7107480`, `fd738a5`, `002ff55`).
+- [x] SW-7: Ideas answer sheet `ideas.html` with its generator, answers synced to the owner account, and a "For you" round built from FOR-YOU.md (`a63e3b8`, `1d8a11c`, `b5e4ba9`).
+
+## PC. PC version of every game, the Desktop boot (plan `planning/PC-VERSION-PLAN.md`, guide `planning/PC-GAME-CONVERSION-GUIDE.md`)
+
+Classic stays the default boot (`index.html`); Desktop is a second boot (`pc.html`) sharing `game.py` and saves. Continuum's Classic page must not break (class deliverable).
+
+- [x] PC-1: Plan and conversion guide, decisions recorded (layout and feel only, separate boots, shared saves).
+- [x] PC-2: Shared shell, layout switch, config-driven generator and generic tests (`shared/pc-shell.*`, `shared/layout-pref.js`, `scripts/generate-pc-pages.py`, per-game `pc-config.json`).
+- [x] PC-3: Continuum Desktop (the pilot): HUD chips with trend dropdowns, Menu window, draggable windows, composite windows.
+- [x] PC-4: Tide Desktop.
+- [x] PC-5: Canopy Desktop.
+- [x] PC-6: Grid Desktop.
+- [x] PC-7: Herd Desktop.
+- [x] PC-8: Thaw Desktop.
+- [x] PC-9: Aftermath Desktop.
+- [x] PC-10: Drift Desktop.
+- [x] PC-11: Loop Desktop.
+- [x] PC-12: Signal Desktop.
+- [x] PC-13: Trade Empire Desktop.
+- [ ] PC-14: Le Champ de Mots Desktop. Agent-built files are in the working tree, uncommitted, and the session was stopped mid-build (its 762 tests pass); needs a review pass and commit after the usage reset.
+- [ ] PC-15: SOL Desktop. Same state as PC-14 (722 tests pass, uncommitted, stopped mid-build).
+- [ ] PC-16: Your look at each converted Desktop game, and fixes for what feels wrong (open questions in FOR-YOU 0c; controller support not yet, audio stays parked).
+
+## LX. Lexis (language-deduction puzzle game; plan `planning/lexis-plan.md`, game in `games/lexis/`)
+
+- [x] LX-1: Groundwork plan with your decisions (deduction first, story as the pull, sci-fi, three languages growing to five, a ladder from pulses to compound glyphs).
+- [x] LX-2: Milestone 1, engine core (Pulse language, parser, world, scenes, deducibility checker, notebook, `handle(json)`).
+- [x] LX-3: Milestone 2, first playable screen.
+- [x] LX-4: Milestone 3, the Compound language (rung 2) and its deducibility checker.
+- [x] LX-5: Milestone 4, planet 2 in the view and the contact goals.
+- [x] LX-6: Milestone 5, achievements, save widget, tutorial and opening screen.
+- [ ] LX-7: Milestone 6, the bridge language (rung 3: plural, negation, question markers).
+- [ ] LX-8: Milestone 7, story spine and ending, Info page with real-linguistics sources read live.
+- [ ] LX-9: Milestone 8, hub registration (card, thumbnail, favicon, offline cache), polish, accessibility pass, light theme, Desktop boot.
+
+## CH. Chronicle (history game built from expandable sets; plan `planning/chronicle-plan.md`)
+
+- [x] CH-1: Groundwork plan (one engine, each topic a data pack, sourced claims with confidence levels, review page before a set ships).
+- [ ] CH-2: Build it, starting with the food set. Waits on your answers to the six questions (FOR-YOU 0e); milestones are in section 7 of the plan.
+
+## IA. Ideas answers (waiting on you)
+
+- [ ] IA-1: When you say your ideas answers are finished, read them (they sync to your account), add the "yes" items here, park the "later" ones in `LATER.md`, and drop the "no" ones.
 
 ---
 
