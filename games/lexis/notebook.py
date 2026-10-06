@@ -67,6 +67,9 @@ class LexisState:
     compound_spoken: list = field(default_factory=list)
     # Which planets the player has made contact with (the goal for each is in game.py).
     contact: dict = field(default_factory=lambda: {"pulse": False, "compound": False})
+    # Small one-way facts achievements need ("a Check where every ticked entry was right", "a signal the
+    # world could not understand"). Only ever set to True.
+    flags: dict = field(default_factory=dict)
 
     def see_next_scene(self, total):
         self.scenes_seen = min(self.scenes_seen + 1, total)
@@ -76,7 +79,7 @@ class LexisState:
                 "spoken": list(self.spoken)[-200:],
                 "compound": {"notebook": self.compound_notebook.to_dict(), "scenes_seen": self.compound_scenes_seen,
                              "spoken": list(self.compound_spoken)[-200:]},
-                "contact": dict(self.contact)}
+                "contact": dict(self.contact), "flags": {k: True for k, v in self.flags.items() if v}}
 
     @staticmethod
     def from_dict(data):
@@ -89,4 +92,5 @@ class LexisState:
         state.compound_spoken = [str(s) for s in comp.get("spoken", []) if str(s).isalpha()][-200:]
         contact = data.get("contact") or {}
         state.contact = {"pulse": bool(contact.get("pulse")), "compound": bool(contact.get("compound"))}
+        state.flags = {str(k): True for k, v in (data.get("flags") or {}).items() if v}
         return state

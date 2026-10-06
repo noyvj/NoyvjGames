@@ -29,6 +29,7 @@ Python via Pyodide, engine modules with no DOM (the Signal pattern: a thin view 
 - `notebook.py`: `Notebook` and `LexisState` (the save: notebook, scenes seen, what the player has said).
 - `compound.py`, `compound_scenes.py`, `deduce_compound.py`: rung 2, the Compound language. A glyph is a root then a size (opaque letters: k water, m grain, t fire; o small, u big); the world is a tray; four scenes settle all six glyphs although two are never shown; the checker enumerates every assignment of five meanings to five letters (repeats allowed) in both slot orders.
 - `glyphs.py`: the Compound language's component strokes as SVG path data (abstract on purpose; nothing resembles its meaning).
+- `achievements.py` + `achievements.json`: ten achievements computed from the state (nothing hidden, none luck-gated).
 - `game.py`: the one entry point, `handle(json) -> json` (open, next_scene, write, confirm, speak, reset) plus `get_state()` / `load_state()` for the save widget (load merges, never replaces). 47 tests.
 
 ## Milestones
@@ -38,10 +39,10 @@ Python via Pyodide, engine modules with no DOM (the Signal pattern: a thin view 
 | 2 | Notebook UI, sentence builder, first scene and dialogue playable (static shell + Pyodide engine, `handle(json)`): `index.html`, `style.css`, `app.js` (glue only; a temporary localStorage save until milestone 5); 52 tests | **DONE** (2026-10-06, untagged) |
 | 3 | Rung 2 data and the deducibility checker for it: the Compound language (`compound.py`, `compound_scenes.py`, `deduce_compound.py`); 70 tests. The checker allows repeated meanings (no bijection assumption), which is what makes it honest | **DONE** (2026-10-07, untagged) |
 | 4 | Rung 2 in the view: component strokes drawn as SVG (`glyphs.py`), planet tabs, the tray and its scenes, a sign builder, a per-planet notebook, contact goals that unlock planet 2 (`handle` takes `planet`); 79 tests | **DONE** (2026-10-07, untagged) |
-| 5 | Save widget, achievements, tutorial, opening screen, hub registration | not started |
+| 5 | Save widget, achievements (10, manifest + `achievements_earned`), tutorial, opening screen; hub registration deliberately MOVED to milestone 8 so a half-built game is not listed publicly; 85 tests | **DONE** (2026-10-07, untagged) |
 | 6 | Rung 3: the bridge language (plural, negation, question markers; borrows from rungs 1 and 2) | not started |
 | 7 | Story spine and ending; Info page with real-linguistics sources read live | not started |
-| 8 | Polish, accessibility pass (non-colour cues, keyboard, reduced motion), Desktop boot | not started |
+| 8 | Hub registration (card, thumbnail, favicon, hub lists, offline cache), polish, accessibility pass (non-colour cues, keyboard, reduced motion), light theme, Info page, Desktop boot | not started |
 
 ## Working conventions
 Commit and tag per milestone: `git commit -m "Milestone N: <name>"`, `git tag lexis-milestone-0N`. Update the Status column as work happens.

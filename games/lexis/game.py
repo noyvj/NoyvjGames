@@ -20,6 +20,7 @@ Every request carries `"planet"` (default "pulse"). Actions:
 import json
 
 import compound
+import achievements
 import deduce
 import deduce_compound
 from compound import COMPONENTS, Tray, describe_tray
@@ -38,6 +39,19 @@ PLANETS = ("pulse", "compound")
 state = LexisState()
 station = Station(0, "shut")
 tray = Tray()
+
+# Whether the first k scenes settle each language never changes, and checking enumerates thousands of
+# readings, so each answer is computed once per k (the view asks on every request).
+_settled_cache = {}
+
+
+def _settled(planet, k):
+    key = (planet, k)
+    if key not in _settled_cache:
+        scenes = (CSCENES if planet == "compound" else SCENES)[:k]
+        check = deduce_compound.determinate if planet == "compound" else deduce.determinate
+        _settled_cache[key] = bool(scenes) and check(scenes)
+    return _settled_cache[key]
 
 
 # --- contact: what the crew needs from each planet before the ship moves on -----------------------
@@ -78,9 +92,10 @@ def _pulse_view():
         "station_text": describe(station),
         # Whether the evidence shown so far fully settles the language. The view may use this to
         # encourage trying a sentence; it never says which guesses are right.
-        "settled": deduce.determinate(seen) if seen else False,
+        "settled": _settled("pulse", len(seen)),
         "spoken": list(state.spoken[-20:]),
         "goal": "Open the door and light exactly five lamps.",
+        "achievements": achievements.view(state, station, tray),
     }
 
 
@@ -105,9 +120,10 @@ def _compound_view():
         "notebook": dict(state.compound_notebook.entries),
         "tray": [item.label() for item in tray.items],
         "tray_text": describe_tray(tray),
-        "settled": deduce_compound.determinate(seen) if seen else False,
+        "settled": _settled("compound", len(seen)),
         "spoken": list(state.compound_spoken[-20:]),
         "goal": "Ask for a big water and a big fire, two things nobody has shown you.",
+        "achievements": achievements.view(state, station, tray),
     }
 
 
@@ -153,6 +169,8 @@ def handle(request_json):
             right = state.compound_notebook.confirm(forms, truth=_compound_truth)
         else:
             right = state.notebook.confirm(forms, LANGUAGE)
+        if len(forms) >= 3 and right == len(forms):
+            state.flags["perfect_check"] = True
         return json.dumps({"right": right, "chosen": len(forms)})
     elif action == "speak":
         if compound_planet:
@@ -164,6 +182,12 @@ def handle(request_json):
                 del state.compound_spoken[:-200]
             if compound_goal_met(tray):
                 state.contact["compound"] = True
+            if reaction.understood:
+                state.flags["understood"] = True
+                if glyph in {"ku", "tu"}:
+                    state.flags["understood_unseen"] = True
+            else:
+                state.flags["misunderstood"] = True
             view = _compound_view()
         else:
             marks = str(request.get("marks", ""))
@@ -174,6 +198,12 @@ def handle(request_json):
                 del state.spoken[:-200]
             if pulse_goal_met(station):
                 state.contact["pulse"] = True
+            if reaction.understood:
+                state.flags["understood"] = True
+                if station.lamps == 7:
+                    state.flags["all_lamps"] = True
+            else:
+                state.flags["misunderstood"] = True
             view = _pulse_view()
         view["reaction"] = {"understood": reaction.understood, "text": reaction.text, "reason": reaction.reason}
         return json.dumps(view)
@@ -190,6 +220,8 @@ def get_state():
     data = state.to_dict()
     data["station"] = station.to_dict()
     data["tray"] = [i.label() for i in tray.items]
+    # A write-only projection for the hub's achievements dashboard, recomputed here, never read back.
+    data["achievements_earned"] = achievements.earned(state, station, tray)
     return data
 
 
@@ -209,6 +241,7 @@ def load_state(data):
                              + [s for s in state.compound_spoken if s not in incoming.compound_spoken])[-200:]
     for planet in PLANETS:
         state.contact[planet] = state.contact[planet] or incoming.contact[planet]
+    state.flags.update(incoming.flags)
     try:
         station = Station.from_dict((data or {}).get("station"))
     except (KeyError, TypeError, ValueError):
@@ -222,4 +255,17 @@ def load_state(data):
                 items.append(compound.Item(root, size))
         tray = Tray(tuple(items))
     except (ValueError, TypeError, AttributeError):
+        pass
+    _refresh_view()
+
+
+def _refresh_view():
+    """Ask the page to redraw after a save is loaded (the save widget calls load_state directly and knows
+    nothing about this game's view). Under plain CPython there is no page, so this is a no-op."""
+    try:
+        import js
+        refresh = getattr(js.window, "lexisRefresh", None)
+        if refresh is not None:
+            refresh()
+    except Exception:
         pass

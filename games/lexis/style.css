@@ -56,3 +56,11 @@ button[disabled] { opacity: 0.5; cursor: default; }
 .part { width: 1.6rem; height: 1.6rem; fill: none; stroke: var(--text); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .glyph { display: inline-flex; gap: 0.15rem; align-items: center; padding: 0.2rem 0.4rem; border: 1px solid var(--line); border-radius: 6px; background: #0e1526; }
 .glyph .part + .part { margin-left: 0.2rem; padding-left: 0.2rem; border-left: 1px solid var(--line); }
+
+.game-toolbar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.5rem 0; }
+.ach-list { list-style: none; padding: 0; margin: 0.4rem 0; display: grid; gap: 0.4rem; }
+.ach-list li { border: 1px solid var(--line); border-radius: 8px; padding: 0.4rem 0.7rem; }
+.ach-list li.earned { border-style: solid; border-color: var(--accent); }
+.ach-list li:not(.earned) { border-style: dashed; opacity: 0.85; }
+.ach-list .tick { display: inline-block; min-width: 4.5rem; font-weight: 700; }
+.toast { min-height: 1.4rem; font-weight: 600; }

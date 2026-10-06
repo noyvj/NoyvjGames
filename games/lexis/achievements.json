@@ -1,0 +1,54 @@
+{
+  "achievements": [
+    {
+      "id": "first_signal",
+      "label": "First Signal",
+      "description": "Send a signal the station understands."
+    },
+    {
+      "id": "lamp_keeper",
+      "label": "Lamp Keeper",
+      "description": "Light all seven lamps on planet 1."
+    },
+    {
+      "id": "first_words",
+      "label": "First Words",
+      "description": "Write your first notebook entry."
+    },
+    {
+      "id": "learning_from_static",
+      "label": "Learning From Static",
+      "description": "Send a signal the station cannot understand, and keep going."
+    },
+    {
+      "id": "sharp_ear",
+      "label": "Sharp Ear",
+      "description": "Check three or more notebook entries and have every one right."
+    },
+    {
+      "id": "first_contact",
+      "label": "First Contact",
+      "description": "Make contact with planet 1."
+    },
+    {
+      "id": "unseen_sign",
+      "label": "Never Shown",
+      "description": "Send a sign on planet 2 that no transmission ever showed you."
+    },
+    {
+      "id": "second_contact",
+      "label": "Second Contact",
+      "description": "Make contact with planet 2."
+    },
+    {
+      "id": "full_glossary",
+      "label": "Full Glossary",
+      "description": "Have every part of planet 2's signs written down correctly."
+    },
+    {
+      "id": "patient_listener",
+      "label": "Patient Listener",
+      "description": "Receive every transmission on both planets."
+    }
+  ]
+}

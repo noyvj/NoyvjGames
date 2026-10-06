@@ -2,7 +2,7 @@
    handle() returns and forwards what the player does. No game logic lives here. */
 (function () {
   "use strict";
-  var ENGINE_MODULES = ["lang.py", "pulse.py", "parse.py", "world.py", "scenes.py", "deduce.py", "notebook.py", "compound.py", "compound_scenes.py", "deduce_compound.py", "glyphs.py"];
+  var ENGINE_MODULES = ["lang.py", "pulse.py", "parse.py", "world.py", "scenes.py", "deduce.py", "notebook.py", "compound.py", "compound_scenes.py", "deduce_compound.py", "glyphs.py", "achievements.py"];
   var STORE_KEY = "lexis:state";
   var TOKEN_LEN = 4;
   var MAX_OUT = 40;
@@ -279,7 +279,41 @@
     });
   }
 
+  var knownEarned = null;
+  function renderAchievements() {
+    var list = $("achievements-list");
+    list.textContent = "";
+    var earnedNow = [];
+    (view.achievements || []).forEach(function (a) {
+      var li = document.createElement("li");
+      li.className = a.earned ? "earned" : "";
+      var tick = document.createElement("span");
+      tick.className = "tick";
+      tick.textContent = a.earned ? "Earned" : "Not yet";
+      var name = document.createElement("strong");
+      name.textContent = " " + a.label + " ";
+      var desc = document.createElement("span");
+      desc.textContent = a.description;
+      li.appendChild(tick);
+      li.appendChild(name);
+      li.appendChild(desc);
+      list.appendChild(li);
+      if (a.earned) earnedNow.push(a.id);
+    });
+    var done = earnedNow.length;
+    $("achievements-toggle-button").textContent = "Achievements (" + done + "/" + (view.achievements || []).length + ")";
+    if (knownEarned !== null) {
+      earnedNow.filter(function (id) { return knownEarned.indexOf(id) === -1; }).forEach(function (id) {
+        var a = view.achievements.filter(function (x) { return x.id === id; })[0];
+        $("toast").textContent = "Achievement unlocked: " + a.label;
+        setTimeout(function () { if ($("toast").textContent.indexOf(a.label) !== -1) $("toast").textContent = ""; }, 5000);
+      });
+    }
+    knownEarned = earnedNow;
+  }
+
   function render() {
+    renderAchievements();
     renderTabs();
     if (currentPlanet === "compound") { renderCompound(); return; }
     renderStation();
@@ -337,8 +371,23 @@
     });
   }
 
+  var TUTORIAL_STEPS = [
+    { title: "Welcome, officer", text: "You are the communications officer on a survey ship. Each planet speaks a language nobody has translated. Your job is to work out what the signals mean, then answer. Skip any time and reopen this from the Tutorial button." },
+    { selector: "#goal-line", title: "The crew's request", text: "The crew tells you what they need from each planet. When you manage it, contact is made and the next planet comes into range." },
+    { selector: "#transmissions-panel", title: "Watch what happens", text: "Each transmission is a signal and what the station did when it arrived. Compare them: what stays the same, and what changes?" },
+    { selector: "#notebook-panel", title: "Write your guesses", text: "Write what you think each group of marks means. Nothing here is marked right or wrong. Ticking entries and pressing Check tells you how many are right, never which." },
+    { selector: "#transmit-panel", title: "Answer", text: "Build a signal and send it. The station answers in its own terms, and when it cannot understand you, it says why." },
+    { title: "You are ready", text: "Every word can be worked out from what you are shown. Take your time." },
+  ];
+
   function wire() {
     wireCompound();
+    $("achievements-toggle-button").addEventListener("click", function () {
+      var panel = $("achievements-panel");
+      panel.hidden = !panel.hidden;
+    });
+    // The save widget loads a save directly into the engine; this redraws the page afterwards.
+    window.lexisRefresh = function () { if (engine) send({ action: "open" }); };
     $("next-scene-button").addEventListener("click", function () { send({ action: "next_scene" }); });
     $("add-0").addEventListener("click", function () { addMarks("0"); });
     $("add-1").addEventListener("click", function () { addMarks("1"); });
@@ -382,6 +431,7 @@
     $("engine-status").textContent = "";
     setBusy(false);
     send({ action: "open" });
+    if (window.GameTutorial) window.GameTutorial.init(TUTORIAL_STEPS, { gameId: "lexis" });
   }
 
   wire();

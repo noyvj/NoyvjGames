@@ -12,6 +12,15 @@
   <a href="../../index.html" class="hub-back-link">&larr; All games</a>
   <h1>Lexis</h1>
   <p class="tagline">You are the communications officer. Planet 1 is sending something. Work out what it means, then answer.</p>
+  <div class="game-toolbar">
+    <button id="tutorial-restart-button" type="button">Tutorial</button>
+    <button id="achievements-toggle-button" type="button">Achievements</button>
+  </div>
+  <section id="achievements-panel" class="panel" hidden aria-labelledby="ach-heading">
+    <h2 id="ach-heading">Achievements</h2>
+    <ul id="achievements-list" class="ach-list"></ul>
+  </section>
+  <p id="toast" class="note toast" role="status" aria-live="polite"></p>
 
   <nav id="planet-tabs" class="planet-tabs" aria-label="Planets">
     <button id="tab-pulse" type="button" aria-pressed="true">Planet 1</button>
@@ -99,6 +108,10 @@
   <p id="engine-status" class="note">Starting the station...</p>
 </div>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="../../shared/tutorial.js"></script>
+<script src="../../shared/hub-auth.js"></script>
+<script src="../../shared/save-widget.js" data-game-id="lexis"></script>
+<script src="../../shared/opening-screen.js" data-game-id="lexis" data-game-name="Lexis" data-tagline="A message arrives from deep space. Work out what it says."></script>
 <script src="app.js"></script>
 </body>
 </html>
