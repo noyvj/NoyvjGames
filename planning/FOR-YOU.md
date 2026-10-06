@@ -35,7 +35,7 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 
 **Decided (you, 2026-10-06):** deduction first with the story as the pull; sci-fi; start with the three-language size and grow toward five later; a ladder from bare two-symbol pulses up to compound glyphs where every part of the symbol means something. The plan is `planning/lexis-plan.md`, with the ladder in section 6b.
 
-**Still open (recommendations are in the plan; "go with your recommendations" is fine):** how generous hints are (recommended: in-world "ask someone to repeat it slowly", no answer-giving button), how heavy the story is (recommended: a light spine), and the title (working title is "Lexis").
+**Still open (recommendations are in the plan; "go with your recommendations" is fine):** how generous hints are (recommended: in-world "ask someone to repeat it slowly", no answer-giving button), the title (the story is decided: a first-contact crew on a survey ship, you the communications officer, one planet per language; see the plan) (working title is "Lexis").
 
 ### 1. Apply for Google AdSense
 

@@ -5,6 +5,9 @@ Seed: `planning/lexis-plan.md` (decisions section at the top, ladder in 6b). Sta
 ## One-line pitch
 A sci-fi language-deduction puzzle: a message arrives as bare pulses; learn each language by watching what its signs do, then use it. Deduction first, the story is what pulls you forward.
 
+## Story
+You are the communications officer on a survey ship making first contact with new planets; each planet is one language rung (planet 1 is Pulse, a beacon on a quiet world). Original ship, crew, planets and species only: nothing from any existing franchise. The crew voices carry the story between planets and reward each decoded language.
+
 ## Stack
 Python via Pyodide, engine modules with no DOM (the Signal pattern: a thin view later, `handle(json) -> json` plus `get_state()` / `load_state()` for the save widget). No build step. Glyph art is drawn by code as SVG (project rule: no generated images).
 
