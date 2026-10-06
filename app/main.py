@@ -679,6 +679,15 @@ def _stored_settings(user: User) -> dict:
         return {}
 
 
+@app.get("/users/me")
+def get_me(response: Response, current_user: User = Depends(get_current_user)):
+    """Who does this bearer token belong to? Used by shared/owner-gate.js to
+    keep the unlisted owner pages (admin, ideas sheet, Warframe tracker) to
+    one account. Returns only the username."""
+    response.headers["Cache-Control"] = "no-store"
+    return {"username": current_user.username}
+
+
 @app.get("/users/me/settings")
 def get_my_settings(response: Response, current_user: User = Depends(get_current_user)):
     response.headers["Cache-Control"] = "no-store"

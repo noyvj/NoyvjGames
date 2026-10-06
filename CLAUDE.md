@@ -14,6 +14,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
   achievements.html    <- public list of every achievement in every game (earned ticks + filter when signed in), reads each games/<slug>/achievements.json live
   whats-new.html       <- public "what shipped" feed, parsed live from the two dev logs below — no build step
   admin.html           <- unlisted aggregate stats page (ratings/feedback/reports/accounts/saves) — not linked from hub nav, direct-URL only
+  shared/owner-gate.js <- client-side gate loaded first on admin.html, ideas.html and warframe_build_tracker/: page stays hidden until GET /users/me names the account "noyvj" (sign-in card built in)
   ideas.html           <- unlisted, noindex answer sheet for the planning/IMPROVEMENT-IDEAS-ROUND-*.md docs (yes/later/no + optional comment per idea, per game); reads ideas-data.json (regenerate with `scripts/generate-ideas-data.py`), keeps answers in localStorage until "Copy answers" — direct-URL only, like admin.html
   roadmap.html         <- public roadmap: parses CLAUDE.md's own "Current games"/"Site-level milestones" tables live, paired with real per-game commit counts
   game-last-updated.json  <- slug -> last-git-touched date, powers each title card's "Updated" badge; regenerate with `scripts/generate-last-updated.py` (see that script's docstring for when)

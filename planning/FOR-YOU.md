@@ -17,6 +17,12 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 
 **Steps:** run the two `SELECT` previews, check the rows are test data (the date filter may also match real submissions from 5 Oct), then run the `DELETE`s. Tell me once done and I will remove this entry.
 
+### 0b. Redeploy the backend (needed before the owner-only pages open)
+
+**Why:** `admin.html`, `ideas.html` and the Warframe tracker now check that you are signed in as `noyvj`, using a new `GET /users/me` endpoint. Until the backend is redeployed those three pages show "The server cannot check accounts yet" and will not open (the public hub and games are unaffected).
+
+**Steps:** from the `app/` folder run `python3 -m fastapi cloud deploy`, then open `ideas.html` and sign in as `noyvj` in the card that appears. Tell me once it works and I will remove this entry.
+
 ### 1. Apply for Google AdSense
 
 **Why:** `planning/pwa-and-ads-setup.md`'s ad bar is already built and labeled everywhere on the site, wired up with placeholder IDs (`ca-pub-XXXXXXXXXXXXXXXX`) waiting for the real ones. The only blocker is the application itself, which needs your own Google account — I can't submit it for you.
