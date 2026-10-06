@@ -1,0 +1,46 @@
+:root {
+  --bg: #0b0f1a; --panel: #121a2b; --line: #2b3a5c; --text: #e6ecff; --muted: #9db0d8;
+  --accent: #7fd1ff; --on: #ffd866; --off: #1d2740;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: radial-gradient(ellipse at top, #16213a, var(--bg) 60%); color: var(--text);
+  font: 16px/1.5 system-ui, -apple-system, sans-serif; min-height: 100vh; }
+#game { max-width: 44rem; margin: 0 auto; padding: 1rem 1rem 3rem; }
+.hub-back-link { color: var(--accent); text-decoration: none; font-size: 0.85rem; }
+h1 { margin: 0.4rem 0 0; letter-spacing: 0.2em; font-weight: 300; text-transform: uppercase; }
+.tagline, .note { color: var(--muted); font-size: 0.9rem; }
+.panel { background: rgba(18, 26, 43, 0.9); border: 1px solid var(--line); border-radius: 14px; padding: 0.8rem 1rem; margin: 0.9rem 0; }
+.panel h2 { margin: 0 0 0.4rem; font-size: 1rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+button { font: inherit; color: inherit; background: #1b2744; border: 1px solid var(--line); border-radius: 8px; padding: 0.4rem 0.8rem; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button.primary { background: #234a7a; border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 3px solid #ffd666; outline-offset: 2px; }
+button[disabled] { opacity: 0.5; cursor: default; }
+
+/* The station: lamps differ by fill AND outline AND a number, never colour alone. */
+.station { display: flex; gap: 1.2rem; align-items: center; flex-wrap: wrap; }
+.lamps { display: flex; gap: 0.4rem; }
+.lamp { width: 1.6rem; height: 1.6rem; border-radius: 50%; border: 2px dashed var(--muted); background: var(--off); }
+.lamp.lit { background: var(--on); border: 2px solid #fff3c4; box-shadow: 0 0 10px rgba(255, 216, 102, 0.6); }
+.door { padding: 0.3rem 0.8rem; border-radius: 6px; border: 2px solid var(--muted); font-weight: 600; letter-spacing: 0.06em; }
+.door.open { border-style: solid; }
+.door.shut { border-style: double; }
+.station-text { margin: 0.5rem 0 0; }
+
+/* Signals: a short tick is a small dot, a long bar is a wide bar. Shape carries the meaning, not colour. */
+.signal { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; min-height: 1.8rem; }
+.token { display: inline-flex; align-items: center; gap: 0.18rem; padding: 0.2rem 0.4rem; border: 1px solid var(--line); border-radius: 6px; background: #0e1526; }
+.mark-0 { display: inline-block; width: 0.35rem; height: 0.35rem; border-radius: 50%; background: var(--text); }
+.mark-1 { display: inline-block; width: 1.1rem; height: 0.35rem; border-radius: 2px; background: var(--accent); }
+.mark-pending { display: inline-block; width: 0.5rem; height: 0.5rem; border: 1px dashed var(--muted); border-radius: 50%; }
+.scene-list { list-style: none; margin: 0.5rem 0; padding: 0; display: grid; gap: 0.5rem; }
+.scene { border: 1px solid var(--line); border-radius: 10px; padding: 0.5rem 0.7rem; }
+.scene .what { margin-top: 0.3rem; color: var(--muted); font-size: 0.9rem; }
+.scene .what b { color: var(--text); }
+.notebook-list { list-style: none; padding: 0; margin: 0.4rem 0; display: grid; gap: 0.4rem; }
+.notebook-list li { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+.notebook-list input[type="text"] { flex: 1 1 8rem; min-width: 6rem; padding: 0.35rem 0.5rem; border-radius: 6px; border: 1px solid var(--line); background: #0e1526; color: var(--text); font: inherit; }
+.builder, .token-buttons { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.5rem 0; }
+.reaction { min-height: 1.5rem; font-weight: 600; }
+@media (prefers-reduced-motion: no-preference) { .lamp.lit { transition: background 0.2s, box-shadow 0.2s; } }
+@media (max-width: 420px) { #game { padding: 0.7rem 0.7rem 2.5rem; } }

@@ -33,7 +33,7 @@ Python via Pyodide, engine modules with no DOM (the Signal pattern: a thin view 
 | # | Milestone | Status |
 |---|---|---|
 | 1 | Engine core: language definition format, the Pulse language, parser, world, scenes, deducibility checker, notebook and save state; 47 tests, with the `handle(json)` entry point | **DONE** (2026-10-06, untagged) |
-| 2 | Notebook UI, sentence builder, first scene and dialogue playable (static shell + Pyodide engine, `handle(json)`) | not started |
+| 2 | Notebook UI, sentence builder, first scene and dialogue playable (static shell + Pyodide engine, `handle(json)`): `index.html`, `style.css`, `app.js` (glue only; a temporary localStorage save until milestone 5); 52 tests | **DONE** (2026-10-06, untagged) |
 | 3 | Deducibility checker extended to the compound-glyph language; fix any ambiguous word it finds | not started |
 | 4 | Rung 2: compound glyphs (every part of a sign means something), glyph stroke grammar to SVG | not started |
 | 5 | Save widget, achievements, tutorial, opening screen, hub registration | not started |

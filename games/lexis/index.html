@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lexis</title>
+<link rel="stylesheet" href="style.css">
+<!-- Pyodide is loaded by app.js after first paint, so this shell is readable before the engine is warm. -->
+</head>
+<body>
+<div id="game">
+  <a href="../../index.html" class="hub-back-link">&larr; All games</a>
+  <h1>Lexis</h1>
+  <p class="tagline">You are the communications officer. Planet 1 is sending something. Work out what it means, then answer.</p>
+
+  <section id="station-panel" class="panel" aria-labelledby="station-heading">
+    <h2 id="station-heading">Planet 1: the quiet beacon</h2>
+    <div class="station">
+      <div id="lamps" class="lamps" role="img" aria-label="Lamps"></div>
+      <div id="door" class="door" aria-live="polite"></div>
+    </div>
+    <p id="station-text" class="station-text" aria-live="polite"></p>
+  </section>
+
+  <section id="transmissions-panel" class="panel" aria-labelledby="tx-heading">
+    <h2 id="tx-heading">Received transmissions</h2>
+    <p class="note">Each signal is a row of marks: a short tick or a long bar. Watch what the station does when one arrives.</p>
+    <ol id="scene-list" class="scene-list"></ol>
+    <button id="next-scene-button" type="button" class="primary">Receive next transmission</button>
+    <p id="scene-status" class="note" aria-live="polite"></p>
+  </section>
+
+  <section id="notebook-panel" class="panel" aria-labelledby="nb-heading">
+    <h2 id="nb-heading">Notebook</h2>
+    <p class="note">Write what you think each group of marks means. Guesses are free and nothing here is marked right or wrong. Tick some entries and press Check to learn how many of them are right, but not which.</p>
+    <ul id="notebook-list" class="notebook-list"></ul>
+    <button id="check-button" type="button">Check ticked entries</button>
+    <p id="check-result" class="note" aria-live="polite"></p>
+  </section>
+
+  <section id="transmit-panel" class="panel" aria-labelledby="send-heading">
+    <h2 id="send-heading">Transmit</h2>
+    <p class="note">Build a signal from marks, or drop in a group you have already seen. The station answers in its own terms.</p>
+    <div id="outgoing" class="signal" aria-label="Your signal" aria-live="polite"></div>
+    <div class="builder">
+      <button id="add-0" type="button" aria-label="Add a short tick">&#x2022; short</button>
+      <button id="add-1" type="button" aria-label="Add a long bar">&#x25AC; long</button>
+      <button id="back-button" type="button">Back</button>
+      <button id="clear-button" type="button">Clear</button>
+      <button id="send-button" type="button" class="primary">Send</button>
+    </div>
+    <div id="token-buttons" class="token-buttons" aria-label="Groups you have seen"></div>
+    <p id="reaction" class="reaction" aria-live="polite"></p>
+  </section>
+
+  <p id="engine-status" class="note">Starting the station...</p>
+</div>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
