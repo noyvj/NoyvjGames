@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 21;
+const SW_VERSION = 22;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -95,6 +95,9 @@ const PRECACHE_URLS = [
   "games/thaw/pc.html",
   "games/thaw/pc.css",
   "games/thaw/pc.js",
+  "games/aftermath/pc.html",
+  "games/aftermath/pc.css",
+  "games/aftermath/pc.js",
 ];
 
 self.addEventListener("install", (event) => {

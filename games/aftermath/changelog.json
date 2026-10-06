@@ -1,5 +1,9 @@
 [
   {
+    "date": "2026-10-07",
+    "entry": "Desktop layout: on a wide window with a mouse, Aftermath can now open as a full-window dashboard. The settlement, the next event and your mitigation fill the main area, your Resources, Resilience, Growth and Knowledge sit in a strip of chips across the top, and the investments, Face Next Event and the skill tree stay in a column on the right. History, community, backup and the other panels open as windows from the Menu (or press Escape). Same saves as the Classic layout, which is unchanged; switch from the opening screen or the Menu."
+  },
+  {
     "date": "2026-09-27",
     "entry": "Light theme polish: the four status pills no longer stay near-black under dark text, the Face Next Event button and the weather, non-weather and social event colours were deepened for readable contrast, and dimmed captions were darkened. The event hues are kept. Dark mode is unchanged (Y11b)."
   },

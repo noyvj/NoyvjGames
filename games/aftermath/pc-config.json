@@ -1,0 +1,184 @@
+{
+  "windows": [
+    [
+      "howto-panel",
+      "howto-toggle-button",
+      "How to Play"
+    ],
+    [
+      "achievements-panel",
+      "achievements-toggle-button",
+      "Achievements"
+    ],
+    [
+      "past-runs-panel",
+      "past-runs-toggle-button",
+      "Past Runs"
+    ],
+    [
+      "changelog-panel",
+      "changelog-toggle-button",
+      "What's New"
+    ],
+    [
+      "settings-panel",
+      "settings-toggle-button",
+      "Settings"
+    ],
+    [
+      "info-page-panel",
+      "info-page-toggle-button",
+      "The Real Story"
+    ]
+  ],
+  "toolbar": {
+    "icons": [
+      [
+        "achievements-toggle-button",
+        "🏆"
+      ],
+      [
+        "past-runs-toggle-button",
+        "📜"
+      ],
+      [
+        "settings-toggle-button",
+        "⚙️"
+      ]
+    ],
+    "menu": [
+      {
+        "heading": "Game",
+        "ids": []
+      },
+      {
+        "heading": "Help",
+        "ids": [
+          "tutorial-restart-button",
+          "howto-toggle-button",
+          "info-page-toggle-button"
+        ]
+      },
+      {
+        "heading": "Records",
+        "ids": [
+          "changelog-toggle-button"
+        ]
+      }
+    ]
+  },
+  "composites": [
+    {
+      "id": "pc-community-panel",
+      "title": "Community",
+      "members": [
+        "#community-index",
+        "#leaderboard-mount"
+      ],
+      "group": "Records",
+      "label": "🌍 Community"
+    },
+    {
+      "id": "pc-backup-panel",
+      "title": "Backup / transfer progress",
+      "members": [
+        "#progress-code-panel"
+      ],
+      "group": "Game",
+      "label": "💾 Backup / transfer progress"
+    },
+    {
+      "id": "pc-about-panel",
+      "title": "About Aftermath",
+      "members": [
+        ".tagline",
+        ".context-blurb"
+      ],
+      "group": "Help",
+      "label": "ℹ️ About Aftermath"
+    },
+    {
+      "id": "pc-feedback-panel",
+      "title": "Feedback",
+      "members": [
+        "#feedback-prompt"
+      ],
+      "group": "Help",
+      "label": "💬 Send feedback"
+    }
+  ],
+  "adopt": [
+    [
+      "#real-world-note",
+      "#info-page-panel"
+    ]
+  ],
+  "zones": {
+    "topbar": [
+      ".hub-back-link",
+      "h1",
+      ".game-toolbar"
+    ],
+    "stagebar": [
+      ".mentor-toggle-label"
+    ],
+    "stage": [
+      "#status",
+      "#runs-completed-display",
+      "#legacy-display",
+      "#societal-memory-display",
+      "#legacy-history-panel",
+      "#curriculum-display",
+      "#mentor-hint"
+    ],
+    "side": [
+      "#actions-dock",
+      "#skill-tree"
+    ],
+    "hidden": [
+      "#progress-display",
+      "#resources-display",
+      "#resilience-display",
+      "#growth-display"
+    ]
+  },
+  "readouts": [
+    [
+      "#progress-display",
+      "📅",
+      ""
+    ],
+    [
+      "#resources-display",
+      "📦",
+      "Resources"
+    ],
+    [
+      "#resilience-display",
+      "🛡️",
+      "Resilience"
+    ],
+    [
+      "#growth-display",
+      "📈",
+      "Growth"
+    ],
+    [
+      "#knowledge-points-display",
+      "🧠",
+      "Knowledge"
+    ]
+  ],
+  "side_label": "Investments and skill tree",
+  "hints": [
+    [
+      "?",
+      "All shortcuts"
+    ],
+    [
+      "Esc",
+      "Menu / close window"
+    ]
+  ],
+  "notify": null
+}
