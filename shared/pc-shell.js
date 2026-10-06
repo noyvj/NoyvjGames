@@ -108,6 +108,10 @@
     const mk = (id) => { const d = document.createElement("div"); d.id = id; return d; };
     const top = mk("pc-topbar"), body = mk("pc-body"), stage = mk("pc-stage"), side = mk("pc-side");
     const stagebar = mk("pc-stagebar");
+    stagebar.setAttribute("role", "group");
+    stagebar.setAttribute("aria-label", "Scene controls");
+    side.setAttribute("role", "complementary");
+    side.setAttribute("aria-label", "Readouts and log");
     stage.append(stagebar);
     body.append(stage, side);
     game.prepend(body);
@@ -120,6 +124,78 @@
     }
   }
 
+  // A thin bar of the hotkeys that work in this game: window.NOYVJ_PC_HINTS = [["P", "Pause"], ...].
+  function addHintBar() {
+    const hints = window.NOYVJ_PC_HINTS;
+    const stage = document.getElementById("pc-stage");
+    if (!hints || !hints.length || !stage) return;
+    const bar = document.createElement("div");
+    bar.id = "pc-hintbar";
+    bar.setAttribute("aria-label", "Keyboard shortcuts");
+    hints.forEach(([key, label]) => {
+      const item = document.createElement("span");
+      const kbd = document.createElement("kbd");
+      kbd.textContent = key;
+      item.append(kbd, " " + label);
+      bar.appendChild(item);
+    });
+    stage.appendChild(bar);
+  }
+
+  // The floating "Story: on/off" pill (shared/story-toggle.js) would sit on the scene; the
+  // Desktop boot keeps it in the toolbar instead. It is created after load, so wait for it.
+  function homeStoryToggle() {
+    const toolbar = document.querySelector(".game-toolbar");
+    if (!toolbar) return;
+    const move = () => {
+      const pill = document.getElementById("story-toggle");
+      if (!pill) return false;
+      pill.classList.add("secondary", "pc-toolbar-button");
+      toolbar.appendChild(pill);
+      return true;
+    };
+    if (move()) return;
+    const observer = new MutationObserver(() => { if (move()) observer.disconnect(); });
+    observer.observe(document.body, { childList: true });
+    setTimeout(() => observer.disconnect(), 8000);
+  }
+
+  // New entries in a game's own log appear briefly as a small stack of notifications over the
+  // scene, so you notice them without reading the side column. The log stays the history.
+  // window.NOYVJ_PC_NOTIFY = { list: "#log-list" }. Entries present at load (a continued save) are
+  // not announced: the stack stays quiet until the opening screen has been answered.
+  function startNotifications() {
+    const cfg = window.NOYVJ_PC_NOTIFY;
+    const list = cfg && document.querySelector(cfg.list);
+    const stage = document.getElementById("pc-stage");
+    if (!list || !stage) return;
+    const stack = document.createElement("div");
+    stack.id = "pc-toasts";
+    stack.setAttribute("role", "log");
+    stack.setAttribute("aria-live", "polite");
+    stage.appendChild(stack);
+    const seen = new Set();
+    let armed = false;
+    const rows = () => [...list.children].map((row) => row.innerText.replace(/\s+/g, " ").trim()).filter(Boolean);
+    const arm = () => setTimeout(() => { rows().forEach((t) => seen.add(t)); armed = true; }, 1500);
+    const choice = window.NoyvjOpeningScreen && window.NoyvjOpeningScreen.choice;
+    if (choice) choice.then(arm); else arm();
+    function toast(text) {
+      const item = document.createElement("div");
+      item.className = "pc-toast";
+      item.textContent = text;
+      item.addEventListener("click", () => item.remove());
+      stack.appendChild(item);
+      while (stack.children.length > 3) stack.firstChild.remove();
+      setTimeout(() => item.remove(), 8000);
+    }
+    new MutationObserver(() => {
+      const now = rows();
+      if (!armed) { now.forEach((t) => seen.add(t)); return; }
+      now.filter((t) => !seen.has(t)).reverse().forEach((t) => { seen.add(t); toast(t); });
+    }).observe(list, { childList: true, subtree: true, characterData: true });
+  }
+
   function init() {
     document.documentElement.classList.add("pc-shell");
     buildZones();
@@ -130,6 +206,9 @@
     document.body.appendChild(backdrop);
     specs.forEach(wrap);
     addToolbarControls();
+    addHintBar();
+    homeStoryToggle();
+    startNotifications();
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape" || !open.length) return;
       const inner = document.getElementById("hamlet-town-panel");

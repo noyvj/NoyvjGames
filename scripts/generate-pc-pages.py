@@ -42,12 +42,16 @@ PC_GAMES = {
             ("settings-panel", "settings-toggle-button", "Settings"),
             ("info-page-panel", "info-page-toggle-button", "In the real world"),
         ],
+        # Hotkeys that really exist in this game (shown in a bar under the scene).
+        "hints": [["P", "Pause / resume"], ["1\u20134", "Camera"], ["?", "All shortcuts"], ["Esc", "Close window"]],
+        # Entries added to this list are announced as small notifications over the scene.
+        "notify": {"list": "#log-list"},
         # Existing elements moved (not copied) into the desktop frame, in this order.
         "zones": {
             "topbar": [".hub-back-link", "h1", ".game-toolbar", "#speed-controls"],
             "stagebar": ["#visual-mode-toggle-button", "#visual-snapshot-button", "#camera-preset-buttons"],
             "stage": ["#visual-stage"],
-            "side": ["#status", "#scenario-select", "#sustainability", "#log", "#revisit", ".community-details",
+            "side": ["#status", "#sustainability", "#scenario-select", "#log", "#revisit", ".community-details",
                      "#info-page-toggle-button", "#real-world-note"],
         },
     },
@@ -66,8 +70,11 @@ def build(slug, cfg):
     )
     anchor = re.search(r'<meta name="viewport"[^>]*>', out)
     zones = json.dumps(cfg.get("zones", {}), ensure_ascii=False)
+    hints = json.dumps(cfg.get("hints", []), ensure_ascii=False)
+    notify = json.dumps(cfg.get("notify"), ensure_ascii=False)
     inject = (f'\n<script>window.NOYVJ_LAYOUT = "pc"; window.NOYVJ_PC_WINDOWS = {windows}; '
-              f'window.NOYVJ_PC_ZONES = {zones};</script>')
+              f'window.NOYVJ_PC_ZONES = {zones}; window.NOYVJ_PC_HINTS = {hints}; '
+              f'window.NOYVJ_PC_NOTIFY = {notify};</script>')
     if (ROOT / "games" / slug / "pc.js").exists():
         inject += '\n<script src="pc.js"></script>'
     out = out[: anchor.end()] + inject + out[anchor.end():]

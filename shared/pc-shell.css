@@ -66,3 +66,56 @@ html[data-theme="light"] #pc-backdrop { background: rgba(40, 30, 10, 0.35); }
   .pc-window-frame:not([hidden]) { animation: pc-window-in 140ms ease-out; }
   @keyframes pc-window-in { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 }
+
+/* Hotkey hint bar under the stage. */
+#pc-hintbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1.1rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+#pc-hintbar kbd {
+  display: inline-block;
+  min-width: 1.4em;
+  padding: 0 0.35em;
+  text-align: center;
+  border: 1px solid var(--pc-window-line, rgba(216, 164, 92, 0.35));
+  border-radius: 5px;
+  font: inherit;
+  font-weight: 600;
+}
+
+/* Notification stack over the stage (top right, clear of the scene's own readout at top left). */
+#pc-stage { position: relative; }
+#pc-toasts {
+  position: absolute;
+  top: 3rem;
+  right: 0.8rem;
+  width: min(22rem, 40%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  z-index: 600;
+  pointer-events: none;
+}
+.pc-toast {
+  pointer-events: auto;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  background: var(--pc-window-bg, #16151d);
+  border: 1px solid var(--pc-window-line, rgba(216, 164, 92, 0.35));
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+html[data-theme="light"] .pc-toast { color: #1b1710; }
+@media (prefers-reduced-motion: no-preference) {
+  .pc-toast { animation: pc-toast-in 160ms ease-out; }
+  @keyframes pc-toast-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+}
+
+/* The story pill, once moved into the toolbar, stops floating. */
+#story-toggle.pc-toolbar-button { position: static; }

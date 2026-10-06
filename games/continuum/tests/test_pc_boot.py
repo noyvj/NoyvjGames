@@ -99,3 +99,18 @@ def test_tutorial_steps_for_the_desktop_boot_only_point_at_things_that_exist_the
     # The Classic steps that the Hamlet layout hides must not be reused here.
     for hidden_panel in ("#work", "#buildings", "#research", "#era-progress"):
         assert hidden_panel not in selectors
+
+
+def test_hotkey_hints_only_name_shortcuts_the_game_really_has():
+    panel = CLASSIC[CLASSIC.index('id="shortcuts-panel"'):]
+    panel = panel[:panel.index("</div>")]
+    hints = re.search(r"window\.NOYVJ_PC_HINTS = (\[.*?\]);", DESKTOP).group(1)
+    import json
+    for key, _label in json.loads(hints):
+        for part in re.split(r"–|-", key):
+            assert f"<kbd>{part}</kbd>" in panel or part in "1234", f"hint key {key!r} is not in the shortcuts panel"
+
+
+def test_notifications_watch_a_list_that_exists_on_both_pages():
+    selector = re.search(r'window\.NOYVJ_PC_NOTIFY = \{"list": "#([^"]+)"\}', DESKTOP).group(1)
+    assert selector in _ids(CLASSIC) and selector in _ids(DESKTOP)
