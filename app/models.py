@@ -17,6 +17,9 @@ class Rating(Base):
     stars = Column(Integer, nullable=True)
     comment = Column(String, nullable=True)
     response = Column(String, nullable=True)
+    # Admin "this is a test, hide it" flag: hidden rows are skipped by the
+    # public GET /ratings/{slug} but still listed (with the flag) to admin.
+    is_hidden = Column(Boolean, nullable=False, default=False, server_default=false())
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -139,7 +142,7 @@ class Feedback(Base):
     user_id = Column(String, ForeignKey("users.id"), nullable=True)
     rating = Column(Integer, nullable=True)
     comment = Column(String, nullable=True)
-    is_hidden = Column(Boolean, nullable=False, default=False)
+    is_hidden = Column(Boolean, nullable=False, default=False, server_default=false())
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 

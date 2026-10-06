@@ -1122,6 +1122,33 @@ button.secondary:disabled {
   border-top: 1px solid rgba(140, 160, 255, 0.12);
 }
 
+/* UX-9/UX-7: "Your saves" collapses (native <details>, state in localStorage). */
+.account-saves-details { margin: 0.9rem 0 0; }
+.account-saves-summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.35rem 0;
+  border-radius: 6px;
+}
+.account-saves-summary::-webkit-details-marker { display: none; }
+.account-saves-summary::before {
+  content: "\25B8";
+  display: inline-block;
+  opacity: 0.7;
+  transition: transform 0.15s ease;
+}
+.account-saves-details[open] > .account-saves-summary::before { transform: rotate(90deg); }
+.account-saves-summary:focus-visible { outline: 2px solid #8fb0e8; outline-offset: 2px; }
+.account-saves-details > #account-my-saves { font-size: 0.8rem; opacity: 0.9; }
+@media (prefers-reduced-motion: reduce) {
+  .account-saves-summary::before { transition: none; }
+}
+
 .site-feedback-heading {
   font-size: 1.15rem;
   margin: 0 0 0.35rem;
@@ -1674,6 +1701,7 @@ html[data-theme="light"] .sources-item a { color: #2a4ba0; }
 html[data-theme="light"] .roadmap-game-card h3 a,
 html[data-theme="light"] .sources-game-card h2 a { color: #1b2033; }
 html[data-theme="light"] :focus-visible { outline-color: #2a4ba0 !important; }
+html[data-theme="light"] .account-saves-summary { color: #1b2033; }
 html[data-theme="light"] .star { color: #b9c1d8; }
 html[data-theme="light"] .star.selected { color: #c48a00; }
 .theme-toggle { background: transparent; border: 1px solid rgba(140, 160, 255, 0.3); border-radius: 999px;

@@ -627,6 +627,20 @@ const accountStatus = document.getElementById("account-status");
 const accountUsernameDisplay = document.getElementById("account-username-display");
 const accountSignoutButton = document.getElementById("account-signout-button");
 const accountMySaves = document.getElementById("account-my-saves");
+
+// UX-7: "Your saves" is collapsible; remembered per device. Starts expanded
+// for a new visitor (no stored value). Works whether or not the surrounding
+// signed-in block is currently hidden, since it only toggles <details open>.
+const SAVES_COLLAPSED_KEY = "hub-saves-collapsed";
+const accountSavesDetails = document.getElementById("account-my-saves-details");
+if (accountSavesDetails) {
+  try {
+    if (localStorage.getItem(SAVES_COLLAPSED_KEY) === "1") accountSavesDetails.open = false;
+  } catch (e) { /* storage unavailable: stay expanded */ }
+  accountSavesDetails.addEventListener("toggle", () => {
+    try { localStorage.setItem(SAVES_COLLAPSED_KEY, accountSavesDetails.open ? "0" : "1"); } catch (e) { /* non-fatal */ }
+  });
+}
 const continuePlayingSection = document.getElementById("continue-playing-section");
 const continuePlayingList = document.getElementById("continue-playing-list");
 

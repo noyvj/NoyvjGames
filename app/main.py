@@ -85,7 +85,12 @@ def create_rating(rating: RatingIn, db: Session = Depends(get_db)):
 @app.get("/ratings/{game_slug}", response_model=List[RatingOut])
 def list_ratings(game_slug: str, response: Response, db: Session = Depends(get_db)):
     response.headers["Cache-Control"] = "no-store"
-    return db.query(Rating).filter(Rating.game_slug == game_slug).order_by(Rating.created_at.desc()).all()
+    return (
+        db.query(Rating)
+        .filter(Rating.game_slug == game_slug, Rating.is_hidden.is_(False))
+        .order_by(Rating.created_at.desc())
+        .all()
+    )
 
 
 # --- Save system (SAVE-SYSTEM-DESIGN.md Phase 1: save codes, no accounts) ---
@@ -887,6 +892,115 @@ def list_feedback(response: Response, game_id: Optional[str] = None, db: Session
     query = db.query(Feedback).filter(Feedback.is_hidden.is_(False))
     query = query.filter(Feedback.game_id.is_(None)) if game_id is None else query.filter(Feedback.game_id == game_id)
     return query.order_by(Feedback.created_at.desc()).all()
+
+
+# --- UX-9: admin "this is a test, hide it" toggle for feedback rows ---
+# Hidden rows disappear from the public reads (GET /feedback, GET
+# /ratings/{slug}) but stay visible to admin, with the flag, so the toggle
+# can be reversed. Two tables hold feedback: `feedback` (hub site feedback and
+# per-game feedback form) and `ratings` (star widget + in-game yes/no prompt).
+class AdminFeedbackOut(BaseModel):
+    id: str
+    game_id: Optional[str]
+    rating: Optional[int]
+    comment: Optional[str]
+    is_hidden: StrictBool
+    created_at: Optional[datetime]
+
+
+class AdminRatingOut(BaseModel):
+    id: int
+    game_slug: str
+    stars: Optional[int]
+    comment: Optional[str]
+    response: Optional[str]
+    is_hidden: StrictBool
+    created_at: Optional[datetime]
+
+
+class HiddenFlagIn(BaseModel):
+    is_hidden: StrictBool
+
+
+def _admin_feedback_out(row: Feedback) -> AdminFeedbackOut:
+    return AdminFeedbackOut(
+        id=row.id, game_id=row.game_id, rating=row.rating, comment=row.comment,
+        is_hidden=bool(row.is_hidden), created_at=row.created_at,
+    )
+
+
+def _admin_rating_out(row: Rating) -> AdminRatingOut:
+    return AdminRatingOut(
+        id=row.id, game_slug=row.game_slug, stars=row.stars, comment=row.comment,
+        response=row.response, is_hidden=bool(row.is_hidden), created_at=row.created_at,
+    )
+
+
+@app.get("/admin/feedback", response_model=List[AdminFeedbackOut])
+def admin_list_feedback(
+    response: Response,
+    include_hidden: bool = True,
+    _admin: None = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Every site/game feedback row (all games and general), newest first."""
+    response.headers["Cache-Control"] = "no-store"
+    query = db.query(Feedback)
+    if not include_hidden:
+        query = query.filter(Feedback.is_hidden.is_(False))
+    return [_admin_feedback_out(r) for r in query.order_by(Feedback.created_at.desc()).all()]
+
+
+@app.patch("/admin/feedback/{feedback_id}", response_model=AdminFeedbackOut)
+def admin_hide_feedback(
+    feedback_id: str,
+    body: HiddenFlagIn,
+    response: Response,
+    _admin: None = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    response.headers["Cache-Control"] = "no-store"
+    row = db.query(Feedback).filter(Feedback.id == feedback_id).first()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Feedback not found")
+    row.is_hidden = body.is_hidden
+    db.commit()
+    return _admin_feedback_out(row)
+
+
+@app.get("/admin/ratings", response_model=List[AdminRatingOut])
+def admin_list_ratings(
+    response: Response,
+    game_slug: Optional[str] = None,
+    include_hidden: bool = True,
+    _admin: None = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Every ratings-table row (star widget and in-game yes/no prompt)."""
+    response.headers["Cache-Control"] = "no-store"
+    query = db.query(Rating)
+    if game_slug is not None:
+        query = query.filter(Rating.game_slug == game_slug)
+    if not include_hidden:
+        query = query.filter(Rating.is_hidden.is_(False))
+    return [_admin_rating_out(r) for r in query.order_by(Rating.created_at.desc(), Rating.id.desc()).all()]
+
+
+@app.patch("/admin/ratings/{rating_id}", response_model=AdminRatingOut)
+def admin_hide_rating(
+    rating_id: int,
+    body: HiddenFlagIn,
+    response: Response,
+    _admin: None = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    response.headers["Cache-Control"] = "no-store"
+    row = db.query(Rating).filter(Rating.id == rating_id).first()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Rating not found")
+    row.is_hidden = body.is_hidden
+    db.commit()
+    return _admin_rating_out(row)
 
 
 # --- Admin aggregate stats (TODO.md L8) ---

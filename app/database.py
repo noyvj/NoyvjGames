@@ -90,6 +90,9 @@ def patch_schema():
         # U6: report triage state.
         "ALTER TABLE answer_reports ADD COLUMN IF NOT EXISTS is_resolved BOOLEAN NOT NULL DEFAULT FALSE",
         "ALTER TABLE answer_reports ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMPTZ",
+        # UX-9: admin can hide test feedback/ratings from the public reads.
+        "ALTER TABLE ratings ADD COLUMN IF NOT EXISTS is_hidden BOOLEAN NOT NULL DEFAULT FALSE",
+        "ALTER TABLE feedback ADD COLUMN IF NOT EXISTS is_hidden BOOLEAN NOT NULL DEFAULT FALSE",
     ]
     with engine.begin() as conn:
         for statement in statements:

@@ -12,7 +12,8 @@
      page unless you are signed in as "noyvj", and the same bearer token is sent to
      the backend, which accepts it as admin only for that account. The AI sessions
      use the separate AI_ADMIN_TOKEN directly against the API. The ratings and
-     feedback reads shown here are public on the backend anyway. -->
+     feedback lists now come from the admin-only /admin/ratings and /admin/feedback
+     (they include rows flagged as test/hidden). -->
 <link rel="icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="shared/space-bg.css">
 <style>
@@ -186,15 +187,17 @@
 
   <details class="panel" id="panel-ratings" open>
     <summary><h2>Ratings &amp; Reviews</h2></summary>
+    <p class="status-line">Tick <strong>Test (hide)</strong> on a row that is just a test: it disappears from the public hub (review lists and counts) and from these totals while "Hide test data" below is on. Untick to bring it back.</p>
     <p class="status-line" id="ratings-status">Loading…</p>
     <div id="ratings-body"></div>
   </details>
 
   <details class="panel" id="panel-feedback" open>
     <summary><h2>Site Feedback</h2></summary>
+    <p class="status-line">Same <strong>Test (hide)</strong> toggle as ratings: hidden entries drop out of the public feedback list.</p>
     <p class="status-line" id="feedback-status">Loading…</p>
     <table id="feedback-table">
-      <thead><tr><th>Game</th><th>Rating</th><th>Comment</th><th>When</th></tr></thead>
+      <thead><tr><th>Game</th><th>Rating</th><th>Comment</th><th>When</th><th>Test (hide)</th></tr></thead>
       <tbody></tbody>
     </table>
   </details>
@@ -291,6 +294,10 @@ async function adminFetchJson(url) {
   return res.json();
 }
 
+function hiddenBox(kind, row) {
+  return `<input type="checkbox" class="hide-flag" data-kind="${kind}" data-id="${escapeHtml(row.id)}" ${row.is_hidden ? "checked" : ""} aria-label="This is a test, hide it from the public site">`;
+}
+
 async function loadRatings() {
   const body = document.getElementById("ratings-body");
   const status = document.getElementById("ratings-status");
@@ -298,34 +305,39 @@ async function loadRatings() {
   let starSum = 0;
   let starCount = 0;
   let html = "";
+  let all;
+  try {
+    all = await adminFetchJson(`${API_BASE}/admin/ratings?include_hidden=${!hideTest()}`);
+  } catch (err) {
+    if (err instanceof AdminAuthError) { showLogin(err.message); return { totalCount, starSum, starCount }; }
+    console.error("loadRatings failed:", err);
+    status.textContent = "Couldn't load ratings (the backend may not be redeployed yet).";
+    return { totalCount, starSum, starCount };
+  }
 
   for (const slug of GAME_SLUGS) {
-    let rows;
-    try {
-      rows = await fetchJson(`${API_BASE}/ratings/${slug}`);
-    } catch (err) {
-      console.error(`loadRatings(${slug}) failed:`, err);
-      continue;
-    }
-    totalCount += rows.length;
-    const starred = rows.filter((r) => r.stars != null);
+    const rows = all.filter((r) => r.game_slug === slug);
+    const shown = rows.filter((r) => !r.is_hidden);
+    totalCount += shown.length;
+    const starred = shown.filter((r) => r.stars != null);
     starred.forEach((r) => { starSum += r.stars; starCount += 1; });
     const avg = starred.length ? (starred.reduce((s, r) => s + r.stars, 0) / starred.length).toFixed(1) : "—";
 
-    html += `<div class="game-heading"><strong>${escapeHtml(GAME_LABELS[slug] || slug)}</strong><span class="avg">${rows.length} row${rows.length === 1 ? "" : "s"}${starred.length ? ` · avg ${avg}★` : ""}</span></div>`;
+    html += `<div class="game-heading"><strong>${escapeHtml(GAME_LABELS[slug] || slug)}</strong><span class="avg">${shown.length} row${shown.length === 1 ? "" : "s"}${starred.length ? ` · avg ${avg}★` : ""}</span></div>`;
     if (!rows.length) {
       html += `<table><tbody><tr class="empty-row"><td>No ratings or feedback prompts yet.</td></tr></tbody></table>`;
       continue;
     }
-    html += `<table><thead><tr><th>Stars</th><th>Comment</th><th>Feedback response</th></tr></thead><tbody>`;
+    html += `<table><thead><tr><th>Stars</th><th>Comment</th><th>Feedback response</th><th>Test (hide)</th></tr></thead><tbody>`;
     for (const row of rows) {
-      html += `<tr><td>${row.stars != null ? "★".repeat(row.stars) : "—"}</td><td>${escapeHtml(row.comment) || "—"}</td><td>${escapeHtml(row.response) || "—"}</td></tr>`;
+      html += `<tr${row.is_hidden ? ' style="opacity:0.55"' : ""}><td>${row.stars != null ? "★".repeat(row.stars) : "—"}</td><td>${escapeHtml(row.comment) || "—"}</td><td>${escapeHtml(row.response) || "—"}</td><td>${hiddenBox("rating", row)}</td></tr>`;
     }
     html += `</tbody></table>`;
   }
 
   body.innerHTML = html;
-  status.textContent = `${totalCount} rating/feedback rows across ${GAME_SLUGS.length} games.`;
+  const hiddenCount = all.filter((r) => r.is_hidden).length;
+  status.textContent = `${totalCount} rating/feedback rows across ${GAME_SLUGS.length} games${hideTest() ? " (hidden test rows left out)" : `, ${hiddenCount} marked test/hidden`}.`;
   return { totalCount, starSum, starCount };
 }
 
@@ -334,35 +346,32 @@ async function loadFeedback() {
   const status = document.getElementById("feedback-status");
   let all = [];
   try {
-    const general = await fetchJson(`${API_BASE}/feedback`);
-    all = all.concat(general.map((f) => ({ ...f, _label: "General" })));
+    const rows = await adminFetchJson(`${API_BASE}/admin/feedback?include_hidden=${!hideTest()}`);
+    all = rows.map((f) => ({ ...f, _label: f.game_id ? (GAME_LABELS[f.game_id] || f.game_id) : "General" }));
   } catch (err) {
-    console.error("loadFeedback(general) failed:", err);
-  }
-  for (const slug of GAME_SLUGS) {
-    try {
-      const rows = await fetchJson(`${API_BASE}/feedback?game_id=${encodeURIComponent(slug)}`);
-      all = all.concat(rows.map((f) => ({ ...f, _label: GAME_LABELS[slug] || slug })));
-    } catch (err) {
-      console.error(`loadFeedback(${slug}) failed:`, err);
-    }
+    if (err instanceof AdminAuthError) { showLogin(err.message); return 0; }
+    console.error("loadFeedback failed:", err);
+    status.textContent = "Couldn't load feedback (the backend may not be redeployed yet).";
+    return 0;
   }
   all.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   if (!all.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="4">No site feedback submitted yet.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="5">No site feedback submitted yet.</td></tr>`;
   } else {
     tbody.innerHTML = all.map((f) => `
-      <tr>
+      <tr${f.is_hidden ? ' style="opacity:0.55"' : ""}>
         <td>${escapeHtml(f._label)}</td>
         <td>${f.rating != null ? "★".repeat(f.rating) : "—"}</td>
         <td>${escapeHtml(f.comment) || "—"}</td>
         <td>${formatWhen(f.created_at)}</td>
+        <td>${hiddenBox("feedback", f)}</td>
       </tr>
     `).join("");
   }
-  status.textContent = `${all.length} feedback entries.`;
-  return all.length;
+  const shown = all.filter((f) => !f.is_hidden).length;
+  status.textContent = `${shown} feedback entries${hideTest() ? " (hidden test entries left out)" : `, ${all.length - shown} marked test/hidden`}.`;
+  return shown;
 }
 
 let allReports = [];
@@ -540,6 +549,28 @@ document.getElementById("hide-test").addEventListener("change", () => {
   try { localStorage.setItem("admin-hide-test", String(hideTest())); } catch (e) { /* non-fatal */ }
   loadAll();
 });
+async function onHideFlagChange(event) {
+  const box = event.target.closest(".hide-flag");
+  if (!box) return;
+  const path = box.dataset.kind === "rating" ? "ratings" : "feedback";
+  box.disabled = true;
+  try {
+    const res = await fetch(`${API_BASE}/admin/${path}/${encodeURIComponent(box.dataset.id)}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...adminHeaders() },
+      body: JSON.stringify({ is_hidden: box.checked }),
+    });
+    if (res.status === 401 || res.status === 503) { showLogin("This account isn't accepted as admin. Sign in as the owner account."); return; }
+    if (!res.ok) { box.checked = !box.checked; box.disabled = false; return; }
+  } catch (err) {
+    console.error("hide flag failed:", err);
+    box.checked = !box.checked; box.disabled = false;
+    return;
+  }
+  loadAll();
+}
+document.getElementById("ratings-body").addEventListener("change", onHideFlagChange);
+document.querySelector("#feedback-table tbody").addEventListener("change", onHideFlagChange);
 document.querySelector("#accounts-table tbody").addEventListener("change", async (event) => {
   const box = event.target.closest(".test-flag");
   if (!box) return;
