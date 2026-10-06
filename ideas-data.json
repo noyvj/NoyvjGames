@@ -198,181 +198,181 @@
        "n": 1,
        "tag": "big",
        "text": "Project cards (deck-builder shape). Each round you draw 3 cards (Solar Farm Site, Fuel Deal, R&D Grant, Community Backlash, Heatwave Warning...) and play one, with the rest discarded. Cards can permanently modify the run (e.g. \"Wind sites cost -15%\"). Builds emerge from what you draw, so no two runs are alike, and it plugs into the existing policy lever and cost curve.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 2,
        "tag": "big",
        "text": "Roguelike run modifiers plus starting relics. Before a run pick a relic (Old Coal Contract, Storage Startup, Diplomatic Immunity) and get a random mutator like Dry Years (hydro output halved) or Fuel Embargo (gas twice as expensive). Extends the four scenarios into an endless combinatorial mode; the career perks can unlock relics.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 3,
        "tag": "big",
        "text": "Day-in-the-life dispatch puzzle. Each round optionally expands into a 24-hour timeline with a solar hump, a wind wobble, and an evening peak; you drag plants into a dispatch order (cheapest first, batteries at the peak). Better dispatch means better revenue and fewer brownouts. It is the tight, clever-decision mode battery arbitrage only hinted at.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 4,
        "tag": "small",
        "text": "Named plants. Each built plant gets a random nickname (\"Old Smoky,\" \"Sunny Delight\"), and retiring the last coal plant plays a tiny eulogy line and a demolition puff. It is humour and attachment for the plant-count rows without touching the math.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 5,
        "tag": "big",
        "text": "Expanded tech tree in the Career: spend career points to unlock genuinely new plant types (offshore wind, geothermal, small modular nuclear, gas with capture, green hydrogen) each with its own cost/capacity/risk quirk. New build options change how each run plays out, in Grid's own meta-progression, not shared with other games.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 6,
        "tag": "small",
        "text": "Ribbon-cutting juice: building a plant plays a quick flash and a pop-in animation on its row, and the first plant of each type gets a bigger one. Reaching 25/50/75% clean share fires a little skyline light-up. It is pure feedback polish on the build button.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 7,
        "tag": "big",
        "text": "Siting map. Building a solar/wind/hydro plant means picking a tile on a small regional map (ridge = wind, desert = solar, river = hydro), where tile quality changes capacity factor, and cities nearby generate NIMBY pushback. It is a spatial puzzle layered on the existing plant rows, and it needs an art pass but can stay emoji-tile simple.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 8,
        "tag": "small",
        "text": "City skyline HUD: a strip of buildings whose lights brighten as demand is met and flicker/dim during brownouts, with a smoky haze that thickens with emissions. It gives the round result an emotional read at a glance instead of a number.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 9,
        "tag": "big",
        "text": "Ghost run. Race your own best previous run: its trend line (clean share, funds) is overlaid as a translucent \"ghost\" line on the trend graph and a round-by-round \"ahead/behind\" delta shows. It makes personal improvement the fun target and needs only a stored per-run array in localStorage.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 10,
        "tag": "big",
        "text": "Boss rounds. Every 8th round is a named peak event (Heatwave, Polar Vortex, Dry Summer) with a preview one round ahead and a specific demand spike or output penalty. Beat it for a big reward (a free card, a discount, an achievement). It adds rhythm, prep tension and memorable moments to the escalating rounds.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 11,
        "tag": "small",
        "text": "Peek forecast: spend a small fee to reveal next round's weather roll and disruption chance before committing a build. It is a cheap information-buying decision that fits the existing Weather Variability toggle.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 12,
        "tag": "big",
        "text": "Handcrafted puzzle campaign. 10-12 short scenarios (\"Island grid: 6 rounds, 300 funds, hit 80% clean and never brown out\") with 1-3 star ratings on par-rounds and budget. They are tight, solvable, and shareable, and add a first-time-player on-ramp and a mastery layer without the full run.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 13,
        "tag": "small",
        "text": "Rolling-blackout gamble button: when short on capacity you can trigger a rolling blackout to cap the shortfall penalty, but at a 30% chance of a public-trust hit. It is a clean risk/reward in a bad round instead of only eating the loss.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 14,
        "tag": "big",
        "text": "Coal town loyalty. Retiring fossil plants shifts a Town Support meter; keeping it up means funding retraining or a phased-closure option, and letting it crash triggers protest events that block builds. It creates a genuine \"slow and steady vs fast and messy\" tension and rewards the diversification score (resilience) already in the game.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 15,
        "tag": "small",
        "text": "A \"Perfect Round\" combo: consecutive rounds with zero disruptions and demand fully met build a multiplier on revenue, shown as a visible streak flame. It extends the existing clean-streak counter (C28) into an active goal to protect.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 16,
        "tag": "big",
        "text": "Autopilot manager (idle shape). Hire and upgrade automation: an auto-builder that follows a priority list you set (e.g. \"always build the cheapest renewable when funds > X\"), then fast-forward N rounds at once with stop-on-event. It shifts play from clicking to designing rules, and the career points pay for smarter managers.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 17,
        "tag": "small",
        "text": "\"Auto-advance 5 rounds\" button that halts the moment any disruption, breakdown or policy offer fires. It respects the tense moments without forcing a click per calm round.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 18,
        "tag": "big",
        "text": "Energy market. A spot price that random-walks each round; long-term supply contracts lock in a fixed price for N rounds with a bonus if you always deliver. Contracts are the risk/reward pick versus riding the spot price, and they reward planning capacity ahead. It builds on the existing revenue-per-unit formula and storage arbitrage.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 19,
        "tag": "small",
        "text": "Grid AI companion \"Gridley\": a wry one-line commentary voice on round outcomes (\"You built coal again? Bold strategy.\") that can be toggled off in the Settings panel. It is personality with a story-toggle escape hatch.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 20,
        "tag": "big",
        "text": "R&D lab gamble. Put funds into research on any renewable: each investment is a lottery with escalating odds of a breakthrough that permanently improves its cost decay or capacity. Dead ends refund part of the spend. It is a push-your-luck loop that makes the learning-curve mechanic something you actively chase.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 21,
        "tag": "small",
        "text": "A one-step \"undo last build\" within the same round (free), disabled in an opt-in Ironman toggle where every action is final. It's a quality-of-life feature and a bragging-rights challenge flag in one.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 22,
        "tag": "big",
        "text": "Neighbour-grid trading lite (a scoped-down C3). A second AI grid whose surplus/shortfall varies; each round you can export surplus or import to cover a shortfall at a negotiated price, but interconnector capacity is limited. It brings cooperation and timing to the game without simulating two full grids.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 23,
        "tag": "small",
        "text": "Hidden achievements only shown as \"???\": one-of-a-kind feats like \"run the grid on 100% hydro for 5 rounds,\" \"survive a heatwave with zero fossil,\" \"retire every coal plant in a single round.\" It reuses the achievements framework for discovery.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 24,
        "tag": "big",
        "text": "Storm-prep tower-defence rounds: severe weather is forecast a few rounds out with a track and a damage radius. You can spend funds to harden (wear reset, insulation, backup) certain plants before it lands. It gives maintenance and aging a proactive, foresight-driven use beyond the schedule dropdown.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 25,
        "tag": "small",
        "text": "Surprise grants: a random small funding windfall or inspection fine appears occasionally as a two-button choice (accept the strings-attached grant or decline). It's a moment of luck and choice that breaks up the fixed round loop.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 26,
        "tag": "small",
        "text": "Scoreboard of personal bests (fewest rounds to 90% clean, highest grade, longest clean streak) shown in the Career panel with a \"new record!\" flash. It gives runs a target to chase per attempt.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 27,
        "tag": "big",
        "text": "Speedrun/challenge set: Net-Zero Sprint (90% clean in 20 rounds), Coal Forever (reach A grade while keeping 2 coal plants), Frugal (never spend above 300 funds), Nuclear Renaissance (win with no wind or solar). Each has a badge and its own save-persistent best, and they are opt-in harder modes.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 28,
        "tag": "small",
        "text": "Animated needle balance gauge for supply vs demand: it wobbles and settles, spikes red into the \"brownout\" zone with a shake, and clicks satisfyingly when you nail the match. It is juice on the core comparison you make every round.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 29,
        "tag": "big",
        "text": "Daily seeded grid: the date determines demand shape, weather rolls, and a fixed event schedule, so all players face the same run. Your score sits beside your own history (a friend-comparison via multiplayer later). It brings replay value cheaply and reuses the scenario system.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 30,
        "tag": "small",
        "text": "A \"skip the tutorial\" veteran bonus: finishing a first Grade-A run unlocks a \"Hardcore operator\" title with a subtle skyline badge, and a customisable grid banner colour. It gives status and cosmetic reward for mastery.",
-       "answered": false
+       "answered": true
       }
      ],
      "notes": "**Notes.** Overlaps: Canopy 3/19 and Grid 2/29 (roguelike run + daily seed) and both games' challenge-run sets (Canopy 17, Grid 27) and hidden achievements/almanac ideas could share one \"seeded run + boons\" framework. Canopy 24 (tidal wetland) overlaps Tide and the open B1; Grid 22 is a smaller cousin of the deferred C3 and Grid 18 (market) resembles Trade Empire, so decide where trading lives. Grid 12/14 and Canopy 12 add lightly humane \"who's affected\" flavour that can be cut if it feels like a lesson."
@@ -385,181 +385,181 @@
        "n": 1,
        "tag": "big",
        "text": "**Tidewarden roguelike mode.** A \"Season Rush\" run where every 4 seasons you pick 1 of 3 random \"Council Edicts\" (e.g. \"Fishing boom: Output +40% but acidity rises 25% faster\", \"Wetland grant: free sandbag tier, heritage upkeep doubled\"). Edicts stack into a build across a 20-season run, so each run plays differently; it sits on top of the existing invest/advance loop and OUTPUT_MIX and ADAPTATION_TIERS multipliers.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 2,
        "tag": "big",
        "text": "**Meta-progression \"Harbor Charter\".** Finishing runs earns Charter Marks spent on permanent, Tide-only unlocks (a starting Sandbag tier, a second Monitor charge, a new starting Edict slot, cosmetic pier styles). Kept inside Tide's own localStorage, not shared across games, and it leans on the existing achievements list to grant marks.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 3,
        "tag": "big",
        "text": "**Storm Season as a boss fight.** Turn the every-5-seasons storm (STORM_INTERVAL) into a telegraphed \"boss\": the forecast shows surge height and the player gets two seasons to pre-commit funds to a \"brace\" allocation (barriers, evacuate heritage, stockpile). Success or failure plays out on the coastline grid with a wave-crash animation and a tiered result (Shrugged Off / Battered / Breached).",
-       "answered": false
+       "answered": true
       },
       {
        "n": 4,
        "tag": "big",
        "text": "**Two-lag puzzle mode (\"Tidal Chess\").** A challenge mode where fish lag and a new \"runoff lag\" (industry pollution feeds acidity 2 seasons late) both hit at once, and the player sees only the fish-yield warning. Score is how few seasons dip below FISH_YIELD_WARNING_THRESHOLD; it turns the delayed-consequence core into a forecasting puzzle you can get good at.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 5,
        "tag": "big",
        "text": "**Daily Tide seed.** A once-a-day fixed run (sea scenario, storm timing, edict offers seeded by date) with a shareable result line (\"Day 14: 11 seasons, 2 rows lost, 1 site saved\"). Same seed for everyone gives comparison and a reason to return, and the seeded deterministic pattern matches Aftermath's severity hash.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 6,
        "tag": "big",
        "text": "**Rival settlement ghost.** Race a computer-run \"neighbor town\" playing a fixed strategy (greedy industrialist, cautious wall-builder, diversifier) shown as a faint second coastline strip beside yours. Beating each rival's final population/funds unlocks their strategy as a starting preset.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 7,
        "tag": "big",
        "text": "**Reef Builder side-board.** Add a small 3x4 reef plot under the coastline where spending \"Reduction\" points plants coral tiles that grow over seasons, soften storm surge, and boost fish yield in adjacent columns. Tile placement is a light puzzle (adjacency bonuses, bleaching when acidity spikes) and reuses the existing grid renderer.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 8,
        "tag": "big",
        "text": "**Trade winds: market events.** Random season events offer risk-reward deals: a fish-export contract (big funds if yield above 80%, penalty if not), a tourism boom, an insurance payout. Player accepts/declines one per event; deals interact with D11 diversification levels and are a tension source between storms.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 9,
        "tag": "big",
        "text": "**Coastal Empire scoring: the Postcard Ending.** At session end the game renders a pixel \"postcard\" of your settlement built from actual state (walls, reef, heritage sites, boats per population tier, flooded rows as sunken roofs) with a letter grade and a nickname (\"The Salt Fortress\"). Collecting all postcard variants is a light completionist hook.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 10,
        "tag": "big",
        "text": "**Fixed-scenario puzzle levels.** A \"Harbor Trials\" campaign of hand-made starts (e.g. 15 seasons, 200 funds, already-high acidity, two heritage sites, only 3 invests allowed per season) each with a par score and 3 stars. Levels are short, tight, and replayable for stars, distinct from the open sandbox.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 11,
        "tag": "big",
        "text": "**Crew and specialists.** Hire up to three specialist crew (Marine Biologist: fish lag reads one season shorter; Harbor Engineer: tier costs -15%; Broker: better deal odds). Each has a pay-per-season upkeep, so which three you can afford is a real build decision.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 12,
        "tag": "big",
        "text": "**Boss: the Acid Tide.** Around season 15 an optional mega-event pushes acidity toward a spike unless you spend a big \"buffer\" (a chunk of funds plus reduction). Survive it and the fish recovery banner becomes a full victory beat; skip it and fish crash hard, a clear bet on your own read of the meters.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 13,
        "tag": "small",
        "text": "**Seasonal \"Lucky Catch\" mini reveal.** Each Advance Season has a small chance of a bonus haul shown as a net-cast animation with a funds pop (\"+35 lucky catch\"), more likely at high fish yield. Cheap variable-reward juice that makes healthy oceans feel good.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 14,
        "tag": "small",
        "text": "**Combo meter for consecutive balanced seasons.** Invest in all three categories in a season to build a x1.1 / x1.2 / x1.3 income streak; skipping a category breaks it. Adds a tiny tempo and a reason to spread spending.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 15,
        "tag": "small",
        "text": "**Wave-crash screen juice on flood.** When a row floods, the row's tiles ripple in sequence with a brief screen shake and a soft splash text (\"glub\"), and the flash from D8 gains a foam edge. Feedback that makes losing land feel dramatic without getting bleak.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 16,
        "tag": "small",
        "text": "**Boat traffic scaled to prosperity.** Tiny boat sprites drift across the scene; more appear with higher fish yield and population, and they vanish (leaving one abandoned hull) after a crash. Pure ambient feedback for how you're doing.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 17,
        "tag": "small",
        "text": "**Named crew quips.** A one-line ticker voice from the harbor master (\"Wall's holding, boss. Ask me again in five seasons.\") triggered by real state changes, with a settings switch to mute it. Adds personality and humor; the \"story off\" toggle the user asked for.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 18,
        "tag": "small",
        "text": "**Secret coastline critters.** After certain conditions (acidity below 20 for 5 seasons; a heritage site saved through a storm) a hidden critter (a seal, a whale fin) pops onto the scene and can be clicked to log it in a small \"Sightings\" list. Discovery bait that rewards good stewardship without a lesson.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 19,
        "tag": "small",
        "text": "**Pin-a-goal banner.** Player sets one personal goal from a dropdown (\"Keep 4 rows dry\", \"Reach 200 population\") that shows a tiny progress bar under the header and pings when hit. Self-directed targets for sandbox play.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 20,
        "tag": "small",
        "text": "**Undo one season (limited).** One \"Rewind Tide\" charge per run lets you retract the last Advance Season; using it marks the run with a small tin-hat icon so leaderboards/summary stay honest. Lowers fear of a bad click while keeping decisions weighty.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 21,
        "tag": "small",
        "text": "**Surge forecast dice.** The storm forecast text shows a rolled range (\"surge 18-26, 70% chance to overtop Seawalls\") drawn as a little bell-curve chip, making the wall decision a gamble to read rather than a number to compare.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 22,
        "tag": "small",
        "text": "**Achievement cosmetic rewards.** Certain existing achievements (fortified_in_time, stocks_rebound) unlock cosmetic themes for the scene: dusk sky, storm-glass, coral-pink sand. Small, instant reward for goals already in the list.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 23,
        "tag": "small",
        "text": "**Speedrun timer + best-seasons record.** Optional \"fewest clicks / fewest seconds to max tier\" personal-best trackers displayed in the session summary. Gives min-maxers a challenge target in the same per-browser record slot as best-coastline-saved.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 24,
        "tag": "small",
        "text": "**Hard-lag \"ironman\" badge.** Finishing a 20-season run in Hard Lag mode without ever using Rewind or the checkpoint replay awards a gold-anchor badge on the header and settlement history. Opt-in prestige for people who want the harder take.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 25,
        "tag": "small",
        "text": "**Streak-of-quiet-seasons counter.** A small counter of seasons since your last acidity rise, with a glowing frame at 5 and 10. Small, hypnotic \"don't break the chain\" pressure that fits the meter view.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 26,
        "tag": "small",
        "text": "**Random settlement name generator dice.** A dice button by the settlement name input rolls fun harbor names (\"Port Regret\", \"Kelp Junction\", \"Brine-on-Sea\") and the chronicle references it. Personality that costs almost nothing.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 27,
        "tag": "small",
        "text": "**Heritage-site rescue moment.** When a heritage site is saved at the last second before its row floods, play a short rescue flourish (a lifeboat icon, \"SAVED!\" burst) and a chronicle entry. Turns an existing mechanic into a highlight reel moment.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 28,
        "tag": "small",
        "text": "**Chain-reaction \"Domino\" callout on total loss.** If several rows flood in one season the ticker calls it a \"Domino Season\" with a scoreboard-style tally; it also awards a small \"comeback\" bonus (temporary cheaper barriers) so a disaster becomes a pivot rather than a death spiral.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 29,
        "tag": "small",
        "text": "**Toggle for chunky retro sound-style visual cues.** With no audio in the hub, add optional \"sound-word\" popups (\"SPLASH\", \"KA-CHING\", \"CRUNCH\") on major events as comic-style burst text, off by default in Settings. Personality and feedback without needing an audio system.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 30,
        "tag": "small",
        "text": "**Season-end \"report card\" flash.** A 1-second overlay after each Advance Season with three quick stat chips (funds delta, acidity delta, fish delta) colored by good/bad plus an icon, then fading. Faster to read than the ticker and makes each turn feel like it landed.",
-       "answered": false
+       "answered": true
       }
      ]
     },
@@ -571,181 +571,181 @@
        "n": 1,
        "tag": "big",
        "text": "**Event draft: choose your prep card.** Before each event, draw 3 \"prep cards\" (Sandbag Wall: -30% flood damage this event; Emergency Rations: -30% supply damage; Mediation Team: -30% unrest damage) and pick one to play. Decks are shaped by unlocked skills, so the skill tree becomes a deck-builder for run-time decisions.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 2,
        "tag": "big",
        "text": "**Skill tree as deck: choose a loadout of 4.** Unlocked skills stay owned forever, but only 4 can be \"slotted\" into a run. Choosing which 4 for the coming schedule (coastal flood-heavy? social-heavy?) makes the tree a build puzzle instead of a checklist.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 3,
        "tag": "big",
        "text": "**Hidden-schedule \"fog of war\" mode.** Opt-in mode where the next 3 events are hidden until an early warning skill reveals them (Early Warning = 1 event ahead, Mutual Aid = 2). Players must gamble resilience vs. growth without knowing which shock is next, and the skill finally has a felt payoff.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 4,
        "tag": "big",
        "text": "**Boss event: the Compound Disaster.** A rare final event chains two types at once (Storm + Infrastructure Failure), shown as a two-phase fight where the player gets one emergency action between phases. Optional 8th event on extended runs, big knowledge-point payout for surviving.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 5,
        "tag": "big",
        "text": "**Roguelike \"Descent\" mode.** Chain runs with no reset between them: settlement damage and resources carry over across 5 back-to-back schedules while severity climbs; you bank knowledge points only when you \"evacuate\" or finish, and lose half if the settlement collapses. Push-your-luck on top of the run loop with permanent tree unlocks as the safety net.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 6,
        "tag": "big",
        "text": "**Emergency actions with cooldowns.** During a run, unlock \"Deploy Crews\", \"Open Shelters\", \"Ration Supplies\" as one-time-per-run emergency buttons that trade resources for a burst mitigation on the current event. Adds a mid-event decision instead of only between-event allocation.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 7,
        "tag": "big",
        "text": "**Ironman schedule variants (\"Cursed Seasons\").** Pick a curse before a run (All floods x1.5, growth income halved, no early warning) for a scaling knowledge-point multiplier. Opt-in harder modes with clear rewards that reward mastery; stack up to 3 curses for bragging-rights tiers.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 8,
        "tag": "big",
        "text": "**Settlement districts on a small map.** A 3x3 grid of districts (harbor, market, hill, etc.) where resilience and growth units are placed; events hit specific districts based on type (floods hit harbor and market). Placement becomes a spatial puzzle rather than a single pool of points.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 9,
        "tag": "big",
        "text": "**Citizen roster: people with quirks.** Recruit 3 named citizens per run from a random pool (The Engineer cuts infrastructure damage, The Organizer softens unrest, The Gambler boosts growth with a risk). Their fates after events feed the legacy system and each run reads differently.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 10,
        "tag": "big",
        "text": "**Prestige: \"Second Founding\".** After buying every skill, reset the tree for a permanent prestige star that adds a small starting perk and unlocks 3 \"Founding-only\" alternate skills with strong tradeoffs. Gives veteran players a long-term loop.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 11,
        "tag": "big",
        "text": "**Challenge gauntlet: weekly-style fixed schedules.** A rotating list of hand-built schedules (\"The Three Floods\", \"Blackout Week\", \"Everyone Is Angry\") with fixed severities and a par score, separate from the regular hash-severity runs. Repeatable puzzles with a target to beat.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 12,
        "tag": "big",
        "text": "**Insurance and gambling on the next event.** Between events the player can buy insurance (pay now, recover 60% of the next event's damage) or double-down a bet (pay resources for a bonus if damage stays below the preview range). Uses the E8/E14 expected-damage range as the odds display.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 13,
        "tag": "small",
        "text": "**Damage-avoided popup with combo.** After each event, show a big \"-58 damage prevented!\" number that counts up in a satisfying tally, plus a mini streak if mitigation held two events in a row. Makes prevention feel like scoring.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 14,
        "tag": "small",
        "text": "**Event screen shake and category flash.** Each event category gets a short signature hit (flood: blue ripple, heatwave: orange pulse, unrest: red shudder) plus emphasized numbers on the resolution panel. Quick, visceral feedback for a system that's currently text-forward.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 15,
        "tag": "small",
        "text": "**Perfect Run badge: zero-damage event.** If mitigation reduces an event's damage to under 10% of base, flash \"Flawless Defense!\" and grant a bonus knowledge point. A crisp mastery target, sits with the E15 achievement family.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 16,
        "tag": "small",
        "text": "**Skill unlock reveal animation.** Newly bought skills glow-pulse on the tree and connect lines \"light up\" toward newly available prereq-gated children, with a satisfying click. Discovering the next branch feels like unwrapping.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 17,
        "tag": "small",
        "text": "**Mystery skill nodes.** A couple of \"?\" nodes in the tree show no description until their prereqs are bought, then reveal a surprise perk (like \"Lucky Break: 10% chance an event is halved\"). Discovery pressure to keep exploring the tree.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 18,
        "tag": "small",
        "text": "**Undo last allocation click.** Within a between-event phase, let the player undo their last resilience/growth click before pressing Resolve; a small counter shows undo uses for anyone racing. Lowers misclick pain while keeping choices meaningful.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 19,
        "tag": "small",
        "text": "**Weekly-style \"Mutation of the day\".** A daily random modifier (severity x1.2 for floods, growth cost -3) displayed on the run screen, deterministic by date so it feels like the same day for everyone. Cheap novelty that helps returning players.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 20,
        "tag": "small",
        "text": "**Settlement mood emoji strip.** A row of tiny citizen faces that shift from grinning to grim as resources and resilience move, updating per allocation click. Immediate, glanceable, humorous feedback on where you stand.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 21,
        "tag": "small",
        "text": "**Post-run one-liner \"epitaph\".** Each run ends with a randomly picked witty line from a large bank keyed to outcomes (\"The levee held. The mayor did not.\" / \"Nobody panicked. Everybody panicked politely.\"). Personality that makes bad runs funny, with a settings toggle to hide it.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 22,
        "tag": "small",
        "text": "**Streak of consecutive runs beating your prior best.** A little fire counter appears at 2+ consecutive improvements in run score with a warm glow on the run history list. Encourages \"one more run\" momentum.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 23,
        "tag": "small",
        "text": "**Speedrun clock for the run.** Optional visible timer plus a best-time-to-finish column in Review Past Runs; times don't affect score, only a badge. Adds a race angle for a very short-run game.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 24,
        "tag": "small",
        "text": "**Random starting twist.** Each run begins with one random \"quirk\" (Rich Start: +60 resources, no growth; Fortified Slum: +2 resilience, -1 growth). Small variance in the opening makes every run start with a decision.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 25,
        "tag": "small",
        "text": "**Unlock-tier cosmetic settlement skins.** Reaching skill thresholds (5, 10, all) changes the settlement art (thatched, timber, concrete) shown at run start and in history. A visible payoff for the tree that costs no balance.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 26,
        "tag": "small",
        "text": "**Event countdown pulse.** As the resolve button nears (event about to hit), the schedule strip gently pulses and the next event icon grows slightly, adding a bit of dread. Pure tension juice.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 27,
        "tag": "small",
        "text": "**Lucky charm rolls.** Rare 5% chance an event's severity draws a \"lucky break\" (severity x0.7) or \"dark omen\" (x1.3) with a special banner; the deterministic hash decides which, so it's fair but surprising. Increases variance in a fun way.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 28,
        "tag": "small",
        "text": "**Knowledge-point \"critical insight\".** Each run has a small chance to award a doubled KP on a perfect defense, shown with sparkle text. Occasional jackpot moments keep the currency exciting.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 29,
        "tag": "small",
        "text": "**Run recap \"highlight reel\".** The end-of-run panel plays a 5-second sequence of the run's biggest events (worst hit, best save) as animated cards instead of a static list. Lets a run end on a story beat instead of a table.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 30,
        "tag": "small",
        "text": "**Named legacy monuments.** Extremely good runs (top-3 score) permanently add a small monument icon to the settlement art with your chosen settlement name on a plaque. A visible trophy shelf for the legacy system.",
-       "answered": false
+       "answered": true
       }
      ],
      "notes": "**Notes:** Tide's Edict roguelike (#1), Charter meta-progression (#2), and daily seed (#5) and Aftermath's Descent (#5), curse modes (#7), and daily mutation (#19) are the same shapes; a shared \"daily seed + opt-in curse\" helper in `shared/` could serve both plus other climate games. Tide #17 / Aftermath #21 (witty voice lines with a mute toggle) and both games' \"cosmetic unlocks\" (Tide #22, Aftermath #25) overlap across games and could be built once as a shared pattern. Aftermath #1 (prep cards) and #2 (loadout of 4) are alternatives to each other; pick one route for the tree-as-deck idea, and Aftermath #12 interacts with the existing E17a scenario pack and E29 societal-memory items on the TODO."
@@ -758,181 +758,181 @@
        "n": 1,
        "tag": "big",
        "text": "**Ranch Run (roguelike mode).** A 20-round run where each round offers a \"draft\" of three random cards (a cheap feed additive, a shady subsidy, a viral-beef-trend market spike, a drought) and the player keeps one, building a synergy stack around the existing levers (feed, caps, capture, breeding, supply chain). Ends with a score and a run seed, so runs feel different every time instead of one solved optimal path.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 2,
        "tag": "big",
        "text": "**Ranch Legacy unlock tree (in-game meta-progression).** Every finished run earns \"heritage points\" spent on permanent perks inside Herd only: start with one capture unit, a 2nd policy-advisor option, a rare breed with better breeding odds, a new farmhouse skin. Certification and poultry become early goals a run can chase rather than a one-off unlock.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 3,
        "tag": "big",
        "text": "**Boss-round \"Auditor\" events.** Every 10th round a regulator audit arrives with a visible target (e.g. \"coupling under 0.6 AND welfare over 60\"); you get 3 rounds of warning to reshape the farm. Pass and you earn a big permanent perk, fail and you eat a fine and a market-trust hit. Gives the flat round loop deadlines and set-piece tension.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 4,
        "tag": "big",
        "text": "**Rival ranch (ghost opponent).** A simulated neighbour farm plays a fixed strategy (pure growth, pure restraint, or a copy of the community's median), with its score and herd shown live on a scoreboard strip. Beating it in dollars AND methane is the win; rival personalities (Big Ag Barry, Organic Olive) add humour and different pressures.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 5,
        "tag": "big",
        "text": "**Combo engine: decoupling chains.** Buying levers in certain orders triggers named combos (\"Circular Barn\": capture + biofilter + litter gives free biogas income; \"Happy Herd\": feed + welfare + breeding). Each combo is discoverable, shown as a grey silhouette in a combo book, and rewards clever build order rather than just spending.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 6,
        "tag": "big",
        "text": "**Ranch-of-the-Week seed challenge.** A date-seeded run with fixed events, handicaps and a modifier (\"no capture systems, double weather swings\"). The score is compared against the community percentile using the existing Z1 stats path, with a personal history strip of weekly results.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 7,
        "tag": "big",
        "text": "**Market crash / commodity trading side-game.** A tiny price ticker for meat, dairy and eggs where you can hold \"contracts\" (lock next 3 rounds at today's price). Correct calls give big income spikes, bad ones sting, and it interacts with the season swings and plant-demand surges already in the opt-in mode.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 8,
        "tag": "big",
        "text": "**Disaster season: events with counterplay.** Random heatwave, disease outbreak, feed-price spike and flood events land with a 2-round telegraph, and each can be blunted by a specific lever (welfare and breeding vs disease, capture vs a regulator visit). Turns the passive weather layer into tension with clever prep rewards.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 9,
        "tag": "big",
        "text": "**Ranch expansion map.** A small grid of paddocks where herd units are physically placed; neighbouring paddocks share bonuses (capture pipes link, biofilters cover adjacent poultry sheds). Placement puzzles add spatial strategy and give the pasture illustration a real job.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 10,
        "tag": "big",
        "text": "**Story mode: \"The Family Farm\" (toggleable).** A branching narrative where Grandpa's farm faces choices (sell to an agribusiness, go organic, take the subsidy) with light vignettes and 3 endings, layered on the existing farm-tour vignettes. Fully skippable via a story toggle, with the sim unchanged underneath.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 11,
        "tag": "big",
        "text": "**Speed-run and score-attack ladder.** Named challenge modes (\"Decouple by round 12\", \"Max profit under a 15 methane cap\", \"Poultry only\") with their own bronze/silver/gold medals and an in-game trophy shelf. Builds on the cap mode and the counterfactual baseline that already exist.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 12,
        "tag": "small",
        "text": "**Herd juice: cow reactions.** Cows in the pasture visual moo bubble, hop or nap depending on welfare and coupling, and clicking one gives a silly quip. Purely fun feedback on data already in the game.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 13,
        "tag": "small",
        "text": "**Named cows.** Herd units get randomly generated names (Beyonmoo, Sir Grazealot) shown on hover, and a \"retired hall of fame\" lists your longest-serving ones. Cheap personality that makes losing herd units to a cap feel like something.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 14,
        "tag": "small",
        "text": "**Satisfying \"cha-ching\" round summary.** The end-of-round tally counts up funds with a ticking rolling number and a small confetti burst when the round beats the last one. Pure juice on the Advance Round moment.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 15,
        "tag": "small",
        "text": "**Perfect-round streak counter.** A visible streak of consecutive rounds where methane fell AND funds rose, with a flame icon and a tiny bonus at 3/5/10. Adds a \"don't break the chain\" tension without new systems.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 16,
        "tag": "small",
        "text": "**Secret breed: the Methane-Eater Cow.** A hidden herd unit that unlocks only if you hit an odd condition (e.g. coupling under 0.25 while welfare is over 90) and shows a glowing sprite plus a shelf achievement. Rewards mastery with a discovery moment.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 17,
        "tag": "small",
        "text": "**Achievement-gated cosmetic barns.** Earning certain achievements unlocks alternate barn/fence/tractor skins for the pasture hero image, selectable in the extras panel. Achievements over callouts, with a visible reward.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 18,
        "tag": "small",
        "text": "**\"Undo last round\" with a cost.** Once per game (or per run in Ranch Run) you can rewind one round at the price of a fund penalty. Lets players experiment with risky levers and cuts the fear of misclicks.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 19,
        "tag": "small",
        "text": "**Tractor sound and haptic-style animation stubs.** A short animated tractor crosses the screen on Advance Round, and buttons squish on press, all CSS-only and reduced-motion respecting (no audio, per the hub's standing decision). Gives clicks a tactile feel.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 20,
        "tag": "small",
        "text": "**Random farm event card.** Each round has a 20% chance of a one-line flavour event with a two-button choice (\"Neighbour offers to buy 2 units: cash or refuse\") and small stakes. Breaks up routine with humour and micro-decisions.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 21,
        "tag": "small",
        "text": "**Golden-cow bonus round.** Rarely, a golden cow glides across the pasture; clicking it in time grants a one-off funds bonus. A light, whimsical idle-game style reward that rewards attention.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 22,
        "tag": "small",
        "text": "**Rating title ladder.** The report card grants a title from \"Hobby Farmer\" to \"Decoupling Legend\" with a tiny cartoon, and it shows the next title's requirement. Replay goal without a lecture.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 23,
        "tag": "small",
        "text": "**Loadout presets for new runs.** Choose a starting loadout (Big Herd, Lean Green, Poultry Start, Cash Rich) that bends opening funds/levers, unlocked as achievements accrue. A quick way to vary each opening.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 24,
        "tag": "small",
        "text": "**Dev-mode \"what if\" sandbox toggle.** Unlock a sandbox where you set herd size, methane and levers freely and watch the gauge react, with no scoring. Rewards discovery and gives power users a toy.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 25,
        "tag": "small",
        "text": "**Feed additive minigame.** Investing in feed opens a 5-second click-timing mixer (hit the green band) whose result nudges that round's effect by a few percent. Small skill layer, purely optional (auto-resolve button).",
-       "answered": false
+       "answered": true
       },
       {
        "n": 26,
        "tag": "small",
        "text": "**Rival taunts and cheers.** Rival ranch and policy advisor deliver one-liners in a small speech bubble after each round based on your standing. Personality-only, uses existing vignette plumbing.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 27,
        "tag": "small",
        "text": "**Mystery crate after certification.** Reaching the certification milestone triggers a \"crate\" with a random cosmetic or small perk and a satisfying open animation. Makes the prestige moment feel like a reward.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 28,
        "tag": "small",
        "text": "**Hard mode: no baseline peek (blind run).** An opt-in mode that hides the counterfactual and gauge best-markers until the run ends, so decisions rely on feel. Reveals a stronger reveal at the end.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 29,
        "tag": "small",
        "text": "**Per-run stat \"highlights reel\".** After a run, a 3-line recap picks funny moments (\"Peak herd: 42, biggest single-round swing: +38 funds\"). Personal, screenshot-friendly, makes runs feel memorable.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 30,
        "tag": "small",
        "text": "**Daily perk pick.** Each calendar day the first run offers one of two random small boons (e.g. +5% feed effect) to try. Pulls players back with light variety without demanding attention.",
-       "answered": false
+       "answered": true
       }
      ]
     },
@@ -944,157 +944,157 @@
        "n": 1,
        "tag": "big",
        "text": "**Expedition roguelike: \"Permafrost Watch\".** A run mode where each round you draw three research-station cards (drone survey, insulating mats, emergency crew, a risky private grant) and keep one, tuning how you dampen the feedback across regions A/B/C. Runs end at a fixed round with a score, so the tipping point becomes a per-run story rather than one learned path.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 2,
        "tag": "big",
        "text": "**Tipping-point survival mode: hold the line.** A single objective mode: keep at least two of the three regions un-tipped for N rounds while the background rise steadily gets harsher (new escalation events). Score is rounds survived, giving Thaw a tense \"how far can I push\" feel with a leaderboard-friendly number.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 3,
        "tag": "big",
        "text": "**Station Upgrade tree (in-game meta-progression).** Finishing runs earns \"research credit\" spent on permanent Thaw-only upgrades: a better monitoring tower (earlier warning on the next-round tooltip), starter dampening, a 4th preset strategy, or a wider mini-graph. Long-run replay reasons that feel different from Herd's or Loop's.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 4,
        "tag": "big",
        "text": "**Crisis events with a clock.** Random events (wildfire, sinkhole road, unusual heatwave, bad research funding year) appear with a 2-3 round countdown; spending the right resource (monitor for early response, preserve for slump) defuses them. Adds spikes of urgency on top of the steady slope.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 5,
        "tag": "big",
        "text": "**Resource routing between regions.** Let funds \"convoy\" between A, B and C with a small transport tax so the player is constantly weighing rescuing a critical region against feeding a healthy one. Adds triage decisions and makes the three-region view a real puzzle.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 6,
        "tag": "big",
        "text": "**Hidden-variable regions (\"survey mode\").** Regions start with unknown permafrost carbon density, revealed only by paying for a survey; a rich region tips harder but also yields more output. Risk-reward discovery layered on the existing melt and dampening math.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 7,
        "tag": "big",
        "text": "**Daily \"Cold Case\" seed challenge.** A date-seeded scenario with fixed starting temperatures and one twist (\"Region B starts already thawing\", \"Monitoring costs double\"). Compare your temperature-saved score with the community percentile through the existing Z1 stats hook.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 8,
        "tag": "big",
        "text": "**Sandbox \"director\" mode: you are the climate.** Flip roles for a run: choose when to push background rise bumps (volcano, heat dome) to try to tip regions controlled by an AI steward of varying skill. A playful inversion that teaches the same dynamics as a toy.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 9,
        "tag": "big",
        "text": "**Challenge ladder with modifiers.** Named runs like \"Minimalist\" (no output spending), \"All-in Output until melt, then pivot\", \"Blind (graph hidden until round 10)\" with medals and a trophy shelf. Small rule changes create big strategy differences on the same engine.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 10,
        "tag": "big",
        "text": "**Timed \"quick crisis\" minigame between rounds.** When a region enters critical tier, an optional 10-second stabilise minigame (route sensors, plug leaks, click hotspots) grants a temporary dampening buff. Skippable by auto-resolve, so it adds skill flavour without gating the sim.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 11,
        "tag": "big",
        "text": "**Story mode: \"The Station Crew\" (toggleable).** A small ensemble cast at a research station comments on each region across the run with 3 endings depending on your spread of outcomes, and a story-off toggle strips it back. Personality and stakes for a game that otherwise reads as a graph.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 12,
        "tag": "small",
        "text": "**Screen-shake and rumble on tipping.** The tipping flash gains a brief low-frequency shake of the region card and a crack animation across its mini-graph. Amplifies the best drama beat with juice only.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 13,
        "tag": "small",
        "text": "**Streak medal: \"Ice Age\".** A visible medal counts consecutive rounds a region stays below the melt threshold, expanding into a frosty icon at 5/10/15. Extends the existing rounds-since-tipping counter into a chase.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 14,
        "tag": "small",
        "text": "**Secret region D reward.** If you ever finish with Region A cooler than the auto-played worst-case D by 8+ degrees, a secret \"Snow Leopard\" badge and station skin unlock. Discovery reward for mastery.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 15,
        "tag": "small",
        "text": "**Penguin (or arctic fox) mascot reactions.** A tiny mascot in the corner reacts to state (shivers when hot, cheers when dampening rises, faints at critical). Humour and feedback for free using existing flags.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 16,
        "tag": "small",
        "text": "**Random research grant.** Each round has a small chance a grant note appears with a gamble (\"Take 30 funds now, or 60 funds only if no region tips next round\"). Micro risk/reward decisions.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 17,
        "tag": "small",
        "text": "**Undo once per run.** Rewind one round at a funds cost, making bold bets like gambling on Region C's tipping safer to try. Encourages experiment.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 18,
        "tag": "small",
        "text": "**Achievement-locked map skins.** Alternate visual themes (aurora borealis, siberian tundra at dusk, tundra in 8-bit) unlocked by achievements and selectable in settings. Achievements that give something visible.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 19,
        "tag": "small",
        "text": "**Thermometer rolling numbers.** The temperature readout ticks upward digit by digit like an odometer during Advance Round, faster when the loop is accelerating. Turns \"the slope is steeper\" into something you feel.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 20,
        "tag": "small",
        "text": "**\"Close call\" callout.** If a region's next-round projection would have crossed melt or critical but your last investment pulled it back, a brief \"phew\" banner appears. Rewards clever timing with instant feedback.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 21,
        "tag": "small",
        "text": "**Rival stewards on the scoreboard.** Three fixed AI stewards (Cautious Kai, Rash Rasmus, Balanced Bea) post temperature-saved scores each run, so you know exactly who you beat. Personality-driven target for the personal best.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 22,
        "tag": "small",
        "text": "**Mystery supply drop.** Every 6th round, a crate with a random perk (extra preserve unit, monitor discount, faster preset) appears with a satisfying opening animation. Pacing sprinkle for the middle of a run.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 23,
        "tag": "small",
        "text": "**Hard mode: no preview tooltip.** Opt-in mode disables the next-round three-region preview tooltip and dampening forecast, forcing intuition. The end-of-run reveal shows how close you were.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 24,
        "tag": "small",
        "text": "**Title ladder for runs.** Finishing a run grants a title from \"Ice Cube\" to \"Cryosphere Guardian\" by temperature-saved bands, with the next title's goal listed. Simple replay carrot.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 25,
        "tag": "small",
        "text": "**Blindfold graph toggle.** A variation that hides the mini-graphs and shows only text status, so players read the numbers instead of the curves. Novel challenge for veterans without any new content.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 26,
        "tag": "small",
        "text": "**Random flavour headlines.** After each round a ticker shows a funny fake headline reacting to conditions (\"Local fox files complaint about mud\"). Sets tone and adds humour.",
-       "answered": false
+       "answered": true
       },
       {
        "n": 27,

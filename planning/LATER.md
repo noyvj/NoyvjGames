@@ -121,3 +121,8 @@ Several items across the ideas file got parked specifically pending this — you
 - **Contraption (M8, round 2)**: a physics sandbox needs a JavaScript physics engine such as Matter.js. Round 3 answer: "later for now, explain more"; the explanation is in `planning/FOR-YOU.md` item 4.
 - **Silk Road (M2, round 2)**: Round 3 answer: no (marked dropped, kept here only as a record).
 
+
+## Parked from your Round 3 answers (2026-10-06)
+
+- **Grid GC13: rolling-blackout gamble button.** You said you were unsure what it meant. In plain terms: in a round where Grid is short on capacity you would get a button that deliberately causes a controlled blackout. That caps how much the shortfall costs you, but it has a 30% chance of also costing public trust. It is a "take a smaller sure loss, or risk a bigger hit" choice. Left parked until you say whether you want it; I will bring it up again with a mock-up in the next ideas round.
+- **Grid GC23: hidden achievements shown as "???".** You like it but want every game easy to 100%. Parked while you decide. Middle option if you want it: show the hidden ones as "???" with a one-line hint once you are within one step of earning them, so none is a surprise you cannot find.

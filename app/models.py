@@ -186,3 +186,16 @@ class PageView(Base):
 
     id = Column(Integer, primary_key=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class OwnerNote(Base):
+    """A small named JSON document that belongs to the site owner (for now: the ideas page's
+    answers, key "ideas-answers"). Written only by the owner account, readable by the owner
+    and by the AI sessions' admin token, so answers typed on the site do not need exporting by
+    hand. One row per key; the value is stored as JSON text and capped in size by the endpoint."""
+
+    __tablename__ = "owner_notes"
+
+    key = Column(String, primary_key=True)
+    value_json = Column(Text, nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

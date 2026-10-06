@@ -21,6 +21,8 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 
 **Why:** `admin.html`, `ideas.html` and the Warframe tracker now check that you are signed in as `noyvj`, using a new `GET /users/me` endpoint. Until the backend is redeployed those three pages show "The server cannot check accounts yet" and will not open (the public hub and games are unaffected).
 
+**Also needed for answer syncing:** the ideas page now saves your answers to your account as you go (new `owner_notes` table and `/owner/notes/ideas-answers` routes), so I can read them without you exporting. Until the deploy it shows "Not synced: the backend needs its latest deploy" and your answers stay in the browser (Copy answers still works).
+
 **Steps:** from the `app/` folder run `python3 -m fastapi cloud deploy`, then open `ideas.html` or `admin.html` and sign in as `noyvj` in the card that appears. The admin page no longer asks for the separate admin token: signing in as `noyvj` is enough (the backend accepts that account as admin; `AI_ADMIN_TOKEN` still works for the AI sessions). Tell me once it works and I will remove this entry.
 
 ### 0c. PC version of every game: two questions left, one about Continuum's deadline
