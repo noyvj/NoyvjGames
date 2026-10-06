@@ -31,6 +31,12 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 
 **Nothing needs doing from you** except looking at each converted game when it lands and saying what feels wrong.
 
+### 0d. New game idea: a language-deduction puzzle (Chants of Sennaar style): six questions
+
+**Why:** you asked whether a puzzle game like The Message from Deep Space or Chants of Sennaar can be built. Yes, and it fits the Python engine stack well. The plan is `planning/lexis-plan.md` (working title "Lexis"). I do not reliably know "The Message from Deep Space", so question 1 matters most.
+
+**Steps:** answer the six questions at the end of that file (each has a recommendation; "go with your recommendations" is fine). Nothing is built until you do.
+
 ### 1. Apply for Google AdSense
 
 **Why:** `planning/pwa-and-ads-setup.md`'s ad bar is already built and labeled everywhere on the site, wired up with placeholder IDs (`ca-pub-XXXXXXXXXXXXXXXX`) waiting for the real ones. The only blocker is the application itself, which needs your own Google account — I can't submit it for you.
