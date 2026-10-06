@@ -1,0 +1,93 @@
+{
+  "windows": [
+    ["howto-panel", "howto-toggle-button", "How to Play"],
+    ["achievements-panel", "achievements-toggle-button", "Achievements"],
+    ["report-card-panel", "report-card-toggle-button", "Report Card"],
+    ["changelog-panel", "changelog-toggle-button", "What's New"],
+    ["settings-panel", "settings-toggle-button", "Settings"],
+    ["info-page-panel", "info-page-toggle-button", "The Real Story"]
+  ],
+  "toolbar": {
+    "icons": [
+      ["achievements-toggle-button", "🏆"],
+      ["report-card-toggle-button", "📋"],
+      ["settings-toggle-button", "⚙️"]
+    ],
+    "menu": [
+      {"heading": "Game", "ids": []},
+      {"heading": "Details", "ids": []},
+      {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button", "info-page-toggle-button"]},
+      {"heading": "Records", "ids": ["changelog-toggle-button"]}
+    ]
+  },
+  "composites": [
+    {
+      "id": "pc-status-panel",
+      "title": "Status and score",
+      "members": ["#status"],
+      "group": "Details",
+      "label": "📊 Status and score"
+    },
+    {
+      "id": "pc-baseline-panel",
+      "title": "Baseline farm comparison",
+      "members": ["#baseline-farm-card"],
+      "group": "Details",
+      "label": "🪞 Baseline farm comparison"
+    },
+    {
+      "id": "pc-leaderboard-panel",
+      "title": "Community leaderboard",
+      "members": ["#leaderboard-mount"],
+      "group": "Records",
+      "label": "🏅 Community leaderboard"
+    },
+    {
+      "id": "pc-about-panel",
+      "title": "About Herd",
+      "members": ["#tagline-display", ".context-blurb", "#community-stat-display"],
+      "group": "Help",
+      "label": "ℹ️ About Herd"
+    },
+    {
+      "id": "pc-feedback-panel",
+      "title": "Feedback",
+      "members": ["#feedback-prompt"],
+      "group": "Help",
+      "label": "💬 Send feedback"
+    }
+  ],
+  "adopt": [],
+  "zones": {
+    "topbar": [".hub-back-link", "h1", ".game-toolbar"],
+    "stagebar": [],
+    "stage": [".pasture-visual", "#gauge-section"],
+    "side": [
+      "#advance-round-button",
+      "#actions",
+      "#decoupling",
+      "#plant-pivot",
+      "#farm-extras",
+      "#policy-panel",
+      "#succession-panel",
+      "#poultry-panel",
+      "#satellite-panel"
+    ],
+    "hidden": []
+  },
+  "readouts": [
+    ["#round-display", "🔁", ""],
+    ["#funds-display", "💰", "Funds"],
+    ["#herd-display", "🐄", "Herd"],
+    ["#methane-display", "💨", "Methane"],
+    ["#coupling-display", "⚖️", "Coupling"],
+    ["#pressure-display", "📉", "Pressure"],
+    ["#score-display", "⭐", "Score"]
+  ],
+  "side_label": "Decisions",
+  "hints": [
+    ["?", "All shortcuts"],
+    ["Esc", "Menu / close window"]
+  ],
+  "notify": null
+}

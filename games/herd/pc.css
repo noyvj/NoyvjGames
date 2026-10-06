@@ -1,0 +1,95 @@
+/* Herd, Desktop boot (pc.html only). Everything is scoped to the pc layout, so the Classic page is
+   untouched. Layout: top bar, readout chips (round, funds, herd, methane, coupling, pressure, score),
+   the pasture and the coupling gauge as the stage, and the per-round decisions (Advance Round pinned
+   at the top, then Grow Herd, decoupling, pivot, extras) in a right-hand column that scrolls on its
+   own. Status detail, baseline comparison, leaderboard, about and feedback are windows opened from
+   the Menu. Windows themselves come from shared/pc-shell.css. */
+
+/* --- top bar -------------------------------------------------------------------------------- */
+#pc-topbar { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "title tools story"; padding-right: 7.5rem; }
+#pc-topbar > .game-toolbar { gap: 0.4rem; justify-content: flex-end; }
+#pc-topbar > #story-chapters { grid-area: story; margin: 0; padding: 0.35rem 0.7rem; font-size: 0.8rem; }
+#pc-topbar > #story-chapters[open] {
+  position: fixed;
+  top: 3.4rem;
+  right: 1rem;
+  z-index: 700;
+  width: min(26rem, 92vw);
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--pc-window-bg, #16151d);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+}
+html[data-theme="light"] #pc-topbar > #story-chapters[open] { background: #fbf6ec; color: #1b1710; }
+#pc-readouts { padding: 0 0.1rem; }
+.pc-readout-value { font-variant-numeric: tabular-nums; }
+
+/* --- body: stage + side --------------------------------------------------------------------- */
+#pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(20rem, 30vw, 29rem); }
+#pc-stage { overflow-y: auto; padding-right: 0.2rem; }
+#pc-stage > * { flex: 0 0 auto; margin: 0; }
+
+/* The pasture sits above the gauge; the gauge section fills the rest of the stage. */
+#pc-stage > .pasture-visual { flex: 1 1 auto; height: auto; min-height: clamp(90px, 16vh, 170px); max-height: 40vh; }
+#pc-stage > #gauge-section { flex: 0 1 auto; min-height: 0; }
+#pc-stage > #gauge-section .gauge-dial-frame { max-width: 22rem; margin: 0 auto; }
+
+/* --- side column ---------------------------------------------------------------------------- */
+#pc-side { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; padding: 0 0.3rem 3rem 0; }
+#pc-side > * { margin: 0; flex: 0 0 auto; }
+#pc-side > #advance-round-button { position: sticky; top: 0; z-index: 5; width: 100%; padding: 0.9rem; font-size: 1.05rem; }
+
+/* The classic mobile pieces have no place on the Desktop boot. */
+html[data-layout="pc"] #mobile-hud-bar, html[data-layout="pc"] .mobile-hud { display: none !important; }
+
+/* ad-bar.css reserves room for the ad strip with body padding, but this layout already leaves the strip
+   free, so the extra padding only made the body scrollable and the tutorial's scroll-into-view then
+   nudged the whole (otherwise fixed) layout upwards. */
+html[data-layout="pc"] body { padding-bottom: 0; }
+html[data-layout="pc"] .ambient-bg { overflow: hidden; }
+html[data-layout="pc"] #theme-toggle-floating { top: 0.7rem !important; bottom: auto !important; left: auto !important; right: 1rem !important; }
+
+/* --- the gauge section as a two-column board ------------------------------------------------ */
+/* Left: the dial with its readouts. Right: the real-world comparison and the methane graph. */
+#pc-stage > #gauge-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: repeat(7, min-content) minmax(0, 1fr);
+  column-gap: 1.4rem;
+  row-gap: 0.35rem;
+  align-content: start;
+  overflow-y: auto;
+  padding-bottom: 0.9rem;
+}
+#gauge-section > * { margin: 0; min-width: 0; }
+#gauge-section > .gauge-dial-frame { grid-column: 1; grid-row: 1 / span 3; align-self: center; width: 100%; max-width: 21rem; justify-self: center; }
+#gauge-section > #coupling-gauge-label { grid-column: 1; grid-row: 4; text-align: center; }
+#gauge-section > #gauge-range-display { grid-column: 1; grid-row: 5; text-align: center; }
+#gauge-section > #coupling-gauge-record-display { grid-column: 1; grid-row: 6; text-align: center; }
+#gauge-section > #real-world-comparison-display { grid-column: 2; grid-row: 1; align-self: end; }
+#gauge-section > #real-world-comparison-chart { grid-column: 2; grid-row: 2; }
+#gauge-section > #real-world-comparison-chart svg { max-height: 8.5rem; }
+#gauge-section > .info-toggle:nth-of-type(1) { grid-column: 1; grid-row: 7; justify-self: start; }
+#gauge-section > .info-toggle:nth-of-type(2) { grid-column: 1; grid-row: 8; justify-self: start; }
+#gauge-section > .meter-label { grid-column: 2; grid-row: 3; align-self: end; margin-top: 0.4rem; }
+#gauge-section > #methane-trend-graph { grid-column: 2; grid-row: 4 / span 5; }
+#gauge-section .methane-trend-graph-svg { height: clamp(60px, 14vh, 140px); }
+html[data-layout="pc"] #pc-hintbar { flex: 0 0 auto; padding-left: 8.5rem; }
+
+/* Smaller desktop windows (about 1100px wide or less): chips drop their text labels (the icon and the
+   hover title still say what each one is) so the strip stays on one row, and the side column narrows. */
+@media (max-width: 1180px) {
+  #pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) 19rem; gap: 0.6rem; }
+  .pc-readout-label { display: none; }
+  #pc-readouts { gap: 0.3rem; }
+  .pc-readout { padding-left: 0.5rem; padding-right: 0.5rem; font-size: 0.78rem; }
+}
+@media (max-height: 780px) {
+  #pc-stage > .pasture-visual { min-height: 70px; }
+}
+
+/* --- light theme ---------------------------------------------------------------------------- */
+/* The comparison chart's labels are light-on-dark by default; on the light glass they vanish. */
+html[data-theme="light"] #real-world-comparison-chart .comparison-bar-label { fill: #1b2233; }
+html[data-theme="light"] .pc-readout { color: #1b2233; }
+html[data-theme="light"] #pc-hintbar { opacity: 1; color: #2a3350; }

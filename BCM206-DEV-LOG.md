@@ -496,3 +496,8 @@ The clearest cross-cutting infra lesson from this pass: three separate games' au
 **Area:** `scripts/generate-ideas-data.py`, `ideas.html`, `ideas-data.json`, `CLAUDE.md`, `games/lexis/style.css`, `shared/tests/test_hidden_attribute_rule.py`
 **Did:** The user asked to answer the FOR-YOU items on the ideas page. The generator now also reads the open entries of `planning/FOR-YOU.md` (each `###` heading under Action items becomes an item that keeps its id such as "0d") and adds them as a first round, "For you", on the page, with the answers "Go with the recommendation / Later / Not that" plus a comment box that starts open. Mentions of the Warframe tracker are rewritten to "tracker" and any other mention drops the item, so the public data still carries no Warframe content. The page opens on that round when it is the first visit, item numbers can now be text, and answers sync to the owner account like the rest. Also gave Lexis's stylesheet the site-wide `[hidden]` rule and relaxed the all-stylesheets test to "at least 14" now that a 15th game exists.
 **Result:** 10 open entries appear; checked live that the round opens first, the buttons read correctly, the keyboard shortcut and the comment box work and the export reads "0. yes — go ahead". Shared tests 52 pass. Limit: the list is a snapshot, so re-run the generator after FOR-YOU.md changes.
+
+### 2026-10-07 (Site-wide: Herd offline cache entries)
+**Area:** `sw.js`
+**Did:** Added the Herd Desktop files to the service worker precache (worker version 20).
+**Result:** Shared tests pass.
