@@ -31,11 +31,11 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 
 **Nothing needs doing from you** except looking at each converted game when it lands and saying what feels wrong.
 
-### 0d. New game idea: a language-deduction puzzle (Chants of Sennaar style): six questions
+### 0d. Lexis (language-deduction puzzle game): decided so far, three small questions left
 
-**Why:** you asked whether a puzzle game like The Message from Deep Space or Chants of Sennaar can be built. Yes, and it fits the Python engine stack well. The plan is `planning/lexis-plan.md` (working title "Lexis"). I do not reliably know "The Message from Deep Space", so question 1 matters most.
+**Decided (you, 2026-10-06):** deduction first with the story as the pull; sci-fi; start with the three-language size and grow toward five later; a ladder from bare two-symbol pulses up to compound glyphs where every part of the symbol means something. The plan is `planning/lexis-plan.md`, with the ladder in section 6b.
 
-**Answered so far (2026-10-06):** you love the puzzle and deduction, with story as the thing that pulls you forward, and the setting is sci-fi. **Still open:** scope (how big: one language, three, or five), story weight, how generous hints are, and whether it goes ahead of the Desktop conversions. Each has a recommendation in the plan; "go with your recommendations" is fine. Nothing is built until you answer.
+**Still open (recommendations are in the plan; "go with your recommendations" is fine):** how generous hints are (recommended: in-world "ask someone to repeat it slowly", no answer-giving button), how heavy the story is (recommended: a light spine), and the title (working title is "Lexis").
 
 ### 1. Apply for Google AdSense
 

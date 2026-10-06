@@ -4,6 +4,12 @@ Status: PLAN ONLY. No `games/lexis/` folder exists. Written 2026-10-06 after the
 
 A note on references: Chants of Sennaar is known to me (you learn several invented languages by watching how their glyphs are used around you and filling in a notebook of guesses). I do not reliably know "The Message from Deep Space", so I am assuming it is about decoding an alien message by deduction. If it is something different, the answer to question 1 below matters more than anything else in this plan.
 
+## Decisions (user, 2026-10-06)
+- **Scope: start with the Recommended size (three languages), designed so it can grow to the Large size (five) later.** So the engine, the glyph system and the save format must allow more languages and districts to be added without rework.
+- **Deduction first, story as the pull, sci-fi** (see section 9).
+- **A ladder of languages, from very basic to richly compositional.** The earliest language is almost bare signal: two symbols (like binary pulses or on/off marks) where meaning comes only from pattern, length and position. Later languages build up to complicated symbols in which every part of the symbol means something (a glyph is a compound; its components can be read on their own, so the player learns to take a sign apart). This fits the premise: a message arrives as bare pulses and becomes progressively richer symbol systems as the player decodes it.
+- **Building starts now**, alongside the Desktop conversions (the user said "start"); the build follows the milestones in section 7, revised below for the ladder.
+
 ## 1. One-line pitch
 You arrive somewhere nobody will explain; learn each local language by watching what its signs are used for, then use it to get things done.
 
@@ -39,10 +45,21 @@ You arrive somewhere nobody will explain; learn each local language by watching 
 - Thin view: scene, notebook, sentence builder. Save = notebook plus progress (small JSON); no random state.
 - Same conventions as Signal: static shell first paint, engine loaded after, tests with the fake-DOM harness, hub registration by the log owner.
 
+## 6b. The language ladder (revises the districts in section 7)
+
+| Rung | Language | What it teaches | Glyph system |
+|---|---|---|---|
+| 1 | **Pulse** (the first signals) | Meaning from pattern alone: counts, repetition, pairs, a "begin/end" frame. Two symbols only. | Two marks, long and short or filled and empty; position and run length carry meaning |
+| 2 | **Compound glyphs** | Every part of a sign means something; a sign is a small sentence of components (for example a "water" part plus a "many" part). Learn the parts, then read new signs you have never seen. | Glyphs composed from a fixed set of component strokes, drawn by code; components keep their shape and position rules so a part can be recognised in a new sign |
+| 3 | **The bridge language** | Grammar markers (plural, negation, question) and borrowing from rungs 1 and 2; the puzzle that needs both earlier systems | Compound glyphs plus pulse-style number marks |
+| later (Large) | A non-decimal number language, a language with an unusual word order, a language whose glyph parts shift meaning by position | | |
+
+Every rung must be deducible from the evidence shown so far (the deducibility checker in section 4 runs on each).
+
 ## 7. Draft milestones (Recommended size)
 | # | Milestone |
 |---|---|
-| 1 | Engine core: lexicon, grammar rules for a tiny language, parser, responder, glyph strokes to SVG; 10 words, tests |
+| 1 | Engine core: language definition format that supports several languages, parser, responder, and the Pulse language (rung 1) with its first scenes and dialogue; tests |
 | 2 | Notebook UI, sentence builder, one scene and one dialogue puzzle playable |
 | 3 | Deducibility checker as a test; fix any ambiguous word it finds |
 | 4 | District 1 complete (about 40 words, numbers, one verb class) |
