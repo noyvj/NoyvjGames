@@ -1607,6 +1607,13 @@ kbd { border: 1px solid rgba(201, 147, 84, 0.5); border-radius: 4px; padding: 0 
 .real-world-source { font-size: 0.8rem; }
 .settings-row #theme-toggle { flex: 0 0 auto; padding: 0.5rem 1.3rem 0.5rem 0.8rem; }
 
+/* Site-wide: a bare `display:` rule on a class must never defeat the HTML hidden attribute
+   (playtest audit 2026-10-06, S2: Continuum, Aftermath, Drift, Champ de Mots, hub). */
+[hidden] { display: none !important; }
+
+/* Audit 2026-10-06 (S5): on phones keep the toast above the ad bar and the collapsed save widget. */
+@media (max-width: 600px) { .achievement-toast { bottom: 4.5rem; } }
+
 /* ==========================================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the common chrome (page, #game shell, .section panels, buttons,
@@ -1800,3 +1807,4 @@ html[data-theme="light"] .hamlet-town-heading { color: #7a4a12; }
 html[data-theme="light"] .hamlet-town-dim { opacity: 0.85; }
 html[data-theme="light"] .found-settlement { border-top-color: rgba(40, 55, 110, 0.25); }
 html[data-theme="light"] .legacy-display { color: #7a4a12; }
+

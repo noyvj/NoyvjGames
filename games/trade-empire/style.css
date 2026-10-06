@@ -1687,6 +1687,13 @@ button.secondary:disabled::after {
 #endgame-panel .controls { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
 #endgame-panel .controls button.secondary { width: auto; }
 
+/* Site-wide: a bare `display:` rule on a class must never defeat the HTML hidden attribute
+   (playtest audit 2026-10-06, S2: Continuum, Aftermath, Drift, Champ de Mots, hub). */
+[hidden] { display: none !important; }
+
+/* Audit 2026-10-06 (S5): on phones keep the toast above the ad bar and the collapsed save widget. */
+@media (max-width: 600px) { .achievement-toast { bottom: 4.5rem; } }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game,
@@ -1732,3 +1739,4 @@ html[data-theme="light"] .endgame-galaxy-canvas { background: #0b0d18; }
 html[data-theme="light"] .charter-branch { border-color: rgba(70, 95, 170, 0.35); }
 html[data-theme="light"] .charter-branch-title { color: #1d6f85; }
 html[data-theme="light"] .charter-ledger { color: #1b2033; }
+

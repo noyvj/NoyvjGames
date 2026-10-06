@@ -1416,6 +1416,10 @@ html[data-reduced-motion="true"] *::after {
   display: none;
 }
 
+/* Site-wide: a bare `display:` rule on a class must never defeat the HTML hidden attribute
+   (playtest audit 2026-10-06, S2: Continuum, Aftermath, Drift, Champ de Mots, hub). */
+[hidden] { display: none !important; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game, 46
@@ -1442,3 +1446,4 @@ html[data-theme="light"] .feedback-buttons .secondary.selected { color: #ffffff;
 html[data-theme="light"] .coastline-grid,
 html[data-theme="light"] .coastline-scene { border-color: rgba(70, 95, 170, 0.4); box-shadow: 0 6px 18px rgba(40, 55, 110, 0.16); }
 html[data-theme="light"] .fish-warning-banner { color: #5c3d00; }
+

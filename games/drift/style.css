@@ -1381,3 +1381,7 @@ button.primary:disabled::after {
   flex-wrap: wrap;
   gap: 0.4rem;
 }
+
+/* Site-wide: a bare `display:` rule on a class must never defeat the HTML hidden attribute
+   (playtest audit 2026-10-06, S2: Continuum, Aftermath, Drift, Champ de Mots, hub). */
+[hidden] { display: none !important; }

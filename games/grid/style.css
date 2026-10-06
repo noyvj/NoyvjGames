@@ -1654,3 +1654,7 @@ html[data-reduced-motion="true"] *::after {
 .shadow-table { display: grid; gap: 0.2rem; margin: 0.4rem 0; }
 .shadow-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 0.4rem; font-size: 0.8rem; }
 .shadow-row--head { font-weight: 600; }
+
+/* Site-wide: a bare `display:` rule on a class must never defeat the HTML hidden attribute
+   (playtest audit 2026-10-06, S2: Continuum, Aftermath, Drift, Champ de Mots, hub). */
+[hidden] { display: none !important; }

@@ -101,8 +101,8 @@
       #opening-screen .opening-continue-note:empty { display: none; }
       #opening-screen .opening-style-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.6rem; }
       #opening-screen .opening-style-buttons button[aria-pressed="true"] { border-color: #a9c3ff; background: rgba(140, 160, 255, 0.3); }
-      #opening-screen .opening-row { display: flex; gap: 0.5rem; }
-      #opening-screen .opening-row > * { flex: 1 1 0; }
+      #opening-screen .opening-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+      #opening-screen .opening-row > * { flex: 1 1 8rem; min-width: 0; overflow-wrap: anywhere; }
       #opening-screen .opening-back { font-size: 0.85rem; opacity: 0.7; margin-top: 0.4rem; }
       #opening-screen [hidden] { display: none; }
     `;

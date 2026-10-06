@@ -1280,10 +1280,18 @@ let deferredInstallPrompt = null;
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();
   deferredInstallPrompt = event;
-  if (pwaInstallBanner && !localStorage.getItem(PWA_INSTALL_DISMISSED_KEY)) {
-    pwaInstallBanner.hidden = false;
-  }
+  showInstallBannerIfAllowed();
 });
+
+// Playtest audit 2026-10-06 (S7): on a first visit this banner used to stack
+// with the onboarding survey modal. It now waits until the survey is closed
+// (the survey's own close handler calls this again).
+function showInstallBannerIfAllowed() {
+  if (!pwaInstallBanner || !deferredInstallPrompt) return;
+  if (localStorage.getItem(PWA_INSTALL_DISMISSED_KEY)) return;
+  if (document.getElementById("onboarding-survey-overlay")) return;
+  pwaInstallBanner.hidden = false;
+}
 
 window.addEventListener("appinstalled", () => {
   deferredInstallPrompt = null;
@@ -1728,6 +1736,7 @@ function buildOnboardingSurvey(onClose) {
     lsSet(ONBOARDING_SEEN_KEY, "1");
     overlay.remove();
     document.removeEventListener("keydown", onKeydown);
+    showInstallBannerIfAllowed();
     if (typeof onClose === "function") onClose();
   }
   function onKeydown(e) {

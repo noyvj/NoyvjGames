@@ -1682,3 +1682,10 @@ html[data-reduced-motion="true"] .rich-flow .rf-dash { animation: none; display:
   .rich-map-note--narrow { display: block; }
   .rich-map-panel .rich-map-body { display: none; }
 }
+
+/* Site-wide: a bare `display:` rule on a class must never defeat the HTML hidden attribute
+   (playtest audit 2026-10-06, S2: Continuum, Aftermath, Drift, Champ de Mots, hub). */
+[hidden] { display: none !important; }
+
+/* Audit 2026-10-06 (S11): the "Got it" dismiss was a 52x21px tap target. */
+#regional-hint-dismiss-button { min-height: 32px; padding: 0.3rem 0.9rem; }

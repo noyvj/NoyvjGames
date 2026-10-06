@@ -1517,3 +1517,7 @@ button:disabled {
 .deepdive-heading { font-weight: 600; font-size: 0.82rem; margin: 0.5rem 0 0.15rem; opacity: 0.8; }
 .deepdive-example, .deepdive-confusions { margin: 0.1rem 0; font-size: 0.88rem; }
 .deepdive-status { margin: 0.6rem 0 0; font-size: 0.78rem; opacity: 0.8; }
+
+/* Site-wide: a bare `display:` rule on a class must never defeat the HTML hidden attribute
+   (playtest audit 2026-10-06, S2: Continuum, Aftermath, Drift, Champ de Mots, hub). */
+[hidden] { display: none !important; }

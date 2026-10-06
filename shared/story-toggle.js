@@ -48,7 +48,10 @@
 
   function apply() {
     document.documentElement.setAttribute("data-story-text", on ? "on" : "off");
-    button.textContent = on ? "📖 Story: on" : "📖 Story: off";
+    // Icon-only on phones (audit 2026-10-06, S8); the full label stays in aria-label.
+    const compact = window.matchMedia && window.matchMedia("(max-width: 600px)").matches;
+    button.textContent = compact ? "📖" : (on ? "📖 Story: on" : "📖 Story: off");
+    button.setAttribute("aria-label", on ? "Story text: on" : "Story text: off");
     button.setAttribute("aria-pressed", String(on));
   }
   button.addEventListener("click", () => {

@@ -138,7 +138,8 @@
         font-weight: 600;
         font-size: 0.8rem;
         cursor: pointer;
-        padding: 0;
+        padding: 4px 0;
+        min-height: 28px;
         width: 100%;
         display: flex;
         align-items: center;
@@ -157,6 +158,7 @@
       }
       #save-widget.collapsed .save-widget-toggle-arrow { transform: rotate(-90deg); }
       #save-widget.collapsed .save-widget-body { display: none; }
+      #save-widget.collapsed { width: auto; padding: 4px 10px; }
       #save-widget button {
         width: 100%;
         font-size: 0.78rem;
@@ -281,6 +283,20 @@
   toggleButton.addEventListener("click", () => {
     root.classList.toggle("collapsed");
     syncToggleState();
+  });
+  // Playtest audit 2026-10-06 (S1): expanded by default, the widget covers
+  // the bottom-right ~200x230px of a phone screen, hiding primary game
+  // buttons. Below 600px wide it now starts collapsed unless the player has
+  // already chosen otherwise; the choice is remembered per browser.
+  const COLLAPSE_PREF_KEY = "save-widget-collapsed";
+  try {
+    const pref = localStorage.getItem(COLLAPSE_PREF_KEY);
+    const narrow = window.matchMedia && window.matchMedia("(max-width: 600px)").matches;
+    if (pref === "true" || (pref === null && narrow)) root.classList.add("collapsed");
+  } catch (e) { /* convenience only */ }
+  toggleButton.addEventListener("click", () => {
+    try { localStorage.setItem(COLLAPSE_PREF_KEY, String(root.classList.contains("collapsed"))); }
+    catch (e) { /* convenience only */ }
   });
   syncToggleState();
 
@@ -719,7 +735,7 @@
     saveButton.disabled = true;
     saveButton.textContent = "Saving...";
     const ok = await doSave(() => (statusEl.textContent = "Saving... (retrying)"));
-    statusEl.textContent = ok === null ? "" : ok ? "Saved!" : "Save failed — try again.";
+    statusEl.textContent = ok === null ? "" : ok ? `Saved at ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "Save failed — try again.";
     saveButton.disabled = false;
     saveButton.textContent = "Save Progress";
   });
@@ -822,7 +838,9 @@
       statusEl.textContent = "Loaded!";
     } catch (err) {
       console.error(`${GAME_ID} save-widget: load failed for code ${code}`, err);
-      statusEl.textContent = "Load failed — check the code and try again.";
+      statusEl.textContent = navigator.onLine === false
+        ? "Load failed — you appear to be offline."
+        : "Load failed — check the code (format XXXX-XXXX) and try again.";
     } finally {
       loadButton.disabled = false;
       loadButton.textContent = "Load";

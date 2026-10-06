@@ -1118,3 +1118,7 @@ html[data-reduced-motion="true"] *::after {
   flex: 1 1 6rem;
   font-size: 0.8rem;
 }
+
+/* Site-wide: a bare `display:` rule on a class must never defeat the HTML hidden attribute
+   (playtest audit 2026-10-06, S2: Continuum, Aftermath, Drift, Champ de Mots, hub). */
+[hidden] { display: none !important; }

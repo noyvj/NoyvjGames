@@ -1867,6 +1867,14 @@ html[data-season="winter"] .ambient-bg { filter: hue-rotate(35deg) saturate(0.55
   .plot-chain-bloom .leaf-burst { animation: none; opacity: 0; }
 }
 
+/* Site-wide: a bare `display:` rule on a class must never defeat the HTML hidden attribute
+   (playtest audit 2026-10-06, S2: Continuum, Aftermath, Drift, Champ de Mots, hub). */
+[hidden] { display: none !important; }
+
+/* Audit 2026-10-06 (S4): five action tiles no longer squeeze into one no-wrap row on phones. */
+.action-buttons { flex-wrap: wrap; }
+.action-buttons button.secondary { flex: 1 1 4rem; min-width: 0; overflow-wrap: anywhere; }
+
 /* ============================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the shared chrome (panels, buttons, inputs, HUD readouts);
@@ -2020,3 +2028,4 @@ html[data-theme="light"] .almanac-item--found {
   background: linear-gradient(135deg, #e2f4e3, #f4fbf4);
 }
 html[data-theme="light"] .almanac-silhouette { filter: brightness(0) opacity(0.7); }
+

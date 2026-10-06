@@ -1263,3 +1263,7 @@ html[data-reduced-motion="true"] *::after {
 .farm-extras > summary { cursor: pointer; font-size: 0.9rem; opacity: 0.9; }
 .farm-extras button { margin: 0.25rem 0.25rem 0.25rem 0; }
 #poultry-panel .invest-row::before { content: "🐔"; }
+
+/* Site-wide: a bare `display:` rule on a class must never defeat the HTML hidden attribute
+   (playtest audit 2026-10-06, S2: Continuum, Aftermath, Drift, Champ de Mots, hub). */
+[hidden] { display: none !important; }

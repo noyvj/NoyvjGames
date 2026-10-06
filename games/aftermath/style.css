@@ -1501,6 +1501,10 @@ html[data-reduced-motion="true"] *::after {
 /* E19: the resilience curriculum line. */
 .curriculum-display { border-left: 3px solid #c99354; padding-left: 0.6rem; }
 
+/* Site-wide: a bare `display:` rule on a class must never defeat the HTML hidden attribute
+   (playtest audit 2026-10-06, S2: Continuum, Aftermath, Drift, Champ de Mots, hub). */
+[hidden] { display: none !important; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme. Dark is
@@ -1541,3 +1545,4 @@ html[data-theme="light"] .event-category--social { color: #6d2f8c; text-shadow: 
 html[data-theme="light"] .past-run-event { opacity: 1; }
 html[data-theme="light"] .severity--mild { opacity: 0.85; }
 html[data-theme="light"] .feedback-buttons .secondary.selected { color: #ffffff; }
+

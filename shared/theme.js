@@ -27,7 +27,15 @@
 
   function refreshToggles() {
     document.querySelectorAll("#theme-toggle, .theme-toggle").forEach((el) => {
-      el.textContent = current === "light" ? "🌙 Dark mode" : "☀️ Light mode";
+      const label = current === "light" ? "🌙 Dark mode" : "☀️ Light mode";
+      // Playtest audit 2026-10-06 (S8): the floating games pill covers game
+      // text on phones, so below 600px it shows just the icon (full label kept
+      // for screen readers and as a tooltip).
+      const compact = el.id === "theme-toggle-floating" && window.matchMedia
+        && window.matchMedia("(max-width: 600px)").matches;
+      el.textContent = compact ? label.split(" ")[0] : label;
+      el.setAttribute("aria-label", label.replace(/^\S+\s/, "Switch to "));
+      el.title = label.replace(/^\S+\s/, "Switch to ");
       el.setAttribute("aria-pressed", String(current === "light"));
     });
   }
