@@ -1,0 +1,72 @@
+{
+  "windows": [
+    ["howto-panel", "howto-toggle-button", "How to Play"],
+    ["achievements-panel", "achievements-toggle-button", "Achievements"],
+    ["changelog-panel", "changelog-toggle-button", "What's New"],
+    ["summary-panel", "summary-toggle-button", "Summary"],
+    ["charter-panel", "charter-toggle-button", "Charter"],
+    ["settings-panel", "settings-toggle-button", "Settings"]
+  ],
+  "toolbar": {
+    "icons": [
+      ["achievements-toggle-button", "🏆"],
+      ["summary-toggle-button", "📊"],
+      ["charter-toggle-button", "📜"],
+      ["settings-toggle-button", "⚙️"]
+    ],
+    "menu": [
+      {"heading": "Empire", "ids": []},
+      {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button"]},
+      {"heading": "Records", "ids": ["changelog-toggle-button"]}
+    ]
+  },
+  "composites": [
+    {
+      "id": "pc-colonies-panel",
+      "title": "Colonies",
+      "members": ["#colonies-panel"],
+      "group": "Empire",
+      "label": "🪐 Colonies"
+    },
+    {
+      "id": "pc-market-panel",
+      "title": "Market, stockpiles and trade posts",
+      "members": ["#market-panel"],
+      "group": "Empire",
+      "label": "📈 Market and stockpiles"
+    },
+    {
+      "id": "pc-research-panel",
+      "title": "Research",
+      "members": ["#research-panel"],
+      "group": "Empire",
+      "label": "🔬 Research"
+    },
+    {
+      "id": "pc-about-panel",
+      "title": "About Trade Empire",
+      "members": [".tagline", ".context-blurb"],
+      "group": "Help",
+      "label": "🌍 About and story"
+    }
+  ],
+  "adopt": [],
+  "zones": {
+    "topbar": [".hub-back-link", "h1", ".game-toolbar"],
+    "stagebar": ["#fleet-priority-panel", "#guild-panel"],
+    "stage": ["#map-panel", "#mobile-needs-strip", "#ledger"],
+    "side": ["#ship-1-panel", "#ship-2-panel", "#ship-3-panel", "#ship-4-panel", "#ship-5-panel", "#ship-6-panel", "#endgame-panel"],
+    "hidden": ["#profit-display", "#automation-slots-display"]
+  },
+  "readouts": [
+    ["#profit-display", "💰", "Profit"],
+    ["#automation-slots-display", "🤖", "Automation"],
+    ["#research-points-display", "🔬", "Research"]
+  ],
+  "side_label": "Your fleet: load, depart and automate ships",
+  "hints": [
+    ["?", "All shortcuts"],
+    ["Esc", "Menu / close window"]
+  ],
+  "notify": null
+}

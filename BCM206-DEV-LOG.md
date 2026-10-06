@@ -526,3 +526,8 @@ The clearest cross-cutting infra lesson from this pass: three separate games' au
 **Area:** `sw.js`
 **Did:** Added the Signal Desktop files to the service worker precache (worker version 25).
 **Result:** Shared tests pass except the Le Champ de Mots checks, which wait for that agent.
+
+### 2026-10-07 (Site-wide: Trade Empire offline cache entries)
+**Area:** `sw.js`
+**Did:** Added the Trade Empire Desktop files to the service worker precache (worker version 26).
+**Result:** Shared tests pass (108).
