@@ -14,6 +14,12 @@ def _norm(text):
     return " ".join(str(text).lower().split())
 
 
+def is_message(value):
+    """A spoken Bridge message as stored: short, letters, digits and single spaces only."""
+    text = str(value)
+    return 0 < len(text) <= 60 and all(c.isalnum() or c == " " for c in text)
+
+
 @dataclass
 class Notebook:
     entries: dict = field(default_factory=dict)   # form -> the player's gloss
@@ -65,8 +71,12 @@ class LexisState:
     compound_notebook: Notebook = field(default_factory=Notebook)
     compound_scenes_seen: int = 0
     compound_spoken: list = field(default_factory=list)
+    # Rung 3 (the Bridge language): its own notebook (by marker letter p/n/q), scenes seen and spoken messages.
+    bridge_notebook: Notebook = field(default_factory=Notebook)
+    bridge_scenes_seen: int = 0
+    bridge_spoken: list = field(default_factory=list)   # whole messages, e.g. "ku p 0011"
     # Which planets the player has made contact with (the goal for each is in game.py).
-    contact: dict = field(default_factory=lambda: {"pulse": False, "compound": False})
+    contact: dict = field(default_factory=lambda: {"pulse": False, "compound": False, "bridge": False})
     # Small one-way facts achievements need ("a Check where every ticked entry was right", "a signal the
     # world could not understand"). Only ever set to True.
     flags: dict = field(default_factory=dict)
@@ -75,10 +85,12 @@ class LexisState:
         self.scenes_seen = min(self.scenes_seen + 1, total)
 
     def to_dict(self):
-        return {"version": 2, "notebook": self.notebook.to_dict(), "scenes_seen": self.scenes_seen,
+        return {"version": 3, "notebook": self.notebook.to_dict(), "scenes_seen": self.scenes_seen,
                 "spoken": list(self.spoken)[-200:],
                 "compound": {"notebook": self.compound_notebook.to_dict(), "scenes_seen": self.compound_scenes_seen,
                              "spoken": list(self.compound_spoken)[-200:]},
+                "bridge": {"notebook": self.bridge_notebook.to_dict(), "scenes_seen": self.bridge_scenes_seen,
+                           "spoken": list(self.bridge_spoken)[-200:]},
                 "contact": dict(self.contact), "flags": {k: True for k, v in self.flags.items() if v}}
 
     @staticmethod
@@ -90,7 +102,12 @@ class LexisState:
         state.compound_notebook = Notebook.from_dict(comp.get("notebook"))
         state.compound_scenes_seen = max(0, int(comp.get("scenes_seen", 0)))
         state.compound_spoken = [str(s) for s in comp.get("spoken", []) if str(s).isalpha()][-200:]
+        bridge = data.get("bridge") or {}
+        state.bridge_notebook = Notebook.from_dict(bridge.get("notebook"))
+        state.bridge_scenes_seen = max(0, int(bridge.get("scenes_seen", 0)))
+        state.bridge_spoken = [str(s) for s in bridge.get("spoken", []) if is_message(s)][-200:]
         contact = data.get("contact") or {}
-        state.contact = {"pulse": bool(contact.get("pulse")), "compound": bool(contact.get("compound"))}
+        state.contact = {"pulse": bool(contact.get("pulse")), "compound": bool(contact.get("compound")),
+                         "bridge": bool(contact.get("bridge"))}
         state.flags = {str(k): True for k, v in (data.get("flags") or {}).items() if v}
         return state

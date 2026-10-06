@@ -44,3 +44,18 @@ def test_scenes_seen_never_exceeds_the_total():
     for _ in range(20):
         state.see_next_scene(6)
     assert state.scenes_seen == 6
+
+
+def test_state_round_trips_planet_three_and_old_saves_still_load():
+    state = LexisState()
+    state.bridge_notebook.write("p", "plural")
+    state.bridge_scenes_seen = 3
+    state.bridge_spoken = ["ku p 0011", "ku q"]
+    state.contact["bridge"] = True
+    data = state.to_dict()
+    assert data["version"] == 3 and data["bridge"]["notebook"] == {"entries": {"p": "plural"}}
+    assert LexisState.from_dict(data).to_dict() == data
+    old = LexisState.from_dict({"version": 2, "contact": {"pulse": True, "compound": True}})
+    assert old.contact == {"pulse": True, "compound": True, "bridge": False} and old.bridge_spoken == []
+    junk = LexisState.from_dict({"bridge": {"scenes_seen": -2, "spoken": ["ku p 0011", "<b>", 5, "x" * 99]}})
+    assert junk.bridge_scenes_seen == 0 and junk.bridge_spoken == ["ku p 0011", "5"]

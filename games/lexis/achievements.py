@@ -3,6 +3,7 @@
 loaded save and a played one can never disagree. All are reachable without luck and none is hidden
 (easy to 100%)."""
 
+from bridge import MARKERS
 from compound import COMPONENTS
 
 ACHIEVEMENTS = (
@@ -16,6 +17,8 @@ ACHIEVEMENTS = (
     ("second_contact", "Second Contact", "Make contact with planet 2."),
     ("full_glossary", "Full Glossary", "Have every part of planet 2's signs written down correctly."),
     ("patient_listener", "Patient Listener", "Receive every transmission on both planets."),
+    ("third_contact", "Third Contact", "Make contact with planet 3."),
+    ("markers_known", "Small Signs", "Have all three of planet 3's small signs written down correctly."),
 )
 
 SCENES_PULSE = 6
@@ -26,7 +29,7 @@ SHOWN_GLYPHS = {"ko", "mo", "mu", "to"}
 def earned(state, station, tray):
     """The ids earned right now, in manifest order."""
     got = set()
-    if state.spoken or state.compound_spoken:
+    if state.spoken or state.compound_spoken or state.bridge_spoken:
         if state.flags.get("understood"):
             got.add("first_signal")
     if station.lamps == 7 or state.flags.get("all_lamps"):
@@ -45,6 +48,10 @@ def earned(state, station, tray):
         got.add("second_contact")
     if all(state.compound_notebook.entries.get(code) == meaning for code, (meaning, _s) in COMPONENTS.items()):
         got.add("full_glossary")
+    if state.contact.get("bridge"):
+        got.add("third_contact")
+    if all(state.bridge_notebook.entries.get(letter) == role for letter, role in MARKERS.items()):
+        got.add("markers_known")
     if state.scenes_seen >= SCENES_PULSE and state.compound_scenes_seen >= SCENES_COMPOUND:
         got.add("patient_listener")
     return [a[0] for a in ACHIEVEMENTS if a[0] in got]

@@ -48,3 +48,18 @@ def test_the_station_never_relies_on_colour_alone():
     assert ".lamp.lit" in css and "border: 2px solid" in css and "dashed" in css     # lit vs unlit differ by outline style
     assert ".door.open" in css and ".door.shut" in css
     assert "Door: " in APP and "lamps lit" in APP                                  # and by text
+
+
+def test_planet_three_panel_and_tab_exist_and_the_crew_request_is_exact():
+    for needle in ('id="tab-bridge"', 'id="planet-bridge"', 'id="b-stock"', 'id="b-scene-list"', 'id="b-notebook-list"',
+                   'id="b-outgoing"', 'id="b-noun-buttons"', 'id="b-marker-buttons"', 'id="b-number-buttons"',
+                   'id="b-send-button"', 'id="b-reaction"'):
+        assert needle in HTML, needle
+    from game import _bridge_view
+    assert _bridge_view()["goal"] == "Leave exactly five big fire on the counter, and ask the station how many there are."
+
+
+def test_planet_three_cues_are_not_colour_only():
+    css = (GAME_DIR / "style.css").read_text(encoding="utf-8")
+    assert ".stock-chip" in css and ".stock-count" in css           # a chip is a label plus a number, not a colour
+    assert "stock-count" in APP and "reply" in APP and "marker" in APP

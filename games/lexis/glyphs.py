@@ -9,6 +9,7 @@ resemblance would hand the player the answer and the point of this rung is deduc
 no two components look alike.
 """
 
+from bridge import MARKERS
 from compound import COMPONENTS
 
 BOX = 24
@@ -21,6 +22,14 @@ COMPONENT_PATHS = {
     "u": "M4 18 L20 18 M12 4 L12 14 M9 21 L15 21",         # a long base with a stem
 }
 
+# Rung 3's three marker letters: small signs that follow a noun. Like the components they are abstract (a
+# triangle, a wave, a diamond) and none suggests "more", "none" or "how many".
+MARKER_PATHS = {
+    "p": "M4 20 L12 4 L20 20 Z",                              # a triangle
+    "n": "M3 12 C3 5 10 5 12 12 C14 19 21 19 21 12",          # a wave
+    "q": "M12 3 L21 12 L12 21 L3 12 Z",                       # a diamond
+}
+
 
 def glyph_paths(glyph):
     """The component paths of a glyph, in reading order, each with its box offset (0 for the first part)."""
@@ -29,3 +38,12 @@ def glyph_paths(glyph):
 
 def covered_components():
     return set(COMPONENT_PATHS) == set(COMPONENTS)
+
+
+def covered_markers():
+    return set(MARKER_PATHS) == set(MARKERS)
+
+
+def all_paths():
+    """Everything the view can draw, keyed by its letter (components and markers never share a letter)."""
+    return {**COMPONENT_PATHS, **MARKER_PATHS}

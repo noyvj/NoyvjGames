@@ -25,6 +25,7 @@
   <nav id="planet-tabs" class="planet-tabs" aria-label="Planets">
     <button id="tab-pulse" type="button" aria-pressed="true">Planet 1</button>
     <button id="tab-compound" type="button" aria-pressed="false" disabled>Planet 2 (not in range yet)</button>
+    <button id="tab-bridge" type="button" aria-pressed="false" disabled>Planet 3 (not in range yet)</button>
   </nav>
   <p id="goal-line" class="note goal" aria-live="polite"></p>
 
@@ -102,6 +103,46 @@
         <button id="c-send-button" type="button" class="primary">Send</button>
       </div>
       <p id="c-reaction" class="reaction" aria-live="polite"></p>
+    </section>
+  </div>
+
+  <div id="planet-bridge" hidden>
+    <section class="panel" aria-labelledby="b-counter-heading">
+      <h2 id="b-counter-heading">Planet 3: the counting station</h2>
+      <p class="note">A counter shows how many of each thing the station holds. Signs here are nouns you know, numbers you know, and small new signs that change what a message means.</p>
+      <div id="b-stock" class="tray" aria-live="polite"></div>
+      <p id="b-stock-text" class="station-text"></p>
+    </section>
+    <section class="panel" aria-labelledby="b-tx-heading">
+      <h2 id="b-tx-heading">Received transmissions</h2>
+      <p class="note">A transmission is a thing, sometimes a small sign after it, and sometimes a number. Watch the counter and listen to what the station says.</p>
+      <ol id="b-scene-list" class="scene-list"></ol>
+      <button id="b-next-scene-button" type="button" class="primary">Receive next transmission</button>
+      <p id="b-scene-status" class="note" aria-live="polite"></p>
+    </section>
+    <section class="panel" aria-labelledby="b-nb-heading">
+      <h2 id="b-nb-heading">Notebook</h2>
+      <p class="note">Write what you think each small sign does to a message. Nothing is marked; Check says how many ticked entries are right, not which.</p>
+      <ul id="b-notebook-list" class="notebook-list"></ul>
+      <button id="b-check-button" type="button">Check ticked entries</button>
+      <p id="b-check-result" class="note" aria-live="polite"></p>
+    </section>
+    <section class="panel" aria-labelledby="b-send-heading">
+      <h2 id="b-send-heading">Transmit</h2>
+      <p class="note">Build a message in order: a thing, then a small sign if you want one, then a number if the message needs one. Then send it.</p>
+      <div id="b-outgoing" class="signal" aria-label="Your message" aria-live="polite"></div>
+      <p class="note">Things</p>
+      <div id="b-noun-buttons" class="token-buttons" aria-label="Things you can name"></div>
+      <p class="note">Small signs you have seen</p>
+      <div id="b-marker-buttons" class="token-buttons" aria-label="Small signs you have seen"></div>
+      <p class="note">Numbers</p>
+      <div id="b-number-buttons" class="token-buttons" aria-label="Numbers"></div>
+      <div class="builder">
+        <button id="b-back-button" type="button">Back</button>
+        <button id="b-clear-button" type="button">Clear</button>
+        <button id="b-send-button" type="button" class="primary">Send</button>
+      </div>
+      <p id="b-reaction" class="reaction" aria-live="polite"></p>
     </section>
   </div>
 

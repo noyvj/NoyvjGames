@@ -14,6 +14,8 @@
   var currentPlanet = "pulse";
   var outgoing = "";
   var outgoingGlyph = "";
+  var outgoingMessage = [];   // planet 3: the tokens of the message being built
+  var MAX_MESSAGE = 6;
 
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* convenience only */ } }
@@ -158,20 +160,25 @@
     });
   }
 
+  function tabLabel(n, info) {
+    return "Planet " + n + (info.unlocked ? (info.contact ? " (contact made)" : "") : " (not in range yet)");
+  }
+
   function renderTabs() {
     var planets = view.planets;
     planetsInfo = planets;
-    var two = $("tab-compound");
-    two.disabled = !planets.compound.unlocked;
-    two.textContent = planets.compound.unlocked ? "Planet 2" + (planets.compound.contact ? " (contact made)" : "") : "Planet 2 (not in range yet)";
-    $("tab-pulse").textContent = "Planet 1" + (planets.pulse.contact ? " (contact made)" : "");
-    $("tab-pulse").setAttribute("aria-pressed", String(currentPlanet === "pulse"));
-    two.setAttribute("aria-pressed", String(currentPlanet === "compound"));
-    $("planet-pulse").hidden = currentPlanet !== "pulse";
-    $("planet-compound").hidden = currentPlanet !== "compound";
+    var tabs = { pulse: $("tab-pulse"), compound: $("tab-compound"), bridge: $("tab-bridge") };
+    ["pulse", "compound", "bridge"].forEach(function (id, index) {
+      tabs[id].disabled = !planets[id].unlocked;
+      tabs[id].textContent = tabLabel(index + 1, planets[id]);
+      tabs[id].setAttribute("aria-pressed", String(currentPlanet === id));
+      $("planet-" + id).hidden = currentPlanet !== id;
+    });
     var goal = view.goal || "";
     var done = planets[currentPlanet].contact;
-    $("goal-line").textContent = done ? "Contact made. The crew has what it needs from this planet." : "Crew request: " + goal;
+    var line = done ? "Contact made. The crew has what it needs from this planet." : "Crew request: " + goal;
+    if (done && currentPlanet === "bridge") line += " There are no further planets in range yet.";
+    $("goal-line").textContent = line;
   }
 
   // ---- planet 2: the compound language ---------------------------------------------------------
@@ -279,6 +286,149 @@
     });
   }
 
+  // ---- planet 3: the bridge language ------------------------------------------------------------
+  var NUMBER_TOKEN = /^0[01]{3}$/;
+  function markerNode(letter) {
+    var span = document.createElement("span");
+    span.className = "glyph marker";
+    span.setAttribute("role", "img");
+    span.setAttribute("aria-label", "a small sign");
+    span.appendChild(partSvg(letter));
+    return span;
+  }
+  // One token of a message: a noun (two-part sign), a small sign (marker), or a number (pulses).
+  function tokenOfMessage(token) {
+    if (NUMBER_TOKEN.test(token)) return tokenNode(token);
+    if (token.length === 1 && (view.components || {})[token] && "pnq".indexOf(token) !== -1) return markerNode(token);
+    if ((view.components || {})[token[0]] !== undefined) return glyphNode(token);
+    var other = document.createElement("span");
+    other.textContent = token;
+    return other;
+  }
+  function messageNode(tokens) {
+    var wrap = document.createElement("span");
+    wrap.className = "message";
+    tokens.forEach(function (token) { wrap.appendChild(tokenOfMessage(token)); });
+    return wrap;
+  }
+  function stockDiff(before, after) {
+    var was = {}, now = {}, changes = [];
+    before.items.forEach(function (i) { was[i.label] = i.count; });
+    after.items.forEach(function (i) { now[i.label] = i.count; });
+    Object.keys(now).concat(Object.keys(was).filter(function (l) { return !(l in now); })).forEach(function (label) {
+      var from = was[label] || 0, to = now[label] || 0;
+      if (from !== to) changes.push(label + ": " + from + " → " + to);
+    });
+    return changes.length ? changes.join("; ") : "no change";
+  }
+  function addToMessage(token) {
+    if (outgoingMessage.length >= MAX_MESSAGE) return;
+    outgoingMessage.push(token);
+    renderBridge();
+  }
+  function bridgeButton(holder, node, label, token) {
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.appendChild(node);
+    btn.setAttribute("aria-label", label);
+    btn.addEventListener("click", function () { addToMessage(token); });
+    holder.appendChild(btn);
+  }
+
+  function renderBridge() {
+    var stock = $("b-stock");
+    stock.textContent = "";
+    view.stock.forEach(function (item) {
+      var chip = document.createElement("span");
+      chip.className = "stock-chip";
+      var name = document.createElement("span");
+      name.textContent = item.label;
+      var count = document.createElement("span");
+      count.className = "stock-count";
+      count.textContent = "× " + item.count;
+      chip.appendChild(name);
+      chip.appendChild(count);
+      stock.appendChild(chip);
+    });
+    if (!view.stock.length) stock.textContent = "Empty.";
+    $("b-stock-text").textContent = view.stock_text;
+
+    var list = $("b-scene-list");
+    list.textContent = "";
+    view.scenes.forEach(function (scene, index) {
+      var li = document.createElement("li");
+      li.className = "scene";
+      var head = document.createElement("div");
+      var label = document.createElement("strong");
+      label.textContent = "Transmission " + (index + 1) + " ";
+      head.appendChild(label);
+      head.appendChild(messageNode(scene.message.split(" ")));
+      var what = document.createElement("div");
+      what.className = "what";
+      what.innerHTML = "The counter: <b></b>";
+      what.querySelector("b").textContent = stockDiff(scene.before, scene.after);
+      li.appendChild(head);
+      li.appendChild(what);
+      if (scene.reply) {
+        var said = document.createElement("div");
+        said.className = "reply";
+        said.textContent = "The station says: " + scene.reply;
+        li.appendChild(said);
+      }
+      list.appendChild(li);
+    });
+    $("b-next-scene-button").disabled = view.scenes.length >= view.scenes_total;
+    var status = view.scenes.length + " of " + view.scenes_total + " received.";
+    if (view.settled) status += " You have seen enough to work out every small sign. Try one on a thing you were never shown it with.";
+    $("b-scene-status").textContent = status;
+
+    var nb = $("b-notebook-list");
+    var keep = {};
+    nb.querySelectorAll("input[type=checkbox]").forEach(function (box) { if (box.checked) keep[box.dataset.token] = true; });
+    nb.textContent = "";
+    view.markers.forEach(function (letter) {
+      var li = document.createElement("li");
+      var box = document.createElement("input");
+      box.type = "checkbox";
+      box.dataset.token = letter;
+      box.checked = Boolean(keep[letter]);
+      box.setAttribute("aria-label", "Include this small sign in the check");
+      var input = document.createElement("input");
+      input.type = "text";
+      input.value = view.notebook[letter] || "";
+      input.placeholder = "what does this sign do?";
+      input.setAttribute("aria-label", "Your guess for this small sign");
+      input.addEventListener("change", function () { send({ action: "write", form: letter, gloss: input.value }); });
+      li.appendChild(box);
+      li.appendChild(markerNode(letter));
+      li.appendChild(input);
+      nb.appendChild(li);
+    });
+    if (!view.markers.length) {
+      var empty = document.createElement("li");
+      empty.className = "note";
+      empty.textContent = "Receive a transmission and any small signs in it will appear here.";
+      nb.appendChild(empty);
+    }
+
+    var out = $("b-outgoing");
+    out.textContent = "";
+    if (outgoingMessage.length) out.appendChild(messageNode(outgoingMessage)); else out.textContent = "Nothing yet.";
+    $("b-send-button").disabled = !outgoingMessage.length;
+    $("b-back-button").disabled = !outgoingMessage.length;
+    $("b-clear-button").disabled = !outgoingMessage.length;
+    var nouns = $("b-noun-buttons");
+    nouns.textContent = "";
+    view.nouns.forEach(function (glyph) { bridgeButton(nouns, glyphNode(glyph), "Add this thing to your message", glyph); });
+    var markers = $("b-marker-buttons");
+    markers.textContent = "";
+    view.markers.forEach(function (letter) { bridgeButton(markers, markerNode(letter), "Add this small sign to your message", letter); });
+    if (!view.markers.length) markers.textContent = "None yet.";
+    var numbers = $("b-number-buttons");
+    numbers.textContent = "";
+    view.numbers.forEach(function (token) { bridgeButton(numbers, tokenNode(token), "Add the number " + describeMarks(token), token); });
+  }
+
   var knownEarned = null;
   function renderAchievements() {
     var list = $("achievements-list");
@@ -315,6 +465,7 @@
   function render() {
     renderAchievements();
     renderTabs();
+    if (currentPlanet === "bridge") { renderBridge(); return; }
     if (currentPlanet === "compound") { renderCompound(); return; }
     renderStation();
     renderScenes();
@@ -371,6 +522,28 @@
     });
   }
 
+  function wireBridge() {
+    $("tab-bridge").addEventListener("click", function () { currentPlanet = "bridge"; send({ action: "open" }); });
+    $("b-next-scene-button").addEventListener("click", function () { send({ action: "next_scene" }); });
+    $("b-back-button").addEventListener("click", function () { outgoingMessage.pop(); renderBridge(); });
+    $("b-clear-button").addEventListener("click", function () { outgoingMessage = []; renderBridge(); });
+    $("b-send-button").addEventListener("click", function () {
+      if (!outgoingMessage.length) return;
+      var result = send({ action: "speak", message: outgoingMessage.join(" ") });
+      if (result && result.reaction) $("b-reaction").textContent = (result.reaction.reply ? "The station says: " : "") + result.reaction.text;
+      outgoingMessage = [];
+      renderBridge();
+    });
+    $("b-check-button").addEventListener("click", function () {
+      var forms = [];
+      $("b-notebook-list").querySelectorAll("input[type=checkbox]").forEach(function (box) { if (box.checked) forms.push(box.dataset.token); });
+      var out = $("b-check-result");
+      if (!forms.length) { out.textContent = "Tick some entries first."; return; }
+      var result = send({ action: "confirm", forms: forms });
+      out.textContent = result ? result.right + " of the " + result.chosen + " ticked entries are right." : "";
+    });
+  }
+
   var TUTORIAL_STEPS = [
     { title: "Welcome, officer", text: "You are the communications officer on a survey ship. Each planet speaks a language nobody has translated. Your job is to work out what the signals mean, then answer. Skip any time and reopen this from the Tutorial button." },
     { selector: "#goal-line", title: "The crew's request", text: "The crew tells you what they need from each planet. When you manage it, contact is made and the next planet comes into range." },
@@ -382,6 +555,7 @@
 
   function wire() {
     wireCompound();
+    wireBridge();
     $("achievements-toggle-button").addEventListener("click", function () {
       var panel = $("achievements-panel");
       panel.hidden = !panel.hidden;
@@ -411,7 +585,7 @@
   }
 
   function setBusy(busy) {
-    ["next-scene-button", "check-button", "add-0", "add-1", "back-button", "clear-button", "send-button", "c-next-scene-button", "c-check-button", "c-back-button", "c-clear-button", "c-send-button"].forEach(function (id) { $(id).disabled = busy; });
+    ["next-scene-button", "check-button", "add-0", "add-1", "back-button", "clear-button", "send-button", "c-next-scene-button", "c-check-button", "c-back-button", "c-clear-button", "c-send-button", "b-next-scene-button", "b-check-button", "b-back-button", "b-clear-button", "b-send-button"].forEach(function (id) { $(id).disabled = busy; });
   }
 
   async function boot() {

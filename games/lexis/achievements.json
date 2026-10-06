@@ -49,6 +49,16 @@
       "id": "patient_listener",
       "label": "Patient Listener",
       "description": "Receive every transmission on both planets."
+    },
+    {
+      "id": "third_contact",
+      "label": "Third Contact",
+      "description": "Make contact with planet 3."
+    },
+    {
+      "id": "markers_known",
+      "label": "Small Signs",
+      "description": "Have all three of planet 3's small signs written down correctly."
     }
   ]
 }

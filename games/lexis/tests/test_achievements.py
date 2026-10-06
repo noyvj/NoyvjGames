@@ -86,4 +86,35 @@ def test_every_achievement_is_reachable():
     for f, g in (("1000", "lamp"), ("1001", "door"), ("1010", "open")):
         call(action="write", form=f, gloss=g)
     call(action="confirm", forms=["1000", "1001", "1010"])
+    assert earned() == {a[0] for a in ACHIEVEMENTS} - {"third_contact", "markers_known"}
+    # planet 3 (unlocked by contact with planet 2): learn the three small signs, then meet the crew's request
+    for _ in range(5):
+        call(action="next_scene", planet="bridge")
+    for letter, role in (("p", "plural"), ("n", "negate"), ("q", "ask")):
+        call(action="write", planet="bridge", form=letter, gloss=role)
+    call(action="speak", planet="bridge", message="tu p 0101")
+    call(action="speak", planet="bridge", message="tu q")
     assert earned() == {a[0] for a in ACHIEVEMENTS}
+    assert len(ACHIEVEMENTS) == 12
+
+
+def test_planet_three_achievements_and_the_save_projection():
+    call(action="speak", marks=say_door("open"))
+    call(action="speak", marks=say_lamps(5))
+    call(action="speak", planet="compound", glyph="ku")
+    call(action="speak", planet="compound", glyph="tu")
+    assert not {"third_contact", "markers_known"} & earned()
+    for letter, gloss in (("p", "plural"), ("n", "negate"), ("q", "more")):
+        call(action="write", planet="bridge", form=letter, gloss=gloss)
+    assert "markers_known" not in earned()                          # one is wrong: not earned
+    call(action="write", planet="bridge", form="q", gloss="ask")
+    assert "markers_known" in earned()
+    call(action="speak", planet="bridge", message="tu q")
+    assert "third_contact" not in earned()
+    call(action="speak", planet="bridge", message="tu p 0101")
+    got = earned()
+    assert {"third_contact", "markers_known"} <= got and set(game.get_state()["achievements_earned"]) == got
+    saved = json.loads(json.dumps(game.get_state()))
+    call(action="reset")
+    game.load_state(saved)
+    assert {"third_contact", "markers_known"} <= earned()

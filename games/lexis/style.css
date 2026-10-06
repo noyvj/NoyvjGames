@@ -64,3 +64,11 @@ button[disabled] { opacity: 0.5; cursor: default; }
 .ach-list li:not(.earned) { border-style: dashed; opacity: 0.85; }
 .ach-list .tick { display: inline-block; min-width: 4.5rem; font-weight: 700; }
 .toast { min-height: 1.4rem; font-weight: 600; }
+
+/* Planet 3: the counter. A chip is its label plus a written count, never colour alone; a small sign is a
+   dashed frame where a noun is a solid one. */
+.stock-chip { display: inline-flex; gap: 0.5rem; align-items: baseline; border: 2px solid var(--line); border-radius: 8px; padding: 0.3rem 0.7rem; background: #0e1526; font-weight: 600; }
+.stock-count { font-variant-numeric: tabular-nums; border-left: 1px solid var(--line); padding-left: 0.5rem; }
+.glyph.marker { border-style: dashed; }
+.message { display: inline-flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+.scene .reply { margin-top: 0.3rem; font-style: italic; color: var(--text); }
