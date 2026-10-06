@@ -1,0 +1,64 @@
+{
+  "windows": [
+    ["howto-panel", "howto-toggle-button", "How to Play"],
+    ["archive-panel", "archive-toggle-button", "Archive"],
+    ["stats-panel", "stats-toggle-button", "Stats"],
+    ["achievements-panel", "achievements-toggle-button", "Achievements"],
+    ["changelog-panel", "changelog-toggle-button", "What's New"],
+    ["settings-panel", "settings-toggle-button", "Settings"],
+    ["info-page-panel", "info-page-toggle-button", "About Signal"]
+  ],
+  "toolbar": {
+    "icons": [
+      ["archive-toggle-button", "🗓️"],
+      ["stats-toggle-button", "📊"],
+      ["achievements-toggle-button", "🏆"],
+      ["settings-toggle-button", "⚙️"]
+    ],
+    "menu": [
+      {"heading": "Game", "ids": []},
+      {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button", "info-page-toggle-button"]},
+      {"heading": "Records", "ids": ["changelog-toggle-button"]}
+    ]
+  },
+  "composites": [
+    {
+      "id": "pc-leaderboard-panel",
+      "title": "Community leaderboard",
+      "members": ["#leaderboard-mount"],
+      "group": "Records",
+      "label": "🏅 Community leaderboard"
+    },
+    {
+      "id": "pc-feedback-panel",
+      "title": "Was Signal fun?",
+      "members": [".section:has(#feedback-yes-button)"],
+      "group": "Help",
+      "label": "💬 Send feedback"
+    }
+  ],
+  "adopt": [],
+  "zones": {
+    "topbar": [".hub-back-link", "h1", ".game-toolbar"],
+    "stagebar": ["#mode-tabs", "#warm-line"],
+    "stage": [".board-wrap", "#message-line"],
+    "side": ["#practice-controls", "#tool-toggle-button", "#pings-display", "#action-bar", "#waterfall-section", "#result-panel"],
+    "hidden": ["#session-line", "#pings-text", "#par-text", "#marks-text", ".tagline", "#session-bar"]
+  },
+  "readouts": [
+    ["#session-line", "📻", "Puzzle"],
+    ["#pings-text", "📡", "Pings"],
+    ["#par-text", "🎯", "Par"],
+    ["#marks-text", "◆", "Markers"]
+  ],
+  "side_label": "Tool, readings and answer",
+  "hints": [
+    ["←↑↓→", "Move cursor"],
+    ["Enter", "Use tool (ping or mark)"],
+    ["Space", "Mark / unmark"],
+    ["D4", "Jump to a tile"],
+    ["?", "All shortcuts"],
+    ["Esc", "Menu / close window"]
+  ],
+  "notify": null
+}

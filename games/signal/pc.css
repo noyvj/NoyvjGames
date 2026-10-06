@@ -1,0 +1,103 @@
+/* Signal, Desktop boot (pc.html only). Everything is scoped to the pc layout, so the Classic page is
+   untouched. The 9x9 (or bigger) board is the stage and fills the window height with square tiles; the
+   puzzle, pings, par and marker counts are chips under the top bar; the tool toggle, practice controls,
+   answer buttons, readings and result sit in a side column; archive, stats, achievements, settings and
+   the rest are windows. Frame, chips and windows come from shared/pc-shell.css. */
+
+html[data-layout="pc"] body { padding-bottom: 0; }
+html[data-layout="pc"] #game { padding-bottom: 0.4rem; }
+#pc-topbar { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "title tools"; padding-right: 7.5rem; }
+#pc-topbar > .game-toolbar { justify-content: flex-end; }
+html[data-layout="pc"] #theme-toggle-floating { top: 0.7rem !important; bottom: auto !important; left: auto !important; right: 1rem !important; }
+.pc-readout-value { font-variant-numeric: tabular-nums; }
+
+/* The page's mobile pieces have no place in the full-window layout. */
+html[data-layout="pc"] #action-bar.mobile-docked { position: static; max-width: none; padding: 0; background: none; border: 0; box-shadow: none; }
+
+/* --- body: the board as the stage, a side column for what you act with ----------------------- */
+#pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) clamp(19rem, 27vw, 26rem); }
+#pc-stagebar { flex-wrap: wrap; flex-direction: row; align-items: center; gap: 0.3rem 0.8rem; }
+#pc-stagebar:not(:has(*:not([hidden]))) { display: none; }
+#pc-stagebar > .segmented { margin: 0; }
+#pc-stagebar > .warm-line { margin: 0; }
+
+/* The board keeps its tiles square and scales with the window height: the wrapper is a size container and
+   the board is the largest square that fits in it (one extra row and column for the axis labels). */
+#pc-stage > .board-wrap {
+  flex: 1 1 0;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  container-type: size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#pc-stage > .board-wrap > .board {
+  --axis: clamp(1rem, 2.4cqmin, 1.6rem);
+  grid-template-columns: var(--axis) repeat(var(--n, 9), minmax(0, 1fr));
+  grid-template-rows: var(--axis) repeat(var(--n, 9), minmax(0, 1fr));
+  gap: clamp(2px, 0.5cqmin, 5px);
+  width: min(100cqw, 100cqh);
+  height: min(100cqw, 100cqh);
+  min-width: 0;
+  flex: 0 0 auto;
+}
+#pc-stage .cell {
+  aspect-ratio: auto;
+  min-width: 0;
+  min-height: 0;
+  font-size: clamp(0.7rem, calc(min(100cqw, 100cqh) / (var(--n, 9) + 1) * 0.4), 2rem);
+}
+#pc-stage .cell-num { font-size: 1em; }
+#pc-stage .cell-glyph { font-size: 0.7em; top: 2px; right: 4px; }
+#pc-stage .cell-tag { font-size: 0.95em; left: 4px; bottom: 1px; }
+#pc-stage .cell.marked::after { font-size: 1.05em; left: 4px; top: 0; }
+#pc-stage .axis { font-size: clamp(0.62rem, 1.6cqmin, 0.9rem); }
+#pc-stage > .message-line { margin: 0; min-height: 1.4em; font-size: 0.85rem; text-align: center; }
+
+/* --- side column ------------------------------------------------------------------------------- */
+#pc-side { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 0.7rem; padding: 0 0.25rem 3rem 0; /* clear of the collapsed Save / Load widget */ }
+#pc-side > * { margin: 0; flex: 0 0 auto; }
+#pc-side > #practice-controls { order: 1; }
+#pc-side > #tool-toggle-button { order: 2; margin: 0; width: 100%; padding: 0.55rem 0.8rem; font-size: 0.95rem; font-weight: 700; }
+#pc-side > #tool-toggle-button[aria-pressed="true"] { background: var(--amber); color: #23160a; border-color: var(--amber); }
+html[data-theme="light"] #pc-side > #tool-toggle-button[aria-pressed="true"] { background: #8a4e00; color: #fff; }
+#pc-side > #pings-display { order: 3; font-size: 1.15rem; line-height: 1.3; }
+#pc-side > #action-bar { order: 4; }
+#pc-side > #waterfall-section { order: 5; }
+#pc-side > #result-panel { order: 6; }
+#pc-side #action-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+#pc-side #action-bar .primary { grid-column: 1 / -1; padding: 0.7rem 0.9rem; font-size: 1rem; }
+#pc-side #action-bar button { margin: 0; }
+#pc-side .practice-controls { padding: 0.6rem 0.7rem; border: 1px solid var(--panel-edge); border-radius: 10px; background: rgba(10, 18, 15, 0.55); }
+#pc-side .practice-controls input { flex: 1 1 7rem; width: auto; min-width: 0; }
+#pc-side .practice-controls select { flex: 1 1 8rem; min-width: 0; }
+#pc-side .waterfall { min-height: 2.6rem; }
+#pc-side .wf-item { min-width: 2.8rem; padding: 0.25rem 0.3rem; font-size: 0.78rem; }
+#pc-side .wf-glyph { font-size: 1.3rem; }
+#pc-side .result-panel { padding: 0.7rem 0.8rem; }
+#pc-side .share-preview { margin: 0.4rem auto; }
+
+/* Windows holding sections: they sit flat inside the window. Their own heading repeats the title bar, so it
+   is dropped (Achievements keeps its heading: it carries the earned count). */
+#archive-panel > .panel-heading:first-child, #stats-panel > .panel-heading:first-child, #changelog-panel > .panel-heading:first-child,
+#settings-panel > .panel-heading:first-child, #info-page-panel > .panel-heading:first-child { display: none; }
+.pc-composite > * { margin-bottom: 0.9rem; }
+.pc-window-frame { color: var(--ink); }
+.pc-window-frame .calendar-grid { gap: 4px; }
+.pc-window-frame .cal-day { min-height: 4rem; }
+
+@media (max-width: 1280px) {
+  #pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) 17rem; gap: 0.6rem; }
+  .pc-readout { padding: 0.25rem 0.55rem; font-size: 0.8rem; }
+}
+@media (max-height: 780px) {
+  html[data-layout="pc"] #game { gap: 0.4rem; padding-top: 0.4rem; }
+  #pc-topbar > h1 { margin-top: 0.8rem; font-size: 1.3rem; }
+}
+
+/* Themes. */
+html[data-theme="light"] #pc-hintbar { opacity: 1; }
+html[data-theme="light"] #pc-side .practice-controls { background: #fbf9f3; }
+.pc-window-frame a { color: var(--amber); }

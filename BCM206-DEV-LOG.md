@@ -521,3 +521,8 @@ The clearest cross-cutting infra lesson from this pass: three separate games' au
 **Area:** `sw.js`
 **Did:** Added the Loop Desktop files to the service worker precache (worker version 24).
 **Result:** Shared tests pass.
+
+### 2026-10-07 (Site-wide: Signal offline cache entries)
+**Area:** `sw.js`
+**Did:** Added the Signal Desktop files to the service worker precache (worker version 25).
+**Result:** Shared tests pass except the Le Champ de Mots checks, which wait for that agent.

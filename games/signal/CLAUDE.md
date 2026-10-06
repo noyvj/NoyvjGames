@@ -89,6 +89,7 @@ Until that is deployed, `GET /leaderboards/signal/best_streak` returns 404 and t
 | 8 | Save + settings | Save-widget contract with merge + strict validation, settings panel (text size, reduced motion, high contrast, theme, assist, ASCII share, reset), confirm dialogs | Done |
 | 9 | Achievements + changelog | 18 achievements + panel/toast, changelog panel, 4-step tutorial, about panel | Done |
 | 10 | Polish + hub integration | Light theme, keyboard + mobile audit, favicon, flavour text (~40 lines), leaderboard include, feedback prompt | Done in-game; **hub registration (title card, manifests, game-added/last-updated, backend board) is the log owner's job** |
+| 11 | Desktop boot (PC version plan): `pc.html` generated from `index.html`, board as the stage, readout chips, side column, windows, Desktop tutorial, layout switch on the opening screen | Done (2026-10-07); see "Desktop boot" below |
 
 ## Verification
 - `cd games/signal && python3 -m pytest -q` (see the dev log entry for the exact count) and `python3 -m flake8 game.py tests --extend-ignore=E501`.
@@ -98,3 +99,13 @@ Until that is deployed, `GET /leaderboards/signal/best_streak` returns 404 and t
 - Commit + tag per milestone (`git tag signal-milestone-0N`); update the Status column as you go.
 - Flavour lines (`_LINES` in `game.py`, ~40) are a first draft awaiting the user's tone veto.
 - Open: phone timing; whether Wide should become a daily mode; custom practice sizes; a "what if I ping here" hint is deliberately NOT built (it would trivialise the deduction).
+
+## Desktop boot (PC version, 2026-10-07)
+
+`games/signal/pc.html` is the Desktop boot: the same `game.py`, `app.js`, saves and `game_id` as the Classic page, in a full-window layout for wide windows with a mouse. **Never edit it by hand**: it is generated from `index.html` plus `pc-config.json` by `scripts/generate-pc-pages.py` (a test fails if it is stale). No rule, state or save change, and `game.py` and `app.js` are untouched. The only Classic edits are the `shared/layout-pref.js` tag and `GameTutorial.init(window.SIGNAL_PC_TUTORIAL_STEPS || SIGNAL_TUTORIAL_STEPS, ...)`. The static first paint and queued early taps behave exactly as in Classic (verified live: a tap made before the engine is ready is queued and replayed).
+
+- **Layout.** Top bar: back link, title, four icon buttons (Archive, Stats, Achievements, Settings) and the Menu (also opened by Esc). Under it, readout chips mirroring `#session-line` (puzzle), `#pings-text`, `#par-text` and `#marks-text` (the originals move into a hidden holder and keep updating). The stage is the board, the largest square that fits the window height (`pc.css` uses a size container, so Easy/Hard 9x9, Wide 13x13 and Big Sky 15x15 all keep square tiles), with the mode tabs (Easy / Hard / Archive / Practice) and the "receiver warming up" line above it, the message line below it and a hotkey bar (arrows, Enter, Space, D4 jump, ?, Esc). The side column holds the practice controls (only in practice), the Ping/Mark tool toggle, the ping dots, Commit / Clear / Give up, the readings and the result panel with the share button.
+- **Windows.** How to Play, Archive, Stats, Achievements, What's New, Settings and About Signal are windows. Composite windows opened from the Menu: Community leaderboard (the shared opt-in mount) and Was Signal fun? (feedback). The tagline is hidden (it is on the opening screen).
+- **Tutorial.** `pc.js` holds `SIGNAL_PC_TUTORIAL_STEPS` (8 steps: chips, board, readings, tool toggle, commit, Menu). It also replaces `window.MobileDock` with an inert stand-in, so resizing the window below 640px never lifts the answer buttons out of the side column.
+- **Notifications.** `notify` is null: Signal has no log list. Achievement toasts use the game's own top-centre toast.
+- **Known limits.** At 1024x700 the practice controls wrap onto three lines in the narrow side column and Big Sky tiles are about 22px. Right-click and Shift+click (mark) work as in Classic but are not hotkeys, so they are not in the hint bar. Phones and narrow windows are meant to use Classic.

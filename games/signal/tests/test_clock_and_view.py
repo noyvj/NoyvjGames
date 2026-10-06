@@ -43,4 +43,4 @@ def test_handle_round_trips_json_text(game):
     game.reset_engine()
     out = json.loads(game.handle(json.dumps({"action": "boot"})))
     assert out["ok"] and out["view"]["board"]["n"] == 9
-    assert out["changelog"][0]["date"] == "2026-09-27"
+    assert out["changelog"][-1]["date"] == "2026-09-27"  # the launch entry (newest entries come first)

@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-07",
+      "entry": "Desktop layout for wide windows: the board fills the window height with square tiles, your puzzle, pings, par and markers sit in a strip above it, and the tool toggle, readings and answer buttons live in a side column. Archive, Stats, Achievements and Settings are icons that open as windows, Esc opens the menu, and a Desktop tutorial walks through it. The same game, saves and daily puzzle as before; the Classic layout is unchanged and is still what phones use."
+    },
+    {
       "date": "2026-09-27",
       "entry": "Signal launches: a daily deduction puzzle. Hidden transmitters broadcast on a grid; ping tiles, read the summed signal, and mark every transmitter. Easy and Hard daily puzzles, an archive of every past day, and an endless practice mode with shareable codes, including the bigger Wide and Big Sky boards."
     }
