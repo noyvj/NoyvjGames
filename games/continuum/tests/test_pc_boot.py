@@ -34,6 +34,8 @@ def test_every_id_game_py_looks_up_exists_in_both_pages():
     assert wanted, "expected literal getElementById calls in game.py"
     # Ids game.py itself creates at run time are not in either page.
     created = set(re.findall(r'\.id\s*=\s*"([^"]+)"', GAME_PY))
+    # Ids only the Desktop shell creates; game.py guards for their absence (Classic has none).
+    created |= {"pc-open-pc-setup-panel"}
     for name, html in (("index.html", CLASSIC), ("pc.html", DESKTOP)):
         missing = sorted(wanted - created - _ids(html))
         assert not missing, f"{name} lacks ids game.py needs: {missing}"
@@ -92,10 +94,11 @@ def test_tutorial_steps_for_the_desktop_boot_only_point_at_things_that_exist_the
     selectors = re.findall(r'selector:\s*"([^"]+)"', js)
     assert selectors
     page_ids = _ids(DESKTOP)
-    zone_ids = {"pc-stagebar", "pc-stage", "pc-side", "pc-topbar", "pc-body", "pc-menu-button"}   # built by shared/pc-shell.js
+    zone_ids = {"pc-stagebar", "pc-stage", "pc-side", "pc-topbar", "pc-body", "pc-menu-button", "pc-hud"}   # built by shared/pc-shell.js
     for selector in selectors:
         assert selector.startswith("#")
-        assert selector[1:] in page_ids | zone_ids, selector
+        first_id = re.match(r"#([\w-]+)", selector).group(1)
+        assert first_id in page_ids | zone_ids, selector
     # The Classic steps that the Hamlet layout hides must not be reused here.
     for hidden_panel in ("#work", "#buildings", "#research", "#era-progress"):
         assert hidden_panel not in selectors
@@ -129,3 +132,60 @@ def test_every_condensed_toolbar_button_exists_on_both_pages():
     toolbar = toolbar[:toolbar.index("</div>")]
     for button_id in re.findall(r'<button id="([^"]+)"', toolbar):
         assert button_id in ids, f"{button_id} is in the Classic toolbar but neither an icon nor in the menu"
+
+
+# --- the HUD that replaces the side column on the Desktop boot -------------------------
+
+def _desktop_game(game_env, monkeypatch):
+    m = game_env.module
+    monkeypatch.setattr(m, "_pc_layout", lambda: True)
+    monkeypatch.setattr(m, "_hamlet_capable", lambda: True)
+    m.hamlet_on = True
+    m.render()
+    return m
+
+
+def test_the_hud_has_one_chip_per_readout_and_each_has_a_dropdown(game_env, monkeypatch):
+    m = _desktop_game(game_env, monkeypatch)
+    assert [key for key, _icon, _label in m.PC_HUD_CHIPS] == [
+        "population", "food", "materials", "tools", "knowledge", "sustainability"]
+    for key, _icon, _label in m.PC_HUD_CHIPS:
+        els = m._pc_hud_els[key]
+        assert els["toggle"].attributes["data-pc-dropdown"] == "1"
+        assert els["toggle"].attributes["aria-expanded"] == "false"
+        assert els["dropdown"].hidden is True
+        assert els["value"].innerText
+
+
+def test_the_people_dropdown_states_the_trend_per_season(game_env, monkeypatch):
+    m = _desktop_game(game_env, monkeypatch)
+    dropdown = m._pc_hud_els["population"]["dropdown"]
+    text = " ".join(child.innerText for child in dropdown.children)
+    assert "per season" in text or "birth" in text
+
+
+def test_the_scenario_chip_only_shows_before_the_first_season(game_env, monkeypatch):
+    m = _desktop_game(game_env, monkeypatch)
+    chip = m._pc_hud_els["_setup"]["el"]
+    assert chip.hidden is False and "Standard Start" in chip.innerText
+    game_env.advance_season()
+    game_env.advance_season()
+    m.render()
+    assert chip.hidden is True
+
+
+def test_the_classic_page_never_builds_the_hud(game_env):
+    game_env.module.render()
+    assert game_env.module._pc_hud_els == {}
+
+
+def test_a_failing_forecast_does_not_break_the_render(game_env, monkeypatch):
+    m = _desktop_game(game_env, monkeypatch)
+
+    def boom(*args, **kwargs):
+        raise RuntimeError("probe failed")
+
+    monkeypatch.setattr(m.forecast, "preview", boom)
+    m.render()   # must not raise
+    dropdown = m._pc_hud_els["food"]["dropdown"]
+    assert any("unavailable" in child.innerText for child in dropdown.children)

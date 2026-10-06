@@ -52,6 +52,7 @@ import sim  # noqa: E402
 import summary  # noqa: E402
 import sustainability  # noqa: E402
 import trajectory  # noqa: E402
+import forecast  # noqa: E402
 import views  # noqa: E402
 import transition  # noqa: E402
 import visual  # noqa: E402
@@ -2705,6 +2706,137 @@ def _hamlet_update_hud(effects):
     )
 
 
+# --- Desktop boot: the readouts as a HUD in the scene --------------------------------
+# On the Desktop boot (pc.html) the side column of readouts is gone: the same numbers are
+# drawn as a row of chips over the scene, and each chip opens a small dropdown with the
+# detail and the trend ("+1 person per season"). The trend comes from forecast.py, a probe
+# of the next season on a copy of the state, so it is exactly what the next season will do
+# if nothing changes. The old readout elements keep updating (they are only moved out of
+# the layout), and the Classic page never builds any of this.
+PC_HUD_CHIPS = (
+    ("population", "\U0001F465", "People"),
+    ("food", "\U0001F356", "Food"),
+    ("materials", "\U0001FAB5", "Materials"),
+    ("tools", "\U0001F527", "Tools"),
+    ("knowledge", "\U0001F4A1", "Knowledge"),
+    ("sustainability", "\U0001F331", "Sustainability"),
+)
+_pc_hud_els = {}
+
+
+def _pc_hud_build():
+    stage = document.getElementById("hamlet-stage")
+    bar = document.createElement("div")
+    bar.id = "pc-hud"
+    bar.className = "pc-hud"
+    bar.setAttribute("role", "group")
+    bar.setAttribute("aria-label", "Settlement readouts")
+    for key, icon, label in PC_HUD_CHIPS:
+        wrap = document.createElement("div")
+        wrap.className = "pc-dropdown-wrap"
+        toggle = document.createElement("button")
+        toggle.type = "button"
+        toggle.className = "pc-hud-chip"
+        toggle.setAttribute("data-pc-dropdown", "1")
+        toggle.setAttribute("aria-expanded", "false")
+        toggle.setAttribute("aria-label", f"{label}: details and trend")
+        icon_el = document.createElement("span")
+        icon_el.className = "pc-hud-icon"
+        icon_el.innerText = icon
+        value_el = document.createElement("span")
+        value_el.className = "pc-hud-value"
+        caret = document.createElement("span")
+        caret.className = "pc-hud-caret"
+        caret.innerText = "\u25BE"
+        toggle.appendChild(icon_el)
+        toggle.appendChild(value_el)
+        toggle.appendChild(caret)
+        dropdown = document.createElement("div")
+        dropdown.className = "pc-dropdown"
+        dropdown.hidden = True
+        dropdown.setAttribute("role", "group")
+        dropdown.setAttribute("aria-label", f"{label} detail")
+        wrap.appendChild(toggle)
+        wrap.appendChild(dropdown)
+        bar.appendChild(wrap)
+        _pc_hud_els[key] = {"toggle": toggle, "value": value_el, "dropdown": dropdown}
+    era = document.createElement("span")
+    era.className = "pc-hud-era"
+    bar.appendChild(era)
+    _pc_hud_els["_era"] = {"el": era}
+    setup = document.createElement("button")
+    setup.type = "button"
+    setup.className = "pc-hud-chip pc-hud-setup"
+    setup.id = "pc-hud-setup"
+    setup.title = "Pick the starting scenario before the first season"
+    setup.addEventListener("click", create_proxy(_pc_hud_open_setup))
+    bar.appendChild(setup)
+    _pc_hud_els["_setup"] = {"el": setup}
+    stage.appendChild(bar)
+
+
+def _pc_hud_open_setup(event=None):
+    opener = document.getElementById("pc-open-pc-setup-panel")
+    if opener is not None:
+        opener.click()
+
+
+def _pc_hud_fill(dropdown, title, lines):
+    dropdown.innerHTML = ""
+    heading = document.createElement("strong")
+    heading.innerText = title
+    dropdown.appendChild(heading)
+    for text in lines:
+        row = document.createElement("p")
+        row.innerText = text
+        dropdown.appendChild(row)
+
+
+def _pc_hud_update(effects):
+    if not _pc_hud_els:
+        _pc_hud_build()
+    housing = state.housing_capacity(effects)
+    resources = state.resources
+    values = {
+        "population": f"{state.population}/{housing:.0f}",
+        "food": f"{resources['food']:.0f}/{state.food_storage_capacity(effects):.0f}",
+        "materials": f"{resources['materials']:.0f}",
+        "tools": f"{resources['tools']:.1f}",
+        "knowledge": f"{resources['knowledge']:.1f}",
+    }
+    try:
+        preview = forecast.preview(state, effects)
+    except Exception:
+        preview = None
+    reading = sustainability.evaluate(state, effects)
+    score = reading["score"]
+    label = sustainability.score_label(score, sustainability.is_hard_mode(state))
+    values["sustainability"] = f"{score:.0f}"
+    for key, icon, name in PC_HUD_CHIPS:
+        els = _pc_hud_els[key]
+        els["value"].innerText = values[key]
+        if key == "sustainability":
+            lines = [f"{label}, {score:.0f} out of 100"]
+            for component in sustainability.COMPONENTS:
+                lines.append(f"{sustainability.COMPONENT_LABEL[component]}: {reading['components'][component]:.0f}")
+            lines.append(sustainability.score_note(state, effects))
+        elif preview is not None:
+            lines = forecast.lines(key, preview[key])
+            if key == "food":
+                lines.append(f"Land health {state.land_health * 100:.0f}%")
+        else:
+            lines = ["Trend unavailable right now."]
+        _pc_hud_fill(els["dropdown"], name, lines)
+    _pc_hud_els["_era"]["el"].innerText = (
+        f"{sim.ERA_LABEL[state.era]}, season {state.season}  \u00B7  idle {state.idle_workers()}"
+    )
+    setup = _pc_hud_els["_setup"]["el"]
+    show_setup = not _scenario_locked()
+    setup.hidden = not show_setup
+    if show_setup:
+        setup.innerText = f"\U0001F3D5 {sim.scenario_config(state.scenario)['label']} \u00B7 change"
+
+
 def _hamlet_town_signature(effects):
     nodes = hamlet.researchable_nodes(tree)
     research_part = tuple((n.node_id, tree.can_afford(n.node_id, state.resources)) for n in nodes)
@@ -2864,6 +2996,8 @@ def render_hamlet(effects=None):
         _hamlet_build_chips(stations)
     _hamlet_update_chips(stations, effects)
     _hamlet_update_hud(effects)
+    if _pc_layout():
+        _pc_hud_update(effects)
     _hamlet_render_town(effects)
 
 

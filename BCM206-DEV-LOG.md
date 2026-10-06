@@ -446,3 +446,8 @@ The clearest cross-cutting infra lesson from this pass: three separate games' au
 **Area:** `shared/pc-shell.js`, `shared/pc-shell.css`, `scripts/generate-pc-pages.py`
 **Did:** The Desktop boot's toolbar condensing is a shared feature driven by per-game config: a few icon buttons that forward clicks to the original (hidden) buttons, and a Menu window holding the real buttons grouped under headings, so labels such as "Hide Achievements" stay live. Escape opens the Menu when nothing else wants the key (decided in the capture phase so a game's own Escape handling is not mistaken for "nothing open").
 **Result:** Continuum 776 tests and shared 19 pass.
+
+### 2026-10-06 (Site-wide: PC shell, composite windows and dropdowns)
+**Area:** `shared/pc-shell.js`, `shared/tests/test_pc_shell_wiring.py`, `scripts/generate-pc-pages.py`
+**Did:** The shell can now drop the side column entirely, hold elements the game still updates in a hidden holder, group several existing sections into one window opened from the Menu, adopt one node into another, and run click-to-open dropdowns for a game's HUD (delegated, one at a time, outside click or Escape closes). An edit mid-session deleted three functions that init() calls; it only showed up in the browser, so a new test checks every function init() calls is defined.
+**Result:** Shared 21 and Continuum 827 tests pass.

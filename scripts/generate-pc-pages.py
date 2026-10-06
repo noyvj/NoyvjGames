@@ -48,12 +48,25 @@ PC_GAMES = {
             "icons": [["achievements-toggle-button", "\U0001F3C6"], ["views-toggle-button", "\U0001F4CA"],
                       ["settings-toggle-button", "\u2699\ufe0f"]],
             "menu": [
-                {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button"]},
+                {"heading": "Game", "ids": []},
+                {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button",
+                                            "info-page-toggle-button"]},
                 {"heading": "Records", "ids": ["changelog-toggle-button", "summary-toggle-button",
                                                "founders-toggle-button", "minutes-toggle-button"]},
                 {"heading": "Scene", "ids": ["visual-mode-toggle-button", "visual-snapshot-button"]},
             ],
         },
+        # Several existing sections shown together in one window, opened from the Menu.
+        "composites": [
+            {"id": "pc-setup-panel", "title": "Starting scenario", "members": ["#scenario-select"],
+             "group": "Game", "label": "\U0001F3D5 Starting scenario"},
+            {"id": "pc-log-panel", "title": "Log and looking back", "members": ["#log", "#revisit"],
+             "group": "Records", "label": "\U0001F4DC Log and looking back"},
+            {"id": "pc-community-panel", "title": "Community", "members": [".community-details"],
+             "group": "Records", "label": "\U0001F30D Community"},
+        ],
+        # [node, destination]: the node is moved to the start of the destination.
+        "adopt": [["#real-world-note", "#info-page-panel"]],
         # Hotkeys that really exist in this game (shown in a bar under the scene).
         "hints": [["P", "Pause / resume"], ["1\u20134", "Camera"], ["?", "All shortcuts"], ["Esc", "Menu / close window"]],
         # Entries added to this list are announced as small notifications over the scene.
@@ -63,8 +76,9 @@ PC_GAMES = {
             "topbar": [".hub-back-link", "h1", ".game-toolbar", "#speed-controls"],
             "stagebar": ["#camera-preset-buttons"],
             "stage": ["#visual-stage"],
-            "side": ["#status", "#sustainability", "#log", "#revisit", ".community-details",
-                     "#info-page-toggle-button", "#real-world-note", "#scenario-select"],
+            # No side column: the readouts become a HUD in the scene (built by game.py from the
+            # same state) and everything else lives in windows. The originals keep updating.
+            "hidden": ["#status", "#sustainability"],
         },
     },
 }
@@ -85,9 +99,12 @@ def build(slug, cfg):
     hints = json.dumps(cfg.get("hints", []), ensure_ascii=False)
     notify = json.dumps(cfg.get("notify"), ensure_ascii=False)
     toolbar = json.dumps(cfg.get("toolbar"), ensure_ascii=False)
+    composites = json.dumps(cfg.get("composites", []), ensure_ascii=False)
+    adopt = json.dumps(cfg.get("adopt", []), ensure_ascii=False)
     inject = (f'\n<script>window.NOYVJ_LAYOUT = "pc"; window.NOYVJ_PC_WINDOWS = {windows}; '
               f'window.NOYVJ_PC_ZONES = {zones}; window.NOYVJ_PC_HINTS = {hints}; '
-              f'window.NOYVJ_PC_NOTIFY = {notify}; window.NOYVJ_PC_TOOLBAR = {toolbar};</script>')
+              f'window.NOYVJ_PC_NOTIFY = {notify}; window.NOYVJ_PC_TOOLBAR = {toolbar}; '
+              f'window.NOYVJ_PC_COMPOSITES = {composites}; window.NOYVJ_PC_ADOPT = {adopt};</script>')
     if (ROOT / "games" / slug / "pc.js").exists():
         inject += '\n<script src="pc.js"></script>'
     out = out[: anchor.end()] + inject + out[anchor.end():]

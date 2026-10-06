@@ -18,14 +18,14 @@ window.CONTINUUM_PC_TUTORIAL_STEPS = [
     text: "Drag the scene to rotate it, or use these presets for an overview, a close-up, an aerial or the classic isometric angle. The 2D view and Save Snapshot buttons live here too.",
   },
   {
-    selector: "#status",
-    title: "The Settlement",
-    text: "Your season, population versus available shelter, and four resources: food, materials, tools, and knowledge. Food has a hard storage ceiling — anything gathered past it spoils at the end of the season, so storage matters as much as gathering. Land health sits underneath: harvest past what the land can sustainably yield and every future harvest shrinks.",
+    selector: "#pc-hud",
+    title: "Readouts and trends",
+    text: "The chips along the top of the scene are your settlement: people against shelter, food against storage, materials, tools and knowledge. Click one to open a dropdown with what it is doing each season, for example how many people you gain, or how much food is gathered, eaten and spoiled. Food has a hard storage ceiling, so anything gathered past it spoils at the end of the season. Before the first season a Scenario button also appears here.",
   },
   {
-    selector: "#sustainability",
+    selector: "#pc-hud .pc-dropdown-wrap:nth-child(6)",
     title: "Sustainability Score",
-    text: "This score is the whole point: livability, equity, resource balance, and resilience, averaged together. Every input is a ratio, never a raw count, so growing bigger doesn't raise it on its own.",
+    text: "This score is the whole point: livability, equity, resource balance, and resilience, averaged together. Every input is a ratio, never a raw count, so growing bigger doesn't raise it on its own. Click it to see the four parts.",
   },
   {
     selector: "#speed-controls",
@@ -37,14 +37,9 @@ window.CONTINUUM_PC_TUTORIAL_STEPS = [
     text: "The Town Centre building in the scene opens research, civic challenges and moving to the next era. Spend knowledge to study a node in the research tree; leaving an era is permanent, so the Town Centre also tells you what is still missing.",
   },
   {
-    selector: "#log",
-    title: "The Log",
-    text: "A running record of what's happened, in the settlement's own voice. Read it or don't; nothing here is required.",
-  },
-  {
     selector: "#pc-menu-button",
     title: "Icons and the Menu",
-    text: "The three icons are Achievements, City Views and Settings. The Menu (or Escape, when nothing else is open) holds the rest: the tutorial, How to Play, What's New, the Civilization Summary, the Founder's Log, Council Minutes, fullscreen and the Classic layout. Everything opens as a window over the scene, and Escape closes the top one.",
+    text: "The three icons are Achievements, City Views and Settings. The Menu (or Escape, when nothing else is open) holds the rest: the starting scenario, the tutorial, How to Play, the real-world note, What's New, the Civilization Summary, the Log and looking back, the Founder's Log, Council Minutes, Community, fullscreen and the Classic layout. New log entries also pop up over the scene for a few seconds. Everything opens as a window over the scene, and Escape closes the top one.",
   },
   {
     title: "You're ready",

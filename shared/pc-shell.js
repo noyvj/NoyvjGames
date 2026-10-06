@@ -124,13 +124,28 @@
     panel.id = "pc-menu-panel";
     panel.className = "section";
     panel.hidden = true;
+    const groups = new Map();
     for (const spec of cfg.menu || []) {
       const group = menuGroup(spec.heading);
       for (const id of spec.ids) {
-        const node = document.getElementById(id) || document.querySelector("#" + CSS.escape(id));
+        const node = document.getElementById(id);
         if (node) group.appendChild(node);
       }
+      groups.set(spec.heading, group);
       panel.appendChild(group);
+    }
+    // Each composite window gets an opener button in the group it names.
+    for (const spec of window.NOYVJ_PC_COMPOSITES || []) {
+      if (!document.getElementById(spec.id)) continue;
+      let group = groups.get(spec.group);
+      if (!group) { group = menuGroup(spec.group); groups.set(spec.group, group); panel.appendChild(group); }
+      const opener = document.createElement("button");
+      opener.type = "button";
+      opener.className = "secondary";
+      opener.id = "pc-open-" + spec.id;
+      opener.textContent = spec.label;
+      opener.addEventListener("click", () => { document.getElementById(spec.id).hidden = false; });
+      group.appendChild(opener);
     }
     const display = menuGroup("Display");
     display.id = "pc-menu-display";
@@ -175,30 +190,101 @@
     toolbar.appendChild(menuButton);
   }
 
-  // Moves (never copies) existing elements into a frame: a top bar, then a body with a
-  // stage (the thing you look at) and a side column. Ids and listeners survive, so game
-  // code is unaffected. window.NOYVJ_PC_ZONES = {topbar, stagebar, stage, side}, each a list of selectors.
+  // Moves (never copies) existing elements into a frame: a top bar, then a body with a stage
+  // (the thing you look at) and, optionally, a side column. Ids and listeners survive, so game
+  // code is unaffected. window.NOYVJ_PC_ZONES = {topbar, stagebar, stage, side, hidden}, each a
+  // list of selectors.
   function buildZones() {
     const zones = window.NOYVJ_PC_ZONES;
     const game = document.getElementById("game");
     if (!zones || !game) return;
     const mk = (id) => { const d = document.createElement("div"); d.id = id; return d; };
-    const top = mk("pc-topbar"), body = mk("pc-body"), stage = mk("pc-stage"), side = mk("pc-side");
+    const top = mk("pc-topbar"), body = mk("pc-body"), stage = mk("pc-stage");
     const stagebar = mk("pc-stagebar");
     stagebar.setAttribute("role", "group");
     stagebar.setAttribute("aria-label", "Scene controls");
-    side.setAttribute("role", "complementary");
-    side.setAttribute("aria-label", "Readouts and log");
     stage.append(stagebar);
-    body.append(stage, side);
+    body.append(stage);
+    const targets = [["topbar", top], ["stagebar", stagebar], ["stage", stage]];
+    // An optional side column. Games that fold everything into the scene leave it out.
+    if ((zones.side || []).length) {
+      const side = mk("pc-side");
+      side.setAttribute("role", "complementary");
+      side.setAttribute("aria-label", "Readouts and log");
+      body.append(side);
+      body.classList.add("pc-has-side");
+      targets.push(["side", side]);
+    }
+    // Elements the game still updates by id but that the Desktop layout shows another way
+    // (here: a HUD built from the same numbers). They stay in the page, just out of the layout.
+    const hidden = mk("pc-hidden-readouts");
+    hidden.hidden = true;
+    targets.push(["hidden", hidden]);
     game.prepend(body);
     game.prepend(top);
-    for (const [zone, el] of [["topbar", top], ["stagebar", stagebar], ["stage", stage], ["side", side]]) {
+    game.appendChild(hidden);
+    for (const [zone, el] of targets) {
       for (const selector of zones[zone] || []) {
         const node = game.querySelector(selector);
         if (node) el.appendChild(node);
       }
     }
+    // [node selector, destination selector]: the node is moved to the start of the destination.
+    for (const [from, into] of window.NOYVJ_PC_ADOPT || []) {
+      const node = game.querySelector(from), dest = game.querySelector(into);
+      if (node && dest) dest.prepend(node);
+    }
+  }
+
+  // Composite windows: several existing sections shown together in one window that the Menu
+  // opens (their own hidden/visible logic keeps working inside it, because the nodes are
+  // moved, not copied or re-created). window.NOYVJ_PC_COMPOSITES =
+  // [{id, title, members: [selectors], group: "menu heading", label}].
+  function buildComposites() {
+    const game = document.getElementById("game");
+    for (const spec of window.NOYVJ_PC_COMPOSITES || []) {
+      const panel = document.createElement("div");
+      panel.id = spec.id;
+      panel.className = "section pc-composite";
+      panel.hidden = true;
+      for (const selector of spec.members) {
+        const node = game.querySelector(selector);
+        if (node) panel.appendChild(node);
+      }
+      game.appendChild(panel);
+      wrap({ panel: spec.id, toggle: null, title: spec.title });
+    }
+  }
+
+  // Dropdowns (a HUD chip that opens a small panel of detail). Markup is built by the game:
+  //   <div class="pc-dropdown-wrap"><button data-pc-dropdown aria-expanded="false">..</button>
+  //   <div class="pc-dropdown" hidden>..</div></div>
+  // One open at a time; a click anywhere else, or Escape, closes it. Delegated, so a game can
+  // rebuild or update its chips freely.
+  function startDropdowns() {
+    const closeAll = (except) => {
+      document.querySelectorAll(".pc-dropdown:not([hidden])").forEach((d) => {
+        if (d === except) return;
+        d.hidden = true;
+        const toggle = d.parentNode.querySelector("[data-pc-dropdown]");
+        if (toggle) toggle.setAttribute("aria-expanded", "false");
+      });
+    };
+    document.addEventListener("click", (e) => {
+      const toggle = e.target.closest && e.target.closest("[data-pc-dropdown]");
+      if (!toggle) { if (!(e.target.closest && e.target.closest(".pc-dropdown"))) closeAll(null); return; }
+      const dropdown = toggle.parentNode.querySelector(".pc-dropdown");
+      if (!dropdown) return;
+      closeAll(dropdown);
+      dropdown.hidden = !dropdown.hidden;
+      toggle.setAttribute("aria-expanded", String(!dropdown.hidden));
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape" || !document.querySelector(".pc-dropdown:not([hidden])")) return;
+      closeAll(null);
+      e.__pcMenuOpened = true; // consumed: do not also open the Menu
+      e.stopPropagation();
+    }, true);
   }
 
   // A thin bar of the hotkeys that work in this game: window.NOYVJ_PC_HINTS = [["P", "Pause"], ...].
@@ -282,7 +368,9 @@
     backdrop.addEventListener("click", () => { if (open.length) closeFrame(open[open.length - 1]); });
     document.body.appendChild(backdrop);
     specs.forEach(wrap);
+    buildComposites();
     buildToolbar();
+    startDropdowns();
     addHintBar();
     homeStoryToggle();
     startNotifications();
@@ -290,7 +378,7 @@
     // so the game's own Escape handling (closing the Town panel or shortcuts) is not mistaken for
     // "nothing was open".
     document.addEventListener("keydown", (e) => {
-      if (e.key !== "Escape" || open.length) return;
+      if (e.key !== "Escape" || open.length || e.__pcMenuOpened) return;
       const blockers = "#opening-screen, .confirm-dialog-overlay, #tutorial-card, #hamlet-town-panel:not([hidden])";
       const shown = [...document.querySelectorAll(blockers)].some((n) => n.getBoundingClientRect().width > 0);
       const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || "");
