@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-07",
+      "entry": "New Desktop layout for wide windows with a mouse: the world you are on fills the screen with its panels beside it, every world's resource is a chip across the top, and Research, the Governor, the Overview, Stats and the rest open as windows from the icons and the Menu (Esc). Your save carries over; switch layouts from the opening screen or the Menu. The Classic layout is unchanged."
+    },
+    {
       "date": "2026-09-27",
       "entry": "Stats: a personal-best 'Fastest full playthrough' (measured per run, kept for life). The welcome-back line now also reports machines built and hand-mined loads since your last visit (R-9, R-10)."
     },

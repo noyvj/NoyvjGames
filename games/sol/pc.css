@@ -1,0 +1,149 @@
+/* SOL, Desktop boot (pc.html only). Everything is scoped to the pc layout, so the Classic page is untouched.
+   The current world is the stage: its picture, resource name, count and Mine button sit on the left (the
+   "hero"), and that world's panels (automation, ecology, terraforming, trade, Sky Cities, travel) are a card
+   grid beside it. The resource counts are chips under the top bar. Research, the Governor, the Overview, the
+   Build Plan, Prestige Tree, Stats, Governor Report, the Captain's log and the other long panels are windows
+   opened from the Menu or the icons. Frame, chips and windows come from shared/pc-shell.css.
+
+   A world's whole view is one hidden-or-shown block, so it cannot be split between a stage and a side column
+   from outside; the view itself is the grid, and the shell's side column is unused. */
+
+html[data-layout="pc"] #pc-topbar { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "title tools"; }
+html[data-layout="pc"] #pc-topbar > .game-toolbar { justify-content: flex-end; }
+html[data-layout="pc"] #pc-topbar > h1 { letter-spacing: 0.3em; }
+
+/* The page's mobile pieces have no place in the full-window layout. ad-bar.css reserves room for the ad strip
+   with body padding, but this layout already leaves the strip free, so the extra padding only made the body
+   scrollable. */
+html[data-layout="pc"] #mobile-hud-bar, html[data-layout="pc"] .mobile-hud { display: none !important; }
+html[data-layout="pc"] body { padding-bottom: 0; }
+html[data-layout="pc"] #game { text-align: left; }
+
+/* --- the strip above the stage: story line, away report, win banner ---------------------------- */
+#pc-stagebar { display: flex; flex-wrap: wrap; align-items: stretch; gap: 0.5rem; }
+#pc-stagebar:empty { display: none; }
+#pc-stagebar > * { margin: 0; }
+#pc-stagebar > .captains-log-latest { flex: 1 1 100%; margin: 0; font-size: 0.85rem; text-align: left; }
+#pc-stagebar > .section { flex: 1 1 22rem; padding: 0.5rem 0.9rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.8rem; }
+#pc-stagebar > .section[hidden] { display: none; }
+#pc-stagebar > .section p { margin: 0; }
+#pc-stagebar > .away-report .away-report-text { flex: 1 1 14rem; font-size: 0.85rem; }
+#pc-stagebar > .away-report button, #pc-stagebar > #win-banner button { width: auto; flex: 0 0 auto; padding: 0.4rem 0.9rem; font-size: 0.82rem; margin: 0; border-radius: 10px; }
+#pc-stagebar > #win-banner .win-banner-subtext { flex: 1 1 18rem; font-size: 0.82rem; }
+
+/* --- the world: hero on the left, cards on the right ----------------------------------------- */
+#pc-stage > [id$="-view"] {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.75fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: repeat(6, auto);
+  grid-template-areas:
+    "hero gen    trade"
+    "hero eco    terra"
+    "hero travel travel"
+    "hero sky    sky"
+    "hero cross  reset"
+    "hero ret    ret";
+  column-gap: 0.8rem;
+  row-gap: 0;
+  align-content: start;
+  overflow-y: auto;
+  padding: 0.1rem 0.3rem 0.5rem 0.1rem;
+}
+#pc-stage > [id$="-view"] > * { margin: 0 0 0.7rem; min-width: 0; }
+#pc-stage > [id$="-view"] > .pc-hero { grid-area: hero; align-self: start; position: sticky; top: 0; }
+#pc-stage > [id$="-view"] > [id$="automation"] { grid-area: gen; }
+#pc-stage > [id$="-view"] > [id$="ecology"] { grid-area: eco; }
+#pc-stage > [id$="-view"] > [id$="terraform"] { grid-area: terra; }
+#pc-stage > [id$="-view"] > [id$="trade"] { grid-area: trade; }
+#pc-stage > [id$="-view"] > [id$="sky-city"] { grid-area: sky; }
+#pc-stage > [id$="-view"] > #travel { grid-area: travel; }
+#pc-stage > [id$="-view"] > .cross-summary-group { grid-area: cross; align-self: start; }
+#pc-stage > [id$="-view"] > [id$="reset-world-button"] { grid-area: reset; align-self: start; }
+#pc-stage > [id$="-view"] > [id$="return-to-earth-button"] { grid-area: ret; }
+#pc-stage > [id$="-view"] .section { margin: 0; padding: 0.7rem 0.9rem 0.8rem; height: 100%; }
+#pc-stage > [id$="-view"] > .section { margin: 0 0 0.7rem; height: calc(100% - 0.7rem); }
+
+/* The hero: planet picture, name, count, Mine button, centred. */
+.pc-hero { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.2rem; padding-top: 0.5rem; }
+.pc-hero > * { margin-top: 0; margin-bottom: 0; }
+.pc-hero > .planet-visual { zoom: 1.7; margin: 1.2rem auto 1.2rem; flex: 0 0 auto; }
+.pc-hero .resource-count { font-size: 3.2rem; margin: 0 0 0.9rem; line-height: 1.1; }
+.pc-hero .click-button { padding: 1.1rem 1.5rem; }
+
+/* Card contents, tightened. */
+#pc-stage .generator-info, #pc-stage .recycler-info { margin: 0 0 0.45rem; font-size: 0.88rem; }
+#pc-stage .ecology-percent { margin: 0 0 0.3rem; }
+#pc-stage .ecology-status { margin: 0.35rem 0; font-size: 0.82rem; }
+#pc-stage button.secondary { padding: 0.65rem 1rem; font-size: 0.9rem; border-radius: 12px; }
+#pc-stage .reset-world-button { padding: 0.55rem 1rem; font-size: 0.82rem; }
+#pc-stage .terraform-legend { margin-top: 0.4rem; font-size: 0.7rem; gap: 0.2rem 0.5rem; }
+
+/* Ecology and Terraforming: the label and the big percentage share the top line. Trade: its two buttons sit side by side. */
+#pc-stage [id$="ecology"], #pc-stage [id$="terraform"] { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-content: start; align-items: center; column-gap: 0.6rem; }
+#pc-stage [id$="ecology"] > *, #pc-stage [id$="terraform"] > * { grid-column: 1 / -1; min-width: 0; }
+#pc-stage [id$="ecology"] > .ecology-label, #pc-stage [id$="terraform"] > .ecology-label { grid-column: 1; grid-row: 1; margin: 0; }
+#pc-stage [id$="ecology"] > .ecology-percent, #pc-stage [id$="terraform"] > .ecology-percent { grid-column: 2; grid-row: 1; margin: 0; }
+#pc-stage [id$="ecology"] > .info-toggle, #pc-stage [id$="terraform"] > .info-toggle { grid-column: 1; grid-row: 1; justify-self: end; margin: 0; }
+#pc-stage [id$="trade"] { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 0.5rem; align-content: start; }
+#pc-stage [id$="trade"] > p, #pc-stage [id$="trade"] > details { grid-column: 1 / -1; margin: 0; }
+#pc-stage [id$="trade"] > button { margin: 0; padding: 0.55rem 0.5rem; font-size: 0.85rem; }
+
+/* Travel: a grid of destination buttons rather than a tall stack. */
+#pc-stage #travel { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 0.4rem 0.5rem; align-content: start; }
+#pc-stage #travel > p, #pc-stage #travel > details { grid-column: 1 / -1; margin: 0; }
+#pc-stage #travel > button { margin: 0; padding: 0.55rem 0.5rem; font-size: 0.85rem; }
+
+/* "Other Worlds (Governed)" is a read-only look at the rest of the system: it opens within the stage's own height. */
+#pc-stage .cross-summary-group[open] { max-height: 38vh; overflow-y: auto; }
+#pc-stage .cross-summary-group > summary { padding: 0.5rem 0.9rem; font-size: 0.85rem; }
+
+/* Cards read left to right, like the rest of the layout. */
+#pc-stage > [id$="-view"] > .section, #pc-stage > [id$="-view"] > .cross-summary-group { text-align: left; }
+#pc-stage > [id$="-view"] .meter { margin: 0.3rem 0; }
+
+/* The achievement toast is fixed to the bottom of the window, where the ad strip would cover it. */
+html[data-layout="pc"] .achievement-toast { bottom: 3.4rem; }
+
+/* --- windows holding long sections -------------------------------------------------------------- */
+.pc-composite { padding: 0.8rem 1rem 1rem; text-align: left; }
+.pc-composite > .section { margin: 0; background: none; border: 0; box-shadow: none; padding: 0; border-radius: 0; }
+.pc-window-frame .section { text-align: left; }
+.pc-window-frame { width: min(920px, 94vw); }
+/* Settings: the theme and reset buttons are one-line controls, not full-width bars. */
+#settings-panel #theme-toggle, #settings-panel #settings-reset-button { width: auto; padding: 0.5rem 1.2rem; }
+/* The Captain's log window: the window's own title replaces the disclosure's summary line. */
+#pc-log-panel > #captains-log > summary { display: none; }
+/* The research tree: two columns of nodes, and the level diagram under them. */
+#pc-research-panel #research-node-list { display: grid; align-items: start; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem 0.8rem; }
+#pc-research-panel #research-node-list > * { margin: 0; }
+
+/* Smaller desktop windows: tighter hero and cards. */
+@media (min-height: 1000px) {
+  .pc-hero > .planet-visual { zoom: 2.1; margin: 2rem auto 2rem; }
+  .pc-hero .resource-count { font-size: 4rem; }
+}
+@media (max-width: 1280px) {
+  #pc-stage > [id$="-view"] { grid-template-columns: minmax(11rem, 0.6fr) minmax(0, 1fr) minmax(0, 1fr); column-gap: 0.6rem; }
+  .pc-hero > .planet-visual { zoom: 1.4; }
+  .pc-hero .resource-count { font-size: 2.6rem; }
+  .pc-readout-label { display: none; }
+}
+@media (max-height: 780px) {
+  .pc-hero > .planet-visual { zoom: 1.1; margin: 0.6rem auto; }
+  .pc-hero .resource-count { font-size: 2.3rem; margin-bottom: 0.5rem; }
+  #pc-stage .terraform-legend { display: none; }
+  /* Short windows: the round "i" help bubbles go (their text is in How to Play and the tutorial), cards tighten. */
+  #pc-stage > [id$="-view"] .info-toggle { display: none; }
+  #pc-stage > [id$="-view"] > .section { padding: 0.5rem 0.8rem 0.6rem; }
+  #pc-stage > [id$="-view"] > .section > p { font-size: 0.82rem; }
+  #pc-stage .ecology-percent { font-size: 1.3rem; padding: 0.15rem 0.7rem; }
+  #pc-stage button.secondary { padding: 0.45rem 0.8rem; }
+  #pc-stage > [id$="-view"] > [id$="reset-world-button"] { padding: 0.4rem 0.8rem; }
+  #pc-stage #travel { gap: 0.25rem 0.5rem; }
+}
+
+/* --- light theme -------------------------------------------------------------------------------- */
+html[data-theme="light"] .pc-readout { color: #1b2233; }
+html[data-theme="light"] #pc-hintbar { opacity: 1; color: #2a3350; }

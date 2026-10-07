@@ -1,0 +1,73 @@
+{
+  "windows": [
+    ["howto-panel", "howto-toggle-button", "How to Play"],
+    ["overview-panel", "overview-toggle-button", "Overview: every world"],
+    ["achievements-panel", "achievements-toggle-button", "Achievements"],
+    ["stats-panel", "stats-toggle-button", "Stats and Share"],
+    ["governor-report-panel", "governor-report-toggle-button", "Governor Report"],
+    ["build-plan-panel", "build-plan-toggle-button", "Build Plan"],
+    ["prestige-tree-panel", "prestige-tree-toggle-button", "Prestige Tree"],
+    ["changelog-panel", "changelog-toggle-button", "What's New"],
+    ["settings-panel", "settings-toggle-button", "Settings"],
+    ["epilogue-panel", "epilogue-button", "Epilogue"]
+  ],
+  "toolbar": {
+    "icons": [
+      ["overview-toggle-button", "🌍"],
+      ["achievements-toggle-button", "🏆"],
+      ["stats-toggle-button", "📊"],
+      ["settings-toggle-button", "⚙️"]
+    ],
+    "menu": [
+      {"heading": "Game", "ids": ["build-plan-toggle-button", "prestige-tree-toggle-button", "governor-report-toggle-button"]},
+      {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button"]},
+      {"heading": "Records", "ids": ["changelog-toggle-button"]}
+    ]
+  },
+  "composites": [
+    {
+      "id": "pc-research-panel",
+      "title": "Research tree",
+      "members": ["#research"],
+      "group": "Game",
+      "label": "🔬 Research tree"
+    },
+    {
+      "id": "pc-governor-panel",
+      "title": "Governor: priority and budget",
+      "members": ["#governor"],
+      "group": "Game",
+      "label": "🎛️ Governor"
+    },
+    {
+      "id": "pc-log-panel",
+      "title": "Captain's log",
+      "members": ["#captains-log"],
+      "group": "Records",
+      "label": "📜 Captain's log"
+    }
+  ],
+  "adopt": [],
+  "zones": {
+    "topbar": [".hub-back-link", "h1", ".game-toolbar"],
+    "stagebar": ["#captains-log-latest", "#away-report", "#win-banner"],
+    "stage": ["#earth-view", "#mars-view", "#moon-view", "#venus-view", "#asteroidbelt-view", "#pluto-view", "#jupitermoons-view", "#saturnmoons-view", "#away-view"],
+    "hidden": []
+  },
+  "readouts": [
+    ["#resource-count", "⛏️", "Iron"],
+    ["#mars-resource-count", "💧", "Water Ice"],
+    ["#moon-resource-count", "🌑", "Regolith"],
+    ["#venus-resource-count", "🟡", "Sulfur"],
+    ["#asteroidbelt-resource-count", "💎", "Platinum"],
+    ["#pluto-resource-count", "🧊", "Tholins"],
+    ["#jupitermoons-resource-count", "🎈", "Helium-3"],
+    ["#saturnmoons-resource-count", "🔥", "Methane"]
+  ],
+  "side_label": "Details",
+  "hints": [
+    ["?", "All shortcuts"],
+    ["Esc", "Menu / close window"]
+  ],
+  "notify": null
+}
