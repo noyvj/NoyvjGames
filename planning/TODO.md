@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 369/904 items checked off (40.8%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 368/904 items checked off (40.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -981,7 +981,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] Y-20: Add a 'copy my site stats' button to the profile producing a line like '12 games, 87 achievements, joined Sept 2026'. (needs Y-1 profile)
 - [x] Y-21: Add a <noscript> and old-browser/WebAssembly fallback message to the hub explaining what needs JavaScript/WebAssembly, with plain links to every game.
 - [x] Y-22: Add a per-card estimated session length chip (5 min / 20 min / long-form) read from a manual field in game-manifest.json, filterable in the lobby and feeding the onboarding quick-vs-deep preference. (Session lengths live in game-sessions.json, my estimates: confirm them.)
-- [x] Y-23: Add a small caption under the lobby sort dropdown showing each sort's current leader (top rated, most saved, most played). (needs most-played stat from stats endpoints)
+- [ ] Y-23: Add a small caption under the lobby sort dropdown showing each sort's current leader (top rated, most saved, most played). (needs most-played stat from stats endpoints) (Partly done 2026-10-08: caption shows top rated and most saved; no per-game 'most played' stat exists on any endpoint so that leader is not shown.)
 - [x] Y-24: Add a 'was this helpful?' thumbs up/down to each What's New entry, stored in the feedback table with the entry id (new nullable column or tagged field), and show the tallies on admin.html. (needs backend feedback entry-id field)
 - [x] Y-25: Add an offline banner on the hub driven by navigator.onLine that greys out uncached game cards instead of letting them fail.
 - [x] Y-26: Skip the hub's stats/community endpoint fetches when navigator.connection.saveData is on, quietly by default, with a 'reduce data' note in settings (Y-10). (needs Y-10 settings page)
