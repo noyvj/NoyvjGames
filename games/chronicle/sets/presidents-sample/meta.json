@@ -1,0 +1,11 @@
+{
+  "id": "presidents-sample",
+  "title": "American presidents (sample)",
+  "status": "sample-draft",
+  "status_label": "Sample, draft until reviewed",
+  "version": 1,
+  "drafted": "2026-10-07",
+  "language": "en",
+  "nuance_window_years": 30,
+  "description": "A small sample of fourteen moments from the American presidency, plus seven things that happened elsewhere. Every claim links three sources; none of it has been reviewed by the owner yet."
+}

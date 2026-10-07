@@ -1,0 +1,83 @@
+[
+  {
+    "id": "s1",
+    "title": "Founding years",
+    "blurb": "Five moments from the first quarter-century of the presidency.",
+    "difficulty": 1,
+    "size": 3,
+    "min_gap_years": 5,
+    "events": [
+      "e-washington-oath",
+      "e-farewell",
+      "e-jefferson-oath",
+      "e-louisiana",
+      "e-capitol-burned"
+    ],
+    "requires": [],
+    "clear": {
+      "type": "learn_all"
+    }
+  },
+  {
+    "id": "s2",
+    "title": "A divided nation",
+    "blurb": "Five moments from the years that led to, and ended, the Civil War.",
+    "difficulty": 2,
+    "size": 4,
+    "min_gap_years": 2,
+    "events": [
+      "e-removal-act",
+      "e-fort-sumter",
+      "e-emancipation",
+      "e-gettysburg",
+      "e-lincoln-death"
+    ],
+    "requires": [
+      "s1"
+    ],
+    "clear": {
+      "type": "learn_all"
+    }
+  },
+  {
+    "id": "s3",
+    "title": "The modern presidency",
+    "blurb": "Four moments from the twentieth century.",
+    "difficulty": 2,
+    "size": 3,
+    "min_gap_years": 1,
+    "events": [
+      "e-roosevelt-sworn",
+      "e-22nd-amendment",
+      "e-kennedy",
+      "e-nixon-resigns"
+    ],
+    "requires": [
+      "s1"
+    ],
+    "clear": {
+      "type": "learn_all"
+    }
+  },
+  {
+    "id": "s4",
+    "title": "All together",
+    "blurb": "Six cards at a time, drawn from every earlier section. Some dates sit only months apart.",
+    "difficulty": 3,
+    "size": 6,
+    "min_gap_years": 0,
+    "from_sections": [
+      "s1",
+      "s2",
+      "s3"
+    ],
+    "requires": [
+      "s2",
+      "s3"
+    ],
+    "clear": {
+      "type": "solves",
+      "n": 3
+    }
+  }
+]

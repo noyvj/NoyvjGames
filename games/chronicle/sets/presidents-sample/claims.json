@@ -1,0 +1,515 @@
+[
+  {
+    "id": "c-e-washington-oath-date",
+    "subject": "e-washington-oath",
+    "field": "date",
+    "value": "1789-04-30",
+    "text": "George Washington took the first presidential oath of office on April 30, 1789, at Federal Hall in New York City.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "nara-washington-inaugural",
+        "note": "Gives Thursday, April 30 and Federal Hall, and says Chancellor Robert Livingston administered the oath."
+      },
+      {
+        "source": "whha-presidential-inaugurations",
+        "note": "States that Washington took the oath on April 30, 1789, in New York City, at Federal Hall."
+      },
+      {
+        "source": "loc-inaugurations-1789-1825",
+        "note": "Lists the first inauguration on April 30, 1789, in New York, with the oath taken outdoors; does not name Federal Hall."
+      }
+    ]
+  },
+  {
+    "id": "c-e-farewell-date",
+    "subject": "e-farewell",
+    "field": "date",
+    "value": "1796-09-19",
+    "text": "Washington's Farewell Address was first published in a Philadelphia newspaper, the American Daily Advertiser, on September 19, 1796.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "loc-farewell-address",
+        "note": "Says it was originally published in David C. Claypoole's American Daily Advertiser on September 19, 1796."
+      },
+      {
+        "source": "ncc-farewell-lessons",
+        "note": "Says a Philadelphia newspaper published the address on September 19, 1796, in Claypoole's American Daily Advertiser."
+      },
+      {
+        "source": "miller-farewell-address",
+        "note": "Dates the address September 19, 1796 and says Washington released it to newspapers and never presented it in person; does not name the paper."
+      }
+    ]
+  },
+  {
+    "id": "c-e-jefferson-oath-date",
+    "subject": "e-jefferson-oath",
+    "field": "date",
+    "value": "1801-03-04",
+    "text": "Thomas Jefferson took the presidential oath on March 4, 1801, in the Senate chamber of the Capitol, at the first inauguration held in Washington, D.C.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "whha-march-4",
+        "note": "Gives March 4, 1801 and the Senate chamber of the Capitol for Jefferson's oath; does not itself call it the first in Washington."
+      },
+      {
+        "source": "loc-inaugurations-1789-1825",
+        "note": "Lists Jefferson's first inauguration on March 4, 1801 and calls it the first inauguration in Washington, D.C."
+      },
+      {
+        "source": "miller-jefferson-key-events",
+        "note": "Gives March 4, 1801 and calls it the first inauguration held in Washington, D.C.; does not name the Senate chamber."
+      }
+    ]
+  },
+  {
+    "id": "c-e-louisiana-date",
+    "subject": "e-louisiana",
+    "field": "date",
+    "value": "1803-04-30",
+    "text": "The treaty by which the United States bought the Louisiana Territory from France for $15 million was done at Paris and is dated April 30, 1803, during Thomas Jefferson's presidency.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "nara-louisiana-treaty",
+        "note": "States the treaty was signed on April 30, 1803, that the price was $15 million, and that Jefferson approved the deal."
+      },
+      {
+        "source": "ncc-louisiana-treaty",
+        "note": "Reproduces the treaty's closing line: done at Paris on the 30th of April 1803."
+      },
+      {
+        "source": "miller-jefferson-key-events",
+        "note": "Dates the Louisiana Purchase treaty to April 30, 1803 and gives the price as about $15 million; does not name Paris."
+      }
+    ]
+  },
+  {
+    "id": "c-e-capitol-burned-date",
+    "subject": "e-capitol-burned",
+    "field": "date",
+    "value": "1814-08-24",
+    "text": "On August 24, 1814, during the War of 1812 and while James Madison was president, British forces burned the White House and the Capitol in Washington, D.C.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "whha-rebuilding",
+        "note": "States that on August 24, 1814, British forces marched into Washington and set fire to the White House, the Capitol and other buildings."
+      },
+      {
+        "source": "miller-madison-key-events",
+        "note": "Dates the British burning of Washington to August 24, 1814 and says Madison and his government had left the capital."
+      },
+      {
+        "source": "aoc-british-burn-capitol",
+        "note": "States that on August 24, 1814, during the War of 1812, British troops burned the Capitol and almost all other public buildings; does not name Madison."
+      }
+    ]
+  },
+  {
+    "id": "c-e-removal-act-date",
+    "subject": "e-removal-act",
+    "field": "date",
+    "value": "1830-05-28",
+    "text": "President Andrew Jackson signed the Indian Removal Act into law on May 28, 1830; it let the president negotiate exchanges of land west of the Mississippi River for tribal land inside existing states.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "house-indian-removal",
+        "note": "Says President Jackson signed the bill into law on May 28, after the House passed it on May 26, 1830."
+      },
+      {
+        "source": "ncc-indian-removal",
+        "note": "Gives the signing date as May 28, 1830 and says the act authorized the president to negotiate land exchanges west of the Mississippi."
+      },
+      {
+        "source": "miller-jackson-key-events",
+        "note": "Dates the signing to May 28, 1830 and says the act gave the president added powers to speed the removal of American Indian communities from the east; does not describe the land exchanges."
+      }
+    ]
+  },
+  {
+    "id": "c-e-fort-sumter-date",
+    "subject": "e-fort-sumter",
+    "field": "date",
+    "value": "1861-04-12",
+    "text": "Confederate artillery opened fire on the Union-held Fort Sumter, in Charleston harbor, on April 12, 1861, the start of the Civil War.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "loc-fort-sumter",
+        "note": "Dates the Confederate firing on Union-held Fort Sumter to April 12, 1861 and calls it the start of hostilities in the Civil War."
+      },
+      {
+        "source": "nps-fort-sumter-battle",
+        "note": "Says Confederate batteries opened fire on the fort on April 12 and that Major Anderson surrendered on April 13."
+      },
+      {
+        "source": "ncc-fort-sumter",
+        "note": "Says the bombardment began at 4:30 a.m. on April 12, 1861 and lasted about 34 hours."
+      }
+    ]
+  },
+  {
+    "id": "c-e-emancipation-date",
+    "subject": "e-emancipation",
+    "field": "date",
+    "value": "1863-01-01",
+    "text": "Abraham Lincoln signed the final Emancipation Proclamation at the White House on January 1, 1863, declaring enslaved people in areas in rebellion against the United States to be free.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "nara-emancipation",
+        "note": "Names Lincoln as the issuer and January 1, 1863 as the date, and quotes the declaration of freedom for people held as slaves in rebel states; does not name the White House."
+      },
+      {
+        "source": "loc-emancipation",
+        "note": "States that Lincoln issued the proclamation on January 1, 1863 and quotes its freedom clause; does not name the White House."
+      },
+      {
+        "source": "nps-emancipation",
+        "note": "Says Lincoln signed the final version on January 1, 1863, after greeting New Year's visitors at the White House."
+      }
+    ]
+  },
+  {
+    "id": "c-e-gettysburg-date",
+    "subject": "e-gettysburg",
+    "field": "date",
+    "value": "1863-11-19",
+    "text": "Abraham Lincoln delivered the Gettysburg Address on November 19, 1863, at the dedication of a cemetery for Union soldiers at Gettysburg, Pennsylvania.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "loc-gettysburg",
+        "note": "Dates the address November 19, 1863 and says Lincoln was invited to give remarks at the dedication of a cemetery for Union soldiers."
+      },
+      {
+        "source": "ncc-gettysburg",
+        "note": "Says Lincoln delivered the speech on November 19, 1863, at the dedication of a national cemetery near the battlefield."
+      },
+      {
+        "source": "miller-lincoln-key-events",
+        "note": "Dates the Gettysburg Address November 19, 1863 and says Lincoln gave it at the dedication of a national cemetery."
+      }
+    ]
+  },
+  {
+    "id": "c-e-lincoln-death-date",
+    "subject": "e-lincoln-death",
+    "field": "date",
+    "value": "1865-04-15",
+    "text": "Abraham Lincoln was shot at Ford's Theatre on the night of April 14, 1865, and died the next morning, April 15, 1865.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "nps-ford-assassination-faq",
+        "note": "Says Booth shot Lincoln at Ford's Theatre on April 14, 1865 and that Lincoln died at 7:22 am on April 15."
+      },
+      {
+        "source": "miller-lincoln-key-events",
+        "note": "Says Lincoln was shot at Ford's Theater on April 14 and died at 7:22 a.m. the next morning."
+      },
+      {
+        "source": "ncc-lincoln-10-facts",
+        "note": "Says Lincoln was shot at Ford's Theatre on April 14, 1865 and died the next morning."
+      }
+    ]
+  },
+  {
+    "id": "c-e-roosevelt-sworn-date",
+    "subject": "e-roosevelt-sworn",
+    "field": "date",
+    "value": "1901-09-14",
+    "text": "William McKinley, shot on September 6, 1901, died on September 14, 1901, and Theodore Roosevelt took the presidential oath the same day in Buffalo, New York.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "nps-thri-sept-14",
+        "note": "Says McKinley died on September 14, 1901 and Roosevelt took the oath that afternoon in Buffalo."
+      },
+      {
+        "source": "miller-mckinley-key-events",
+        "note": "Says McKinley was shot on September 6, 1901 at the Pan-American Exposition in Buffalo, died on September 14, and Roosevelt became president."
+      },
+      {
+        "source": "loc-inaugurations-1897-1925",
+        "note": "Says Roosevelt took the oath on September 14, 1901 in Buffalo after McKinley died, and that McKinley was shot on September 6."
+      }
+    ]
+  },
+  {
+    "id": "c-e-22nd-amendment-date",
+    "subject": "e-22nd-amendment",
+    "field": "date",
+    "value": "1951-02-27",
+    "text": "The 22nd Amendment, which says no person may be elected president more than twice, was ratified on February 27, 1951, after Franklin Roosevelt had won four elections.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "ncc-22nd-amendment",
+        "note": "Gives 'Ratified February 27, 1951' and quotes the two-election limit; does not mention Roosevelt."
+      },
+      {
+        "source": "loc-law-ratification-anniversary",
+        "note": "Marks February 27 as the ratification anniversary and says the amendment was introduced two years after Roosevelt's fourth inauguration."
+      },
+      {
+        "source": "ncc-term-limits-on-this-day",
+        "note": "Says Minnesota's approval on February 27, 1951 completed ratification and ties the amendment to Roosevelt's four consecutive terms."
+      }
+    ]
+  },
+  {
+    "id": "c-e-kennedy-date",
+    "subject": "e-kennedy",
+    "field": "date",
+    "value": "1963-11-22",
+    "text": "President John F. Kennedy was shot while riding in a motorcade in Dallas, Texas, on November 22, 1963, and died that day.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "nara-eyewitness-kennedy",
+        "note": "Says Kennedy was shot in Dallas at about 12:30 p.m. on November 22, 1963 and that Lyndon Johnson was then sworn in as president."
+      },
+      {
+        "source": "miller-kennedy-death",
+        "note": "Dates the Dallas motorcade shooting to November 22, 1963 and says Kennedy died soon after at Parkland Memorial Hospital."
+      },
+      {
+        "source": "whha-johnson-white-house",
+        "note": "Says Johnson took the oath on November 22, 1963, about two hours after Kennedy's assassination, which shows Kennedy died that day."
+      }
+    ]
+  },
+  {
+    "id": "c-e-nixon-resigns-date",
+    "subject": "e-nixon-resigns",
+    "field": "date",
+    "value": "1974-08-09",
+    "text": "Richard Nixon announced on August 8, 1974 that he would resign, and his resignation took effect at noon on August 9, 1974, making him the first U.S. president to resign.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "nara-prologue-nixon-resigns",
+        "note": "Says Nixon announced on August 8, 1974 that he would resign effective at noon the next day, and calls him the first sitting president to resign."
+      },
+      {
+        "source": "miller-watergate-aftermath",
+        "note": "Says Nixon became the first and only president to resign, effective August 9, 1974, quoting 'effective at noon tomorrow'."
+      },
+      {
+        "source": "loc-inaugurations-1969-1997",
+        "note": "Says Gerald Ford took the oath of office on August 9, 1974, on Nixon's resignation."
+      }
+    ]
+  },
+  {
+    "id": "c-c-bastille-date",
+    "subject": "c-bastille",
+    "field": "date",
+    "value": "1789-07-14",
+    "text": "On July 14, 1789, Parisians stormed the Bastille fortress in Paris, an event commonly linked with the start of the French Revolution.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "nara-prologue-bastille",
+        "note": "Says Jefferson witnessed events in Paris on July 14, 1789 that are commonly seen as the start of the French Revolution."
+      },
+      {
+        "source": "loc-law-bastille",
+        "note": "Says the Bastille fortress was stormed on July 14, 1789 by Parisian revolutionaries."
+      },
+      {
+        "source": "natgeo-bastille",
+        "note": "Says thousands of Parisians stormed the prison on July 14, 1789."
+      }
+    ]
+  },
+  {
+    "id": "c-c-waterloo-date",
+    "subject": "c-waterloo",
+    "field": "date",
+    "value": "1815-06-18",
+    "text": "On June 18, 1815, Napoleon's French army fought an allied army under the Duke of Wellington, joined by Marshal Blucher's forces, at the Battle of Waterloo.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "nam-waterloo",
+        "note": "Says the battle was fought on 18 June 1815 between Napoleon's army and a coalition led by Wellington and Blucher."
+      },
+      {
+        "source": "royalarmouries-waterloo",
+        "note": "Describes the fighting on Sunday 18th June."
+      },
+      {
+        "source": "loc-maps-waterloo",
+        "note": "Says the battle began on Sunday, June 18, 1815."
+      }
+    ]
+  },
+  {
+    "id": "c-c-origin-date",
+    "subject": "c-origin",
+    "field": "date",
+    "value": "1859-11-24",
+    "text": "Charles Darwin's book On the Origin of Species was published on November 24, 1859.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "darwinproject-wicked-book",
+        "note": "States that the book was published on 24 November 1859."
+      },
+      {
+        "source": "darwinproject-timeline",
+        "note": "Lists 24 November 1859 as the day On the Origin of Species was published."
+      },
+      {
+        "source": "darwinonline-francis-copy",
+        "note": "Says the Origin was published on 24 November 1859, in a first printing of 1,250 copies."
+      }
+    ]
+  },
+  {
+    "id": "c-c-sarajevo-date",
+    "subject": "c-sarajevo",
+    "field": "date",
+    "value": "1914-06-28",
+    "text": "Archduke Franz Ferdinand of Austria and his wife Sophie were shot in Sarajevo on June 28, 1914, and both died.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "loc-franz-ferdinand",
+        "note": "Lists June 28, 1914 as the day the archduke and his wife were killed by an assassin's bullets in Sarajevo."
+      },
+      {
+        "source": "worldhistory-franz-ferdinand",
+        "note": "Says Gavrilo Princip shot both the archduke and his wife in Sarajevo on 28 June 1914."
+      },
+      {
+        "source": "natgeo-franz-ferdinand",
+        "note": "Describes Sunday morning, June 28, 1914 in Sarajevo, when the archduke and his wife were fatally shot."
+      }
+    ]
+  },
+  {
+    "id": "c-c-sputnik-date",
+    "subject": "c-sputnik",
+    "field": "date",
+    "value": "1957-10-04",
+    "text": "The Soviet Union launched Sputnik 1, the first artificial Earth satellite, on October 4, 1957.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "nasa-dawn-space-age",
+        "note": "Says the Soviet Union launched Sputnik 1 on October 4, 1957."
+      },
+      {
+        "source": "statedept-sputnik",
+        "note": "Says the Soviet Union launched the first artificial satellite, Sputnik-1, on October 4, 1957."
+      },
+      {
+        "source": "loc-sputnik",
+        "note": "Says the Soviet Union launched the world's first artificial satellite on October 4, 1957."
+      }
+    ]
+  },
+  {
+    "id": "c-c-apollo-date",
+    "subject": "c-apollo",
+    "field": "date",
+    "value": "1969-07-20",
+    "text": "The lunar module of Apollo 11 landed on the Moon at Tranquility Base on July 20, 1969.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "nasa-one-giant-leap",
+        "note": "Says the lunar module landed on July 20, 1969 and quotes Armstrong's call from Tranquility Base."
+      },
+      {
+        "source": "nara-prologue-apollo",
+        "note": "Gives the landing time as 20:17:40 GMT on July 20, 1969; does not name Tranquility Base."
+      },
+      {
+        "source": "nasa-alsj-apollo-11",
+        "note": "Heads its mission overview with the landing on July 20 and the call from Tranquility Base."
+      }
+    ]
+  },
+  {
+    "id": "c-c-berlin-wall-date",
+    "subject": "c-berlin-wall",
+    "field": "date",
+    "value": "1989-11-09",
+    "text": "On the night of November 9, 1989, an East German announcement about travel changes brought crowds to the Berlin Wall, and the border crossings were opened.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "loc-berlin-wall",
+        "note": "Says the wall came down on the evening of November 9, 1989, after an East German press-conference announcement of travel changes."
+      },
+      {
+        "source": "statedept-fall-of-communism",
+        "note": "Says that on November 9, 1989 thousands of Germans brought down the Berlin Wall."
+      },
+      {
+        "source": "natgeo-berlin-wall",
+        "note": "Says that on the night of November 9, 1989 an East German announcement led crowds to the checkpoints, where guards opened the gates."
+      }
+    ]
+  },
+  {
+    "id": "c-e-gettysburg-tradition",
+    "subject": "e-gettysburg",
+    "field": "tradition",
+    "value": "written on the back of an envelope on the train to Gettysburg",
+    "text": "The popular story that Lincoln wrote the Gettysburg Address on the back of an envelope during the train ride to Gettysburg is not supported by the sources.",
+    "confidence": "traditional-but-doubtful",
+    "alternatives": [
+      "Lincoln drafted the first part in Washington on Executive Mansion stationery and finished revising it at the David Wills house in Gettysburg."
+    ],
+    "sources": [
+      {
+        "source": "ncc-gettysburg-myths",
+        "note": "Calls the envelope story perhaps the biggest myth about the address, and says the surviving drafts are in steady handwriting, not the handwriting of a moving train."
+      },
+      {
+        "source": "loc-gettysburg-exhibition",
+        "note": "Says the first page of the earliest known draft, the Nicolay copy, is on Executive Mansion stationery, which suggests it was drafted in Washington."
+      },
+      {
+        "source": "nps-wills-house",
+        "note": "Says Lincoln made his final revisions in a bedroom at the Wills house in Gettysburg; it does not mention an envelope."
+      }
+    ]
+  },
+  {
+    "id": "c-e-gettysburg-final-revision",
+    "subject": "e-gettysburg",
+    "field": "final_revision",
+    "value": "at the David Wills house in Gettysburg, evening of November 18 or November 19, 1863",
+    "text": "Lincoln finished revising the Gettysburg Address at the David Wills house in Gettysburg, but the sources differ on whether the last rewrite came on the evening of November 18 or on November 19, 1863.",
+    "confidence": "disputed",
+    "alternatives": [
+      "The evening of November 18, 1863, after he arrived in Gettysburg (National Park Service).",
+      "November 19, 1863, the day of the ceremony, for the final paragraph of the Nicolay copy (Library of Congress)."
+    ],
+    "sources": [
+      {
+        "source": "nps-wills-house",
+        "note": "Says Lincoln stayed at the Wills house on November 18 and made his final revisions in the bedroom before delivering the address the next day."
+      },
+      {
+        "source": "loc-gettysburg-exhibition",
+        "note": "Says the second page of the Nicolay copy is on different paper, suggesting Lincoln rewrote the final paragraph in Gettysburg on November 19."
+      },
+      {
+        "source": "ncc-gettysburg-myths",
+        "note": "Says Lincoln finalized the speech after arriving in Gettysburg; it does not give the hour."
+      }
+    ]
+  }
+]

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Chronicle review</title>
+<link rel="stylesheet" href="../../shared/theme-light-games.css">
+<link rel="stylesheet" href="style.css">
+<script src="../../shared/theme.js"></script>
+<script src="settings.js"></script>
+<style>
+  #game { max-width: 64rem; }
+  .rv-claim { border: 1px solid var(--line); border-radius: 10px; padding: 0.6rem 0.8rem; margin: 0.6rem 0; background: var(--surface); }
+  .rv-claim h3 { margin: 0 0 0.2rem; }
+  .rv-meta { color: var(--muted); font-size: 0.85rem; }
+  .rv-problem { border: 3px double var(--accent-ink); padding: 0.4rem 0.6rem; border-radius: 8px; font-weight: 700; }
+  .rv-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  .rv-table th, .rv-table td { text-align: left; vertical-align: top; border-top: 1px solid var(--line); padding: 0.35rem 0.4rem; }
+  .rv-filter { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; margin: 0.5rem 0; }
+</style>
+</head>
+<body>
+<main id="game">
+  <a href="index.html" class="hub-back-link">&larr; Chronicle</a>
+  <h1>Review</h1>
+  <p class="tagline">For the owner's spot check. Every claim in a set, with its three or more sources and its confidence level, so a wrong fact is easy to find. This page gives away every answer; it is not linked from the game.</p>
+  <div class="rv-filter">
+    <label for="rv-set">Set</label> <select id="rv-set"></select>
+    <label for="rv-conf">Show</label>
+    <select id="rv-conf">
+      <option value="all">All claims</option>
+      <option value="documented">Documented only</option>
+      <option value="disputed">Disputed only</option>
+      <option value="traditional-but-doubtful">Traditional but doubtful only</option>
+    </select>
+    <label for="rv-q">Find</label> <input id="rv-q" type="text" placeholder="words in a claim or source" autocomplete="off">
+  </div>
+  <p id="rv-status" class="note" role="status">Loading...</p>
+  <p id="rv-draft" class="draft-banner" hidden></p>
+  <section id="rv-summary" class="panel" hidden></section>
+  <div id="rv-body"></div>
+</main>
+<script>
+(function () {
+  "use strict";
+  var FILES = ["meta", "sources", "entities", "claims", "relations", "sections", "readings"];
+  var sets = {};
+  var $ = function (id) { return document.getElementById(id); };
+  function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; }
+  var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  function fmt(d) {
+    var m = /^(-?\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/.exec(d || "");
+    if (!m) return d;
+    var y = parseInt(m[1], 10), label = y < 0 ? (-y) + " BCE" : String(y);
+    if (!m[2]) return label;
+    if (!m[3]) return MONTHS[parseInt(m[2], 10) - 1] + " " + label;
+    return parseInt(m[3], 10) + " " + MONTHS[parseInt(m[2], 10) - 1] + " " + label;
+  }
+  var SYMBOL = { "documented": "✔", "disputed": "≈", "traditional-but-doubtful": "?" };
+
+  async function load() {
+    var index = await (await fetch("sets/index.json")).json();
+    for (var i = 0; i < index.sets.length; i++) {
+      var folder = index.sets[i].folder, data = {};
+      for (var f = 0; f < FILES.length; f++) data[FILES[f]] = await (await fetch("sets/" + folder + "/" + FILES[f] + ".json")).json();
+      sets[data.meta.id] = data;
+      var o = el("option", null, data.meta.title); o.value = data.meta.id; $("rv-set").appendChild(o);
+    }
+    $("rv-status").textContent = "";
+    render();
+  }
+
+  // The same three-source rule the engine enforces, checked again here so this page cannot hide a bad claim.
+  function problemsFor(set, claim) {
+    var out = [], refs = claim.sources || [], urls = {}, inst = {};
+    if (refs.length < 3) out.push("Only " + refs.length + " source(s): three are required.");
+    refs.forEach(function (r) {
+      var s = set.sources[r.source];
+      if (!s) { out.push("Unknown source " + r.source); return; }
+      if (!/^https?:\/\//.test(s.url || "")) out.push("Source " + r.source + " has no URL.");
+      if (!s.read) out.push("Source " + r.source + " has no read date.");
+      urls[s.url] = 1; inst[(s.institution || s.author || "").toLowerCase()] = 1;
+    });
+    if (Object.keys(urls).length < 3) out.push("Fewer than three distinct URLs.");
+    if (Object.keys(inst).length < 2) out.push("Fewer than two different institutions.");
+    return out;
+  }
+
+  function render() {
+    var set = sets[$("rv-set").value];
+    if (!set) return;
+    var conf = $("rv-conf").value, q = $("rv-q").value.trim().toLowerCase();
+    var draft = $("rv-draft");
+    draft.hidden = set.meta.status === "reviewed";
+    draft.textContent = set.meta.status_label + " (version " + set.meta.version + ", drafted " + (set.meta.drafted || "unknown") + ").";
+    var entity = {};
+    set.entities.events.forEach(function (e) { entity[e.id] = e.title; });
+    set.entities.people.forEach(function (e) { entity[e.id] = e.name; });
+    set.entities.places.forEach(function (e) { entity[e.id] = e.name; });
+    var counts = { documented: 0, disputed: 0, "traditional-but-doubtful": 0 }, bad = 0;
+    set.claims.forEach(function (c) { counts[c.confidence]++; if (problemsFor(set, c).length) bad++; });
+    var sum = $("rv-summary"); sum.hidden = false; sum.textContent = "";
+    sum.appendChild(el("p", null, set.claims.length + " claims: " + counts.documented + " documented, " + counts.disputed + " disputed, " + counts["traditional-but-doubtful"] + " traditional but doubtful. " + Object.keys(set.sources).length + " distinct sources. " + (bad ? bad + " claim(s) break the source rule (marked below)." : "Every claim meets the source rule (three or more distinct sources, two or more institutions, URL and read date on each).")));
+    var body = $("rv-body"); body.textContent = "";
+    var shown = 0;
+    set.claims.forEach(function (c) {
+      if (conf !== "all" && c.confidence !== conf) return;
+      var hay = (c.text + " " + c.value + " " + (entity[c.subject] || "") + " " + c.sources.map(function (r) { var s = set.sources[r.source] || {}; return (s.title || "") + " " + (s.institution || "") + " " + (r.note || ""); }).join(" ")).toLowerCase();
+      if (q && hay.indexOf(q) < 0) return;
+      shown++;
+      var box = el("div", "rv-claim");
+      box.appendChild(el("h3", null, (entity[c.subject] || c.subject) + " · " + c.field + (c.field === "date" ? ": " + fmt(c.value) : "")));
+      box.appendChild(el("p", null, c.text));
+      box.appendChild(el("p", "rv-meta", "claim " + c.id + " · " + SYMBOL[c.confidence] + " " + c.confidence));
+      (c.alternatives || []).forEach(function (a) { box.appendChild(el("p", "rv-meta", "Alternative position: " + a)); });
+      var probs = problemsFor(set, c);
+      probs.forEach(function (p) { box.appendChild(el("p", "rv-problem", "✖ " + p)); });
+      var t = el("table", "rv-table");
+      var head = el("tr"); ["Source", "Published by", "Read", "What it confirms"].forEach(function (h) { head.appendChild(el("th", null, h)); });
+      t.appendChild(head);
+      c.sources.forEach(function (r) {
+        var s = set.sources[r.source] || {};
+        var tr = el("tr");
+        var td = el("td"); var a = el("a", null, s.title || r.source); a.href = s.url || "#"; a.target = "_blank"; a.rel = "noopener noreferrer"; td.appendChild(a); tr.appendChild(td);
+        tr.appendChild(el("td", null, s.institution || s.author || ""));
+        tr.appendChild(el("td", null, s.read || "missing"));
+        tr.appendChild(el("td", null, r.note || ""));
+        t.appendChild(tr);
+      });
+      box.appendChild(t);
+      body.appendChild(box);
+    });
+    if (!shown) body.appendChild(el("p", "note", "No claims match."));
+  }
+  $("rv-set").addEventListener("change", render);
+  $("rv-conf").addEventListener("change", render);
+  $("rv-q").addEventListener("input", render);
+  load().catch(function (e) { $("rv-status").textContent = "Could not load the sets: " + e; });
+})();
+</script>
+</body>
+</html>

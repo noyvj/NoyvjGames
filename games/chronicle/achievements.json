@@ -1,0 +1,64 @@
+{
+  "achievements": [
+    {
+      "id": "first_card",
+      "label": "First Card",
+      "description": "Place a card in its right place."
+    },
+    {
+      "id": "first_timeline",
+      "label": "First Timeline",
+      "description": "Solve a timeline puzzle."
+    },
+    {
+      "id": "straight_line",
+      "label": "Straight Line",
+      "description": "Solve a puzzle with a single check."
+    },
+    {
+      "id": "five_timelines",
+      "label": "Five Timelines",
+      "description": "Solve five timeline puzzles."
+    },
+    {
+      "id": "first_section",
+      "label": "First Section",
+      "description": "Clear the first section of a set."
+    },
+    {
+      "id": "all_sections",
+      "label": "Whole Story",
+      "description": "Clear every section of a set."
+    },
+    {
+      "id": "wider_world",
+      "label": "The Wider World",
+      "description": "Find every 'elsewhere' event in a set."
+    },
+    {
+      "id": "all_people",
+      "label": "Faces and Names",
+      "description": "Find every person in a set."
+    },
+    {
+      "id": "all_places",
+      "label": "On the Map",
+      "description": "Find every place in a set."
+    },
+    {
+      "id": "fine_print",
+      "label": "Fine Print",
+      "description": "Open the sources of five different claims."
+    },
+    {
+      "id": "doubting_reader",
+      "label": "Doubting Reader",
+      "description": "Open the sources of a claim marked disputed or doubtful."
+    },
+    {
+      "id": "complete_archive",
+      "label": "Complete Archive",
+      "description": "Fill the archive of a set to 100%."
+    }
+  ]
+}

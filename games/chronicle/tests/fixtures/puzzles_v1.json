@@ -1,0 +1,865 @@
+{
+ "seed_version": "v1",
+ "puzzles": {
+  "presidents-sample/s1/0": {
+   "tray": [
+    "e-jefferson-oath",
+    "e-capitol-burned",
+    "e-washington-oath"
+   ],
+   "answer": [
+    "e-washington-oath",
+    "e-jefferson-oath",
+    "e-capitol-burned"
+   ]
+  },
+  "presidents-sample/s1/1": {
+   "tray": [
+    "e-capitol-burned",
+    "e-jefferson-oath",
+    "e-farewell"
+   ],
+   "answer": [
+    "e-farewell",
+    "e-jefferson-oath",
+    "e-capitol-burned"
+   ]
+  },
+  "presidents-sample/s1/2": {
+   "tray": [
+    "e-capitol-burned",
+    "e-jefferson-oath",
+    "e-farewell"
+   ],
+   "answer": [
+    "e-farewell",
+    "e-jefferson-oath",
+    "e-capitol-burned"
+   ]
+  },
+  "presidents-sample/s1/3": {
+   "tray": [
+    "e-capitol-burned",
+    "e-farewell",
+    "e-louisiana"
+   ],
+   "answer": [
+    "e-farewell",
+    "e-louisiana",
+    "e-capitol-burned"
+   ]
+  },
+  "presidents-sample/s1/4": {
+   "tray": [
+    "e-capitol-burned",
+    "e-louisiana",
+    "e-farewell"
+   ],
+   "answer": [
+    "e-farewell",
+    "e-louisiana",
+    "e-capitol-burned"
+   ]
+  },
+  "presidents-sample/s1/5": {
+   "tray": [
+    "e-capitol-burned",
+    "e-farewell",
+    "e-washington-oath"
+   ],
+   "answer": [
+    "e-washington-oath",
+    "e-farewell",
+    "e-capitol-burned"
+   ]
+  },
+  "presidents-sample/s1/6": {
+   "tray": [
+    "e-farewell",
+    "e-washington-oath",
+    "e-capitol-burned"
+   ],
+   "answer": [
+    "e-washington-oath",
+    "e-farewell",
+    "e-capitol-burned"
+   ]
+  },
+  "presidents-sample/s1/7": {
+   "tray": [
+    "e-farewell",
+    "e-capitol-burned",
+    "e-jefferson-oath"
+   ],
+   "answer": [
+    "e-farewell",
+    "e-jefferson-oath",
+    "e-capitol-burned"
+   ]
+  },
+  "presidents-sample/s1/8": {
+   "tray": [
+    "e-capitol-burned",
+    "e-louisiana",
+    "e-farewell"
+   ],
+   "answer": [
+    "e-farewell",
+    "e-louisiana",
+    "e-capitol-burned"
+   ]
+  },
+  "presidents-sample/s1/9": {
+   "tray": [
+    "e-capitol-burned",
+    "e-louisiana",
+    "e-farewell"
+   ],
+   "answer": [
+    "e-farewell",
+    "e-louisiana",
+    "e-capitol-burned"
+   ]
+  },
+  "presidents-sample/s2/0": {
+   "tray": [
+    "e-emancipation",
+    "e-lincoln-death",
+    "e-removal-act",
+    "e-fort-sumter"
+   ],
+   "answer": [
+    "e-removal-act",
+    "e-fort-sumter",
+    "e-emancipation",
+    "e-lincoln-death"
+   ]
+  },
+  "presidents-sample/s2/1": {
+   "tray": [
+    "e-removal-act",
+    "e-lincoln-death",
+    "e-fort-sumter",
+    "e-gettysburg"
+   ],
+   "answer": [
+    "e-removal-act",
+    "e-fort-sumter",
+    "e-gettysburg",
+    "e-lincoln-death"
+   ]
+  },
+  "presidents-sample/s2/2": {
+   "tray": [
+    "e-fort-sumter",
+    "e-removal-act",
+    "e-lincoln-death",
+    "e-emancipation"
+   ],
+   "answer": [
+    "e-removal-act",
+    "e-fort-sumter",
+    "e-emancipation",
+    "e-lincoln-death"
+   ]
+  },
+  "presidents-sample/s2/3": {
+   "tray": [
+    "e-lincoln-death",
+    "e-fort-sumter",
+    "e-removal-act",
+    "e-gettysburg"
+   ],
+   "answer": [
+    "e-removal-act",
+    "e-fort-sumter",
+    "e-gettysburg",
+    "e-lincoln-death"
+   ]
+  },
+  "presidents-sample/s2/4": {
+   "tray": [
+    "e-lincoln-death",
+    "e-gettysburg",
+    "e-removal-act",
+    "e-fort-sumter"
+   ],
+   "answer": [
+    "e-removal-act",
+    "e-fort-sumter",
+    "e-gettysburg",
+    "e-lincoln-death"
+   ]
+  },
+  "presidents-sample/s2/5": {
+   "tray": [
+    "e-emancipation",
+    "e-lincoln-death",
+    "e-removal-act",
+    "e-fort-sumter"
+   ],
+   "answer": [
+    "e-removal-act",
+    "e-fort-sumter",
+    "e-emancipation",
+    "e-lincoln-death"
+   ]
+  },
+  "presidents-sample/s2/6": {
+   "tray": [
+    "e-emancipation",
+    "e-removal-act",
+    "e-lincoln-death",
+    "e-fort-sumter"
+   ],
+   "answer": [
+    "e-removal-act",
+    "e-fort-sumter",
+    "e-emancipation",
+    "e-lincoln-death"
+   ]
+  },
+  "presidents-sample/s2/7": {
+   "tray": [
+    "e-lincoln-death",
+    "e-emancipation",
+    "e-fort-sumter",
+    "e-removal-act"
+   ],
+   "answer": [
+    "e-removal-act",
+    "e-fort-sumter",
+    "e-emancipation",
+    "e-lincoln-death"
+   ]
+  },
+  "presidents-sample/s2/8": {
+   "tray": [
+    "e-gettysburg",
+    "e-lincoln-death",
+    "e-removal-act",
+    "e-fort-sumter"
+   ],
+   "answer": [
+    "e-removal-act",
+    "e-fort-sumter",
+    "e-gettysburg",
+    "e-lincoln-death"
+   ]
+  },
+  "presidents-sample/s2/9": {
+   "tray": [
+    "e-removal-act",
+    "e-fort-sumter",
+    "e-lincoln-death",
+    "e-gettysburg"
+   ],
+   "answer": [
+    "e-removal-act",
+    "e-fort-sumter",
+    "e-gettysburg",
+    "e-lincoln-death"
+   ]
+  },
+  "presidents-sample/s3/0": {
+   "tray": [
+    "e-kennedy",
+    "e-roosevelt-sworn",
+    "e-22nd-amendment"
+   ],
+   "answer": [
+    "e-roosevelt-sworn",
+    "e-22nd-amendment",
+    "e-kennedy"
+   ]
+  },
+  "presidents-sample/s3/1": {
+   "tray": [
+    "e-22nd-amendment",
+    "e-roosevelt-sworn",
+    "e-nixon-resigns"
+   ],
+   "answer": [
+    "e-roosevelt-sworn",
+    "e-22nd-amendment",
+    "e-nixon-resigns"
+   ]
+  },
+  "presidents-sample/s3/2": {
+   "tray": [
+    "e-22nd-amendment",
+    "e-nixon-resigns",
+    "e-kennedy"
+   ],
+   "answer": [
+    "e-22nd-amendment",
+    "e-kennedy",
+    "e-nixon-resigns"
+   ]
+  },
+  "presidents-sample/s3/3": {
+   "tray": [
+    "e-kennedy",
+    "e-22nd-amendment",
+    "e-nixon-resigns"
+   ],
+   "answer": [
+    "e-22nd-amendment",
+    "e-kennedy",
+    "e-nixon-resigns"
+   ]
+  },
+  "presidents-sample/s3/4": {
+   "tray": [
+    "e-22nd-amendment",
+    "e-kennedy",
+    "e-roosevelt-sworn"
+   ],
+   "answer": [
+    "e-roosevelt-sworn",
+    "e-22nd-amendment",
+    "e-kennedy"
+   ]
+  },
+  "presidents-sample/s3/5": {
+   "tray": [
+    "e-22nd-amendment",
+    "e-nixon-resigns",
+    "e-kennedy"
+   ],
+   "answer": [
+    "e-22nd-amendment",
+    "e-kennedy",
+    "e-nixon-resigns"
+   ]
+  },
+  "presidents-sample/s3/6": {
+   "tray": [
+    "e-22nd-amendment",
+    "e-roosevelt-sworn",
+    "e-kennedy"
+   ],
+   "answer": [
+    "e-roosevelt-sworn",
+    "e-22nd-amendment",
+    "e-kennedy"
+   ]
+  },
+  "presidents-sample/s3/7": {
+   "tray": [
+    "e-nixon-resigns",
+    "e-22nd-amendment",
+    "e-kennedy"
+   ],
+   "answer": [
+    "e-22nd-amendment",
+    "e-kennedy",
+    "e-nixon-resigns"
+   ]
+  },
+  "presidents-sample/s4/0": {
+   "tray": [
+    "e-washington-oath",
+    "e-removal-act",
+    "e-roosevelt-sworn",
+    "e-22nd-amendment",
+    "e-gettysburg",
+    "e-louisiana"
+   ],
+   "answer": [
+    "e-washington-oath",
+    "e-louisiana",
+    "e-removal-act",
+    "e-gettysburg",
+    "e-roosevelt-sworn",
+    "e-22nd-amendment"
+   ]
+  },
+  "presidents-sample/s4/1": {
+   "tray": [
+    "e-jefferson-oath",
+    "e-farewell",
+    "e-kennedy",
+    "e-22nd-amendment",
+    "e-removal-act",
+    "e-louisiana"
+   ],
+   "answer": [
+    "e-farewell",
+    "e-jefferson-oath",
+    "e-louisiana",
+    "e-removal-act",
+    "e-22nd-amendment",
+    "e-kennedy"
+   ]
+  },
+  "presidents-sample/s4/2": {
+   "tray": [
+    "e-roosevelt-sworn",
+    "e-farewell",
+    "e-louisiana",
+    "e-nixon-resigns",
+    "e-jefferson-oath",
+    "e-22nd-amendment"
+   ],
+   "answer": [
+    "e-farewell",
+    "e-jefferson-oath",
+    "e-louisiana",
+    "e-roosevelt-sworn",
+    "e-22nd-amendment",
+    "e-nixon-resigns"
+   ]
+  },
+  "presidents-sample/s4/3": {
+   "tray": [
+    "e-roosevelt-sworn",
+    "e-nixon-resigns",
+    "e-22nd-amendment",
+    "e-lincoln-death",
+    "e-emancipation",
+    "e-louisiana"
+   ],
+   "answer": [
+    "e-louisiana",
+    "e-emancipation",
+    "e-lincoln-death",
+    "e-roosevelt-sworn",
+    "e-22nd-amendment",
+    "e-nixon-resigns"
+   ]
+  },
+  "presidents-sample/s4/4": {
+   "tray": [
+    "e-gettysburg",
+    "e-capitol-burned",
+    "e-louisiana",
+    "e-emancipation",
+    "e-22nd-amendment",
+    "e-jefferson-oath"
+   ],
+   "answer": [
+    "e-jefferson-oath",
+    "e-louisiana",
+    "e-capitol-burned",
+    "e-emancipation",
+    "e-gettysburg",
+    "e-22nd-amendment"
+   ]
+  },
+  "presidents-sample/s4/5": {
+   "tray": [
+    "e-gettysburg",
+    "e-removal-act",
+    "e-capitol-burned",
+    "e-kennedy",
+    "e-22nd-amendment",
+    "e-jefferson-oath"
+   ],
+   "answer": [
+    "e-jefferson-oath",
+    "e-capitol-burned",
+    "e-removal-act",
+    "e-gettysburg",
+    "e-22nd-amendment",
+    "e-kennedy"
+   ]
+  },
+  "presidents-sample/s4/6": {
+   "tray": [
+    "e-farewell",
+    "e-jefferson-oath",
+    "e-gettysburg",
+    "e-fort-sumter",
+    "e-emancipation",
+    "e-22nd-amendment"
+   ],
+   "answer": [
+    "e-farewell",
+    "e-jefferson-oath",
+    "e-fort-sumter",
+    "e-emancipation",
+    "e-gettysburg",
+    "e-22nd-amendment"
+   ]
+  },
+  "presidents-sample/s4/7": {
+   "tray": [
+    "e-farewell",
+    "e-capitol-burned",
+    "e-gettysburg",
+    "e-emancipation",
+    "e-louisiana",
+    "e-22nd-amendment"
+   ],
+   "answer": [
+    "e-farewell",
+    "e-louisiana",
+    "e-capitol-burned",
+    "e-emancipation",
+    "e-gettysburg",
+    "e-22nd-amendment"
+   ]
+  },
+  "presidents-sample/s4/8": {
+   "tray": [
+    "e-removal-act",
+    "e-louisiana",
+    "e-roosevelt-sworn",
+    "e-jefferson-oath",
+    "e-gettysburg",
+    "e-nixon-resigns"
+   ],
+   "answer": [
+    "e-jefferson-oath",
+    "e-louisiana",
+    "e-removal-act",
+    "e-gettysburg",
+    "e-roosevelt-sworn",
+    "e-nixon-resigns"
+   ]
+  },
+  "presidents-sample/s4/9": {
+   "tray": [
+    "e-nixon-resigns",
+    "e-louisiana",
+    "e-fort-sumter",
+    "e-lincoln-death",
+    "e-22nd-amendment",
+    "e-roosevelt-sworn"
+   ],
+   "answer": [
+    "e-louisiana",
+    "e-fort-sumter",
+    "e-lincoln-death",
+    "e-roosevelt-sworn",
+    "e-22nd-amendment",
+    "e-nixon-resigns"
+   ]
+  },
+  "presidents-sample/s4/10": {
+   "tray": [
+    "e-washington-oath",
+    "e-removal-act",
+    "e-louisiana",
+    "e-fort-sumter",
+    "e-22nd-amendment",
+    "e-roosevelt-sworn"
+   ],
+   "answer": [
+    "e-washington-oath",
+    "e-louisiana",
+    "e-removal-act",
+    "e-fort-sumter",
+    "e-roosevelt-sworn",
+    "e-22nd-amendment"
+   ]
+  },
+  "presidents-sample/s4/11": {
+   "tray": [
+    "e-nixon-resigns",
+    "e-kennedy",
+    "e-washington-oath",
+    "e-jefferson-oath",
+    "e-22nd-amendment",
+    "e-lincoln-death"
+   ],
+   "answer": [
+    "e-washington-oath",
+    "e-jefferson-oath",
+    "e-lincoln-death",
+    "e-22nd-amendment",
+    "e-kennedy",
+    "e-nixon-resigns"
+   ]
+  },
+  "presidents-sample/s4/12": {
+   "tray": [
+    "e-washington-oath",
+    "e-fort-sumter",
+    "e-kennedy",
+    "e-gettysburg",
+    "e-nixon-resigns",
+    "e-capitol-burned"
+   ],
+   "answer": [
+    "e-washington-oath",
+    "e-capitol-burned",
+    "e-fort-sumter",
+    "e-gettysburg",
+    "e-kennedy",
+    "e-nixon-resigns"
+   ]
+  },
+  "presidents-sample/s4/13": {
+   "tray": [
+    "e-nixon-resigns",
+    "e-lincoln-death",
+    "e-removal-act",
+    "e-jefferson-oath",
+    "e-kennedy",
+    "e-22nd-amendment"
+   ],
+   "answer": [
+    "e-jefferson-oath",
+    "e-removal-act",
+    "e-lincoln-death",
+    "e-22nd-amendment",
+    "e-kennedy",
+    "e-nixon-resigns"
+   ]
+  },
+  "presidents-sample/s4/14": {
+   "tray": [
+    "e-22nd-amendment",
+    "e-kennedy",
+    "e-washington-oath",
+    "e-emancipation",
+    "e-louisiana",
+    "e-jefferson-oath"
+   ],
+   "answer": [
+    "e-washington-oath",
+    "e-jefferson-oath",
+    "e-louisiana",
+    "e-emancipation",
+    "e-22nd-amendment",
+    "e-kennedy"
+   ]
+  },
+  "presidents-sample/s4/15": {
+   "tray": [
+    "e-washington-oath",
+    "e-farewell",
+    "e-emancipation",
+    "e-jefferson-oath",
+    "e-nixon-resigns",
+    "e-22nd-amendment"
+   ],
+   "answer": [
+    "e-washington-oath",
+    "e-farewell",
+    "e-jefferson-oath",
+    "e-emancipation",
+    "e-22nd-amendment",
+    "e-nixon-resigns"
+   ]
+  },
+  "presidents-sample/s4/16": {
+   "tray": [
+    "e-fort-sumter",
+    "e-jefferson-oath",
+    "e-louisiana",
+    "e-lincoln-death",
+    "e-washington-oath",
+    "e-capitol-burned"
+   ],
+   "answer": [
+    "e-washington-oath",
+    "e-jefferson-oath",
+    "e-louisiana",
+    "e-capitol-burned",
+    "e-fort-sumter",
+    "e-lincoln-death"
+   ]
+  },
+  "presidents-sample/s4/17": {
+   "tray": [
+    "e-capitol-burned",
+    "e-emancipation",
+    "e-louisiana",
+    "e-fort-sumter",
+    "e-farewell",
+    "e-roosevelt-sworn"
+   ],
+   "answer": [
+    "e-farewell",
+    "e-louisiana",
+    "e-capitol-burned",
+    "e-fort-sumter",
+    "e-emancipation",
+    "e-roosevelt-sworn"
+   ]
+  },
+  "presidents-sample/s4/18": {
+   "tray": [
+    "e-louisiana",
+    "e-nixon-resigns",
+    "e-capitol-burned",
+    "e-roosevelt-sworn",
+    "e-gettysburg",
+    "e-jefferson-oath"
+   ],
+   "answer": [
+    "e-jefferson-oath",
+    "e-louisiana",
+    "e-capitol-burned",
+    "e-gettysburg",
+    "e-roosevelt-sworn",
+    "e-nixon-resigns"
+   ]
+  },
+  "presidents-sample/s4/19": {
+   "tray": [
+    "e-lincoln-death",
+    "e-farewell",
+    "e-22nd-amendment",
+    "e-removal-act",
+    "e-kennedy",
+    "e-capitol-burned"
+   ],
+   "answer": [
+    "e-farewell",
+    "e-capitol-burned",
+    "e-removal-act",
+    "e-lincoln-death",
+    "e-22nd-amendment",
+    "e-kennedy"
+   ]
+  },
+  "presidents-sample/s4/20": {
+   "tray": [
+    "e-washington-oath",
+    "e-fort-sumter",
+    "e-lincoln-death",
+    "e-22nd-amendment",
+    "e-roosevelt-sworn",
+    "e-louisiana"
+   ],
+   "answer": [
+    "e-washington-oath",
+    "e-louisiana",
+    "e-fort-sumter",
+    "e-lincoln-death",
+    "e-roosevelt-sworn",
+    "e-22nd-amendment"
+   ]
+  },
+  "presidents-sample/s4/21": {
+   "tray": [
+    "e-22nd-amendment",
+    "e-roosevelt-sworn",
+    "e-nixon-resigns",
+    "e-emancipation",
+    "e-farewell",
+    "e-capitol-burned"
+   ],
+   "answer": [
+    "e-farewell",
+    "e-capitol-burned",
+    "e-emancipation",
+    "e-roosevelt-sworn",
+    "e-22nd-amendment",
+    "e-nixon-resigns"
+   ]
+  },
+  "presidents-sample/s4/22": {
+   "tray": [
+    "e-lincoln-death",
+    "e-nixon-resigns",
+    "e-farewell",
+    "e-washington-oath",
+    "e-gettysburg",
+    "e-removal-act"
+   ],
+   "answer": [
+    "e-washington-oath",
+    "e-farewell",
+    "e-removal-act",
+    "e-gettysburg",
+    "e-lincoln-death",
+    "e-nixon-resigns"
+   ]
+  },
+  "presidents-sample/s4/23": {
+   "tray": [
+    "e-lincoln-death",
+    "e-gettysburg",
+    "e-jefferson-oath",
+    "e-fort-sumter",
+    "e-22nd-amendment",
+    "e-emancipation"
+   ],
+   "answer": [
+    "e-jefferson-oath",
+    "e-fort-sumter",
+    "e-emancipation",
+    "e-gettysburg",
+    "e-lincoln-death",
+    "e-22nd-amendment"
+   ]
+  },
+  "presidents-sample/s4/24": {
+   "tray": [
+    "e-removal-act",
+    "e-farewell",
+    "e-roosevelt-sworn",
+    "e-jefferson-oath",
+    "e-emancipation",
+    "e-kennedy"
+   ],
+   "answer": [
+    "e-farewell",
+    "e-jefferson-oath",
+    "e-removal-act",
+    "e-emancipation",
+    "e-roosevelt-sworn",
+    "e-kennedy"
+   ]
+  },
+  "presidents-sample/s4/25": {
+   "tray": [
+    "e-capitol-burned",
+    "e-lincoln-death",
+    "e-removal-act",
+    "e-fort-sumter",
+    "e-22nd-amendment",
+    "e-gettysburg"
+   ],
+   "answer": [
+    "e-capitol-burned",
+    "e-removal-act",
+    "e-fort-sumter",
+    "e-gettysburg",
+    "e-lincoln-death",
+    "e-22nd-amendment"
+   ]
+  },
+  "presidents-sample/s4/26": {
+   "tray": [
+    "e-removal-act",
+    "e-kennedy",
+    "e-washington-oath",
+    "e-jefferson-oath",
+    "e-nixon-resigns",
+    "e-roosevelt-sworn"
+   ],
+   "answer": [
+    "e-washington-oath",
+    "e-jefferson-oath",
+    "e-removal-act",
+    "e-roosevelt-sworn",
+    "e-kennedy",
+    "e-nixon-resigns"
+   ]
+  },
+  "presidents-sample/s4/27": {
+   "tray": [
+    "e-fort-sumter",
+    "e-washington-oath",
+    "e-capitol-burned",
+    "e-farewell",
+    "e-emancipation",
+    "e-nixon-resigns"
+   ],
+   "answer": [
+    "e-washington-oath",
+    "e-farewell",
+    "e-capitol-burned",
+    "e-fort-sumter",
+    "e-emancipation",
+    "e-nixon-resigns"
+   ]
+  }
+ }
+}

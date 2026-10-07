@@ -1,0 +1,50 @@
+[
+  {
+    "id": "r-s1",
+    "section": "s1",
+    "title": "Ceremony, place and land",
+    "text": "The first presidential oath was taken in New York City. Washington's farewell reached readers through a newspaper rather than a speech. The 1801 oath was the first taken in Washington. In between and after came a treaty that bought land from France, and a war that brought British fire to the capital.",
+    "claims": [
+      "c-e-washington-oath-date",
+      "c-e-farewell-date",
+      "c-e-jefferson-oath-date",
+      "c-e-louisiana-date",
+      "c-e-capitol-burned-date"
+    ]
+  },
+  {
+    "id": "r-s2",
+    "section": "s2",
+    "title": "From land law to war",
+    "text": "A law of 1830 let the president negotiate exchanges of land with tribes. The Civil War opened with the firing on Fort Sumter in April 1861. In 1863 Lincoln signed the Emancipation Proclamation in January and spoke at Gettysburg in November, and in April 1865 he died after being shot at Ford's Theatre.",
+    "claims": [
+      "c-e-removal-act-date",
+      "c-e-fort-sumter-date",
+      "c-e-emancipation-date",
+      "c-e-gettysburg-date",
+      "c-e-lincoln-death-date"
+    ]
+  },
+  {
+    "id": "r-s3",
+    "section": "s3",
+    "title": "Succession and limits",
+    "text": "In 1901 a death moved the presidency to Theodore Roosevelt the same day. In 1951 the 22nd Amendment limited anyone to two elections. In 1963 Kennedy was shot in Dallas. In 1974 Nixon became the first president to resign.",
+    "claims": [
+      "c-e-roosevelt-sworn-date",
+      "c-e-22nd-amendment-date",
+      "c-e-kennedy-date",
+      "c-e-nixon-resigns-date"
+    ]
+  },
+  {
+    "id": "r-s4",
+    "section": "s4",
+    "title": "Where the sources disagree",
+    "text": "Fourteen moments, each backed by three sources. Most dates are settled. The Gettysburg Address is the exception to watch: a famous story about how it was written is doubtful, and the sources differ about the hour of its last rewrite. The game says so wherever it happens.",
+    "claims": [
+      "c-e-gettysburg-tradition",
+      "c-e-gettysburg-final-revision"
+    ]
+  }
+]

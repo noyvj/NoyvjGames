@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chronicle</title>
+<!-- A tiny favicon drawn as inline SVG (project rule: no generated images). The hub-wide icons/ folder is added at hub registration. -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23283a63'/%3E%3Cpath d='M5 21h22' stroke='%23f4d98a' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='9' cy='21' r='3' fill='%23f4d98a'/%3E%3Ccircle cx='16' cy='21' r='3' fill='%23f4d98a'/%3E%3Ccircle cx='23' cy='21' r='3' fill='%23f4d98a'/%3E%3Cpath d='M9 15V9M16 15V6M23 15V11' stroke='%23e6ecff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../shared/theme-light-games.css">
+<link rel="stylesheet" href="style.css">
+<script src="../../shared/theme.js" data-floating-toggle></script>
+<script src="../../shared/site-settings.js" data-game-id="chronicle"></script>
+<script src="settings.js"></script>
+<link rel="stylesheet" href="../../ad-bar.css">
+<link rel="manifest" href="../../manifest.json">
+<script src="../../shared/tutorial.js"></script>
+<script src="../../shared/confirm-dialog.js"></script>
+<!-- Pyodide is NOT loaded here: app.js injects it after first paint, so this shell is readable before the engine is warm. -->
+</head>
+<body>
+<a class="skip-link" href="#puzzle-panel">Skip to the timeline</a>
+<main id="game">
+  <a href="../../index.html" class="hub-back-link">&larr; All games</a>
+  <h1>Chronicle</h1>
+  <p class="tagline">Put the moments of history in order. Every fact names its sources.</p>
+  <p id="draft-banner" class="draft-banner" role="note">Sample set, draft until reviewed: the facts below have three sources each, but the owner has not yet checked them.</p>
+
+  <div class="game-toolbar">
+    <button id="tutorial-restart-button" type="button">Tutorial</button>
+    <button id="howto-toggle-button" type="button">How to play</button>
+    <button id="archive-toggle-button" type="button" aria-expanded="false" aria-controls="archive-panel">Archive</button>
+    <button id="achievements-toggle-button" type="button" aria-expanded="false" aria-controls="achievements-panel">Achievements</button>
+    <button id="changelog-toggle-button" type="button" aria-expanded="false" aria-controls="changelog-panel">What's New</button>
+    <button id="settings-toggle-button" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
+    <button id="info-page-toggle-button" type="button" aria-expanded="false" aria-controls="info-page-panel">About Chronicle</button>
+  </div>
+
+  <section id="howto-panel" class="panel" hidden></section>
+
+  <section id="archive-panel" class="panel" hidden aria-labelledby="archive-heading">
+    <h2 id="archive-heading">Archive</h2>
+    <p class="note">Everything you have placed correctly fills in here. Unfound entries show where to look. Open a found entry to see its sources.</p>
+    <div id="archive-body"><p class="note">Loading the archive...</p></div>
+  </section>
+
+  <section id="achievements-panel" class="panel" hidden aria-labelledby="ach-heading">
+    <h2 id="ach-heading">Achievements</h2>
+    <ul id="achievements-list" class="ach-list"></ul>
+  </section>
+
+  <section id="changelog-panel" class="panel" hidden aria-labelledby="changelog-heading">
+    <h2 id="changelog-heading">What's New</h2>
+    <div id="changelog-entries"></div>
+  </section>
+
+  <section id="settings-panel" class="panel" hidden aria-labelledby="settings-heading">
+    <h2 id="settings-heading">Settings</h2>
+    <p class="note">Display choices stay on this device and never change a puzzle or a save.</p>
+    <div class="settings-row">
+      <span id="text-size-label">Text size</span>
+      <div class="text-size-control" role="group" aria-labelledby="text-size-label">
+        <button id="text-size-decrease-button" type="button" aria-label="Decrease text size">A&minus;</button>
+        <button id="text-size-reset-button" type="button" aria-label="Reset text size">A</button>
+        <button id="text-size-increase-button" type="button" aria-label="Increase text size">A+</button>
+      </div>
+    </div>
+    <div class="settings-row"><label><input type="checkbox" id="reduced-motion-checkbox"> Reduce motion (no sliding or fading; follows your system setting until you choose)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="effects-checkbox" checked> Effects (the glow on a newly found entry)</label></div>
+    <div class="settings-row"><label><input type="checkbox" id="high-contrast-checkbox"> High contrast (brighter text, thicker outlines)</label></div>
+    <div class="settings-row"><button id="theme-setting-button" type="button" aria-pressed="false">Light theme</button></div>
+    <div class="settings-row"><label><input type="checkbox" id="hints-checkbox" checked> Earlier / later hints after a check (saved with your progress)</label></div>
+    <div class="settings-row">
+      <button id="display-reset-button" type="button">Reset display settings</button>
+      <button id="reset-progress-button" type="button">Reset all Chronicle progress</button>
+    </div>
+  </section>
+
+  <section id="info-page-panel" class="panel" hidden aria-labelledby="info-page-heading">
+    <h2 id="info-page-heading">About Chronicle</h2>
+    <p class="info-page-framing">Chronicle is a history game built from sets. A set is a folder of data: events, people, places and claims, so a new topic is new data, not new code. Today there is one sample set, the American presidency.</p>
+    <ul class="info-list">
+      <li>Every fact the game shows is a claim, and every claim links at least three reputable sources from at least two institutions. Each source gives its title, who published it, a link, and the date it was read.</li>
+      <li>Claims carry a confidence label, always written out and marked with a symbol, never colour alone. <strong>&#x2714; Documented</strong>: sources agree. <strong>&#x2248; Disputed</strong>: reputable sources differ, so the game shows each position. <strong>? Traditional but doubtful</strong>: a popular story the sources do not support.</li>
+      <li>All text is original wording; only facts are reused. All art is drawn by code. No images are generated.</li>
+      <li>The sample set was drafted by an AI assistant from sources it read on 7 October 2026 and is a draft until the owner has reviewed it. If a claim looks wrong, use Report a problem beside it. Reports open soon: for now a report is only saved on this device.</li>
+      <li>The presidents sets aim to be balanced and non-partisan: each moment is stated as a dated, sourced fact, not as praise or blame.</li>
+    </ul>
+    <div id="info-dynamic"><p class="note">Loading what you have found...</p></div>
+  </section>
+
+  <section id="set-picker" class="panel set-picker" aria-labelledby="set-heading">
+    <h2 id="set-heading">Set</h2>
+    <div class="set-row">
+      <label for="set-select" class="sr-only">Choose a set</label>
+      <select id="set-select" aria-describedby="set-summary"><option>Loading...</option></select>
+      <span id="set-status" class="badge">Sample, draft until reviewed</span>
+    </div>
+    <p id="set-summary" class="note"></p>
+    <div id="meter-wrap" class="meter-wrap">
+      <progress id="meter" max="100" value="0" aria-label="Archive completion"></progress>
+      <span id="meter-text" class="meter-text">0 of 0 found (0%)</span>
+    </div>
+  </section>
+
+  <nav id="sections" class="sections" aria-label="Sections"></nav>
+
+  <section id="puzzle-panel" class="panel" aria-labelledby="puzzle-heading">
+    <h2 id="puzzle-heading">Timeline</h2>
+    <p id="puzzle-meta" class="note"></p>
+    <p class="note">Put the cards in order, earliest first. Tap a card, then tap a slot (or drag it). Check when every slot is full.</p>
+    <div class="axis" aria-hidden="true"><span>Earlier</span><svg viewBox="0 0 200 12" preserveAspectRatio="none" class="axis-line"><line x1="0" y1="6" x2="192" y2="6" stroke="currentColor" stroke-width="2"/><path d="M186 1 L198 6 L186 11" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>Later</span></div>
+    <ol id="slots" class="slots" aria-label="Timeline slots, earliest first"></ol>
+    <h3 id="tray-heading" class="tray-heading">Cards to place</h3>
+    <div id="tray" class="tray" role="group" aria-labelledby="tray-heading"></div>
+    <p id="message-line" class="message-line" role="status" aria-live="polite"></p>
+    <div class="action-bar" id="action-bar">
+      <button id="check-button" type="button" class="primary">Check</button>
+      <button id="return-button" type="button" hidden>Return selected card to the tray</button>
+      <button id="show-answer-button" type="button">Show the answer</button>
+      <button id="next-button" type="button" class="primary" hidden>Next puzzle</button>
+    </div>
+    <p id="engine-status" class="note" role="status">Warming up the archive...</p>
+  </section>
+
+  <section id="result-panel" class="panel" hidden aria-labelledby="result-heading">
+    <h2 id="result-heading">What happened</h2>
+    <div id="result-body"></div>
+  </section>
+
+  <p id="toast" class="note toast" role="status" aria-live="polite"></p>
+  <p id="announce" class="sr-only" role="status" aria-live="polite"></p>
+</main>
+
+<dialog id="report-dialog" class="report-dialog" aria-labelledby="report-heading">
+  <form method="dialog" id="report-form">
+    <h2 id="report-heading">Report a problem</h2>
+    <p class="note">You are reporting this claim:</p>
+    <blockquote id="report-claim" class="report-claim"></blockquote>
+    <div class="settings-row"><label for="report-reason">What looks wrong?</label>
+      <select id="report-reason"></select></div>
+    <div class="settings-row"><label for="report-note">Optional note (500 characters at most)</label>
+      <textarea id="report-note" rows="3" maxlength="500"></textarea></div>
+    <p id="report-notice" class="note" role="status"></p>
+    <pre id="report-payload" class="report-payload" hidden></pre>
+    <div class="builder">
+      <button id="report-build-button" type="button" class="primary">Prepare report</button>
+      <button id="report-copy-button" type="button" hidden>Copy report text</button>
+      <button id="report-close-button" type="submit" value="close">Close</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="ad-bar ad-bar--bottom">
+  <span class="ad-bar-label ad-bar-label-full">Advertisement — not part of the game</span>
+  <span class="ad-bar-label ad-bar-label-short">Ad</span>
+  <!-- Google AdSense manual display ad unit (placeholder client ID until the application is approved) -->
+  <ins class="adsbygoogle"
+       style="display:block; width:320px; height:50px;"
+       data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+       data-ad-slot="XXXXXXXXXX"></ins>
+</div>
+
+<script src="../../shared/hub-auth.js"></script>
+<script src="../../shared/save-widget.js" data-game-id="chronicle"></script>
+<script src="../../shared/opening-screen.js" data-game-id="chronicle" data-game-name="Chronicle" data-tagline="Put the moments of history in order. Every fact names its sources."></script>
+<script src="app.js"></script>
+<script src="../../shared/last-played.js" data-game-id="chronicle"></script>
+<script src="../../shared/whats-new-banner.js" data-game-id="chronicle"></script>
+<script src="../../shared/keyboard-shortcuts.js"></script>
+<script>
+  window.KeyboardShortcuts.init({
+    panels: [
+      { toggle: "howto-toggle-button", panel: "howto-panel" },
+      { toggle: "archive-toggle-button", panel: "archive-panel" },
+      { toggle: "achievements-toggle-button", panel: "achievements-panel" },
+      { toggle: "changelog-toggle-button", panel: "changelog-panel" },
+      { toggle: "settings-toggle-button", panel: "settings-panel" },
+      { toggle: "info-page-toggle-button", panel: "info-page-panel" },
+    ],
+    extra: [
+      "Tab and Shift+Tab: move between cards, slots and buttons; everything works from the keyboard",
+      "Enter or Space on a card: pick it up. Enter or Space on a slot: put the picked-up card there",
+      "Number keys 1 to 6 with a card picked up: put it in that slot",
+      "Delete or Backspace on a filled slot: return its card to the tray",
+      "Escape with a card picked up: put it down again",
+    ],
+  });
+</script>
+<!-- The service worker is registered when the game is added to the hub (a later milestone). -->
+</body>
+</html>

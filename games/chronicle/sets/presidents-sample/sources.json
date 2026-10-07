@@ -1,0 +1,443 @@
+{
+  "nara-washington-inaugural": {
+    "title": "President George Washington's First Inaugural Speech (1789)",
+    "institution": "National Archives",
+    "url": "https://www.archives.gov/milestone-documents/president-george-washingtons-first-inaugural-speech",
+    "read": "2026-10-07",
+    "kind": "archive"
+  },
+  "whha-presidential-inaugurations": {
+    "title": "Presidential Inaugurations",
+    "institution": "White House Historical Association",
+    "url": "https://www.whitehousehistory.org/presidential-inaugurations",
+    "read": "2026-10-07",
+    "kind": "museum"
+  },
+  "loc-inaugurations-1789-1825": {
+    "title": "Presidential Inaugurations: 1789-1825 (U.S. Presidential Inaugurations: A Resource Guide)",
+    "institution": "Library of Congress",
+    "url": "https://guides.loc.gov/presidential-inaugurations/1789-1825",
+    "read": "2026-10-07",
+    "kind": "library"
+  },
+  "loc-farewell-address": {
+    "title": "Introduction - George Washington's Farewell Address: Primary Documents in American History",
+    "institution": "Library of Congress",
+    "url": "https://guides.loc.gov/washington-farewell-address",
+    "read": "2026-10-07",
+    "kind": "library"
+  },
+  "ncc-farewell-lessons": {
+    "title": "Five lessons we can learn from George Washington's Farewell Address",
+    "institution": "National Constitution Center",
+    "url": "https://constitutioncenter.org/blog/five-lessons-we-can-learn-from-george-washingtons-farewell-address",
+    "read": "2026-10-07",
+    "kind": "museum"
+  },
+  "miller-farewell-address": {
+    "title": "September 19, 1796: Farewell Address",
+    "institution": "Miller Center, University of Virginia",
+    "url": "https://millercenter.org/the-presidency/presidential-speeches/september-19-1796-farewell-address",
+    "read": "2026-10-07",
+    "kind": "university"
+  },
+  "whha-march-4": {
+    "title": "The Origins of the March 4 Inauguration",
+    "institution": "White House Historical Association",
+    "url": "https://www.whitehousehistory.org/the-origins-of-the-march-4-inauguration",
+    "read": "2026-10-07",
+    "kind": "museum"
+  },
+  "miller-jefferson-key-events": {
+    "title": "Thomas Jefferson - Key Events",
+    "institution": "Miller Center, University of Virginia",
+    "url": "https://millercenter.org/president/thomas-jefferson/key-events",
+    "read": "2026-10-07",
+    "kind": "university"
+  },
+  "nara-louisiana-treaty": {
+    "title": "Louisiana Purchase Treaty (1803)",
+    "institution": "National Archives",
+    "url": "https://www.archives.gov/milestone-documents/louisiana-purchase-treaty",
+    "read": "2026-10-07",
+    "kind": "archive"
+  },
+  "ncc-louisiana-treaty": {
+    "title": "The Louisiana Purchase, Treaty Between the United States of America and the French Republic (1803)",
+    "institution": "National Constitution Center",
+    "url": "https://constitutioncenter.org/the-constitution/historic-document-library/detail/the-louisiana-purchase-treaty-between-the-united-states-of-america-and-the-french-republic-1803",
+    "read": "2026-10-07",
+    "kind": "museum"
+  },
+  "whha-rebuilding": {
+    "title": "Rebuilding the White House and U.S. Capitol",
+    "institution": "White House Historical Association",
+    "url": "https://www.whitehousehistory.org/rebuilding-the-white-house-and-u-s-capitol",
+    "read": "2026-10-07",
+    "kind": "museum"
+  },
+  "miller-madison-key-events": {
+    "title": "James Madison - Key Events",
+    "institution": "Miller Center, University of Virginia",
+    "url": "https://millercenter.org/president/james-madison/key-events",
+    "read": "2026-10-07",
+    "kind": "university"
+  },
+  "aoc-british-burn-capitol": {
+    "title": "British Burn the Capitol, 1814",
+    "institution": "Architect of the Capitol",
+    "url": "https://www.aoc.gov/explore-capitol-campus/art/british-burn-capitol-1814",
+    "read": "2026-10-07",
+    "kind": "government"
+  },
+  "house-indian-removal": {
+    "title": "Indian Removal Act of 1830 (History, Art & Archives)",
+    "institution": "U.S. House of Representatives",
+    "url": "https://history.house.gov/HistoricalHighlight/Detail/36507230462",
+    "read": "2026-10-07",
+    "kind": "government"
+  },
+  "ncc-indian-removal": {
+    "title": "Indian Removal Act (1830)",
+    "institution": "National Constitution Center",
+    "url": "https://constitutioncenter.org/the-constitution/historic-document-library/detail/indian-removal-act-1830",
+    "read": "2026-10-07",
+    "kind": "museum"
+  },
+  "miller-jackson-key-events": {
+    "title": "Andrew Jackson - Key Events",
+    "institution": "Miller Center, University of Virginia",
+    "url": "https://millercenter.org/president/andrew-jackson/key-events",
+    "read": "2026-10-07",
+    "kind": "university"
+  },
+  "loc-fort-sumter": {
+    "title": "Introduction - Battle of Fort Sumter: Topics in Chronicling America",
+    "institution": "Library of Congress",
+    "url": "https://guides.loc.gov/chronicling-america-fort-sumter",
+    "read": "2026-10-07",
+    "kind": "library"
+  },
+  "nps-fort-sumter-battle": {
+    "title": "Battle Detail - The Civil War (Fort Sumter)",
+    "institution": "National Park Service",
+    "url": "https://www.nps.gov/civilwar/search-battles-detail.htm?battleCode=SC001",
+    "read": "2026-10-07",
+    "kind": "government"
+  },
+  "ncc-fort-sumter": {
+    "title": "On This Day, the fight for Fort Sumter begins",
+    "institution": "National Constitution Center",
+    "url": "https://constitutioncenter.org/blog/on-this-day-the-fight-for-fort-sumter-begins",
+    "read": "2026-10-07",
+    "kind": "museum"
+  },
+  "nara-emancipation": {
+    "title": "Emancipation Proclamation (1863)",
+    "institution": "National Archives",
+    "url": "https://www.archives.gov/milestone-documents/emancipation-proclamation",
+    "read": "2026-10-07",
+    "kind": "archive"
+  },
+  "loc-emancipation": {
+    "title": "Introduction - Emancipation Proclamation: Primary Documents in American History",
+    "institution": "Library of Congress",
+    "url": "https://guides.loc.gov/emancipation-proclamation",
+    "read": "2026-10-07",
+    "kind": "library"
+  },
+  "nps-emancipation": {
+    "title": "The Emancipation Proclamation",
+    "institution": "National Park Service",
+    "url": "https://www.nps.gov/articles/the-emancipation-proclamation.htm",
+    "read": "2026-10-07",
+    "kind": "government"
+  },
+  "loc-gettysburg": {
+    "title": "Introduction - Gettysburg Address: Primary Documents in American History",
+    "institution": "Library of Congress",
+    "url": "https://guides.loc.gov/gettysburg-address",
+    "read": "2026-10-07",
+    "kind": "library"
+  },
+  "ncc-gettysburg": {
+    "title": "Gettysburg Address",
+    "institution": "National Constitution Center",
+    "url": "https://constitutioncenter.org/declaration/primary-sources/gettysburg-address",
+    "read": "2026-10-07",
+    "kind": "museum"
+  },
+  "miller-lincoln-key-events": {
+    "title": "Abraham Lincoln - Key Events",
+    "institution": "Miller Center, University of Virginia",
+    "url": "https://millercenter.org/president/abraham-lincoln/key-events",
+    "read": "2026-10-07",
+    "kind": "university"
+  },
+  "ncc-gettysburg-myths": {
+    "title": "Myths and mysteries about the Gettysburg Address",
+    "institution": "National Constitution Center",
+    "url": "https://constitutioncenter.org/blog/myths-and-mysteries-about-the-gettysburg-address",
+    "read": "2026-10-07",
+    "kind": "museum"
+  },
+  "loc-gettysburg-exhibition": {
+    "title": "Exhibition Items - Gettysburg Address (Library of Congress exhibition)",
+    "institution": "Library of Congress",
+    "url": "https://www.loc.gov/exhibits/gettysburg-address/exhibition-items.html",
+    "read": "2026-10-07",
+    "kind": "library"
+  },
+  "nps-wills-house": {
+    "title": "David Wills House",
+    "institution": "National Park Service",
+    "url": "https://www.nps.gov/places/david-wills-house.htm",
+    "read": "2026-10-07",
+    "kind": "government"
+  },
+  "nps-ford-assassination-faq": {
+    "title": "FAQ The Assassination - Ford's Theatre National Historic Site",
+    "institution": "National Park Service",
+    "url": "https://www.nps.gov/foth/learn/historyculture/faq-the-assassination.htm",
+    "read": "2026-10-07",
+    "kind": "government"
+  },
+  "ncc-lincoln-10-facts": {
+    "title": "10 facts about Abraham Lincoln's assassination",
+    "institution": "National Constitution Center",
+    "url": "https://constitutioncenter.org/blog/10-facts-about-abraham-lincolns-assassination",
+    "read": "2026-10-07",
+    "kind": "museum"
+  },
+  "nps-thri-sept-14": {
+    "title": "September 14, 1901 - Theodore Roosevelt Inaugural National Historic Site",
+    "institution": "National Park Service",
+    "url": "https://www.nps.gov/thri/september14.htm",
+    "read": "2026-10-07",
+    "kind": "government"
+  },
+  "miller-mckinley-key-events": {
+    "title": "William McKinley - Key Events",
+    "institution": "Miller Center, University of Virginia",
+    "url": "https://millercenter.org/president/william-mckinley/key-events",
+    "read": "2026-10-07",
+    "kind": "university"
+  },
+  "loc-inaugurations-1897-1925": {
+    "title": "Presidential Inaugurations: 1897-1925 (U.S. Presidential Inaugurations: A Resource Guide)",
+    "institution": "Library of Congress",
+    "url": "https://guides.loc.gov/presidential-inaugurations/1897-1925",
+    "read": "2026-10-07",
+    "kind": "library"
+  },
+  "ncc-22nd-amendment": {
+    "title": "22nd Amendment - Two-Term Limit on Presidency",
+    "institution": "National Constitution Center",
+    "url": "https://constitutioncenter.org/the-constitution/amendments/amendment-xxii",
+    "read": "2026-10-07",
+    "kind": "museum"
+  },
+  "loc-law-ratification-anniversary": {
+    "title": "Ratification Anniversary (In Custodia Legis)",
+    "institution": "Library of Congress",
+    "url": "https://blogs.loc.gov/law/2017/02/ratification-anniversary/",
+    "read": "2026-10-07",
+    "kind": "library"
+  },
+  "ncc-term-limits-on-this-day": {
+    "title": "On this day: Term limits for American Presidents",
+    "institution": "National Constitution Center",
+    "url": "https://constitutioncenter.org/blog/how-we-wound-up-with-the-constitutions-only-term-limits-amendment",
+    "read": "2026-10-07",
+    "kind": "museum"
+  },
+  "nara-eyewitness-kennedy": {
+    "title": "Eyewitness: American Originals from the National Archives (section 14, the assassination of President Kennedy)",
+    "institution": "National Archives",
+    "url": "https://www.archives.gov/exhibits/eyewitness/html.php?section=14",
+    "read": "2026-10-07",
+    "kind": "archive"
+  },
+  "miller-kennedy-death": {
+    "title": "John F. Kennedy: Death of a President",
+    "institution": "Miller Center, University of Virginia",
+    "url": "https://millercenter.org/president/kennedy/death-of-the-president",
+    "read": "2026-10-07",
+    "kind": "university"
+  },
+  "whha-johnson-white-house": {
+    "title": "The Johnson White House: 1963-1969",
+    "institution": "White House Historical Association",
+    "url": "https://www.whitehousehistory.org/galleries/the-johnson-white-house-1963-1969",
+    "read": "2026-10-07",
+    "kind": "museum"
+  },
+  "nara-prologue-nixon-resigns": {
+    "title": "Nixon Resigns (Pieces of History)",
+    "institution": "National Archives",
+    "url": "https://prologue.blogs.archives.gov/2024/08/06/nixon-resigns/",
+    "read": "2026-10-07",
+    "kind": "archive"
+  },
+  "miller-watergate-aftermath": {
+    "title": "Watergate: The aftermath",
+    "institution": "Miller Center, University of Virginia",
+    "url": "https://millercenter.org/the-presidency/educational-resources/watergate/watergate-aftermath",
+    "read": "2026-10-07",
+    "kind": "university"
+  },
+  "loc-inaugurations-1969-1997": {
+    "title": "Presidential Inaugurations: 1969-1997 (U.S. Presidential Inaugurations: A Resource Guide)",
+    "institution": "Library of Congress",
+    "url": "https://guides.loc.gov/presidential-inaugurations/1969-1997",
+    "read": "2026-10-07",
+    "kind": "library"
+  },
+  "nara-prologue-bastille": {
+    "title": "In their own words: Thomas Jefferson and the Storming of the Bastille (Pieces of History)",
+    "institution": "National Archives",
+    "url": "https://prologue.blogs.archives.gov/2012/07/13/in-their-own-words-thomas-jefferson-and-the-storming-of-the-bastille/",
+    "read": "2026-10-07",
+    "kind": "archive"
+  },
+  "loc-law-bastille": {
+    "title": "\"Bastille Day\" Is About More Than the Bastille (In Custodia Legis)",
+    "institution": "Library of Congress",
+    "url": "https://blogs.loc.gov/law/2020/07/bastille-day-is-about-more-than-the-bastille/",
+    "read": "2026-10-07",
+    "kind": "library"
+  },
+  "natgeo-bastille": {
+    "title": "Bastille Day celebrates the rebellion that ignited the French Revolution",
+    "institution": "National Geographic",
+    "url": "https://www.nationalgeographic.com/history/article/bastille-day-honors-rebellion-sparked-french-revolution",
+    "read": "2026-10-07",
+    "kind": "magazine"
+  },
+  "nam-waterloo": {
+    "title": "Battle of Waterloo",
+    "institution": "National Army Museum",
+    "url": "https://www.nam.ac.uk/explore/battle-waterloo",
+    "read": "2026-10-07",
+    "kind": "museum"
+  },
+  "royalarmouries-waterloo": {
+    "title": "Waterloo 1815",
+    "institution": "Royal Armouries",
+    "url": "https://royalarmouries.org/objects-and-stories/stories/waterloo-1815",
+    "read": "2026-10-07",
+    "kind": "museum"
+  },
+  "loc-maps-waterloo": {
+    "title": "Waterloo: Selected Maps of Napoleon's Final Battle (Worlds Revealed)",
+    "institution": "Library of Congress",
+    "url": "https://blogs.loc.gov/maps/2020/12/waterloo-selected-maps-of-napoleons-final-battle/",
+    "read": "2026-10-07",
+    "kind": "library"
+  },
+  "darwinproject-wicked-book": {
+    "title": "The \"wicked book\": Origin at 157",
+    "institution": "Darwin Correspondence Project, University of Cambridge",
+    "url": "https://www.darwinproject.ac.uk/wicked-book-origin-157",
+    "read": "2026-10-07",
+    "kind": "university"
+  },
+  "darwinproject-timeline": {
+    "title": "Darwin timeline",
+    "institution": "Darwin Correspondence Project, University of Cambridge",
+    "url": "https://www.darwinproject.ac.uk/learning-resources/timeline",
+    "read": "2026-10-07",
+    "kind": "university"
+  },
+  "darwinonline-francis-copy": {
+    "title": "Darwin Online: Francis Darwin's annotated copy of the Origin of Species (1859)",
+    "institution": "Darwin Online",
+    "url": "https://darwin-online.org.uk/EditorialIntroductions/vanWyhe_Francis_Darwins_Origin_of_species_1859.html",
+    "read": "2026-10-07",
+    "kind": "university"
+  },
+  "loc-franz-ferdinand": {
+    "title": "Introduction - Assassination of Archduke Franz Ferdinand: Topics in Chronicling America",
+    "institution": "Library of Congress",
+    "url": "https://guides.loc.gov/chronicling-america-assassination-franz-ferdinand",
+    "read": "2026-10-07",
+    "kind": "library"
+  },
+  "worldhistory-franz-ferdinand": {
+    "title": "Assassination of Archduke Franz Ferdinand: The Road to WWI",
+    "institution": "World History Encyclopedia",
+    "url": "https://www.worldhistory.org/article/2814/assassination-of-archduke-franz-ferdinand/",
+    "read": "2026-10-07",
+    "kind": "encyclopedia"
+  },
+  "natgeo-franz-ferdinand": {
+    "title": "How Franz Ferdinand's assassination changed the course of history",
+    "institution": "National Geographic",
+    "url": "https://www.nationalgeographic.com/history/article/franz-ferdinand-assassination-world-war-i",
+    "read": "2026-10-07",
+    "kind": "magazine"
+  },
+  "nasa-dawn-space-age": {
+    "title": "Dawn of the Space Age",
+    "institution": "NASA",
+    "url": "https://www.nasa.gov/history/dawn-of-the-space-age/",
+    "read": "2026-10-07",
+    "kind": "government"
+  },
+  "statedept-sputnik": {
+    "title": "Milestones in the History of U.S. Foreign Relations - Office of the Historian (Sputnik, 1957)",
+    "institution": "U.S. Department of State, Office of the Historian",
+    "url": "https://history.state.gov/milestones/1953-1960/sputnik",
+    "read": "2026-10-07",
+    "kind": "government"
+  },
+  "loc-sputnik": {
+    "title": "Introduction - Sputnik and the Space Race: 1957 and Beyond",
+    "institution": "Library of Congress",
+    "url": "https://guides.loc.gov/sputnik-and-the-space-race",
+    "read": "2026-10-07",
+    "kind": "library"
+  },
+  "nasa-one-giant-leap": {
+    "title": "July 20, 1969: One Giant Leap For Mankind",
+    "institution": "NASA",
+    "url": "https://www.nasa.gov/history/july-20-1969-one-giant-leap-for-mankind/",
+    "read": "2026-10-07",
+    "kind": "government"
+  },
+  "nara-prologue-apollo": {
+    "title": "The Eagle Has Landed: The Apollo 11 50th Anniversary (Pieces of History)",
+    "institution": "National Archives",
+    "url": "https://prologue.blogs.archives.gov/2019/07/19/apollo-11-50th-anniversary/",
+    "read": "2026-10-07",
+    "kind": "archive"
+  },
+  "nasa-alsj-apollo-11": {
+    "title": "Apollo 11 Lunar Surface Journal: Mission Overview",
+    "institution": "NASA",
+    "url": "https://history.nasa.gov/wp-content/uploads/static/history/alsj/a11/a11ov.html",
+    "read": "2026-10-07",
+    "kind": "government"
+  },
+  "loc-berlin-wall": {
+    "title": "The Rise and Fall of the Berlin Wall (4 Corners of the World)",
+    "institution": "Library of Congress",
+    "url": "https://blogs.loc.gov/international-collections/2019/11/the-rise-and-fall-of-the-berlin-wall/",
+    "read": "2026-10-07",
+    "kind": "library"
+  },
+  "statedept-fall-of-communism": {
+    "title": "Milestones in the History of U.S. Foreign Relations - Office of the Historian (The Fall of Communism, 1989-1992)",
+    "institution": "U.S. Department of State, Office of the Historian",
+    "url": "https://history.state.gov/milestones/1989-1992/fall-of-communism",
+    "read": "2026-10-07",
+    "kind": "government"
+  },
+  "natgeo-berlin-wall": {
+    "title": "Why the Berlin Wall rose, and how it fell",
+    "institution": "National Geographic",
+    "url": "https://www.nationalgeographic.com/history/article/why-berlin-wall-built-fell",
+    "read": "2026-10-07",
+    "kind": "magazine"
+  }
+}

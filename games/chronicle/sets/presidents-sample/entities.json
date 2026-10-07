@@ -1,0 +1,351 @@
+{
+  "events": [
+    {
+      "id": "e-washington-oath",
+      "kind": "event",
+      "title": "Washington takes the first presidential oath",
+      "date": "1789-04-30",
+      "seq": 1,
+      "section": "s1",
+      "place": "federal-hall",
+      "people": [
+        "washington"
+      ]
+    },
+    {
+      "id": "e-farewell",
+      "kind": "event",
+      "title": "Washington's Farewell Address reaches the public",
+      "date": "1796-09-19",
+      "seq": 3,
+      "section": "s1",
+      "place": "philadelphia",
+      "people": [
+        "washington"
+      ]
+    },
+    {
+      "id": "e-jefferson-oath",
+      "kind": "event",
+      "title": "Jefferson is sworn in at the Capitol",
+      "date": "1801-03-04",
+      "seq": 4,
+      "section": "s1",
+      "place": "us-capitol",
+      "people": [
+        "jefferson"
+      ]
+    },
+    {
+      "id": "e-louisiana",
+      "kind": "event",
+      "title": "The Louisiana Purchase treaty is dated",
+      "date": "1803-04-30",
+      "seq": 5,
+      "section": "s1",
+      "place": "paris",
+      "people": [
+        "jefferson"
+      ]
+    },
+    {
+      "id": "e-capitol-burned",
+      "kind": "event",
+      "title": "British forces burn the White House and Capitol",
+      "date": "1814-08-24",
+      "seq": 6,
+      "section": "s1",
+      "place": "washington-dc",
+      "people": [
+        "madison"
+      ]
+    },
+    {
+      "id": "e-removal-act",
+      "kind": "event",
+      "title": "Jackson signs the Indian Removal Act",
+      "date": "1830-05-28",
+      "seq": 8,
+      "section": "s2",
+      "people": [
+        "jackson"
+      ]
+    },
+    {
+      "id": "e-fort-sumter",
+      "kind": "event",
+      "title": "Confederate guns open fire on Fort Sumter",
+      "date": "1861-04-12",
+      "seq": 10,
+      "section": "s2",
+      "place": "fort-sumter"
+    },
+    {
+      "id": "e-emancipation",
+      "kind": "event",
+      "title": "Lincoln signs the Emancipation Proclamation",
+      "date": "1863-01-01",
+      "seq": 11,
+      "section": "s2",
+      "place": "white-house",
+      "people": [
+        "lincoln"
+      ]
+    },
+    {
+      "id": "e-gettysburg",
+      "kind": "event",
+      "title": "Lincoln delivers the Gettysburg Address",
+      "date": "1863-11-19",
+      "seq": 12,
+      "section": "s2",
+      "place": "gettysburg",
+      "people": [
+        "lincoln"
+      ]
+    },
+    {
+      "id": "e-lincoln-death",
+      "kind": "event",
+      "title": "Lincoln dies after being shot at Ford's Theatre",
+      "date": "1865-04-15",
+      "seq": 13,
+      "section": "s2",
+      "place": "fords-theatre",
+      "people": [
+        "lincoln"
+      ]
+    },
+    {
+      "id": "e-roosevelt-sworn",
+      "kind": "event",
+      "title": "Theodore Roosevelt takes the oath after McKinley dies",
+      "date": "1901-09-14",
+      "seq": 14,
+      "section": "s3",
+      "place": "buffalo",
+      "people": [
+        "mckinley",
+        "t-roosevelt"
+      ]
+    },
+    {
+      "id": "e-22nd-amendment",
+      "kind": "event",
+      "title": "The 22nd Amendment is ratified",
+      "date": "1951-02-27",
+      "seq": 16,
+      "section": "s3",
+      "people": [
+        "f-roosevelt"
+      ]
+    },
+    {
+      "id": "e-kennedy",
+      "kind": "event",
+      "title": "President Kennedy is shot in Dallas",
+      "date": "1963-11-22",
+      "seq": 18,
+      "section": "s3",
+      "place": "dallas",
+      "people": [
+        "kennedy"
+      ]
+    },
+    {
+      "id": "e-nixon-resigns",
+      "kind": "event",
+      "title": "Nixon's resignation takes effect",
+      "date": "1974-08-09",
+      "seq": 20,
+      "section": "s3",
+      "people": [
+        "nixon"
+      ]
+    },
+    {
+      "id": "c-bastille",
+      "kind": "context",
+      "title": "Parisians storm the Bastille",
+      "date": "1789-07-14",
+      "seq": 2,
+      "region": "France",
+      "place": "paris"
+    },
+    {
+      "id": "c-waterloo",
+      "kind": "context",
+      "title": "The Battle of Waterloo",
+      "date": "1815-06-18",
+      "seq": 7,
+      "region": "Belgium"
+    },
+    {
+      "id": "c-origin",
+      "kind": "context",
+      "title": "Darwin publishes On the Origin of Species",
+      "date": "1859-11-24",
+      "seq": 9,
+      "region": "Britain"
+    },
+    {
+      "id": "c-sarajevo",
+      "kind": "context",
+      "title": "Franz Ferdinand is shot in Sarajevo",
+      "date": "1914-06-28",
+      "seq": 15,
+      "region": "Bosnia",
+      "place": "sarajevo"
+    },
+    {
+      "id": "c-sputnik",
+      "kind": "context",
+      "title": "Sputnik 1 is launched",
+      "date": "1957-10-04",
+      "seq": 17,
+      "region": "Soviet Union"
+    },
+    {
+      "id": "c-apollo",
+      "kind": "context",
+      "title": "Apollo 11 lands on the Moon",
+      "date": "1969-07-20",
+      "seq": 19,
+      "region": "The Moon",
+      "place": "tranquility-base"
+    },
+    {
+      "id": "c-berlin-wall",
+      "kind": "context",
+      "title": "The Berlin Wall is opened",
+      "date": "1989-11-09",
+      "seq": 21,
+      "region": "Germany",
+      "place": "berlin"
+    }
+  ],
+  "people": [
+    {
+      "id": "washington",
+      "name": "George Washington",
+      "match": "Washington"
+    },
+    {
+      "id": "jefferson",
+      "name": "Thomas Jefferson",
+      "match": "Jefferson"
+    },
+    {
+      "id": "madison",
+      "name": "James Madison",
+      "match": "Madison"
+    },
+    {
+      "id": "jackson",
+      "name": "Andrew Jackson",
+      "match": "Jackson"
+    },
+    {
+      "id": "lincoln",
+      "name": "Abraham Lincoln",
+      "match": "Lincoln"
+    },
+    {
+      "id": "mckinley",
+      "name": "William McKinley",
+      "match": "McKinley"
+    },
+    {
+      "id": "t-roosevelt",
+      "name": "Theodore Roosevelt",
+      "match": "Theodore Roosevelt"
+    },
+    {
+      "id": "f-roosevelt",
+      "name": "Franklin D. Roosevelt",
+      "match": "Franklin Roosevelt"
+    },
+    {
+      "id": "kennedy",
+      "name": "John F. Kennedy",
+      "match": "Kennedy"
+    },
+    {
+      "id": "nixon",
+      "name": "Richard Nixon",
+      "match": "Nixon"
+    }
+  ],
+  "places": [
+    {
+      "id": "federal-hall",
+      "name": "Federal Hall, New York City",
+      "match": "Federal Hall"
+    },
+    {
+      "id": "philadelphia",
+      "name": "Philadelphia",
+      "match": "Philadelphia"
+    },
+    {
+      "id": "us-capitol",
+      "name": "The Capitol, Washington",
+      "match": "Capitol"
+    },
+    {
+      "id": "paris",
+      "name": "Paris",
+      "match": "Paris"
+    },
+    {
+      "id": "washington-dc",
+      "name": "Washington, D.C.",
+      "match": "Washington, D.C."
+    },
+    {
+      "id": "fort-sumter",
+      "name": "Fort Sumter, Charleston harbor",
+      "match": "Fort Sumter"
+    },
+    {
+      "id": "white-house",
+      "name": "The White House",
+      "match": "White House"
+    },
+    {
+      "id": "gettysburg",
+      "name": "Gettysburg, Pennsylvania",
+      "match": "Gettysburg"
+    },
+    {
+      "id": "fords-theatre",
+      "name": "Ford's Theatre",
+      "match": "Ford's Theatre"
+    },
+    {
+      "id": "buffalo",
+      "name": "Buffalo, New York",
+      "match": "Buffalo"
+    },
+    {
+      "id": "dallas",
+      "name": "Dallas, Texas",
+      "match": "Dallas"
+    },
+    {
+      "id": "sarajevo",
+      "name": "Sarajevo",
+      "match": "Sarajevo"
+    },
+    {
+      "id": "tranquility-base",
+      "name": "Tranquility Base, the Moon",
+      "match": "Tranquility Base"
+    },
+    {
+      "id": "berlin",
+      "name": "Berlin",
+      "match": "Berlin"
+    }
+  ]
+}

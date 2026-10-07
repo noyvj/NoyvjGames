@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 162/785 items checked off (20.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 165/785 items checked off (21.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -935,9 +935,9 @@ Classic stays the default boot (`index.html`); Desktop is a second boot (`pc.htm
 
 - [x] CH-1: Groundwork plan (one engine, each topic a data pack, sourced claims with confidence levels, review page before a set ships).
 - [x] CH-2: Your answers recorded in the plan (2026-10-07): general players, timeline builder then cause web, American presidents first, three reputable sources linked per claim, a report-a-problem button on every claim, one game with a set picker. Noyvj session builds it; Noy2 finishes the first Lexis milestones this round.
-- [ ] CH-3: Milestone 1, set format, loader and validation tests (every claim needs three sources, dates, no contradictions), a tiny sample set.
-- [ ] CH-4: Milestone 2, the timeline builder mechanic and engine, playable on the sample set.
-- [ ] CH-5: Milestone 3, the collectible archive and progress save; save widget, achievements, tutorial, opening screen.
+- [x] CH-3: Milestone 1, set format, loader and validation tests (every claim needs three sources, dates, no contradictions), a tiny sample set.
+- [x] CH-4: Milestone 2, the timeline builder mechanic and engine, playable on the sample set.
+- [x] CH-5: Milestone 3, the collectible archive and progress save; save widget, achievements, tutorial, opening screen.
 - [ ] CH-6: The report-a-problem feature: a button on every claim, a backend table and routes (same pattern as Le Champ de Mots' answer reports), and a list on the admin page where you mark each report done.
 - [ ] CH-7: Milestone 4, the cause web mechanic.
 - [ ] CH-8: Milestone 5, myth or record, plus the Info page showing the three sources for every claim.
