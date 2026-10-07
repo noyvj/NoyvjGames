@@ -11,6 +11,10 @@ Privacy and trust rules, kept deliberately simple:
     row per account (their best).
 
 To add a board, add one entry to BOARDS: no schema change needed.
+
+This file is the four original boards. New boards should use the general
+registry in boards.py (daily/weekly/all-time windows, anonymous by default,
+POST /scores and GET /leaderboard/{game}/{board}); see planning/SHARED-COMPONENTS.md.
 """
 
 import math
