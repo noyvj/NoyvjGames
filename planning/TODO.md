@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 228/901 items checked off (25.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 231/901 items checked off (25.6%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -24,10 +24,10 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 
 ## W. Cross-game groundwork these answers need (build once, reuse)
 
-- [ ] W-1: **Level select framework** (shared component plus per-game level list): a level-select screen where every fifth level is a game mode or a new mechanic; used first by Canopy (GB-13, GB-15, GB-16) and then offered to other games that are getting complex.
+- [x] W-1: **Level select framework** (shared component plus per-game level list): a level-select screen where every fifth level is a game mode or a new mechanic; used first by Canopy (GB-13, GB-15, GB-16) and then offered to other games that are getting complex. (Built 2026-10-08 as shared/level-select.js, documented in planning/SHARED-COMPONENTS.md; each game still needs its own level list, GB-13/15/16.)
 - [ ] W-2: **Fast-forward (1x/2x/4x) and pause** for the real-time (ticking) games: audit which games tick (SOL, Canopy, Tide? Continuum has speed controls already) and add the same control to those that lack it, without touching tick math.
-- [ ] W-3: **Skill-tree component** (shared UI and data shape) for meta-progression, first user Canopy's Seed Vault and ranger crews (GB-10, GB-26), later Trade Empire's charter tree (O-1).
-- [ ] W-4: **Seasonal events groundwork** (`shared/seasonal-events.js` per Round 3 section N item 11): date-window check, flavour overrides, banner, badge grant through the achievements path, no new backend.
+- [x] W-3: **Skill-tree component** (shared UI and data shape) for meta-progression, first user Canopy's Seed Vault and ranger crews (GB-10, GB-26), later Trade Empire's charter tree (O-1). (Built 2026-10-08: shared/skill-tree.js, .css and a Python mirror skill_tree.py; wiring into Canopy and Trade Empire is still open.)
+- [x] W-4: **Seasonal events groundwork** (`shared/seasonal-events.js` per Round 3 section N item 11): date-window check, flavour overrides, banner, badge grant through the achievements path, no new backend. (Built 2026-10-08 as shared/seasonal-events.js and .css with hub-contract badge ids; N-2 needs one host game to wire it in.)
 - [ ] W-5: **General opt-in leaderboards**: extend `app/leaderboards.py` boards beyond the three built tonight, and a shared widget entry per game (the shared `leaderboard.js` already exists); used by Canopy's community plot (GB-19), Last Line and Signal.
 - [x] W-6: **Multiplayer scoping document** (R-39): write `planning/MULTIPLAYER-SCOPING.md` covering what the parked community items need (shared coastline, mutual aid, peer-city ghost, 1v1 modes such as Canopy's rival company), so you can decide the pass.
 

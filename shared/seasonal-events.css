@@ -1,0 +1,95 @@
+/*
+ * Shared seasonal-event banner and badge toast (planning/TODO.md W-4; API in
+ * planning/SHARED-COMPONENTS.md). Tokens on :root so a game can retune one value;
+ * the light palette follows html[data-theme="light"], or the OS preference when
+ * no theme attribute is set. Meaning is never colour-only: the banner carries a
+ * title, a text line for the state ("Open until ..." / "Badge earned"), a
+ * progress sentence and, once earned, a solid (not dashed) border plus a check.
+ */
+:root {
+  --se-bg: rgba(30, 36, 70, 0.96);
+  --se-fg: #eef0ff;
+  --se-muted: #b9bfdc;
+  --se-border: rgba(160, 180, 255, 0.55);
+  --se-accent: #ffd866;
+  --se-earned: #9fe0ab;
+  --se-focus: #ffd866;
+}
+html[data-theme="light"] {
+  --se-bg: rgba(255, 255, 255, 0.97);
+  --se-fg: #1b2033;
+  --se-muted: #4a5275;
+  --se-border: rgba(60, 85, 160, 0.55);
+  --se-accent: #8a5a00;
+  --se-earned: #1f6b3a;
+  --se-focus: #8a5a00;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --se-bg: rgba(255, 255, 255, 0.97);
+    --se-fg: #1b2033;
+    --se-muted: #4a5275;
+    --se-border: rgba(60, 85, 160, 0.55);
+    --se-accent: #8a5a00;
+    --se-earned: #1f6b3a;
+    --se-focus: #8a5a00;
+  }
+}
+
+[hidden] { display: none !important; }
+
+/* Default placement: a fixed strip under any "what's new" banner, so a flex or
+   grid page shell is never disturbed (same reason shared/whats-new-banner.js is
+   fixed). Pass init({ container }) to put it in the page flow instead. */
+.noyvj-se-stack {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 590;
+  display: flex; flex-direction: column; gap: 0.4rem;
+  padding: 0.4rem 0.75rem; pointer-events: none;
+}
+.noyvj-se-stack:empty { display: none; }
+html.noyvj-se-reserve { padding-top: var(--se-reserve, 0); }
+.noyvj-se-stack--inline { position: static; padding: 0; pointer-events: auto; }
+
+.noyvj-se {
+  pointer-events: auto;
+  box-sizing: border-box;
+  width: 100%; max-width: 46rem; margin: 0 auto;
+  display: flex; align-items: flex-start; gap: 0.7rem;
+  padding: 0.6rem 0.8rem;
+  color: var(--se-fg); background: var(--se-bg);
+  border: 2px dashed var(--se-border); border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+  font-family: system-ui, -apple-system, sans-serif; font-size: 0.85rem; text-align: left;
+}
+.noyvj-se[data-state="earned"] { border-style: solid; border-color: var(--se-earned); }
+.noyvj-se-icon { font-size: 1.5rem; line-height: 1.2; color: var(--se-accent); flex: none; }
+.noyvj-se-body { flex: 1 1 auto; min-width: 0; }
+.noyvj-se-body p { margin: 0 0 0.2rem; }
+.noyvj-se-title { font-weight: 700; font-size: 0.95rem; }
+.noyvj-se-task { font-weight: 600; }
+.noyvj-se-progress, .noyvj-se-state { color: var(--se-muted); font-size: 0.8rem; }
+.noyvj-se[data-state="earned"] .noyvj-se-state { color: var(--se-earned); font-weight: 700; }
+.noyvj-se-meter { width: 100%; max-width: 14rem; height: 0.6rem; margin: 0.15rem 0; accent-color: var(--se-accent); }
+.noyvj-se-dismiss {
+  flex: none; min-height: 2.75rem; padding: 0.2rem 0.8rem;
+  font: inherit; font-size: 0.8rem; color: inherit; background: transparent;
+  border: 1px solid var(--se-border); border-radius: 999px; cursor: pointer;
+}
+.noyvj-se-dismiss:focus-visible { outline: 3px solid var(--se-focus); outline-offset: 2px; }
+
+.noyvj-se-toasts {
+  position: fixed; left: 0; right: 0; bottom: 4.5rem; z-index: 650;
+  display: flex; flex-direction: column; align-items: center; gap: 0.3rem; pointer-events: none;
+}
+.noyvj-se-toast {
+  margin: 0; padding: 0.5rem 1rem; max-width: calc(100% - 2rem);
+  color: var(--se-fg); background: var(--se-bg);
+  border: 2px solid var(--se-earned); border-radius: 999px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+  font-family: system-ui, -apple-system, sans-serif; font-size: 0.9rem; font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .noyvj-se { flex-wrap: wrap; }
+  .noyvj-se-dismiss { margin-left: auto; }
+}

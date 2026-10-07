@@ -146,3 +146,20 @@ def badge_id(event, year=None):
     the one the event's window started in, so a New Year window that runs into
     January still counts for the year it began)."""
     return f"{event['id']}-{event.get('year') if year is None else year}"
+
+
+def hub_badge_id(event, year=None):
+    """`badge_id` as the hub accepts it: lowercase slug with hyphens only
+    (`new_year` becomes `new-year-2027`; the hub's event-badge contract is
+    /^[a-z0-9-]{1,64}$/). `shared/seasonal-events.js` `badgeId` returns exactly this."""
+    slug = "".join(ch if ch.isalnum() and ch.isascii() or ch == "-" else "-" for ch in badge_id(event, year).lower())
+    return slug[:64]
+
+
+def badge_entry(event, earned_at, year=None, label=None):
+    """The `{id, label, earned_at}` dict a game stores in its save's
+    `event_badges` list (hub contract R2-Z23b). `earned_at` is an ISO date such
+    as today's `date.isoformat()`; the label defaults to "<name> <year>"."""
+    shown_year = event.get("year") if year is None else year
+    text = (label if label else f"{event.get('name', event['id'])} {shown_year}")[:60]
+    return {"id": hub_badge_id(event, year), "label": text, "earned_at": str(earned_at)[:32]}
