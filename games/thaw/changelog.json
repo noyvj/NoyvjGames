@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-07",
+    "entry": "New in Thaw: resource convoys that move funds between Regions A, B and C for a 20% transport tax, a perfect-balance bonus when all three melting regions finish within 1 degree of each other, an Ice Age medal for long runs without a tipping event, a \"phew\" note when your last move pulls a region back from going critical, an \"Explain this number\" breakdown of the warming rate, an acceleration sparkline, a three-line highlights recap you can copy, spoken round summaries and graph descriptions for screen readers, and a Lite mode in Settings that drops blur and background animation."
+  },
+  {
+    "date": "2026-10-07",
     "entry": "New Desktop layout for wide windows: a full-window view with the round, funds and the temperatures of Regions A, B and C as chips across the top, Region A's status and graph beside the Region B and C comparison, and your investments with Advance Round pinned at the top of a column on the right. The Climate Scientist chart is one of three icons in the top bar; the archive and scientist's log, Region D, the long-game and framing options, community comparison and the rest are windows opened from the Menu (Esc), and key moments pop up as notifications. Pick it from the opening screen; your save carries over and the Classic layout is unchanged."
   },
   {

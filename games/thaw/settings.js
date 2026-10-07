@@ -27,6 +27,7 @@
 
   const TEXT_SCALE_KEY = "thaw-text-scale";
   const MOTION_KEY = "thaw-reduced-motion";
+  const LITE_KEY = "thaw-lite-mode";
   const MIN_SCALE = 0.85;
   const MAX_SCALE = 1.5;
   const STEP = 0.1;
@@ -84,7 +85,30 @@
     return reduced;
   }
 
+  // G-26: lite mode drops the costly visuals (backdrop blur, the animated
+  // background, graph/meter transitions) for slow devices. Pure CSS via a
+  // data attribute, persisted like the other display preferences.
+  function readStoredLite() {
+    try {
+      return window.localStorage.getItem(LITE_KEY) === "true";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function applyLite(on) {
+    document.documentElement.setAttribute("data-lite-mode", on ? "true" : "false");
+    try {
+      window.localStorage.setItem(LITE_KEY, String(on));
+    } catch (e) {
+      // Same as above.
+    }
+    return on;
+  }
+
   function init() {
+    let lite = readStoredLite();
+    applyLite(lite);
     let scale = readStoredScale();
     applyScale(scale);
     let reduced = readStoredMotion();
@@ -96,9 +120,16 @@
     const increaseButton = document.getElementById("text-size-increase-button");
     const resetButton = document.getElementById("text-size-reset-button");
     const motionCheckbox = document.getElementById("reduced-motion-checkbox");
+    const liteCheckbox = document.getElementById("lite-mode-checkbox");
 
     if (motionCheckbox) {
       motionCheckbox.checked = reduced;
+    }
+    if (liteCheckbox) {
+      liteCheckbox.checked = lite;
+      liteCheckbox.addEventListener("change", function () {
+        lite = applyLite(liteCheckbox.checked);
+      });
     }
 
     if (toggleButton && panel) {
@@ -132,8 +163,12 @@
       settingsResetButton.addEventListener("click", function () {
         scale = applyScale(DEFAULT_SCALE);
         reduced = applyMotion(false);
+        lite = applyLite(false);
         if (motionCheckbox) {
           motionCheckbox.checked = false;
+        }
+        if (liteCheckbox) {
+          liteCheckbox.checked = false;
         }
       });
     }
@@ -145,5 +180,5 @@
     init();
   }
 
-  window.ThawSettings = { applyScale: applyScale, applyMotion: applyMotion, MIN_SCALE: MIN_SCALE, MAX_SCALE: MAX_SCALE };
+  window.ThawSettings = { applyScale: applyScale, applyMotion: applyMotion, applyLite: applyLite, MIN_SCALE: MIN_SCALE, MAX_SCALE: MAX_SCALE };
 })();

@@ -95,6 +95,25 @@ ELEMENT_IDS = [
     "policy-stance-balanced-button",
     "policy-stance-mitigation-button",
     "policy-stance-display",
+    # Round-3 batch: GG-5 routing, GG-27 balance, GG-13 medal, GG-20 phew, GG-28 recap,
+    # G-4 inspector, G-24 sparkline, G-10 announcer.
+    "sr-announcer",
+    "rate-inspector-region",
+    "rate-inspector-body",
+    "phew-callout",
+    "ice-age-display",
+    "acceleration-sparkline",
+    "highlights-list",
+    "highlights-copy-button",
+    "highlights-status",
+    "routing-source",
+    "routing-dest",
+    "routing-send-button",
+    "routing-preview",
+    "routing-display",
+    "balance-display",
+    "balance-callout",
+    "region-comparison",
 ]
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-name", f"{_category}-count", f"{_category}-invest-button"]

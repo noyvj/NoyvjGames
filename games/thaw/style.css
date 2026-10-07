@@ -1119,6 +1119,90 @@ html[data-reduced-motion="true"] *::after {
   font-size: 0.8rem;
 }
 
+/* G-10: a visually hidden but still announced text (the aria-live round summary). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* G-10: every control shows a keyboard focus ring (the global light-theme sheet recolours it). */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid #ffd666;
+  outline-offset: 2px;
+}
+
+/* G-24: the acceleration sparkline under the acceleration meter. */
+.accel-sparkline { margin: 0.2rem 0 0.4rem; }
+.accel-sparkline-svg { display: block; width: 100%; height: 1.6rem; }
+.accel-sparkline-line { fill: none; stroke: #e0674c; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.accel-sparkline-base { stroke: currentColor; stroke-opacity: 0.35; stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+
+/* G-4: "explain this number". */
+.rate-inspector { margin: 0.4rem 0; font-size: 0.85rem; }
+.rate-inspector summary { cursor: pointer; opacity: 0.9; }
+.rate-inspector-label { display: inline-block; margin: 0.4rem 0; font-size: 0.8rem; }
+.rate-inspector-label select { margin-left: 0.3rem; }
+.rate-breakdown-svg { display: block; width: 100%; height: 0.8rem; margin: 0.3rem 0; }
+.rate-seg-base { fill: #6f8fe0; }
+.rate-seg-net { fill: #e0674c; }
+.rate-seg-cut { fill: none; stroke: currentColor; stroke-width: 0.6; stroke-dasharray: 2 1.5; }
+.rate-rows { list-style: none; margin: 0.2rem 0; padding: 0; }
+.rate-row { display: flex; justify-content: space-between; gap: 0.6rem; padding: 0.15rem 0; border-bottom: 1px solid rgba(127, 127, 160, 0.25); font-variant-numeric: tabular-nums; }
+.rate-row--\= { font-weight: 600; border-bottom: 0; }
+
+/* GG-13: the Ice Age medal line. */
+.ice-age-display { font-style: normal; }
+
+/* GG-20 / GG-27: the "phew" and perfect-balance callouts. */
+.phew-callout,
+#balance-callout {
+  margin: 0.5rem 0;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid rgba(111, 143, 224, 0.7);
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+.balance-pulse { animation: balance-pulse 1200ms ease; }
+@keyframes balance-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(111, 143, 224, 0); }
+  30% { box-shadow: 0 0 0 4px rgba(111, 143, 224, 0.7); }
+}
+:root[data-reduced-motion="true"] .balance-pulse { animation: none; }
+@media (prefers-reduced-motion: reduce) { .balance-pulse { animation: none; } }
+
+/* G-26: lite mode (Settings): no backdrop blur, no animated background, no transitions. */
+html[data-lite-mode="true"] *,
+html[data-lite-mode="true"] *::before,
+html[data-lite-mode="true"] *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transition: none !important;
+}
+html[data-lite-mode="true"] .ambient-bg-blobs,
+html[data-lite-mode="true"] .ambient-bg-accent,
+html[data-lite-mode="true"] .permafrost-frost-dust {
+  animation: none !important;
+}
+
+.rate-row span:last-child { white-space: nowrap; }
+
+/* GG-5: resource routing. */
+.routing-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: flex-end; }
+.routing-row label { font-size: 0.8rem; display: flex; flex-direction: column; gap: 0.15rem; }
+.routing-row button.secondary { font-size: 0.8rem; }
+
 /* Site-wide: a bare `display:` rule on a class must never defeat the HTML hidden attribute
    (playtest audit 2026-10-06, S2: Continuum, Aftermath, Drift, Champ de Mots, hub). */
 [hidden] { display: none !important; }

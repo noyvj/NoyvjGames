@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 143/785 items checked off (18.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 151/785 items checked off (19.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -506,13 +506,13 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] G-1: Add a Thaw 'Field Notes' tab charting every finished run over time (temperature saved, tipped regions, average acceleration, lever mix, per-region bests), storing per-run summaries. (partly built: Climate archive (G23): per-region bests of degrees saved, furthest round, highest dampening in localStorage.) (needs GG-2 or GG-9 (run end))
 - [ ] G-2: Add a Thaw overlay chart comparing any two past runs (or a run against the Region D counterfactual) on one graph with the melt gridline and a per-round divergence readout. (needs G-1)
 - [ ] G-3: Add a Thaw round-replay scrubber showing the three regions across rounds with scientist's-log entries pinned at their rounds.
-- [ ] G-4: Add a Thaw explain-this-number inspector: click a warming rate or acceleration factor to see a stacked breakdown (background rise, feedback, dampening reduction, monitoring), tied to the info toggles.
+- [x] G-4: Add a Thaw explain-this-number inspector: click a warming rate or acceleration factor to see a stacked breakdown (background rise, feedback, dampening reduction, monitoring), tied to the info toggles.
 - [ ] G-5: Add a Thaw forecast planner drawer: draw hypothetical funding splits and see dashed 10-round temperature projections per region beside the next-round tooltip.
 - [ ] G-6: Add a Thaw difficulty panel in Settings: sliders for background rise, feedback strength, starting funds, monitor cost, with Gentle/Standard/Severe presets; tag custom runs and exclude them from Z1 percentile comparisons.
 - [ ] G-7: Add a Thaw shareable run report: one-click printable and PNG poster with the three region graphs, final temperature saved, best region message and top log lines, using the shared print-summary pattern.
 - [ ] G-8: Add Thaw challenge codes: export a mid-run state as a shareable code so a friend takes over from round N and tries to beat the temperature-saved score, via the shared save widget.
 - [ ] G-9: Add a Thaw scientist-mode view toggle replacing friendly labels with real units plus small footnotes on where each constant came from; any real-world figure (e.g. Gt carbon) must be read live and named. [conflict: A 'Gt carbon proxy' mapping would be an invented real-world claim unless sourced live; owner should confirm labels stay game units.]
-- [ ] G-10: Add full keyboard and screen-reader play to Thaw: focus rings on every control, aria-live announcements of tipping, critical tier and round results, and a summary-sentence text alternative per mini-graph.
+- [ ] G-10: Add full keyboard and screen-reader play to Thaw: focus rings on every control, aria-live announcements of tipping, critical tier and round results, and a summary-sentence text alternative per mini-graph. (Partly done 2026-10-07: aria-live round summary, mini-graph labels, focus rings; still open: a full keyboard-only play-through audit.)
 - [ ] G-11: Add Thaw history decimation: collapse older rounds into summary points so graphs stay fast in long games, plus a developer-panel memory readout; keep saves and long_game compatible.
 - [ ] G-12: Add a Thaw board-room table with sortable columns (temperature, acceleration, dampening, funds, rounds since tipping, best-ever), per-row sparklines and Region D as a greyed row.
 - [ ] G-13: Add a Thaw temperature unit setting (Celsius, Fahrenheit, Kelvin) converting displays, gridline and thresholds, persisted in localStorage.
@@ -526,9 +526,9 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] G-21: Add a faint personal-best pace line on Region A's graph from the stored best run; needs stored per-round best history.
 - [ ] G-22: Add a Thaw round-counter note with estimated session length and a safe-to-save nudge.
 - [ ] G-23: Add a Thaw Settings threshold that uses the shared confirm dialog for investments above a chosen size.
-- [ ] G-24: Add a Thaw sparkline next to the acceleration readout showing its recent trajectory.
+- [x] G-24: Add a Thaw sparkline next to the acceleration readout showing its recent trajectory.
 - [ ] G-25: Add Thaw settings export and import: copy and restore all local settings and personal bests as a short code, no account needed.
-- [ ] G-26: Add a Thaw lite mode in Settings disabling backdrop blur, ambient background animation and graph transitions.
+- [x] G-26: Add a Thaw lite mode in Settings disabling backdrop blur, ambient background animation and graph transitions.
 - [ ] G-27: Add progress bars and a remaining-amount readout (and hover detail) to Thaw's locked achievement cards. (partly built: Locked achievements show 'X of Y' text via ACHIEVEMENT_PROGRESS in update_achievements_display().)
 - [ ] G-28: Add Thaw glossary popovers on underlined terms (dampening, acceleration factor, melt threshold, monitoring) with one-line definitions and a full glossary in How to Play.
 - [ ] G-29: Add Thaw friendly corrupt-save recovery that names which field failed and offers load-with-defaults.
@@ -537,7 +537,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] GG-2: Add a Thaw 'Hold the Line' mode: keep at least two of three regions un-tipped for as many rounds as possible while background rise escalates via new events; score is rounds survived, with an opt-in leaderboard entry. (needs W-1 (as a mode level), W-5)
 - [ ] GG-3: Build Thaw's Station Upgrade skill tree: finishing modes earns research credit spent on permanent Thaw-only upgrades (earlier next-round warning, starter dampening, a 4th preset, wider mini-graph); all upgrades reachable with no luck. (needs W-3, GG-2)
 - [ ] GG-4: Add Thaw crisis events (wildfire, sinkhole road, heatwave, funding slump) with a 2-3 round countdown, defused by spending monitor or preserve resources; roll them deterministically from round and region like cascade_roll, with a visible warning.
-- [ ] GG-5: Add resource routing to Thaw: convoy funds between Regions A, B and C with a small transport tax so the player triages between rescuing a critical region and feeding a healthy one; never touches Region D.
+- [x] GG-5: Add resource routing to Thaw: convoy funds between Regions A, B and C with a small transport tax so the player triages between rescuing a critical region and feeding a healthy one; never touches Region D.
 - [ ] GG-6: Add Thaw survey mode: regions start with hidden permafrost carbon density, revealed by paying for a survey; rich regions tip harder but yield more output; densities are fixed per save (no luck) and hinted before purchase.
 - [ ] GG-7: Add a Thaw daily 'Cold Case' (UTC date-seeded scenario with fixed start temperatures and one twist) with a temperature-saved score compared to the community percentile through the existing Z1 stats hook. (needs W-1 (mode level))
 - [ ] GG-8: Add a Thaw sandbox 'Director' mode: the player triggers background-rise bumps (volcano, heat dome) to try to tip regions run by an AI steward of selectable skill; a toy mode that teaches the same dynamics. (needs W-1 (mode level))
@@ -545,22 +545,22 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] GG-10: Add an optional 10-second Thaw stabilise minigame when a region enters critical tier (route sensors, plug leaks, click hotspots) granting a temporary dampening buff, with an auto-resolve skip so the sim is never gated.
 - [ ] GG-11: Add Thaw story mode 'The Station Crew': a small cast comments on each region across the run with three endings by spread of outcomes, with a story-off toggle (build on the existing flavour-line toggle and shared story-toggle).
 - [ ] GG-12: Add a toggleable (off by default for reduced-motion) low-frequency shake of the region card plus a crack animation across its mini-graph when a region tips, in Settings.
-- [ ] GG-13: Add the 'Ice Age' streak medal to Thaw: show the stable-round count as a medal that grows into a frosty icon at 5/10/15 consecutive rounds below the melt threshold. (partly built: tipping-streak-display (game.py ~2197) shows rounds since last tipping event.)
+- [x] GG-13: Add the 'Ice Age' streak medal to Thaw: show the stable-round count as a medal that grows into a frosty icon at 5/10/15 consecutive rounds below the melt threshold. (partly built: tipping-streak-display (game.py ~2197) shows rounds since last tipping event.) (Built as rounds without a tipping event, since 15 rounds below the melt threshold is impossible with the fixed background rise.)
 - [ ] GG-14: Add Thaw's secret 'Snow Leopard' achievement for finishing with Region A 8+ degrees cooler than Region D, unlocking a station skin. (needs GG-18 (skin selector))
 - [ ] GG-15: Add a toggleable Thaw mascot pair (snow hare and arctic fox, drawn as inline SVG or emoji) in the corner that react to state (shiver when hot, cheer when dampening rises, faint at critical) and occasionally bicker; no audio.
 - [ ] GG-16: Add occasional research-grant notes to Thaw offering a gamble (take 30 funds now or 60 only if no region tips next round); roll deterministically per round and show the odds so it is never luck-gated.
 - [ ] GG-17: Add one Thaw undo per run: rewind a round at a funds cost, snapshotting state before Advance Round.
 - [ ] GG-18: Add achievement-locked Thaw map skins (aurora borealis, tundra at dusk, 8-bit tundra) selectable in Settings, each unlocked by a named achievement.
 - [ ] GG-19: Add a Thaw rolling-digit temperature readout that ticks up during Advance Round, faster when acceleration is high, collapsing to instant under reduced motion.
-- [ ] GG-20: Add a Thaw 'phew' banner when a region's projected next-round temperature would have crossed melt or critical but the last investment pulled it back.
+- [x] GG-20: Add a Thaw 'phew' banner when a region's projected next-round temperature would have crossed melt or critical but the last investment pulled it back.
 - [ ] GG-21: Add three fixed AI stewards (Cautious Kai, Rash Rasmus, Balanced Bea) to Thaw that post deterministic temperature-saved scores each run so the player sees who they beat. (needs GG-2 or GG-9 (run end))
 - [ ] GG-22: Add a Thaw mystery supply crate every 6th round with a perk (extra preserve unit, monitor discount, faster preset) and an opening animation; make the perk deterministic and hinted ahead so it is never luck-gated.
 - [ ] GG-23: Add an opt-in Thaw hard mode that hides the next-round three-region preview tooltip and dampening forecast, with an end-of-run reveal of how close the player's guess was.
 - [ ] GG-24: Add a Thaw title ladder from 'Ice Cube' to 'Cryosphere Guardian' by temperature-saved bands, shown at finish with the next title's goal. (needs GG-2 or GG-9 (run end))
 - [ ] GG-25: Add a Thaw blindfold toggle in Settings that hides mini-graphs and shows text status only.
 - [ ] GG-26: Add a Thaw post-round ticker of funny fake headlines reacting to conditions (fox complains about mud), clearly fictional, with a story-off hide.
-- [ ] GG-27: Add a Thaw perfect-balance bonus: a small fund bonus and a visual pulse (no audio) when all three regions end a round within 1 degree of each other.
-- [ ] GG-28: Add a Thaw 3-line highlights recap built from the scientist's log at session end or on demand (e.g. Region B tipped round 9, recovered round 14), with a copy/share button.
+- [x] GG-27: Add a Thaw perfect-balance bonus: a small fund bonus and a visual pulse (no audio) when all three regions end a round within 1 degree of each other.
+- [x] GG-28: Add a Thaw 3-line highlights recap built from the scientist's log at session end or on demand (e.g. Region B tipped round 9, recovered round 14), with a copy/share button.
 - [ ] GG-29: Add Thaw loadout presets Scout, Builder and Gambler that shift starting funds and dampening, unlocked via the station upgrade tree or achievements. (partly built: POLICY_STANCES (G13): Growth/Balanced/Mitigation start for Region A.) (needs GG-3 (optional))
 - [ ] GG-30: Add a Thaw daily boon: first session each day offers a choice of two tiny boons (+10 funds or cheaper monitor), stored per day in localStorage, no streak pressure.
 

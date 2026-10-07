@@ -25,7 +25,7 @@
     {
       "id": "pc-archive-panel",
       "title": "Climate archive and scientist's log",
-      "members": ["#personal-best-display", "#archive-toggle-button", "#archive-panel", "#science-log-details"],
+      "members": ["#personal-best-display", "#archive-toggle-button", "#archive-panel", "#science-log-details", "#highlights-details"],
       "group": "Records",
       "label": "📓 Archive and scientist's log"
     },
@@ -70,7 +70,7 @@
     "topbar": [".hub-back-link", "h1", ".game-toolbar"],
     "stagebar": [],
     "stage": [".permafrost-scene", "#status", "#region-comparison"],
-    "side": ["#advance-round-button", "#investments", "#carbon-bank", "#forecast", "#policy-stance"],
+    "side": ["#advance-round-button", "#investments", "#carbon-bank", "#routing", "#forecast", "#policy-stance"],
     "hidden": ["#round-display", "#funds-display"]
   },
   "readouts": [

@@ -76,6 +76,12 @@
         </label>
       </div>
       <div class="settings-row">
+        <label class="settings-checkbox-label" for="lite-mode-checkbox">
+          <input type="checkbox" id="lite-mode-checkbox">
+          Lite mode (no background blur, animated background or graph transitions)
+        </label>
+      </div>
+      <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
       </div>
     </div>
@@ -111,6 +117,8 @@
 
     <div id="status" class="section">
       <!-- G2: Region A's permanent flavor subtitle, matching the ones on Regions B/C/D below. -->
+      <!-- G-10: spoken summary of each round (aria-live), visually hidden. -->
+      <p id="sr-announcer" class="sr-only" role="status" aria-live="polite"></p>
       <p class="region-flavor" id="region-a-flavor">Region A: high-arctic peatland, your home region, where frozen peat stores centuries of carbon.</p>
       <p id="round-display" class="status-line">Round 1</p>
       <p id="funds-display" class="status-line">Funds: 300</p>
@@ -119,11 +127,25 @@
       <p id="temperature-cap-note" class="meter-cap-note" hidden></p>
       <p id="rise-rate-display" class="status-line">Current warming rate: 1.00°/round</p>
       <details class="info-toggle"><summary>i</summary><p>The fixed background rise stands in for a much longer real-world timescale, compressed for pacing — real global average temperature has risen roughly 1.1°C over the last century and a half, not in single fixed jumps per round. At today's warming pace (NOAA: about 0.20°C per decade since 1982, i.e. 0.02°C/year), this game's fixed +1.0°/round works out to roughly 50 years of real-world warming compressed into one round. Treat each round as a stylized several decades of real warming, not a literal calendar unit.</p></details>
+      <!-- G-4: break the warming rate down into its parts. -->
+      <details id="rate-inspector" class="rate-inspector">
+        <summary>Explain this number</summary>
+        <label class="rate-inspector-label" for="rate-inspector-region">Region
+          <select id="rate-inspector-region">
+            <option value="a">A</option>
+            <option value="b">B</option>
+            <option value="c">C</option>
+          </select>
+        </label>
+        <div id="rate-inspector-body" class="rate-inspector-body"></div>
+      </details>
       <p id="melt-status-display" class="comparison-message">Permafrost stable — no feedback yet.</p>
       <details class="info-toggle"><summary>i</summary><p>Permafrost starts melting once global temperature crosses +10.0° — below that threshold it's dormant, but above it every extra degree releases methane that adds to next round's warming, on top of the fixed background rise. Past a much faster acceleration, melt status reads as "critical" instead of just "melting" — the feedback loop compounding fast rather than just having started.</p></details>
       <p id="milestone-delay-callout" class="milestone-delay-callout" hidden></p>
       <p id="preemptive-callout" class="milestone-delay-callout" hidden></p>
+      <p id="phew-callout" class="milestone-delay-callout phew-callout" hidden></p>
       <p id="tipping-streak-display" class="comparison-message"></p>
+      <p id="ice-age-display" class="comparison-message ice-age-display"></p>
       <details class="info-toggle"><summary>i</summary><p>A tipping event is permafrost starting to melt, or warming going critical (2x the background rate). This counts rounds since the last one. The +15° milestone is the second warming marker: past it, the feedback loop is releasing more methane than intervention alone can easily offset.</p></details>
       <p id="dampening-display" class="status-line">Feedback dampening: 0%</p>
       <details class="info-toggle"><summary>i</summary><p>Dampening only reduces the methane feedback bonus caused by melt — it never touches the fixed background warming rate, which always rises no matter what you invest in. That's also why this percentage can sit above 0% with no visible effect yet: it does nothing until melt actually starts.</p></details>
@@ -131,6 +153,7 @@
       <p id="acceleration-display" class="comparison-message">Warming is rising at a steady, linear rate.</p>
       <details class="info-toggle"><summary>i</summary><p>This shows warming's current speed as a multiple of the steady background rate — 1x means no feedback yet, and it climbs higher the longer melt continues unchecked, which is what "runaway" looks like in this game.</p></details>
       <div class="meter"><div id="acceleration-bar" class="meter-fill meter-fill--temperature"></div></div>
+      <div id="acceleration-sparkline" class="accel-sparkline"></div>
       <p id="trajectory-display" class="comparison-message">No meaningful difference from intervention yet.</p>
       <p id="restoration-status" class="rescue-status" hidden></p>
       <button id="rescue-button" class="secondary rescue-button" type="button" hidden>Emergency rescue</button>
@@ -149,6 +172,13 @@
         <summary>📓 Scientist's log (<span id="science-log-count">0</span>)</summary>
         <ol id="science-log-list" class="science-log-list"></ol>
       </details>
+      <!-- GG-28: three-line highlights recap, with a copy button. -->
+      <details id="highlights-details" class="science-log">
+        <summary>📝 Highlights recap</summary>
+        <ol id="highlights-list" class="science-log-list highlights-list"></ol>
+        <button id="highlights-copy-button" class="secondary" type="button">Copy recap</button>
+        <p id="highlights-status" class="comparison-message" role="status"></p>
+      </details>
     </div>
 
     <div id="carbon-bank" class="section carbon-bank">
@@ -158,6 +188,29 @@
         <button id="carbon-bank-b-button" class="secondary" type="button" disabled>Fund Region B</button>
         <button id="carbon-bank-c-button" class="secondary" type="button" disabled>Fund Region C</button>
       </div>
+    </div>
+
+    <div id="routing" class="section routing">
+      <p class="meter-label">Resource routing</p>
+      <div class="routing-row">
+        <label for="routing-source">From
+          <select id="routing-source">
+            <option value="a">Region A</option>
+            <option value="b">Region B</option>
+            <option value="c">Region C</option>
+          </select>
+        </label>
+        <label for="routing-dest">To
+          <select id="routing-dest">
+            <option value="a">Region A</option>
+            <option value="b" selected>Region B</option>
+            <option value="c">Region C</option>
+          </select>
+        </label>
+        <button id="routing-send-button" class="secondary" type="button">Send convoy</button>
+      </div>
+      <p id="routing-preview" class="comparison-message"></p>
+      <p id="routing-display" class="comparison-message"></p>
     </div>
 
     <details id="shared-research" class="section shared-research">
@@ -279,6 +332,8 @@
         </div>
       </div>
       <p id="region-comparison-best-display" class="comparison-message"></p>
+      <p id="balance-callout" class="milestone-delay-callout" hidden></p>
+      <p id="balance-display" class="comparison-message"></p>
       <span id="best-region-hidden" hidden></span>
     </div>
 
