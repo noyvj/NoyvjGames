@@ -255,6 +255,16 @@
       "#exam-countdown-display",
       "⏳",
       ""
+    ],
+    [
+      "#golden-display",
+      "⭐",
+      ""
+    ],
+    [
+      "#quest-display",
+      "📋",
+      ""
     ]
   ],
   "side_label": "Watering, study tools and practice games",

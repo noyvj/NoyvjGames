@@ -1,5 +1,17 @@
 [
   {
+    "date": "2026-10-08",
+    "entry": "Which activities grow plots: every question screen now carries a small text marker saying whether it grows plots and how (full watering, a smaller nudge, or none, with the reason on hover). Proficiency tests and the arcade games (Greetings & Basics Blitz, Verb Racer, Passé Composé Sprint, Boutique Dash, Café Rush) now credit the plots behind your correct answers through the same watering and nudge rules Review uses, and each session's summary says what was credited, for example 3 plots nudged. A game score never grows a plot by itself, a plot you have not watered yet needs real watering first, and nothing ever goes down."
+  },
+  {
+    "date": "2026-10-08",
+    "entry": "New on the farm: a golden plot each day (a correct answer on it earns 2 practice points), three small daily goals that earn practice points and leave nothing behind if you skip a day, stubborn weeds (a plot missed four times in a row shows a short re-teach card with the word in syllable pieces and can be rested for a week), a once-per-session slip button that forgives a missed accent or a one-letter typo, session highlights on Review and test results, and a download of your weak items as a CSV or an Anki file from the Progress dashboard."
+  },
+  {
+    "date": "2026-10-08",
+    "entry": "Readability fixes: the title and other loose text no longer vanish into the pale sky in the dark theme, and dark-on-dark and light-on-light text in the arcade games, Café Rush's second question, the sentence builder tiles, the dashboard and the green buttons was fixed in all four visual styles and both themes, on the Classic and Desktop pages."
+  },
+  {
     "date": "2026-10-07",
     "entry": "Player titles: your practice score now earns a title shown under it, Apprenti, then Jardinier at 25 points, Fermier at 150 and Maître de Ferme at 600, with the next one named. It is worked out from the score you already have, nothing new is saved, and it never changes how plots are scheduled."
   },

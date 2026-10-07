@@ -63,6 +63,34 @@ _farm = None
 _generate_question = None
 _variants_for = None
 _record_practice = None
+_credit_plot_id = None
+_credit_item = None
+_credit_reset = None
+_credit_text = None
+
+
+def _credit(question, mode):
+    """A correct answer on a real plot: hand it to game.py's plot-growth
+    credit (the Review nudge; see GROWTH_INFO there). A no-op standalone."""
+    if _credit_plot_id is not None and question is not None:
+        _credit_plot_id(question.get("plot_id"), mode)
+
+
+def _credit_fr(fr_texts, mode):
+    if _credit_item is not None:
+        for fr in fr_texts:
+            _credit_item(fr, mode)
+
+
+def _reset_credit(mode):
+    if _credit_reset is not None:
+        _credit_reset(mode)
+
+
+def _with_growth(message, mode):
+    if _credit_text is None:
+        return message
+    return f"{message} {_credit_text(mode)}"
 
 
 def _record(mode, correct):
@@ -73,12 +101,26 @@ def _record(mode, correct):
         _record_practice(mode, bool(correct))
 
 
-def configure(farm, generate_question_fn, variants_for_fn, record_practice_fn=None):
+def configure(
+    farm,
+    generate_question_fn,
+    variants_for_fn,
+    record_practice_fn=None,
+    credit_plot_fn=None,
+    credit_item_fn=None,
+    credit_reset_fn=None,
+    credit_text_fn=None,
+):
     """Called once from game.py's setup(): hands in the live FarmState plus
     the two question-generation functions every minigame reuses rather than
     re-deriving vocab/distractor selection from scratch (per the brief)."""
     global _farm, _generate_question, _variants_for, _record_practice
+    global _credit_plot_id, _credit_item, _credit_reset, _credit_text
     _record_practice = record_practice_fn
+    _credit_plot_id = credit_plot_fn
+    _credit_item = credit_item_fn
+    _credit_reset = credit_reset_fn
+    _credit_text = credit_text_fn
     _farm = farm
     _generate_question = generate_question_fn
     _variants_for = variants_for_fn
@@ -353,6 +395,7 @@ def start_blitz(event=None):
     blitz_combo = 0
     blitz_time_remaining = BLITZ_DURATION_SECONDS
     blitz_end_reason = None
+    _reset_credit("blitz")
     _roll_blitz_question()
     render()
     return blitz_question
@@ -374,6 +417,7 @@ def submit_blitz_choice(given):
     correct = given == blitz_question["answer"]
     _record("blitz", correct)
     if correct:
+        _credit(blitz_question, "blitz")
         blitz_combo += 1
         blitz_score += round(BLITZ_BASE_POINTS * _blitz_multiplier(blitz_combo))
     else:
@@ -480,9 +524,9 @@ def render_blitz():
         start_button.innerText = "Play again" if blitz_end_reason is not None else "Start (60s)"
         summary.hidden = blitz_end_reason is None
         if blitz_end_reason == BLITZ_END_TIME:
-            summary.innerText = BLITZ_SUMMARY_MESSAGE.format(score=blitz_score, best=blitz_best_score)
+            summary.innerText = _with_growth(BLITZ_SUMMARY_MESSAGE.format(score=blitz_score, best=blitz_best_score), "blitz")
         elif blitz_end_reason == BLITZ_END_LIVES:
-            summary.innerText = BLITZ_LIVES_MESSAGE.format(score=blitz_score, best=blitz_best_score)
+            summary.innerText = _with_growth(BLITZ_LIVES_MESSAGE.format(score=blitz_score, best=blitz_best_score), "blitz")
         return
 
     start_button.hidden = True
@@ -651,6 +695,7 @@ def start_racer(event=None):
     racer_tick_count = 0
     racer_result = None
     racer_end_reason = None
+    _reset_credit("racer")
     _roll_racer_question()
     render()
     return racer_question
@@ -671,6 +716,7 @@ def submit_racer_choice(given):
     racer_result = given == racer_question["answer"]
     _record("racer", racer_result)
     if racer_result:
+        _credit(racer_question, "racer")
         racer_player_position += 1
         if racer_player_position >= RACER_TOTAL_STEPS:
             _end_racer(RACER_END_PLAYER)
@@ -783,13 +829,13 @@ def render_racer():
         start_button.innerText = "Race again" if racer_end_reason is not None else "Start the race"
         summary.hidden = racer_end_reason is None
         if racer_end_reason == RACER_END_PLAYER:
-            summary.innerText = RACER_PLAYER_WIN_MESSAGE.format(
+            summary.innerText = _with_growth(RACER_PLAYER_WIN_MESSAGE.format(
                 player=racer_player_position, total=RACER_TOTAL_STEPS
-            )
+            ), "racer")
         elif racer_end_reason == RACER_END_RIVAL:
-            summary.innerText = RACER_RIVAL_WIN_MESSAGE.format(
+            summary.innerText = _with_growth(RACER_RIVAL_WIN_MESSAGE.format(
                 player=racer_player_position, total=RACER_TOTAL_STEPS
-            )
+            ), "racer")
         return
 
     start_button.hidden = True
@@ -988,7 +1034,12 @@ def _roll_boutique_order():
         attempts += 1
     choices = list(choices)
     BOUTIQUE_RNG.shuffle(choices)
-    boutique_order = {"order_en": order_en, "answer": answer, "choices": choices}
+    boutique_order = {
+        "order_en": order_en,
+        "answer": answer,
+        "choices": choices,
+        "credit_fr": [garment_fr, colour_masc],
+    }
 
 
 def start_boutique(event=None):
@@ -1006,6 +1057,7 @@ def start_boutique(event=None):
     boutique_patience_max = BOUTIQUE_STARTING_PATIENCE
     boutique_patience_remaining = BOUTIQUE_STARTING_PATIENCE
     boutique_last_result = None
+    _reset_credit("boutique")
     _roll_boutique_order()
     render()
     return boutique_order
@@ -1022,6 +1074,8 @@ def _resolve_boutique_customer(served):
     boutique_last_result = served
     _record("boutique", served)
     if served:
+        if boutique_order is not None:
+            _credit_fr(boutique_order.get("credit_fr", ()), "boutique")
         boutique_served += 1
         boutique_score += BOUTIQUE_BASE_POINTS
         boutique_patience_max = max(BOUTIQUE_MIN_PATIENCE, boutique_patience_max - BOUTIQUE_PATIENCE_STEP)
@@ -1138,10 +1192,10 @@ def render_boutique():
         start_button.innerText = "Open again" if completed > 0 else "Open the shop"
         summary.hidden = completed < BOUTIQUE_TOTAL_CUSTOMERS
         if completed >= BOUTIQUE_TOTAL_CUSTOMERS:
-            summary.innerText = BOUTIQUE_SUMMARY_MESSAGE.format(
+            summary.innerText = _with_growth(BOUTIQUE_SUMMARY_MESSAGE.format(
                 served=boutique_served, total=BOUTIQUE_TOTAL_CUSTOMERS,
                 missed=boutique_missed, score=boutique_score,
-            )
+            ), "boutique")
         return
 
     start_button.hidden = True
@@ -1372,7 +1426,7 @@ def _roll_cafe_order():
         attempts += 1
     choices = list(choices)
     CAFE_RNG.shuffle(choices)
-    cafe_order = {"order_en": answer_en, "answer": answer_fr, "choices": choices}
+    cafe_order = {"order_en": answer_en, "answer": answer_fr, "choices": choices, "credit_fr": [answer_fr]}
 
 
 def _roll_cafe_customer():
@@ -1401,6 +1455,7 @@ def start_cafe(event=None):
     cafe_patience_max = CAFE_STARTING_PATIENCE
     cafe_customer_index = 0
     cafe_last_result = None
+    _reset_credit("cafe")
     _roll_cafe_customer()
     render()
     return cafe_order
@@ -1444,6 +1499,7 @@ def submit_cafe_item_choice(given):
         _resolve_cafe_customer(served=False, speed_up=False)
         render()
         return False
+    _credit_fr(cafe_order.get("credit_fr", ()), "cafe")
 
     twist_pool = _cafe_twist_candidate_plots()
     if cafe_is_twist_round and twist_pool:
@@ -1462,6 +1518,8 @@ def submit_cafe_twist_choice(given):
     if not cafe_active or cafe_stage != CAFE_STAGE_TWIST or cafe_twist_question is None:
         return None
     correct = given == cafe_twist_question["answer"]
+    if correct:
+        _credit(cafe_twist_question, "cafe")
     _resolve_cafe_customer(served=correct, speed_up=correct)
     render()
     return correct
@@ -1579,10 +1637,10 @@ def render_cafe():
         start_button.innerText = "Open again" if completed > 0 else "Open the café"
         summary.hidden = completed < CAFE_TOTAL_CUSTOMERS
         if completed >= CAFE_TOTAL_CUSTOMERS:
-            summary.innerText = CAFE_SUMMARY_MESSAGE.format(
+            summary.innerText = _with_growth(CAFE_SUMMARY_MESSAGE.format(
                 served=cafe_served, total=CAFE_TOTAL_CUSTOMERS,
                 missed=cafe_missed, score=cafe_score,
-            )
+            ), "cafe")
         return
 
     start_button.hidden = True
@@ -1766,6 +1824,7 @@ def start_sprint(event=None):
     sprint_combo = 0
     sprint_time_remaining = SPRINT_DURATION_SECONDS
     sprint_end_reason = None
+    _reset_credit("sprint")
     _roll_sprint_question()
     render()
     return sprint_question
@@ -1787,6 +1846,7 @@ def submit_sprint_choice(given):
     correct = given == sprint_question["answer"]
     _record("sprint", correct)
     if correct:
+        _credit(sprint_question, "sprint")
         sprint_combo += 1
         sprint_score += round(SPRINT_BASE_POINTS * _sprint_multiplier(sprint_combo))
     else:
@@ -1893,9 +1953,9 @@ def render_sprint():
         start_button.innerText = "Play again" if sprint_end_reason is not None else "Start (60s)"
         summary.hidden = sprint_end_reason is None
         if sprint_end_reason == SPRINT_END_TIME:
-            summary.innerText = SPRINT_SUMMARY_MESSAGE.format(score=sprint_score, best=sprint_best_score)
+            summary.innerText = _with_growth(SPRINT_SUMMARY_MESSAGE.format(score=sprint_score, best=sprint_best_score), "sprint")
         elif sprint_end_reason == SPRINT_END_LIVES:
-            summary.innerText = SPRINT_LIVES_MESSAGE.format(score=sprint_score, best=sprint_best_score)
+            summary.innerText = _with_growth(SPRINT_LIVES_MESSAGE.format(score=sprint_score, best=sprint_best_score), "sprint")
         return
 
     start_button.hidden = True

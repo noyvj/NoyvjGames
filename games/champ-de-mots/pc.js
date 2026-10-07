@@ -42,7 +42,7 @@ window.CHAMP_DE_MOTS_PC_TUTORIAL_STEPS = [
   {
     selector: "#review-section",
     title: "Review Tab",
-    text: "Opt-in cross-section practice. Random Word Review, Grammar Review, the Weak-spot drill and the Mixed Review Marathon pull questions from any week, filtered the way you choose. A correct answer here only nudges that plot's schedule a little further out; only the daily watering loop actually grows a plant.",
+    text: "Opt-in cross-section practice. Random Word Review, Grammar Review, the Weak-spot drill and the Mixed Review Marathon pull questions from any week, filtered the way you choose. The first correct answer for a plot each day waters it fully, and further correct answers that day only nudge it. A wrong answer changes nothing.",
   },
   {
     selector: "#blitz-toggle-button",

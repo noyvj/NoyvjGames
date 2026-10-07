@@ -18,7 +18,9 @@ def _light_region():
     lowpoly = css.rindex("/*", 0, css.index("LOW-POLY --"))
     part2 = css.rindex("/*", 0, css.index("Y11b LIGHT THEME, part 2"))
     # part 1 (shared + default look) and part 2 (the three alternate styles)
-    return css[start:lowpoly] + css[part2:]
+    # the LC-1 readability block (2026-10-08) follows and mixes dark-theme and light-theme rules
+    lc1 = css.rindex("/*", 0, css.index("LC-1 (2026-10-08)"))
+    return css[start:lowpoly] + css[part2:lc1]
 
 
 def _selectors(css):

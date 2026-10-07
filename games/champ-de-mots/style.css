@@ -1546,3 +1546,48 @@ button:disabled {
 .accent-bar[hidden] { display: none; }
 .accent-key { width: auto; min-width: 2.1rem; padding: 0.3rem 0.45rem; font-size: 1rem; line-height: 1.1; }
 .accent-bar--optional { opacity: 0.6; }
+
+/* Round 3 batch 2: the golden plot of the day (L-17) and a stubborn weed (L-18).
+   Both are shape cues (a ring, a corner wedge) with the same meaning spelled
+   out in the plot's tooltip and aria-label, so neither relies on colour. */
+.plot--golden { outline: 2px solid #d4a017; outline-offset: -1px; }
+.plot--leech { background-image: linear-gradient(135deg, transparent 62%, #7a2e2e 62%); }
+.practice-leech .secondary { margin-top: 0.4rem; }
+.dashboard-action { margin: 0.2rem 0.4rem 0.2rem 0; }
+
+/* Which activities grow plots (user request, 2026-10-08): a small text marker at
+   the top of every question panel; the words carry the meaning, not a colour. */
+.growth-marker {
+  display: inline-block;
+  margin: 0 0 0.5rem;
+  padding: 0.15rem 0.55rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: help;
+}
+.growth-marker[data-growth="none"] { border-style: dashed; }
+.growth-marker::before { content: "\1F331 "; }
+.growth-marker[data-growth="none"]::before { content: "\2205 "; }
+
+/* LC-1 (2026-10-08): readability pass for the default look. The loose text
+   (title, tagline, legend, controls) is pale ink meant for a dark page, so in
+   the dark theme the shared "champetre" sky is now a dusk sky instead of the
+   pale dawn that made it white on white. Cream cards get one dark ink and the
+   green buttons a darker green so white labels clear 4.5:1. */
+html:not([data-theme="light"]) .ambient-bg--champetre {
+  --sky-gradient: linear-gradient(180deg, #0f1830 0%, #1b2544 55%, #2d2b47 100%);
+}
+html:not([data-theme="light"]) .ambient-bg--champetre .ambient-bg-blobs {
+  background: linear-gradient(180deg, #2b4a28, #152a16);
+}
+.primary { background: linear-gradient(135deg, #527a37, #3b5322); color: #ffffff; }
+.practice-instruction, .practice-confidence-label, .practice-blurb-line, .settings-note,
+.dashboard-heading, .achievement-heading, #liaison-explanation, #placement-intro,
+#conversation-title, .proficiency-topic-line, .practice-note { color: #5a4c38; opacity: 1; }
+.dashboard-health-row, .dashboard-practice-row, .row-blurb, .srs-explainer-line { color: #33291f; }
+.howto-step-number { color: inherit; opacity: 1; }
+.practice-input::placeholder, .accent-key::placeholder { color: #5f5a52; opacity: 1; }
+.save-widget-load-input::placeholder { color: #aeb6cc; opacity: 1; }
+.farm-control select { background: #fdfbf5; color: #33291f; border: 1px solid #ded2ba; }

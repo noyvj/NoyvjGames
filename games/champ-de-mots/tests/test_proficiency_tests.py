@@ -147,24 +147,30 @@ def test_submit_proficiency_wrong_answer_still_counts_the_attempt(game_env):
     assert module.proficiency_score == {"correct": 0, "total": 1}
 
 
-def test_proficiency_test_never_touches_srs_state(game_env):
-    """Purely informational (§14.5) -- no plot's stage/interval/streak/
-    last_reviewed changes as a result of taking the test."""
+def test_proficiency_test_only_credits_correct_answers_and_never_lowers_anything(game_env):
+    """Changed 2026-10-08 (user request: more than watering should count):
+    a correct answer now waters or nudges the plot the way Review does, but a
+    wrong answer, or the test itself, never lowers or removes anything. The
+    old "never touches SRS state" rule is replaced by this one."""
     module, state = game_env.module, game_env.state
-    before = {
-        p.plot_id: (p.stage, p.interval_days, p.next_due, p.last_reviewed, p.correct_streak)
-        for p in state.plots
-    }
+    ranks = {p.plot_id: module.STAGE_RANK[p.stage] for p in state.plots}
     module.start_proficiency_test(1)
     for _ in range(len(module.proficiency_questions)):
         question = module.proficiency_questions[module.proficiency_index]["question"]
         module.submit_proficiency_answer(question["answer"])
         module.next_proficiency_question()
-    after = {
-        p.plot_id: (p.stage, p.interval_days, p.next_due, p.last_reviewed, p.correct_streak)
-        for p in state.plots
-    }
-    assert before == after
+    assert all(module.STAGE_RANK[p.stage] >= ranks[p.plot_id] for p in state.plots)
+    assert module.growth_credit["proficiency"]["full"] >= 1
+    # a test with only wrong answers changes nothing at all
+    fresh = {p.plot_id: (p.stage, p.interval_days, p.next_due, p.last_reviewed, p.correct_streak) for p in state.plots}
+    module.start_proficiency_test(2)
+    for _ in range(len(module.proficiency_questions)):
+        question = module.proficiency_questions[module.proficiency_index]["question"]
+        wrong = next((c for c in question["choices"] if c != question["answer"]), "zzzz") if question["mode"] == "choice" else "qqqqq"
+        module.submit_proficiency_answer(wrong)
+        module.next_proficiency_question()
+    after = {p.plot_id: (p.stage, p.interval_days, p.next_due, p.last_reviewed, p.correct_streak) for p in state.plots}
+    assert fresh == after
 
 
 def test_next_proficiency_question_advances_and_resets_result(game_env):

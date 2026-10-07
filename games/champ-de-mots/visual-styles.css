@@ -761,3 +761,74 @@ html[data-theme="light"][data-visual-style="cartoon"] .row-chapter,
 html[data-theme="light"][data-visual-style="cartoon"] .tagline,
 html[data-theme="light"][data-visual-style="cartoon"] .legend,
 html[data-theme="light"][data-visual-style="cartoon"] .status-line--muted { color: #4a2a78; }
+
+
+/* ============================================================
+   LC-1 (2026-10-08): readability pass. A computed-style contrast scan on both
+   pages, in every visual style and both themes, found dark ink left on dark
+   panels in the three alternate styles (their dark blocks repaint the cards
+   but the cream-card ink classes kept their dark colours) and in the arcade
+   panels of the default look. Only colours are set here. The scan itself
+   lives in tests/tools/contrast_scan.py and the pairs it fixed are pinned by
+   tests/test_contrast_lc1.py.
+   ============================================================ */
+
+/* Arcade panels are dark glass in the dark theme of every style; their prompt
+   card text, feedback and timer need pale ink and a lighter green. */
+html:not([data-theme="light"]) .minigame-panel :is(.practice-prompt, .practice-instruction, .shop-rush-order) { color: #eaeaf0; opacity: 1; }
+html:not([data-theme="light"]) .minigame-panel :is(.practice-feedback, .cafe-twist-panel .practice-feedback) { color: #b5ecA0; }
+html:not([data-theme="light"]) .minigame-stat--timer { color: #ffe3a6; }
+html:not([data-theme="light"]) .minigame-stat--timer.minigame-stat--urgent { color: #ffcdb2; }
+
+/* The alternate styles' dark panels: one light ink per style for every class
+   written for the default style's cream cards. */
+html[data-visual-style="lowpoly"]:not([data-theme="light"]) { --lc-ink: #eef3f6; --lc-soft: #c9d6df; --lc-good: #a6e8ae; --lc-bg: #1b2a35; }
+html[data-visual-style="textbased"]:not([data-theme="light"]) { --lc-ink: #b9f5c9; --lc-soft: #93e0ad; --lc-good: #8dffa9; --lc-bg: #0a1410; }
+html[data-visual-style="cartoon"]:not([data-theme="light"]) { --lc-ink: #f5eaff; --lc-soft: #e2d0ff; --lc-good: #c9f8b4; --lc-bg: #2a1050; }
+
+html:is([data-visual-style="lowpoly"], [data-visual-style="textbased"], [data-visual-style="cartoon"]):not([data-theme="light"])
+  :is(.practice-instruction, .practice-prompt, .practice-confidence-label, .achievement-next, .achievements-hub-link,
+      .dashboard-since, .dashboard-mastery-row, .dashboard-empty, .dashboard-heading, .dashboard-weakest-topic,
+      .dashboard-pattern-row, .dashboard-practice-row, .dashboard-health-row, .achievement-heading, .row-blurb,
+      .proficiency-topic-line, .srs-explainer-line, .settings-note, .settings-label,
+      .howto-step-number, .howto-step p, .howto-step h3, .planner-line, .shop-rush-order, .review-setting,
+      #liaison-explanation, #liaison-legend, #calendar-summary, #planner-summary, #placement-summary, #placement-intro,
+      #placement-plan, #conversation-title, #conversation-line,
+      [id$="-prompt"], [id$="-instruction"]) {
+  color: var(--lc-ink);
+  opacity: 1;
+}
+html:is([data-visual-style="lowpoly"], [data-visual-style="textbased"], [data-visual-style="cartoon"]):not([data-theme="light"])
+  :is(.practice-feedback, [id$="-feedback"], #placement-plan) {
+  color: var(--lc-good);
+}
+html:is([data-visual-style="lowpoly"], [data-visual-style="textbased"]):not([data-theme="light"]) .info-toggle summary {
+  color: var(--lc-ink);
+}
+html:is([data-visual-style="lowpoly"], [data-visual-style="textbased"], [data-visual-style="cartoon"]):not([data-theme="light"]) .story-chapters-banner {
+  background: var(--lc-bg);
+  color: var(--lc-ink);
+}
+html[data-visual-style="cartoon"]:not([data-theme="light"]) .practice-input::placeholder {
+  color: var(--lc-soft);
+  opacity: 1;
+}
+
+/* The same banner in the alternate styles' light theme: dark ink on a pale card of its own. */
+html[data-theme="light"]:is([data-visual-style="lowpoly"], [data-visual-style="textbased"], [data-visual-style="cartoon"]) .story-chapters-banner {
+  background: #f4f1e8;
+  color: #1a2430;
+}
+html[data-theme="light"]:is([data-visual-style="lowpoly"], [data-visual-style="textbased"], [data-visual-style="cartoon"]) :is(.practice-confidence-label, .settings-label, .proficiency-topic-line, .cultural-note-text, .howto-step p, .howto-step h3, .practice-instruction) {
+  color: #1f2a33;
+  opacity: 1;
+}
+
+/* LC-1, second pass: the small status peg sat under the text of the narrow row buttons (so it is
+   dropped there); stat-tile captions and the farm selects get explicit colours; the shared save
+   widget's placeholder is lightened with an id-level selector. */
+.row-head .secondary::after { display: none; }
+html:not([data-theme="light"]) .stat-tile .status-line--muted,
+html:not([data-theme="light"]) #pace-display { color: #dde0ef; opacity: 1; }
+html .farm-control select { background: #fdfbf5; color: #33291f; }
+#save-widget .save-widget-load-input::placeholder { color: #aeb6cc; opacity: 1; }

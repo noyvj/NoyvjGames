@@ -254,6 +254,9 @@ class Plot:
         # wilting already follows. Independent of `stage`, which never
         # regresses.
         self.in_weeds = False
+        # L-18: consecutive wrong answers on this plot (cleared by a correct
+        # one). At LEECH_THRESHOLD it becomes a "stubborn weed" (see below).
+        self.fail_run = 0
 
     @property
     def is_grammar_rule(self):
@@ -2021,7 +2024,14 @@ PRACTICE_MODES = {
     "liaison": "Liaison practice",
     "proficiency": "Proficiency tests",
     "bonus": "Bonus sentences",
+    "golden": "Golden plot of the day",
+    "quests": "Daily goals",
 }
+# L-17 / L-14: a golden-plot answer and a finished daily goal each earn two
+# points instead of one. The caps above still apply, so the most any mode can
+# ever add is PRACTICE_MODE_CAP.
+PRACTICE_MAX_POINTS_PER_ANSWER = 2
+DOUBLE_POINT_MODES = ("golden", "quests")
 PRACTICE_DAILY_CAP = 10
 PRACTICE_MODE_CAP = 100
 PRACTICE_COUNT_LIMIT = 1_000_000  # sanity bound when loading a save
@@ -2039,13 +2049,17 @@ def practice_score():
     return sum(entry["points"] for entry in practice_ledger.values())
 
 
-def record_practice(mode, correct):
-    """Tally one answered question for `mode`; True if it earned a point."""
+def record_practice(mode, correct, points=1, count_study=True):
+    """Tally one answered question for `mode`; True if it earned a point.
+    `points` is how many it is worth (1, or 2 for a golden plot or a finished
+    daily goal); the daily and lifetime caps clip it. `count_study` is False
+    for a call that rides on an answer already counted as a study answer."""
     entry = practice_ledger.get(mode)
     if entry is None:
         return False
     entry["total"] = min(entry["total"] + 1, PRACTICE_COUNT_LIMIT)
-    note_study_answer()
+    if count_study:
+        note_study_answer()
     if entry["day"] != state.current_day:
         entry["day"] = state.current_day
         entry["day_points"] = 0
@@ -2053,9 +2067,15 @@ def record_practice(mode, correct):
     if correct:
         entry["correct"] = min(entry["correct"] + 1, PRACTICE_COUNT_LIMIT)
         if entry["day_points"] < PRACTICE_DAILY_CAP and entry["points"] < PRACTICE_MODE_CAP:
-            entry["points"] += 1
-            entry["day_points"] += 1
+            gain = max(1, min(int(points), PRACTICE_MAX_POINTS_PER_ANSWER))
+            gain = min(gain, PRACTICE_DAILY_CAP - entry["day_points"], PRACTICE_MODE_CAP - entry["points"])
+            entry["points"] += gain
+            entry["day_points"] += gain
             awarded = True
+        if mode not in DOUBLE_POINT_MODES:
+            _quest_note("practice")
+            if mode == "liaison":
+                _quest_note("liaison")
     try:
         render_practice_score()
     except Exception:
@@ -2166,12 +2186,490 @@ def _validated_practice_ledger(raw):
         ledger[mode] = {
             "correct": correct,
             "total": total,
-            # Points can never exceed correct answers or the lifetime cap.
-            "points": min(as_int(record.get("points"), 0, PRACTICE_MODE_CAP, 0), correct),
+            # Points can never exceed (correct answers x the most one answer is worth) or the lifetime cap.
+            "points": min(
+                as_int(record.get("points"), 0, PRACTICE_MODE_CAP, 0),
+                correct * (PRACTICE_MAX_POINTS_PER_ANSWER if mode in DOUBLE_POINT_MODES else 1),
+            ),
             "day": as_int(record.get("day"), -1, PRACTICE_COUNT_LIMIT, -1),
             "day_points": as_int(record.get("day_points"), 0, PRACTICE_DAILY_CAP, 0),
         }
     return ledger
+
+
+# ===========================================================================
+# Round 3 batch 2 (2026-10-08): the golden plot (L-17), daily goals (L-14),
+# stubborn weeds (L-18), slip forgiveness (L-19), session highlights (L-27)
+# and the weak-items export (L-29).
+# ===========================================================================
+#
+# None of these touch the SRS scheduler: a golden plot, a daily goal and a
+# stubborn-weed rest only ever add to the practice ledger (or move one plot's
+# next_due when the player asks to rest it), and slip forgiveness puts a plot
+# back exactly as it was before the answer.
+
+import csv
+import io
+
+# --- L-17: the golden plot of the day --------------------------------------
+# One due plot a day is marked gold. A correct answer on it earns two practice
+# points in the "golden" ledger mode (the farm's own watering earns none, so
+# this is the one place the daily loop adds to the headline score). Nothing is
+# lost by missing it or by answering it wrong: it just stays unclaimed.
+GOLDEN_POINTS = 2
+golden_plot = {"day": -1, "plot_id": None, "claimed": False}
+
+
+def _golden_pool():
+    due = state.due_plots()
+    watered = [p for p in due if p.last_reviewed is not None]
+    return sorted(watered or due, key=lambda p: p.plot_id)
+
+
+def ensure_golden():
+    """Today's golden plot id (or None). Picked deterministically from the
+    plots that are due, preferring ones already watered, the first time it is
+    asked for on a given in-game day."""
+    day = state.current_day
+    if golden_plot["day"] != day:
+        golden_plot.update({"day": day, "plot_id": None, "claimed": False})
+    if golden_plot["plot_id"] is None and not golden_plot["claimed"]:
+        pool = _golden_pool()
+        if pool:
+            golden_plot["plot_id"] = pool[(day * 7919 + 13) % len(pool)].plot_id
+    return golden_plot["plot_id"]
+
+
+def is_golden(plot):
+    return (
+        golden_plot["day"] == state.current_day
+        and not golden_plot["claimed"]
+        and golden_plot["plot_id"] == plot.plot_id
+    )
+
+
+def golden_text():
+    ensure_golden()
+    if golden_plot["claimed"]:
+        return f"Golden plot claimed today: +{GOLDEN_POINTS} practice points."
+    plot_id = golden_plot["plot_id"]
+    if plot_id is None:
+        return ""
+    plot = state.plots_by_id[plot_id]
+    return f"Golden plot today: {plot.label} (a correct answer earns {GOLDEN_POINTS} practice points)"
+
+
+def _claim_golden(plot_id, correct):
+    ensure_golden()
+    if not correct or golden_plot["claimed"] or golden_plot["plot_id"] != plot_id:
+        return False
+    golden_plot["claimed"] = True
+    record_practice("golden", True, points=GOLDEN_POINTS, count_study=False)
+    return True
+
+
+def _validated_golden(raw):
+    clean = {"day": -1, "plot_id": None, "claimed": False}
+    if not isinstance(raw, dict):
+        return clean
+    day = raw.get("day")
+    if isinstance(day, bool) or not isinstance(day, int) or day < 0 or day > PRACTICE_COUNT_LIMIT:
+        return clean
+    plot_id = raw.get("plot_id")
+    clean["day"] = day
+    clean["plot_id"] = plot_id if isinstance(plot_id, str) and plot_id in state.plots_by_id else None
+    clean["claimed"] = raw.get("claimed") is True
+    return clean
+
+
+# --- L-14: three small goals a day -----------------------------------------
+# Goals are a rotation over the in-game day (no streak: a day with no play
+# leaves its goals unfinished and nothing carries over). Each finished goal
+# earns two points in the "quests" ledger mode.
+QUEST_REWARD_POINTS = 2
+QUESTS = {
+    "water": ("Water {n} plots", 5),
+    "practice": ("Answer {n} questions correctly in the practice games and drills", 8),
+    "combo": ("Reach a {n}-in-a-row combo while watering", 3),
+    "grammar": ("Water {n} grammar plots", 3),
+    "liaison": ("Answer {n} liaison items correctly", 3),
+    "review": ("Answer {n} Review questions", 5),
+}
+QUEST_ORDER = ("water", "practice", "combo", "grammar", "liaison", "review")
+QUESTS_PER_DAY = 3
+quest_state = {"day": -1, "progress": {}, "done": []}
+
+
+def quests_for_day(day):
+    return [QUEST_ORDER[(day + 2 * i) % len(QUEST_ORDER)] for i in range(QUESTS_PER_DAY)]
+
+
+def ensure_quests():
+    if quest_state["day"] != state.current_day:
+        quest_state["day"] = state.current_day
+        quest_state["progress"] = {}
+        quest_state["done"] = []
+
+
+def _quest_note(kind, amount=1, absolute=False):
+    ensure_quests()
+    if kind not in quests_for_day(state.current_day):
+        return
+    target = QUESTS[kind][1]
+    current = quest_state["progress"].get(kind, 0)
+    updated = max(current, amount) if absolute else current + amount
+    updated = max(0, min(updated, target))
+    quest_state["progress"][kind] = updated
+    if updated >= target and kind not in quest_state["done"]:
+        quest_state["done"].append(kind)
+        record_practice("quests", True, points=QUEST_REWARD_POINTS, count_study=False)
+
+
+def quest_lines():
+    """[(text, progress, target, done)] for today's three goals."""
+    ensure_quests()
+    lines = []
+    for kind in quests_for_day(state.current_day):
+        template, target = QUESTS[kind]
+        done = kind in quest_state["done"]
+        lines.append((template.format(n=target), quest_state["progress"].get(kind, 0), target, done))
+    return lines
+
+
+def quest_summary_text():
+    done = sum(1 for line in quest_lines() if line[3])
+    return f"Daily goals: {done} of {QUESTS_PER_DAY} done"
+
+
+def _validated_quests(raw):
+    clean = {"day": -1, "progress": {}, "done": []}
+    if not isinstance(raw, dict):
+        return clean
+    day = raw.get("day")
+    if isinstance(day, bool) or not isinstance(day, int) or day < 0 or day > PRACTICE_COUNT_LIMIT:
+        return clean
+    clean["day"] = day
+    progress = raw.get("progress")
+    if isinstance(progress, dict):
+        for kind, value in progress.items():
+            if kind in QUESTS and not isinstance(value, bool) and isinstance(value, int):
+                clean["progress"][kind] = max(0, min(value, QUESTS[kind][1]))
+    done = raw.get("done")
+    if isinstance(done, list):
+        clean["done"] = [k for k in QUEST_ORDER if k in done and k in QUESTS]
+    return clean
+
+
+# --- L-18: stubborn weeds ---------------------------------------------------
+# A plot answered wrong LEECH_THRESHOLD times in a row (a correct answer
+# resets the run) turns into a stubborn weed: it shows a re-teach card before
+# its next question (the answer, chunked into syllable-like pieces, and a
+# prompt to make your own memory hook) and offers to rest for a week.
+LEECH_THRESHOLD = 4
+LEECH_REST_DAYS = 7
+LEECH_FAIL_RUN_LIMIT = 1000
+leech_rests = 0  # how many times a stubborn plot has been rested (saved)
+_VOWELS = "aeiouyàâäéèêëîïôöùûüœæ"
+
+
+def _validated_fail_run(raw):
+    if isinstance(raw, bool) or not isinstance(raw, int):
+        return 0
+    return max(0, min(raw, LEECH_FAIL_RUN_LIMIT))
+
+
+def _validated_leech_rests(raw):
+    if isinstance(raw, bool) or not isinstance(raw, int):
+        return 0
+    return max(0, min(raw, PRACTICE_COUNT_LIMIT))
+
+
+def is_leech(plot):
+    return plot.fail_run >= LEECH_THRESHOLD
+
+
+def leech_plots():
+    return [p for p in state.plots if is_leech(p)]
+
+
+def chunk_word(word):
+    """Split one French word into syllable-like chunks ("bonjour" -> ["bon",
+    "jour"]) for the re-teach card. Mechanical: vowel groups are the cores, a
+    single consonant between two cores starts the next chunk, and a cluster
+    splits after its first consonant unless it ends in l or r after another
+    consonant (pl, tr, ...)."""
+    lower = word.lower()
+    cores = []
+    index = 0
+    while index < len(lower):
+        if lower[index] in _VOWELS:
+            start = index
+            while index < len(lower) and lower[index] in _VOWELS:
+                index += 1
+            cores.append((start, index))
+        else:
+            index += 1
+    # A silent ending (-e, -es, -ent) is not a syllable of its own: "madame"
+    # is ma-dame, not ma-da-me.
+    if len(cores) >= 2:
+        last_start, last_end = cores[-1]
+        tail = lower[last_start:]
+        if lower[last_start:last_end] == "e" and tail in ("e", "es", "ent"):
+            cores = cores[:-1]
+    if len(cores) < 2:
+        return [word]
+    cuts = []
+    for (_, previous_end), (next_start, _) in zip(cores, cores[1:]):
+        gap = next_start - previous_end
+        if gap <= 0:
+            continue
+        if gap == 1:
+            cuts.append(previous_end)
+        elif lower[next_start - 1] in "lr" and gap >= 2 and lower[next_start - 2] not in "lr":
+            cuts.append(next_start - 2)
+        else:
+            cuts.append(previous_end + 1)
+    pieces = []
+    last = 0
+    for cut in cuts:
+        pieces.append(word[last:cut])
+        last = cut
+    pieces.append(word[last:])
+    return [piece for piece in pieces if piece]
+
+
+def chunk_text(text):
+    """Chunk every word of `text`, words separated by three spaces."""
+    words = []
+    for word in str(text).split():
+        letters = word.strip(".,;:!?¡¿()\"«»")
+        words.append(" · ".join(chunk_word(letters)) if letters else word)
+    return "   ".join(words)
+
+
+def leech_reteach_lines(plot):
+    """The three lines of a stubborn plot's re-teach card."""
+    item = plot.items[0]
+    fr = item.get("fr") or item.get("prompt") or plot.label
+    en = item.get("en") or item.get("answer") or ""
+    if plot.topic_type == "grammar":
+        head = f"{plot.topic_title}: {fr}" + (f" = {en}" if en else "")
+    else:
+        head = f"{fr} = {en}" if en else str(fr)
+    return [
+        f"Stubborn weed: missed {plot.fail_run} times in a row. Here it is once more: {head}",
+        "In pieces: " + chunk_text(fr),
+        "Make your own hook: picture it, rhyme it or link it to a word you already know, then say it out loud once.",
+    ]
+
+
+def rest_leech(event=None):
+    """Put the open stubborn plot aside for LEECH_REST_DAYS and close it."""
+    global leech_rests
+    if current_question is None:
+        return False
+    plot = state.plots_by_id.get(current_question["plot_id"])
+    if plot is None or not is_leech(plot):
+        return False
+    plot.next_due = state.current_day + LEECH_REST_DAYS
+    plot.fail_run = 0
+    leech_rests = min(leech_rests + 1, PRACTICE_COUNT_LIMIT)
+    close_practice()
+    return True
+
+
+def leech_summary_text():
+    now = len(leech_plots())
+    return f"Stubborn weeds: {now} now, {leech_rests} rested so far"
+
+
+# --- L-19: "that was a slip" -------------------------------------------------
+# Once per session, a typed miss that is only a slip of the fingers (a missed
+# accent, or one close to the answer) can be forgiven: the plot goes back to
+# exactly what it was before the answer, the combo and the error digest are
+# put back, and the same plot gets a fresh question. Session state only.
+SLIP_PATTERNS = (ERROR_PATTERN_ACCENT, ERROR_PATTERN_CLOSE_TYPO)
+slip_used = False
+_slip_snapshot = None
+slip_note = ""
+
+
+def _restore_plot(plot, record):
+    plot.ease_factor = record.get("ease_factor", DEFAULT_EASE)
+    plot.interval_days = record.get("interval_days", 0)
+    plot.last_reviewed = record.get("last_reviewed")
+    plot.next_due = record.get("next_due")
+    plot.correct_streak = record.get("correct_streak", 0)
+    plot.stage = record.get("stage", STAGE_SEED)
+    if plot.stage not in STAGE_RANK:
+        plot.stage = STAGE_SEED
+    plot.in_weeds = bool(record.get("in_weeds", False))
+    plot.fail_run = _validated_fail_run(record.get("fail_run"))
+
+
+def can_forgive_slip():
+    return (
+        not slip_used
+        and _slip_snapshot is not None
+        and current_question is not None
+        and current_result is False
+        and current_question["mode"] == "typed"
+        and _slip_snapshot["plot_id"] == current_question["plot_id"]
+        and _slip_snapshot["pattern"] in SLIP_PATTERNS
+    )
+
+
+def forgive_slip(event=None):
+    global slip_used, combo_count, slip_note, _slip_snapshot
+    if not can_forgive_slip():
+        return False
+    snap = _slip_snapshot
+    plot = state.plots_by_id[snap["plot_id"]]
+    _restore_plot(plot, snap["record"])
+    combo_count = snap["combo"]
+    pattern = snap["pattern"]
+    if error_pattern_counts.get(pattern, 0) > 1:
+        error_pattern_counts[pattern] -= 1
+    else:
+        error_pattern_counts.pop(pattern, None)
+    if snap["confidence"] in confidence_tally:
+        confidence_tally[snap["confidence"]][1] = max(0, confidence_tally[snap["confidence"]][1] - 1)
+    sequence = plot.sequence
+    if snap["spoiled"]:
+        row_session_spoiled.add(sequence)
+    else:
+        row_session_spoiled.discard(sequence)
+    if snap["row_correct"]:
+        row_session_correct[sequence] = set(snap["row_correct"])
+    else:
+        row_session_correct.pop(sequence, None)
+    quest_state["day"] = snap["quest"]["day"]
+    quest_state["progress"] = dict(snap["quest"]["progress"])
+    quest_state["done"] = list(snap["quest"]["done"])
+    slip_used = True
+    _slip_snapshot = None
+    open_practice(plot.plot_id)
+    slip_note = "Slip forgiven: that answer was not counted. Same plot, fresh question."
+    render()
+    return True
+
+
+# --- L-27: session highlights ----------------------------------------------
+# What went well this sitting, shown on the Review and Proficiency results and
+# in the dashboard. Session state, never saved. (A "quickest answer" is not
+# tracked: this file deliberately has no clock.)
+session_highlights = {"best_combo": 0, "toughest_label": None, "toughest_misses": 0}
+
+
+def _note_highlights(plot, correct, prior_fail_run):
+    if combo_count > session_highlights["best_combo"]:
+        session_highlights["best_combo"] = combo_count
+    if correct and prior_fail_run >= 1 and prior_fail_run > session_highlights["toughest_misses"]:
+        session_highlights["toughest_label"] = plot.label
+        session_highlights["toughest_misses"] = prior_fail_run
+
+
+def session_highlights_text():
+    parts = []
+    if session_highlights["best_combo"] >= 2:
+        parts.append(f"best combo {session_highlights['best_combo']} in a row")
+    if session_highlights["toughest_label"]:
+        misses = session_highlights["toughest_misses"]
+        parts.append(
+            f"toughest word beaten: {session_highlights['toughest_label']} "
+            f"(missed {misses} time{'s' if misses != 1 else ''} in a row before)"
+        )
+    return "Highlights this session: " + "; ".join(parts) + "." if parts else ""
+
+
+def _with_highlights(message):
+    extra = session_highlights_text()
+    return f"{message} {extra}" if extra else message
+
+
+# --- L-29: weak-items export -----------------------------------------------
+WEAK_EXPORT_HEADER = ["French", "English", "Topic", "Week", "Why it is here"]
+
+
+def weak_items():
+    """Every fact the farm has flagged: stubborn weeds, known mix-ups, plots
+    whose last answer was wrong, and anything saved to the phrasebook."""
+    rows = []
+    for plot in state.plots:
+        reasons = []
+        if is_leech(plot):
+            reasons.append("stubborn weed")
+        if plot.in_weeds:
+            reasons.append("known mix-up")
+        if plot.last_reviewed is not None and plot.correct_streak == 0 and not is_leech(plot):
+            reasons.append("missed last time")
+        if plot.plot_id in phrasebook:
+            reasons.append("in my phrasebook")
+        if not reasons:
+            continue
+        for item in plot.items:
+            fr = item.get("fr") or item.get("prompt") or ""
+            en = item.get("en") or item.get("answer") or ""
+            if not fr and not en:
+                continue
+            rows.append(
+                {
+                    "fr": str(fr),
+                    "en": str(en),
+                    "topic": plot.topic_title,
+                    "week": f"{plot.course} wk {plot.week}",
+                    "why": "; ".join(reasons),
+                }
+            )
+    return rows
+
+
+def weak_items_csv():
+    buffer = io.StringIO()
+    writer = csv.writer(buffer, lineterminator="\n")
+    writer.writerow(WEAK_EXPORT_HEADER)
+    for row in weak_items():
+        writer.writerow([row["fr"], row["en"], row["topic"], row["week"], row["why"]])
+    return buffer.getvalue()
+
+
+def weak_items_anki():
+    """Tab-separated text Anki's importer reads (front, back, tags)."""
+    lines = ["#separator:tab", "#html:false", "#tags column:3"]
+    for row in weak_items():
+        tags = " ".join(part.strip().replace(" ", "_") for part in row["why"].split(";"))
+        front = row["fr"].replace("\t", " ").replace("\n", " ")
+        back = row["en"].replace("\t", " ").replace("\n", " ")
+        lines.append(f"{front}\t{back}\t{tags}")
+    return "\n".join(lines) + "\n"
+
+
+_last_download = None
+
+
+def _download_text(filename, text, mime):
+    """Hands a file to the page's own downloader (index.html), the same
+    Python-computes/JS-does-the-browser-thing split as the report sender.
+    Remembers the last request so a test can read it."""
+    global _last_download
+    _last_download = {"filename": filename, "text": text, "mime": mime}
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return False
+    hook = getattr(window, "championDownload", None)
+    if hook is None:
+        return False
+    hook(filename, text, mime)
+    return True
+
+
+def export_weak_items_csv(event=None):
+    return _download_text("champ-de-mots-weak-items.csv", weak_items_csv(), "text/csv")
+
+
+def export_weak_items_anki(event=None):
+    return _download_text("champ-de-mots-weak-items-anki.txt", weak_items_anki(), "text/plain")
 
 
 # Improvement Ideas §5: a progress dashboard, deliberately its own separate
@@ -2682,6 +3180,67 @@ def dashboard_stage_distribution():
     return [(stage, counts[stage], (100 * counts[stage] / total) if total else 0.0) for stage in STAGE_ORDER]
 
 
+dashboard_proxies = []
+
+
+def _destroy_dashboard_proxies():
+    for proxy in dashboard_proxies:
+        proxy.destroy()
+    dashboard_proxies.clear()
+
+
+def _dashboard_line(panel, class_name, text):
+    line = document.createElement("p")
+    line.className = class_name
+    line.innerText = text
+    panel.appendChild(line)
+    return line
+
+
+def _dashboard_button(panel, label, handler):
+    button = document.createElement("button")
+    button.className = "secondary dashboard-action"
+    button.type = "button"
+    button.innerText = label
+    proxy = create_proxy(handler)
+    button.addEventListener("click", proxy)
+    dashboard_proxies.append(proxy)
+    panel.appendChild(button)
+    return button
+
+
+def _render_dashboard_extras(panel):
+    """Round 3 batch 2: today's daily goals, the stubborn weeds, the weak-items
+    export and this session's highlights."""
+    _dashboard_line(panel, "dashboard-heading", quest_summary_text())
+    for text, progress, target, done in quest_lines():
+        mark = "Done" if done else f"{progress} of {target}"
+        _dashboard_line(panel, "dashboard-practice-row", f"{text} — {mark}")
+    _dashboard_line(
+        panel,
+        "dashboard-empty",
+        f"Each finished goal earns {QUEST_REWARD_POINTS} practice points. Goals change with the in-game day; nothing carries over or runs out.",
+    )
+
+    _dashboard_line(panel, "dashboard-heading", "Stubborn weeds and weak items")
+    _dashboard_line(panel, "dashboard-practice-row", leech_summary_text())
+    for plot in leech_plots()[:5]:
+        _dashboard_line(panel, "dashboard-weakest-topic", f"{plot.label} (wk {plot.sequence}), missed {plot.fail_run} in a row")
+    weak_count = len(weak_items())
+    _dashboard_line(
+        panel,
+        "dashboard-practice-row",
+        f"{weak_count} weak item{'s' if weak_count != 1 else ''} ready to export (stubborn weeds, mix-ups, last-missed and phrasebook plots).",
+    )
+    _dashboard_button(panel, "Download weak items (CSV)", export_weak_items_csv)
+    _dashboard_button(panel, "Download for Anki (tab-separated)", export_weak_items_anki)
+
+    highlights = session_highlights_text()
+    if highlights:
+        _dashboard_line(panel, "dashboard-heading", "Session highlights")
+        _dashboard_line(panel, "dashboard-practice-row", highlights)
+
+
 def render_dashboard():
     panel = _element("dashboard-panel")
     toggle = _element("dashboard-toggle-button")
@@ -2691,6 +3250,7 @@ def render_dashboard():
     if not dashboard_open:
         return
 
+    _destroy_dashboard_proxies()
     panel.innerHTML = ""
 
     since = dashboard_days_since_last_touch()
@@ -2775,6 +3335,8 @@ def render_dashboard():
             line.innerText = f"{label} — not played yet"
         practice_list.appendChild(line)
     panel.appendChild(practice_list)
+
+    _render_dashboard_extras(panel)
 
     patterns_heading = document.createElement("p")
     patterns_heading.className = "dashboard-heading"
@@ -3578,6 +4140,11 @@ def _plot_classes(plot):
         classes.append("plot--wilting")
     if is_due(plot, state.current_day):
         classes.append("plot--due")
+    # L-17 / L-18: the golden plot of the day and a stubborn weed.
+    if is_golden(plot):
+        classes.append("plot--golden")
+    if is_leech(plot):
+        classes.append("plot--leech")
     if not state.is_row_unlocked(plot.sequence):
         classes.append("plot--locked")
     return " ".join(classes)
@@ -3609,6 +4176,12 @@ def _plot_title(plot):
         confusions = weeds_confusions_for(plot)
         if confusions:
             parts.append("Easy to mix up with: " + ", ".join(f"\u201c{c}\u201d" for c in confusions))
+    if is_golden(plot):
+        parts.append(f"golden plot of the day: a correct answer earns {GOLDEN_POINTS} practice points")
+    if is_leech(plot):
+        parts.append(
+            f"stubborn weed: missed {plot.fail_run} times in a row, so a short re-teach card shows first"
+        )
     if is_due(plot, state.current_day):
         parts.append(DUE_NOTE)
     return " · ".join(parts)
@@ -3623,6 +4196,7 @@ _farm_row_cache = {}
 
 
 def render_farm():
+    ensure_golden()
     row_shown = {}  # sequence -> how many of its plots pass the L-24 filter
     for plot in state.plots:
         cell = plot_cells.get(plot.plot_id)
@@ -3734,6 +4308,8 @@ def render_status():
 
     render_practice_score()
     render_study_buddy()
+    _element("golden-display").innerText = golden_text()
+    _element("quest-display").innerText = quest_summary_text()
     _element("farm-filter-count").innerText = farm_filter_count_text()
 
     unlocked = sum(1 for r in state.rows if state.is_row_unlocked(r.sequence))
@@ -3783,6 +4359,9 @@ def render_practice():
         _element("practice-pronunciation-note").hidden = True
         _element("practice-pronunciation-report-button").hidden = True
         _element("practice-next-button").hidden = True
+        _element("practice-slip-button").hidden = True
+        _element("practice-slip-note").hidden = True
+        _element("practice-leech").hidden = True
         return
 
     panel.hidden = False
@@ -3888,6 +4467,23 @@ def render_practice():
         _element("practice-blurb-tip").innerText = blurb["memory_tip"]
         _element("practice-blurb-why").innerText = blurb["why_it_matters"]
 
+    # L-19: the once-a-session "that was a slip" button, and its confirmation.
+    _element("practice-slip-button").hidden = not can_forgive_slip()
+    slip_note_line = _element("practice-slip-note")
+    slip_note_line.innerText = slip_note
+    slip_note_line.hidden = not slip_note
+
+    # L-18: a stubborn weed shows its re-teach card until it is answered.
+    leech_box = _element("practice-leech")
+    show_leech = (not answered) and plot is not None and is_leech(plot)
+    leech_box.hidden = not show_leech
+    if show_leech:
+        what_line, pieces_line, hook_line = leech_reteach_lines(plot)
+        _element("practice-leech-what").innerText = what_line
+        _element("practice-leech-pieces").innerText = pieces_line
+        _element("practice-leech-hook").innerText = hook_line
+        _element("practice-leech-rest-button").innerText = f"Rest this plot for {LEECH_REST_DAYS} days"
+
 
 def render():
     render_deepdive()
@@ -3919,11 +4515,12 @@ def render():
 
 def open_practice(plot_id, variant=None):
     """Water a plot: roll a fresh question for it (§5) and show the panel."""
-    global current_question, current_result, current_submitted_answer, practice_open, report_sent, pronunciation_report_sent, current_confidence, deepdive_open
+    global current_question, current_result, current_submitted_answer, practice_open, report_sent, pronunciation_report_sent, current_confidence, deepdive_open, slip_note
 
     plot = state.plots_by_id.get(plot_id)
     if plot is None or not state.is_row_unlocked(plot.sequence):
         return None
+    slip_note = ""
 
     current_question = generate_question(
         plot, QUESTION_RNG, variant=variant, exclude=getattr(plot, "last_variant", None)
@@ -3954,7 +4551,7 @@ def set_confidence(value):
 
 
 def submit_answer(given):
-    global current_result, current_submitted_answer, combo_count
+    global current_result, current_submitted_answer, combo_count, _slip_snapshot, slip_note
 
     if current_question is None or current_result is not None:
         return None
@@ -3963,6 +4560,27 @@ def submit_answer(given):
     # §14.2: the tier is decided from the answer's own shape, only for typed
     # answers -- multiple choice is always an exact match regardless.
     tier = grading_tier(current_question["answer"]) if typed_mode else None
+    plot = state.plots_by_id.get(current_question["plot_id"])
+    ensure_quests()
+    # L-19: what to put back if the player forgives this answer as a slip.
+    slip_note = ""
+    _slip_snapshot = None
+    if plot is not None:
+        _slip_snapshot = {
+            "plot_id": plot.plot_id,
+            "record": _plot_record(plot),
+            "combo": combo_count,
+            "confidence": current_confidence,
+            "pattern": None,
+            "spoiled": plot.sequence in row_session_spoiled,
+            "row_correct": set(row_session_correct.get(plot.sequence, ())),
+            "quest": {
+                "day": quest_state["day"],
+                "progress": dict(quest_state["progress"]),
+                "done": list(quest_state["done"]),
+            },
+        }
+    prior_fail_run = plot.fail_run if plot is not None else 0
     current_result = check_answer(
         current_question, given, tier=tier, accent_sensitive=ACCENT_SENSITIVE
     )
@@ -3974,16 +4592,26 @@ def submit_answer(given):
         record_practice("gender", current_result)  # also counts the study day
     else:
         note_study_answer()
-    plot = state.plots_by_id.get(current_question["plot_id"])
+    _quest_note("water")
+    if plot is not None and plot.topic_type == "grammar":
+        _quest_note("grammar")
+    _quest_note("combo", combo_count, absolute=True)
     if plot is not None:
         if current_result:
             plot.in_weeds = False
-        elif typed_mode and is_weed_confusion(current_question["answer"], given):
-            plot.in_weeds = True
+            plot.fail_run = 0
+        else:
+            plot.fail_run = min(plot.fail_run + 1, LEECH_FAIL_RUN_LIMIT)
+            if typed_mode and is_weed_confusion(current_question["answer"], given):
+                plot.in_weeds = True
         _track_row_session_answer(plot, current_result)
+        _claim_golden(plot.plot_id, current_result)
+        _note_highlights(plot, current_result, prior_fail_run)
     if not current_result and typed_mode:
         pattern = classify_wrong_typed_answer(current_question, given, tier)
         record_error_pattern(pattern)
+        if _slip_snapshot is not None:
+            _slip_snapshot["pattern"] = pattern
     state.review(
         current_question["plot_id"],
         current_result,
@@ -4406,6 +5034,191 @@ def water_from_review(plot):
     return False
 
 
+# ---------------------------------------------------------------------------
+# Which activities grow plots (user request, 2026-10-08)
+# ---------------------------------------------------------------------------
+# Every activity that asks questions says, in a small text marker, whether it
+# grows plots and how, and the ones that credit plots say what was credited at
+# the end of a session. Three ways an activity can grow a plot, all through the
+# existing SRS paths and never through a game score:
+#   full    -- watering a plot on the farm, or the first correct Review or
+#              proficiency answer for a plot each in-game day (water_from_review);
+#   nudge   -- the Review nudge (the next review a day later, no stage change),
+#              used by the arcade games, once per plot per day and only for a
+#              plot that has already been watered (a game cannot plant one);
+#   apply   -- the placement test, only when its result is applied.
+# A plot's growth stage never goes down and nothing is ever taken away.
+GROWTH_INFO = {
+    "practice": (
+        "full",
+        "Grows plots: full watering",
+        "A correct answer waters this plot properly: its interval, ease and growth stage all update, like every watering on the farm.",
+    ),
+    "review": (
+        "review",
+        "Grows plots: full watering, then nudges",
+        "The first correct answer for a plot each day waters it fully. Further correct answers for it that day only nudge its next review a day later. A wrong answer changes nothing, and a stage never goes down.",
+    ),
+    "proficiency": (
+        "review",
+        "Grows plots: full watering, then nudges",
+        "The test asks about real plots, so a correct answer counts like Review: the first one for a plot each day waters it fully, later ones only nudge it. A wrong answer changes nothing.",
+    ),
+    "placement": (
+        "apply",
+        "Grows plots only if you apply the result",
+        "Answering changes no plot. If you press Apply, plots in the weeks you passed that were never watered become Sprouts (never higher, and nothing is lowered).",
+    ),
+    "blitz": (
+        "nudge",
+        "Grows plots: small nudge",
+        "A correct answer on a plot you have already watered nudges its next review a day later (once per plot per day, never a stage change). A plot you have not watered yet needs real watering first. A game score never grows a plot by itself.",
+    ),
+    "racer": (
+        "nudge",
+        "Grows plots: small nudge",
+        "A correct answer on a plot you have already watered nudges its next review a day later (once per plot per day, never a stage change). A plot you have not watered yet needs real watering first.",
+    ),
+    "sprint": (
+        "nudge",
+        "Grows plots: small nudge",
+        "A correct answer on a plot you have already watered nudges its next review a day later (once per plot per day, never a stage change). A plot you have not watered yet needs real watering first.",
+    ),
+    "boutique": (
+        "nudge",
+        "Grows plots: small nudge",
+        "A correct sale nudges the plots for the garment and the colour you picked, if you have already watered them (once per plot per day, never a stage change).",
+    ),
+    "cafe": (
+        "nudge",
+        "Grows plots: small nudge",
+        "A correct order nudges the plot for that dish (and the passé composé plot in a twist round), if you have already watered it (once per plot per day, never a stage change).",
+    ),
+    "bonus": (
+        "none",
+        "Does not grow plots",
+        "These sentences are hand-written, so they are not plots on the farm and there is nothing to grow. Your answers still count toward your practice score.",
+    ),
+    "builder": (
+        "none",
+        "Does not grow plots",
+        "These sentences are hand-written, so they are not plots on the farm and there is nothing to grow. Your answers still count toward your practice score.",
+    ),
+    "conversation": (
+        "none",
+        "Does not grow plots",
+        "These dialogue lines are hand-written, so they are not plots on the farm and there is nothing to grow. Your answers still count toward your practice score.",
+    ),
+    "listening": (
+        "none",
+        "Does not grow plots",
+        "These sentences are hand-written, so they are not plots on the farm and there is nothing to grow. Your answers still count toward your practice score.",
+    ),
+    "liaison": (
+        "none",
+        "Does not grow plots",
+        "These sound-rule questions are hand-written and are not tied to any plot, so there is nothing to grow. Your answers still count toward your practice score.",
+    ),
+}
+GROWTH_SURFACES = ("review", "proficiency", "blitz", "racer", "boutique", "cafe", "sprint")
+growth_credit = {surface: {"full": 0, "nudge": 0} for surface in GROWTH_SURFACES}
+
+
+def growth_marker(key):
+    """(kind, text, tooltip) for an activity's marker."""
+    return GROWTH_INFO[key]
+
+
+def render_growth_markers():
+    for key, (kind, text, tip) in GROWTH_INFO.items():
+        element = _element(f"growth-marker-{key}")
+        element.innerText = text
+        element.title = tip
+        element.setAttribute("aria-label", f"{text}. {tip}")
+        element.setAttribute("data-growth", kind)
+
+
+def reset_growth_credit(surface):
+    if surface in growth_credit:
+        growth_credit[surface] = {"full": 0, "nudge": 0}
+
+
+def _note_credit(surface, kind):
+    if surface in growth_credit and kind in growth_credit[surface]:
+        growth_credit[surface][kind] += 1
+
+
+def credit_review_plot(plot, surface):
+    """A correct answer on a real plot in Review or a proficiency test:
+    the first for the plot today is a full watering, later ones a nudge."""
+    kind = "full" if water_from_review(plot) else "nudge"
+    _note_credit(surface, kind)
+    return kind
+
+
+def credit_game_plot(plot, surface):
+    """An arcade game's correct answer on a real plot: the Review nudge only,
+    once per plot per in-game day (the nudge stamps last_reviewed), and never
+    for a plot that has not been watered yet. Returns "nudge" or None."""
+    if plot is None or plot.last_reviewed is None or plot.last_reviewed == state.current_day:
+        return None
+    nudge_review_correct(plot, state.current_day)
+    _note_credit(surface, "nudge")
+    return "nudge"
+
+
+def credit_game_plot_id(plot_id, surface):
+    return credit_game_plot(state.plots_by_id.get(plot_id), surface)
+
+
+_plot_by_fr_index = None
+
+
+def _plot_by_fr():
+    """Lowercased French text (parentheses dropped, each side of a slash) ->
+    the vocab plot that holds it, for the shop games' item orders."""
+    global _plot_by_fr_index
+    if _plot_by_fr_index is None:
+        index = {}
+        for plot in state.plots:
+            if plot.topic_type == "grammar":
+                continue
+            for item in plot.items:
+                fr = item.get("fr")
+                if not fr:
+                    continue
+                for part in re.sub(r"\([^)]*\)", "", fr).split(" / "):
+                    key = " ".join(part.split()).lower()
+                    if key:
+                        index.setdefault(key, plot)
+        _plot_by_fr_index = index
+    return _plot_by_fr_index
+
+
+def credit_game_item(fr, surface):
+    """Credit the plot behind a shop-game item's French text, if there is one."""
+    key = " ".join(str(fr).split()).lower()
+    return credit_game_plot(_plot_by_fr().get(key), surface)
+
+
+def growth_credit_text(surface):
+    counts = growth_credit.get(surface)
+    if counts is None:
+        return ""
+    parts = []
+    if counts["full"]:
+        parts.append(f"{counts['full']} plot{'s' if counts['full'] != 1 else ''} watered")
+    if counts["nudge"]:
+        parts.append(f"{counts['nudge']} plot{'s' if counts['nudge'] != 1 else ''} nudged")
+    if parts:
+        return "Plot growth credited: " + ", ".join(parts) + "."
+    return "Plot growth credited: none this session."
+
+
+def _with_growth(message, surface):
+    return f"{message} {growth_credit_text(surface)}"
+
+
 def _review_count_setting():
     raw = _element("review-count-input").value
     try:
@@ -4500,6 +5313,7 @@ def start_review(mode, event=None):
         review_queue = [p.plot_id for p in candidates[: _review_count_setting()]]
     review_index = 0
     review_score = {"correct": 0, "total": 0}
+    reset_growth_credit("review")
     _advance_review_question()
     _element("review-answer-input").value = ""
     render()
@@ -4517,6 +5331,7 @@ def submit_review_answer(given):
         review_question, given, tier=tier, accent_sensitive=ACCENT_SENSITIVE
     )
     review_score["total"] += 1
+    _quest_note("review")
     if review_question.get("variant") == V_GENDER_TAG:
         record_practice("gender", review_result)  # also counts the study day
     elif review_mode == QUICK_WATER_MODE:
@@ -4527,7 +5342,7 @@ def submit_review_answer(given):
         review_score["correct"] += 1
         plot = state.plots_by_id.get(review_question["plot_id"])
         if plot is not None:
-            water_from_review(plot)
+            credit_review_plot(plot, "review")
     render()
     return review_result
 
@@ -4695,7 +5510,7 @@ def render_review():
         panel.hidden = False
         empty_message.hidden = True
         summary.hidden = False
-        summary.innerText = REVIEW_SUMMARY_MESSAGE.format(**review_score)
+        summary.innerText = _with_growth(_with_highlights(REVIEW_SUMMARY_MESSAGE.format(**review_score)), "review")
         _element("review-progress").innerText = ""
         _element("review-context").innerText = ""
         _element("review-instruction").innerText = ""
@@ -4883,6 +5698,7 @@ def start_proficiency_test(sequence, event=None):
     proficiency_submitted_answer = None
     proficiency_report_sent = False
     proficiency_pronunciation_report_sent = False
+    reset_growth_credit("proficiency")
     _element("proficiency-answer-input").value = ""
     render()
     return proficiency_questions
@@ -4908,6 +5724,9 @@ def submit_proficiency_answer(given):
     if proficiency_result:
         proficiency_score["correct"] += 1
         topic_score["correct"] += 1
+        plot = state.plots_by_id.get(question.get("plot_id"))
+        if plot is not None:
+            credit_review_plot(plot, "proficiency")
     render()
     return proficiency_result
 
@@ -5040,7 +5859,7 @@ def render_proficiency():
     if complete:
         choices_box.innerHTML = ""
         summary.hidden = False
-        summary.innerText = PROFICIENCY_SUMMARY_MESSAGE.format(**proficiency_score)
+        summary.innerText = _with_growth(_with_highlights(PROFICIENCY_SUMMARY_MESSAGE.format(**proficiency_score)), "proficiency")
         breakdown.innerHTML = ""
         for topic_score in proficiency_topic_scores.values():
             line = document.createElement("p")
@@ -7296,6 +8115,8 @@ def setup():
     _element("practice-submit-button").addEventListener("click", create_proxy(on_submit_typed))
     _element("practice-answer-input").addEventListener("keydown", create_proxy(on_answer_keydown))
     _element("practice-close-button").addEventListener("click", create_proxy(close_practice))
+    _element("practice-slip-button").addEventListener("click", create_proxy(forgive_slip))
+    _element("practice-leech-rest-button").addEventListener("click", create_proxy(rest_leech))
     _element("practice-next-button").addEventListener(
         "click", create_proxy(on_next_practice_plot)
     )
@@ -7465,7 +8286,17 @@ def setup():
     # plus the two question-generation functions every minigame reuses, then
     # let minigames.py wire its own DOM listeners entirely on its own (see
     # that module's docstring for why it stays fully self-contained).
-    minigames.configure(state, generate_question, variants_for, record_practice)
+    minigames.configure(
+        state,
+        generate_question,
+        variants_for,
+        record_practice,
+        credit_plot_fn=credit_game_plot_id,
+        credit_item_fn=credit_game_item,
+        credit_reset_fn=reset_growth_credit,
+        credit_text_fn=growth_credit_text,
+    )
+    render_growth_markers()
     minigames.setup()
 
     render()
@@ -7501,6 +8332,9 @@ def _plot_record(plot):
         "correct_streak": plot.correct_streak,
         "stage": plot.stage,
         "in_weeds": plot.in_weeds,
+        # L-18: only written while a plot is on a losing run, so a normal
+        # save is unchanged.
+        **({"fail_run": plot.fail_run} if plot.fail_run else {}),
     }
 
 
@@ -7512,6 +8346,7 @@ def _reset_plot(plot):
     plot.correct_streak = 0
     plot.stage = STAGE_SEED
     plot.in_weeds = False
+    plot.fail_run = 0
 
 
 def get_state():
@@ -7551,6 +8386,15 @@ def get_state():
         **({"placement_through": placement_through} if placement_through else {}),
         # L-9 -- the exam date and the what-if minutes, only once a date is set.
         **({"exam_plan": {"date": exam_date, "minutes": exam_minutes}} if exam_date else {}),
+        # L-17 / L-14 / L-18: today's golden plot and daily goals, and how many
+        # stubborn plots have been rested; each written only once it means something.
+        **({"golden": dict(golden_plot)} if golden_plot["claimed"] else {}),
+        **(
+            {"quests": {"day": quest_state["day"], "progress": dict(quest_state["progress"]), "done": list(quest_state["done"])}}
+            if quest_state["day"] >= 0 and (quest_state["progress"] or quest_state["done"])
+            else {}
+        ),
+        **({"leech_rests": leech_rests} if leech_rests else {}),
     }
 
 
@@ -7571,7 +8415,7 @@ def _is_valid_report_log_entry(entry):
 
 def load_state(data):
     global error_pattern_counts, practice_ledger, study_buddy_enabled, report_log, study_days, phrasebook
-    global placement_through, exam_date, exam_minutes
+    global placement_through, exam_date, exam_minutes, leech_rests
 
     study_buddy_enabled = data.get("study_buddy") is True
 
@@ -7584,6 +8428,9 @@ def load_state(data):
     phrasebook = _validated_phrasebook(data.get("phrasebook"))
     placement_through = _validated_placement_through(data.get("placement_through"))
     exam_date, exam_minutes = _validated_exam_plan(data.get("exam_plan"))
+    golden_plot.update(_validated_golden(data.get("golden")))
+    quest_state.update(_validated_quests(data.get("quests")))
+    leech_rests = _validated_leech_rests(data.get("leech_rests"))
     _planner_cache.clear()
     # Z11 "My Reports" -- an old save predating this feature simply has no
     # "report_log" key, which sanitize() already treats as "empty list",
@@ -7610,6 +8457,7 @@ def load_state(data):
         if plot.stage not in STAGE_RANK:
             plot.stage = STAGE_SEED
         plot.in_weeds = bool(record.get("in_weeds", False))
+        plot.fail_run = _validated_fail_run(record.get("fail_run"))
 
     # Any question on screen was generated against the farm that just got
     # replaced, so it is closed rather than answered into the new one.
