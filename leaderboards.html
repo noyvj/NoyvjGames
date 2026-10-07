@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leaderboards — NoyvjGames</title>
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="shared/space-bg.css">
+<link rel="stylesheet" href="style.css">
+<script src="hub-prefs.js"></script>
+<script src="shared/theme.js"></script>
+<script src="shared/site-settings.js"></script>
+<style>
+  /* Page-only styles (kept here so the shared stylesheet is untouched). Colours are borrowed
+     from the surrounding text and background, so both themes work. */
+  .lb-main { max-width: 820px; }
+  .lb-note { margin: 0 0 1rem; font-size: 0.95rem; opacity: 0.9; }
+  .lb-controls { display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; align-items: end; margin: 0 0 1rem; }
+  .lb-controls label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; }
+  .lb-controls select { min-height: 44px; font: inherit; padding: 0 0.6rem; }
+  .lb-windows { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0 0 1rem; }
+  .lb-windows button { width: auto; min-height: 44px; padding: 0 1rem; font: inherit; color: inherit; background: transparent;
+    border: 1px dashed currentColor; border-radius: 8px; cursor: pointer; }
+  .lb-windows button[aria-pressed="true"] { border-style: solid; font-weight: 700; }
+  .lb-card { border: 1px solid rgba(160, 175, 215, 0.35); border-radius: 10px; padding: 0.9rem 1rem; margin: 0 0 1rem; }
+  .lb-card h2 { margin: 0 0 0.25rem; font-size: 1.1rem; }
+  .lb-card h2:not(:first-child) { margin-top: 1rem; }
+  .lb-card p { margin: 0.25rem 0; font-size: 0.9rem; }
+  .lb-rows { margin: 0.5rem 0 0; padding-left: 1.6rem; }
+  .lb-rows li { padding: 0.2rem 0; }
+  .lb-rows li.lb-you { font-weight: 700; }
+  .lb-privacy { display: flex; gap: 0.5rem; align-items: center; min-height: 44px; }
+  .lb-privacy input { width: 1.3rem; height: 1.3rem; }
+  .lb-play { display: inline-block; margin-top: 0.4rem; font-size: 0.9rem; }
+  .lb-tab[hidden], .lb-card[hidden], .lb-controls[hidden], .lb-windows[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+  <a class="skip-link" href="#lb-main">Skip to content</a>
+  <div class="space-bg" aria-hidden="true"><div class="space-bg-nebula"></div><div class="space-bg-stars-bright"></div></div>
+  <header id="hub-header">
+    <nav class="hub-nav">
+      <a href="index.html">&larr; Back to NoyvjGames</a>
+      <a href="achievements.html">Achievements</a>
+      <a href="whats-new.html">What's New</a>
+      <a href="roadmap.html">Roadmap</a>
+      <button type="button" class="hub-nav-button theme-toggle">Theme</button>
+    </nav>
+    <h1>Leaderboards</h1>
+    <p id="hub-tagline">Opt-in boards for the games that have one. Entries are anonymous (like "Player 7F2Q") unless you choose to show your username.</p>
+  </header>
+
+  <main id="lb-main" tabindex="-1" class="whats-new-main lb-main">
+    <p id="lb-status" class="lb-note" role="status">Loading boards&hellip;</p>
+
+    <div id="lb-controls" class="lb-controls" hidden>
+      <label>Game <select id="lb-game"></select></label>
+      <label>Board <select id="lb-board"></select></label>
+    </div>
+    <div id="lb-windows" class="lb-windows" role="group" aria-label="Leaderboard period" hidden></div>
+
+    <section id="lb-card" class="lb-card" aria-live="polite" hidden>
+      <h2 id="lb-title"></h2>
+      <p id="lb-period" class="lb-note"></p>
+      <p id="lb-message"></p>
+      <ol id="lb-rows" class="lb-rows"></ol>
+      <p id="lb-mine"></p>
+      <a id="lb-play" class="lb-play" href="#"></a>
+    </section>
+
+    <section id="lb-account" class="lb-card" hidden>
+      <h2>Your privacy setting</h2>
+      <label class="lb-privacy"><input type="checkbox" id="lb-show-username"> Show my username on every leaderboard I have joined</label>
+      <p>Off by default: you appear as an anonymous name. Joining and leaving a board happens inside each game, from its own leaderboard panel.</p>
+      <h2>Your current scores</h2>
+      <ul id="lb-my-scores"></ul>
+    </section>
+
+    <p class="lb-note">Scores are reported by each player's browser, so these are friendly boards, not anti-cheat ones. A board stays blank until at least three players have joined it, and days and weeks use UTC. A friends-only tab will come once the friends list exists.</p>
+  </main>
+
+  <script src="shared/hub-auth.js"></script>
+  <script>
+    (function () {
+      const API_BASE = "https://noyvjgames.fastapicloud.dev";
+      const NAMES = {
+        sol: "SOL", canopy: "Canopy", grid: "Grid", tide: "Tide", aftermath: "Aftermath", herd: "Herd",
+        thaw: "Thaw", loop: "Loop", drift: "Drift", "trade-empire": "Trade Empire",
+        continuum: "Continuum", "champ-de-mots": "Le Champ de Mots", signal: "Signal", lexis: "Lexis",
+        "last-line": "Last Line",
+      };
+      const WINDOW_LABELS = { daily: "Today", weekly: "This week", alltime: "All time" };
+      const $ = (id) => document.getElementById(id);
+      const statusEl = $("lb-status");
+      const gameSel = $("lb-game");
+      const boardSel = $("lb-board");
+      let registry = [];
+      let windowName = null;
+
+      function authHeaders() {
+        try { return typeof hubAuthHeaders === "function" ? hubAuthHeaders() : {}; } catch (e) { return {}; }
+      }
+      const signedIn = () => Boolean(authHeaders().Authorization);
+      const gameName = (id) => NAMES[id] || id;
+
+      async function fetchJson(path, options) {
+        try {
+          const res = await fetch(`${API_BASE}${path}`, Object.assign({ cache: "no-store" }, options || {}));
+          return res.ok ? await res.json() : null;
+        } catch (e) { return null; }
+      }
+
+      function formatScore(score, unit) {
+        const rounded = Math.abs(score) >= 100 ? Math.round(score) : Math.round(score * 100) / 100;
+        return unit ? `${rounded} ${unit}` : String(rounded);
+      }
+
+      function currentBoard() {
+        return registry.find((b) => b.game_id === gameSel.value && b.board === boardSel.value) || null;
+      }
+
+      function fillBoards() {
+        boardSel.textContent = "";
+        registry.filter((b) => b.game_id === gameSel.value).forEach((b) => {
+          const opt = document.createElement("option");
+          opt.value = b.board;
+          opt.textContent = b.label;
+          boardSel.append(opt);
+        });
+      }
+
+      function fillWindows() {
+        const board = currentBoard();
+        const box = $("lb-windows");
+        box.textContent = "";
+        if (!board) { box.hidden = true; return; }
+        if (!board.windows.includes(windowName)) windowName = board.default_window;
+        board.windows.forEach((w) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          const on = w === windowName;
+          button.setAttribute("aria-pressed", String(on));
+          button.textContent = `${on ? "✓ " : ""}${WINDOW_LABELS[w] || w}`;
+          button.addEventListener("click", () => { windowName = w; render(); });
+          box.append(button);
+        });
+        box.hidden = false;
+      }
+
+      async function render() {
+        const board = currentBoard();
+        if (!board) return;
+        fillWindows();
+        const data = await fetchJson(`/leaderboard/${board.game_id}/${board.board}?window=${windowName}`, { headers: authHeaders() });
+        const card = $("lb-card");
+        card.hidden = false;
+        $("lb-title").textContent = `${gameName(board.game_id)}: ${board.label}`;
+        $("lb-play").textContent = `Play ${gameName(board.game_id)} →`;
+        $("lb-play").href = `games/${board.game_id}/index.html`;
+        const rows = $("lb-rows");
+        rows.textContent = "";
+        $("lb-mine").textContent = "";
+        if (!data || !Array.isArray(data.entries)) {
+          $("lb-period").textContent = "";
+          $("lb-message").textContent = "This leaderboard is unavailable right now.";
+          return;
+        }
+        $("lb-period").textContent = data.window === "alltime" ? "All time" : `Period ${data.period} (UTC)`;
+        $("lb-message").textContent = data.suppressed
+          ? `This board shows names once at least ${data.min_visible} players have joined it.`
+          : (data.entries.length ? "" : "No one has joined this board yet.");
+        data.entries.forEach((row) => {
+          const li = document.createElement("li");
+          if (row.you) li.className = "lb-you";
+          li.value = row.rank;
+          const detail = row.detail ? ` (${row.detail})` : "";
+          li.textContent = `${row.name}${row.you ? " (you)" : ""}: ${formatScore(row.score, board.unit)}${detail}`;
+          rows.append(li);
+        });
+        if (data.mine) {
+          $("lb-mine").textContent = `Your entry: ${formatScore(data.mine.score, board.unit)}, rank ${data.mine.rank}, shown as ${data.mine.name}.`;
+        }
+      }
+
+      async function loadAccount() {
+        if (!signedIn()) return;
+        const mine = await fetchJson("/users/me/scores", { headers: authHeaders() });
+        if (!mine) return;
+        $("lb-account").hidden = false;
+        $("lb-show-username").checked = Boolean(mine.show_username);
+        const list = $("lb-my-scores");
+        list.textContent = "";
+        if (!mine.scores.length) {
+          const li = document.createElement("li");
+          li.textContent = "You have not posted to any board yet.";
+          list.append(li);
+        }
+        mine.scores.forEach((s) => {
+          const li = document.createElement("li");
+          const rank = s.rank ? `, rank ${s.rank}` : "";
+          li.textContent = `${gameName(s.game_id)}, ${s.label}, ${WINDOW_LABELS[s.window] || s.window}: ${formatScore(s.score, s.unit)}${rank}`;
+          list.append(li);
+        });
+      }
+
+      $("lb-show-username").addEventListener("change", async (event) => {
+        await fetchJson("/users/me/leaderboard-privacy", {
+          method: "PUT",
+          headers: Object.assign({ "Content-Type": "application/json" }, authHeaders()),
+          body: JSON.stringify({ show_username: event.target.checked }),
+        });
+        loadAccount();
+        render();
+      });
+
+      gameSel.addEventListener("change", () => { fillBoards(); windowName = null; render(); });
+      boardSel.addEventListener("change", () => { windowName = null; render(); });
+
+      async function main() {
+        const data = await fetchJson("/leaderboard");
+        if (!data || !Array.isArray(data.boards) || !data.boards.length) {
+          statusEl.textContent = "Couldn't load the boards right now. Try again in a moment.";
+          return;
+        }
+        registry = data.boards;
+        const games = [...new Set(registry.map((b) => b.game_id))];
+        games.forEach((id) => {
+          const opt = document.createElement("option");
+          opt.value = id;
+          opt.textContent = gameName(id);
+          gameSel.append(opt);
+        });
+        statusEl.textContent = signedIn() ? "" : "Sign in on the hub to join a board from inside a game.";
+        $("lb-controls").hidden = false;
+        fillBoards();
+        render();
+        loadAccount();
+      }
+      main();
+    })();
+  </script>
+</body>
+</html>

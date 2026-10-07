@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Text, JSON, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, false, func
+from sqlalchemy import Text, JSON, Boolean, Column, DateTime, Float, ForeignKey, Index, Integer, String, UniqueConstraint, false, func
 
 from database import Base
 
@@ -201,4 +201,44 @@ class OwnerNote(Base):
 
     key = Column(String, primary_key=True)
     value_json = Column(Text, nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class ScoreEntry(Base):
+    """General opt-in board rows (see boards.py): one row per (game, board,
+    account, window, period) holding that account's best score in that window.
+    A row exists only because the player opted in; the table stores the account
+    id (never shown) and the score. `window` is daily/weekly/alltime and
+    `period` the UTC date, ISO week or "all". `is_hidden` is the admin's "this is
+    a test, hide it" flag: hidden rows vanish from the public board, its ranks
+    and its small-group count."""
+
+    __tablename__ = "score_entries"
+    __table_args__ = (
+        UniqueConstraint("game_id", "board", "user_id", "window", "period", name="uq_score_entry"),
+        Index("ix_score_entries_board_window", "game_id", "board", "window", "period"),
+    )
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    game_id = Column(String, nullable=False)
+    board = Column(String, nullable=False)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    window = Column(String, nullable=False)
+    period = Column(String, nullable=False)
+    score = Column(Float, nullable=False)
+    detail = Column(String, nullable=True)
+    is_hidden = Column(Boolean, nullable=False, default=False, server_default=false())
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class ScoreProfile(Base):
+    """The one account-level board setting: show the username instead of an
+    anonymous 'Player 7F2Q' handle. A separate small table (not a users column)
+    so the live database needs no schema patch. No row means the default: anonymous."""
+
+    __tablename__ = "score_profiles"
+
+    user_id = Column(String, ForeignKey("users.id"), primary_key=True)
+    show_username = Column(Boolean, nullable=False, default=False, server_default=false())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

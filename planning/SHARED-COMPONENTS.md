@@ -1,6 +1,6 @@
-# Shared components (W-1 level select, W-3 skill tree, W-4 seasonal events)
+# Shared components (W-1 level select, W-3 skill tree, W-4 seasonal events, W-5 leaderboards)
 
-Three drop-in components for the games, built once. None of them stores anything the game did not hand it (apart from two small per-viewer conveniences named below), none needs a backend, and all of them are tested in headless Chromium and in Python (`python3 -m pytest -q shared/tests`).
+Three drop-in components for the games, built once (section 4, the general leaderboards, adds a backend and is described on its own). None of the first three stores anything the game did not hand it (apart from two small per-viewer conveniences named below), none needs a backend, and all of them are tested in headless Chromium and in Python (`python3 -m pytest -q shared/tests`).
 
 Common rules, true for all three:
 
@@ -181,7 +181,83 @@ A `role="region"` labelled "Seasonal event: <title>" with the title, flavour lin
 
 ---
 
+## 4. General opt-in leaderboards (`app/boards.py`, `shared/leaderboard.js`, TODO W-5 and Z-4)
+
+One game-agnostic board system beside the four original boards (SOL, Signal, Aftermath, Herd keep their `/leaderboards/...` routes, public usernames and one-script-tag form, unchanged). A game adds a board by registering it on the server once and calling two functions in the browser. Backend code is `app/boards.py` plus the "General opt-in boards" section of `app/main.py`; tests are `app/tests/test_boards.py` and `shared/tests/test_leaderboard_browser.py`.
+
+### What a board is
+
+Registered in `app/boards.py` with one call (a typo raises at import, not at a player's first score):
+
+```python
+register_board("last-line", "endless_best_wave",
+               label="Endless: best wave reached", order="desc",   # "desc" higher is better, "asc" lower is better
+               low=1, high=10_000,                                  # accepted range: anything outside is refused (422)
+               windows=("weekly", "alltime"),                       # any of daily / weekly / alltime
+               integer=True, unit="waves")                          # whole numbers only; unit is display text
+```
+
+Three boards are already registered for games that are planned (`canopy/community_investment`, `last-line/endless_best_wave`, `thaw/hold_the_line`). Their bounds are generous guesses: **tighten each one when its game is wired in.** Ids are lowercase letters, digits, `_` and `-`.
+
+Windows are UTC: **daily** is the UTC date, **weekly** is the ISO week (starts Monday, `2026-W41`), **alltime** is one row. The server picks the current day and week itself, so a client cannot post into a past period. One best score is kept per account per window. Old daily rows (90 days) and weekly rows (about a year) are deleted when anyone posts to that board; all-time is kept.
+
+### Privacy tier
+
+- **Anonymous by default.** Rows read `Player 7F2Q`: four characters of an HMAC of the account id and the game id (no look-alike characters). It is per game, so the same account has a different handle on each game and cannot be linked across them, and it cannot be turned back into a username. Two anonymous players that would share a handle both get an eight-character one. Set `LEADERBOARD_SALT` on the server to change the handles (optional; there is a default).
+- **One account setting.** `PUT /users/me/leaderboard-privacy {"show_username": true}` (and `GET`) switches every board row of that account to its username. Off until the player turns it on. The shared widget has the checkbox.
+- **Opt-in is enforced on the server.** `POST /scores` needs a signed-in account **and** `"opt_in": true` in the body, or it answers 400 and stores nothing. Test accounts are accepted and ignored. Opting out is `DELETE /scores/{game}/{board}` (one board) or `DELETE /users/me/scores` (everything).
+- **Small-group suppression.** A board window lists no rows until at least 3 visible players are on it (`boards.MIN_VISIBLE`, the same number the aggregate stats use). The response says `suppressed: true`; the player still sees their own entry (`mine`). Hidden rows and test accounts do not count towards the 3.
+- Responses never contain an account id or username except when that account chose to show it. Admin sees real usernames.
+
+### Routes
+
+| Route | Who | What |
+|---|---|---|
+| `GET /leaderboard` | anyone | The registry (game, board, label, order, windows, unit, default window) for pickers. |
+| `GET /leaderboard/{game}/{board}?window=&period=` | anyone (a bearer token adds `you` and `mine`) | Top 10 for the current period of the window, or a past `period` (`2026-10-07`, `2026-W40`). Default window is all-time if the board has it. |
+| `POST /scores` | signed in | `{game, board, score, detail?, opt_in: true, windows?}`. `windows` limits which windows are updated (used when re-sending a stored best). Answers 422 for out-of-range, non-numeric, non-finite or fractional-on-an-integer-board scores, 429 when throttled. |
+| `DELETE /scores/{game}/{board}`, `DELETE /users/me/scores` | signed in | Opt out. |
+| `GET /users/me/scores` | signed in | The caller's current-day, current-week and all-time rows with ranks. |
+| `GET` / `PUT /users/me/leaderboard-privacy` | signed in | The username switch. |
+| `GET /admin/scores`, `PATCH /admin/scores/{id}` | admin token or the owner account | List rows with the real username, filter by game/board/window/period; `{"is_hidden": true}` hides a test row (same pattern as hiding feedback). A hidden row leaves the public board, the ranks and the suppression count, and stays hidden if the player improves it. |
+
+Throttling reuses `throttle.FailureLimiter` as a sliding counter: 60 accepted submits an hour per account, 200 an hour per address, and 10 refused submits per 15 minutes per account (probing the bounds earns a 429 even for a good score). In-process, like the login limiter, so it resets on a restart.
+
+### In a game: two calls
+
+```html
+<div id="leaderboard-mount"></div>
+<script src="../../shared/hub-auth.js"></script>       <!-- already on every game page via the save widget -->
+<script src="../../shared/leaderboard.js"></script>
+<script>
+  NoyvjLeaderboard.addBoard({
+    game: "last-line", board: "endless_best_wave",
+    title: "Endless: best wave", unit: "waves", order: "desc",     // order must match the server's registration
+    windows: ["weekly", "alltime"],                                 // a subset of the registered windows
+    mount: "#leaderboard-mount",                                    // optional: omit for no panel, report() still works
+  });
+</script>
+```
+
+At the end of a run, one line (a number, plus an optional short detail such as a seed):
+
+```js
+NoyvjLeaderboard.report("last-line", "endless_best_wave", wave, "seed 4821");
+```
+
+The declarative form is the same script tag the old boards use plus `data-api="scores"` and `data-windows="weekly,alltime"`. The panel has a tab per window (a tick and `aria-pressed` mark the current one, 44 px high), the rows, the player's own line, an opt-in checkbox and the username checkbox (both only when signed in), and a note that days and weeks are UTC. Text from the server is only ever written with `textContent`. Nothing is sent until the box is ticked; ticking it sends what the player already earned on this device (one request per window, never an old day's best as today's); `report()` sends only the windows where the score improved on the best remembered here, so calling it every run is cheap. It fails soft: a network error never touches gameplay.
+
+Notes for the wiring step: a game that is already an original-form board (SOL, Signal, Aftermath, Herd) does not need to move. To get daily boards for Signal, register a new `signal` board in `boards.py` and call `addBoard`; the old streak board can stay. `shared/leaderboard.js` is not in `sw.js`'s precache list today (the four games load it from the network when online); add it (and bump `SW_VERSION`) if a game should show its board offline-first. The hub page `leaderboards.html` reads `GET /leaderboard` and lists every registered board (TODO Y-3).
+
+### Deploy note (owner)
+
+Two **new** tables, `score_entries` and `score_profiles`, are created by `Base.metadata.create_all` on the next start of the backend. No `patch_schema()` statement is needed (no existing table gains a column). The routes go live with the usual push (FastAPI Cloud redeploys within about five minutes).
+
+---
+
 ## Which TODO items these unblock
+
+- W-5 and Z-4 are built (this section). GB-19 (Canopy community plot board), T-2 (Last Line), GG-2 (Thaw's Hold the Line), GD-5 / GH-7 / GC-29 / GF-6 (daily and weekly boards) and Signal's daily board only need their `register_board` line and an `addBoard` call.
 
 - GB-13, GB-15, GB-16 (Canopy poacher, storm front, spirit story levels): `levels.json` with three modes/mechanics at positions 5, 10, 15 plus `onStart`.
 - GB-10, GB-26 (Canopy Seed Vault, ranger crews): one tree each (or one tree with a `crews` branch), `earned` from the game's Seed Vault currency.
