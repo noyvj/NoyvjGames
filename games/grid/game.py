@@ -307,26 +307,40 @@ CAREER_UNLOCKS = {
     "seed_capital": {
         "label": "Seed capital",
         "cost": 3,
+        "effect": "+75 funds at the start of every run",
         "description": "Start every new run with 75 extra funds.",
     },
     "crew_training": {
         "label": "Crew training",
         "cost": 4,
+        "effect": "-15% maintenance cost",
         "description": "Maintenance costs 15% less.",
     },
     "storage_partners": {
         "label": "Storage partnerships",
         "cost": 5,
+        "effect": "battery efficiency 85% -> 92%",
         "description": "Battery round-trip efficiency rises from 85% to 92%.",
     },
     "demand_analytics": {
         "label": "Demand analytics",
         "cost": 6,
+        "effect": "-20% demand response cost",
         "description": "Demand response costs 20% less.",
     },
 }
 CAREER_UNLOCK_ORDER = ["seed_capital", "crew_training", "storage_partners", "demand_analytics"]
 SEED_CAPITAL_BONUS = 75
+
+# C-1 / GC-26 -- run history and personal records. The history keeps the last
+# CAREER_HISTORY_MAX finished runs, each with its series thinned to at most
+# CAREER_SERIES_POINTS points so a save code stays small; lifetime totals are
+# kept separately (they are not capped). RECORD_CLEAN_SHARE is the "90% clean"
+# line behind the fewest-rounds-to-90%-clean record.
+CAREER_HISTORY_MAX = 12
+CAREER_SERIES_POINTS = 30
+CAREER_CHART_RUNS = 6
+RECORD_CLEAN_SHARE = 0.9
 CREW_TRAINING_MAINTENANCE_MULTIPLIER = 0.85
 STORAGE_PARTNERS_EFFICIENCY = 0.92
 DEMAND_ANALYTICS_COST_MULTIPLIER = 0.8
@@ -445,6 +459,16 @@ class GridState:
         # C1 -- permanent career perks in force for this run (ids from
         # CAREER_UNLOCKS); assigned by _sync_perks(), never saved per-run.
         self.perks = set()
+        # C-1 -- per-round funds and demand series (alongside the existing
+        # clean-share/emissions histories) so a finished run can be filed in
+        # the career's run history; GC-26 -- aging breakdown count and the
+        # first round the grid reached 90% clean capacity; C-8 -- a
+        # structured breakdown of the last round, for the round recap line.
+        self.funds_history = []
+        self.demand_history = []
+        self.aging_breakdown_count = 0
+        self.first_90_clean_round = None
+        self.last_round_recap = None
 
     def arbitrage_efficiency(self):
         return STORAGE_PARTNERS_EFFICIENCY if "storage_partners" in self.perks else ARBITRAGE_EFFICIENCY
@@ -811,13 +835,19 @@ class GridState:
         # TODO-C23: run any pre-committed auto-maintenance before this
         # round's own aging/breakdown roll, so a scheduled type actually
         # gets the benefit this round rather than one round late.
-        self._run_scheduled_maintenance()
+        funds_before_round = self.funds
+        round_played = self.round_number
+        scheduled_actions = self._run_scheduled_maintenance()
 
         effective_capacity = self.effective_capacity_for_revenue(weather_rng)
         met_demand = min(effective_capacity, self.demand)
         revenue = met_demand * REVENUE_PER_UNIT_MET
+        base_revenue = revenue
         # C9: optional storage arbitrage on top of ordinary revenue.
-        revenue += self._run_arbitrage(effective_capacity)
+        arbitrage_revenue = self._run_arbitrage(effective_capacity)
+        revenue += arbitrage_revenue
+        regional_revenue = 0.0
+        regional_shortfall_before = self.regional_grid_total_shortfall_cost
 
         # C3: the regional grid (if connected) gets first claim on whatever
         # surplus capacity arbitrage charging didn't already use this round
@@ -832,7 +862,8 @@ class GridState:
                 else 0.0
             )
             available_surplus = max(0.0, raw_surplus - claimed_by_arbitrage)
-            revenue += self._advance_regional_grid(available_surplus)
+            regional_revenue = self._advance_regional_grid(available_surplus)
+            revenue += regional_revenue
 
         # TODO-C17: narrate this round's weather effect on renewable
         # output, using the nameplate/actual figures
@@ -840,12 +871,14 @@ class GridState:
         # weather_rng call, so this never changes the round's own outcome,
         # only whether it gets written down. Skipped when there's no
         # renewable nameplate capacity to have varied in the first place.
+        weather_delta_pct = None
         if self.weather_variability_enabled and self.last_weather_renewable_nameplate > 0:
             delta_pct = (
                 (self.last_weather_renewable_actual - self.last_weather_renewable_nameplate)
                 / self.last_weather_renewable_nameplate
                 * 100
             )
+            weather_delta_pct = delta_pct
             direction = "above" if delta_pct >= 0 else "below"
             self.weather_log.append(
                 f"Round {self.round_number}: weather variability put renewable "
@@ -906,6 +939,7 @@ class GridState:
             repair_cost = PLANT_BASE_COST[oldest] * AGING_BREAKDOWN_COST_FRACTION
             self.funds = max(0.0, self.funds - repair_cost)
             self.lifetime_disruption_spend += repair_cost
+            self.aging_breakdown_count += 1
             aging_event = {"type": "aging_breakdown", "plant": oldest, "repair_cost": repair_cost}
 
         # TODO-C19: advance the currently-active policy lever's clock, and
@@ -930,7 +964,8 @@ class GridState:
         # TODO-C7: demand_growth_this_round() is the single source of truth
         # for how much demand rises this round, including any demand-
         # response investment -- see that method's own docstring.
-        self.demand += self.demand_growth_this_round()
+        demand_growth = self.demand_growth_this_round()
+        self.demand += demand_growth
 
         self.last_event = event
         if event:
@@ -946,6 +981,31 @@ class GridState:
         self.emissions_history.append(self.emissions)
         self.avg_renewable_cost_history.append(self.average_renewable_cost())
         self.global_reference_emissions_history.append(self.global_reference_emissions)
+        self.funds_history.append(self.funds)
+        self.demand_history.append(self.demand)
+        # GC-26: the first round the standing grid was at least 90% clean.
+        if (
+            self.first_90_clean_round is None
+            and self.total_capacity() > 0
+            and 1 - self.fossil_share() >= RECORD_CLEAN_SHARE
+        ):
+            self.first_90_clean_round = len(self.clean_fraction_log)
+        # C-8: one structured record of what this round did to the books.
+        self.last_round_recap = {
+            "round": round_played,
+            "net": self.funds - funds_before_round,
+            "base_revenue": base_revenue,
+            "arbitrage": arbitrage_revenue,
+            "regional": regional_revenue,
+            "regional_shortfall": self.regional_grid_total_shortfall_cost - regional_shortfall_before,
+            "scheduled": scheduled_actions,
+            "weather_pct": weather_delta_pct,
+            "disruption_loss": event["revenue_loss"] if event else 0.0,
+            "repair_cost": aging_event["repair_cost"] if aging_event else 0.0,
+            "aging_plant": aging_event["plant"] if aging_event else None,
+            "disruption_type": event["type"] if event else None,
+            "demand_growth": demand_growth,
+        }
 
     def average_clean_fraction(self):
         """Sustained cleanliness across the whole run so far — every round
@@ -1095,7 +1155,9 @@ class GridState:
         a type whose schedule fires but can't afford maintenance this
         round is silently skipped (maintain_plant() already returns False
         for that, same as a manual click on an unaffordable Maintain
-        button would)."""
+        button would). Returns the passes that actually ran, as
+        {"plant", "cost"} dicts, for the C-8 round recap."""
+        done = []
         for plant_type in PLANT_TYPES:
             interval = self.maintenance_schedule[plant_type]
             if interval <= 0:
@@ -1104,7 +1166,10 @@ class GridState:
                 continue
             if self.round_number % interval != 0:
                 continue
-            self.maintain_plant(plant_type)
+            cost = self.maintenance_cost(plant_type)
+            if self.maintain_plant(plant_type):
+                done.append({"plant": plant_type, "cost": cost})
+        return done
 
 
 # C5 -- ascending (max emissions/benchmark ratio, letter). Above the last
@@ -1120,17 +1185,115 @@ state = GridState()
 # to another device; load_state() only adopts a saved career that has
 # completed at least as many runs as the live one (never rolls it back).
 
+def _default_lifetime():
+    return {
+        "rounds": 0,
+        "built": {t: 0 for t in PLANT_TYPES},
+        "brownouts": 0,
+        "damages": 0,
+        "aging": 0,
+        "scenario_grades": {},
+    }
+
+
 def _default_career():
-    return {"runs": 0, "points": 0, "best_score": 0.0, "best_grade": None, "unlocked": [], "achievements": []}
+    return {
+        "runs": 0,
+        "points": 0,
+        "best_score": 0.0,
+        "best_grade": None,
+        "unlocked": [],
+        "achievements": [],
+        # C-1: the last CAREER_HISTORY_MAX finished runs (oldest first).
+        "history": [],
+        # C-7: uncapped lifetime totals behind the lifetime statistics.
+        "lifetime": _default_lifetime(),
+        # GC-26: personal records (None = not set yet).
+        "best_streak": 0,
+        "best_rounds_to_90": None,
+    }
 
 
 career = _default_career()
+# GC-26: records the most recent Finish run broke (empty = none); shown as a
+# "New record!" line in the Career panel until the next round is advanced.
+last_finish_records = []
 
 
 def _career_number(value, default, lo, hi):
     if isinstance(value, bool) or not isinstance(value, (int, float)) or value != value:
         return default
     return max(lo, min(hi, value))
+
+
+def _clean_series(raw, lo, hi):
+    """C-1: a saved per-round series -> a list of at most
+    CAREER_SERIES_POINTS finite numbers clamped into [lo, hi]."""
+    if not isinstance(raw, list):
+        return []
+    out = []
+    for value in raw[:CAREER_SERIES_POINTS]:
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or value != value:
+            return []
+        out.append(max(lo, min(hi, int(round(value)))))
+    return out
+
+
+def _validate_run_record(raw):
+    """C-1: one finished-run record, or None if it is not usable."""
+    if not isinstance(raw, dict):
+        return None
+    scenario = raw.get("scenario")
+    grade = raw.get("grade")
+    if scenario not in SCENARIOS or grade not in CAREER_GRADE_POINTS:
+        return None
+    built = raw.get("built") if isinstance(raw.get("built"), dict) else {}
+    r90 = raw.get("r90")
+    return {
+        "scenario": scenario,
+        "grade": grade,
+        "points": int(_career_number(raw.get("points"), 0, 0, 100)),
+        "rounds": int(_career_number(raw.get("rounds"), 0, 0, 100000)),
+        "score": round(float(_career_number(raw.get("score"), 0.0, 0.0, 100.0)), 1),
+        "resilience": int(_career_number(raw.get("resilience"), 0, 0, 100)),
+        "funds": int(_career_number(raw.get("funds"), 0, 0, 10 ** 9)),
+        "emissions": int(_career_number(raw.get("emissions"), 0, 0, 10 ** 9)),
+        "streak": int(_career_number(raw.get("streak"), 0, 0, 100000)),
+        "brownouts": int(_career_number(raw.get("brownouts"), 0, 0, 100000)),
+        "damages": int(_career_number(raw.get("damages"), 0, 0, 100000)),
+        "aging": int(_career_number(raw.get("aging"), 0, 0, 100000)),
+        "r90": (
+            int(_career_number(r90, 1, 1, 100000))
+            if isinstance(r90, (int, float)) and not isinstance(r90, bool) and r90 == r90
+            else None
+        ),
+        "built": {t: int(_career_number(built.get(t), 0, 0, 100000)) for t in PLANT_TYPES},
+        "clean": _clean_series(raw.get("clean"), 0, 100),
+        "funds_series": _clean_series(raw.get("funds_series"), 0, 10 ** 9),
+        "demand_series": _clean_series(raw.get("demand_series"), 0, 10 ** 9),
+    }
+
+
+def _validate_lifetime(raw):
+    out = _default_lifetime()
+    if not isinstance(raw, dict):
+        return out
+    out["rounds"] = int(_career_number(raw.get("rounds"), 0, 0, 10 ** 7))
+    built = raw.get("built") if isinstance(raw.get("built"), dict) else {}
+    out["built"] = {t: int(_career_number(built.get(t), 0, 0, 10 ** 7)) for t in PLANT_TYPES}
+    for key in ("brownouts", "damages", "aging"):
+        out[key] = int(_career_number(raw.get(key), 0, 0, 10 ** 7))
+    grades = raw.get("scenario_grades")
+    if isinstance(grades, dict):
+        for scenario, entry in grades.items():
+            if scenario in SCENARIOS and isinstance(entry, dict):
+                runs = int(_career_number(entry.get("n"), 0, 0, 100000))
+                if runs > 0:
+                    out["scenario_grades"][scenario] = {
+                        "n": runs,
+                        "points": int(_career_number(entry.get("points"), 0, 0, 100000 * 4)),
+                    }
+    return out
 
 
 def validate_career(raw):
@@ -1150,6 +1313,18 @@ def validate_career(raw):
     banked = raw.get("achievements")
     if isinstance(banked, list):
         out["achievements"] = [a for a in banked if isinstance(a, str)][:200]
+    out["best_streak"] = int(_career_number(raw.get("best_streak"), 0, 0, 100000))
+    r90 = raw.get("best_rounds_to_90")
+    out["best_rounds_to_90"] = (
+        int(_career_number(r90, 1, 1, 100000))
+        if isinstance(r90, (int, float)) and not isinstance(r90, bool) and r90 == r90
+        else None
+    )
+    history = raw.get("history")
+    if isinstance(history, list):
+        valid = [_validate_run_record(entry) for entry in history]
+        out["history"] = [entry for entry in valid if entry is not None][-CAREER_HISTORY_MAX:]
+    out["lifetime"] = _validate_lifetime(raw.get("lifetime"))
     # Never let unlocks exceed what the earned points could have paid for.
     spent = 0
     kept = []
@@ -1224,19 +1399,91 @@ def finish_run():
     points, _ = run_career_points()
     if points <= 0 and state.round_number - 1 < CAREER_MIN_ROUNDS:
         return None
+    global last_finish_records
     grade = state.benchmark_grade() or "F"
+    record = run_record(points, grade)
+    broken = []
+    first_run = career["runs"] == 0
     career["runs"] += 1
     career["points"] += points
-    career["best_score"] = max(career["best_score"], round(state.score(), 1))
+    score = round(state.score(), 1)
+    if score > career["best_score"]:
+        if not first_run:
+            broken.append(f"best clean score {score:.0f}/100")
+        career["best_score"] = score
     order = "ABCDF"
     best = career["best_grade"]
     if best is None or order.index(grade) < order.index(best):
+        if best is not None:
+            broken.append(f"best operator grade {grade}")
         career["best_grade"] = grade
+    if record["streak"] > career["best_streak"]:
+        if not first_run:
+            broken.append(f"longest disruption-free streak {record['streak']} rounds")
+        career["best_streak"] = record["streak"]
+    r90 = record["r90"]
+    if r90 is not None and (career["best_rounds_to_90"] is None or r90 < career["best_rounds_to_90"]):
+        if career["best_rounds_to_90"] is not None:
+            broken.append(f"fewest rounds to 90% clean: {r90}")
+        career["best_rounds_to_90"] = r90
     banked = set(career["achievements"]) | set(achievement_ids_earned())
     career["achievements"] = [e["id"] for e in ACHIEVEMENTS if e["id"] in banked]
+    career["history"] = (career["history"] + [record])[-CAREER_HISTORY_MAX:]
+    _add_to_lifetime(record)
+    last_finish_records = broken
     save_career_to_storage()
     _start_new_run()
     return points
+
+
+def _thin(values, scale=1.0):
+    """C-1: at most CAREER_SERIES_POINTS evenly spaced, rounded points."""
+    n = len(values)
+    if n == 0:
+        return []
+    if n > CAREER_SERIES_POINTS:
+        idx = [round(i * (n - 1) / (CAREER_SERIES_POINTS - 1)) for i in range(CAREER_SERIES_POINTS)]
+        values = [values[i] for i in idx]
+    return [int(round(v * scale)) for v in values]
+
+
+def run_record(points, grade):
+    """C-1: the current run, filed as one history record (what the Career
+    panel's history list, stacked charts and lifetime statistics read)."""
+    brownouts = sum(1 for e in state.event_log if e.get("type") == "brownout")
+    damages = sum(1 for e in state.event_log if e.get("type") == "damage")
+    return {
+        "scenario": state.scenario,
+        "grade": grade,
+        "points": points,
+        "rounds": state.round_number - 1,
+        "score": round(state.score(), 1),
+        "resilience": state.resilience_score(),
+        "funds": max(0, int(round(state.funds))),
+        "emissions": max(0, int(round(state.emissions))),
+        "streak": state.best_clean_streak,
+        "brownouts": brownouts,
+        "damages": damages,
+        "aging": state.aging_breakdown_count,
+        "r90": state.first_90_clean_round,
+        "built": {t: state.cumulative_built.get(t, 0) for t in PLANT_TYPES},
+        "clean": _thin(state.clean_fraction_log, 100.0),
+        "funds_series": _thin([max(0, v) for v in state.funds_history]),
+        "demand_series": _thin(state.demand_history),
+    }
+
+
+def _add_to_lifetime(record):
+    life = career["lifetime"]
+    life["rounds"] += record["rounds"]
+    for t in PLANT_TYPES:
+        life["built"][t] += record["built"][t]
+    life["brownouts"] += record["brownouts"]
+    life["damages"] += record["damages"]
+    life["aging"] += record["aging"]
+    entry = life["scenario_grades"].setdefault(record["scenario"], {"n": 0, "points": 0})
+    entry["n"] += 1
+    entry["points"] += CAREER_GRADE_POINTS[record["grade"]]
 
 
 def unlock_career_perk(perk_id):
@@ -2266,6 +2513,9 @@ def render():
         )
 
     _render_arbitrage_and_emergency()
+    render_auto_advance()
+    render_round_recap()
+    render_difficulty_preset()
     update_career_panel()
 
     for plant_type in PLANT_TYPES:
@@ -2362,6 +2612,225 @@ def career_panel_lines():
     return stats, preview
 
 
+def career_perk_progress_text(perk_id):
+    """C-2: what a perk button says about its price -- the numeric effect,
+    and for a locked perk how many points away it is (or that it can be
+    bought now)."""
+    info = CAREER_UNLOCKS[perk_id]
+    if perk_id in career["unlocked"]:
+        return f"Unlocked: {info['label']} ({info['effect']}) -- {info['description']}"
+    gap = info["cost"] - career_points_available()
+    status = "ready to unlock" if gap <= 0 else f"{gap} more point(s) needed"
+    return f"{info['label']} ({info['cost']} pts, {status}): {info['effect']} -- {info['description']}"
+
+
+def career_next_perk_text():
+    """C-2: one line naming the cheapest perk still locked and its gap."""
+    locked = [u for u in CAREER_UNLOCK_ORDER if u not in career["unlocked"]]
+    if not locked:
+        return "Every career perk is unlocked."
+    perk_id = min(locked, key=lambda u: CAREER_UNLOCKS[u]["cost"])
+    info = CAREER_UNLOCKS[perk_id]
+    gap = info["cost"] - career_points_available()
+    if gap <= 0:
+        return f"Next perk: {info['label']} ({info['effect']}) -- you can unlock it now."
+    return f"Next perk: {info['label']} ({info['effect']}) -- {gap} point(s) away."
+
+
+def career_records_text():
+    """GC-26: the career's personal records, spelled out in words."""
+    r90 = career["best_rounds_to_90"]
+    return (
+        f"Records: best clean score {career['best_score']:.0f}/100, best grade {career['best_grade'] or 'none yet'}, "
+        f"fewest rounds to 90% clean {r90 if r90 is not None else 'not reached yet'}, "
+        f"longest disruption-free streak {career['best_streak']} round(s)."
+    )
+
+
+# C-1: the six line styles of the stacked run-comparison charts. Colour is
+# never the only cue -- style.css gives each slot its own dash pattern too,
+# and the legend repeats each run's line.
+RUN_CHART_WIDTH = 280
+RUN_CHART_HEIGHT = 64
+
+
+def _run_label(history, index):
+    return f"Run {max(0, career['runs'] - len(history)) + index + 1}"
+
+
+def career_history_charts_html(history):
+    """C-1: three stacked small charts (clean share, funds, demand) with one
+    line per run, the six most recent runs, each plotted from its own start
+    to its own end so runs of different length stay comparable. Returns ""
+    until at least one run has a usable series."""
+    runs = [(i, r) for i, r in enumerate(history) if len(r["clean"]) >= 2][-CAREER_CHART_RUNS:]
+    if not runs:
+        return ""
+    charts = [
+        ("Clean share of capacity (%)", "clean", 0, 100),
+        ("Funds", "funds_series", None, None),
+        ("Demand", "demand_series", None, None),
+    ]
+    out = []
+    for title, key, fixed_lo, fixed_hi in charts:
+        series = [(i, r[key]) for i, r in runs if len(r[key]) >= 2]
+        if not series:
+            continue
+        lo = fixed_lo if fixed_lo is not None else min(min(v) for _, v in series)
+        hi = fixed_hi if fixed_hi is not None else max(max(v) for _, v in series)
+        if hi <= lo:
+            hi = lo + 1
+        lines = []
+        for slot, (i, values) in enumerate(series):
+            n = len(values)
+            points = " ".join(
+                f"{j / (n - 1) * RUN_CHART_WIDTH:.1f},{RUN_CHART_HEIGHT - (v - lo) / (hi - lo) * RUN_CHART_HEIGHT:.1f}"
+                for j, v in enumerate(values)
+            )
+            latest = " run-line--latest" if slot == len(series) - 1 else ""
+            lines.append(
+                f'<polyline points="{points}" class="run-line run-line--{slot}{latest}">'
+                f"<title>{_run_label(history, i)}: {values[0]} to {values[-1]}</title></polyline>"
+            )
+        out.append(
+            f'<div class="run-chart"><p class="meter-label">{title} ({lo} to {hi})</p>'
+            f'<svg viewBox="0 0 {RUN_CHART_WIDTH} {RUN_CHART_HEIGHT}" class="run-chart-svg" role="img" '
+            f'aria-label="{title}, one line per run, start to end of each run">{"".join(lines)}</svg></div>'
+        )
+    legend = []
+    for slot, (i, r) in enumerate(runs):
+        legend.append(
+            f'<span class="run-legend-item"><svg class="run-legend-swatch" viewBox="0 0 24 6" aria-hidden="true">'
+            f'<line x1="0" y1="3" x2="24" y2="3" class="run-line run-line--{slot}" /></svg>'
+            f"{_run_label(history, i)} ({r['grade']}, {r['score']:.0f}/100)</span>"
+        )
+    return "".join(out) + f'<div class="run-legend">{"".join(legend)}</div>'
+
+
+def career_heatmap_html(history):
+    """C-7: clean-share-by-round heatmap, one row per saved run, one cell per
+    saved point. A single hue whose strength is the clean share, with the
+    exact figure in each cell's tooltip (not colour alone)."""
+    rows = []
+    for i, r in enumerate(history):
+        if not r["clean"]:
+            continue
+        cells = "".join(
+            f'<span class="heat-cell" style="opacity:{0.08 + 0.92 * v / 100:.2f}" '
+            f'title="{_run_label(history, i)}, point {j + 1} of {len(r["clean"])}: {v}% clean"></span>'
+            for j, v in enumerate(r["clean"])
+        )
+        rows.append(f'<div class="heat-row"><span class="heat-label">{_run_label(history, i)}</span>'
+                    f'<span class="heat-cells">{cells}</span></div>')
+    return "".join(rows)
+
+
+def _grade_from_average(points):
+    return "ABCDF"[4 - max(0, min(4, int(round(points))))]
+
+
+def career_lifetime_lines():
+    """C-7: lifetime statistics, in words, from the career's uncapped totals."""
+    life = career["lifetime"]
+    if career["runs"] <= 0:
+        return ["No finished runs yet. Finish a run to start your lifetime statistics."]
+    lines = [f"Rounds played across {career['runs']} finished run(s): {life['rounds']}."]
+    grades = []
+    for scenario in SCENARIO_ORDER:
+        entry = life["scenario_grades"].get(scenario)
+        if entry:
+            letter = _grade_from_average(entry["points"] / entry["n"])
+            grades.append(f"{SCENARIOS[scenario]['label']} {letter} ({entry['n']} run(s))")
+    lines.append("Average grade per scenario: " + (", ".join(grades) if grades else "none yet") + ".")
+    built = life["built"]
+    top = max(PLANT_TYPES, key=lambda t: built[t])
+    lines.append(
+        f"Most-built plant: {PLANT_LABEL[top]} ({built[top]} built)." if built[top] > 0 else "Most-built plant: none yet."
+    )
+    lines.append(
+        f"Disruptions by cause: {life['brownouts']} brownout(s) from emissions, {life['damages']} plant(s) knocked "
+        f"offline by emissions, {life['aging']} aging breakdown(s)."
+    )
+    return lines
+
+
+def career_history_rows(history):
+    """C-1: one plain-text line per saved run, newest first."""
+    rows = []
+    for i in range(len(history) - 1, -1, -1):
+        r = history[i]
+        r90 = f", 90% clean by round {r['r90']}" if r["r90"] is not None else ""
+        rows.append(
+            f"{_run_label(history, i)}: {SCENARIOS[r['scenario']]['label']}, grade {r['grade']}, "
+            f"clean score {r['score']:.0f}/100, {r['rounds']} rounds, {r['points']} pt(s) banked, "
+            f"final funds {r['funds']}, emissions {r['emissions']}, resilience {r['resilience']}, "
+            f"best streak {r['streak']}{r90}."
+        )
+    return rows
+
+
+def _copy_to_clipboard(text):
+    """C-16: best effort -- a browser may refuse (insecure page, no focus),
+    in which case the text box is the fallback."""
+    try:
+        import js  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+
+        clipboard = getattr(getattr(js, "navigator", None), "clipboard", None)
+        if clipboard is None:
+            return False
+        clipboard.writeText(text)
+        return True
+    except Exception:  # noqa: BLE001
+        return False
+
+
+career_data_message = ""
+
+
+def export_career_to_field():
+    """C-16: puts the career JSON in the text box (and on the clipboard when
+    allowed). Returns the text."""
+    global career_data_message
+    text = json.dumps(career)
+    document.getElementById("career-data-field").value = text
+    copied = _copy_to_clipboard(text)
+    career_data_message = (
+        "Career data copied to the clipboard and shown in the box." if copied
+        else "Career data is in the box below. Select it and copy it to keep a backup."
+    )
+    return text
+
+
+def import_career_from_text(text):
+    """C-16: replace the career with pasted JSON. Anything that is not a Grid
+    career is refused with a message, and nothing changes."""
+    global career, career_data_message
+    try:
+        raw = json.loads(text)
+    except (ValueError, TypeError):
+        career_data_message = "That is not valid career data, so nothing was changed."
+        return False
+    if not isinstance(raw, dict) or not any(k in raw for k in ("runs", "points", "history", "unlocked")):
+        career_data_message = "That does not look like Grid career data, so nothing was changed."
+        return False
+    career = validate_career(raw)
+    _sync_perks()
+    save_career_to_storage()
+    career_data_message = f"Career restored: {career['runs']} run(s), {career['points']} point(s) earned."
+    return True
+
+
+def reset_career():
+    """C-16: wipe the whole career (points, perks, records, history,
+    banked achievements) and return to a fresh start."""
+    global career, last_finish_records, career_data_message
+    career = _default_career()
+    last_finish_records = []
+    _sync_perks()
+    save_career_to_storage()
+    career_data_message = "Career reset. A copy of the old data stays in the box until you reload the page."
+
+
 def update_career_panel():
     toggle = document.getElementById("career-toggle-button")
     panel = document.getElementById("career-panel")
@@ -2372,18 +2841,38 @@ def update_career_panel():
     stats, preview = career_panel_lines()
     document.getElementById("career-stats-display").innerText = stats
     document.getElementById("career-preview-display").innerText = preview
+    document.getElementById("career-records-display").innerText = career_records_text()
+    flash = document.getElementById("career-record-flash")
+    flash.hidden = not last_finish_records
+    flash.innerText = ("New record! " + "; ".join(last_finish_records) + ".") if last_finish_records else ""
+    document.getElementById("career-next-perk-display").innerText = career_next_perk_text()
     finish = document.getElementById("career-finish-button")
     finish.disabled = state.round_number - 1 < CAREER_MIN_ROUNDS
     for perk_id in CAREER_UNLOCK_ORDER:
         info = CAREER_UNLOCKS[perk_id]
         button = document.getElementById(f"career-unlock-{perk_id}-button")
-        if perk_id in career["unlocked"]:
-            button.innerText = f"Unlocked: {info['label']} -- {info['description']}"
-            button.disabled = True
-        else:
-            button.innerText = f"{info['label']} ({info['cost']} pts) -- {info['description']}"
-            button.disabled = career_points_available() < info["cost"]
+        button.innerText = career_perk_progress_text(perk_id)
+        button.disabled = perk_id in career["unlocked"] or career_points_available() < info["cost"]
         button.title = "Permanent perk. Takes effect from your next run (and when you load a save)."
+
+    history = career["history"]
+    list_el = document.getElementById("career-history-list")
+    list_el.innerHTML = ""
+    rows = career_history_rows(history)
+    if not rows:
+        empty = document.createElement("p")
+        empty.className = "comparison-message"
+        empty.innerText = "No finished runs yet. Finish a run and it is filed here."
+        list_el.appendChild(empty)
+    for row_text in rows:
+        row = document.createElement("p")
+        row.className = "career-history-row"
+        row.innerText = row_text
+        list_el.appendChild(row)
+    document.getElementById("career-history-chart").innerHTML = career_history_charts_html(history)
+    document.getElementById("career-lifetime-display").innerText = "\n".join(career_lifetime_lines())
+    document.getElementById("career-heatmap").innerHTML = career_heatmap_html(history)
+    document.getElementById("career-data-status").innerText = career_data_message
 
 
 def on_toggle_career(event=None):
@@ -2416,6 +2905,49 @@ def _make_unlock_handler(perk_id):
         unlock_career_perk(perk_id)
         render()
     return handler
+
+
+def on_export_career(event=None):
+    export_career_to_field()
+    render()
+
+
+def on_import_career(event=None):
+    text = document.getElementById("career-data-field").value or ""
+
+    def do_import():
+        import_career_from_text(text)
+        render()
+
+    _confirm_dialog_ask(
+        action_id="grid-import-career",
+        message="Replace your whole career (points, perks, records and run history) with the pasted data?",
+        confirm_label="Replace career",
+        on_confirm=do_import,
+        allow_skip=False,
+    )
+
+
+def on_reset_career(event=None):
+    # Offer the backup first: the JSON goes into the box (and the clipboard)
+    # before the question is asked, so it is there whatever the answer is.
+    export_career_to_field()
+
+    def do_reset():
+        reset_career()
+        render()
+
+    _confirm_dialog_ask(
+        action_id="grid-reset-career",
+        message=(
+            "Reset your whole career? Points, perks, records, run history and banked achievements are erased. "
+            "A copy of the current career has just been copied or placed in the box so you can restore it later."
+        ),
+        confirm_label="Reset career",
+        on_confirm=do_reset,
+        allow_skip=False,
+    )
+    render()
 
 
 ARBITRAGE_MODE_LABEL = {"idle": "Idle", "charge": "Charge", "discharge": "Discharge"}
@@ -2569,7 +3101,7 @@ retire_callout_visible = False
 maintain_callout_visible = False
 
 
-def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm):
+def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm, allow_skip=True):
     """Routes a guarded action through the shared shared/confirm-dialog.js
     widget when it's available, or runs the action immediately when it
     isn't -- same lazy `from js import window`/getattr-default shape as
@@ -2589,11 +3121,13 @@ def _confirm_dialog_ask(action_id, message, confirm_label, on_confirm):
     if confirm_dialog is None:
         on_confirm()
         return
+    options = {} if allow_skip else {"allowSkip": False}
     confirm_dialog.ask(
         id=action_id,
         message=message,
         confirmLabel=confirm_label,
         onConfirm=create_proxy(on_confirm),
+        **options,
     )
 
 
@@ -3021,12 +3555,198 @@ def on_connect_regional_grid(event=None):
     render()
 
 
+auto_advance_message = ""
+
+
 def on_advance_round(event=None):
+    global auto_advance_message, last_finish_records
+    auto_advance_message = ""
+    last_finish_records = []
     state.advance_round()
     _check_renewable_milestone()
     render()
     _check_disruption_toast()
     _check_new_achievements_for_toast()
+
+
+# GC-17 -- auto-advance: play up to AUTO_ADVANCE_ROUNDS rounds in one click,
+# stopping early at the first disruption, aging breakdown or policy-lever
+# offer, so there is always a pause at the moments that call for a decision.
+# No builds, retires or maintenance happen in between (that is the point:
+# "let it run"), and an open policy offer must be answered first.
+AUTO_ADVANCE_ROUNDS = 5
+
+
+def auto_advance(max_rounds=AUTO_ADVANCE_ROUNDS, **rngs):
+    """Advance up to max_rounds rounds. Returns (rounds_played, message).
+    rngs are passed straight to GridState.advance_round (tests use them)."""
+    if state.policy_lever_available:
+        return 0, "A policy lever is waiting for your decision first."
+    played = 0
+    reason = f"Played all {max_rounds} rounds with nothing needing a decision."
+    for _ in range(max_rounds):
+        state.advance_round(**rngs)
+        played += 1
+        _check_renewable_milestone()
+        if state.last_event is not None:
+            reason = "Stopped: a disruption hit."
+            break
+        if state.last_aging_event is not None:
+            reason = "Stopped: an aging breakdown took a plant offline."
+            break
+        if state.policy_lever_available:
+            reason = "Stopped: a policy lever is on offer."
+            break
+    return played, f"Auto-advanced {played} round(s). {reason}"
+
+
+def on_auto_advance(event=None):
+    global auto_advance_message, last_finish_records
+    last_finish_records = []
+    played, message = auto_advance()
+    auto_advance_message = message
+    if played:
+        render()
+        _check_disruption_toast()
+        _check_new_achievements_for_toast()
+    else:
+        render()
+
+
+def render_auto_advance():
+    button = document.getElementById("auto-advance-button")
+    button.innerText = f"Auto-advance up to {AUTO_ADVANCE_ROUNDS} rounds"
+    button.disabled = state.policy_lever_available
+    button.title = (
+        "Answer the policy lever on offer first."
+        if state.policy_lever_available
+        else "Plays rounds back to back with no building in between. Stops at the first disruption, "
+        "aging breakdown or policy offer."
+    )
+    status = document.getElementById("auto-advance-status")
+    status.innerText = auto_advance_message
+    status.hidden = not auto_advance_message
+
+
+# C-8 -- round recap: one expandable entry collating where last round's
+# funds went and came from (revenue, arbitrage, regional grid, scheduled
+# maintenance, weather, disruption, aging, demand growth).
+def round_recap_text():
+    """Returns (summary, details) for the last round played."""
+    r = state.last_round_recap
+    if r is None:
+        return "Round recap: no round played yet.", "Advance a round and its funds story appears here."
+    lines = [f"Revenue earned: +{r['base_revenue']:.0f}"]
+    if r["arbitrage"] > 0:
+        lines.append(f"Storage arbitrage sales: +{r['arbitrage']:.0f}")
+    if state.regional_grid_connected:
+        lines.append(f"Regional grid: +{r['regional']:.0f} earned, -{r['regional_shortfall']:.0f} bought in")
+    if r["scheduled"]:
+        spent = ", ".join(f"{PLANT_LABEL[a['plant']]} (-{a['cost']:.0f})" for a in r["scheduled"])
+        lines.append(f"Scheduled maintenance: {spent}")
+    if r["weather_pct"] is not None:
+        direction = "above" if r["weather_pct"] >= 0 else "below"
+        lines.append(f"Weather: renewable output {abs(r['weather_pct']):.0f}% {direction} nameplate")
+    if r["disruption_loss"] > 0:
+        lines.append(f"Disruption: -{r['disruption_loss']:.0f} revenue lost")
+    elif r["disruption_type"] is not None:
+        lines.append("Disruption: no revenue lost")
+    if r["aging_plant"] in PLANT_LABEL:
+        lines.append(f"Aging breakdown: {PLANT_LABEL[r['aging_plant']]} unit lost, repair -{r['repair_cost']:.0f}")
+    growth_note = f"Demand grew by {r['demand_growth']:g}"
+    if state.demand_response_level > 0:
+        growth_note += f" (demand response level {state.demand_response_level})"
+    lines.append(growth_note)
+    sign = "+" if r["net"] >= 0 else "-"
+    return f"Round {r['round']} recap: net {sign}{abs(r['net']):.0f} funds", "\n".join(lines)
+
+
+def render_round_recap():
+    summary, details = round_recap_text()
+    document.getElementById("round-recap-summary").innerText = summary
+    document.getElementById("round-recap-body").innerText = details
+
+
+# C-10 -- difficulty presets: one choice that sets the three existing
+# difficulty controls together (steeper demand, weather variability and the
+# starting scenario). The preset is derived from those controls, never stored,
+# so it can never disagree with them; any other combination reads "Custom".
+DIFFICULTY_PRESETS = {
+    "relaxed": {
+        "label": "Relaxed",
+        "steeper": False,
+        "weather": False,
+        "scenario": "greenfield",
+        "blurb": "Greenfield start with extra funds, steady demand, no weather swings.",
+    },
+    "standard": {
+        "label": "Standard",
+        "steeper": False,
+        "weather": False,
+        "scenario": "standard",
+        "blurb": "The default: standard start, steady demand, no weather swings.",
+    },
+    "operator": {
+        "label": "Operator",
+        "steeper": True,
+        "weather": True,
+        "scenario": "standard",
+        "blurb": "Standard start with steeper demand growth and weather variability on renewables.",
+    },
+}
+DIFFICULTY_PRESET_ORDER = ("relaxed", "standard", "operator")
+difficulty_note = ""
+
+
+def difficulty_preset_key():
+    for key in DIFFICULTY_PRESET_ORDER:
+        preset = DIFFICULTY_PRESETS[key]
+        if (
+            state.steeper_demand_growth_enabled == preset["steeper"]
+            and state.weather_variability_enabled == preset["weather"]
+            and state.scenario == preset["scenario"]
+        ):
+            return key
+    return "custom"
+
+
+def apply_difficulty_preset(key):
+    """Sets the two toggles, and the starting scenario while it is still
+    allowed to change. Returns True if the whole preset applied, False if the
+    scenario part was locked (the toggles still changed)."""
+    if key not in DIFFICULTY_PRESETS:
+        return False
+    preset = DIFFICULTY_PRESETS[key]
+    state.steeper_demand_growth_enabled = preset["steeper"]
+    state.weather_variability_enabled = preset["weather"]
+    if state.scenario == preset["scenario"]:
+        return True
+    return state.apply_scenario(preset["scenario"])
+
+
+def on_difficulty_preset_change(event=None):
+    global difficulty_note
+    key = getattr(getattr(event, "target", None), "value", None)
+    if key not in DIFFICULTY_PRESETS:
+        render()
+        return
+    applied = apply_difficulty_preset(key)
+    difficulty_note = (
+        "" if applied
+        else "The starting scenario is locked once you build or advance, so only the toggles changed."
+    )
+    render()
+
+
+def render_difficulty_preset():
+    key = difficulty_preset_key()
+    select = document.getElementById("difficulty-preset-select")
+    select.value = key
+    label = DIFFICULTY_PRESETS[key]["label"] if key != "custom" else "Custom"
+    header = document.getElementById("difficulty-header-display")
+    header.innerText = f"Difficulty: {label}"
+    header.title = DIFFICULTY_PRESETS[key]["blurb"] if key != "custom" else "A mix of the difficulty controls."
+    document.getElementById("difficulty-preset-note").innerText = difficulty_note
 
 
 # SAVE-BUTTON-INTEGRATION.md contract for the shared shared/save-widget.js:
@@ -3101,6 +3821,11 @@ def get_state():
         "arbitrage_revenue_total": state.arbitrage_revenue_total,
         "emergency": copy.deepcopy(state.emergency),
         "career": copy.deepcopy(career),
+        "funds_history": list(state.funds_history),
+        "demand_history": list(state.demand_history),
+        "aging_breakdown_count": state.aging_breakdown_count,
+        "first_90_clean_round": state.first_90_clean_round,
+        "last_round_recap": copy.deepcopy(state.last_round_recap),
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) — always
         # freshly recomputed, never read back in load_state() below.
         "achievements_earned": achievement_ids_earned(),
@@ -3228,6 +3953,62 @@ def _load_regional_grid(data):
     )
 
 
+def _finite_number(value, default=0.0):
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value != value:
+        return default
+    if value in (float("inf"), float("-inf")):
+        return default
+    return value
+
+
+def _number_list(raw, fallback):
+    if not isinstance(raw, list) or not all(
+        not isinstance(v, bool) and isinstance(v, (int, float)) and v == v for v in raw
+    ):
+        return list(fallback)
+    return list(raw)
+
+
+def _load_round_recap(raw):
+    """C-8: adopt a saved recap only as a fully validated dict; anything
+    else (missing, wrong shape) leaves no recap rather than crashing render()."""
+    if not isinstance(raw, dict):
+        return None
+    scheduled = []
+    for entry in raw.get("scheduled") if isinstance(raw.get("scheduled"), list) else []:
+        if isinstance(entry, dict) and entry.get("plant") in PLANT_LABEL:
+            scheduled.append({"plant": entry["plant"], "cost": max(0.0, _finite_number(entry.get("cost")))})
+    weather = raw.get("weather_pct")
+    plant = raw.get("aging_plant")
+    kind = raw.get("disruption_type")
+    return {
+        "round": _as_int(raw.get("round"), 1, 1),
+        "net": _finite_number(raw.get("net")),
+        "base_revenue": max(0.0, _finite_number(raw.get("base_revenue"))),
+        "arbitrage": max(0.0, _finite_number(raw.get("arbitrage"))),
+        "regional": max(0.0, _finite_number(raw.get("regional"))),
+        "regional_shortfall": max(0.0, _finite_number(raw.get("regional_shortfall"))),
+        "scheduled": scheduled,
+        "weather_pct": None if weather is None else _finite_number(weather),
+        "disruption_loss": max(0.0, _finite_number(raw.get("disruption_loss"))),
+        "repair_cost": max(0.0, _finite_number(raw.get("repair_cost"))),
+        "aging_plant": plant if plant in PLANT_LABEL else None,
+        "disruption_type": kind if kind in ("brownout", "damage") else None,
+        "demand_growth": max(0.0, _finite_number(raw.get("demand_growth"))),
+    }
+
+
+def _load_round_history_fields(data):
+    """C-1/GC-26/C-8: the funds and demand series, aging count, first 90%-clean
+    round and last-round recap -- each defaults safely for an older save."""
+    state.funds_history = _number_list(data.get("funds_history"), [])
+    state.demand_history = _number_list(data.get("demand_history"), [])
+    state.aging_breakdown_count = _as_int(data.get("aging_breakdown_count"), 0, 0)
+    first = data.get("first_90_clean_round")
+    state.first_90_clean_round = _as_int(first, 1, 1) if first is not None and not isinstance(first, bool) else None
+    state.last_round_recap = _load_round_recap(data.get("last_round_recap"))
+
+
 def _load_career(data):
     """C1: adopt a saved career only if it has finished at least as many
     runs as the live one (a stale save never rolls progress back), after
@@ -3303,6 +4084,7 @@ def load_state(data):
     saved_real = data.get("real_grid")
     real_grid_choice = saved_real if isinstance(saved_real, str) and saved_real in REAL_GRIDS else None
     _load_round3_fields(data)
+    _load_round_history_fields(data)
     _load_career(data)
     # "achievements_earned" is intentionally never read back here — see
     # get_state()'s comment and ACHIEVEMENTS-SYSTEM-DESIGN.md §1.
@@ -3384,6 +4166,13 @@ def setup():
         document.getElementById(f"career-unlock-{perk_id}-button").addEventListener(
             "click", create_proxy(_make_unlock_handler(perk_id))
         )
+    document.getElementById("career-export-button").addEventListener("click", create_proxy(on_export_career))
+    document.getElementById("career-import-button").addEventListener("click", create_proxy(on_import_career))
+    document.getElementById("career-reset-button").addEventListener("click", create_proxy(on_reset_career))
+    document.getElementById("auto-advance-button").addEventListener("click", create_proxy(on_auto_advance))
+    document.getElementById("difficulty-preset-select").addEventListener(
+        "change", create_proxy(on_difficulty_preset_change)
+    )
     document.getElementById("arbitrage-mode-button").addEventListener(
         "click", create_proxy(on_cycle_arbitrage_mode)
     )

@@ -16,8 +16,8 @@ class _FakeConfirmDialog:
         self.calls = []
         self._pending_confirm = None
 
-    def ask(self, id, message, confirmLabel, onConfirm):  # noqa: A002 -- matches JS's own `id` kwarg name
-        self.calls.append({"id": id, "message": message, "confirmLabel": confirmLabel})
+    def ask(self, id, message, confirmLabel, onConfirm, allowSkip=True):  # noqa: A002 -- matches JS's own `id` kwarg name
+        self.calls.append({"id": id, "message": message, "confirmLabel": confirmLabel, "allowSkip": allowSkip})
         self._pending_confirm = onConfirm
 
     def confirm(self):

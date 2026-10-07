@@ -55,6 +55,11 @@ EXPECTED_KEYS = {
     "arbitrage_revenue_total",
     "emergency",
     "career",
+    "funds_history",
+    "demand_history",
+    "aging_breakdown_count",
+    "first_90_clean_round",
+    "last_round_recap",
 }
 
 

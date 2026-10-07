@@ -100,6 +100,25 @@ ELEMENT_IDS = [
     "career-unlock-crew_training-button",
     "career-unlock-storage_partners-button",
     "career-unlock-demand_analytics-button",
+    "career-records-display",
+    "career-record-flash",
+    "career-next-perk-display",
+    "career-history-chart",
+    "career-history-list",
+    "career-lifetime-display",
+    "career-heatmap",
+    "career-data-field",
+    "career-export-button",
+    "career-import-button",
+    "career-reset-button",
+    "career-data-status",
+    "auto-advance-button",
+    "auto-advance-status",
+    "round-recap-summary",
+    "round-recap-body",
+    "difficulty-preset-select",
+    "difficulty-header-display",
+    "difficulty-preset-note",
     "arbitrage-mode-button",
     "arbitrage-status-display",
     "emergency-status-display",
@@ -194,6 +213,20 @@ class GameEnv:
 
     def toggle_weather_log(self):
         self.elements["weather-log-toggle-button"].dispatch("click", None)
+
+    def auto_advance(self):
+        self.elements["auto-advance-button"].dispatch("click", None)
+
+    def choose_difficulty_preset(self, key):
+        select = self.elements["difficulty-preset-select"]
+        select.value = key
+
+        class _Event:
+            pass
+
+        event = _Event()
+        event.target = select
+        select.dispatch("change", event)
 
     def toggle_career(self):
         self.elements["career-toggle-button"].dispatch("click", None)

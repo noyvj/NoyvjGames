@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 127/785 items checked off (16.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 135/785 items checked off (17.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -248,22 +248,22 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 
 ## GC + C. Grid (Round 3 answers, 2026-10-07)
 
-- [ ] C-1: Add a run history library to Grid's Career panel: each finished run stores funds/clean-share/demand series, scenario, grade and points, listed with a stacked trend chart to compare runs.
-- [ ] C-2: Show on locked Grid career perks how many points away they are and the numeric effect (e.g. '+75 funds'); add levels if the tree needs next-level preview. (partly built: Perk buttons show cost and description (update_career_panel); single-level perks, no gap or numbers.)
+- [x] C-1: Add a run history library to Grid's Career panel: each finished run stores funds/clean-share/demand series, scenario, grade and points, listed with a stacked trend chart to compare runs.
+- [x] C-2: Show on locked Grid career perks how many points away they are and the numeric effect (e.g. '+75 funds'); add levels if the tree needs next-level preview. (partly built: Perk buttons show cost and description (update_career_panel); single-level perks, no gap or numbers.)
 - [ ] C-3: Add a post-run 'what if' analyzer to Grid: replay the same demand and weather rolls with three canned strategies (all-renewable-early, no-retire, storage-first) and show grade and funds beside yours. (needs seeded per-run RNG (not stored today))
 - [ ] C-4: Add hover/focus highlighting to Grid's plant-mix chart: hovering a segment highlights that plant's row and shows its share of capacity, revenue and emissions.
 - [ ] C-5: Add full keyboard and screen-reader operation to Grid: tab order through plant rows, arrow-key adjusting of build/retire, an aria-live announcement of each round's outcome, and a spoken-friendly gauge summary.
 - [ ] C-6: Add a number-format and unit toggle to Grid's Settings: MW vs units, compact vs full numbers, and coloured arrows plus text for funds deltas (no hue-only cues).
-- [ ] C-7: Add a lifetime statistics tab to Grid: average grade per scenario, rounds survived, most-built plant, disruptions by cause and a clean-share-by-round heatmap, from the grid_career_v1 store. (needs C-1 run history)
-- [ ] C-8: Add a round recap line to Grid that collates scheduled maintenance, demand response, arbitrage income and weather delta into one expandable entry.
+- [x] C-7: Add a lifetime statistics tab to Grid: average grade per scenario, rounds survived, most-built plant, disruptions by cause and a clean-share-by-round heatmap, from the grid_career_v1 store. (needs C-1 run history)
+- [x] C-8: Add a round recap line to Grid that collates scheduled maintenance, demand response, arbitrage income and weather delta into one expandable entry.
 - [ ] C-9: Add a custom scenario builder to Grid: sliders for funds, plant mix, demand, growth and weather variability, saved by name and shareable as a code the save widget can import. (partly built: 4 fixed scenarios (C13/C27); no custom builder or share code.)
-- [ ] C-10: Add Relaxed/Standard/Operator difficulty presets to Grid: one dropdown at run start setting the existing toggles, with the preset shown in the header. (partly built: Separate toggles exist (steeper demand, weather variability, scenario); no preset dropdown or header label.)
+- [x] C-10: Add Relaxed/Standard/Operator difficulty presets to Grid: one dropdown at run start setting the existing toggles, with the preset shown in the header. (partly built: Separate toggles exist (steeper demand, weather variability, scenario); no preset dropdown or header label.)
 - [ ] C-11: Add a single-line schematic to Grid: generators feeding a bus into a demand block, flow thickness by output, a battery tank for storage, animated per round, also usable as the shareable result image.
 - [ ] C-12: Add checkboxes to Grid's trend graph to show or hide emissions, funds, demand and clean-share lines, keeping the best-round marker visible.
 - [ ] C-13: Add up to three named local run slots to Grid for everyone (no sign-in), with a slot switcher and each slot's own scenario, reusing the save widget's serialisation. (partly built: shared/save-widget.js has 3 numbered slots for signed-in accounts only (U3) plus save codes.)
 - [ ] C-14: Add a sortable fleet overview table to Grid: count, wear tiers, breakdown risk %, next scheduled maintenance and revenue per round for each plant type.
 - [ ] C-15: Add a post-run round scrubber to Grid: slide through past rounds to see fleet, demand, weather and the disruption log at that round; store per-round snapshots. (partly built: Only emissions/cost/global/clean-share histories are stored per round; no fleet, demand or log snapshot.)
-- [ ] C-16: Add 'Reset career' to Grid behind ConfirmDialog, first offering to copy the career JSON, plus an import field to restore it.
+- [x] C-16: Add 'Reset career' to Grid behind ConfirmDialog, first offering to copy the career JSON, plus an import field to restore it.
 - [ ] C-17: Add long-term operator ranks to Grid (Junior Dispatcher to Chief Engineer) from lifetime grid-hours and grades, unlocking cosmetic panel themes and a header, with no gameplay edge.
 - [ ] C-18: Extend Grid's achievement progress readouts to the remaining countable achievements and show the next milestone on locked ones. (partly built: ACHIEVEMENT_PROGRESS gives readouts for 10 achievements (clean share, streak, score, maintenance, scale).)
 - [ ] C-19: Add a table-view toggle to every Grid chart and gauge showing its numbers in a plain table plus a short text description of the trend.
@@ -294,7 +294,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] GC-14: Add coal town loyalty to Grid: retiring fossil plants shifts a Town Support meter; keep it up with retraining or phased-closure funding, and a crash triggers protest events that block builds; tie it to the resilience score.
 - [ ] GC-15: Add a Perfect Round combo to Grid: consecutive rounds with zero disruptions and demand fully met build a revenue multiplier shown as a streak flame, extending the existing clean-streak counter.
 - [ ] GC-16: Add an autopilot manager to Grid: an auto-builder following a player-set priority list (e.g. build cheapest renewable when funds > X), with smarter managers bought with career points as nodes in the upgrade tree; uses the GC-17 stop-on-event advance. (needs W-3, GC-17)
-- [ ] GC-17: Add an 'Auto-advance 5 rounds' button to Grid that stops at the first disruption, breakdown or policy offer.
+- [x] GC-17: Add an 'Auto-advance 5 rounds' button to Grid that stops at the first disruption, breakdown or policy offer.
 - [ ] GC-18: Add an energy market to Grid: a spot price that random-walks each round, plus long-term supply contracts that lock a price for N rounds with a delivery bonus; contracts versus riding the spot price.
 - [ ] GC-19: Add 'Gridley', a wry one-line commentary voice on round outcomes to Grid, toggled off in the Settings panel.
 - [ ] GC-20: Add an R&D lab to Grid: invest funds in any renewable for escalating odds of a breakthrough that permanently improves its cost decay or capacity; dead ends refund part of the spend; show odds and a guaranteed-breakthrough counter.
@@ -302,7 +302,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] GC-22: Extend Grid's regional grid into neighbour trading: an AI grid whose surplus or shortfall varies each round, with export/import at a negotiated price and a limited interconnector capacity. (partly built: C3 regional grid exists: one-way 'Connect a regional grid' that buys surplus (see CLAUDE.md, games/grid).)
 - [ ] GC-24: Add storm-prep rounds to Grid: severe weather forecast a few rounds ahead with a track and damage radius, and spend funds to harden plants (wear reset, insulation, backup) before it lands.
 - [ ] GC-25: Add occasional surprise grants to Grid: a small funding windfall or inspection fine as a two-button accept/decline choice.
-- [ ] GC-26: Extend Grid's personal bests in the Career panel with fewest rounds to 90% clean and longest clean streak, and a 'new record!' flash. (partly built: Career panel shows best_score and best_grade (career_panel_lines); no record flash.)
+- [x] GC-26: Extend Grid's personal bests in the Career panel with fewest rounds to 90% clean and longest clean streak, and a 'new record!' flash. (partly built: Career panel shows best_score and best_grade (career_panel_lines); no record flash.)
 - [ ] GC-27: Add an opt-in challenge set to Grid: Net-Zero Sprint (90% clean in 20 rounds), Coal Forever (A grade with 2 coal plants), Frugal (never spend over 300 funds), Nuclear Renaissance (win with no wind or solar), each with a badge and its own saved best.
 - [ ] GC-28: Add an animated needle balance gauge for supply vs demand to Grid: wobbles and settles, spikes into a red brownout zone, and clicks when matched; shake and effects toggleable, off under reduced motion.
 - [ ] GC-29: Add a daily seeded grid to Grid: the date fixes demand shape, weather rolls and the event schedule, with your score next to your own history; friend comparison later via leaderboards. (needs W-5, seeded per-run RNG (none stored today; game.py uses random.random)) [question: Owner asked: no friend system exists (accounts, opt-in leaderboards, community pools only; friends not scoped). Say so and offer the leaderboard route.]

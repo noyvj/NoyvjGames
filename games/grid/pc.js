@@ -45,12 +45,12 @@ window.GRID_PC_TUTORIAL_STEPS = [
   {
     selector: "#advance-round-button",
     title: "Advance Round",
-    text: "When you're done building for this round, click Advance Round (it stays pinned at the top of this column). Demand grows, revenue comes in based on capacity met, emissions accumulate, plants age, and a disruption may trigger based on your current risk. Then it's time to plan the next round.",
+    text: "When you're done building for this round, click Advance Round (it stays pinned at the top of this column), or Auto-advance to play up to five rounds in a row, which stops at the first disruption, breakdown or policy offer. Demand grows, revenue comes in based on capacity met, emissions accumulate, plants age, and a disruption may trigger based on your current risk. Then it's time to plan the next round.",
   },
   {
     selector: "#pc-menu-button",
     title: "Icons and the Menu",
-    text: "The three icons are Achievements, the Run Summary and Settings. The Menu (or Escape, when nothing else is open) holds the rest: the difficulty toggles and starting scenario, Career, comparing your grid with a shadow grid or a real region, the tutorial, How to Play, the real-world story, What's New, the Weather Log, feedback, fullscreen and the Classic layout. Everything opens as a window over the board, and Escape closes the top one.",
+    text: "The three icons are Achievements, the Run Summary and Settings. The Menu (or Escape, when nothing else is open) holds the rest: the difficulty presets, toggles and starting scenario, Career (with your run history, records and lifetime statistics), comparing your grid with a shadow grid or a real region, the tutorial, How to Play, the real-world story, What's New, the Weather Log, feedback, fullscreen and the Classic layout. Everything opens as a window over the board, and Escape closes the top one.",
   },
   {
     title: "You're Ready to Manage the Grid",

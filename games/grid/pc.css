@@ -117,3 +117,6 @@ html[data-layout="pc"] #theme-toggle-floating { top: 0.7rem !important; bottom: 
    tutorial's scroll-into-view then nudged the whole (otherwise fixed) layout upwards. */
 html[data-layout="pc"] body { padding-bottom: 0; }
 html[data-layout="pc"] .ambient-bg { overflow: hidden; }
+
+/* C-10: the difficulty preset label sits beside the title in the top bar. */
+#pc-topbar > #difficulty-header-display { grid-area: title; align-self: end; justify-self: start; margin: 0 0 0 5.2rem; font-size: 0.75rem; }

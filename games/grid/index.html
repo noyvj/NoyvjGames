@@ -28,6 +28,8 @@
   <div id="game">
     <a href="../../index.html" class="hub-back-link">&larr; All games</a>
     <h1>Grid</h1>
+    <!-- C-10: the difficulty preset in force (derived from the three difficulty controls). -->
+    <p id="difficulty-header-display" class="difficulty-header">Difficulty: Standard</p>
 
     <div class="game-toolbar">
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
@@ -44,11 +46,27 @@
       <button id="career-toggle-button" class="secondary" type="button">🎖️ Career</button>
       <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
     </div>
+    <!-- C-10: difficulty presets -- one choice that sets steeper demand, weather variability and the starting scenario together. -->
+    <div class="difficulty-preset-row">
+      <label class="difficulty-preset-label">Difficulty preset:
+        <select id="difficulty-preset-select" aria-label="Difficulty preset">
+          <option value="relaxed">Relaxed</option>
+          <option value="standard" selected>Standard</option>
+          <option value="operator">Operator</option>
+          <option value="custom" disabled>Custom</option>
+        </select>
+      </label>
+      <p class="comparison-message difficulty-preset-help">Relaxed: greenfield start, steady demand, no weather swings. Standard: the default. Operator: steeper demand and weather variability. The starting scenario can only change before you build or advance a round.</p>
+      <p id="difficulty-preset-note" class="comparison-message"></p>
+    </div>
     <!-- C1: grid operator career -- persistent cross-run points and perks (game.py). -->
     <div id="career-panel" class="section career-panel" hidden>
       <p class="settings-panel-heading">Grid Operator Career</p>
       <p id="career-stats-display" class="status-line"></p>
       <p id="career-preview-display" class="comparison-message"></p>
+      <p id="career-records-display" class="status-line"></p>
+      <p id="career-record-flash" class="record-flash" role="status" hidden></p>
+      <p id="career-next-perk-display" class="comparison-message"></p>
       <button id="career-finish-button" class="secondary" type="button" title="Bank this run's career points and start a fresh grid. Career points, perks and achievements are kept.">Finish run &amp; bank points</button>
       <div class="career-unlocks">
         <button id="career-unlock-seed_capital-button" class="secondary" type="button"></button>
@@ -56,6 +74,31 @@
         <button id="career-unlock-storage_partners-button" class="secondary" type="button"></button>
         <button id="career-unlock-demand_analytics-button" class="secondary" type="button"></button>
       </div>
+      <!-- C-1: run history library with stacked comparison charts. -->
+      <details class="career-section">
+        <summary>Run history</summary>
+        <div id="career-history-chart" class="career-history-chart"></div>
+        <div id="career-history-list" class="career-history-list"></div>
+      </details>
+      <!-- C-7: lifetime statistics and the clean-share heatmap. -->
+      <details class="career-section">
+        <summary>Lifetime statistics</summary>
+        <p id="career-lifetime-display" class="career-lifetime"></p>
+        <p class="meter-label">Clean share by round, one row per saved run (stronger = cleaner; hover a cell for the exact figure)</p>
+        <div id="career-heatmap" class="career-heatmap"></div>
+      </details>
+      <!-- C-16: back up, restore or reset the career. -->
+      <details class="career-section">
+        <summary>Back up, restore or reset</summary>
+        <p class="comparison-message">Export puts your career data in the box (and on the clipboard when the browser allows). Paste saved data into the box and press Import to restore it. Reset asks first, after copying a backup.</p>
+        <textarea id="career-data-field" class="career-data-field" rows="4" aria-label="Career data" spellcheck="false"></textarea>
+        <div class="career-data-actions">
+          <button id="career-export-button" class="secondary" type="button">Export career</button>
+          <button id="career-import-button" class="secondary" type="button">Import career</button>
+          <button id="career-reset-button" class="secondary" type="button">Reset career</button>
+        </div>
+        <p id="career-data-status" class="comparison-message" role="status"></p>
+      </details>
     </div>
     <div id="howto-panel" class="section" hidden></div>
     <!-- Settings panel (site-wide goal, planning/TODO.md): text-scale + reduced-motion,
@@ -168,6 +211,11 @@
       <div class="meter"><div id="score-bar" class="meter-fill meter-fill--score"></div></div>
       <p id="trend-display" class="event-display">Not enough rounds yet to show a trend.</p>
       <p id="aging-event-display" class="event-display">No aging breakdowns last round.</p>
+      <!-- C-8: one expandable recap of last round's funds story. -->
+      <details id="round-recap" class="round-recap">
+        <summary id="round-recap-summary">Round recap: no round played yet.</summary>
+        <p id="round-recap-body" class="round-recap-body"></p>
+      </details>
       <p class="meter-label">Emissions vs. global-average benchmark vs. renewable cost</p>
       <div id="trend-graph"></div>
       <p id="trend-graph-message" class="comparison-message">Not enough rounds yet to show an emissions/cost trend.</p>
@@ -453,6 +501,9 @@
     </div>
 
     <button id="advance-round-button" class="primary">Advance Round</button>
+    <!-- GC-17: play up to five rounds in one click, stopping at the first disruption, breakdown or policy offer. -->
+    <button id="auto-advance-button" class="secondary" type="button">Auto-advance up to 5 rounds</button>
+    <p id="auto-advance-status" class="comparison-message" role="status" hidden></p>
 
     <div id="feedback-prompt" class="section">
       <p class="feedback-question">Did this change how you think about energy transition &amp; emissions?</p>
