@@ -23,7 +23,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 # Games another session is editing right now: wired later, listed here and in the test.
-EXCLUDE_GAMES = {"champ-de-mots"}
+EXCLUDE_GAMES = set()
 # Hub pages that load shared/theme.js and are public (owner pages and the 404 shell are left out).
 HUB_PAGES = ["index.html", "settings.html", "help.html", "credits.html", "achievements.html",
              "whats-new.html", "roadmap.html", "sources.html", "terms.html"]

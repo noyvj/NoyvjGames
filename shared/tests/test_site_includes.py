@@ -16,7 +16,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-STILL_TO_WIRE = {"champ-de-mots"}  # TODO (Z-19/21/23/24/25/29/31): wire once that session is done
+STILL_TO_WIRE = set()
 
 GAME_SCRIPTS = ["lite-mode.js", "error-boundary.js", "perf-mark.js", "debug-overlay.js", "info-footer.js"]
 GAME_STYLES = ["a11y.css", "touch-targets.css", "lite-mode.css"]
