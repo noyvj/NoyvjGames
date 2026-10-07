@@ -61,6 +61,7 @@ def test_invalid_values_are_rejected():
     for bad in (
         {"theme": "purple"}, {"theme": 3}, {"text_scale": 0.5}, {"text_scale": 9},
         {"text_scale": "1.2"}, {"text_scale": True}, {"reduced_motion": "yes"}, {"reduced_motion": 1},
+        {"lite_mode": "yes"}, {"lite_mode": 1}, {"lite_mode": None},
     ):
         assert client.put("/users/me/settings", json=bad, headers=headers).status_code == 422, bad
     assert client.get("/users/me/settings", headers=headers).json() == {"settings": {}}
@@ -96,3 +97,12 @@ def test_integer_text_scale_is_stored_as_float():
     headers = _auth("intscale")
     resp = client.put("/users/me/settings", json={"text_scale": 1}, headers=headers)
     assert resp.json()["settings"]["text_scale"] == 1.0
+
+
+def test_lite_mode_round_trips_and_merges():
+    headers = _auth("litemode")
+    client.put("/users/me/settings", json={"theme": "light"}, headers=headers)
+    resp = client.put("/users/me/settings", json={"lite_mode": True}, headers=headers)
+    assert resp.json()["settings"] == {"theme": "light", "lite_mode": True}
+    assert client.put("/users/me/settings", json={"lite_mode": False}, headers=headers).json()["settings"]["lite_mode"] is False
+    assert client.get("/users/me/settings", headers=headers).json()["settings"] == {"theme": "light", "lite_mode": False}

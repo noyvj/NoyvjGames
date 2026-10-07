@@ -1,7 +1,7 @@
 /*
  * Account-synced site-wide settings (Y31). For a signed-in player, their theme
- * (all pages) and, in the two games that have a settings panel (SOL and
- * Continuum), text scale and reduced motion follow them between devices via
+ * and lite mode (Z-31, shared/lite-mode.js; all pages) and, in the games that have a
+ * settings panel (SOL, Continuum, Lexis), text scale and reduced motion follow them between devices via
  * GET/PUT /users/me/settings. Signed-out players are untouched: everything
  * stays per-device in localStorage exactly as before. Include AFTER
  * shared/theme.js on every page:
@@ -61,6 +61,8 @@
   let last = {};
   function snapshot() {
     const s = { theme: window.NoyvjTheme ? window.NoyvjTheme.get() : undefined };
+    // Only a choice the player made is synced, never the automatic slow-device default.
+    if (window.NoyvjLite && window.NoyvjLite.chosen() !== null) s.lite_mode = window.NoyvjLite.chosen();
     if (keys) {
       const scale = localScale();
       const motion = localMotion();
@@ -92,6 +94,9 @@
       if (remote.theme && window.NoyvjTheme && remote.theme !== window.NoyvjTheme.get()) {
         window.NoyvjTheme.setFromSync(remote.theme);
       }
+      if (typeof remote.lite_mode === "boolean" && window.NoyvjLite && remote.lite_mode !== window.NoyvjLite.chosen()) {
+        window.NoyvjLite.setFromSync(remote.lite_mode);
+      }
       if (keys) {
         if (typeof remote.text_scale === "number") applyScale(remote.text_scale);
         if (typeof remote.reduced_motion === "boolean") applyMotion(remote.reduced_motion);
@@ -102,6 +107,10 @@
     .catch(() => {});
 
   document.addEventListener("noyvj-theme-change", (event) => {
+    if (event.detail && event.detail.fromSync) return;
+    push(false);
+  });
+  document.addEventListener("noyvj-lite-change", (event) => {
     if (event.detail && event.detail.fromSync) return;
     push(false);
   });

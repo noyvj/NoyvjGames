@@ -1,0 +1,100 @@
+/*
+ * Shared accessibility layer (TODO Z-19): honours the operating system's "reduce motion" and
+ * "more contrast" settings on every page that includes it, layered OVER each game's own
+ * switches rather than replacing them. Include it after the game's own stylesheets.
+ *
+ * 1. Reduced motion. Applies when the OS asks for it (prefers-reduced-motion: reduce) or when a
+ *    game's own Settings switch has set html[data-reduced-motion="true"], html.reduce-motion or
+ *    the hub's html[data-hub-reduced-motion="true"]. Animations finish at once (so the end state
+ *    still applies and animationend still fires), transitions are instant, smooth scrolling is
+ *    off, and the decorative moving backgrounds stop. Calm flashes and pulses come for free:
+ *    a flash is an animation, and this ends every animation immediately. An element that truly
+ *    carries information in motion can opt out with the attribute data-motion-essential.
+ *
+ * 2. More contrast (prefers-contrast: more). Stronger borders on controls, visibly underlined
+ *    links, full-strength secondary text, a thicker focus ring, and the decorative backgrounds
+ *    dimmed so they cannot lower the contrast of what sits on them. It never recolours state
+ *    (red/green/gold meanings) because every game picks those for itself.
+ */
+
+@media (prefers-reduced-motion: reduce) {
+  html *:not([data-motion-essential]),
+  html *:not([data-motion-essential])::before,
+  html *:not([data-motion-essential])::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+  [class*="space-bg"], [class*="space-bg"]::before, [class*="space-bg"]::after,
+  [class*="ambient-bg"], [class*="ambient-bg"]::before, [class*="ambient-bg"]::after {
+    animation: none !important;
+  }
+}
+
+html[data-reduced-motion="true"] *:not([data-motion-essential]),
+html[data-reduced-motion="true"] *:not([data-motion-essential])::before,
+html[data-reduced-motion="true"] *:not([data-motion-essential])::after,
+html.reduce-motion *:not([data-motion-essential]),
+html.reduce-motion *:not([data-motion-essential])::before,
+html.reduce-motion *:not([data-motion-essential])::after,
+html[data-hub-reduced-motion="true"] *:not([data-motion-essential]),
+html[data-hub-reduced-motion="true"] *:not([data-motion-essential])::before,
+html[data-hub-reduced-motion="true"] *:not([data-motion-essential])::after {
+  animation-duration: 0.01ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}
+html[data-reduced-motion="true"] [class*="space-bg"], html[data-reduced-motion="true"] [class*="space-bg"]::before,
+html[data-reduced-motion="true"] [class*="space-bg"]::after,
+html[data-reduced-motion="true"] [class*="ambient-bg"], html[data-reduced-motion="true"] [class*="ambient-bg"]::before,
+html[data-reduced-motion="true"] [class*="ambient-bg"]::after,
+html.reduce-motion [class*="space-bg"], html.reduce-motion [class*="space-bg"]::before, html.reduce-motion [class*="space-bg"]::after,
+html.reduce-motion [class*="ambient-bg"], html.reduce-motion [class*="ambient-bg"]::before, html.reduce-motion [class*="ambient-bg"]::after {
+  animation: none !important;
+}
+
+@media (prefers-contrast: more) {
+  html { --a11y-text: #ffffff; --a11y-edge: #ffffff; }
+  html[data-theme="light"] { --a11y-text: #000000; --a11y-edge: #000000; }
+
+  body { color: var(--a11y-text); }
+
+  /* Controls get a real edge, so a button is never just a slightly different dark rectangle. */
+  button, select, textarea,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  summary, [role="button"] {
+    border: 2px solid var(--a11y-edge) !important;
+  }
+
+  /* Links must not rely on colour alone. */
+  a:not([class*="button"]):not([role="button"]) { text-decoration: underline !important; text-underline-offset: 0.18em; }
+
+  /* Secondary text at full strength. */
+  small, figcaption, .muted, .hint, .note, .hub-note, .subtle, .caption,
+  [class*="muted"], [class*="hint"], [class*="subtle"], [class*="secondary-text"] {
+    opacity: 1 !important;
+    color: var(--a11y-text) !important;
+  }
+
+  /* A thicker, high-contrast focus ring everywhere. */
+  :focus-visible {
+    outline: 3px solid var(--a11y-edge) !important;
+    outline-offset: 3px !important;
+    box-shadow: 0 0 0 6px rgba(127, 127, 127, 0.55) !important;
+  }
+
+  /* Decorative backgrounds must not lower the contrast of the text over them. */
+  [class*="space-bg"], [class*="ambient-bg"] { opacity: 0.35 !important; }
+}
+
+/* Windows high-contrast / forced colours: keep a visible edge on controls the game drew flat. */
+@media (forced-colors: active) {
+  button, select, summary, [role="button"] { border: 2px solid ButtonText; }
+  :focus-visible { outline: 3px solid Highlight; outline-offset: 2px; }
+}

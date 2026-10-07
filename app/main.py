@@ -705,6 +705,10 @@ def _validate_settings(payload: dict) -> dict:
         if not isinstance(payload["reduced_motion"], bool):
             raise HTTPException(status_code=422, detail="reduced_motion must be true or false")
         clean["reduced_motion"] = payload["reduced_motion"]
+    if "lite_mode" in payload:
+        if not isinstance(payload["lite_mode"], bool):
+            raise HTTPException(status_code=422, detail="lite_mode must be true or false")
+        clean["lite_mode"] = payload["lite_mode"]
     return clean
 
 

@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 259/904 items checked off (28.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 350/904 items checked off (38.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -818,22 +818,22 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] Z-16: Build a pilot co-op world code for Canopy (or Drift): two players share one read-mostly world state, each submits one turn per day, backend merges into a single world state (no websockets); write the merge rules first and park the 1v1 pairing question on W-6. (needs W-6 scoping decision, backend pool/world table)
 - [ ] Z-17: Add an in-game 'Report a problem' button in the shared widgets that auto-attaches the save code, schema version, browser/viewport and last 20 console log lines with a clear preview of exactly what will be sent, posting to a new /bug-reports endpoint listed on admin.html. (partly built: Hub has site feedback/bug-report form (/feedback, listed in admin.html); Le Champ de Mots answer reports (/answer-reports); Continuum info 'Report an issue' button)
 - [ ] Z-18: Add a shared opt-in practice-sandbox toggle (game exposes sandbox(): no fail states, all tools unlocked, real save and achievements untouched) starting with Grid, Continuum and Trade Empire; SOL's existing post-endgame sandbox stays as is. (partly built: SOL has a post-endgame cost-free sandbox mode (games/sol/game.py sandbox_mode, A15); none in the rest)
-- [ ] Z-19: Create shared/a11y.css honouring prefers-reduced-motion and prefers-contrast (calm animations/flashes, stronger borders and text), include it in every game, layered over each game's own motion toggle rather than replacing it. (partly built: Reduced motion exists per game (settings.js, site-settings.js sync, @media in tutorial.js/ambient-bg.css/pc-shell.css); no shared/a11y.css, no prefers-contrast anywhere)
+- [ ] Z-19: Create shared/a11y.css honouring prefers-reduced-motion and prefers-contrast (calm animations/flashes, stronger borders and text), include it in every game, layered over each game's own motion toggle rather than replacing it. (partly built: Reduced motion exists per game (settings.js, site-settings.js sync, @media in tutorial.js/ambient-bg.css/pc-shell.css); no shared/a11y.css, no prefers-contrast anywhere) (Built 2026-10-08: shared/a11y.css (prefers-reduced-motion and prefers-contrast, layered over each game's own switch, data-motion-essential opt-out), wired into every page. Only Le Champ de Mots (index and pc pages) is still to wire.)
   Per game (Classic and Desktop pages both; tick each once wired and tested):
-  - [ ] Z-19 SOL
-  - [ ] Z-19 Canopy
-  - [ ] Z-19 Grid
-  - [ ] Z-19 Tide
-  - [ ] Z-19 Aftermath
-  - [ ] Z-19 Herd
-  - [ ] Z-19 Thaw
-  - [ ] Z-19 Loop
-  - [ ] Z-19 Drift
-  - [ ] Z-19 Trade Empire
-  - [ ] Z-19 Continuum
+  - [x] Z-19 SOL
+  - [x] Z-19 Canopy
+  - [x] Z-19 Grid
+  - [x] Z-19 Tide
+  - [x] Z-19 Aftermath
+  - [x] Z-19 Herd
+  - [x] Z-19 Thaw
+  - [x] Z-19 Loop
+  - [x] Z-19 Drift
+  - [x] Z-19 Trade Empire
+  - [x] Z-19 Continuum
   - [ ] Z-19 Le Champ de Mots
-  - [ ] Z-19 Signal
-  - [ ] Z-19 Lexis
+  - [x] Z-19 Signal
+  - [x] Z-19 Lexis
 - [ ] Z-20: Add one shared copy-result-as-text helper (Wordle-style line, e.g. 'Tide, 4,210 pts, 3 storms survived', seed only if the game has one) and call it from the end/summary screen of every game except Signal, which keeps its own. (partly built: Signal has a result-share copy (games/signal/app.js lastShareText); no shared helper, no other game)
   Per game (Classic and Desktop pages both; tick each once wired and tested):
   - [ ] Z-20 SOL
@@ -849,71 +849,71 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
   - [ ] Z-20 Continuum
   - [ ] Z-20 Le Champ de Mots
   - [ ] Z-20 Lexis
-- [ ] Z-21: Add shared/perf-mark.js that logs Pyodide boot milestones (script start, pyodide loaded, game setup done, first interactive) via performance.mark and one consistent console format, included by every game.
+- [ ] Z-21: Add shared/perf-mark.js that logs Pyodide boot milestones (script start, pyodide loaded, game setup done, first interactive) via performance.mark and one consistent console format, included by every game. (Built 2026-10-08: shared/perf-mark.js (marks script-start, dom-ready, pyodide-loaded, game-setup-done, first-interactive; one `[noyvj-perf] <game> <mark> <ms>ms` format), wired into every page. Only Le Champ de Mots is still to wire.)
   Per game (Classic and Desktop pages both; tick each once wired and tested):
-  - [ ] Z-21 SOL
-  - [ ] Z-21 Canopy
-  - [ ] Z-21 Grid
-  - [ ] Z-21 Tide
-  - [ ] Z-21 Aftermath
-  - [ ] Z-21 Herd
-  - [ ] Z-21 Thaw
-  - [ ] Z-21 Loop
-  - [ ] Z-21 Drift
-  - [ ] Z-21 Trade Empire
-  - [ ] Z-21 Continuum
+  - [x] Z-21 SOL
+  - [x] Z-21 Canopy
+  - [x] Z-21 Grid
+  - [x] Z-21 Tide
+  - [x] Z-21 Aftermath
+  - [x] Z-21 Herd
+  - [x] Z-21 Thaw
+  - [x] Z-21 Loop
+  - [x] Z-21 Drift
+  - [x] Z-21 Trade Empire
+  - [x] Z-21 Continuum
   - [ ] Z-21 Le Champ de Mots
-  - [ ] Z-21 Signal
-  - [ ] Z-21 Lexis
+  - [x] Z-21 Signal
+  - [x] Z-21 Lexis
 - [ ] Z-22: Rework the shared save widget: move it to a small top corner control that never overlaps play, start auto-collapsed on every screen size, and show a live 'saved N minutes ago' line that becomes a plain-text warning if the last save attempt (manual or auto) failed. (partly built: shared/save-widget.js: fixed bottom-right 190px box, collapsible; status line shows 'Saved at HH:MM' / 'Save failed — try again'; collapsed by default only on narrow/desktop boot)
-- [ ] Z-23: Add a shared touch-target stylesheet (min 44px hit areas, touch-action: manipulation) included by every game, then sweep each game's tiny buttons.
+- [ ] Z-23: Add a shared touch-target stylesheet (min 44px hit areas, touch-action: manipulation) included by every game, then sweep each game's tiny buttons. (Built 2026-10-08: shared/touch-targets.css (44px on phones and touch screens, touch-action: manipulation, an invisible 44px hit area for the round info buttons and the back link; Signal's board cells opt out with data-touch-exempt), measured at 360px across the games. Only Le Champ de Mots is still to wire and sweep.)
   Per game (Classic and Desktop pages both; tick each once wired and tested):
-  - [ ] Z-23 SOL
-  - [ ] Z-23 Canopy
-  - [ ] Z-23 Grid
-  - [ ] Z-23 Tide
-  - [ ] Z-23 Aftermath
-  - [ ] Z-23 Herd
-  - [ ] Z-23 Thaw
-  - [ ] Z-23 Loop
-  - [ ] Z-23 Drift
-  - [ ] Z-23 Trade Empire
-  - [ ] Z-23 Continuum
+  - [x] Z-23 SOL
+  - [x] Z-23 Canopy
+  - [x] Z-23 Grid
+  - [x] Z-23 Tide
+  - [x] Z-23 Aftermath
+  - [x] Z-23 Herd
+  - [x] Z-23 Thaw
+  - [x] Z-23 Loop
+  - [x] Z-23 Drift
+  - [x] Z-23 Trade Empire
+  - [x] Z-23 Continuum
   - [ ] Z-23 Le Champ de Mots
-  - [ ] Z-23 Signal
-  - [ ] Z-23 Lexis
-- [ ] Z-24: Add a shared ?debug=1 dev overlay in a corner box showing FPS, state size in bytes and last save payload length, loaded by every game and inert without the flag.
+  - [x] Z-23 Signal
+  - [x] Z-23 Lexis
+- [ ] Z-24: Add a shared ?debug=1 dev overlay in a corner box showing FPS, state size in bytes and last save payload length, loaded by every game and inert without the flag. (Built 2026-10-08: shared/debug-overlay.js (fps, get_state() size, last /saves body length, heap, lite, errors, boot marks), inert without ?debug=1, wired into every page. Only Le Champ de Mots is still to wire.)
   Per game (Classic and Desktop pages both; tick each once wired and tested):
-  - [ ] Z-24 SOL
-  - [ ] Z-24 Canopy
-  - [ ] Z-24 Grid
-  - [ ] Z-24 Tide
-  - [ ] Z-24 Aftermath
-  - [ ] Z-24 Herd
-  - [ ] Z-24 Thaw
-  - [ ] Z-24 Loop
-  - [ ] Z-24 Drift
-  - [ ] Z-24 Trade Empire
-  - [ ] Z-24 Continuum
+  - [x] Z-24 SOL
+  - [x] Z-24 Canopy
+  - [x] Z-24 Grid
+  - [x] Z-24 Tide
+  - [x] Z-24 Aftermath
+  - [x] Z-24 Herd
+  - [x] Z-24 Thaw
+  - [x] Z-24 Loop
+  - [x] Z-24 Drift
+  - [x] Z-24 Trade Empire
+  - [x] Z-24 Continuum
   - [ ] Z-24 Le Champ de Mots
-  - [ ] Z-24 Signal
-  - [ ] Z-24 Lexis
-- [ ] Z-25: Add a shared error boundary script (uncaught Python/JS errors show a friendly 'something went wrong, your save is safe' panel with a copy-details button) included by every game.
+  - [x] Z-24 Signal
+  - [x] Z-24 Lexis
+- [ ] Z-25: Add a shared error boundary script (uncaught Python/JS errors show a friendly 'something went wrong, your save is safe' panel with a copy-details button) included by every game. (Built 2026-10-08: shared/error-boundary.js (one friendly panel with Copy details, Reload and Dismiss; ignores ad, network and ResizeObserver noise; never touches storage), wired into every page. Only Le Champ de Mots is still to wire.)
   Per game (Classic and Desktop pages both; tick each once wired and tested):
-  - [ ] Z-25 SOL
-  - [ ] Z-25 Canopy
-  - [ ] Z-25 Grid
-  - [ ] Z-25 Tide
-  - [ ] Z-25 Aftermath
-  - [ ] Z-25 Herd
-  - [ ] Z-25 Thaw
-  - [ ] Z-25 Loop
-  - [ ] Z-25 Drift
-  - [ ] Z-25 Trade Empire
-  - [ ] Z-25 Continuum
+  - [x] Z-25 SOL
+  - [x] Z-25 Canopy
+  - [x] Z-25 Grid
+  - [x] Z-25 Tide
+  - [x] Z-25 Aftermath
+  - [x] Z-25 Herd
+  - [x] Z-25 Thaw
+  - [x] Z-25 Loop
+  - [x] Z-25 Drift
+  - [x] Z-25 Trade Empire
+  - [x] Z-25 Continuum
   - [ ] Z-25 Le Champ de Mots
-  - [ ] Z-25 Signal
-  - [ ] Z-25 Lexis
+  - [x] Z-25 Signal
+  - [x] Z-25 Lexis
 - [ ] Z-27: Add a shared achievement Share button that copies a one-line text ('I earned X in Game, N% of players have it') plus the game link, using the live earned_pct, omitting the percentage while suppressed/under-sampled. (needs achievement stats backend (built))
 - [ ] Z-28: Add a shared pause-when-tab-hidden helper for games with a real-time loop (SOL, Canopy, Trade Empire, Continuum animation), with an on/off toggle in each game's settings; avoid silent simulation advance while hidden. (needs W-2 pause)
   Per game (Classic and Desktop pages both; tick each once wired and tested):
@@ -921,39 +921,39 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
   - [ ] Z-28 Canopy
   - [ ] Z-28 Trade Empire
   - [ ] Z-28 Continuum
-- [ ] Z-29: Add a shared info/help panel footer showing the game's changelog date, seed (if any) and site URL, so screenshots and printouts are self-identifying; apply to every game's info/help panel.
+- [ ] Z-29: Add a shared info/help panel footer showing the game's changelog date, seed (if any) and site URL, so screenshots and printouts are self-identifying; apply to every game's info/help panel. (Built 2026-10-08: shared/info-footer.js adds `NoyvjGames - <game> - updated <changelog date> - [seed] - <site URL>` to #howto-panel and #info-page-panel (a seed shows once Z-1 exposes one via window.NoyvjSeed.current() or NOYVJ_SEED), wired into every page. Only Le Champ de Mots is still to wire.)
   Per game (Classic and Desktop pages both; tick each once wired and tested):
-  - [ ] Z-29 SOL
-  - [ ] Z-29 Canopy
-  - [ ] Z-29 Grid
-  - [ ] Z-29 Tide
-  - [ ] Z-29 Aftermath
-  - [ ] Z-29 Herd
-  - [ ] Z-29 Thaw
-  - [ ] Z-29 Loop
-  - [ ] Z-29 Drift
-  - [ ] Z-29 Trade Empire
-  - [ ] Z-29 Continuum
+  - [x] Z-29 SOL
+  - [x] Z-29 Canopy
+  - [x] Z-29 Grid
+  - [x] Z-29 Tide
+  - [x] Z-29 Aftermath
+  - [x] Z-29 Herd
+  - [x] Z-29 Thaw
+  - [x] Z-29 Loop
+  - [x] Z-29 Drift
+  - [x] Z-29 Trade Empire
+  - [x] Z-29 Continuum
   - [ ] Z-29 Le Champ de Mots
-  - [ ] Z-29 Signal
-  - [ ] Z-29 Lexis
+  - [x] Z-29 Signal
+  - [x] Z-29 Lexis
 - [ ] Z-30: Add data-testid attributes to the shared components (save widget, confirm dialog, achievements panel, tutorial) and document the naming convention in planning/game-template.md.
-- [ ] Z-31: Add a hub-wide "Slow computer" toggle (user request 2026-10-08): one switch on the hub (and in the hub settings page, Y-10) stored as `lite-mode` in localStorage and, for signed-in players, synced through shared/site-settings.js. New `shared/lite-mode.js` and `shared/lite-mode.css` set `data-lite` on `<html>` before first paint (also default it on when `navigator.deviceMemory` is 2 or less, `hardwareConcurrency` is 2 or less or `prefers-reduced-data` is set, with a note and an off switch, never silently); CSS then turns off every animation, transition, backdrop blur, animated starfield/ambient background and large shadow site-wide, and a tiny JS API (`NoyvjLite.on()` and a change event) lets games drop their own costs (Continuum's 3D scene frame rate and effects, canvas loops, the Pyodide-side tick animations). Unify with Thaw's own lite mode (G-26) and each game's reduce-motion switch rather than adding a second inconsistent one. Include the two shared files in the hub and every game page (Classic and Desktop) and add a test that every page includes them. (Wiring waits until the Champ and hub-shell agents finish so no game folder has two writers.)
+- [ ] Z-31: Add a hub-wide "Slow computer" toggle (user request 2026-10-08): one switch on the hub (and in the hub settings page, Y-10) stored as `lite-mode` in localStorage and, for signed-in players, synced through shared/site-settings.js. New `shared/lite-mode.js` and `shared/lite-mode.css` set `data-lite` on `<html>` before first paint (also default it on when `navigator.deviceMemory` is 2 or less, `hardwareConcurrency` is 2 or less or `prefers-reduced-data` is set, with a note and an off switch, never silently); CSS then turns off every animation, transition, backdrop blur, animated starfield/ambient background and large shadow site-wide, and a tiny JS API (`NoyvjLite.on()` and a change event) lets games drop their own costs (Continuum's 3D scene frame rate and effects, canvas loops, the Pyodide-side tick animations). Unify with Thaw's own lite mode (G-26) and each game's reduce-motion switch rather than adding a second inconsistent one. Include the two shared files in the hub and every game page (Classic and Desktop) and add a test that every page includes them. (Wiring waits until the Champ and hub-shell agents finish so no game folder has two writers.) (Built 2026-10-08: shared/lite-mode.js + .css (html[data-lite], key lite-mode, automatic slow-device default with a visible note, NoyvjLite API and noyvj-lite-change event, account sync as lite_mode through site-settings.js and the backend whitelist), toggles on the hub nav and settings.html, Thaw's G-26 lite mode and Continuum's 3D scene now use it, tested on every page. Only Le Champ de Mots (index and pc pages) is still to wire.)
   Per game (Classic and Desktop pages both; tick each once wired and tested):
-  - [ ] Z-31 SOL
-  - [ ] Z-31 Canopy
-  - [ ] Z-31 Grid
-  - [ ] Z-31 Tide
-  - [ ] Z-31 Aftermath
-  - [ ] Z-31 Herd
-  - [ ] Z-31 Thaw
-  - [ ] Z-31 Loop
-  - [ ] Z-31 Drift
-  - [ ] Z-31 Trade Empire
-  - [ ] Z-31 Continuum
+  - [x] Z-31 SOL
+  - [x] Z-31 Canopy
+  - [x] Z-31 Grid
+  - [x] Z-31 Tide
+  - [x] Z-31 Aftermath
+  - [x] Z-31 Herd
+  - [x] Z-31 Thaw
+  - [x] Z-31 Loop
+  - [x] Z-31 Drift
+  - [x] Z-31 Trade Empire
+  - [x] Z-31 Continuum
   - [ ] Z-31 Le Champ de Mots
-  - [ ] Z-31 Signal
-  - [ ] Z-31 Lexis
+  - [x] Z-31 Signal
+  - [x] Z-31 Lexis
 
 *Not added: Z-26 (parked in LATER.md at your word, 2026-10-07: shared quiet-mode helper while audio is parked).*
 

@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 34;
+const SW_VERSION = 35;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -42,6 +42,15 @@ const PRECACHE_URLS = [
   "shared/pc-shell.css",
   "shared/info_page.py",
   "shared/info-page.css",
+  // Site-wide shared includes (Z-19/21/23/24/25/29/31): in every game page and the hub's.
+  "shared/lite-mode.js",
+  "shared/lite-mode.css",
+  "shared/a11y.css",
+  "shared/touch-targets.css",
+  "shared/error-boundary.js",
+  "shared/perf-mark.js",
+  "shared/debug-overlay.js",
+  "shared/info-footer.js",
   "games/sol/index.html",
   "games/sol/style.css",
   "games/sol/game.py",

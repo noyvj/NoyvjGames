@@ -1542,6 +1542,11 @@ html[data-reduced-motion="true"] *::after {
   min-height: 2rem;
 }
 
+/* Z-23: touch screens and narrow windows get the shared 44px minimum (this rule's 2rem would win otherwise). */
+@media (pointer: coarse), (max-width: 640px) {
+  #actions .step-row button.secondary { min-height: 44px; min-width: 44px; }
+}
+
 #actions .step-row button.secondary::before { content: none; }
 #actions .step-row #undo-allocation-button { margin-left: auto; }
 #actions .step-row button.selected {

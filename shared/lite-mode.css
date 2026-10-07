@@ -1,0 +1,91 @@
+/*
+ * Lite mode (TODO Z-31), the stylesheet half of shared/lite-mode.js. Applies only while
+ * <html data-lite="true">. It is meant for slow computers, so it removes cost, not content:
+ *   - every animation and transition (finished at once, so the end state still applies and
+ *     nothing waits on an animationend that never comes)
+ *   - backdrop blur and blur/drop-shadow filters on the decorative backgrounds
+ *   - the moving starfields and the big blurred nebula/aurora/blob layers
+ *   - the large drop shadows on panels, cards, dialogs and toasts
+ * Colours, layout, borders and focus rings are untouched, and a game's own "reduce motion"
+ * setting is a separate switch that keeps working next to this one.
+ *
+ * Include this file LAST in <head> (after the game's own stylesheets) so it wins ties; the
+ * !important flags are for the rules that games write with inline styles or higher specificity.
+ */
+
+html[data-lite="true"] *,
+html[data-lite="true"] *::before,
+html[data-lite="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Decorative backgrounds: stop the drift outright and drop the heavy blurred layers. */
+html[data-lite="true"] [class*="space-bg"],
+html[data-lite="true"] [class*="space-bg"]::before,
+html[data-lite="true"] [class*="space-bg"]::after,
+html[data-lite="true"] [class*="ambient-bg"],
+html[data-lite="true"] [class*="ambient-bg"]::before,
+html[data-lite="true"] [class*="ambient-bg"]::after {
+  animation: none !important;
+  filter: none !important;
+  will-change: auto !important;
+}
+html[data-lite="true"] .space-bg-nebula,
+html[data-lite="true"] .ambient-bg-blobs,
+html[data-lite="true"] .ambient-bg-accent {
+  display: none !important;
+}
+html[data-lite="true"] [class*="frost-dust"],
+html[data-lite="true"] [class*="snow"] {
+  animation: none !important;
+}
+
+/* Large shadows: only on containers (panels, cards, dialogs, toasts), never on a control's
+   focus or selection ring. Anything marked selected/active/current keeps its shadow. */
+html[data-lite="true"] :where(
+  dialog, [role="dialog"], [role="alertdialog"], header, footer, nav, aside, main,
+  .section, .panel, [class*="panel"], [class*="card"], [class*="modal"], [class*="toast"],
+  [class*="window"], [class*="overlay"], [class*="popup"], [class*="dock"]
+):not(.selected, .active, .current, [aria-selected="true"], [aria-current], [aria-pressed="true"], :focus-visible, :focus-within) {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* The note shown when lite mode came on by itself (see lite-mode.js). */
+.noyvj-lite-note {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  z-index: 2147483000;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  max-width: min(520px, calc(100vw - 24px));
+  padding: 10px 12px;
+  border: 1px solid #6f8fe0;
+  border-radius: 8px;
+  background: #151a2e;
+  color: #e6ecff;
+  font: 14px/1.4 system-ui, sans-serif;
+}
+.noyvj-lite-note p { margin: 0; flex: 1 1 240px; }
+.noyvj-lite-note button {
+  min-height: 36px;
+  padding: 4px 12px;
+  border: 1px solid #a9c3ff;
+  border-radius: 6px;
+  background: #232b4a;
+  color: #e6ecff;
+  font: inherit;
+  cursor: pointer;
+}
+html[data-theme="light"] .noyvj-lite-note { background: #f4f6ff; color: #1a2140; border-color: #3a55a8; }
+html[data-theme="light"] .noyvj-lite-note button { background: #e3e9ff; color: #1a2140; border-color: #3a55a8; }

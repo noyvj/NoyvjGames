@@ -85,30 +85,44 @@
     return reduced;
   }
 
-  // G-26: lite mode drops the costly visuals (backdrop blur, the animated
-  // background, graph/meter transitions) for slow devices. Pure CSS via a
-  // data attribute, persisted like the other display preferences.
+  // G-26 / Z-31: lite mode drops the costly visuals (backdrop blur, the animated background,
+  // graph/meter transitions) for slow devices. It is now the site-wide switch from
+  // shared/lite-mode.js (localStorage "lite-mode", synced to the account, also on the hub), not a
+  // Thaw-only one. This checkbox just drives that switch; an older "thaw-lite-mode" choice made
+  // before the switch existed is carried over once. If shared/lite-mode.js failed to load, it
+  // falls back to the old per-game attribute so the checkbox still does something.
+  function sharedLite() {
+    return window.NoyvjLite || null;
+  }
+
   function readStoredLite() {
+    const shared = sharedLite();
     try {
-      return window.localStorage.getItem(LITE_KEY) === "true";
+      const old = window.localStorage.getItem(LITE_KEY);
+      if (old !== null && shared) {
+        window.localStorage.removeItem(LITE_KEY);
+        if (old === "true" && shared.chosen() === null) shared.set(true);
+      } else if (old !== null) {
+        return old === "true";
+      }
     } catch (e) {
-      return false;
+      // Storage blocked: fall through to whatever the shared switch says.
     }
+    return shared ? shared.on() : false;
   }
 
   function applyLite(on) {
-    document.documentElement.setAttribute("data-lite-mode", on ? "true" : "false");
-    try {
-      window.localStorage.setItem(LITE_KEY, String(on));
-    } catch (e) {
-      // Same as above.
+    const shared = sharedLite();
+    if (shared) {
+      shared.set(Boolean(on));
+    } else {
+      document.documentElement.setAttribute("data-lite", on ? "true" : "false");
     }
-    return on;
+    return Boolean(on);
   }
 
   function init() {
     let lite = readStoredLite();
-    applyLite(lite);
     let scale = readStoredScale();
     applyScale(scale);
     let reduced = readStoredMotion();
@@ -129,6 +143,11 @@
       liteCheckbox.checked = lite;
       liteCheckbox.addEventListener("change", function () {
         lite = applyLite(liteCheckbox.checked);
+      });
+      // The hub's switch (or another tab, or the account) can change it while this page is open.
+      document.addEventListener("noyvj-lite-change", function (event) {
+        lite = Boolean(event.detail && event.detail.on);
+        liteCheckbox.checked = lite;
       });
     }
 
