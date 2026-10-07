@@ -170,6 +170,8 @@
       for (var c = 0; c < n; c++) {
         var key = r + "," + c;
         var btn = el("button", "cell");
+        // A 9x9 board cannot have 44px cells on a 360px screen; shared/touch-targets.css skips these.
+        btn.setAttribute("data-touch-exempt", "");
         btn.type = "button";
         btn.setAttribute("data-r", r);
         btn.setAttribute("data-c", c);

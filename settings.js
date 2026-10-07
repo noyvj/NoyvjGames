@@ -4,6 +4,7 @@
  *
  *   theme                          shared/theme.js
  *   hub_reduced_motion             hub-prefs.js (new, hub pages only)
+ *   lite-mode                      shared/lite-mode.js ("true" / "false"; absent = not chosen)
  *   <slug>-text-scale              each game's settings.js
  *   <slug>-reduced-motion          each game's settings.js
  *   autosave-enabled:<slug>        shared/save-widget.js
@@ -47,7 +48,7 @@
   // A hub preference (as opposed to sign-in, a game's data or a game's own settings).
   function isHubPreferenceKey(key) {
     if (AUTH_KEYS.indexOf(key) !== -1) return false;
-    return /^hub[_-]/.test(key) || key === "claim_save_nudge_dismissed" ||
+    return /^hub[_-]/.test(key) || key === "lite-mode" || key === "lite-mode-note-seen" || key === "claim_save_nudge_dismissed" ||
       key === "pwa_install_banner_dismissed" || key === "tutorial-seen:hub";
   }
 
@@ -354,6 +355,7 @@
       askConfirm(`Reset ${n} hub preference${n === 1 ? "" : "s"}? Your sign-in and every game's data stay.`, () => {
         lsKeys().filter(isHubPreferenceKey).forEach(lsRemove);
         document.documentElement.removeAttribute("data-hub-reduced-motion");
+        if (window.NoyvjLite) window.NoyvjLite.refresh();
         say("settings-clear-status", `Reset ${n} hub preference${n === 1 ? "" : "s"}.`);
         renderMotion();
       });
@@ -362,6 +364,7 @@
       const n = lsKeys().length;
       askConfirm(`Erase all ${n} stored items, including your sign-in and any save code you have not claimed to an account? This cannot be undone.`, () => {
         try { localStorage.clear(); } catch (e) { /* nothing more to do */ }
+        if (window.NoyvjLite) window.NoyvjLite.refresh();
         say("settings-clear-status", `Erased ${n} items. You are signed out and everything on this page is back to its default.`);
         renderGameDefaults();
         renderMotion();
