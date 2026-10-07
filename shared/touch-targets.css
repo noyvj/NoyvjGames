@@ -1,0 +1,74 @@
+/*
+ * Shared touch-target stylesheet (TODO Z-23). Include it after the game's own stylesheets.
+ *
+ * 1. touch-action: manipulation on everything clickable, so a phone never waits for a
+ *    double-tap-to-zoom before it acts on a tap. (Elements that need their own gesture handling
+ *    already set touch-action in their own rules; the :where() below has no specificity so those win.)
+ *
+ * 2. On a touch screen or a narrow window, every button, select, text field, summary and
+ *    checkbox row has a hit area of at least 44 x 44 CSS pixels (the WCAG 2.5.5 / Apple HIG
+ *    size). On a wide window with a mouse nothing changes.
+ *
+ * 3. Controls that are meant to look small (the round "i" info buttons, the back link) keep
+ *    their look: they get an invisible hit area that extends past their edge instead.
+ *
+ * Known, deliberate exceptions: links that sit inside a sentence (a bigger hit area would break
+ * the line spacing), and the cells of a dense board (Signal's grid, Trade Empire's map) where
+ * 44 px cells would not fit a 360 px screen. Mark any other element data-touch-exempt.
+ */
+
+html :where(button, a, summary, select, input, textarea, label, [role="button"], [role="tab"], [role="link"],
+  [role="checkbox"], [role="switch"]) {
+  touch-action: manipulation;
+}
+
+@media (pointer: coarse), (max-width: 640px) {
+  html :where(button, [role="button"], [role="tab"], summary, select, textarea,
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="color"])):not([data-touch-exempt]) {
+    min-height: 44px;
+  }
+  /* Width: NOT a blanket min-width. Most toolbars are wrapping flex rows whose buttons use
+     min-width:auto (their own text width) to decide when to wrap; a 44px minimum would let
+     twice as many squeeze onto a row and clip their labels. Only the icon-only buttons need it. */
+  html #story-toggle, html #theme-toggle-floating, html .action-dock-more, html .mobile-info-dock-toggle:empty {
+    min-width: 44px;
+  }
+
+  /* Checkboxes and radios: a bigger box, and the whole label row is the hit area. */
+  html input[type="checkbox"], html input[type="radio"] {
+    width: 1.5rem;
+    height: 1.5rem;
+    flex: 0 0 auto;
+  }
+  html label:has(> input[type="checkbox"], > input[type="radio"]):not([data-touch-exempt]) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+  }
+
+  /* Shared widgets that inject their own id-qualified styles (save widget, opening screen's
+     menu button): matched with an id so they beat the widget's own min-height / padding. */
+  html #save-widget .save-widget-toggle,
+  html #save-widget button,
+  html #noyvj-menu-button,
+  html button.noyvj-menu-button {
+    min-height: 44px;
+  }
+
+  /* The small round "i" info buttons keep their size; their hit area grows invisibly. */
+  html .info-toggle summary { min-height: 0; min-width: 0; position: relative; }
+  html .info-toggle summary::after {
+    content: "";
+    position: absolute;
+    inset: -14px;
+  }
+
+  /* The "All games" back link is a short text link at the top of every game. */
+  html a.hub-back-link { position: relative; }
+  html a.hub-back-link::after {
+    content: "";
+    position: absolute;
+    inset: -14px -10px;
+  }
+}
