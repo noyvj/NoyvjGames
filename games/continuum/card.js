@@ -106,5 +106,34 @@
     }
   }
 
-  window.ContinuumCard = { download: download };
+  // K-18: downloads plain text (CSV or JSON) as a file. game.py hands it a JSON
+  // string {text, filename, mime}; the file is built in the browser and never
+  // leaves the device. Any failure (bad JSON, no Blob support) does nothing.
+  function downloadText(json) {
+    let payload;
+    try {
+      payload = JSON.parse(json);
+    } catch (err) {
+      return;
+    }
+    if (!payload || typeof payload.text !== "string") return;
+    try {
+      const mime = payload.mime === "application/json" ? "application/json" : "text/csv";
+      // A byte-order mark makes a spreadsheet open UTF-8 CSV with the right accents.
+      const body = mime === "text/csv" ? "\ufeff" + payload.text : payload.text;
+      const blob = new Blob([body], { type: mime + ";charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = String(payload.filename || "continuum-export.txt").replace(/[^A-Za-z0-9._-]/g, "-");
+      link.href = url;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    } catch (err) {
+      console.warn("Continuum export: download failed.", err);
+    }
+  }
+
+  window.ContinuumCard = { download: download, downloadText: downloadText };
 })();

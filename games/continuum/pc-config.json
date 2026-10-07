@@ -97,7 +97,8 @@
         "heading": "Scene",
         "ids": [
           "visual-mode-toggle-button",
-          "visual-snapshot-button"
+          "visual-snapshot-button",
+          "screensaver-button"
         ]
       }
     ]

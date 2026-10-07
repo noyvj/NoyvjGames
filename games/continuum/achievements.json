@@ -20,6 +20,8 @@
     { "id": "well_designed_rings", "label": "Well-Designed Rings", "description": "Fully staff your Habitat Rings with Architects (Space Age)." },
     { "id": "well_supplied_holdings", "label": "Nobody Left at the End of the Line", "description": "Keep every outlying holding fully supplied for a season (Relay Age)." },
     { "id": "a_real_city", "label": "A Real City", "description": "Grow the settlement's population to 100 or more." },
-    { "id": "looking_back", "label": "Looking Back", "description": "Revisit a completed era to see how it's held up." }
+    { "id": "looking_back", "label": "Looking Back", "description": "Revisit a completed era to see how it's held up." },
+    { "id": "par_seasons", "label": "Ahead of Schedule", "description": "Reach the Relay Age within the par number of seasons for your starting scenario (shown in the Civilization Summary). Not available in a consulting case." },
+    { "id": "par_time", "label": "Beat the Clock", "description": "Reach the Relay Age within the par number of minutes of play for your starting scenario (shown in the Civilization Summary). Not available in a consulting case." }
   ]
 }

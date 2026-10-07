@@ -1685,6 +1685,97 @@ html[data-theme="light"] .pm-decision { border-left-color: rgba(122, 74, 18, 0.5
 /* [k14 end] */
 
 /* ==========================================================================
+   Round 3 K-section, second group (2026-10-07): K-24 naming, K-18 export,
+   K-19 archive compare, K-31 monument row, K-21 screensaver, K-30 key remap.
+   ========================================================================== */
+
+/* --- K-24: the settlement name field (Founder's Log window) ---------------- */
+.settlement-name-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.3rem; }
+.settlement-name-row .research-search-input { flex: 1 1 12rem; min-width: 9rem; margin: 0; }
+.settlement-name-row button { width: auto; margin: 0; }
+.archive-line--name { font-weight: 700; font-size: 1rem; color: #e0b374; }
+
+/* --- K-18: export buttons ---------------------------------------------------- */
+.export-status { min-height: 1.2em; }
+
+/* --- K-19: compare two archived settlements ---------------------------------- */
+.archive-compare { margin: 0.6rem 0; padding: 0.6rem; border: 1px solid rgba(160, 130, 255, 0.4); border-radius: 10px; background: rgba(40, 30, 70, 0.35); overflow-x: auto; }
+.compare-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.compare-table th, .compare-table td { padding: 0.3rem 0.5rem; text-align: left; border-bottom: 1px solid rgba(201, 147, 84, 0.2); vertical-align: top; }
+.compare-table tr:first-child th { font-size: 0.78rem; opacity: 0.85; }
+.compare-table tbody th, .compare-row th { font-weight: 600; white-space: nowrap; }
+.compare-cell--lead { font-weight: 800; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.compare-row--differs .compare-delta { font-weight: 700; }
+.compare-delta { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.archive-actions button[aria-pressed="true"] { border-color: #b9a2ff; background: rgba(160, 130, 255, 0.2); font-weight: 700; }
+
+/* --- K-31: monument row (achievements panel) -------------------------------- */
+/* The panel stays one flat list of cards (same child order and ids as before) but
+   lays them out as a row of plinths, era by era, in a violet-glass accent. */
+.achievements-panel {
+  grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+  align-items: stretch;
+}
+.achievements-panel .achievements-hub-link { grid-column: 1 / -1; }
+.achievement-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border-color: rgba(160, 130, 255, 0.25);
+  border-style: dashed;
+  background: rgba(30, 24, 52, 0.45);
+}
+.achievement-card--earned {
+  border-style: solid;
+  border-color: rgba(185, 162, 255, 0.7);
+  background: linear-gradient(180deg, rgba(160, 130, 255, 0.22), rgba(90, 70, 160, 0.12));
+  box-shadow: 0 0 18px rgba(160, 130, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+}
+.monument-icon { height: 56px; margin-bottom: 0.2rem; color: #b9a2ff; line-height: 0; }
+.monument-svg { width: 48px; height: 56px; display: block; }
+.monument-svg .m-line { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.monument-svg .m-fill { stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+.monument-svg--locked .m-fill { fill: none; stroke-dasharray: 3 2.5; opacity: 0.8; }
+.monument-svg--earned .m-fill { fill: currentColor; fill-opacity: 0.85; }
+.monument-svg .m-plinth { fill: currentColor; fill-opacity: 0.35; stroke: currentColor; stroke-width: 1.5; }
+.monument-svg--locked .m-plinth { fill: none; stroke-dasharray: 3 2.5; }
+.monument-caption { margin: 0 0 0.25rem; font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.75; }
+.achievement-card--earned .monument-icon { color: #e0b374; }
+.achievement-card--earned .monument-caption { opacity: 0.9; }
+.monument-state { margin: 0.45rem 0 0; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.achievement-card--earned .monument-state { color: #e0b374; }
+.achievement-card:not(.achievement-card--earned) .monument-state { opacity: 0.6; font-weight: 600; }
+
+/* --- K-21: screensaver ---------------------------------------------------------- */
+body.screensaver-on { overflow: hidden; }
+#visual-stage.screensaver-stage:fullscreen { width: 100vw !important; height: 100vh !important; max-height: none !important; margin: 0 !important; border-radius: 0 !important; }
+#visual-stage.screensaver-stage .visual3d-container { height: 100% !important; margin: 0 !important; border-radius: 0 !important; box-shadow: none !important; cursor: default; }
+#visual-stage.screensaver-stage .hamlet-stage,
+#visual-stage.screensaver-stage .settlement-visual { display: none !important; }
+#visual-stage.screensaver-fallback { position: fixed !important; inset: 0; z-index: 2147483000; width: 100vw !important; height: 100vh !important; max-height: none !important; margin: 0 !important; border-radius: 0 !important; }
+body.screensaver-on #game, body.screensaver-on .section { backdrop-filter: none !important; transform: none !important; filter: none !important; }
+.screensaver-hint {
+  position: absolute; left: 50%; bottom: 1.4rem; transform: translateX(-50%); z-index: 5;
+  margin: 0; padding: 0.45rem 1rem; max-width: 90%; text-align: center; font-size: 0.85rem;
+  color: #fff; background: rgba(10, 8, 20, 0.72); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 999px;
+  opacity: 0; pointer-events: none; transition: opacity 0.6s ease;
+}
+.screensaver-hint.visible { opacity: 1; }
+#visual-stage:not(.screensaver-stage) .screensaver-hint { display: none; }
+.screensaver-button { margin-bottom: 0.5rem; }
+
+/* --- K-30: key remapping (Settings window) ---------------------------------- */
+.keybind-section { display: grid; gap: 0.4rem; }
+.keybind-list { display: grid; gap: 0.3rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
+.keybind-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.keybind-row .keybind-label { font-size: 0.8rem; }
+.keybind-row button { min-width: 3.2rem; width: auto; margin: 0; padding: 0.3rem 0.6rem; font-weight: 700; font-family: inherit; }
+.keybind-row button[aria-pressed="true"] { border-color: #b9a2ff; background: rgba(160, 130, 255, 0.25); }
+.keybind-status { min-height: 1.2em; }
+
+/* ==========================================================================
    Light theme (Y11b, 2026-09-27). shared/theme-light-games.css already
    restyles the common chrome (page, #game shell, .section panels, buttons,
    inputs, achievement/changelog cards, save widget). Everything below is the
@@ -1878,3 +1969,17 @@ html[data-theme="light"] .hamlet-town-dim { opacity: 0.85; }
 html[data-theme="light"] .found-settlement { border-top-color: rgba(40, 55, 110, 0.25); }
 html[data-theme="light"] .legacy-display { color: #7a4a12; }
 
+/* --- light theme for the group above ---------------------------------------- */
+html[data-theme="light"] .archive-line--name { color: #7a4a12; }
+html[data-theme="light"] .archive-compare { border-color: rgba(90, 70, 160, 0.5); background: rgba(255, 255, 255, 0.7); }
+html[data-theme="light"] .compare-table th, html[data-theme="light"] .compare-table td { border-bottom-color: rgba(40, 55, 110, 0.2); }
+html[data-theme="light"] .archive-actions button[aria-pressed="true"],
+html[data-theme="light"] .keybind-row button[aria-pressed="true"] { border-color: #4b3a8f; background: #e7defc; color: #231a52; }
+html[data-theme="light"] .achievement-card { border-color: rgba(90, 70, 160, 0.4); background: rgba(255, 255, 255, 0.7); }
+html[data-theme="light"] .achievement-card--earned { border-color: #4b3a8f; background: linear-gradient(180deg, #ece5ff, #f7f2ff); box-shadow: none; backdrop-filter: none; }
+html[data-theme="light"] .monument-icon { color: #4b3a8f; }
+html[data-theme="light"] .achievement-card--earned .monument-icon { color: #7a4a12; }
+html[data-theme="light"] .monument-caption { opacity: 1; color: #3a4468; }
+html[data-theme="light"] .monument-state { color: #3a4468; }
+html[data-theme="light"] .achievement-card--earned .monument-state { color: #7a4a12; }
+html[data-theme="light"] .achievement-card:not(.achievement-card--earned) .monument-state { opacity: 1; }

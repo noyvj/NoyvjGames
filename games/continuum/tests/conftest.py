@@ -127,6 +127,11 @@ ELEMENT_IDS = [
     "minutes-panel",
     "minutes-list",
     "founders-add-button",
+    # K-24 -- settlement naming (in the Founder's Log window).
+    "settlement-name-input",
+    "settlement-name-suggest-button",
+    "settlement-name-save-button",
+    "settlement-name-status",
     "founders-panel",
     "founders-list",
     "founders-input",

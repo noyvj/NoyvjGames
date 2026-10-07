@@ -42,6 +42,7 @@
   const TOGGLE_BUTTON_ID = "visual-mode-toggle-button";
   const CAMERA_PRESET_ROW_ID = "camera-preset-buttons";
   const SNAPSHOT_BUTTON_ID = "visual-snapshot-button"; // K13
+  const SCREENSAVER_BUTTON_ID = "screensaver-button"; // K-21
   const SETTLEMENT_2D_SELECTOR = ".settlement-visual";
   const VIEW_MODE_STORAGE_KEY = "continuum-visual-mode"; // "3d" | "2d"
 
@@ -751,7 +752,13 @@
   }
 
   // K27: keyboard access to the presets (see the shortcuts panel).
-  window.ContinuumCamera = { preset: applyCameraPreset };
+  window.ContinuumCamera = {
+    preset: applyCameraPreset,
+    // K-21: the screensaver, for the keyboard shortcut (index.html).
+    screensaver: function () {
+      if (screensaverOn) exitScreensaver(); else enterScreensaver();
+    },
+  };
 
   function setupCameraPresetButtons() {
     const row = document.getElementById(CAMERA_PRESET_ROW_ID);
@@ -840,6 +847,171 @@
     button.addEventListener("click", downloadSnapshot);
   }
 
+  // --- K-21: screensaver mode ---------------------------------------------
+  // The 3D city on its own: all other UI hidden, a slow orbit, for a second
+  // monitor. It asks the browser to make the scene stage fullscreen (Escape
+  // leaves natively); where that is refused or unsupported it falls back to a
+  // fixed full-window stage that a click or Escape leaves. Visual only: it
+  // changes no game state and does not touch the season clock (P still
+  // pauses). The orbit is the one place this file runs an animation loop, and
+  // only while the screensaver is on; with reduce motion on (the Settings
+  // toggle or the OS preference) the camera holds still instead.
+  const SCREENSAVER_SPEED = 0.07; // radians per second: one turn in about 90 seconds
+  const SCREENSAVER_FRAME_MS = 33; // about 30 frames per second
+  const SCREENSAVER_GRACE_MS = 500; // ignore the click that started it
+  let screensaverOn = false;
+  let screensaverFallback = false;
+  let screensaverRaf = 0;
+  let screensaverLast = 0;
+  let screensaverStarted = 0;
+  let screensaverSaved = null;
+  let screensaverHintTimer = 0;
+  let screensaverWired = false;
+
+  function reducedMotion() {
+    if (document.documentElement.classList.contains("reduce-motion")) return true;
+    try {
+      return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    } catch (err) {
+      return false;
+    }
+  }
+
+  function screensaverHint(text) {
+    const stage = document.getElementById("visual-stage");
+    if (!stage) return;
+    let hint = document.getElementById("screensaver-hint");
+    if (!hint) {
+      hint = document.createElement("p");
+      hint.id = "screensaver-hint";
+      hint.className = "screensaver-hint";
+      hint.setAttribute("role", "status");
+      stage.appendChild(hint);
+    }
+    hint.textContent = text;
+    hint.classList.add("visible");
+    window.clearTimeout(screensaverHintTimer);
+    screensaverHintTimer = window.setTimeout(function () { hint.classList.remove("visible"); }, 6000);
+  }
+
+  function screensaverFrame(now) {
+    if (!screensaverOn) return;
+    screensaverRaf = window.requestAnimationFrame(screensaverFrame);
+    if (document.visibilityState !== "visible") { screensaverLast = now; return; }
+    if (now - screensaverLast < SCREENSAVER_FRAME_MS) return;
+    const dt = Math.min((now - screensaverLast) / 1000, 0.25);
+    screensaverLast = now;
+    if (reducedMotion() || !renderer || !scene) return;
+    yaw += SCREENSAVER_SPEED * dt;
+    updateCameraPosition();
+    renderer.render(scene, camera);
+  }
+
+  function useScreensaverFallback() {
+    const stage = document.getElementById("visual-stage");
+    if (!stage || !screensaverOn) return;
+    screensaverFallback = true;
+    stage.classList.add("screensaver-fallback");
+    resizeToContainer();
+  }
+
+  function enterScreensaver() {
+    const container = document.getElementById(CONTAINER_ID);
+    const stage = document.getElementById("visual-stage");
+    if (!ready || screensaverOn || !container || container.hidden || !stage) return false;
+    screensaverOn = true;
+    screensaverFallback = false;
+    screensaverStarted = Date.now();
+    screensaverSaved = { yaw: yaw, pitch: pitch, distance: cameraDistance };
+    pitch = 0.5;
+    cameraDistance = 11;
+    document.body.classList.add("screensaver-on");
+    stage.classList.add("screensaver-stage");
+    updateCameraPosition();
+    const request = stage.requestFullscreen || stage.webkitRequestFullscreen;
+    if (request) {
+      try {
+        const result = request.call(stage);
+        if (result && typeof result.catch === "function") result.catch(useScreensaverFallback);
+      } catch (err) {
+        useScreensaverFallback();
+      }
+    } else {
+      useScreensaverFallback();
+    }
+    // Some embedded browsers neither grant nor refuse: do not wait forever.
+    window.setTimeout(function () {
+      if (screensaverOn && !screensaverFallback && !(document.fullscreenElement || document.webkitFullscreenElement)) {
+        useScreensaverFallback();
+      }
+    }, 700);
+    window.setTimeout(resizeToContainer, 60);
+    screensaverLast = performance.now();
+    screensaverRaf = window.requestAnimationFrame(screensaverFrame);
+    screensaverHint(
+      reducedMotion()
+        ? "Screensaver. The camera holds still because reduce motion is on. Click or press Esc to leave."
+        : "Screensaver. Click or press Esc to leave. P pauses time."
+    );
+    return true;
+  }
+
+  function exitScreensaver() {
+    if (!screensaverOn) return;
+    screensaverOn = false;
+    window.cancelAnimationFrame(screensaverRaf);
+    window.clearTimeout(screensaverHintTimer);
+    const stage = document.getElementById("visual-stage");
+    document.body.classList.remove("screensaver-on");
+    if (stage) stage.classList.remove("screensaver-stage", "screensaver-fallback");
+    const hint = document.getElementById("screensaver-hint");
+    if (hint) hint.classList.remove("visible");
+    const fsElement = document.fullscreenElement || document.webkitFullscreenElement;
+    if (fsElement) {
+      try { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (err) { /* already out */ }
+    }
+    if (screensaverSaved) {
+      yaw = screensaverSaved.yaw;
+      pitch = screensaverSaved.pitch;
+      cameraDistance = screensaverSaved.distance;
+      screensaverSaved = null;
+    }
+    updateCameraPosition();
+    window.setTimeout(resizeToContainer, 60);
+  }
+
+  function setupScreensaver() {
+    const button = document.getElementById(SCREENSAVER_BUTTON_ID);
+    if (!button || screensaverWired) return;
+    screensaverWired = true;
+    button.addEventListener("click", function () {
+      if (screensaverOn) exitScreensaver(); else enterScreensaver();
+    });
+    // Escape leaves the in-window fallback. Captured first and stopped so the
+    // Desktop layout's own Escape (open the Menu) does not also fire.
+    window.addEventListener("keydown", function (event) {
+      if (!screensaverOn || event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      exitScreensaver();
+    }, true);
+    // A click or tap on the scene leaves it, after a short grace period.
+    document.addEventListener("pointerdown", function (event) {
+      if (!screensaverOn || Date.now() - screensaverStarted < SCREENSAVER_GRACE_MS) return;
+      const stage = document.getElementById("visual-stage");
+      if (stage && stage.contains(event.target)) exitScreensaver();
+    }, true);
+    // The browser's own fullscreen exit (Escape, or the user's gesture).
+    function onFullscreenChange() {
+      const inFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      if (screensaverOn && !screensaverFallback && !inFullscreen && Date.now() - screensaverStarted > 200) {
+        exitScreensaver();
+      }
+    }
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", onFullscreenChange);
+  }
+
   function attachDragControls(container) {
     container.style.touchAction = "none";
     container.addEventListener("pointerdown", function (event) {
@@ -921,6 +1093,7 @@
     const button = document.getElementById(TOGGLE_BUTTON_ID);
     const presetRow = document.getElementById(CAMERA_PRESET_ROW_ID);
     const snapshotButton = document.getElementById(SNAPSHOT_BUTTON_ID);
+    const screensaverButton = document.getElementById(SCREENSAVER_BUTTON_ID);
     if (!container || !fallback) return;
     if (mode === "3d") {
       container.hidden = false;
@@ -931,6 +1104,7 @@
       // so the button only ever shows alongside a live 3D scene, the same
       // gating the camera-preset row above already uses.
       if (snapshotButton) snapshotButton.hidden = false;
+      if (screensaverButton) screensaverButton.hidden = false;
     } else {
       container.hidden = true;
       fallback.hidden = false;
@@ -938,6 +1112,8 @@
       // Camera presets only mean anything with a live 3D scene on screen.
       if (presetRow) presetRow.hidden = true;
       if (snapshotButton) snapshotButton.hidden = true;
+      if (screensaverButton) screensaverButton.hidden = true;
+      if (screensaverOn) exitScreensaver();
     }
     try {
       window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode);
@@ -1037,6 +1213,7 @@
       setupToggleButton();
       setupCameraPresetButtons();
       setupSnapshotButton();
+      setupScreensaver();
       if (window.ContinuumHamlet && window.ContinuumHamlet.sceneReady) {
         window.ContinuumHamlet.sceneReady();
       }

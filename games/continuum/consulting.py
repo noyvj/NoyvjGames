@@ -172,7 +172,8 @@ def abandon(campaign, chronicle=None):
     # O-5/O-7: a pending founder's legacy and the earlier-settlements
     # achievement list belong to the player, not to the case, so they
     # survive the reset (everything else in `ui` is per-settlement).
-    kept = {k: campaign.ui[k] for k in ("legacy", "earned_before") if k in campaign.ui}
+    # K-24: so does the settlement's chosen name (the case is the same settlement, started again).
+    kept = {k: campaign.ui[k] for k in ("legacy", "earned_before", "settlement_name") if k in campaign.ui}
     fresh = save.Campaign()
     campaign.load_dict(fresh.to_dict())
     campaign.state.__init__()  # also clears peak/lowest score, which load_dict keeps

@@ -40,12 +40,16 @@ if _HERE not in sys.path:
 import archive  # noqa: E402
 import challenges  # noqa: E402
 import consulting  # noqa: E402
+import dataexport  # noqa: E402
 import explain  # noqa: E402
 import founding  # noqa: E402
 import hamlet  # noqa: E402
 import info_content  # noqa: E402
 import info_page  # noqa: E402
 import minutes  # noqa: E402
+import monuments  # noqa: E402
+import naming  # noqa: E402
+import par  # noqa: E402
 import postmortem  # noqa: E402
 import narrative_log  # noqa: E402
 import research  # noqa: E402
@@ -522,12 +526,21 @@ def _today():
 
 
 def current_record(thumbnail=""):
-    return archive.make_record(campaign, len(achievement_ids_earned()), _today(), thumbnail)
+    return archive.make_record(
+        campaign,
+        len(achievement_ids_earned()),
+        _today(),
+        thumbnail,
+        name=settlement_name(),
+        researched=None if campaign.revisiting else len(tree.researched),
+        minutes=int(play_seconds() // 60),
+    )
 
 
 def on_archive_current(event=None):
     global _archive_confirm_clear
     _archive_confirm_clear = False
+    del _compare_picks[:]
     record = current_record(archive.clean_thumbnail(_capture_image(320, 0.7)))
     if record is not None:
         archive_store(archive.add_record(archive_load(), record))
@@ -536,6 +549,7 @@ def on_archive_current(event=None):
 
 def _make_archive_delete_handler(index):
     def handler(event=None):
+        del _compare_picks[:]  # indexes shift after a delete
         archive_store(archive.remove_record(archive_load(), index))
         update_summary_panel()
     return handler
@@ -547,8 +561,146 @@ def on_archive_clear(event=None):
         _archive_confirm_clear = True
     else:
         _archive_confirm_clear = False
+        del _compare_picks[:]
         archive_store([])
     update_summary_panel()
+
+
+# --- K-19: compare two archived settlements ---------------------------------
+# Session-only: the archive indexes picked for comparison, in pick order (A then B).
+_compare_picks = []
+
+
+def _make_compare_handler(index):
+    def handler(event=None):
+        if index in _compare_picks:
+            _compare_picks.remove(index)
+        else:
+            if len(_compare_picks) >= 2:
+                del _compare_picks[0]  # a third pick replaces the oldest
+            _compare_picks.append(index)
+        update_summary_panel()
+    return handler
+
+
+def on_compare_clear(event=None):
+    del _compare_picks[:]
+    update_summary_panel()
+
+
+def _compare_cell(parent, tag, text, css=None):
+    cell = document.createElement(tag)
+    if css:
+        cell.className = css
+    cell.innerText = text
+    parent.appendChild(cell)
+    return cell
+
+
+def _render_compare_table(panel, records):
+    """The side-by-side table for the two picked entries (nothing when fewer than two)."""
+    picks = [i for i in _compare_picks if 0 <= i < len(records)]
+    if len(picks) != 2:
+        return
+    a, b = records[picks[0]], records[picks[1]]
+    rows = archive.compare(a, b)
+    if not rows:
+        return
+    box = document.createElement("div")
+    box.className = "archive-compare"
+    box.id = "archive-compare-box"
+    heading = document.createElement("h3")
+    heading.className = "summary-eras-heading"
+    heading.innerText = "Comparing two settlements"
+    box.appendChild(heading)
+    note = document.createElement("p")
+    note.className = "row-blurb"
+    note.innerText = "The difference column is B minus A. The settlement ahead on each row is in bold and underlined."
+    box.appendChild(note)
+    for letter, record, index in (("A", a, picks[0]), ("B", b, picks[1])):
+        who = document.createElement("p")
+        who.className = "row-blurb compare-who"
+        who.innerText = f"{letter}: {archive.record_label(record, index)}"
+        box.appendChild(who)
+    table = document.createElement("table")
+    table.className = "compare-table"
+    head = document.createElement("tr")
+    _compare_cell(head, "th", "")
+    _compare_cell(head, "th", "A")
+    _compare_cell(head, "th", "B")
+    _compare_cell(head, "th", "Difference (B \u2212 A)")
+    table.appendChild(head)
+    for row in rows:
+        line = document.createElement("tr")
+        line.className = "compare-row compare-row--differs" if row["delta"] not in ("\u25AC same", "same", "no comparison") else "compare-row"
+        _compare_cell(line, "th", row["label"])
+        _compare_cell(line, "td", row["a"], "compare-cell compare-cell--lead" if row["lead"] == "a" else "compare-cell")
+        _compare_cell(line, "td", row["b"], "compare-cell compare-cell--lead" if row["lead"] == "b" else "compare-cell")
+        _compare_cell(line, "td", row["delta"], "compare-delta")
+        table.appendChild(line)
+    box.appendChild(table)
+    actions = document.createElement("div")
+    actions.className = "archive-actions"
+    _archive_button(actions, "archive-compare-clear-button", "Stop comparing", on_compare_clear)
+    box.appendChild(actions)
+    panel.appendChild(box)
+
+
+# --- K-18: export the run as CSV / JSON -------------------------------------
+_export_status = ""
+
+
+def _download_text(text, filename, mime):
+    window = _js_window()
+    card = getattr(window, "ContinuumCard", None) if window is not None else None
+    download = getattr(card, "downloadText", None)
+    if download is None:
+        return False
+    try:
+        download(json.dumps({"text": text, "filename": filename, "mime": mime}))
+    except Exception:
+        return False
+    return True
+
+
+def export_text(kind):
+    """(text, filename, mime) for one export kind, or None when there is nothing to export.
+
+    kinds: "stats" (per-season stats CSV), "minutes" (Council Minutes CSV),
+    "run" (both, with the settlement's name, as JSON).
+    """
+    history = statlog.rows(campaign.ui)
+    entries = minutes.entries(campaign.ui)
+    name = settlement_name()
+    today = _today()
+    if kind == "stats":
+        if not history:
+            return None
+        return dataexport.stats_csv(history), dataexport.filename("stats", name, today), dataexport.CSV_MIME
+    if kind == "minutes":
+        if not entries:
+            return None
+        return dataexport.minutes_csv(entries), dataexport.filename("minutes", name, today), dataexport.CSV_MIME
+    if kind == "run":
+        if not history and not entries:
+            return None
+        text = dataexport.run_json(name, state.scenario, state.hard_mode, history, entries)
+        return text, dataexport.filename("run", name, today), dataexport.JSON_MIME
+    return None
+
+
+def _make_export_handler(kind):
+    def handler(event=None):
+        global _export_status
+        result = export_text(kind)
+        if result is None:
+            _export_status = "Nothing to export yet: play a season (or make a decision) first."
+        elif _download_text(*result):
+            _export_status = f"Downloaded {result[1]}."
+        else:
+            _export_status = "The download could not start in this browser."
+        update_summary_panel()
+    return handler
 
 
 def _download_card(record, thumbnail):
@@ -558,7 +710,7 @@ def _download_card(record, thumbnail):
     if download is None:
         return False
     payload = {
-        "title": "Continuum",
+        "title": archive.title_of(record),
         "lines": archive.card_lines(record),
         "thumb": thumbnail,
         "filename": f"continuum-card-{record['era']}-{record['saved_on']}.png",
@@ -603,6 +755,34 @@ def _found_button(parent, button_id):
     return button
 
 
+def _render_export_section(panel):
+    """K-18: the three download buttons and their status line."""
+    heading = document.createElement("h3")
+    heading.className = "summary-eras-heading"
+    heading.innerText = "Export your data"
+    panel.appendChild(heading)
+    note = document.createElement("p")
+    note.className = "row-blurb"
+    note.innerText = (
+        "Download this settlement's numbers: one row per season (CSV), the Council Minutes (CSV), "
+        "or both with the settlement's name (JSON). Kept on your device; nothing is sent anywhere."
+    )
+    panel.appendChild(note)
+    actions = document.createElement("div")
+    actions.className = "archive-actions"
+    _archive_button(actions, "export-stats-button", "Per-season stats (CSV)", _make_export_handler("stats"))
+    _archive_button(actions, "export-minutes-button", "Council Minutes (CSV)", _make_export_handler("minutes"))
+    _archive_button(actions, "export-run-button", "Everything (JSON)", _make_export_handler("run"))
+    panel.appendChild(actions)
+    status = document.createElement("p")
+    status.id = "export-status"
+    status.className = "row-blurb export-status"
+    status.setAttribute("role", "status")
+    status.setAttribute("aria-live", "polite")
+    status.innerText = _export_status
+    panel.appendChild(status)
+
+
 def _render_archive_section(panel):
     """Appends the archive gallery + card buttons to the summary panel."""
     for proxy in _archive_proxies:
@@ -627,6 +807,13 @@ def _render_archive_section(panel):
     _archive_button(actions, "archive-card-current-button", "Download a shareable card", on_card_current)
     _found_button(actions, "archive-found-button")
     panel.appendChild(actions)
+    _render_export_section(panel)
+    if len(records) >= 2:
+        hint = document.createElement("p")
+        hint.className = "row-blurb"
+        hint.innerText = "Pick two filed settlements with their Compare buttons to see them side by side."
+        panel.appendChild(hint)
+    _render_compare_table(panel, records)
 
     gallery = document.createElement("div")
     gallery.className = "archive-gallery"
@@ -642,6 +829,11 @@ def _render_archive_section(panel):
             card.appendChild(image)
         text = document.createElement("div")
         text.className = "archive-text"
+        if record.get("name"):
+            name_row = document.createElement("p")
+            name_row.className = "archive-line archive-line--name"
+            name_row.innerText = record["name"]
+            text.appendChild(name_row)
         for i, line in enumerate(archive.card_lines(record)):
             row = document.createElement("p")
             row.className = "archive-line archive-line--head" if i == 0 else "archive-line"
@@ -655,6 +847,13 @@ def _render_archive_section(panel):
         buttons = document.createElement("div")
         buttons.className = "archive-actions"
         _archive_button(buttons, f"archive-card-{index}-button", "Card", _make_card_handler(index))
+        picked = index in _compare_picks
+        compare_label = "Compare"
+        if picked:
+            compare_label = "Comparing as " + ("A" if _compare_picks.index(index) == 0 else "B")
+        compare_button = _archive_button(buttons, f"archive-compare-{index}-button", compare_label, _make_compare_handler(index))
+        compare_button.setAttribute("aria-pressed", "true" if picked else "false")
+        compare_button.setAttribute("aria-label", f"{compare_label}: {archive.record_label(record, index)}")
         _archive_button(buttons, f"archive-delete-{index}-button", "Delete", _make_archive_delete_handler(index))
         _found_button(buttons, f"archive-found-{index}-button")
         card.appendChild(buttons)
@@ -764,6 +963,8 @@ def found_new_settlement():
     season_progress = 0.0
     _last_tick = time.time()
     _archive_confirm_clear = False
+    del _compare_picks[:]
+    sync_name_input()
     found_status = (
         "A new settlement is founded. The old one is filed in the archive. Pick a starting "
         "scenario, Hard Mode or a consulting case, then press 1x to begin."
@@ -905,6 +1106,8 @@ def update_founders_panel():
 def on_toggle_founders(event=None):
     global founders_log_open
     founders_log_open = not founders_log_open
+    if founders_log_open:
+        sync_name_input()
     update_founders_panel()
 
 
@@ -913,6 +1116,46 @@ def on_add_founders_note(event=None):
     if add_founders_note(field.value):
         field.value = ""
         update_founders_panel()
+
+
+# --- K-24: naming the settlement --------------------------------------------
+# The name lives in campaign.ui (naming.py); the input in the Founder's Log
+# window is only written to on open, on a suggestion and after a save, never on
+# an ordinary render, so it never overwrites what the player is typing.
+_name_roll = int(time.time() * 1000) % 100003
+
+
+def settlement_name():
+    return naming.get(campaign.ui)
+
+
+def sync_name_input():
+    document.getElementById("settlement-name-input").value = settlement_name()
+
+
+def _name_status(text):
+    document.getElementById("settlement-name-status").innerText = text
+
+
+def on_name_suggest(event=None):
+    global _name_roll
+    _name_roll += 1
+    suggestion = naming.suggest(state.era, _name_roll)
+    document.getElementById("settlement-name-input").value = suggestion
+    _name_status(f"Suggested: {suggestion}. Press Save name to keep it, or suggest another.")
+
+
+def on_name_save(event=None):
+    field = document.getElementById("settlement-name-input")
+    stored = naming.set_name(campaign.ui, field.value)
+    field.value = stored
+    _name_status(f"Your settlement is named {stored}." if stored else "No name set. The settlement is unnamed.")
+    render()
+
+
+def on_name_keydown(event=None):
+    if getattr(event, "key", None) == "Enter":
+        on_name_save()
 
 
 # --- K5 council minutes -------------------------------------------------
@@ -1066,7 +1309,7 @@ def update_summary_panel():
     # K7: in-character stakeholder-report framing, K17: efficiency rank.
     statement = document.createElement("p")
     statement.className = "row-blurb summary-statement"
-    statement.innerText = summary.stakeholder_statement(data, data["rank"])
+    statement.innerText = summary.stakeholder_statement(data, data["rank"], settlement_name())
     panel.appendChild(statement)
     if data["rank"]:
         _summary_stat_row(panel, f"Efficiency rank: {data['rank']} city.")
@@ -1105,6 +1348,9 @@ def update_summary_panel():
         )
     if data["journey_complete"]:
         _summary_stat_row(panel, f"This settlement has carried its story all the way to the {sim.ERA_LABEL[sim.ERA_ORDER[-1]]}.")
+    if consulting.get(campaign.ui) is None:
+        for line in par.lines(state.scenario, SEASON_SECONDS, par.get(campaign.ui), data["total_seasons"], play_seconds()):
+            _summary_stat_row(panel, line)
     if data["has_revisited"]:
         _summary_stat_row(panel, "You've looked back at least once during this playthrough.")
     _summary_stat_row(panel, f"Achievements earned: {len(achievement_ids_earned())} of {len(ACHIEVEMENTS)}.")
@@ -1316,8 +1562,8 @@ def on_abandon_challenge(event=None):
 
 def render_insights(effects):
     year, season_name = year_and_season(state.season)
-    document.getElementById("founded-display").innerText = (
-        f"Founded Year 1 · now Year {year}, {season_name}"
+    document.getElementById("founded-display").innerText = naming.with_name(
+        settlement_name(), f"Founded Year 1 · now Year {year}, {season_name}"
     )
     index = trajectory.current_output_index(state)
     document.getElementById("efficiency-display").innerText = (
@@ -1586,8 +1832,23 @@ def render_era_progress(effects):
     button.disabled = not ready
 
 
+def _record_par():
+    """K-26: stores the run's season count and time the moment the last era is entered."""
+    if campaign.furthest_era != par.final_era():
+        return False
+    return par.record(
+        campaign.ui,
+        max(1, int(state.season) - 1),
+        play_seconds(),
+        state.scenario,
+        already_inherited=consulting.get(campaign.ui) is not None,
+    )
+
+
 def on_advance_era(event=None):
     if transition.attempt_transition(campaign):
+        _tick_play_time()
+        _record_par()
         record_motion("era", sim.ERA_LABEL[state.era] + " era")
         update_minutes_panel()
         render()
@@ -1832,6 +2093,9 @@ ACHIEVEMENT_CHECKS = {
     "well_supplied_holdings": _well_supplied_holdings,
     "a_real_city": lambda: state.population >= A_REAL_CITY_POPULATION,
     "looking_back": lambda: campaign.has_revisited,
+    # K-26: the par-time badges, from the result stored on entering the last era.
+    "par_seasons": lambda: par.seasons_earned(par.get(campaign.ui)),
+    "par_time": lambda: par.time_earned(par.get(campaign.ui), SEASON_SECONDS),
 }
 
 # Progress readouts, only for achievements with a natural numeric scale-up —
@@ -1899,10 +2163,28 @@ def update_achievements_display():
         return
 
     panel.innerHTML = ""
-    for entry in achievements_summary():
+    # K-31: a "monument row": each card stands on a plinth with a drawn monument
+    # for its era, laid out era by era. Order is chronological, then catalog order.
+    ordered = sorted(
+        enumerate(achievements_summary()),
+        key=lambda pair: monuments.sort_key(pair[1]["id"], pair[0]),
+    )
+    for _index, entry in ordered:
+        kind = monuments.kind_of(entry["id"])
         card = document.createElement("div")
         card.className = "achievement-card achievement-card--earned" if entry["earned"] else "achievement-card"
         card.dataset.achievementId = entry["id"]
+
+        icon = document.createElement("div")
+        icon.className = "monument-icon"
+        icon.setAttribute("aria-hidden", "true")
+        icon.innerHTML = monuments.icon_svg(kind, entry["earned"])
+        card.appendChild(icon)
+
+        era_caption = document.createElement("p")
+        era_caption.className = "monument-caption"
+        era_caption.innerText = monuments.caption(kind)
+        card.appendChild(era_caption)
 
         label = document.createElement("p")
         label.className = "achievement-card-label"
@@ -1913,6 +2195,11 @@ def update_achievements_display():
         description.className = "achievement-card-description"
         description.innerText = entry["description"]
         card.appendChild(description)
+
+        state_text = document.createElement("p")
+        state_text.className = "monument-state"
+        state_text.innerText = "Earned" if entry["earned"] else "Not yet earned"
+        card.appendChild(state_text)
 
         if not entry["earned"] and entry["progress"] is not None:
             current, target = entry["progress"]
@@ -3002,8 +3289,9 @@ def _pc_hud_update(effects):
         else:
             lines = ["Trend unavailable right now."]
         _pc_hud_fill(els["dropdown"], name, lines)
-    _pc_hud_els["_era"]["el"].innerText = (
-        f"{sim.ERA_LABEL[state.era]}, season {state.season}  \u00B7  idle {state.idle_workers()}"
+    _pc_hud_els["_era"]["el"].innerText = naming.with_name(
+        settlement_name(),
+        f"{sim.ERA_LABEL[state.era]}, season {state.season}  \u00B7  idle {state.idle_workers()}",
     )
     setup = _pc_hud_els["_setup"]["el"]
     show_setup = not _scenario_locked()
@@ -3314,6 +3602,7 @@ def load_state(data):
     if not campaign.load_dict(data):
         return False
     info_page_open = bool(campaign.ui.get("info_page_open", False))
+    sync_name_input()
     render()
     _seed_achievement_toast_baseline()
     return True
@@ -3404,6 +3693,15 @@ def setup():
     )
     document.getElementById("founders-add-button").addEventListener(
         "click", create_proxy(on_add_founders_note)
+    )
+    document.getElementById("settlement-name-suggest-button").addEventListener(
+        "click", create_proxy(on_name_suggest)
+    )
+    document.getElementById("settlement-name-save-button").addEventListener(
+        "click", create_proxy(on_name_save)
+    )
+    document.getElementById("settlement-name-input").addEventListener(
+        "keydown", create_proxy(on_name_keydown)
     )
     # K12 — three static scenario buttons (never rebuilt at runtime, unlike
     # the dynamic per-era rows elsewhere in this file), so each gets its

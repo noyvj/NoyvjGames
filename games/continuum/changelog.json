@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-07",
+    "entry": "New: name your settlement (Founder's Log window, with era-flavoured suggestions) and see the name on the founding plaque, the Summary, the archive and the shareable card. Export your run as CSV or JSON from the Civilization Summary. Compare any two archived settlements side by side. Par badges for reaching the Relay Age quickly (seasons and time). Achievements are now a row of monuments, one picture per era. A Screensaver mode shows only the slowly turning 3D city (Scene menu, or press S), and you can remap the keyboard shortcuts in Settings."
+  },
+  {
+    "date": "2026-10-07",
     "entry": "City Views now shows a small sparkline next to every stat (the last 20 seasons) and a change arrow, and hovering or focusing a stat such as Food, People or the Score opens a little waterfall of the top three things that moved it last season. The Civilization Summary has a new Post-mortem report: what went well, what went wrong, the root cause of the biggest livability drop and three decisions to look at again, written from your stats and Council Minutes."
   },
   {

@@ -155,13 +155,15 @@ def efficiency_rank(peak, hard_mode=False):
     return RANKS.get(sustainability.score_label(peak, hard_mode), "Bronze")
 
 
-def stakeholder_statement(data, rank):
+def stakeholder_statement(data, rank, name=""):
     """K7: the report's in-character opening paragraph, in the register of
-    an annual report to stakeholders. Plain facts, framed; no new numbers."""
+    an annual report to stakeholders. Plain facts, framed; no new numbers.
+    K-24: a named settlement is addressed by name."""
     rating = f"{data['peak_score']:.0f}/100" if data["peak_score"] is not None else "not yet rated"
     rank_text = f" The council's efficiency rank stands at {rank}." if rank else ""
+    who = f"the settlement of {name}" if name else "the settlement"
     return (
-        f"To the citizens and stakeholders of the settlement: over {data['total_seasons']} seasons "
+        f"To the citizens and stakeholders of {who}: over {data['total_seasons']} seasons "
         f"we grew to a peak of {data['peak_population']} people and reached the "
         f"{data['furthest_era_label']} era. Our sustainability rating at its best was {rating}."
         f"{rank_text} What follows is the record of how each era went."

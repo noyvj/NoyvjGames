@@ -19,6 +19,7 @@ import json
 import math
 import re
 
+import naming
 import sim
 import summary
 
@@ -48,12 +49,20 @@ def _int(value, low=0, high=10**7):
     return min(max(int(value), low), high)
 
 
-def make_record(campaign, achievements, saved_on, thumbnail=""):
-    """Builds one archive record from a live campaign."""
+def make_record(campaign, achievements, saved_on, thumbnail="", name="", researched=None, minutes=None):
+    """Builds one archive record from a live campaign.
+
+    `name` (K-24), `researched` (discoveries made) and `minutes` (time played)
+    are optional extras, stored only when given, so older records and callers
+    stay valid.
+    """
     data = summary.summary(campaign)
     peak = data["peak_score"]
     return clean_record(
         {
+            "name": name,
+            "researched": researched,
+            "minutes": minutes,
             "saved_on": saved_on,
             "era": data["furthest_era"],
             "seasons": data["total_seasons"],
@@ -88,7 +97,7 @@ def clean_record(raw):
         else:
             peak = min(max(float(peak), 0.0), 100.0)
     rank = raw.get("rank")
-    return {
+    record = {
         "saved_on": saved_on,
         "era": era,
         "seasons": seasons,
@@ -100,6 +109,17 @@ def clean_record(raw):
         "achievements": achievements,
         "thumb": clean_thumbnail(raw.get("thumb")),
     }
+    # Optional extras: present only when valid, so a record without them is still a valid record.
+    name = naming.clean(raw.get("name"))
+    if name:
+        record["name"] = name
+    researched = _int(raw.get("researched"), 0, 10**4)
+    if researched is not None:
+        record["researched"] = researched
+    minutes = _int(raw.get("minutes"), 0, 10**6)
+    if minutes is not None:
+        record["minutes"] = minutes
+    return record
 
 
 def clean_records(raw):
@@ -135,7 +155,7 @@ def remove_record(records, index):
     return records[:index] + records[index + 1:]
 
 
-_SAME_KEYS = ("era", "seasons", "peak_population", "peak_score", "rank", "scenario", "hard_mode", "achievements")
+_SAME_KEYS = ("era", "seasons", "peak_population", "peak_score", "rank", "scenario", "hard_mode", "achievements", "name")
 
 
 def same_settlement(a, b):
@@ -163,4 +183,87 @@ def card_lines(record):
         lines.append(f"{record['rank']} efficiency rank")
     lines.append(f"{sim.SCENARIOS[record['scenario']]['label']}" + (", Hard Mode" if record["hard_mode"] else ""))
     lines.append(f"{record['achievements']} achievements")
+    if "researched" in record:
+        lines.append(f"{record['researched']} discoveries")
+    if "minutes" in record:
+        lines.append(f"{record['minutes']} minutes played")
     return lines
+
+
+def title_of(record):
+    """The settlement's name for a heading (the game's own name when it has none)."""
+    return naming.title(record.get("name", "") if isinstance(record, dict) else "")
+
+
+def record_label(record, index=None):
+    """A short label that tells two archive entries apart: the name, else the era and filing date."""
+    name = record.get("name", "")
+    where = f"{sim.ERA_LABEL[record['era']]} era, season {record['seasons']}, filed {record['saved_on']}"
+    if name:
+        return f"{name} ({where})"
+    return f"Settlement {index + 1} ({where})" if isinstance(index, int) else where
+
+
+# --- K-19: compare two archived settlements --------------------------------
+_RANK_ORDER = {"Bronze": 1, "Silver": 2, "Gold": 3}
+
+
+def _delta_text(diff, unit="", digits=0):
+    if diff == 0:
+        return "\u25AC same"
+    sign = "+" if diff > 0 else "\u2212"
+    arrow = "\u25B2" if diff > 0 else "\u25BC"
+    return f"{arrow} {sign}{abs(diff):.{digits}f}{unit}"
+
+
+def _number_row(label, a, b, unit="", digits=0):
+    """One comparable number row; `a`/`b` may be None (missing on an older record)."""
+    if a is None or b is None:
+        return {"label": label, "a": _show(a, unit, digits), "b": _show(b, unit, digits), "delta": "no comparison", "lead": None}
+    diff = b - a
+    lead = None if diff == 0 else ("b" if diff > 0 else "a")
+    return {"label": label, "a": _show(a, unit, digits), "b": _show(b, unit, digits), "delta": _delta_text(diff, unit, digits), "lead": lead}
+
+
+def _show(value, unit="", digits=0):
+    return "not recorded" if value is None else f"{value:.{digits}f}{unit}"
+
+
+def compare(a, b):
+    """Rows comparing two cleaned archive records, A against B.
+
+    Each row is {"label", "a", "b", "delta", "lead"} where `delta` is B minus A
+    as text (the arrow and sign are words and symbols, never colour alone) and
+    `lead` names the larger side ("a", "b") or is None when equal or unknown.
+    Returns [] unless both are valid records.
+    """
+    if clean_record(a) is None or clean_record(b) is None:
+        return []
+    era_a, era_b = sim.era_index(a["era"]), sim.era_index(b["era"])
+    rank_a, rank_b = _RANK_ORDER.get(a.get("rank")), _RANK_ORDER.get(b.get("rank"))
+    rows = [
+        {
+            "label": "Furthest era",
+            "a": sim.ERA_LABEL[a["era"]],
+            "b": sim.ERA_LABEL[b["era"]],
+            "delta": _delta_text(era_b - era_a, " eras" if abs(era_b - era_a) != 1 else " era"),
+            "lead": None if era_a == era_b else ("b" if era_b > era_a else "a"),
+        },
+        _number_row("Seasons played", a["seasons"], b["seasons"]),
+        _number_row("Peak population", a["peak_population"], b["peak_population"]),
+        _number_row("Peak sustainability", a["peak_score"], b["peak_score"], " / 100", 0),
+        {
+            "label": "Efficiency rank",
+            "a": a.get("rank") or "none",
+            "b": b.get("rank") or "none",
+            "delta": "no comparison" if rank_a is None or rank_b is None else _delta_text(rank_b - rank_a, " steps" if abs(rank_b - rank_a) != 1 else " step"),
+            "lead": None if rank_a is None or rank_b is None or rank_a == rank_b else ("b" if rank_b > rank_a else "a"),
+        },
+        _number_row("Achievements", a["achievements"], b["achievements"]),
+        _number_row("Discoveries researched", a.get("researched"), b.get("researched")),
+        _number_row("Minutes played", a.get("minutes"), b.get("minutes")),
+    ]
+    scen_a = sim.SCENARIOS[a["scenario"]]["label"] + (", Hard Mode" if a["hard_mode"] else "")
+    scen_b = sim.SCENARIOS[b["scenario"]]["label"] + (", Hard Mode" if b["hard_mode"] else "")
+    rows.append({"label": "Opening", "a": scen_a, "b": scen_b, "delta": "same" if scen_a == scen_b else "different", "lead": None})
+    return rows

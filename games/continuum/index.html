@@ -75,9 +75,10 @@
         <li><kbd>?</kbd> show or hide this list</li>
         <li><kbd>P</kbd> pause or resume time</li>
         <li><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> camera: overview, close-up, aerial, isometric</li>
+        <li><kbd>S</kbd> screensaver on or off (Esc or a click leaves it)</li>
         <li><kbd>Esc</kbd> close this list</li>
       </ul>
-      <p class="settings-note">Shortcuts pause while you are typing in the research search box.</p>
+      <p class="settings-note">Shortcuts pause while you are typing in a text box. You can change the keys in Settings.</p>
     </div>
     <!-- Milestone 15: rows are built by game.py — see update_achievements_display(). -->
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
@@ -110,6 +111,14 @@
     <!-- K15: personal annotations, stamped with the current era and season. -->
     <div id="founders-panel" class="section founders-panel" hidden>
       <h2 class="section-heading">Founder's Log</h2>
+      <!-- K-24: name the settlement. Shown on the founding plaque, the Summary, the archive and the shareable card. -->
+      <div class="settlement-name-row">
+        <label class="settings-row-label" for="settlement-name-input">Settlement name</label>
+        <input id="settlement-name-input" class="research-search-input" type="text" maxlength="28" autocomplete="off" placeholder="Unnamed settlement" aria-describedby="settlement-name-status">
+        <button id="settlement-name-suggest-button" class="secondary" type="button" title="Suggest a name that suits the current era.">Suggest a name</button>
+        <button id="settlement-name-save-button" class="secondary" type="button">Save name</button>
+      </div>
+      <p id="settlement-name-status" class="row-blurb" role="status" aria-live="polite">Up to 28 letters, numbers, spaces, apostrophes, hyphens and full stops. Leave it empty for no name.</p>
       <input id="founders-input" class="research-search-input" type="text" maxlength="200" placeholder="A note on what you decided, and why...">
       <button id="founders-add-button" class="secondary" type="button">Add entry</button>
       <div id="founders-list"></div>
@@ -146,6 +155,13 @@
       <div class="settings-row">
         <span class="settings-row-label">Theme</span>
         <button id="theme-toggle" class="secondary" type="button" aria-pressed="false">Light mode</button>
+      </div>
+      <!-- K-30: remap the keyboard shortcuts (settings.js builds the rows). -->
+      <div class="settings-row keybind-section">
+        <span class="settings-row-label" id="keybind-heading">Keyboard shortcuts</span>
+        <div id="keybind-list" class="keybind-list" role="group" aria-labelledby="keybind-heading"></div>
+        <p id="keybind-status" class="settings-note keybind-status" role="status" aria-live="polite"></p>
+        <button id="keybind-reset-button" class="secondary" type="button">Reset shortcuts</button>
       </div>
       <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
@@ -262,6 +278,9 @@
            gating as the camera-preset row below, since a snapshot of the
            2D CSS diorama wouldn't be this feature's point. -->
       <button id="visual-snapshot-button" class="secondary visual-snapshot-button" type="button" hidden title="Downloads the current 3D view as a PNG image.">📸 Save Snapshot</button>
+      <!-- K-21: the 3D city on its own, slowly turning, all other UI hidden (render3d.js).
+           Shown only while a real 3D scene exists, like the snapshot button. -->
+      <button id="screensaver-button" class="secondary screensaver-button" type="button" hidden title="Show only the 3D city, slowly turning, full screen: handy for a second monitor. Click or press Esc to leave." aria-label="Screensaver: show only the 3D city, slowly turning, full screen. Click or press Escape to leave.">🌙 Screensaver</button>
       <!-- K6 (planning/TODO.md): named camera presets for the 3D scene.
            render3d.js shows this row only once a real WebGL scene exists
            (same gating as the 2D/3D toggle above) and wires each button to
@@ -540,16 +559,21 @@
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       const panel = document.getElementById("shortcuts-panel");
-      if (event.key === "?") { panel.hidden = !panel.hidden; return; }
       if (event.key === "Escape") { panel.hidden = true; return; }
-      if (event.key === "p" || event.key === "P") {
+      // K-30: the keys come from Settings (settings.js), defaults otherwise.
+      const keys = window.ContinuumKeys;
+      if (keys && keys.isCapturing && keys.isCapturing()) return;
+      const defaults = { "?": "help", "p": "pause", "1": "camera-overview", "2": "camera-closeup", "3": "camera-aerial", "4": "camera-isometric", "s": "screensaver" };
+      const action = keys ? keys.actionFor(event.key) : defaults[String(event.key).toLowerCase()];
+      if (action === "help") { panel.hidden = !panel.hidden; return; }
+      if (action === "pause") {
         // U1: pause / resume (resume at 1x).
         const paused = document.getElementById("speed-pause-button").getAttribute("aria-pressed") === "true";
         document.getElementById(paused ? "speed-1x-button" : "speed-pause-button").click();
         return;
       }
-      const presets = { "1": "overview", "2": "closeup", "3": "aerial", "4": "isometric" };
-      if (presets[event.key] && window.ContinuumCamera) window.ContinuumCamera.preset(presets[event.key]);
+      if (action === "screensaver" && window.ContinuumCamera && window.ContinuumCamera.screensaver) { window.ContinuumCamera.screensaver(); return; }
+      if (action && action.indexOf("camera-") === 0 && window.ContinuumCamera) window.ContinuumCamera.preset(action.slice(7));
     });
   </script>
   <script>
@@ -558,7 +582,7 @@
     // Each engine module is written into Pyodide's virtual filesystem (the
     // working directory, which is on sys.path) before game.py runs and
     // imports them. Still no build step — just more than one fetch.
-    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py", "founding.py", "minutes.py", "hamlet.py", "forecast.py", "statlog.py", "explain.py", "postmortem.py"];
+    const ENGINE_MODULES = ["sim.py", "sustainability.py", "research.py", "log.py", "transition.py", "save.py", "info_content.py", "visual.py", "summary.py", "challenges.py", "trajectory.py", "views.py", "archive.py", "consulting.py", "founding.py", "minutes.py", "hamlet.py", "forecast.py", "statlog.py", "explain.py", "postmortem.py", "naming.py", "dataexport.py", "monuments.py", "par.py"];
 
     const CONTINUUM_TUTORIAL_STEPS = [
       {

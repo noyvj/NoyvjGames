@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 206/785 items checked off (26.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 213/785 items checked off (27.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -744,18 +744,18 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] K-15: Add notable citizens to Continuum: generated named citizens with a trade and personal thread (apprentice to guild master, child to next-era engineer) who follow the city across eras and unlock small bonuses; can be switched off and referenced in the founder's log. (needs shared/story-toggle.js)
 - [x] K-16: Add a 'why did that change' hover explainer to Continuum stats: shows the top three contributing factors of the last change as a small waterfall.
 - [ ] K-17: Add a limited-use 'rewind one season' token to Continuum, earned through achievements or a Dynasty perk, costing something valuable to use. (needs K-2 Dynasty perks (optional))
-- [ ] K-18: Add a data export button to Continuum that downloads CSV and JSON of per-season stats and policy-log (Council Minutes) entries. (partly built: Archive card JSON download exists (game.py _download_card, card.js); no CSV/JSON per-season stats or policy-log export.)
-- [ ] K-19: Add a side-by-side compare of two archived Continuum settlements with stat deltas highlighted.
+- [x] K-18: Add a data export button to Continuum that downloads CSV and JSON of per-season stats and policy-log (Council Minutes) entries. (partly built: Archive card JSON download exists (game.py _download_card, card.js); no CSV/JSON per-season stats or policy-log export.)
+- [x] K-19: Add a side-by-side compare of two archived Continuum settlements with stat deltas highlighted.
 - [ ] K-20: Add cosmetic city banners and skyline flourishes to Continuum, unlocked by achievements and Dynasty rank, shown in the archive and on the shareable card. (needs K-2 Dynasty rank)
-- [ ] K-21: Add a screensaver mode to Continuum: the 3D city runs itself with a slow orbit camera and all UI hidden, for a second monitor. Visual only; no ambient soundscape (audio is parked, see K-22).
+- [x] K-21: Add a screensaver mode to Continuum: the 3D city runs itself with a slow orbit camera and all UI hidden, for a second monitor. Visual only; no ambient soundscape (audio is parked, see K-22).
 - [ ] K-23: Add subtle tech-industry easter eggs to Continuum's Digital era log lines and building names (legacy-server closet, co-working guild hall), hidden by the story toggle. (needs shared/story-toggle.js)
-- [ ] K-24: Add settlement naming to Continuum: an era-flavoured name generator plus a free-text option (length-limited and sanitised), shown on the plaque, archive and shareable card.
-- [ ] K-26: Add a par-time badge to Continuum: finish a run in fewer real minutes or fewer seasons than a par set per scenario, using the existing time-played readout.
+- [x] K-24: Add settlement naming to Continuum: an era-flavoured name generator plus a free-text option (length-limited and sanitised), shown on the plaque, archive and shareable card.
+- [x] K-26: Add a par-time badge to Continuum: finish a run in fewer real minutes or fewer seasons than a par set per scenario, using the existing time-played readout.
 - [x] K-27: Add sparklines to Continuum's City Views dashboard next to every stat showing the last 20 seasons.
 - [ ] K-28: Add a 'citizen of the season' spotlight card to Continuum's log: one named resident and one flavour line tied to a recent event, hidden by the story toggle. (needs shared/story-toggle.js)
 - [ ] K-29: Add an opt-in Blitz timer to Continuum's Hard Mode: 30 seconds per season or the default policy applies, with its own achievement (opt-in, with a pause or accessibility off switch).
-- [ ] K-30: Add a hotkey remapping panel to Continuum's Settings beside the '?' cheat-sheet, to bind advance-season, view switches and camera presets to custom keys.
-- [ ] K-31: Restyle Continuum's achievement cards: earned badges get a small per-era icon and the violet-glass accent, laid out as a 'monument row' instead of a plain list (no generated images; inline SVG or CSS). (partly built: Achievement cards exist (style.css .achievement-card, 21 in achievements.json) with progress and rarity; no era icons or monument row.)
+- [x] K-30: Add a hotkey remapping panel to Continuum's Settings beside the '?' cheat-sheet, to bind advance-season, view switches and camera presets to custom keys.
+- [x] K-31: Restyle Continuum's achievement cards: earned badges get a small per-era icon and the violet-glass accent, laid out as a 'monument row' instead of a plain list (no generated images; inline SVG or CSS). (partly built: Achievement cards exist (style.css .achievement-card, 21 in achievements.json) with progress and rarity; no era icons or monument row.)
 
 *Not added: K-3 (later, parked in LATER.md); K-22 (later, parked in LATER.md); K-25 (no).*
 
