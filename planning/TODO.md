@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 220/785 items checked off (28.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 220/786 items checked off (28.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -826,6 +826,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] Z-28: Add a shared pause-when-tab-hidden helper for games with a real-time loop (SOL, Canopy, Trade Empire, Continuum animation), with an on/off toggle in each game's settings; avoid silent simulation advance while hidden. (needs W-2 pause)
 - [ ] Z-29: Add a shared info/help panel footer showing the game's changelog date, seed (if any) and site URL, so screenshots and printouts are self-identifying; apply to every game's info/help panel.
 - [ ] Z-30: Add data-testid attributes to the shared components (save widget, confirm dialog, achievements panel, tutorial) and document the naming convention in planning/game-template.md.
+- [ ] Z-31: Add a hub-wide "Slow computer" toggle (user request 2026-10-08): one switch on the hub (and in the hub settings page, Y-10) stored as `lite-mode` in localStorage and, for signed-in players, synced through shared/site-settings.js. New `shared/lite-mode.js` and `shared/lite-mode.css` set `data-lite` on `<html>` before first paint (also default it on when `navigator.deviceMemory` is 2 or less, `hardwareConcurrency` is 2 or less or `prefers-reduced-data` is set, with a note and an off switch, never silently); CSS then turns off every animation, transition, backdrop blur, animated starfield/ambient background and large shadow site-wide, and a tiny JS API (`NoyvjLite.on()` and a change event) lets games drop their own costs (Continuum's 3D scene frame rate and effects, canvas loops, the Pyodide-side tick animations). Unify with Thaw's own lite mode (G-26) and each game's reduce-motion switch rather than adding a second inconsistent one. Include the two shared files in the hub and every game page (Classic and Desktop) and add a test that every page includes them. (Wiring waits until the Champ and hub-shell agents finish so no game folder has two writers.)
 
 *Not added: Z-26 (parked in LATER.md at your word, 2026-10-07: shared quiet-mode helper while audio is parked).*
 
