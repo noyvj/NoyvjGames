@@ -1,0 +1,24 @@
+{
+  "_readme": "Y-22: hand-written session-length estimate per hub game, read by script.js for the title-card chip, the session-length filter and the onboarding quick-vs-deep pick. Tiers: short = about 5 minutes (Signal's own documented five-minute daily puzzle), medium = about 20 minutes (the eight climate games, tagged Quick on the hub), long = long-form (the deep-systems games, which are built to be played across many sittings). These are estimates by the site owner, not measured play times: edit a value here to change it. Kept in its own file because scripts/generate-last-updated.py rewrites game-manifest.json from scratch and would drop a hand-written field.",
+  "tiers": {
+    "short": "About 5 min",
+    "medium": "About 20 min",
+    "long": "Long-form"
+  },
+  "games": {
+    "aftermath": "medium",
+    "canopy": "medium",
+    "champ-de-mots": "long",
+    "continuum": "long",
+    "drift": "medium",
+    "grid": "medium",
+    "herd": "medium",
+    "lexis": "long",
+    "loop": "medium",
+    "signal": "short",
+    "sol": "long",
+    "thaw": "medium",
+    "tide": "medium",
+    "trade-empire": "long"
+  }
+}

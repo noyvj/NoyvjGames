@@ -1,0 +1,156 @@
+{
+  "_readme": "Y-15: the Help and FAQ page (help.html) is built from this file. Every answer describes how the site works today; when a feature changes, change its answer here in the same commit. Fields: id (unique, used in the page's #faq-<id> link), topic (one of the topic ids below), q, a (plain text, no HTML), links (optional [{label, href}] to pages in this repo). To add a repeated feedback question as a permanent answer, append an item.",
+  "topics": [
+    { "id": "saving", "label": "Saving and progress" },
+    { "id": "accounts", "label": "Accounts" },
+    { "id": "devices", "label": "Devices and offline" },
+    { "id": "playing", "label": "Playing" },
+    { "id": "feedback", "label": "Ratings and feedback" },
+    { "id": "privacy", "label": "Data and privacy" }
+  ],
+  "items": [
+    {
+      "id": "how-saving-works",
+      "topic": "saving",
+      "q": "How does saving work?",
+      "a": "Every game has a Save panel. Without an account, Save Progress stores your game on the server under a save code and remembers that code in this browser. With an account, Save Progress writes into one of your three save slots for that game, and the game loads your most recent save by itself next time you open it. Playing never requires a save: anonymous play always works, it just does not survive clearing your browser data unless you kept the save code.",
+      "links": [{ "label": "Settings (autosave for every game)", "href": "settings.html" }]
+    },
+    {
+      "id": "save-code",
+      "topic": "saving",
+      "q": "What is a save code, and how private is it?",
+      "a": "A save code is eight characters in two groups of four, like K7QM-3VXD, made from letters and digits without lookalikes (no 0 or O, no 1, I or L). It is the key to that save: anyone who has the code can load it and can also overwrite it, because the code is the only thing the server checks. Treat it like a password you are lending out. Claiming a save to an account does not change its code."
+    },
+    {
+      "id": "autosave",
+      "topic": "saving",
+      "q": "What is autosave and is it on?",
+      "a": "Autosave is off until you turn it on. When it is on in a game, that game saves for you every five minutes while it is open, to the same place a manual Save goes. You switch it per game with the checkbox in the Save panel, or for every game at once on the Settings page. A manual Save is always there as well.",
+      "links": [{ "label": "Settings", "href": "settings.html" }]
+    },
+    {
+      "id": "lost-progress",
+      "topic": "saving",
+      "q": "My progress is gone. What happened?",
+      "a": "Progress only lives on the server if you saved. If you never pressed Save (and autosave was off), the game state lived in that browser tab only. If you did save, load it again: sign in and the latest save loads by itself, or paste your save code into the game's Load box. A save code that was only remembered by the browser is lost if the browser's site data is cleared, which is why signing in and claiming the save is safer."
+    },
+    {
+      "id": "claim-save",
+      "topic": "saving",
+      "q": "Can I keep a save I made before I created an account?",
+      "a": "Yes. Create the account (or sign in), open the game, and use the Claim this save to your account button in its Save panel. The hub also shows a dismissible reminder if it finds save codes on this device that are not tied to an account. Nothing is lost by signing up later."
+    },
+    {
+      "id": "why-account",
+      "topic": "accounts",
+      "q": "Why would I make an account?",
+      "a": "It is optional. An account keeps your saves under your name, gives you three save slots per game, loads your latest save automatically on any device you sign in on, shows your achievements across every game on the hub, and carries your theme to your other devices. Everything else on the site works without one."
+    },
+    {
+      "id": "account-details",
+      "topic": "accounts",
+      "q": "What do I need to sign up?",
+      "a": "A username and a password. There are no password rules and no email is required. You can add an email address later in your account panel; it is only used so the site owner can check a password-reset request really comes from you, and it is never shown to anyone else."
+    },
+    {
+      "id": "forgot-password",
+      "topic": "accounts",
+      "q": "I forgot my password.",
+      "a": "There is no automatic reset. Use the Feedback / Report a Bug box on the hub, say you are locked out and give your username; the site owner resets accounts by hand. If you added an email address to your account, mention it so the request can be checked.",
+      "links": [{ "label": "Feedback box on the hub", "href": "index.html#site-feedback-section" }]
+    },
+    {
+      "id": "other-device",
+      "topic": "devices",
+      "q": "How do I move to another device?",
+      "a": "Sign in on the new device: each game then loads your most recent save by itself. Without an account, open the game, type your save code into the Load box and press Load. Your theme follows your account; text size and reduced motion follow it only in the games that have their own settings panel and sync them (SOL, Continuum and Lexis). Everything else, such as hub filters and dismissed notices, stays on the device where you set it."
+    },
+    {
+      "id": "offline",
+      "topic": "devices",
+      "q": "Does it work offline?",
+      "a": "Partly. After you have opened the hub once, the site keeps its pages on your device. A game also needs the Python runtime it runs on, which is downloaded the first time any game loads. Once a game has been opened while online it should open offline too, and when you are offline the hub greys out the games this device cannot open. Anything that talks to the server (ratings, accounts, saving to the cloud, community numbers) waits until you are back online."
+    },
+    {
+      "id": "install",
+      "topic": "devices",
+      "q": "Can I install the hub like an app?",
+      "a": "In browsers that support it, the hub shows an Install banner once; use it or your browser's own Install or Add to Home Screen option. It is the same site in its own window, not a separate app."
+    },
+    {
+      "id": "status-dot",
+      "topic": "devices",
+      "q": "What does the status dot in the footer mean?",
+      "a": "It reports whether the server behind ratings, accounts and cloud saves is answering. Green means the server and its database both answered. Amber means they did not, or were too slow, so ratings, accounts and saving to the cloud may fail for a while; the games themselves still play because they run in your browser. Grey means the check could not say (still loading, you are offline, or the server does not offer the check yet). The words next to the dot say the same thing."
+    },
+    {
+      "id": "game-wont-load",
+      "topic": "playing",
+      "q": "A game stays on its loading screen.",
+      "a": "Every game runs Python in your browser through WebAssembly, and the first load downloads that runtime, so it needs a connection and takes a few seconds. Reload once; make sure your browser is a current Chrome, Edge, Firefox or Safari and that JavaScript is on. If it still does not start, tell us which game and browser through the Feedback / Report a Bug box.",
+      "links": [{ "label": "Report a bug", "href": "index.html#site-feedback-section" }]
+    },
+    {
+      "id": "session-length",
+      "topic": "playing",
+      "q": "What do the About 5 min, About 20 min and Long-form labels mean?",
+      "a": "They are the site owner's estimate of one sitting with that game, not measured play times. Signal is a five-minute daily puzzle, the eight climate games are built for roughly twenty minutes, and the long-form games are made to be played across many sittings. You can filter the lobby by them."
+    },
+    {
+      "id": "achievements",
+      "topic": "playing",
+      "q": "How do achievements work?",
+      "a": "Each game defines its own achievements and records the ones you earn inside its save, so they need a save to stick: save the game, and signed in, the hub's achievements dashboard shows your progress across every game. The Achievements page lists every achievement in every game, and ticks the ones you have earned when you are signed in.",
+      "links": [{ "label": "Achievements", "href": "achievements.html" }]
+    },
+    {
+      "id": "leaderboards",
+      "topic": "playing",
+      "q": "Are there leaderboards?",
+      "a": "A few games (currently SOL, Aftermath, Herd and Signal) offer an opt-in community board. Nothing is submitted unless you turn it on in that game."
+    },
+    {
+      "id": "shortcuts",
+      "topic": "playing",
+      "q": "Does the hub have keyboard shortcuts?",
+      "a": "Yes. Press / to jump to the game search, ? to list them, and g followed by a letter to go to another hub page (for example g then r for the Roadmap). They switch off while you type in a field, and you can rebind every key on the Settings page.",
+      "links": [{ "label": "Change shortcuts", "href": "settings.html#shortcuts" }]
+    },
+    {
+      "id": "ratings",
+      "topic": "feedback",
+      "q": "How do I rate a game or leave feedback?",
+      "a": "On a game's card, pick one to five stars and optionally write a comment, then press Submit. You do not need an account. Ratings and comments are public, so do not put anything personal in them. The Site Feedback box at the bottom of the hub is for the hub itself and for bug reports, and it limits how many messages one person can send in an hour to keep spam out.",
+      "links": [{ "label": "Site feedback", "href": "index.html#site-feedback-section" }]
+    },
+    {
+      "id": "ads",
+      "topic": "feedback",
+      "q": "Why is there an ad bar?",
+      "a": "The site has a clearly labelled ad bar at the bottom. At the moment it is a placeholder and shows no live ads. If real ads are switched on later, the Terms and Privacy page will be updated first.",
+      "links": [{ "label": "Terms and Privacy", "href": "terms.html" }]
+    },
+    {
+      "id": "what-stored",
+      "topic": "privacy",
+      "q": "What does the site store about me?",
+      "a": "In your browser: preferences, per-game settings and local save data, your last search and filter, dismissed notices and, if you sign in, a login token and username. On the server: accounts (username and a hashed password, plus an optional email), the saves you choose to make, ratings and feedback you submit, and anonymous game totals. There are no tracking cookies and no ad profile. The full list is on the Terms and Privacy page.",
+      "links": [{ "label": "Terms and Privacy", "href": "terms.html" }, { "label": "Settings (export or clear local data)", "href": "settings.html" }]
+    },
+    {
+      "id": "export-delete",
+      "topic": "privacy",
+      "q": "Can I export or erase my data?",
+      "a": "The Settings page can download everything this site keeps in your browser as a file, and erase it. Data on the server, such as an account or saves, is removed by hand: use the Feedback / Report a Bug box and give your username.",
+      "links": [{ "label": "Settings", "href": "settings.html" }]
+    },
+    {
+      "id": "ai-assisted",
+      "topic": "privacy",
+      "q": "What does AI-assisted mean here?",
+      "a": "The games and the site are built with an AI coding assistant working alongside the site owner. The tools, libraries and services used are listed on the Credits page, and the real-world research behind the climate and civic games is on the Sources page.",
+      "links": [{ "label": "Credits and Thanks", "href": "credits.html" }, { "label": "Sources", "href": "sources.html" }]
+    }
+  ]
+}

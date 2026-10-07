@@ -1771,3 +1771,168 @@ html[data-theme="light"] .star.selected { color: #c48a00; }
 html[data-theme="light"] .hub-nav-owner summary { color: #2a4a9a; }
 html[data-theme="light"] .hub-nav-owner-menu { background: rgba(255, 255, 255, 0.98); border-color: rgba(60, 80, 160, 0.3); }
 html[data-theme="light"] .hub-nav-owner-menu a { color: #2a4a9a; }
+
+/* ---------------------------------------------------------------------------
+   Hub shell batch (Y-10 settings, Y-15 help, Y-19 shortcuts, Y-21 compat notice,
+   Y-22 session chip, Y-25 offline, Y-27 status dot, Y-29 credits).
+   Same palette as the rest of the hub; light-theme overrides are at the end.
+   --------------------------------------------------------------------------- */
+
+/* Y-21: noscript / no-WebAssembly notice */
+.compat-notice {
+  max-width: 1000px;
+  margin: 1rem auto;
+  padding: 1rem 1.25rem;
+  border: 1px solid rgba(224, 194, 76, 0.5);
+  border-radius: 14px;
+  background: rgba(224, 194, 76, 0.1);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+.compat-notice[hidden] { display: none; }
+.compat-notice p { margin: 0 0 0.5rem; }
+.compat-notice-links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; }
+.compat-notice a { color: #a9c3ff; }
+
+/* Y-25: offline banner, and cards this device cannot open offline */
+.offline-banner {
+  max-width: 1000px;
+  margin: 0 auto 1.25rem;
+  padding: 0.85rem 1.25rem;
+  border: 1px solid rgba(224, 194, 76, 0.45);
+  border-radius: 14px;
+  background: rgba(224, 194, 76, 0.1);
+}
+.offline-banner[hidden] { display: none; }
+.offline-banner-text { margin: 0; font-size: 0.85rem; line-height: 1.5; }
+.title-card--offline { filter: grayscale(1); }
+.title-card--offline .title-card-link { opacity: 0.55; }
+.title-card--offline .title-card-link { cursor: not-allowed; }
+.title-card-offline-note { margin: 0; padding: 0 1.4rem 0.6rem; font-size: 0.78rem; line-height: 1.4; }
+.title-card-offline-note[hidden] { display: none; }
+
+/* Y-22: session length chip under the game name */
+.title-card-session {
+  display: inline-block;
+  margin: 0.15rem 0 0.5rem;
+  padding: 0.12rem 0.6rem;
+  border: 1px solid rgba(140, 160, 255, 0.28);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  opacity: 0.85;
+}
+
+/* Y-27: footer site status. The dot never carries the meaning alone: the text beside it says it. */
+.site-status { display: inline-flex; align-items: center; gap: 0.4rem; opacity: 0.85; cursor: help; }
+.site-status-dot {
+  width: 0.62rem; height: 0.62rem; border-radius: 50%;
+  background: #8a90a6; box-shadow: 0 0 0 2px rgba(138, 144, 166, 0.25);
+}
+.site-status[data-state="ok"] .site-status-dot { background: #4cc38a; box-shadow: 0 0 0 2px rgba(76, 195, 138, 0.3); }
+.site-status[data-state="degraded"] .site-status-dot { background: #e0a93a; box-shadow: 0 0 0 2px rgba(224, 169, 58, 0.3); border-radius: 2px; transform: rotate(45deg); }
+.site-status[data-state="checking"] .site-status-dot { background: transparent; border: 2px solid #8a90a6; box-shadow: none; }
+
+/* Y-19: shortcut hint + overlay */
+.hub-shortcut-hint {
+  position: fixed; left: 50%; bottom: 1.2rem; transform: translateX(-50%); z-index: 10002;
+  padding: 0.45rem 0.9rem; border-radius: 10px; font-size: 0.82rem;
+  background: rgba(14, 16, 28, 0.95); border: 1px solid rgba(140, 160, 255, 0.35); color: #eaeaf0;
+}
+.hub-shortcut-hint[hidden] { display: none; }
+.hub-shortcuts-overlay {
+  position: fixed; inset: 0; z-index: 10003; background: rgba(0, 0, 0, 0.6);
+  display: flex; align-items: center; justify-content: center; padding: 1rem;
+}
+.hub-shortcuts-panel {
+  width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; padding: 1.2rem 1.4rem;
+  background: #12141f; color: #eaeaf0; border: 1px solid rgba(140, 160, 255, 0.3); border-radius: 16px;
+}
+.hub-shortcuts-panel h2 { margin: 0 0 0.8rem; font-size: 1.05rem; font-weight: 600; }
+.hub-shortcuts-list { display: grid; grid-template-columns: auto 1fr; gap: 0.45rem 0.9rem; margin: 0 0 0.9rem; font-size: 0.85rem; }
+.hub-shortcuts-list dt { margin: 0; }
+.hub-shortcuts-list dd { margin: 0; opacity: 0.85; align-self: center; }
+.hub-shortcuts-foot { font-size: 0.78rem; opacity: 0.7; margin: 0 0 0.9rem; line-height: 1.5; }
+.hub-shortcuts-foot a { color: #8fb0e8; }
+kbd.hub-key, .hub-shortcuts-list kbd {
+  display: inline-block; min-width: 1.6rem; padding: 0.12rem 0.5rem; text-align: center; white-space: nowrap;
+  font: 0.78rem ui-monospace, Menlo, Consolas, monospace;
+  border: 1px solid rgba(140, 160, 255, 0.4); border-bottom-width: 2px; border-radius: 6px; background: rgba(140, 160, 255, 0.1);
+}
+
+/* Y-10 / Y-15 / Y-29: plain hub pages (settings, help, credits) */
+.hub-page-main { max-width: 760px; margin: 0 auto; padding: 0 1.5rem 3rem; }
+.hub-page-main h2 { font-size: 1.05rem; margin: 0 0 0.4rem; letter-spacing: 0.02em; }
+.hub-page-main p, .hub-page-main li { font-size: 0.9rem; line-height: 1.55; opacity: 0.9; }
+.hub-page-main a { color: #8fb0e8; }
+.hub-card {
+  background: linear-gradient(165deg, rgba(24, 27, 43, 0.82), rgba(14, 16, 28, 0.88));
+  border: 1px solid rgba(140, 160, 255, 0.14);
+  border-radius: 14px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1rem;
+}
+.hub-card > :last-child { margin-bottom: 0; }
+.hub-note { font-size: 0.78rem !important; opacity: 0.65 !important; margin: 0.3rem 0 0; }
+.settings-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1rem; margin: 0.65rem 0; }
+.settings-row > label, .settings-row > .settings-label { flex: 1 1 14rem; font-size: 0.9rem; }
+.settings-row select, .settings-row input[type="text"] {
+  padding: 0.5rem 0.7rem; border: 1px solid rgba(140, 160, 255, 0.2); border-radius: 10px;
+  background: rgba(5, 6, 13, 0.55); color: #eaeaf0; font: inherit; font-size: 0.85rem;
+}
+.settings-status { font-size: 0.8rem; min-height: 1.2em; margin: 0.5rem 0 0; opacity: 0.85; }
+.settings-danger { border-color: rgba(224, 112, 112, 0.45); }
+.settings-keytable { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.settings-keytable th, .settings-keytable td { text-align: left; padding: 0.4rem 0.5rem; border-top: 1px solid rgba(140, 160, 255, 0.12); }
+.settings-keytable th { font-weight: 600; opacity: 0.7; border-top: 0; }
+.settings-keytable button { font: inherit; font-size: 0.82rem; }
+.faq-search { width: 100%; padding: 0.7rem 0.9rem; margin: 0 0 1rem; border: 1px solid rgba(140, 160, 255, 0.2); border-radius: 10px; background: rgba(5, 6, 13, 0.55); color: #eaeaf0; font: inherit; font-size: 0.9rem; }
+.faq-topics { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0 0 1rem; }
+.faq-topic { background: transparent; border: 1px solid rgba(140, 160, 255, 0.25); border-radius: 999px; color: inherit; font: inherit; font-size: 0.78rem; padding: 0.2rem 0.75rem; cursor: pointer; }
+.faq-topic[aria-pressed="true"] { background: rgba(140, 160, 255, 0.2); border-color: rgba(140, 160, 255, 0.6); }
+.faq-item { background: linear-gradient(165deg, rgba(24, 27, 43, 0.82), rgba(14, 16, 28, 0.88)); border: 1px solid rgba(140, 160, 255, 0.14); border-radius: 12px; padding: 0.7rem 1.1rem; margin-bottom: 0.6rem; }
+.faq-item[hidden] { display: none; }
+.faq-item summary { cursor: pointer; font-weight: 600; font-size: 0.93rem; }
+.faq-item p { margin: 0.5rem 0 0; }
+.faq-empty { opacity: 0.7; font-size: 0.9rem; }
+.faq-games { list-style: none; margin: 0.4rem 0 0; padding: 0; }
+.faq-games li { margin: 0.35rem 0; }
+.credits-list { margin: 0.3rem 0 0; padding-left: 1.2rem; }
+.credits-list li { margin: 0.35rem 0; }
+
+/* Y-10: the hub's own "reduce motion" switch (the games have their own, set from the same page). */
+html[data-hub-reduced-motion="true"] { scroll-behavior: auto; }
+html[data-hub-reduced-motion="true"] *,
+html[data-hub-reduced-motion="true"] *::before,
+html[data-hub-reduced-motion="true"] *::after { animation: none !important; transition: none !important; }
+
+html[data-theme="light"] .compat-notice,
+html[data-theme="light"] .offline-banner { background: rgba(224, 194, 76, 0.2); border-color: rgba(150, 110, 0, 0.5); }
+html[data-theme="light"] .compat-notice a, html[data-theme="light"] .hub-page-main a, html[data-theme="light"] .hub-shortcuts-foot a { color: #2a4ba0; }
+html[data-theme="light"] .hub-shortcut-hint { background: #ffffff; color: #1b2033; border-color: rgba(70, 95, 170, 0.45); }
+html[data-theme="light"] .hub-shortcuts-panel { background: #ffffff; color: #1b2033; border-color: rgba(70, 95, 170, 0.35); }
+html[data-theme="light"] .hub-card, html[data-theme="light"] .faq-item {
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.92), rgba(240, 244, 255, 0.92));
+  border-color: rgba(70, 95, 170, 0.22); box-shadow: 0 6px 22px rgba(40, 55, 110, 0.12);
+}
+html[data-theme="light"] .settings-row select, html[data-theme="light"] .settings-row input[type="text"], html[data-theme="light"] .faq-search {
+  background: #ffffff; color: #1b2033; border-color: rgba(70, 95, 170, 0.35);
+}
+html[data-theme="light"] .settings-danger { border-color: rgba(180, 50, 50, 0.55); }
+html[data-theme="light"] .faq-topic[aria-pressed="true"] { background: rgba(70, 95, 170, 0.18); border-color: rgba(70, 95, 170, 0.6); }
+html[data-theme="light"] .site-status-dot { background: #6b7288; }
+html[data-theme="light"] .site-status[data-state="ok"] .site-status-dot { background: #1f8f5f; }
+html[data-theme="light"] .site-status[data-state="degraded"] .site-status-dot { background: #b87a00; }
+
+@media (max-width: 480px) {
+  .hub-page-main { padding: 0 1rem 3rem; }
+  .hub-card { padding: 0.85rem 0.9rem; }
+  .hub-shortcut-hint { left: 1rem; right: 1rem; transform: none; text-align: center; }
+}
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.terms-changes { font-size: 0.85rem; opacity: 0.8; margin-top: 0.4rem; }
+.terms-changes summary { cursor: pointer; }
+.terms-changes[hidden] { display: none; }
+.terms-changes { font-size: 0.85rem; opacity: 0.8; margin-top: 0.4rem; }
+.terms-changes summary { cursor: pointer; }
+.terms-changes[hidden] { display: none; }

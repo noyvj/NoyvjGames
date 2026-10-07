@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credits &amp; Thanks — NoyvjGames</title>
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="shared/space-bg.css">
+<link rel="stylesheet" href="style.css">
+<script src="hub-prefs.js"></script>
+<script src="shared/theme.js"></script>
+<script src="shared/site-settings.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#credits-main">Skip to content</a>
+  <div class="space-bg" aria-hidden="true"><div class="space-bg-nebula"></div><div class="space-bg-stars-bright"></div></div>
+  <header id="hub-header">
+    <nav class="hub-nav">
+      <a href="index.html">&larr; Back to NoyvjGames</a>
+      <a href="sources.html">Sources</a>
+      <a href="help.html">Help &amp; FAQ</a>
+      <a href="whats-new.html">What's New</a>
+      <a href="roadmap.html">Roadmap</a>
+      <button type="button" class="hub-nav-button theme-toggle">Theme</button>
+    </nav>
+    <h1>Credits &amp; Thanks</h1>
+    <p id="hub-tagline">The tools and services the site actually runs on. The real-world research behind the climate and civic games is on the <a href="sources.html">Sources</a> page.</p>
+  </header>
+
+  <main id="credits-main" tabindex="-1" class="hub-page-main">
+    <section class="hub-card" aria-labelledby="credits-built-h">
+      <h2 id="credits-built-h">How it is made</h2>
+      <p>NoyvjGames is a personal portfolio of small game demos built by one person together with an AI coding assistant, <a href="https://www.anthropic.com/claude" target="_blank" rel="noopener noreferrer">Claude</a> from Anthropic. The AI wrote and reviewed much of the code; the ideas, the decisions and what ships are the site owner's. The full story of how the site grew is in the public <a href="https://github.com/noyvj/NoyvjGames" target="_blank" rel="noopener noreferrer">source on GitHub</a>, and each change is listed in <a href="whats-new.html">What's New</a>.</p>
+    </section>
+
+    <section class="hub-card" aria-labelledby="credits-games-h">
+      <h2 id="credits-games-h">Running the games</h2>
+      <ul class="credits-list">
+        <li><a href="https://pyodide.org/" target="_blank" rel="noopener noreferrer">Pyodide</a> (version 0.26.4), which runs Python in your browser through WebAssembly. Every game's rules are written in Python and run this way. It is loaded from the <a href="https://www.jsdelivr.com/" target="_blank" rel="noopener noreferrer">jsDelivr</a> content network.</li>
+        <li><a href="https://www.python.org/" target="_blank" rel="noopener noreferrer">Python</a> itself, for the games, the backend and the small scripts that keep the site's lists up to date.</li>
+        <li><a href="https://threejs.org/" target="_blank" rel="noopener noreferrer">three.js</a> (version r128), used by Continuum for its low-poly 3D scenes, loaded from jsDelivr. Continuum falls back to a flat 2D view when WebGL is unavailable.</li>
+        <li>Everything else on screen is plain HTML, CSS and JavaScript with no build step and no front-end framework.</li>
+      </ul>
+    </section>
+
+    <section class="hub-card" aria-labelledby="credits-server-h">
+      <h2 id="credits-server-h">Hosting and the server</h2>
+      <ul class="credits-list">
+        <li><a href="https://pages.github.com/" target="_blank" rel="noopener noreferrer">GitHub Pages</a> hosts the site you are reading.</li>
+        <li>The ratings, accounts and save-code API is written with <a href="https://fastapi.tiangolo.com/" target="_blank" rel="noopener noreferrer">FastAPI</a>, <a href="https://www.sqlalchemy.org/" target="_blank" rel="noopener noreferrer">SQLAlchemy</a> and <a href="https://docs.pydantic.dev/" target="_blank" rel="noopener noreferrer">Pydantic</a>, runs on <a href="https://fastapicloud.com/" target="_blank" rel="noopener noreferrer">FastAPI Cloud</a>, and keeps its data in a <a href="https://neon.tech/" target="_blank" rel="noopener noreferrer">Neon</a> Postgres database.</li>
+        <li>The tests that guard both the site and the backend run on <a href="https://pytest.org/" target="_blank" rel="noopener noreferrer">pytest</a>.</li>
+        <li>The ad bar is built for Google AdSense, but it is a placeholder and shows no live ads. See <a href="terms.html">Terms &amp; Privacy</a>.</li>
+      </ul>
+    </section>
+
+    <section class="hub-card" aria-labelledby="credits-look-h">
+      <h2 id="credits-look-h">Fonts, pictures and icons</h2>
+      <ul class="credits-list">
+        <li><strong>Fonts:</strong> none are downloaded. The site uses the fonts already on your device (your system's default interface font), so there is nothing to credit and nothing extra to load.</li>
+        <li><strong>Game pictures:</strong> each title card's picture is a small scene drawn in CSS for that game, not an image file and not generated imagery.</li>
+        <li><strong>Icons:</strong> each game's browser-tab icon is a simple shape and letter made for this site. The hub's own app icon is placeholder art.</li>
+      </ul>
+    </section>
+
+    <section class="hub-card" aria-labelledby="credits-thanks-h">
+      <h2 id="credits-thanks-h">Thanks</h2>
+      <p>To everyone who has left a star rating, a comment or a bug report: the games are better for it. No playtesters are named here yet. If you have helped test and would like your name or handle listed, say so through the <a href="index.html#site-feedback-section">feedback box</a>; names are only ever added with the person's say-so.</p>
+    </section>
+  </main>
+
+  <footer class="hub-footer">
+    <span class="hub-footer-name">NoyvjGames</span>
+    <a href="index.html">Games</a>
+    <a href="sources.html">Sources</a>
+    <a href="help.html">Help &amp; FAQ</a>
+    <a href="terms.html">Terms &amp; Privacy</a>
+  </footer>
+
+  <script src="hub-shortcuts.js"></script>
+</body>
+</html>

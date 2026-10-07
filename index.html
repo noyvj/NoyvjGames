@@ -7,14 +7,75 @@
 <link rel="icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="shared/space-bg.css">
 <link rel="stylesheet" href="style.css">
+<script src="hub-prefs.js"></script>
 <script src="shared/theme.js"></script>
 <script src="shared/site-settings.js"></script>
 <link rel="stylesheet" href="ad-bar.css">
 <link rel="manifest" href="manifest.json">
+<script>
+/* Y-21: plain ES5 so even a very old browser can run it. Shows the compat notice when WebAssembly
+   (needed by every game) is missing, or when the hub's own script never ran (script.js sets
+   window.__hubScriptRan on its first line, so a parse failure leaves it unset). */
+(function () {
+  function show(text) {
+    var notice = document.getElementById("compat-notice");
+    var textEl = document.getElementById("compat-notice-text");
+    var list = document.getElementById("compat-notice-links");
+    if (!notice || !textEl || !list || !notice.hidden) return;
+    textEl.textContent = text;
+    var anchors = document.querySelectorAll(".title-card-link");
+    for (var i = 0; i < anchors.length; i += 1) {
+      var name = anchors[i].querySelector(".title-card-name");
+      var item = document.createElement("li");
+      var link = document.createElement("a");
+      link.href = anchors[i].getAttribute("href");
+      link.textContent = name ? name.textContent : link.href;
+      item.appendChild(link);
+      list.appendChild(item);
+    }
+    notice.hidden = false;
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    if (typeof WebAssembly !== "object") {
+      show("This browser does not support WebAssembly, which every NoyvjGames game needs to run its Python code. Try a current version of Chrome, Edge, Firefox or Safari. You can still read the rest of the site, and the games are linked here:");
+    }
+  });
+  window.addEventListener("load", function () {
+    if (!window.__hubScriptRan) {
+      show("The hub's own script did not run, which usually means this browser is too old or JavaScript is blocked. The games are linked here directly:");
+    }
+  });
+})();
+</script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 </head>
 <body>
+  <noscript>
+    <div class="compat-notice" id="noscript-notice" role="alert">
+      <p><strong>NoyvjGames needs JavaScript.</strong> Every game runs in your browser through JavaScript and WebAssembly (a Python runtime called Pyodide), and the hub's ratings, accounts and saves need it too. Turn JavaScript on for this site and reload, or open a game directly:</p>
+      <ul class="compat-notice-links">
+      <li><a href="games/sol/index.html">SOL</a></li>
+      <li><a href="games/canopy/index.html">Canopy</a></li>
+      <li><a href="games/grid/index.html">Grid</a></li>
+      <li><a href="games/tide/index.html">Tide</a></li>
+      <li><a href="games/aftermath/index.html">Aftermath</a></li>
+      <li><a href="games/herd/index.html">Herd</a></li>
+      <li><a href="games/thaw/index.html">Thaw</a></li>
+      <li><a href="games/loop/index.html">Loop</a></li>
+      <li><a href="games/drift/index.html">Drift</a></li>
+      <li><a href="games/champ-de-mots/index.html">Le Champ de Mots</a></li>
+      <li><a href="games/continuum/index.html">Continuum</a></li>
+      <li><a href="games/signal/index.html">Signal</a></li>
+      <li><a href="games/lexis/index.html">Lexis</a></li>
+      <li><a href="games/trade-empire/index.html">Trade Empire</a></li>
+      </ul>
+    </div>
+  </noscript>
+  <div id="compat-notice" class="compat-notice" role="alert" hidden>
+    <p id="compat-notice-text"></p>
+    <ul id="compat-notice-links" class="compat-notice-links"></ul>
+  </div>
   <a class="skip-link" href="#game-grid">Skip to games</a>
   <div class="space-bg" aria-hidden="true"><div class="space-bg-nebula"></div><div class="space-bg-stars-bright"></div></div>
   <header id="hub-header">
@@ -31,6 +92,10 @@
     <p id="hub-tagline">Small AI-assisted game demos, built one milestone at a time.</p>
     <p id="hub-game-count" class="hub-game-count"></p>
   </header>
+
+  <div id="offline-banner" class="offline-banner" role="status" hidden>
+    <p id="offline-banner-text" class="offline-banner-text"></p>
+  </div>
 
   <div id="announcement-banner" class="pwa-install-banner" role="status" hidden>
     <p id="announcement-text" class="pwa-install-banner-text"></p>
@@ -138,6 +203,12 @@
         <option value="quick">Quick</option>
         <option value="deep-systems">Deep Systems</option>
       </optgroup>
+    </select>
+    <select id="game-session-filter" aria-label="Filter games by session length">
+      <option value="">Any session length</option>
+      <option value="short">About 5 min</option>
+      <option value="medium">About 20 min</option>
+      <option value="long">Long-form</option>
     </select>
     <select id="game-sort" aria-label="Sort games">
       <option value="default">Sort: Default order</option>
@@ -493,6 +564,13 @@
     <a href="whats-new.html">What's New</a>
     <a href="roadmap.html">Roadmap</a>
     <a href="sources.html">Sources &amp; Credits</a>
+    <a href="credits.html">Credits &amp; Thanks</a>
+    <a href="help.html">Help &amp; FAQ</a>
+    <a href="settings.html">Settings</a>
+    <span id="site-status" class="site-status" role="status" data-state="checking" title="Checking whether the ratings, accounts and save server is answering.">
+      <span class="site-status-dot" aria-hidden="true"></span>
+      <span id="site-status-text" class="site-status-text">Checking site status&hellip;</span>
+    </span>
   </footer>
 
   <div class="pageview-counter">
@@ -518,6 +596,8 @@
   <script src="shared/tutorial.js"></script>
   <script src="shared/owner-links.js"></script>
 <script src="script.js"></script>
+  <script src="hub-status.js"></script>
+  <script src="hub-shortcuts.js"></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("sw.js", { updateViaCache: "none" })

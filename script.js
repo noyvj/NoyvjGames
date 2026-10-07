@@ -1,3 +1,4 @@
+window.__hubScriptRan = true; // read by the compat check in index.html (Y-21)
 const RATINGS_API_BASE = "https://noyvjgames.fastapicloud.dev";
 // HUB_AUTH_TOKEN_KEY/hubGetBearerToken()/hubAuthHeaders() come from
 // shared/hub-auth.js (loaded before this file — see index.html), the same
@@ -437,17 +438,31 @@ allTitleCards.forEach((card) => {
 const FILTER_QUERY_KEY = "hub_filter_query";
 const FILTER_TAG_KEY = "hub_filter_tag";
 const SORT_MODE_KEY = "hub_sort_mode";
+const FILTER_SESSION_KEY = "hub_filter_session";
+
+// Y-22: per-card estimated session length ("short" / "medium" / "long"),
+// read from the hand-written game-sessions.json (see its _readme). null until
+// the file has loaded (or if it cannot), in which case the session filter
+// is ignored rather than hiding every card.
+let gameSessions = null;
+const gameSessionFilter = document.getElementById("game-session-filter");
+
+function cardSession(card) {
+  return (gameSessions && gameSessions.games[cardSlug(card)]) || "";
+}
 
 function applyGameFilter() {
   const query = gameSearchInput.value.trim().toLowerCase();
   const tag = gameTagFilter.value;
+  const sessionWanted = gameSessions && gameSessionFilter ? gameSessionFilter.value : "";
   let visibleCount = 0;
   allTitleCards.forEach((card) => {
     const tags = (card.dataset.tags || "").split(/\s+/);
     const matchesTag = !tag || tags.includes(tag);
     const inBase = !query || cardBaseText(card).includes(query);
     const inExtra = !!query && !inBase && (extraSearchText.get(card) || "").includes(query);
-    const visible = matchesTag && (inBase || inExtra);
+    const matchesSession = !sessionWanted || cardSession(card) === sessionWanted;
+    const visible = matchesTag && matchesSession && (inBase || inExtra);
     card.hidden = !visible;
     const note = card.querySelector(".title-card-match-note");
     if (note) note.hidden = !(visible && inExtra);
@@ -541,6 +556,16 @@ if (gameSearchInput && gameTagFilter) {
     lsSet(FILTER_TAG_KEY, gameTagFilter.value);
     applyGameFilter();
   });
+  if (gameSessionFilter) {
+    const savedSession = lsGet(FILTER_SESSION_KEY);
+    if (savedSession && Array.from(gameSessionFilter.options).some((o) => o.value === savedSession)) {
+      gameSessionFilter.value = savedSession;
+    }
+    gameSessionFilter.addEventListener("change", () => {
+      lsSet(FILTER_SESSION_KEY, gameSessionFilter.value);
+      applyGameFilter();
+    });
+  }
   if (gameSortSelect) {
     gameSortSelect.addEventListener("change", () => {
       lsSet(SORT_MODE_KEY, gameSortSelect.value);
@@ -1812,7 +1837,20 @@ function isNewPlayer() {
 function pickRecommendedGame() {
   const answers = loadOnboardingAnswers();
   const picked = RECOMMENDATION_SUBJECT_PRIORITY.find((s) => answers.subjects.includes(s));
-  return (picked && RECOMMENDED_GAME_BY_SUBJECT[picked]) || DEFAULT_RECOMMENDED_GAME;
+  const slug = (picked && RECOMMENDED_GAME_BY_SUBJECT[picked]) || DEFAULT_RECOMMENDED_GAME;
+  // Y-22: someone who answered "Quick games" should not be handed a long-form
+  // game as their first pick. If the subject's usual pick is long-form and the
+  // same subject has a shorter game (session lengths come from
+  // game-sessions.json), use that one instead; otherwise keep the usual pick.
+  if (answers.depth === "quick" && picked && gameSessions && gameSessions.games[slug] === "long") {
+    const shorter = allTitleCards.find(
+      (card) =>
+        (card.dataset.tags || "").split(/\s+/).includes(picked) &&
+        cardSession(card) && cardSession(card) !== "long"
+    );
+    if (shorter) return cardSlug(shorter);
+  }
+  return slug;
 }
 
 function maybeShowNewPlayerBanner() {
@@ -1832,7 +1870,10 @@ function maybeShowNewPlayerBanner() {
   const href = card.querySelector(".title-card-link")?.getAttribute("href") || gameHrefForId(slug);
   const bannerText = document.getElementById("new-player-banner-text");
   if (bannerText) {
-    bannerText.textContent = `New here? Start with ${name} — a simple, approachable first pick before exploring the rest of the lobby.`;
+    const tier = cardSession(card);
+    const tierLabel = tier && gameSessions.tiers[tier] ? gameSessions.tiers[tier].toLowerCase() : "";
+    const lengthNote = tierLabel ? (tier === "long" ? " (a long-form game)" : ` (${tierLabel} a sitting)`) : "";
+    bannerText.textContent = `New here? Start with ${name}${lengthNote} — a simple, approachable first pick before exploring the rest of the lobby.`;
   }
   const goLink = document.getElementById("new-player-banner-cta");
   if (goLink) {
@@ -1885,6 +1926,38 @@ function loadDifficultyBadges() {
   });
 }
 loadDifficultyBadges();
+
+// --- Y-22: estimated session length chip + filter ---
+// The chip sits right under the game's name (not in the tag row) so it still
+// shows on compact cards. Text, not colour, carries the meaning.
+async function loadSessionLengths() {
+  try {
+    const res = await fetch("game-sessions.json");
+    if (!res.ok) throw new Error(`status ${res.status}`);
+    const data = await res.json();
+    if (!data || typeof data.games !== "object" || typeof data.tiers !== "object") throw new Error("bad shape");
+    gameSessions = data;
+  } catch (err) {
+    console.error("loadSessionLengths failed:", err);
+    return;
+  }
+  allTitleCards.forEach((card) => {
+    const tier = cardSession(card);
+    const label = tier && gameSessions.tiers[tier];
+    if (!label) return;
+    card.dataset.session = tier;
+    const nameEl = card.querySelector(".title-card-name");
+    if (!nameEl || card.querySelector(".title-card-session")) return;
+    const chip = document.createElement("p");
+    chip.className = "title-card-session";
+    chip.textContent = `\u23F1 ${label}`;
+    chip.title = "Estimated length of one sitting";
+    nameEl.insertAdjacentElement("afterend", chip);
+  });
+  applyGameFilter();
+  maybeShowNewPlayerBanner();
+}
+loadSessionLengths();
 
 // --- Y15: "Community Highlights" ---
 //

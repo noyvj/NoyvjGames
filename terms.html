@@ -7,6 +7,7 @@
 <link rel="icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="shared/space-bg.css">
 <link rel="stylesheet" href="style.css">
+<script src="hub-prefs.js"></script>
 <script src="shared/theme.js"></script>
 <script src="shared/site-settings.js"></script>
 </head>
@@ -64,7 +65,39 @@
     <h2>Your choices</h2>
     <p>You can stop using the site at any time and clear your browser data. To have an account, saves or comments removed, use the Feedback / Report a Bug box on the hub and say so (include your username), and it will be dealt with by hand.</p>
 
-    <p class="terms-updated">Last updated 2026-09-20. If this changes, it will show up in <a href="whats-new.html">What's New</a>.</p>
+    <p class="terms-updated" id="terms-updated">Last updated 2026-09-20. If this changes, it will show up in <a href="whats-new.html">What's New</a>.</p>
+    <details id="terms-changes" class="terms-changes" hidden>
+      <summary>What changed</summary>
+      <ul id="terms-changes-list"></ul>
+    </details>
   </main>
+  <script src="hub-shortcuts.js"></script>
+  <script>
+    /* Y-30: the "last changed" date and the change list come from terms-meta.json, which
+       scripts/generate-terms-meta.py writes from this file's git history. If it is missing or
+       malformed the hand-written line above stays as it is. */
+    (function () {
+      fetch("terms-meta.json").then(function (res) { return res.ok ? res.json() : null; }).then(function (meta) {
+        if (!meta || !/^\d{4}-\d{2}-\d{2}$/.test(meta.last_changed || "")) return;
+        var line = document.getElementById("terms-updated");
+        var changes = Array.isArray(meta.changes) ? meta.changes.filter(function (c) { return c && c.date && c.subject; }) : [];
+        line.textContent = "";
+        line.appendChild(document.createTextNode((changes.length ? "Last changed " + meta.last_changed + " (read from this page's change history)" : "Last updated " + meta.last_changed) + ". If this changes, it will show up in "));
+        var link = document.createElement("a");
+        link.href = "whats-new.html";
+        link.textContent = "What's New";
+        line.appendChild(link);
+        line.appendChild(document.createTextNode("."));
+        if (!changes.length) return;
+        var list = document.getElementById("terms-changes-list");
+        changes.forEach(function (c) {
+          var li = document.createElement("li");
+          li.textContent = c.date + ": " + c.subject;
+          list.appendChild(li);
+        });
+        document.getElementById("terms-changes").hidden = false;
+      }).catch(function () { /* keep the printed line */ });
+    })();
+  </script>
 </body>
 </html>

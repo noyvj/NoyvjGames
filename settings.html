@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings — NoyvjGames</title>
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="shared/space-bg.css">
+<link rel="stylesheet" href="style.css">
+<script src="hub-prefs.js"></script>
+<script src="shared/theme.js"></script>
+<script src="shared/site-settings.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#settings-main">Skip to content</a>
+  <div class="space-bg" aria-hidden="true"><div class="space-bg-nebula"></div><div class="space-bg-stars-bright"></div></div>
+  <header id="hub-header">
+    <nav class="hub-nav">
+      <a href="index.html">&larr; Back to NoyvjGames</a>
+      <a href="help.html">Help &amp; FAQ</a>
+      <a href="whats-new.html">What's New</a>
+      <a href="achievements.html">Achievements</a>
+      <a href="roadmap.html">Roadmap</a>
+      <button type="button" class="hub-nav-button theme-toggle">Theme</button>
+    </nav>
+    <h1>Settings</h1>
+    <p id="hub-tagline">One place for the preferences that are spread across the hub and the games. Everything here is stored on this device.</p>
+  </header>
+
+  <main id="settings-main" tabindex="-1" class="hub-page-main">
+    <section class="hub-card" aria-labelledby="settings-appearance-h">
+      <h2 id="settings-appearance-h">Look and feel</h2>
+      <div class="settings-row">
+        <label for="settings-theme">Theme</label>
+        <select id="settings-theme">
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+        </select>
+      </div>
+      <p class="hub-note">Applies to the hub and every game. If you are signed in, the theme follows your account to your other devices.</p>
+      <div class="settings-row">
+        <label for="settings-motion">Reduce motion everywhere</label>
+        <input type="checkbox" id="settings-motion">
+      </div>
+      <p class="hub-note">Switches off the hub's drifting background and card animations, and turns on each game's own "reduce motion" option. A game's own Settings panel can still change it afterwards.</p>
+      <p id="settings-appearance-status" class="settings-status" role="status"></p>
+    </section>
+
+    <section class="hub-card" aria-labelledby="settings-games-h">
+      <h2 id="settings-games-h">Defaults for every game</h2>
+      <div class="settings-row">
+        <label for="settings-scale">Text size in the games</label>
+        <select id="settings-scale"></select>
+      </div>
+      <p class="hub-note" id="settings-scale-note">Sets each game's text size to the same value. Le Champ de Mots has no text-size setting yet, so it is left out.</p>
+      <div class="settings-row">
+        <label for="settings-autosave">Autosave</label>
+        <select id="settings-autosave"></select>
+      </div>
+      <p class="hub-note">When on, a game uploads your progress to the save server every five minutes while it is open (to your account if you are signed in, otherwise under a save code). It is off unless you turn it on. Each game's Save panel can still switch it per game.</p>
+      <p id="settings-games-status" class="settings-status" role="status"></p>
+    </section>
+
+    <section class="hub-card" aria-labelledby="settings-privacy-h">
+      <h2 id="settings-privacy-h">Privacy</h2>
+      <div class="settings-row">
+        <label for="settings-pageviews">Help count visits to the hub</label>
+        <input type="checkbox" id="settings-pageviews">
+      </div>
+      <p class="hub-note">Off by default. When on, the hub adds one to a single running visit total each time you open it: no IP address, page or device detail is sent. The same switch is in the hub's footer. See <a href="terms.html">Terms &amp; Privacy</a>.</p>
+    </section>
+
+    <section class="hub-card" aria-labelledby="settings-tours-h">
+      <h2 id="settings-tours-h">Tours and notices</h2>
+      <div class="settings-row">
+        <span class="settings-label">Hub tour and welcome survey</span>
+        <button type="button" class="secondary" id="settings-reset-tour">Show them again</button>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label">Every game's own tutorial</span>
+        <button type="button" class="secondary" id="settings-reset-game-tours">Reset all</button>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label">Dismissed notices (install, announcements, save reminder)</span>
+        <button type="button" class="secondary" id="settings-reset-notices">Show them again</button>
+      </div>
+      <p id="settings-tours-status" class="settings-status" role="status"></p>
+    </section>
+
+    <section class="hub-card" id="shortcuts" aria-labelledby="settings-keys-h">
+      <h2 id="settings-keys-h">Keyboard shortcuts</h2>
+      <p class="hub-note" style="margin-top:0">Press <kbd class="hub-key">?</kbd> on any hub page to see this list. Shortcuts are off while you type in a field. "Go to" shortcuts start with <kbd class="hub-key">g</kbd>, then the key shown.</p>
+      <table class="settings-keytable">
+        <thead><tr><th scope="col">Action</th><th scope="col">Keys</th><th scope="col"><span class="visually-hidden">Change</span></th></tr></thead>
+        <tbody id="settings-keys-body"></tbody>
+      </table>
+      <div class="settings-row">
+        <button type="button" class="secondary" id="settings-keys-reset">Reset shortcuts to defaults</button>
+      </div>
+      <p id="settings-keys-status" class="settings-status" role="status"></p>
+    </section>
+
+    <section class="hub-card" aria-labelledby="settings-data-h">
+      <h2 id="settings-data-h">Your data on this device</h2>
+      <p id="settings-data-summary" style="margin-top:0"></p>
+      <div class="settings-row">
+        <span class="settings-label">Download everything stored here as a file</span>
+        <button type="button" class="secondary" id="settings-export">Export</button>
+      </div>
+      <p class="hub-note">The file lists every setting and local save code this site keeps in this browser. It leaves out your sign-in token. Save codes can open and overwrite that save, so keep the file private.</p>
+      <div class="settings-row">
+        <span class="settings-label">Delete the offline copy of the site</span>
+        <button type="button" class="secondary" id="settings-clear-cache">Clear offline cache</button>
+      </div>
+      <p class="hub-note">Only removes the stored copies of pages and the Python runtime; your settings and saves stay. Games will need a connection again until you have reopened them.</p>
+      <p id="settings-data-status" class="settings-status" role="status"></p>
+    </section>
+
+    <section class="hub-card settings-danger" aria-labelledby="settings-clear-h">
+      <h2 id="settings-clear-h">Clear local data</h2>
+      <div class="settings-row">
+        <span class="settings-label">Reset the hub's own preferences (filters, tour, notices, shortcuts, motion). Keeps your sign-in and every game's data.</span>
+        <button type="button" class="secondary" id="settings-clear-prefs">Reset hub preferences</button>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label">Erase everything this site stored on this device: sign-in, settings, local save codes and local game data.</span>
+        <button type="button" class="secondary" id="settings-clear-all">Erase everything&hellip;</button>
+      </div>
+      <p class="hub-note">Saves kept on the server under your account are not touched, but a save code you have not claimed to an account is gone for good once it is erased here, so export first if you might need one.</p>
+      <div id="settings-confirm" hidden>
+        <p id="settings-confirm-text" class="settings-status"></p>
+        <div class="settings-row">
+          <button type="button" class="secondary" id="settings-confirm-yes">Yes, do it</button>
+          <button type="button" class="account-link-button" id="settings-confirm-no">Cancel</button>
+        </div>
+      </div>
+      <p id="settings-clear-status" class="settings-status" role="status"></p>
+    </section>
+  </main>
+
+  <footer class="hub-footer">
+    <span class="hub-footer-name">NoyvjGames</span>
+    <a href="index.html">Games</a>
+    <a href="help.html">Help &amp; FAQ</a>
+    <a href="credits.html">Credits &amp; Thanks</a>
+    <a href="terms.html">Terms &amp; Privacy</a>
+  </footer>
+
+  <script src="hub-games.js"></script>
+  <script src="hub-shortcuts.js"></script>
+  <script src="settings.js"></script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Help &amp; FAQ — NoyvjGames</title>
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="shared/space-bg.css">
+<link rel="stylesheet" href="style.css">
+<script src="hub-prefs.js"></script>
+<script src="shared/theme.js"></script>
+<script src="shared/site-settings.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#help-main">Skip to content</a>
+  <div class="space-bg" aria-hidden="true"><div class="space-bg-nebula"></div><div class="space-bg-stars-bright"></div></div>
+  <header id="hub-header">
+    <nav class="hub-nav">
+      <a href="index.html">&larr; Back to NoyvjGames</a>
+      <a href="settings.html">Settings</a>
+      <a href="whats-new.html">What's New</a>
+      <a href="roadmap.html">Roadmap</a>
+      <a href="index.html#site-feedback-section">Feedback / Report a Bug</a>
+      <button type="button" class="hub-nav-button theme-toggle">Theme</button>
+    </nav>
+    <h1>Help &amp; FAQ</h1>
+    <p id="hub-tagline">Saving, accounts, moving devices and what the site stores. Search it, or pick a topic.</p>
+  </header>
+
+  <main id="help-main" tabindex="-1" class="hub-page-main">
+    <label for="faq-search" class="visually-hidden">Search the help</label>
+    <input type="search" id="faq-search" class="faq-search" data-hub-search placeholder="Search help and games, e.g. save code, offline, password&hellip;" autocomplete="off">
+    <div id="faq-topics" class="faq-topics" role="group" aria-label="Filter by topic"></div>
+    <p id="faq-status" class="hub-note" role="status"></p>
+    <div id="faq-list"></div>
+    <section id="faq-games-section" class="hub-card" hidden aria-labelledby="faq-games-h">
+      <h2 id="faq-games-h">Games matching your search</h2>
+      <ul id="faq-games" class="faq-games"></ul>
+    </section>
+    <p class="hub-note">Not answered here? Use the <a href="index.html#site-feedback-section">Feedback / Report a Bug</a> box on the hub.</p>
+  </main>
+
+  <footer class="hub-footer">
+    <span class="hub-footer-name">NoyvjGames</span>
+    <a href="index.html">Games</a>
+    <a href="settings.html">Settings</a>
+    <a href="credits.html">Credits &amp; Thanks</a>
+    <a href="terms.html">Terms &amp; Privacy</a>
+  </footer>
+
+  <script src="hub-games.js"></script>
+  <script src="hub-shortcuts.js"></script>
+  <script src="help.js"></script>
+</body>
+</html>

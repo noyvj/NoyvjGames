@@ -12,7 +12,7 @@ from typing import List, Optional
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, model_validator
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -21,7 +21,7 @@ import market
 import pools
 import stats
 from throttle import FailureLimiter
-from database import get_db, init_schema, retry_schema_until_ready
+from database import engine, get_db, init_schema, retry_schema_until_ready
 from models import AnswerReport, AuthSession, Feedback, LeaderboardEntry, OwnerNote, PageView, PoolDay, Rating, Save, User
 
 logger = logging.getLogger(__name__)
@@ -66,6 +66,26 @@ class RatingOut(BaseModel):
     response: Optional[str]
 
     model_config = ConfigDict(from_attributes=True)
+
+
+@app.get("/health")
+def health(response: Response):
+    """Y-27: tiny read-only status check behind the hub footer's status dot.
+
+    Always answers 200 (the dot reads the body, so an amber state is not an
+    HTTP failure): "ok" when the database answers a bare SELECT 1, otherwise
+    "degraded" with db false, which is what the hub explains as "ratings and
+    saves may be unavailable". No tables are read or written and nothing
+    about users or data is exposed.
+    """
+    response.headers["Cache-Control"] = "no-store"
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return {"status": "ok", "db": True}
+    except Exception:
+        logger.exception("health check: database not answering")
+        return {"status": "degraded", "db": False}
 
 
 @app.post("/ratings", response_model=RatingOut)
