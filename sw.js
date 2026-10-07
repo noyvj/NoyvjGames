@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 33;
+const SW_VERSION = 34;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -50,6 +50,11 @@ const PRECACHE_URLS = [
   "games/canopy/index.html",
   "games/canopy/style.css",
   "games/canopy/game.py",
+  "shared/level-select.js",
+  "shared/skill-tree.js",
+  "shared/skill-tree.css",
+  "shared/skill_tree.py",
+  "games/canopy/levels.json",
   "games/grid/index.html",
   "games/grid/style.css",
   "games/grid/game.py",

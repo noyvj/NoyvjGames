@@ -20,6 +20,16 @@ Requests: {"action": ..., ...}. Actions
   info {set?}                   the About page data: legend, counts, every found claim with its sources
   report {set?, claim, reason, note}   build a report payload (UI only: NOTHING is sent anywhere)
   settings {hints?}             game-rule settings kept in the save
+  mode {mode}                   switch between "timeline", "web" (cause web) and "myth" (myth or record)
+  web_start {chapter, round?}   open a cause-web puzzle (default: the first round with a link still to find)
+  web_link {from, to}           draw "from led to to": confirmed only if the set has that relation
+  web_show                      reveal every link of this puzzle (nothing is learned from a reveal)
+  web_next                      the next cause-web round that still has an undiscovered link
+  myth_start {chapter, round?}  open a myth-or-record puzzle
+  myth_sort {claim, bin}        put a claim in a bin (documented, disputed, traditional-but-doubtful) or clear it (bin null)
+  myth_check                    grade a fully sorted puzzle: right claims lock and are added to the archive
+  myth_show                     reveal the right bins (nothing is learned from a reveal)
+  myth_next                     the next myth round
   ack                           the player has seen the introduction
   reset                         erase all progress
 Every response: {"ok", "error", "view", "new" (achievements just earned), "dirty" (state changed)}.
@@ -29,11 +39,20 @@ import json
 from pathlib import Path
 
 import achievements
+import myth as mq
 import puzzle as pz
 import report
-from setdata import SetError, format_date, load_set, year_of
+import web as wb
+from setdata import SetError, event_key, format_date, load_set, year_of
 
-SCHEMA = 1
+SCHEMA = 2
+MODES = ("timeline", "web", "myth")
+MODE_LABELS = {"timeline": "Timeline", "web": "Cause web", "myth": "Myth or record"}
+STRENGTH_LABELS = {"direct": ("Direct cause", "\u21d2"), "contributing": ("Contributing cause", "\u21e2")}
+STRENGTH_MEANING = {
+    "direct": "The sources treat this as the immediate trigger. Other causes still matter.",
+    "contributing": "The sources name this as one factor among several, not the whole story.",
+}
 MAX_IDS = 2000
 CONFIDENCE_LABELS = {
     "documented": ("Documented", "✔"),
@@ -92,8 +111,8 @@ def register_set(cset):
 
 
 def _blank_state():
-    return {"sets": {}, "unknown": {}, "viewed": set(), "settings": {"set": None, "hints": True},
-            "flags": {"onboarded": False}, "session": None, "earned": []}
+    return {"sets": {}, "unknown": {}, "viewed": set(), "settings": {"set": None, "hints": True, "mode": "timeline"},
+            "flags": {"onboarded": False}, "session": None, "wsession": None, "msession": None, "earned": []}
 
 
 def reset_engine():
@@ -104,7 +123,8 @@ def reset_engine():
 
 
 def _ensure_progress(set_id):
-    return S["sets"].setdefault(set_id, {"learned": set(), "solved": {}, "revealed": set()})
+    return S["sets"].setdefault(set_id, {"learned": set(), "solved": {}, "revealed": set(), "threads": set(), "sorted": set(),
+                                         "wsolved": {}, "msolved": {}})
 
 
 def _prog(set_id):
@@ -130,6 +150,22 @@ class _Helpers:
         return {cset.events[e]["place"] for e in _prog(set_id)["learned"] if cset.events[e].get("place")}
 
     @staticmethod
+    def threads(set_id):
+        return _prog(set_id)["threads"]
+
+    @staticmethod
+    def sorted_claims(set_id):
+        return _prog(set_id)["sorted"]
+
+    @staticmethod
+    def web_records(set_id):
+        return _prog(set_id)["wsolved"]
+
+    @staticmethod
+    def myth_records(set_id):
+        return _prog(set_id)["msolved"]
+
+    @staticmethod
     def percent(set_id):
         found, total = _counts(set_id)
         return 100 if found == total else (100 * found) // total
@@ -144,8 +180,11 @@ HELP = _Helpers()
 
 def _counts(set_id):
     cset = SETS[set_id]
-    found = len(_prog(set_id)["learned"]) + len(HELP.people_found(set_id)) + len(HELP.places_found(set_id))
-    total = len(cset.events) + len(cset.people) + len(cset.places)
+    prog = _prog(set_id)
+    rels, claims = set(cset.web_relation_ids()), set(cset.myth_claim_ids())
+    found = (len(prog["learned"]) + len(HELP.people_found(set_id)) + len(HELP.places_found(set_id))
+             + len(prog["threads"] & rels) + len(prog["sorted"] & claims))
+    total = len(cset.events) + len(cset.people) + len(cset.places) + len(rels) + len(claims)
     return found, total
 
 
@@ -195,8 +234,11 @@ def _claim_view(cset, claim):
         "confidence": claim["confidence"], "confidence_label": label, "symbol": symbol,
         "alternatives": list(claim.get("alternatives", [])),
         "sources": cset.resolved_sources(claim),
+        "institutions": sorted({s["institution"] for s in cset.resolved_sources(claim)}),
         "viewed": ("%s/%s" % (cset.id, claim["id"])) in S["viewed"],
     }
+    if claim.get("short"):
+        out["short"] = claim["short"]
     if claim["field"] == "date":
         out["value_label"] = format_date(claim["value"])
     return out
@@ -217,7 +259,7 @@ def _event_full(cset, event_id):
         "place": place["name"] if place else None,
         "people": [cset.people[p]["name"] for p in e.get("people", [])],
         "claim": _claim_view(cset, claim),
-        "other_claims": [_claim_view(cset, c) for c in cset.claims_for(event_id) if c["field"] != "date"],
+        "other_claims": [_claim_view(cset, c) for c in cset.claims_for(event_id) if c["field"] not in ("date", "relation")],
     }
 
 
@@ -347,6 +389,243 @@ def _reading_view(cset, reading):
             "claims": [_claim_view(cset, cset.claims[c]) for c in reading["claims"]]}
 
 
+# ---- the cause web: chapters, session, views
+
+
+def _web_unlocked(set_id, ch):
+    learned = _prog(set_id)["learned"]
+    return all(e in learned for e in ch["events"])
+
+
+def _web_cleared(set_id, ch):
+    cset = SETS[set_id]
+    return all(r in _prog(set_id)["threads"] for r in cset.chapter_relations(ch))
+
+
+def _web_next_round(set_id, ch):
+    solved = _prog(set_id)["wsolved"]
+    r = 0
+    while "%s:%d" % (ch["id"], r) in solved:
+        r += 1
+    return r
+
+
+def _web_chapter_views(cset):
+    out = []
+    prog = _prog(cset.id)
+    for ch in cset.web_chapters:
+        rels = cset.chapter_relations(ch)
+        have = sum(1 for r in rels if r in prog["threads"])
+        missing = sum(1 for e in ch["events"] if e not in prog["learned"])
+        out.append({
+            "id": ch["id"], "title": ch["title"], "blurb": ch["blurb"], "size": ch["size"], "difficulty": None,
+            "unlocked": missing == 0, "cleared": have == len(rels), "have": have, "need": len(rels),
+            "progress": "Found %d of %d links" % (have, len(rels)),
+            "missing": missing,
+            "requires_text": "Find %d more moment%s in the timeline first" % (missing, "" if missing == 1 else "s"),
+            "next_round": _web_next_round(cset.id, ch), "main_rounds": wb.main_rounds(cset, ch["id"]),
+        })
+    return out
+
+
+def _wstart(set_id, chapter_id, round_no):
+    cset = SETS[set_id]
+    puz = wb.make_web_puzzle(cset, chapter_id, round_no)
+    S["wsession"] = {"set": set_id, "chapter": chapter_id, "round": round_no, "found": [], "tries": [], "misses": 0,
+                     "status": "playing", "message": ""}
+    return puz
+
+
+def _wdefault(cset):
+    chosen = None
+    for ch in cset.web_chapters:
+        if _web_unlocked(cset.id, ch):
+            chosen = ch
+            if not _web_cleared(cset.id, ch):
+                break
+    if chosen is None:
+        return None
+    _wstart(cset.id, chosen["id"], _web_next_round(cset.id, chosen))
+    return S["wsession"]
+
+
+def _ensure_wsession():
+    sess = S["wsession"]
+    cset = _cur_set()
+    if cset is None or not cset.web_chapters:
+        return None
+    if sess is not None and sess["set"] == cset.id:
+        ch = cset.web_chapter(sess["chapter"])
+        if ch is not None and _web_unlocked(cset.id, ch):
+            return sess
+    S["wsession"] = None
+    return _wdefault(cset)
+
+
+def _wpuzzle(sess):
+    cset = SETS[sess["set"]]
+    return cset, wb.make_web_puzzle(cset, sess["chapter"], sess["round"])
+
+
+def _thread_view(cset, rid):
+    r = cset.relation_by_id[rid]
+    label, symbol = STRENGTH_LABELS[r["strength"]]
+    n = len(cset.causes_of(r["to"]))
+    if n > 1:
+        plural = "One of %d causes of this moment that the set records." % n
+    else:
+        plural = "The only cause of this moment that the set records. Causes are plural: the sources name others that are not cards here."
+    return {
+        "relation": rid, "from": r["from"], "to": r["to"], "from_title": cset.events[r["from"]]["title"],
+        "to_title": cset.events[r["to"]]["title"], "strength": r["strength"], "strength_label": label, "strength_symbol": symbol,
+        "strength_note": STRENGTH_MEANING[r["strength"]], "plural_note": plural, "n_causes": n,
+        "claim": _claim_view(cset, cset.claims[r["claim"]]),
+    }
+
+
+def _web_view(sess):
+    cset, puz = _wpuzzle(sess)
+    ch = cset.web_chapter(sess["chapter"])
+    main = wb.main_rounds(cset, sess["chapter"])
+    label = ("Puzzle %d of %d" % (sess["round"] + 1, main)) if sess["round"] < main else ("Practice puzzle %d" % (sess["round"] - main + 1))
+    cards = [{"id": e, "title": cset.events[e]["title"], "n": i + 1} for i, e in enumerate(puz.cards)]
+    found = [_thread_view(cset, r) for r in puz.relations if r in sess["found"]]
+    tries = []
+    for t in sess["tries"]:
+        tries.append({"from": t["from"], "to": t["to"], "from_title": cset.events[t["from"]]["title"],
+                      "to_title": cset.events[t["to"]]["title"], "verdict": t["verdict"]})
+    finished = sess["status"] != "playing"
+    result = None
+    if finished:
+        result = {"solved": sess["status"] == "solved", "threads": [_thread_view(cset, r) for r in puz.relations],
+                  "chapter_cleared": sess["status"] == "solved" and _web_cleared(cset.id, ch)}
+    return {
+        "id": puz.code, "chapter": sess["chapter"], "chapter_title": ch["title"], "round": sess["round"], "round_label": label,
+        "size": puz.size, "status": sess["status"], "message": sess["message"], "misses": sess["misses"], "cards": cards,
+        "found": found, "tries": tries, "links_total": len(puz.relations), "links_found": len(sess["found"]), "result": result,
+    }
+
+
+# ---- myth or record: chapters, session, views
+
+
+def _myth_unlocked(set_id, ch):
+    cset = SETS[set_id]
+    learned = _prog(set_id)["learned"]
+    return all(cset.claims[c]["subject"] in learned for c in ch["claims"])
+
+
+def _myth_cleared(set_id, ch):
+    return all(c in _prog(set_id)["sorted"] for c in ch["claims"])
+
+
+def _myth_next_round(set_id, ch):
+    solved = _prog(set_id)["msolved"]
+    r = 0
+    while "%s:%d" % (ch["id"], r) in solved:
+        r += 1
+    return r
+
+
+def _myth_chapter_views(cset):
+    out = []
+    prog = _prog(cset.id)
+    for ch in cset.myth_chapters:
+        have = sum(1 for c in ch["claims"] if c in prog["sorted"])
+        missing = len({cset.claims[c]["subject"] for c in ch["claims"] if cset.claims[c]["subject"] not in prog["learned"]})
+        out.append({
+            "id": ch["id"], "title": ch["title"], "blurb": ch["blurb"], "size": ch["size"], "difficulty": None,
+            "unlocked": missing == 0, "cleared": have == len(ch["claims"]), "have": have, "need": len(ch["claims"]),
+            "progress": "Sorted %d of %d claims" % (have, len(ch["claims"])),
+            "missing": missing,
+            "requires_text": "Find %d more moment%s in the timeline first" % (missing, "" if missing == 1 else "s"),
+            "next_round": _myth_next_round(cset.id, ch), "main_rounds": mq.main_rounds(cset, ch["id"]),
+        })
+    return out
+
+
+def _mstart(set_id, chapter_id, round_no):
+    cset = SETS[set_id]
+    puz = mq.make_myth_puzzle(cset, chapter_id, round_no)
+    n = puz.size
+    S["msession"] = {"set": set_id, "chapter": chapter_id, "round": round_no, "bins": [None] * n, "locked": [False] * n,
+                     "marks": [None] * n, "checks": 0, "status": "playing", "new": [], "message": ""}
+    return puz
+
+
+def _mdefault(cset):
+    chosen = None
+    for ch in cset.myth_chapters:
+        if _myth_unlocked(cset.id, ch):
+            chosen = ch
+            if not _myth_cleared(cset.id, ch):
+                break
+    if chosen is None:
+        return None
+    _mstart(cset.id, chosen["id"], _myth_next_round(cset.id, chosen))
+    return S["msession"]
+
+
+def _ensure_msession():
+    sess = S["msession"]
+    cset = _cur_set()
+    if cset is None or not cset.myth_chapters:
+        return None
+    if sess is not None and sess["set"] == cset.id:
+        ch = cset.myth_chapter(sess["chapter"])
+        if ch is not None and _myth_unlocked(cset.id, ch):
+            return sess
+    S["msession"] = None
+    return _mdefault(cset)
+
+
+def _mpuzzle(sess):
+    cset = SETS[sess["set"]]
+    return cset, mq.make_myth_puzzle(cset, sess["chapter"], sess["round"])
+
+
+def _explanation(cset, claim):
+    """A short reason for the claim's label, built only from the claim's own fields and its source notes."""
+    notes = [ref.get("note", "") for ref in claim["sources"] if ref.get("note")]
+    head = {
+        "documented": "Record: the sources agree.",
+        "disputed": "Disputed: reputable sources differ, and the game does not pick a side.",
+        "traditional-but-doubtful": "Traditional but doubtful: the sources do not support this story.",
+    }[claim["confidence"]]
+    return " ".join([head] + notes[:2])
+
+
+def _myth_view(sess):
+    cset, puz = _mpuzzle(sess)
+    ch = cset.myth_chapter(sess["chapter"])
+    main = mq.main_rounds(cset, sess["chapter"])
+    label = ("Puzzle %d of %d" % (sess["round"] + 1, main)) if sess["round"] < main else ("Practice puzzle %d" % (sess["round"] - main + 1))
+    finished = sess["status"] != "playing"
+    claims = []
+    for i, cid in enumerate(puz.tray):
+        c = cset.claims[cid]
+        claims.append({"id": cid, "index": i, "text": c["text"], "subject_title": cset.events[c["subject"]]["title"],
+                       "bin": sess["bins"][i], "locked": sess["locked"][i],
+                       "status": "right" if sess["locked"][i] else ("wrong" if sess["marks"][i] else None)})
+    result = None
+    if finished:
+        rows = []
+        for i, cid in enumerate(puz.tray):
+            c = cset.claims[cid]
+            view = _claim_view(cset, c)
+            view["explanation"] = _explanation(cset, c)
+            view["new"] = cid in sess["new"]
+            rows.append(view)
+        result = {"solved": sess["status"] == "solved", "claims": rows, "new_count": len(sess["new"]),
+                  "chapter_cleared": sess["status"] == "solved" and _myth_cleared(cset.id, ch)}
+    return {
+        "id": puz.code, "chapter": sess["chapter"], "chapter_title": ch["title"], "round": sess["round"], "round_label": label,
+        "size": puz.size, "status": sess["status"], "message": sess["message"], "checks": sess["checks"], "claims": claims,
+        "bins": [{"id": b, "label": CONFIDENCE_LABELS[b][0], "symbol": CONFIDENCE_LABELS[b][1], "meaning": _LEGEND[b]} for b in mq.BINS],
+        "all_sorted": all(b is not None for b in sess["bins"]), "result": result,
+    }
+
+
 # ---- the whole view
 
 
@@ -375,11 +654,49 @@ def _view():
         "sections": _section_views(cset), "puzzle": _puzzle_view(sess), "result": _result_view(sess),
         "settings": _settings_view(), "first_run": not S["flags"]["onboarded"],
         "achievements_earned": _earned_now(),
+        "mode": _mode(cset), "modes": _modes_view(cset), "webs": _web_chapter_views(cset), "myths": _myth_chapter_views(cset),
+        "web": _web_board(cset), "myth": _myth_board(cset),
     }
 
 
 def _settings_view():
-    return {"hints": bool(S["settings"]["hints"]), "set": S["settings"].get("set")}
+    return {"hints": bool(S["settings"]["hints"]), "set": S["settings"].get("set"), "mode": S["settings"].get("mode", "timeline")}
+
+
+def _mode(cset):
+    """The mode being played; a set without that mechanic falls back to the timeline."""
+    mode = S["settings"].get("mode", "timeline")
+    if mode == "web" and not cset.web_chapters:
+        return "timeline"
+    if mode == "myth" and not cset.myth_chapters:
+        return "timeline"
+    return mode if mode in MODES else "timeline"
+
+
+def _modes_view(cset):
+    return [
+        {"id": "timeline", "label": MODE_LABELS["timeline"], "available": True},
+        {"id": "web", "label": MODE_LABELS["web"], "available": bool(cset.web_chapters)},
+        {"id": "myth", "label": MODE_LABELS["myth"], "available": bool(cset.myth_chapters)},
+    ]
+
+
+def _web_board(cset):
+    if _mode(cset) != "web":
+        return None
+    sess = _ensure_wsession()
+    if sess is None:
+        return {"locked": True, "message": "Find more moments in the timeline to open a cause web chapter."}
+    return _web_view(sess)
+
+
+def _myth_board(cset):
+    if _mode(cset) != "myth":
+        return None
+    sess = _ensure_msession()
+    if sess is None:
+        return {"locked": True, "message": "Find more moments in the timeline to open a myth-or-record chapter."}
+    return _myth_view(sess)
 
 
 def _earned_now():
@@ -447,6 +764,8 @@ def _act_choose_set(req):
     cset = _set_for({"set": _str(req, "set")})
     S["settings"]["set"] = cset.id
     S["session"] = None
+    S["wsession"] = None
+    S["msession"] = None
     _default_start(cset)
     return True
 
@@ -559,6 +878,17 @@ def _act_next(_req):
 
 def _claim_allowed(cset, claim):
     prog = _prog(cset.id)
+    if claim["field"] == "relation":
+        rid = next((r["id"] for r in cset.relations if r["claim"] == claim["id"]), None)
+        if rid is None:
+            return False
+        if rid in prog["threads"]:
+            return True
+        ws = S["wsession"]
+        if ws and ws["set"] == cset.id and ws["status"] in ("solved", "revealed"):
+            _c, wpuz = _wpuzzle(ws)
+            return rid in wpuz.relations
+        return False
     subject = claim["subject"]
     if subject in prog["learned"]:
         return True
@@ -611,14 +941,38 @@ def _archive(cset):
         if _cleared(cset.id, r["section"]):
             readings.append(_reading_view(cset, r))
     found, total = _counts(cset.id)
+    groups = [
+        {"id": "events", "title": "Moments", "entries": events},
+        {"id": "elsewhere", "title": "Elsewhere in the world", "entries": elsewhere},
+        {"id": "people", "title": "People", "entries": pe},
+        {"id": "places", "title": "Places", "entries": pl},
+    ]
+    rel_ids = cset.web_relation_ids()
+    if rel_ids:
+        threads = []
+        for rid in rel_ids:
+            r = cset.relation_by_id[rid]
+            if rid in prog["threads"]:
+                label = STRENGTH_LABELS[r["strength"]][0]
+                threads.append({"id": rid, "kind": "relation", "found": True,
+                                "title": "%s led to %s" % (cset.events[r["from"]]["title"], cset.events[r["to"]]["title"]),
+                                "date_label": label, "hint": "Cause web"})
+            else:
+                threads.append({"id": rid, "kind": "relation", "found": False, "title": None, "date_label": None, "hint": "Cause web"})
+        groups.append({"id": "connections", "title": "Connections", "entries": threads})
+    claim_ids = cset.myth_claim_ids()
+    if claim_ids:
+        records = []
+        for cid in claim_ids:
+            c = cset.claims[cid]
+            if cid in prog["sorted"]:
+                records.append({"id": cid, "kind": "record", "found": True, "title": c.get("short") or c["text"],
+                                "date_label": CONFIDENCE_LABELS[c["confidence"]][1] + " " + CONFIDENCE_LABELS[c["confidence"]][0], "hint": "Myth or record"})
+            else:
+                records.append({"id": cid, "kind": "record", "found": False, "title": None, "date_label": None, "hint": "Myth or record"})
+        groups.append({"id": "records", "title": "Records and myths", "entries": records})
     return {"set": cset.id, "title": cset.title, "found": found, "total": total, "percent": HELP.percent(cset.id),
-            "groups": [
-                {"id": "events", "title": "Moments", "entries": events},
-                {"id": "elsewhere", "title": "Elsewhere in the world", "entries": elsewhere},
-                {"id": "people", "title": "People", "entries": pe},
-                {"id": "places", "title": "Places", "entries": pl},
-            ],
-            "readings": readings, "locked_readings": len(cset.readings) - len(readings)}
+            "groups": groups, "readings": readings, "locked_readings": len(cset.readings) - len(readings)}
 
 
 def _act_entry(req, out):
@@ -642,6 +996,20 @@ def _act_entry(req, out):
                        (entry_id in cset.events[i].get("people", []) if key == "people" else cset.events[i].get("place") == entry_id)],
         }
         return False
+    if entry_id in cset.relation_by_id and entry_id in cset.web_relation_ids():
+        if entry_id not in _prog(cset.id)["threads"]:
+            raise _Bad("You have not found that yet.")
+        view = _thread_view(cset, entry_id)
+        out["entry"] = {"id": entry_id, "kind": "relation", "title": "%s led to %s" % (view["from_title"], view["to_title"]), "thread": view}
+        return False
+    if entry_id in cset.claims and entry_id in cset.myth_claim_ids():
+        if entry_id not in _prog(cset.id)["sorted"]:
+            raise _Bad("You have not found that yet.")
+        claim = cset.claims[entry_id]
+        view = _claim_view(cset, claim)
+        view["explanation"] = _explanation(cset, claim)
+        out["entry"] = {"id": entry_id, "kind": "record", "title": claim.get("short") or claim["text"], "claim": view}
+        return False
     raise _Bad("No such entry.")
 
 
@@ -655,12 +1023,20 @@ def _act_info(req, out):
             claims.append({"event": event_id, "title": full["title"], "date_label": full["date_label"],
                            "claims": [full["claim"]] + full["other_claims"]})
     nsources = len({ref["source"] for c in cset.claims.values() for ref in c["sources"]})
+    threads = [_thread_view(cset, r["id"]) for r in cset.relations if r["id"] in _prog(cset.id)["threads"] and r["id"] in cset.web_relation_ids()]
+    shown = sum(len(c["claims"]) for c in claims) + len(threads)
+    levels = {k: sum(1 for c in cset.claims.values() if c["confidence"] == k) for k in CONFIDENCE_LABELS}
     out["info"] = {
         "set": {"id": cset.id, "title": cset.title, "status": cset.status, "status_label": cset.status_label,
                 "draft": cset.status != "reviewed", "version": cset.version, "drafted": cset.meta.get("drafted")},
         "legend": [{"id": k, "label": v[0], "symbol": v[1], "meaning": _LEGEND[k]} for k, v in CONFIDENCE_LABELS.items()],
-        "counts": {"claims": len(cset.claims), "sources": nsources, "events": len(cset.events)},
+        "counts": {"claims": len(cset.claims), "sources": nsources, "events": len(cset.events), "relations": len(cset.relations),
+                   "levels": levels},
+        "coverage": {"shown": shown, "total": len(cset.claims),
+                     "note": "Every claim in a set links at least three sources. You see %d of %d claims now; the rest appear as you find them." % (shown, len(cset.claims))},
+        "strengths": [{"id": k, "label": v[0], "symbol": v[1], "meaning": STRENGTH_MEANING[k]} for k, v in STRENGTH_LABELS.items()],
         "found_claims": claims,
+        "found_relations": threads,
         "reasons": [{"id": i, "label": l} for i, l in report.REASONS],
     }
     return False
@@ -702,6 +1078,206 @@ def _act_ack(_req):
 
 def _act_reset(_req):
     reset_engine()
+    return True
+
+
+# ---- the new mechanics: mode, cause web, myth or record
+
+
+def _act_mode(req):
+    mode = req.get("mode")
+    if mode not in MODES:
+        raise _Bad("Unknown mode.")
+    cset = _cur_set()
+    if cset is None:
+        raise _Bad("No set is loaded.")
+    if mode == "web" and not cset.web_chapters:
+        raise _Bad("This set has no cause web yet.")
+    if mode == "myth" and not cset.myth_chapters:
+        raise _Bad("This set has no myth-or-record chapter yet.")
+    changed = S["settings"].get("mode") != mode
+    S["settings"]["mode"] = mode
+    return changed
+
+
+def _chapter_arg(req, kind):
+    cset = _set_for(req)
+    chapter_id = _str(req, "chapter")
+    ch = cset.web_chapter(chapter_id) if kind == "web" else cset.myth_chapter(chapter_id)
+    if ch is None:
+        raise _Bad("Unknown chapter.")
+    unlocked = _web_unlocked(cset.id, ch) if kind == "web" else _myth_unlocked(cset.id, ch)
+    if not unlocked:
+        raise _Bad("That chapter is still locked.")
+    round_no = _int(req, "round") if "round" in req and req["round"] is not None else (
+        _web_next_round(cset.id, ch) if kind == "web" else _myth_next_round(cset.id, ch))
+    if round_no < 0 or round_no > 10000:
+        raise _Bad("That puzzle does not exist.")
+    return cset, ch, round_no
+
+
+def _act_web_start(req):
+    cset, ch, round_no = _chapter_arg(req, "web")
+    S["settings"]["set"] = cset.id
+    S["settings"]["mode"] = "web"
+    _wstart(cset.id, ch["id"], round_no)
+    return True
+
+
+def _wplaying():
+    sess = _ensure_wsession()
+    if sess is None:
+        raise _Bad("No cause-web chapter is open yet.")
+    return sess
+
+
+def _act_web_link(req):
+    sess = _wplaying()
+    if sess["status"] != "playing":
+        raise _Bad("This puzzle is finished. Press Next puzzle.")
+    cset, puz = _wpuzzle(sess)
+    cause, effect = _str(req, "from"), _str(req, "to")
+    verdict = wb.judge(cset, puz, cause, effect)
+    kind = verdict["verdict"]
+    if kind == "invalid":
+        raise _Bad("Pick two different cards from this puzzle.")
+    prog = _prog(cset.id)
+    a, b = cset.events[cause]["title"], cset.events[effect]["title"]
+    if kind == "confirmed":
+        rid = verdict["relation"]
+        if rid in sess["found"]:
+            sess["message"] = "You already drew that thread."
+            return False
+        sess["found"].append(rid)
+        prog["threads"].add(rid)
+        label = STRENGTH_LABELS[cset.relation_by_id[rid]["strength"]][0]
+        sess["message"] = "Confirmed: %s led to %s. Evidence: %s." % (a, b, label.lower())
+        if all(r in sess["found"] for r in puz.relations):
+            sess["status"] = "solved"
+            key = "%s:%d" % (sess["chapter"], sess["round"])
+            old = prog["wsolved"].get(key)
+            if old is None or sess["misses"] < old["misses"]:
+                prog["wsolved"][key] = {"misses": sess["misses"]}
+            sess["message"] += " Every link in this puzzle is found."
+        return True
+    sess["misses"] += 1
+    sess["tries"] = (sess["tries"] + [{"from": cause, "to": effect, "verdict": kind}])[-30:]
+    if kind == "reversed":
+        sess["message"] = "Not that way round: the sources link %s and %s the other way." % (a, b)
+    else:
+        sess["message"] = "Not confirmed: none of this set's sources join %s to %s. That does not mean they are unrelated." % (a, b)
+    return True
+
+
+def _act_web_show(_req):
+    sess = _wplaying()
+    if sess["status"] != "playing":
+        raise _Bad("This puzzle is finished.")
+    sess["status"] = "revealed"
+    sess["message"] = "Links shown. Nothing was added to your archive from this puzzle."
+    return True
+
+
+def _act_web_next(_req):
+    sess = _wplaying()
+    cset = SETS[sess["set"]]
+    solved = _prog(cset.id)["wsolved"]
+    r = sess["round"] + 1
+    while "%s:%d" % (sess["chapter"], r) in solved:
+        r += 1
+    _wstart(cset.id, sess["chapter"], r)
+    return True
+
+
+def _act_myth_start(req):
+    cset, ch, round_no = _chapter_arg(req, "myth")
+    S["settings"]["set"] = cset.id
+    S["settings"]["mode"] = "myth"
+    _mstart(cset.id, ch["id"], round_no)
+    return True
+
+
+def _mplaying():
+    sess = _ensure_msession()
+    if sess is None:
+        raise _Bad("No myth-or-record chapter is open yet.")
+    return sess
+
+
+def _act_myth_sort(req):
+    sess = _mplaying()
+    if sess["status"] != "playing":
+        raise _Bad("This puzzle is finished. Press Next puzzle.")
+    cset, puz = _mpuzzle(sess)
+    claim_id = _str(req, "claim")
+    if claim_id not in puz.tray:
+        raise _Bad("That claim is not in this puzzle.")
+    bin_id = req.get("bin")
+    if bin_id is not None and bin_id not in mq.BINS:
+        raise _Bad("Pick documented, disputed or traditional-but-doubtful.")
+    i = puz.tray.index(claim_id)
+    if sess["locked"][i]:
+        raise _Bad("That claim is already sorted correctly.")
+    if sess["bins"][i] == bin_id:
+        return False
+    sess["bins"][i] = bin_id
+    sess["marks"][i] = None
+    sess["message"] = ""
+    return True
+
+
+def _act_myth_check(_req):
+    sess = _mplaying()
+    if sess["status"] != "playing":
+        raise _Bad("This puzzle is finished.")
+    cset, puz = _mpuzzle(sess)
+    if any(b is None for b in sess["bins"]):
+        raise _Bad("Sort all %d claims before checking." % puz.size)
+    result = mq.grade(puz, {cid: sess["bins"][i] for i, cid in enumerate(puz.tray)})
+    prog = _prog(cset.id)
+    sess["checks"] += 1
+    for i, row in enumerate(result["claims"]):
+        if row["status"] == "right":
+            sess["locked"][i] = True
+            sess["marks"][i] = None
+            if row["claim"] not in prog["sorted"]:
+                prog["sorted"].add(row["claim"])
+                sess["new"].append(row["claim"])
+        else:
+            sess["marks"][i] = "wrong"
+    if result["all_right"]:
+        sess["status"] = "solved"
+        key = "%s:%d" % (sess["chapter"], sess["round"])
+        old = prog["msolved"].get(key)
+        if old is None or sess["checks"] < old["checks"]:
+            prog["msolved"][key] = {"checks": sess["checks"]}
+        sess["message"] = "Sorted in one check." if sess["checks"] == 1 else "Sorted in %d checks." % sess["checks"]
+    else:
+        sess["message"] = "%d of %d claims are in the right bin and locked. Move the others." % (result["right"], puz.size)
+    return True
+
+
+def _act_myth_show(_req):
+    sess = _mplaying()
+    if sess["status"] != "playing":
+        raise _Bad("This puzzle is finished.")
+    _cset, puz = _mpuzzle(sess)
+    sess["bins"] = [puz.answer[c] for c in puz.tray]
+    sess["locked"] = [True] * puz.size
+    sess["marks"] = [None] * puz.size
+    sess["status"] = "revealed"
+    sess["message"] = "Answer shown. Nothing was added to your archive from this puzzle."
+    return True
+
+
+def _act_myth_next(_req):
+    sess = _mplaying()
+    cset = SETS[sess["set"]]
+    solved = _prog(cset.id)["msolved"]
+    r = sess["round"] + 1
+    while "%s:%d" % (sess["chapter"], r) in solved:
+        r += 1
+    _mstart(cset.id, sess["chapter"], r)
     return True
 
 
@@ -750,6 +1326,9 @@ _MUTATORS = {
     "start": _act_start, "choose_set": _act_choose_set, "place": _act_place, "unplace": _act_unplace,
     "check": _act_check, "show_answer": _act_show_answer, "next": _act_next, "settings": _act_settings,
     "ack": _act_ack, "reset": _act_reset,
+    "mode": _act_mode, "web_start": _act_web_start, "web_link": _act_web_link, "web_show": _act_web_show, "web_next": _act_web_next,
+    "myth_start": _act_myth_start, "myth_sort": _act_myth_sort, "myth_check": _act_myth_check, "myth_show": _act_myth_show,
+    "myth_next": _act_myth_next,
 }
 
 
@@ -776,7 +1355,10 @@ def get_state():
     for set_id, prog in S["sets"].items():
         sets[set_id] = {"learned": sorted(prog["learned"]),
                         "solved": {k: dict(v) for k, v in sorted(prog["solved"].items())},
-                        "revealed": sorted(prog["revealed"])}
+                        "revealed": sorted(prog["revealed"]),
+                        "threads": sorted(prog["threads"]), "sorted": sorted(prog["sorted"]),
+                        "web_solved": {k: dict(v) for k, v in sorted(prog["wsolved"].items())},
+                        "myth_solved": {k: dict(v) for k, v in sorted(prog["msolved"].items())}}
     for set_id, raw in S["unknown"].items():
         sets.setdefault(set_id, raw)
     sess = S["session"]
@@ -784,6 +1366,8 @@ def get_state():
         "schema": SCHEMA, "sets": sets, "viewed": sorted(S["viewed"]),
         "settings": dict(S["settings"]), "flags": dict(S["flags"]),
         "session": json.loads(json.dumps(sess)) if sess else None,
+        "web_session": json.loads(json.dumps(S["wsession"])) if S["wsession"] else None,
+        "myth_session": json.loads(json.dumps(S["msession"])) if S["msession"] else None,
         "achievements_earned": _earned_now(),
     }
 
@@ -829,6 +1413,85 @@ def _clean_session(raw):
             "message": raw.get("message") if isinstance(raw.get("message"), str) and len(raw["message"]) < 200 else ""}
 
 
+def _clean_wsession(raw):
+    """A saved cause-web session, or None if anything about it is not what the engine could have produced."""
+    if not isinstance(raw, dict):
+        return None
+    set_id, chapter_id, round_no = raw.get("set"), raw.get("chapter"), raw.get("round")
+    if set_id not in SETS or isinstance(round_no, bool) or not isinstance(round_no, int) or not 0 <= round_no <= 10000:
+        return None
+    cset = SETS[set_id]
+    ch = cset.web_chapter(chapter_id)
+    if ch is None or not _web_unlocked(set_id, ch):
+        return None
+    try:
+        puz = wb.make_web_puzzle(cset, chapter_id, round_no)
+    except ValueError:
+        return None
+    found, tries, status = raw.get("found"), raw.get("tries"), raw.get("status")
+    if not isinstance(found, list) or not all(isinstance(r, str) and r in puz.relations for r in found) or len(set(found)) != len(found):
+        return None
+    if any(r not in _prog(set_id)["threads"] for r in found):
+        return None                         # a thread in the session must really have been earned
+    if status not in ("playing", "solved", "revealed"):
+        return None
+    if status == "solved" and sorted(found) != sorted(puz.relations):
+        return None
+    misses = raw.get("misses")
+    if isinstance(misses, bool) or not isinstance(misses, int) or not 0 <= misses <= 100000:
+        return None
+    clean_tries = []
+    if not isinstance(tries, list):
+        return None
+    for t in tries[:30]:
+        if not (isinstance(t, dict) and t.get("from") in puz.cards and t.get("to") in puz.cards and t.get("verdict") in ("reversed", "unconfirmed")):
+            return None
+        clean_tries.append({"from": t["from"], "to": t["to"], "verdict": t["verdict"]})
+    message = raw.get("message") if isinstance(raw.get("message"), str) and len(raw["message"]) < 300 else ""
+    return {"set": set_id, "chapter": chapter_id, "round": round_no, "found": list(found), "tries": clean_tries,
+            "misses": misses, "status": status, "message": message}
+
+
+def _clean_msession(raw):
+    if not isinstance(raw, dict):
+        return None
+    set_id, chapter_id, round_no = raw.get("set"), raw.get("chapter"), raw.get("round")
+    if set_id not in SETS or isinstance(round_no, bool) or not isinstance(round_no, int) or not 0 <= round_no <= 10000:
+        return None
+    cset = SETS[set_id]
+    ch = cset.myth_chapter(chapter_id)
+    if ch is None or not _myth_unlocked(set_id, ch):
+        return None
+    try:
+        puz = mq.make_myth_puzzle(cset, chapter_id, round_no)
+    except ValueError:
+        return None
+    n = puz.size
+    bins, locked, marks = raw.get("bins"), raw.get("locked"), raw.get("marks")
+    if not (isinstance(bins, list) and isinstance(locked, list) and isinstance(marks, list) and len(bins) == len(locked) == len(marks) == n):
+        return None
+    if any(b is not None and b not in mq.BINS for b in bins) or any(not isinstance(l, bool) for l in locked):
+        return None
+    if any(m not in (None, "wrong") for m in marks):
+        return None
+    sorted_now = _prog(set_id)["sorted"]
+    for i, cid in enumerate(puz.tray):
+        if locked[i] and (bins[i] != puz.answer[cid] or (raw.get("status") != "revealed" and cid not in sorted_now)):
+            return None                     # a locked claim must really be in its right bin, and earned
+    status = raw.get("status")
+    if status not in ("playing", "solved", "revealed"):
+        return None
+    if status in ("solved", "revealed") and (not all(locked) or any(bins[i] != puz.answer[c] for i, c in enumerate(puz.tray))):
+        return None
+    checks = raw.get("checks")
+    if isinstance(checks, bool) or not isinstance(checks, int) or not 0 <= checks <= 10000:
+        return None
+    new = [c for c in (raw.get("new") if isinstance(raw.get("new"), list) else [])[:MAX_IDS] if isinstance(c, str) and c in puz.answer]
+    return {"set": set_id, "chapter": chapter_id, "round": round_no, "bins": list(bins), "locked": list(locked), "marks": list(marks),
+            "checks": checks, "status": status, "new": new,
+            "message": raw.get("message") if isinstance(raw.get("message"), str) and len(raw["message"]) < 300 else ""}
+
+
 def load_state(data):
     """Merge a saved state in (never replaces, never raises on garbage): learned ids are unioned, solved
     puzzles keep the fewer checks, viewed claims are unioned, and bad fields are dropped one at a time."""
@@ -846,7 +1509,8 @@ def load_state(data):
             learned = [x for x in (raw.get("learned") if isinstance(raw.get("learned"), list) else [])[:MAX_IDS] if isinstance(x, str)]
             solved = {str(k): {"checks": v["checks"]} for k, v in list((raw.get("solved") if isinstance(raw.get("solved"), dict) else {}).items())[:MAX_IDS]
                       if isinstance(v, dict) and isinstance(v.get("checks"), int) and not isinstance(v.get("checks"), bool)}
-            S["unknown"][set_id] = {"learned": learned, "solved": solved, "revealed": []}
+            extra = {k: [x for x in (raw.get(k) if isinstance(raw.get(k), list) else [])[:MAX_IDS] if isinstance(x, str)] for k in ("threads", "sorted")}
+            S["unknown"][set_id] = dict({"learned": learned, "solved": solved, "revealed": []}, **extra)
             continue
         cset = SETS[set_id]
         prog = _prog(set_id)
@@ -867,6 +1531,22 @@ def load_state(data):
         for key in revealed[:MAX_IDS]:
             if isinstance(key, str) and ":" in key and cset.section(key.split(":", 1)[0]):
                 prog["revealed"].add(key)
+        prog["threads"] |= set(_id_list(raw.get("threads"), set(cset.web_relation_ids())))
+        prog["sorted"] |= set(_id_list(raw.get("sorted"), set(cset.myth_claim_ids())))
+        for field, store, finder, name, floor in (("web_solved", prog["wsolved"], cset.web_chapter, "misses", 0),
+                                                   ("myth_solved", prog["msolved"], cset.myth_chapter, "checks", 1)):
+            recs = raw.get(field) if isinstance(raw.get(field), dict) else {}
+            for key, rec in list(recs.items())[:MAX_IDS]:
+                chapter_id, _, rnd = str(key).partition(":")
+                if finder(chapter_id) is None or not rnd.isdigit() or not isinstance(rec, dict):
+                    continue
+                value = rec.get(name)
+                if isinstance(value, bool) or not isinstance(value, int) or not floor <= value <= 100000:
+                    continue
+                key = "%s:%d" % (chapter_id, int(rnd))
+                old = store.get(key)
+                if old is None or value < old[name]:
+                    store[key] = {name: value}
     viewed = data.get("viewed") if isinstance(data.get("viewed"), list) else []
     for key in viewed[:MAX_IDS]:
         if isinstance(key, str):
@@ -878,6 +1558,8 @@ def load_state(data):
         S["settings"]["hints"] = settings["hints"]
     if settings.get("set") in SETS:
         S["settings"]["set"] = settings["set"]
+    if settings.get("mode") in MODES:
+        S["settings"]["mode"] = settings["mode"]
     flags = data.get("flags") if isinstance(data.get("flags"), dict) else {}
     if flags.get("onboarded") is True:
         S["flags"]["onboarded"] = True
@@ -885,6 +1567,12 @@ def load_state(data):
     if session is not None:
         S["session"] = session
         S["settings"]["set"] = session["set"]
+    wsession = _clean_wsession(data.get("web_session"))
+    if wsession is not None:
+        S["wsession"] = wsession
+    msession = _clean_msession(data.get("myth_session"))
+    if msession is not None:
+        S["msession"] = msession
     _refresh_view()
     return True
 

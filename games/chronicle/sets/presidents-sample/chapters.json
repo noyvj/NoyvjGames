@@ -1,0 +1,49 @@
+{
+  "web": [
+    {
+      "id": "w1",
+      "title": "Causes in the American story",
+      "blurb": "Which of these moments helped lead to another? Some links are well supported, some are argued over.",
+      "size": 4,
+      "events": [
+        "e-farewell",
+        "e-22nd-amendment",
+        "e-fort-sumter",
+        "e-emancipation",
+        "e-gettysburg",
+        "e-lincoln-death",
+        "e-removal-act"
+      ]
+    },
+    {
+      "id": "w2",
+      "title": "Beyond the White House",
+      "blurb": "Moments from elsewhere in the world, and the president who set a goal in their shadow.",
+      "size": 3,
+      "events": [
+        "c-sputnik",
+        "c-apollo",
+        "e-kennedy",
+        "c-berlin-wall",
+        "c-bastille"
+      ]
+    }
+  ],
+  "myth": [
+    {
+      "id": "m1",
+      "title": "Stories and records",
+      "blurb": "Sort each statement as documented, disputed, or a story the sources do not support.",
+      "size": 4,
+      "claims": [
+        "c-e-gettysburg-date",
+        "c-e-gettysburg-tradition",
+        "c-e-gettysburg-final-revision",
+        "c-e-emancipation-date",
+        "c-e-emancipation-scope",
+        "c-e-washington-oath-date",
+        "c-e-washington-oath-words"
+      ]
+    }
+  ]
+}

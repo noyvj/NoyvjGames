@@ -439,5 +439,54 @@
     "url": "https://www.nationalgeographic.com/history/article/why-berlin-wall-built-fell",
     "read": "2026-10-07",
     "kind": "magazine"
+  },
+  "pbs-term-limits": {
+    "title": "Why does the U.S. have presidential term limits? The history of the 22nd Amendment",
+    "institution": "PBS NewsHour",
+    "url": "https://www.pbs.org/newshour/politics/why-does-the-u-s-have-presidential-term-limits-the-history-of-the-22nd-amendment",
+    "read": "2026-10-08",
+    "kind": "magazine"
+  },
+  "annenberg-22nd": {
+    "title": "Twenty-second Amendment (1951)",
+    "institution": "Annenberg Classroom, Annenberg Public Policy Center",
+    "url": "https://www.annenbergclassroom.org/our-constitution/constitution-amendment-22/",
+    "read": "2026-10-08",
+    "kind": "university"
+  },
+  "nasa-decision-moon": {
+    "title": "The Decision to Go to the Moon: President John F. Kennedy's May 25, 1961 Speech before a Joint Session of Congress",
+    "institution": "NASA",
+    "url": "https://www.nasa.gov/history/the-decision-to-go-to-the-moon",
+    "read": "2026-10-08",
+    "kind": "government"
+  },
+  "nasm-space-race": {
+    "title": "The Space Race: getting to the Moon",
+    "institution": "Smithsonian National Air and Space Museum",
+    "url": "https://airandspace.si.edu/amp-stories/space-race/index.html",
+    "read": "2026-10-08",
+    "kind": "museum"
+  },
+  "ncc-inauguration-facts": {
+    "title": "10 fascinating facts about Presidential inaugurations",
+    "institution": "National Constitution Center",
+    "url": "https://constitutioncenter.org/blog/10-fascinating-facts-about-presidential-inaugurations",
+    "read": "2026-10-08",
+    "kind": "museum"
+  },
+  "hnn-henriques-oath": {
+    "title": "\"So Help Me God\": A George Washington Myth that Should Be Discarded",
+    "institution": "History News Network (Peter R. Henriques, George Mason University)",
+    "url": "https://historynewsnetwork.org/article/so-help-me-god-a-george-washington-myth-that-shoul",
+    "read": "2026-10-08",
+    "kind": "university"
+  },
+  "hnn-parker-oath": {
+    "title": "\"So Help Me God\" and the Presidential Oath",
+    "institution": "History News Network (David B. Parker, Kennesaw State University)",
+    "url": "https://www.historynewsnetwork.org/article/so-help-me-god-and-the-presidential-oath",
+    "read": "2026-10-08",
+    "kind": "university"
   }
 }

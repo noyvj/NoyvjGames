@@ -11,6 +11,7 @@ import copy
 import json
 
 import info_page
+import skill_tree
 from js import document, setInterval, setTimeout
 from pyodide.ffi import create_proxy
 
@@ -59,7 +60,7 @@ current_difficulty = DIFFICULTY_NORMAL
 
 
 def current_degrade_per_clear():
-    return DEGRADE_PER_CLEAR_BY_DIFFICULTY.get(current_difficulty, DEGRADE_PER_CLEAR)
+    return DEGRADE_PER_CLEAR_BY_DIFFICULTY.get(current_difficulty, DEGRADE_PER_CLEAR) * vault_soil_factor()  # GB-10: Soil perks
 
 
 # How many ticks a replanted plot spends in REPLANTING before it
@@ -337,6 +338,7 @@ class Plot:
         delta *= current_legacy_multiplier()  # B15
         delta *= current_weather_multiplier()  # GB-23: rain / drought episodes
         delta *= current_perfect_streak_multiplier()  # GB-30: Perfect Season flame
+        delta *= vault_growth_multiplier()  # GB-10: Seed Vault Roots perks (1.0 with none)
         if self.tend_ticks_left > 0:  # GB-4: a Tended plot grows faster for a few ticks
             delta *= TEND_GROWTH_MULTIPLIER
         if self.specialization == SPECIALIZATION_ECONOMIC:
@@ -379,7 +381,9 @@ class Plot:
         if "replant" not in VALID_ACTIONS[self.state]:
             return False
         self.state = REPLANTING
-        self.replant_ticks_remaining = PARTNER_RECOVERY_TICKS if partner else RECOVERY_TICKS
+        self.replant_ticks_remaining = (
+            PARTNER_RECOVERY_TICKS if partner else max(1, RECOVERY_TICKS - vault_recovery_ticks_saved())  # GB-10: Fast Sprouts
+        )
         self.partner_share = PARTNER_SHARE_RATIO if partner else 0.0
         return True
 
@@ -751,7 +755,10 @@ _challenge_record_cache = None  # GB-17: per-browser fastest-completion record, 
 # separate save-code widget is for) and the shared confirm-dialog pattern
 # the TODO's own site-wide goal describes is still just a design, not a
 # built component, elsewhere in this file.
-def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge=None, pace=None):
+_KEEP_LEVEL = object()  # reset_session(level=...) default: keep the running level unless a setting is being changed
+
+
+def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge=None, pace=None, level=_KEEP_LEVEL):
     """Rebuilds every module-level mutable global back to its fresh-start
     default, optionally at a different GRID_SIZE_PRESETS key. Always
     rebuilds `plots` from scratch (even on a same-size reset) rather than
@@ -772,7 +779,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     global wetland_flood_countdown, wetland_floods_survived, wetland_flood_value_lost
     global _wetland_plot_click_proxies
     global forest_log, forest_tick, adopted_plot_index, current_difficulty
-    global legacy_multiplier, current_challenge, current_pace
+    global legacy_multiplier, current_challenge, current_pace, current_level
 
     # B15: bank this (about-to-end) session's standing value for the next
     # session's legacy bonus, then reload the multiplier so the session
@@ -802,6 +809,11 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
         if grid_size not in GRID_SIZE_PRESETS:
             return False
         current_grid_size = grid_size
+    # W-1: Reset Session keeps the running level (so it retries it); changing a setting by hand leaves the level.
+    if level is not _KEEP_LEVEL:
+        current_level = level
+    elif grid_size is not None or difficulty is not None or challenge is not None or pace is not None:
+        current_level = None
     GRID_ROWS, GRID_COLS = GRID_SIZE_PRESETS[current_grid_size]
 
     # Same leak-prevention discipline as render_grid()'s per-render proxy
@@ -833,6 +845,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge
     adopted_plot_index = None
     _reset_gb_state()
     _apply_challenge_start()  # GB-17: Scorched Start burns the plots just built
+    _burn_level_start()  # W-1: some levels begin with part of the forest bare
 
     for proxy in _highland_plot_click_proxies.values():
         proxy.destroy()
@@ -1278,6 +1291,8 @@ def render_grid():
     grid_el.style.gridTemplateColumns = f"repeat({GRID_COLS}, 1fr)"
     heart_aura = _heart_tree_aura()
     stag_plot = _ghost_stag_plot_index() if "ghost_stag" in rare_wildlife_found else None
+    poacher_plot = _active_poacher_plot()
+    storm_rows = _storm_warning_rows()
     contrast_on = ui_pref(UI_PREF_PLOT_CONTRAST) == "true"  # B-8
     soil_on = ui_pref(UI_PREF_SOIL_OVERLAY) == "true"  # B-10
     for plot in plots:
@@ -1330,6 +1345,12 @@ def render_grid():
         if golden_seedling is not None and golden_seedling["plot"] == plot.index:  # GB-2
             tile.className += " plot-golden-seedling"
             tile.appendChild(_make_tile_mark("golden-seedling-mark", "\u2728\U0001F331"))
+        if plot.index == poacher_plot:  # GB-13: a poacher is working on this plot
+            tile.className += " plot-poacher"
+            tile.appendChild(_make_tile_mark("poacher-mark", "\U0001FA93"))
+        if plot.index // GRID_COLS in storm_rows:  # GB-15: the storm front's band, shown before it arrives
+            tile.className += " plot-storm-warning"
+            tile.appendChild(_make_tile_mark("storm-mark", "⛈️"))
         if plot.index == stag_plot:  # GB-20
             tile.className += " plot-ghost-stag"
             tile.appendChild(_make_tile_mark("ghost-stag-mark", "\U0001F98C"))
@@ -1351,6 +1372,10 @@ def render_grid():
             tooltip += " \u00b7 golden seedling: click it now for a burst of recovery"
         if plot.tend_ticks_left > 0:
             tooltip += f" \u00b7 tended ({plot.tend_ticks_left} ticks left)"
+        if plot.index == poacher_plot:
+            tooltip += f" \u00b7 POACHER: click this plot or press P within {poacher_run['ticks_left']} ticks"
+        if plot.index // GRID_COLS in storm_rows:
+            tooltip += " \u00b7 a storm front is about to cross this row" + (" (a bare neighbour leaves it exposed)" if _storm_exposed(plot.index) else "")
         detail = _plot_tooltip_detail(plot)  # B-16: second line of the plot card
         tile.setAttribute("data-tooltip", tooltip + "\n" + detail)
         tile.setAttribute("aria-label", tooltip + "\n" + detail)
@@ -2067,7 +2092,7 @@ def _ideal_accrual_for_ticks(n):
             BASE_ACCRUAL * (1 + j * GROWTH_PER_TICK) * SEASON_GROWTH_MULTIPLIER[season]
             * weather_multiplier_at(start_tick + j)  # GB-23: the same rain/drought the real forest saw
         )
-    return total * current_legacy_multiplier()
+    return total * current_legacy_multiplier() * vault_growth_multiplier()
 
 
 def counterfactual_standing_value():
@@ -4924,12 +4949,1083 @@ def _saved_pace(data):
     return pace if isinstance(pace, str) and pace in REQUEST_PACE_FACTOR else PACE_NORMAL
 
 
+# ===========================================================================
+# GB batch 3 (2026-10-08): the level select (W-1) with Canopy's modes, and the
+# Seed Vault skill tree (W-3) with idle ranger crews.
+#
+#   * GB-13 Poacher Patrol, GB-15 Storm Front and GB-16 The Spirit's Walk are
+#     levels in `levels.json` (every fifth entry), not part of the base game.
+#     The four challenge runs from batch 2 are levels too (modes).
+#   * GB-10 Seed Vault and GB-26 ranger crews are ONE skill tree (`VAULT_TREE`),
+#     drawn by shared/skill-tree.js and validated/bought through
+#     shared/skill_tree.py. Seed points are earned from play (never bought,
+#     never random); perks are switched off during a challenge run so those
+#     stay comparable.
+# Same rules as batches 1 and 2: no RNG (hash picks), everything timed rides the
+# 1 s tick, new save keys written only when non-default and validated on load.
+# Meta-progress (levels done, bests, vault) survives Reset Session: it is kept
+# per browser in localStorage and mirrored into every save, and loading a save
+# merges it (more progress never gets lost).
+# ===========================================================================
+
+META_STORAGE_KEY = "canopy_meta_v1"
+LEVEL_MODE_POACHER = "poacher"
+LEVEL_MODE_STORM = "storm"
+LEVEL_MODE_SPIRIT = "spirit"
+
+# id -> preset and goal. Order = the order in levels.json (a test pins them together).
+# goal keys: standing_per_plot, income_per_plot, requests, unlock, challenge, poachers, fronts, spirit.
+LEVEL_SPECS = {
+    "wren_hollow": {"title": "Wren Hollow", "goal": {"standing_per_plot": 100}},
+    "fern_glade": {"title": "Fern Glade", "grid": "small", "goal": {"standing_per_plot": 130}, "requires": ["wren_hollow"]},
+    "birch_flats": {"title": "Birch Flats", "grid": "large", "goal": {"standing_per_plot": 100}, "requires": ["wren_hollow"]},
+    "ranger_trail": {
+        "title": "Ranger Trail", "difficulty": DIFFICULTY_RANGER,
+        "goal": {"standing_per_plot": 80, "income_per_plot": 15}, "requires": ["fern_glade"],
+    },
+    "poacher_patrol": {
+        "title": "Poacher Patrol", "mode": LEVEL_MODE_POACHER, "unit": "missed", "goal": {"poachers": 8},
+        "requires_count": 3, "unlock_text": "Complete any 3 levels first",
+    },
+    "quiet_valley": {"title": "Quiet Valley", "pace": PACE_RELAXED, "goal": {"standing_per_plot": 160}, "requires": ["fern_glade"]},
+    "busy_valley": {
+        "title": "Busy Valley", "pace": PACE_FREQUENT, "goal": {"requests": 3, "standing_per_plot": 70},
+        "requires": ["birch_flats"],
+    },
+    "highland_climb": {"title": "Highland Climb", "goal": {"unlock": "highland"}, "requires": ["ranger_trail"]},
+    "wetland_reach": {"title": "Wetland Reach", "goal": {"unlock": "wetland"}, "requires": ["highland_climb"]},
+    "storm_front": {
+        "title": "Storm Front", "mode": LEVEL_MODE_STORM, "unit": "value lost", "bare_fraction": 0.25, "goal": {"fronts": 4},
+        "requires_count": 7, "unlock_text": "Complete any 7 levels first",
+    },
+    "pacifist": {
+        "title": "Pacifist", "challenge": CHALLENGE_PACIFIST, "goal": {"challenge": True},
+        "requires_count": 5, "unlock_text": "Complete any 5 levels first",
+    },
+    "scorched_start": {
+        "title": "Scorched Start", "challenge": CHALLENGE_SCORCHED, "goal": {"challenge": True},
+        "requires_count": 5, "unlock_text": "Complete any 5 levels first",
+    },
+    "sprint": {
+        "title": "Sprint", "challenge": CHALLENGE_SPRINT, "goal": {"challenge": True},
+        "requires_count": 5, "unlock_text": "Complete any 5 levels first",
+    },
+    "no_highland": {
+        "title": "No-Highland", "challenge": CHALLENGE_NO_HIGHLAND, "goal": {"challenge": True},
+        "requires_count": 5, "unlock_text": "Complete any 5 levels first",
+    },
+    "spirits_walk": {
+        "title": "The Spirit's Walk", "mode": LEVEL_MODE_SPIRIT, "bare_fraction": 0.25, "goal": {"spirit": True},
+        "requires_count": 10, "unlock_text": "Complete any 10 levels first",
+    },
+}
+LEVEL_ORDER = list(LEVEL_SPECS)
+LEVEL_RESULT_TEXT_MAX = 60
+
+# --- GB-13: Poacher Patrol ---------------------------------------------------
+POACHER_FIRST_TICKS = 8  # the first poacher arrives this many level ticks in
+POACHER_STAY_TICKS = 5  # how long a poacher works on a plot before striking
+POACHER_MIN_STAY_TICKS = 3  # every 3 driven off, the next stays a tick less, down to this
+POACHER_GAP_MIN = 5  # ticks of quiet between one poacher and the next...
+POACHER_GAP_SPREAD = 5  # ...plus up to this many more (hash-picked)
+POACHER_LOSS_FRACTION = 0.25  # a poacher that strikes takes this share of the plot's standing value
+
+# --- GB-15: Storm Front ---------------------------------------------------------
+STORM_INTERVAL_TICKS = 20
+STORM_WARNING_TICKS = 8  # the band is shown on the grid this long before the front arrives
+STORM_BAND_ROWS = 2
+STORM_LOSS_EXPOSED = 0.30  # a plot with a bare or replanting neighbour in its row
+STORM_LOSS_EXPOSED_MATURE = 0.15
+STORM_LOSS_SHELTERED = 0.05
+STORM_LOSS_SHELTERED_MATURE = 0.0
+
+# --- GB-16: The Spirit's Walk -------------------------------------------------------
+# (id, what the spirit says, the task in a few words)
+SPIRIT_STEPS = [
+    ("wake", "I am the quiet between the leaves. Walk with me, ranger. First give the forest a little time: let one plot grow to a value of 10.", "Let one plot reach 10 value"),
+    ("tend", "Roots like company. Tend a plot: hover it and press T, or select it and use Tend.", "Tend a plot"),
+    ("mend", "Some ground lies bare. Replant a bare plot and let it heal.", "Replant a bare plot"),
+    ("life", "Hush. Something small has come home. Let wildlife settle on three plots.", "Wildlife on 3 plots"),
+    ("ask", "People live at my edges. When they ask for something, answer them, yes or no. I will not judge.", "Answer one community request"),
+    ("grove", "Last, let a grove grow old: four plots fully mature at once.", "4 fully mature plots at once"),
+]
+SPIRIT_FAREWELL = "Now I can rest. The forest remembers you, and so do I."
+
+# --- GB-10 / GB-26: the Seed Vault ---------------------------------------------------
+VAULT_ACHIEVEMENTS_PER_POINT = 4  # 1 seed point per 4 achievements earned (best count ever in this browser)...
+VAULT_ACHIEVEMENT_POINTS_MAX = 7  # ...up to this many
+CREW_TEND_DELAY_TICKS = 3  # Tend must sit ready this long before the crew uses it (so you can tend first)
+CREW_REPLANT_INTERVAL_TICKS = 20
+CREW_LEAD_FASTER_TICKS = 8  # the Crew Lead brings the replant interval down by this much
+VAULT_GROWTH_BONUS = {"growth_1": 0.03, "growth_2": 0.04, "growth_3": 0.05}
+VAULT_SOIL_FACTOR = 0.9  # each soil perk multiplies the soil lost per clear by this
+VAULT_RECOVERY_TICKS_SAVED = 2
+VAULT_TREE = {
+    "id": "seed_vault",
+    "title": "Seed Vault",
+    "currency": "seed points",
+    "branches": [
+        {"id": "roots", "title": "Roots", "blurb": "Standing plots grow faster."},
+        {"id": "soil", "title": "Soil", "blurb": "Clearing hurts less and replanted plots heal sooner."},
+        {"id": "crews", "title": "Ranger crews", "blurb": "Idle crews do small jobs for you as the forest runs."},
+    ],
+    "nodes": [
+        {"id": "deep_roots", "branch": "roots", "cost": 1, "label": "Deep Roots",
+         "description": "Standing plots grow 3% faster.", "effect": "growth_1"},
+        {"id": "canopy_cover", "branch": "roots", "cost": 2, "label": "Canopy Cover",
+         "description": "Another 4% faster growth.", "requires": ["deep_roots"], "effect": "growth_2"},
+        {"id": "old_growth_memory", "branch": "roots", "cost": 3, "label": "Old-Growth Memory",
+         "description": "Another 5% faster growth.", "requires": ["canopy_cover"], "effect": "growth_3"},
+        {"id": "mulch_bed", "branch": "soil", "cost": 1, "label": "Mulch Bed",
+         "description": "Each clear costs a plot's soil 10% less.", "effect": "soil_1"},
+        {"id": "leaf_litter", "branch": "soil", "cost": 2, "label": "Leaf Litter",
+         "description": "Another 10% less soil lost per clear.", "requires": ["mulch_bed"], "effect": "soil_2"},
+        {"id": "fast_sprouts", "branch": "soil", "cost": 2, "label": "Fast Sprouts",
+         "description": "Replanted plots recover 2 ticks sooner.", "requires": ["mulch_bed"], "effect": "recovery_1"},
+        {"id": "tending_crew", "branch": "crews", "cost": 2, "label": "Tending Crew",
+         "description": "When Tend has been ready for 3 ticks, a crew tends your youngest plot for you.", "effect": "crew_tend"},
+        {"id": "seedling_watch", "branch": "crews", "cost": 3, "label": "Seedling Watch",
+         "description": "A crew catches a golden seedling in its last tick if you have not.", "effect": "crew_seedling"},
+        {"id": "replant_crew", "branch": "crews", "cost": 3, "label": "Replant Crew",
+         "description": "Every 20 ticks a crew replants the first bare plot.", "requires": ["tending_crew"], "effect": "crew_replant"},
+        {"id": "crew_lead", "branch": "crews", "cost": 4, "label": "Crew Lead",
+         "description": "The replant crew works every 12 ticks instead of 20.",
+         "requires": ["tending_crew", "replant_crew"], "effect": "crew_lead"},
+    ],
+}
+
+# Saved / per-browser meta-progress (survives Reset Session).
+levels_state = {"done": [], "best": {}}
+vault_owned = []
+vault_meta = {"best_tier": 0, "best_ach": 0}
+# Session state of the running level (saved as "level_run" while a level is on).
+current_level = None
+level_ticks = 0
+level_done_tick = None
+poacher_run = {}
+storm_run = {}
+spirit_run = {}
+crew_stats = {"tends": 0, "seedlings": 0, "replants": 0}
+# Ephemeral.
+vault_open = False
+_crew_tend_wait = 0
+_crew_replant_clock = 0
+_last_vault_points = 0
+_vault_effect_cache = {}
+_vault_view = None
+_vault_proxies = []
+_levels_bridge_ready = False
+_level_proxies = []
+
+
+# --- bridges to the shared JS components (all optional: a page or test without them still plays) -----------------
+
+def _js_window():
+    try:
+        from js import window  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return None
+    return window
+
+
+def _to_js(value):
+    try:
+        from js import Object  # noqa: PLC0415
+        from pyodide.ffi import to_js  # noqa: PLC0415
+    except ImportError:
+        return None
+    return to_js(value, dict_converter=Object.fromEntries)
+
+
+def _sync_levels_js():
+    """Pushes the saved level progress into the level-select screen (Python owns the state)."""
+    window = _js_window()
+    levels = getattr(window, "NoyvjLevels", None) if window is not None else None
+    payload = _to_js(copy.deepcopy(levels_state)) if levels is not None else None
+    if payload is None:
+        return
+    try:
+        levels.setState(payload)
+    except Exception:  # noqa: BLE001 -- a JS-side failure must never break the game
+        pass
+
+
+def _setup_levels_bridge():
+    """Hands the level screen its start callback once (configure() queues until levels.json has loaded)."""
+    global _levels_bridge_ready
+    if _levels_bridge_ready:
+        return True
+    window = _js_window()
+    levels = getattr(window, "NoyvjLevels", None) if window is not None else None
+    if levels is None:
+        return False
+    proxy = create_proxy(lambda level_id, level=None: start_level(str(level_id)))
+    _level_proxies.append(proxy)
+    payload = _to_js({"state": copy.deepcopy(levels_state), "onStart": proxy})
+    if payload is None:
+        proxy.destroy()
+        del _level_proxies[:]
+        return False
+    try:
+        levels.configure(payload)
+    except Exception:  # noqa: BLE001
+        return False
+    _levels_bridge_ready = True
+    return True
+
+
+# --- level progress (the Python twin of the level-select state rules) --------------------------------------------
+
+def _sanitize_levels_state(raw):
+    state = {"done": [], "best": {}}
+    if isinstance(raw, list):
+        raw = {"done": raw}
+    if not isinstance(raw, dict):
+        return state
+    done = raw.get("done")
+    for level_id in done if isinstance(done, list) else []:
+        if isinstance(level_id, str) and level_id in LEVEL_SPECS and level_id not in state["done"]:
+            state["done"].append(level_id)
+    best = raw.get("best")
+    for level_id, entry in best.items() if isinstance(best, dict) else []:
+        if level_id not in state["done"] or not isinstance(entry, dict):
+            continue
+        clean = {}
+        value = _number_or(entry.get("value"), None, float("-inf"))
+        if value is not None:
+            clean["value"] = value
+        text = entry.get("text")
+        if isinstance(text, str) and text.strip():
+            clean["text"] = text.strip()[:LEVEL_RESULT_TEXT_MAX]
+        if clean:
+            state["best"][level_id] = clean
+    return state
+
+
+def _better_result(candidate, current):
+    """Lower is better for every Canopy level; a text-only result never replaces a numbered best."""
+    if current is None:
+        return True
+    if "value" not in candidate or "value" not in current:
+        return False
+    return candidate["value"] < current["value"]
+
+
+def record_level_result(level_id, value, text=""):
+    """Marks a level done and keeps the best (lowest) result. Returns True when anything changed."""
+    if level_id not in LEVEL_SPECS:
+        return False
+    changed = False
+    if level_id not in levels_state["done"]:
+        levels_state["done"].append(level_id)
+        changed = True
+    entry = {}
+    if isinstance(value, (int, float)) and not isinstance(value, bool) and value == value:
+        entry["value"] = value
+    if isinstance(text, str) and text.strip():
+        entry["text"] = text.strip()[:LEVEL_RESULT_TEXT_MAX]
+    if entry and _better_result(entry, levels_state["best"].get(level_id)):
+        levels_state["best"][level_id] = entry
+        changed = True
+    if changed:
+        _save_meta()
+        _sync_levels_js()
+    return changed
+
+
+def _merge_levels_state(base, other):
+    merged = {"done": list(base["done"]), "best": dict(base["best"])}
+    for level_id in other["done"]:
+        if level_id not in merged["done"]:
+            merged["done"].append(level_id)
+    for level_id, entry in other["best"].items():
+        if _better_result(entry, merged["best"].get(level_id)):
+            merged["best"][level_id] = entry
+    merged["done"].sort(key=LEVEL_ORDER.index)
+    return merged
+
+
+def level_lock_reason(level_id):
+    """"" when the level can be played, else why not (same wording rules as shared/level-select.js)."""
+    spec = LEVEL_SPECS.get(level_id)
+    if spec is None:
+        return "Unknown level"
+    done = levels_state["done"]
+    missing = [r for r in spec.get("requires", []) if r not in done]
+    if missing:
+        return spec.get("unlock_text") or "Complete " + " and ".join(LEVEL_SPECS[r]["title"] for r in missing) + " first"
+    need = spec.get("requires_count", 0)
+    have = len([d for d in done if d != level_id])
+    if need > have:
+        gap = need - have
+        return spec.get("unlock_text") or f"Complete {gap} more level{'' if gap == 1 else 's'} first"
+    return ""
+
+
+def level_number(level_id):
+    return LEVEL_ORDER.index(level_id) + 1
+
+
+def _level_mode():
+    return LEVEL_SPECS[current_level].get("mode") if current_level in LEVEL_SPECS else None
+
+
+def _level_matches_settings(spec):
+    return (
+        current_grid_size == spec.get("grid", "normal")
+        and current_difficulty == spec.get("difficulty", DIFFICULTY_NORMAL)
+        and current_challenge == spec.get("challenge", CHALLENGE_NONE)
+        and current_pace == spec.get("pace", PACE_NORMAL)
+    )
+
+
+def start_level(level_id, force=False):
+    """Starts a level: a fresh session with the level's presets, then the level's goal rides the tick.
+    Returns False for an unknown or still-locked level (the level screen already says why)."""
+    spec = LEVEL_SPECS.get(level_id)
+    if spec is None:
+        return False
+    if not force and level_lock_reason(level_id):
+        return False
+    started = reset_session(
+        grid_size=spec.get("grid", "normal"),
+        difficulty=spec.get("difficulty", DIFFICULTY_NORMAL),
+        challenge=spec.get("challenge", CHALLENGE_NONE),
+        pace=spec.get("pace", PACE_NORMAL),
+        level=level_id,
+        _render_after=False,
+    )
+    if not started:
+        return False
+    _log_event("level", f"Level {level_number(level_id)} started: {spec['title']}", None)
+    render()
+    return True
+
+
+def on_leave_level(event=None):
+    """Back to free play: the forest stays as it is, the level's rules and goal stop."""
+    global current_level
+    if current_level is None:
+        return False
+    title = LEVEL_SPECS[current_level]["title"]
+    current_level = None
+    _reset_level_run(reset_crews=False)
+    _log_event("level", f"Left {title}: free play", None)
+    render()
+    return True
+
+
+def _burn_level_start():
+    """Levels with a bare_fraction begin with that share of plots bare (hash-picked, soil untouched)."""
+    spec = LEVEL_SPECS.get(current_level)
+    fraction = spec.get("bare_fraction", 0) if spec else 0
+    if not fraction:
+        return
+    count = int(round(len(plots) * fraction))
+    for index in sorted(range(len(plots)), key=lambda i: (_gb_hash(i, 23), i))[:count]:
+        plot = plots[index]
+        plot.state = BARE
+        plot.value = 0.0
+        plot.ticks_intact = 0
+        plot.biodiversity = 0.0
+
+
+def _reset_level_run(reset_crews=True):
+    """Fresh run state for the current level (or none) and, normally, the session's crew counters."""
+    global level_ticks, level_done_tick, _crew_tend_wait, _crew_replant_clock
+    level_ticks = 0
+    level_done_tick = None
+    poacher_run.clear()
+    storm_run.clear()
+    spirit_run.clear()
+    if reset_crews:
+        for key in crew_stats:
+            crew_stats[key] = 0
+        _crew_tend_wait = 0
+        _crew_replant_clock = 0
+    mode = _level_mode()
+    if mode == LEVEL_MODE_POACHER:
+        poacher_run.update(plot=None, ticks_left=0, driven=0, missed=0, next_in=POACHER_FIRST_TICKS, last_plot=None)
+    elif mode == LEVEL_MODE_STORM:
+        storm_run.update(next_in=STORM_INTERVAL_TICKS, fronts=0, lost=0.0, hits=0, shielded=0)
+    elif mode == LEVEL_MODE_SPIRIT:
+        spirit_run.update(step=0, said=-1)
+
+
+# --- goals --------------------------------------------------------------------------------------------------------
+
+def level_goal_parts():
+    """[(text, met)] for each part of the current level's goal."""
+    spec = LEVEL_SPECS[current_level]
+    goal = spec["goal"]
+    n = len(plots)
+    parts = []
+    if "standing_per_plot" in goal:
+        need = goal["standing_per_plot"] * n
+        have = standing_forest_value()
+        parts.append((f"standing value {have:.0f} of {need}", have >= need))
+    if "income_per_plot" in goal:
+        need = goal["income_per_plot"] * n
+        parts.append((f"income {total_income:.0f} of {need}", total_income >= need))
+    if "requests" in goal:
+        answered = stakeholder_grants_count + stakeholder_declines_count
+        parts.append((f"requests answered {min(answered, goal['requests'])} of {goal['requests']}", answered >= goal["requests"]))
+    if goal.get("unlock") == "highland":
+        parts.append(("Highland Grove open" if highland_unlocked else
+                      f"standing value {standing_forest_value():.0f} of {HIGHLAND_UNLOCK_STANDING_VALUE_THRESHOLD:.0f}", highland_unlocked))
+    if goal.get("unlock") == "wetland":
+        parts.append(("Wetland Forest open" if wetland_unlocked else
+                      f"standing value {standing_forest_value():.0f} of {WETLAND_UNLOCK_STANDING_VALUE_THRESHOLD:.0f}", wetland_unlocked))
+    if goal.get("challenge"):
+        state = challenge_state()
+        label = {CHALLENGE_COMPLETE: "challenge complete", CHALLENGE_FAILED: "challenge failed (Reset Session to retry)"}.get(state, "challenge in progress")
+        parts.append((label, state == CHALLENGE_COMPLETE))
+    if "poachers" in goal and poacher_run:
+        driven = poacher_run["driven"]
+        parts.append((f"poachers driven off {min(driven, goal['poachers'])} of {goal['poachers']}", driven >= goal["poachers"]))
+    if "fronts" in goal and storm_run:
+        fronts = storm_run["fronts"]
+        parts.append((f"storm fronts weathered {min(fronts, goal['fronts'])} of {goal['fronts']}", fronts >= goal["fronts"]))
+    if goal.get("spirit") and spirit_run:
+        step = spirit_run["step"]
+        parts.append((f"spirit's tasks {min(step, len(SPIRIT_STEPS))} of {len(SPIRIT_STEPS)}", step >= len(SPIRIT_STEPS)))
+    return parts
+
+
+def _level_goal_met():
+    parts = level_goal_parts()
+    return bool(parts) and all(met for _text, met in parts)
+
+
+def _level_result():
+    """(value, text) of the finished level: ticks, or the mode's own measure (both lower is better)."""
+    mode = _level_mode()
+    if mode == LEVEL_MODE_POACHER:
+        missed = poacher_run["missed"]
+        return missed, f"{missed} missed"
+    if mode == LEVEL_MODE_STORM:
+        lost = int(round(storm_run["lost"]))
+        return lost, f"{lost} value lost"
+    return level_ticks, f"{level_ticks} ticks"
+
+
+def _complete_level():
+    global level_done_tick
+    level_done_tick = level_ticks
+    spec = LEVEL_SPECS[current_level]
+    value, text = _level_result()
+    previous = levels_state["best"].get(current_level)
+    first_time = current_level not in levels_state["done"]
+    record_level_result(current_level, value, text)
+    if poacher_run:
+        poacher_run["plot"] = None
+    if _level_mode() == LEVEL_MODE_SPIRIT:
+        _log_event("spirit", f"Forest spirit: {SPIRIT_FAREWELL}", None)
+    note = " (new best)" if previous is not None and _better_result({"value": value}, previous) else ""
+    _log_event("level", f"Level {level_number(current_level)} complete: {spec['title']} in {text}{note}", None)
+    _gb_toast(f"\U0001F5FA️ Level complete: {spec['title']}{' (first time)' if first_time else ''}")
+    _note_vault_progress()
+
+
+def _advance_level():
+    """The per-tick hook: counts the level's own clock, runs its mode, then checks the goal."""
+    global level_ticks
+    if current_level is None or level_done_tick is not None:
+        return
+    level_ticks += 1
+    mode = _level_mode()
+    if mode == LEVEL_MODE_POACHER:
+        _advance_poachers()
+    elif mode == LEVEL_MODE_STORM:
+        _advance_storm()
+    elif mode == LEVEL_MODE_SPIRIT:
+        _advance_spirit()
+    if _level_goal_met():
+        _complete_level()
+
+
+# --- GB-13: Poacher Patrol --------------------------------------------------------------------------------
+
+def poacher_stay_ticks():
+    return max(POACHER_MIN_STAY_TICKS, POACHER_STAY_TICKS - poacher_run.get("driven", 0) // 3)
+
+
+def _poacher_gap():
+    return POACHER_GAP_MIN + _gb_hash(forest_tick, poacher_run["driven"], poacher_run["missed"], 43) % POACHER_GAP_SPREAD
+
+
+def _active_poacher_plot():
+    if _level_mode() != LEVEL_MODE_POACHER or level_done_tick is not None or not poacher_run:
+        return None
+    return poacher_run["plot"]
+
+
+def _advance_poachers():
+    run = poacher_run
+    if run["plot"] is not None:
+        plot = plots[run["plot"]]
+        run["ticks_left"] -= 1
+        if plot.state not in ACCRUING_STATES:  # the plot was cleared first: the poacher gives up
+            run["plot"] = None
+            run["next_in"] = _poacher_gap()
+        elif run["ticks_left"] <= 0:
+            loss = plot.value * POACHER_LOSS_FRACTION
+            plot.value -= loss
+            run["missed"] += 1
+            _log_event("poacher", f"A poacher struck {_plot_ref(plot.index)} and took {loss:.1f} value", plot.index)
+            run["last_plot"] = run["plot"]
+            run["plot"] = None
+            run["next_in"] = _poacher_gap()
+        return
+    run["next_in"] -= 1
+    if run["next_in"] > 0:
+        return
+    candidates = [p.index for p in plots if p.state in ACCRUING_STATES and p.index != run.get("last_plot")]
+    if not candidates:
+        candidates = [p.index for p in plots if p.state in ACCRUING_STATES]
+    if not candidates:
+        run["next_in"] = 1  # nothing standing to poach; look again next tick
+        return
+    index = candidates[_gb_hash(forest_tick, run["driven"], run["missed"], 41) % len(candidates)]
+    run["plot"] = index
+    run["ticks_left"] = poacher_stay_ticks()
+    _log_event("poacher", f"A poacher is working on {_plot_ref(index)}: click it (or press P) within {run['ticks_left']} ticks", index)
+
+
+def drive_off_poacher(index=None):
+    """Clicking the poacher's plot (or P) drives it off. `index` is the clicked plot; P passes nothing."""
+    run = poacher_run
+    if _active_poacher_plot() is None:
+        return False
+    if index is not None and index != run["plot"]:
+        return False
+    plot_index = run["plot"]
+    run["driven"] += 1
+    run["last_plot"] = plot_index
+    run["plot"] = None
+    run["next_in"] = _poacher_gap()
+    _log_event("poacher", f"Drove off a poacher at {_plot_ref(plot_index)} ({run['driven']} of {LEVEL_SPECS[current_level]['goal']['poachers']})", plot_index)
+    return True
+
+
+def hotkey_drive_off_poacher(event=None):
+    if drive_off_poacher():
+        render()
+        return True
+    return False
+
+
+# --- GB-15: Storm Front ------------------------------------------------------------------------------------------
+
+def _storm_band_rows(front_number):
+    """The two rows front number `front_number` (1-based) will cross: a pure function of the number."""
+    span = max(1, GRID_ROWS - STORM_BAND_ROWS + 1)
+    first = _gb_hash(front_number, GRID_ROWS, 53) % span
+    return tuple(range(first, first + STORM_BAND_ROWS))
+
+
+def _storm_warning_rows():
+    if _level_mode() != LEVEL_MODE_STORM or level_done_tick is not None or not storm_run:
+        return ()
+    if storm_run["next_in"] > STORM_WARNING_TICKS:
+        return ()
+    return _storm_band_rows(storm_run["fronts"] + 1)
+
+
+def _storm_exposed(index):
+    """A plot is exposed when its left or right neighbour in the same row is a gap (bare or replanting)."""
+    col = index % GRID_COLS
+    for step in (-1, 1):
+        if 0 <= col + step < GRID_COLS and plots[index + step].state in (BARE, REPLANTING):
+            return True
+    return False
+
+
+def _advance_storm():
+    run = storm_run
+    run["next_in"] -= 1
+    if run["next_in"] > 0:
+        return
+    rows = _storm_band_rows(run["fronts"] + 1)
+    lost = 0.0
+    hit = 0
+    shielded = 0
+    for plot in plots:
+        if plot.index // GRID_COLS not in rows or plot.state not in ACCRUING_STATES:
+            continue
+        mature = plot.maturity_fraction() >= 1.0
+        if _storm_exposed(plot.index):
+            fraction = STORM_LOSS_EXPOSED_MATURE if mature else STORM_LOSS_EXPOSED
+        else:
+            fraction = STORM_LOSS_SHELTERED_MATURE if mature else STORM_LOSS_SHELTERED
+        taken = plot.value * fraction
+        plot.value -= taken
+        lost += taken
+        if taken > 0:
+            hit += 1
+        else:
+            shielded += 1
+    run["fronts"] += 1
+    run["lost"] += lost
+    run["hits"] += hit
+    run["shielded"] += shielded
+    run["next_in"] = STORM_INTERVAL_TICKS
+    first, last = rows[0] + 1, rows[-1] + 1
+    _log_event("storm", f"Storm front {run['fronts']} crossed rows {first}-{last}: {lost:.1f} value lost, {shielded} plots untouched", None)
+    _gb_toast(f"⛈️ Storm front {run['fronts']} passed rows {first}-{last}: {lost:.0f} value lost")
+
+
+# --- GB-16: The Spirit's Walk ------------------------------------------------------------------------------------
+
+def _spirit_step_done(step_id):
+    if step_id == "wake":
+        return any(plot.value >= 10 for plot in plots)
+    if step_id == "tend":
+        return tends_done >= 1
+    if step_id == "mend":
+        return total_replants >= 1
+    if step_id == "life":
+        return _wildlife_active_count() >= 3
+    if step_id == "ask":
+        return stakeholder_grants_count + stakeholder_declines_count >= 1
+    if step_id == "grove":
+        return _mature_plot_count() >= min(4, len(plots))
+    return False
+
+
+def _advance_spirit():
+    run = spirit_run
+    while run["step"] < len(SPIRIT_STEPS):
+        step = run["step"]
+        if run["said"] < step:
+            run["said"] = step
+            _log_event("spirit", f"Forest spirit: {SPIRIT_STEPS[step][1]}", None)
+        if not _spirit_step_done(SPIRIT_STEPS[step][0]):
+            return
+        run["step"] += 1
+
+
+def spirit_line_text():
+    """What the spirit is saying right now ("" outside her level)."""
+    if _level_mode() != LEVEL_MODE_SPIRIT or not spirit_run:
+        return ""
+    if level_done_tick is not None or spirit_run["step"] >= len(SPIRIT_STEPS):
+        return SPIRIT_FAREWELL
+    return SPIRIT_STEPS[spirit_run["step"]][1]
+
+
+# --- the level box (status, spirit line, leave button) ---------------------------------------------------------
+
+def level_status_text():
+    if current_level is None:
+        return ""
+    spec = LEVEL_SPECS[current_level]
+    head = f"\U0001F5FA️ Level {level_number(current_level)}: {spec['title']}"
+    best = levels_state["best"].get(current_level)
+    best_text = f" · best {best['text']}" if best and best.get("text") else ""
+    if level_done_tick is not None:
+        _value, text = _level_result()
+        return f"{head} · ✓ complete in {text}{best_text}. You can keep playing or leave the level."
+    parts = [text for text, _met in level_goal_parts()]
+    mode = _level_mode()
+    if mode == LEVEL_MODE_POACHER and poacher_run:
+        if poacher_run["plot"] is not None:
+            parts.append(f"\U0001FA93 poacher on {_plot_ref(poacher_run['plot'])}: {poacher_run['ticks_left']} ticks to drive it off")
+        else:
+            parts.append(f"next poacher in about {max(1, poacher_run['next_in'])} ticks")
+        parts.append(f"missed {poacher_run['missed']}")
+    elif mode == LEVEL_MODE_STORM and storm_run:
+        rows = _storm_warning_rows()
+        if rows:
+            parts.append(f"⛈️ front in {storm_run['next_in']} ticks over rows {rows[0] + 1}-{rows[-1] + 1}")
+        else:
+            parts.append(f"next front in {storm_run['next_in']} ticks")
+        parts.append(f"value lost {storm_run['lost']:.0f}")
+    elif mode == LEVEL_MODE_SPIRIT and spirit_run and spirit_run["step"] < len(SPIRIT_STEPS):
+        parts.append(f"now: {SPIRIT_STEPS[spirit_run['step']][2]}")
+    return f"{head} · " + " · ".join(parts) + f" · {level_ticks} ticks{best_text}"
+
+
+def render_level_status():
+    if not _levels_bridge_ready:
+        _setup_levels_bridge()
+    box = _el("level-box")
+    status = _el("level-status")
+    if box is None or status is None:
+        return
+    box.hidden = current_level is None
+    status.innerText = level_status_text()
+    spirit = _el("spirit-line")
+    if spirit is not None:
+        line = spirit_line_text()
+        spirit.hidden = not line
+        spirit.innerText = f"✨ {line}" if line else ""
+    mode = _level_mode() if current_level is not None else None
+    for name in ("poacher", "storm", "spirit"):
+        _set_class(box, f"level-box--{name}", mode == name)
+    _set_class(box, "level-box--done", level_done_tick is not None)
+
+
+def _set_class(element, name, on):
+    if on:
+        element.classList.add(name)
+    else:
+        element.classList.remove(name)
+
+
+def levels_progress_text():
+    return f"{len(levels_state['done'])} of {len(LEVEL_ORDER)} levels complete"
+
+
+# --- GB-10 / GB-26: the Seed Vault ------------------------------------------------------------------------------
+
+def vault_points_earned():
+    """Seed points ever earned: 1 per level completed, 1 per forest tier reached (best ever), 1 per 4 achievements
+    (best count ever, up to VAULT_ACHIEVEMENT_POINTS_MAX). Deterministic and never spent away: spending only moves
+    points between the balance and the perks."""
+    achievement_points = min(VAULT_ACHIEVEMENT_POINTS_MAX, vault_meta["best_ach"] // VAULT_ACHIEVEMENTS_PER_POINT)
+    return len(levels_state["done"]) + vault_meta["best_tier"] + achievement_points
+
+
+def vault_points_free():
+    return skill_tree.points_left(VAULT_TREE, vault_owned, vault_points_earned())
+
+
+def vault_perks_active():
+    """Perks and crews rest during a challenge run so those stay comparable."""
+    return current_challenge == CHALLENGE_NONE
+
+
+def vault_effects():
+    if not vault_perks_active() or not vault_owned:
+        return frozenset()
+    key = tuple(vault_owned)
+    cached = _vault_effect_cache.get(key)
+    if cached is None:
+        cached = frozenset(skill_tree.effects(VAULT_TREE, vault_owned))
+        _vault_effect_cache.clear()
+        _vault_effect_cache[key] = cached
+    return cached
+
+
+def vault_growth_multiplier():
+    effects = vault_effects()
+    return 1.0 + sum(bonus for effect, bonus in VAULT_GROWTH_BONUS.items() if effect in effects)
+
+
+def vault_soil_factor():
+    effects = vault_effects()
+    return VAULT_SOIL_FACTOR ** sum(1 for effect in ("soil_1", "soil_2") if effect in effects)
+
+
+def vault_recovery_ticks_saved():
+    return VAULT_RECOVERY_TICKS_SAVED if "recovery_1" in vault_effects() else 0
+
+
+def _save_meta():
+    blob = {
+        "levels": levels_state,
+        "seed_vault": {"owned": list(vault_owned), "best_tier": vault_meta["best_tier"], "best_ach": vault_meta["best_ach"]},
+    }
+    _write_local_storage_item(META_STORAGE_KEY, json.dumps(blob))
+
+
+def _sanitize_vault_blob(raw, earned_hint=None):
+    """(owned, best_tier, best_ach) from a saved blob; anything malformed falls back to nothing owned."""
+    if not isinstance(raw, dict):
+        return [], 0, 0
+    owned = skill_tree.sanitize_owned(VAULT_TREE, raw.get("owned"))
+    best_tier = int(_number_or(raw.get("best_tier"), 0, 0, len(STANDING_TIERS)))
+    best_ach = int(_number_or(raw.get("best_ach", raw.get("best_achievements")), 0, 0, len(ACHIEVEMENTS)))
+    return owned, best_tier, best_ach
+
+
+def _load_meta():
+    """Reads this browser's meta-progress at start-up (a fresh or unreadable store simply means none)."""
+    global levels_state
+    raw = _read_local_storage_item(META_STORAGE_KEY)
+    if not raw:
+        return
+    try:
+        blob = json.loads(raw)
+    except (ValueError, TypeError):
+        return
+    if not isinstance(blob, dict):
+        return
+    levels_state = _sanitize_levels_state(blob.get("levels"))
+    owned, best_tier, best_ach = _sanitize_vault_blob(blob.get("seed_vault"))
+    vault_meta["best_tier"] = best_tier
+    vault_meta["best_ach"] = best_ach
+    vault_owned[:] = skill_tree.sanitize_owned(VAULT_TREE, owned, vault_points_earned(), overspend="trim")
+
+
+def _note_vault_progress(silent=False):
+    """Raises the best-ever tier and achievement counts and toasts a newly earned seed point (not when `silent`)."""
+    global _last_vault_points
+    changed = False
+    if milestone_tier > vault_meta["best_tier"]:
+        vault_meta["best_tier"] = min(milestone_tier, len(STANDING_TIERS))
+        changed = True
+    count = len(achievement_ids_earned())
+    if count > vault_meta["best_ach"]:
+        vault_meta["best_ach"] = count
+        changed = True
+    points = vault_points_earned()
+    if changed:
+        _save_meta()
+    if points > _last_vault_points and not silent:
+        gained = points - _last_vault_points
+        _gb_toast(f"\U0001F330 +{gained} seed point{'s' if gained != 1 else ''} for the Seed Vault ({vault_points_free()} to spend)")
+    _last_vault_points = points
+
+
+def buy_vault_node(node_id):
+    """Buys a Seed Vault node with free seed points. Returns the shared tree's result dict."""
+    result = skill_tree.buy(VAULT_TREE, vault_owned, node_id, vault_points_earned())
+    if result["ok"]:
+        vault_owned[:] = result["owned"]
+        _save_meta()
+        label = next(n["label"] for n in VAULT_TREE["nodes"] if n["id"] == node_id)
+        _log_event("vault", f"Seed Vault: bought {label}", None)
+        render()
+    return result
+
+
+def refund_vault_node(node_id):
+    result = skill_tree.refund(VAULT_TREE, vault_owned, node_id)
+    if result["ok"]:
+        vault_owned[:] = result["owned"]
+        _save_meta()
+        render()
+    return result
+
+
+def refund_all_vault():
+    result = skill_tree.refund_all(VAULT_TREE, vault_owned)
+    vault_owned[:] = result["owned"]
+    _save_meta()
+    render()
+    return result
+
+
+def _crew_tend_target():
+    candidates = [p for p in plots if _tendable(p) and p.maturity_fraction() < 1.0]
+    if not candidates:
+        return None
+    return min(candidates, key=lambda p: (p.state != REPLANTING, p.maturity_fraction(), p.index))
+
+
+def _advance_crews():
+    """Idle ranger crews (GB-26): small deterministic jobs on the tick, only while their perk is owned."""
+    global _crew_tend_wait, _crew_replant_clock, total_replants
+    effects = vault_effects()
+    if not effects:
+        return
+    if "crew_tend" in effects:
+        if _tended_plot() is None and tend_cooldown_ticks <= 0:
+            _crew_tend_wait += 1
+            if _crew_tend_wait >= CREW_TEND_DELAY_TICKS:
+                target = _crew_tend_target()
+                if target is not None:
+                    target.tend_ticks_left = TEND_DURATION_TICKS
+                    crew_stats["tends"] += 1
+                    _log_event("crew", f"Tending crew tended {_plot_ref(target.index)}", target.index)
+                    _crew_tend_wait = 0
+        else:
+            _crew_tend_wait = 0
+    if "crew_seedling" in effects and golden_seedling is not None and golden_seedling["ticks_left"] <= 1:
+        if collect_golden_seedling():
+            crew_stats["seedlings"] += 1
+    if "crew_replant" in effects:
+        _crew_replant_clock += 1
+        interval = CREW_REPLANT_INTERVAL_TICKS - (CREW_LEAD_FASTER_TICKS if "crew_lead" in effects else 0)
+        if _crew_replant_clock >= interval:
+            target = next((p for p in plots if p.state == BARE), None)
+            if target is not None and target.replant():
+                total_replants += 1
+                crew_stats["replants"] += 1
+                _log_event("crew", f"Replant crew replanted {_plot_ref(target.index)}", target.index)
+                _crew_replant_clock = 0
+            else:
+                _crew_replant_clock = interval  # nothing bare: replant the first one that appears
+
+
+def on_toggle_vault(event=None):
+    global vault_open
+    vault_open = not vault_open
+    render_vault()
+
+
+def _vault_callbacks():
+    if _vault_proxies:
+        return _vault_proxies
+    _vault_proxies.extend([
+        create_proxy(lambda node_id, node=None: buy_vault_node(str(node_id))),
+        create_proxy(lambda node_id, node=None: refund_vault_node(str(node_id))),
+        create_proxy(lambda: refund_all_vault()),
+    ])
+    return _vault_proxies
+
+
+def _render_vault_tree():
+    global _vault_view
+    window = _js_window()
+    skill_view = getattr(window, "NoyvjSkillTree", None) if window is not None else None
+    container = _el("vault-tree")
+    if skill_view is None or container is None:
+        return
+    earned = vault_points_earned()
+    if _vault_view is None:
+        buy, refund, refund_all = _vault_callbacks()
+        options = _to_js({
+            "tree": VAULT_TREE, "owned": list(vault_owned), "earned": earned, "refundNodes": True,
+            "onBuy": buy, "onRefund": refund, "onRefundAll": refund_all,
+        })
+        if options is not None:
+            _vault_view = skill_view.render(container, options)
+        return
+    update = _to_js({"owned": list(vault_owned), "earned": earned})
+    if update is not None:
+        _vault_view.update(update)
+
+
+def vault_summary_text():
+    totals = skill_tree.totals(VAULT_TREE, vault_owned, vault_points_earned())
+    return (
+        f"{vault_points_free()} seed points to spend ({vault_points_earned()} earned in all). "
+        f"{totals['owned_count']} of {totals['node_count']} perks owned. "
+        "Earn points: 1 for each level completed, 1 for each forest tier reached "
+        f"({vault_meta['best_tier']} of {len(STANDING_TIERS)} so far), 1 for every {VAULT_ACHIEVEMENTS_PER_POINT} achievements "
+        f"({min(VAULT_ACHIEVEMENT_POINTS_MAX, vault_meta['best_ach'] // VAULT_ACHIEVEMENTS_PER_POINT)} of {VAULT_ACHIEVEMENT_POINTS_MAX} so far)."
+    )
+
+
+def vault_crews_text():
+    return (
+        f"Crew work this session: {crew_stats['tends']} tends, {crew_stats['seedlings']} seedlings caught, "
+        f"{crew_stats['replants']} plots replanted."
+    )
+
+
+def render_vault():
+    toggle = _el("vault-toggle-button")
+    panel = _el("vault-panel")
+    if toggle is None or panel is None:
+        return
+    toggle.innerText = "Hide Seed Vault" if vault_open else f"\U0001F330 Seed Vault ({vault_points_free()} pts)"
+    panel.hidden = not vault_open
+    if not vault_open:
+        return
+    for element_id, text in (
+        ("vault-summary", vault_summary_text()),
+        ("vault-crews", vault_crews_text()),
+        ("vault-note", "" if vault_perks_active() else "Perks and crews rest during a challenge run, so those stay comparable."),
+    ):
+        element = _el(element_id)
+        if element is not None:
+            element.innerText = text
+    _render_vault_tree()
+
+
+# --- saved state --------------------------------------------------------------------------------------------------
+
+def _levels_state_fields():
+    out = {}
+    if levels_state["done"] or levels_state["best"]:
+        out["levels"] = copy.deepcopy(levels_state)
+    if vault_owned or vault_meta["best_tier"] or vault_meta["best_ach"] or any(crew_stats.values()):
+        out["seed_vault"] = {
+            "owned": list(vault_owned),
+            "best_tier": vault_meta["best_tier"],
+            "best_ach": vault_meta["best_ach"],
+            "crews": dict(crew_stats),
+        }
+    if current_level is not None:
+        run = {"id": current_level, "ticks": level_ticks, "done_tick": level_done_tick}
+        if poacher_run:
+            run["poacher"] = dict(poacher_run)
+        if storm_run:
+            run["storm"] = dict(storm_run)
+        if spirit_run:
+            run["spirit"] = dict(spirit_run)
+        out["level_run"] = run
+    return out
+
+
+def _load_levels(data):
+    """Validates and applies the levels / seed_vault / level_run keys. Meta-progress is MERGED (a save from an
+    older point never takes progress away); the running level comes from the save, or there is none."""
+    global levels_state, current_level, level_ticks, level_done_tick
+    saved_levels = data.get("levels")
+    if saved_levels is not None:
+        levels_state = _merge_levels_state(levels_state, _sanitize_levels_state(saved_levels))
+    saved_vault = data.get("seed_vault")
+    if isinstance(saved_vault, dict):
+        owned, best_tier, best_ach = _sanitize_vault_blob(saved_vault)
+        vault_meta["best_tier"] = max(vault_meta["best_tier"], best_tier)
+        vault_meta["best_ach"] = max(vault_meta["best_ach"], best_ach)
+        vault_owned[:] = skill_tree.sanitize_owned(VAULT_TREE, owned, vault_points_earned(), overspend="trim")
+        crews = saved_vault.get("crews")
+        if isinstance(crews, dict):
+            for key in crew_stats:
+                crew_stats[key] = int(_number_or(crews.get(key), 0, 0, 10 ** 9))
+    else:
+        vault_owned[:] = skill_tree.sanitize_owned(VAULT_TREE, vault_owned, vault_points_earned(), overspend="trim")
+    current_level = None
+    raw = data.get("level_run")
+    saved_id = raw.get("id") if isinstance(raw, dict) else None
+    if isinstance(saved_id, str) and saved_id in LEVEL_SPECS and _level_matches_settings(LEVEL_SPECS[saved_id]):
+        current_level = saved_id
+    crews_kept = dict(crew_stats)
+    _reset_level_run()
+    crew_stats.update(crews_kept)
+    if current_level is not None:
+        level_ticks = int(_number_or(raw.get("ticks"), 0, 0, 10 ** 9))
+        done = raw.get("done_tick")
+        level_done_tick = int(_number_or(done, 0, 0, 10 ** 9)) if done is not None and _number_or(done, None) is not None else None
+        _load_level_mode_state(raw)
+    _note_vault_progress(silent=True)
+    _save_meta()
+    _sync_levels_js()
+
+
+def _load_level_mode_state(raw):
+    mode = _level_mode()
+    if mode == LEVEL_MODE_POACHER and isinstance(raw.get("poacher"), dict):
+        saved = raw["poacher"]
+        plot = saved.get("plot")
+        valid_plot = isinstance(plot, int) and not isinstance(plot, bool) and 0 <= plot < len(plots) and plots[plot].state in ACCRUING_STATES
+        poacher_run.update(
+            plot=plot if valid_plot else None,
+            ticks_left=int(_number_or(saved.get("ticks_left"), 0, 0, POACHER_STAY_TICKS)) if valid_plot else 0,
+            driven=int(_number_or(saved.get("driven"), 0, 0, 10 ** 6)),
+            missed=int(_number_or(saved.get("missed"), 0, 0, 10 ** 6)),
+            next_in=int(_number_or(saved.get("next_in"), POACHER_FIRST_TICKS, 1, POACHER_GAP_MIN + POACHER_GAP_SPREAD + POACHER_FIRST_TICKS)),
+        )
+        last = saved.get("last_plot")
+        poacher_run["last_plot"] = last if isinstance(last, int) and not isinstance(last, bool) and 0 <= last < len(plots) else None
+    elif mode == LEVEL_MODE_STORM and isinstance(raw.get("storm"), dict):
+        saved = raw["storm"]
+        storm_run.update(
+            next_in=int(_number_or(saved.get("next_in"), STORM_INTERVAL_TICKS, 1, STORM_INTERVAL_TICKS)),
+            fronts=int(_number_or(saved.get("fronts"), 0, 0, 10 ** 6)),
+            lost=float(_number_or(saved.get("lost"), 0.0, 0.0)),
+            hits=int(_number_or(saved.get("hits"), 0, 0, 10 ** 9)),
+            shielded=int(_number_or(saved.get("shielded"), 0, 0, 10 ** 9)),
+        )
+    elif mode == LEVEL_MODE_SPIRIT and isinstance(raw.get("spirit"), dict):
+        saved = raw["spirit"]
+        step = int(_number_or(saved.get("step"), 0, 0, len(SPIRIT_STEPS)))
+        spirit_run.update(step=step, said=int(_number_or(saved.get("said"), -1, -1, len(SPIRIT_STEPS))))
+
+
 # --- per-tick hook and state -------------------------------------------------------------------------------------------
 
 def _gb_after_tick():
     """Everything GB does at the end of a tick (after accrual and requests)."""
     _advance_tend()
     _advance_golden_seedling()
+    _advance_crews()  # GB-26: idle ranger crews (Seed Vault perks)
     _advance_undo()
     _note_season_relations()
     _check_rare_wildlife()
@@ -4937,6 +6033,8 @@ def _gb_after_tick():
     _check_milestones()
     _check_challenge()  # GB-17
     _advance_contracts()  # GB-9
+    _advance_level()  # W-1: the running level's clock, mode and goal
+    _note_vault_progress()  # GB-10: best tier and achievement counts feed the Seed Vault
 
 
 def _reset_gb_state():
@@ -4964,6 +6062,7 @@ def _reset_gb_state():
     _pending_bloom.clear()
     _pending_golden_bursts.clear()
     _reset_gb2_state()  # GB batch 2: challenge result, contract board
+    _reset_level_run()  # GB batch 3: the running level's own state and the crew counters
     _sync_name_inputs()
 
 
@@ -4995,6 +6094,7 @@ def _gb_state_fields():
             "min_relations": low if low is not None else community_relations,
         }
     out.update(_gb2_state_fields())
+    out.update(_levels_state_fields())  # GB batch 3: levels, Seed Vault, running level
     return out
 
 
@@ -5054,6 +6154,7 @@ def _load_gb_state(data):
         low = _number_or(saved_perfect.get("min_relations"), None, 0, 100)
         season_min_relations = int(low) if low is not None else None
     _load_gb2_state(data)
+    _load_levels(data)  # GB batch 3
     _sync_name_inputs()
 
 
@@ -5076,6 +6177,8 @@ def render():
     render_undo_chip()
     render_almanac()
     render_contracts()
+    render_level_status()
+    render_vault()
     render_session_summary()
     render_highland_section()
     render_wetland_section()
@@ -5095,6 +6198,7 @@ def select_plot(index):
     global selected_index
     if golden_seedling is not None and golden_seedling["plot"] == index:
         collect_golden_seedling(index)  # GB-2: clicking the plot the seedling sits on catches it
+    drive_off_poacher(index)  # GB-13: clicking the plot a poacher is working on drives it off
     selected_index = index
     render()
 
@@ -5546,6 +6650,8 @@ def setup():
         ("undo-clear-button", "click", undo_last_clear),
         ("almanac-toggle-button", "click", on_toggle_almanac),
         ("contracts-toggle-button", "click", on_toggle_contracts),
+        ("vault-toggle-button", "click", on_toggle_vault),
+        ("level-leave-button", "click", on_leave_level),
         ("forest-name-input", "change", on_forest_name_change),
         ("plot-nickname-input", "change", on_plot_nickname_change),
     ):
@@ -5564,6 +6670,9 @@ def setup():
     if toast is not None:
         toast.hidden = True
     _fill_contract_board()  # GB-9: the module starts without a reset_session(), so seed the board here
+    _load_meta()  # GB batch 3: this browser's level progress and Seed Vault
+    _note_vault_progress(silent=True)
+    _setup_levels_bridge()
     setInterval(create_proxy(tick), TICK_INTERVAL_MS)
     render()
 

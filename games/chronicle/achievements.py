@@ -1,7 +1,7 @@
 """Chronicle -- achievements: the hub-wide framework (static manifest `achievements.json` plus
 `achievements_earned` in the save). Every id is COMPUTED from the progress state, never stored on its own, so
 a loaded save and a played one cannot disagree. None is hidden or luck-gated; all are reachable by playing
-any one set to the end (easy to 100%).
+any one set to the end (easy to 100%): the cause web and Myth or record ones need a set that has those chapters.
 
 Each rule is evaluated per set and earned if it holds in ANY loaded set, so a new set never needs engine
 changes and can never take an earned achievement away.
@@ -20,6 +20,13 @@ ACHIEVEMENTS = (
     ("fine_print", "Fine Print", "Open the sources of five different claims."),
     ("doubting_reader", "Doubting Reader", "Open the sources of a claim marked disputed or doubtful."),
     ("complete_archive", "Complete Archive", "Fill the archive of a set to 100%."),
+    ("first_thread", "First Thread", "Confirm a cause link on the cause web."),
+    ("clean_web", "Clean Web", "Finish a cause web puzzle without a single unconfirmed thread."),
+    ("whole_web", "Whole Web", "Confirm every cause link in a set."),
+    ("first_sort", "First Sort", "Sort a claim correctly in Myth or record."),
+    ("myth_spotter", "Myth Spotter", "Sort a traditional-but-doubtful claim correctly."),
+    ("straight_sort", "Straight Sort", "Sort a Myth or record puzzle with a single check."),
+    ("fair_judge", "Fair Judge", "Sort every claim of a set correctly."),
 )
 
 IDS = [a[0] for a in ACHIEVEMENTS]
@@ -58,6 +65,24 @@ def earned(state, sets, helpers):
             got.add("all_places")
         if helpers.percent(set_id) == 100:
             got.add("complete_archive")
+        threads = helpers.threads(set_id)
+        if threads:
+            got.add("first_thread")
+        if any(rec.get("misses") == 0 for rec in helpers.web_records(set_id).values()):
+            got.add("clean_web")
+        reachable_threads = set(cset.web_relation_ids())
+        if reachable_threads and reachable_threads <= threads:
+            got.add("whole_web")
+        done = helpers.sorted_claims(set_id)
+        if done:
+            got.add("first_sort")
+        if any(cset.claims[c]["confidence"] == "traditional-but-doubtful" for c in done if c in cset.claims):
+            got.add("myth_spotter")
+        if any(rec.get("checks") == 1 for rec in helpers.myth_records(set_id).values()):
+            got.add("straight_sort")
+        reachable_claims = set(cset.myth_claim_ids())
+        if reachable_claims and reachable_claims <= done:
+            got.add("fair_judge")
     if solved_total >= 5:
         got.add("five_timelines")
     viewed = state["viewed"]

@@ -158,6 +158,24 @@
     return on;
   }
 
+  // GB-13/15/16: the level modes' own animations (poacher shake, storm rain, spirit glow). Default on;
+  // switching it off removes only the motion, the markers and text stay. Stored as "off" when off.
+  const LEVEL_EFFECTS_KEY = "canopy-level-effects";
+
+  function readLevelEffects() {
+    try {
+      return window.localStorage.getItem(LEVEL_EFFECTS_KEY) !== "off";
+    } catch (e) {
+      return true;
+    }
+  }
+
+  function applyLevelEffects(on) {
+    document.documentElement.setAttribute("data-level-effects", on ? "on" : "off");
+    writeStored(LEVEL_EFFECTS_KEY, on ? "on" : "off");
+    return on;
+  }
+
   function applyNumberFormat(value) {
     const format = NUMBER_FORMATS.indexOf(value) >= 0 ? value : DEFAULT_NUMBER_FORMAT;
     writeStored(NUMBER_FORMAT_KEY, format);
@@ -197,6 +215,14 @@
       soilCheckbox.checked = readFlag(SOIL_OVERLAY_KEY);
       soilCheckbox.addEventListener("change", function () {
         applySoilOverlay(soilCheckbox.checked);
+      });
+    }
+    const levelEffectsCheckbox = document.getElementById("level-effects-checkbox");
+    applyLevelEffects(readLevelEffects());
+    if (levelEffectsCheckbox) {
+      levelEffectsCheckbox.checked = readLevelEffects();
+      levelEffectsCheckbox.addEventListener("change", function () {
+        applyLevelEffects(levelEffectsCheckbox.checked);
       });
     }
     if (formatSelect) {
@@ -242,6 +268,8 @@
         }
         if (contrastCheckbox) contrastCheckbox.checked = false;
         if (soilCheckbox) soilCheckbox.checked = false;
+        if (levelEffectsCheckbox) levelEffectsCheckbox.checked = true;
+        applyLevelEffects(true);
         if (formatSelect) formatSelect.value = DEFAULT_NUMBER_FORMAT;
         applyPlotContrast(false);
         applySoilOverlay(false);
@@ -256,5 +284,5 @@
     init();
   }
 
-  window.CanopySettings = { applyScale: applyScale, applyMotion: applyMotion, applyPlotContrast: applyPlotContrast, applySoilOverlay: applySoilOverlay, applyNumberFormat: applyNumberFormat, MIN_SCALE: MIN_SCALE, MAX_SCALE: MAX_SCALE };
+  window.CanopySettings = { applyScale: applyScale, applyMotion: applyMotion, applyPlotContrast: applyPlotContrast, applySoilOverlay: applySoilOverlay, applyLevelEffects: applyLevelEffects, applyNumberFormat: applyNumberFormat, MIN_SCALE: MIN_SCALE, MAX_SCALE: MAX_SCALE };
 })();

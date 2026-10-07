@@ -35,7 +35,7 @@ window.CANOPY_PC_TUTORIAL_STEPS = [
   {
     selector: "#pc-menu-button",
     title: "Icons and the Menu",
-    text: "The four icons are Achievements, the Forest Almanac, the Session Summary (income vs standing value, a report card and a shareable recap) and Settings. The Menu (or Escape, when nothing else is open) holds the rest: Reset Session, Name your forest, the Forest summary, grid size and difficulty, the Highland Grove and Wetland Forest regions you unlock as your forest grows, How to Play, the real-world note and story, the example playthrough, What's New and feedback. Everything opens as a window over the forest, and Escape closes the top one.",
+    text: "The icons are Achievements, the Forest Almanac, Ranger contracts, the Seed Vault (perks and idle ranger crews bought with seed points), the Session Summary (income vs standing value, a report card and a shareable recap) and Settings. The Menu (or Escape, when nothing else is open) holds the rest: Levels (a level select where every fifth level is a game mode, such as Poacher Patrol and Storm Front), Reset Session, Name your forest, the Forest summary, grid size and difficulty, the Highland Grove and Wetland Forest regions you unlock as your forest grows, How to Play, the real-world note and story, the example playthrough, What's New and feedback. Everything opens as a window over the forest, and Escape closes the top one.",
   },
   {
     title: "You're ready",

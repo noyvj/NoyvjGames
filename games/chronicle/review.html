@@ -39,6 +39,8 @@
   <p id="rv-status" class="note" role="status">Loading...</p>
   <p id="rv-draft" class="draft-banner" hidden></p>
   <section id="rv-summary" class="panel" hidden></section>
+  <section id="rv-relations" class="panel" hidden></section>
+  <section id="rv-chapters" class="panel" hidden></section>
   <div id="rv-body"></div>
 </main>
 <script>
@@ -64,6 +66,8 @@
     for (var i = 0; i < index.sets.length; i++) {
       var folder = index.sets[i].folder, data = {};
       for (var f = 0; f < FILES.length; f++) data[FILES[f]] = await (await fetch("sets/" + folder + "/" + FILES[f] + ".json")).json();
+      var chResp = await fetch("sets/" + folder + "/chapters.json");        // optional: the cause web's and myth-or-record's chapters
+      data.chapters = chResp.ok ? await chResp.json() : { web: [], myth: [] };
       sets[data.meta.id] = data;
       var o = el("option", null, data.meta.title); o.value = data.meta.id; $("rv-set").appendChild(o);
     }
@@ -104,13 +108,16 @@
     sum.appendChild(el("p", null, set.claims.length + " claims: " + counts.documented + " documented, " + counts.disputed + " disputed, " + counts["traditional-but-doubtful"] + " traditional but doubtful. " + Object.keys(set.sources).length + " distinct sources. " + (bad ? bad + " claim(s) break the source rule (marked below)." : "Every claim meets the source rule (three or more distinct sources, two or more institutions, URL and read date on each).")));
     var body = $("rv-body"); body.textContent = "";
     var shown = 0;
+    renderRelations(set, entity, conf, q);
+    renderChapters(set);
     set.claims.forEach(function (c) {
       if (conf !== "all" && c.confidence !== conf) return;
       var hay = (c.text + " " + c.value + " " + (entity[c.subject] || "") + " " + c.sources.map(function (r) { var s = set.sources[r.source] || {}; return (s.title || "") + " " + (s.institution || "") + " " + (r.note || ""); }).join(" ")).toLowerCase();
       if (q && hay.indexOf(q) < 0) return;
       shown++;
       var box = el("div", "rv-claim");
-      box.appendChild(el("h3", null, (entity[c.subject] || c.subject) + " · " + c.field + (c.field === "date" ? ": " + fmt(c.value) : "")));
+      var rel = c.field === "relation" ? (set.relations || []).filter(function (r) { return r.claim === c.id; })[0] : null;
+      box.appendChild(el("h3", null, rel ? "Cause link: " + entity[rel.from] + " led to " + entity[rel.to] + " (" + rel.strength + ")" : (entity[c.subject] || c.subject) + " · " + c.field + (c.field === "date" ? ": " + fmt(c.value) : "")));
       box.appendChild(el("p", null, c.text));
       box.appendChild(el("p", "rv-meta", "claim " + c.id + " · " + SYMBOL[c.confidence] + " " + c.confidence));
       (c.alternatives || []).forEach(function (a) { box.appendChild(el("p", "rv-meta", "Alternative position: " + a)); });
@@ -133,6 +140,38 @@
     });
     if (!shown) body.appendChild(el("p", "note", "No claims match."));
   }
+  // Every cause link of the set with its strength, its claim's confidence and how many sources back it.
+  function renderRelations(set, entity) {
+    var box = $("rv-relations"); box.textContent = "";
+    var rels = set.relations || [];
+    box.hidden = !rels.length;
+    if (!rels.length) return;
+    box.appendChild(el("h2", null, "Cause links (" + rels.length + ")"));
+    box.appendChild(el("p", "note", "The cause web confirms only these links. Each is a claim below with its own sources (search for the claim id). Strength: direct = the sources treat it as the immediate trigger; contributing = one factor among several."));
+    var t = el("table", "rv-table");
+    var head = el("tr"); ["Link", "Cause", "Effect", "Strength", "Confidence", "Sources", "Claim"].forEach(function (h) { head.appendChild(el("th", null, h)); });
+    t.appendChild(head);
+    var claims = {}; set.claims.forEach(function (c) { claims[c.id] = c; });
+    rels.forEach(function (r) {
+      var c = claims[r.claim] || { sources: [], confidence: "missing" };
+      var tr = el("tr");
+      [r.id, entity[r.from] || r.from, entity[r.to] || r.to, r.strength, (SYMBOL[c.confidence] || "") + " " + c.confidence, String(c.sources.length) + (c.sources.length < 3 ? " (too few)" : ""), r.claim].forEach(function (x) { tr.appendChild(el("td", null, x)); });
+      t.appendChild(tr);
+    });
+    box.appendChild(t);
+  }
+
+  function renderChapters(set) {
+    var box = $("rv-chapters"); box.textContent = "";
+    var ch = set.chapters || { web: [], myth: [] };
+    var n = (ch.web || []).length + (ch.myth || []).length;
+    box.hidden = !n;
+    if (!n) return;
+    box.appendChild(el("h2", null, "Chapters (the cause web and myth or record)"));
+    (ch.web || []).forEach(function (c) { box.appendChild(el("p", null, "Cause web, " + c.title + " (" + c.id + "): " + c.events.length + " moments, puzzles of " + c.size + ".")); });
+    (ch.myth || []).forEach(function (c) { box.appendChild(el("p", null, "Myth or record, " + c.title + " (" + c.id + "): " + c.claims.length + " claims, puzzles of " + c.size + ".")); });
+  }
+
   $("rv-set").addEventListener("change", render);
   $("rv-conf").addEventListener("change", render);
   $("rv-q").addEventListener("input", render);

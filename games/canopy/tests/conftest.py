@@ -124,6 +124,18 @@ ELEMENT_IDS = [
     "contracts-toggle-button",
     "contracts-panel",
     "sr-announcer",
+    # GB batch 3: level select, Seed Vault, level box
+    "levels-open-button",
+    "vault-toggle-button",
+    "vault-panel",
+    "vault-summary",
+    "vault-crews",
+    "vault-note",
+    "vault-tree",
+    "level-box",
+    "level-status",
+    "spirit-line",
+    "level-leave-button",
 ]
 
 # Buttons that carry the `disabled` attribute in index.html's initial markup

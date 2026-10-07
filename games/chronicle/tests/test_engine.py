@@ -10,7 +10,7 @@ def test_boot_starts_the_first_section_first_round(p):
     assert v["puzzle"]["id"] == "presidents-sample/s1/0"
     assert v["puzzle"]["status"] == "playing" and v["puzzle"]["size"] == 3
     assert [s["unlocked"] for s in v["sections"]] == [True, False, False, False]
-    assert v["set"]["draft"] and v["set"]["total"] == 45 and v["set"]["found"] == 0
+    assert v["set"]["draft"] and v["set"]["total"] == 55 and v["set"]["found"] == 0
     assert v["first_run"] is True
 
 
@@ -155,12 +155,12 @@ def test_a_cleared_section_shows_its_reading_once(p):
 
 def test_the_archive_fills_in_and_locked_entries_hide_their_titles(p):
     a = p.call("archive")["archive"]
-    assert a["found"] == 0 and a["total"] == 45 and a["percent"] == 0
-    assert [g["id"] for g in a["groups"]] == ["events", "elsewhere", "people", "places"]
+    assert a["found"] == 0 and a["total"] == 55 and a["percent"] == 0
+    assert [g["id"] for g in a["groups"]] == ["events", "elsewhere", "people", "places", "connections", "records"]
     assert all(e["title"] is None and not e["found"] and e["hint"] for g in a["groups"] for e in g["entries"])
     p.solve()
     a = p.call("archive")["archive"]
-    assert a["found"] == 12 and a["percent"] == 26                  # 3 moments, 2 elsewhere, 3 people, 4 places
+    assert a["found"] == 12 and a["percent"] == 21                  # 3 moments, 2 elsewhere, 3 people, 4 places
     titles = {e["id"]: e["title"] for g in a["groups"] for e in g["entries"] if e["found"]}
     assert titles["washington"] == "George Washington" and titles["paris"] == "Paris"
     assert "madison" in titles and "e-removal-act" not in titles
@@ -196,7 +196,7 @@ def test_a_revealed_puzzles_claims_can_be_viewed_for_the_sources(p):
 
 def test_info_lists_found_claims_with_sources_and_the_legend(p):
     info = p.call("info")["info"]
-    assert info["found_claims"] == [] and info["counts"]["claims"] == 23 and info["counts"]["sources"] == 63
+    assert info["found_claims"] == [] and info["counts"]["claims"] == 28 and info["counts"]["sources"] == 70
     assert [l["id"] for l in info["legend"]] == ["documented", "disputed", "traditional-but-doubtful"]
     assert info["set"]["draft"] is True
     p.solve()

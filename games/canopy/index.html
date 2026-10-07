@@ -41,6 +41,10 @@
       <button id="almanac-toggle-button" class="secondary" type="button">📚 Almanac</button>
       <!-- GB-9: the Ranger contracts board (three open contracts, income rewards, ten collectable stamps). -->
       <button id="contracts-toggle-button" class="secondary" type="button">📜 Contracts</button>
+      <!-- W-1: the level select (shared/level-select.js). Levels are data (levels.json); every fifth one is a mode or a mechanic. -->
+      <button id="levels-open-button" class="secondary" type="button">🗺️ Levels</button>
+      <!-- GB-10/GB-26: the Seed Vault skill tree (shared/skill-tree.js): perks and idle ranger crews bought with seed points. -->
+      <button id="vault-toggle-button" class="secondary" type="button">🌰 Seed Vault</button>
       <!-- B1/B6/B18/B20: a player-triggered recap (stats, a sparkline of
            income vs. standing value over the session, a closing
            counterfactual line, and a shareable text snippet) -- same
@@ -129,6 +133,13 @@
           Soil quality overlay (border colour and a percentage on every plot)
         </label>
       </div>
+      <!-- GB-13/15/16: the level modes' own animations (poacher shake, storm rain, spirit glow); off removes only the motion. -->
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="level-effects-checkbox">
+          <input type="checkbox" id="level-effects-checkbox" checked>
+          Level effects (poacher, storm and spirit animations; markers and text stay when off)
+        </label>
+      </div>
       <!-- B-26: how the income and standing-value numbers are written. -->
       <div class="settings-row">
         <label class="settings-label" for="number-format-select">Number format</label>
@@ -153,6 +164,13 @@
     <div id="example-panel" class="section example-panel" hidden></div>
     <div id="almanac-panel" class="section almanac-panel" hidden></div>
     <div id="contracts-panel" class="section contracts-panel" hidden></div>
+    <!-- GB-10/GB-26: Seed Vault. The skill tree itself is drawn by shared/skill-tree.js into #vault-tree. -->
+    <div id="vault-panel" class="section vault-panel" hidden>
+      <p id="vault-summary" class="vault-summary"></p>
+      <p id="vault-crews" class="vault-crews"></p>
+      <p id="vault-note" class="vault-note"></p>
+      <div id="vault-tree" class="vault-tree"></div>
+    </div>
     <div id="session-summary-panel" class="section session-summary-panel print-summary" hidden>
       <p id="session-summary-counterfactual" class="session-summary-counterfactual"></p>
       <div id="session-summary-sparkline" class="session-summary-sparkline"></div>
@@ -237,6 +255,12 @@
     <p id="season-forecast" class="season-forecast"></p>
     <!-- GB-17: the active challenge, its goal and progress. -->
     <p id="challenge-status" class="challenge-status" role="status" hidden></p>
+    <!-- W-1: the running level (goal and progress), a way back to free play, and the forest spirit's narration (GB-16). -->
+    <div id="level-box" class="level-box" hidden>
+      <p id="level-status" class="level-status" role="status"></p>
+      <p id="spirit-line" class="spirit-line" hidden></p>
+      <button id="level-leave-button" class="secondary" type="button">Leave level</button>
+    </div>
     <!-- B-7: polite live region; game.py speaks clears, replants, requests, seasons and discoveries here. -->
     <div id="sr-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
     <div id="plot-grid" class="plot-grid"></div>
@@ -470,6 +494,10 @@
       // ENGINE_MODULES loop.
       const infoPageSource = await (await fetch("../../shared/info_page.py")).text();
       pyodide.FS.writeFile("info_page.py", infoPageSource, { encoding: "utf8" });
+      // Shared skill-tree rules (shared/skill_tree.py), the Python mirror of skill-tree.js: the Seed Vault
+      // (GB-10/GB-26) validates, buys and refunds through it, so the page and the game never disagree.
+      const skillTreeSource = await (await fetch("../../shared/skill_tree.py")).text();
+      pyodide.FS.writeFile("skill_tree.py", skillTreeSource, { encoding: "utf8" });
       // ACHIEVEMENTS-SYSTEM-DESIGN.md's loading contract: fetch the static
       // catalog and hand it to Python as a window global *before* game.py
       // runs, same pattern SOL's reference integration established.
@@ -675,7 +703,7 @@
         const tag = (target && target.tagName) || "";
         if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (target && target.isContentEditable)) return;
         // Not while something modal is up: opening screen, confirm dialog, tutorial, shortcuts help.
-        const modal = document.querySelector("#opening-screen, #confirm-dialog-overlay:not([hidden]), #tutorial-overlay:not([hidden]), #kb-shortcuts-panel:not([hidden])");
+        const modal = document.querySelector("#opening-screen, #confirm-dialog-overlay:not([hidden]), #tutorial-overlay:not([hidden]), #kb-shortcuts-panel:not([hidden]), #level-select:not([hidden])");
         if (modal && modal.getBoundingClientRect().width > 0) return;
         let index = plotIndexOf(document.activeElement);
         if (index === null && keyboardPlotIndex !== null && keyboardFocusWanted) index = keyboardPlotIndex;
@@ -710,6 +738,10 @@
       // Menu behind it. A window-level capture listener runs before every document-level one.
       window.addEventListener("keydown", (e) => {
         if (e.key !== "Escape") return;
+        // W-1: the level select closes itself on Escape; flag the event so the Desktop boot does not
+        // also open its Menu (or close a window) behind it. Not stopped, so the level select still sees it.
+        const levelScreen = document.getElementById("level-select");
+        if (levelScreen && !levelScreen.hidden) { e.__pcMenuOpened = true; return; }
         const overlay = document.getElementById("confirm-dialog-overlay");
         const cancel = document.getElementById("confirm-dialog-cancel");
         if (!overlay || overlay.hidden || !cancel) return;
@@ -749,7 +781,7 @@
       plotGrid.addEventListener("mouseleave", () => { hoveredPlotIndex = null; });
       document.addEventListener("keydown", (e) => {
         const key = e.key && e.key.toLowerCase();
-        if (key !== "t" && key !== "g" && key !== "u" && key !== "c" && key !== "r") return;
+        if (key !== "t" && key !== "g" && key !== "u" && key !== "c" && key !== "r" && key !== "p") return;
         if (e.ctrlKey || e.metaKey || e.altKey) return;
         const tag = (e.target && e.target.tagName) || "";
         if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (e.target && e.target.isContentEditable)) return;
@@ -759,9 +791,13 @@
         } else if (key === "g") {
           const fn = pyodide.globals.get("collect_golden_seedling");
           if (fn) fn();
+        } else if (key === "p") {
+          // GB-13: P drives off the poacher wherever it is (Poacher Patrol level only).
+          const fn = pyodide.globals.get("hotkey_drive_off_poacher");
+          if (fn) fn();
         } else if (key === "c" || key === "r") {
           // B-7: C clears and R replants the SELECTED plot (select one with Enter or a click first).
-          const modal = document.querySelector("#opening-screen, #confirm-dialog-overlay:not([hidden]), #tutorial-overlay:not([hidden]), #kb-shortcuts-panel:not([hidden])");
+          const modal = document.querySelector("#opening-screen, #confirm-dialog-overlay:not([hidden]), #tutorial-overlay:not([hidden]), #kb-shortcuts-panel:not([hidden]), #level-select:not([hidden])");
           if (modal && modal.getBoundingClientRect().width > 0) return;
           const fn = pyodide.globals.get(key === "c" ? "hotkey_clear_selected" : "hotkey_replant_selected");
           if (fn) fn();
@@ -895,6 +931,10 @@
   <!-- Z4 (site-wide goal): "?" shows a keyboard-shortcuts help overlay,
        Esc closes whichever panel is open. See shared/keyboard-shortcuts.js. -->
   <script src="../../shared/keyboard-shortcuts.js"></script>
+  <!-- W-1 / W-3: the shared level select and skill tree. game.py configures both from Python (levels.json lists the levels; the Seed Vault tree lives in game.py and is checked against shared/skill_tree.py). -->
+  <link rel="stylesheet" href="../../shared/skill-tree.css">
+  <script src="../../shared/skill-tree.js"></script>
+  <script src="../../shared/level-select.js" data-game-id="canopy" data-levels="levels.json" data-open="#levels-open-button"></script>
   <script>
     window.KeyboardShortcuts.init({
       panels: [
@@ -905,6 +945,7 @@
         { toggle: "example-toggle-button", panel: "example-panel" },
         { toggle: "almanac-toggle-button", panel: "almanac-panel" },
         { toggle: "contracts-toggle-button", panel: "contracts-panel" },
+        { toggle: "vault-toggle-button", panel: "vault-panel" },
         { toggle: "session-summary-toggle-button", panel: "session-summary-panel" },
         { toggle: "info-page-toggle-button", panel: "info-page-panel" },
       ],
@@ -914,6 +955,7 @@
         "T — tend the plot under the pointer (or the selected plot)",
         "G — catch a golden seedling",
         "U — undo the last clear (just after clearing)",
+        "P — drive off the poacher (Poacher Patrol level)",
         "C — clear the selected plot; R — replant the selected plot (select one with Enter or a click first)",
       ],
     });

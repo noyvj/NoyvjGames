@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-08",
+      "entry": "Two new ways to play. Cause web: pick the earlier moment, then the one it led to, and the game confirms only the links the sources support and says how strong the evidence is, because causes are plural. Myth or record: sort statements as documented, disputed or doubtful and read why from the sources. Both fill the archive and bring seven new achievements. The Info page now shows cause links, a strength legend and which claims you have not met yet."
+    },
+    {
       "date": "2026-10-07",
       "entry": "Chronicle begins as a sample: order moments from the American presidency on a timeline, and watch the archive fill in. Every fact names three sources, and you can flag a claim that looks wrong. The set is a draft until it has been reviewed."
     }

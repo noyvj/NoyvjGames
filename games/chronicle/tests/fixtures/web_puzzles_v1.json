@@ -1,0 +1,111 @@
+{
+ "seed_version": "v1",
+ "puzzles": {
+  "presidents-sample/w1/0": {
+   "cards": [
+    "e-farewell",
+    "e-fort-sumter",
+    "e-emancipation",
+    "e-gettysburg"
+   ],
+   "relations": [
+    "r-sumter-emancipation"
+   ]
+  },
+  "presidents-sample/w1/1": {
+   "cards": [
+    "e-farewell",
+    "e-removal-act",
+    "e-emancipation",
+    "e-22nd-amendment"
+   ],
+   "relations": [
+    "r-farewell-22nd"
+   ]
+  },
+  "presidents-sample/w1/2": {
+   "cards": [
+    "e-farewell",
+    "e-fort-sumter",
+    "e-emancipation",
+    "e-gettysburg"
+   ],
+   "relations": [
+    "r-sumter-emancipation"
+   ]
+  },
+  "presidents-sample/w1/3": {
+   "cards": [
+    "e-farewell",
+    "e-removal-act",
+    "e-fort-sumter",
+    "e-22nd-amendment"
+   ],
+   "relations": [
+    "r-farewell-22nd"
+   ]
+  },
+  "presidents-sample/w1/4": {
+   "cards": [
+    "e-farewell",
+    "e-fort-sumter",
+    "e-emancipation",
+    "e-lincoln-death"
+   ],
+   "relations": [
+    "r-sumter-emancipation"
+   ]
+  },
+  "presidents-sample/w1/5": {
+   "cards": [
+    "e-farewell",
+    "e-removal-act",
+    "e-lincoln-death",
+    "e-22nd-amendment"
+   ],
+   "relations": [
+    "r-farewell-22nd"
+   ]
+  },
+  "presidents-sample/w2/0": {
+   "cards": [
+    "c-sputnik",
+    "c-apollo",
+    "c-berlin-wall"
+   ],
+   "relations": [
+    "r-sputnik-apollo"
+   ]
+  },
+  "presidents-sample/w2/1": {
+   "cards": [
+    "c-sputnik",
+    "e-kennedy",
+    "c-apollo"
+   ],
+   "relations": [
+    "r-sputnik-apollo"
+   ]
+  },
+  "presidents-sample/w2/2": {
+   "cards": [
+    "c-sputnik",
+    "c-apollo",
+    "c-berlin-wall"
+   ],
+   "relations": [
+    "r-sputnik-apollo"
+   ]
+  },
+  "presidents-sample/w2/3": {
+   "cards": [
+    "c-sputnik",
+    "e-kennedy",
+    "c-apollo"
+   ],
+   "relations": [
+    "r-sputnik-apollo"
+   ]
+  }
+ }
+}

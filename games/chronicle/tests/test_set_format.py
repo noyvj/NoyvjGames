@@ -146,33 +146,43 @@ def test_different_fields_of_one_subject_may_coexist(raw):
     assert validate(raw) == []
 
 
-def test_a_mutual_cause_relation_fails(raw):
-    raw["claims"].append({"id": "c-rel", "subject": "e-fort-sumter", "field": "relation", "value": "led_to",
+def blank_relations(raw):
+    """The sample's own relations, their claims and its chapters removed, so a test can build relations from scratch."""
+    raw["relations"] = []
+    raw["claims"] = [c for c in raw["claims"] if c["field"] != "relation"]
+    raw.pop("chapters", None)
+
+
+def add_relation(raw, rid, frm, to, strength="contributing", claim_id=None):
+    cid = claim_id or "c-" + rid
+    raw["claims"].append({"id": cid, "subject": to, "field": "relation", "value": "%s>%s" % (frm, to),
                           "text": "A led to B.", "confidence": "documented", "sources": claim(raw, DATE_CLAIM)["sources"]})
-    raw["relations"] = [
-        {"id": "r1", "from": "e-fort-sumter", "to": "e-emancipation", "type": "led_to", "strength": "direct", "claim": "c-rel"},
-        {"id": "r2", "from": "e-emancipation", "to": "e-fort-sumter", "type": "led_to", "strength": "direct", "claim": "c-rel"},
-    ]
+    raw["relations"].append({"id": rid, "from": frm, "to": to, "type": "led_to", "strength": strength, "claim": cid})
+
+
+def test_a_mutual_cause_relation_fails(raw):
+    blank_relations(raw)
+    add_relation(raw, "r1", "e-fort-sumter", "e-emancipation", "direct")
+    add_relation(raw, "r2", "e-emancipation", "e-fort-sumter", "direct")
     found = codes(raw)
     assert "E_RELATION_CONTRADICTION" in found
     assert "E_RELATION_ORDER" in found      # r2 also has the effect before its cause
 
 
 def test_a_relation_where_the_cause_comes_after_the_effect_fails(raw):
-    raw["claims"].append({"id": "c-rel", "subject": "e-fort-sumter", "field": "relation", "value": "led_to",
-                          "text": "A led to B.", "confidence": "documented", "sources": claim(raw, DATE_CLAIM)["sources"]})
-    raw["relations"] = [{"id": "r1", "from": "e-emancipation", "to": "e-fort-sumter", "type": "led_to", "strength": "direct", "claim": "c-rel"}]
+    blank_relations(raw)
+    add_relation(raw, "r1", "e-emancipation", "e-fort-sumter", "direct")
     assert "E_RELATION_ORDER" in codes(raw)
 
 
 def test_a_valid_relation_with_a_sourced_claim_passes(raw):
-    raw["claims"].append({"id": "c-rel", "subject": "e-fort-sumter", "field": "relation", "value": "led_to",
-                          "text": "A led to B.", "confidence": "documented", "sources": claim(raw, DATE_CLAIM)["sources"]})
-    raw["relations"] = [{"id": "r1", "from": "e-fort-sumter", "to": "e-emancipation", "type": "led_to", "strength": "contributing", "claim": "c-rel"}]
+    blank_relations(raw)
+    add_relation(raw, "r1", "e-fort-sumter", "e-emancipation")
     assert validate(raw) == []
 
 
 def test_a_relation_without_a_claim_fails(raw):
+    blank_relations(raw)
     raw["relations"] = [{"id": "r1", "from": "e-fort-sumter", "to": "e-emancipation", "type": "led_to", "strength": "direct", "claim": "missing"}]
     assert "E_RELATION" in codes(raw)
 

@@ -18,11 +18,11 @@
 <!-- Pyodide is NOT loaded here: app.js injects it after first paint, so this shell is readable before the engine is warm. -->
 </head>
 <body>
-<a class="skip-link" href="#puzzle-panel">Skip to the timeline</a>
+<a class="skip-link" id="skip-link" href="#puzzle-panel">Skip to the timeline</a>
 <main id="game">
   <a href="../../index.html" class="hub-back-link">&larr; All games</a>
   <h1>Chronicle</h1>
-  <p class="tagline">Put the moments of history in order. Every fact names its sources.</p>
+  <p class="tagline">Put the moments of history in order, trace what led to what, and tell record from myth. Every fact names its sources.</p>
   <p id="draft-banner" class="draft-banner" role="note">Sample set, draft until reviewed: the facts below have three sources each, but the owner has not yet checked them.</p>
 
   <div class="game-toolbar">
@@ -80,7 +80,8 @@
     <p class="info-page-framing">Chronicle is a history game built from sets. A set is a folder of data: events, people, places and claims, so a new topic is new data, not new code. Today there is one sample set, the American presidency.</p>
     <ul class="info-list">
       <li>Every fact the game shows is a claim, and every claim links at least three reputable sources from at least two institutions. Each source gives its title, who published it, a link, and the date it was read.</li>
-      <li>Claims carry a confidence label, always written out and marked with a symbol, never colour alone. <strong>&#x2714; Documented</strong>: sources agree. <strong>&#x2248; Disputed</strong>: reputable sources differ, so the game shows each position. <strong>? Traditional but doubtful</strong>: a popular story the sources do not support.</li>
+      <li>Claims carry a confidence label, always written out and marked with a symbol, never colour alone. <strong>&#x2714; Documented</strong>: sources agree. <strong>&#x2248; Disputed</strong>: reputable sources differ, so the game shows each position. <strong>? Traditional but doubtful</strong>: a popular story the sources do not support. Myth or record is built from exactly this label.</li>
+      <li>A cause link is a claim too, so it has the same three sources and the same confidence label, plus a strength: <strong>&#x21D2; Direct cause</strong> (the sources treat it as the immediate trigger) or <strong>&#x21E2; Contributing cause</strong> (one factor among several). Causes are plural, so no link is ever presented as the whole story.</li>
       <li>All text is original wording; only facts are reused. All art is drawn by code. No images are generated.</li>
       <li>The sample set was drafted by an AI assistant from sources it read on 7 October 2026 and is a draft until the owner has reviewed it. If a claim looks wrong, use Report a problem beside it. Reports open soon: for now a report is only saved on this device.</li>
       <li>The presidents sets aim to be balanced and non-partisan: each moment is stated as a dated, sourced fact, not as praise or blame.</li>
@@ -101,6 +102,13 @@
       <span id="meter-text" class="meter-text">0 of 0 found (0%)</span>
     </div>
   </section>
+
+  <div id="mode-tabs" class="mode-tabs" role="tablist" aria-label="How to play">
+    <button id="mode-timeline-button" type="button" role="tab" aria-selected="true" aria-controls="puzzle-panel">Timeline</button>
+    <button id="mode-web-button" type="button" role="tab" aria-selected="false" aria-controls="web-panel" tabindex="-1">Cause web</button>
+    <button id="mode-myth-button" type="button" role="tab" aria-selected="false" aria-controls="myth-panel" tabindex="-1">Myth or record</button>
+  </div>
+  <p class="note mode-hint">Switch mode with the tabs, or press T, W or M.</p>
 
   <nav id="sections" class="sections" aria-label="Sections"></nav>
 
@@ -125,6 +133,42 @@
   <section id="result-panel" class="panel" hidden aria-labelledby="result-heading">
     <h2 id="result-heading">What happened</h2>
     <div id="result-body"></div>
+  </section>
+
+  <section id="web-panel" class="panel" hidden aria-labelledby="web-heading">
+    <h2 id="web-heading">Cause web</h2>
+    <p id="web-meta" class="note"></p>
+    <div id="web-board">
+      <p class="note">Which moment helped lead to which? Pick the earlier moment (the cause), then the moment it led to. The game confirms a thread only if this set's sources link the two, and says how strong the evidence is. Most moments have several causes, so a moment can end more than one thread. Moments are listed earliest first.</p>
+      <ol id="web-cards" class="web-cards" aria-label="Moments on the board, earliest first"></ol>
+      <div id="web-diagram" class="web-diagram"></div>
+      <h3 id="web-threads-heading">Threads</h3>
+      <ul id="web-threads" class="thread-list" aria-labelledby="web-threads-heading"></ul>
+      <p id="web-message" class="message-line" role="status" aria-live="polite"></p>
+      <div class="action-bar">
+        <button id="web-cancel-button" type="button" hidden>Put the picked-up card down</button>
+        <button id="web-show-button" type="button">Show the links</button>
+        <button id="web-next-button" type="button" class="primary" hidden>Next puzzle</button>
+      </div>
+      <div id="web-result"></div>
+    </div>
+  </section>
+
+  <section id="myth-panel" class="panel" hidden aria-labelledby="myth-heading">
+    <h2 id="myth-heading">Myth or record</h2>
+    <p id="myth-meta" class="note"></p>
+    <div id="myth-board">
+      <p class="note">Sort each statement into the bin that says how sure the sources are. Press Check when every statement has a bin: the right ones lock, and when all are right you see why, from the sources themselves.</p>
+      <ul id="myth-legend" class="info-list" aria-label="The three bins"></ul>
+      <ol id="myth-cards" class="myth-cards" aria-label="Statements to sort"></ol>
+      <p id="myth-message" class="message-line" role="status" aria-live="polite"></p>
+      <div class="action-bar">
+        <button id="myth-check-button" type="button" class="primary">Check</button>
+        <button id="myth-show-button" type="button">Show the answer</button>
+        <button id="myth-next-button" type="button" class="primary" hidden>Next puzzle</button>
+      </div>
+      <div id="myth-result"></div>
+    </div>
   </section>
 
   <p id="toast" class="note toast" role="status" aria-live="polite"></p>
@@ -180,9 +224,12 @@
     extra: [
       "Tab and Shift+Tab: move between cards, slots and buttons; everything works from the keyboard",
       "Enter or Space on a card: pick it up. Enter or Space on a slot: put the picked-up card there",
+      "T, W or M: switch to the timeline, the cause web or myth or record. On the mode tabs, Arrow keys and Home and End also move between them",
       "Number keys 1 to 6 with a card picked up: put it in that slot",
       "Delete or Backspace on a filled slot: return its card to the tray",
       "Escape with a card picked up: put it down again",
+      "Cause web: press a moment's number to pick it as the cause, then another number for the moment it led to",
+      "Myth or record: with a statement focused, press 1, 2 or 3 to sort it as documented, disputed or traditional but doubtful",
     ],
   });
 </script>

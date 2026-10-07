@@ -19,7 +19,8 @@
         "source": "loc-inaugurations-1789-1825",
         "note": "Lists the first inauguration on April 30, 1789, in New York, with the oath taken outdoors; does not name Federal Hall."
       }
-    ]
+    ],
+    "short": "Washington's first oath: the date"
   },
   {
     "id": "c-e-farewell-date",
@@ -173,7 +174,8 @@
         "source": "nps-emancipation",
         "note": "Says Lincoln signed the final version on January 1, 1863, after greeting New Year's visitors at the White House."
       }
-    ]
+    ],
+    "short": "Emancipation Proclamation: the date"
   },
   {
     "id": "c-e-gettysburg-date",
@@ -195,7 +197,8 @@
         "source": "miller-lincoln-key-events",
         "note": "Dates the Gettysburg Address November 19, 1863 and says Lincoln gave it at the dedication of a national cemetery."
       }
-    ]
+    ],
+    "short": "Gettysburg Address: the date"
   },
   {
     "id": "c-e-lincoln-death-date",
@@ -484,7 +487,8 @@
         "source": "nps-wills-house",
         "note": "Says Lincoln made his final revisions in a bedroom at the Wills house in Gettysburg; it does not mention an envelope."
       }
-    ]
+    ],
+    "short": "Gettysburg Address: the envelope story"
   },
   {
     "id": "c-e-gettysburg-final-revision",
@@ -509,6 +513,134 @@
       {
         "source": "ncc-gettysburg-myths",
         "note": "Says Lincoln finalized the speech after arriving in Gettysburg; it does not give the hour."
+      }
+    ],
+    "short": "Gettysburg Address: the last rewrite"
+  },
+  {
+    "id": "c-e-emancipation-scope",
+    "subject": "e-emancipation",
+    "field": "tradition",
+    "value": "freed every enslaved person in the United States",
+    "short": "Emancipation Proclamation: who it freed",
+    "text": "The common belief that the Emancipation Proclamation freed every enslaved person in the United States on January 1, 1863 is not supported by the sources: it named areas in rebellion and left out the border states.",
+    "confidence": "traditional-but-doubtful",
+    "alternatives": [
+      "It declared people held as slaves in areas in rebellion to be free and left out the border states of Maryland, Kentucky and Missouri (National Park Service).",
+      "It did not end slavery everywhere, though it changed the character of the war (Library of Congress)."
+    ],
+    "sources": [
+      {
+        "source": "nara-emancipation",
+        "note": "Quotes the proclamation's own wording about areas in rebellion and says the freedom it promised depended on Union military victory."
+      },
+      {
+        "source": "nps-emancipation",
+        "note": "Says the final proclamation named areas in rebellion and notably left out the border states of Maryland, Kentucky and Missouri."
+      },
+      {
+        "source": "loc-emancipation",
+        "note": "Says the proclamation did not end slavery, and quotes its wording that covers people held as slaves in states, or parts of states, in rebellion."
+      }
+    ]
+  },
+  {
+    "id": "c-e-washington-oath-words",
+    "subject": "e-washington-oath",
+    "field": "oath_words",
+    "value": "Washington added the words so help me God",
+    "short": "Washington's first oath: the added words",
+    "text": "The popular story that Washington added the words \"so help me God\" to his first presidential oath is not supported by the sources: no account written at the time records it, and it first appears in print in 1854.",
+    "confidence": "traditional-but-doubtful",
+    "alternatives": [
+      "The oath written in the Constitution does not contain those words, and the first confirmed use of them by a president was Chester Arthur's in 1881 (History News Network)."
+    ],
+    "sources": [
+      {
+        "source": "ncc-inauguration-facts",
+        "note": "Says Washington Irving claimed Washington began the practice and that there is no direct evidence of it."
+      },
+      {
+        "source": "hnn-henriques-oath",
+        "note": "A history professor emeritus argues there is no contemporary evidence that Washington changed the oath, and that the account of the French minister who attended records the oath without those words."
+      },
+      {
+        "source": "hnn-parker-oath",
+        "note": "A history professor says the story first appeared in print in 1854 and that no contemporary evidence for it survives."
+      }
+    ]
+  },
+  {
+    "id": "c-r-sumter-emancipation",
+    "subject": "e-emancipation",
+    "field": "relation",
+    "value": "e-fort-sumter>e-emancipation",
+    "text": "The Civil War that began with the firing on Fort Sumter in April 1861 is one of the causes of the Emancipation Proclamation, which Lincoln issued in January 1863 as a war measure; the sources also point to the Union victory at Antietam in 1862 as a cause.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "nara-emancipation",
+        "note": "Says the proclamation was issued as a war measure for suppressing the rebellion, a few days after the Union victory at Antietam."
+      },
+      {
+        "source": "nps-emancipation",
+        "note": "Calls the proclamation a decisive war measure that deprived the South of enslaved labor for its war effort."
+      },
+      {
+        "source": "miller-lincoln-key-events",
+        "note": "Says Lincoln called for volunteers after the attack on Fort Sumter, then announced emancipation as a war strategy once the Antietam victory gave him the military success he wanted."
+      }
+    ]
+  },
+  {
+    "id": "c-r-farewell-22nd",
+    "subject": "e-22nd-amendment",
+    "field": "relation",
+    "value": "e-farewell>e-22nd-amendment",
+    "text": "Washington's announcement in his Farewell Address that he would not seek a third term is one of the causes of the 22nd Amendment: the sources trace a two-term custom to his example, and name Franklin Roosevelt's four election wins as what led Congress to write the custom into law.",
+    "confidence": "disputed",
+    "alternatives": [
+      "Washington's decision not to seek a third term set the unwritten two-term custom that the 22nd Amendment later made law (National Constitution Center, Annenberg Classroom).",
+      "Some scholars credit Thomas Jefferson more than Washington with making the two-term custom a norm (PBS NewsHour)."
+    ],
+    "sources": [
+      {
+        "source": "ncc-term-limits-on-this-day",
+        "note": "Says Washington set an unofficial precedent in 1796 by deciding not to seek a third term, and that Roosevelt's four wins led Congress to propose the amendment."
+      },
+      {
+        "source": "pbs-term-limits",
+        "note": "Says commentators often cite Washington's choice as the start of the two-term custom, though some scholars credit Jefferson more, and that Roosevelt's third and fourth terms led to the amendment."
+      },
+      {
+        "source": "annenberg-22nd",
+        "note": "Says Washington set a precedent by declining a third term, that it lasted until 1940, and that Congress proposed the amendment after Roosevelt's death in 1945."
+      }
+    ]
+  },
+  {
+    "id": "c-r-sputnik-apollo",
+    "subject": "c-apollo",
+    "field": "relation",
+    "value": "c-sputnik>c-apollo",
+    "text": "The launch of Sputnik 1 in 1957 is one of the causes of the Moon landing: it began the space race and led to the creation of NASA, and President Kennedy set the goal of landing on the Moon in 1961 within that race. No single source states the whole chain, so each source below confirms one step.",
+    "confidence": "documented",
+    "sources": [
+      {
+        "source": "statedept-sputnik",
+        "note": "Says the launch of Sputnik fueled the space race and led U.S. policymakers to speed up space programs (step one)."
+      },
+      {
+        "source": "nasa-dawn-space-age",
+        "note": "Says the Sputnik launch led directly to the creation of NASA in 1958 (step two)."
+      },
+      {
+        "source": "nasa-decision-moon",
+        "note": "Reprints Kennedy's 1961 Moon goal and links the pressure on him to the Sputnik shock and Gagarin's flight (step three)."
+      },
+      {
+        "source": "nasm-space-race",
+        "note": "Describes the U.S.-Soviet rivalry from Sputnik, through NASA's creation and Kennedy's Moon goal, to Apollo 11 winning the Moon race in July 1969 (step four)."
       }
     ]
   }

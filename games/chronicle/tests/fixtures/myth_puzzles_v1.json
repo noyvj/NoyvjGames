@@ -1,0 +1,201 @@
+{
+ "seed_version": "v1",
+ "puzzles": {
+  "presidents-sample/m1/0": {
+   "tray": [
+    "c-e-washington-oath-date",
+    "c-e-gettysburg-date",
+    "c-e-washington-oath-words",
+    "c-e-emancipation-date"
+   ],
+   "answer": {
+    "c-e-gettysburg-date": "documented",
+    "c-e-washington-oath-words": "traditional-but-doubtful",
+    "c-e-emancipation-date": "documented",
+    "c-e-washington-oath-date": "documented"
+   }
+  },
+  "presidents-sample/m1/1": {
+   "tray": [
+    "c-e-gettysburg-tradition",
+    "c-e-washington-oath-date",
+    "c-e-emancipation-scope",
+    "c-e-washington-oath-words"
+   ],
+   "answer": {
+    "c-e-gettysburg-tradition": "traditional-but-doubtful",
+    "c-e-washington-oath-date": "documented",
+    "c-e-emancipation-scope": "traditional-but-doubtful",
+    "c-e-washington-oath-words": "traditional-but-doubtful"
+   }
+  },
+  "presidents-sample/m1/2": {
+   "tray": [
+    "c-e-emancipation-date",
+    "c-e-washington-oath-words",
+    "c-e-gettysburg-final-revision",
+    "c-e-emancipation-scope"
+   ],
+   "answer": {
+    "c-e-gettysburg-final-revision": "disputed",
+    "c-e-emancipation-scope": "traditional-but-doubtful",
+    "c-e-emancipation-date": "documented",
+    "c-e-washington-oath-words": "traditional-but-doubtful"
+   }
+  },
+  "presidents-sample/m1/3": {
+   "tray": [
+    "c-e-emancipation-scope",
+    "c-e-washington-oath-words",
+    "c-e-gettysburg-final-revision",
+    "c-e-emancipation-date"
+   ],
+   "answer": {
+    "c-e-emancipation-date": "documented",
+    "c-e-gettysburg-final-revision": "disputed",
+    "c-e-emancipation-scope": "traditional-but-doubtful",
+    "c-e-washington-oath-words": "traditional-but-doubtful"
+   }
+  },
+  "presidents-sample/m1/4": {
+   "tray": [
+    "c-e-gettysburg-final-revision",
+    "c-e-emancipation-scope",
+    "c-e-washington-oath-words",
+    "c-e-gettysburg-date"
+   ],
+   "answer": {
+    "c-e-emancipation-scope": "traditional-but-doubtful",
+    "c-e-gettysburg-final-revision": "disputed",
+    "c-e-washington-oath-words": "traditional-but-doubtful",
+    "c-e-gettysburg-date": "documented"
+   }
+  },
+  "presidents-sample/m1/5": {
+   "tray": [
+    "c-e-washington-oath-date",
+    "c-e-gettysburg-tradition",
+    "c-e-gettysburg-final-revision",
+    "c-e-gettysburg-date"
+   ],
+   "answer": {
+    "c-e-washington-oath-date": "documented",
+    "c-e-gettysburg-tradition": "traditional-but-doubtful",
+    "c-e-gettysburg-date": "documented",
+    "c-e-gettysburg-final-revision": "disputed"
+   }
+  },
+  "presidents-sample/m1/6": {
+   "tray": [
+    "c-e-gettysburg-date",
+    "c-e-washington-oath-words",
+    "c-e-gettysburg-tradition",
+    "c-e-emancipation-scope"
+   ],
+   "answer": {
+    "c-e-washington-oath-words": "traditional-but-doubtful",
+    "c-e-emancipation-scope": "traditional-but-doubtful",
+    "c-e-gettysburg-date": "documented",
+    "c-e-gettysburg-tradition": "traditional-but-doubtful"
+   }
+  },
+  "presidents-sample/m1/7": {
+   "tray": [
+    "c-e-gettysburg-final-revision",
+    "c-e-emancipation-scope",
+    "c-e-gettysburg-date",
+    "c-e-washington-oath-date"
+   ],
+   "answer": {
+    "c-e-gettysburg-date": "documented",
+    "c-e-emancipation-scope": "traditional-but-doubtful",
+    "c-e-washington-oath-date": "documented",
+    "c-e-gettysburg-final-revision": "disputed"
+   }
+  },
+  "presidents-sample/m1/8": {
+   "tray": [
+    "c-e-gettysburg-tradition",
+    "c-e-emancipation-scope",
+    "c-e-washington-oath-date",
+    "c-e-gettysburg-final-revision"
+   ],
+   "answer": {
+    "c-e-gettysburg-tradition": "traditional-but-doubtful",
+    "c-e-emancipation-scope": "traditional-but-doubtful",
+    "c-e-gettysburg-final-revision": "disputed",
+    "c-e-washington-oath-date": "documented"
+   }
+  },
+  "presidents-sample/m1/9": {
+   "tray": [
+    "c-e-emancipation-scope",
+    "c-e-gettysburg-date",
+    "c-e-gettysburg-final-revision",
+    "c-e-washington-oath-words"
+   ],
+   "answer": {
+    "c-e-gettysburg-final-revision": "disputed",
+    "c-e-emancipation-scope": "traditional-but-doubtful",
+    "c-e-gettysburg-date": "documented",
+    "c-e-washington-oath-words": "traditional-but-doubtful"
+   }
+  },
+  "presidents-sample/m1/10": {
+   "tray": [
+    "c-e-emancipation-date",
+    "c-e-gettysburg-final-revision",
+    "c-e-emancipation-scope",
+    "c-e-gettysburg-date"
+   ],
+   "answer": {
+    "c-e-emancipation-date": "documented",
+    "c-e-emancipation-scope": "traditional-but-doubtful",
+    "c-e-gettysburg-date": "documented",
+    "c-e-gettysburg-final-revision": "disputed"
+   }
+  },
+  "presidents-sample/m1/11": {
+   "tray": [
+    "c-e-washington-oath-date",
+    "c-e-emancipation-scope",
+    "c-e-gettysburg-tradition",
+    "c-e-gettysburg-date"
+   ],
+   "answer": {
+    "c-e-emancipation-scope": "traditional-but-doubtful",
+    "c-e-gettysburg-tradition": "traditional-but-doubtful",
+    "c-e-washington-oath-date": "documented",
+    "c-e-gettysburg-date": "documented"
+   }
+  },
+  "presidents-sample/m1/12": {
+   "tray": [
+    "c-e-emancipation-scope",
+    "c-e-washington-oath-date",
+    "c-e-emancipation-date",
+    "c-e-gettysburg-date"
+   ],
+   "answer": {
+    "c-e-washington-oath-date": "documented",
+    "c-e-emancipation-date": "documented",
+    "c-e-emancipation-scope": "traditional-but-doubtful",
+    "c-e-gettysburg-date": "documented"
+   }
+  },
+  "presidents-sample/m1/13": {
+   "tray": [
+    "c-e-washington-oath-words",
+    "c-e-gettysburg-final-revision",
+    "c-e-emancipation-scope",
+    "c-e-washington-oath-date"
+   ],
+   "answer": {
+    "c-e-washington-oath-words": "traditional-but-doubtful",
+    "c-e-gettysburg-final-revision": "disputed",
+    "c-e-emancipation-scope": "traditional-but-doubtful",
+    "c-e-washington-oath-date": "documented"
+   }
+  }
+ }
+}

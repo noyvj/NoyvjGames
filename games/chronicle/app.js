@@ -8,7 +8,8 @@
  *   - loads Pyodide lazily after first paint (or on the first tap or key), writes the set's JSON files and the
  *     engine modules into Pyodide's file system, and runs game.py;
  *   - forwards taps to the engine as JSON and draws whatever view it sends back.
- * The only logic here is presentation: which card is picked up, where things are drawn, and the nuance strip.
+ * The only logic here is presentation: which card is picked up, where things are drawn, the nuance strip, the
+ * cause web's arcs and the myth-or-record bins.
  * Nothing in this file posts to a backend. "Report a problem" builds a payload with the engine, saves a draft
  * on this device and says reporting opens soon.
  */
@@ -17,8 +18,9 @@
 
   var GAME = "chronicle";
   var PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js";
-  var ENGINE_MODULES = ["setdata.py", "puzzle.py", "achievements.py", "report.py"];
+  var ENGINE_MODULES = ["setdata.py", "puzzle.py", "web.py", "myth.py", "achievements.py", "report.py"];
   var SET_FILES = ["meta", "sources", "entities", "claims", "relations", "sections", "readings"];
+  var OPTIONAL_SET_FILES = ["chapters"];   // the cause web's and myth-or-record's chapters: a set may not have them
   var LS_STATE = "chronicle:state";
   var LS_VIEW = "chronicle:lastview";
   var LS_REPORTS = "chronicle:report-drafts";
@@ -28,6 +30,7 @@
   var engineReady = false, engineStarting = false;
   var view = null;
   var selected = null;               // { id, slot } : the card picked up (slot is null when it is in the tray)
+  var webPick = null;                // the cause-web card picked up as the cause (the next card is the effect)
   var catalog = { ach: [], log: [] };
   var toastQueue = [], toastBusy = false;
   var currentReport = null;
@@ -141,6 +144,11 @@
           var body = await (await fetch(path)).text();
           pyodide.FS.writeFile(root + "/" + path, body, { encoding: "utf8" });
         }
+        for (var o = 0; o < OPTIONAL_SET_FILES.length; o++) {
+          var optPath = "sets/" + folders[f] + "/" + OPTIONAL_SET_FILES[o] + ".json";
+          var optResp = await fetch(optPath);
+          if (optResp.ok) pyodide.FS.writeFile(root + "/" + optPath, await optResp.text(), { encoding: "utf8" });
+        }
       }
       for (var i = 0; i < ENGINE_MODULES.length; i++) {
         var source = await (await fetch(ENGINE_MODULES[i])).text();
@@ -180,7 +188,10 @@
     { title: "Order the cards", selector: "#slots", text: "Pick up a card from the tray, then tap a slot. The slots run from earliest to latest. You can also drag cards, or use the number keys." },
     { title: "Check your order", selector: "#check-button", text: "When every slot is full, press Check. Cards in the right place lock and are added to your archive; the others tell you whether to move earlier or later." },
     { title: "Every fact has sources", selector: "#puzzle-panel", text: "Once a puzzle is solved you see each date with the claim, how sure the sources are, and three linked sources. If something looks wrong, use Report a problem." },
-    { title: "Your archive", selector: "#archive-toggle-button", text: "Everything you place correctly fills in the archive: moments, what else was happening, people and places. It is easy to reach 100%." },
+    { title: "Three ways to play", selector: "#mode-tabs", text: "Timeline puts moments in order. Cause web asks which moment helped lead to which. Myth or record sorts statements by how sure the sources are. Each has chapters that open as you find the moments they use." },
+    { title: "Cause web", selector: "#mode-web-button", text: "Pick the earlier moment, then the one it led to. The game confirms a thread only if the set's sources link them, and says how strong the evidence is. Causes are plural: most moments have more than one." },
+    { title: "Myth or record", selector: "#mode-myth-button", text: "Each statement is documented, disputed, or a story the sources do not support. Sort them, check, and read why from the sources themselves. Number keys 1, 2 and 3 sort the claim you are on." },
+    { title: "Your archive", selector: "#archive-toggle-button", text: "Everything you find fills in the archive: moments, what else was happening, people, places, cause links and sorted claims. It is easy to reach 100%." },
   ];
 
   function setStatus(text) {
@@ -225,6 +236,8 @@
   function slimView(v) {
     var copy = JSON.parse(JSON.stringify(v));
     copy.result = null;
+    if (copy.web && copy.web.result) copy.web.result = null;
+    if (copy.myth && copy.myth.result) copy.myth.result = null;
     return copy;
   }
 
@@ -247,9 +260,12 @@
       return;
     }
     renderMeterAndPicker();
+    renderModeTabs();
     renderSections();
     renderPuzzle();
     renderResult();
+    renderWeb();
+    renderMyth();
     renderAchievements();
     var hints = $("hints-checkbox");
     if (hints) hints.checked = !!view.settings.hints;
@@ -278,8 +294,54 @@
     $("meter-text").textContent = view.set.found + " of " + view.set.total + " found (" + view.set.percent + "%)";
   }
 
-  function renderSections() {
+  function currentMode() { return (view && view.mode) || "timeline"; }
+
+  function renderModeTabs() {
+    var mode = currentMode();
+    var modes = view.modes || [{ id: "timeline", label: "Timeline", available: true }];
+    ["timeline", "web", "myth"].forEach(function (id) {
+      var b = $("mode-" + id + "-button");
+      var info = modes.filter(function (m) { return m.id === id; })[0];
+      var available = !!(info && info.available);
+      b.setAttribute("aria-selected", String(mode === id));
+      b.setAttribute("tabindex", mode === id ? "0" : "-1");
+      b.setAttribute("aria-disabled", String(!available));
+      b.textContent = (id === "timeline" ? "Timeline" : (id === "web" ? "Cause web" : "Myth or record")) + (available ? "" : " (not in this set)");
+    });
+    $("puzzle-panel").hidden = mode !== "timeline";
+    $("web-panel").hidden = mode !== "web";
+    $("myth-panel").hidden = mode !== "myth";
+    var panelId = mode === "web" ? "web-panel" : (mode === "myth" ? "myth-panel" : "puzzle-panel");
+    $("skip-link").setAttribute("href", "#" + panelId);
+    $("skip-link").textContent = mode === "web" ? "Skip to the cause web" : (mode === "myth" ? "Skip to myth or record" : "Skip to the timeline");
+  }
+
+  function renderChapters(list, kind) {
     var nav = clear($("sections"));
+    nav.setAttribute("aria-label", kind === "web" ? "Cause web chapters" : "Myth or record chapters");
+    var board = kind === "web" ? view.web : view.myth;
+    var current = board && board.chapter;
+    (list || []).forEach(function (c) {
+      var b = el("button", "section-card");
+      b.type = "button";
+      b.setAttribute("data-fk", "chapter-" + c.id);
+      b.setAttribute("data-chapter", c.id);
+      b.setAttribute("data-kind", kind);
+      if (c.id === current) b.setAttribute("aria-current", "true");
+      if (!c.unlocked) b.setAttribute("aria-disabled", "true");
+      b.appendChild(el("span", "sc-title", (c.cleared ? "✔ " : (c.unlocked ? "" : "🔒 ")) + c.title));
+      b.appendChild(el("span", "sc-meta", c.unlocked ? (c.progress + (c.cleared ? " (cleared)" : "")) : "Locked: " + c.requires_text));
+      b.appendChild(el("span", "sc-meta", c.blurb));
+      nav.appendChild(b);
+    });
+  }
+
+  function renderSections() {
+    var mode = currentMode();
+    if (mode === "web") { renderChapters(view.webs, "web"); return; }
+    if (mode === "myth") { renderChapters(view.myths, "myth"); return; }
+    var nav = clear($("sections"));
+    nav.setAttribute("aria-label", "Sections");
     var current = view.puzzle.section;
     view.sections.forEach(function (s) {
       var b = el("button", "section-card");
@@ -368,7 +430,8 @@
   // ---- sources and claims ------------------------------------------------------------------------------------
   function sourcesDetails(claim) {
     var d = el("details", "sources");
-    d.appendChild(el("summary", null, "Sources (" + claim.sources.length + ")"));
+    var who = (claim.institutions || []).join("; ");
+    d.appendChild(el("summary", null, "Sources (" + claim.sources.length + ")" + (who ? ": " + who : "")));
     var ul = el("ul", "source-list");
     claim.sources.forEach(function (s) {
       var li = el("li");
@@ -381,6 +444,7 @@
     });
     d.appendChild(ul);
     d.addEventListener("toggle", function () {
+      if (d.open && d.getAttribute("data-skip-view") === "1") return;   // opened in bulk by the Info page: not a deliberate read
       if (d.open && !claim.viewed) {
         claim.viewed = true;
         act({ action: "view_claim", set: claim.set, claim: claim.id }, { render: false });
@@ -435,6 +499,8 @@
       context: '<circle cx="16" cy="16" r="12"/><path d="M4 16h24M16 4c-6 6-6 18 0 24M16 4c6 6 6 18 0 24"/>',
       person: '<circle cx="16" cy="10" r="6"/><path d="M5 28c1-8 6-11 11-11s10 3 11 11z"/>',
       place: '<path d="M16 29C9 20 6 16 6 12a10 10 0 0 1 20 0c0 4-3 8-10 17z"/><circle cx="16" cy="12" r="3.5"/>',
+      relation: '<circle cx="7" cy="22" r="4"/><circle cx="25" cy="10" r="4"/><path d="M10 19C14 14 17 12 20 11M17 8l4 3-3 4"/>',
+      record: '<path d="M16 4v22M7 26h18M6 10h20M6 10l-3 8h6zM26 10l-3 8h6z"/>',
     };
     var ns = "http://www.w3.org/2000/svg";
     var svg = document.createElementNS(ns, "svg");
@@ -449,7 +515,7 @@
   function renderResult() {
     var r = view.result;
     var panel = $("result-panel");
-    if (!r) { panel.hidden = true; clear($("result-body")); return; }
+    if (!r || currentMode() !== "timeline") { panel.hidden = true; clear($("result-body")); return; }
     panel.hidden = false;
     $("result-heading").textContent = r.solved ? "What happened" : "The answer";
     var body = clear($("result-body"));
@@ -521,6 +587,230 @@
       }
     });
     return svg;
+  }
+
+  // ---- cause web ----------------------------------------------------------------------------------------------
+  // Strength is drawn three ways at once, never by colour alone: a symbol (⇒ direct, ⇢ contributing), the words
+  // "Direct cause" / "Contributing cause", and a line style (solid thick against dashed) in the diagram.
+  function threadBlock(t, opts) {
+    opts = opts || {};
+    var li = el("li", "thread " + t.strength);
+    var head = el("div", "thread-head");
+    head.appendChild(el("strong", null, (opts.numbers ? opts.numbers[t.from] + ". " : "") + t.from_title + " " + t.strength_symbol + " " + (opts.numbers ? opts.numbers[t.to] + ". " : "") + t.to_title));
+    li.appendChild(head);
+    var tags = el("div", "thread-tags");
+    var st = el("span", "strength " + t.strength, t.strength_symbol + " " + t.strength_label);
+    st.setAttribute("title", t.strength_note);
+    tags.appendChild(st);
+    li.appendChild(tags);
+    li.appendChild(el("p", "note", t.strength_note));
+    li.appendChild(el("p", "plural", t.plural_note));
+    li.appendChild(claimBlock(t.claim));
+    return li;
+  }
+
+  function renderWeb() {
+    var panel = $("web-panel");
+    if (currentMode() !== "web") return;
+    var w = view.web;
+    var body = clear($("web-cards"));
+    clear($("web-diagram"));
+    clear($("web-threads"));
+    clear($("web-result"));
+    var meta = $("web-meta");
+    if (!w || w.locked) {
+      meta.textContent = (w && w.message) || "The cause web opens when you have found the moments a chapter uses.";
+      $("web-board").hidden = true;
+      return;
+    }
+    $("web-board").hidden = false;
+    meta.textContent = w.chapter_title + " · " + w.round_label + " · " + w.size + " moments · " + w.links_total + (w.links_total === 1 ? " link" : " links") + " to find, " + w.links_found + " found" + (w.misses ? " · " + w.misses + " unconfirmed " + (w.misses === 1 ? "thread" : "threads") : "");
+    var finished = w.status !== "playing";
+    var numbers = {};
+    w.cards.forEach(function (c) { numbers[c.id] = c.n; });
+    if (webPick && !w.cards.some(function (c) { return c.id === webPick; })) webPick = null;
+    w.cards.forEach(function (c) {
+      var li = el("li", "web-item");
+      var b = el("button", "web-card");
+      b.type = "button";
+      b.setAttribute("data-wcard", c.id);
+      b.setAttribute("data-fk", "wcard-" + c.id);
+      var picked = webPick === c.id;
+      b.setAttribute("aria-pressed", String(picked));
+      b.setAttribute("aria-label", "Moment " + c.n + " of " + w.size + ": " + c.title + (picked ? ". Picked up as the cause. Now pick the moment it led to." : ""));
+      b.appendChild(el("span", "web-num", String(c.n)));
+      b.appendChild(el("span", "web-title", c.title));
+      b.appendChild(el("span", "web-state", picked ? "▶ Cause picked up" : (webPick ? "Tap: it led to this" : "Tap to pick as the cause")));
+      if (finished) b.setAttribute("aria-disabled", "true");
+      li.appendChild(b);
+      body.appendChild(li);
+    });
+    var found = w.status === "playing" ? w.found : ((w.result && w.result.threads) || w.found);
+    $("web-diagram").appendChild(webSvg(w, found, numbers));
+    var tl = $("web-threads");
+    if (!found.length) tl.appendChild(el("li", "note", "No thread drawn yet."));
+    found.forEach(function (t) { tl.appendChild(threadBlock(t, { numbers: numbers })); });
+    (w.tries || []).forEach(function (t) {
+      var li = el("li", "thread tried");
+      li.appendChild(el("span", "strength", "✖ Not confirmed"));
+      li.appendChild(document.createTextNode(" " + numbers[t.from] + ". " + t.from_title + " → " + numbers[t.to] + ". " + t.to_title + (t.verdict === "reversed" ? ": the sources link them the other way round." : ": none of this set's sources join them. That does not mean they are unrelated.")));
+      tl.appendChild(li);
+    });
+    $("web-message").textContent = w.message || (view.first_run ? "Pick the earlier moment first, then the one it led to." : "");
+    $("web-show-button").hidden = finished;
+    $("web-cancel-button").hidden = !webPick;
+    $("web-next-button").hidden = !finished;
+    if (finished && w.result) {
+      var res = $("web-result");
+      res.appendChild(el("h3", null, w.result.solved ? "Every link in this puzzle is found" : "The links"));
+      if (w.result.chapter_cleared) res.appendChild(el("p", "message-line", "✔ Chapter cleared: every link in it is in your archive."));
+      res.appendChild(el("p", "note", "Causes are plural. Each link above is one cause among several, and a link marked disputed is one where the sources differ on how much it mattered."));
+    }
+  }
+
+  // The board as arcs over a line of numbered moments (earliest left): arrowhead at the effect; solid thick line =
+  // direct cause, dashed line = contributing cause. aria-hidden: the same facts are written out in the thread list.
+  function webSvg(w, threads, numbers) {
+    var ns = "http://www.w3.org/2000/svg";
+    var W = 600, H = 150, L = 50, R = W - 50, base = 112;
+    var svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+    svg.setAttribute("class", "web-svg");
+    function add(tag, attrs, text, parent) {
+      var n = document.createElementNS(ns, tag);
+      Object.keys(attrs).forEach(function (k) { n.setAttribute(k, attrs[k]); });
+      if (text) n.textContent = text;
+      (parent || svg).appendChild(n);
+      return n;
+    }
+    var defs = add("defs", {});
+    var mk = add("marker", { id: "web-arrow", viewBox: "0 0 10 10", refX: "8", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse" }, null, defs);
+    add("path", { d: "M0 0 L10 5 L0 10 z", "class": "arrow-fill" }, null, mk);
+    var xs = {};
+    var n = w.cards.length;
+    w.cards.forEach(function (c, i) { xs[c.id] = n === 1 ? W / 2 : L + (R - L) * i / (n - 1); });
+    add("line", { x1: L - 20, y1: base, x2: R + 20, y2: base, "class": "stroke", "stroke-width": 2 });
+    threads.forEach(function (t, idx) {
+      var x1 = xs[t.from], x2 = xs[t.to];
+      var mid = (x1 + x2) / 2;
+      var rise = 20 + Math.min(70, Math.abs(x2 - x1) * 0.28);
+      var cls = "arc " + t.strength + (idx === threads.length - 1 ? " fresh" : "");
+      add("path", { d: "M" + x1 + " " + (base - 10) + " Q" + mid + " " + (base - 10 - rise * 2) + " " + (x2 - (x2 > x1 ? 4 : -4)) + " " + (base - 12), "class": cls, "marker-end": "url(#web-arrow)", fill: "none" });
+    });
+    w.cards.forEach(function (c) {
+      add("circle", { cx: xs[c.id], cy: base, r: 11, "class": "m-event", "stroke-width": 2 });
+      add("text", { x: xs[c.id], y: base + 4, "text-anchor": "middle", "class": "mark-text" }, String(c.n));
+    });
+    return svg;
+  }
+
+  function onWebCard(id) {
+    if (!view || !view.web || view.web.status !== "playing") return;
+    if (!webPick) { webPick = id; renderWeb(); announce("Picked up " + cardTitle(id) + " as the cause. Now pick the moment it led to, or press Escape."); return; }
+    if (webPick === id) { webPick = null; renderWeb(); announce("Put the card down."); return; }
+    var from = webPick;
+    webPick = null;
+    var resp = act({ action: "web_link", from: from, to: id });
+    if (resp && resp.ok) announce(view.web.message);
+  }
+
+  function cardTitle(id) {
+    var c = view.web.cards.filter(function (x) { return x.id === id; })[0];
+    return c ? c.title : id;
+  }
+
+  // ---- myth or record -----------------------------------------------------------------------------------------
+  // The three bins are written out (symbol + words) and drawn with three border styles, so colour is never needed.
+  function renderMyth() {
+    if (currentMode() !== "myth") return;
+    var m = view.myth;
+    var list = clear($("myth-cards"));
+    clear($("myth-result"));
+    var legend = clear($("myth-legend"));
+    if (!m || m.locked) {
+      $("myth-meta").textContent = (m && m.message) || "Myth or record opens when you have found the moments a chapter uses.";
+      $("myth-board").hidden = true;
+      return;
+    }
+    $("myth-board").hidden = false;
+    $("myth-meta").textContent = m.chapter_title + " · " + m.round_label + " · " + m.size + " statements" + (m.checks ? " · " + m.checks + (m.checks === 1 ? " check" : " checks") : "");
+    m.bins.forEach(function (b) {
+      var li = el("li");
+      li.appendChild(el("strong", null, b.symbol + " " + b.label + ": "));
+      li.appendChild(document.createTextNode(b.meaning));
+      legend.appendChild(li);
+    });
+    var finished = m.status !== "playing";
+    m.claims.forEach(function (c, i) {
+      var li = el("li", "myth-card" + (c.locked ? " right" : (c.status === "wrong" ? " wrong" : "")));
+      li.setAttribute("data-claim", c.id);
+      li.setAttribute("tabindex", "0");
+      li.setAttribute("data-fk", "mcard-" + c.id);
+      li.setAttribute("aria-label", "Statement " + (i + 1) + " of " + m.size + ": " + c.text + (c.bin ? " Sorted as " + binLabel(m, c.bin) + (c.locked ? ", right, locked" : (c.status === "wrong" ? ", not right yet" : "")) : " Not sorted yet. Press 1, 2 or 3 to sort it."));
+      li.appendChild(el("span", "myth-about", "Statement " + (i + 1) + " · about: " + c.subject_title));
+      li.appendChild(el("p", "myth-text", c.text));
+      var group = el("div", "bin-row");
+      group.setAttribute("role", "group");
+      group.setAttribute("aria-label", "Sort statement " + (i + 1));
+      m.bins.forEach(function (b, bi) {
+        var btn = el("button", "bin-btn " + b.id, (bi + 1) + ". " + b.symbol + " " + b.label);
+        btn.type = "button";
+        btn.setAttribute("data-bin", b.id);
+        btn.setAttribute("data-claim", c.id);
+        btn.setAttribute("data-fk", "mbin-" + c.id + "-" + b.id);
+        btn.setAttribute("aria-pressed", String(c.bin === b.id));
+        if (c.locked || finished) btn.setAttribute("aria-disabled", "true");
+        group.appendChild(btn);
+      });
+      li.appendChild(group);
+      var state = c.locked ? "✔ Right bin (locked)" : (c.status === "wrong" ? "✖ Not this bin yet" : (c.bin ? "Sorted, not checked" : "Not sorted yet"));
+      li.appendChild(el("span", "slot-state", state));
+      list.appendChild(li);
+    });
+    $("myth-message").textContent = m.message || (view.first_run ? "Pick a bin under each statement, then press Check." : "");
+    var check = $("myth-check-button");
+    check.hidden = finished;
+    check.setAttribute("aria-disabled", String(!m.all_sorted));
+    check.textContent = m.all_sorted ? "Check" : "Check (sort every statement first)";
+    $("myth-show-button").hidden = finished;
+    $("myth-next-button").hidden = !finished;
+    if (finished && m.result) {
+      var res = $("myth-result");
+      res.appendChild(el("h3", null, m.result.solved ? "What the sources say" : "The answer"));
+      if (m.result.new_count) res.appendChild(el("p", "note", m.result.new_count + (m.result.new_count === 1 ? " claim" : " claims") + " added to your archive from this puzzle."));
+      if (m.result.chapter_cleared) res.appendChild(el("p", "message-line", "✔ Chapter cleared: every claim in it is sorted."));
+      var ol = el("ol", "reveal-list");
+      m.result.claims.forEach(function (c) {
+        var li = el("li", "reveal" + (c.new ? " fresh" : ""));
+        if (c.short) li.appendChild(el("div", "when", c.short));
+        li.appendChild(claimBlock(c));
+        li.appendChild(el("p", "why", "Why: " + c.explanation));
+        ol.appendChild(li);
+      });
+      res.appendChild(ol);
+    }
+  }
+
+  function binLabel(m, id) {
+    var b = m.bins.filter(function (x) { return x.id === id; })[0];
+    return b ? b.label : id;
+  }
+
+  function sortClaim(claimId, bin) {
+    if (!view || !view.myth || view.myth.status !== "playing") return;
+    var resp = act({ action: "myth_sort", claim: claimId, bin: bin });
+    if (resp && resp.ok) announce("Sorted as " + binLabel(view.myth, bin) + ".");
+  }
+
+  function switchMode(mode) {
+    var info = ((view && view.modes) || []).filter(function (m) { return m.id === mode; })[0];
+    if (!view) { startEngine(); return; }
+    if (info && !info.available) { $("message-line").textContent = "This set does not have that mode yet."; announce("This set does not have that mode yet."); return; }
+    selected = null; webPick = null;
+    var resp = act({ action: "mode", mode: mode });
+    if (resp && resp.ok) announce((mode === "web" ? "Cause web" : (mode === "myth" ? "Myth or record" : "Timeline")) + " mode.");
   }
 
   // ---- drag and drop (the same actions as tapping) -----------------------------------------------------------
@@ -660,7 +950,15 @@
     var d = el("div", "arch-detail");
     d.setAttribute("tabindex", "-1");
     var e = resp.entry;
-    if (e.kind === "person" || e.kind === "place") {
+    if (e.kind === "relation") {
+      var tl = el("ul", "thread-list");
+      tl.appendChild(threadBlock(e.thread));
+      d.appendChild(tl);
+    } else if (e.kind === "record") {
+      d.appendChild(el("h3", null, e.title));
+      d.appendChild(claimBlock(e.claim));
+      d.appendChild(el("p", "why", "Why: " + e.claim.explanation));
+    } else if (e.kind === "person" || e.kind === "place") {
       d.appendChild(el("h3", null, e.title));
       d.appendChild(el("p", "note", (e.kind === "person" ? "Appears in these moments:" : "Where these moments happened:")));
       var ol = el("ol", "reveal-list");
@@ -682,13 +980,28 @@
     var i = resp.info;
     var box = clear($("info-dynamic"));
     box.appendChild(el("h3", null, "This set: " + i.set.title));
-    box.appendChild(el("p", "note", i.set.status_label + " · version " + i.set.version + (i.set.drafted ? " · drafted " + i.set.drafted : "") + " · " + i.counts.events + " events (presidential moments plus things that happened elsewhere), " + i.counts.claims + " claims, " + i.counts.sources + " different sources."));
+    box.appendChild(el("p", "note", i.set.status_label + " · version " + i.set.version + (i.set.drafted ? " · drafted " + i.set.drafted : "") + " · " + i.counts.events + " events (presidential moments plus things that happened elsewhere), " + i.counts.claims + " claims (" + i.counts.levels.documented + " documented, " + i.counts.levels.disputed + " disputed, " + i.counts.levels["traditional-but-doubtful"] + " traditional but doubtful), " + i.counts.relations + " cause links, " + i.counts.sources + " different sources."));
     box.appendChild(el("h3", null, "How sure are the sources?"));
     var ul = el("ul", "info-list");
     i.legend.forEach(function (l) { var li = el("li"); li.appendChild(el("strong", null, l.symbol + " " + l.label + ": ")); li.appendChild(document.createTextNode(l.meaning)); ul.appendChild(li); });
     box.appendChild(ul);
-    box.appendChild(el("h3", null, "Sources for what you have found (" + i.found_claims.length + " moments)"));
-    if (!i.found_claims.length) box.appendChild(el("p", "note", "Nothing found yet. Solve a puzzle and its claims and sources appear here."));
+    box.appendChild(el("h3", null, "How strong is a cause link?"));
+    var sl = el("ul", "info-list");
+    i.strengths.forEach(function (l) { var li = el("li"); li.appendChild(el("strong", null, l.symbol + " " + l.label + ": ")); li.appendChild(document.createTextNode(l.meaning)); sl.appendChild(li); });
+    box.appendChild(sl);
+    box.appendChild(el("p", "note", "A cause link also carries the confidence labels above, so a link can be strong and still disputed. Causes are plural: a link is one cause among several."));
+    box.appendChild(el("h3", null, "Sources for what you have found (" + i.found_claims.length + " moments, " + i.found_relations.length + " cause links)"));
+    box.appendChild(el("p", "note", i.coverage.note));
+    var bar = el("div", "settings-row");
+    var openAll = el("button", "small-btn", "Show every source list below");
+    openAll.type = "button";
+    openAll.addEventListener("click", function () {
+      box.querySelectorAll("details.sources").forEach(function (d) { d.setAttribute("data-skip-view", "1"); d.open = true; });
+      announce("Every source list is open.");
+    });
+    bar.appendChild(openAll);
+    box.appendChild(bar);
+    if (!i.found_claims.length && !i.found_relations.length) box.appendChild(el("p", "note", "Nothing found yet. Solve a puzzle and its claims and sources appear here."));
     i.found_claims.forEach(function (f) {
       var wrap = el("div", "reveal");
       wrap.appendChild(el("div", "when", f.date_label));
@@ -696,6 +1009,12 @@
       f.claims.forEach(function (c) { wrap.appendChild(claimBlock(c)); });
       box.appendChild(wrap);
     });
+    if (i.found_relations.length) {
+      box.appendChild(el("h3", null, "Cause links you have found"));
+      var rl = el("ul", "thread-list");
+      i.found_relations.forEach(function (t) { rl.appendChild(threadBlock(t)); });
+      box.appendChild(rl);
+    }
   }
 
   // ---- wiring -----------------------------------------------------------------------------------------------------
@@ -762,10 +1081,70 @@
     $("sections").addEventListener("click", function (ev) {
       var b = ev.target.closest(".section-card");
       if (!b) return;
-      if (b.getAttribute("aria-disabled") === "true") { $("message-line").textContent = "That section is locked. " + b.querySelectorAll(".sc-meta")[0].textContent + "."; return; }
-      selected = null;
-      act({ action: "start", section: b.getAttribute("data-section") });
+      var kind = b.getAttribute("data-kind");
+      if (b.getAttribute("aria-disabled") === "true") {
+        var why = (kind ? "That chapter" : "That section") + " is locked. " + b.querySelectorAll(".sc-meta")[0].textContent + ".";
+        var line = kind === "web" ? "web-message" : (kind === "myth" ? "myth-message" : "message-line");
+        $(line).textContent = why;
+        announce(why);
+        return;
+      }
+      selected = null; webPick = null;
+      if (kind === "web") act({ action: "web_start", chapter: b.getAttribute("data-chapter") });
+      else if (kind === "myth") act({ action: "myth_start", chapter: b.getAttribute("data-chapter") });
+      else act({ action: "start", section: b.getAttribute("data-section") });
     });
+
+    // mode tabs (a tablist: arrow keys, Home and End move between the three)
+    var tabs = ["timeline", "web", "myth"];
+    tabs.forEach(function (id) {
+      $("mode-" + id + "-button").addEventListener("click", function () { switchMode(id); });
+      $("mode-" + id + "-button").addEventListener("keydown", function (ev) {
+        var i = tabs.indexOf(id), j = null;
+        if (ev.key === "ArrowRight" || ev.key === "ArrowDown") j = (i + 1) % tabs.length;
+        else if (ev.key === "ArrowLeft" || ev.key === "ArrowUp") j = (i + tabs.length - 1) % tabs.length;
+        else if (ev.key === "Home") j = 0;
+        else if (ev.key === "End") j = tabs.length - 1;
+        if (j === null) return;
+        ev.preventDefault();
+        $("mode-" + tabs[j] + "-button").focus();
+        switchMode(tabs[j]);
+        $("mode-" + tabs[j] + "-button").focus();
+      });
+    });
+
+    // cause web
+    $("web-cards").addEventListener("click", function (ev) {
+      var b = ev.target.closest(".web-card");
+      if (b) onWebCard(b.getAttribute("data-wcard"));
+    });
+    $("web-cancel-button").addEventListener("click", function () { webPick = null; renderWeb(); announce("Put the card down."); });
+    $("web-show-button").addEventListener("click", function () {
+      var go = function () { webPick = null; act({ action: "web_show" }); };
+      if (window.ConfirmDialog) window.ConfirmDialog.ask({ id: "chronicle-web-show", message: "Show the links? Nothing from this puzzle will be added to your archive.", confirmLabel: "Show the links", allowSkip: true, onConfirm: go });
+      else go();
+    });
+    $("web-next-button").addEventListener("click", function () { webPick = null; act({ action: "web_next" }); $("web-panel").scrollIntoView({ block: "nearest" }); });
+
+    // myth or record
+    $("myth-cards").addEventListener("click", function (ev) {
+      var b = ev.target.closest(".bin-btn");
+      if (!b || b.getAttribute("aria-disabled") === "true") return;
+      sortClaim(b.getAttribute("data-claim"), b.getAttribute("data-bin"));
+    });
+    $("myth-check-button").addEventListener("click", function () {
+      if (!view || !view.myth) return;
+      if (!view.myth.all_sorted) { $("myth-message").textContent = "Sort every statement before checking."; announce("Sort every statement before checking."); return; }
+      var resp = act({ action: "myth_check" });
+      if (resp && resp.ok) announce(view.myth.message);
+      if (view.myth && view.myth.result) $("myth-result").scrollIntoView({ block: "nearest" });
+    });
+    $("myth-show-button").addEventListener("click", function () {
+      var go = function () { act({ action: "myth_show" }); };
+      if (window.ConfirmDialog) window.ConfirmDialog.ask({ id: "chronicle-myth-show", message: "Show the answer? Nothing from this puzzle will be added to your archive.", confirmLabel: "Show the answer", allowSkip: true, onConfirm: go });
+      else go();
+    });
+    $("myth-next-button").addEventListener("click", function () { act({ action: "myth_next" }); $("myth-panel").scrollIntoView({ block: "nearest" }); });
     $("set-select").addEventListener("change", function (ev) { selected = null; act({ action: "choose_set", set: ev.target.value }); });
 
     $("report-build-button").addEventListener("click", buildReport);
@@ -798,8 +1177,32 @@
     var tag = (ev.target && ev.target.tagName) || "";
     if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
     if (ev.target.closest && ev.target.closest("dialog[open]")) return;
+    var mode = currentMode();
+    if (mode === "web") {
+      if (ev.key === "Escape" && webPick) { webPick = null; renderWeb(); announce("Put the card down."); return; }
+      if (/^[1-9]$/.test(ev.key) && view.web && !view.web.locked && view.web.status === "playing") {
+        var wc = view.web.cards[parseInt(ev.key, 10) - 1];
+        if (wc) { ev.preventDefault(); onWebCard(wc.id); }
+        return;
+      }
+    } else if (mode === "myth") {
+      var card = ev.target.closest && ev.target.closest(".myth-card");
+      if (/^[1-3]$/.test(ev.key) && card && view.myth && !view.myth.locked) {
+        ev.preventDefault();
+        var claimId = card.getAttribute("data-claim");
+        var bins = view.myth.bins;
+        var row = view.myth.claims.filter(function (c) { return c.id === claimId; })[0];
+        if (row && !row.locked) sortClaim(claimId, bins[parseInt(ev.key, 10) - 1].id);
+        return;
+      }
+    }
+    if (!(ev.target.closest && ev.target.closest(".myth-card, .web-card")) && /^[twm]$/i.test(ev.key)) {
+      ev.preventDefault();
+      switchMode(ev.key.toLowerCase() === "t" ? "timeline" : (ev.key.toLowerCase() === "w" ? "web" : "myth"));
+      return;
+    }
     if (ev.key === "Escape" && selected) { selected = null; render(); announce("Put the card down."); return; }
-    if (/^[1-8]$/.test(ev.key) && selected) {
+    if (mode === "timeline" && /^[1-8]$/.test(ev.key) && selected) {
       var n = parseInt(ev.key, 10) - 1;
       if (n < view.puzzle.size) { ev.preventDefault(); onSlot(n); }
       return;
@@ -821,7 +1224,7 @@
   // Called by game.py's load_state() after the save widget loads a save.
   window.chronicleOnStateLoaded = function () {
     if (!engineReady) return;
-    selected = null;
+    selected = null; webPick = null;
     applyResponse(send({ action: "boot" }));
     persistState();
     showToast("Save loaded.");

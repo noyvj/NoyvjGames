@@ -59,6 +59,41 @@
       "id": "complete_archive",
       "label": "Complete Archive",
       "description": "Fill the archive of a set to 100%."
+    },
+    {
+      "id": "first_thread",
+      "label": "First Thread",
+      "description": "Confirm a cause link on the cause web."
+    },
+    {
+      "id": "clean_web",
+      "label": "Clean Web",
+      "description": "Finish a cause web puzzle without a single unconfirmed thread."
+    },
+    {
+      "id": "whole_web",
+      "label": "Whole Web",
+      "description": "Confirm every cause link in a set."
+    },
+    {
+      "id": "first_sort",
+      "label": "First Sort",
+      "description": "Sort a claim correctly in Myth or record."
+    },
+    {
+      "id": "myth_spotter",
+      "label": "Myth Spotter",
+      "description": "Sort a traditional-but-doubtful claim correctly."
+    },
+    {
+      "id": "straight_sort",
+      "label": "Straight Sort",
+      "description": "Sort a Myth or record puzzle with a single check."
+    },
+    {
+      "id": "fair_judge",
+      "label": "Fair Judge",
+      "description": "Sort every claim of a set correctly."
     }
   ]
 }

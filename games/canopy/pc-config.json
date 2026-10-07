@@ -6,6 +6,7 @@
     ["example-panel", "example-toggle-button", "Example playthrough"],
     ["almanac-panel", "almanac-toggle-button", "Forest Almanac"],
     ["contracts-panel", "contracts-toggle-button", "Ranger contracts"],
+    ["vault-panel", "vault-toggle-button", "Seed Vault"],
     ["session-summary-panel", "session-summary-toggle-button", "Session Summary"],
     ["settings-panel", "settings-toggle-button", "Settings"],
     ["info-page-panel", "info-page-toggle-button", "The Real Story"]
@@ -15,11 +16,12 @@
       ["achievements-toggle-button", "🏆"],
       ["almanac-toggle-button", "📚"],
       ["contracts-toggle-button", "📜"],
+      ["vault-toggle-button", "🌰"],
       ["session-summary-toggle-button", "📊"],
       ["settings-toggle-button", "⚙️"]
     ],
     "menu": [
-      {"heading": "Game", "ids": ["reset-session-button"]},
+      {"heading": "Game", "ids": ["levels-open-button", "reset-session-button"]},
       {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button", "example-toggle-button", "info-page-toggle-button"]},
       {"heading": "Records", "ids": ["changelog-toggle-button"]}
     ]
@@ -71,7 +73,7 @@
   "adopt": [],
   "zones": {
     "topbar": [".hub-back-link", "h1", ".game-toolbar"],
-    "stagebar": ["#season-indicator", "#season-forecast", "#challenge-status"],
+    "stagebar": ["#season-indicator", "#season-forecast", "#challenge-status", "#level-box"],
     "stage": ["#plot-grid", "#plot-tooltip", "#legend-panel"],
     "side": ["#action-panel", "#stakeholder-panel"],
     "hidden": ["#income-display", "#standing-value-display", "#biodiversity-display", "#community-relations-display", "#mobile-info-dock-toggle"]
@@ -90,6 +92,7 @@
     ["C", "Clear selected"],
     ["R", "Replant selected"],
     ["U", "Undo clear"],
+    ["P", "Drive off poacher"],
     ["N", "Requested plot"],
     ["?", "All shortcuts"],
     ["Esc", "Menu / close window"]

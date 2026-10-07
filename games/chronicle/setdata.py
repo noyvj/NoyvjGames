@@ -9,6 +9,8 @@ A SET is a folder of seven JSON files (see CLAUDE.md for the field-by-field desc
     relations.json  [{id, from, to, type, strength, claim}]            (cause links; the cause web mechanic uses these)
     sections.json   [{id, title, blurb, difficulty, size, min_gap_years, events | from_sections, requires, clear}]
     readings.json   [{id, section, title, text, claims}]
+    chapters.json   OPTIONAL {"web": [{id, title, blurb, size, events}], "myth": [{id, title, blurb, size, claims}]}
+                    the chapters of the cause web and of myth-or-record (a set without it simply has neither mechanic)
 
 The rule that makes the whole game honest: EVERY fact the game shows is a claim, and EVERY claim links at
 least three reputable, distinct sources, each with a title, an institution or author, a URL and the date it
@@ -27,11 +29,15 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 FILES = ("meta", "sources", "entities", "claims", "relations", "sections", "readings")
+OPTIONAL_FILES = ("chapters",)
 CONFIDENCE = ("documented", "disputed", "traditional-but-doubtful")
 STATUSES = ("sample-draft", "draft", "reviewed")
 KINDS = ("event", "context")          # "context" = what else was happening elsewhere (the nuance strip)
 MIN_SOURCES = 3
 MIN_INSTITUTIONS = 2
+STRENGTHS = ("direct", "contributing")
+CHAPTER_SIZE = (3, 6)
+MAX_SHORT = 60
 SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 DATE_RE = re.compile(r"^(-?\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$")
 ISO_DAY = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -145,6 +151,10 @@ class ChronicleSet:
         self.sections = files["sections"]
         self.section_ids = [s["id"] for s in self.sections]
         self.readings = files["readings"]
+        chapters = files.get("chapters") if isinstance(files.get("chapters"), dict) else {}
+        self.web_chapters = list(chapters.get("web") or [])
+        self.myth_chapters = list(chapters.get("myth") or [])
+        self.relation_by_id = {r["id"]: r for r in self.relations}
         self._by_subject = {}
         for c in files["claims"]:
             self._by_subject.setdefault(c["subject"], []).append(c["id"])
@@ -185,6 +195,39 @@ class ChronicleSet:
             out.append({"id": ref["source"], "title": s["title"], "institution": s.get("institution") or s.get("author"),
                         "url": s["url"], "read": s["read"], "note": ref.get("note", "")})
         return out
+
+    def web_chapter(self, chapter_id):
+        return next((c for c in self.web_chapters if c["id"] == chapter_id), None)
+
+    def myth_chapter(self, chapter_id):
+        return next((c for c in self.myth_chapters if c["id"] == chapter_id), None)
+
+    def chapter_relations(self, chapter):
+        """Relation ids with both ends inside a web chapter, in the set's own relation order."""
+        inside = set(chapter["events"])
+        return [r["id"] for r in self.relations if r["from"] in inside and r["to"] in inside]
+
+    def web_relation_ids(self):
+        """Every relation the cause web can reach (they all count toward the archive meter)."""
+        out = []
+        for c in self.web_chapters:
+            for rid in self.chapter_relations(c):
+                if rid not in out:
+                    out.append(rid)
+        return out
+
+    def myth_claim_ids(self):
+        """Every claim myth-or-record can reach, in chapter order."""
+        out = []
+        for c in self.myth_chapters:
+            for cid in c["claims"]:
+                if cid not in out:
+                    out.append(cid)
+        return out
+
+    def causes_of(self, event_id):
+        """Relations whose effect is this event (causes are plural: a moment can have several)."""
+        return [r["id"] for r in self.relations if r["to"] == event_id]
 
     def event_ids(self, kind=None):
         return [i for i in self.event_order if kind is None or self.events[i]["kind"] == kind]
@@ -330,6 +373,8 @@ def validate(files):
         for key in ("field", "value", "text"):
             if not _is_str(c.get(key)):
                 bad("E_CLAIM", "claim %s has no %s" % (cid, key))
+        if "short" in c and not (_is_str(c["short"]) and len(c["short"]) <= MAX_SHORT):
+            bad("E_CLAIM", "claim %s `short` must be a non-empty string of at most %d characters" % (cid, MAX_SHORT))
         if c.get("confidence") not in CONFIDENCE:
             bad("E_CLAIM", "claim %s confidence must be one of %s" % (cid, ", ".join(CONFIDENCE)))
         if c.get("confidence") in ("disputed", "traditional-but-doubtful"):
@@ -372,7 +417,7 @@ def validate(files):
     for c in claims:
         if not isinstance(c, dict) or "subject" not in c or "field" not in c:
             continue
-        key = (c["subject"], c["field"])
+        key = (c["subject"], c["field"]) if c["field"] != "relation" else (c["subject"], c["field"], c.get("value"))
         if key in seen and seen[key]["value"] != c.get("value"):
             bad("E_CONTRADICTION", "claims %s and %s disagree about %s / %s (%r against %r)"
                 % (seen[key]["id"], c.get("id"), key[0], key[1], seen[key]["value"], c.get("value")))
@@ -424,6 +469,7 @@ def validate(files):
 
     # ---- relations
     rel_ids = set()
+    rel_claims = {}
     graph = {}
     if not isinstance(relations, list):
         bad("E_RELATION", "relations.json must be a list")
@@ -442,14 +488,25 @@ def validate(files):
             bad("E_RELATION_CONTRADICTION", "relation %s joins an event to itself" % r["id"])
         if r.get("type") not in ("led_to",):
             bad("E_RELATION", "relation %s has unknown type %r" % (r["id"], r.get("type")))
-        if r.get("strength") not in ("direct", "contributing"):
+        if r.get("strength") not in STRENGTHS:
             bad("E_RELATION", "relation %s strength must be direct or contributing" % r["id"])
         rc = claim_ids.get(r.get("claim"))
         if rc is None:
             bad("E_RELATION", "relation %s has no claim, so its evidence is unsourced" % r["id"])
         elif rc.get("field") != "relation":
             bad("E_RELATION", "relation %s claim %s must have field 'relation'" % (r["id"], rc.get("id")))
+        else:
+            if rc.get("value") != "%s>%s" % (r["from"], r["to"]):
+                bad("E_RELATION_CLAIM", "relation %s: claim %s value must be %r (cause>effect)" % (r["id"], rc["id"], "%s>%s" % (r["from"], r["to"])))
+            if rc.get("subject") != r["to"]:
+                bad("E_RELATION_CLAIM", "relation %s: claim %s must be about the effect, %s" % (r["id"], rc["id"], r["to"]))
+            if rc["id"] in rel_claims:
+                bad("E_RELATION_CLAIM", "claim %s supports both %s and %s; each relation needs its own claim" % (rc["id"], rel_claims[rc["id"]], r["id"]))
+            rel_claims.setdefault(rc["id"], r["id"])
         graph.setdefault(r["from"], set()).add(r["to"])
+    for c in claims:
+        if isinstance(c, dict) and c.get("field") == "relation" and c.get("id") not in rel_claims:
+            bad("E_RELATION_CLAIM", "claim %s has field 'relation' but no relation uses it" % c.get("id"))
     ev_by_id = {e["id"]: e for e in events if isinstance(e, dict) and "id" in e}
     for r in relations:
         if not isinstance(r, dict) or r.get("from") not in ev_by_id or r.get("to") not in ev_by_id:
@@ -549,6 +606,9 @@ def validate(files):
         if not (isinstance(cl, list) and cl and all(x in claim_ids for x in cl)):
             bad("E_READING", "reading %s must cite existing claims, so every fact in it has sources" % r["id"])
 
+    # ---- chapters (optional): the cause web's and myth-or-record's sections
+    _check_chapters(files.get("chapters"), event_ids, claim_ids, relations, bad)
+
     # ---- playability (only worth checking when the rest is sound)
     if not problems:
         try:
@@ -556,6 +616,87 @@ def validate(files):
         except Exception as exc:  # noqa: BLE001 -- a validator reports, it never raises
             bad("E_SECTION_UNPLAYABLE", str(exc))
     return problems
+
+
+def _check_chapters(chapters, event_ids, claim_ids, relations, bad):
+    if chapters is None:
+        return
+    if not isinstance(chapters, dict) or set(chapters) - {"web", "myth"}:
+        bad("E_CHAPTER", "chapters.json must be an object with only `web` and `myth` lists")
+        return
+    lo, hi = CHAPTER_SIZE
+    rels = [r for r in relations if isinstance(r, dict) and r.get("from") in event_ids and r.get("to") in event_ids]
+    seen_ids = set()
+
+    def common(kind, ch):
+        if not isinstance(ch, dict) or not (_is_str(ch.get("id")) and SLUG.match(ch["id"])):
+            bad("E_CHAPTER", "a %s chapter has a missing or invalid id" % kind)
+            return False
+        if (kind, ch["id"]) in seen_ids:
+            bad("E_CHAPTER", "duplicate %s chapter id %s" % (kind, ch["id"]))
+        seen_ids.add((kind, ch["id"]))
+        for key in ("title", "blurb"):
+            if not _is_str(ch.get(key)):
+                bad("E_CHAPTER", "%s chapter %s has no %s" % (kind, ch["id"], key))
+        if not isinstance(ch.get("size"), int) or isinstance(ch.get("size"), bool) or not lo <= ch["size"] <= hi:
+            bad("E_CHAPTER", "%s chapter %s size must be an integer from %d to %d" % (kind, ch["id"], lo, hi))
+            return False
+        return True
+
+    covered = set()
+    web = chapters.get("web", [])
+    if not isinstance(web, list):
+        bad("E_CHAPTER", "`web` must be a list")
+        web = []
+    for ch in web:
+        if not common("web", ch):
+            continue
+        evs = ch.get("events")
+        if not (isinstance(evs, list) and len(set(evs)) == len(evs) and all(e in event_ids for e in evs)):
+            bad("E_CHAPTER", "web chapter %s `events` must be a list of distinct, existing events" % ch["id"])
+            continue
+        if len(evs) < ch["size"]:
+            bad("E_CHAPTER", "web chapter %s has fewer events than its puzzle size" % ch["id"])
+        inside = [r for r in rels if r["from"] in evs and r["to"] in evs]
+        if not inside:
+            bad("E_CHAPTER_EMPTY", "web chapter %s contains no relation, so there is nothing to connect" % ch["id"])
+        covered |= {r["id"] for r in inside}
+    if web:
+        for r in rels:
+            if r["id"] not in covered:
+                bad("E_CHAPTER_UNREACHABLE", "relation %s is in no web chapter, so a player could never find it" % r["id"])
+
+    myth = chapters.get("myth", [])
+    if not isinstance(myth, list):
+        bad("E_CHAPTER", "`myth` must be a list")
+        myth = []
+    used = set()
+    for ch in myth:
+        if not common("myth", ch):
+            continue
+        ids = ch.get("claims")
+        if not (isinstance(ids, list) and len(set(ids)) == len(ids) and all(i in claim_ids for i in ids)):
+            bad("E_CHAPTER", "myth chapter %s `claims` must be a list of distinct, existing claims" % ch["id"])
+            continue
+        if len(ids) < ch["size"]:
+            bad("E_CHAPTER", "myth chapter %s has fewer claims than its puzzle size" % ch["id"])
+        for cid in ids:
+            c = claim_ids[cid]
+            if c.get("field") == "relation":
+                bad("E_CHAPTER", "myth chapter %s lists relation claim %s (the cause web owns those)" % (ch["id"], cid))
+            if c.get("subject") not in event_ids:
+                bad("E_CHAPTER", "myth chapter %s: claim %s must be about an event, so the player has met it" % (ch["id"], cid))
+            if not _is_str(c.get("short")):
+                bad("E_CHAPTER", "myth chapter %s: claim %s needs a `short` name for the archive" % (ch["id"], cid))
+        levels = {claim_ids[i].get("confidence") for i in ids}
+        if "documented" not in levels or not (levels - {"documented"}):
+            bad("E_CHAPTER_MIX", "myth chapter %s needs at least one documented claim and at least one disputed or doubtful claim" % ch["id"])
+        used |= set(ids)
+    if myth:
+        for cid, c in claim_ids.items():
+            if c.get("confidence") in ("disputed", "traditional-but-doubtful") and c.get("field") != "relation" \
+                    and c.get("subject") in event_ids and cid not in used:
+                bad("E_CHAPTER_UNREACHABLE", "claim %s is %s but is in no myth chapter" % (cid, c["confidence"]))
 
 
 def _check_playable(cset):
@@ -569,6 +710,15 @@ def _check_playable(cset):
             raise ValueError("section %s has %d events but puzzles need %d" % (s["id"], len(pool), s["size"]))
         for r in range(len(pool)):
             make_puzzle(cset, s["id"], r)
+    from myth import make_myth_puzzle
+    from web import make_web_puzzle
+
+    for ch in cset.web_chapters:
+        for r in range(len(cset.chapter_relations(ch))):
+            make_web_puzzle(cset, ch["id"], r)
+    for ch in cset.myth_chapters:
+        for r in range(len(ch["claims"])):
+            make_myth_puzzle(cset, ch["id"], r)
     playable_years = [year_of(cset.events[i]) for i in cset.event_ids("event")]
     for cid in cset.event_ids("context"):
         y = year_of(cset.events[cid])
@@ -589,10 +739,14 @@ def load_set_dict(files):
 
 
 def read_set_files(folder):
-    """Read the seven JSON files of a set folder into a dict (a missing file is simply absent)."""
+    """Read the seven JSON files of a set folder (plus the optional chapters.json) into a dict (a missing file is simply absent)."""
     folder = Path(folder)
     files = {}
     for name in FILES:
+        path = folder / ("%s.json" % name)
+        if path.exists():
+            files[name] = json.loads(path.read_text(encoding="utf-8"))
+    for name in OPTIONAL_FILES:
         path = folder / ("%s.json" % name)
         if path.exists():
             files[name] = json.loads(path.read_text(encoding="utf-8"))

@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "id": "r-sumter-emancipation",
+    "from": "e-fort-sumter",
+    "to": "e-emancipation",
+    "type": "led_to",
+    "strength": "contributing",
+    "claim": "c-r-sumter-emancipation"
+  },
+  {
+    "id": "r-farewell-22nd",
+    "from": "e-farewell",
+    "to": "e-22nd-amendment",
+    "type": "led_to",
+    "strength": "contributing",
+    "claim": "c-r-farewell-22nd"
+  },
+  {
+    "id": "r-sputnik-apollo",
+    "from": "c-sputnik",
+    "to": "c-apollo",
+    "type": "led_to",
+    "strength": "contributing",
+    "claim": "c-r-sputnik-apollo"
+  }
+]

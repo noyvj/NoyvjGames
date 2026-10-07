@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 
 import setdata
 
-READ_DATE = "2026-10-07"
+READ_DATES = {"2026-10-07", "2026-10-08"}      # the first draft was read on the 7th, the cause-web and myth sources on the 8th
 
 
 def test_the_sample_is_marked_a_draft_everywhere_it_is_described(sample):
@@ -28,7 +28,7 @@ def test_every_claim_has_three_distinct_https_sources_from_two_institutions(samp
         assert len({r["institution"] for r in refs}) >= 2, c["id"]
         for r in refs:
             assert urlparse(r["url"]).scheme == "https" and r["title"] and r["institution"], r
-            assert r["read"] == READ_DATE and r["note"], r
+            assert r["read"] in READ_DATES and r["note"], r
 
 
 def test_every_event_has_exactly_one_date_claim_and_it_matches(sample):
@@ -48,7 +48,7 @@ def test_both_non_documented_confidence_levels_are_exercised(sample):
 def test_sources_were_read_on_the_stated_day_and_urls_are_unique_per_id(sample):
     urls = [s["url"] for s in sample.sources.values()]
     assert len(set(urls)) == len(urls)
-    assert all(s["read"] == READ_DATE for s in sample.sources.values())
+    assert all(s["read"] in READ_DATES for s in sample.sources.values())
 
 
 def test_every_source_is_used_by_some_claim(sample):

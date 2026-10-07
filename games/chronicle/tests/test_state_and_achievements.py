@@ -98,7 +98,7 @@ def test_reset_erases_everything(p):
 
 def test_manifest_matches_the_engine_and_is_well_formed():
     data = json.loads((GAME_DIR / "achievements.json").read_text(encoding="utf-8"))["achievements"]
-    assert 8 <= len(data) <= 12
+    assert 8 <= len(data) <= 24
     assert [a["id"] for a in data] == achievements.IDS
     assert [(a["id"], a["label"], a["description"]) for a in data] == [tuple(x) for x in achievements.ACHIEVEMENTS]
     for a in data:
@@ -147,17 +147,20 @@ def test_viewing_a_doubtful_claim_earns_doubting_reader_and_five_claims_fine_pri
 def test_every_achievement_can_be_earned_in_the_sample_set(p, sample):
     """Easy to 100%: learn everything and view claims, and every achievement is earned (none is luck-gated)."""
     p.m.load_state({"sets": {"presidents-sample": {"learned": list(sample.events),
-                                                    "solved": {"s1:0": {"checks": 1}, "s4:0": {"checks": 1}, "s4:1": {"checks": 1}, "s4:2": {"checks": 2}, "s2:0": {"checks": 1}}}}})
+                                                    "solved": {"s1:0": {"checks": 1}, "s4:0": {"checks": 1}, "s4:1": {"checks": 1}, "s4:2": {"checks": 2}, "s2:0": {"checks": 1}},
+                                                    "threads": sample.web_relation_ids(), "sorted": sample.myth_claim_ids(),
+                                                    "web_solved": {"w1:0": {"misses": 0}}, "myth_solved": {"m1:0": {"checks": 1}}}}})
     for cid in list(sample.claims)[:6] + ["c-e-gettysburg-tradition"]:
         p.call("view_claim", claim=cid)
     earned = p.m.get_state()["achievements_earned"]
     assert earned == achievements.IDS
     v = p.call("boot")["view"]
-    assert v["set"]["percent"] == 100 and v["set"]["found"] == v["set"]["total"] == 45
+    assert v["set"]["percent"] == 100 and v["set"]["found"] == v["set"]["total"] == 55
 
 
 def test_percent_only_reaches_100_when_everything_is_found(p, sample):
-    p.m.load_state({"sets": {"presidents-sample": {"learned": [e for e in sample.events if e != "c-berlin-wall"]}}})
+    everything = {"threads": sample.web_relation_ids(), "sorted": sample.myth_claim_ids()}
+    p.m.load_state({"sets": {"presidents-sample": dict(everything, learned=[e for e in sample.events if e != "c-berlin-wall"])}})
     assert p.m.HELP.percent("presidents-sample") < 100
     p.m.load_state({"sets": {"presidents-sample": {"learned": ["c-berlin-wall"]}}})
     assert p.m.HELP.percent("presidents-sample") == 100

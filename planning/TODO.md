@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 241/904 items checked off (26.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 248/904 items checked off (27.4%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -44,13 +44,13 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 - [ ] GB-7: Blight in monocultures (needs GB-6).
 - [x] GB-8: Hidden Heart Tree secret.
 - [x] GB-9: Ranger contracts board.
-- [ ] GB-10: Seed Vault meta-progression (skill-tree style, per W-3).
+- [x] GB-10: Seed Vault meta-progression (skill-tree style, per W-3).
 - [ ] GB-11: Fast-forward toggle (1x/2x/4x) plus pause (per W-2).
 - [ ] GB-12: Rival logging company, as a possible 1v1 game mode (design it as a mode; park the 1v1 pairing on W-6).
-- [ ] GB-13: Poacher whack-a-mole, as a level/mode via the level select (not in the base game).
+- [x] GB-13: Poacher whack-a-mole, as a level/mode via the level select (not in the base game).
 - [x] GB-14: Forest name and adopted-tree nickname with log narration.
-- [ ] GB-15: Storm front events, as a level/mode via the level select.
-- [ ] GB-16: Forest spirit narrator, as a story level.
+- [x] GB-15: Storm front events, as a level/mode via the level select.
+- [x] GB-16: Forest spirit narrator, as a story level.
 - [x] GB-17: Challenge run set (Pacifist, Scorched Start, Sprint, No-Highland) with badges.
 - [x] GB-18: Undo window after Clear.
 - [ ] GB-19: Daily community forest: everyone's play waters one big community plot, with a shared "best day" and an opt-in investment leaderboard (uses the community pools backend from tonight and W-5).
@@ -60,7 +60,7 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 - [x] GB-23: Weather reads on the grid (rain shimmer, drought tint).
 - [ ] GB-24: Wetland/mangrove tidal puzzle (extends the Wetland Forest built as B1; share the tide logic with Tide).
 - [ ] GB-25: Stakeholder faces (named recurring characters with moods and friendship perks).
-- [ ] GB-26: Idle/automation ranger crews, built into a skill tree (per W-3).
+- [x] GB-26: Idle/automation ranger crews, built into a skill tree (per W-3).
 - [x] GB-27: Chain bloom effect.
 - [x] GB-28: Forest Almanac collection page.
 - [ ] GB-29: Carbon-credit market minigame.
@@ -1067,8 +1067,8 @@ Classic stays the default boot (`index.html`); Desktop is a second boot (`pc.htm
 - [x] CH-4: Milestone 2, the timeline builder mechanic and engine, playable on the sample set.
 - [x] CH-5: Milestone 3, the collectible archive and progress save; save widget, achievements, tutorial, opening screen.
 - [ ] CH-6: The report-a-problem feature: a button on every claim, a backend table and routes (same pattern as Le Champ de Mots' answer reports), and a list on the admin page where you mark each report done.
-- [ ] CH-7: Milestone 4, the cause web mechanic.
-- [ ] CH-8: Milestone 5, myth or record, plus the Info page showing the three sources for every claim.
+- [x] CH-7: Milestone 4, the cause web mechanic.
+- [x] CH-8: Milestone 5, myth or record, plus the Info page showing the three sources for every claim.
 - [ ] CH-9: Milestone 6, "whose account?" source evaluation.
 - [ ] CH-10: Milestone 7, spaced review and decision points.
 - [ ] CH-11: Milestone 8, author the American presidents set in full (three sources per claim, a review page, then your review), balanced and non-partisan.

@@ -153,8 +153,62 @@ dialog.report-dialog::backdrop { background: rgba(0, 0, 0, 0.55); }
 .report-payload { white-space: pre-wrap; word-break: break-word; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 0.5rem; font-size: 0.78rem; max-height: 12rem; overflow: auto; }
 .settings-row textarea { width: 100%; }
 
+/* Mode tabs: the selected tab is solid and bold with a thick underline; the others are plain. */
+.mode-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.8rem 0 0.2rem; }
+.mode-tabs button[role="tab"] { border-width: 2px; padding: 0.45rem 0.9rem; font-weight: 600; }
+.mode-tabs button[aria-selected="true"] { background: var(--btn-primary); color: var(--on-primary); border-color: var(--hover-edge); border-bottom-width: 5px; border-style: solid; }
+.mode-tabs button[aria-selected="true"]::before { content: "\25B6\00a0"; }
+.mode-tabs button[aria-disabled="true"] { border-style: dashed; }
+.mode-hint { margin-top: 0.2rem; }
+
+/* Cause web: numbered moment cards, arcs over a line, threads with a written strength */
+.web-cards { list-style: none; margin: 0.5rem 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0.5rem; }
+.web-item { display: block; }
+.web-card { width: 100%; height: 100%; text-align: left; display: flex; flex-direction: column; gap: 0.2rem; border: 2px solid var(--edge); border-radius: 10px; background: var(--btn); padding: 0.45rem 0.6rem; }
+.web-card .web-num { font-weight: 800; color: var(--accent-ink); font-size: 0.85rem; }
+.web-card .web-title { font-weight: 600; }
+.web-card .web-state { font-size: 0.8rem; color: var(--muted); }
+.web-card[aria-pressed="true"] { border-width: 4px; border-color: var(--accent-ink); background: var(--btn-primary); color: var(--on-primary); }
+.web-card[aria-pressed="true"] .web-num, .web-card[aria-pressed="true"] .web-state { color: var(--on-primary); }
+.web-card[aria-disabled="true"] { border-style: dashed; cursor: default; }
+.web-diagram { margin: 0.4rem 0; }
+.web-svg { width: 100%; height: auto; max-height: 11rem; }
+.web-svg .stroke { stroke: var(--edge); }
+.web-svg .m-event { fill: var(--accent-ink); stroke: var(--text); }
+.web-svg .mark-text { fill: var(--bg); font-size: 12px; font-weight: 800; }
+.web-svg .arc { stroke: var(--text); stroke-linecap: round; }
+.web-svg .arc.direct { stroke-width: 4; }
+.web-svg .arc.contributing { stroke-width: 2.5; stroke-dasharray: 7 5; }
+.web-svg .arrow-fill { fill: var(--text); }
+.web-svg .arc.fresh { animation: thread-in 0.8s ease-out; }
+.thread-list { list-style: none; margin: 0.4rem 0; padding: 0; display: grid; gap: 0.6rem; }
+.thread { border: 1px solid var(--line); border-radius: 10px; padding: 0.5rem 0.8rem; background: var(--surface); }
+.thread.tried { border-style: dashed; color: var(--muted); }
+.thread-tags { margin: 0.25rem 0; display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.strength { display: inline-block; font-size: 0.8rem; font-weight: 700; border: 2px solid var(--edge); border-radius: 6px; padding: 0.05rem 0.45rem; }
+.strength.direct { border-style: solid; border-width: 4px; }
+.strength.contributing { border-style: dashed; }
+.plural { font-style: italic; margin: 0.2rem 0 0.4rem; }
+
+/* Myth or record: each statement carries three written bins with three border styles */
+.myth-cards { list-style: none; margin: 0.6rem 0; padding: 0; display: grid; gap: 0.7rem; }
+.myth-card { border: 2px solid var(--edge); border-radius: 10px; padding: 0.55rem 0.8rem; background: var(--surface); }
+.myth-card.right { border-style: double; border-width: 5px; }
+.myth-card.wrong { border-style: dashed; border-width: 3px; }
+.myth-about { font-size: 0.8rem; font-weight: 700; color: var(--accent-ink); }
+.myth-text { margin: 0.3rem 0 0.5rem; font-weight: 600; }
+.bin-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.bin-btn { border-width: 2px; font-size: 0.9rem; }
+.bin-btn.disputed { border-style: dashed; }
+.bin-btn.traditional-but-doubtful { border-style: dotted; border-width: 3px; }
+.bin-btn[aria-pressed="true"] { background: var(--btn-primary); color: var(--on-primary); border-color: var(--hover-edge); font-weight: 700; }
+.bin-btn[aria-pressed="true"]::before { content: "\25CF\00a0"; }
+.bin-btn[aria-disabled="true"] { cursor: default; }
+.why { border-left: 4px solid var(--accent-ink); padding-left: 0.6rem; margin: 0.4rem 0; font-size: 0.9rem; }
+
 @keyframes found-in { from { background: var(--btn); transform: translateY(-4px); } to { transform: none; } }
-html[data-effects="off"] .reveal.fresh, html[data-effects="off"] .tile.fresh { animation: none; box-shadow: none; }
+@keyframes thread-in { from { opacity: 0; } to { opacity: 1; } }
+html[data-effects="off"] .reveal.fresh, html[data-effects="off"] .tile.fresh, html[data-effects="off"] .web-svg .arc.fresh { animation: none; box-shadow: none; }
 html[data-reduced-motion="true"] *, html[data-reduced-motion="true"] *::before, html[data-reduced-motion="true"] *::after,
 html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effects="off"] *::after {
   animation: none !important; transition: none !important; scroll-behavior: auto !important;
@@ -165,5 +219,9 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
   .slots { grid-template-columns: minmax(0, 1fr); }
   .slot { min-height: 4rem; }
   .axis { display: none; }
+  .web-cards { grid-template-columns: minmax(0, 1fr); }
+  .bin-row { flex-direction: column; }
+  .bin-btn { width: 100%; text-align: left; }
+  .mode-tabs button[role="tab"] { flex: 1 1 auto; padding: 0.4rem 0.5rem; font-size: 0.9rem; }
 }
 @media (max-width: 420px) { #game { padding: 0.7rem 0.7rem 4rem; } }
