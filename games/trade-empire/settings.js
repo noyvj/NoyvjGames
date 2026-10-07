@@ -17,6 +17,11 @@
  * save code -- the exact reasoning Continuum's own Milestone 16 (K15)
  * verification already confirmed for its own text-scale setting.
  *
+ * Effects (J-31) is a second, gentler switch: it turns off only the optional
+ * flourishes (sale sparks, the map's dock rings, the ribbon glow) by adding
+ * `.effects-off` to <html>, which game.py's _effects_on() and style.css both
+ * read. Reduce Motion implies it.
+ *
  * Reduce-motion works by adding a `.reduce-motion` class to the root
  * <html> element; style.css's global override (search "Settings panel:
  * manual" in that file) forces every animation/transition already in
@@ -30,6 +35,7 @@
 
   var TEXT_SCALE_KEY = "trade-empire-text-scale";
   var REDUCE_MOTION_KEY = "trade-empire-reduced-motion";
+  var EFFECTS_OFF_KEY = "trade-empire-effects-off";
   var MIN_SCALE = 0.85;
   var MAX_SCALE = 1.5;
   var STEP = 0.1;
@@ -87,9 +93,28 @@
     return value;
   }
 
+  function readStoredEffectsOff() {
+    try {
+      return window.localStorage.getItem(EFFECTS_OFF_KEY) === "true";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function applyEffectsOff(value) {
+    document.documentElement.classList.toggle("effects-off", value);
+    try {
+      window.localStorage.setItem(EFFECTS_OFF_KEY, value ? "true" : "false");
+    } catch (e) {
+      // Same as above.
+    }
+    return value;
+  }
+
   function init() {
     var scale = applyScale(readStoredScale());
     var reduced = applyMotion(readStoredMotion());
+    var effectsOff = applyEffectsOff(readStoredEffectsOff());
 
     var toggleButton = document.getElementById("settings-toggle-button");
     var panel = document.getElementById("settings-panel");
@@ -145,12 +170,31 @@
       });
     }
 
+    var effectsButton = document.getElementById("effects-toggle-button");
+
+    function updateEffectsLabel() {
+      if (!effectsButton) return;
+      effectsButton.textContent = "Effects: " + (effectsOff ? "Off" : "On");
+      effectsButton.classList.toggle("active", effectsOff);
+      effectsButton.setAttribute("aria-pressed", effectsOff ? "true" : "false");
+    }
+
+    if (effectsButton) {
+      updateEffectsLabel();
+      effectsButton.addEventListener("click", function () {
+        effectsOff = applyEffectsOff(!effectsOff);
+        updateEffectsLabel();
+      });
+    }
+
     var settingsResetButton = document.getElementById("settings-reset-button");
     if (settingsResetButton) {
       settingsResetButton.addEventListener("click", function () {
         scale = applyScale(DEFAULT_SCALE);
         reduced = applyMotion(false);
+        effectsOff = applyEffectsOff(false);
         updateMotionLabel();
+        updateEffectsLabel();
       });
     }
   }
@@ -164,6 +208,7 @@
   window.TradeEmpireSettings = {
     applyScale: applyScale,
     applyMotion: applyMotion,
+    applyEffectsOff: applyEffectsOff,
     MIN_SCALE: MIN_SCALE,
     MAX_SCALE: MAX_SCALE,
   };

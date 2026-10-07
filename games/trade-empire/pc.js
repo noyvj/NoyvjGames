@@ -46,7 +46,7 @@ window.TRADE_EMPIRE_PC_TUTORIAL_STEPS = [
   {
     selector: "#pc-menu-button",
     title: "Icons and the Menu",
-    text: "The four icons are Achievements, the Summary, the Charter (permanent perks bought with charter points) and Settings. The Menu (or Escape, when nothing else is open) holds the rest: Colonies (development, investment, demands), the Market with stockpiles and trade posts, Research (including the clusters beyond home: Kepler, the Rift and the Umbral Deep), How to Play, About and story, What's New. Each opens as a window over the map, and Escape closes the top one. Reach the full-scale endgame and a Galaxy panel appears under your fleet, where you can renew the charter.",
+    text: "The four icons are Achievements, the Summary, the Charter (permanent perks bought with charter points) and Settings. The Menu (or Escape, when nothing else is open) holds the rest: Captains (post a captain to a veteran hauler), Colonies (development, investment, demands, and each colony's mood), the Market with stockpiles and trade posts, Research (including the clusters beyond home: Kepler, the Rift and the Umbral Deep), How to Play, About and story, What's New. Each opens as a window over the map, and Escape closes the top one. Reach the full-scale endgame and a Galaxy panel appears under your fleet, where you can renew the charter.",
   },
   {
     title: "You're ready to trade",

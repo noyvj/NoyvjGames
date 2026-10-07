@@ -1694,6 +1694,51 @@ button.secondary:disabled::after {
 /* Audit 2026-10-06 (S5): on phones keep the toast above the ad bar and the collapsed save widget. */
 @media (max-width: 600px) { .achievement-toast { bottom: 4.5rem; } }
 
+/* Batch: J-4 price-memory ghost line, J-7/J-8 captains, J-14 crest and career log,
+   J-25/J-26 colony moods, J-31 ledger ribbon and the Effects toggle. */
+.sparkline-ghost { stroke: #c9cfe8; stroke-width: 1; stroke-dasharray: 3 2; fill: none; opacity: 0.9; }
+.price-memory-note { display: block; margin-top: 2px; }
+
+.charter-crest {
+  display: inline-block; vertical-align: middle; margin-left: 0.4rem; padding: 0.1rem 0.5rem;
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; color: #e8e9f0;
+  border: 1px solid rgba(140, 160, 255, 0.45); border-radius: 999px; background: rgba(140, 160, 255, 0.12);
+  -webkit-text-fill-color: currentColor; /* the h1 text uses a clipped gradient; keep the crest plain */
+}
+
+.ledger-ribbon {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.5rem; margin: 0.5rem 0; padding: 0.35rem 0.6rem;
+  border: 1px solid rgba(224, 194, 76, 0.4); border-radius: 8px; background: rgba(224, 194, 76, 0.06);
+  font-size: 0.78rem; line-height: 1.3;
+}
+.ribbon-count { font-weight: 600; margin-right: 0.25rem; }
+.ribbon-badge { display: inline-block; padding: 0.1rem 0.5rem; border: 1px solid rgba(224, 194, 76, 0.55); border-radius: 999px; white-space: nowrap; }
+.ribbon-shape { color: #e0c24c; }
+.ribbon-more { opacity: 0.8; }
+.ledger-ribbon--flourish { animation: te-ribbon-glow 1100ms ease-out; }
+@keyframes te-ribbon-glow {
+  0% { box-shadow: 0 0 0 0 rgba(224, 194, 76, 0.9); background: rgba(224, 194, 76, 0.28); }
+  100% { box-shadow: 0 0 14px 4px rgba(224, 194, 76, 0); background: rgba(224, 194, 76, 0.06); }
+}
+.effects-off .ledger-ribbon--flourish,
+.effects-off .sale-spark { animation: none; }
+.effects-off .sale-spark { display: none; }
+@media (prefers-reduced-motion: reduce) { .ledger-ribbon--flourish { animation: none; } }
+
+.colony-temperament { margin: 4px 0; font-size: 0.8rem; line-height: 1.4; opacity: 0.85; }
+
+.ship-captain { margin: 4px 0; font-size: 0.82rem; line-height: 1.4; }
+.captain-quote { font-style: italic; opacity: 0.85; }
+.captains-panel { text-align: left; }
+.captain-roster { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.75rem; margin-top: 0.5rem; }
+.captain-row { border: 1px solid rgba(140, 160, 255, 0.18); border-radius: 8px; padding: 0.5rem 0.6rem; }
+.captain-status { margin: 0 0 0.25rem; font-size: 0.85rem; line-height: 1.45; }
+.captain-quote { margin: 0 0 0.4rem; font-size: 0.8rem; }
+.captain-actions { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.captain-actions button.secondary { width: auto; }
+.charter-career { margin: 0.4rem 0 0; padding-left: 1.4rem; font-size: 0.85rem; line-height: 1.5; list-style: none; }
+.charter-career li { margin: 0.15rem 0; }
+
 /* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game,
@@ -1740,3 +1785,16 @@ html[data-theme="light"] .charter-branch { border-color: rgba(70, 95, 170, 0.35)
 html[data-theme="light"] .charter-branch-title { color: #1d6f85; }
 html[data-theme="light"] .charter-ledger { color: #1b2033; }
 
+html[data-theme="light"] .sparkline-ghost { stroke: #3b4469; }
+html[data-theme="light"] .charter-crest { color: #1b2033; border-color: rgba(70, 95, 170, 0.5); background: rgba(70, 95, 170, 0.1); }
+html[data-theme="light"] .ledger-ribbon { border-color: rgba(138, 90, 0, 0.5); background: rgba(224, 194, 76, 0.14); color: #1b2033; }
+html[data-theme="light"] .ribbon-badge { border-color: rgba(138, 90, 0, 0.6); }
+html[data-theme="light"] .ribbon-shape { color: #8a5a00; }
+html[data-theme="light"] .ribbon-more,
+html[data-theme="light"] .colony-temperament,
+html[data-theme="light"] .captain-quote { opacity: 1; color: #46507a; }
+html[data-theme="light"] .captain-row { border-color: rgba(70, 95, 170, 0.35); }
+html[data-theme="light"] .charter-career,
+html[data-theme="light"] .captain-status,
+html[data-theme="light"] .ship-captain { color: #1b2033; }
+html[data-theme="light"] #effects-toggle-button.active { color: #1a6b41; background: rgba(31, 122, 74, 0.14); border-color: rgba(31, 122, 74, 0.6); }

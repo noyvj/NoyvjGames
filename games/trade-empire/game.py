@@ -308,6 +308,35 @@ CONCESSION_COST = 80
 CONCESSION_SATISFACTION_BOOST = 0.3
 
 
+# J-25 -- colony temperaments. Each colony's mood follows its trade history
+# (see ColonyState.temperament()) and changes how it treats the player:
+# Grateful colonies pay a small premium on sales delivered there, Demanding
+# ones answer a granted concession more strongly, and Opportunistic ones (the
+# starting mood) take an Invest at a discount while their need is low. Nothing
+# is ever marked down, so the base economy only moves up.
+TEMPERAMENT_COUNT_MAX = 1_000_000
+TEMPERAMENT_MARK = {"circle": "\u25cf", "triangle": "\u25b2", "square": "\u25a0"}
+GRATEFUL_DELIVERED = 50.0
+DEMANDING_LAPSED_DEMANDS = 2
+DEFAULT_TEMPERAMENT = "opportunistic"
+OPPORTUNIST_INVEST_DISCOUNT = 0.75
+OPPORTUNIST_NEED_BELOW = 0.5
+TEMPERAMENTS = {
+    "grateful": {
+        "label": "Grateful", "glyph": "circle", "premium": 0.04, "concession_boost": CONCESSION_SATISFACTION_BOOST,
+        "why": "well supplied, so it pays +4% on every sale delivered there",
+    },
+    "demanding": {
+        "label": "Demanding", "glyph": "triangle", "premium": 0.0, "concession_boost": 0.45,
+        "why": "two demands went unanswered, but a granted concession now restores 45% satisfaction",
+    },
+    "opportunistic": {
+        "label": "Opportunistic", "glyph": "square", "premium": 0.0, "concession_boost": CONCESSION_SATISFACTION_BOOST,
+        "why": "new or undecided, and it takes an Invest at a 25% discount whenever its need is under 50%",
+    },
+}
+
+
 class ColonyState:
     def __init__(self, colony_id):
         self.id = colony_id
@@ -318,6 +347,9 @@ class ColonyState:
         self.development_level = 1
         self.cumulative_delivered = 0.0
         self.secondary_need_satisfaction = STARTING_NEED_SATISFACTION
+        # J-25 -- trade history that decides the colony's temperament.
+        self.demands_made = 0
+        self.concessions_granted = 0
 
     def secondary_need(self):
         return SECONDARY_NEED[self.id]
@@ -365,9 +397,32 @@ class ColonyState:
             self.neglect_ticks = 0
         if self.neglect_ticks >= NEGLECT_DEMAND_TICKS and self.demand_cooldown == 0:
             self.demand_ticks_left = DEMAND_WINDOW_TICKS
+            self.demands_made = min(TEMPERAMENT_COUNT_MAX, self.demands_made + 1)
+
+    def lapsed_demands(self):
+        """J-25 -- demands this colony made that were never granted (an open
+        demand is not lapsed yet)."""
+        return max(0, self.demands_made - self.concessions_granted - (1 if self.has_demand() else 0))
+
+    def temperament(self):
+        """J-25 -- derived purely from this colony's history, so it can never
+        be tampered into a state the history does not support. Demanding:
+        two or more demands went unanswered. Grateful: well supplied (50+
+        units delivered or invested) or helped by a concession. Anything
+        else, including every new colony, is Opportunistic."""
+        if self.lapsed_demands() >= DEMANDING_LAPSED_DEMANDS:
+            return "demanding"
+        if self.cumulative_delivered >= GRATEFUL_DELIVERED or self.concessions_granted >= 1:
+            return "grateful"
+        return DEFAULT_TEMPERAMENT
+
+    def concession_boost(self):
+        return TEMPERAMENTS[self.temperament()]["concession_boost"]
 
     def grant_concession(self):
-        self.need_satisfaction = min(1.0, self.need_satisfaction + CONCESSION_SATISFACTION_BOOST)
+        boost = self.concession_boost()  # judged before this concession changes the history
+        self.concessions_granted = min(TEMPERAMENT_COUNT_MAX, self.concessions_granted + 1)
+        self.need_satisfaction = min(1.0, self.need_satisfaction + boost)
         self.demand_ticks_left = 0
         self.demand_cooldown = DEMAND_COOLDOWN_TICKS
         self.neglect_ticks = 0
@@ -524,6 +579,17 @@ def _reduced_motion_on():
         return False
 
 
+def _effects_on():
+    """J-31 -- the Settings "Effects" toggle (settings.js adds `.effects-off`
+    to <html>). Effects are the optional flourishes: sale sparks, dock pulses
+    and the ribbon unlock flourish. Reduced motion also turns them off."""
+    try:
+        classes = document.documentElement.classList
+        return not (classes.contains("effects-off") or classes.contains("reduce-motion"))
+    except Exception:
+        return True
+
+
 def dock_pulse_radius(kind, age):
     step = age / DOCK_PULSE_TICKS
     if kind == "undock":
@@ -532,7 +598,7 @@ def dock_pulse_radius(kind, age):
 
 
 def draw_dock_pulses(ctx):
-    if _reduced_motion_on():
+    if _reduced_motion_on() or not _effects_on():
         return
     for colony_id, kind, age in dock_pulses:
         if colony_id not in active_colony_ids():
@@ -543,6 +609,33 @@ def draw_dock_pulses(ctx):
         ctx.beginPath()
         ctx.arc(x, y, dock_pulse_radius(kind, age), 0, 2 * math.pi)
         ctx.stroke()
+
+
+TEMPERAMENT_GLYPH_COLOR = "#f4e9b8"
+TEMPERAMENT_GLYPH_RADIUS = 6
+
+
+def temperament_glyph_points(glyph, cx, cy, r=TEMPERAMENT_GLYPH_RADIUS):
+    """J-26 -- polygon points for a colony mood glyph: a circle (drawn as a
+    12-sided shape, so the map's own arcs stay one per node), a triangle or a
+    square. The shape, not its colour, carries the meaning."""
+    if glyph == "triangle":
+        return [(cx, cy - r), (cx + r, cy + r), (cx - r, cy + r)]
+    if glyph == "square":
+        return [(cx - r, cy - r), (cx + r, cy - r), (cx + r, cy + r), (cx - r, cy + r)]
+    return [(cx + r * math.cos(i * math.pi / 6), cy + r * math.sin(i * math.pi / 6)) for i in range(12)]
+
+
+def draw_temperament_glyph(ctx, colony_id, cx, cy):
+    glyph = TEMPERAMENTS[colony_states[colony_id].temperament()]["glyph"]
+    points = temperament_glyph_points(glyph, cx, cy)
+    ctx.fillStyle = TEMPERAMENT_GLYPH_COLOR
+    ctx.beginPath()
+    ctx.moveTo(*points[0])
+    for px, py in points[1:]:
+        ctx.lineTo(px, py)
+    ctx.closePath()
+    ctx.fill()
 
 
 def render_map():
@@ -583,6 +676,8 @@ def render_map():
         ctx.textAlign = "center"
         ctx.textBaseline = "middle"
         ctx.fillText(colony_map_label(colony_id), x, y)
+        if colony_id in colony_states:
+            draw_temperament_glyph(ctx, colony_id, x + NODE_RADIUS * 0.8, y - NODE_RADIUS * 0.8)
 
     # J16 — Fleet Priority's current target, made visible rather than
     # left implicit: a ring around whichever colony most_urgent_colony()
@@ -766,6 +861,10 @@ STOCKPILE_CAPACITY = 15
 STOCKPILE_LOT = 5
 STOCKPILE_SELL_FEE = 0.10
 stockpile = {good: 0 for good in SELL_PRICE}
+# J-4 -- the "price memory" ghost line: where each good's price multiplier was
+# just before the player's last stockpile buy or sell, drawn dashed (and named
+# in text) on its sparkline. Only the player's own market moves set it.
+price_memory = {}
 
 
 def can_stockpile_buy(good):
@@ -782,6 +881,7 @@ def buy_stockpile(good):
     if not can_stockpile_buy(good):
         return False
     qty = min(STOCKPILE_LOT, STOCKPILE_CAPACITY - stockpile[good])
+    price_memory[good] = market_multiplier[good]
     total_profit -= qty * current_sell_price(good)
     stockpile[good] += qty
     market_multiplier[good] = min(
@@ -799,6 +899,7 @@ def sell_stockpile(good):
     if stockpile.get(good, 0) <= 0 or colony_producing(good) not in active_colony_ids():
         return False
     qty = stockpile[good]
+    price_memory[good] = market_multiplier[good]
     total_profit += stockpile_sale_value(good)
     stockpile[good] = 0
     apply_market_sale(good, qty)
@@ -1110,6 +1211,15 @@ class Ship:
         self.route_legs = 0
         # J25 — lifetime credits this ship's own deliveries have earned.
         self.total_earned = 0
+        # J-6 -- throughput bookkeeping: units this ship has delivered, the
+        # ticks it has been part of the fleet, and units per good.
+        self.units_moved = 0
+        self.ticks_owned = 0
+        self.units_by_good = {}
+        # J-7 -- the captain's perk id (or None) and the deliveries made since
+        # the captain was assigned (the Lucky Trader's every-fourth-trip count).
+        self.captain = None
+        self.captain_deliveries = 0
 
     @property
     def round_trips(self):
@@ -1137,7 +1247,10 @@ class Ship:
         self.cargo_good = ALL_COLONIES[self.location]["produces"]
         self.cargo_qty = max(
             1,
-            round(colony_states[self.location].cargo_capacity() * fleet_cargo_multiplier() * archetype_for(self)["cargo"])
+            round(
+                colony_states[self.location].cargo_capacity() * fleet_cargo_multiplier() * archetype_for(self)["cargo"]
+                * captain_cargo_multiplier(self)
+            )
             + (CHARTER_CARGO_BONUS if charter_perk("surveyed_lanes") else 0),
         )
         return True
@@ -1154,7 +1267,7 @@ class Ship:
         self.origin = self.location
         self.destination = destination
         self.location = None
-        self.transit_total_ticks = max(1, travel_ticks() + archetype_for(self)["ticks"])
+        self.transit_total_ticks = max(1, captain_adjusted_ticks(self, travel_ticks() + archetype_for(self)["ticks"]))
         self.transit_ticks_remaining = self.transit_total_ticks
 
     def depart(self, destination):
@@ -1196,7 +1309,10 @@ class Ship:
             # there's nothing to sell or deliver on arrival -- just dock.
             global cross_system_units, disruptions_suffered, insurance_payouts
             efficiency = 1.0 + (AUTO_EFFICIENCY_BONUS if self.automated and "auto_efficiency" in unlocked_research else 0.0)
-            profit = int(round(qty * current_sell_price(good) * diplomacy_multiplier() * legacy_sale_multiplier() * efficiency))
+            profit = int(round(
+                qty * current_sell_price(good) * diplomacy_multiplier() * legacy_sale_multiplier() * efficiency
+                * captain_proceeds_multiplier(self, destination, good) * colony_premium_multiplier(destination)
+            ))
             if route_hazards_enabled and hazard_rng.random() < ROUTE_HAZARD_CHANCE:
                 # J11 -- a route disruption: the cargo is lost, nothing is
                 # delivered or sold. Insurance pays a share of what the
@@ -1217,6 +1333,10 @@ class Ship:
                     dest_state.deliver_secondary(qty)
                 result = (good, qty, profit)
                 self.total_earned += profit
+                self.units_moved = min(LEDGER_MAX, self.units_moved + qty)
+                self.units_by_good[good] = min(LEDGER_MAX, self.units_by_good.get(good, 0) + qty)
+                if self.captain is not None:
+                    self.captain_deliveries += 1
             key = frozenset((self.origin, destination))
             if key == self.route_key:
                 self.route_legs += 1
@@ -1380,19 +1500,41 @@ def grant_concession(colony_id):
     return True
 
 
+def colony_invest_cost_for(colony_id):
+    """What an Invest costs at this colony right now (J-25: an Opportunistic
+    colony with a low need takes it at a discount)."""
+    base = colony_invest_cost()
+    state = colony_states.get(colony_id)
+    if (
+        state is not None
+        and state.temperament() == "opportunistic"
+        and state.need_satisfaction < OPPORTUNIST_NEED_BELOW
+    ):
+        return max(1, int(round(base * OPPORTUNIST_INVEST_DISCOUNT)))
+    return base
+
+
 def can_invest_in_colony(colony_id):
     if colony_id not in active_colony_ids() or colony_id not in colony_states:
         return False
-    return not colony_states[colony_id].is_developed() and total_profit >= colony_invest_cost()
+    return not colony_states[colony_id].is_developed() and total_profit >= colony_invest_cost_for(colony_id)
 
 
 def invest_in_colony(colony_id):
     global total_profit
     if not can_invest_in_colony(colony_id):
         return False
-    total_profit -= colony_invest_cost()
+    total_profit -= colony_invest_cost_for(colony_id)
     colony_states[colony_id].add_development(COLONY_INVEST_UNITS)
     return True
+
+
+def colony_premium_multiplier(colony_id):
+    """J-25 -- the temperament premium on proceeds delivered to this colony."""
+    state = colony_states.get(colony_id)
+    if state is None:
+        return 1.0
+    return 1.0 + TEMPERAMENTS[state.temperament()]["premium"]
 
 
 def can_purchase_ship(ship_id):
@@ -1431,6 +1573,183 @@ def reset_ship_name(ship_id):
     """J12 — restore the default "Ship N" name."""
     ships[ship_id].name = f"Ship {ship_id}"
     return True
+
+
+# ---------------------------------------------------------------------------
+# J-7/J-8 -- Fleet Captains. A ship that has become a veteran hauler (five
+# round trips on one route) earns a captain: the player CHOOSES which of four
+# named captains to put in the seat from a visible roster, so nothing is a
+# random draw. Each captain's perk has a built-in trade-off, a captain serves
+# on one ship at a time, and a captain may be moved to a different ship once
+# per charter. Captains are met once and remembered across charters (a small
+# collection); their postings reset with every renewal, like the fleet.
+# Without a captain every helper below returns the plain value.
+# ---------------------------------------------------------------------------
+CAPTAIN_SWAPS_PER_CHARTER = 1  # moves of one captain after the first posting
+LUCKY_EVERY = 4  # every Nth delivery by a Lucky Trader pays extra
+LUCKY_BONUS = 0.40
+LUCKY_OFF_BEAT = -0.03
+FRUGAL_PROCEEDS = 0.08
+FRUGAL_CARGO = 0.90
+NIGHT_OWL_MIN_TICKS = 3  # a trip must be at least this long to save a tick
+NIGHT_OWL_PROCEEDS = -0.05
+PERFECTIONIST_BONUS = 0.12
+PERFECTIONIST_BELOW = 0.6
+PERFECTIONIST_PENALTY = -0.05
+PERFECTIONIST_ABOVE = 0.9
+CAPTAINS = {
+    "frugal": {
+        "label": "Frugal", "name": "Captain Ilsa Brandt",
+        "perk": f"+{int(FRUGAL_PROCEEDS * 100)}% on this ship's sales.",
+        "tradeoff": f"Holds {int(round((1 - FRUGAL_CARGO) * 100))}% less cargo (hurts a Fast hull most; a Cargo-heavy hull hides it).",
+        "quote": "Every crate counted twice.",
+    },
+    "lucky": {
+        "label": "Lucky Trader", "name": "Captain Joss Marrow",
+        "perk": f"Every {LUCKY_EVERY}th delivery pays +{int(LUCKY_BONUS * 100)}%.",
+        "tradeoff": f"The other deliveries pay {int(LUCKY_OFF_BEAT * 100)}%, so it is a small average gain, not a jackpot.",
+        "quote": "I never gamble. The odds are simply fond of me.",
+    },
+    "night_owl": {
+        "label": "Night Owl", "name": "Captain Sef Okonkwo",
+        "perk": f"Trips of {NIGHT_OWL_MIN_TICKS}+ ticks arrive one tick sooner.",
+        "tradeoff": f"{int(NIGHT_OWL_PROCEEDS * 100)}% on sales, and no gain on a Fast hull already near the one-tick floor.",
+        "quote": "Dock lights are for people who sleep.",
+    },
+    "perfectionist": {
+        "label": "Perfectionist", "name": "Captain Rhea Vance",
+        "perk": f"+{int(PERFECTIONIST_BONUS * 100)}% when delivering to a colony under {int(PERFECTIONIST_BELOW * 100)}% satisfied.",
+        "tradeoff": f"{int(PERFECTIONIST_PENALTY * 100)}% when the colony is already over {int(PERFECTIONIST_ABOVE * 100)}% satisfied.",
+        "quote": "If it is not needed, it is not on my manifest.",
+    },
+}
+CAPTAIN_IDS = tuple(CAPTAINS)
+captain_earned = set()  # ship ids that reached veteran status this charter
+captain_assignments = {perk_id: 0 for perk_id in CAPTAINS}  # postings this charter (the 2nd is the swap)
+captains_met = set()  # captains ever posted, across every charter
+
+
+def captain_of(ship):
+    perk_id = getattr(ship, "captain", None)
+    return perk_id if perk_id in CAPTAINS else None
+
+
+def captain_ship_for(perk_id):
+    """The ship currently serving under this captain, or None."""
+    for ship in ships.values():
+        if ship.captain == perk_id:
+            return ship
+    return None
+
+
+def captain_cargo_multiplier(ship):
+    return FRUGAL_CARGO if captain_of(ship) == "frugal" else 1.0
+
+
+def captain_adjusted_ticks(ship, ticks):
+    if captain_of(ship) == "night_owl" and ticks >= NIGHT_OWL_MIN_TICKS:
+        return ticks - 1
+    return ticks
+
+
+def captain_proceeds_multiplier(ship, destination, good):
+    perk_id = captain_of(ship)
+    if perk_id is None:
+        return 1.0
+    if perk_id == "frugal":
+        return 1.0 + FRUGAL_PROCEEDS
+    if perk_id == "night_owl":
+        return 1.0 + NIGHT_OWL_PROCEEDS
+    if perk_id == "lucky":
+        lucky_trip = (ship.captain_deliveries + 1) % LUCKY_EVERY == 0
+        return 1.0 + (LUCKY_BONUS if lucky_trip else LUCKY_OFF_BEAT)
+    state = colony_states.get(destination)
+    if state is None:
+        return 1.0
+    satisfaction = state.need_satisfaction if ALL_COLONIES[destination]["needs"] == good else state.secondary_need_satisfaction
+    if satisfaction < PERFECTIONIST_BELOW:
+        return 1.0 + PERFECTIONIST_BONUS
+    if satisfaction > PERFECTIONIST_ABOVE:
+        return 1.0 + PERFECTIONIST_PENALTY
+    return 1.0
+
+
+def captain_note_veterans():
+    """A ship that is a veteran hauler right now has earned a captain's seat
+    for the rest of the charter (called every tick)."""
+    for ship in ships.values():
+        if ship.purchased and ship.is_veteran:
+            captain_earned.add(ship.id)
+
+
+def captain_is_earned(ship_id):
+    return ship_id in captain_earned and ships[ship_id].purchased
+
+
+def can_assign_captain(perk_id, ship_id):
+    if not isinstance(perk_id, str) or not isinstance(ship_id, str):
+        return False
+    if perk_id not in CAPTAINS or ship_id not in ships or not captain_is_earned(ship_id):
+        return False
+    if ships[ship_id].captain is not None:
+        return False
+    if captain_assignments[perk_id] >= 1 + CAPTAIN_SWAPS_PER_CHARTER:
+        return False
+    return True
+
+
+def is_captain_swap(perk_id):
+    """True when posting this captain again would use up its once-per-charter move."""
+    return captain_assignments[perk_id] >= 1
+
+
+def assign_captain(perk_id, ship_id):
+    if not can_assign_captain(perk_id, ship_id):
+        return False
+    current = captain_ship_for(perk_id)
+    if current is not None:
+        current.captain = None
+        current.captain_deliveries = 0
+    ship = ships[ship_id]
+    ship.captain = perk_id
+    ship.captain_deliveries = 0
+    captain_assignments[perk_id] += 1
+    captains_met.add(perk_id)
+    return True
+
+
+def can_release_captain(perk_id):
+    return isinstance(perk_id, str) and perk_id in CAPTAINS and captain_ship_for(perk_id) is not None
+
+
+def release_captain(perk_id):
+    ship = captain_ship_for(perk_id)
+    if ship is None:
+        return False
+    ship.captain = None
+    ship.captain_deliveries = 0
+    return True
+
+
+def captain_status_text(perk_id):
+    captain = CAPTAINS[perk_id]
+    ship = captain_ship_for(perk_id)
+    where = f"serving on {ship.name}" if ship is not None else "waiting in the roster"
+    moves = max(0, 1 + CAPTAIN_SWAPS_PER_CHARTER - captain_assignments[perk_id])
+    return (
+        f"{captain['name']}, {captain['label']} ({where}). {captain['perk']} Trade-off: {captain['tradeoff']} "
+        f"{moves} posting(s) left this charter."
+    )
+
+
+def captains_summary_text():
+    earned = sorted(ship_id for ship_id in captain_earned if ships[ship_id].purchased)
+    employed = sum(1 for ship in ships.values() if ship.captain)
+    seats = ", ".join(ships[ship_id].name for ship_id in earned) if earned else "none yet"
+    return (
+        f"Seats earned (veteran haulers): {seats}. {employed} of {len(CAPTAINS)} captains posted. "
+        f"{len(captains_met)} of {len(CAPTAINS)} captains met across every charter."
+    )
 
 
 def run_automation():
@@ -1656,6 +1975,7 @@ def found_new_corporation():
     global legacy_level, legacy_achievements, total_profit, max_profit_ever, _previously_earned_ids
     global charters_completed, charter_points_earned, charter_perks, hard_charter_active, hard_charter_next
     global ledger_units_moved, ledger_routes_established, ledger_hard_completed, ledger_routes_seen
+    global ledger_charter_units, charter_career, captains_met
     if not can_found_new_corporation():
         return False
     order = {entry["id"]: i for i, entry in enumerate(ACHIEVEMENTS)}
@@ -1668,6 +1988,15 @@ def found_new_corporation():
         "hard_done": ledger_hard_completed,
         "units": ledger_units_moved,
         "routes": ledger_routes_established,
+        "career": list(charter_career) + [{
+            "n": min(CHARTER_COUNT_MAX, charters_completed + 1),
+            "hard": bool(hard_charter_active),
+            "units": ledger_charter_units,
+            "routes": len(ledger_routes_seen),
+            "peak": int(max_profit_ever),
+            "perks": len(charter_perks),
+        }],
+        "met": set(captains_met),
     }
     finishing_hard = hard_charter_active
     begin_hard = hard_charter_next and hard_charter_unlocked()
@@ -1679,6 +2008,9 @@ def found_new_corporation():
     ledger_hard_completed = keep["hard_done"]
     ledger_units_moved, ledger_routes_established = keep["units"], keep["routes"]
     ledger_routes_seen = set()
+    ledger_charter_units = 0
+    charter_career = keep["career"][-CAREER_MAX_ENTRIES:]
+    captains_met = keep["met"]
     _guild_clear(guild_first_offer_ticks())  # Guild Standing shortens the first wait
     # Baseline BEFORE the renewal is counted: the carried achievements must
     # not all toast again, but the ones this renewal earns should.
@@ -1830,6 +2162,38 @@ ledger_units_moved = 0
 ledger_routes_established = 0
 ledger_hard_completed = 0
 ledger_routes_seen = set()
+# J-14 -- units delivered in the CURRENT charter (the ledger above is
+# lifetime), and the career log: one entry per completed charter, newest last.
+ledger_charter_units = 0
+charter_career = []
+CAREER_MAX_ENTRIES = 40
+# J-14 -- the crest shown beside the title: a shape plus a text label (never
+# colour only), chosen by how many charters have been completed.
+CREST_TIERS = (
+    (10, "Sovereign", "\u2605"),
+    (5, "Master", "\u25c6"),
+    (3, "Veteran", "\u25a0"),
+    (1, "Renewed", "\u25b2"),
+    (0, "Founder", "\u25cf"),
+)
+
+
+def crest_for(completed):
+    """(label, glyph) of the crest earned by `completed` finished charters."""
+    for minimum, label, glyph in CREST_TIERS:
+        if completed >= minimum:
+            return label, glyph
+    return CREST_TIERS[-1][1], CREST_TIERS[-1][2]
+
+
+def charter_crest():
+    """(label, glyph) of the active charter's crest."""
+    return crest_for(charters_completed)
+
+
+def charter_crest_text():
+    label, glyph = charter_crest()
+    return f"{glyph} {label}" + (" (harder)" if hard_charter_active else "")
 
 
 def charter_perk(perk_id):
@@ -2001,8 +2365,9 @@ def charter_points_for_next_renewal():
 
 def ledger_record_sale(qty, route_key):
     """O-3: called for every completed, undisrupted delivery."""
-    global ledger_units_moved, ledger_routes_established
+    global ledger_units_moved, ledger_routes_established, ledger_charter_units
     ledger_units_moved = min(LEDGER_MAX, ledger_units_moved + max(0, int(qty)))
+    ledger_charter_units = min(LEDGER_MAX, ledger_charter_units + max(0, int(qty)))
     if route_key and route_key not in ledger_routes_seen:
         ledger_routes_seen.add(route_key)
         ledger_routes_established = min(LEDGER_MAX, ledger_routes_established + 1)
@@ -2187,7 +2552,7 @@ def render_colony(colony_id):
         if demanding:
             demand_el.innerText = (
                 f"{colony['name']} feels neglected and asks for a concession: {CONCESSION_COST} credits "
-                f"to restore {int(CONCESSION_SATISFACTION_BOOST * 100)}% satisfaction "
+                f"to restore {int(state.concession_boost() * 100)}% satisfaction "
                 f"({state.demand_ticks_left} tick(s) left; ignoring it costs nothing)."
             )
             concede_button.innerText = f"Grant concession ({CONCESSION_COST})"
@@ -2195,12 +2560,26 @@ def render_colony(colony_id):
     invest_button = document.getElementById(f"colony-{colony_id}-invest-button")
     if invest_button is not None:
         invest_button.hidden = state.is_developed()
-        invest_button.innerText = f"Invest ({colony_invest_cost()})"
+        invest_button.innerText = f"Invest ({colony_invest_cost_for(colony_id)})"
         invest_button.disabled = not can_invest_in_colony(colony_id)
         invest_button.title = (
-            f"Spend {colony_invest_cost()} credits to add {COLONY_INVEST_UNITS} units of development progress "
+            f"Spend {colony_invest_cost_for(colony_id)} credits to add {COLONY_INVEST_UNITS} units of development progress "
             f"({COLONY_INVEST_UNITS / development_threshold() * 100:.0f}% of Level 2)."
         )
+    mood_el = document.getElementById(f"colony-{colony_id}-temperament")
+    if mood_el is not None:
+        mood_el.innerText = temperament_text(colony_id)
+
+
+def temperament_text(colony_id):
+    """J-25/J-26 -- the colony panel's one-line explanation of its mood."""
+    state = colony_states[colony_id]
+    mood = TEMPERAMENTS[state.temperament()]
+    return (
+        f"Mood: {TEMPERAMENT_MARK[mood['glyph']]} {mood['label']} ({mood['glyph']} on the map): {mood['why']}. "
+        f"History: {state.cumulative_delivered:.0f} delivered, {state.concessions_granted} concession(s) granted, "
+        f"{state.lapsed_demands()} demand(s) unanswered."
+    )
 
 
 def render_needs_strip():
@@ -2227,12 +2606,13 @@ SPARKLINE_WIDTH = 60
 SPARKLINE_HEIGHT = 18
 
 
-def _trend_sparkline_svg(history, css_class, now_label=None):
+def _trend_sparkline_svg(history, css_class, now_label=None, ghost=None, ghost_label=None):
     """J12/J14 — an unlabeled inline-SVG polyline over a short rolling
     history; the point is the shape of the trend, not any exact value.
     Values are expected roughly in 0..1 (market multiplier, need
     satisfaction) so a fixed height mapping is enough -- no separate
-    axis scaling needed."""
+    axis scaling needed. J-4: `ghost` (a 0..1 value) adds a dashed
+    horizontal "price memory" line at that level."""
     if len(history) < 2:
         return ""
     n = len(history)
@@ -2249,9 +2629,26 @@ def _trend_sparkline_svg(history, css_class, now_label=None):
             f'<circle cx="{last_x}" cy="{last_y}" r="2" class="sparkline-now">'
             f"<title>{now_label}</title></circle>"
         )
+    ghost_line = ""
+    if ghost is not None:
+        gy = SPARKLINE_HEIGHT - max(0.0, min(1.0, ghost)) * SPARKLINE_HEIGHT
+        ghost_line = (
+            f'<line x1="0" y1="{gy:.1f}" x2="{SPARKLINE_WIDTH}" y2="{gy:.1f}" class="sparkline-ghost" '
+            f'stroke-dasharray="3 2"><title>{ghost_label or "Price before your last stockpile trade"}</title></line>'
+        )
     return (
         f'<svg viewBox="0 0 {SPARKLINE_WIDTH} {SPARKLINE_HEIGHT}" class="{css_class}" '
-        f'aria-hidden="{"false" if now_label else "true"}"><polyline points="{" ".join(points)}" />{marker}</svg>'
+        f'aria-hidden="{"false" if now_label else "true"}">{ghost_line}<polyline points="{" ".join(points)}" />{marker}</svg>'
+    )
+
+
+def price_memory_text(good):
+    """J-4 -- the text twin of the ghost line (the line is dashed, never colour only)."""
+    if good not in price_memory:
+        return ""
+    return (
+        f"dashed line: {price_memory[good] * 100:.0f}% of baseline before your last stockpile trade "
+        f"(now {market_multiplier[good] * 100:.0f}%)"
     )
 
 
@@ -2454,9 +2851,14 @@ def render_market():
             )
         document.getElementById(f"market-{good}-bar").style.width = f"{pct:.0f}%"
         # J12 — a small price-history sparkline alongside the bar.
-        document.getElementById(f"market-{good}-sparkline").innerHTML = _trend_sparkline_svg(
-            price_history.get(good, []), "price-sparkline", f"Now: {price} credits"
+        memory_note = price_memory_text(good)
+        sparkline_html = _trend_sparkline_svg(
+            price_history.get(good, []), "price-sparkline", f"Now: {price} credits",
+            ghost=price_memory.get(good), ghost_label=memory_note or None,
         )
+        if memory_note and sparkline_html:
+            sparkline_html += f'<span class="sparkline-pct price-memory-note">{memory_note}</span>'
+        document.getElementById(f"market-{good}-sparkline").innerHTML = sparkline_html
 
 
 def render_research():
@@ -2820,6 +3222,9 @@ ACHIEVEMENT_CHECKS = {
     "charter_perk": lambda: len(charter_perks) >= 1,
     "charter_veteran": lambda: charters_completed >= CHARTER_VETERAN_COUNT,
     "hard_charter_done": lambda: ledger_hard_completed >= 1,
+    # J-7: derived from captains_met, which survives a renewal.
+    "captains_table": lambda: len(captains_met) >= 1,
+    "full_roster": lambda: len(captains_met) >= len(CAPTAINS),
     "guild_partner": lambda: guild_completed >= 1,
     "guild_favorite": lambda: guild_completed >= 5,
     "background_galaxy_maxed": lambda: background_world_count() >= ENDGAME_BACKGROUND_WORLD_CAP,
@@ -2833,6 +3238,7 @@ ACHIEVEMENT_PROGRESS = {
     "diversified_trader": lambda: (len(HOME_SYSTEM_GOODS & goods_sold_ever), len(HOME_SYSTEM_GOODS)),
     "background_galaxy_maxed": lambda: (background_world_count(), ENDGAME_BACKGROUND_WORLD_CAP),
     "charter_veteran": lambda: (min(charters_completed, CHARTER_VETERAN_COUNT), CHARTER_VETERAN_COUNT),
+    "full_roster": lambda: (len(captains_met), len(CAPTAINS)),
 }
 
 
@@ -2993,6 +3399,7 @@ def _sync_earned_and_toast():
     newly_earned = [entry for entry in ACHIEVEMENTS if entry["id"] in newly_earned_ids]
     if not newly_earned:
         return
+    _ribbon_flourish()
     if len(newly_earned) == 1:
         message = f"\U0001F3C6 Achievement unlocked: {newly_earned[0]['label']}"
     else:
@@ -3129,6 +3536,53 @@ def fleet_efficiency_lines():
     return lines
 
 
+THROUGHPUT_WINDOW = 100  # J-6 -- throughput is quoted per this many ticks
+
+
+def ship_throughput(ship):
+    """J-6 -- units this ship has delivered per THROUGHPUT_WINDOW ticks in the
+    fleet (None until it has been in the fleet for a tick)."""
+    if not ship.purchased or ship.ticks_owned <= 0:
+        return None
+    return ship.units_moved / ship.ticks_owned * THROUGHPUT_WINDOW
+
+
+def route_throughput(good):
+    """J-6 -- units of `good` moved per ship per THROUGHPUT_WINDOW ticks,
+    measured over the ships that have hauled it (None if none has)."""
+    haulers = [sh for sh in ships.values() if sh.units_by_good.get(good, 0) > 0 and sh.ticks_owned > 0]
+    if not haulers:
+        return None
+    units = sum(sh.units_by_good[good] for sh in haulers)
+    return units / sum(sh.ticks_owned for sh in haulers) * THROUGHPUT_WINDOW
+
+
+def fleet_throughput():
+    """Average per-ship throughput across the purchased ships that have run."""
+    rates = [ship_throughput(sh) for sh in ships.values()]
+    rates = [r for r in rates if r is not None]
+    return sum(rates) / len(rates) if rates else None
+
+
+def throughput_lines():
+    lines = []
+    for ship in ships.values():
+        rate = ship_throughput(ship)
+        if rate is not None and ship.units_moved > 0:
+            lines.append(
+                f"{ship.name}: {rate:.1f} units per {THROUGHPUT_WINDOW} ticks "
+                f"({ship.units_moved:,} units over {ship.ticks_owned:,} ticks)"
+            )
+    return lines
+
+
+def throughput_text():
+    avg = fleet_throughput()
+    if avg is None or not any(sh.units_moved for sh in ships.values()):
+        return f"Throughput: no deliveries yet (units moved per ship per {THROUGHPUT_WINDOW} ticks)."
+    return f"Throughput: {avg:.1f} units per ship per {THROUGHPUT_WINDOW} ticks across the fleet."
+
+
 def colony_overview_lines():
     """J13 — every active colony's need/supply state on one screen."""
     lines = []
@@ -3155,7 +3609,9 @@ def _route_profitability_lines():
         suffix = f" {arrow}" if arrow else ""
         trips = good_trip_count.get(good, 0)
         per_trip = f", avg {total // trips:,}/trip over {trips} trips" if trips > 0 else ""
-        lines.append(f"{GOOD_LABEL[good]} ({producer_name} → {consumer_name}): {total:,} credits{per_trip}{suffix}")
+        rate = route_throughput(good)
+        per_ship = f", {rate:.1f} units/ship/{THROUGHPUT_WINDOW} ticks" if rate is not None else ""
+        lines.append(f"{GOOD_LABEL[good]} ({producer_name} → {consumer_name}): {total:,} credits{per_trip}{per_ship}{suffix}")
     return lines
 
 
@@ -3207,6 +3663,7 @@ def update_summary_display():
         panel.appendChild(p)
 
     for heading, lines, empty_text in (
+        (f"Throughput per ship (units per {THROUGHPUT_WINDOW} ticks)", throughput_lines(), "No deliveries yet."),
         ("Fleet efficiency", fleet_efficiency_lines(), "No underperforming ships."),
         ("Galaxy overview", colony_overview_lines(), "No colonies yet."),
     ):
@@ -3267,6 +3724,16 @@ def charter_perk_status_text(perk_id):
     return text
 
 
+def career_entry_text(entry):
+    """J-14 -- one line of the career log."""
+    kind = "Harder charter" if entry["hard"] else "Charter"
+    label, glyph = crest_for(entry["n"])
+    return (
+        f"{glyph} {kind} {entry['n']} ({label} crest): {entry['units']:,} units moved, {entry['routes']} route(s), "
+        f"peak profit {entry['peak']:,}, {entry['perks']} perk(s) owned."
+    )
+
+
 def update_charter_display():
     toggle = document.getElementById("charter-toggle-button")
     panel = document.getElementById("charter-panel")
@@ -3317,6 +3784,27 @@ def update_charter_display():
     )
     put("ledger-charters-display", f"Charters completed: {charters_completed:,}.")
     put("ledger-hard-display", f"Harder charters completed: {ledger_hard_completed:,}.")
+    put(
+        "charter-crest-display",
+        f"Active crest: {charter_crest_text()}. Crests change at 1, 3, 5 and 10 completed charters "
+        "(Founder, Renewed, Veteran, Master, Sovereign), each with its own shape and word.",
+    )
+    career_list = document.getElementById("charter-career-list")
+    if career_list is not None:
+        career_list.innerHTML = ""
+        if not charter_career:
+            item = document.createElement("li")
+            item.className = "charter-career-empty"
+            item.innerText = (
+                "No completed charters logged yet. Each renewal adds a line here: goods moved, routes, "
+                "peak profit and perks owned."
+            )
+            career_list.appendChild(item)
+        for entry in reversed(charter_career):
+            item = document.createElement("li")
+            item.className = "charter-career-entry"
+            item.innerText = career_entry_text(entry)
+            career_list.appendChild(item)
 
 
 def _make_charter_perk_handler(perk_id):
@@ -3335,6 +3823,169 @@ def _make_charter_perk_handler(perk_id):
             "Buy perk",
             do_buy,
         )
+    return handler
+
+
+# ===========================================================================
+# J-14 (crest) / J-31 (ledger ribbon) / J-7, J-8 (captains panel)
+# ===========================================================================
+RIBBON_SHAPES = ("\u25cf", "\u25b2", "\u25a0", "\u25c6")  # circle, triangle, square, diamond
+RIBBON_MAX_BADGES = 8
+RIBBON_FLOURISH_MS = 1200
+captains_open = False
+
+
+def _html_escape(text):
+    return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
+def render_crest():
+    crest = document.getElementById("charter-crest")
+    if crest is None:
+        return
+    label, glyph = charter_crest()
+    crest.innerText = charter_crest_text()
+    crest.title = (
+        f"Charter crest: {glyph} {label}. Charters completed: {charters_completed}. "
+        "The shape and the word both change as you renew the charter."
+    )
+
+
+def ribbon_badges():
+    """Up to RIBBON_MAX_BADGES of the earned achievements, latest in the
+    catalog first, each with a shape (cycling through four) and its label."""
+    earned = achievement_ids_earned()
+    labels = {entry["id"]: entry["label"] for entry in ACHIEVEMENTS}
+    badges = []
+    for index, achievement_id in enumerate(earned):
+        badges.append((RIBBON_SHAPES[index % len(RIBBON_SHAPES)], labels.get(achievement_id, achievement_id)))
+    return list(reversed(badges[-RIBBON_MAX_BADGES:])), len(earned)
+
+
+def render_ribbon():
+    ribbon = document.getElementById("ledger-ribbon")
+    if ribbon is None:
+        return
+    badges, earned_count = ribbon_badges()
+    parts = [
+        f'<span class="ribbon-count">Ledger ribbon: {earned_count} of {len(ACHIEVEMENTS)} badges</span>'
+    ]
+    for shape, label in badges:
+        parts.append(
+            f'<span class="ribbon-badge"><span class="ribbon-shape" aria-hidden="true">{shape}</span> {_html_escape(label)}</span>'
+        )
+    hidden = earned_count - len(badges)
+    if hidden > 0:
+        parts.append(f'<span class="ribbon-more">+{hidden} more in Achievements</span>')
+    if not badges:
+        parts.append('<span class="ribbon-more">Earn an achievement to pin its badge here.</span>')
+    ribbon.innerHTML = "".join(parts)
+
+
+def _ribbon_flourish():
+    """A brief glow on the ribbon when something unlocks. Skipped under
+    reduced motion or with the Effects toggle off."""
+    ribbon = document.getElementById("ledger-ribbon")
+    if ribbon is None or not _effects_on():
+        return
+
+    def _clear():
+        ribbon.classList.remove("ledger-ribbon--flourish")
+
+    ribbon.classList.add("ledger-ribbon--flourish")
+    setTimeout(create_proxy(_clear), RIBBON_FLOURISH_MS)
+
+
+def on_toggle_captains(event=None):
+    global captains_open
+    captains_open = not captains_open
+    render_captains()
+
+
+def render_captains():
+    toggle = document.getElementById("captains-toggle-button")
+    panel = document.getElementById("captains-panel")
+    if toggle is None or panel is None:
+        return
+    toggle.innerText = "Hide Captains" if captains_open else "\U0001F396\ufe0f Captains"
+    toggle.setAttribute("aria-expanded", "true" if captains_open else "false")
+    panel.hidden = not captains_open
+    # The per-ship captain line is always kept current, panel open or not.
+    for ship in ships.values():
+        line = document.getElementById(f"ship-{ship.id}-captain")
+        if line is None:
+            continue
+        perk_id = captain_of(ship)
+        line.hidden = not ship.purchased or (perk_id is None and not captain_is_earned(ship.id))
+        text_el = document.getElementById(f"ship-{ship.id}-captain-text")
+        quote_el = document.getElementById(f"ship-{ship.id}-captain-quote")
+        if perk_id is not None:
+            captain = CAPTAINS[perk_id]
+            if text_el is not None:
+                text_el.innerText = f"Captain: {captain['name']}, {captain['label']}."
+            if quote_el is not None:
+                quote_el.innerText = f"\u201c{captain['quote']}\u201d"
+        else:
+            if text_el is not None:
+                text_el.innerText = "Captain's seat earned: pick a captain in the Captains panel."
+            if quote_el is not None:
+                quote_el.innerText = ""
+    if not captains_open:
+        return
+    summary = document.getElementById("captains-summary-display")
+    if summary is not None:
+        summary.innerText = captains_summary_text()
+    for perk_id in CAPTAINS:
+        status = document.getElementById(f"captain-{perk_id}-status")
+        if status is not None:
+            status.innerText = captain_status_text(perk_id)
+        quote = document.getElementById(f"captain-{perk_id}-quote")
+        if quote is not None:
+            quote.innerText = f"\u201c{CAPTAINS[perk_id]['quote']}\u201d"
+        release = document.getElementById(f"captain-{perk_id}-release-button")
+        if release is not None:
+            release.hidden = not can_release_captain(perk_id)
+        for ship_id in ships:
+            button = document.getElementById(f"captain-{perk_id}-ship-{ship_id}-button")
+            if button is None:
+                continue
+            applicable = can_assign_captain(perk_id, ship_id)
+            button.hidden = not applicable
+            button.disabled = not applicable
+            ship = ships[ship_id]
+            verb = "Move to" if is_captain_swap(perk_id) else "Post to"
+            button.innerText = f"{verb} {ship.name}"
+            button.setAttribute(
+                "aria-label", f"{verb} {ship.name}: {CAPTAINS[perk_id]['name']}, {CAPTAINS[perk_id]['label']}"
+            )
+
+
+def _make_captain_assign_handler(perk_id, ship_id):
+    def do_assign():
+        assign_captain(perk_id, ship_id)
+        render()
+
+    def handler(event=None):
+        if not can_assign_captain(perk_id, ship_id):
+            return
+        if is_captain_swap(perk_id):
+            captain = CAPTAINS[perk_id]
+            _confirm_dialog_ask(
+                f"trade-empire-captain-swap-{perk_id}",
+                f"Move {captain['name']} to {ships[ship_id].name}? Each captain can be moved once per charter, "
+                "so this is their last posting until you renew.",
+                "Move captain",
+                do_assign,
+            )
+        else:
+            do_assign()
+    return handler
+
+
+def _make_captain_release_handler(perk_id):
+    def handler(event=None):
+        release_captain(perk_id)
+        render()
     return handler
 
 
@@ -3383,6 +4034,12 @@ def render():
     _sync_earned_and_toast()
     update_summary_display()
     update_charter_display()
+    render_crest()
+    render_ribbon()
+    render_captains()
+    throughput_el = document.getElementById("throughput-display")
+    if throughput_el is not None:
+        throughput_el.innerText = throughput_text()
 
 
 def _make_load_handler(ship_id):
@@ -3601,7 +4258,7 @@ def _spark_burst_high_value_sale():
     innerText every tick and would wipe the sparks out before they ever
     got a frame to paint."""
     container = document.getElementById("sale-spark-container")
-    if container is None:
+    if container is None or not _effects_on():
         return
     sparks = []
     for i in range(SALE_SPARK_COUNT):
@@ -3679,6 +4336,9 @@ def tick(event=None):
             ship.idle_ticks += 1
         else:
             ship.idle_ticks = 0
+        if ship.purchased:
+            ship.ticks_owned = min(LEDGER_MAX, ship.ticks_owned + 1)  # J-6
+    captain_note_veterans()  # J-7
 
     # J12/J14 — a short rolling history per good/colony, just long enough
     # for a small trend sparkline to read as a shape rather than noise.
@@ -3737,6 +4397,11 @@ def get_state():
                 "route_key": sorted(ship.route_key) if ship.route_key else None,
                 "route_legs": ship.route_legs,
                 "total_earned": ship.total_earned,
+                "units_moved": ship.units_moved,
+                "ticks_owned": ship.ticks_owned,
+                "units_by_good": dict(ship.units_by_good),
+                "captain": ship.captain,
+                "captain_deliveries": ship.captain_deliveries,
             }
             for ship_id, ship in ships.items()
         },
@@ -3752,6 +4417,8 @@ def get_state():
                 "neglect_ticks": state.neglect_ticks,
                 "demand_ticks_left": state.demand_ticks_left,
                 "demand_cooldown": state.demand_cooldown,
+                "demands_made": state.demands_made,
+                "concessions_granted": state.concessions_granted,
             }
             for colony_id, state in colony_states.items()
         },
@@ -3774,6 +4441,20 @@ def get_state():
         "cross_system_units": cross_system_units,
         "trade_posts": list(trade_posts),
         "stockpile": {good: units for good, units in stockpile.items() if units},
+        # J-4 -- only written once the player has made a stockpile trade.
+        **({"price_memory": dict(price_memory)} if price_memory else {}),
+        # J-7 -- fleet captains; only written once a seat is earned or a captain met.
+        **(
+            {
+                "captains": {
+                    "earned": sorted(captain_earned),
+                    "assignments": {k: v for k, v in captain_assignments.items() if v},
+                    "met": sorted(captains_met),
+                }
+            }
+            if captain_earned or captains_met or any(captain_assignments.values())
+            else {}
+        ),
         # J21 -- only written once a new corporation has been founded, so a
         # first-run save is unchanged.
         **({"legacy": {"level": legacy_level, "achievements": list(legacy_achievements)}} if legacy_level else {}),
@@ -3785,9 +4466,11 @@ def get_state():
                     "routes": ledger_routes_established,
                     "hard_completed": ledger_hard_completed,
                     "routes_seen": sorted(sorted(key) for key in ledger_routes_seen),
+                    "charter_units": ledger_charter_units,
                 }
             }
             if ledger_units_moved or ledger_routes_established or ledger_hard_completed or ledger_routes_seen
+            or ledger_charter_units
             else {}
         ),
         # O-1/O-2/O-4 -- charter tree, points and founding seed; only written
@@ -3801,6 +4484,7 @@ def get_state():
                     "seed": founding_seed,
                     "hard": hard_charter_active,
                     "hard_next": hard_charter_next,
+                    "career": [dict(entry) for entry in charter_career],
                 }
             }
             if charters_completed or charter_points_earned or charter_perks or founding_seed
@@ -3872,6 +4556,26 @@ def _saved_int(value, low, high, default=0):
     return value
 
 
+def _load_career(raw, charters_done):
+    """J-14 -- the career log from an untrusted save: only whole entries with
+    sane numbers survive, never more than the charters actually completed."""
+    if not isinstance(raw, list) or charters_done <= 0:
+        return []
+    entries = []
+    for item in raw[:CAREER_MAX_ENTRIES * 2]:
+        if not isinstance(item, dict):
+            continue
+        n = _saved_int(item.get("n"), 1, CHARTER_COUNT_MAX, 0)
+        units = _saved_int(item.get("units"), 0, LEDGER_MAX, -1)
+        routes = _saved_int(item.get("routes"), 0, 10_000, -1)
+        peak = _saved_int(item.get("peak"), 0, LEDGER_MAX, -1)
+        perks = _saved_int(item.get("perks"), 0, len(CHARTER_PERKS), -1)
+        if n == 0 or -1 in (units, routes, peak, perks) or not isinstance(item.get("hard"), bool):
+            continue
+        entries.append({"n": n, "hard": item["hard"], "units": units, "routes": routes, "peak": peak, "perks": perks})
+    return entries[-min(CAREER_MAX_ENTRIES, charters_done):]
+
+
 def _load_charter(charter_raw, ledger_raw):
     """Restore the charter tree, founding seed, hard-charter flags and the
     lifetime ledger from untrusted save values. Anything missing or malformed
@@ -3880,11 +4584,14 @@ def _load_charter(charter_raw, ledger_raw):
     global charters_completed, charter_points_earned, charter_perks, founding_seed
     global hard_charter_active, hard_charter_next
     global ledger_units_moved, ledger_routes_established, ledger_hard_completed, ledger_routes_seen
+    global ledger_charter_units, charter_career
     charters_completed = charter_points_earned = founding_seed = 0
     charter_perks = set()
     hard_charter_active = hard_charter_next = False
     ledger_units_moved = ledger_routes_established = ledger_hard_completed = 0
     ledger_routes_seen = set()
+    ledger_charter_units = 0
+    charter_career = []
 
     if isinstance(charter_raw, dict):
         charters_completed = _saved_int(charter_raw.get("completed"), 0, CHARTER_COUNT_MAX)
@@ -3908,6 +4615,7 @@ def _load_charter(charter_raw, ledger_raw):
                 charter_perks = set()  # a save can't own more than it earned
         hard_charter_active = charter_raw.get("hard") is True and charters_completed >= 1
         hard_charter_next = charter_raw.get("hard_next") is True
+        charter_career = _load_career(charter_raw.get("career"), charters_completed)
     elif legacy_level > 0:
         charters_completed = legacy_level
         charter_points_earned = CHARTER_POINTS_PER_RENEWAL * legacy_level
@@ -3918,6 +4626,7 @@ def _load_charter(charter_raw, ledger_raw):
         ledger_units_moved = _saved_int(ledger_raw.get("units"), 0, LEDGER_MAX)
         ledger_routes_established = _saved_int(ledger_raw.get("routes"), 0, LEDGER_MAX)
         ledger_hard_completed = _saved_int(ledger_raw.get("hard_completed"), 0, CHARTER_COUNT_MAX)
+        ledger_charter_units = min(ledger_units_moved, _saved_int(ledger_raw.get("charter_units"), 0, LEDGER_MAX))
         seen_raw = ledger_raw.get("routes_seen")
         if isinstance(seen_raw, list):
             for pair in seen_raw[:100]:
@@ -3927,6 +4636,40 @@ def _load_charter(charter_raw, ledger_raw):
                     and pair[0] != pair[1]
                 ):
                     ledger_routes_seen.add(frozenset(pair))
+
+
+def _load_captains(raw):
+    """J-7 -- restore fleet captains from an untrusted save. Runs after the
+    ships are loaded: a captain only stays on a purchased ship that has earned
+    a seat, one captain per ship and one ship per captain."""
+    global captain_earned, captain_assignments, captains_met
+    captain_earned = set()
+    captain_assignments = {perk_id: 0 for perk_id in CAPTAINS}
+    captains_met = set()
+    if isinstance(raw, dict):
+        earned_raw = raw.get("earned")
+        if isinstance(earned_raw, list):
+            captain_earned = {s_id for s_id in earned_raw if isinstance(s_id, str) and s_id in ships}
+        assign_raw = raw.get("assignments")
+        if isinstance(assign_raw, dict):
+            for perk_id in CAPTAINS:
+                captain_assignments[perk_id] = _saved_int(assign_raw.get(perk_id), 0, 1 + CAPTAIN_SWAPS_PER_CHARTER)
+        met_raw = raw.get("met")
+        if isinstance(met_raw, list):
+            captains_met = {p for p in met_raw if isinstance(p, str) and p in CAPTAINS}
+    seen = set()
+    for ship in ships.values():
+        valid = (
+            ship.captain in CAPTAINS and ship.captain not in seen
+            and ship.purchased and ship.id in captain_earned
+        )
+        if valid:
+            seen.add(ship.captain)
+            captain_assignments[ship.captain] = max(captain_assignments[ship.captain], 1)
+            captains_met.add(ship.captain)
+        else:
+            ship.captain = None
+            ship.captain_deliveries = 0
 
 
 def _saved_float(value, low, high, default):
@@ -4065,6 +4808,8 @@ def load_state(data):
             raw = saved.get(loyalty_key)
             valid = isinstance(raw, int) and not isinstance(raw, bool) and 0 <= raw <= limit
             setattr(state, loyalty_key, raw if valid else 0)
+        state.demands_made = _saved_int(saved.get("demands_made"), 0, TEMPERAMENT_COUNT_MAX)
+        state.concessions_granted = _saved_int(saved.get("concessions_granted"), 0, TEMPERAMENT_COUNT_MAX)
 
     saved_ships = data.get("ships", {})
     if not isinstance(saved_ships, dict):
@@ -4092,6 +4837,17 @@ def load_state(data):
         ship.route_key = frozenset(saved_key) if saved_key else None
         ship.route_legs = saved.get("route_legs", 0)
         ship.total_earned = saved.get("total_earned", 0)
+        ship.units_moved = _saved_int(saved.get("units_moved"), 0, LEDGER_MAX)
+        ship.ticks_owned = _saved_int(saved.get("ticks_owned"), 0, LEDGER_MAX)
+        by_good = saved.get("units_by_good")
+        ship.units_by_good = {}
+        if isinstance(by_good, dict):
+            for good_id, units in by_good.items():
+                if isinstance(good_id, str) and good_id in SELL_PRICE and _saved_int(units, 1, LEDGER_MAX, 0):
+                    ship.units_by_good[good_id] = units
+        captain_raw = saved.get("captain")
+        ship.captain = captain_raw if isinstance(captain_raw, str) and captain_raw in CAPTAINS else None
+        ship.captain_deliveries = _saved_int(saved.get("captain_deliveries"), 0, LEDGER_MAX)
 
     # A ship can't be docked at, or flying to/from, a colony this save hasn't
     # unlocked (its colony state was just pruned above, and a docked ship
@@ -4109,6 +4865,16 @@ def load_state(data):
             ship.origin = ship.destination = None
             ship.cargo_good, ship.cargo_qty = None, 0
             ship.transit_ticks_remaining = ship.transit_total_ticks = 0
+
+    _load_captains(data.get("captains"))
+    price_memory.clear()
+    memory_raw = data.get("price_memory")
+    if isinstance(memory_raw, dict):
+        for good_id, value in memory_raw.items():
+            if isinstance(good_id, str) and good_id in SELL_PRICE:
+                remembered = _saved_float(value, 0.0, 1.0, -1.0)
+                if remembered >= 0.0:
+                    price_memory[good_id] = remembered
 
     market_multiplier.update(data.get("market_multiplier", {}))
     total_profit = data.get("total_profit", total_profit)
@@ -4224,6 +4990,15 @@ def setup():
         "click", create_proxy(on_toggle_hard_charter)
     )
     document.getElementById("charter-toggle-button").addEventListener("click", create_proxy(on_toggle_charter))
+    document.getElementById("captains-toggle-button").addEventListener("click", create_proxy(on_toggle_captains))
+    for perk_id in CAPTAINS:
+        document.getElementById(f"captain-{perk_id}-release-button").addEventListener(
+            "click", create_proxy(_make_captain_release_handler(perk_id))
+        )
+        for ship_id in ships:
+            document.getElementById(f"captain-{perk_id}-ship-{ship_id}-button").addEventListener(
+                "click", create_proxy(_make_captain_assign_handler(perk_id, ship_id))
+            )
     for perk_id in CHARTER_PERKS:
         document.getElementById(f"charter-perk-{perk_id}-buy-button").addEventListener(
             "click", create_proxy(_make_charter_perk_handler(perk_id))

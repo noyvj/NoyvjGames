@@ -124,6 +124,16 @@
       "id": "background_galaxy_maxed",
       "label": "A Thousand Quiet Ledgers",
       "description": "Grow the endgame's background galaxy to its full size."
+    },
+    {
+      "id": "captains_table",
+      "label": "Captain's Table",
+      "description": "Post your first fleet captain to a veteran hauler."
+    },
+    {
+      "id": "full_roster",
+      "label": "Full Roster",
+      "description": "Post all four captains (Frugal, Lucky Trader, Night Owl and Perfectionist) at least once, across any charters."
     }
   ]
 }

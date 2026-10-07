@@ -60,6 +60,12 @@ def test_get_state_expands_every_ship_into_a_plain_dict(game_env):
             "route_key",
             "route_legs",
             "total_earned",
+            # J-6 throughput bookkeeping and J-7 captain.
+            "units_moved",
+            "ticks_owned",
+            "units_by_good",
+            "captain",
+            "captain_deliveries",
         }
 
 

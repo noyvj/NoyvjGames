@@ -56,11 +56,16 @@ html[data-layout="pc"] #pc-body .section { margin-bottom: 0; }
 #mobile-needs-strip .mobile-needs-strip-track { flex-wrap: wrap; overflow: visible; padding: 0; gap: 0.35rem; max-height: 4.6rem; overflow-y: auto; }
 #mobile-needs-strip .mobile-needs-strip-chip { padding: 0.25rem 0.55rem; font-size: 0.72rem; }
 
+/* The Ledger ribbon of earned-achievement badges, one slim strip under the needs chips. */
+#pc-stage > #ledger-ribbon { margin: 0; padding: 0.25rem 0.8rem; font-size: 0.72rem; max-height: 3.3rem; overflow-y: auto; gap: 0.25rem 0.4rem; }
+#ledger-ribbon .ribbon-badge { padding: 0.05rem 0.45rem; }
+
 /* The last-sale line under the map (the profit and automation lines are chips in the top strip). */
 #pc-stage > #ledger { padding: 0.3rem 0.8rem; display: flex; align-items: center; gap: 0.6rem; }
 #ledger > .info-toggle { margin: 0; flex: 0 0 auto; }
 #ledger > .info-toggle[open] { position: absolute; bottom: 2.2rem; left: 0.8rem; z-index: 50; max-width: 24rem; background: var(--pc-window-bg, #16151d); border: 1px solid var(--pc-window-line, rgba(140, 160, 255, 0.35)); border-radius: 10px; padding: 0.5rem 0.7rem; }
 #ledger > .sale-log { margin: 0; font-size: 0.82rem; min-width: 0; }
+#ledger > #throughput-display { margin: 0 0 0 auto; font-size: 0.72rem; flex: 0 1 auto; text-align: right; }
 #pc-stage > #ledger { position: relative; }
 
 /* --- side column: the fleet ----------------------------------------------------------------------- */
@@ -69,9 +74,10 @@ html[data-layout="pc"] #pc-body .section { margin-bottom: 0; }
 #pc-side > .section { padding: 0.55rem 0.75rem; }
 /* Each ship panel is a small grid: the name plate and the rename row share the top line when the column is
    wide enough, then the status, the Load / Automate pair and the destinations. */
-#pc-side > [id^="ship-"] { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "head rename" "status status" "pick pick" "buy buy" "act act" "depart depart"; column-gap: 0.6rem; align-items: center; }
+#pc-side > [id^="ship-"] { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "head rename" "status status" "capt capt" "pick pick" "buy buy" "act act" "depart depart"; column-gap: 0.6rem; align-items: center; }
 #pc-side > [id^="ship-"] > .ship-header { grid-area: head; }
 #pc-side > [id^="ship-"] > .ship-status { grid-area: status; }
+#pc-side > [id^="ship-"] > .ship-captain { grid-area: capt; margin: 0 0 0.4rem; font-size: 0.78rem; line-height: 1.3; }
 #pc-side > [id^="ship-"] > .archetype-select { grid-area: pick; justify-self: start; }
 #pc-side > [id^="ship-"] > .purchase-button { grid-area: buy; }
 #pc-side > [id^="ship-"] > .action-buttons { grid-area: act; }
@@ -123,7 +129,7 @@ html[data-layout="pc"] #pc-body .section { margin-bottom: 0; }
 /* Larger desktop windows give the map room; smaller ones narrow the fleet column. */
 @media (max-width: 1280px) {
   #pc-body.pc-has-side { grid-template-columns: minmax(0, 1fr) 19.5rem; gap: 0.6rem; }
-  #pc-side > [id^="ship-"] { grid-template-areas: "head head" "rename rename" "status status" "pick pick" "buy buy" "act act" "depart depart"; }
+  #pc-side > [id^="ship-"] { grid-template-areas: "head head" "rename rename" "status status" "capt capt" "pick pick" "buy buy" "act act" "depart depart"; }
 }
 @media (max-width: 1180px) {
   /* The two strip cards keep their labels for screen readers only; their text and buttons say what they are. */
@@ -148,3 +154,4 @@ html[data-theme="light"] .pc-readout { color: #1b2233; }
 html[data-theme="light"] #pc-hintbar { opacity: 1; color: #2a3350; }
 html[data-theme="light"] #pc-stagebar .fleet-priority-status { color: #1b2033; }
 html[data-theme="light"] #ledger > .info-toggle[open] { background: #fbf6ec; border-color: rgba(122, 74, 18, 0.4); color: #1b1710; }
+html[data-theme="light"] #ledger-ribbon { color: #1b2033; }

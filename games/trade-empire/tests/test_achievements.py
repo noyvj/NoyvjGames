@@ -44,7 +44,7 @@ def _meet_endgame_criteria(game_env):
 
 def test_achievements_catalog_loads_from_json_with_a_reasonable_count(game_env):
     module = game_env.module
-    assert 15 <= len(module.ACHIEVEMENTS) <= 25
+    assert 15 <= len(module.ACHIEVEMENTS) <= 30
     ids = [entry["id"] for entry in module.ACHIEVEMENTS]
     assert len(ids) == len(set(ids))  # no duplicate ids
 

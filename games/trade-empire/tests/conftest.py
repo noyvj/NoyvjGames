@@ -76,7 +76,17 @@ ELEMENT_IDS = [
     "summary-toggle-button",
     "summary-panel",
     "notice-toast",
+    # Batch (J-4..J-31): crest, career log, ribbon, throughput, captains panel.
+    "charter-crest",
+    "charter-crest-display",
+    "charter-career-list",
+    "ledger-ribbon",
+    "throughput-display",
+    "captains-toggle-button",
+    "captains-panel",
+    "captains-summary-display",
 ]
+CAPTAIN_PERK_IDS = ["frugal", "lucky", "night_owl", "perfectionist"]
 for _node_id in (
     "automation_slot", "fast_ships", "hauler", "galaxy_expansion",
     "automation_slot_2", "outer_reaches", "deep_survey", "umbral_reach",
@@ -92,8 +102,12 @@ CHARTER_PERK_IDS = [
 ]
 for _perk_id in CHARTER_PERK_IDS:
     ELEMENT_IDS += [f"charter-perk-{_perk_id}-status", f"charter-perk-{_perk_id}-buy-button"]
+for _perk_id in CAPTAIN_PERK_IDS:
+    ELEMENT_IDS += [f"captain-{_perk_id}-status", f"captain-{_perk_id}-quote", f"captain-{_perk_id}-release-button"]
+    ELEMENT_IDS += [f"captain-{_perk_id}-ship-{_s}-button" for _s in SHIP_IDS]
 for _colony_id in ALL_COLONY_IDS:
     ELEMENT_IDS += [
+        f"colony-{_colony_id}-temperament",
         f"colony-{_colony_id}-name",
         f"colony-{_colony_id}-flavor",
         f"colony-{_colony_id}-need-display",
@@ -116,6 +130,7 @@ for _good in (
 for _ship_id in SHIP_IDS:
     ELEMENT_IDS.append(f"ship-{_ship_id}-label")
     ELEMENT_IDS.append(f"ship-{_ship_id}-status")
+    ELEMENT_IDS += [f"ship-{_ship_id}-captain", f"ship-{_ship_id}-captain-text", f"ship-{_ship_id}-captain-quote"]
     ELEMENT_IDS.append(f"ship-{_ship_id}-load-button")
     ELEMENT_IDS.append(f"ship-{_ship_id}-automate-button")
     ELEMENT_IDS.append(f"ship-{_ship_id}-name-input")
@@ -167,6 +182,9 @@ class GameEnv:
 
     def toggle_charter(self):
         self.elements["charter-toggle-button"].dispatch("click", None)
+
+    def toggle_captains(self):
+        self.elements["captains-toggle-button"].dispatch("click", None)
 
     def toggle_summary(self):
         self.elements["summary-toggle-button"].dispatch("click", None)

@@ -28,7 +28,7 @@
   <div class="space-bg" aria-hidden="true"><div class="space-bg-nebula"></div><div class="space-bg-stars-bright"></div></div>
   <div id="game">
     <a href="../../index.html" class="hub-back-link">&larr; All games</a>
-    <h1>Trade Empire</h1>
+    <h1>Trade Empire <span id="charter-crest" class="charter-crest" title="Charter crest"></span></h1>
 
     <div class="game-toolbar">
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
@@ -37,6 +37,7 @@
       <button id="changelog-toggle-button" class="secondary" type="button">📋 What's New</button>
       <button id="summary-toggle-button" class="secondary" type="button">📊 Summary</button>
       <button id="charter-toggle-button" class="secondary" type="button" aria-controls="charter-panel" aria-expanded="false">📜 Charter</button>
+      <button id="captains-toggle-button" class="secondary" type="button" aria-controls="captains-panel" aria-expanded="false">🎖️ Captains</button>
       <!-- Site-wide settings panel (TODO.md origin A9): text-scale +
            reduce-motion. Deliberately independent of Pyodide/game.py
            entirely -- see settings.js -- same pattern Continuum's Phase
@@ -44,6 +45,9 @@
            Pyodide finishes booting. -->
       <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
     </div>
+    <!-- J-31: earned achievements as a small ribbon of badges (a shape plus
+         the achievement's name), refreshed by game.py's render_ribbon(). -->
+    <div id="ledger-ribbon" class="ledger-ribbon" role="group" aria-label="Ledger ribbon: your earned achievement badges"></div>
     <div id="howto-panel" class="section" hidden></div>
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
     <!-- "What's New" changelog panel (site-wide goal, planning/TODO.md,
@@ -63,6 +67,11 @@
         <span class="settings-row-label">Motion</span>
         <button id="reduce-motion-toggle-button" class="secondary" type="button">Reduce Motion: Off</button>
       </div>
+      <div class="settings-row">
+        <span class="settings-row-label">Effects</span>
+        <button id="effects-toggle-button" class="secondary" type="button" aria-describedby="effects-note">Effects: On</button>
+      </div>
+      <p id="effects-note" class="settings-note">Effects are the optional flourishes: sale sparks, the dock rings on the map and the ribbon glow when you unlock something. Reduce Motion also turns them off.</p>
       <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
       </div>
@@ -150,6 +159,72 @@
         <li id="ledger-charters-display"></li>
         <li id="ledger-hard-display"></li>
       </ul>
+      <p class="panel-label charter-ledger-heading">Career log</p>
+      <p id="charter-crest-display" class="map-caption"></p>
+      <ol id="charter-career-list" class="charter-career" aria-label="Completed charters, newest first"></ol>
+    </div>
+
+    <!-- J-7/J-8: the Fleet Captains roster. Static markup (the post/move buttons keep
+         keyboard focus across the once-a-second render), filled in by render_captains(). -->
+    <div id="captains-panel" class="section captains-panel" hidden>
+      <p class="panel-label">Fleet Captains
+        <details class="info-toggle"><summary>i</summary><p>A ship that becomes a veteran hauler (five round trips on one route) earns a captain's seat for the rest of the charter. You choose which of the four captains to post there. Every captain has a perk and a trade-off, serves on one ship at a time, and can be moved to a different ship once per charter. Nothing is random.</p></details>
+      </p>
+      <p id="captains-summary-display" class="research-points" aria-live="polite"></p>
+      <div class="captain-roster">
+        <div class="captain-row" role="group" aria-label="frugal captain">
+          <p id="captain-frugal-status" class="captain-status">Loading...</p>
+          <p id="captain-frugal-quote" class="captain-quote"></p>
+          <div class="captain-actions">
+          <button id="captain-frugal-ship-1-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-frugal-ship-2-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-frugal-ship-3-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-frugal-ship-4-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-frugal-ship-5-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-frugal-ship-6-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-frugal-release-button" class="secondary" type="button" hidden>Return to roster</button>
+          </div>
+        </div>
+        <div class="captain-row" role="group" aria-label="lucky captain">
+          <p id="captain-lucky-status" class="captain-status">Loading...</p>
+          <p id="captain-lucky-quote" class="captain-quote"></p>
+          <div class="captain-actions">
+          <button id="captain-lucky-ship-1-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-lucky-ship-2-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-lucky-ship-3-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-lucky-ship-4-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-lucky-ship-5-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-lucky-ship-6-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-lucky-release-button" class="secondary" type="button" hidden>Return to roster</button>
+          </div>
+        </div>
+        <div class="captain-row" role="group" aria-label="night owl captain">
+          <p id="captain-night_owl-status" class="captain-status">Loading...</p>
+          <p id="captain-night_owl-quote" class="captain-quote"></p>
+          <div class="captain-actions">
+          <button id="captain-night_owl-ship-1-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-night_owl-ship-2-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-night_owl-ship-3-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-night_owl-ship-4-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-night_owl-ship-5-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-night_owl-ship-6-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-night_owl-release-button" class="secondary" type="button" hidden>Return to roster</button>
+          </div>
+        </div>
+        <div class="captain-row" role="group" aria-label="perfectionist captain">
+          <p id="captain-perfectionist-status" class="captain-status">Loading...</p>
+          <p id="captain-perfectionist-quote" class="captain-quote"></p>
+          <div class="captain-actions">
+          <button id="captain-perfectionist-ship-1-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-perfectionist-ship-2-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-perfectionist-ship-3-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-perfectionist-ship-4-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-perfectionist-ship-5-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-perfectionist-ship-6-button" class="secondary" type="button" hidden disabled>Post</button>
+          <button id="captain-perfectionist-release-button" class="secondary" type="button" hidden>Return to roster</button>
+          </div>
+        </div>
+      </div>
     </div>
     <div id="notice-toast" class="notice-toast" hidden></div>
 
@@ -258,7 +333,7 @@
       <p class="panel-label">Trade routes</p>
       <canvas id="map-canvas" width="620" height="450" class="map-canvas"></canvas>
       <p class="map-caption">Each colony ships to whichever other colony needs what it makes.</p>
-      <p id="map-legend" class="map-caption">Legend: ● manual ship &nbsp; ◆ automated ship &nbsp; pink ring = Fleet Priority target (hover the map for details)</p>
+      <p id="map-legend" class="map-caption">Legend: ● manual ship &nbsp; ◆ automated ship &nbsp; pink ring = Fleet Priority target (hover the map for details) &nbsp; Colony moods (small mark by each colony): ● grateful &nbsp; ▲ demanding &nbsp; ■ opportunistic</p>
     </div>
 
     <div id="market-panel" class="section">
@@ -417,6 +492,7 @@
         <div class="meter"><div id="colony-aurum-need-bar" class="meter-fill"></div></div>
         <div id="colony-aurum-need-sparkline" class="sparkline-slot"></div>
         <p id="colony-aurum-development-display" class="colony-development">Loading...</p>
+        <p id="colony-aurum-temperament" class="colony-temperament"></p>
         <button id="colony-aurum-invest-button" class="secondary invest-button" type="button" hidden>Invest (60)</button>
         <p id="colony-aurum-demand-display" class="colony-demand" hidden></p>
         <button id="colony-aurum-concede-button" class="secondary concede-button" type="button" hidden>Grant concession (80)</button>
@@ -429,6 +505,7 @@
         <div class="meter"><div id="colony-verdant-need-bar" class="meter-fill"></div></div>
         <div id="colony-verdant-need-sparkline" class="sparkline-slot"></div>
         <p id="colony-verdant-development-display" class="colony-development">Loading...</p>
+        <p id="colony-verdant-temperament" class="colony-temperament"></p>
         <button id="colony-verdant-invest-button" class="secondary invest-button" type="button" hidden>Invest (60)</button>
         <p id="colony-verdant-demand-display" class="colony-demand" hidden></p>
         <button id="colony-verdant-concede-button" class="secondary concede-button" type="button" hidden>Grant concession (80)</button>
@@ -441,6 +518,7 @@
         <div class="meter"><div id="colony-ferrum-need-bar" class="meter-fill"></div></div>
         <div id="colony-ferrum-need-sparkline" class="sparkline-slot"></div>
         <p id="colony-ferrum-development-display" class="colony-development">Loading...</p>
+        <p id="colony-ferrum-temperament" class="colony-temperament"></p>
         <button id="colony-ferrum-invest-button" class="secondary invest-button" type="button" hidden>Invest (60)</button>
         <p id="colony-ferrum-demand-display" class="colony-demand" hidden></p>
         <button id="colony-ferrum-concede-button" class="secondary concede-button" type="button" hidden>Grant concession (80)</button>
@@ -453,6 +531,7 @@
         <div class="meter"><div id="colony-cryo-need-bar" class="meter-fill"></div></div>
         <div id="colony-cryo-need-sparkline" class="sparkline-slot"></div>
         <p id="colony-cryo-development-display" class="colony-development">Loading...</p>
+        <p id="colony-cryo-temperament" class="colony-temperament"></p>
         <button id="colony-cryo-invest-button" class="secondary invest-button" type="button" hidden>Invest (60)</button>
         <p id="colony-cryo-demand-display" class="colony-demand" hidden></p>
         <button id="colony-cryo-concede-button" class="secondary concede-button" type="button" hidden>Grant concession (80)</button>
@@ -465,6 +544,7 @@
         <div class="meter"><div id="colony-helion-need-bar" class="meter-fill"></div></div>
         <div id="colony-helion-need-sparkline" class="sparkline-slot"></div>
         <p id="colony-helion-development-display" class="colony-development">Loading...</p>
+        <p id="colony-helion-temperament" class="colony-temperament"></p>
         <button id="colony-helion-invest-button" class="secondary invest-button" type="button" hidden>Invest (60)</button>
         <p id="colony-helion-demand-display" class="colony-demand" hidden></p>
         <button id="colony-helion-concede-button" class="secondary concede-button" type="button" hidden>Grant concession (80)</button>
@@ -480,6 +560,7 @@
           <div class="meter"><div id="colony-kepler_a-need-bar" class="meter-fill"></div></div>
           <div id="colony-kepler_a-need-sparkline" class="sparkline-slot"></div>
           <p id="colony-kepler_a-development-display" class="colony-development">Loading...</p>
+        <p id="colony-kepler_a-temperament" class="colony-temperament"></p>
         <button id="colony-kepler_a-invest-button" class="secondary invest-button" type="button" hidden>Invest (60)</button>
         <p id="colony-kepler_a-demand-display" class="colony-demand" hidden></p>
         <button id="colony-kepler_a-concede-button" class="secondary concede-button" type="button" hidden>Grant concession (80)</button>
@@ -492,6 +573,7 @@
           <div class="meter"><div id="colony-kepler_b-need-bar" class="meter-fill"></div></div>
           <div id="colony-kepler_b-need-sparkline" class="sparkline-slot"></div>
           <p id="colony-kepler_b-development-display" class="colony-development">Loading...</p>
+        <p id="colony-kepler_b-temperament" class="colony-temperament"></p>
         <button id="colony-kepler_b-invest-button" class="secondary invest-button" type="button" hidden>Invest (60)</button>
         <p id="colony-kepler_b-demand-display" class="colony-demand" hidden></p>
         <button id="colony-kepler_b-concede-button" class="secondary concede-button" type="button" hidden>Grant concession (80)</button>
@@ -504,6 +586,7 @@
           <div class="meter"><div id="colony-kepler_c-need-bar" class="meter-fill"></div></div>
           <div id="colony-kepler_c-need-sparkline" class="sparkline-slot"></div>
           <p id="colony-kepler_c-development-display" class="colony-development">Loading...</p>
+        <p id="colony-kepler_c-temperament" class="colony-temperament"></p>
         <button id="colony-kepler_c-invest-button" class="secondary invest-button" type="button" hidden>Invest (60)</button>
         <p id="colony-kepler_c-demand-display" class="colony-demand" hidden></p>
         <button id="colony-kepler_c-concede-button" class="secondary concede-button" type="button" hidden>Grant concession (80)</button>
@@ -520,6 +603,7 @@
           <div class="meter"><div id="colony-rift_a-need-bar" class="meter-fill"></div></div>
           <div id="colony-rift_a-need-sparkline" class="sparkline-slot"></div>
           <p id="colony-rift_a-development-display" class="colony-development">Loading...</p>
+        <p id="colony-rift_a-temperament" class="colony-temperament"></p>
         <button id="colony-rift_a-invest-button" class="secondary invest-button" type="button" hidden>Invest (60)</button>
         <p id="colony-rift_a-demand-display" class="colony-demand" hidden></p>
         <button id="colony-rift_a-concede-button" class="secondary concede-button" type="button" hidden>Grant concession (80)</button>
@@ -532,6 +616,7 @@
           <div class="meter"><div id="colony-rift_b-need-bar" class="meter-fill"></div></div>
           <div id="colony-rift_b-need-sparkline" class="sparkline-slot"></div>
           <p id="colony-rift_b-development-display" class="colony-development">Loading...</p>
+        <p id="colony-rift_b-temperament" class="colony-temperament"></p>
         <button id="colony-rift_b-invest-button" class="secondary invest-button" type="button" hidden>Invest (60)</button>
         <p id="colony-rift_b-demand-display" class="colony-demand" hidden></p>
         <button id="colony-rift_b-concede-button" class="secondary concede-button" type="button" hidden>Grant concession (80)</button>
@@ -544,6 +629,7 @@
           <div class="meter"><div id="colony-rift_c-need-bar" class="meter-fill"></div></div>
           <div id="colony-rift_c-need-sparkline" class="sparkline-slot"></div>
           <p id="colony-rift_c-development-display" class="colony-development">Loading...</p>
+        <p id="colony-rift_c-temperament" class="colony-temperament"></p>
         <button id="colony-rift_c-invest-button" class="secondary invest-button" type="button" hidden>Invest (60)</button>
         <p id="colony-rift_c-demand-display" class="colony-demand" hidden></p>
         <button id="colony-rift_c-concede-button" class="secondary concede-button" type="button" hidden>Grant concession (80)</button>
@@ -560,6 +646,7 @@
           <div class="meter"><div id="colony-deep_a-need-bar" class="meter-fill"></div></div>
           <div id="colony-deep_a-need-sparkline" class="sparkline-slot"></div>
           <p id="colony-deep_a-development-display" class="colony-development">Loading...</p>
+        <p id="colony-deep_a-temperament" class="colony-temperament"></p>
         <button id="colony-deep_a-invest-button" class="secondary invest-button" type="button" hidden>Invest (60)</button>
         <p id="colony-deep_a-demand-display" class="colony-demand" hidden></p>
         <button id="colony-deep_a-concede-button" class="secondary concede-button" type="button" hidden>Grant concession (80)</button>
@@ -572,6 +659,7 @@
           <div class="meter"><div id="colony-deep_b-need-bar" class="meter-fill"></div></div>
           <div id="colony-deep_b-need-sparkline" class="sparkline-slot"></div>
           <p id="colony-deep_b-development-display" class="colony-development">Loading...</p>
+        <p id="colony-deep_b-temperament" class="colony-temperament"></p>
         <button id="colony-deep_b-invest-button" class="secondary invest-button" type="button" hidden>Invest (60)</button>
         <p id="colony-deep_b-demand-display" class="colony-demand" hidden></p>
         <button id="colony-deep_b-concede-button" class="secondary concede-button" type="button" hidden>Grant concession (80)</button>
@@ -584,6 +672,7 @@
           <div class="meter"><div id="colony-deep_c-need-bar" class="meter-fill"></div></div>
           <div id="colony-deep_c-need-sparkline" class="sparkline-slot"></div>
           <p id="colony-deep_c-development-display" class="colony-development">Loading...</p>
+        <p id="colony-deep_c-temperament" class="colony-temperament"></p>
         <button id="colony-deep_c-invest-button" class="secondary invest-button" type="button" hidden>Invest (60)</button>
         <p id="colony-deep_c-demand-display" class="colony-demand" hidden></p>
         <button id="colony-deep_c-concede-button" class="secondary concede-button" type="button" hidden>Grant concession (80)</button>
@@ -628,6 +717,7 @@
         <p id="ship-1-label" class="ship-label">Ship 1</p>
       </div>
       <p id="ship-1-status" class="ship-status">Loading...</p>
+      <p id="ship-1-captain" class="ship-captain" hidden><span id="ship-1-captain-text"></span> <span id="ship-1-captain-quote" class="captain-quote"></span></p>
       <div class="action-buttons">
         <button id="ship-1-load-button" class="secondary" disabled>Loading...</button>
         <button id="ship-1-automate-button" class="secondary automate-button" disabled>Loading...</button>
@@ -661,6 +751,7 @@
         <p id="ship-2-label" class="ship-label">Ship 2</p>
       </div>
       <p id="ship-2-status" class="ship-status">Loading...</p>
+      <p id="ship-2-captain" class="ship-captain" hidden><span id="ship-2-captain-text"></span> <span id="ship-2-captain-quote" class="captain-quote"></span></p>
       <div class="action-buttons">
         <button id="ship-2-load-button" class="secondary" disabled>Loading...</button>
         <button id="ship-2-automate-button" class="secondary automate-button" disabled>Loading...</button>
@@ -694,6 +785,7 @@
         <p id="ship-3-label" class="ship-label">Ship 3</p>
       </div>
       <p id="ship-3-status" class="ship-status">Loading...</p>
+      <p id="ship-3-captain" class="ship-captain" hidden><span id="ship-3-captain-text"></span> <span id="ship-3-captain-quote" class="captain-quote"></span></p>
       <div class="action-buttons">
         <button id="ship-3-load-button" class="secondary" disabled>Loading...</button>
         <button id="ship-3-automate-button" class="secondary automate-button" disabled>Loading...</button>
@@ -727,6 +819,7 @@
         <p id="ship-4-label" class="ship-label">Ship 4</p>
       </div>
       <p id="ship-4-status" class="ship-status">Loading...</p>
+      <p id="ship-4-captain" class="ship-captain" hidden><span id="ship-4-captain-text"></span> <span id="ship-4-captain-quote" class="captain-quote"></span></p>
       <div class="action-buttons">
         <button id="ship-4-load-button" class="secondary" disabled>Loading...</button>
         <button id="ship-4-automate-button" class="secondary automate-button" disabled>Loading...</button>
@@ -760,6 +853,7 @@
         <p id="ship-5-label" class="ship-label">Ship 5</p>
       </div>
       <p id="ship-5-status" class="ship-status">Loading...</p>
+      <p id="ship-5-captain" class="ship-captain" hidden><span id="ship-5-captain-text"></span> <span id="ship-5-captain-quote" class="captain-quote"></span></p>
       <select id="ship-5-archetype-select" class="archetype-select" hidden title="Pick a ship type before buying: Balanced, Cargo-heavy (carries 50% more, one tick slower) or Fast (one tick quicker, carries 25% less).">
         <option value="balanced">Balanced</option>
         <option value="cargo">Cargo-heavy (+50% cargo, 1 tick slower)</option>
@@ -799,6 +893,7 @@
         <p id="ship-6-label" class="ship-label">Ship 6</p>
       </div>
       <p id="ship-6-status" class="ship-status">Loading...</p>
+      <p id="ship-6-captain" class="ship-captain" hidden><span id="ship-6-captain-text"></span> <span id="ship-6-captain-quote" class="captain-quote"></span></p>
       <select id="ship-6-archetype-select" class="archetype-select" hidden title="Pick a ship type before buying: Balanced, Cargo-heavy (carries 50% more, one tick slower) or Fast (one tick quicker, carries 25% less).">
         <option value="balanced">Balanced</option>
         <option value="cargo">Cargo-heavy (+50% cargo, 1 tick slower)</option>
@@ -845,6 +940,7 @@
       <p id="automation-slots-display" class="automation-slots">Automation slots: 0/2 used</p>
       <details class="info-toggle"><summary>i</summary><p>Automating a ship makes it load and depart on its own, on a fixed route, without you clicking anything — but only a limited number of ships can be automated at once, and unlocking more slots is a research upgrade.</p></details>
       <p id="sale-log" class="sale-log">No sales yet.</p>
+      <p id="throughput-display" class="map-caption">Throughput: no deliveries yet.</p>
     </div>
   </div>
 
@@ -959,7 +1055,7 @@
   <script src="../../shared/hub-auth.js"></script>
   <script src="../../shared/save-widget.js" data-game-id="trade-empire"></script>
   <script src="../../shared/opening-screen.js" data-game-id="trade-empire" data-tagline="Found an interstellar trading corporation." data-game-name="Trade Empire"></script>
-  <script src="../../shared/story-toggle.js" data-game-id="trade-empire" data-story-selectors=".colony-flavor, #story-chapters"></script>
+  <script src="../../shared/story-toggle.js" data-game-id="trade-empire" data-story-selectors=".colony-flavor, .captain-quote, #story-chapters"></script>
   <script src="../../shared/story-chapters.js" data-game-id="trade-empire" data-story="story.json"></script>
   <script src="../../shared/last-played.js" data-game-id="trade-empire"></script>
   <script src="../../shared/whats-new-banner.js" data-game-id="trade-empire"></script>
@@ -976,6 +1072,7 @@
         { toggle: "settings-toggle-button", panel: "settings-panel" },
         { toggle: "summary-toggle-button", panel: "summary-panel" },
         { toggle: "charter-toggle-button", panel: "charter-panel" },
+        { toggle: "captains-toggle-button", panel: "captains-panel" },
       ],
     });
   </script>

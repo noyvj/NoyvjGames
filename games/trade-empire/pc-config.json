@@ -5,6 +5,7 @@
     ["changelog-panel", "changelog-toggle-button", "What's New"],
     ["summary-panel", "summary-toggle-button", "Summary"],
     ["charter-panel", "charter-toggle-button", "Charter"],
+    ["captains-panel", "captains-toggle-button", "Fleet Captains"],
     ["settings-panel", "settings-toggle-button", "Settings"]
   ],
   "toolbar": {
@@ -15,7 +16,7 @@
       ["settings-toggle-button", "⚙️"]
     ],
     "menu": [
-      {"heading": "Empire", "ids": []},
+      {"heading": "Empire", "ids": ["captains-toggle-button"]},
       {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button"]},
       {"heading": "Records", "ids": ["changelog-toggle-button"]}
     ]
@@ -54,7 +55,7 @@
   "zones": {
     "topbar": [".hub-back-link", "h1", ".game-toolbar"],
     "stagebar": ["#fleet-priority-panel", "#guild-panel"],
-    "stage": ["#map-panel", "#mobile-needs-strip", "#ledger"],
+    "stage": ["#map-panel", "#mobile-needs-strip", "#ledger-ribbon", "#ledger"],
     "side": ["#ship-1-panel", "#ship-2-panel", "#ship-3-panel", "#ship-4-panel", "#ship-5-panel", "#ship-6-panel", "#endgame-panel"],
     "hidden": ["#profit-display", "#automation-slots-display"]
   },

@@ -137,6 +137,16 @@
       "text": "You chose the harder charter: prices that sag faster, colonies that ask for more sooner. And you still carried it to the end. Nobody hands out a medal for that, but the ledger remembers, and so do you."
     },
     {
+      "id": "captains_table",
+      "title": "A name on the manifest",
+      "text": "One of your haulers has flown the same lane so many times it could do it asleep, and the crew says it deserves a captain. You open the roster, read four very different résumés, and pick one. The ship's log gains a name, and the crew gains an opinion about everything."
+    },
+    {
+      "id": "full_roster",
+      "title": "The whole roster",
+      "text": "Frugal, lucky, nocturnal and exacting: you have now put each of the four captains in a seat at least once. They trade stories at every dock, mostly about each other, and every one of them swears the others are exaggerating."
+    },
+    {
       "id": "background_galaxy_maxed",
       "title": "A thousand quiet ledgers",
       "text": "Beyond the routes you fly yourself, a whole background galaxy of worlds has grown to its full size, each one sending a small, steady trickle of revenue your way. You will never visit most of them, but every one of them is, quietly, part of the company."
