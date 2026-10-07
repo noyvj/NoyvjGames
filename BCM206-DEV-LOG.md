@@ -550,3 +550,6 @@ The clearest cross-cutting infra lesson from this pass: three separate games' au
 
 ### 2026-10-07 (service worker v28: SOL Desktop files)
 **Did:** Added `games/sol/pc.html`, `pc.css` and `pc.js` to the precache list and bumped `SW_VERSION` 27 to 28. All thirteen games now have a Desktop boot (Lexis follows).
+
+### 2026-10-07 (Lexis registered on the hub; service worker v30)
+**Did:** Lexis became the 14th hub game: title card (Space, Language Learning, Deep Systems), thumbnail, `icons/favicon-lexis.svg`, slug lists in `script.js`, `achievements.html` and `admin.html`, the whole game and its engine modules in the service worker precache (version 30), `lexis` in `shared/site-settings.js` so text size and reduced motion sync to an account, and regenerated `game-manifest.json`, `game-last-updated.json`, `game-roadmap-data.json`.

@@ -1,6 +1,6 @@
 # Lexis (working title)
 
-Seed: `planning/lexis-plan.md` (decisions section at the top, ladder in 6b). Started 2026-10-06. Not tied to a BCM assessment. NOT hub-linked yet (no `index.html`); registration happens at milestone 5, by the log owner.
+Seed: `planning/lexis-plan.md` (decisions section at the top, ladder in 6b). Started 2026-10-06. Not tied to a BCM assessment. Hub registration (card, thumbnail, favicon, hub lists, offline cache) is done by the main session, not in `games/lexis/`.
 
 ## One-line pitch
 A sci-fi language-deduction puzzle: a message arrives as bare pulses; learn each language by watching what its signs do, then use it. Deduction first, the story is what pulls you forward.
@@ -46,7 +46,16 @@ Python via Pyodide, engine modules with no DOM (the Signal pattern: a thin view 
 | 5 | Save widget, achievements (10, manifest + `achievements_earned`), tutorial, opening screen; hub registration deliberately MOVED to milestone 8 so a half-built game is not listed publicly; 85 tests | **DONE** (2026-10-07, untagged) |
 | 6 | Rung 3: the Bridge language (plural, negation, question markers; borrows nouns from rung 2 and binary numbers from rung 1): engine (`bridge.py`, `bridge_scenes.py`, `deduce_bridge.py`), planet 3 in `game.py` (locked until planet 2 contact, notebook by marker letter, in-world errors, contact goal), marker glyph strokes, planet 3 tab and panel (counter chips, transmissions, notebook, message builder), achievements Third Contact and Small Signs; 115 tests | **DONE** (2026-10-07, untagged) |
 | 7 | Story spine and ending (Crew log, mission brief, one beat per planet plus a closing beat), Contact report, About Lexis info page with six live-read sources, tutorial steps for planets 2 and 3, the Crew log and the info page; 128 tests | **DONE** (2026-10-07, untagged) |
-| 8 | Hub registration (card, thumbnail, favicon, hub lists, offline cache), polish, accessibility pass (non-colour cues, keyboard, reduced motion), light theme, Info page, Desktop boot | not started |
+| 8 | Polish in `games/lexis/`: accessibility pass (non-colour cues, full keyboard, focus kept across redraws, live regions, reduced motion and effects switches), light theme following the site theme, Settings panel, What's New panel and banner, Desktop boot, 320px check; 156 tests. Hub registration (card, thumbnail, favicon, hub lists, offline cache) is done by the main session | **DONE** here (2026-10-07, untagged); registration by the main session |
+
+## Page, accessibility and Desktop boot (milestone 8)
+- `index.html` is the Classic page (`<main id="game">`, a skip link, planet panels each wrapped in `.planet-cols` > two `.planet-col`). `settings.js` holds the per-device display settings (`lexis-text-scale`, `lexis-reduced-motion`, `lexis-effects`, `lexis-high-contrast`; never in the save). Reduced motion starts from the system setting until the player chooses. Theme comes from `shared/theme.js` (floating pill plus a Settings button); `style.css` is all colour variables with one light set.
+- Non-colour cues: lit lamp is solid-outlined with a written "n of 7 lit", door is open (solid) or shut (double outline) with a word, the chosen planet tab is bold and underlined, earned achievements solid and "Earned", unavailable buttons dashed. Contrast of every text and outline pair is computed in `tests/test_accessibility.py`.
+- Keyboard: everything is Tab-reachable. Inside a Transmit panel (`data-builder`): S short, L long (Planet 1), Backspace removes the last item, Delete clears; Left/Right/Home/End move along a row of buttons. Buttons that turn themselves off use `aria-disabled` (kept focusable); notebook rows and button rows are rebuilt only when their contents change (`fillOnce`), so focus survives every redraw. Accessible names are ordinals ("part 2", "small sign 1", "thing 3"), never the internal letters, so they cannot leak p/n/q or any number value.
+- Screen readers: a hidden `#announce` live region reads each new transmission and its result; the toast reads achievements, new crew log entries and newly reachable planets.
+- What's New: `changelog.json` (`{"changelog": [...]}`), the panel is built by `app.js`, which also sets `window.CHANGELOG_JSON` for `shared/whats-new-banner.js` (included after `app.js`).
+- Desktop boot: `pc-config.json` (windows for crew log, report, achievements, what's new, settings, about; icons for crew log, achievements, settings; menu for tutorial, about, report, what's new), `pc.css` (two scrolling columns: world and transmissions left, notebook and Transmit right; a Contact chip), `pc.js` (`window.LEXIS_PC_TUTORIAL_STEPS`; `index.html` picks it through `window.lexisTutorialSteps`), generated `pc.html`. No change to `game.py`.
+- Not done here: the site-wide account sync of text size and reduced motion needs a `lexis` entry in `shared/site-settings.js` GAME_KEYS (`lexis-text-scale`, `lexis-reduced-motion`); the theme already syncs.
 
 ## Working conventions
 Commit and tag per milestone: `git commit -m "Milestone N: <name>"`, `git tag lexis-milestone-0N`. Update the Status column as work happens.

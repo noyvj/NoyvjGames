@@ -1,0 +1,64 @@
+/* Lexis, Desktop boot (pc.html only). Everything is scoped to the pc layout, so the Classic page is untouched.
+   The planet you are on fills the window in two columns: the world and its received transmissions on the left,
+   your notebook and the Transmit panel on the right. The crew log, achievements, settings and the rest are
+   windows. Frame, readout chips and windows come from shared/pc-shell.css. */
+
+html[data-layout="pc"] body { padding-bottom: 0; }
+html[data-layout="pc"] #game { padding-bottom: 0.4rem; }
+#pc-topbar { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "title tools"; padding-right: 7.5rem; }
+#pc-topbar > .game-toolbar { justify-content: flex-end; }
+html[data-layout="pc"] #theme-toggle-floating { top: 0.7rem !important; bottom: auto !important; left: auto !important; right: 1rem !important; }
+#pc-topbar > h1 { font-size: 1.4rem; }
+.pc-readout-value { font-variant-numeric: tabular-nums; }
+
+/* --- stage bar: planet tabs, the crew's request, status lines ------------------------------------ */
+#pc-stagebar { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 0.3rem 1rem; }
+#pc-stagebar > p { margin: 0; }
+#pc-stagebar > .planet-tabs { margin: 0; flex: 0 0 auto; }
+#pc-stagebar > .goal { flex: 1 1 18rem; min-width: 0; }
+#pc-stagebar > .toast:empty, #pc-stagebar > #engine-status:empty { display: none; }
+
+/* --- stage: the planet in two independently scrolling columns ------------------------------------ */
+#pc-stage > [id^="planet-"] { flex: 1 1 0; min-height: 0; display: flex; }
+#pc-stage > [id^="planet-"][hidden] { display: none; }
+#pc-stage .planet-cols { flex: 1 1 auto; min-width: 0; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.8rem; }
+#pc-stage .planet-col { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 0.7rem; overflow-y: auto; padding-right: 0.15rem; }
+#pc-stage .planet-col > .panel { margin: 0; flex: 0 0 auto; }
+/* The transmissions list and the notebook take the leftover height and scroll inside their panel, so the
+   buttons under them (Receive next transmission, Check) never scroll out of reach. */
+#pc-stage .planet-col:first-child > .panel:nth-child(2),
+#pc-stage .planet-col:last-child > .panel:first-child { flex: 1 1 0; min-height: 9rem; display: flex; flex-direction: column; }
+#pc-stage .planet-col:first-child > .panel:nth-child(2) > .scene-list,
+#pc-stage .planet-col:last-child > .panel:first-child > .notebook-list { flex: 1 1 0; min-height: 3.5rem; overflow-y: auto; align-content: start; }
+#pc-stage .planet-col:last-child > .panel:last-child { flex: 0 0 auto; max-height: 62%; overflow-y: auto; }
+#pc-stage .planet-col > .panel > button { align-self: flex-start; }
+#pc-stage .station-text { margin-top: 0.4rem; }
+
+/* The hint bar under the stage. */
+#pc-hintbar { flex: 0 0 auto; }
+
+/* --- windows: the shell draws a warm dark frame by default; Lexis is blue --------------------------- */
+html[data-layout="pc"] .pc-window-frame {
+  --pc-window-bg: #101a2e; --pc-window-bar-bg: #16213a; --pc-window-line: rgba(127, 209, 255, 0.35);
+  color: var(--text);
+}
+html[data-theme="light"][data-layout="pc"] .pc-window-frame {
+  --pc-window-bg: #ffffff; --pc-window-bar-bg: #e3e9fa; --pc-window-line: rgba(42, 75, 160, 0.45);
+  color: var(--text);
+}
+/* A panel inside a window sits flat; its own heading repeats the title bar. */
+.pc-window-frame > .panel { margin: 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; }
+.pc-window-frame > .panel > h2:first-child { display: none; }
+.pc-window-frame a { color: var(--accent); }
+html[data-theme="light"] #pc-hintbar { opacity: 1; }
+html[data-theme="light"][data-layout="pc"] .pc-readout { background: var(--panel); color: var(--text); }
+html[data-layout="pc"] .pc-readout { color: var(--text); }
+
+@media (max-width: 1100px) {
+  #pc-stage .planet-cols { gap: 0.5rem; }
+  .pc-readout { padding: 0.25rem 0.55rem; font-size: 0.8rem; }
+}
+@media (max-height: 780px) {
+  html[data-layout="pc"] #game { gap: 0.4rem; padding-top: 0.4rem; }
+  #pc-topbar > h1 { margin-top: 0.8rem; font-size: 1.2rem; }
+}

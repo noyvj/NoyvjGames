@@ -1,121 +1,131 @@
 {
   "games": {
     "aftermath": {
-      "commit_count": 75,
-      "last_updated": "2026-09-27",
+      "commit_count": 77,
+      "last_updated": "2026-10-07",
       "recent_commits": [
-        "Light-theme polish for Le Champ, Tide, Trade Empire, Aftermath and SOL (Y11b)",
-        "Aftermath W2: sourced real-world examples per shock type",
-        "Aftermath E17b: named real-place scenarios"
+        "Aftermath Desktop boot (agent-built, reviewed) and offline cache entries",
+        "Fix playtest audit findings: blanket hidden rule, collapsed save widget on phones, compact toggles, wrapping rows, install banner ordering",
+        "Light-theme polish for Le Champ, Tide, Trade Empire, Aftermath and SOL (Y11b)"
       ]
     },
     "canopy": {
-      "commit_count": 83,
-      "last_updated": "2026-09-27",
+      "commit_count": 86,
+      "last_updated": "2026-10-07",
       "recent_commits": [
-        "Canopy gamified batch 1: golden seedling, Tend, Heart Tree, naming, undo, rare wildlife, tiers, weather, chain bloom, almanac, Perfect Season",
-        "Canopy light-theme contrast polish; shared ad-bar label and tutorial step number",
-        "Canopy and Drift W2: sourced real-world examples"
+        "Canopy fixes (UX-1,3,4,5); shared save/menu fixes (UX-2,6,8): slot buttons, New Game overwrite, main-page menu, slot timestamps",
+        "Canopy and Tide Desktop boots (agent-built, reviewed), offline cache entries, Esc fix for the shortcuts overlay",
+        "Fix playtest audit findings: blanket hidden rule, collapsed save widget on phones, compact toggles, wrapping rows, install banner ordering"
       ]
     },
     "champ-de-mots": {
-      "commit_count": 107,
-      "last_updated": "2026-09-27",
+      "commit_count": 112,
+      "last_updated": "2026-10-07",
       "recent_commits": [
-        "Light-theme polish for Le Champ, Tide, Trade Empire, Aftermath and SOL (Y11b)",
-        "Trade Empire and Le Champ W1: story modes; shared community-pool.js",
-        "Le Champ L4b: opt-in placement test"
+        "Le Champ de Mots: player titles from the practice score (L-26)",
+        "Champ exam planner: cautious figure assumes one answer in four wrong (your choice), 80% target kept",
+        "Le Champ de Mots Round 3 batch 1: exam planner and countdown, farm filter and sort, accent bar (L-9, L-28, L-24, L-20)"
       ]
     },
     "continuum": {
-      "commit_count": 77,
-      "last_updated": "2026-09-27",
+      "commit_count": 86,
+      "last_updated": "2026-10-07",
       "recent_commits": [
-        "Continuum: found a new settlement, founder's legacy, Refuge Start (O-5..O-8)",
-        "Continuum light-theme polish (Y11b): Settings theme control, themed 3D scene, contrast fixes; banner button",
-        "Continuum: eighth era (Relay Age) and per-era real-world examples"
+        "Continuum Round 3 batch 1: stat sparklines, change explainer, post-mortem (K-27, K-16, K-14)",
+        "Desktop boot: per-game pc-config.json, readout chips, generic tests and the conversion guide",
+        "Desktop windows: draggable, remembered position, click to front, double-click to centre"
       ]
     },
     "drift": {
-      "commit_count": 83,
-      "last_updated": "2026-09-27",
+      "commit_count": 85,
+      "last_updated": "2026-10-07",
       "recent_commits": [
-        "Canopy and Drift W2: sourced real-world examples",
-        "Loop and Drift W1: story modes via shared story-chapters.js",
-        "Community index lines: Aftermath E9, Drift I17, Tide D9"
+        "Drift Desktop boot (agent-built, reviewed) and offline cache entries",
+        "Fix playtest audit findings: blanket hidden rule, collapsed save widget on phones, compact toggles, wrapping rows, install banner ordering",
+        "Canopy and Drift W2: sourced real-world examples"
       ]
     },
     "grid": {
-      "commit_count": 78,
-      "last_updated": "2026-09-26",
+      "commit_count": 80,
+      "last_updated": "2026-10-06",
       "recent_commits": [
-        "Grid W1: Kestrel Valley story mode; shared story-chapters.js",
-        "Grid C29: real grid comparison against published regional mixes",
-        "Grid C3: regional grid, a lighter multi-grid mode"
+        "Grid Desktop boot (agent-built, reviewed) and offline cache entries",
+        "Fix playtest audit findings: blanket hidden rule, collapsed save widget on phones, compact toggles, wrapping rows, install banner ordering",
+        "Grid W1: Kestrel Valley story mode; shared story-chapters.js"
       ]
     },
     "herd": {
-      "commit_count": 70,
-      "last_updated": "2026-09-27",
+      "commit_count": 72,
+      "last_updated": "2026-10-07",
       "recent_commits": [
-        "Herd R-23: reactive tagline",
-        "Canopy and Herd W1: story modes via shared story-chapters.js",
-        "Community leaderboards: shared widget + SOL A29, Aftermath E23, Herd F21"
+        "Herd Desktop boot (agent-built, reviewed) and offline cache entries",
+        "Fix playtest audit findings: blanket hidden rule, collapsed save widget on phones, compact toggles, wrapping rows, install banner ordering",
+        "Herd R-23: reactive tagline"
+      ]
+    },
+    "lexis": {
+      "commit_count": 11,
+      "last_updated": "2026-10-07",
+      "recent_commits": [
+        "Milestone 7: Lexis story spine, contact report and Info page (agent-built, reviewed)",
+        "Milestone 6: Lexis planet 3, the Bridge language in the view (agent-built, reviewed)",
+        "Lexis milestone 6 (part 1): Bridge language engine, scenes and deducibility checker"
       ]
     },
     "loop": {
-      "commit_count": 70,
-      "last_updated": "2026-09-27",
+      "commit_count": 72,
+      "last_updated": "2026-10-07",
       "recent_commits": [
-        "Loop H11: opt-in regional recycling pool donation",
-        "Loop and Drift W1: story modes via shared story-chapters.js",
-        "Loop H25b/H29b: rich visual trade network and supply-chain maps"
+        "Loop Desktop boot (agent-built, reviewed) and offline cache entries",
+        "Fix playtest audit findings: blanket hidden rule, collapsed save widget on phones, compact toggles, wrapping rows, install banner ordering",
+        "Loop H11: opt-in regional recycling pool donation"
       ]
     },
     "signal": {
-      "commit_count": 2,
-      "last_updated": "2026-09-27",
+      "commit_count": 3,
+      "last_updated": "2026-10-07",
       "recent_commits": [
+        "Signal Desktop boot (agent-built, reviewed) and offline cache entries",
         "Signal: daily deduction puzzle game (10 milestones, 190 tests)"
       ]
     },
     "sol": {
-      "commit_count": 72,
-      "last_updated": "2026-09-27",
+      "commit_count": 74,
+      "last_updated": "2026-10-07",
       "recent_commits": [
-        "SOL R-9/R-10: welcome-back machine and click delta, personal-best playthrough",
-        "Light-theme polish for Le Champ, Tide, Trade Empire, Aftermath and SOL (Y11b)",
-        "SOL W1: deeper captain's log story beats"
+        "SOL Desktop boot (agent-built, reviewed); service worker v28",
+        "Fix playtest audit findings: blanket hidden rule, collapsed save widget on phones, compact toggles, wrapping rows, install banner ordering",
+        "SOL R-9/R-10: welcome-back machine and click delta, personal-best playthrough"
       ]
     },
     "thaw": {
-      "commit_count": 74,
-      "last_updated": "2026-09-26",
+      "commit_count": 76,
+      "last_updated": "2026-10-07",
       "recent_commits": [
-        "Thaw G9: long game mode",
-        "Thaw G7: Climate Scientist panel with real NOAA methane data",
-        "U4b: opening screen taglines, Continue save note, Le Champ style-picker step"
+        "Thaw Desktop boot (agent-built, reviewed), offline cache entries, light-theme notification fix",
+        "Fix playtest audit findings: blanket hidden rule, collapsed save widget on phones, compact toggles, wrapping rows, install banner ordering",
+        "Thaw G9: long game mode"
       ]
     },
     "tide": {
-      "commit_count": 67,
-      "last_updated": "2026-09-27",
+      "commit_count": 70,
+      "last_updated": "2026-10-07",
       "recent_commits": [
-        "Tide R-19: top-tier seawall glint",
-        "Light-theme polish for Le Champ, Tide, Trade Empire, Aftermath and SOL (Y11b)",
-        "Community index lines: Aftermath E9, Drift I17, Tide D9"
+        "Tide: Harbor Ledger, Advance x5, game keys, accessibility, ticker filters, tab status (agent-built, reviewed)",
+        "Canopy and Tide Desktop boots (agent-built, reviewed), offline cache entries, Esc fix for the shortcuts overlay",
+        "Fix playtest audit findings: blanket hidden rule, collapsed save widget on phones, compact toggles, wrapping rows, install banner ordering"
       ]
     },
     "trade-empire": {
-      "commit_count": 80,
-      "last_updated": "2026-09-27",
+      "commit_count": 82,
+      "last_updated": "2026-10-07",
       "recent_commits": [
-        "Trade Empire: charter renewal, perk tree, lifetime ledger, harder charter (O-1..O-4)",
-        "Light-theme polish for Le Champ, Tide, Trade Empire, Aftermath and SOL (Y11b)",
-        "Trade Empire and Le Champ W1: story modes; shared community-pool.js"
+        "Trade Empire Desktop boot (agent-built, reviewed) and offline cache entries",
+        "Fix playtest audit findings: blanket hidden rule, collapsed save widget on phones, compact toggles, wrapping rows, install banner ordering",
+        "Trade Empire: charter renewal, perk tree, lifetime ledger, harder charter (O-1..O-4)"
       ]
     }
   },
-  "generated_at": "2026-10-02",
-  "total_commits": 974
+  "generated_at": "2026-10-07",
+  "total_commits": 1039
 }

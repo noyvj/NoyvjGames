@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 126/785 items checked off (16.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 127/785 items checked off (16.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -929,7 +929,7 @@ Classic stays the default boot (`index.html`); Desktop is a second boot (`pc.htm
 - [x] LX-6b: Your answers 2026-10-07: go with the recommendations (hints are in-world, such as asking someone to repeat slowly, with no answer-giving button; working title stays Lexis). Noy2 continues Lexis this round.
 - [x] LX-7: Milestone 6, the bridge language (rung 3: plural, negation, question markers).
 - [x] LX-8: Milestone 7, story spine and ending, Info page with real-linguistics sources read live.
-- [ ] LX-9: Milestone 8, hub registration (card, thumbnail, favicon, offline cache), polish, accessibility pass, light theme, Desktop boot.
+- [x] LX-9: Milestone 8, hub registration (card, thumbnail, favicon, offline cache), polish, accessibility pass, light theme, Desktop boot.
 
 ## CH. Chronicle (history game built from expandable sets; plan `planning/chronicle-plan.md`)
 

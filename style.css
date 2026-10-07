@@ -619,6 +619,30 @@ body {
   background: radial-gradient(circle, #ffb347 0 7px, transparent 8px);
 }
 
+/* Lexis: a row of long and short pulse marks (the first language the player
+   reads) over a faint second row, with one gold dot between, on a deep blue
+   ground. Same marks as the game's own favicon. */
+.title-card-thumb--lexis {
+  --thumb-glow: #9ad0ff;
+  background: linear-gradient(160deg, #1b2747 0%, #0e1426 100%);
+}
+.title-card-thumb--lexis::before {
+  inset: 34% 14% auto 14%;
+  height: 8px;
+  border-radius: 4px;
+  background: repeating-linear-gradient(90deg, #9ad0ff 0 46px, transparent 46px 62px, #9ad0ff 62px 70px, transparent 70px 86px, #9ad0ff 86px 112px, transparent 112px 128px);
+  box-shadow: 0 34px 0 -1px rgba(154, 208, 255, 0.55), 0 0 18px rgba(154, 208, 255, 0.25);
+}
+.title-card-thumb--lexis::after {
+  inset: 50% auto auto 50%;
+  width: 10px;
+  height: 10px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: #ffd27a;
+  box-shadow: 0 0 12px rgba(255, 210, 122, 0.7);
+}
+
 /* Trade Empire: a miniature version of the in-game trade map itself —
    route lines connecting colony nodes (the same NODE_COLOR blue used by
    game.py's render_map()) with one gold dot standing in for an automated

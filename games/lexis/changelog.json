@@ -1,0 +1,16 @@
+{
+  "changelog": [
+    {
+      "date": "2026-10-07",
+      "entry": "Lexis gets an accessibility and display pass: every control works from the keyboard (Tab through everything, S and L add marks, Backspace and Delete edit the signal, arrow keys move along a row of buttons), screen readers hear each new transmission and what changed, and every state has a shape or a written label as well as a colour. A Settings panel adds text size, reduce motion, an effects switch, high contrast and a light or dark theme that follows your device until you choose."
+    },
+    {
+      "date": "2026-10-07",
+      "entry": "Desktop layout for wide windows: the planet's world and its transmissions sit on the left, your notebook and the Transmit panel on the right, and the crew log, achievements, settings and the rest open as windows from icons or the Menu (Esc). It is the same game and the same save; the Classic layout is unchanged and is still what phones use."
+    },
+    {
+      "date": "2026-10-07",
+      "entry": "Lexis is a language-deduction puzzle. A message arrives as bare pulses; work out what each sign does by watching the station, then answer it. Three planets: pulses and a quiet beacon, signs made of parts, and a counting station whose small signs change what a message means. A crew log tells the story, a contact report says how you did, and About Lexis names the real-world sources behind each idea."
+    }
+  ]
+}

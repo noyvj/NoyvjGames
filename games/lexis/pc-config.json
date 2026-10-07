@@ -1,0 +1,45 @@
+{
+  "windows": [
+    ["crew-log-panel", "crew-log-toggle-button", "Crew log"],
+    ["report-panel", "report-toggle-button", "Contact report"],
+    ["achievements-panel", "achievements-toggle-button", "Achievements"],
+    ["changelog-panel", "changelog-toggle-button", "What's New"],
+    ["settings-panel", "settings-toggle-button", "Settings"],
+    ["info-page-panel", "info-page-toggle-button", "About Lexis"]
+  ],
+  "toolbar": {
+    "icons": [
+      ["crew-log-toggle-button", "📓"],
+      ["achievements-toggle-button", "🏆"],
+      ["settings-toggle-button", "⚙️"]
+    ],
+    "menu": [
+      {"heading": "Game", "ids": []},
+      {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button"]},
+      {"heading": "Records", "ids": ["report-toggle-button", "changelog-toggle-button"]}
+    ]
+  },
+  "composites": [],
+  "adopt": [],
+  "zones": {
+    "topbar": [".hub-back-link", "h1", ".game-toolbar"],
+    "stagebar": ["#planet-tabs", "#goal-line", "#toast", "#engine-status"],
+    "stage": ["#planet-pulse", "#planet-compound", "#planet-bridge"],
+    "side": [],
+    "hidden": [".tagline", "#contact-line"]
+  },
+  "readouts": [
+    ["#contact-line", "📡", "Contact"]
+  ],
+  "side_label": "Notebook and transmit",
+  "hints": [
+    ["Tab", "Next control"],
+    ["S / L", "Short tick / long bar (Planet 1 Transmit)"],
+    ["⌫", "Remove last"],
+    ["Del", "Clear signal"],
+    ["←→", "Along a row of buttons"],
+    ["?", "All shortcuts"],
+    ["Esc", "Menu / close window"]
+  ],
+  "notify": null
+}

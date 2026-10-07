@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 29;
+const SW_VERSION = 30;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -67,6 +67,31 @@ const PRECACHE_URLS = [
   "games/signal/style.css",
   "games/signal/game.py",
   "games/signal/app.js",
+  "games/lexis/index.html",
+  "games/lexis/style.css",
+  "games/lexis/game.py",
+  "games/lexis/app.js",
+  "games/lexis/settings.js",
+  "games/lexis/changelog.json",
+  "games/lexis/achievements.json",
+  "games/lexis/lang.py",
+  "games/lexis/pulse.py",
+  "games/lexis/parse.py",
+  "games/lexis/world.py",
+  "games/lexis/scenes.py",
+  "games/lexis/deduce.py",
+  "games/lexis/notebook.py",
+  "games/lexis/compound.py",
+  "games/lexis/compound_scenes.py",
+  "games/lexis/deduce_compound.py",
+  "games/lexis/glyphs.py",
+  "games/lexis/achievements.py",
+  "games/lexis/bridge.py",
+  "games/lexis/bridge_scenes.py",
+  "games/lexis/deduce_bridge.py",
+  "games/lexis/story.py",
+  "games/lexis/report.py",
+  "games/lexis/info.py",
   // Audit fix 2026-09-27: Trade Empire is hub-linked and has been for a while
   // (see CLAUDE.md's Current games table) -- both were mistakenly left off
   // this list under a stale "not hub-linked yet" comment. Trade Empire has the
@@ -108,6 +133,9 @@ const PRECACHE_URLS = [
   "games/sol/pc.html",
   "games/sol/pc.css",
   "games/sol/pc.js",
+  "games/lexis/pc.html",
+  "games/lexis/pc.css",
+  "games/lexis/pc.js",
   "games/signal/pc.html",
   "games/signal/pc.css",
   "games/signal/pc.js",
