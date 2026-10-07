@@ -9,7 +9,9 @@
     ["prestige-tree-panel", "prestige-tree-toggle-button", "Prestige Tree"],
     ["changelog-panel", "changelog-toggle-button", "What's New"],
     ["settings-panel", "settings-toggle-button", "Settings"],
-    ["epilogue-panel", "epilogue-button", "Epilogue"]
+    ["epilogue-panel", "epilogue-button", "Epilogue"],
+    ["chains-panel", "chains-toggle-button", "Chain Reactions"],
+    ["splits-panel", "splits-toggle-button", "Speedrun splits"]
   ],
   "toolbar": {
     "icons": [
@@ -19,9 +21,9 @@
       ["settings-toggle-button", "⚙️"]
     ],
     "menu": [
-      {"heading": "Game", "ids": ["build-plan-toggle-button", "prestige-tree-toggle-button", "governor-report-toggle-button"]},
+      {"heading": "Game", "ids": ["build-plan-toggle-button", "chains-toggle-button", "prestige-tree-toggle-button", "governor-report-toggle-button"]},
       {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button"]},
-      {"heading": "Records", "ids": ["changelog-toggle-button"]}
+      {"heading": "Records", "ids": ["changelog-toggle-button", "splits-toggle-button"]}
     ]
   },
   "composites": [
@@ -50,7 +52,7 @@
   "adopt": [],
   "zones": {
     "topbar": [".hub-back-link", "h1", ".game-toolbar"],
-    "stagebar": ["#captains-log-latest", "#away-report", "#win-banner"],
+    "stagebar": ["#captains-log-latest", "#trophy-shelf", "#click-streak", "#away-report", "#win-banner"],
     "stage": ["#earth-view", "#mars-view", "#moon-view", "#venus-view", "#asteroidbelt-view", "#pluto-view", "#jupitermoons-view", "#saturnmoons-view", "#away-view"],
     "hidden": []
   },

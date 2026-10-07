@@ -119,6 +119,16 @@
       "id": "back_from_the_brink",
       "label": "Back From the Brink",
       "description": "Let a world collapse to 0% ecology, then restore it above 50%."
+    },
+    {
+      "id": "in_rhythm",
+      "label": "In Rhythm",
+      "description": "Keep a mining rhythm going for 40 clicks in a row, each within a second and a half of the last."
+    },
+    {
+      "id": "chain_reactor",
+      "label": "Chain Reactor",
+      "description": "Find every chain reaction: the short action sequences listed on the Chain Reactions page."
     }
   ]
 }

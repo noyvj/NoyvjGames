@@ -86,7 +86,51 @@
     return reduced;
   }
 
+  /* Round-3 batch: four on/off preferences kept in localStorage as "on"/"off" (game.py reads the first two
+     directly; the last two are applied as attributes on <html> that style.css reads). Same rule as above:
+     a per-browser preference, never part of a save. */
+  const TOGGLES = [
+    { id: "click-streak-checkbox", key: "sol-click-streak", fallback: true },
+    { id: "chain-bonus-checkbox", key: "sol-chain-bonus", fallback: true },
+    { id: "trophy-flourish-checkbox", key: "sol-trophy-flourish", fallback: true, attr: "data-trophy-flourish" },
+    { id: "show-timing-checkbox", key: "sol-show-timing", fallback: false, attr: "data-show-timing" },
+  ];
+
+  function readToggle(toggle) {
+    try {
+      const raw = window.localStorage.getItem(toggle.key);
+      if (raw === "on") return true;
+      if (raw === "off") return false;
+    } catch (e) {
+      // Storage unavailable: use the default.
+    }
+    return toggle.fallback;
+  }
+
+  function applyToggle(toggle, on) {
+    if (toggle.attr) {
+      document.documentElement.setAttribute(toggle.attr, on ? "on" : "off");
+    }
+    try {
+      window.localStorage.setItem(toggle.key, on ? "on" : "off");
+    } catch (e) {
+      // Same as above.
+    }
+    const box = document.getElementById(toggle.id);
+    if (box) box.checked = on;
+    return on;
+  }
+
   function init() {
+    TOGGLES.forEach(function (toggle) {
+      applyToggle(toggle, readToggle(toggle));
+      const box = document.getElementById(toggle.id);
+      if (box) {
+        box.addEventListener("change", function () {
+          applyToggle(toggle, box.checked);
+        });
+      }
+    });
     let scale = readStoredScale();
     applyScale(scale);
     let reduced = readStoredMotion();
@@ -137,6 +181,9 @@
         if (motionCheckbox) {
           motionCheckbox.checked = false;
         }
+        TOGGLES.forEach(function (toggle) {
+          applyToggle(toggle, toggle.fallback);
+        });
       });
     }
   }

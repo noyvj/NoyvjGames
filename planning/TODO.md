@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 213/785 items checked off (27.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 220/785 items checked off (28.0%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -198,16 +198,16 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] A-19: Add a hidden SOL Codex of 7 cryptic clues (odd trailing sentence in each planet description) that unlock a silly secret building or fake achievement when acted on (e.g. Pluto at 0% ecology, 13 of one building, terraform Venus last); every clue must be hinted so it stays easy to 100%.
 - [ ] A-20: Show a 'clues found: N/7' line in the SOL Codex hidden until the first clue is discovered. (needs A-19)
 - [ ] A-21: Add SOL prestige Eras (Pioneer, Steward, Architect, Custodian) replacing the flat level counter, each re-theming the shell (palette shift, title tagline, quiet visual-only starfield tweak, no audio), toggleable and respecting light theme and reduce motion.
-- [ ] A-22: Add a cheeky per-planet 'Governor mood' one-liner in SOL's Governor Report that varies with personality and how much the player micromanages that planet.
+- [x] A-22: Add a cheeky per-planet 'Governor mood' one-liner in SOL's Governor Report that varies with personality and how much the player micromanages that planet.
 - [ ] A-23: Add SOL Blueprint Swap: serialise build plan plus Doctrine list plus mutator picks into a short shareable code, importable as a ghost overlay in the Build Plan checklist; no backend. (needs A-3, A-7 for the Doctrine/mutator parts)
-- [ ] A-24: Add a 'copy as text spreadsheet' button to SOL's Build Plan (tab-separated step/done rows via clipboard with manual-copy fallback).
-- [ ] A-25: Add SOL Chain Reactions: performing the right sequence of actions across planets in a short window (e.g. dump Ice on Venus, trade Water to Earth, click Mars) triggers a small bonus, discovered by experiment, with a 'combos found' collection page and hints so it stays easy to 100%.
-- [ ] A-26: Add a soft SOL click-streak meter giving a very small yield bonus for staying in rhythm, with a text-only reduce-motion fallback and a Settings off switch; must never beat or replace normal play.
+- [x] A-24: Add a 'copy as text spreadsheet' button to SOL's Build Plan (tab-separated step/done rows via clipboard with manual-copy fallback).
+- [x] A-25: Add SOL Chain Reactions: performing the right sequence of actions across planets in a short window (e.g. dump Ice on Venus, trade Water to Earth, click Mars) triggers a small bonus, discovered by experiment, with a 'combos found' collection page and hints so it stays easy to 100%.
+- [x] A-26: Add a soft SOL click-streak meter giving a very small yield bonus for staying in rhythm, with a text-only reduce-motion fallback and a Settings off switch; must never beat or replace normal play.
 - [ ] A-27: Add an optional SOL Ecology Stress Test endgame arena: a one-shot scenario where a cascade of anomalies hits every planet and the player must hold combined ecology above a line using only already-set Governors/Doctrines (no clicking), scored by margin held. (needs A-7 (Doctrines), anomaly system from A-2)
 - [ ] A-28: After a SOL Stress Test show a per-planet heatmap strip of when each planet's ecology dipped, with text/pattern cues (not colour alone). (needs A-27)
 - [ ] A-29: Add a SOL Ghost Run mode: race a recorded replay of your personal best (or an imported friend's blueprint code) on a split track showing lead/lag in terraform percent every 25 ticks; local only. (needs A-23, A-30)
-- [ ] A-30: Add a SOL speedrun splits panel with a lap time per planet unlocked and a delta vs personal best (marked with +/- text as well as colour), hidden unless a 'Show timing' Settings option is on.
-- [ ] A-31: Add a SOL trophy-shelf strip of the most recently earned achievement badges near the top toolbar, each in SOL's gradient-glow style, plus a brief toggleable glow/particle flourish on unlock (off under reduce motion); toast stays.
+- [x] A-30: Add a SOL speedrun splits panel with a lap time per planet unlocked and a delta vs personal best (marked with +/- text as well as colour), hidden unless a 'Show timing' Settings option is on.
+- [x] A-31: Add a SOL trophy-shelf strip of the most recently earned achievement badges near the top toolbar, each in SOL's gradient-glow style, plus a brief toggleable glow/particle flourish on unlock (off under reduce motion); toast stays.
 
 *Not added: A-1 (no).*
 
@@ -916,7 +916,7 @@ Classic stays the default boot (`index.html`); Desktop is a second boot (`pc.htm
 - [x] PC-14: Le Champ de Mots Desktop (agent-built, reviewed, committed 084a60b; offline cache worker version 27).
 - [x] PC-15: SOL Desktop. Same state as PC-14 (722 tests pass, uncommitted, stopped mid-build).
 - [ ] PC-16: When every game has its Desktop layout, send you screenshots of all of them (your answer 2026-10-07: later, screenshots first), then fix what you say feels wrong. Controller support: not yet; audio stays parked.
-- [ ] PC-17: Fix SOL's research node buttons staying greyed out as Iron accumulates (Classic bug found by the Desktop agent: `update_research_node_list()` only runs on events, not as Iron grows). Needs a light update of the `disabled` flags in the tick path, not a full list rebuild every tick (that would swallow clicks); then drop the workaround in `games/sol/pc.js`.
+- [x] PC-17: Fix SOL's research node buttons staying greyed out as Iron accumulates (Classic bug found by the Desktop agent: `update_research_node_list()` only runs on events, not as Iron grows). Needs a light update of the `disabled` flags in the tick path, not a full list rebuild every tick (that would swallow clicks); then drop the workaround in `games/sol/pc.js`.
 
 ## LX. Lexis (language-deduction puzzle game; plan `planning/lexis-plan.md`, game in `games/lexis/`)
 

@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-08",
+      "entry": "New in SOL: Chain Reactions (do the right actions in the right order within a minute for a small bonus, seven to find, with hints), a rhythm bonus for steady clicking (up to +5%, can be switched off), a trophy shelf of your five newest achievements, a Governor mood line on every Governor Report card, a Splits page for your time per world against your personal best (switch on Show timing in Settings), and Copy as spreadsheet text on the Build Plan. Research buttons now light up as soon as you can afford a node. Two new achievements: In Rhythm and Chain Reactor."
+    },
+    {
       "date": "2026-10-07",
       "entry": "New Desktop layout for wide windows with a mouse: the world you are on fills the screen with its panels beside it, every world's resource is a chip across the top, and Research, the Governor, the Overview, Stats and the rest open as windows from the icons and the Menu (Esc). Your save carries over; switch layouts from the opening screen or the Menu. The Classic layout is unchanged."
     },

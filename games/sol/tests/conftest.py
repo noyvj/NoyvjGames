@@ -91,6 +91,16 @@ TRAVEL_BUTTON_ID = {
 # Element IDs wired up in index.html — kept in one place so tests and the
 # fixture agree on what "the DOM" contains.
 ELEMENT_IDS = [
+    # Round-3 batch (A-22/24/25/26/30/31)
+    "trophy-shelf",
+    "click-streak",
+    "chains-toggle-button",
+    "chains-panel",
+    "splits-toggle-button",
+    "splits-panel",
+    "build-plan-copy-button",
+    "build-plan-copy-status",
+    "build-plan-copy-output",
     # A1-A30 batch
     "prestige-badge",
     "overview-toggle-button",
@@ -984,6 +994,11 @@ def game_env():
         elements[id_].disabled = True
     timers = FakeTimers()
     local_storage = FakeLocalStorage()
+    # The Round-3 gameplay extras (rhythm bonus, chain-reaction gifts) are on by default for
+    # players but would change the exact amounts every older test asserts, so the shared
+    # fixture starts with both switched off; their own tests switch them on (tests/test_round3.py).
+    local_storage.setItem("sol-click-streak", "off")
+    local_storage.setItem("sol-chain-bonus", "off")
     _install_pyodide_fakes(elements, timers, local_storage)
 
     spec = importlib.util.spec_from_file_location("game", GAME_PY)

@@ -6,7 +6,9 @@
       block so the layout can put it beside the world's panels. Nodes are moved, never copied, so ids and
       listeners survive.
    3. The resource chips under the top bar show only the worlds you have unlocked, and the shared "?"
-      list closing with Escape does not also open the Menu. */
+      list closing with Escape does not also open the Menu.
+   (The research node buttons keeping their enabled state in step with the Iron count used to be patched
+   here; game.py's tick now does it for both layouts, PC-17.) */
 window.SOL_PC_TUTORIAL_STEPS = [
   {
     title: "Welcome to SOL",
@@ -101,33 +103,10 @@ window.SOL_PC_TUTORIAL_STEPS = [
     if (help && !help.hidden) e.__pcMenuOpened = true;
   }, true);
 
-  // 3c. game.py only redraws the research node buttons (and whether each one is affordable) when something
-  // calls update_research_display(), which never happens as Iron accumulates, so a node can stay greyed out
-  // after you can afford it (also true on the Classic page). In this layout the buttons of nodes that are
-  // not locked follow the Iron count (the one on Earth's hero, which the game updates every tick). Only the
-  // buttons' disabled flag changes, nothing is redrawn, and buying a node is still checked by the game itself.
-  function keepResearchFresh() {
-    const iron = document.getElementById("resource-count");
-    const list = document.getElementById("research-node-list");
-    if (!iron || !list) return;
-    const sync = () => {
-      const have = parseInt(iron.textContent, 10);
-      if (Number.isNaN(have)) return;
-      list.querySelectorAll(".research-node--available button").forEach((button) => {
-        const cost = parseInt((button.textContent.match(/\((\d+) Iron\)/) || [])[1], 10);
-        if (!Number.isNaN(cost)) button.disabled = have < cost;
-      });
-    };
-    new MutationObserver(sync).observe(iron, { childList: true, characterData: true, subtree: true });
-    new MutationObserver(sync).observe(list, { childList: true });
-    sync();
-  }
-
   document.addEventListener("DOMContentLoaded", () => {
     groupHeroes();
     const log = document.getElementById("captains-log");
     if (log) log.open = true; // its window is titled "Captain's log" already, so the list starts open
-    setTimeout(keepResearchFresh, 0);
     // The chips are built by the shell's own DOMContentLoaded handler, which runs after this one.
     setTimeout(watchChips, 0);
   });

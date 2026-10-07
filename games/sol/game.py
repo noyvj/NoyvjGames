@@ -196,6 +196,9 @@ planet_state = {
         # well developed (see SPECIALIZATION_MIN_TERRAFORM).
         "governor_personality": "default",
         "specialization": None,
+        # A-22: how many times the player has mined or bought something on this
+        # world by hand; only ever read for the Governor's mood line.
+        "player_actions": 0,
     }
     for name in PLANETS
 }
@@ -682,6 +685,8 @@ def research_node_action(node_id):
     if completed_tiers > before:
         tier = RESEARCH_TIERS[before]
         unlocked_bodies.update(tier["unlocks"])
+        for body in tier["unlocks"]:
+            _note_split(body)
         update_travel_display()
         update_all_cross_summaries()
         # Second achievement wave (A2/A13) -- checked at the exact moment
@@ -695,6 +700,7 @@ def research_node_action(node_id):
                 off_the_grid_hit = True
         if completed_tiers == len(RESEARCH_TIERS) and total_ticks <= SWIFT_EXPANSION_TICKS:
             swift_expansion_hit = True
+    _player_action("research", "Earth")
     return True
 
 
@@ -992,10 +998,33 @@ def _research_effect_text(node):
     return ", ".join(parts) if parts else "a step on the path"
 
 
+# PC-17: the buy buttons of the "available" nodes in the list currently on
+# screen, as (button, node) pairs. update_research_node_list() rebuilds the
+# rows (so their affordability is only right at that moment); tick() calls
+# update_research_node_flags() to keep each button's `disabled` flag in step
+# with the Iron count WITHOUT rebuilding the list, because replacing the
+# buttons every 100 ms would swallow a click that lands between mousedown and
+# mouseup. Never part of any save.
+_research_node_buttons = []
+
+
+def update_research_node_flags():
+    """PC-17: refresh only the `disabled` flag of each available research
+    node's button from the current Iron, never the rows themselves."""
+    if not _research_node_buttons:
+        return
+    earth_iron = planet_state["Earth"]["resource_count"]
+    for button, node in _research_node_buttons:
+        want = earth_iron < research_node_cost(node)
+        if bool(button.disabled) != want:
+            button.disabled = want
+
+
 def update_research_node_list():
     """U10: the current level's nodes, one row each, in tree order."""
     container = document.getElementById("research-node-list")
     container.innerHTML = ""
+    del _research_node_buttons[:]
     tier_index = completed_tiers
     if tier_index >= len(RESEARCH_TIERS):
         return
@@ -1028,6 +1057,8 @@ def update_research_node_list():
             button.innerText = f"Research ({cost} Iron)"
             button.setAttribute("data-node", node["id"])
             button.disabled = status == "locked" or earth_iron < cost
+            if status == "available":
+                _research_node_buttons.append((button, node))
             row.appendChild(button)
         container.appendChild(row)
 
@@ -1311,6 +1342,9 @@ ACHIEVEMENT_CHECKS = {
     # as the wave above: "fell to near zero and recovered" is play history.
     "close_call": lambda: close_call_hit,
     "back_from_the_brink": lambda: back_from_brink_hit,
+    # Round-3 batch: both are lifetime records, so a prestige never un-earns them.
+    "in_rhythm": lambda: best_click_streak >= IN_RHYTHM_STREAK,
+    "chain_reactor": lambda: chains_found() >= len(CHAINS),
 }
 
 # Progress readouts, only for achievements with a natural numeric scale-up —
@@ -1325,6 +1359,8 @@ ACHIEVEMENT_PROGRESS = {
     "resource_baron": lambda: (math.floor(_max_single_resource()), RESOURCE_BARON_THRESHOLD),
     "planetary_renaissance": lambda: (_terraformed_planet_count(), PLANETARY_RENAISSANCE_MIN_TERRAFORMED),
     "full_system_terraformed": lambda: (_terraformed_planet_count(), len(PLANETS)),
+    "in_rhythm": lambda: (min(best_click_streak, IN_RHYTHM_STREAK), IN_RHYTHM_STREAK),
+    "chain_reactor": lambda: (chains_found(), len(CHAINS)),
 }
 
 
@@ -1427,6 +1463,10 @@ def _note_full_completion():
     if finished and not run_completed:
         run_completed = True
         duration = max(0, total_ticks - run_start_tick)
+        _note_split("full")
+        if best_run_ticks is None or duration < best_run_ticks:
+            pb_splits.clear()
+            pb_splits.update(run_splits)  # A-30: the new personal-best run's splits
         best_run_ticks = duration if best_run_ticks is None else min(best_run_ticks, duration)
     _report_full_completion()
 
@@ -1436,6 +1476,443 @@ def best_run_text():
     if best_run_ticks is None:
         return "not yet (terraform every world to set it)"
     return _format_duration(best_run_ticks * (TICK_INTERVAL_MS / 1000))
+
+
+# ===========================================================================
+# Round-3 SOL batch: rhythm streak (A-26), speedrun splits (A-30), trophy
+# shelf (A-31), chain reactions (A-25), Governor mood (A-22). None of it
+# changes a cost, a cap or an unlock; the two small yield effects (the streak
+# and a chain's bonus) are capped, and both have an off switch in Settings.
+# ===========================================================================
+
+# Browser preferences from the Settings panel (settings.js keeps them in
+# localStorage as "on"/"off"; anything but "off" counts as on, so a fresh
+# browser gets the defaults and a locked-down one that cannot read storage
+# does too).
+CLICK_STREAK_KEY = "sol-click-streak"
+CHAIN_BONUS_KEY = "sol-chain-bonus"
+
+
+def _setting_on(key):
+    return _read_local_storage_item(key) != "off"
+
+
+# --- A-26: a soft click-rhythm meter ---------------------------------------
+# Manual clicks that follow each other within STREAK_WINDOW_TICKS (1.5 s of
+# game time) build a streak; every STREAK_CLICKS_PER_PCT clicks of it adds 1%
+# to a manual click's yield, up to STREAK_MAX_BONUS_PCT. Automation is never
+# touched, so it stays a nudge for hands that are already clicking, never a
+# reason to click. The streak itself is transient; only the best one is saved.
+STREAK_WINDOW_TICKS = 15
+STREAK_CLICKS_PER_PCT = 10
+STREAK_MAX_BONUS_PCT = 5
+STREAK_SHOW_AT = 3
+IN_RHYTHM_STREAK = 40
+click_streak = 0
+best_click_streak = 0
+_streak_last_tick = None
+
+
+def streak_bonus_pct():
+    return min(STREAK_MAX_BONUS_PCT, click_streak // STREAK_CLICKS_PER_PCT)
+
+
+def render_click_streak():
+    el = document.getElementById("click-streak")
+    visible = click_streak >= STREAK_SHOW_AT
+    el.hidden = not visible
+    if not visible:
+        el.innerText = ""
+        return
+    pct = streak_bonus_pct()
+    bonus = f"+{pct}% mining yield" if pct else f"bonus starts at {STREAK_CLICKS_PER_PCT}"
+    el.innerText = f"Rhythm streak: {click_streak} ({bonus})"
+
+
+def _streak_click():
+    """Registers one manual click and returns its yield multiplier."""
+    global click_streak, best_click_streak, _streak_last_tick
+    if not _setting_on(CLICK_STREAK_KEY):
+        if click_streak:
+            click_streak = 0
+            render_click_streak()
+        _streak_last_tick = None
+        return 1.0
+    if _streak_last_tick is not None and total_ticks - _streak_last_tick <= STREAK_WINDOW_TICKS:
+        click_streak += 1
+    else:
+        click_streak = 1
+    _streak_last_tick = total_ticks
+    best_click_streak = max(best_click_streak, click_streak)
+    render_click_streak()
+    return 1.0 + streak_bonus_pct() / 100.0
+
+
+def _decay_click_streak():
+    """Called every tick: a streak ends once the player stops clicking."""
+    global click_streak
+    if click_streak and (_streak_last_tick is None or total_ticks - _streak_last_tick > STREAK_WINDOW_TICKS):
+        click_streak = 0
+        render_click_streak()
+
+
+# --- A-30: speedrun splits --------------------------------------------------
+# A split is how far into the current run (in game time, the same clock the
+# other run records use) a world was first unlocked; "full" is the whole
+# system terraformed. The personal best is the splits of the fastest completed
+# run, so a run is compared against one real run rather than a patchwork of
+# best segments. Both are shown only when "Show timing" is on in Settings.
+SPLIT_KEYS = ["Moon", "Mars", "Venus", "AsteroidBelt", "Pluto", "JupiterMoons", "SaturnMoons", "full"]
+run_splits = {}
+pb_splits = {}
+splits_open = False
+
+
+def _note_split(key):
+    if key in SPLIT_KEYS and key not in run_splits:
+        run_splits[key] = max(0, total_ticks - run_start_tick)
+
+
+def _clean_splits(raw):
+    cleaned = {}
+    if isinstance(raw, dict):
+        for key, value in raw.items():
+            if key in SPLIT_KEYS and isinstance(value, int) and not isinstance(value, bool) and 0 <= value < 10 ** 12:
+                cleaned[key] = value
+    return cleaned
+
+
+def _split_time(ticks):
+    return _format_duration(ticks * (TICK_INTERVAL_MS / 1000))
+
+
+def _split_delta(ticks, best_ticks):
+    """Signed difference as text ('+0m 12s', '-5s', 'same'), never colour alone."""
+    diff = (ticks - best_ticks) * (TICK_INTERVAL_MS / 1000)
+    if abs(diff) < 0.5:
+        return "same as best"
+    return ("+" if diff > 0 else "-") + _format_duration(abs(diff))
+
+
+def split_label(key):
+    return "Whole system terraformed" if key == "full" else PLANET_DISPLAY_NAMES.get(key, key)
+
+
+def on_toggle_splits(event=None):
+    global splits_open
+    splits_open = not splits_open
+    update_splits_display()
+
+
+def update_splits_display():
+    toggle = document.getElementById("splits-toggle-button")
+    panel = document.getElementById("splits-panel")
+    toggle.innerText = "Hide Splits" if splits_open else "⏱️ Splits"
+    panel.hidden = not splits_open
+    if not splits_open:
+        return
+    panel.innerHTML = ""
+    heading = document.createElement("h2")
+    heading.className = "stats-panel-heading"
+    heading.innerText = "Speedrun splits"
+    panel.appendChild(heading)
+    intro = document.createElement("p")
+    intro.className = "splits-intro"
+    intro.innerText = (
+        "Time into this run when each world was unlocked, in game time. Your personal best is the "
+        "run with the fastest full playthrough; each row says how far ahead (-) or behind (+) it you are."
+    )
+    panel.appendChild(intro)
+    for key in SPLIT_KEYS:
+        row = document.createElement("p")
+        row.className = "splits-row"
+        mine = run_splits.get(key)
+        best = pb_splits.get(key)
+        if mine is None:
+            text = f"{split_label(key)}: not yet"
+            if best is not None:
+                text += f" (best {_split_time(best)})"
+        elif best is None:
+            text = f"{split_label(key)}: {_split_time(mine)} (no personal best yet)"
+        else:
+            text = f"{split_label(key)}: {_split_time(mine)} (best {_split_time(best)}, {_split_delta(mine, best)})"
+        row.innerText = text
+        panel.appendChild(row)
+
+
+# --- A-31: trophy shelf ------------------------------------------------------
+TROPHY_SHELF_SIZE = 5
+TROPHY_HISTORY_MAX = 12
+TROPHY_GLYPHS = ["🥇", "🏅", "⭐", "🌟", "🪐", "🚀", "☄️", "🛰️"]
+recent_trophies = []  # achievement ids, oldest first
+_trophy_fresh_id = None  # the badge to flourish, only for an unlock this session
+
+
+def _trophy_ids_for_shelf():
+    earned = set(achievement_ids_earned())
+    return [aid for aid in reversed(recent_trophies) if aid in earned][:TROPHY_SHELF_SIZE]
+
+
+def render_trophy_shelf():
+    shelf = document.getElementById("trophy-shelf")
+    shown = _trophy_ids_for_shelf()
+    shelf.hidden = not shown
+    shelf.innerHTML = ""
+    by_id = {entry["id"]: entry for entry in ACHIEVEMENTS}
+    index_of = {entry["id"]: i for i, entry in enumerate(ACHIEVEMENTS)}
+    for aid in shown:
+        entry = by_id[aid]
+        badge = document.createElement("span")
+        badge.className = "trophy-badge" + (" trophy-badge--new" if aid == _trophy_fresh_id else "")
+        badge.setAttribute("role", "listitem")
+        badge.title = entry["description"]
+        glyph = document.createElement("span")
+        glyph.className = "trophy-glyph"
+        glyph.setAttribute("aria-hidden", "true")
+        glyph.innerText = TROPHY_GLYPHS[index_of[aid] % len(TROPHY_GLYPHS)]
+        badge.appendChild(glyph)
+        label = document.createElement("span")
+        label.className = "trophy-label"
+        label.innerText = entry["label"]
+        badge.appendChild(label)
+        shelf.appendChild(badge)
+
+
+def _note_trophies(new_ids):
+    global _trophy_fresh_id
+    order = {entry["id"]: i for i, entry in enumerate(ACHIEVEMENTS)}
+    for aid in sorted(new_ids, key=lambda a: order.get(a, 0)):
+        if aid in recent_trophies:
+            recent_trophies.remove(aid)
+        recent_trophies.append(aid)
+        _trophy_fresh_id = aid
+    del recent_trophies[:-TROPHY_HISTORY_MAX]
+    render_trophy_shelf()
+
+
+# --- A-25: chain reactions ----------------------------------------------------
+# Doing the right short sequence of actions inside CHAIN_WINDOW_TICKS (60 s of
+# game time) fires a small bonus. Only your own actions count (the Governor's
+# purchases do not). Mining many times in a row is a single "mine" entry;
+# every other action is its own entry. A step's world is a name, None (anywhere) or
+# "*" (anywhere, but every "*" step in the chain must be a different world).
+# Each chain can fire again after CHAIN_COOLDOWN_TICKS, so the page is a
+# collection to complete rather than a farm. Every chain shows a hint until
+# found and its full recipe afterwards.
+CHAIN_WINDOW_TICKS = 600
+CHAIN_COOLDOWN_TICKS = 1200
+CHAIN_REWARD_BASE = 40
+CHAIN_REWARD_PER_GENERATOR = 4
+ACTION_LOG_MAX = 24
+CHAINS = [
+    {
+        "id": "spin_up", "name": "Spin-Up",
+        "steps": [("mine", "Earth"), ("gen", "Earth"), ("mine", "Earth")],
+        "recipe": "On Earth: mine, buy an Auto-Miner, then mine again.",
+        "hint": "Warm up the first world: dig, build, dig.",
+    },
+    {
+        "id": "whistle_stop", "name": "Whistle-Stop",
+        "steps": [("travel", None), ("travel", None), ("travel", None)],
+        "recipe": "Make three trips between worlds within a minute.",
+        "hint": "Three trips in one minute.",
+    },
+    {
+        "id": "closed_loop", "name": "Closed Loop",
+        "steps": [("route", None), ("rec", None), ("research", None)],
+        "recipe": "Open a trade route, build a Recycler (anywhere), then buy a research node.",
+        "hint": "Open a route, clean up after yourself, then think about the future.",
+    },
+    {
+        "id": "mars_landing", "name": "Mars Landing",
+        "steps": [("travel", "Mars"), ("mine", "Mars"), ("gen", "Mars")],
+        "recipe": "Travel to Mars, mine there, then buy an Auto-Extractor.",
+        "hint": "Land on the red planet and get to work straight away.",
+    },
+    {
+        "id": "spread_thin", "name": "Spread Thin",
+        "steps": [("gen", "*"), ("gen", "*"), ("gen", "*")],
+        "recipe": "Buy an automation building on three different worlds within a minute (travelling between them).",
+        "hint": "Automation on three different worlds in one minute.",
+    },
+    {
+        "id": "skyward", "name": "Skyward",
+        "steps": [("sky", None), ("route", None)],
+        "recipe": "Build a Sky City, then open a trade route.",
+        "hint": "After the clouds get a city, the cargo ships follow.",
+    },
+    {
+        "id": "scholars_dash", "name": "Scholar's Dash",
+        "steps": [("research", None), ("research", None), ("research", None)],
+        "recipe": "Buy three research nodes within a minute.",
+        "hint": "Three research nodes in one minute.",
+    },
+]
+CHAIN_BY_ID = {chain["id"]: chain for chain in CHAINS}
+chain_counts = {}  # chain id -> times fired, for life
+chains_open = False
+_action_log = []  # (tick, kind, planet), oldest first, collapsed, never saved
+_chain_cooldown_until = {}
+
+
+def chains_found():
+    return sum(1 for chain in CHAINS if chain_counts.get(chain["id"], 0) > 0)
+
+
+def _step_matches(step, record, used):
+    kind, planet = step
+    if record[1] != kind:
+        return False
+    if planet is None:
+        return True
+    if planet == "*":
+        return record[2] not in used
+    return record[2] == planet
+
+
+def _chain_match(steps, records):
+    """True when `steps` occur in order among `records` (not necessarily
+    adjacent), the last step on the newest record."""
+    if len(records) < len(steps) or not _step_matches(steps[-1], records[-1], frozenset()):
+        return False
+
+    def search(step_index, record_index, used):
+        if step_index < 0:
+            return True
+        for i in range(record_index, -1, -1):
+            if _step_matches(steps[step_index], records[i], used):
+                next_used = used | {records[i][2]} if steps[step_index][1] == "*" else used
+                if search(step_index - 1, i - 1, next_used):
+                    return True
+        return False
+
+    last_used = frozenset({records[-1][2]}) if steps[-1][1] == "*" else frozenset()
+    return search(len(steps) - 2, len(records) - 2, last_used)
+
+
+def _chain_reward(planet):
+    state = planet_state[planet]
+    return (CHAIN_REWARD_BASE + CHAIN_REWARD_PER_GENERATOR * state["generator_count"]) * _yield_multiplier()
+
+
+def _fire_chain(chain, planet):
+    _chain_cooldown_until[chain["id"]] = total_ticks + CHAIN_COOLDOWN_TICKS
+    first = chain_counts.get(chain["id"], 0) == 0
+    chain_counts[chain["id"]] = chain_counts.get(chain["id"], 0) + 1
+    bonus = _chain_reward(planet)
+    planet_state[planet]["resource_count"] += bonus
+    update_resource_display(planet)
+    unit = PLANETS[planet]["resource_name"]
+    prefix = "⚡ New chain reaction" if first else "⚡ Chain reaction"
+    _display_toast(f"{prefix}: {chain['name']}! +{math.floor(bonus)} {unit}")
+    update_chains_display()
+
+
+def _check_chains(planet):
+    for chain in CHAINS:
+        if total_ticks < _chain_cooldown_until.get(chain["id"], -1):
+            continue
+        records = [r for r in _action_log if r[0] >= total_ticks - CHAIN_WINDOW_TICKS]
+        if _chain_match(chain["steps"], records):
+            _fire_chain(chain, planet)
+
+
+def _player_action(kind, planet):
+    """Every action the player takes themselves passes through here: it
+    counts towards that world's 'micromanagement' (A-22) and feeds the chain
+    reactions. kind: mine | gen | rec | route | sky | travel | research."""
+    if kind not in ("travel", "research"):
+        state = planet_state[planet]
+        state["player_actions"] = state.get("player_actions", 0) + 1
+    if kind == "mine" and _action_log and _action_log[-1][1] == kind and _action_log[-1][2] == planet:
+        _action_log[-1] = (total_ticks, kind, planet)
+    else:
+        _action_log.append((total_ticks, kind, planet))
+        del _action_log[:-ACTION_LOG_MAX]
+    if _setting_on(CHAIN_BONUS_KEY):
+        _check_chains(planet)
+
+
+def on_toggle_chains(event=None):
+    global chains_open
+    chains_open = not chains_open
+    update_chains_display()
+
+
+def update_chains_display():
+    toggle = document.getElementById("chains-toggle-button")
+    panel = document.getElementById("chains-panel")
+    found = chains_found()
+    toggle.innerText = (
+        f"Hide Chain Reactions ({found}/{len(CHAINS)})" if chains_open else f"⚡ Chain Reactions ({found}/{len(CHAINS)})"
+    )
+    panel.hidden = not chains_open
+    if not chains_open:
+        return
+    panel.innerHTML = ""
+    heading = document.createElement("h2")
+    heading.className = "stats-panel-heading"
+    heading.innerText = f"Chain reactions: {found} of {len(CHAINS)} found"
+    panel.appendChild(heading)
+    intro = document.createElement("p")
+    intro.className = "chains-intro"
+    intro.innerText = (
+        "Do the right actions in the right order within a minute and a small bonus drops into that world. "
+        "Each one can fire again after a couple of minutes. The Governor's purchases do not count. "
+        "Turn the bonus off in Settings if you would rather not."
+    )
+    panel.appendChild(intro)
+    for chain in CHAINS:
+        count = chain_counts.get(chain["id"], 0)
+        card = document.createElement("div")
+        card.className = "chain-card chain-card--found" if count else "chain-card"
+        name = document.createElement("p")
+        name.className = "chain-card-name"
+        name.innerText = f"⚡ {chain['name']}" if count else "Not found yet"
+        card.appendChild(name)
+        detail = document.createElement("p")
+        detail.className = "chain-card-detail"
+        detail.innerText = chain["recipe"] if count else f"Hint: {chain['hint']}"
+        card.appendChild(detail)
+        if count:
+            times = document.createElement("p")
+            times.className = "chain-card-count"
+            times.innerText = f"Found, fired {count} time{'s' if count != 1 else ''}"
+            card.appendChild(times)
+        panel.appendChild(card)
+
+
+# --- A-22: the Governor's mood ---------------------------------------------------
+MOOD_ATTENTIVE_ACTIONS = 10
+MOOD_HOVERING_ACTIONS = 100
+GOVERNOR_MOODS = {
+    "aggressive": (
+        "Delighted to be left alone: has already ordered three more Auto-Miners and is not sorry.",
+        "Tolerates your visits, as long as you do not touch the throttle.",
+        "Says this is the fourth time you have rearranged its crates today.",
+    ),
+    "balanced": (
+        "Serene. Has made a spreadsheet about it and the spreadsheet is happy.",
+        "Notes your fingerprints on the ledger, politely.",
+        "Is pretending not to notice you hovering over the buttons.",
+    ),
+    "conservative": (
+        "Quietly pleased. Has recycled the paperwork twice already.",
+        "Would like to remind you that every click has an ecological cost.",
+        "Sighs, and files a complaint about unscheduled enthusiasm.",
+    ),
+}
+GLOBAL_PRIORITY_PERSONALITY = {"growth": "aggressive", "balance": "balanced", "ecology": "conservative"}
+
+
+def governor_mood(planet):
+    state = planet_state[planet]
+    personality = state.get("governor_personality", "default")
+    if personality not in GOVERNOR_MOODS:
+        personality = GLOBAL_PRIORITY_PERSONALITY.get(governor_priority, "balanced")
+    actions = state.get("player_actions", 0)
+    level = 0 if actions < MOOD_ATTENTIVE_ACTIONS else (1 if actions < MOOD_HOVERING_ACTIONS else 2)
+    return GOVERNOR_MOODS[personality][level]
 
 
 def _check_new_achievements_for_toast():
@@ -1453,6 +1930,7 @@ def _check_new_achievements_for_toast():
         for aid in sorted(newly):
             story_note(f"ach:{aid}")
         render_story_log()
+        _note_trophies(newly)
         by_id = {entry["id"]: entry for entry in ACHIEVEMENTS}
         labels = [by_id[aid]["label"] for aid in newly if aid in by_id]
         if labels:
@@ -1794,6 +2272,11 @@ def update_governor_report_display():
         )
         card.appendChild(generated_el)
 
+        mood = document.createElement("p")
+        mood.className = "governor-report-card-mood"
+        mood.innerText = f"Mood: {governor_mood(planet)}"
+        card.appendChild(mood)
+
         panel.appendChild(card)
 
     if not governed_planets:
@@ -1915,6 +2398,8 @@ def update_stats_panel_display():
         ("Achievements earned", f"{len(achievement_ids_earned())}/{len(ACHIEVEMENTS)}"),
         ("Prestige level", str(prestige_level)),
         ("Fastest full playthrough", best_run_text()),
+        ("Best rhythm streak", str(best_click_streak)),
+        ("Chain reactions found", f"{chains_found()}/{len(CHAINS)}"),
     ]
     for label, value in stat_lines:
         row = document.createElement("p")
@@ -2023,7 +2508,7 @@ def _mine(planet, event=None):
     # rule, there must always be a lever.
     global total_manual_clicks, lifetime_resources_mined_by_click, manual_labor_hit
     state = planet_state[planet]
-    gained = 1 * _yield_multiplier()
+    gained = 1 * _yield_multiplier() * _streak_click()
     state["resource_count"] += gained
     total_manual_clicks += 1
     lifetime_resources_mined_by_click += gained
@@ -2038,6 +2523,7 @@ def _mine(planet, event=None):
     button = document.getElementById(_dom_id(planet, "click-button"))
     _spawn_floater(button, "✦", "floater--spark", event)
     press_feedback(button)
+    _player_action("mine", planet)
 
 
 def on_earth_click(event):
@@ -2086,6 +2572,7 @@ def _buy_generator(planet):
         update_generator_display(planet)
         update_terraform_display(planet)
         _spawn_floater(button, "⚙️", "floater--build")
+        _player_action("gen", planet)
     press_feedback(button)
 
 
@@ -2134,6 +2621,7 @@ def _buy_recycler(planet):
         update_ecology_display(planet)
         update_terraform_display(planet)
         _spawn_floater(button, "♻️", "floater--build")
+        _player_action("rec", planet)
     press_feedback(button)
 
 
@@ -2184,6 +2672,7 @@ def _buy_trade_route(planet):
             update_trade_display(planet)
             update_terraform_display(planet)
             _spawn_floater(button, "🚀", "floater--build")
+            _player_action("route", planet)
     press_feedback(button)
 
 
@@ -2240,6 +2729,7 @@ def _buy_sky_city(planet):
         update_sky_city_display(planet)
         update_terraform_display(planet)
         _spawn_floater(button, "🏙️", "floater--build")
+        _player_action("sky", planet)
     press_feedback(button)
 
 
@@ -2405,6 +2895,7 @@ def _travel_to(planet):
     _update_travel_progress()
     _show_planet_view(planet)
     _report_arrival(planet)
+    _player_action("travel", planet)
     return True
 
 
@@ -2536,6 +3027,7 @@ def _fresh_planet_state(planet):
         "governed_resource_generated": 0.0,
         "governor_personality": "default",
         "specialization": None,
+        "player_actions": 0,
     }
     if planet in GAS_GIANT_BODIES:
         fresh["sky_city_count"] = 0
@@ -2902,6 +3394,49 @@ def on_build_plan_suggest(event=None):
     update_build_plan_display()
 
 
+def build_plan_tsv():
+    """A-24: the plan as tab-separated rows (step number, text, done) that
+    paste straight into a spreadsheet; tabs and line breaks inside a step are
+    flattened to spaces so every step stays on its own row."""
+    rows = ["Step\tWhat\tDone"]
+    for number, step in enumerate(build_plan, start=1):
+        text = " ".join(step["text"].replace("\t", " ").split())
+        rows.append(f"{number}\t{text}\t{'yes' if step['done'] else 'no'}")
+    return "\n".join(rows)
+
+
+def on_build_plan_copy(event=None):
+    text = build_plan_tsv()
+    status = document.getElementById("build-plan-copy-status")
+    output = document.getElementById("build-plan-copy-output")
+    output.value = text
+
+    def _manual(*args):
+        output.hidden = False
+        status.innerText = "Could not reach the clipboard: select the text below and copy it yourself."
+
+    if not build_plan:
+        output.hidden = True
+        status.innerText = "Nothing to copy yet: add a step first."
+        return
+    try:
+        import js  # noqa: PLC0415
+
+        promise = js.navigator.clipboard.writeText(text)
+        output.hidden = True
+        status.innerText = "Copied as tab-separated rows: paste into a spreadsheet."
+        catch = getattr(promise, "catch", None)
+        if catch is not None:
+            def _failed(*args):
+                proxy.destroy()
+                _manual()
+
+            proxy = create_proxy(_failed)
+            catch(proxy)
+    except (ImportError, AttributeError):
+        _manual()
+
+
 def on_build_plan_clear_done(event=None):
     build_plan[:] = [step for step in build_plan if not step["done"]]
     update_build_plan_display()
@@ -3243,6 +3778,9 @@ def on_prestige(event=None):
         prestige_level = next_level
         run_start_tick = total_ticks  # R-10: a new run starts its own clock
         run_completed = False
+        run_splits.clear()  # A-30: a new run starts new splits (the personal best stays)
+        del _action_log[:]
+        _chain_cooldown_until.clear()
         # A1/A3: 1 tree point per prestige, +1 if the New Game+ Challenge was on.
         prestige_points_earned += 1 + (1 if _challenge_on() else 0)
         sandbox_mode = False
@@ -3433,6 +3971,8 @@ def tick(*args):
             update_sky_city_display(planet)
         update_terraform_display(planet)
 
+    update_research_node_flags()
+    _decay_click_streak()
     update_all_cross_summaries()
     update_away_summary()
     update_win_display()
@@ -3442,6 +3982,8 @@ def tick(*args):
     update_changelog_display()
     update_overview_display()
     update_epilogue_display()
+    update_splits_display()
+    update_chains_display()
     _check_new_achievements_for_toast()
 
 
@@ -3480,6 +4022,10 @@ def _full_render():
     update_build_plan_display()
     update_prestige_tree_display()
     update_epilogue_display()
+    update_splits_display()
+    update_chains_display()
+    render_trophy_shelf()
+    render_click_streak()
     _refresh_all_cost_displays()
     document.getElementById("away-report").hidden = True
     # A full render (fresh setup, or a save/load round-trip) always starts
@@ -3565,6 +4111,11 @@ def serialize_state():
         "ecology_zero_seen": sorted(_ecology_zero_seen),
         "achievements_earned": achievement_ids_earned(),
         **({"story_log": list(story_log)} if story_log else {}),
+        **({"best_click_streak": best_click_streak} if best_click_streak else {}),
+        **({"chain_counts": dict(chain_counts)} if chain_counts else {}),
+        **({"recent_trophies": list(recent_trophies)} if recent_trophies else {}),
+        **({"run_splits": dict(run_splits)} if run_splits else {}),
+        **({"pb_splits": dict(pb_splits)} if pb_splits else {}),
     }
 
 
@@ -3668,7 +4219,7 @@ def _load_session_additions(data):
     global prestige_points_earned, prestige_nodes, ng_challenge_active, sandbox_mode
     global close_call_hit, back_from_brink_hit, _departure_snapshots
     global full_system_completed_tick, _leaderboard_reported
-    global run_start_tick, run_completed, best_run_ticks
+    global run_start_tick, run_completed, best_run_ticks, best_click_streak, _trophy_fresh_id
 
     def _tick_count(value):
         return value if isinstance(value, int) and not isinstance(value, bool) and 0 <= value < 10 ** 12 else None
@@ -3676,6 +4227,32 @@ def _load_session_additions(data):
     run_start_tick = _tick_count(data.get("run_start_tick")) or 0
     run_completed = data.get("run_completed") is True
     best_run_ticks = _tick_count(data.get("best_run_ticks"))
+    # Round-3 batch: every field optional and defensively typed.
+    best_click_streak = _tick_count(data.get("best_click_streak")) or 0
+    run_splits.clear()
+    run_splits.update(_clean_splits(data.get("run_splits")))
+    pb_splits.clear()
+    pb_splits.update(_clean_splits(data.get("pb_splits")))
+    chain_counts.clear()
+    saved_chains = data.get("chain_counts")
+    if isinstance(saved_chains, dict):
+        for chain_id, count in saved_chains.items():
+            if chain_id in CHAIN_BY_ID and isinstance(count, int) and not isinstance(count, bool) and 0 < count < 10 ** 6:
+                chain_counts[chain_id] = count
+    del _action_log[:]
+    _chain_cooldown_until.clear()
+    _trophy_fresh_id = None
+    saved_trophies = data.get("recent_trophies")
+    recent_trophies.clear()
+    if isinstance(saved_trophies, list):
+        known = {entry["id"] for entry in ACHIEVEMENTS}
+        for aid in saved_trophies:
+            if isinstance(aid, str) and aid in known and aid not in recent_trophies:
+                recent_trophies.append(aid)
+        del recent_trophies[:-TROPHY_HISTORY_MAX]
+    else:
+        # A save from before the shelf existed: the most recent earned ones, in catalog order.
+        recent_trophies.extend(achievement_ids_earned()[-TROPHY_HISTORY_MAX:])
 
     saved_story = data.get("story_log")
     story_log.clear()
@@ -3719,6 +4296,9 @@ def _load_session_additions(data):
     # A run-scoped, in-memory report baseline: never meaningful across a load.
     _departure_snapshots = {}
     for state in planet_state.values():
+        actions = state.get("player_actions", 0)
+        if not isinstance(actions, int) or isinstance(actions, bool) or actions < 0:
+            state["player_actions"] = 0
         if state.get("governor_personality") not in GOVERNOR_PERSONALITIES:
             state["governor_personality"] = "default"
         if state.get("specialization") not in (None, *SPECIALIZATION_LABELS):
@@ -4179,6 +4759,9 @@ def setup():
         "click", create_proxy(on_build_plan_clear_done)
     )
     document.getElementById("build-plan-list").addEventListener("click", create_proxy(on_build_plan_click))
+    document.getElementById("build-plan-copy-button").addEventListener("click", create_proxy(on_build_plan_copy))
+    document.getElementById("splits-toggle-button").addEventListener("click", create_proxy(on_toggle_splits))
+    document.getElementById("chains-toggle-button").addEventListener("click", create_proxy(on_toggle_chains))
     document.getElementById("prestige-tree-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_prestige_tree)
     )

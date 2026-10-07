@@ -29,12 +29,16 @@
     <a href="../../index.html" class="hub-back-link">&larr; All games</a>
     <h1>SOL <span id="prestige-badge" class="prestige-badge" title="Your current Prestige level" hidden></span></h1>
     <p id="captains-log-latest" class="captains-log-latest" hidden></p>
+    <div id="trophy-shelf" class="trophy-shelf" role="list" aria-label="Your most recent achievements" hidden></div>
+    <p id="click-streak" class="click-streak" hidden></p>
 
     <div class="game-toolbar">
       <button id="tutorial-restart-button" class="secondary" type="button">🎓 Tutorial</button>
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
       <button id="overview-toggle-button" class="secondary" type="button">🌍 Overview</button>
       <button id="build-plan-toggle-button" class="secondary" type="button">📝 Build Plan</button>
+      <button id="chains-toggle-button" class="secondary" type="button">⚡ Chain Reactions</button>
+      <button id="splits-toggle-button" class="secondary" type="button">⏱️ Splits</button>
       <button id="prestige-tree-toggle-button" class="secondary" type="button" hidden>🌳 Prestige Tree</button>
       <button id="achievements-toggle-button" class="secondary" type="button">🏆 Achievements</button>
       <button id="stats-toggle-button" class="secondary" type="button">📊 Stats &amp; Share</button>
@@ -77,6 +81,30 @@
         </label>
       </div>
       <div class="settings-row">
+        <label class="settings-checkbox-label" for="click-streak-checkbox">
+          <input type="checkbox" id="click-streak-checkbox" checked>
+          Rhythm bonus (clicking steadily adds up to +5% to what a click mines; never touches automation)
+        </label>
+      </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="chain-bonus-checkbox">
+          <input type="checkbox" id="chain-bonus-checkbox" checked>
+          Chain reaction bonuses (small resource gifts for doing the right actions in order)
+        </label>
+      </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="trophy-flourish-checkbox">
+          <input type="checkbox" id="trophy-flourish-checkbox" checked>
+          Glow on a newly earned trophy (off under Reduce motion)
+        </label>
+      </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="show-timing-checkbox">
+          <input type="checkbox" id="show-timing-checkbox">
+          Show timing (adds the Splits page: time per world against your personal best)
+        </label>
+      </div>
+      <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
       </div>
     </div>
@@ -109,6 +137,9 @@
       </details>
     </div>
     <div id="governor-report-panel" class="section governor-report-panel" hidden></div>
+    <!-- A-25 / A-30: chain reactions (a collection page) and speedrun splits (hidden unless "Show timing" is on). -->
+    <div id="chains-panel" class="section chains-panel" hidden></div>
+    <div id="splits-panel" class="section splits-panel" hidden></div>
     <!-- "What's New" changelog panel (site-wide goal, planning/TODO.md, origin K16):
          newest-first highlights pulled from CLAUDE.md's own milestone table, not a
          full duplicate of the dev logs. Same hidden-until-opened .section idiom as
@@ -131,6 +162,9 @@
       <div id="build-plan-list" class="build-plan-list"></div>
       <button id="build-plan-suggest-button" class="secondary" type="button">Add suggested opening</button>
       <button id="build-plan-clear-done-button" class="secondary" type="button">Clear ticked steps</button>
+      <button id="build-plan-copy-button" class="secondary" type="button">Copy as spreadsheet text</button>
+      <p id="build-plan-copy-status" class="copy-share-card-status" role="status"></p>
+      <textarea id="build-plan-copy-output" class="stats-code-textarea" readonly hidden aria-label="Build plan as tab-separated text"></textarea>
     </div>
 
     <!-- A1/A3: Prestige tree (only reachable once at least one prestige is done). -->
@@ -1301,6 +1335,8 @@
         { toggle: "changelog-toggle-button", panel: "changelog-panel" },
         { toggle: "overview-toggle-button", panel: "overview-panel" },
         { toggle: "build-plan-toggle-button", panel: "build-plan-panel" },
+        { toggle: "chains-toggle-button", panel: "chains-panel" },
+        { toggle: "splits-toggle-button", panel: "splits-panel" },
         { toggle: "prestige-tree-toggle-button", panel: "prestige-tree-panel" },
         { toggle: "epilogue-button", panel: "epilogue-panel" },
       ],
