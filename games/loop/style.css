@@ -1689,3 +1689,121 @@ html[data-reduced-motion="true"] .rich-flow .rf-dash { animation: none; display:
 
 /* Audit 2026-10-06 (S11): the "Got it" dismiss was a 52x21px tap target. */
 #regional-hint-dismiss-button { min-height: 32px; padding: 0.3rem 0.9rem; }
+
+/* ------------------------------------------------------------------------
+   Round 3 additions (GH-12/14/15/24/25, H-4/9/15/16/17/18/23).
+   ------------------------------------------------------------------------ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.near-miss {
+  margin: 0.3rem 0;
+  padding: 0.4rem 0.6rem;
+  border-left: 3px solid #e0c24c;
+  border-radius: 0.3rem;
+  background: rgba(224, 194, 76, 0.12);
+  font-size: 0.85rem;
+}
+.near-miss[hidden] { display: none; }
+.plates-list { list-style: none; padding-left: 0; }
+.plate-row { margin: 0.15rem 0; }
+.plate-row--earned { font-weight: 600; }
+.summary-text { white-space: pre-wrap; word-break: break-word; margin: 0.3rem 0; }
+#goods-category-shipyard-button[hidden], #secret-category-hint[hidden] { display: none; }
+
+/* H-18: flow animation speed (settings.js sets html[data-flow-speed]); separate from
+   the reduce-motion switch, and only retimes the chain/trade flow particles. */
+.settings-row .text-size-control { flex-wrap: wrap; justify-content: flex-end; }
+.text-size-control button[aria-pressed="true"] { outline: 2px solid #a9c3ff; outline-offset: 1px; }
+html[data-flow-speed="slow"] .flow-particle { animation-duration: 3.2s; }
+html[data-flow-speed="slow"] .return-flow-particle,
+html[data-flow-speed="slow"] .import-flow-particle { animation-duration: 2.4s; }
+html[data-flow-speed="slow"] .rich-flow .rf-dash { animation-duration: 2.2s; }
+html[data-flow-speed="fast"] .flow-particle { animation-duration: 0.8s; }
+html[data-flow-speed="fast"] .return-flow-particle,
+html[data-flow-speed="fast"] .import-flow-particle { animation-duration: 0.6s; }
+html[data-flow-speed="fast"] .rich-flow .rf-dash { animation-duration: 0.55s; }
+html[data-flow-speed="off"] .flow-particle,
+html[data-flow-speed="off"] .return-flow-particle,
+html[data-flow-speed="off"] .import-flow-particle,
+html[data-flow-speed="off"] .rich-flow .rf-dash { animation: none; }
+
+/* H-17: an easier-to-read system font stack with wider spacing. */
+html[data-dyslexia-font="true"] body,
+html[data-dyslexia-font="true"] button,
+html[data-dyslexia-font="true"] input,
+html[data-dyslexia-font="true"] summary,
+html[data-dyslexia-font="true"] pre {
+  font-family: "OpenDyslexic", "Atkinson Hyperlegible", "Lexend", "Verdana", "Trebuchet MS", sans-serif;
+  letter-spacing: 0.04em;
+  word-spacing: 0.12em;
+  line-height: 1.55;
+}
+
+/* H-16: high contrast. Dark pages go white-on-black; the light theme goes black-on-white. The
+   starfield behind the panels is removed and every panel, button and ring node gets a solid
+   border. Meaning is never carried by colour alone here, so only text and edges change. */
+html[data-high-contrast="true"] {
+  --hc-bg: #000;
+  --hc-fg: #fff;
+  --hc-accent: #ffd84d;
+  --pc-window-bg: #000;
+}
+html[data-high-contrast="true"][data-theme="light"] {
+  --hc-bg: #fff;
+  --hc-fg: #000;
+  --hc-accent: #0b3d91;
+  --pc-window-bg: #fff;
+}
+html[data-high-contrast="true"] body { background: var(--hc-bg); color: var(--hc-fg); }
+html[data-high-contrast="true"] .ambient-bg { display: none; }
+html[data-high-contrast="true"] #game,
+html[data-high-contrast="true"] .section,
+html[data-high-contrast="true"] .vignette,
+html[data-high-contrast="true"] .context-blurb,
+html[data-high-contrast="true"] .invest-row,
+html[data-high-contrast="true"] .chain-stage,
+html[data-high-contrast="true"] .stats-detail-toggle,
+html[data-high-contrast="true"] .rich-map-panel,
+html[data-high-contrast="true"] .achievement-card,
+html[data-high-contrast="true"] .changelog-entry {
+  background: var(--hc-bg);
+  color: var(--hc-fg);
+  border: 2px solid var(--hc-fg);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+html[data-high-contrast="true"] button,
+html[data-high-contrast="true"] button.secondary,
+html[data-high-contrast="true"] button.primary {
+  background: var(--hc-bg) !important;
+  color: var(--hc-fg) !important;
+  border: 2px solid var(--hc-fg);
+  box-shadow: none;
+  text-shadow: none;
+}
+html[data-high-contrast="true"] button:disabled { opacity: 0.55; border-style: dashed; }
+html[data-high-contrast="true"] button:focus-visible,
+html[data-high-contrast="true"] summary:focus-visible { outline: 3px solid var(--hc-accent); outline-offset: 2px; }
+html[data-high-contrast="true"] .comparison-message,
+html[data-high-contrast="true"] .invest-stats,
+html[data-high-contrast="true"] .meter-label,
+html[data-high-contrast="true"] .status-line,
+html[data-high-contrast="true"] .tagline,
+html[data-high-contrast="true"] .near-miss { color: var(--hc-fg); opacity: 1; }
+html[data-high-contrast="true"] .near-miss { background: var(--hc-bg); border: 2px solid var(--hc-accent); }
+html[data-high-contrast="true"] .meter { background: var(--hc-bg); border: 2px solid var(--hc-fg); }
+html[data-high-contrast="true"] .loop-ring-node { border: 2px solid var(--hc-fg); background: var(--hc-bg); }
+html[data-high-contrast="true"] a { color: var(--hc-accent); text-decoration: underline; }
+.career-heading { margin: 0.7rem 0 0.2rem; font-size: 0.85rem; font-weight: 600; }
+.settings-row--stack { flex-direction: column; align-items: flex-start; }
+.settings-row--stack .text-size-control { justify-content: flex-start; }

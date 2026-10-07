@@ -27,6 +27,12 @@
 
   const TEXT_SCALE_KEY = "loop-text-scale";
   const MOTION_KEY = "loop-reduced-motion";
+  // H-16 / H-17 / H-18: three more browser-level display preferences, stored the same way.
+  const CONTRAST_KEY = "loop-high-contrast";
+  const DYSLEXIA_KEY = "loop-dyslexia-font";
+  const FLOW_SPEED_KEY = "loop-flow-speed";
+  const FLOW_SPEEDS = ["off", "slow", "normal", "fast"];
+  const DEFAULT_FLOW_SPEED = "normal";
   const MIN_SCALE = 0.85;
   const MAX_SCALE = 1.5;
   const STEP = 0.1;
@@ -84,6 +90,55 @@
     return reduced;
   }
 
+  function readFlag(key) {
+    try {
+      return window.localStorage.getItem(key) === "true";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function writeStored(key, value) {
+    try {
+      window.localStorage.setItem(key, String(value));
+    } catch (e) {
+      // Losing persistence is not worth breaking the control.
+    }
+  }
+
+  function applyContrast(on) {
+    document.documentElement.setAttribute("data-high-contrast", on ? "true" : "false");
+    writeStored(CONTRAST_KEY, on);
+    return on;
+  }
+
+  function applyDyslexia(on) {
+    document.documentElement.setAttribute("data-dyslexia-font", on ? "true" : "false");
+    writeStored(DYSLEXIA_KEY, on);
+    return on;
+  }
+
+  function readFlowSpeed() {
+    try {
+      const raw = window.localStorage.getItem(FLOW_SPEED_KEY);
+      if (FLOW_SPEEDS.indexOf(raw) !== -1) return raw;
+    } catch (e) {
+      // fall through to the default
+    }
+    return DEFAULT_FLOW_SPEED;
+  }
+
+  function applyFlowSpeed(speed) {
+    const value = FLOW_SPEEDS.indexOf(speed) !== -1 ? speed : DEFAULT_FLOW_SPEED;
+    document.documentElement.setAttribute("data-flow-speed", value);
+    writeStored(FLOW_SPEED_KEY, value);
+    FLOW_SPEEDS.forEach(function (name) {
+      const button = document.getElementById("flow-speed-" + name + "-button");
+      if (button) button.setAttribute("aria-pressed", name === value ? "true" : "false");
+    });
+    return value;
+  }
+
   function init() {
     let scale = readStoredScale();
     applyScale(scale);
@@ -100,6 +155,32 @@
     if (motionCheckbox) {
       motionCheckbox.checked = reduced;
     }
+
+    const contrastCheckbox = document.getElementById("high-contrast-checkbox");
+    const dyslexiaCheckbox = document.getElementById("dyslexia-font-checkbox");
+    applyContrast(readFlag(CONTRAST_KEY));
+    applyDyslexia(readFlag(DYSLEXIA_KEY));
+    applyFlowSpeed(readFlowSpeed());
+    if (contrastCheckbox) {
+      contrastCheckbox.checked = readFlag(CONTRAST_KEY);
+      contrastCheckbox.addEventListener("change", function () {
+        applyContrast(contrastCheckbox.checked);
+      });
+    }
+    if (dyslexiaCheckbox) {
+      dyslexiaCheckbox.checked = readFlag(DYSLEXIA_KEY);
+      dyslexiaCheckbox.addEventListener("change", function () {
+        applyDyslexia(dyslexiaCheckbox.checked);
+      });
+    }
+    FLOW_SPEEDS.forEach(function (name) {
+      const button = document.getElementById("flow-speed-" + name + "-button");
+      if (button) {
+        button.addEventListener("click", function () {
+          applyFlowSpeed(name);
+        });
+      }
+    });
 
     if (toggleButton && panel) {
       toggleButton.addEventListener("click", function () {
@@ -135,6 +216,11 @@
         if (motionCheckbox) {
           motionCheckbox.checked = false;
         }
+        applyContrast(false);
+        applyDyslexia(false);
+        applyFlowSpeed(DEFAULT_FLOW_SPEED);
+        if (contrastCheckbox) contrastCheckbox.checked = false;
+        if (dyslexiaCheckbox) dyslexiaCheckbox.checked = false;
       });
     }
   }
@@ -145,5 +231,13 @@
     init();
   }
 
-  window.LoopSettings = { applyScale: applyScale, applyMotion: applyMotion, MIN_SCALE: MIN_SCALE, MAX_SCALE: MAX_SCALE };
+  window.LoopSettings = {
+    applyScale: applyScale,
+    applyMotion: applyMotion,
+    applyContrast: applyContrast,
+    applyDyslexia: applyDyslexia,
+    applyFlowSpeed: applyFlowSpeed,
+    MIN_SCALE: MIN_SCALE,
+    MAX_SCALE: MAX_SCALE,
+  };
 })();

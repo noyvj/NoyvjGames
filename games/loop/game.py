@@ -182,6 +182,102 @@ DEFAULT_GOODS_CATEGORY = "electronics"
 GOODS_LABEL = GOODS_CATEGORIES[DEFAULT_GOODS_CATEGORY]["label"]
 VIGNETTE_ITEM = GOODS_CATEGORIES[DEFAULT_GOODS_CATEGORY]["vignette_item"]
 
+# GH-14: a secret fourth goods category, revealed once a loop has fully closed on
+# each of the three ordinary categories. It is deliberately NOT in GOODS_CATEGORIES
+# (which drives the picker, the relabel row, the weekly feature and the "collect
+# every category" achievement); SECRET_GOODS_CATEGORY is looked up alongside it by
+# ALL_GOODS. Its own flavour: a ship-breaking yard starts with a built-in scrap
+# recovery line (SECRET_HEAD_START_UNITS of supply per cycle, counted as recycling),
+# the yard's real trade being to take things apart.
+SECRET_GOODS_CATEGORY = "shipyard"
+SECRET_GOODS = {
+    "label": "scrap steel",
+    "vignette_item": "a ship's hull",
+    "icon": "\U0001F6A2",
+    "name": "Ship-Breaking Yard",
+}
+SECRET_HEAD_START_UNITS = 6.0
+ALL_GOODS = {**GOODS_CATEGORIES, SECRET_GOODS_CATEGORY: SECRET_GOODS}
+
+CATEGORY_LOOP_DETAIL[SECRET_GOODS_CATEGORY] = {
+    "closed": [
+        "its plates were cut free and rolled into new hull steel, its engines were "
+        "rebuilt for another ship, and not a tonne was left on the beach",
+        "every deck plate went back to the mill and every working pump was refitted "
+        "somewhere else, so the old ship became the next one",
+    ],
+    "majority": [
+        "most of its steel gets cut up for the mill and much of its machinery is "
+        "stripped for refit before the rest is scrapped",
+        "more often than not its engines and fittings are salvaged and its plate "
+        "is melted down, with only the awkward remainder lost",
+    ],
+    "minority": [
+        "some of its steel is cut up and sold on, though most of it is still hauled "
+        "up a beach and abandoned",
+        "a little of its metal is recovered, but the rest of the hull is left to "
+        "rust where it was run aground",
+    ],
+    "none": [
+        "run aground, picked over and left, with its steel and its oils soaking "
+        "into the shore",
+        "built from fresh steel, sailed hard, then beached; nothing about it "
+        "goes back into the next hull",
+    ],
+}
+
+# GH-12: the Perfect Cycle combo. Each consecutive cycle that needed zero new
+# extraction raises the combo by one (it is the existing closed-loop streak). From
+# the second perfect cycle on, the cycle earns a banked score bonus of
+# COMBO_BONUS_PER_LEVEL times (combo - 1), with the combo counted up to COMBO_CAP.
+# A cycle that needs extraction drops the combo to zero, but bonus already banked
+# stays: it was earned.
+COMBO_BONUS_PER_LEVEL = 3.0
+COMBO_CAP = 10
+
+# GH-24: streak insurance. Once per chain, pay INSURANCE_COST to freeze the
+# closed-loop streak (and so the combo) through ONE cycle that needs extraction.
+INSURANCE_COST = 10
+
+# GH-25: a cycle projected to end within this many units of closing the loop (or within
+# NEAR_MISS_STEP_UNITS of the next 25% step) gets a "so close" note with the cheapest
+# single purchase.
+NEAR_MISS_UNITS = 8.0
+NEAR_MISS_STEP_UNITS = 5.0  # a tighter window for the 25% marks, which are only 12.5 units apart
+
+# GH-15: name plates, earned by closing the loop with a recognisable supply mix. A
+# source that supplies at least PLATE_DOMINANT_SHARE of the circular supply names
+# the plate; otherwise the mix is balanced (The Allrounder).
+PLATE_DOMINANT_SHARE = 0.5
+PLATES = {
+    "scrapper": {
+        "name": "The Scrapper", "source": "recycle",
+        "how": "Close the loop with Recycling supplying at least half of it.",
+    },
+    "fixer": {
+        "name": "The Fixer", "source": "repair",
+        "how": "Close the loop with Repair supplying at least half of it.",
+    },
+    "swapper": {
+        "name": "The Swapper", "source": "reuse",
+        "how": "Close the loop with Reuse supplying at least half of it.",
+    },
+    "diplomat": {
+        "name": "The Diplomat", "source": "trade",
+        "how": "Close the loop with trade partners supplying at least half of it.",
+    },
+    "allrounder": {
+        "name": "The Allrounder", "source": None,
+        "how": "Close the loop with no single source supplying half of it.",
+    },
+}
+PLATE_FOR_SOURCE = {spec["source"]: key for key, spec in PLATES.items() if spec["source"]}
+
+# GH-20: speed-loop achievements, judged on the chain's FIRST close and remembered
+# across chains.
+SPEED_CLOSE_CYCLE = 12
+LEAN_CLOSE_EXTRACTION = 500.0
+
 # Iteration-pass additions: flavor naming so the abstract chain reads as
 # a concrete product category, and a rough real-world circularity
 # benchmark for context. The benchmark is an illustrative ballpark
@@ -254,32 +350,38 @@ PASSPORT_PRODUCT_NAME = {
     "electronics": "Nova, a phone",
     "clothing": "Juniper, a jacket",
     "furniture": "Oak, a chair",
+    SECRET_GOODS_CATEGORY: "Argo, a ship",
 }
 PASSPORT_STORY = {
     "extraction": {
         "electronics": "{product} starts again from freshly mined metals and rare earths.",
         "clothing": "{product} starts again from new fibre, grown and dyed from scratch.",
         "furniture": "{product} starts again from newly felled timber.",
+        "shipyard": "{product} starts again from freshly rolled steel plate.",
     },
     "repair": {
         "electronics": "A new screen and battery keep {product} going ({life}).",
         "clothing": "A patched elbow and fresh buttons keep {product} in wear ({life}).",
         "furniture": "A re-glued joint and a new seat keep {product} in use ({life}).",
+        "shipyard": "A re-plated hull and a rebuilt engine keep {product} at sea ({life}).",
     },
     "reuse": {
         "electronics": "{product} is wiped and passed to a new owner ({life}).",
         "clothing": "{product} is passed on through a clothing swap ({life}).",
         "furniture": "{product} finds a second home through a resale shop ({life}).",
+        "shipyard": "{product} is sold on to a new owner and a new trade route ({life}).",
     },
     "recycle": {
         "electronics": "{product} is stripped for its metals, which come back as a new device ({life}).",
         "clothing": "{product} is shredded and respun into new yarn ({life}).",
         "furniture": "{product} is chipped and pressed into new board ({life}).",
+        "shipyard": "{product} is cut up and rolled into plate for the next hull ({life}).",
     },
     "trade": {
         "electronics": "A partner network ships {product}'s recovered parts in ({life}).",
         "clothing": "A partner network ships recovered fibre for {product} ({life}).",
         "furniture": "A partner network ships reclaimed wood for {product} ({life}).",
+        "shipyard": "A partner yard ships salvaged plate and fittings for {product} ({life}).",
     },
 }
 
@@ -344,12 +446,12 @@ STREAK_PROGRESS_STEP = 5  # H2: progress toward the next 5-cycle streak mark
 
 
 def current_goods_label():
-    spec = GOODS_CATEGORIES.get(chain.goods_category, GOODS_CATEGORIES[DEFAULT_GOODS_CATEGORY])
+    spec = ALL_GOODS.get(chain.goods_category, GOODS_CATEGORIES[DEFAULT_GOODS_CATEGORY])
     return spec["label"]
 
 
 def current_vignette_item():
-    spec = GOODS_CATEGORIES.get(chain.goods_category, GOODS_CATEGORIES[DEFAULT_GOODS_CATEGORY])
+    spec = ALL_GOODS.get(chain.goods_category, GOODS_CATEGORIES[DEFAULT_GOODS_CATEGORY])
     return spec["vignette_item"]
 
 
@@ -395,6 +497,22 @@ class ChainState:
         self.culture_level = 0
         # H21: [{"cycle": int, "source": one of PASSPORT_SOURCES}], oldest first.
         self.passport = []
+        # GH-14: the goods category PICKED at chain start (the relabel panel only changes
+        # goods_category, so it cannot be used to unlock or record anything), and the
+        # secret category's built-in scrap supply (units per cycle, 0 for the others).
+        self.picked_category = DEFAULT_GOODS_CATEGORY
+        self.head_start = 0.0
+        # GH-12 / GH-24: banked combo score, and the once-per-chain streak insurance.
+        self.perfect_bonus = 0.0
+        self.insurance_used = False
+        self.insurance_armed = False
+        # Transient notes about the cycle that just ran (never saved).
+        self.last_cycle_mix = None  # shares by source when that cycle needed no extraction
+        self.last_combo_gain = 0.0
+        self.last_insurance_saved = False
+        # GH-20: the chain's first close, for the speed achievements (saved when set).
+        self.first_close_extracted = None
+        self.first_close_trade_free = None
 
     def can_choose_mode(self):
         """H13/H23: the modes change the rules of the whole chain, so they
@@ -436,10 +554,7 @@ class ChainState:
             return "extraction"
         shares = {"extraction": extraction / need}
         circular = 1.0 - shares["extraction"]
-        parts = {
-            m: self.circularity_investment[m] * CIRCULARITY_INVESTMENTS[m]["supply_per_unit"] * self.measure_multiplier(m)
-            for m in CIRCULARITY_INVESTMENTS
-        }
+        parts = {m: self.measure_supply(m) for m in CIRCULARITY_INVESTMENTS}
         parts["trade"] = self.imported_supply()
         total = sum(parts.values())
         for name in ("repair", "reuse", "recycle", "trade"):
@@ -509,14 +624,69 @@ class ChainState:
         self.waste_focus = measure
         return True
 
+    def measure_supply(self, measure):
+        """Units one measure supplies per cycle, after every multiplier. The secret
+        yard's built-in scrap line (GH-14) counts as recycling, so every view of the
+        supply (maps, passport, contribution lines) keeps summing to the same total."""
+        base = (
+            self.circularity_investment[measure] * CIRCULARITY_INVESTMENTS[measure]["supply_per_unit"]
+            * self.measure_multiplier(measure)
+        )
+        if measure == "recycle":
+            base += self.head_start
+        return self.supply_multiplier() * base
+
     def internal_circular_supply(self):
         """Units of this cycle's production target met by repair/reuse/
         recycling instead of new extraction — the chain's own capacity,
         before anything crossing in from the trade network."""
-        return self.supply_multiplier() * sum(
-            self.circularity_investment[c] * CIRCULARITY_INVESTMENTS[c]["supply_per_unit"] * self.measure_multiplier(c)
-            for c in CIRCULARITY_INVESTMENTS
+        return sum(self.measure_supply(c) for c in CIRCULARITY_INVESTMENTS)
+
+    def supply_mix(self):
+        """GH-15: each source's share (0..1) of the circular supply right now, over
+        repair, reuse, recycle and trade; empty when nothing is supplied."""
+        units = {m: self.measure_supply(m) for m in CIRCULARITY_INVESTMENTS}
+        units["trade"] = self.imported_supply()
+        total = sum(units.values())
+        if total <= 0:
+            return {}
+        return {name: value / total for name, value in units.items()}
+
+    def combo_level(self):
+        """GH-12: the Perfect Cycle combo, the closed-loop streak counted up to COMBO_CAP."""
+        return min(self.closed_loop_streak, COMBO_CAP)
+
+    def next_combo_gain(self):
+        """Bonus the NEXT perfect cycle would bank (0 for the first of a run)."""
+        level = min(self.closed_loop_streak + 1, COMBO_CAP)
+        return COMBO_BONUS_PER_LEVEL * max(0, level - 1)
+
+    def can_buy_insurance(self):
+        """GH-24: once per chain, and only with a streak worth protecting."""
+        return (
+            not self.insurance_used and self.closed_loop_streak >= 1 and self.funds >= INSURANCE_COST
         )
+
+    def buy_insurance(self):
+        if not self.can_buy_insurance():
+            return False
+        self.funds -= INSURANCE_COST
+        self.insurance_used = True
+        self.insurance_armed = True
+        return True
+
+    def note_loop_closed(self):
+        """Records the chain's FIRST close (called by the closing action)."""
+        if self.first_loop_closed_cycle is not None:
+            return False
+        self.first_loop_closed_cycle = self.cycle_number
+        self.first_close_extracted = self.total_extracted
+        self.first_close_trade_free = (
+            self.trade_link_investment == 0
+            and self.regional_trade_investment == 0
+            and self.overseas_trade_investment == 0
+        )
+        return True
 
     def imported_supply(self):
         return self.supply_multiplier() * (
@@ -646,9 +816,20 @@ class ChainState:
         # Grid's best_clean_streak. A cycle only counts toward the streak
         # if it needed zero new extraction (fully closed), matching
         # is_loop_closed()'s own definition.
+        self.last_combo_gain = 0.0
+        self.last_insurance_saved = False
+        self.last_cycle_mix = None
         if extraction <= 0.0:
+            # GH-12: the combo bonus uses the streak INCLUDING this cycle.
+            self.last_cycle_mix = self.supply_mix()
             self.closed_loop_streak += 1
             self.best_closed_loop_streak = max(self.best_closed_loop_streak, self.closed_loop_streak)
+            self.last_combo_gain = COMBO_BONUS_PER_LEVEL * max(0, min(self.closed_loop_streak, COMBO_CAP) - 1)
+            self.perfect_bonus += self.last_combo_gain
+        elif self.insurance_armed:
+            # GH-24: the armed insurance freezes the streak through this one bad cycle.
+            self.insurance_armed = False
+            self.last_insurance_saved = True
         else:
             self.closed_loop_streak = 0
         self.passport.append({"cycle": self.cycle_number, "source": self.passport_source()})
@@ -662,7 +843,7 @@ class ChainState:
         """Profitability plus a direct reward for lifetime circular
         share — a fully closed, sustained loop earns the maximum bonus
         on top of whatever funds it generated."""
-        return self.funds + self.lifetime_circular_fraction() * CIRCULARITY_BONUS_WEIGHT
+        return self.funds + self.lifetime_circular_fraction() * CIRCULARITY_BONUS_WEIGHT + self.perfect_bonus
 
     def circular_trend(self):
         """Compares the first half of cycles run to the second half —
@@ -692,6 +873,127 @@ regional_hint_seen = False
 # H20: per-session random offset for which vignette variant a bucket
 # starts on. 0 (deterministic) outside a real browser -- setup() sets it.
 vignette_session_offset = 0
+
+# GH-14/GH-15/GH-20 + H-9: the career, which like the two counters above survives
+# "Start New Chain". Everything here is a pure record of what happened (never an input
+# to the sums), and rides get_state()/load_state() as one "career" key.
+career_closed_categories = set()  # picked categories that ran a fully closed cycle
+career_plates = set()  # PLATES keys earned
+career_speed = set()  # {"cycle12", "lean", "no_trade"}: speed-loop flags (GH-20)
+career_best = {}  # picked category -> {"fastest_close", "lowest_extraction", "best_score", "best_streak"}
+CAREER_SPEED_FLAGS = ("cycle12", "lean", "no_trade")
+CAREER_BEST_FIELDS = ("fastest_close", "lowest_extraction", "best_score", "best_streak")
+
+
+def secret_unlocked():
+    """GH-14: the secret category opens once every ordinary category has had a fully
+    closed cycle."""
+    return set(GOODS_CATEGORIES) <= career_closed_categories
+
+
+def secret_progress():
+    return len(career_closed_categories & set(GOODS_CATEGORIES)), len(GOODS_CATEGORIES)
+
+
+def plate_for_mix(shares):
+    """GH-15: which plate a supply mix earns, or None when nothing is supplied."""
+    if not shares:
+        return None
+    source, share = max(shares.items(), key=lambda kv: kv[1])
+    if share >= PLATE_DOMINANT_SHARE:
+        return PLATE_FOR_SOURCE.get(source, "allrounder")
+    return "allrounder"
+
+
+def _update_career():
+    """Idempotent: folds the current chain into the career records. Called after every
+    action, so it must only ever add or improve."""
+    category = chain.picked_category
+    if chain.last_cycle_mix is not None:  # the last cycle ran fully closed
+        career_closed_categories.add(category)
+        plate = plate_for_mix(chain.last_cycle_mix)
+        if plate:
+            career_plates.add(plate)
+    if chain.first_loop_closed_cycle is not None:
+        if chain.first_loop_closed_cycle <= SPEED_CLOSE_CYCLE:
+            career_speed.add("cycle12")
+        if chain.first_close_extracted is not None and chain.first_close_extracted < LEAN_CLOSE_EXTRACTION:
+            career_speed.add("lean")
+        if chain.first_close_trade_free:
+            career_speed.add("no_trade")
+    if chain.total_produced > 0:
+        best = career_best.setdefault(category, {})
+        score = chain.score()
+        if score > best.get("best_score", float("-inf")):
+            best["best_score"] = score
+        if chain.best_closed_loop_streak > best.get("best_streak", 0):
+            best["best_streak"] = chain.best_closed_loop_streak
+        if chain.first_loop_closed_cycle is not None:
+            fastest = best.get("fastest_close")
+            if fastest is None or chain.first_loop_closed_cycle < fastest:
+                best["fastest_close"] = chain.first_loop_closed_cycle
+            if chain.first_close_extracted is not None:
+                lowest = best.get("lowest_extraction")
+                if lowest is None or chain.first_close_extracted < lowest:
+                    best["lowest_extraction"] = chain.first_close_extracted
+
+
+def career_state():
+    """JSON-safe copy of the career (empty dict when there is nothing to save)."""
+    if not (career_closed_categories or career_plates or career_speed or career_best):
+        return {}
+    return {
+        "closed": sorted(career_closed_categories),
+        "plates": sorted(career_plates),
+        "speed": sorted(career_speed),
+        "best": {cat: dict(rec) for cat, rec in sorted(career_best.items())},
+    }
+
+
+def _finite_number(value, low=0.0, high=1e9):
+    return (
+        isinstance(value, (int, float)) and not isinstance(value, bool)
+        and value == value and low <= value <= high
+    )
+
+
+def load_career(data):
+    """Validates a saved career key by key; anything unknown or malformed is dropped."""
+    career_closed_categories.clear()
+    career_plates.clear()
+    career_speed.clear()
+    career_best.clear()
+    if not isinstance(data, dict):
+        return
+    valid_categories = set(ALL_GOODS)
+    closed = data.get("closed")
+    if isinstance(closed, list):
+        career_closed_categories.update(c for c in closed if isinstance(c, str) and c in valid_categories)
+    plates = data.get("plates")
+    if isinstance(plates, list):
+        career_plates.update(p for p in plates if isinstance(p, str) and p in PLATES)
+    speed = data.get("speed")
+    if isinstance(speed, list):
+        career_speed.update(f for f in speed if isinstance(f, str) and f in CAREER_SPEED_FLAGS)
+    best = data.get("best")
+    if isinstance(best, dict):
+        for category, record in best.items():
+            if not (isinstance(category, str) and category in valid_categories and isinstance(record, dict)):
+                continue
+            clean = {}
+            for field in CAREER_BEST_FIELDS:
+                value = record.get(field)
+                if field in ("fastest_close", "best_streak"):
+                    if isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= 100000:
+                        clean[field] = value
+                elif _finite_number(value, -1e9, 1e9):
+                    clean[field] = float(value)
+            if clean:
+                career_best[category] = clean
+
+
+def career_reset():
+    load_career(None)
 
 
 def circular_trend_message(trend):
@@ -1065,8 +1367,18 @@ ACHIEVEMENT_CHECKS = {
     "serial_redesigner": lambda: chains_completed_count >= SERIAL_REDESIGNER_TARGET,
     "goods_explorer": lambda: len(goods_categories_tried) >= GOODS_EXPLORER_TARGET,
     # H14: a badge for trying every goods-flavor set.
-    "goods_collector": lambda: len(goods_categories_tried) >= len(GOODS_CATEGORIES),
+    "goods_collector": lambda: len(goods_categories_tried & set(GOODS_CATEGORIES)) >= len(GOODS_CATEGORIES),
+    # GH-20: speed-loop achievements, remembered across chains (see career_speed).
+    "speed_close": lambda: "cycle12" in career_speed,
+    "lean_close": lambda: "lean" in career_speed,
+    "no_trade_close": lambda: "no_trade" in career_speed,
+    # GH-15 / GH-14: the plate collection and the secret yard.
+    "plate_collector": lambda: len(career_plates) >= len(PLATES),
+    "yard_boss": lambda: SECRET_GOODS_CATEGORY in career_closed_categories,
 }
+
+# GH-20: shown in the achievements panel only, never as an unlock toast.
+SILENT_ACHIEVEMENTS = {"speed_close", "lean_close", "no_trade_close"}
 
 # Progress readouts, only for achievements with a natural numeric scale-up
 # — a plain earned/not-yet is the honest shape for a one-shot milestone
@@ -1100,7 +1412,8 @@ ACHIEVEMENT_PROGRESS = {
     ),
     "serial_redesigner": lambda: (min(chains_completed_count, SERIAL_REDESIGNER_TARGET), SERIAL_REDESIGNER_TARGET),
     "goods_explorer": lambda: (min(len(goods_categories_tried), GOODS_EXPLORER_TARGET), GOODS_EXPLORER_TARGET),
-    "goods_collector": lambda: (len(goods_categories_tried), len(GOODS_CATEGORIES)),
+    "goods_collector": lambda: (len(goods_categories_tried & set(GOODS_CATEGORIES)), len(GOODS_CATEGORIES)),
+    "plate_collector": lambda: (len(career_plates), len(PLATES)),
 }
 
 
@@ -1283,7 +1596,7 @@ def _check_new_achievements_for_toast(delay_ms=0):
         return
 
     by_id = {entry["id"]: entry for entry in ACHIEVEMENTS}
-    labels = [by_id[aid]["label"] for aid in newly if aid in by_id]
+    labels = [by_id[aid]["label"] for aid in sorted(newly) if aid in by_id and aid not in SILENT_ACHIEVEMENTS]
     if not labels:
         return
 
@@ -1332,11 +1645,12 @@ def _milestone_step(fraction):
 LOOP_CLOSED_BANNER_DURATION_MS = 5000
 
 
-def _show_loop_closed_banner():
+def _show_loop_closed_banner(first=None):
     banner = document.getElementById("loop-closed-banner")
     # H16: name the exact cycle the loop first closed on.
-    if chain.first_loop_closed_cycle is None:
-        chain.first_loop_closed_cycle = chain.cycle_number
+    if first is None:
+        first = chain.note_loop_closed()
+    if first:
         text = (
             f"🔁 Loop closed for the first time, on cycle {chain.first_loop_closed_cycle} — 100% of "
             "this cycle's production came from repair, reuse & recycling. No new extraction needed."
@@ -1500,7 +1814,7 @@ def streak_progress_text():
 
 def score_pie_percentages():
     """H12: (funds_pct, bonus_pct) shares of the score, summing to 100."""
-    bonus = chain.lifetime_circular_fraction() * CIRCULARITY_BONUS_WEIGHT
+    bonus = chain.lifetime_circular_fraction() * CIRCULARITY_BONUS_WEIGHT + chain.perfect_bonus
     total = chain.funds + bonus
     if total <= 0:
         return (100, 0)
@@ -1735,12 +2049,8 @@ def trade_partner_flows():
 def internal_measure_flows():
     """Real per-measure recovery flows (key, label, icon, owned, units/cycle),
     summing to exactly chain.internal_circular_supply()."""
-    mult = chain.supply_multiplier()
     return [
-        (
-            key, spec["label"], spec["icon"], chain.circularity_investment[key],
-            chain.circularity_investment[key] * spec["supply_per_unit"] * chain.measure_multiplier(key) * mult,
-        )
+        (key, spec["label"], spec["icon"], chain.circularity_investment[key], chain.measure_supply(key))
         for key, spec in CIRCULARITY_INVESTMENTS.items()
     ]
 
@@ -2077,8 +2387,278 @@ def reset_chain_message():
     lifetime counters that survive it."""
     return (
         f"New chain started. Kept from before: {chains_completed_count} chain(s) completed, "
-        f"{len(goods_categories_tried)} goods categor{'y' if len(goods_categories_tried) == 1 else 'ies'} tried."
+        f"{len(goods_categories_tried)} goods categor{'y' if len(goods_categories_tried) == 1 else 'ies'} tried, "
+        f"{len(career_plates)} name plate(s) and your records."
     )
+
+
+# ===========================================================================
+# Round-3 helpers (GH-12/14/15/24/25, H-4/9/15/22/23). Pure functions of state
+# (plus the career records), so they are directly testable.
+# ===========================================================================
+def _supply_options():
+    """(label, cost, units supplied per purchase) for every single purchase that adds
+    supply right now, with every multiplier applied."""
+    mult = chain.supply_multiplier()
+    options = [
+        (spec["label"], spec["cost"], spec["supply_per_unit"] * chain.measure_multiplier(m) * mult)
+        for m, spec in CIRCULARITY_INVESTMENTS.items()
+    ]
+    options.append(("Trade Link", TRADE_LINK_COST, IMPORT_SUPPLY_PER_UNIT * mult))
+    options.append(("Regional Partner", REGIONAL_TRADE_COST, REGIONAL_IMPORT_SUPPLY_PER_UNIT * mult))
+    options.append(("Overseas Consortium", OVERSEAS_TRADE_COST, OVERSEAS_IMPORT_SUPPLY_PER_UNIT * mult))
+    return options
+
+
+def near_miss_info():
+    """GH-25: None, or (units_short, goal_text, fix_text). 'Short' is how far the
+    current mix falls below closing the loop or reaching the next 25% step, only when
+    that is within NEAR_MISS_UNITS."""
+    gap = chain.new_extraction_needed()
+    if gap <= 0:
+        return None
+    fraction = chain.circular_fraction_this_cycle()
+    next_step = (math.floor(fraction * BURST_MILESTONES + 1e-9) + 1) / BURST_MILESTONES
+    short = gap - (1.0 - next_step) * PRODUCTION_TARGET
+    limit = NEAR_MISS_UNITS if next_step >= 1.0 else NEAR_MISS_STEP_UNITS
+    if short <= 1e-9 or short > limit:
+        return None
+    goal = "closing the loop" if next_step >= 1.0 else f"the {next_step * 100:.0f}% mark"
+    options = _supply_options()
+    single = [o for o in options if o[2] >= short - 1e-9]
+    if single:
+        label, cost, supply = min(single, key=lambda o: (o[1], -o[2]))
+        fix = f"{label} ({cost} funds, +{supply:.0f} units) covers it"
+    else:
+        label, cost, supply = min(options, key=lambda o: math.ceil(short / o[2]) * o[1])
+        count = math.ceil(short / supply)
+        fix = f"{count} x {label} ({count * cost} funds) would cover it"
+    return short, goal, fix
+
+
+def near_miss_message():
+    info = near_miss_info()
+    if info is None:
+        return ""
+    short, goal, fix = info
+    shown = math.ceil(short - 1e-9)
+    text = f"So close: {shown} unit{'' if shown == 1 else 's'} short of {goal}! Cheapest fix: {fix}."
+    cost_note = None
+    for label, cost, supply in _supply_options():
+        if fix.startswith(label) or f" x {label}" in fix:
+            cost_note = cost
+            break
+    if cost_note is not None and chain.funds < cost_note:
+        text += f" You have {chain.funds:.0f} funds, so you need {cost_note - chain.funds:.0f} more."
+    return text
+
+
+def cycle_summary_text():
+    """H-4: one plain sentence about the cycle that just finished, for the screen-reader
+    live region ('' before any cycle has run)."""
+    log = chain.circular_fraction_log
+    if not log:
+        return ""
+    done = chain.cycle_number - 1
+    now = PRODUCTION_TARGET * (1.0 - log[-1])
+    text = f"Cycle {done} complete: {log[-1] * 100:.0f}% circular"
+    if len(log) >= 2:
+        before = PRODUCTION_TARGET * (1.0 - log[-2])
+        delta = round(before - now)
+        if delta > 0:
+            text += f", extraction down {delta} unit{'' if delta == 1 else 's'}"
+        elif delta < 0:
+            text += f", extraction up {-delta} unit{'' if delta == -1 else 's'}"
+        else:
+            text += ", extraction unchanged"
+    else:
+        text += f", {now:.0f} units extracted"
+    text += "."
+    if now <= 0:
+        text += f" Loop closed. Combo times {chain.combo_level()}."
+    if chain.last_insurance_saved:
+        text += " Streak insurance held your streak."
+    return text
+
+
+def cost_equation_text():
+    """H-15: the extraction price worked out, so the number is not a mystery."""
+    mult = chain.extraction_cost_multiplier()
+    return (
+        f"Each extracted unit costs: base {EXTRACTION_COST_PER_UNIT:.1f} x damage multiplier {mult:.2f} "
+        f"(cap {MAX_COST_MULTIPLIER:.1f}) = {EXTRACTION_COST_PER_UNIT * mult:.2f} funds."
+    )
+
+
+def combo_text():
+    """GH-12: the Perfect Cycle combo line."""
+    level = chain.combo_level()
+    gain = chain.next_combo_gain()
+    line = f"Perfect combo: x{level}"
+    if level == 0:
+        line += " (close the loop for a full cycle to start one)"
+    else:
+        line += f", {chain.closed_loop_streak} perfect cycle{'' if chain.closed_loop_streak == 1 else 's'} in a row"
+    if gain > 0:
+        line += f". Next perfect cycle banks +{gain:.0f}"
+    else:
+        line += ". Banking starts with the second perfect cycle in a row"
+    line += f". Banked so far: {chain.perfect_bonus:.0f}."
+    if level >= COMBO_CAP:
+        line += " (combo maxed)"
+    return line
+
+
+def insurance_text():
+    if chain.insurance_armed:
+        return "Streak insurance is armed: your next cycle that needs extraction will not reset the streak."
+    if chain.insurance_used:
+        return "Streak insurance already used on this chain."
+    if chain.closed_loop_streak < 1:
+        return "Streak insurance (once per chain) protects a streak: close the loop for a cycle first."
+    return (
+        f"Pay {INSURANCE_COST} funds, once per chain, to freeze your {chain.closed_loop_streak}-cycle "
+        "streak through one cycle that needs extraction."
+    )
+
+
+def summary_blocks(fractions, width=40):
+    """H-23: a block-character row, one block per cycle (the last `width`)."""
+    blocks = "\u2581\u2582\u2583\u2584\u2585\u2586\u2587\u2588"
+    return "".join(blocks[max(0, min(7, round(f * 7)))] for f in fractions[-width:])
+
+
+def summary_text():
+    """H-23: plain text a player can paste anywhere."""
+    spec = ALL_GOODS.get(chain.goods_category, GOODS_CATEGORIES[DEFAULT_GOODS_CATEGORY])
+    name = spec.get("name") or spec["label"].capitalize()
+    if chain.first_loop_closed_cycle is not None:
+        head = f"Loop {name} - closed cycle {chain.first_loop_closed_cycle} - score {chain.score():.0f}"
+    else:
+        head = (
+            f"Loop {name} - cycle {chain.cycle_number} - "
+            f"{chain.circular_fraction_this_cycle() * 100:.0f}% circular - score {chain.score():.0f}"
+        )
+    row = summary_blocks(chain.circular_fraction_log)
+    return head + ("\n" + row if row else "")
+
+
+def plate_rows():
+    """GH-15: (key, name, how, earned) in catalog order."""
+    return [(key, spec["name"], spec["how"], key in career_plates) for key, spec in PLATES.items()]
+
+
+def live_plate_text():
+    shares = chain.supply_mix()
+    key = plate_for_mix(shares)
+    if key is None:
+        return "Your supply mix right now would earn no plate: buy some circular supply first."
+    top, share = max(shares.items(), key=lambda kv: kv[1])
+    return (
+        f"Your mix right now ({top} {share * 100:.0f}% of supply) would earn {PLATES[key]['name']} "
+        "if you close the loop with it."
+    )
+
+
+def career_record_lines():
+    """H-9: one line per goods category with any record."""
+    lines = []
+    for category in ALL_GOODS:
+        record = career_best.get(category)
+        if not record:
+            continue
+        name = ALL_GOODS[category].get("name") or ALL_GOODS[category]["label"].capitalize()
+        parts = []
+        if "fastest_close" in record:
+            parts.append(f"first close on cycle {record['fastest_close']}")
+        if "lowest_extraction" in record:
+            parts.append(f"{record['lowest_extraction']:.0f} units extracted by then")
+        if "best_score" in record:
+            parts.append(f"best score {record['best_score']:.0f}")
+        if record.get("best_streak"):
+            parts.append(f"longest perfect run {record['best_streak']}")
+        lines.append(f"{name}: " + ", ".join(parts))
+    return lines
+
+
+def secret_text():
+    done, total = secret_progress()
+    if secret_unlocked():
+        return f"Secret category unlocked: {SECRET_GOODS['icon']} {SECRET_GOODS['name']}, shown with the goods choices at the start of a chain."
+    missing = [GOODS_CATEGORIES[c]["label"] for c in GOODS_CATEGORIES if c not in career_closed_categories]
+    return (
+        f"\U0001F512 A fourth goods category is hidden. Run one fully closed cycle on each of the "
+        f"{total} ordinary categories to reveal it ({done} of {total} done; still to close: {', '.join(missing)})."
+    )
+
+
+def accessible_chain_lines():
+    """H-4: the ring, the trade partners and the meters as plain list lines, in reading order."""
+    lines = [
+        f"Cycle {chain.cycle_number}. Funds {chain.funds:.0f}.",
+        f"New extraction this cycle: {chain.new_extraction_needed():.0f} of {chain.material_need():.0f} units needed.",
+    ]
+    for measure, spec in CIRCULARITY_INVESTMENTS.items():
+        lines.append(
+            f"{spec['label']}: {chain.circularity_investment[measure]} bought, supplying "
+            f"{chain.measure_supply(measure):.0f} units per cycle."
+        )
+    for key, label, _icon, owned, units, _cost in trade_partner_flows():
+        lines.append(f"{label}: {owned} bought, importing {units:.0f} units per cycle.")
+    lines.append(f"Surplus sold or donated: {chain.exportable_surplus():.0f} units per cycle.")
+    lines.append(
+        f"Environmental damage {chain.damage_fraction() * 100:.0f}%, extraction cost x{chain.extraction_cost_multiplier():.2f}."
+    )
+    lines.append(
+        f"Circular this cycle {chain.circular_fraction_this_cycle() * 100:.0f}%, lifetime "
+        f"{chain.lifetime_circular_fraction() * 100:.0f}%. Score {chain.score():.0f}."
+    )
+    return lines
+
+
+def _copy_to_clipboard(text):
+    """Best effort: True when the browser accepted it. Never raises."""
+    try:
+        from js import navigator  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+        navigator.clipboard.writeText(text)
+        return True
+    except Exception:  # noqa: BLE001 -- no clipboard (tests, insecure page): the text is shown instead
+        return False
+
+
+def on_copy_summary(event=None):
+    text = summary_text()
+    status = document.getElementById("copy-summary-status")
+    status.innerText = "Copied to the clipboard." if _copy_to_clipboard(text) else "Select the text above to copy it."
+
+
+def on_buy_insurance(event=None):
+    _run_action(chain.buy_insurance)
+
+
+def render_career():
+    """GH-14/15, H-9/23: the Career panel (plates, secret category, records, summary)."""
+    plates = document.getElementById("plates-list")
+    plates.innerHTML = ""
+    for _key, name, how, earned in plate_rows():
+        row = document.createElement("li")
+        row.className = "plate-row plate-row--earned" if earned else "plate-row"
+        mark = "\u2713" if earned else "\u25cb"
+        row.innerText = f"{mark} {name}: {how}"
+        plates.appendChild(row)
+    document.getElementById("plates-count").innerText = f"{len(career_plates)} of {len(PLATES)} plates earned"
+    document.getElementById("plate-live").innerText = live_plate_text()
+    document.getElementById("secret-progress").innerText = secret_text()
+    records = document.getElementById("career-records")
+    records.innerHTML = ""
+    lines = career_record_lines()
+    if not lines:
+        lines = ["No records yet: advance a cycle and they start filling in."]
+    for line in lines:
+        row = document.createElement("li")
+        row.innerText = line
+        records.appendChild(row)
+    document.getElementById("summary-text").innerText = summary_text()
 
 
 def render():
@@ -2094,6 +2674,17 @@ def render():
             button.classList.add("selected")
         else:
             button.classList.remove("selected")
+
+    # GH-14: the secret category, hidden until every ordinary category has had a closed cycle.
+    secret_button = document.getElementById("goods-category-shipyard-button")
+    secret_button.hidden = not secret_unlocked()
+    if chain.goods_category == SECRET_GOODS_CATEGORY:
+        secret_button.classList.add("selected")
+    else:
+        secret_button.classList.remove("selected")
+    secret_hint = document.getElementById("secret-category-hint")
+    secret_hint.innerText = secret_text()
+    secret_hint.hidden = secret_unlocked()
 
     # H13/H23: the two opt-in modes live in the picker (so they vanish with
     # it after the first cycle); their status line stays visible.
@@ -2189,6 +2780,34 @@ def render():
         f"however much damage accumulates. Currently x{chain.extraction_cost_multiplier():.2f}."
     )
     document.getElementById("damage-bar").style.width = f"{chain.damage_fraction() * 100:.0f}%"
+    # H-15: the extraction price as a worked equation (visible text, also the tooltip).
+    equation = cost_equation_text()
+    equation_el = document.getElementById("cost-equation-display")
+    equation_el.innerText = equation
+    equation_el.title = equation
+    # GH-25: a "so close" note with the cheapest single fix.
+    near_text = near_miss_message()
+    near_el = document.getElementById("near-miss-display")
+    near_el.innerText = near_text
+    near_el.hidden = near_text == ""
+    # GH-12 / GH-24: the Perfect Cycle combo and the streak insurance.
+    document.getElementById("combo-display").innerText = combo_text()
+    insurance_button = document.getElementById("insurance-button")
+    if chain.insurance_armed:
+        insurance_button.innerText = "Streak insurance: armed"
+    elif chain.insurance_used:
+        insurance_button.innerText = "Streak insurance: used"
+    else:
+        insurance_button.innerText = f"Streak insurance ({INSURANCE_COST})"
+    insurance_button.disabled = not chain.can_buy_insurance()
+    document.getElementById("insurance-status").innerText = insurance_text()
+    # H-4: the same numbers as a plain list (screen readers, and anyone who prefers text).
+    document.getElementById("a11y-chain-list").innerHTML = "".join(
+        f"<li>{html.escape(line)}</li>" for line in accessible_chain_lines()
+    )
+    # H-22: a live tab title.
+    document.title = f"Loop - C{chain.cycle_number} - {chain.circular_fraction_this_cycle() * 100:.0f}% circular"
+    render_career()
 
     document.getElementById("circular-fraction-display").innerText = (
         f"Circular this cycle: {chain.circular_fraction_this_cycle() * 100:.0f}%"
@@ -2203,8 +2822,9 @@ def render():
     # H17: a live score breakdown, always visible, instead of the score
     # figure only being explained on click through the info-toggle below.
     bonus_component = chain.lifetime_circular_fraction() * CIRCULARITY_BONUS_WEIGHT
+    combo_part = f" + combo bonus ({chain.perfect_bonus:.0f})" if chain.perfect_bonus > 0 else ""
     document.getElementById("score-breakdown-display").innerText = (
-        f"Score = funds ({chain.funds:.0f}) + circular bonus ({bonus_component:.0f}) = {chain.score():.0f}"
+        f"Score = funds ({chain.funds:.0f}) + circular bonus ({bonus_component:.0f}){combo_part} = {chain.score():.0f}"
     )
     document.getElementById("trend-display").innerText = circular_trend_message(chain.circular_trend())
     document.getElementById("loop-projection-display").innerText = cycles_to_close_loop_message()
@@ -2249,11 +2869,10 @@ def render():
         # H4 + H15: cost-per-unit-of-supply, and each measure's running
         # supply contribution per cycle, next to its owned count.
         cost_per_unit = spec["cost"] / spec["supply_per_unit"]
-        contribution = (
-            chain.circularity_investment[measure] * spec["supply_per_unit"]
-            * chain.supply_multiplier() * chain.measure_multiplier(measure)
-        )
+        contribution = chain.measure_supply(measure)
         focus_note = " · focus +25%" if chain.waste_focus == measure else ""
+        if measure == "recycle" and chain.head_start > 0:
+            focus_note += f" · yard scrap line +{chain.head_start:.0f}"
         if chain.redesign_level[measure]:
             focus_note += f" · redesign +{round(REDESIGN_SUPPLY_BONUS * chain.redesign_level[measure] * 100)}%"
         redesign_button = document.getElementById(f"redesign-{measure}-button")
@@ -2381,6 +3000,8 @@ def on_toggle_pool_donation(event=None):
 def on_advance_cycle(event=None):
     _run_action(chain.advance_cycle)
     _report_pool_donation()
+    # H-4: announce the finished cycle in the polite live region.
+    document.getElementById("cycle-live-summary").innerText = cycle_summary_text()
 
 
 def _make_circularity_handler(measure):
@@ -2485,7 +3106,16 @@ def on_reset_chain(event=None):
 def _make_goods_category_handler(category):
     def handler(event=None):
         def _do_select():
+            if category == SECRET_GOODS_CATEGORY:
+                # GH-14: only once unlocked, and only before the chain has produced
+                # anything (the yard's scrap line changes the numbers).
+                if not secret_unlocked() or chain.total_produced > 0:
+                    return
+                chain.head_start = SECRET_HEAD_START_UNITS
+            else:
+                chain.head_start = 0.0
             chain.goods_category = category
+            chain.picked_category = category
             goods_categories_tried.add(category)
         _run_action(_do_select)
     return handler
@@ -2603,6 +3233,11 @@ def _run_action(mutate_fn):
     supply_before = chain.imported_supply() + chain.exportable_surplus()
 
     mutate_fn()
+    # GH-20: the chain's first close is noted BEFORE the render, so the career panel and
+    # the achievements count the render shows already include it.
+    loop_just_closed = chain.is_loop_closed() and not was_closed
+    first_close = chain.note_loop_closed() if loop_just_closed else False
+    _update_career()
     render()
 
     # H6: burst on crossing upward through a 25% step (not on every render).
@@ -2621,9 +3256,8 @@ def _run_action(mutate_fn):
     # H3-specific celebratory moment) shows immediately as before, and any
     # achievement toast this same action also earned is held back until
     # the banner's own visible window has passed.
-    loop_just_closed = chain.is_loop_closed() and not was_closed
     if loop_just_closed:
-        _show_loop_closed_banner()
+        _show_loop_closed_banner(first_close)
     _check_new_achievements_for_toast(delay_ms=LOOP_CLOSED_BANNER_DURATION_MS if loop_just_closed else 0)
 
 
@@ -2688,6 +3322,25 @@ def get_state():
         state["culture_level"] = chain.culture_level
     if chain.passport:
         state["passport"] = [dict(e) for e in chain.passport]
+    # Round 3 additions: each is written only when it differs from a fresh chain, so older
+    # and default saves keep exactly the shape they had.
+    if chain.picked_category != chain.goods_category:
+        state["picked_category"] = chain.picked_category
+    if chain.head_start > 0:
+        state["head_start"] = chain.head_start
+    if chain.perfect_bonus > 0:
+        state["perfect_bonus"] = chain.perfect_bonus
+    if chain.insurance_used:
+        state["insurance_used"] = True
+    if chain.insurance_armed:
+        state["insurance_armed"] = True
+    if chain.first_close_extracted is not None:
+        state["first_close_extracted"] = chain.first_close_extracted
+    if chain.first_close_trade_free is not None:
+        state["first_close_trade_free"] = chain.first_close_trade_free
+    career = career_state()
+    if career:
+        state["career"] = career
     return state
 
 
@@ -2761,6 +3414,26 @@ def load_state(data):
             level = saved_redesign.get(m)
             if isinstance(level, int) and not isinstance(level, bool) and 0 <= level <= REDESIGN_MAX_LEVEL:
                 chain.redesign_level[m] = level
+    picked = data.get("picked_category")
+    chain.picked_category = picked if isinstance(picked, str) and picked in ALL_GOODS else chain.goods_category
+    head_start = data.get("head_start")
+    chain.head_start = float(head_start) if _finite_number(head_start, 0.0, 1000.0) else 0.0
+    perfect = data.get("perfect_bonus")
+    chain.perfect_bonus = float(perfect) if _finite_number(perfect, 0.0, 1e9) else 0.0
+    chain.insurance_used = data.get("insurance_used") is True
+    chain.insurance_armed = data.get("insurance_armed") is True
+    if chain.insurance_armed:
+        chain.insurance_used = True
+    first_extracted = data.get("first_close_extracted")
+    chain.first_close_extracted = (
+        float(first_extracted) if _finite_number(first_extracted, 0.0, 1e12) else None
+    )
+    trade_free = data.get("first_close_trade_free")
+    chain.first_close_trade_free = trade_free if isinstance(trade_free, bool) else None
+    chain.last_cycle_mix = None
+    chain.last_combo_gain = 0.0
+    chain.last_insurance_saved = False
+    load_career(data.get("career"))
     chain.lifetime_investment_spend = data.get("lifetime_investment_spend", 0.0)
     chain.lifetime_export_revenue = data.get("lifetime_export_revenue", 0.0)
     chain.donate_surplus = data.get("donate_surplus") is True
@@ -2813,10 +3486,12 @@ def setup():
     document.getElementById("reset-chain-button").addEventListener(
         "click", create_proxy(on_reset_chain)
     )
-    for category in GOODS_CATEGORIES:
+    for category in ALL_GOODS:
         document.getElementById(f"goods-category-{category}-button").addEventListener(
             "click", create_proxy(_make_goods_category_handler(category))
         )
+    document.getElementById("insurance-button").addEventListener("click", create_proxy(on_buy_insurance))
+    document.getElementById("copy-summary-button").addEventListener("click", create_proxy(on_copy_summary))
     document.getElementById("culture-invest-button").addEventListener("click", create_proxy(on_invest_culture))
     for measure in CIRCULARITY_INVESTMENTS:
         document.getElementById(f"focus-{measure}-button").addEventListener(

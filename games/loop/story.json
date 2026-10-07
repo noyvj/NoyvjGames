@@ -110,6 +110,31 @@
       "id": "score_master",
       "title": "A systems thinker",
       "text": "You have run a workshop that is almost entirely circular for a long stretch, and still done well by every measure the game keeps. What began as fixing one broken item has turned into a way of designing everything, from the raw material to the last bit of scrap."
+    },
+    {
+      "id": "speed_close",
+      "title": "Ahead of the order book",
+      "text": "The first big loop comes together faster than you had planned. By the time the slow season arrives, the workshop is already running on its own offcuts and returns, and the bins behind the door have never been so empty."
+    },
+    {
+      "id": "lean_close",
+      "title": "Light on the land",
+      "text": "You look back at how little new material the workshop took out of the ground before it closed its loop, and the number is smaller than you expected. It turns out that deciding early what will come back is cheaper than any amount of clever mining."
+    },
+    {
+      "id": "no_trade_close",
+      "title": "Nothing from outside",
+      "text": "Every scrap that keeps the workshop going comes from the workshop itself. No partners, no shipments in, only your own repairs, swaps and recovered metal. It is a quiet sort of pride, and the neighbours start asking how you manage it."
+    },
+    {
+      "id": "plate_collector",
+      "title": "Five names on the door",
+      "text": "Over the years the workshop has earned a name for every way of closing a loop: the one who scraps, the one who fixes, the one who swaps, the one who trades, and the one who does a bit of everything. There is a small brass plate for each, screwed in a row beside the door."
+    },
+    {
+      "id": "yard_boss",
+      "title": "The yard at the end of the lane",
+      "text": "Past the last house on Mill Lane, the old shipyard has stood empty for years. You take it on, and the first thing you do is cut a ship apart plate by plate, sending every tonne of steel back to the mill. By evening the beach is clear and the rolling mill is running again."
     }
   ]
 }

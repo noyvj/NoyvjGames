@@ -104,6 +104,31 @@
       "id": "goods_collector",
       "label": "Goods Collector",
       "description": "Try every goods category (electronics, clothing and furniture) across your chains."
+    },
+    {
+      "id": "speed_close",
+      "label": "Quick Study",
+      "description": "Close the loop by cycle 12 on any chain. Shown here only: it never pops up."
+    },
+    {
+      "id": "lean_close",
+      "label": "Light Touch",
+      "description": "Close the loop for the first time having extracted under 500 units in total. Shown here only: it never pops up."
+    },
+    {
+      "id": "no_trade_close",
+      "label": "Self-Reliant",
+      "description": "Close the loop for the first time without ever buying a trade partner. Shown here only: it never pops up."
+    },
+    {
+      "id": "plate_collector",
+      "label": "Plate Collector",
+      "description": "Earn all five name plates (Scrapper, Fixer, Swapper, Diplomat, Allrounder), each by closing the loop with a different supply mix."
+    },
+    {
+      "id": "yard_boss",
+      "label": "Yard Boss",
+      "description": "Close a loop at the secret Ship-Breaking Yard, which opens once you have closed one on electronics, clothing and furniture."
     }
   ]
 }

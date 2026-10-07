@@ -30,7 +30,7 @@ window.LOOP_PC_TUTORIAL_STEPS = [
   {
     selector: "#repair-invest-button",
     title: "Circularity Investments",
-    text: "Repair Networks, Reuse Systems and Recycling Loops each permanently supply a fixed number of units toward next cycle's production target, sourced from repaired, reused or recycled material instead of new extraction. Recycling supplies the most per unit, Repair the least. Focus and Redesign sharpen a measure, the Culture campaign trims how much material you need, and the Material passport follows one unit's journey. Buy enough combined supply to push new extraction to zero and you've closed the loop.",
+    text: "Repair Networks, Reuse Systems and Recycling Loops each permanently supply a fixed number of units toward next cycle's production target, sourced from repaired, reused or recycled material instead of new extraction. Recycling supplies the most per unit, Repair the least. Focus and Redesign sharpen a measure, the Culture campaign trims how much material you need, and the Material passport follows one unit's journey. Buy enough combined supply to push new extraction to zero and you've closed the loop. Streak insurance protects a run of perfect cycles once per chain, and the Career panel below keeps your name plates and records. Space advances the cycle, 1 2 3 buy the three measures and T buys a Trade Link.",
   },
   {
     selector: "#trade-network",

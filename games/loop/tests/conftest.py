@@ -131,6 +131,24 @@ ELEMENT_IDS = [
     "supply-visual",
     "supply-visual-body",
     "supply-visual-unsupported",
+    # Round 3: secret category, near-miss, combo, insurance, career, accessible summary.
+    "goods-category-shipyard-button",
+    "secret-category-hint",
+    "cost-equation-display",
+    "near-miss-display",
+    "combo-display",
+    "insurance-button",
+    "insurance-status",
+    "a11y-chain-list",
+    "cycle-live-summary",
+    "plates-list",
+    "plates-count",
+    "plate-live",
+    "secret-progress",
+    "career-records",
+    "summary-text",
+    "copy-summary-button",
+    "copy-summary-status",
 ]
 
 

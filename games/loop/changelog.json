@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-07",
+    "entry": "New for Loop: a Perfect Cycle combo (every extra closed cycle in a row banks a growing score bonus, and a miss resets the combo but never takes back what you banked), once-per-chain Streak insurance, a 'So close' note naming the cheapest single purchase when you are a few units short of closing the loop, five name plates (The Scrapper, Fixer, Swapper, Diplomat and Allrounder) earned by closing the loop with different supply mixes, a Career panel with your best results per goods category and a Copy summary button, a secret fourth goods category that opens after you have closed a loop on all three ordinary ones, and three quiet speed-loop achievements. Also: Space, 1, 2, 3 and T work as shortcuts, a spoken summary after every cycle and a plain-list view of the chain for screen readers, the extraction price shown as a worked sum, the tab title follows your cycle, and Settings gains High contrast, an easier-to-read font and a flow animation speed."
+  },
+  {
+    "date": "2026-10-07",
     "entry": "New Desktop layout for wide windows: a full-window view with the cycle, funds, environmental damage, circular share and score as chips across the top, the supply chain and the one-item vignette above your damage and loop-closure meters and the trade network (with its optional visual maps), and your circularity investments, trade partners and the regional pool in a column on the right with Advance Cycle pinned at the top. How to Play, Achievements and Settings are icons in the top bar; relabelling your goods, About Loop, feedback, the real story and What's New are windows opened from the Menu (Esc). Pick it from the opening screen; your save carries over and the Classic layout is unchanged."
   },
   {
