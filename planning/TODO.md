@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 368/904 items checked off (40.7%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 368/992 items checked off (37.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -1092,6 +1092,100 @@ Classic stays the default boot (`index.html`); Desktop is a second boot (`pc.htm
 - [x] UX-7: Make "Your saves" on the hub collapsible (remember the choice). (hub `index.html`, `script.js`, `style.css`)
 - [x] UX-8: Every game gets a way back to its own main page (the opening screen: Continue, New Game, Saves, Settings), and that main page gets a way to the hub. (`shared/opening-screen.js`, one shared control)
 - [x] UX-9: Feedback entries get a "this is a test, hide it" toggle in admin, like accounts have, so test feedback can be hidden without going into the backend. (`admin.html`, `app/`)
+
+## QA. Quality passes: code review, bug check, bloat cleanup and load time for everything (user request 2026-10-08)
+
+One checkbox per pass per area. A pass is not done until its fixes are committed with tests green and its findings (fixed, deferred and why) are written in the dev log. Run these after the big feature waves land; do the hub, backend and shared passes first because every game depends on them. Never weaken a test to make a pass finish; if a rule looks wrong, ask in FOR-YOU.
+
+- [ ] QA-1: Code review for every game and the site: read the whole thing as a reviewer: correctness bugs, risky patterns, duplicated logic, unclear names, missing tests for important rules; fix what is clearly wrong and list what needs a decision.
+  - [ ] QA-1 SOL
+  - [ ] QA-1 Canopy
+  - [ ] QA-1 Grid
+  - [ ] QA-1 Tide
+  - [ ] QA-1 Aftermath
+  - [ ] QA-1 Herd
+  - [ ] QA-1 Thaw
+  - [ ] QA-1 Loop
+  - [ ] QA-1 Drift
+  - [ ] QA-1 Trade Empire
+  - [ ] QA-1 Continuum
+  - [ ] QA-1 Le Champ de Mots
+  - [ ] QA-1 Signal
+  - [ ] QA-1 Lexis
+  - [ ] QA-1 Chronicle
+  - [ ] QA-1 The hub (index.html, script.js, style.css and the root pages)
+  - [ ] QA-1 The backend (app/)
+  - [ ] QA-1 Shared components (shared/)
+  - [ ] QA-1 Scripts and test infrastructure (scripts/, shared/tests, every game's tests/ folder)
+  - [ ] QA-1 The service worker and offline behaviour (sw.js)
+  - [ ] QA-1 Planning docs and dev logs (stale or duplicated text)
+- [ ] QA-2: Bug check for every game and the site: hunt for real bugs: play it end to end in a browser in Classic and Desktop at 1440x900 and 360x740, in both themes, try odd inputs, old and hand-edited saves, resets, undo, rapid clicks, a hidden tab and a slow device (lite mode); write a regression test for each bug found.
+  - [ ] QA-2 SOL
+  - [ ] QA-2 Canopy
+  - [ ] QA-2 Grid
+  - [ ] QA-2 Tide
+  - [ ] QA-2 Aftermath
+  - [ ] QA-2 Herd
+  - [ ] QA-2 Thaw
+  - [ ] QA-2 Loop
+  - [ ] QA-2 Drift
+  - [ ] QA-2 Trade Empire
+  - [ ] QA-2 Continuum
+  - [ ] QA-2 Le Champ de Mots
+  - [ ] QA-2 Signal
+  - [ ] QA-2 Lexis
+  - [ ] QA-2 Chronicle
+  - [ ] QA-2 The hub (index.html, script.js, style.css and the root pages)
+  - [ ] QA-2 The backend (app/)
+  - [ ] QA-2 Shared components (shared/)
+  - [ ] QA-2 Scripts and test infrastructure (scripts/, shared/tests, every game's tests/ folder)
+  - [ ] QA-2 The service worker and offline behaviour (sw.js)
+  - [ ] QA-2 Planning docs and dev logs (stale or duplicated text)
+- [ ] QA-3: Bloat cleanup for every game and the site: remove dead code, unused CSS rules and ids, duplicate helpers, stale feature flags, abandoned experiments and oversized comments; shrink files without changing behaviour (tests must stay green); report bytes before and after.
+  - [ ] QA-3 SOL
+  - [ ] QA-3 Canopy
+  - [ ] QA-3 Grid
+  - [ ] QA-3 Tide
+  - [ ] QA-3 Aftermath
+  - [ ] QA-3 Herd
+  - [ ] QA-3 Thaw
+  - [ ] QA-3 Loop
+  - [ ] QA-3 Drift
+  - [ ] QA-3 Trade Empire
+  - [ ] QA-3 Continuum
+  - [ ] QA-3 Le Champ de Mots
+  - [ ] QA-3 Signal
+  - [ ] QA-3 Lexis
+  - [ ] QA-3 Chronicle
+  - [ ] QA-3 The hub (index.html, script.js, style.css and the root pages)
+  - [ ] QA-3 The backend (app/)
+  - [ ] QA-3 Shared components (shared/)
+  - [ ] QA-3 Scripts and test infrastructure (scripts/, shared/tests, every game's tests/ folder)
+  - [ ] QA-3 The service worker and offline behaviour (sw.js)
+  - [ ] QA-3 Planning docs and dev logs (stale or duplicated text)
+- [ ] QA-4: Load time optimization for every game and the site: measure Pyodide boot, first interactive and payload with scripts/measure-perf.py (Z-12), then cut what is slow: lazy-load rarely used panels and big data files, avoid reading and parsing big JSON up front, defer non-critical scripts, compress or inline tiny assets, trim the precache list to what is needed, and record before and after numbers in planning/PERF-BUDGET.md.
+  - [ ] QA-4 SOL
+  - [ ] QA-4 Canopy
+  - [ ] QA-4 Grid
+  - [ ] QA-4 Tide
+  - [ ] QA-4 Aftermath
+  - [ ] QA-4 Herd
+  - [ ] QA-4 Thaw
+  - [ ] QA-4 Loop
+  - [ ] QA-4 Drift
+  - [ ] QA-4 Trade Empire
+  - [ ] QA-4 Continuum
+  - [ ] QA-4 Le Champ de Mots
+  - [ ] QA-4 Signal
+  - [ ] QA-4 Lexis
+  - [ ] QA-4 Chronicle
+  - [ ] QA-4 The hub (index.html, script.js, style.css and the root pages)
+  - [ ] QA-4 The backend (app/)
+  - [ ] QA-4 Shared components (shared/)
+  - [ ] QA-4 Scripts and test infrastructure (scripts/, shared/tests, every game's tests/ folder)
+  - [ ] QA-4 The service worker and offline behaviour (sw.js)
+  - [ ] QA-4 Planning docs and dev logs (stale or duplicated text)
+
 
 ## Closing tasks
 
