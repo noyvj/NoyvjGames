@@ -26,6 +26,21 @@
       "Harbor Ledger"
     ],
     [
+      "planner-panel",
+      "planner-toggle-button",
+      "Season Planner"
+    ],
+    [
+      "library-panel",
+      "library-toggle-button",
+      "Session Library"
+    ],
+    [
+      "almanac-panel",
+      "almanac-toggle-button",
+      "Harbor Almanac"
+    ],
+    [
       "settings-panel",
       "settings-toggle-button",
       "Settings"
@@ -55,6 +70,7 @@
       {
         "heading": "Game",
         "ids": [
+          "planner-toggle-button",
           "sister-enable-button",
           "hard-lag-toggle-button"
         ]
@@ -75,6 +91,8 @@
         "heading": "Records",
         "ids": [
           "ledger-toggle-button",
+          "almanac-toggle-button",
+          "library-toggle-button",
           "changelog-toggle-button"
         ]
       }

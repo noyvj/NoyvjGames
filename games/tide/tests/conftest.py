@@ -121,7 +121,41 @@ ELEMENT_IDS = [
     "copy-text-button",
     "copy-text-status",
     "copy-text-area",
+    # 2026-10-08 pass: graph controls, scrubber, library, almanac, planner.
+    "graph-markers-toggle",
+    "scrub-section",
+    "scrub-slider",
+    "scrub-readout",
+    "scrub-live-button",
+    "library-toggle-button",
+    "library-panel",
+    "library-save-button",
+    "library-status",
+    "library-list",
+    "library-select-a",
+    "library-select-b",
+    "library-overlay-select",
+    "library-compare-graph",
+    "library-compare-caption",
+    "almanac-toggle-button",
+    "almanac-panel",
+    "almanac-lifetime",
+    "almanac-best-body",
+    "planner-toggle-button",
+    "planner-panel",
+    "planner-length",
+    "planner-body",
+    "planner-chart",
+    "planner-summary",
+    "planner-commit-button",
+    "planner-clear-button",
 ]
+for _key in ("10", "20", "all"):
+    ELEMENT_IDS.append(f"graph-range-{_key}")
+for _n in range(1, 6):
+    ELEMENT_IDS.append(f"planner-row-{_n}")
+    for _c in ("output", "reduction", "adaptation"):
+        ELEMENT_IDS.append(f"planner-s{_n}-{_c}")
 LEDGER_KEYS = [
     "season", "funds", "acidity", "fish_yield", "damage", "rows_dry", "population", "tier", "invested",
 ]

@@ -273,8 +273,11 @@ def test_row_tiles_are_one_focus_stop_per_row_with_labels(game_env):
     stops = [t for t in grid.children if t.tabIndex == 0]
     assert len(stops) == 6
     assert all(t.getAttribute("role") == "img" and t.getAttribute("aria-label").startswith("Row ") for t in stops)
+    # Since 2026-10-08 every tile is a labelled, focusable target (arrow keys walk the columns).
     others = [t for t in grid.children if t.tabIndex != 0]
-    assert all(t.getAttribute("aria-hidden") == "true" for t in others)
+    assert len(others) == 42 and all(t.tabIndex == -1 for t in others)
+    assert all(t.getAttribute("aria-hidden") is None for t in others)
+    assert all(t.getAttribute("aria-label").startswith("Row ") and ", column " in t.getAttribute("aria-label") for t in others)
     assert grid.getAttribute("aria-label")
     assert "Row 1:" in elements["coastline-description"].innerText
 

@@ -7,6 +7,7 @@ sea-level rise, and the tile-grid coastline land in later milestones.
 """
 
 import copy
+import html
 import json
 import math
 
@@ -103,7 +104,9 @@ AQUACULTURE_MIN_MULTIPLIER = 0.4
 
 # D27: how much of the run's state a checkpoint keeps.
 CHECKPOINT_FORESIGHT_LIMIT = 200
-CHECKPOINT_DROP_KEYS = ("ticker_full_history", "achievements_earned", "season_ledger")
+CHECKPOINT_DROP_KEYS = (
+    "ticker_full_history", "achievements_earned", "season_ledger", "season_snapshots",
+)
 
 # D-1: the Harbor Ledger -- one compact row per resolved season. (key, header label).
 LEDGER_LIMIT = 120
@@ -119,6 +122,33 @@ LEDGER_COLUMNS = [
     ("invested", "Invested"),
 ]
 LEDGER_KEYS = [key for key, _label in LEDGER_COLUMNS]
+
+# D-4: the season scrubber. One compact snapshot per resolved season
+# ([season, sea_level, heritage code, retreat rows]); everything else the
+# scrubbed view shows (funds, acidity, yield, tier, rows dry, population) is
+# already in the ledger, so a snapshot stays about 30 bytes in a save.
+SNAPSHOT_LIMIT = LEDGER_LIMIT
+HERITAGE_CODES = {HERITAGE_UNPROTECTED: "u", HERITAGE_PROTECTED: "p", HERITAGE_LOST: "l"}
+
+# D-22 / D-23: graph view options (this browser only, never in a save).
+GRAPH_RANGES = [("10", "Last 10"), ("20", "Last 20"), ("all", "All")]
+GRAPH_PREFS_KEY = "tide_graph_prefs_v1"
+GRAPH_MARKER_LIMIT = 40
+
+# D-2: the session library (this browser only).
+LIBRARY_KEY = "tide_session_library_v1"
+LIBRARY_LIMIT = 12
+LIBRARY_MIN_SEASONS = 3
+LIBRARY_CURRENT = "current"
+
+# D-6: the season planner looks at most this many seasons ahead.
+PLANNER_MAX_SEASONS = 5
+PLANNER_MIN_SEASONS = 3
+PLANNER_MAX_PER_CATEGORY = 9
+PLANNER_RISK_SEASONS = 2
+
+# D-9: the Harbor Almanac (this browser only, lifetime across sessions).
+ALMANAC_KEY = "tide_almanac_v1"
 
 # D-15: Advance x5 runs up to this many quiet seasons in a row.
 ADVANCE_BATCH = 5
@@ -401,6 +431,8 @@ class SettlementState:
         self.replay_count = 0
         # D-1: one dict per resolved season (see _record_ledger_entry()).
         self.season_ledger = []
+        # D-4: one compact snapshot per resolved season (see _record_snapshot()).
+        self.season_snapshots = []
 
     # ---- D1 managed retreat ------------------------------------------
     def row_lost(self, row):
@@ -1021,6 +1053,62 @@ class SettlementState:
             text += " Seasons played before the ledger existed (older saves) are not listed."
         return text
 
+    # ---- D-4 season scrubber ------------------------------------------
+    def _record_snapshot(self, resolved_season):
+        """What the ledger cannot rebuild: the sea level, which heritage
+        sites were safe, and which rows had been given up, as of the end of
+        the season just resolved."""
+        code = "".join(HERITAGE_CODES.get(self.heritage.get(site["id"]), "u") for site in HERITAGE_SITES)
+        self.season_snapshots.append(
+            [resolved_season, round(self.sea_level, 1), code, list(self.retreat_rows)]
+        )
+        self.season_snapshots = self.season_snapshots[-SNAPSHOT_LIMIT:]
+
+    def scrub_snapshot(self, position):
+        """A read-only picture of the start of season `position` (what the
+        player saw before investing in it), or None for the live season, a
+        future one or one this save has no record of. Position 1 is the
+        fixed starting state."""
+        if not isinstance(position, int) or position < 1 or position >= self.season:
+            return None
+        heritage = {site["id"]: HERITAGE_UNPROTECTED for site in HERITAGE_SITES}
+        if position == 1:
+            return {
+                "season": 1, "funds": float(STARTING_FUNDS), "acidity": 0.0, "fish_yield": 1.0,
+                "damage_total": 0.0, "sea_level": 0.0, "tier": 0, "rows_dry": COASTLINE_ROWS,
+                "population": POP_START, "heritage": heritage, "retreat_rows": [],
+            }
+        resolved = position - 1
+        entry = next((e for e in self.season_ledger if e["season"] == resolved), None)
+        snap = next((x for x in self.season_snapshots if x[0] == resolved), None)
+        if entry is None or snap is None or len(self.damage_log) < resolved:
+            return None
+        for site, letter in zip(HERITAGE_SITES, snap[2]):
+            heritage[site["id"]] = next((k for k, v in HERITAGE_CODES.items() if v == letter), HERITAGE_UNPROTECTED)
+        return {
+            "season": position, "funds": entry["funds"], "acidity": entry["acidity"],
+            "fish_yield": entry["fish_yield"], "damage_total": sum(self.damage_log[:resolved]),
+            "sea_level": snap[1], "tier": entry["tier"], "rows_dry": entry["rows_dry"],
+            "population": entry["population"], "heritage": heritage, "retreat_rows": list(snap[3]),
+        }
+
+    def scrub_positions(self):
+        """Every season start the scrubber can show (ascending)."""
+        return [n for n in range(1, self.season) if self.scrub_snapshot(n) is not None]
+
+    def scrub_text(self, snap):
+        tier = ADAPTATION_TIERS[snap["tier"]]
+        sites = "; ".join(
+            f"{site['name'].lower()} {snap['heritage'][site['id']]}" for site in HERITAGE_SITES
+        )
+        return (
+            f"Start of Season {snap['season']} (read-only, your live run is untouched): "
+            f"funds {snap['funds']:.0f}, acidity {snap['acidity']:.1f}, fishing yield "
+            f"{snap['fish_yield'] * 100:.0f}%, damage so far {snap['damage_total']:.0f}, "
+            f"{snap['rows_dry']} of {COASTLINE_ROWS} rows dry, population {snap['population']}, "
+            f"tier {TIER_BADGES[snap['tier']]} {tier['name']}. Heritage: {sites}."
+        )
+
     # ---- D-15 Advance x5 ---------------------------------------------
     def fish_warning_active(self):
         """True while the fish-yield early warning (D14) is showing."""
@@ -1084,25 +1172,38 @@ class SettlementState:
         return run, None
 
     # ---- D-7 screen-reader text --------------------------------------
-    def coastline_row_description(self, row):
-        """e.g. "Row 5: dry, seawall tier 2" -- the text twin of one grid row."""
-        if row in self.retreat_rows:
+    def coast_view(self):
+        """The live coastline as a plain dict, the same shape scrub_snapshot()
+        returns, so one renderer and one description can draw either."""
+        return {
+            "sea_level": self.sea_level, "tier": self.current_tier_index(),
+            "heritage": self.heritage, "retreat_rows": self.retreat_rows,
+            "tidal": self.tidal_rows(),
+        }
+
+    def coastline_row_description(self, row, view=None, col=None):
+        """e.g. "Row 5: dry, seawall tier 2" -- the text twin of one grid row. With `col`
+        it names one tile ("Row 5, column 3: dry, ..."); only the heritage column mentions
+        the heritage site. `view` describes a scrubbed past season instead of the live one."""
+        view = view or self.coast_view()
+        if row in view["retreat_rows"]:
             status = "cleared by managed retreat"
-        elif tile_row_state(row, self.sea_level) == FLOODED:
+        elif tile_row_state(row, view["sea_level"]) == FLOODED:
             status = "flooded"
         else:
             status = "dry"
         parts = [status]
-        tier_index = self.current_tier_index()
+        tier_index = view["tier"]
         if tier_index and _is_seawall_row(row, tier_index):
             parts.append(f"seawall tier {tier_index}")
         site = next((x for x in HERITAGE_SITES if x["row"] == row), None)
-        if site is not None:
-            heritage = self.heritage.get(site["id"])
+        if site is not None and (col is None or col == HERITAGE_COL):
+            heritage = view["heritage"].get(site["id"])
             parts.append(f"{site['name'].lower()} {heritage}")
-        if row in self.tidal_rows():
+        if row in view.get("tidal", ()):
             parts.append("washed by this season's tide")
-        return f"Row {row + 1}: " + ", ".join(parts)
+        where = f"Row {row + 1}" + (f", column {col + 1}" if col is not None else "")
+        return f"{where}: " + ", ".join(parts)
 
     def coastline_description(self):
         lines = [self.coastline_row_description(r) for r in range(COASTLINE_ROWS)]
@@ -1261,6 +1362,7 @@ class SettlementState:
         self.fish_yield_history.append(new_fish_yield)
         self.min_fish_yield_ever = min(self.min_fish_yield_ever, new_fish_yield)
         self._record_ledger_entry(self.season - 1, damage_this_season, new_fish_yield)
+        self._record_snapshot(self.season - 1)
 
         self._record_ticker_message(acidity_change, old_fish_yield, new_fish_yield)
         self._record_trend_message()
@@ -1378,20 +1480,27 @@ def heritage_status_text(site):
 def render_coastline():
     global _previous_flooded_rows
     grid_el = document.getElementById("coastline-grid")
+    # D-4: while the season scrubber is on an earlier season, draw that season read-only
+    # (no flash, no tide, no tooltip about "the current pace") and leave the flash tracker alone.
+    scrubbed = scrub_view()
+    live = scrubbed is None
+    view = state.coast_view() if live else scrubbed
     # D-7: a re-render replaces every tile, so remember which one had keyboard
     # focus and give it back afterwards (otherwise Tab order restarts).
     focused = getattr(document, "activeElement", None)
     focused_id = getattr(focused, "id", "") if focused is not None else ""
     grid_el.innerHTML = ""
-    tier_index = state.current_tier_index()
+    grid_el.className = "coastline-grid" + ("" if live else " coastline-grid--scrubbed")
+    tier_index = view["tier"]
+    retreat_rows = view["retreat_rows"]
     current_flooded_rows = set()
-    tidal_rows = state.tidal_rows()
-    for row_index, row in enumerate(coastline_grid(state.sea_level)):
+    tidal_rows = view.get("tidal", [])
+    for row_index, row in enumerate(coastline_grid(view["sea_level"])):
         tile_state = row[0]  # every column in a row shares the same state
         threshold = row_flood_threshold(row_index)
         # D1: a row given up by managed retreat is drawn flooded, with its
         # own class (diagonal hatch in CSS) so it reads as chosen.
-        retreated = row_index in state.retreat_rows
+        retreated = row_index in retreat_rows
         if retreated:
             tile_state = FLOODED
         if tile_state == FLOODED:
@@ -1400,7 +1509,7 @@ def render_coastline():
         # compared against last render's snapshot, not against "flooded
         # right now", so the flash fires exactly once, at the moment of
         # crossing, not on every subsequent re-render while still flooded.
-        just_flooded = tile_state == FLOODED and row_index not in _previous_flooded_rows
+        just_flooded = live and tile_state == FLOODED and row_index not in _previous_flooded_rows
         for col_index in range(COASTLINE_COLS):
             tile = document.createElement("div")
             tile.id = f"coastline-tile-{row_index}-{col_index}"
@@ -1415,7 +1524,7 @@ def render_coastline():
                 tile.className += " coastline-flash"
             site = heritage_site_at(row_index, col_index)
             if site is not None:
-                status = state.heritage.get(site["id"])
+                status = view["heritage"].get(site["id"])
                 tile.innerText = site["emoji"] if status != HERITAGE_LOST else "✖"
                 tile.className += f" coastline-heritage coastline-heritage--{status}"
             # D8: dry rows the current tide reaches get a dashed edge
@@ -1426,31 +1535,54 @@ def render_coastline():
             # D19: a native hover/tap tooltip naming this row's flood
             # threshold -- zero extra markup, works identically for mouse
             # hover and (on most mobile browsers) a long-press/tap.
-            base_title = (
-                "Managed retreat — this row was cleared on purpose and its people rehoused inland."
-                if retreated
-                else f"Flooded — this row floods once sea level reaches {threshold:.0f}."
-                if tile_state == FLOODED
-                else f"Floods once sea level reaches {threshold:.0f} "
-                f"(about {state.seasons_until_flood(row_index)} season(s) at the current pace)."
-                + (" This season's tide is washing over it." if tidal else "")
-            )
-            tile.title = (heritage_status_text(site) + " " if site is not None else "") + base_title
-            # D-7: one focusable stop per row (column 0) that reads the row aloud;
-            # the other columns of the row are the same state and stay silent.
-            if col_index == 0:
-                tile.tabIndex = 0
-                tile.setAttribute("role", "img")
-                tile.setAttribute("aria-label", state.coastline_row_description(row_index))
+            if not live:
+                base_title = (
+                    "Cleared by managed retreat." if retreated
+                    else "Flooded." if tile_state == FLOODED else "Dry."
+                ) + f" Earlier view: Season {scrubbed['season']} (read-only)."
             else:
-                tile.setAttribute("aria-hidden", "true")
+                base_title = (
+                    "Managed retreat — this row was cleared on purpose and its people rehoused inland."
+                    if retreated
+                    else f"Flooded — this row floods once sea level reaches {threshold:.0f}."
+                    if tile_state == FLOODED
+                    else f"Floods once sea level reaches {threshold:.0f} "
+                    f"(about {state.seasons_until_flood(row_index)} season(s) at the current pace)."
+                    + (" This season's tide is washing over it." if tidal else "")
+                )
+            if site is not None:
+                status = view["heritage"].get(site["id"])
+                heritage_line = (
+                    heritage_status_text(site) if live
+                    else f"{site['emoji']} {site['name']}: {status}."
+                )
+                tile.title = heritage_line + " " + base_title
+            else:
+                tile.title = base_title
+            # D-7: one Tab stop per row (column 0), but every tile is a labelled, focusable
+            # target so Left/Right and Up/Down (ui.js) can walk the grid column by column.
+            tile.tabIndex = 0 if col_index == 0 else -1
+            tile.setAttribute("role", "img")
+            tile.setAttribute(
+                "aria-label",
+                state.coastline_row_description(row_index, view)
+                if col_index == 0
+                else state.coastline_row_description(row_index, view, col_index),
+            )
             grid_el.appendChild(tile)
-    _previous_flooded_rows = current_flooded_rows
+    if live:
+        _previous_flooded_rows = current_flooded_rows
     grid_el.setAttribute("role", "group")
-    grid_el.setAttribute("aria-label", "Coastline, one stop per row. Use Up and Down arrows to move between rows.")
+    grid_el.setAttribute(
+        "aria-label",
+        "Coastline, one Tab stop per row. Use the arrow keys to move between rows and columns.",
+    )
     description = document.getElementById("coastline-description")
     if description is not None:
-        description.innerText = state.coastline_description()
+        description.innerText = (
+            state.coastline_description() if live
+            else f"Season {scrubbed['season']} (earlier, read-only). " + state.scrub_text(scrubbed)
+        )
     if focused_id.startswith("coastline-tile-"):
         refocus = document.getElementById(focused_id)
         if refocus is not None:
@@ -1559,6 +1691,88 @@ SPARKLINE_ACIDITY_COLOR = "#b06fd6"
 SPARKLINE_FISH_COLOR = "#4c9c6e"
 
 
+# D-22 / D-23: which stretch of the session the trend graphs show, and whether series get
+# distinct dash styles and point shapes. Both are view options kept in this browser only.
+graph_range = "all"
+graph_markers = False
+
+# Series styles used when markers are on: acidity is solid with circles, fish yield long-dashed
+# with squares, damage dotted with triangles, so no series is told apart by colour alone.
+SERIES_STYLES = {
+    "acidity": {"color": SPARKLINE_ACIDITY_COLOR, "dash": None, "shape": "circle"},
+    "fish": {"color": SPARKLINE_FISH_COLOR, "dash": "6 3", "shape": "square"},
+    "damage": {"color": "#d8c088", "dash": "2 2", "shape": "triangle"},
+    "risk": {"color": "#e8a03c", "dash": "2 2", "shape": "triangle"},
+}
+
+
+def graph_window_start(total):
+    """First index of the seasons the graphs show for `total` recorded seasons."""
+    if graph_range == "all":
+        return 0
+    return max(0, total - int(graph_range))
+
+
+def _xy(values, step, max_value=1.0):
+    denominator = max(max_value, 1e-9)
+    return [
+        (i * step, SPARKLINE_HEIGHT - min(1.0, max(0.0, v / denominator)) * SPARKLINE_HEIGHT)
+        for i, v in enumerate(values)
+    ]
+
+
+def _poly_points(xy):
+    return " ".join(f"{x:.1f},{y:.1f}" for x, y in xy)
+
+
+def _marker_svg(xy, shape, color):
+    """D-23: a small shape at (up to GRAPH_MARKER_LIMIT of) the series' points."""
+    if not graph_markers or not xy:
+        return ""
+    every = max(1, math.ceil(len(xy) / GRAPH_MARKER_LIMIT))
+    out = []
+    for i, (x, y) in enumerate(xy):
+        if i % every and i != len(xy) - 1:
+            continue
+        if shape == "circle":
+            out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="2.3" fill="{color}" stroke="#fff" stroke-width="0.4"/>')
+        elif shape == "square":
+            out.append(
+                f'<rect x="{x - 2.1:.1f}" y="{y - 2.1:.1f}" width="4.2" height="4.2" fill="{color}" '
+                f'stroke="#fff" stroke-width="0.4"/>'
+            )
+        else:
+            out.append(
+                f'<polygon points="{x:.1f},{y - 2.8:.1f} {x - 2.6:.1f},{y + 2.0:.1f} {x + 2.6:.1f},{y + 2.0:.1f}" '
+                f'fill="{color}" stroke="#fff" stroke-width="0.4"/>'
+            )
+    return "".join(out)
+
+
+def _series_svg(xy, style_key, dash=None, width=2, opacity=None, always_dash=False):
+    """One polyline (plus markers when the toggle is on). The style's own dash is only used
+    with markers on; `dash` forces a dash (a compared session) whatever the toggle says."""
+    style = SERIES_STYLES[style_key]
+    chosen = dash or (style["dash"] if graph_markers else None)
+    attrs = f' stroke-dasharray="{chosen}"' if chosen else ""
+    if opacity is not None:
+        attrs += f' opacity="{opacity}"'
+    line = (
+        f'<polyline points="{_poly_points(xy)}" fill="none" stroke="{style["color"]}" '
+        f'stroke-width="{width}"{attrs} />'
+    )
+    return line + _marker_svg(xy, style["shape"], style["color"])
+
+
+def _crosshair_attr(lines):
+    """D-21: the per-position readout strings ui.js shows at the crosshair."""
+    return f' data-crosshair="{html.escape(json.dumps(lines, separators=(",", ":")), quote=True)}"'
+
+
+def graph_range_text():
+    return "all seasons" if graph_range == "all" else f"the last {graph_range} seasons"
+
+
 def then_vs_now_sparkline_svg():
     """D14: tiny per-season damage sparkline since the baseline; "" until
     there are two points to draw a line between."""
@@ -1566,12 +1780,15 @@ def then_vs_now_sparkline_svg():
     if len(series) < 2:
         return ""
     top = max(max(series), 1e-9)
-    points = _sparkline_points(series, top)
+    step = SPARKLINE_WIDTH / max(1, len(series) - 1)
+    xy = _xy(series, step, top)
+    first = state.baseline_season
+    lines = [f"Season {first + i}: damage {value:.0f}" for i, value in enumerate(series)]
     return (
         f'<svg viewBox="0 0 {SPARKLINE_WIDTH} {SPARKLINE_HEIGHT}" '
-        f'class="acidity-fish-sparkline" role="img" tabindex="0" '
+        f'class="acidity-fish-sparkline" role="img" tabindex="0"{_crosshair_attr(lines)} '
         f'aria-label="Damage per season since the baseline">'
-        f'<polyline points="{points}" fill="none" stroke="#d8c088" stroke-width="2" />'
+        f"{_series_svg(xy, 'damage', width=2)}"
         f"</svg>"
     )
 
@@ -1583,14 +1800,12 @@ def _sparkline_points(series, max_value):
     dividing by zero."""
     if not series:
         return ""
-    denominator = max(max_value, 1e-9)
     step = SPARKLINE_WIDTH / max(1, len(series) - 1)
-    points = []
-    for i, value in enumerate(series):
-        x = i * step
-        y = SPARKLINE_HEIGHT - (value / denominator) * SPARKLINE_HEIGHT
-        points.append(f"{x:.1f},{y:.1f}")
-    return " ".join(points)
+    return _poly_points(_xy(series, step, max_value))
+
+
+def _funds_by_season():
+    return {e["season"]: e["funds"] for e in state.season_ledger}
 
 
 def acidity_fish_history_svg():
@@ -1598,41 +1813,77 @@ def acidity_fish_history_svg():
     "not enough data" message instead in that case. Acidity is charted as
     a fraction of FISH_DAMAGE_SCALE (its own natural ceiling) and fish
     yield as a fraction of 1.0 (already 0..1), so both lines share one
-    0..1 vertical scale despite being different units."""
+    0..1 vertical scale despite being different units.
+
+    D-22 draws only the chosen range, D-23 optionally adds dash styles and point
+    shapes, D-21 attaches a readout per season for the crosshair, and D-2 can draw a
+    saved session from the library as dashed lines behind the live ones."""
     if not state.acidity_history:
         return ""
-    acidity_fractions = [min(1.0, a / FISH_DAMAGE_SCALE) for a in state.acidity_history]
-    fish_points = _sparkline_points(state.fish_yield_history, 1.0)
-    acidity_points = _sparkline_points(acidity_fractions, 1.0)
-    # D10: dashed reference line at the session-average acidity, like
+    overlay = library_overlay_record()
+    live_acid = [min(1.0, a / FISH_DAMAGE_SCALE) for a in state.acidity_history]
+    live_fish = list(state.fish_yield_history)
+    over_acid = overlay["acidity"] if overlay else []
+    over_fish = overlay["fish"] if overlay else []
+    full = max(len(live_acid), len(over_acid))
+    start = graph_window_start(full)
+    count = full - start
+    step = SPARKLINE_WIDTH / max(1, count - 1)
+    acid_view, fish_view = live_acid[start:], live_fish[start:]
+    # D10: dashed reference line at the average acidity of the seasons in view, like
     # Thaw's melt-threshold gridline.
-    average = sum(acidity_fractions) / len(acidity_fractions)
+    average = sum(acid_view) / len(acid_view) if acid_view else 0.0
     average_y = SPARKLINE_HEIGHT - average * SPARKLINE_HEIGHT
     reference = (
         f'<line x1="0" y1="{average_y:.1f}" x2="{SPARKLINE_WIDTH}" y2="{average_y:.1f}" '
         f'stroke="{SPARKLINE_ACIDITY_COLOR}" stroke-width="1" stroke-dasharray="4 3" '
-        f'opacity="0.6"><title>Average acidity this session</title></line>'
+        f'opacity="0.6"><title>Average acidity, {graph_range_text()}</title></line>'
     )
-    # D18: a marker at the season the comparison baseline was set.
+    # D18: a marker at the season the comparison baseline was set (when it is in view).
     marker = ""
-    if state.baseline_season > 1 and len(state.acidity_history) > 1:
-        step = SPARKLINE_WIDTH / max(1, len(state.acidity_history) - 1)
-        marker_x = min(SPARKLINE_WIDTH, (state.baseline_season - 1) * step)
+    baseline_index = state.baseline_season - 1 - start
+    if state.baseline_season > 1 and count > 1 and baseline_index >= 0:
+        marker_x = min(SPARKLINE_WIDTH, baseline_index * step)
         marker = (
             f'<line x1="{marker_x:.1f}" y1="0" x2="{marker_x:.1f}" y2="{SPARKLINE_HEIGHT}" '
             f'stroke="#d8c088" stroke-width="1" stroke-dasharray="2 2">'
             f'<title>Baseline set here (Season {state.baseline_season})</title></line>'
         )
+    funds = _funds_by_season()
+    lines = []
+    for j in range(count):
+        season = start + j + 1
+        index = start + j
+        parts = []
+        if index < len(live_acid):
+            parts.append(f"acidity {state.acidity_history[index]:.1f}")
+            if index < len(live_fish):
+                parts.append(f"fishing yield {live_fish[index] * 100:.0f}%")
+            if index < len(state.damage_log):
+                parts.append(f"damage {state.damage_log[index]:.0f}")
+            if season in funds:
+                parts.append(f"funds {funds[season]:.0f}")
+        text = f"Season {season}: " + (", ".join(parts) if parts else "no data")
+        if overlay and index < len(over_acid):
+            extra = f"acidity {over_acid[index] * FISH_DAMAGE_SCALE:.1f}"
+            if index < len(over_fish):
+                extra += f", fishing yield {over_fish[index] * 100:.0f}%"
+            text += f" | {overlay['name']}: {extra}"
+        lines.append(text)
+    drawn = ""
+    if overlay:
+        drawn += _series_svg(_xy(over_acid[start:], step), "acidity", dash="3 3", width=1.4, opacity=0.75)
+        drawn += _series_svg(_xy(over_fish[start:], step), "fish", dash="3 3", width=1.4, opacity=0.75)
+    drawn += _series_svg(_xy(acid_view, step), "acidity")
+    drawn += _series_svg(_xy(fish_view, step), "fish")
+    compare_note = f" Dashed lines: the saved session {overlay['name']}." if overlay else ""
     return (
         f'<svg viewBox="0 0 {SPARKLINE_WIDTH} {SPARKLINE_HEIGHT}" '
-        f'class="acidity-fish-sparkline" role="img" tabindex="0" '
-        f'aria-label="Ocean acidity and fishing yield over the session. Latest: acidity '
-        f'{state.acidity:.1f}, fishing yield {state.fish_yield_multiplier() * 100:.0f} percent.">'
-        f"{reference}{marker}"
-        f'<polyline points="{acidity_points}" fill="none" '
-        f'stroke="{SPARKLINE_ACIDITY_COLOR}" stroke-width="2" />'
-        f'<polyline points="{fish_points}" fill="none" '
-        f'stroke="{SPARKLINE_FISH_COLOR}" stroke-width="2" />'
+        f'class="acidity-fish-sparkline" role="img" tabindex="0"{_crosshair_attr(lines)} '
+        f'aria-label="Ocean acidity and fishing yield over {graph_range_text()}. Latest: acidity '
+        f'{state.acidity:.1f}, fishing yield {state.fish_yield_multiplier() * 100:.0f} percent.'
+        f'{html.escape(compare_note, quote=True)} Left and right arrow keys read each season.">'
+        f"{reference}{marker}{drawn}"
         f"</svg>"
     )
 
@@ -1641,36 +1892,50 @@ def delayed_consequence_svg():
     """D7: acidity (purple) plotted at the season it was banked, against
     the fish yield it will cause (green, dashed) plotted `lag` seasons
     later -- the horizontal gap between the two lines is the lag. "" with
-    no history yet."""
-    rows = state.delayed_consequence_rows()
-    if not rows:
+    no history yet. D-22 limits it to the chosen range; D-21 and D-23 as above."""
+    rows_all = state.delayed_consequence_rows()
+    if not rows_all:
         return ""
     lag = state._effective_fish_lag()
+    start = graph_window_start(len(rows_all))
+    rows = rows_all[start:]
+    first = rows[0][0]
     total_seasons = len(rows) + lag
     step = SPARKLINE_WIDTH / max(1, total_seasons - 1)
-    acidity_pts = " ".join(
-        f"{(season - 1) * step:.1f},{SPARKLINE_HEIGHT - fraction * SPARKLINE_HEIGHT:.1f}"
+    acidity_xy = [
+        ((season - first) * step, SPARKLINE_HEIGHT - fraction * SPARKLINE_HEIGHT)
         for season, fraction, _arrival, _yield in rows
-    )
-    fish_pts = " ".join(
-        f"{(arrival - 1) * step:.1f},{SPARKLINE_HEIGHT - projected * SPARKLINE_HEIGHT:.1f}"
+    ]
+    fish_xy = [
+        ((arrival - first) * step, SPARKLINE_HEIGHT - projected * SPARKLINE_HEIGHT)
         for _season, _fraction, arrival, projected in rows
-    )
-    now_x = (state.season - 1) * step
+    ]
+    now_x = (state.season - first) * step
     now_line = (
         f'<line x1="{now_x:.1f}" y1="0" x2="{now_x:.1f}" y2="{SPARKLINE_HEIGHT}" '
         f'stroke="#d8c088" stroke-width="1" stroke-dasharray="2 2">'
         f"<title>Now (Season {state.season}): everything right of here has not happened yet</title></line>"
     )
+    lines = []
+    arrivals = {arrival: projected for _s, _f, arrival, projected in rows}
+    for j in range(total_seasons):
+        season = first + j
+        parts = []
+        if j < len(rows):
+            parts.append(f"acidity banked {state.acidity_history[season - 1]:.1f}")
+        if season in arrivals:
+            parts.append(f"fish yield from earlier acidity about {arrivals[season] * 100:.0f}%")
+        if season >= state.season:
+            parts.append("not yet played")
+        lines.append(f"Season {season}: " + (", ".join(parts) if parts else "nothing recorded"))
     return (
         f'<svg viewBox="0 0 {SPARKLINE_WIDTH} {SPARKLINE_HEIGHT}" '
-        f'class="acidity-fish-sparkline" role="img" tabindex="0" '
-        f'aria-label="Acidity banked each season and the fish yield it causes {lag} seasons later">'
+        f'class="acidity-fish-sparkline" role="img" tabindex="0"{_crosshair_attr(lines)} '
+        f'aria-label="Acidity banked each season and the fish yield it causes {lag} seasons later, '
+        f'over {graph_range_text()}">'
         f"{now_line}"
-        f'<polyline points="{acidity_pts}" fill="none" '
-        f'stroke="{SPARKLINE_ACIDITY_COLOR}" stroke-width="2" />'
-        f'<polyline points="{fish_pts}" fill="none" stroke="{SPARKLINE_FISH_COLOR}" '
-        f'stroke-width="2" stroke-dasharray="5 3" />'
+        f'{_series_svg(acidity_xy, "acidity")}'
+        f'{_series_svg(fish_xy, "fish", dash="5 3")}'
         f"</svg>"
     )
 
@@ -2163,7 +2428,8 @@ def update_session_summary_display():
         return
     text_el = document.getElementById("session-summary-text")
     if text_el is not None:
-        text_el.innerText = state.session_summary_text()
+        best_line = almanac_best_line()
+        text_el.innerText = state.session_summary_text() + (" " + best_line if best_line else "")
 
 
 def render_fish_warning_banner():
@@ -2376,6 +2642,802 @@ def _make_ledger_sort_handler(key):
             ledger_sort_descending = True
         render_ledger()
     return handler
+
+
+# ---- D-22 / D-23 graph controls ----------------------------------------
+def _load_graph_prefs():
+    global graph_range, graph_markers
+    raw = _read_local_storage_item(GRAPH_PREFS_KEY)
+    if not raw:
+        return
+    try:
+        data = json.loads(raw)
+    except (ValueError, TypeError):
+        return
+    if isinstance(data, dict):
+        if data.get("range") in dict(GRAPH_RANGES):
+            graph_range = data["range"]
+        if isinstance(data.get("markers"), bool):
+            graph_markers = data["markers"]
+
+
+def _save_graph_prefs():
+    _write_local_storage_item(
+        GRAPH_PREFS_KEY, json.dumps({"range": graph_range, "markers": graph_markers})
+    )
+
+
+def render_graphs():
+    """Redraws the trend graphs (they follow the range and marker options)."""
+    graph_container = document.getElementById("acidity-fish-graph")
+    if graph_container is not None:
+        svg = acidity_fish_history_svg()
+        if svg:
+            graph_container.innerHTML = svg
+        else:
+            graph_container.innerHTML = ""
+            graph_container.innerText = "Not enough seasons yet to chart a trend."
+    consequence_graph = document.getElementById("delayed-consequence-graph")
+    if consequence_graph is not None:
+        consequence_graph.innerHTML = delayed_consequence_svg()
+    then_vs_now_graph = document.getElementById("then-vs-now-graph")
+    if then_vs_now_graph is not None:
+        then_vs_now_graph.innerHTML = then_vs_now_sparkline_svg()
+
+
+def render_graph_controls():
+    for key, label in GRAPH_RANGES:
+        button = document.getElementById(f"graph-range-{key}")
+        if button is not None:
+            button.innerText = label
+            button.setAttribute("aria-pressed", "true" if key == graph_range else "false")
+    markers = document.getElementById("graph-markers-toggle")
+    if markers is not None:
+        markers.innerText = "Series markers: On" if graph_markers else "Series markers: Off"
+        markers.setAttribute("aria-pressed", "true" if graph_markers else "false")
+
+
+def _make_graph_range_handler(key):
+    def handler(event=None):
+        global graph_range
+        graph_range = key
+        _save_graph_prefs()
+        render_graph_controls()
+        render_graphs()
+        render_library()
+        render_planner()
+    return handler
+
+
+def on_toggle_graph_markers(event=None):
+    global graph_markers
+    graph_markers = not graph_markers
+    _save_graph_prefs()
+    render_graph_controls()
+    render_graphs()
+    render_library()
+    render_planner()
+
+
+# ---- D-4 season scrubber -----------------------------------------------
+scrub_season = None
+_scrub_stamp = None
+
+
+def _state_stamp():
+    """Anything the player can change that should end a read-only look back."""
+    return (
+        state.season, round(state.funds, 1), sum(state.capacity.values()),
+        len(state.ticker_full_history), len(state.chronicle), state.output_mix,
+        state.hard_lag_mode, state.sea_scenario,
+    )
+
+
+def scrub_view():
+    """The scrubbed season as a coastline view dict, or None while viewing the live run.
+    Any change to the live run (invest, advance, load, ...) quietly ends the look back."""
+    global scrub_season
+    if scrub_season is None:
+        return None
+    snap = state.scrub_snapshot(scrub_season) if _scrub_stamp == _state_stamp() else None
+    if snap is None:
+        scrub_season = None
+        return None
+    snap = dict(snap)
+    snap["tidal"] = []
+    return snap
+
+
+def scrub_to(position):
+    global scrub_season, _scrub_stamp
+    if state.scrub_snapshot(position) is None:
+        scrub_season = None
+    else:
+        scrub_season = position
+        _scrub_stamp = _state_stamp()
+    render_coastline()
+    render_scrubber()
+
+
+def on_scrub_input(event=None):
+    target = getattr(event, "target", None)
+    try:
+        position = int(float(getattr(target, "value", "")))
+    except (TypeError, ValueError):
+        return
+    scrub_to(position)
+
+
+def on_scrub_live(event=None):
+    scrub_to(state.season)
+
+
+def render_scrubber():
+    section = document.getElementById("scrub-section")
+    if section is None:
+        return
+    positions = state.scrub_positions()
+    section.hidden = not positions
+    if not positions:
+        return
+    view = scrub_view()
+    slider = document.getElementById("scrub-slider")
+    if slider is not None:
+        slider.setAttribute("min", str(positions[0]))
+        slider.setAttribute("max", str(state.season))
+        slider.value = str(view["season"] if view else state.season)
+        slider.setAttribute(
+            "aria-valuetext",
+            f"Season {view['season']}, earlier and read-only" if view else f"Season {state.season}, the live run",
+        )
+    readout = document.getElementById("scrub-readout")
+    if readout is not None:
+        readout.innerText = (
+            state.scrub_text(view) if view
+            else f"Season {state.season} (live). Drag the slider back to look at an earlier season; nothing you do there changes your run."
+        )
+    live_button = document.getElementById("scrub-live-button")
+    if live_button is not None:
+        live_button.hidden = view is None
+
+
+# ---- D-2 session library -------------------------------------------------
+library_open = False
+library_a = LIBRARY_CURRENT
+library_b = ""
+library_overlay_id = ""
+_library_status = ""
+_library_proxies = []
+
+
+def _clean_series(values):
+    if not isinstance(values, list) or not values:
+        return None
+    out = []
+    for v in values[-LEDGER_LIMIT:]:
+        if not _finite_number(v, 0, 1):
+            return None
+        out.append(round(float(v), 3))
+    return out
+
+
+def _validate_session_record(item):
+    if not isinstance(item, dict):
+        return None
+    rid, name = item.get("id"), item.get("name")
+    seasons, rows_dry, tier = item.get("seasons"), item.get("rows_dry"), item.get("tier")
+    acidity, fish = _clean_series(item.get("acidity")), _clean_series(item.get("fish"))
+    if (
+        not isinstance(rid, int) or isinstance(rid, bool) or rid < 1
+        or not isinstance(name, str)
+        or not isinstance(seasons, int) or isinstance(seasons, bool) or not 0 <= seasons <= 10**6
+        or not isinstance(rows_dry, int) or isinstance(rows_dry, bool) or not 0 <= rows_dry <= COASTLINE_ROWS
+        or not isinstance(tier, int) or isinstance(tier, bool) or not 0 <= tier < len(ADAPTATION_TIERS)
+        or item.get("scenario") not in SEA_SCENARIOS
+        or item.get("lag") not in ("standard", "hard")
+        or not isinstance(item.get("storms"), bool)
+        or not _finite_number(item.get("score"), -1e9, 1e9)
+        or acidity is None or fish is None
+    ):
+        return None
+    return {
+        "id": rid, "name": " ".join(name.split())[:SETTLEMENT_NAME_MAX] or f"Session {rid}",
+        "seasons": seasons, "scenario": item["scenario"], "lag": item["lag"],
+        "storms": item["storms"], "score": round(float(item["score"]), 1),
+        "rows_dry": rows_dry, "tier": tier, "acidity": acidity, "fish": fish,
+    }
+
+
+def library_records():
+    """Saved sessions of this browser, oldest first; damaged entries are skipped."""
+    raw = _read_local_storage_item(LIBRARY_KEY)
+    if not raw:
+        return []
+    try:
+        data = json.loads(raw)
+    except (ValueError, TypeError):
+        return []
+    if not isinstance(data, list):
+        return []
+    records = [r for r in (_validate_session_record(item) for item in data) if r is not None]
+    return records[-LIBRARY_LIMIT:]
+
+
+def _write_library(records):
+    _write_local_storage_item(LIBRARY_KEY, json.dumps(records, separators=(",", ":")))
+
+
+def live_session_record():
+    """The running session in the same shape as a saved one."""
+    return {
+        "id": LIBRARY_CURRENT, "name": state.display_name(), "seasons": max(0, state.season - 1),
+        "scenario": state.sea_scenario, "lag": "hard" if state.hard_lag_mode else "standard",
+        "storms": bool(state.storm_mode), "score": round(state.damage_saved(), 1),
+        "rows_dry": state.rows_dry_count(), "tier": state.current_tier_index(),
+        "acidity": [round(min(1.0, a / FISH_DAMAGE_SCALE), 3) for a in state.acidity_history][-LEDGER_LIMIT:],
+        "fish": [round(v, 3) for v in state.fish_yield_history][-LEDGER_LIMIT:],
+    }
+
+
+def library_get(session_id):
+    if session_id == LIBRARY_CURRENT:
+        return live_session_record()
+    for record in library_records():
+        if str(record["id"]) == str(session_id):
+            return record
+    return None
+
+
+def library_overlay_record():
+    if not library_overlay_id:
+        return None
+    record = library_get(library_overlay_id)
+    if record is None or record["id"] == LIBRARY_CURRENT or not record["acidity"]:
+        return None
+    return record
+
+
+def library_summary_text(record):
+    lag = "harder lag" if record["lag"] == "hard" else "standard lag"
+    storms = ", storm seasons on" if record["storms"] else ""
+    return (
+        f"{record['name']}: {record['seasons']} seasons, {record['scenario']} sea, {lag}{storms}. "
+        f"Damage avoided {record['score']:.0f}, {record['rows_dry']} of {COASTLINE_ROWS} rows dry, "
+        f"tier {TIER_BADGES[record['tier']]} {ADAPTATION_TIERS[record['tier']]['name']}."
+    )
+
+
+def library_save_current():
+    """D-2: stores the running session (its settings, outcome and the acidity and fish-yield
+    series) in this browser. Needs a few seasons so a saved session is worth comparing."""
+    global _library_status, library_b
+    if state.season - 1 < LIBRARY_MIN_SEASONS:
+        _library_status = f"Play at least {LIBRARY_MIN_SEASONS} seasons before saving a session to the library."
+        return False
+    records = library_records()
+    record_id = max([r["id"] for r in records], default=0) + 1
+    record = live_session_record()
+    record["id"] = record_id
+    record["name"] = state.settlement_name or f"Session {record_id}"
+    records.append(record)
+    dropped = max(0, len(records) - LIBRARY_LIMIT)
+    records = records[-LIBRARY_LIMIT:]
+    _write_library(records)
+    if not library_b:
+        library_b = str(record_id)
+    _library_status = (
+        f"Saved {record['name']} to the library ({len(records)} of {LIBRARY_LIMIT})."
+        + (f" The oldest {dropped} saved session(s) were dropped to stay within the limit." if dropped else "")
+    )
+    return True
+
+
+def library_delete(record_id):
+    global _library_status, library_a, library_b, library_overlay_id
+    records = library_records()
+    kept = [r for r in records if r["id"] != record_id]
+    if len(kept) == len(records):
+        return False
+    _write_library(kept)
+    for name in ("library_a", "library_b", "library_overlay_id"):
+        if globals()[name] == str(record_id):
+            globals()[name] = LIBRARY_CURRENT if name == "library_a" else ""
+    _library_status = "Removed the saved session."
+    return True
+
+
+def library_compare_svg(rec_a, rec_b):
+    """A solid, B dashed; acidity purple, fish yield green. "" if either is missing."""
+    if rec_a is None or rec_b is None or not rec_a["acidity"] or not rec_b["acidity"]:
+        return ""
+    full = max(len(rec_a["acidity"]), len(rec_b["acidity"]))
+    start = graph_window_start(full)
+    count = full - start
+    step = SPARKLINE_WIDTH / max(1, count - 1)
+    lines = []
+    for j in range(count):
+        index = start + j
+        parts = []
+        for label, record in (("A", rec_a), ("B", rec_b)):
+            if index < len(record["acidity"]):
+                piece = f"{label} {record['name']}: acidity {record['acidity'][index] * FISH_DAMAGE_SCALE:.1f}"
+                if index < len(record["fish"]):
+                    piece += f", fishing yield {record['fish'][index] * 100:.0f}%"
+                parts.append(piece)
+        lines.append(f"Season {index + 1}: " + (" | ".join(parts) if parts else "no data"))
+    drawn = ""
+    for record, dash in ((rec_a, None), (rec_b, "4 3")):
+        drawn += _series_svg(_xy(record["acidity"][start:], step), "acidity", dash=dash)
+        drawn += _series_svg(_xy(record["fish"][start:], step), "fish", dash=dash)
+    label = html.escape(f"Session A {rec_a['name']} (solid) against session B {rec_b['name']} (dashed)", quote=True)
+    return (
+        f'<svg viewBox="0 0 {SPARKLINE_WIDTH} {SPARKLINE_HEIGHT}" class="acidity-fish-sparkline" '
+        f'role="img" tabindex="0"{_crosshair_attr(lines)} '
+        f'aria-label="Acidity and fishing yield over {graph_range_text()}: {label}. '
+        f'Left and right arrow keys read each season.">{drawn}</svg>'
+    )
+
+
+def _session_options(records, blank=None, include_current=True):
+    options = []
+    if blank is not None:
+        options.append(f'<option value="">{html.escape(blank)}</option>')
+    if include_current:
+        options.append(f'<option value="{LIBRARY_CURRENT}">Current session (Season {state.season})</option>')
+    for record in records:
+        options.append(
+            f'<option value="{record["id"]}">{html.escape(record["name"])} '
+            f"({record['seasons']} seasons)</option>"
+        )
+    return "".join(options)
+
+
+def render_library():
+    global library_a, library_b, library_overlay_id, _library_proxies
+    toggle = document.getElementById("library-toggle-button")
+    panel = document.getElementById("library-panel")
+    if toggle is None or panel is None:
+        return
+    toggle.innerText = "Hide Session Library" if library_open else "📚 Session Library"
+    panel.hidden = not library_open
+    if not library_open:
+        return
+    records = library_records()
+    valid = {str(r["id"]) for r in records}
+    if library_a != LIBRARY_CURRENT and library_a not in valid:
+        library_a = LIBRARY_CURRENT
+    if library_b not in valid:
+        library_b = next((str(r["id"]) for r in reversed(records)), "")
+    if library_overlay_id and library_overlay_id not in valid:
+        library_overlay_id = ""
+    for select_id, options, value in (
+        ("library-select-a", _session_options(records), library_a),
+        ("library-select-b", _session_options(records, blank="(choose a session)"), library_b),
+        ("library-overlay-select", _session_options(records, blank="(none)", include_current=False), library_overlay_id),
+    ):
+        select = document.getElementById(select_id)
+        if select is not None:
+            select.innerHTML = options
+            select.value = value
+    status = document.getElementById("library-status")
+    if status is not None:
+        status.innerText = _library_status or (
+            f"{len(records)} saved session(s). Sessions are kept in this browser only."
+        )
+    listing = document.getElementById("library-list")
+    if listing is not None:
+        for proxy in _library_proxies:
+            proxy.destroy()
+        _library_proxies = []
+        listing.innerHTML = ""
+        if not records:
+            listing.innerText = "Nothing saved yet. Play a few seasons, then save the session here."
+        for record in records:
+            item = document.createElement("li")
+            item.className = "library-item"
+            text = document.createElement("span")
+            text.innerText = library_summary_text(record)
+            remove = document.createElement("button")
+            remove.className = "secondary library-delete"
+            remove.type = "button"
+            remove.innerText = "Delete"
+            remove.setAttribute("aria-label", f"Delete saved session {record['name']}")
+            proxy = create_proxy(_make_library_delete_handler(record["id"]))
+            _library_proxies.append(proxy)
+            remove.addEventListener("click", proxy)
+            item.appendChild(text)
+            item.appendChild(remove)
+            listing.appendChild(item)
+    compare = document.getElementById("library-compare-graph")
+    if compare is not None:
+        svg = library_compare_svg(library_get(library_a), library_get(library_b) if library_b else None)
+        compare.innerHTML = svg
+        if not svg:
+            compare.innerText = "Choose two sessions to overlay them: A is drawn solid, B dashed."
+    caption = document.getElementById("library-compare-caption")
+    if caption is not None:
+        a, b = library_get(library_a), library_get(library_b) if library_b else None
+        caption.innerText = (
+            f"A (solid): {library_summary_text(a)} B (dashed): {library_summary_text(b)}" if a and b else ""
+        )
+
+
+def _make_library_delete_handler(record_id):
+    def handler(event=None):
+        library_delete(record_id)
+        render()
+    return handler
+
+
+def on_toggle_library(event=None):
+    global library_open
+    library_open = not library_open
+    render_library()
+
+
+def on_library_save(event=None):
+    library_save_current()
+    render_library()
+
+
+def _make_library_select_handler(name):
+    def handler(event=None):
+        value = str(getattr(getattr(event, "target", None), "value", ""))
+        globals()[name] = value
+        if name == "library_overlay_id":
+            render_graphs()
+        render_library()
+    return handler
+
+
+# ---- D-9 Harbor Almanac ----------------------------------------------------
+ALMANAC_LIFETIME = [
+    ("seasons", "Seasons played"),
+    ("rows_kept", "Rows kept dry (counted each season)"),
+    ("heritage", "Heritage sites protected"),
+    ("storms", "Storms weathered"),
+]
+
+
+def _empty_almanac():
+    return {key: 0 for key, _label in ALMANAC_LIFETIME} | {"best": {}}
+
+
+def _load_almanac():
+    data = _empty_almanac()
+    raw = _read_local_storage_item(ALMANAC_KEY)
+    if not raw:
+        return data
+    try:
+        saved = json.loads(raw)
+    except (ValueError, TypeError):
+        return data
+    if not isinstance(saved, dict):
+        return data
+    for key, _label in ALMANAC_LIFETIME:
+        value = saved.get(key)
+        if isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= 10**9:
+            data[key] = value
+    best = saved.get("best")
+    if isinstance(best, dict):
+        for combo, entry in best.items():
+            scenario, _sep, lag = str(combo).partition("|")
+            if (
+                scenario in SEA_SCENARIOS and lag in ("standard", "hard") and isinstance(entry, dict)
+                and _finite_number(entry.get("score"), -1e9, 1e9)
+                and isinstance(entry.get("seasons"), int) and 0 <= entry["seasons"] <= 10**6
+                and isinstance(entry.get("tier"), int) and 0 <= entry["tier"] < len(ADAPTATION_TIERS)
+                and isinstance(entry.get("rows_dry"), int) and 0 <= entry["rows_dry"] <= COASTLINE_ROWS
+            ):
+                data["best"][combo] = {
+                    "score": round(float(entry["score"]), 1), "seasons": entry["seasons"],
+                    "tier": entry["tier"], "rows_dry": entry["rows_dry"],
+                    "retreat": _clamped_int(entry.get("retreat"), 0, RETREAT_MAX_STEPS),
+                    "tourism": _clamped_int(entry.get("tourism"), 0, DIVERSIFY_MAX_LEVEL),
+                    "aquaculture": _clamped_int(entry.get("aquaculture"), 0, DIVERSIFY_MAX_LEVEL),
+                    "heritage": _clamped_int(entry.get("heritage"), 0, len(HERITAGE_SITES)),
+                }
+    return data
+
+
+almanac = _empty_almanac()  # filled from localStorage just before setup(), once every helper exists
+# Where the almanac has counted up to in THIS run (so loading a save or rewinding to a
+# checkpoint never counts the same season twice).
+_almanac_cursor = {"season": 1, "protected": 0}
+almanac_open = False
+
+
+def almanac_combo_key():
+    return f"{state.sea_scenario}|{'hard' if state.hard_lag_mode else 'standard'}"
+
+
+def almanac_resync():
+    _almanac_cursor["season"] = state.season
+    _almanac_cursor["protected"] = state.protected_heritage_count()
+
+
+def almanac_sync():
+    """Adds whatever happened since the last call to the lifetime totals and updates the
+    personal best for this scenario and lag mode. Called from render(), so it is idempotent."""
+    cursor = _almanac_cursor
+    if state.season < cursor["season"]:
+        cursor["season"] = state.season
+    new_seasons = state.season - cursor["season"]
+    changed = False
+    if new_seasons > 0:
+        almanac["seasons"] += new_seasons
+        for entry in state.season_ledger:
+            if cursor["season"] <= entry["season"] < state.season:
+                almanac["rows_kept"] += entry["rows_dry"]
+        for storm in state.storm_log:
+            if cursor["season"] <= storm["season"] < state.season:
+                almanac["storms"] += 1
+        cursor["season"] = state.season
+        changed = True
+    protected = state.protected_heritage_count()
+    if protected > cursor["protected"]:
+        almanac["heritage"] += protected - cursor["protected"]
+        changed = True
+    cursor["protected"] = protected
+    if new_seasons > 0:
+        score = round(state.damage_saved(), 1)
+        key = almanac_combo_key()
+        best = almanac["best"].get(key)
+        if best is None or score > best["score"]:
+            almanac["best"][key] = {
+                "score": score, "seasons": state.season - 1, "tier": state.current_tier_index(),
+                "rows_dry": state.rows_dry_count(), "retreat": len(state.retreat_rows),
+                "tourism": state.diversification["tourism"],
+                "aquaculture": state.diversification["aquaculture"], "heritage": protected,
+            }
+    if changed:
+        _write_local_storage_item(ALMANAC_KEY, json.dumps(almanac, separators=(",", ":")))
+
+
+def almanac_best_text(entry):
+    parts = [f"tier {TIER_BADGES[entry['tier']]} {ADAPTATION_TIERS[entry['tier']]['name']}"]
+    if entry["retreat"]:
+        parts.append(f"retreat x{entry['retreat']}")
+    if entry["tourism"] or entry["aquaculture"]:
+        parts.append(f"tourism {entry['tourism']}, aquaculture {entry['aquaculture']}")
+    if entry["heritage"]:
+        parts.append(f"{entry['heritage']} heritage site(s)")
+    return (
+        f"{entry['score']:.0f} damage avoided over {entry['seasons']} seasons, "
+        f"{entry['rows_dry']} of {COASTLINE_ROWS} rows dry; " + ", ".join(parts)
+    )
+
+
+def almanac_best_line():
+    """D-25: one line for the session summary, from the almanac."""
+    entry = almanac["best"].get(almanac_combo_key())
+    lag = "harder lag" if state.hard_lag_mode else "standard lag"
+    if entry is None:
+        return ""
+    return (
+        f"Best for the {state.sea_scenario} sea with {lag}: {entry['score']:.0f} damage avoided over "
+        f"{entry['seasons']} seasons. This session: {state.damage_saved():.0f} over {max(0, state.season - 1)}."
+    )
+
+
+def almanac_rows_html():
+    rows = []
+    for scenario, config in SEA_SCENARIOS.items():
+        for lag, lag_label in (("standard", "Standard lag"), ("hard", "Harder lag")):
+            key = f"{scenario}|{lag}"
+            entry = almanac["best"].get(key)
+            current = " (this session)" if key == almanac_combo_key() else ""
+            label = f"{scenario.capitalize()} sea, {lag_label}{current}"
+            rows.append(
+                f"<tr><th scope=\"row\">{html.escape(label)}</th>"
+                f"<td>{html.escape(almanac_best_text(entry)) if entry else 'No run yet'}</td></tr>"
+            )
+    return "".join(rows)
+
+
+def render_almanac():
+    toggle = document.getElementById("almanac-toggle-button")
+    panel = document.getElementById("almanac-panel")
+    if toggle is None or panel is None:
+        return
+    toggle.innerText = "Hide Harbor Almanac" if almanac_open else "📖 Harbor Almanac"
+    panel.hidden = not almanac_open
+    if not almanac_open:
+        return
+    lifetime = document.getElementById("almanac-lifetime")
+    if lifetime is not None:
+        lifetime.innerHTML = "".join(
+            f"<li><strong>{almanac[key]}</strong> {html.escape(label.lower())}</li>"
+            for key, label in ALMANAC_LIFETIME
+        )
+    best = document.getElementById("almanac-best-body")
+    if best is not None:
+        best.innerHTML = almanac_rows_html()
+
+
+def on_toggle_almanac(event=None):
+    global almanac_open
+    almanac_open = not almanac_open
+    render_almanac()
+
+
+# ---- D-6 season planner -----------------------------------------------------
+planner_open = False
+planner_length = PLANNER_MIN_SEASONS
+planner_plan = [{category: 0 for category in CATEGORIES} for _ in range(PLANNER_MAX_SEASONS)]
+
+
+def project_plan(plan, length):
+    """Runs the staged investments through a COPY of the settlement and returns one dict
+    per planned season (plus the starting point first). The real state is never touched."""
+    global state
+    real = state
+    simulated = copy.deepcopy(real)
+    state = simulated
+    points = [_planner_point(simulated, 0, 0)]
+    try:
+        for index in range(max(0, min(int(length), PLANNER_MAX_SEASONS))):
+            skipped = 0
+            for category in CATEGORIES:
+                for _ in range(plan[index].get(category, 0)):
+                    if not simulated.invest(category):
+                        skipped += 1
+            simulated.advance_season()
+            points.append(_planner_point(simulated, index + 1, skipped))
+    finally:
+        state = real
+    return points
+
+
+def _planner_point(sim, step, skipped):
+    at_risk = sum(
+        1 for row in range(COASTLINE_ROWS)
+        if not sim.row_lost(row) and sim.seasons_until_flood(row) <= PLANNER_RISK_SEASONS
+    )
+    return {
+        "step": step, "season": sim.season, "funds": sim.funds, "acidity": sim.acidity,
+        "fish_yield": sim.fish_yield_multiplier(), "rows_dry": sim.rows_dry_count(),
+        "rows_at_risk": at_risk, "tier": sim.current_tier_index(), "skipped": skipped,
+        "damage": sim.damage_log[-1] if step else 0.0,
+    }
+
+
+def planner_chart_svg(points):
+    if len(points) < 2:
+        return ""
+    step = SPARKLINE_WIDTH / (len(points) - 1)
+    acid = _xy([min(1.0, p["acidity"] / FISH_DAMAGE_SCALE) for p in points], step)
+    fish = _xy([p["fish_yield"] for p in points], step)
+    risk = _xy([p["rows_at_risk"] / COASTLINE_ROWS for p in points], step)
+    lines = [
+        ("Now" if p["step"] == 0 else f"Planned season {p['step']}")
+        + f": acidity {p['acidity']:.1f}, fishing yield {p['fish_yield'] * 100:.0f}%, "
+        f"{p['rows_at_risk']} dry row(s) at risk, funds {p['funds']:.0f}"
+        for p in points
+    ]
+    return (
+        f'<svg viewBox="0 0 {SPARKLINE_WIDTH} {SPARKLINE_HEIGHT}" class="acidity-fish-sparkline" '
+        f'role="img" tabindex="0"{_crosshair_attr(lines)} '
+        f'aria-label="Projected acidity (purple), fishing yield (green) and dry rows at risk (amber) '
+        f'over the planned seasons. Left and right arrow keys read each season.">'
+        f'{_series_svg(acid, "acidity")}{_series_svg(fish, "fish", dash="5 3")}'
+        f'{_series_svg(risk, "risk", dash="2 2")}</svg>'
+    )
+
+
+def planner_summary_text(points):
+    if len(points) < 2:
+        return "Stage some investments to see where they lead."
+    last = points[-1]
+    skipped = sum(p["skipped"] for p in points)
+    text = (
+        f"After {len(points) - 1} planned season(s) you would be at Season {last['season']} with "
+        f"{last['funds']:.0f} funds, acidity {last['acidity']:.1f}, fishing yield "
+        f"{last['fish_yield'] * 100:.0f}%, {last['rows_dry']} of {COASTLINE_ROWS} rows dry and "
+        f"{last['rows_at_risk']} of those at risk (flooding within {PLANNER_RISK_SEASONS} seasons)."
+    )
+    if skipped:
+        text += f" {skipped} staged investment(s) were not affordable and were skipped."
+    return text + " This is a projection only; nothing has been spent."
+
+
+def planner_rows_html(points):
+    rows = []
+    for p in points[1:]:
+        flag = f" ({p['skipped']} not affordable)" if p["skipped"] else ""
+        rows.append(
+            f"<tr><td>{p['season'] - 1}</td><td>{p['funds']:.0f}{flag}</td><td>{p['acidity']:.1f}</td>"
+            f"<td>{p['fish_yield'] * 100:.0f}%</td><td>{p['damage']:.0f}</td>"
+            f"<td>{p['rows_dry']}</td><td>{p['rows_at_risk']}</td>"
+            f"<td>{TIER_BADGES[p['tier']]} {p['tier']}</td></tr>"
+        )
+    return "".join(rows)
+
+
+def render_planner():
+    toggle = document.getElementById("planner-toggle-button")
+    panel = document.getElementById("planner-panel")
+    if toggle is None or panel is None:
+        return
+    toggle.innerText = "Hide Season Planner" if planner_open else "🧭 Season Planner"
+    panel.hidden = not planner_open
+    if not planner_open:
+        return
+    length_select = document.getElementById("planner-length")
+    if length_select is not None and str(length_select.value) != str(planner_length):
+        length_select.value = str(planner_length)
+    for number in range(1, PLANNER_MAX_SEASONS + 1):
+        row = document.getElementById(f"planner-row-{number}")
+        if row is not None:
+            row.hidden = number > planner_length
+        for category in CATEGORIES:
+            field = document.getElementById(f"planner-s{number}-{category}")
+            if field is not None and str(field.value) != str(planner_plan[number - 1][category]):
+                field.value = str(planner_plan[number - 1][category])
+    points = project_plan(planner_plan, planner_length)
+    body = document.getElementById("planner-body")
+    if body is not None:
+        body.innerHTML = planner_rows_html(points)
+    chart = document.getElementById("planner-chart")
+    if chart is not None:
+        chart.innerHTML = planner_chart_svg(points)
+    summary = document.getElementById("planner-summary")
+    if summary is not None:
+        summary.innerText = planner_summary_text(points)
+    commit = document.getElementById("planner-commit-button")
+    if commit is not None:
+        commit.innerText = f"Commit season {state.season} (spend and advance)"
+
+
+def on_toggle_planner(event=None):
+    global planner_open
+    planner_open = not planner_open
+    render_planner()
+
+
+def on_planner_length(event=None):
+    global planner_length
+    try:
+        value = int(float(getattr(getattr(event, "target", None), "value", "")))
+    except (TypeError, ValueError):
+        return
+    planner_length = max(PLANNER_MIN_SEASONS, min(PLANNER_MAX_SEASONS, value))
+    render_planner()
+
+
+def _make_planner_input_handler(number, category):
+    def handler(event=None):
+        try:
+            value = int(float(getattr(getattr(event, "target", None), "value", "")))
+        except (TypeError, ValueError):
+            value = 0
+        planner_plan[number - 1][category] = max(0, min(PLANNER_MAX_PER_CATEGORY, value))
+        render_planner()
+    return handler
+
+
+def on_planner_clear(event=None):
+    for entry in planner_plan:
+        for category in CATEGORIES:
+            entry[category] = 0
+    render_planner()
+
+
+def on_planner_commit(event=None):
+    """Applies the FIRST planned season for real (invest, then advance) and slides the
+    rest of the plan up one place."""
+    plan = planner_plan[0]
+    bought = 0
+    for category in CATEGORIES:
+        for _ in range(plan[category]):
+            if state.invest(category):
+                bought += 1
+    state.advance_season()
+    del planner_plan[0]
+    planner_plan.append({category: 0 for category in CATEGORIES})
+    render()
+    announce(f"Committed the first planned season: {bought} investment(s). " + state.season_result_text())
+    _set_advance_note("")
 
 
 # ---- D-7 announcements -------------------------------------------------
@@ -2726,10 +3788,6 @@ def render():
     if then_vs_now_el is not None:
         then_vs_now_el.innerText = state.then_vs_now_text()
 
-    then_vs_now_graph = document.getElementById("then-vs-now-graph")
-    if then_vs_now_graph is not None:
-        then_vs_now_graph.innerHTML = then_vs_now_sparkline_svg()
-
     # D6: "what if you'd invested earlier" counterfactual replay.
     counterfactual_el = document.getElementById("counterfactual-display")
     if counterfactual_el is not None:
@@ -2739,20 +3797,9 @@ def render():
     _maybe_update_best_coastline_saved()
     render_best_coastline_saved()
 
-    # D15: acidity-vs-fish-yield mini-graph.
-    graph_container = document.getElementById("acidity-fish-graph")
-    if graph_container is not None:
-        svg = acidity_fish_history_svg()
-        if svg:
-            graph_container.innerHTML = svg
-        else:
-            graph_container.innerHTML = ""
-            graph_container.innerText = "Not enough seasons yet to chart a trend."
-
-    # D7: today's acidity choices vs. the fish yield they cause later.
-    consequence_graph = document.getElementById("delayed-consequence-graph")
-    if consequence_graph is not None:
-        consequence_graph.innerHTML = delayed_consequence_svg()
+    # D15 / D7: the trend graphs (range, markers, crosshair data, compared session).
+    render_graph_controls()
+    render_graphs()
     consequence_text = document.getElementById("delayed-consequence-text")
     if consequence_text is not None:
         consequence_text.innerText = state.delayed_consequence_text()
@@ -2801,6 +3848,11 @@ def render():
     update_changelog_display()
     update_session_summary_display()
     render_ledger()
+    render_scrubber()
+    render_library()
+    render_planner()
+    almanac_sync()
+    render_almanac()
     update_tab_status()
     _sync_earned_and_toast()
 
@@ -2928,8 +3980,10 @@ def replay_from_checkpoint():
         )
     replays = state.replay_count + 1
     kept_ledger = [e for e in state.season_ledger if e["season"] < start]
+    kept_snapshots = [x for x in state.season_snapshots if x[0] < start]
     load_state(snapshot)
     state.season_ledger = kept_ledger
+    state.season_snapshots = kept_snapshots
     state.checkpoint = copy.deepcopy(snapshot)
     state.foresight = foresight
     state.replay_count = replays
@@ -3047,6 +4101,7 @@ def get_state():
         "foresight": copy.deepcopy(state.foresight),
         "replay_count": state.replay_count,
         "season_ledger": copy.deepcopy(state.season_ledger),
+        "season_snapshots": copy.deepcopy(state.season_snapshots),
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) —
         # always freshly recomputed, never read back in load_state().
         "achievements_earned": achievement_ids_earned(),
@@ -3115,6 +4170,29 @@ def _load_ledger(saved):
             }
         )
     return entries[-LEDGER_LIMIT:]
+
+
+def _load_snapshots(saved):
+    """D-4: keeps only well-formed [season, sea_level, heritage code, retreat rows]
+    entries; a save without them (or with damaged ones) simply has nothing to scrub
+    back to for those seasons."""
+    if not isinstance(saved, list):
+        return []
+    entries = []
+    allowed = set("upl")
+    for item in saved:
+        if not (isinstance(item, list) and len(item) == 4):
+            continue
+        season, sea, code, retreat = item
+        if (
+            isinstance(season, int) and not isinstance(season, bool) and 1 <= season <= 10**6
+            and _finite_number(sea, 0, 1e6)
+            and isinstance(code, str) and len(code) == len(HERITAGE_SITES) and set(code) <= allowed
+            and isinstance(retreat, list) and len(retreat) <= RETREAT_MAX_STEPS
+            and all(isinstance(r, int) and not isinstance(r, bool) and 0 <= r < COASTLINE_ROWS for r in retreat)
+        ):
+            entries.append([season, float(sea), code, list(retreat)])
+    return entries[-SNAPSHOT_LIMIT:]
 
 
 def _load_sister(data):
@@ -3311,6 +4389,7 @@ def load_state(data):
     )
     state.replay_count = _clamped_int(data.get("replay_count"), 0, 10**4)
     state.season_ledger = _load_ledger(data.get("season_ledger"))
+    state.season_snapshots = _load_snapshots(data.get("season_snapshots"))
 
     # D8's flash-tracking global and the achievements toast-diffing
     # baseline both need to resync to the just-loaded state before
@@ -3319,6 +4398,7 @@ def load_state(data):
     # flooded row, or toast every already-earned achievement, as if they
     # had all just happened this instant.
     _resync_previous_flooded_rows()
+    almanac_resync()
     global _previously_earned_ids
     _previously_earned_ids = _earned_snapshot()
 
@@ -3346,6 +4426,39 @@ def setup():
         el = document.getElementById(element_id)
         if el is not None:
             el.addEventListener("click", create_proxy(handler))
+    # 2026-10-08 pass: graph range/markers, scrubber, library, almanac, planner.
+    for element_id, handler in (
+        ("graph-markers-toggle", on_toggle_graph_markers),
+        ("scrub-live-button", on_scrub_live),
+        ("library-toggle-button", on_toggle_library),
+        ("library-save-button", on_library_save),
+        ("almanac-toggle-button", on_toggle_almanac),
+        ("planner-toggle-button", on_toggle_planner),
+        ("planner-clear-button", on_planner_clear),
+        ("planner-commit-button", on_planner_commit),
+    ):
+        el = document.getElementById(element_id)
+        if el is not None:
+            el.addEventListener("click", create_proxy(handler))
+    for key, _label in GRAPH_RANGES:
+        el = document.getElementById(f"graph-range-{key}")
+        if el is not None:
+            el.addEventListener("click", create_proxy(_make_graph_range_handler(key)))
+    for element_id, event_name, handler in (
+        ("scrub-slider", "input", on_scrub_input),
+        ("library-select-a", "change", _make_library_select_handler("library_a")),
+        ("library-select-b", "change", _make_library_select_handler("library_b")),
+        ("library-overlay-select", "change", _make_library_select_handler("library_overlay_id")),
+        ("planner-length", "change", on_planner_length),
+    ):
+        el = document.getElementById(element_id)
+        if el is not None:
+            el.addEventListener(event_name, create_proxy(handler))
+    for number in range(1, PLANNER_MAX_SEASONS + 1):
+        for category in CATEGORIES:
+            el = document.getElementById(f"planner-s{number}-{category}")
+            if el is not None:
+                el.addEventListener("input", create_proxy(_make_planner_input_handler(number, category)))
     for key in LEDGER_KEYS:
         el = document.getElementById(f"ledger-sort-{key}")
         if el is not None:
@@ -3409,7 +4522,10 @@ def setup():
     if toast is not None:
         toast.hidden = True
     _resync_previous_flooded_rows()
+    almanac_resync()
     render()
 
 
+_load_graph_prefs()
+almanac = _load_almanac()
 setup()

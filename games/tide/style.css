@@ -1606,6 +1606,178 @@ html[data-theme="light"] a:focus-visible,
 html[data-theme="light"] .coastline-tile:focus-visible { outline-color: #1d3fa8; }
 
 /* ============================================================
+   2026-10-08 pass: graph crosshair/range/markers (D-21/22/23), season scrubber (D-4),
+   season planner (D-6), session library (D-2), Harbor Almanac (D-9).
+   ============================================================ */
+.mini-graph {
+  position: relative;
+}
+.acidity-fish-sparkline {
+  touch-action: pan-y;
+  cursor: crosshair;
+}
+.graph-crosshair {
+  stroke: #ffd166;
+  stroke-width: 1;
+  stroke-dasharray: 3 2;
+  pointer-events: none;
+}
+.graph-readout {
+  position: absolute;
+  top: 0;
+  right: 0;
+  max-width: 64%;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  border-radius: 6px;
+  background: rgba(10, 16, 36, 0.88);
+  color: #eaf0ff;
+  border: 1px solid rgba(140, 160, 255, 0.4);
+  pointer-events: none;
+  text-align: left;
+}
+.graph-readout--left {
+  right: auto;
+  left: 0;
+}
+.graph-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.2rem 0 0.1rem;
+}
+.graph-chip {
+  padding: 0.25rem 0.7rem;
+  font-size: 0.75rem;
+  min-height: 2rem;
+  border-radius: 999px;
+}
+.graph-chip[aria-pressed="true"] {
+  border-color: #7fd4ee;
+  box-shadow: inset 0 0 0 1px #7fd4ee;
+}
+.graph-chip[aria-pressed="true"]::before {
+  content: "\2713\00a0";
+}
+
+.scrub-section[hidden],
+.planner-panel[hidden],
+.library-panel[hidden],
+.almanac-panel[hidden],
+.scrub-live[hidden] {
+  display: none;
+}
+.scrub-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.3rem 0.6rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+.scrub-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.8rem;
+}
+.scrub-slider {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 2rem;
+}
+.scrub-readout {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.78rem;
+}
+.coastline-grid--scrubbed {
+  outline: 2px dashed #ffd166;
+  outline-offset: 3px;
+  filter: saturate(0.8);
+}
+
+.planner-length-label,
+.library-overlay-label {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  margin: 0.3rem 0;
+}
+.planner-input {
+  width: 3.4rem;
+  min-height: 2rem;
+  text-align: right;
+}
+.planner-input-table th[scope="row"] {
+  text-align: left;
+}
+.planner-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+.library-list {
+  list-style: none;
+  margin: 0.4rem 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+}
+.library-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+.library-delete {
+  flex: 0 0 auto;
+  padding: 0.2rem 0.6rem;
+  min-height: 2rem;
+  font-size: 0.75rem;
+}
+.library-selects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+  margin: 0.4rem 0;
+  font-size: 0.8rem;
+}
+.library-selects label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+.library-selects select {
+  max-width: 100%;
+}
+.almanac-lifetime {
+  margin: 0 0 0.6rem;
+  padding-left: 1.1rem;
+  font-size: 0.85rem;
+}
+.almanac-panel .ledger-table th[scope="row"],
+.almanac-panel .ledger-table td {
+  text-align: left;
+  white-space: normal;
+}
+
+html[data-theme="light"] .graph-crosshair { stroke: #1b2233; }
+html[data-theme="light"] .graph-readout {
+  background: rgba(255, 255, 255, 0.94);
+  color: #1b2233;
+  border-color: rgba(70, 95, 170, 0.5);
+}
+html[data-theme="light"] .graph-chip[aria-pressed="true"] { border-color: #1b5f84; box-shadow: inset 0 0 0 1px #1b5f84; }
+html[data-theme="light"] .coastline-grid--scrubbed { outline-color: #1d3fa8; }
+html[data-theme="light"] .planner-input { background: #ffffff; color: #1b2233; border: 1px solid rgba(70, 95, 170, 0.45); }
+
+/* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game, 46
    seasons of investing, every panel open). Dark is untouched. The
@@ -1631,4 +1803,3 @@ html[data-theme="light"] .feedback-buttons .secondary.selected { color: #ffffff;
 html[data-theme="light"] .coastline-grid,
 html[data-theme="light"] .coastline-scene { border-color: rgba(70, 95, 170, 0.4); box-shadow: 0 6px 18px rgba(40, 55, 110, 0.16); }
 html[data-theme="light"] .fish-warning-banner { color: #5c3d00; }
-

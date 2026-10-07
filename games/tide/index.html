@@ -49,6 +49,11 @@
       <button id="hard-lag-toggle-button" class="secondary difficulty-toggle" type="button" title="Harder Lag stretches the delay between acidity and fish yield from 3 seasons to 6. It can be switched any time and takes effect from the next season's yield onward.">Loading...</button>
       <button id="settings-toggle-button" class="secondary" type="button">⚙️ Settings</button>
     </div>
+    <div class="game-toolbar">
+      <button id="planner-toggle-button" class="secondary" type="button">🧭 Season Planner</button>
+      <button id="library-toggle-button" class="secondary" type="button">📚 Session Library</button>
+      <button id="almanac-toggle-button" class="secondary" type="button">📖 Harbor Almanac</button>
+    </div>
     <div id="howto-panel" class="section" hidden></div>
     <!-- Settings panel (site-wide goal, planning/TODO.md): text-scale + reduced-motion,
          consolidated into one panel per settings.js. A browser preference, not game
@@ -124,6 +129,96 @@
       </div>
     </div>
 
+    <!-- D-6: the season planner. Stage 3 to 5 seasons of investments and read the projection;
+         nothing is spent or advanced until "Commit". -->
+    <div id="planner-panel" class="section planner-panel" hidden>
+      <h2 class="ledger-heading">Season Planner</h2>
+      <p class="comparison-message">Stage investments for the next few seasons and see where acidity, fishing yield and the rows at risk would go. This is a projection on a copy of your settlement: nothing is spent until you commit the first planned season.</p>
+      <label class="planner-length-label" for="planner-length">Seasons to plan
+        <select id="planner-length">
+          <option value="3" selected>3 seasons</option>
+          <option value="4">4 seasons</option>
+          <option value="5">5 seasons</option>
+        </select>
+      </label>
+      <div class="ledger-scroll">
+        <table class="ledger-table planner-input-table">
+          <caption class="sr-only">Investments to stage in each planned season</caption>
+          <thead><tr><th scope="col">Planned season</th><th scope="col">Output</th><th scope="col">Acidity Reduction</th><th scope="col">Adaptation</th></tr></thead>
+          <tbody>
+            <tr id="planner-row-1"><th scope="row">1</th>
+              <td><input id="planner-s1-output" class="planner-input" type="number" min="0" max="9" value="0" aria-label="Planned season 1, Output investments"></td>
+              <td><input id="planner-s1-reduction" class="planner-input" type="number" min="0" max="9" value="0" aria-label="Planned season 1, Acidity Reduction investments"></td>
+              <td><input id="planner-s1-adaptation" class="planner-input" type="number" min="0" max="9" value="0" aria-label="Planned season 1, Adaptation investments"></td></tr>
+            <tr id="planner-row-2"><th scope="row">2</th>
+              <td><input id="planner-s2-output" class="planner-input" type="number" min="0" max="9" value="0" aria-label="Planned season 2, Output investments"></td>
+              <td><input id="planner-s2-reduction" class="planner-input" type="number" min="0" max="9" value="0" aria-label="Planned season 2, Acidity Reduction investments"></td>
+              <td><input id="planner-s2-adaptation" class="planner-input" type="number" min="0" max="9" value="0" aria-label="Planned season 2, Adaptation investments"></td></tr>
+            <tr id="planner-row-3"><th scope="row">3</th>
+              <td><input id="planner-s3-output" class="planner-input" type="number" min="0" max="9" value="0" aria-label="Planned season 3, Output investments"></td>
+              <td><input id="planner-s3-reduction" class="planner-input" type="number" min="0" max="9" value="0" aria-label="Planned season 3, Acidity Reduction investments"></td>
+              <td><input id="planner-s3-adaptation" class="planner-input" type="number" min="0" max="9" value="0" aria-label="Planned season 3, Adaptation investments"></td></tr>
+            <tr id="planner-row-4" hidden><th scope="row">4</th>
+              <td><input id="planner-s4-output" class="planner-input" type="number" min="0" max="9" value="0" aria-label="Planned season 4, Output investments"></td>
+              <td><input id="planner-s4-reduction" class="planner-input" type="number" min="0" max="9" value="0" aria-label="Planned season 4, Acidity Reduction investments"></td>
+              <td><input id="planner-s4-adaptation" class="planner-input" type="number" min="0" max="9" value="0" aria-label="Planned season 4, Adaptation investments"></td></tr>
+            <tr id="planner-row-5" hidden><th scope="row">5</th>
+              <td><input id="planner-s5-output" class="planner-input" type="number" min="0" max="9" value="0" aria-label="Planned season 5, Output investments"></td>
+              <td><input id="planner-s5-reduction" class="planner-input" type="number" min="0" max="9" value="0" aria-label="Planned season 5, Acidity Reduction investments"></td>
+              <td><input id="planner-s5-adaptation" class="planner-input" type="number" min="0" max="9" value="0" aria-label="Planned season 5, Adaptation investments"></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p id="planner-summary" class="comparison-message" role="status"></p>
+      <div id="planner-chart" class="mini-graph"></div>
+      <p class="comparison-message">Purple: acidity. Green dashed: fishing yield. Amber dotted: dry rows at risk of flooding within 2 seasons.</p>
+      <div class="ledger-scroll">
+        <table class="ledger-table">
+          <caption class="sr-only">Projected result of each planned season</caption>
+          <thead><tr><th scope="col">Season</th><th scope="col">Funds</th><th scope="col">Acidity</th><th scope="col">Fish yield</th><th scope="col">Damage</th><th scope="col">Rows dry</th><th scope="col">At risk</th><th scope="col">Tier</th></tr></thead>
+          <tbody id="planner-body"></tbody>
+        </table>
+      </div>
+      <div class="planner-buttons">
+        <button id="planner-commit-button" class="secondary" type="button">Commit season 1</button>
+        <button id="planner-clear-button" class="secondary" type="button">Clear plan</button>
+      </div>
+    </div>
+
+    <!-- D-2: finished sessions kept in this browser; any two can be overlaid (A solid, B dashed). -->
+    <div id="library-panel" class="section library-panel" hidden>
+      <h2 class="ledger-heading">Session Library</h2>
+      <p class="comparison-message">Save a finished (or in-progress) session with its settings and outcome, then overlay any two on the acidity and fishing-yield graph: the first drawn solid, the second dashed. Saved sessions stay in this browser only.</p>
+      <button id="library-save-button" class="secondary" type="button">Save this session to the library</button>
+      <p id="library-status" class="comparison-message" role="status"></p>
+      <ul id="library-list" class="library-list"></ul>
+      <div class="library-selects">
+        <label for="library-select-a">A (solid)
+          <select id="library-select-a"></select></label>
+        <label for="library-select-b">B (dashed)
+          <select id="library-select-b"></select></label>
+      </div>
+      <div id="library-compare-graph" class="mini-graph">Choose two sessions to overlay them: A is drawn solid, B dashed.</div>
+      <p id="library-compare-caption" class="comparison-message"></p>
+      <label class="library-overlay-label" for="library-overlay-select">Also show a saved session as dashed lines on the main graph
+        <select id="library-overlay-select"></select></label>
+    </div>
+
+    <!-- D-9: lifetime totals and personal bests for this browser. -->
+    <div id="almanac-panel" class="section almanac-panel" hidden>
+      <h2 class="ledger-heading">Harbor Almanac</h2>
+      <p class="comparison-message">Lifetime across every session in this browser (not part of a save).</p>
+      <ul id="almanac-lifetime" class="almanac-lifetime"></ul>
+      <p class="meter-label">Personal best by sea scenario and lag mode</p>
+      <div class="ledger-scroll">
+        <table class="ledger-table">
+          <caption class="sr-only">Best run for each sea scenario and lag mode, by damage avoided</caption>
+          <thead><tr><th scope="col">Scenario and lag</th><th scope="col">Best run (most damage avoided)</th></tr></thead>
+          <tbody id="almanac-best-body"></tbody>
+        </table>
+      </div>
+    </div>
+
     <p class="tagline">Run a coastal settlement. Balance fishing income against ocean health and a slowly rising sea.</p>
     <p class="context-blurb">Ocean acidification and sea-level rise share a real-world trait this game leans on: the delay between cause and effect. Today's emissions and choices don't show their full damage for years — which is exactly why they're easy to underestimate.</p>
 
@@ -190,6 +285,14 @@
            yield together over the session, so the delayed-consequence
            relationship between them is visible as a shape. -->
       <p class="meter-label">Acidity vs. fishing yield, over time</p>
+      <!-- D-22 / D-23: how many seasons the graphs show, and optional dash styles and point
+           shapes per series. Hover, tap or use the arrow keys on a graph to read a season. -->
+      <div class="graph-controls" role="group" aria-label="Graph options">
+        <button id="graph-range-10" class="secondary graph-chip" type="button" aria-pressed="false">Last 10</button>
+        <button id="graph-range-20" class="secondary graph-chip" type="button" aria-pressed="false">Last 20</button>
+        <button id="graph-range-all" class="secondary graph-chip" type="button" aria-pressed="true">All</button>
+        <button id="graph-markers-toggle" class="secondary graph-chip" type="button" aria-pressed="false">Series markers: Off</button>
+      </div>
       <div id="acidity-fish-graph" class="mini-graph"></div>
       <!-- D7: the lag itself as a picture -- acidity when banked vs. the
            fish yield it causes later. Collapsed by default. -->
@@ -252,6 +355,14 @@
            each investment; the description is the coastline as words, row by row. -->
       <p id="season-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
       <p id="coastline-description" class="sr-only"></p>
+      <!-- D-4: look back at any earlier season (grid, meters, tier, heritage), read-only. -->
+      <div id="scrub-section" class="scrub-section" hidden>
+        <label class="scrub-label" for="scrub-slider">Look back
+          <input id="scrub-slider" class="scrub-slider" type="range" min="1" max="1" value="1" step="1">
+        </label>
+        <button id="scrub-live-button" class="secondary scrub-live" type="button" hidden>Back to live</button>
+        <p id="scrub-readout" class="comparison-message scrub-readout" role="status"></p>
+      </div>
     </div>
 
     <p id="community-index" class="comparison-message" hidden></p>
@@ -532,7 +643,8 @@
         "1 / 2 / 3 — invest in Output / Acidity Reduction / Adaptation",
         "R — open or close the session report",
         "L — open or close the Harbor Ledger",
-        "Up / Down — move between coastline rows (when a row is focused)",
+        "Arrow keys — move around the coastline tiles (when a tile is focused)",
+        "Left / Right on a graph — read each season (hover or tap works too)",
       ],
       panels: [
         { toggle: "howto-toggle-button", panel: "howto-panel" },
@@ -541,6 +653,9 @@
         { toggle: "changelog-toggle-button", panel: "changelog-panel" },
         { toggle: "session-summary-toggle-button", panel: "session-summary-panel" },
         { toggle: "ledger-toggle-button", panel: "ledger-panel" },
+        { toggle: "planner-toggle-button", panel: "planner-panel" },
+        { toggle: "library-toggle-button", panel: "library-panel" },
+        { toggle: "almanac-toggle-button", panel: "almanac-panel" },
         { toggle: "info-page-toggle-button", panel: "info-page-panel" },
       ],
     });

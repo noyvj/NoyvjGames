@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-08",
+      "entry": "New: a Season Planner (stage 3 to 5 seasons of investments and see projected acidity, fishing yield and dry rows at risk before spending anything, then commit the first season), a season scrubber under the coastline (drag back to see any earlier season's coast, meters, tier and heritage, read-only), a Session Library (save sessions in this browser and overlay any two on the graphs, one solid and one dashed), and a Harbor Almanac (lifetime seasons, rows kept dry, heritage protected and storms weathered, plus your best run for each sea scenario and lag mode, also shown in the session summary). The trend graphs gain a hover/tap/arrow-key crosshair with that season's numbers, a Last 10 / Last 20 / All range, and optional dash styles and point shapes per series. Every coastline tile can now be reached with the arrow keys."
+    },
+    {
       "date": "2026-10-07",
       "entry": "New: a Harbor Ledger (every season as a sortable table with a small trend chart per column), Advance x5 (runs up to five quiet seasons and stops before a storm forecast, a fish-yield warning, a heritage site about to flood, or a monitoring crew becoming available again), game keys (A advance, X advance x5, 1/2/3 invest, R report, L ledger), filter chips and a search box for the full ticker history, a Copy as text button for your settlement summary, and a tab title that shows the season and any warning. Screen readers now hear each season's result and a row-by-row description of the coastline, and every panel you leave open stays open next time."
     },

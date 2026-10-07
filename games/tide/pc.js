@@ -50,4 +50,7 @@ document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   const help = document.getElementById("kb-shortcuts-panel");
   if (help && !help.hidden) e.__pcMenuOpened = true;
+  // Escape on a graph that is showing its crosshair just clears the crosshair.
+  const graph = e.target && e.target.closest ? e.target.closest("svg[data-crosshair]") : null;
+  if (graph && graph.__crosshairIndex != null) e.__pcMenuOpened = true;
 }, true);
