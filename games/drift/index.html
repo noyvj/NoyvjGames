@@ -35,6 +35,8 @@
       <button id="howto-toggle-button" class="secondary" type="button">📖 How to Play</button>
       <button id="achievements-toggle-button" class="secondary" type="button">Loading...</button>
       <button id="changelog-toggle-button" class="secondary" type="button">📋 What's New</button>
+      <button id="ledger-toggle-button" class="secondary" type="button">📒 Round Ledger (0)</button>
+      <button id="collection-toggle-button" class="secondary" type="button">🗂️ Collection</button>
       <button id="accelerated-severity-toggle-button" class="secondary difficulty-toggle" type="button">Loading...</button>
       <button id="crisis-start-toggle-button" class="secondary difficulty-toggle" type="button">Crisis Start: OFF</button>
       <!-- Site-wide settings panel (TODO.md origin A9): text-scale +
@@ -50,6 +52,41 @@
          origin K16): same hidden-until-opened idiom as achievements/settings
          above, populated from changelog.json newest-first. -->
     <div id="changelog-panel" class="section changelog-panel" hidden></div>
+    <!-- I-8: Round Ledger. Controls are static here; game.py fills #ledger-summary and #ledger-table. -->
+    <div id="ledger-panel" class="section ledger-panel" hidden>
+      <p class="meter-label">Round Ledger: every resolved round, newest first by default</p>
+      <p id="ledger-summary" class="comparison-message"></p>
+      <div class="ledger-controls">
+        <label>Sort
+          <select id="ledger-sort-select">
+            <option value="round_desc">Newest first</option>
+            <option value="round_asc">Oldest first</option>
+            <option value="strain">Highest strain</option>
+            <option value="wellbeing">Highest wellbeing</option>
+            <option value="arrivals">Most arrivals</option>
+            <option value="spent">Most spent</option>
+          </select>
+        </label>
+        <label>Show
+          <select id="ledger-filter-select">
+            <option value="all">All rounds</option>
+            <option value="purchases">Rounds with purchases</option>
+            <option value="no_purchases">Rounds with no purchases</option>
+            <option value="strained">Strained or critical</option>
+            <option value="auto">Rounds from Play 5 rounds</option>
+          </select>
+        </label>
+        <button id="copy-ledger-csv-button" class="secondary" type="button">Copy as CSV</button>
+      </div>
+      <p id="ledger-copy-status" class="comparison-message" role="status" aria-live="polite"></p>
+      <textarea id="ledger-copy-area" class="ledger-copy-area" readonly hidden aria-label="Ledger as CSV text"></textarea>
+      <div id="ledger-table" class="ledger-scroll"></div>
+    </div>
+    <!-- GI-15 / GI-22: Region Collection. game.py fills #collection-list. -->
+    <div id="collection-panel" class="section collection-panel" hidden>
+      <p class="meter-label">Region Collection: kept in this browser across every region you run</p>
+      <div id="collection-list"></div>
+    </div>
     <div id="settings-panel" class="section settings-panel" hidden>
       <div class="settings-row">
         <span class="settings-row-label">Text size</span>
@@ -62,6 +99,14 @@
       <div class="settings-row">
         <span class="settings-row-label">Motion</span>
         <button id="reduce-motion-toggle-button" class="secondary" type="button">Reduce Motion: Off</button>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-label">Contrast</span>
+        <button id="high-contrast-toggle-button" class="secondary" type="button">High Contrast: Off</button>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-label">Font</span>
+        <button id="dyslexia-font-toggle-button" class="secondary" type="button">Easy-Read Font: Off</button>
       </div>
       <div class="settings-row">
         <button id="settings-reset-button" class="secondary" type="button">Reset to Default</button>
@@ -106,6 +151,8 @@
       <p id="net-positive-badge" class="net-positive-badge" hidden></p>
       <p id="recovery-badge" class="net-positive-badge" hidden></p>
       <p id="capacity-milestone-display" class="status-line">Next capacity milestone: 50 total capacity.</p>
+      <p id="collection-summary-display" class="status-line"></p>
+      <p id="region-title-display" class="status-line"></p>
       <label class="region-name-row">Region name (optional, carried into the coda)
         <input id="region-name-input" class="region-name-input" type="text" maxlength="30" placeholder="Name your region">
       </label>
@@ -347,6 +394,21 @@
       </details>
     </div>
 
+    <!-- I-15 Reset this round, GI-18 Rewind Token, GI-30 Play 5 rounds, I-17 recap. -->
+    <div id="round-tools" class="section">
+      <p class="meter-label">Round tools</p>
+      <div class="round-tools-buttons">
+        <button id="reset-round-button" class="secondary" type="button" title="Refund everything you decided since this round began.">↩️ Reset this round</button>
+        <button id="rewind-button" class="secondary" type="button" title="One per region: undo the last Advance Round and get that round back exactly as it was.">⏪ Rewind Token (1 left)</button>
+        <button id="play-rounds-button" class="secondary" type="button" title="Advance up to 5 rounds with your current allocation. Stops early if strain rises a level or a forecast event arrives.">⏩ Play 5 rounds</button>
+      </div>
+      <p id="round-tools-note" class="comparison-message" role="status" aria-live="polite" hidden></p>
+      <details id="round-recap-details" class="context-toggle" open hidden>
+        <summary>Last round recap</summary>
+        <p id="round-recap-display" class="comparison-message"></p>
+      </details>
+    </div>
+
     <button id="advance-round-button" class="primary">Advance Round</button>
 
     <div id="feedback-prompt" class="section">
@@ -415,6 +477,11 @@
         text: "Locks in this round's investments and resolves everything: new arrivals, strain, integration progress, and income. There's no wait-timer here — every round is an active decision, so invest first, then advance.",
       },
       {
+        selector: "#round-tools",
+        title: "Round tools",
+        text: "Reset this round refunds everything you decided since the round began. The Rewind Token undoes the last Advance Round once per region. Play 5 rounds advances with your current allocation and stops early when strain rises a level or a forecast event arrives. Under them, a recap line says what the last round did; the Round Ledger and Collection buttons up top keep the full record.",
+      },
+      {
         selector: "#coda-button",
         title: "Long-Horizon Outcomes",
         text: "Once at least one person has been integrated, this reveals a projection of your current trajectory a few generations forward — a rough extrapolation, not a guarantee, showing what durable integration compounds into over the long run.",
@@ -473,12 +540,23 @@
   <!-- Z4 (site-wide goal): "?" shows a keyboard-shortcuts help overlay,
        Esc closes whichever panel is open. See shared/keyboard-shortcuts.js. -->
   <script src="../../shared/keyboard-shortcuts.js"></script>
+  <script src="ui.js"></script>
   <script>
     window.KeyboardShortcuts.init({
+      extra: [
+        "1 / 2 / 3 — buy Housing / Integration Services / Infrastructure",
+        "Enter — Advance Round (when no button is focused)",
+        "U — reset this round (refund this round's decisions)",
+        "P — play 5 rounds",
+        "L — open or close the Round Ledger",
+        "C — open or close the Region Collection",
+      ],
       panels: [
         { toggle: "howto-toggle-button", panel: "howto-panel" },
         { toggle: "achievements-toggle-button", panel: "achievements-panel" },
         { toggle: "changelog-toggle-button", panel: "changelog-panel" },
+        { toggle: "ledger-toggle-button", panel: "ledger-panel" },
+        { toggle: "collection-toggle-button", panel: "collection-panel" },
         { toggle: "settings-toggle-button", panel: "settings-panel" },
         { toggle: "info-page-toggle-button", panel: "info-page-panel" },
         { toggle: "coda-button", panel: "coda-section" },

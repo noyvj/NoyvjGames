@@ -34,6 +34,27 @@
   var MAX_SCALE = 1.5;
   var STEP = 0.1;
   var DEFAULT_SCALE = 1.0;
+  // I-20: two more display preferences, same per-browser storage and root-class approach as reduce motion.
+  var CONTRAST_KEY = "drift-high-contrast";
+  var DYSLEXIA_KEY = "drift-easy-read-font";
+
+  function readFlag(key) {
+    try {
+      return window.localStorage.getItem(key) === "true";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function applyFlag(key, className, value) {
+    document.documentElement.classList.toggle(className, value);
+    try {
+      window.localStorage.setItem(key, value ? "true" : "false");
+    } catch (e) {
+      // Losing persistence is not worth breaking the control.
+    }
+    return value;
+  }
 
   function readStoredScale() {
     try {
@@ -90,6 +111,37 @@
   function init() {
     var scale = applyScale(readStoredScale());
     var reduced = applyMotion(readStoredMotion());
+
+    var contrast = applyFlag(CONTRAST_KEY, "high-contrast", readFlag(CONTRAST_KEY));
+    var easyFont = applyFlag(DYSLEXIA_KEY, "easy-read-font", readFlag(DYSLEXIA_KEY));
+    var contrastButton = document.getElementById("high-contrast-toggle-button");
+    var fontButton = document.getElementById("dyslexia-font-toggle-button");
+
+    function updateFlagLabels() {
+      if (contrastButton) {
+        contrastButton.textContent = "High Contrast: " + (contrast ? "On" : "Off");
+        contrastButton.classList.toggle("active", contrast);
+        contrastButton.setAttribute("aria-pressed", contrast ? "true" : "false");
+      }
+      if (fontButton) {
+        fontButton.textContent = "Easy-Read Font: " + (easyFont ? "On" : "Off");
+        fontButton.classList.toggle("active", easyFont);
+        fontButton.setAttribute("aria-pressed", easyFont ? "true" : "false");
+      }
+    }
+    updateFlagLabels();
+    if (contrastButton) {
+      contrastButton.addEventListener("click", function () {
+        contrast = applyFlag(CONTRAST_KEY, "high-contrast", !contrast);
+        updateFlagLabels();
+      });
+    }
+    if (fontButton) {
+      fontButton.addEventListener("click", function () {
+        easyFont = applyFlag(DYSLEXIA_KEY, "easy-read-font", !easyFont);
+        updateFlagLabels();
+      });
+    }
 
     var toggleButton = document.getElementById("settings-toggle-button");
     var panel = document.getElementById("settings-panel");
@@ -151,6 +203,9 @@
         scale = applyScale(DEFAULT_SCALE);
         reduced = applyMotion(false);
         updateMotionLabel();
+        contrast = applyFlag(CONTRAST_KEY, "high-contrast", false);
+        easyFont = applyFlag(DYSLEXIA_KEY, "easy-read-font", false);
+        updateFlagLabels();
       });
     }
   }
@@ -164,6 +219,7 @@
   window.DriftSettings = {
     applyScale: applyScale,
     applyMotion: applyMotion,
+    applyFlag: applyFlag,
     MIN_SCALE: MIN_SCALE,
     MAX_SCALE: MAX_SCALE,
   };

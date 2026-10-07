@@ -38,9 +38,14 @@ window.DRIFT_PC_TUTORIAL_STEPS = [
     text: "Locks in this round's investments and resolves everything: new arrivals, strain, integration progress and income. There's no wait-timer, so invest first, then advance. The button stays pinned at the top of the column.",
   },
   {
+    selector: "#round-tools",
+    title: "Round tools",
+    text: "Reset this round refunds everything you decided since the round began. The Rewind Token undoes the last Advance Round, once per region. Play 5 rounds advances with your current allocation and stops early when strain rises a level or a forecast event arrives. A recap line says what the last round did. Keys: 1, 2 and 3 buy, Enter advances, U resets the round, P plays 5 rounds.",
+  },
+  {
     selector: "#pc-menu-button",
     title: "Icons and the Menu",
-    text: "The three icons are Achievements, How to Play and Settings. The Menu (or Escape, when nothing else is open) holds everything else: the Accelerated Severity and Crisis Start options, the tutorial, the real-world story, What's New, About Drift and feedback. Each opens as a window over the game, and Escape closes the top one. Once at least one person is integrated, a Long-Horizon Outcomes button appears above the investments; it opens a window projecting your trajectory a few generations forward.",
+    text: "The three icons are Achievements, How to Play and Settings. The Menu (or Escape, when nothing else is open) holds everything else: the Accelerated Severity and Crisis Start options, the tutorial, the real-world story, the Round Ledger, the Region Collection, What's New, About Drift and feedback (L and C open the Ledger and the Collection). Each opens as a window over the game, and Escape closes the top one. Once at least one person is integrated, a Long-Horizon Outcomes button appears above the investments; it opens a window projecting your trajectory a few generations forward.",
   },
   {
     title: "You're ready",

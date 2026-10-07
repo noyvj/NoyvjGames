@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 180/785 items checked off (22.9%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 190/785 items checked off (24.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -645,13 +645,13 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] GI-12: Add a Weekly Region Challenge to Drift: a deterministic weekly starting profile plus fixed event schedule keyed to the ISO week (no backend), with a per-week personal best stored in localStorage.
 - [ ] GI-13: Add a Perfect Fit streak to Drift: when capacity covers the round's arrivals within a small margin with no overbuilding, a counter grows and gives a small wellbeing bonus, shown beside the forecast panel.
 - [ ] GI-14: Add a building pop animation to Drift: each investment makes a building rise-and-settle with a tiny dust puff on the region visual; off when Reduce Motion is on.
-- [ ] GI-15: Add Region Personality titles to Drift: the end-of-run summary names your spending pattern (The Builder, The Educator, The Engineer, The Balancer) and each title is collected in a titles list.
+- [x] GI-15: Add Region Personality titles to Drift: the end-of-run summary names your spending pattern (The Builder, The Educator, The Engineer, The Balancer) and each title is collected in a titles list.
 - [ ] GI-16: Add a Lucky Break to Drift: rarely a small sparkling windfall (community donation or volunteer wave: +15 funds or a free housing build) appears, drawn from a seeded schedule.
-- [ ] GI-18: Add a Rewind Token to Drift: one take-back per run that undoes the last round advance (restoring the pre-advance state), with a used-marker in the run summary.
+- [x] GI-18: Add a Rewind Token to Drift: one take-back per run that undoes the last round advance (restoring the pre-advance state), with a used-marker in the run summary.
 - [ ] GI-19: Add a strain heartbeat to Drift: a soft pulse on the strain readout whose speed rises with strain level and calms as it falls; disabled by Reduce Motion.
 - [ ] GI-20: Add an optional Municipal-humor ticker to Drift: a one-line warm local-news headline strip (e.g. Council debates bench placement for six hours), never mocking arrivals, with an off toggle in Settings.
 - [ ] GI-21: Add Star ratings to Drift: each finished run earns 1-3 stars on three goals (wellbeing, speed to net-positive, funds efficiency) with a run-history strip of the best star combos.
-- [ ] GI-22: Add Civic Milestone discoveries to Drift: certain capacity combinations at set rounds (e.g. services and infrastructure both above 100 by round 30) reveal named cosmetic entries in a collection panel, each with a hint once locked.
+- [x] GI-22: Add Civic Milestone discoveries to Drift: certain capacity combinations at set rounds (e.g. services and infrastructure both above 100 by round 30) reveal named cosmetic entries in a collection panel, each with a hint once locked.
 - [ ] GI-23: Add Council vote popups to Drift: when funds cannot cover both a housing and a services purchase in the same round, offer a two-button vote with a short flavor line and a tiny modifier for the chosen path.
 - [ ] GI-24: Add Seasons to Drift: rounds cycle through four seasons that tint the region visual and modestly shift income and arrivals (winter housing pressure, harvest income), shown in the forecast.
 - [ ] GI-25: Add cosmetic region skins to Drift: unlockable building palettes (Seaside, Alpine, Desert, Neon Future) earned through achievements and selectable in Settings.
@@ -659,7 +659,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] GI-27: Add a Legacy Map to Drift: a persistent map that grows across runs with districts you unlocked or perfected, which carries starting bonuses into the next run. (needs W-3) [conflict: Overlaps GI-9 (Legacy Points unlock tree): build one meta-progression with the map as the tree's presentation. Owner to confirm.]
 - [ ] GI-28: Add a mentor ghost to Drift: after reaching Thriving, load one of your own past runs as a faint per-round build-order guide, with bonus Legacy Points for matching or beating it. (needs W-3)
 - [ ] GI-29: Add band-change confetti to Drift: crossing into a higher wellbeing band triggers a short confetti/ripple over the gauge; silent and off when Reduce Motion is on. [conflict: The idea mentions an optional chime; dropped because the owner said no audio of any kind.]
-- [ ] GI-30: Add a Play 5 rounds button to Drift that auto-advances with the current allocation and stops early if strain rises a level or a forecast event arrives.
+- [x] GI-30: Add a Play 5 rounds button to Drift that auto-advances with the current allocation and stops early if strain rises a level or a forecast event arrives.
 - [ ] I-1: Add a Region Archive to Drift: store every completed run (region name, difficulty, final band, net-positive round, ROI split, trend curves) and browse them with an overlay chart comparing wellbeing curves from any three runs.
 - [ ] I-2: Add a Scenario Builder to Drift: sliders for starting housing/services/infrastructure, income, severity rate and horizon (50/100/150) producing a shareable scenario code, loadable from the setup screen; custom runs are tagged so records and achievements stay honest.
 - [ ] I-3: Add Planner assist to Drift: an Off / Suggest / Explain toggle recommending this round's purchases from the forecast and ROI data with a one-line reason; assisted runs are tagged and excluded from personal bests.
@@ -667,23 +667,23 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] I-5: Add a non-visual play mode to Drift: the region visual, arrival stream and gauges mirrored as labelled tables, an aria-live round summary and full keyboard control of purchases.
 - [ ] I-6: Add in-game named region slots to Drift: three slots named from the region name, each showing last-played time and current band, switchable from the header, so Standard and Crisis Start regions can run side by side and the slots ride the save code. (partly built: shared/save-widget.js gives 3 numbered slots per signed-in account with time-ago labels (U3).)
 - [ ] I-7: Add a rich district view to the Drift Desktop boot: pan/zoom, day/night lighting, and arrival dots traveling along roads to the buildings that house them, keeping the simple visual for mobile. (partly built: Desktop boot (PC-10) gives the full-window layout and skyline banner; pan/zoom and traveling dots are not built.)
-- [ ] I-8: Add a Round Ledger to Drift: a full-run table (funds in/out, allocation split, arrivals, integrated, pending, strain, subscores) with sorting, filtering and Copy-as-CSV.
+- [x] I-8: Add a Round Ledger to Drift: a full-run table (funds in/out, allocation split, arrivals, integrated, pending, strain, subscores) with sorting, filtering and Copy-as-CSV.
 - [ ] I-9: Add named difficulty tiers to Drift (Gentle, Standard, Rigorous, Demanding) bundling existing toggles with a summary line of what each changes, with personal bests tracked per tier and Z27 achievement rules respected.
 - [ ] I-10: Add a split-screen dual-region layout to Drift: a desktop two-column view with linked highlighting between the player's region and the neighbouring district, and a tabbed single column on phones.
 - [ ] I-11: Add terminology and tone settings to Drift: a choice of vocabulary (arrivals / newcomers / new residents) and a numbers-only mode that hides vignettes and the dot stream, suitable for classrooms.
 - [ ] I-12: Add event markers to Drift's trend graph (first net-positive round, band changes, strain peaks, reallocations, second-wave start) with hover detail and toggleable layers (strain, wellbeing, control region, ROI). (partly built: trend_graph_svg draws strain, wellbeing and a dotted control-region line with a legend.)
-- [ ] I-13: Add keyboard purchase controls to Drift: number keys buy Housing/Services/Infrastructure, Enter advances the round, and the ? help lists them via KeyboardShortcuts extra.
+- [x] I-13: Add keyboard purchase controls to Drift: number keys buy Housing/Services/Infrastructure, Enter advances the round, and the ? help lists them via KeyboardShortcuts extra.
 - [ ] I-14: Add budget templates to Drift: save up to three named purchase plans (e.g. Services-first) and apply each in one click per round.
-- [ ] I-15: Add a Reset this round button to Drift that refunds purchases made since the last Advance Round and restores the earlier funds and capacity.
+- [x] I-15: Add a Reset this round button to Drift that refunds purchases made since the last Advance Round and restores the earlier funds and capacity.
 - [ ] I-16: Add range chips (Last 10 / Last 25 / All) and a crosshair tooltip with exact values per round to Drift's trend graph.
-- [ ] I-17: Add a collapsible round recap line to Drift after each advance (e.g. Housing 12 short; 8 integrated; strain steady).
+- [x] I-17: Add a collapsible round recap line to Drift after each advance (e.g. Housing 12 short; 8 integrated; strain steady).
 - [ ] I-18: Add a Copy run summary button to Drift: plain text with a block-character wellbeing curve, region name, tier and final band.
 - [ ] I-19: Add a Compact / Comfortable density toggle to Drift's Settings beside text size, persisted like other preferences.
-- [ ] I-20: Add High-contrast and Dyslexia-friendly font toggles to Drift's Settings, boosting contrast on gauges and panels, persisted like existing preferences.
+- [x] I-20: Add High-contrast and Dyslexia-friendly font toggles to Drift's Settings, boosting contrast on gauges and panels, persisted like existing preferences.
 - [ ] I-21: Add an animation speed selector (Slow / Normal / Fast / Off) to Drift's Settings for the arrival-dot stream and building transitions, separate from Reduce Motion.
 - [ ] I-22: Add round number and wellbeing band name to Drift's mobile sticky HUD. (partly built: MobileHud (shared/mobile-hud.js) shows funds, strain and wellbeing score on phones.)
 - [ ] I-23: Add a segmented arrivals pipeline to Drift: a pending-versus-integrated bar split by age bands (this round, 2-3 rounds, 4+ rounds).
-- [ ] I-24: Set Drift's tab title each round to 'Drift - R37 - Stable - Region Name'.
+- [x] I-24: Set Drift's tab title each round to 'Drift - R37 - Stable - Region Name'.
 - [ ] I-25: Turn Drift's personal-best readout into a per-tier table (best band, fastest net-positive round, date).
 - [ ] I-26: Add a 20-round sparkline beside each subscore trend arrow in Drift.
 - [ ] I-27: Add a manual-save nudge to Drift: when more than 10 rounds have been advanced since the last save, show a gentle 'saved X ago' reminder near the save widget. (partly built: shared/save-widget.js shows 'N min ago' per slot and 'Saved at HH:MM' after saving.)

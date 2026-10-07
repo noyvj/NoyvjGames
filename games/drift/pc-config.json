@@ -3,6 +3,8 @@
     ["howto-panel", "howto-toggle-button", "How to Play"],
     ["achievements-panel", "achievements-toggle-button", "Achievements"],
     ["changelog-panel", "changelog-toggle-button", "What's New"],
+    ["ledger-panel", "ledger-toggle-button", "Round Ledger"],
+    ["collection-panel", "collection-toggle-button", "Region Collection"],
     ["settings-panel", "settings-toggle-button", "Settings"],
     ["info-page-panel", "info-page-toggle-button", "The Real Story"],
     ["coda-section", "coda-button", "Long-Horizon Outcomes"]
@@ -16,7 +18,7 @@
     "menu": [
       {"heading": "Game", "ids": ["accelerated-severity-toggle-button", "crisis-start-toggle-button"]},
       {"heading": "Help", "ids": ["tutorial-restart-button", "info-page-toggle-button"]},
-      {"heading": "Records", "ids": ["changelog-toggle-button"]}
+      {"heading": "Records", "ids": ["ledger-toggle-button", "collection-toggle-button", "changelog-toggle-button"]}
     ]
   },
   "composites": [
@@ -40,7 +42,7 @@
     "topbar": [".hub-back-link", "h1", ".game-toolbar"],
     "stagebar": [],
     "stage": [".region-visual", "#status", "#pressure", "#integration", "#wellbeing"],
-    "side": ["#advance-round-button", "#coda-button", "#capacity", "#neighbor-panel", "#capacity-tools"],
+    "side": ["#advance-round-button", "#coda-button", "#capacity", "#round-tools", "#neighbor-panel", "#capacity-tools"],
     "hidden": ["#round-display", "#funds-display", "#total-capacity-display"]
   },
   "readouts": [
@@ -54,6 +56,12 @@
   "side_label": "Investments and decisions",
   "hints": [
     ["?", "All shortcuts"],
+    ["1 2 3", "Buy"],
+    ["Enter", "Advance"],
+    ["U", "Reset round"],
+    ["P", "Play 5"],
+    ["L", "Ledger"],
+    ["C", "Collection"],
     ["Esc", "Menu / close window"]
   ],
   "notify": null

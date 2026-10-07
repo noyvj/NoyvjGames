@@ -265,6 +265,16 @@ def subscore_arrow(subscore_log, key):
     return TREND_ARROW[trend_indicator(values, tolerance=1.0)]
 
 
+# I-8: spend categories (the lifetime split feeds the region-personality
+# titles) and the capped per-round ledger.
+SPEND_KEYS = ["housing", "services", "infrastructure", "policy", "realloc"]
+LEDGER_MAX_ENTRIES = 120
+LEDGER_FIELDS = [
+    "round", "income", "spent", "housing", "services", "infrastructure", "policy", "realloc",
+    "arrivals", "integrated_new", "integrated", "pending", "shortfall", "strain",
+    "service", "economy", "cohesion", "wellbeing", "funds", "auto",
+]
+
 class RegionState:
     def __init__(self):
         self.round_number = 1
@@ -382,6 +392,16 @@ class RegionState:
         # strain. Derived each round from the neighbour's state (see
         # _sync_spillover), never saved.
         self.spillover_arrivals = 0.0
+        # I-8: what the funds went on. spend_by_type is lifetime (it feeds
+        # the region-personality titles), round_spend is this round only
+        # (reset at each Advance Round), ledger is the capped per-round table.
+        self.spend_by_type = {key: 0.0 for key in SPEND_KEYS}
+        self.round_spend = {key: 0.0 for key in SPEND_KEYS}
+        self.ledger = []
+        # I-15: decisions made since the round began (transient, never saved).
+        self.round_buys = 0
+        # GI-18: the round the one-per-run Rewind Token was used (None = unused).
+        self.rewind_used_round = None
 
     def total_capacity(self):
         return sum(self.capacity[t] for t in CAPACITY_TYPES)
@@ -402,6 +422,7 @@ class RegionState:
             return False
         self.funds -= cost
         self.policy_level[policy] += 1
+        self._record_spend("policy", cost)
         return True
 
     def invest(self, capacity_type):
@@ -412,7 +433,13 @@ class RegionState:
         self.capacity[capacity_type] += CAPACITY_PER_INVESTMENT[capacity_type]
         if capacity_type == "services":
             self.cumulative_services_investment += cost
+        self._record_spend(capacity_type, cost)
         return True
+
+    def _record_spend(self, key, amount):
+        self.spend_by_type[key] += amount
+        self.round_spend[key] += amount
+        self.round_buys += 1
 
     def arrivals_this_round(self):
         """People arriving this round, rising with background severity —
@@ -546,8 +573,9 @@ class RegionState:
             + self.projected_social_cohesion()
         ) / 3
 
-    def advance_round(self):
+    def advance_round(self, auto=False):
         completed_round = self.round_number
+        spent_this_round = dict(self.round_spend)
         strain = self.strain_fraction()
         self.strain_log.append(strain)
         del self.strain_log[:-DRIFT_LOG_MAX_ENTRIES]
@@ -576,7 +604,8 @@ class RegionState:
         # I15: detect the exact round the long-horizon coda first becomes
         # available, before integrated_population actually changes below.
         coda_was_available = self.has_long_horizon_story()
-        self.integrated_population += self.integration_this_round()
+        integrated_new = self.integration_this_round()
+        self.integrated_population += integrated_new
         if not coda_was_available and self.has_long_horizon_story():
             self.coda_just_became_available = True
 
@@ -621,6 +650,9 @@ class RegionState:
         )
         del self.subscore_log[:-DRIFT_LOG_MAX_ENTRIES]
 
+        # I-8: the round ledger row, written once every value is final.
+        self._append_ledger_row(completed_round, spent_this_round, income, arrivals, integrated_new, auto)
+
         # I11 -- session-milestone snapshot, taken last of all so it
         # captures this round's fully-settled values (matches wellbeing_log
         # above, which is also appended last for the same reason).
@@ -634,6 +666,40 @@ class RegionState:
                 "trend": trend_indicator(self.wellbeing_log),
             }
             self.milestone_just_updated = True
+
+    def _append_ledger_row(self, completed_round, spent, income, arrivals, integrated_new, auto):
+        shortfall = max(
+            0.0, self.total_arrivals - self.total_capacity() - self.policy_effect("sponsorship")
+        )
+        row = {
+            "round": completed_round,
+            "income": income,
+            "spent": sum(spent.values()),
+            "housing": spent["housing"],
+            "services": spent["services"],
+            "infrastructure": spent["infrastructure"],
+            "policy": spent["policy"],
+            "realloc": spent["realloc"],
+            "arrivals": arrivals,
+            "integrated_new": integrated_new,
+            "integrated": self.integrated_population,
+            "pending": self.pending_population(),
+            "shortfall": shortfall,
+            "strain": self.strain_fraction(),
+            "service": self.service_quality(),
+            "economy": self.economic_health(),
+            "cohesion": self.social_cohesion(),
+            "wellbeing": self.wellbeing_score(),
+            "funds": self.funds,
+            "auto": bool(auto),
+        }
+        for key in LEDGER_FIELDS:
+            if isinstance(row[key], float):
+                row[key] = round(row[key], 2)
+        self.ledger.append(row)
+        del self.ledger[:-LEDGER_MAX_ENTRIES]
+        self.round_spend = {key: 0.0 for key in SPEND_KEYS}
+        self.round_buys = 0
 
     def _advance_second_wave(self, strain, completed_round):
         """I25: called once per round before this round's arrivals are added,
@@ -718,6 +784,7 @@ class RegionState:
         self.funds -= REALLOCATION_FUNDS_COST
         self.capacity[from_type] -= REALLOCATION_UNITS
         self.capacity[to_type] += REALLOCATION_UNITS * (1 - REALLOCATION_LOSS_FRACTION)
+        self._record_spend("realloc", REALLOCATION_FUNDS_COST)
         return True
 
 
@@ -780,7 +847,10 @@ def open_neighbor():
 def invest_neighbor(capacity_type):
     if neighbor is None or capacity_type not in CAPACITY_TYPES:
         return False
-    return neighbor.invest(capacity_type)
+    bought = neighbor.invest(capacity_type)
+    if bought:
+        region.round_buys += 1  # I-15: counts as a decision this round
+    return bought
 
 
 def main_region_well_prepared():
@@ -799,6 +869,7 @@ def support_neighbor():
     region.funds -= NEIGHBOR_SUPPORT_AMOUNT
     neighbor.funds += NEIGHBOR_SUPPORT_AMOUNT
     neighbor_support_sent += NEIGHBOR_SUPPORT_AMOUNT
+    region.round_buys += 1  # I-15
     return True
 
 
@@ -2052,7 +2123,657 @@ def render_real_world():
     link.href = example["url"]
 
 
+# ===========================================================================
+# Round-3 batch (2026-10-07): the Round Ledger and recap line (I-8, I-17), the
+# undo family (I-15 Reset this round, GI-18 Rewind Token), Play 5 rounds
+# (GI-30), the Region Collection (GI-15 personality titles, GI-22 civic
+# milestones) and a live tab title (I-24). None of it changes a rule or a
+# number in a run: the ledger and collection only record, undo only restores
+# an earlier state, and Play 5 rounds is five ordinary Advance Rounds.
+# ===========================================================================
+
+# ---- I-8 / I-17: Round Ledger ---------------------------------------------
+LEDGER_SORTS = {
+    "round_desc": ("Newest first", lambda r: (-r["round"],)),
+    "round_asc": ("Oldest first", lambda r: (r["round"],)),
+    "strain": ("Highest strain", lambda r: (-r["strain"], -r["round"])),
+    "wellbeing": ("Highest wellbeing", lambda r: (-r["wellbeing"], -r["round"])),
+    "arrivals": ("Most arrivals", lambda r: (-r["arrivals"], -r["round"])),
+    "spent": ("Most spent", lambda r: (-r["spent"], -r["round"])),
+}
+LEDGER_FILTERS = {
+    "all": ("All rounds", lambda r: True),
+    "purchases": ("Rounds with purchases", lambda r: r["spent"] > 0),
+    "no_purchases": ("Rounds with no purchases", lambda r: r["spent"] <= 0),
+    "strained": ("Strained or critical", lambda r: r["strain"] >= STRAIN_LEVEL_THRESHOLDS[1][0]),
+    "auto": ("Rounds from Play 5 rounds", lambda r: r["auto"]),
+}
+ledger_open = False
+ledger_sort = "round_desc"
+ledger_filter = "all"
+
+
+def strain_label(fraction):
+    label = STRAIN_LEVEL_THRESHOLDS[0][1]
+    for threshold, name in STRAIN_LEVEL_THRESHOLDS:
+        if fraction >= threshold:
+            label = name
+    return label
+
+
+def ledger_rows(sort_key="round_desc", filter_key="all"):
+    """The ledger rows after filtering and sorting (copies, newest first by default)."""
+    keep = LEDGER_FILTERS.get(filter_key, LEDGER_FILTERS["all"])[1]
+    order = LEDGER_SORTS.get(sort_key, LEDGER_SORTS["round_desc"])[1]
+    return sorted((dict(row) for row in region.ledger if keep(row)), key=order)
+
+
+def ledger_csv():
+    """CSV text of the whole ledger, oldest round first (strain as a percentage)."""
+    header = ["strain_pct" if name == "strain" else name for name in LEDGER_FIELDS]
+    lines = [",".join(header)]
+    for row in region.ledger:
+        cells = []
+        for name in LEDGER_FIELDS:
+            value = row[name]
+            if name == "auto":
+                cells.append("yes" if value else "no")
+            elif name == "strain":
+                cells.append(f"{value * 100:.1f}")
+            elif name == "round":
+                cells.append(str(int(value)))
+            else:
+                cells.append(f"{value:.2f}")
+        lines.append(",".join(cells))
+    return "\n".join(lines)
+
+
+def round_recap_message(row, previous_strain=0.0):
+    """I-17: one plain line about the round that just resolved."""
+    delta = row["strain"] - previous_strain
+    if abs(delta) < 0.02:
+        trend = "steady"
+    else:
+        trend = "up" if delta > 0 else "down"
+    cover = (
+        f"{row['shortfall']:.0f} people beyond capacity"
+        if row["shortfall"] >= 0.5
+        else "capacity covered everyone"
+    )
+    return (
+        f"Round {row['round']}: {row['arrivals']:.0f} arrived, {row['integrated_new']:.0f} integrated, "
+        f"{cover}; strain {trend} at {row['strain'] * 100:.0f}% ({strain_label(row['strain'])}); "
+        f"income {row['income']:.0f}, spent {row['spent']:.0f}."
+    )
+
+
+def latest_recap():
+    if not region.ledger:
+        return None
+    previous = region.ledger[-2]["strain"] if len(region.ledger) > 1 else 0.0
+    return round_recap_message(region.ledger[-1], previous)
+
+
+def _ledger_table_html(rows):
+    head = (
+        "<tr><th>Rd</th><th>Spent (H/S/I/P)</th><th>Income</th><th>Arrived</th><th>Integr.</th>"
+        "<th>Pending</th><th>Strain</th><th>Svc / Eco / Coh</th><th>Wellbeing</th><th>Funds</th></tr>"
+    )
+    body = []
+    for r in rows:
+        auto = " (auto)" if r["auto"] else ""
+        body.append(
+            f"<tr><td>{r['round']}{auto}</td>"
+            f"<td>{r['spent']:.0f} ({r['housing']:.0f}/{r['services']:.0f}/{r['infrastructure']:.0f}/{r['policy']:.0f})</td>"
+            f"<td>{r['income']:.0f}</td><td>{r['arrivals']:.0f}</td><td>{r['integrated_new']:.0f}</td>"
+            f"<td>{r['pending']:.0f}</td><td>{r['strain'] * 100:.0f}% {strain_label(r['strain'])}</td>"
+            f"<td>{r['service']:.0f} / {r['economy']:.0f} / {r['cohesion']:.0f}</td>"
+            f"<td>{r['wellbeing']:.0f}</td><td>{r['funds']:.0f}</td></tr>"
+        )
+    return f"<table class=\"ledger-table\"><thead>{head}</thead><tbody>{''.join(body)}</tbody></table>"
+
+
+def render_ledger():
+    count = len(region.ledger)
+    toggle = document.getElementById("ledger-toggle-button")
+    toggle.innerText = "Hide Round Ledger" if ledger_open else f"📒 Round Ledger ({count})"
+    panel = document.getElementById("ledger-panel")
+    panel.hidden = not ledger_open
+    if not ledger_open:
+        return
+    rows = ledger_rows(ledger_sort, ledger_filter)
+    summary = document.getElementById("ledger-summary")
+    if count == 0:
+        summary.innerText = "No rounds resolved yet. Every Advance Round adds a row here."
+        document.getElementById("ledger-table").innerHTML = ""
+    else:
+        total_spent = sum(r["spent"] for r in region.ledger)
+        summary.innerText = (
+            f"{count} round(s) recorded (the latest {LEDGER_MAX_ENTRIES} are kept), showing {len(rows)}. "
+            f"Total spent: {total_spent:.0f}. H/S/I/P = Housing / Services / Infrastructure / Policy spending."
+        )
+        document.getElementById("ledger-table").innerHTML = _ledger_table_html(rows)
+    document.getElementById("copy-ledger-csv-button").disabled = count == 0
+
+
+def on_toggle_ledger(event=None):
+    global ledger_open
+    ledger_open = not ledger_open
+    render_ledger()
+
+
+def on_ledger_sort(event=None):
+    global ledger_sort
+    value = getattr(document.getElementById("ledger-sort-select"), "value", ledger_sort)
+    ledger_sort = value if value in LEDGER_SORTS else "round_desc"
+    render_ledger()
+
+
+def on_ledger_filter(event=None):
+    global ledger_filter
+    value = getattr(document.getElementById("ledger-filter-select"), "value", ledger_filter)
+    ledger_filter = value if value in LEDGER_FILTERS else "all"
+    render_ledger()
+
+
+def _copy_to_clipboard(text):
+    try:
+        import js as _js  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return False
+    navigator = getattr(_js, "navigator", None)
+    clipboard = getattr(navigator, "clipboard", None) if navigator is not None else None
+    if clipboard is None:
+        return False
+    try:
+        clipboard.writeText(text)
+        return True
+    except Exception:  # noqa: BLE001 -- a refused clipboard just falls back to the text box
+        return False
+
+
+def on_copy_ledger_csv(event=None):
+    text = ledger_csv()
+    status = document.getElementById("ledger-copy-status")
+    area = document.getElementById("ledger-copy-area")
+    if _copy_to_clipboard(text):
+        area.hidden = True
+        status.innerText = "Copied the ledger as CSV to the clipboard."
+    else:
+        area.hidden = False
+        area.value = text
+        status.innerText = "Could not copy automatically. Select the text below and copy it yourself."
+
+
+# ---- I-15 / GI-18: undo family ---------------------------------------------
+round_start_snapshot = None  # what Reset this round returns to
+rewind_snapshot = None  # the state just before the last Advance Round
+rewind_armed = False
+round_tools_message = ""
+
+
+def _clone_region(saved_dict):
+    other = RegionState()
+    other.__dict__.clear()
+    other.__dict__.update(copy.deepcopy(saved_dict))
+    return other
+
+
+def _take_round_start_snapshot():
+    return {
+        "funds": region.funds,
+        "capacity": dict(region.capacity),
+        "policy_level": dict(region.policy_level),
+        "cumulative_services_investment": region.cumulative_services_investment,
+        "spend_by_type": dict(region.spend_by_type),
+        "round_spend": dict(region.round_spend),
+        "neighbor": copy.deepcopy(neighbor.__dict__) if neighbor is not None else None,
+        "support_sent": neighbor_support_sent,
+    }
+
+
+def _take_full_snapshot():
+    return {
+        "region": copy.deepcopy(region.__dict__),
+        "neighbor": copy.deepcopy(neighbor.__dict__) if neighbor is not None else None,
+        "support_sent": neighbor_support_sent,
+        "round_start": copy.deepcopy(round_start_snapshot),
+    }
+
+
+def reset_round():
+    """I-15: refund everything decided since the round began (capacity, policies,
+    reallocations and neighbour moves). Returns False if there is nothing to undo."""
+    global neighbor, neighbor_support_sent
+    snap = round_start_snapshot
+    if snap is None or region.round_buys <= 0:
+        return False
+    region.funds = snap["funds"]
+    region.capacity = dict(snap["capacity"])
+    region.policy_level = dict(snap["policy_level"])
+    region.cumulative_services_investment = snap["cumulative_services_investment"]
+    region.spend_by_type = dict(snap["spend_by_type"])
+    region.round_spend = dict(snap["round_spend"])
+    region.round_buys = 0
+    neighbor = _clone_region(snap["neighbor"]) if snap["neighbor"] is not None else None
+    neighbor_support_sent = snap["support_sent"]
+    return True
+
+
+def rewind_available():
+    return region.rewind_used_round is None and rewind_snapshot is not None
+
+
+def use_rewind_token():
+    """GI-18: one take-back per region. Restores the whole state to just before the
+    last Advance Round (anything decided since is refunded with it)."""
+    global neighbor, neighbor_support_sent, round_start_snapshot, rewind_snapshot
+    if not rewind_available():
+        return False
+    snap = rewind_snapshot
+    region.__dict__.clear()
+    region.__dict__.update(copy.deepcopy(snap["region"]))
+    region.rewind_used_round = region.round_number
+    neighbor = _clone_region(snap["neighbor"]) if snap["neighbor"] is not None else None
+    neighbor_support_sent = snap["support_sent"]
+    round_start_snapshot = copy.deepcopy(snap["round_start"]) if snap["round_start"] is not None else _take_round_start_snapshot()
+    rewind_snapshot = None
+    return True
+
+
+def _reset_undo_state():
+    """After a load or a fresh start: nothing earlier than now can be undone."""
+    global round_start_snapshot, rewind_snapshot, rewind_armed
+    region.round_buys = 0
+    round_start_snapshot = _take_round_start_snapshot()
+    rewind_snapshot = None
+    rewind_armed = False
+
+
+def on_reset_round(event=None):
+    global round_tools_message
+    if reset_round():
+        round_tools_message = "This round's decisions were refunded. Funds and capacity are back to the start of the round."
+        _seed_achievement_toast_baseline()
+    render()
+
+
+def on_rewind(event=None):
+    global rewind_armed, round_tools_message
+    if not rewind_available():
+        return
+    if not rewind_armed:
+        rewind_armed = True
+        render_round_tools()
+        return
+    use_rewind_token()
+    round_tools_message = (
+        f"Rewound: round {region.round_number} is open again exactly as it was before you advanced. "
+        "The Rewind Token is spent for this region."
+    )
+    _seed_achievement_toast_baseline()
+    render()
+
+
+# ---- GI-30: Play 5 rounds ----------------------------------------------------
+PLAY_ROUNDS_COUNT = 5
+
+
+def _strain_rank(fraction):
+    rank = 0
+    for index, (threshold, _label) in enumerate(STRAIN_LEVEL_THRESHOLDS):
+        if fraction >= threshold:
+            rank = index
+    return rank
+
+
+def play_rounds(count=PLAY_ROUNDS_COUNT):
+    """Advance up to `count` rounds with the current allocation (no purchases).
+    Stops early, after the round that caused it, if strain moves up a level, a
+    second-wave event arrives, or the neighbouring district starts sending people.
+    Returns (rounds advanced, reason or None)."""
+    global rewind_snapshot, round_start_snapshot
+    advanced = 0
+    reason = None
+    for _ in range(count):
+        level_before = _strain_rank(region.strain_fraction())
+        wave_before = region.second_wave_status
+        spill_before = neighbor_spillover()
+        _sync_spillover()
+        rewind_snapshot = _take_full_snapshot()
+        completed = region.round_number
+        region.advance_round(auto=True)
+        if neighbor is not None:
+            neighbor.advance_round()
+        _sync_spillover()
+        _collect_after_round(completed)
+        advanced += 1
+        if _strain_rank(region.strain_fraction()) > level_before:
+            reason = f"strain rose to {region.strain_level()}"
+        elif region.second_wave_status != wave_before:
+            reason = {
+                "warned": "a second wave was announced",
+                "active": "the second wave arrived",
+                "done": "the second wave ended",
+            }.get(region.second_wave_status, "a forecast event arrived")
+        elif spill_before == 0.0 and neighbor_spillover() > 0.0:
+            reason = "the neighbouring district went critical and is sending people your way"
+        if reason:
+            break
+    round_start_snapshot = _take_round_start_snapshot()
+    return advanced, reason
+
+
+def on_play_rounds(event=None):
+    global round_tools_message, collection_note
+    collection_note = ""
+    advanced, reason = play_rounds()
+    unit = "round" if advanced == 1 else "rounds"
+    if reason:
+        round_tools_message = f"Played {advanced} {unit} and stopped early: {reason}."
+    else:
+        round_tools_message = f"Played {advanced} {unit} with your current allocation."
+    render()
+    _check_new_achievements_for_toast()
+
+
+def render_round_tools():
+    buys = region.round_buys
+    reset_button = document.getElementById("reset-round-button")
+    reset_button.disabled = not (buys > 0 and round_start_snapshot is not None)
+    reset_button.innerText = (
+        f"↩️ Reset this round ({buys} decision{'s' if buys != 1 else ''})" if buys > 0 else "↩️ Reset this round"
+    )
+    rewind_button = document.getElementById("rewind-button")
+    if region.rewind_used_round is not None:
+        rewind_button.innerText = f"⏪ Rewind Token used in round {region.rewind_used_round}"
+        rewind_button.disabled = True
+    elif rewind_snapshot is None:
+        rewind_button.innerText = "⏪ Rewind Token (1 left)"
+        rewind_button.disabled = True
+    elif rewind_armed:
+        rewind_button.innerText = "Confirm: undo the last Advance Round"
+        rewind_button.disabled = False
+    else:
+        rewind_button.innerText = "⏪ Rewind Token (1 left)"
+        rewind_button.disabled = False
+    document.getElementById("play-rounds-button").innerText = f"⏩ Play {PLAY_ROUNDS_COUNT} rounds"
+    note = document.getElementById("round-tools-note")
+    note.innerText = round_tools_message
+    note.hidden = round_tools_message == ""
+    recap = latest_recap()
+    details = document.getElementById("round-recap-details")
+    details.hidden = recap is None
+    document.getElementById("round-recap-display").innerText = recap or ""
+
+
+# ---- GI-15 / GI-22: Region Collection (personality titles, civic milestones) -----
+COLLECTION_STORAGE_KEY = "drift_collection_v1"
+TITLE_MIN_ROUND = 8
+TITLE_MIN_SPEND = 100.0
+REGION_TITLES = {
+    "builder": {
+        "label": "The Builder",
+        "hint": "Put at least half of everything you spend into Housing.",
+        "text": "This region's funds went mostly into homes: roof first, everything else after.",
+    },
+    "educator": {
+        "label": "The Educator",
+        "hint": "Put at least half of everything you spend into Integration Services.",
+        "text": "This region's funds went mostly into language, work and school access for newcomers.",
+    },
+    "engineer": {
+        "label": "The Engineer",
+        "hint": "Put at least 40% of everything you spend into Infrastructure.",
+        "text": "This region's funds went mostly into the pipes, roads and clinics everyone shares.",
+    },
+    "reformer": {
+        "label": "The Reformer",
+        "hint": "Put at least 30% of everything you spend into the policy toolkit.",
+        "text": "This region leaned on rules and programmes: credentialing, language access and sponsorship.",
+    },
+    "balancer": {
+        "label": "The Balancer",
+        "hint": "Keep Housing, Services and Infrastructure each above 15% of your spending, with no other title fitting.",
+        "text": "This region spread its funds evenly and never bet on one lever.",
+    },
+}
+TITLE_ORDER = ["builder", "educator", "engineer", "reformer", "balancer"]
+_TITLE_THRESHOLDS = {"builder": 0.5, "educator": 0.5, "engineer": 0.4, "reformer": 0.3}
+_TITLE_SPEND_KEY = {"builder": "housing", "educator": "services", "engineer": "infrastructure", "reformer": "policy"}
+
+
+def region_title_key(region_state):
+    """The personality title fitted by the lifetime spending split (capacity and
+    policy spending; reallocation fees do not count), or None while too little
+    has been spent to say."""
+    parts = {k: region_state.spend_by_type[k] for k in ("housing", "services", "infrastructure", "policy")}
+    total = sum(parts.values())
+    if total < TITLE_MIN_SPEND:
+        return None
+    shares = {k: v / total for k, v in parts.items()}
+    best = None
+    best_margin = 0.0
+    for key in ("builder", "educator", "engineer", "reformer"):
+        margin = shares[_TITLE_SPEND_KEY[key]] - _TITLE_THRESHOLDS[key]
+        if margin >= 0 and (best is None or margin > best_margin):
+            best, best_margin = key, margin
+    if best is not None:
+        return best
+    if min(shares["housing"], shares["services"], shares["infrastructure"]) >= 0.15:
+        return "balancer"
+    return None
+
+
+# Each civic milestone: id, name, a hint shown while locked, one line shown once
+# found, and a test (region, completed_round) -> bool. "By round N" means the
+# round that just resolved is N or earlier. Cosmetic: they change no number.
+CIVIC_MILESTONES = [
+    {
+        "id": "first_roof_fund", "name": "First Roof Fund",
+        "hint": "Reach 100 Housing capacity by round 5.",
+        "text": "A dedicated housing fund opened before most arrivals had even landed.",
+        "test": lambda r, n: n <= 5 and r.capacity["housing"] >= 100,
+    },
+    {
+        "id": "night_classes", "name": "Night Classes",
+        "hint": "Reach 48 Integration Services capacity by round 8.",
+        "text": "Evening language and skills classes were running before the first backlog formed.",
+        "test": lambda r, n: n <= 8 and r.capacity["services"] >= 48,
+    },
+    {
+        "id": "three_pillars", "name": "Three Pillars Compact",
+        "hint": "Reach 60 capacity in Housing, Services and Infrastructure by round 12.",
+        "text": "Homes, services and shared infrastructure were agreed as one package, not three separate fights.",
+        "test": lambda r, n: n <= 12 and all(r.capacity[t] >= 60 for t in CAPACITY_TYPES),
+    },
+    {
+        "id": "open_charter", "name": "Open Charter",
+        "hint": "Have 80% of arrivals integrated by round 15 (at least 100 arrived).",
+        "text": "The region's charter gave newcomers a clear route to work, school and services.",
+        "test": lambda r, n: n <= 15 and r.total_arrivals >= 100 and r.integration_fraction() >= 0.8,
+    },
+    {
+        "id": "ring_road", "name": "Ring Road",
+        "hint": "Reach 120 Infrastructure capacity by round 20.",
+        "text": "A ring road and shared clinics took the load off the old centre.",
+        "test": lambda r, n: n <= 20 and r.capacity["infrastructure"] >= 120,
+    },
+    {
+        "id": "skilled_welcome", "name": "Skilled Welcome",
+        "hint": "Fund all three policies at least once by round 20.",
+        "text": "Qualification recognition, language funding and sponsorship all opened in the same few years.",
+        "test": lambda r, n: n <= 20 and all(level >= 1 for level in r.policy_level.values()),
+    },
+    {
+        "id": "good_neighbours", "name": "Good Neighbours",
+        "hint": "Send support to the neighbouring district by round 25.",
+        "text": "A calm region shared its cushion with a district under more pressure.",
+        "test": lambda r, n: n <= 25 and neighbor_support_sent > 0,
+    },
+    {
+        "id": "harbour_lights", "name": "Harbour Lights",
+        "hint": "Reach 100 Services and 100 Infrastructure capacity by round 30.",
+        "text": "Services and infrastructure both passed a hundred: the lights stayed on at every hour.",
+        "test": lambda r, n: n <= 30 and r.capacity["services"] >= 100 and r.capacity["infrastructure"] >= 100,
+    },
+    {
+        "id": "steady_hands", "name": "Steady Hands",
+        "hint": "Hold strain at stable for 20 rounds in a row by round 30.",
+        "text": "Twenty calm rounds in a row: planning, not reacting.",
+        "test": lambda r, n: n <= 30 and r.best_stable_streak >= 20,
+    },
+    {
+        "id": "quiet_weather", "name": "Quiet Weather",
+        "hint": "Hold through the second wave without strain reaching critical.",
+        "text": "The second wave came and the region's institutions simply absorbed it.",
+        "test": lambda r, n: r.second_wave_result == "held",
+    },
+]
+CIVIC_BY_ID = {entry["id"]: entry for entry in CIVIC_MILESTONES}
+
+
+def _clean_collection(raw):
+    """A well-formed collection dict from anything, dropping unknown ids and bad values."""
+    out = {"titles": [], "civic": {}}
+    if not isinstance(raw, dict):
+        return out
+    titles = raw.get("titles")
+    if isinstance(titles, list):
+        for key in TITLE_ORDER:
+            if key in titles:
+                out["titles"].append(key)
+    civic = raw.get("civic")
+    if isinstance(civic, dict):
+        for entry in CIVIC_MILESTONES:
+            found = civic.get(entry["id"])
+            if isinstance(found, int) and not isinstance(found, bool) and found >= 1:
+                out["civic"][entry["id"]] = found
+    return out
+
+
+def _load_collection():
+    raw = _read_local_storage_item(COLLECTION_STORAGE_KEY)
+    if not raw:
+        return _clean_collection(None)
+    try:
+        return _clean_collection(json.loads(raw))
+    except (ValueError, TypeError):
+        return _clean_collection(None)
+
+
+def _store_collection():
+    _write_local_storage_item(COLLECTION_STORAGE_KEY, json.dumps(collection))
+
+
+def merge_collection(other):
+    """Union a (validated) collection into the live one; returns True if it grew."""
+    other = _clean_collection(other)
+    grew = False
+    for key in other["titles"]:
+        if key not in collection["titles"]:
+            collection["titles"].append(key)
+            grew = True
+    collection["titles"].sort(key=TITLE_ORDER.index)
+    for found_id, found_round in other["civic"].items():
+        if found_id not in collection["civic"]:
+            collection["civic"][found_id] = found_round
+            grew = True
+    if grew:
+        _store_collection()
+    return grew
+
+
+collection = _load_collection()
+collection_open = False
+collection_note = ""
+
+
+def _collect_after_round(completed_round):
+    """Record any civic milestone newly met and the personality title once the
+    region has played TITLE_MIN_ROUND rounds. Returns the list of new names."""
+    global collection_note
+    found = []
+    for entry in CIVIC_MILESTONES:
+        if entry["id"] in collection["civic"]:
+            continue
+        if entry["test"](region, completed_round):
+            collection["civic"][entry["id"]] = completed_round
+            found.append(f"Civic milestone: {entry['name']}")
+    if completed_round >= TITLE_MIN_ROUND:
+        title = region_title_key(region)
+        if title is not None and title not in collection["titles"]:
+            collection["titles"].append(title)
+            collection["titles"].sort(key=TITLE_ORDER.index)
+            found.append(f"Title: {REGION_TITLES[title]['label']}")
+    if found:
+        _store_collection()
+        collection_note = "New in your collection: " + "; ".join(found) + "."
+        _display_achievement_toast("🗂️ " + found[0] + (f" (+{len(found) - 1} more)" if len(found) > 1 else ""))
+    return found
+
+
+def collection_counts():
+    return len(collection["civic"]), len(CIVIC_MILESTONES), len(collection["titles"]), len(REGION_TITLES)
+
+
+def render_collection_summary():
+    civic, civic_total, titles, titles_total = collection_counts()
+    document.getElementById("collection-summary-display").innerText = (
+        f"Collection: {civic}/{civic_total} civic milestones, {titles}/{titles_total} titles."
+    )
+    title_key = region_title_key(region)
+    title_el = document.getElementById("region-title-display")
+    if title_key is None:
+        title_el.innerText = "Region personality: still forming (spend about 100 funds to see it)."
+    else:
+        extra = " In your collection." if title_key in collection["titles"] else f" Added to your collection at round {TITLE_MIN_ROUND}."
+        title_el.innerText = f"Region personality: {REGION_TITLES[title_key]['label']}.{extra}"
+    toggle = document.getElementById("collection-toggle-button")
+    toggle.innerText = "Hide Collection" if collection_open else f"🗂️ Collection ({civic + titles}/{civic_total + titles_total})"
+    panel = document.getElementById("collection-panel")
+    panel.hidden = not collection_open
+    if not collection_open:
+        return
+    lines = []
+    note = collection_note
+    if note:
+        lines.append(f"<p class=\"collection-note\">{note}</p>")
+    lines.append(f"<p class=\"meter-label\">Civic milestones ({civic}/{civic_total})</p><ul class=\"collection-list\">")
+    for entry in CIVIC_MILESTONES:
+        found = collection["civic"].get(entry["id"])
+        if found is not None:
+            lines.append(
+                f"<li class=\"collection-found\"><strong>✓ {entry['name']}</strong> (round {found}): {entry['text']}</li>"
+            )
+        else:
+            lines.append(f"<li class=\"collection-locked\"><strong>🔒 Locked</strong>. Hint: {entry['hint']}</li>")
+    lines.append(f"</ul><p class=\"meter-label\">Region personality titles ({titles}/{titles_total})</p><ul class=\"collection-list\">")
+    for key in TITLE_ORDER:
+        info = REGION_TITLES[key]
+        if key in collection["titles"]:
+            lines.append(f"<li class=\"collection-found\"><strong>✓ {info['label']}</strong>: {info['text']}</li>")
+        else:
+            lines.append(f"<li class=\"collection-locked\"><strong>🔒 Locked</strong>. Hint: {info['hint']}</li>")
+    lines.append("</ul>")
+    document.getElementById("collection-list").innerHTML = "".join(lines)
+
+
+def on_toggle_collection(event=None):
+    global collection_open
+    collection_open = not collection_open
+    render_collection_summary()
+
+
+# ---- I-24: live tab title ----------------------------------------------------
+def tab_title():
+    name = f" - {region.region_name}" if region.region_name else ""
+    return f"Drift - R{region.round_number} - {region.strain_level().capitalize()}{name}"
+
+
 def render():
+    global rewind_armed
+    rewind_armed = False  # any other action cancels a half-confirmed rewind
     _sync_spillover()
     render_info_page()
     render_neighbor()
@@ -2327,13 +3048,24 @@ def render():
         f"severity growth by {ACCELERATED_SEVERITY_MULTIPLIER:.0f}x. Only affects how fast "
         f"arrival pressure rises — never your capacity or funds math directly."
     )
+    render_round_tools()
+    render_ledger()
+    render_collection_summary()
+    document.title = tab_title()
 
 
 def on_advance_round(event=None):
+    global rewind_snapshot, round_start_snapshot, round_tools_message, collection_note
+    round_tools_message = ""
+    collection_note = ""
     _sync_spillover()
+    rewind_snapshot = _take_full_snapshot()  # GI-18: the state just before this advance
+    completed_round = region.round_number
     region.advance_round()
     if neighbor is not None:
         neighbor.advance_round()
+    round_start_snapshot = _take_round_start_snapshot()  # I-15: the new round's starting point
+    _collect_after_round(completed_round)
     render()
     _check_new_achievements_for_toast()
 
@@ -2468,7 +3200,9 @@ def on_toggle_accelerated_severity(event=None):
 
 
 def on_toggle_crisis_start(event=None):
+    global round_start_snapshot
     region.set_crisis_start(not region.crisis_start_enabled)
+    round_start_snapshot = _take_round_start_snapshot()  # the new starting funds are the round's start
     render()
 
 
@@ -2576,6 +3310,60 @@ def _load_neighbor(saved):
     neighbor_support_sent = _finite_number(saved.get("support_sent"), 0.0)
 
 
+def _ledger_state_fields():
+    """I-8, GI-18, GI-15/22: written only once there is something to write, so a
+    fresh region's save is unchanged. Ledger rows ride as plain lists in
+    LEDGER_FIELDS order to keep the payload small."""
+    out = {}
+    if any(region.spend_by_type.values()):
+        out["spend_by_type"] = dict(region.spend_by_type)
+    if any(region.round_spend.values()):
+        out["round_spend"] = dict(region.round_spend)
+    if region.ledger:
+        out["ledger"] = [[row[name] for name in LEDGER_FIELDS] for row in region.ledger]
+    if region.rewind_used_round is not None:
+        out["rewind_used_round"] = region.rewind_used_round
+    if collection["titles"] or collection["civic"]:
+        out["collection"] = copy.deepcopy(collection)
+    return out
+
+
+def _load_spend_dict(saved):
+    out = {key: 0.0 for key in SPEND_KEYS}
+    if isinstance(saved, dict):
+        for key in SPEND_KEYS:
+            out[key] = _finite_number(saved.get(key), 0.0)
+    return out
+
+
+def _load_ledger(saved):
+    rows = []
+    if not isinstance(saved, list):
+        return rows
+    for entry in saved:
+        if not isinstance(entry, list) or len(entry) != len(LEDGER_FIELDS):
+            continue
+        row = {}
+        ok = True
+        for name, value in zip(LEDGER_FIELDS, entry):
+            if name == "auto":
+                row[name] = bool(value) if isinstance(value, bool) else False
+            elif name == "round":
+                if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+                    ok = False
+                    break
+                row[name] = value
+            else:
+                number = _finite_number(value, None)
+                if number is None:
+                    ok = False
+                    break
+                row[name] = number
+        if ok:
+            rows.append(row)
+    return rows[-LEDGER_MAX_ENTRIES:]
+
+
 def get_state():
     return {
         "round_number": region.round_number,
@@ -2619,6 +3407,7 @@ def get_state():
             if region.second_wave_status is not None else {}
         ),
         **_neighbor_state_fields(),
+        **_ledger_state_fields(),
         "coda_visible": coda_visible,
         "info_page_open": info_page_open,
         # I17: a write-only number for the community capacity index; never read back.
@@ -2738,6 +3527,15 @@ def load_state(data):
             if isinstance(level, int) and not isinstance(level, bool) and 0 <= level <= POLICY_MAX_LEVEL:
                 region.policy_level[p] = level
     _load_neighbor(data.get("neighbor"))
+    region.spend_by_type = _load_spend_dict(data.get("spend_by_type"))
+    region.round_spend = _load_spend_dict(data.get("round_spend"))
+    region.ledger = _load_ledger(data.get("ledger"))
+    used_round = data.get("rewind_used_round")
+    region.rewind_used_round = (
+        used_round if isinstance(used_round, int) and not isinstance(used_round, bool) and used_round >= 1 else None
+    )
+    merge_collection(data.get("collection"))
+    _reset_undo_state()
     name_input = document.getElementById("region-name-input")
     name_input.value = region.region_name
     coda_visible = data.get("coda_visible", coda_visible)
@@ -2800,6 +3598,19 @@ def setup():
         document.getElementById(f"coda-legacy-{legacy_choice}-button").addEventListener(
             "click", create_proxy(_make_legacy_handler(legacy_choice))
         )
+    for button_id, handler in (
+        ("reset-round-button", on_reset_round),
+        ("rewind-button", on_rewind),
+        ("play-rounds-button", on_play_rounds),
+        ("ledger-toggle-button", on_toggle_ledger),
+        ("collection-toggle-button", on_toggle_collection),
+        ("copy-ledger-csv-button", on_copy_ledger_csv),
+    ):
+        document.getElementById(button_id).addEventListener("click", create_proxy(handler))
+    document.getElementById("ledger-sort-select").addEventListener("change", create_proxy(on_ledger_sort))
+    document.getElementById("ledger-filter-select").addEventListener("change", create_proxy(on_ledger_filter))
+    document.getElementById("ledger-copy-area").hidden = True
+    _reset_undo_state()
     update_changelog_display()
     render()
     _seed_achievement_toast_baseline()

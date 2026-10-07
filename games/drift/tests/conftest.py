@@ -142,6 +142,27 @@ ELEMENT_IDS = [
     "coda-legacy-community-button",
     "coda-legacy-services-button",
     "coda-legacy-economy-button",
+    # Round-3 batch (Oct 2026): ledger, undo family, play rounds, collection.
+    "ledger-toggle-button",
+    "ledger-panel",
+    "ledger-summary",
+    "ledger-table",
+    "ledger-sort-select",
+    "ledger-filter-select",
+    "copy-ledger-csv-button",
+    "ledger-copy-status",
+    "ledger-copy-area",
+    "reset-round-button",
+    "rewind-button",
+    "play-rounds-button",
+    "round-tools-note",
+    "round-recap-details",
+    "round-recap-display",
+    "collection-toggle-button",
+    "collection-panel",
+    "collection-list",
+    "collection-summary-display",
+    "region-title-display",
 ]
 
 

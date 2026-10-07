@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 31;
+const SW_VERSION = 32;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -61,6 +61,7 @@ const PRECACHE_URLS = [
   "games/drift/index.html",
   "games/drift/style.css",
   "games/drift/game.py",
+  "games/drift/ui.js",
   "games/champ-de-mots/index.html",
   "games/champ-de-mots/style.css",
   "games/champ-de-mots/game.py",

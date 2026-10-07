@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-07",
+    "entry": "New tools and a collection. Reset this round refunds everything you decided since the round began, and a one-per-region Rewind Token undoes the last Advance Round. Play 5 rounds advances with your current allocation and stops early if strain rises a level, a second wave is announced or the neighbouring district goes critical. A recap line says what each round did, and the Round Ledger keeps a sortable, filterable table of every round with Copy as CSV. The Region Collection keeps ten civic milestones (each with a hint while locked) and five region-personality titles (Builder, Educator, Engineer, Reformer, Balancer), kept in your browser across regions. Keys: 1, 2, 3 buy, Enter advances, U resets the round, P plays 5, L opens the Ledger, C the Collection. Settings gains High Contrast and an Easy-Read Font, and the browser tab title now shows the round and strain. No rules or numbers changed."
+  },
+  {
+    "date": "2026-10-07",
     "entry": "Desktop layout for wide windows: the readouts become chips across the top, the region skyline sits over displacement pressure, integration and wellbeing, and your investments, policy toolkit and Advance Round live in a column on the right that scrolls on its own. The Long-Horizon Outcomes, How to Play, Achievements and Settings open as windows, the rest is in the Menu (press Escape), and there is a Desktop walkthrough. Your save works in both layouts, and nothing about the rules changed."
   },
   {
