@@ -1085,7 +1085,7 @@ button.primary:disabled::after {
      now-floating actions cluster + ad bar. */
   /* html body outranks ad-bar.css's plain body rule (V-AB-2) */
   html body {
-    padding-bottom: 230px;
+    padding-bottom: 280px; /* the step/undo row made the docked cluster about 45px taller */
   }
 }
 
@@ -1506,6 +1506,237 @@ html[data-reduced-motion="true"] *::after {
 [hidden] { display: none !important; }
 
 /* ============================================================
+   Round-3 additions (2026-10-07): step row + undo (E-15, GE-18), prevented-damage popup (GE-13),
+   Flawless hint (GE-15), Disaster Codex (E-12), Lifetime Stats (E-1), knowledge breakdown (E-23),
+   copy summary (E-24), sr-only live region (E-5), high-contrast and readable-font options (E-16). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+#actions { flex-wrap: wrap; }
+
+#actions .step-row {
+  flex: 0 0 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+#actions .step-row .step-label { font-size: 0.8rem; opacity: 0.8; margin-right: 0.15rem; }
+
+#actions .step-row button.secondary {
+  flex: 0 0 auto;
+  flex-direction: row;
+  display: inline-flex;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.8rem;
+  min-height: 2rem;
+}
+
+#actions .step-row button.secondary::before { content: none; }
+#actions .step-row #undo-allocation-button { margin-left: auto; }
+#actions .step-row button.selected {
+  background: linear-gradient(135deg, #6a8f5a, #3f6a45);
+  border-color: rgba(190, 255, 190, 0.55);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.damage-prevented-popup {
+  margin: 0.2rem 0 0.2rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #7fd6a0;
+  font-variant-numeric: tabular-nums;
+  animation: damage-popup-in 420ms ease-out;
+}
+
+.damage-prevented-popup[hidden], .damage-streak-display[hidden], .run-summary-actions[hidden] { display: none; }
+
+.damage-streak-display {
+  margin: 0 0 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+@keyframes damage-popup-in {
+  0% { transform: translateY(6px) scale(0.92); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.flawless-hint-display { font-size: 0.8rem; opacity: 0.85; }
+
+.knowledge-breakdown {
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed rgba(140, 160, 255, 0.25);
+}
+.knowledge-breakdown-heading { margin: 0 0 0.25rem; font-weight: 600; font-size: 0.85rem; }
+.knowledge-breakdown-line { margin: 0 0 0.15rem; font-size: 0.8rem; }
+
+.run-summary-actions { margin: 0.4rem 0 0.6rem; }
+.run-summary-actions button { width: auto; padding: 0.5rem 0.9rem; }
+.copy-text-area {
+  width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.25);
+  background: rgba(5, 6, 13, 0.5);
+  color: inherit;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+}
+
+.codex-panel[hidden], .stats-panel[hidden] { display: none; }
+.codex-heading, .stats-heading { margin: 0 0 0.5rem; font-size: 1.05rem; }
+.stat-heading { margin: 0.9rem 0 0.35rem; font-size: 0.9rem; }
+
+.codex-card {
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.6rem;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  border-radius: 10px;
+  background: rgba(5, 6, 13, 0.4);
+}
+.codex-card--locked { opacity: 0.75; border-style: dashed; }
+.codex-title { margin: 0 0 0.25rem; font-weight: 700; font-size: 0.95rem; }
+.codex-stats { margin: 0 0 0.35rem; font-size: 0.8rem; }
+.codex-note { margin: 0 0 0.25rem; font-size: 0.8rem; opacity: 0.9; }
+.real-world-source { color: #9fc4ff; }
+.codex-card .real-world-source { font-size: 0.75rem; display: inline-block; overflow-wrap: anywhere; }
+html[data-theme="light"] .real-world-source { color: #174f86; }
+
+.stat-row {
+  display: grid;
+  grid-template-columns: minmax(6rem, 9rem) minmax(3rem, 1fr);
+  gap: 0.15rem 0.6rem;
+  align-items: center;
+  margin-bottom: 0.4rem;
+  font-size: 0.8rem;
+}
+.stat-bar {
+  display: block;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(5, 6, 13, 0.6);
+  overflow: hidden;
+}
+.stat-bar-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #5a9bd8, #8fc0f0);
+}
+.stat-value { grid-column: 1 / -1; font-variant-numeric: tabular-nums; opacity: 0.9; }
+.stat-matchup { margin: 0.5rem 0 0; font-size: 0.82rem; }
+
+html[data-theme="light"] .damage-prevented-popup { color: #1d6b3e; }
+html[data-theme="light"] #actions .step-row button.selected { background: linear-gradient(135deg, #3f7a4a, #2c5e36); color: #ffffff; }
+html[data-theme="light"] .codex-card, html[data-theme="light"] .stat-bar { background: rgba(255, 255, 255, 0.7); }
+html[data-theme="light"] .stat-bar-fill { background: linear-gradient(90deg, #2c6aa6, #4c8bc6); }
+html[data-theme="light"] .codex-card--locked { opacity: 1; }
+html[data-theme="light"] .copy-text-area { background: #ffffff; color: #1b2233; }
+
+/* E-16: readable font. A plain sans-serif stack with more letter and line spacing; every size is in
+   rem, so this composes with the text-size buttons. */
+html[data-readable-font="true"] body,
+html[data-readable-font="true"] button,
+html[data-readable-font="true"] input,
+html[data-readable-font="true"] textarea,
+html[data-readable-font="true"] select {
+  font-family: Verdana, Tahoma, "Trebuchet MS", "Segoe UI", sans-serif;
+  letter-spacing: 0.02em;
+  word-spacing: 0.06em;
+  line-height: 1.55;
+}
+html[data-readable-font="true"] .comparison-message,
+html[data-readable-font="true"] .legacy-display,
+html[data-readable-font="true"] .changelog-entry-date { font-style: normal; }
+
+/* E-16: high contrast. Opaque panels, solid borders, full-strength text, stronger buttons. */
+html[data-high-contrast="true"] body { color: #ffffff; }
+html[data-high-contrast="true"] #game,
+html[data-high-contrast="true"] .section,
+html[data-high-contrast="true"] .context-blurb,
+html[data-high-contrast="true"] .codex-card,
+html[data-high-contrast="true"] .past-run-card,
+html[data-high-contrast="true"] .run-summary-panel {
+  background: #000000;
+  border: 2px solid #ffffff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+}
+html[data-high-contrast="true"] h1 { background: none; color: #ffffff; -webkit-text-fill-color: #ffffff; text-shadow: none; }
+html[data-high-contrast="true"] .tagline,
+html[data-high-contrast="true"] .context-blurb,
+html[data-high-contrast="true"] .comparison-message,
+html[data-high-contrast="true"] .legacy-display,
+html[data-high-contrast="true"] .meter-label,
+html[data-high-contrast="true"] .past-run-event,
+html[data-high-contrast="true"] .skill-practice,
+html[data-high-contrast="true"] .stat-value,
+html[data-high-contrast="true"] .flawless-hint-display,
+html[data-high-contrast="true"] .codex-card--locked { opacity: 1; color: #ffffff; }
+html[data-high-contrast="true"] button.secondary,
+html[data-high-contrast="true"] button.primary {
+  background: #000000;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  box-shadow: none;
+}
+html[data-high-contrast="true"] button.primary { background: #ffffff; color: #000000; font-weight: 700; }
+html[data-high-contrast="true"] button:disabled { opacity: 1; color: #b8b8b8; border-style: dashed; }
+html[data-high-contrast="true"] #actions .step-row button.selected { background: #ffffff; color: #000000; }
+html[data-high-contrast="true"] button:focus-visible,
+html[data-high-contrast="true"] input:focus-visible,
+html[data-high-contrast="true"] summary:focus-visible { outline: 3px solid #ffd400; outline-offset: 2px; }
+html[data-high-contrast="true"] .event-category--weather { color: #8fd0ff; text-shadow: none; }
+html[data-high-contrast="true"] .event-category--non-weather { color: #ffcf6b; text-shadow: none; }
+html[data-high-contrast="true"] .event-category--social { color: #f0b3ff; text-shadow: none; }
+html[data-high-contrast="true"] .meter, html[data-high-contrast="true"] .stat-bar { background: #000000; border: 2px solid #ffffff; }
+html[data-high-contrast="true"] .stat-bar-fill { background: #ffffff; }
+html[data-high-contrast="true"] a { color: #8fd0ff; text-decoration: underline; }
+
+html[data-high-contrast="true"][data-theme="light"] body { color: #000000; }
+html[data-high-contrast="true"][data-theme="light"] #game,
+html[data-high-contrast="true"][data-theme="light"] .section,
+html[data-high-contrast="true"][data-theme="light"] .context-blurb,
+html[data-high-contrast="true"][data-theme="light"] .codex-card,
+html[data-high-contrast="true"][data-theme="light"] .past-run-card,
+html[data-high-contrast="true"][data-theme="light"] .run-summary-panel { background: #ffffff; border-color: #000000; }
+html[data-high-contrast="true"][data-theme="light"] h1 { color: #000000; -webkit-text-fill-color: #000000; }
+html[data-high-contrast="true"][data-theme="light"] .tagline,
+html[data-high-contrast="true"][data-theme="light"] .context-blurb,
+html[data-high-contrast="true"][data-theme="light"] .comparison-message,
+html[data-high-contrast="true"][data-theme="light"] .legacy-display,
+html[data-high-contrast="true"][data-theme="light"] .meter-label,
+html[data-high-contrast="true"][data-theme="light"] .past-run-event,
+html[data-high-contrast="true"][data-theme="light"] .skill-practice,
+html[data-high-contrast="true"][data-theme="light"] .stat-value,
+html[data-high-contrast="true"][data-theme="light"] .flawless-hint-display,
+html[data-high-contrast="true"][data-theme="light"] .codex-card--locked { color: #000000; }
+html[data-high-contrast="true"][data-theme="light"] button.secondary { background: #ffffff; color: #000000; border-color: #000000; }
+html[data-high-contrast="true"][data-theme="light"] button.primary { background: #000000; color: #ffffff; border-color: #000000; }
+html[data-high-contrast="true"][data-theme="light"] button:disabled { color: #4a4a4a; }
+html[data-high-contrast="true"][data-theme="light"] #actions .step-row button.selected { background: #000000; color: #ffffff; }
+html[data-high-contrast="true"][data-theme="light"] .event-category--weather { color: #003f7a; }
+html[data-high-contrast="true"][data-theme="light"] .event-category--non-weather { color: #5a3500; }
+html[data-high-contrast="true"][data-theme="light"] .event-category--social { color: #55157a; }
+html[data-high-contrast="true"][data-theme="light"] .meter, html[data-high-contrast="true"][data-theme="light"] .stat-bar { background: #ffffff; border-color: #000000; }
+html[data-high-contrast="true"][data-theme="light"] .stat-bar-fill { background: #000000; }
+html[data-high-contrast="true"][data-theme="light"] a { color: #003f9e; }
+
+/* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme. Dark is
    untouched. Findings: the four status-line "dark glass" pills
@@ -1545,4 +1776,5 @@ html[data-theme="light"] .event-category--social { color: #6d2f8c; text-shadow: 
 html[data-theme="light"] .past-run-event { opacity: 1; }
 html[data-theme="light"] .severity--mild { opacity: 0.85; }
 html[data-theme="light"] .feedback-buttons .secondary.selected { color: #ffffff; }
+
 

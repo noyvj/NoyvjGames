@@ -141,3 +141,6 @@ html[data-theme="light"] #pc-side > #actions-dock { background: #eef2f8; }
 html[data-theme="light"] .pc-readout { color: #1b2233; }
 html[data-theme="light"] .pc-readout-label { opacity: 0.85; }
 html[data-theme="light"] #pc-hintbar { opacity: 1; color: #2a3350; background: rgba(238, 242, 248, 0.92); }
+
+/* The window title already says "Disaster Codex" / "Lifetime Stats". */
+.pc-window-frame .codex-heading, .pc-window-frame .stats-heading { display: none; }

@@ -51,6 +51,7 @@ class FakeElement:
         # needed here).
         self.dataset = FakeStyle()
         self.children = []
+        self._attributes = {}
         self._listeners = {}
         if id_ is not None and registry is not None:
             registry[id_] = self
@@ -73,6 +74,12 @@ class FakeElement:
     def innerHTML(self, value):
         self._innerHTML = value
         self.children = []
+
+    def setAttribute(self, name, value):
+        self._attributes[name] = str(value)
+
+    def getAttribute(self, name):
+        return self._attributes.get(name)
 
     def appendChild(self, child):
         self.children.append(child)

@@ -234,8 +234,8 @@ def test_run_summary_panel_populated_on_completion(game_env):
         game_env.resolve_event()
     panel = game_env.elements["run-summary-panel"]
     assert not panel.hidden
-    # One stats line + one line per resolved event.
-    assert len(panel.children) == 1 + len(game_env.module.EVENT_SCHEDULE)
+    # One stats line + one line per resolved event + the E-23 knowledge breakdown block.
+    assert len(panel.children) == 2 + len(game_env.module.EVENT_SCHEDULE)
 
 
 # ---------------------------------------------------------------------------

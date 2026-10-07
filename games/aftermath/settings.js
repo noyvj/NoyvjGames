@@ -29,6 +29,9 @@
 
   const TEXT_SCALE_KEY = "aftermath-text-scale";
   const MOTION_KEY = "aftermath-reduced-motion";
+  // E-16: two more display options, same shape as reduced motion (a root attribute plus a stored flag).
+  const CONTRAST_KEY = "aftermath-high-contrast";
+  const FONT_KEY = "aftermath-readable-font";
   const MIN_SCALE = 0.85;
   const MAX_SCALE = 1.5;
   const STEP = 0.1;
@@ -86,7 +89,42 @@
     return reduced;
   }
 
+  function readFlag(key) {
+    try {
+      return window.localStorage.getItem(key) === "true";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function applyFlag(attribute, key, on) {
+    document.documentElement.setAttribute(attribute, on ? "true" : "false");
+    try {
+      window.localStorage.setItem(key, String(on));
+    } catch (e) {
+      // Persistence is a convenience only.
+    }
+    return on;
+  }
+
   function init() {
+    let contrast = applyFlag("data-high-contrast", CONTRAST_KEY, readFlag(CONTRAST_KEY));
+    let readable = applyFlag("data-readable-font", FONT_KEY, readFlag(FONT_KEY));
+    const contrastBox = document.getElementById("high-contrast-checkbox");
+    const fontBox = document.getElementById("readable-font-checkbox");
+    if (contrastBox) {
+      contrastBox.checked = contrast;
+      contrastBox.addEventListener("change", function () {
+        contrast = applyFlag("data-high-contrast", CONTRAST_KEY, contrastBox.checked);
+      });
+    }
+    if (fontBox) {
+      fontBox.checked = readable;
+      fontBox.addEventListener("change", function () {
+        readable = applyFlag("data-readable-font", FONT_KEY, fontBox.checked);
+      });
+    }
+
     let scale = readStoredScale();
     applyScale(scale);
     let reduced = readStoredMotion();
@@ -137,6 +175,10 @@
         if (motionCheckbox) {
           motionCheckbox.checked = false;
         }
+        contrast = applyFlag("data-high-contrast", CONTRAST_KEY, false);
+        readable = applyFlag("data-readable-font", FONT_KEY, false);
+        if (contrastBox) contrastBox.checked = false;
+        if (fontBox) fontBox.checked = false;
       });
     }
   }

@@ -109,6 +109,23 @@ ELEMENT_IDS = [
     "settlement-legacy-scar-weather",
     "settlement-legacy-scar-non-weather",
     "settlement-legacy-scar-social",
+    # Round-3 batch: steps, undo, codex, stats, popup, copy, hints.
+    "step-x1-button",
+    "step-x5-button",
+    "step-max-button",
+    "undo-allocation-button",
+    "codex-toggle-button",
+    "codex-panel",
+    "stats-toggle-button",
+    "stats-panel",
+    "damage-prevented-popup",
+    "damage-streak-display",
+    "event-announcer",
+    "flawless-hint-display",
+    "run-summary-actions",
+    "copy-run-summary-button",
+    "copy-run-summary-status",
+    "copy-run-summary-area",
 ]
 for _skill in SKILL_IDS:
     ELEMENT_IDS += [

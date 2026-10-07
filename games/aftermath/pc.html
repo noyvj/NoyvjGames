@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script>window.NOYVJ_LAYOUT = "pc"; window.NOYVJ_PC_WINDOWS = [{"panel": "howto-panel", "toggle": "howto-toggle-button", "title": "How to Play"}, {"panel": "achievements-panel", "toggle": "achievements-toggle-button", "title": "Achievements"}, {"panel": "past-runs-panel", "toggle": "past-runs-toggle-button", "title": "Past Runs"}, {"panel": "changelog-panel", "toggle": "changelog-toggle-button", "title": "What's New"}, {"panel": "settings-panel", "toggle": "settings-toggle-button", "title": "Settings"}, {"panel": "info-page-panel", "toggle": "info-page-toggle-button", "title": "The Real Story"}]; window.NOYVJ_PC_ZONES = {"topbar": [".hub-back-link", "h1", ".game-toolbar"], "stagebar": [".mentor-toggle-label"], "stage": ["#status", "#runs-completed-display", "#legacy-display", "#societal-memory-display", "#legacy-history-panel", "#curriculum-display", "#mentor-hint"], "side": ["#actions-dock", "#skill-tree"], "hidden": ["#progress-display", "#resources-display", "#resilience-display", "#growth-display"]}; window.NOYVJ_PC_HINTS = [["?", "All shortcuts"], ["Esc", "Menu / close window"]]; window.NOYVJ_PC_NOTIFY = null; window.NOYVJ_PC_TOOLBAR = {"icons": [["achievements-toggle-button", "🏆"], ["past-runs-toggle-button", "📜"], ["settings-toggle-button", "⚙️"]], "menu": [{"heading": "Game", "ids": []}, {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button", "info-page-toggle-button"]}, {"heading": "Records", "ids": ["changelog-toggle-button"]}]}; window.NOYVJ_PC_COMPOSITES = [{"id": "pc-community-panel", "title": "Community", "members": ["#community-index", "#leaderboard-mount"], "group": "Records", "label": "🌍 Community"}, {"id": "pc-backup-panel", "title": "Backup / transfer progress", "members": ["#progress-code-panel"], "group": "Game", "label": "💾 Backup / transfer progress"}, {"id": "pc-about-panel", "title": "About Aftermath", "members": [".tagline", ".context-blurb"], "group": "Help", "label": "ℹ️ About Aftermath"}, {"id": "pc-feedback-panel", "title": "Feedback", "members": ["#feedback-prompt"], "group": "Help", "label": "💬 Send feedback"}]; window.NOYVJ_PC_ADOPT = [["#real-world-note", "#info-page-panel"]]; window.NOYVJ_PC_READOUTS = [["#progress-display", "📅", ""], ["#resources-display", "📦", "Resources"], ["#resilience-display", "🛡️", "Resilience"], ["#growth-display", "📈", "Growth"], ["#knowledge-points-display", "🧠", "Knowledge"]]; window.NOYVJ_PC_SIDE_LABEL = "Investments and skill tree";</script>
+<script>window.NOYVJ_LAYOUT = "pc"; window.NOYVJ_PC_WINDOWS = [{"panel": "howto-panel", "toggle": "howto-toggle-button", "title": "How to Play"}, {"panel": "achievements-panel", "toggle": "achievements-toggle-button", "title": "Achievements"}, {"panel": "past-runs-panel", "toggle": "past-runs-toggle-button", "title": "Past Runs"}, {"panel": "codex-panel", "toggle": "codex-toggle-button", "title": "Disaster Codex"}, {"panel": "stats-panel", "toggle": "stats-toggle-button", "title": "Lifetime Stats"}, {"panel": "changelog-panel", "toggle": "changelog-toggle-button", "title": "What's New"}, {"panel": "settings-panel", "toggle": "settings-toggle-button", "title": "Settings"}, {"panel": "info-page-panel", "toggle": "info-page-toggle-button", "title": "The Real Story"}]; window.NOYVJ_PC_ZONES = {"topbar": [".hub-back-link", "h1", ".game-toolbar"], "stagebar": [".mentor-toggle-label"], "stage": ["#status", "#runs-completed-display", "#legacy-display", "#societal-memory-display", "#legacy-history-panel", "#curriculum-display", "#mentor-hint"], "side": ["#actions-dock", "#skill-tree"], "hidden": ["#progress-display", "#resources-display", "#resilience-display", "#growth-display"]}; window.NOYVJ_PC_HINTS = [["1 2", "Invest"], ["Enter", "Face event"], ["U", "Undo"], ["T", "Tree"], ["H C S", "History, Codex, Stats"], ["?", "All shortcuts"], ["Esc", "Menu / close window"]]; window.NOYVJ_PC_NOTIFY = null; window.NOYVJ_PC_TOOLBAR = {"icons": [["achievements-toggle-button", "🏆"], ["past-runs-toggle-button", "📜"], ["settings-toggle-button", "⚙️"]], "menu": [{"heading": "Game", "ids": []}, {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button", "info-page-toggle-button"]}, {"heading": "Records", "ids": ["codex-toggle-button", "stats-toggle-button", "changelog-toggle-button"]}]}; window.NOYVJ_PC_COMPOSITES = [{"id": "pc-community-panel", "title": "Community", "members": ["#community-index", "#leaderboard-mount"], "group": "Records", "label": "🌍 Community"}, {"id": "pc-backup-panel", "title": "Backup / transfer progress", "members": ["#progress-code-panel"], "group": "Game", "label": "💾 Backup / transfer progress"}, {"id": "pc-about-panel", "title": "About Aftermath", "members": [".tagline", ".context-blurb"], "group": "Help", "label": "ℹ️ About Aftermath"}, {"id": "pc-feedback-panel", "title": "Feedback", "members": ["#feedback-prompt"], "group": "Help", "label": "💬 Send feedback"}]; window.NOYVJ_PC_ADOPT = [["#real-world-note", "#info-page-panel"]]; window.NOYVJ_PC_READOUTS = [["#progress-display", "📅", ""], ["#resources-display", "📦", "Resources"], ["#resilience-display", "🛡️", "Resilience"], ["#growth-display", "📈", "Growth"], ["#knowledge-points-display", "🧠", "Knowledge"]]; window.NOYVJ_PC_SIDE_LABEL = "Investments and skill tree";</script>
 <script src="pc.js"></script>
 <script src="../../shared/layout-pref.js" data-game-id="aftermath" data-pc-page="pc.html" data-classic-page="index.html"></script>
 <title>Aftermath (Desktop)</title>
@@ -25,6 +25,7 @@
 <script src="../../shared/mobile-dock.js"></script>
 <script src="../../shared/confirm-dialog.js"></script>
 <script src="settings.js"></script>
+<script src="ui.js" defer></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -42,6 +43,9 @@
       <button id="achievements-toggle-button" class="secondary" type="button">Loading...</button>
       <!-- E7: review a specific past run's full event-by-event breakdown. -->
       <button id="past-runs-toggle-button" class="secondary" type="button">Loading...</button>
+      <!-- E-12 / E-1: the Disaster Codex (collector page per event type) and lifetime statistics. -->
+      <button id="codex-toggle-button" class="secondary" type="button">📖 Disaster Codex</button>
+      <button id="stats-toggle-button" class="secondary" type="button">📊 Lifetime Stats</button>
       <!-- K16 (planning/TODO.md "What's New" changelog, site-wide goal):
            a small in-game highlights panel, same hidden-until-opened idiom
            as achievements/past-runs above. -->
@@ -71,6 +75,19 @@
         <label class="settings-checkbox-label" for="reduced-motion-checkbox">
           <input type="checkbox" id="reduced-motion-checkbox">
           Reduce motion (disable animations &amp; transitions)
+        </label>
+      </div>
+      <!-- E-16: high-contrast and readable-font display options (settings.js). -->
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="high-contrast-checkbox">
+          <input type="checkbox" id="high-contrast-checkbox">
+          High contrast (stronger borders, full-strength text)
+        </label>
+      </div>
+      <div class="settings-row">
+        <label class="settings-checkbox-label" for="readable-font-checkbox">
+          <input type="checkbox" id="readable-font-checkbox">
+          Readable font (plain sans-serif, wider spacing)
         </label>
       </div>
       <div class="settings-row">
@@ -104,6 +121,8 @@
     </div>
     <div id="achievements-panel" class="section achievements-panel" hidden></div>
     <div id="past-runs-panel" class="section" hidden></div>
+    <div id="codex-panel" class="section codex-panel" hidden></div>
+    <div id="stats-panel" class="section stats-panel" hidden></div>
     <div id="changelog-panel" class="section changelog-panel" hidden></div>
 
     <!-- Achievement-unlock toast (ACHIEVEMENTS-SYSTEM-DESIGN.md's
@@ -127,6 +146,8 @@
       <p id="next-event-display" class="status-line">Next: Flood</p>
       <!-- E8/E16: expected-damage-this-event preview with numeric severity. -->
       <p id="expected-damage-display" class="status-line"></p>
+      <!-- GE-15: what a Flawless Defense needs for the coming event. -->
+      <p id="flawless-hint-display" class="status-line flawless-hint-display"></p>
       <div class="event-visual" aria-hidden="true">
         <div class="event-visual-storm">
           <div class="event-visual-cloud"></div>
@@ -140,6 +161,11 @@
       <p id="generational-memory-display" class="generational-memory" hidden></p>
       <p id="last-event-display" class="status-line"></p>
       <p id="callout-display" class="callout-display" role="status" hidden></p>
+      <!-- GE-13: what the last event's mitigation prevented (count-up in ui.js), plus the held-streak
+           and Flawless Defense line. E-5: event-announcer is the screen-reader live region. -->
+      <p id="damage-prevented-popup" class="damage-prevented-popup" hidden></p>
+      <p id="damage-streak-display" class="damage-streak-display" hidden></p>
+      <p id="event-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
       <details class="info-toggle"><summary>i</summary><p>Event severity (mild/typical/severe) isn't random — it's a fixed pattern per run number, so replaying the same run always faces the same challenge. Your first run is always "typical." From run 2 onward, the spread widens the more resilience skills you've unlocked overall — a stronger skill tree can hit lower lows and higher highs, not just an easier flat curve.</p></details>
       <p id="resources-display" class="status-line">Resources: 200</p>
       <p id="resilience-display" class="status-line">Resilience: 0</p>
@@ -152,6 +178,12 @@
       <!-- E11: a proper end-of-run summary -- final stats + the exact
            event-by-event breakdown, beyond the one-line score above. -->
       <div id="run-summary-panel" class="run-summary-panel print-summary" hidden></div>
+      <!-- E-24: copy the run summary as plain text (falls back to a text box when the clipboard is blocked). -->
+      <div id="run-summary-actions" class="run-summary-actions" hidden>
+        <button id="copy-run-summary-button" class="secondary" type="button">Copy run summary</button>
+        <p id="copy-run-summary-status" class="comparison-message" role="status"></p>
+        <textarea id="copy-run-summary-area" class="copy-text-area" rows="7" readonly hidden aria-label="Run summary text to copy"></textarea>
+      </div>
       <p id="knowledge-preview-display" class="comparison-message"></p>
       <p id="progress-comparison-display" class="comparison-message">Play more runs to see how far you've come.</p>
       <p id="toughest-run-display" class="comparison-message"></p>
@@ -202,6 +234,14 @@
          inside it. -->
     <div id="actions-dock">
       <div id="actions" class="section">
+        <!-- E-15: how many units one click buys. GE-18: undo the last click before Face Next Event. -->
+        <div class="step-row" role="group" aria-label="Investment step size">
+          <span class="step-label">Step</span>
+          <button id="step-x1-button" class="secondary step-button selected" type="button" aria-pressed="true" title="Buy one unit per click">x1</button>
+          <button id="step-x5-button" class="secondary step-button" type="button" aria-pressed="false" title="Buy up to five units per click">x5</button>
+          <button id="step-max-button" class="secondary step-button" type="button" aria-pressed="false" title="Buy as many as you can afford (resilience stops at the 85% cap)">Max</button>
+          <button id="undo-allocation-button" class="secondary step-button" type="button" disabled title="Undo your last investment click (U). Not possible after Face Next Event.">↶ Undo (0)</button>
+        </div>
         <button id="resilience-invest-button" class="secondary" disabled>Loading...</button>
         <button id="growth-invest-button" class="secondary" disabled>Loading...</button>
         <details class="info-toggle"><summary>i</summary><p>Growth doesn't protect you from event damage at all — each unit just adds 8 resources of passive income every time you face an event. It's a bet that the extra income outweighs skipping a point of damage mitigation.</p></details>
@@ -234,7 +274,7 @@
       </label>
     </div>
 
-    <div id="skill-tree" class="section">
+    <div id="skill-tree" class="section" tabindex="-1">
       <p id="knowledge-points-display" class="status-line">Resilience knowledge: 0</p>
       <p id="skills-unlocked-display" class="status-line"></p>
       <p id="pinned-skills-display" class="status-line pinned-skills-display" title="Skills you've pinned, with an estimate of runs until each is affordable"></p>
@@ -471,12 +511,23 @@
   <script src="../../shared/keyboard-shortcuts.js"></script>
   <script>
     window.KeyboardShortcuts.init({
+      extra: [
+        "1 / 2 — invest in Resilience / Growth (at the chosen step)",
+        "Enter — Face Next Event (when no button is focused)",
+        "U — undo your last investment click",
+        "T — jump to the skill tree",
+        "H — open or close Past Runs",
+        "C — open or close the Disaster Codex",
+        "S — open or close Lifetime Stats",
+      ],
       panels: [
         { toggle: "howto-toggle-button", panel: "howto-panel" },
         { toggle: "settings-toggle-button", panel: "settings-panel" },
         { toggle: "info-page-toggle-button", panel: "info-page-panel" },
         { toggle: "achievements-toggle-button", panel: "achievements-panel" },
         { toggle: "past-runs-toggle-button", panel: "past-runs-panel" },
+        { toggle: "codex-toggle-button", panel: "codex-panel" },
+        { toggle: "stats-toggle-button", panel: "stats-panel" },
         { toggle: "changelog-toggle-button", panel: "changelog-panel" },
       ],
     });

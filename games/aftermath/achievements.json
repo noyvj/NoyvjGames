@@ -109,6 +109,16 @@
       "id": "both_paths",
       "label": "Two Ways to Win",
       "description": "Earn both All In and Well-Rounded — a narrow strategy and a broad one."
+    },
+    {
+      "id": "flawless_defense",
+      "label": "Flawless Defense",
+      "description": "Hold one event's damage to 15% of its base damage or less (needs mitigation at the 85% cap against a typical or milder event)."
+    },
+    {
+      "id": "codex_complete",
+      "label": "Seen It All",
+      "description": "Weather every kind of shock at least once, completing the Disaster Codex."
     }
   ]
 }

@@ -1,6 +1,10 @@
 [
   {
     "date": "2026-10-07",
+    "entry": "New in Aftermath: a Disaster Codex (one page per kind of shock, filling in with your damage, best mitigation and a sourced real-world story as you face each one) and a Lifetime Stats page. Invest in steps of x1, x5 or Max, and undo your last investment click before Face Next Event. Hold an event to 15% of its base damage for a Flawless Defense (a bonus knowledge point and a new achievement), see how many knowledge points came from where, copy your run summary, and watch each hit's prevented damage and streak. The tab title tracks your run, events are announced for screen readers, and Settings gains High contrast and Readable font. Keys: 1 and 2 invest, Enter faces the event, U undoes, T jumps to the tree, H, C and S open History, Codex and Stats."
+  },
+  {
+    "date": "2026-10-07",
     "entry": "Desktop layout: on a wide window with a mouse, Aftermath can now open as a full-window dashboard. The settlement, the next event and your mitigation fill the main area, your Resources, Resilience, Growth and Knowledge sit in a strip of chips across the top, and the investments, Face Next Event and the skill tree stay in a column on the right. History, community, backup and the other panels open as windows from the Menu (or press Escape). Same saves as the Classic layout, which is unchanged; switch from the opening screen or the Menu."
   },
   {

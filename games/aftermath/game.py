@@ -151,6 +151,20 @@ EVENT_CATEGORY = {
     "civil_unrest": "social",
 }
 
+# GE-15: Flawless Defense. An event whose final damage is at most this share
+# of its base (unscaled) damage counts as flawless: +1 knowledge point at the
+# end of the run and a lifetime achievement. Mitigation is capped at 85%, so
+# 15% is exactly "held at the cap against a typical or milder event"; the
+# 10% in the original idea was unreachable (an 85% cap against even a 0.85x
+# event still lets 12.75% through), so the line sits where the cap puts it.
+FLAWLESS_DAMAGE_FRACTION = 0.15
+FLAWLESS_BONUS_KNOWLEDGE = 1
+
+# GE-13: an event counts as "held" for the prevented-damage streak when the
+# settlement prevented at least this share of the damage it would otherwise
+# have taken.
+HELD_PREVENTED_FRACTION = 0.5
+
 # Iteration-pass addition: severity varies per event so repeated runs
 # don't feel identical. Deterministic (a hash-based formula, not
 # wall-clock random) rather than truly random, and off entirely for
@@ -221,6 +235,55 @@ def severity_label(severity):
     if severity > 1.05:
         return "severe"
     return "typical"
+
+
+# ---------------------------------------------------------------------------
+# Per-event derivations. Everything below is a pure function of one event_log
+# entry ({"type", "damage", "severity"}): the unmitigated damage is the base
+# damage times the severity, so what was prevented, the mitigation that held
+# and whether the defense was flawless can all be recovered from the entries
+# already stored in run_log_history, without a new saved field (older logs
+# included).
+# ---------------------------------------------------------------------------
+def entry_unmitigated(entry):
+    return EVENT_BASE_DAMAGE.get(entry.get("type"), 0.0) * entry.get("severity", 1.0)
+
+
+def entry_prevented(entry):
+    return max(0.0, entry_unmitigated(entry) - entry.get("damage", 0.0))
+
+
+def entry_mitigation(entry):
+    """Share of the unmitigated damage that was prevented (0..1), or None
+    for an entry of an unknown type."""
+    unmitigated = entry_unmitigated(entry)
+    if unmitigated <= 0:
+        return None
+    return min(1.0, entry_prevented(entry) / unmitigated)
+
+
+def entry_is_flawless(entry):
+    """GE-15: damage held to FLAWLESS_DAMAGE_FRACTION of the event's base."""
+    base = EVENT_BASE_DAMAGE.get(entry.get("type"))
+    if base is None:
+        return False
+    return entry.get("damage", base) <= base * FLAWLESS_DAMAGE_FRACTION + 1e-9
+
+
+def flawless_count(event_log):
+    return sum(1 for entry in event_log if entry_is_flawless(entry))
+
+
+def held_streak(event_log):
+    """GE-13: how many of the most recent events in a row prevented at least
+    HELD_PREVENTED_FRACTION of their unmitigated damage."""
+    streak = 0
+    for entry in reversed(event_log):
+        mitigation = entry_mitigation(entry)
+        if mitigation is None or mitigation + 1e-9 < HELD_PREVENTED_FRACTION:
+            break
+        streak += 1
+    return streak
 
 
 # Skill tree — lives outside the run loop entirely, persisting between
@@ -606,12 +669,14 @@ def growth_income_now(growth_capacity):
     return growth_capacity * GROWTH_INCOME_PER_UNIT
 
 
-def growth_button_label(growth_capacity):
+def growth_button_label(growth_capacity, units=1):
     """E20: the button shows the real current payoff and what one more
-    unit would make it, instead of a static per-unit number."""
+    unit would make it, instead of a static per-unit number. E-15: with a
+    bigger step the label names the units and the total cost."""
+    count = f" x{units}" if units > 1 else ""
     return (
-        f"Invest in Growth ({GROWTH_COST}) · +{growth_income_now(growth_capacity)}"
-        f" → +{growth_income_now(growth_capacity + 1)} resources/event"
+        f"Invest in Growth{count} ({GROWTH_COST * units}) · +{growth_income_now(growth_capacity)}"
+        f" → +{growth_income_now(growth_capacity + units)} resources/event"
     )
 
 
@@ -706,6 +771,10 @@ class RunState:
         # silently drift if more skills unlock mid-run... they can't, but
         # capturing it explicitly avoids relying on that being true).
         self.starting_resources = self.resources
+        # GE-18: one entry per allocation click this between-event phase, as
+        # (kind, units). Not part of get_state(): after a load, or once an
+        # event resolves, there is nothing to undo.
+        self.allocation_history = []
 
     def is_complete(self):
         return self.event_index >= len(self.schedule)
@@ -715,23 +784,94 @@ class RunState:
             return None
         return self.schedule[self.event_index]
 
-    def invest_resilience(self):
+    def invest_resilience(self, record=True):
         if self.resources < RESILIENCE_COST:
             return False
         self.resources -= RESILIENCE_COST
         self.resilience_capacity += 1
+        if record:
+            self._record_allocation("resilience", 1)
         _note_achievement_progress(ever_invested_resilience=True)
         if self.mitigation_fraction() >= MAX_MITIGATION:
             _note_achievement_progress(ever_maxed_mitigation=True)
         return True
 
-    def invest_growth(self):
+    def invest_growth(self, record=True):
         if self.resources < GROWTH_COST:
             return False
         self.resources -= GROWTH_COST
         self.growth_capacity += 1
+        if record:
+            self._record_allocation("growth", 1)
         _note_achievement_progress(ever_invested_growth=True)
         return True
+
+    # GE-18: undo of allocation clicks before Resolve.
+    def _record_allocation(self, kind, units):
+        self.allocation_history.append((kind, units))
+
+    def undo_count(self):
+        return len(self.allocation_history)
+
+    def undo_last_allocation(self):
+        """Gives back the last allocation click's units and resources. Only
+        possible before the next Resolve (resolving clears the history)."""
+        if not self.allocation_history or self.is_complete():
+            return False
+        kind, units = self.allocation_history.pop()
+        if kind == "resilience":
+            self.resilience_capacity -= units
+            self.resources += RESILIENCE_COST * units
+        else:
+            self.growth_capacity -= units
+            self.resources += GROWTH_COST * units
+        return True
+
+    # E-15: x1 / x5 / Max steps.
+    def _raw_mitigation(self):
+        return (
+            self.resilience_capacity * RESILIENCE_MITIGATION_PER_UNIT
+            + early_warning_mitigation_bonus()
+            + mutual_aid_mitigation_bonus()
+        )
+
+    def resilience_units_to_cap(self):
+        """How many more resilience units fit before general mitigation
+        reaches MAX_MITIGATION (more would be wasted)."""
+        gap = MAX_MITIGATION - self._raw_mitigation()
+        if gap <= 1e-9:
+            return 0
+        return int(math.ceil(gap / RESILIENCE_MITIGATION_PER_UNIT - 1e-9))
+
+    def step_units(self, kind, step):
+        """Units one click buys at this step size: 1, 5 or "max". x1 keeps
+        the original rule (one unit whenever it is affordable); x5 and Max
+        stop at the resource limit and, for resilience, at the 85% cap."""
+        cost = RESILIENCE_COST if kind == "resilience" else GROWTH_COST
+        affordable = int(self.resources // cost)
+        if step == 1:
+            return 1 if affordable >= 1 else 0
+        if kind == "resilience":
+            affordable = min(affordable, self.resilience_units_to_cap())
+        if step == "max":
+            return affordable
+        return min(int(step), affordable)
+
+    def invest_steps(self, kind, step):
+        """Buys step_units() units as ONE undoable click. Returns the
+        number bought (0 when nothing was affordable)."""
+        if self.is_complete():
+            return 0
+        units = self.step_units(kind, step)
+        bought = 0
+        for _ in range(units):
+            ok = self.invest_resilience(record=False) if kind == "resilience" else self.invest_growth(record=False)
+            if not ok:
+                break
+            bought += 1
+        if bought:
+            self._record_allocation(kind, bought)
+        return bought
 
     def mitigation_fraction(self):
         from_resilience = self.resilience_capacity * RESILIENCE_MITIGATION_PER_UNIT
@@ -762,6 +902,9 @@ class RunState:
         self.damage_taken += damage
         self.event_log.append({"type": event_type, "damage": damage, "severity": severity})
         self.event_index += 1
+        self.allocation_history = []  # GE-18: nothing to undo after Resolve
+        if entry_is_flawless(self.event_log[-1]):
+            _note_achievement_progress(ever_flawless_defense=True)  # GE-15
 
         _note_achievement_progress(ever_faced_event=True)
         if severity_label(severity) == "severe" and self.resources > 0:
@@ -799,6 +942,9 @@ class RunState:
                         "growth_capacity": self.growth_capacity,
                         "damage_taken": self.damage_taken,
                         "knowledge_earned": self.knowledge_points_earned(),
+                        # E-1: the skill-tree strength this run was played at
+                        # (older logs lack it and are left out of the band stat).
+                        "skill_strength": skill_tree_strength(),
                         "event_log": copy.deepcopy(self.event_log),
                     }
                 )
@@ -841,8 +987,24 @@ class RunState:
     def knowledge_points_earned(self):
         """Currency for the skill tree. Floored at 1 — per the hope angle,
         even a rough run always contributes some permanent capability,
-        never zero."""
-        return max(1, round(self.run_score() / 20))
+        never zero. GE-15: each Flawless Defense adds a bonus point."""
+        return self.knowledge_breakdown()["total"]
+
+    def knowledge_breakdown(self):
+        """E-23: where the run's knowledge points come from."""
+        raw = round(self.run_score() / 20)
+        base = max(1, raw)
+        flawless = flawless_count(self.event_log)
+        bonus = flawless * FLAWLESS_BONUS_KNOWLEDGE
+        return {
+            "resources": self.run_score(),
+            "raw": raw,
+            "base": base,
+            "floor_applied": raw < 1,
+            "flawless": flawless,
+            "flawless_bonus": bonus,
+            "total": base + bonus,
+        }
 
 
 class SkillTreeState:
@@ -1006,6 +1168,8 @@ def _default_achievement_progress():
         # E15: build-diversity family.
         "ever_deep_specialist_run": False,
         "ever_broad_generalist_run": False,
+        # GE-15: a Flawless Defense (event damage held to 15% of base).
+        "ever_flawless_defense": False,
     }
 
 
@@ -1073,6 +1237,9 @@ ACHIEVEMENT_CHECKS = {
     "both_paths": lambda: achievement_progress["ever_deep_specialist_run"]
     and achievement_progress["ever_broad_generalist_run"],
     "come_back_stronger": lambda: len(run_history) >= 2 and run_history[-1] > run_history[0],
+    # GE-15 / E-12: collector and mastery achievements.
+    "flawless_defense": lambda: achievement_progress["ever_flawless_defense"],
+    "codex_complete": lambda: all(t in legacy_events for t in EVENT_LABEL),
 }
 
 # Progress readouts, only for achievements with a natural numeric scale-up
@@ -1083,6 +1250,7 @@ ACHIEVEMENT_PROGRESS = {
     "full_skill_tree": lambda: (len(skill_tree.unlocked & set(SKILLS)), len(SKILLS)),
     "knowledge_25": lambda: (min(skill_tree.lifetime_knowledge, 25), 25),
     "knowledge_100": lambda: (min(skill_tree.lifetime_knowledge, 100), 100),
+    "codex_complete": lambda: (sum(1 for t in EVENT_LABEL if t in legacy_events), len(EVENT_LABEL)),
 }
 
 
@@ -2244,10 +2412,553 @@ def render_real_world():
     link.href = example["url"]
 
 
+# ===========================================================================
+# Round-3 additions (planning/TODO.md "GE + E. Aftermath", 2026-10-07):
+# E-12 Disaster Codex, E-1 lifetime statistics, E-15 x1/x5/Max steps,
+# GE-18 undo, GE-15 Flawless Defense (rules live in RunState above),
+# GE-13 prevented-damage popup, E-23 knowledge itemisation, E-24 copy run
+# summary, E-27 live tab title, E-5 (partial) aria-live announcements.
+# None of this changes a rule that existed before except the Flawless
+# Defense bonus point.
+# ===========================================================================
+
+# ---- E-15: invest step size (x1 / x5 / Max), remembered per browser -------
+INVEST_STEP_STORAGE_KEY = "aftermath-invest-step"
+INVEST_STEPS = (1, 5, "max")
+
+
+def load_invest_step():
+    raw = localStorage.getItem(INVEST_STEP_STORAGE_KEY)
+    if raw == "max":
+        return "max"
+    if raw in ("1", "5"):
+        return int(raw)
+    return 1
+
+
+invest_step = load_invest_step()
+
+
+def set_invest_step(value):
+    global invest_step
+    if value not in INVEST_STEPS:
+        return False
+    invest_step = value
+    localStorage.setItem(INVEST_STEP_STORAGE_KEY, str(value))
+    return True
+
+
+def step_label(step):
+    return "Max" if step == "max" else f"x{step}"
+
+
+def resilience_button_label(run_state, step):
+    units = run_state.step_units("resilience", step)
+    if step == 1 or units < 1:
+        return f"Invest in Resilience ({RESILIENCE_COST})"
+    return f"Invest in Resilience x{units} ({RESILIENCE_COST * units})"
+
+
+def growth_step_label(run_state, step):
+    units = run_state.step_units("growth", step)
+    if step == 1 or units < 1:
+        return growth_button_label(run_state.growth_capacity)
+    return growth_button_label(run_state.growth_capacity, units)
+
+
+# ---- E-12 / E-1: records across every run -------------------------------
+def lifetime_event_records():
+    """Every event faced that a log remembers: all completed runs'
+    event_logs plus the run in progress (a finished run is already in
+    run_log_history once it pays out)."""
+    records = []
+    for entry in run_log_history:
+        if not isinstance(entry, dict):
+            continue
+        for event in entry.get("event_log", []) or []:
+            if isinstance(event, dict) and event.get("type") in EVENT_LABEL:
+                records.append(event)
+    if not run.is_complete():
+        records.extend(e for e in run.event_log if e.get("type") in EVENT_LABEL)
+    return records
+
+
+def codex_entries():
+    """E-12: one row per event type, in EVENT_LABEL order."""
+    records = lifetime_event_records()
+    in_progress = {}
+    if not run.is_complete():
+        for event in run.event_log:
+            in_progress[event["type"]] = in_progress.get(event["type"], 0) + 1
+    rows = []
+    for event_type in EVENT_LABEL:
+        mine = [e for e in records if e["type"] == event_type]
+        faced = max(
+            len(mine),
+            int(legacy_event_counts.get(event_type, 0)) + in_progress.get(event_type, 0),
+        )
+        if faced == 0 and event_type in legacy_events:
+            faced = 1
+        row = {
+            "type": event_type,
+            "label": EVENT_LABEL[event_type],
+            "icon": EVENT_ICON[event_type],
+            "category": EVENT_CATEGORY[event_type],
+            "faced": faced,
+            "logged": len(mine),
+            "avg_damage": None,
+            "best_mitigation": None,
+            "lowest_damage": None,
+            "worst_damage": None,
+            "flawless": 0,
+            "example": REAL_WORLD_EXAMPLES.get(event_type) if faced else None,
+        }
+        if mine:
+            damages = [e["damage"] for e in mine]
+            row["avg_damage"] = sum(damages) / len(damages)
+            row["lowest_damage"] = min(damages)
+            row["worst_damage"] = max(damages)
+            row["best_mitigation"] = max(entry_mitigation(e) or 0.0 for e in mine)
+            row["flawless"] = flawless_count(mine)
+        rows.append(row)
+    return rows
+
+
+def codex_completion():
+    rows = codex_entries()
+    return sum(1 for row in rows if row["faced"] > 0), len(rows)
+
+
+def codex_summary_text():
+    done, total = codex_completion()
+    if done >= total:
+        return f"Codex complete: all {total} kinds of shock recorded."
+    return f"{done} of {total} kinds of shock recorded. Face each kind to fill its page and unlock its real-world note."
+
+
+def codex_stats_text(row):
+    if row["faced"] == 0:
+        return f"Not faced yet. Weather a {row['label']} to record it and unlock its real-world note."
+    if row["avg_damage"] is None:
+        return f"Faced x{row['faced']}. Damage details are recorded for runs completed since the run log began."
+    flawless = f" · Flawless Defense x{row['flawless']}" if row["flawless"] else ""
+    return (
+        f"Faced x{row['faced']} · average damage {row['avg_damage']:.0f} · "
+        f"lowest {row['lowest_damage']:.0f}, worst {row['worst_damage']:.0f} · "
+        f"best mitigation {row['best_mitigation'] * 100:.0f}%{flawless}"
+    )
+
+
+codex_open = False
+
+
+def on_toggle_codex(event=None):
+    global codex_open
+    codex_open = not codex_open
+    render_codex_panel()
+
+
+def render_codex_panel():
+    toggle = document.getElementById("codex-toggle-button")
+    panel = document.getElementById("codex-panel")
+    done, total = codex_completion()
+    toggle.innerText = "Hide Disaster Codex" if codex_open else f"📖 Disaster Codex ({done}/{total})"
+    panel.hidden = not codex_open
+    if not codex_open:
+        return
+    panel.innerHTML = ""
+    heading = document.createElement("h2")
+    heading.className = "codex-heading"
+    heading.innerText = "Disaster Codex"
+    panel.appendChild(heading)
+    summary = document.createElement("p")
+    summary.className = "comparison-message codex-summary"
+    summary.innerText = codex_summary_text()
+    panel.appendChild(summary)
+    for row in codex_entries():
+        card = document.createElement("div")
+        card.className = "codex-card" + ("" if row["faced"] else " codex-card--locked")
+        title = document.createElement("p")
+        title.className = f"codex-title event-category--{row['category']}"
+        title.innerText = f"{row['icon']} {row['label']}" + (" ✓" if row["faced"] else " 🔒")
+        card.appendChild(title)
+        stats = document.createElement("p")
+        stats.className = "codex-stats"
+        stats.innerText = codex_stats_text(row)
+        card.appendChild(stats)
+        example = row["example"]
+        if example:
+            note = document.createElement("p")
+            note.className = "codex-note"
+            note.innerText = f"In the real world: {example['title']}. {example['text']}"
+            card.appendChild(note)
+            link = document.createElement("a")
+            link.className = "real-world-source"
+            link.href = example["url"]
+            link.target = "_blank"
+            link.rel = "noopener noreferrer"
+            link.innerText = f"Source: {example['source']} (read {REAL_WORLD_READ_DATE})"
+            card.appendChild(link)
+        panel.appendChild(card)
+
+
+# ---- E-1: lifetime statistics, from run_log_history -----------------------
+STAT_BANDS = (("0-1 skills", 0, 1), ("2-3 skills", 2, 3), ("4+ skills", 4, 999))
+STATS_KP_ROWS = 15
+
+
+def lifetime_stats():
+    logs = [entry for entry in run_log_history if isinstance(entry, dict)]
+    category_damage = {c: 0.0 for c in ("weather", "non-weather", "social")}
+    per_type = {}
+    for entry in logs:
+        for event in entry.get("event_log", []) or []:
+            if not isinstance(event, dict) or event.get("type") not in EVENT_LABEL:
+                continue
+            event_type = event["type"]
+            category_damage[EVENT_CATEGORY[event_type]] += event.get("damage", 0.0)
+            per_type.setdefault(event_type, []).append(event)
+    matchups = []
+    for event_type, events in per_type.items():
+        mitigations = [entry_mitigation(e) or 0.0 for e in events]
+        matchups.append(
+            {
+                "type": event_type,
+                "count": len(events),
+                "avg_mitigation": sum(mitigations) / len(mitigations),
+                "avg_damage": sum(e["damage"] for e in events) / len(events),
+            }
+        )
+    matchups.sort(key=lambda m: (-m["avg_mitigation"], m["type"]))
+    kp_rows = []
+    running = 0
+    for entry in logs:
+        earned = int(entry.get("knowledge_earned", 0) or 0)
+        running += earned
+        kp_rows.append({"run_number": entry.get("run_number"), "earned": earned, "total": running})
+    bands = []
+    for label, low, high in STAT_BANDS:
+        scores = [
+            entry.get("score", 0.0)
+            for entry in logs
+            if isinstance(entry.get("skill_strength"), int) and low <= entry["skill_strength"] <= high
+        ]
+        bands.append({"label": label, "runs": len(scores), "avg_score": (sum(scores) / len(scores)) if scores else None})
+    return {
+        "runs": len(logs),
+        "category_damage": category_damage,
+        "matchups": matchups,
+        "kp_rows": kp_rows,
+        "bands": bands,
+        "flawless": sum(
+            flawless_count([ev for ev in (e.get("event_log", []) or []) if isinstance(ev, dict)]) for e in logs
+        ),
+    }
+
+
+stats_open = False
+
+
+def on_toggle_stats(event=None):
+    global stats_open
+    stats_open = not stats_open
+    render_stats_panel()
+
+
+def _stat_row(label, fraction, value_text):
+    row = document.createElement("div")
+    row.className = "stat-row"
+    label_el = document.createElement("span")
+    label_el.className = "stat-label"
+    label_el.innerText = label
+    row.appendChild(label_el)
+    track = document.createElement("span")
+    track.className = "stat-bar"
+    track.setAttribute("aria-hidden", "true")
+    fill = document.createElement("span")
+    fill.className = "stat-bar-fill"
+    fill.style.width = f"{max(0.0, min(1.0, fraction)) * 100:.0f}%"
+    track.appendChild(fill)
+    row.appendChild(track)
+    value_el = document.createElement("span")
+    value_el.className = "stat-value"
+    value_el.innerText = value_text
+    row.appendChild(value_el)
+    return row
+
+
+def _stat_heading(panel, text):
+    heading = document.createElement("h3")
+    heading.className = "stat-heading"
+    heading.innerText = text
+    panel.appendChild(heading)
+
+
+def render_stats_panel():
+    toggle = document.getElementById("stats-toggle-button")
+    panel = document.getElementById("stats-panel")
+    toggle.innerText = "Hide Lifetime Stats" if stats_open else "📊 Lifetime Stats"
+    panel.hidden = not stats_open
+    if not stats_open:
+        return
+    stats = lifetime_stats()
+    panel.innerHTML = ""
+    heading = document.createElement("h2")
+    heading.className = "stats-heading"
+    heading.innerText = "Lifetime Stats"
+    panel.appendChild(heading)
+    if not stats["runs"]:
+        empty = document.createElement("p")
+        empty.innerText = "No completed runs with a log yet. Finish a run and this page fills in."
+        panel.appendChild(empty)
+        return
+    intro = document.createElement("p")
+    intro.className = "comparison-message"
+    intro.innerText = (
+        f"Built from {stats['runs']} completed run{'s' if stats['runs'] != 1 else ''}. "
+        "Every bar has its numbers written beside it."
+    )
+    panel.appendChild(intro)
+
+    _stat_heading(panel, "Damage taken by category")
+    total = sum(stats["category_damage"].values()) or 1.0
+    for category, amount in stats["category_damage"].items():
+        panel.appendChild(
+            _stat_row(f"{CATEGORY_ICON[category]} {category.capitalize()}", amount / total,
+                      f"{amount:.0f} damage ({amount / total * 100:.0f}%)")
+        )
+
+    _stat_heading(panel, "Average mitigation by event type")
+    for item in stats["matchups"]:
+        panel.appendChild(
+            _stat_row(f"{EVENT_ICON[item['type']]} {EVENT_LABEL[item['type']]}", item["avg_mitigation"],
+                      f"{item['avg_mitigation'] * 100:.0f}% prevented (avg {item['avg_damage']:.0f} damage, {item['count']} faced)")
+        )
+    if len(stats["matchups"]) >= 2:
+        best, worst = stats["matchups"][0], stats["matchups"][-1]
+        line = document.createElement("p")
+        line.className = "stat-matchup"
+        if best["avg_mitigation"] - worst["avg_mitigation"] < 0.005:
+            line.innerText = "Every matchup is level so far: the same share of damage prevented against every kind of shock."
+        else:
+            line.innerText = (
+                f"Best matchup: {EVENT_LABEL[best['type']]} ({best['avg_mitigation'] * 100:.0f}% prevented). "
+                f"Worst matchup: {EVENT_LABEL[worst['type']]} ({worst['avg_mitigation'] * 100:.0f}% prevented)."
+            )
+        panel.appendChild(line)
+
+    _stat_heading(panel, "Knowledge points over time")
+    rows = stats["kp_rows"][-STATS_KP_ROWS:]
+    most = max([r["earned"] for r in rows] + [1])
+    for item in rows:
+        panel.appendChild(
+            _stat_row(f"Run {item['run_number']}", item["earned"] / most, f"+{item['earned']} (total {item['total']})")
+        )
+    if len(stats["kp_rows"]) > len(rows):
+        note = document.createElement("p")
+        note.className = "comparison-message"
+        note.innerText = f"Showing the last {len(rows)} of {len(stats['kp_rows'])} runs."
+        panel.appendChild(note)
+
+    _stat_heading(panel, "Average score by skill strength")
+    scored = [b["avg_score"] for b in stats["bands"] if b["avg_score"] is not None]
+    top = max(scored + [1.0])
+    for band in stats["bands"]:
+        if band["avg_score"] is None:
+            panel.appendChild(_stat_row(band["label"], 0.0, "no runs yet"))
+        else:
+            panel.appendChild(
+                _stat_row(band["label"], band["avg_score"] / top,
+                          f"{band['avg_score']:.0f} average over {band['runs']} run{'s' if band['runs'] != 1 else ''}")
+            )
+    note = document.createElement("p")
+    note.className = "comparison-message"
+    note.innerText = "Skill strength is recorded for runs completed from this update on; older runs are not in these bands."
+    panel.appendChild(note)
+
+    flawless = document.createElement("p")
+    flawless.className = "stat-matchup"
+    flawless.innerText = f"Flawless Defenses so far: {stats['flawless']}."
+    panel.appendChild(flawless)
+
+
+# ---- GE-15 hint, GE-13 popup, E-5 announcements -------------------------
+def flawless_threshold(event_type):
+    return EVENT_BASE_DAMAGE[event_type] * FLAWLESS_DAMAGE_FRACTION
+
+
+def flawless_hint_text(run_state):
+    """GE-15: always tells the player what a Flawless Defense needs for the
+    coming event, and whether the current build is on track."""
+    if run_state.is_complete():
+        return ""
+    event_type = run_state.next_event_type()
+    limit = flawless_threshold(event_type)
+    damage, _severity = expected_next_event_damage(run_state)
+    status = "on track" if damage <= limit + 1e-9 else f"expected {damage:.0f}"
+    return (
+        f"Flawless Defense (+{FLAWLESS_BONUS_KNOWLEDGE} knowledge): hold {EVENT_LABEL[event_type]} damage to "
+        f"{limit:.0f} or less ({status})."
+    )
+
+
+def event_announcement(entry):
+    prevented = entry_prevented(entry)
+    text = (
+        f"{EVENT_LABEL[entry['type']]} hit, {entry['damage']:.0f} damage, {prevented:.0f} prevented."
+    )
+    if entry_is_flawless(entry):
+        text += " Flawless Defense."
+    return text
+
+
+def announce(text):
+    element = document.getElementById("event-announcer")
+    element.innerText = text
+
+
+def render_damage_popup():
+    popup = document.getElementById("damage-prevented-popup")
+    streak_el = document.getElementById("damage-streak-display")
+    if not run.event_log:
+        popup.hidden = True
+        streak_el.hidden = True
+        popup.innerText = ""
+        streak_el.innerText = ""
+        return
+    last = run.event_log[-1]
+    prevented = entry_prevented(last)
+    popup.hidden = False
+    if prevented >= 1:
+        popup.innerText = f"-{prevented:.0f} damage prevented!"
+    else:
+        popup.innerText = "No damage prevented. More resilience softens the next hit."
+    popup.dataset.prevented = str(int(round(prevented)))
+    popup.dataset.eventKey = f"{run.run_number}-{len(run.event_log)}"
+    parts = []
+    streak = held_streak(run.event_log)
+    if streak >= 2:
+        parts.append(f"🔥 Held {streak} events in a row")
+    if entry_is_flawless(last):
+        parts.append(f"✨ Flawless Defense: +{FLAWLESS_BONUS_KNOWLEDGE} knowledge at the end of the run")
+    streak_el.innerText = " · ".join(parts)
+    streak_el.hidden = not parts
+
+
+# ---- E-23: knowledge itemisation ---------------------------------------
+def knowledge_breakdown_lines(run_state):
+    info = run_state.knowledge_breakdown()
+    lines = [f"Resources left {info['resources']:.0f} ÷ 20 = {info['raw']} knowledge"]
+    if info["floor_applied"]:
+        lines.append("Minimum of 1 applied: no run ever earns nothing")
+    if info["flawless"]:
+        lines.append(
+            f"Flawless Defense x{info['flawless']}: +{info['flawless_bonus']} knowledge"
+        )
+    lines.append(f"Total: {info['total']} knowledge point{'s' if info['total'] != 1 else ''}")
+    return lines
+
+
+def knowledge_preview_detail(run_state):
+    info = run_state.knowledge_breakdown()
+    detail = f"{info['base']} from {info['resources']:.0f} resources"
+    if info["flawless"]:
+        detail += f", +{info['flawless_bonus']} Flawless Defense"
+    return f" ({detail})"
+
+
+# ---- E-24: copy run summary --------------------------------------------
+def run_summary_text(run_state=None):
+    run_state = run_state or run
+    name = meta["settlement_name"] or "My settlement"
+    scenario = SCENARIOS[run_state.scenario]["label"]
+    done = run_state.is_complete()
+    lines = [
+        f"Aftermath: {name}, run {run_state.run_number} ({scenario}{', extended' if run_state.extended else ''})"
+        + ("" if done else " - in progress"),
+        f"{'Score' if done else 'Resources so far'}: {run_state.run_score():.0f}"
+        + (f" | Knowledge earned: {run_state.knowledge_points_earned()}" if done else ""),
+        f"Resilience {run_state.resilience_capacity}, growth {run_state.growth_capacity}, "
+        f"damage taken {run_state.damage_taken:.0f}",
+    ]
+    for index, entry in enumerate(run_state.event_log, start=1):
+        extra = " (flawless)" if entry_is_flawless(entry) else ""
+        lines.append(
+            f"{index}. {EVENT_LABEL[entry['type']]}: {entry['damage']:.0f} damage, "
+            f"{entry_prevented(entry):.0f} prevented, {severity_label(entry['severity'])}{extra}"
+        )
+    return "\n".join(lines)
+
+
+def _copy_to_clipboard(text):
+    try:
+        import js as _js  # noqa: PLC0415 -- Pyodide-only, deliberately lazy
+    except ImportError:
+        return False
+    navigator = getattr(_js, "navigator", None)
+    clipboard = getattr(navigator, "clipboard", None) if navigator is not None else None
+    if clipboard is None:
+        return False
+    try:
+        clipboard.writeText(text)
+        return True
+    except Exception:
+        return False
+
+
+def on_copy_run_summary(event=None):
+    text = run_summary_text()
+    status = document.getElementById("copy-run-summary-status")
+    area = document.getElementById("copy-run-summary-area")
+    if _copy_to_clipboard(text):
+        area.hidden = True
+        status.innerText = "Copied the run summary to the clipboard."
+    else:
+        area.hidden = False
+        area.value = text
+        status.innerText = "Could not copy automatically. Select the text below and copy it yourself."
+
+
+# ---- E-27: live tab title ----------------------------------------------
+def tab_title(run_state=None):
+    run_state = run_state or run
+    if run_state.is_complete():
+        return f"Aftermath - Run {run_state.run_number} complete, score {run_state.run_score():.0f}"
+    return (
+        f"Aftermath - Run {run_state.run_number}, event {run_state.event_index + 1} of {len(run_state.schedule)} "
+        f"({EVENT_LABEL[run_state.next_event_type()]} next)"
+    )
+
+
+def update_tab_title():
+    try:
+        document.title = tab_title()
+    except Exception:
+        pass
+
+
+# ---- GE-18 / E-15 handlers ---------------------------------------------
+def on_undo_allocation(event=None):
+    if run.undo_last_allocation():
+        announce(f"Undid the last allocation. Resources {run.resources:.0f}, resilience {run.resilience_capacity}, growth {run.growth_capacity}.")
+    render()
+
+
+def _make_step_handler(step):
+    def handler(event=None):
+        set_invest_step(step)
+        render()
+    return handler
+
+
 def render():
     render_info_page()
     update_achievements_display()
     render_past_runs_panel()
+    render_codex_panel()
+    render_stats_panel()
+    render_damage_popup()
+    update_tab_title()
     update_changelog_display()
     document.getElementById("legacy-display").innerText = legacy_message()
     document.getElementById("societal-memory-display").innerText = societal_memory_message()
@@ -2299,6 +3010,7 @@ def render():
         document.getElementById("progress-display").innerText = "Run complete"
         document.getElementById("next-event-display").innerText = "No more events this run."
         document.getElementById("expected-damage-display").innerText = ""
+        document.getElementById("flawless-hint-display").innerText = ""
         document.getElementById("knowledge-preview-display").innerText = ""
         document.getElementById("run-summary-display").innerText = (
             f"Score: {run.run_score():.0f} — "
@@ -2317,6 +3029,19 @@ def render():
         )
         run_summary_panel.appendChild(stats)
         _render_event_breakdown_lines(run_summary_panel, run.event_log)
+        # E-23: where the knowledge points came from.
+        breakdown = document.createElement("div")
+        breakdown.className = "knowledge-breakdown"
+        breakdown_heading = document.createElement("p")
+        breakdown_heading.className = "knowledge-breakdown-heading"
+        breakdown_heading.innerText = "Knowledge earned this run"
+        breakdown.appendChild(breakdown_heading)
+        for text in knowledge_breakdown_lines(run):
+            line = document.createElement("p")
+            line.className = "knowledge-breakdown-line"
+            line.innerText = text
+            breakdown.appendChild(line)
+        run_summary_panel.appendChild(breakdown)
         epilogue = extended_epilogue_text(run)
         if epilogue:
             epilogue_el = document.createElement("p")
@@ -2345,6 +3070,7 @@ def render():
         )
         expected_el.className = f"status-line severity--{severity_label(severity)}"
         expected_el.title = severity_tooltip_text(run.run_number)
+        document.getElementById("flawless-hint-display").innerText = flawless_hint_text(run)  # GE-15
 
         # E20: a live preview of the knowledge points a run would award
         # if it ended right now.
@@ -2352,6 +3078,7 @@ def render():
         preview_el = document.getElementById("knowledge-preview-display")
         preview_el.innerText = (
             f"If the run ended now: {knowledge_now} knowledge point{'s' if knowledge_now != 1 else ''}"
+            + knowledge_preview_detail(run)  # E-23
         )
         global last_knowledge_preview
         if last_knowledge_preview is not None and knowledge_now > last_knowledge_preview:
@@ -2378,12 +3105,26 @@ def render():
     document.getElementById("mitigation-bar").style.width = f"{run.mitigation_fraction() * 100:.0f}%"
 
     resilience_button = document.getElementById("resilience-invest-button")
-    resilience_button.innerText = f"Invest in Resilience ({RESILIENCE_COST})"
-    resilience_button.disabled = run.resources < RESILIENCE_COST or run.is_complete()
+    resilience_button.innerText = resilience_button_label(run, invest_step)
+    resilience_button.disabled = run.is_complete() or run.step_units("resilience", invest_step) < 1
 
     growth_button = document.getElementById("growth-invest-button")
-    growth_button.innerText = growth_button_label(run.growth_capacity)
-    growth_button.disabled = run.resources < GROWTH_COST or run.is_complete()
+    growth_button.innerText = growth_step_label(run, invest_step)
+    growth_button.disabled = run.is_complete() or run.step_units("growth", invest_step) < 1
+
+    for step in INVEST_STEPS:  # E-15
+        step_button = document.getElementById(f"step-{'max' if step == 'max' else 'x' + str(step)}-button")
+        step_button.setAttribute("aria-pressed", "true" if step == invest_step else "false")
+        if step == invest_step:
+            step_button.classList.add("selected")
+        else:
+            step_button.classList.remove("selected")
+    undo_button = document.getElementById("undo-allocation-button")  # GE-18
+    undo_button.innerText = f"↶ Undo ({run.undo_count()})"
+    undo_button.disabled = run.undo_count() < 1 or run.is_complete()
+
+    # E-24: the copy button is available once an event has been faced.
+    document.getElementById("run-summary-actions").hidden = not run.event_log
 
     resolve_button = document.getElementById("resolve-event-button")
     resolve_button.disabled = run.is_complete()
@@ -2469,25 +3210,30 @@ def render():
 
 
 def on_invest_resilience(event=None):
-    invested = run.invest_resilience()
+    bought = run.invest_steps("resilience", invest_step)
     render()
-    if invested:
+    if bought:
         _flash_element("resources-display")
+        announce(f"Invested in resilience x{bought}. Resilience {run.resilience_capacity}, resources {run.resources:.0f}.")
     _check_new_achievements_for_toast()
 
 
 def on_invest_growth(event=None):
-    invested = run.invest_growth()
+    bought = run.invest_steps("growth", invest_step)
     render()
-    if invested:
+    if bought:
         _flash_element("resources-display")
+        announce(f"Invested in growth x{bought}. Growth {run.growth_capacity}, resources {run.resources:.0f}.")
     _check_new_achievements_for_toast()
 
 
 def on_resolve_event(event=None):
+    before = len(run.event_log)
     run.resolve_next_event()
     _maybe_trigger_callouts(run)
     render()
+    if len(run.event_log) > before:
+        announce(event_announcement(run.event_log[-1]))  # E-5
     _check_new_achievements_for_toast()
 
 
@@ -2525,6 +3271,9 @@ def start_new_run(event=None):
     global run, callout_message, last_knowledge_preview
     callout_message = ""
     last_knowledge_preview = None
+    document.getElementById("copy-run-summary-status").innerText = ""
+    document.getElementById("copy-run-summary-area").hidden = True
+    announce("")
     extended = document.getElementById("extended-run-toggle").checked
     scenario = document.getElementById("scenario-select").value
     run = RunState(run_number=max(run.run_number, highest_awarded_run) + 1, extended=extended, scenario=scenario)
@@ -2690,6 +3439,18 @@ def setup():
     document.getElementById("progress-import-button").addEventListener(
         "click", create_proxy(on_import_progress)
     )
+    document.getElementById("undo-allocation-button").addEventListener(
+        "click", create_proxy(on_undo_allocation)
+    )
+    for step in INVEST_STEPS:
+        button_id = f"step-{'max' if step == 'max' else 'x' + str(step)}-button"
+        document.getElementById(button_id).addEventListener("click", create_proxy(_make_step_handler(step)))
+    document.getElementById("codex-toggle-button").addEventListener("click", create_proxy(on_toggle_codex))
+    document.getElementById("stats-toggle-button").addEventListener("click", create_proxy(on_toggle_stats))
+    document.getElementById("copy-run-summary-button").addEventListener(
+        "click", create_proxy(on_copy_run_summary)
+    )
+    document.getElementById("copy-run-summary-area").hidden = True
     document.getElementById("achievement-toast").hidden = True
     document.getElementById("skill-unlock-toast").hidden = True
     render()

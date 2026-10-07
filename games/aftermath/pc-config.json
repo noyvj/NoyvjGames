@@ -16,6 +16,16 @@
       "Past Runs"
     ],
     [
+      "codex-panel",
+      "codex-toggle-button",
+      "Disaster Codex"
+    ],
+    [
+      "stats-panel",
+      "stats-toggle-button",
+      "Lifetime Stats"
+    ],
+    [
       "changelog-panel",
       "changelog-toggle-button",
       "What's New"
@@ -62,6 +72,8 @@
       {
         "heading": "Records",
         "ids": [
+          "codex-toggle-button",
+          "stats-toggle-button",
           "changelog-toggle-button"
         ]
       }
@@ -171,6 +183,26 @@
   ],
   "side_label": "Investments and skill tree",
   "hints": [
+    [
+      "1 2",
+      "Invest"
+    ],
+    [
+      "Enter",
+      "Face event"
+    ],
+    [
+      "U",
+      "Undo"
+    ],
+    [
+      "T",
+      "Tree"
+    ],
+    [
+      "H C S",
+      "History, Codex, Stats"
+    ],
     [
       "?",
       "All shortcuts"
