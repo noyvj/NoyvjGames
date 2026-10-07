@@ -1,6 +1,31 @@
 {
   "file": "terms.html",
-  "last_changed": "2026-09-20",
-  "changes": [],
-  "generated_by": "seed value copied from the page's own hand-written line; run scripts/generate-terms-meta.py after committing to replace it with the git history"
+  "last_changed": "2026-10-08",
+  "changes": [
+    {
+      "date": "2026-10-08",
+      "subject": "Hub shell: settings, help FAQ, shortcuts, offline banner, session lengths, health dot, credits (agent-built, reviewed)"
+    },
+    {
+      "date": "2026-09-26",
+      "subject": "U7 + U9: test-data flag with admin Accounts panel, optional account email"
+    },
+    {
+      "date": "2026-09-26",
+      "subject": "Y31: account-synced site-wide settings (backend endpoints + shared client)"
+    },
+    {
+      "date": "2026-09-26",
+      "subject": "Y11 step 1: shared theme switch and light theme for the hub shell"
+    },
+    {
+      "date": "2026-09-26",
+      "subject": "Hub: public achievements list page (user request)"
+    },
+    {
+      "date": "2026-09-21",
+      "subject": "Z29: cross-game real-world sources aggregation page"
+    }
+  ],
+  "generated_by": "scripts/generate-terms-meta.py (from the git history of terms.html)"
 }
