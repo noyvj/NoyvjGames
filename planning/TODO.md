@@ -945,7 +945,7 @@ Classic stays the default boot (`index.html`); Desktop is a second boot (`pc.htm
 - [ ] CH-10: Milestone 7, spaced review and decision points.
 - [ ] CH-11: Milestone 8, author the American presidents set in full (three sources per claim, a review page, then your review), balanced and non-partisan.
 - [ ] CH-12: Milestone 9, second and third sets (history of food, Ancient Greece) and the set picker.
-- [ ] CH-13: Milestone 10, polish, accessibility pass, hub registration, Desktop boot.
+- [ ] CH-13: (Note: `scripts/generate-last-updated.py` adds chronicle to `game-manifest.json`; it was removed by hand until the game is hub-registered, so re-run the script then.) Milestone 10, polish, accessibility pass, hub registration, Desktop boot.
 
 ## IA. Ideas answers (waiting on you)
 
