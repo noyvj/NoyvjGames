@@ -82,7 +82,9 @@ html[data-layout="pc"] #theme-toggle-floating { bottom: 50px; left: 10px; }
 #pc-side > #actions-dock #investments { margin: 0; padding: 0.6rem 0.8rem; }
 #pc-side > #actions-dock .invest-row { padding: 0.35rem 0; }
 #pc-side > #actions-dock .output-mix-label { margin-bottom: 0.3rem; }
-#pc-side > #actions-dock #advance-season-button { width: 100%; margin: 0; }
+#pc-side > #actions-dock #advance-season-button { width: auto; margin: 0; }
+#pc-side > #actions-dock .advance-row { margin: 0; }
+#pc-side > #actions-dock .advance-x5-note { margin: 0; padding: 0 0.2rem; }
 #pc-side > #adaptation-tier-progress { font-size: 0.8rem; padding: 0 0.2rem; }
 #pc-side > .section { padding: 0.6rem 0.8rem; }
 

@@ -11,6 +11,7 @@ import json
 import math
 
 import info_page
+import js as _js
 from js import document, setTimeout
 from pyodide.ffi import create_proxy
 
@@ -102,7 +103,38 @@ AQUACULTURE_MIN_MULTIPLIER = 0.4
 
 # D27: how much of the run's state a checkpoint keeps.
 CHECKPOINT_FORESIGHT_LIMIT = 200
-CHECKPOINT_DROP_KEYS = ("ticker_full_history", "achievements_earned")
+CHECKPOINT_DROP_KEYS = ("ticker_full_history", "achievements_earned", "season_ledger")
+
+# D-1: the Harbor Ledger -- one compact row per resolved season. (key, header label).
+LEDGER_LIMIT = 120
+LEDGER_COLUMNS = [
+    ("season", "Season"),
+    ("funds", "Funds"),
+    ("acidity", "Acidity"),
+    ("fish_yield", "Fish yield"),
+    ("damage", "Damage"),
+    ("rows_dry", "Rows dry"),
+    ("population", "Population"),
+    ("tier", "Tier"),
+    ("invested", "Invested"),
+]
+LEDGER_KEYS = [key for key, _label in LEDGER_COLUMNS]
+
+# D-15: Advance x5 runs up to this many quiet seasons in a row.
+ADVANCE_BATCH = 5
+# D-15: an unprotected heritage site this close to flooding (and affordable
+# to protect) is a reason for Advance x5 to stop and let the player act.
+HERITAGE_RISK_SEASONS = 1
+
+# D-17: ticker history filter chips (key, label). "other" messages only show under All.
+TICKER_FILTERS = [
+    ("all", "All"),
+    ("fish", "Fish"),
+    ("sea", "Sea"),
+    ("economy", "Economy"),
+    ("storm", "Storm"),
+    ("chronicle", "Chronicle"),
+]
 
 ACIDITY_RISE_PER_OUTPUT = 2.0
 ACIDITY_FALL_PER_REDUCTION = 1.5
@@ -367,6 +399,8 @@ class SettlementState:
         self.checkpoint = None
         self.foresight = []
         self.replay_count = 0
+        # D-1: one dict per resolved season (see _record_ledger_entry()).
+        self.season_ledger = []
 
     # ---- D1 managed retreat ------------------------------------------
     def row_lost(self, row):
@@ -938,6 +972,177 @@ class SettlementState:
             f"via adaptation). Adaptation tier reached: {tier['name']}. {worst_text}"
         )
 
+    # ---- D-1 Harbor Ledger -------------------------------------------
+    def rows_dry_count(self):
+        return sum(1 for row in range(COASTLINE_ROWS) if not self.row_lost(row))
+
+    def _record_ledger_entry(self, resolved_season, damage, fish_yield):
+        """Appends the just-resolved season to the ledger (rounded, so a
+        saved ledger stays small)."""
+        self.season_ledger.append(
+            {
+                "season": resolved_season,
+                "funds": round(self.funds, 1),
+                "acidity": round(self.acidity, 2),
+                "fish_yield": round(fish_yield, 3),
+                "damage": round(damage, 2),
+                "rows_dry": self.rows_dry_count(),
+                "population": int(self.population),
+                "tier": self.current_tier_index(),
+                "invested": int(sum(self.capacity.values())),
+            }
+        )
+        self.season_ledger = self.season_ledger[-LEDGER_LIMIT:]
+
+    def sorted_ledger(self, key="season", descending=False):
+        """The ledger sorted by one column (stable, so ties keep season order)."""
+        if key not in LEDGER_KEYS:
+            key = "season"
+        return sorted(self.season_ledger, key=lambda entry: entry[key], reverse=bool(descending))
+
+    def ledger_series(self, key):
+        """One column's values in season order, for its small chart."""
+        return [entry[key] for entry in self.season_ledger if key in entry]
+
+    def ledger_summary_text(self, key="season", descending=True):
+        if not self.season_ledger:
+            return "No seasons recorded yet. Advance a season and its row appears here."
+        first, last = self.season_ledger[0]["season"], self.season_ledger[-1]["season"]
+        label = dict(LEDGER_COLUMNS)[key if key in LEDGER_KEYS else "season"]
+        peak = max(self.season_ledger, key=lambda e: e["funds"])
+        low = min(self.season_ledger, key=lambda e: e["fish_yield"])
+        text = (
+            f"{len(self.season_ledger)} season(s) recorded (Season {first} to {last}), "
+            f"sorted by {label.lower()}, {'highest first' if descending else 'lowest first'}. "
+            f"Peak funds {peak['funds']:.0f} in Season {peak['season']}; "
+            f"lowest fish yield {low['fish_yield'] * 100:.0f}% in Season {low['season']}."
+        )
+        if self.season - 1 > len(self.season_ledger) and len(self.season_ledger) < LEDGER_LIMIT:
+            text += " Seasons played before the ledger existed (older saves) are not listed."
+        return text
+
+    # ---- D-15 Advance x5 ---------------------------------------------
+    def fish_warning_active(self):
+        """True while the fish-yield early warning (D14) is showing."""
+        preview = self.next_season_fish_yield_preview()
+        current = self.fish_yield_multiplier()
+        return (
+            preview is not None
+            and preview < current - 1e-6
+            and preview <= FISH_YIELD_WARNING_THRESHOLD
+        )
+
+    def heritage_at_risk(self):
+        """Unprotected, still-dry heritage sites close to flooding that the
+        player can afford to protect right now."""
+        return [
+            site
+            for site in HERITAGE_SITES
+            if self.heritage.get(site["id"]) == HERITAGE_UNPROTECTED
+            and not self.row_lost(site["row"])
+            and self.funds >= site["cost"]
+            and self.seasons_until_flood(site["row"]) <= HERITAGE_RISK_SEASONS
+        ]
+
+    def monitoring_ready_again(self):
+        """True the first season a monitoring crew is available again, for a
+        player who has used monitoring before (so it never nags anyone else)."""
+        return (
+            self.monitoring_reports > 0
+            and self.monitoring_last_season > 0
+            and self.can_monitor()
+            and self.season - self.monitoring_last_season == MONITOR_COOLDOWN_SEASONS
+        )
+
+    def attention_reasons(self):
+        """Things that deserve a decision before another season passes, as
+        (kind, plain-language text). Advance x5 only runs while this is empty."""
+        reasons = []
+        wait = self.seasons_until_storm()
+        if wait is not None and wait <= 1:
+            when = "this season" if wait == 0 else "next season"
+            reasons.append(("storm", f"a storm surge is forecast for {when}"))
+        if self.fish_warning_active():
+            reasons.append(("fish", "a fish-yield warning is showing"))
+        for site in self.heritage_at_risk():
+            reasons.append(("heritage", f"the {site['name'].lower()} is at risk and can be protected"))
+        if self.monitoring_ready_again():
+            reasons.append(("monitor", "a monitoring crew is available again"))
+        return reasons
+
+    def advance_quiet_seasons(self, count=ADVANCE_BATCH):
+        """Runs up to `count` seasons, stopping BEFORE any season that has
+        something needing attention. Returns (seasons_run, stop_text); stop_text
+        is None when all `count` seasons ran quietly."""
+        run = 0
+        for _ in range(max(0, int(count))):
+            reasons = self.attention_reasons()
+            if reasons:
+                return run, "; ".join(text for _kind, text in reasons)
+            self.advance_season()
+            run += 1
+        return run, None
+
+    # ---- D-7 screen-reader text --------------------------------------
+    def coastline_row_description(self, row):
+        """e.g. "Row 5: dry, seawall tier 2" -- the text twin of one grid row."""
+        if row in self.retreat_rows:
+            status = "cleared by managed retreat"
+        elif tile_row_state(row, self.sea_level) == FLOODED:
+            status = "flooded"
+        else:
+            status = "dry"
+        parts = [status]
+        tier_index = self.current_tier_index()
+        if tier_index and _is_seawall_row(row, tier_index):
+            parts.append(f"seawall tier {tier_index}")
+        site = next((x for x in HERITAGE_SITES if x["row"] == row), None)
+        if site is not None:
+            heritage = self.heritage.get(site["id"])
+            parts.append(f"{site['name'].lower()} {heritage}")
+        if row in self.tidal_rows():
+            parts.append("washed by this season's tide")
+        return f"Row {row + 1}: " + ", ".join(parts)
+
+    def coastline_description(self):
+        lines = [self.coastline_row_description(r) for r in range(COASTLINE_ROWS)]
+        return (
+            f"Coastline, {COASTLINE_ROWS} rows from row 1 (highest ground) to row {COASTLINE_ROWS} "
+            f"(at the shore). {self.rows_dry_count()} dry. " + ". ".join(lines) + "."
+        )
+
+    def season_result_text(self):
+        """What a screen reader announces after a season resolves."""
+        if not self.season_ledger:
+            return f"Season {self.season}."
+        last = self.season_ledger[-1]
+        text = (
+            f"Season {last['season']} resolved. Now Season {self.season}. "
+            f"Funds {self.funds:.0f}. Ocean acidity {self.acidity:.1f}. "
+            f"Fishing yield {self.fish_yield_multiplier() * 100:.0f} percent. "
+            f"Damage this season {last['damage']:.0f}. "
+            f"{self.rows_dry_count()} of {COASTLINE_ROWS} coastline rows dry."
+        )
+        if self.ticker_log:
+            text += " Latest: " + self.ticker_log[-1]
+        return text
+
+    # ---- D-18 copy as text -------------------------------------------
+    def share_text(self):
+        lines = [
+            f"{self.display_name()} — a Tide settlement",
+            self.session_summary_text(),
+            f"Population {self.population} (peak {self.peak_population}); "
+            f"{self.rows_dry_count()} of {COASTLINE_ROWS} coastline rows dry; "
+            f"sea scenario: {self.sea_scenario}.",
+        ]
+        chronicle = self.chronicle_lines()
+        if chronicle:
+            lines.append("")
+            lines.append("Chronicle:")
+            lines.extend(chronicle)
+        return "\n".join(lines)
+
     def _log_ticker(self, message):
         """Every ticker-producing method routes through here so the short
         live ticker (ticker_log, capped at TICKER_LOG_LIMIT) and D5's
@@ -1055,6 +1260,7 @@ class SettlementState:
         new_fish_yield = self.fish_yield_multiplier()
         self.fish_yield_history.append(new_fish_yield)
         self.min_fish_yield_ever = min(self.min_fish_yield_ever, new_fish_yield)
+        self._record_ledger_entry(self.season - 1, damage_this_season, new_fish_yield)
 
         self._record_ticker_message(acidity_change, old_fish_yield, new_fish_yield)
         self._record_trend_message()
@@ -1172,6 +1378,10 @@ def heritage_status_text(site):
 def render_coastline():
     global _previous_flooded_rows
     grid_el = document.getElementById("coastline-grid")
+    # D-7: a re-render replaces every tile, so remember which one had keyboard
+    # focus and give it back afterwards (otherwise Tab order restarts).
+    focused = getattr(document, "activeElement", None)
+    focused_id = getattr(focused, "id", "") if focused is not None else ""
     grid_el.innerHTML = ""
     tier_index = state.current_tier_index()
     current_flooded_rows = set()
@@ -1226,8 +1436,25 @@ def render_coastline():
                 + (" This season's tide is washing over it." if tidal else "")
             )
             tile.title = (heritage_status_text(site) + " " if site is not None else "") + base_title
+            # D-7: one focusable stop per row (column 0) that reads the row aloud;
+            # the other columns of the row are the same state and stay silent.
+            if col_index == 0:
+                tile.tabIndex = 0
+                tile.setAttribute("role", "img")
+                tile.setAttribute("aria-label", state.coastline_row_description(row_index))
+            else:
+                tile.setAttribute("aria-hidden", "true")
             grid_el.appendChild(tile)
     _previous_flooded_rows = current_flooded_rows
+    grid_el.setAttribute("role", "group")
+    grid_el.setAttribute("aria-label", "Coastline, one stop per row. Use Up and Down arrows to move between rows.")
+    description = document.getElementById("coastline-description")
+    if description is not None:
+        description.innerText = state.coastline_description()
+    if focused_id.startswith("coastline-tile-"):
+        refocus = document.getElementById(focused_id)
+        if refocus is not None:
+            refocus.focus()
 
 
 def _render_mini_coastline(container_id, sea_level, tier_index=0):
@@ -1342,7 +1569,7 @@ def then_vs_now_sparkline_svg():
     points = _sparkline_points(series, top)
     return (
         f'<svg viewBox="0 0 {SPARKLINE_WIDTH} {SPARKLINE_HEIGHT}" '
-        f'class="acidity-fish-sparkline" role="img" '
+        f'class="acidity-fish-sparkline" role="img" tabindex="0" '
         f'aria-label="Damage per season since the baseline">'
         f'<polyline points="{points}" fill="none" stroke="#d8c088" stroke-width="2" />'
         f"</svg>"
@@ -1398,8 +1625,9 @@ def acidity_fish_history_svg():
         )
     return (
         f'<svg viewBox="0 0 {SPARKLINE_WIDTH} {SPARKLINE_HEIGHT}" '
-        f'class="acidity-fish-sparkline" role="img" '
-        f'aria-label="Ocean acidity and fishing yield over the session">'
+        f'class="acidity-fish-sparkline" role="img" tabindex="0" '
+        f'aria-label="Ocean acidity and fishing yield over the session. Latest: acidity '
+        f'{state.acidity:.1f}, fishing yield {state.fish_yield_multiplier() * 100:.0f} percent.">'
         f"{reference}{marker}"
         f'<polyline points="{acidity_points}" fill="none" '
         f'stroke="{SPARKLINE_ACIDITY_COLOR}" stroke-width="2" />'
@@ -1436,7 +1664,7 @@ def delayed_consequence_svg():
     )
     return (
         f'<svg viewBox="0 0 {SPARKLINE_WIDTH} {SPARKLINE_HEIGHT}" '
-        f'class="acidity-fish-sparkline" role="img" '
+        f'class="acidity-fish-sparkline" role="img" tabindex="0" '
         f'aria-label="Acidity banked each season and the fish yield it causes {lag} seasons later">'
         f"{now_line}"
         f'<polyline points="{acidity_pts}" fill="none" '
@@ -1946,9 +2174,8 @@ def render_fish_warning_banner():
     banner = document.getElementById("fish-warning-banner")
     if banner is None:
         return
-    preview = state.next_season_fish_yield_preview()
-    current = state.fish_yield_multiplier()
-    if preview is not None and preview < current - 1e-6 and preview <= FISH_YIELD_WARNING_THRESHOLD:
+    if state.fish_warning_active():
+        preview = state.next_season_fish_yield_preview()
         banner.hidden = False
         banner.innerText = (
             f"⚠️ Heads up: fishing yield is on track to fall to about {preview * 100:.0f}% "
@@ -1959,17 +2186,310 @@ def render_fish_warning_banner():
         banner.hidden = True
 
 
+# D-17: which filter chip and search text the full history is showing. A
+# view preference only: never saved, resets on reload.
+ticker_filter = "all"
+ticker_search = ""
+
+
+def ticker_category(message):
+    """D-17: classifies a ticker message from its wording, so older saves
+    (which stored plain strings) filter exactly like new ones."""
+    text = message.lower()
+    if "⛈" in message or "storm surge in season" in text:
+        return "storm"
+    if (
+        text.startswith(("monitoring report", "checkpoint", "replaying", "managed retreat"))
+        or "people had to leave" in text
+        or "founded" in text
+        or any(site["name"].lower() in text for site in HERITAGE_SITES)
+    ):
+        return "chronicle"
+    if any(word in text for word in ("fish", "acidity", "stock", "yield")):
+        return "fish"
+    if any(word in text for word in ("diversif", "economy", "income", "funds", "tourism", "aquaculture")):
+        return "economy"
+    if any(word in text for word in ("sea", "flood", "tile", "coast", "tier", "adaptation", "damage", "seawall", "tide")):
+        return "sea"
+    return "other"
+
+
+def filtered_ticker_history(category=None, search=None):
+    """D-17: the full history, narrowed by chip and by a case-insensitive
+    text search. Returns a new list; the stored history is never changed."""
+    category = ticker_filter if category is None else category
+    search = ticker_search if search is None else search
+    needle = (search or "").strip().lower()
+    messages = []
+    for message in state.ticker_full_history:
+        if category != "all" and ticker_category(message) != category:
+            continue
+        if needle and needle not in message.lower():
+            continue
+        messages.append(message)
+    return messages
+
+
 def render_ticker_history():
     """D5: the full, uncapped-within-TICKER_FULL_HISTORY_LIMIT ticker log
     behind an expandable panel, alongside (not instead of) the short live
-    ticker rendered separately above."""
+    ticker rendered separately above. D-17: chips and a search box narrow
+    this history (the short live ticker is deliberately never filtered)."""
     history_el = document.getElementById("ticker-history-list")
     if history_el is None:
         return
-    if state.ticker_full_history:
-        history_el.innerHTML = "<br>".join(state.ticker_full_history)
-    else:
+    for key, _label in TICKER_FILTERS:
+        chip = document.getElementById(f"ticker-filter-{key}")
+        if chip is not None:
+            chip.setAttribute("aria-pressed", "true" if key == ticker_filter else "false")
+            if key == ticker_filter:
+                chip.classList.add("selected")
+            else:
+                chip.classList.remove("selected")
+    messages = filtered_ticker_history()
+    status_el = document.getElementById("ticker-filter-status")
+    if status_el is not None:
+        filtering = ticker_filter != "all" or ticker_search.strip()
+        status_el.innerText = (
+            f"Showing {len(messages)} of {len(state.ticker_full_history)} message(s)."
+            if filtering and state.ticker_full_history
+            else ""
+        )
+    if not state.ticker_full_history:
         history_el.innerHTML = "No notable changes yet."
+    elif not messages:
+        history_el.innerHTML = "No messages match this filter."
+    else:
+        history_el.innerHTML = "<br>".join(messages)
+
+
+def _make_ticker_filter_handler(key):
+    def handler(event=None):
+        global ticker_filter
+        ticker_filter = key
+        render_ticker_history()
+    return handler
+
+
+def on_ticker_search(event):
+    global ticker_search
+    ticker_search = str(event.target.value or "")
+    render_ticker_history()
+
+
+# ---- D-1 Harbor Ledger ----------------------------------------------
+ledger_open = False
+ledger_sort_key = "season"
+ledger_sort_descending = True
+LEDGER_CHART_WIDTH = 80
+LEDGER_CHART_HEIGHT = 22
+
+
+def _ledger_chart_svg(key):
+    series = state.ledger_series(key)
+    if len(series) < 2:
+        return ""
+    low, high = min(series), max(series)
+    span = high - low
+    step = LEDGER_CHART_WIDTH / (len(series) - 1)
+    points = []
+    for i, value in enumerate(series):
+        y = LEDGER_CHART_HEIGHT / 2 if span <= 1e-9 else (
+            LEDGER_CHART_HEIGHT - 2 - (value - low) / span * (LEDGER_CHART_HEIGHT - 4)
+        )
+        points.append(f"{i * step:.1f},{y:.1f}")
+    label = dict(LEDGER_COLUMNS)[key]
+    return (
+        f'<svg viewBox="0 0 {LEDGER_CHART_WIDTH} {LEDGER_CHART_HEIGHT}" class="ledger-chart" '
+        f'role="img" aria-label="{label} by season, from {series[0]:.4g} to {series[-1]:.4g}">'
+        f'<polyline points="{" ".join(points)}" fill="none" stroke="currentColor" stroke-width="1.6" />'
+        f"</svg>"
+    )
+
+
+def _ledger_cell(key, entry):
+    value = entry[key]
+    if key == "funds" or key == "damage":
+        return f"{value:.0f}"
+    if key == "acidity":
+        return f"{value:.1f}"
+    if key == "fish_yield":
+        return f"{value * 100:.0f}%"
+    if key == "tier":
+        index = max(0, min(int(value), len(ADAPTATION_TIERS) - 1))
+        return f"{TIER_BADGES[index]} {index}"
+    return str(value)
+
+
+def ledger_rows_html():
+    rows = []
+    for entry in state.sorted_ledger(ledger_sort_key, ledger_sort_descending):
+        cells = "".join(f"<td>{_ledger_cell(key, entry)}</td>" for key in LEDGER_KEYS)
+        rows.append(f"<tr>{cells}</tr>")
+    return "".join(rows)
+
+
+def render_ledger():
+    toggle = document.getElementById("ledger-toggle-button")
+    panel = document.getElementById("ledger-panel")
+    if toggle is None or panel is None:
+        return
+    toggle.innerText = "Hide Harbor Ledger" if ledger_open else "📒 Harbor Ledger"
+    panel.hidden = not ledger_open
+    if not ledger_open:
+        return
+    for key, label in LEDGER_COLUMNS:
+        button = document.getElementById(f"ledger-sort-{key}")
+        header = document.getElementById(f"ledger-th-{key}")
+        active = key == ledger_sort_key
+        if button is not None:
+            button.innerText = label + (" ▼" if active and ledger_sort_descending else " ▲" if active else "")
+        if header is not None:
+            header.setAttribute(
+                "aria-sort",
+                ("descending" if ledger_sort_descending else "ascending") if active else "none",
+            )
+        chart = document.getElementById(f"ledger-chart-{key}")
+        if chart is not None:
+            chart.innerHTML = "" if key == "season" else _ledger_chart_svg(key)
+    body = document.getElementById("ledger-body")
+    if body is not None:
+        body.innerHTML = ledger_rows_html()
+    summary = document.getElementById("ledger-summary")
+    if summary is not None:
+        summary.innerText = state.ledger_summary_text(ledger_sort_key, ledger_sort_descending)
+
+
+def on_toggle_ledger(event=None):
+    global ledger_open
+    ledger_open = not ledger_open
+    render_ledger()
+
+
+def _make_ledger_sort_handler(key):
+    def handler(event=None):
+        global ledger_sort_key, ledger_sort_descending
+        if key == ledger_sort_key:
+            ledger_sort_descending = not ledger_sort_descending
+        else:
+            ledger_sort_key = key
+            ledger_sort_descending = True
+        render_ledger()
+    return handler
+
+
+# ---- D-7 announcements -------------------------------------------------
+def announce(text):
+    """Writes into the polite live region screen readers watch."""
+    region = document.getElementById("season-announcer")
+    if region is not None:
+        region.innerText = text
+
+
+# ---- D-24 tab title and favicon ----------------------------------------
+_FAVICON_ORIGINAL = None
+
+
+def _favicon_data_uri(kind):
+    """A small wave badge; a warning adds an amber circle, a storm a red
+    square (a different shape, so the two are not told apart by hue alone)."""
+    marker = ""
+    if kind == "warning":
+        marker = '<circle cx="23" cy="9" r="7" fill="#f5a623" stroke="#fff" stroke-width="1.5"/>'
+    elif kind == "storm":
+        marker = '<rect x="16" y="2" width="14" height="14" fill="#e03e3e" stroke="#fff" stroke-width="1.5"/>'
+    svg = (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+        '<rect width="32" height="32" rx="7" fill="#0e5a8a"/>'
+        '<path d="M3 20 Q8 14 13 20 T23 20 T31 20 V30 H3Z" fill="#7fd4ee"/>'
+        f"{marker}</svg>"
+    )
+    return "data:image/svg+xml," + svg.replace("<", "%3C").replace(">", "%3E").replace("#", "%23").replace('"', "'")
+
+
+def tab_status():
+    """(title, favicon kind) for the current state."""
+    title = f"Tide S{state.season}"
+    reasons = state.attention_reasons()
+    kinds = [kind for kind, _text in reasons]
+    if "storm" in kinds:
+        return title + " - storm forecast", "storm"
+    if "fish" in kinds:
+        return title + " - fish warning", "warning"
+    if "heritage" in kinds:
+        return title + " - heritage at risk", "warning"
+    return title, "normal"
+
+
+def update_tab_status():
+    global _FAVICON_ORIGINAL
+    title, kind = tab_status()
+    try:
+        document.title = title
+    except Exception:
+        pass
+    query = getattr(document, "querySelector", None)
+    if query is None:
+        return
+    link = query('link[rel="icon"]')
+    if link is None:
+        return
+    if _FAVICON_ORIGINAL is None:
+        _FAVICON_ORIGINAL = link.href
+    link.href = _FAVICON_ORIGINAL if kind == "normal" else _favicon_data_uri(kind)
+
+
+# ---- D-18 copy as text -------------------------------------------------
+_copy_proxies = {}
+
+
+def _copy_to_clipboard(text, on_done=None, on_fail=None):
+    """True when a clipboard write was started. The browser promise's own
+    outcome is reported through on_done/on_fail when they are given."""
+    navigator = getattr(_js, "navigator", None)
+    clipboard = getattr(navigator, "clipboard", None) if navigator is not None else None
+    if clipboard is None:
+        return False
+    try:
+        promise = clipboard.writeText(text)
+        if on_done is not None and on_fail is not None and hasattr(promise, "then"):
+            for name, handler in (("done", on_done), ("fail", on_fail)):
+                _copy_proxies[name] = create_proxy(handler)
+            promise.then(_copy_proxies["done"], _copy_proxies["fail"])
+        return True
+    except Exception:
+        return False
+
+
+def _show_copy_fallback(text):
+    status = document.getElementById("copy-text-status")
+    area = document.getElementById("copy-text-area")
+    if area is not None:
+        area.hidden = False
+        area.value = text
+    if status is not None:
+        status.innerText = "Could not copy automatically. Select the text below and copy it yourself."
+
+
+def on_copy_text(event=None):
+    text = state.share_text()
+    status = document.getElementById("copy-text-status")
+    area = document.getElementById("copy-text-area")
+    if area is not None:
+        area.hidden = True
+
+    def done(_result=None):
+        if status is not None:
+            status.innerText = "Copied your settlement summary to the clipboard."
+
+    def failed(_error=None):
+        _show_copy_fallback(text)
+
+    if _copy_to_clipboard(text, done, failed):
+        if status is not None:
+            status.innerText = "Copying..."
+    else:
+        _show_copy_fallback(text)
 
 
 def render_output_mix_controls():
@@ -2264,6 +2784,10 @@ def render():
         invest_button = document.getElementById(f"{category}-invest-button")
         invest_button.innerText = f"Invest ({INVEST_COST[category]})"
         invest_button.disabled = state.funds < INVEST_COST[category]
+        # D-7: three buttons all reading "Invest (30)" are ambiguous to a screen reader.
+        invest_button.setAttribute(
+            "aria-label", f"Invest {INVEST_COST[category]} funds in {INVEST_LABELS[category]}"
+        )
 
     render_output_mix_controls()
     render_sea_scenario_controls()
@@ -2276,19 +2800,52 @@ def render():
     update_achievements_display()
     update_changelog_display()
     update_session_summary_display()
+    render_ledger()
+    update_tab_status()
     _sync_earned_and_toast()
+
+
+INVEST_LABELS = {"output": "Output", "reduction": "Acidity Reduction", "adaptation": "Adaptation"}
 
 
 def _make_invest_handler(category):
     def handler(event=None):
-        state.invest(category)
+        funds_before = state.funds
+        done = state.invest(category)
         render()
+        if done:
+            announce(f"Invested in {INVEST_LABELS[category]}. Funds now {state.funds:.0f}.")
+        elif funds_before < INVEST_COST[category]:
+            announce(f"Not enough funds to invest in {INVEST_LABELS[category]}.")
     return handler
 
 
 def on_advance_season(event=None):
     state.advance_season()
     render()
+    announce(state.season_result_text())
+    _set_advance_note("")
+
+
+def _set_advance_note(text):
+    note = document.getElementById("advance-x5-note")
+    if note is not None:
+        note.innerText = text
+
+
+def on_advance_x5(event=None):
+    """D-15: up to five quiet seasons in one click; stops before any season
+    that needs a decision and says why."""
+    ran, stop_text = state.advance_quiet_seasons(ADVANCE_BATCH)
+    render()
+    if ran == 0:
+        note = f"Not started: {stop_text}. Use Advance Season to go one at a time."
+    elif stop_text:
+        note = f"Ran {ran} season(s), then stopped: {stop_text}."
+    else:
+        note = f"Ran {ADVANCE_BATCH} quiet seasons."
+    _set_advance_note(note)
+    announce((state.season_result_text() + " " if ran else "") + note)
 
 
 def on_output_mix_change(event):
@@ -2370,7 +2927,9 @@ def replay_from_checkpoint():
             }
         )
     replays = state.replay_count + 1
+    kept_ledger = [e for e in state.season_ledger if e["season"] < start]
     load_state(snapshot)
+    state.season_ledger = kept_ledger
     state.checkpoint = copy.deepcopy(snapshot)
     state.foresight = foresight
     state.replay_count = replays
@@ -2487,6 +3046,7 @@ def get_state():
         "checkpoint": copy.deepcopy(state.checkpoint),
         "foresight": copy.deepcopy(state.foresight),
         "replay_count": state.replay_count,
+        "season_ledger": copy.deepcopy(state.season_ledger),
         # Write-only projection (ACHIEVEMENTS-SYSTEM-DESIGN.md §1) —
         # always freshly recomputed, never read back in load_state().
         "achievements_earned": achievement_ids_earned(),
@@ -2520,6 +3080,41 @@ def _clamped_int(value, low, high):
     if isinstance(value, bool) or not isinstance(value, int):
         return low
     return max(low, min(high, value))
+
+
+def _finite_number(value, low, high):
+    return (
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and value == value
+        and low <= value <= high
+    )
+
+
+def _load_ledger(saved):
+    """D-1: keeps only entries that carry every column as a sane number; a
+    save without a ledger (or with a damaged one) loads an empty ledger."""
+    if not isinstance(saved, list):
+        return []
+    ranges = {
+        "season": (1, 10**6), "funds": (0, 1e9), "acidity": (0, 1e6), "fish_yield": (0, 1),
+        "damage": (0, 1e9), "rows_dry": (0, COASTLINE_ROWS), "population": (0, 10**6),
+        "tier": (0, len(ADAPTATION_TIERS) - 1), "invested": (0, 10**6),
+    }
+    entries = []
+    for item in saved:
+        if not isinstance(item, dict) or not all(_finite_number(item.get(k), *ranges[k]) for k in LEDGER_KEYS):
+            continue
+        entries.append(
+            {
+                "season": int(item["season"]), "funds": float(item["funds"]),
+                "acidity": float(item["acidity"]), "fish_yield": float(item["fish_yield"]),
+                "damage": float(item["damage"]), "rows_dry": int(item["rows_dry"]),
+                "population": int(item["population"]), "tier": int(item["tier"]),
+                "invested": int(item["invested"]),
+            }
+        )
+    return entries[-LEDGER_LIMIT:]
 
 
 def _load_sister(data):
@@ -2715,6 +3310,7 @@ def load_state(data):
         else []
     )
     state.replay_count = _clamped_int(data.get("replay_count"), 0, 10**4)
+    state.season_ledger = _load_ledger(data.get("season_ledger"))
 
     # D8's flash-tracking global and the achievements toast-diffing
     # baseline both need to resync to the just-loaded state before
@@ -2741,6 +3337,26 @@ def setup():
     document.getElementById("info-page-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_info_page)
     )
+    # D-15 / D-1 / D-18 / D-17: later additions, each tolerant of a missing node.
+    for element_id, handler in (
+        ("advance-x5-button", on_advance_x5),
+        ("ledger-toggle-button", on_toggle_ledger),
+        ("copy-text-button", on_copy_text),
+    ):
+        el = document.getElementById(element_id)
+        if el is not None:
+            el.addEventListener("click", create_proxy(handler))
+    for key in LEDGER_KEYS:
+        el = document.getElementById(f"ledger-sort-{key}")
+        if el is not None:
+            el.addEventListener("click", create_proxy(_make_ledger_sort_handler(key)))
+    for key, _label in TICKER_FILTERS:
+        el = document.getElementById(f"ticker-filter-{key}")
+        if el is not None:
+            el.addEventListener("click", create_proxy(_make_ticker_filter_handler(key)))
+    search_el = document.getElementById("ticker-search-input")
+    if search_el is not None:
+        search_el.addEventListener("input", create_proxy(on_ticker_search))
     document.getElementById("achievements-toggle-button").addEventListener(
         "click", create_proxy(on_toggle_achievements)
     )

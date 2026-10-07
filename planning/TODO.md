@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 120/785 items checked off (15.3%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 126/785 items checked off (16.1%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -311,33 +311,33 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 
 ## GD + D. Tide (Round 3 answers, 2026-10-07)
 
-- [ ] D-1: Add a Harbor Ledger panel to Tide: a sortable table of every season this session (funds, acidity, fish yield, damage, rows dry, population, tier, investments) with a small chart per column, reading the existing per-season data.
+- [x] D-1: Add a Harbor Ledger panel to Tide: a sortable table of every season this session (funds, acidity, fish yield, damage, rows dry, population, tier, investments) with a small chart per column, reading the existing per-season data.
 - [ ] D-2: Add a session library to Tide: finished sessions saved locally (scenario, lag mode, storms, final score) and any two overlaid on the acidity/fish-yield graphs as solid vs dashed lines.
 - [ ] D-3: Add a shareable session code to Tide: a finished run exports a compact code (scenario, per-season choices, outcome) that a friend pastes into Load Ghost to view as a read-only overlay or step-through against their own run.
 - [ ] D-4: Add a season scrubber to Tide: a slider under the coastline to view any earlier season (grid, meters, tier badges, heritage) read-only without altering the live run.
 - [ ] D-5: Add a Tide Workshop to Tide: opt-in sliders for starting funds, lag length, sea-level rate, surge size and fish sensitivity with a live difficulty rating and a 'custom rules' label; hard lag and the three scenarios become presets.
 - [ ] D-6: Add a season planner to Tide: a Plan tab to stage 3 to 5 seasons of allocations and see projected acidity, fish yield and rows-at-risk curves, never writing to game state until Commit season 1.
-- [ ] D-7: Finish Tide's accessibility pass: a live region announcing each season's result, a text description of the coastline ('Row 5 dry, seawall tier 2'), and keyboard-operable tiles, investment buttons and graphs with visible focus. (partly built: Z15 audit fixed settings heading; text-scale and reduced motion exist; shared ?/Esc overlay. No aria-live, tile text or keyboard grid in index.html.)
+- [ ] D-7: Finish Tide's accessibility pass: a live region announcing each season's result, a text description of the coastline ('Row 5 dry, seawall tier 2'), and keyboard-operable tiles, investment buttons and graphs with visible focus. (partly built: Z15 audit fixed settings heading; text-scale and reduced motion exist; shared ?/Esc overlay. No aria-live, tile text or keyboard grid in index.html.) (Partly done 2026-10-07: live region, row descriptions, arrow keys between rows, focus ring; still open: per-column tile navigation.)
 - [ ] D-8: Add named coastline scenarios to Tide (low delta town, rocky headland, atoll, dredged port), each with its own elevation profile, heritage sites, economy weights and storm frequency, combined with the sea-level scenario into a grid of starts.
 - [ ] D-9: Add a Harbor Almanac tab to Tide: lifetime seasons survived, rows saved, heritage protected, storms weathered, plus personal best per scenario and lag mode with the tier combination, kept per-browser and fed to the achievements dashboard.
 - [ ] D-10: Add Bronze/Silver/Gold ranks to Tide's achievements (e.g. survive a storm / 3 / 3 with no row lost) and add ranked achievements for heritage, retreat, diversification, monitoring and population. (needs shared achievements framework check)
 - [ ] D-11: Add autosave history to Tide: keep the last three per-season autosaves plus the checkpoint and, when a load fails validation, show a Restore previous save panel listing each slot's season and funds instead of resetting silently. (partly built: Shared save-widget has 3 account slots and opt-in 5-minute autosave; get_state/load_state validate with safe defaults. No rolling history or restore panel.)
 - [ ] D-12: Add a customizable dashboard to Tide: choose, pin and reorder panels with Compact, Analyst and Postcard presets, remembered in localStorage.
 - [ ] D-13: Add a living harbor scene to Tide: sky cycle by season of the year, water tint shifting with acidity (hatch pattern redundancy for colorblind), stormy sky in storm seasons, behind the grid with a Settings toggle.
-- [ ] D-14: Add game keys to Tide: A to advance a season, 1/2/3 to invest, R to open the report, listed in the existing ? overlay. (partly built: Shared ?/Esc overlay is wired (index.html KeyboardShortcuts.init); no A/1/2/3/R keys.)
-- [ ] D-15: Add Advance x5 to Tide: repeats quiet seasons and halts at a storm forecast, fish-yield warning, heritage site at risk or monitoring report.
+- [x] D-14: Add game keys to Tide: A to advance a season, 1/2/3 to invest, R to open the report, listed in the existing ? overlay. (partly built: Shared ?/Esc overlay is wired (index.html KeyboardShortcuts.init); no A/1/2/3/R keys.)
+- [x] D-15: Add Advance x5 to Tide: repeats quiet seasons and halts at a storm forecast, fish-yield warning, heritage site at risk or monitoring report.
 - [ ] D-16: Add high-contrast and dyslexia-friendly font toggles to the shared site settings so every game gets them, with Tide's grid tiles and meter bars as the first high-contrast palette. (needs shared/site-settings.js)
-- [ ] D-17: Add ticker filter chips (Fish / Sea / Economy / Storm / Chronicle) and a search box to Tide's delayed-effect ticker and full history.
-- [ ] D-18: Add a Copy as text button to Tide that copies the settlement name, chronicle and session summary to the clipboard.
+- [ ] D-17: Add ticker filter chips (Fish / Sea / Economy / Storm / Chronicle) and a search box to Tide's delayed-effect ticker and full history. (Partly done 2026-10-07: chips and search on the full history only; the short live ticker stays unfiltered by design.)
+- [x] D-18: Add a Copy as text button to Tide that copies the settlement name, chronicle and session summary to the clipboard.
 - [ ] D-19: Show 'affordable in N seasons at current income' beside each Tide adaptation tier and diversification level, with a pin to keep one target highlighted.
 - [ ] D-20: Add a net-funds preview chip to Tide that shows funds after purchase and after this season's upkeep (heritage, tier) when hovering or selecting any investment.
 - [ ] D-21: Add a crosshair readout to Tide's trend graphs: hover or tap shows a vertical line and tooltip with that season's acidity, yield, damage and funds.
 - [ ] D-22: Add a range selector (last 10 / last 20 / all seasons) to Tide's D7 timeline and D10 average-line graphs.
 - [ ] D-23: Add an optional series-markers toggle to Tide's graphs with distinct dash styles and point shapes (circle/square/triangle) per series.
-- [ ] D-24: Add a live tab title and favicon status to Tide, e.g. 'Tide S12 - fish warning', switching the favicon when a storm is forecast or a warning fires.
+- [x] D-24: Add a live tab title and favicon status to Tide, e.g. 'Tide S12 - fish warning', switching the favicon when a storm is forecast or a warning fires.
 - [ ] D-25: Add a personal-best line to Tide's session summary ('Best for this scenario: 14 seasons dry. You: 11') from the Almanac data. (needs D-9)
 - [ ] D-26: Polish Tide on mobile: raise tap targets to 44px on tiles and invest buttons and add swipe between Coast / Meters / Log panels. (partly built: Mobile dock for Advance/investments (D1, mobile-dock.js) and a 320px audit (Z18) exist; tile/button min-height is 2.5rem; no swipe panels.)
-- [ ] D-27: Make each Tide <details> panel (timeline, chronicle, heritage, diversification) remember open/closed state across reloads.
+- [x] D-27: Make each Tide <details> panel (timeline, chronicle, heritage, diversification) remember open/closed state across reloads.
 - [ ] D-28: Add a delta breakdown popover to Tide: clicking a meter change (acidity +4) lists the contributors ('+6 output, -2 reduction, +0 aquaculture').
 - [ ] D-29: Add a plain-language label mode to Tide Settings that renames jargon (dampening, lag, output mix) to everyday words in buttons and tooltips.
 - [ ] D-30: Pause Tide's looping animations (wave cue, tide ripple, scene) when the tab is hidden or the device reports low power, and resume on return.

@@ -2,7 +2,7 @@
 // the precache list; ordinary content deploys don't need it, because
 // same-origin requests are network-first (see the fetch handler below) and
 // so always pick up fresh files whenever the player is online.
-const SW_VERSION = 28;
+const SW_VERSION = 29;
 const CACHE_NAME = "site-cache-v" + SW_VERSION;
 // How long a same-origin network request may take before we give up and
 // serve the cached copy instead (a slow/flaky connection shouldn't hang).
@@ -44,6 +44,7 @@ const PRECACHE_URLS = [
   "games/tide/index.html",
   "games/tide/style.css",
   "games/tide/game.py",
+  "games/tide/ui.js",
   "games/aftermath/index.html",
   "games/aftermath/style.css",
   "games/aftermath/game.py",

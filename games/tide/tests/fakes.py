@@ -48,6 +48,9 @@ class FakeElement:
         self.dataset = FakeStyle()
         self.children = []
         self._listeners = {}
+        self._attributes = {}
+        self.tabIndex = -1
+        self.focused = False
         if id_ is not None and registry is not None:
             registry[id_] = self
 
@@ -73,6 +76,15 @@ class FakeElement:
     def appendChild(self, child):
         self.children.append(child)
         return child
+
+    def setAttribute(self, name, value):
+        self._attributes[name] = str(value)
+
+    def getAttribute(self, name):
+        return self._attributes.get(name)
+
+    def focus(self):
+        self.focused = True
 
     def addEventListener(self, event_name, handler):
         self._listeners.setdefault(event_name, []).append(handler)

@@ -107,7 +107,28 @@ ELEMENT_IDS = [
     "replay-button",
     "checkpoint-status",
     "foresight-display",
+    # 2026-10-07 pass: ledger, announcer, x5, ticker filters, copy as text.
+    "ledger-toggle-button",
+    "ledger-panel",
+    "ledger-summary",
+    "ledger-body",
+    "season-announcer",
+    "coastline-description",
+    "advance-x5-button",
+    "advance-x5-note",
+    "ticker-filter-status",
+    "ticker-search-input",
+    "copy-text-button",
+    "copy-text-status",
+    "copy-text-area",
 ]
+LEDGER_KEYS = [
+    "season", "funds", "acidity", "fish_yield", "damage", "rows_dry", "population", "tier", "invested",
+]
+for _key in LEDGER_KEYS:
+    ELEMENT_IDS += [f"ledger-sort-{_key}", f"ledger-th-{_key}", f"ledger-chart-{_key}"]
+for _key in ("all", "fish", "sea", "economy", "storm", "chronicle"):
+    ELEMENT_IDS.append(f"ticker-filter-{_key}")
 for _category in CATEGORIES:
     ELEMENT_IDS += [f"{_category}-count", f"{_category}-invest-button"]
 
@@ -146,6 +167,12 @@ class GameEnv:
 
     def toggle_hard_lag(self):
         self.elements["hard-lag-toggle-button"].dispatch("click", None)
+
+    def advance_x5(self):
+        self.elements["advance-x5-button"].dispatch("click", None)
+
+    def toggle_ledger(self):
+        self.elements["ledger-toggle-button"].dispatch("click", None)
 
     def set_baseline(self):
         self.elements["set-baseline-button"].dispatch("click", None)

@@ -21,6 +21,11 @@
       "Session Summary"
     ],
     [
+      "ledger-panel",
+      "ledger-toggle-button",
+      "Harbor Ledger"
+    ],
+    [
       "settings-panel",
       "settings-toggle-button",
       "Settings"
@@ -69,6 +74,7 @@
       {
         "heading": "Records",
         "ids": [
+          "ledger-toggle-button",
           "changelog-toggle-button"
         ]
       }
@@ -178,6 +184,26 @@
   ],
   "side_label": "Investments and programmes",
   "hints": [
+    [
+      "A",
+      "Advance season"
+    ],
+    [
+      "X",
+      "Advance x5"
+    ],
+    [
+      "1 2 3",
+      "Invest"
+    ],
+    [
+      "R",
+      "Report"
+    ],
+    [
+      "L",
+      "Ledger"
+    ],
     [
       "?",
       "All shortcuts"

@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script>window.NOYVJ_LAYOUT = "pc"; window.NOYVJ_PC_WINDOWS = [{"panel": "howto-panel", "toggle": "howto-toggle-button", "title": "How to Play"}, {"panel": "achievements-panel", "toggle": "achievements-toggle-button", "title": "Achievements"}, {"panel": "changelog-panel", "toggle": "changelog-toggle-button", "title": "What's New"}, {"panel": "session-summary-panel", "toggle": "session-summary-toggle-button", "title": "Session Summary"}, {"panel": "settings-panel", "toggle": "settings-toggle-button", "title": "Settings"}, {"panel": "info-page-panel", "toggle": "info-page-toggle-button", "title": "The Real Story"}]; window.NOYVJ_PC_ZONES = {"topbar": [".hub-back-link", "h1", ".game-toolbar"], "stagebar": [".sea-scenario-label"], "stage": ["#fish-warning-banner", "#fish-recovery-banner", ".tide-scene", ".coastline-scene", "#ticker-log", "#population-display", "#foresight-display", "#sister-display"], "side": ["#actions-dock", "#adaptation-tier-progress", "#programmes-section", "#settlement-section"], "hidden": [".tagline", ".context-blurb"]}; window.NOYVJ_PC_HINTS = [["?", "All shortcuts"], ["Esc", "Menu / close window"]]; window.NOYVJ_PC_NOTIFY = null; window.NOYVJ_PC_TOOLBAR = {"icons": [["achievements-toggle-button", "🏆"], ["session-summary-toggle-button", "📝"], ["settings-toggle-button", "⚙️"]], "menu": [{"heading": "Game", "ids": ["sister-enable-button", "hard-lag-toggle-button"]}, {"heading": "Details", "ids": []}, {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button", "info-page-toggle-button"]}, {"heading": "Records", "ids": ["changelog-toggle-button"]}]}; window.NOYVJ_PC_COMPOSITES = [{"id": "pc-status-panel", "title": "Status, graphs and history", "members": ["#status"], "group": "Details", "label": "📊 Status, graphs and history"}, {"id": "pc-sea-panel", "title": "Sea level, damage and adaptation", "members": ["#sea-level-section", "#community-index"], "group": "Details", "label": "🌊 Sea level, damage and adaptation"}, {"id": "pc-compare-panel", "title": "Coastline: then vs. now", "members": ["#coastline-comparison"], "group": "Details", "label": "🗺 Coastline: then vs. now"}, {"id": "pc-feedback-panel", "title": "Feedback", "members": ["#feedback-prompt"], "group": "Help", "label": "💬 Send feedback"}]; window.NOYVJ_PC_ADOPT = []; window.NOYVJ_PC_READOUTS = [["#season-display", "📅", ""], ["#funds-display", "💰", "Funds"], ["#acidity-display", "🧪", "Acidity"], ["#fish-yield-display", "🐟", "Fishing yield"], ["#sea-level-display", "🌊", "Sea level"], ["#damage-display", "⚠️", "Damage"]]; window.NOYVJ_PC_SIDE_LABEL = "Investments and programmes";</script>
+<script>window.NOYVJ_LAYOUT = "pc"; window.NOYVJ_PC_WINDOWS = [{"panel": "howto-panel", "toggle": "howto-toggle-button", "title": "How to Play"}, {"panel": "achievements-panel", "toggle": "achievements-toggle-button", "title": "Achievements"}, {"panel": "changelog-panel", "toggle": "changelog-toggle-button", "title": "What's New"}, {"panel": "session-summary-panel", "toggle": "session-summary-toggle-button", "title": "Session Summary"}, {"panel": "ledger-panel", "toggle": "ledger-toggle-button", "title": "Harbor Ledger"}, {"panel": "settings-panel", "toggle": "settings-toggle-button", "title": "Settings"}, {"panel": "info-page-panel", "toggle": "info-page-toggle-button", "title": "The Real Story"}]; window.NOYVJ_PC_ZONES = {"topbar": [".hub-back-link", "h1", ".game-toolbar"], "stagebar": [".sea-scenario-label"], "stage": ["#fish-warning-banner", "#fish-recovery-banner", ".tide-scene", ".coastline-scene", "#ticker-log", "#population-display", "#foresight-display", "#sister-display"], "side": ["#actions-dock", "#adaptation-tier-progress", "#programmes-section", "#settlement-section"], "hidden": [".tagline", ".context-blurb"]}; window.NOYVJ_PC_HINTS = [["A", "Advance season"], ["X", "Advance x5"], ["1 2 3", "Invest"], ["R", "Report"], ["L", "Ledger"], ["?", "All shortcuts"], ["Esc", "Menu / close window"]]; window.NOYVJ_PC_NOTIFY = null; window.NOYVJ_PC_TOOLBAR = {"icons": [["achievements-toggle-button", "🏆"], ["session-summary-toggle-button", "📝"], ["settings-toggle-button", "⚙️"]], "menu": [{"heading": "Game", "ids": ["sister-enable-button", "hard-lag-toggle-button"]}, {"heading": "Details", "ids": []}, {"heading": "Help", "ids": ["tutorial-restart-button", "howto-toggle-button", "info-page-toggle-button"]}, {"heading": "Records", "ids": ["ledger-toggle-button", "changelog-toggle-button"]}]}; window.NOYVJ_PC_COMPOSITES = [{"id": "pc-status-panel", "title": "Status, graphs and history", "members": ["#status"], "group": "Details", "label": "📊 Status, graphs and history"}, {"id": "pc-sea-panel", "title": "Sea level, damage and adaptation", "members": ["#sea-level-section", "#community-index"], "group": "Details", "label": "🌊 Sea level, damage and adaptation"}, {"id": "pc-compare-panel", "title": "Coastline: then vs. now", "members": ["#coastline-comparison"], "group": "Details", "label": "🗺 Coastline: then vs. now"}, {"id": "pc-feedback-panel", "title": "Feedback", "members": ["#feedback-prompt"], "group": "Help", "label": "💬 Send feedback"}]; window.NOYVJ_PC_ADOPT = []; window.NOYVJ_PC_READOUTS = [["#season-display", "📅", ""], ["#funds-display", "💰", "Funds"], ["#acidity-display", "🧪", "Acidity"], ["#fish-yield-display", "🐟", "Fishing yield"], ["#sea-level-display", "🌊", "Sea level"], ["#damage-display", "⚠️", "Damage"]]; window.NOYVJ_PC_SIDE_LABEL = "Investments and programmes";</script>
 <script src="pc.js"></script>
 <script src="../../shared/layout-pref.js" data-game-id="tide" data-pc-page="pc.html" data-classic-page="index.html"></script>
 <title>Tide (Desktop)</title>
@@ -26,6 +26,7 @@
 <script src="../../shared/mobile-dock.js"></script>
 <script src="../../shared/confirm-dialog.js"></script>
 <script src="settings.js"></script>
+<script src="ui.js" defer></script>
 <!-- AdSense: placeholder client ID until application is approved -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -42,6 +43,7 @@
       <button id="achievements-toggle-button" class="secondary" type="button">Loading...</button>
       <button id="changelog-toggle-button" class="secondary" type="button">📋 What's New</button>
       <button id="session-summary-toggle-button" class="secondary" type="button">Loading...</button>
+      <button id="ledger-toggle-button" class="secondary" type="button">📒 Harbor Ledger</button>
     </div>
     <div class="game-toolbar">
       <!-- D9: an optional "harder lag" difficulty mode -- same
@@ -88,6 +90,43 @@
          in game.py. -->
     <div id="session-summary-panel" class="section session-summary-panel print-summary" hidden>
       <p id="session-summary-text" class="session-summary-text"></p>
+    </div>
+
+    <!-- D-1: the Harbor Ledger: every resolved season as a sortable table with a
+         small trend chart per column. Opened on demand like the other panels. -->
+    <div id="ledger-panel" class="section ledger-panel" hidden>
+      <h2 class="ledger-heading">Harbor Ledger</h2>
+      <p id="ledger-summary" class="comparison-message"></p>
+      <div class="ledger-scroll">
+        <table id="ledger-table" class="ledger-table">
+          <caption class="sr-only">One row per season played. Use the column buttons to sort.</caption>
+          <thead>
+            <tr>
+            <th id="ledger-th-season" scope="col" aria-sort="none"><button id="ledger-sort-season" class="ledger-sort" type="button">Season</button></th>
+            <th id="ledger-th-funds" scope="col" aria-sort="none"><button id="ledger-sort-funds" class="ledger-sort" type="button">Funds</button></th>
+            <th id="ledger-th-acidity" scope="col" aria-sort="none"><button id="ledger-sort-acidity" class="ledger-sort" type="button">Acidity</button></th>
+            <th id="ledger-th-fish_yield" scope="col" aria-sort="none"><button id="ledger-sort-fish_yield" class="ledger-sort" type="button">Fish yield</button></th>
+            <th id="ledger-th-damage" scope="col" aria-sort="none"><button id="ledger-sort-damage" class="ledger-sort" type="button">Damage</button></th>
+            <th id="ledger-th-rows_dry" scope="col" aria-sort="none"><button id="ledger-sort-rows_dry" class="ledger-sort" type="button">Rows dry</button></th>
+            <th id="ledger-th-population" scope="col" aria-sort="none"><button id="ledger-sort-population" class="ledger-sort" type="button">Population</button></th>
+            <th id="ledger-th-tier" scope="col" aria-sort="none"><button id="ledger-sort-tier" class="ledger-sort" type="button">Tier</button></th>
+            <th id="ledger-th-invested" scope="col" aria-sort="none"><button id="ledger-sort-invested" class="ledger-sort" type="button">Invested</button></th>
+            </tr>
+            <tr class="ledger-chart-row">
+            <td id="ledger-chart-season" class="ledger-chart-cell"></td>
+            <td id="ledger-chart-funds" class="ledger-chart-cell"></td>
+            <td id="ledger-chart-acidity" class="ledger-chart-cell"></td>
+            <td id="ledger-chart-fish_yield" class="ledger-chart-cell"></td>
+            <td id="ledger-chart-damage" class="ledger-chart-cell"></td>
+            <td id="ledger-chart-rows_dry" class="ledger-chart-cell"></td>
+            <td id="ledger-chart-population" class="ledger-chart-cell"></td>
+            <td id="ledger-chart-tier" class="ledger-chart-cell"></td>
+            <td id="ledger-chart-invested" class="ledger-chart-cell"></td>
+            </tr>
+          </thead>
+          <tbody id="ledger-body"></tbody>
+        </table>
+      </div>
     </div>
 
     <p class="tagline">Run a coastal settlement. Balance fishing income against ocean health and a slowly rising sea.</p>
@@ -138,6 +177,18 @@
            live ticker above. -->
       <details class="ticker-history-toggle">
         <summary>Full history</summary>
+        <!-- D-17: chips and a search box narrow the full history only; the short live
+             ticker above is never filtered. -->
+        <div class="ticker-filter-row" role="group" aria-label="Filter the ticker history">
+          <button id="ticker-filter-all" class="secondary ticker-chip" type="button" aria-pressed="true">All</button>
+          <button id="ticker-filter-fish" class="secondary ticker-chip" type="button" aria-pressed="false">Fish</button>
+          <button id="ticker-filter-sea" class="secondary ticker-chip" type="button" aria-pressed="false">Sea</button>
+          <button id="ticker-filter-economy" class="secondary ticker-chip" type="button" aria-pressed="false">Economy</button>
+          <button id="ticker-filter-storm" class="secondary ticker-chip" type="button" aria-pressed="false">Storm</button>
+          <button id="ticker-filter-chronicle" class="secondary ticker-chip" type="button" aria-pressed="false">Chronicle</button>
+        </div>
+        <input id="ticker-search-input" class="ticker-search" type="search" placeholder="Search the history" aria-label="Search the ticker history" autocomplete="off">
+        <p id="ticker-filter-status" class="comparison-message" aria-live="polite"></p>
         <div id="ticker-history-list" class="ticker-history-list">No notable changes yet.</div>
       </details>
       <!-- D15: a Grid-style mini-graph charting acidity vs. fishing
@@ -202,6 +253,10 @@
     <div class="coastline-scene">
       <div class="coastline-scene-sky" aria-hidden="true"><div class="coastline-scene-sun"></div></div>
       <div id="coastline-grid" class="coastline-grid"></div>
+      <!-- D-7: screen-reader text. The live region announces each season's result and
+           each investment; the description is the coastline as words, row by row. -->
+      <p id="season-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
+      <p id="coastline-description" class="sr-only"></p>
     </div>
 
     <p id="community-index" class="comparison-message" hidden></p>
@@ -242,6 +297,10 @@
         <input id="settlement-name-input" class="settlement-name-input" type="text" maxlength="24" placeholder="Name your settlement" aria-label="Settlement name">
         <div id="settlement-chronicle" class="ticker-history-list">Nothing to record yet — history starts as you play.</div>
       </details>
+      <!-- D-18: copies the name, summary and chronicle as plain text. -->
+      <button id="copy-text-button" class="secondary" type="button">Copy as text</button>
+      <p id="copy-text-status" class="comparison-message" role="status"></p>
+      <textarea id="copy-text-area" class="copy-text-area" rows="6" readonly hidden aria-label="Settlement summary text to copy"></textarea>
     </div>
 
     <div id="programmes-section" class="section">
@@ -330,7 +389,13 @@
         </div>
       </div>
 
-      <button id="advance-season-button" class="primary">Advance Season</button>
+      <div class="advance-row">
+        <button id="advance-season-button" class="primary" title="Shortcut: A">Advance Season</button>
+        <!-- D-15: up to five quiet seasons; stops before a storm forecast, fish-yield warning,
+             heritage site at risk or a monitoring crew becoming available again. -->
+        <button id="advance-x5-button" class="secondary" type="button" title="Shortcut: X. Runs up to 5 seasons, stopping before any that needs a decision.">Advance x5</button>
+      </div>
+      <p id="advance-x5-note" class="comparison-message advance-x5-note" role="status"></p>
     </div>
 
     <div id="feedback-prompt" class="section">
@@ -466,12 +531,21 @@
   <script src="../../shared/keyboard-shortcuts.js"></script>
   <script>
     window.KeyboardShortcuts.init({
+      extra: [
+        "A — advance one season",
+        "X — advance up to 5 quiet seasons",
+        "1 / 2 / 3 — invest in Output / Acidity Reduction / Adaptation",
+        "R — open or close the session report",
+        "L — open or close the Harbor Ledger",
+        "Up / Down — move between coastline rows (when a row is focused)",
+      ],
       panels: [
         { toggle: "howto-toggle-button", panel: "howto-panel" },
         { toggle: "settings-toggle-button", panel: "settings-panel" },
         { toggle: "achievements-toggle-button", panel: "achievements-panel" },
         { toggle: "changelog-toggle-button", panel: "changelog-panel" },
         { toggle: "session-summary-toggle-button", panel: "session-summary-panel" },
+        { toggle: "ledger-toggle-button", panel: "ledger-panel" },
         { toggle: "info-page-toggle-button", panel: "info-page-panel" },
       ],
     });

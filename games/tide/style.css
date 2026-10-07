@@ -1421,6 +1421,191 @@ html[data-reduced-motion="true"] *::after {
 [hidden] { display: none !important; }
 
 /* ============================================================
+   2026-10-07 TODO pass: Harbor Ledger (D-1), screen-reader and focus
+   styling (D-7), Advance x5 (D-15), ticker filters (D-17), copy as text
+   (D-18). Dark first; the light-theme overrides sit at the end.
+   ============================================================ */
+
+/* D-7: visually hidden but read by screen readers. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* D-7: a visible focus ring on everything a keyboard can reach. */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+a:focus-visible,
+.coastline-tile:focus-visible,
+.acidity-fish-sparkline:focus-visible,
+.ledger-scroll:focus-visible {
+  outline: 3px solid #ffd166;
+  outline-offset: 2px;
+  position: relative;
+  z-index: 2;
+}
+.coastline-tile:focus-visible {
+  outline-offset: -3px;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.6) inset;
+}
+
+/* D-15: Advance Season plus Advance x5 side by side. */
+.advance-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+.advance-row #advance-season-button {
+  flex: 1 1 auto;
+  width: auto;
+}
+.advance-row #advance-x5-button {
+  flex: 0 0 auto;
+  min-width: 5.5rem;
+  font-weight: 600;
+}
+.advance-x5-note {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+}
+.advance-x5-note:empty {
+  display: none;
+}
+
+/* D-17: filter chips for the full ticker history. */
+.ticker-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.5rem 0 0.4rem;
+}
+.ticker-chip {
+  padding: 0.25rem 0.7rem;
+  font-size: 0.75rem;
+  min-height: 2rem;
+  border-radius: 999px;
+}
+.ticker-chip.selected {
+  border-color: #7fd4ee;
+  box-shadow: inset 0 0 0 1px #7fd4ee;
+  font-weight: 700;
+}
+.ticker-chip.selected::before {
+  content: "✓ ";
+}
+.ticker-search {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.8rem;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.3);
+  background: rgba(5, 6, 13, 0.5);
+  color: inherit;
+}
+#ticker-filter-status:empty {
+  display: none;
+}
+
+/* D-18: copy as text. */
+.copy-text-area {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 0.4rem;
+  padding: 0.5rem;
+  font-size: 0.78rem;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.3);
+  background: rgba(5, 6, 13, 0.5);
+  color: inherit;
+}
+#copy-text-status:empty {
+  display: none;
+}
+
+/* D-1: the Harbor Ledger table. */
+.ledger-panel[hidden] {
+  display: none;
+}
+.ledger-heading {
+  margin: 0 0 0.4rem;
+  font-size: 1.05rem;
+}
+.ledger-scroll {
+  overflow-x: auto;
+  max-height: 24rem;
+  overflow-y: auto;
+}
+.ledger-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+.ledger-table th,
+.ledger-table td {
+  padding: 0.25rem 0.5rem;
+  text-align: right;
+  white-space: nowrap;
+}
+.ledger-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #141a33;
+}
+.ledger-table tbody tr:nth-child(even) {
+  background: rgba(140, 160, 255, 0.07);
+}
+.ledger-sort {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0.25rem 0.1rem;
+  min-height: 2rem;
+}
+.ledger-sort:hover {
+  text-decoration: underline;
+}
+.ledger-chart-cell {
+  padding-top: 0;
+  color: #7fd4ee;
+}
+.ledger-chart {
+  width: 5rem;
+  height: 1.4rem;
+  display: block;
+  margin-left: auto;
+}
+
+html[data-theme="light"] .ledger-table thead th { background: #e9eefb; }
+html[data-theme="light"] .ledger-table tbody tr:nth-child(even) { background: rgba(70, 95, 170, 0.08); }
+html[data-theme="light"] .ledger-chart-cell { color: #1b5f84; }
+html[data-theme="light"] .ticker-chip.selected { border-color: #1b5f84; box-shadow: inset 0 0 0 1px #1b5f84; }
+html[data-theme="light"] .ticker-search,
+html[data-theme="light"] .copy-text-area { background: #ffffff; color: #1b2233; border-color: rgba(70, 95, 170, 0.45); }
+html[data-theme="light"] button:focus-visible,
+html[data-theme="light"] select:focus-visible,
+html[data-theme="light"] input:focus-visible,
+html[data-theme="light"] textarea:focus-visible,
+html[data-theme="light"] summary:focus-visible,
+html[data-theme="light"] a:focus-visible,
+html[data-theme="light"] .coastline-tile:focus-visible { outline-color: #1d3fa8; }
+
+/* ============================================================
    Y11b light-theme polish (2026-09-27). Light-only rules from a
    computed-style WCAG contrast scan of the light theme (fresh game, 46
    seasons of investing, every panel open). Dark is untouched. The

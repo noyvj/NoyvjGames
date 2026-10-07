@@ -1,6 +1,10 @@
 {
   "changelog": [
     {
+      "date": "2026-10-07",
+      "entry": "New: a Harbor Ledger (every season as a sortable table with a small trend chart per column), Advance x5 (runs up to five quiet seasons and stops before a storm forecast, a fish-yield warning, a heritage site about to flood, or a monitoring crew becoming available again), game keys (A advance, X advance x5, 1/2/3 invest, R report, L ledger), filter chips and a search box for the full ticker history, a Copy as text button for your settlement summary, and a tab title that shows the season and any warning. Screen readers now hear each season's result and a row-by-row description of the coastline, and every panel you leave open stays open next time."
+    },
+    {
       "date": "2026-10-06",
       "entry": "New Desktop layout for wide windows: a full-window view with the season, funds, acidity, fishing yield, sea level and damage as chips across the top, the coastline filling the screen with the live ticker under it, and your investments, Advance Season and coastal programmes in a column on the right. The status graphs, sea-level detail and then-vs-now coastline are windows opened from the Menu (Esc), and the sea-level scenario picker sits above the coastline. Pick it from the opening screen; your save carries over and the Classic layout is unchanged."
     },
