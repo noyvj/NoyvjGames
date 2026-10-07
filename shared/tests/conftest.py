@@ -16,7 +16,7 @@ ORIGIN = "http://harness.test"
 API = "https://noyvjgames.fastapicloud.dev"
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def chromium():
     sync_api = pytest.importorskip("playwright.sync_api")
     with sync_api.sync_playwright() as p:

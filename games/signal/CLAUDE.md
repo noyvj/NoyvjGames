@@ -109,3 +109,7 @@ Until that is deployed, `GET /leaderboards/signal/best_streak` returns 404 and t
 - **Tutorial.** `pc.js` holds `SIGNAL_PC_TUTORIAL_STEPS` (8 steps: chips, board, readings, tool toggle, commit, Menu). It also replaces `window.MobileDock` with an inert stand-in, so resizing the window below 640px never lifts the answer buttons out of the side column.
 - **Notifications.** `notify` is null: Signal has no log list. Achievement toasts use the game's own top-centre toast.
 - **Known limits.** At 1024x700 the practice controls wrap onto three lines in the narrow side column and Big Sky tiles are about 22px. Right-click and Shift+click (mark) work as in Classic but are not hotkeys, so they are not in the hint bar. Phones and narrow windows are meant to use Classic.
+
+## Shared touch targets (Z-23, 2026-10-08)
+
+`shared/touch-targets.css` makes buttons at least 44px tall on phones. A 9x9 board cannot have 44px cells on a 360px screen, so `app.js` marks every `.cell` button with `data-touch-exempt` and the shared rule skips it. Everything else (toolbar buttons, mode tabs, Commit / Clear / Give up, the tool toggle) follows the 44px rule.

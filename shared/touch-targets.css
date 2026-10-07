@@ -30,7 +30,8 @@ html :where(button, a, summary, select, input, textarea, label, [role="button"],
   /* Width: NOT a blanket min-width. Most toolbars are wrapping flex rows whose buttons use
      min-width:auto (their own text width) to decide when to wrap; a 44px minimum would let
      twice as many squeeze onto a row and clip their labels. Only the icon-only buttons need it. */
-  html #story-toggle, html #theme-toggle-floating, html .action-dock-more, html .mobile-info-dock-toggle:empty {
+  html #story-toggle, html #theme-toggle-floating, html .action-dock-more, html .mobile-info-dock-toggle:empty,
+  html .feedback-buttons button {
     min-width: 44px;
   }
 

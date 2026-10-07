@@ -29,6 +29,7 @@ Personal portfolio site collecting small AI-assisted game demos. One demo, SOL, 
   BCM206-DEV-LOG.md    <- running log: site infrastructure (hosting, save system, accounts, backend)
   /shared
     save-widget.js     <- one shared save/load UI + autoload, dropped unchanged into every game — see planning/SAVE-BUTTON-INTEGRATION.md
+    lite-mode.js/.css, a11y.css, touch-targets.css, error-boundary.js, perf-mark.js, debug-overlay.js, info-footer.js <- site-wide includes in every game page and (lite mode, a11y) the hub: slow-computer mode, reduced motion/contrast, 44px touch targets, error panel, boot timing, ?debug=1 overlay, info-panel footer — see planning/SHARED-COMPONENTS.md "Site-wide includes"; `scripts/wire-shared-includes.py` adds them to a page
   /app
     main.py            <- FastAPI backend (ratings/feedback, save codes, accounts), deployed to FastAPI Cloud
     database.py
