@@ -37,10 +37,10 @@
   }
 
   const NOISE_MESSAGE = [
-    /^script error\.?$/i,
+    /^(?:\w+:\s*)?script error\.?$/i,
     /resizeobserver loop/i,
     /adsbygoogle/i,
-    /^(failed to fetch|load failed|networkerror)/i,
+    /^(?:\w+:\s*)?(failed to fetch|load failed|networkerror)/i,
     /networkerror when attempting to fetch/i,
     /the user aborted a request|the operation was aborted|aborterror/i,
   ];
