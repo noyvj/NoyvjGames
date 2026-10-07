@@ -19,7 +19,7 @@ I check this file whenever I'm doing site work. Two kinds of entries live here:
 
 ### 0c. PC version of every game: send screenshots when all are done
 
-**Your answer (2026-10-07): later.** When every game has its Desktop layout (Le Champ de Mots and SOL are still waiting on your usage reset), I send screenshots of all of them and you give your input. Nothing needed from you until then. Controller support: not yet; audio stays parked.
+**Your answer (2026-10-07): later.** When every game has its Desktop layout (all 14 now have one, committed 2026-10-07; I have not taken the screenshots yet, they cost usage and I am saving it for the weekly reset), I send screenshots of all of them and you give your input. Nothing needed from you until then. Controller support: not yet; audio stays parked.
 
 ### 1. Apply for Google AdSense
 
@@ -79,6 +79,9 @@ Answered 2026-10-07 and recorded in `planning/MULTIPLAYER-SCOPING.md`: (1) the l
 `planning/SEASONAL-EVENTS.md` redoes Round 3 section N around real big dates (Christmas, Halloween, New Year, Easter, Hanukkah, Thanksgiving, 4th of July, Valentine's, Lunar New Year, Diwali), each a 15-minute task on a host game with a temporary stand-in where no game fits. The date engine is built and tested. Three questions: (1) is the host-game mapping acceptable? (2) which American-centric dates (4th of July, Thanksgiving) do you keep, replace with inclusive ones, or drop? (3) should badges show only in the game, or also on the hub next to account achievements (I recommend both)?
 
 ---
+
+### 8. Design calls my overnight batch passes skipped (answer yes, later or no per line, or ignore the ones you do not care about)
+Each of these was left out of the 2026-10-07 per-game batches because it needs your decision, not because it is hard. Plain recommendation first. (1) **Aftermath Flawless Defense bar:** I built it at 15% of base damage, not the 10% in the list, because 10% was unreachable with the 85% mitigation cap; keep 15%? Recommend yes. (2) **Aftermath E-28, a confirm when you resolve with unspent resources:** the default would prompt almost every time; recommend off by default. (3) **Trade Empire J-13, charter archetypes:** overlaps the perk tree you chose over a single pick; recommend drop. (4) **Continuum K-29, Blitz timer:** seasons already run on a real-time clock, so "30 seconds per season or the default policy applies" is unclear; recommend drop or tell me what you meant. (5) **Continuum par badges:** the par numbers (910 seasons or 75 minutes on standard) come from the game's own tables and have not been playtested; recommend you play one run to the Relay Age and tell me if they feel too loose or tight. (6) **Share-code format (Loop GH-28 and H-7, Tide D-3, Grid C-29):** one shared compact code format for runs, friends can paste to view a ghost; recommend yes, built once in the shared folder. (7) **Random-reward items (Loop GH-17, GH-21, GH-30):** they involve luck, which your taste notes avoid; recommend drop. (8) **Chronicle:** open `games/chronicle/review.html` on the dev server, spot-check the 23 sample claims and their 63 sources, and tell me if the tone and balance are right before I author the full presidents set.
 
 ## Answered — building now (no further input needed, listed so you can see what your answers turned into)
 
