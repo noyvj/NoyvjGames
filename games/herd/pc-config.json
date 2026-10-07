@@ -36,6 +36,13 @@
       "label": "🪞 Baseline farm comparison"
     },
     {
+      "id": "pc-collection-panel",
+      "title": "Collection and lever history",
+      "members": ["#collection-summary", "#breed-shelf", "#combo-book", "#lever-history"],
+      "group": "Records",
+      "label": "📖 Breeds, combos and history"
+    },
+    {
       "id": "pc-leaderboard-panel",
       "title": "Community leaderboard",
       "members": ["#leaderboard-mount"],
@@ -73,7 +80,7 @@
       "#poultry-panel",
       "#satellite-panel"
     ],
-    "hidden": []
+    "hidden": ["#collection-extras"]
   },
   "readouts": [
     ["#round-display", "🔁", ""],

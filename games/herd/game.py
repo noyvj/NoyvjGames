@@ -198,6 +198,32 @@ POLICY_SUBSIDY_ROUNDS = 5
 POLICY_CASH_BONUS = 40
 
 
+# GF-15 -- perfect-round streak: a round is "perfect" when the methane it added
+# fell below the previous round's AND funds ended the round higher than they ended
+# the round before (so spending on decoupling still paid for itself). Streaks pay a
+# small one-off bonus to the real farm (never the baseline) at these lengths.
+PERFECT_STREAK_BONUSES = {3: 10, 5: 20, 10: 40}
+
+# F-17 -- lever history: every purchase is logged (round, lever key, cost paid) and
+# the log is capped so a very long game cannot grow the save without bound.
+LEVER_LOG_MAX = 300
+LEVER_LABELS = {
+    "herd": "Grow Herd",
+    "feed": "Feed Additives",
+    "caps": "Herd Caps",
+    "capture": "Capture Systems",
+    "pivot": "Plant-Based Pivot",
+    "genetics": "Breeding Program",
+    "supply": "Processing & Distribution",
+    "poultry": "Grow Flock",
+    "litter": "Litter Management",
+    "biofilter": "Ventilation Biofilters",
+    "satellite_open": "Open Satellite Farm",
+    "satellite_grow": "Grow Satellite Herd",
+    "satellite_retrofit": "Retrofit Barns",
+}
+
+
 def season_for_round(round_number):
     """Deterministic pseudo-random season (same on every load/replay)."""
     return SEASONS[(round_number * 7 + 3) % len(SEASONS)]
@@ -272,6 +298,75 @@ class FarmState:
         self.satellite_size = 0
         self.satellite_retrofits = 0
 
+        # GF-29/F-17/GF-15: per-round funds record (aligned with methane_history,
+        # None where an older save never recorded it), the purchase log and the
+        # perfect-round streak.
+        self.funds_history = [STARTING_FUNDS]
+        self.lever_log = []
+        self.perfect_streak = 0
+        self.best_perfect_streak = 0
+        self.last_round_perfect = False  # one-tick, not saved
+        self.just_streak_bonus = None  # one-tick (streak, bonus), not saved
+
+    # ---- F-17 lever history ----
+    def log_purchase(self, key, cost):
+        self.lever_log.append([self.round_number, key, round(float(cost), 2)])
+        extra = len(self.lever_log) - LEVER_LOG_MAX
+        if extra > 0:
+            del self.lever_log[:extra]
+
+    # ---- F-13 funds per methane saved ----
+    def methane_saved_by(self, key):
+        """Methane per round that ONE more unit of this lever would remove at the
+        current herd, found by trying the unit and putting it back (no lasting
+        change). Uses the same ratio formulas as the real purchase, so the
+        satellite network offset and the plant-pivot cap are included."""
+        before = self.methane_this_round()
+        if key in DECOUPLING_MEASURES:
+            self.decoupling_investment[key] += 1
+            after = self.methane_this_round()
+            self.decoupling_investment[key] -= 1
+        elif key == "pivot":
+            self.plant_pivot_investment += 1
+            after = self.methane_this_round()
+            self.plant_pivot_investment -= 1
+        elif key in POULTRY_MEASURES:
+            self.poultry_investment[key] += 1
+            after = self.methane_this_round()
+            self.poultry_investment[key] -= 1
+        elif key == "genetics":
+            self.genetics_active += 1
+            after = self.methane_this_round()
+            self.genetics_active -= 1
+        elif key == "satellite_retrofit":
+            self.satellite_retrofits += 1
+            after = self.methane_this_round()
+            self.satellite_retrofits -= 1
+        else:
+            return 0.0
+        return max(0.0, before - after)
+
+    # ---- F-24 cap headroom ----
+    def cap_headroom(self):
+        """Free methane per round under the regional cap, never below zero."""
+        return max(0.0, REGIONAL_CAP - self.methane_this_round())
+
+    def growth_pace(self):
+        """Herd units added per round so far, averaged over the rounds played."""
+        return self.herd_size / max(1, self.round_number - 1)
+
+    def rounds_until_cap(self):
+        """Rounds until the cap blocks growth if the herd keeps growing at its pace so
+        far and nothing is decoupled. None when the herd is not growing; 0 when the
+        next animal is already blocked."""
+        pace = self.growth_pace()
+        ratio = self.coupling_ratio()
+        if self.cap_blocks_growth(herd=1):
+            return 0
+        if pace <= 0 or ratio <= 0:
+            return None
+        return int(self.cap_headroom() / (pace * ratio))
+
     # ---- F1 satellite farm ----
     def satellite_available(self):
         return self.satellite_open or self.herd_size >= SATELLITE_MIN_MAIN_HERD
@@ -300,6 +395,7 @@ class FarmState:
             return False
         self.funds -= SATELLITE_OPEN_COST
         self.satellite_open = True
+        self.log_purchase("satellite_open", SATELLITE_OPEN_COST)
         return True
 
     def grow_satellite(self):
@@ -311,6 +407,7 @@ class FarmState:
             return False
         self.funds -= cost
         self.satellite_size += 1
+        self.log_purchase("satellite_grow", cost)
         return True
 
     def retrofit_satellite(self):
@@ -321,6 +418,7 @@ class FarmState:
             return False
         self.funds -= SATELLITE_RETROFIT_COST
         self.satellite_retrofits += 1
+        self.log_purchase("satellite_retrofit", SATELLITE_RETROFIT_COST)
         return True
 
     def satellite_net_income(self):
@@ -366,6 +464,7 @@ class FarmState:
             return False
         self.funds -= cost
         self.poultry_size += 1
+        self.log_purchase("poultry", cost)
         return True
 
     def invest_poultry(self, measure):
@@ -376,6 +475,7 @@ class FarmState:
             return False
         self.funds -= cost
         self.poultry_investment[measure] += 1
+        self.log_purchase(measure, cost)
         return True
 
     def poultry_net_income(self):
@@ -387,6 +487,7 @@ class FarmState:
             return False
         self.funds -= GENETICS_COST
         self.genetics_pending.append(GENETICS_MATURE_ROUNDS)
+        self.log_purchase("genetics", GENETICS_COST)
         return True
 
     # ---- F13 supply chain ----
@@ -395,6 +496,7 @@ class FarmState:
             return False
         self.funds -= SUPPLY_CHAIN_COST
         self.supply_chain_investment += 1
+        self.log_purchase("supply", SUPPLY_CHAIN_COST)
         return True
 
     def supply_chain_multiplier(self):
@@ -472,6 +574,7 @@ class FarmState:
             return False
         self.funds -= PLANT_PIVOT_COST
         self.plant_pivot_investment += 1
+        self.log_purchase("pivot", PLANT_PIVOT_COST)
         return True
 
     def decoupled_fraction(self):
@@ -502,6 +605,7 @@ class FarmState:
             return False
         self.funds -= cost
         self.herd_size += 1
+        self.log_purchase("herd", cost)
         return True
 
     def invest_decoupling(self, measure):
@@ -510,6 +614,7 @@ class FarmState:
             return False
         self.funds -= cost
         self.decoupling_investment[measure] += 1
+        self.log_purchase(measure, cost)
         return True
 
     def pressure_fraction(self):
@@ -575,6 +680,26 @@ class FarmState:
         self.just_flattened = (
             prev_increment > 0 and (self.methane_history[-1] - self.methane_history[-2]) < prev_increment - 1e-9
         )
+
+        # GF-15 -- perfect round: this round's methane fell below the last one's AND
+        # funds ended higher than they ended the previous round. Funds history is
+        # kept for the highlights reel too (GF-29).
+        prev_funds = self.funds_history[-1] if self.funds_history else None
+        self.funds_history.append(self.funds)
+        self.last_round_perfect = bool(
+            self.just_flattened and prev_funds is not None and self.funds > prev_funds
+        )
+        self.just_streak_bonus = None
+        if self.last_round_perfect:
+            self.perfect_streak += 1
+            self.best_perfect_streak = max(self.best_perfect_streak, self.perfect_streak)
+            bonus = PERFECT_STREAK_BONUSES.get(self.perfect_streak)
+            if bonus:
+                self.funds += bonus
+                self.funds_history[-1] = self.funds
+                self.just_streak_bonus = (self.perfect_streak, bonus)
+        else:
+            self.perfect_streak = 0
 
         # F11 — certification streak, counted on the ratio held this round.
         if self.coupling_ratio() <= CERTIFICATION_RATIO_THRESHOLD:
@@ -956,11 +1081,12 @@ def report_card_html():
         investment_summary_message(),
         real_world_comparison_message(),
     ]
+    lines.insert(1, rating_message())
     body = "".join(f'<p class="status-line summary-line">{line}</p>' for line in lines)
     # F7: filled in by index.html's window.herdCompare() when the shared
     # stats endpoint (planning/TODO.md Z1) is reachable; otherwise this
     # fallback text simply stays.
-    return body + f'<p id="report-card-compare" class="status-line summary-line">{COMPARE_FALLBACK}</p>'
+    return body + f'<p id="report-card-compare" class="status-line summary-line">{COMPARE_FALLBACK}</p>' + highlights_html()
 
 
 def beat_percentage_message():
@@ -1772,6 +1898,342 @@ def tagline_message():
     return TAGLINE_DEFAULT
 
 
+# ===========================================================================
+# GF-16 breed collection, GF-5 decoupling combos, GF-22 rating titles,
+# GF-29 highlights reel, F-13 lever efficiency, F-24 cap headroom and F-17
+# lever history. All of it is derived from state that already exists (plus the
+# funds history and purchase log on FarmState) except the two collections,
+# which are module-level like the succession perks: a handover restarts the
+# farm but never empties the shelf or the combo book.
+# ===========================================================================
+COMBO_REWARD_FUNDS = 20
+RATING_FIRST_MESSAGE = "Advance a round to start your highlight reel."
+
+# GF-16: breeds are a collector shelf. Each is earned once, for good, by reaching a
+# state on any farm. The last one is hidden until earned (its silhouette shows a
+# rumour, not the rule), but every breed can be earned in a normal game.
+BREEDS = [
+    {"id": "clover_calf", "label": "Clover Calf", "glyph": "\U0001F42E",
+     "how": "Own your first animal.", "check": lambda f: f.herd_size >= 1},
+    {"id": "brindle_belle", "label": "Brindle Belle", "glyph": "\U0001F404",
+     "how": "Grow the herd to 10.", "check": lambda f: f.herd_size >= 10},
+    {"id": "prairie_patriarch", "label": "Prairie Patriarch", "glyph": "\U0001F402",
+     "how": "Grow the herd to 25.", "check": lambda f: f.herd_size >= 25},
+    {"id": "sage_grazer", "label": "Sage Grazer", "glyph": "\U0001F33E",
+     "how": "Buy 3 Feed Additives.", "check": lambda f: f.decoupling_investment["feed"] >= 3},
+    {"id": "roomy_ruminant", "label": "Roomy Ruminant", "glyph": "\U0001F6A7",
+     "how": "Buy 3 Herd Caps.", "check": lambda f: f.decoupling_investment["caps"] >= 3},
+    {"id": "biogas_bessie", "label": "Biogas Bessie", "glyph": "♻️",
+     "how": "Buy 3 Capture Systems.", "check": lambda f: f.decoupling_investment["capture"] >= 3},
+    {"id": "meadow_mooncow", "label": "Meadow Mooncow", "glyph": "\U0001F33F",
+     "how": "Shift 20% of output to plant-based (4 Pivots).", "check": lambda f: f.plant_pivot_investment >= 4},
+    {"id": "coop_champion", "label": "Coop Champion", "glyph": "\U0001F414",
+     "how": "Raise a flock of 5.", "check": lambda f: f.poultry_size >= 5},
+    {"id": "hilltop_wanderer", "label": "Hilltop Wanderer", "glyph": "⛰️",
+     "how": "Grow the satellite herd to 3.", "check": lambda f: f.satellite_open and f.satellite_size >= 3},
+    {"id": "certified_jersey", "label": "Certified Jersey", "glyph": "\U0001F3C5",
+     "how": "Earn sustainable certification.", "check": lambda f: f.certified},
+    {"id": "methane_eater_cow", "label": "Methane-Eater Cow", "glyph": "✨", "hidden": True,
+     "hint": "Rumoured: a herd that is both very clean and very well cared for.",
+     "how": "Coupling ratio under 0.25 with herd welfare at 90 or more.",
+     "check": lambda f: f.coupling_ratio() < 0.25 and f.welfare() >= 90},
+]
+
+# GF-5: named combos of levers held together, each paid once (to the real farm only,
+# like the streak bonuses). The book shows the rule for every entry but hides the
+# name until it is found.
+COMBOS = [
+    {"id": "circular_barn", "label": "Circular Barn", "how": "3 Capture Systems and 2 Feed Additives.",
+     "check": lambda f: f.decoupling_investment["capture"] >= 3 and f.decoupling_investment["feed"] >= 2},
+    {"id": "happy_herd", "label": "Happy Herd", "how": "Herd welfare 70 or more and 2 Herd Caps.",
+     "check": lambda f: f.welfare() >= 70 and f.decoupling_investment["caps"] >= 2},
+    {"id": "green_gourmet", "label": "Green Gourmet", "how": "3 Plant-Based Pivots and 2 Processing & Distribution.",
+     "check": lambda f: f.plant_pivot_investment >= 3 and f.supply_chain_investment >= 2},
+    {"id": "full_stack", "label": "Full Stack", "how": "At least one of every lever on the main farm: Feed, Caps, Capture, Pivot, Breeding (matured) and Processing.",
+     "check": lambda f: (
+         all(f.decoupling_investment[m] >= 1 for m in DECOUPLING_MEASURES)
+         and f.plant_pivot_investment >= 1 and f.genetics_active >= 1 and f.supply_chain_investment >= 1)},
+    {"id": "poultry_partners", "label": "Poultry Partners", "how": "A flock of 3 with Litter Management and a Biofilter.",
+     "check": lambda f: f.poultry_size >= 3 and f.poultry_investment["litter"] >= 1 and f.poultry_investment["biofilter"] >= 1},
+    {"id": "twin_barns", "label": "Twin Barns", "how": "Open the satellite farm and retrofit it 3 times.",
+     "check": lambda f: f.satellite_open and f.satellite_retrofits >= 3},
+    {"id": "slow_burn", "label": "Slow Burn", "how": "Two breeding lines matured.",
+     "check": lambda f: f.genetics_active >= 2},
+    {"id": "biogas_baron", "label": "Biogas Baron", "how": "5 Capture Systems, so surplus gas is sold.",
+     "check": lambda f: f.decoupling_investment["capture"] >= 5},
+]
+
+breeds_collected = []
+combos_found = []
+
+
+def _sync_collection(award=True):
+    """Marks every breed and combo the current farm qualifies for. With award=True
+    (normal play) a new combo pays its reward and a toast names what was found;
+    with award=False (loading a save) it only records, so a load never changes
+    funds. Returns the list of newly found labels."""
+    found = []
+    for breed in BREEDS:
+        if breed["id"] not in breeds_collected and breed["check"](farm):
+            breeds_collected.append(breed["id"])
+            found.append(f"new breed {breed['label']}")
+    for combo in COMBOS:
+        if combo["id"] not in combos_found and combo["check"](farm):
+            combos_found.append(combo["id"])
+            if award:
+                farm.funds += COMBO_REWARD_FUNDS
+            found.append(f"combo {combo['label']}" + (f" (+{COMBO_REWARD_FUNDS} funds)" if award else ""))
+    if award and found:
+        _display_milestone_toast("\U0001F4D6 Collection: " + ", ".join(found) + ".")
+    return found
+
+
+def _valid_ids(raw, catalog):
+    if not isinstance(raw, list):
+        return []
+    known = {entry["id"] for entry in catalog}
+    result = []
+    for value in raw:
+        if isinstance(value, str) and value in known and value not in result:
+            result.append(value)
+    return result
+
+
+def breed_shelf_html():
+    cards = []
+    for breed in BREEDS:
+        earned = breed["id"] in breeds_collected
+        hidden = breed.get("hidden", False)
+        classes = "breed-card"
+        if earned:
+            classes += " breed-card--earned" + (" breed-card--legend" if hidden else "")
+            name, detail, glyph = breed["label"], breed["how"], breed["glyph"]
+        else:
+            classes += " breed-card--locked"
+            name = "???" if hidden else breed["label"]
+            detail = breed["hint"] if hidden else breed["how"]
+            glyph = "❔" if hidden else breed["glyph"]
+        status = "collected" if earned else "not collected yet"
+        cards.append(
+            f'<li class="{classes}"><span class="breed-glyph" aria-hidden="true">{glyph}</span>'
+            f'<span class="breed-name">{name}</span>'
+            f'<span class="breed-detail">{detail}</span>'
+            f'<span class="sr-only">{status}</span></li>'
+        )
+    return "".join(cards)
+
+
+def combo_book_html():
+    rows = []
+    for combo in COMBOS:
+        found = combo["id"] in combos_found
+        name = combo["label"] if found else "???"
+        mark = f"found, paid {COMBO_REWARD_FUNDS} funds" if found else "not found yet"
+        classes = "combo-card combo-card--found" if found else "combo-card combo-card--locked"
+        rows.append(
+            f'<li class="{classes}"><span class="combo-name">{name}</span>'
+            f'<span class="combo-detail">{combo["how"]}</span>'
+            f'<span class="sr-only">{mark}</span></li>'
+        )
+    return "".join(rows)
+
+
+def collection_summary_message():
+    return (
+        f"Breeds {len(breeds_collected)}/{len(BREEDS)}  |  Combos {len(combos_found)}/{len(COMBOS)}  |  "
+        f"Best perfect-round streak {farm.best_perfect_streak}"
+    )
+
+
+# GF-22: a rating ladder, highest rung currently satisfied wins. Pure functions of state.
+def _decoupled_at_least(share):
+    # Epsilon: ten 1% steps of float arithmetic must still count as exactly 10%.
+    return farm.decoupled_fraction() >= share - 1e-9
+
+
+def _score_beat_pct():
+    baseline = farm.counterfactual_score()
+    if abs(baseline) < 1e-9:
+        return 0.0
+    return (farm.score() - baseline) / abs(baseline) * 100
+
+
+RATING_TITLES = [
+    ("Hobby Farmer", "\U0001F9D1‍\U0001F33E", "Start a farm.", lambda: True),
+    ("Feed Hand", "\U0001F33E", "Decouple 10% below baseline.", lambda: _decoupled_at_least(0.10)),
+    ("Careful Rancher", "\U0001F920", "Decouple 25% below baseline.", lambda: _decoupled_at_least(0.25)),
+    ("Ahead of the Curve", "\U0001F4C8", "Decouple 40% and score above the pure-growth baseline.",
+     lambda: _decoupled_at_least(0.40) and farm.score() > farm.counterfactual_score()),
+    ("Certified Steward", "\U0001F3C5", "Earn sustainable certification.", lambda: farm.certified),
+    ("Methane Cutter", "✂️", "Decouple 70% and beat the baseline score by 25%.",
+     lambda: _decoupled_at_least(0.70) and _score_beat_pct() >= 25),
+    ("Decoupling Legend", "\U0001F451", "Decouple 80%, certified, and beat the baseline score by 50%.",
+     lambda: farm.certified and _decoupled_at_least(0.80) and _score_beat_pct() >= 50),
+]
+
+
+def rating_index():
+    current = 0
+    for index, (_name, _glyph, _need, check) in enumerate(RATING_TITLES):
+        if check():
+            current = index
+    return current
+
+
+def rating_message():
+    index = rating_index()
+    name, glyph, _need, _check = RATING_TITLES[index]
+    text = f"{glyph} Rating: {name}."
+    if index + 1 < len(RATING_TITLES):
+        next_name, _g, need, _c = RATING_TITLES[index + 1]
+        text += f" Next, {next_name}: {need}"
+    else:
+        text += " The top of the ladder."
+    return text
+
+
+def streak_message():
+    streak = farm.perfect_streak
+    upcoming = [length for length in sorted(PERFECT_STREAK_BONUSES) if length > streak]
+    text = f"\U0001F525 Perfect-round streak: {streak} (best {farm.best_perfect_streak})."
+    if upcoming:
+        text += f" Bonus at {upcoming[0]}: +{PERFECT_STREAK_BONUSES[upcoming[0]]} funds."
+    return text + " A perfect round adds less methane than the last and still ends with more funds."
+
+
+# GF-29: three screenshot-friendly lines from the per-round histories.
+def highlights_lines():
+    gains = [
+        (index, farm.funds_history[index] - farm.funds_history[index - 1])
+        for index in range(1, len(farm.funds_history))
+        if farm.funds_history[index] is not None and farm.funds_history[index - 1] is not None
+    ]
+    increments = [
+        farm.methane_history[index] - farm.methane_history[index - 1]
+        for index in range(1, len(farm.methane_history))
+    ]
+    if not increments:
+        return [RATING_FIRST_MESSAGE]
+    lines = []
+    if gains:
+        index, gain = max(gains, key=lambda pair: pair[1])
+        lines.append(f"Biggest single round: round {index}, {gain:+.0f} funds.")
+    drops = [(i + 2, increments[i] - increments[i + 1]) for i in range(len(increments) - 1)]
+    drops = [pair for pair in drops if pair[1] > 1e-9]
+    if drops:
+        round_number, drop = max(drops, key=lambda pair: pair[1])
+        lines.append(f"Best methane cut in one round: round {round_number}, {drop:.1f} less than the round before.")
+    else:
+        lines.append("Best methane cut in one round: none yet. Invest in decoupling to bend the curve.")
+    flock = f" plus a flock of {farm.poultry_size}" if farm.poultry_size else ""
+    lines.append(
+        f"Herd peaked at {farm.herd_size} animals{flock}; longest perfect-round streak {farm.best_perfect_streak}."
+    )
+    return lines
+
+
+def highlights_html():
+    items = "".join(f"<li>{line}</li>" for line in highlights_lines())
+    return f'<div class="highlights-reel"><p class="meter-label">Highlights</p><ul>{items}</ul></div>'
+
+
+# F-13: funds per methane saved, for the lever list.
+EFFICIENCY_NONE = "No methane saved at your current herd."
+
+
+def lever_efficiency_message(key, cost):
+    saved = farm.methane_saved_by(key)
+    if saved <= 1e-9:
+        return EFFICIENCY_NONE
+    return f"Saves {saved:.2f} methane/round: about {cost / saved:.1f} funds per methane saved."
+
+
+def _lever_cost(key):
+    if key in DECOUPLING_MEASURES:
+        return farm.decoupling_cost(key)
+    if key == "pivot":
+        return PLANT_PIVOT_COST
+    return POULTRY_MEASURES[key]["cost"]
+
+
+# F-24: headroom under the regional cap.
+def cap_headroom_message():
+    if not farm.regional_cap_enabled:
+        return ""
+    headroom = farm.cap_headroom()
+    rounds = farm.rounds_until_cap()
+    if rounds == 0:
+        tail = "The next animal is blocked. Decouple to make room."
+    elif rounds is None:
+        tail = "The herd is not growing, so the cap is not close."
+    else:
+        tail = (
+            f"At your pace so far ({farm.growth_pace():.1f} animals a round) you must decouple within "
+            f"{rounds} round{'s' if rounds != 1 else ''}."
+        )
+    return f"Headroom: {headroom:.1f} methane/round free under the cap. {tail}"
+
+
+# F-17: lever history log with a filter.
+lever_history_filter = "all"
+LEVER_HISTORY_SHOWN = 40
+
+
+def lever_history_html():
+    entries = [e for e in farm.lever_log if lever_history_filter in ("all", e[1])]
+    if not entries:
+        return "<li>Nothing bought yet.</li>"
+    shown = entries[::-1][:LEVER_HISTORY_SHOWN]
+    rows = "".join(
+        f"<li>Round {r}: bought {LEVER_LABELS.get(k, k)} (-{c:g})</li>" for r, k, c in shown
+    )
+    if len(entries) > len(shown):
+        rows += f"<li>and {len(entries) - len(shown)} earlier</li>"
+    return rows
+
+
+def on_lever_history_filter(event=None):
+    global lever_history_filter
+    value = getattr(document.getElementById("lever-history-filter"), "value", "all")
+    lever_history_filter = value if value == "all" or value in LEVER_LABELS else "all"
+    render_progress_extras()
+
+
+def render_progress_extras():
+    """Everything the new collector and progress features draw. Runs from render()."""
+    document.getElementById("rating-display").innerText = rating_message()
+    streak = document.getElementById("streak-display")
+    streak.innerText = streak_message()
+    streak.hidden = farm.round_number <= 1
+    document.getElementById("collection-summary").innerText = collection_summary_message()
+    document.getElementById("breed-shelf-grid").innerHTML = breed_shelf_html()
+    document.getElementById("combo-book-list").innerHTML = combo_book_html()
+    document.getElementById("lever-history-list").innerHTML = lever_history_html()
+    cap_text = cap_headroom_message()
+    meter = document.getElementById("cap-headroom-meter")
+    meter.hidden = not cap_text
+    document.getElementById("cap-headroom-display").innerText = cap_text
+    document.getElementById("cap-headroom-bar").style.width = (
+        f"{min(1.0, farm.methane_this_round() / REGIONAL_CAP) * 100:.0f}%"
+    )
+    for key in ("feed", "caps", "capture", "pivot", "litter", "biofilter"):
+        element = document.getElementById(f"{key}-efficiency")
+        element.innerText = lever_efficiency_message(key, _lever_cost(key))
+
+
+def round_announcement(funds_before, methane_before):
+    """Plain sentence for the aria-live region after Advance Round."""
+    change = farm.funds - funds_before
+    added = farm.methane - methane_before
+    text = (
+        f"Round {farm.round_number - 1} done. Funds {farm.funds:.0f}, {'up' if change >= 0 else 'down'} "
+        f"{abs(change):.0f}. Methane added {added:.1f}, total {farm.methane:.0f}. Herd {farm.herd_size}."
+    )
+    if farm.last_round_perfect:
+        text += f" Perfect round, streak {farm.perfect_streak}."
+    return text
+
+
 def on_grow_poultry(event=None):
     if farm.grow_poultry():
         _pulse("poultry-grow-button")
@@ -1819,6 +2281,7 @@ def on_policy_cash(event=None):
 
 
 def render():
+    _sync_collection()
     render_info_page()
     _maybe_update_record_coupling_ratio()
     coupling_fraction = farm.coupling_ratio() / BASE_COUPLING_RATIO
@@ -1921,6 +2384,7 @@ def render():
     update_pasture_visual()
 
     render_extras()
+    render_progress_extras()
 
 
 def on_grow_herd(event=None):
@@ -2144,9 +2608,15 @@ def _report_decoupling_gap():
 
 
 def on_advance_round(event=None):
+    funds_before, methane_before = farm.funds, farm.methane
     farm.advance_round()
     _report_decoupling_gap()
     render()
+    document.getElementById("round-announcer").innerText = round_announcement(funds_before, methane_before)
+    if farm.just_streak_bonus is not None:
+        streak, bonus = farm.just_streak_bonus
+        farm.just_streak_bonus = None
+        _display_milestone_toast(f"\U0001F525 Perfect-round streak of {streak}: +{bonus} funds.")
     _check_milestone_callout()
     _check_new_achievements_for_toast()
     if farm.just_flattened:
@@ -2195,6 +2665,19 @@ def get_state():
         state["satellite_open"] = True
         state["satellite_size"] = farm.satellite_size
         state["satellite_retrofits"] = farm.satellite_retrofits
+    # GF-29/F-17/GF-15/GF-16/GF-5: written only once there is something to keep.
+    if len(farm.funds_history) > 1:
+        state["funds_history"] = list(farm.funds_history)
+    if farm.lever_log:
+        state["lever_log"] = [list(entry) for entry in farm.lever_log]
+    if farm.perfect_streak > 0:
+        state["perfect_streak"] = farm.perfect_streak
+    if farm.best_perfect_streak > 0:
+        state["best_perfect_streak"] = farm.best_perfect_streak
+    if breeds_collected:
+        state["breeds_collected"] = list(breeds_collected)
+    if combos_found:
+        state["combos_found"] = list(combos_found)
     # F25: succession state is written only once a handover has happened or
     # points/perks exist, so an ordinary save is unchanged.
     if generation > 1:
@@ -2213,6 +2696,45 @@ def _safe_int(value, default):
     if value != value or value in (float("inf"), float("-inf")):
         return default
     return max(0, int(value))
+
+
+def _load_progress_fields(data):
+    """Validated load of the highlights/log/streak/collection fields; every one
+    defaults safely so older saves and hand-edited payloads cannot crash."""
+    global breeds_collected, combos_found
+    history = data.get("funds_history")
+    cleaned = None
+    if isinstance(history, list):
+        cleaned = []
+        for value in history:
+            if (
+                isinstance(value, (int, float)) and not isinstance(value, bool)
+                and value == value and abs(value) != float("inf")
+            ):
+                cleaned.append(float(value))
+            else:
+                cleaned.append(None)
+    # Aligned with methane_history: a missing or mismatched record becomes "unknown
+    # until now" padding so rounds already played never invent numbers.
+    if cleaned is None or len(cleaned) != len(farm.methane_history):
+        cleaned = [None] * (len(farm.methane_history) - 1) + [farm.funds]
+    farm.funds_history = cleaned
+    log = data.get("lever_log")
+    farm.lever_log = []
+    if isinstance(log, list):
+        for entry in log[-LEVER_LOG_MAX:]:
+            if (
+                isinstance(entry, (list, tuple)) and len(entry) == 3 and entry[1] in LEVER_LABELS
+                and isinstance(entry[0], (int, float)) and not isinstance(entry[0], bool)
+                and isinstance(entry[2], (int, float)) and not isinstance(entry[2], bool)
+                and entry[0] == entry[0] and entry[2] == entry[2]
+                and abs(entry[0]) != float("inf") and abs(entry[2]) != float("inf")
+            ):
+                farm.lever_log.append([max(1, int(entry[0])), entry[1], float(entry[2])])
+    farm.perfect_streak = _safe_int(data.get("perfect_streak"), 0)
+    farm.best_perfect_streak = max(farm.perfect_streak, _safe_int(data.get("best_perfect_streak"), 0))
+    breeds_collected = _valid_ids(data.get("breeds_collected"), BREEDS)
+    combos_found = _valid_ids(data.get("combos_found"), COMBOS)
 
 
 def load_state(data):
@@ -2290,6 +2812,7 @@ def load_state(data):
         if isinstance(pending, list) else []
     )
     farm.supply_chain_investment = min(SUPPLY_CHAIN_MAX_UNITS, _safe_int(data.get("supply_chain_investment"), 0))
+    _load_progress_fields(data)
     farm.variation_enabled = data.get("variation_enabled") is True
     farm.regional_cap_enabled = data.get("regional_cap_enabled") is True
     farm.policy_offer_pending = data.get("policy_offer_pending") is True
@@ -2297,6 +2820,7 @@ def load_state(data):
     # achievements_earned is deliberately never read back here -- it's a
     # write-only projection recomputed fresh by get_state() every save,
     # per ACHIEVEMENTS-SYSTEM-DESIGN.md.
+    _sync_collection(award=False)  # a load records what the farm qualifies for but never pays
     render()
     _seed_achievement_toast_baseline()
     return True
@@ -2361,6 +2885,9 @@ def setup():
         document.getElementById(f"{measure}-invest-button").addEventListener(
             "click", create_proxy(_make_poultry_handler(measure))
         )
+    document.getElementById("lever-history-filter").addEventListener(
+        "change", create_proxy(on_lever_history_filter)
+    )
     render()
     _seed_achievement_toast_baseline()
 

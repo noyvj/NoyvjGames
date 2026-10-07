@@ -86,6 +86,12 @@ ELEMENT_IDS = [
     "succession-panel", "succession-display", "succession-button",
     "perk-family-savings-button", "perk-heritage-flock-button", "perk-mentor-methods-button",
     "litter-count", "litter-invest-button", "biofilter-count", "biofilter-invest-button",
+    # Round-3 Herd batch: ratings, streak, collection, lever history, efficiency, cap headroom.
+    "rating-display", "streak-display", "collection-summary", "breed-shelf-grid",
+    "combo-book-list", "lever-history-list", "lever-history-filter", "round-announcer",
+    "cap-headroom-meter", "cap-headroom-display", "cap-headroom-bar",
+    "feed-efficiency", "caps-efficiency", "capture-efficiency", "pivot-efficiency",
+    "litter-efficiency", "biofilter-efficiency",
 ]
 for _measure in MEASURE_IDS:
     ELEMENT_IDS += [f"{_measure}-name", f"{_measure}-count", f"{_measure}-invest-button"]

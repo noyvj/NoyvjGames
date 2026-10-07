@@ -177,20 +177,25 @@
       <p id="decoupling-summary-display" class="comparison-message">Decoupled: 0% below baseline emissions per herd unit</p>
       <details class="info-toggle"><summary>i</summary><p>Feed Additives, Herd Caps, and Capture Systems all reduce the same underlying emissions ratio, and their effects stack additively — investing in several compounds rather than duplicating effort. The ratio has a floor, though: past a certain point, further investment stops helping.</p></details>
       <p id="certification-display" class="comparison-message">Sustainable certification</p>
+      <p id="rating-display" class="comparison-message"></p>
+      <p id="streak-display" class="comparison-message" hidden></p>
       <div class="invest-row" data-measure="feed">
         <span class="invest-name" id="feed-name">Feed Additives</span>
         <span class="invest-count" id="feed-count">0</span>
         <button id="feed-invest-button" class="secondary" disabled>Loading...</button>
+        <span id="feed-efficiency" class="invest-efficiency"></span>
       </div>
       <div class="invest-row" data-measure="caps">
         <span class="invest-name" id="caps-name">Herd Caps</span>
         <span class="invest-count" id="caps-count">0</span>
         <button id="caps-invest-button" class="secondary" disabled>Loading...</button>
+        <span id="caps-efficiency" class="invest-efficiency"></span>
       </div>
       <div class="invest-row" data-measure="capture">
         <span class="invest-name" id="capture-name">Capture Systems</span>
         <span class="invest-count" id="capture-count">0</span>
         <button id="capture-invest-button" class="secondary" disabled>Loading...</button>
+        <span id="capture-efficiency" class="invest-efficiency"></span>
       </div>
     </div>
 
@@ -201,6 +206,7 @@
         <span class="invest-name">🌿 Plant-Based Pivot</span>
         <span class="invest-count" id="plant-pivot-count">0</span>
         <button id="plant-pivot-invest-button" class="secondary" disabled>Loading...</button>
+        <span id="pivot-efficiency" class="invest-efficiency"></span>
       </div>
       <p id="combined-decoupling-display" class="comparison-message">Efficiency measures alone bring you to 1.00 methane/herd/round — the plant-based pivot isn't active yet.</p>
     </div>
@@ -219,6 +225,8 @@
       <label class="settings-checkbox-label"><input type="checkbox" id="variation-checkbox"> Market &amp; weather variation (seasons swing income; plant-based demand surges)</label>
       <label class="settings-checkbox-label"><input type="checkbox" id="cap-checkbox"> Regional methane cap (growth blocked past the cap)</label>
       <p id="cap-display" class="comparison-message"></p>
+      <div id="cap-headroom-meter" class="meter cap-headroom-meter" role="img" aria-label="Share of the regional cap in use" hidden><div id="cap-headroom-bar" class="meter-fill meter-fill--methane"></div></div>
+      <p id="cap-headroom-display" class="comparison-message"></p>
     </details>
 
     <div id="policy-panel" class="section" hidden>
@@ -241,8 +249,8 @@
       <p class="meter-label">Poultry flock (unlocked by certification)<details class="info-toggle"><summary>i</summary><p>A second herd type with its own, much lower emissions curve, its own levers and housing upkeep. Your certified farm earned the right to diversify. Real poultry emissions are mostly manure nitrous oxide and ammonia rather than enteric methane, so the game shows a single methane-equivalent number.</p></details></p>
       <p id="poultry-display" class="comparison-message"></p>
       <button id="poultry-grow-button" class="secondary">Grow Flock</button>
-      <div class="invest-row"><span class="invest-name">Litter Management</span><span class="invest-count" id="litter-count">0</span><button id="litter-invest-button" class="secondary">Litter</button></div>
-      <div class="invest-row"><span class="invest-name">Ventilation Biofilters</span><span class="invest-count" id="biofilter-count">0</span><button id="biofilter-invest-button" class="secondary">Biofilter</button></div>
+      <div class="invest-row"><span class="invest-name">Litter Management</span><span class="invest-count" id="litter-count">0</span><button id="litter-invest-button" class="secondary">Litter</button><span id="litter-efficiency" class="invest-efficiency"></span></div>
+      <div class="invest-row"><span class="invest-name">Ventilation Biofilters</span><span class="invest-count" id="biofilter-count">0</span><button id="biofilter-invest-button" class="secondary">Biofilter</button><span id="biofilter-efficiency" class="invest-efficiency"></span></div>
     </div>
 
     <div id="satellite-panel" class="section" hidden>
@@ -253,6 +261,42 @@
       <button id="satellite-retrofit-button" class="secondary" hidden>Retrofit Barns</button>
     </div>
 
+    <details id="collection-extras" class="section farm-extras collection-extras">
+      <summary>Collection: breeds, combos and lever history</summary>
+      <p id="collection-summary" class="comparison-message"></p>
+      <div id="breed-shelf" class="collection-block">
+        <p class="meter-label">Breed shelf (collected for good, across generations)</p>
+        <ul id="breed-shelf-grid" class="breed-shelf-grid"></ul>
+      </div>
+      <div id="combo-book" class="collection-block">
+        <p class="meter-label">Combo book (each combo pays <span class="combo-reward">20</span> funds once)</p>
+        <ul id="combo-book-list" class="combo-book-list"></ul>
+      </div>
+      <div id="lever-history" class="collection-block">
+        <p class="meter-label">Lever history</p>
+        <label class="settings-checkbox-label" for="lever-history-filter">Show
+          <select id="lever-history-filter">
+            <option value="all">All purchases</option>
+            <option value="herd">Grow Herd</option>
+            <option value="feed">Feed Additives</option>
+            <option value="caps">Herd Caps</option>
+            <option value="capture">Capture Systems</option>
+            <option value="pivot">Plant-Based Pivot</option>
+            <option value="genetics">Breeding Program</option>
+            <option value="supply">Processing &amp; Distribution</option>
+            <option value="poultry">Grow Flock</option>
+            <option value="litter">Litter Management</option>
+            <option value="biofilter">Ventilation Biofilters</option>
+            <option value="satellite_open">Open Satellite Farm</option>
+            <option value="satellite_grow">Grow Satellite Herd</option>
+            <option value="satellite_retrofit">Retrofit Barns</option>
+          </select>
+        </label>
+        <ol id="lever-history-list" class="lever-history-list"></ol>
+      </div>
+    </details>
+
+    <p id="round-announcer" class="sr-only" role="status" aria-live="polite"></p>
     <button id="advance-round-button" class="primary">⏭️ Advance Round</button>
 
     <div id="leaderboard-mount" class="section"></div>

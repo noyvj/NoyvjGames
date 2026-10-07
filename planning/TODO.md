@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 135/785 items checked off (17.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 143/785 items checked off (18.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -447,21 +447,21 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] F-7: Add a Herd dry-run planner drawer: queue several rounds of purchases on a scratch copy and see projected gauge, funds and methane for 5-10 rounds, with the counterfactual line for reference.
 - [ ] F-8: Add a Herd mixed-herd allocation UI: after poultry unlocks, one allocation slider across beef/dairy, poultry and plant-based with a live stacked bar of income, methane and welfare per segment.
 - [ ] F-9: Add a Herd policy-advisor offer pool (carbon-credit contract, feed-price hedge, organic label trial, welfare grant) drawn without repeats, an advisor history list with real-world tags, and report-card display.
-- [ ] F-10: Complete Herd keyboard and screen-reader play: every lever and Advance Round keyboard reachable with visible focus, arrow-key control on the lever list, aria-live round-result announcements, and a shortcut cheat sheet in How to Play. (partly built: Z15 audit of panels (no gap), Z4 ?/Esc shortcuts via shared/keyboard-shortcuts.js; Z28 focus ring.)
+- [ ] F-10: Complete Herd keyboard and screen-reader play: every lever and Advance Round keyboard reachable with visible focus, arrow-key control on the lever list, aria-live round-result announcements, and a shortcut cheat sheet in How to Play. (partly built: Z15 audit of panels (no gap), Z4 ?/Esc shortcuts via shared/keyboard-shortcuts.js; Z28 focus ring.) (Partly done 2026-10-07: polite live region reads the round result; still open: arrow-key control on the lever list, a visible-focus audit, the shortcut cheat sheet.)
 - [ ] F-11: Add Herd Beginner/Standard/Expert profiles at new game: Beginner shows a next-best-lever hint chip, Expert hides previews and tooltips, built as toggled layers over existing content.
 - [ ] F-12: Add offline-first polish across games: precache Pyodide, an 'offline, community stats paused' status pill, and a queued stats/feedback submit that flushes on reconnect; start with Herd. (partly built: sw.js: network-first with offline fallback, precaches game shells (site milestone 10); Pyodide CDN cache-first at runtime, no precache or status pill.)
-- [ ] F-13: Add a Herd 'funds per methane saved' figure to each lever in the lever list, from the existing preview formulas.
+- [x] F-13: Add a Herd 'funds per methane saved' figure to each lever in the lever list, from the existing preview formulas.
 - [ ] F-14: Add Herd optional colourblind-safe hatch patterns and shape markers for the methane trend graph, welfare bar and supply-chain bar, toggled in Settings.
 - [ ] F-15: Add Herd high-contrast theme and dyslexia-friendly font toggles in Settings, persisted via the same localStorage path as text scale.
 - [ ] F-16: Add a Herd pin-a-stat header: pin up to three readouts (funds, welfare, income per round) into a sticky strip visible while the extras panel is open.
-- [ ] F-17: Add a Herd lever history log: a collapsible list of purchases ('Round 4: bought Capture Systems (-40)') under the extras panel, filterable by lever.
+- [x] F-17: Add a Herd lever history log: a collapsible list of purchases ('Round 4: bought Capture Systems (-40)') under the extras panel, filterable by lever.
 - [ ] F-18: Add a Herd Settings option to require confirmation for any purchase above N percent of current funds, using the shared confirm dialog. (partly built: Shared confirm-dialog already guards the Plant-Based Pivot (F16) only.)
 - [ ] F-19: Add a Herd x1/x5/max bulk-buy stepper beside Grow Herd and lever buttons showing total cost before clicking, reusing the rising-cost preview.
 - [ ] F-20: Add Herd round-delta chips (+/-) beside funds, methane, welfare and pressure after each Advance Round that fade after a few seconds, with a pin click.
 - [ ] F-21: Add a Herd 12-round season calendar strip in seasons mode showing upcoming income swing and plant-demand surge as colour- and icon-coded cells.
 - [ ] F-22: Add a Herd poultry vs cattle comparison mini-card in the poultry panel: per-unit income, methane-equivalent and welfare effect side by side.
 - [ ] F-23: Add a Herd breeding progress ring on the breeding lever showing rounds left in the 3-round maturation, replacing the text.
-- [ ] F-24: Add a Herd cap-mode headroom bar under the 20-methane cap with 'rounds until you must decouple' at the current growth pace.
+- [x] F-24: Add a Herd cap-mode headroom bar under the 20-methane cap with 'rounds until you must decouple' at the current growth pace.
 - [ ] F-25: Add Herd settings export/import: one button copies all local settings (text scale, motion, toggles, personal bests) as a short code, another restores it, using shared/export_progress.py.
 - [ ] F-26: Add a Herd slow-device lite mode toggle (haze, methane wisps, cow-graze off, static pasture), and make it a shared setting in shared/site-settings.js offered to the other games.
 - [ ] F-27: Add Herd achievement hover progress: mini progress bar and exact amount left on hover/focus, extending ACHIEVEMENT_PROGRESS to the remaining numeric achievements. (partly built: ACHIEVEMENT_PROGRESS gives unearned cards an 'N of M' line for ~6 numeric achievements; no hover bar.)
@@ -472,7 +472,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] GF-2: Extend Herd's succession legacy perks into a visible upgrade tree: start with one capture unit, a second policy-advisor option, a rare breed with better breeding odds, a farmhouse skin; make certification and poultry early goals each generation chase. (partly built: F25 succession: hand_over_farm(), legacy_points, LEGACY_PERKS (Family Savings, Heritage Flock, Mentor's Methods), #succession-panel; test_succession.py.) (needs W-3)
 - [ ] GF-3: Add Herd Auditor boss rounds: every 10th round a regulator audit with a visible target (e.g. coupling under 0.6 and welfare over 60), 3 rounds of warning; pass earns a permanent perk, fail costs a fine and a market-trust hit.
 - [ ] GF-4: Add Herd rival ranch ghost opponents (Big Ag Barry pure growth, Organic Olive pure restraint, community-median copy) with a live scoreboard strip; win by beating them in funds AND methane. (needs backend pool (median rival))
-- [ ] GF-5: Add Herd decoupling combos: named build-order combos (Circular Barn, Happy Herd, ...) with a grey-silhouette combo book that fills as discovered, each giving a small reward.
+- [x] GF-5: Add Herd decoupling combos: named build-order combos (Circular Barn, Happy Herd, ...) with a grey-silhouette combo book that fills as discovered, each giving a small reward.
 - [ ] GF-6: Add Herd Ranch-of-the-Week: date-seeded fixed-event challenge with handicap modifier (e.g. no capture systems, double weather swings), scored against the community percentile via Z1 and a personal weekly history strip. (needs backend pool, W-5)
 - [ ] GF-7: Add Herd commodity trading as an optional game mode: a price ticker for meat, dairy and eggs where contracts lock the next 3 rounds at today's price, interacting with season swings and plant-demand surges.
 - [ ] GF-8: Add Herd disaster events (heatwave, disease outbreak, feed-price spike, flood) with a 2-round telegraph and a specific lever to blunt each (welfare/breeding vs disease, capture vs regulator visit); opt-in like seasons.
@@ -482,21 +482,21 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] GF-12: Add Herd cow reactions: pasture cows show moo bubbles, hop or nap depending on welfare and coupling, with a silly quip on click; respect reduced motion.
 - [ ] GF-13: Add Herd named cows: generated names (Beyonmoo, Sir Grazealot) on hover plus a retired hall of fame for the longest-serving units.
 - [ ] GF-14: Add a Herd round-summary 'cha-ching': rolling count-up of funds on Advance Round and a small confetti burst when the round beats the last; toggleable and reduced-motion respecting.
-- [ ] GF-15: Add a Herd perfect-round streak counter (methane fell AND funds rose) with a flame icon and tiny bonuses at 3/5/10 rounds.
-- [ ] GF-16: Add Herd breed collection: named breeds as a collector shelf with a hidden Methane-Eater Cow (e.g. coupling under 0.25 with welfare over 90), glowing sprite and shelf achievement; breeds in general are a collector goal per owner.
+- [x] GF-15: Add a Herd perfect-round streak counter (methane fell AND funds rose) with a flame icon and tiny bonuses at 3/5/10 rounds.
+- [x] GF-16: Add Herd breed collection: named breeds as a collector shelf with a hidden Methane-Eater Cow (e.g. coupling under 0.25 with welfare over 90), glowing sprite and shelf achievement; breeds in general are a collector goal per owner.
 - [ ] GF-17: Add Herd achievement-gated cosmetic barns: earning certain achievements unlocks barn/fence/tractor skins for the pasture hero image, selectable in the extras panel.
 - [ ] GF-18: Add Herd 'undo last round' once per game at a fund penalty, to let players try risky levers and recover from misclicks.
 - [ ] GF-19: Add Herd tactile animations: a short CSS tractor crossing the screen on Advance Round and squish-on-press buttons, reduced-motion respecting, no audio.
 - [ ] GF-20: Add Herd farm event cards: each round a 20% chance of a one-line flavour event with a two-button choice and small stakes (e.g. neighbour offers to buy 2 units: cash or refuse).
 - [ ] GF-21: Add Herd golden-cow bonus: rarely a golden cow glides across the pasture and clicking it in time grants a one-off funds bonus; provide a non-timed alternative (button or reduced-motion auto-claim).
-- [ ] GF-22: Add a Herd rating title ladder on the report card (Hobby Farmer to Decoupling Legend) with a tiny cartoon and the next title's requirement.
+- [x] GF-22: Add a Herd rating title ladder on the report card (Hobby Farmer to Decoupling Legend) with a tiny cartoon and the next title's requirement.
 - [ ] GF-23: Add Herd starting loadouts (Big Herd, Lean Green, Poultry Start, Cash Rich) unlocked by achievements that bend opening funds/levers for a new game or generation.
 - [ ] GF-24: Add a Herd sandbox mode: set herd size, methane and levers freely and watch the gauge react, with no scoring and no achievement/community effects.
 - [ ] GF-25: Add an optional Herd feed-additive mixer minigame: a 5-second click-timing bar (hit the green band) nudging that round's feed effect by a few percent, with an auto-resolve button.
 - [ ] GF-26: Add Herd rival and policy-advisor speech-bubble one-liners after each round based on standing, using the existing vignette plumbing. (needs GF-4 (rival))
 - [ ] GF-27: Add a Herd post-certification crate: a satisfying open animation granting a cosmetic or small perk, shown as a visible prestige reward with the contents hinted so 100% never relies on luck. [reframe: Random loot reframed as hinted/choose-one reward; cosmetics share GF-17 shelf.]
 - [ ] GF-28: Add a Herd opt-in blind-run hard mode hiding the counterfactual and gauge best-markers until the end, with a stronger reveal then.
-- [ ] GF-29: Add a Herd per-run highlights reel: a 3-line recap of funny moments (peak herd, biggest single-round swing) after a generation or on the report card, screenshot-friendly.
+- [x] GF-29: Add a Herd per-run highlights reel: a 3-line recap of funny moments (peak herd, biggest single-round swing) after a generation or on the report card, screenshot-friendly.
 - [ ] GF-30: Add a Herd daily perk pick: each calendar day offer one of two small boons (e.g. +5% feed effect), chosen by a date-seeded rotation and shown in advance. [reframe: Random daily boon made a visible date-seeded rotation (not a random mutator); overlaps GF-6 date seed.]
 
 *Not added: GF-1 (no).*

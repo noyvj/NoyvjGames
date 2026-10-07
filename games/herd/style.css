@@ -1264,6 +1264,98 @@ html[data-reduced-motion="true"] *::after {
 .farm-extras button { margin: 0.25rem 0.25rem 0.25rem 0; }
 #poultry-panel .invest-row::before { content: "🐔"; }
 
+/* Round-3 Herd batch: screen-reader-only text, lever efficiency lines, the collector shelf, the
+   combo book, the lever history, the highlights reel and the cap headroom bar. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.invest-efficiency {
+  grid-column: 1 / -1;
+  font-size: 0.74rem;
+  opacity: 0.7;
+}
+
+.collection-block { margin-top: 0.7rem; }
+.collection-block ul, .collection-block ol { margin: 0.3rem 0 0; padding: 0; }
+.collection-block label { display: flex; gap: 0.5rem; align-items: center; margin: 0.3rem 0; }
+.collection-block select { font: inherit; padding: 0.25rem 0.4rem; max-width: 100%; }
+
+.breed-shelf-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.6rem, 1fr));
+  gap: 0.5rem;
+}
+.breed-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.5rem 0.4rem;
+  text-align: center;
+  border-radius: 10px;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+}
+.breed-glyph { font-size: 1.7rem; line-height: 1.1; }
+.breed-name { font-size: 0.82rem; font-weight: 600; }
+.breed-detail { font-size: 0.7rem; opacity: 0.7; }
+.breed-card--earned { border-color: rgba(76, 156, 110, 0.55); }
+.breed-card--locked { opacity: 0.6; border-style: dashed; }
+/* Locked breeds are a silhouette: the picture is flattened to a dark shape. */
+.breed-card--locked .breed-glyph { filter: grayscale(1) brightness(0.35) contrast(1.2); }
+.breed-card--legend {
+  border-color: #e0c24c;
+  box-shadow: 0 0 14px rgba(224, 194, 76, 0.55);
+  animation: breed-legend-glow 2.4s ease-in-out infinite;
+}
+@keyframes breed-legend-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(224, 194, 76, 0.35); }
+  50% { box-shadow: 0 0 20px rgba(224, 194, 76, 0.8); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .breed-card--legend { animation: none; }
+}
+html[data-reduced-motion="true"] .breed-card--legend { animation: none; }
+
+.combo-book-list { list-style: none; display: grid; gap: 0.4rem; }
+.combo-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(140, 160, 255, 0.18);
+}
+.combo-name { font-size: 0.85rem; font-weight: 600; }
+.combo-detail { font-size: 0.74rem; opacity: 0.75; }
+.combo-card--found { border-color: rgba(76, 156, 110, 0.55); background: rgba(76, 156, 110, 0.08); }
+.combo-card--locked { opacity: 0.65; border-style: dashed; }
+.combo-card--locked .combo-name { filter: grayscale(1); letter-spacing: 0.15em; }
+
+.lever-history-list { padding-left: 1.2rem !important; font-size: 0.8rem; max-height: 14rem; overflow-y: auto; }
+.lever-history-list li { margin: 0.1rem 0; }
+
+.highlights-reel {
+  margin-top: 0.7rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid rgba(224, 194, 76, 0.4);
+  background: rgba(224, 194, 76, 0.07);
+}
+.highlights-reel ul { margin: 0.2rem 0 0; padding-left: 1.1rem; font-size: 0.85rem; }
+
+.cap-headroom-meter { margin-top: 0.3rem; }
+
 /* Site-wide: a bare `display:` rule on a class must never defeat the HTML hidden attribute
    (playtest audit 2026-10-06, S2: Continuum, Aftermath, Drift, Champ de Mots, hub). */
 [hidden] { display: none !important; }
