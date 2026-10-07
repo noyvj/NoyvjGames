@@ -142,7 +142,8 @@
 (() => {
   "use strict";
   const STORE_KEY = "ideas-sheet-v1";
-  const UI_KEY = "ideas-sheet-ui-v1";
+  const UI_KEY = "ideas-sheet-ui-v2"; // v2: everyone lands on "All unanswered" once
+  const ALL = "all-open";
   const $ = (id) => document.getElementById(id);
 
   const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -151,7 +152,7 @@
   let data = null;          // {rounds: [...]}
   let baseline = {};        // answers already in the docs (local checkout only)
   let mine = {};            // {roundId: {code: {n: {c, m}}}} -- what was typed on this page
-  let ui = { round: "round-3", section: "", filter: "open", tag: "", q: "" };
+  let ui = { round: ALL, section: "", filter: "open", tag: "", q: "" };
   const touched = new Set(); // "code:n" keys edited this visit, kept visible under the "unanswered" filter
 
   try { mine = JSON.parse(lsGet(STORE_KEY) || "{}") || {}; } catch (e) { mine = {}; }
@@ -164,7 +165,25 @@
       .replace(/\*([^*]+)\*/g, "<em>$1</em>");
   }
 
-  const round = () => data.rounds.find((r) => r.id === ui.round) || data.rounds[0];
+  // "All unanswered": a virtual round that gathers every section (from every round) that had at least one
+  // unanswered item when the page loaded, so nothing has to be hunted for across the tabs. Its sections keep
+  // pointing at the real answers through a composite code "roundId|code" (see split()).
+  let allRound = null;
+  function buildAll() {
+    const secs = [];
+    for (const r of data.rounds) {
+      for (const sec of r.sections) {
+        if (!sec.items.some((i) => !i.answered)) continue;
+        secs.push(Object.assign({}, sec, { code: r.id + "|" + sec.code, _round: r.id, _roundTitle: r.title, _plain: sec.title, title: r.title + " \u00b7 " + sec.title }));
+      }
+    }
+    allRound = { id: ALL, title: "All unanswered", sections: secs };
+  }
+  function split(code) {
+    const i = String(code).indexOf("|");
+    return i < 0 ? [ui.round, code] : [code.slice(0, i), code.slice(i + 1)];
+  }
+  const round = () => (ui.round === ALL && allRound) || data.rounds.find((r) => r.id === ui.round) || data.rounds[0];
   const section = () => round().sections.find((s) => s.code === ui.section) || round().sections[0];
   const labels = (sec) => (sec.vocab === "decide"
     ? [["yes", "Now"], ["later", "Later"], ["no", "Drop"]]
@@ -174,8 +193,8 @@
   const words = (sec) => (sec.vocab === "decide" ? { yes: "now", later: "later", no: "drop" } : { yes: "yes", later: "later", no: "no" });
   const isQuestions = (sec) => /open questions/i.test(sec.title) || sec.vocab === "recommend";
 
-  function mineFor(code, n) { return ((mine[ui.round] || {})[code] || {})[n]; }
-  function baseFor(code, n) { return ((baseline[ui.round] || {})[code] || {})[n]; }
+  function mineFor(code, n) { const [r, c] = split(code); return ((mine[r] || {})[c] || {})[n]; }
+  function baseFor(code, n) { const [r, c] = split(code); return ((baseline[r] || {})[c] || {})[n]; }
   function effective(code, item) {
     const m = mineFor(code, item.n);
     if (m) return m;
@@ -188,12 +207,13 @@
     return !item.answered;
   }
   function setMine(code, n, patch) {
-    const r = (mine[ui.round] = mine[ui.round] || {});
-    const s = (r[code] = r[code] || {});
+    const [rid, realCode] = split(code);
+    const r = (mine[rid] = mine[rid] || {});
+    const s = (r[realCode] = r[realCode] || {});
     const cur = s[n] || { c: (baseFor(code, n) || {}).c || "", m: (baseFor(code, n) || {}).m || "" };
     const next = Object.assign({}, cur, patch, { u: Date.now() });
     if (!next.c && !next.m && !baseFor(code, n)) delete s[n]; else s[n] = next;
-    if (!Object.keys(s).length) delete r[code];
+    if (!Object.keys(s).length) delete r[realCode];
     lsSet(STORE_KEY, JSON.stringify(mine));
     touched.add(code + ":" + n);
     schedulePush();
@@ -272,25 +292,35 @@
   }
 
   // ---- rendering -------------------------------------------------------
+  function navButton(s, label) {
+    const open = s.items.filter((i) => isOpen(s.code, i)).length;
+    const b = document.createElement("button"); b.type = "button";
+    b.dataset.code = s.code;
+    if (s.code === ui.section) b.setAttribute("aria-current", "true");
+    const name = document.createElement("span"); name.textContent = label;
+    const count = document.createElement("span"); count.className = "count" + (open === 0 ? " done" : "");
+    count.textContent = open === 0 ? "done" : open + " open";
+    b.append(name, count);
+    b.addEventListener("click", () => { ui.section = s.code; saveUi(); render(); window.scrollTo({ top: 0 }); });
+    return b;
+  }
   function renderNav() {
     const nav = $("sections"); nav.textContent = "";
     const secs = round().sections;
+    if (ui.round === ALL) {
+      for (const r of data.rounds) {
+        const list = secs.filter((s) => s._round === r.id);
+        if (!list.length) continue;
+        const g = document.createElement("div"); g.className = "nav-group"; g.textContent = r.title; nav.appendChild(g);
+        for (const s of list) nav.appendChild(navButton(s, s._plain));
+      }
+      return;
+    }
     const games = secs.filter((s) => /gamified/.test(s.title) || /^[A-L]$/.test(s.code) || /^G[B-I]$/.test(s.code));
     const others = secs.filter((s) => !games.includes(s));
     const add = (list, label) => {
       if (label && list.length) { const g = document.createElement("div"); g.className = "nav-group"; g.textContent = label; nav.appendChild(g); }
-      for (const s of list) {
-        const open = s.items.filter((i) => isOpen(s.code, i)).length;
-        const b = document.createElement("button"); b.type = "button";
-        b.dataset.code = s.code;
-        if (s.code === ui.section) b.setAttribute("aria-current", "true");
-        const name = document.createElement("span"); name.textContent = s.title;
-        const count = document.createElement("span"); count.className = "count" + (open === 0 ? " done" : "");
-        count.textContent = open === 0 ? "done" : open + " open";
-        b.append(name, count);
-        b.addEventListener("click", () => { ui.section = s.code; saveUi(); render(); window.scrollTo({ top: 0 }); });
-        nav.appendChild(b);
-      }
+      for (const s of list) nav.appendChild(navButton(s, s.title));
     };
     add(games, "Games");
     add(others, "Everything else");
@@ -419,10 +449,14 @@
 
   // ---- export ----------------------------------------------------------
   function buildExport() {
-    const lines = ["## " + round().title + " answers (from the ideas page, " + new Date().toISOString().slice(0, 10) + ")", ""];
+    if (ui.round !== ALL) return exportRound(round(), ui.round);
+    return data.rounds.map((r) => exportRound(r, r.id)).filter(Boolean).join("\n");
+  }
+  function exportRound(rnd, rid) {
+    const lines = ["## " + rnd.title + " answers (from the ideas page, " + new Date().toISOString().slice(0, 10) + ")", ""];
     let any = false;
-    for (const sec of round().sections) {
-      const mine_s = (mine[ui.round] || {})[sec.code]; if (!mine_s) continue;
+    for (const sec of rnd.sections) {
+      const mine_s = (mine[rid] || {})[sec.code]; if (!mine_s) continue;
       const w = words(sec), rows = [];
       for (const item of sec.items) {
         const m = mine_s[item.n]; if (!m || (!m.c && !m.m)) continue;
@@ -470,9 +504,10 @@
   // ---- boot ------------------------------------------------------------
   function wire() {
     const rs = $("round-select");
+    buildAll();
+    const first = document.createElement("option"); first.value = ALL; first.textContent = "All unanswered (everything, every file)"; rs.appendChild(first);
     for (const r of data.rounds) { const o = document.createElement("option"); o.value = r.id; o.textContent = r.title; rs.appendChild(o); }
-    if (!data.rounds.some((r) => r.id === ui.round)) ui.round = data.rounds[0].id;
-    if (!lsGet(UI_KEY) && data.rounds[0].id === "for-you") ui.round = "for-you";
+    if (ui.round !== ALL && !data.rounds.some((r) => r.id === ui.round)) ui.round = ALL;
     rs.value = ui.round;
     rs.addEventListener("change", () => { ui.round = rs.value; ui.section = ""; touched.clear(); pickSection(); saveUi(); render(); });
     $("filter-select").value = ui.filter;
