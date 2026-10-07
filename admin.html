@@ -157,6 +157,17 @@
   .refresh-button:hover { filter: brightness(1.15); }
   .status-line { opacity: 0.6; font-size: 0.8rem; margin: 0 0 1rem; }
   .answer-list { margin: 0; padding-left: 1.1rem; }
+  /* Y-13: daily sparklines */
+  .spark-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
+  .spark-card { background: rgba(5, 6, 13, 0.5); border: 1px solid rgba(140, 160, 255, 0.14); border-radius: 10px; padding: 0.65rem 0.9rem; }
+  .spark-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; font-size: 0.82rem; }
+  .spark-head strong { font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+  .spark-card svg { display: block; width: 100%; height: 44px; margin-top: 0.35rem; }
+  .spark-card .bar { fill: #7f9bef; }
+  .spark-card .bar.today { fill: #c4d4ff; }
+  .spark-card .base { stroke: rgba(140, 160, 255, 0.25); stroke-width: 1; }
+  .spark-foot { display: flex; justify-content: space-between; font-size: 0.7rem; opacity: 0.55; margin-top: 0.2rem; }
+  .vote-up, .vote-down { font-variant-numeric: tabular-nums; }
   code { font-size: 0.82rem; background: rgba(5, 6, 13, 0.5); padding: 0.1rem 0.35rem; border-radius: 4px; }
 .skip-link-admin{position:absolute;left:-9999px;top:0;background:#a9c3ff;color:#111;padding:.5rem 1rem;z-index:100}.skip-link-admin:focus{left:0}
 :focus-visible{outline:2px solid #a9c3ff}
@@ -172,7 +183,7 @@
     <p class="status-line" id="admin-login-status">Sign in as the owner account to view this page's data.</p>
   </section>
   <h1>SITE ADMIN</h1>
-  <p id="subtitle">Ratings, feedback, and French answer reports — pulled live from the existing public read endpoints, nothing new exposed.</p>
+  <p id="subtitle">Daily activity, ratings, feedback, accounts, What's New votes and French answer reports, all owner-only.</p>
   <div class="collapse-controls">
     <button type="button" class="refresh-button" id="expand-all">Expand all</button>
     <button type="button" class="refresh-button" id="collapse-all">Collapse all</button>
@@ -183,6 +194,37 @@
     <p class="status-line" id="overview-status">Loading…</p>
     <div class="stat-row" id="overview-stats"></div>
     <p class="status-line" id="overview-saves-by-game"></p>
+  </details>
+
+  <details class="panel" id="panel-activity" open>
+    <summary><h2>Daily activity</h2></summary>
+    <p class="status-line">Counts per UTC day, straight from the database (counts only, never rows). "Hide test data" below applies here too.</p>
+    <div class="filter-row">
+      <select id="activity-days" aria-label="How many days to show">
+        <option value="14">Last 14 days</option>
+        <option value="30" selected>Last 30 days</option>
+        <option value="90">Last 90 days</option>
+      </select>
+      <button type="button" class="refresh-button" id="activity-refresh">Refresh</button>
+    </div>
+    <p class="status-line" id="activity-status">Loading…</p>
+    <div class="spark-grid" id="activity-grid"></div>
+    <p class="status-line" id="activity-notes"></p>
+  </details>
+
+  <details class="panel" id="panel-votes" open>
+    <summary><h2>What's New: was this helpful?</h2></summary>
+    <p class="status-line">Thumbs from the What's New page, one vote per account or per anonymous browser. Votes from test accounts are left out while "Hide test data" is on.</p>
+    <p class="status-line" id="votes-status">Loading…</p>
+    <table id="votes-table">
+      <thead><tr><th>Entry</th><th>Helpful</th><th>Not helpful</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </details>
+
+  <details class="panel" id="panel-errors">
+    <summary><h2>Top errors this week</h2></summary>
+    <p class="status-line">Not available: nothing on the server records errors (no error table and no log endpoint), so there is nothing to rank. The hub and games only write errors to the visitor's own browser console. A table can be added once something records them.</p>
   </details>
 
   <details class="panel" id="panel-ratings" open>
@@ -236,6 +278,7 @@
   </details>
 </main>
 
+<script src="whats-new-data.js"></script>
 <script>
 const API_BASE = "https://noyvjgames.fastapicloud.dev";
 const GAME_SLUGS = [
@@ -483,9 +526,82 @@ async function loadAccounts() {
     </tr>`).join("") : `<tr class="empty-row"><td colspan="5">No accounts to show.</td></tr>`;
 }
 
+// ---- Y-13: daily sparklines ----
+const SPARK_ORDER = ["plays", "signups", "saves", "feedback", "ratings", "reports", "visits"];
+
+function sparkSvg(counts, days, label) {
+  const w = 240, h = 44, pad = 2;
+  const max = Math.max(1, ...counts);
+  const step = w / counts.length;
+  const barW = Math.max(1, step - 1.5);
+  const bars = counts.map((n, i) => {
+    const bh = n === 0 ? 0 : Math.max(2, Math.round(((h - pad * 2) * n) / max));
+    const last = i === counts.length - 1 ? " today" : "";
+    return `<rect class="bar${last}" x="${(i * step).toFixed(2)}" y="${h - pad - bh}" width="${barW.toFixed(2)}" height="${bh}"><title>${escapeHtml(days[i])}: ${n}</title></rect>`;
+  }).join("");
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="${escapeHtml(label)}"><line class="base" x1="0" x2="${w}" y1="${h - 0.5}" y2="${h - 0.5}"/>${bars}</svg>`;
+}
+
+async function loadActivity() {
+  const status = document.getElementById("activity-status");
+  const grid = document.getElementById("activity-grid");
+  const days = document.getElementById("activity-days").value;
+  let data;
+  try {
+    data = await adminFetchJson(`${API_BASE}/admin/timeseries?days=${encodeURIComponent(days)}&hide_test=${hideTest()}`);
+  } catch (err) {
+    if (err instanceof AdminAuthError) { showLogin(err.message); return; }
+    console.error("loadActivity failed:", err);
+    grid.innerHTML = "";
+    status.textContent = "Couldn't load the daily counts (the backend may not be redeployed yet).";
+    return;
+  }
+  status.textContent = `${data.days[0]} to ${data.days[data.days.length - 1]} (UTC)${data.hide_test ? ", test data left out" : ", test data included"}.`;
+  grid.innerHTML = SPARK_ORDER.filter((name) => data.series[name]).map((name) => {
+    const s = data.series[name];
+    const peak = Math.max(...s.counts);
+    const label = `${s.label}: ${s.total} in ${data.days.length} days, busiest day ${peak}`;
+    return `<div class="spark-card"><div class="spark-head"><span>${escapeHtml(s.label)}</span><strong>${s.total}</strong></div>${sparkSvg(s.counts, data.days, label)}<div class="spark-foot"><span>${escapeHtml(data.days[0].slice(5))}</span><span>busiest day ${peak}</span><span>${escapeHtml(data.days[data.days.length - 1].slice(5))}</span></div></div>`;
+  }).join("");
+  const notes = data.notes || {};
+  document.getElementById("activity-notes").textContent = [notes.plays, notes.reports].filter(Boolean).join(" ");
+}
+
+// ---- Y-24: What's New thumbs ----
+async function loadVotes() {
+  const status = document.getElementById("votes-status");
+  const tbody = document.querySelector("#votes-table tbody");
+  let tally;
+  try {
+    tally = (await adminFetchJson(`${API_BASE}/admin/whats-new-votes?hide_test=${hideTest()}`)).entries;
+  } catch (err) {
+    if (err instanceof AdminAuthError) { showLogin(err.message); return; }
+    console.error("loadVotes failed:", err);
+    status.textContent = "Couldn't load the votes (the backend may not be redeployed yet).";
+    tbody.innerHTML = "";
+    return;
+  }
+  const names = new Map();
+  try {
+    (await window.WhatsNewData.loadEntries()).forEach((e) => names.set(e.id, e));
+  } catch (err) { /* ids alone still make a usable table */ }
+  const up = tally.reduce((n, t) => n + t.up, 0);
+  const down = tally.reduce((n, t) => n + t.down, 0);
+  status.textContent = tally.length
+    ? `${tally.length} entr${tally.length === 1 ? "y has" : "ies have"} votes: ${up} helpful, ${down} not helpful.`
+    : "No votes yet.";
+  tbody.innerHTML = tally.length ? tally.map((t) => {
+    const e = names.get(t.entry_id);
+    const name = e ? `${e.date} · ${e.game || e.label}: ${e.summary}` : t.entry_id;
+    return `<tr><td>${escapeHtml(name)}${e ? ` <code>${escapeHtml(t.entry_id)}</code>` : ""}</td><td class="vote-up">${t.up}</td><td class="vote-down">${t.down}</td></tr>`;
+  }).join("") : `<tr class="empty-row"><td colspan="3">No votes to show.</td></tr>`;
+}
+
 async function loadAll() {
   document.getElementById("overview-status").textContent = "Loading…";
   loadAccounts();
+  loadActivity();
+  loadVotes();
   const [ratingsSummary, feedbackCount, reportsCount, adminStats] = await Promise.all([
     loadRatings(),
     loadFeedback(),
@@ -544,6 +660,8 @@ document.querySelector("#reports-table tbody").addEventListener("click", (event)
 });
 document.getElementById("reports-refresh").addEventListener("click", loadAll);
 document.getElementById("accounts-refresh").addEventListener("click", loadAll);
+document.getElementById("activity-refresh").addEventListener("click", loadAll);
+document.getElementById("activity-days").addEventListener("change", loadActivity);
 try { document.getElementById("hide-test").checked = localStorage.getItem("admin-hide-test") !== "false"; } catch (e) { /* default on */ }
 document.getElementById("hide-test").addEventListener("change", () => {
   try { localStorage.setItem("admin-hide-test", String(hideTest())); } catch (e) { /* non-fatal */ }

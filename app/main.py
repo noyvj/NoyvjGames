@@ -16,6 +16,7 @@ from sqlalchemy import func, or_, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+import account_data
 import boards
 import leaderboards
 import market
@@ -24,7 +25,7 @@ import stats
 from throttle import FailureLimiter
 from database import engine, get_db, init_schema, retry_schema_until_ready
 from models import (
-    AnswerReport, AuthSession, Feedback, LeaderboardEntry, OwnerNote, PageView, PoolDay, Rating, Save,
+    AnswerReport, AuthSession, Feedback, HelpfulVote, LeaderboardEntry, OwnerNote, PageView, PoolDay, Rating, Save,
     ScoreEntry, ScoreProfile, User,
 )
 
@@ -1838,3 +1839,133 @@ def stats_pageview(db: Session = Depends(get_db)):
     db.commit()
     total = db.query(PageView).count()
     return {"total": total}
+
+
+# --- Y-14: download or delete everything held for the signed-in account ---
+# The helpers (and the list of what is and is not linked to an account) are in
+# account_data.py. Both routes act only on the caller's own account.
+
+
+@app.get("/users/me/export")
+def export_my_data(response: Response, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Everything the server holds for this account as one JSON document. No
+    password hash and no session token is ever included."""
+    response.headers["Cache-Control"] = "no-store"
+    return account_data.build_export(db, current_user)
+
+
+class DeleteAccountIn(BaseModel):
+    # The player types their own username; the server checks it again, so a
+    # stray request with a stolen token and no knowledge of the form still fails.
+    confirm_username: str
+
+
+@app.delete("/users/me")
+def delete_my_account(
+    body: DeleteAccountIn,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Permanently deletes the account and every row linked to it (sessions,
+    saves and slots, leaderboard rows, score profile, feedback written while
+    signed in, What's New votes). Cannot be undone. The owner account is refused:
+    once deleted, its name would be free for anyone to sign up with and inherit
+    the admin access that name carries."""
+    response.headers["Cache-Control"] = "no-store"
+    if current_user.username == OWNER_USERNAME:
+        raise HTTPException(status_code=403, detail="The owner account cannot be deleted here")
+    if _normalize_username(body.confirm_username) != current_user.username:
+        raise HTTPException(status_code=422, detail="Type your username exactly to confirm")
+    removed = account_data.delete_account(db, current_user)
+    return {"deleted": True, "removed": removed}
+
+
+# --- Y-13: admin daily time series ---
+
+
+@app.get("/admin/timeseries")
+def admin_timeseries(
+    response: Response,
+    days: Optional[int] = None,
+    hide_test: bool = True,
+    _admin: None = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Daily counts (UTC dates, zero-filled) of plays, new saves, sign-ups,
+    feedback, ratings, answer reports and counted visits for the last 7 to 90
+    days (default 30). Counts only, never rows. Test accounts and hidden rows
+    are left out unless hide_test=false."""
+    response.headers["Cache-Control"] = "no-store"
+    return account_data.timeseries(db, days, hide_test)
+
+
+# --- Y-24: "was this helpful?" on What's New entries ---
+# One vote per entry per account (signed in) or per anonymous browser token (the
+# X-Vote-Token header, a random string the browser makes up). Voting again changes
+# the vote. Tallies are admin-only (GET /admin/whats-new-votes).
+
+VOTE_LIMITER = FailureLimiter(max_failures=60, window_seconds=60 * 60)  # votes per address per hour (counted as "failures")
+
+
+def _vote_voter(entry_id: str, user: Optional[User], token: Optional[str]) -> tuple:
+    if not account_data.ENTRY_ID_RE.match(entry_id):
+        raise HTTPException(status_code=422, detail="Unknown What's New entry id")
+    voter = account_data.voter_for(user, token)
+    if voter is None:
+        raise HTTPException(status_code=422, detail="Sign in or send a valid X-Vote-Token header")
+    return voter
+
+
+class HelpfulVoteIn(BaseModel):
+    helpful: StrictBool
+
+
+@app.put("/whats-new/votes/{entry_id}")
+def put_whats_new_vote(
+    entry_id: str,
+    body: HelpfulVoteIn,
+    request: Request,
+    response: Response,
+    x_vote_token: Optional[str] = Header(default=None),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+    db: Session = Depends(get_db),
+):
+    response.headers["Cache-Control"] = "no-store"
+    voter_key, user_id = _vote_voter(entry_id, current_user, x_vote_token)
+    where = _client_key(request)
+    if VOTE_LIMITER.blocked(where):
+        raise HTTPException(status_code=429, detail="Too many votes, try again later")
+    VOTE_LIMITER.record_failure(where)
+    row = account_data.cast_vote(db, entry_id, voter_key, user_id, body.helpful)
+    return {"entry_id": entry_id, "helpful": bool(row.helpful)}
+
+
+@app.delete("/whats-new/votes/{entry_id}")
+def delete_whats_new_vote(
+    entry_id: str,
+    request: Request,
+    response: Response,
+    x_vote_token: Optional[str] = Header(default=None),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+    db: Session = Depends(get_db),
+):
+    """Take the vote back (the thumb pressed twice)."""
+    response.headers["Cache-Control"] = "no-store"
+    voter_key, _user_id = _vote_voter(entry_id, current_user, x_vote_token)
+    where = _client_key(request)
+    if VOTE_LIMITER.blocked(where):
+        raise HTTPException(status_code=429, detail="Too many votes, try again later")
+    VOTE_LIMITER.record_failure(where)
+    return {"entry_id": entry_id, "removed": account_data.retract_vote(db, entry_id, voter_key)}
+
+
+@app.get("/admin/whats-new-votes")
+def admin_whats_new_votes(
+    response: Response,
+    hide_test: bool = True,
+    _admin: None = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    response.headers["Cache-Control"] = "no-store"
+    return {"entries": account_data.vote_tallies(db, hide_test)}

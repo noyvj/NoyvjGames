@@ -39,7 +39,7 @@
     <h2>What is stored, and where</h2>
     <h3>In your browser only (localStorage)</h3>
     <ul>
-      <li>Preferences and progress helpers: your last search/filter/sort, dismissed banners, and per-game settings and local save data.</li>
+      <li>Preferences and progress helpers: your last search/filter/sort, dismissed banners, your "reduce data" choice, which What's New entries you have voted on, and per-game settings and local save data.</li>
       <li>If you sign in, a login token and your username, so the site remembers you.</li>
       <li>Whether you've opted in to the hub's visit counter (off by default — see below). No cookies are set by this site itself. Clearing your browser's site data removes all of this.</li>
     </ul>
@@ -47,14 +47,17 @@
     <ul>
       <li><strong>Accounts:</strong> a username and a salted, hashed password (never the password itself), plus an <em>optional</em> email address you can add, change or remove any time from your account panel. The email is used only so the site owner can check that a password-reset request really comes from you; there are no automatic emails. It is visible to the site owner (and the AI tools that help build the site, through the password-protected admin page), never shown to other players and never part of any public statistic. A forgotten password is still reset by asking the site owner.</li>
       <li><strong>Saves:</strong> the game state you choose to save, under a save code, and linked to your account if you claim it. Games may also contribute anonymous, aggregate numbers (for example how many saves a game has, or how common an achievement is).</li>
-      <li><strong>Ratings, comments and site feedback:</strong> what you submit, with a timestamp. These are shown publicly on the hub, so don't write anything you wouldn't want public. Feedback sent while signed in may be linked to your account internally.</li>
-      <li><strong>Answer reports</strong> from Le Champ de Mots, if you use its report button.</li>
+      <li><strong>Ratings, comments and site feedback:</strong> what you submit, with a timestamp. These are shown publicly on the hub, so don't write anything you wouldn't want public. Site feedback sent while signed in is linked to your account internally (it is never shown publicly with your name) and is deleted with the account. Star ratings and the in-game feedback prompts are not linked to any account at all.</li>
+      <li><strong>Answer reports</strong> from Le Champ de Mots, if you use its report button. They are not linked to an account.</li>
+      <li><strong>Leaderboards:</strong> only if you switch a board on, your best score per board and period, shown under an anonymous name unless you choose to show your username. Removing yourself from a board, or deleting the account, deletes those rows.</li>
+      <li><strong>"Was this helpful?" votes</strong> on What's New entries: one thumb per entry, linked to your account if you are signed in, otherwise to a random code your browser makes up (not your name, address or device). Only the owner sees the totals.</li>
       <li><strong>Visit count:</strong> if you opt in via the checkbox in the hub's footer, a single running total is incremented — no IP address, user agent, page path, or any other identifying detail. This is used only as honest visitor-count evidence for the BCM206 assessment, never a third-party analytics tracker. Off by default.</li>
     </ul>
 
     <h2>What is not done</h2>
     <ul>
       <li>No analytics or tracking scripts of my own, and no selling of data.</li>
+      <li>Nothing is dug out of your saves for statistics except a short list of numbers and achievement ids, and only as totals across many players.</li>
       <li>Passwords are never stored or shown in plain text.</li>
     </ul>
 
@@ -66,9 +69,15 @@
     </ul>
 
     <h2>Your choices</h2>
-    <p>You can stop using the site at any time and clear your browser data. To have an account, saves or comments removed, use the Feedback / Report a Bug box on the hub and say so (include your username), and it will be dealt with by hand.</p>
+    <p>You can stop using the site at any time and clear your browser data.</p>
+    <p>If you have an account, the <a href="settings.html#account">Settings page</a> has two buttons that work straight away, with no need to ask anyone:</p>
+    <ul>
+      <li><strong>Download my data</strong> gives you one file with everything the server holds that is linked to your account: your username, optional email and synced settings, every save (with its save code and contents), the achievements in them, site feedback you wrote while signed in, your leaderboard rows and board privacy choice, and your What's New votes. It leaves out your password and sign-in tokens.</li>
+      <li><strong>Delete my account</strong> (you must type your username to confirm) permanently deletes the account and, in one step, all of the above from the server: the account, every sign-in session, every save and save slot under it, leaderboard rows and board settings, the site feedback you wrote while signed in, and your What's New votes. It cannot be undone and the site owner cannot bring it back. The username becomes free for anyone to register again.</li>
+    </ul>
+    <p>What deleting an account does not remove: star ratings, in-game feedback prompts, answer reports and the community pool totals, because none of them was ever linked to an account, so they cannot be traced back to you. A save that was never claimed to an account stays under its save code until it is removed by hand (use the Feedback / Report a Bug box on the hub, quote the code). The one account that cannot be deleted from Settings is the site owner's own. Copies kept by the hosting providers in their own logs or backups are outside this site's control. If you cannot sign in, or want a rating or comment removed, use the Feedback / Report a Bug box on the hub and say so (include your username if you have one) and it will be dealt with by hand.</p>
 
-    <p class="terms-updated" id="terms-updated">Last updated 2026-09-20. If this changes, it will show up in <a href="whats-new.html">What's New</a>.</p>
+    <p class="terms-updated" id="terms-updated">Last updated 2026-10-08. If this changes, it will show up in <a href="whats-new.html">What's New</a>.</p>
     <details id="terms-changes" class="terms-changes" hidden>
       <summary>What changed</summary>
       <ul id="terms-changes-list"></ul>

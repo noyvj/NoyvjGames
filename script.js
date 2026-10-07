@@ -276,6 +276,19 @@ function lsSet(key, value) {
   try { localStorage.setItem(key, value); } catch (err) { /* convenience only */ }
 }
 
+// Y-26: "reduce data". The explicit choice in settings.html wins ("1" reduce, "0" never); with no
+// choice the browser's own Data Saver flag (navigator.connection.saveData) decides. While it is on the
+// hub skips its community-statistics requests (the highlights line and the sort-leader captions).
+// Things the visitor asks for -- ratings, saves, picking "Most saved" -- still load.
+const REDUCE_DATA_KEY = "hub_reduce_data";
+function hubReduceData() {
+  const choice = lsGet(REDUCE_DATA_KEY);
+  if (choice === "1") return true;
+  if (choice === "0") return false;
+  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  return Boolean(conn && conn.saveData);
+}
+
 // U13: collapsible title cards. Compact by default (picture, name, rating
 // stars and summary only); "Show details" on a card, or the filter bar's
 // toggle for all of them, brings back the blurb, tags, badges, comment box
@@ -476,25 +489,66 @@ function applyGameFilter() {
 // (data-avg, set by renderSummary). Save count is the more honest
 // popularity signal while reviews skew toward test/friend accounts; it's
 // read through loadSaveCounts(), kept deliberately isolated so it can be
-// repointed at a dedicated public per-game count endpoint without touching
-// the sort code. Currently it uses the public GET /admin/stats
-// `saves_by_game` map, and returns null (graceful fallback to default
-// order + a status line) if that's unreachable.
+// repointed without touching the sort code. It reads the public
+// GET /stats/achievements, whose per-game save_count the backend withholds
+// (null) until a game has enough saves to be anonymous, so a game below that
+// threshold counts as 0 here. (The older GET /admin/stats source is
+// owner-only now, so it could not work for visitors.) Returns null (graceful
+// fallback to default order + a status line) if the endpoint is unreachable.
 let saveCountsPromise = null;
 function loadSaveCounts() {
   if (!saveCountsPromise) {
-    saveCountsPromise = fetch(`${RATINGS_API_BASE}/admin/stats`)
+    saveCountsPromise = fetch(`${RATINGS_API_BASE}/stats/achievements`)
       .then((res) => {
         if (!res.ok) throw new Error(`status ${res.status}`);
         return res.json();
       })
-      .then((body) => (body && typeof body.saves_by_game === "object" ? body.saves_by_game : null))
+      .then((body) => {
+        const games = body && typeof body.games === "object" && body.games ? body.games : null;
+        if (!games) return null;
+        const counts = {};
+        Object.entries(games).forEach(([slug, info]) => {
+          counts[slug] = info && typeof info.save_count === "number" ? info.save_count : 0;
+        });
+        return counts;
+      })
       .catch((err) => {
         console.error("loadSaveCounts failed:", err);
         return null;
       });
   }
   return saveCountsPromise;
+}
+
+// Y-23: a caption under the sort dropdown naming each sort's current leader. "Top rated" comes from
+// the ratings already on the cards; "Most saved" from the same public save counts the sort uses
+// (and, being a community statistic, is skipped while reduce-data is on). There is no per-game
+// "most played" statistic anywhere on the backend, so none is shown rather than inventing one.
+const gameSortLeaders = document.getElementById("game-sort-leaders");
+function renderSortLeaders() {
+  if (!gameSortLeaders) return;
+  const parts = [];
+  const rated = allTitleCards
+    .filter((card) => Number(card.dataset.reviewCount || 0) > 0)
+    .sort((a, b) =>
+      Number(b.dataset.avg || 0) - Number(a.dataset.avg || 0) ||
+      Number(b.dataset.reviewCount || 0) - Number(a.dataset.reviewCount || 0));
+  if (rated.length) {
+    const top = rated[0];
+    parts.push(`Top rated: ${cardDisplayName(top)} (${Number(top.dataset.avg).toFixed(1)}\u2605)`);
+  }
+  if (saveCounts) {
+    const saved = allTitleCards
+      .map((card) => ({ card, n: Number(saveCounts[cardSlug(card)] || 0) }))
+      .filter((x) => x.n > 0)
+      .sort((a, b) => b.n - a.n);
+    if (saved.length) parts.push(`Most saved: ${cardDisplayName(saved[0].card)} (${saved[0].n} save${saved[0].n === 1 ? "" : "s"})`);
+  }
+  gameSortLeaders.textContent = parts.join("  \u00b7  ");
+  gameSortLeaders.hidden = parts.length === 0;
+}
+function cardDisplayName(card) {
+  return (card.querySelector(".title-card-name")?.textContent || cardSlug(card) || "").trim();
 }
 
 let saveCounts = null; // null = not loaded / unavailable
@@ -533,6 +587,15 @@ async function applySort() {
     }
   }
   gameGrid.append(...ordered);
+  renderSortLeaders();
+}
+
+// Community statistic: skipped while reduce-data is on (picking "Most saved" still loads it).
+if (!hubReduceData()) {
+  loadSaveCounts().then((counts) => {
+    if (counts && !saveCounts) saveCounts = counts;
+    renderSortLeaders();
+  });
 }
 
 if (gameSearchInput && gameTagFilter) {
@@ -1993,6 +2056,12 @@ function showCommunityHighlight() {
 
 async function loadCommunityHighlights() {
   if (!communityHighlightsText) return;
+  if (hubReduceData()) {
+    // Y-26: no statistics requests at all while reduce-data is on.
+    communityHighlightsText.textContent =
+      "Community highlights are off while \u201creduce data\u201d is on. You can change that in Settings.";
+    return;
+  }
   try {
     const [achRes, gamesRes] = await Promise.all([
       fetch(`${RATINGS_API_BASE}/stats/achievements`),
@@ -2003,7 +2072,8 @@ async function loadCommunityHighlights() {
     const gamesMeta = await gamesRes.json();
 
     const highlights = [];
-    Object.entries(achData).forEach(([gameId, info]) => {
+    // /stats/achievements answers {min_bucket, games: {slug: {...}}}.
+    Object.entries((achData && achData.games) || {}).forEach(([gameId, info]) => {
       if (!info || info.suppressed) return;
       const label = GAME_DISPLAY_NAMES[gameId] || gameId;
       Object.entries(info.achievements || {}).forEach(([achId, stat]) => {

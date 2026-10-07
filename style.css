@@ -138,6 +138,37 @@ body {
   opacity: 0.88;
 }
 
+/* Y-24: "was this helpful?" on each entry */
+.whats-new-vote {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.35rem;
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+}
+.whats-new-vote-q { opacity: 0.55; margin-right: 0.15rem; white-space: nowrap; }
+.whats-new-thumb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: -0.55rem 0;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+}
+.whats-new-thumb:hover:not(:disabled) { opacity: 1; background: rgba(140, 160, 255, 0.12); }
+.whats-new-thumb[aria-pressed="true"] { opacity: 1; color: #a9c3ff; border-color: rgba(169, 195, 255, 0.55); background: rgba(140, 160, 255, 0.16); }
+.whats-new-thumb:disabled { cursor: progress; }
+.whats-new-vote-note { opacity: 0.7; margin-left: 0.3rem; white-space: nowrap; }
+html[data-theme="light"] .whats-new-thumb[aria-pressed="true"] { color: #2c4a9a; border-color: rgba(44, 74, 154, 0.55); background: rgba(70, 95, 170, 0.12); }
+
 /* roadmap.html (TODO.md L19) */
 .roadmap-main {
   max-width: 800px;
@@ -1350,6 +1381,17 @@ button.secondary:disabled {
 
 #game-sort-status {
   margin-top: 0;
+}
+
+/* Y-23: leader caption under the sort dropdown */
+.game-sort-leaders {
+  max-width: 1000px;
+  margin: -0.5rem auto 1rem;
+  padding: 0 1.5rem;
+  font-size: 0.78rem;
+  opacity: 0.65;
+  text-align: center;
+  white-space: pre-wrap;
 }
 
 /* Y10: nav badge */

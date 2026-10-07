@@ -9,6 +9,7 @@
  *   <slug>-reduced-motion          each game's settings.js
  *   autosave-enabled:<slug>        shared/save-widget.js
  *   hub_pageview_opt_in            script.js
+ *   hub_reduce_data                script.js ("1" reduce, "0" never, absent = follow the browser's Data Saver)
  *   hub_shortcuts                  hub-shortcuts.js
  *   tutorial-seen:<slug>, hub-onboarding-seen, hub-new-player-banner-dismissed,
  *   hub_announcement_dismissed, pwa_install_banner_dismissed, claim_save_nudge_dismissed
@@ -28,6 +29,7 @@
   const NOTICE_KEYS = ["hub_announcement_dismissed", "pwa_install_banner_dismissed", "claim_save_nudge_dismissed", "hub-new-player-banner-dismissed"];
   const TOUR_KEYS = ["tutorial-seen:hub", "hub-onboarding-seen", "hub-new-player-banner-dismissed"];
 
+  const API_BASE = "https://noyvjgames.fastapicloud.dev";
   const $ = (id) => document.getElementById(id);
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
@@ -370,6 +372,8 @@
         renderMotion();
         renderShortcuts();
         initPrivacyState();
+        renderReduceData();
+        showSignedOutAccount();
       });
     });
     $("settings-confirm-yes").addEventListener("click", () => {
@@ -388,11 +392,137 @@
     $("settings-pageviews").checked = lsGet("hub_pageview_opt_in") === "1";
   }
 
+  // ---------- Reduce data (Y-26) ----------
+
+  function browserSaveData() {
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    return Boolean(conn && conn.saveData);
+  }
+
+  function renderReduceData() {
+    const box = $("settings-reduce-data");
+    if (!box) return;
+    const choice = lsGet("hub_reduce_data");
+    box.checked = choice === "1" ? true : choice === "0" ? false : browserSaveData();
+    $("settings-reduce-data-follow").hidden = choice !== "1" && choice !== "0";
+    const browser = browserSaveData() ? "on" : "off";
+    $("settings-reduce-data-status").textContent = choice === "1"
+      ? "Reduce data is on because you chose it."
+      : choice === "0"
+        ? "Reduce data is off because you chose it, even if your browser's Data Saver is on."
+        : `Following your browser: its Data Saver is ${browser}${browser === "on" ? ", so the hub is skipping community statistics" : ""}.`;
+  }
+
+  function initReduceData() {
+    const box = $("settings-reduce-data");
+    if (!box) return;
+    renderReduceData();
+    box.addEventListener("change", () => { lsSet("hub_reduce_data", box.checked ? "1" : "0"); renderReduceData(); });
+    $("settings-reduce-data-follow").addEventListener("click", () => { lsRemove("hub_reduce_data"); renderReduceData(); });
+  }
+
+  // ---------- Account: download or delete what the server holds (Y-14) ----------
+
+  function authHeaders() {
+    const token = lsGet("hub_bearer_token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
+
+  async function accountName() {
+    const stored = lsGet("hub_account_username");
+    if (stored) return stored;
+    try {
+      const res = await fetch(`${API_BASE}/users/me`, { headers: authHeaders(), cache: "no-store" });
+      if (res.ok) return (await res.json()).username || "";
+    } catch (err) { /* offline: the section stays hidden */ }
+    return "";
+  }
+
+  function showSignedOutAccount() {
+    $("settings-account-signedout").hidden = false;
+    $("settings-account-controls").hidden = true;
+    $("delete-account").hidden = true;
+  }
+
+  async function initAccount() {
+    if (!$("settings-account-export")) return;
+    if (!lsGet("hub_bearer_token")) { showSignedOutAccount(); return; }
+    const name = await accountName();
+    if (!name) { showSignedOutAccount(); return; }
+    $("settings-account-signedout").hidden = true;
+    $("settings-account-controls").hidden = false;
+    $("delete-account").hidden = false;
+    $("settings-account-who").textContent = `Signed in as ${name}.`;
+    $("settings-delete-name").textContent = name;
+
+    $("settings-account-export").addEventListener("click", async () => {
+      const button = $("settings-account-export");
+      button.disabled = true;
+      say("settings-account-export-status", "Collecting your data\u2026");
+      try {
+        const res = await fetch(`${API_BASE}/users/me/export`, { headers: authHeaders(), cache: "no-store" });
+        if (res.status === 401) throw new Error("Your sign-in has expired. Sign in again from the hub.");
+        if (!res.ok) throw new Error(`The server answered ${res.status}.`);
+        const data = await res.json();
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `noyvjgames-account-${String(data.exported_at || "").slice(0, 10) || "export"}.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        const saves = Array.isArray(data.saves) ? data.saves.length : 0;
+        say("settings-account-export-status", `Downloaded: ${saves} save${saves === 1 ? "" : "s"} and everything else linked to ${name}.`);
+      } catch (err) {
+        say("settings-account-export-status", err && err.message && !/fetch|network/i.test(err.message)
+          ? err.message : "Could not reach the server right now. Nothing was downloaded.");
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    const input = $("settings-delete-confirm");
+    const go = $("settings-delete-go");
+    const matches = () => input.value.trim().toLowerCase() === name.toLowerCase();
+    input.addEventListener("input", () => { go.disabled = !matches(); });
+    go.addEventListener("click", async () => {
+      if (!matches()) return;
+      go.disabled = true;
+      input.disabled = true;
+      say("settings-delete-status", "Deleting\u2026");
+      try {
+        const res = await fetch(`${API_BASE}/users/me`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json", ...authHeaders() },
+          body: JSON.stringify({ confirm_username: input.value.trim() }),
+        });
+        if (!res.ok) {
+          let detail = "";
+          try { detail = (await res.json()).detail || ""; } catch (e) { /* no body */ }
+          throw new Error(typeof detail === "string" && detail ? detail : `The server answered ${res.status}.`);
+        }
+        AUTH_KEYS.forEach(lsRemove);
+        showSignedOutAccount();
+        $("settings-account-signedout").textContent =
+          `The account ${name} and everything linked to it has been deleted. You are signed out on this device.`;
+        say("settings-account-export-status", "");
+      } catch (err) {
+        input.disabled = false;
+        go.disabled = !matches();
+        say("settings-delete-status", err && err.message && !/fetch|network/i.test(err.message)
+          ? `Not deleted: ${err.message}` : "Could not reach the server, so nothing was deleted. Try again.");
+      }
+    });
+  }
+
   // ---------- boot ----------
 
   async function boot() {
     initTheme();
     initPrivacy();
+    initReduceData();
     initTours();
     initShortcuts();
     initClear();
@@ -400,6 +530,7 @@
     games = await window.HubGames.load();
     initMotion();
     initGameDefaults();
+    initAccount();
     // The hub-only preference works without the list; the rest of the page is already usable.
     if (location.hash === "#shortcuts") {
       const section = $("shortcuts");

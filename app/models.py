@@ -242,3 +242,24 @@ class ScoreProfile(Base):
     user_id = Column(String, ForeignKey("users.id"), primary_key=True)
     show_username = Column(Boolean, nullable=False, default=False, server_default=false())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class HelpfulVote(Base):
+    """Y-24: the "was this helpful?" thumbs on a What's New entry. One row per
+    (entry, voter): `voter_key` is "u:<user id>" for a signed-in account or
+    "a:<token>" for an anonymous browser (a random string the browser makes up;
+    it identifies nothing). Voting again changes the vote, never adds a second.
+    `user_id` is set only for account votes, so deleting the account removes them
+    and the admin tallies can leave test accounts out. A brand-new table, so
+    create_all builds it and no patch_schema() statement is needed."""
+
+    __tablename__ = "helpful_votes"
+    __table_args__ = (UniqueConstraint("entry_id", "voter_key", name="uq_helpful_vote"),)
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    entry_id = Column(String, nullable=False, index=True)
+    voter_key = Column(String, nullable=False)
+    user_id = Column(String, ForeignKey("users.id"), nullable=True, index=True)
+    helpful = Column(Boolean, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

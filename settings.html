@@ -27,7 +27,7 @@
       <button type="button" class="hub-nav-button theme-toggle">Theme</button>
     </nav>
     <h1>Settings</h1>
-    <p id="hub-tagline">One place for the preferences that are spread across the hub and the games. Everything here is stored on this device.</p>
+    <p id="hub-tagline">One place for the preferences that are spread across the hub and the games. Almost everything here is stored on this device; the account section at the bottom talks to the server.</p>
   </header>
 
   <main id="settings-main" tabindex="-1" class="hub-page-main">
@@ -77,6 +77,13 @@
         <input type="checkbox" id="settings-pageviews">
       </div>
       <p class="hub-note">Off by default. When on, the hub adds one to a single running visit total each time you open it: no IP address, page or device detail is sent. The same switch is in the hub's footer. See <a href="terms.html">Terms &amp; Privacy</a>.</p>
+      <div class="settings-row">
+        <label for="settings-reduce-data">Reduce data use</label>
+        <input type="checkbox" id="settings-reduce-data">
+        <button type="button" class="secondary" id="settings-reduce-data-follow" hidden>Follow my browser instead</button>
+      </div>
+      <p class="hub-note" id="settings-reduce-data-note">When on, the hub skips its community statistics (the highlights line and the leader captions under the sort menu). Ratings, saves and anything you ask for still load.</p>
+      <p id="settings-reduce-data-status" class="settings-status" role="status"></p>
     </section>
 
     <section class="hub-card" aria-labelledby="settings-tours-h">
@@ -123,6 +130,33 @@
       </div>
       <p class="hub-note">Only removes the stored copies of pages and the Python runtime; your settings and saves stay. Games will need a connection again until you have reopened them.</p>
       <p id="settings-data-status" class="settings-status" role="status"></p>
+    </section>
+
+    <section class="hub-card" id="account" aria-labelledby="settings-account-h">
+      <h2 id="settings-account-h">Your account on the server</h2>
+      <p id="settings-account-signedout" class="hub-note" style="margin-top:0">You are not signed in on this device. Sign in from the <a href="index.html#account-section">hub</a> to download or delete what the server holds for your account.</p>
+      <div id="settings-account-controls" hidden>
+        <p id="settings-account-who" style="margin-top:0"></p>
+        <div class="settings-row">
+          <span class="settings-label">Download everything the server holds for your account as a file</span>
+          <button type="button" class="secondary" id="settings-account-export">Download my data</button>
+        </div>
+        <p class="hub-note">Your saves (with their codes), achievements, feedback you wrote while signed in, leaderboard rows, board privacy choice, What's New votes, email and synced settings. It leaves out your password and sign-in tokens. Save codes can open and overwrite their saves, so keep the file private. Star ratings and answer reports are not linked to any account, so they are not in it.</p>
+        <p id="settings-account-export-status" class="settings-status" role="status"></p>
+      </div>
+    </section>
+
+    <section class="hub-card settings-danger" id="delete-account" aria-labelledby="settings-delete-h" hidden>
+      <h2 id="settings-delete-h">Delete my account</h2>
+      <p class="hub-note" style="margin-top:0">This permanently deletes your account and, from the server, every save and slot under it, your leaderboard rows and board settings, feedback you wrote while signed in and your What's New votes. It cannot be undone and there is no way to get any of it back. Download your data first if you want a copy. Saves stored only on this device, and ratings or answer reports (which were never linked to you), stay.</p>
+      <div class="settings-row">
+        <label for="settings-delete-confirm">Type your username (<strong id="settings-delete-name"></strong>) to confirm</label>
+        <input type="text" id="settings-delete-confirm" autocomplete="off" autocapitalize="off" spellcheck="false">
+      </div>
+      <div class="settings-row">
+        <button type="button" class="secondary" id="settings-delete-go" disabled>Delete my account permanently</button>
+      </div>
+      <p id="settings-delete-status" class="settings-status" role="status"></p>
     </section>
 
     <section class="hub-card settings-danger" aria-labelledby="settings-clear-h">
