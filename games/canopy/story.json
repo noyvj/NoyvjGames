@@ -125,6 +125,26 @@
       "id": "tier_old_growth_steward",
       "title": "What the old trees keep",
       "text": "On a still evening you stand under trunks that were saplings when you took the ledger, and will be here long after your handwriting fades. You are not the owner of this place, you realise. You are the one who was trusted to stay."
+    },
+    {
+      "id": "challenge_pacifist",
+      "title": "The year without an axe",
+      "text": "The village makes a joke of it at first, the keeper who would not swing. By the end of the season the joke has turned into a custom. Children ask whether you are the one who lets the trees stay, and you find you have no better title."
+    },
+    {
+      "id": "challenge_scorched",
+      "title": "Ash and green",
+      "text": "After the burn you walk the black plots with a sack of seed, and nobody believes you. Then rain comes, and one morning the ash is wearing a green so thin it looks like a rumour. By the end of the season it is a forest again, and it remembers nothing."
+    },
+    {
+      "id": "challenge_sprint",
+      "title": "Against the clock",
+      "text": "The council gave you a short season and a long list. You carried water at dawn and counted coins at dusk, and when the last tally came in you were not sure which of you had been more surprised, the ledger or the forest."
+    },
+    {
+      "id": "challenge_no_highland",
+      "title": "Low country",
+      "text": "The hill paths stayed closed that year, so you learned the valley floor by heart: every ditch, every stump, every plot that sulked. Nobody sings about the lowlands, but you could name them all, and that turns out to be a kind of wealth."
     }
   ]
 }

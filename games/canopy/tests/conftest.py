@@ -116,6 +116,14 @@ ELEMENT_IDS = [
     "plot-nickname-input",
     "almanac-toggle-button",
     "almanac-panel",
+    # GB batch 2: forecast, challenge, contracts, announcer, request pace
+    "season-forecast",
+    "challenge-status",
+    "challenge-select",
+    "request-pace-select",
+    "contracts-toggle-button",
+    "contracts-panel",
+    "sr-announcer",
 ]
 
 # Buttons that carry the `disabled` attribute in index.html's initial markup
@@ -225,6 +233,30 @@ class GameEnv:
         event = _FakeChangeEvent()
         event.target = select
         select.dispatch("change", event)
+
+    def change_challenge(self, value):
+        self._change_select("challenge-select", value)
+
+    def change_pace(self, value):
+        self._change_select("request-pace-select", value)
+
+    def _change_select(self, element_id, value):
+        select = self.elements[element_id]
+        select.value = value
+
+        class _FakeChangeEvent:
+            pass
+
+        event = _FakeChangeEvent()
+        event.target = select
+        select.dispatch("change", event)
+
+    def toggle_contracts(self):
+        self.elements["contracts-toggle-button"].dispatch("click", None)
+
+    def set_pref(self, key, value):
+        """Sets one of settings.js's per-browser display options in the fake localStorage."""
+        self.local_storage.setItem(key, value)
 
     def change_grid_size(self, value):
         """Mirrors a real <select> "change" event: sets the element's own

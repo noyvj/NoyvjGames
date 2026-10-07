@@ -5,6 +5,7 @@
     ["changelog-panel", "changelog-toggle-button", "What's New"],
     ["example-panel", "example-toggle-button", "Example playthrough"],
     ["almanac-panel", "almanac-toggle-button", "Forest Almanac"],
+    ["contracts-panel", "contracts-toggle-button", "Ranger contracts"],
     ["session-summary-panel", "session-summary-toggle-button", "Session Summary"],
     ["settings-panel", "settings-toggle-button", "Settings"],
     ["info-page-panel", "info-page-toggle-button", "The Real Story"]
@@ -13,6 +14,7 @@
     "icons": [
       ["achievements-toggle-button", "🏆"],
       ["almanac-toggle-button", "📚"],
+      ["contracts-toggle-button", "📜"],
       ["session-summary-toggle-button", "📊"],
       ["settings-toggle-button", "⚙️"]
     ],
@@ -28,7 +30,7 @@
       "title": "Forest setup",
       "members": [".grid-size-label"],
       "group": "Game",
-      "label": "🌲 Grid size and difficulty"
+      "label": "🌲 Grid size, difficulty, pace and challenge"
     },
     {
       "id": "pc-name-panel",
@@ -69,7 +71,7 @@
   "adopt": [],
   "zones": {
     "topbar": [".hub-back-link", "h1", ".game-toolbar"],
-    "stagebar": ["#season-indicator"],
+    "stagebar": ["#season-indicator", "#season-forecast", "#challenge-status"],
     "stage": ["#plot-grid", "#plot-tooltip", "#legend-panel"],
     "side": ["#action-panel", "#stakeholder-panel"],
     "hidden": ["#income-display", "#standing-value-display", "#biodiversity-display", "#community-relations-display", "#mobile-info-dock-toggle"]
@@ -85,6 +87,8 @@
     ["←↑↓→", "Move between plots"],
     ["T", "Tend plot"],
     ["G", "Golden seedling"],
+    ["C", "Clear selected"],
+    ["R", "Replant selected"],
     ["U", "Undo clear"],
     ["N", "Requested plot"],
     ["?", "All shortcuts"],

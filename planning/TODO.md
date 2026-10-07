@@ -1,6 +1,6 @@
 # Site-Wide TODO (round 3)
 
-**Progress: 198/785 items checked off (25.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
+**Progress: 206/785 items checked off (26.2%).** Recompute with `grep -c "^\s*- \[[ x]\]" planning/TODO.md` (total) and the same with `\[x\]` (done) as items land.
 
 Built from your answers in `planning/IMPROVEMENT-IDEAS-ROUND-3.md` (Part 4). Every Round 3 section is now answered (2026-10-07 below the Warframe section); earlier this list held only: **GB** (Canopy gamified), **M** (new games), **N** (seasonal events), **O** (Trade Empire and Continuum replayability), **P/Q/S/T** (Signal, Undersleep, Overclock, Last Line open questions), **X** (Warframe tracker) and **R** (returning later). GC-GI, A-L, U, Z and Y are unanswered and wait for you. The previous list is archived at `planning/todo-archive/260914_260927.md`; anything from it that was moved here is marked "moved" there.
 
@@ -43,7 +43,7 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 - [ ] GB-6: Species on replant (pioneer pine, hardwood oak, orchard).
 - [ ] GB-7: Blight in monocultures (needs GB-6).
 - [x] GB-8: Hidden Heart Tree secret.
-- [ ] GB-9: Ranger contracts board.
+- [x] GB-9: Ranger contracts board.
 - [ ] GB-10: Seed Vault meta-progression (skill-tree style, per W-3).
 - [ ] GB-11: Fast-forward toggle (1x/2x/4x) plus pause (per W-2).
 - [ ] GB-12: Rival logging company, as a possible 1v1 game mode (design it as a mode; park the 1v1 pairing on W-6).
@@ -51,7 +51,7 @@ Rules carried over: "yes" items are here, "later" items are parked in `planning/
 - [x] GB-14: Forest name and adopted-tree nickname with log narration.
 - [ ] GB-15: Storm front events, as a level/mode via the level select.
 - [ ] GB-16: Forest spirit narrator, as a story level.
-- [ ] GB-17: Challenge run set (Pacifist, Scorched Start, Sprint, No-Highland) with badges.
+- [x] GB-17: Challenge run set (Pacifist, Scorched Start, Sprint, No-Highland) with badges.
 - [x] GB-18: Undo window after Clear.
 - [ ] GB-19: Daily community forest: everyone's play waters one big community plot, with a shared "best day" and an opt-in investment leaderboard (uses the community pools backend from tonight and W-5).
 - [x] GB-20: Rare conditional wildlife in the wildlife log.
@@ -218,17 +218,17 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] B-3: Add a Canopy forest replay scrubber to the Session Summary: record periodic per-plot snapshots alongside the capped forest_log and let a slider scrub the grid through the session, plots greening and clearing in sequence, screenshot-friendly.
 - [ ] B-4: Add a Canopy shareable forest image: render the final grid, playstyle badge and three headline numbers onto one canvas card (drawn in code, no generated images) with a Download PNG button beside Copy badge; no backend.
 - [ ] B-5: Add a Canopy "Forest Lab" sandbox panel with sliders for soil degradation per clear, maturity speed, request frequency and season strength; sandbox sessions are clearly marked and excluded from personal bests, percentiles and leaderboards, and can be saved as harder/gentler Ranger-style variants.
-- [ ] B-6: Add a Canopy Settings request-interval selector (Relaxed / Normal / Frequent) that scales STAKEHOLDER_EVENT_INTERVAL_TICKS, saved and recorded with the difficulty tag so stats and percentiles stay honest.
-- [ ] B-7: Finish full keyboard and screen-reader play as a shared component: an aria-live announcer (state changes, incoming requests, season shifts) plus, in Canopy, a visible grid cursor ring and Clear/Replant hotkeys (C/R); then roll the announcer/cursor pattern out to the other grid games. (partly built: index.html B16: arrow-key focus moves across #plot-grid, Enter/Space native, N selects requested plot, tiles have aria-label; T/G/U hotkeys; no C/R keys, focus ring, or aria-live announcer) (needs shared announcer module)
-- [ ] B-8: Add a shared high-contrast plot-state option next to text size and reduce motion: bold outlines and text glyphs (B / R / M for Canopy) on every plot tile so state reads without the green gradient; apply it to all games with state-coloured tiles, starting with Canopy. (needs shared settings component)
+- [x] B-6: Add a Canopy Settings request-interval selector (Relaxed / Normal / Frequent) that scales STAKEHOLDER_EVENT_INTERVAL_TICKS, saved and recorded with the difficulty tag so stats and percentiles stay honest.
+- [ ] B-7: Finish full keyboard and screen-reader play as a shared component: an aria-live announcer (state changes, incoming requests, season shifts) plus, in Canopy, a visible grid cursor ring and Clear/Replant hotkeys (C/R); then roll the announcer/cursor pattern out to the other grid games. (partly built: index.html B16: arrow-key focus moves across #plot-grid, Enter/Space native, N selects requested plot, tiles have aria-label; T/G/U hotkeys; no C/R keys, focus ring, or aria-live announcer) (needs shared announcer module) (Partly done 2026-10-07: Canopy-local live announcer, C and R hotkeys, thicker focus ring; the shared announcer module is not built, so no other game got it.)
+- [x] B-8: Add a shared high-contrast plot-state option next to text size and reduce motion: bold outlines and text glyphs (B / R / M for Canopy) on every plot tile so state reads without the green gradient; apply it to all games with state-coloured tiles, starting with Canopy. (needs shared settings component) (Canopy-local only.)
 - [ ] B-9: Add a Canopy lifetime Statistics tab in the achievements-panel idiom: total plots cleared/replanted, hours played, average standing value by difficulty, playstyle badge distribution bar, best season, and per-request-type accept/decline rate, from local sessions (sandbox excluded).
-- [ ] B-10: Add an optional soil-quality heat overlay toggle in Canopy that recolours plot borders by remaining soil quality with numeric badges (accessible, off by default) so multi-clear damage is readable across the grid.
+- [x] B-10: Add an optional soil-quality heat overlay toggle in Canopy that recolours plot borders by remaining soil quality with numeric badges (accessible, off by default) so multi-clear damage is readable across the grid.
 - [ ] B-11: Add Canopy scenario seeds: pre-made starting forests (Clear-cut Valley 60% bare, Fragmented Farmland checkerboard, Old-Growth Remnant one intact core), picked at session start, each with its own personal-best slot on the report card, reusing the plot save format. (needs optionally W-1 level select)
-- [ ] B-12: Extend Canopy's season indicator into a forecast strip showing the next two seasons' growth multipliers and tick countdowns (e.g. "Summer 1.05x in 12 ticks, then Autumn 0.95x"), including upcoming weather where it is deterministic. (partly built: game.py render_season_indicator() shows current season and "N ticks to <next>"; weather_at() is a pure function of tick; no multipliers or second season shown)
+- [x] B-12: Extend Canopy's season indicator into a forecast strip showing the next two seasons' growth multipliers and tick countdowns (e.g. "Summer 1.05x in 12 ticks, then Autumn 0.95x"), including upcoming weather where it is deterministic. (partly built: game.py render_season_indicator() shows current season and "N ticks to <next>"; weather_at() is a pure function of tick; no multipliers or second season shown)
 - [ ] B-13: Add a Canopy "Survey" pause-and-plan mode: freeze the tick, queue actions (clear, replant, decline next request), show a projected value delta using the counterfactual math, then commit all when unpaused. (needs W-2 pause)
 - [ ] B-14: Turn Canopy's forest history into a sortable, filterable request-history table (plot, kind, your choice, value delta afterwards) as a "did I choose well" audit view. (partly built: Forest history panel (B3) lists forest_log entries (tick, kind, plot, text); no sortable/filterable table, no choice or value-delta columns)
 - [ ] B-15: Extend the shared save widget with up to three named local forests per browser (e.g. "Ranger practice"), switchable from a small menu, each keeping its own difficulty and grid size; first use is Canopy. (partly built: shared/save-widget.js already has 3 numbered save slots for signed-in accounts plus save codes; no named local slots or switch menu for anonymous browsers) (needs shared/save-widget.js)
-- [ ] B-16: Extend Canopy's plot tooltip card with plot age, biodiversity rate per tick and clear count, and style it as one compact card shown on hover and focus. (partly built: index.html B8 plot tooltip (hover and focusin) via _plot_tooltip_text(): coordinates, state, value, soil %, recovery, veteran, specialist, adopted; missing age, biodiversity rate, clear count)
+- [x] B-16: Extend Canopy's plot tooltip card with plot age, biodiversity rate per tick and clear count, and style it as one compact card shown on hover and focus. (partly built: index.html B8 plot tooltip (hover and focusin) via _plot_tooltip_text(): coordinates, state, value, soil %, recovery, veteran, specialist, adopted; missing age, biodiversity rate, clear count)
 - [ ] B-17: Add a Canopy visual refresh: layered CSS/SVG tree sprites per plot state with gentle sway, depth shadow and seasonal foliage colours replacing flat tinted tiles, keeping the state icons; hand-drawn in code, NO generated images; sway respects reduce-motion.
 - [ ] B-19: Add a Canopy long-term Forest Rank: lifetime XP from standing value, seasons survived and badge variety fills a ladder (Sapling Warden through Grove Keeper) that unlocks cosmetic badge-card frames and palette themes only, no gameplay advantage, placed under the achievements panel.
 - [x] B-20: Achievement progress bars. (already built: game.py ACHIEVEMENT_PROGRESS (line ~2410) gives numeric progress lines for 12 countable achievements, rendered in the panel (~2443); one-shots deliberately plain)
@@ -237,7 +237,7 @@ Your remaining Round 3 answers (Grid to Drift gamified, SOL to Le Champ de Mots,
 - [ ] B-23: Add a hub-level "Climate Steward" profile that reads optional summary fields from the climate games' saves (Canopy standing value, Tide restored coastline, etc.) into one portrait; Canopy exposes its summary fields in its save state. (needs hub shell, Y/Z coordination)
 - [ ] B-24: Add Canopy plot notes: right-click or long-press adds a short label (max 20 chars) to any plot, shown as a corner dot, saved with the session.
 - [ ] B-25: Add a third Counter-offer option to Canopy clear-requests (e.g. clear half the plot area, or give two nearby bare plots instead) with deterministic outcomes previewed with numbers inside the existing stakeholder-relations math.
-- [ ] B-26: Add a Canopy Settings numbers-format dropdown (compact 1.2k, thousands separators, full precision) applied to the HUD and mobile dock.
+- [x] B-26: Add a Canopy Settings numbers-format dropdown (compact 1.2k, thousands separators, full precision) applied to the HUD and mobile dock.
 - [ ] B-27: Add opt-in adaptive Coach hints in Canopy's report card: dismissible notes that read the session (e.g. same plot cleared 3 times in one season, soil now 55%), never block play, and replace tutorial text for returning players.
 - [ ] B-28: Add a Canopy mobile bottom sheet opened by long-pressing a plot with large Clear/Replant/Adopt buttons; desktop layout unchanged.
 - [ ] B-29: Add a Canopy custom grid shapes editor: paint which cells exist (island, ring, plus, river-split), save named layouts each with their own personal-best slot, kept out of standard percentiles.

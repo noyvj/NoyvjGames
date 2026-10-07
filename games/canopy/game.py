@@ -612,6 +612,96 @@ PERFECT_SEASON_MIN_RELATIONS = 30  # GB-30
 PERFECT_STREAK_BONUS_PER_SEASON = 0.02
 PERFECT_STREAK_MAX_BONUS_SEASONS = 5
 
+# ===========================================================================
+# GB batch 2 (2026-10-07): challenge runs (GB-17), the Ranger contracts board
+# (GB-9), the season forecast (B-12), the request-pace selector (B-6), the
+# screen-reader announcer and C/R hotkeys (B-7), the plot tooltip card (B-16),
+# and three display options read from localStorage: high-contrast plots
+# (B-8), the soil overlay (B-10) and number formats (B-26). Same rules as
+# batch 1: no RNG, everything timed rides the 1 s tick, new save keys written
+# only when non-default and validated on load.
+# ===========================================================================
+
+# --- GB-17: challenge runs ---------------------------------------------------
+CHALLENGE_NONE = "none"
+CHALLENGE_PACIFIST = "pacifist"
+CHALLENGE_SCORCHED = "scorched"
+CHALLENGE_SPRINT = "sprint"
+CHALLENGE_NO_HIGHLAND = "no_highland"
+CHALLENGE_SPECS = {
+    CHALLENGE_PACIFIST: {
+        "label": "Pacifist",
+        "icon": "\U0001F54A️",
+        "achievement": "challenge_pacifist",
+    },
+    CHALLENGE_SCORCHED: {
+        "label": "Scorched Start",
+        "icon": "\U0001F525",
+        "achievement": "challenge_scorched",
+    },
+    CHALLENGE_SPRINT: {
+        "label": "Sprint",
+        "icon": "⏱️",
+        "achievement": "challenge_sprint",
+    },
+    CHALLENGE_NO_HIGHLAND: {
+        "label": "No-Highland",
+        "icon": "\U0001F3D4️",
+        "achievement": "challenge_no_highland",
+    },
+}
+CHALLENGE_PACIFIST_STANDING_PER_PLOT = 40  # goals scale with the grid so Small and Large stay fair
+CHALLENGE_SCORCHED_STANDING_PER_PLOT = 50
+CHALLENGE_NO_HIGHLAND_STANDING_PER_PLOT = 100
+CHALLENGE_SPRINT_INCOME_PER_PLOT = 28
+CHALLENGE_SPRINT_STANDING_PER_PLOT = 70
+CHALLENGE_SPRINT_TICK_LIMIT = 60
+CHALLENGE_SCORCHED_BARE_FRACTION = 2 / 3  # two thirds of the plots start bare (soil untouched, so nothing counts as a clear)
+CHALLENGE_RECORDS_STORAGE_KEY = "canopy_challenge_records_v1"  # per browser: id -> fastest completion tick
+CHALLENGE_ACTIVE = "active"
+CHALLENGE_COMPLETE = "complete"
+CHALLENGE_FAILED = "failed"
+
+# --- GB-9: Ranger contracts board ---------------------------------------------
+CONTRACT_SLOTS = 3
+CONTRACT_REFILL_TICKS = 6  # a finished slot stays empty this long before the next contract appears
+CONTRACT_REWARD_PER_PLOT = 5  # banked as income, so a 36-plot forest earns 180 a contract
+CONTRACT_CALM_TICKS = 30
+CONTRACT_TYPES = [
+    # (id, icon, short stamp name)
+    ("replant", "\U0001F331", "Replanter"),
+    ("mature", "\U0001F333", "Elder grove"),
+    ("wildlife", "\U0001F98B", "Wildlife warden"),
+    ("decline", "✋", "Firm refusal"),
+    ("accept", "\U0001F91D", "Good neighbour"),
+    ("tend", "\U0001F33F", "Gardener"),
+    ("seedling", "✨", "Seedling catcher"),
+    ("standing", "\U0001F4C8", "Value grower"),
+    ("calm", "\U0001F54A️", "Long peace"),
+    ("trust", "\U0001F3D8️", "Village trust"),
+]
+CONTRACT_RANKS = [(0, "Trainee"), (3, "Ranger"), (8, "Senior ranger"), (15, "Warden"), (25, "Chief warden")]
+
+# --- B-6: how often the village asks ---------------------------------------------
+PACE_RELAXED = "relaxed"
+PACE_NORMAL = "normal"
+PACE_FREQUENT = "frequent"
+REQUEST_PACE_FACTOR = {PACE_RELAXED: 1.5, PACE_NORMAL: 1.0, PACE_FREQUENT: 2 / 3}
+REQUEST_PACE_LABEL = {PACE_RELAXED: "Relaxed requests", PACE_NORMAL: "Normal requests", PACE_FREQUENT: "Frequent requests"}
+
+# --- B-8 / B-10 / B-26: display options stored per browser (settings.js writes them) ---
+UI_PREF_PLOT_CONTRAST = "canopy-plot-contrast"
+UI_PREF_SOIL_OVERLAY = "canopy-soil-overlay"
+UI_PREF_NUMBER_FORMAT = "canopy-number-format"
+NUMBER_FORMAT_STANDARD = "standard"  # one decimal, as the game always showed numbers
+NUMBER_FORMAT_GROUPED = "grouped"  # 12,345.6
+NUMBER_FORMAT_COMPACT = "compact"  # 12.3k
+NUMBER_FORMAT_PRECISE = "precise"  # two decimals
+NUMBER_FORMATS = (NUMBER_FORMAT_STANDARD, NUMBER_FORMAT_GROUPED, NUMBER_FORMAT_COMPACT, NUMBER_FORMAT_PRECISE)
+STATE_LETTER = {BARE: "B", REPLANTING: "R", PRESERVED: "G", RECOVERED: "G"}  # G = growing; M = mature (below)
+MATURE_LETTER = "M"
+SOIL_BANDS = [(90, "good"), (70, "fair"), (50, "poor"), (0, "depleted")]
+
 # Saved state (each written only when non-default).
 forest_name = ""
 adopted_plot_nickname = ""
@@ -623,6 +713,18 @@ tend_cooldown_ticks = 0
 perfect_streak = 0
 season_cleared = False  # a main-forest Clear happened this season
 season_min_relations = None  # lowest community relations seen this season
+# GB batch 2 (session settings are chosen with the selects and reset the session, like difficulty):
+current_challenge = CHALLENGE_NONE  # GB-17
+challenge_complete_tick = None  # forest_tick the active challenge was finished on, or None
+current_pace = PACE_NORMAL  # B-6
+contract_board = []  # GB-9: [{"type", "target", "base"}] for the open contracts
+contract_stamps = []  # contract type ids completed at least once this session
+contracts_completed = 0
+contract_refill_ticks = 0
+contract_last_clear_tick = 0  # forest_tick of the last main-forest clear (for the "calm" contract)
+contract_clear_count_seen = 0
+tends_done = 0
+seedlings_caught = 0
 
 # Ephemeral state (never saved): timers and one-shot render hints.
 golden_seedling = None  # {"plot": index, "ticks_left": n} or None
@@ -635,6 +737,9 @@ _pending_golden_bursts = set()  # plot indices, consumed by the next render_grid
 _forest_pulse_gen = 0
 almanac_open = False
 _gb_toast_queue = []  # GB toasts waiting for the next render
+_announce_queue = []  # B-7: messages for the screen-reader live region, flushed once per render
+contracts_open = False
+_challenge_record_cache = None  # GB-17: per-browser fastest-completion record, read lazily
 
 
 # B2 (planning/TODO.md "Per-game: Canopy"): a "reset session" option, folded
@@ -646,7 +751,7 @@ _gb_toast_queue = []  # GB toasts waiting for the next render
 # separate save-code widget is for) and the shared confirm-dialog pattern
 # the TODO's own site-wide goal describes is still just a design, not a
 # built component, elsewhere in this file.
-def reset_session(grid_size=None, _render_after=True, difficulty=None):
+def reset_session(grid_size=None, _render_after=True, difficulty=None, challenge=None, pace=None):
     """Rebuilds every module-level mutable global back to its fresh-start
     default, optionally at a different GRID_SIZE_PRESETS key. Always
     rebuilds `plots` from scratch (even on a same-size reset) rather than
@@ -667,7 +772,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None):
     global wetland_flood_countdown, wetland_floods_survived, wetland_flood_value_lost
     global _wetland_plot_click_proxies
     global forest_log, forest_tick, adopted_plot_index, current_difficulty
-    global legacy_multiplier
+    global legacy_multiplier, current_challenge, current_pace
 
     # B15: bank this (about-to-end) session's standing value for the next
     # session's legacy bonus, then reload the multiplier so the session
@@ -685,6 +790,14 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None):
         if difficulty not in DEGRADE_PER_CLEAR_BY_DIFFICULTY:
             return False
         current_difficulty = difficulty
+    if challenge is not None:  # GB-17
+        if challenge != CHALLENGE_NONE and challenge not in CHALLENGE_SPECS:
+            return False
+        current_challenge = challenge
+    if pace is not None:  # B-6
+        if pace not in REQUEST_PACE_FACTOR:
+            return False
+        current_pace = pace
     if grid_size is not None:
         if grid_size not in GRID_SIZE_PRESETS:
             return False
@@ -719,6 +832,7 @@ def reset_session(grid_size=None, _render_after=True, difficulty=None):
     forest_tick = 0
     adopted_plot_index = None
     _reset_gb_state()
+    _apply_challenge_start()  # GB-17: Scorched Start burns the plots just built
 
     for proxy in _highland_plot_click_proxies.values():
         proxy.destroy()
@@ -852,7 +966,7 @@ def maybe_trigger_stakeholder_request():
     if pending_stakeholder_request is not None:
         return
     _ticks_since_last_request += 1
-    if _ticks_since_last_request < STAKEHOLDER_EVENT_INTERVAL_TICKS:
+    if _ticks_since_last_request < current_request_interval():  # B-6
         return
     target = _most_established_plot_index()
     if target is None:
@@ -1164,6 +1278,8 @@ def render_grid():
     grid_el.style.gridTemplateColumns = f"repeat({GRID_COLS}, 1fr)"
     heart_aura = _heart_tree_aura()
     stag_plot = _ghost_stag_plot_index() if "ghost_stag" in rare_wildlife_found else None
+    contrast_on = ui_pref(UI_PREF_PLOT_CONTRAST) == "true"  # B-8
+    soil_on = ui_pref(UI_PREF_SOIL_OVERLAY) == "true"  # B-10
     for plot in plots:
         tile = document.createElement("button")
         tile.id = _plot_tile_id(plot.index)
@@ -1182,6 +1298,9 @@ def render_grid():
         tile.innerText = STATE_ICON[plot.state]
         if plot.has_wildlife():
             tile.className += " plot-has-wildlife"
+        mature_standing = plot.state in ACCRUING_STATES and plot.maturity_fraction() >= 1.0
+        if mature_standing:
+            tile.className += " plot-mature"
         if plot.is_veteran():
             tile.className += " plot-veteran"
             tile.appendChild(_make_tile_mark("veteran-mark", "\U0001F396\ufe0f"))
@@ -1215,13 +1334,26 @@ def render_grid():
             tile.className += " plot-ghost-stag"
             tile.appendChild(_make_tile_mark("ghost-stag-mark", "\U0001F98C"))
         tile.style.backgroundColor = plot_display_color(plot)
+        if contrast_on:  # B-8: a letter on every tile so state reads without the green gradient
+            tile.className += " plot-contrast"
+            letter = MATURE_LETTER if mature_standing else STATE_LETTER[plot.state]
+            letter_mark = _make_tile_mark("state-letter", letter)
+            letter_mark.setAttribute("aria-hidden", "true")
+            tile.appendChild(letter_mark)
+        if soil_on:  # B-10: soil quality as a coloured border band and a number
+            soil_pct, band = soil_band(plot)
+            tile.className += f" plot-soil plot-soil--{band}"
+            soil_mark = _make_tile_mark("soil-badge", str(soil_pct))
+            soil_mark.setAttribute("aria-hidden", "true")
+            tile.appendChild(soil_mark)
         tooltip = _plot_tooltip_text(plot)
         if golden_seedling is not None and golden_seedling["plot"] == plot.index:
             tooltip += " \u00b7 golden seedling: click it now for a burst of recovery"
         if plot.tend_ticks_left > 0:
             tooltip += f" \u00b7 tended ({plot.tend_ticks_left} ticks left)"
-        tile.setAttribute("data-tooltip", tooltip)
-        tile.setAttribute("aria-label", tooltip)
+        detail = _plot_tooltip_detail(plot)  # B-16: second line of the plot card
+        tile.setAttribute("data-tooltip", tooltip + "\n" + detail)
+        tile.setAttribute("aria-label", tooltip + "\n" + detail)
         # B17: a brief floating "+X" pop the tick this plot's standing
         # value actually rose, computed by tick() and consumed here once.
         pop_delta = _pending_value_pops.pop(plot.index, None)
@@ -1283,6 +1415,8 @@ def _maybe_unlock_highland():
     unlocking a region is a permanent milestone, not a live gate that
     could lock back up mid-session."""
     global highland_unlocked
+    if current_challenge == CHALLENGE_NO_HIGHLAND:
+        return  # GB-17: the regions stay sealed
     if not highland_unlocked and standing_forest_value() >= HIGHLAND_UNLOCK_STANDING_VALUE_THRESHOLD:
         highland_unlocked = True
         _log_event("unlock", "Highland Grove unlocked", None)
@@ -1398,9 +1532,9 @@ def render_highland_panel():
 
 
 def render_highland_stats():
-    document.getElementById("highland-income-display").innerText = f"Harvested income: {highland_income:.1f}"
+    document.getElementById("highland-income-display").innerText = f"Harvested income: {fmt_num(highland_income)}"
     document.getElementById("highland-standing-value-display").innerText = (
-        f"Standing grove value: {highland_standing_value():.1f}"
+        f"Standing grove value: {fmt_num(highland_standing_value())}"
     )
 
 
@@ -1413,6 +1547,12 @@ def render_highland_section():
     section = document.getElementById("highland-section")
     bar = document.getElementById("highland-unlock-progress")
     if banner is None or section is None:
+        return
+    if not highland_unlocked and current_challenge == CHALLENGE_NO_HIGHLAND:
+        section.hidden = True
+        banner.hidden = False
+        bar.hidden = True
+        banner.innerText = "\u26F0\ufe0f Highland Grove and Wetland Forest are sealed during the No-Highland challenge."
         return
     if not highland_unlocked:
         section.hidden = True
@@ -1447,6 +1587,8 @@ def render_highland_section():
 
 def _maybe_unlock_wetland():
     global wetland_unlocked, wetland_flood_countdown
+    if current_challenge == CHALLENGE_NO_HIGHLAND:
+        return  # GB-17: the regions stay sealed
     if not wetland_unlocked and standing_forest_value() >= WETLAND_UNLOCK_STANDING_VALUE_THRESHOLD:
         wetland_unlocked = True
         wetland_flood_countdown = WETLAND_FLOOD_INTERVAL_TICKS
@@ -1609,9 +1751,9 @@ def wetland_flood_status_text():
 
 
 def render_wetland_stats():
-    document.getElementById("wetland-income-display").innerText = f"Harvested income: {wetland_income:.1f}"
+    document.getElementById("wetland-income-display").innerText = f"Harvested income: {fmt_num(wetland_income)}"
     document.getElementById("wetland-standing-value-display").innerText = (
-        f"Standing wetland value: {wetland_standing_value():.1f}"
+        f"Standing wetland value: {fmt_num(wetland_standing_value())}"
     )
     document.getElementById("wetland-flood-status").innerText = wetland_flood_status_text()
 
@@ -1842,8 +1984,8 @@ def render_personal_best():
     if element is None:
         return
     element.innerText = (
-        f"Personal best: standing {personal_best['standing_value']:.1f} "
-        f"· income {personal_best['income']:.1f}"
+        f"Personal best: standing {fmt_num(personal_best['standing_value'])} "
+        f"· income {fmt_num(personal_best['income'])}"
     )
 
 
@@ -2026,6 +2168,7 @@ def share_snippet():
         f"\U0001F332 Canopy — {forest_name or 'my forest'} so far: {standing_value:.1f} standing value, "
         f"{total_income:.1f} harvested, {total_biodiversity():.1f} biodiversity. "
         f"{standing_plots}/{len(plots)} plots still standing."
+        + (f" ({session_tag_text()})" if session_tag_text() else "")
     )
 
 
@@ -2195,10 +2338,10 @@ def comparison_message(income, standing_value):
 
 def render_stats():
     standing_value = standing_forest_value()
-    document.getElementById("income-display").innerText = f"Harvested income: {total_income:.1f}"
-    document.getElementById("standing-value-display").innerText = f"Standing forest value: {standing_value:.1f}"
+    document.getElementById("income-display").innerText = f"Harvested income: {fmt_num(total_income)}"
+    document.getElementById("standing-value-display").innerText = f"Standing forest value: {fmt_num(standing_value)}"
     document.getElementById("biodiversity-display").innerText = (
-        f"Biodiversity: {total_biodiversity():.1f} (+{biodiversity_rate_per_tick():.2f}/tick)"
+        f"Biodiversity: {fmt_num(total_biodiversity())} (+{biodiversity_rate_per_tick():.2f}/tick)"
     )
     document.getElementById("comparison-message").innerText = comparison_message(total_income, standing_value)
     document.getElementById("state-breakdown-display").innerText = state_breakdown_text()
@@ -2417,6 +2560,11 @@ ACHIEVEMENT_CHECKS = {
     "tier_grove": lambda: _peak_now() >= TIER_ACHIEVEMENT_THRESHOLDS["tier_grove"],
     "tier_woodland": lambda: _peak_now() >= TIER_ACHIEVEMENT_THRESHOLDS["tier_woodland"],
     "tier_old_growth_steward": lambda: _peak_now() >= TIER_ACHIEVEMENT_THRESHOLDS["tier_old_growth_steward"],
+    # GB-17: one badge per challenge, earned by finishing that challenge in this session.
+    "challenge_pacifist": lambda: current_challenge == CHALLENGE_PACIFIST and challenge_complete_tick is not None,
+    "challenge_scorched": lambda: current_challenge == CHALLENGE_SCORCHED and challenge_complete_tick is not None,
+    "challenge_sprint": lambda: current_challenge == CHALLENGE_SPRINT and challenge_complete_tick is not None,
+    "challenge_no_highland": lambda: current_challenge == CHALLENGE_NO_HIGHLAND and challenge_complete_tick is not None,
 }
 
 # Progress readouts, only for achievements with a natural numeric scale-up
@@ -2548,6 +2696,8 @@ def _sync_earned_and_toast():
     elif newly_earned:
         labels = ", ".join(entry["label"] for entry in newly_earned)
         messages.append(f"\U0001F3C6 {len(newly_earned)} achievements unlocked: {labels}")
+    for message in messages:
+        _announce(message)  # B-7: achievements are not in the forest log; GB toasts already are
     messages.extend(_gb_toast_queue)  # GB batch 1: discoveries, tiers, seasons
     del _gb_toast_queue[:]
     if messages:
@@ -2925,6 +3075,8 @@ def species_seen():
 def _log_event(kind, text, plot_index=None):
     forest_log.append({"tick": forest_tick, "kind": kind, "plot": plot_index, "text": text})
     del forest_log[:-FOREST_LOG_MAX_ENTRIES]
+    if kind not in ("wildlife", "mature"):  # B-7: everything else is worth saying aloud
+        _announce(text)
 
 
 def forest_log_lines(limit=FOREST_LOG_DISPLAY_LIMIT, kinds=None, plot_index=None):
@@ -3141,6 +3293,10 @@ def render_grid_size_select():
     difficulty_select = document.getElementById("difficulty-select")
     if difficulty_select is not None:
         difficulty_select.value = current_difficulty
+    for element_id, value in (("challenge-select", current_challenge), ("request-pace-select", current_pace)):
+        extra_select = _el(element_id)
+        if extra_select is not None:
+            extra_select.value = value
 
 
 # ===========================================================================
@@ -3404,6 +3560,9 @@ def _end_season():
         perfect_streak = 0
     season_cleared = False
     season_min_relations = community_relations
+    _announce(
+        f"{SEASON_LABEL[current_season()]} begins, growth x{current_season_multiplier():.2f}"
+    )  # B-7
 
 
 def _flash_element(element_id):
@@ -3499,11 +3658,12 @@ def collect_golden_seedling(index=None):
     """Banks a burst of recovery on the plot the golden seedling sits on (a
     bare plot is replanted first). `index` lets a tile click say which plot it
     was; the "G" key passes nothing. Returns True on a real collect."""
-    global golden_seedling, total_replants, total_recoveries
+    global golden_seedling, total_replants, total_recoveries, seedlings_caught
     if golden_seedling is None or (index is not None and index != golden_seedling["plot"]):
         return False
     plot = plots[golden_seedling["plot"]]
     golden_seedling = None
+    seedlings_caught += 1  # GB-9: counts toward a Ranger contract
     _schedule_golden_seedling()
     if plot.state == BARE and plot.replant():
         total_replants += 1
@@ -3546,7 +3706,7 @@ def tend_plot(index=None):
     TEND_DURATION_TICKS ticks; a replanting plot recovers an extra tick per
     tick) on one plot, then a TEND_COOLDOWN_TICKS cooldown. `index` is the
     hovered plot (the "T" key); without one it uses the selected plot."""
-    global _tend_message
+    global _tend_message, tends_done
     if index is None:
         index = selected_index
     if isinstance(index, bool) or not isinstance(index, (int, float)) or index != index:
@@ -3567,6 +3727,7 @@ def tend_plot(index=None):
         render_tend_panel()
         return False
     plot.tend_ticks_left = TEND_DURATION_TICKS
+    tends_done += 1  # GB-9: counts toward a Ranger contract
     _tend_message = ""
     _log_event("tend", f"Tended {_plot_ref(index)}", index)
     render()
@@ -4036,6 +4197,731 @@ def render_almanac():
     streak_line.className = "almanac-note"
     streak_line.innerText = f"Perfect Season streak: {perfect_streak}"
     panel.appendChild(streak_line)
+    render_challenge_badges(panel)  # GB-17
+
+
+# ===========================================================================
+# GB batch 2 -- behaviour (constants and state are above reset_session()).
+# ===========================================================================
+
+# --- display options read from localStorage (B-8, B-10, B-26) ------------------------------------------------
+
+def ui_pref(key, default=""):
+    """A per-browser display option written by settings.js (never saved with a game)."""
+    value = _read_local_storage_item(key)
+    return default if value is None else str(value)
+
+
+def number_format_mode():
+    mode = ui_pref(UI_PREF_NUMBER_FORMAT, NUMBER_FORMAT_STANDARD)
+    return mode if mode in NUMBER_FORMATS else NUMBER_FORMAT_STANDARD
+
+
+def _compact_number(value):
+    sign = "-" if value < 0 else ""
+    magnitude = abs(value)
+    suffixes = ((1e9, "B"), (1e6, "M"), (1e3, "k"))
+    for position, (limit, suffix) in enumerate(suffixes):
+        if magnitude >= limit:
+            scaled = round(magnitude / limit, 1)
+            if scaled >= 1000 and position > 0:  # 999.96k is "1M", not "1000k"
+                limit, suffix = suffixes[position - 1]
+                scaled = round(magnitude / limit, 1)
+            text = f"{scaled:.1f}"
+            if text.endswith(".0"):
+                text = text[:-2]
+            return f"{sign}{text}{suffix}"
+    return f"{sign}{magnitude:.1f}"
+
+
+def fmt_num(value, decimals=1):
+    """B-26: a number for the HUD and mobile dock in the player's chosen format."""
+    mode = number_format_mode()
+    if mode == NUMBER_FORMAT_GROUPED:
+        return f"{value:,.{decimals}f}"
+    if mode == NUMBER_FORMAT_COMPACT:
+        return _compact_number(value)
+    if mode == NUMBER_FORMAT_PRECISE:
+        return f"{value:.{max(decimals, 2)}f}"
+    return f"{value:.{decimals}f}"
+
+
+def soil_band(plot):
+    """B-10: (percent, band name) for a plot's soil quality."""
+    pct = round(plot.productivity_multiplier() * 100)
+    for floor, name in SOIL_BANDS:
+        if pct >= floor:
+            return pct, name
+    return pct, SOIL_BANDS[-1][1]
+
+
+def _plot_tooltip_detail(plot):
+    """B-16: the second line of the plot card: age, biodiversity rate, clear count."""
+    if plot.state in ACCRUING_STATES:
+        age = f"standing {plot.ticks_intact} ticks"
+        rate = BIODIVERSITY_ACCRUAL_PER_TICK
+        if plot.specialization == SPECIALIZATION_BIODIVERSITY:
+            rate *= SPECIALIST_BIODIVERSITY_MULTIPLIER
+    elif plot.state == REPLANTING:
+        age = f"replanting, {plot.replant_ticks_remaining} ticks to go"
+        rate = 0.0
+    else:
+        age = "bare"
+        rate = 0.0
+    if plot.clear_count == 0:
+        cleared = "never cleared"
+    else:
+        cleared = f"cleared {plot.clear_count} time{'s' if plot.clear_count != 1 else ''}"
+    return f"Age: {age} · biodiversity +{rate:.2f}/tick · {cleared}"
+
+
+# --- B-7: screen-reader announcer, C / R hotkeys -------------------------------------------------------------
+
+ANNOUNCE_MAX_QUEUED = 6
+
+
+def _announce(message):
+    """Queues a sentence for the polite live region; the next render speaks it."""
+    if message:
+        _announce_queue.append(str(message))
+        del _announce_queue[:-ANNOUNCE_MAX_QUEUED]
+
+
+def render_announcer():
+    if not _announce_queue:
+        return
+    text = ". ".join(m.rstrip(". ") for m in _announce_queue)
+    del _announce_queue[:]
+    element = _el("sr-announcer")
+    if element is not None:
+        element.innerText = text
+
+
+def hotkey_clear_selected(event=None):
+    """C: clears the selected plot (select one first: a deliberate two-step so a stray key cannot fell a tree)."""
+    if selected_index is None:
+        _announce("No plot selected. Select a plot with Enter or a click, then press C to clear it")
+        render_announcer()
+        return False
+    before = plots[selected_index].state
+    on_clear()
+    return plots[selected_index].state != before
+
+
+def hotkey_replant_selected(event=None):
+    """R: replants the selected bare plot."""
+    if selected_index is None:
+        _announce("No plot selected. Select a plot with Enter or a click, then press R to replant it")
+        render_announcer()
+        return False
+    before = plots[selected_index].state
+    on_replant()
+    return plots[selected_index].state != before
+
+
+# --- B-12: season forecast -----------------------------------------------------------------------------------
+
+def _next_weather_episode():
+    """(kind, ticks until it starts, start tick) of the next rain or drought episode that has not
+    started yet, or None. weather_at() is a pure function of the tick, so this is exact."""
+    for ahead in range(1, SEASON_CYCLE_TICKS * len(SEASONS) + 1):  # a full year: episodes can be 100+ ticks apart
+        episode = _weather_episode(forest_tick + ahead)
+        if episode is not None and episode[1] > forest_tick:
+            return episode[0], episode[1] - forest_tick, episode[1]
+    return None
+
+
+def season_forecast_text():
+    first = SEASONS[(SEASONS.index(current_season()) + 1) % len(SEASONS)]
+    second = SEASONS[(SEASONS.index(first) + 1) % len(SEASONS)]
+    ticks_first = ticks_until_next_season()
+    ticks_second = ticks_first + SEASON_CYCLE_TICKS
+    text = (
+        f"Forecast: {SEASON_LABEL[first]} x{SEASON_GROWTH_MULTIPLIER[first]:.2f} in {ticks_first} ticks, "
+        f"then {SEASON_LABEL[second]} x{SEASON_GROWTH_MULTIPLIER[second]:.2f} in {ticks_second} ticks"
+    )
+    upcoming = _next_weather_episode()
+    if upcoming is not None:
+        kind, begins_in, _start = upcoming
+        change = round((weather_multiplier_at(forest_tick + begins_in) - 1) * 100)
+        text += (
+            f" · {WEATHER_ICON[kind]} {WEATHER_LABEL[kind]} (growth {change:+d}%) "
+            f"in {begins_in} ticks, lasting {WEATHER_DURATION_TICKS}"
+        )
+    return text
+
+
+def render_season_forecast():
+    element = _el("season-forecast")
+    if element is not None:
+        element.innerText = season_forecast_text()
+
+
+# --- B-6: request pace ---------------------------------------------------------------------------------------
+
+def current_request_interval():
+    """Ticks between community requests: the Pass 3 interval scaled by the chosen pace."""
+    factor = REQUEST_PACE_FACTOR.get(current_pace, 1.0)
+    return max(5, int(round(STAKEHOLDER_EVENT_INTERVAL_TICKS * factor)))
+
+
+def session_tag_text():
+    """Names every non-default setting that changes how a run plays, so shared results stay honest."""
+    parts = []
+    if current_difficulty == DIFFICULTY_RANGER:
+        parts.append("Forest ranger")
+    if current_pace != PACE_NORMAL:
+        parts.append(REQUEST_PACE_LABEL[current_pace].lower())
+    if current_challenge != CHALLENGE_NONE:
+        parts.append(f"{CHALLENGE_SPECS[current_challenge]['label']} challenge")
+    return ", ".join(parts)
+
+
+def on_pace_change(event=None):
+    if event is None:
+        return
+    reset_session(pace=event.target.value)
+
+
+# --- GB-17: challenge runs -----------------------------------------------------------------------------------
+
+def _apply_challenge_start():
+    """Called by reset_session() once the plots exist. Scorched Start burns two thirds of the forest."""
+    global contract_clear_count_seen, contract_last_clear_tick
+    if current_challenge == CHALLENGE_SCORCHED:
+        count = int(round(len(plots) * CHALLENGE_SCORCHED_BARE_FRACTION))
+        for index in sorted(range(len(plots)), key=lambda i: (_gb_hash(i, 17), i))[:count]:
+            plot = plots[index]
+            plot.state = BARE
+            plot.value = 0.0
+            plot.ticks_intact = 0
+            plot.biodiversity = 0.0
+    contract_clear_count_seen = _total_clear_count()
+    contract_last_clear_tick = 0
+
+
+def _challenge_regions_cleared():
+    return any(p.clear_count for p in highland_plots) or any(p.clear_count for p in wetland_plots)
+
+
+def challenge_goal():
+    """(standing goal, income goal) for the current challenge; income goal is 0 unless Sprint."""
+    n = len(plots)
+    if current_challenge == CHALLENGE_PACIFIST:
+        return CHALLENGE_PACIFIST_STANDING_PER_PLOT * n, 0
+    if current_challenge == CHALLENGE_SCORCHED:
+        return CHALLENGE_SCORCHED_STANDING_PER_PLOT * n, 0
+    if current_challenge == CHALLENGE_NO_HIGHLAND:
+        return CHALLENGE_NO_HIGHLAND_STANDING_PER_PLOT * n, 0
+    if current_challenge == CHALLENGE_SPRINT:
+        return CHALLENGE_SPRINT_STANDING_PER_PLOT * n, CHALLENGE_SPRINT_INCOME_PER_PLOT * n
+    return 0, 0
+
+
+def challenge_rule_text():
+    standing, income = challenge_goal()
+    if current_challenge == CHALLENGE_PACIFIST:
+        return f"reach {standing} standing value without clearing any plot (a granted request counts as a clear)"
+    if current_challenge == CHALLENGE_SCORCHED:
+        return f"start with two thirds of the plots bare, then reach {standing} standing value"
+    if current_challenge == CHALLENGE_SPRINT:
+        return (
+            f"within {CHALLENGE_SPRINT_TICK_LIMIT} ticks, bank {income} income and hold "
+            f"{standing} standing value at the same time"
+        )
+    if current_challenge == CHALLENGE_NO_HIGHLAND:
+        return f"reach {standing} standing value with Highland Grove and Wetland Forest sealed"
+    return ""
+
+
+def challenge_state():
+    """None (no challenge), or active / complete / failed. Failure is read off the live forest, so an
+    undone clear does not fail a Pacifist run."""
+    if current_challenge == CHALLENGE_NONE:
+        return None
+    if challenge_complete_tick is not None:
+        return CHALLENGE_COMPLETE
+    if current_challenge == CHALLENGE_PACIFIST and (_total_clear_count() > 0 or _challenge_regions_cleared()):
+        return CHALLENGE_FAILED
+    if current_challenge == CHALLENGE_SPRINT and forest_tick > CHALLENGE_SPRINT_TICK_LIMIT:
+        return CHALLENGE_FAILED
+    return CHALLENGE_ACTIVE
+
+
+def _challenge_goal_met():
+    standing, income = challenge_goal()
+    if standing <= 0:
+        return False
+    return standing_forest_value() >= standing and total_income >= income
+
+
+def load_challenge_records():
+    global _challenge_record_cache
+    if _challenge_record_cache is None:
+        records = {}
+        raw = _read_local_storage_item(CHALLENGE_RECORDS_STORAGE_KEY)
+        if raw:
+            try:
+                parsed = json.loads(raw)
+            except ValueError:
+                parsed = None
+            if isinstance(parsed, dict):
+                for key, value in parsed.items():
+                    if key in CHALLENGE_SPECS and isinstance(value, int) and not isinstance(value, bool) and value > 0:
+                        records[key] = value
+        _challenge_record_cache = records
+    return _challenge_record_cache
+
+
+def challenge_badge_earned(challenge_id):
+    """A badge is permanent in this browser: finishing a challenge once keeps it, whatever the session does next."""
+    if challenge_id in load_challenge_records():
+        return True
+    return current_challenge == challenge_id and challenge_complete_tick is not None
+
+
+def _record_challenge_completion(tick):
+    records = load_challenge_records()
+    best = records.get(current_challenge)
+    if best is None or tick < best:
+        records[current_challenge] = max(1, int(tick))
+        _write_local_storage_item(CHALLENGE_RECORDS_STORAGE_KEY, json.dumps(records))
+
+
+def _check_challenge():
+    global challenge_complete_tick
+    if challenge_state() != CHALLENGE_ACTIVE or not _challenge_goal_met():
+        return
+    challenge_complete_tick = forest_tick
+    label = CHALLENGE_SPECS[current_challenge]["label"]
+    _record_challenge_completion(forest_tick)
+    _log_event("challenge", f"{label} challenge complete in {forest_tick} ticks", None)
+    _gb_toast(f"{CHALLENGE_SPECS[current_challenge]['icon']} {label} challenge complete: badge earned")
+    _flash_forest_pulse()
+
+
+def challenge_status_text():
+    state = challenge_state()
+    if state is None:
+        return ""
+    spec = CHALLENGE_SPECS[current_challenge]
+    head = f"{spec['icon']} Challenge: {spec['label']} · {challenge_rule_text()}"
+    standing, income = challenge_goal()
+    best = load_challenge_records().get(current_challenge)
+    best_text = f" Your fastest finish: {best} ticks." if best else ""
+    if state == CHALLENGE_COMPLETE:
+        return f"{head}. Complete in {challenge_complete_tick} ticks, badge earned.{best_text}"
+    if state == CHALLENGE_FAILED:
+        why = "a plot was cleared" if current_challenge == CHALLENGE_PACIFIST else "time ran out"
+        return f"{head}. Failed ({why}). Reset Session to retry.{best_text}"
+    if current_challenge == CHALLENGE_SPRINT:
+        progress = (
+            f"standing {int(standing_forest_value())}/{standing}, income {int(total_income)}/{income}, "
+            f"{max(0, CHALLENGE_SPRINT_TICK_LIMIT - forest_tick)} ticks left"
+        )
+    else:
+        progress = f"standing {int(standing_forest_value())}/{standing}"
+    return f"{head}. In progress: {progress}.{best_text}"
+
+
+def render_challenge_status():
+    element = _el("challenge-status")
+    if element is None:
+        return
+    text = challenge_status_text()
+    element.hidden = not text
+    element.innerText = text
+    state = challenge_state()
+    for name in (CHALLENGE_ACTIVE, CHALLENGE_COMPLETE, CHALLENGE_FAILED):
+        if name == state:
+            element.classList.add(f"challenge-status--{name}")
+        else:
+            element.classList.remove(f"challenge-status--{name}")
+
+
+def on_challenge_change(event=None):
+    if event is None:
+        return
+    reset_session(challenge=event.target.value)
+
+
+def challenge_badge_entries():
+    """[(icon, label, earned, best_ticks_or_None)] for the Almanac."""
+    records = load_challenge_records()
+    return [
+        (spec["icon"], spec["label"], challenge_badge_earned(cid), records.get(cid))
+        for cid, spec in CHALLENGE_SPECS.items()
+    ]
+
+
+def render_challenge_badges(panel):
+    """Appends the Almanac's challenge-badge row."""
+    entries = challenge_badge_entries()
+    heading = document.createElement("h3")
+    heading.className = "almanac-heading"
+    heading.innerText = f"Challenge badges ({sum(1 for e in entries if e[2])}/{len(entries)})"
+    panel.appendChild(heading)
+    row = document.createElement("ul")
+    row.className = "almanac-list"
+    for icon, label, earned, best in entries:
+        item = document.createElement("li")
+        item.className = "almanac-item almanac-item--found" if earned else "almanac-item almanac-item--unfound"
+        item.setAttribute("aria-label", f"{label} challenge: {'badge earned' if earned else 'not yet finished'}")
+        glyph = document.createElement("span")
+        glyph.className = "almanac-icon" if earned else "almanac-icon almanac-silhouette"
+        glyph.setAttribute("aria-hidden", "true")
+        glyph.innerText = icon
+        item.appendChild(glyph)
+        text = document.createElement("span")
+        text.className = "almanac-name"
+        text.innerText = (f"{label} ({best} ticks)" if best else label) if earned else "???"
+        item.appendChild(text)
+        row.appendChild(item)
+    panel.appendChild(row)
+
+
+# --- GB-9: Ranger contracts board ------------------------------------------------------------------------------
+
+def _contract_target_and_base(type_id):
+    n = len(plots)
+    if type_id == "replant":
+        return 3, total_replants
+    if type_id == "mature":
+        return max(2, n // 6, _mature_plot_count() + 2), 0
+    if type_id == "wildlife":
+        return max(3, n // 5, _wildlife_active_count() + 2), 0
+    if type_id == "decline":
+        return 2, stakeholder_declines_count
+    if type_id == "accept":
+        return 1, stakeholder_grants_count
+    if type_id == "tend":
+        return 2, tends_done
+    if type_id == "seedling":
+        return 1, seedlings_caught
+    if type_id == "standing":
+        return max(10, int(round((standing_forest_value() * 1.25 + 60 * n) / 10.0)) * 10), 0
+    if type_id == "calm":
+        return CONTRACT_CALM_TICKS, 0
+    return min(100, max(60, community_relations + 15)), 0  # trust
+
+
+def _contract_progress(contract):
+    type_id = contract["type"]
+    base = contract.get("base", 0)
+    if type_id == "replant":
+        return total_replants - base
+    if type_id == "mature":
+        return _mature_plot_count()
+    if type_id == "wildlife":
+        return _wildlife_active_count()
+    if type_id == "decline":
+        return stakeholder_declines_count - base
+    if type_id == "accept":
+        return stakeholder_grants_count - base
+    if type_id == "tend":
+        return tends_done - base
+    if type_id == "seedling":
+        return seedlings_caught - base
+    if type_id == "standing":
+        return int(standing_forest_value())
+    if type_id == "calm":
+        return max(0, forest_tick - contract_last_clear_tick)
+    return community_relations
+
+
+def contract_text(contract):
+    target = contract["target"]
+    return {
+        "replant": f"Replant {target} plots",
+        "mature": f"Have {target} fully mature plots at once",
+        "wildlife": f"Have wildlife on {target} plots at once",
+        "decline": f"Decline {target} community requests",
+        "accept": f"Say yes to {target} community request or offer",
+        "tend": f"Tend {target} plots (T)",
+        "seedling": "Catch a golden seedling (G)",
+        "standing": f"Grow your standing value to {target}",
+        "calm": f"Go {target} ticks without clearing a plot",
+        "trust": f"Raise community relations to {target}",
+    }[contract["type"]]
+
+
+def contract_reward():
+    return CONTRACT_REWARD_PER_PLOT * len(plots)
+
+
+def contract_rank():
+    title = CONTRACT_RANKS[0][1]
+    for needed, name in CONTRACT_RANKS:
+        if contracts_completed >= needed:
+            title = name
+    return title
+
+
+def _pick_contract_type():
+    """Deterministic pick (hash of the tick and the count so far). Contracts whose stamp you have not
+    collected come first, so a patient player sees all ten."""
+    on_board = {c["type"] for c in contract_board}
+    start = _gb_hash(forest_tick, contracts_completed, len(contract_board), 91) % len(CONTRACT_TYPES)
+    ordered = [CONTRACT_TYPES[(start + k) % len(CONTRACT_TYPES)][0] for k in range(len(CONTRACT_TYPES))]
+    candidates = [t for t in ordered if t not in on_board and not (t == "trust" and community_relations >= 90)]
+    fresh = [t for t in candidates if t not in contract_stamps]
+    pool = fresh or candidates
+    return pool[0] if pool else None
+
+
+def _add_contract():
+    type_id = _pick_contract_type()
+    if type_id is None:
+        return False
+    target, base = _contract_target_and_base(type_id)
+    contract_board.append({"type": type_id, "target": target, "base": base})
+    return True
+
+
+def _fill_contract_board():
+    del contract_board[:]
+    if current_challenge != CHALLENGE_NONE:
+        return
+    while len(contract_board) < CONTRACT_SLOTS and _add_contract():
+        pass
+
+
+def _stamp_name(type_id):
+    for tid, _icon, name in CONTRACT_TYPES:
+        if tid == type_id:
+            return name
+    return type_id
+
+
+def _complete_contract(contract):
+    global total_income, contracts_completed, contract_refill_ticks
+    contract_board.remove(contract)
+    reward = contract_reward()
+    total_income += reward
+    contracts_completed += 1
+    new_stamp = contract["type"] not in contract_stamps
+    if new_stamp:
+        contract_stamps.append(contract["type"])
+    if len(contract_board) < CONTRACT_SLOTS and contract_refill_ticks <= 0:
+        contract_refill_ticks = CONTRACT_REFILL_TICKS
+    _log_event("contract", f"Contract done: {contract_text(contract)} (+{reward} income)", None)
+    stamp_part = f", new stamp: {_stamp_name(contract['type'])}" if new_stamp else ""
+    _gb_toast(f"\U0001F4DC Contract done: +{reward} income{stamp_part}")
+
+
+def _advance_contracts():
+    global contract_refill_ticks, contract_last_clear_tick, contract_clear_count_seen
+    clears = _total_clear_count()
+    if clears > contract_clear_count_seen:
+        contract_last_clear_tick = forest_tick
+    contract_clear_count_seen = clears
+    if current_challenge != CHALLENGE_NONE:
+        return
+    for contract in list(contract_board):
+        if _contract_progress(contract) >= contract["target"]:
+            _complete_contract(contract)
+    if len(contract_board) < CONTRACT_SLOTS:
+        if contract_refill_ticks > 0:
+            contract_refill_ticks -= 1
+        elif _add_contract() and len(contract_board) < CONTRACT_SLOTS:
+            contract_refill_ticks = CONTRACT_REFILL_TICKS
+
+
+def on_toggle_contracts(event=None):
+    global contracts_open
+    contracts_open = not contracts_open
+    render_contracts()
+
+
+def render_contracts():
+    toggle = _el("contracts-toggle-button")
+    panel = _el("contracts-panel")
+    if toggle is None or panel is None:
+        return
+    if current_challenge != CHALLENGE_NONE:
+        label_count = "closed"
+    else:
+        label_count = f"{len(contract_board)} open"
+    toggle.innerText = (
+        f"Hide Contracts ({label_count})" if contracts_open else f"\U0001F4DC Contracts ({label_count})"
+    )
+    panel.hidden = not contracts_open
+    if not contracts_open:
+        return
+    panel.innerHTML = ""
+    title = document.createElement("h2")
+    title.className = "contracts-title"
+    title.innerText = "Ranger contracts"
+    panel.appendChild(title)
+    rank = document.createElement("p")
+    rank.className = "contracts-rank"
+    rank.innerText = (
+        f"Rank: {contract_rank()} · {contracts_completed} contract{'s' if contracts_completed != 1 else ''} done "
+        f"· each pays {contract_reward()} income"
+    )
+    panel.appendChild(rank)
+    if current_challenge != CHALLENGE_NONE:
+        closed = document.createElement("p")
+        closed.className = "contracts-note"
+        closed.innerText = "The ranger service is closed during a challenge run. Choose No challenge to reopen the board."
+        panel.appendChild(closed)
+    else:
+        board = document.createElement("ul")
+        board.className = "contracts-list"
+        for contract in contract_board:
+            progress = max(0, min(contract["target"], _contract_progress(contract)))
+            item = document.createElement("li")
+            item.className = "contract-card"
+            label = document.createElement("p")
+            label.className = "contract-card-label"
+            icon = next((c[1] for c in CONTRACT_TYPES if c[0] == contract["type"]), "")
+            label.innerText = f"{icon} {contract_text(contract)}"
+            item.appendChild(label)
+            count = document.createElement("p")
+            count.className = "contract-card-progress"
+            count.innerText = f"{progress} of {contract['target']}"
+            item.appendChild(count)
+            bar = document.createElement("progress")
+            bar.className = "contract-card-bar"
+            bar.max = contract["target"]
+            bar.value = progress
+            bar.setAttribute("aria-label", f"{contract_text(contract)}: {progress} of {contract['target']}")
+            item.appendChild(bar)
+            board.appendChild(item)
+        if not contract_board:
+            waiting = document.createElement("li")
+            waiting.className = "contract-card contract-card--waiting"
+            waiting.innerText = f"Next contract in {max(1, contract_refill_ticks)} ticks"
+            board.appendChild(waiting)
+        panel.appendChild(board)
+    stamps_heading = document.createElement("h3")
+    stamps_heading.className = "almanac-heading"
+    stamps_heading.innerText = f"Stamps ({len(contract_stamps)}/{len(CONTRACT_TYPES)})"
+    panel.appendChild(stamps_heading)
+    stamp_row = document.createElement("ul")
+    stamp_row.className = "almanac-list"
+    for type_id, icon, name in CONTRACT_TYPES:
+        got = type_id in contract_stamps
+        item = document.createElement("li")
+        item.className = "almanac-item almanac-item--found" if got else "almanac-item almanac-item--unfound"
+        item.setAttribute("aria-label", f"{name}: {'stamped' if got else 'not yet stamped'}")
+        glyph = document.createElement("span")
+        glyph.className = "almanac-icon" if got else "almanac-icon almanac-silhouette"
+        glyph.setAttribute("aria-hidden", "true")
+        glyph.innerText = icon
+        item.appendChild(glyph)
+        text = document.createElement("span")
+        text.className = "almanac-name"
+        text.innerText = name if got else "???"
+        item.appendChild(text)
+        stamp_row.appendChild(item)
+    panel.appendChild(stamp_row)
+
+
+def _contracts_state_fields():
+    """Written only once the board has moved on from a fresh session's (the opening board is a pure
+    function of an empty forest, so a save without the key rebuilds exactly it)."""
+    if current_challenge != CHALLENGE_NONE:
+        return {}
+    fresh = not (
+        contracts_completed or contract_stamps or contract_refill_ticks or contract_last_clear_tick
+        or tends_done or seedlings_caught
+    )
+    if fresh:
+        return {}
+    return {
+        "ranger_contracts": {
+            "board": [dict(c) for c in contract_board],
+            "stamps": list(contract_stamps),
+            "completed": contracts_completed,
+            "refill": contract_refill_ticks,
+            "last_clear_tick": contract_last_clear_tick,
+            "tends": tends_done,
+            "seedlings": seedlings_caught,
+        }
+    }
+
+
+def _load_contracts(data):
+    """Applies the validated ranger_contracts blob (a save without one keeps the fresh board)."""
+    global contracts_completed, contract_refill_ticks, contract_last_clear_tick
+    global contract_clear_count_seen, tends_done, seedlings_caught
+    contract_clear_count_seen = _total_clear_count()
+    raw = data.get("ranger_contracts")
+    if not isinstance(raw, dict) or current_challenge != CHALLENGE_NONE:
+        return
+    valid = {t[0] for t in CONTRACT_TYPES}
+    board = []
+    seen = set()
+    saved_board = raw.get("board")
+    for entry in saved_board if isinstance(saved_board, list) else []:
+        if not isinstance(entry, dict) or len(board) >= CONTRACT_SLOTS:
+            continue
+        type_id = entry.get("type")
+        if not isinstance(type_id, str) or type_id not in valid or type_id in seen:
+            continue
+        target = _number_or(entry.get("target"), None, 1, 100000)
+        if target is None:
+            continue
+        seen.add(type_id)
+        board.append({"type": type_id, "target": int(target), "base": int(_number_or(entry.get("base"), 0, 0, 10 ** 9))})
+    contract_board[:] = board
+    del contract_stamps[:]
+    saved_stamps = raw.get("stamps")
+    for type_id in saved_stamps if isinstance(saved_stamps, list) else []:
+        if isinstance(type_id, str) and type_id in valid and type_id not in contract_stamps:
+            contract_stamps.append(type_id)
+    contracts_completed = int(_number_or(raw.get("completed"), 0, 0, 10 ** 6))
+    contract_refill_ticks = int(_number_or(raw.get("refill"), 0, 0, CONTRACT_REFILL_TICKS))
+    contract_last_clear_tick = int(_number_or(raw.get("last_clear_tick"), 0, 0, 10 ** 9))
+    tends_done = int(_number_or(raw.get("tends"), 0, 0, 10 ** 9))
+    seedlings_caught = int(_number_or(raw.get("seedlings"), 0, 0, 10 ** 9))
+
+
+def _reset_gb2_state():
+    global challenge_complete_tick, contracts_completed, contract_refill_ticks
+    global contract_last_clear_tick, contract_clear_count_seen, tends_done, seedlings_caught
+    challenge_complete_tick = None
+    contracts_completed = 0
+    contract_refill_ticks = 0
+    contract_last_clear_tick = 0
+    contract_clear_count_seen = 0
+    tends_done = 0
+    seedlings_caught = 0
+    del contract_stamps[:]
+    del _announce_queue[:]
+    _fill_contract_board()
+
+
+def _gb2_state_fields():
+    out = {}
+    if current_challenge != CHALLENGE_NONE:
+        out["challenge"] = {"id": current_challenge, "done_tick": challenge_complete_tick}
+    if current_pace != PACE_NORMAL:
+        out["request_pace"] = current_pace
+    out.update(_contracts_state_fields())
+    return out
+
+
+def _load_gb2_state(data):
+    global challenge_complete_tick
+    if current_challenge != CHALLENGE_NONE:
+        saved = data.get("challenge")
+        done = saved.get("done_tick") if isinstance(saved, dict) else None
+        if isinstance(done, int) and not isinstance(done, bool) and done >= 0:
+            challenge_complete_tick = done
+    _load_contracts(data)
+
+
+def _saved_challenge_id(data):
+    saved = data.get("challenge")
+    cid = saved.get("id") if isinstance(saved, dict) else None
+    return cid if isinstance(cid, str) and cid in CHALLENGE_SPECS else CHALLENGE_NONE
+
+
+def _saved_pace(data):
+    pace = data.get("request_pace")
+    return pace if isinstance(pace, str) and pace in REQUEST_PACE_FACTOR else PACE_NORMAL
 
 
 # --- per-tick hook and state -------------------------------------------------------------------------------------------
@@ -4049,6 +4935,8 @@ def _gb_after_tick():
     _check_rare_wildlife()
     _check_heart_tree()
     _check_milestones()
+    _check_challenge()  # GB-17
+    _advance_contracts()  # GB-9
 
 
 def _reset_gb_state():
@@ -4075,6 +4963,7 @@ def _reset_gb_state():
     _recent_matures = []
     _pending_bloom.clear()
     _pending_golden_bursts.clear()
+    _reset_gb2_state()  # GB batch 2: challenge result, contract board
     _sync_name_inputs()
 
 
@@ -4105,6 +4994,7 @@ def _gb_state_fields():
             "cleared": season_cleared,
             "min_relations": low if low is not None else community_relations,
         }
+    out.update(_gb2_state_fields())
     return out
 
 
@@ -4163,6 +5053,7 @@ def _load_gb_state(data):
         season_cleared = saved_perfect.get("cleared") is True
         low = _number_or(saved_perfect.get("min_relations"), None, 0, 100)
         season_min_relations = int(low) if low is not None else None
+    _load_gb2_state(data)
     _sync_name_inputs()
 
 
@@ -4178,16 +5069,20 @@ def render():
     render_adopt_panel()
     render_specialist_panel()
     render_season_indicator()
+    render_season_forecast()
+    render_challenge_status()
     render_forest_title()
     render_tend_panel()
     render_undo_chip()
     render_almanac()
+    render_contracts()
     render_session_summary()
     render_highland_section()
     render_wetland_section()
     update_achievements_display()
     update_changelog_display()
     _sync_earned_and_toast()
+    render_announcer()  # B-7: last, so everything this render queued is spoken once
 
 
 def _make_select_handler(index):
@@ -4284,7 +5179,10 @@ def tick(event=None):
         # request() refusing to raise one forever because it sees a
         # (meaningless) request still pending.
         pending_stakeholder_request = None
+    had_request = pending_stakeholder_request is not None
     maybe_trigger_stakeholder_request()
+    if pending_stakeholder_request is not None and not had_request:
+        _announce("New community request. " + stakeholder_request_message())  # B-7
     _gb_after_tick()  # GB-2/4/8/20/22/30: timers, discoveries and tiers
     # B6: sampled *after* this tick's accrual/payout effects above, so each
     # point reflects the state the player actually saw land this tick,
@@ -4459,12 +5357,19 @@ def load_state(data):
     saved_difficulty = data.get("current_difficulty", DIFFICULTY_NORMAL)
     if saved_difficulty not in DEGRADE_PER_CLEAR_BY_DIFFICULTY:
         saved_difficulty = DIFFICULTY_NORMAL
+    saved_challenge = _saved_challenge_id(data)
+    saved_pace = _saved_pace(data)
     if (
         saved_grid_size != current_grid_size
         or saved_difficulty != current_difficulty
+        or saved_challenge != current_challenge
+        or saved_pace != current_pace
         or len(data.get("plots", [])) != len(plots)
     ):
-        reset_session(grid_size=saved_grid_size, _render_after=False, difficulty=saved_difficulty)
+        reset_session(
+            grid_size=saved_grid_size, _render_after=False, difficulty=saved_difficulty,
+            challenge=saved_challenge, pace=saved_pace,
+        )
 
     for plot, plot_data in zip(plots, data.get("plots", [])):
         _apply_plot_dict(plot, plot_data)
@@ -4622,6 +5527,10 @@ def setup():
     document.getElementById("difficulty-select").addEventListener(
         "change", create_proxy(on_difficulty_change)
     )
+    for element_id, handler in (("challenge-select", on_challenge_change), ("request-pace-select", on_pace_change)):
+        element = _el(element_id)  # GB-17 / B-6
+        if element is not None:
+            element.addEventListener("change", create_proxy(handler))
     document.getElementById("highland-clear-button").addEventListener(
         "click", create_proxy(on_highland_clear)
     )
@@ -4636,6 +5545,7 @@ def setup():
         ("tend-button", "click", on_tend),
         ("undo-clear-button", "click", undo_last_clear),
         ("almanac-toggle-button", "click", on_toggle_almanac),
+        ("contracts-toggle-button", "click", on_toggle_contracts),
         ("forest-name-input", "change", on_forest_name_change),
         ("plot-nickname-input", "change", on_plot_nickname_change),
     ):
@@ -4653,6 +5563,7 @@ def setup():
     toast = document.getElementById("achievement-toast")
     if toast is not None:
         toast.hidden = True
+    _fill_contract_board()  # GB-9: the module starts without a reset_session(), so seed the board here
     setInterval(create_proxy(tick), TICK_INTERVAL_MS)
     render()
 

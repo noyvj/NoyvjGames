@@ -91,7 +91,7 @@ def test_new_achievements_exist_with_labels_and_chapters():
         assert achievements[achievement_id]["label"] and achievements[achievement_id]["description"]
         assert len(chapters[achievement_id]["text"]) >= 60 and not any(ch.isdigit() for ch in chapters[achievement_id]["text"])
     assert "standing_fortune" in achievements  # the 1,000 tier already had one
-    assert len(achievements) == 24
+    assert len(achievements) == 28  # 24 + the four GB-17 challenge badges
 
 
 def test_achievements_are_earned_at_2500_5000_and_10000(game_env):
@@ -120,7 +120,7 @@ def test_tier_achievements_have_progress_and_a_story_link(game_env):
     summary = {a["id"]: a for a in m.achievements_summary()}
     current, target = summary["tier_grove"]["progress"]
     assert target == 2500 and 1250 <= current < 1400
-    assert m.ACHIEVEMENTS and len(m.ACHIEVEMENTS) == 24
+    assert m.ACHIEVEMENTS and len(m.ACHIEVEMENTS) == 28
 
 
 def test_save_round_trip_and_older_saves_do_not_celebrate(game_env):

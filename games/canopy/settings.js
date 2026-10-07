@@ -99,6 +99,72 @@
     return reduced;
   }
 
+  // B-8 / B-10 / B-26: three display options the game reads back from localStorage on every render
+  // (game.py's ui_pref()), so they are per-browser like the two above and never part of a save.
+  const PLOT_CONTRAST_KEY = "canopy-plot-contrast";
+  const SOIL_OVERLAY_KEY = "canopy-soil-overlay";
+  const NUMBER_FORMAT_KEY = "canopy-number-format";
+  const NUMBER_FORMATS = ["standard", "grouped", "compact", "precise"];
+  const DEFAULT_NUMBER_FORMAT = "standard";
+
+  function readFlag(key) {
+    try {
+      return window.localStorage.getItem(key) === "true";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function writeStored(key, value) {
+    try {
+      window.localStorage.setItem(key, String(value));
+    } catch (e) {
+      // Losing persistence isn't worth breaking the control.
+    }
+  }
+
+  function readNumberFormat() {
+    try {
+      const value = window.localStorage.getItem(NUMBER_FORMAT_KEY);
+      return NUMBER_FORMATS.indexOf(value) >= 0 ? value : DEFAULT_NUMBER_FORMAT;
+    } catch (e) {
+      return DEFAULT_NUMBER_FORMAT;
+    }
+  }
+
+  // Asks the game to redraw so a changed option shows at once instead of on the next tick.
+  function refreshGame() {
+    try {
+      if (window.pyodide && window.pyodide.globals) {
+        const render = window.pyodide.globals.get("render");
+        if (render) render();
+      }
+    } catch (e) {
+      // The game redraws every second anyway.
+    }
+  }
+
+  function applyPlotContrast(on) {
+    document.documentElement.setAttribute("data-plot-contrast", on ? "true" : "false");
+    writeStored(PLOT_CONTRAST_KEY, on);
+    refreshGame();
+    return on;
+  }
+
+  function applySoilOverlay(on) {
+    document.documentElement.setAttribute("data-soil-overlay", on ? "true" : "false");
+    writeStored(SOIL_OVERLAY_KEY, on);
+    refreshGame();
+    return on;
+  }
+
+  function applyNumberFormat(value) {
+    const format = NUMBER_FORMATS.indexOf(value) >= 0 ? value : DEFAULT_NUMBER_FORMAT;
+    writeStored(NUMBER_FORMAT_KEY, format);
+    refreshGame();
+    return format;
+  }
+
   function init() {
     let scale = readStoredScale();
     applyScale(scale);
@@ -114,6 +180,30 @@
 
     if (motionCheckbox) {
       motionCheckbox.checked = reduced;
+    }
+
+    const contrastCheckbox = document.getElementById("plot-contrast-checkbox");
+    const soilCheckbox = document.getElementById("soil-overlay-checkbox");
+    const formatSelect = document.getElementById("number-format-select");
+    document.documentElement.setAttribute("data-plot-contrast", readFlag(PLOT_CONTRAST_KEY) ? "true" : "false");
+    document.documentElement.setAttribute("data-soil-overlay", readFlag(SOIL_OVERLAY_KEY) ? "true" : "false");
+    if (contrastCheckbox) {
+      contrastCheckbox.checked = readFlag(PLOT_CONTRAST_KEY);
+      contrastCheckbox.addEventListener("change", function () {
+        applyPlotContrast(contrastCheckbox.checked);
+      });
+    }
+    if (soilCheckbox) {
+      soilCheckbox.checked = readFlag(SOIL_OVERLAY_KEY);
+      soilCheckbox.addEventListener("change", function () {
+        applySoilOverlay(soilCheckbox.checked);
+      });
+    }
+    if (formatSelect) {
+      formatSelect.value = readNumberFormat();
+      formatSelect.addEventListener("change", function () {
+        formatSelect.value = applyNumberFormat(formatSelect.value);
+      });
     }
 
     if (toggleButton && panel) {
@@ -150,6 +240,12 @@
         if (motionCheckbox) {
           motionCheckbox.checked = false;
         }
+        if (contrastCheckbox) contrastCheckbox.checked = false;
+        if (soilCheckbox) soilCheckbox.checked = false;
+        if (formatSelect) formatSelect.value = DEFAULT_NUMBER_FORMAT;
+        applyPlotContrast(false);
+        applySoilOverlay(false);
+        applyNumberFormat(DEFAULT_NUMBER_FORMAT);
       });
     }
   }
@@ -160,5 +256,5 @@
     init();
   }
 
-  window.CanopySettings = { applyScale: applyScale, applyMotion: applyMotion, MIN_SCALE: MIN_SCALE, MAX_SCALE: MAX_SCALE };
+  window.CanopySettings = { applyScale: applyScale, applyMotion: applyMotion, applyPlotContrast: applyPlotContrast, applySoilOverlay: applySoilOverlay, applyNumberFormat: applyNumberFormat, MIN_SCALE: MIN_SCALE, MAX_SCALE: MAX_SCALE };
 })();

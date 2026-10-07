@@ -2,6 +2,10 @@
   "changelog": [
     {
       "date": "2026-10-07",
+      "entry": "New: four challenge runs (Pacifist, Scorched Start, Sprint, No-Highland) each with a badge and a fastest-finish record; a Ranger contracts board with three open contracts, income rewards, ranks and ten collectable stamps; a forecast line showing the next two seasons and the next rain or drought; a Request pace choice (relaxed, normal, frequent); a two-line plot card with age, biodiversity rate and clear count; C and R keys to clear or replant the selected plot, a thicker gold cursor ring and a screen-reader announcer; and in Settings, high-contrast plots (B / G / M / R letters and bold borders), a soil quality overlay and a number format choice."
+    },
+    {
+      "date": "2026-10-07",
       "entry": "Fixes from player reports: on a phone the action buttons now sit in one compact row at the bottom (a ... button unfolds the tend hint and forest name) so the forest grid is no longer buried under pinned panels; the arrow keys move between plots again and keep their place from one second to the next; Reset Session now opens a clear Cancel / Reset session dialog (Esc cancels) instead of needing a quick second press; and on the Desktop layout the side column fits without scrolling, with the forest summary, the forest picture and Name your forest moved into the Menu."
     },
     {
