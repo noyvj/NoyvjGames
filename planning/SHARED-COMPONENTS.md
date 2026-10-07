@@ -281,3 +281,151 @@ Seven small shared pieces that every game page (Classic `index.html` and the gen
 | `info-footer.js` (Z-29) | Footer in `#howto-panel` and `#info-page-panel`: `NoyvjGames · <game> · updated <newest changelog date> · [seed] · <site URL>`. | Re-added if the game rewrites the panel. Shows a seed once a game exposes `window.NoyvjSeed.current()` or `window.NOYVJ_SEED` (Z-1). |
 
 Not yet wired: Le Champ de Mots (another session edits `games/champ-de-mots/index.html`). The test lists its two pages as an expected failure until `scripts/wire-shared-includes.py` and a Desktop regeneration have been run for it.
+
+---
+
+## 5. Seeded runs and the daily seed (`shared/seed.py`, `shared/seed.js`, TODO Z-1 and Z-5)
+
+One short seed string drives a whole run, the same in Python (Pyodide or CPython) and in JavaScript. Tests: `shared/tests/test_seed.py` (pinned values, ranges, parsing) and `shared/tests/test_seed_browser.py` (the two languages agree on 247 seeds across every draw type, on a daily seed for every day of 2026 and 2027, and on 900+ parsing cases; plus the UI helpers). **A deliberate change to the algorithm must bump `ALGORITHM_VERSION` and re-pin the values in both tests**, because every shared seed would otherwise change meaning.
+
+### The seed string
+
+`TIDE-K7F2Q`: a prefix, a dash, five characters. The prefix is the game slug upper-cased with everything that is not a letter or digit removed (`trade-empire` becomes `TRADEEMPIRE`, 2 to 12 characters). The five characters come from `23456789ABCDEFGHJKMNPQRSTUVWXYZ` (31 symbols, no `0 1 I L O`), so a seed read aloud or copied by eye is hard to get wrong. `normalize(text, game?)` forgives case, spaces, odd dashes and underscores, a missing dash (`tidek7f2q`) and, when a game is named, a bare code (`k7f2q`). `validate(text, game?)` returns `{ok, seed, error, message}` with `error` one of `""`, `"empty"`, `"format"`, `"wrong-game"`; the messages are ready to show.
+
+### The generator
+
+splitmix64 started from the FNV-1a 64 hash of the seed text (the same construction as `games/chronicle/puzzle.py`). JavaScript uses BigInt so it is exact. Nothing uses `random`, the clock or the platform.
+
+| Python (`seed.Rng(seed)`) | JavaScript (`NoyvjSeed.rng(seed)`) | notes |
+|---|---|---|
+| `next()` | `next()` | 64-bit unsigned (a JS BigInt) |
+| `below(n)` | `below(n)` | unbiased integer in `[0, n)` |
+| `random()` | `random()` | float in `[0, 1)` with 53 bits, identical in both |
+| `randint(a, b)` | `randint(a, b)` | both ends included |
+| `uniform(a, b)`, `chance(p)` | same | |
+| `choice(items)` | `choice(items)` | empty list raises |
+| `shuffle(items)` / `shuffled(items)` | same | `shuffle` works in place and returns the list; `shuffled` copies |
+| `sample(items, k)` | `sample(items, k)` | without replacement, in draw order |
+| `weighted_choice(items, weights)` | `weightedChoice(items, weights)` | |
+| `fork(label)` | `fork(label)` | an independent stream that depends only on seed and label, so adding a draw in one place does not shift another system |
+| `get_state()` / `set_state(s)` | `getState()` / `setState(s)` | the position as a decimal string, for saving a run mid-way |
+
+Module functions: `new_seed(game, entropy=None)` / `newSeed(game, entropy?)` (OS or `crypto` randomness; `entropy` is a function `n -> int below n`, or any object with `below(n)`, so a test can fix it), `daily_seed(game, date)` / `dailySeed(game, date)`, `prefix_for`, `example`, `normalize`, `validate`, `is_valid`. The JavaScript object also has the snake_case aliases `new_seed` and `daily_seed`.
+
+### Using it in a game
+
+**Python game (the usual case):** write the module into Pyodide's file system the way the games already do for `info_page.py`, then route every draw through one `Rng`:
+
+```js
+const seedSource = await (await fetch("../../shared/seed.py")).text();
+pyodide.FS.writeFile("seed.py", seedSource, { encoding: "utf8" });
+```
+
+```python
+import seed as noyvj_seed
+run_seed = noyvj_seed.new_seed("tide")            # or the seed the player typed, or a daily seed
+rng = noyvj_seed.Rng(run_seed)
+weather = rng.fork("weather")                     # one stream per system
+storms = [rng.randint(1, 6) for _ in range(5)]
+state["seed"] = run_seed                          # keep it in the save so a resumed run can say it
+state["rng_state"] = rng.get_state()              # optional: resume the stream exactly where it was
+```
+
+Tell the page which seed is live so the info footer shows it: `window.NoyvjSeed.set(run_seed)` (from Python: `from js import window; window.NoyvjSeed.set(run_seed)`). `window.NoyvjSeed.current()` returns it and is what `shared/info-footer.js` reads; it emits a `noyvj-seed-change` event on `document`. Nothing is stored by the module: the game keeps the seed in its own save.
+
+**Run-end screen, "copy seed" (a few lines):**
+
+```html
+<div id="run-end-seed"></div>
+<script src="../../shared/seed.js"></script>
+```
+
+```js
+const copyBox = NoyvjSeed.mountCopy("#run-end-seed", { seed: runSeed });   // later: copyBox.update(nextSeed)
+```
+
+**New-game screen, "start from seed" field:**
+
+```js
+NoyvjSeed.mountStart("#new-game-seed", { game: "tide", onStart: (seed) => startRun(seed) });
+```
+
+`mountStart` validates (a bad seed is explained in text with a leading "!" and a dashed border, and focus returns to the field), accepts a loose entry such as `k7f2q`, sets `NoyvjSeed.current()` and calls `onStart(seed, {fromUser: true})`. A "Random seed" button fills the box (`random: false` hides it). `NoyvjSeed.fromUrl(game)` returns a valid `?seed=` from the address, for a shared link (Z-2 builds on that).
+
+Both helpers: a labelled group or form, a live status region (`role="status"` / `role="alert"`), buttons and the field at least 44 px high, glyph plus words for every state (`✓ Copied TIDE-K7F2Q`, `! That is not a seed...`), `--ns-*` colour tokens that follow `html[data-theme="light"]` and the OS preference, no transitions under reduced motion (`prefers-reduced-motion` or `html[data-reduced-motion="true"]`), and when the clipboard is refused a selected read-only box with "press Ctrl+C". All text is written with `textContent`.
+
+### Daily seed and "Today's run" (Z-5)
+
+`daily_seed(game, "2026-10-08")` is the one seed everybody gets that UTC day, derived only from the date string and the game (`TIDE-X54PB` for Tide on 2026-10-08), so it needs no server. It is an ordinary seed: it validates, goes into `Rng`, and can be copied.
+
+```js
+const daily = NoyvjSeed.daily.mountButton("#start-screen-daily", {
+  game: "tide", onStart: (seed, info) => startRun(seed, { daily: true }),   // info = {daily: true, date}
+});
+// when a run ends: if (NoyvjSeed.daily.isDaily("tide", runSeed)) NoyvjSeed.daily.markCompleted("tide", { score: 4210, text: "4,210 pts" });
+```
+
+The button reads "Play today's run" and, once done, "↻ Play today's run again" with "✓ Today's run done" (solid border versus dashed when open), the seed, the UTC date, and a kind streak line ("3 days in a row, best 5" or "Best streak 5: a new one starts whenever you like": nothing is ever described as lost).
+
+**Storage the hub will read:** `localStorage["noyvj-daily-v1"]`, per browser:
+
+```json
+{ "version": 1,
+  "date": "2026-10-08",
+  "runs":    { "tide": { "seed": "TIDE-X54PB", "completed_at": "2026-10-08T14:03:00.000Z", "score": 4210, "text": "4,210 pts" } },
+  "streaks": { "tide": { "count": 3, "best": 5, "last": "2026-10-08" } } }
+```
+
+`date` is the UTC date the `runs` belong to: a reader on a later day must treat `runs` as empty (`NoyvjSeed.daily.read()` does, and the next write replaces it). `streaks[game].last` is the most recent UTC date a daily was completed; the streak is alive while `last` is today or yesterday, and `daily.streak(game)` returns `{count, best, last, doneToday}` with `count` 0 once it lapsed. A completion counts once per day (`markCompleted` returns the stored run, or `null` when already recorded or storage is blocked) and fires `noyvj-daily-change` on `document`. Game ids are the slugs (`/^[a-z0-9-]{1,40}$/`); anything malformed in storage is ignored. A hub Today strip only needs `JSON.parse(localStorage.getItem("noyvj-daily-v1"))`, the date check above and the slug list. The helper never calls the network; a leaderboard post (`NoyvjLeaderboard.report`) is the game's separate choice.
+
+Not built here: the hub strip itself, the per-game wiring, and Z-2 challenge links.
+
+---
+
+## 6. Rarity labels and hidden achievements (`shared/achievement-stats.js`, TODO Z-15)
+
+The existing "Earned by N% of players" line is unchanged. Added, with no change to any game's markup:
+
+- **Rarity label** under the percentage: `★ Gold · rare`, `◆ Silver · uncommon`, `● Bronze · common` (rarer is better). Text, a shape and a border style (double, dashed, dotted) carry the meaning, never colour alone; the label has its own opaque background and text colour, so it stays legible on any game's panel in light and dark.
+- **Thresholds are in one place**: `RARITY_THRESHOLDS = { gold: 10, silver: 35 }` at the top of the file's script (a label applies when `earned_pct` is at or below the number, rarest first; above 35 is Bronze). `NoyvjAchievementStats.setRarityThresholds({gold, silver})` changes them at runtime (returns false for nonsense such as `silver <= gold`). The percentages are live, so the labels move as players arrive.
+- **Suppressed when the percentage is**: no label while the game's response is `suppressed`, or when an achievement id is missing from the response (too few players), or when the fetch failed. Never a guess, never 0%.
+- **Hidden achievements.** A row counts as hidden when its element has `data-achievement-hidden="true"` or its id was registered with `NoyvjAchievementStats.registerCatalog(list)` (an `achievements.json` array whose entries may carry `"hidden": true`). While it is not earned (a class ending in `earned`, such as `achievement-card--earned` or Le Champ de Mots' `achievement-earned`, or `data-achievement-earned="true"`), its `.achievement-card-description` (or `[data-achievement-description]`) shows `???`; the label stays visible. Masking runs synchronously inside `applyAchievementStats()`, before the first paint and whether or not stats load; after a row is earned the next `applyAchievementStats()` (or `NoyvjAchievementStats.maskHidden(panel)`) restores the real text. No game has a hidden achievement yet: to add one, set `"hidden": true` in that game's `achievements.json` and have its achievements panel write `data-achievement-hidden="true"` on the row (or call `registerCatalog` once after loading the json).
+
+Other exports on `window.NoyvjAchievementStats`: `rarityFor(pct)`, `RARITY_INFO`, `getStats(gameId)` (per-game cache, 60 s), `peek(gameId)`, `earnedPct(data, id)`, `statTextFor`, `isHiddenRow`, `isEarnedRow`. Every existing consumer is unchanged: every game that includes the script still calls `window.applyAchievementStats()` from their own panel code, and the `.achievement-earn-rate` line, its text and its once-per-row guard are the same. Tests: `shared/tests/test_achievement_stats_browser.py` (mocked endpoint).
+
+---
+
+## 7. Copy result (`shared/copy-result.js`, TODO Z-20)
+
+One helper formats a Wordle-style result and copies it. Signal keeps its own share text and does not use this. Tests: `shared/tests/test_copy_result_browser.py`.
+
+```html
+<div id="run-end-copy"></div>
+<script src="../../shared/copy-result.js" data-game-id="tide"></script>
+```
+
+```js
+NoyvjCopyResult.mountButton("#run-end-copy", {
+  getResult: () => ({                       // called on every click, so it can read the finished run
+    game: "Tide", score: finalScore, unit: "pts",
+    stats: [{ n: stormsSurvived, one: "storm survived", many: "storms survived" }],
+    seed: runSeed,                          // optional: the "(seed ...)" tail appears only when this is a non-empty string
+  }),
+});
+// -> "Tide, 4,210 pts, 3 storms survived (seed TIDE-K7F2Q)"
+```
+
+Fields: `game`, `score` (a number gets thousands separators; a string is used as is), `unit`, `stats` (strings, numbers, or `{n, one, many}` for the singular/plural), `seed`, `withSeed: true` (use `NoyvjSeed.current()` when `shared/seed.js` is loaded), `link: true` (adds a second line with the game's address, from `data-game-id` on the script tag) or a string. The line is flattened to one line, capped at 240 characters and is plain text. Also `NoyvjCopyResult.format(fields)`, `plural(n, one, many)`, `copy(text)`; `mountButton` returns `{update(fields), copy(), destroy()}`. The button is 44 px high, announces `✓ Copied: <line>` in a polite live region, and if the clipboard refuses shows the text in a selected read-only box with "press Ctrl+C". `label` and `onCopy` are options. Wiring each game's end screen is a later step: one `mountButton` call plus the three or four fields each game already has on that screen (every practice or minigame result should still feed a visible stat).
+
+---
+
+## 8. Achievement share (`shared/achievement-share.js`, TODO Z-27)
+
+Copies `I earned Cleanup Crew in Tide, 12.5% of players have it` and, on the next line, the game's link, using the live `earned_pct`. While the game is suppressed, the achievement has too few earners, or the request failed, the percentage is left out (`I earned Cleanup Crew in Tide`): never a guess, never 0%. Tests: `shared/tests/test_achievement_share_browser.py` (mocked endpoint).
+
+```html
+<script src="../../shared/achievement-stats.js" data-game-id="tide"></script>   <!-- optional: shares its cache -->
+<script src="../../shared/achievement-share.js" data-game-id="tide" data-game-name="Tide"></script>
+```
+
+With `data-game-id` present nothing else is needed: a Share button is added to every **earned** row of `#achievements-panel` (rows with `data-achievement-id` and an earned class, as the games already render them), and kept there when the game rebuilds the panel. Without it, call `NoyvjAchievementShare.mountButton(container, {game, gameName, achievementId, label})`, or `share(opts)` (copies now, resolves `{ok, text}`) or the pure `text({label, gameName, game, earnedPct, url})`. The stats are prefetched when a button mounts, so the click copies immediately inside the user gesture; a click made before they arrive waits at most 1.5 s. The link comes from where the script was loaded (`../games/<game>/`). If the clipboard refuses, a selected read-only box appears. Buttons are 44 px high, labelled `Share: <achievement>`, with a polite status line, light and dark tokens and no transitions under reduced motion. Not yet added to any game page (the game pages need the one extra script tag; `sw.js` precache and `SW_VERSION` are the main session's call).
